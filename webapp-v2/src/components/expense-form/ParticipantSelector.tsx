@@ -1,4 +1,5 @@
 import { getGroupDisplayName } from '@/utils/displayName';
+import { UserId, toUserId } from '@billsplit-wl/shared';
 import { useTranslation } from 'react-i18next';
 import { Avatar, Button, Card } from '../ui';
 import { Stack } from '../ui/Stack';
@@ -14,7 +15,7 @@ interface ParticipantSelectorProps { // todo: strong these be strongly typed?
     participants: string[];
     paidBy: string;
     validationErrors: any;
-    handleParticipantToggle: (memberId: string) => void;
+    handleParticipantToggle: (memberId: UserId) => void;
     handleSelectAll: () => void;
     handleSelectNone: () => void;
 }
@@ -61,12 +62,12 @@ export function ParticipantSelector({ members, participants, paidBy, validationE
                                 <input
                                     type='checkbox'
                                     checked={isSelected}
-                                    onChange={() => handleParticipantToggle(member.uid)}
+                                    onChange={() => handleParticipantToggle(toUserId(member.uid))}
                                     disabled={isPayer}
                                     className='text-interactive-primary focus:ring-interactive-primary disabled:opacity-50'
                                     autoComplete='off'
                                 />
-                                <Avatar displayName={getGroupDisplayName(member)} userId={member.uid} size='sm' />
+                                <Avatar displayName={getGroupDisplayName(member)} userId={toUserId(member.uid)} size='sm' />
                                 <span className='text-sm font-medium text-text-primary flex-1'>
                                     {getGroupDisplayName(member)}
                                     {isPayer && <span className='text-semantic-success ml-1'>{t('expenseComponents.participantSelector.payerSuffix')}</span>}

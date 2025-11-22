@@ -1,4 +1,4 @@
-import { AppConfiguration, EnvironmentConfig, FirebaseConfig, TenantConfig } from '@billsplit-wl/shared';
+import { AppConfiguration, EnvironmentConfig, FirebaseConfig, TenantConfig, toEmail } from '@billsplit-wl/shared';
 import { DisplayName } from '@billsplit-wl/shared';
 import type { Email } from '@billsplit-wl/shared';
 import { toDisplayName } from '@billsplit-wl/shared';
@@ -123,7 +123,7 @@ function buildConfig(): ClientConfig {
         },
         formDefaults: {
             displayName: toDisplayName(isProduction ? '' : 'test'),
-            email: env.DEV_FORM_EMAIL ?? '',
+            email: toEmail(env.DEV_FORM_EMAIL ?? ''),
             password: env.DEV_FORM_PASSWORD ?? '',
         },
         warningBanner: env.WARNING_BANNER ?? '',

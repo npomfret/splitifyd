@@ -106,7 +106,7 @@ class ClientPermissionEngine {
  * Reactive permissions store for frontend
  */
 class PermissionsStore {
-    private currentUserId: string | null = null;
+    private currentUserId: UserId | null = null;
     private currentGroup: GroupDTO | null = null;
     private currentMembers: GroupMember[] = [];
     private cache = new PermissionCache();

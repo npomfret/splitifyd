@@ -1,6 +1,6 @@
 import type { ActivityFeedRealtimeConsumer, ActivityFeedRealtimePayload, ActivityFeedRealtimeService } from '@/app/services/activity-feed-realtime-service';
 import { ActivityFeedStoreImpl } from '@/app/stores/activity-feed-store';
-import { type ActivityFeedItem, type ActivityFeedResponse, toGroupId, toGroupName } from '@billsplit-wl/shared';
+import { type ActivityFeedItem, type ActivityFeedResponse, type UserId, toGroupId, toGroupName, toUserId } from '@billsplit-wl/shared';
 import { ActivityFeedItemBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
@@ -34,7 +34,7 @@ function buildItem(id: string, minutes: number, overrides?: Partial<ActivityFeed
     const baseItem = ActivityFeedItemBuilder
         .create()
         .withId(id)
-        .withUserId('user-1')
+        .withUserId(toUserId('user-1'))
         .withGroupId(toGroupId('group-1'))
         .withGroupName(toGroupName('Brunch Buddies'))
         .withActorName('Ada Lovelace')
@@ -49,7 +49,7 @@ function buildItem(id: string, minutes: number, overrides?: Partial<ActivityFeed
 }
 
 class ActivityFeedRealtimeServiceStub {
-    public registerConsumer = vi.fn(async (_id: string, _userId: string | null, consumer: ActivityFeedRealtimeConsumer) => {
+    public registerConsumer = vi.fn(async (_id: string, _userId: UserId | null, consumer: ActivityFeedRealtimeConsumer) => {
         this.consumer = consumer;
     });
 
@@ -157,12 +157,12 @@ describe('ActivityFeedStoreImpl', () => {
                 nextCursor: undefined,
             });
 
-            await store.registerComponent('comp-1', 'user-1');
+            await store.registerComponent('comp-1', toUserId('user-1'));
 
             expect(realtimeStub.registerConsumer).toHaveBeenCalledTimes(1);
             expect(realtimeStub.registerConsumer).toHaveBeenCalledWith(
                 'activity-feed-store',
-                'user-1',
+                toUserId('user-1'),
                 expect.objectContaining({ onUpdate: expect.any(Function) }),
             );
             expect(mockedApiClient.getActivityFeed).toHaveBeenCalledTimes(1);
@@ -178,8 +178,8 @@ describe('ActivityFeedStoreImpl', () => {
                 nextCursor: undefined,
             });
 
-            await store.registerComponent('comp-1', 'user-1');
-            await store.registerComponent('comp-2', 'user-1');
+            await store.registerComponent('comp-1', toUserId('user-1'));
+            await store.registerComponent('comp-2', toUserId('user-1'));
 
             expect(realtimeStub.registerConsumer).toHaveBeenCalledTimes(1);
             expect(mockedApiClient.getActivityFeed).toHaveBeenCalledTimes(1);
@@ -193,8 +193,8 @@ describe('ActivityFeedStoreImpl', () => {
                 nextCursor: undefined,
             });
 
-            await store.registerComponent('comp-1', 'user-1');
-            await store.registerComponent('comp-2', 'user-1');
+            await store.registerComponent('comp-1', toUserId('user-1'));
+            await store.registerComponent('comp-2', toUserId('user-1'));
 
             store.deregisterComponent('comp-1');
             store.deregisterComponent('comp-2');
@@ -208,7 +208,7 @@ describe('ActivityFeedStoreImpl', () => {
             const error = new Error('Network error');
             mockedApiClient.getActivityFeed.mockRejectedValue(error);
 
-            await expect(store.registerComponent('comp-1', 'user-1')).rejects.toThrow('Network error');
+            await expect(store.registerComponent('comp-1', toUserId('user-1'))).rejects.toThrow('Network error');
 
             expect(store.error).toBe('Network error');
             expect(store.initialized).toBe(false);
@@ -225,7 +225,7 @@ describe('ActivityFeedStoreImpl', () => {
                 })
                 .mockRejectedValueOnce(new Error('Load more failed'));
 
-            await store.registerComponent('comp-1', 'user-1');
+            await store.registerComponent('comp-1', toUserId('user-1'));
 
             await store.loadMore();
 
@@ -239,7 +239,7 @@ describe('ActivityFeedStoreImpl', () => {
                 .mockRejectedValueOnce(new Error('First attempt failed'))
                 .mockResolvedValueOnce({ items: [buildItem('1', 1)], hasMore: false, nextCursor: undefined });
 
-            await expect(store.registerComponent('comp-1', 'user-1')).rejects.toThrow('First attempt failed');
+            await expect(store.registerComponent('comp-1', toUserId('user-1'))).rejects.toThrow('First attempt failed');
 
             expect(store.error).toBe('First attempt failed');
             expect(store.initialized).toBe(false);
@@ -255,7 +255,7 @@ describe('ActivityFeedStoreImpl', () => {
                 nextCursor: '1',
             });
 
-            await store.registerComponent('comp-1', 'user-1');
+            await store.registerComponent('comp-1', toUserId('user-1'));
 
             const loadMore1 = store.loadMore();
             const loadMore2 = store.loadMore();
@@ -273,7 +273,7 @@ describe('ActivityFeedStoreImpl', () => {
                 nextCursor: undefined,
             });
 
-            await store.registerComponent('comp-1', 'user-1');
+            await store.registerComponent('comp-1', toUserId('user-1'));
 
             await store.loadMore();
 
@@ -288,7 +288,7 @@ describe('ActivityFeedStoreImpl', () => {
                 nextCursor: undefined,
             });
 
-            await store.registerComponent('comp-1', 'user-1');
+            await store.registerComponent('comp-1', toUserId('user-1'));
 
             await store.loadMore();
 
@@ -304,7 +304,7 @@ describe('ActivityFeedStoreImpl', () => {
                 nextCursor: undefined,
             });
 
-            await store.registerComponent('comp-1', 'user-1');
+            await store.registerComponent('comp-1', toUserId('user-1'));
 
             expect(store.items).toEqual([]);
             expect(store.initialized).toBe(true);
@@ -335,7 +335,7 @@ describe('ActivityFeedStoreImpl', () => {
                 nextCursor: '1',
             });
 
-            await store.registerComponent('comp-1', 'user-1');
+            await store.registerComponent('comp-1', toUserId('user-1'));
 
             store.reset();
 

@@ -1,5 +1,5 @@
 import { StubStorage } from '@billsplit-wl/test-support';
-import { toGroupId } from '@billsplit-wl/shared';
+import { toGroupId, toUserId } from '@billsplit-wl/shared';
 import { toDisplayName } from '@billsplit-wl/shared';
 import { toTenantAppName, toTenantDomainName, toTenantFaviconUrl, toTenantId, toTenantLogoUrl, toTenantPrimaryColor, toTenantSecondaryColor } from '@billsplit-wl/shared';
 import { GroupDTOBuilder, GroupMemberDocumentBuilder, TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
@@ -26,14 +26,14 @@ describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
 
     describe('updateGroupMemberDisplayName', () => {
         const groupId = toGroupId('test-group');
-        const userId = 'test-user';
+        const userId = toUserId('test-user');
         const newDisplayName = toDisplayName('Updated Display Name');
 
         beforeEach(() => {
             // Set up test group
             const testGroup = new GroupDTOBuilder()
                 .withId(groupId)
-                .withCreatedBy('owner-id')
+                .withCreatedBy(toUserId('owner-id'))
                 .build();
             db.seedGroup(groupId, testGroup);
 
@@ -71,7 +71,7 @@ describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
         });
 
         it('should throw NOT_FOUND when member document does not exist', async () => {
-            const nonExistentUserId = 'nonexistent-user';
+            const nonExistentUserId = toUserId('nonexistent-user');
 
             // Act & Assert
             let caughtError: ApiError | undefined;

@@ -480,7 +480,7 @@ export const ActivityFeedItemSchema = z.object({
     groupName: z.string().transform(toGroupName),
     eventType: ActivityFeedEventTypeSchema,
     action: ActivityFeedActionSchema,
-    actorId: z.string(),
+    actorId: z.string().transform((value) => value as UserId),
     actorName: z.string(),
     timestamp: z.string().datetime().transform(toISOString),
     details: ActivityFeedItemDetailsSchema,

@@ -54,7 +54,7 @@ interface ValidatedUpdateUserRequest extends UpdateRequest {
     emailVerified?: boolean;
     disabled?: boolean;
 }
-import { DisplayName } from '@billsplit-wl/shared';
+import {DisplayName, UserId} from '@billsplit-wl/shared';
 import type { Email } from '@billsplit-wl/shared';
 import { HTTP_STATUS } from '../../constants';
 import { logger } from '../../logger';
@@ -230,7 +230,7 @@ export class FirebaseAuthService implements IAuthService {
         );
     }
 
-    async getUser(uid: string): Promise<UserRecord | null> {
+    async getUser(uid: UserId): Promise<UserRecord | null> {
         const context = this.createContext('getUser', uid);
 
         // Validate input if enabled
@@ -259,7 +259,7 @@ export class FirebaseAuthService implements IAuthService {
         );
     }
 
-    async getUserByEmail(email: string): Promise<UserRecord | null> {
+    async getUserByEmail(email: Email): Promise<UserRecord | null> {
         const context = this.createContext('getUserByEmail');
 
         const validatedEmail = this.enableValidation ? validateEmailAddress(email) : email;

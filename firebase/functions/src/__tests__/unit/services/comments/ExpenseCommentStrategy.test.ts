@@ -1,4 +1,4 @@
-import { toGroupId } from '@billsplit-wl/shared';
+import { toGroupId, toUserId } from '@billsplit-wl/shared';
 import { toExpenseId } from '@billsplit-wl/shared';
 import { TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
 import { ExpenseDTOBuilder, GroupDTOBuilder, GroupMemberDocumentBuilder } from '@billsplit-wl/test-support';
@@ -11,6 +11,8 @@ import { FirestoreReader } from '../../../../services/firestore';
 import { FirestoreWriter } from '../../../../services/firestore';
 import { GroupMemberService } from '../../../../services/GroupMemberService';
 import { ApiError } from '../../../../utils/errors';
+
+const userId1 = toUserId('user-id');
 
 describe('ExpenseCommentStrategy', () => {
     let strategy: ExpenseCommentStrategy;
@@ -40,7 +42,7 @@ describe('ExpenseCommentStrategy', () => {
             // Arrange
             const expenseId = toExpenseId('test-expense');
             const groupId = toGroupId('test-group');
-            const userId = 'user-id';
+            const userId = userId1;
 
             const testExpense = new ExpenseDTOBuilder()
                 .withExpenseId(expenseId)
@@ -71,7 +73,7 @@ describe('ExpenseCommentStrategy', () => {
 
             // Act
             const error = (await strategy
-                .verifyAccess(toExpenseId('nonexistent-expense'), 'user-id')
+                .verifyAccess(toExpenseId('nonexistent-expense'), userId1)
                 .catch((e: ApiError) => e)) as ApiError;
 
             // Assert
@@ -84,7 +86,7 @@ describe('ExpenseCommentStrategy', () => {
             // Arrange
             const expenseId = toExpenseId('deleted-expense');
             const groupId = 'test-group';
-            const userId = 'user-id';
+            const userId = userId1;
 
             const deletedExpense = new ExpenseDTOBuilder()
                 .withExpenseId(expenseId)
@@ -112,7 +114,7 @@ describe('ExpenseCommentStrategy', () => {
             // Arrange
             const expenseId = toExpenseId('test-expense');
             const groupId = 'nonexistent-group';
-            const userId = 'user-id';
+            const userId = userId1;
 
             const testExpense = new ExpenseDTOBuilder()
                 .withExpenseId(expenseId)
@@ -135,7 +137,7 @@ describe('ExpenseCommentStrategy', () => {
             // Arrange
             const expenseId = toExpenseId('test-expense');
             const groupId = toGroupId('test-group');
-            const userId = 'unauthorized-user';
+            const userId = toUserId('unauthorized-user');
 
             const testExpense = new ExpenseDTOBuilder()
                 .withExpenseId(expenseId)

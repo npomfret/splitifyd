@@ -12,7 +12,7 @@
  * WARNING: This grants full admin access to the user. Use with caution in production.
  */
 
-import { SystemUserRoles, UserId } from '@billsplit-wl/shared';
+import { SystemUserRoles, toUserId, UserId } from '@billsplit-wl/shared';
 import * as admin from 'firebase-admin';
 import { Firestore } from 'firebase-admin/firestore';
 import { FirestoreCollections } from '../functions/src/constants';
@@ -69,14 +69,14 @@ async function initializeAppServices() {
  * Resolve user identifier to userId
  * Accepts either a userId directly or an email address
  */
-async function resolveUserId(identifier: string): Promise<string> {
+async function resolveUserId(identifier: string): Promise<UserId> {
     // Check if it looks like an email (contains @)
     if (identifier.includes('@')) {
         console.log(`📧 Resolving email ${identifier} to userId...`);
         try {
             const userRecord = await admin.auth().getUserByEmail(identifier);
             console.log(`✅ Found user: ${userRecord.uid}`);
-            return userRecord.uid;
+            return toUserId(userRecord.uid);
         } catch (error) {
             throw new Error(`Failed to find user with email ${identifier}: ${(error as Error).message}`);
         }
@@ -84,7 +84,7 @@ async function resolveUserId(identifier: string): Promise<string> {
 
     // Assume it's already a userId
     console.log(`🔑 Using provided userId: ${identifier}`);
-    return identifier;
+    return toUserId(identifier);
 }
 
 /**

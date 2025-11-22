@@ -1,4 +1,5 @@
 import { ClientUserBuilder, LoginPage, RegisterPage, TEST_TIMEOUTS } from '@billsplit-wl/test-support';
+import { toEmail } from '@billsplit-wl/shared';
 import { expect, test } from '../../utils/console-logging-fixture';
 
 test.describe('Registration Navigation Flows', () => {
@@ -63,7 +64,7 @@ test.describe('Registration Success Navigation', () => {
         const testUser = ClientUserBuilder
             .validUser()
             .withDisplayName('New User')
-            .withEmail('newuser@example.com')
+            .withEmail(toEmail('newuser@example.com'))
             .build();
         const registerPage = new RegisterPage(page);
 
@@ -151,12 +152,12 @@ test.describe('Registration Page State Persistence', () => {
 
         // Fill form partially
         await registerPage.fillName('Jane Doe');
-        await registerPage.fillEmail('jane@example.com');
+        await registerPage.fillEmail(toEmail('jane@example.com'));
         await registerPage.fillPassword('Password1234');
 
         // Verify state is maintained
         await registerPage.verifyNameInputValue('Jane Doe');
-        await registerPage.verifyEmailInputValue('jane@example.com');
+        await registerPage.verifyEmailInputValue(toEmail('jane@example.com'));
         await registerPage.verifyPasswordInputValue('Password1234');
 
         // Continue filling
@@ -165,7 +166,7 @@ test.describe('Registration Page State Persistence', () => {
 
         // All values should still be present
         await registerPage.verifyNameInputValue('Jane Doe');
-        await registerPage.verifyEmailInputValue('jane@example.com');
+        await registerPage.verifyEmailInputValue(toEmail('jane@example.com'));
         await registerPage.verifyPasswordInputValue('Password1234');
         await registerPage.verifyConfirmPasswordInputValue('Password1234');
     });
@@ -225,7 +226,7 @@ test.describe('Registration Page Error Recovery', () => {
         });
 
         // Attempt registration with mismatched passwords
-        await registerPage.registerExpectingFailure('John Doe', 'john@example.com', 'Password1234', 'DifferentPassword');
+        await registerPage.registerExpectingFailure('John Doe', toEmail('john@example.com'), 'Password1234', 'DifferentPassword');
 
         // Should remain on register page
         await expect(page).toHaveURL(/\/register/);
@@ -246,7 +247,7 @@ test.describe('Registration Page Error Recovery', () => {
         });
 
         // Attempt registration
-        await registerPage.registerExpectingFailure('John Doe', 'john@example.com', 'Password1234');
+        await registerPage.registerExpectingFailure('John Doe', toEmail('john@example.com'), 'Password1234');
 
         // Should remain on register page
         await expect(page).toHaveURL(/\/register/);
@@ -269,7 +270,7 @@ test.describe('Registration Page Error Recovery', () => {
             message: 'Email already registered.',
         });
 
-        await registerPage.registerExpectingFailure('John Doe', 'existing@example.com', 'Password1234');
+        await registerPage.registerExpectingFailure('John Doe', toEmail('existing@example.com'), 'Password1234');
 
         // Verify error
         await registerPage.verifyErrorMessage('Email already registered.');
@@ -278,12 +279,12 @@ test.describe('Registration Page Error Recovery', () => {
         const testUser = ClientUserBuilder
             .validUser()
             .withDisplayName('John Doe')
-            .withEmail('newemail@example.com')
+            .withEmail(toEmail('newemail@example.com'))
             .build();
         await mockFirebase.mockRegisterSuccess(testUser);
 
         // Retry with different email (passwords must be re-entered after security fix removed persistence)
-        await registerPage.fillEmail('newemail@example.com');
+        await registerPage.fillEmail(toEmail('newemail@example.com'));
         await registerPage.fillPassword('Password1234');
         await registerPage.fillConfirmPassword('Password1234');
         await registerPage.submitForm();

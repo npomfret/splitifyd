@@ -1,5 +1,5 @@
 import type { Email } from '@billsplit-wl/shared';
-import { toDisplayName, toPassword } from '@billsplit-wl/shared';
+import { toDisplayName, toPassword, toEmail } from '@billsplit-wl/shared';
 import { getFirestore } from '../firebase';
 import { createFirestoreDatabase, type IFirestoreDatabase } from '../firestore-wrapper';
 import type { IAuthService } from '../services/auth';
@@ -111,7 +111,7 @@ export class TestUserPoolService {
         // unique enough!
         const id = Math.random().toString(16).substring(2, 10); // e.g., "a1b2c3d4"
 
-        const email = `${POOL_PREFIX}.${id}@${POOL_DOMAIN}`;
+        const email = toEmail(`${POOL_PREFIX}.${id}@${POOL_DOMAIN}`);
 
         const user = await this.userService.createUserDirect({
             email,

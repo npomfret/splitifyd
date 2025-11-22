@@ -17,6 +17,7 @@ import {
     SimplifiedDebt,
     smallestUnitToAmountString,
     toCurrencyISOCode,
+    toUserId,
     UserId,
     ZERO,
 } from '@billsplit-wl/shared';
@@ -59,8 +60,8 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
     const modalRef = useRef<HTMLDivElement>(null);
 
     // Form state - converted from module-level signals to component state
-    const [payerId, setPayerId] = useState('');
-    const [payeeId, setPayeeId] = useState('');
+    const [payerId, setPayerId] = useState<UserId | ''>('');
+    const [payeeId, setPayeeId] = useState<UserId | ''>('');
     const [amount, setAmount] = useState(ZERO);
     const [currency, setCurrency] = useState('');
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
@@ -339,10 +340,14 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                 await apiClient.updateSettlement(settlementToEdit.id, updateData);
             } else {
                 // Create new settlement - send all fields
+                if (!payerId || !payeeId) {
+                    throw new Error('Payer and payee are required');
+                }
+
                 const settlementData: CreateSettlementRequest = {
                     groupId,
-                    payerId: payerId,
-                    payeeId: payeeId,
+                    payerId,
+                    payeeId,
                     amount: amount,
                     currency: toCurrencyISOCode(currency),
                     date: getUTCMidnight(date), // Always send UTC to server
@@ -495,7 +500,10 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                 id='payer'
                                 data-testid='settlement-payer-select'
                                 value={payerId}
-                                onChange={(e) => setPayerId((e.target as HTMLSelectElement).value)}
+                                onChange={(e) => {
+                                    const value = (e.target as HTMLSelectElement).value;
+                                    setPayerId(value ? toUserId(value) : '');
+                                }}
                                 class='w-full px-3 py-2 border border-border-default rounded-md bg-surface-raised backdrop-blur-sm text-text-primary focus:outline-none focus:ring-2 focus-visible:ring-interactive-primary transition-colors duration-200'
                                 disabled={isSubmitting}
                             >
@@ -518,7 +526,10 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                 id='payee'
                                 data-testid='settlement-payee-select'
                                 value={payeeId}
-                                onChange={(e) => setPayeeId((e.target as HTMLSelectElement).value)}
+                                onChange={(e) => {
+                                    const value = (e.target as HTMLSelectElement).value;
+                                    setPayeeId(value ? toUserId(value) : '');
+                                }}
                                 class='w-full px-3 py-2 border border-border-default rounded-md bg-surface-raised backdrop-blur-sm text-text-primary focus:outline-none focus:ring-2 focus-visible:ring-interactive-primary transition-colors duration-200'
                                 disabled={isSubmitting}
                             >

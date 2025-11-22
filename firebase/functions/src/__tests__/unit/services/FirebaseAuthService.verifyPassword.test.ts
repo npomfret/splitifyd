@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { FirebaseAuthService } from '../../../services/auth';
 import { AuthErrorCode } from '../../../services/auth/auth-types';
 import { ApiError } from '../../../utils/errors';
+import { toEmail } from "@billsplit-wl/shared";
 
 const noopAuth = {} as unknown as Auth;
 
@@ -60,7 +61,7 @@ describe('FirebaseAuthService.verifyPassword', () => {
         const fetchSpy = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => new Response('{}', { status: 200 }));
         const service = createService();
 
-        const result = await service.verifyPassword('user@example.com', 'Secret123!');
+        const result = await service.verifyPassword(toEmail('user@example.com'), 'Secret123!');
 
         expect(result).toBe(true);
         expect(fetchSpy).toHaveBeenCalledTimes(1);
@@ -84,7 +85,7 @@ describe('FirebaseAuthService.verifyPassword', () => {
         const fetchSpy = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => new Response(JSON.stringify({ error: { message: 'INVALID_PASSWORD' } }), { status: 400 }));
         const service = createService();
 
-        const result = await service.verifyPassword('user@example.com', 'WrongPassword!');
+        const result = await service.verifyPassword(toEmail('user@example.com'), 'WrongPassword!');
 
         expect(result).toBe(false);
         fetchSpy.mockRestore();
@@ -94,7 +95,7 @@ describe('FirebaseAuthService.verifyPassword', () => {
         const fetchSpy = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => new Response(JSON.stringify({ error: { message: 'EMAIL_NOT_FOUND' } }), { status: 400 }));
         const service = createService();
 
-        const result = await service.verifyPassword('missing@example.com', 'Whatever123!');
+        const result = await service.verifyPassword(toEmail('missing@example.com'), 'Whatever123!');
 
         expect(result).toBe(false);
         fetchSpy.mockRestore();
@@ -104,7 +105,7 @@ describe('FirebaseAuthService.verifyPassword', () => {
         const fetchSpy = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => new Response(JSON.stringify({ error: { message: 'TOO_MANY_ATTEMPTS_TRY_LATER' } }), { status: 400 }));
         const service = createService();
 
-        await expect(service.verifyPassword('user@example.com', 'Secret123!')).rejects.toMatchObject({
+        await expect(service.verifyPassword(toEmail('user@example.com'), 'Secret123!')).rejects.toMatchObject({
             code: AuthErrorCode.TOO_MANY_REQUESTS,
             statusCode: 429,
         });
@@ -118,7 +119,7 @@ describe('FirebaseAuthService.verifyPassword', () => {
         });
         const service = createService();
 
-        await expect(service.verifyPassword('user@example.com', 'Secret123!')).rejects.toMatchObject({
+        await expect(service.verifyPassword(toEmail('user@example.com'), 'Secret123!')).rejects.toMatchObject({
             code: AuthErrorCode.SERVICE_UNAVAILABLE,
             statusCode: 503,
         });
@@ -132,7 +133,7 @@ describe('FirebaseAuthService.verifyPassword', () => {
         const fetchSpy = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => new Response('{}', { status: 200 }));
         const service = createService({ baseUrl: 'http://127.0.0.1:9099/identitytoolkit.googleapis.com' });
 
-        await service.verifyPassword('user@example.com', 'Secret123!');
+        await service.verifyPassword(toEmail('user@example.com'), 'Secret123!');
 
         const callArgs = fetchSpy.mock.calls[0] as unknown as [RequestInfo | URL, RequestInit | undefined];
         expect(callArgs[0]).toBe('http://127.0.0.1:9099/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=test-api-key');
@@ -146,7 +147,7 @@ describe('FirebaseAuthService.verifyPassword', () => {
         });
         const service = new FirebaseAuthService(noopAuth, { baseUrl: 'https://identitytoolkit.googleapis.com', apiKey: '' }, true, false);
 
-        const error = await service.verifyPassword('user@example.com', 'Secret123!').catch((err) => err);
+        const error = await service.verifyPassword(toEmail('user@example.com'), 'Secret123!').catch((err) => err);
 
         expect(error).toBeInstanceOf(ApiError);
         expect(error).toMatchObject({ code: 'AUTH_CONFIGURATION_ERROR' });

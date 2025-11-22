@@ -3,12 +3,13 @@ import { SplitTypes } from '@billsplit-wl/shared';
 import { Amount } from '@billsplit-wl/shared';
 import type { CurrencyISOCode } from '@billsplit-wl/shared';
 import { generateShortId, randomChoice, randomLabel, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
+import {toUserId} from "@billsplit-wl/shared";
 
 export class ExpenseDraftBuilder {
     private draft: ExpenseDraft;
 
     constructor() {
-        const userId = `user-${generateShortId()}`;
+        const userId = toUserId(`user-${generateShortId()}`);
         const now = Date.now();
         const { currency, amount } = randomValidCurrencyAmountPair(5, 100);
 
@@ -52,8 +53,8 @@ export class ExpenseDraftBuilder {
         return this;
     }
 
-    withPaidBy(userId: UserId): this {
-        this.draft.paidBy = userId;
+    withPaidBy(userId: UserId | string): this {
+        this.draft.paidBy = typeof userId === 'string' ? toUserId(userId) : userId;;
         return this;
     }
 

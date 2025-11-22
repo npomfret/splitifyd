@@ -43,7 +43,7 @@ import { assertTimestamp, safeParseISOToTimestamp } from '../../utils/dateHelper
 import { ApiError } from '../../utils/errors';
 
 // Import all schemas for validation (these still validate Timestamp objects from Firestore)
-import { ShareLinkId, toCommentId, toExpenseId, toGroupId, toGroupName, toISOString, toSettlementId, toShareLinkId, toTenantDefaultFlag } from '@billsplit-wl/shared';
+import { ShareLinkId, toCommentId, toExpenseId, toGroupId, toGroupName, toISOString, toSettlementId, toShareLinkId, toTenantDefaultFlag, toUserId } from '@billsplit-wl/shared';
 import {
     type ActivityFeedDocument,
     ActivityFeedDocumentSchema,
@@ -711,8 +711,10 @@ export class FirestoreReader implements IFirestoreReader {
                 throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'GROUP_TOO_LARGE', `Group exceeds maximum size of ${MAX_GROUP_MEMBERS} members`);
             }
 
-            // Extract uids directly without schema validation or timestamp conversion
-            return snapshot.docs.map((doc) => doc.data().uid).filter((uid): uid is UserId => typeof uid === 'string');
+            // Extract uids and convert to branded UserId type
+            return snapshot.docs.map((doc) => doc.data().uid)
+                .filter((uid): uid is string => typeof uid === 'string')
+                .map((uid) => toUserId(uid));
         });
     }
 

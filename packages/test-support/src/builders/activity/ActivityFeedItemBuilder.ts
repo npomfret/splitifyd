@@ -3,16 +3,17 @@ import { ActivityFeedActions, ActivityFeedEventTypes, toGroupId, toGroupName } f
 import { toExpenseId } from '@billsplit-wl/shared';
 import { CommentId, toCommentId } from '@billsplit-wl/shared';
 import { convertToISOString, generateShortId, randomString } from '../../test-helpers';
+import {toUserId} from "@billsplit-wl/shared";
 
 const DEFAULT_TIMESTAMP = () => new Date().toISOString();
 
-const generateActorId = (actorName: string | undefined, seed: string): string => {
+const generateActorId = (actorName: string | undefined, seed: string): UserId => {
     if (!actorName) {
-        return `actor-${seed}`;
+        return toUserId(`actor-${seed}`);
     }
 
     const normalized = actorName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-    return `actor-${normalized || 'user'}-${seed}`;
+    return toUserId(`actor-${normalized || 'user'}-${seed}`);
 };
 
 const cloneDetails = (details: ActivityFeedItem['details']): ActivityFeedItem['details'] => ({
@@ -107,7 +108,7 @@ export class ActivityFeedItemBuilder {
         groupName: GroupName | string,
         actorName: string,
         targetUserName: string,
-        targetUserId: string = `member-${id}`,
+        targetUserId: UserId = toUserId(`member-${id}`),
     ): ActivityFeedItemBuilder {
         return this.forEvent(
             id,
@@ -131,7 +132,7 @@ export class ActivityFeedItemBuilder {
         groupName: GroupName | string,
         actorName: string,
         targetUserName: string,
-        targetUserId: string = `member-${id}`,
+        targetUserId: UserId = toUserId(`member-${id}`),
     ): ActivityFeedItemBuilder {
         return this.forEvent(
             id,
@@ -209,8 +210,8 @@ export class ActivityFeedItemBuilder {
         return this;
     }
 
-    withUserId(userId: UserId): ActivityFeedItemBuilder {
-        this.item.userId = userId;
+    withUserId(userId: UserId | string): ActivityFeedItemBuilder {
+        this.item.userId = typeof userId === 'string' ? toUserId(userId) : userId;;
         return this;
     }
 
@@ -240,8 +241,8 @@ export class ActivityFeedItemBuilder {
         return this;
     }
 
-    withActorId(actorId: string): ActivityFeedItemBuilder {
-        this.item.actorId = actorId;
+    withActorId(actorId: UserId | string): ActivityFeedItemBuilder {
+        this.item.actorId = typeof actorId === 'string' ? toUserId(actorId) : actorId;
         return this;
     }
 

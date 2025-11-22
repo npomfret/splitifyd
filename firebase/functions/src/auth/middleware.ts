@@ -1,4 +1,4 @@
-import { AuthenticatedUser, SystemUserRoles, toDisplayName } from '@billsplit-wl/shared';
+import { AuthenticatedUser, SystemUserRoles, toDisplayName, toUserId } from '@billsplit-wl/shared';
 import { NextFunction, Request, Response } from 'express';
 import { getIdentityToolkitConfig } from '../client-config';
 import { AUTH } from '../constants';
@@ -47,7 +47,7 @@ export const authenticate = async (req: AuthenticatedRequest, res: Response, nex
         const decodedToken = await authService.verifyIdToken(token);
 
         // Fetch full user profile from Firebase Auth
-        const userRecord = await authService.getUser(decodedToken.uid);
+        const userRecord = await authService.getUser(toUserId(decodedToken.uid));
 
         if (!userRecord) {
             throw new Error('User not found in Firebase Auth');
@@ -58,19 +58,20 @@ export const authenticate = async (req: AuthenticatedRequest, res: Response, nex
         }
 
         // Fetch user role from Firestore using centralized reader
-        const userDocument = await firestoreReader.getUser(userRecord.uid);
+        const userId = toUserId(userRecord.uid);
+        const userDocument = await firestoreReader.getUser(userId);
 
         const userRole = userDocument!.role;
 
         // Attach user information to request
         req.user = {
-            uid: userRecord.uid,
+            uid: userId,
             displayName: toDisplayName(userRecord.displayName),
             role: userRole, // todo: what is this?
         };
 
         // Add user context to logging context
-        LoggerContext.setUser(userRecord.uid, userRecord.displayName, userRole);
+        LoggerContext.setUser(userId, userRecord.displayName, userRole);
 
         next();
     } catch (error) {

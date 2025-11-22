@@ -12,6 +12,7 @@ import { z } from 'zod';
 import { HTTP_STATUS } from '../constants';
 import { ApiError } from '../utils/errors';
 import { createRequestValidator, createZodErrorMapper, sanitizeInputString } from '../validation/common';
+import {toUserId} from "@billsplit-wl/shared";
 
 const createSettlementErrorMapper = createZodErrorMapper(
     {
@@ -84,8 +85,8 @@ const baseValidateCreateSettlement = createRequestValidator({
 
         return {
             groupId: toGroupId(value.groupId.trim()),
-            payerId: value.payerId.trim(),
-            payeeId: value.payeeId.trim(),
+            payerId: toUserId(value.payerId.trim()),
+            payeeId: toUserId(value.payeeId.trim()),
             amount: value.amount,
             currency: value.currency,
             date: date !== undefined ? toISOString(date) : undefined,

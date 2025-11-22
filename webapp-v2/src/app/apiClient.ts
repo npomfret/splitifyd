@@ -5,7 +5,7 @@
  * This ensures the server response matches our expected types
  */
 
-import { ApiSerializer, ISOString, SystemUserRoles, toDisplayName } from '@billsplit-wl/shared';
+import { ApiSerializer, ISOString, SystemUserRoles, toDisplayName, toEmail, toUserId } from '@billsplit-wl/shared';
 import type {
     API,
     AcceptMultiplePoliciesResponse,
@@ -191,13 +191,13 @@ type ResponseInterceptor = <T>(response: T, config: RequestConfig) => T | Promis
 // Retry configuration
 const RegisteredUserSchema: z.ZodType<RegisteredUser> = z
     .object({
-        uid: z.string(),
-        email: z.string().email(),
+        uid: z.string().transform((value) => toUserId(value)),
+        email: z.string().email().transform((value) => toEmail(value)),
         emailVerified: z.boolean(),
-        displayName: z.string().nullable().optional().transform((value) => toDisplayName(value ?? '')),
+        displayName: z.string().transform((value) => toDisplayName(value)),
         disabled: z.boolean().optional(),
         metadata: z.any(),
-        role: z.nativeEnum(SystemUserRoles).optional(),
+        role: z.nativeEnum(SystemUserRoles),
     })
     .passthrough();
 

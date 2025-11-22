@@ -6,7 +6,7 @@
  * firestore-read-encapsulation-report.md
  */
 
-import { toGroupId } from '@billsplit-wl/shared';
+import { toGroupId, toUserId } from '@billsplit-wl/shared';
 import { TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
 import { GroupMemberDocumentBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -15,7 +15,7 @@ import { FirestoreReader } from '../../services/firestore';
 describe('FirestoreReader Pagination Performance', () => {
     let db: TenantFirestoreTestDatabase;
     let firestoreReader: FirestoreReader;
-    const testUserId = 'test-user';
+    const testUserId = toUserId('test-user');
 
     beforeEach(() => {
         db = new TenantFirestoreTestDatabase();
@@ -208,7 +208,7 @@ describe('FirestoreReader Pagination Performance', () => {
             // This test validates that the new implementation avoids the
             // "fetch-all-then-paginate" anti-pattern that caused 100x performance issues
 
-            const heavyUserId = 'heavy-user';
+            const heavyUserId = toUserId('heavy-user');
 
             // Seed 1000 groups
             for (let i = 1; i <= 1000; i++) {

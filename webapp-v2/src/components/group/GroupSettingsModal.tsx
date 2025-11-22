@@ -2,7 +2,7 @@ import { apiClient, ApiError } from '@/app/apiClient.ts';
 import { useAuthRequired } from '@/app/hooks/useAuthRequired.ts';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced.ts';
 import { logError } from '@/utils/browser-logger.ts';
-import { GroupDTO, GroupMember, GroupMembershipDTO, GroupPermissions, MemberRole, PermissionLevels, SecurityPreset, toDisplayName, toGroupName } from '@billsplit-wl/shared';
+import { GroupDTO, GroupMember, GroupMembershipDTO, GroupPermissions, MemberRole, PermissionLevels, SecurityPreset, UserId, toDisplayName, toGroupName } from '@billsplit-wl/shared';
 import { useComputed } from '@preact/signals';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
@@ -581,7 +581,7 @@ export function GroupSettingsModal({
         }));
     };
 
-    const handlePendingAction = async (memberId: string, action: 'approve' | 'reject') => {
+    const handlePendingAction = async (memberId: UserId, action: 'approve' | 'reject') => {
         setPendingActionMember(memberId);
         setActionError(null);
         try {

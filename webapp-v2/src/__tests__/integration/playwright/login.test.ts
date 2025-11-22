@@ -1,4 +1,5 @@
 import { ClientUserBuilder, DashboardPage, LoginPage, TEST_TIMEOUTS } from '@billsplit-wl/test-support';
+import { toEmail } from '@billsplit-wl/shared';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { setupSuccessfulApiMocks } from '../../utils/mock-firebase-service';
 
@@ -37,7 +38,7 @@ test.describe('Authentication Flow', () => {
         });
 
         // 3. Attempt login expecting failure (fluent interface)
-        await loginPage.loginExpectingFailure('test@example.com', 'wrong-password');
+        await loginPage.loginExpectingFailure(toEmail('test@example.com'), 'wrong-password');
 
         // 4. Verify error handling
         await loginPage.verifyErrorMessage('Invalid email or password.');
@@ -56,7 +57,7 @@ test.describe('Authentication Flow', () => {
         });
 
         // 3. Attempt login expecting failure (fluent interface)
-        await loginPage.loginExpectingFailure('test@example.com', 'password123');
+        await loginPage.loginExpectingFailure(toEmail('test@example.com'), 'password123');
 
         // 4. Verify network error handling
         await loginPage.verifyErrorMessage('Network error. Please check your connection.');
@@ -126,7 +127,7 @@ test.describe('LoginPage Reactivity and UI States', () => {
         });
 
         // Attempt login expecting failure (waits for error to appear)
-        await loginPage.loginExpectingFailure('test@example.com', 'wrong-password');
+        await loginPage.loginExpectingFailure(toEmail('test@example.com'), 'wrong-password');
 
         // Verify error appears
         await loginPage.verifyErrorMessage('Invalid email or password.');
@@ -156,7 +157,7 @@ test.describe('LoginPage Reactivity and UI States', () => {
         await loginPage.navigate();
 
         // Fill only email - should still be disabled
-        await loginPage.fillEmail('test@example.com');
+        await loginPage.fillEmail(toEmail('test@example.com'));
         await loginPage.verifySubmitButtonState(false);
     });
 
@@ -165,7 +166,7 @@ test.describe('LoginPage Reactivity and UI States', () => {
         await loginPage.navigate();
 
         // Fill both fields - should become enabled
-        await loginPage.fillCredentials('test@example.com', 'password123');
+        await loginPage.fillCredentials(toEmail('test@example.com'), 'password123');
         await loginPage.verifySubmitButtonState(true);
     });
 
@@ -174,7 +175,7 @@ test.describe('LoginPage Reactivity and UI States', () => {
         await loginPage.navigate();
 
         // Fill both fields - button should be enabled
-        await loginPage.fillCredentials('test@example.com', 'password123');
+        await loginPage.fillCredentials(toEmail('test@example.com'), 'password123');
         await loginPage.verifySubmitButtonState(true);
 
         // Clear email - should become disabled again
@@ -182,7 +183,7 @@ test.describe('LoginPage Reactivity and UI States', () => {
         await loginPage.verifySubmitButtonState(false);
 
         // Fill valid email again - should become enabled
-        await loginPage.fillEmail('test@example.com');
+        await loginPage.fillEmail(toEmail('test@example.com'));
         await loginPage.verifySubmitButtonState(true);
     });
 
@@ -197,7 +198,7 @@ test.describe('LoginPage Reactivity and UI States', () => {
         });
 
         // Use fluent method that waits for error
-        await loginPage.loginExpectingFailure('test@example.com', 'wrong-password');
+        await loginPage.loginExpectingFailure(toEmail('test@example.com'), 'wrong-password');
 
         // Verify error appears
         await loginPage.verifyErrorMessage('Invalid email or password.');
@@ -287,7 +288,7 @@ test.describe('LoginPage Reactivity and UI States', () => {
         await loginPage.verifySubmitButtonState(false);
 
         // Fill only email and verify submit is still disabled
-        await loginPage.fillEmail('test@example.com');
+        await loginPage.fillEmail(toEmail('test@example.com'));
         await loginPage.verifySubmitButtonState(false);
 
         // Fill only password and clear email

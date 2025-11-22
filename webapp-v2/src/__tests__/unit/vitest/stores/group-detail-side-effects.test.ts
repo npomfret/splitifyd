@@ -1,6 +1,6 @@
 import { GroupDetailSideEffectsManager } from '@/app/stores/helpers/group-detail-side-effects';
 import type { GroupId } from '@billsplit-wl/shared';
-import { toGroupId } from '@billsplit-wl/shared';
+import { toGroupId, toUserId } from '@billsplit-wl/shared';
 import { describe, expect, it, vi } from 'vitest';
 
 describe('GroupDetailSideEffectsManager', () => {
@@ -38,7 +38,7 @@ describe('GroupDetailSideEffectsManager', () => {
         const members = [{ uid: 'user-1' }] as any;
 
         manager.updatePermissionsSnapshot(group, members);
-        manager.registerPermissions(groupId, 'user-1');
+        manager.registerPermissions(groupId, toUserId('user-1'));
         manager.deregisterPermissions(groupId);
 
         expect(permissions.updateGroupData).toHaveBeenCalledWith(group, members);

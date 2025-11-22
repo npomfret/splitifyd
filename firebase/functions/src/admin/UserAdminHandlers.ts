@@ -1,4 +1,4 @@
-import { SystemUserRoles } from '@billsplit-wl/shared';
+import { SystemUserRoles, toUserId } from '@billsplit-wl/shared';
 import type { Request, Response } from 'express';
 import { HTTP_STATUS } from '../constants';
 import { logger } from '../logger';
@@ -31,6 +31,8 @@ export class UserAdminHandlers {
                 'User ID is required and must be a non-empty string',
             );
         }
+
+        const userId = toUserId(uid);
 
         // Validate payload - only 'disabled' field is allowed
         if (typeof disabled !== 'boolean') {
@@ -65,7 +67,7 @@ export class UserAdminHandlers {
 
         try {
             // Check if user exists
-            const existingUser = await this.authService.getUser(uid);
+            const existingUser = await this.authService.getUser(userId);
             if (!existingUser) {
                 throw new ApiError(
                     HTTP_STATUS.NOT_FOUND,
@@ -131,6 +133,8 @@ export class UserAdminHandlers {
             );
         }
 
+        const userId = toUserId(uid);
+
         // Validate role - must be a valid SystemUserRole or null (to remove role)
         const validRoles = Object.values(SystemUserRoles);
         if (role !== null && !validRoles.includes(role)) {
@@ -165,7 +169,7 @@ export class UserAdminHandlers {
 
         try {
             // Check if user exists
-            const existingUser = await this.authService.getUser(uid);
+            const existingUser = await this.authService.getUser(userId);
             if (!existingUser) {
                 throw new ApiError(
                     HTTP_STATUS.NOT_FOUND,
@@ -176,10 +180,10 @@ export class UserAdminHandlers {
 
             // Update Firestore role instead of custom claims
             // When role is null, default to SYSTEM_USER
-            await this.firestoreWriter.updateUser(uid, { role: role ?? SystemUserRoles.SYSTEM_USER });
+            await this.firestoreWriter.updateUser(userId, { role: role ?? SystemUserRoles.SYSTEM_USER });
 
             // Fetch updated user to return
-            const updatedUser = await this.authService.getUser(uid);
+            const updatedUser = await this.authService.getUser(userId);
             if (!updatedUser) {
                 throw new ApiError(
                     HTTP_STATUS.NOT_FOUND,

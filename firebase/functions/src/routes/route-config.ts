@@ -487,7 +487,7 @@ const routeDefinitions: RouteDefinition[] = [
         path: '/admin/browser/tenants',
         handlerName: 'listAllTenants',
         category: 'admin',
-        middleware: ['authenticateSystemUser'],
+        middleware: ['authenticateAdmin'],
     },
 
     // === Admin User Management ===

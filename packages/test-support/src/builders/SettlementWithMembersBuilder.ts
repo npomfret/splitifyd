@@ -61,7 +61,7 @@ export class SettlementWithMembersBuilder {
         return this;
     }
 
-    withPayerId(payerId: UserId): this {
+    withPayerId(payerId: UserId | string): this {
         this.settlement.payer = new GroupMemberBuilder()
             .withUid(payerId)
             .withDisplayName(toDisplayName(`Payer ${payerId.slice(0, 4)}`))
@@ -74,7 +74,7 @@ export class SettlementWithMembersBuilder {
         return this;
     }
 
-    withPayeeId(payeeId: UserId): this {
+    withPayeeId(payeeId: UserId | string): this {
         this.settlement.payee = new GroupMemberBuilder()
             .withUid(payeeId)
             .withDisplayName(toDisplayName(`Payee ${payeeId.slice(0, 4)}`))

@@ -1,5 +1,5 @@
 import type { GroupId } from '@billsplit-wl/shared';
-import { DisplayName } from '@billsplit-wl/shared';
+import { DisplayName, toUserId } from '@billsplit-wl/shared';
 import { toGroupId } from '@billsplit-wl/shared';
 import { toDisplayName } from '@billsplit-wl/shared';
 import { GroupBalancesBuilder, GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, SettlementFormPage, ThemeBuilder } from '@billsplit-wl/test-support';
@@ -245,7 +245,7 @@ test.describe('Settlement Form - Warning Message Bug (Reproduce)', () => {
                         netBalance: '-84.79',
                     },
                     'han-solo-uid': {
-                        uid: 'han-solo-uid',
+                        uid: toUserId('han-solo-uid'),
                         owes: {},
                         owedBy: { [user.uid]: '84.79' },
                         netBalance: '84.79',

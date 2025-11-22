@@ -39,7 +39,7 @@ export function useFormState() {
         expenseFormStore.updateField('amount', nonEmptyValue);
     };
 
-    const handleParticipantToggle = (memberId: string) => {
+    const handleParticipantToggle = (memberId: UserId) => {
         expenseFormStore.toggleParticipant(memberId);
     };
 

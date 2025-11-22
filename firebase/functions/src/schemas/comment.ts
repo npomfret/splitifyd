@@ -1,3 +1,4 @@
+import { toUserId } from '@billsplit-wl/shared';
 import { z } from 'zod';
 
 import { FirestoreTimestampSchema } from './common';
@@ -11,7 +12,7 @@ import { FirestoreTimestampSchema } from './common';
 export const CommentDocumentSchema = z
     .object({
         id: z.string().min(1), // Document ID
-        authorId: z.string().min(1),
+        authorId: z.string().min(1).transform(toUserId),
         authorName: z.string().min(1),
         authorAvatar: z.string().optional().nullable(),
         text: z.string().min(1),

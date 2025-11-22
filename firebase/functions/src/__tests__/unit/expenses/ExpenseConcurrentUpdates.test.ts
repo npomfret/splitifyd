@@ -8,7 +8,7 @@
  * The integration test remains for testing actual Firebase optimistic locking behavior.
  */
 
-import { calculateEqualSplits, toAmount, toGroupName, toCurrencyISOCode, USD } from '@billsplit-wl/shared';
+import { calculateEqualSplits, toAmount, toGroupName, toCurrencyISOCode, USD, toUserId } from '@billsplit-wl/shared';
 import { toDisplayName } from '@billsplit-wl/shared';
 import { CreateExpenseRequestBuilder, ExpenseUpdateBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, test } from 'vitest';
@@ -16,7 +16,8 @@ import { AppDriver } from '../AppDriver';
 
 describe('Expense Concurrent Updates - Unit Tests', () => {
     let appDriver: AppDriver;
-    const userId = 'test-user-123';
+
+    const userId = toUserId('test-user-123');
     const eur = toCurrencyISOCode('EUR');
     const usd = USD;
 

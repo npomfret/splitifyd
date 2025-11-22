@@ -1,6 +1,6 @@
 import type { ActivityFeedRealtimeConsumer, ActivityFeedRealtimePayload } from '@/app/services/activity-feed-realtime-service';
 import { GroupsRealtimeCoordinator } from '@/app/stores/helpers/groups-realtime-coordinator';
-import { type GroupId, toGroupId } from '@billsplit-wl/shared';
+import { type GroupId, toGroupId, toUserId } from '@billsplit-wl/shared';
 import { signal } from '@preact/signals';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -55,10 +55,12 @@ describe('GroupsRealtimeCoordinator', () => {
         vi.useRealTimers();
     });
 
+    const userId = toUserId('user-1');
+
     it('registers the activity feed consumer on first component and schedules refresh', async () => {
         const ctx = createContext();
 
-        ctx.coordinator.registerComponent('component-1', 'user-1');
+        ctx.coordinator.registerComponent('component-1', userId);
         await Promise.resolve(); // allow setupSubscription promise to resolve
 
         expect(ctx.registerConsumer).toHaveBeenCalledTimes(1);
@@ -71,8 +73,8 @@ describe('GroupsRealtimeCoordinator', () => {
     it('does not double-register for additional components with same user', async () => {
         const ctx = createContext();
 
-        ctx.coordinator.registerComponent('component-1', 'user-1');
-        ctx.coordinator.registerComponent('component-2', 'user-1');
+        ctx.coordinator.registerComponent('component-1', userId);
+        ctx.coordinator.registerComponent('component-2', userId);
         await Promise.resolve();
 
         expect(ctx.registerConsumer).toHaveBeenCalledTimes(1);
@@ -81,8 +83,8 @@ describe('GroupsRealtimeCoordinator', () => {
     it('deregisters the consumer when the last component is removed', async () => {
         const ctx = createContext();
 
-        ctx.coordinator.registerComponent('component-1', 'user-1');
-        ctx.coordinator.registerComponent('component-2', 'user-1');
+        ctx.coordinator.registerComponent('component-1', userId);
+        ctx.coordinator.registerComponent('component-2', userId);
         await Promise.resolve();
 
         ctx.coordinator.deregisterComponent('component-1');
@@ -96,7 +98,7 @@ describe('GroupsRealtimeCoordinator', () => {
         const ctx = createContext();
         const groupId: GroupId = toGroupId('group-1');
 
-        ctx.coordinator.registerComponent('component-1', 'user-1');
+        ctx.coordinator.registerComponent('component-1', userId);
         await Promise.resolve();
 
         const consumer = ctx.getConsumer();
@@ -109,7 +111,7 @@ describe('GroupsRealtimeCoordinator', () => {
                     id: 'event-1',
                     eventType: 'member-left',
                     groupId,
-                    details: { targetUserId: 'user-1', targetUserName: 'User One' },
+                    details: { targetUserId: userId, targetUserName: 'User One' },
                 } as any,
             ],
             hasMore: false,
@@ -124,7 +126,7 @@ describe('GroupsRealtimeCoordinator', () => {
     it('triggers a refresh when other activity events arrive', async () => {
         const ctx = createContext();
 
-        ctx.coordinator.registerComponent('component-1', 'user-1');
+        ctx.coordinator.registerComponent('component-1', userId);
         await Promise.resolve();
         await vi.advanceTimersByTimeAsync(10);
         ctx.onRefresh.mockClear();

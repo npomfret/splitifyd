@@ -1,4 +1,4 @@
-import { toPassword, UserRegistration } from '@billsplit-wl/shared';
+import {toEmail, toPassword, UserRegistration } from '@billsplit-wl/shared';
 import { DisplayName, toDisplayName } from '@billsplit-wl/shared';
 import type { Email, Password } from '@billsplit-wl/shared';
 import { generateNewUserDetails } from '../test-helpers';
@@ -18,7 +18,7 @@ export class UserRegistrationBuilder {
     }
 
     withEmail(email: Email | string): this {
-        this.userRegistration.email = email;
+        this.userRegistration.email = typeof email === 'string' ? toEmail(email) : email;
         return this;
     }
 

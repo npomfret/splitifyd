@@ -1,15 +1,5 @@
-import { Amount, amountToSmallestUnit, roundToCurrencyPrecision, smallestUnitToAmountString, toAmount } from '@billsplit-wl/shared';
-import type { CurrencyISOCode } from '@billsplit-wl/shared';
-
-/**
- * Internal interface for expense splits - used only by ExpenseSplitBuilder
- * For application usage, import ExpenseSplit from @billsplit-wl/shared
- */
-interface ExpenseSplit {
-    uid: string;
-    amount: Amount;
-    percentage?: number;
-}
+import {Amount, amountToSmallestUnit, roundToCurrencyPrecision, smallestUnitToAmountString, toAmount, toUserId} from '@billsplit-wl/shared';
+import type { CurrencyISOCode, ExpenseSplit, UserId } from '@billsplit-wl/shared';
 
 /**
  * Builder for ExpenseSplit arrays - used in split strategy tests
@@ -23,7 +13,7 @@ export class ExpenseSplitBuilder {
     /**
      * Create an exact split for the given participants with specified amounts
      */
-    static exactSplit(userAmounts: Array<{ uid: string; amount: Amount; percentage?: number; }>): ExpenseSplitBuilder {
+    static exactSplit(userAmounts: ExpenseSplit[]): ExpenseSplitBuilder {
         const builder = new ExpenseSplitBuilder();
         builder.splits = [...userAmounts];
         return builder;
@@ -34,7 +24,7 @@ export class ExpenseSplitBuilder {
      */
     static percentageSplit(
         totalAmount: Amount | number,
-        userPercentages: Array<{ uid: string; percentage: number; }>,
+        userPercentages: Array<{ uid: UserId; percentage: number; }>,
         currency: CurrencyISOCode,
     ): ExpenseSplitBuilder {
         const builder = new ExpenseSplitBuilder();
@@ -67,8 +57,12 @@ export class ExpenseSplitBuilder {
     /**
      * Add a single split entry
      */
-    withSplit(uid: string, amount: Amount, percentage?: number): this {
-        this.splits.push({ uid, amount, percentage });
+    withSplit(uid: string | UserId, amount: Amount, percentage?: number): this {
+        this.splits.push({
+            uid: typeof uid === 'string' ? toUserId(uid) : uid,
+            amount,
+            percentage
+        });
         return this;
     }
 

@@ -11,6 +11,7 @@ import {
     ShareLinkId,
     ShareLinkToken,
     toShareLinkToken,
+    toUserId,
     USER_COLORS,
     UserThemeColor,
 } from '@billsplit-wl/shared';
@@ -481,7 +482,7 @@ export class GroupShareService {
 
             if (!requiresApproval) {
                 timer.startPhase('transaction:buildActivityRecipients');
-                const activityRecipientsSet = new Set<string>();
+                const activityRecipientsSet = new Set<UserId>();
                 for (const doc of membershipsSnapshot.docs) {
                     const data = doc.data() as { uid?: string; memberStatus?: string; };
                     const uid = typeof data?.uid === 'string' ? data.uid : undefined;
@@ -491,7 +492,7 @@ export class GroupShareService {
                     if (data?.memberStatus && data.memberStatus !== MemberStatuses.ACTIVE) {
                         continue;
                     }
-                    activityRecipientsSet.add(uid);
+                    activityRecipientsSet.add(toUserId(uid));
                 }
 
                 activityRecipientsSet.add(userId);

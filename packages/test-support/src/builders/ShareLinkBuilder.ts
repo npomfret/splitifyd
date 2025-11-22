@@ -1,4 +1,4 @@
-import { toISOString } from '@billsplit-wl/shared';
+import { toISOString, toUserId } from '@billsplit-wl/shared';
 import type { ISOString, ShareLinkDTO, UserId } from '@billsplit-wl/shared';
 
 export class ShareLinkBuilder {
@@ -7,7 +7,7 @@ export class ShareLinkBuilder {
     constructor() {
         this.link.createdAt = toISOString(new Date().toISOString());
         this.link.updatedAt = toISOString(new Date().toISOString());
-        this.link.createdBy = 'user-123';
+        this.link.createdBy = toUserId('user-123');
         this.link.expiresAt = toISOString(new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString());
     }
 

@@ -20,7 +20,8 @@ import {
     toTenantSecondaryColor,
     UserBalance,
     toCurrencyISOCode,
-    USD,
+    USD, toUserId,
+    toEmail,
 } from '@billsplit-wl/shared';
 import type { ShareLinkToken, UserId } from '@billsplit-wl/shared';
 import type { CurrencyISOCode } from '@billsplit-wl/shared';
@@ -66,18 +67,18 @@ const verifyBalanceConsistency = (balances: Record<string, UserBalance>, currenc
 describe('app tests', () => {
     let appDriver: AppDriver;
 
-    const user1 = 'user-1';
-    const user2 = 'user-2';
-    const user3 = 'user-3';
-    const user4 = 'user-4';
+    const user1 = toUserId('user-1');
+    const user2 = toUserId('user-2');
+    const user3 = toUserId('user-3');
+    const user4 = toUserId('user-4');
 
     beforeEach(() => {
         appDriver = new AppDriver();
 
-        appDriver.seedUser(user1, { displayName: 'User one', email: 'user1@example.com' });
-        appDriver.seedUser(user2, { displayName: 'User two', email: 'user2@example.com' });
-        appDriver.seedUser(user3, { displayName: 'User three', email: 'user3@example.com' });
-        appDriver.seedUser(user4, { displayName: 'User four', email: 'user4@example.com' });
+        appDriver.seedUser(user1, { displayName: 'User one', email: 'user1@example.com', role: SystemUserRoles.SYSTEM_USER });
+        appDriver.seedUser(user2, { displayName: 'User two', email: 'user2@example.com', role: SystemUserRoles.SYSTEM_USER });
+        appDriver.seedUser(user3, { displayName: 'User three', email: 'user3@example.com', role: SystemUserRoles.SYSTEM_USER });
+        appDriver.seedUser(user4, { displayName: 'User four', email: 'user4@example.com', role: SystemUserRoles.SYSTEM_USER });
     });
 
     afterEach(() => {
@@ -2518,8 +2519,8 @@ describe('app tests', () => {
 
                 const manyUsers = [user1, user2, user3, user4];
                 for (let i = 5; i <= 20; i++) {
-                    const userId = `user-${i}`;
-                    appDriver.seedUser(userId, { displayName: `User ${i}` });
+                    const userId = toUserId(`user-${i}`);
+                    appDriver.seedUser(userId, { displayName: `User ${i}`, role: SystemUserRoles.SYSTEM_USER });
                     await appDriver.joinGroupByLink(shareToken, undefined, userId);
                     manyUsers.push(userId);
                 }
@@ -3502,7 +3503,7 @@ describe('app tests', () => {
             expect(registrationResult.success).toBe(true);
             expect(registrationResult.user.displayName).toBe('Registered User');
 
-            const newUserId = registrationResult.user.uid;
+            const newUserId = toUserId(registrationResult.user.uid);
             const profile = await appDriver.getUserProfile(newUserId);
 
             expect(profile.displayName).toBe('Registered User');
@@ -3682,7 +3683,7 @@ describe('app tests', () => {
 
         describe('changeEmail', () => {
             const CURRENT_PASSWORD = toPassword('ValidPass123!');
-            const NEW_EMAIL = 'newemail@example.com';
+            const NEW_EMAIL = toEmail('newemail@example.com');
 
             it('should successfully change email with valid credentials', async () => {
                 const profile = await appDriver.changeEmail({
@@ -3722,7 +3723,7 @@ describe('app tests', () => {
                 await expect(
                     appDriver.changeEmail({
                         currentPassword: CURRENT_PASSWORD,
-                        newEmail: 'not-an-email',
+                        newEmail: toEmail('not-an-email'),
                     }, user1),
                 )
                     .rejects
@@ -3764,7 +3765,7 @@ describe('app tests', () => {
                 await expect(
                     appDriver.changeEmail({
                         currentPassword: CURRENT_PASSWORD,
-                        newEmail: '',
+                        newEmail: toEmail(''),
                     }, user1),
                 )
                     .rejects
@@ -3774,14 +3775,14 @@ describe('app tests', () => {
             it('should lowercase email address', async () => {
                 const profile = await appDriver.changeEmail({
                     currentPassword: CURRENT_PASSWORD,
-                    newEmail: 'NewEmail@EXAMPLE.COM',
+                    newEmail: toEmail('NewEmail@EXAMPLE.COM'),
                 }, user1);
 
                 expect(profile.email).toBe('newemail@example.com');
             });
 
             it('should reject when email is already in use by another account', async () => {
-                const otherUserEmail = 'user2@example.com';
+                const otherUserEmail = toEmail('user2@example.com');
 
                 await expect(
                     appDriver.changeEmail({
@@ -4200,8 +4201,8 @@ describe('app tests', () => {
             });
 
             it('should reject non-admin user', async () => {
-                const regularUser = 'regular-user';
-                appDriver.seedUser(regularUser, { displayName: 'Regular User', email: 'regular@test.com' });
+                const regularUser = toUserId('regular-user');
+                appDriver.seedUser(regularUser, { displayName: 'Regular User', email: 'regular@test.com', role: SystemUserRoles.SYSTEM_USER });
 
                 const payload = AdminTenantRequestBuilder.forTenant('tenant_unauthorized').build();
 
@@ -4668,8 +4669,8 @@ describe('app tests', () => {
             });
 
             it('should reject publish from non-admin user', async () => {
-                const regularUser = 'regular-publish-user';
-                appDriver.seedUser(regularUser, { displayName: 'Regular User', email: 'regular@test.com' });
+                const regularUser = toUserId('regular-publish-user');
+                appDriver.seedUser(regularUser, { displayName: 'Regular User', email: 'regular@test.com', role: SystemUserRoles.SYSTEM_USER });
 
                 const result = await appDriver.publishTenantTheme({ tenantId }, regularUser);
                 expect(result).toMatchObject({
@@ -4824,8 +4825,8 @@ describe('app tests', () => {
         });
 
         it('rejects tenant listing for users without a system role', async () => {
-            const regularUser = 'browser-regular';
-            appDriver.seedUser(regularUser, { email: 'browser-regular@test.com' });
+            const regularUser = toUserId('browser-regular');
+            appDriver.seedUser(regularUser, { email: 'browser-regular@test.com', role: SystemUserRoles.SYSTEM_USER });
 
             const result = await appDriver.listAllTenants(regularUser);
 
@@ -4833,7 +4834,7 @@ describe('app tests', () => {
         });
 
         it('enriches auth users with their Firestore roles', async () => {
-            const browserSystemUser = 'browser-system-user';
+            const browserSystemUser = toUserId('browser-system-user');
             appDriver.seedUser(browserSystemUser, { role: SystemUserRoles.SYSTEM_USER });
 
             const response = await appDriver.listAuthUsers({ uid: browserSystemUser }, browserAdmin);
@@ -4845,7 +4846,7 @@ describe('app tests', () => {
         });
 
         it('filters Firestore users by uid', async () => {
-            const browserSystemUser = 'browser-firestore-user';
+            const browserSystemUser = toUserId('browser-firestore-user');
             appDriver.seedUser(browserSystemUser, { role: SystemUserRoles.SYSTEM_USER });
 
             const response = await appDriver.listFirestoreUsers({ uid: browserSystemUser }, browserAdmin);
@@ -4858,7 +4859,7 @@ describe('app tests', () => {
 
     describe('Admin User Management', () => {
         const adminUser = 'admin-user';
-        const regularUser = 'regular-user';
+        const regularUser = toUserId('regular-user');
 
         beforeEach(() => {
             appDriver.seedAdminUser(adminUser, {
@@ -4868,6 +4869,7 @@ describe('app tests', () => {
             appDriver.seedUser(regularUser, {
                 email: 'regular@test.com',
                 displayName: 'Regular User',
+                role: SystemUserRoles.SYSTEM_USER,
             });
         });
 
@@ -4907,7 +4909,7 @@ describe('app tests', () => {
 
             it('should reject invalid UID', async () => {
                 await expect(
-                    appDriver.updateUser('', { disabled: true }, adminUser),
+                    appDriver.updateUser(toUserId(''), { disabled: true }, adminUser),
                 )
                     .rejects
                     .toThrow();
@@ -4915,7 +4917,7 @@ describe('app tests', () => {
 
             it('should reject non-existent user', async () => {
                 await expect(
-                    appDriver.updateUser('nonexistent-user', { disabled: true }, adminUser),
+                    appDriver.updateUser(toUserId('nonexistent-user'), { disabled: true }, adminUser),
                 )
                     .rejects
                     .toThrow();
@@ -4988,7 +4990,7 @@ describe('app tests', () => {
 
             it('should reject invalid UID', async () => {
                 await expect(
-                    appDriver.updateUserRole('', { role: SystemUserRoles.SYSTEM_ADMIN }, adminUser),
+                    appDriver.updateUserRole(toUserId(''), { role: SystemUserRoles.SYSTEM_ADMIN }, adminUser),
                 )
                     .rejects
                     .toThrow();
@@ -4996,7 +4998,7 @@ describe('app tests', () => {
 
             it('should reject non-existent user', async () => {
                 await expect(
-                    appDriver.updateUserRole('nonexistent-user', { role: SystemUserRoles.SYSTEM_ADMIN }, adminUser),
+                    appDriver.updateUserRole(toUserId('nonexistent-user'), { role: SystemUserRoles.SYSTEM_ADMIN }, adminUser),
                 )
                     .rejects
                     .toThrow();

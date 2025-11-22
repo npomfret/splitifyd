@@ -474,7 +474,7 @@ export class ExpenseFormPage extends BasePage {
     /**
      * Select a specific set of participants, toggling checkboxes as needed.
      */
-    async selectSpecificParticipants(participants: UserId[]): Promise<void> {
+    async selectSpecificParticipants(participantNames: string[]): Promise<void> {
         const allLabels = this.page.locator('[data-testid="participant-selector-grid"]').locator('label');
         await allLabels.first().waitFor({ state: 'visible' });
 
@@ -490,7 +490,7 @@ export class ExpenseFormPage extends BasePage {
                 availableParticipants.push(text);
             }
 
-            const shouldBeChecked = participants.some((participant) => text.includes(participant));
+            const shouldBeChecked = participantNames.some((participant) => text.includes(participant));
             const isChecked = await checkbox.isChecked();
 
             if (shouldBeChecked !== isChecked) {
@@ -505,7 +505,7 @@ export class ExpenseFormPage extends BasePage {
             }
         }
 
-        const unfoundParticipants = participants.filter(
+        const unfoundParticipants = participantNames.filter(
             (participant) => !availableParticipants.some((available) => available.includes(participant)),
         );
 

@@ -1,5 +1,5 @@
 import { StubStorage } from '@billsplit-wl/test-support';
-import { toGroupId } from '@billsplit-wl/shared';
+import { toGroupId, toUserId } from '@billsplit-wl/shared';
 import { toCommentId, toExpenseId } from '@billsplit-wl/shared';
 import { TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
 import { CreateExpenseCommentRequestBuilder, CreateGroupCommentRequestBuilder, ExpenseDTOBuilder, GroupDTOBuilder, GroupMemberDocumentBuilder } from '@billsplit-wl/test-support';
@@ -36,12 +36,12 @@ describe('CommentService - Consolidated Tests', () => {
 
             // Set up group membership for user
             const membershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId('user-id')
+                .withUserId(toUserId(toUserId('user-id')))
                 .withGroupId(testGroup.id)
                 .build();
-            db.seedGroupMember(testGroup.id, 'user-id', membershipDoc);
+            db.seedGroupMember(testGroup.id, toUserId(toUserId(toUserId('user-id'))), membershipDoc);
 
-            const result = await commentService.listGroupComments(testGroup.id, 'user-id', { limit: 10 });
+            const result = await commentService.listGroupComments(testGroup.id, toUserId(toUserId(toUserId('user-id'))), { limit: 10 });
 
             expect(result.comments).toHaveLength(0);
             expect(result.hasMore).toBe(false);
@@ -49,7 +49,7 @@ describe('CommentService - Consolidated Tests', () => {
 
         it('should throw error when user lacks access', async () => {
             // No group or membership data set up, so access should be denied
-            await expect(commentService.listGroupComments(toGroupId('nonexistent-group'), 'user-id')).rejects.toThrow();
+            await expect(commentService.listGroupComments(toGroupId('nonexistent-group'), toUserId('user-id'))).rejects.toThrow();
         });
     });
 
@@ -69,12 +69,12 @@ describe('CommentService - Consolidated Tests', () => {
 
             // Set up group membership for user
             const membershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId('user-id')
+                .withUserId(toUserId(toUserId('user-id')))
                 .withGroupId(testGroup.id)
                 .build();
-            db.seedGroupMember(testGroup.id, 'user-id', membershipDoc);
+            db.seedGroupMember(testGroup.id, toUserId(toUserId(toUserId('user-id'))), membershipDoc);
 
-            const result = await commentService.listExpenseComments(toExpenseId('test-expense'), 'user-id', { limit: 5, cursor: 'start-cursor' });
+            const result = await commentService.listExpenseComments(toExpenseId('test-expense'), toUserId(toUserId(toUserId('user-id'))), { limit: 5, cursor: 'start-cursor' });
 
             expect(result.comments).toHaveLength(0);
             expect(result.hasMore).toBe(false);
@@ -82,7 +82,7 @@ describe('CommentService - Consolidated Tests', () => {
 
         it('should throw error when user lacks access', async () => {
             // No expense or membership data set up, so access should be denied
-            await expect(commentService.listExpenseComments(toExpenseId('nonexistent-expense'), 'user-id')).rejects.toThrow();
+            await expect(commentService.listExpenseComments(toExpenseId('nonexistent-expense'), toUserId('user-id'))).rejects.toThrow();
         });
     });
 
@@ -97,17 +97,17 @@ describe('CommentService - Consolidated Tests', () => {
 
             // Set up group membership for user
             const membershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId('user-id')
+                .withUserId(toUserId(toUserId('user-id')))
                 .withGroupId(testGroup.id)
                 .withGroupDisplayName('Captain Comment')
                 .build();
-            db.seedGroupMember(testGroup.id, 'user-id', membershipDoc);
+            db.seedGroupMember(testGroup.id, toUserId(toUserId(toUserId('user-id'))), membershipDoc);
 
-            const result = await commentService.createGroupComment(testGroup.id, new CreateGroupCommentRequestBuilder().withGroupId(testGroup.id).withText('New test comment').build(), 'user-id');
+            const result = await commentService.createGroupComment(testGroup.id, new CreateGroupCommentRequestBuilder().withGroupId(testGroup.id).withText('New test comment').build(), toUserId(toUserId('user-id')));
 
             expect(result.id).toBeTruthy();
             expect(result.text).toBe('New test comment');
-            expect(result.authorId).toBe('user-id');
+            expect(result.authorId).toBe(toUserId(toUserId('user-id')));
             expect(result.authorName).toBe('Captain Comment');
         });
 
@@ -115,7 +115,7 @@ describe('CommentService - Consolidated Tests', () => {
             // Don't set up any group data
 
             await expect(
-                commentService.createGroupComment(toGroupId('nonexistent-group'), new CreateGroupCommentRequestBuilder().withGroupId('nonexistent-group').withText('Test comment').build(), 'user-id'),
+                commentService.createGroupComment(toGroupId('nonexistent-group'), new CreateGroupCommentRequestBuilder().withGroupId('nonexistent-group').withText('Test comment').build(), toUserId(toUserId('user-id'))),
             )
                 .rejects
                 .toThrow(ApiError);
@@ -133,12 +133,12 @@ describe('CommentService - Consolidated Tests', () => {
 
             // Set up group membership for user
             const membershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId('user-id')
+                .withUserId(toUserId(toUserId('user-id')))
                 .withGroupId(testGroup.id)
                 .build();
-            db.seedGroupMember(testGroup.id, 'user-id', membershipDoc);
+            db.seedGroupMember(testGroup.id, toUserId(toUserId(toUserId('user-id'))), membershipDoc);
 
-            const result = await commentService.listGroupComments(testGroup.id, 'user-id');
+            const result = await commentService.listGroupComments(testGroup.id, toUserId(toUserId('user-id')));
             expect(result.comments).toEqual([]);
         });
 
@@ -157,13 +157,13 @@ describe('CommentService - Consolidated Tests', () => {
 
             // Set up group membership for user
             const membershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId('user-id')
+                .withUserId(toUserId(toUserId('user-id')))
                 .withGroupId(testGroup.id)
                 .build();
-            db.seedGroupMember(testGroup.id, 'user-id', membershipDoc);
+            db.seedGroupMember(testGroup.id, toUserId(toUserId(toUserId('user-id'))), membershipDoc);
 
             // Test should now pass since all dependencies are set up
-            const result = await commentService.listExpenseComments(toExpenseId('test-expense'), 'user-id');
+            const result = await commentService.listExpenseComments(toExpenseId('test-expense'), toUserId(toUserId('user-id')));
 
             // Verify it worked
             expect(result.comments).toEqual([]);
@@ -173,7 +173,7 @@ describe('CommentService - Consolidated Tests', () => {
     describe('Unit Test Scenarios - Error Handling and Edge Cases', () => {
         describe('createComment - Unit Scenarios', () => {
             it('should create a comment using the group display name', async () => {
-                const userId = 'user-123';
+                const userId = toUserId('user-123');
                 const targetId = toGroupId('group-456');
                 const commentData = new CreateGroupCommentRequestBuilder().withGroupId(targetId).withText('Test comment').build();
 
@@ -202,7 +202,7 @@ describe('CommentService - Consolidated Tests', () => {
             });
 
             it('should create a comment even when auth service has no record', async () => {
-                const userId = 'user-456';
+                const userId = toUserId('user-456');
                 const targetId = toGroupId('group-789');
                 const commentData = new CreateGroupCommentRequestBuilder().withGroupId(targetId).withText('Comment without auth record').build();
 
@@ -224,7 +224,7 @@ describe('CommentService - Consolidated Tests', () => {
             });
 
             it('should throw error when user is not a group member', async () => {
-                const userId = 'non-member';
+                const userId = toUserId('non-member');
                 const targetId = toGroupId('group-123');
                 const commentData = new CreateGroupCommentRequestBuilder().withGroupId(targetId).withText('Test comment').build();
 
@@ -232,7 +232,7 @@ describe('CommentService - Consolidated Tests', () => {
             });
 
             it('should throw error when group data is missing', async () => {
-                const userId = 'user-789';
+                const userId = toUserId('user-789');
                 const targetId = toGroupId('group-456');
                 const commentData = new CreateGroupCommentRequestBuilder().withGroupId(targetId).withText('Test comment').build();
 
@@ -248,7 +248,7 @@ describe('CommentService - Consolidated Tests', () => {
 
         describe('listGroupComments - Unit Scenarios', () => {
             it('should list comments successfully when group exists', async () => {
-                const userId = 'user-123';
+                const userId = toUserId('user-123');
                 const targetId = toGroupId('group-456');
 
                 // Set up group and membership for real validation
@@ -272,7 +272,7 @@ describe('CommentService - Consolidated Tests', () => {
             });
 
             it('should return empty list when no comments exist', async () => {
-                const userId = 'user-123';
+                const userId = toUserId('user-123');
                 const targetId = toGroupId('group-456');
 
                 // Set up group and membership for real validation
@@ -294,7 +294,7 @@ describe('CommentService - Consolidated Tests', () => {
             });
 
             it('should throw error when access verification fails', async () => {
-                const userId = 'user-123';
+                const userId = toUserId('user-123');
                 const targetId = toGroupId('group-456');
 
                 // Access should be denied since no proper setup
@@ -304,7 +304,7 @@ describe('CommentService - Consolidated Tests', () => {
 
         describe('Target type support - Unit Scenarios', () => {
             it('should support group comments', async () => {
-                const userId = 'user-123';
+                const userId = toUserId('user-123');
                 const targetId = toGroupId('group-456');
                 const commentData = new CreateGroupCommentRequestBuilder().withGroupId(targetId).withText('Group comment').build();
 
@@ -328,7 +328,7 @@ describe('CommentService - Consolidated Tests', () => {
             });
 
             it('should support expense comments', async () => {
-                const userId = 'user-123';
+                const userId = toUserId('user-123');
                 const targetId = toExpenseId('expense-456');
                 const groupId = toGroupId('group-789');
                 const commentData = new CreateExpenseCommentRequestBuilder().withExpenseId(targetId).withText('Expense comment').build();
@@ -361,7 +361,7 @@ describe('CommentService - Consolidated Tests', () => {
 
         describe('Integration scenarios', () => {
             it('should maintain consistency between create and list operations', async () => {
-                const userId = 'user-123';
+                const userId = toUserId('user-123');
                 const targetId = toGroupId('group-456');
                 const commentData = new CreateGroupCommentRequestBuilder().withGroupId(targetId).withText('Consistency test comment').build();
 

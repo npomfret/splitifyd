@@ -1,4 +1,4 @@
-import { toGroupId } from '@billsplit-wl/shared';
+import { toGroupId, toUserId } from '@billsplit-wl/shared';
 import { TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
 import { GroupMemberDocumentBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
@@ -8,6 +8,8 @@ import { GroupCommentStrategy } from '../../../../services/comments/GroupComment
 import { FirestoreReader } from '../../../../services/firestore';
 import { FirestoreWriter } from '../../../../services/firestore';
 import { GroupMemberService } from '../../../../services/GroupMemberService';
+
+const testUser = toUserId('test-user');
 
 describe('GroupCommentStrategy', () => {
     let strategy: GroupCommentStrategy;
@@ -33,7 +35,7 @@ describe('GroupCommentStrategy', () => {
         it('should allow access when group exists and user is member', async () => {
             // Arrange
             const groupId = toGroupId('test-group');
-            const userId = 'test-user';
+            const userId = testUser;
 
             // Seed group data
             db.seedGroup(groupId, { name: 'Test Group' });
@@ -55,7 +57,7 @@ describe('GroupCommentStrategy', () => {
         it('should throw NOT_FOUND when group does not exist', async () => {
             // Arrange
             const nonexistentGroupId = toGroupId('nonexistent-group');
-            const userId = 'test-user';
+            const userId = testUser;
 
             // No group data seeded - simulating non-existent group
 
@@ -71,7 +73,7 @@ describe('GroupCommentStrategy', () => {
         it('should throw FORBIDDEN when user is not a group member', async () => {
             // Arrange
             const groupId = toGroupId('test-group');
-            const userId = 'unauthorized-user';
+            const userId = toUserId('unauthorized-user');
 
             // Seed group but not user membership
             db.seedGroup(groupId, { name: 'Test Group' });

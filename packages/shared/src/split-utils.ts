@@ -161,7 +161,7 @@ export function calculateEqualSplits(
  * @param rotationSeed - Optional seed for remainder rotation (default: random distribution for fairness)
  * @returns Array of ExpenseSplit objects with equal amounts as starting point
  */
-export function calculateExactSplits(totalAmount: Amount, currencyCode: CurrencyISOCode, participantIds: string[], rotationSeed?: number): ExpenseSplit[] {
+export function calculateExactSplits(totalAmount: Amount, currencyCode: CurrencyISOCode, participantIds: UserId[], rotationSeed?: number): ExpenseSplit[] {
     // For exact splits, use same logic as equal splits as a starting point
     // User will then manually adjust amounts
     return calculateEqualSplits(totalAmount, currencyCode, participantIds, rotationSeed);
@@ -188,7 +188,7 @@ export function calculateExactSplits(totalAmount: Amount, currencyCode: Currency
 export function calculatePercentageSplits(
     totalAmount: Amount,
     currencyCode: CurrencyISOCode,
-    participantIds: string[],
+    participantIds: UserId[],
     rotationSeed?: number,
 ): ExpenseSplit[] {
     if (participantIds.length === 0) {

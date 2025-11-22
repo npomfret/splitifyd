@@ -7,6 +7,7 @@
 import { GroupDTO, JoinGroupResponse, MemberStatus } from '@billsplit-wl/shared';
 import { DisplayName } from '@billsplit-wl/shared';
 import { toISOString } from '@billsplit-wl/shared';
+import { toUserId } from '@billsplit-wl/shared';
 import { ReadonlySignal, signal } from '@preact/signals';
 import { apiClient } from '../apiClient';
 
@@ -76,7 +77,7 @@ class JoinGroupStore {
                 id: preview.groupId,
                 name: preview.groupName,
                 description: preview.groupDescription,
-                createdBy: '', // Will be populated from server
+                createdBy: toUserId(''), // Will be populated from server
                 createdAt: toISOString(new Date().toISOString()),
                 updatedAt: toISOString(new Date().toISOString()),
                 permissions: {
@@ -137,7 +138,7 @@ class JoinGroupStore {
                     id: response.groupId,
                     name: response.groupName,
                     description: '',
-                    createdBy: '',
+                    createdBy: toUserId(''),
                     createdAt: toISOString(new Date().toISOString()),
                     updatedAt: toISOString(new Date().toISOString()),
                     permissions: {

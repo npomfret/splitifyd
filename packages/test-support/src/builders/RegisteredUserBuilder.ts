@@ -1,6 +1,7 @@
-import type { DisplayName, RegisteredUser } from '@billsplit-wl/shared';
+import type { DisplayName, Email, RegisteredUser, UserId } from '@billsplit-wl/shared';
 import { toDisplayName } from '@billsplit-wl/shared';
 import { generateShortId, randomBoolean, randomChoice, randomString, randomUrl } from '../test-helpers';
+import {toEmail, toUserId} from "@billsplit-wl/shared";
 
 /**
  * Builder for creating RegisteredUser objects for testing
@@ -12,16 +13,17 @@ import { generateShortId, randomBoolean, randomChoice, randomString, randomUrl }
  */
 export class RegisteredUserBuilder {
     private user: RegisteredUser = {
-        uid: `user-${generateShortId()}`,
+        uid: toUserId(`user-${generateShortId()}`),
         displayName: toDisplayName(`${randomChoice(['Alice', 'Bob', 'Charlie', 'Diana', 'Emma', 'Frank'])} ${randomString(4)}`),
-        email: `${randomString(6).toLowerCase()}@example.com`,
+        email: toEmail(`${randomString(6).toLowerCase()}@example.com`),
         photoURL: randomBoolean() ? randomUrl() : null,
         emailVerified: randomBoolean(),
         preferredLanguage: randomChoice(['en', 'es', 'fr', 'de', 'it', 'pt']),
+        role: "system_user"
     };
 
-    withUid(uid: string): RegisteredUserBuilder {
-        this.user.uid = uid;
+    withUid(uid: UserId | string): RegisteredUserBuilder {
+        this.user.uid = typeof uid === 'string' ? toUserId(uid) : uid;
         return this;
     }
 
@@ -30,8 +32,8 @@ export class RegisteredUserBuilder {
         return this;
     }
 
-    withEmail(email: string): RegisteredUserBuilder {
-        this.user.email = email;
+    withEmail(email: Email | string): RegisteredUserBuilder {
+        this.user.email = typeof email === 'string' ? toEmail(email) : email;
         return this;
     }
 

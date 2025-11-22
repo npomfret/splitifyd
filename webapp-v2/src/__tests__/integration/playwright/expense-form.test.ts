@@ -1,5 +1,5 @@
 import type { GroupId } from '@billsplit-wl/shared';
-import { DisplayName } from '@billsplit-wl/shared';
+import { DisplayName, toUserId } from '@billsplit-wl/shared';
 import { toDisplayName } from '@billsplit-wl/shared';
 import { ExpenseFormPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder } from '@billsplit-wl/test-support';
 import type { Page } from '@playwright/test';
@@ -25,7 +25,7 @@ async function openExpenseFormForTest(
     const { page, user: testUser } = authenticatedPage;
 
     const group = GroupDTOBuilder
-        .groupForUser(testUser.uid)
+        .groupForUser(toUserId(testUser.uid))
         .withId(groupId)
         .build();
 

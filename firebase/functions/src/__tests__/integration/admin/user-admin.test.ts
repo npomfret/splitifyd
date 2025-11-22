@@ -1,4 +1,4 @@
-import type { PooledTestUser } from '@billsplit-wl/shared';
+import {PooledTestUser, toUserId} from '@billsplit-wl/shared';
 import { ApiDriver, borrowTestUsers } from '@billsplit-wl/test-support';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
@@ -109,7 +109,7 @@ describe('Admin User Management - Integration Tests', () => {
         });
 
         it('should return 404 for non-existent user', async () => {
-            const error = await apiDriver.updateUser('nonexistent-uid-12345', { disabled: true }, adminUser.token).catch(e => e);
+            const error = await apiDriver.updateUser(toUserId('nonexistent-uid-12345'), { disabled: true }, adminUser.token).catch(e => e);
             expect(error).toBeInstanceOf(Error);
             expect((error as any).status).toBe(HTTP_STATUS.NOT_FOUND);
             expect((error as any).response?.error?.code).toBe('USER_NOT_FOUND');

@@ -13,7 +13,7 @@
  * - Follows the same patterns as IFirestoreReader/Writer
  */
 
-import type { Email } from '@billsplit-wl/shared';
+import type {Email, UserId} from '@billsplit-wl/shared';
 import type { CreateRequest, DecodedIdToken, ListUsersResult, UpdateRequest, UserRecord } from 'firebase-admin/auth';
 
 export interface IAuthService {
@@ -35,7 +35,7 @@ export interface IAuthService {
      * @returns UserRecord or null if not found
      * @throws ApiError if operation fails
      */
-    getUser(uid: string): Promise<UserRecord | null>;
+    getUser(uid: UserId): Promise<UserRecord | null>;
 
     /**
      * Get a user by email
@@ -43,7 +43,7 @@ export interface IAuthService {
      * @returns UserRecord or null if not found
      * @throws ApiError if operation fails
      */
-    getUserByEmail(email: string): Promise<UserRecord | null>;
+    getUserByEmail(email: Email): Promise<UserRecord | null>;
 
     /**
      * List users with pagination

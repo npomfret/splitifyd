@@ -17,6 +17,7 @@ import { LoggerContext } from '../utils/logger-context';
 import { withMinimumDuration } from '../utils/timing';
 import type { IAuthService } from './auth';
 import type { FirestoreUserCreateData, IFirestoreReader, IFirestoreWriter } from './firestore';
+import {toEmail, toUserId} from "@billsplit-wl/shared";
 
 const MIN_REGISTRATION_DURATION_MS = 600;
 const REGISTRATION_FAILURE_ERROR_CODE = 'REGISTRATION_FAILED';
@@ -59,7 +60,7 @@ export class UserService {
      */
     private createUserProfile(userRecord: UserRecord & { email: Email; displayName: DisplayName; }, firestoreData: any): RegisteredUser {
         return {
-            uid: userRecord.uid,
+            uid: toUserId(userRecord.uid),
             displayName: userRecord.displayName,
             email: userRecord.email,
             photoURL: userRecord.photoURL || null,
@@ -328,7 +329,7 @@ export class UserService {
             }
 
             // Verify current password
-            const isCurrentPasswordValid = await this.authService.verifyPassword(userRecord.email, validatedData.currentPassword);
+            const isCurrentPasswordValid = await this.authService.verifyPassword(toEmail(userRecord.email), validatedData.currentPassword);
             if (!isCurrentPasswordValid) {
                 throw new ApiError(HTTP_STATUS.UNAUTHORIZED, 'INVALID_PASSWORD', 'Current password is incorrect');
             }
@@ -381,7 +382,7 @@ export class UserService {
                 throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'EMAIL_UNCHANGED', 'New email must be different from current email');
             }
 
-            const isCurrentPasswordValid = await this.authService.verifyPassword(userRecord.email, validatedData.currentPassword);
+            const isCurrentPasswordValid = await this.authService.verifyPassword(toEmail(userRecord.email), validatedData.currentPassword);
             if (!isCurrentPasswordValid) {
                 throw new ApiError(HTTP_STATUS.UNAUTHORIZED, 'INVALID_PASSWORD', 'Current password is incorrect');
             }
@@ -489,7 +490,7 @@ export class UserService {
             });
 
             // Add userId to context now that user is created
-            LoggerContext.update({ userId: userRecord.uid });
+            LoggerContext.update({ userId: userRecord.uid.toString() });
 
             // Get current policy versions for user acceptance
             const currentPolicyVersions = await this.getCurrentPolicyVersions();
@@ -518,7 +519,7 @@ export class UserService {
             }
 
             // FirestoreWriter handles validation and conversion to Firestore format
-            await this.firestoreWriter.createUser(userRecord.uid, userDoc);
+            await this.firestoreWriter.createUser(toUserId(userRecord.uid), userDoc);
 
             // Initialize notification document for new user
 

@@ -3,6 +3,7 @@ import {ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, CreateGroupRequ
 import {beforeAll, beforeEach, describe, expect, test} from 'vitest';
 import {getAuth, getFirestore, getStorage} from '../../firebase';
 import {ComponentBuilder} from '../../services/ComponentBuilder';
+import {toUserId, UserId} from "@billsplit-wl/shared";
 
 async function runWithLimitedConcurrency<T>(operations: Array<() => Promise<T>>, limit: number): Promise<PromiseSettledResult<T>[]> {
     if (operations.length === 0) {
@@ -252,7 +253,7 @@ describe('Concurrent Operations Integration Tests', () => {
                 () => firestoreReader.getGroupMember(testGroup.id, testUser2.uid),
 
                 // Operations that will return null for non-existent member (valid behavior)
-                () => firestoreReader.getGroupMember(testGroup.id, 'non-existent-user-id'),
+                () => firestoreReader.getGroupMember(testGroup.id, toUserId('non-existent-user-id'))
             ];
 
             // Execute all operations concurrently
@@ -292,7 +293,7 @@ describe('Concurrent Operations Integration Tests', () => {
             await groupShareService.joinGroupByLink(testUser3.uid, shareToken, toDisplayName('Test User 3'));
 
             // Expense configurations: [payer, amount, participants]
-            const expenseConfigs: Array<[PooledTestUser, number, string[]]> = [
+            const expenseConfigs: Array<[PooledTestUser, number, UserId[]]> = [
                 [testUser1, 100, [testUser1.uid, testUser2.uid]],
                 [testUser2, 80, [testUser2.uid, testUser3.uid]],
                 [testUser3, 60, [testUser1.uid, testUser3.uid]],
@@ -302,7 +303,7 @@ describe('Concurrent Operations Integration Tests', () => {
             ];
 
             // Settlement configurations: [payer, payee, amount, payerToken]
-            const settlementConfigs: Array<[string, string, number, string]> = [
+            const settlementConfigs: Array<[UserId, UserId, number, string]> = [
                 [testUser2.uid, testUser1.uid, 25, testUser2.token],
                 [testUser3.uid, testUser1.uid, 30, testUser3.token],
                 [testUser1.uid, testUser2.uid, 15, testUser1.token],

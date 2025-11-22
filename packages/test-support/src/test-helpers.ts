@@ -1,5 +1,5 @@
 // Import currency utilities from shared package
-import { CurrencyISOCode, toAmount, toCurrencyISOCode, toPassword } from '@billsplit-wl/shared';
+import {CurrencyISOCode, Email, toAmount, toCurrencyISOCode, toEmail, toPassword} from '@billsplit-wl/shared';
 import { Amount, getCurrencyDecimals, roundToCurrencyPrecision } from '@billsplit-wl/shared';
 import { ISOString, toISOString } from '@billsplit-wl/shared';
 import { toDisplayName } from '@billsplit-wl/shared';
@@ -40,7 +40,7 @@ export function generateNewUserDetails(prefix = 'u') {
     // Direct object return to avoid circular dependency issues with TestUserBuilder
     // TestUserBuilder imports from this file, so we can't import it here
     return {
-        email: `${prefix}-${id}@example.com`,
+        email: toEmail(`${prefix}-${id}@example.com`),
         displayName: toDisplayName(`${prefix} ${id}`),
         password: DEFAULT_PASSWORD,
     };
@@ -80,8 +80,8 @@ export function randomUrl(): string {
     return `https://example.com/${randomString(10)}`;
 }
 
-export function randomEmail(): string {
-    return `${randomString(8)}@${randomString(5)}.com`;
+export function randomEmail(): Email {
+    return toEmail(`${randomString(8)}@${randomString(5)}.com`);
 }
 
 // Re-export currency utilities for backward compatibility

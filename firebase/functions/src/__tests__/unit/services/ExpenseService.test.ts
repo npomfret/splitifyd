@@ -1,5 +1,5 @@
 import { StubStorage } from '@billsplit-wl/test-support';
-import { toExpenseId, toGroupId, toCurrencyISOCode, USD } from '@billsplit-wl/shared';
+import { toExpenseId, toGroupId, toCurrencyISOCode, USD, toUserId } from '@billsplit-wl/shared';
 import { convertToISOString, TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
 import { CreateExpenseRequestBuilder, ExpenseDTOBuilder, ExpenseSplitBuilder, GroupMemberDocumentBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
@@ -8,9 +8,19 @@ import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import { ExpenseService } from '../../../services/ExpenseService';
 import { StubAuthService } from '../mocks/StubAuthService';
 
+
 describe('ExpenseService - Consolidated Unit Tests', () => {
     let expenseService: ExpenseService;
     let db: TenantFirestoreTestDatabase;
+
+    const testUserId = toUserId('test-user-id');
+    const otherUserId = toUserId('other-user');
+    const nonParticipantUserId = toUserId('non-participant-user');
+    const participantUserId = toUserId('participant-user');
+    const participant1UserId = toUserId('participant-1');
+    const participant2UserId = toUserId('participant-2');
+    const userId1 = toUserId('user1');
+    const outsiderUserId = toUserId('outsider-user');
 
     beforeEach(() => {
         db = new TenantFirestoreTestDatabase();
@@ -36,7 +46,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
         it('should transform expense document to response format correctly', async () => {
             // Arrange
             const expenseId = toExpenseId('test-expense-id');
-            const userId = 'test-user-id';
+            const userId = testUserId;
             const now = convertToISOString(new Date());
 
             const mockExpense = new ExpenseDTOBuilder()
@@ -48,8 +58,8 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withDescription('Test expense')
                 .withLabel('Food')
                 .withSplitType('equal')
-                .withParticipants([userId, 'other-user'])
-                .withSplits(ExpenseSplitBuilder.exactSplit([{ uid: userId, amount: '50.25' }, { uid: 'other-user', amount: '50.25' }]).build())
+                .withParticipants([userId, otherUserId])
+                .withSplits(ExpenseSplitBuilder.exactSplit([{ uid: userId, amount: '50.25' }, { uid: otherUserId, amount: '50.25' }]).build())
                 .withReceiptUrl('https://example.com/receipt.jpg')
                 .withCreatedAt(now)
                 .withUpdatedAt(now)
@@ -77,10 +87,10 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 label: 'Food',
                 date: expect.any(String), // ISO string
                 splitType: 'equal',
-                participants: [userId, 'other-user'],
+                participants: [userId, otherUserId],
                 splits: [
                     { uid: userId, amount: '50.25' },
-                    { uid: 'other-user', amount: '50.25' },
+                    { uid: otherUserId, amount: '50.25' },
                 ],
                 receiptUrl: 'https://example.com/receipt.jpg',
                 createdAt: expect.any(String),
@@ -94,7 +104,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
         it('should handle expense without receipt URL', async () => {
             // Arrange
             const expenseId = toExpenseId('test-expense-id');
-            const userId = 'test-user-id';
+            const userId = testUserId;
 
             const mockExpense = new ExpenseDTOBuilder()
                 .withExpenseId(expenseId)
@@ -121,8 +131,8 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
         it('should allow access for non-participants', async () => {
             // Arrange
             const expenseId = toExpenseId('test-expense-id');
-            const participantId = 'participant-user';
-            const nonParticipantId = 'non-participant-user';
+            const participantId = participantUserId;
+            const nonParticipantId = nonParticipantUserId;
 
             const mockExpense = new ExpenseDTOBuilder()
                 .withExpenseId(expenseId)
@@ -146,8 +156,8 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
         it('should allow access for all participants', async () => {
             // Arrange
             const expenseId = toExpenseId('test-expense-id');
-            const participant1 = 'participant-1';
-            const participant2 = 'participant-2';
+            const participant1 = participant1UserId;
+            const participant2 = participant2UserId;
 
             const mockExpense = new ExpenseDTOBuilder()
                 .withExpenseId(expenseId)
@@ -177,7 +187,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
         it('should reject access to soft-deleted expenses', async () => {
             // Arrange
             const expenseId = toExpenseId('deleted-expense-id');
-            const userId = 'test-user-id';
+            const userId = testUserId;
 
             const mockDeletedExpense = new ExpenseDTOBuilder()
                 .withExpenseId(expenseId)
@@ -203,7 +213,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
         it('should handle non-existent expense gracefully', async () => {
             // Arrange
             const nonExistentId = toExpenseId('non-existent-expense');
-            const userId = 'test-user-id';
+            const userId = testUserId;
 
             // Don't seed any data - expense doesn't exist
 
@@ -221,7 +231,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
         it('should handle decimal precision in amounts and splits correctly', async () => {
             // Arrange
             const expenseId = toExpenseId('decimal-precision-expense');
-            const userId = 'test-user-id';
+            const userId = testUserId;
 
             const mockExpense = new ExpenseDTOBuilder()
                 .withExpenseId(expenseId)
@@ -255,15 +265,15 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withDescription('Negative amount test')
                 .withAmount(-50, 'USD') // Invalid negative amount                .withCurrency('USD')
                 .withLabel('Food')
-                .withPaidBy('user1')
-                .withParticipants(['user1'])
+                .withPaidBy(userId1)
+                .withParticipants([userId1])
                 .withSplitType('equal')
-                .withSplits(ExpenseSplitBuilder.exactSplit([{ uid: 'user1', amount: '-50' }]).build())
+                .withSplits(ExpenseSplitBuilder.exactSplit([{ uid: userId1, amount: '-50' }]).build())
                 .withDate(new Date().toISOString())
                 .build();
 
             // Act & Assert - Real validation should reject negative amounts
-            await expect(expenseService.createExpense('user1', mockExpenseRequest)).rejects.toThrow(
+            await expect(expenseService.createExpense(userId1, mockExpenseRequest)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                 }),
@@ -277,15 +287,15 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withDescription('Invalid currency test')
                 .withAmount(100, 'INVALID_CURRENCY') // Invalid currency code
                 .withLabel('Food')
-                .withPaidBy('user1')
-                .withParticipants(['user1'])
+                .withPaidBy(userId1)
+                .withParticipants([userId1])
                 .withSplitType('equal')
-                .withSplits(ExpenseSplitBuilder.exactSplit([{ uid: 'user1', amount: '100' }]).build())
+                .withSplits(ExpenseSplitBuilder.exactSplit([{ uid: userId1, amount: '100' }]).build())
                 .withDate(new Date().toISOString())
                 .build();
 
             // Act & Assert - Real validation should reject invalid currency
-            await expect(expenseService.createExpense('user1', mockExpenseRequest)).rejects.toThrow(
+            await expect(expenseService.createExpense(userId1, mockExpenseRequest)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                 }),
@@ -297,7 +307,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
         it('should handle expense labels correctly', async () => {
             // Arrange
             const expenseId = toExpenseId('categorized-expense');
-            const userId = 'test-user-id';
+            const userId = testUserId;
 
             const mockExpense = new ExpenseDTOBuilder()
                 .withExpenseId(expenseId)
@@ -323,7 +333,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
         it('should preserve receipt URLs correctly', async () => {
             // Arrange
             const expenseId = toExpenseId('receipt-expense');
-            const userId = 'test-user-id';
+            const userId = testUserId;
             const receiptUrl = 'https://storage.example.com/receipts/receipt123.jpg';
 
             const mockExpense = new ExpenseDTOBuilder()
@@ -352,7 +362,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
         it('should handle database read failures gracefully', async () => {
             // Arrange
             const expenseId = toExpenseId('failing-expense');
-            const userId = 'test-user-id';
+            const userId = testUserId;
 
             // Make the database throw an error by overriding collection method
             db.collection = () => {
@@ -367,7 +377,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
     describe('Focused Access Control Scenarios', () => {
         it('should allow participants to access expense (focused)', async () => {
             // Arrange
-            const participantId = 'participant-user';
+            const participantId = participantUserId;
             const expenseId = toExpenseId('test-expense');
 
             const expenseData = new ExpenseDTOBuilder()
@@ -395,8 +405,8 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
 
         it('should allow access to non-participants (focused)', async () => {
             // Arrange
-            const participantId = 'participant-user';
-            const outsiderId = 'outsider-user';
+            const participantId = participantUserId;
+            const outsiderId = outsiderUserId;
             const expenseId = toExpenseId('test-expense');
 
             const expenseData = new ExpenseDTOBuilder()
@@ -423,7 +433,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
 
         it('should handle soft-deleted expenses correctly (focused)', async () => {
             // Arrange
-            const userId = 'test-user';
+            const userId = testUserId;
             const expenseId = toExpenseId('deleted-expense');
 
             const deletedExpense = new ExpenseDTOBuilder()
@@ -444,7 +454,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
     describe('Focused Data Transformation Scenarios', () => {
         it('should transform expense data correctly (focused)', async () => {
             // Arrange
-            const userId = 'test-user';
+            const userId = testUserId;
             const expenseId = toExpenseId('test-expense');
             const now = convertToISOString(new Date());
 
@@ -498,7 +508,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
 
         it('should handle expense without receipt URL (focused)', async () => {
             // Arrange
-            const userId = 'test-user';
+            const userId = testUserId;
             const expenseId = toExpenseId('test-expense');
 
             const expenseData = new ExpenseDTOBuilder()

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { getAuthStore } from '@/app/stores/auth-store';
+import { toEmail } from "@billsplit-wl/shared";
 
 const setPersistenceMock = vi.fn().mockResolvedValue(undefined);
 const signInWithEmailAndPasswordMock = vi.fn().mockResolvedValue(undefined);
@@ -83,7 +84,7 @@ describe('AuthStore.login', () => {
     it('uses local persistence by default', async () => {
         const { store, mocks } = await setupAuthStore();
 
-        await store.login('user@example.com', 'password123');
+        await store.login(toEmail('user@example.com'), 'password123');
 
         expect(mocks.setPersistenceMock).toHaveBeenCalledWith('local');
         expect(mocks.signInWithEmailAndPasswordMock).toHaveBeenCalledWith('user@example.com', 'password123');
@@ -92,7 +93,7 @@ describe('AuthStore.login', () => {
     it('uses session persistence when rememberMe is false', async () => {
         const { store, mocks } = await setupAuthStore();
 
-        await store.login('user@example.com', 'password123', false);
+        await store.login(toEmail('user@example.com'), 'password123', false);
 
         expect(mocks.setPersistenceMock).toHaveBeenCalledWith('session');
         expect(mocks.signInWithEmailAndPasswordMock).toHaveBeenCalled();

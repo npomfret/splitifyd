@@ -75,6 +75,7 @@ import {
     UserProfileResponse,
     UserRegistration,
     VersionHash,
+    toUserId,
 } from '@billsplit-wl/shared';
 import { StubStorage, TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
 import { CreateGroupRequestBuilder, createStubRequest, createStubResponse } from '@billsplit-wl/test-support';
@@ -99,7 +100,7 @@ interface AuthenticatedRequest extends Request {
     };
 }
 
-export type AuthToken = UserId;
+export type AuthToken = string;
 
 /**
  * Thin façade around the public HTTP handlers.
@@ -166,7 +167,7 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
 
             // Fetch role from Firestore (mimics production middleware)
             try {
-                const userDocument = await firestoreReader.getUser(req.user.uid);
+                const userDocument = await firestoreReader.getUser(toUserId(req.user.uid));
                 if (userDocument) {
                     req.user.role = userDocument.role;
                 }
@@ -367,7 +368,7 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return res;
     }
 
-    seedUser(userId: UserId, userData: SeedUserData = {}) {
+    seedUser(userId: UserId | string, userData: SeedUserData = {}) {
         const user = this.db.seedUser(userId, userData);
 
         this.authService.setUser(userId, {
@@ -380,7 +381,7 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
     /**
      * Seeds an admin user for testing admin-only endpoints
      */
-    seedAdminUser(userId: UserId, userData: Record<string, any> = {}) {
+    seedAdminUser(userId: UserId | string, userData: Record<string, any> = {}) {
         const user = this.db.seedUser(userId, {
             ...userData,
             role: SystemUserRoles.SYSTEM_ADMIN,
@@ -499,7 +500,11 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
     }
 
     async previewGroupByLink(shareToken: ShareLinkToken, authToken?: AuthToken): Promise<PreviewGroupResponse> {
-        const req = createStubRequest(authToken || '', { shareToken });
+        if (!authToken) {
+            throw new Error('Auth token is required for previewGroupByLink');
+        }
+
+        const req = createStubRequest(authToken, { shareToken });
         const res = await this.dispatchByHandler('previewGroupByLink', req);
         return res.getJson() as PreviewGroupResponse;
     }
@@ -537,7 +542,7 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return res.getJson() as MessageResponse;
     }
 
-    async removeGroupMember(groupId: GroupId | string, memberId: UserId, authToken: AuthToken): Promise<MessageResponse> {
+    async removeGroupMember(groupId: GroupId | string, memberId: UserId | string, authToken: AuthToken): Promise<MessageResponse> {
         const req = createStubRequest(authToken, {}, { id: groupId, memberId });
         const res = await this.dispatchByHandler('removeGroupMember', req);
         return res.getJson() as MessageResponse;
@@ -768,14 +773,14 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
 
     // ===== ADMIN API: POLICY MANAGEMENT =====
 
-    async createPolicy(request: CreatePolicyRequest, token?: AuthToken): Promise<CreatePolicyResponse> {
-        const req = createStubRequest(token || '', request);
+    async createPolicy(request: CreatePolicyRequest, token: AuthToken): Promise<CreatePolicyResponse> {
+        const req = createStubRequest(token, request);
         const res = await this.dispatchByHandler('createPolicy', req);
         return res.getJson() as CreatePolicyResponse;
     }
 
-    async listPolicies(token?: AuthToken): Promise<ListPoliciesResponse> {
-        const req = createStubRequest(token || '', {});
+    async listPolicies(token: AuthToken): Promise<ListPoliciesResponse> {
+        const req = createStubRequest(token, {});
         const res = await this.dispatchByHandler('listPolicies', req);
         return res.getJson() as ListPoliciesResponse;
     }
@@ -784,7 +789,7 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
      * Helper method to get a single policy by ID with all its versions.
      * Not part of the AdminAPI interface - used internally by tests.
      */
-    async getPolicy(policyId: PolicyId, token?: AuthToken): Promise<PolicyDTO> {
+    async getPolicy(policyId: PolicyId, token: AuthToken): Promise<PolicyDTO> {
         const response = await this.listPolicies(token);
         const policy = response.policies.find(p => p.id === policyId);
         if (!policy) {
@@ -793,26 +798,26 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return policy;
     }
 
-    async getPolicyVersion(policyId: PolicyId, versionHash: VersionHash, token?: AuthToken): Promise<PolicyVersion & { versionHash: VersionHash }> {
-        const req = createStubRequest(token || '', {}, { id: policyId, hash: versionHash });
+    async getPolicyVersion(policyId: PolicyId, versionHash: VersionHash, token: AuthToken): Promise<PolicyVersion & { versionHash: VersionHash }> {
+        const req = createStubRequest(token, {}, { id: policyId, hash: versionHash });
         const res = await this.dispatchByHandler('getPolicyVersion', req);
         return res.getJson() as PolicyVersion & { versionHash: VersionHash };
     }
 
-    async updatePolicy(policyId: PolicyId, request: UpdatePolicyRequest, token?: AuthToken): Promise<UpdatePolicyResponse> {
-        const req = createStubRequest(token || '', request, { id: policyId });
+    async updatePolicy(policyId: PolicyId, request: UpdatePolicyRequest, token: AuthToken): Promise<UpdatePolicyResponse> {
+        const req = createStubRequest(token, request, { id: policyId });
         const res = await this.dispatchByHandler('updatePolicy', req);
         return res.getJson() as UpdatePolicyResponse;
     }
 
-    async publishPolicy(policyId: PolicyId, versionHash: VersionHash, token?: AuthToken): Promise<PublishPolicyResponse> {
-        const req = createStubRequest(token || '', { versionHash }, { id: policyId });
+    async publishPolicy(policyId: PolicyId, versionHash: VersionHash, token: AuthToken): Promise<PublishPolicyResponse> {
+        const req = createStubRequest(token, { versionHash }, { id: policyId });
         const res = await this.dispatchByHandler('publishPolicy', req);
         return res.getJson() as PublishPolicyResponse;
     }
 
-    async deletePolicyVersion(policyId: PolicyId, versionHash: VersionHash, token?: AuthToken): Promise<DeletePolicyVersionResponse> {
-        const req = createStubRequest(token || '', {}, { id: policyId, hash: versionHash });
+    async deletePolicyVersion(policyId: PolicyId, versionHash: VersionHash, token: AuthToken): Promise<DeletePolicyVersionResponse> {
+        const req = createStubRequest(token, {}, { id: policyId, hash: versionHash });
         const res = await this.dispatchByHandler('deletePolicyVersion', req);
         return res.getJson() as DeletePolicyVersionResponse;
     }
@@ -1040,40 +1045,40 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
 
     // ===== ADMIN API: TENANT MANAGEMENT =====
 
-    async adminUpsertTenant(request: AdminUpsertTenantRequest, token?: AuthToken): Promise<AdminUpsertTenantResponse> {
-        const req = createStubRequest(token || '', request);
+    async adminUpsertTenant(request: AdminUpsertTenantRequest, token: AuthToken): Promise<AdminUpsertTenantResponse> {
+        const req = createStubRequest(token, request);
         const res = await this.dispatchByHandler('adminUpsertTenant', req);
         return res.getJson() as AdminUpsertTenantResponse;
     }
 
-    async publishTenantTheme(request: PublishTenantThemeRequest, token?: AuthToken): Promise<PublishTenantThemeResponse> {
-        const req = createStubRequest(token || '', request);
+    async publishTenantTheme(request: PublishTenantThemeRequest, token: AuthToken): Promise<PublishTenantThemeResponse> {
+        const req = createStubRequest(token, request);
         const res = await this.dispatchByHandler('publishTenantTheme', req);
         return res.getJson() as PublishTenantThemeResponse;
     }
 
     // ===== ADMIN API: TENANT SETTINGS =====
 
-    async getTenantSettings(token?: AuthToken): Promise<TenantSettingsResponse> {
-        const req = createStubRequest(token || '', {});
+    async getTenantSettings(token: AuthToken): Promise<TenantSettingsResponse> {
+        const req = createStubRequest(token, {});
         const res = await this.dispatchByHandler('getTenantSettings', req);
         return res.getJson() as TenantSettingsResponse;
     }
 
-    async updateTenantBranding(request: UpdateTenantBrandingRequest, token?: AuthToken): Promise<MessageResponse> {
-        const req = createStubRequest(token || '', request);
+    async updateTenantBranding(request: UpdateTenantBrandingRequest, token: AuthToken): Promise<MessageResponse> {
+        const req = createStubRequest(token, request);
         const res = await this.dispatchByHandler('updateTenantBranding', req);
         return res.getJson() as MessageResponse;
     }
 
-    async getTenantDomains(token?: AuthToken): Promise<TenantDomainsResponse> {
-        const req = createStubRequest(token || '', {});
+    async getTenantDomains(token: AuthToken): Promise<TenantDomainsResponse> {
+        const req = createStubRequest(token, {});
         const res = await this.dispatchByHandler('listTenantDomains', req);
         return res.getJson() as TenantDomainsResponse;
     }
 
-    async addTenantDomain(request: AddTenantDomainRequest, token?: AuthToken): Promise<MessageResponse> {
-        const req = createStubRequest(token || '', request);
+    async addTenantDomain(request: AddTenantDomainRequest, token: AuthToken): Promise<MessageResponse> {
+        const req = createStubRequest(token, request);
         const res = await this.dispatchByHandler('addTenantDomain', req);
         return res.getJson() as MessageResponse;
     }

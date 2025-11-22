@@ -2,8 +2,8 @@ import { apiClient } from '@/app/apiClient';
 import { useAuth } from '@/app/hooks/useAuth';
 import { Alert, Button, Card, Input, LoadingState, Pagination } from '@/components/ui';
 import { logError, logInfo } from '@/utils/browser-logger';
-import type { RegisteredUser, SystemUserRole } from '@billsplit-wl/shared';
-import { SystemUserRoles } from '@billsplit-wl/shared';
+import type { RegisteredUser, SystemUserRole, UserId, Email } from '@billsplit-wl/shared';
+import { SystemUserRoles, toUserId, toEmail } from '@billsplit-wl/shared';
 import { computed, useSignal, useSignalEffect } from '@preact/signals';
 import { useTranslation } from 'react-i18next';
 
@@ -50,13 +50,17 @@ export function AdminUsersTab() {
         error.value = null;
 
         try {
-            const query: { limit: number; pageToken?: string; email?: string; uid?: string; } = { limit: DEFAULT_LIMIT };
+            const query: { limit: number; pageToken?: string; email?: Email; uid?: UserId; } = { limit: DEFAULT_LIMIT };
 
             if (hasSearchApplied.value) {
                 const searchVal = searchValue.value.trim();
                 if (searchVal) {
                     const detected = detectSearchField(searchVal);
-                    query[detected.type] = detected.value;
+                    if (detected.type === 'email') {
+                        query.email = toEmail(detected.value);
+                    } else {
+                        query.uid = toUserId(detected.value);
+                    }
                 }
             } else if (pageToken) {
                 query.pageToken = pageToken;
@@ -133,7 +137,7 @@ export function AdminUsersTab() {
         await loadUsers(previousToken);
     };
 
-    const handleDisableUser = async (uid: string, currentlyDisabled: boolean) => {
+    const handleDisableUser = async (uid: UserId, currentlyDisabled: boolean) => {
         // Prevent self-disable
         if (uid === user.uid) {
             window.alert('You cannot disable your own account');
@@ -165,7 +169,7 @@ export function AdminUsersTab() {
         }
     };
 
-    const handleUpdateRole = async (uid: string, currentRole: string | null) => {
+    const handleUpdateRole = async (uid: UserId, currentRole: string | null) => {
         // Prevent self-role change
         if (uid === user.uid) {
             window.alert('You cannot change your own role');
@@ -320,7 +324,7 @@ export function AdminUsersTab() {
                             <tbody class='bg-white divide-y divide-indigo-200'>
                                 {users.value.map((authUser) => {
                                     const metadata = authUser.metadata;
-                                    const uid = String(authUser.uid ?? '');
+                                    const uid = authUser.uid;
                                     const isCurrentUser = uid === user.uid;
                                     const role = authUser.role ?? null;
 

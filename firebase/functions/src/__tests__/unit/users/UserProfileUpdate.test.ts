@@ -1,11 +1,11 @@
 // Unit tests for user profile update functionality
-import { toPassword } from '@billsplit-wl/shared';
-import { beforeEach, describe, expect, test } from 'vitest';
+import {SystemUserRoles, toEmail, toPassword, toUserId } from '@billsplit-wl/shared';
+import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { AppDriver } from '../AppDriver';
 
 describe('User Profile Update - Unit Tests', () => {
     let appDriver: AppDriver;
-    const userId = 'test-user';
+    const userId = toUserId('test-user');
 
     beforeEach(() => {
         appDriver = new AppDriver();
@@ -13,6 +13,7 @@ describe('User Profile Update - Unit Tests', () => {
         appDriver.seedUser(userId, {
             displayName: 'Original Name',
             email: 'user@test.local',
+            role: SystemUserRoles.SYSTEM_USER,
         });
     });
 
@@ -47,7 +48,7 @@ describe('User Profile Update - Unit Tests', () => {
 
     describe('POST /api/user/change-email', () => {
         test('updates email when password is valid', async () => {
-            const newEmail = `updated-${Date.now()}@test.local`;
+            const newEmail = toEmail(`updated-${Date.now()}@test.local`);
 
             const updatedProfile = await appDriver.changeEmail({
                 currentPassword: toPassword('ValidPass123!'),
@@ -62,7 +63,7 @@ describe('User Profile Update - Unit Tests', () => {
             await expect(
                 appDriver.changeEmail({
                     currentPassword: toPassword('WrongPassword123!'),
-                    newEmail: toPassword(`another-${Date.now()}@test.local`),
+                    newEmail: toEmail(`another-${Date.now()}@test.local`),
                 }, userId),
             )
                 .rejects
@@ -73,7 +74,7 @@ describe('User Profile Update - Unit Tests', () => {
             await expect(
                 appDriver.changeEmail({
                     currentPassword: toPassword('ValidPass123!'),
-                    newEmail: 'user@test.local',
+                    newEmail: toEmail('user@test.local'),
                 }, userId),
             )
                 .rejects
@@ -81,8 +82,8 @@ describe('User Profile Update - Unit Tests', () => {
         });
 
         test('rejects duplicate email', async () => {
-            const takenEmail = 'taken@test.local';
-            appDriver.seedUser('other-user', { email: takenEmail, displayName: 'Other User' });
+            const takenEmail = toEmail('taken@test.local');
+            appDriver.seedUser(toUserId('other-user'), { email: takenEmail, displayName: 'Other User', role: SystemUserRoles.SYSTEM_USER });
 
             await expect(
                 appDriver.changeEmail({

@@ -148,9 +148,13 @@ export const toVersionHash = (value: string): VersionHash => value as VersionHas
 export type CurrencyISOCode = Brand<string, 'CurrencyISOCode'>;
 export const toCurrencyISOCode = (value: string): CurrencyISOCode => value as CurrencyISOCode;
 
+export type UserId = Brand<string, 'UserId'>;
+export const toUserId = (value: string): UserId => value as UserId;
+
+export type Email = Brand<string, 'Email'>;
+export const toEmail = (value: string): Email => value as Email;
+
 export type Description = string;
-export type UserId = string;
-export type Email = string;
 export type ActivityFeedItemId = string;
 
 // todo: add a type for label
@@ -557,7 +561,7 @@ export interface RegisteredUser extends FirebaseUser {
     emailVerified: boolean; // Email verification status
 
     // System administration
-    role?: SystemUserRole; // Role field for admin access control
+    role: SystemUserRole; // Role field for admin access control
 
     // Auth metadata (optional)
     disabled?: boolean;
@@ -1328,6 +1332,19 @@ export interface CommentQuery {
 export interface ListCommentsOptions {
     cursor?: string;
     limit?: number;
+}
+
+/**
+ * Options for listing settlements
+ * Used by API clients for settlement list queries
+ */
+export interface ListSettlementsOptions {
+    cursor?: string;
+    limit?: number;
+    uid?: UserId;
+    startDate?: ISOString;
+    endDate?: ISOString;
+    includeDeleted?: boolean;
 }
 
 /**

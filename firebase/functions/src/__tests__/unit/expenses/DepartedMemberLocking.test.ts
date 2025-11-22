@@ -5,10 +5,11 @@ import { calculateEqualSplits, GroupId, toAmount, toCurrencyISOCode, USD } from 
 import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, ExpenseUpdateBuilder, SettlementUpdateBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { AppDriver } from '../AppDriver';
+import {toUserId} from "@billsplit-wl/shared";
 
 describe('Departed Member Transaction Locking - Unit Tests', () => {
     let appDriver: AppDriver;
-    const userIds = ['user-0', 'user-1', 'user-2', 'user-3'];
+    const userIds = [toUserId('user-0'), toUserId('user-1'), toUserId('user-2'), toUserId('user-3')];
     const usd = USD;
     const eur = toCurrencyISOCode('EUR');
 

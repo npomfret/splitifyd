@@ -5,6 +5,7 @@ import type { ISOString } from '@billsplit-wl/shared';
 import { toDisplayName } from '@billsplit-wl/shared';
 import { convertToISOString, generateShortId, randomChoice } from '../test-helpers';
 import { ThemeBuilder } from './ThemeBuilder';
+import {toUserId} from "@billsplit-wl/shared";
 
 /**
  * Builder for creating GroupMember objects for tests
@@ -14,7 +15,7 @@ export class GroupMemberBuilder {
     private member: GroupMember;
 
     constructor() {
-        const uid = `user-${generateShortId()}`;
+        const uid = toUserId(`user-${generateShortId()}`);
         const displayName = toDisplayName(randomChoice(['Alice Smith', 'Bob Johnson', 'Charlie Brown', 'Diana Prince', 'Eve Anderson']));
 
         this.member = {
@@ -35,8 +36,8 @@ export class GroupMemberBuilder {
     }
 
     // User identification methods
-    withUid(uid: string): this {
-        this.member.uid = uid;
+    withUid(uid: UserId | string): this {
+        this.member.uid = typeof  uid === 'string' ? toUserId(uid): uid;
         return this;
     }
 
@@ -88,8 +89,8 @@ export class GroupMemberBuilder {
         return this;
     }
 
-    withInvitedBy(invitedBy: UserId): this {
-        this.member.invitedBy = invitedBy;
+    withInvitedBy(invitedBy: UserId | string): this {
+        this.member.invitedBy = typeof invitedBy === 'string' ? toUserId(invitedBy) : invitedBy;;
         return this;
     }
 

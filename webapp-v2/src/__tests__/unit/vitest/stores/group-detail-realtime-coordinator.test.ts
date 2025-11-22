@@ -1,7 +1,7 @@
 import type { ActivityFeedRealtimeConsumer, ActivityFeedRealtimePayload } from '@/app/services/activity-feed-realtime-service';
 import { GroupDetailRealtimeCoordinator } from '@/app/stores/helpers/group-detail-realtime-coordinator';
 import type { GroupId } from '@billsplit-wl/shared';
-import { toGroupId } from '@billsplit-wl/shared';
+import { toGroupId, toUserId } from '@billsplit-wl/shared';
 import { describe, expect, it, vi } from 'vitest';
 
 interface TestContext {
@@ -54,7 +54,7 @@ describe('GroupDetailRealtimeCoordinator', () => {
         const ctx = createContext();
         const groupId = toGroupId('group-1');
 
-        await ctx.coordinator.registerComponent(groupId, 'user-1');
+        await ctx.coordinator.registerComponent(groupId, toUserId('user-1'));
         ctx.setActiveGroup(groupId);
 
         expect(ctx.registerConsumer).toHaveBeenCalledTimes(1);
@@ -65,8 +65,8 @@ describe('GroupDetailRealtimeCoordinator', () => {
         const ctx = createContext();
         const groupId = toGroupId('group-1');
 
-        await ctx.coordinator.registerComponent(groupId, 'user-1');
-        await ctx.coordinator.registerComponent(groupId, 'user-1');
+        await ctx.coordinator.registerComponent(groupId, toUserId('user-1'));
+        await ctx.coordinator.registerComponent(groupId, toUserId('user-1'));
 
         expect(ctx.coordinator.getSubscriberCount(groupId)).toBe(2);
 
@@ -82,7 +82,7 @@ describe('GroupDetailRealtimeCoordinator', () => {
         const ctx = createContext();
         const groupId = toGroupId('group-1');
 
-        await ctx.coordinator.registerComponent(groupId, 'user-1');
+        await ctx.coordinator.registerComponent(groupId, toUserId('user-1'));
         ctx.setActiveGroup(groupId);
 
         const consumer = ctx.getConsumer();
@@ -114,7 +114,7 @@ describe('GroupDetailRealtimeCoordinator', () => {
         const ctx = createContext();
         const groupId = toGroupId('group-1');
 
-        await ctx.coordinator.registerComponent(groupId, 'user-1');
+        await ctx.coordinator.registerComponent(groupId, toUserId('user-1'));
         ctx.setActiveGroup(groupId);
 
         const consumer = ctx.getConsumer();
@@ -145,7 +145,7 @@ describe('GroupDetailRealtimeCoordinator', () => {
         const ctx = createContext();
         const groupId = toGroupId('group-1');
 
-        await ctx.coordinator.registerComponent(groupId, 'user-1');
+        await ctx.coordinator.registerComponent(groupId, toUserId('user-1'));
         ctx.setActiveGroup(groupId);
 
         const consumer = ctx.getConsumer();

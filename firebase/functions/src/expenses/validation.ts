@@ -5,6 +5,7 @@ import { SplitStrategyFactory } from '../services/splits/SplitStrategyFactory';
 import { validateAmountPrecision } from '../utils/amount-validation';
 import { ApiError } from '../utils/errors';
 import { createRequestValidator, createZodErrorMapper, sanitizeInputString } from '../validation/common';
+import {toUserId} from "@billsplit-wl/shared";
 
 const createExpenseErrorMapper = createZodErrorMapper(
     {
@@ -68,16 +69,16 @@ const baseCreateExpenseValidator = createRequestValidator({
 
         return {
             groupId: toGroupId(value.groupId.trim()),
-            paidBy: value.paidBy.trim(),
+            paidBy: toUserId(value.paidBy),
             amount: value.amount,
             currency: value.currency,
             description: sanitizeInputString(value.description),
             label: sanitizeInputString(value.label),
             date: toISOString(value.date),
             splitType: value.splitType,
-            participants: value.participants.map((participant) => participant.trim()),
+            participants: value.participants.map((participant) => toUserId(participant)),
             splits: value.splits.map((split) => ({
-                uid: split.uid.trim(),
+                uid: toUserId(split.uid),
                 amount: split.amount,
                 percentage: split.percentage,
             })),
@@ -168,7 +169,7 @@ const baseUpdateExpenseValidator = createRequestValidator({
         }
 
         if (value.paidBy !== undefined) {
-            update.paidBy = value.paidBy.trim();
+            update.paidBy = toUserId(value.paidBy);
         }
 
         if (value.splitType !== undefined) {
@@ -176,12 +177,12 @@ const baseUpdateExpenseValidator = createRequestValidator({
         }
 
         if (value.participants !== undefined) {
-            update.participants = value.participants.map((participant) => participant.trim());
+            update.participants = value.participants.map((participant) => toUserId(participant));
         }
 
         if (value.splits !== undefined) {
             update.splits = value.splits.map((split) => ({
-                uid: split.uid.trim(),
+                uid: toUserId(split.uid),
                 amount: split.amount,
                 percentage: split.percentage,
             }));

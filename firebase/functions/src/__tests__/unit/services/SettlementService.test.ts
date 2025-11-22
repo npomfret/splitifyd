@@ -1,5 +1,5 @@
 import { StubStorage } from '@billsplit-wl/test-support';
-import { toGroupId, toSettlementId } from '@billsplit-wl/shared';
+import { toGroupId, toSettlementId, toUserId } from '@billsplit-wl/shared';
 import { TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
 import { ClientUserBuilder, CreateSettlementRequestBuilder, GroupMemberDocumentBuilder, SettlementDocumentBuilder } from '@billsplit-wl/test-support';
 import { Timestamp } from '@google-cloud/firestore';
@@ -9,10 +9,15 @@ import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import { SettlementService } from '../../../services/SettlementService';
 import { StubAuthService } from '../mocks/StubAuthService';
 
+
 describe('SettlementService - Unit Tests', () => {
     let settlementService: SettlementService;
     let db: TenantFirestoreTestDatabase;
     let stubAuth: StubAuthService;
+
+    const creatorUser = toUserId('creator-user');
+    const adminUser = toUserId('admin-user');
+    const otherUser = toUserId('other-user');
 
     const seedUser = (userId: string, overrides: Record<string, any> = {}) => {
         const user = db.seedUser(userId, overrides);
@@ -39,7 +44,7 @@ describe('SettlementService - Unit Tests', () => {
     describe('Settlement Creation Validation', () => {
         it('should validate settlement amounts correctly', async () => {
             // Arrange
-            const userId = 'creator-user';
+            const userId = creatorUser;
             const groupId = toGroupId('test-group');
             const validSettlementData = new CreateSettlementRequestBuilder()
                 .withGroupId(groupId)
@@ -52,13 +57,13 @@ describe('SettlementService - Unit Tests', () => {
             // Seed required data
             db.seedGroup(groupId, { name: 'Test Group' });
             db.initializeGroupBalance(groupId);
-            seedUser('creator-user', { email: 'creator@test.com', displayName: 'Creator User' });
+            seedUser(creatorUser, { email: 'creator@test.com', displayName: 'Creator User' });
             seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
             seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
 
             // Set up group memberships for all users (creator, payer, payee)
             const creatorMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId('creator-user')
+                .withUserId(creatorUser)
                 .withGroupId(groupId)
                 .withRole('member')
                 .withStatus('active')
@@ -75,7 +80,7 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .buildDocument();
-            db.seedGroupMember(groupId, 'creator-user', creatorMembershipDoc);
+            db.seedGroupMember(groupId, creatorUser, creatorMembershipDoc);
             db.seedGroupMember(groupId, 'payer-user', payerMembershipDoc);
             db.seedGroupMember(groupId, 'payee-user', payeeMembershipDoc);
 
@@ -91,7 +96,7 @@ describe('SettlementService - Unit Tests', () => {
 
         it('should handle optional note field correctly', async () => {
             // Arrange
-            const userId = 'creator-user';
+            const userId = creatorUser;
             const groupId = toGroupId('test-group');
             const settlementDataWithoutNote = new CreateSettlementRequestBuilder()
                 .withGroupId(groupId)
@@ -104,13 +109,13 @@ describe('SettlementService - Unit Tests', () => {
             // Seed required data
             db.seedGroup(groupId, { name: 'Test Group' });
             db.initializeGroupBalance(groupId);
-            seedUser('creator-user', { email: 'creator@test.com', displayName: 'Creator User' });
+            seedUser(creatorUser, { email: 'creator@test.com', displayName: 'Creator User' });
             seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
             seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
 
             // Set up group memberships
             const creatorMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId('creator-user')
+                .withUserId(creatorUser)
                 .withGroupId(groupId)
                 .withRole('member')
                 .withStatus('active')
@@ -127,7 +132,7 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .buildDocument();
-            db.seedGroupMember(groupId, 'creator-user', creatorMembershipDoc);
+            db.seedGroupMember(groupId, creatorUser, creatorMembershipDoc);
             db.seedGroupMember(groupId, 'payer-user', payerMembershipDoc);
             db.seedGroupMember(groupId, 'payee-user', payeeMembershipDoc);
 
@@ -144,7 +149,7 @@ describe('SettlementService - Unit Tests', () => {
     describe('User Data Validation', () => {
         it('should validate user data with complete required fields', async () => {
             // Arrange
-            const userId = 'creator-user';
+            const userId = creatorUser;
             const groupId = toGroupId('test-group');
             const settlementData = new CreateSettlementRequestBuilder()
                 .withGroupId(groupId)
@@ -153,7 +158,7 @@ describe('SettlementService - Unit Tests', () => {
                 .build();
 
             // Seed valid user data
-            seedUser('creator-user', { email: 'creator@test.com', displayName: 'Creator User' });
+            seedUser(creatorUser, { email: 'creator@test.com', displayName: 'Creator User' });
             seedUser('valid-payer', {
                 email: 'payer@example.com',
                 displayName: 'Valid Payer',
@@ -170,7 +175,7 @@ describe('SettlementService - Unit Tests', () => {
 
             // Set up group memberships
             const creatorMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId('creator-user')
+                .withUserId(creatorUser)
                 .withGroupId(groupId)
                 .withRole('member')
                 .withStatus('active')
@@ -187,7 +192,7 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .buildDocument();
-            db.seedGroupMember(groupId, 'creator-user', creatorMembershipDoc);
+            db.seedGroupMember(groupId, creatorUser, creatorMembershipDoc);
             db.seedGroupMember(groupId, 'valid-payer', payerMembershipDoc);
             db.seedGroupMember(groupId, 'valid-payee', payeeMembershipDoc);
 
@@ -197,7 +202,7 @@ describe('SettlementService - Unit Tests', () => {
 
         it('should handle user data validation during settlement creation', async () => {
             // Arrange
-            const userId = 'creator-user';
+            const userId = creatorUser;
             const groupId = toGroupId('test-group');
             const settlementData = new CreateSettlementRequestBuilder()
                 .withGroupId(groupId)
@@ -208,13 +213,13 @@ describe('SettlementService - Unit Tests', () => {
             // Seed basic setup
             db.seedGroup(groupId, { name: 'Test Group' });
             db.initializeGroupBalance(groupId);
-            seedUser('creator-user', { email: 'creator@test.com', displayName: 'Creator User' });
+            seedUser(creatorUser, { email: 'creator@test.com', displayName: 'Creator User' });
             seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
             seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
 
             // Set up group memberships
             const creatorMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId('creator-user')
+                .withUserId(creatorUser)
                 .withGroupId(groupId)
                 .withRole('member')
                 .withStatus('active')
@@ -231,7 +236,7 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .buildDocument();
-            db.seedGroupMember(groupId, 'creator-user', creatorMembershipDoc);
+            db.seedGroupMember(groupId, creatorUser, creatorMembershipDoc);
             db.seedGroupMember(groupId, 'payer-user', payerMembershipDoc);
             db.seedGroupMember(groupId, 'payee-user', payeeMembershipDoc);
 
@@ -243,7 +248,7 @@ describe('SettlementService - Unit Tests', () => {
     describe('Group Membership Validation', () => {
         it('should validate group membership for all users', async () => {
             // Arrange
-            const userId = 'creator-user';
+            const userId = creatorUser;
             const groupId = toGroupId('test-group');
             const settlementData = new CreateSettlementRequestBuilder()
                 .withGroupId(groupId)
@@ -254,13 +259,13 @@ describe('SettlementService - Unit Tests', () => {
             // Seed valid data
             db.seedGroup(groupId, { name: 'Test Group' });
             db.initializeGroupBalance(groupId);
-            seedUser('creator-user', { email: 'creator@test.com', displayName: 'Creator User' });
+            seedUser(creatorUser, { email: 'creator@test.com', displayName: 'Creator User' });
             seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
             seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
 
             // Set up group memberships for all users
             const creatorMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId('creator-user')
+                .withUserId(creatorUser)
                 .withGroupId(groupId)
                 .withRole('member')
                 .withStatus('active')
@@ -277,7 +282,7 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .buildDocument();
-            db.seedGroupMember(groupId, 'creator-user', creatorMembershipDoc);
+            db.seedGroupMember(groupId, creatorUser, creatorMembershipDoc);
             db.seedGroupMember(groupId, 'payer-user', payerMembershipDoc);
             db.seedGroupMember(groupId, 'payee-user', payeeMembershipDoc);
 
@@ -287,7 +292,7 @@ describe('SettlementService - Unit Tests', () => {
 
         it('should reject settlement when payer is not group member', async () => {
             // Arrange
-            const userId = 'creator-user';
+            const userId = creatorUser;
             const groupId = toGroupId('test-group');
             const settlementData = new CreateSettlementRequestBuilder()
                 .withGroupId(groupId)
@@ -301,7 +306,7 @@ describe('SettlementService - Unit Tests', () => {
 
             // Set up group memberships - creator and payee are members, payer is not
             const creatorMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId('creator-user')
+                .withUserId(creatorUser)
                 .withGroupId(groupId)
                 .withRole('member')
                 .withStatus('active')
@@ -312,7 +317,7 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .buildDocument();
-            db.seedGroupMember(groupId, 'creator-user', creatorMembershipDoc);
+            db.seedGroupMember(groupId, creatorUser, creatorMembershipDoc);
             db.seedGroupMember(groupId, 'payee-user', payeeMembershipDoc);
 
             // Act & Assert
@@ -326,7 +331,7 @@ describe('SettlementService - Unit Tests', () => {
 
         it('should reject settlement when payee is not group member', async () => {
             // Arrange
-            const userId = 'creator-user';
+            const userId = creatorUser;
             const groupId = toGroupId('test-group');
             const settlementData = new CreateSettlementRequestBuilder()
                 .withGroupId(groupId)
@@ -342,7 +347,7 @@ describe('SettlementService - Unit Tests', () => {
 
             // Set up group memberships - creator and payer are members, payee is not
             const creatorMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId('creator-user')
+                .withUserId(creatorUser)
                 .withGroupId(groupId)
                 .withRole('member')
                 .withStatus('active')
@@ -353,7 +358,7 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .buildDocument();
-            db.seedGroupMember(groupId, 'creator-user', creatorMembershipDoc);
+            db.seedGroupMember(groupId, creatorUser, creatorMembershipDoc);
             db.seedGroupMember(groupId, 'payer-user', payerMembershipDoc);
 
             // Act & Assert
@@ -367,7 +372,7 @@ describe('SettlementService - Unit Tests', () => {
 
         it('should reject settlement when group does not exist', async () => {
             // Arrange
-            const userId = 'creator-user';
+            const userId = creatorUser;
             const groupId = 'non-existent-group';
             const settlementData = new CreateSettlementRequestBuilder()
                 .withGroupId(groupId)
@@ -391,7 +396,7 @@ describe('SettlementService - Unit Tests', () => {
     describe('Data Handling Edge Cases', () => {
         it('should handle decimal precision correctly', async () => {
             // Arrange
-            const userId = 'creator-user';
+            const userId = creatorUser;
             const groupId = toGroupId('test-group');
             const settlementData = new CreateSettlementRequestBuilder()
                 .withGroupId(groupId)
@@ -403,13 +408,13 @@ describe('SettlementService - Unit Tests', () => {
             // Seed required data
             db.seedGroup(groupId, { name: 'Test Group' });
             db.initializeGroupBalance(groupId);
-            seedUser('creator-user', { email: 'creator@test.com', displayName: 'Creator User' });
+            seedUser(creatorUser, { email: 'creator@test.com', displayName: 'Creator User' });
             seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
             seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
 
             // Set up group memberships
             const creatorMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId('creator-user')
+                .withUserId(creatorUser)
                 .withGroupId(groupId)
                 .withRole('member')
                 .withStatus('active')
@@ -426,7 +431,7 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .buildDocument();
-            db.seedGroupMember(groupId, 'creator-user', creatorMembershipDoc);
+            db.seedGroupMember(groupId, creatorUser, creatorMembershipDoc);
             db.seedGroupMember(groupId, 'payer-user', payerMembershipDoc);
             db.seedGroupMember(groupId, 'payee-user', payeeMembershipDoc);
 
@@ -439,7 +444,7 @@ describe('SettlementService - Unit Tests', () => {
 
         it('should handle maximum valid amount', async () => {
             // Arrange
-            const userId = 'creator-user';
+            const userId = creatorUser;
             const groupId = toGroupId('test-group');
             const settlementData = new CreateSettlementRequestBuilder()
                 .withGroupId(groupId)
@@ -451,13 +456,13 @@ describe('SettlementService - Unit Tests', () => {
             // Seed required data
             db.seedGroup(groupId, { name: 'Test Group' });
             db.initializeGroupBalance(groupId);
-            seedUser('creator-user', { email: 'creator@test.com', displayName: 'Creator User' });
+            seedUser(creatorUser, { email: 'creator@test.com', displayName: 'Creator User' });
             seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
             seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
 
             // Set up group memberships
             const creatorMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId('creator-user')
+                .withUserId(creatorUser)
                 .withGroupId(groupId)
                 .withRole('member')
                 .withStatus('active')
@@ -474,7 +479,7 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .buildDocument();
-            db.seedGroupMember(groupId, 'creator-user', creatorMembershipDoc);
+            db.seedGroupMember(groupId, creatorUser, creatorMembershipDoc);
             db.seedGroupMember(groupId, 'payer-user', payerMembershipDoc);
             db.seedGroupMember(groupId, 'payee-user', payeeMembershipDoc);
 
@@ -484,7 +489,7 @@ describe('SettlementService - Unit Tests', () => {
 
         it('should handle minimum valid amount', async () => {
             // Arrange
-            const userId = 'creator-user';
+            const userId = creatorUser;
             const groupId = toGroupId('test-group');
             const settlementData = new CreateSettlementRequestBuilder()
                 .withGroupId(groupId)
@@ -496,13 +501,13 @@ describe('SettlementService - Unit Tests', () => {
             // Seed required data
             db.seedGroup(groupId, { name: 'Test Group' });
             db.initializeGroupBalance(groupId);
-            seedUser('creator-user', { email: 'creator@test.com', displayName: 'Creator User' });
+            seedUser(creatorUser, { email: 'creator@test.com', displayName: 'Creator User' });
             seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
             seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
 
             // Set up group memberships
             const creatorMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId('creator-user')
+                .withUserId(creatorUser)
                 .withGroupId(groupId)
                 .withRole('member')
                 .withStatus('active')
@@ -519,7 +524,7 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .buildDocument();
-            db.seedGroupMember(groupId, 'creator-user', creatorMembershipDoc);
+            db.seedGroupMember(groupId, creatorUser, creatorMembershipDoc);
             db.seedGroupMember(groupId, 'payer-user', payerMembershipDoc);
             db.seedGroupMember(groupId, 'payee-user', payeeMembershipDoc);
 
@@ -531,7 +536,7 @@ describe('SettlementService - Unit Tests', () => {
     describe('Soft Delete Functionality', () => {
         it('should initialize new settlements with deletedAt and deletedBy as null', async () => {
             // Arrange
-            const userId = 'creator-user';
+            const userId = creatorUser;
             const groupId = toGroupId('test-group');
             const settlementData = new CreateSettlementRequestBuilder()
                 .withGroupId(groupId)
@@ -542,13 +547,13 @@ describe('SettlementService - Unit Tests', () => {
             // Seed required data
             db.seedGroup(groupId, { name: 'Test Group' });
             db.initializeGroupBalance(groupId);
-            seedUser('creator-user', { email: 'creator@test.com', displayName: 'Creator User' });
+            seedUser(creatorUser, { email: 'creator@test.com', displayName: 'Creator User' });
             seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
             seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
 
             // Set up group memberships
             const creatorMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId('creator-user')
+                .withUserId(creatorUser)
                 .withGroupId(groupId)
                 .withRole('member')
                 .withStatus('active')
@@ -565,7 +570,7 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .buildDocument();
-            db.seedGroupMember(groupId, 'creator-user', creatorMembershipDoc);
+            db.seedGroupMember(groupId, creatorUser, creatorMembershipDoc);
             db.seedGroupMember(groupId, 'payer-user', payerMembershipDoc);
             db.seedGroupMember(groupId, 'payee-user', payeeMembershipDoc);
 
@@ -580,7 +585,7 @@ describe('SettlementService - Unit Tests', () => {
         it('should soft delete settlement with correct metadata', async () => {
             // Arrange
             const settlementId = toSettlementId('test-settlement-id');
-            const creatorId = 'creator-user';
+            const creatorId = creatorUser;
             const groupId = toGroupId('test-group');
 
             // Seed settlement
@@ -634,7 +639,7 @@ describe('SettlementService - Unit Tests', () => {
         it('should prevent soft deleting already deleted settlement', async () => {
             // Arrange
             const settlementId = toSettlementId('deleted-settlement-id');
-            const creatorId = 'creator-user';
+            const creatorId = creatorUser;
             const groupId = toGroupId('test-group');
 
             // Seed already-deleted settlement
@@ -676,7 +681,7 @@ describe('SettlementService - Unit Tests', () => {
         it('should allow settlement creator to soft delete', async () => {
             // Arrange
             const settlementId = toSettlementId('test-settlement-id');
-            const creatorId = 'creator-user';
+            const creatorId = creatorUser;
             const groupId = toGroupId('test-group');
 
             const settlementData = new SettlementDocumentBuilder()
@@ -727,8 +732,8 @@ describe('SettlementService - Unit Tests', () => {
         it('should allow group admin to soft delete settlement', async () => {
             // Arrange
             const settlementId = toSettlementId('test-settlement-id');
-            const creatorId = 'creator-user';
-            const adminId = 'admin-user';
+            const creatorId = creatorUser;
+            const adminId = adminUser;
             const groupId = toGroupId('test-group');
 
             const settlementData = new SettlementDocumentBuilder()
@@ -787,8 +792,8 @@ describe('SettlementService - Unit Tests', () => {
         it('should prevent non-creator non-admin from soft deleting settlement', async () => {
             // Arrange
             const settlementId = toSettlementId('test-settlement-id');
-            const creatorId = 'creator-user';
-            const otherId = 'other-user';
+            const creatorId = creatorUser;
+            const otherId = otherUser;
             const groupId = toGroupId('test-group');
 
             const settlementData = new SettlementDocumentBuilder()
@@ -826,12 +831,11 @@ describe('SettlementService - Unit Tests', () => {
         it('should prevent soft deleting non-existent settlement', async () => {
             // Arrange
             const settlementId = toSettlementId('non-existent-settlement-id');
-            const userId = 'user-id';
 
             // Don't seed settlement data (simulating non-existent settlement)
 
             // Act & Assert
-            await expect(settlementService.softDeleteSettlement(settlementId, userId)).rejects.toThrow(
+            await expect(settlementService.softDeleteSettlement(settlementId, creatorUser)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.NOT_FOUND,
                     code: 'SETTLEMENT_NOT_FOUND',
@@ -842,8 +846,8 @@ describe('SettlementService - Unit Tests', () => {
         it('should prevent soft deleting settlement when user not in group', async () => {
             // Arrange
             const settlementId = toSettlementId('test-settlement-id');
-            const creatorId = 'creator-user';
-            const nonMemberId = 'non-member-user';
+            const creatorId = creatorUser;
+            const nonMemberId = toUserId('non-member-user');
             const groupId = toGroupId('test-group');
 
             const settlementData = new SettlementDocumentBuilder()

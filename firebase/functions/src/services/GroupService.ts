@@ -21,6 +21,7 @@ import {
     toCurrencyISOCode,
     toGroupId,
     toISOString,
+    toUserId,
     UpdateGroupRequest,
 } from '@billsplit-wl/shared';
 import { DisplayName } from '@billsplit-wl/shared';
@@ -437,7 +438,8 @@ export class GroupService {
             memberIds = membershipSnapshot
                 .docs
                 .map((doc) => (doc.data().uid as string | null | undefined) ?? null)
-                .filter((id): id is string => Boolean(id));
+                .filter((id): id is string => Boolean(id))
+                .map((id) => toUserId(id));
             const actorMembershipDoc = membershipSnapshot.docs.find((doc) => doc.data().uid === userId);
             const actorDisplayName = actorMembershipDoc?.data().groupDisplayName?.trim();
             if (!actorDisplayName) {
@@ -609,7 +611,8 @@ export class GroupService {
             const memberIdsInTransaction = membershipSnapshot
                 .docs
                 .map((doc) => (doc.data().uid as string | null | undefined) ?? null)
-                .filter((id): id is string => Boolean(id));
+                .filter((id): id is string => Boolean(id))
+                .map((id) => toUserId(id));
 
             // Get actor's group display name from membership
             const actorMembershipDoc = membershipSnapshot.docs.find((doc) => doc.data().uid === userId);

@@ -3,6 +3,7 @@ import { Amount, negateNormalizedAmount, toISOString, ZERO, GroupId, toGroupId, 
 import type { CurrencyISOCode } from '@billsplit-wl/shared';
 import type { GroupBalanceDTO } from '../../schemas/group-balance';
 import { generateShortId } from '@billsplit-wl/test-support';
+import {toUserId} from "@billsplit-wl/shared";
 
 /**
  * Builder for creating GroupBalanceDTO objects for unit testing balance calculations
@@ -84,29 +85,32 @@ export class GroupBalanceDTOBuilder {
      * Convenience method: Create simple two-user USD debt
      * User2 owes User1 the specified amount
      */
-    withSimpleUSDDebt(user1: string, user2: string, amt: Amount | number): this {
+    withSimpleUSDDebt(user1: string | UserId, user2: string| UserId, amt: Amount | number): this {
         const amount = typeof amt === 'number' ? amt.toString() : amt;
 
+        const uid1 = typeof user1 === 'string' ? toUserId(user1) : user1;
+        const uid2 = typeof user2 === 'string' ? toUserId(user2) : user2;
+
         this
-            .withUserBalance('USD', user1, {
-                uid: user1,
+            .withUserBalance('USD', uid1, {
+                uid: uid1,
                 owes: {},
-                owedBy: { [user2]: amount },
+                owedBy: { [uid2]: amount },
                 netBalance: amount,
             });
 
         this
-            .withUserBalance('USD', user2, {
-                uid: user2,
-                owes: { [user1]: amount },
+            .withUserBalance('USD', uid2, {
+                uid: uid2,
+                owes: { [uid1]: amount },
                 owedBy: {},
                 netBalance: negateNormalizedAmount(amount),
             });
 
         this
             .withSimplifiedDebt({
-                from: { uid: user2 },
-                to: { uid: user1 },
+                from: { uid: uid2 },
+                to: { uid: uid1 },
                 amount,
                 currency: USD,
             });
@@ -118,12 +122,12 @@ export class GroupBalanceDTOBuilder {
      * Initialize empty balances for a currency with specified users
      * Useful for setting up clean initial state
      */
-    withEmptyCurrencyBalances(currency: CurrencyISOCode, userIds: string[]): this {
+    withEmptyCurrencyBalances(currency: CurrencyISOCode, userIds: UserId[] | string[]): this {
         if (!this.balance.balancesByCurrency[currency]) {
             this.balance.balancesByCurrency[currency] = {};
         }
 
-        for (const userId of userIds) {
+        for (const userId of userIds.map(item => typeof item === 'string' ? toUserId(item) : item)) {
             this.balance.balancesByCurrency[currency][userId] = {
                 uid: userId,
                 owes: {},

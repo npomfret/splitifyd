@@ -1,6 +1,7 @@
 import { Button, Card, Stack, Typography } from '@/components/ui';
 import { Clickable } from '@/components/ui/Clickable';
 import { navigationService } from '@/services/navigation.service';
+import { toEmail } from '@billsplit-wl/shared';
 import { signal } from '@preact/signals';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
@@ -35,7 +36,7 @@ export function ResetPasswordPage() {
         setError(null);
 
         try {
-            await authStore.resetPassword(email);
+            await authStore.resetPassword(toEmail(email));
             setEmailSent(true);
         } catch (error) {
             setError(authStore.error || t('pages.resetPasswordPage.failedToSendReset'));

@@ -1,7 +1,7 @@
 import { themeStore } from '@/app/stores/theme-store.ts';
 import { Alert, Avatar, Button, Card, Form, Input } from '@/components/ui';
 import { logError } from '@/utils/browser-logger';
-import { SystemUserRoles, toPassword } from '@billsplit-wl/shared';
+import { SystemUserRoles, toPassword, toEmail } from '@billsplit-wl/shared';
 import { toDisplayName } from '@billsplit-wl/shared';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
@@ -202,7 +202,7 @@ export function SettingsPage() {
         try {
             await authStore.changeEmail({
                 currentPassword: toPassword(emailData.currentPassword),
-                newEmail: trimmedEmail,
+                newEmail: toEmail(trimmedEmail),
             });
 
             const updatedEmail = authStore.user?.email ?? trimmedEmail;

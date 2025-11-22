@@ -1,6 +1,7 @@
-import type { SimplifiedDebt } from '@billsplit-wl/shared';
+import type { SimplifiedDebt, UserId } from '@billsplit-wl/shared';
 import { Amount, USD, toCurrencyISOCode } from '@billsplit-wl/shared';
 import type { CurrencyISOCode } from '@billsplit-wl/shared';
+import {toUserId} from "@billsplit-wl/shared";
 
 /**
  * Builder for creating SimplifiedDebt objects for testing
@@ -15,10 +16,10 @@ export class SimplifiedDebtBuilder {
     constructor() {
         this.debt = {
             from: {
-                uid: 'user-1',
+                uid: toUserId('user-1'),
             },
             to: {
-                uid: 'user-2',
+                uid: toUserId('user-2'),
             },
             amount: '50.0',
             currency: USD,
@@ -28,16 +29,22 @@ export class SimplifiedDebtBuilder {
     /**
      * Set the user who owes money (from)
      */
-    from(uid: string, displayName?: string): this {
-        this.debt.from = { uid, ...(displayName && { displayName }) };
+    from(userId: UserId | string, displayName?: string): this {
+        this.debt.from = {
+            uid: typeof userId === 'string' ? toUserId(userId) : userId,
+            ...(displayName && { displayName })
+        };
         return this;
     }
 
     /**
      * Set the user who is owed money (to)
      */
-    to(uid: string, displayName?: string): this {
-        this.debt.to = { uid, ...(displayName && { displayName }) };
+    to(userId: UserId | string, displayName?: string): this {
+        this.debt.to = {
+            uid: typeof userId === 'string' ? toUserId(userId) : userId,
+            ...(displayName && { displayName })
+        };
         return this;
     }
 

@@ -1,4 +1,4 @@
-import { calculateEqualSplits, toAmount, toCurrencyISOCode, USD } from '@billsplit-wl/shared';
+import { calculateEqualSplits, toAmount, toCurrencyISOCode, toUserId, USD } from '@billsplit-wl/shared';
 import { toGroupId } from '@billsplit-wl/shared';
 import { TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
 import { ExpenseDTOBuilder, ExpenseSplitBuilder, SettlementDTOBuilder, SimplifiedDebtBuilder, UserBalanceBuilder } from '@billsplit-wl/test-support';
@@ -13,9 +13,9 @@ describe('IncrementalBalanceService - Unit Tests', () => {
     let stubDb: TenantFirestoreTestDatabase;
 
     const groupId = toGroupId('test-group-id');
-    const userId1 = 'user-1';
-    const userId2 = 'user-2';
-    const userId3 = 'user-3';
+    const userId1 = toUserId('user-1');
+    const userId2 = toUserId('user-2');
+    const userId3 = toUserId('user-3');
 
     beforeEach(() => {
         stubDb = new TenantFirestoreTestDatabase();

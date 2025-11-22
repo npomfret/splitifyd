@@ -1,4 +1,4 @@
-import { amountToSmallestUnit, calculateEqualSplits, MemberRoles, MemberStatuses, toAmount, toCurrencyISOCode, USD } from '@billsplit-wl/shared';
+import { amountToSmallestUnit, calculateEqualSplits, MemberRoles, MemberStatuses, toAmount, toCurrencyISOCode, toUserId, USD } from '@billsplit-wl/shared';
 import { DisplayName } from '@billsplit-wl/shared';
 import { toGroupName } from '@billsplit-wl/shared';
 import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, ExpenseUpdateBuilder } from '@billsplit-wl/test-support';
@@ -532,7 +532,10 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
             const balances = await appDriver.getGroupBalances(group.id, owner.id);
             for (const currencyStr of Object.keys(balances.balancesByCurrency)) {
                 const currency = toCurrencyISOCode(currencyStr);
-                expect(Number(balances.balancesByCurrency[currency].netBalance)).toBe(0);
+                const userBalances = balances.balancesByCurrency[currency];
+                for (const userBalance of Object.values(userBalances)) {
+                    expect(Number(userBalance.netBalance)).toBe(0);
+                }
             }
         });
 
@@ -631,8 +634,8 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
         });
 
         it('updates expenses successfully', async () => {
-            const owner = { id: 'edge-update-owner', displayName: 'Owner' };
-            const member = { id: 'edge-update-member', displayName: 'Member' };
+            const owner = { id: toUserId('edge-update-owner'), displayName: 'Owner' };
+            const member = { id: toUserId('edge-update-member'), displayName: 'Member' };
             seedUsers(owner, member);
 
             const group = await createGroupWithMembers(owner.id, [member.id], 'Update Group');

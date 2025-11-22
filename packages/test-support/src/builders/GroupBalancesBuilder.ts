@@ -1,24 +1,20 @@
-import {GroupBalances, ISOString, SimplifiedDebt, toCurrencyISOCode, UserBalance} from '@billsplit-wl/shared';
-import { Amount } from '@billsplit-wl/shared';
-import { negateNormalizedAmount, ZERO } from '@billsplit-wl/shared';
-import { GroupId } from '@billsplit-wl/shared';
-import { DisplayName } from '@billsplit-wl/shared';
-import type { CurrencyISOCode } from '@billsplit-wl/shared';
-import { toGroupId } from '@billsplit-wl/shared';
+import {
+    GroupBalances,
+    ISOString,
+    SimplifiedDebt,
+    toCurrencyISOCode,
+    toUserId,
+    UserBalance,
+    Amount,
+    negateNormalizedAmount,
+    ZERO,
+    GroupId,
+    DisplayName,
+    type CurrencyISOCode,
+    type UserId,
+    toGroupId,
+} from '@billsplit-wl/shared';
 import { convertToISOString } from '../test-helpers';
-
-/**
- * Extended UserBalance with optional displayName and balances fields
- * Used in UI display of user balances
- */
-interface ExtendedUserBalance {
-    uid: string;
-    displayName?: string;
-    owes: Record<string, Amount>;
-    owedBy: Record<string, Amount>;
-    netBalance: Amount;
-    balances?: Record<string, Amount>;
-}
 
 const ensureAmount = (value?: Amount | number): Amount => {
     if (value === undefined) {
@@ -27,13 +23,13 @@ const ensureAmount = (value?: Amount | number): Amount => {
     return typeof value === 'number' ? value.toString() : value;
 };
 
-const ensureAmountMap = (map?: Record<string, Amount | number>): Record<string, Amount> => {
+const ensureAmountMap = (map?: Record<string, Amount | number>): Record<UserId, Amount> => {
     if (!map) {
         return {};
     }
     return Object.fromEntries(
-        Object.entries(map).map(([key, amount]) => [key, ensureAmount(amount)]),
-    );
+        Object.entries(map).map(([key, amount]) => [toUserId(key), ensureAmount(amount)]),
+    ) as Record<UserId, Amount>;
 };
 
 /**
@@ -41,15 +37,7 @@ const ensureAmountMap = (map?: Record<string, Amount | number>): Record<string, 
  * Used to construct balance data for group detail displays
  */
 export class GroupBalancesBuilder {
-    private balances: GroupBalances & {
-        userBalances: Record<string, ExtendedUserBalance>;
-        simplifiedDebts: Array<
-            SimplifiedDebt & {
-                from: { uid: string; displayName?: string; };
-                to: { uid: string; displayName?: string; };
-            }
-        >;
-    };
+    private balances: GroupBalances;
 
     constructor() {
         this.balances = {
@@ -81,22 +69,20 @@ export class GroupBalancesBuilder {
      * Add a user balance entry
      */
     addUserBalance(
-        uid: string,
+        uid: string | UserId,
         options: {
-            displayName?: string;
-            owes?: Record<string, Amount>;
-            owedBy?: Record<string, Amount>;
-            netBalance?: Amount;
-            balances?: Record<string, Amount>;
+            owes?: Record<string, Amount | number>;
+            owedBy?: Record<string, Amount | number>;
+            netBalance?: Amount | number;
         } = {},
     ): this {
-        this.balances.userBalances[uid] = {
-            uid,
-            displayName: options.displayName,
+        const userId = typeof uid === 'string' ? toUserId(uid) : uid;
+
+        this.balances.userBalances[userId] = {
+            uid: userId,
             owes: ensureAmountMap(options.owes),
             owedBy: ensureAmountMap(options.owedBy),
             netBalance: ensureAmount(options.netBalance),
-            balances: ensureAmountMap(options.balances),
         };
         return this;
     }
@@ -104,29 +90,40 @@ export class GroupBalancesBuilder {
     /**
      * Add a simplified debt entry
      */
-    addSimplifiedDebt(from: { uid: string; displayName?: string; }, to: { uid: string; displayName?: string; }, amount: Amount, currency: CurrencyISOCode | string): this {
+    addSimplifiedDebt(
+        fromUid: string | UserId,
+        toUid: string | UserId,
+        amount: Amount | number,
+        currency: CurrencyISOCode | string,
+    ): this {
+        const from = typeof fromUid === 'string' ? toUserId(fromUid) : fromUid;
+        const to = typeof toUid === 'string' ? toUserId(toUid) : toUid;
+        const amt = ensureAmount(amount);
+        const curr = typeof currency === 'string' ? toCurrencyISOCode(currency) : currency;
+
         this.balances.simplifiedDebts.push({
-            from,
-            to,
-            amount,
-            currency: typeof currency === "string" ? toCurrencyISOCode(currency) : currency,
+            from: { uid: from },
+            to: { uid: to },
+            amount: amt,
+            currency: curr,
         });
         return this;
     }
 
     withBalancesByCurrency(
-        balancesByCurrency: Record<string, Record<string, Partial<UserBalance> & { balances?: Record<string, Amount | number>; displayName?: string; }>>,
+        balancesByCurrency: Record<string, Record<string, Partial<UserBalance> & { owes?: Record<string, Amount | number>; owedBy?: Record<string, Amount | number>; netBalance?: Amount | number; }>>,
     ): this {
-        const normalized: Record<string, Record<string, UserBalance>> = {};
+        const normalized: Record<string, Record<UserId, UserBalance>> = {};
 
         for (const [currency, userBalances] of Object.entries(balancesByCurrency)) {
             normalized[currency] = {};
             for (const [uid, balance] of Object.entries(userBalances)) {
-                normalized[currency][uid] = {
-                    uid: balance.uid ?? uid,
-                    owes: ensureAmountMap(balance.owes as Record<string, Amount | number> | undefined),
-                    owedBy: ensureAmountMap(balance.owedBy as Record<string, Amount | number> | undefined),
-                    netBalance: ensureAmount(balance.netBalance as Amount | number | undefined),
+                const userId = balance.uid ?? toUserId(uid);
+                normalized[currency][userId] = {
+                    uid: userId,
+                    owes: ensureAmountMap(balance.owes),
+                    owedBy: ensureAmountMap(balance.owedBy),
+                    netBalance: ensureAmount(balance.netBalance),
                 };
             }
         }
@@ -138,27 +135,37 @@ export class GroupBalancesBuilder {
     /**
      * Convenience method: Set up a simple two-person debt scenario
      * User 'from' owes user 'to' the specified amount
+     *
+     * Note: fromDisplayName and toDisplayName parameters are ignored for backward compatibility.
+     * Display names should come from the group members list, not from balance data.
      */
-    withSimpleTwoPersonDebt(fromUid: string, fromName: string, toUid: string, toName: string, amount: Amount | number, currency: CurrencyISOCode | string): this {
-        const amt: Amount = typeof amount === 'number' ? amount.toString() : amount;
+    withSimpleTwoPersonDebt(
+        fromUid: string | UserId,
+        fromDisplayName: string | undefined,
+        toUid: string | UserId,
+        toDisplayName: string | undefined,
+        amount: Amount | number,
+        currency: CurrencyISOCode | string,
+    ): this {
+        const amt: Amount = ensureAmount(amount);
+        const from = typeof fromUid === 'string' ? toUserId(fromUid) : fromUid;
+        const to = typeof toUid === 'string' ? toUserId(toUid) : toUid;
 
         // Add user balances
-        this.addUserBalance(fromUid, {
-            displayName: fromName,
+        this.addUserBalance(from, {
             netBalance: negateNormalizedAmount(amt),
-            owes: { [toUid]: amt },
+            owes: { [to]: amt },
             owedBy: {},
         });
 
-        this.addUserBalance(toUid, {
-            displayName: toName,
+        this.addUserBalance(to, {
             netBalance: amt,
             owes: {},
-            owedBy: { [fromUid]: amt },
+            owedBy: { [from]: amt },
         });
 
         // Add simplified debt
-        this.addSimplifiedDebt({ uid: fromUid, displayName: fromName }, { uid: toUid, displayName: toName }, amt, currency);
+        this.addSimplifiedDebt(from, to, amt, currency);
 
         return this;
     }
@@ -166,10 +173,9 @@ export class GroupBalancesBuilder {
     /**
      * Convenience method: Set up a scenario with no debts (all settled up)
      */
-    withNoDebts(...users: Array<{ uid: string; displayName: DisplayName; }>): this {
+    withNoDebts(...users: Array<{ uid: string | UserId; }>): this {
         users.forEach((user) => {
             this.addUserBalance(user.uid, {
-                displayName: user.displayName,
                 netBalance: ZERO,
                 owes: {},
                 owedBy: {},
@@ -178,19 +184,12 @@ export class GroupBalancesBuilder {
         return this;
     }
 
-    build(): GroupBalances & {
-        userBalances: Record<string, ExtendedUserBalance>;
-        simplifiedDebts: Array<
-            SimplifiedDebt & {
-                from: { uid: string; displayName?: string; };
-                to: { uid: string; displayName?: string; };
-            }
-        >;
-    } {
+    build(): GroupBalances {
         return {
             ...this.balances,
             userBalances: { ...this.balances.userBalances },
             simplifiedDebts: [...this.balances.simplifiedDebts],
+            balancesByCurrency: { ...this.balances.balancesByCurrency },
         };
     }
 }

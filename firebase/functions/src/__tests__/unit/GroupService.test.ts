@@ -1,5 +1,5 @@
 import { StubStorage } from '@billsplit-wl/test-support';
-import { CreateGroupRequest, toGroupId } from '@billsplit-wl/shared';
+import { CreateGroupRequest, toGroupId, toUserId } from '@billsplit-wl/shared';
 import { TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
 import { CreateGroupRequestBuilder, ExpenseDTOBuilder, GroupMemberDocumentBuilder, GroupUpdateBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
@@ -27,14 +27,14 @@ describe('GroupService - Unit Tests', () => {
 
     describe('getGroupFullDetails', () => {
         it('should throw NOT_FOUND when group does not exist', async () => {
-            const userId = 'test-user-123';
+            const userId = toUserId('test-user-123');
             const nonExistentGroupId = toGroupId('non-existent-group');
 
             await expect(groupService.getGroupFullDetails(nonExistentGroupId, userId)).rejects.toThrow(ApiError);
         });
 
         it('should respect the includeDeletedExpenses flag when retrieving expenses', async () => {
-            const userId = 'include-deleted-owner';
+            const userId = toUserId('include-deleted-owner');
             const groupId = toGroupId('include-deleted-group');
 
             db.seedGroup(groupId, {
@@ -98,7 +98,7 @@ describe('GroupService - Unit Tests', () => {
 
     describe('updateGroup', () => {
         it('should update group successfully when user is owner', async () => {
-            const userId = 'test-user-123';
+            const userId = toUserId('test-user-123');
             const groupId = toGroupId('test-group-456');
 
             // Set up existing group
@@ -132,7 +132,7 @@ describe('GroupService - Unit Tests', () => {
 
     describe('deleteGroup', () => {
         it('should delete group successfully when user is owner', async () => {
-            const userId = 'test-user-123';
+            const userId = toUserId('test-user-123');
             const groupId = toGroupId('test-group-456');
 
             // Seed user in both Auth and Firestore (required for actor display name in activity feed)
@@ -171,7 +171,7 @@ describe('GroupService - Unit Tests', () => {
 
     describe('listGroups', () => {
         it('should return user groups successfully', async () => {
-            const userId = 'test-user-123';
+            const userId = toUserId('test-user-123');
 
             // Set up test group
             db.seedGroup(toGroupId('group-1'), {
@@ -187,7 +187,7 @@ describe('GroupService - Unit Tests', () => {
         });
 
         it('should return empty array when user has no groups', async () => {
-            const userId = 'new-user-with-no-groups';
+            const userId = toUserId('new-user-with-no-groups');
 
             const result = await groupService.listGroups(userId);
 

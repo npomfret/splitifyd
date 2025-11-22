@@ -7,6 +7,7 @@ import { HTTP_STATUS } from '../../../constants';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import { AppDriver } from '../AppDriver';
 import { StubAuthService } from '../mocks/StubAuthService';
+import {toUserId} from "@billsplit-wl/shared";
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -125,7 +126,7 @@ describe('CommentHandlers - Unit Tests', () => {
 
     describe('createComment - Expense Target', () => {
         it('should create an expense comment successfully with valid data', async () => {
-            const userId = 'test-user';
+            const userId = toUserId('test-user');
             appDriver.seedUser(userId, {});
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
@@ -150,7 +151,7 @@ describe('CommentHandlers - Unit Tests', () => {
 
         it('should reject expense comment when user is not a group member', async () => {
             const userId = 'test-user';
-            const creatorId = 'creator-user';
+            const creatorId = toUserId('creator-user');
 
             appDriver.seedUser(userId, {});
             appDriver.seedUser(creatorId, {});
@@ -323,7 +324,7 @@ describe('CommentHandlers - Unit Tests', () => {
 
     describe('listExpenseComments', () => {
         it('should list expense comments successfully', async () => {
-            const userId = 'test-user';
+            const userId = toUserId('test-user');
             appDriver.seedUser(userId, {});
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
@@ -346,7 +347,7 @@ describe('CommentHandlers - Unit Tests', () => {
         });
 
         it('should return empty array when no expense comments exist', async () => {
-            const userId = 'test-user';
+            const userId = toUserId('test-user');
             appDriver.seedUser(userId, {});
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
@@ -367,8 +368,8 @@ describe('CommentHandlers - Unit Tests', () => {
         });
 
         it('should reject listing comments when user is not a group member', async () => {
-            const userId = 'test-user';
-            const creatorId = 'creator-user';
+            const userId = toUserId('test-user');
+            const creatorId = toUserId('creator-user');
 
             appDriver.seedUser(userId, {});
             appDriver.seedUser(creatorId, {});
@@ -405,7 +406,7 @@ describe('CommentHandlers - Unit Tests', () => {
         });
 
         it('should return newest expense comments first with expected metadata', async () => {
-            const userId = 'expense-comment-user';
+            const userId = toUserId('expense-comment-user');
             appDriver.seedUser(userId, {});
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
@@ -437,7 +438,7 @@ describe('CommentHandlers - Unit Tests', () => {
         });
 
         it('should paginate expense comments via cursor and limit', async () => {
-            const userId = 'expense-comment-pagination-user';
+            const userId = toUserId('expense-comment-pagination-user');
             appDriver.seedUser(userId, {});
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
@@ -474,7 +475,7 @@ describe('CommentHandlers - Unit Tests', () => {
         });
 
         it('should ignore invalid pagination inputs for expense comments', async () => {
-            const userId = 'expense-comment-invalid-pagination-user';
+            const userId = toUserId('expense-comment-invalid-pagination-user');
             appDriver.seedUser(userId, {});
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);

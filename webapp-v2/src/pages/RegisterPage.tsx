@@ -2,7 +2,7 @@ import { Button, Checkbox } from '@/components/ui';
 import { FloatingInput } from '@/components/ui/FloatingInput';
 import { STORAGE_KEYS } from '@/constants.ts';
 import { navigationService } from '@/services/navigation.service';
-import { toDisplayName, toPassword } from '@billsplit-wl/shared';
+import { toDisplayName, toPassword, toEmail } from '@billsplit-wl/shared';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
@@ -128,7 +128,7 @@ export function RegisterPage() {
         setLocalError(null);
 
         try {
-            await authStore.register(email.trim(), toPassword(password), toDisplayName(name.trim()), agreeToTerms, agreeToCookies, agreeToPrivacy);
+            await authStore.register(toEmail(email.trim()), toPassword(password), toDisplayName(name.trim()), agreeToTerms, agreeToCookies, agreeToPrivacy);
             // Clear form data from sessionStorage on successful registration
             try {
                 sessionStorage.removeItem(STORAGE_KEYS.REGISTER_NAME);

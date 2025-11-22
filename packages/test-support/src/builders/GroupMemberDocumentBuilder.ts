@@ -2,6 +2,7 @@ import { ColorPattern, GroupMembershipDTO, MemberRoles, MemberStatuses, UserThem
 import { GroupId, UserId } from '@billsplit-wl/shared';
 import { toGroupId } from '@billsplit-wl/shared';
 import { Timestamp } from 'firebase-admin/firestore';
+import {toUserId} from "@billsplit-wl/shared";
 
 /**
  * Builder for GroupMembershipDTO - the membership document DTO
@@ -38,13 +39,9 @@ export class GroupMemberDocumentBuilder {
         };
     }
 
-    withUserId(userId: UserId): this {
-        this.memberDoc.uid = userId;
+    withUserId(userId: UserId | string): this {
+        this.memberDoc.uid = typeof userId === 'string' ? toUserId(userId) : userId;
         return this;
-    }
-
-    withUid(userId: UserId): this {
-        return this.withUserId(userId);
     }
 
     withGroupId(groupId: GroupId | string): this {
@@ -73,8 +70,8 @@ export class GroupMemberDocumentBuilder {
         return this;
     }
 
-    withInvitedBy(invitedBy: UserId): this {
-        this.memberDoc.invitedBy = invitedBy;
+    withInvitedBy(invitedBy: UserId | string): this {
+        this.memberDoc.invitedBy = typeof invitedBy === 'string' ? toUserId(invitedBy) : invitedBy;;
         return this;
     }
 

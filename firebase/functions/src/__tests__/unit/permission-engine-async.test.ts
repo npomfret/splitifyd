@@ -1,11 +1,11 @@
-import { GroupDTO, PermissionLevels } from '@billsplit-wl/shared';
+import { GroupDTO, PermissionLevels, toUserId } from '@billsplit-wl/shared';
 import { ExpenseDTOBuilder, GroupDTOBuilder, GroupMemberDocumentBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { PermissionEngineAsync } from '../../permissions/permission-engine-async';
 
 describe('PermissionEngineAsync', () => {
     let testGroup: GroupDTO;
-    const testUserId = 'user123';
+    const testUserId = toUserId('user123');
     const testGroupId = 'group456';
 
     beforeEach(() => {

@@ -4,6 +4,7 @@ import { toGroupId } from '@billsplit-wl/shared';
 import { toDisplayName } from '@billsplit-wl/shared';
 import { convertToISOString, generateShortId, randomChoice } from '../test-helpers';
 import { ThemeBuilder } from './ThemeBuilder';
+import {toUserId} from "@billsplit-wl/shared";
 
 /**
  * Builder for creating GroupMembershipDTO objects for tests
@@ -13,7 +14,7 @@ export class GroupMembershipDTOBuilder {
     private membership: GroupMembershipDTO;
 
     constructor() {
-        const uid = `user-${generateShortId()}`;
+        const uid = toUserId(`user-${generateShortId()}`);
         const displayName = toDisplayName(randomChoice(['Alice Smith', 'Bob Johnson', 'Charlie Brown', 'Diana Prince', 'Eve Anderson']));
 
         this.membership = {
@@ -27,8 +28,8 @@ export class GroupMembershipDTOBuilder {
         };
     }
 
-    withUid(uid: UserId): this {
-        this.membership.uid = uid;
+    withUid(uid: UserId | string): this {
+        this.membership.uid = typeof uid === 'string' ? toUserId(uid) : uid;;
         return this;
     }
 
@@ -60,8 +61,8 @@ export class GroupMembershipDTOBuilder {
         return this;
     }
 
-    withInvitedBy(invitedBy: UserId): this {
-        this.membership.invitedBy = invitedBy;
+    withInvitedBy(invitedBy: UserId | string): this {
+        this.membership.invitedBy = typeof invitedBy === 'string' ? toUserId(invitedBy) : invitedBy;;
         return this;
     }
 
@@ -122,7 +123,7 @@ export class GroupMembershipDTOBuilder {
     /**
      * Create a pending membership (common for testing approval flows)
      */
-    static pending(uid: UserId, groupId: GroupId, invitedBy: UserId): GroupMembershipDTOBuilder {
+    static pending(uid: UserId, groupId: GroupId, invitedBy: UserId | string): GroupMembershipDTOBuilder {
         return new GroupMembershipDTOBuilder()
             .withUid(uid)
             .withGroupId(groupId)
@@ -133,7 +134,7 @@ export class GroupMembershipDTOBuilder {
     /**
      * Create an admin membership
      */
-    static admin(uid: UserId, groupId: GroupId): GroupMembershipDTOBuilder {
+    static admin(uid: UserId | string, groupId: GroupId): GroupMembershipDTOBuilder {
         return new GroupMembershipDTOBuilder()
             .withUid(uid)
             .withGroupId(groupId)

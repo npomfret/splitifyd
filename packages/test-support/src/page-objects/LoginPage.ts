@@ -139,7 +139,7 @@ export class LoginPage extends BasePage {
     /**
      * Fill the email field using proper Preact handling
      */
-    async fillEmail(email: Email): Promise<void> {
+    async fillEmail(email: Email | string): Promise<void> {
         await this.fillPreactInput(this.getEmailInput(), email);
     }
 
@@ -153,7 +153,7 @@ export class LoginPage extends BasePage {
     /**
      * Fill both email and password fields
      */
-    async fillCredentials(email: Email, password: string): Promise<void> {
+    async fillCredentials(email: Email | string, password: string): Promise<void> {
         await this.fillEmail(email);
         await this.fillPassword(password);
     }
@@ -212,7 +212,7 @@ export class LoginPage extends BasePage {
      * Fluent version - verifies we stay on login page and error appears
      * Use this when you expect login to fail (wrong credentials, network error, etc.)
      */
-    async loginExpectingFailure(email: Email, password: string): Promise<void> {
+    async loginExpectingFailure(email: Email | string, password: string): Promise<void> {
         await this.fillCredentials(email, password);
         await this.submitForm();
 

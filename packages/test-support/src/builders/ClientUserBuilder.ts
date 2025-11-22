@@ -1,8 +1,10 @@
 import { type ClientUser, type SystemUserRole, SystemUserRoles } from '@billsplit-wl/shared';
 import { DisplayName } from '@billsplit-wl/shared';
-import type { Email } from '@billsplit-wl/shared';
+import type { Email, UserId } from '@billsplit-wl/shared';
 import { toDisplayName } from '@billsplit-wl/shared';
 import { generateShortId, randomChoice } from '../test-helpers';
+import {toEmail, toUserId} from "@billsplit-wl/shared";
+import {type} from "node:os";
 
 /**
  * Builder for creating ClientUser objects for tests
@@ -14,8 +16,8 @@ export class ClientUserBuilder {
     constructor() {
         const randomId = generateShortId();
         this.user = {
-            uid: `user-${randomId}`,
-            email: `test-${randomId}@example.com`,
+            uid: toUserId(`user-${randomId}`),
+            email: toEmail(`test-${randomId}@example.com`),
             displayName: toDisplayName(`${randomChoice(['Test', 'Demo', 'Sample'])} ${randomChoice(['User', 'Person', 'Account'])}`),
             emailVerified: true,
             photoURL: null,
@@ -23,13 +25,13 @@ export class ClientUserBuilder {
         };
     }
 
-    withUid(uid: string): this {
-        this.user.uid = uid;
+    withUid(uid: UserId | string): this {
+        this.user.uid = typeof uid === 'string' ? toUserId(uid) : uid;
         return this;
     }
 
     withEmail(email: Email | string): this {
-        this.user.email = email;
+        this.user.email = typeof email === 'string' ? toEmail(email) : email;
         return this;
     }
 

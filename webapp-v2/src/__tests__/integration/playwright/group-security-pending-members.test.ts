@@ -1,4 +1,4 @@
-import { ClientUser, GroupId, GroupMembershipDTO, toGroupId, toGroupName } from '@billsplit-wl/shared';
+import { ClientUser, GroupId, GroupMembershipDTO, toGroupId, toGroupName, toUserId } from '@billsplit-wl/shared';
 import { MemberStatuses, UserId } from '@billsplit-wl/shared';
 import type { GroupName } from '@billsplit-wl/shared';
 import { DisplayName } from '@billsplit-wl/shared';
@@ -33,7 +33,7 @@ function createPendingEntry(groupId: GroupId, displayName: DisplayName, invitedB
         .build();
 
     const membership = new GroupMembershipDTOBuilder()
-        .withUid(uid)
+        .withUid(toUserId(uid))
         .withGroupId(groupId)
         .withGroupDisplayName(displayName)
         .withTheme(memberDetail.themeColor)

@@ -7,6 +7,8 @@ import { ExpenseId, toExpenseId } from '@billsplit-wl/shared';
 import type { ISOString } from '@billsplit-wl/shared';
 import { toCurrencyISOCode } from '@billsplit-wl/shared';
 import { convertToISOString, generateShortId, randomChoice, randomDate, randomLabel, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
+import {toUserId} from "@billsplit-wl/shared";
+import {ExpenseSplit} from "@billsplit-wl/shared";
 
 /**
  * Builder for creating ExpenseDTO objects for tests
@@ -16,7 +18,7 @@ export class ExpenseDTOBuilder {
     private expense: ExpenseDTO;
 
     constructor() {
-        const userId = `user-${generateShortId()}`;
+        const userId = toUserId(`user-${generateShortId()}`);
         const { currency, amount } = randomValidCurrencyAmountPair(5, 500);
 
         this.expense = {
@@ -101,13 +103,13 @@ export class ExpenseDTOBuilder {
         return this;
     }
 
-    withPaidBy(userId: UserId): this {
-        this.expense.paidBy = userId;
+    withPaidBy(userId: UserId | string): this {
+        this.expense.paidBy = typeof userId === 'string' ? toUserId(userId) : userId;
         return this;
     }
 
-    withCreatedBy(userId: UserId): this {
-        this.expense.createdBy = userId;
+    withCreatedBy(userId: UserId | string): this {
+        this.expense.createdBy = typeof userId === 'string' ? toUserId(userId) : userId;;
         return this;
     }
 
@@ -116,10 +118,11 @@ export class ExpenseDTOBuilder {
         return this;
     }
 
-    withParticipants(participants: UserId[]): this {
-        this.expense.participants = [...participants];
+    withParticipants(participants: UserId[] | string[]): this {
+        this.expense.participants = participants.map(item => typeof item === 'string' ? toUserId(item) : item) as UserId[];
+
         if (participants.length === this.expense.splits.length) {
-            this.expense.splits = participants.map((uid, index) => ({
+            this.expense.splits = this.expense.participants.map((uid, index) => ({
                 uid,
                 amount: this.expense.splits[index]?.amount ?? this.expense.amount,
                 ...(this.expense.splits[index]?.percentage !== undefined
@@ -127,7 +130,7 @@ export class ExpenseDTOBuilder {
                     : {}),
             }));
         } else {
-            this.expense.splits = participants.map((uid) => ({
+            this.expense.splits = this.expense.participants.map((uid) => ({
                 uid,
                 amount: this.expense.amount,
             }));
@@ -135,7 +138,7 @@ export class ExpenseDTOBuilder {
         return this;
     }
 
-    withSplits(splits: Array<{ uid: string; amount: Amount; percentage?: number; }>): this {
+    withSplits(splits: ExpenseSplit[]): this {
         this.expense.splits = [...splits];
         return this;
     }

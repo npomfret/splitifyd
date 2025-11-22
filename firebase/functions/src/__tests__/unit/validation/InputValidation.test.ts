@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { validateCreateExpense } from '../../../expenses/validation';
 import { validateCreateSettlement } from '../../../settlements/validation';
 import { ApiError } from '../../../utils/errors';
+import { toUserId } from "@billsplit-wl/shared";
 
 describe('Input Validation Unit Tests', () => {
     describe('Amount Validation', () => {
@@ -41,8 +42,8 @@ describe('Input Validation Unit Tests', () => {
                     .withSplits(
                         ExpenseSplitBuilder
                             .exactSplit([
-                                { uid: 'user1', amount: '499999.99' },
-                                { uid: 'user2', amount: '499999.99' },
+                                { uid: toUserId('user1'), amount: '499999.99' },
+                                { uid: toUserId('user2'), amount: '499999.99' },
                             ])
                             .build(),
                     )
@@ -60,7 +61,7 @@ describe('Input Validation Unit Tests', () => {
                     .withSplitType('exact')
                     .withParticipants(['user1'])
                     .withPaidBy('user1')
-                    .withSplits(ExpenseSplitBuilder.exactSplit([{ uid: 'user1', amount: '0' }]).build())
+                    .withSplits(ExpenseSplitBuilder.exactSplit([{ uid: toUserId('user1'), amount: '0' }]).build())
                     .withAmount(0, 'USD')
                     .build();
 
@@ -75,8 +76,8 @@ describe('Input Validation Unit Tests', () => {
                     .withSplits(
                         ExpenseSplitBuilder
                             .exactSplit([
-                                { uid: 'user1', amount: '25' },
-                                { uid: 'user2', amount: '25' },
+                                { uid: toUserId('user1'), amount: '25' },
+                                { uid: toUserId('user2'), amount: '25' },
                             ])
                             .build(),
                     )
@@ -104,7 +105,7 @@ describe('Input Validation Unit Tests', () => {
                     .withSplitType('exact')
                     .withParticipants(['user1'])
                     .withPaidBy('user1')
-                    .withSplits([{ uid: 'user1', amount: '1' }])
+                    .withSplits([{ uid: toUserId('user1'), amount: '1' }])
                     .withAmount(Number.NEGATIVE_INFINITY, 'USD')
                     .build();
 
@@ -117,7 +118,7 @@ describe('Input Validation Unit Tests', () => {
                     .withSplitType('exact')
                     .withParticipants(['user1'])
                     .withPaidBy('user1')
-                    .withSplits([{ uid: 'user1', amount: '1' }])
+                    .withSplits([{ uid: toUserId('user1'), amount: '1' }])
                     .withAmount(NaN, 'USD')
                     .build();
 

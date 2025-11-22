@@ -10,6 +10,7 @@ import {
     SettlementWithMembersBuilder,
     ThemeBuilder,
 } from '@billsplit-wl/test-support';
+import { toUserId } from '@billsplit-wl/shared';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { mockApiFailure, mockGroupCommentsApi, mockGroupDetailApi, mockPendingMembersApi, mockUpdateGroupPermissionsApi, setupSuccessfulApiMocks } from '../../utils/mock-firebase-service';
 
@@ -772,10 +773,10 @@ test.describe('Group Detail - Permission Checks', () => {
         const groupId = 'member-group';
 
         const group = GroupDTOBuilder
-            .groupForUser('other-user-id')
+            .groupForUser(toUserId('other-user-id'))
             .withId(groupId)
             .withName('Member Group')
-            .withCreatedBy('other-user-id')
+            .withCreatedBy(toUserId('other-user-id'))
             .withPermissions({
                 memberApproval: 'admin-required',
             })
@@ -825,10 +826,10 @@ test.describe('Group Detail - Permission Checks', () => {
         const groupId = 'last-member-group';
 
         const group = GroupDTOBuilder
-            .groupForUser('other-user-id')
+            .groupForUser(toUserId('other-user-id'))
             .withId(groupId)
             .withName('Last Member Group')
-            .withCreatedBy('other-user-id')
+            .withCreatedBy(toUserId('other-user-id'))
             .build();
 
         const members = [

@@ -1,5 +1,5 @@
 import type { UserRegistration } from '@billsplit-wl/shared';
-import { toDisplayName, toPassword } from '@billsplit-wl/shared';
+import { toDisplayName, toPassword, toEmail } from '@billsplit-wl/shared';
 import { UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { describe, expect, it } from 'vitest';
 import { validateRegisterRequest } from '../../../auth/validation';
@@ -435,7 +435,7 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
     describe('Valid Registration Data Processing', () => {
         it('should return processed and normalized data for valid input', () => {
             const inputData = {
-                email: '  TEST@EXAMPLE.COM  ',
+                email: toEmail('  TEST@EXAMPLE.COM  '),
                 password: toPassword('passwordpass'),
                 displayName: toDisplayName('  Test User  '),
                 termsAccepted: true,

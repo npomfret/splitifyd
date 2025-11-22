@@ -1,6 +1,7 @@
 import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, SettlementUpdateBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { AppDriver } from '../AppDriver';
+import { toUserId } from "@billsplit-wl/shared";
 
 /**
  * Settlement Management Unit Tests
@@ -331,9 +332,9 @@ describe('Settlement Management - Unit Tests', () => {
     describe('Settlement Access After Member Departure', () => {
         it('should view settlements after a member leaves the group', async () => {
             // Arrange: Create users and group
-            const adminUserId = 'admin-user';
-            const memberUserId = 'member-user';
-            const leavingMemberUserId = 'leaving-member';
+            const adminUserId = toUserId('admin-user');
+            const memberUserId = toUserId('member-user');
+            const leavingMemberUserId = toUserId('leaving-member');
 
             appDriver.seedUser(adminUserId, { displayName: 'Admin' });
             appDriver.seedUser(memberUserId, { displayName: 'Member' });

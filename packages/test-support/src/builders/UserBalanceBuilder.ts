@@ -1,5 +1,6 @@
 import type { Amount, UserBalance, UserId } from '@billsplit-wl/shared';
 import { ZERO } from '@billsplit-wl/shared';
+import {toUserId} from "@billsplit-wl/shared";
 
 /**
  * Builder for creating UserBalance objects for debt simplification tests
@@ -7,24 +8,24 @@ import { ZERO } from '@billsplit-wl/shared';
  */
 export class UserBalanceBuilder {
     private userBalance: UserBalance = {
-        uid: 'user1',
+        uid: toUserId('user1'),
         owes: {},
         owedBy: {},
         netBalance: ZERO,
     };
 
-    withUserId(userId: UserId): UserBalanceBuilder {
-        this.userBalance.uid = userId;
+    withUserId(userId: UserId | string): UserBalanceBuilder {
+        this.userBalance.uid = typeof userId === 'string' ? toUserId(userId) : userId;
         return this;
     }
 
-    owesUser(userId: UserId, amount: Amount | number): UserBalanceBuilder {
-        this.userBalance.owes[userId] = typeof amount === 'number' ? amount.toString() : amount;
+    owesUser(userId: UserId | string, amount: Amount | number): UserBalanceBuilder {
+        this.userBalance.owes[typeof userId === 'string' ? toUserId(userId) : userId] = typeof amount === 'number' ? amount.toString() : amount;
         return this;
     }
 
-    owedByUser(userId: UserId, amount: Amount | number): UserBalanceBuilder {
-        this.userBalance.owedBy[userId] = typeof amount === 'number' ? amount.toString() : amount;
+    owedByUser(userId: UserId | string, amount: Amount | number): UserBalanceBuilder {
+        this.userBalance.owedBy[typeof userId === 'string' ? toUserId(userId) : userId] = typeof amount === 'number' ? amount.toString() : amount;
         return this;
     }
 

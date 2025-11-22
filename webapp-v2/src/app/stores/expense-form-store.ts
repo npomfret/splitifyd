@@ -29,7 +29,7 @@ interface ExpenseFormStore {
     currency: string;
     date: string;
     time: string; // Time in HH:mm format (24-hour)
-    paidBy: UserId;
+    paidBy: UserId | '';
     label: string;
     splitType: typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE;
     participants: UserId[];
@@ -88,7 +88,7 @@ interface ExpenseFormData {
     currency: CurrencyISOCode;
     date: string;
     time: string; // Time in HH:mm format (24-hour)
-    paidBy: UserId;
+    paidBy: UserId | '';
     label: string;
     splitType: typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE;
 }
@@ -228,10 +228,10 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     readonly #currencySignal = signal<string>(''); // Force user to select currency - detected from group data or left empty
     readonly #dateSignal = signal<string>(getTodayDate());
     readonly #timeSignal = signal<string>('12:00'); // Default to noon (12:00 PM)
-    readonly #paidBySignal = signal<string>('');
+    readonly #paidBySignal = signal<UserId | ''>('');
     readonly #labelSignal = signal<string>('food');
     readonly #splitTypeSignal = signal<typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE>(SplitTypes.EQUAL);
-    readonly #participantsSignal = signal<string[]>([]);
+    readonly #participantsSignal = signal<UserId[]>([]);
     readonly #splitsSignal = signal<ExpenseSplit[]>([]);
 
     // UI state signals
@@ -530,11 +530,12 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
             case 'time':
                 this.#timeSignal.value = value as string;
                 break;
-            case 'paidBy':
-                this.#paidBySignal.value = value as string;
+            case 'paidBy': {
+                const paidByValue = value as UserId | '';
+                this.#paidBySignal.value = paidByValue;
                 // Auto-add payer to participants if not already included
-                if (!this.#participantsSignal.value.includes(value as string)) {
-                    this.#participantsSignal.value = [...this.#participantsSignal.value, value as string];
+                if (paidByValue && !this.#participantsSignal.value.includes(paidByValue)) {
+                    this.#participantsSignal.value = [...this.#participantsSignal.value, paidByValue];
                 }
                 // Always recalculate splits when payer changes
                 // This handles the case where participants list changed (e.g., member left group)
@@ -543,6 +544,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
                     this.handleSplitTypeChange(this.#splitTypeSignal.value);
                 }
                 break;
+            }
             case 'label':
                 this.#labelSignal.value = value as string;
                 break;
@@ -625,7 +627,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         this.#validationErrorsSignal.value = errors;
     }
 
-    toggleParticipant(uid: string): void {
+    toggleParticipant(uid: UserId): void {
         const current = this.#participantsSignal.value;
         const isIncluded = current.includes(uid);
 
@@ -664,7 +666,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         this.#splitsSignal.value = calculateEqualSplits(amount, currency, participants);
     }
 
-    updateSplitAmount(uid: string, amount: Amount | number): void {
+    updateSplitAmount(uid: UserId, amount: Amount | number): void {
         const currentSplits = [...this.#splitsSignal.value];
         const splitIndex = currentSplits.findIndex((s) => s.uid === uid);
         const normalizedAmount = this.normalizeAmountInput(amount);
@@ -688,7 +690,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         this.#validationErrorsSignal.value = errors;
     }
 
-    updateSplitPercentage(uid: string, percentage: number): void {
+    updateSplitPercentage(uid: UserId, percentage: number): void {
         const currentSplits = [...this.#splitsSignal.value];
         const splitIndex = currentSplits.findIndex((s) => s.uid === uid);
         const currency = this.getActiveCurrency();
@@ -913,12 +915,19 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
             const utcDateTime = getUTCDateTime(this.#dateSignal.value, this.#timeSignal.value);
 
             const amount = this.#amountSignal.value;
+            const paidBy = this.#paidBySignal.value;
+
+            // Validation ensures paidBy is not empty
+            if (!paidBy) {
+                throw new Error('paidBy is required');
+            }
+
             const request: CreateExpenseRequest = {
                 groupId,
                 description: this.#descriptionSignal.value.trim(),
                 amount: amount,
                 currency: toCurrencyISOCode(this.#currencySignal.value),
-                paidBy: this.#paidBySignal.value,
+                paidBy,
                 label: this.#labelSignal.value,
                 date: utcDateTime,
                 splitType: this.#splitTypeSignal.value,

@@ -1,5 +1,5 @@
-import type { ExpenseDTO, SettlementDTO, UserBalance } from '@billsplit-wl/shared';
-import { amountToSmallestUnit, negateAmount, smallestUnitToAmountString, subtractAmounts, sumAmounts, toCurrencyISOCode, zeroAmount } from '@billsplit-wl/shared';
+import type { ExpenseDTO, SettlementDTO, UserBalance, UserId } from '@billsplit-wl/shared';
+import { amountToSmallestUnit, negateAmount, smallestUnitToAmountString, subtractAmounts, sumAmounts, toCurrencyISOCode, toUserId, zeroAmount } from '@billsplit-wl/shared';
 import { negateNormalizedAmount } from '@billsplit-wl/shared';
 import { GroupId } from '@billsplit-wl/shared';
 import type { CurrencyISOCode } from '@billsplit-wl/shared';
@@ -21,7 +21,7 @@ export class IncrementalBalanceService {
         this.debtSimplificationService = new DebtSimplificationService();
     }
 
-    applyExpenseCreated(transaction: ITransaction, groupId: GroupId, currentBalance: GroupBalanceDTO, expense: ExpenseDTO, memberIds: string[]): void {
+    applyExpenseCreated(transaction: ITransaction, groupId: GroupId, currentBalance: GroupBalanceDTO, expense: ExpenseDTO, memberIds: UserId[]): void {
         this.firestoreWriter.updateGroupBalanceInTransaction(transaction, groupId, currentBalance, (currentBalance) => {
             const delta = this.expenseProcessor.processExpenses([expense], memberIds);
             const newBalancesByCurrency = this.applyDelta(currentBalance.balancesByCurrency, delta, memberIds, 1);
@@ -36,7 +36,7 @@ export class IncrementalBalanceService {
         });
     }
 
-    applyExpenseDeleted(transaction: ITransaction, groupId: GroupId, currentBalance: GroupBalanceDTO, expense: ExpenseDTO, memberIds: string[]): void {
+    applyExpenseDeleted(transaction: ITransaction, groupId: GroupId, currentBalance: GroupBalanceDTO, expense: ExpenseDTO, memberIds: UserId[]): void {
         this.firestoreWriter.updateGroupBalanceInTransaction(transaction, groupId, currentBalance, (currentBalance) => {
             const delta = this.expenseProcessor.processExpenses([expense], memberIds);
             const newBalancesByCurrency = this.applyDelta(currentBalance.balancesByCurrency, delta, memberIds, -1);
@@ -51,7 +51,7 @@ export class IncrementalBalanceService {
         });
     }
 
-    applyExpenseUpdated(transaction: ITransaction, groupId: GroupId, currentBalance: GroupBalanceDTO, oldExpense: ExpenseDTO, newExpense: ExpenseDTO, memberIds: string[]): void {
+    applyExpenseUpdated(transaction: ITransaction, groupId: GroupId, currentBalance: GroupBalanceDTO, oldExpense: ExpenseDTO, newExpense: ExpenseDTO, memberIds: UserId[]): void {
         this.firestoreWriter.updateGroupBalanceInTransaction(transaction, groupId, currentBalance, (currentBalance) => {
             const removeDelta = this.expenseProcessor.processExpenses([oldExpense], memberIds);
             const addDelta = this.expenseProcessor.processExpenses([newExpense], memberIds);
@@ -70,7 +70,7 @@ export class IncrementalBalanceService {
         });
     }
 
-    applySettlementCreated(transaction: ITransaction, groupId: GroupId, currentBalance: GroupBalanceDTO, settlement: SettlementDTO, memberIds: string[]): void {
+    applySettlementCreated(transaction: ITransaction, groupId: GroupId, currentBalance: GroupBalanceDTO, settlement: SettlementDTO, memberIds: UserId[]): void {
         this.firestoreWriter.updateGroupBalanceInTransaction(transaction, groupId, currentBalance, (currentBalance) => {
             const balancesByCurrency = JSON.parse(JSON.stringify(currentBalance.balancesByCurrency)) as CurrencyBalances;
 
@@ -88,7 +88,7 @@ export class IncrementalBalanceService {
         });
     }
 
-    applySettlementDeleted(transaction: ITransaction, groupId: GroupId, currentBalance: GroupBalanceDTO, settlement: SettlementDTO, memberIds: string[]): void {
+    applySettlementDeleted(transaction: ITransaction, groupId: GroupId, currentBalance: GroupBalanceDTO, settlement: SettlementDTO, memberIds: UserId[]): void {
         this.firestoreWriter.updateGroupBalanceInTransaction(transaction, groupId, currentBalance, (currentBalance) => {
             const balancesByCurrency = JSON.parse(JSON.stringify(currentBalance.balancesByCurrency)) as CurrencyBalances;
 
@@ -111,7 +111,7 @@ export class IncrementalBalanceService {
         });
     }
 
-    applySettlementUpdated(transaction: ITransaction, groupId: GroupId, currentBalance: GroupBalanceDTO, oldSettlement: SettlementDTO, newSettlement: SettlementDTO, memberIds: string[]): void {
+    applySettlementUpdated(transaction: ITransaction, groupId: GroupId, currentBalance: GroupBalanceDTO, oldSettlement: SettlementDTO, newSettlement: SettlementDTO, memberIds: UserId[]): void {
         this.firestoreWriter.updateGroupBalanceInTransaction(transaction, groupId, currentBalance, (currentBalance) => {
             const balancesByCurrency = JSON.parse(JSON.stringify(currentBalance.balancesByCurrency)) as CurrencyBalances;
 
@@ -137,7 +137,7 @@ export class IncrementalBalanceService {
         });
     }
 
-    private ensureMembersInitialized(balancesByCurrency: CurrencyBalances, currency: CurrencyISOCode, memberIds: string[]): void {
+    private ensureMembersInitialized(balancesByCurrency: CurrencyBalances, currency: CurrencyISOCode, memberIds: UserId[]): void {
         if (!balancesByCurrency[currency]) {
             balancesByCurrency[currency] = {};
         }
@@ -157,7 +157,7 @@ export class IncrementalBalanceService {
     private applyDelta(
         existing: CurrencyBalances,
         delta: CurrencyBalances,
-        memberIds: string[],
+        memberIds: UserId[],
         sign: 1 | -1,
     ): CurrencyBalances {
         const existingKeys = Object.keys(existing || {}).map(k => toCurrencyISOCode(k));
@@ -167,7 +167,7 @@ export class IncrementalBalanceService {
         const result: CurrencyBalances = {};
 
         for (const currency of currencies) {
-            const users = new Set<string>(memberIds);
+            const users = new Set<UserId>(memberIds);
 
             const existingCurrencyBalances = existing[currency] ?? {};
             const deltaCurrencyBalances = delta[currency] ?? {};
@@ -188,19 +188,19 @@ export class IncrementalBalanceService {
         return result;
     }
 
-    private collectUsers(currencyBalances: Record<string, UserBalance>, users: Set<string>): void {
+    private collectUsers(currencyBalances: Record<UserId, UserBalance>, users: Set<UserId>): void {
         for (const [userId, balance] of Object.entries(currencyBalances)) {
-            users.add(userId);
+            users.add(toUserId(userId));
             for (const other of Object.keys(balance.owes ?? {})) {
-                users.add(other);
+                users.add(toUserId(other));
             }
             for (const other of Object.keys(balance.owedBy ?? {})) {
-                users.add(other);
+                users.add(toUserId(other));
             }
         }
     }
 
-    private balancesToPairs(currencyBalances: Record<string, UserBalance>, currency: CurrencyISOCode): Map<string, number> {
+    private balancesToPairs(currencyBalances: Record<UserId, UserBalance>, currency: CurrencyISOCode): Map<string, number> {
         const pairs = new Map<string, number>();
         for (const [debtorId, balance] of Object.entries(currencyBalances ?? {})) {
             for (const [creditorId, amount] of Object.entries(balance.owes ?? {})) {
@@ -241,9 +241,9 @@ export class IncrementalBalanceService {
         }
     }
 
-    private pairsToBalances(pairs: Map<string, number>, users: Set<string>, currency: CurrencyISOCode): Record<string, UserBalance> {
+    private pairsToBalances(pairs: Map<string, number>, users: Set<UserId>, currency: CurrencyISOCode): Record<UserId, UserBalance> {
         const zero = zeroAmount(currency);
-        const balances: Record<string, UserBalance> = {};
+        const balances: Record<UserId, UserBalance> = {};
 
         for (const userId of users) {
             balances[userId] = {
@@ -259,7 +259,9 @@ export class IncrementalBalanceService {
                 continue;
             }
 
-            const [debtor, creditor] = key.split('->');
+            const [debtorStr, creditorStr] = key.split('->');
+            const debtor = toUserId(debtorStr);
+            const creditor = toUserId(creditorStr);
             const amount = smallestUnitToAmountString(units, currency);
 
             if (!balances[debtor]) {

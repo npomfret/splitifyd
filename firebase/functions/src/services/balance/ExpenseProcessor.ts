@@ -1,9 +1,9 @@
-import { addAmounts, Amount, ExpenseDTO, normalizeAmount, subtractAmounts, sumAmounts, UserBalance, zeroAmount } from '@billsplit-wl/shared';
+import {addAmounts, Amount, ExpenseDTO, normalizeAmount, subtractAmounts, sumAmounts, UserBalance, UserId, zeroAmount} from '@billsplit-wl/shared';
 import type { CurrencyISOCode } from '@billsplit-wl/shared';
 import type { ParsedCurrencyBalances as CurrencyBalances } from '../../schemas';
 
 export class ExpenseProcessor {
-    processExpenses(expenses: ExpenseDTO[], memberIds: string[]): CurrencyBalances {
+    processExpenses(expenses: ExpenseDTO[], memberIds: UserId[]): CurrencyBalances {
         const balancesByCurrency: CurrencyBalances = {};
 
         for (const expense of expenses) {
@@ -75,7 +75,7 @@ export class ExpenseProcessor {
         }
     }
 
-    private updateUserBalance(userBalance: UserBalance, otherUserId: string, amount: Amount, type: 'owes' | 'owedBy', currency: CurrencyISOCode): void {
+    private updateUserBalance(userBalance: UserBalance, otherUserId: UserId, amount: Amount, type: 'owes' | 'owedBy', currency: CurrencyISOCode): void {
         const balanceMap = userBalance[type];
         const existing = balanceMap[otherUserId] ?? zeroAmount(currency);
         balanceMap[otherUserId] = addAmounts(existing, amount, currency);

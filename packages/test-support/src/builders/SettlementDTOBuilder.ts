@@ -1,5 +1,5 @@
 import type { SettlementDTO, UserId } from '@billsplit-wl/shared';
-import { Amount, GroupId, SettlementId, toGroupId, toSettlementId } from '@billsplit-wl/shared';
+import { Amount, GroupId, SettlementId, toGroupId, toSettlementId, toUserId } from '@billsplit-wl/shared';
 import type { CurrencyISOCode } from '@billsplit-wl/shared';
 import type { ISOString } from '@billsplit-wl/shared';
 import { toCurrencyISOCode } from '@billsplit-wl/shared';
@@ -15,8 +15,8 @@ export class SettlementDTOBuilder {
     constructor() {
         const { currency, amount } = randomValidCurrencyAmountPair(5, 200);
         const groupId = toGroupId(`group-${generateShortId()}`);
-        const payerId = `user-${generateShortId()}`;
-        const payeeId = `user-${generateShortId()}`;
+        const payerId = toUserId(`user-${generateShortId()}`);
+        const payeeId = toUserId(`user-${generateShortId()}`);
 
         this.settlement = {
             id: toSettlementId(`settlement-${generateShortId()}`),
@@ -27,7 +27,7 @@ export class SettlementDTOBuilder {
             currency,
             date: convertToISOString(randomDate()),
             note: `Settlement ${randomString(6)}`,
-            createdBy: 'default-user-id',
+            createdBy: toUserId('default-user-id'),
             createdAt: convertToISOString(new Date()),
             updatedAt: convertToISOString(new Date()),
             deletedAt: null,
@@ -46,13 +46,13 @@ export class SettlementDTOBuilder {
         return this;
     }
 
-    withPayerId(payerId: UserId): this {
-        this.settlement.payerId = payerId;
+    withPayerId(payerId: UserId | string): this {
+        this.settlement.payerId = typeof payerId === 'string' ? toUserId(payerId) : payerId;;
         return this;
     }
 
-    withPayeeId(payeeId: UserId): this {
-        this.settlement.payeeId = payeeId;
+    withPayeeId(payeeId: UserId | string): this {
+        this.settlement.payeeId = typeof payeeId === 'string' ? toUserId(payeeId) : payeeId;;
         return this;
     }
 
@@ -82,8 +82,8 @@ export class SettlementDTOBuilder {
         return this;
     }
 
-    withCreatedBy(userId: UserId): this {
-        this.settlement.createdBy = userId;
+    withCreatedBy(userId: UserId | string): this {
+        this.settlement.createdBy = typeof userId === 'string' ? toUserId(userId) : userId;;
         return this;
     }
 

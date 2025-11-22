@@ -9,7 +9,7 @@ type SettlementId = string;
  * with application-specific seed methods for testing.
  */
 export class TenantFirestoreTestDatabase extends StubFirestoreDatabase {
-    seedUser(userId: UserId, userData: Record<string, any> = {}) {
+    seedUser(userId: UserId | string, userData: Record<string, any> = {}) {
         const displayName = userData.displayName || `User ${userId}`;
         const defaultUser = {
             id: userId,
@@ -63,7 +63,7 @@ export class TenantFirestoreTestDatabase extends StubFirestoreDatabase {
         this.seed(`groups/${groupId}`, firestoreData);
     }
 
-    seedGroupMember(groupId: GroupId, userId: UserId, memberData: Record<string, any>): void {
+    seedGroupMember(groupId: GroupId, userId: UserId | string, memberData: Record<string, any>): void {
         const firestoreData = this.convertDatesToTimestamps(memberData);
         this.seed(`group-memberships/${userId}_${groupId}`, firestoreData);
     }

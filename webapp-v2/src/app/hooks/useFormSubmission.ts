@@ -1,6 +1,6 @@
 import { navigationService } from '@/services/navigation.service';
 import { logError } from '@/utils/browser-logger.ts';
-import { GroupId, UserId } from '@billsplit-wl/shared';
+import { GroupId, UserId, toUserId } from '@billsplit-wl/shared';
 import { ExpenseId } from '@billsplit-wl/shared';
 import { useComputed } from '@preact/signals';
 import { useEffect } from 'preact/hooks';
@@ -81,13 +81,13 @@ export function useFormSubmission({ groupId, expenseId, isEditMode, isCopyMode, 
     };
 
     const handleSelectAll = (members: Array<{ uid: string; }>) => {
-        const allMemberIds = members.map((m) => m.uid);
+        const allMemberIds = members.map((m) => toUserId(m.uid));
         expenseFormStore.setParticipants(allMemberIds);
     };
 
-    const handleSelectNone = (paidBy: UserId | null) => {
+    const handleSelectNone = (paidBy: string | null) => {
         // Keep only the payer
-        expenseFormStore.setParticipants(paidBy ? [paidBy] : []);
+        expenseFormStore.setParticipants(paidBy ? [toUserId(paidBy)] : []);
     };
 
     return {

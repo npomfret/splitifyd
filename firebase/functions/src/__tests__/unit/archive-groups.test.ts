@@ -15,6 +15,7 @@ import { ActivityFeedService } from '../../services/ActivityFeedService';
 import { FirestoreReader } from '../../services/firestore';
 import { FirestoreWriter } from '../../services/firestore';
 import { GroupMemberService } from '../../services/GroupMemberService';
+import {toUserId} from "@billsplit-wl/shared";
 
 describe('Archive Groups - FirestoreReader Status Filtering', () => {
     let db: TenantFirestoreTestDatabase;
@@ -26,7 +27,7 @@ describe('Archive Groups - FirestoreReader Status Filtering', () => {
     });
 
     test('should filter by ACTIVE status by default', async () => {
-        const userId = 'user123';
+        const userId = toUserId('user123');
         const groupId1 = toGroupId('group1');
         const groupId2 = toGroupId('group2');
         const groupId3 = toGroupId('group3');
@@ -66,7 +67,7 @@ describe('Archive Groups - FirestoreReader Status Filtering', () => {
     });
 
     test('should filter by ARCHIVED status when specified', async () => {
-        const userId = 'user123';
+        const userId = toUserId('user123');
         const groupId1 = toGroupId('group1');
         const groupId2 = toGroupId('group2');
 
@@ -99,7 +100,7 @@ describe('Archive Groups - FirestoreReader Status Filtering', () => {
     });
 
     test('should filter by array of statuses', async () => {
-        const userId = 'user123';
+        const userId = toUserId('user123');
         const groupId1 = toGroupId('group1');
         const groupId2 = toGroupId('group2');
         const groupId3 = toGroupId('group3');
@@ -160,7 +161,7 @@ describe('Archive Groups - GroupMemberService', () => {
 
     describe('archiveGroupForUser', () => {
         test('should archive an active group membership', async () => {
-            const userId = 'user123';
+            const userId = toUserId('user123');
             const groupId = 'group123' as any;
 
             db.seedGroup(groupId, { name: 'Test Group', createdBy: userId });
@@ -182,14 +183,14 @@ describe('Archive Groups - GroupMemberService', () => {
         });
 
         test('should reject archiving non-existent membership', async () => {
-            const userId = 'user123';
+            const userId = toUserId('user123');
             const groupId = 'nonexistent' as any;
 
             await expect(service.archiveGroupForUser(groupId, userId)).rejects.toThrow('Group membership');
         });
 
         test('should reject archiving non-active membership', async () => {
-            const userId = 'user123';
+            const userId = toUserId('user123');
             const groupId = 'group123' as any;
 
             // Create group with pending membership
@@ -205,7 +206,7 @@ describe('Archive Groups - GroupMemberService', () => {
         });
 
         test('should reject archiving already archived membership', async () => {
-            const userId = 'user123';
+            const userId = toUserId('user123');
             const groupId = 'group123' as any;
 
             // Create group with archived membership
@@ -223,7 +224,7 @@ describe('Archive Groups - GroupMemberService', () => {
 
     describe('unarchiveGroupForUser', () => {
         test('should unarchive an archived group membership', async () => {
-            const userId = 'user123';
+            const userId = toUserId('user123');
             const groupId = 'group123' as any;
 
             // Create group with archived membership
@@ -246,14 +247,14 @@ describe('Archive Groups - GroupMemberService', () => {
         });
 
         test('should reject unarchiving non-existent membership', async () => {
-            const userId = 'user123';
+            const userId = toUserId('user123');
             const groupId = 'nonexistent' as any;
 
             await expect(service.unarchiveGroupForUser(groupId, userId)).rejects.toThrow('Group membership');
         });
 
         test('should reject unarchiving non-archived membership', async () => {
-            const userId = 'user123';
+            const userId = toUserId('user123');
             const groupId = 'group123' as any;
 
             // Create group with active membership
@@ -269,7 +270,7 @@ describe('Archive Groups - GroupMemberService', () => {
         });
 
         test('should reject unarchiving pending membership', async () => {
-            const userId = 'user123';
+            const userId = toUserId('user123');
             const groupId = 'group123' as any;
 
             // Create group with pending membership
@@ -287,7 +288,7 @@ describe('Archive Groups - GroupMemberService', () => {
 
     describe('archive/unarchive round-trip', () => {
         test('should support archiving and unarchiving the same membership', async () => {
-            const userId = 'user123';
+            const userId = toUserId('user123');
             const groupId = 'group123' as any;
 
             // Create group with active membership

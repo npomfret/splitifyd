@@ -1,4 +1,4 @@
-import { SystemUserRoles } from '@billsplit-wl/shared';
+import {DisplayName, Email, SystemUserRoles, toDisplayName, UserId} from '@billsplit-wl/shared';
 import type { Request, Response } from 'express';
 import type { UserRecord } from 'firebase-admin/auth';
 import { FirestoreCollections } from '../constants';
@@ -6,20 +6,21 @@ import { type IDocumentSnapshot, type IFirestoreDatabase, Timestamp } from '../f
 import { logger } from '../logger';
 import type { IAuthService } from '../services/auth';
 import type { IFirestoreReader } from '../services/firestore';
+import {toEmail, toUserId} from "@billsplit-wl/shared";
 
 interface ListAuthQuery {
     limit: number;
     pageToken?: string;
-    email?: string;
-    uid?: string;
+    email?: Email;
+    uid?: UserId;
 }
 
 interface ListFirestoreQuery {
     limit: number;
     cursor?: string;
-    email?: string;
-    uid?: string;
-    displayName?: string;
+    email?: Email;
+    uid?: UserId;
+    displayName?: DisplayName
 }
 
 const DEFAULT_AUTH_LIMIT = 50;
@@ -98,7 +99,7 @@ export class UserBrowserHandlers {
 
         // Fetch Firestore user documents for all users in parallel
         const firestoreUsers = await Promise.all(
-            users.map((user) => this.firestoreReader!.getUser(user.uid).catch(() => null)),
+            users.map((user) => this.firestoreReader!.getUser(toUserId(user.uid)).catch(() => null)),
         );
 
         // Merge auth users with their Firestore roles
@@ -117,8 +118,8 @@ export class UserBrowserHandlers {
         const query: ListAuthQuery = {
             limit: parseLimit(req.query.limit, DEFAULT_AUTH_LIMIT, MAX_AUTH_LIMIT),
             pageToken: typeof req.query.pageToken === 'string' ? req.query.pageToken : undefined,
-            email: typeof req.query.email === 'string' ? req.query.email : undefined,
-            uid: typeof req.query.uid === 'string' ? req.query.uid : undefined,
+            email: typeof req.query.email === 'string' ? toEmail(req.query.email) : undefined,
+            uid: typeof req.query.uid === 'string' ? toUserId(req.query.uid) : undefined,
         };
 
         try {
@@ -157,9 +158,9 @@ export class UserBrowserHandlers {
         const query: ListFirestoreQuery = {
             limit: parseLimit(req.query.limit, DEFAULT_FIRESTORE_LIMIT, MAX_FIRESTORE_LIMIT),
             cursor: typeof req.query.cursor === 'string' ? req.query.cursor : undefined,
-            email: typeof req.query.email === 'string' ? req.query.email : undefined,
-            uid: typeof req.query.uid === 'string' ? req.query.uid : undefined,
-            displayName: typeof req.query.displayName === 'string' ? req.query.displayName : undefined,
+            email: typeof req.query.email === 'string' ? toEmail(req.query.email) : undefined,
+            uid: typeof req.query.uid === 'string' ? toUserId(req.query.uid) : undefined,
+            displayName: typeof req.query.displayName === 'string' ? toDisplayName(req.query.displayName) : undefined,
         };
 
         try {

@@ -1,5 +1,5 @@
-import { isValidCurrency, toGroupId, toGroupName } from '@billsplit-wl/shared';
-import type { GroupId, GroupName } from '@billsplit-wl/shared';
+import { isValidCurrency, toGroupId, toGroupName, toUserId } from '@billsplit-wl/shared';
+import type { GroupId, GroupName, UserId } from '@billsplit-wl/shared';
 import { z } from 'zod';
 import { FieldValue, Timestamp } from '../firestore-wrapper';
 
@@ -65,7 +65,7 @@ const DocumentIdSchema = z.object({
     id: z.string().min(1),
 });
 
-export const UserIdSchema = z.string().min(1).describe('Firebase Auth UID');
+export const UserIdSchema = z.string().min(1).describe('Firebase Auth UID').transform(toUserId) as z.ZodType<UserId>;
 
 export const GroupIdSchema = z.string().min(1).describe('Firestore Group document ID').transform(toGroupId) as z.ZodType<GroupId>;
 

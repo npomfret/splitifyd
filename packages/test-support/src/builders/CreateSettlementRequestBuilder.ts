@@ -6,6 +6,7 @@ import { toGroupId } from '@billsplit-wl/shared';
 import type { ISOString } from '@billsplit-wl/shared';
 import { toCurrencyISOCode } from '@billsplit-wl/shared';
 import { convertToISOString, generateShortId, randomDate, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
+import {toUserId} from "@billsplit-wl/shared";
 
 export class CreateSettlementRequestBuilder {
     private settlement: CreateSettlementRequest;
@@ -14,8 +15,8 @@ export class CreateSettlementRequestBuilder {
         const { currency, amount } = randomValidCurrencyAmountPair(5, 200);
         this.settlement = {
             groupId: toGroupId(`group-${generateShortId()}`),
-            payerId: `user-${generateShortId()}`,
-            payeeId: `user-${generateShortId()}`,
+            payerId: toUserId(`user-${generateShortId()}`),
+            payeeId: toUserId(`user-${generateShortId()}`),
             amount,
             currency,
             date: convertToISOString(randomDate()),
@@ -28,13 +29,13 @@ export class CreateSettlementRequestBuilder {
         return this;
     }
 
-    withPayerId(payerId: UserId): this {
-        this.settlement.payerId = payerId;
+    withPayerId(payerId: UserId | string): this {
+        this.settlement.payerId = typeof payerId === 'string' ? toUserId(payerId) : payerId;;
         return this;
     }
 
-    withPayeeId(payeeId: UserId): this {
-        this.settlement.payeeId = payeeId;
+    withPayeeId(payeeId: UserId | string): this {
+        this.settlement.payeeId = typeof payeeId === 'string' ? toUserId(payeeId) : payeeId;;
         return this;
     }
 

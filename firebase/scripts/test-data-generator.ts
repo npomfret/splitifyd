@@ -13,8 +13,10 @@ import {
     toAmount,
     toCurrencyISOCode,
     toDisplayName,
+    toEmail,
     toISOString,
     toPassword,
+    toUserId,
     UserRegistration,
     zeroAmount,
 } from '@billsplit-wl/shared';
@@ -124,7 +126,7 @@ const queue = new TaskQueue(2);
 const runQueued = <T>(task: () => Promise<T>): Promise<T> => queue.enqueue(task);
 
 const BILL_SPLITTER_REGISTRATION: UserRegistration = {
-    email: 'test1@test.com',
+    email: toEmail('test1@test.com'),
     password: toPassword('passwordpass'),
     displayName: toDisplayName('Bill Splitter'),
     termsAccepted: true,
@@ -190,10 +192,10 @@ export async function signInExistingBillSplitter(): Promise<AuthenticatedFirebas
         name?: string;
     };
 
-    const uid = decodedPayload.user_id;
-    if (!uid) {
+    if (!decodedPayload.user_id) {
         throw new Error('Sign-in token for Bill Splitter user did not include a user_id.');
     }
+    const uid = toUserId(decodedPayload.user_id!);
 
     const displayName = (decodedPayload.name as DisplayName | undefined) ?? BILL_SPLITTER_REGISTRATION.displayName;
 
@@ -298,7 +300,12 @@ const generateTestUserRegistrations = (config: TestDataConfig): UserRegistration
         { email: 'river.tam@example.com', displayName: 'River Tam' },
         { email: 'simon.tam@example.com', displayName: 'Simon Tam' },
         { email: 'zoe.washburne@example.com', displayName: 'Zoe Washburne' },
-    ];
+    ].map(item => {
+        return {
+            ...item,
+            email: toEmail(item.email),
+        }
+    });
 
     // Add users based on config count (minus 1 since we already have test1@test.com)
     const remainingCount = Math.min(config.userCount - 1, testUsers.length);
@@ -800,7 +807,7 @@ async function configureLargeGroupAdvancedScenarios(
         {
             key: 'viewer',
             registration: {
-                email: `managed.viewer+${timestampSuffix}@example.com`,
+                email: toEmail(`managed.viewer+${timestampSuffix}@example.com`),
                 password: toPassword('passwordpass'),
                 displayName: toDisplayName('Managed Viewer'),
                 termsAccepted: true,
@@ -811,7 +818,7 @@ async function configureLargeGroupAdvancedScenarios(
         {
             key: 'reject',
             registration: {
-                email: `managed.reject+${timestampSuffix}@example.com`,
+                email: toEmail(`managed.reject+${timestampSuffix}@example.com`),
                 password: toPassword('passwordpass'),
                 displayName: toDisplayName('Rejected Applicant'),
                 termsAccepted: true,
@@ -822,7 +829,7 @@ async function configureLargeGroupAdvancedScenarios(
         {
             key: 'pending',
             registration: {
-                email: `managed.pending+${timestampSuffix}@example.com`,
+                email: toEmail(`managed.pending+${timestampSuffix}@example.com`),
                 password: toPassword('passwordpass'),
                 displayName: toDisplayName('Pending Applicant'),
                 termsAccepted: true,

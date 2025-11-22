@@ -12,7 +12,7 @@ export interface LogContext {
     requestMethod?: string;
 
     // User context
-    userId?: UserId;
+    userId?: string;
     userDisplayName?: string;
     userRole?: string;
 

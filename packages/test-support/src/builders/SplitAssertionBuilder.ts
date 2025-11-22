@@ -1,6 +1,7 @@
-import type { ExpenseSplit } from '@billsplit-wl/shared';
+import type {ExpenseSplit, UserId} from '@billsplit-wl/shared';
 import { Amount, ZERO } from '@billsplit-wl/shared';
 import { generateShortId } from '../test-helpers';
+import {toUserId} from "@billsplit-wl/shared";
 
 /**
  * Builder for single ExpenseSplit objects - used in split strategy test assertions
@@ -11,7 +12,7 @@ export class SplitAssertionBuilder {
 
     constructor() {
         this.split = {
-            uid: `user-${generateShortId()}`,
+            uid: toUserId(`user-${generateShortId()}`),
             amount: ZERO,
         };
     }
@@ -19,8 +20,8 @@ export class SplitAssertionBuilder {
     /**
      * Set the user ID for this split
      */
-    forUser(uid: string): this {
-        this.split.uid = uid;
+    forUser(uid: string | UserId): this {
+        this.split.uid = typeof uid === 'string' ? toUserId(uid): uid;
         return this;
     }
 

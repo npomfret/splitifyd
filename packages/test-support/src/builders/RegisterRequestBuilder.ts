@@ -1,5 +1,5 @@
 import type { Password, UserRegistration } from '@billsplit-wl/shared';
-import { DisplayName, toDisplayName, toPassword } from '@billsplit-wl/shared';
+import { DisplayName, toDisplayName, toEmail, toPassword } from '@billsplit-wl/shared';
 import type { Email } from '@billsplit-wl/shared';
 import { randomBoolean, randomChoice, randomEmail, randomString } from '../test-helpers';
 
@@ -14,7 +14,7 @@ export class RegisterRequestBuilder {
     };
 
     withEmail(email: Email | string): this {
-        this.request.email = email;
+        this.request.email = typeof email === 'string' ? toEmail(email) : email;
         return this;
     }
 

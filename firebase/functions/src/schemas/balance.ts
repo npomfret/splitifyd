@@ -1,4 +1,4 @@
-import { type CurrencyISOCode, toCurrencyISOCode } from '@billsplit-wl/shared';
+import { type CurrencyISOCode, toCurrencyISOCode, toUserId } from '@billsplit-wl/shared';
 import { z } from 'zod';
 
 // Currency code schema: 3-letter uppercase ISO code
@@ -10,7 +10,7 @@ const CurrencyCodeSchema = z
 
 // Schema for UserBalance (from @billsplit-wl/shared)
 const UserBalanceSchema = z.object({
-    uid: z.string(),
+    uid: z.string().transform(toUserId),
     owes: z.record(z.string(), z.string()),
     owedBy: z.record(z.string(), z.string()),
     netBalance: z.string(),

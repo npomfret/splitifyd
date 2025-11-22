@@ -1,15 +1,14 @@
-import { StubStorage } from '@billsplit-wl/test-support';
-import { DisplayName, toGroupId } from '@billsplit-wl/shared';
-import { toDisplayName } from '@billsplit-wl/shared';
-import { ClientUserBuilder, GroupMemberDocumentBuilder, TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
-import { PasswordChangeRequestBuilder, UserRegistrationBuilder, UserUpdateBuilder } from '@billsplit-wl/test-support';
-import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { HTTP_STATUS } from '../../../constants';
-import { ComponentBuilder } from '../../../services/ComponentBuilder';
-import { UserService } from '../../../services/UserService2';
-import { ApiError } from '../../../utils/errors';
-import { initializeI18n } from '../../../utils/i18n';
-import { StubAuthService } from '../mocks/StubAuthService';
+import {ClientUserBuilder, GroupMemberDocumentBuilder, PasswordChangeRequestBuilder, StubStorage, TenantFirestoreTestDatabase, UserRegistrationBuilder, UserUpdateBuilder} from '@billsplit-wl/test-support';
+import {DisplayName, SystemUserRoles, toDisplayName, toGroupId, toUserId} from '@billsplit-wl/shared';
+import {beforeAll, beforeEach, describe, expect, it, vi} from 'vitest';
+import {HTTP_STATUS} from '../../../constants';
+import {ComponentBuilder} from '../../../services/ComponentBuilder';
+import {UserService} from '../../../services/UserService2';
+import {ApiError} from '../../../utils/errors';
+import {initializeI18n} from '../../../utils/i18n';
+import {StubAuthService} from '../mocks/StubAuthService';
+
+const testUser = toUserId('test-user');
 
 describe('UserService - Consolidated Unit Tests', () => {
     let userService: UserService;
@@ -52,7 +51,7 @@ describe('UserService - Consolidated Unit Tests', () => {
             expect(result.user.displayName).toBe(registrationData.displayName);
 
             // Verify user was created in Auth stub
-            const authUser = await stubAuth.getUser(result.user.uid!);
+            const authUser = await stubAuth.getUser(toUserId(result.user.uid!));
             expect(authUser).toBeDefined();
             expect(authUser!.email).toBe(registrationData.email);
             expect(authUser!.displayName).toBe(registrationData.displayName);
@@ -63,11 +62,11 @@ describe('UserService - Consolidated Unit Tests', () => {
 
             // Set up existing user in Auth stub
             const { role: _, photoURL: __, ...userData } = new ClientUserBuilder()
-                .withUid('existing-user')
+                .withUid(toUserId('existing-user'))
                 .withEmail(email)
                 .withDisplayName('Existing User')
                 .build();
-            stubAuth.setUser('existing-user', userData);
+            stubAuth.setUser(toUserId('existing-user'), userData);
 
             const duplicateData = new UserRegistrationBuilder()
                 .withEmail(email) // Use the same email as the existing user
@@ -91,11 +90,11 @@ describe('UserService - Consolidated Unit Tests', () => {
                 const email = 'slow-existing@example.com';
 
                 const { role: _, photoURL: __, ...userData } = new ClientUserBuilder()
-                    .withUid('existing-user')
+                    .withUid(toUserId('existing-user'))
                     .withEmail(email)
                     .withDisplayName('Existing User')
                     .build();
-                stubAuth.setUser('existing-user', userData);
+                stubAuth.setUser(toUserId('existing-user'), userData);
 
                 const duplicateData = new UserRegistrationBuilder()
                     .withEmail(email)
@@ -187,7 +186,7 @@ describe('UserService - Consolidated Unit Tests', () => {
 
     describe('getUser', () => {
         it('should return complete user profile from Auth and Firestore', async () => {
-            const uid = 'test-user-123';
+            const uid = testUser;
             const email = 'test@example.com';
             const displayName = 'Test User';
 
@@ -206,6 +205,7 @@ describe('UserService - Consolidated Unit Tests', () => {
             db.seedUser(uid, {
                 displayName,
                 preferredLanguage: 'en',
+                role: SystemUserRoles.SYSTEM_USER,
             });
 
             const profile = await userService.getUser(uid);
@@ -220,7 +220,7 @@ describe('UserService - Consolidated Unit Tests', () => {
         });
 
         it('should throw NOT_FOUND for non-existent user', async () => {
-            const nonExistentUid = 'nonexistent-user-id';
+            const nonExistentUid = toUserId('nonexistent-user-id');
 
             await expect(userService.getUser(nonExistentUid)).rejects.toThrow(
                 expect.objectContaining({
@@ -231,7 +231,7 @@ describe('UserService - Consolidated Unit Tests', () => {
         });
 
         it('should throw error when user missing required fields', async () => {
-            const uid = 'incomplete-user';
+            const uid = toUserId('incomplete-user');
 
             // Set up Auth user without required fields
             const { role: _, photoURL: __, ...userData } = new ClientUserBuilder()
@@ -247,7 +247,7 @@ describe('UserService - Consolidated Unit Tests', () => {
 
     describe('updateProfile', () => {
         it('should update display name in both Auth and Firestore', async () => {
-            const uid = 'test-user';
+            const uid = testUser;
             const originalDisplayName = 'Original Name';
             const newDisplayName = 'Updated Display Name';
 
@@ -261,6 +261,7 @@ describe('UserService - Consolidated Unit Tests', () => {
 
             db.seedUser(uid, {
                 displayName: originalDisplayName,
+                role: SystemUserRoles.SYSTEM_USER,
             });
 
             const updatedProfile = await userService.updateProfile(uid, {
@@ -275,7 +276,7 @@ describe('UserService - Consolidated Unit Tests', () => {
         });
 
         it('should update preferred language in Firestore only', async () => {
-            const uid = 'test-user';
+            const uid = testUser;
             const newLanguage = 'en';
 
             // Set up existing user
@@ -288,6 +289,7 @@ describe('UserService - Consolidated Unit Tests', () => {
 
             db.seedUser(uid, {
                 displayName: 'Test User',
+                role: SystemUserRoles.SYSTEM_USER,
             });
 
             const updatedProfile = await userService.updateProfile(uid, {
@@ -298,7 +300,7 @@ describe('UserService - Consolidated Unit Tests', () => {
         });
 
         it('should update photo URL with null value', async () => {
-            const uid = 'test-user';
+            const uid = testUser;
 
             // Set up existing user with photo URL
             const { role: _, photoURL: __, ...userData } = new ClientUserBuilder()
@@ -311,6 +313,7 @@ describe('UserService - Consolidated Unit Tests', () => {
 
             db.seedUser(uid, {
                 displayName: 'Test User',
+                role: SystemUserRoles.SYSTEM_USER,
             });
 
             await userService.updateProfile(uid, {
@@ -323,7 +326,7 @@ describe('UserService - Consolidated Unit Tests', () => {
         });
 
         it('should throw NOT_FOUND for non-existent user', async () => {
-            const nonExistentUid = 'nonexistent-user-id';
+            const nonExistentUid = toUserId('nonexistent-user-id');
 
             await expect(
                 userService.updateProfile(nonExistentUid, {
@@ -341,7 +344,7 @@ describe('UserService - Consolidated Unit Tests', () => {
 
     describe('changePassword', () => {
         it('should update password and track change timestamp', async () => {
-            const uid = 'test-user';
+            const uid = testUser;
             const currentPassword = 'OldPassword1234!';
             const newPassword = 'NewSecurePassword1234!';
 
@@ -361,6 +364,7 @@ describe('UserService - Consolidated Unit Tests', () => {
 
             db.seedUser(uid, {
                 displayName: 'Test User',
+                role: SystemUserRoles.SYSTEM_USER,
             });
 
             const result = await userService.changePassword(uid, {
@@ -372,7 +376,7 @@ describe('UserService - Consolidated Unit Tests', () => {
         });
 
         it('should throw NOT_FOUND for non-existent user', async () => {
-            const nonExistentUid = 'nonexistent-user-id';
+            const nonExistentUid = toUserId('nonexistent-user-id');
 
             await expect(
                 userService.changePassword(nonExistentUid, {
@@ -391,7 +395,7 @@ describe('UserService - Consolidated Unit Tests', () => {
 
     describe('error handling and edge cases', () => {
         it('should maintain data consistency between Auth and Firestore', async () => {
-            const uid = 'consistent-user';
+            const uid = toUserId('consistent-user');
             const email = 'consistent@example.com';
             const displayName = 'Consistent User';
 
@@ -407,6 +411,7 @@ describe('UserService - Consolidated Unit Tests', () => {
 
             db.seedUser(uid, {
                 displayName,
+                role: SystemUserRoles.SYSTEM_USER,
             });
 
             const profile = await userService.getUser(uid);
@@ -418,12 +423,12 @@ describe('UserService - Consolidated Unit Tests', () => {
         });
 
         it('should handle auth user without email gracefully', async () => {
-            const uid = 'no-email-user';
+            const uid = toUserId('no-email-user');
 
             // Set up user without email (edge case)
             stubAuth.setUser(uid, {
                 uid,
-                displayName: 'No Email User',
+                displayName: toDisplayName('No Email User'),
                 // email is undefined
             });
 
@@ -434,27 +439,26 @@ describe('UserService - Consolidated Unit Tests', () => {
     describe('Input Validation Tests', () => {
         let validationUserService: UserService;
 
-        const testUserId = 'test-user-id';
-
         beforeEach(() => {
             validationUserService = new ComponentBuilder(stubAuth, db, new StubStorage({ defaultBucketName: 'test-bucket' })).buildUserService();
 
-            const email = `${testUserId}@example.com`;
+            const email = `${testUser}@example.com`;
             const displayName = 'Validation User';
 
             stubAuth.setUser(
-                testUserId,
+                testUser,
                 {
-                    uid: testUserId,
+                    uid: testUser,
                     email,
                     displayName,
                 },
                 { password: 'ValidCurrentPassword1234!' },
             );
 
-            db.seedUser(testUserId, {
+            db.seedUser(testUser, {
                 email,
                 displayName,
+                role: SystemUserRoles.SYSTEM_USER,
             });
         });
 
@@ -464,7 +468,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                     .withDisplayName(toDisplayName('a'.repeat(101))) // Too long
                     .build();
 
-                await expect(validationUserService.updateProfile(testUserId, updateData)).rejects.toThrow(ApiError);
+                await expect(validationUserService.updateProfile(testUser, updateData)).rejects.toThrow(ApiError);
             });
 
             it('should validate displayName is not empty', async () => {
@@ -472,7 +476,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                     .withDisplayName(toDisplayName(''))
                     .build();
 
-                await expect(validationUserService.updateProfile(testUserId, updateData)).rejects.toThrow(ApiError);
+                await expect(validationUserService.updateProfile(testUser, updateData)).rejects.toThrow(ApiError);
             });
 
             it('should validate displayName with only whitespace', async () => {
@@ -480,7 +484,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                     .withDisplayName(toDisplayName('   '))
                     .build();
 
-                await expect(validationUserService.updateProfile(testUserId, updateData)).rejects.toThrow(ApiError);
+                await expect(validationUserService.updateProfile(testUser, updateData)).rejects.toThrow(ApiError);
             });
 
             it('should accept valid displayName', async () => {
@@ -492,7 +496,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                     .withPreferredLanguage('invalid-language')
                     .build();
 
-                await expect(validationUserService.updateProfile(testUserId, updateData)).rejects.toThrow(ApiError);
+                await expect(validationUserService.updateProfile(testUser, updateData)).rejects.toThrow(ApiError);
             });
 
             it('should accept valid preferredLanguage', async () => {
@@ -504,7 +508,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                     .withPhotoURL('not-a-valid-url')
                     .build();
 
-                await expect(validationUserService.updateProfile(testUserId, updateData)).rejects.toThrow(ApiError);
+                await expect(validationUserService.updateProfile(testUser, updateData)).rejects.toThrow(ApiError);
             });
 
             it('should accept valid photoURL', async () => {
@@ -531,7 +535,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                     .withNewPassword('123') // Too short
                     .build();
 
-                await expect(validationUserService.changePassword(testUserId, changeData)).rejects.toThrow(ApiError);
+                await expect(validationUserService.changePassword(testUser, changeData)).rejects.toThrow(ApiError);
             });
 
             it('should accept lowercase-only passwords when long enough', async () => {
@@ -540,7 +544,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                     .withNewPassword('lowercaseonlypass')
                     .build();
 
-                await expect(validationUserService.changePassword(testUserId, changeData)).resolves.toMatchObject({ message: 'Password changed successfully' });
+                await expect(validationUserService.changePassword(testUser, changeData)).resolves.toMatchObject({ message: 'Password changed successfully' });
             });
 
             it('should accept passwords without numbers or special characters when long enough', async () => {
@@ -549,7 +553,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                     .withNewPassword('JustLettersHere')
                     .build();
 
-                await expect(validationUserService.changePassword(testUserId, changeData)).resolves.toMatchObject({ message: 'Password changed successfully' });
+                await expect(validationUserService.changePassword(testUser, changeData)).resolves.toMatchObject({ message: 'Password changed successfully' });
             });
 
             it('should accept passwords with spaces when long enough', async () => {
@@ -558,7 +562,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                     .withNewPassword('twelve chars ok')
                     .build();
 
-                await expect(validationUserService.changePassword(testUserId, changeData)).resolves.toMatchObject({ message: 'Password changed successfully' });
+                await expect(validationUserService.changePassword(testUser, changeData)).resolves.toMatchObject({ message: 'Password changed successfully' });
             });
 
             it('should validate current password is provided', async () => {
@@ -567,7 +571,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                     .withNewPassword('NewSecurePassword1234!')
                     .build();
 
-                await expect(validationUserService.changePassword(testUserId, changeData)).rejects.toThrow(ApiError);
+                await expect(validationUserService.changePassword(testUser, changeData)).rejects.toThrow(ApiError);
             });
 
             it('should validate new password is different from current', async () => {
@@ -577,7 +581,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                     .withNewPassword(samePassword)
                     .build();
 
-                await expect(validationUserService.changePassword(testUserId, changeData)).rejects.toThrow(ApiError);
+                await expect(validationUserService.changePassword(testUser, changeData)).rejects.toThrow(ApiError);
             });
 
             it('should throw NOT_FOUND for non-existent user', async () => {
@@ -955,15 +959,15 @@ describe('UserService - Consolidated Unit Tests', () => {
     describe('resolveGroupMemberProfiles', () => {
         it('should resolve multiple group member profiles efficiently', async () => {
             const groupId = toGroupId('test-group');
-            const user1 = 'user-1';
-            const user2 = 'user-2';
-            const user3 = 'user-3';
+            const user1 = toUserId('user-1');
+            const user2 = toUserId('user-2');
+            const user3 = toUserId('user-3');
 
             db.seedGroupMember(
                 groupId,
                 user1,
                 new GroupMemberDocumentBuilder()
-                    .withUserId(user1 as any)
+                    .withUserId(user1)
                     .withGroupId(groupId)
                     .withGroupDisplayName('Member One')
                     .buildDocument(),
@@ -972,7 +976,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                 groupId,
                 user2,
                 new GroupMemberDocumentBuilder()
-                    .withUserId(user2 as any)
+                    .withUserId(user2)
                     .withGroupId(groupId)
                     .withGroupDisplayName('Member Two')
                     .buildDocument(),
@@ -981,13 +985,13 @@ describe('UserService - Consolidated Unit Tests', () => {
                 groupId,
                 user3,
                 new GroupMemberDocumentBuilder()
-                    .withUserId(user3 as any)
+                    .withUserId(user3)
                     .withGroupId(groupId)
                     .withGroupDisplayName('Member Three')
                     .buildDocument(),
             );
 
-            const profiles = await userService.resolveGroupMemberProfiles(groupId, [user1 as any, user2 as any, user3 as any]);
+            const profiles = await userService.resolveGroupMemberProfiles(groupId, [user1, user2, user3]);
 
             expect(profiles).toHaveLength(3);
             expect(profiles[0].uid).toBe(user1);
@@ -999,20 +1003,20 @@ describe('UserService - Consolidated Unit Tests', () => {
 
         it('should handle phantom members when user has left the group', async () => {
             const groupId = toGroupId('test-group');
-            const user1 = 'user-1';
-            const user2 = 'departed-user';
+            const user1 = toUserId('user-1');
+            const user2 = toUserId('departed-user');
 
             db.seedGroupMember(
                 groupId,
                 user1,
                 new GroupMemberDocumentBuilder()
-                    .withUserId(user1 as any)
+                    .withUserId(user1)
                     .withGroupId(groupId)
                     .withGroupDisplayName('Active Member')
                     .buildDocument(),
             );
 
-            const profiles = await userService.resolveGroupMemberProfiles(groupId, [user1 as any, user2 as any]);
+            const profiles = await userService.resolveGroupMemberProfiles(groupId, [user1, user2]);
 
             expect(profiles).toHaveLength(2);
             expect(profiles[0].groupDisplayName).toBe('Active Member');
@@ -1029,57 +1033,57 @@ describe('UserService - Consolidated Unit Tests', () => {
 
         it('should compute correct initials for single-word names', async () => {
             const groupId = toGroupId('test-group');
-            const user1 = 'user-1';
+            const user1 = toUserId('user-1');
 
             db.seedGroupMember(
                 groupId,
                 user1,
                 new GroupMemberDocumentBuilder()
-                    .withUserId(user1 as any)
+                    .withUserId(user1)
                     .withGroupId(groupId)
                     .withGroupDisplayName('Alice')
                     .buildDocument(),
             );
 
-            const profiles = await userService.resolveGroupMemberProfiles(groupId, [user1 as any]);
+            const profiles = await userService.resolveGroupMemberProfiles(groupId, [user1]);
 
             expect(profiles[0].initials).toBe('A');
         });
 
         it('should compute correct initials for multi-word names', async () => {
             const groupId = toGroupId('test-group');
-            const user1 = 'user-1';
+            const user1 = toUserId('user-1');
 
             db.seedGroupMember(
                 groupId,
                 user1,
                 new GroupMemberDocumentBuilder()
-                    .withUserId(user1 as any)
+                    .withUserId(user1)
                     .withGroupId(groupId)
                     .withGroupDisplayName('John Smith')
                     .buildDocument(),
             );
 
-            const profiles = await userService.resolveGroupMemberProfiles(groupId, [user1 as any]);
+            const profiles = await userService.resolveGroupMemberProfiles(groupId, [user1]);
 
             expect(profiles[0].initials).toBe('JS');
         });
 
         it('should limit initials to 2 characters max', async () => {
             const groupId = toGroupId('test-group');
-            const user1 = 'user-1';
+            const user1 = toUserId('user-1');
 
             db.seedGroupMember(
                 groupId,
                 user1,
                 new GroupMemberDocumentBuilder()
-                    .withUserId(user1 as any)
+                    .withUserId(user1)
                     .withGroupId(groupId)
                     .withGroupDisplayName('First Middle Last')
                     .buildDocument(),
             );
 
-            const profiles = await userService.resolveGroupMemberProfiles(groupId, [user1 as any]);
+            const profiles = await userService.resolveGroupMemberProfiles(groupId, [user1]);
 
             expect(profiles[0].initials).toBe('FM');
         });

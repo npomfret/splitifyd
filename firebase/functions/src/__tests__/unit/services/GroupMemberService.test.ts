@@ -1,4 +1,4 @@
-import { ActivityFeedActions, ActivityFeedEventTypes, MemberRoles, MemberStatuses } from '@billsplit-wl/shared';
+import { ActivityFeedActions, ActivityFeedEventTypes, MemberRoles, MemberStatuses, toUserId } from '@billsplit-wl/shared';
 import { toGroupId } from '@billsplit-wl/shared';
 import { TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
 import { GroupDTOBuilder, GroupMemberDocumentBuilder, ThemeBuilder, UserBalanceBuilder } from '@billsplit-wl/test-support';
@@ -45,7 +45,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
         it('should return all members for a group', async () => {
             // Arrange
             const member1 = new GroupMemberDocumentBuilder()
-                .withUserId('user-1')
+                .withUserId(toUserId('user-1'))
                 .withGroupId(testGroup.id)
                 .withTheme(defaultTheme)
                 .buildDocument();
@@ -72,7 +72,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
             // Assert
             expect(result).toHaveLength(3);
-            expect(result[0].uid).toBe('user-1');
+            expect(result[0].uid).toBe(toUserId('user-1'));
             expect(result[1].uid).toBe('user-2');
             expect(result[2].uid).toBe('user-3');
             expect(result[2].memberRole).toBe(MemberRoles.ADMIN);
@@ -103,7 +103,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
         it('should return true for existing group member', async () => {
             // Arrange
             const testMember = new GroupMemberDocumentBuilder()
-                .withUserId('user-1')
+                .withUserId(toUserId('user-1'))
                 .withGroupId(testGroup.id)
                 .withTheme(defaultTheme)
                 .buildDocument();
@@ -111,7 +111,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             db.seedGroupMember(testGroup.id, 'user-1', testMember);
 
             // Act
-            const result = await groupMemberService.isGroupMemberAsync(testGroup.id, 'user-1');
+            const result = await groupMemberService.isGroupMemberAsync(testGroup.id, toUserId('user-1'));
 
             // Assert
             expect(result).toBe(true);
@@ -119,7 +119,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
         it('should return false for non-existent group member', async () => {
             // Arrange
-            const nonExistentUserId = 'nonexistent-user';
+            const nonExistentUserId = toUserId('nonexistent-user');
 
             // Act
             const result = await groupMemberService.isGroupMemberAsync(testGroup.id, nonExistentUserId);
@@ -133,7 +133,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             const invalidGroupId = toGroupId('');
 
             // Act
-            const result = await groupMemberService.isGroupMemberAsync(invalidGroupId, 'user-1');
+            const result = await groupMemberService.isGroupMemberAsync(invalidGroupId, toUserId('user-1'));
 
             // Assert
             expect(result).toBe(false);
@@ -141,7 +141,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
         it('should return false for invalid user ID', async () => {
             // Arrange
-            const invalidUserId = '';
+            const invalidUserId = toUserId('');
 
             // Act
             const result = await groupMemberService.isGroupMemberAsync(testGroup.id, invalidUserId);
@@ -152,9 +152,9 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
     });
 
     describe('Security Role and Approval Workflow', () => {
-        const adminUserId = 'admin-user';
-        const memberUserId = 'member-user';
-        const pendingUserId = 'pending-user';
+        const adminUserId = toUserId('admin-user');
+        const memberUserId = toUserId('member-user');
+        const pendingUserId = toUserId('pending-user');
 
         beforeEach(() => {
             const managedGroup = new GroupDTOBuilder()
@@ -262,35 +262,42 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
     // Validation Tests (from GroupMemberService.validation.test.ts)
     // ================================
 
+    const creatorUser = toUserId('creator-user-123');
+    const memberUser = toUserId('member-user-123');
+    const otherUser = toUserId('other-member-123');
+
     describe('Leave Group Validation', () => {
+
         test('should prevent group creator from leaving', async () => {
             // Arrange
+            const userId = creatorUser;
+
             const testGroup = new GroupDTOBuilder()
                 .withId('test-group-id')
-                .withCreatedBy('creator-user-123')
+                .withCreatedBy(userId)
                 .build();
 
             const creatorMember = new GroupMemberDocumentBuilder()
-                .withUserId('creator-user-123')
+                .withUserId(userId)
                 .withGroupId('test-group-id')
                 .withRole(MemberRoles.ADMIN)
                 .buildDocument();
 
             db.seedGroup(testGroup.id, testGroup);
-            db.seedGroupMember(testGroup.id, 'creator-user-123', creatorMember);
+            db.seedGroupMember(testGroup.id, userId, creatorMember);
 
             // Act & Assert
-            await expect(groupMemberService.leaveGroup('creator-user-123', testGroup.id)).rejects.toThrow(/Invalid input data/);
+            await expect(groupMemberService.leaveGroup(userId, testGroup.id)).rejects.toThrow(/Invalid input data/);
         });
 
         test('should prevent leaving with outstanding balance', async () => {
             // Arrange
             const testGroup2 = new GroupDTOBuilder()
-                .withCreatedBy('creator-user-123')
+                .withCreatedBy(creatorUser)
                 .build();
 
             const memberDoc = new GroupMemberDocumentBuilder()
-                .withUserId('member-user-123')
+                .withUserId(memberUser)
                 .withGroupId(testGroup2.id)
                 .withGroupDisplayName('Member To Remove')
                 .buildDocument();
@@ -300,9 +307,9 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
                 .withGroupId(testGroup2.id)
                 .withUserBalance(
                     'USD',
-                    'member-user-123',
+                    memberUser,
                     new UserBalanceBuilder()
-                        .withUserId('member-user-123')
+                        .withUserId(memberUser)
                         .withNetBalance(-50.0)
                         .build(), // Member owes $50
                 )
@@ -316,28 +323,28 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             };
 
             db.seedGroup(testGroup2.id, testGroup2);
-            db.seedGroupMember(testGroup2.id, 'member-user-123', memberDoc);
+            db.seedGroupMember(testGroup2.id, memberUser, memberDoc);
             db.seed(`groups/${testGroup2.id}/metadata/balance`, balanceWithTimestamp);
 
             // Act & Assert
-            await expect(groupMemberService.leaveGroup('member-user-123', testGroup2.id)).rejects.toThrow(/Invalid input data/);
+            await expect(groupMemberService.leaveGroup(memberUser, testGroup2.id)).rejects.toThrow(/Invalid input data/);
         });
 
         test('should allow member to leave when balance is settled', async () => {
             // Arrange
             const testGroup2 = new GroupDTOBuilder()
-                .withCreatedBy('creator-user-123')
+                .withCreatedBy(creatorUser)
                 .build();
 
             const memberDoc = new GroupMemberDocumentBuilder()
-                .withUserId('member-user-123')
+                .withUserId(memberUser)
                 .withGroupId(testGroup2.id)
                 .withGroupDisplayName('Leaving Member')
                 .buildDocument();
 
             // Add another member so the group has multiple members (needed for leave validation)
             const otherMemberDoc = new GroupMemberDocumentBuilder()
-                .withUserId('other-member-123')
+                .withUserId(otherUser)
                 .withGroupId(testGroup2.id)
                 .withGroupDisplayName('Remaining Member')
                 .buildDocument();
@@ -347,9 +354,9 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
                 .withGroupId(testGroup2.id)
                 .withUserBalance(
                     'USD',
-                    'member-user-123',
+                    memberUser,
                     new UserBalanceBuilder()
-                        .withUserId('member-user-123')
+                        .withUserId(memberUser)
                         .withNetBalance(0.0)
                         .build(), // Member has settled balance
                 )
@@ -363,47 +370,47 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             };
 
             db.seedGroup(testGroup2.id, testGroup2);
-            db.seedGroupMember(testGroup2.id, 'member-user-123', memberDoc);
-            db.seedGroupMember(testGroup2.id, 'other-member-123', otherMemberDoc);
+            db.seedGroupMember(testGroup2.id, memberUser, memberDoc);
+            db.seedGroupMember(testGroup2.id, otherUser, otherMemberDoc);
             db.seed(`groups/${testGroup2.id}/metadata/balance`, settledBalanceWithTimestamp);
 
             // Act
-            const result = await groupMemberService.leaveGroup('member-user-123', testGroup2.id);
+            const result = await groupMemberService.leaveGroup(memberUser, testGroup2.id);
 
             // Assert
             expect(result).toEqual({
                 message: 'Successfully left the group',
             });
 
-            const remainingFeed = await firestoreReader.getActivityFeedForUser('other-member-123');
+            const remainingFeed = await firestoreReader.getActivityFeedForUser(otherUser);
             expect(remainingFeed.items[0]).toMatchObject({
                 eventType: ActivityFeedEventTypes.MEMBER_LEFT,
                 action: ActivityFeedActions.LEAVE,
-                actorId: 'member-user-123',
+                actorId: memberUser,
                 details: expect.objectContaining({
-                    targetUserId: 'member-user-123',
+                    targetUserId: memberUser,
                     targetUserName: 'Leaving Member',
                 }),
             });
 
-            const leavingFeed = await firestoreReader.getActivityFeedForUser('member-user-123');
+            const leavingFeed = await firestoreReader.getActivityFeedForUser(memberUser);
             expect(leavingFeed.items[0]).toMatchObject({
                 eventType: ActivityFeedEventTypes.MEMBER_LEFT,
                 action: ActivityFeedActions.LEAVE,
-                actorId: 'member-user-123',
+                actorId: memberUser,
             });
         });
 
         test('should reject unauthorized leave request', async () => {
             // Act & Assert
-            await expect(groupMemberService.leaveGroup('', testGroup.id)).rejects.toThrow(/Authentication required/);
+            await expect(groupMemberService.leaveGroup(toUserId(''), testGroup.id)).rejects.toThrow(/Authentication required/);
         });
 
         test('should reject leave request for non-existent group', async () => {
             // Arrange - No group seeded, database has no group with this ID
 
             // Act & Assert
-            await expect(groupMemberService.leaveGroup('member-user-123', toGroupId('nonexistent-group-id'))).rejects.toThrow(/Group not found/);
+            await expect(groupMemberService.leaveGroup(memberUser, toGroupId('nonexistent-group-id'))).rejects.toThrow(/Group not found/);
         });
 
         test('should reject leave request for non-member', async () => {
@@ -415,7 +422,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             // No member seeded - user is not a member
 
             // Act & Assert
-            await expect(groupMemberService.leaveGroup('member-user-123', testGroup2.id)).rejects.toThrow(/Invalid input data/);
+            await expect(groupMemberService.leaveGroup(memberUser, testGroup2.id)).rejects.toThrow(/Invalid input data/);
         });
     });
 
@@ -423,7 +430,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
         test('should prevent non-creator from removing members', async () => {
             // Arrange
             const testGroup2 = new GroupDTOBuilder()
-                .withCreatedBy('creator-user-123')
+                .withCreatedBy(creatorUser)
                 .build();
 
             const targetMemberDoc = new GroupMemberDocumentBuilder()
@@ -435,36 +442,36 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             db.seedGroupMember(testGroup2.id, 'other-member-123', targetMemberDoc);
 
             // Act & Assert - Non-creator (memberUserId) trying to remove otherMemberUserId
-            await expect(groupMemberService.removeGroupMember('member-user-123', testGroup2.id, 'other-member-123')).rejects.toThrow(/Access denied/);
+            await expect(groupMemberService.removeGroupMember(memberUser, testGroup2.id, otherUser)).rejects.toThrow(/Access denied/);
         });
 
         test('should prevent removing the group creator', async () => {
             // Arrange
             const testGroup2 = new GroupDTOBuilder()
-                .withCreatedBy('creator-user-123')
+                .withCreatedBy(creatorUser)
                 .build();
 
             const creatorMemberDoc = new GroupMemberDocumentBuilder()
-                .withUserId('creator-user-123')
+                .withUserId(creatorUser)
                 .withGroupId(testGroup2.id)
                 .withRole(MemberRoles.ADMIN)
                 .buildDocument();
 
             db.seedGroup(testGroup2.id, testGroup2);
-            db.seedGroupMember(testGroup2.id, 'creator-user-123', creatorMemberDoc);
+            db.seedGroupMember(testGroup2.id, creatorUser, creatorMemberDoc);
 
             // Act & Assert
-            await expect(groupMemberService.removeGroupMember('creator-user-123', testGroup2.id, 'creator-user-123')).rejects.toThrow(/Invalid input data/);
+            await expect(groupMemberService.removeGroupMember(creatorUser, testGroup2.id, creatorUser)).rejects.toThrow(/Invalid input data/);
         });
 
         test('should prevent removing member with outstanding balance', async () => {
             // Arrange
             const testGroup2 = new GroupDTOBuilder()
-                .withCreatedBy('creator-user-123')
+                .withCreatedBy(creatorUser)
                 .build();
 
             const memberDoc = new GroupMemberDocumentBuilder()
-                .withUserId('member-user-123')
+                .withUserId(memberUser)
                 .withGroupId(testGroup2.id)
                 .withGroupDisplayName('Member To Remove')
                 .buildDocument();
@@ -474,9 +481,9 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
                 .withGroupId(testGroup2.id)
                 .withUserBalance(
                     'USD',
-                    'member-user-123',
+                    memberUser,
                     new UserBalanceBuilder()
-                        .withUserId('member-user-123')
+                        .withUserId(memberUser)
                         .withNetBalance(25.0)
                         .build(), // Member is owed $25
                 )
@@ -490,27 +497,27 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             };
 
             db.seedGroup(testGroup2.id, testGroup2);
-            db.seedGroupMember(testGroup2.id, 'member-user-123', memberDoc);
+            db.seedGroupMember(testGroup2.id, memberUser, memberDoc);
             db.seed(`groups/${testGroup2.id}/metadata/balance`, balanceWithCreditTimestamp);
 
             // Act & Assert
-            await expect(groupMemberService.removeGroupMember('creator-user-123', testGroup2.id, 'member-user-123')).rejects.toThrow(/Invalid input data/);
+            await expect(groupMemberService.removeGroupMember(creatorUser, testGroup2.id, memberUser)).rejects.toThrow(/Invalid input data/);
         });
 
         test('should allow creator to remove member with settled balance', async () => {
             // Arrange
             const testGroup2 = new GroupDTOBuilder()
-                .withCreatedBy('creator-user-123')
+                .withCreatedBy(creatorUser)
                 .build();
 
             const memberDoc = new GroupMemberDocumentBuilder()
-                .withUserId('member-user-123')
+                .withUserId(memberUser)
                 .withGroupId(testGroup2.id)
                 .withGroupDisplayName('Member To Remove')
                 .buildDocument();
 
             const creatorMemberDoc = new GroupMemberDocumentBuilder()
-                .withUserId('creator-user-123')
+                .withUserId(creatorUser)
                 .withGroupId(testGroup2.id)
                 .withGroupDisplayName('Group Owner')
                 .asAdmin()
@@ -521,9 +528,9 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
                 .withGroupId(testGroup2.id)
                 .withUserBalance(
                     'USD',
-                    'member-user-123',
+                    memberUser,
                     new UserBalanceBuilder()
-                        .withUserId('member-user-123')
+                        .withUserId(memberUser)
                         .withNetBalance(0.0)
                         .build(), // Member has settled balance
                 )
@@ -537,59 +544,59 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             };
 
             db.seedGroup(testGroup2.id, testGroup2);
-            db.seedGroupMember(testGroup2.id, 'member-user-123', memberDoc);
-            db.seedGroupMember(testGroup2.id, 'creator-user-123', creatorMemberDoc);
+            db.seedGroupMember(testGroup2.id, memberUser, memberDoc);
+            db.seedGroupMember(testGroup2.id, creatorUser, creatorMemberDoc);
             db.seed(`groups/${testGroup2.id}/metadata/balance`, settledBalanceWithTimestamp);
 
             // Act
-            const result = await groupMemberService.removeGroupMember('creator-user-123', testGroup2.id, 'member-user-123');
+            const result = await groupMemberService.removeGroupMember(creatorUser, testGroup2.id, memberUser);
 
             // Assert
             expect(result).toEqual({
                 message: 'Member removed successfully',
             });
 
-            const ownerFeed = await firestoreReader.getActivityFeedForUser('creator-user-123');
+            const ownerFeed = await firestoreReader.getActivityFeedForUser(creatorUser);
             expect(ownerFeed.items[0]).toMatchObject({
                 eventType: ActivityFeedEventTypes.MEMBER_LEFT,
                 action: ActivityFeedActions.LEAVE,
-                actorId: 'creator-user-123',
+                actorId: creatorUser,
                 details: expect.objectContaining({
-                    targetUserId: 'member-user-123',
+                    targetUserId: memberUser,
                     targetUserName: 'Member To Remove',
                 }),
             });
 
-            const removedFeed = await firestoreReader.getActivityFeedForUser('member-user-123');
+            const removedFeed = await firestoreReader.getActivityFeedForUser(memberUser);
             expect(removedFeed.items[0]).toMatchObject({
                 eventType: ActivityFeedEventTypes.MEMBER_LEFT,
                 action: ActivityFeedActions.LEAVE,
-                actorId: 'creator-user-123',
+                actorId: creatorUser,
             });
         });
 
         test('should reject removal of non-existent member', async () => {
             // Arrange
             const testGroup2 = new GroupDTOBuilder()
-                .withCreatedBy('creator-user-123')
+                .withCreatedBy(creatorUser)
                 .build();
 
             db.seedGroup(testGroup2.id, testGroup2);
             // No member seeded - user doesn't exist
 
             // Act & Assert
-            await expect(groupMemberService.removeGroupMember('creator-user-123', testGroup2.id, 'nonexistent-user')).rejects.toThrow(/Invalid input data/);
+            await expect(groupMemberService.removeGroupMember(creatorUser, testGroup2.id, toUserId('nonexistent-user'))).rejects.toThrow(/Invalid input data/);
         });
 
         test('should require valid member ID for removal', async () => {
             // Act & Assert
-            await expect(groupMemberService.removeGroupMember('creator-user-123', testGroup.id, '')).rejects.toThrow(/Missing required field.*memberId/);
+            await expect(groupMemberService.removeGroupMember(creatorUser, testGroup.id, toUserId(''))).rejects.toThrow(/Missing required field.*memberId/);
         });
     });
 
     describe('Authorization Edge Cases', () => {
         test('should handle empty user ID in leave request', async () => {
-            await expect(groupMemberService.leaveGroup('', testGroup.id)).rejects.toThrow(/Authentication required/);
+            await expect(groupMemberService.leaveGroup(toUserId(''), testGroup.id)).rejects.toThrow(/Authentication required/);
         });
 
         test('should handle null user ID in leave request', async () => {

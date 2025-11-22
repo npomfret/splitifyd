@@ -4,6 +4,8 @@ import {
     CreateSettlementRequest,
     GroupId,
     ISOString,
+    ListSettlementsOptions,
+    ListSettlementsResponse,
     SettlementDTO,
     SettlementId,
     SettlementWithMembers,
@@ -58,40 +60,16 @@ export class SettlementService {
     async listSettlements(
         groupId: GroupId,
         userId: UserId,
-        options: {
-            limit?: number;
-            cursor?: string;
-            uid?: string;
-            startDate?: ISOString;
-            endDate?: ISOString;
-            includeDeleted?: boolean;
-        } = {},
-    ): Promise<{
-        settlements: SettlementWithMembers[];
-        count: number;
-        hasMore: boolean;
-        nextCursor?: string;
-    }> {
+        options: ListSettlementsOptions = {},
+    ): Promise<ListSettlementsResponse> {
         return measure.measureDb('SettlementService.listSettlements', async () => this._listSettlements(groupId, userId, options));
     }
 
     private async _listSettlements(
         groupId: GroupId,
         userId: UserId,
-        options: {
-            limit?: number;
-            cursor?: string;
-            uid?: string;
-            startDate?: ISOString;
-            endDate?: ISOString;
-            includeDeleted?: boolean;
-        } = {},
-    ): Promise<{
-        settlements: SettlementWithMembers[];
-        count: number;
-        hasMore: boolean;
-        nextCursor?: string;
-    }> {
+        options: ListSettlementsOptions = {},
+    ): Promise<ListSettlementsResponse> {
         const timer = new PerformanceTimer();
 
         LoggerContext.setBusinessContext({ groupId });
@@ -140,13 +118,14 @@ export class SettlementService {
         const now = toISOString(new Date().toISOString());
         const settlementDate = settlementData.date || now;
 
-        const settlementDataToCreate: any = {
+        const settlementDataToCreate: Omit<SettlementDTO, 'id'> = {
             groupId: settlementData.groupId,
             payerId: settlementData.payerId,
             payeeId: settlementData.payeeId,
             amount: settlementData.amount,
             currency: settlementData.currency,
             date: settlementDate, // ISO string
+            note: settlementData.note,
             createdBy: userId,
             createdAt: now, // ISO string
             updatedAt: now,
@@ -154,11 +133,6 @@ export class SettlementService {
             deletedAt: null,
             deletedBy: null,
         };
-
-        // Only add note if it's provided
-        if (settlementData.note) {
-            settlementDataToCreate.note = settlementData.note;
-        }
 
         // Generate settlement ID before transaction
         const settlementId = toSettlementId(this.firestoreWriter.generateDocumentId(FirestoreCollections.SETTLEMENTS));
@@ -295,7 +269,8 @@ export class SettlementService {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_SETTLEMENT_CREATOR', 'Only the creator can update this settlement');
         }
 
-        const updates: any = {};
+        // Note: updates type includes FieldValue which is a special Firestore sentinel value
+        const updates: Partial<Pick<SettlementDTO, 'amount' | 'currency' | 'date'>> & { note?: string | any; } = {};
 
         if (updateData.amount !== undefined) {
             updates.amount = updateData.amount;
@@ -550,20 +525,8 @@ export class SettlementService {
      */
     async _getGroupSettlementsData(
         groupId: GroupId,
-        options: {
-            limit?: number;
-            cursor?: string;
-            uid?: string;
-            startDate?: ISOString;
-            endDate?: ISOString;
-            includeDeleted?: boolean;
-        } = {},
-    ): Promise<{
-        settlements: SettlementWithMembers[];
-        count: number;
-        hasMore: boolean;
-        nextCursor?: string;
-    }> {
+        options: ListSettlementsOptions = {},
+    ): Promise<ListSettlementsResponse> {
         LoggerContext.setBusinessContext({ groupId });
         LoggerContext.update({ operation: 'get-group-settlements-data', limit: options.limit || 50 });
 
@@ -618,7 +581,6 @@ export class SettlementService {
 
         return {
             settlements,
-            count: settlements.length,
             hasMore,
             nextCursor,
         };

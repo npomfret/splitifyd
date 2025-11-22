@@ -5,10 +5,12 @@ import {
     GroupPermissions,
     MemberRoles,
     PermissionLevels,
+    toUserId,
     UpdateDisplayNameRequest,
     UpdateDisplayNameRequestSchema,
     UpdateGroupRequest,
     UpdateGroupRequestSchema,
+    UserId,
 } from '@billsplit-wl/shared';
 import { toGroupId, toGroupName } from '@billsplit-wl/shared';
 import { toDisplayName } from '@billsplit-wl/shared';
@@ -164,9 +166,9 @@ export const validateUpdateMemberRoleRequest = (body: unknown): UpdateMemberRole
     });
 };
 
-export const validateMemberId = (memberId: unknown): string => {
+export const validateMemberId = (memberId: unknown): UserId => {
     if (!memberId || typeof memberId !== 'string' || memberId.trim().length === 0) {
         throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_INPUT', 'member ID is required');
     }
-    return memberId.trim();
+    return toUserId(memberId.trim());
 };

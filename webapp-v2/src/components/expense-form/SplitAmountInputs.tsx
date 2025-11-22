@@ -1,6 +1,6 @@
 import { getCurrency } from '@/utils/currency';
 import { getGroupDisplayName } from '@/utils/displayName';
-import { Amount, amountToSmallestUnit, smallestUnitToAmountString, toCurrencyISOCode, ZERO } from '@billsplit-wl/shared';
+import { Amount, amountToSmallestUnit, smallestUnitToAmountString, toCurrencyISOCode, toUserId, UserId, ZERO } from '@billsplit-wl/shared';
 import { useTranslation } from 'react-i18next';
 import { Avatar, CurrencyAmount } from '../ui';
 
@@ -23,8 +23,8 @@ interface SplitAmountInputsProps { // todo: should these be strongly typed?
     participants: string[];
     splits: Split[];
     members: Member[];
-    updateSplitAmount: (uid: string, amount: Amount) => void;
-    updateSplitPercentage: (uid: string, percentage: number) => void;
+    updateSplitAmount: (uid: UserId, amount: Amount) => void;
+    updateSplitPercentage: (uid: UserId, percentage: number) => void;
 }
 
 export function SplitAmountInputs({ splitType, amount, currency, participants, splits, members, updateSplitAmount, updateSplitPercentage }: SplitAmountInputsProps) {
@@ -67,7 +67,7 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
                     return (
                         <div key={participantId} className='flex items-center justify-between gap-3'>
                             <div className='flex items-center gap-2 flex-1'>
-                                <Avatar displayName={memberName} userId={participantId} size='sm' />
+                                <Avatar displayName={memberName} userId={toUserId(participantId)} size='sm' />
                                 <span className='text-sm font-medium text-text-primary dark:text-text-muted/60'>{memberName}</span>
                             </div>
                             <div className='flex items-center gap-2'>
@@ -79,7 +79,7 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
                                     value={split?.amount || ''}
                                     onInput={(e) => {
                                         const value = (e.target as HTMLInputElement).value || ZERO;
-                                        updateSplitAmount(participantId, value);
+                                        updateSplitAmount(toUserId(participantId), value);
                                     }}
                                     className='w-24 px-2 py-1 border border-border-default dark:border-border-strong rounded focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary dark:bg-text-primary dark:text-white text-right'
                                     autoComplete='off'
@@ -132,7 +132,7 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
                     return (
                         <div key={participantId} className='flex items-center justify-between gap-3'>
                             <div className='flex items-center gap-2 flex-1'>
-                                <Avatar displayName={memberName} userId={participantId} size='sm' />
+                                <Avatar displayName={memberName} userId={toUserId(participantId)} size='sm' />
                                 <span className='text-sm font-medium text-text-primary dark:text-text-muted/60'>{memberName}</span>
                             </div>
                             <div className='flex items-center gap-2'>
@@ -143,7 +143,7 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
                                     value={split?.percentage || ''}
                                     onInput={(e) => {
                                         const value = parseFloat((e.target as HTMLInputElement).value) || 0;
-                                        updateSplitPercentage(participantId, value);
+                                        updateSplitPercentage(toUserId(participantId), value);
                                     }}
                                     className='w-20 px-2 py-1 border border-border-default dark:border-border-strong rounded focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary dark:bg-text-primary dark:text-white text-right'
                                     autoComplete='off'
@@ -185,7 +185,7 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
                         return (
                             <div key={split.uid} className='flex items-center justify-between gap-2'>
                                 <div className='flex items-center gap-2'>
-                                    <Avatar displayName={memberName} userId={split.uid} size='sm' />
+                                    <Avatar displayName={memberName} userId={toUserId(split.uid)} size='sm' />
                                     <span className='text-sm text-text-muted dark:text-text-muted/80'>{memberName}</span>
                                 </div>
                                 <span className='text-sm font-medium text-text-primary dark:text-white'>

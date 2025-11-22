@@ -1,4 +1,5 @@
 import { ClientUserBuilder, DashboardPage, RegisterPage, TEST_TIMEOUTS } from '@billsplit-wl/test-support';
+import { toEmail } from '@billsplit-wl/shared';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { setupSuccessfulApiMocks } from '../../utils/mock-firebase-service';
 
@@ -8,7 +9,7 @@ test.describe('Registration Authentication Flow', () => {
         const testUser = ClientUserBuilder
             .validUser()
             .withDisplayName('John Smith')
-            .withEmail('john.smith@example.com')
+            .withEmail(toEmail('john.smith@example.com'))
             .build();
         const registerPage = new RegisterPage(page);
 
@@ -39,7 +40,7 @@ test.describe('Registration Authentication Flow', () => {
         });
 
         // 3. Attempt registration expecting failure (fluent interface)
-        await registerPage.registerExpectingFailure('John Smith', 'existing@example.com', 'Password1234');
+        await registerPage.registerExpectingFailure('John Smith', toEmail('existing@example.com'), 'Password1234');
 
         // 4. Verify error handling
         await registerPage.verifyErrorMessage('Unable to create account. If you already registered, try signing in.');
@@ -58,7 +59,7 @@ test.describe('Registration Authentication Flow', () => {
         });
 
         // 3. Attempt registration expecting failure (fluent interface)
-        await registerPage.registerExpectingFailure('Jane Doe', 'jane@example.com', 'Password1234');
+        await registerPage.registerExpectingFailure('Jane Doe', toEmail('jane@example.com'), 'Password1234');
 
         // 4. Verify network error handling
         await registerPage.verifyErrorMessage('Network error. Please check your connection.');
@@ -76,7 +77,7 @@ test.describe('Registration Authentication Flow', () => {
         });
 
         // Attempt registration with password that satisfies client validation but fails backend strength checks
-        await registerPage.registerExpectingFailure('Test User', 'test@example.com', 'weakpassword1');
+        await registerPage.registerExpectingFailure('Test User', toEmail('test@example.com'), 'weakpassword1');
 
         // Verify error message
         await registerPage.verifyErrorMessage('Password is too weak. Please use at least 12 characters.');
@@ -94,7 +95,7 @@ test.describe('Registration Authentication Flow', () => {
         });
 
         // Attempt registration with validly formatted email that backend rejects
-        await registerPage.registerExpectingFailure('Test User', 'badformat@example.com', 'Password1234');
+        await registerPage.registerExpectingFailure('Test User', toEmail('badformat@example.com'), 'Password1234');
 
         // Verify backend error message is shown
         await registerPage.verifyErrorMessage('This email address is invalid.');
@@ -129,7 +130,7 @@ test.describe('Registration Flow - Already Authenticated', () => {
         const testUser = ClientUserBuilder
             .validUser()
             .withDisplayName('New User')
-            .withEmail('newuser@example.com')
+            .withEmail(toEmail('newuser@example.com'))
             .build();
         const registerPage = new RegisterPage(page);
 
@@ -202,7 +203,7 @@ test.describe('Registration Form - Loading and Disabled States', () => {
 
         // Fill only some fields - should still be disabled
         await registerPage.fillName('John Doe');
-        await registerPage.fillEmail('john@example.com');
+        await registerPage.fillEmail(toEmail('john@example.com'));
         await registerPage.verifySubmitButtonDisabled();
 
         // Fill password but not confirm password

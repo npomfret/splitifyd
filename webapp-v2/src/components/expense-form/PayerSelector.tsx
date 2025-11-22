@@ -1,5 +1,5 @@
 import { getGroupDisplayName } from '@/utils/displayName';
-import { UserId } from '@billsplit-wl/shared';
+import { UserId, toUserId } from '@billsplit-wl/shared';
 import { useTranslation } from 'react-i18next';
 import { Avatar, Card } from '../ui';
 import { Stack } from '../ui/Stack';
@@ -12,7 +12,7 @@ interface Member {
 
 interface PayerSelectorProps {
     members: Member[];
-    paidBy: UserId;
+    paidBy: UserId | '';
     validationErrors: any;
     updateField: (field: string, value: any) => void;
 }
@@ -50,7 +50,7 @@ export function PayerSelector({ members, paidBy, validationErrors, updateField }
                                 className='text-interactive-primary focus:ring-interactive-primary'
                                 autoComplete='off'
                             />
-                            <Avatar displayName={getGroupDisplayName(member)} userId={member.uid} size='sm' />
+                            <Avatar displayName={getGroupDisplayName(member)} userId={toUserId(member.uid)} size='sm' />
                             <span className='text-sm font-medium text-text-primary'>{getGroupDisplayName(member)}</span>
                         </label>
                     ))}

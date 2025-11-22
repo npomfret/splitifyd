@@ -1,9 +1,9 @@
 import { addAmounts, compareAmounts, isZeroAmount, minAmount, negateAmount, SimplifiedDebt, subtractAmounts, UserBalance, zeroAmount } from '@billsplit-wl/shared';
-import type { Amount } from '@billsplit-wl/shared';
+import type { Amount, UserId } from '@billsplit-wl/shared';
 import type { CurrencyISOCode } from '@billsplit-wl/shared';
 
 interface NetBalance {
-    uid: string;
+    uid: UserId;
     netAmount: Amount;
 }
 

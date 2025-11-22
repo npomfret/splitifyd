@@ -3,6 +3,8 @@ import { Amount, toCurrencyISOCode } from '@billsplit-wl/shared';
 import type { CurrencyISOCode } from '@billsplit-wl/shared';
 import type { ISOString } from '@billsplit-wl/shared';
 import { convertToISOString, randomChoice, randomDate, randomLabel, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
+import {ExpenseSplit} from "@billsplit-wl/shared";
+import {toUserId} from "@billsplit-wl/shared";
 
 export class ExpenseUpdateBuilder {
     private update: Partial<UpdateExpenseRequest>;
@@ -42,8 +44,8 @@ export class ExpenseUpdateBuilder {
         return this;
     }
 
-    withPaidBy(userId: UserId): this {
-        this.update.paidBy = userId;
+    withPaidBy(userId: UserId | string): this {
+        this.update.paidBy = typeof userId === 'string' ? toUserId(userId) : userId;;
         return this;
     }
 
@@ -62,8 +64,8 @@ export class ExpenseUpdateBuilder {
         return this;
     }
 
-    withParticipants(participants: UserId[]): this {
-        this.update.participants = [...participants];
+    withParticipants(participants: UserId[] | string[]): this {
+        this.update.participants = participants.map(item => typeof item === 'string' ? toUserId(item) : item)
         return this;
     }
 
@@ -72,7 +74,7 @@ export class ExpenseUpdateBuilder {
         return this;
     }
 
-    withSplits(splits: Array<{ uid: string; amount: Amount; percentage?: number; }>): this {
+    withSplits(splits: ExpenseSplit[]): this {
         this.update.splits = [...splits];
         return this;
     }

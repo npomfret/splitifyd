@@ -1,4 +1,5 @@
 import { RegisterPage } from '@billsplit-wl/test-support';
+import { toEmail } from '@billsplit-wl/shared';
 import { test } from '../../utils/console-logging-fixture';
 
 test.describe('Registration Form Validation', () => {
@@ -7,7 +8,7 @@ test.describe('Registration Form Validation', () => {
         await registerPage.navigate();
 
         // Fill all fields except name
-        await registerPage.fillEmail('test@example.com');
+        await registerPage.fillEmail(toEmail('test@example.com'));
         await registerPage.fillPassword('Password12344');
         await registerPage.fillConfirmPassword('Password12344');
         await registerPage.acceptAllPolicies();
@@ -36,7 +37,7 @@ test.describe('Registration Form Validation', () => {
 
         // Fill all fields except password
         await registerPage.fillName('John Doe');
-        await registerPage.fillEmail('test@example.com');
+        await registerPage.fillEmail(toEmail('test@example.com'));
         await registerPage.fillConfirmPassword('Password12344');
         await registerPage.acceptAllPolicies();
 
@@ -50,7 +51,7 @@ test.describe('Registration Form Validation', () => {
 
         // Fill all fields except confirm password
         await registerPage.fillName('John Doe');
-        await registerPage.fillEmail('test@example.com');
+        await registerPage.fillEmail(toEmail('test@example.com'));
         await registerPage.fillPassword('Password12344');
         await registerPage.acceptAllPolicies();
 
@@ -69,7 +70,7 @@ test.describe('Registration Form Validation', () => {
         });
 
         // Attempt registration with mismatched passwords
-        await registerPage.registerExpectingFailure('John Doe', 'test@example.com', 'Password12344', 'DifferentPassword456');
+        await registerPage.registerExpectingFailure('John Doe', toEmail('test@example.com'), 'Password12344', 'DifferentPassword456');
 
         // Verify password mismatch error appears
         await registerPage.verifyErrorMessage('Passwords do not match');
@@ -86,7 +87,7 @@ test.describe('Registration Form Validation', () => {
         });
 
         // Attempt registration with short password
-        await registerPage.registerExpectingFailure('John Doe', 'test@example.com', '12345');
+        await registerPage.registerExpectingFailure('John Doe', toEmail('test@example.com'), '12345');
 
         // Verify password length error appears
         await registerPage.verifyErrorMessage('Password must be at least 12 characters');
@@ -98,7 +99,7 @@ test.describe('Registration Form Validation', () => {
 
         // Fill all fields but don't check Terms checkbox
         await registerPage.fillName('John Doe');
-        await registerPage.fillEmail('test@example.com');
+        await registerPage.fillEmail(toEmail('test@example.com'));
         await registerPage.fillPassword('Password12344');
         await registerPage.fillConfirmPassword('Password12344');
         await registerPage.toggleCookiesCheckbox(); // Check cookies
@@ -117,7 +118,7 @@ test.describe('Registration Form Validation', () => {
 
         // Fill all fields but don't check Cookie Policy checkbox
         await registerPage.fillName('John Doe');
-        await registerPage.fillEmail('test@example.com');
+        await registerPage.fillEmail(toEmail('test@example.com'));
         await registerPage.fillPassword('Password12344');
         await registerPage.fillConfirmPassword('Password12344');
         await registerPage.toggleTermsCheckbox(); // Only check terms
@@ -136,7 +137,7 @@ test.describe('Registration Form Validation', () => {
 
         // Fill all fields but don't check Privacy Policy checkbox
         await registerPage.fillName('John Doe');
-        await registerPage.fillEmail('test@example.com');
+        await registerPage.fillEmail(toEmail('test@example.com'));
         await registerPage.fillPassword('Password12344');
         await registerPage.fillConfirmPassword('Password12344');
         await registerPage.toggleTermsCheckbox();
@@ -155,7 +156,7 @@ test.describe('Registration Form Validation', () => {
 
         // Fill all fields but don't check any checkboxes
         await registerPage.fillName('John Doe');
-        await registerPage.fillEmail('test@example.com');
+        await registerPage.fillEmail(toEmail('test@example.com'));
         await registerPage.fillPassword('Password12344');
         await registerPage.fillConfirmPassword('Password12344');
 
@@ -172,7 +173,7 @@ test.describe('Registration Form Validation', () => {
 
         // Fill form with minimum valid password length
         await registerPage.fillName('John Doe');
-        await registerPage.fillEmail('test@example.com');
+        await registerPage.fillEmail(toEmail('test@example.com'));
         await registerPage.fillPassword('aaaaaaaaaaaa'); // Exactly 12 characters
         await registerPage.fillConfirmPassword('aaaaaaaaaaaa');
         await registerPage.acceptAllPolicies();
@@ -193,7 +194,7 @@ test.describe('Registration Form Validation', () => {
         await registerPage.verifySubmitButtonDisabled();
 
         // Fill email
-        await registerPage.fillEmail('john@example.com');
+        await registerPage.fillEmail(toEmail('john@example.com'));
         await registerPage.verifySubmitButtonDisabled();
 
         // Fill password
@@ -223,7 +224,7 @@ test.describe('Registration Form Validation', () => {
 
         // Fill entire form - button should be enabled
         await registerPage.fillName('John Doe');
-        await registerPage.fillEmail('john@example.com');
+        await registerPage.fillEmail(toEmail('john@example.com'));
         await registerPage.fillPassword('Password12344');
         await registerPage.fillConfirmPassword('Password12344');
         await registerPage.acceptAllPolicies();
@@ -248,7 +249,7 @@ test.describe('Registration Form Validation', () => {
 
         // Fill entire form - button should be enabled
         await registerPage.fillName('John Doe');
-        await registerPage.fillEmail('john@example.com');
+        await registerPage.fillEmail(toEmail('john@example.com'));
         await registerPage.fillPassword('Password12344');
         await registerPage.fillConfirmPassword('Password12344');
         await registerPage.acceptAllPolicies();
@@ -281,7 +282,7 @@ test.describe('Registration Form Validation', () => {
 
         // Fill form with whitespace-only name
         await registerPage.fillName('   ');
-        await registerPage.fillEmail('test@example.com');
+        await registerPage.fillEmail(toEmail('test@example.com'));
         await registerPage.fillPassword('Password12344');
         await registerPage.fillConfirmPassword('Password12344');
         await registerPage.acceptAllPolicies();
@@ -304,8 +305,8 @@ test.describe('Registration Form Field Interactions', () => {
         await registerPage.fillName('Jane Doe');
         await registerPage.verifyNameInputValue('Jane Doe');
 
-        await registerPage.fillEmail('jane@example.com');
-        await registerPage.verifyEmailInputValue('jane@example.com');
+        await registerPage.fillEmail(toEmail('jane@example.com'));
+        await registerPage.verifyEmailInputValue(toEmail('jane@example.com'));
 
         await registerPage.fillPassword('SecurePass123');
         await registerPage.verifyPasswordInputValue('SecurePass123');
@@ -320,14 +321,14 @@ test.describe('Registration Form Field Interactions', () => {
 
         // Fill initial values
         await registerPage.fillName('John Doe');
-        await registerPage.fillEmail('john@example.com');
+        await registerPage.fillEmail(toEmail('john@example.com'));
 
         // Change values
         await registerPage.fillName('Jane Smith');
         await registerPage.verifyNameInputValue('Jane Smith');
 
-        await registerPage.fillEmail('jane@example.com');
-        await registerPage.verifyEmailInputValue('jane@example.com');
+        await registerPage.fillEmail(toEmail('jane@example.com'));
+        await registerPage.verifyEmailInputValue(toEmail('jane@example.com'));
     });
 
     test('should allow toggling checkboxes multiple times', async ({ pageWithLogging: page }) => {

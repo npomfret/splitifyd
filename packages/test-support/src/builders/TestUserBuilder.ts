@@ -1,6 +1,7 @@
 import { DisplayName, toDisplayName } from '@billsplit-wl/shared';
 import type { Email } from '@billsplit-wl/shared';
 import { generateShortId, randomChoice } from '../test-helpers';
+import {toEmail, toUserId} from "@billsplit-wl/shared";
 
 interface TestUser {
     email: Email;
@@ -17,14 +18,14 @@ export class TestUserBuilder {
 
     constructor() {
         this.user = {
-            email: `test-${generateShortId()}@example.com`,
+            email: toEmail(`test-${generateShortId()}@example.com`),
             password: 'passwordpass', // Default test password: 12 characters, no complexity required
             displayName: toDisplayName(`${randomChoice(['Test', 'Demo', 'Sample'])} ${randomChoice(['User', 'Person', 'Account'])}`),
         };
     }
 
     withEmail(email: Email | string): this {
-        this.user.email = email;
+        this.user.email = typeof email === 'string' ? toEmail(email) : email;
         return this;
     }
 

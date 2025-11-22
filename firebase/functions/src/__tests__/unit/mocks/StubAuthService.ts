@@ -1,4 +1,4 @@
-import type { Email } from '@billsplit-wl/shared';
+import type {Email, UserId} from '@billsplit-wl/shared';
 import type { CreateRequest, DecodedIdToken, ListUsersResult, UpdateRequest, UserRecord } from 'firebase-admin/auth';
 import { HTTP_STATUS } from '../../../constants';
 import type { IAuthService } from '../../../services/auth';
@@ -104,14 +104,14 @@ export class StubAuthService implements IAuthService {
         return user;
     }
 
-    async getUser(uid: string): Promise<UserRecord | null> {
+    async getUser(uid: UserId): Promise<UserRecord | null> {
         if (this.deletedUsers.has(uid)) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', `User ${uid} not found`);
         }
         return this.users.get(uid) || null;
     }
 
-    async getUserByEmail(email: string): Promise<UserRecord | null> {
+    async getUserByEmail(email: Email): Promise<UserRecord | null> {
         const user = Array.from(this.users.values()).find((u) => u.email === email && !this.deletedUsers.has(u.uid));
         return user ?? null;
     }

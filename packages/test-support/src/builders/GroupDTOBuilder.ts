@@ -1,6 +1,7 @@
 import type { CurrencyBalance, GroupDTO, GroupId, GroupName, GroupPermissions, InviteLink, ISOString, PermissionChangeLog, UserId } from '@billsplit-wl/shared';
 import { toGroupId, toGroupName } from '@billsplit-wl/shared';
 import { convertToISOString, generateShortId, randomChoice, randomString } from '../test-helpers';
+import {toUserId} from "@billsplit-wl/shared";
 
 /**
  * Builder for creating GroupDTO objects for tests.
@@ -10,7 +11,7 @@ export class GroupDTOBuilder {
     private group: GroupDTO;
 
     constructor() {
-        const defaultOwner = `user-${generateShortId()}`;
+        const defaultOwner = toUserId(`user-${generateShortId()}`);
 
         this.group = {
             id: toGroupId(`group-${generateShortId()}`),
@@ -49,8 +50,8 @@ export class GroupDTOBuilder {
         return this;
     }
 
-    withCreatedBy(userId: UserId): this {
-        this.group.createdBy = userId;
+    withCreatedBy(userId: UserId | string): this {
+        this.group.createdBy = typeof userId === 'string' ? toUserId(userId) : userId;;
         return this;
     }
 
@@ -180,7 +181,7 @@ export class GroupDTOBuilder {
         return cloned;
     }
 
-    static groupForUser(userId: UserId): GroupDTOBuilder {
+    static groupForUser(userId: UserId | string): GroupDTOBuilder {
         return new GroupDTOBuilder()
             .withCreatedBy(userId)
             .withName(`${userId}'s Group`);

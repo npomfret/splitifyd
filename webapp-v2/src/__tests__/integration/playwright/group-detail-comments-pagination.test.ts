@@ -34,8 +34,8 @@ test.describe('Group Detail - Comment Pagination', () => {
         const balances = new GroupBalancesBuilder()
             .withGroupId(groupId)
             .withNoDebts(
-                { uid: memberSelf.uid, displayName: memberSelf.groupDisplayName },
-                { uid: memberTwo.uid, displayName: memberTwo.groupDisplayName },
+                { uid: memberSelf.uid },
+                { uid: memberTwo.uid },
             )
             .build();
 
@@ -156,8 +156,8 @@ test.describe('Group Detail - Comment Pagination Button', () => {
         const balances = new GroupBalancesBuilder()
             .withGroupId(groupId)
             .withNoDebts(
-                { uid: memberSelf.uid, displayName: memberSelf.groupDisplayName },
-                { uid: memberTwo.uid, displayName: memberTwo.groupDisplayName },
+                { uid: memberSelf.uid },
+                { uid: memberTwo.uid },
             )
             .build();
 

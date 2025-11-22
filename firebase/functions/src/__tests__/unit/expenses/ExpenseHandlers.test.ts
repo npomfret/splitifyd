@@ -7,13 +7,20 @@ import { ExpenseHandlers } from '../../../expenses/ExpenseHandlers';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import { AppDriver } from '../AppDriver';
 import { StubAuthService } from '../mocks/StubAuthService';
-import { toCurrencyISOCode, USD } from '@billsplit-wl/shared';
+import { toCurrencyISOCode, toUserId, USD } from '@billsplit-wl/shared';
 
 describe('ExpenseHandlers - Unit Tests', () => {
     let appDriver: AppDriver;
+
     const usd = USD;
     const eur = toCurrencyISOCode('EUR');
     const jpy = toCurrencyISOCode('JPY');
+    const userId1 = toUserId('user-1');
+    const userId2 = toUserId('user-2');
+    const userId3 = toUserId('user-3');
+    const adminUserId = toUserId('admin-user');
+    const memberId1 = toUserId('member-1');
+    const memberId2 = toUserId('member-2');
 
     beforeEach(() => {
         appDriver = new AppDriver();
@@ -356,7 +363,7 @@ describe('ExpenseHandlers - Unit Tests', () => {
         });
 
         it('should allow group admin to delete expense created by another user', async () => {
-            const adminId = 'admin-user';
+            const adminId = adminUserId;
             const creatorId = 'creator-user';
 
             appDriver.seedUser(adminId, {});
@@ -448,9 +455,9 @@ describe('ExpenseHandlers - Unit Tests', () => {
 
     describe('Expense Creation and Basic Operations', () => {
         it('should create expense with equal splits and retrieve it', async () => {
-            const user1 = 'user-1';
-            const user2 = 'user-2';
-            const user3 = 'user-3';
+            const user1 = userId1;
+            const user2 = userId2;
+            const user3 = userId3;
 
             appDriver.seedUser(user1, {});
             appDriver.seedUser(user2, {});
@@ -483,9 +490,9 @@ describe('ExpenseHandlers - Unit Tests', () => {
         });
 
         it('should list and paginate group expenses', async () => {
-            const user1 = 'user-1';
-            const user2 = 'user-2';
-            const user3 = 'user-3';
+            const user1 = userId1;
+            const user2 = userId2;
+            const user3 = userId3;
 
             appDriver.seedUser(user1, {});
             appDriver.seedUser(user2, {});
@@ -526,8 +533,8 @@ describe('ExpenseHandlers - Unit Tests', () => {
 
     describe('Expense Updates and Edit History', () => {
         it('should update expenses and track edit history', async () => {
-            const user1 = 'user-1';
-            const user2 = 'user-2';
+            const user1 = userId1;
+            const user2 = userId2;
 
             appDriver.seedUser(user1, {});
             appDriver.seedUser(user2, {});
@@ -573,8 +580,8 @@ describe('ExpenseHandlers - Unit Tests', () => {
         });
 
         it('should flip balance direction when payer changes', async () => {
-            const user1 = 'user-1';
-            const user2 = 'user-2';
+            const user1 = userId1;
+            const user2 = userId2;
 
             appDriver.seedUser(user1, {});
             appDriver.seedUser(user2, {});
@@ -621,9 +628,9 @@ describe('ExpenseHandlers - Unit Tests', () => {
         });
 
         it('should enforce update permissions for group members', async () => {
-            const admin = 'admin-user';
-            const member1 = 'member-1';
-            const member2 = 'member-2';
+            const admin = adminUserId;
+            const member1 = memberId1;
+            const member2 = memberId2;
 
             appDriver.seedUser(admin, {});
             appDriver.seedUser(member1, {});
@@ -676,9 +683,9 @@ describe('ExpenseHandlers - Unit Tests', () => {
 
     describe('Expense Deletion and Soft Delete Behavior', () => {
         it('should handle expense deletion with proper access control', async () => {
-            const user1 = 'user-1';
-            const user2 = 'user-2';
-            const user3 = 'user-3';
+            const user1 = userId1;
+            const user2 = userId2;
+            const user3 = userId3;
 
             appDriver.seedUser(user1, {});
             appDriver.seedUser(user2, {});
@@ -709,7 +716,7 @@ describe('ExpenseHandlers - Unit Tests', () => {
         });
 
         it('should filter deleted expenses from listings', async () => {
-            const user1 = 'user-1';
+            const user1 = userId1;
 
             appDriver.seedUser(user1, {});
 
@@ -754,9 +761,9 @@ describe('ExpenseHandlers - Unit Tests', () => {
 
     describe('Full Details API and Complex Data Handling', () => {
         it('should return consolidated expense data with group and members', async () => {
-            const user1 = 'user-1';
-            const user2 = 'user-2';
-            const user3 = 'user-3';
+            const user1 = userId1;
+            const user2 = userId2;
+            const user3 = userId3;
 
             appDriver.seedUser(user1, {});
             appDriver.seedUser(user2, {});
@@ -794,9 +801,9 @@ describe('ExpenseHandlers - Unit Tests', () => {
         });
 
         it('should handle complex split scenarios in full details', async () => {
-            const user1 = 'user-1';
-            const user2 = 'user-2';
-            const user3 = 'user-3';
+            const user1 = userId1;
+            const user2 = userId2;
+            const user3 = userId3;
 
             appDriver.seedUser(user1, {});
             appDriver.seedUser(user2, {});
@@ -832,8 +839,8 @@ describe('ExpenseHandlers - Unit Tests', () => {
         });
 
         it('should allow non-participants to view full details', async () => {
-            const user1 = 'user-1';
-            const user2 = 'user-2';
+            const user1 = userId1;
+            const user2 = userId2;
 
             appDriver.seedUser(user1, {});
             appDriver.seedUser(user2, {});
@@ -862,9 +869,9 @@ describe('ExpenseHandlers - Unit Tests', () => {
         });
 
         it('should view expense details after a participant leaves the group', async () => {
-            const user1 = 'user-1';
-            const user2 = 'user-2';
-            const user3 = 'user-3';
+            const user1 = userId1;
+            const user2 = userId2;
+            const user3 = userId3;
 
             appDriver.seedUser(user1, {});
             appDriver.seedUser(user2, {});

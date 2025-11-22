@@ -8,6 +8,7 @@ import {
     toCommentId,
     toGroupName,
     toSettlementId,
+    toUserId,
 } from '@billsplit-wl/shared';
 import { ActivityFeedItemBuilder } from '@billsplit-wl/test-support';
 import { type ReadonlySignal, type Signal } from '@preact/signals';
@@ -157,13 +158,13 @@ describe('ActivityFeedCard', () => {
 
     describe('Initialization', () => {
         it('registers component on mount', () => {
-            render(<ActivityFeedCard userId='user-1' />);
+            render(<ActivityFeedCard userId={toUserId('user-1')} />);
 
             expect(mockStore.registerComponent).toHaveBeenCalledWith('activity-feed-card', 'user-1');
         });
 
         it('deregisters component on unmount', () => {
-            const { unmount } = render(<ActivityFeedCard userId='user-1' />);
+            const { unmount } = render(<ActivityFeedCard userId={toUserId('user-1')} />);
 
             unmount();
 
@@ -171,7 +172,7 @@ describe('ActivityFeedCard', () => {
         });
 
         it('does not register when userId is empty', () => {
-            render(<ActivityFeedCard userId='' />);
+            render(<ActivityFeedCard userId={toUserId('')} />);
 
             expect(mockStore.registerComponent).not.toHaveBeenCalled();
         });
@@ -182,7 +183,7 @@ describe('ActivityFeedCard', () => {
             setSignalValue(mockStore.loadingSignal, true);
             setSignalValue(mockStore.initializedSignal, false);
 
-            render(<ActivityFeedCard userId='user-1' />);
+            render(<ActivityFeedCard userId={toUserId('user-1')} />);
 
             expect(screen.getByText('Loading...')).toBeInTheDocument();
         });
@@ -191,7 +192,7 @@ describe('ActivityFeedCard', () => {
             setSignalValue(mockStore.loadingSignal, false);
             setSignalValue(mockStore.initializedSignal, true);
 
-            render(<ActivityFeedCard userId='user-1' />);
+            render(<ActivityFeedCard userId={toUserId('user-1')} />);
 
             expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
         });
@@ -202,7 +203,7 @@ describe('ActivityFeedCard', () => {
             setSignalValue(mockStore.hasMoreSignal, true);
             setSignalValue(mockStore.loadingMoreSignal, true);
 
-            render(<ActivityFeedCard userId='user-1' />);
+            render(<ActivityFeedCard userId={toUserId('user-1')} />);
 
             expect(screen.getByText('Loading more...')).toBeInTheDocument();
         });
@@ -212,7 +213,7 @@ describe('ActivityFeedCard', () => {
         it('shows error message when error occurs', () => {
             setSignalValue(mockStore.errorSignal, 'Network error');
 
-            render(<ActivityFeedCard userId='user-1' />);
+            render(<ActivityFeedCard userId={toUserId('user-1')} />);
 
             expect(screen.getByTestId('activity-feed-error')).toBeInTheDocument();
             expect(screen.getByText('We could not load your recent activity right now. Please try again.')).toBeInTheDocument();
@@ -221,7 +222,7 @@ describe('ActivityFeedCard', () => {
         it('shows retry button when error occurs', () => {
             setSignalValue(mockStore.errorSignal, 'Network error');
 
-            render(<ActivityFeedCard userId='user-1' />);
+            render(<ActivityFeedCard userId={toUserId('user-1')} />);
 
             expect(screen.getByRole('button', { name: 'Retry' })).toBeInTheDocument();
         });
@@ -229,7 +230,7 @@ describe('ActivityFeedCard', () => {
         it('calls refresh when retry button clicked', async () => {
             setSignalValue(mockStore.errorSignal, 'Network error');
 
-            render(<ActivityFeedCard userId='user-1' />);
+            render(<ActivityFeedCard userId={toUserId('user-1')} />);
 
             const retryButton = screen.getByRole('button', { name: 'Retry' });
             fireEvent.click(retryButton);
@@ -243,7 +244,7 @@ describe('ActivityFeedCard', () => {
             setSignalValue(mockStore.initializedSignal, true);
             setSignalValue(mockStore.itemsSignal, []);
 
-            render(<ActivityFeedCard userId='user-1' />);
+            render(<ActivityFeedCard userId={toUserId('user-1')} />);
 
             expect(screen.getByTestId('activity-feed-empty')).toBeInTheDocument();
             expect(screen.getByText('No activity yet')).toBeInTheDocument();
@@ -254,7 +255,7 @@ describe('ActivityFeedCard', () => {
             setSignalValue(mockStore.initializedSignal, true);
             setSignalValue(mockStore.itemsSignal, [buildItem('1', ActivityFeedEventTypes.EXPENSE_CREATED)]);
 
-            render(<ActivityFeedCard userId='user-1' />);
+            render(<ActivityFeedCard userId={toUserId('user-1')} />);
 
             expect(screen.queryByTestId('activity-feed-empty')).not.toBeInTheDocument();
         });
@@ -263,7 +264,7 @@ describe('ActivityFeedCard', () => {
             setSignalValue(mockStore.initializedSignal, false);
             setSignalValue(mockStore.itemsSignal, []);
 
-            render(<ActivityFeedCard userId='user-1' />);
+            render(<ActivityFeedCard userId={toUserId('user-1')} />);
 
             expect(screen.queryByTestId('activity-feed-empty')).not.toBeInTheDocument();
         });
@@ -277,7 +278,7 @@ describe('ActivityFeedCard', () => {
             setSignalValue(mockStore.initializedSignal, true);
             setSignalValue(mockStore.itemsSignal, [item]);
 
-            render(<ActivityFeedCard userId='user-1' />);
+            render(<ActivityFeedCard userId={toUserId('user-1')} />);
 
             const eventButton = screen.getByRole('button', { name: 'Alice added "Lunch" in Test Group' });
             fireEvent.click(eventButton);
@@ -292,7 +293,7 @@ describe('ActivityFeedCard', () => {
             setSignalValue(mockStore.initializedSignal, true);
             setSignalValue(mockStore.itemsSignal, [item]);
 
-            render(<ActivityFeedCard userId='user-1' />);
+            render(<ActivityFeedCard userId={toUserId('user-1')} />);
 
             const eventButton = screen.getByRole('button', { name: 'Alice commented on Brunch in Test Group' });
             fireEvent.click(eventButton);
@@ -307,7 +308,7 @@ describe('ActivityFeedCard', () => {
             setSignalValue(mockStore.initializedSignal, true);
             setSignalValue(mockStore.itemsSignal, [item]);
 
-            render(<ActivityFeedCard userId='user-1' />);
+            render(<ActivityFeedCard userId={toUserId('user-1')} />);
 
             const eventButton = screen.getByRole('button', { name: 'Alice added "Dinner payback" in Test Group' });
             fireEvent.click(eventButton);
@@ -322,7 +323,7 @@ describe('ActivityFeedCard', () => {
             setSignalValue(mockStore.initializedSignal, true);
             setSignalValue(mockStore.itemsSignal, [item]);
 
-            render(<ActivityFeedCard userId='user-1' />);
+            render(<ActivityFeedCard userId={toUserId('user-1')} />);
 
             const eventButton = screen.getByRole('button', { name: 'Alice commented on the group in Test Group' });
             fireEvent.click(eventButton);
@@ -337,7 +338,7 @@ describe('ActivityFeedCard', () => {
             setSignalValue(mockStore.initializedSignal, true);
             setSignalValue(mockStore.itemsSignal, [item]);
 
-            render(<ActivityFeedCard userId='user-1' />);
+            render(<ActivityFeedCard userId={toUserId('user-1')} />);
 
             const eventButton = screen.getByRole('button', { name: 'Alice added Bob to Test Group' });
             fireEvent.click(eventButton);
@@ -354,7 +355,7 @@ describe('ActivityFeedCard', () => {
             setSignalValue(mockStore.initializedSignal, true);
             setSignalValue(mockStore.itemsSignal, [item]);
 
-            render(<ActivityFeedCard userId='user-1' />);
+            render(<ActivityFeedCard userId={toUserId('user-1')} />);
 
             expect(screen.getByText('Alice added "Lunch" in Test Group')).toBeInTheDocument();
         });
@@ -366,7 +367,7 @@ describe('ActivityFeedCard', () => {
             setSignalValue(mockStore.initializedSignal, true);
             setSignalValue(mockStore.itemsSignal, [item]);
 
-            render(<ActivityFeedCard userId='user-1' />);
+            render(<ActivityFeedCard userId={toUserId('user-1')} />);
 
             expect(screen.getByText('Alice updated "Dinner" in Test Group')).toBeInTheDocument();
         });
@@ -378,57 +379,57 @@ describe('ActivityFeedCard', () => {
             setSignalValue(mockStore.initializedSignal, true);
             setSignalValue(mockStore.itemsSignal, [item]);
 
-            render(<ActivityFeedCard userId='user-1' />);
+            render(<ActivityFeedCard userId={toUserId('user-1')} />);
 
             expect(screen.getByText('Alice deleted "Coffee" from Test Group')).toBeInTheDocument();
         });
 
         it('renders member-joined event (someone else)', () => {
             const item = buildItem('1', ActivityFeedEventTypes.MEMBER_JOINED, {
-                details: { targetUserId: 'other-user', targetUserName: 'Bob' },
+                details: { targetUserId: toUserId('other-user'), targetUserName: 'Bob' },
             });
             setSignalValue(mockStore.initializedSignal, true);
             setSignalValue(mockStore.itemsSignal, [item]);
 
-            render(<ActivityFeedCard userId='user-1' />);
+            render(<ActivityFeedCard userId={toUserId('user-1')} />);
 
             expect(screen.getByText('Alice added Bob to Test Group')).toBeInTheDocument();
         });
 
         it('renders member-joined event (self)', () => {
             const item = buildItem('1', ActivityFeedEventTypes.MEMBER_JOINED, {
-                actorId: 'actor-1',
-                details: { targetUserId: 'actor-1' },
+                actorId: toUserId('actor-1'),
+                details: { targetUserId: toUserId('actor-1') },
             });
             setSignalValue(mockStore.initializedSignal, true);
             setSignalValue(mockStore.itemsSignal, [item]);
 
-            render(<ActivityFeedCard userId='user-1' />);
+            render(<ActivityFeedCard userId={toUserId('user-1')} />);
 
             expect(screen.getByText('Alice joined Test Group')).toBeInTheDocument();
         });
 
         it('renders member-left event (someone else)', () => {
             const item = buildItem('1', ActivityFeedEventTypes.MEMBER_LEFT, {
-                details: { targetUserId: 'other-user', targetUserName: 'Bob' },
+                details: { targetUserId: toUserId('other-user'), targetUserName: 'Bob' },
             });
             setSignalValue(mockStore.initializedSignal, true);
             setSignalValue(mockStore.itemsSignal, [item]);
 
-            render(<ActivityFeedCard userId='user-1' />);
+            render(<ActivityFeedCard userId={toUserId('user-1')} />);
 
             expect(screen.getByText('Alice removed Bob from Test Group')).toBeInTheDocument();
         });
 
         it('renders member-left event (self)', () => {
             const item = buildItem('1', ActivityFeedEventTypes.MEMBER_LEFT, {
-                actorId: 'actor-1',
-                details: { targetUserId: 'actor-1' },
+                actorId: toUserId('actor-1'),
+                details: { targetUserId: toUserId('actor-1') },
             });
             setSignalValue(mockStore.initializedSignal, true);
             setSignalValue(mockStore.itemsSignal, [item]);
 
-            render(<ActivityFeedCard userId='user-1' />);
+            render(<ActivityFeedCard userId={toUserId('user-1')} />);
 
             expect(screen.getByText('Alice left Test Group')).toBeInTheDocument();
         });
@@ -440,7 +441,7 @@ describe('ActivityFeedCard', () => {
             setSignalValue(mockStore.initializedSignal, true);
             setSignalValue(mockStore.itemsSignal, [item]);
 
-            render(<ActivityFeedCard userId='user-1' />);
+            render(<ActivityFeedCard userId={toUserId('user-1')} />);
 
             expect(screen.getByText('Alice commented on Groceries in Test Group')).toBeInTheDocument();
             expect(screen.getByText('Thanks for picking this up!')).toBeInTheDocument();
@@ -453,7 +454,7 @@ describe('ActivityFeedCard', () => {
             setSignalValue(mockStore.initializedSignal, true);
             setSignalValue(mockStore.itemsSignal, [item]);
 
-            render(<ActivityFeedCard userId='user-1' />);
+            render(<ActivityFeedCard userId={toUserId('user-1')} />);
 
             expect(screen.getByText('Alice commented on the group in Test Group')).toBeInTheDocument();
             expect(screen.getByText('Great group!')).toBeInTheDocument();
@@ -466,7 +467,7 @@ describe('ActivityFeedCard', () => {
             setSignalValue(mockStore.initializedSignal, true);
             setSignalValue(mockStore.itemsSignal, [item]);
 
-            render(<ActivityFeedCard userId='user-1' />);
+            render(<ActivityFeedCard userId={toUserId('user-1')} />);
 
             expect(screen.getByText('Alice renamed Old Group Name to Test Group')).toBeInTheDocument();
         });
@@ -478,7 +479,7 @@ describe('ActivityFeedCard', () => {
             setSignalValue(mockStore.initializedSignal, true);
             setSignalValue(mockStore.itemsSignal, [item]);
 
-            render(<ActivityFeedCard userId='user-1' />);
+            render(<ActivityFeedCard userId={toUserId('user-1')} />);
 
             expect(screen.getByText('Alice updated Test Group')).toBeInTheDocument();
         });
@@ -490,7 +491,7 @@ describe('ActivityFeedCard', () => {
             setSignalValue(mockStore.initializedSignal, true);
             setSignalValue(mockStore.itemsSignal, [item]);
 
-            render(<ActivityFeedCard userId='user-1' />);
+            render(<ActivityFeedCard userId={toUserId('user-1')} />);
 
             expect(screen.getByText('Alice added "Payment to Bob" in Test Group')).toBeInTheDocument();
         });
@@ -502,7 +503,7 @@ describe('ActivityFeedCard', () => {
             setSignalValue(mockStore.initializedSignal, true);
             setSignalValue(mockStore.itemsSignal, [item]);
 
-            render(<ActivityFeedCard userId='user-1' />);
+            render(<ActivityFeedCard userId={toUserId('user-1')} />);
 
             expect(screen.getByText('Alice updated "Updated payment" in Test Group')).toBeInTheDocument();
         });
@@ -511,27 +512,27 @@ describe('ActivityFeedCard', () => {
     describe('Actor Name Resolution', () => {
         it('shows "You" when actor is current user', () => {
             const item = buildItem('1', ActivityFeedEventTypes.EXPENSE_CREATED, {
-                actorId: 'user-1',
+                actorId: toUserId('user-1'),
                 details: { expenseDescription: 'Lunch' },
             });
             setSignalValue(mockStore.initializedSignal, true);
             setSignalValue(mockStore.itemsSignal, [item]);
 
-            render(<ActivityFeedCard userId='user-1' />);
+            render(<ActivityFeedCard userId={toUserId('user-1')} />);
 
             expect(screen.getByText('You added "Lunch" in Test Group')).toBeInTheDocument();
         });
 
         it('shows actor name when actor is different user', () => {
             const item = buildItem('1', ActivityFeedEventTypes.EXPENSE_CREATED, {
-                actorId: 'actor-1',
+                actorId: toUserId('actor-1'),
                 actorName: 'Alice',
                 details: { expenseDescription: 'Lunch' },
             });
             setSignalValue(mockStore.initializedSignal, true);
             setSignalValue(mockStore.itemsSignal, [item]);
 
-            render(<ActivityFeedCard userId='user-2' />);
+            render(<ActivityFeedCard userId={toUserId('user-2')} />);
 
             expect(screen.getByText('Alice added "Lunch" in Test Group')).toBeInTheDocument();
         });
@@ -540,26 +541,26 @@ describe('ActivityFeedCard', () => {
     describe('Target Name Resolution', () => {
         it('shows "You" when target is current user', () => {
             const item = buildItem('1', ActivityFeedEventTypes.MEMBER_JOINED, {
-                actorId: 'actor-1',
+                actorId: toUserId('actor-1'),
                 actorName: 'Alice',
-                details: { targetUserId: 'user-1', targetUserName: 'You' },
+                details: { targetUserId: toUserId('user-1'), targetUserName: 'You' },
             });
             setSignalValue(mockStore.initializedSignal, true);
             setSignalValue(mockStore.itemsSignal, [item]);
 
-            render(<ActivityFeedCard userId='user-1' />);
+            render(<ActivityFeedCard userId={toUserId('user-1')} />);
 
             expect(screen.getByText('Alice added You to Test Group')).toBeInTheDocument();
         });
 
         it('shows target name when target is different user', () => {
             const item = buildItem('1', ActivityFeedEventTypes.MEMBER_JOINED, {
-                details: { targetUserId: 'other-user', targetUserName: 'Bob' },
+                details: { targetUserId: toUserId('other-user'), targetUserName: 'Bob' },
             });
             setSignalValue(mockStore.initializedSignal, true);
             setSignalValue(mockStore.itemsSignal, [item]);
 
-            render(<ActivityFeedCard userId='user-1' />);
+            render(<ActivityFeedCard userId={toUserId('user-1')} />);
 
             expect(screen.getByText('Alice added Bob to Test Group')).toBeInTheDocument();
         });
@@ -571,7 +572,7 @@ describe('ActivityFeedCard', () => {
             setSignalValue(mockStore.itemsSignal, [buildItem('1', ActivityFeedEventTypes.EXPENSE_CREATED)]);
             setSignalValue(mockStore.hasMoreSignal, true);
 
-            render(<ActivityFeedCard userId='user-1' />);
+            render(<ActivityFeedCard userId={toUserId('user-1')} />);
 
             expect(screen.getByRole('button', { name: 'Load More' })).toBeInTheDocument();
         });
@@ -581,7 +582,7 @@ describe('ActivityFeedCard', () => {
             setSignalValue(mockStore.itemsSignal, [buildItem('1', ActivityFeedEventTypes.EXPENSE_CREATED)]);
             setSignalValue(mockStore.hasMoreSignal, false);
 
-            render(<ActivityFeedCard userId='user-1' />);
+            render(<ActivityFeedCard userId={toUserId('user-1')} />);
 
             expect(screen.queryByRole('button', { name: 'Load More' })).not.toBeInTheDocument();
         });
@@ -591,7 +592,7 @@ describe('ActivityFeedCard', () => {
             setSignalValue(mockStore.itemsSignal, [buildItem('1', ActivityFeedEventTypes.EXPENSE_CREATED)]);
             setSignalValue(mockStore.hasMoreSignal, true);
 
-            render(<ActivityFeedCard userId='user-1' />);
+            render(<ActivityFeedCard userId={toUserId('user-1')} />);
 
             const loadMoreButton = screen.getByRole('button', { name: 'Load More' });
             fireEvent.click(loadMoreButton);
@@ -605,7 +606,7 @@ describe('ActivityFeedCard', () => {
             setSignalValue(mockStore.hasMoreSignal, true);
             setSignalValue(mockStore.loadingMoreSignal, true);
 
-            render(<ActivityFeedCard userId='user-1' />);
+            render(<ActivityFeedCard userId={toUserId('user-1')} />);
 
             const loadMoreButton = screen.getByRole('button', { name: 'Loading more...' });
             expect(loadMoreButton).toBeDisabled();
@@ -622,7 +623,7 @@ describe('ActivityFeedCard', () => {
             setSignalValue(mockStore.initializedSignal, true);
             setSignalValue(mockStore.itemsSignal, items);
 
-            render(<ActivityFeedCard userId='user-1' />);
+            render(<ActivityFeedCard userId={toUserId('user-1')} />);
 
             const itemElements = screen.getAllByTestId('activity-feed-item');
             expect(itemElements).toHaveLength(3);
@@ -636,7 +637,7 @@ describe('ActivityFeedCard', () => {
             setSignalValue(mockStore.initializedSignal, true);
             setSignalValue(mockStore.itemsSignal, [item]);
 
-            render(<ActivityFeedCard userId='user-1' />);
+            render(<ActivityFeedCard userId={toUserId('user-1')} />);
 
             expect(screen.getByText('Travel Group')).toBeInTheDocument();
         });
@@ -646,7 +647,7 @@ describe('ActivityFeedCard', () => {
             setSignalValue(mockStore.initializedSignal, true);
             setSignalValue(mockStore.itemsSignal, [item]);
 
-            render(<ActivityFeedCard userId='user-1' />);
+            render(<ActivityFeedCard userId={toUserId('user-1')} />);
 
             const itemElement = screen.getByTestId('activity-feed-item');
             expect(itemElement).toHaveAttribute('data-event-type', ActivityFeedEventTypes.EXPENSE_CREATED);
@@ -658,7 +659,7 @@ describe('ActivityFeedCard', () => {
             setSignalValue(mockStore.initializedSignal, true);
             setSignalValue(mockStore.itemsSignal, [buildItem('1', ActivityFeedEventTypes.EXPENSE_CREATED)]);
 
-            render(<ActivityFeedCard userId='user-1' />);
+            render(<ActivityFeedCard userId={toUserId('user-1')} />);
 
             expect(screen.getByTestId('activity-feed-card')).toBeInTheDocument();
             expect(screen.getByRole('heading', { name: 'Recent Activity' })).toBeInTheDocument();

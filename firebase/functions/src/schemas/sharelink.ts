@@ -1,4 +1,4 @@
-import { toISOString, toShareLinkId, toShareLinkToken } from '@billsplit-wl/shared';
+import { toISOString, toShareLinkId, toShareLinkToken, toUserId } from '@billsplit-wl/shared';
 import { z } from 'zod';
 
 /**
@@ -14,7 +14,7 @@ export const ShareLinkDocumentSchema = z
     .object({
         id: z.string().min(1).transform(toShareLinkId), // Document ID (ShareLinkId)
         token: z.string().min(16).transform(toShareLinkToken), // The actual share token used in URLs (ShareLinkToken)
-        createdBy: z.string().min(1), // UID of the user who created this share link
+        createdBy: z.string().min(1).transform(toUserId), // UID of the user who created this share link
         createdAt: z.string().datetime().transform(toISOString), // ISO timestamp string
         updatedAt: z.string().datetime().transform(toISOString), // ISO timestamp string
         expiresAt: z.string().datetime().transform(toISOString), // Expiration timestamp (ISO format)

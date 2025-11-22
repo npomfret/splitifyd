@@ -1,4 +1,4 @@
-import { SystemUserRoles, toDisplayName } from '@billsplit-wl/shared';
+import { SystemUserRoles, toDisplayName, toUserId } from '@billsplit-wl/shared';
 import { RegisteredUserBuilder } from '@billsplit-wl/test-support';
 import type { Response } from 'express';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -17,6 +17,8 @@ describe('UserAdminHandlers - Unit Tests', () => {
     let mockRes: Partial<Response>;
     let jsonSpy: ReturnType<typeof vi.fn>;
     let statusSpy: ReturnType<typeof vi.fn>;
+
+    const adminUserId = toUserId('admin1');
 
     // Helper to convert RegisteredUser to format compatible with setUser
     function toUserRecord(user: any) {
@@ -66,7 +68,7 @@ describe('UserAdminHandlers - Unit Tests', () => {
             // Setup request to disable user
             mockReq.params = { uid: 'user1' };
             mockReq.body = { disabled: true };
-            mockReq.user = { uid: 'admin1', displayName: toDisplayName('Admin'), role: SystemUserRoles.SYSTEM_ADMIN };
+            mockReq.user = { uid: adminUserId, displayName: toDisplayName('Admin'), role: SystemUserRoles.SYSTEM_ADMIN };
 
             // Execute
             await handlers.updateUser(mockReq as AuthenticatedRequest, mockRes as Response);
@@ -81,7 +83,7 @@ describe('UserAdminHandlers - Unit Tests', () => {
             );
 
             // Verify user is disabled in auth service
-            const updatedUser = await authService.getUser('user1');
+            const updatedUser = await authService.getUser(toUserId('user1'));
             expect(updatedUser?.disabled).toBe(true);
         });
 
@@ -98,7 +100,7 @@ describe('UserAdminHandlers - Unit Tests', () => {
             // Setup request to enable user
             mockReq.params = { uid: 'user1' };
             mockReq.body = { disabled: false };
-            mockReq.user = { uid: 'admin1', displayName: toDisplayName('Admin'), role: SystemUserRoles.SYSTEM_ADMIN };
+            mockReq.user = { uid: adminUserId, displayName: toDisplayName('Admin'), role: SystemUserRoles.SYSTEM_ADMIN };
 
             // Execute
             await handlers.updateUser(mockReq as AuthenticatedRequest, mockRes as Response);
@@ -113,7 +115,7 @@ describe('UserAdminHandlers - Unit Tests', () => {
             );
 
             // Verify user is enabled in auth service
-            const updatedUser = await authService.getUser('user1');
+            const updatedUser = await authService.getUser(toUserId('user1'));
             expect(updatedUser?.disabled).toBe(false);
         });
 
@@ -165,7 +167,7 @@ describe('UserAdminHandlers - Unit Tests', () => {
             // Setup request where user tries to disable themselves
             mockReq.params = { uid: 'user1' };
             mockReq.body = { disabled: true };
-            mockReq.user = { uid: 'user1', displayName: toDisplayName('User One'), role: SystemUserRoles.SYSTEM_ADMIN }; // Same UID
+            mockReq.user = { uid: toUserId('user1'), displayName: toDisplayName('User One'), role: SystemUserRoles.SYSTEM_ADMIN }; // Same UID
 
             // Execute and expect error
             await expect(handlers.updateUser(mockReq as any as AuthenticatedRequest, mockRes as Response)).rejects.toThrow(ApiError);
@@ -176,7 +178,7 @@ describe('UserAdminHandlers - Unit Tests', () => {
             // Setup request for user that doesn't exist
             mockReq.params = { uid: 'nonexistent' };
             mockReq.body = { disabled: true };
-            mockReq.user = { uid: 'admin1', displayName: toDisplayName('Admin'), role: SystemUserRoles.SYSTEM_ADMIN };
+            mockReq.user = { uid: adminUserId, displayName: toDisplayName('Admin'), role: SystemUserRoles.SYSTEM_ADMIN };
 
             // Execute and expect error
             await expect(handlers.updateUser(mockReq as any as AuthenticatedRequest, mockRes as Response)).rejects.toThrow(ApiError);
@@ -234,7 +236,7 @@ describe('UserAdminHandlers - Unit Tests', () => {
             // Setup request to promote to system_admin
             mockReq.params = { uid: 'user1' };
             mockReq.body = { role: SystemUserRoles.SYSTEM_ADMIN };
-            mockReq.user = { uid: 'admin1', displayName: toDisplayName('Admin'), role: SystemUserRoles.SYSTEM_ADMIN };
+            mockReq.user = { uid: adminUserId, displayName: toDisplayName('Admin'), role: SystemUserRoles.SYSTEM_ADMIN };
 
             // Execute
             await handlers.updateUserRole(mockReq as AuthenticatedRequest, mockRes as Response);
@@ -264,7 +266,7 @@ describe('UserAdminHandlers - Unit Tests', () => {
             // Setup request to promote to tenant_admin
             mockReq.params = { uid: 'user2' };
             mockReq.body = { role: SystemUserRoles.TENANT_ADMIN };
-            mockReq.user = { uid: 'admin1', displayName: toDisplayName('Admin'), role: SystemUserRoles.SYSTEM_ADMIN };
+            mockReq.user = { uid: adminUserId, displayName: toDisplayName('Admin'), role: SystemUserRoles.SYSTEM_ADMIN };
 
             // Execute
             await handlers.updateUserRole(mockReq as AuthenticatedRequest, mockRes as Response);
@@ -293,7 +295,7 @@ describe('UserAdminHandlers - Unit Tests', () => {
             // Setup request to remove role
             mockReq.params = { uid: 'user3' };
             mockReq.body = { role: null };
-            mockReq.user = { uid: 'admin1', displayName: toDisplayName('Admin'), role: SystemUserRoles.SYSTEM_ADMIN };
+            mockReq.user = { uid: adminUserId, displayName: toDisplayName('Admin'), role: SystemUserRoles.SYSTEM_ADMIN };
 
             // Execute
             await handlers.updateUserRole(mockReq as AuthenticatedRequest, mockRes as Response);
@@ -313,7 +315,7 @@ describe('UserAdminHandlers - Unit Tests', () => {
             // Setup request with invalid role
             mockReq.params = { uid: 'user1' };
             mockReq.body = { role: 'invalid_role' };
-            mockReq.user = { uid: 'admin1', displayName: toDisplayName('Admin'), role: SystemUserRoles.SYSTEM_ADMIN };
+            mockReq.user = { uid: adminUserId, displayName: toDisplayName('Admin'), role: SystemUserRoles.SYSTEM_ADMIN };
 
             // Execute and expect error
             try {
@@ -333,7 +335,7 @@ describe('UserAdminHandlers - Unit Tests', () => {
             // Setup request with empty UID
             mockReq.params = { uid: '' };
             mockReq.body = { role: SystemUserRoles.SYSTEM_ADMIN };
-            mockReq.user = { uid: 'admin1', displayName: toDisplayName('Admin'), role: SystemUserRoles.SYSTEM_ADMIN };
+            mockReq.user = { uid: adminUserId, displayName: toDisplayName('Admin'), role: SystemUserRoles.SYSTEM_ADMIN };
 
             // Execute and expect error
             await expect(handlers.updateUserRole(mockReq as AuthenticatedRequest, mockRes as Response)).rejects.toThrow(ApiError);
@@ -350,7 +352,7 @@ describe('UserAdminHandlers - Unit Tests', () => {
 
             mockReq.params = { uid: 'user1' };
             mockReq.body = { role: SystemUserRoles.SYSTEM_ADMIN, email: 'new@test.com' }; // Extra field
-            mockReq.user = { uid: 'admin1', displayName: toDisplayName('Admin'), role: SystemUserRoles.SYSTEM_ADMIN };
+            mockReq.user = { uid: adminUserId, displayName: toDisplayName('Admin'), role: SystemUserRoles.SYSTEM_ADMIN };
 
             // Execute and expect error
             try {
@@ -378,7 +380,7 @@ describe('UserAdminHandlers - Unit Tests', () => {
             // Setup request where user tries to change their own role
             mockReq.params = { uid: 'user1' };
             mockReq.body = { role: SystemUserRoles.SYSTEM_ADMIN };
-            mockReq.user = { uid: 'user1', displayName: toDisplayName('User One'), role: SystemUserRoles.SYSTEM_USER }; // Same UID
+            mockReq.user = { uid: toUserId('user1'), displayName: toDisplayName('User One'), role: SystemUserRoles.SYSTEM_USER }; // Same UID
 
             // Execute and expect error
             try {
@@ -398,7 +400,7 @@ describe('UserAdminHandlers - Unit Tests', () => {
             // Setup request for user that doesn't exist
             mockReq.params = { uid: 'nonexistent' };
             mockReq.body = { role: SystemUserRoles.SYSTEM_ADMIN };
-            mockReq.user = { uid: 'admin1', displayName: toDisplayName('Admin'), role: SystemUserRoles.SYSTEM_ADMIN };
+            mockReq.user = { uid: adminUserId, displayName: toDisplayName('Admin'), role: SystemUserRoles.SYSTEM_ADMIN };
 
             // Execute and expect error
             await expect(handlers.updateUserRole(mockReq as AuthenticatedRequest, mockRes as Response)).rejects.toThrow(ApiError);
@@ -419,7 +421,7 @@ describe('UserAdminHandlers - Unit Tests', () => {
             // Test with missing UID
             mockReq.params = {};
             mockReq.body = { role: SystemUserRoles.SYSTEM_ADMIN };
-            mockReq.user = { uid: 'admin1', displayName: toDisplayName('Admin'), role: SystemUserRoles.SYSTEM_ADMIN };
+            mockReq.user = { uid: adminUserId, displayName: toDisplayName('Admin'), role: SystemUserRoles.SYSTEM_ADMIN };
 
             await expect(handlers.updateUserRole(mockReq as AuthenticatedRequest, mockRes as Response)).rejects.toThrow('User ID is required');
 

@@ -33,6 +33,7 @@ import { SettlementHandlers } from './settlements/SettlementHandlers';
 import { TenantAdminHandlers } from './tenant/TenantAdminHandlers';
 import { ThemeHandlers } from './theme/ThemeHandlers';
 import { UserHandlers } from './user/UserHandlers';
+import {toUserId} from "@billsplit-wl/shared";
 
 /**
  * Factory function that creates all application handlers with proper dependency injection.
@@ -268,7 +269,7 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
         }
 
         try {
-            await firestoreWriter.updateUser(decodedToken.uid, {
+            await firestoreWriter.updateUser(toUserId(decodedToken.uid), {
                 acceptedPolicies: {},
             });
 
@@ -330,7 +331,7 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
         }
 
         try {
-            await firestoreWriter.promoteUserToAdmin(decodedToken.uid);
+            await firestoreWriter.promoteUserToAdmin(toUserId(decodedToken.uid));
 
             logger.info('User promoted to admin', {
                 userId: decodedToken.uid,
