@@ -1,6 +1,6 @@
 import { signal } from '@preact/signals';
 import { useTranslation } from 'react-i18next';
-import { FloatingInput } from '../ui/FloatingInput';
+import { FloatingInput } from '@/components/ui';
 
 interface EmailInputProps {
     value: string;

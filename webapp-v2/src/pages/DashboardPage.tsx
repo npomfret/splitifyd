@@ -12,7 +12,7 @@ import { CreateGroupModal } from '../components/dashboard/CreateGroupModal';
 import { GroupsList } from '../components/dashboard/GroupsList';
 import { BaseLayout } from '../components/layout/BaseLayout';
 import { DashboardGrid } from '../components/layout/DashboardGrid';
-import { Button } from '../components/ui';
+import { Button } from '@/components/ui';
 
 export function DashboardPage() {
     const { t } = useTranslation();

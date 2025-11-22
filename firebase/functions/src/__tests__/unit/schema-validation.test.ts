@@ -1,4 +1,4 @@
-import { ApiErrorResponseSchema, responseSchemas, toCurrencyISOCode, USD } from '@billsplit-wl/shared';
+import { ApiErrorResponseSchema, responseSchemas, USD } from '@billsplit-wl/shared';
 import { GroupDTOBuilder, GroupMemberBuilder } from '@billsplit-wl/test-support';
 import { describe, expect, it } from 'vitest';
 

@@ -1,5 +1,3 @@
-import { UserId } from '@billsplit-wl/shared';
-
 /**
  * Creates a stub request for testing.
  * Returns any to allow compatibility with different AuthenticatedRequest implementations

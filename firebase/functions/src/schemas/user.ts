@@ -1,7 +1,7 @@
 import { PolicyIdSchema, VersionHashSchema, SystemUserRoles, toEmail } from '@billsplit-wl/shared';
 import type { Email } from '@billsplit-wl/shared';
 import { z } from 'zod';
-import { createDocumentSchemas, FirestoreTimestampSchema, OptionalAuditFieldsSchema, UserIdSchema } from './common';
+import { OptionalAuditFieldsSchema, UserIdSchema } from './common';
 
 /**
  * Base User schema without document ID

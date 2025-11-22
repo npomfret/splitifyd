@@ -1,7 +1,7 @@
 import { DisplayName, toDisplayName } from '@billsplit-wl/shared';
 import type { Email } from '@billsplit-wl/shared';
 import { generateShortId, randomChoice } from '../test-helpers';
-import {toEmail, toUserId} from "@billsplit-wl/shared";
+import {toEmail} from "@billsplit-wl/shared";
 
 interface TestUser {
     email: Email;

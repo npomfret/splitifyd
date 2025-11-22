@@ -1,7 +1,7 @@
-import type { ISOString, SimplifiedDebt, UserBalance, UserId } from '@billsplit-wl/shared';
-import { Amount, negateNormalizedAmount, toISOString, ZERO, GroupId, toGroupId, toCurrencyISOCode, USD } from '@billsplit-wl/shared';
+import type { SimplifiedDebt, UserBalance, UserId } from '@billsplit-wl/shared';
+import { Amount, negateNormalizedAmount, toISOString, ZERO, GroupId, toGroupId, USD } from '@billsplit-wl/shared';
 import type { CurrencyISOCode } from '@billsplit-wl/shared';
-import type { GroupBalanceDTO } from '../../schemas/group-balance';
+import type { GroupBalanceDTO } from '../../schemas';
 import { generateShortId } from '@billsplit-wl/test-support';
 import {toUserId} from "@billsplit-wl/shared";
 

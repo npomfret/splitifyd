@@ -1,4 +1,4 @@
-import type { CommentText, Email, GroupName, ISOString, PolicyName, ShareLinkToken, UserId } from '@billsplit-wl/shared';
+import type { CommentText, Email, GroupName, ISOString, ShareLinkToken, UserId } from '@billsplit-wl/shared';
 import {
     AcceptMultiplePoliciesResponse,
     AcceptPolicyRequest,
@@ -50,7 +50,6 @@ import {
     PasswordChangeRequest,
     type PolicyDTO,
     PolicyId,
-    PolicyText,
     type PolicyVersion,
     PooledTestUser,
     type PreviewGroupResponse,

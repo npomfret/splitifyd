@@ -1,4 +1,4 @@
-import type { CurrencyISOCode, ExpenseFormData, UserId } from '@billsplit-wl/shared';
+import type { CurrencyISOCode, ExpenseFormData } from '@billsplit-wl/shared';
 import { GroupId } from '@billsplit-wl/shared';
 import { DisplayName } from '@billsplit-wl/shared';
 import { expect, Locator, Page } from '@playwright/test';

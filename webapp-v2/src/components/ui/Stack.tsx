@@ -1,5 +1,5 @@
 import { cx } from '@/utils/cx.ts';
-import { ComponentChildren, Ref } from 'preact';
+import { ComponentChildren } from 'preact';
 import { forwardRef } from 'preact/compat';
 
 interface StackProps {

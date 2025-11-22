@@ -1,5 +1,5 @@
 import { ThemePage } from '@billsplit-wl/test-support';
-import { expect, simpleTest as test } from '../../fixtures/simple-test.fixture';
+import { simpleTest as test } from '../../fixtures/simple-test.fixture';
 import { EMULATOR_URL } from '../../helpers';
 
 const emulatorUrl = new URL(EMULATOR_URL);

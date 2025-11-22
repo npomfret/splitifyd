@@ -3,7 +3,7 @@ import { TenantEditorModal } from '@/components/admin/TenantEditorModal';
 import { Alert, Button, Card, LoadingSpinner } from '@/components/ui';
 import { configStore } from '@/stores/config-store.ts';
 import { logError } from '@/utils/browser-logger';
-import type { TenantBrowserRecord, TenantConfig } from '@billsplit-wl/shared';
+import type { TenantBrowserRecord } from '@billsplit-wl/shared';
 
 type Tenant = TenantBrowserRecord;
 import { useEffect, useState } from 'preact/hooks';

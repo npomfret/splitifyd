@@ -4,7 +4,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/preact';
 import type { ComponentChildren } from 'preact';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useAuthRequired } from '@/app/hooks/useAuthRequired';
-import { apiClient, ApiError } from '@/app/apiClient';
+import { apiClient } from '@/app/apiClient';
 import { DomainManagementPage } from '@/pages/DomainManagementPage';
 
 // Mock dependencies

@@ -1,11 +1,9 @@
-import { type TenantConfig, toTenantDomainName, toTenantId } from '@billsplit-wl/shared';
 import { TenantConfigBuilder, TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { FirestoreReader } from '../../../services/firestore';
 import { TenantRegistryService, type TenantResolutionOptions } from '../../../services/tenant/TenantRegistryService';
 import { ApiError } from '../../../utils/errors';
-import { TenantRegistryRecordBuilder } from '../TenantRegistryRecordBuilder';
 
 describe('TenantRegistryService', () => {
     let db: TenantFirestoreTestDatabase;

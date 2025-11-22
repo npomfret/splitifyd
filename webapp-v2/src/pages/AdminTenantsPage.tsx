@@ -3,7 +3,7 @@ import { Alert, Button, Card, LoadingSpinner } from '@/components/ui';
 import { Clickable } from '@/components/ui/Clickable';
 import { navigationService } from '@/services/navigation.service';
 import { logError } from '@/utils/browser-logger';
-import type { TenantBrowserRecord, TenantConfig } from '@billsplit-wl/shared';
+import type { TenantBrowserRecord } from '@billsplit-wl/shared';
 import { SystemUserRoles } from '@billsplit-wl/shared';
 import { useEffect, useState } from 'preact/hooks';
 import { apiClient } from '../app/apiClient';

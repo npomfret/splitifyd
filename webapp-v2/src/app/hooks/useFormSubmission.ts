@@ -1,6 +1,6 @@
 import { navigationService } from '@/services/navigation.service';
 import { logError } from '@/utils/browser-logger.ts';
-import { GroupId, UserId, toUserId } from '@billsplit-wl/shared';
+import { GroupId, toUserId } from '@billsplit-wl/shared';
 import { ExpenseId } from '@billsplit-wl/shared';
 import { useComputed } from '@preact/signals';
 import { useEffect } from 'preact/hooks';

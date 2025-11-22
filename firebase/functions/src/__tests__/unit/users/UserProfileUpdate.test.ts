@@ -1,5 +1,5 @@
 // Integration tests for user profile update functionality
-import { toEmail, toPassword, toUserId } from '@billsplit-wl/shared';
+import { toEmail, toPassword } from '@billsplit-wl/shared';
 import { UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { AppDriver } from '../AppDriver';

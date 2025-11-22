@@ -1,4 +1,4 @@
-import { calculateEqualSplits, PooledTestUser, toAmount, toCurrencyISOCode, USD } from '@billsplit-wl/shared';
+import { calculateEqualSplits, PooledTestUser, toAmount, USD } from '@billsplit-wl/shared';
 import {
     ApiDriver,
     borrowTestUsers,

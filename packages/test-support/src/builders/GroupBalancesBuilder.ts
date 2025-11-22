@@ -1,7 +1,6 @@
 import {
     GroupBalances,
     ISOString,
-    SimplifiedDebt,
     toCurrencyISOCode,
     toUserId,
     UserBalance,
@@ -9,7 +8,6 @@ import {
     negateNormalizedAmount,
     ZERO,
     GroupId,
-    DisplayName,
     type CurrencyISOCode,
     type UserId,
     toGroupId,

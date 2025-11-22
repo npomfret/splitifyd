@@ -10,7 +10,7 @@ import { DefaultLoginButton } from '../components/auth/DefaultLoginButton';
 import { EmailInput } from '../components/auth/EmailInput';
 import { FloatingPasswordInput } from '../components/auth/FloatingPasswordInput';
 import { SubmitButton } from '../components/auth/SubmitButton';
-import { Button, Checkbox } from '../components/ui';
+import { Button, Checkbox } from '@/components/ui';
 import { logError } from '../utils/browser-logger';
 
 export function LoginPage() {

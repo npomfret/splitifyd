@@ -52,7 +52,6 @@ import type {
     MessageResponse,
     PasswordChangeRequest,
     PolicyAcceptanceStatusDTO,
-    PolicyDTO,
     PolicyId,
     PolicyVersion,
     PreviewGroupResponse,

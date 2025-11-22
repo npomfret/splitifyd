@@ -1,4 +1,4 @@
-import { PooledTestUser, toCurrencyISOCode, USD } from '@billsplit-wl/shared';
+import { PooledTestUser, USD } from '@billsplit-wl/shared';
 import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, CreateGroupRequestBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, test } from 'vitest';
 

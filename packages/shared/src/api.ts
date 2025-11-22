@@ -44,7 +44,6 @@ import type {
     MemberRole,
     MessageResponse,
     PasswordChangeRequest,
-    PolicyDTO,
     PolicyId,
     PolicyVersion,
     PooledTestUser,
