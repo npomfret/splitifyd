@@ -206,10 +206,6 @@ export class FirestoreWriter implements IFirestoreWriter {
             'groupUpdatedAt',
             'lastUpdated',
             'assignedAt', // For theme.assignedAt
-            'termsAcceptedAt',
-            'cookiePolicyAcceptedAt',
-            'privacyPolicyAcceptedAt',
-            'passwordChangedAt', // User policy/auth timestamps
         ]);
 
         if (Array.isArray(result)) {

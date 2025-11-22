@@ -38,10 +38,6 @@ interface FirestoreUserDocumentFields {
     role?: SystemUserRole;
     preferredLanguage?: string;
     acceptedPolicies?: Record<string, string>;
-    termsAcceptedAt?: ISOString;
-    cookiePolicyAcceptedAt?: ISOString;
-    privacyPolicyAcceptedAt?: ISOString;
-    passwordChangedAt?: ISOString;
     createdAt?: ISOString;
     updatedAt?: ISOString;
 }

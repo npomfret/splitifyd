@@ -66,8 +66,6 @@ export class UserService {
             photoURL: userRecord.photoURL || null,
             emailVerified: userRecord.emailVerified,
             role: firestoreData?.role,
-            termsAcceptedAt: firestoreData?.termsAcceptedAt,
-            cookiePolicyAcceptedAt: firestoreData?.cookiePolicyAcceptedAt,
             acceptedPolicies: firestoreData?.acceptedPolicies,
             preferredLanguage: firestoreData?.preferredLanguage,
             createdAt: firestoreData?.createdAt,
@@ -339,11 +337,6 @@ export class UserService {
                 password: validatedData.newPassword,
             });
 
-            // Update Firestore to track password change
-            await this.firestoreWriter.updateUser(userId, {
-                passwordChangedAt: toISOString(new Date().toISOString()),
-            });
-
             logger.info('Password changed successfully');
 
             return {
@@ -506,17 +499,6 @@ export class UserService {
                 updatedAt: now,
                 acceptedPolicies: currentPolicyVersions, // Capture current policy versions
             };
-
-            // Only set acceptance timestamps if the user actually accepted the terms
-            if (userRegistration.termsAccepted) {
-                userDoc.termsAcceptedAt = now;
-            }
-            if (userRegistration.cookiePolicyAccepted) {
-                userDoc.cookiePolicyAcceptedAt = now;
-            }
-            if (userRegistration.privacyPolicyAccepted) {
-                userDoc.privacyPolicyAcceptedAt = now;
-            }
 
             // FirestoreWriter handles validation and conversion to Firestore format
             await this.firestoreWriter.createUser(toUserId(userRecord.uid), userDoc);

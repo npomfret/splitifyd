@@ -549,20 +549,26 @@ export interface UserToken {
 export interface AuthenticatedFirebaseUser extends FirebaseUser, UserToken {}
 
 /**
+ * Base user profile with common fields shared across all user profile types.
+ * Establishes the core identity and authentication properties.
+ */
+export interface BaseUserProfile extends FirebaseUser {
+    displayName: DisplayName;
+    email: Email;
+    role: SystemUserRole;
+    emailVerified: boolean;
+    createdAt?: ISOString;
+}
+
+/**
  * Registered user type for client-side code.
  * Uses ISO 8601 string timestamps consistent with the DTO-everywhere architecture.
  *
  * Note: The canonical storage type is UserDocument in firebase/functions/src/schemas/user.ts
  */
-export interface RegisteredUser extends FirebaseUser {
-    // Core required fields (explicitly declared for clarity)
-    displayName: DisplayName; // Inherited from FirebaseUser -> BaseUser, but explicitly required
-    email: Email;
-    role: SystemUserRole; // Required for all registered users (default: SYSTEM_USER)
-
+export interface RegisteredUser extends BaseUserProfile {
     // Firebase Auth fields
     photoURL?: string | null; // Profile photo URL from Firebase Auth
-    emailVerified: boolean; // Email verification status
 
     // Auth metadata (optional)
     disabled?: boolean;
@@ -574,20 +580,26 @@ export interface RegisteredUser extends FirebaseUser {
     };
 
     // Policy acceptance tracking
-    termsAcceptedAt?: ISOString;
-    cookiePolicyAcceptedAt?: ISOString;
-    privacyPolicyAcceptedAt?: ISOString;
     acceptedPolicies?: Record<PolicyId, VersionHash>; // Map of policyId -> versionHash
 
     // User preferences
     preferredLanguage?: string; // User's preferred language code (e.g., 'en', 'es', 'fr')
 
-    // Security tracking
-    passwordChangedAt?: ISOString; // Last password change timestamp
-
     // Document timestamps
-    createdAt?: ISOString;
     updatedAt?: ISOString;
+}
+
+/**
+ * Admin user profile type for admin endpoints.
+ * Includes Firebase Auth admin metadata not available in regular user profiles.
+ */
+export interface AdminUserProfile extends BaseUserProfile {
+    disabled: boolean;
+    metadata: {
+        creationTime: string;
+        lastSignInTime: string;
+        lastRefreshTime?: string;
+    };
 }
 
 /**

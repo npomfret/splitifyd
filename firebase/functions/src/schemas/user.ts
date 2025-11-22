@@ -1,7 +1,7 @@
 import { PolicyIdSchema, VersionHashSchema, SystemUserRoles, toEmail } from '@billsplit-wl/shared';
 import type { Email } from '@billsplit-wl/shared';
 import { z } from 'zod';
-import { createDocumentSchemas, FirestoreTimestampSchema, OptionalAuditFieldsSchema } from './common';
+import { createDocumentSchemas, FirestoreTimestampSchema, OptionalAuditFieldsSchema, UserIdSchema } from './common';
 
 /**
  * Base User schema without document ID
@@ -16,19 +16,21 @@ const BaseUserSchema = z
         preferredLanguage: z.string().optional(),
         role: z.nativeEnum(SystemUserRoles),
         acceptedPolicies: z.record(PolicyIdSchema, VersionHashSchema).optional(),
-        termsAcceptedAt: FirestoreTimestampSchema.optional(),
-        cookiePolicyAcceptedAt: FirestoreTimestampSchema.optional(),
-        privacyPolicyAcceptedAt: FirestoreTimestampSchema.optional(),
-        passwordChangedAt: FirestoreTimestampSchema.optional(),
     })
     .merge(OptionalAuditFieldsSchema);
 
 /**
- * Create Document and Data schemas using common pattern
+ * User-specific document ID schema with strongly-typed UserId
+ */
+const UserDocumentIdSchema = z.object({
+    id: UserIdSchema,
+});
+
+/**
+ * Create Document schema with strongly-typed ID
  * Apply .strip() to handle legacy fields (like removed 'themeColor' and 'displayName') for backward compatibility
  */
-const { DocumentSchema } = createDocumentSchemas(BaseUserSchema);
-const UserDocumentSchema = DocumentSchema.strip();
+const UserDocumentSchema = BaseUserSchema.merge(UserDocumentIdSchema).strict().strip();
 
 /**
  * Zod schema for User document validation
