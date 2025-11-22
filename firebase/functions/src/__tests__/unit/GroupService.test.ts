@@ -1,28 +1,26 @@
-import { StubStorage } from '@billsplit-wl/test-support';
 import { CreateGroupRequest, toGroupId, toUserId } from '@billsplit-wl/shared';
-import { TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
-import { CreateGroupRequestBuilder, ExpenseDTOBuilder, GroupMemberDocumentBuilder, GroupUpdateBuilder } from '@billsplit-wl/test-support';
+import { CreateGroupRequestBuilder, CreateExpenseRequestBuilder, GroupUpdateBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS, VALIDATION_LIMITS } from '../../constants';
 import { validateCreateGroup, validateGroupId, validateUpdateGroup } from '../../groups/validation';
 import { ComponentBuilder } from '../../services/ComponentBuilder';
 import { GroupService } from '../../services/GroupService';
 import { ApiError } from '../../utils/errors';
+import { AppDriver } from './AppDriver';
 import { StubAuthService } from './mocks/StubAuthService';
 
 describe('GroupService - Unit Tests', () => {
     let groupService: GroupService;
-    let db: TenantFirestoreTestDatabase;
-    let stubAuth: StubAuthService;
-    let applicationBuilder: ComponentBuilder;
+    let appDriver: AppDriver;
 
     beforeEach(() => {
-        // Create stub database
-        db = new TenantFirestoreTestDatabase();
-        stubAuth = new StubAuthService();
+        // Create AppDriver which sets up all real services
+        appDriver = new AppDriver();
 
-        applicationBuilder = new ComponentBuilder(stubAuth, db, new StubStorage({ defaultBucketName: 'test-bucket' }));
-        groupService = applicationBuilder.buildGroupService();
+        // Use ComponentBuilder to create the service with proper dependencies
+        const stubAuth = new StubAuthService();
+        const componentBuilder = new ComponentBuilder(stubAuth, appDriver.database, appDriver.storageStub);
+        groupService = componentBuilder.buildGroupService();
     });
 
     describe('getGroupFullDetails', () => {
@@ -34,55 +32,48 @@ describe('GroupService - Unit Tests', () => {
         });
 
         it('should respect the includeDeletedExpenses flag when retrieving expenses', async () => {
-            const userId = toUserId('include-deleted-owner');
-            const groupId = toGroupId('include-deleted-group');
+            // Arrange
+            const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const userId = toUserId(user.user.uid);
 
-            db.seedGroup(groupId, {
-                name: 'Include Deleted Test Group',
-                createdBy: userId,
-            });
-            db.initializeGroupBalance(groupId);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
+            const groupId = toGroupId(group.id);
 
-            const membershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId(userId)
-                .withGroupId(groupId)
-                .asAdmin()
-                .asActive()
-                .buildDocument();
-            db.seedGroupMember(groupId, userId, membershipDoc);
+            // Create active expense
+            const activeExpense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPaidBy(userId)
+                    .withParticipants([userId])
+                    .withAmount(25, 'USD')
+                    .withDescription('Active expense')
+                    .build(),
+                userId
+            );
 
-            const activeExpense = new ExpenseDTOBuilder()
-                .withExpenseId('expense-active')
-                .withGroupId(groupId)
-                .withPaidBy(userId)
-                .withCreatedBy(userId)
-                .withParticipants([userId])
-                .withSplitType('equal')
-                .withAmount(25, 'USD')
-                .withDescription('Active expense')
-                .build();
-            db.seedExpense(activeExpense.id, activeExpense);
+            // Create expense to be deleted
+            const expenseToDelete = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPaidBy(userId)
+                    .withParticipants([userId])
+                    .withAmount(40, 'USD')
+                    .withDescription('Deleted expense')
+                    .build(),
+                userId
+            );
 
-            const deletedExpense = new ExpenseDTOBuilder()
-                .withExpenseId('expense-deleted')
-                .withGroupId(groupId)
-                .withPaidBy(userId)
-                .withCreatedBy(userId)
-                .withParticipants([userId])
-                .withSplitType('equal')
-                .withAmount(40, 'USD')
-                .withDescription('Deleted expense')
-                .withDeletedAt(new Date())
-                .withDeletedBy(userId)
-                .build();
-            db.seedExpense(deletedExpense.id, deletedExpense);
+            // Delete the second expense
+            await appDriver.deleteExpense(expenseToDelete.id, userId);
 
+            // Act & Assert - Default (without deleted expenses)
             const defaultDetails = await groupService.getGroupFullDetails(groupId, userId);
             const defaultDescriptions = defaultDetails.expenses.expenses.map((expense) => expense.description);
             expect(defaultDescriptions).toContain('Active expense');
             expect(defaultDescriptions).not.toContain('Deleted expense');
             expect(defaultDetails.expenses.expenses.every((expense) => expense.deletedAt === null)).toBe(true);
 
+            // Act & Assert - With deleted expenses
             const detailsWithDeleted = await groupService.getGroupFullDetails(groupId, userId, {
                 includeDeletedExpenses: true,
             });
@@ -98,33 +89,22 @@ describe('GroupService - Unit Tests', () => {
 
     describe('updateGroup', () => {
         it('should update group successfully when user is owner', async () => {
-            const userId = toUserId('test-user-123');
-            const groupId = toGroupId('test-group-456');
+            // Arrange
+            const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const userId = toUserId(user.user.uid);
 
-            // Set up existing group
-            db.seedGroup(groupId, {
-                name: 'Original Name',
-                description: 'Original Description',
-                createdBy: userId,
-            });
-            db.initializeGroupBalance(groupId);
-
-            // Set up group membership so user has access (as owner)
-            const membershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId(userId)
-                .withGroupId(groupId)
-                .asAdmin()
-                .asActive()
-                .buildDocument();
-            db.seedGroupMember(groupId, userId, membershipDoc);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
+            const groupId = toGroupId(group.id);
 
             const updateRequest = new GroupUpdateBuilder()
                 .withName('Updated Name')
                 .withDescription('Updated Description')
                 .build();
 
+            // Act
             const result = await groupService.updateGroup(groupId, userId, updateRequest);
 
+            // Assert
             expect(result).toBeDefined();
             expect(result.message).toBeDefined();
         });
@@ -132,38 +112,17 @@ describe('GroupService - Unit Tests', () => {
 
     describe('deleteGroup', () => {
         it('should delete group successfully when user is owner', async () => {
-            const userId = toUserId('test-user-123');
-            const groupId = toGroupId('test-group-456');
+            // Arrange
+            const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const userId = toUserId(user.user.uid);
 
-            // Seed user in both Auth and Firestore (required for actor display name in activity feed)
-            stubAuth.setUser(userId, {
-                uid: userId,
-                email: 'test-user@example.com',
-                displayName: 'Test User',
-            });
-            db.seedUser(userId, {
-                email: 'test-user@example.com',
-                displayName: 'Test User',
-            });
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
+            const groupId = toGroupId(group.id);
 
-            // Set up existing group (not marked for deletion yet)
-            db.seedGroup(groupId, {
-                name: 'Test Group',
-                createdBy: userId,
-            });
-            db.initializeGroupBalance(groupId);
-
-            // Set up group membership so user has access (as owner)
-            const membershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId(userId)
-                .withGroupId(groupId)
-                .asAdmin()
-                .asActive()
-                .buildDocument();
-            db.seedGroupMember(groupId, userId, membershipDoc);
-
+            // Act
             const result = await groupService.deleteGroup(groupId, userId);
 
+            // Assert
             expect(result).toBeDefined();
             expect(result.message).toBeDefined();
         });
@@ -171,26 +130,31 @@ describe('GroupService - Unit Tests', () => {
 
     describe('listGroups', () => {
         it('should return user groups successfully', async () => {
-            const userId = toUserId('test-user-123');
+            // Arrange
+            const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const userId = toUserId(user.user.uid);
 
-            // Set up test group
-            db.seedGroup(toGroupId('group-1'), {
-                name: 'Group 1',
-                createdBy: userId,
-            });
+            // Create a test group for this user
+            await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 
+            // Act
             const result = await groupService.listGroups(userId);
 
+            // Assert
             expect(result).toBeDefined();
             expect(result.groups).toBeDefined();
             expect(Array.isArray(result.groups)).toBe(true);
         });
 
         it('should return empty array when user has no groups', async () => {
-            const userId = toUserId('new-user-with-no-groups');
+            // Arrange
+            const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const userId = toUserId(user.user.uid);
 
+            // Act
             const result = await groupService.listGroups(userId);
 
+            // Assert
             expect(result).toBeDefined();
             expect(result.groups).toHaveLength(0);
         });
