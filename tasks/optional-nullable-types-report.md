@@ -7,10 +7,10 @@ This report details the investigation into optional (`?`) and nullable (`| null`
 **Context:** This is a **clean system with no legacy data**. All types should accurately reflect the backend's guaranteed behavior, with no "just in case" optionals.
 
 **Key Findings:**
-1. ✅ Fixed **6 genuine type inconsistencies** where optional fields should have been required
-2. ⚠️ Identified **architectural anti-pattern**: `RegisteredUser` is a "god object" serving 3+ different use cases
-3. 🔍 Discovered **redundant fields** that should be removed entirely
-4. 📋 Recommended **type splitting** to create clearer API contracts
+1. ✅ Fixed **6 genuine type inconsistencies** where optional fields should have been required (Phase 1)
+2. ✅ Removed **4 redundant fields** from codebase (Phase 2 - Completed 2025-01-17)
+3. ⚠️ Identified **architectural anti-pattern**: `RegisteredUser` is a "god object" serving 3+ different use cases (Phase 2 - Outstanding)
+4. 📋 Recommended **type splitting** to create clearer API contracts (Phase 2 - Outstanding)
 
 ---
 
@@ -442,9 +442,19 @@ deletedAt: ISOString | null
 
 ---
 
-## 8. Recommended Next Steps (Phase 2)
+## 8. Phase 2 Progress & Remaining Next Steps
 
-### 8.1. High Priority
+### 8.1. Completed ✅
+
+**Redundant Fields Removal (2025-01-17):**
+- ✅ Removed `termsAcceptedAt`, `cookiePolicyAcceptedAt`, `privacyPolicyAcceptedAt`, `passwordChangedAt` from `firebase/scripts/list-users.ts`
+- ✅ Verified zero references to these fields across entire codebase
+- ✅ Confirmed these fields were never in shared types or schemas
+- ✅ All tests passing after cleanup
+
+**Impact:** These fields only existed in one admin script and were redundant with `acceptedPolicies` map and Firebase Auth metadata. Now fully removed from codebase.
+
+### 8.2. High Priority (Remaining)
 
 1. **Split RegisteredUser type** into focused types:
    - Create `ClientUser` (minimal client-facing type)
@@ -452,30 +462,21 @@ deletedAt: ISOString | null
    - Create `AdminUserProfile` (admin endpoint type)
    - Migrate existing code incrementally
 
-2. **Remove redundant policy fields**:
-   - Consolidate `termsAcceptedAt`, `cookiePolicyAcceptedAt`, `privacyPolicyAcceptedAt` into `acceptedPolicies`
-   - Update backend schema
-   - Migrate existing data (if any)
+### 8.3. Medium Priority
 
-3. **Remove `passwordChangedAt`**:
-   - Use Firebase Auth metadata directly
-   - Remove field from types and schema
-
-### 8.2. Medium Priority
-
-4. **Document type contracts**:
+2. **Document type contracts**:
    - Add JSDoc to each type explaining its purpose
    - Document which endpoints return which types
    - Create type usage guide
 
-5. **Audit other DTOs**:
+3. **Audit other DTOs**:
    - Apply same analysis to remaining types
    - Look for more "god objects"
    - Identify more redundant fields
 
-### 8.3. Low Priority
+### 8.4. Low Priority
 
-6. **Consider deprecation strategy**:
+4. **Consider deprecation strategy**:
    - Mark old types as `@deprecated`
    - Provide migration guide
    - Set timeline for removal
@@ -484,35 +485,45 @@ deletedAt: ISOString | null
 
 ## 9. Final Conclusions
 
-### 9.1. What We Fixed (Phase 1)
+### 9.1. What We Fixed (Phase 1 - Completed)
 
 ✅ **6 type inconsistencies corrected** - Fields that backend guarantees are now required
 ✅ **Computed field pattern established** - Separation of Firestore data from DTO responses
 ✅ **All tests passing** - No regressions introduced
 
-### 9.2. What We Discovered (Phase 2 Analysis)
+### 9.2. What We Fixed (Phase 2 - Partial Completion)
 
-⚠️ **RegisteredUser is a "god object"** - Serves 3+ different use cases, forcing unnecessary optionality
-⚠️ **Redundant fields exist** - Policy acceptance tracking is duplicated
-⚠️ **Firebase Auth data duplicated** - `passwordChangedAt` already in Firebase metadata
+✅ **Redundant fields removed** - Eliminated `termsAcceptedAt`, `cookiePolicyAcceptedAt`, `privacyPolicyAcceptedAt`, `passwordChangedAt` (2025-01-17)
+✅ **Single source of truth** - Policy acceptance now exclusively via `acceptedPolicies` map
+✅ **Codebase cleanup** - Zero references to deprecated fields across entire codebase
 
-### 9.3. Core Principles Applied
+### 9.3. What Remains (Phase 2 - Outstanding)
+
+⚠️ **RegisteredUser is a "god object"** - Serves 3+ different use cases, forcing unnecessary optionality (needs type splitting)
+
+### 9.4. Core Principles Applied
 
 1. **Types should match backend guarantees** - If backend always provides it, make it required
 2. **Separate concerns** - Don't mix client, server, admin, and storage types
 3. **Single source of truth** - Don't duplicate data that exists elsewhere
 4. **Meaningful optionality** - Optional (`?`) for truly optional data, Nullable (`| null`) for explicit state tracking
 
-### 9.4. Impact Assessment
+### 9.5. Impact Assessment
 
-**Current State (Post-Phase 1):**
+**Phase 1 (Completed):**
 - ✅ Types more accurate for guaranteed fields
 - ✅ No defensive optionals for computed fields
 - ✅ Better separation of Firestore data and DTOs
 
-**Future State (After Phase 2):**
+**Phase 2 (Partial - Fields Cleanup Completed):**
+- ✅ Redundant policy fields eliminated
+- ✅ Single source of truth for policy acceptance
+- ✅ Cleaner admin scripts
+- 🎯 RegisteredUser type splitting still needed
+
+**Phase 2 (Future - After Type Splitting):**
 - 🎯 Clearer API contracts with focused types
-- 🎯 Less redundancy and duplication
+- 🎯 Less confusion about which fields are available when
 - 🎯 Easier to maintain and understand
 - 🎯 Better developer experience
 
