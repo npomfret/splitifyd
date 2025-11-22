@@ -1570,15 +1570,12 @@ export interface ListAuthUsersResponse {
     hasMore: boolean;
 }
 
-export interface FirestoreUser extends UserProfile {
-}
-
 /**
  * List Firestore users response
  * Returned by GET /admin/browser/users/firestore endpoint (system_admin only)
  */
 export interface ListFirestoreUsersResponse {
-    users: FirestoreUser[];
+    users: UserProfile[];
     nextCursor?: string;
     hasMore: boolean;
 }
