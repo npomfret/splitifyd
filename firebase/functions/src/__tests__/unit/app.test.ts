@@ -4852,7 +4852,7 @@ describe('app tests', () => {
             const response = await appDriver.listFirestoreUsers({ uid: browserSystemUser }, browserAdmin);
 
             expect(response.users).toHaveLength(1);
-            expect(response.users[0].id).toBe(browserSystemUser);
+            expect(response.users[0].uid).toBe(browserSystemUser);
             expect(response.hasMore).toBe(false);
         });
     });

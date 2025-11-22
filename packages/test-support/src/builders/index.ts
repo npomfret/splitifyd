@@ -32,7 +32,6 @@ export { ListGroupsResponseBuilder } from './ListGroupsResponseBuilder';
 export { PasswordChangeRequestBuilder } from './PasswordChangeRequestBuilder';
 export { PolicyDocumentBuilder } from './PolicyDocumentBuilder';
 export { PreviewGroupResponseBuilder } from './PreviewGroupResponseBuilder';
-export { RegisteredUserBuilder } from './RegisteredUserBuilder';
 export { RegisterRequestBuilder } from './RegisterRequestBuilder';
 export { SettlementDocumentBuilder } from './SettlementDocumentBuilder';
 export { SettlementDTOBuilder } from './SettlementDTOBuilder';

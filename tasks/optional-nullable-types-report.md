@@ -530,7 +530,7 @@ deletedAt: ISOString | null
 
 ### 8.2. High Priority (Remaining)
 
-1. **Complete RegisteredUser type splitting** (Phases 1-4 done, Phases 5-6 remaining):
+1. **Complete RegisteredUser type splitting** ✅ COMPLETE (2025-01-22):
    - ✅ Phase 1: Type definitions added (2025-01-17)
    - ✅ Phase 2: Backend migration complete (2025-01-22)
      - UserService2.getUser() returns ClientUser
@@ -550,13 +550,18 @@ deletedAt: ISOString | null
      - Created AdminUserProfileBuilder for admin endpoint testing
      - ClientUserBuilder already existed and is ready for use
      - Removed all unused RegisteredUser imports from codebase
-     - Updated AppDriver.ts to use AdminUserProfile['metadata']
+     - Updated AppDriver.ts to use explicit metadata type
      - Removed RegisteredUser imports from UserService2.ts and api.ts
      - All TypeScript compilation verified across all packages
      - All 25 PolicyHandlers unit tests passing
-   - 🎯 Phase 5: Deprecate RegisteredUser
-   - 🎯 Phase 6: Remove RegisteredUser (future)
-   - See section 4.3 for detailed implementation plan
+   - ✅ Phase 5-6: RegisteredUser removed (2025-01-22)
+     - Removed RegisteredUser type definition from shared-types.ts
+     - Updated FirestoreUser to extend UserProfile instead
+     - Deleted RegisteredUserBuilder.ts file
+     - Removed RegisteredUserBuilder export from builders/index.ts
+     - All TypeScript compilation verified across all packages
+     - All 25 PolicyHandlers unit tests passing
+   - Migration complete - RegisteredUser type fully removed from codebase
 
 ### 8.3. Medium Priority
 
@@ -598,14 +603,18 @@ deletedAt: ISOString | null
   - AdminUserProfile for admin endpoints
 ✅ **All TypeScript compilation passing** - Verified across all packages
 
-### 9.3. What Remains (Phases 5-6 - Outstanding)
+### 9.3. RegisteredUser Type Splitting - ✅ COMPLETE (2025-01-22)
 
-**RegisteredUser Type Splitting:**
+**All phases complete:**
 - ✅ Phase 1 complete: Type definitions added (ClientUser, UserProfile, AdminUserProfile)
 - ✅ Phase 2 complete: Backend migration (UserService2, admin handlers, browser handlers, API interface)
 - ✅ Phase 3 complete: Frontend migration (apiClient, AdminUsersTab, removed RegisteredUser imports)
 - ✅ Phase 4 complete: Test builders and cleanup (UserProfileBuilder, AdminUserProfileBuilder, removed unused imports)
-- 🎯 Phases 5-6: RegisteredUser deprecation and removal (see section 4.3)
+- ✅ Phases 5-6 complete: RegisteredUser type fully removed from codebase
+  - Removed RegisteredUser type definition
+  - Updated FirestoreUser to extend UserProfile
+  - Deleted RegisteredUserBuilder and its export
+  - All tests passing, all compilation verified
 
 ### 9.4. Core Principles Applied
 

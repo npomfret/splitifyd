@@ -78,7 +78,10 @@ function serializeFirestoreDocument(doc: IDocumentSnapshot): Record<string, unkn
         ? (normalized as Record<string, unknown>)
         : { value: normalized };
 
-    return { id: doc.id, ...details };
+    // Add uid from document ID (Firestore document ID is the user's UID)
+    // Remove the legacy 'id' field if it exists in the document data
+    const { id, ...rest } = details;
+    return { uid: doc.id, ...rest };
 }
 
 export class UserBrowserHandlers {

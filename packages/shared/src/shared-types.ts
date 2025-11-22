@@ -560,37 +560,8 @@ export interface BaseUserProfile extends FirebaseUser {
     createdAt?: ISOString;
 }
 
-/**
- * Registered user type for client-side code.
- * Uses ISO 8601 string timestamps consistent with the DTO-everywhere architecture.
- *
- * Note: The canonical storage type is UserDocument in firebase/functions/src/schemas/user.ts
- */
-export interface RegisteredUser extends BaseUserProfile {
-    // Firebase Auth fields
-    photoURL?: string | null; // Profile photo URL from Firebase Auth
-
-    // Auth metadata (optional)
-    disabled?: boolean;
-    metadata?: {
-        creationTime?: string;
-        lastSignInTime?: string;
-        [key: string]: unknown;
-        toJSON?: () => Record<string, unknown>;
-    };
-
-    // Policy acceptance tracking
-    acceptedPolicies?: Record<PolicyId, VersionHash>; // Map of policyId -> versionHash
-
-    // User preferences
-    preferredLanguage?: string; // User's preferred language code (e.g., 'en', 'es', 'fr')
-
-    // Document timestamps
-    updatedAt?: ISOString;
-}
-
 // ========================================================================
-// New Focused User Types (Phase 2 - Type Splitting)
+// Focused User Types
 // ========================================================================
 // Note: ClientUser is defined later in this file (see line ~720)
 
@@ -1599,15 +1570,7 @@ export interface ListAuthUsersResponse {
     hasMore: boolean;
 }
 
-/**
- * Firestore user document
- * Used in admin browser endpoints
- */
-export interface FirestoreUser extends RegisteredUser {
-    disabled?: boolean;
-    createdAt?: ISOString;
-    lastLoginAt?: ISOString;
-    id?: string;
+export interface FirestoreUser extends UserProfile {
 }
 
 /**

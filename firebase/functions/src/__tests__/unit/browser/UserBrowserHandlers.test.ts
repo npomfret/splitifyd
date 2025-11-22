@@ -95,8 +95,8 @@ describe('UserBrowserHandlers - Integration Tests', () => {
             // Assert
             expect(result.users).toEqual(
                 expect.arrayContaining([
-                    expect.objectContaining({ id: user1.user.uid }),
-                    expect.objectContaining({ id: user2.user.uid }),
+                    expect.objectContaining({ uid: user1.user.uid }),
+                    expect.objectContaining({ uid: user2.user.uid }),
                 ]),
             );
             expect(result.hasMore).toBe(false);
@@ -111,7 +111,7 @@ describe('UserBrowserHandlers - Integration Tests', () => {
             const result = await appDriver.listFirestoreUsers({ uid: toUserId(user1.user.uid) }, adminId);
 
             // Assert
-            expect(result.users).toEqual([expect.objectContaining({ id: user1.user.uid })]);
+            expect(result.users).toEqual([expect.objectContaining({ uid: user1.user.uid })]);
             expect(result.hasMore).toBe(false);
         });
 
