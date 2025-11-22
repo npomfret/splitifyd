@@ -1,20 +1,25 @@
-// Unit tests for user profile update functionality
-import {SystemUserRoles, toEmail, toPassword, toUserId } from '@billsplit-wl/shared';
+// Integration tests for user profile update functionality
+import { toEmail, toPassword, toUserId } from '@billsplit-wl/shared';
+import { UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { AppDriver } from '../AppDriver';
 
-describe('User Profile Update - Unit Tests', () => {
+describe('User Profile Update - Integration Tests', () => {
     let appDriver: AppDriver;
-    const userId = toUserId('test-user');
+    let userId: string;
 
-    beforeEach(() => {
+    beforeEach(async () => {
         appDriver = new AppDriver();
 
-        appDriver.seedUser(userId, {
-            displayName: 'Original Name',
-            email: 'user@test.local',
-            role: SystemUserRoles.SYSTEM_USER,
-        });
+        // Register user via API instead of seeding
+        const user = await appDriver.registerUser(
+            new UserRegistrationBuilder()
+                .withEmail('user@test.local')
+                .withDisplayName('Original Name')
+                .withPassword('ValidPass123!')
+                .build()
+        );
+        userId = user.user.uid;
     });
 
     afterEach(() => {
@@ -83,7 +88,13 @@ describe('User Profile Update - Unit Tests', () => {
 
         test('rejects duplicate email', async () => {
             const takenEmail = toEmail('taken@test.local');
-            appDriver.seedUser(toUserId('other-user'), { email: takenEmail, displayName: 'Other User', role: SystemUserRoles.SYSTEM_USER });
+            // Register another user to make the email taken
+            await appDriver.registerUser(
+                new UserRegistrationBuilder()
+                    .withEmail(takenEmail)
+                    .withDisplayName('Other User')
+                    .build()
+            );
 
             await expect(
                 appDriver.changeEmail({
