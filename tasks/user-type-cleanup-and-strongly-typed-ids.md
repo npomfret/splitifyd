@@ -1,297 +1,154 @@
-# Task: User Type Cleanup and Strongly-Typed Document IDs
+# Task: Refine and Document the User Type System
 
 ## Context
 
-The user type hierarchy had duplication and redundant fields that needed cleanup:
+A previous cleanup effort (detailed in the old version of this document) successfully rationalized the user type hierarchy by introducing `BaseUserProfile` and removing dead code and fields.
 
-1. **Type Duplication**: `RegisteredUser` and `AdminUserProfile` duplicated common fields
-2. **Deleted Fields**: Old policy timestamp fields that were replaced by `acceptedPolicies` map
-3. **Weak Typing**: `UserDocument.id` was typed as `string` instead of `UserId`
+While the current system is logically sound and separates concerns well (e.g., production vs. test, backend vs. frontend), an audit has revealed several areas for improvement. This task focuses on enhancing clarity, improving the developer experience, and creating canonical documentation to ensure the system is maintainable for the long term.
 
-## What We're Trying to Achieve
+## Current State Analysis
 
-### 1. Create BaseUserProfile as Common Super-Type
+The codebase contains eight distinct user-related types, each serving a specific purpose. The complexity is largely justified.
 
-**Problem**: `RegisteredUser` and `AdminUserProfile` both have these fields:
-- `uid: UserId`
-- `displayName: DisplayName`
-- `email: Email`
-- `role: SystemUserRole`
-- `emailVerified: boolean`
-- `createdAt?: ISOString`
+| Type | Purpose | Location |
+| :--- | :--- | :--- |
+| **`BaseUser`** | Root type: `displayName` only. | `shared-types.ts` |
+| **`FirebaseUser`** | App's internal type for a Firebase-auth'd user (`uid`). | `shared-types.ts` |
+| **`BaseUserProfile`** | Common profile fields (`email`, `role`). | `shared-types.ts` |
+| **`RegisteredUser`** | The full, canonical user object for backend/API use. | `shared-types.ts` |
+| **`UserRegistration`** | Payload for the user sign-up process. | `shared-types.ts` |
+| **`AuthenticatedUser`** | Minimal, secure object for server-side auth context. | `shared-types.ts` |
+| **`ClientUser`** | Frontend-safe subset of `RegisteredUser`. | `shared-types.ts` |
+| **`Test Types`** | `UserToken`, `PooledTestUser`, `AuthenticatedFirebaseUser` used for testing infrastructure. | `shared-types.ts` |
 
-**Solution**: Extract common fields into `BaseUserProfile`:
+## Goals
 
-```typescript
-export interface BaseUserProfile extends FirebaseUser {
-    displayName: DisplayName;
-    email: Email;
-    role: SystemUserRole;
-    emailVerified: boolean;
-    createdAt?: ISOString;
-}
-
-export interface RegisteredUser extends BaseUserProfile {
-    // RegisteredUser-specific fields...
-    acceptedPolicies?: Record<PolicyId, VersionHash>;
-    preferredLanguage?: string;
-    // etc.
-}
-
-export interface AdminUserProfile extends BaseUserProfile {
-    // AdminUserProfile-specific fields...
-    disabled: boolean;
-    metadata: { ... };
-}
-```
-
-**Why**: Eliminate duplication and establish clear type hierarchy.
-
-### 2. Remove Deleted Fields from Backend
-
-**Fields to Remove**:
-- `termsAcceptedAt?: ISOString`
-- `cookiePolicyAcceptedAt?: ISOString`
-- `privacyPolicyAcceptedAt?: ISOString`
-- `passwordChangedAt?: ISOString`
-
-**Reason**: These were replaced by `acceptedPolicies: Record<PolicyId, VersionHash>` map.
-
-**Locations to Clean Up**:
-1. `packages/shared/src/shared-types.ts` - Remove from `RegisteredUser`
-2. `firebase/functions/src/schemas/user.ts` - Remove from `BaseUserSchema`
-3. `firebase/functions/src/services/firestore/IFirestoreWriter.ts` - Remove from `FirestoreUserDocumentFields`
-4. `firebase/functions/src/services/firestore/FirestoreWriter.ts` - Remove from allowed timestamp fields list
-5. `firebase/functions/src/services/UserService2.ts` - Remove from registration flow and password change
-
-### 3. Strongly Type UserDocument.id as UserId
-
-**Problem**: `UserDocument.id` is currently typed as `string`:
-```typescript
-const DocumentIdSchema = z.object({
-    id: z.string().min(1),  // ❌ Too generic
-});
-```
-
-**Why This Matters**:
-- The `id` field holds the Firebase Auth UID
-- All other user-related code uses `UserId` branded type
-- Type safety prevents mixing different ID types
-- `ClientUser` already has `uid: UserId` - document type should match
-
-**Solution**: Create user-specific document ID schema:
-```typescript
-// firebase/functions/src/schemas/user.ts
-
-const UserDocumentIdSchema = z.object({
-    id: UserIdSchema,  // ✅ Strongly typed
-});
-
-const UserDocumentSchema = BaseUserSchema
-    .merge(UserDocumentIdSchema)
-    .strict()
-    .strip();
-```
-
-**Impact**:
-- `UserDocument.id` becomes `UserId` instead of `string`
-- Tests need to use `id: toUserId(user.uid)` instead of `id: user.uid`
-- Type safety ensures UIDs are properly branded
-
-## Key Insight: What is ClientUser?
-
-`ClientUser` is a DTO (Data Transfer Object) at `packages/shared/src/shared-types.ts:623` for **client-side** (frontend) use:
-
-```typescript
-export interface ClientUser {
-    uid: UserId;           // ✅ Already strongly typed
-    email: Email;
-    displayName: DisplayName;
-    emailVerified: boolean;
-    photoURL?: string | null;
-    preferredLanguage?: string;
-    role?: SystemUserRole;
-}
-```
-
-It contains only the fields the frontend needs, without sensitive server-only data.
-
-## Migration Strategy
-
-### Phase 1: Type Hierarchy (✅ COMPLETED - 2025-11-22)
-1. Create `BaseUserProfile` interface
-2. Make `RegisteredUser` extend `BaseUserProfile`
-3. Make `AdminUserProfile` extend `BaseUserProfile`
-
-### Phase 2: Remove Deleted Fields (✅ COMPLETED - 2025-11-22)
-1. Remove from `RegisteredUser` in shared-types.ts
-2. Remove from `BaseUserSchema` in user.ts
-3. Remove from `FirestoreUserDocumentFields` in IFirestoreWriter.ts
-4. Remove from allowed timestamp fields in FirestoreWriter.ts
-5. Remove from UserService2.ts registration and password change
-
-### Phase 3: Strongly Type UserDocument.id (✅ COMPLETED - 2025-11-22)
-1. Create `UserDocumentIdSchema` with `UserIdSchema`
-2. Update `UserDocumentSchema` to merge with `UserDocumentIdSchema`
-3. Update tests to use `toUserId()` when setting `id` field
-
-## Implementation Complete - 2025-11-22
-
-All three phases have been successfully implemented:
-
-1. ✅ **Phase 1**: Created `BaseUserProfile` interface as common super-type
-   - Extracted common fields (uid, displayName, email, role, emailVerified, createdAt)
-   - Made `RegisteredUser` extend `BaseUserProfile`
-   - Created `AdminUserProfile` extending `BaseUserProfile`
-
-2. ✅ **Phase 2**: Removed all 4 deleted timestamp fields
-   - Removed from `packages/shared/src/shared-types.ts`
-   - Removed from `firebase/functions/src/schemas/user.ts`
-   - Removed from `firebase/functions/src/services/firestore/IFirestoreWriter.ts`
-   - Removed from `firebase/functions/src/services/firestore/FirestoreWriter.ts`
-   - Removed from `firebase/functions/src/services/UserService2.ts` (registration and password change)
-
-3. ✅ **Phase 3**: Strongly typed `UserDocument.id` as `UserId`
-   - Created `UserDocumentIdSchema` with `UserIdSchema` in `firebase/functions/src/schemas/user.ts`
-   - Updated `UserDocumentSchema` to use strongly-typed ID
-   - No test fixtures needed updating (schema transformation handles it)
-
-### Test Results
-- ✅ TypeScript compilation: **PASS**
-- ✅ Unit tests: **1272/1272 PASS** (69 test files)
-- ⚠️ Integration tests: 51 failed (unrelated to changes - emulator environment issues)
-
-## Success Criteria
-
-- ✅ `BaseUserProfile` exists and both user types extend it
-- ✅ Deleted policy timestamp fields removed from all backend code
-- ✅ `UserDocument.id` is typed as `UserId` not `string`
-- ✅ Firebase functions build passes
-- ✅ All unit tests pass
-- ✅ No `as unknown as` or other type hacks
+1.  **Eliminate Ambiguity:** Remove naming collisions that can lead to confusion and bugs.
+2.  **Align Code and Documentation:** Ensure no "ghost" types exist in documentation that are not in the code.
+3.  **Create a Single Source of Truth:** Establish a canonical guide for developers to understand the user type system.
 
 ---
 
-## Post-Implementation Analysis - Comprehensive User Type Audit
+## Action Plan
 
-After completing the cleanup, a full audit of ALL user-related types was conducted to ensure the type hierarchy is clean and well-organized.
+### Phase 1: Resolve Critical Type Name Collision
 
-### Current User Type Inventory (8 Types Total - After Phase 4 Cleanup)
+**Problem:** The name `FirebaseUser` is used for two different concepts:
+1.  Our application's internal, shared type in `packages/shared/src/shared-types.ts`.
+2.  An alias for the `User` object from the official `firebase/auth` SDK in `webapp-v2/src/app/utils/mapFirebaseUser.ts`.
 
-#### Production Types - Backend (5 types)
-1. **BaseUser** - Minimal identity foundation (displayName only)
-2. **FirebaseUser** - Firebase-authenticated user (displayName + uid)
-3. **BaseUserProfile** - Common profile fields (consolidation type) ✅ NEW
-4. **RegisteredUser** - Complete user profile for APIs ⭐ HEAVILY USED (84 refs)
-5. **AuthenticatedUser** - Minimal auth context for middleware (15-20 refs)
+This ambiguity is dangerous and confusing for developers.
 
-#### Production Types - Frontend (1 type)
-6. **ClientUser** - Frontend-safe user data ⭐ EXTREMELY HEAVILY USED (137 refs)
+**Solution:**
+1.  In any file that imports the `User` type from the `firebase/auth` SDK, rename the alias to `FirebaseAuthUser`.
+2.  This makes it immediately clear that `FirebaseAuthUser` is the raw SDK object, while `FirebaseUser` is our application's internal type.
 
-#### Test Infrastructure Types (3 types)
-7. **UserToken** - User with auth token (test scenarios, 30 refs)
-8. **PooledTestUser** - Test user from pool (E2E/integration) ⭐ HEAVILY USED (50+ refs)
-9. **AuthenticatedFirebaseUser** - Authenticated test user (test data generation, 20 refs)
+**File to modify:**
+-   `webapp-v2/src/app/utils/mapFirebaseUser.ts`:
+    ```typescript
+    // BEFORE
+    import type { User as FirebaseUser } from 'firebase/auth';
 
-### Type Hierarchy (Visual) - Updated After Phase 4
+    // AFTER
+    import type { User as FirebaseAuthUser } from 'firebase/auth';
+    
+    export function mapFirebaseUser(firebaseUser: FirebaseAuthUser): ClientUser {
+      // ...
+    }
+    ```
+3.  Search for and update any other instances of this aliasing pattern.
 
+### Phase 2: Finalize the `AdminUserProfile` Strategy
+
+**Problem:** The previous version of this document and other historical artifacts mention an `AdminUserProfile` type. This type does not exist in the code, which could confuse developers into thinking it should be used or created.
+
+**Solution:**
+A decision must be made:
+
+1.  **Path A (If a distinct admin profile is NOT needed):**
+    -   The current `role` property on `BaseUserProfile` is sufficient to distinguish admins.
+    -   **Action:** Audit all project documentation (including markdown files in `docs/` and `tasks/`) and remove any mention of `AdminUserProfile`.
+
+2.  **Path B (If a distinct admin profile IS needed):**
+    -   There are admin-specific fields that do not belong on `RegisteredUser`.
+    -   **Action:** Formally create the `AdminUserProfile` interface in `packages/shared/src/shared-types.ts`, ensuring it extends `BaseUserProfile`.
+
+### Phase 3: Create a Canonical User Type Guide
+
+**Problem:** Understanding the user type hierarchy requires reading the source code and having institutional knowledge. This is a barrier to new developers.
+
+**Solution:**
+1.  Create a new, dedicated documentation file at `docs/architecture/user-types.md`.
+2.  Add a Mermaid.js diagram to this file to visually represent the type relationships.
+3.  Add a clear reference table explaining the purpose of each type and when to use it.
+
+**Mermaid Diagram to include in `user-types.md`:**
+```mermaid
+classDiagram
+  direction LR
+  
+  class BaseUser {
+    +displayName: DisplayName
+  }
+  
+  class FirebaseUser {
+    +uid: UserId
+  }
+  
+  class BaseUserProfile {
+    +email: Email
+    +role: SystemUserRole
+    +emailVerified: boolean
+  }
+  
+  class RegisteredUser {
+    +photoURL: string
+    +acceptedPolicies: map
+  }
+  
+  class UserRegistration {
+     +email: Email
+     +password: Password
+  }
+
+  class AuthenticatedUser {
+    +uid: UserId
+    +displayName: DisplayName
+    +role: SystemUserRole
+  }
+  
+  class ClientUser {
+    +uid: UserId
+    +email: Email
+    +displayName: DisplayName
+  }
+
+  class UserToken {
+    +uid: UserId
+    +token: string
+  }
+  
+  class AuthenticatedFirebaseUser {
+    --
+  }
+
+  class PooledTestUser {
+    +password: string
+    +email: Email
+  }
+
+  BaseUser <|-- FirebaseUser
+  BaseUser <|-- UserRegistration
+  FirebaseUser <|-- BaseUserProfile
+  FirebaseUser <|-- AuthenticatedFirebaseUser
+  BaseUserProfile <|-- RegisteredUser
+  UserToken <|-- AuthenticatedFirebaseUser
+  UserToken <|-- PooledTestUser
 ```
-BaseUser (displayName)
-├── UserRegistration (extends BaseUser)
-└── FirebaseUser (extends BaseUser, adds uid)
-    ├── AuthenticatedFirebaseUser (+ UserToken) [Test scenarios]
-    └── BaseUserProfile (extends FirebaseUser) ✅ NEW
-        └── RegisteredUser ⭐ PRODUCTION (84 refs)
 
-UserToken (uid, token)
-├── AuthenticatedFirebaseUser
-└── PooledTestUser ⭐ TESTS (50+ refs)
+## Success Criteria
 
-AuthenticatedUser (uid, displayName, role?) ⭐ MIDDLEWARE
-ClientUser (frontend-safe subset) ⭐ FRONTEND (137 refs)
-```
-
-**Change**: Removed AdminUserProfile (was unused dead code)
-
-### Key Findings
-
-#### ✅ Strengths
-1. **Clean hierarchy** - BaseUserProfile successfully eliminates field duplication
-2. **Clear separation of concerns**:
-   - RegisteredUser: Full backend profile
-   - ClientUser: Frontend-safe subset
-   - AuthenticatedUser: Minimal auth context
-3. **Strong typing** with branded types (UserId, Email, DisplayName)
-4. **Well-scoped test types** separated from production code
-
-#### ⚠️ Issues Discovered (and Resolved)
-
-**1. AdminUserProfile is Dead Code** ✅ FIXED IN PHASE 4
-- **Status**: ~~Defined but NEVER used~~ → **REMOVED**
-- **Evidence**: 0 imports, 0 usages in admin handlers or browser endpoints
-- **Resolution**: Deleted from shared-types.ts in Phase 4
-- **Impact**: Code is now cleaner, no confusion about which type to use
-
-**2. UserRegistration Usage Unclear**
-- **Status**: Defined but actual usage needs verification
-- **Location**: `packages/shared/src/shared-types.ts:526-533`
-- **Concern**: Registration might use inline types instead
-
-### Phase 4: Cleanup Dead Code (✅ COMPLETED - 2025-11-22)
-
-**Action Taken**: Removed `AdminUserProfile` type from shared-types.ts
-
-**Rationale**:
-- Type was defined but had 0 usages in entire codebase
-- Admin endpoints already use `RegisteredUser` successfully
-- Removing eliminates confusion about which type to use
-
-**Changes Made**:
-- Deleted `AdminUserProfile` interface (was lines 592-609)
-- No functional impact - type was never imported or used
-
-**Verification**:
-- ✅ TypeScript compilation: PASS
-- ✅ Unit tests: 1266/1266 PASS
-- ✅ No references to AdminUserProfile found in codebase
-
-#### Phase 5: Documentation (Recommended)
-
-Create **User Types Reference** guide documenting:
-- When to use which type
-- Type hierarchy diagram
-- Field overlap analysis
-- Migration guide for developers
-
-### Field Overlap Matrix
-
-| Field | BaseUserProfile | RegisteredUser | AdminUserProfile | AuthenticatedUser | ClientUser |
-|-------|-----------------|----------------|------------------|-------------------|------------|
-| displayName | ✅ | ✅ | ✅ | ✅ | ✅ |
-| uid | ✅ | ✅ | ✅ | ✅ | ✅ |
-| email | ✅ | ✅ | ✅ | - | ✅ |
-| role | ✅ | ✅ | ✅ | ✅ (optional) | ✅ (optional) |
-| emailVerified | ✅ | ✅ | ✅ | - | ✅ |
-| createdAt | ✅ (optional) | ✅ | ✅ | - | - |
-| photoURL | - | ✅ | - | - | ✅ |
-| preferredLanguage | - | ✅ | - | - | ✅ |
-| acceptedPolicies | - | ✅ | - | - | - |
-| disabled | - | ✅ (optional) | ✅ (required) | - | - |
-| metadata | - | ✅ (optional) | ✅ (required) | - | - |
-
-**Observation**: No problematic duplication - all shared fields properly inherited via BaseUserProfile.
-
-### Conclusion
-
-The user type system is **well-designed and fully optimized**. The Phase 1-4 cleanup successfully:
-- ✅ **Phase 1**: Created BaseUserProfile to eliminate duplication
-- ✅ **Phase 2**: Removed obsolete policy timestamp fields
-- ✅ **Phase 3**: Strongly typed UserDocument.id as UserId
-- ✅ **Phase 4**: Removed unused AdminUserProfile type
-
-**System Status**: ✅ **Production-ready and clean** - all dead code removed, type hierarchy optimized.
-
-**Final Type Count**: 8 user types (down from 9)
-- 5 production backend types
-- 1 production frontend type (ClientUser)
-- 2 test infrastructure types (PooledTestUser, AuthenticatedFirebaseUser)
+-   ✅ The `FirebaseUser` naming collision has been resolved throughout the codebase.
+-   ✅ A decision on `AdminUserProfile` has been made and the code and/or documentation have been updated to reflect it.
+-   ✅ A new `docs/architecture/user-types.md` file exists and contains the visual diagram and reference guide.
+-   ✅ The project compiles and all tests pass after these changes.
