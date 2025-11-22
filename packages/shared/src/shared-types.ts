@@ -1594,7 +1594,7 @@ export interface AdminUpsertTenantResponse {
  * Returned by GET /admin/browser/users/auth endpoint (system_admin only)
  */
 export interface ListAuthUsersResponse {
-    users: RegisteredUser[];
+    users: AdminUserProfile[];
     nextPageToken?: string;
     hasMore: boolean;
 }

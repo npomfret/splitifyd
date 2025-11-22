@@ -530,7 +530,7 @@ deletedAt: ISOString | null
 
 ### 8.2. High Priority (Remaining)
 
-1. **Complete RegisteredUser type splitting** (Phases 1-2 done, Phases 3-6 remaining):
+1. **Complete RegisteredUser type splitting** (Phases 1-3 done, Phases 4-6 remaining):
    - ✅ Phase 1: Type definitions added (2025-01-17)
    - ✅ Phase 2: Backend migration complete (2025-01-22)
      - UserService2.getUser() returns ClientUser
@@ -539,7 +539,12 @@ deletedAt: ISOString | null
      - UserBrowserHandlers returns AdminUserProfile[]
      - Updated API interface in packages/shared/src/api.ts
      - All TypeScript compilation verified
-   - 🎯 Phase 3: Migrate frontend code to use ClientUser
+   - ✅ Phase 3: Frontend migration complete (2025-01-22)
+     - Updated apiClient.ts to use AdminUserProfile for admin endpoints
+     - Created AdminUserProfileSchema for runtime validation
+     - Updated AdminUsersTab.tsx to use AdminUserProfile
+     - Removed RegisteredUser import from all webapp files
+     - All TypeScript compilation verified
    - 🎯 Phase 4: Update tests and builders
    - 🎯 Phase 5: Deprecate RegisteredUser
    - 🎯 Phase 6: Remove RegisteredUser (future)
@@ -585,12 +590,13 @@ deletedAt: ISOString | null
   - AdminUserProfile for admin endpoints
 ✅ **All TypeScript compilation passing** - Verified across all packages
 
-### 9.3. What Remains (Phases 3-6 - Outstanding)
+### 9.3. What Remains (Phases 4-6 - Outstanding)
 
 **RegisteredUser Type Splitting:**
 - ✅ Phase 1 complete: Type definitions added (ClientUser, UserProfile, AdminUserProfile)
 - ✅ Phase 2 complete: Backend migration (UserService2, admin handlers, browser handlers, API interface)
-- 🎯 Phases 3-6: Frontend migration, test updates, RegisteredUser deprecation and removal (see section 4.3)
+- ✅ Phase 3 complete: Frontend migration (apiClient, AdminUsersTab, removed RegisteredUser imports)
+- 🎯 Phases 4-6: Test updates, RegisteredUser deprecation and removal (see section 4.3)
 
 ### 9.4. Core Principles Applied
 

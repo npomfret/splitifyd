@@ -15,7 +15,7 @@ describe('PolicyHandlers - Unit Tests', () => {
     beforeEach(async () => {
         appDriver = new AppDriver();
         const admin = await appDriver.createAdminUser();
-        adminUserId = admin.adminToken;
+        adminUserId = admin.userId;
         adminToken = admin.token;
     });
 

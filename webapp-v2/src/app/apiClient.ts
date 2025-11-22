@@ -18,7 +18,6 @@ import type {
     AdminUpsertTenantResponse,
     AdminUserProfile,
     AppConfiguration,
-    RegisteredUser,
     ChangeEmailRequest,
     CommentDTO,
     CreateExpenseRequest,
@@ -79,7 +78,7 @@ import type {
     UserRegistration,
     VersionHash,
 } from '@billsplit-wl/shared';
-import { ApiErrorResponseSchema, responseSchemas } from '@billsplit-wl/shared';
+import { AdminUserProfileSchema, ApiErrorResponseSchema, ListAuthUsersResponseSchema, responseSchemas } from '@billsplit-wl/shared';
 import type { UpdateSettlementRequest } from '@billsplit-wl/shared';
 import { ExpenseId, GroupId } from '@billsplit-wl/shared';
 import { SettlementId } from '@billsplit-wl/shared';
@@ -189,24 +188,6 @@ type RequestInterceptor = (config: RequestConfig) => RequestConfig | Promise<Req
 type ResponseInterceptor = <T>(response: T, config: RequestConfig) => T | Promise<T>;
 
 // Retry configuration
-const RegisteredUserSchema: z.ZodType<RegisteredUser> = z
-    .object({
-        uid: z.string().transform((value) => toUserId(value)),
-        email: z.string().email().transform((value) => toEmail(value)),
-        emailVerified: z.boolean(),
-        displayName: z.string().transform((value) => toDisplayName(value)),
-        disabled: z.boolean().optional(),
-        metadata: z.any(),
-        role: z.nativeEnum(SystemUserRoles),
-    })
-    .passthrough();
-
-const ListAuthUsersResponseSchema: z.ZodType<ListAuthUsersResponse> = z.object({
-    users: z.array(RegisteredUserSchema),
-    nextPageToken: z.string().optional(),
-    hasMore: z.boolean(),
-});
-
 const FirestoreUserSchema = z.object({ id: z.string() }).passthrough();
 
 const ListFirestoreUsersResponseSchema = z.object({
@@ -1005,7 +986,7 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
             endpoint: '/admin/browser/users/auth',
             method: 'GET',
             query: Object.keys(query).length > 0 ? query : undefined,
-            schema: ListAuthUsersResponseSchema,
+            // Schema automatically picked up from responseSchemas
         });
     }
 
@@ -1062,9 +1043,7 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
             endpoint: '/admin/users/:uid',
             method: 'PUT',
             params: { uid },
-            body: updates,
-            // TODO: Add AdminUserProfileSchema for validation
-            schema: undefined,
+            body: updates
         });
     }
 
@@ -1078,8 +1057,7 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
             method: 'PUT',
             params: { uid },
             body: updates,
-            // TODO: Add AdminUserProfileSchema for validation
-            schema: undefined,
+            // Schema automatically picked up from responseSchemas
         });
     }
 
