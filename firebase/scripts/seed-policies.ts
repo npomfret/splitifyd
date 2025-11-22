@@ -10,7 +10,11 @@ import { getEnvironment, initializeFirebase } from './firebase-init';
 import { signInExistingBillSplitter } from './test-data-generator';
 
 /*
- * This script seeds policy files to either the emulator or production
+ * This script seeds policy files using the Admin API
+ *
+ * Note: Policy creation requires direct service access since there's no admin API endpoint.
+ * Verification is done through the API to ensure policies are accessible.
+ *
  * Usage:
  *   tsx seed-policies.ts emulator
  *   tsx seed-policies.ts production
@@ -28,13 +32,7 @@ console.log(`🎯 Running policy seeding for ${env.environment}`);
 initializeFirebase(env);
 
 import { PolicyId } from '@billsplit-wl/shared';
-import { getIdentityToolkitConfig } from '../functions/src/client-config';
-import { FirestoreCollections } from '../functions/src/constants';
-import { getAuth, getFirestore, getStorage } from '../functions/src/firebase';
-import { ComponentBuilder } from '../functions/src/services/ComponentBuilder';
-
-type IdentityToolkit = ReturnType<typeof getIdentityToolkitConfig>;
-let identityToolkitConfig: IdentityToolkit;
+import { getComponentBuilder } from '../functions/src/ComponentBuilderSingleton';
 
 if (env.isEmulator) {
     const emulator = getFirebaseEmulatorConfig();
@@ -42,16 +40,13 @@ if (env.isEmulator) {
     process.env.FIREBASE_AUTH_EMULATOR_HOST = emulator.identityToolkit.host;
     process.env.FIREBASE_STORAGE_EMULATOR_HOST = `127.0.0.1:${emulator.storagePort}`;
     process.env.CLIENT_API_KEY = emulator.identityToolkit.apiKey;
-    identityToolkitConfig = emulator.identityToolkit;
-} else {
-    identityToolkitConfig = getIdentityToolkitConfig();
 }
 
-// Get Firebase instances
-const firestoreDb = getFirestore();
+// Get component builder for service access
+const componentBuilder = getComponentBuilder();
 
-const applicationBuilder = ComponentBuilder.createComponentBuilder(firestoreDb, getAuth(), getStorage(), identityToolkitConfig);
-const policyService = applicationBuilder.buildPolicyService();
+// API driver for verification only
+const apiDriver = new ApiDriver();
 
 /**
  * Read policy file from docs/policies directory
@@ -67,14 +62,19 @@ function readPolicyFile(filename: string): string {
 }
 
 /**
- * Seed policy using API endpoints (dev) or internal functions (production)
+ * Seed policy using service (no admin API endpoint exists for policy creation)
  */
-async function seedPolicy(policyId: PolicyId, policyName: PolicyName, filename: string): Promise<void> {
+async function seedPolicy(
+    policyId: PolicyId,
+    policyName: PolicyName,
+    filename: string
+): Promise<void> {
     try {
-        // Check if policy already exists
-        const existingDoc = await firestoreDb.collection(FirestoreCollections.POLICIES).doc(policyId).get();
+        // Check if policy already exists (via service)
+        const firestoreReader = componentBuilder.buildFirestoreReader();
+        const existingPolicy = await firestoreReader.getPolicy(policyId);
 
-        if (existingDoc.exists) {
+        if (existingPolicy) {
             console.log(`⏭️  Policy ${policyId} already exists, skipping...`);
             return;
         }
@@ -84,13 +84,15 @@ async function seedPolicy(policyId: PolicyId, policyName: PolicyName, filename: 
         // Read policy text
         const text = toPolicyText(readPolicyFile(filename));
 
-        // Use direct service for seeding (avoids complex authentication setup)
-        console.log(`🔒 Creating policy via direct service (bypassing API authentication)...`);
-
-        // Use direct PolicyService instead of API for seeding
+        // Use direct service access (no admin API endpoint exists for policy creation)
+        console.log(`🔒 Creating policy via direct service...`);
+        const policyService = componentBuilder.buildPolicyService();
         const createResponse = await policyService.createPolicy(policyName, text, policyId);
-        const publishResponse = await policyService.publishPolicy(createResponse.id, createResponse.currentVersionHash);
-        console.log(`✅ Created policy via service: ${createResponse.id}`);
+        const publishResponse = await policyService.publishPolicy(
+            createResponse.id,
+            createResponse.currentVersionHash
+        );
+        console.log(`✅ Created policy: ${createResponse.id}`);
         console.log(`✅ Policy ${policyId} ready (hash: ${publishResponse.currentVersionHash})`);
     } catch (error) {
         console.error(`❌ Failed to seed policy ${policyId}:`, error);
@@ -99,19 +101,12 @@ async function seedPolicy(policyId: PolicyId, policyName: PolicyName, filename: 
 }
 
 /**
- * Verify policies are accessible via Admin API (only for emulator)
+ * Verify policies are accessible via Admin API
  */
 async function verifyPoliciesViaApi(adminToken: string): Promise<void> {
-    if (!env.isEmulator) {
-        console.log('⏭️  Skipping API verification (not available for production)');
-        return;
-    }
-
     console.log('\n═══════════════════════════════════════════════════════');
     console.log('🔍 VERIFYING POLICIES VIA ADMIN API...');
     console.log('═══════════════════════════════════════════════════════');
-
-    const apiDriver = new ApiDriver();
 
     try {
         // Fetch each individual policy using admin authentication
@@ -139,7 +134,7 @@ async function verifyPoliciesViaApi(adminToken: string): Promise<void> {
 }
 
 /**
- * Seed initial policies using admin API
+ * Seed initial policies
  */
 export async function seedPolicies() {
     console.log(`📚 Reading policy documents from docs/policies...`);
@@ -147,9 +142,8 @@ export async function seedPolicies() {
 
     assert(process.env.GCLOUD_PROJECT, 'GCLOUD_PROJECT must be set');
 
-    // Initialize Firebase handlers
+    // Verify all policy files exist first
     try {
-        // Verify all policy files exist first
         readPolicyFile('terms-and-conditions.md');
         readPolicyFile('cookie-policy.md');
         readPolicyFile('privacy-policy.md');
@@ -159,35 +153,35 @@ export async function seedPolicies() {
     }
 
     try {
-        // Seed all policies via admin API
-        await seedPolicy(PolicyIds.TERMS_OF_SERVICE, toPolicyName('Terms and Conditions'), 'terms-and-conditions.md');
-        await seedPolicy(PolicyIds.COOKIE_POLICY, toPolicyName('Cookie Policy'), 'cookie-policy.md');
-        await seedPolicy(PolicyIds.PRIVACY_POLICY, toPolicyName('Privacy Policy'), 'privacy-policy.md');
+        // Seed all policies via service (no admin API endpoint exists)
+        await seedPolicy(
+            PolicyIds.TERMS_OF_SERVICE,
+            toPolicyName('Terms and Conditions'),
+            'terms-and-conditions.md'
+        );
+        await seedPolicy(
+            PolicyIds.COOKIE_POLICY,
+            toPolicyName('Cookie Policy'),
+            'cookie-policy.md'
+        );
+        await seedPolicy(
+            PolicyIds.PRIVACY_POLICY,
+            toPolicyName('Privacy Policy'),
+            'privacy-policy.md'
+        );
 
         console.log(`✅ Successfully seeded all policies to ${env.environment}`);
 
-        // Verify policies were created by querying Firestore directly
-        const docs = await firestoreDb.collection(FirestoreCollections.POLICIES).get();
-        console.log(`Total documents in policies collection: ${docs.size}`);
-
-        docs.forEach((doc) => {
-            const data = doc.data();
-            console.log(`Document ${doc.id}:`, {
-                policyName: data.policyName,
-                currentVersionHash: data.currentVersionHash,
-                hasVersions: !!data.versions,
-            });
-        });
-
-        // Verify policies are accessible via Admin API (emulator only, if Bill Splitter user exists)
+        // Verify policies are accessible via Admin API (if admin token available)
         if (env.isEmulator) {
-            console.log('\n🔐 Checking if Bill Splitter admin exists for API verification...');
+            console.log('\n🔐 Looking for Bill Splitter admin user for API verification...');
             const billSplitterUser = await signInExistingBillSplitter();
+
             if (billSplitterUser) {
-                console.log('✅ Bill Splitter admin found - verifying API access...');
+                console.log('✅ Bill Splitter admin found - verifying via Admin API...');
                 await verifyPoliciesViaApi(billSplitterUser.token);
             } else {
-                console.log('⏭️  Bill Splitter admin not found yet - skipping API verification (will verify after user creation)');
+                console.log('⏭️  Bill Splitter admin not found - skipping API verification');
             }
         }
 
