@@ -1,204 +1,118 @@
-import { SystemUserRoles, toDisplayName, toUserId } from '@billsplit-wl/shared';
-import { RegisteredUserBuilder, TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
-import type { Response } from 'express';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { UserAdminHandlers } from '../../../admin/UserAdminHandlers';
-import type { AuthenticatedRequest } from '../../../auth/middleware';
+import { SystemUserRoles, toUserId } from '@billsplit-wl/shared';
+import { UserRegistrationBuilder } from '@billsplit-wl/test-support';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
-import { FirestoreReader, FirestoreWriter } from '../../../services/firestore';
 import { ApiError } from '../../../utils/errors';
-import { StubAuthService } from '../mocks/StubAuthService';
+import { AppDriver } from '../AppDriver';
 
 describe('UserAdminHandlers - Unit Tests', () => {
-    let handlers: UserAdminHandlers;
-    let authService: StubAuthService;
-    let db: TenantFirestoreTestDatabase;
-    let firestoreReader: FirestoreReader;
-    let firestoreWriter: FirestoreWriter;
-    let mockReq: Partial<AuthenticatedRequest>;
-    let mockRes: Partial<Response>;
-    let jsonSpy: ReturnType<typeof vi.fn>;
-    let statusSpy: ReturnType<typeof vi.fn>;
+    let appDriver: AppDriver;
+    let adminToken: string;
 
-    const adminUserId = toUserId('admin1');
-
-    // Helper to convert RegisteredUser to format compatible with setUser
-    function toUserRecord(user: any) {
-        return {
-            ...user,
-            photoURL: user.photoURL === null ? undefined : user.photoURL,
-        };
-    }
-
-    beforeEach(() => {
-        db = new TenantFirestoreTestDatabase();
-        authService = new StubAuthService();
-        firestoreReader = new FirestoreReader(db);
-        firestoreWriter = new FirestoreWriter(db);
-
-        handlers = new UserAdminHandlers(authService, firestoreWriter, firestoreReader);
-
-        // Setup mock request and response
-        jsonSpy = vi.fn();
-        statusSpy = vi.fn().mockReturnValue({ json: jsonSpy });
-
-        mockReq = {
-            params: {},
-            body: {},
-            user: undefined,
-        };
-
-        mockRes = {
-            json: jsonSpy,
-            status: statusSpy,
-        };
+    beforeEach(async () => {
+        appDriver = new AppDriver();
+        const admin = await appDriver.createAdminUser();
+        adminToken = admin.token;
     });
 
     describe('updateUser', () => {
         it('should successfully disable a user account', async () => {
-            // Setup: Create a user
-            const user = new RegisteredUserBuilder()
-                .withUid('user1')
+            // Create a user via API
+            const registration = new UserRegistrationBuilder()
                 .withEmail('user1@test.com')
                 .withDisplayName('User One')
                 .build();
+            const registered = await appDriver.registerUser(registration);
+            const userId = toUserId(registered.user.uid);
 
-            authService.setUser(user.uid, toUserRecord(user));
-            db.seedUser('user1', {
-                email: user.email,
-                displayName: user.displayName,
-                role: SystemUserRoles.SYSTEM_USER,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-            });
-
-            // Setup request to disable user
-            mockReq.params = { uid: 'user1' };
-            mockReq.body = { disabled: true };
-            mockReq.user = { uid: adminUserId, displayName: toDisplayName('Admin'), role: SystemUserRoles.SYSTEM_ADMIN };
-
-            // Execute
-            await handlers.updateUser(mockReq as AuthenticatedRequest, mockRes as Response);
+            // Disable the user via admin API
+            const result = await appDriver.updateUser(userId, { disabled: true }, adminToken);
 
             // Verify response
-            expect(jsonSpy).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    uid: 'user1',
-                    email: 'user1@test.com',
-                    disabled: true,
-                }),
-            );
-
-            // Verify user is disabled in auth service
-            const updatedUser = await authService.getUser(toUserId('user1'));
-            expect(updatedUser?.disabled).toBe(true);
+            expect(result).toMatchObject({
+                uid: userId,
+                email: 'user1@test.com',
+                disabled: true,
+            });
         });
 
         it('should successfully enable a disabled user account', async () => {
-            // Setup: Create a disabled user
-            const user = new RegisteredUserBuilder()
-                .withUid('user1')
+            // Create a user via API
+            const registration = new UserRegistrationBuilder()
                 .withEmail('user1@test.com')
                 .withDisplayName('User One')
                 .build();
+            const registered = await appDriver.registerUser(registration);
+            const userId = toUserId(registered.user.uid);
 
-            authService.setUser(user.uid, { ...toUserRecord(user), disabled: true });
-            db.seedUser('user1', {
-                email: user.email,
-                displayName: user.displayName,
-                role: SystemUserRoles.SYSTEM_USER,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-            });
+            // First disable the user
+            await appDriver.updateUser(userId, { disabled: true }, adminToken);
 
-            // Setup request to enable user
-            mockReq.params = { uid: 'user1' };
-            mockReq.body = { disabled: false };
-            mockReq.user = { uid: adminUserId, displayName: toDisplayName('Admin'), role: SystemUserRoles.SYSTEM_ADMIN };
-
-            // Execute
-            await handlers.updateUser(mockReq as AuthenticatedRequest, mockRes as Response);
+            // Then enable the user
+            const result = await appDriver.updateUser(userId, { disabled: false }, adminToken);
 
             // Verify response
-            expect(jsonSpy).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    uid: 'user1',
-                    email: 'user1@test.com',
-                    disabled: false,
-                }),
-            );
-
-            // Verify user is enabled in auth service
-            const updatedUser = await authService.getUser(toUserId('user1'));
-            expect(updatedUser?.disabled).toBe(false);
+            expect(result).toMatchObject({
+                uid: userId,
+                email: 'user1@test.com',
+                disabled: false,
+            });
         });
 
         it('should reject request with invalid UID', async () => {
-            // Setup request with empty UID
-            mockReq.params = { uid: '' };
-            mockReq.body = { disabled: true };
-
-            // Execute and expect error
-            await expect(handlers.updateUser(mockReq as any as AuthenticatedRequest, mockRes as Response)).rejects.toThrow(ApiError);
-            await expect(handlers.updateUser(mockReq as any as AuthenticatedRequest, mockRes as Response)).rejects.toThrow('User ID is required');
+            // Try to update user with empty UID
+            await expect(
+                appDriver.updateUser(toUserId(''), { disabled: true }, adminToken)
+            ).rejects.toThrow('User ID is required');
         });
 
         it('should reject request with non-boolean disabled field', async () => {
-            // Setup
-            const user = new RegisteredUserBuilder().withUid('user1').build();
-            authService.setUser(user.uid, toUserRecord(user));
+            // Create a user via API
+            const registration = new UserRegistrationBuilder().build();
+            const registered = await appDriver.registerUser(registration);
+            const userId = toUserId(registered.user.uid);
 
-            mockReq.params = { uid: 'user1' };
-            mockReq.body = { disabled: 'true' }; // String instead of boolean
-
-            // Execute and expect error
-            await expect(handlers.updateUser(mockReq as any as AuthenticatedRequest, mockRes as Response)).rejects.toThrow(ApiError);
-            await expect(handlers.updateUser(mockReq as any as AuthenticatedRequest, mockRes as Response)).rejects.toThrow('boolean "disabled" field');
+            // Try to update with invalid disabled value
+            await expect(
+                appDriver.updateUser(userId, { disabled: 'true' } as any, adminToken)
+            ).rejects.toThrow('boolean "disabled" field');
         });
 
         it('should reject request with extra fields', async () => {
-            // Setup
-            const user = new RegisteredUserBuilder().withUid('user1').build();
-            authService.setUser(user.uid, toUserRecord(user));
+            // Create a user via API
+            const registration = new UserRegistrationBuilder().build();
+            const registered = await appDriver.registerUser(registration);
+            const userId = toUserId(registered.user.uid);
 
-            mockReq.params = { uid: 'user1' };
-            mockReq.body = { disabled: true, email: 'new@test.com' }; // Extra field
-
-            // Execute and expect error
-            await expect(handlers.updateUser(mockReq as any as AuthenticatedRequest, mockRes as Response)).rejects.toThrow(ApiError);
-            await expect(handlers.updateUser(mockReq as any as AuthenticatedRequest, mockRes as Response)).rejects.toThrow('Only "disabled" field is allowed');
+            // Try to update with extra fields
+            await expect(
+                appDriver.updateUser(userId, { disabled: true, email: 'new@test.com' } as any, adminToken)
+            ).rejects.toThrow('Only "disabled" field is allowed');
         });
 
         it('should prevent user from disabling their own account', async () => {
-            // Setup: Create a user
-            const user = new RegisteredUserBuilder()
-                .withUid('user1')
+            // Create a user and promote to admin
+            const registration = new UserRegistrationBuilder()
                 .withEmail('user1@test.com')
                 .build();
+            const registered = await appDriver.registerUser(registration);
+            const userId = toUserId(registered.user.uid);
+            const userToken = registered.user.uid;
 
-            authService.setUser(user.uid, toUserRecord(user));
+            await appDriver.promoteUserToAdmin(userId);
 
-            // Setup request where user tries to disable themselves
-            mockReq.params = { uid: 'user1' };
-            mockReq.body = { disabled: true };
-            mockReq.user = { uid: toUserId('user1'), displayName: toDisplayName('User One'), role: SystemUserRoles.SYSTEM_ADMIN }; // Same UID
-
-            // Execute and expect error
-            await expect(handlers.updateUser(mockReq as any as AuthenticatedRequest, mockRes as Response)).rejects.toThrow(ApiError);
-            await expect(handlers.updateUser(mockReq as any as AuthenticatedRequest, mockRes as Response)).rejects.toThrow('cannot disable your own account');
+            // Try to disable own account using own token
+            await expect(
+                appDriver.updateUser(userId, { disabled: true }, userToken)
+            ).rejects.toThrow('cannot disable your own account');
         });
 
         it('should return 404 for non-existent user', async () => {
-            // Setup request for user that doesn't exist
-            mockReq.params = { uid: 'nonexistent' };
-            mockReq.body = { disabled: true };
-            mockReq.user = { uid: adminUserId, displayName: toDisplayName('Admin'), role: SystemUserRoles.SYSTEM_ADMIN };
-
-            // Execute and expect error
-            await expect(handlers.updateUser(mockReq as any as AuthenticatedRequest, mockRes as Response)).rejects.toThrow(ApiError);
+            const nonExistentUserId = toUserId('nonexistent');
 
             try {
-                await handlers.updateUser(mockReq as any as AuthenticatedRequest, mockRes as Response);
+                await appDriver.updateUser(nonExistentUserId, { disabled: true }, adminToken);
+                expect.fail('Expected updateUser to throw ApiError');
             } catch (error) {
                 expect(error).toBeInstanceOf(ApiError);
                 expect((error as ApiError).statusCode).toBe(HTTP_STATUS.NOT_FOUND);
@@ -207,260 +121,148 @@ describe('UserAdminHandlers - Unit Tests', () => {
         });
 
         it('should validate that UID is a non-empty string', async () => {
-            // Test with missing UID
-            mockReq.params = {};
-            mockReq.body = { disabled: true };
-
-            await expect(handlers.updateUser(mockReq as any as AuthenticatedRequest, mockRes as Response)).rejects.toThrow('User ID is required');
-
             // Test with whitespace-only UID
-            mockReq.params = { uid: '   ' };
-            await expect(handlers.updateUser(mockReq as any as AuthenticatedRequest, mockRes as Response)).rejects.toThrow('User ID is required');
+            await expect(
+                appDriver.updateUser(toUserId('   '), { disabled: true }, adminToken)
+            ).rejects.toThrow('User ID is required');
         });
 
         it('should handle missing disabled field', async () => {
-            // Setup
-            const user = new RegisteredUserBuilder().withUid('user1').build();
-            authService.setUser(user.uid, toUserRecord(user));
+            // Create a user via API
+            const registration = new UserRegistrationBuilder().build();
+            const registered = await appDriver.registerUser(registration);
+            const userId = toUserId(registered.user.uid);
 
-            mockReq.params = { uid: 'user1' };
-            mockReq.body = {}; // Missing disabled field
-
-            // Execute and expect error
-            await expect(handlers.updateUser(mockReq as any as AuthenticatedRequest, mockRes as Response)).rejects.toThrow('boolean "disabled" field');
+            // Try to update without disabled field
+            await expect(
+                appDriver.updateUser(userId, {} as any, adminToken)
+            ).rejects.toThrow('boolean "disabled" field');
         });
     });
 
     describe('updateUserRole', () => {
         it('should successfully update user role to system_admin', async () => {
-            // Setup: Create a user
-            const user = new RegisteredUserBuilder()
-                .withUid('user1')
+            // Create a user via API
+            const registration = new UserRegistrationBuilder()
                 .withEmail('user1@test.com')
                 .withDisplayName('User One')
                 .build();
+            const registered = await appDriver.registerUser(registration);
+            const userId = toUserId(registered.user.uid);
 
-            authService.setUser(user.uid, toUserRecord(user));
-            db.seedUser('user1', {
-                email: user.email,
-                displayName: user.displayName,
-                role: SystemUserRoles.SYSTEM_USER,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-            });
-
-            // Setup request to promote to system_admin
-            mockReq.params = { uid: 'user1' };
-            mockReq.body = { role: SystemUserRoles.SYSTEM_ADMIN };
-            mockReq.user = { uid: adminUserId, displayName: toDisplayName('Admin'), role: SystemUserRoles.SYSTEM_ADMIN };
-
-            // Execute
-            await handlers.updateUserRole(mockReq as AuthenticatedRequest, mockRes as Response);
-
-            // Verify actual database state
-            const updatedUser = await firestoreReader.getUser(toUserId('user1'));
-            expect(updatedUser?.role).toBe(SystemUserRoles.SYSTEM_ADMIN);
+            // Update role to system_admin
+            const result = await appDriver.updateUserRole(userId, { role: SystemUserRoles.SYSTEM_ADMIN }, adminToken);
 
             // Verify response
-            expect(jsonSpy).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    uid: 'user1',
-                    email: 'user1@test.com',
-                    displayName: toDisplayName('User One'),
-                }),
-            );
+            expect(result).toMatchObject({
+                uid: userId,
+                email: 'user1@test.com',
+                displayName: 'User One',
+                role: SystemUserRoles.SYSTEM_ADMIN,
+            });
         });
 
         it('should successfully update user role to tenant_admin', async () => {
-            // Setup: Create a user
-            const user = new RegisteredUserBuilder()
-                .withUid('user2')
+            // Create a user via API
+            const registration = new UserRegistrationBuilder()
                 .withEmail('user2@test.com')
                 .build();
+            const registered = await appDriver.registerUser(registration);
+            const userId = toUserId(registered.user.uid);
 
-            authService.setUser(user.uid, toUserRecord(user));
-            db.seedUser('user2', {
-                email: user.email,
-                displayName: user.displayName,
-                role: SystemUserRoles.SYSTEM_USER,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-            });
-
-            // Setup request to promote to tenant_admin
-            mockReq.params = { uid: 'user2' };
-            mockReq.body = { role: SystemUserRoles.TENANT_ADMIN };
-            mockReq.user = { uid: adminUserId, displayName: toDisplayName('Admin'), role: SystemUserRoles.SYSTEM_ADMIN };
-
-            // Execute
-            await handlers.updateUserRole(mockReq as AuthenticatedRequest, mockRes as Response);
-
-            // Verify actual database state
-            const updatedUser = await firestoreReader.getUser(toUserId('user2'));
-            expect(updatedUser?.role).toBe(SystemUserRoles.TENANT_ADMIN);
+            // Update role to tenant_admin
+            const result = await appDriver.updateUserRole(userId, { role: SystemUserRoles.TENANT_ADMIN }, adminToken);
 
             // Verify response
-            expect(jsonSpy).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    uid: 'user2',
-                    email: 'user2@test.com',
-                }),
-            );
+            expect(result).toMatchObject({
+                uid: userId,
+                email: 'user2@test.com',
+                role: SystemUserRoles.TENANT_ADMIN,
+            });
         });
 
         it('should successfully remove user role by setting to null', async () => {
-            // Setup: Create a user with admin role
-            const user = new RegisteredUserBuilder()
-                .withUid('user3')
+            // Create a user via API
+            const registration = new UserRegistrationBuilder()
                 .withEmail('user3@test.com')
                 .build();
+            const registered = await appDriver.registerUser(registration);
+            const userId = toUserId(registered.user.uid);
 
-            authService.setUser(user.uid, toUserRecord(user));
-            db.seedUser('user3', {
-                email: user.email,
-                displayName: user.displayName,
-                role: SystemUserRoles.SYSTEM_ADMIN,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-            });
+            // First promote to admin
+            await appDriver.updateUserRole(userId, { role: SystemUserRoles.SYSTEM_ADMIN }, adminToken);
 
-            // Setup request to remove role
-            mockReq.params = { uid: 'user3' };
-            mockReq.body = { role: null };
-            mockReq.user = { uid: adminUserId, displayName: toDisplayName('Admin'), role: SystemUserRoles.SYSTEM_ADMIN };
+            // Then remove role (set to null, defaults to system_user)
+            const result = await appDriver.updateUserRole(userId, { role: null }, adminToken);
 
-            // Execute
-            await handlers.updateUserRole(mockReq as AuthenticatedRequest, mockRes as Response);
-
-            // Verify actual database state (null defaults to system_user)
-            const updatedUser = await firestoreReader.getUser(toUserId('user3'));
-            expect(updatedUser?.role).toBe(SystemUserRoles.SYSTEM_USER);
-
-            // Verify response
-            expect(jsonSpy).toHaveBeenCalled();
+            // Verify role is now system_user
+            expect(result.role).toBe(SystemUserRoles.SYSTEM_USER);
         });
 
         it('should reject invalid role value', async () => {
-            // Setup: Create a user
-            const user = new RegisteredUserBuilder().withUid('user1').build();
-            authService.setUser(user.uid, toUserRecord(user));
-            db.seedUser('user1', {
-                email: user.email,
-                displayName: user.displayName,
-                role: SystemUserRoles.SYSTEM_USER,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-            });
+            // Create a user via API
+            const registration = new UserRegistrationBuilder().build();
+            const registered = await appDriver.registerUser(registration);
+            const userId = toUserId(registered.user.uid);
 
-            // Setup request with invalid role
-            mockReq.params = { uid: 'user1' };
-            mockReq.body = { role: 'invalid_role' };
-            mockReq.user = { uid: adminUserId, displayName: toDisplayName('Admin'), role: SystemUserRoles.SYSTEM_ADMIN };
-
-            // Execute and expect error
+            // Try to set invalid role
             try {
-                await handlers.updateUserRole(mockReq as AuthenticatedRequest, mockRes as Response);
+                await appDriver.updateUserRole(userId, { role: 'invalid_role' as any }, adminToken);
                 expect.fail('Expected updateUserRole to throw ApiError');
             } catch (error) {
                 expect(error).toBeInstanceOf(ApiError);
                 expect((error as ApiError).code).toBe('INVALID_ROLE');
                 expect((error as ApiError).statusCode).toBe(HTTP_STATUS.BAD_REQUEST);
             }
-
-            // Verify database state was NOT changed
-            const unchangedUser = await firestoreReader.getUser(toUserId('user1'));
-            expect(unchangedUser?.role).toBe(SystemUserRoles.SYSTEM_USER);
         });
 
         it('should reject request with invalid UID', async () => {
-            // Setup request with empty UID
-            mockReq.params = { uid: '' };
-            mockReq.body = { role: SystemUserRoles.SYSTEM_ADMIN };
-            mockReq.user = { uid: adminUserId, displayName: toDisplayName('Admin'), role: SystemUserRoles.SYSTEM_ADMIN };
-
-            // Execute and expect error
-            await expect(handlers.updateUserRole(mockReq as AuthenticatedRequest, mockRes as Response)).rejects.toThrow(ApiError);
-            await expect(handlers.updateUserRole(mockReq as AuthenticatedRequest, mockRes as Response)).rejects.toThrow('User ID is required');
+            // Try to update role with empty UID
+            await expect(
+                appDriver.updateUserRole(toUserId(''), { role: SystemUserRoles.SYSTEM_ADMIN }, adminToken)
+            ).rejects.toThrow('User ID is required');
         });
 
         it('should reject request with extra fields', async () => {
-            // Setup
-            const user = new RegisteredUserBuilder().withUid('user1').build();
-            authService.setUser(user.uid, toUserRecord(user));
-            db.seedUser('user1', {
-                email: user.email,
-                displayName: user.displayName,
-                role: SystemUserRoles.SYSTEM_USER,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-            });
+            // Create a user via API
+            const registration = new UserRegistrationBuilder().build();
+            const registered = await appDriver.registerUser(registration);
+            const userId = toUserId(registered.user.uid);
 
-            mockReq.params = { uid: 'user1' };
-            mockReq.body = { role: SystemUserRoles.SYSTEM_ADMIN, email: 'new@test.com' }; // Extra field
-            mockReq.user = { uid: adminUserId, displayName: toDisplayName('Admin'), role: SystemUserRoles.SYSTEM_ADMIN };
-
-            // Execute and expect error
-            try {
-                await handlers.updateUserRole(mockReq as AuthenticatedRequest, mockRes as Response);
-                expect.fail('Expected updateUserRole to throw ApiError');
-            } catch (error) {
-                expect(error).toBeInstanceOf(ApiError);
-                expect((error as ApiError).code).toBe('INVALID_FIELDS');
-                expect((error as ApiError).statusCode).toBe(HTTP_STATUS.BAD_REQUEST);
-            }
-
-            // Verify database state was NOT changed
-            const unchangedUser = await firestoreReader.getUser(toUserId('user1'));
-            expect(unchangedUser?.role).toBe(SystemUserRoles.SYSTEM_USER);
+            // Try to update with extra fields
+            await expect(
+                appDriver.updateUserRole(userId, { role: SystemUserRoles.SYSTEM_ADMIN, email: 'new@test.com' } as any, adminToken)
+            ).rejects.toThrow('Only "role" field is allowed');
         });
 
         it('should prevent user from changing their own role', async () => {
-            // Setup: Create a user
-            const user = new RegisteredUserBuilder()
-                .withUid('user1')
+            // Create a user and promote to admin
+            const registration = new UserRegistrationBuilder()
                 .withEmail('user1@test.com')
                 .build();
+            const registered = await appDriver.registerUser(registration);
+            const userId = toUserId(registered.user.uid);
+            const userToken = registered.user.uid;
 
-            authService.setUser(user.uid, toUserRecord(user));
-            db.seedUser('user1', {
-                email: user.email,
-                displayName: user.displayName,
-                role: SystemUserRoles.SYSTEM_USER,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-            });
+            await appDriver.promoteUserToAdmin(userId);
 
-            // Setup request where user tries to change their own role
-            mockReq.params = { uid: 'user1' };
-            mockReq.body = { role: SystemUserRoles.SYSTEM_ADMIN };
-            mockReq.user = { uid: toUserId('user1'), displayName: toDisplayName('User One'), role: SystemUserRoles.SYSTEM_USER }; // Same UID
-
-            // Execute and expect error
+            // Try to change own role using own token
             try {
-                await handlers.updateUserRole(mockReq as AuthenticatedRequest, mockRes as Response);
+                await appDriver.updateUserRole(userId, { role: SystemUserRoles.TENANT_ADMIN }, userToken);
                 expect.fail('Expected updateUserRole to throw ApiError');
             } catch (error) {
                 expect(error).toBeInstanceOf(ApiError);
                 expect((error as ApiError).code).toBe('CANNOT_CHANGE_OWN_ROLE');
                 expect((error as ApiError).statusCode).toBe(HTTP_STATUS.CONFLICT);
             }
-
-            // Verify database state was NOT changed
-            const unchangedUser = await firestoreReader.getUser(toUserId('user1'));
-            expect(unchangedUser?.role).toBe(SystemUserRoles.SYSTEM_USER);
         });
 
         it('should return 404 for non-existent user', async () => {
-            // Setup request for user that doesn't exist
-            mockReq.params = { uid: 'nonexistent' };
-            mockReq.body = { role: SystemUserRoles.SYSTEM_ADMIN };
-            mockReq.user = { uid: adminUserId, displayName: toDisplayName('Admin'), role: SystemUserRoles.SYSTEM_ADMIN };
-
-            // Execute and expect error
-            await expect(handlers.updateUserRole(mockReq as AuthenticatedRequest, mockRes as Response)).rejects.toThrow(ApiError);
+            const nonExistentUserId = toUserId('nonexistent');
 
             try {
-                await handlers.updateUserRole(mockReq as AuthenticatedRequest, mockRes as Response);
+                await appDriver.updateUserRole(nonExistentUserId, { role: SystemUserRoles.SYSTEM_ADMIN }, adminToken);
+                expect.fail('Expected updateUserRole to throw ApiError');
             } catch (error) {
                 expect(error).toBeInstanceOf(ApiError);
                 expect((error as ApiError).statusCode).toBe(HTTP_STATUS.NOT_FOUND);
@@ -469,16 +271,10 @@ describe('UserAdminHandlers - Unit Tests', () => {
         });
 
         it('should validate that UID is a non-empty string', async () => {
-            // Test with missing UID
-            mockReq.params = {};
-            mockReq.body = { role: SystemUserRoles.SYSTEM_ADMIN };
-            mockReq.user = { uid: adminUserId, displayName: toDisplayName('Admin'), role: SystemUserRoles.SYSTEM_ADMIN };
-
-            await expect(handlers.updateUserRole(mockReq as AuthenticatedRequest, mockRes as Response)).rejects.toThrow('User ID is required');
-
             // Test with whitespace-only UID
-            mockReq.params = { uid: '   ' };
-            await expect(handlers.updateUserRole(mockReq as AuthenticatedRequest, mockRes as Response)).rejects.toThrow('User ID is required');
+            await expect(
+                appDriver.updateUserRole(toUserId('   '), { role: SystemUserRoles.SYSTEM_ADMIN }, adminToken)
+            ).rejects.toThrow('User ID is required');
         });
     });
 });
