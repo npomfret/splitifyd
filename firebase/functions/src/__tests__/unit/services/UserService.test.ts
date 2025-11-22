@@ -1,8 +1,9 @@
 import {ClientUserBuilder, CreateGroupRequestBuilder, PasswordChangeRequestBuilder, StubStorage, TenantFirestoreTestDatabase, UserRegistrationBuilder, UserUpdateBuilder} from '@billsplit-wl/test-support';
+import { StubCloudTasksClient } from '@billsplit-wl/firebase-simulator';
 import {DisplayName, SystemUserRoles, toDisplayName, toGroupId, toUserId} from '@billsplit-wl/shared';
 import {beforeAll, beforeEach, describe, expect, it, vi} from 'vitest';
 import {HTTP_STATUS} from '../../../constants';
-import {ComponentBuilder} from '../../../services/ComponentBuilder';
+import {ComponentBuilder, createTestMergeServiceConfig} from '../../../services/ComponentBuilder';
 import {UserService} from '../../../services/UserService2';
 import {ApiError} from '../../../utils/errors';
 import {initializeI18n} from '../../../utils/i18n';
@@ -27,7 +28,12 @@ describe('UserService - Consolidated Unit Tests', () => {
         stubAuth = new StubAuthService();
 
         // Create UserService via ApplicationBuilder
-        userService = new ComponentBuilder(stubAuth, db, new StubStorage({ defaultBucketName: 'test-bucket' })).buildUserService();
+        userService = new ComponentBuilder(
+            stubAuth,
+            db,
+            new StubStorage({ defaultBucketName: 'test-bucket' }),
+            new StubCloudTasksClient()
+        ).buildUserService();
 
         // Clear all stub data
         stubAuth.clear();
@@ -408,7 +414,13 @@ describe('UserService - Consolidated Unit Tests', () => {
         let validationTestUserId: string;
 
         beforeEach(async () => {
-            validationUserService = new ComponentBuilder(stubAuth, db, new StubStorage({ defaultBucketName: 'test-bucket' })).buildUserService();
+            validationUserService = new ComponentBuilder(
+                stubAuth,
+                db,
+                new StubStorage({ defaultBucketName: 'test-bucket' }),
+                new StubCloudTasksClient(),
+                createTestMergeServiceConfig()
+            ).buildUserService();
 
             const email = 'validation-user@example.com';
             const displayName = 'Validation User';

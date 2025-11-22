@@ -1,26 +1,26 @@
-import type { Auth } from 'firebase-admin/auth';
-import type { Firestore } from 'firebase-admin/firestore';
-import { createFirestoreDatabase, IFirestoreDatabase } from '../firestore-wrapper';
-import { createStorage, type IStorage } from '../storage-wrapper';
-import { ActivityFeedService } from './ActivityFeedService';
-import { IAuthService } from './auth';
-import { FirebaseAuthService, type IdentityToolkitConfig } from './auth';
-import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
-import { CommentService } from './CommentService';
-import { ExpenseService } from './ExpenseService';
-import { FirestoreReader, type IFirestoreReader, type IFirestoreWriter } from './firestore';
-import { FirestoreWriter } from './firestore';
-import { GroupMemberService } from './GroupMemberService';
-import { GroupService } from './GroupService';
-import { GroupShareService } from './GroupShareService';
-import { PolicyService } from './PolicyService';
-import { SettlementService } from './SettlementService';
-import { CloudThemeArtifactStorage } from './storage/CloudThemeArtifactStorage';
-import { type ThemeArtifactStorage } from './storage/ThemeArtifactStorage';
-import { TenantRegistryService } from './tenant/TenantRegistryService';
-import { GroupTransactionManager } from './transactions/GroupTransactionManager';
-import { UserPolicyService } from './UserPolicyService';
-import { UserService } from './UserService2';
+import type {Auth} from 'firebase-admin/auth';
+import type {Firestore} from 'firebase-admin/firestore';
+import {createFirestoreDatabase, IFirestoreDatabase} from '../firestore-wrapper';
+import {createStorage, type IStorage} from '../storage-wrapper';
+import {ActivityFeedService} from './ActivityFeedService';
+import {FirebaseAuthService, IAuthService, type IdentityToolkitConfig} from './auth';
+import {IncrementalBalanceService} from './balance/IncrementalBalanceService';
+import {CommentService} from './CommentService';
+import {ExpenseService} from './ExpenseService';
+import {FirestoreReader, FirestoreWriter, type IFirestoreReader, type IFirestoreWriter} from './firestore';
+import {GroupMemberService} from './GroupMemberService';
+import {GroupService} from './GroupService';
+import {GroupShareService} from './GroupShareService';
+import {PolicyService} from './PolicyService';
+import {SettlementService} from './SettlementService';
+import {CloudThemeArtifactStorage} from './storage/CloudThemeArtifactStorage';
+import {type ThemeArtifactStorage} from './storage/ThemeArtifactStorage';
+import {TenantRegistryService} from './tenant/TenantRegistryService';
+import {GroupTransactionManager} from './transactions/GroupTransactionManager';
+import {UserPolicyService} from './UserPolicyService';
+import {UserService} from './UserService2';
+import {MergeService, type MergeServiceConfig} from '../merge/MergeService';
+import {createCloudTasksClient, type ICloudTasksClient} from '@billsplit-wl/firebase-simulator';
 
 export class ComponentBuilder {
     // Base infrastructure - created once
@@ -39,6 +39,7 @@ export class ComponentBuilder {
     private activityFeedService?: ActivityFeedService;
     private tenantRegistryService?: TenantRegistryService;
     private themeArtifactStorage?: ThemeArtifactStorage;
+    private mergeService?: MergeService;
     private readonly firestoreReader: IFirestoreReader;
     private readonly firestoreWriter: IFirestoreWriter;
 
@@ -46,6 +47,7 @@ export class ComponentBuilder {
         private readonly authService: IAuthService,
         private readonly db: IFirestoreDatabase,
         private readonly storage: IStorage,
+        private readonly cloudTasksClient: ICloudTasksClient,
     ) {
         this.firestoreReader = new FirestoreReader(db);
         this.firestoreWriter = new FirestoreWriter(db);
@@ -68,7 +70,14 @@ export class ComponentBuilder {
             true, // enableMetrics
         );
 
-        return new ComponentBuilder(firebaseAuthService, wrappedDb, wrappedStorage);
+        const cloudTasksClient = createCloudTasksClient();
+
+        return new ComponentBuilder(
+            firebaseAuthService,
+            wrappedDb,
+            wrappedStorage,
+            cloudTasksClient
+        );
     }
 
     // ========================================================================
@@ -224,6 +233,25 @@ export class ComponentBuilder {
             this.themeArtifactStorage = new CloudThemeArtifactStorage(this.storage);
         }
         return this.themeArtifactStorage;
+    }
+
+    buildMergeService(): MergeService {
+        if (!this.mergeService) {
+            const config: MergeServiceConfig = {
+                projectId: process.env.GCLOUD_PROJECT || 'test-project',
+                cloudTasksLocation: process.env.CLOUD_TASKS_LOCATION || 'us-central1',
+                functionsUrl: process.env.FUNCTIONS_URL || 'http://localhost:5001',
+            };
+
+            this.mergeService = new MergeService(
+                this.buildAuthService(),
+                this.buildFirestoreReader(),
+                this.buildFirestoreWriter(),
+                this.cloudTasksClient,
+                config,
+            );
+        }
+        return this.mergeService;
     }
 
     getDatabase(): IFirestoreDatabase {

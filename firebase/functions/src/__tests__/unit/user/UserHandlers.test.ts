@@ -1,5 +1,6 @@
 import { StubStorage } from '@billsplit-wl/test-support';
 import { PasswordChangeRequestBuilder, TenantFirestoreTestDatabase, UserRegistrationBuilder, UserUpdateBuilder } from '@billsplit-wl/test-support';
+import { StubCloudTasksClient } from '@billsplit-wl/firebase-simulator';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
@@ -229,7 +230,12 @@ describe('UserHandlers - Integration Tests', () => {
         it('should create UserHandlers instance with UserService', () => {
             const db = new TenantFirestoreTestDatabase();
             const authService = new StubAuthService();
-            const componentBuilder = new ComponentBuilder(authService, db, new StubStorage({ defaultBucketName: 'test-bucket' }));
+            const componentBuilder = new ComponentBuilder(
+                authService,
+                db,
+                new StubStorage({ defaultBucketName: 'test-bucket' }),
+                new StubCloudTasksClient()
+            );
             const handlers = new UserHandlers(componentBuilder.buildUserService());
             expect(handlers).toBeInstanceOf(UserHandlers);
             expect(handlers.updateUserProfile).toBeDefined();

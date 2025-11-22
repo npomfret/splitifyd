@@ -1,5 +1,6 @@
 import { toGroupId, toSettlementId, toUserId } from '@billsplit-wl/shared';
 import { CreateSettlementRequestBuilder, UserRegistrationBuilder, CreateGroupRequestBuilder } from '@billsplit-wl/test-support';
+import { StubCloudTasksClient } from '@billsplit-wl/firebase-simulator';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';

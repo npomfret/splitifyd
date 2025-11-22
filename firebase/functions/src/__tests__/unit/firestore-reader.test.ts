@@ -6,22 +6,35 @@
 
 import { toGroupId } from '@billsplit-wl/shared';
 import { TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
+import { StubCloudTasksClient, createFirestoreDatabase, createStorage } from '@billsplit-wl/firebase-simulator';
 import { GroupDTOBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { getAuth, getFirestore, getStorage } from '../../firebase';
 import { Timestamp } from '../../firestore-wrapper';
-import { createFirestoreDatabase } from '../../firestore-wrapper';
 import { ComponentBuilder } from '../../services/ComponentBuilder';
 import { FirestoreReader } from '../../services/firestore';
-
-const identityToolkitConfig = {
-    apiKey: 'test-api-key',
-    baseUrl: 'https://identitytoolkit.googleapis.com',
-};
+import { FirebaseAuthService } from '../../services/auth/FirebaseAuthService';
 
 describe('FirestoreReader', () => {
     const firestore = getFirestore();
-    const applicationBuilder = ComponentBuilder.createComponentBuilder(firestore, getAuth(), getStorage(), identityToolkitConfig);
+    const auth = getAuth();
+    const storage = getStorage();
+
+    const wrappedDb = createFirestoreDatabase(firestore);
+    const wrappedStorage = createStorage(storage);
+    const authService = new FirebaseAuthService(
+        auth,
+        { apiKey: 'test-api-key', baseUrl: 'https://identitytoolkit.googleapis.com' },
+        true, // enableValidation
+        true, // enableMetrics
+    );
+
+    const applicationBuilder = new ComponentBuilder(
+        authService,
+        wrappedDb,
+        wrappedStorage,
+        new StubCloudTasksClient(),
+    );
     const firestoreReader = applicationBuilder.buildFirestoreReader();
 
     test('should be instantiable', () => {

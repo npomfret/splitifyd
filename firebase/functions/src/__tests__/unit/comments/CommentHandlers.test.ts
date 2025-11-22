@@ -1,4 +1,4 @@
-import { StubStorage } from '@billsplit-wl/test-support';
+import { StubStorage, StubCloudTasksClient } from '@billsplit-wl/firebase-simulator';
 import { CommentDTO, toEmail, toPassword, toDisplayName, toUserId } from '@billsplit-wl/shared';
 import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, TenantFirestoreTestDatabase, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
@@ -611,7 +611,12 @@ describe('CommentHandlers - Integration Tests', () => {
         it('should create CommentHandlers instance with CommentService', () => {
             const db = new TenantFirestoreTestDatabase();
             const authService = new StubAuthService();
-            const componentBuilder = new ComponentBuilder(authService, db, new StubStorage({ defaultBucketName: 'test-bucket' }));
+            const componentBuilder = new ComponentBuilder(
+                authService,
+                db,
+                new StubStorage({ defaultBucketName: 'test-bucket' }),
+                new StubCloudTasksClient()
+            );
             const handlers = new CommentHandlers(componentBuilder.buildCommentService());
             expect(handlers).toBeInstanceOf(CommentHandlers);
             expect(handlers.createComment).toBeDefined();

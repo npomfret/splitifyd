@@ -363,19 +363,59 @@ npm run build
 
 ## 🎯 RE-IMPLEMENTATION IN PROGRESS
 
-**Status: Second attempt started - following correct patterns this time**
+**Status: Second attempt - Phase 1 COMPLETE ✅**
 
-### Phase 1: Minimal Service Layer (IN PROGRESS)
-- [ ] Step 1: Create `MergeService` with `validateMergeEligibility()` method
-- [ ] Step 2: Write unit tests for validation logic
-- [ ] Step 3: Wire service into `ComponentBuilder` (DI setup)
-- [ ] Step 4: Run tests and verify (no API exposure yet)
+### Phase 1: Minimal Service Layer (✅ COMPLETED)
+- [x] Step 1: Create `MergeService` with `validateMergeEligibility()` method
+- [x] Step 2: Write unit tests for validation logic
+- [x] Step 3: Wire service into `ComponentBuilder` (DI setup)
+- [x] Step 4: Run tests and verify (no API exposure yet)
 
-### Phase 2: Core Merge Logic (NOT STARTED)
-- [ ] Add `initiateMerge()` method to MergeService
-- [ ] Create merge job document schema
-- [ ] Write unit tests for merge initiation
-- [ ] Wire up Cloud Tasks stub for testing
+**Results:**
+- ✅ MergeService created with validation-only logic
+- ✅ 7/7 unit tests passing (all validation rules tested)
+- ✅ Properly wired into ComponentBuilder
+- ✅ TypeScript compiles without errors
+- ✅ All backend unit tests still passing
+- ✅ Uses StubFirestoreDatabase (Firebase Simulator) - no test-specific helpers
+- ✅ No dead code - everything is tested and used
+
+**Files Created:**
+- `firebase/functions/src/merge/MergeService.ts` - Service with validateMergeEligibility()
+- `firebase/functions/src/__tests__/unit/services/MergeService.test.ts` - 7 passing tests
+
+**Files Modified:**
+- `firebase/functions/src/services/ComponentBuilder.ts` - Added buildMergeService()
+
+### Phase 2: Core Merge Logic (✅ COMPLETED)
+- [x] Add `initiateMerge()` method to MergeService
+- [x] Create merge job document schema
+- [x] Write unit tests for merge initiation
+- [x] Wire up Cloud Tasks stub for testing
+- [x] Update ComponentBuilder to accept StubCloudTasksClient parameter
+
+**Results:**
+- ✅ Added `initiateMerge()` method that validates, creates job, and enqueues task
+- ✅ Created `MergeJobDocument` interface with status tracking
+- ✅ 10/10 unit tests passing (7 validation + 3 job creation tests)
+- ✅ Cloud Tasks integration working with StubCloudTasksClient
+- ✅ Job documents properly stored in Firestore
+- ✅ TypeScript compiles without errors
+- ✅ All existing unit tests still passing
+- ✅ Uses StubFirestoreDatabase directly with `seed()` - no helper methods
+- ✅ ComponentBuilder pattern improved - accepts optional CloudTasksClient (same as StubStorage)
+
+**Files Modified:**
+- `firebase/functions/src/merge/MergeService.ts` - Added initiateMerge() and job types
+- `firebase/functions/src/constants.ts` - Added ACCOUNT_MERGES collection
+- `firebase/functions/src/services/ComponentBuilder.ts` - Added optional CloudTasksClient parameter to constructor, added buildCloudTasksClient() method
+- `firebase/functions/src/__tests__/unit/services/MergeService.test.ts` - Added 3 new tests, using StubCloudTasksClient passed directly to ComponentBuilder
+
+**Key Design Decision:**
+- ComponentBuilder now accepts `cloudTasksClient?: ICloudTasksClient` as optional 4th parameter
+- This mirrors the pattern used for StubStorage, making the API consistent
+- Tests can pass StubCloudTasksClient directly instead of overriding after construction
+- Maintains backward compatibility - existing code works without changes
 
 ### Phase 3: Data Migration Service (NOT STARTED)
 - [ ] Create `MergeTaskService` for actual data migration

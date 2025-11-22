@@ -78,6 +78,7 @@ import {
     toUserId,
 } from '@billsplit-wl/shared';
 import { StubStorage, TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
+import { StubCloudTasksClient } from '@billsplit-wl/firebase-simulator';
 import { CreateGroupRequestBuilder, UserRegistrationBuilder, createStubRequest, createStubResponse } from '@billsplit-wl/test-support';
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
 import type { UserRecord } from 'firebase-admin/auth';
@@ -135,7 +136,12 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
 
     constructor() {
         // Create a ComponentBuilder with our test dependencies
-        const componentBuilder = new ComponentBuilder(this.authService, this.db, this.storage);
+        const componentBuilder = new ComponentBuilder(
+            this.authService,
+            this.db,
+            this.storage,
+            new StubCloudTasksClient(),
+        );
 
         // Create populated route definitions using the component builder
         this.routeDefinitions = createRouteDefinitions(componentBuilder);

@@ -32,10 +32,5 @@ export {
     type TriggerOperation,
 } from './triggers';
 export type { ICloudTasksClient } from './cloudtasks-types';
-// Lazy export to avoid requiring @google-cloud/tasks in test environments
-export function createCloudTasksClient() {
-    // Only import when actually called (not during module load)
-    const { createCloudTasksClient: create } = require('./admin-cloudtasks');
-    return create();
-}
+export { createCloudTasksClient } from './admin-cloudtasks';
 export { type EnqueuedTask, StubCloudTasksClient } from './StubCloudTasksClient';

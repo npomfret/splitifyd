@@ -1,9 +1,10 @@
+import { StubCloudTasksClient } from '@billsplit-wl/firebase-simulator';
 import { StubStorage } from '@billsplit-wl/test-support';
 import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, GroupUpdateBuilder, TenantFirestoreTestDatabase, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { GroupHandlers } from '../../../groups/GroupHandlers';
-import { ComponentBuilder } from '../../../services/ComponentBuilder';
+import { ComponentBuilder, createTestMergeServiceConfig } from '../../../services/ComponentBuilder';
 import { AppDriver } from '../AppDriver';
 import { StubAuthService } from '../mocks/StubAuthService';
 
@@ -595,7 +596,13 @@ describe('GroupHandlers - Unit Tests', () => {
         it('should create GroupHandlers instance with GroupService and FirestoreWriter', () => {
             const db = new TenantFirestoreTestDatabase();
             const authService = new StubAuthService();
-            const componentBuilder = new ComponentBuilder(authService, db, new StubStorage({ defaultBucketName: 'test-bucket' }));
+            const componentBuilder = new ComponentBuilder(
+                authService,
+                db,
+                new StubStorage({ defaultBucketName: 'test-bucket' }),
+                new StubCloudTasksClient(),
+                createTestMergeServiceConfig()
+            );
 
             const handlers = new GroupHandlers(componentBuilder.buildGroupService());
             expect(handlers).toBeInstanceOf(GroupHandlers);

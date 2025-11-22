@@ -1,5 +1,6 @@
 import { toExpenseId, toGroupId, USD, toUserId } from '@billsplit-wl/shared';
 import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, ExpenseSplitBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
+import { StubCloudTasksClient } from '@billsplit-wl/firebase-simulator';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
@@ -18,7 +19,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
 
         // Use ComponentBuilder to create the service with proper dependencies
         const stubAuth = new StubAuthService();
-        const componentBuilder = new ComponentBuilder(stubAuth, appDriver.database, appDriver.storageStub);
+        const componentBuilder = new ComponentBuilder(stubAuth, appDriver.database, appDriver.storageStub, new StubCloudTasksClient());
         expenseService = componentBuilder.buildExpenseService();
     });
 

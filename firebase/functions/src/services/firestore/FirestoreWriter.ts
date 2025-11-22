@@ -10,7 +10,7 @@
  */
 
 // Import types
-import type { CommentDTO, DisplayName, Email, ShareLinkDTO, ShareLinkToken, UserId } from '@billsplit-wl/shared';
+import type { CommentDTO, DisplayName, Email, ISOString, ShareLinkDTO, ShareLinkToken, UserId } from '@billsplit-wl/shared';
 import { normalizeDisplayNameForComparison } from '@billsplit-wl/shared';
 // Import schemas for validation
 import { ExpenseId, GroupId, PolicyId, ShareLinkId } from '@billsplit-wl/shared';
@@ -23,6 +23,7 @@ import { ApiError } from '../../utils/errors';
 
 import type { BrandingArtifactMetadata } from '@billsplit-wl/shared';
 import { SystemUserRoles } from '@billsplit-wl/shared';
+import type { MergeJobDocument } from '../../merge/MergeService';
 import type { GroupBalanceDTO } from '../../schemas';
 import {
     ActivityFeedDocumentSchema,
@@ -1417,6 +1418,27 @@ export class FirestoreWriter implements IFirestoreWriter {
             } catch (error) {
                 logger.error('Failed to update tenant theme artifact', error, { tenantId });
                 throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'TENANT_ARTIFACT_UPDATE_FAILED', 'Unable to record theme artifact metadata');
+            }
+        });
+    }
+
+    // ========================================================================
+    // Merge Job Operations
+    // ========================================================================
+
+    async createMergeJob(jobId: string, jobData: MergeJobDocument): Promise<WriteResult> {
+        return measureDb('FirestoreWriter.createMergeJob', async () => {
+            try {
+                const mergeJobRef = this.db.collection(FirestoreCollections.ACCOUNT_MERGES).doc(jobId);
+                await mergeJobRef.set(jobData);
+
+                return {
+                    id: jobId,
+                    success: true,
+                };
+            } catch (error) {
+                logger.error('Failed to create merge job', error, { jobId });
+                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'MERGE_JOB_CREATE_FAILED', 'Unable to create merge job document');
             }
         });
     }

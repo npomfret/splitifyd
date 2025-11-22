@@ -1,4 +1,4 @@
-import { StubStorage } from '@billsplit-wl/test-support';
+import { StubStorage, StubCloudTasksClient } from '@billsplit-wl/firebase-simulator';
 import { toGroupId, toUserId } from '@billsplit-wl/shared';
 import { toDisplayName } from '@billsplit-wl/shared';
 import { toTenantAppName, toTenantDomainName, toTenantFaviconUrl, toTenantId, toTenantLogoUrl, toTenantPrimaryColor, toTenantSecondaryColor } from '@billsplit-wl/shared';
@@ -19,7 +19,7 @@ describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
     beforeEach(() => {
         db = new TenantFirestoreTestDatabase();
 
-        const applicationBuilder = new ComponentBuilder(new StubAuthService(), db, new StubStorage({ defaultBucketName: 'test-bucket' }));
+        const applicationBuilder = new ComponentBuilder(new StubAuthService(), db, new StubStorage({ defaultBucketName: 'test-bucket' }), new StubCloudTasksClient());
         firestoreWriter = applicationBuilder.buildFirestoreWriter();
         firestoreReader = applicationBuilder.buildFirestoreReader();
     });
@@ -188,7 +188,12 @@ describe('FirestoreWriter.upsertTenant - Default Tenant Enforcement', () => {
     beforeEach(() => {
         db = new TenantFirestoreTestDatabase();
 
-        const applicationBuilder = new ComponentBuilder(new StubAuthService(), db, new StubStorage({ defaultBucketName: 'test-bucket' }));
+        const applicationBuilder = new ComponentBuilder(
+            new StubAuthService(),
+            db,
+            new StubStorage({ defaultBucketName: 'test-bucket' }),
+            new StubCloudTasksClient()
+        );
         firestoreWriter = applicationBuilder.buildFirestoreWriter();
         firestoreReader = applicationBuilder.buildFirestoreReader();
     });

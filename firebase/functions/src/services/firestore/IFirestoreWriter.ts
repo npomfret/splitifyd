@@ -19,6 +19,7 @@ import { DisplayName, ExpenseId, GroupId, ShareLinkId } from '@billsplit-wl/shar
 import type { Email } from '@billsplit-wl/shared';
 import { PolicyId } from '@billsplit-wl/shared';
 import type { IDocumentReference, ITransaction, IWriteBatch } from '../../firestore-wrapper';
+import type { MergeJobDocument } from '../../merge/MergeService';
 import type { GroupBalanceDTO } from '../../schemas';
 import type { TenantDocument } from '../../schemas/tenant';
 
@@ -222,6 +223,18 @@ export interface IFirestoreWriter {
      * Create an activity feed item in a batch (for efficient bulk writes)
      */
     createActivityFeedItemInBatch(batch: IWriteBatch, userId: UserId, documentId: string | null, data: any): void;
+
+    // ========================================================================
+    // Merge Job Operations
+    // ========================================================================
+
+    /**
+     * Create a merge job document
+     * @param jobId - The merge job ID (document ID)
+     * @param jobData - The merge job data to write
+     * @returns Write result
+     */
+    createMergeJob(jobId: string, jobData: MergeJobDocument): Promise<WriteResult>;
 
     // ========================================================================
     // Utility Operations
