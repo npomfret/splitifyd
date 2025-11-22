@@ -7,6 +7,7 @@ type SettlementId = string;
 /**
  * Tenant-aware test database that extends StubFirestoreDatabase
  * with application-specific seed methods for testing.
+ * @deprecated this is bullshit and will be deleted
  */
 export class TenantFirestoreTestDatabase extends StubFirestoreDatabase {
     seedUser(userId: UserId | string, userData: Record<string, any> = {}) {

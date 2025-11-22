@@ -1,5 +1,5 @@
 import { StubStorage } from '@billsplit-wl/test-support';
-import { CommentDTO } from '@billsplit-wl/shared';
+import { CommentDTO, toEmail, toPassword, toDisplayName, toUserId } from '@billsplit-wl/shared';
 import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { CommentHandlers } from '../../../comments/CommentHandlers';
@@ -7,7 +7,6 @@ import { HTTP_STATUS } from '../../../constants';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import { AppDriver } from '../AppDriver';
 import { StubAuthService } from '../mocks/StubAuthService';
-import {toUserId} from "@billsplit-wl/shared";
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -20,8 +19,16 @@ describe('CommentHandlers - Unit Tests', () => {
 
     describe('createComment - Group Target', () => {
         it('should create a group comment successfully with valid data', async () => {
-            const userId = 'test-user';
-            appDriver.seedUser(userId, {});
+            // Register user via API instead of seeding
+            const registrationResult = await appDriver.registerUser({
+                email: toEmail('test-user@test.com'),
+                password: toPassword('password123456'),
+                displayName: toDisplayName('Test User'),
+                termsAccepted: true,
+                cookiePolicyAccepted: true,
+                privacyPolicyAccepted: true,
+            });
+            const userId = registrationResult.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 
@@ -35,8 +42,16 @@ describe('CommentHandlers - Unit Tests', () => {
         });
 
         it('should create a comment with whitespace trimmed', async () => {
-            const userId = 'test-user';
-            appDriver.seedUser(userId, {});
+            // Register user via API instead of seeding
+            const registrationResult = await appDriver.registerUser({
+                email: toEmail('test-user-2@test.com'),
+                password: toPassword('password123456'),
+                displayName: toDisplayName('Test User 2'),
+                termsAccepted: true,
+                cookiePolicyAccepted: true,
+                privacyPolicyAccepted: true,
+            });
+            const userId = registrationResult.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 
@@ -46,8 +61,16 @@ describe('CommentHandlers - Unit Tests', () => {
         });
 
         it('should sanitize XSS attempts in comment text', async () => {
-            const userId = 'test-user';
-            appDriver.seedUser(userId, {});
+            // Register user via API instead of seeding
+            const registrationResult = await appDriver.registerUser({
+                email: toEmail('test-user-3@test.com'),
+                password: toPassword('password123456'),
+                displayName: toDisplayName('Test User 3'),
+                termsAccepted: true,
+                cookiePolicyAccepted: true,
+                privacyPolicyAccepted: true,
+            });
+            const userId = registrationResult.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 
@@ -95,11 +118,26 @@ describe('CommentHandlers - Unit Tests', () => {
         });
 
         it('should reject comment when user is not a group member', async () => {
-            const userId = 'test-user';
-            const creatorId = 'creator-user';
+            // Register both users via API
+            const userResult = await appDriver.registerUser({
+                email: toEmail('non-member@test.com'),
+                password: toPassword('password123456'),
+                displayName: toDisplayName('Non Member'),
+                termsAccepted: true,
+                cookiePolicyAccepted: true,
+                privacyPolicyAccepted: true,
+            });
+            const userId = userResult.user.uid;
 
-            appDriver.seedUser(userId, {});
-            appDriver.seedUser(creatorId, {});
+            const creatorResult = await appDriver.registerUser({
+                email: toEmail('creator@test.com'),
+                password: toPassword('password123456'),
+                displayName: toDisplayName('Group Creator'),
+                termsAccepted: true,
+                cookiePolicyAccepted: true,
+                privacyPolicyAccepted: true,
+            });
+            const creatorId = creatorResult.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
 
@@ -112,9 +150,17 @@ describe('CommentHandlers - Unit Tests', () => {
 
         it('should reject comment for non-existent group', async () => {
             const groupId = 'non-existent-group';
-            const userId = 'test-user';
 
-            appDriver.seedUser(userId, {});
+            // Register user via API
+            const registrationResult = await appDriver.registerUser({
+                email: toEmail('test-user-nonexist@test.com'),
+                password: toPassword('password123456'),
+                displayName: toDisplayName('Test User'),
+                termsAccepted: true,
+                cookiePolicyAccepted: true,
+                privacyPolicyAccepted: true,
+            });
+            const userId = registrationResult.user.uid;
 
             await expect(appDriver.createGroupComment(groupId, 'Test comment', userId)).rejects.toThrow(
                 expect.objectContaining({
@@ -126,8 +172,16 @@ describe('CommentHandlers - Unit Tests', () => {
 
     describe('createComment - Expense Target', () => {
         it('should create an expense comment successfully with valid data', async () => {
-            const userId = toUserId('test-user');
-            appDriver.seedUser(userId, {});
+            // Register user via API
+            const registrationResult = await appDriver.registerUser({
+                email: toEmail('expense-comment-user@test.com'),
+                password: toPassword('password123456'),
+                displayName: toDisplayName('Expense User'),
+                termsAccepted: true,
+                cookiePolicyAccepted: true,
+                privacyPolicyAccepted: true,
+            });
+            const userId = toUserId(registrationResult.user.uid);
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 
