@@ -181,10 +181,6 @@ interface FirestoreUserSummary {
     acceptedPolicies?: Record<string, unknown>;
     createdAt?: string;
     updatedAt?: string;
-    termsAcceptedAt?: string;
-    cookiePolicyAcceptedAt?: string;
-    privacyPolicyAcceptedAt?: string;
-    passwordChangedAt?: string;
 }
 
 function summarizeFirestoreUser(doc: DocumentSnapshot<DocumentData>): FirestoreUserSummary {
@@ -213,10 +209,6 @@ function summarizeFirestoreUser(doc: DocumentSnapshot<DocumentData>): FirestoreU
 
     summary.createdAt = toIsoString((data as Record<string, unknown>).createdAt, 'createdAt', doc.id);
     summary.updatedAt = toIsoString((data as Record<string, unknown>).updatedAt, 'updatedAt', doc.id);
-    summary.termsAcceptedAt = toIsoString((data as Record<string, unknown>).termsAcceptedAt, 'termsAcceptedAt', doc.id);
-    summary.cookiePolicyAcceptedAt = toIsoString((data as Record<string, unknown>).cookiePolicyAcceptedAt, 'cookiePolicyAcceptedAt', doc.id);
-    summary.privacyPolicyAcceptedAt = toIsoString((data as Record<string, unknown>).privacyPolicyAcceptedAt, 'privacyPolicyAcceptedAt', doc.id);
-    summary.passwordChangedAt = toIsoString((data as Record<string, unknown>).passwordChangedAt, 'passwordChangedAt', doc.id);
 
     return summary;
 }
