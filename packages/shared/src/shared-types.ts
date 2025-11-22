@@ -589,6 +589,75 @@ export interface RegisteredUser extends BaseUserProfile {
     updatedAt?: ISOString;
 }
 
+// ========================================================================
+// New Focused User Types (Phase 2 - Type Splitting)
+// ========================================================================
+// Note: ClientUser is defined later in this file (see line ~720)
+
+/**
+ * Server-side internal user profile for backend business logic.
+ *
+ * This represents the complete user data from both Firebase Auth and Firestore.
+ * Used internally by backend services for business logic and operations.
+ *
+ * **Used by:**
+ * - UserService internal methods
+ * - Service-to-service communication
+ * - Backend business logic
+ *
+ * **Note:** createdAt/updatedAt are optional because user documents can be created
+ * incrementally (Firebase Auth user created first, Firestore doc created later).
+ *
+ * @see ClientUser for client-facing minimal profile
+ * @see AdminUserProfile for admin endpoints with Firebase Auth admin fields
+ */
+export interface UserProfile {
+    uid: UserId;
+    displayName: DisplayName;
+    email: Email;
+    emailVerified: boolean;
+    photoURL: string | null;
+    role: SystemUserRole;
+
+    // Firestore audit fields (optional - may not exist for newly created users)
+    createdAt?: ISOString;
+    updatedAt?: ISOString;
+
+    // Optional user data
+    preferredLanguage?: string;
+    acceptedPolicies?: Record<PolicyId, VersionHash>;
+}
+
+/**
+ * Admin-facing user profile with Firebase Auth administrative fields.
+ *
+ * This extends UserProfile with Firebase Auth admin-only fields like disabled
+ * status and metadata. These fields are only available to system administrators
+ * and are not exposed to regular users.
+ *
+ * **Used by:**
+ * - Admin API endpoints (PUT /admin/users/:uid)
+ * - User management UI (AdminUsersTab)
+ * - Browser/admin endpoints (/browser/users)
+ *
+ * **Firebase Auth guarantees:** disabled and metadata are always present when
+ * fetching user records via the Admin SDK.
+ *
+ * @see UserProfile for server-side internal user data
+ * @see ClientUser for client-facing minimal profile
+ */
+export interface AdminUserProfile extends UserProfile {
+    /** Whether the user account is disabled */
+    disabled: boolean;
+    /** Firebase Auth metadata */
+    metadata: {
+        /** When the user account was created */
+        creationTime: string;
+        /** When the user last signed in (may not exist if never signed in) */
+        lastSignInTime?: string;
+    };
+}
+
 /**
  * Minimal user data for authentication context.
  * Used in middleware and request context where only auth fields are needed.
@@ -614,17 +683,36 @@ export interface AuthenticatedRequest {
 }
 
 /**
- * User data for client-side applications.
- * Contains all fields needed by the frontend, excluding sensitive server-only data.
+ * Client-facing user profile returned to authenticated clients.
+ *
+ * This is the minimal user profile that clients receive from regular API endpoints.
+ * All fields except optional preferences are guaranteed to be present.
+ *
+ * **Used by:**
+ * - GET /api/users/:uid (regular user profile endpoint)
+ * - Frontend user context/state
+ * - Non-admin API responses
+ *
+ * **Design principle:** If the field might not be present, it shouldn't be required in this type.
+ * Only truly optional user preferences are marked optional.
+ *
+ * **Phase 2 Update (2025-01-17):** Made photoURL and role required to match backend guarantees.
+ * The backend always provides these fields (photoURL is null if not set, role defaults to SYSTEM_USER).
+ *
+ * @see UserProfile for server-side internal user data
+ * @see AdminUserProfile for admin-facing user data with Firebase Auth admin fields
  */
 export interface ClientUser {
     uid: UserId;
     email: Email;
     displayName: DisplayName;
     emailVerified: boolean;
-    photoURL?: string | null;
-    preferredLanguage?: string;
+    /** Profile photo URL (always present - null if not set) */
+    photoURL: string | null;
+    /** User's system role (optional on client-side during auth, always provided by backend API) */
     role?: SystemUserRole;
+    /** User's preferred language code (e.g., 'en', 'es', 'fr') - truly optional */
+    preferredLanguage?: string;
 }
 
 // Base interface for document types with common timestamp fields

@@ -288,6 +288,80 @@ interface AdminUserProfile extends UserProfile {
 4. ✅ No "god object" serving multiple masters
 5. ✅ Easier to maintain and understand
 
+### 4.3. Implementation Plan for Type Splitting
+
+**Migration Strategy (6 Phases):**
+
+#### Phase 1: Add New Types ✅ COMPLETED (2025-01-17)
+- ✅ Updated existing ClientUser in shared-types.ts (made photoURL and role required)
+- ✅ Added UserProfile for server-side internal use
+- ✅ Added AdminUserProfile for admin endpoints
+- ✅ Added comprehensive JSDoc to all types
+- ✅ Verified TypeScript compilation
+
+**Key Decisions Made:**
+- ClientUser already existed but had optional photoURL/role
+  - Made photoURL required (always `string | null`, never undefined)
+  - Kept role optional (reason: client-side Firebase Auth doesn't provide role initially, only backend API does)
+- UserProfile has optional createdAt/updatedAt (user docs created incrementally)
+- AdminUserProfile extends UserProfile with Firebase Auth admin fields
+
+**Important Learning:**
+- `ClientUser.role` must remain optional because it's used for both:
+  1. Client-side Firebase Auth state (role not available until backend fetch)
+  2. Backend API responses (role always provided)
+- This is acceptable - the optionality reflects real-world usage
+
+#### Phase 2: Migrate Backend (TODO)
+- [ ] Update UserService2.getUser() to return ClientUser
+- [ ] Add UserService2.getUserProfile() returning UserProfile (for internal use if needed)
+- [ ] Update admin endpoints to return AdminUserProfile
+- [ ] Update UserBrowserHandlers to return AdminUserProfile[]
+- [ ] Update packages/shared/src/api.ts API interface
+
+**Files to modify:**
+- `firebase/functions/src/services/UserService2.ts`
+- `firebase/functions/src/browser/UserBrowserHandlers.ts`
+- `firebase/functions/src/admin/UserAdminHandlers.ts`
+- `packages/shared/src/api.ts`
+
+#### Phase 3: Migrate Frontend (TODO)
+- [ ] Update apiClient to use ClientUser for regular endpoints
+- [ ] Update AdminUsersTab to use AdminUserProfile
+- [ ] Update frontend user context/state to use ClientUser
+
+**Files to modify:**
+- `webapp-v2/src/app/apiClient.ts`
+- `webapp-v2/src/components/admin/AdminUsersTab.tsx`
+- User context/state types
+
+#### Phase 4: Update Tests (TODO)
+- [ ] Migrate test builders to new types
+- [ ] Update mocks and stubs
+- [ ] Verify all tests pass
+
+**Files to modify:**
+- `packages/test-support/src/builders/RegisteredUserBuilder.ts` (add new builders)
+- Test files using RegisteredUser
+
+#### Phase 5: Deprecate RegisteredUser (TODO)
+- [ ] Mark RegisteredUser as @deprecated with JSDoc
+- [ ] Optionally create type alias: `type RegisteredUser = ClientUser` for gradual migration
+- [ ] Update documentation
+
+#### Phase 6: Remove RegisteredUser (Future)
+- [ ] Remove deprecated type
+- [ ] Clean up any remaining references
+
+**Success Criteria:**
+- ✅ All tests passing
+- ✅ TypeScript compilation clean (no errors)
+- ✅ No `any` types introduced
+- ✅ Clear JSDoc on all new types
+- ✅ Admin endpoints return AdminUserProfile
+- ✅ Regular endpoints return ClientUser
+- ✅ Internal services can use UserProfile
+
 ---
 
 ## 5. Fields to Remove Entirely
@@ -456,11 +530,14 @@ deletedAt: ISOString | null
 
 ### 8.2. High Priority (Remaining)
 
-1. **Split RegisteredUser type** into focused types:
-   - Create `ClientUser` (minimal client-facing type)
-   - Create `UserProfile` (server-side internal type)
-   - Create `AdminUserProfile` (admin endpoint type)
-   - Migrate existing code incrementally
+1. **Complete RegisteredUser type splitting** (Phase 1 done, Phases 2-6 remaining):
+   - ✅ Phase 1: Type definitions added (2025-01-17)
+   - 🎯 Phase 2: Migrate backend code to use new types
+   - 🎯 Phase 3: Migrate frontend code to use ClientUser
+   - 🎯 Phase 4: Update tests and builders
+   - 🎯 Phase 5: Deprecate RegisteredUser
+   - 🎯 Phase 6: Remove RegisteredUser (future)
+   - See section 4.3 for detailed implementation plan
 
 ### 8.3. Medium Priority
 
@@ -499,7 +576,9 @@ deletedAt: ISOString | null
 
 ### 9.3. What Remains (Phase 2 - Outstanding)
 
-⚠️ **RegisteredUser is a "god object"** - Serves 3+ different use cases, forcing unnecessary optionality (needs type splitting)
+**RegisteredUser Type Splitting:**
+- ✅ Phase 1 complete: Type definitions added (ClientUser, UserProfile, AdminUserProfile)
+- 🎯 Phases 2-6: Backend migration, frontend migration, tests, deprecation (see section 4.3)
 
 ### 9.4. Core Principles Applied
 
