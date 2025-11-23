@@ -1,12 +1,7 @@
 import { StubFirestoreDatabase, Timestamp } from '@billsplit-wl/firebase-simulator';
 import { GroupId, PolicyId, UserId } from '@billsplit-wl/shared';
 
-type ExpenseId = string;
-type SettlementId = string;
-
 /**
- * Tenant-aware test database that extends StubFirestoreDatabase
- * with application-specific seed methods for testing.
  * @deprecated this is bullshit and will be deleted
  */
 export class TenantFirestoreTestDatabase extends StubFirestoreDatabase {
@@ -67,16 +62,6 @@ export class TenantFirestoreTestDatabase extends StubFirestoreDatabase {
     seedGroupMember(groupId: GroupId, userId: UserId | string, memberData: Record<string, any>): void {
         const firestoreData = this.convertDatesToTimestamps(memberData);
         this.seed(`group-memberships/${userId}_${groupId}`, firestoreData);
-    }
-
-    seedExpense(expenseId: ExpenseId, expenseData: Record<string, any>): void {
-        const firestoreData = this.convertDatesToTimestamps(expenseData);
-        this.seed(`expenses/${expenseId}`, firestoreData);
-    }
-
-    seedSettlement(settlementId: SettlementId, settlementData: Record<string, any>): void {
-        const firestoreData = this.convertDatesToTimestamps(settlementData);
-        this.seed(`settlements/${settlementId}`, firestoreData);
     }
 
     seedPolicy(policyId: PolicyId, policyData: Record<string, any>): void {

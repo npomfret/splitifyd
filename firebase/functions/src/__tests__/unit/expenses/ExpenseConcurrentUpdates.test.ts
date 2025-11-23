@@ -10,23 +10,28 @@
 
 import { calculateEqualSplits, toAmount, toGroupName, toCurrencyISOCode, USD, toUserId } from '@billsplit-wl/shared';
 import { toDisplayName } from '@billsplit-wl/shared';
-import { CreateExpenseRequestBuilder, ExpenseUpdateBuilder } from '@billsplit-wl/test-support';
+import { CreateExpenseRequestBuilder, ExpenseUpdateBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { AppDriver } from '../AppDriver';
 
 describe('Expense Concurrent Updates - Unit Tests', () => {
     let appDriver: AppDriver;
 
-    const userId = toUserId('test-user-123');
+    let userId: string;
     const eur = toCurrencyISOCode('EUR');
     const usd = USD;
 
-    beforeEach(() => {
+    beforeEach(async () => {
         appDriver = new AppDriver();
-        appDriver.seedUser(userId, {
-            displayName: 'Test User',
-            email: 'test@example.com',
-        });
+
+        // Register user via API
+        const userReg = new UserRegistrationBuilder()
+            .withEmail('test@example.com')
+            .withDisplayName('Test User')
+            .withPassword('password12345')
+            .build();
+        const userResult = await appDriver.registerUser(userReg);
+        userId = userResult.user.uid;
     });
 
     afterEach(() => {
@@ -62,13 +67,14 @@ describe('Expense Concurrent Updates - Unit Tests', () => {
 
         // Attempt concurrent updates
         const lockingTestParticipants = [userId];
+        const lockingTestParticipantIds = lockingTestParticipants.map(toUserId);
         const updatePromises = [
             appDriver.updateExpense(
                 expense.id,
                 new ExpenseUpdateBuilder()
                     .withAmount(200, 'EUR')
                     .withParticipants(lockingTestParticipants)
-                    .withSplits(calculateEqualSplits(toAmount(200), eur, lockingTestParticipants))
+                    .withSplits(calculateEqualSplits(toAmount(200), eur, lockingTestParticipantIds))
                     .build(),
                 userId,
             ),
@@ -77,7 +83,7 @@ describe('Expense Concurrent Updates - Unit Tests', () => {
                 new ExpenseUpdateBuilder()
                     .withAmount(300, 'EUR')
                     .withParticipants(lockingTestParticipants)
-                    .withSplits(calculateEqualSplits(toAmount(300), eur, lockingTestParticipants))
+                    .withSplits(calculateEqualSplits(toAmount(300), eur, lockingTestParticipantIds))
                     .build(),
                 userId,
             ),
@@ -124,13 +130,14 @@ describe('Expense Concurrent Updates - Unit Tests', () => {
         // Concurrent updates to the same expense
         // This tests that TenantFirestoreTestDatabase correctly simulates transaction conflicts
         const participants = [userId];
+        const participantIds = participants.map(toUserId);
         const updatePromises = [
             appDriver.updateExpense(
                 expense.id,
                 new ExpenseUpdateBuilder()
                     .withAmount(150, 'USD')
                     .withParticipants(participants)
-                    .withSplits(calculateEqualSplits(toAmount(150), usd, participants))
+                    .withSplits(calculateEqualSplits(toAmount(150), usd, participantIds))
                     .build(),
                 userId,
             ),
@@ -139,7 +146,7 @@ describe('Expense Concurrent Updates - Unit Tests', () => {
                 new ExpenseUpdateBuilder()
                     .withAmount(200, 'USD')
                     .withParticipants(participants)
-                    .withSplits(calculateEqualSplits(toAmount(200), usd, participants))
+                    .withSplits(calculateEqualSplits(toAmount(200), usd, participantIds))
                     .build(),
                 userId,
             ),
@@ -163,11 +170,14 @@ describe('Expense Concurrent Updates - Unit Tests', () => {
     });
 
     test('should reject updates from non-members', async () => {
-        const nonMemberId = 'non-member-789';
-        appDriver.seedUser(nonMemberId, {
-            displayName: 'Non Member',
-            email: 'nonmember@example.com',
-        });
+        // Register non-member via API
+        const nonMemberReg = new UserRegistrationBuilder()
+            .withEmail('nonmember@example.com')
+            .withDisplayName('Non Member')
+            .withPassword('password12345')
+            .build();
+        const nonMemberResult = await appDriver.registerUser(nonMemberReg);
+        const nonMemberId = nonMemberResult.user.uid;
 
         // Create group and expense
         const group = await appDriver.createGroup({

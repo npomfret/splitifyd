@@ -1,4 +1,4 @@
-import { CreateGroupRequestBuilder } from '@billsplit-wl/test-support';
+import { CreateGroupRequestBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { AppDriver } from '../AppDriver';
 
@@ -13,18 +13,26 @@ describe('Group sharing workflow (stub firestore)', () => {
         appDriver.dispose();
     });
 
-    const seedUsers = (...ids: string[]) => {
-        ids.forEach((id) => {
-            appDriver.seedUser(id, { displayName: `User ${id}`, email: `${id}@test.local` });
-        });
+    const registerUsers = async (...ids: string[]): Promise<Record<string, string>> => {
+        const userIdMap: Record<string, string> = {};
+        for (const id of ids) {
+            const userReg = new UserRegistrationBuilder()
+                .withEmail(`${id}@test.local`)
+                .withDisplayName(`User ${id}`)
+                .withPassword('password12345')
+                .build();
+            const result = await appDriver.registerUser(userReg);
+            userIdMap[id] = result.user.uid;
+        }
+        return userIdMap;
     };
 
     it('supports generating share links and joining flow for multiple members', async () => {
-        const owner = 'owner-user';
-        const member = 'member-user';
-        const joiner = 'joiner-user';
-        const outsider = 'outsider-user';
-        seedUsers(owner, member, joiner, outsider);
+        const userIds = await registerUsers('owner-user', 'member-user', 'joiner-user', 'outsider-user');
+        const owner = userIds['owner-user'];
+        const member = userIds['member-user'];
+        const joiner = userIds['joiner-user'];
+        const outsider = userIds['outsider-user'];
 
         const group = await appDriver.createGroup(
             new CreateGroupRequestBuilder()
@@ -74,9 +82,9 @@ describe('Group sharing workflow (stub firestore)', () => {
     });
 
     it('allows multiple unique users to reuse the same share link', async () => {
-        const owner = 'share-owner';
-        const joiners = ['joiner-1', 'joiner-2', 'joiner-3'];
-        seedUsers(owner, ...joiners);
+        const userIds = await registerUsers('share-owner', 'joiner-1', 'joiner-2', 'joiner-3');
+        const owner = userIds['share-owner'];
+        const joiners = [userIds['joiner-1'], userIds['joiner-2'], userIds['joiner-3']];
 
         const group = await appDriver.createGroup(
             new CreateGroupRequestBuilder()

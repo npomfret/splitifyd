@@ -1,57 +1,56 @@
-import { TenantConfigBuilder, TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { toTenantAccentColor, toTenantAppName, toTenantDomainName, toTenantFaviconUrl, toTenantLogoUrl, toTenantPrimaryColor, toTenantSecondaryColor, toTenantThemePaletteName, toUserId } from '@billsplit-wl/shared';
+import { AdminTenantRequestBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { FirestoreReader } from '../../../services/firestore';
 import { TenantRegistryService, type TenantResolutionOptions } from '../../../services/tenant/TenantRegistryService';
 import { ApiError } from '../../../utils/errors';
+import { AppDriver } from '../AppDriver';
 
 describe('TenantRegistryService', () => {
-    let db: TenantFirestoreTestDatabase;
+    let app: AppDriver;
     let firestoreReader: FirestoreReader;
     let service: TenantRegistryService;
+    let adminUserId: string;
 
-    const testTenantBuilder = new TenantConfigBuilder()
-        .withTenantId('test-tenant')
-        .withAppName('Test App')
-        .withLogoUrl('https://example.com/logo.svg')
-        .withFaviconUrl('https://example.com/favicon.ico')
-        .withPrimaryColor('#0066CC')
-        .withSecondaryColor('#FF6600')
-        .withCreatedAt('2025-01-15T10:00:00.000Z')
-        .withUpdatedAt('2025-01-20T14:30:00.000Z');
-
-    const defaultTenantBuilder = new TenantConfigBuilder()
-        .withTenantId('default-tenant')
-        .withAppName('Splitifyd')
-        .withLogoUrl('/logo.svg')
-        .withFaviconUrl('/favicon.ico')
-        .withPrimaryColor('#1a73e8')
-        .withSecondaryColor('#34a853')
-        .withCreatedAt('2025-01-01T00:00:00.000Z')
-        .withUpdatedAt('2025-01-01T00:00:00.000Z');
-
-    beforeEach(() => {
-        db = new TenantFirestoreTestDatabase();
-        firestoreReader = new FirestoreReader(db);
+    beforeEach(async () => {
+        app = new AppDriver();
+        firestoreReader = new FirestoreReader(app.database);
         service = new TenantRegistryService(firestoreReader, 5000); // 5s cache for testing
+
+        // Create an admin user for tenant management
+        const adminReg = new UserRegistrationBuilder()
+            .withEmail('admin@example.com')
+            .withPassword('password123456')
+            .withDisplayName('Admin User')
+            .build();
+        const adminResult = await app.registerUser(adminReg);
+        adminUserId = adminResult.user.uid;
+
+        // Promote to admin
+        app.seedAdminUser(adminUserId);
+    });
+
+    afterEach(() => {
+        app.dispose();
     });
 
     describe('resolveTenant - override mode', () => {
         it('should resolve tenant by override header when allowed', async () => {
-            // Seed tenant in database
-            db.seedTenantDocument('test-tenant', {
-                branding: {
-                    appName: 'Test App',
-                    logoUrl: 'https://example.com/logo.svg',
-                    faviconUrl: 'https://example.com/favicon.ico',
-                    primaryColor: '#0066CC',
-                    secondaryColor: '#FF6600',
-                },
-                domains: ['app.example.com', 'example.com'],
-                defaultTenant: false,
-                createdAt: '2025-01-15T10:00:00.000Z',
-                updatedAt: '2025-01-20T14:30:00.000Z',
-            });
+            // Create tenant via API
+            const tenantData = AdminTenantRequestBuilder
+                .forTenant('test-tenant')
+                .withBranding({
+                    appName: toTenantAppName('Test App'),
+                    logoUrl: toTenantLogoUrl('https://example.com/logo.svg'),
+                    faviconUrl: toTenantFaviconUrl('https://example.com/favicon.ico'),
+                    primaryColor: toTenantPrimaryColor('#0066CC'),
+                    secondaryColor: toTenantSecondaryColor('#FF6600'),
+                })
+                .withDomains([toTenantDomainName('app.example.com'), toTenantDomainName('example.com')])
+                .build();
+
+            await app.adminUpsertTenant(tenantData, adminUserId);
 
             const options: TenantResolutionOptions = {
                 host: 'localhost:3000',
@@ -82,7 +81,7 @@ describe('TenantRegistryService', () => {
         });
 
         it('should throw NOT_FOUND when override tenant does not exist', async () => {
-            // No tenant seeded - it doesn't exist
+            // No tenant created - it doesn't exist
 
             const options: TenantResolutionOptions = {
                 host: 'localhost:3000',
@@ -100,18 +99,20 @@ describe('TenantRegistryService', () => {
 
     describe('resolveTenant - domain resolution', () => {
         it('should resolve tenant by domain', async () => {
-            // Seed tenant in database with domain
-            db.seedTenantDocument('test-tenant', {
-                branding: {
-                    appName: 'Test App',
-                    logoUrl: 'https://example.com/logo.svg',
-                    faviconUrl: 'https://example.com/favicon.ico',
-                    primaryColor: '#0066CC',
-                    secondaryColor: '#FF6600',
-                },
-                domains: ['app.example.com', 'example.com'],
-                defaultTenant: false,
-            });
+            // Create tenant via API with domain
+            const tenantData = AdminTenantRequestBuilder
+                .forTenant('test-tenant')
+                .withBranding({
+                    appName: toTenantAppName('Test App'),
+                    logoUrl: toTenantLogoUrl('https://example.com/logo.svg'),
+                    faviconUrl: toTenantFaviconUrl('https://example.com/favicon.ico'),
+                    primaryColor: toTenantPrimaryColor('#0066CC'),
+                    secondaryColor: toTenantSecondaryColor('#FF6600'),
+                })
+                .withDomains([toTenantDomainName('app.example.com'), toTenantDomainName('example.com')])
+                .build();
+
+            await app.adminUpsertTenant(tenantData, adminUserId);
 
             const options: TenantResolutionOptions = {
                 host: 'app.example.com',
@@ -128,18 +129,20 @@ describe('TenantRegistryService', () => {
         });
 
         it('should normalize host before lookup', async () => {
-            // Seed tenant in database with lowercase domain
-            db.seedTenantDocument('test-tenant', {
-                branding: {
-                    appName: 'Test App',
-                    logoUrl: 'https://example.com/logo.svg',
-                    faviconUrl: 'https://example.com/favicon.ico',
-                    primaryColor: '#0066CC',
-                    secondaryColor: '#FF6600',
-                },
-                domains: ['app.example.com'],
-                defaultTenant: false,
-            });
+            // Create tenant via API with lowercase domain
+            const tenantData = AdminTenantRequestBuilder
+                .forTenant('test-tenant')
+                .withBranding({
+                    appName: toTenantAppName('Test App'),
+                    logoUrl: toTenantLogoUrl('https://example.com/logo.svg'),
+                    faviconUrl: toTenantFaviconUrl('https://example.com/favicon.ico'),
+                    primaryColor: toTenantPrimaryColor('#0066CC'),
+                    secondaryColor: toTenantSecondaryColor('#FF6600'),
+                })
+                .withDomains([toTenantDomainName('app.example.com')])
+                .build();
+
+            await app.adminUpsertTenant(tenantData, adminUserId);
 
             const options: TenantResolutionOptions = {
                 host: 'APP.EXAMPLE.COM:8080',
@@ -153,18 +156,20 @@ describe('TenantRegistryService', () => {
         });
 
         it('should handle x-forwarded-host with multiple values', async () => {
-            // Seed tenant in database
-            db.seedTenantDocument('test-tenant', {
-                branding: {
-                    appName: 'Test App',
-                    logoUrl: 'https://example.com/logo.svg',
-                    faviconUrl: 'https://example.com/favicon.ico',
-                    primaryColor: '#0066CC',
-                    secondaryColor: '#FF6600',
-                },
-                domains: ['app.example.com'],
-                defaultTenant: false,
-            });
+            // Create tenant via API
+            const tenantData = AdminTenantRequestBuilder
+                .forTenant('test-tenant')
+                .withBranding({
+                    appName: toTenantAppName('Test App'),
+                    logoUrl: toTenantLogoUrl('https://example.com/logo.svg'),
+                    faviconUrl: toTenantFaviconUrl('https://example.com/favicon.ico'),
+                    primaryColor: toTenantPrimaryColor('#0066CC'),
+                    secondaryColor: toTenantSecondaryColor('#FF6600'),
+                })
+                .withDomains([toTenantDomainName('app.example.com')])
+                .build();
+
+            await app.adminUpsertTenant(tenantData, adminUserId);
 
             const options: TenantResolutionOptions = {
                 host: 'app.example.com, proxy.internal',
@@ -180,18 +185,21 @@ describe('TenantRegistryService', () => {
 
     describe('resolveTenant - default tenant', () => {
         it('falls back to Firestore default tenant when domain not found', async () => {
-            // Seed a default tenant
-            db.seedTenantDocument('default-tenant', {
-                branding: {
-                    appName: 'Splitifyd',
-                    logoUrl: '/logo.svg',
-                    faviconUrl: '/favicon.ico',
-                    primaryColor: '#1a73e8',
-                    secondaryColor: '#34a853',
-                },
-                domains: ['app.foo.com'],
-                defaultTenant: true,
-            });
+            // Create a default tenant via API
+            const tenantData = AdminTenantRequestBuilder
+                .forTenant('default-tenant')
+                .withBranding({
+                    appName: toTenantAppName('Splitifyd'),
+                    logoUrl: toTenantLogoUrl('/logo.svg'),
+                    faviconUrl: toTenantFaviconUrl('/favicon.ico'),
+                    primaryColor: toTenantPrimaryColor('#1a73e8'),
+                    secondaryColor: toTenantSecondaryColor('#34a853'),
+                })
+                .withDomains([toTenantDomainName('app.foo.com')])
+                .asDefaultTenant()
+                .build();
+
+            await app.adminUpsertTenant(tenantData, adminUserId);
 
             const options: TenantResolutionOptions = {
                 host: 'unknown.example.com',
@@ -208,7 +216,7 @@ describe('TenantRegistryService', () => {
         });
 
         it('throws when no tenant can be resolved and no default exists', async () => {
-            // No tenants seeded at all
+            // No tenants created at all
 
             const options: TenantResolutionOptions = {
                 host: null,
@@ -226,29 +234,33 @@ describe('TenantRegistryService', () => {
 
     describe('resolution priority', () => {
         it('should prioritize override over domain', async () => {
-            // Seed both tenants
-            db.seedTenantDocument('test-tenant', {
-                branding: {
-                    appName: 'Test App',
-                    logoUrl: 'https://example.com/logo.svg',
-                    faviconUrl: 'https://example.com/favicon.ico',
-                    primaryColor: '#0066CC',
-                    secondaryColor: '#FF6600',
-                },
-                domains: ['test.example.com'], // At least one domain required
-                defaultTenant: false,
-            });
-            db.seedTenantDocument('domain-tenant', {
-                branding: {
-                    appName: 'Domain App',
-                    logoUrl: 'https://foo.com/logo.svg',
-                    faviconUrl: 'https://foo.com/favicon.ico',
-                    primaryColor: '#1a73e8',
-                    secondaryColor: '#34a853',
-                },
-                domains: ['app.foo.com'],
-                defaultTenant: false,
-            });
+            // Create both tenants via API
+            const testTenantData = AdminTenantRequestBuilder
+                .forTenant('test-tenant')
+                .withBranding({
+                    appName: toTenantAppName('Test App'),
+                    logoUrl: toTenantLogoUrl('https://example.com/logo.svg'),
+                    faviconUrl: toTenantFaviconUrl('https://example.com/favicon.ico'),
+                    primaryColor: toTenantPrimaryColor('#0066CC'),
+                    secondaryColor: toTenantSecondaryColor('#FF6600'),
+                })
+                .withDomains([toTenantDomainName('test.example.com')])
+                .build();
+
+            const domainTenantData = AdminTenantRequestBuilder
+                .forTenant('domain-tenant')
+                .withBranding({
+                    appName: toTenantAppName('Domain App'),
+                    logoUrl: toTenantLogoUrl('https://foo.com/logo.svg'),
+                    faviconUrl: toTenantFaviconUrl('https://foo.com/favicon.ico'),
+                    primaryColor: toTenantPrimaryColor('#1a73e8'),
+                    secondaryColor: toTenantSecondaryColor('#34a853'),
+                })
+                .withDomains([toTenantDomainName('app.foo.com')])
+                .build();
+
+            await app.adminUpsertTenant(testTenantData, adminUserId);
+            await app.adminUpsertTenant(domainTenantData, adminUserId);
 
             const options: TenantResolutionOptions = {
                 host: 'app.foo.com',
@@ -264,29 +276,34 @@ describe('TenantRegistryService', () => {
         });
 
         it('should prioritize domain over default fallback', async () => {
-            // Seed domain tenant and default tenant
-            db.seedTenantDocument('test-tenant', {
-                branding: {
-                    appName: 'Test App',
-                    logoUrl: 'https://example.com/logo.svg',
-                    faviconUrl: 'https://example.com/favicon.ico',
-                    primaryColor: '#0066CC',
-                    secondaryColor: '#FF6600',
-                },
-                domains: ['app.example.com'],
-                defaultTenant: false,
-            });
-            db.seedTenantDocument('default-tenant', {
-                branding: {
-                    appName: 'Default App',
-                    logoUrl: '/logo.svg',
-                    faviconUrl: '/favicon.ico',
-                    primaryColor: '#1a73e8',
-                    secondaryColor: '#34a853',
-                },
-                domains: ['default.com'],
-                defaultTenant: true,
-            });
+            // Create domain tenant and default tenant via API
+            const testTenantData = AdminTenantRequestBuilder
+                .forTenant('test-tenant')
+                .withBranding({
+                    appName: toTenantAppName('Test App'),
+                    logoUrl: toTenantLogoUrl('https://example.com/logo.svg'),
+                    faviconUrl: toTenantFaviconUrl('https://example.com/favicon.ico'),
+                    primaryColor: toTenantPrimaryColor('#0066CC'),
+                    secondaryColor: toTenantSecondaryColor('#FF6600'),
+                })
+                .withDomains([toTenantDomainName('app.example.com')])
+                .build();
+
+            const defaultTenantData = AdminTenantRequestBuilder
+                .forTenant('default-tenant')
+                .withBranding({
+                    appName: toTenantAppName('Default App'),
+                    logoUrl: toTenantLogoUrl('/logo.svg'),
+                    faviconUrl: toTenantFaviconUrl('/favicon.ico'),
+                    primaryColor: toTenantPrimaryColor('#1a73e8'),
+                    secondaryColor: toTenantSecondaryColor('#34a853'),
+                })
+                .withDomains([toTenantDomainName('default.com')])
+                .asDefaultTenant()
+                .build();
+
+            await app.adminUpsertTenant(testTenantData, adminUserId);
+            await app.adminUpsertTenant(defaultTenantData, adminUserId);
 
             const options: TenantResolutionOptions = {
                 host: 'app.example.com',

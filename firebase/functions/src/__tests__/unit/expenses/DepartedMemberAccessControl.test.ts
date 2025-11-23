@@ -2,24 +2,28 @@
 // Tests that users who have left a group cannot access expenses, settlements, or group data
 
 import { GroupId } from '@billsplit-wl/shared';
-import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder } from '@billsplit-wl/test-support';
+import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { AppDriver } from '../AppDriver';
 
 describe('Departed Member Access Control - Unit Tests', () => {
     let appDriver: AppDriver;
-    const userIds = ['user-0', 'user-1', 'user-2', 'user-3'];
+    let userIds: string[];
 
-    beforeEach(() => {
+    beforeEach(async () => {
         appDriver = new AppDriver();
 
-        // Seed users
-        userIds.forEach((userId, index) => {
-            appDriver.seedUser(userId, {
-                displayName: `User ${index}`,
-                email: `user${index}@test.local`,
-            });
-        });
+        // Register users via API
+        userIds = [];
+        for (let index = 0; index < 4; index++) {
+            const userReg = new UserRegistrationBuilder()
+                .withEmail(`user${index}@test.local`)
+                .withDisplayName(`User ${index}`)
+                .withPassword('password12345')
+                .build();
+            const result = await appDriver.registerUser(userReg);
+            userIds.push(result.user.uid);
+        }
     });
 
     afterEach(() => {

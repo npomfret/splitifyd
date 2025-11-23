@@ -1,6 +1,6 @@
 import type {GroupId} from '@billsplit-wl/shared';
 import {ActivityFeedActions, ActivityFeedEventTypes, COLOR_PATTERNS, MAX_GROUP_MEMBERS, MemberStatuses, PermissionLevels, toDisplayName, toGroupId, toISOString, toShareLinkToken, toUserId, USER_COLORS,} from '@billsplit-wl/shared';
-import {ClientUserBuilder, GroupDTOBuilder, GroupMemberDocumentBuilder, ShareLinkBuilder, TenantFirestoreTestDatabase, ThemeBuilder} from '@billsplit-wl/test-support';
+import {CreateGroupRequestBuilder, GroupDTOBuilder, GroupMemberDocumentBuilder, ShareLinkBuilder, TenantFirestoreTestDatabase, ThemeBuilder, UserRegistrationBuilder} from '@billsplit-wl/test-support';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {FirestoreCollections, HTTP_STATUS} from '../../../constants';
 import {ActivityFeedService} from '../../../services/ActivityFeedService';
@@ -10,13 +10,15 @@ import {GroupShareService} from '../../../services/GroupShareService';
 import {GroupTransactionManager} from '../../../services/transactions/GroupTransactionManager';
 import {UserService} from '../../../services/UserService2';
 import {ApiError} from '../../../utils/errors';
+import {AppDriver} from '../AppDriver';
 import {StubAuthService} from '../mocks/StubAuthService';
 
-const ownerId1 = toUserId('owner-id');
-const joiningUserId1 = toUserId('joining-user');
-const userId1 = toUserId('user-id');
+let ownerId1: string;
+let joiningUserId1: string;
+let userId1: string;
 
 describe('GroupShareService', () => {
+    let app: AppDriver;
     let groupShareService: GroupShareService;
     let db: TenantFirestoreTestDatabase;
     let firestoreReader: FirestoreReader;
@@ -26,11 +28,12 @@ describe('GroupShareService', () => {
     let authService: StubAuthService;
     let groupTransactionManager: GroupTransactionManager;
 
-    beforeEach(() => {
-        // Create stub database
-        db = new TenantFirestoreTestDatabase();
+    beforeEach(async () => {
+        // Create AppDriver for API-level operations
+        app = new AppDriver();
+        db = app.database;
 
-        // Create real services using stub database
+        // Create real services using the database from AppDriver
         firestoreReader = new FirestoreReader(db);
         const firestoreWriter = new FirestoreWriter(db);
         activityFeedService = new ActivityFeedService(firestoreReader, firestoreWriter);
@@ -48,19 +51,42 @@ describe('GroupShareService', () => {
             userService,
             groupTransactionManager,
         );
+
+        // Register common test users via API
+        const owner1Reg = new UserRegistrationBuilder()
+            .withEmail('owner1@test.com')
+            .withPassword('password123456')
+            .withDisplayName('Owner User')
+            .build();
+        const owner1Result = await app.registerUser(owner1Reg);
+        ownerId1 = owner1Result.user.uid;
+
+        const joiningReg = new UserRegistrationBuilder()
+            .withEmail('joining@test.com')
+            .withPassword('password123456')
+            .withDisplayName('Joining User')
+            .build();
+        const joiningResult = await app.registerUser(joiningReg);
+        joiningUserId1 = joiningResult.user.uid;
+
+        const user1Reg = new UserRegistrationBuilder()
+            .withEmail('user1@test.com')
+            .withPassword('password123456')
+            .withDisplayName('User 1')
+            .build();
+        const user1Result = await app.registerUser(user1Reg);
+        userId1 = user1Result.user.uid;
     });
 
-    const seedUserProfile = (userId: string, overrides: Record<string, any> = {}) => {
-        const user = db.seedUser(userId, overrides);
-
-        const { role: _, photoURL: __, ...userData } = new ClientUserBuilder()
-            .withUid(userId)
-            .withEmail(user.email)
-            .withDisplayName(overrides.displayName ?? user.displayName)
+    // Helper to register additional users via API
+    const registerUser = async (email: string, displayName: string): Promise<string> => {
+        const reg = new UserRegistrationBuilder()
+            .withEmail(email)
+            .withPassword('password123456')
+            .withDisplayName(displayName)
             .build();
-        authService.setUser(userId, userData);
-
-        return user;
+        const result = await app.registerUser(reg);
+        return result.user.uid;
     };
 
     describe('generateUniqueThemeColor', () => {
@@ -108,7 +134,7 @@ describe('GroupShareService', () => {
 
             vi.spyOn(Math, 'random').mockReturnValue(0);
 
-            const result = groupShareService.generateUniqueThemeColor(groupId, allThemes, assignedAt, joiningUserId1);
+            const result = groupShareService.generateUniqueThemeColor(groupId, allThemes, assignedAt, toUserId(joiningUserId1));
 
             expect(result.assignedAt).toBe(assignedAt);
             expect(result.colorIndex).toBeGreaterThanOrEqual(0);
@@ -117,25 +143,13 @@ describe('GroupShareService', () => {
         });
     });
 
-    const seedGroupWithOwner = (groupId: GroupId, ownerId: string) => {
-        const testGroup = new GroupDTOBuilder()
-            .withId(groupId)
-            .withCreatedBy(ownerId)
-            .withoutBalance()
-            .withoutLastActivity()
+    // Helper to create a group with owner via API
+    const createGroupWithOwner = async (userId: string, groupName?: string): Promise<GroupId> => {
+        const groupRequest = new CreateGroupRequestBuilder()
+            .withName(groupName || 'Test Group')
             .build();
-
-        seedUserProfile(ownerId, { displayName: 'Owner User' });
-        db.seedGroup(groupId, testGroup);
-        db.initializeGroupBalance(groupId);
-
-        const membershipDoc = new GroupMemberDocumentBuilder()
-            .withUserId(ownerId)
-            .withGroupId(groupId)
-            .asAdmin()
-            .buildDocument();
-
-        db.seedGroupMember(groupId, ownerId, membershipDoc);
+        const group = await app.createGroup(groupRequest, userId);
+        return toGroupId(group.id);
     };
 
     const seedShareLink = (groupId: GroupId, shareLink: {
@@ -158,11 +172,11 @@ describe('GroupShareService', () => {
 
     describe('previewGroupByLink', () => {
         it('should throw BAD_REQUEST when linkId is missing', async () => {
-            await expect(groupShareService.previewGroupByLink(userId1, toShareLinkToken(''))).rejects.toThrow(ApiError);
+            await expect(groupShareService.previewGroupByLink(toUserId(userId1), toShareLinkToken(''))).rejects.toThrow(ApiError);
 
             let caughtError: ApiError | undefined;
             try {
-                await groupShareService.previewGroupByLink(userId1, toShareLinkToken(''));
+                await groupShareService.previewGroupByLink(toUserId(userId1), toShareLinkToken(''));
             } catch (error) {
                 caughtError = error as ApiError;
             }
@@ -175,11 +189,11 @@ describe('GroupShareService', () => {
 
     describe('generateShareableLink', () => {
         it('should throw NOT_FOUND when group does not exist', async () => {
-            await expect(groupShareService.generateShareableLink(userId1, toGroupId('nonexistent-group'))).rejects.toThrow(ApiError);
+            await expect(groupShareService.generateShareableLink(toUserId(userId1), toGroupId('nonexistent-group'))).rejects.toThrow(ApiError);
 
             let caughtError: ApiError | undefined;
             try {
-                await groupShareService.generateShareableLink(userId1, toGroupId('nonexistent-group'));
+                await groupShareService.generateShareableLink(toUserId(userId1), toGroupId('nonexistent-group'));
             } catch (error) {
                 caughtError = error as ApiError;
             }
@@ -190,13 +204,12 @@ describe('GroupShareService', () => {
         });
 
         it('should generate shareable link for group owner', async () => {
-            const groupId = toGroupId('test-group');
             const userId = ownerId1;
 
-            // Set up test group using builder
-            seedGroupWithOwner(groupId, userId);
+            // Create group via API
+            const groupId = await createGroupWithOwner(userId);
 
-            const result = await groupShareService.generateShareableLink(userId, groupId);
+            const result = await groupShareService.generateShareableLink(toUserId(userId), groupId);
 
             expect(result.shareablePath).toMatch(/^\/join\?shareToken=.+$/);
             expect(result.shareToken).toBeDefined();
@@ -210,48 +223,44 @@ describe('GroupShareService', () => {
         });
 
         it('uses the provided future expiration timestamp', async () => {
-            const groupId = toGroupId('custom-expiration-group');
-            const userId = toUserId('owner-with-custom-expiration');
-            seedGroupWithOwner(groupId, userId);
+            const userId = await registerUser('custom-exp@test.com', 'Custom Owner');
+            const groupId = await createGroupWithOwner(userId);
 
             const customExpiry = new Date(Date.now() + 60 * 60 * 1000).toISOString();
 
-            const result = await groupShareService.generateShareableLink(userId, groupId, customExpiry);
+            const result = await groupShareService.generateShareableLink(toUserId(userId), groupId, customExpiry);
 
             expect(result.expiresAt).toBe(customExpiry);
         });
 
         it('rejects expiration timestamps in the past', async () => {
-            const groupId = toGroupId('past-expiration-group');
-            const userId = toUserId('owner-past-expiration');
-            seedGroupWithOwner(groupId, userId);
+            const userId = await registerUser('past-exp@test.com', 'Past Owner');
+            const groupId = await createGroupWithOwner(userId);
 
             const pastExpiry = new Date(Date.now() - 60 * 1000).toISOString();
 
-            await expect(groupShareService.generateShareableLink(userId, groupId, pastExpiry)).rejects.toMatchObject({
+            await expect(groupShareService.generateShareableLink(toUserId(userId), groupId, pastExpiry)).rejects.toMatchObject({
                 code: 'INVALID_EXPIRATION',
             });
         });
 
         it('rejects expiration timestamps beyond the maximum window', async () => {
-            const groupId = toGroupId('far-expiration-group');
-            const userId = toUserId('owner-far-expiration');
-            seedGroupWithOwner(groupId, userId);
+            const userId = await registerUser('far-exp@test.com', 'Far Owner');
+            const groupId = await createGroupWithOwner(userId);
 
             const farExpiry = new Date(Date.now() + (6 * 24 * 60 * 60 * 1000)).toISOString();
 
-            await expect(groupShareService.generateShareableLink(userId, groupId, farExpiry)).rejects.toMatchObject({
+            await expect(groupShareService.generateShareableLink(toUserId(userId), groupId, farExpiry)).rejects.toMatchObject({
                 code: 'INVALID_EXPIRATION',
             });
         });
 
         it('removes expired share links when creating a new one', async () => {
-            const groupId = toGroupId('cleanup-group');
-            const userId = toUserId('owner-cleanup');
-            seedGroupWithOwner(groupId, userId);
+            const userId = await registerUser('cleanup@test.com', 'Cleanup Owner');
+            const groupId = await createGroupWithOwner(userId);
 
             const expiredShareLink = new ShareLinkBuilder()
-                .withCreatedBy(userId)
+                .withCreatedBy(toUserId(userId))
                 .withExpiresAt(new Date(Date.now() - 5 * 60 * 1000).toISOString())
                 .build();
             db.seed(`groups/${groupId}/shareLinks/expired-cleanup-doc`, { ...expiredShareLink, id: 'expired-cleanup-doc', token: 'expired-cleanup-token' });
@@ -263,7 +272,7 @@ describe('GroupShareService', () => {
                 createdAt: expiredShareLink.createdAt,
             });
 
-            await groupShareService.generateShareableLink(userId, groupId);
+            await groupShareService.generateShareableLink(toUserId(userId), groupId);
 
             const shareLinksSnapshot = await db.collection('groups').doc(groupId).collection('shareLinks').get();
             const shareLinkIds = shareLinksSnapshot.docs.map((doc) => doc.id);
@@ -272,18 +281,19 @@ describe('GroupShareService', () => {
     });
 
     describe('share link expiration enforcement', () => {
-        const groupId = toGroupId('expired-group');
-        const ownerId = toUserId('owner-expiration');
+        let groupId: GroupId;
+        let ownerId: string;
         const expiredToken = toShareLinkToken(`expired-token-1234567890`);
         const previewToken = toShareLinkToken('preview-expired-token');
 
-        beforeEach(() => {
-            seedGroupWithOwner(groupId, ownerId);
+        beforeEach(async () => {
+            ownerId = await registerUser('expiration-owner@test.com', 'Expiration Owner');
+            groupId = await createGroupWithOwner(ownerId);
         });
 
         it('rejects joins when the share link is expired', async () => {
             const expiredShareLink = new ShareLinkBuilder()
-                .withCreatedBy(ownerId)
+                .withCreatedBy(toUserId(ownerId))
                 .withExpiresAt(new Date(Date.now() - 60 * 1000).toISOString())
                 .build();
             db.seed(`groups/${groupId}/shareLinks/expired-doc-id`, { ...expiredShareLink, id: 'expired-doc-id', token: expiredToken });
@@ -295,16 +305,14 @@ describe('GroupShareService', () => {
                 createdAt: expiredShareLink.createdAt,
             });
 
-            seedUserProfile(joiningUserId1, { displayName: 'Joining User' });
-
-            await expect(groupShareService.joinGroupByLink(joiningUserId1, expiredToken, toDisplayName('Joining User'))).rejects.toMatchObject({
+            await expect(groupShareService.joinGroupByLink(toUserId(joiningUserId1), expiredToken, toDisplayName('Joining User'))).rejects.toMatchObject({
                 code: 'LINK_EXPIRED',
             });
         });
 
         it('blocks previews for expired share links', async () => {
             const expiredShareLink = new ShareLinkBuilder()
-                .withCreatedBy(ownerId)
+                .withCreatedBy(toUserId(ownerId))
                 .withExpiresAt(new Date(Date.now() - 2 * 60 * 1000).toISOString())
                 .build();
             db.seed(`groups/${groupId}/shareLinks/preview-expired-doc-id`, { ...expiredShareLink, id: 'preview-expired-doc-id', token: previewToken });
@@ -316,7 +324,8 @@ describe('GroupShareService', () => {
                 createdAt: expiredShareLink.createdAt,
             });
 
-            await expect(groupShareService.previewGroupByLink(toUserId('different-user'), previewToken)).rejects.toMatchObject({
+            const differentUser = await registerUser('different@test.com', 'Different User');
+            await expect(groupShareService.previewGroupByLink(toUserId(differentUser), previewToken)).rejects.toMatchObject({
                 code: 'LINK_EXPIRED',
             });
         });
@@ -339,7 +348,7 @@ describe('GroupShareService', () => {
             // Set up test group
             const testGroup = new GroupDTOBuilder()
                 .withId(groupId)
-                .withCreatedBy(ownerId1)
+                .withCreatedBy(toUserId(ownerId1))
                 .withoutBalance()
                 .withoutLastActivity()
                 .build();
@@ -348,7 +357,7 @@ describe('GroupShareService', () => {
 
             // Set up share link
             const shareLink = new ShareLinkBuilder()
-                .withCreatedBy(ownerId1)
+                .withCreatedBy(toUserId(ownerId1))
                 .withExpiresAt(new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString())
                 .build();
             db.seed(`groups/${groupId}/shareLinks/${linkId}`, { ...shareLink, id: linkId, token: linkId });
@@ -444,7 +453,7 @@ describe('GroupShareService', () => {
             // Set up test group
             const testGroup = new GroupDTOBuilder()
                 .withId(groupId)
-                .withCreatedBy(ownerId1)
+                .withCreatedBy(toUserId(ownerId1))
                 .withoutBalance()
                 .withoutLastActivity()
                 .build();
@@ -453,7 +462,7 @@ describe('GroupShareService', () => {
 
             // Set up share link
             const shareLink = new ShareLinkBuilder()
-                .withCreatedBy(ownerId1)
+                .withCreatedBy(toUserId(ownerId1))
                 .withExpiresAt(new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString())
                 .build();
             db.seed(`groups/${groupId}/shareLinks/${linkId}`, { ...shareLink, id: linkId, token: linkId });
@@ -523,7 +532,7 @@ describe('GroupShareService', () => {
         beforeEach(() => {
             const managedGroup = new GroupDTOBuilder()
                 .withId(groupId)
-                .withCreatedBy(ownerId1)
+                .withCreatedBy(toUserId(ownerId1))
                 .withPermissions({
                     expenseEditing: PermissionLevels.OWNER_AND_ADMIN,
                     expenseDeletion: PermissionLevels.OWNER_AND_ADMIN,
@@ -555,7 +564,6 @@ describe('GroupShareService', () => {
                 .buildDocument();
             db.seedGroupMember(groupId, ownerId1, ownerMember);
 
-            seedUserProfile(pendingUserId, { displayName: 'Pending User' });
         });
 
         it('should mark joins as pending when admin approval is required', async () => {
@@ -570,48 +578,26 @@ describe('GroupShareService', () => {
     });
 
     describe('member approval workflow - automatic', () => {
-        const groupId = toGroupId('open-group');
-        const linkId = toShareLinkToken('open-link-1234567890');
-        const ownerId = 'open-owner';
-        const joiningUserId = joiningUserId1;
+        let groupId: GroupId;
+        let ownerId: string;
+        let shareToken: string;
 
-        beforeEach(() => {
-            const openGroup = new GroupDTOBuilder()
-                .withId(groupId)
-                .withCreatedBy(ownerId)
-                .withoutBalance()
-                .withoutLastActivity()
-                .build();
-            db.seedGroup(groupId, openGroup);
-            db.initializeGroupBalance(groupId);
+        beforeEach(async () => {
+            // Create owner and group
+            ownerId = await registerUser('auto-owner@test.com', 'Auto Owner');
+            groupId = await createGroupWithOwner(ownerId);
 
-            const shareLink = {
-                id: linkId,
-                token: linkId,
-                createdBy: ownerId,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-            };
-            seedShareLink(groupId, shareLink);
-
-            const ownerMember = new GroupMemberDocumentBuilder()
-                .withUserId(ownerId)
-                .withGroupId(groupId)
-                .asAdmin()
-                .asActive()
-                .buildDocument();
-            db.seedGroupMember(groupId, ownerId, ownerMember);
-
-            seedUserProfile(joiningUserId, { displayName: 'Joining User' });
+            // Generate share link via API
+            const shareLink = await groupShareService.generateShareableLink(toUserId(ownerId), groupId);
+            shareToken = shareLink.shareToken;
         });
 
         it('should activate members immediately when approval is automatic', async () => {
-            const result = await groupShareService.joinGroupByLink(joiningUserId, linkId, toDisplayName('Joining User'));
+            const result = await groupShareService.joinGroupByLink(toUserId(joiningUserId1), toShareLinkToken(shareToken), toDisplayName('Joining User'));
             expect(result.success).toBe(true);
             expect(result.memberStatus).toBe(MemberStatuses.ACTIVE);
 
-            const storedMembership = await firestoreReader.getGroupMember(groupId, joiningUserId);
+            const storedMembership = await firestoreReader.getGroupMember(groupId, toUserId(joiningUserId1));
             expect(storedMembership?.memberStatus).toBe(MemberStatuses.ACTIVE);
         });
     });
@@ -655,9 +641,8 @@ describe('GroupShareService', () => {
                 createdAt: shareLink.createdAt,
             });
 
-            seedUserProfile(joiningUserId, { displayName: 'Joining User' });
 
-            await groupShareService.joinGroupByLink(joiningUserId, linkId, toDisplayName('Joining User'));
+            await groupShareService.joinGroupByLink(toUserId(joiningUserId), linkId, toDisplayName('Joining User'));
 
             const ownerFeed = await firestoreReader.getActivityFeedForUser(ownerId);
             expect(ownerFeed.items[0]).toMatchObject({
@@ -670,7 +655,7 @@ describe('GroupShareService', () => {
                 }),
             });
 
-            const joiningFeed = await firestoreReader.getActivityFeedForUser(joiningUserId);
+            const joiningFeed = await firestoreReader.getActivityFeedForUser(toUserId(joiningUserId));
             expect(joiningFeed.items[0]).toMatchObject({
                 eventType: ActivityFeedEventTypes.MEMBER_JOINED,
                 action: ActivityFeedActions.JOIN,
@@ -726,10 +711,9 @@ describe('GroupShareService', () => {
             };
             seedShareLink(groupId, shareLink);
 
-            seedUserProfile(joiningUserId1, { displayName: 'New Joiner' });
 
             // Third user joins the group
-            await groupShareService.joinGroupByLink(joiningUserId1, linkId, toDisplayName('Joining User'));
+            await groupShareService.joinGroupByLink(toUserId(joiningUserId1), linkId, toDisplayName('Joining User'));
 
             // CRITICAL: All three users should receive the activity feed event
             // This verifies that the transaction-based recipient fetching includes
@@ -752,7 +736,7 @@ describe('GroupShareService', () => {
             });
 
             // Joining user should also receive their own join notification
-            const joiningFeed = await firestoreReader.getActivityFeedForUser(joiningUserId1);
+            const joiningFeed = await firestoreReader.getActivityFeedForUser(toUserId(joiningUserId1));
             expect(joiningFeed.items).toHaveLength(1);
             expect(joiningFeed.items[0]).toMatchObject({
                 eventType: ActivityFeedEventTypes.MEMBER_JOINED,
@@ -807,10 +791,9 @@ describe('GroupShareService', () => {
             };
             seedShareLink(groupId, shareLink);
 
-            seedUserProfile(joiningUserId, { displayName: 'New Joiner' });
 
             // New user joins the group
-            await groupShareService.joinGroupByLink(joiningUserId, linkId, toDisplayName('Joining User'));
+            await groupShareService.joinGroupByLink(toUserId(joiningUserId), linkId, toDisplayName('Joining User'));
 
             // Owner should receive notification (active member)
             const ownerFeed = await firestoreReader.getActivityFeedForUser(ownerId);
@@ -821,7 +804,7 @@ describe('GroupShareService', () => {
             expect(pendingFeed.items).toHaveLength(0);
 
             // Joining user should receive their own notification
-            const joiningFeed = await firestoreReader.getActivityFeedForUser(joiningUserId);
+            const joiningFeed = await firestoreReader.getActivityFeedForUser(toUserId(joiningUserId));
             expect(joiningFeed.items).toHaveLength(1);
         });
     });

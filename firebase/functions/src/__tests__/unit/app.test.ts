@@ -15,6 +15,7 @@ import {
     toTenantAccentColor,
     toTenantAppName,
     toTenantDomainName,
+    toTenantFaviconUrl,
     toTenantLogoUrl,
     toTenantPrimaryColor,
     toTenantSecondaryColor,
@@ -72,6 +73,7 @@ describe('app tests', () => {
     let user2: UserId;
     let user3: UserId;
     let user4: UserId;
+    let adminUser: UserId;
 
     beforeEach(async () => {
         appDriver = new AppDriver();
@@ -108,6 +110,16 @@ describe('app tests', () => {
             .build();
         const user4Result = await appDriver.registerUser(user4Reg);
         user4 = toUserId(user4Result.user.uid);
+
+        // Create admin user for policy management and tenant operations
+        const adminReg = new UserRegistrationBuilder()
+            .withEmail('admin@example.com')
+            .withDisplayName('Admin User')
+            .withPassword('password12345')
+            .build();
+        const adminResult = await appDriver.registerUser(adminReg);
+        adminUser = toUserId(adminResult.user.uid);
+        appDriver.seedAdminUser(adminUser);
     });
 
     afterEach(() => {
@@ -2754,7 +2766,7 @@ describe('app tests', () => {
                 const policy1 = await appDriver.createPolicy({
                     policyName: toPolicyName('Terms Of Service'),
                     text: toPolicyText('Terms of Service v1'),
-                }, user1);
+                }, adminUser);
 
                 const result = await appDriver.acceptMultiplePolicies([
                     { policyId: policy1.id, versionHash: policy1.versionHash },
@@ -2770,17 +2782,17 @@ describe('app tests', () => {
                 const policy1 = await appDriver.createPolicy({
                     policyName: toPolicyName('Terms Of Service'),
                     text: toPolicyText('Terms of Service v1'),
-                }, user1);
+                }, adminUser);
 
                 const policy2 = await appDriver.createPolicy({
                     policyName: toPolicyName('Privacy Policy'),
                     text: toPolicyText('Privacy Policy v1'),
-                }, user1);
+                }, adminUser);
 
                 const policy3 = await appDriver.createPolicy({
                     policyName: toPolicyName('Cookie Policy'),
                     text: toPolicyText('Cookie Policy v1'),
-                }, user1);
+                }, adminUser);
 
                 const result = await appDriver.acceptMultiplePolicies([
                     { policyId: policy1.id, versionHash: policy1.versionHash },
@@ -2798,7 +2810,7 @@ describe('app tests', () => {
                 const policy1 = await appDriver.createPolicy({
                     policyName: toPolicyName('Terms Of Service'),
                     text: toPolicyText('Terms of Service v1'),
-                }, user1);
+                }, adminUser);
 
                 await appDriver.acceptMultiplePolicies([
                     { policyId: policy1.id, versionHash: policy1.versionHash },
@@ -2853,7 +2865,7 @@ describe('app tests', () => {
                 const policy1 = await appDriver.createPolicy({
                     policyName: toPolicyName('Terms Of Service'),
                     text: toPolicyText('Terms of Service v1'),
-                }, user1);
+                }, adminUser);
 
                 await expect(
                     appDriver.acceptMultiplePolicies([
@@ -2868,7 +2880,7 @@ describe('app tests', () => {
                 const policy1 = await appDriver.createPolicy({
                     policyName: toPolicyName('Terms Of Service'),
                     text: toPolicyText('Terms of Service v1'),
-                }, user1);
+                }, adminUser);
 
                 await expect(
                     appDriver.acceptMultiplePolicies([
@@ -2889,12 +2901,12 @@ describe('app tests', () => {
                 const policy1 = await appDriver.createPolicy({
                     policyName: toPolicyName('Terms Of Service'),
                     text: toPolicyText('Terms of Service v1'),
-                }, user1);
+                }, adminUser);
 
                 const policy2 = await appDriver.createPolicy({
                     policyName: toPolicyName('Privacy Policy'),
                     text: toPolicyText('Privacy Policy v1'),
-                }, user1);
+                }, adminUser);
 
                 const status = await appDriver.getUserPolicyStatus(user2);
 
@@ -2917,12 +2929,12 @@ describe('app tests', () => {
                 const policy1 = await appDriver.createPolicy({
                     policyName: toPolicyName('Terms Of Service'),
                     text: toPolicyText('Terms of Service v1'),
-                }, user1);
+                }, adminUser);
 
                 const policy2 = await appDriver.createPolicy({
                     policyName: toPolicyName('Privacy Policy'),
                     text: toPolicyText('Privacy Policy v1'),
-                }, user1);
+                }, adminUser);
 
                 await appDriver.acceptMultiplePolicies([
                     { policyId: policy1.id, versionHash: policy1.versionHash },
@@ -2945,7 +2957,7 @@ describe('app tests', () => {
                 const policy1 = await appDriver.createPolicy({
                     policyName: toPolicyName('Terms Of Service'),
                     text: toPolicyText('Terms of Service v1'),
-                }, user1);
+                }, adminUser);
 
                 await appDriver.acceptMultiplePolicies([
                     { policyId: policy1.id, versionHash: policy1.versionHash },
@@ -2956,7 +2968,7 @@ describe('app tests', () => {
                 const updatedPolicy = await appDriver.updatePolicy(policy1.id, {
                     text: toPolicyText('Terms of Service v2 - updated'),
                     publish: true,
-                }, user1);
+                }, adminUser);
 
                 const status = await appDriver.getUserPolicyStatus(user2);
 
@@ -2976,17 +2988,17 @@ describe('app tests', () => {
                 const policy1 = await appDriver.createPolicy({
                     policyName: toPolicyName('Terms Of Service'),
                     text: toPolicyText('Terms of Service v1'),
-                }, user1);
+                }, adminUser);
 
                 const policy2 = await appDriver.createPolicy({
                     policyName: toPolicyName('Privacy Policy'),
                     text: toPolicyText('Privacy Policy v1'),
-                }, user1);
+                }, adminUser);
 
                 const policy3 = await appDriver.createPolicy({
                     policyName: toPolicyName('Cookie Policy'),
                     text: toPolicyText('Cookie Policy v1'),
-                }, user1);
+                }, adminUser);
 
                 await appDriver.acceptMultiplePolicies([
                     { policyId: policy1.id, versionHash: policy1.versionHash },
@@ -2996,7 +3008,7 @@ describe('app tests', () => {
                 await appDriver.updatePolicy(policy1.id, {
                     text: toPolicyText('Terms of Service v2'),
                     publish: true,
-                }, user1);
+                }, adminUser);
 
                 const status = await appDriver.getUserPolicyStatus(user2);
 
@@ -3019,7 +3031,7 @@ describe('app tests', () => {
                 const policy1 = await appDriver.createPolicy({
                     policyName: toPolicyName('Terms Of Service'),
                     text: toPolicyText('Terms of Service v1'),
-                }, user1);
+                }, adminUser);
 
                 const status = await appDriver.getUserPolicyStatus(user2);
 
@@ -3036,7 +3048,7 @@ describe('app tests', () => {
                 const policy1 = await appDriver.createPolicy({
                     policyName: toPolicyName('Terms Of Service'),
                     text: toPolicyText('Terms of Service v1'),
-                }, user1);
+                }, adminUser);
 
                 await appDriver.acceptMultiplePolicies([
                     { policyId: policy1.id, versionHash: policy1.versionHash },
@@ -3064,17 +3076,17 @@ describe('app tests', () => {
                 const policy1 = await appDriver.createPolicy({
                     policyName: toPolicyName('Terms Of Service'),
                     text: toPolicyText('Terms of Service v1'),
-                }, user1);
+                }, adminUser);
 
                 const policy2 = await appDriver.createPolicy({
                     policyName: toPolicyName('Privacy Policy'),
                     text: toPolicyText('Privacy Policy v1'),
-                }, user1);
+                }, adminUser);
 
                 const policy3 = await appDriver.createPolicy({
                     policyName: toPolicyName('Cookie Policy'),
                     text: toPolicyText('Cookie Policy v1'),
-                }, user1);
+                }, adminUser);
 
                 await appDriver.acceptMultiplePolicies([
                     { policyId: policy1.id, versionHash: policy1.versionHash },
@@ -3600,7 +3612,7 @@ describe('app tests', () => {
         });
 
         describe('changePassword', () => {
-            const VALID_CURRENT_PASSWORD = toPassword('ValidPass123!');
+            const VALID_CURRENT_PASSWORD = toPassword('password12345');
             const VALID_NEW_PASSWORD = toPassword('NewSecurePass123!');
 
             it('should successfully change password with valid credentials', async () => {
@@ -3713,7 +3725,7 @@ describe('app tests', () => {
         });
 
         describe('changeEmail', () => {
-            const CURRENT_PASSWORD = toPassword('ValidPass123!');
+            const CURRENT_PASSWORD = toPassword('password12345');
             const NEW_EMAIL = toEmail('newemail@example.com');
 
             it('should successfully change email with valid credentials', async () => {
@@ -3828,15 +3840,13 @@ describe('app tests', () => {
     });
 
     describe('policy administration flows', () => {
-        const policyAdmin = user1;
-
         it('should allow admin to create, update, and publish policies', async () => {
             const policyName = toPolicyName('Privacy Policy');
 
             const created = await appDriver.createPolicy({
                 policyName,
                 text: toPolicyText('Initial policy text'),
-            }, policyAdmin);
+            }, adminUser);
 
             expect(created).toMatchObject({
                 id: expect.any(String),
@@ -3846,7 +3856,7 @@ describe('app tests', () => {
             const draftUpdate = await appDriver.updatePolicy(created.id, {
                 text: toPolicyText('Updated draft policy text'),
                 publish: false,
-            }, policyAdmin);
+            }, adminUser);
 
             expect(draftUpdate).toMatchObject({
                 published: false,
@@ -3856,14 +3866,14 @@ describe('app tests', () => {
             const publishedUpdate = await appDriver.updatePolicy(created.id, {
                 text: toPolicyText('Final published policy text'),
                 publish: true,
-            }, policyAdmin);
+            }, adminUser);
 
             expect(publishedUpdate).toMatchObject({
                 published: true,
                 currentVersionHash: expect.any(String),
             });
 
-            const policyDetails = await appDriver.getPolicy(created.id, policyAdmin);
+            const policyDetails = await appDriver.getPolicy(created.id, adminUser);
             const publishedVersionHash = publishedUpdate.currentVersionHash;
             expect(publishedVersionHash).toBeDefined();
             expect(policyDetails.currentVersionHash).toBe(publishedVersionHash);
@@ -3880,7 +3890,7 @@ describe('app tests', () => {
                 appDriver.updatePolicy(policyId, {
                     text: toPolicyText('Updated terms version 1'),
                     publish: true,
-                }, policyAdmin),
+                }, adminUser),
             )
                 .rejects
                 .toThrow(/Policy not found/);
@@ -3888,21 +3898,21 @@ describe('app tests', () => {
             const created = await appDriver.createPolicy({
                 policyName,
                 text: toPolicyText('Initial terms content'),
-            }, policyAdmin);
+            }, adminUser);
 
             expect(created.id).toBe(policyId);
 
             const update = await appDriver.updatePolicy(created.id, {
                 text: toPolicyText('Updated terms version 2'),
                 publish: true,
-            }, policyAdmin);
+            }, adminUser);
 
             expect(update).toMatchObject({
                 published: true,
                 currentVersionHash: expect.any(String),
             });
 
-            const policyDetails = await appDriver.getPolicy(policyId, policyAdmin);
+            const policyDetails = await appDriver.getPolicy(policyId, adminUser);
             const publishedHash = update.currentVersionHash;
             expect(publishedHash).toBeDefined();
             expect(policyDetails.currentVersionHash).toBe(publishedHash);
@@ -3913,19 +3923,34 @@ describe('app tests', () => {
     });
 
     describe('tenant settings endpoints', () => {
-        const tenantAdmin = user1;
-        const regularUser = user2;
+        beforeEach(async () => {
+            // Create tenant via API using the admin user
+            // Use 'system-fallback-tenant' as that's what createStubRequest sets
+            const tenantData = AdminTenantRequestBuilder
+                .forTenant('system-fallback-tenant')
+                .withBranding({
+                    appName: toTenantAppName('Test Tenant'),
+                    logoUrl: toTenantLogoUrl('https://example.com/logo.svg'),
+                    faviconUrl: toTenantFaviconUrl('https://example.com/favicon.ico'),
+                    primaryColor: toTenantPrimaryColor('#0066CC'),
+                    secondaryColor: toTenantSecondaryColor('#FF6600'),
+                    marketingFlags: {
+                        showLandingPage: true,
+                        showPricingPage: true,
+                    },
+                })
+                .withDomains([toTenantDomainName('test.example.com')])
+                .build();
 
-        beforeEach(() => {
-            // Seed tenant document for tenant settings tests
-            appDriver.seedTenantDocument('system-fallback-tenant');
-            // Seed tenant admin user for tenant settings tests
-            appDriver.seedTenantAdminUser(tenantAdmin, {});
+            await appDriver.adminUpsertTenant(tenantData, adminUser);
+
+            // Make user1 a tenant admin
+            appDriver.seedTenantAdminUser(user1, {});
         });
 
         describe('GET /settings/tenant', () => {
             it('should allow tenant admin to get tenant settings', async () => {
-                const settings = await appDriver.getTenantSettings(tenantAdmin);
+                const settings = await appDriver.getTenantSettings(user1);
 
                 expect(settings).toMatchObject({
                     tenantId: expect.any(String),
@@ -3951,7 +3976,7 @@ describe('app tests', () => {
             });
 
             it('should deny regular user access to tenant settings', async () => {
-                const result = await appDriver.getTenantSettings(regularUser);
+                const result = await appDriver.getTenantSettings(user2);
                 expect(result).toMatchObject({
                     error: {
                         code: 'FORBIDDEN',
@@ -3962,7 +3987,7 @@ describe('app tests', () => {
 
         describe('GET /settings/tenant/domains', () => {
             it('should allow tenant admin to list domains', async () => {
-                const result = await appDriver.getTenantDomains(tenantAdmin);
+                const result = await appDriver.getTenantDomains(user1);
 
                 expect(result).toMatchObject({
                     domains: expect.any(Array),
@@ -3974,7 +3999,7 @@ describe('app tests', () => {
             });
 
             it('should deny regular user access to list domains', async () => {
-                const result = await appDriver.getTenantDomains(regularUser);
+                const result = await appDriver.getTenantDomains(user2);
                 expect(result).toMatchObject({
                     error: {
                         code: 'FORBIDDEN',
@@ -3990,14 +4015,14 @@ describe('app tests', () => {
                     primaryColor: toTenantPrimaryColor('#FF0000'),
                 };
 
-                const result = await appDriver.updateTenantBranding(brandingData, tenantAdmin);
+                const result = await appDriver.updateTenantBranding(brandingData, user1);
 
                 expect(result).toMatchObject({
                     message: 'Tenant branding updated successfully',
                 });
 
                 // Verify the update persisted
-                const settings = await appDriver.getTenantSettings(tenantAdmin);
+                const settings = await appDriver.getTenantSettings(user1);
                 expect(settings.config.branding.appName).toBe('Custom Brand');
                 expect(settings.config.branding.primaryColor).toBe('#FF0000');
             });
@@ -4005,13 +4030,13 @@ describe('app tests', () => {
             it('should update partial branding fields', async () => {
                 const result = await appDriver.updateTenantBranding({
                     logoUrl: toTenantLogoUrl('https://custom.com/logo.svg'),
-                }, tenantAdmin);
+                }, user1);
 
                 expect(result).toMatchObject({
                     message: 'Tenant branding updated successfully',
                 });
 
-                const settings = await appDriver.getTenantSettings(tenantAdmin);
+                const settings = await appDriver.getTenantSettings(user1);
                 expect(settings.config.branding.logoUrl).toBe('https://custom.com/logo.svg');
             });
 
@@ -4021,13 +4046,13 @@ describe('app tests', () => {
                         showLandingPage: toShowLandingPageFlag(false),
                         showPricingPage: toShowPricingPageFlag(true),
                     },
-                }, tenantAdmin);
+                }, user1);
 
                 expect(result).toMatchObject({
                     message: 'Tenant branding updated successfully',
                 });
 
-                const settings = await appDriver.getTenantSettings(tenantAdmin);
+                const settings = await appDriver.getTenantSettings(user1);
                 expect(settings.config.branding.marketingFlags?.showLandingPage).toBe(false);
                 expect(settings.config.branding.marketingFlags?.showPricingPage).toBe(true);
             });
@@ -4037,7 +4062,7 @@ describe('app tests', () => {
                     appName: toTenantAppName(''), // Empty string not allowed
                 };
 
-                const result = await appDriver.updateTenantBranding(invalidData, tenantAdmin);
+                const result = await appDriver.updateTenantBranding(invalidData, user1);
 
                 expect(result).toMatchObject({
                     error: {
@@ -4053,7 +4078,7 @@ describe('app tests', () => {
                     unexpectedField: 'should fail',
                 };
 
-                const result = await appDriver.updateTenantBranding(invalidData, tenantAdmin);
+                const result = await appDriver.updateTenantBranding(invalidData, user1);
 
                 expect(result).toMatchObject({
                     error: {
@@ -4067,7 +4092,7 @@ describe('app tests', () => {
                     appName: toTenantAppName('Custom Brand'),
                 };
 
-                const result = await appDriver.updateTenantBranding(brandingData, regularUser);
+                const result = await appDriver.updateTenantBranding(brandingData, user2);
                 expect(result).toMatchObject({
                     error: {
                         code: 'FORBIDDEN',
@@ -4077,6 +4102,7 @@ describe('app tests', () => {
 
             it('should allow system admin to update branding', async () => {
                 const systemAdmin = user3;
+                appDriver.seedAdminUser(systemAdmin); // Promote to system admin
 
                 const result = await appDriver.updateTenantBranding({
                     appName: toTenantAppName('System Admin Updated'),
@@ -4094,7 +4120,7 @@ describe('app tests', () => {
                     domain: toTenantDomainName('custom.example.com'),
                 };
 
-                const result = await appDriver.addTenantDomain(domainData, tenantAdmin);
+                const result = await appDriver.addTenantDomain(domainData, user1);
 
                 expect(result).toMatchObject({
                     error: {
@@ -4109,7 +4135,7 @@ describe('app tests', () => {
                     domain: toTenantDomainName('custom.example.com'),
                 };
 
-                const result = await appDriver.addTenantDomain(domainData, regularUser);
+                const result = await appDriver.addTenantDomain(domainData, user2);
                 expect(result).toMatchObject({
                     error: {
                         code: 'FORBIDDEN',
@@ -4119,10 +4145,13 @@ describe('app tests', () => {
         });
 
         describe('authorization - system admin access', () => {
-            const systemAdmin = user3;
+            beforeEach(() => {
+                // Promote user3 to system admin
+                appDriver.seedAdminUser(user3);
+            });
 
             it('should allow system admin to access tenant settings', async () => {
-                const settings = await appDriver.getTenantSettings(systemAdmin);
+                const settings = await appDriver.getTenantSettings(user3);
 
                 expect(settings).toMatchObject({
                     tenantId: expect.any(String),
@@ -4131,7 +4160,7 @@ describe('app tests', () => {
             });
 
             it('should allow system admin to list domains', async () => {
-                const result = await appDriver.getTenantDomains(systemAdmin);
+                const result = await appDriver.getTenantDomains(user3);
 
                 expect(result).toMatchObject({
                     domains: expect.any(Array),
@@ -4142,7 +4171,7 @@ describe('app tests', () => {
     });
 
     describe('Admin Tenant Management', () => {
-        let adminUser: string;
+        let localAdminUser: string;
 
         beforeEach(async () => {
             const adminReg = new UserRegistrationBuilder()
@@ -4151,14 +4180,15 @@ describe('app tests', () => {
                 .withPassword('password12345')
                 .build();
             const adminResult = await appDriver.registerUser(adminReg);
-            adminUser = adminResult.user.uid;
+            localAdminUser = adminResult.user.uid;
+            appDriver.seedAdminUser(localAdminUser);
         });
 
         describe('POST /api/admin/tenants - adminUpsertTenant', () => {
             it('should create a new tenant when it does not exist', async () => {
                 const payload = AdminTenantRequestBuilder.forTenant('tenant_new_test').build();
 
-                const result = await appDriver.adminUpsertTenant(payload, adminUser);
+                const result = await appDriver.adminUpsertTenant(payload, localAdminUser);
 
                 expect(result).toMatchObject({
                     tenantId: 'tenant_new_test',
@@ -4170,7 +4200,7 @@ describe('app tests', () => {
                 const payload = AdminTenantRequestBuilder.forTenant('tenant_existing_test').build();
 
                 // Create tenant first
-                const createResult = await appDriver.adminUpsertTenant(payload, adminUser);
+                const createResult = await appDriver.adminUpsertTenant(payload, localAdminUser);
                 expect(createResult.created).toBe(true);
 
                 // Update the same tenant
@@ -4179,7 +4209,7 @@ describe('app tests', () => {
                     .withAppName('Updated Tenant App')
                     .build();
 
-                const updateResult = await appDriver.adminUpsertTenant(updatedPayload, adminUser);
+                const updateResult = await appDriver.adminUpsertTenant(updatedPayload, localAdminUser);
 
                 expect(updateResult).toMatchObject({
                     tenantId: 'tenant_existing_test',
@@ -4193,7 +4223,7 @@ describe('app tests', () => {
                     .withPaletteColor('primary', 'not-a-hex-color') // Invalid hex color
                     .build();
 
-                await expect(appDriver.adminUpsertTenant(invalidPayload, adminUser)).rejects.toThrow();
+                await expect(appDriver.adminUpsertTenant(invalidPayload, localAdminUser)).rejects.toThrow();
             });
 
             it('should reject missing required fields', async () => {
@@ -4205,7 +4235,7 @@ describe('app tests', () => {
                     },
                 } as any;
 
-                await expect(appDriver.adminUpsertTenant(invalidPayload, adminUser)).rejects.toThrow();
+                await expect(appDriver.adminUpsertTenant(invalidPayload, localAdminUser)).rejects.toThrow();
             });
 
             it('should auto-generate brandingTokens when not provided', async () => {
@@ -4213,7 +4243,7 @@ describe('app tests', () => {
                 const request = { ...payload };
                 delete request.brandingTokens;
 
-                const result = await appDriver.adminUpsertTenant(request, adminUser);
+                const result = await appDriver.adminUpsertTenant(request, localAdminUser);
 
                 expect(result).toMatchObject({
                     tenantId: 'tenant_without_tokens',
@@ -4255,6 +4285,7 @@ describe('app tests', () => {
                     .build();
                 const systemAdminResult = await appDriver.registerUser(systemAdminReg);
                 const systemAdmin = systemAdminResult.user.uid;
+                appDriver.seedAdminUser(systemAdmin); // Promote to system admin
 
                 const payload = AdminTenantRequestBuilder.forTenant('tenant_system_admin').build();
 
@@ -4273,7 +4304,7 @@ describe('app tests', () => {
                     .withLetterSpacing('tight', '-0.02rem')
                     .build();
 
-                const result = await appDriver.adminUpsertTenant(payload, adminUser);
+                const result = await appDriver.adminUpsertTenant(payload, localAdminUser);
 
                 expect(result).toMatchObject({
                     tenantId: 'tenant_negative_css',
@@ -4293,7 +4324,7 @@ describe('app tests', () => {
                     .asDefaultTenant()
                     .build();
 
-                const result = await appDriver.adminUpsertTenant(payloadWithDefault, adminUser);
+                const result = await appDriver.adminUpsertTenant(payloadWithDefault, localAdminUser);
 
                 expect(result).toMatchObject({
                     tenantId: 'tenant_default_flag',
@@ -4317,7 +4348,7 @@ describe('app tests', () => {
                     ])
                     .build();
 
-                const result = await appDriver.adminUpsertTenant(payload, adminUser);
+                const result = await appDriver.adminUpsertTenant(payload, localAdminUser);
 
                 expect(result.tenantId).toBe('tenant_domains');
 
@@ -4339,7 +4370,7 @@ describe('app tests', () => {
                     .withDomains([toTenantDomainName('duplicate-test.local')])
                     .build();
 
-                const firstResult = await appDriver.adminUpsertTenant(firstTenant, adminUser);
+                const firstResult = await appDriver.adminUpsertTenant(firstTenant, localAdminUser);
                 expect(firstResult.created).toBe(true);
 
                 // Attempt to create second tenant with the same domain
@@ -4349,7 +4380,7 @@ describe('app tests', () => {
                     .build();
 
                 // Should fail with appropriate error
-                await expect(appDriver.adminUpsertTenant(secondTenant, adminUser))
+                await expect(appDriver.adminUpsertTenant(secondTenant, localAdminUser))
                     .rejects
                     .toMatchObject({
                         code: 'DUPLICATE_DOMAIN',
@@ -4367,7 +4398,7 @@ describe('app tests', () => {
                     ])
                     .build();
 
-                const firstResult = await appDriver.adminUpsertTenant(firstTenant, adminUser);
+                const firstResult = await appDriver.adminUpsertTenant(firstTenant, localAdminUser);
                 expect(firstResult.created).toBe(true);
 
                 // Attempt to create second tenant with one of those domains
@@ -4380,7 +4411,7 @@ describe('app tests', () => {
                     .build();
 
                 // Should fail - 'shared.test' is already used by first tenant
-                await expect(appDriver.adminUpsertTenant(secondTenant, adminUser))
+                await expect(appDriver.adminUpsertTenant(secondTenant, localAdminUser))
                     .rejects
                     .toMatchObject({
                         code: 'DUPLICATE_DOMAIN',
@@ -4394,7 +4425,7 @@ describe('app tests', () => {
                     .withDomains([toTenantDomainName('update.test')])
                     .build();
 
-                const createResult = await appDriver.adminUpsertTenant(createTenant, adminUser);
+                const createResult = await appDriver.adminUpsertTenant(createTenant, localAdminUser);
                 expect(createResult.created).toBe(true);
 
                 // Update the same tenant with same domains - should be allowed
@@ -4404,7 +4435,7 @@ describe('app tests', () => {
                     .withDomains([toTenantDomainName('update.test')])
                     .build();
 
-                const updateResult = await appDriver.adminUpsertTenant(updateTenant, adminUser);
+                const updateResult = await appDriver.adminUpsertTenant(updateTenant, localAdminUser);
                 expect(updateResult.created).toBe(false); // Updated, not created
                 expect(updateResult.tenantId).toBe('tenant_self_update');
             });
@@ -4416,7 +4447,7 @@ describe('app tests', () => {
                     .withDomains([toTenantDomainName('test.local')])
                     .build();
 
-                await expect(appDriver.adminUpsertTenant(payload, adminUser))
+                await expect(appDriver.adminUpsertTenant(payload, localAdminUser))
                     .rejects
                     .toMatchObject({ code: 'INVALID_TENANT_PAYLOAD' });
             });
@@ -4432,7 +4463,7 @@ describe('app tests', () => {
                     .withDomains([toTenantDomainName('partial.test')])
                     .build();
 
-                await appDriver.adminUpsertTenant(createPayload, adminUser);
+                await appDriver.adminUpsertTenant(createPayload, localAdminUser);
 
                 // Update with new colors
                 const updatePayload = AdminTenantRequestBuilder
@@ -4444,7 +4475,7 @@ describe('app tests', () => {
                     .withDomains([toTenantDomainName('partial.test')])
                     .build();
 
-                const result = await appDriver.adminUpsertTenant(updatePayload, adminUser);
+                const result = await appDriver.adminUpsertTenant(updatePayload, localAdminUser);
 
                 expect(result).toMatchObject({
                     tenantId: 'tenant_partial_update',
@@ -4464,7 +4495,7 @@ describe('app tests', () => {
                     .withDomains([toTenantDomainName('tokens1.test')])
                     .build();
 
-                await appDriver.adminUpsertTenant(tenant1, adminUser);
+                await appDriver.adminUpsertTenant(tenant1, localAdminUser);
 
                 const tenant2 = AdminTenantRequestBuilder
                     .forTenant('tenant_tokens_2')
@@ -4472,7 +4503,7 @@ describe('app tests', () => {
                     .withDomains([toTenantDomainName('tokens2.test')])
                     .build();
 
-                await appDriver.adminUpsertTenant(tenant2, adminUser);
+                await appDriver.adminUpsertTenant(tenant2, localAdminUser);
 
                 const doc1 = await appDriver.database.collection('tenants').doc('tenant_tokens_1').get();
                 const doc2 = await appDriver.database.collection('tenants').doc('tenant_tokens_2').get();
@@ -4498,7 +4529,7 @@ describe('app tests', () => {
 
                 payload.brandingTokens = { tokens: explicitTokens };
 
-                await appDriver.adminUpsertTenant(payload, adminUser);
+                await appDriver.adminUpsertTenant(payload, localAdminUser);
 
                 const doc = await appDriver.database.collection('tenants').doc('tenant_explicit_tokens').get();
                 const data = doc.data();
@@ -4520,7 +4551,7 @@ describe('app tests', () => {
                     domains: [] as any,
                 };
 
-                await expect(appDriver.adminUpsertTenant(payload, adminUser))
+                await expect(appDriver.adminUpsertTenant(payload, localAdminUser))
                     .rejects
                     .toMatchObject({ code: 'INVALID_TENANT_PAYLOAD' });
             });
@@ -4534,7 +4565,7 @@ describe('app tests', () => {
                     .withDomains([toTenantDomainName('longname.test')])
                     .build();
 
-                const result = await appDriver.adminUpsertTenant(payload, adminUser);
+                const result = await appDriver.adminUpsertTenant(payload, localAdminUser);
 
                 expect(result).toMatchObject({
                     tenantId: 'tenant_long_name',
@@ -4550,7 +4581,7 @@ describe('app tests', () => {
                     .withDomains([toTenantDomainName('nameonly.test')])
                     .build();
 
-                const createResult = await appDriver.adminUpsertTenant(initialPayload, adminUser);
+                const createResult = await appDriver.adminUpsertTenant(initialPayload, localAdminUser);
                 expect(createResult.created).toBe(true);
 
                 // Update with different app name
@@ -4561,7 +4592,7 @@ describe('app tests', () => {
                     .withDomains([toTenantDomainName('nameonly.test')])
                     .build();
 
-                const updateResult = await appDriver.adminUpsertTenant(updatePayload, adminUser);
+                const updateResult = await appDriver.adminUpsertTenant(updatePayload, localAdminUser);
 
                 // Verify update succeeded
                 expect(updateResult.created).toBe(false);
@@ -4586,6 +4617,7 @@ describe('app tests', () => {
                     .build();
                 const systemAdminResult = await appDriver.registerUser(systemAdminReg);
                 systemAdmin = systemAdminResult.user.uid;
+                appDriver.seedAdminUser(systemAdmin); // Promote to system admin
                 const tokens = AdminTenantRequestBuilder.forTenant(tenantId).buildTokens();
                 appDriver.seedTenantDocument(tenantId, {
                     brandingTokens: {
@@ -4863,6 +4895,7 @@ describe('app tests', () => {
                 .build();
             const browserAdminResult = await appDriver.registerUser(browserAdminReg);
             browserAdmin = browserAdminResult.user.uid;
+            appDriver.seedAdminUser(browserAdmin); // Promote to system admin
         });
 
         it('lists all tenants for system users', async () => {
@@ -4927,7 +4960,7 @@ describe('app tests', () => {
     });
 
     describe('Admin User Management', () => {
-        let adminUser: string;
+        let localAdminUser: string;
         let regularUser: UserId;
 
         beforeEach(async () => {
@@ -4937,7 +4970,8 @@ describe('app tests', () => {
                 .withPassword('password12345')
                 .build();
             const adminResult = await appDriver.registerUser(adminReg);
-            adminUser = adminResult.user.uid;
+            localAdminUser = adminResult.user.uid;
+            appDriver.seedAdminUser(localAdminUser);
 
             const regularUserReg = new UserRegistrationBuilder()
                 .withEmail('regular@test.com')
