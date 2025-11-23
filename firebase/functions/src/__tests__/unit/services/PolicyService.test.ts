@@ -1,5 +1,5 @@
 import {toPolicyId, toPolicyName, toPolicyText} from '@billsplit-wl/shared';
-import { convertToISOString, TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
+import { convertToISOString, TenantFirestoreTestDatabase, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { PolicyDocumentBuilder } from '@billsplit-wl/test-support';
 import * as crypto from 'crypto';
 import { beforeEach, describe, expect, it } from 'vitest';
@@ -8,6 +8,7 @@ import { FirestoreReader } from '../../../services/firestore';
 import { FirestoreWriter } from '../../../services/firestore';
 import { PolicyService } from '../../../services/PolicyService';
 import {toVersionHash} from "@billsplit-wl/shared";
+import { AppDriver } from '../AppDriver';
 
 /**
  * Consolidated PolicyService Unit Tests
@@ -17,8 +18,8 @@ import {toVersionHash} from "@billsplit-wl/shared";
  * - PolicyService.test.ts (original core tests)
  * - PolicyService.comprehensive.unit.test.ts (workflow tests)
  *
- * Uses TenantFirestoreTestDatabase with real FirestoreReader/Writer implementations
- * for fast, reliable unit testing without Firebase dependencies.
+ * Uses AppDriver for API-driven testing where possible, with direct service
+ * access for unit testing service layer logic.
  *
  * Test coverage includes:
  * - Core CRUD operations (create, read, update, delete)
@@ -32,14 +33,26 @@ import {toVersionHash} from "@billsplit-wl/shared";
 describe('PolicyService - Consolidated Unit Tests', () => {
     let policyService: PolicyService;
     let db: TenantFirestoreTestDatabase;
+    let app: AppDriver;
+    let adminToken: string;
 
-    beforeEach(() => {
-        // Create stub database
-        db = new TenantFirestoreTestDatabase();
+    beforeEach(async () => {
+        // Create AppDriver (which includes database)
+        app = new AppDriver();
+        db = app.database;
 
-        // Create real services using stub database
         // Create PolicyService with real services
         policyService = new PolicyService(new FirestoreReader(db), new FirestoreWriter(db));
+
+        // Register admin user for API operations
+        const adminReg = new UserRegistrationBuilder()
+            .withEmail('admin@test.com')
+            .withPassword('password123456')
+            .withDisplayName('Admin User')
+            .build();
+        const adminResult = await app.registerUser(adminReg);
+        adminToken = adminResult.user.uid;
+        app.seedAdminUser(adminToken);
     });
 
     describe('createPolicy', () => {
@@ -92,15 +105,11 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             // Arrange
             const policyName = toPolicyName('Terms Of Service'); // Maps to 'terms-of-service'
             const policyText = toPolicyText('Some content');
-            const policyId = toPolicyId('terms-of-service');
 
-            const existingPolicy = new PolicyDocumentBuilder()
-                .withId(policyId)
-                .withPolicyName(policyName)
-                .build();
-            db.seedPolicy(policyId, existingPolicy);
+            // Create policy via API
+            await app.createPolicy({ policyName, text: policyText }, adminToken);
 
-            // Act & Assert
+            // Act & Assert - Try to create again
             await expect(policyService.createPolicy(policyName, policyText)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.CONFLICT,

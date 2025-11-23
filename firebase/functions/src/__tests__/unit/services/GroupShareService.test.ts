@@ -476,13 +476,9 @@ describe('GroupShareService', () => {
         });
 
         it('should return displayNameConflict: false when display name is unique', async () => {
-            // Create existing member with different display name
-            const existingMember = new GroupMemberDocumentBuilder()
-                .withUserId('existing-user')
-                .withGroupId(groupId)
-                .withGroupDisplayName('Existing User')
-                .buildDocument();
-            db.seedGroupMember(groupId, existingMember.uid, existingMember);
+            // Add existing member with different display name via API
+            const existingUserId = await registerUser('existing@test.com', 'Existing User');
+            await groupShareService.joinGroupByLink(toUserId(existingUserId), linkId, toDisplayName('Existing User'));
 
             // Set up new user with unique display name
             const result = await groupShareService.joinGroupByLink(newUserId, linkId, toDisplayName('New User'));
@@ -492,13 +488,9 @@ describe('GroupShareService', () => {
         });
 
         it('should throw DISPLAY_NAME_CONFLICT error when display name matches existing member', async () => {
-            // Create existing member with display name "Test User"
-            const existingMember = new GroupMemberDocumentBuilder()
-                .withUserId('existing-user')
-                .withGroupId(groupId)
-                .withGroupDisplayName('Test User')
-                .buildDocument();
-            db.seedGroupMember(groupId, existingMember.uid, existingMember);
+            // Add existing member with display name "Test User" via API
+            const existingUserId = await registerUser('existing@test.com', 'Test User');
+            await groupShareService.joinGroupByLink(toUserId(existingUserId), linkId, toDisplayName('Test User'));
 
             // Attempt to join with same display name should throw error
             await expect(groupShareService.joinGroupByLink(newUserId, linkId, toDisplayName('Test User'))).rejects.toMatchObject({
@@ -508,13 +500,9 @@ describe('GroupShareService', () => {
         });
 
         it('should detect case-insensitive display name conflicts', async () => {
-            // Create existing member with display name "test user" (lowercase)
-            const existingMember = new GroupMemberDocumentBuilder()
-                .withUserId('existing-user')
-                .withGroupId(groupId)
-                .withGroupDisplayName('test user')
-                .buildDocument();
-            db.seedGroupMember(groupId, existingMember.uid, existingMember);
+            // Add existing member with display name "test user" (lowercase) via API
+            const existingUserId = await registerUser('existing@test.com', 'Existing User');
+            await groupShareService.joinGroupByLink(toUserId(existingUserId), linkId, toDisplayName('test user'));
 
             // Attempt to join with "Test User" (different case) should throw error
             await expect(groupShareService.joinGroupByLink(newUserId, linkId, toDisplayName('Test User'))).rejects.toMatchObject({
@@ -529,7 +517,7 @@ describe('GroupShareService', () => {
         const linkId = toShareLinkToken('managed-link-1234567890');
         const pendingUserId = toUserId('pending-user-id');
 
-        beforeEach(() => {
+        beforeEach(async () => {
             const managedGroup = new GroupDTOBuilder()
                 .withId(groupId)
                 .withCreatedBy(toUserId(ownerId1))
@@ -556,6 +544,9 @@ describe('GroupShareService', () => {
             };
             seedShareLink(groupId, shareLink);
 
+            // Add owner as admin member via API using share link
+            // Note: We need to seed the owner member directly since the group already exists
+            // and we need them to be admin with specific permissions
             const ownerMember = new GroupMemberDocumentBuilder()
                 .withUserId(ownerId1)
                 .withGroupId(groupId)
@@ -606,7 +597,8 @@ describe('GroupShareService', () => {
         it('emits MEMBER_JOINED activity for auto-approved joins', async () => {
             const groupId = toGroupId('activity-group');
             const linkId = toShareLinkToken('activity-link-1234567890');
-            const ownerId = toUserId('owner-user');
+            const ownerUserId = await registerUser('owner-activity@test.com', 'Owner User');
+            const ownerId = toUserId(ownerUserId);
             const joiningUserId = joiningUserId1;
 
             const group = new GroupDTOBuilder()
@@ -669,8 +661,11 @@ describe('GroupShareService', () => {
         it('notifies all existing active members when a new member joins (transaction-based recipient fetch)', async () => {
             const groupId = toGroupId('multi-member-group');
             const linkId = toShareLinkToken('multi-member-link-1234567890');
-            const ownerId = toUserId('owner-user');
-            const existingMemberId = toUserId('existing-member');
+            const ownerUserId = await registerUser('owner-multi@test.com', 'Owner User');
+            const ownerId = toUserId(ownerUserId);
+            const existingMemberUserId = await registerUser('existing-multi@test.com', 'Existing Member');
+            const existingMemberId = toUserId(existingMemberUserId);
+
             // Create group with automatic approval
             const group = new GroupDTOBuilder()
                 .withId(groupId)
@@ -704,7 +699,7 @@ describe('GroupShareService', () => {
             const shareLink = {
                 id: linkId,
                 token: linkId,
-                createdBy: ownerId,
+                createdBy: ownerUserId,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
                 expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
@@ -747,8 +742,10 @@ describe('GroupShareService', () => {
         it('excludes pending members from activity notifications when a new member joins', async () => {
             const groupId = toGroupId('pending-exclusion-group');
             const linkId = toShareLinkToken('pending-link-1234567890');
-            const ownerId = toUserId('owner-user');
-            const pendingMemberId = toUserId('pending-member');
+            const ownerUserId = await registerUser('owner-pending@test.com', 'Owner User');
+            const ownerId = toUserId(ownerUserId);
+            const pendingMemberUserId = await registerUser('pending@test.com', 'Pending Member');
+            const pendingMemberId = toUserId(pendingMemberUserId);
             const joiningUserId = joiningUserId1;
 
             // Create group with automatic approval
@@ -784,7 +781,7 @@ describe('GroupShareService', () => {
             const shareLink = {
                 id: linkId,
                 token: linkId,
-                createdBy: ownerId,
+                createdBy: ownerUserId,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
                 expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),

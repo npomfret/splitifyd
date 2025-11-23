@@ -2,24 +2,27 @@ import { StubStorage, StubCloudTasksClient } from '@billsplit-wl/firebase-simula
 import { toGroupId, toUserId } from '@billsplit-wl/shared';
 import { toDisplayName } from '@billsplit-wl/shared';
 import { toTenantAppName, toTenantDomainName, toTenantFaviconUrl, toTenantId, toTenantLogoUrl, toTenantPrimaryColor, toTenantSecondaryColor } from '@billsplit-wl/shared';
-import { GroupDTOBuilder, GroupMemberDocumentBuilder, TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
+import { CreateGroupRequestBuilder, GroupDTOBuilder, GroupMemberDocumentBuilder, TenantFirestoreTestDatabase, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import type { IFirestoreReader, IFirestoreWriter } from '../../../services/firestore';
 import { ApiError } from '../../../utils/errors';
+import { AppDriver } from '../AppDriver';
 import { StubAuthService } from '../mocks/StubAuthService';
 import { TenantPayloadBuilder } from '../TenantPayloadBuilder';
 
 import {createUnitTestServiceConfig} from "../../test-config";
 
 describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
+    let app: AppDriver;
     let db: TenantFirestoreTestDatabase;
     let firestoreReader: IFirestoreReader;
     let firestoreWriter: IFirestoreWriter;
 
     beforeEach(() => {
-        db = new TenantFirestoreTestDatabase();
+        app = new AppDriver();
+        db = app.database;
 
         const applicationBuilder = new ComponentBuilder(new StubAuthService(), db, new StubStorage({ defaultBucketName: 'test-bucket' }), new StubCloudTasksClient(), createUnitTestServiceConfig());
         firestoreWriter = applicationBuilder.buildFirestoreWriter();
@@ -27,45 +30,60 @@ describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
     });
 
     describe('updateGroupMemberDisplayName', () => {
-        const groupId = toGroupId('test-group');
-        const userId = toUserId('test-user');
+        let groupId: string;
+        let userId: string;
+        let ownerToken: string;
         const newDisplayName = toDisplayName('Updated Display Name');
 
-        beforeEach(() => {
-            // Set up test group
-            const testGroup = new GroupDTOBuilder()
-                .withId(groupId)
-                .withCreatedBy(toUserId('owner-id'))
+        beforeEach(async () => {
+            // Register owner via API
+            const ownerReg = new UserRegistrationBuilder()
+                .withEmail('owner@test.com')
+                .withPassword('password123456')
+                .withDisplayName('Owner User')
                 .build();
-            db.seedGroup(groupId, testGroup);
+            const ownerResult = await app.registerUser(ownerReg);
+            ownerToken = ownerResult.user.uid;
 
-            // Set up test member in top-level collection
-            const memberDoc = new GroupMemberDocumentBuilder()
-                .withUserId(userId)
-                .withGroupId(groupId)
-                .withGroupDisplayName('Original Name')
-                .buildDocument();
-            db.seedGroupMember(groupId, userId, memberDoc);
+            // Register test user via API
+            const userReg = new UserRegistrationBuilder()
+                .withEmail('testuser@test.com')
+                .withPassword('password123456')
+                .withDisplayName('Original Name')
+                .build();
+            const userResult = await app.registerUser(userReg);
+            userId = userResult.user.uid;
+
+            // Create group via API
+            const groupRequest = new CreateGroupRequestBuilder()
+                .withName('Test Group')
+                .build();
+            const group = await app.createGroup(groupRequest, ownerToken);
+            groupId = group.id;
+
+            // Add test user as member - need to use group sharing
+            const shareLink = await app.generateShareableLink(groupId, undefined, ownerToken);
+            await app.joinGroupByLink(shareLink.shareToken, 'Original Name', userId);
         });
 
         it('should successfully update group member display name', async () => {
             // Act
-            await firestoreWriter.updateGroupMemberDisplayName(groupId, userId, newDisplayName);
+            await firestoreWriter.updateGroupMemberDisplayName(toGroupId(groupId), toUserId(userId), newDisplayName);
 
             // Assert
-            const updatedMember = await firestoreReader.getGroupMember(groupId, userId);
+            const updatedMember = await firestoreReader.getGroupMember(toGroupId(groupId), toUserId(userId));
             expect(updatedMember).toBeDefined();
             expect(updatedMember?.groupDisplayName).toBe(newDisplayName);
         });
 
         it('should preserve other fields when updating display name', async () => {
-            const beforeUpdate = await firestoreReader.getGroupMember(groupId, userId);
+            const beforeUpdate = await firestoreReader.getGroupMember(toGroupId(groupId), toUserId(userId));
 
             // Act
-            await firestoreWriter.updateGroupMemberDisplayName(groupId, userId, newDisplayName);
+            await firestoreWriter.updateGroupMemberDisplayName(toGroupId(groupId), toUserId(userId), newDisplayName);
 
             // Assert
-            const afterUpdate = await firestoreReader.getGroupMember(groupId, userId);
+            const afterUpdate = await firestoreReader.getGroupMember(toGroupId(groupId), toUserId(userId));
             expect(afterUpdate).toBeDefined();
             expect(afterUpdate?.uid).toBe(beforeUpdate?.uid);
             expect(afterUpdate?.groupId).toBe(beforeUpdate?.groupId);
@@ -78,7 +96,7 @@ describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
             // Act & Assert
             let caughtError: ApiError | undefined;
             try {
-                await firestoreWriter.updateGroupMemberDisplayName(groupId, nonExistentUserId, newDisplayName);
+                await firestoreWriter.updateGroupMemberDisplayName(toGroupId(groupId), nonExistentUserId, newDisplayName);
             } catch (error) {
                 caughtError = error as ApiError;
             }
@@ -92,7 +110,7 @@ describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
             // Act & Assert
             let caughtError: ApiError | undefined;
             try {
-                await firestoreWriter.updateGroupMemberDisplayName(groupId, userId, toDisplayName(''));
+                await firestoreWriter.updateGroupMemberDisplayName(toGroupId(groupId), toUserId(userId), toDisplayName(''));
             } catch (error) {
                 caughtError = error as ApiError;
             }
@@ -103,16 +121,16 @@ describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
         });
 
         it('should not modify other member fields when updating display name', async () => {
-            const beforeUpdate = await firestoreReader.getGroupMember(groupId, userId);
+            const beforeUpdate = await firestoreReader.getGroupMember(toGroupId(groupId), toUserId(userId));
             const originalRole = beforeUpdate?.memberRole;
             const originalStatus = beforeUpdate?.memberStatus;
             const originalTheme = beforeUpdate?.theme;
 
             // Act
-            await firestoreWriter.updateGroupMemberDisplayName(groupId, userId, newDisplayName);
+            await firestoreWriter.updateGroupMemberDisplayName(toGroupId(groupId), toUserId(userId), newDisplayName);
 
             // Assert - other fields should remain unchanged
-            const afterUpdate = await firestoreReader.getGroupMember(groupId, userId);
+            const afterUpdate = await firestoreReader.getGroupMember(toGroupId(groupId), toUserId(userId));
             expect(afterUpdate?.memberRole).toBe(originalRole);
             expect(afterUpdate?.memberStatus).toBe(originalStatus);
             expect(afterUpdate?.theme).toEqual(originalTheme);
@@ -122,10 +140,10 @@ describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
             const specialName = toDisplayName('O\'Brien-Smith (Admin)');
 
             // Act
-            await firestoreWriter.updateGroupMemberDisplayName(groupId, userId, specialName);
+            await firestoreWriter.updateGroupMemberDisplayName(toGroupId(groupId), toUserId(userId), specialName);
 
             // Assert
-            const updatedMember = await firestoreReader.getGroupMember(groupId, userId);
+            const updatedMember = await firestoreReader.getGroupMember(toGroupId(groupId), toUserId(userId));
             expect(updatedMember?.groupDisplayName).toBe(specialName);
         });
 
@@ -133,28 +151,33 @@ describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
             const maxLengthName = toDisplayName('A'.repeat(50)); // Assuming 50 is max length from validation
 
             // Act
-            await firestoreWriter.updateGroupMemberDisplayName(groupId, userId, maxLengthName);
+            await firestoreWriter.updateGroupMemberDisplayName(toGroupId(groupId), toUserId(userId), maxLengthName);
 
             // Assert
-            const updatedMember = await firestoreReader.getGroupMember(groupId, userId);
+            const updatedMember = await firestoreReader.getGroupMember(toGroupId(groupId), toUserId(userId));
             expect(updatedMember?.groupDisplayName).toBe(maxLengthName);
         });
 
         it('should throw DISPLAY_NAME_TAKEN when name is already in use by another member', async () => {
-            // Set up second member with a different display name
-            const otherUserId = 'other-user';
+            // Register and add second member via API
+            const otherUserReg = new UserRegistrationBuilder()
+                .withEmail('other@test.com')
+                .withPassword('password123456')
+                .withDisplayName('Taken Display Name')
+                .build();
+            const otherUserResult = await app.registerUser(otherUserReg);
+            const otherUserId = otherUserResult.user.uid;
+
+            // Add other user to the group
+            const shareLink = await app.generateShareableLink(groupId, undefined, ownerToken);
+            await app.joinGroupByLink(shareLink.shareToken, 'Taken Display Name', otherUserId);
+
             const takenName = toDisplayName('Taken Display Name');
-            const otherMember = new GroupMemberDocumentBuilder()
-                .withUserId(otherUserId)
-                .withGroupId(groupId)
-                .withGroupDisplayName(takenName)
-                .buildDocument();
-            db.seedGroupMember(groupId, otherUserId, otherMember);
 
             // Act & Assert - try to update first user to the taken name
             let caughtError: ApiError | undefined;
             try {
-                await firestoreWriter.updateGroupMemberDisplayName(groupId, userId, takenName);
+                await firestoreWriter.updateGroupMemberDisplayName(toGroupId(groupId), toUserId(userId), takenName);
             } catch (error) {
                 caughtError = error as ApiError;
             }
@@ -169,14 +192,14 @@ describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
             const currentName = toDisplayName('Original Name');
 
             // Verify current name
-            const beforeUpdate = await firestoreReader.getGroupMember(groupId, userId);
+            const beforeUpdate = await firestoreReader.getGroupMember(toGroupId(groupId), toUserId(userId));
             expect(beforeUpdate?.groupDisplayName).toBe(currentName);
 
             // Act - update to same name (idempotent operation)
-            await firestoreWriter.updateGroupMemberDisplayName(groupId, userId, currentName);
+            await firestoreWriter.updateGroupMemberDisplayName(toGroupId(groupId), toUserId(userId), currentName);
 
             // Assert - should succeed without error
-            const afterUpdate = await firestoreReader.getGroupMember(groupId, userId);
+            const afterUpdate = await firestoreReader.getGroupMember(toGroupId(groupId), toUserId(userId));
             expect(afterUpdate?.groupDisplayName).toBe(currentName);
         });
     });
