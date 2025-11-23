@@ -59,11 +59,6 @@ export class TenantFirestoreTestDatabase extends StubFirestoreDatabase {
         this.seed(`groups/${groupId}`, firestoreData);
     }
 
-    seedGroupMember(groupId: GroupId, userId: UserId | string, memberData: Record<string, any>): void {
-        const firestoreData = this.convertDatesToTimestamps(memberData);
-        this.seed(`group-memberships/${userId}_${groupId}`, firestoreData);
-    }
-
     seedPolicy(policyId: PolicyId, policyData: Record<string, any>): void {
         const firestoreData = this.convertDatesToTimestamps(policyData);
         this.seed(`policies/${policyId}`, firestoreData);
