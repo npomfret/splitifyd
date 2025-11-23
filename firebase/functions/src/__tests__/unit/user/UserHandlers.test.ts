@@ -3,7 +3,7 @@ import { PasswordChangeRequestBuilder, TenantFirestoreTestDatabase, UserRegistra
 import { StubCloudTasksClient } from '@billsplit-wl/firebase-simulator';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
-import { ComponentBuilder } from '../../../services/ComponentBuilder';
+import { ComponentBuilder, createTestMergeServiceConfig } from '../../../services/ComponentBuilder';
 import { UserHandlers } from '../../../user/UserHandlers';
 import { initializeI18n } from '../../../utils/i18n';
 import { AppDriver } from '../AppDriver';
@@ -234,7 +234,8 @@ describe('UserHandlers - Integration Tests', () => {
                 authService,
                 db,
                 new StubStorage({ defaultBucketName: 'test-bucket' }),
-                new StubCloudTasksClient()
+                new StubCloudTasksClient(),
+                createTestMergeServiceConfig()
             );
             const handlers = new UserHandlers(componentBuilder.buildUserService());
             expect(handlers).toBeInstanceOf(UserHandlers);

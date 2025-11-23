@@ -84,7 +84,7 @@ import type { NextFunction, Request, RequestHandler, Response } from 'express';
 import type { UserRecord } from 'firebase-admin/auth';
 import { expect } from 'vitest';
 import { createRouteDefinitions, RouteDefinition } from '../../routes/route-config';
-import { ComponentBuilder } from '../../services/ComponentBuilder';
+import { ComponentBuilder, createTestMergeServiceConfig } from '../../services/ComponentBuilder';
 import { FirestoreReader } from '../../services/firestore';
 import { RegisterUserResult } from '../../services/UserService2';
 import { Errors, sendError } from '../../utils/errors';
@@ -141,6 +141,7 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
             this.db,
             this.storage,
             new StubCloudTasksClient(),
+            createTestMergeServiceConfig(),
         );
 
         // Create populated route definitions using the component builder

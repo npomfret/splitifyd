@@ -3,7 +3,7 @@ import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, ExpenseSplitBui
 import { StubCloudTasksClient } from '@billsplit-wl/firebase-simulator';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
-import { ComponentBuilder } from '../../../services/ComponentBuilder';
+import { ComponentBuilder, createTestMergeServiceConfig } from '../../../services/ComponentBuilder';
 import { ExpenseService } from '../../../services/ExpenseService';
 import { AppDriver } from '../AppDriver';
 import { StubAuthService } from '../mocks/StubAuthService';
@@ -19,7 +19,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
 
         // Use ComponentBuilder to create the service with proper dependencies
         const stubAuth = new StubAuthService();
-        const componentBuilder = new ComponentBuilder(stubAuth, appDriver.database, appDriver.storageStub, new StubCloudTasksClient());
+        const componentBuilder = new ComponentBuilder(stubAuth, appDriver.database, appDriver.storageStub, new StubCloudTasksClient(), createTestMergeServiceConfig());
         expenseService = componentBuilder.buildExpenseService();
     });
 

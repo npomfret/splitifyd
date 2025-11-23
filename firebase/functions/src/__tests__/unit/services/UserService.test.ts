@@ -32,7 +32,8 @@ describe('UserService - Consolidated Unit Tests', () => {
             stubAuth,
             db,
             new StubStorage({ defaultBucketName: 'test-bucket' }),
-            new StubCloudTasksClient()
+            new StubCloudTasksClient(),
+            createTestMergeServiceConfig()
         ).buildUserService();
 
         // Clear all stub data
@@ -937,7 +938,9 @@ describe('UserService - Consolidated Unit Tests', () => {
             const appDriverUserService = new ComponentBuilder(
                 sharedAuth,
                 appDriver.database,
-                new StubStorage({ defaultBucketName: 'test-bucket' })
+                new StubStorage({ defaultBucketName: 'test-bucket' }),
+                new StubCloudTasksClient(),
+                createTestMergeServiceConfig()
             ).buildUserService();
 
             // Register users via API
@@ -978,7 +981,9 @@ describe('UserService - Consolidated Unit Tests', () => {
             const appDriverUserService = new ComponentBuilder(
                 sharedAuth,
                 appDriver.database,
-                new StubStorage({ defaultBucketName: 'test-bucket' })
+                new StubStorage({ defaultBucketName: 'test-bucket' }),
+                new StubCloudTasksClient(),
+                createTestMergeServiceConfig()
             ).buildUserService();
 
             // Register two users
@@ -1016,7 +1021,9 @@ describe('UserService - Consolidated Unit Tests', () => {
             const appDriverUserService = new ComponentBuilder(
                 sharedAuth,
                 appDriver.database,
-                new StubStorage({ defaultBucketName: 'test-bucket' })
+                new StubStorage({ defaultBucketName: 'test-bucket' }),
+                new StubCloudTasksClient(),
+                createTestMergeServiceConfig()
             ).buildUserService();
 
             const reg = new UserRegistrationBuilder().withEmail('owner@test.com').withDisplayName('Owner').withPassword('password12345').build();
@@ -1037,7 +1044,9 @@ describe('UserService - Consolidated Unit Tests', () => {
             const appDriverUserService = new ComponentBuilder(
                 sharedAuth,
                 appDriver.database,
-                new StubStorage({ defaultBucketName: 'test-bucket' })
+                new StubStorage({ defaultBucketName: 'test-bucket' }),
+                new StubCloudTasksClient(),
+                createTestMergeServiceConfig()
             ).buildUserService();
 
             const reg = new UserRegistrationBuilder().withEmail('alice@test.com').withDisplayName('Alice').withPassword('password12345').build();
@@ -1060,7 +1069,9 @@ describe('UserService - Consolidated Unit Tests', () => {
             const appDriverUserService = new ComponentBuilder(
                 sharedAuth,
                 appDriver.database,
-                new StubStorage({ defaultBucketName: 'test-bucket' })
+                new StubStorage({ defaultBucketName: 'test-bucket' }),
+                new StubCloudTasksClient(),
+                createTestMergeServiceConfig()
             ).buildUserService();
 
             const reg = new UserRegistrationBuilder().withEmail('john@test.com').withDisplayName('John Smith').withPassword('password12345').build();
@@ -1083,7 +1094,9 @@ describe('UserService - Consolidated Unit Tests', () => {
             const appDriverUserService = new ComponentBuilder(
                 sharedAuth,
                 appDriver.database,
-                new StubStorage({ defaultBucketName: 'test-bucket' })
+                new StubStorage({ defaultBucketName: 'test-bucket' }),
+                new StubCloudTasksClient(),
+                createTestMergeServiceConfig()
             ).buildUserService();
 
             const reg = new UserRegistrationBuilder().withEmail('fml@test.com').withDisplayName('First Middle Last').withPassword('password12345').build();

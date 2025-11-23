@@ -5,7 +5,7 @@ import { toTenantAppName, toTenantDomainName, toTenantFaviconUrl, toTenantId, to
 import { GroupDTOBuilder, GroupMemberDocumentBuilder, TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
-import { ComponentBuilder } from '../../../services/ComponentBuilder';
+import { ComponentBuilder, createTestMergeServiceConfig } from '../../../services/ComponentBuilder';
 import type { IFirestoreReader, IFirestoreWriter } from '../../../services/firestore';
 import { ApiError } from '../../../utils/errors';
 import { StubAuthService } from '../mocks/StubAuthService';
@@ -19,7 +19,7 @@ describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
     beforeEach(() => {
         db = new TenantFirestoreTestDatabase();
 
-        const applicationBuilder = new ComponentBuilder(new StubAuthService(), db, new StubStorage({ defaultBucketName: 'test-bucket' }), new StubCloudTasksClient());
+        const applicationBuilder = new ComponentBuilder(new StubAuthService(), db, new StubStorage({ defaultBucketName: 'test-bucket' }), new StubCloudTasksClient(), createTestMergeServiceConfig());
         firestoreWriter = applicationBuilder.buildFirestoreWriter();
         firestoreReader = applicationBuilder.buildFirestoreReader();
     });
@@ -192,7 +192,8 @@ describe('FirestoreWriter.upsertTenant - Default Tenant Enforcement', () => {
             new StubAuthService(),
             db,
             new StubStorage({ defaultBucketName: 'test-bucket' }),
-            new StubCloudTasksClient()
+            new StubCloudTasksClient(),
+            createTestMergeServiceConfig()
         );
         firestoreWriter = applicationBuilder.buildFirestoreWriter();
         firestoreReader = applicationBuilder.buildFirestoreReader();

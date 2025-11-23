@@ -2,7 +2,7 @@ import { StubStorage, StubCloudTasksClient } from '@billsplit-wl/firebase-simula
 import { CreateGroupRequestBuilder, CreateSettlementRequestBuilder, SettlementUpdateBuilder, TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
-import { ComponentBuilder } from '../../../services/ComponentBuilder';
+import { ComponentBuilder, createTestMergeServiceConfig } from '../../../services/ComponentBuilder';
 import { SettlementHandlers } from '../../../settlements/SettlementHandlers';
 import { AppDriver } from '../AppDriver';
 import { StubAuthService } from '../mocks/StubAuthService';
@@ -836,7 +836,13 @@ describe('SettlementHandlers - Unit Tests', () => {
         it('should create SettlementHandlers instance with SettlementService', () => {
             const db = new TenantFirestoreTestDatabase();
             const authService = new StubAuthService();
-            const componentBuilder = new ComponentBuilder(authService, db, new StubStorage({ defaultBucketName: 'test-bucket' }), new StubCloudTasksClient());
+            const componentBuilder = new ComponentBuilder(
+                authService,
+                db,
+                new StubStorage({ defaultBucketName: 'test-bucket' }),
+                new StubCloudTasksClient(),
+                createTestMergeServiceConfig()
+            );
             const handlers = new SettlementHandlers(componentBuilder.buildSettlementService());
             expect(handlers).toBeInstanceOf(SettlementHandlers);
             expect(handlers.createSettlement).toBeDefined();

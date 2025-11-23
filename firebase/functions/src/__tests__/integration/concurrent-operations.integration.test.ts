@@ -4,6 +4,7 @@ import {beforeAll, beforeEach, describe, expect, test} from 'vitest';
 import {getAuth, getFirestore, getStorage} from '../../firebase';
 import {ComponentBuilder} from '../../services/ComponentBuilder';
 import {toUserId, UserId} from "@billsplit-wl/shared";
+import {getIntegrationTestMergeConfig} from './test-config';
 
 async function runWithLimitedConcurrency<T>(operations: Array<() => Promise<T>>, limit: number): Promise<PromiseSettledResult<T>[]> {
     if (operations.length === 0) {
@@ -45,8 +46,7 @@ async function runWithLimitedConcurrency<T>(operations: Array<() => Promise<T>>,
 
 describe('Concurrent Operations Integration Tests', () => {
     const identityToolkit = getFirebaseEmulatorConfig().identityToolkit;
-
-    const applicationBuilder = ComponentBuilder.createComponentBuilder(getFirestore(), getAuth(), getStorage(), identityToolkit);
+    const applicationBuilder = ComponentBuilder.createComponentBuilder(getFirestore(), getAuth(), getStorage(), identityToolkit, getIntegrationTestMergeConfig());
     const firestoreReader = applicationBuilder.buildFirestoreReader();
     const groupService = applicationBuilder.buildGroupService();
     const groupMemberService = applicationBuilder.buildGroupMemberService();

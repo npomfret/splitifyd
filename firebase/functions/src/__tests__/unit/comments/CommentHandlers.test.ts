@@ -4,7 +4,7 @@ import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, TenantFirestore
 import { beforeEach, describe, expect, it } from 'vitest';
 import { CommentHandlers } from '../../../comments/CommentHandlers';
 import { HTTP_STATUS } from '../../../constants';
-import { ComponentBuilder } from '../../../services/ComponentBuilder';
+import { ComponentBuilder, createTestMergeServiceConfig } from '../../../services/ComponentBuilder';
 import { AppDriver } from '../AppDriver';
 import { StubAuthService } from '../mocks/StubAuthService';
 
@@ -615,7 +615,8 @@ describe('CommentHandlers - Integration Tests', () => {
                 authService,
                 db,
                 new StubStorage({ defaultBucketName: 'test-bucket' }),
-                new StubCloudTasksClient()
+                new StubCloudTasksClient(),
+                createTestMergeServiceConfig()
             );
             const handlers = new CommentHandlers(componentBuilder.buildCommentService());
             expect(handlers).toBeInstanceOf(CommentHandlers);

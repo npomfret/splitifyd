@@ -2,7 +2,7 @@ import { ActivityFeedActions, ActivityFeedEventTypes, MemberRoles, MemberStatuse
 import { CreateGroupRequestBuilder, UserRegistrationBuilder, CreateExpenseRequestBuilder } from '@billsplit-wl/test-support';
 import { StubCloudTasksClient } from '@billsplit-wl/firebase-simulator';
 import { beforeEach, describe, expect, it, test } from 'vitest';
-import { ComponentBuilder } from '../../../services/ComponentBuilder';
+import { ComponentBuilder, createTestMergeServiceConfig } from '../../../services/ComponentBuilder';
 import { GroupMemberService } from '../../../services/GroupMemberService';
 import { IFirestoreReader } from '../../../services/firestore';
 import { AppDriver } from '../AppDriver';
@@ -19,7 +19,13 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
         // Use ComponentBuilder to create the service with proper dependencies
         const stubAuth = new StubAuthService();
-        const componentBuilder = new ComponentBuilder(stubAuth, appDriver.database, appDriver.storageStub, new StubCloudTasksClient());
+        const componentBuilder = new ComponentBuilder(
+            stubAuth,
+            appDriver.database,
+            appDriver.storageStub,
+            new StubCloudTasksClient(),
+            createTestMergeServiceConfig()
+        );
         groupMemberService = componentBuilder.buildGroupMemberService();
         firestoreReader = componentBuilder.buildFirestoreReader();
     });

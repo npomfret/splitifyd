@@ -1,5 +1,6 @@
 import type {Auth} from 'firebase-admin/auth';
 import type {Firestore} from 'firebase-admin/firestore';
+import type {Storage} from 'firebase-admin/storage';
 import {createFirestoreDatabase, IFirestoreDatabase} from '../firestore-wrapper';
 import {createStorage, type IStorage} from '../storage-wrapper';
 import {ActivityFeedService} from './ActivityFeedService';
@@ -26,6 +27,21 @@ import {UserPolicyService} from './UserPolicyService';
 import {UserService} from './UserService2';
 import {MergeService, type MergeServiceConfig} from '../merge/MergeService';
 import {createCloudTasksClient, type ICloudTasksClient} from '@billsplit-wl/firebase-simulator';
+
+// Re-export MergeServiceConfig for external use
+export type { MergeServiceConfig } from '../merge/MergeService';
+
+/**
+ * Creates a default test configuration for MergeService
+ * Used in unit tests to avoid duplicating config setup
+ */
+export function createTestMergeServiceConfig(): MergeServiceConfig {
+    return {
+        projectId: 'test-project',
+        cloudTasksLocation: 'us-central1',
+        functionsUrl: 'http://localhost:5001',
+    };
+}
 
 export class ComponentBuilder {
     // Base infrastructure - created once
@@ -58,6 +74,7 @@ export class ComponentBuilder {
         private readonly db: IFirestoreDatabase,
         private readonly storage: IStorage,
         private readonly cloudTasksClient: ICloudTasksClient,
+        private readonly mergeServiceConfig: MergeServiceConfig,
     ) {
         this.firestoreReader = new FirestoreReader(db);
         this.firestoreWriter = new FirestoreWriter(db);
@@ -66,8 +83,9 @@ export class ComponentBuilder {
     static createComponentBuilder(
         firestore: Firestore,
         auth: Auth,
-        storage: import('firebase-admin/storage').Storage,
+        storage: Storage,
         identityToolkit: IdentityToolkitConfig,
+        mergeServiceConfig: MergeServiceConfig,
     ) {
         // Wrap the Firestore instance with our abstraction layer
         const wrappedDb = createFirestoreDatabase(firestore);
@@ -86,7 +104,8 @@ export class ComponentBuilder {
             firebaseAuthService,
             wrappedDb,
             wrappedStorage,
-            cloudTasksClient
+            cloudTasksClient,
+            mergeServiceConfig
         );
     }
 
@@ -247,18 +266,12 @@ export class ComponentBuilder {
 
     buildMergeService(): MergeService {
         if (!this.mergeService) {
-            const config: MergeServiceConfig = {
-                projectId: process.env.GCLOUD_PROJECT || 'test-project',
-                cloudTasksLocation: process.env.CLOUD_TASKS_LOCATION || 'us-central1',
-                functionsUrl: process.env.FUNCTIONS_URL || 'http://localhost:5001',
-            };
-
             this.mergeService = new MergeService(
                 this.buildAuthService(),
                 this.buildFirestoreReader(),
                 this.buildFirestoreWriter(),
                 this.cloudTasksClient,
-                config,
+                this.mergeServiceConfig,
             );
         }
         return this.mergeService;
