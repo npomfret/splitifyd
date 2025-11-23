@@ -4,10 +4,11 @@ import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, TenantFirestore
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ExpenseHandlers } from '../../../expenses/ExpenseHandlers';
-import { ComponentBuilder, createTestMergeServiceConfig } from '../../../services/ComponentBuilder';
-import { AppDriver } from '../AppDriver';
+import { ComponentBuilder } from '../../../services/ComponentBuilder';
+import {AppDriver} from '../AppDriver';
 import { StubAuthService } from '../mocks/StubAuthService';
 import { toCurrencyISOCode, toUserId, USD } from '@billsplit-wl/shared';
+import {createUnitTestServiceConfig} from "../../test-config";
 
 describe('ExpenseHandlers - Unit Tests', () => {
     let appDriver: AppDriver;
@@ -448,7 +449,7 @@ describe('ExpenseHandlers - Unit Tests', () => {
                 db,
                 new StubStorage({ defaultBucketName: 'test-bucket' }),
                 new StubCloudTasksClient(),
-                createTestMergeServiceConfig()
+                createUnitTestServiceConfig()
             );
             const handlers = new ExpenseHandlers(componentBuilder.buildExpenseService());
             expect(handlers).toBeInstanceOf(ExpenseHandlers);

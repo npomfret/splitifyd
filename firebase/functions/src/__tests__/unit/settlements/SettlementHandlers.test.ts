@@ -2,11 +2,12 @@ import { StubStorage, StubCloudTasksClient } from '@billsplit-wl/firebase-simula
 import { CreateGroupRequestBuilder, CreateSettlementRequestBuilder, SettlementUpdateBuilder, TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
-import { ComponentBuilder, createTestMergeServiceConfig } from '../../../services/ComponentBuilder';
+import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import { SettlementHandlers } from '../../../settlements/SettlementHandlers';
-import { AppDriver } from '../AppDriver';
+import {AppDriver} from '../AppDriver';
 import { StubAuthService } from '../mocks/StubAuthService';
 import { toCurrencyISOCode, USD } from "@billsplit-wl/shared";
+import {createUnitTestServiceConfig} from "../../test-config";
 
 describe('SettlementHandlers - Unit Tests', () => {
     let appDriver: AppDriver;
@@ -841,7 +842,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 db,
                 new StubStorage({ defaultBucketName: 'test-bucket' }),
                 new StubCloudTasksClient(),
-                createTestMergeServiceConfig()
+                createUnitTestServiceConfig()
             );
             const handlers = new SettlementHandlers(componentBuilder.buildSettlementService());
             expect(handlers).toBeInstanceOf(SettlementHandlers);

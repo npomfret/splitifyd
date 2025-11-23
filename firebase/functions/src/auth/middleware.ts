@@ -5,22 +5,11 @@ import { AUTH } from '../constants';
 import { getAuth, getFirestore, getStorage } from '../firebase';
 import { logger } from '../logger';
 import { LoggerContext } from '../logger';
-import { ComponentBuilder, type MergeServiceConfig } from '../services/ComponentBuilder';
+import { ComponentBuilder, type ServiceConfig } from '../services/ComponentBuilder';
 import { Errors, sendError } from '../utils/errors';
+import {getComponentBuilder} from "../ComponentBuilderSingleton";
 
-const firestore = getFirestore();
-const mergeServiceConfig: MergeServiceConfig = {
-    projectId: process.env.GCLOUD_PROJECT || 'test-project',
-    cloudTasksLocation: process.env.CLOUD_TASKS_LOCATION || 'us-central1',
-    functionsUrl: process.env.FUNCTIONS_URL || 'http://localhost:5001',
-};
-const applicationBuilder = ComponentBuilder.createComponentBuilder(
-    firestore,
-    getAuth(),
-    getStorage(),
-    getIdentityToolkitConfig(),
-    mergeServiceConfig
-);
+const applicationBuilder = getComponentBuilder()
 const firestoreReader = applicationBuilder.buildFirestoreReader();
 const authService = applicationBuilder.buildAuthService();
 

@@ -3,12 +3,13 @@ import { StubCloudTasksClient } from '@billsplit-wl/firebase-simulator';
 import {DisplayName, SystemUserRoles, toDisplayName, toGroupId, toUserId} from '@billsplit-wl/shared';
 import {beforeAll, beforeEach, describe, expect, it, vi} from 'vitest';
 import {HTTP_STATUS} from '../../../constants';
-import {ComponentBuilder, createTestMergeServiceConfig} from '../../../services/ComponentBuilder';
+import {ComponentBuilder} from '../../../services/ComponentBuilder';
 import {UserService} from '../../../services/UserService2';
 import {ApiError} from '../../../utils/errors';
 import {initializeI18n} from '../../../utils/i18n';
 import {StubAuthService} from '../mocks/StubAuthService';
 import {AppDriver} from '../AppDriver';
+import {createUnitTestServiceConfig} from "../../test-config";
 
 describe('UserService - Consolidated Unit Tests', () => {
     let userService: UserService;
@@ -33,7 +34,7 @@ describe('UserService - Consolidated Unit Tests', () => {
             db,
             new StubStorage({ defaultBucketName: 'test-bucket' }),
             new StubCloudTasksClient(),
-            createTestMergeServiceConfig()
+            createUnitTestServiceConfig()
         ).buildUserService();
 
         // Clear all stub data
@@ -420,7 +421,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                 db,
                 new StubStorage({ defaultBucketName: 'test-bucket' }),
                 new StubCloudTasksClient(),
-                createTestMergeServiceConfig()
+                createUnitTestServiceConfig()
             ).buildUserService();
 
             const email = 'validation-user@example.com';
@@ -940,7 +941,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                 appDriver.database,
                 new StubStorage({ defaultBucketName: 'test-bucket' }),
                 new StubCloudTasksClient(),
-                createTestMergeServiceConfig()
+                createUnitTestServiceConfig()
             ).buildUserService();
 
             // Register users via API
@@ -983,7 +984,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                 appDriver.database,
                 new StubStorage({ defaultBucketName: 'test-bucket' }),
                 new StubCloudTasksClient(),
-                createTestMergeServiceConfig()
+                createUnitTestServiceConfig()
             ).buildUserService();
 
             // Register two users
@@ -1023,7 +1024,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                 appDriver.database,
                 new StubStorage({ defaultBucketName: 'test-bucket' }),
                 new StubCloudTasksClient(),
-                createTestMergeServiceConfig()
+                createUnitTestServiceConfig()
             ).buildUserService();
 
             const reg = new UserRegistrationBuilder().withEmail('owner@test.com').withDisplayName('Owner').withPassword('password12345').build();
@@ -1046,7 +1047,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                 appDriver.database,
                 new StubStorage({ defaultBucketName: 'test-bucket' }),
                 new StubCloudTasksClient(),
-                createTestMergeServiceConfig()
+                createUnitTestServiceConfig()
             ).buildUserService();
 
             const reg = new UserRegistrationBuilder().withEmail('alice@test.com').withDisplayName('Alice').withPassword('password12345').build();
@@ -1071,7 +1072,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                 appDriver.database,
                 new StubStorage({ defaultBucketName: 'test-bucket' }),
                 new StubCloudTasksClient(),
-                createTestMergeServiceConfig()
+                createUnitTestServiceConfig()
             ).buildUserService();
 
             const reg = new UserRegistrationBuilder().withEmail('john@test.com').withDisplayName('John Smith').withPassword('password12345').build();
@@ -1096,7 +1097,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                 appDriver.database,
                 new StubStorage({ defaultBucketName: 'test-bucket' }),
                 new StubCloudTasksClient(),
-                createTestMergeServiceConfig()
+                createUnitTestServiceConfig()
             ).buildUserService();
 
             const reg = new UserRegistrationBuilder().withEmail('fml@test.com').withDisplayName('First Middle Last').withPassword('password12345').build();

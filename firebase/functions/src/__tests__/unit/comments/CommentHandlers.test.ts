@@ -4,9 +4,10 @@ import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, TenantFirestore
 import { beforeEach, describe, expect, it } from 'vitest';
 import { CommentHandlers } from '../../../comments/CommentHandlers';
 import { HTTP_STATUS } from '../../../constants';
-import { ComponentBuilder, createTestMergeServiceConfig } from '../../../services/ComponentBuilder';
-import { AppDriver } from '../AppDriver';
+import { ComponentBuilder } from '../../../services/ComponentBuilder';
+import {AppDriver} from '../AppDriver';
 import { StubAuthService } from '../mocks/StubAuthService';
+import {createUnitTestServiceConfig} from "../../test-config";
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -616,7 +617,7 @@ describe('CommentHandlers - Integration Tests', () => {
                 db,
                 new StubStorage({ defaultBucketName: 'test-bucket' }),
                 new StubCloudTasksClient(),
-                createTestMergeServiceConfig()
+                createUnitTestServiceConfig()
             );
             const handlers = new CommentHandlers(componentBuilder.buildCommentService());
             expect(handlers).toBeInstanceOf(CommentHandlers);

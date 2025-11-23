@@ -4,11 +4,12 @@ import { StubCloudTasksClient } from '@billsplit-wl/firebase-simulator';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS, VALIDATION_LIMITS } from '../../constants';
 import { validateCreateGroup, validateGroupId, validateUpdateGroup } from '../../groups/validation';
-import { ComponentBuilder, createTestMergeServiceConfig } from '../../services/ComponentBuilder';
+import { ComponentBuilder } from '../../services/ComponentBuilder';
 import { GroupService } from '../../services/GroupService';
 import { ApiError } from '../../utils/errors';
-import { AppDriver } from './AppDriver';
+import {AppDriver} from './AppDriver';
 import { StubAuthService } from './mocks/StubAuthService';
+import {createUnitTestServiceConfig} from "../test-config";
 
 describe('GroupService - Unit Tests', () => {
     let groupService: GroupService;
@@ -25,7 +26,7 @@ describe('GroupService - Unit Tests', () => {
             appDriver.database,
             appDriver.storageStub,
             new StubCloudTasksClient(),
-            createTestMergeServiceConfig()
+            createUnitTestServiceConfig()
         );
         groupService = componentBuilder.buildGroupService();
     });

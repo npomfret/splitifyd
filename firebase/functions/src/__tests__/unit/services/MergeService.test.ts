@@ -4,9 +4,11 @@ import { StubStorage } from '@billsplit-wl/test-support';
 import { StubCloudTasksClient, StubFirestoreDatabase } from '@billsplit-wl/firebase-simulator';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { FirestoreCollections } from '../../../constants';
-import { ComponentBuilder, createTestMergeServiceConfig } from '../../../services/ComponentBuilder';
+import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import { StubAuthService } from '../mocks/StubAuthService';
 import type { MergeService } from '../../../merge/MergeService';
+
+import {createUnitTestServiceConfig} from "../../test-config";
 
 /**
  * MergeService Unit Tests
@@ -42,7 +44,7 @@ describe('MergeService', () => {
             db,
             new StubStorage({ defaultBucketName: 'test-bucket' }),
             stubCloudTasks, // Pass stub directly to constructor
-            createTestMergeServiceConfig(),
+            createUnitTestServiceConfig(),
         );
 
         // Get MergeService from builder (properly wired with dependencies)

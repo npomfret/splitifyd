@@ -1,7 +1,7 @@
 // Initialize ApplicationBuilder
 import { getIdentityToolkitConfig } from './client-config';
 import { getAuth, getFirestore, getStorage } from './firebase';
-import { ComponentBuilder, type MergeServiceConfig } from './services/ComponentBuilder';
+import { ComponentBuilder, type ServiceConfig } from './services/ComponentBuilder';
 
 // Lazy initialization
 let appBuilder: ComponentBuilder | null = null;
@@ -9,10 +9,10 @@ let appBuilder: ComponentBuilder | null = null;
 // Export function to get the initialized ApplicationBuilder
 export function getComponentBuilder(): ComponentBuilder {
     if (!appBuilder) {
-        const mergeServiceConfig: MergeServiceConfig = {
+        const serviceConfig: ServiceConfig = {//todo - blow up if the env file is malformed
             projectId: process.env.GCLOUD_PROJECT || 'test-project',
             cloudTasksLocation: process.env.CLOUD_TASKS_LOCATION || 'us-central1',
-            functionsUrl: process.env.FUNCTIONS_URL || 'http://localhost:5001',
+            functionsUrl: process.env.FUNCTIONS_URL!,
         };
 
         appBuilder = ComponentBuilder.createComponentBuilder(
@@ -20,7 +20,7 @@ export function getComponentBuilder(): ComponentBuilder {
             getAuth(),
             getStorage(),
             getIdentityToolkitConfig(),
-            mergeServiceConfig,
+            serviceConfig,
         );
     }
     return appBuilder;

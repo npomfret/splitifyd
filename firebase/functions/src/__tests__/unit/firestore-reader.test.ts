@@ -11,9 +11,11 @@ import { GroupDTOBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { getAuth, getFirestore, getStorage } from '../../firebase';
 import { Timestamp } from '../../firestore-wrapper';
-import { ComponentBuilder, createTestMergeServiceConfig } from '../../services/ComponentBuilder';
+import { ComponentBuilder } from '../../services/ComponentBuilder';
 import { FirestoreReader } from '../../services/firestore';
 import { FirebaseAuthService } from '../../services/auth/FirebaseAuthService';
+
+import {createUnitTestServiceConfig} from "../test-config";
 
 describe('FirestoreReader', () => {
     const firestore = getFirestore();
@@ -34,7 +36,7 @@ describe('FirestoreReader', () => {
         wrappedDb,
         wrappedStorage,
         new StubCloudTasksClient(),
-        createTestMergeServiceConfig(),
+        createUnitTestServiceConfig(),
     );
     const firestoreReader = applicationBuilder.buildFirestoreReader();
 

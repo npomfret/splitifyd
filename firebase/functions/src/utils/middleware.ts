@@ -10,23 +10,12 @@ import { applyCacheControl } from '../middleware/cache-control';
 import { applySecurityHeaders } from '../middleware/security-headers';
 import { createTenantIdentificationMiddleware, type TenantIdentificationConfig } from '../middleware/tenant-identification';
 import { validateContentType, validateRequestStructure } from '../middleware/validation';
-import { ComponentBuilder, type MergeServiceConfig } from '../services/ComponentBuilder';
+import { ComponentBuilder, type ServiceConfig } from '../services/ComponentBuilder';
 import { detectLanguageFromHeader, getTranslationFunction, initializeI18n, LocalizedRequest } from './i18n';
 import '../types/tenant';
+import {getComponentBuilder} from "../ComponentBuilderSingleton";
 
-// Initialize services
-const mergeServiceConfig: MergeServiceConfig = {
-    projectId: process.env.GCLOUD_PROJECT || 'test-project',
-    cloudTasksLocation: process.env.CLOUD_TASKS_LOCATION || 'us-central1',
-    functionsUrl: process.env.FUNCTIONS_URL || 'http://localhost:5001',
-};
-const applicationBuilder = ComponentBuilder.createComponentBuilder(
-    getFirestore(),
-    getAuth(),
-    getStorage(),
-    getIdentityToolkitConfig(),
-    mergeServiceConfig
-);
+const applicationBuilder = getComponentBuilder()
 const firestoreReader = applicationBuilder.buildFirestoreReader();
 const tenantRegistryService = applicationBuilder.buildTenantRegistryService();
 

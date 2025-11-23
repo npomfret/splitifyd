@@ -1,30 +1,13 @@
-import type { ISOString, UserId } from '@billsplit-wl/shared';
-import { isoStringNow } from '@billsplit-wl/shared';
-import { FirestoreCollections, HTTP_STATUS } from '../constants';
-import { logger } from '../logger';
-import { ApiError } from '../utils/errors';
-import { LoggerContext } from '../utils/logger-context';
-import type { IAuthService } from '../services/auth';
-import type { IFirestoreReader, IFirestoreWriter } from '../services/firestore';
-import type { ICloudTasksClient } from '@billsplit-wl/firebase-simulator';
-
-/**
- * Configuration for MergeService
- */
-export interface MergeServiceConfig {
-    /**
-     * Google Cloud Project ID for Cloud Tasks
-     */
-    projectId: string;
-    /**
-     * Cloud Tasks location/region
-     */
-    cloudTasksLocation: string;
-    /**
-     * Base URL for Cloud Functions
-     */
-    functionsUrl: string;
-}
+import type {ISOString, UserId} from '@billsplit-wl/shared';
+import {isoStringNow} from '@billsplit-wl/shared';
+import {HTTP_STATUS} from '../constants';
+import {logger} from '../logger';
+import {ApiError} from '../utils/errors';
+import {LoggerContext} from '../utils/logger-context';
+import type {IAuthService} from '../services/auth';
+import type {IFirestoreReader, IFirestoreWriter} from '../services/firestore';
+import type {ICloudTasksClient} from '@billsplit-wl/firebase-simulator';
+import {ServiceConfig} from "./ServiceConfig";
 
 /**
  * Result of merge eligibility validation
@@ -73,7 +56,7 @@ export class MergeService {
         private firestoreReader: IFirestoreReader,
         private firestoreWriter: IFirestoreWriter,
         private cloudTasksClient: ICloudTasksClient,
-        private config: MergeServiceConfig,
+        private config: ServiceConfig,
     ) {}
 
     /**

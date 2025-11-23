@@ -4,9 +4,10 @@ import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, GroupUpdateBuil
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { GroupHandlers } from '../../../groups/GroupHandlers';
-import { ComponentBuilder, createTestMergeServiceConfig } from '../../../services/ComponentBuilder';
-import { AppDriver } from '../AppDriver';
+import { ComponentBuilder } from '../../../services/ComponentBuilder';
+import {AppDriver} from '../AppDriver';
 import { StubAuthService } from '../mocks/StubAuthService';
+import {createUnitTestServiceConfig} from "../../test-config";
 
 describe('GroupHandlers - Unit Tests', () => {
     let appDriver: AppDriver;
@@ -601,7 +602,7 @@ describe('GroupHandlers - Unit Tests', () => {
                 db,
                 new StubStorage({ defaultBucketName: 'test-bucket' }),
                 new StubCloudTasksClient(),
-                createTestMergeServiceConfig()
+                createUnitTestServiceConfig()
             );
 
             const handlers = new GroupHandlers(componentBuilder.buildGroupService());

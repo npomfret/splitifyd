@@ -5,11 +5,13 @@ import { toTenantAppName, toTenantDomainName, toTenantFaviconUrl, toTenantId, to
 import { GroupDTOBuilder, GroupMemberDocumentBuilder, TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
-import { ComponentBuilder, createTestMergeServiceConfig } from '../../../services/ComponentBuilder';
+import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import type { IFirestoreReader, IFirestoreWriter } from '../../../services/firestore';
 import { ApiError } from '../../../utils/errors';
 import { StubAuthService } from '../mocks/StubAuthService';
 import { TenantPayloadBuilder } from '../TenantPayloadBuilder';
+
+import {createUnitTestServiceConfig} from "../../test-config";
 
 describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
     let db: TenantFirestoreTestDatabase;
@@ -19,7 +21,7 @@ describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
     beforeEach(() => {
         db = new TenantFirestoreTestDatabase();
 
-        const applicationBuilder = new ComponentBuilder(new StubAuthService(), db, new StubStorage({ defaultBucketName: 'test-bucket' }), new StubCloudTasksClient(), createTestMergeServiceConfig());
+        const applicationBuilder = new ComponentBuilder(new StubAuthService(), db, new StubStorage({ defaultBucketName: 'test-bucket' }), new StubCloudTasksClient(), createUnitTestServiceConfig());
         firestoreWriter = applicationBuilder.buildFirestoreWriter();
         firestoreReader = applicationBuilder.buildFirestoreReader();
     });
@@ -193,7 +195,7 @@ describe('FirestoreWriter.upsertTenant - Default Tenant Enforcement', () => {
             db,
             new StubStorage({ defaultBucketName: 'test-bucket' }),
             new StubCloudTasksClient(),
-            createTestMergeServiceConfig()
+            createUnitTestServiceConfig()
         );
         firestoreWriter = applicationBuilder.buildFirestoreWriter();
         firestoreReader = applicationBuilder.buildFirestoreReader();

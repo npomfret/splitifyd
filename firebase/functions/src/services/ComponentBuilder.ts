@@ -25,23 +25,9 @@ import {GroupSecurityHandlers} from '../groups/GroupSecurityHandlers';
 import {GroupTransactionManager} from './transactions/GroupTransactionManager';
 import {UserPolicyService} from './UserPolicyService';
 import {UserService} from './UserService2';
-import {MergeService, type MergeServiceConfig} from '../merge/MergeService';
+import {MergeService} from '../merge/MergeService';
 import {createCloudTasksClient, type ICloudTasksClient} from '@billsplit-wl/firebase-simulator';
-
-// Re-export MergeServiceConfig for external use
-export type { MergeServiceConfig } from '../merge/MergeService';
-
-/**
- * Creates a default test configuration for MergeService
- * Used in unit tests to avoid duplicating config setup
- */
-export function createTestMergeServiceConfig(): MergeServiceConfig {
-    return {
-        projectId: 'test-project',
-        cloudTasksLocation: 'us-central1',
-        functionsUrl: 'http://localhost:5001',
-    };
-}
+import {ServiceConfig} from "../merge/ServiceConfig";
 
 export class ComponentBuilder {
     // Base infrastructure - created once
@@ -74,7 +60,7 @@ export class ComponentBuilder {
         private readonly db: IFirestoreDatabase,
         private readonly storage: IStorage,
         private readonly cloudTasksClient: ICloudTasksClient,
-        private readonly mergeServiceConfig: MergeServiceConfig,
+        private readonly serviceConfig: ServiceConfig,
     ) {
         this.firestoreReader = new FirestoreReader(db);
         this.firestoreWriter = new FirestoreWriter(db);
@@ -85,7 +71,7 @@ export class ComponentBuilder {
         auth: Auth,
         storage: Storage,
         identityToolkit: IdentityToolkitConfig,
-        mergeServiceConfig: MergeServiceConfig,
+        serviceConfig: ServiceConfig,
     ) {
         // Wrap the Firestore instance with our abstraction layer
         const wrappedDb = createFirestoreDatabase(firestore);
@@ -105,7 +91,7 @@ export class ComponentBuilder {
             wrappedDb,
             wrappedStorage,
             cloudTasksClient,
-            mergeServiceConfig
+            serviceConfig
         );
     }
 
@@ -271,7 +257,7 @@ export class ComponentBuilder {
                 this.buildFirestoreReader(),
                 this.buildFirestoreWriter(),
                 this.cloudTasksClient,
-                this.mergeServiceConfig,
+                this.serviceConfig,
             );
         }
         return this.mergeService;
@@ -325,3 +311,5 @@ export class ComponentBuilder {
         return this.groupSecurityHandlers;
     }
 }
+
+export {ServiceConfig} from "../merge/ServiceConfig";
