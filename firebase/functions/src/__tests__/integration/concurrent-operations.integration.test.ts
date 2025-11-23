@@ -1,10 +1,9 @@
-import {amountToSmallestUnit, GroupDTO, PooledTestUser, toCurrencyISOCode, toDisplayName, USD} from '@billsplit-wl/shared';
+import {amountToSmallestUnit, GroupDTO, PooledTestUser, toCurrencyISOCode, toDisplayName, toUserId, USD, UserId} from '@billsplit-wl/shared';
 import {ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, getFirebaseEmulatorConfig} from '@billsplit-wl/test-support';
 import {beforeAll, beforeEach, describe, expect, test} from 'vitest';
 import {getAuth, getFirestore, getStorage} from '../../firebase';
 import {ComponentBuilder} from '../../services/ComponentBuilder';
-import {toUserId, UserId} from "@billsplit-wl/shared";
-import {getIntegrationTestServiceConfig} from '../test-config';
+import {getServiceConfig} from "../../merge/ServiceConfig";
 
 async function runWithLimitedConcurrency<T>(operations: Array<() => Promise<T>>, limit: number): Promise<PromiseSettledResult<T>[]> {
     if (operations.length === 0) {
@@ -46,7 +45,7 @@ async function runWithLimitedConcurrency<T>(operations: Array<() => Promise<T>>,
 
 describe('Concurrent Operations Integration Tests', () => {
     const identityToolkit = getFirebaseEmulatorConfig().identityToolkit;
-    const applicationBuilder = ComponentBuilder.createComponentBuilder(getFirestore(), getAuth(), getStorage(), identityToolkit, getIntegrationTestServiceConfig());
+    const applicationBuilder = ComponentBuilder.createComponentBuilder(getFirestore(), getAuth(), getStorage(), identityToolkit, getServiceConfig());
     const firestoreReader = applicationBuilder.buildFirestoreReader();
     const groupService = applicationBuilder.buildGroupService();
     const groupMemberService = applicationBuilder.buildGroupMemberService();

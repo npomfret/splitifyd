@@ -1,4 +1,4 @@
-import { calculateEqualSplits, PooledTestUser, toAmount, USD } from '@billsplit-wl/shared';
+import {calculateEqualSplits, PooledTestUser, toAmount, USD} from '@billsplit-wl/shared';
 import {
     ApiDriver,
     borrowTestUsers,
@@ -10,11 +10,11 @@ import {
     GroupUpdateBuilder,
     SettlementUpdateBuilder,
 } from '@billsplit-wl/test-support';
-import { v4 as uuidv4 } from 'uuid';
-import { beforeEach, describe, expect, test } from 'vitest';
-import { getAuth, getFirestore, getStorage } from '../../firebase';
-import { ComponentBuilder } from '../../services/ComponentBuilder';
-import { getIntegrationTestServiceConfig } from '../test-config';
+import {v4 as uuidv4} from 'uuid';
+import {beforeEach, describe, expect, test} from 'vitest';
+import {getAuth, getFirestore, getStorage} from '../../firebase';
+import {ComponentBuilder} from '../../services/ComponentBuilder';
+import {getServiceConfig} from "../../merge/ServiceConfig";
 
 // NOTE: This integration test suite now focuses exclusively on Firebase-specific features that
 // require the emulator: concurrent operations, optimistic locking, and subcollection cleanup.
@@ -30,7 +30,7 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
         getAuth(),
         getStorage(),
         identityToolkit,
-        getIntegrationTestServiceConfig()
+        getServiceConfig()
     );
     const firestoreReader = applicationBuilder.buildFirestoreReader();
     let users: PooledTestUser[];
