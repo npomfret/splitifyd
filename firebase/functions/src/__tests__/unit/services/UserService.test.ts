@@ -94,6 +94,16 @@ describe('UserService - Consolidated Unit Tests', () => {
             vi.useFakeTimers();
 
             try {
+                // Create a separate UserService with non-zero minRegistrationDurationMs for this test
+                const testConfig = { ...createUnitTestServiceConfig(), minRegistrationDurationMs: 600 };
+                const testUserService = new ComponentBuilder(
+                    stubAuth,
+                    db,
+                    new StubStorage({ defaultBucketName: 'test-bucket' }),
+                    new StubCloudTasksClient(),
+                    testConfig
+                ).buildUserService();
+
                 const email = 'slow-existing@example.com';
 
                 const { role: _, photoURL: __, ...userData } = new ClientUserBuilder()
@@ -110,7 +120,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                     .build();
 
                 let settled = false;
-                const registrationPromise = userService.registerUser(duplicateData).finally(() => {
+                const registrationPromise = testUserService.registerUser(duplicateData).finally(() => {
                     settled = true;
                 });
 

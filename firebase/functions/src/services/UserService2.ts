@@ -20,7 +20,6 @@ import type { IAuthService } from './auth';
 import type { FirestoreUserCreateData, IFirestoreReader, IFirestoreWriter } from './firestore';
 import {toEmail, toUserId} from "@billsplit-wl/shared";
 
-const MIN_REGISTRATION_DURATION_MS = 600;
 const REGISTRATION_FAILURE_ERROR_CODE = 'REGISTRATION_FAILED';
 const REGISTRATION_FAILURE_MESSAGE = 'Unable to create account. If you already registered, try signing in.';
 
@@ -44,6 +43,7 @@ export class UserService {
         private readonly firestoreReader: IFirestoreReader,
         private readonly firestoreWriter: IFirestoreWriter,
         private readonly authService: IAuthService,
+        private readonly minRegistrationDurationMs: number
     ) {}
 
     /**
@@ -520,7 +520,7 @@ export class UserService {
      */
     async registerUser(requestBody: UserRegistration): Promise<RegisterUserResult> {
         return withMinimumDuration(
-            MIN_REGISTRATION_DURATION_MS,
+            this.minRegistrationDurationMs,
             () => measureDb('UserService2.registerUser', async () => this._registerUser(requestBody)),
         );
     }

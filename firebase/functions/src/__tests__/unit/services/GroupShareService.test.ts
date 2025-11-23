@@ -37,7 +37,7 @@ describe('GroupShareService', () => {
         groupTransactionManager = new GroupTransactionManager(firestoreReader, firestoreWriter);
         groupMemberService = new GroupMemberService(firestoreReader, firestoreWriter, activityFeedService, groupTransactionManager);
         authService = new StubAuthService();
-        userService = new UserService(firestoreReader, firestoreWriter, authService);
+        userService = new UserService(firestoreReader, firestoreWriter, authService, 0);
 
         // Create service with real services
         groupShareService = new GroupShareService(

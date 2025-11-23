@@ -11,6 +11,7 @@ export default defineConfig({
         env: {
             GCLOUD_PROJECT: process.env.GCLOUD_PROJECT ?? 'splitifyd',
             INSTANCE_NAME: 'dev1',
+            MIN_REGISTRATION_DURATION_MS: '0',
         },
         include: ['src/**/*.test.ts'],
         exclude: ['node_modules', 'lib', 'dist'],

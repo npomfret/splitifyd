@@ -10,5 +10,6 @@ export function createUnitTestServiceConfig(): ServiceConfig {
         projectId: 'test-project',
         cloudTasksLocation: 'location',
         functionsUrl: 'http://foo:9999',
+        minRegistrationDurationMs: 0,
     };
 }

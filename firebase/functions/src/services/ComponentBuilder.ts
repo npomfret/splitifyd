@@ -101,7 +101,12 @@ export class ComponentBuilder {
 
     buildUserService(): UserService {
         if (!this.userService) {
-            this.userService = new UserService(this.buildFirestoreReader(), this.buildFirestoreWriter(), this.buildAuthService());
+            this.userService = new UserService(
+                this.buildFirestoreReader(),
+                this.buildFirestoreWriter(),
+                this.buildAuthService(),
+                this.serviceConfig.minRegistrationDurationMs
+            );
         }
         return this.userService!;
     }
