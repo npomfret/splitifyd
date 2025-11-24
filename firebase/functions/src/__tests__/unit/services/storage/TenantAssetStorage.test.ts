@@ -23,7 +23,7 @@ describe('TenantAssetStorage', () => {
 
             expect(url).toContain(emulatorHost);
             expect(url).toContain('tenant-123');
-            expect(url).toMatch(/logo-\d+\.png/);
+            expect(url).toMatch(/logo-[0-9a-f]{16}\.png/); // Content hash format: 16 hex chars
             expect(url).toContain('?alt=media');
 
             const files = stubStorage.getAllFiles();
@@ -38,7 +38,7 @@ describe('TenantAssetStorage', () => {
 
             expect(url).toContain(emulatorHost);
             expect(url).toContain('tenant-456');
-            expect(url).toMatch(/favicon-\d+\.ico/);
+            expect(url).toMatch(/favicon-[0-9a-f]{16}\.ico/); // Content hash format: 16 hex chars
 
             const files = stubStorage.getAllFiles();
             expect(files.size).toBe(1);
@@ -88,7 +88,7 @@ describe('TenantAssetStorage', () => {
             const files = stubStorage.getAllFiles();
             const filePath = Array.from(files.keys())[0];
             // StubStorage includes bucket name in key: "bucket:path"
-            expect(filePath).toMatch(/^test-bucket:tenant-assets\/tenant-path\/logo-\d+\.png$/);
+            expect(filePath).toMatch(/^test-bucket:tenant-assets\/tenant-path\/logo-[0-9a-f]{16}\.png$/);
         });
 
         it('should handle different image formats', async () => {
@@ -120,7 +120,7 @@ describe('TenantAssetStorage', () => {
 
             const url = await assetStorage.uploadAsset('tenant-prod', 'logo', buffer, 'image/png');
 
-            expect(url).toMatch(/^https:\/\/storage\.googleapis\.com\/test-bucket\/tenant-assets\/tenant-prod\/logo-\d+\.png$/);
+            expect(url).toMatch(/^https:\/\/storage\.googleapis\.com\/test-bucket\/tenant-assets\/tenant-prod\/logo-[0-9a-f]{16}\.png$/);
             expect(url).not.toContain('?alt=media');
         });
     });

@@ -1,7 +1,8 @@
 import type { RequestHandler } from 'express';
 import type { AuthenticatedRequest } from '../auth/middleware';
-import { HTTP_STATUS } from '../constants';
+import { FirestoreCollections, HTTP_STATUS } from '../constants';
 import { AdminUpsertTenantRequestSchema, PublishTenantThemeRequestSchema } from '../schemas/tenant';
+import type { IFirestoreReader } from '../services/firestore/IFirestoreReader';
 import { TenantAdminService } from '../services/tenant/TenantAdminService';
 import type { TenantAssetStorage } from '../services/storage/TenantAssetStorage';
 import { ApiError } from '../utils/errors';
@@ -11,6 +12,7 @@ export class TenantAdminHandlers {
     constructor(
         private readonly tenantAdminService: TenantAdminService,
         private readonly tenantAssetStorage: TenantAssetStorage,
+        private readonly firestoreReader: IFirestoreReader,
     ) {}
 
     upsertTenant: RequestHandler = async (req, res) => {
@@ -69,8 +71,19 @@ export class TenantAdminHandlers {
             validateFaviconImage(buffer, contentType);
         }
 
-        // Upload to storage
-        const url = await this.tenantAssetStorage.uploadAsset(tenantId, assetType, buffer, contentType!);
+        // Fetch current tenant to get old URL for cleanup
+        let oldUrl: string | undefined;
+        try {
+            const tenantRecord = await this.firestoreReader.getTenantById(tenantId as any);
+            if (tenantRecord) {
+                oldUrl = assetType === 'logo' ? tenantRecord.tenant.branding.logoUrl : tenantRecord.tenant.branding.faviconUrl;
+            }
+        } catch (error) {
+            // Non-fatal - continue without cleanup if tenant lookup fails
+        }
+
+        // Upload to storage (with automatic cleanup of old asset)
+        const url = await this.tenantAssetStorage.uploadAsset(tenantId, assetType, buffer, contentType!, oldUrl);
 
         res.status(HTTP_STATUS.OK).json({ url });
     };

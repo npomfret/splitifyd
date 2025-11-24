@@ -271,6 +271,126 @@ describe('Admin Tests', () => {
                     .toMatchObject({ code: 'TENANT_NOT_FOUND' });
             });
         });
+
+        describe('POST /api/admin/tenants/:tenantId/assets/:assetType - uploadTenantImage', () => {
+            let tenantId: string;
+
+            // Helper to create valid image buffers with magic numbers
+            const createValidImageBuffer = (type: 'png' | 'jpeg' | 'gif' | 'webp' | 'ico'): Buffer => {
+                const magicNumbers: Record<string, number[]> = {
+                    png: [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a],
+                    jpeg: [0xff, 0xd8, 0xff, 0xe0],
+                    gif: [0x47, 0x49, 0x46, 0x38, 0x39, 0x61], // GIF89a
+                    webp: [0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00, 0x57, 0x45, 0x42, 0x50], // RIFF....WEBP
+                    ico: [0x00, 0x00, 0x01, 0x00],
+                };
+                return Buffer.from([...magicNumbers[type], ...Array(20).fill(0)]);
+            };
+
+            beforeEach(async () => {
+                // Create a tenant first
+                tenantId = `test-upload-${Date.now()}`;
+                const payload = AdminTenantRequestBuilder
+                    .forTenant(tenantId)
+                    .withDomains([toTenantDomainName(`${tenantId}.test.local`)])
+                    .build();
+                await appDriver.adminUpsertTenant(payload, localAdminUser);
+            });
+
+            it('should upload logo and return storage URL', async () => {
+                const imageBuffer = createValidImageBuffer('png');
+                const contentType = 'image/png';
+
+                const result = await appDriver.uploadTenantImage(tenantId, 'logo', imageBuffer, contentType, localAdminUser);
+
+                expect(result.url).toBeDefined();
+                expect(result.url).toContain(tenantId);
+                expect(result.url).toMatch(/logo-[0-9a-f]{16}\.png/); // Content-hash format
+            });
+
+            it('should upload favicon and return storage URL', async () => {
+                const imageBuffer = createValidImageBuffer('ico');
+                const contentType = 'image/x-icon';
+
+                const result = await appDriver.uploadTenantImage(tenantId, 'favicon', imageBuffer, contentType, localAdminUser);
+
+                expect(result.url).toBeDefined();
+                expect(result.url).toContain(tenantId);
+                expect(result.url).toMatch(/favicon-[0-9a-f]{16}\.ico/);
+            });
+
+            it('should reject upload with invalid content type', async () => {
+                const imageBuffer = Buffer.from('fake-data');
+                const invalidContentType = 'application/json'; // Not an image
+
+                await expect(
+                    appDriver.uploadTenantImage(tenantId, 'logo', imageBuffer, invalidContentType, localAdminUser)
+                ).rejects.toThrow();
+            });
+
+            it('should reject upload with missing content type', async () => {
+                const imageBuffer = Buffer.from('fake-data');
+                const contentType = ''; // Empty content type
+
+                await expect(
+                    appDriver.uploadTenantImage(tenantId, 'logo', imageBuffer, contentType, localAdminUser)
+                ).rejects.toThrow();
+            });
+
+            it('should reject upload for non-existent tenant', async () => {
+                const imageBuffer = Buffer.from('fake-png-data');
+                const contentType = 'image/png';
+
+                await expect(
+                    appDriver.uploadTenantImage('non-existent-tenant', 'logo', imageBuffer, contentType, localAdminUser)
+                ).rejects.toThrow();
+            });
+
+            it('should reject upload with empty buffer', async () => {
+                const emptyBuffer = Buffer.alloc(0);
+                const contentType = 'image/png';
+
+                await expect(
+                    appDriver.uploadTenantImage(tenantId, 'logo', emptyBuffer, contentType, localAdminUser)
+                ).rejects.toThrow();
+            });
+
+            it('should handle different image formats correctly', async () => {
+                const formats: Array<{ type: 'png' | 'jpeg' | 'gif' | 'webp', contentType: string, expectedExt: string }> = [
+                    { type: 'jpeg', contentType: 'image/jpeg', expectedExt: 'jpg' },
+                    { type: 'png', contentType: 'image/png', expectedExt: 'png' },
+                    { type: 'gif', contentType: 'image/gif', expectedExt: 'gif' },
+                    { type: 'webp', contentType: 'image/webp', expectedExt: 'webp' },
+                ];
+
+                for (const { type, contentType, expectedExt } of formats) {
+                    const result = await appDriver.uploadTenantImage(
+                        tenantId,
+                        'logo',
+                        createValidImageBuffer(type),
+                        contentType,
+                        localAdminUser
+                    );
+                    expect(result.url).toContain(`.${expectedExt}`);
+                }
+            });
+
+            it('should replace old logo with new one (cleanup)', async () => {
+                // First upload
+                const firstBuffer = createValidImageBuffer('png');
+                const firstResult = await appDriver.uploadTenantImage(tenantId, 'logo', firstBuffer, 'image/png', localAdminUser);
+                const firstUrl = firstResult.url;
+
+                // Second upload with different content (should cleanup first)
+                const secondBuffer = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, ...Array(30).fill(1)]); // Different PNG
+                const secondResult = await appDriver.uploadTenantImage(tenantId, 'logo', secondBuffer, 'image/png', localAdminUser);
+                const secondUrl = secondResult.url;
+
+                // URLs should be different (different content hashes)
+                expect(firstUrl).not.toBe(secondUrl);
+                expect(secondUrl).toBeDefined();
+            });
+        });
     });
 
     describe('Admin User Management', () => {

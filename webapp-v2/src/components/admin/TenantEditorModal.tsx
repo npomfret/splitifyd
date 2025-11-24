@@ -1,5 +1,5 @@
 import { apiClient } from '@/app/apiClient';
-import { Alert, Button, Card, Input, Modal } from '@/components/ui';
+import { Alert, Button, Card, ImageUploadField, Input, Modal } from '@/components/ui';
 import { logError } from '@/utils/browser-logger';
 import type { AdminUpsertTenantRequest } from '@billsplit-wl/shared';
 import { useEffect, useState } from 'preact/hooks';
@@ -80,6 +80,10 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
     const [successMessage, setSuccessMessage] = useState('');
     const [isPublishing, setIsPublishing] = useState(false);
     const [newDomain, setNewDomain] = useState('');
+    const [logoFile, setLogoFile] = useState<File | null>(null);
+    const [faviconFile, setFaviconFile] = useState<File | null>(null);
+    const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+    const [isUploadingFavicon, setIsUploadingFavicon] = useState(false);
 
     // Update form data when tenant or mode changes
     useEffect(() => {
@@ -135,14 +139,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
             setErrorMessage('App name is required');
             return;
         }
-        if (!formData.logoUrl.trim()) {
-            setErrorMessage('Logo URL is required');
-            return;
-        }
-        if (!formData.logoUrl.startsWith('http://') && !formData.logoUrl.startsWith('https://') && !formData.logoUrl.startsWith('/')) {
-            setErrorMessage('Logo URL must be a valid URL (http://, https://, or path starting with /)');
-            return;
-        }
+        // Logo is optional - can be added after tenant is created
         if (!formData.primaryColor.trim()) {
             setErrorMessage('Primary color is required');
             return;
@@ -284,6 +281,52 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
         setFormData({ ...formData, domains: updated });
     };
 
+    const handleLogoUpload = async (file: File) => {
+        if (!formData.tenantId) {
+            setErrorMessage('Please save the tenant first before uploading images');
+            return;
+        }
+
+        setLogoFile(file);
+        setIsUploadingLogo(true);
+        setErrorMessage('');
+
+        try {
+            const result = await apiClient.uploadTenantImage(formData.tenantId, 'logo', file);
+            setFormData({ ...formData, logoUrl: result.url });
+            setSuccessMessage('Logo uploaded successfully!');
+            setTimeout(() => setSuccessMessage(''), 3000);
+        } catch (error: any) {
+            setErrorMessage(error.message || 'Failed to upload logo');
+            logError('Failed to upload logo', error);
+        } finally {
+            setIsUploadingLogo(false);
+        }
+    };
+
+    const handleFaviconUpload = async (file: File) => {
+        if (!formData.tenantId) {
+            setErrorMessage('Please save the tenant first before uploading images');
+            return;
+        }
+
+        setFaviconFile(file);
+        setIsUploadingFavicon(true);
+        setErrorMessage('');
+
+        try {
+            const result = await apiClient.uploadTenantImage(formData.tenantId, 'favicon', file);
+            setFormData({ ...formData, faviconUrl: result.url });
+            setSuccessMessage('Favicon uploaded successfully!');
+            setTimeout(() => setSuccessMessage(''), 3000);
+        } catch (error: any) {
+            setErrorMessage(error.message || 'Failed to upload favicon');
+            logError('Failed to upload favicon', error);
+        } finally {
+            setIsUploadingFavicon(false);
+        }
+    };
+
     return (
         <Modal open={open} onClose={handleCancel} size='lg' data-testid='tenant-editor-modal'>
             <div class='flex flex-col max-h-[90vh]'>
@@ -351,23 +394,30 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                     data-testid='app-name-input'
                                 />
 
-                                <Input
-                                    label='Logo URL'
-                                    value={formData.logoUrl}
-                                    onChange={(value) => setFormData({ ...formData, logoUrl: value })}
-                                    placeholder='/logo.svg'
-                                    disabled={isSaving}
-                                    required
-                                    data-testid='logo-url-input'
+                                <ImageUploadField
+                                    label='Logo (optional)'
+                                    accept='image/*'
+                                    maxSizeMB={2}
+                                    currentImageUrl={formData.logoUrl}
+                                    onFileSelect={handleLogoUpload}
+                                    onClear={() => setFormData({ ...formData, logoUrl: '' })}
+                                    disabled={isSaving || isUploadingLogo || !formData.tenantId}
+                                    helperText={!formData.tenantId ? 'Save tenant first to enable upload' : 'Max 2MB. Formats: PNG, JPG, SVG, WebP'}
+                                    allowUrlInput={true}
+                                    data-testid='logo-upload-field'
                                 />
 
-                                <Input
-                                    label='Favicon URL (optional)'
-                                    value={formData.faviconUrl}
-                                    onChange={(value) => setFormData({ ...formData, faviconUrl: value })}
-                                    placeholder='/favicon.ico'
-                                    disabled={isSaving}
-                                    data-testid='favicon-url-input'
+                                <ImageUploadField
+                                    label='Favicon (optional)'
+                                    accept='image/x-icon,image/png,image/svg+xml'
+                                    maxSizeMB={0.5}
+                                    currentImageUrl={formData.faviconUrl}
+                                    onFileSelect={handleFaviconUpload}
+                                    onClear={() => setFormData({ ...formData, faviconUrl: '' })}
+                                    disabled={isSaving || isUploadingFavicon || !formData.tenantId}
+                                    helperText={!formData.tenantId ? 'Save tenant first to enable upload' : 'Max 512KB. Formats: ICO, PNG, SVG'}
+                                    allowUrlInput={true}
+                                    data-testid='favicon-upload-field'
                                 />
 
                                 <div class='grid grid-cols-3 gap-4'>

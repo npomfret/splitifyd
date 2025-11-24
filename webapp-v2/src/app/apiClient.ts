@@ -1304,6 +1304,35 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
         });
     }
 
+    async uploadTenantImage(
+        tenantId: string,
+        assetType: 'logo' | 'favicon',
+        file: File,
+    ): Promise<{ url: string }> {
+        const url = `/api/admin/tenants/${encodeURIComponent(tenantId)}/assets/${assetType}`;
+
+        const headers: Record<string, string> = {
+            'Content-Type': file.type,
+        };
+
+        if (this.authToken) {
+            headers['Authorization'] = `Bearer ${this.authToken}`;
+        }
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers,
+            body: file,
+        });
+
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({ code: 'UNKNOWN_ERROR', message: 'Upload failed' }));
+            throw new Error(error.message || 'Upload failed');
+        }
+
+        return response.json();
+    }
+
     // ===== ADMIN API: TENANT SETTINGS =====
 
     async getTenantSettings(): Promise<TenantSettingsResponse> {

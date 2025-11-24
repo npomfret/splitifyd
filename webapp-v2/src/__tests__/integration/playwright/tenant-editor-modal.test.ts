@@ -30,8 +30,8 @@ test.describe('Tenant Editor Modal', () => {
         // Verify all fields are visible
         await expect(tenantEditorModal.tenantIdInput).toBeVisible();
         await expect(tenantEditorModal.appNameInput).toBeVisible();
-        await expect(tenantEditorModal.logoUrlInput).toBeVisible();
-        await expect(tenantEditorModal.faviconUrlInput).toBeVisible();
+        await expect(tenantEditorModal.logoUploadField).toBeVisible();
+        await expect(tenantEditorModal.faviconUploadField).toBeVisible();
         await expect(tenantEditorModal.primaryColorInput).toBeVisible();
         await expect(tenantEditorModal.secondaryColorInput).toBeVisible();
         await expect(tenantEditorModal.accentColorInput).toBeVisible();
@@ -75,7 +75,7 @@ test.describe('Tenant Editor Modal', () => {
         // Fill with invalid tenant ID (contains uppercase)
         await tenantEditorModal.fillTenantId('Invalid-Tenant-ID');
         await tenantEditorModal.fillAppName('Test Tenant');
-        await tenantEditorModal.fillLogoUrl('/logo.png');
+        // Note: Logo/favicon disabled in create mode, focus is on tenant ID validation
         await tenantEditorModal.addDomain('test.example.com');
         await tenantEditorModal.clickSave();
 
@@ -96,7 +96,7 @@ test.describe('Tenant Editor Modal', () => {
         // Fill with invalid domain
         await tenantEditorModal.fillTenantId('test-tenant');
         await tenantEditorModal.fillAppName('Test Tenant');
-        await tenantEditorModal.fillLogoUrl('/logo.png');
+        // Note: Logo/favicon disabled in create mode, focus is on domain validation
         await tenantEditorModal.addDomain('invalid domain with spaces');
         await tenantEditorModal.clickSave();
 
@@ -235,8 +235,7 @@ test.describe('Tenant Editor Modal', () => {
 
         await tenantEditorModal.fillTenantId(tenantId);
         await tenantEditorModal.fillAppName('Playwright Tenant');
-        await tenantEditorModal.fillLogoUrl('/logo.svg');
-        await tenantEditorModal.fillFaviconUrl('/favicon.svg');
+        // Note: Logo/favicon upload is disabled until tenant is saved, so skip for create test
         await tenantEditorModal.setPrimaryColor('#0f172a');
         await tenantEditorModal.setSecondaryColor('#1e3a8a');
         await tenantEditorModal.setAccentColor('#f97316');
@@ -281,5 +280,68 @@ test.describe('Tenant Editor Modal', () => {
 
         // Verify we're back on the tenants list page
         await expect(page.getByTestId('create-tenant-button')).toBeVisible();
+    });
+
+    test.describe('Image Upload', () => {
+        test('should disable image upload fields until tenant is saved', async ({ systemAdminPage }) => {
+            const { page } = systemAdminPage;
+            const adminTenantsPage = new AdminTenantsPage(page);
+            const tenantEditorModal = new TenantEditorModalPage(page);
+
+            await adminTenantsPage.navigate();
+            await adminTenantsPage.waitForTenantsLoaded();
+            await page.getByTestId('create-tenant-button').click();
+            await tenantEditorModal.waitForModalToBeVisible();
+
+            // Verify image upload fields are disabled initially
+            const logoUploadField = page.getByTestId('logo-upload-field');
+            const faviconUploadField = page.getByTestId('favicon-upload-field');
+
+            await expect(logoUploadField).toBeVisible();
+            await expect(faviconUploadField).toBeVisible();
+
+            // Verify helper text indicates need to save first (appears twice - once for logo, once for favicon)
+            await expect(page.getByText('Save tenant first to enable upload').first()).toBeVisible();
+        });
+
+        test('should enable image upload after tenant is saved', async ({ systemAdminPage }) => {
+            const { page } = systemAdminPage;
+            const adminTenantsPage = new AdminTenantsPage(page);
+            const tenantEditorModal = new TenantEditorModalPage(page);
+
+            await adminTenantsPage.navigate();
+            await adminTenantsPage.waitForTenantsLoaded();
+
+            // Edit existing tenant (click first edit button)
+            await adminTenantsPage.clickEditButtonForFirstTenant();
+            await tenantEditorModal.waitForModalToBeVisible();
+
+            // Verify image upload fields are enabled for existing tenant
+            const logoUploadField = page.getByTestId('logo-upload-field');
+            const faviconUploadField = page.getByTestId('favicon-upload-field');
+
+            await expect(logoUploadField).toBeVisible();
+            await expect(faviconUploadField).toBeVisible();
+
+            // Verify helper text shows file format info
+            await expect(page.getByText(/Max 2MB.*Formats/)).toBeVisible();
+        });
+
+        test('should show current logo image when editing tenant', async ({ systemAdminPage }) => {
+            const { page } = systemAdminPage;
+            const adminTenantsPage = new AdminTenantsPage(page);
+            const tenantEditorModal = new TenantEditorModalPage(page);
+
+            await adminTenantsPage.navigate();
+            await adminTenantsPage.waitForTenantsLoaded();
+
+            // Edit tenant with existing logo (click first edit button)
+            await adminTenantsPage.clickEditButtonForFirstTenant();
+            await tenantEditorModal.waitForModalToBeVisible();
+
+            // Check for image preview
+            const logoImage = page.locator('img[alt="Preview"]').first();
+            await expect(logoImage).toBeVisible();
+        });
     });
 });

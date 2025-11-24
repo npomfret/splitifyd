@@ -12,6 +12,7 @@ export { FloatingInput } from './FloatingInput';
 export { Form } from './Form';
 export { FormField } from './FormField';
 export { GradientText } from './GradientText';
+export { ImageUploadField } from './ImageUploadField';
 export { Input } from './Input';
 export { LabelSuggestionInput } from './LabelSuggestionInput';
 export { LoadingSpinner } from './LoadingSpinner';

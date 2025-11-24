@@ -127,16 +127,16 @@ export async function publishStagingThemes(): Promise<void> {
     logger.info('🎨 Publishing themes for staging tenants...');
 
     // Just call sync-tenant-configs which uses TenantAdminService properly
-    const { buildTenantAdminService, syncTenantConfigs } = await import('./sync-tenant-configs');
+    const { buildServices, syncTenantConfigs } = await import('./sync-tenant-configs');
     const { parseEnvironment, initializeFirebase } = await import('./firebase-init');
 
     const env = parseEnvironment(['staging']);
     initializeFirebase(env);
 
-    const tenantAdminService = await buildTenantAdminService(env);
+    const services = await buildServices(env);
 
     // Sync staging-tenant which will update/create it with proper branding tokens
-    await syncTenantConfigs(tenantAdminService, { tenantId: 'staging-tenant' });
+    await syncTenantConfigs(services, { tenantId: 'staging-tenant' });
 
     logger.info('✅ Staging themes published successfully');
     logger.info(`  - staging-tenant: Aurora theme (splitifyd.web.app)`);

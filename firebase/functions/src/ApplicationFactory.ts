@@ -67,6 +67,7 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
     const tenantAdminHandlers = new TenantAdminHandlers(
         componentBuilder.buildTenantAdminService(),
         componentBuilder.buildTenantAssetStorage(),
+        componentBuilder.buildFirestoreReader(),
     );
     const themeHandlers = new ThemeHandlers(componentBuilder.buildFirestoreReader());
 

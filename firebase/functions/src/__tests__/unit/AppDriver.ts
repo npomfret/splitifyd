@@ -1217,7 +1217,17 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
     }
 
     async uploadTenantImage(tenantId: string, assetType: 'logo' | 'favicon', file: Buffer, contentType: string, token: AuthToken): Promise<{ url: string; }> {
-        throw new Error('uploadTenantImage not implemented in AppDriver');
+        // Create a special stub request with binary body instead of JSON
+        const req = createStubRequest(token, {}, { tenantId, assetType });
+        // Set the raw body buffer and content type
+        (req as any).body = file;
+        if (!req.headers) {
+            req.headers = {};
+        }
+        req.headers['content-type'] = contentType;
+
+        const res = await this.dispatchByHandler('uploadTenantImage', req);
+        return res.getJson() as { url: string };
     }
 
     // ===== ADMIN API: TENANT SETTINGS =====

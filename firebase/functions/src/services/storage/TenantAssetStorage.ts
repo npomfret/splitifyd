@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { getStorage } from '../../firebase';
 import { logger } from '../../logger';
 import { createStorage, type IStorage } from '../../storage-wrapper';
@@ -5,7 +6,7 @@ import { createStorage, type IStorage } from '../../storage-wrapper';
 export type AssetType = 'logo' | 'favicon';
 
 export interface TenantAssetStorage {
-    uploadAsset(tenantId: string, assetType: AssetType, buffer: Buffer, contentType: string): Promise<string>;
+    uploadAsset(tenantId: string, assetType: AssetType, buffer: Buffer, contentType: string, oldUrl?: string): Promise<string>;
     deleteAsset(url: string): Promise<void>;
 }
 
@@ -70,11 +71,14 @@ class CloudTenantAssetStorage implements TenantAssetStorage {
         assetType: AssetType,
         buffer: Buffer,
         contentType: string,
+        oldUrl?: string,
     ): Promise<string> {
         const bucket = this.storage.bucket();
-        const timestamp = Date.now();
+
+        // Generate content hash for true immutability
+        const hash = crypto.createHash('sha256').update(buffer).digest('hex').substring(0, 16);
         const extension = this.getExtensionFromContentType(contentType);
-        const filePath = `tenant-assets/${tenantId}/${assetType}-${timestamp}.${extension}`;
+        const filePath = `tenant-assets/${tenantId}/${assetType}-${hash}.${extension}`;
 
         const file = bucket.file(filePath);
 
@@ -86,6 +90,7 @@ class CloudTenantAssetStorage implements TenantAssetStorage {
                     tenantId,
                     assetType,
                     uploadedAt: new Date().toISOString(),
+                    contentHash: hash,
                 },
             },
         });
@@ -93,15 +98,21 @@ class CloudTenantAssetStorage implements TenantAssetStorage {
         // Make file publicly readable
         await file.makePublic();
 
-        // Generate public URL
-        const url = this.generatePublicUrl(bucket.name, filePath);
-
         logger.info('Uploaded tenant asset', {
             tenantId,
             assetType,
-            url,
+            filePath,
             size: buffer.length,
+            contentHash: hash,
         });
+
+        // Generate public URL
+        const url = this.generatePublicUrl(bucket.name, filePath);
+
+        // Cleanup old asset after successful upload
+        if (oldUrl && oldUrl !== url) {
+            await this.deleteAsset(oldUrl);
+        }
 
         return url;
     }

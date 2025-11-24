@@ -19,12 +19,12 @@ export class TenantEditorModalPage extends BasePage {
         return this.page.getByTestId('app-name-input');
     }
 
-    get logoUrlInput() {
-        return this.page.getByTestId('logo-url-input');
+    get logoUploadField() {
+        return this.page.getByTestId('logo-upload-field');
     }
 
-    get faviconUrlInput() {
-        return this.page.getByTestId('favicon-url-input');
+    get faviconUploadField() {
+        return this.page.getByTestId('favicon-upload-field');
     }
 
     get primaryColorInput() {
@@ -116,12 +116,28 @@ export class TenantEditorModalPage extends BasePage {
         await this.appNameInput.fill(value);
     }
 
-    async fillLogoUrl(value: string) {
-        await this.logoUrlInput.fill(value);
+    async fillLogoUrl(url: string) {
+        // Find the "Or enter URL" button within the logo upload field
+        const logoField = this.page.getByTestId('logo-upload-field');
+        await logoField.getByRole('button', { name: 'Or enter URL' }).click();
+        // Fill URL input
+        await this.page.getByTestId('logo-upload-field-url-input').fill(url);
+        // Click Download button within logo field
+        await logoField.getByRole('button', { name: 'Download' }).click();
+        // Wait for download to complete
+        await this.page.waitForTimeout(1000);
     }
 
-    async fillFaviconUrl(value: string) {
-        await this.faviconUrlInput.fill(value);
+    async fillFaviconUrl(url: string) {
+        // Find the "Or enter URL" button within the favicon upload field
+        const faviconField = this.page.getByTestId('favicon-upload-field');
+        await faviconField.getByRole('button', { name: 'Or enter URL' }).click();
+        // Fill URL input
+        await this.page.getByTestId('favicon-upload-field-url-input').fill(url);
+        // Click Download button within favicon field
+        await faviconField.getByRole('button', { name: 'Download' }).click();
+        // Wait for download to complete
+        await this.page.waitForTimeout(1000);
     }
 
     async addDomain(domain: string) {
@@ -260,12 +276,14 @@ export class TenantEditorModalPage extends BasePage {
     async fillBasicTenantInfo(data: {
         tenantId: string;
         appName: string;
-        logoUrl: string;
+        logoUrl?: string;
         domains: string[];
     }) {
         await this.fillTenantId(data.tenantId);
         await this.fillAppName(data.appName);
-        await this.fillLogoUrl(data.logoUrl);
+        if (data.logoUrl) {
+            await this.fillLogoUrl(data.logoUrl);
+        }
         // Add each domain
         for (const domain of data.domains) {
             await this.addDomain(domain);
