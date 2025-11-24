@@ -350,4 +350,88 @@ export interface IFirestoreWriter {
      * @returns Write result
      */
     updateMergeJobStatus(jobId: string, status: import('../../merge/MergeService').MergeJobStatus, error?: string): Promise<WriteResult>;
+
+    // ========================================================================
+    // Account Merge Operations
+    // ========================================================================
+
+    /**
+     * Reassign group ownership from one user to another
+     * @param fromUserId - Current owner user ID
+     * @param toUserId - New owner user ID
+     * @returns Number of groups updated
+     */
+    reassignGroupOwnership(fromUserId: import('@billsplit-wl/shared').UserId, toUserId: import('@billsplit-wl/shared').UserId): Promise<number>;
+
+    /**
+     * Reassign group memberships from one user to another
+     * @param fromUserId - Current member user ID
+     * @param toUserId - New member user ID
+     * @returns Number of memberships updated
+     */
+    reassignGroupMemberships(fromUserId: import('@billsplit-wl/shared').UserId, toUserId: import('@billsplit-wl/shared').UserId): Promise<number>;
+
+    /**
+     * Reassign expense payer from one user to another
+     * @param fromUserId - Current payer user ID
+     * @param toUserId - New payer user ID
+     * @returns Number of expenses updated
+     */
+    reassignExpensePayer(fromUserId: import('@billsplit-wl/shared').UserId, toUserId: import('@billsplit-wl/shared').UserId): Promise<number>;
+
+    /**
+     * Reassign expense participants from one user to another
+     * @param fromUserId - Current participant user ID
+     * @param toUserId - New participant user ID
+     * @returns Number of expenses updated
+     */
+    reassignExpenseParticipants(fromUserId: import('@billsplit-wl/shared').UserId, toUserId: import('@billsplit-wl/shared').UserId): Promise<number>;
+
+    /**
+     * Reassign settlement payer from one user to another
+     * @param fromUserId - Current payer user ID
+     * @param toUserId - New payer user ID
+     * @returns Number of settlements updated
+     */
+    reassignSettlementPayer(fromUserId: import('@billsplit-wl/shared').UserId, toUserId: import('@billsplit-wl/shared').UserId): Promise<number>;
+
+    /**
+     * Reassign settlement payee from one user to another
+     * @param fromUserId - Current payee user ID
+     * @param toUserId - New payee user ID
+     * @returns Number of settlements updated
+     */
+    reassignSettlementPayee(fromUserId: import('@billsplit-wl/shared').UserId, toUserId: import('@billsplit-wl/shared').UserId): Promise<number>;
+
+    /**
+     * Reassign comment authors from one user to another
+     * @param fromUserId - Current author user ID
+     * @param toUserId - New author user ID
+     * @returns Number of comments updated
+     */
+    reassignCommentAuthors(fromUserId: import('@billsplit-wl/shared').UserId, toUserId: import('@billsplit-wl/shared').UserId): Promise<number>;
+
+    /**
+     * Reassign activity feed actors from one user to another
+     * @param fromUserId - Current actor user ID
+     * @param toUserId - New actor user ID
+     * @returns Number of activity feed entries updated
+     */
+    reassignActivityFeedActors(fromUserId: import('@billsplit-wl/shared').UserId, toUserId: import('@billsplit-wl/shared').UserId): Promise<number>;
+
+    /**
+     * Reassign share link token creators from one user to another
+     * @param fromUserId - Current creator user ID
+     * @param toUserId - New creator user ID
+     * @returns Number of share link tokens updated
+     */
+    reassignShareLinkTokens(fromUserId: import('@billsplit-wl/shared').UserId, toUserId: import('@billsplit-wl/shared').UserId): Promise<number>;
+
+    /**
+     * Mark user account as merged and disabled
+     * @param userId - User ID to mark as merged
+     * @param mergedIntoUserId - Primary user ID this account was merged into
+     * @returns Write result
+     */
+    markUserAsMerged(userId: import('@billsplit-wl/shared').UserId, mergedIntoUserId: import('@billsplit-wl/shared').UserId): Promise<WriteResult>;
 }

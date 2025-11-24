@@ -37,16 +37,15 @@ export class MergeTaskService {
     ) {}
 
     /**
-     * Execute a merge job - Phase 3 minimal implementation
+     * Execute a merge job
      *
      * Steps:
      * 1. Fetch job document
      * 2. Validate job is pending
      * 3. Update job status to 'processing'
-     * 4. [TODO: Perform actual data migrations]
-     * 5. Update job status to 'completed' or 'failed'
-     *
-     * Note: Full migration logic will be added once Firestore methods are implemented
+     * 4. Perform data migrations across all collections
+     * 5. Mark secondary account as merged and disabled
+     * 6. Update job status to 'completed' or 'failed'
      */
     async executeMerge(jobId: string): Promise<MergeExecutionSummary> {
         LoggerContext.update({ operation: 'execute-merge', jobId });
@@ -67,9 +66,15 @@ export class MergeTaskService {
             // Step 3: Mark job as processing
             await this.updateJobStatus(jobId, 'processing');
 
-            // Step 4: TODO - Perform actual data migrations
-            // For Phase 3, we're just testing the job lifecycle
-            // Migration logic will be added in a future phase
+            // Step 4: Perform actual data migrations
+            try {
+                await this.performDataMigrations(job.secondaryUserId, job.primaryUserId);
+            } catch (migrationError) {
+                // Migration failed - mark job as failed and rethrow
+                const errorMessage = migrationError instanceof Error ? migrationError.message : 'Migration failed';
+                await this.updateJobStatus(jobId, 'failed', errorMessage);
+                throw migrationError;
+            }
 
             // Step 5: Mark job as completed
             await this.updateJobStatus(jobId, 'completed');
@@ -92,14 +97,78 @@ export class MergeTaskService {
         }
     }
 
-    // TODO: Add migration methods in future phases
-    // - migrateGroups()
-    // - migrateGroupMemberships()
-    // - migrateExpenses()
-    // - migrateSettlements()
-    // - migrateComments()
-    // - migrateActivityFeed()
-    // - migrateShareLinkTokens()
+    /**
+     * Perform all data migrations from secondary to primary account
+     * Runs all reassignment operations in sequence
+     */
+    private async performDataMigrations(fromUserId: UserId, toUserId: UserId): Promise<void> {
+        logger.info('starting-data-migrations', { fromUserId, toUserId });
+
+        try {
+            // Migrate groups (ownership)
+            const groupsCount = await this.firestoreWriter.reassignGroupOwnership(fromUserId, toUserId);
+            logger.info('migration-step-complete', { step: 'groups', count: groupsCount });
+
+            // Migrate group memberships
+            const membershipsCount = await this.firestoreWriter.reassignGroupMemberships(fromUserId, toUserId);
+            logger.info('migration-step-complete', { step: 'memberships', count: membershipsCount });
+
+            // Migrate expenses (payer)
+            const expensesPayerCount = await this.firestoreWriter.reassignExpensePayer(fromUserId, toUserId);
+            logger.info('migration-step-complete', { step: 'expenses-payer', count: expensesPayerCount });
+
+            // Migrate expenses (participants)
+            const expensesParticipantsCount = await this.firestoreWriter.reassignExpenseParticipants(fromUserId, toUserId);
+            logger.info('migration-step-complete', { step: 'expenses-participants', count: expensesParticipantsCount });
+
+            // Migrate settlements (payer)
+            const settlementsPayerCount = await this.firestoreWriter.reassignSettlementPayer(fromUserId, toUserId);
+            logger.info('migration-step-complete', { step: 'settlements-payer', count: settlementsPayerCount });
+
+            // Migrate settlements (payee)
+            const settlementsPayeeCount = await this.firestoreWriter.reassignSettlementPayee(fromUserId, toUserId);
+            logger.info('migration-step-complete', { step: 'settlements-payee', count: settlementsPayeeCount });
+
+            // Migrate comments
+            const commentsCount = await this.firestoreWriter.reassignCommentAuthors(fromUserId, toUserId);
+            logger.info('migration-step-complete', { step: 'comments', count: commentsCount });
+
+            // Migrate activity feed
+            const activityCount = await this.firestoreWriter.reassignActivityFeedActors(fromUserId, toUserId);
+            logger.info('migration-step-complete', { step: 'activity-feed', count: activityCount });
+
+            // Migrate share link tokens
+            const tokensCount = await this.firestoreWriter.reassignShareLinkTokens(fromUserId, toUserId);
+            logger.info('migration-step-complete', { step: 'share-link-tokens', count: tokensCount });
+
+            // Mark secondary user account as merged and disabled
+            await this.firestoreWriter.markUserAsMerged(fromUserId, toUserId);
+            logger.info('migration-step-complete', { step: 'mark-user-merged' });
+
+            logger.info('data-migrations-complete', {
+                fromUserId,
+                toUserId,
+                summary: {
+                    groups: groupsCount,
+                    memberships: membershipsCount,
+                    expensesPayer: expensesPayerCount,
+                    expensesParticipants: expensesParticipantsCount,
+                    settlementsPayer: settlementsPayerCount,
+                    settlementsPayee: settlementsPayeeCount,
+                    comments: commentsCount,
+                    activityFeed: activityCount,
+                    shareLinkTokens: tokensCount,
+                },
+            });
+        } catch (error) {
+            logger.error('data-migrations-failed', error as Error, { fromUserId, toUserId });
+            throw new ApiError(
+                HTTP_STATUS.INTERNAL_ERROR,
+                'MIGRATION_FAILED',
+                `Data migration failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            );
+        }
+    }
 
     /**
      * Get merge job document from Firestore

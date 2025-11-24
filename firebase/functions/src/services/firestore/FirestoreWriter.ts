@@ -1478,4 +1478,236 @@ export class FirestoreWriter implements IFirestoreWriter {
             }
         });
     }
+
+    async reassignGroupOwnership(fromUserId: UserId, toUserId: UserId): Promise<number> {
+        return measureDb('FirestoreWriter.reassignGroupOwnership', async () => {
+            try {
+                const groupsSnapshot = await this.db
+                    .collection(FirestoreCollections.GROUPS)
+                    .where('ownerId', '==', fromUserId)
+                    .get();
+
+                const batch = this.db.batch();
+                groupsSnapshot.forEach((doc) => {
+                    batch.update(doc.ref, { ownerId: toUserId });
+                });
+
+                await batch.commit();
+                logger.info('reassign-group-ownership-complete', { fromUserId, toUserId, count: groupsSnapshot.size });
+                return groupsSnapshot.size;
+            } catch (err) {
+                logger.error('Failed to reassign group ownership', err, { fromUserId, toUserId });
+                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'REASSIGN_FAILED', 'Failed to reassign group ownership');
+            }
+        });
+    }
+
+    async reassignGroupMemberships(fromUserId: UserId, toUserId: UserId): Promise<number> {
+        return measureDb('FirestoreWriter.reassignGroupMemberships', async () => {
+            try {
+                const membershipsSnapshot = await this.db
+                    .collection(FirestoreCollections.GROUP_MEMBERSHIPS)
+                    .where('userId', '==', fromUserId)
+                    .get();
+
+                const batch = this.db.batch();
+                membershipsSnapshot.forEach((doc) => {
+                    batch.update(doc.ref, { userId: toUserId });
+                });
+
+                await batch.commit();
+                logger.info('reassign-group-memberships-complete', { fromUserId, toUserId, count: membershipsSnapshot.size });
+                return membershipsSnapshot.size;
+            } catch (err) {
+                logger.error('Failed to reassign group memberships', err, { fromUserId, toUserId });
+                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'REASSIGN_FAILED', 'Failed to reassign group memberships');
+            }
+        });
+    }
+
+    async reassignExpensePayer(fromUserId: UserId, toUserId: UserId): Promise<number> {
+        return measureDb('FirestoreWriter.reassignExpensePayer', async () => {
+            try {
+                const expensesSnapshot = await this.db
+                    .collection(FirestoreCollections.EXPENSES)
+                    .where('paidBy', '==', fromUserId)
+                    .get();
+
+                const batch = this.db.batch();
+                expensesSnapshot.forEach((doc) => {
+                    batch.update(doc.ref, { paidBy: toUserId });
+                });
+
+                await batch.commit();
+                logger.info('reassign-expense-payer-complete', { fromUserId, toUserId, count: expensesSnapshot.size });
+                return expensesSnapshot.size;
+            } catch (err) {
+                logger.error('Failed to reassign expense payer', err, { fromUserId, toUserId });
+                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'REASSIGN_FAILED', 'Failed to reassign expense payer');
+            }
+        });
+    }
+
+    async reassignExpenseParticipants(fromUserId: UserId, toUserId: UserId): Promise<number> {
+        return measureDb('FirestoreWriter.reassignExpenseParticipants', async () => {
+            try {
+                const expensesSnapshot = await this.db
+                    .collection(FirestoreCollections.EXPENSES)
+                    .where('participants', 'array-contains', fromUserId)
+                    .get();
+
+                const batch = this.db.batch();
+                expensesSnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const participants = data.participants || [];
+                    const updatedParticipants = participants.map((p: UserId) => (p === fromUserId ? toUserId : p));
+                    batch.update(doc.ref, { participants: updatedParticipants });
+                });
+
+                await batch.commit();
+                logger.info('reassign-expense-participants-complete', { fromUserId, toUserId, count: expensesSnapshot.size });
+                return expensesSnapshot.size;
+            } catch (err) {
+                logger.error('Failed to reassign expense participants', err, { fromUserId, toUserId });
+                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'REASSIGN_FAILED', 'Failed to reassign expense participants');
+            }
+        });
+    }
+
+    async reassignSettlementPayer(fromUserId: UserId, toUserId: UserId): Promise<number> {
+        return measureDb('FirestoreWriter.reassignSettlementPayer', async () => {
+            try {
+                const settlementsSnapshot = await this.db
+                    .collection(FirestoreCollections.SETTLEMENTS)
+                    .where('payerId', '==', fromUserId)
+                    .get();
+
+                const batch = this.db.batch();
+                settlementsSnapshot.forEach((doc) => {
+                    batch.update(doc.ref, { payerId: toUserId });
+                });
+
+                await batch.commit();
+                logger.info('reassign-settlement-payer-complete', { fromUserId, toUserId, count: settlementsSnapshot.size });
+                return settlementsSnapshot.size;
+            } catch (err) {
+                logger.error('Failed to reassign settlement payer', err, { fromUserId, toUserId });
+                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'REASSIGN_FAILED', 'Failed to reassign settlement payer');
+            }
+        });
+    }
+
+    async reassignSettlementPayee(fromUserId: UserId, toUserId: UserId): Promise<number> {
+        return measureDb('FirestoreWriter.reassignSettlementPayee', async () => {
+            try {
+                const settlementsSnapshot = await this.db
+                    .collection(FirestoreCollections.SETTLEMENTS)
+                    .where('payeeId', '==', fromUserId)
+                    .get();
+
+                const batch = this.db.batch();
+                settlementsSnapshot.forEach((doc) => {
+                    batch.update(doc.ref, { payeeId: toUserId });
+                });
+
+                await batch.commit();
+                logger.info('reassign-settlement-payee-complete', { fromUserId, toUserId, count: settlementsSnapshot.size });
+                return settlementsSnapshot.size;
+            } catch (err) {
+                logger.error('Failed to reassign settlement payee', err, { fromUserId, toUserId });
+                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'REASSIGN_FAILED', 'Failed to reassign settlement payee');
+            }
+        });
+    }
+
+    async reassignCommentAuthors(fromUserId: UserId, toUserId: UserId): Promise<number> {
+        return measureDb('FirestoreWriter.reassignCommentAuthors', async () => {
+            try {
+                const commentsSnapshot = await this.db
+                    .collection(FirestoreCollections.COMMENTS)
+                    .where('authorId', '==', fromUserId)
+                    .get();
+
+                const batch = this.db.batch();
+                commentsSnapshot.forEach((doc) => {
+                    batch.update(doc.ref, { authorId: toUserId });
+                });
+
+                await batch.commit();
+                logger.info('reassign-comment-authors-complete', { fromUserId, toUserId, count: commentsSnapshot.size });
+                return commentsSnapshot.size;
+            } catch (err) {
+                logger.error('Failed to reassign comment authors', err, { fromUserId, toUserId });
+                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'REASSIGN_FAILED', 'Failed to reassign comment authors');
+            }
+        });
+    }
+
+    async reassignActivityFeedActors(fromUserId: UserId, toUserId: UserId): Promise<number> {
+        return measureDb('FirestoreWriter.reassignActivityFeedActors', async () => {
+            try {
+                const activitySnapshot = await this.db
+                    .collection(FirestoreCollections.ACTIVITY_FEED)
+                    .where('actorId', '==', fromUserId)
+                    .get();
+
+                const batch = this.db.batch();
+                activitySnapshot.forEach((doc) => {
+                    batch.update(doc.ref, { actorId: toUserId });
+                });
+
+                await batch.commit();
+                logger.info('reassign-activity-feed-actors-complete', { fromUserId, toUserId, count: activitySnapshot.size });
+                return activitySnapshot.size;
+            } catch (err) {
+                logger.error('Failed to reassign activity feed actors', err, { fromUserId, toUserId });
+                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'REASSIGN_FAILED', 'Failed to reassign activity feed actors');
+            }
+        });
+    }
+
+    async reassignShareLinkTokens(fromUserId: UserId, toUserId: UserId): Promise<number> {
+        return measureDb('FirestoreWriter.reassignShareLinkTokens', async () => {
+            try {
+                const tokensSnapshot = await this.db
+                    .collection(FirestoreCollections.SHARE_LINK_TOKENS)
+                    .where('createdBy', '==', fromUserId)
+                    .get();
+
+                const batch = this.db.batch();
+                tokensSnapshot.forEach((doc) => {
+                    batch.update(doc.ref, { createdBy: toUserId });
+                });
+
+                await batch.commit();
+                logger.info('reassign-share-link-tokens-complete', { fromUserId, toUserId, count: tokensSnapshot.size });
+                return tokensSnapshot.size;
+            } catch (err) {
+                logger.error('Failed to reassign share link tokens', err, { fromUserId, toUserId });
+                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'REASSIGN_FAILED', 'Failed to reassign share link tokens');
+            }
+        });
+    }
+
+    async markUserAsMerged(userId: UserId, mergedIntoUserId: UserId): Promise<WriteResult> {
+        return measureDb('FirestoreWriter.markUserAsMerged', async () => {
+            try {
+                const userRef = this.db.collection(FirestoreCollections.USERS).doc(userId);
+                await userRef.update({
+                    mergedInto: mergedIntoUserId,
+                    mergedAt: isoStringNow(),
+                    disabled: true,
+                });
+
+                logger.info('mark-user-as-merged-complete', { userId, mergedIntoUserId });
+                return {
+                    id: userId,
+                    success: true,
+                };
+            } catch (err) {
+                logger.error('Failed to mark user as merged', err, { userId, mergedIntoUserId });
+                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'MARK_MERGED_FAILED', 'Failed to mark user as merged');
+            }
+        });
+    }
 }

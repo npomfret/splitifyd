@@ -115,5 +115,108 @@ describe('MergeTaskService', () => {
             // Act & Assert: Should throw error for missing job
             await expect(mergeTaskService.executeMerge('non-existent-job')).rejects.toThrow();
         });
+
+        it('should migrate all data from secondary to primary user', async () => {
+            // Arrange: Create users and test data
+            const primaryUserId = toUserId('primary-user');
+            const secondaryUserId = toUserId('secondary-user');
+            const jobId = 'test-job-456';
+
+            db.seed(`users/${primaryUserId}`, {
+                id: primaryUserId,
+                email: 'primary@example.com',
+                role: SystemUserRoles.SYSTEM_USER,
+                createdAt: Timestamp.now(),
+                updatedAt: Timestamp.now(),
+            });
+
+            db.seed(`users/${secondaryUserId}`, {
+                id: secondaryUserId,
+                email: 'secondary@example.com',
+                role: SystemUserRoles.SYSTEM_USER,
+                createdAt: Timestamp.now(),
+                updatedAt: Timestamp.now(),
+            });
+
+            // Create test data owned by secondary user
+            db.seed(`groups/group-1`, {
+                id: 'group-1',
+                ownerId: secondaryUserId,
+                name: 'Test Group',
+                createdAt: Timestamp.now(),
+            });
+
+            db.seed(`group-memberships/membership-1`, {
+                id: 'membership-1',
+                userId: secondaryUserId,
+                groupId: 'group-1',
+                createdAt: Timestamp.now(),
+            });
+
+            db.seed(`expenses/expense-1`, {
+                id: 'expense-1',
+                paidBy: secondaryUserId,
+                participants: [secondaryUserId, primaryUserId],
+                amount: '100',
+                createdAt: Timestamp.now(),
+            });
+
+            db.seed(`settlements/settlement-1`, {
+                id: 'settlement-1',
+                payerId: secondaryUserId,
+                payeeId: primaryUserId,
+                amount: '50',
+                createdAt: Timestamp.now(),
+            });
+
+            db.seed(`comments/comment-1`, {
+                id: 'comment-1',
+                authorId: secondaryUserId,
+                text: 'Test comment',
+                createdAt: Timestamp.now(),
+            });
+
+            // Create pending merge job
+            db.seed(`account-merges/${jobId}`, {
+                id: jobId,
+                primaryUserId,
+                secondaryUserId,
+                status: 'pending',
+                createdAt: new Date().toISOString(),
+            });
+
+            // Act: Execute the merge
+            const result = await mergeTaskService.executeMerge(jobId);
+
+            // Assert: Job completed successfully
+            expect(result.success).toBe(true);
+
+            // Verify group ownership migrated
+            const groupDoc = await db.collection(FirestoreCollections.GROUPS).doc('group-1').get();
+            expect(groupDoc.data()?.ownerId).toBe(primaryUserId);
+
+            // Verify membership migrated
+            const membershipDoc = await db.collection(FirestoreCollections.GROUP_MEMBERSHIPS).doc('membership-1').get();
+            expect(membershipDoc.data()?.userId).toBe(primaryUserId);
+
+            // Verify expense payer migrated
+            const expenseDoc = await db.collection(FirestoreCollections.EXPENSES).doc('expense-1').get();
+            expect(expenseDoc.data()?.paidBy).toBe(primaryUserId);
+            expect(expenseDoc.data()?.participants).toContain(primaryUserId);
+
+            // Verify settlement payer migrated
+            const settlementDoc = await db.collection(FirestoreCollections.SETTLEMENTS).doc('settlement-1').get();
+            expect(settlementDoc.data()?.payerId).toBe(primaryUserId);
+
+            // Verify comment author migrated
+            const commentDoc = await db.collection(FirestoreCollections.COMMENTS).doc('comment-1').get();
+            expect(commentDoc.data()?.authorId).toBe(primaryUserId);
+
+            // Verify secondary user marked as merged
+            const secondaryUserDoc = await db.collection(FirestoreCollections.USERS).doc(secondaryUserId).get();
+            expect(secondaryUserDoc.data()?.mergedInto).toBe(primaryUserId);
+            expect(secondaryUserDoc.data()?.disabled).toBe(true);
+            expect(secondaryUserDoc.data()?.mergedAt).toBeDefined();
+        });
     });
 });

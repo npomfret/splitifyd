@@ -124,5 +124,89 @@ describe('Account Merge API', () => {
         });
     });
 
-    // End-to-end workflow test will be added in a later phase once full migration is implemented
+    describe('POST /tasks/processMerge - process merge task', () => {
+        it('should process merge task and migrate all data', async () => {
+            // Arrange: Initiate merge (no need to create test data for this test)
+            const mergeResult = await appDriver.initiateMerge({ secondaryUserId: user2 }, user1);
+
+            // Act: Process the merge task (simulates Cloud Task invocation)
+            const taskResult = await appDriver.processMergeTask(mergeResult.jobId);
+
+            // Assert: Task completed successfully
+            expect(taskResult.success).toBe(true);
+            expect(taskResult.jobId).toBe(mergeResult.jobId);
+            expect(taskResult.primaryUserId).toBe(user1);
+            expect(taskResult.secondaryUserId).toBe(user2);
+
+            // Verify job status is now 'completed'
+            const finalStatus = await appDriver.getMergeStatus(mergeResult.jobId, user1);
+            expect(finalStatus.status).toBe('completed');
+            expect(finalStatus.completedAt).toBeDefined();
+        });
+
+        it('should reject task when jobId is missing', async () => {
+            await expect(
+                appDriver.processMergeTask(''),
+            ).rejects.toMatchObject({ code: 'MISSING_FIELD' });
+        });
+
+        it('should reject task when job does not exist', async () => {
+            await expect(
+                appDriver.processMergeTask('non-existent-job'),
+            ).rejects.toBeDefined();
+        });
+
+        it('should reject task when job is not in pending status', async () => {
+            // Create a merge job
+            const mergeResult = await appDriver.initiateMerge({ secondaryUserId: user2 }, user1);
+
+            // Process it once (moves to completed)
+            await appDriver.processMergeTask(mergeResult.jobId);
+
+            // Try to process again (should fail - not pending)
+            await expect(
+                appDriver.processMergeTask(mergeResult.jobId),
+            ).rejects.toMatchObject({ code: 'INVALID_JOB_STATUS' });
+        });
+    });
+
+    describe('End-to-end workflow', () => {
+        it('should complete full merge workflow', async () => {
+            // Step 1: Initiate merge
+            const mergeResult = await appDriver.initiateMerge({ secondaryUserId: user2 }, user1);
+            expect(mergeResult.jobId).toBeDefined();
+            expect(mergeResult.status).toBe('pending');
+
+            // Step 2: Check initial status
+            const initialStatus = await appDriver.getMergeStatus(mergeResult.jobId, user1);
+            expect(initialStatus.status).toBe('pending');
+            expect(initialStatus.primaryUserId).toBe(user1);
+            expect(initialStatus.secondaryUserId).toBe(user2);
+
+            // Step 3: Process the merge task (Cloud Task simulation)
+            const taskResult = await appDriver.processMergeTask(mergeResult.jobId);
+            expect(taskResult.success).toBe(true);
+
+            // Step 4: Verify final status
+            const finalStatus = await appDriver.getMergeStatus(mergeResult.jobId, user1);
+            expect(finalStatus.status).toBe('completed');
+            expect(finalStatus.completedAt).toBeDefined();
+
+            // Note: In unit tests we can't directly verify Firestore data changes
+            // because AppDriver uses stubs. Full data verification happens in
+            // MergeTaskService.test.ts. This test verifies the HTTP workflow.
+            // Integration tests (Phase 5) will verify end-to-end data migration
+            // with real Firestore emulator.
+        });
+
+        it('should handle merge failure gracefully', async () => {
+            // Create merge with non-existent secondary user - should throw
+            await expect(
+                appDriver.initiateMerge(
+                    { secondaryUserId: 'non-existent' as UserId },
+                    user1,
+                ),
+            ).rejects.toMatchObject({ code: 'MERGE_NOT_ELIGIBLE' });
+        });
+    });
 });

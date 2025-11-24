@@ -886,6 +886,12 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return res.getJson() as MergeJobResponse;
     }
 
+    async processMergeTask(jobId: string, authToken?: AuthToken): Promise<any> {
+        const req = createStubRequest(authToken || '', { jobId });
+        const res = await this.dispatchByHandler('processMergeTask', req);
+        return res.getJson();
+    }
+
     // ===== ADMIN API: USER MANAGEMENT =====
 
     async updateUser(uid: UserId, updates: UpdateUserStatusRequest, token?: AuthToken): Promise<AdminUserProfile> {
