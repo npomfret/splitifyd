@@ -77,6 +77,26 @@ async function seedTenant(api: ApiDriver, adminToken: string, seed: TenantSeed):
         defaultTenant: seed.defaultTenant,
     };
 
+    // Check if tenant already exists (seed-once mode)
+    let existingTenant = null;
+    try {
+        const tenants = await api.listTenants(adminToken);
+        existingTenant = tenants.find(t => t.tenant.tenantId === seed.tenantId);
+    } catch (error) {
+        // Ignore error, assume tenant doesn't exist
+    }
+
+    const forceOverwrite = process.env.FORCE_OVERWRITE === '1' || process.env.FORCE_OVERWRITE === 'true';
+
+    if (existingTenant && !forceOverwrite) {
+        logger.info(`⏭️  ${seed.tenantId} already exists, skipping (set FORCE_OVERWRITE=1 to overwrite)`);
+        return;
+    }
+
+    if (existingTenant && forceOverwrite) {
+        logger.warn(`⚠️  Overwriting ${seed.tenantId} (FORCE_OVERWRITE set)`);
+    }
+
     logger.info(`→ Upserting ${seed.tenantId} (${seed.displayName})`);
     await api.adminUpsertTenant(payload, adminToken);
     logger.info(`   ✓ Upserted`);

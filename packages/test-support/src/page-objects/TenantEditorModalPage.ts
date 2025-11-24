@@ -113,7 +113,9 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     async fillAppName(value: string) {
-        await this.appNameInput.fill(value);
+        await this.appNameInput.click();
+        await this.appNameInput.clear();
+        await this.appNameInput.pressSequentially(value, { delay: 10 });
     }
 
     async fillLogoUrl(url: string) {
@@ -170,11 +172,15 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     async setThemePalette(palette: string) {
-        await this.themePaletteInput.fill(palette);
+        await this.themePaletteInput.click();
+        await this.themePaletteInput.clear();
+        await this.themePaletteInput.pressSequentially(palette, { delay: 10 });
     }
 
     async setCustomCss(css: string) {
-        await this.customCssInput.fill(css);
+        await this.customCssInput.click();
+        await this.customCssInput.clear();
+        await this.customCssInput.pressSequentially(css, { delay: 10 });
     }
 
     async fillAllRequiredColors(colors: {

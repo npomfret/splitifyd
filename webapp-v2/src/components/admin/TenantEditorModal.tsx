@@ -1,7 +1,8 @@
 import { apiClient } from '@/app/apiClient';
 import { Alert, Button, Card, ImageUploadField, Input, Modal } from '@/components/ui';
 import { logError } from '@/utils/browser-logger';
-import type { AdminUpsertTenantRequest } from '@billsplit-wl/shared';
+import { mergeTokensSmartly } from '@/utils/tenant-token-merger';
+import type { AdminUpsertTenantRequest, TenantBranding } from '@billsplit-wl/shared';
 import { useEffect, useState } from 'preact/hooks';
 
 interface TenantData {
@@ -37,6 +38,7 @@ interface TenantConfig {
             showPricingPage?: boolean;
         };
     };
+    brandingTokens?: TenantBranding;
     createdAt: string;
     updatedAt: string;
 }
@@ -200,9 +202,22 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                 branding.customCSS = formData.customCSS;
             }
 
+            // Smart merge: preserve existing brandingTokens, only update edited colors
+            const brandingTokens = mergeTokensSmartly(
+                tenant?.tenant.brandingTokens,
+                {
+                    primaryColor: formData.primaryColor,
+                    secondaryColor: formData.secondaryColor,
+                    accentColor: formData.accentColor,
+                    backgroundColor: formData.backgroundColor,
+                    headerBackgroundColor: formData.headerBackgroundColor,
+                },
+            );
+
             const requestData = {
                 tenantId: formData.tenantId,
                 branding,
+                brandingTokens,
                 domains: normalizedDomains,
             } as AdminUpsertTenantRequest;
 
