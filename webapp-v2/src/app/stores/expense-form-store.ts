@@ -16,11 +16,11 @@ import {
 } from '@billsplit-wl/shared';
 import { ExpenseId, GroupId } from '@billsplit-wl/shared';
 import type { CurrencyISOCode, UserId } from '@billsplit-wl/shared';
+import { toCurrencyISOCode } from '@billsplit-wl/shared';
 import { ReadonlySignal, signal } from '@preact/signals';
 import { apiClient, ApiError } from '../apiClient';
 import { enhancedGroupDetailStore } from './group-detail-store-enhanced';
 import { enhancedGroupsStore as groupsStore } from './groups-store-enhanced';
-import {toCurrencyISOCode} from "@billsplit-wl/shared";
 
 interface ExpenseFormStore {
     // Form fields

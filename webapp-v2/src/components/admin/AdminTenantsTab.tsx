@@ -29,8 +29,8 @@ export function AdminTenantsTab() {
         setError(null);
 
         try {
-        const response = await apiClient.listAllTenants();
-        setTenants(response.tenants);
+            const response = await apiClient.listAllTenants();
+            setTenants(response.tenants);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to load tenants');
             logError('Failed to load tenants', err);

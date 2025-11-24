@@ -32,4 +32,3 @@ const CurrencyBalancesSchema = z
 
 // Export inferred types
 export type ParsedCurrencyBalances = z.infer<typeof CurrencyBalancesSchema>;
-

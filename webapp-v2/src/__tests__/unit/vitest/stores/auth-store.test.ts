@@ -1,6 +1,6 @@
-import { describe, expect, it, vi } from 'vitest';
 import { getAuthStore } from '@/app/stores/auth-store';
-import { toEmail } from "@billsplit-wl/shared";
+import { toEmail } from '@billsplit-wl/shared';
+import { describe, expect, it, vi } from 'vitest';
 
 const setPersistenceMock = vi.fn().mockResolvedValue(undefined);
 const signInWithEmailAndPasswordMock = vi.fn().mockResolvedValue(undefined);

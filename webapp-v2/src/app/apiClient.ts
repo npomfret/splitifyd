@@ -7,16 +7,15 @@
 
 import { ApiSerializer, ISOString } from '@billsplit-wl/shared';
 import type {
-    API,
     AcceptMultiplePoliciesResponse,
     AcceptPolicyRequest,
     ActivityFeedResponse,
     AddTenantDomainRequest,
     AdminAPI,
-    PublicAPI,
     AdminUpsertTenantRequest,
     AdminUpsertTenantResponse,
     AdminUserProfile,
+    API,
     AppConfiguration,
     ChangeEmailRequest,
     CommentDTO,
@@ -54,6 +53,7 @@ import type {
     PolicyId,
     PolicyVersion,
     PreviewGroupResponse,
+    PublicAPI,
     PublishPolicyResponse,
     PublishTenantThemeRequest,
     PublishTenantThemeResponse,
@@ -1043,7 +1043,7 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
             endpoint: '/admin/users/:uid',
             method: 'PUT',
             params: { uid },
-            body: updates
+            body: updates,
         });
     }
 
@@ -1225,7 +1225,7 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
         });
     }
 
-    async getPolicyVersion(policyId: PolicyId, versionHash: VersionHash): Promise<PolicyVersion & { versionHash: VersionHash }> {
+    async getPolicyVersion(policyId: PolicyId, versionHash: VersionHash): Promise<PolicyVersion & { versionHash: VersionHash; }> {
         return this.request({
             endpoint: '/admin/policies/:id/versions/:hash',
             method: 'GET',

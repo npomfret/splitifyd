@@ -1,10 +1,10 @@
 import type { Auth } from 'firebase-admin/auth';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { toEmail } from '@billsplit-wl/shared';
 import { FirebaseAuthService } from '../../../services/auth';
 import { AuthErrorCode } from '../../../services/auth/auth-types';
 import { ApiError } from '../../../utils/errors';
-import { toEmail } from "@billsplit-wl/shared";
 
 const noopAuth = {} as unknown as Auth;
 

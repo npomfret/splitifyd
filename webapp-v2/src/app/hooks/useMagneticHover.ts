@@ -1,5 +1,5 @@
-import { useRef, useEffect } from 'preact/hooks';
 import type { Ref } from 'preact';
+import { useEffect, useRef } from 'preact/hooks';
 import { useThemeConfig } from './useThemeConfig';
 
 export interface UseMagneticHoverOptions {
@@ -57,7 +57,7 @@ export interface UseMagneticHoverOptions {
  * ```
  */
 export function useMagneticHover<T extends HTMLElement = HTMLElement>(
-    options?: UseMagneticHoverOptions
+    options?: UseMagneticHoverOptions,
 ): Ref<T> {
     const ref = useRef<T>(null);
     const { motion } = useThemeConfig();

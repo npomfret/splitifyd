@@ -152,8 +152,7 @@ export function FloatingPasswordInput({
                     class={inputClasses}
                 />
                 <label for={id} class={labelClasses}>
-                    {label || t('auth.passwordInput.label')}{' '}
-                    {required && (
+                    {label || t('auth.passwordInput.label')} {required && (
                         <span data-testid='required-indicator'>
                             *
                         </span>

@@ -1,33 +1,33 @@
-import type {Auth} from 'firebase-admin/auth';
-import type {Firestore} from 'firebase-admin/firestore';
-import type {Storage} from 'firebase-admin/storage';
-import {createFirestoreDatabase, IFirestoreDatabase} from '../firestore-wrapper';
-import {createStorage, type IStorage} from '../storage-wrapper';
-import {ActivityFeedService} from './ActivityFeedService';
-import {FirebaseAuthService, IAuthService, type IdentityToolkitConfig} from './auth';
-import {IncrementalBalanceService} from './balance/IncrementalBalanceService';
-import {CommentService} from './CommentService';
-import {ExpenseService} from './ExpenseService';
-import {FirestoreReader, FirestoreWriter, type IFirestoreReader, type IFirestoreWriter} from './firestore';
-import {GroupMemberService} from './GroupMemberService';
-import {GroupService} from './GroupService';
-import {GroupShareService} from './GroupShareService';
-import {PolicyService} from './PolicyService';
-import {SettlementService} from './SettlementService';
-import {CloudThemeArtifactStorage} from './storage/CloudThemeArtifactStorage';
-import {type ThemeArtifactStorage} from './storage/ThemeArtifactStorage';
-import {TenantRegistryService} from './tenant/TenantRegistryService';
-import {ThemeArtifactService} from './tenant/ThemeArtifactService';
-import {TenantAdminService} from './tenant/TenantAdminService';
-import {UserBrowserHandlers} from '../browser/UserBrowserHandlers';
-import {TenantBrowserHandlers} from '../browser/TenantBrowserHandlers';
-import {GroupSecurityHandlers} from '../groups/GroupSecurityHandlers';
-import {GroupTransactionManager} from './transactions/GroupTransactionManager';
-import {UserPolicyService} from './UserPolicyService';
-import {UserService} from './UserService2';
-import {MergeService} from '../merge/MergeService';
-import {createCloudTasksClient, type ICloudTasksClient} from '@billsplit-wl/firebase-simulator';
-import {ServiceConfig} from "../merge/ServiceConfig";
+import { createCloudTasksClient, type ICloudTasksClient } from '@billsplit-wl/firebase-simulator';
+import type { Auth } from 'firebase-admin/auth';
+import type { Firestore } from 'firebase-admin/firestore';
+import type { Storage } from 'firebase-admin/storage';
+import { TenantBrowserHandlers } from '../browser/TenantBrowserHandlers';
+import { UserBrowserHandlers } from '../browser/UserBrowserHandlers';
+import { createFirestoreDatabase, IFirestoreDatabase } from '../firestore-wrapper';
+import { GroupSecurityHandlers } from '../groups/GroupSecurityHandlers';
+import { MergeService } from '../merge/MergeService';
+import { ServiceConfig } from '../merge/ServiceConfig';
+import { createStorage, type IStorage } from '../storage-wrapper';
+import { ActivityFeedService } from './ActivityFeedService';
+import { FirebaseAuthService, IAuthService, type IdentityToolkitConfig } from './auth';
+import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
+import { CommentService } from './CommentService';
+import { ExpenseService } from './ExpenseService';
+import { FirestoreReader, FirestoreWriter, type IFirestoreReader, type IFirestoreWriter } from './firestore';
+import { GroupMemberService } from './GroupMemberService';
+import { GroupService } from './GroupService';
+import { GroupShareService } from './GroupShareService';
+import { PolicyService } from './PolicyService';
+import { SettlementService } from './SettlementService';
+import { CloudThemeArtifactStorage } from './storage/CloudThemeArtifactStorage';
+import { type ThemeArtifactStorage } from './storage/ThemeArtifactStorage';
+import { TenantAdminService } from './tenant/TenantAdminService';
+import { TenantRegistryService } from './tenant/TenantRegistryService';
+import { ThemeArtifactService } from './tenant/ThemeArtifactService';
+import { GroupTransactionManager } from './transactions/GroupTransactionManager';
+import { UserPolicyService } from './UserPolicyService';
+import { UserService } from './UserService2';
 
 export class ComponentBuilder {
     // Base infrastructure - created once
@@ -91,7 +91,7 @@ export class ComponentBuilder {
             wrappedDb,
             wrappedStorage,
             cloudTasksClient,
-            serviceConfig
+            serviceConfig,
         );
     }
 
@@ -105,7 +105,7 @@ export class ComponentBuilder {
                 this.buildFirestoreReader(),
                 this.buildFirestoreWriter(),
                 this.buildAuthService(),
-                this.serviceConfig.minRegistrationDurationMs
+                this.serviceConfig.minRegistrationDurationMs,
             );
         }
         return this.userService!;
@@ -317,4 +317,4 @@ export class ComponentBuilder {
     }
 }
 
-export {ServiceConfig} from "../merge/ServiceConfig";
+export { ServiceConfig } from '../merge/ServiceConfig';

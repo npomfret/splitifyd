@@ -1,14 +1,14 @@
-import { StubStorage, StubCloudTasksClient } from '@billsplit-wl/firebase-simulator';
+import { StubCloudTasksClient, StubStorage } from '@billsplit-wl/firebase-simulator';
 import type { UpdateExpenseRequest } from '@billsplit-wl/shared';
-import {CreateExpenseRequestBuilder, CreateGroupRequestBuilder, StubFirestoreDatabase, UserRegistrationBuilder} from '@billsplit-wl/test-support';
+import { toCurrencyISOCode, USD } from '@billsplit-wl/shared';
+import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, StubFirestoreDatabase, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ExpenseHandlers } from '../../../expenses/ExpenseHandlers';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
-import {AppDriver} from '../AppDriver';
+import { createUnitTestServiceConfig } from '../../test-config';
+import { AppDriver } from '../AppDriver';
 import { StubAuthService } from '../mocks/StubAuthService';
-import { toCurrencyISOCode, USD } from '@billsplit-wl/shared';
-import {createUnitTestServiceConfig} from "../../test-config";
 
 describe('ExpenseHandlers - Unit Tests', () => {
     let appDriver: AppDriver;
@@ -481,7 +481,7 @@ describe('ExpenseHandlers - Unit Tests', () => {
                 db,
                 new StubStorage({ defaultBucketName: 'test-bucket' }),
                 new StubCloudTasksClient(),
-                createUnitTestServiceConfig()
+                createUnitTestServiceConfig(),
             );
             const handlers = new ExpenseHandlers(componentBuilder.buildExpenseService());
             expect(handlers).toBeInstanceOf(ExpenseHandlers);

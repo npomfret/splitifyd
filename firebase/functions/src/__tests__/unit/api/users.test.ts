@@ -1,18 +1,6 @@
-import {
-    toEmail,
-    toPassword,
-    toPolicyId,
-    toPolicyName,
-    toPolicyText,
-    toVersionHash,
-
-} from '@billsplit-wl/shared';
+import { toEmail, toPassword, toPolicyId, toPolicyName, toPolicyText, toVersionHash } from '@billsplit-wl/shared';
 import type { UserId } from '@billsplit-wl/shared';
-import {
-    PasswordChangeRequestBuilder,
-    RegisterRequestBuilder,
-    UserUpdateBuilder,
-} from '@billsplit-wl/test-support';
+import { PasswordChangeRequestBuilder, RegisterRequestBuilder, UserUpdateBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, it } from 'vitest';
 import { AppDriver } from '../AppDriver';
 
@@ -28,7 +16,7 @@ describe('user, policy and notification tests', () => {
 
         const { users, admin } = await appDriver.createTestUsers({
             count: 2,
-            includeAdmin: true
+            includeAdmin: true,
         });
         [user1, user2] = users;
         adminUser = admin!;
@@ -388,8 +376,6 @@ describe('user, policy and notification tests', () => {
         });
     });
 
-    
-    
     describe('user account endpoints', () => {
         it('should return the current user profile via the handler', async () => {
             const profile = await appDriver.getUserProfile(user1);
@@ -419,7 +405,7 @@ describe('user, policy and notification tests', () => {
             expect(profile.displayName).toBe('Registered User');
             expect(profile.email).toBe('registered@example.com');
         });
-        
+
         describe('updateUserProfile', () => {
             it('should update display name successfully', async () => {
                 const updatedProfile = await appDriver.updateUserProfile(
@@ -491,7 +477,7 @@ describe('user, policy and notification tests', () => {
                 expect(profile.email).toBe(NEW_EMAIL);
                 expect(profile.emailVerified).toBe(false);
             });
-            
+
             it('should lowercase email address', async () => {
                 const profile = await appDriver.changeEmail({
                     currentPassword: CURRENT_PASSWORD,

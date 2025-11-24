@@ -5,23 +5,19 @@ import {
     toPolicyId,
     toPolicyName,
     toPolicyText,
+    toShowLandingPageFlag,
+    toShowPricingPageFlag,
     toTenantAppName,
     toTenantDomainName,
     toTenantFaviconUrl,
     toTenantLogoUrl,
     toTenantPrimaryColor,
     toTenantSecondaryColor,
+    toUserId,
     USD,
-    toUserId, toShowLandingPageFlag, toShowPricingPageFlag,
 } from '@billsplit-wl/shared';
 import type { UserId } from '@billsplit-wl/shared';
-import {
-    AdminTenantRequestBuilder,
-    CreateExpenseRequestBuilder,
-    CreateGroupRequestBuilder,
-    CreateSettlementRequestBuilder,
-    UserRegistrationBuilder,
-} from '@billsplit-wl/test-support';
+import { AdminTenantRequestBuilder, CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, it } from 'vitest';
 import { AppDriver } from '../AppDriver';
 
@@ -39,7 +35,7 @@ describe('authorization', () => {
 
         const { users, admin } = await appDriver.createTestUsers({
             count: 4,
-            includeAdmin: true
+            includeAdmin: true,
         });
         [user1, user2, user3, user4] = users;
         adminUser = admin!;
@@ -123,7 +119,7 @@ describe('authorization', () => {
             .rejects
             .toMatchObject({ code: 'FORBIDDEN' });
     });
-    
+
     it('should reject share link generation by non-members', async () => {
         const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
@@ -473,7 +469,7 @@ describe('authorization', () => {
             });
         });
     });
-    
+
     it('should reject extra fields', async () => {
         const invalidData = {
             appName: toTenantAppName('Valid'),
@@ -689,7 +685,7 @@ describe('authorization', () => {
                 // Should use the explicit tokens, not generate from branding colors
                 expect(tenant?.brandingTokens?.tokens?.palette?.primary).toBe('#123456');
             });
-            
+
             it('should accept reasonably long appName', async () => {
                 const longName = 'A'.repeat(200);
 
@@ -816,7 +812,7 @@ describe('authorization', () => {
                 const tenant = allTenants.tenants.find((t) => t.tenant.tenantId === tenantId);
                 expect(tenant?.brandingTokens?.artifact?.version).toBe(2);
             });
-            
+
             it('should use updated branding colors when publishing theme', async () => {
                 // Create a tenant with initial branding colors using the builder methods
                 // that update BOTH branding AND brandingTokens

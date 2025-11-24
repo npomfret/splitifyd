@@ -1,4 +1,4 @@
-import {addAmounts, Amount, ExpenseDTO, normalizeAmount, subtractAmounts, sumAmounts, UserBalance, UserId, zeroAmount} from '@billsplit-wl/shared';
+import { addAmounts, Amount, ExpenseDTO, normalizeAmount, subtractAmounts, sumAmounts, UserBalance, UserId, zeroAmount } from '@billsplit-wl/shared';
 import type { CurrencyISOCode } from '@billsplit-wl/shared';
 import type { ParsedCurrencyBalances as CurrencyBalances } from '../../schemas';
 

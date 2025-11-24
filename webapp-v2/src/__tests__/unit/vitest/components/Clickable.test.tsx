@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, fireEvent } from '@testing-library/preact';
 import { Clickable } from '@/components/ui/Clickable';
 import * as browserLogger from '@/utils/browser-logger';
+import { fireEvent, render } from '@testing-library/preact';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('@/utils/browser-logger', () => ({
     logUserAction: vi.fn(),
@@ -17,7 +17,7 @@ describe('Clickable', () => {
             const { getByText } = render(
                 <Clickable onClick={() => {}}>
                     <div>Click me</div>
-                </Clickable>
+                </Clickable>,
             );
 
             expect(getByText('Click me')).toBeInTheDocument();
@@ -25,7 +25,7 @@ describe('Clickable', () => {
 
         it('should render as span by default', () => {
             const { container } = render(
-                <Clickable onClick={() => {}}>Content</Clickable>
+                <Clickable onClick={() => {}}>Content</Clickable>,
             );
 
             expect(container.querySelector('span')).toBeInTheDocument();
@@ -33,9 +33,9 @@ describe('Clickable', () => {
 
         it('should render as specified element when using "as" prop', () => {
             const { container } = render(
-                <Clickable onClick={() => {}} as="div">
+                <Clickable onClick={() => {}} as='div'>
                     Content
-                </Clickable>
+                </Clickable>,
             );
 
             expect(container.querySelector('div')).toBeInTheDocument();
@@ -44,9 +44,9 @@ describe('Clickable', () => {
 
         it('should apply className prop', () => {
             const { container } = render(
-                <Clickable onClick={() => {}} className="test-class">
+                <Clickable onClick={() => {}} className='test-class'>
                     Content
-                </Clickable>
+                </Clickable>,
             );
 
             expect(container.querySelector('.test-class')).toBeInTheDocument();
@@ -54,9 +54,9 @@ describe('Clickable', () => {
 
         it('should apply id prop', () => {
             const { container } = render(
-                <Clickable onClick={() => {}} id="test-id">
+                <Clickable onClick={() => {}} id='test-id'>
                     Content
-                </Clickable>
+                </Clickable>,
             );
 
             expect(container.querySelector('#test-id')).toBeInTheDocument();
@@ -64,9 +64,9 @@ describe('Clickable', () => {
 
         it('should apply data-testid prop', () => {
             const { getByTestId } = render(
-                <Clickable onClick={() => {}} data-testid="clickable-element">
+                <Clickable onClick={() => {}} data-testid='clickable-element'>
                     Content
-                </Clickable>
+                </Clickable>,
             );
 
             expect(getByTestId('clickable-element')).toBeInTheDocument();
@@ -76,9 +76,9 @@ describe('Clickable', () => {
     describe('Accessibility', () => {
         it('should apply aria-label', () => {
             const { container } = render(
-                <Clickable onClick={() => {}} aria-label="Click to open">
+                <Clickable onClick={() => {}} aria-label='Click to open'>
                     Content
-                </Clickable>
+                </Clickable>,
             );
 
             const element = container.querySelector('span');
@@ -89,7 +89,7 @@ describe('Clickable', () => {
             const { container } = render(
                 <Clickable onClick={() => {}} disabled>
                     Content
-                </Clickable>
+                </Clickable>,
             );
 
             const element = container.querySelector('span');
@@ -98,7 +98,7 @@ describe('Clickable', () => {
 
         it('should not set aria-disabled when not disabled', () => {
             const { container } = render(
-                <Clickable onClick={() => {}}>Content</Clickable>
+                <Clickable onClick={() => {}}>Content</Clickable>,
             );
 
             const element = container.querySelector('span');
@@ -110,7 +110,7 @@ describe('Clickable', () => {
         it('should call onClick handler when clicked', () => {
             const handleClick = vi.fn();
             const { container } = render(
-                <Clickable onClick={handleClick}>Content</Clickable>
+                <Clickable onClick={handleClick}>Content</Clickable>,
             );
 
             const element = container.querySelector('span')!;
@@ -124,7 +124,7 @@ describe('Clickable', () => {
             const { container } = render(
                 <Clickable onClick={handleClick} disabled>
                     Content
-                </Clickable>
+                </Clickable>,
             );
 
             const element = container.querySelector('span')!;
@@ -136,7 +136,7 @@ describe('Clickable', () => {
         it('should pass event to onClick handler', () => {
             const handleClick = vi.fn();
             const { container } = render(
-                <Clickable onClick={handleClick}>Content</Clickable>
+                <Clickable onClick={handleClick}>Content</Clickable>,
             );
 
             const element = container.querySelector('span')!;
@@ -154,7 +154,7 @@ describe('Clickable', () => {
                     <Clickable onClick={handleClick} disabled>
                         Content
                     </Clickable>
-                </div>
+                </div>,
             );
 
             const element = container.querySelector('span')!;
@@ -169,9 +169,9 @@ describe('Clickable', () => {
         it('should log user action when clicked', () => {
             const handleClick = vi.fn();
             const { container } = render(
-                <Clickable onClick={handleClick} aria-label="Test action">
+                <Clickable onClick={handleClick} aria-label='Test action'>
                     Content
-                </Clickable>
+                </Clickable>,
             );
 
             const element = container.querySelector('span')!;
@@ -182,9 +182,9 @@ describe('Clickable', () => {
 
         it('should log with default event name', () => {
             const { container } = render(
-                <Clickable onClick={() => {}} aria-label="Test">
+                <Clickable onClick={() => {}} aria-label='Test'>
                     Content
-                </Clickable>
+                </Clickable>,
             );
 
             const element = container.querySelector('span')!;
@@ -192,15 +192,15 @@ describe('Clickable', () => {
 
             expect(browserLogger.logUserAction).toHaveBeenCalledWith(
                 'element_click',
-                expect.any(Object)
+                expect.any(Object),
             );
         });
 
         it('should log with custom event name', () => {
             const { container } = render(
-                <Clickable onClick={() => {}} eventName="custom_action">
+                <Clickable onClick={() => {}} eventName='custom_action'>
                     Content
-                </Clickable>
+                </Clickable>,
             );
 
             const element = container.querySelector('span')!;
@@ -208,15 +208,15 @@ describe('Clickable', () => {
 
             expect(browserLogger.logUserAction).toHaveBeenCalledWith(
                 'custom_action',
-                expect.any(Object)
+                expect.any(Object),
             );
         });
 
         it('should include buttonText from aria-label in payload', () => {
             const { container } = render(
-                <Clickable onClick={() => {}} aria-label="Close dialog">
+                <Clickable onClick={() => {}} aria-label='Close dialog'>
                     Content
-                </Clickable>
+                </Clickable>,
             );
 
             const element = container.querySelector('span')!;
@@ -226,15 +226,15 @@ describe('Clickable', () => {
                 'element_click',
                 expect.objectContaining({
                     buttonText: 'Close dialog',
-                })
+                }),
             );
         });
 
         it('should include buttonText from id when aria-label is not provided', () => {
             const { container } = render(
-                <Clickable onClick={() => {}} id="close-btn">
+                <Clickable onClick={() => {}} id='close-btn'>
                     Content
-                </Clickable>
+                </Clickable>,
             );
 
             const element = container.querySelector('span')!;
@@ -244,7 +244,7 @@ describe('Clickable', () => {
                 'element_click',
                 expect.objectContaining({
                     buttonText: 'Element#close-btn',
-                })
+                }),
             );
         });
 
@@ -258,7 +258,7 @@ describe('Clickable', () => {
                 'element_click',
                 expect.objectContaining({
                     buttonText: 'Clickable',
-                })
+                }),
             );
         });
 
@@ -272,15 +272,15 @@ describe('Clickable', () => {
                 'element_click',
                 expect.objectContaining({
                     page: expect.any(String),
-                })
+                }),
             );
         });
 
         it('should include id in payload when provided', () => {
             const { container } = render(
-                <Clickable onClick={() => {}} id="test-element">
+                <Clickable onClick={() => {}} id='test-element'>
                     Content
-                </Clickable>
+                </Clickable>,
             );
 
             const element = container.querySelector('span')!;
@@ -290,15 +290,15 @@ describe('Clickable', () => {
                 'element_click',
                 expect.objectContaining({
                     id: 'test-element',
-                })
+                }),
             );
         });
 
         it('should include className in payload when provided', () => {
             const { container } = render(
-                <Clickable onClick={() => {}} className="test-class">
+                <Clickable onClick={() => {}} className='test-class'>
                     Content
-                </Clickable>
+                </Clickable>,
             );
 
             const element = container.querySelector('span')!;
@@ -308,7 +308,7 @@ describe('Clickable', () => {
                 'element_click',
                 expect.objectContaining({
                     className: 'test-class',
-                })
+                }),
             );
         });
 
@@ -319,7 +319,7 @@ describe('Clickable', () => {
                     eventProps={{ cardId: '123', action: 'expand' }}
                 >
                     Content
-                </Clickable>
+                </Clickable>,
             );
 
             const element = container.querySelector('span')!;
@@ -330,7 +330,7 @@ describe('Clickable', () => {
                 expect.objectContaining({
                     cardId: '123',
                     action: 'expand',
-                })
+                }),
             );
         });
 
@@ -338,7 +338,7 @@ describe('Clickable', () => {
             const { container } = render(
                 <Clickable onClick={() => {}} disabled>
                     Content
-                </Clickable>
+                </Clickable>,
             );
 
             const element = container.querySelector('span')!;
@@ -350,12 +350,10 @@ describe('Clickable', () => {
         it('should log before calling onClick handler', () => {
             const callOrder: string[] = [];
             const handleClick = vi.fn(() => callOrder.push('onClick'));
-            vi.mocked(browserLogger.logUserAction).mockImplementation(() =>
-                callOrder.push('log')
-            );
+            vi.mocked(browserLogger.logUserAction).mockImplementation(() => callOrder.push('log'));
 
             const { container } = render(
-                <Clickable onClick={handleClick}>Content</Clickable>
+                <Clickable onClick={handleClick}>Content</Clickable>,
             );
 
             const element = container.querySelector('span')!;
@@ -371,7 +369,7 @@ describe('Clickable', () => {
             render(
                 <Clickable onClick={() => {}} ref={ref}>
                     Content
-                </Clickable>
+                </Clickable>,
             );
 
             expect(ref.current).toBeInstanceOf(HTMLElement);
@@ -381,9 +379,9 @@ describe('Clickable', () => {
         it('should forward ref with custom element type', () => {
             const ref = { current: null as HTMLElement | null };
             render(
-                <Clickable onClick={() => {}} as="div" ref={ref}>
+                <Clickable onClick={() => {}} as='div' ref={ref}>
                     Content
-                </Clickable>
+                </Clickable>,
             );
 
             expect(ref.current).toBeInstanceOf(HTMLElement);
@@ -394,9 +392,9 @@ describe('Clickable', () => {
     describe('Additional HTML Attributes', () => {
         it('should pass through additional HTML attributes', () => {
             const { container } = render(
-                <Clickable onClick={() => {}} title="Tooltip text" tabIndex={0}>
+                <Clickable onClick={() => {}} title='Tooltip text' tabIndex={0}>
                     Content
-                </Clickable>
+                </Clickable>,
             );
 
             const element = container.querySelector('span')!;
@@ -406,9 +404,9 @@ describe('Clickable', () => {
 
         it('should handle aria-describedby attribute', () => {
             const { container } = render(
-                <Clickable onClick={() => {}} aria-describedby="description-id">
+                <Clickable onClick={() => {}} aria-describedby='description-id'>
                     Content
-                </Clickable>
+                </Clickable>,
             );
 
             const element = container.querySelector('span')!;

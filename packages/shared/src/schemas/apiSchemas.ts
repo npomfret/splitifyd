@@ -384,24 +384,26 @@ const UserProfileResponseSchema = z.object({
 });
 
 // Admin user profile schema - extends UserProfile with Firebase Auth admin fields
-export const AdminUserProfileSchema = z.object({
-    uid: z.string().transform((value) => toUserId(value)),
-    email: z.string().email().transform((value) => toEmail(value)),
-    emailVerified: z.boolean(),
-    displayName: z.string().transform((value) => toDisplayName(value)),
-    photoURL: z.string().nullable(),
-    role: z.nativeEnum(SystemUserRoles),
-    disabled: z.boolean(),
-    metadata: z.object({
-        creationTime: z.string(),
-        lastSignInTime: z.string().optional(),
-    }),
-    // Firestore fields (optional)
-    createdAt: z.string().optional(),
-    updatedAt: z.string().optional(),
-    preferredLanguage: z.string().optional(),
-    acceptedPolicies: z.record(z.string(), z.string()).optional(), // Record<PolicyId, VersionHash>
-}).passthrough();
+export const AdminUserProfileSchema = z
+    .object({
+        uid: z.string().transform((value) => toUserId(value)),
+        email: z.string().email().transform((value) => toEmail(value)),
+        emailVerified: z.boolean(),
+        displayName: z.string().transform((value) => toDisplayName(value)),
+        photoURL: z.string().nullable(),
+        role: z.nativeEnum(SystemUserRoles),
+        disabled: z.boolean(),
+        metadata: z.object({
+            creationTime: z.string(),
+            lastSignInTime: z.string().optional(),
+        }),
+        // Firestore fields (optional)
+        createdAt: z.string().optional(),
+        updatedAt: z.string().optional(),
+        preferredLanguage: z.string().optional(),
+        acceptedPolicies: z.record(z.string(), z.string()).optional(), // Record<PolicyId, VersionHash>
+    })
+    .passthrough();
 
 // List auth users response schema
 export const ListAuthUsersResponseSchema = z.object({

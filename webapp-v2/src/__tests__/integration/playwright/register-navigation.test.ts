@@ -1,5 +1,5 @@
-import { ClientUserBuilder, LoginPage, RegisterPage, TEST_TIMEOUTS } from '@billsplit-wl/test-support';
 import { toEmail } from '@billsplit-wl/shared';
+import { ClientUserBuilder, LoginPage, RegisterPage, TEST_TIMEOUTS } from '@billsplit-wl/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 
 test.describe('Registration Navigation Flows', () => {

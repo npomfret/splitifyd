@@ -31,7 +31,7 @@ describe('ExpenseCommentStrategy', () => {
                     .withPaidBy(userId)
                     .withParticipants([userId])
                     .build(),
-                userId
+                userId,
             );
             const expenseId = toExpenseId(expense.id);
 
@@ -69,7 +69,7 @@ describe('ExpenseCommentStrategy', () => {
                     .withPaidBy(userId)
                     .withParticipants([userId])
                     .build(),
-                userId
+                userId,
             );
             const expenseId = toExpenseId(expense.id);
 
@@ -102,7 +102,7 @@ describe('ExpenseCommentStrategy', () => {
                     .withPaidBy(ownerId)
                     .withParticipants([ownerId])
                     .build(),
-                ownerId
+                ownerId,
             );
             const expenseId = toExpenseId(expense.id);
 

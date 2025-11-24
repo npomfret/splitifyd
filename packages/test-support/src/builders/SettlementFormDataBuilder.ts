@@ -1,4 +1,4 @@
-import {DisplayName, SettlementFormData, toCurrencyISOCode} from '@billsplit-wl/shared';
+import { DisplayName, SettlementFormData, toCurrencyISOCode } from '@billsplit-wl/shared';
 import { toDisplayName } from '@billsplit-wl/shared';
 import type { CurrencyISOCode } from '@billsplit-wl/shared';
 import { randomChoice, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
@@ -32,7 +32,7 @@ export class SettlementFormDataBuilder {
         return this;
     }
 
-    withAmount(amount: string | number, currency: CurrencyISOCode | string ): this {
+    withAmount(amount: string | number, currency: CurrencyISOCode | string): this {
         this.settlement.currency = typeof currency === 'string' ? toCurrencyISOCode(currency) : currency;
         this.settlement.amount = amount.toString();
         return this;

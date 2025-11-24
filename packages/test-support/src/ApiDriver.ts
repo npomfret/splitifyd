@@ -3,13 +3,12 @@ import {
     AcceptMultiplePoliciesResponse,
     AcceptPolicyRequest,
     type ActivityFeedResponse,
+    type AddTenantDomainRequest,
     type AdminAPI,
     type AdminUpsertTenantRequest,
     type AdminUpsertTenantResponse,
     AdminUserProfile,
-    type AddTenantDomainRequest,
     type API,
-    type PublicAPI,
     ApiSerializer,
     AuthenticatedFirebaseUser,
     ChangeEmailRequest,
@@ -52,6 +51,7 @@ import {
     type PolicyVersion,
     PooledTestUser,
     type PreviewGroupResponse,
+    type PublicAPI,
     type PublishPolicyResponse,
     type PublishTenantThemeRequest,
     type PublishTenantThemeResponse,
@@ -80,10 +80,10 @@ import {
     UserToken,
     type VersionHash,
 } from '@billsplit-wl/shared';
+import { toUserId } from '@billsplit-wl/shared';
 import { UserRegistrationBuilder } from './builders';
 import { getFirebaseEmulatorConfig } from './firebase-emulator-config';
 import { Matcher, PollOptions, pollUntil } from './Polling';
-import {toUserId} from "@billsplit-wl/shared";
 
 const randomLetters = (min: number, max: number): string => {
     const length = Math.floor(Math.random() * (max - min + 1)) + min;
@@ -654,8 +654,8 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return policy;
     }
 
-    async getPolicyVersion(policyId: PolicyId, versionHash: VersionHash, token?: AuthToken): Promise<PolicyVersion & { versionHash: VersionHash }> {
-        return await this.apiRequest(`/admin/policies/${policyId}/versions/${versionHash}`, 'GET', null, token || null) as PolicyVersion & { versionHash: VersionHash };
+    async getPolicyVersion(policyId: PolicyId, versionHash: VersionHash, token?: AuthToken): Promise<PolicyVersion & { versionHash: VersionHash; }> {
+        return await this.apiRequest(`/admin/policies/${policyId}/versions/${versionHash}`, 'GET', null, token || null) as PolicyVersion & { versionHash: VersionHash; };
     }
 
     async updatePolicy(policyId: PolicyId, request: UpdatePolicyRequest, token?: AuthToken): Promise<UpdatePolicyResponse> {

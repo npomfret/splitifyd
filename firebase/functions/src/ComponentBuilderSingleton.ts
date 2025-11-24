@@ -1,8 +1,8 @@
 // Initialize ApplicationBuilder
 import { getIdentityToolkitConfig } from './client-config';
 import { getAuth, getFirestore, getStorage } from './firebase';
-import { ComponentBuilder } from './services/ComponentBuilder';
 import { getServiceConfig } from './merge/ServiceConfig';
+import { ComponentBuilder } from './services/ComponentBuilder';
 
 // Lazy initialization
 let appBuilder: ComponentBuilder | null = null;

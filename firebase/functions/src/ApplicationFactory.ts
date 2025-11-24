@@ -5,15 +5,16 @@ import { buildEnvPayload, buildHealthPayload, resolveHealthStatusCode, runHealth
 import { isEmulator } from './firebase';
 import { logger } from './logger';
 import { metrics, toAggregatedReport } from './monitoring/lightweight-metrics';
+import { UpdateTenantBrandingRequestSchema } from './schemas/tenant';
 import type { IAuthService } from './services/auth';
 import { ComponentBuilder } from './services/ComponentBuilder';
 import { requireInstanceName } from './shared/instance-name';
 import { TestUserPoolService } from './test-pool/TestUserPoolService';
 import { getEnhancedConfigResponse } from './utils/config-response';
-import { UpdateTenantBrandingRequestSchema } from './schemas/tenant';
 
 // Handler imports
 import { toPolicyId } from '@billsplit-wl/shared';
+import { toUserId } from '@billsplit-wl/shared';
 import { ActivityFeedHandlers } from './activity/ActivityHandlers';
 import { UserAdminHandlers } from './admin/UserAdminHandlers';
 import { CommentHandlers } from './comments/CommentHandlers';
@@ -27,7 +28,6 @@ import { SettlementHandlers } from './settlements/SettlementHandlers';
 import { TenantAdminHandlers } from './tenant/TenantAdminHandlers';
 import { ThemeHandlers } from './theme/ThemeHandlers';
 import { UserHandlers } from './user/UserHandlers';
-import {toUserId} from "@billsplit-wl/shared";
 
 /**
  * Factory function that creates all application handlers with proper dependency injection.
@@ -269,7 +269,6 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
             throw error;
         }
     };
-
 
     // Tenant settings handlers (admin-only)
     const getTenantSettings: RequestHandler = async (req, res) => {

@@ -1,8 +1,8 @@
-import { StubStorage, StubCloudTasksClient } from '@billsplit-wl/firebase-simulator';
+import { StubCloudTasksClient, StubStorage } from '@billsplit-wl/firebase-simulator';
 import { toGroupId, toUserId } from '@billsplit-wl/shared';
 import { toDisplayName } from '@billsplit-wl/shared';
 import { toTenantAppName, toTenantDomainName, toTenantFaviconUrl, toTenantId, toTenantLogoUrl, toTenantPrimaryColor, toTenantSecondaryColor } from '@billsplit-wl/shared';
-import {CreateGroupRequestBuilder, StubFirestoreDatabase, UserRegistrationBuilder} from '@billsplit-wl/test-support';
+import { CreateGroupRequestBuilder, StubFirestoreDatabase, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
@@ -12,7 +12,7 @@ import { AppDriver } from '../AppDriver';
 import { StubAuthService } from '../mocks/StubAuthService';
 import { TenantPayloadBuilder } from '../TenantPayloadBuilder';
 
-import {createUnitTestServiceConfig} from "../../test-config";
+import { createUnitTestServiceConfig } from '../../test-config';
 
 describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
     let app: AppDriver;
@@ -215,7 +215,7 @@ describe('FirestoreWriter.upsertTenant - Default Tenant Enforcement', () => {
             db,
             new StubStorage({ defaultBucketName: 'test-bucket' }),
             new StubCloudTasksClient(),
-            createUnitTestServiceConfig()
+            createUnitTestServiceConfig(),
         );
         firestoreWriter = applicationBuilder.buildFirestoreWriter();
         firestoreReader = applicationBuilder.buildFirestoreReader();

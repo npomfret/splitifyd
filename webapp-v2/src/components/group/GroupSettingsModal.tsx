@@ -1,13 +1,13 @@
 import { apiClient, ApiError } from '@/app/apiClient.ts';
 import { useAuthRequired } from '@/app/hooks/useAuthRequired.ts';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced.ts';
+import { Clickable } from '@/components/ui/Clickable';
 import { logError } from '@/utils/browser-logger.ts';
-import { GroupDTO, GroupMember, GroupMembershipDTO, GroupPermissions, MemberRole, PermissionLevels, SecurityPreset, UserId, toDisplayName, toGroupName } from '@billsplit-wl/shared';
+import { GroupDTO, GroupMember, GroupMembershipDTO, GroupPermissions, MemberRole, PermissionLevels, SecurityPreset, toDisplayName, toGroupName, UserId } from '@billsplit-wl/shared';
 import { useComputed } from '@preact/signals';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Button, Form, Input, LoadingSpinner, Tooltip } from '../ui';
-import { Clickable } from '@/components/ui/Clickable';
 
 const PRESET_PERMISSIONS: Record<Exclude<SecurityPreset, 'custom'>, GroupPermissions> = {
     open: {

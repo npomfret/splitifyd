@@ -1311,7 +1311,9 @@ export class FirestoreWriter implements IFirestoreWriter {
                         // Check each domain for conflicts
                         for (const domain of data.domains) {
                             const conflictingTenantsSnapshot = await transaction.get(
-                                this.db.collection(FirestoreCollections.TENANTS)
+                                this
+                                    .db
+                                    .collection(FirestoreCollections.TENANTS)
                                     .where('domains', 'array-contains', domain),
                             );
 

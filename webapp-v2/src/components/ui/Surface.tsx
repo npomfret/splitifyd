@@ -54,7 +54,7 @@ export const Surface = forwardRef<HTMLDivElement, SurfaceProps>(
             children,
             ...rest
         },
-        ref
+        ref,
     ) => {
         return (
             <div
@@ -73,5 +73,5 @@ export const Surface = forwardRef<HTMLDivElement, SurfaceProps>(
                 {children}
             </div>
         );
-    }
+    },
 );

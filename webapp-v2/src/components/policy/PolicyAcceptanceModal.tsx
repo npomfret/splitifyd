@@ -123,7 +123,11 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
     const subtitleId = 'policy-modal-subtitle';
 
     const modalContent = (
-        <div className='fixed inset-0 flex items-center justify-center p-4 z-50' style={{ backgroundColor: 'var(--modal-backdrop, rgba(0, 0, 0, 0.4))', backdropFilter: 'blur(4px)' }} data-testid='policy-modal-overlay'>
+        <div
+            className='fixed inset-0 flex items-center justify-center p-4 z-50'
+            style={{ backgroundColor: 'var(--modal-backdrop, rgba(0, 0, 0, 0.4))', backdropFilter: 'blur(4px)' }}
+            data-testid='policy-modal-overlay'
+        >
             <div
                 className='bg-surface-base border-border-default rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col opacity-100'
                 role='dialog'

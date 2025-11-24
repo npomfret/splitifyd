@@ -1,5 +1,5 @@
-import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced';
 import { useStaggeredReveal } from '@/app/hooks/useScrollReveal';
+import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced';
 import type { ExpenseDTO } from '@billsplit-wl/shared';
 import { useComputed } from '@preact/signals';
 import { useTranslation } from 'react-i18next';

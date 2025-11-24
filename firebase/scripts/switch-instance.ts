@@ -4,8 +4,8 @@ import { execSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import { loadEnvFile, requireInstanceName } from '../shared/scripts-config';
-import { logger } from './logger';
 import { requireInstanceConfig } from './instances-config';
+import { logger } from './logger';
 
 const instance: string | undefined = process.argv[2];
 

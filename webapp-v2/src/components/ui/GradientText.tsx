@@ -21,7 +21,7 @@ export function GradientText({
     children,
     gradient = 'primary',
     className = '',
-    as: Component = 'span'
+    as: Component = 'span',
 }: GradientTextProps) {
     return (
         <Component

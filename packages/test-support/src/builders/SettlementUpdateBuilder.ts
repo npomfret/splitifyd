@@ -20,7 +20,7 @@ export class SettlementUpdateBuilder {
     }
 
     withAmount(amount: Amount | number, currency: CurrencyISOCode | string): this {
-        this.update.currency = typeof currency === "string" ? toCurrencyISOCode(currency): currency;
+        this.update.currency = typeof currency === 'string' ? toCurrencyISOCode(currency) : currency;
         this.update.amount = typeof amount === 'number' ? amount.toString() : amount;
         return this;
     }

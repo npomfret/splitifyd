@@ -1,8 +1,8 @@
 import { useAuth } from '@/app/hooks/useAuth.ts';
-import { useConfig } from '@/hooks/useConfig.ts';
-import { useNavigation } from '@/hooks/useNavigation';
 import { Button } from '@/components/ui/Button';
 import { Clickable } from '@/components/ui/Clickable';
+import { useConfig } from '@/hooks/useConfig.ts';
+import { useNavigation } from '@/hooks/useNavigation';
 import { useComputed } from '@preact/signals';
 import { lazy, Suspense } from 'preact/compat';
 import { useTranslation } from 'react-i18next';

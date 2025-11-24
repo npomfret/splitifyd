@@ -1,15 +1,6 @@
-import {
-    calculateEqualSplits,
-    toAmount,
-    USD,
-
-} from '@billsplit-wl/shared';
+import { calculateEqualSplits, toAmount, USD } from '@billsplit-wl/shared';
 import type { UserId } from '@billsplit-wl/shared';
-import {
-    CreateExpenseRequestBuilder,
-    CreateGroupRequestBuilder,
-
-} from '@billsplit-wl/test-support';
+import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, it } from 'vitest';
 import { AppDriver } from '../AppDriver';
 
@@ -29,8 +20,6 @@ describe('comments', () => {
     afterEach(() => {
         appDriver.dispose();
     });
-
-    
 
     it('should sanitize comment text containing scripts', async () => {
         const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);

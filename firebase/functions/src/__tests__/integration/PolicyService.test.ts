@@ -1,11 +1,11 @@
-import {PolicyId, toPolicyId, toPolicyName, toPolicyText} from '@billsplit-wl/shared';
+import { PolicyId, toPolicyId, toPolicyName, toPolicyText } from '@billsplit-wl/shared';
+import { VersionHash } from '@billsplit-wl/shared';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { getFirestore } from '../../firebase';
 import { createFirestoreDatabase } from '../../firestore-wrapper';
 import { FirestoreReader } from '../../services/firestore';
 import { FirestoreWriter } from '../../services/firestore';
 import { PolicyService } from '../../services/PolicyService';
-import {VersionHash} from "@billsplit-wl/shared";
 
 /**
  * Minimal PolicyService Integration Tests

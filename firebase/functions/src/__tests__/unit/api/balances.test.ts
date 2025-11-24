@@ -1,22 +1,6 @@
-import {
-    amountToSmallestUnit,
-    calculateEqualSplits,
-    calculatePercentageSplits,
-    smallestUnitToAmountString,
-    toAmount,
-    toCurrencyISOCode,
-    UserBalance,
-    USD,
-
-} from '@billsplit-wl/shared';
+import { amountToSmallestUnit, calculateEqualSplits, calculatePercentageSplits, smallestUnitToAmountString, toAmount, toCurrencyISOCode, USD, UserBalance } from '@billsplit-wl/shared';
 import type { CurrencyISOCode, UserId } from '@billsplit-wl/shared';
-import {
-    CreateExpenseRequestBuilder,
-    CreateGroupRequestBuilder,
-    CreateSettlementRequestBuilder,
-    ExpenseUpdateBuilder,
-
-} from '@billsplit-wl/test-support';
+import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, ExpenseUpdateBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, it } from 'vitest';
 import { AppDriver } from '../AppDriver';
 

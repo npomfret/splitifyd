@@ -1,36 +1,16 @@
-import {
-    SystemUserRoles,
-    toTenantAppName,
-    toTenantDomainName,
-    toTenantLogoUrl,
-    toTenantPrimaryColor,
-    toTenantSecondaryColor,
-    toUserId,
-    toTenantAccentColor
-} from '@billsplit-wl/shared';
+import { SystemUserRoles, toTenantAccentColor, toTenantAppName, toTenantDomainName, toTenantLogoUrl, toTenantPrimaryColor, toTenantSecondaryColor, toUserId } from '@billsplit-wl/shared';
 import type { UserId } from '@billsplit-wl/shared';
-import {
-    AdminTenantRequestBuilder,
-    UserRegistrationBuilder,
-} from '@billsplit-wl/test-support';
+import { AdminTenantRequestBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, it } from 'vitest';
 import { AppDriver } from '../AppDriver';
 
 describe('Admin Tests', () => {
     let appDriver: AppDriver;
     let adminUser: UserId;
-    let user1: UserId;
-    let user2: UserId;
-    let user3: UserId;
 
     beforeEach(async () => {
         appDriver = new AppDriver();
-
-        const { users, admin } = await appDriver.createTestUsers({
-            count: 3,
-            includeAdmin: true
-        });
-        [user1, user2, user3] = users;
+        const { admin } = await appDriver.createTestUsers({ count: 0, includeAdmin: true });
         adminUser = admin!;
     });
 
@@ -73,7 +53,7 @@ describe('Admin Tests', () => {
 
                 await expect(appDriver.adminUpsertTenant(invalidPayload, localAdminUser)).rejects.toThrow();
             });
-            
+
             it('should reject duplicate domain across different tenants', async () => {
                 // Create first tenant with a domain
                 const firstTenant = AdminTenantRequestBuilder
@@ -128,7 +108,7 @@ describe('Admin Tests', () => {
                         code: 'DUPLICATE_DOMAIN',
                     });
             });
-            
+
             it('should reject empty appName', async () => {
                 const payload = AdminTenantRequestBuilder
                     .forTenant('tenant_empty_name')
@@ -140,7 +120,7 @@ describe('Admin Tests', () => {
                     .rejects
                     .toMatchObject({ code: 'INVALID_TENANT_PAYLOAD' });
             });
-            
+
             it('should reject tenant with no domains', async () => {
                 const payload = {
                     tenantId: 'tenant_no_domains',
@@ -168,7 +148,7 @@ describe('Admin Tests', () => {
             });
         });
     });
-    
+
     describe('Admin User Management', () => {
         let regularUser: UserId;
 
@@ -208,7 +188,7 @@ describe('Admin Tests', () => {
                     .rejects
                     .toThrow();
             });
-            
+
             it('should reject invalid UID', async () => {
                 await expect(
                     appDriver.updateUserRole(toUserId(''), { role: SystemUserRoles.SYSTEM_ADMIN }, adminUser),

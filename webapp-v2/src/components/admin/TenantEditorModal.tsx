@@ -93,13 +93,13 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                 primaryColor: tenant.tenant.branding?.primaryColor || '#1a73e8',
                 secondaryColor: tenant.tenant.branding?.secondaryColor || '#34a853',
                 accentColor: tenant.tenant.branding?.accentColor || '#fbbc04',
-            backgroundColor: branding?.backgroundColor || '#ffffff',
-            headerBackgroundColor: branding?.headerBackgroundColor || '#111827',
-            themePalette: branding?.themePalette || 'default',
-            customCSS: branding?.customCSS || '',
-            showLandingPage: tenant.tenant.branding?.marketingFlags?.showLandingPage ?? true,
-            showMarketingContent: tenant.tenant.branding?.marketingFlags?.showMarketingContent ?? true,
-            showPricingPage: tenant.tenant.branding?.marketingFlags?.showPricingPage ?? false,
+                backgroundColor: branding?.backgroundColor || '#ffffff',
+                headerBackgroundColor: branding?.headerBackgroundColor || '#111827',
+                themePalette: branding?.themePalette || 'default',
+                customCSS: branding?.customCSS || '',
+                showLandingPage: tenant.tenant.branding?.marketingFlags?.showLandingPage ?? true,
+                showMarketingContent: tenant.tenant.branding?.marketingFlags?.showMarketingContent ?? true,
+                showPricingPage: tenant.tenant.branding?.marketingFlags?.showPricingPage ?? false,
                 domains: tenant.domains || [],
             });
         } else if (mode === 'create') {
@@ -170,9 +170,11 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
 
         try {
             // Normalize and deduplicate domains (trim, lowercase, remove port)
-            const normalizedDomains = Array.from(new Set(
-                formData.domains.map(d => d.trim().toLowerCase().replace(/:\d+$/, ''))
-            ));
+            const normalizedDomains = Array.from(
+                new Set(
+                    formData.domains.map(d => d.trim().toLowerCase().replace(/:\d+$/, '')),
+                ),
+            );
 
             const branding: Record<string, unknown> = {
                 appName: formData.appName,

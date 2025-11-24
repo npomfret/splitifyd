@@ -60,7 +60,7 @@ describe('CommentService - Consolidated Tests', () => {
                     .withPaidBy(userId)
                     .withParticipants([userId])
                     .build(),
-                userId
+                userId,
             );
             const expenseId = toExpenseId(expense.id);
 
@@ -95,7 +95,7 @@ describe('CommentService - Consolidated Tests', () => {
             const result = await commentService.createGroupComment(
                 groupId,
                 new CreateGroupCommentRequestBuilder().withGroupId(groupId).withText('New test comment').build(),
-                userId
+                userId,
             );
 
             // Assert
@@ -115,9 +115,11 @@ describe('CommentService - Consolidated Tests', () => {
                 commentService.createGroupComment(
                     toGroupId('nonexistent-group'),
                     new CreateGroupCommentRequestBuilder().withGroupId('nonexistent-group').withText('Test comment').build(),
-                    userId
-                )
-            ).rejects.toThrow(ApiError);
+                    userId,
+                ),
+            )
+                .rejects
+                .toThrow(ApiError);
         });
     });
 
@@ -151,7 +153,7 @@ describe('CommentService - Consolidated Tests', () => {
                     .withPaidBy(userId)
                     .withParticipants([userId])
                     .build(),
-                userId
+                userId,
             );
             const expenseId = toExpenseId(expense.id);
 
@@ -307,7 +309,7 @@ describe('CommentService - Consolidated Tests', () => {
                         .withPaidBy(userId)
                         .withParticipants([userId])
                         .build(),
-                    userId
+                    userId,
                 );
                 const expenseId = toExpenseId(expense.id);
 

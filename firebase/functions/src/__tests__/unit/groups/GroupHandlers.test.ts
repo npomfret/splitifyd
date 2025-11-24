@@ -1,13 +1,13 @@
 import { StubCloudTasksClient } from '@billsplit-wl/firebase-simulator';
-import {StubFirestoreDatabase, StubStorage} from '@billsplit-wl/test-support';
+import { StubFirestoreDatabase, StubStorage } from '@billsplit-wl/test-support';
 import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, GroupUpdateBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { GroupHandlers } from '../../../groups/GroupHandlers';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
-import {AppDriver} from '../AppDriver';
+import { createUnitTestServiceConfig } from '../../test-config';
+import { AppDriver } from '../AppDriver';
 import { StubAuthService } from '../mocks/StubAuthService';
-import {createUnitTestServiceConfig} from "../../test-config";
 
 describe('GroupHandlers - Unit Tests', () => {
     let appDriver: AppDriver;
@@ -602,7 +602,7 @@ describe('GroupHandlers - Unit Tests', () => {
                 db,
                 new StubStorage({ defaultBucketName: 'test-bucket' }),
                 new StubCloudTasksClient(),
-                createUnitTestServiceConfig()
+                createUnitTestServiceConfig(),
             );
 
             const handlers = new GroupHandlers(componentBuilder.buildGroupService());

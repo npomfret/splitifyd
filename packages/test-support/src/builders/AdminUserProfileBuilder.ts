@@ -62,7 +62,7 @@ export class AdminUserProfileBuilder {
         return this;
     }
 
-    withMetadata(metadata: { creationTime: string; lastSignInTime?: string }): this {
+    withMetadata(metadata: { creationTime: string; lastSignInTime?: string; }): this {
         this.user.metadata = metadata;
         return this;
     }

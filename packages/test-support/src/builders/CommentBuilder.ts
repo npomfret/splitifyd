@@ -1,8 +1,8 @@
 import type { CommentDTO, CommentText, ISOString } from '@billsplit-wl/shared';
 import type { CommentId, UserId } from '@billsplit-wl/shared';
 import { toCommentId, toCommentText } from '@billsplit-wl/shared';
+import { toUserId } from '@billsplit-wl/shared';
 import { convertToISOString, generateShortId, randomChoice, randomDate, randomString } from '../test-helpers';
-import {toUserId} from "@billsplit-wl/shared";
 
 export class CommentBuilder {
     private comment: CommentDTO = {
@@ -31,7 +31,7 @@ export class CommentBuilder {
     }
 
     withAuthorId(userId: UserId | string): this {
-        this.comment.authorId = typeof userId === 'string' ? toUserId(userId) : userId;;
+        this.comment.authorId = typeof userId === 'string' ? toUserId(userId) : userId;
         return this;
     }
 

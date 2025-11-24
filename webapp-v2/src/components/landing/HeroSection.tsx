@@ -1,8 +1,8 @@
-import { useEffect, useRef } from 'preact/hooks';
-import { useTranslation } from 'react-i18next';
+import { GradientText } from '@/components/ui';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { GradientText } from '@/components/ui';
+import { useEffect, useRef } from 'preact/hooks';
+import { useTranslation } from 'react-i18next';
 import { Globe } from './Globe';
 
 export function HeroSection() {

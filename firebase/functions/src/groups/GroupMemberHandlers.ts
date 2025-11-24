@@ -1,9 +1,9 @@
+import { toUserId } from '@billsplit-wl/shared';
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { GroupMemberService } from '../services/GroupMemberService';
 import { logger } from '../utils/contextual-logger';
 import { validateGroupId } from './validation';
-import { toUserId } from "@billsplit-wl/shared";
 
 export class GroupMemberHandlers {
     constructor(private readonly groupMemberService: GroupMemberService) {

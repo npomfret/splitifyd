@@ -62,8 +62,10 @@ describe('UserAdminHandlers - Unit Tests', () => {
         it('should reject request with invalid UID', async () => {
             // Try to update user with empty UID
             await expect(
-                appDriver.updateUser(toUserId(''), { disabled: true }, adminToken)
-            ).rejects.toThrow('User ID is required');
+                appDriver.updateUser(toUserId(''), { disabled: true }, adminToken),
+            )
+                .rejects
+                .toThrow('User ID is required');
         });
 
         it('should reject request with non-boolean disabled field', async () => {
@@ -74,8 +76,10 @@ describe('UserAdminHandlers - Unit Tests', () => {
 
             // Try to update with invalid disabled value
             await expect(
-                appDriver.updateUser(userId, { disabled: 'true' } as any, adminToken)
-            ).rejects.toThrow('boolean "disabled" field');
+                appDriver.updateUser(userId, { disabled: 'true' } as any, adminToken),
+            )
+                .rejects
+                .toThrow('boolean "disabled" field');
         });
 
         it('should reject request with extra fields', async () => {
@@ -86,8 +90,10 @@ describe('UserAdminHandlers - Unit Tests', () => {
 
             // Try to update with extra fields
             await expect(
-                appDriver.updateUser(userId, { disabled: true, email: 'new@test.com' } as any, adminToken)
-            ).rejects.toThrow('Only "disabled" field is allowed');
+                appDriver.updateUser(userId, { disabled: true, email: 'new@test.com' } as any, adminToken),
+            )
+                .rejects
+                .toThrow('Only "disabled" field is allowed');
         });
 
         it('should prevent user from disabling their own account', async () => {
@@ -103,8 +109,10 @@ describe('UserAdminHandlers - Unit Tests', () => {
 
             // Try to disable own account using own token
             await expect(
-                appDriver.updateUser(userId, { disabled: true }, userToken)
-            ).rejects.toThrow('cannot disable your own account');
+                appDriver.updateUser(userId, { disabled: true }, userToken),
+            )
+                .rejects
+                .toThrow('cannot disable your own account');
         });
 
         it('should return 404 for non-existent user', async () => {
@@ -123,8 +131,10 @@ describe('UserAdminHandlers - Unit Tests', () => {
         it('should validate that UID is a non-empty string', async () => {
             // Test with whitespace-only UID
             await expect(
-                appDriver.updateUser(toUserId('   '), { disabled: true }, adminToken)
-            ).rejects.toThrow('User ID is required');
+                appDriver.updateUser(toUserId('   '), { disabled: true }, adminToken),
+            )
+                .rejects
+                .toThrow('User ID is required');
         });
 
         it('should handle missing disabled field', async () => {
@@ -135,8 +145,10 @@ describe('UserAdminHandlers - Unit Tests', () => {
 
             // Try to update without disabled field
             await expect(
-                appDriver.updateUser(userId, {} as any, adminToken)
-            ).rejects.toThrow('boolean "disabled" field');
+                appDriver.updateUser(userId, {} as any, adminToken),
+            )
+                .rejects
+                .toThrow('boolean "disabled" field');
         });
     });
 
@@ -219,8 +231,10 @@ describe('UserAdminHandlers - Unit Tests', () => {
         it('should reject request with invalid UID', async () => {
             // Try to update role with empty UID
             await expect(
-                appDriver.updateUserRole(toUserId(''), { role: SystemUserRoles.SYSTEM_ADMIN }, adminToken)
-            ).rejects.toThrow('User ID is required');
+                appDriver.updateUserRole(toUserId(''), { role: SystemUserRoles.SYSTEM_ADMIN }, adminToken),
+            )
+                .rejects
+                .toThrow('User ID is required');
         });
 
         it('should reject request with extra fields', async () => {
@@ -231,8 +245,10 @@ describe('UserAdminHandlers - Unit Tests', () => {
 
             // Try to update with extra fields
             await expect(
-                appDriver.updateUserRole(userId, { role: SystemUserRoles.SYSTEM_ADMIN, email: 'new@test.com' } as any, adminToken)
-            ).rejects.toThrow('Only "role" field is allowed');
+                appDriver.updateUserRole(userId, { role: SystemUserRoles.SYSTEM_ADMIN, email: 'new@test.com' } as any, adminToken),
+            )
+                .rejects
+                .toThrow('Only "role" field is allowed');
         });
 
         it('should prevent user from changing their own role', async () => {
@@ -273,8 +289,10 @@ describe('UserAdminHandlers - Unit Tests', () => {
         it('should validate that UID is a non-empty string', async () => {
             // Test with whitespace-only UID
             await expect(
-                appDriver.updateUserRole(toUserId('   '), { role: SystemUserRoles.SYSTEM_ADMIN }, adminToken)
-            ).rejects.toThrow('User ID is required');
+                appDriver.updateUserRole(toUserId('   '), { role: SystemUserRoles.SYSTEM_ADMIN }, adminToken),
+            )
+                .rejects
+                .toThrow('User ID is required');
         });
     });
 });

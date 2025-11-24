@@ -1,9 +1,9 @@
-import { ActivityFeedActions, ActivityFeedEventTypes, MemberRoles, MemberStatuses, toUserId, toGroupId } from '@billsplit-wl/shared';
-import { CreateGroupRequestBuilder, UserRegistrationBuilder, CreateExpenseRequestBuilder } from '@billsplit-wl/test-support';
+import { ActivityFeedActions, ActivityFeedEventTypes, MemberRoles, MemberStatuses, toGroupId, toUserId } from '@billsplit-wl/shared';
+import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it, test } from 'vitest';
-import { GroupMemberService } from '../../../services/GroupMemberService';
 import { IFirestoreReader } from '../../../services/firestore';
-import {AppDriver} from '../AppDriver';
+import { GroupMemberService } from '../../../services/GroupMemberService';
+import { AppDriver } from '../AppDriver';
 
 describe('GroupMemberService - Consolidated Unit Tests', () => {
     let groupMemberService: GroupMemberService;
@@ -268,7 +268,6 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
     // ================================
 
     describe('Leave Group Validation', () => {
-
         test('should prevent group creator from leaving', async () => {
             // Arrange
             const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
@@ -304,7 +303,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
                     .withAmount(100, 'USD')
                     .withSplitType('equal')
                     .build(),
-                creatorId
+                creatorId,
             );
 
             // Act & Assert - member owes $50 and cannot leave
@@ -449,7 +448,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
                     .withAmount(50, 'USD')
                     .withSplitType('equal')
                     .build(),
-                memberId
+                memberId,
             );
 
             // Act & Assert - member is owed $25 and cannot be removed

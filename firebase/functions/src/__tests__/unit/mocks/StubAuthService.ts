@@ -1,4 +1,4 @@
-import type {Email, UserId} from '@billsplit-wl/shared';
+import type { Email, UserId } from '@billsplit-wl/shared';
 import type { CreateRequest, DecodedIdToken, ListUsersResult, UpdateRequest, UserRecord } from 'firebase-admin/auth';
 import { HTTP_STATUS } from '../../../constants';
 import type { IAuthService } from '../../../services/auth';

@@ -10,7 +10,7 @@
 
 import { z } from 'zod';
 import { getCurrency } from '../currencies';
-import { type Amount, CurrencyISOCode, SplitTypes, toDisplayName, toGroupName, toCurrencyISOCode } from '../shared-types';
+import { type Amount, CurrencyISOCode, SplitTypes, toCurrencyISOCode, toDisplayName, toGroupName } from '../shared-types';
 import { parseMonetaryAmount } from '../split-utils';
 import { createDisplayNameSchema, DisplayNameSchema, type DisplayNameSchemaOptions } from './primitives';
 

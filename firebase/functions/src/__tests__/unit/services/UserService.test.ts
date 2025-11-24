@@ -1,15 +1,15 @@
-import {ClientUserBuilder, CreateGroupRequestBuilder, PasswordChangeRequestBuilder, StubFirestoreDatabase, StubStorage, UserRegistrationBuilder, UserUpdateBuilder} from '@billsplit-wl/test-support';
 import { StubCloudTasksClient } from '@billsplit-wl/firebase-simulator';
-import {DisplayName, toDisplayName, toGroupId, toUserId} from '@billsplit-wl/shared';
-import {beforeAll, beforeEach, describe, expect, it, vi} from 'vitest';
-import {HTTP_STATUS} from '../../../constants';
-import {ComponentBuilder} from '../../../services/ComponentBuilder';
-import {UserService} from '../../../services/UserService2';
-import {ApiError} from '../../../utils/errors';
-import {initializeI18n} from '../../../utils/i18n';
-import {StubAuthService} from '../mocks/StubAuthService';
-import {AppDriver} from '../AppDriver';
-import {createUnitTestServiceConfig} from "../../test-config";
+import { DisplayName, toDisplayName, toGroupId, toUserId } from '@billsplit-wl/shared';
+import { ClientUserBuilder, CreateGroupRequestBuilder, PasswordChangeRequestBuilder, StubFirestoreDatabase, StubStorage, UserRegistrationBuilder, UserUpdateBuilder } from '@billsplit-wl/test-support';
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { HTTP_STATUS } from '../../../constants';
+import { ComponentBuilder } from '../../../services/ComponentBuilder';
+import { UserService } from '../../../services/UserService2';
+import { ApiError } from '../../../utils/errors';
+import { initializeI18n } from '../../../utils/i18n';
+import { createUnitTestServiceConfig } from '../../test-config';
+import { AppDriver } from '../AppDriver';
+import { StubAuthService } from '../mocks/StubAuthService';
 
 describe('UserService - Consolidated Unit Tests', () => {
     let userService: UserService;
@@ -34,8 +34,9 @@ describe('UserService - Consolidated Unit Tests', () => {
             db,
             new StubStorage({ defaultBucketName: 'test-bucket' }),
             new StubCloudTasksClient(),
-            createUnitTestServiceConfig()
-        ).buildUserService();
+            createUnitTestServiceConfig(),
+        )
+            .buildUserService();
 
         // Clear all stub data
         stubAuth.clear();
@@ -101,8 +102,9 @@ describe('UserService - Consolidated Unit Tests', () => {
                     db,
                     new StubStorage({ defaultBucketName: 'test-bucket' }),
                     new StubCloudTasksClient(),
-                    testConfig
-                ).buildUserService();
+                    testConfig,
+                )
+                    .buildUserService();
 
                 const email = 'slow-existing@example.com';
 
@@ -431,8 +433,9 @@ describe('UserService - Consolidated Unit Tests', () => {
                 db,
                 new StubStorage({ defaultBucketName: 'test-bucket' }),
                 new StubCloudTasksClient(),
-                createUnitTestServiceConfig()
-            ).buildUserService();
+                createUnitTestServiceConfig(),
+            )
+                .buildUserService();
 
             const email = 'validation-user@example.com';
             const displayName = 'Validation User';
@@ -963,7 +966,7 @@ describe('UserService - Consolidated Unit Tests', () => {
             // Create group and add members via API
             const group = await appDriver.createGroup(
                 new CreateGroupRequestBuilder().withGroupDisplayName('Member One').build(),
-                user1
+                user1,
             );
             const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, user1);
             await appDriver.joinGroupByLink(shareToken, 'Member Two', user2);
@@ -996,7 +999,7 @@ describe('UserService - Consolidated Unit Tests', () => {
             // Create group with both users
             const group = await appDriver.createGroup(
                 new CreateGroupRequestBuilder().withGroupDisplayName('Active Member').build(),
-                user1
+                user1,
             );
             const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, user1);
             await appDriver.joinGroupByLink(shareToken, 'Departed User', user2);
@@ -1020,7 +1023,7 @@ describe('UserService - Consolidated Unit Tests', () => {
             const result = await appDriver.registerUser(reg);
             const group = await appDriver.createGroup(
                 new CreateGroupRequestBuilder().withGroupDisplayName('Owner').build(),
-                result.user.uid
+                result.user.uid,
             );
 
             const profiles = await appDriverUserService.resolveGroupMemberProfiles(toGroupId(group.id), []);
@@ -1038,7 +1041,7 @@ describe('UserService - Consolidated Unit Tests', () => {
 
             const group = await appDriver.createGroup(
                 new CreateGroupRequestBuilder().withGroupDisplayName('Alice').build(),
-                user1
+                user1,
             );
 
             const profiles = await appDriverUserService.resolveGroupMemberProfiles(toGroupId(group.id), [user1]);
@@ -1056,7 +1059,7 @@ describe('UserService - Consolidated Unit Tests', () => {
 
             const group = await appDriver.createGroup(
                 new CreateGroupRequestBuilder().withGroupDisplayName('John Smith').build(),
-                user1
+                user1,
             );
 
             const profiles = await appDriverUserService.resolveGroupMemberProfiles(toGroupId(group.id), [user1]);
@@ -1074,7 +1077,7 @@ describe('UserService - Consolidated Unit Tests', () => {
 
             const group = await appDriver.createGroup(
                 new CreateGroupRequestBuilder().withGroupDisplayName('First Middle Last').build(),
-                user1
+                user1,
             );
 
             const profiles = await appDriverUserService.resolveGroupMemberProfiles(toGroupId(group.id), [user1]);

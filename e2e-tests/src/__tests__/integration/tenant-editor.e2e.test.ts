@@ -1,4 +1,4 @@
-import { AdminTenantsPage, AdminTenantRequestBuilder, ApiDriver } from '@billsplit-wl/test-support';
+import { AdminTenantRequestBuilder, AdminTenantsPage, ApiDriver } from '@billsplit-wl/test-support';
 import { expect, simpleTest as test } from '../../fixtures/simple-test.fixture';
 
 const NEW_ACCENT_COLOR = '#ff00ff';
@@ -26,9 +26,7 @@ test.describe('Tenant editor publish', () => {
 
         const adminTenantsPage = new AdminTenantsPage(page);
         await Promise.all([
-            page.waitForResponse(response =>
-                response.url().includes('/user/profile') && response.status() === 200
-            ),
+            page.waitForResponse(response => response.url().includes('/user/profile') && response.status() === 200),
             adminTenantsPage.navigate(),
         ]);
         await adminTenantsPage.verifyPageLoaded();
@@ -48,9 +46,7 @@ test.describe('Tenant editor publish', () => {
         await tenantEditorModal.verifySuccessMessage('Tenant updated successfully!');
 
         const [publishResponse] = await Promise.all([
-            page.waitForResponse(response =>
-                response.url().includes('/admin/tenants/publish') && response.status() === 200
-            ),
+            page.waitForResponse(response => response.url().includes('/admin/tenants/publish') && response.status() === 200),
             tenantEditorModal.clickPublish(),
         ]);
         await tenantEditorModal.verifySuccessMessage('Theme published successfully!');

@@ -1,5 +1,5 @@
-import { RegisterPage } from '@billsplit-wl/test-support';
 import { toEmail } from '@billsplit-wl/shared';
+import { RegisterPage } from '@billsplit-wl/test-support';
 import { test } from '../../utils/console-logging-fixture';
 
 test.describe('Registration Form Validation', () => {

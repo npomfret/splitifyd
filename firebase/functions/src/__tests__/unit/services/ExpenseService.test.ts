@@ -3,8 +3,7 @@ import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, ExpenseSplitBui
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ExpenseService } from '../../../services/ExpenseService';
-import {AppDriver} from '../AppDriver';
-
+import { AppDriver } from '../AppDriver';
 
 describe('ExpenseService - Consolidated Unit Tests', () => {
     let expenseService: ExpenseService;
@@ -40,13 +39,17 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                     .withDescription('Test expense')
                     .withLabel('Food')
                     .withSplitType('equal')
-                    .withSplits(ExpenseSplitBuilder.exactSplit([
-                        { uid: userId, amount: '50.25' },
-                        { uid: otherUserId, amount: '50.25' }
-                    ]).build())
+                    .withSplits(
+                        ExpenseSplitBuilder
+                            .exactSplit([
+                                { uid: userId, amount: '50.25' },
+                                { uid: otherUserId, amount: '50.25' },
+                            ])
+                            .build(),
+                    )
                     .withReceiptUrl('https://example.com/receipt.jpg')
                     .build(),
-                userId
+                userId,
             );
             const expenseId = toExpenseId(expense.id);
 
@@ -93,7 +96,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                     .withPaidBy(userId)
                     .withParticipants([userId])
                     .build(),
-                userId
+                userId,
             );
             const expenseId = toExpenseId(expense.id);
 
@@ -126,7 +129,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                     .withPaidBy(participantId)
                     .withParticipants([participantId])
                     .build(),
-                participantId
+                participantId,
             );
             const expenseId = toExpenseId(expense.id);
 
@@ -156,7 +159,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                     .withPaidBy(participant1)
                     .withParticipants([participant1, participant2])
                     .build(),
-                participant1
+                participant1,
             );
             const expenseId = toExpenseId(expense.id);
 
@@ -185,7 +188,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                     .withPaidBy(userId)
                     .withParticipants([userId])
                     .build(),
-                userId
+                userId,
             );
             const expenseId = toExpenseId(expense.id);
 
@@ -237,7 +240,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                     .withSplitType('exact')
                     .withSplits(ExpenseSplitBuilder.exactSplit([{ uid: userId, amount: '100.33' }]).build())
                     .build(),
-                userId
+                userId,
             );
             const expenseId = toExpenseId(expense.id);
 
@@ -324,7 +327,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                     .withParticipants([userId])
                     .withLabel('Food & Dining')
                     .build(),
-                userId
+                userId,
             );
             const expenseId = toExpenseId(expense.id);
 
@@ -351,7 +354,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                     .withParticipants([userId])
                     .withReceiptUrl(receiptUrl)
                     .build(),
-                userId
+                userId,
             );
             const expenseId = toExpenseId(expense.id);
 
@@ -379,7 +382,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                     .withParticipants([participantId])
                     .withDescription('Test expense')
                     .build(),
-                participantId
+                participantId,
             );
             const expenseId = toExpenseId(expense.id);
 
@@ -412,7 +415,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                     .withPaidBy(participantId)
                     .withParticipants([participantId])
                     .build(),
-                participantId
+                participantId,
             );
             const expenseId = toExpenseId(expense.id);
 
@@ -438,7 +441,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                     .withPaidBy(userId)
                     .withParticipants([userId])
                     .build(),
-                userId
+                userId,
             );
             const expenseId = toExpenseId(expense.id);
 
@@ -471,7 +474,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                     .withSplits(ExpenseSplitBuilder.exactSplit([{ uid: userId, amount: '100.5' }]).build())
                     .withReceiptUrl('https://example.com/receipt.jpg')
                     .build(),
-                userId
+                userId,
             );
             const expenseId = toExpenseId(expense.id);
 
@@ -515,7 +518,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                     .withPaidBy(userId)
                     .withParticipants([userId])
                     .build(),
-                userId
+                userId,
             );
             const expenseId = toExpenseId(expense.id);
 

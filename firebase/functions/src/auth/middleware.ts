@@ -1,12 +1,12 @@
 import { AuthenticatedUser, SystemUserRoles, toDisplayName, toUserId } from '@billsplit-wl/shared';
 import { NextFunction, Request, Response } from 'express';
+import { getComponentBuilder } from '../ComponentBuilderSingleton';
 import { AUTH } from '../constants';
 import { logger } from '../logger';
 import { LoggerContext } from '../logger';
 import { Errors, sendError } from '../utils/errors';
-import {getComponentBuilder} from "../ComponentBuilderSingleton";
 
-const applicationBuilder = getComponentBuilder()
+const applicationBuilder = getComponentBuilder();
 const firestoreReader = applicationBuilder.buildFirestoreReader();
 const authService = applicationBuilder.buildAuthService();
 

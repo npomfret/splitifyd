@@ -103,7 +103,7 @@ export const Clickable = forwardRef<HTMLElement, ClickableProps>(
             'data-testid': dataTestId,
             ...rest
         },
-        ref
+        ref,
     ) => {
         const getElementText = (): string => {
             if (ariaLabel) {
@@ -154,7 +154,7 @@ export const Clickable = forwardRef<HTMLElement, ClickableProps>(
                 {children}
             </Element>
         );
-    }
+    },
 );
 
 Clickable.displayName = 'Clickable';

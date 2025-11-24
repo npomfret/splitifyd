@@ -1,6 +1,6 @@
 import type { SimplifiedDebt } from '@billsplit-wl/shared';
-import { toGroupId, toCurrencyISOCode, USD, toUserId } from '@billsplit-wl/shared';
-import {StubFirestoreDatabase} from '@billsplit-wl/test-support';
+import { toCurrencyISOCode, toGroupId, toUserId, USD } from '@billsplit-wl/shared';
+import { StubFirestoreDatabase } from '@billsplit-wl/test-support';
 import { ExpenseDTOBuilder, SettlementDTOBuilder, SimplifiedDebtBuilder, UserBalanceBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { IncrementalBalanceService } from '../../../services/balance/IncrementalBalanceService';

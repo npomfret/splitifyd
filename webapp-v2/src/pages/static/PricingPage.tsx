@@ -1,8 +1,8 @@
+import { Clickable } from '@/components/ui/Clickable';
 import { useNavigation } from '@/hooks/useNavigation';
 import { configStore } from '@/stores/config-store';
 import { useTranslation } from 'react-i18next';
 import { StaticPageLayout } from '../../components/StaticPageLayout';
-import { Clickable } from '@/components/ui/Clickable';
 
 export function PricingPage() {
     const { t } = useTranslation();

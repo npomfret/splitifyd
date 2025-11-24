@@ -1,7 +1,7 @@
 import type { SimplifiedDebt, UserId } from '@billsplit-wl/shared';
-import { Amount, USD, toCurrencyISOCode } from '@billsplit-wl/shared';
+import { Amount, toCurrencyISOCode, USD } from '@billsplit-wl/shared';
 import type { CurrencyISOCode } from '@billsplit-wl/shared';
-import {toUserId} from "@billsplit-wl/shared";
+import { toUserId } from '@billsplit-wl/shared';
 
 /**
  * Builder for creating SimplifiedDebt objects for testing
@@ -32,7 +32,7 @@ export class SimplifiedDebtBuilder {
     from(userId: UserId | string, displayName?: string): this {
         this.debt.from = {
             uid: typeof userId === 'string' ? toUserId(userId) : userId,
-            ...(displayName && { displayName })
+            ...(displayName && { displayName }),
         };
         return this;
     }
@@ -43,7 +43,7 @@ export class SimplifiedDebtBuilder {
     to(userId: UserId | string, displayName?: string): this {
         this.debt.to = {
             uid: typeof userId === 'string' ? toUserId(userId) : userId,
-            ...(displayName && { displayName })
+            ...(displayName && { displayName }),
         };
         return this;
     }

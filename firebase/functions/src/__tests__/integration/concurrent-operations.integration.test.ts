@@ -1,9 +1,9 @@
-import {amountToSmallestUnit, GroupDTO, PooledTestUser, toCurrencyISOCode, toDisplayName, toUserId, USD, UserId} from '@billsplit-wl/shared';
-import {ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, getFirebaseEmulatorConfig} from '@billsplit-wl/test-support';
-import {beforeAll, beforeEach, describe, expect, test} from 'vitest';
-import {getAuth, getFirestore, getStorage} from '../../firebase';
-import {ComponentBuilder} from '../../services/ComponentBuilder';
-import {getServiceConfig} from "../../merge/ServiceConfig";
+import { amountToSmallestUnit, GroupDTO, PooledTestUser, toCurrencyISOCode, toDisplayName, toUserId, USD, UserId } from '@billsplit-wl/shared';
+import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, getFirebaseEmulatorConfig } from '@billsplit-wl/test-support';
+import { beforeAll, beforeEach, describe, expect, test } from 'vitest';
+import { getAuth, getFirestore, getStorage } from '../../firebase';
+import { getServiceConfig } from '../../merge/ServiceConfig';
+import { ComponentBuilder } from '../../services/ComponentBuilder';
 
 async function runWithLimitedConcurrency<T>(operations: Array<() => Promise<T>>, limit: number): Promise<PromiseSettledResult<T>[]> {
     if (operations.length === 0) {
@@ -252,7 +252,7 @@ describe('Concurrent Operations Integration Tests', () => {
                 () => firestoreReader.getGroupMember(testGroup.id, testUser2.uid),
 
                 // Operations that will return null for non-existent member (valid behavior)
-                () => firestoreReader.getGroupMember(testGroup.id, toUserId('non-existent-user-id'))
+                () => firestoreReader.getGroupMember(testGroup.id, toUserId('non-existent-user-id')),
             ];
 
             // Execute all operations concurrently

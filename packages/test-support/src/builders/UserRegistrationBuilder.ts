@@ -1,4 +1,4 @@
-import {toEmail, toPassword, UserRegistration } from '@billsplit-wl/shared';
+import { toEmail, toPassword, UserRegistration } from '@billsplit-wl/shared';
 import { DisplayName, toDisplayName } from '@billsplit-wl/shared';
 import type { Email, Password } from '@billsplit-wl/shared';
 import { generateNewUserDetails } from '../test-helpers';

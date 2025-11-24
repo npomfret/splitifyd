@@ -1,16 +1,17 @@
 import { ClientUser, PolicyId, SystemUserRoles, toISOString, UserProfile, UserProfileResponse, UserRegistration, VersionHash } from '@billsplit-wl/shared';
-import type { UserDocument } from '../schemas';
 import { GroupMember, GroupMembershipDTO, GroupMembersResponse } from '@billsplit-wl/shared';
 import { GroupId } from '@billsplit-wl/shared';
 import { DisplayName } from '@billsplit-wl/shared';
 import type { Email, UserId } from '@billsplit-wl/shared';
 import { normalizeDisplayNameForComparison } from '@billsplit-wl/shared';
 import { toDisplayName } from '@billsplit-wl/shared';
+import { toEmail, toUserId } from '@billsplit-wl/shared';
 import { UpdateRequest, UserRecord } from 'firebase-admin/auth';
 import { validateRegisterRequest } from '../auth/validation';
 import { HTTP_STATUS } from '../constants';
 import { logger } from '../logger';
 import { measureDb } from '../monitoring/measure';
+import type { UserDocument } from '../schemas';
 import { validateChangeEmail, validateChangePassword, validateUpdateUserProfile } from '../user/validation';
 import { ApiError, Errors } from '../utils/errors';
 import { createPhantomGroupMember } from '../utils/groupMembershipHelpers';
@@ -18,7 +19,6 @@ import { LoggerContext } from '../utils/logger-context';
 import { withMinimumDuration } from '../utils/timing';
 import type { IAuthService } from './auth';
 import type { FirestoreUserCreateData, IFirestoreReader, IFirestoreWriter } from './firestore';
-import {toEmail, toUserId} from "@billsplit-wl/shared";
 
 const REGISTRATION_FAILURE_ERROR_CODE = 'REGISTRATION_FAILED';
 const REGISTRATION_FAILURE_MESSAGE = 'Unable to create account. If you already registered, try signing in.';
@@ -43,7 +43,7 @@ export class UserService {
         private readonly firestoreReader: IFirestoreReader,
         private readonly firestoreWriter: IFirestoreWriter,
         private readonly authService: IAuthService,
-        private readonly minRegistrationDurationMs: number
+        private readonly minRegistrationDurationMs: number,
     ) {}
 
     /**

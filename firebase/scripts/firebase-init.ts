@@ -2,7 +2,7 @@ import { getPorts, getProjectId } from '@billsplit-wl/test-support';
 import * as admin from 'firebase-admin';
 import * as fs from 'fs';
 import * as path from 'path';
-import { loadRuntimeConfig, getInstanceEnvironment, type ScriptEnvironment } from '../shared/scripts-config';
+import { getInstanceEnvironment, loadRuntimeConfig, type ScriptEnvironment } from '../shared/scripts-config';
 
 export { type ScriptEnvironment } from '../shared/scripts-config';
 

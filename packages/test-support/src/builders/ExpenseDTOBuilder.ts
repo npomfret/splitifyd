@@ -6,9 +6,9 @@ import { toGroupId } from '@billsplit-wl/shared';
 import { ExpenseId, toExpenseId } from '@billsplit-wl/shared';
 import type { ISOString } from '@billsplit-wl/shared';
 import { toCurrencyISOCode } from '@billsplit-wl/shared';
+import { toUserId } from '@billsplit-wl/shared';
+import { ExpenseSplit } from '@billsplit-wl/shared';
 import { convertToISOString, generateShortId, randomChoice, randomDate, randomLabel, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
-import {toUserId} from "@billsplit-wl/shared";
-import {ExpenseSplit} from "@billsplit-wl/shared";
 
 /**
  * Builder for creating ExpenseDTO objects for tests
@@ -109,7 +109,7 @@ export class ExpenseDTOBuilder {
     }
 
     withCreatedBy(userId: UserId | string): this {
-        this.expense.createdBy = typeof userId === 'string' ? toUserId(userId) : userId;;
+        this.expense.createdBy = typeof userId === 'string' ? toUserId(userId) : userId;
         return this;
     }
 

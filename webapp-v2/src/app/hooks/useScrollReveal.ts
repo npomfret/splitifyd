@@ -1,5 +1,5 @@
-import { useRef, useState, useEffect } from 'preact/hooks';
 import type { Ref } from 'preact';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import { useThemeConfig } from './useThemeConfig';
 
 export interface UseScrollRevealOptions extends IntersectionObserverInit {
@@ -83,7 +83,7 @@ export function useScrollReveal(options?: UseScrollRevealOptions): UseScrollReve
             {
                 threshold: 0.25,
                 ...observerOptions,
-            }
+            },
         );
 
         observer.observe(element);

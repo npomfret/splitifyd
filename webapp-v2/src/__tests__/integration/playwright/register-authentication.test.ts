@@ -1,5 +1,5 @@
-import { ClientUserBuilder, DashboardPage, RegisterPage, TEST_TIMEOUTS } from '@billsplit-wl/test-support';
 import { toEmail } from '@billsplit-wl/shared';
+import { ClientUserBuilder, DashboardPage, RegisterPage, TEST_TIMEOUTS } from '@billsplit-wl/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { setupSuccessfulApiMocks } from '../../utils/mock-firebase-service';
 

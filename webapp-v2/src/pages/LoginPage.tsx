@@ -1,6 +1,7 @@
+import { Button, Checkbox } from '@/components/ui';
 import { STORAGE_KEYS } from '@/constants.ts';
 import { navigationService } from '@/services/navigation.service';
-import { toPassword, toEmail } from '@billsplit-wl/shared';
+import { toEmail, toPassword } from '@billsplit-wl/shared';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
@@ -10,7 +11,6 @@ import { DefaultLoginButton } from '../components/auth/DefaultLoginButton';
 import { EmailInput } from '../components/auth/EmailInput';
 import { FloatingPasswordInput } from '../components/auth/FloatingPasswordInput';
 import { SubmitButton } from '../components/auth/SubmitButton';
-import { Button, Checkbox } from '@/components/ui';
 import { logError } from '../utils/browser-logger';
 
 export function LoginPage() {
@@ -87,7 +87,7 @@ export function LoginPage() {
             return;
         }
 
-        try{
+        try {
             await authStore.login(toEmail(trimmedEmail), toPassword(password), rememberMe);
             // Redirect will happen via useEffect when user state updates
         } catch (error) {

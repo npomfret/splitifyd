@@ -57,9 +57,7 @@ export class ThemePage extends BasePage {
         const signUpButton = this.page.getByTestId('header-signup-link');
         await expect(signUpButton).toBeVisible();
 
-        const backgroundColor = await signUpButton.evaluate((element) =>
-            getComputedStyle(element).backgroundColor,
-        );
+        const backgroundColor = await signUpButton.evaluate((element) => getComputedStyle(element).backgroundColor);
         expect(this.isGrayscale(backgroundColor)).toBe(false);
     }
 
@@ -87,8 +85,8 @@ export class ThemePage extends BasePage {
             const nonGrayscaleColors = rgbMatches.filter((rgb) => !this.isGrayscale(rgb));
             if (nonGrayscaleColors.length > 0) {
                 throw new Error(
-                    `Expected all gradient colors to be grayscale, but found non-grayscale colors: ${nonGrayscaleColors.join(', ')}. ` +
-                    `Full gradient: ${backgroundImage}`,
+                    `Expected all gradient colors to be grayscale, but found non-grayscale colors: ${nonGrayscaleColors.join(', ')}. `
+                        + `Full gradient: ${backgroundImage}`,
                 );
             }
         } else if (backgroundColor && backgroundColor !== 'rgba(0, 0, 0, 0)' && backgroundColor !== 'transparent') {
@@ -286,9 +284,7 @@ export class ThemePage extends BasePage {
         const element = this.page.locator(selector).first();
         await expect(element).toBeVisible();
 
-        const backgroundImage = await element.evaluate((el) =>
-            getComputedStyle(el).getPropertyValue('background-image'),
-        );
+        const backgroundImage = await element.evaluate((el) => getComputedStyle(el).getPropertyValue('background-image'));
 
         const rgbMatches = backgroundImage.match(/rgba?\(([^)]+)\)/g);
         if (!rgbMatches || rgbMatches.length === 0) {

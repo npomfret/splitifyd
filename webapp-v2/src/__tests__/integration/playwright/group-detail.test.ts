@@ -1,4 +1,5 @@
 import { createJsonHandler } from '@/test/msw/handlers.ts';
+import { toUserId } from '@billsplit-wl/shared';
 import {
     CommentBuilder,
     ExpenseDTOBuilder,
@@ -10,7 +11,6 @@ import {
     SettlementWithMembersBuilder,
     ThemeBuilder,
 } from '@billsplit-wl/test-support';
-import { toUserId } from '@billsplit-wl/shared';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { mockApiFailure, mockGroupCommentsApi, mockGroupDetailApi, mockPendingMembersApi, mockUpdateGroupPermissionsApi, setupSuccessfulApiMocks } from '../../utils/mock-firebase-service';
 

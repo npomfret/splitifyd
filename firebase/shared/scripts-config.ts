@@ -22,7 +22,7 @@ import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import * as path from 'path';
 import { z } from 'zod';
-import { assertValidInstanceName, isDevInstanceName, type InstanceName } from '../functions/src/shared/instance-name';
+import { assertValidInstanceName, type InstanceName, isDevInstanceName } from '../functions/src/shared/instance-name';
 
 /**
  * Read instance name from .current-instance file if it exists.

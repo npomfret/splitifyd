@@ -1,4 +1,5 @@
-import {AdminUserProfile, DisplayName, Email, PolicyId, SystemUserRoles, toDisplayName, UserId, VersionHash} from '@billsplit-wl/shared';
+import { AdminUserProfile, DisplayName, Email, PolicyId, SystemUserRoles, toDisplayName, UserId, VersionHash } from '@billsplit-wl/shared';
+import { toEmail, toUserId } from '@billsplit-wl/shared';
 import type { Request, Response } from 'express';
 import type { UserRecord } from 'firebase-admin/auth';
 import { FirestoreCollections } from '../constants';
@@ -6,7 +7,6 @@ import { type IDocumentSnapshot, type IFirestoreDatabase, Timestamp } from '../f
 import { logger } from '../logger';
 import type { IAuthService } from '../services/auth';
 import type { IFirestoreReader } from '../services/firestore';
-import {toEmail, toUserId} from "@billsplit-wl/shared";
 
 interface ListAuthQuery {
     limit: number;
@@ -20,7 +20,7 @@ interface ListFirestoreQuery {
     cursor?: string;
     email?: Email;
     uid?: UserId;
-    displayName?: DisplayName
+    displayName?: DisplayName;
 }
 
 const DEFAULT_AUTH_LIMIT = 50;

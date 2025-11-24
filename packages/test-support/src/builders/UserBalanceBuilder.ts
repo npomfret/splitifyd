@@ -1,6 +1,6 @@
 import type { Amount, UserBalance, UserId } from '@billsplit-wl/shared';
 import { ZERO } from '@billsplit-wl/shared';
-import {toUserId} from "@billsplit-wl/shared";
+import { toUserId } from '@billsplit-wl/shared';
 
 /**
  * Builder for creating UserBalance objects for debt simplification tests

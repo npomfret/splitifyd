@@ -1,14 +1,14 @@
-import {StubFirestoreDatabase, StubStorage} from '@billsplit-wl/test-support';
-import { PasswordChangeRequestBuilder, UserRegistrationBuilder, UserUpdateBuilder } from '@billsplit-wl/test-support';
 import { StubCloudTasksClient } from '@billsplit-wl/firebase-simulator';
+import { StubFirestoreDatabase, StubStorage } from '@billsplit-wl/test-support';
+import { PasswordChangeRequestBuilder, UserRegistrationBuilder, UserUpdateBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import { UserHandlers } from '../../../user/UserHandlers';
 import { initializeI18n } from '../../../utils/i18n';
-import {AppDriver} from '../AppDriver';
+import { createUnitTestServiceConfig } from '../../test-config';
+import { AppDriver } from '../AppDriver';
 import { StubAuthService } from '../mocks/StubAuthService';
-import {createUnitTestServiceConfig} from "../../test-config";
 
 describe('UserHandlers - Integration Tests', () => {
     let appDriver: AppDriver;
@@ -24,7 +24,7 @@ describe('UserHandlers - Integration Tests', () => {
             const user = await appDriver.registerUser(
                 new UserRegistrationBuilder()
                     .withDisplayName('Original Name')
-                    .build()
+                    .build(),
             );
             const userId = user.user.uid;
 
@@ -44,7 +44,7 @@ describe('UserHandlers - Integration Tests', () => {
             const user = await appDriver.registerUser(
                 new UserRegistrationBuilder()
                     .withDisplayName('Test User')
-                    .build()
+                    .build(),
             );
             const userId = user.user.uid;
 
@@ -60,7 +60,7 @@ describe('UserHandlers - Integration Tests', () => {
             const user = await appDriver.registerUser(
                 new UserRegistrationBuilder()
                     .withDisplayName('Original Name')
-                    .build()
+                    .build(),
             );
             const userId = user.user.uid;
 
@@ -139,7 +139,7 @@ describe('UserHandlers - Integration Tests', () => {
                 new UserRegistrationBuilder()
                     .withDisplayName('Test User')
                     .withPassword('ValidPass123!')
-                    .build()
+                    .build(),
             );
             const userId = user.user.uid;
 
@@ -161,7 +161,7 @@ describe('UserHandlers - Integration Tests', () => {
                 new UserRegistrationBuilder()
                     .withDisplayName('Test User')
                     .withPassword('ValidPass123!')
-                    .build()
+                    .build(),
             );
             const userId = user.user.uid;
 
@@ -181,7 +181,7 @@ describe('UserHandlers - Integration Tests', () => {
                 new UserRegistrationBuilder()
                     .withDisplayName('Test User')
                     .withPassword('ValidPass123!')
-                    .build()
+                    .build(),
             );
             const userId = user.user.uid;
 
@@ -236,7 +236,7 @@ describe('UserHandlers - Integration Tests', () => {
                 db,
                 new StubStorage({ defaultBucketName: 'test-bucket' }),
                 new StubCloudTasksClient(),
-                createUnitTestServiceConfig()
+                createUnitTestServiceConfig(),
             );
             const handlers = new UserHandlers(componentBuilder.buildUserService());
             expect(handlers).toBeInstanceOf(UserHandlers);

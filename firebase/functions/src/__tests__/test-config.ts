@@ -1,4 +1,4 @@
-import {ServiceConfig} from '../merge/ServiceConfig';
+import { ServiceConfig } from '../merge/ServiceConfig';
 
 /**
  * Creates a default test configuration for unit tests.

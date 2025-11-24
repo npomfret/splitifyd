@@ -47,12 +47,12 @@ export class SettlementDTOBuilder {
     }
 
     withPayerId(payerId: UserId | string): this {
-        this.settlement.payerId = typeof payerId === 'string' ? toUserId(payerId) : payerId;;
+        this.settlement.payerId = typeof payerId === 'string' ? toUserId(payerId) : payerId;
         return this;
     }
 
     withPayeeId(payeeId: UserId | string): this {
-        this.settlement.payeeId = typeof payeeId === 'string' ? toUserId(payeeId) : payeeId;;
+        this.settlement.payeeId = typeof payeeId === 'string' ? toUserId(payeeId) : payeeId;
         return this;
     }
 
@@ -83,7 +83,7 @@ export class SettlementDTOBuilder {
     }
 
     withCreatedBy(userId: UserId | string): this {
-        this.settlement.createdBy = typeof userId === 'string' ? toUserId(userId) : userId;;
+        this.settlement.createdBy = typeof userId === 'string' ? toUserId(userId) : userId;
         return this;
     }
 

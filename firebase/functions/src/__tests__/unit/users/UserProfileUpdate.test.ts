@@ -17,7 +17,7 @@ describe('User Profile Update - Integration Tests', () => {
                 .withEmail('user@test.local')
                 .withDisplayName('Original Name')
                 .withPassword('ValidPass123!')
-                .build()
+                .build(),
         );
         userId = user.user.uid;
     });
@@ -93,7 +93,7 @@ describe('User Profile Update - Integration Tests', () => {
                 new UserRegistrationBuilder()
                     .withEmail(takenEmail)
                     .withDisplayName('Other User')
-                    .build()
+                    .build(),
             );
 
             await expect(

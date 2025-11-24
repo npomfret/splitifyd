@@ -1,12 +1,12 @@
-import { StubStorage, StubCloudTasksClient } from '@billsplit-wl/firebase-simulator';
+import { StubCloudTasksClient, StubStorage } from '@billsplit-wl/firebase-simulator';
 import { toPolicyId, toPolicyName, toPolicyText, toVersionHash } from '@billsplit-wl/shared';
-import {StubFirestoreDatabase} from '@billsplit-wl/test-support';
+import { StubFirestoreDatabase } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { PolicyHandlers } from '../../../policies/PolicyHandlers';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
-import {AppDriver} from '../AppDriver';
+import { createUnitTestServiceConfig } from '../../test-config';
+import { AppDriver } from '../AppDriver';
 import { StubAuthService } from '../mocks/StubAuthService';
-import {createUnitTestServiceConfig} from "../../test-config";
 
 describe('PolicyHandlers - Unit Tests', () => {
     let appDriver: AppDriver;
@@ -336,7 +336,7 @@ describe('PolicyHandlers - Unit Tests', () => {
                 db,
                 new StubStorage({ defaultBucketName: 'test-bucket' }),
                 new StubCloudTasksClient(),
-                createUnitTestServiceConfig()
+                createUnitTestServiceConfig(),
             );
             const handlers = new PolicyHandlers(componentBuilder.buildPolicyService());
             expect(handlers).toBeInstanceOf(PolicyHandlers);

@@ -1,6 +1,6 @@
 import type { ActivityFeedRealtimeConsumer, ActivityFeedRealtimePayload, ActivityFeedRealtimeService } from '@/app/services/activity-feed-realtime-service';
 import { ActivityFeedStoreImpl } from '@/app/stores/activity-feed-store';
-import { type ActivityFeedItem, type ActivityFeedResponse, type UserId, toGroupId, toGroupName, toUserId } from '@billsplit-wl/shared';
+import { type ActivityFeedItem, type ActivityFeedResponse, toGroupId, toGroupName, toUserId, type UserId } from '@billsplit-wl/shared';
 import { ActivityFeedItemBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';

@@ -8,7 +8,7 @@
  * The integration test remains for testing actual Firebase optimistic locking behavior.
  */
 
-import { calculateEqualSplits, toAmount, toGroupName, toCurrencyISOCode, USD, toUserId } from '@billsplit-wl/shared';
+import { calculateEqualSplits, toAmount, toCurrencyISOCode, toGroupName, toUserId, USD } from '@billsplit-wl/shared';
 import { toDisplayName } from '@billsplit-wl/shared';
 import { CreateExpenseRequestBuilder, ExpenseUpdateBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, test } from 'vitest';

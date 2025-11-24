@@ -54,7 +54,7 @@ interface ValidatedUpdateUserRequest extends UpdateRequest {
     emailVerified?: boolean;
     disabled?: boolean;
 }
-import {DisplayName, UserId} from '@billsplit-wl/shared';
+import { DisplayName, UserId } from '@billsplit-wl/shared';
 import type { Email } from '@billsplit-wl/shared';
 import { HTTP_STATUS } from '../../constants';
 import { logger } from '../../logger';

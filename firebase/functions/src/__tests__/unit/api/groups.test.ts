@@ -1,19 +1,6 @@
-import {
-    calculateEqualSplits,
-    MemberRoles,
-    MemberStatuses,
-    toAmount,
-    toGroupName,
-    USD,
-
-} from '@billsplit-wl/shared';
+import { calculateEqualSplits, MemberRoles, MemberStatuses, toAmount, toGroupName, USD } from '@billsplit-wl/shared';
 import type { UserId } from '@billsplit-wl/shared';
-import {
-    CreateExpenseRequestBuilder,
-    CreateGroupRequestBuilder,
-    GroupUpdateBuilder,
-
-} from '@billsplit-wl/test-support';
+import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, GroupUpdateBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, it } from 'vitest';
 import { AppDriver } from '../AppDriver';
 
@@ -30,7 +17,7 @@ describe('groups', () => {
 
         const { users, admin } = await appDriver.createTestUsers({
             count: 3,
-            includeAdmin: true
+            includeAdmin: true,
         });
         [user1, user2, user3] = users;
         adminUser = admin!;

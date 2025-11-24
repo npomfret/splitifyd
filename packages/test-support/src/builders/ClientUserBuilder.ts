@@ -2,8 +2,8 @@ import { type ClientUser, type SystemUserRole, SystemUserRoles } from '@billspli
 import { DisplayName } from '@billsplit-wl/shared';
 import type { Email, UserId } from '@billsplit-wl/shared';
 import { toDisplayName } from '@billsplit-wl/shared';
+import { toEmail, toUserId } from '@billsplit-wl/shared';
 import { generateShortId, randomChoice } from '../test-helpers';
-import {toEmail, toUserId} from "@billsplit-wl/shared";
 
 /**
  * Builder for creating ClientUser objects for tests

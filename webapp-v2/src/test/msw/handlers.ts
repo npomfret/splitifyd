@@ -1,4 +1,4 @@
-import {ClientUser, GroupId, ListGroupsResponse, toCurrencyISOCode, toVersionHash, UserPolicyStatusResponse} from '@billsplit-wl/shared';
+import { ClientUser, GroupId, ListGroupsResponse, toCurrencyISOCode, toVersionHash, UserPolicyStatusResponse } from '@billsplit-wl/shared';
 import { toPolicyId, toPolicyName } from '@billsplit-wl/shared';
 import type { HttpMethod, SerializedBodyMatcher, SerializedMswHandler, UrlMatchKind } from './types.ts';
 

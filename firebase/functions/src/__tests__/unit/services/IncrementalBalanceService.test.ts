@@ -1,6 +1,6 @@
 import { calculateEqualSplits, toAmount, toCurrencyISOCode, toUserId, USD } from '@billsplit-wl/shared';
 import { toGroupId } from '@billsplit-wl/shared';
-import {StubFirestoreDatabase} from '@billsplit-wl/test-support';
+import { StubFirestoreDatabase } from '@billsplit-wl/test-support';
 import { ExpenseDTOBuilder, ExpenseSplitBuilder, SettlementDTOBuilder, SimplifiedDebtBuilder, UserBalanceBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { GroupBalanceDTO } from '../../../schemas';

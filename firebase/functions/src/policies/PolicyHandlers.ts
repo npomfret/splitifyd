@@ -155,8 +155,7 @@ export class PolicyHandlers {
         try {
             await this.policyService.deletePolicyVersion(toPolicyId(id), toVersionHash(hash));
 
-            const response: DeletePolicyVersionResponse = {
-            };
+            const response: DeletePolicyVersionResponse = {};
             res.json(response);
         } catch (error) {
             logger.error('Failed to delete policy version', error as Error, {

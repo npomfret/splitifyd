@@ -1,5 +1,5 @@
 import type { Email } from '@billsplit-wl/shared';
-import { toDisplayName, toPassword, toEmail } from '@billsplit-wl/shared';
+import { toDisplayName, toEmail, toPassword } from '@billsplit-wl/shared';
 import { getFirestore } from '../firebase';
 import { createFirestoreDatabase, type IFirestoreDatabase } from '../firestore-wrapper';
 import type { IAuthService } from '../services/auth';

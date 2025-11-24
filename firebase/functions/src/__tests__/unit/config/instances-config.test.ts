@@ -1,7 +1,6 @@
-
-import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
+import { describe, expect, it } from 'vitest';
 
 const PROJECT_ROOT = path.join(__dirname, '../../../../../..');
 const INSTANCES_FILE = path.join(PROJECT_ROOT, 'firebase/instances.json');
@@ -48,7 +47,8 @@ describe('instances.json', () => {
     it('uses unique port numbers across dev instances', () => {
         const seen = new Map<number, string>();
 
-        Object.entries(config)
+        Object
+            .entries(config)
             .filter(([name]) => name.startsWith('dev'))
             .forEach(([name, entry]) => {
                 REQUIRED_PORT_KEYS.forEach((key) => {

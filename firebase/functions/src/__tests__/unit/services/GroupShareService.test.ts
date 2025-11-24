@@ -1,12 +1,25 @@
-import type {ActivityFeedItem, GroupId} from '@billsplit-wl/shared';
-import {ActivityFeedActions, ActivityFeedEventTypes, COLOR_PATTERNS, MAX_GROUP_MEMBERS, MemberStatuses, PermissionLevels, toDisplayName, toGroupId, toISOString, toShareLinkToken, toUserId, USER_COLORS,} from '@billsplit-wl/shared';
-import {CreateGroupRequestBuilder, ThemeBuilder, UserRegistrationBuilder} from '@billsplit-wl/test-support';
-import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {HTTP_STATUS} from '../../../constants';
-import type {IFirestoreReader} from '../../../services/firestore';
-import {GroupShareService} from '../../../services/GroupShareService';
-import {ApiError} from '../../../utils/errors';
-import {AppDriver} from '../AppDriver';
+import type { ActivityFeedItem, GroupId } from '@billsplit-wl/shared';
+import {
+    ActivityFeedActions,
+    ActivityFeedEventTypes,
+    COLOR_PATTERNS,
+    MAX_GROUP_MEMBERS,
+    MemberStatuses,
+    PermissionLevels,
+    toDisplayName,
+    toGroupId,
+    toISOString,
+    toShareLinkToken,
+    toUserId,
+    USER_COLORS,
+} from '@billsplit-wl/shared';
+import { CreateGroupRequestBuilder, ThemeBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { HTTP_STATUS } from '../../../constants';
+import type { IFirestoreReader } from '../../../services/firestore';
+import { GroupShareService } from '../../../services/GroupShareService';
+import { ApiError } from '../../../utils/errors';
+import { AppDriver } from '../AppDriver';
 
 let ownerId1: string;
 let joiningUserId1: string;
@@ -22,7 +35,7 @@ describe('GroupShareService', () => {
         app = new AppDriver();
 
         firestoreReader = app.componentBuilder.buildFirestoreReader();
-        groupShareService = app.componentBuilder.buildGroupShareService()
+        groupShareService = app.componentBuilder.buildGroupShareService();
 
         // Register common test users via API
         const owner1Reg = new UserRegistrationBuilder()

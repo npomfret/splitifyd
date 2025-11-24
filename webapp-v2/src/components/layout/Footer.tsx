@@ -1,7 +1,7 @@
+import { Clickable } from '@/components/ui/Clickable';
 import { useConfig } from '@/hooks/useConfig.ts';
 import { useNavigation } from '@/hooks/useNavigation';
 import { useTranslation } from 'react-i18next';
-import { Clickable } from '@/components/ui/Clickable';
 
 export function Footer() {
     const { t } = useTranslation();

@@ -1,7 +1,7 @@
+import { useMagneticHover } from '@/app/hooks/useMagneticHover';
 import { cx } from '@/utils/cx.ts';
 import { ComponentChildren } from 'preact';
 import type { JSX } from 'preact';
-import { useMagneticHover } from '@/app/hooks/useMagneticHover';
 import { Surface } from './Surface';
 import { Typography } from './Typography';
 

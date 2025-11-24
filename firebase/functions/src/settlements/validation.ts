@@ -8,11 +8,11 @@ import {
     UpdateSettlementRequest,
     UpdateSettlementRequestSchema,
 } from '@billsplit-wl/shared';
+import { toUserId } from '@billsplit-wl/shared';
 import { z } from 'zod';
 import { HTTP_STATUS } from '../constants';
 import { ApiError } from '../utils/errors';
 import { createRequestValidator, createZodErrorMapper, sanitizeInputString } from '../validation/common';
-import {toUserId} from "@billsplit-wl/shared";
 
 const createSettlementErrorMapper = createZodErrorMapper(
     {

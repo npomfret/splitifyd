@@ -1,20 +1,6 @@
-import {
-    calculateEqualSplits,
-    calculatePercentageSplits,
-    toAmount,
-    toCurrencyISOCode,
-    USD,
-
-} from '@billsplit-wl/shared';
+import { calculateEqualSplits, calculatePercentageSplits, toAmount, toCurrencyISOCode, USD } from '@billsplit-wl/shared';
 import type { UserId } from '@billsplit-wl/shared';
-import {
-    CreateExpenseRequestBuilder,
-    CreateGroupRequestBuilder,
-    CreateSettlementRequestBuilder,
-    ExpenseSplitBuilder,
-    ExpenseUpdateBuilder,
-
-} from '@billsplit-wl/test-support';
+import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, ExpenseSplitBuilder, ExpenseUpdateBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, it } from 'vitest';
 import { AppDriver } from '../AppDriver';
 
@@ -288,7 +274,7 @@ describe('expenses', () => {
         );
 
         let groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user3);
-        
+
         const recordedExpenseBeforeUpdate = groupDetails.expenses.expenses.find((expense) => expense.id === createdExpense.id);
         expect(recordedExpenseBeforeUpdate).toBeDefined();
         expect(recordedExpenseBeforeUpdate!.splitType).toBe('percentage');

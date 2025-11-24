@@ -1,13 +1,13 @@
-import { StubStorage, StubCloudTasksClient } from '@billsplit-wl/firebase-simulator';
-import { CommentDTO, toEmail, toPassword, toDisplayName } from '@billsplit-wl/shared';
-import {CreateExpenseRequestBuilder, CreateGroupRequestBuilder, StubFirestoreDatabase, UserRegistrationBuilder} from '@billsplit-wl/test-support';
+import { StubCloudTasksClient, StubStorage } from '@billsplit-wl/firebase-simulator';
+import { CommentDTO, toDisplayName, toEmail, toPassword } from '@billsplit-wl/shared';
+import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, StubFirestoreDatabase, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { CommentHandlers } from '../../../comments/CommentHandlers';
 import { HTTP_STATUS } from '../../../constants';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
-import {AppDriver} from '../AppDriver';
+import { createUnitTestServiceConfig } from '../../test-config';
+import { AppDriver } from '../AppDriver';
 import { StubAuthService } from '../mocks/StubAuthService';
-import {createUnitTestServiceConfig} from "../../test-config";
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -207,12 +207,12 @@ describe('CommentHandlers - Integration Tests', () => {
         it('should reject expense comment when user is not a group member', async () => {
             // Register user via API instead of seeding
             const userResult = await appDriver.registerUser(
-                new UserRegistrationBuilder().build()
+                new UserRegistrationBuilder().build(),
             );
             const userId = userResult.user.uid;
 
             const creatorResult = await appDriver.registerUser(
-                new UserRegistrationBuilder().build()
+                new UserRegistrationBuilder().build(),
             );
             const creatorId = creatorResult.user.uid;
 
@@ -239,7 +239,7 @@ describe('CommentHandlers - Integration Tests', () => {
 
             // Register user via API instead of seeding
             const userResult = await appDriver.registerUser(
-                new UserRegistrationBuilder().build()
+                new UserRegistrationBuilder().build(),
             );
             const userId = userResult.user.uid;
 
@@ -255,7 +255,7 @@ describe('CommentHandlers - Integration Tests', () => {
         it('should list group comments successfully', async () => {
             // Register user via API instead of seeding
             const userResult = await appDriver.registerUser(
-                new UserRegistrationBuilder().build()
+                new UserRegistrationBuilder().build(),
             );
             const userId = userResult.user.uid;
 
@@ -272,7 +272,7 @@ describe('CommentHandlers - Integration Tests', () => {
         it('should return empty array when no comments exist', async () => {
             // Register user via API instead of seeding
             const userResult = await appDriver.registerUser(
-                new UserRegistrationBuilder().build()
+                new UserRegistrationBuilder().build(),
             );
             const userId = userResult.user.uid;
 
@@ -287,12 +287,12 @@ describe('CommentHandlers - Integration Tests', () => {
         it('should reject listing comments when user is not a group member', async () => {
             // Register users via API instead of seeding
             const userResult = await appDriver.registerUser(
-                new UserRegistrationBuilder().build()
+                new UserRegistrationBuilder().build(),
             );
             const userId = userResult.user.uid;
 
             const creatorResult = await appDriver.registerUser(
-                new UserRegistrationBuilder().build()
+                new UserRegistrationBuilder().build(),
             );
             const creatorId = creatorResult.user.uid;
 
@@ -310,7 +310,7 @@ describe('CommentHandlers - Integration Tests', () => {
 
             // Register user via API instead of seeding
             const userResult = await appDriver.registerUser(
-                new UserRegistrationBuilder().build()
+                new UserRegistrationBuilder().build(),
             );
             const userId = userResult.user.uid;
 
@@ -324,7 +324,7 @@ describe('CommentHandlers - Integration Tests', () => {
         it('should return newest comments first with full metadata', async () => {
             // Register user via API instead of seeding
             const userResult = await appDriver.registerUser(
-                new UserRegistrationBuilder().build()
+                new UserRegistrationBuilder().build(),
             );
             const userId = userResult.user.uid;
 
@@ -352,7 +352,7 @@ describe('CommentHandlers - Integration Tests', () => {
         it('should paginate group comments using cursor and limit', async () => {
             // Register user via API instead of seeding
             const userResult = await appDriver.registerUser(
-                new UserRegistrationBuilder().build()
+                new UserRegistrationBuilder().build(),
             );
             const userId = userResult.user.uid;
 
@@ -392,7 +392,7 @@ describe('CommentHandlers - Integration Tests', () => {
         it('should ignore invalid pagination parameters gracefully', async () => {
             // Register user via API instead of seeding
             const userResult = await appDriver.registerUser(
-                new UserRegistrationBuilder().build()
+                new UserRegistrationBuilder().build(),
             );
             const userId = userResult.user.uid;
 
@@ -412,7 +412,7 @@ describe('CommentHandlers - Integration Tests', () => {
         it('should list expense comments successfully', async () => {
             // Register user via API instead of seeding
             const userResult = await appDriver.registerUser(
-                new UserRegistrationBuilder().build()
+                new UserRegistrationBuilder().build(),
             );
             const userId = userResult.user.uid;
 
@@ -438,7 +438,7 @@ describe('CommentHandlers - Integration Tests', () => {
         it('should return empty array when no expense comments exist', async () => {
             // Register user via API instead of seeding
             const userResult = await appDriver.registerUser(
-                new UserRegistrationBuilder().build()
+                new UserRegistrationBuilder().build(),
             );
             const userId = userResult.user.uid;
 
@@ -462,12 +462,12 @@ describe('CommentHandlers - Integration Tests', () => {
         it('should reject listing comments when user is not a group member', async () => {
             // Register users via API instead of seeding
             const userResult = await appDriver.registerUser(
-                new UserRegistrationBuilder().build()
+                new UserRegistrationBuilder().build(),
             );
             const userId = userResult.user.uid;
 
             const creatorResult = await appDriver.registerUser(
-                new UserRegistrationBuilder().build()
+                new UserRegistrationBuilder().build(),
             );
             const creatorId = creatorResult.user.uid;
 
@@ -494,7 +494,7 @@ describe('CommentHandlers - Integration Tests', () => {
 
             // Register user via API instead of seeding
             const userResult = await appDriver.registerUser(
-                new UserRegistrationBuilder().build()
+                new UserRegistrationBuilder().build(),
             );
             const userId = userResult.user.uid;
 
@@ -508,7 +508,7 @@ describe('CommentHandlers - Integration Tests', () => {
         it('should return newest expense comments first with expected metadata', async () => {
             // Register user via API instead of seeding
             const userResult = await appDriver.registerUser(
-                new UserRegistrationBuilder().build()
+                new UserRegistrationBuilder().build(),
             );
             const userId = userResult.user.uid;
 
@@ -543,7 +543,7 @@ describe('CommentHandlers - Integration Tests', () => {
         it('should paginate expense comments via cursor and limit', async () => {
             // Register user via API instead of seeding
             const userResult = await appDriver.registerUser(
-                new UserRegistrationBuilder().build()
+                new UserRegistrationBuilder().build(),
             );
             const userId = userResult.user.uid;
 
@@ -583,7 +583,7 @@ describe('CommentHandlers - Integration Tests', () => {
         it('should ignore invalid pagination inputs for expense comments', async () => {
             // Register user via API instead of seeding
             const userResult = await appDriver.registerUser(
-                new UserRegistrationBuilder().build()
+                new UserRegistrationBuilder().build(),
             );
             const userId = userResult.user.uid;
 
@@ -617,7 +617,7 @@ describe('CommentHandlers - Integration Tests', () => {
                 db,
                 new StubStorage({ defaultBucketName: 'test-bucket' }),
                 new StubCloudTasksClient(),
-                createUnitTestServiceConfig()
+                createUnitTestServiceConfig(),
             );
             const handlers = new CommentHandlers(componentBuilder.buildCommentService());
             expect(handlers).toBeInstanceOf(CommentHandlers);

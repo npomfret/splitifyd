@@ -56,22 +56,22 @@ export function Modal({ open, onClose, size = 'sm', labelledBy, describedBy, cla
     // Modal animation variants with spring physics
     const modalVariants = prefersReducedMotion
         ? {
-              hidden: { opacity: 0 },
-              visible: { opacity: 1 },
-          }
+            hidden: { opacity: 0 },
+            visible: { opacity: 1 },
+        }
         : {
-              hidden: { opacity: 0, scale: 0.95, y: 20 },
-              visible: {
-                  opacity: 1,
-                  scale: 1,
-                  y: 0,
-                  transition: {
-                      type: 'spring',
-                      damping: 25,
-                      stiffness: 300,
-                  },
-              },
-          };
+            hidden: { opacity: 0, scale: 0.95, y: 20 },
+            visible: {
+                opacity: 1,
+                scale: 1,
+                y: 0,
+                transition: {
+                    type: 'spring',
+                    damping: 25,
+                    stiffness: 300,
+                },
+            },
+        };
 
     const content = (
         <AnimatePresence mode='wait'>

@@ -13,6 +13,8 @@ import {
     UpdatePolicyResult,
     VersionHash,
 } from '@billsplit-wl/shared';
+import { PolicyText } from '@billsplit-wl/shared';
+import { toVersionHash } from '@billsplit-wl/shared';
 import * as crypto from 'crypto';
 import { z } from 'zod';
 import { ALLOWED_POLICY_IDS, HTTP_STATUS } from '../constants';
@@ -24,8 +26,6 @@ import { ApiError } from '../utils/errors';
 import { LoggerContext } from '../utils/logger-context';
 import { IFirestoreReader } from './firestore';
 import { IFirestoreWriter } from './firestore';
-import {PolicyText} from "@billsplit-wl/shared";
-import {toVersionHash} from "@billsplit-wl/shared";
 
 /**
  * Service for managing policy operations

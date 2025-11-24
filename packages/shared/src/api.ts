@@ -2,10 +2,10 @@ import type {
     AcceptMultiplePoliciesResponse,
     AcceptPolicyRequest,
     ActivityFeedResponse,
+    AddTenantDomainRequest,
     AdminUpsertTenantRequest,
     AdminUpsertTenantResponse,
     AdminUserProfile,
-    AddTenantDomainRequest,
     ChangeEmailRequest,
     CommentDTO,
     CommentText,
@@ -167,7 +167,7 @@ export interface AdminAPI<AuthToken> {
      * Get specific policy version content
      * Requires: system_admin role
      */
-    getPolicyVersion(policyId: PolicyId, versionHash: VersionHash, token?: AuthToken): Promise<PolicyVersion & { versionHash: VersionHash }>;
+    getPolicyVersion(policyId: PolicyId, versionHash: VersionHash, token?: AuthToken): Promise<PolicyVersion & { versionHash: VersionHash; }>;
 
     /**
      * Create new draft version (optionally publish immediately)

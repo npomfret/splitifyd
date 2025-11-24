@@ -1,8 +1,8 @@
 import { ColorPattern, GroupMembershipDTO, MemberRoles, MemberStatuses, UserThemeColor } from '@billsplit-wl/shared';
 import { GroupId, UserId } from '@billsplit-wl/shared';
 import { toGroupId } from '@billsplit-wl/shared';
+import { toUserId } from '@billsplit-wl/shared';
 import { Timestamp } from 'firebase-admin/firestore';
-import {toUserId} from "@billsplit-wl/shared";
 
 /**
  * Builder for GroupMembershipDTO - the membership document DTO
@@ -71,7 +71,7 @@ export class GroupMemberDocumentBuilder {
     }
 
     withInvitedBy(invitedBy: UserId | string): this {
-        this.memberDoc.invitedBy = typeof invitedBy === 'string' ? toUserId(invitedBy) : invitedBy;;
+        this.memberDoc.invitedBy = typeof invitedBy === 'string' ? toUserId(invitedBy) : invitedBy;
         return this;
     }
 

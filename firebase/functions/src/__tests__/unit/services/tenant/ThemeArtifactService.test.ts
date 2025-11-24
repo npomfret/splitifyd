@@ -5,9 +5,9 @@ import { ThemeArtifactService } from '../../../../services/tenant/ThemeArtifactS
 
 // Simple stub for storage - returns fixed URLs
 class StubThemeArtifactStorage implements ThemeArtifactStorage {
-    public lastSavedData: { tenantId: string; hash: string; cssContent: string; tokensJson: string } | null = null;
+    public lastSavedData: { tenantId: string; hash: string; cssContent: string; tokensJson: string; } | null = null;
 
-    async save(data: { tenantId: string; hash: string; cssContent: string; tokensJson: string }) {
+    async save(data: { tenantId: string; hash: string; cssContent: string; tokensJson: string; }) {
         this.lastSavedData = data;
         return {
             cssUrl: 'https://storage.example.com/theme.css',

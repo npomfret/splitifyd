@@ -40,7 +40,7 @@ export class StubCloudTasksClient implements ICloudTasksClient {
                 body?: string;
             };
         };
-    }): Promise<[{ name: string }]> {
+    }): Promise<[{ name: string; }]> {
         this.taskCounter++;
         const taskName = `${request.parent}/tasks/stub-task-${this.taskCounter}`;
 

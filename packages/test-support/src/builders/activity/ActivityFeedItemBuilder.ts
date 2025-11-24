@@ -2,8 +2,8 @@ import { ActivityFeedAction, ActivityFeedEventType, ActivityFeedItem, GroupId, G
 import { ActivityFeedActions, ActivityFeedEventTypes, toGroupId, toGroupName } from '@billsplit-wl/shared';
 import { toExpenseId } from '@billsplit-wl/shared';
 import { CommentId, toCommentId } from '@billsplit-wl/shared';
+import { toUserId } from '@billsplit-wl/shared';
 import { convertToISOString, generateShortId, randomString } from '../../test-helpers';
-import {toUserId} from "@billsplit-wl/shared";
 
 const DEFAULT_TIMESTAMP = () => new Date().toISOString();
 
@@ -211,7 +211,7 @@ export class ActivityFeedItemBuilder {
     }
 
     withUserId(userId: UserId | string): ActivityFeedItemBuilder {
-        this.item.userId = typeof userId === 'string' ? toUserId(userId) : userId;;
+        this.item.userId = typeof userId === 'string' ? toUserId(userId) : userId;
         return this;
     }
 

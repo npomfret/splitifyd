@@ -1,9 +1,9 @@
 import type { SimplifiedDebt, UserBalance, UserId } from '@billsplit-wl/shared';
-import { Amount, negateNormalizedAmount, toISOString, ZERO, GroupId, toGroupId, USD } from '@billsplit-wl/shared';
+import { Amount, GroupId, negateNormalizedAmount, toGroupId, toISOString, USD, ZERO } from '@billsplit-wl/shared';
 import type { CurrencyISOCode } from '@billsplit-wl/shared';
-import type { GroupBalanceDTO } from '../../schemas';
+import { toUserId } from '@billsplit-wl/shared';
 import { generateShortId } from '@billsplit-wl/test-support';
-import {toUserId} from "@billsplit-wl/shared";
+import type { GroupBalanceDTO } from '../../schemas';
 
 /**
  * Builder for creating GroupBalanceDTO objects for unit testing balance calculations
@@ -85,7 +85,7 @@ export class GroupBalanceDTOBuilder {
      * Convenience method: Create simple two-user USD debt
      * User2 owes User1 the specified amount
      */
-    withSimpleUSDDebt(user1: string | UserId, user2: string| UserId, amt: Amount | number): this {
+    withSimpleUSDDebt(user1: string | UserId, user2: string | UserId, amt: Amount | number): this {
         const amount = typeof amt === 'number' ? amt.toString() : amt;
 
         const uid1 = typeof user1 === 'string' ? toUserId(user1) : user1;

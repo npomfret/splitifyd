@@ -4,14 +4,14 @@
  * Tests the basic functionality of the FirestoreReader service and MockFirestoreReader
  */
 
-import { StubCloudTasksClient, createFirestoreDatabase, createStorage } from '@billsplit-wl/firebase-simulator';
+import { createFirestoreDatabase, createStorage, StubCloudTasksClient } from '@billsplit-wl/firebase-simulator';
 import { describe, expect, test } from 'vitest';
 import { getAuth, getFirestore, getStorage } from '../../firebase';
+import { FirebaseAuthService } from '../../services/auth';
 import { ComponentBuilder } from '../../services/ComponentBuilder';
 import { FirestoreReader } from '../../services/firestore';
-import { FirebaseAuthService } from '../../services/auth';
 
-import {createUnitTestServiceConfig} from "../test-config";
+import { createUnitTestServiceConfig } from '../test-config';
 
 describe('FirestoreReader', () => {
     const firestore = getFirestore();

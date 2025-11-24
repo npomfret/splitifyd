@@ -1,6 +1,6 @@
+import { toUserId } from '@billsplit-wl/shared';
 import { describe, expect, it } from 'vitest';
 import { createPhantomGroupMember } from '../../../utils/groupMembershipHelpers';
-import { toUserId } from "@billsplit-wl/shared";
 
 describe('groupMembershipHelpers', () => {
     describe('createPhantomGroupMember', () => {

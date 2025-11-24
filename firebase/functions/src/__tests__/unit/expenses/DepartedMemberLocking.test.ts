@@ -2,7 +2,14 @@
 // Tests that expenses and settlements involving departed members become read-only (locked)
 
 import { calculateEqualSplits, GroupId, toAmount, toUserId, USD } from '@billsplit-wl/shared';
-import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, ExpenseUpdateBuilder, SettlementUpdateBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
+import {
+    CreateExpenseRequestBuilder,
+    CreateGroupRequestBuilder,
+    CreateSettlementRequestBuilder,
+    ExpenseUpdateBuilder,
+    SettlementUpdateBuilder,
+    UserRegistrationBuilder,
+} from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { AppDriver } from '../AppDriver';
 

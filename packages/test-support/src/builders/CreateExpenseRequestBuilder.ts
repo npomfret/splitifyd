@@ -5,9 +5,9 @@ import type { CurrencyISOCode, UserId } from '@billsplit-wl/shared';
 import { toGroupId } from '@billsplit-wl/shared';
 import type { ISOString } from '@billsplit-wl/shared';
 import { toCurrencyISOCode } from '@billsplit-wl/shared';
+import { toUserId } from '@billsplit-wl/shared';
+import { ExpenseSplit } from '@billsplit-wl/shared';
 import { convertToISOString, generateShortId, randomChoice, randomDate, randomLabel, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
-import {toUserId} from "@billsplit-wl/shared";
-import {ExpenseSplit} from "@billsplit-wl/shared";
 
 export class CreateExpenseRequestBuilder {
     private expense: CreateExpenseRequest;
@@ -54,13 +54,13 @@ export class CreateExpenseRequestBuilder {
     }
 
     withAmount(amount: Amount | number, currency: CurrencyISOCode | string): this {
-        this.expense.currency = typeof currency === "string" ? toCurrencyISOCode(currency) : currency;
+        this.expense.currency = typeof currency === 'string' ? toCurrencyISOCode(currency) : currency;
         this.expense.amount = typeof amount === 'number' ? amount.toString() : amount;
         return this;
     }
 
     withPaidBy(userId: UserId | string): this {
-        this.expense.paidBy = typeof userId === 'string' ? toUserId(userId) : userId;;
+        this.expense.paidBy = typeof userId === 'string' ? toUserId(userId) : userId;
         return this;
     }
 
@@ -70,7 +70,7 @@ export class CreateExpenseRequestBuilder {
     }
 
     withParticipants(participants: UserId[] | string[]): this {
-        this.expense.participants = participants.map(item => typeof item === 'string' ? toUserId(item) : item)
+        this.expense.participants = participants.map(item => typeof item === 'string' ? toUserId(item) : item);
         return this;
     }
 

@@ -1,11 +1,11 @@
 import { CreateGroupRequest, toGroupId, toUserId } from '@billsplit-wl/shared';
-import { CreateGroupRequestBuilder, CreateExpenseRequestBuilder, GroupUpdateBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
+import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, GroupUpdateBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS, VALIDATION_LIMITS } from '../../constants';
 import { validateCreateGroup, validateGroupId, validateUpdateGroup } from '../../groups/validation';
 import { GroupService } from '../../services/GroupService';
 import { ApiError } from '../../utils/errors';
-import {AppDriver} from './AppDriver';
+import { AppDriver } from './AppDriver';
 
 describe('GroupService - Unit Tests', () => {
     let groupService: GroupService;
@@ -43,7 +43,7 @@ describe('GroupService - Unit Tests', () => {
                     .withAmount(25, 'USD')
                     .withDescription('Active expense')
                     .build(),
-                userId
+                userId,
             );
 
             // Create expense to be deleted
@@ -55,7 +55,7 @@ describe('GroupService - Unit Tests', () => {
                     .withAmount(40, 'USD')
                     .withDescription('Deleted expense')
                     .build(),
-                userId
+                userId,
             );
 
             // Delete the second expense

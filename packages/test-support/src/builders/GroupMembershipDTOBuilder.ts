@@ -2,9 +2,9 @@ import type { DisplayName, GroupId, GroupMembershipDTO, ISOString, MemberRole, M
 import { MemberRoles, MemberStatuses } from '@billsplit-wl/shared';
 import { toGroupId } from '@billsplit-wl/shared';
 import { toDisplayName } from '@billsplit-wl/shared';
+import { toUserId } from '@billsplit-wl/shared';
 import { convertToISOString, generateShortId, randomChoice } from '../test-helpers';
 import { ThemeBuilder } from './ThemeBuilder';
-import {toUserId} from "@billsplit-wl/shared";
 
 /**
  * Builder for creating GroupMembershipDTO objects for tests
@@ -29,7 +29,7 @@ export class GroupMembershipDTOBuilder {
     }
 
     withUid(uid: UserId | string): this {
-        this.membership.uid = typeof uid === 'string' ? toUserId(uid) : uid;;
+        this.membership.uid = typeof uid === 'string' ? toUserId(uid) : uid;
         return this;
     }
 
@@ -62,7 +62,7 @@ export class GroupMembershipDTOBuilder {
     }
 
     withInvitedBy(invitedBy: UserId | string): this {
-        this.membership.invitedBy = typeof invitedBy === 'string' ? toUserId(invitedBy) : invitedBy;;
+        this.membership.invitedBy = typeof invitedBy === 'string' ? toUserId(invitedBy) : invitedBy;
         return this;
     }
 

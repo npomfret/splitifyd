@@ -1,5 +1,5 @@
 import { getGroupDisplayName } from '@/utils/displayName';
-import { UserId, toUserId } from '@billsplit-wl/shared';
+import { toUserId, UserId } from '@billsplit-wl/shared';
 import { useTranslation } from 'react-i18next';
 import { Avatar, Card } from '../ui';
 import { Stack } from '../ui/Stack';

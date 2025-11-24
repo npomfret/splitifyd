@@ -1,9 +1,9 @@
+import { toUserId } from '@billsplit-wl/shared';
 import { CreateExpenseRequestBuilder, CreateSettlementRequestBuilder, ExpenseSplitBuilder } from '@billsplit-wl/test-support';
 import { describe, expect, it } from 'vitest';
 import { validateCreateExpense } from '../../../expenses/validation';
 import { validateCreateSettlement } from '../../../settlements/validation';
 import { ApiError } from '../../../utils/errors';
-import { toUserId } from "@billsplit-wl/shared";
 
 describe('Input Validation Unit Tests', () => {
     describe('Amount Validation', () => {

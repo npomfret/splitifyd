@@ -68,7 +68,7 @@ describe('Archive Groups - Status Filtering', () => {
             {
                 statusFilter: MemberStatuses.ARCHIVED,
             },
-            userId
+            userId,
         );
 
         // Assert
@@ -99,7 +99,7 @@ describe('Archive Groups - Status Filtering', () => {
             {
                 statusFilter: [MemberStatuses.ACTIVE],
             },
-            userId
+            userId,
         );
 
         // Assert

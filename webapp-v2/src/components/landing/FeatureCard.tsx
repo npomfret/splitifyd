@@ -1,5 +1,5 @@
-import { useScrollReveal } from '@/app/hooks/useScrollReveal';
 import { useMagneticHover } from '@/app/hooks/useMagneticHover';
+import { useScrollReveal } from '@/app/hooks/useScrollReveal';
 
 interface FeatureCardProps {
     icon: string;

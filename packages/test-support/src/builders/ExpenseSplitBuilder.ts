@@ -1,4 +1,4 @@
-import {Amount, amountToSmallestUnit, roundToCurrencyPrecision, smallestUnitToAmountString, toAmount, toUserId} from '@billsplit-wl/shared';
+import { Amount, amountToSmallestUnit, roundToCurrencyPrecision, smallestUnitToAmountString, toAmount, toUserId } from '@billsplit-wl/shared';
 import type { CurrencyISOCode, ExpenseSplit, UserId } from '@billsplit-wl/shared';
 
 /**
@@ -61,7 +61,7 @@ export class ExpenseSplitBuilder {
         this.splits.push({
             uid: typeof uid === 'string' ? toUserId(uid) : uid,
             amount,
-            percentage
+            percentage,
         });
         return this;
     }

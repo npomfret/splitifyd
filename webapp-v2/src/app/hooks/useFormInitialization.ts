@@ -1,7 +1,7 @@
 import { ROUTES } from '@/constants/routes';
 import { logError, logInfo } from '@/utils/browser-logger.ts';
 import { extractTimeFromISO } from '@/utils/dateUtils.ts';
-import {amountToSmallestUnit, CurrencyISOCode, toCurrencyISOCode} from '@billsplit-wl/shared';
+import { amountToSmallestUnit, CurrencyISOCode, toCurrencyISOCode } from '@billsplit-wl/shared';
 import { ExpenseId, GroupId } from '@billsplit-wl/shared';
 import { useComputed, useSignal } from '@preact/signals';
 import { route } from 'preact-router';

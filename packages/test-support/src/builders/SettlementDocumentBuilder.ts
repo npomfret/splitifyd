@@ -2,8 +2,8 @@ import type { UserId } from '@billsplit-wl/shared';
 import { Amount, GroupId, SettlementId, toGroupId, toSettlementId } from '@billsplit-wl/shared';
 import type { CurrencyISOCode, ISOString } from '@billsplit-wl/shared';
 import { toCurrencyISOCode } from '@billsplit-wl/shared';
+import { toUserId } from '@billsplit-wl/shared';
 import { convertToISOString, generateShortId, randomDate, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
-import {toUserId} from "@billsplit-wl/shared";
 
 /**
  * Settlement document as stored in Firestore (no isLocked field).
@@ -67,17 +67,17 @@ export class SettlementDocumentBuilder {
     }
 
     withPayerId(payerId: UserId | string): this {
-        this.settlement.payerId = typeof payerId === 'string' ? toUserId(payerId) : payerId;;
+        this.settlement.payerId = typeof payerId === 'string' ? toUserId(payerId) : payerId;
         return this;
     }
 
     withPayeeId(payeeId: UserId | string): this {
-        this.settlement.payeeId = typeof payeeId === 'string' ? toUserId(payeeId) : payeeId;;
+        this.settlement.payeeId = typeof payeeId === 'string' ? toUserId(payeeId) : payeeId;
         return this;
     }
 
     withAmount(amount: Amount | number, currency: CurrencyISOCode | string): this {
-        this.settlement.currency = typeof currency === "string" ? toCurrencyISOCode(currency) : currency;
+        this.settlement.currency = typeof currency === 'string' ? toCurrencyISOCode(currency) : currency;
         this.settlement.amount = typeof amount === 'number' ? amount.toString() : amount;
         return this;
     }
@@ -103,7 +103,7 @@ export class SettlementDocumentBuilder {
     }
 
     withCreatedBy(userId: UserId | string): this {
-        this.settlement.createdBy = typeof userId === 'string' ? toUserId(userId) : userId;;
+        this.settlement.createdBy = typeof userId === 'string' ? toUserId(userId) : userId;
         return this;
     }
 

@@ -1,5 +1,5 @@
 import type { Amount, SimplifiedDebt, UserBalance } from '@billsplit-wl/shared';
-import { addAmounts, compareAmounts, isZeroAmount, subtractAmounts, toAmount, zeroAmount, USD, EUR } from '@billsplit-wl/shared';
+import { addAmounts, compareAmounts, EUR, isZeroAmount, subtractAmounts, toAmount, USD, zeroAmount } from '@billsplit-wl/shared';
 import type { CurrencyISOCode } from '@billsplit-wl/shared';
 import { DebtScenarios, SimplifiedDebtBuilder, UserBalanceBuilder } from '@billsplit-wl/test-support';
 import { describe, expect, it } from 'vitest';

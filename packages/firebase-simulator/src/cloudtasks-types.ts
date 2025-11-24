@@ -21,5 +21,5 @@ export interface ICloudTasksClient {
                 body?: string;
             };
         };
-    }): Promise<[{ name: string }]>;
+    }): Promise<[{ name: string; }]>;
 }

@@ -1,11 +1,11 @@
+import { useConfig } from '@/hooks/useConfig.ts';
+import { LandingPage } from '@/pages/LandingPage.tsx';
 import type { AppConfiguration } from '@billsplit-wl/shared';
 import { toShowMarketingContentFlag } from '@billsplit-wl/shared';
 import { AppConfigurationBuilder } from '@billsplit-wl/test-support';
 import { render, screen } from '@testing-library/preact';
 import type { ComponentChildren } from 'preact';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { useConfig } from '@/hooks/useConfig.ts';
-import { LandingPage } from '@/pages/LandingPage.tsx';
 
 vi.mock('react-i18next', () => ({
     useTranslation: () => ({

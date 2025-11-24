@@ -4,9 +4,9 @@ import { GroupId, ISOString } from '@billsplit-wl/shared';
 import type { CurrencyISOCode } from '@billsplit-wl/shared';
 import { toGroupId } from '@billsplit-wl/shared';
 import { SettlementId, toSettlementId } from '@billsplit-wl/shared';
+import { toCurrencyISOCode } from '@billsplit-wl/shared';
 import { convertToISOString, generateShortId, randomValidCurrencyAmountPair } from '../test-helpers';
 import { GroupMemberBuilder } from './GroupMemberBuilder';
-import {toCurrencyISOCode} from "@billsplit-wl/shared";
 
 /**
  * Builder for creating SettlementWithMembers objects for tests

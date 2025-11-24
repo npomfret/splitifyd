@@ -1,8 +1,8 @@
 import { ISOString, PolicyDTO, PolicyId, PolicyName, toPolicyName, VersionHash } from '@billsplit-wl/shared';
 import { toPolicyId } from '@billsplit-wl/shared';
+import { PolicyText, toPolicyText } from '@billsplit-wl/shared';
+import { toVersionHash } from '@billsplit-wl/shared';
 import { convertToISOString, generateShortId } from '../test-helpers';
-import {PolicyText, toPolicyText} from "@billsplit-wl/shared";
-import {toVersionHash} from "@billsplit-wl/shared";
 
 /**
  * Builder for creating PolicyDTO objects for tests
@@ -33,7 +33,7 @@ export class PolicyDocumentBuilder {
         return this;
     }
 
-    withPolicyName(name: PolicyName  | string): this {
+    withPolicyName(name: PolicyName | string): this {
         this.policy.policyName = typeof name === 'string' ? toPolicyName(name) : name;
         return this;
     }

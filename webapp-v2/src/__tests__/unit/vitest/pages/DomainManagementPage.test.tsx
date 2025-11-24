@@ -1,11 +1,11 @@
+import { apiClient } from '@/app/apiClient';
+import { useAuthRequired } from '@/app/hooks/useAuthRequired';
+import { DomainManagementPage } from '@/pages/DomainManagementPage';
 import { SystemUserRoles } from '@billsplit-wl/shared';
 import type { TenantDomainsResponse } from '@billsplit-wl/shared';
 import { fireEvent, render, screen, waitFor } from '@testing-library/preact';
 import type { ComponentChildren } from 'preact';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { useAuthRequired } from '@/app/hooks/useAuthRequired';
-import { apiClient } from '@/app/apiClient';
-import { DomainManagementPage } from '@/pages/DomainManagementPage';
 
 // Mock dependencies
 vi.mock('react-i18next', () => ({

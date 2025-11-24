@@ -1,10 +1,10 @@
+import { firebaseConfigManager } from '@/app/firebase-config';
 import { configStore } from '@/stores/config-store.ts';
+import { syncThemeHash } from '@/utils/theme-bootstrap';
 import type { AppConfiguration, BrandingConfig } from '@billsplit-wl/shared';
 import { toISOString, toTenantId } from '@billsplit-wl/shared';
 import { BrandingConfigBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { firebaseConfigManager } from '@/app/firebase-config';
-import { syncThemeHash } from '@/utils/theme-bootstrap';
 
 vi.mock('@/app/firebase-config', () => ({
     firebaseConfigManager: {

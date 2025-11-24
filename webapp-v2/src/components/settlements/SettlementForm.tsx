@@ -2,6 +2,7 @@ import { apiClient } from '@/app/apiClient.ts';
 import { useAuthRequired } from '@/app/hooks/useAuthRequired.ts';
 import { CurrencyService } from '@/app/services/currencyService.ts';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced.ts';
+import { Clickable } from '@/components/ui/Clickable';
 import { formatCurrency } from '@/utils/currency';
 import { getAmountPrecisionError } from '@/utils/currency-validation.ts';
 import { getUTCMidnight, isDateInFuture } from '@/utils/dateUtils.ts';
@@ -25,7 +26,6 @@ import { useComputed } from '@preact/signals';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Button, CurrencyAmount, CurrencyAmountInput, Form, Tooltip } from '../ui';
-import { Clickable } from '@/components/ui/Clickable';
 
 /**
  * Get the maximum allowed amount string for a given currency

@@ -2,8 +2,8 @@
  * Example tests demonstrating StubFirestoreDatabase usage
  */
 
-import { beforeEach, describe, expect, it } from 'vitest';
 import { FieldValue, Timestamp } from 'firebase-admin/firestore';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { StubFirestoreDatabase } from '../../StubFirestoreDatabase';
 
 describe('StubFirestoreDatabase - Example Usage', () => {

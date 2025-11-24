@@ -10,9 +10,9 @@ import { createTenantIdentificationMiddleware, type TenantIdentificationConfig }
 import { validateContentType, validateRequestStructure } from '../middleware/validation';
 import { detectLanguageFromHeader, getTranslationFunction, initializeI18n, LocalizedRequest } from './i18n';
 import '../types/tenant';
-import {getComponentBuilder} from "../ComponentBuilderSingleton";
+import { getComponentBuilder } from '../ComponentBuilderSingleton';
 
-const applicationBuilder = getComponentBuilder()
+const applicationBuilder = getComponentBuilder();
 const firestoreReader = applicationBuilder.buildFirestoreReader();
 const tenantRegistryService = applicationBuilder.buildTenantRegistryService();
 

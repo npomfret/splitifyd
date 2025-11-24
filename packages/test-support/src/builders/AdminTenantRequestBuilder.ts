@@ -1,10 +1,4 @@
-import type {
-    AdminUpsertTenantRequest,
-    BrandingTokens,
-    TenantBranding,
-    TenantDomainName,
-    TenantId,
-} from '@billsplit-wl/shared';
+import type { AdminUpsertTenantRequest, BrandingTokens, TenantBranding, TenantDomainName, TenantId } from '@billsplit-wl/shared';
 import {
     toTenantAccentColor,
     toTenantAppName,

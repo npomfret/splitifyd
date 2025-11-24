@@ -1,9 +1,8 @@
 import { toGroupId, toSettlementId } from '@billsplit-wl/shared';
-import { CreateSettlementRequestBuilder, UserRegistrationBuilder, CreateGroupRequestBuilder } from '@billsplit-wl/test-support';
+import { CreateGroupRequestBuilder, CreateSettlementRequestBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { AppDriver } from '../AppDriver';
-
 
 describe('SettlementService - Unit Tests', () => {
     let appDriver: AppDriver;
@@ -407,7 +406,7 @@ describe('SettlementService - Unit Tests', () => {
                     .withAmount(100, 'USD')
                     .withNote('Test settlement')
                     .build(),
-                creatorId
+                creatorId,
             );
             const settlementId = toSettlementId(settlement.id);
 
@@ -439,7 +438,7 @@ describe('SettlementService - Unit Tests', () => {
                     .withPayeeId(payeeId)
                     .withAmount(100, 'USD')
                     .build(),
-                creatorId
+                creatorId,
             );
             const settlementId = toSettlementId(settlement.id);
 
@@ -479,7 +478,7 @@ describe('SettlementService - Unit Tests', () => {
                     .withPayeeId(payeeId)
                     .withAmount(100, 'USD')
                     .build(),
-                creatorId
+                creatorId,
             );
             const settlementId = toSettlementId(settlement.id);
 
@@ -516,7 +515,7 @@ describe('SettlementService - Unit Tests', () => {
                     .withPayeeId(payeeId)
                     .withAmount(100, 'USD')
                     .build(),
-                creatorId
+                creatorId,
             );
             const settlementId = toSettlementId(settlement.id);
 
@@ -552,7 +551,7 @@ describe('SettlementService - Unit Tests', () => {
                     .withPayeeId(payeeId)
                     .withAmount(100, 'USD')
                     .build(),
-                creatorId
+                creatorId,
             );
             const settlementId = toSettlementId(settlement.id);
 
@@ -610,7 +609,7 @@ describe('SettlementService - Unit Tests', () => {
                     .withPayeeId(payeeId)
                     .withAmount(100, 'USD')
                     .build(),
-                creatorId
+                creatorId,
             );
             const settlementId = toSettlementId(settlement.id);
 

@@ -2,7 +2,7 @@ import { Button, Checkbox } from '@/components/ui';
 import { FloatingInput } from '@/components/ui/FloatingInput';
 import { STORAGE_KEYS } from '@/constants.ts';
 import { navigationService } from '@/services/navigation.service';
-import { toDisplayName, toPassword, toEmail } from '@billsplit-wl/shared';
+import { toDisplayName, toEmail, toPassword } from '@billsplit-wl/shared';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';

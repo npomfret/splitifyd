@@ -1,14 +1,14 @@
-import { SystemUserRoles, toUserId } from '@billsplit-wl/shared';
 import { Timestamp } from '@billsplit-wl/firebase-simulator';
-import { StubStorage } from '@billsplit-wl/test-support';
 import { StubCloudTasksClient, StubFirestoreDatabase } from '@billsplit-wl/firebase-simulator';
+import { SystemUserRoles, toUserId } from '@billsplit-wl/shared';
+import { StubStorage } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { FirestoreCollections } from '../../../constants';
+import type { MergeService } from '../../../merge/MergeService';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import { StubAuthService } from '../mocks/StubAuthService';
-import type { MergeService } from '../../../merge/MergeService';
 
-import {createUnitTestServiceConfig} from "../../test-config";
+import { createUnitTestServiceConfig } from '../../test-config';
 
 /**
  * MergeService Unit Tests
@@ -53,234 +53,234 @@ describe('MergeService', () => {
 
     describe('validateMergeEligibility', () => {
         describe('successful validation', () => {
-        it('should return eligible when all rules pass', async () => {
-            // Arrange: Create two users in Firestore
-            const primaryUserId = toUserId('primary-user');
-            const secondaryUserId = toUserId('secondary-user');
+            it('should return eligible when all rules pass', async () => {
+                // Arrange: Create two users in Firestore
+                const primaryUserId = toUserId('primary-user');
+                const secondaryUserId = toUserId('secondary-user');
 
-            db.seed(`users/${primaryUserId}`, {
-                id: primaryUserId,
-                email: 'primary@example.com',
-                role: SystemUserRoles.SYSTEM_USER,
-                createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now(),
-            });
+                db.seed(`users/${primaryUserId}`, {
+                    id: primaryUserId,
+                    email: 'primary@example.com',
+                    role: SystemUserRoles.SYSTEM_USER,
+                    createdAt: Timestamp.now(),
+                    updatedAt: Timestamp.now(),
+                });
 
-            db.seed(`users/${secondaryUserId}`, {
-                id: secondaryUserId,
-                email: 'secondary@example.com',
-                role: SystemUserRoles.SYSTEM_USER,
-                createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now(),
-            });
+                db.seed(`users/${secondaryUserId}`, {
+                    id: secondaryUserId,
+                    email: 'secondary@example.com',
+                    role: SystemUserRoles.SYSTEM_USER,
+                    createdAt: Timestamp.now(),
+                    updatedAt: Timestamp.now(),
+                });
 
-            // Setup Auth users with verified email for primary
-            stubAuth.setUser(primaryUserId, {
-                uid: primaryUserId,
-                email: 'primary@example.com',
-                emailVerified: true,
-            });
+                // Setup Auth users with verified email for primary
+                stubAuth.setUser(primaryUserId, {
+                    uid: primaryUserId,
+                    email: 'primary@example.com',
+                    emailVerified: true,
+                });
 
-            stubAuth.setUser(secondaryUserId, {
-                uid: secondaryUserId,
-                email: 'secondary@example.com',
-                emailVerified: false, // Secondary doesn't need to be verified
-            });
+                stubAuth.setUser(secondaryUserId, {
+                    uid: secondaryUserId,
+                    email: 'secondary@example.com',
+                    emailVerified: false, // Secondary doesn't need to be verified
+                });
 
-            // Act
-            const result = await mergeService.validateMergeEligibility(primaryUserId, secondaryUserId);
+                // Act
+                const result = await mergeService.validateMergeEligibility(primaryUserId, secondaryUserId);
 
-            // Assert
-            expect(result).toEqual({
-                eligible: true,
-            });
-        });
-    });
-
-    describe('validation failures', () => {
-        it('should reject when users are the same', async () => {
-            // Arrange
-            const userId = toUserId('same-user');
-
-            // Act
-            const result = await mergeService.validateMergeEligibility(userId, userId);
-
-            // Assert
-            expect(result).toEqual({
-                eligible: false,
-                reason: 'Cannot merge user with themselves',
+                // Assert
+                expect(result).toEqual({
+                    eligible: true,
+                });
             });
         });
 
-        it('should reject when primary user not found in database', async () => {
-            // Arrange
-            const primaryUserId = toUserId('missing-primary');
-            const secondaryUserId = toUserId('secondary-user');
+        describe('validation failures', () => {
+            it('should reject when users are the same', async () => {
+                // Arrange
+                const userId = toUserId('same-user');
 
-            db.seed(`users/${secondaryUserId}`, {
-                id: secondaryUserId,
-                email: 'secondary@example.com',
-                role: SystemUserRoles.SYSTEM_USER,
-                createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now(),
+                // Act
+                const result = await mergeService.validateMergeEligibility(userId, userId);
+
+                // Assert
+                expect(result).toEqual({
+                    eligible: false,
+                    reason: 'Cannot merge user with themselves',
+                });
             });
 
-            // Act
-            const result = await mergeService.validateMergeEligibility(primaryUserId, secondaryUserId);
+            it('should reject when primary user not found in database', async () => {
+                // Arrange
+                const primaryUserId = toUserId('missing-primary');
+                const secondaryUserId = toUserId('secondary-user');
 
-            // Assert
-            expect(result).toEqual({
-                eligible: false,
-                reason: 'Primary user not found in database',
+                db.seed(`users/${secondaryUserId}`, {
+                    id: secondaryUserId,
+                    email: 'secondary@example.com',
+                    role: SystemUserRoles.SYSTEM_USER,
+                    createdAt: Timestamp.now(),
+                    updatedAt: Timestamp.now(),
+                });
+
+                // Act
+                const result = await mergeService.validateMergeEligibility(primaryUserId, secondaryUserId);
+
+                // Assert
+                expect(result).toEqual({
+                    eligible: false,
+                    reason: 'Primary user not found in database',
+                });
+            });
+
+            it('should reject when secondary user not found in database', async () => {
+                // Arrange
+                const primaryUserId = toUserId('primary-user');
+                const secondaryUserId = toUserId('missing-secondary');
+
+                db.seed(`users/${primaryUserId}`, {
+                    id: primaryUserId,
+                    email: 'primary@example.com',
+                    role: SystemUserRoles.SYSTEM_USER,
+                    createdAt: Timestamp.now(),
+                    updatedAt: Timestamp.now(),
+                });
+
+                // Act
+                const result = await mergeService.validateMergeEligibility(primaryUserId, secondaryUserId);
+
+                // Assert
+                expect(result).toEqual({
+                    eligible: false,
+                    reason: 'Secondary user not found in database',
+                });
+            });
+
+            it('should reject when primary user not found in auth', async () => {
+                // Arrange
+                const primaryUserId = toUserId('primary-user');
+                const secondaryUserId = toUserId('secondary-user');
+
+                // Create both users in Firestore
+                db.seed(`users/${primaryUserId}`, {
+                    id: primaryUserId,
+                    email: 'primary@example.com',
+                    role: SystemUserRoles.SYSTEM_USER,
+                    createdAt: Timestamp.now(),
+                    updatedAt: Timestamp.now(),
+                });
+
+                db.seed(`users/${secondaryUserId}`, {
+                    id: secondaryUserId,
+                    email: 'secondary@example.com',
+                    role: SystemUserRoles.SYSTEM_USER,
+                    createdAt: Timestamp.now(),
+                    updatedAt: Timestamp.now(),
+                });
+
+                // Only create secondary user in auth (primary missing)
+                stubAuth.setUser(secondaryUserId, {
+                    uid: secondaryUserId,
+                    email: 'secondary@example.com',
+                    emailVerified: false,
+                });
+
+                // Act
+                const result = await mergeService.validateMergeEligibility(primaryUserId, secondaryUserId);
+
+                // Assert
+                expect(result).toEqual({
+                    eligible: false,
+                    reason: 'Primary user not found in authentication system',
+                });
+            });
+
+            it('should reject when secondary user not found in auth', async () => {
+                // Arrange
+                const primaryUserId = toUserId('primary-user');
+                const secondaryUserId = toUserId('secondary-user');
+
+                // Create both users in Firestore
+                db.seed(`users/${primaryUserId}`, {
+                    id: primaryUserId,
+                    email: 'primary@example.com',
+                    role: SystemUserRoles.SYSTEM_USER,
+                    createdAt: Timestamp.now(),
+                    updatedAt: Timestamp.now(),
+                });
+
+                db.seed(`users/${secondaryUserId}`, {
+                    id: secondaryUserId,
+                    email: 'secondary@example.com',
+                    role: SystemUserRoles.SYSTEM_USER,
+                    createdAt: Timestamp.now(),
+                    updatedAt: Timestamp.now(),
+                });
+
+                // Only create primary user in auth (secondary missing)
+                stubAuth.setUser(primaryUserId, {
+                    uid: primaryUserId,
+                    email: 'primary@example.com',
+                    emailVerified: true,
+                });
+
+                // Act
+                const result = await mergeService.validateMergeEligibility(primaryUserId, secondaryUserId);
+
+                // Assert
+                expect(result).toEqual({
+                    eligible: false,
+                    reason: 'Secondary user not found in authentication system',
+                });
+            });
+
+            it('should reject when primary user email is not verified', async () => {
+                // Arrange
+                const primaryUserId = toUserId('primary-user');
+                const secondaryUserId = toUserId('secondary-user');
+
+                // Create both users in Firestore
+                db.seed(`users/${primaryUserId}`, {
+                    id: primaryUserId,
+                    email: 'primary@example.com',
+                    role: SystemUserRoles.SYSTEM_USER,
+                    createdAt: Timestamp.now(),
+                    updatedAt: Timestamp.now(),
+                });
+
+                db.seed(`users/${secondaryUserId}`, {
+                    id: secondaryUserId,
+                    email: 'secondary@example.com',
+                    role: SystemUserRoles.SYSTEM_USER,
+                    createdAt: Timestamp.now(),
+                    updatedAt: Timestamp.now(),
+                });
+
+                // Setup Auth users with UNVERIFIED email for primary
+                stubAuth.setUser(primaryUserId, {
+                    uid: primaryUserId,
+                    email: 'primary@example.com',
+                    emailVerified: false, // NOT VERIFIED
+                });
+
+                stubAuth.setUser(secondaryUserId, {
+                    uid: secondaryUserId,
+                    email: 'secondary@example.com',
+                    emailVerified: false,
+                });
+
+                // Act
+                const result = await mergeService.validateMergeEligibility(primaryUserId, secondaryUserId);
+
+                // Assert
+                expect(result).toEqual({
+                    eligible: false,
+                    reason: 'Primary user email must be verified',
+                });
             });
         });
-
-        it('should reject when secondary user not found in database', async () => {
-            // Arrange
-            const primaryUserId = toUserId('primary-user');
-            const secondaryUserId = toUserId('missing-secondary');
-
-            db.seed(`users/${primaryUserId}`, {
-                id: primaryUserId,
-                email: 'primary@example.com',
-                role: SystemUserRoles.SYSTEM_USER,
-                createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now(),
-            });
-
-            // Act
-            const result = await mergeService.validateMergeEligibility(primaryUserId, secondaryUserId);
-
-            // Assert
-            expect(result).toEqual({
-                eligible: false,
-                reason: 'Secondary user not found in database',
-            });
-        });
-
-        it('should reject when primary user not found in auth', async () => {
-            // Arrange
-            const primaryUserId = toUserId('primary-user');
-            const secondaryUserId = toUserId('secondary-user');
-
-            // Create both users in Firestore
-            db.seed(`users/${primaryUserId}`, {
-                id: primaryUserId,
-                email: 'primary@example.com',
-                role: SystemUserRoles.SYSTEM_USER,
-                createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now(),
-            });
-
-            db.seed(`users/${secondaryUserId}`, {
-                id: secondaryUserId,
-                email: 'secondary@example.com',
-                role: SystemUserRoles.SYSTEM_USER,
-                createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now(),
-            });
-
-            // Only create secondary user in auth (primary missing)
-            stubAuth.setUser(secondaryUserId, {
-                uid: secondaryUserId,
-                email: 'secondary@example.com',
-                emailVerified: false,
-            });
-
-            // Act
-            const result = await mergeService.validateMergeEligibility(primaryUserId, secondaryUserId);
-
-            // Assert
-            expect(result).toEqual({
-                eligible: false,
-                reason: 'Primary user not found in authentication system',
-            });
-        });
-
-        it('should reject when secondary user not found in auth', async () => {
-            // Arrange
-            const primaryUserId = toUserId('primary-user');
-            const secondaryUserId = toUserId('secondary-user');
-
-            // Create both users in Firestore
-            db.seed(`users/${primaryUserId}`, {
-                id: primaryUserId,
-                email: 'primary@example.com',
-                role: SystemUserRoles.SYSTEM_USER,
-                createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now(),
-            });
-
-            db.seed(`users/${secondaryUserId}`, {
-                id: secondaryUserId,
-                email: 'secondary@example.com',
-                role: SystemUserRoles.SYSTEM_USER,
-                createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now(),
-            });
-
-            // Only create primary user in auth (secondary missing)
-            stubAuth.setUser(primaryUserId, {
-                uid: primaryUserId,
-                email: 'primary@example.com',
-                emailVerified: true,
-            });
-
-            // Act
-            const result = await mergeService.validateMergeEligibility(primaryUserId, secondaryUserId);
-
-            // Assert
-            expect(result).toEqual({
-                eligible: false,
-                reason: 'Secondary user not found in authentication system',
-            });
-        });
-
-        it('should reject when primary user email is not verified', async () => {
-            // Arrange
-            const primaryUserId = toUserId('primary-user');
-            const secondaryUserId = toUserId('secondary-user');
-
-            // Create both users in Firestore
-            db.seed(`users/${primaryUserId}`, {
-                id: primaryUserId,
-                email: 'primary@example.com',
-                role: SystemUserRoles.SYSTEM_USER,
-                createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now(),
-            });
-
-            db.seed(`users/${secondaryUserId}`, {
-                id: secondaryUserId,
-                email: 'secondary@example.com',
-                role: SystemUserRoles.SYSTEM_USER,
-                createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now(),
-            });
-
-            // Setup Auth users with UNVERIFIED email for primary
-            stubAuth.setUser(primaryUserId, {
-                uid: primaryUserId,
-                email: 'primary@example.com',
-                emailVerified: false, // NOT VERIFIED
-            });
-
-            stubAuth.setUser(secondaryUserId, {
-                uid: secondaryUserId,
-                email: 'secondary@example.com',
-                emailVerified: false,
-            });
-
-            // Act
-            const result = await mergeService.validateMergeEligibility(primaryUserId, secondaryUserId);
-
-            // Assert
-            expect(result).toEqual({
-                eligible: false,
-                reason: 'Primary user email must be verified',
-            });
-        });
-    });
     });
 
     describe('initiateMerge', () => {

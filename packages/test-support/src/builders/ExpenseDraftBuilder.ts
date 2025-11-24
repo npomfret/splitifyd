@@ -2,8 +2,8 @@ import type { ExpenseDraft, UserId } from '@billsplit-wl/shared';
 import { SplitTypes } from '@billsplit-wl/shared';
 import { Amount } from '@billsplit-wl/shared';
 import type { CurrencyISOCode } from '@billsplit-wl/shared';
+import { toUserId } from '@billsplit-wl/shared';
 import { generateShortId, randomChoice, randomLabel, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
-import {toUserId} from "@billsplit-wl/shared";
 
 export class ExpenseDraftBuilder {
     private draft: ExpenseDraft;
@@ -54,7 +54,7 @@ export class ExpenseDraftBuilder {
     }
 
     withPaidBy(userId: UserId | string): this {
-        this.draft.paidBy = typeof userId === 'string' ? toUserId(userId) : userId;;
+        this.draft.paidBy = typeof userId === 'string' ? toUserId(userId) : userId;
         return this;
     }
 

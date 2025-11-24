@@ -4,7 +4,6 @@ import { describe, expect, it } from 'vitest';
 import { ExactSplitStrategy } from '../../../../services/splits/ExactSplitStrategy';
 import { ApiError } from '../../../../utils/errors';
 
-
 describe('ExactSplitStrategy', () => {
     const strategy = new ExactSplitStrategy();
 

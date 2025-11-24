@@ -1,10 +1,10 @@
-import {toPolicyId, toPolicyName, toPolicyText, toVersionHash} from '@billsplit-wl/shared';
-import {UserRegistrationBuilder} from '@billsplit-wl/test-support';
+import { toPolicyId, toPolicyName, toPolicyText, toVersionHash } from '@billsplit-wl/shared';
+import { UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import * as crypto from 'crypto';
-import {beforeEach, describe, expect, it} from 'vitest';
-import {HTTP_STATUS} from '../../../constants';
-import {PolicyService} from '../../../services/PolicyService';
-import {AppDriver} from '../AppDriver';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { HTTP_STATUS } from '../../../constants';
+import { PolicyService } from '../../../services/PolicyService';
+import { AppDriver } from '../AppDriver';
 
 /**
  * Consolidated PolicyService Unit Tests
@@ -39,11 +39,13 @@ describe('PolicyService - Consolidated Unit Tests', () => {
         policyService = app.componentBuilder.buildPolicyService();
 
         // Register admin user for API operations
-        const adminResult = await app.registerUser(new UserRegistrationBuilder()
-            .withEmail('admin@test.com')
-            .withPassword('password123456')
-            .withDisplayName('Admin User')
-            .build());
+        const adminResult = await app.registerUser(
+            new UserRegistrationBuilder()
+                .withEmail('admin@test.com')
+                .withPassword('password123456')
+                .withDisplayName('Admin User')
+                .build(),
+        );
         adminToken = adminResult.user.uid;
         app.seedAdminUser(adminToken);
     });
@@ -285,11 +287,11 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             // Arrange - Create policies via API
             await app.createPolicy({
                 policyName: toPolicyName('Privacy Policy'),
-                text: toPolicyText('Privacy content')
+                text: toPolicyText('Privacy content'),
             }, adminToken);
             await app.createPolicy({
                 policyName: toPolicyName('Terms Of Service'),
-                text: toPolicyText('Terms content')
+                text: toPolicyText('Terms content'),
             }, adminToken);
 
             // Act
@@ -794,11 +796,11 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             // Arrange - Create policies via API
             await app.createPolicy({
                 policyName: toPolicyName('Privacy Policy'),
-                text: toPolicyText('Policy 1 content')
+                text: toPolicyText('Policy 1 content'),
             }, adminToken);
             await app.createPolicy({
                 policyName: toPolicyName('Cookie Policy'),
-                text: toPolicyText('Policy 2 content')
+                text: toPolicyText('Policy 2 content'),
             }, adminToken);
 
             // Test listPolicies

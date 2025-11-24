@@ -1,6 +1,6 @@
 #!/usr/bin/env npx tsx
 
-import {PolicyIds, PolicyName, toPolicyName, toPolicyText} from '@billsplit-wl/shared';
+import { PolicyIds, PolicyName, toPolicyName, toPolicyText } from '@billsplit-wl/shared';
 import { ApiDriver, getFirebaseEmulatorConfig } from '@billsplit-wl/test-support';
 import * as fs from 'fs';
 import assert from 'node:assert';
@@ -67,7 +67,7 @@ function readPolicyFile(filename: string): string {
 async function seedPolicy(
     policyId: PolicyId,
     policyName: PolicyName,
-    filename: string
+    filename: string,
 ): Promise<void> {
     try {
         // Check if policy already exists (via service)
@@ -90,7 +90,7 @@ async function seedPolicy(
         const createResponse = await policyService.createPolicy(policyName, text, policyId);
         const publishResponse = await policyService.publishPolicy(
             createResponse.id,
-            createResponse.currentVersionHash
+            createResponse.currentVersionHash,
         );
         console.log(`✅ Created policy: ${createResponse.id}`);
         console.log(`✅ Policy ${policyId} ready (hash: ${publishResponse.currentVersionHash})`);
@@ -157,17 +157,17 @@ export async function seedPolicies() {
         await seedPolicy(
             PolicyIds.TERMS_OF_SERVICE,
             toPolicyName('Terms and Conditions'),
-            'terms-and-conditions.md'
+            'terms-and-conditions.md',
         );
         await seedPolicy(
             PolicyIds.COOKIE_POLICY,
             toPolicyName('Cookie Policy'),
-            'cookie-policy.md'
+            'cookie-policy.md',
         );
         await seedPolicy(
             PolicyIds.PRIVACY_POLICY,
             toPolicyName('Privacy Policy'),
-            'privacy-policy.md'
+            'privacy-policy.md',
         );
 
         console.log(`✅ Successfully seeded all policies to ${env.environment}`);

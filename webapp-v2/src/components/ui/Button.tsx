@@ -1,7 +1,7 @@
+import { useMagneticHover } from '@/app/hooks/useMagneticHover';
 import { logButtonClick } from '@/utils/browser-logger.ts';
 import { cx } from '@/utils/cx.ts';
 import { ComponentChildren } from 'preact';
-import { useMagneticHover } from '@/app/hooks/useMagneticHover';
 
 interface ButtonProps {
     variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
@@ -41,7 +41,7 @@ export function Button({
     'data-testid': dataTestId,
     'aria-describedby': ariaDescribedBy,
     'aria-pressed': ariaPressed,
-    magnetic = true,  // All buttons magnetic by default (auto-disabled on Brutalist theme)
+    magnetic = true, // All buttons magnetic by default (auto-disabled on Brutalist theme)
 }: ButtonProps) {
     const isDisabled = disabled || loading;
 

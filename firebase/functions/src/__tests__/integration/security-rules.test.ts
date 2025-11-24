@@ -1,4 +1,4 @@
-import {toExpenseId, toUserId, toVersionHash} from '@billsplit-wl/shared';
+import { toExpenseId, toUserId, toVersionHash } from '@billsplit-wl/shared';
 import {
     ActivityFeedItemBuilder,
     ClientUserBuilder,
@@ -11,11 +11,11 @@ import {
     PolicyDocumentBuilder,
     SettlementDTOBuilder,
 } from '@billsplit-wl/test-support';
-import {assertFails, assertSucceeds, initializeTestEnvironment} from '@firebase/rules-unit-testing';
-import {collection, doc, getDoc, getDocs, limit, onSnapshot, query, setDoc} from 'firebase/firestore';
-import {readFileSync} from 'fs';
-import {join} from 'path';
-import {afterAll, afterEach, beforeAll, describe, expect, it} from 'vitest';
+import { assertFails, assertSucceeds, initializeTestEnvironment } from '@firebase/rules-unit-testing';
+import { collection, doc, getDoc, getDocs, limit, onSnapshot, query, setDoc } from 'firebase/firestore';
+import { readFileSync } from 'fs';
+import { join } from 'path';
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 
 // Security rules test to verify production rules work correctly
 describe('Firestore Security Rules (Production)', () => {
@@ -96,7 +96,8 @@ describe('Firestore Security Rules (Production)', () => {
 
                     // Create group-memberships documents for security rules
                     const now = new Date();
-                    const user1Membership = new GroupMemberDocumentBuilder().withUserId(userId1)
+                    const user1Membership = new GroupMemberDocumentBuilder()
+                        .withUserId(userId1)
                         .withGroupId(groupId)
                         .withRole('member')
                         .withStatus('active')
@@ -104,7 +105,8 @@ describe('Firestore Security Rules (Production)', () => {
                         .withInvitedBy('system')
                         .build();
 
-                    const user2Membership = new GroupMemberDocumentBuilder().withUserId(userId2)
+                    const user2Membership = new GroupMemberDocumentBuilder()
+                        .withUserId(userId2)
                         .withGroupId(groupId)
                         .withRole('member')
                         .withStatus('active')
@@ -267,7 +269,8 @@ describe('Firestore Security Rules (Production)', () => {
 
                     // Create group-memberships for comment group
                     const commentNow = new Date();
-                    const commentUser1Membership = new GroupMemberDocumentBuilder().withUserId(userId1)
+                    const commentUser1Membership = new GroupMemberDocumentBuilder()
+                        .withUserId(userId1)
                         .withGroupId(groupId)
                         .withRole('member')
                         .withStatus('active')
@@ -275,7 +278,8 @@ describe('Firestore Security Rules (Production)', () => {
                         .withInvitedBy('system')
                         .build();
 
-                    const commentUser2Membership = new GroupMemberDocumentBuilder().withUserId(userId2)
+                    const commentUser2Membership = new GroupMemberDocumentBuilder()
+                        .withUserId(userId2)
                         .withGroupId(groupId)
                         .withRole('member')
                         .withStatus('active')

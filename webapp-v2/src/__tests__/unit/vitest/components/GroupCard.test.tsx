@@ -1,5 +1,5 @@
 import { GroupCard } from '@/components/dashboard/GroupCard';
-import {toCurrencyISOCode, type GroupDTO } from '@billsplit-wl/shared';
+import { type GroupDTO, toCurrencyISOCode } from '@billsplit-wl/shared';
 import { GroupDTOBuilder } from '@billsplit-wl/test-support';
 import { render, screen } from '@testing-library/preact';
 import { describe, expect, it, vi } from 'vitest';

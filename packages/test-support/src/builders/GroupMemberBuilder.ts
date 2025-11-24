@@ -3,9 +3,9 @@ import { MemberRoles, MemberStatuses, UserId } from '@billsplit-wl/shared';
 import { DisplayName } from '@billsplit-wl/shared';
 import type { ISOString } from '@billsplit-wl/shared';
 import { toDisplayName } from '@billsplit-wl/shared';
+import { toUserId } from '@billsplit-wl/shared';
 import { convertToISOString, generateShortId, randomChoice } from '../test-helpers';
 import { ThemeBuilder } from './ThemeBuilder';
-import {toUserId} from "@billsplit-wl/shared";
 
 /**
  * Builder for creating GroupMember objects for tests
@@ -37,7 +37,7 @@ export class GroupMemberBuilder {
 
     // User identification methods
     withUid(uid: UserId | string): this {
-        this.member.uid = typeof  uid === 'string' ? toUserId(uid): uid;
+        this.member.uid = typeof uid === 'string' ? toUserId(uid) : uid;
         return this;
     }
 
@@ -90,7 +90,7 @@ export class GroupMemberBuilder {
     }
 
     withInvitedBy(invitedBy: UserId | string): this {
-        this.member.invitedBy = typeof invitedBy === 'string' ? toUserId(invitedBy) : invitedBy;;
+        this.member.invitedBy = typeof invitedBy === 'string' ? toUserId(invitedBy) : invitedBy;
         return this;
     }
 

@@ -21,7 +21,7 @@ export class CloudTasksClientWrapper implements ICloudTasksClient {
                 body?: string;
             };
         };
-    }): Promise<[{ name: string }]> {
+    }): Promise<[{ name: string; }]> {
         const [task] = await this.client.createTask(request as any);
         return [{ name: task.name || '' }];
     }

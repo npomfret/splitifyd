@@ -1,6 +1,6 @@
 import { formatCurrency, type FormatOptions } from '@/utils/currency/currencyFormatter.ts';
+import { EUR, GBP, toCurrencyISOCode, USD } from '@billsplit-wl/shared';
 import { describe, expect, it } from 'vitest';
-import { toCurrencyISOCode, USD, EUR, GBP } from "@billsplit-wl/shared";
 
 const JPY = toCurrencyISOCode('JPY');
 const BHD = toCurrencyISOCode('BHD');

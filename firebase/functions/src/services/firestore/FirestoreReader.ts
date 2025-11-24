@@ -712,7 +712,9 @@ export class FirestoreReader implements IFirestoreReader {
             }
 
             // Extract uids and convert to branded UserId type
-            return snapshot.docs.map((doc) => doc.data().uid)
+            return snapshot
+                .docs
+                .map((doc) => doc.data().uid)
                 .filter((uid): uid is string => typeof uid === 'string')
                 .map((uid) => toUserId(uid));
         });

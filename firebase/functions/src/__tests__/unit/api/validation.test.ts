@@ -1,11 +1,4 @@
-import {
-    calculateEqualSplits,
-    toAmount,
-    toCurrencyISOCode,
-    USD,
-    toUserId, toPassword, toEmail,
-    toExpenseId
-} from '@billsplit-wl/shared';
+import { calculateEqualSplits, toAmount, toCurrencyISOCode, toEmail, toExpenseId, toPassword, toUserId, USD } from '@billsplit-wl/shared';
 import type { ShareLinkToken, UserId } from '@billsplit-wl/shared';
 import {
     CreateExpenseRequestBuilder,
@@ -19,7 +12,7 @@ import {
     UserRegistrationBuilder,
 } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, it } from 'vitest';
-import { AppDriver } from "../AppDriver";
+import { AppDriver } from '../AppDriver';
 
 describe('validation and edge cases', () => {
     let appDriver: AppDriver;
@@ -35,7 +28,7 @@ describe('validation and edge cases', () => {
 
         const { users, admin } = await appDriver.createTestUsers({
             count: 4,
-            includeAdmin: true
+            includeAdmin: true,
         });
         [user1, user2, user3, user4] = users;
         adminUser = admin!;
@@ -123,7 +116,7 @@ describe('validation and edge cases', () => {
             .rejects
             .toMatchObject({ code: 'INVALID_LINK' });
     });
-    
+
     it('should reject group updates without any fields', async () => {
         const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
@@ -302,7 +295,7 @@ describe('validation and edge cases', () => {
             .rejects
             .toMatchObject({ code: 'MEMBER_NOT_IN_GROUP' });
     });
-    
+
     describe('split validation', () => {
         it('should reject percentage splits not totaling 100%', async () => {
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
@@ -674,7 +667,7 @@ describe('validation and edge cases', () => {
                 .toMatchObject({ code: 'VALIDATION_ERROR' });
         });
     });
-    
+
     describe('user account endpoints', () => {
         it('should reject registration when privacy policy is not accepted', async () => {
             await expect(
@@ -692,7 +685,7 @@ describe('validation and edge cases', () => {
                 .rejects
                 .toThrow(/Privacy Policy/);
         });
-        
+
         describe('changePassword', () => {
             const VALID_CURRENT_PASSWORD = toPassword('password12345');
             const VALID_NEW_PASSWORD = toPassword('NewSecurePass123!');
@@ -797,7 +790,7 @@ describe('validation and edge cases', () => {
         describe('changeEmail', () => {
             const CURRENT_PASSWORD = toPassword('password12345');
             const NEW_EMAIL = toEmail('newemail@example.com');
-            
+
             it('should reject when current password is incorrect', async () => {
                 await expect(
                     appDriver.changeEmail({
@@ -874,7 +867,7 @@ describe('validation and edge cases', () => {
                     .rejects
                     .toThrow(/invalid input/i);
             });
-            
+
             it('should reject when email is already in use by another account', async () => {
                 const otherUserEmail = toEmail('user2@example.com');
 
@@ -890,10 +883,6 @@ describe('validation and edge cases', () => {
         });
     });
 
-    
-
-    
-    
     it('should prevent removal of member with outstanding balance', async () => {
         const CURRENCY = USD;
 
@@ -993,7 +982,7 @@ describe('validation and edge cases', () => {
             .rejects
             .toMatchObject({ code: 'NOT_FOUND' });
     });
-    
+
     it('should reject malformed expense ID', async () => {
         await expect(appDriver.getExpenseFullDetails(toExpenseId('not-a-valid-id'), user1))
             .rejects

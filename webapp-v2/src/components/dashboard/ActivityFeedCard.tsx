@@ -1,5 +1,5 @@
-import { activityFeedStore } from '@/app/stores/activity-feed-store.ts';
 import { useStaggeredReveal } from '@/app/hooks/useScrollReveal';
+import { activityFeedStore } from '@/app/stores/activity-feed-store.ts';
 import { RelativeTime } from '@/components/ui/RelativeTime.tsx';
 import { routes } from '@/constants/routes.ts';
 import { navigationService } from '@/services/navigation.service.ts';

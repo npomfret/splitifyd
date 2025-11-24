@@ -1,5 +1,5 @@
-import { enhancedGroupsStore } from '@/app/stores/groups-store-enhanced.ts';
 import { useStaggeredReveal } from '@/app/hooks/useScrollReveal';
+import { enhancedGroupsStore } from '@/app/stores/groups-store-enhanced.ts';
 import { navigationService } from '@/services/navigation.service';
 import { GroupId } from '@billsplit-wl/shared';
 import { useTranslation } from 'react-i18next';

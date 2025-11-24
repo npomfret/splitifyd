@@ -1,6 +1,6 @@
 import { expenseFormStore } from '@/app/stores/expense-form-store';
+import { toCurrencyISOCode } from '@billsplit-wl/shared';
 import { beforeEach, describe, expect, it } from 'vitest';
-import {toCurrencyISOCode} from "@billsplit-wl/shared";
 
 describe('expenseFormStore amount validation', () => {
     beforeEach(() => {

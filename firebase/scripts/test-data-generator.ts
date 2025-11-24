@@ -1,5 +1,16 @@
 import { createFirestoreDatabase } from '@billsplit-wl/firebase-simulator';
-import type { Amount, CreateSettlementRequest, CurrencyISOCode, DisplayName, GroupDTO, GroupId, GroupMember, GroupPermissions, UpdateExpenseRequest, UpdateSettlementRequest } from '@billsplit-wl/shared';
+import type {
+    Amount,
+    CreateSettlementRequest,
+    CurrencyISOCode,
+    DisplayName,
+    GroupDTO,
+    GroupId,
+    GroupMember,
+    GroupPermissions,
+    UpdateExpenseRequest,
+    UpdateSettlementRequest,
+} from '@billsplit-wl/shared';
 import {
     AuthenticatedFirebaseUser,
     compareAmounts,
@@ -300,12 +311,13 @@ const generateTestUserRegistrations = (config: TestDataConfig): UserRegistration
         { email: 'river.tam@example.com', displayName: 'River Tam' },
         { email: 'simon.tam@example.com', displayName: 'Simon Tam' },
         { email: 'zoe.washburne@example.com', displayName: 'Zoe Washburne' },
-    ].map(item => {
-        return {
-            ...item,
-            email: toEmail(item.email),
-        }
-    });
+    ]
+        .map(item => {
+            return {
+                ...item,
+                email: toEmail(item.email),
+            };
+        });
 
     // Add users based on config count (minus 1 since we already have test1@test.com)
     const remainingCount = Math.min(config.userCount - 1, testUsers.length);

@@ -1,13 +1,13 @@
 import { ApiError } from '@/app/apiClient';
 import { useAuthRequired } from '@/app/hooks/useAuthRequired';
 import { enhancedGroupsStore } from '@/app/stores/groups-store-enhanced.ts';
+import { Clickable } from '@/components/ui/Clickable';
 import { logInfo } from '@/utils/browser-logger';
 import { CreateGroupRequest, GroupId, toDisplayName, toGroupName } from '@billsplit-wl/shared';
 import { signal, useComputed } from '@preact/signals';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Button, Form, Input, Tooltip } from '../ui';
-import { Clickable } from '@/components/ui/Clickable';
 
 interface CreateGroupModalProps {
     isOpen: boolean;
@@ -195,7 +195,12 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
         && DISPLAY_NAME_PATTERN.test(trimmedDisplayName);
 
     return (
-        <div class='fixed inset-0 overflow-y-auto h-full w-full z-50' style={{ backgroundColor: 'var(--modal-backdrop, rgba(0, 0, 0, 0.4))', backdropFilter: 'blur(4px)' }} onClick={handleBackdropClick} role='presentation'>
+        <div
+            class='fixed inset-0 overflow-y-auto h-full w-full z-50'
+            style={{ backgroundColor: 'var(--modal-backdrop, rgba(0, 0, 0, 0.4))', backdropFilter: 'blur(4px)' }}
+            onClick={handleBackdropClick}
+            role='presentation'
+        >
             <div
                 class='relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-surface-base border-border-default opacity-100'
                 ref={modalRef}

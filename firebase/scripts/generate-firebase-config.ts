@@ -3,8 +3,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { loadRuntimeConfig } from '../shared/scripts-config';
-import { logger } from './logger';
 import { resolvePortsForMode } from './instances-config';
+import { logger } from './logger';
 
 // Load and validate runtime configuration
 const runtimeConfig = loadRuntimeConfig();

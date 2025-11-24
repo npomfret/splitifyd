@@ -1,19 +1,6 @@
-import {
-    ActivityFeedActions,
-    ActivityFeedEventTypes,
-    calculateEqualSplits,
-    toAmount,
-    USD,
-
-} from '@billsplit-wl/shared';
+import { ActivityFeedActions, ActivityFeedEventTypes, calculateEqualSplits, toAmount, USD } from '@billsplit-wl/shared';
 import type { UserId } from '@billsplit-wl/shared';
-import {
-    CreateExpenseRequestBuilder,
-    CreateGroupRequestBuilder,
-    CreateSettlementRequestBuilder,
-    GroupUpdateBuilder,
-
-} from '@billsplit-wl/test-support';
+import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, GroupUpdateBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, it } from 'vitest';
 import { AppDriver } from '../AppDriver';
 

@@ -1,5 +1,5 @@
 import type { UserRegistration } from '@billsplit-wl/shared';
-import { toDisplayName, toPassword, toEmail } from '@billsplit-wl/shared';
+import { toDisplayName, toEmail, toPassword } from '@billsplit-wl/shared';
 import { UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { describe, expect, it } from 'vitest';
 import { validateRegisterRequest } from '../../../auth/validation';

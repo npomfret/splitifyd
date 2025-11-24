@@ -1,4 +1,5 @@
 import { ShareGroupModal } from '@/components/group';
+import { Button } from '@/components/ui';
 import { navigationService } from '@/services/navigation.service';
 import { logWarning } from '@/utils/browser-logger.ts';
 import { GroupId, GroupName } from '@billsplit-wl/shared';
@@ -12,7 +13,6 @@ import { CreateGroupModal } from '../components/dashboard/CreateGroupModal';
 import { GroupsList } from '../components/dashboard/GroupsList';
 import { BaseLayout } from '../components/layout/BaseLayout';
 import { DashboardGrid } from '../components/layout/DashboardGrid';
-import { Button } from '@/components/ui';
 
 export function DashboardPage() {
     const { t } = useTranslation();

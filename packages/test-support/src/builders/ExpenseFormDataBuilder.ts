@@ -1,4 +1,4 @@
-import {ExpenseFormData, toCurrencyISOCode} from '@billsplit-wl/shared';
+import { ExpenseFormData, toCurrencyISOCode } from '@billsplit-wl/shared';
 import { Amount } from '@billsplit-wl/shared';
 import { DisplayName } from '@billsplit-wl/shared';
 import type { CurrencyISOCode } from '@billsplit-wl/shared';
