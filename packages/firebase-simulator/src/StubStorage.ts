@@ -145,6 +145,10 @@ export class StubStorageFile implements IStorageFile {
     async makePublic(): Promise<void> {
         this.storage._markPublic(this.bucket.name, this.path);
     }
+
+    async delete(): Promise<void> {
+        this.storage.deleteFile(this.bucket.name, this.path);
+    }
 }
 
 function makeKey(bucketName: string, path: string): string {

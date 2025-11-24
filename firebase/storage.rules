@@ -13,11 +13,14 @@ service firebase.storage {
       allow write: if false;
     }
 
-    // Tenant assets (logos, favicons, images - future)
-    // match /tenant-assets/{tenantId}/{file} {
-    //   allow read: if true;
-    //   allow write: if false;
-    // }
+    // Tenant assets (logos, favicons, images)
+    match /tenant-assets/{tenantId}/{file} {
+      // Public read access for tenant logos and favicons
+      allow read: if true;
+
+      // Only Cloud Functions can write (via service account - implicit)
+      allow write: if false;
+    }
 
     // Deny everything else by default
     match /{allPaths=**} {

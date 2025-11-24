@@ -1561,6 +1561,14 @@ export interface AdminUpsertTenantResponse {
 }
 
 /**
+ * Upload tenant image response
+ * Returned by POST /api/admin/tenants/:tenantId/assets/:assetType endpoint
+ */
+export interface UploadTenantImageResponse {
+    url: string;
+}
+
+/**
  * List Auth users response
  * Returned by GET /admin/browser/users/auth endpoint (system_admin only)
  */

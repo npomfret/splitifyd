@@ -66,6 +66,7 @@ import type {
     UpdateUserProfileRequest,
     UpdateUserRoleRequest,
     UpdateUserStatusRequest,
+    UploadTenantImageResponse,
     UserId,
     UserPolicyStatusResponse,
     UserProfileResponse,
@@ -234,6 +235,12 @@ export interface AdminAPI<AuthToken> {
      * Requires: system_admin role
      */
     publishTenantTheme(request: PublishTenantThemeRequest, token?: AuthToken): Promise<PublishTenantThemeResponse>;
+
+    /**
+     * Upload tenant asset image (logo or favicon)
+     * Requires: system_admin role
+     */
+    uploadTenantImage(tenantId: string, assetType: 'logo' | 'favicon', file: File | Buffer, contentType: string, token?: AuthToken): Promise<UploadTenantImageResponse>;
 
     // ===== TENANT SETTINGS (tenant_admin or system_admin role) =====
 

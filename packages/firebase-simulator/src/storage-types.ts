@@ -24,4 +24,5 @@ export interface IStorageBucket {
 export interface IStorageFile {
     save(data: StorageFileContent, options?: StorageSaveOptions): Promise<void>;
     makePublic(): Promise<void>;
+    delete(): Promise<void>;
 }
