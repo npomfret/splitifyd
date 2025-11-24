@@ -23,7 +23,8 @@ import { ApiError } from '../../utils/errors';
 
 import type { BrandingArtifactMetadata } from '@billsplit-wl/shared';
 import { SystemUserRoles } from '@billsplit-wl/shared';
-import type { MergeJobDocument } from '../../merge/MergeService';
+import { isoStringNow } from '@billsplit-wl/shared';
+import type { MergeJobDocument, MergeJobStatus } from '../../merge/MergeService';
 import type { GroupBalanceDTO } from '../../schemas';
 import {
     ActivityFeedDocumentSchema,
@@ -1441,6 +1442,39 @@ export class FirestoreWriter implements IFirestoreWriter {
             } catch (error) {
                 logger.error('Failed to create merge job', error, { jobId });
                 throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'MERGE_JOB_CREATE_FAILED', 'Unable to create merge job document');
+            }
+        });
+    }
+
+    async updateMergeJobStatus(jobId: string, status: MergeJobStatus, error?: string): Promise<WriteResult> {
+        return measureDb('FirestoreWriter.updateMergeJobStatus', async () => {
+            try {
+                const mergeJobRef = this.db.collection(FirestoreCollections.ACCOUNT_MERGES).doc(jobId);
+                const updates: Partial<MergeJobDocument> = {
+                    status,
+                };
+
+                if (status === 'processing' && !updates.startedAt) {
+                    updates.startedAt = isoStringNow();
+                }
+
+                if (status === 'completed' || status === 'failed') {
+                    updates.completedAt = isoStringNow();
+                }
+
+                if (error) {
+                    updates.error = error;
+                }
+
+                await mergeJobRef.update(updates);
+
+                return {
+                    id: jobId,
+                    success: true,
+                };
+            } catch (err) {
+                logger.error('Failed to update merge job status', err, { jobId, status });
+                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'MERGE_JOB_UPDATE_FAILED', 'Unable to update merge job status');
             }
         });
     }

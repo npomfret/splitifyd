@@ -212,4 +212,44 @@ export class MergeService {
             throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'MERGE_INITIATION_FAILED', 'Failed to initiate account merge');
         }
     }
+
+    /**
+     * Get merge job for a specific user
+     *
+     * Fetches the job document and verifies the user is authorized to view it.
+     * User must be either the primary or secondary user in the merge.
+     *
+     * @throws {ApiError} NOT_FOUND if job doesn't exist
+     * @throws {ApiError} FORBIDDEN if user is not authorized
+     */
+    async getMergeJobForUser(jobId: string, userId: UserId): Promise<MergeJobDocument> {
+        LoggerContext.update({ operation: 'get-merge-job', jobId, userId });
+
+        try {
+            // Fetch job document
+            const job = await this.firestoreReader.getMergeJob(jobId);
+
+            if (!job) {
+                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'NOT_FOUND', 'Merge job not found');
+            }
+
+            // Verify user is authorized (must be primary or secondary user)
+            if (job.primaryUserId !== userId && job.secondaryUserId !== userId) {
+                throw new ApiError(
+                    HTTP_STATUS.FORBIDDEN,
+                    'FORBIDDEN',
+                    'You are not authorized to view this merge job',
+                );
+            }
+
+            logger.info('merge-job-retrieved', { jobId, userId });
+            return job;
+        } catch (error) {
+            if (error instanceof ApiError) {
+                throw error;
+            }
+            logger.error('Failed to get merge job', error as Error, { jobId, userId });
+            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'MERGE_JOB_FETCH_FAILED', 'Failed to retrieve merge job');
+        }
+    }
 }

@@ -1,13 +1,5 @@
 import type { PooledTestUser } from '@billsplit-wl/shared';
-import {
-    toTenantAccentColor,
-    toTenantAppName,
-    toTenantDomainName,
-    toTenantFaviconUrl,
-    toTenantLogoUrl,
-    toTenantPrimaryColor,
-    toTenantSecondaryColor,
-} from '@billsplit-wl/shared';
+import { toTenantAccentColor, toTenantAppName, toTenantDomainName, toTenantFaviconUrl, toTenantLogoUrl, toTenantPrimaryColor, toTenantSecondaryColor } from '@billsplit-wl/shared';
 import { AdminTenantRequestBuilder, ApiDriver } from '@billsplit-wl/test-support';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { FirestoreCollections } from '../../../constants';

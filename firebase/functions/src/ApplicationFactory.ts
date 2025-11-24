@@ -22,6 +22,7 @@ import { ExpenseHandlers } from './expenses/ExpenseHandlers';
 import { GroupHandlers } from './groups/GroupHandlers';
 import { GroupMemberHandlers } from './groups/GroupMemberHandlers';
 import { GroupShareHandlers } from './groups/GroupShareHandlers';
+import { MergeHandlers } from './merge/MergeHandlers';
 import { PolicyHandlers } from './policies/PolicyHandlers';
 import { UserHandlers as PolicyUserHandlers } from './policies/UserHandlers';
 import { SettlementHandlers } from './settlements/SettlementHandlers';
@@ -54,6 +55,7 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
     const groupSecurityHandlers = componentBuilder.buildGroupSecurityHandlers();
     const userBrowserHandlers = componentBuilder.buildUserBrowserHandlers();
     const tenantBrowserHandlers = componentBuilder.buildTenantBrowserHandlers();
+    const mergeHandlers = componentBuilder.buildMergeHandlers();
 
     // Services for inline handlers
     const userService = componentBuilder.buildUserService();
@@ -469,6 +471,11 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
         updateUserProfile: userHandlers.updateUserProfile,
         changePassword: userHandlers.changePassword,
         changeEmail: userHandlers.changeEmail,
+
+        // Merge handlers
+        initiateMerge: mergeHandlers.initiateMerge,
+        getMergeStatus: mergeHandlers.getMergeStatus,
+        processMergeTask: mergeHandlers.processMergeTask,
 
         // Policy handlers
         createPolicy: policyHandlers.createPolicy,

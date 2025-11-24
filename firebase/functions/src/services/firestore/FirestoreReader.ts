@@ -38,6 +38,7 @@ import {
 import { FirestoreCollections, HTTP_STATUS } from '../../constants';
 import { FieldPath, Filter, type IDocumentReference, type IDocumentSnapshot, type IFirestoreDatabase, type IQuery, type IQuerySnapshot, type ITransaction, Timestamp } from '../../firestore-wrapper';
 import { logger } from '../../logger';
+import type { MergeJobDocument } from '../../merge/MergeService';
 import { measureDb } from '../../monitoring/measure';
 import { assertTimestamp, safeParseISOToTimestamp } from '../../utils/dateHelpers';
 import { ApiError } from '../../utils/errors';
@@ -1600,6 +1601,21 @@ export class FirestoreReader implements IFirestoreReader {
             return query.docs.map((doc) => this.parseTenantDocument(doc));
         } catch (error) {
             logger.error('Failed to list all tenants', error);
+            throw error;
+        }
+    }
+
+    async getMergeJob(jobId: string): Promise<MergeJobDocument | null> {
+        try {
+            const doc = await this.db.collection(FirestoreCollections.ACCOUNT_MERGES).doc(jobId).get();
+
+            if (!doc.exists) {
+                return null;
+            }
+
+            return doc.data() as MergeJobDocument;
+        } catch (error) {
+            logger.error('Failed to get merge job', error);
             throw error;
         }
     }

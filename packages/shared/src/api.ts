@@ -28,6 +28,8 @@ import type {
     GroupId,
     GroupMembershipDTO,
     GroupPermissions,
+    InitiateMergeRequest,
+    InitiateMergeResponse,
     ISOString,
     JoinGroupResponse,
     ListAllTenantsResponse,
@@ -41,6 +43,7 @@ import type {
     ListGroupsResponse,
     ListPoliciesResponse,
     MemberRole,
+    MergeJobResponse,
     MessageResponse,
     PasswordChangeRequest,
     PolicyId,
@@ -139,6 +142,9 @@ export interface API<AuthToken> {
     updateUserProfile(request: UpdateUserProfileRequest, token?: AuthToken): Promise<UserProfileResponse>;
     changePassword(request: PasswordChangeRequest, token?: AuthToken): Promise<MessageResponse>;
     changeEmail(request: ChangeEmailRequest, token?: AuthToken): Promise<UserProfileResponse>;
+
+    initiateMerge(request: InitiateMergeRequest, token?: AuthToken): Promise<InitiateMergeResponse>;
+    getMergeStatus(jobId: string, token?: AuthToken): Promise<MergeJobResponse>;
 }
 
 /**

@@ -153,9 +153,7 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                         <div class='space-y-4'>
                             <p class='text-sm text-text-muted'>Select a role for this user</p>
 
-                            {isCurrentUser && (
-                                <Alert type='warning' message='You cannot change your own role' />
-                            )}
+                            {isCurrentUser && <Alert type='warning' message='You cannot change your own role' />}
 
                             <div class='space-y-3'>
                                 {roleOptions.map((option) => (
@@ -189,34 +187,30 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                     {/* Firebase Auth Document Tab */}
                     {activeTab === 'firebase-auth' && (
                         <div>
-                            {loadingAuth ? (
-                                <div class='text-center py-8 text-text-muted'>Loading...</div>
-                            ) : firebaseAuthData ? (
-                                <Card padding='md' className='bg-surface-muted'>
-                                    <pre class='text-xs overflow-x-auto whitespace-pre-wrap break-all'>
+                            {loadingAuth ? <div class='text-center py-8 text-text-muted'>Loading...</div> : firebaseAuthData
+                                ? (
+                                    <Card padding='md' className='bg-surface-muted'>
+                                        <pre class='text-xs overflow-x-auto whitespace-pre-wrap break-all'>
                                         {JSON.stringify(firebaseAuthData, null, 2)}
-                                    </pre>
-                                </Card>
-                            ) : (
-                                <div class='text-center py-8 text-text-muted'>No data available</div>
-                            )}
+                                        </pre>
+                                    </Card>
+                                )
+                                : <div class='text-center py-8 text-text-muted'>No data available</div>}
                         </div>
                     )}
 
                     {/* Firestore Document Tab */}
                     {activeTab === 'firestore' && (
                         <div>
-                            {loadingFirestore ? (
-                                <div class='text-center py-8 text-text-muted'>Loading...</div>
-                            ) : firestoreData ? (
-                                <Card padding='md' className='bg-surface-muted'>
-                                    <pre class='text-xs overflow-x-auto whitespace-pre-wrap break-all'>
+                            {loadingFirestore ? <div class='text-center py-8 text-text-muted'>Loading...</div> : firestoreData
+                                ? (
+                                    <Card padding='md' className='bg-surface-muted'>
+                                        <pre class='text-xs overflow-x-auto whitespace-pre-wrap break-all'>
                                         {JSON.stringify(firestoreData, null, 2)}
-                                    </pre>
-                                </Card>
-                            ) : (
-                                <div class='text-center py-8 text-text-muted'>No data available</div>
-                            )}
+                                        </pre>
+                                    </Card>
+                                )
+                                : <div class='text-center py-8 text-text-muted'>No data available</div>}
                         </div>
                     )}
                 </div>

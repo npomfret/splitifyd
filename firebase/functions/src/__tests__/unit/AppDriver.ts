@@ -31,6 +31,8 @@ import {
     GroupId,
     GroupMembershipDTO,
     GroupPermissions,
+    InitiateMergeRequest,
+    InitiateMergeResponse,
     ISOString,
     JoinGroupResponse,
     ListAllTenantsResponse,
@@ -44,6 +46,7 @@ import {
     ListGroupsResponse,
     ListPoliciesResponse,
     MemberRole,
+    MergeJobResponse,
     MessageResponse,
     PasswordChangeRequest,
     PolicyDTO,
@@ -388,6 +391,19 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
             email: user.email,
             displayName: user.displayName,
         });
+    }
+
+    /**
+     * Marks a user's email as verified in Firebase Auth
+     */
+    markEmailVerified(userId: UserId | string) {
+        const existingUser = (this.authService as any).getUser(userId);
+        if (existingUser) {
+            this.authService.setUser(userId, {
+                ...existingUser,
+                emailVerified: true,
+            });
+        }
     }
 
     /**
@@ -854,6 +870,20 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         const req = createStubRequest(authToken, changeEmailRequest);
         const res = await this.dispatchByHandler('changeEmail', req);
         return res.getJson() as UserProfileResponse;
+    }
+
+    // ===== MERGE API =====
+
+    async initiateMerge(body: InitiateMergeRequest, authToken: AuthToken): Promise<InitiateMergeResponse> {
+        const req = createStubRequest(authToken, body);
+        const res = await this.dispatchByHandler('initiateMerge', req);
+        return res.getJson() as InitiateMergeResponse;
+    }
+
+    async getMergeStatus(jobId: string, authToken: AuthToken): Promise<MergeJobResponse> {
+        const req = createStubRequest(authToken, {}, { jobId });
+        const res = await this.dispatchByHandler('getMergeStatus', req);
+        return res.getJson() as MergeJobResponse;
     }
 
     // ===== ADMIN API: USER MANAGEMENT =====

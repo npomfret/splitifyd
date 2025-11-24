@@ -341,4 +341,13 @@ export interface IFirestoreWriter {
      * @returns Write result
      */
     updateTenantBranding(tenantId: string, brandingUpdates: Record<string, any>): Promise<WriteResult>;
+
+    /**
+     * Update merge job status
+     * @param jobId - The merge job ID
+     * @param status - The new status
+     * @param error - Optional error message if failed
+     * @returns Write result
+     */
+    updateMergeJobStatus(jobId: string, status: import('../../merge/MergeService').MergeJobStatus, error?: string): Promise<WriteResult>;
 }

@@ -32,6 +32,8 @@ import {
     GroupId,
     type GroupMembershipDTO,
     type GroupPermissions,
+    InitiateMergeRequest,
+    InitiateMergeResponse,
     JoinGroupResponse,
     type ListAllTenantsResponse,
     type ListAuthUsersOptions,
@@ -44,6 +46,7 @@ import {
     ListGroupsResponse,
     type ListPoliciesResponse,
     type MemberRole,
+    MergeJobResponse,
     MessageResponse,
     PasswordChangeRequest,
     type PolicyDTO,
@@ -465,6 +468,15 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
 
     async getUserProfile(token: AuthToken): Promise<UserProfileResponse> {
         return await this.apiRequest('/user/profile', 'GET', null, token);
+    }
+
+    // Account Merge API methods
+    async initiateMerge(request: InitiateMergeRequest, token: AuthToken): Promise<InitiateMergeResponse> {
+        return await this.apiRequest('/merge', 'POST', request, token);
+    }
+
+    async getMergeStatus(jobId: string, token: AuthToken): Promise<MergeJobResponse> {
+        return await this.apiRequest(`/merge/${jobId}`, 'GET', null, token);
     }
 
     // Comment API methods

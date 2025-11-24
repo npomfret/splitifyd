@@ -35,6 +35,8 @@ import type {
     GroupFullDetailsDTO,
     GroupMembershipDTO,
     GroupPermissions,
+    InitiateMergeRequest,
+    InitiateMergeResponse,
     JoinGroupResponse,
     ListAllTenantsResponse,
     ListAuthUsersOptions,
@@ -47,6 +49,7 @@ import type {
     ListGroupsResponse,
     ListPoliciesResponse,
     MemberRole,
+    MergeJobResponse,
     MessageResponse,
     PasswordChangeRequest,
     PolicyAcceptanceStatusDTO,
@@ -1330,6 +1333,24 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
             endpoint: '/settings/tenant/domains',
             method: 'POST',
             body: request,
+        });
+    }
+
+    // ===== ACCOUNT MERGE API =====
+
+    async initiateMerge(request: InitiateMergeRequest): Promise<InitiateMergeResponse> {
+        return this.request({
+            endpoint: '/merge',
+            method: 'POST',
+            body: request,
+        });
+    }
+
+    async getMergeStatus(jobId: string): Promise<MergeJobResponse> {
+        return this.request({
+            endpoint: '/merge/:jobId',
+            method: 'GET',
+            params: { jobId },
         });
     }
 }

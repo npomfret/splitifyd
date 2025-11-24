@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { DOCUMENT_CONFIG, SYSTEM, VALIDATION_LIMITS } from './constants';
 import { logger } from './logger';
 import { validateAppConfiguration } from './middleware/config-validation';
-import { assertValidInstanceName, isDevInstanceName, type InstanceName } from './shared/instance-name';
+import { assertValidInstanceName, type InstanceName, isDevInstanceName } from './shared/instance-name';
 
 // Cache for lazy-loaded configurations
 let cachedConfig: ClientConfig | null = null;

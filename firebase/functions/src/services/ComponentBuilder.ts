@@ -6,7 +6,9 @@ import { TenantBrowserHandlers } from '../browser/TenantBrowserHandlers';
 import { UserBrowserHandlers } from '../browser/UserBrowserHandlers';
 import { createFirestoreDatabase, IFirestoreDatabase } from '../firestore-wrapper';
 import { GroupSecurityHandlers } from '../groups/GroupSecurityHandlers';
+import { MergeHandlers } from '../merge/MergeHandlers';
 import { MergeService } from '../merge/MergeService';
+import { MergeTaskService } from '../merge/MergeTaskService';
 import { ServiceConfig } from '../merge/ServiceConfig';
 import { createStorage, type IStorage } from '../storage-wrapper';
 import { ActivityFeedService } from './ActivityFeedService';
@@ -54,6 +56,8 @@ export class ComponentBuilder {
     private tenantBrowserHandlers?: TenantBrowserHandlers;
     private groupSecurityHandlers?: GroupSecurityHandlers;
     private mergeService?: MergeService;
+    private mergeTaskService?: MergeTaskService;
+    private mergeHandlers?: MergeHandlers;
     private readonly firestoreReader: IFirestoreReader;
     private readonly firestoreWriter: IFirestoreWriter;
 
@@ -280,6 +284,17 @@ export class ComponentBuilder {
         return this.mergeService;
     }
 
+    buildMergeTaskService(): MergeTaskService {
+        if (!this.mergeTaskService) {
+            this.mergeTaskService = new MergeTaskService(
+                this.buildAuthService(),
+                this.buildFirestoreReader(),
+                this.buildFirestoreWriter(),
+            );
+        }
+        return this.mergeTaskService;
+    }
+
     buildThemeArtifactService(): ThemeArtifactService {
         if (!this.themeArtifactService) {
             this.themeArtifactService = new ThemeArtifactService(this.buildThemeArtifactStorage());
@@ -326,6 +341,16 @@ export class ComponentBuilder {
             );
         }
         return this.groupSecurityHandlers;
+    }
+
+    buildMergeHandlers(): MergeHandlers {
+        if (!this.mergeHandlers) {
+            this.mergeHandlers = new MergeHandlers(
+                this.buildMergeService(),
+                this.buildMergeTaskService(),
+            );
+        }
+        return this.mergeHandlers;
     }
 }
 

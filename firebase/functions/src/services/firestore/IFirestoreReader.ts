@@ -458,4 +458,11 @@ export interface IFirestoreReader {
      * @returns Array of raw document snapshots
      */
     getGroupMembershipsInTransaction(transaction: ITransaction, groupId: GroupId): Promise<IQuerySnapshot>;
+
+    /**
+     * Get merge job document by ID
+     * @param jobId - The merge job ID
+     * @returns Merge job document or null if not found
+     */
+    getMergeJob(jobId: string): Promise<import('../../merge/MergeService').MergeJobDocument | null>;
 }

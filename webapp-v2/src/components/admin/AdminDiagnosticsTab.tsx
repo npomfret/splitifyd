@@ -103,9 +103,7 @@ export function AdminDiagnosticsTab() {
                 </Card>
             )}
 
-            {envError && (
-                <Alert type='error' message={envError} />
-            )}
+            {envError && <Alert type='error' message={envError} />}
 
             {envData && (
                 <>

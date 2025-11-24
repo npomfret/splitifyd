@@ -253,9 +253,9 @@ describe('Admin Tests', () => {
                         secondaryColor: toTenantSecondaryColor('#00ff00'),
                     },
                     domains: [
-                        'example.com:8080',  // Should strip port
-                        'EXAMPLE.COM',       // Should lowercase
-                        'example.com',       // Duplicate after normalization
+                        'example.com:8080', // Should strip port
+                        'EXAMPLE.COM', // Should lowercase
+                        'example.com', // Duplicate after normalization
                     ] as any,
                 };
 

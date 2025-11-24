@@ -1125,6 +1125,45 @@ export interface AcceptPolicyRequest {
 }
 
 // ========================================================================
+// Account Merge types
+// ========================================================================
+
+/**
+ * Status of a merge job
+ */
+export type MergeJobStatus = 'pending' | 'processing' | 'completed' | 'failed';
+
+/**
+ * Request to initiate an account merge
+ * The authenticated user becomes the primary account
+ */
+export interface InitiateMergeRequest {
+    secondaryUserId: UserId;
+}
+
+/**
+ * Response after initiating a merge
+ */
+export interface InitiateMergeResponse {
+    jobId: string;
+    status: MergeJobStatus;
+}
+
+/**
+ * Merge job status response (returned by GET /merge/:jobId)
+ */
+export interface MergeJobResponse {
+    id: string;
+    primaryUserId: UserId;
+    secondaryUserId: UserId;
+    status: MergeJobStatus;
+    createdAt: ISOString;
+    startedAt?: ISOString;
+    completedAt?: ISOString;
+    error?: string;
+}
+
+// ========================================================================
 // Balance calculation types
 // ========================================================================
 

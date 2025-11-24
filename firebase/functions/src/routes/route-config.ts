@@ -173,6 +173,29 @@ const routeDefinitions: RouteDefinition[] = [
         middleware: ['authenticate'],
     },
 
+    // === Account Merge ===
+    {
+        method: 'POST',
+        path: '/merge',
+        handlerName: 'initiateMerge',
+        category: 'user',
+        middleware: ['authenticate'],
+    },
+    {
+        method: 'GET',
+        path: '/merge/:jobId',
+        handlerName: 'getMergeStatus',
+        category: 'user',
+        middleware: ['authenticate'],
+    },
+    {
+        method: 'POST',
+        path: '/tasks/processMerge',
+        handlerName: 'processMergeTask',
+        category: 'resource',
+        // Note: Should be protected by Cloud Tasks auth in production
+    },
+
     // === Tenant Admin ===
     {
         method: 'POST',
