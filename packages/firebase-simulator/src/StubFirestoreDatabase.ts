@@ -1363,40 +1363,6 @@ export class StubFirestoreDatabase implements IFirestoreDatabase {
         this.emitDocumentChange(documentPath);
     }
 
-    /**
-     * Seed a user document with sensible defaults.
-     *
-     * Note: displayName is stored in Firebase Auth, not Firestore. If provided,
-     * it will be included in the return value but NOT stored in the database.
-     *
-     * @param userId - The user ID
-     * @param partialUser - Partial user data to override defaults
-     * @returns The complete user object including displayName (for use with Auth mocks)
-     */
-    seedUser(userId: string, partialUser: Record<string, any> = {}): Record<string, any> {
-        const now = Timestamp.now();
-
-        // Create the full user object with displayName for the return value
-        const displayName = partialUser.displayName || `User ${userId}`;
-        const defaultUser = {
-            id: userId,
-            email: partialUser.email || `${userId}@test.com`,
-            displayName,
-            role: partialUser.role || 'system_user',
-            createdAt: now,
-            updatedAt: now,
-            ...partialUser,
-        };
-
-        // Remove displayName before storing in Firestore (it belongs in Auth, not Firestore)
-        const { displayName: _omitted, id: _omittedId, ...firestoreUser } = defaultUser;
-
-        this.seed(`users/${userId}`, firestoreUser);
-
-        // Return the full object including displayName for Auth service mocks
-        return defaultUser;
-    }
-
     clear(): void {
         this.storage.clear();
     }

@@ -89,6 +89,7 @@ import {RegisterUserResult} from '../../services/UserService2';
 import {Errors, sendError} from '../../utils/errors';
 import {StubAuthService} from './mocks/StubAuthService';
 import {createUnitTestServiceConfig} from "../test-config";
+import {Timestamp} from "firebase-admin/firestore";
 
 /**
  * Extended request interface for authenticated requests in AppDriver
@@ -379,7 +380,7 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
     }
 
     seedUser(userId: UserId | string, userData: SeedUserData = {}) {
-        const user = this.db.seedUser(userId, userData);
+        const user = this._seedUser(userId, userData);
 
         this.authService.setUser(userId, {
             uid: userId,
@@ -392,7 +393,7 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
      * Seeds an admin user for testing admin-only endpoints
      */
     seedAdminUser(userId: UserId | string, userData: Record<string, any> = {}) {
-        const user = this.db.seedUser(userId, {
+        const user = this._seedUser(userId, {
             ...userData,
             role: SystemUserRoles.SYSTEM_ADMIN,
         });
@@ -408,7 +409,7 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
      * Seeds a tenant admin user for testing tenant admin endpoints
      */
     seedTenantAdminUser(userId: UserId, userData: Record<string, any> = {}) {
-        const user = this.db.seedUser(userId, {
+        const user = this._seedUser(userId, {
             ...userData,
             role: SystemUserRoles.TENANT_ADMIN,
         });
@@ -419,7 +420,39 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
             displayName: user.displayName,
         });
     }
+    /**
+     * Seed a user document with sensible defaults.
+     *
+     * Note: displayName is stored in Firebase Auth, not Firestore. If provided,
+     * it will be included in the return value but NOT stored in the database.
+     *
+     * @param userId - The user ID
+     * @param partialUser - Partial user data to override defaults
+     * @returns The complete user object including displayName (for use with Auth mocks)
+     */
+    private _seedUser(userId: string, partialUser: Record<string, any> = {}): Record<string, any> {
+        const now = Timestamp.now();
 
+        // Create the full user object with displayName for the return value
+        const displayName = partialUser.displayName || `User ${userId}`;
+        const defaultUser = {
+            id: userId,
+            email: partialUser.email || `${userId}@test.com`,
+            displayName,
+            role: partialUser.role || 'system_user',
+            createdAt: now,
+            updatedAt: now,
+            ...partialUser,
+        };
+
+        // Remove displayName before storing in Firestore (it belongs in Auth, not Firestore)
+        const { displayName: _omitted, id: _omittedId, ...firestoreUser } = defaultUser;
+
+        this.db.seed(`users/${userId}`, firestoreUser);
+
+        // Return the full object including displayName for Auth service mocks
+        return defaultUser;
+    }
     /**
      * Creates an admin user via API (register + promote to admin)
      * This replaces seedAdminUser to avoid direct database seeding
