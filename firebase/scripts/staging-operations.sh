@@ -42,10 +42,19 @@ case "$OPERATION" in
         ;;
 
     sync-tenant)
-        echo "🔄 Syncing tenant configs to staging (default only)..."
+        echo "🔄 Syncing staging tenants to deployed Firebase..."
         tsx scripts/switch-instance.ts staging-1
-        tsx scripts/sync-tenant-configs.ts staging --default-only
-        echo "✅ Tenant configs synced"
+
+        echo "  📦 Syncing staging-default-tenant (brutalist fallback)..."
+        tsx scripts/sync-tenant-configs.ts staging --tenant-id staging-default-tenant
+
+        echo "  📦 Syncing staging-tenant (splitifyd.web.app)..."
+        tsx scripts/sync-tenant-configs.ts staging --tenant-id staging-tenant
+
+        echo "  🎨 Publishing themes for both tenants..."
+        tsx scripts/publish-staging-themes.ts
+
+        echo "✅ Tenant configs synced (2 tenants) and themes published"
         ;;
 
     seed-policies)
@@ -55,9 +64,35 @@ case "$OPERATION" in
         echo "✅ Policies seeded"
         ;;
 
+    list-admins)
+        echo "📋 Listing admin users from staging..."
+        tsx scripts/switch-instance.ts staging-1
+        tsx scripts/list-admin-users.ts staging
+        ;;
+
+    promote-admin)
+        if [[ -z "${2:-}" ]] || [[ -z "${3:-}" ]]; then
+            echo "❌ Error: Email and role required for promote-admin"
+            echo "Usage: $0 promote-admin <email> <role>"
+            echo ""
+            echo "Valid roles:"
+            echo "  system_admin  - Can access admin panel, manage all users"
+            echo "  tenant_admin  - Can manage tenant settings"
+            echo ""
+            echo "Example:"
+            echo "  $0 promote-admin user@example.com system_admin"
+            exit 1
+        fi
+        EMAIL="$2"
+        ROLE="$3"
+        echo "👑 Promoting user to admin in staging..."
+        tsx scripts/switch-instance.ts staging-1
+        tsx scripts/promote-user-to-admin.ts staging "$EMAIL" "$ROLE"
+        ;;
+
     *)
         echo "❌ Error: Unknown operation '$OPERATION'"
-        echo "Usage: $0 [download-indexes|sync-tenant|seed-policies]"
+        echo "Usage: $0 [download-indexes|sync-tenant|seed-policies|list-admins|promote-admin]"
         exit 1
         ;;
 esac

@@ -21,7 +21,12 @@ export function parseEnvironment(args: string[]): ScriptEnvironment {
 
     // Always require explicit argument since scripts are called from command line
     if (!targetEnvironment || !['emulator', 'staging', 'deployed'].includes(targetEnvironment)) {
-        console.error('❌ Usage: script.ts <emulator|staging|deployed>');
+        console.error('❌ Usage: script.ts <emulator|staging>');
+        console.error('');
+        console.error('  emulator - Connect to Firebase emulator (requires INSTANCE_NAME=dev1-4)');
+        console.error('  staging  - Connect to deployed Firebase (requires INSTANCE_NAME=staging-1)');
+        console.error('');
+        console.error('Current INSTANCE_NAME from .current-instance: ' + (loadRuntimeConfig().INSTANCE_NAME || 'not set'));
         process.exit(1);
     }
 

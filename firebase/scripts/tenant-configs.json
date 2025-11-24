@@ -36,5 +36,43 @@
       }
     },
     "isDefault": true
+  },
+  {
+    "id": "staging-default-tenant",
+    "domains": [],
+    "branding": {
+      "appName": "BillSplit",
+      "logoUrl": "/logo.svg",
+      "faviconUrl": "/favicon.ico",
+      "primaryColor": "#A1A1AA",
+      "secondaryColor": "#71717A",
+      "backgroundColor": "#FAFAFA",
+      "headerBackgroundColor": "#FFFFFF",
+      "marketingFlags": {
+        "showLandingPage": false,
+        "showMarketingContent": false,
+        "showPricingPage": false
+      }
+    },
+    "isDefault": false
+  },
+  {
+    "id": "staging-tenant",
+    "domains": ["splitifyd.web.app"],
+    "branding": {
+      "appName": "Splitifyd",
+      "logoUrl": "/logo.svg",
+      "faviconUrl": "/favicon.ico",
+      "primaryColor": "#34D399",
+      "secondaryColor": "#22D3EE",
+      "backgroundColor": "#1A1D2E",
+      "headerBackgroundColor": "#252944",
+      "marketingFlags": {
+        "showLandingPage": true,
+        "showMarketingContent": true,
+        "showPricingPage": true
+      }
+    },
+    "isDefault": false
   }
 ]

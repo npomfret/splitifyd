@@ -58,15 +58,21 @@ async function resolveFirestore(env: ScriptEnvironment): Promise<Firestore> {
     return admin.firestore();
 }
 
-async function syncTenantConfigs(firestore: Firestore, options?: { defaultOnly?: boolean; }) {
+async function syncTenantConfigs(firestore: Firestore, options?: { defaultOnly?: boolean; tenantId?: string; }) {
     const configPath = path.join(__dirname, 'tenant-configs.json');
     const configData = fs.readFileSync(configPath, 'utf-8');
     let configs: TenantConfig[] = JSON.parse(configData);
 
-    // If defaultOnly, filter to only the default tenant
+    // Filter based on options
     if (options?.defaultOnly) {
         configs = configs.filter((c) => c.isDefault === true);
         console.log('🔄 Syncing default tenant only...');
+    } else if (options?.tenantId) {
+        configs = configs.filter((c) => c.id === options.tenantId);
+        if (configs.length === 0) {
+            throw new Error(`Tenant '${options.tenantId}' not found in tenant-configs.json`);
+        }
+        console.log(`🔄 Syncing tenant: ${options.tenantId}...`);
     } else {
         console.log('🔄 Syncing all tenant configurations from JSON...');
     }
@@ -147,7 +153,15 @@ async function syncTenantConfigs(firestore: Firestore, options?: { defaultOnly?:
 async function main(): Promise<void> {
     const rawArgs = process.argv.slice(2);
     const defaultOnly = rawArgs.includes('--default-only');
-    const argsWithoutFlags = rawArgs.filter((arg) => !arg.startsWith('--'));
+
+    // Parse --tenant-id flag
+    const tenantIdIndex = rawArgs.indexOf('--tenant-id');
+    let tenantId: string | undefined;
+    if (tenantIdIndex !== -1 && tenantIdIndex + 1 < rawArgs.length) {
+        tenantId = rawArgs[tenantIdIndex + 1];
+    }
+
+    const argsWithoutFlags = rawArgs.filter((arg) => !arg.startsWith('--') && arg !== tenantId);
     const env = parseEnvironment(argsWithoutFlags);
 
     initializeFirebase(env);
@@ -159,7 +173,7 @@ async function main(): Promise<void> {
     }
 
     const firestore = await resolveFirestore(env);
-    await syncTenantConfigs(firestore, { defaultOnly });
+    await syncTenantConfigs(firestore, { defaultOnly, tenantId });
 
     console.log('✅ Tenant sync complete');
 }

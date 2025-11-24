@@ -1,15 +1,20 @@
 #!/usr/bin/env npx tsx
 /**
- * Promote a user to system admin role
+ * Promote a user to admin role in deployed Firebase
  *
  * Usage:
- *   npx tsx firebase/scripts/promote-user-to-admin.ts <emulator|production> <userId|email>
+ *   npx tsx firebase/scripts/promote-user-to-admin.ts <emulator|staging> <userId|email> [role]
  *
  * Examples:
+ *   npx tsx firebase/scripts/promote-user-to-admin.ts staging user@example.com system_admin
+ *   npx tsx firebase/scripts/promote-user-to-admin.ts staging user@example.com tenant_admin
  *   npx tsx firebase/scripts/promote-user-to-admin.ts emulator user@example.com
- *   npx tsx firebase/scripts/promote-user-to-admin.ts production abc123def456
  *
- * WARNING: This grants full admin access to the user. Use with caution in production.
+ * Valid roles (defaults to system_admin):
+ *   - system_admin: Can access admin panel, manage all users
+ *   - tenant_admin: Can manage tenant settings
+ *
+ * WARNING: This grants admin access to the user. Use with caution in production.
  */
 
 import { SystemUserRoles, toUserId, UserId } from '@billsplit-wl/shared';
@@ -22,16 +27,30 @@ import { initializeFirebase, parseEnvironment } from './firebase-init';
 // Parse command line arguments
 const args = process.argv.slice(2);
 const userIdentifier = args[1];
+const roleArg = args[2] || 'system_admin';
 
 if (!userIdentifier) {
     console.error('❌ Error: User identifier (userId or email) is required');
     console.log('\nUsage:');
-    console.log('  npx tsx firebase/scripts/promote-user-to-admin.ts <emulator|production> <userId|email>');
+    console.log('  npx tsx firebase/scripts/promote-user-to-admin.ts <emulator|staging> <userId|email> [role]');
+    console.log('\nValid roles (defaults to system_admin):');
+    console.log('  - system_admin: Can access admin panel, manage all users');
+    console.log('  - tenant_admin: Can manage tenant settings');
     console.log('\nExamples:');
-    console.log('  npx tsx firebase/scripts/promote-user-to-admin.ts emulator user@example.com');
-    console.log('  npx tsx firebase/scripts/promote-user-to-admin.ts production abc123def456');
+    console.log('  npx tsx firebase/scripts/promote-user-to-admin.ts staging user@example.com system_admin');
+    console.log('  npx tsx firebase/scripts/promote-user-to-admin.ts staging user@example.com tenant_admin');
     process.exit(1);
 }
+
+// Validate role
+const validRoles = [SystemUserRoles.SYSTEM_ADMIN, SystemUserRoles.TENANT_ADMIN];
+if (!validRoles.includes(roleArg as any)) {
+    console.error(`❌ Error: Invalid role '${roleArg}'`);
+    console.error(`   Valid roles: ${validRoles.join(', ')}`);
+    process.exit(1);
+}
+
+const targetRole = roleArg as SystemUserRoles.SYSTEM_ADMIN | SystemUserRoles.TENANT_ADMIN;
 
 // Parse environment and initialize Firebase
 const env = parseEnvironment(args);
@@ -103,10 +122,12 @@ async function getUserData(userId: UserId) {
 /**
  * Promote user to admin role
  */
-async function promoteUserToAdmin(userId: UserId): Promise<void> {
+async function promoteUserToAdmin(userId: UserId, role: SystemUserRoles): Promise<void> {
+    const roleLabel = role === SystemUserRoles.SYSTEM_ADMIN ? 'SYSTEM ADMIN' : 'TENANT ADMIN';
+
     console.log('');
     console.log('═══════════════════════════════════════════════════════');
-    console.log('👑 PROMOTING USER TO SYSTEM ADMIN...');
+    console.log(`👑 PROMOTING USER TO ${roleLabel}...`);
     console.log('═══════════════════════════════════════════════════════');
     console.log('');
 
@@ -119,8 +140,8 @@ async function promoteUserToAdmin(userId: UserId): Promise<void> {
 
         // Check current role
         const currentRole = userData?.role;
-        if (currentRole === SystemUserRoles.SYSTEM_ADMIN) {
-            console.log('ℹ️  User already has admin role');
+        if (currentRole === role) {
+            console.log(`ℹ️  User already has ${roleLabel} role`);
             return;
         }
 
@@ -129,8 +150,8 @@ async function promoteUserToAdmin(userId: UserId): Promise<void> {
         // Confirm promotion in production
         if (!isEmulator) {
             console.log('');
-            console.log('⚠️  WARNING: You are about to grant admin access in PRODUCTION');
-            console.log('⚠️  This will give the user full access to all admin endpoints');
+            console.log('⚠️  WARNING: You are about to grant admin access in DEPLOYED ENVIRONMENT');
+            console.log(`⚠️  This will give the user ${roleLabel} access`);
             console.log('');
 
             // In production, we should require manual confirmation
@@ -139,9 +160,9 @@ async function promoteUserToAdmin(userId: UserId): Promise<void> {
         }
 
         // Update user role in Firestore
-        console.log(`🔄 Setting role to '${SystemUserRoles.SYSTEM_ADMIN}'...`);
+        console.log(`🔄 Setting role to '${role}'...`);
         await firestoreDb.collection(FirestoreCollections.USERS).doc(userId).update({
-            role: SystemUserRoles.SYSTEM_ADMIN,
+            role,
         });
 
         console.log('✅ User role updated successfully!');
@@ -155,12 +176,21 @@ async function promoteUserToAdmin(userId: UserId): Promise<void> {
         console.log(`  - Display Name: ${userData?.displayName || 'Unknown'}`);
         console.log(`  - Email: ${userData?.email || 'Unknown'}`);
         console.log(`  - Previous role: ${currentRole || '(none)'}`);
-        console.log(`  - New role: ${SystemUserRoles.SYSTEM_ADMIN}`);
+        console.log(`  - New role: ${role}`);
         console.log('');
-        console.log('The user can now:');
-        console.log('  - Access all /admin/* endpoints');
-        console.log('  - Manage policies via admin panel');
-        console.log('  - View and modify all system data');
+
+        if (role === SystemUserRoles.SYSTEM_ADMIN) {
+            console.log('The user can now:');
+            console.log('  - Access all /admin/* endpoints');
+            console.log('  - Manage policies via admin panel');
+            console.log('  - Manage all tenants');
+            console.log('  - View and modify all system data');
+        } else {
+            console.log('The user can now:');
+            console.log('  - Manage their tenant settings');
+            console.log('  - Update tenant branding');
+            console.log('  - Manage tenant domains');
+        }
         console.log('');
     } catch (error) {
         console.error('❌ Error promoting user to admin:', error);
@@ -180,7 +210,7 @@ async function main(): Promise<void> {
         const userId = await resolveUserId(userIdentifier);
 
         // Promote user
-        await promoteUserToAdmin(userId);
+        await promoteUserToAdmin(userId, targetRole);
 
         console.log('✅ Admin promotion completed successfully!');
     } catch (error) {

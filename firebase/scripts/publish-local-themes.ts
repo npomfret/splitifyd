@@ -24,8 +24,10 @@ function loadTenantSeeds(): TenantSeed[] {
 
     // Map fixture names based on tenant ID
     const fixtureMap: Record<string, BrandingTokenFixtureKey> = {
-        'localhost-tenant': 'localhost',
-        'default-tenant': 'loopback',
+        'localhost-tenant': 'localhost', // Aurora theme (dev)
+        'default-tenant': 'loopback', // Brutalist theme (dev)
+        'staging-default-tenant': 'loopback', // Brutalist theme (staging fallback)
+        'staging-tenant': 'localhost', // Aurora theme (staging production domain)
     };
 
     return configs.map((config: any) => ({

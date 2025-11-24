@@ -32,7 +32,9 @@
     "download:indexes": "bash scripts/staging-operations.sh download-indexes",
     "postdeploy:sync-tenant": "bash scripts/staging-operations.sh sync-tenant",
     "seed-policies:staging-1": "bash scripts/staging-operations.sh seed-policies",
-    "logs": "firebase functions:log"
+    "logs": "firebase functions:log",
+    "list-admin-users": "tsx scripts/list-admin-users.ts",
+    "promote-user": "tsx scripts/promote-user-to-admin.ts"
   },
   "author": "",
   "license": "MIT",
