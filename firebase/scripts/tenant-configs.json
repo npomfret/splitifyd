@@ -22,7 +22,7 @@
     "id": "default-tenant",
     "domains": ["127.0.0.1"],
     "branding": {
-      "appName": "Partner Expenses",
+      "appName": "Splitomatic",
       "logoUrl": "/logo.svg",
       "faviconUrl": "/favicon.ico",
       "primaryColor": "#F97316",
