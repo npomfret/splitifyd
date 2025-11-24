@@ -9,7 +9,7 @@ export const env = onRequest(createDiagnosticsFunctionOptions(), async (req: Htt
         return;
     }
 
-    if (getConfig().isProduction) {
+    if (!getConfig().isEmulator) {
         res.status(HTTP_STATUS.NOT_FOUND).json({
             error: {
                 code: 'NOT_FOUND',

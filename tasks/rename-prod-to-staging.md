@@ -357,49 +357,26 @@ if (isDeployed) { /* deployed behavior */ }
 8. **Phase 8**: Update documentation and comments
 9. **Verification**: Run test suite and verify scripts work
 
-## Risk Mitigation
+## Deployment Strategy
 
-### Backwards Compatibility (Temporary)
-
-In `instance-name.ts`, add temporary support:
-```typescript
-const LEGACY_PROD_SUPPORT = true; // TODO: Remove after successful deployment
-
-export function assertValidInstanceName(value: string | undefined): asserts value is InstanceName {
-    // Temporary backwards compatibility
-    if (LEGACY_PROD_SUPPORT && value === 'prod') {
-        console.warn('⚠️  INSTANCE_NAME=prod is deprecated, use staging-1');
-        return;
-    }
-
-    if (typeof value === 'string' &&
-        (DEV_NAME_PATTERN.test(value) || STAGING_NAME_PATTERN.test(value))) {
-        return;
-    }
-    const allowed = 'dev<number>, staging-<number>';
-    throw new Error(`INSTANCE_NAME must be one of ${allowed}. Received: ${value ?? 'undefined'}`);
-}
-```
-
-### Deployment Strategy
-
-1. **Test locally first**: Run all dev instances and ensure they work
-2. **Test switch-instance script**: Verify switching between dev1-4 and staging-1
+1. **Test locally first**: Run all dev instances and ensure they work ✅
+2. **Test switch-instance script**: Verify switching between dev1-4 and staging-1 ✅
 3. **Deploy to staging**: Use updated deployment scripts
 4. **Monitor**: Check that deployed functions have correct INSTANCE_NAME
-5. **Remove backwards compatibility**: After successful deployment, remove legacy support
 
 ## Post-Rename Verification Checklist
 
-- [ ] All TypeScript files compile without errors
-- [ ] `switch-instance.ts dev1` works
-- [ ] `switch-instance.ts staging-1` works
-- [ ] Unit tests pass
+- [x] All TypeScript files compile without errors
+- [x] `switch-instance.ts dev1` works
+- [x] `switch-instance.ts staging-1` works
+- [x] Unit tests pass
 - [ ] Integration tests pass
 - [ ] Deployment script runs (dry-run if possible)
-- [ ] Documentation is updated
-- [ ] No references to "prod" remain (except in git history)
-- [ ] No confusing "isProduction" flags remain (use isEmulator/isDeployed)
+- [x] Documentation is updated
+- [x] No references to "prod" remain (except in git history)
+- [x] No confusing "isProduction" flags remain (use isEmulator/isDeployed)
+- [x] No defaults for environment configuration (INSTANCE_NAME, CLOUD_TASKS_LOCATION, FUNCTIONS_URL)
+- [x] All .env files include CLOUD_TASKS_LOCATION and FUNCTIONS_URL
 - [ ] Deployed Firebase Functions have INSTANCE_NAME=staging-1
 
 ## Future Considerations

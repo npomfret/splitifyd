@@ -57,8 +57,8 @@ function setupRoutes(app: express.Application): void {
 
     // Setup routes from configuration
     for (const route of routeDefinitions) {
-        // Skip test-only routes in production
-        if (route.testOnly && config.isProduction) {
+        // Skip test-only routes when deployed
+        if (route.testOnly && !config.isEmulator) {
             continue;
         }
 
@@ -88,10 +88,10 @@ function setupRoutes(app: express.Application): void {
         (app[method] as Function)(route.path, ...middlewareChain, wrappedHandler);
     }
 
-    // Add test endpoint protection for production
-    if (config.isProduction) {
+    // Add test endpoint protection for deployed environment
+    if (!config.isEmulator) {
         app.all(/^\/test-pool.*/, (req, res) => {
-            logger.warn('Test endpoint accessed in production', { path: req.path, ip: req.ip });
+            logger.warn('Test endpoint accessed in deployed environment', { path: req.path, ip: req.ip });
             res.status(404).json({ error: 'Not found' });
         });
         app.all(/^\/test\/user.*/, (req, res) => {

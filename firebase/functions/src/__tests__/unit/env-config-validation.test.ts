@@ -24,11 +24,11 @@ describe('Environment Configuration Validation', () => {
         // Parse template file
         templateConfig = parseEnvFile(templateFile);
 
-        // Discover all .env.xxx files (excluding production files)
+        // Discover all .env.xxx files (excluding staging files)
         envFiles = fs
             .readdirSync(envDir)
             .filter((file) => file.match(/^\.env\.(instance\d+|[a-zA-Z]+)$/))
-            .filter((file) => !file.includes('prod')) // Exclude production files
+            .filter((file) => !file.includes('staging')) // Exclude staging files
             .map((file) => path.join(envDir, file));
     });
 

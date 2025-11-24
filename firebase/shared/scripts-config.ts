@@ -58,12 +58,15 @@ const runtimeEnvSchema = z.object({
             // Priority order:
             // 1. Explicit environment variable (highest priority)
             // 2. .current-instance file (fallback)
-            // 3. 'prod' (default)
+            // No default - configuration must be explicit
             if (value) {
                 return value;
             }
             const fromFile = readCurrentInstanceFile();
-            return fromFile ?? 'prod';
+            if (!fromFile) {
+                throw new Error('INSTANCE_NAME must be set via environment variable or .current-instance file');
+            }
+            return fromFile;
         })
         .superRefine((value, ctx) => {
             try {
@@ -93,8 +96,8 @@ export type RuntimeConfig = z.infer<typeof runtimeEnvSchema>;
  */
 export interface ScriptEnvironment {
     isEmulator: boolean;
-    isProduction: boolean;
-    environment: 'EMULATOR' | 'PRODUCTION' | 'TEST';
+    isDeployed: boolean;
+    environment: 'EMULATOR' | 'DEPLOYED' | 'TEST';
     instanceName: InstanceName;
 }
 
@@ -158,7 +161,7 @@ export function loadRuntimeConfig(): RuntimeConfig {
  *
  * This determines whether the script is running against:
  * - Emulator (dev1, dev2, dev3, dev4)
- * - Production (prod)
+ * - Deployed (staging-1, staging-2, etc.)
  * - Test (test)
  *
  * @param config - Optional pre-loaded config. If not provided, will load from environment.
@@ -167,12 +170,12 @@ export function getInstanceEnvironment(config?: RuntimeConfig): ScriptEnvironmen
     const cfg = config ?? getRuntimeConfig();
     const name = cfg.INSTANCE_NAME;
     const isEmulator = isDevInstanceName(name);
-    const isProduction = name === 'prod';
+    const isDeployed = !isEmulator;
 
     return {
         isEmulator,
-        isProduction,
-        environment: isEmulator ? 'EMULATOR' : 'PRODUCTION',
+        isDeployed,
+        environment: isEmulator ? 'EMULATOR' : 'DEPLOYED',
         instanceName: name,
     };
 }

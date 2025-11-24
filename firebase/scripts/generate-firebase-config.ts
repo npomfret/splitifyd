@@ -20,7 +20,7 @@ if (!fs.existsSync(templatePath)) {
 let configContent: string = fs.readFileSync(templatePath, 'utf8');
 
 const instanceName = runtimeConfig.INSTANCE_NAME;
-const isProduction = instanceName === 'prod';
+const isDeployed = !instanceName.startsWith('dev');
 
 // Optional staging variables with defaults
 const optionalVars: Record<string, string> = {
@@ -28,8 +28,8 @@ const optionalVars: Record<string, string> = {
     FUNCTIONS_PREDEPLOY: '',
 };
 
-if (isProduction && !process.env.FUNCTIONS_SOURCE) {
-    logger.error('❌ FUNCTIONS_SOURCE must be defined for production deployments.');
+if (isDeployed && !process.env.FUNCTIONS_SOURCE) {
+    logger.error('❌ FUNCTIONS_SOURCE must be defined for deployed environment.');
     process.exit(1);
 }
 
@@ -63,13 +63,13 @@ if (config.functions?.[0]?.predeploy?.[0] === '') {
 
 fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
 
-if (isProduction) {
-    logger.info('🔥 Firebase configuration generated for production', {
+if (isDeployed) {
+    logger.info('🔥 Firebase configuration generated for deployed environment', {
         functions_source: process.env.FUNCTIONS_SOURCE || optionalVars.FUNCTIONS_SOURCE,
         functions_predeploy: process.env.FUNCTIONS_PREDEPLOY || optionalVars.FUNCTIONS_PREDEPLOY,
     });
 } else {
-    logger.info('🔥 Firebase configuration generated', {
+    logger.info('🔥 Firebase configuration generated for emulator', {
         ports: portConfig,
     });
 }

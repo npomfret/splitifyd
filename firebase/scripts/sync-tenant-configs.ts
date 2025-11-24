@@ -155,7 +155,7 @@ async function main(): Promise<void> {
     if (env.isEmulator) {
         console.log('✅ Connected to Firebase Emulator');
     } else {
-        console.log('✅ Connected to Production Firebase');
+        console.log('✅ Connected to Deployed Firebase');
     }
 
     const firestore = await resolveFirestore(env);

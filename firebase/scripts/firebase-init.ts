@@ -6,9 +6,9 @@ import { getInstanceEnvironment, loadRuntimeConfig, type ScriptEnvironment } fro
 
 export { type ScriptEnvironment } from '../shared/scripts-config';
 
-export function isProduction() {
+export function isDeployed() {
     const env = getInstanceEnvironment();
-    return env.isProduction;
+    return env.isDeployed;
 }
 
 export function isEmulator() {
@@ -20,8 +20,8 @@ export function parseEnvironment(args: string[]): ScriptEnvironment {
     const targetEnvironment = args[0];
 
     // Always require explicit argument since scripts are called from command line
-    if (!targetEnvironment || !['emulator', 'production'].includes(targetEnvironment)) {
-        console.error('❌ Usage: script.ts <emulator|production>');
+    if (!targetEnvironment || !['emulator', 'staging', 'deployed'].includes(targetEnvironment)) {
+        console.error('❌ Usage: script.ts <emulator|staging|deployed>');
         process.exit(1);
     }
 
@@ -34,7 +34,7 @@ export function parseEnvironment(args: string[]): ScriptEnvironment {
     return {
         ...env,
         isEmulator,
-        environment: isEmulator ? 'EMULATOR' : 'PRODUCTION',
+        environment: isEmulator ? 'EMULATOR' : 'DEPLOYED',
     };
 }
 

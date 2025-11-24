@@ -10,7 +10,7 @@ const stageFunctions = path.join(stageRoot, 'functions');
 
 const productionEnv = {
     ...process.env,
-    INSTANCE_NAME: 'prod',
+    INSTANCE_NAME: 'staging-1',
     BUILD_MODE: 'production',
 };
 
@@ -49,8 +49,8 @@ const tarballs = workspacePackages.map(({ name, directory }) => {
 });
 
 // Ensure production build artifacts exist before staging
-console.log('Ensuring Firebase Functions production build...');
-execSync('npm run build:prod', { cwd: srcFunctions, stdio: 'inherit', env: productionEnv });
+console.log('Ensuring Firebase Functions build for deployment...');
+execSync('npm run build', { cwd: srcFunctions, stdio: 'inherit', env: productionEnv });
 
 // Stage functions directory
 console.log('Staging functions directory...');
@@ -60,7 +60,7 @@ const filesToPrune = [
     '.DS_Store',
     '.gcloudignore',
     '.env.devinstance.example',
-    '.env.prod.example',
+    '.env.staging-1.example',
     'integration-test-results.json',
     'package-lock.json',
     'service-account-key.json',

@@ -43,8 +43,8 @@
       "storage": 9006
     }
   },
-  "prod": {
-    "instanceName": "prod",
+  "staging-1": {
+    "instanceName": "staging-1",
     "ports": {
       "ui": -1,
       "auth": -1,

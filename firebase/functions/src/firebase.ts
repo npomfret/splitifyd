@@ -10,13 +10,19 @@ if (!process.env.INSTANCE_NAME && existsSync(envPath)) {
     loadEnv({ path: envPath });
 }
 
+/**
+ * Check if running in Firebase emulator (local development)
+ */
 export function isEmulator() {
     const name = getInstanceName();
     return isDevInstanceName(name) && process.env.FUNCTIONS_EMULATOR === 'true';
 }
 
-function isProduction() {
-    return getInstanceName() === 'prod';
+/**
+ * Check if deployed to Firebase (not emulator)
+ */
+export function isDeployed() {
+    return !isEmulator();
 }
 
 function isTest() {
@@ -57,7 +63,7 @@ function getApp(): admin.app.App {
             app = admin.initializeApp(config);
 
             // Configure emulator settings if needed
-            if (!isProduction()) {
+            if (isEmulator()) {
                 configureEmulatorSettings(app);
             }
         }

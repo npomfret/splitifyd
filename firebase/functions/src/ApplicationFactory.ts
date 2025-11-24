@@ -103,9 +103,9 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
 
         const config = getEnhancedConfigResponse(tenantContext);
 
-        // Cache config: 60s in dev for quick tenant branding updates, 5min in prod for efficiency
+        // Cache config: 60s in emulator for quick tenant branding updates, 5min when deployed for efficiency
         const serverConfig = getServerConfig();
-        const cacheMaxAge = serverConfig.isProduction ? 300 : 60;
+        const cacheMaxAge = serverConfig.isEmulator ? 60 : 300;
         res.setHeader('Cache-Control', `public, max-age=${cacheMaxAge}, must-revalidate`);
         res.json(config);
     };
@@ -209,11 +209,11 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
     };
 
     const clearUserPolicyAcceptances: RequestHandler = async (req, res) => {
-        if (config.isProduction) {
+        if (!config.isEmulator) {
             const response: TestErrorResponse = {
                 error: {
                     code: 'FORBIDDEN',
-                    message: 'Test endpoints not available in production',
+                    message: 'Test endpoints not available in deployed environment',
                 },
             };
             res.status(403).json(response);

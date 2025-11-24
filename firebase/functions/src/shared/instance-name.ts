@@ -1,18 +1,16 @@
 type DevInstanceName = `dev${number}`;
-export type InstanceName = DevInstanceName | 'prod';
+type StagingInstanceName = `staging-${number}`;
+export type InstanceName = DevInstanceName | StagingInstanceName;
 
 const DEV_NAME_PATTERN = /^dev[0-9]+$/;
+const STAGING_NAME_PATTERN = /^staging-[0-9]+$/;
 
 export function assertValidInstanceName(value: string | undefined): asserts value is InstanceName {
-    if (value === 'prod') {
+    if (typeof value === 'string' && (DEV_NAME_PATTERN.test(value) || STAGING_NAME_PATTERN.test(value))) {
         return;
     }
 
-    if (typeof value === 'string' && DEV_NAME_PATTERN.test(value)) {
-        return;
-    }
-
-    const allowed = 'prod, dev<number>';
+    const allowed = 'dev<number>, staging-<number>';
     throw new Error(`INSTANCE_NAME must be one of ${allowed}. Received: ${value ?? 'undefined'}`);
 }
 
@@ -23,18 +21,19 @@ export function requireInstanceName(): InstanceName {
 }
 
 /**
- * Get instance name, defaulting to 'prod' if not set.
- * This is useful for Cloud Functions where INSTANCE_NAME may not be explicitly set.
+ * Get instance name with strict validation - no defaults.
+ * INSTANCE_NAME must be set explicitly via environment variables.
  */
 export function getInstanceName(): InstanceName {
     const name = process.env.INSTANCE_NAME;
-    if (!name) {
-        return 'prod';
-    }
     assertValidInstanceName(name);
     return name;
 }
 
 export function isDevInstanceName(name: InstanceName): name is DevInstanceName {
     return name.startsWith('dev');
+}
+
+export function isStagingInstanceName(name: InstanceName): name is StagingInstanceName {
+    return STAGING_NAME_PATTERN.test(name);
 }

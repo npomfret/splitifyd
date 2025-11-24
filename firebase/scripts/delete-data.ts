@@ -169,8 +169,8 @@ function ensureInstanceModeMatchesTarget(env: ScriptEnvironment): void {
         return;
     }
 
-    if (!runtimeEnv.isProduction) {
-        console.error(`❌ INSTANCE_NAME must be "prod" when targeting production. Current: ${runtimeEnv.instanceName}`);
+    if (!runtimeEnv.isDeployed) {
+        console.error(`❌ INSTANCE_NAME must be a staging instance when targeting deployed environment. Current: ${runtimeEnv.instanceName}`);
         process.exit(1);
     }
 }

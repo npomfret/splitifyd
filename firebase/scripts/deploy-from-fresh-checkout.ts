@@ -8,11 +8,11 @@ type DeployMode = 'all' | 'functions' | 'hosting' | 'rules' | 'indexes';
 const repoRoot = resolve(__dirname, '../..');
 const firebaseDir = resolve(__dirname, '..');
 const functionsDir = join(firebaseDir, 'functions');
-const envTemplateName = '.env.instanceprod';
+const envTemplateName = '.env.instancestaging-1';
 const serviceAccountName = 'service-account-key.json';
 
 const deployScriptMap: Record<DeployMode, string> = {
-    all: 'deploy:prod:inner',
+    all: 'deploy:staging-1:inner',
     functions: 'deploy:functions:inner',
     hosting: 'deploy:hosting:inner',
     rules: 'deploy:rules:inner',
@@ -32,7 +32,7 @@ function run(command: string, args: string[], options?: Parameters<typeof spawnS
 }
 
 function parseMode(rawMode: string | undefined): DeployMode {
-    const normalised = (rawMode === undefined || rawMode === 'prod') ? 'all' : rawMode;
+    const normalised = (rawMode === undefined || rawMode === 'staging-1') ? 'all' : rawMode;
     if (!Object.hasOwn(deployScriptMap, normalised)) {
         throw new Error(
             `Unknown deploy mode "${rawMode}". Expected one of: ${Object.keys(deployScriptMap).join(', ')}`,
@@ -63,7 +63,7 @@ function runMonorepoBuild(cloneDir: string, env: NodeJS.ProcessEnv): void {
         cwd: cloneDir,
         env: {
             ...env,
-            INSTANCE_NAME: 'prod',
+            INSTANCE_NAME: 'staging-1',
         },
     });
 }
@@ -93,7 +93,7 @@ function runInnerDeploy(cloneFirebaseDir: string, mode: DeployMode, env: NodeJS.
 }
 
 function runPostDeploySyncTenant(cloneFirebaseDir: string, env: NodeJS.ProcessEnv): void {
-    console.log('🔄 Syncing default tenant to production Firestore...');
+    console.log('🔄 Syncing default tenant to deployed Firestore...');
     run('npm', ['run', 'postdeploy:sync-tenant'], { cwd: cloneFirebaseDir, env });
 }
 
@@ -107,7 +107,7 @@ function deploy(mode: DeployMode): void {
     const envSourcePath = join(functionsDir, envTemplateName);
     const serviceAccountSourcePath = join(firebaseDir, serviceAccountName);
 
-    ensureFile(envSourcePath, 'production environment template (.env.instanceprod)');
+    ensureFile(envSourcePath, 'staging environment template (.env.instancestaging-1)');
     ensureFile(serviceAccountSourcePath, 'service account key');
 
     const { tempRoot, cloneDir } = cloneRepository();

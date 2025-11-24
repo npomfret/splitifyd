@@ -171,12 +171,10 @@ describe('Config Endpoint Integration Tests', () => {
             const response = await fetch(configUrl);
             const config = await deserializeConfig<any>(response);
 
-            expect(config.formDefaults).toHaveProperty('displayName');
             expect(config.formDefaults).toHaveProperty('email');
             expect(config.formDefaults).toHaveProperty('password');
 
             // Validate types
-            expect(typeof config.formDefaults.displayName).toBe('string');
             expect(typeof config.formDefaults.email).toBe('string');
             expect(typeof config.formDefaults.password).toBe('string');
         });

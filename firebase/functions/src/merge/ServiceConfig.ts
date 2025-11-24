@@ -57,13 +57,13 @@ function getProjectId(): string {
 }
 
 // Define environment variable schema for service config
-// In emulator mode, some fields can be inferred and are optional
+// All required fields must be explicitly set in .env files - no defaults
 const serviceEnvSchema = z.object({
-    GCLOUD_PROJECT: z.string().min(1, 'GCLOUD_PROJECT is required').optional(),
-    CLOUD_TASKS_LOCATION: z.string().min(1, 'CLOUD_TASKS_LOCATION is required').optional(),
-    FUNCTIONS_URL: z.string().min(1, 'FUNCTIONS_URL is required').optional(),
+    GCLOUD_PROJECT: z.string().min(1, 'GCLOUD_PROJECT is required').optional(), // Can be inferred from FIREBASE_CONFIG
+    CLOUD_TASKS_LOCATION: z.string().min(1, 'CLOUD_TASKS_LOCATION is required'),
+    FUNCTIONS_URL: z.string().min(1, 'FUNCTIONS_URL is required'),
     MIN_REGISTRATION_DURATION_MS: z.coerce.number().min(0, 'MIN_REGISTRATION_DURATION_MS must be non-negative'),
-    INSTANCE_NAME: z.string().optional().default('prod'),
+    INSTANCE_NAME: z.string().min(1, 'INSTANCE_NAME is required'),
     FUNCTIONS_EMULATOR: z.string().optional(),
     FIREBASE_CONFIG: z.string().optional(),
 });
@@ -117,14 +117,15 @@ function buildServiceConfig(): ServiceConfig {
         };
     }
 
-    // In emulator mode, provide sensible defaults
-    const cloudTasksLocation = env.CLOUD_TASKS_LOCATION || 'us-central1'; // Default region from firebase.json
-    const functionsUrl = env.FUNCTIONS_URL || 'http://localhost:6003'; // Default emulator functions port
+    // In emulator mode, these values must still be explicitly set
+    if (!env.CLOUD_TASKS_LOCATION || !env.FUNCTIONS_URL) {
+        throw new Error('CLOUD_TASKS_LOCATION and FUNCTIONS_URL must be explicitly set in emulator mode');
+    }
 
     return {
         projectId,
-        cloudTasksLocation,
-        functionsUrl,
+        cloudTasksLocation: env.CLOUD_TASKS_LOCATION,
+        functionsUrl: env.FUNCTIONS_URL,
         minRegistrationDurationMs: env.MIN_REGISTRATION_DURATION_MS,
     };
 }

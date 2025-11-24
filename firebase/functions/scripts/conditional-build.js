@@ -20,8 +20,14 @@ if (fs.existsSync(envPath)) {
     dotenv.config({ path: envPath });
 }
 
-const instanceName = process.env.INSTANCE_NAME || 'dev1';
-const needsCompilation = instanceName === 'prod';
+const instanceName = process.env.INSTANCE_NAME;
+if (!instanceName) {
+    console.error('❌ INSTANCE_NAME environment variable is required');
+    console.error('💡 Make sure .env file exists and contains INSTANCE_NAME');
+    process.exit(1);
+}
+
+const needsCompilation = instanceName.startsWith('staging-');
 
 if (needsCompilation) {
     console.log(`🏗️  Running production build for Firebase Functions (INSTANCE_NAME=${instanceName})...`);

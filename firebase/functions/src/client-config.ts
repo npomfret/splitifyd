@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { DOCUMENT_CONFIG, SYSTEM, VALIDATION_LIMITS } from './constants';
 import { logger } from './logger';
 import { validateAppConfiguration } from './middleware/config-validation';
-import { assertValidInstanceName, type InstanceName } from './shared/instance-name';
+import { assertValidInstanceName, isDevInstanceName, type InstanceName } from './shared/instance-name';
 
 // Cache for lazy-loaded configurations
 let cachedConfig: ClientConfig | null = null;
@@ -16,8 +16,9 @@ let cachedEnv: z.infer<typeof envSchema> | null = null;
 // Define environment variable schema
 const instanceNameSchema = z
     .string()
-    .optional()
-    .default('prod')
+    .refine((value) => value !== undefined && value !== '', {
+        message: 'INSTANCE_NAME environment variable is required',
+    })
     .superRefine((value, ctx) => {
         try {
             assertValidInstanceName(value);
@@ -50,7 +51,7 @@ const envSchema = z.object({
 // Type for the CONFIG object
 interface ClientConfig {
     instanceName: z.infer<typeof instanceNameSchema>;
-    isProduction: boolean;
+    isEmulator: boolean;
     requestBodyLimit: string;
     validation: {
         maxRequestSizeBytes: number;
@@ -64,7 +65,6 @@ interface ClientConfig {
         previewLength: number;
     };
     formDefaults: {
-        displayName: DisplayName;
         email: Email;
         password: string;
     };
@@ -94,27 +94,27 @@ function getEnv(): z.infer<typeof envSchema> {
 function buildConfig(): ClientConfig {
     const env = getEnv();
     const name = env.INSTANCE_NAME;
-    const isProduction = name === 'prod';
+    const isEmulator = isDevInstanceName(name);
 
-    // Validate required production variables
-    if (isProduction) {
+    // Validate required deployed environment variables
+    if (!isEmulator) {
         const requiredVars = ['GCLOUD_PROJECT', 'CLIENT_API_KEY', 'CLIENT_AUTH_DOMAIN', 'CLIENT_STORAGE_BUCKET', 'CLIENT_MESSAGING_SENDER_ID', 'CLIENT_APP_ID'];
 
         const missing = requiredVars.filter((key) => !env[key as keyof typeof env]);
         if (missing.length > 0) {
-            throw new Error(`Missing environment variables in production: ${missing.join(', ')}`);
+            throw new Error(`Missing environment variables in deployed environment: ${missing.join(', ')}`);
         }
     }
 
     return {
         instanceName: name,
-        isProduction,
+        isEmulator,
         requestBodyLimit: '1mb',
         validation: {
             maxRequestSizeBytes: SYSTEM.BYTES_PER_KB * SYSTEM.BYTES_PER_KB,
             maxObjectDepth: VALIDATION_LIMITS.MAX_DOCUMENT_DEPTH,
-            maxStringLength: isProduction ? DOCUMENT_CONFIG.PROD_MAX_STRING_LENGTH : DOCUMENT_CONFIG.DEV_MAX_STRING_LENGTH,
-            maxPropertyCount: isProduction ? DOCUMENT_CONFIG.PROD_MAX_PROPERTY_COUNT : DOCUMENT_CONFIG.DEV_MAX_PROPERTY_COUNT,
+            maxStringLength: isEmulator ? DOCUMENT_CONFIG.EMULATOR_MAX_STRING_LENGTH : DOCUMENT_CONFIG.DEPLOYED_MAX_STRING_LENGTH,
+            maxPropertyCount: isEmulator ? DOCUMENT_CONFIG.EMULATOR_MAX_PROPERTY_COUNT : DOCUMENT_CONFIG.DEPLOYED_MAX_PROPERTY_COUNT,
             maxPropertyNameLength: VALIDATION_LIMITS.MAX_PROPERTY_NAME_LENGTH,
         },
         document: {
@@ -122,7 +122,6 @@ function buildConfig(): ClientConfig {
             previewLength: DOCUMENT_CONFIG.PREVIEW_LENGTH,
         },
         formDefaults: {
-            displayName: toDisplayName(isProduction ? '' : 'test'),
             email: toEmail(env.DEV_FORM_EMAIL ?? ''),
             password: env.DEV_FORM_PASSWORD ?? '',
         },
@@ -140,28 +139,28 @@ export function getConfig(): ClientConfig {
 
 // Helper functions for building AppConfiguration
 function getFirebaseAuthUrl(config: ClientConfig, env: z.infer<typeof envSchema>): string | undefined {
-    if (config.isProduction) {
+    if (!config.isEmulator) {
         return undefined;
     }
 
-    // Get auth URL from Firebase environment variable - required in development, and provided by the emulator at runtime
+    // Get auth URL from Firebase environment variable - required in emulator, and provided by the emulator at runtime
     const authHost = env.FIREBASE_AUTH_EMULATOR_HOST;
     if (!authHost) {
-        throw new Error('FIREBASE_AUTH_EMULATOR_HOST environment variable must be set in development. Set it in your .env file.');
+        throw new Error('FIREBASE_AUTH_EMULATOR_HOST environment variable must be set when using emulator. Set it in your .env file.');
     }
 
     return `http://${authHost}`;
 }
 
 function getFirebaseFirestoreUrl(config: ClientConfig, env: z.infer<typeof envSchema>): string | undefined {
-    if (config.isProduction) {
+    if (!config.isEmulator) {
         return undefined;
     }
 
-    // Get Firestore URL from Firebase environment variable - required in development - provided by the emulator at runtime
+    // Get Firestore URL from Firebase environment variable - required in emulator - provided by the emulator at runtime
     const firestoreHost = env.FIRESTORE_EMULATOR_HOST;
     if (!firestoreHost) {
-        throw new Error('FIRESTORE_EMULATOR_HOST environment variable must be set in development. Set it in your .env file.');
+        throw new Error('FIRESTORE_EMULATOR_HOST environment variable must be set when using emulator. Set it in your .env file.');
     }
 
     const validHosts = /^(?:127\.0\.0\.1|localhost|0\.0\.0\.0):\d+$/;
@@ -194,8 +193,9 @@ function buildAppConfiguration(): AppConfiguration {
         measurementId: '',
     };
 
-    const firebase: FirebaseConfig = config.isProduction
-        ? {
+    const firebase: FirebaseConfig = config.isEmulator
+        ? MINIMAL_EMULATOR_CLIENT_CONFIG
+        : {
             apiKey: env.CLIENT_API_KEY!,
             authDomain: env.CLIENT_AUTH_DOMAIN!,
             projectId,
@@ -203,17 +203,16 @@ function buildAppConfiguration(): AppConfiguration {
             messagingSenderId: env.CLIENT_MESSAGING_SENDER_ID!,
             appId: env.CLIENT_APP_ID!,
             measurementId: env.CLIENT_MEASUREMENT_ID,
-        }
-        : MINIMAL_EMULATOR_CLIENT_CONFIG;
+        };
 
-    // Validate required fields in production
-    if (config.isProduction && (!firebase.apiKey || !firebase.authDomain || !firebase.storageBucket || !firebase.messagingSenderId || !firebase.appId)) {
-        logger.error('Firebase config is incomplete in production', new Error('Missing required Firebase config'), {
+    // Validate required fields in deployed environment
+    if (!config.isEmulator && (!firebase.apiKey || !firebase.authDomain || !firebase.storageBucket || !firebase.messagingSenderId || !firebase.appId)) {
+        logger.error('Firebase config is incomplete in deployed environment', new Error('Missing required Firebase config'), {
             hasApiKey: !!env.CLIENT_API_KEY,
             hasAuthDomain: !!env.CLIENT_AUTH_DOMAIN,
             instanceName: env.INSTANCE_NAME,
         });
-        throw new Error('Firebase configuration is incomplete in production');
+        throw new Error('Firebase configuration is incomplete in deployed environment');
     }
 
     const environment: EnvironmentConfig = {
@@ -235,7 +234,7 @@ const IDENTITY_TOOLKIT_PRODUCTION_BASE_URL = 'https://identitytoolkit.googleapis
 function getIdentityToolkitBaseUrl(): string {
     const config = getConfig();
 
-    if (config.isProduction) {
+    if (!config.isEmulator) {
         return IDENTITY_TOOLKIT_PRODUCTION_BASE_URL;
     }
 
@@ -273,9 +272,9 @@ function getAppConfig(): AppConfiguration {
             const builtConfig = buildAppConfiguration();
             const config = getConfig();
 
-            // Skip validation in development since we're using dummy values
-            if (config.isProduction) {
-                // Validate in production
+            // Skip validation in emulator since we're using dummy values
+            if (!config.isEmulator) {
+                // Validate in deployed environment
                 cachedAppConfig = validateAppConfiguration(builtConfig);
             } else {
                 cachedAppConfig = builtConfig;

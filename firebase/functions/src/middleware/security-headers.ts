@@ -28,7 +28,7 @@ export function applySecurityHeaders(req: Request, res: Response, next: NextFunc
     res.setHeader('X-Permitted-Cross-Domain-Policies', 'none'); // Restrict Flash/PDF cross-domain policies
 
     const config = getConfig();
-    if (config.isProduction) {
+    if (!config.isEmulator) {
         res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload'); // Force HTTPS for 1 year
         res.setHeader(
             'Content-Security-Policy',

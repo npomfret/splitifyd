@@ -23,7 +23,7 @@ describe('instances.json', () => {
         expect(config).toHaveProperty('dev2');
         expect(config).toHaveProperty('dev3');
         expect(config).toHaveProperty('dev4');
-        expect(config).toHaveProperty('prod');
+        expect(config).toHaveProperty('staging-1');
     });
 
     it('defines ports for every emulator service per instance', () => {
@@ -35,7 +35,7 @@ describe('instances.json', () => {
                 const value = entry.ports[key];
                 expect(typeof value).toBe('number');
                 expect(Number.isInteger(value)).toBe(true);
-                if (instance === 'prod') {
+                if (instance.startsWith('staging-')) {
                     expect(value).toBeLessThanOrEqual(0);
                 } else {
                     expect(value).toBeGreaterThan(0);

@@ -16,9 +16,9 @@ if (!instance) {
     process.exit(1);
 }
 
-if (!/^[1-9][0-9]*$/.test(instance) && instance !== 'prod') {
-    logger.error('❌ Please provide a valid instance number (positive integer) or "prod".', {
-        examples: '1, 2, 3, prod',
+if (!/^[1-9][0-9]*$/.test(instance) && !/^staging-[0-9]+$/.test(instance)) {
+    logger.error('❌ Please provide a valid instance number (positive integer) or staging instance name.', {
+        examples: '1, 2, 3, staging-1',
     });
     process.exit(1);
 }
@@ -32,14 +32,14 @@ if (!fs.existsSync(sourcePath)) {
 }
 
 try {
-    const expectedName = instance === 'prod' ? 'prod' : `dev${instance}`;
+    const expectedName = /^staging-/.test(instance) ? instance : `dev${instance}`;
     if (fs.existsSync(targetPath)) {
         fs.rmSync(targetPath, { force: true });
     }
 
-    // Production: copy file for deployment clarity
-    // Development: symlink for live updates during dev
-    if (instance === 'prod') {
+    // Deployed instances: copy file for deployment clarity
+    // Development instances: symlink for live updates during dev
+    if (/^staging-/.test(instance)) {
         fs.copyFileSync(sourcePath, targetPath);
         logger.info(`✅ Switched to instance ${instance} configuration via copy`, { target: targetPath, source: sourcePath });
     } else {
@@ -59,7 +59,7 @@ try {
         process.exit(1);
     }
 
-    const isProduction: boolean = instanceName === 'prod';
+    const isDeployed: boolean = /^staging-/.test(instanceName);
 
     // Write current instance to .current-instance file for scripts to reference
     const currentInstancePath = path.join(__dirname, '../.current-instance');
@@ -72,14 +72,14 @@ try {
         stdio: 'inherit',
     });
 
-    if (!isProduction) {
+    if (!isDeployed) {
         const ports = requireInstanceConfig(expectedName).ports;
         logger.info('📍 Emulator ports configured', {
             ...ports,
             nextStep: 'npm run dev:with-data',
         });
     } else {
-        logger.info('🚀 Production environment configured - ready for deployment', {
+        logger.info('🚀 Deployed environment configured - ready for deployment', {
             functions_source: process.env.FUNCTIONS_SOURCE,
             functions_predeploy: process.env.FUNCTIONS_PREDEPLOY,
         });

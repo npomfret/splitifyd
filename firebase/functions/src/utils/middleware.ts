@@ -17,7 +17,7 @@ const firestoreReader = applicationBuilder.buildFirestoreReader();
 const tenantRegistryService = applicationBuilder.buildTenantRegistryService();
 
 const tenantIdentificationConfig: TenantIdentificationConfig = {
-    allowOverrideHeader: () => !getConfig().isProduction,
+    allowOverrideHeader: () => getConfig().isEmulator,
 };
 
 /**
