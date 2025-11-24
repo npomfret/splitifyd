@@ -201,12 +201,6 @@ export interface AdminAPI<AuthToken> {
      */
     updateUserRole(uid: UserId, updates: UpdateUserRoleRequest, token?: AuthToken): Promise<AdminUserProfile>;
 
-    /**
-     * Promote user to system_admin role (test/emulator only)
-     * Only available in emulator or test environments
-     */
-    promoteUserToAdmin(uid: UserId): Promise<MessageResponse>;
-
     // ===== USER/TENANT BROWSING (system_user or system_admin role) =====
 
     /**
@@ -298,4 +292,22 @@ export interface TestAPI {
      * @param email - Email address of the test user to return
      */
     returnTestUser(email: Email): Promise<void>;
+
+    /**
+     * Promote user to system_admin role (test/emulator only)
+     * Only available in emulator or test environments
+     *
+     * @param uid - User ID to promote to admin
+     */
+    promoteUserToAdmin(uid: UserId): Promise<MessageResponse>;
+
+    /**
+     * Clear all policy acceptances for the authenticated user
+     * Useful for testing policy acceptance flows
+     *
+     * Test environments only - endpoint returns 403 in production
+     *
+     * @param token - Authentication token of the user whose policy acceptances should be cleared
+     */
+    clearUserPolicyAcceptances(token: AuthToken): Promise<void>;
 }

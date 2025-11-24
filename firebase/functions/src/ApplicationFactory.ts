@@ -270,65 +270,6 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
         }
     };
 
-    const testPromoteToAdmin: RequestHandler = async (req, res) => {
-        if (config.isProduction) {
-            const response: TestErrorResponse = {
-                error: {
-                    code: 'FORBIDDEN',
-                    message: 'Test endpoints not available in production',
-                },
-            };
-            res.status(403).json(response);
-            return;
-        }
-
-        const authHeader = req.headers.authorization;
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            const response: TestErrorResponse = {
-                error: {
-                    code: 'UNAUTHORIZED',
-                    message: 'Authorization token required',
-                },
-            };
-            res.status(401).json(response);
-            return;
-        }
-
-        const token = authHeader.substring(7);
-        let decodedToken;
-
-        try {
-            decodedToken = await authService.verifyIdToken(token);
-        } catch (error) {
-            const response: TestErrorResponse = {
-                error: {
-                    code: 'UNAUTHORIZED',
-                    message: 'Invalid token',
-                },
-            };
-            res.status(401).json(response);
-            return;
-        }
-
-        try {
-            await firestoreWriter.promoteUserToAdmin(toUserId(decodedToken.uid));
-
-            logger.info('User promoted to admin', {
-                userId: decodedToken.uid,
-            });
-
-            const response: TestSuccessResponse = {
-                success: true,
-                message: 'User promoted to system admin',
-            };
-            res.json(response);
-        } catch (error) {
-            logger.error('Failed to promote user to admin', error as Error, {
-                userId: decodedToken.uid,
-            });
-            throw error;
-        }
-    };
 
     // Tenant settings handlers (admin-only)
     const getTenantSettings: RequestHandler = async (req, res) => {
@@ -578,7 +519,6 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
         returnTestUser,
         promoteTestUserToAdmin,
         clearUserPolicyAcceptances,
-        testPromoteToAdmin,
 
         // Tenant settings handlers
         getTenantSettings,

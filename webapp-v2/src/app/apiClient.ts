@@ -1061,14 +1061,6 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
         });
     }
 
-    async promoteUserToAdmin(uid: UserId): Promise<MessageResponse> {
-        return this.request<MessageResponse>({
-            endpoint: '/test/promote-user-to-admin',
-            method: 'POST',
-            body: { uid },
-        });
-    }
-
     // User policy acceptance methods
     async acceptMultiplePolicies(acceptances: AcceptPolicyRequest[]): Promise<AcceptMultiplePoliciesResponse> {
         return this.request({
