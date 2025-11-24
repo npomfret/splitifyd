@@ -205,5 +205,84 @@ describe('Admin Tests', () => {
                     .toThrow();
             });
         });
+
+        describe('GET /api/admin/users/:uid/auth - getUserAuth', () => {
+            it('should return Firebase Auth user record with sensitive fields removed', async () => {
+                const authData = await appDriver.getUserAuth(regularUser, adminUser);
+
+                // Should contain expected Firebase Auth fields
+                expect(authData).toHaveProperty('uid');
+                expect(authData).toHaveProperty('email');
+                expect(authData).toHaveProperty('displayName');
+                expect(authData).toHaveProperty('emailVerified');
+                expect(authData).toHaveProperty('disabled');
+                expect(authData).toHaveProperty('metadata');
+
+                // Should NOT contain sensitive fields
+                expect(authData).not.toHaveProperty('passwordHash');
+                expect(authData).not.toHaveProperty('passwordSalt');
+
+                // Should have security note
+                expect(authData).toHaveProperty('_note');
+                expect(authData._note).toContain('passwordHash');
+                expect(authData._note).toContain('passwordSalt');
+            });
+
+            it('should reject invalid UID', async () => {
+                await expect(
+                    appDriver.getUserAuth(toUserId(''), adminUser),
+                )
+                    .rejects
+                    .toThrow();
+            });
+
+            it('should reject non-existent user', async () => {
+                await expect(
+                    appDriver.getUserAuth(toUserId('nonexistent-user'), adminUser),
+                )
+                    .rejects
+                    .toThrow();
+            });
+        });
+
+        describe('GET /api/admin/users/:uid/firestore - getUserFirestore', () => {
+            it('should return Firestore user document', async () => {
+                const firestoreData = await appDriver.getUserFirestore(regularUser, adminUser);
+
+                // Should contain expected Firestore fields (guaranteed to be present)
+                expect(firestoreData).toHaveProperty('id');
+                expect(firestoreData).toHaveProperty('role');
+                expect(firestoreData).toHaveProperty('createdAt');
+                expect(firestoreData).toHaveProperty('updatedAt');
+
+                // Verify the id matches the requested user
+                expect(firestoreData.id).toBe(regularUser);
+
+                // Role should be valid
+                expect(Object.values(SystemUserRoles)).toContain(firestoreData.role);
+
+                // Should NOT contain Firebase Auth-only fields
+                expect(firestoreData).not.toHaveProperty('disabled');
+                expect(firestoreData).not.toHaveProperty('metadata');
+                expect(firestoreData).not.toHaveProperty('passwordHash');
+                expect(firestoreData).not.toHaveProperty('passwordSalt');
+            });
+
+            it('should reject invalid UID', async () => {
+                await expect(
+                    appDriver.getUserFirestore(toUserId(''), adminUser),
+                )
+                    .rejects
+                    .toThrow();
+            });
+
+            it('should reject non-existent user', async () => {
+                await expect(
+                    appDriver.getUserFirestore(toUserId('nonexistent-user'), adminUser),
+                )
+                    .rejects
+                    .toThrow();
+            });
+        });
     });
 });

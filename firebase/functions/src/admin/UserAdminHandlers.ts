@@ -165,6 +165,111 @@ export class UserAdminHandlers {
     };
 
     /**
+     * Get Firebase Auth user record (raw)
+     * GET /admin/users/:uid/auth
+     */
+    getUserAuth = async (req: Request, res: Response): Promise<void> => {
+        const { uid } = req.params;
+
+        // Validate UID
+        if (!uid || typeof uid !== 'string' || uid.trim().length === 0) {
+            throw new ApiError(
+                HTTP_STATUS.BAD_REQUEST,
+                'INVALID_UID',
+                'User ID is required and must be a non-empty string',
+            );
+        }
+
+        const userId = toUserId(uid);
+
+        try {
+            const userRecord = await this.authService.getUser(userId);
+            if (!userRecord) {
+                throw new ApiError(
+                    HTTP_STATUS.NOT_FOUND,
+                    'USER_NOT_FOUND',
+                    `User with UID ${uid} not found`,
+                );
+            }
+
+            // Remove sensitive fields from the auth record
+            const sanitizedRecord: any = { ...userRecord };
+            delete sanitizedRecord.passwordHash;
+            delete sanitizedRecord.passwordSalt;
+
+            // Add security note
+            const response = {
+                ...sanitizedRecord,
+                _note: 'Some fields (passwordHash, passwordSalt) have been removed for security reasons',
+            };
+
+            // Return sanitized Firebase Auth user record
+            res.json(response);
+        } catch (error) {
+            if (error instanceof ApiError) {
+                throw error;
+            }
+
+            logger.error('Failed to get user auth record', error as Error, {
+                targetUid: uid,
+            });
+
+            throw new ApiError(
+                HTTP_STATUS.INTERNAL_ERROR,
+                'GET_AUTH_FAILED',
+                'Failed to get Firebase Auth user record',
+            );
+        }
+    };
+
+    /**
+     * Get Firestore user document (raw)
+     * GET /admin/users/:uid/firestore
+     */
+    getUserFirestore = async (req: Request, res: Response): Promise<void> => {
+        const { uid } = req.params;
+
+        // Validate UID
+        if (!uid || typeof uid !== 'string' || uid.trim().length === 0) {
+            throw new ApiError(
+                HTTP_STATUS.BAD_REQUEST,
+                'INVALID_UID',
+                'User ID is required and must be a non-empty string',
+            );
+        }
+
+        const userId = toUserId(uid);
+
+        try {
+            const firestoreData = await this.firestoreReader.getUser(userId);
+            if (!firestoreData) {
+                throw new ApiError(
+                    HTTP_STATUS.NOT_FOUND,
+                    'USER_NOT_FOUND',
+                    `Firestore user document with UID ${uid} not found`,
+                );
+            }
+
+            // Return raw Firestore document
+            res.json(firestoreData);
+        } catch (error) {
+            if (error instanceof ApiError) {
+                throw error;
+            }
+
+            logger.error('Failed to get user firestore document', error as Error, {
+                targetUid: uid,
+            });
+
+            throw new ApiError(
+                HTTP_STATUS.INTERNAL_ERROR,
+                'GET_FIRESTORE_FAILED',
+                'Failed to get Firestore user document',
+            );
+        }
+    };
+
+    /**
      * Update user role (system_admin, tenant_admin, or regular user)
      * PUT /admin/users/:uid/role
      */

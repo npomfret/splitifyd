@@ -1,180 +1,281 @@
-import { Alert, Button, Card, Stack, Typography } from '@/components/ui';
-import { useConfig } from '@/hooks/useConfig.ts';
+import { Alert, Card, Stack, Typography } from '@/components/ui';
 import { logError } from '@/utils/browser-logger';
-import { getThemeStorageKey } from '@/utils/theme-bootstrap';
-import { useEffect, useMemo, useState } from 'preact/hooks';
+import { useEffect, useState } from 'preact/hooks';
 
-const TRACKED_VARS = [
-    '--surface-base-rgb',
-    '--surface-muted-rgb',
-    '--surface-raised-rgb',
-    '--surface-warning-rgb',
-    '--text-primary-rgb',
-    '--text-muted-rgb',
-    '--text-inverted-rgb',
-    '--interactive-primary-rgb',
-    '--interactive-primary-foreground-rgb',
-    '--interactive-secondary-rgb',
-    '--interactive-accent-rgb',
-    '--semantic-success-rgb',
-    '--semantic-warning-rgb',
-    '--border-default-rgb',
-    '--border-strong-rgb',
-    '--border-warning-rgb',
-];
-
-type ActionMessage = { type: 'success' | 'error'; text: string; } | null;
+interface EnvPayload {
+    status: {
+        timestamp: string;
+        environment: string;
+        nodeVersion: string;
+        uptimeSeconds: number;
+        memorySummary: {
+            rssMb: number;
+            heapUsedMb: number;
+            heapTotalMb: number;
+            externalMb: number;
+        };
+    };
+    env: Record<string, string | undefined>;
+    build: {
+        timestamp: string;
+        date: string;
+        version: string;
+    };
+    runtime: {
+        startTime: string;
+        uptime: number;
+        uptimeHuman: string;
+    };
+    memory: {
+        rss: string;
+        heapTotal: string;
+        heapUsed: string;
+        external: string;
+        arrayBuffers: string;
+        heapAvailable: string;
+        heapLimit: string;
+        totalHeapSize: string;
+        totalHeapExecutableSize: string;
+        totalPhysicalSize: string;
+        totalAvailableSize: string;
+        mallocedMemory: string;
+        peakMallocedMemory: string;
+        heapSpaces: Array<{
+            spaceName: string;
+            spaceSize: string;
+            spaceUsed: string;
+            spaceAvailable: string;
+            physicalSize: string;
+        }>;
+    };
+    filesystem: {
+        currentDirectory: string;
+        files: Array<{
+            name: string;
+            type?: string;
+            size?: string | null;
+            modified?: string;
+            mode?: string;
+            isSymbolicLink?: boolean;
+            error?: string;
+        }>;
+    };
+}
 
 export function AdminDiagnosticsTab() {
-    const config = useConfig();
-    const [computedVars, setComputedVars] = useState<Record<string, string>>({});
-    const [actionMessage, setActionMessage] = useState<ActionMessage>(null);
-
-    const themeLink = useMemo(() => {
-        if (config?.theme?.hash) {
-            return `/api/theme.css?v=${encodeURIComponent(config.theme.hash)}`;
-        }
-        return '/api/theme.css';
-    }, [config?.theme?.hash]);
+    const [envData, setEnvData] = useState<EnvPayload | null>(null);
+    const [envLoading, setEnvLoading] = useState(false);
+    const [envError, setEnvError] = useState<string | null>(null);
 
     useEffect(() => {
-        const styles = getComputedStyle(document.documentElement);
-        const entries: Record<string, string> = {};
-        TRACKED_VARS.forEach((variable) => {
-            entries[variable] = styles.getPropertyValue(variable).trim();
-        });
-        setComputedVars(entries);
-    }, [config?.theme?.hash]);
-
-    const showMessage = (message: ActionMessage) => {
-        setActionMessage(message);
-        if (message) {
-            setTimeout(() => setActionMessage(null), 4000);
-        }
-    };
-
-    const handleCopyThemeLink = async () => {
-        try {
-            await navigator.clipboard.writeText(themeLink);
-            showMessage({ type: 'success', text: 'Theme link copied to clipboard.' });
-        } catch (error) {
-            logError('Failed to copy theme link', error);
-            showMessage({ type: 'error', text: 'Unable to copy theme link. Please copy manually.' });
-        }
-    };
-
-    const handleForceReload = () => {
-        try {
-            const storageKey = getThemeStorageKey();
-            localStorage.removeItem(storageKey);
-            if (window.__tenantTheme) {
-                window.__tenantTheme.hash = null;
+        const fetchEnvData = async () => {
+            setEnvLoading(true);
+            setEnvError(null);
+            try {
+                const response = await fetch('/api/env');
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        setEnvError('Environment diagnostics are only available in non-production environments');
+                    } else {
+                        setEnvError(`Failed to fetch environment data: ${response.statusText}`);
+                    }
+                    return;
+                }
+                const data = await response.json();
+                setEnvData(data);
+            } catch (error) {
+                logError('Failed to fetch environment data', error);
+                setEnvError(error instanceof Error ? error.message : 'Unknown error occurred');
+            } finally {
+                setEnvLoading(false);
             }
-        } catch {
-            // Ignore storage errors (private browsing / quota issues)
-        }
-        window.location.reload();
-    };
+        };
 
-    const tenantBranding = config?.tenant?.branding;
+        fetchEnvData();
+    }, []);
 
     return (
         <div class='space-y-6'>
-            {actionMessage && <Alert type={actionMessage.type} message={actionMessage.text} />}
-
-            <Card padding='lg' data-testid='tenant-overview-card' className='bg-white/70 backdrop-blur-sm border border-indigo-200'>
-                <Stack spacing='sm'>
-                    <div class='flex items-center gap-2 mb-2'>
-                        <div class='w-1 h-6 bg-gradient-to-b from-amber-500 to-orange-600 rounded-full'></div>
-                        <Typography variant='heading' className='text-amber-700'>Tenant Overview</Typography>
-                    </div>
-                    <div class='grid gap-4 md:grid-cols-3 text-sm'>
-                        <div class='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
-                            <p class='text-indigo-600 text-xs mb-1'>Tenant ID</p>
-                            <p class='font-mono text-amber-700 font-medium'>{config?.tenant?.tenantId ?? 'unknown'}</p>
-                        </div>
-                        <div class='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
-                            <p class='text-indigo-600 text-xs mb-1'>App Name</p>
-                            <p class='text-gray-800 font-medium'>{tenantBranding?.appName ?? 'Not configured'}</p>
-                        </div>
-                        <div class='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
-                            <p class='text-indigo-600 text-xs mb-1'>Last Updated</p>
-                            <p class='text-gray-800 font-medium'>{config?.tenant?.updatedAt ?? '—'}</p>
-                        </div>
-                    </div>
-                </Stack>
-            </Card>
-
-            <Card padding='lg' data-testid='theme-artifact-card' className='bg-white/70 backdrop-blur-sm border border-indigo-200'>
-                <Stack spacing='md'>
-                    <div class='flex flex-col gap-2 md:flex-row md:items-center md:justify-between'>
-                        <div>
-                            <div class='flex items-center gap-2 mb-1'>
-                                <div class='w-1 h-6 bg-gradient-to-b from-amber-500 to-orange-600 rounded-full'></div>
-                                <Typography variant='heading' className='text-amber-700'>Theme Artifact</Typography>
-                            </div>
-                            <Typography variant='caption' className='text-indigo-600 ml-3'>Hash + CSS delivery helpers</Typography>
-                        </div>
-                        <div class='flex flex-wrap gap-3'>
-                            <Button
-                                variant='secondary'
-                                size='sm'
-                                onClick={handleCopyThemeLink}
-                                data-testid='copy-theme-link-button'
-                                className='!bg-white !text-gray-800 !border-gray-300 hover:!bg-gray-50'
-                            >
-                                Copy Theme Link
-                            </Button>
-                            <Button variant='ghost' size='sm' onClick={handleForceReload} data-testid='force-reload-theme-button' className='!text-gray-800 hover:!bg-gray-100'>
-                                Force Reload Theme
-                            </Button>
-                        </div>
-                    </div>
-                    <div class='grid gap-4 text-sm md:grid-cols-3'>
-                        <div class='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
-                            <p class='text-indigo-600 text-xs mb-1'>Active Hash</p>
-                            <p class='font-mono text-amber-700 font-medium'>{config?.theme?.hash ?? 'not published'}</p>
-                        </div>
-                        <div class='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
-                            <p class='text-indigo-600 text-xs mb-1'>Generated At</p>
-                            <p class='text-gray-800 text-xs'>{config?.theme?.generatedAtEpochMs ? new Date(config.theme.generatedAtEpochMs).toISOString() : '—'}</p>
-                        </div>
-                        <div class='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
-                            <p class='text-indigo-600 text-xs mb-1'>Link</p>
-                            <p class='font-mono text-amber-700 text-xs break-all'>{themeLink}</p>
-                        </div>
-                    </div>
-                </Stack>
-            </Card>
-
-            {tenantBranding && (
-                <Card padding='lg' data-testid='branding-tokens-card' className='bg-white/70 backdrop-blur-sm border border-indigo-200'>
-                    <Stack spacing='md'>
-                        <div class='flex items-center gap-2 mb-2'>
-                            <div class='w-1 h-6 bg-gradient-to-b from-amber-500 to-orange-600 rounded-full'></div>
-                            <Typography variant='heading' className='text-amber-700'>Branding Tokens</Typography>
-                        </div>
-                        <pre class='bg-indigo-50 rounded-md p-4 text-sm overflow-x-auto border border-indigo-200 text-gray-800'>{JSON.stringify(tenantBranding, null, 2)}</pre>
-                    </Stack>
+            {/* Server Diagnostics */}
+            {envLoading && (
+                <Card padding='lg' className='bg-white/70 backdrop-blur-sm border border-indigo-200'>
+                    <div class='text-center text-indigo-600'>Loading environment diagnostics...</div>
                 </Card>
             )}
 
-            <Card padding='lg' data-testid='computed-vars-card' className='bg-white/70 backdrop-blur-sm border border-indigo-200'>
-                <Stack spacing='md'>
-                    <div class='flex items-center gap-2 mb-2'>
-                        <div class='w-1 h-6 bg-gradient-to-b from-amber-500 to-orange-600 rounded-full'></div>
-                        <Typography variant='heading' className='text-amber-700'>Computed CSS Variables</Typography>
-                    </div>
-                    <div class='grid gap-3 md:grid-cols-2'>
-                        {Object.entries(computedVars).map(([variable, value]) => (
-                            <div key={variable} class='rounded-md border border-indigo-200 bg-indigo-50 px-4 py-3'>
-                                <p class='text-xs uppercase text-indigo-600 mb-1'>{variable}</p>
-                                <p class='font-mono text-sm text-amber-700'>{value || 'not set'}</p>
+            {envError && (
+                <Alert type='error' message={envError} />
+            )}
+
+            {envData && (
+                <>
+                    {/* Status Overview */}
+                    <Card padding='lg' data-testid='env-status-card' className='bg-white/70 backdrop-blur-sm border border-indigo-200'>
+                        <Stack spacing='sm'>
+                            <div class='flex items-center gap-2 mb-2'>
+                                <div class='w-1 h-6 bg-gradient-to-b from-green-500 to-emerald-600 rounded-full'></div>
+                                <Typography variant='heading' className='text-emerald-700'>Server Status</Typography>
                             </div>
-                        ))}
-                    </div>
-                </Stack>
-            </Card>
+                            <div class='grid gap-4 md:grid-cols-4 text-sm'>
+                                <div class='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
+                                    <p class='text-indigo-600 text-xs mb-1'>Environment</p>
+                                    <p class='font-medium text-gray-800'>{envData.status.environment}</p>
+                                </div>
+                                <div class='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
+                                    <p class='text-indigo-600 text-xs mb-1'>Node Version</p>
+                                    <p class='font-mono text-sm text-gray-800'>{envData.status.nodeVersion}</p>
+                                </div>
+                                <div class='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
+                                    <p class='text-indigo-600 text-xs mb-1'>Uptime</p>
+                                    <p class='font-medium text-gray-800'>{envData.runtime.uptimeHuman}</p>
+                                </div>
+                                <div class='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
+                                    <p class='text-indigo-600 text-xs mb-1'>Started At</p>
+                                    <p class='text-xs text-gray-800'>{new Date(envData.runtime.startTime).toLocaleString()}</p>
+                                </div>
+                            </div>
+                        </Stack>
+                    </Card>
+
+                    {/* Build Information */}
+                    <Card padding='lg' data-testid='env-build-card' className='bg-white/70 backdrop-blur-sm border border-indigo-200'>
+                        <Stack spacing='sm'>
+                            <div class='flex items-center gap-2 mb-2'>
+                                <div class='w-1 h-6 bg-gradient-to-b from-blue-500 to-indigo-600 rounded-full'></div>
+                                <Typography variant='heading' className='text-indigo-700'>Build Information</Typography>
+                            </div>
+                            <div class='grid gap-4 md:grid-cols-3 text-sm'>
+                                <div class='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
+                                    <p class='text-indigo-600 text-xs mb-1'>Version</p>
+                                    <p class='font-mono text-gray-800'>{envData.build.version}</p>
+                                </div>
+                                <div class='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
+                                    <p class='text-indigo-600 text-xs mb-1'>Build Date</p>
+                                    <p class='text-gray-800'>{envData.build.date}</p>
+                                </div>
+                                <div class='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
+                                    <p class='text-indigo-600 text-xs mb-1'>Build Timestamp</p>
+                                    <p class='font-mono text-xs text-gray-800'>{envData.build.timestamp}</p>
+                                </div>
+                            </div>
+                        </Stack>
+                    </Card>
+
+                    {/* Memory Summary */}
+                    <Card padding='lg' data-testid='env-memory-card' className='bg-white/70 backdrop-blur-sm border border-indigo-200'>
+                        <Stack spacing='md'>
+                            <div class='flex items-center gap-2 mb-2'>
+                                <div class='w-1 h-6 bg-gradient-to-b from-purple-500 to-pink-600 rounded-full'></div>
+                                <Typography variant='heading' className='text-purple-700'>Memory Usage</Typography>
+                            </div>
+                            <div class='grid gap-4 md:grid-cols-2 lg:grid-cols-4 text-sm'>
+                                <div class='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
+                                    <p class='text-indigo-600 text-xs mb-1'>RSS (Resident Set Size)</p>
+                                    <p class='font-medium text-gray-800'>{envData.memory.rss}</p>
+                                    <p class='text-xs text-gray-600 mt-1'>{envData.status.memorySummary.rssMb} MB</p>
+                                </div>
+                                <div class='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
+                                    <p class='text-indigo-600 text-xs mb-1'>Heap Used</p>
+                                    <p class='font-medium text-gray-800'>{envData.memory.heapUsed}</p>
+                                    <p class='text-xs text-gray-600 mt-1'>{envData.status.memorySummary.heapUsedMb} MB</p>
+                                </div>
+                                <div class='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
+                                    <p class='text-indigo-600 text-xs mb-1'>Heap Total</p>
+                                    <p class='font-medium text-gray-800'>{envData.memory.heapTotal}</p>
+                                    <p class='text-xs text-gray-600 mt-1'>{envData.status.memorySummary.heapTotalMb} MB</p>
+                                </div>
+                                <div class='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
+                                    <p class='text-indigo-600 text-xs mb-1'>Heap Available</p>
+                                    <p class='font-medium text-gray-800'>{envData.memory.heapAvailable}</p>
+                                </div>
+                            </div>
+                            <div class='grid gap-4 md:grid-cols-3 text-sm'>
+                                <div class='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
+                                    <p class='text-indigo-600 text-xs mb-1'>External Memory</p>
+                                    <p class='font-medium text-gray-800'>{envData.memory.external}</p>
+                                </div>
+                                <div class='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
+                                    <p class='text-indigo-600 text-xs mb-1'>Array Buffers</p>
+                                    <p class='font-medium text-gray-800'>{envData.memory.arrayBuffers}</p>
+                                </div>
+                                <div class='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
+                                    <p class='text-indigo-600 text-xs mb-1'>Heap Limit</p>
+                                    <p class='font-medium text-gray-800'>{envData.memory.heapLimit}</p>
+                                </div>
+                            </div>
+                        </Stack>
+                    </Card>
+
+                    {/* Heap Spaces */}
+                    {envData.memory.heapSpaces.length > 0 && (
+                        <Card padding='lg' data-testid='env-heap-spaces-card' className='bg-white/70 backdrop-blur-sm border border-indigo-200'>
+                            <Stack spacing='md'>
+                                <div class='flex items-center gap-2 mb-2'>
+                                    <div class='w-1 h-6 bg-gradient-to-b from-orange-500 to-red-600 rounded-full'></div>
+                                    <Typography variant='heading' className='text-orange-700'>V8 Heap Spaces</Typography>
+                                </div>
+                                <div class='grid gap-3 md:grid-cols-2 text-sm'>
+                                    {envData.memory.heapSpaces.map((space) => (
+                                        <div key={space.spaceName} class='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
+                                            <p class='font-semibold text-gray-800 mb-2'>{space.spaceName}</p>
+                                            <div class='space-y-1 text-xs'>
+                                                <div class='flex justify-between'>
+                                                    <span class='text-indigo-600'>Size:</span>
+                                                    <span class='font-mono text-gray-800'>{space.spaceSize}</span>
+                                                </div>
+                                                <div class='flex justify-between'>
+                                                    <span class='text-indigo-600'>Used:</span>
+                                                    <span class='font-mono text-gray-800'>{space.spaceUsed}</span>
+                                                </div>
+                                                <div class='flex justify-between'>
+                                                    <span class='text-indigo-600'>Available:</span>
+                                                    <span class='font-mono text-gray-800'>{space.spaceAvailable}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </Stack>
+                        </Card>
+                    )}
+
+                    {/* Filesystem Information */}
+                    <Card padding='lg' data-testid='env-filesystem-card' className='bg-white/70 backdrop-blur-sm border border-indigo-200'>
+                        <Stack spacing='md'>
+                            <div class='flex items-center gap-2 mb-2'>
+                                <div class='w-1 h-6 bg-gradient-to-b from-teal-500 to-cyan-600 rounded-full'></div>
+                                <Typography variant='heading' className='text-teal-700'>Filesystem</Typography>
+                            </div>
+                            <div class='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
+                                <p class='text-indigo-600 text-xs mb-1'>Working Directory</p>
+                                <p class='font-mono text-sm text-gray-800 break-all'>{envData.filesystem.currentDirectory}</p>
+                            </div>
+                            <div class='max-h-96 overflow-y-auto'>
+                                <table class='w-full text-sm'>
+                                    <thead class='bg-indigo-100 sticky top-0'>
+                                        <tr>
+                                            <th class='text-left p-2 text-indigo-700 font-semibold'>Name</th>
+                                            <th class='text-left p-2 text-indigo-700 font-semibold'>Type</th>
+                                            <th class='text-left p-2 text-indigo-700 font-semibold'>Size</th>
+                                            <th class='text-left p-2 text-indigo-700 font-semibold'>Modified</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {envData.filesystem.files.map((file, idx) => (
+                                            <tr key={idx} class={idx % 2 === 0 ? 'bg-white' : 'bg-indigo-50'}>
+                                                <td class='p-2 font-mono text-xs text-gray-800'>{file.name}</td>
+                                                <td class='p-2 text-gray-600'>{file.type || '—'}</td>
+                                                <td class='p-2 font-mono text-xs text-gray-600'>{file.size || '—'}</td>
+                                                <td class='p-2 text-xs text-gray-600'>{file.modified ? new Date(file.modified).toLocaleString() : '—'}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </Stack>
+                    </Card>
+                </>
+            )}
         </div>
     );
 }

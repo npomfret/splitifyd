@@ -870,6 +870,18 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return res.getJson() as AdminUserProfile;
     }
 
+    async getUserAuth(uid: UserId, token?: AuthToken): Promise<any> {
+        const req = createStubRequest(token || '', {}, { uid });
+        const res = await this.dispatchByHandler('getUserAuth', req);
+        return res.getJson();
+    }
+
+    async getUserFirestore(uid: UserId, token?: AuthToken): Promise<any> {
+        const req = createStubRequest(token || '', {}, { uid });
+        const res = await this.dispatchByHandler('getUserFirestore', req);
+        return res.getJson();
+    }
+
     async promoteUserToAdmin(uid: UserId): Promise<MessageResponse> {
         const req = createStubRequest('', { uid });
         const res = await this.dispatchByHandler('promoteTestUserToAdmin', req);

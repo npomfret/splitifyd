@@ -74,7 +74,6 @@ const routeDefinitions: RouteDefinition[] = [
         path: '/env',
         handlerName: 'getEnv',
         category: 'diagnostic',
-        middleware: ['authenticateSystemUser'],
         isInline: true,
     },
     {
@@ -502,6 +501,20 @@ const routeDefinitions: RouteDefinition[] = [
         method: 'PUT',
         path: '/admin/users/:uid/role',
         handlerName: 'updateUserRoleAdmin',
+        category: 'admin',
+        middleware: ['authenticateAdmin'],
+    },
+    {
+        method: 'GET',
+        path: '/admin/users/:uid/auth',
+        handlerName: 'getUserAuth',
+        category: 'admin',
+        middleware: ['authenticateAdmin'],
+    },
+    {
+        method: 'GET',
+        path: '/admin/users/:uid/firestore',
+        handlerName: 'getUserFirestore',
         category: 'admin',
         middleware: ['authenticateAdmin'],
     },

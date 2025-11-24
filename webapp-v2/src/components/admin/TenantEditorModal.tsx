@@ -584,7 +584,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                 </div>
 
                 {/* Footer */}
-                <div class='flex items-center justify-end gap-3 border-t border-border-default px-6 py-4'>
+                <div class='flex items-center justify-end gap-3 border-t border-border-default bg-surface-base px-6 py-4'>
                     <Button
                         onClick={handleCancel}
                         variant='secondary'
@@ -600,15 +600,18 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                             disabled={isSaving || isPublishing}
                             loading={isPublishing}
                             data-testid='publish-theme-button'
+                            className='!bg-gradient-to-r !from-amber-500 !to-orange-600 !text-white !shadow-lg hover:!shadow-amber-500/30'
                         >
                             {isPublishing ? 'Publishing...' : 'Publish Theme'}
                         </Button>
                     )}
                     <Button
                         onClick={handleSave}
+                        variant='primary'
                         loading={isSaving}
                         disabled={isSaving}
                         data-testid='save-tenant-button'
+                        className='!bg-gradient-to-r !from-indigo-600 !to-purple-600 !text-white !shadow-lg hover:!shadow-indigo-500/30'
                     >
                         {isSaving ? 'Saving...' : (mode === 'create' ? 'Create Tenant' : 'Save Changes')}
                     </Button>

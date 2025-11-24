@@ -6,8 +6,9 @@ import type { AdminUserProfile, Email, SystemUserRole, UserId } from '@billsplit
 import { SystemUserRoles, toEmail, toUserId } from '@billsplit-wl/shared';
 import { computed, useSignal, useSignalEffect } from '@preact/signals';
 import { useTranslation } from 'react-i18next';
+import { UserEditorModal } from './UserEditorModal';
 
-const DEFAULT_LIMIT = 50;
+const DEFAULT_LIMIT = 25;
 
 export function AdminUsersTab() {
     const { t } = useTranslation();
@@ -29,6 +30,7 @@ export function AdminUsersTab() {
     const searchValue = useSignal('');
     const hasSearchApplied = useSignal(false);
     const operationInProgress = useSignal<string | null>(null);
+    const editingUser = useSignal<AdminUserProfile | null>(null);
 
     const hasPrevious = computed(() => pageHistory.value.length > 1 && !hasSearchApplied.value);
 
@@ -260,7 +262,7 @@ export function AdminUsersTab() {
                 <p class='text-sm text-gray-700'>
                     Manage user accounts, roles, and permissions
                 </p>
-                <Button variant='secondary' size='sm' onClick={handleReset} className='!bg-white !text-gray-800 !border-gray-300 hover:!bg-gray-50'>
+                <Button variant='secondary' size='sm' onClick={handleReset}>
                     Refresh
                 </Button>
             </div>
@@ -276,8 +278,8 @@ export function AdminUsersTab() {
                         />
                     </label>
                     <div class='flex gap-2 items-end'>
-                        <Button type='submit' className='!bg-indigo-600 !text-white hover:!bg-indigo-700'>Search</Button>
-                        <Button type='button' variant='secondary' onClick={handleReset} className='!bg-white !text-gray-800 !border-gray-300 hover:!bg-gray-50'>
+                        <Button type='submit' variant='primary'>Search</Button>
+                        <Button type='button' variant='secondary' onClick={handleReset}>
                             Reset
                         </Button>
                     </div>
@@ -365,21 +367,22 @@ export function AdminUsersTab() {
                                             </td>
                                             <td class='px-4 py-3 text-right text-sm'>
                                                 <div class='flex items-center justify-end gap-2'>
-                                                    <Button
-                                                        variant='secondary'
-                                                        size='sm'
-                                                        onClick={() => void handleUpdateRole(uid, role)}
-                                                        disabled={isCurrentUser || operationInProgress.value === `role-${uid}`}
-                                                        className='!bg-white !text-gray-800 !border-gray-300 hover:!bg-gray-50'
+                                                    <button
+                                                        onClick={() => editingUser.value = authUser}
+                                                        disabled={operationInProgress.value === `role-${uid}`}
+                                                        class='p-2 text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+                                                        title='Edit user'
+                                                        data-testid={`edit-user-${uid}`}
                                                     >
-                                                        {operationInProgress.value === `role-${uid}` ? 'Updating...' : 'Change Role'}
-                                                    </Button>
+                                                        <svg class='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                                            <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' />
+                                                        </svg>
+                                                    </button>
                                                     <Button
                                                         variant={authUser.disabled ? 'secondary' : 'danger'}
                                                         size='sm'
                                                         onClick={() => void handleDisableUser(uid, Boolean(authUser.disabled))}
                                                         disabled={isCurrentUser || operationInProgress.value === `disable-${uid}` || operationInProgress.value === `enable-${uid}`}
-                                                        className={authUser.disabled ? '!bg-white !text-gray-800 !border-gray-300 hover:!bg-gray-50' : '!bg-red-600 !text-white hover:!bg-red-700'}
                                                     >
                                                         {operationInProgress.value === `disable-${uid}` || operationInProgress.value === `enable-${uid}`
                                                             ? 'Processing...'
@@ -408,6 +411,20 @@ export function AdminUsersTab() {
                     />
                 )}
             </Card>
+
+            {/* User Editor Modal */}
+            {editingUser.value && (
+                <UserEditorModal
+                    open={editingUser.value !== null}
+                    onClose={() => editingUser.value = null}
+                    onSave={() => {
+                        editingUser.value = null;
+                        handleReset();
+                    }}
+                    user={editingUser.value}
+                    isCurrentUser={editingUser.value.uid === user.uid}
+                />
+            )}
         </div>
     );
 }

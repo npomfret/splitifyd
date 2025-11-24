@@ -20,10 +20,6 @@ import { signInExistingBillSplitter } from './test-data-generator';
  *   tsx seed-policies.ts production
  */
 
-// Load and validate runtime configuration
-const runtimeConfig = loadRuntimeConfig();
-assert(process.env.GCLOUD_PROJECT, 'GCLOUD_PROJECT must be set');
-
 // Parse environment - handle both direct calls and module calls
 const env = getEnvironment();
 console.log(`🎯 Running policy seeding for ${env.environment}`);
@@ -139,8 +135,6 @@ async function verifyPoliciesViaApi(adminToken: string): Promise<void> {
 export async function seedPolicies() {
     console.log(`📚 Reading policy documents from docs/policies...`);
     console.log(`🌍 Target environment: ${env.environment}`);
-
-    assert(process.env.GCLOUD_PROJECT, 'GCLOUD_PROJECT must be set');
 
     // Verify all policy files exist first
     try {

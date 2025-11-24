@@ -1,14 +1,15 @@
-import { GradientText, LoadingState } from '@/components/ui';
+import { LoadingState } from '@/components/ui';
 import { navigationService } from '@/services/navigation.service';
 import { SystemUserRoles } from '@billsplit-wl/shared';
 import { useEffect, useState } from 'preact/hooks';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { AdminDiagnosticsTab } from '../components/admin/AdminDiagnosticsTab';
+import { AdminTenantConfigTab } from '../components/admin/AdminTenantConfigTab';
 import { AdminTenantsTab } from '../components/admin/AdminTenantsTab';
 import { AdminUsersTab } from '../components/admin/AdminUsersTab';
 import { AdminLayout } from '../components/layout/AdminLayout';
 
-type AdminTab = 'tenants' | 'diagnostics' | 'users';
+type AdminTab = 'tenants' | 'diagnostics' | 'tenant-config' | 'users';
 
 interface AdminPageProps {
     tab?: AdminTab;
@@ -69,6 +70,11 @@ export function AdminPage({ tab: initialTab }: AdminPageProps) {
             icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4',
         },
         {
+            id: 'tenant-config',
+            label: 'Tenant Config',
+            icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z',
+        },
+        {
             id: 'users',
             label: 'Users',
             icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z',
@@ -84,28 +90,6 @@ export function AdminPage({ tab: initialTab }: AdminPageProps) {
 
                 {/* Content */}
                 <div class='relative max-w-7xl mx-auto px-4 py-8'>
-                    {/* Header with admin badge */}
-                    <div class='mb-8 pb-6 border-b border-indigo-200'>
-                        <div class='flex items-center gap-3 mb-2'>
-                            <div class='flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 shadow-lg shadow-amber-500/20'>
-                                <svg class='w-6 h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                    <path
-                                        stroke-linecap='round'
-                                        stroke-linejoin='round'
-                                        stroke-width='2'
-                                        d='M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z'
-                                    />
-                                    <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M15 12a3 3 0 11-6 0 3 3 0 016 0z' />
-                                </svg>
-                            </div>
-                            <h1 class='text-3xl font-bold'>
-                                <GradientText gradient='aurora' as='span'>
-                                    System Administration
-                                </GradientText>
-                            </h1>
-                        </div>
-                        <p class='mt-2 text-indigo-700 ml-13'>Command center for tenants, diagnostics, and system configuration</p>
-                    </div>
 
                     {/* Tabs with admin styling */}
                     <div class='mb-8'>
@@ -155,6 +139,7 @@ export function AdminPage({ tab: initialTab }: AdminPageProps) {
                     <div class='mt-6'>
                         {activeTab === 'tenants' && <AdminTenantsTab />}
                         {activeTab === 'diagnostics' && <AdminDiagnosticsTab />}
+                        {activeTab === 'tenant-config' && <AdminTenantConfigTab />}
                         {activeTab === 'users' && <AdminUsersTab />}
                     </div>
                 </div>

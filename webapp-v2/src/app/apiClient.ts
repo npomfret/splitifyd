@@ -1061,6 +1061,30 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
         });
     }
 
+    /**
+     * Get Firebase Auth user record (raw)
+     * Admin-only endpoint
+     */
+    async getUserAuth(uid: UserId): Promise<any> {
+        return this.request<any>({
+            endpoint: '/admin/users/:uid/auth',
+            method: 'GET',
+            params: { uid },
+        });
+    }
+
+    /**
+     * Get Firestore user document (raw)
+     * Admin-only endpoint
+     */
+    async getUserFirestore(uid: UserId): Promise<any> {
+        return this.request<any>({
+            endpoint: '/admin/users/:uid/firestore',
+            method: 'GET',
+            params: { uid },
+        });
+    }
+
     // User policy acceptance methods
     async acceptMultiplePolicies(acceptances: AcceptPolicyRequest[]): Promise<AcceptMultiplePoliciesResponse> {
         return this.request({
