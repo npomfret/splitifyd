@@ -63,7 +63,7 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
         if (canAcceptCurrent && !loading) {
             if (isLastPolicy && allPoliciesAccepted) {
                 // All policies accepted - submit automatically
-                submitAllPolicies();
+                void submitAllPolicies();
             } else if (!isLastPolicy) {
                 // Not the last policy - auto-advance to next
                 const timer = setTimeout(() => {
@@ -72,6 +72,7 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                 return () => clearTimeout(timer);
             }
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [canAcceptCurrent, isLastPolicy, allPoliciesAccepted, loading]);
 
     const handleAcceptPolicy = (policyId: string) => {
@@ -101,7 +102,12 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
             }));
 
             await apiClient.acceptMultiplePolicies(acceptances);
-            onAccept();
+
+            // Wait a moment for the backend to process the write
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // Now refresh policy status to confirm the acceptance
+            await onAccept();
         } catch (err) {
             logError('Failed to accept policies', err as Error);
             setError(`Failed to accept policies: ${err instanceof Error ? err.message : 'Unknown error'}`);
