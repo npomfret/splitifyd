@@ -11,5 +11,6 @@ export function createUnitTestServiceConfig(): ServiceConfig {
         cloudTasksLocation: 'location',
         functionsUrl: 'http://foo:9999',
         minRegistrationDurationMs: 0,
+        storageEmulatorHost: null,
     };
 }

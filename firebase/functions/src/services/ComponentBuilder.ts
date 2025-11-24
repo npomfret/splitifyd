@@ -21,6 +21,7 @@ import { GroupShareService } from './GroupShareService';
 import { PolicyService } from './PolicyService';
 import { SettlementService } from './SettlementService';
 import { CloudThemeArtifactStorage } from './storage/CloudThemeArtifactStorage';
+import { createTenantAssetStorage, type TenantAssetStorage } from './storage/TenantAssetStorage';
 import { type ThemeArtifactStorage } from './storage/ThemeArtifactStorage';
 import { TenantAdminService } from './tenant/TenantAdminService';
 import { TenantRegistryService } from './tenant/TenantRegistryService';
@@ -46,6 +47,7 @@ export class ComponentBuilder {
     private activityFeedService?: ActivityFeedService;
     private tenantRegistryService?: TenantRegistryService;
     private themeArtifactStorage?: ThemeArtifactStorage;
+    private tenantAssetStorage?: TenantAssetStorage;
     private themeArtifactService?: ThemeArtifactService;
     private tenantAdminService?: TenantAdminService;
     private userBrowserHandlers?: UserBrowserHandlers;
@@ -253,6 +255,16 @@ export class ComponentBuilder {
             this.themeArtifactStorage = new CloudThemeArtifactStorage(this.storage);
         }
         return this.themeArtifactStorage;
+    }
+
+    buildTenantAssetStorage(): TenantAssetStorage {
+        if (!this.tenantAssetStorage) {
+            this.tenantAssetStorage = createTenantAssetStorage({
+                storage: this.storage,
+                storageEmulatorHost: this.serviceConfig.storageEmulatorHost,
+            });
+        }
+        return this.tenantAssetStorage;
     }
 
     buildMergeService(): MergeService {

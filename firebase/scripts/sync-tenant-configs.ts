@@ -32,6 +32,7 @@ import { getAuth, getFirestore, getStorage } from '../functions/src/firebase';
 import { getServiceConfig } from '../functions/src/merge/ServiceConfig';
 import type { AdminUpsertTenantRequest } from '../functions/src/schemas/tenant';
 import { ComponentBuilder } from '../functions/src/services/ComponentBuilder';
+import type { TenantAssetStorage } from '../functions/src/services/storage/TenantAssetStorage';
 import { TenantAdminService } from '../functions/src/services/tenant/TenantAdminService';
 import { initializeFirebase, parseEnvironment, type ScriptEnvironment } from './firebase-init';
 
@@ -55,7 +56,12 @@ interface TenantConfig {
     isDefault: boolean;
 }
 
-async function buildTenantAdminService(env: ScriptEnvironment): Promise<TenantAdminService> {
+interface ServiceComponents {
+    tenantAdminService: TenantAdminService;
+    tenantAssetStorage: TenantAssetStorage;
+}
+
+async function buildServices(env: ScriptEnvironment): Promise<ServiceComponents> {
     const firestore = env.isEmulator ? getFirestore() : admin.firestore();
     const auth = env.isEmulator ? getAuth() : admin.auth();
     const storage = env.isEmulator ? getStorage() : admin.storage();
@@ -69,11 +75,68 @@ async function buildTenantAdminService(env: ScriptEnvironment): Promise<TenantAd
         identityToolkit,
         serviceConfig,
     );
-    return componentBuilder.buildTenantAdminService();
+    return {
+        tenantAdminService: componentBuilder.buildTenantAdminService(),
+        tenantAssetStorage: componentBuilder.buildTenantAssetStorage(),
+    };
+}
+
+/**
+ * Upload an image file to Storage if the URL starts with "file://".
+ * Otherwise, return the URL as-is.
+ *
+ * @param assetStorage - TenantAssetStorage service
+ * @param tenantId - Tenant ID
+ * @param assetType - Asset type ('logo' or 'favicon')
+ * @param urlOrPath - URL string or file:// path
+ * @returns Public URL (uploaded or passed through)
+ */
+async function uploadAssetIfLocal(
+    assetStorage: TenantAssetStorage,
+    tenantId: string,
+    assetType: 'logo' | 'favicon',
+    urlOrPath: string,
+): Promise<string> {
+    // If it starts with "file://", upload the local file
+    if (urlOrPath.startsWith('file://')) {
+        const filePath = urlOrPath.slice('file://'.length);
+        const absolutePath = path.isAbsolute(filePath) ? filePath : path.join(__dirname, filePath);
+
+        if (!fs.existsSync(absolutePath)) {
+            throw new Error(`File not found: ${absolutePath}`);
+        }
+
+        const buffer = fs.readFileSync(absolutePath);
+        const contentType = getContentTypeFromExtension(path.extname(absolutePath));
+
+        console.log(`  📤 Uploading ${assetType}: ${path.basename(absolutePath)}`);
+        const url = await assetStorage.uploadAsset(tenantId, assetType, buffer, contentType);
+        console.log(`     ✓ Uploaded to: ${url}`);
+        return url;
+    }
+
+    // Otherwise, return the URL as-is
+    return urlOrPath;
+}
+
+/**
+ * Get content type from file extension
+ */
+function getContentTypeFromExtension(ext: string): string {
+    const map: Record<string, string> = {
+        '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg',
+        '.png': 'image/png',
+        '.gif': 'image/gif',
+        '.svg': 'image/svg+xml',
+        '.webp': 'image/webp',
+        '.ico': 'image/x-icon',
+    };
+    return map[ext.toLowerCase()] || 'application/octet-stream';
 }
 
 async function syncTenantConfigs(
-    tenantAdminService: TenantAdminService,
+    services: ServiceComponents,
     options?: { defaultOnly?: boolean; tenantId?: string; },
 ) {
     const configPath = path.join(__dirname, 'tenant-configs.json');
@@ -102,13 +165,27 @@ async function syncTenantConfigs(
     for (const config of configs) {
         const domains = config.domains.map((d) => toTenantDomainName(normalizeDomain(d)));
 
+        // Upload assets if they are local files
+        const logoUrl = await uploadAssetIfLocal(
+            services.tenantAssetStorage,
+            config.id,
+            'logo',
+            config.branding.logoUrl,
+        );
+        const faviconUrl = await uploadAssetIfLocal(
+            services.tenantAssetStorage,
+            config.id,
+            'favicon',
+            config.branding.faviconUrl,
+        );
+
         // Build request object that will be validated by the schema
         const request: AdminUpsertTenantRequest = {
             tenantId: toTenantId(config.id),
             branding: {
                 appName: toTenantAppName(config.branding.appName),
-                logoUrl: toTenantLogoUrl(config.branding.logoUrl),
-                faviconUrl: toTenantFaviconUrl(config.branding.faviconUrl),
+                logoUrl: toTenantLogoUrl(logoUrl),
+                faviconUrl: toTenantFaviconUrl(faviconUrl),
                 primaryColor: toTenantPrimaryColor(config.branding.primaryColor),
                 secondaryColor: toTenantSecondaryColor(config.branding.secondaryColor),
                 ...(config.branding.backgroundColor && {
@@ -129,7 +206,7 @@ async function syncTenantConfigs(
 
         // Use the service layer which includes all validation
         try {
-            const result = await tenantAdminService.upsertTenant(request);
+            const result = await services.tenantAdminService.upsertTenant(request);
             console.log(`  ✓ ${result.created ? 'Created' : 'Updated'} tenant: ${config.id} (${config.branding.appName})`);
         } catch (error) {
             console.error(`  ✗ Failed to sync tenant: ${config.id}`);
@@ -162,8 +239,8 @@ async function main(): Promise<void> {
         console.log('✅ Connected to Deployed Firebase');
     }
 
-    const tenantAdminService = await buildTenantAdminService(env);
-    await syncTenantConfigs(tenantAdminService, { defaultOnly, tenantId });
+    const services = await buildServices(env);
+    await syncTenantConfigs(services, { defaultOnly, tenantId });
 
     console.log('✅ Tenant sync complete');
 }
@@ -176,4 +253,4 @@ if (require.main === module) {
     });
 }
 
-export { buildTenantAdminService, syncTenantConfigs };
+export { buildServices, syncTenantConfigs };

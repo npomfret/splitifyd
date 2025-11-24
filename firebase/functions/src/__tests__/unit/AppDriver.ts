@@ -1180,6 +1180,10 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return res.getJson() as PublishTenantThemeResponse;
     }
 
+    async uploadTenantImage(tenantId: string, assetType: 'logo' | 'favicon', file: Buffer, contentType: string, token: AuthToken): Promise<{ url: string; }> {
+        throw new Error('uploadTenantImage not implemented in AppDriver');
+    }
+
     // ===== ADMIN API: TENANT SETTINGS =====
 
     async getTenantSettings(token: AuthToken): Promise<TenantSettingsResponse> {

@@ -62,7 +62,10 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
     const firestoreReader = componentBuilder.buildFirestoreReader();
     const userAdminHandlers = new UserAdminHandlers(authService, firestoreWriter, firestoreReader);
     const tenantRegistryService = componentBuilder.buildTenantRegistryService();
-    const tenantAdminHandlers = new TenantAdminHandlers(componentBuilder.buildTenantAdminService());
+    const tenantAdminHandlers = new TenantAdminHandlers(
+        componentBuilder.buildTenantAdminService(),
+        componentBuilder.buildTenantAssetStorage(),
+    );
     const themeHandlers = new ThemeHandlers(componentBuilder.buildFirestoreReader());
 
     // Inline diagnostic handlers
@@ -530,6 +533,7 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
         // Tenant admin handlers
         adminUpsertTenant: tenantAdminHandlers.upsertTenant,
         publishTenantTheme: tenantAdminHandlers.publishTenantTheme,
+        uploadTenantImage: tenantAdminHandlers.uploadTenantImage,
 
         // Theme delivery
         serveThemeCss: themeHandlers.serveThemeCss,

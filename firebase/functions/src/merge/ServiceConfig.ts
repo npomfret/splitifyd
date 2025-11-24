@@ -21,6 +21,10 @@ export interface ServiceConfig {
      * Minimum duration for user registration operations in milliseconds
      */
     minRegistrationDurationMs: number;
+    /**
+     * Storage emulator host (e.g., "localhost:9199"), or null for production
+     */
+    storageEmulatorHost: string | null;
 }
 
 // Cache for lazy-loaded service configuration
@@ -66,6 +70,7 @@ const serviceEnvSchema = z.object({
     INSTANCE_NAME: z.string().min(1, 'INSTANCE_NAME is required'),
     FUNCTIONS_EMULATOR: z.string().optional(),
     FIREBASE_CONFIG: z.string().optional(),
+    FIREBASE_STORAGE_EMULATOR_HOST: z.string().optional(),
 });
 
 /**
@@ -114,6 +119,7 @@ function buildServiceConfig(): ServiceConfig {
             cloudTasksLocation: env.CLOUD_TASKS_LOCATION!,
             functionsUrl: env.FUNCTIONS_URL!,
             minRegistrationDurationMs: env.MIN_REGISTRATION_DURATION_MS,
+            storageEmulatorHost: null,
         };
     }
 
@@ -127,6 +133,7 @@ function buildServiceConfig(): ServiceConfig {
         cloudTasksLocation: env.CLOUD_TASKS_LOCATION,
         functionsUrl: env.FUNCTIONS_URL,
         minRegistrationDurationMs: env.MIN_REGISTRATION_DURATION_MS,
+        storageEmulatorHost: env.FIREBASE_STORAGE_EMULATOR_HOST || null,
     };
 }
 

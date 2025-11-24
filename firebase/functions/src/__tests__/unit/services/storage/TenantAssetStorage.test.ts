@@ -52,7 +52,7 @@ describe('TenantAssetStorage', () => {
 
             const files = stubStorage.getAllFiles();
             const file = Array.from(files.values())[0];
-            expect(file.metadata.contentType).toBe('image/webp');
+            expect(file.metadata?.contentType).toBe('image/webp');
         });
 
         it('should set immutable cache control', async () => {
@@ -63,7 +63,7 @@ describe('TenantAssetStorage', () => {
 
             const files = stubStorage.getAllFiles();
             const file = Array.from(files.values())[0];
-            expect(file.metadata.cacheControl).toBe('public, max-age=31536000, immutable');
+            expect(file.metadata?.cacheControl).toBe('public, max-age=31536000, immutable');
         });
 
         it('should include tenant metadata', async () => {
@@ -74,9 +74,9 @@ describe('TenantAssetStorage', () => {
 
             const files = stubStorage.getAllFiles();
             const file = Array.from(files.values())[0];
-            expect(file.metadata.metadata?.tenantId).toBe('tenant-xyz');
-            expect(file.metadata.metadata?.assetType).toBe('favicon');
-            expect(file.metadata.metadata?.uploadedAt).toBeDefined();
+            expect(file.metadata?.metadata?.tenantId).toBe('tenant-xyz');
+            expect(file.metadata?.metadata?.assetType).toBe('favicon');
+            expect(file.metadata?.metadata?.uploadedAt).toBeDefined();
         });
 
         it('should use correct file path structure', async () => {

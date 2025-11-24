@@ -135,7 +135,7 @@ describe('imageValidation', () => {
                     validateImageUpload(buffer, 'image/png');
                     expect.fail('Should have thrown');
                 } catch (error: any) {
-                    expect(error.status).toBe(HTTP_STATUS.BAD_REQUEST);
+                    expect(error.statusCode).toBe(HTTP_STATUS.BAD_REQUEST);
                     expect(error.code).toBe('EMPTY_FILE');
                 }
             });

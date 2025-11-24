@@ -696,6 +696,10 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return await this.apiRequest('/admin/tenants/publish', 'POST', request, token || null) as PublishTenantThemeResponse;
     }
 
+    async uploadTenantImage(tenantId: string, assetType: 'logo' | 'favicon', file: File | Buffer, contentType: string, token?: AuthToken): Promise<{ url: string; }> {
+        throw new Error('uploadTenantImage not implemented in ApiDriver');
+    }
+
     // ===== ADMIN API: TENANT SETTINGS =====
 
     async getTenantSettings(token?: AuthToken): Promise<TenantSettingsResponse> {

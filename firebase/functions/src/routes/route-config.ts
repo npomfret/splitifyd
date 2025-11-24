@@ -188,6 +188,13 @@ const routeDefinitions: RouteDefinition[] = [
         category: 'admin',
         middleware: ['authenticateAdmin'],
     },
+    {
+        method: 'POST',
+        path: '/admin/tenants/:tenantId/assets/:assetType',
+        handlerName: 'uploadTenantImage',
+        category: 'admin',
+        middleware: ['authenticateAdmin'],
+    },
 
     // === Registration ===
     {

@@ -34,6 +34,10 @@ class StorageFileWrapper implements IStorageFile {
     async makePublic(): Promise<void> {
         await this.file.makePublic();
     }
+
+    async delete(): Promise<void> {
+        await this.file.delete();
+    }
 }
 
 export function createStorage(storage: admin.storage.Storage): IStorage {
