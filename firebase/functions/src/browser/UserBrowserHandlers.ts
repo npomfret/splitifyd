@@ -98,13 +98,18 @@ export class UserBrowserHandlers {
         if (!this.firestoreReader) {
             // If no firestoreReader, return auth users with minimal data (no Firestore fields)
             return users.map((authUser) => {
+                // Use placeholder values for missing required fields
+                const email = authUser.email || `${authUser.uid}@missing-email.local`;
+                const displayName = authUser.displayName || `User ${authUser.uid.substring(0, 8)}`;
+
                 if (!authUser.email || !authUser.displayName) {
-                    throw new Error(`User ${authUser.uid} missing required fields`);
+                    logger.warn(`User ${authUser.uid} missing required fields - using placeholders (email: ${!!authUser.email}, displayName: ${!!authUser.displayName})`);
                 }
+
                 return {
                     uid: toUserId(authUser.uid),
-                    displayName: toDisplayName(authUser.displayName),
-                    email: toEmail(authUser.email),
+                    displayName: toDisplayName(displayName),
+                    email: toEmail(email),
                     emailVerified: authUser.emailVerified ?? false,
                     photoURL: authUser.photoURL || null,
                     role: SystemUserRoles.SYSTEM_USER,
@@ -126,19 +131,36 @@ export class UserBrowserHandlers {
         return users.map((authUser, index) => {
             const firestoreUser = firestoreUsers[index];
 
+            // Use placeholder values for missing required fields
+            const email = authUser.email || `${authUser.uid}@missing-email.local`;
+            const displayName = authUser.displayName || `User ${authUser.uid.substring(0, 8)}`;
+
             if (!authUser.email || !authUser.displayName) {
-                throw new Error(`User ${authUser.uid} missing required fields`);
+                logger.warn(`User ${authUser.uid} missing required fields - using placeholders (email: ${!!authUser.email}, displayName: ${!!authUser.displayName})`);
             }
 
-            // Firestore document MUST exist for data consistency
+            // If no Firestore document, use defaults
             if (!firestoreUser) {
-                throw new Error(`Data consistency error: user ${authUser.uid} exists in Auth but missing Firestore document`);
+                logger.warn(`User ${authUser.uid} exists in Auth but missing Firestore document - using defaults`);
+                return {
+                    uid: toUserId(authUser.uid),
+                    displayName: toDisplayName(displayName),
+                    email: toEmail(email),
+                    emailVerified: authUser.emailVerified ?? false,
+                    photoURL: authUser.photoURL || null,
+                    role: SystemUserRoles.SYSTEM_USER,
+                    disabled: authUser.disabled ?? false,
+                    metadata: {
+                        creationTime: authUser.metadata.creationTime,
+                        lastSignInTime: authUser.metadata.lastSignInTime,
+                    },
+                };
             }
 
             return {
                 uid: toUserId(authUser.uid),
-                displayName: toDisplayName(authUser.displayName),
-                email: toEmail(authUser.email),
+                displayName: toDisplayName(displayName),
+                email: toEmail(email),
                 emailVerified: authUser.emailVerified ?? false,
                 photoURL: authUser.photoURL || null,
                 role: firestoreUser.role,
