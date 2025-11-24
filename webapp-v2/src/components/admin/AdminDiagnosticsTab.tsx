@@ -239,6 +239,36 @@ export function AdminDiagnosticsTab() {
                         </Card>
                     )}
 
+                    {/* Environment Variables */}
+                    {envData.env && Object.keys(envData.env).length > 0 && (
+                        <Card padding='lg' data-testid='env-variables-card' className='bg-white/70 backdrop-blur-sm border border-indigo-200'>
+                            <Stack spacing='md'>
+                                <div class='flex items-center gap-2 mb-2'>
+                                    <div class='w-1 h-6 bg-gradient-to-b from-amber-500 to-yellow-600 rounded-full'></div>
+                                    <Typography variant='heading' className='text-amber-700'>Environment Variables</Typography>
+                                </div>
+                                <div class='max-h-96 overflow-y-auto'>
+                                    <table class='w-full text-sm'>
+                                        <thead class='bg-amber-100 sticky top-0'>
+                                            <tr>
+                                                <th class='text-left p-2 text-amber-700 font-semibold w-1/3'>Variable</th>
+                                                <th class='text-left p-2 text-amber-700 font-semibold'>Value</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {Object.entries(envData.env).sort(([a], [b]) => a.localeCompare(b)).map(([key, value], idx) => (
+                                                <tr key={key} class={idx % 2 === 0 ? 'bg-white' : 'bg-amber-50'}>
+                                                    <td class='p-2 font-mono text-xs text-gray-800 font-semibold align-top'>{key}</td>
+                                                    <td class='p-2 font-mono text-xs text-gray-600 break-all'>{value || <span class='text-gray-400 italic'>(empty)</span>}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </Stack>
+                        </Card>
+                    )}
+
                     {/* Filesystem Information */}
                     <Card padding='lg' data-testid='env-filesystem-card' className='bg-white/70 backdrop-blur-sm border border-indigo-200'>
                         <Stack spacing='md'>

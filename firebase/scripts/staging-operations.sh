@@ -42,6 +42,32 @@ case "$OPERATION" in
         ;;
 
     sync-tenant)
+        # Check if credentials are provided via command line or environment variables
+        if [[ -n "${2:-}" ]] && [[ -n "${3:-}" ]] && [[ -n "${4:-}" ]]; then
+            ADMIN_EMAIL="$2"
+            ADMIN_PASSWORD="$3"
+            BASE_URL="$4"
+        elif [[ -n "${STAGING_ADMIN_EMAIL:-}" ]] && [[ -n "${STAGING_ADMIN_PASSWORD:-}" ]] && [[ -n "${STAGING_BASE_URL:-}" ]]; then
+            ADMIN_EMAIL="$STAGING_ADMIN_EMAIL"
+            ADMIN_PASSWORD="$STAGING_ADMIN_PASSWORD"
+            BASE_URL="$STAGING_BASE_URL"
+        else
+            echo "❌ Error: Admin credentials and base URL required for sync-tenant"
+            echo ""
+            echo "Option 1 - Command line arguments:"
+            echo "  Usage: $0 sync-tenant <admin-email> <admin-password> <base-url>"
+            echo ""
+            echo "Option 2 - Environment variables:"
+            echo "  export STAGING_ADMIN_EMAIL='admin@example.com'"
+            echo "  export STAGING_ADMIN_PASSWORD='mypassword'"
+            echo "  export STAGING_BASE_URL='https://us-central1-splitifyd.cloudfunctions.net/api'"
+            echo "  $0 sync-tenant"
+            echo ""
+            echo "Example (command line):"
+            echo "  $0 sync-tenant admin@example.com mypassword https://us-central1-splitifyd.cloudfunctions.net/api"
+            exit 1
+        fi
+
         echo "🔄 Syncing staging tenants to deployed Firebase..."
         tsx scripts/switch-instance.ts staging-1
 
@@ -52,7 +78,7 @@ case "$OPERATION" in
         tsx scripts/sync-tenant-configs.ts staging --tenant-id staging-tenant
 
         echo "  🎨 Publishing themes for both tenants..."
-        tsx scripts/publish-staging-themes.ts
+        tsx scripts/publish-staging-themes.ts "$ADMIN_EMAIL" "$ADMIN_PASSWORD" "$BASE_URL"
 
         echo "✅ Tenant configs synced (2 tenants) and themes published"
         ;;

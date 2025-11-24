@@ -92,11 +92,6 @@ function runInnerDeploy(cloneFirebaseDir: string, mode: DeployMode, env: NodeJS.
     run('npm', ['run', scriptName], { cwd: cloneFirebaseDir, env });
 }
 
-function runPostDeploySyncTenant(cloneFirebaseDir: string, env: NodeJS.ProcessEnv): void {
-    console.log('🔄 Syncing default tenant to deployed Firestore...');
-    run('npm', ['run', 'postdeploy:sync-tenant'], { cwd: cloneFirebaseDir, env });
-}
-
 function removeSecrets(cloneFirebaseDir: string): void {
     rmSync(join(cloneFirebaseDir, 'functions', envTemplateName), { force: true });
     rmSync(join(cloneFirebaseDir, 'functions', '.env'), { force: true });
@@ -137,12 +132,19 @@ function deploy(mode: DeployMode): void {
 
         runInnerDeploy(cloneFirebaseDir, mode, deployEnv);
 
-        // Sync default tenant after successful deployment
-        runPostDeploySyncTenant(cloneFirebaseDir, deployEnv);
-
         removeSecrets(cloneFirebaseDir);
         rmSync(tempRoot, { recursive: true, force: true });
         console.log('✅ Deployment completed from fresh checkout');
+        console.log('');
+        console.log('📋 Next steps:');
+        console.log('  1. Set environment variables:');
+        console.log('     export STAGING_ADMIN_EMAIL="admin@example.com"');
+        console.log('     export STAGING_ADMIN_PASSWORD="your-password"');
+        console.log('     export STAGING_BASE_URL="https://us-central1-splitifyd.cloudfunctions.net/api"');
+        console.log('');
+        console.log('  2. Sync tenants to deployed Firebase:');
+        console.log('     npm run postdeploy:sync-tenant');
+        console.log('');
     } catch (error) {
         removeSecrets(cloneFirebaseDir);
         console.error(`❌ Deployment failed. Temporary workspace preserved at ${cloneDir}`);

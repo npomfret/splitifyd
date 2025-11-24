@@ -2,12 +2,26 @@
 /**
  * Publish themes for staging tenants to deployed Firebase
  *
+ * Usage:
+ *   ./scripts/publish-staging-themes.ts <admin-email> <admin-password> <base-url>
+ *
+ * Arguments:
+ *   admin-email    - Email address of system admin account
+ *   admin-password - Password for admin account
+ *   base-url       - Base URL of deployed Firebase Functions (e.g., https://us-central1-splitifyd.cloudfunctions.net/api)
+ *
+ * Example:
+ *   ./scripts/publish-staging-themes.ts admin@example.com mypassword https://us-central1-splitifyd.cloudfunctions.net/api
+ *
+ * Prerequisites:
+ *   - Admin user must already exist and have system_admin role
+ *   - Use promote-user-to-admin.ts to create/promote the admin user first
+ *
  * This script publishes themes for staging-default-tenant and staging-tenant
  * to the deployed Firebase environment (not emulator).
  */
 import { localhostBrandingTokens, loopbackBrandingTokens, type BrandingTokens } from '@billsplit-wl/shared';
 import type { BrandingTokenFixtureKey } from '@billsplit-wl/shared';
-import { ApiDriver } from '@billsplit-wl/test-support';
 import * as fs from 'fs';
 import * as path from 'path';
 import { logger } from '../functions/src/logger';
@@ -59,7 +73,30 @@ const buildBranding = (displayName: string, tokens: BrandingTokens) => ({
     themePalette: 'default',
 });
 
-async function seedTenant(apiDriver: ApiDriver, token: string, seed: TenantSeed): Promise<void> {
+async function apiRequest(baseUrl: string, method: string, path: string, body: any, token?: string): Promise<any> {
+    const url = `${baseUrl}${path}`;
+    const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+    };
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(url, {
+        method,
+        headers,
+        body: body ? JSON.stringify(body) : undefined,
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`API request failed: ${response.status} ${response.statusText} - ${errorText}`);
+    }
+
+    return response.json();
+}
+
+async function seedTenant(baseUrl: string, token: string, seed: TenantSeed): Promise<void> {
     const fixtures: Record<BrandingTokenFixtureKey, BrandingTokens> = {
         default: loopbackBrandingTokens,
         localhost: localhostBrandingTokens,
@@ -93,26 +130,33 @@ async function seedTenant(apiDriver: ApiDriver, token: string, seed: TenantSeed)
         domain: primaryDomain,
     });
 
-    await apiDriver.adminUpsertTenant(payload, token);
+    await apiRequest(baseUrl, 'POST', '/admin/tenants', payload, token);
 
     logger.info(`✓ Theme published for ${tenantId}`);
 }
 
-export async function publishStagingThemes(): Promise<void> {
+export async function publishStagingThemes(
+    adminEmail: string,
+    adminPassword: string,
+    baseUrl: string,
+): Promise<void> {
     const STAGING_TENANT_SEEDS = loadStagingTenantSeeds();
 
     logger.info('🎨 Publishing themes for staging tenants...');
     logger.info(`Found ${STAGING_TENANT_SEEDS.length} staging tenants to publish`);
 
-    const apiDriver = new ApiDriver();
-
-    logger.info('Authenticating default admin (Bill Splitter)…');
-    const admin = await apiDriver.getDefaultAdminUser();
-    logger.info(`Authenticated as ${admin.email}`);
+    logger.info(`Authenticating as ${adminEmail}...`);
+    const loginResponse = await apiRequest(baseUrl, 'POST', '/register', {
+        email: adminEmail,
+        password: adminPassword,
+        displayName: adminEmail.split('@')[0],
+    });
+    const token = loginResponse.token;
+    logger.info(`✓ Authenticated successfully`);
 
     for (const seed of STAGING_TENANT_SEEDS) {
         try {
-            await seedTenant(apiDriver, admin.token, seed);
+            await seedTenant(baseUrl, token, seed);
         } catch (error) {
             logger.error(`Failed to seed ${seed.tenantId}`, { error });
             throw error;
@@ -125,7 +169,24 @@ export async function publishStagingThemes(): Promise<void> {
 }
 
 async function main(): Promise<void> {
-    await publishStagingThemes();
+    const args = process.argv.slice(2);
+
+    if (args.length < 3) {
+        console.error('❌ Usage: script.ts <admin-email> <admin-password> <base-url>');
+        console.error('');
+        console.error('Arguments:');
+        console.error('  admin-email    - Email address of system admin account');
+        console.error('  admin-password - Password for admin account');
+        console.error('  base-url       - Base URL of deployed Firebase Functions');
+        console.error('');
+        console.error('Example:');
+        console.error('  ./scripts/publish-staging-themes.ts admin@example.com mypassword https://us-central1-splitifyd.cloudfunctions.net/api');
+        process.exit(1);
+    }
+
+    const [adminEmail, adminPassword, baseUrl] = args;
+
+    await publishStagingThemes(adminEmail, adminPassword, baseUrl);
 }
 
 // Run if executed directly
