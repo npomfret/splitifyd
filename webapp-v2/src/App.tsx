@@ -140,6 +140,14 @@ export function App() {
     const showLandingPage = marketingFlags?.showLandingPage ?? true; // Default to true - show landing page unless explicitly disabled
     const showPricingPage = marketingFlags?.showPricingPage ?? false;
 
+    // Update document title when tenant config loads
+    useEffect(() => {
+        const appName = config?.tenant?.branding?.appName;
+        if (appName) {
+            document.title = appName;
+        }
+    }, [config?.tenant?.branding?.appName]);
+
     const handlePolicyAcceptance = async () => {
         // Refresh policy status after acceptance to hide the modal
         await refreshPolicyStatus();
