@@ -90,15 +90,15 @@ test.describe('Admin Page Isolation - Header Component', () => {
         await expect(logoutButton).toHaveText(/Logout/i);
     });
 
-    test('should display "System Admin" title in header', async ({ systemAdminPage }) => {
+    test('should display minimal header with logout button', async ({ systemAdminPage }) => {
         const { page } = systemAdminPage;
 
         await page.goto('/admin');
         await page.waitForLoadState('networkidle');
 
-        // Check for System Admin title
-        const title = page.locator('header.admin-header span:has-text("System Admin")');
-        await expect(title).toBeVisible();
+        // Check for logout button in header
+        const logoutButton = page.locator('header.admin-header button[data-testid="admin-logout-button"]');
+        await expect(logoutButton).toBeVisible();
     });
 
     test('should not display tenant branding in admin header', async ({ systemAdminPage }) => {
