@@ -250,4 +250,36 @@ test.describe('Tenant Editor Modal', () => {
         // Note: Cannot verify tenant appears in list since we're using static MSW mocks
         // The actual tenant list refresh is tested in e2e tests against real emulator
     });
+
+    test('should close modal after editing and saving a tenant', async ({ systemAdminPage }) => {
+        const { page } = systemAdminPage;
+        const adminTenantsPage = new AdminTenantsPage(page);
+        const tenantEditorModal = new TenantEditorModalPage(page);
+
+        await adminTenantsPage.navigate();
+        await adminTenantsPage.waitForTenantsLoaded();
+
+        // Click edit on first tenant
+        const firstEditButton = page.locator('[data-testid^="edit-tenant-"]').first();
+        await firstEditButton.click();
+        await tenantEditorModal.waitForModalToBeVisible();
+
+        // Wait for form to be populated
+        await page.waitForTimeout(500);
+
+        // Make a change
+        await tenantEditorModal.fillAppName('Updated App Name');
+
+        // Save changes
+        await tenantEditorModal.clickSave();
+
+        // Verify success message shows (any success message is fine - MSW mocks may vary)
+        await tenantEditorModal.verifySuccessMessage();
+
+        // Verify modal closes automatically after save (within 2 seconds)
+        await tenantEditorModal.verifyModalIsClosed();
+
+        // Verify we're back on the tenants list page
+        await expect(page.getByTestId('create-tenant-button')).toBeVisible();
+    });
 });

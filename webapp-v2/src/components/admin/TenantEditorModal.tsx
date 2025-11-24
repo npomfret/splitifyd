@@ -213,16 +213,14 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
             const action = result.created ? 'created' : 'updated';
             setSuccessMessage(`Tenant ${action} successfully!`);
 
+            // Notify parent to refresh data
+            onSave();
+
             // Close modal after short delay to show success message
-            if (mode === 'create') {
-                setTimeout(() => {
-                    onSave();
-                    onClose();
-                    setFormData({ ...DEFAULT_TENANT_DATA });
-                }, 1500);
-            } else {
-                onSave();
-            }
+            setTimeout(() => {
+                onClose();
+                setFormData({ ...DEFAULT_TENANT_DATA });
+            }, 1500);
         } catch (error: any) {
             const userFriendlyMessage = error.code === 'INVALID_TENANT_PAYLOAD'
                 ? 'Invalid tenant data. Please check all fields and try again.'

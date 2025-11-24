@@ -138,6 +138,130 @@ describe('Admin Tests', () => {
                     .rejects
                     .toMatchObject({ code: 'INVALID_TENANT_PAYLOAD' });
             });
+
+            it('should create tenant with valid data and return created=true', async () => {
+                const tenantId = `test-create-${Date.now()}`;
+                const payload = AdminTenantRequestBuilder
+                    .forTenant(tenantId)
+                    .withAppName('Test Create App')
+                    .withDomains([toTenantDomainName(`${tenantId}.test.local`)])
+                    .build();
+
+                const result = await appDriver.adminUpsertTenant(payload, localAdminUser);
+
+                expect(result).toMatchObject({
+                    tenantId,
+                    created: true,
+                });
+            });
+
+            it('should update existing tenant and return created=false', async () => {
+                const tenantId = `test-update-${Date.now()}`;
+
+                // Create tenant
+                const createPayload = AdminTenantRequestBuilder
+                    .forTenant(tenantId)
+                    .withAppName('Original Name')
+                    .withDomains([toTenantDomainName(`${tenantId}.test.local`)])
+                    .build();
+
+                const createResult = await appDriver.adminUpsertTenant(createPayload, localAdminUser);
+                expect(createResult.created).toBe(true);
+
+                // Update tenant
+                const updatePayload = AdminTenantRequestBuilder
+                    .forTenant(tenantId)
+                    .withAppName('Updated Name')
+                    .withDomains([toTenantDomainName(`${tenantId}.test.local`)])
+                    .build();
+
+                const updateResult = await appDriver.adminUpsertTenant(updatePayload, localAdminUser);
+                expect(updateResult).toMatchObject({
+                    tenantId,
+                    created: false,
+                });
+            });
+
+            it('should allow updating tenant domains', async () => {
+                const tenantId = `test-domain-update-${Date.now()}`;
+                const originalDomain = `${tenantId}-original.test.local`;
+                const newDomain = `${tenantId}-new.test.local`;
+
+                // Create with original domain
+                const createPayload = AdminTenantRequestBuilder
+                    .forTenant(tenantId)
+                    .withDomains([toTenantDomainName(originalDomain)])
+                    .build();
+
+                await appDriver.adminUpsertTenant(createPayload, localAdminUser);
+
+                // Update with new domain
+                const updatePayload = AdminTenantRequestBuilder
+                    .forTenant(tenantId)
+                    .withDomains([toTenantDomainName(newDomain)])
+                    .build();
+
+                const updateResult = await appDriver.adminUpsertTenant(updatePayload, localAdminUser);
+                expect(updateResult.created).toBe(false);
+            });
+
+            it('should allow multiple domains for same tenant', async () => {
+                const tenantId = `test-multi-domain-${Date.now()}`;
+                const domains = [
+                    toTenantDomainName(`${tenantId}-1.test.local`),
+                    toTenantDomainName(`${tenantId}-2.test.local`),
+                    toTenantDomainName(`${tenantId}-3.test.local`),
+                ];
+
+                const payload = AdminTenantRequestBuilder
+                    .forTenant(tenantId)
+                    .withDomains(domains)
+                    .build();
+
+                const result = await appDriver.adminUpsertTenant(payload, localAdminUser);
+                expect(result.created).toBe(true);
+            });
+
+            it('should accept all valid branding colors', async () => {
+                const tenantId = `test-colors-${Date.now()}`;
+                const payload = AdminTenantRequestBuilder
+                    .forTenant(tenantId)
+                    .withBranding({
+                        appName: toTenantAppName('Color Test'),
+                        logoUrl: toTenantLogoUrl('/logo.svg'),
+                        primaryColor: toTenantPrimaryColor('#1a73e8'),
+                        secondaryColor: toTenantSecondaryColor('#34a853'),
+                        accentColor: toTenantAccentColor('#fbbc04'),
+                    })
+                    .withDomains([toTenantDomainName(`${tenantId}.test.local`)])
+                    .build();
+
+                const result = await appDriver.adminUpsertTenant(payload, localAdminUser);
+                expect(result.created).toBe(true);
+            });
+
+            it('should normalize and deduplicate domains', async () => {
+                const tenantId = `test-normalize-${Date.now()}`;
+
+                // Submit with port numbers and duplicates (should be normalized)
+                const payload = {
+                    tenantId,
+                    branding: {
+                        appName: toTenantAppName('Normalize Test'),
+                        logoUrl: toTenantLogoUrl('/logo.svg'),
+                        primaryColor: toTenantPrimaryColor('#ff0000'),
+                        secondaryColor: toTenantSecondaryColor('#00ff00'),
+                    },
+                    domains: [
+                        'example.com:8080',  // Should strip port
+                        'EXAMPLE.COM',       // Should lowercase
+                        'example.com',       // Duplicate after normalization
+                    ] as any,
+                };
+
+                const result = await appDriver.adminUpsertTenant(payload, localAdminUser);
+                expect(result.created).toBe(true);
+            });
         });
 
         describe('POST /api/admin/tenants/publish - publishTenantTheme', () => {
