@@ -4,7 +4,7 @@ import {
     toAmount,
     toCurrencyISOCode,
     USD,
-    toUserId,
+
 } from '@billsplit-wl/shared';
 import type { UserId } from '@billsplit-wl/shared';
 import {
@@ -13,7 +13,7 @@ import {
     CreateSettlementRequestBuilder,
     ExpenseSplitBuilder,
     ExpenseUpdateBuilder,
-    UserRegistrationBuilder,
+
 } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, it } from 'vitest';
 import { AppDriver } from '../AppDriver';
@@ -28,30 +28,8 @@ describe('expenses', () => {
     beforeEach(async () => {
         appDriver = new AppDriver();
 
-        // Register users via API
-        const user1Reg = new UserRegistrationBuilder()
-            .withEmail('user1@example.com')
-            .withDisplayName('User one')
-            .withPassword('password12345')
-            .build();
-        const user1Result = await appDriver.registerUser(user1Reg);
-        user1 = toUserId(user1Result.user.uid);
-
-        const user2Reg = new UserRegistrationBuilder()
-            .withEmail('user2@example.com')
-            .withDisplayName('User two')
-            .withPassword('password12345')
-            .build();
-        const user2Result = await appDriver.registerUser(user2Reg);
-        user2 = toUserId(user2Result.user.uid);
-
-        const user3Reg = new UserRegistrationBuilder()
-            .withEmail('user3@example.com')
-            .withDisplayName('User three')
-            .withPassword('password12345')
-            .build();
-        const user3Result = await appDriver.registerUser(user3Reg);
-        user3 = toUserId(user3Result.user.uid);
+        const { users } = await appDriver.createTestUsers({ count: 3 });
+        [user1, user2, user3] = users;
     });
 
     afterEach(() => {

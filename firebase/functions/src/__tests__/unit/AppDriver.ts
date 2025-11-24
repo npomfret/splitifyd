@@ -471,6 +471,62 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         };
     }
 
+    /**
+     * Creates a standard set of test users for common test scenarios.
+     * Replaces repetitive beforeEach user registration boilerplate.
+     *
+     * @param options Configuration for test users
+     * @returns Object containing created user IDs
+     *
+     * @example
+     * // Most common: 3 users + admin
+     * const { users, admin } = await appDriver.createTestUsers({ count: 3, includeAdmin: true });
+     * [user1, user2, user3] = users;
+     * adminUser = admin!;
+     *
+     * @example
+     * // Simple: 2 users, no admin
+     * const { users } = await appDriver.createTestUsers({ count: 2 });
+     * [user1, user2] = users;
+     */
+    async createTestUsers(options: {
+        count: number;
+        includeAdmin?: boolean;
+    }): Promise<{ users: UserId[]; admin?: UserId }> {
+        const users: UserId[] = [];
+
+        // Create regular users
+        for (let i = 0; i < options.count; i++) {
+            const userNum = i + 1;
+            const displayNames = ['one', 'two', 'three', 'four'];
+            const displayName = userNum <= 4 ? displayNames[userNum - 1] : `${userNum}`;
+
+            const registration = new UserRegistrationBuilder()
+                .withEmail(`user${userNum}@example.com`)
+                .withDisplayName(`User ${displayName}`)
+                .withPassword('password12345')
+                .build();
+
+            const result = await this.registerUser(registration);
+            users.push(toUserId(result.user.uid));
+        }
+
+        // Create admin if requested
+        let admin: UserId | undefined;
+        if (options.includeAdmin) {
+            const adminReg = new UserRegistrationBuilder()
+                .withEmail('admin@example.com')
+                .withDisplayName('Admin User')
+                .withPassword('password12345')
+                .build();
+            const adminResult = await this.registerUser(adminReg);
+            admin = toUserId(adminResult.user.uid);
+            this.seedAdminUser(admin);
+        }
+
+        return { users, admin };
+    }
+
     dispose() {
     }
 
