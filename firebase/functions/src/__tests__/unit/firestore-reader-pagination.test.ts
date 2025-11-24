@@ -9,18 +9,18 @@
 import { toUserId } from '@billsplit-wl/shared';
 import { CreateGroupRequestBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { FirestoreReader } from '../../services/firestore';
+import { IFirestoreReader } from '../../services/firestore';
 import { AppDriver } from './AppDriver';
 
 describe('FirestoreReader Pagination Performance', () => {
     let app: AppDriver;
-    let firestoreReader: FirestoreReader;
+    let firestoreReader: IFirestoreReader;
     let testUserId: string;
     let testUserToken: string;
 
     beforeEach(async () => {
         app = new AppDriver();
-        firestoreReader = new FirestoreReader(app.database);
+        firestoreReader = app.componentBuilder.buildFirestoreReader();
 
         // Register test user
         const registration = new UserRegistrationBuilder()

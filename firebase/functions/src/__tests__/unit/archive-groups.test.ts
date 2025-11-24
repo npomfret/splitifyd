@@ -6,7 +6,7 @@
  * - GroupMemberService archive/unarchive methods
  */
 
-import { MemberStatuses, toGroupId, toUserId } from '@billsplit-wl/shared';
+import { MemberStatuses, toGroupId } from '@billsplit-wl/shared';
 import { CreateGroupRequestBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { AppDriver } from './AppDriver';

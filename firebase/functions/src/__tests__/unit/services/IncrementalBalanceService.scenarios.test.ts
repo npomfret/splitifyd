@@ -1,6 +1,6 @@
 import type { SimplifiedDebt } from '@billsplit-wl/shared';
 import { toGroupId, toCurrencyISOCode, USD, toUserId } from '@billsplit-wl/shared';
-import { TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
+import {StubFirestoreDatabase} from '@billsplit-wl/test-support';
 import { ExpenseDTOBuilder, SettlementDTOBuilder, SimplifiedDebtBuilder, UserBalanceBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { IncrementalBalanceService } from '../../../services/balance/IncrementalBalanceService';
@@ -18,7 +18,7 @@ import { GroupBalanceDTOBuilder } from '../../builders/GroupBalanceDTOBuilder';
  */
 describe('IncrementalBalanceService - Scenarios', () => {
     let service: IncrementalBalanceService;
-    let stubDb: TenantFirestoreTestDatabase;
+    let stubDb: StubFirestoreDatabase;
     let writer: FirestoreWriter;
 
     const groupId = toGroupId('test-group-id');
@@ -26,7 +26,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
     const user2 = toUserId('user-2');
 
     beforeEach(() => {
-        stubDb = new TenantFirestoreTestDatabase();
+        stubDb = new StubFirestoreDatabase();
         writer = new FirestoreWriter(stubDb);
         service = new IncrementalBalanceService(writer);
     });

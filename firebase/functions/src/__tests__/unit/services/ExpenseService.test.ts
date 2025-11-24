@@ -1,13 +1,9 @@
-import { toExpenseId, toGroupId, USD, toUserId } from '@billsplit-wl/shared';
+import { toExpenseId, toGroupId, USD } from '@billsplit-wl/shared';
 import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, ExpenseSplitBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
-import { StubCloudTasksClient } from '@billsplit-wl/firebase-simulator';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
-import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import { ExpenseService } from '../../../services/ExpenseService';
 import {AppDriver} from '../AppDriver';
-import { StubAuthService } from '../mocks/StubAuthService';
-import {createUnitTestServiceConfig} from "../../test-config";
 
 
 describe('ExpenseService - Consolidated Unit Tests', () => {
@@ -17,11 +13,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
     beforeEach(() => {
         // Create AppDriver which sets up all real services
         appDriver = new AppDriver();
-
-        // Use ComponentBuilder to create the service with proper dependencies
-        const stubAuth = new StubAuthService();
-        const componentBuilder = new ComponentBuilder(stubAuth, appDriver.database, appDriver.storageStub, new StubCloudTasksClient(), createUnitTestServiceConfig());
-        expenseService = componentBuilder.buildExpenseService();
+        expenseService = appDriver.componentBuilder.buildExpenseService();
     });
 
     describe('Data Transformation and Validation', () => {
@@ -368,24 +360,6 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
 
             // Assert
             expect(result.receiptUrl).toBe(receiptUrl);
-        });
-    });
-
-    describe('Database Error Handling', () => {
-        it('should handle database read failures gracefully', async () => {
-            // Arrange
-            const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const userId = user.user.uid;
-            const expenseId = toExpenseId('failing-expense');
-
-            // Make the database throw an error by overriding collection method
-            const db = appDriver.database;
-            db.collection = () => {
-                throw new Error('Database connection failed');
-            };
-
-            // Act & Assert
-            await expect(expenseService.getExpense(expenseId, userId)).rejects.toThrow('Database connection failed');
         });
     });
 

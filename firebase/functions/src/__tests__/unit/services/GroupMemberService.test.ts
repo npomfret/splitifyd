@@ -1,13 +1,9 @@
 import { ActivityFeedActions, ActivityFeedEventTypes, MemberRoles, MemberStatuses, toUserId, toGroupId } from '@billsplit-wl/shared';
 import { CreateGroupRequestBuilder, UserRegistrationBuilder, CreateExpenseRequestBuilder } from '@billsplit-wl/test-support';
-import { StubCloudTasksClient } from '@billsplit-wl/firebase-simulator';
 import { beforeEach, describe, expect, it, test } from 'vitest';
-import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import { GroupMemberService } from '../../../services/GroupMemberService';
 import { IFirestoreReader } from '../../../services/firestore';
 import {AppDriver} from '../AppDriver';
-import { StubAuthService } from '../mocks/StubAuthService';
-import {createUnitTestServiceConfig} from "../../test-config";
 
 describe('GroupMemberService - Consolidated Unit Tests', () => {
     let groupMemberService: GroupMemberService;
@@ -17,18 +13,8 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
     beforeEach(async () => {
         // Create AppDriver which sets up all real services
         appDriver = new AppDriver();
-
-        // Use ComponentBuilder to create the service with proper dependencies
-        const stubAuth = new StubAuthService();
-        const componentBuilder = new ComponentBuilder(
-            stubAuth,
-            appDriver.database,
-            appDriver.storageStub,
-            new StubCloudTasksClient(),
-            createUnitTestServiceConfig()
-        );
-        groupMemberService = componentBuilder.buildGroupMemberService();
-        firestoreReader = componentBuilder.buildFirestoreReader();
+        groupMemberService = appDriver.componentBuilder.buildGroupMemberService();
+        firestoreReader = appDriver.componentBuilder.buildFirestoreReader();
     });
 
     describe('getAllGroupMembers', () => {

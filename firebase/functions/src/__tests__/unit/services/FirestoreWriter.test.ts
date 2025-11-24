@@ -2,7 +2,7 @@ import { StubStorage, StubCloudTasksClient } from '@billsplit-wl/firebase-simula
 import { toGroupId, toUserId } from '@billsplit-wl/shared';
 import { toDisplayName } from '@billsplit-wl/shared';
 import { toTenantAppName, toTenantDomainName, toTenantFaviconUrl, toTenantId, toTenantLogoUrl, toTenantPrimaryColor, toTenantSecondaryColor } from '@billsplit-wl/shared';
-import { CreateGroupRequestBuilder, GroupDTOBuilder, GroupMemberDocumentBuilder, TenantFirestoreTestDatabase, UserRegistrationBuilder } from '@billsplit-wl/test-support';
+import {CreateGroupRequestBuilder, StubFirestoreDatabase, UserRegistrationBuilder} from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
@@ -16,17 +16,14 @@ import {createUnitTestServiceConfig} from "../../test-config";
 
 describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
     let app: AppDriver;
-    let db: TenantFirestoreTestDatabase;
     let firestoreReader: IFirestoreReader;
     let firestoreWriter: IFirestoreWriter;
 
     beforeEach(() => {
         app = new AppDriver();
-        db = app.database;
 
-        const applicationBuilder = new ComponentBuilder(new StubAuthService(), db, new StubStorage({ defaultBucketName: 'test-bucket' }), new StubCloudTasksClient(), createUnitTestServiceConfig());
-        firestoreWriter = applicationBuilder.buildFirestoreWriter();
-        firestoreReader = applicationBuilder.buildFirestoreReader();
+        firestoreWriter = app.componentBuilder.buildFirestoreWriter();
+        firestoreReader = app.componentBuilder.buildFirestoreReader();
     });
 
     describe('updateGroupMemberDisplayName', () => {
@@ -206,12 +203,12 @@ describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
 });
 
 describe('FirestoreWriter.upsertTenant - Default Tenant Enforcement', () => {
-    let db: TenantFirestoreTestDatabase;
+    let db: StubFirestoreDatabase;
     let firestoreReader: IFirestoreReader;
     let firestoreWriter: IFirestoreWriter;
 
     beforeEach(() => {
-        db = new TenantFirestoreTestDatabase();
+        db = new StubFirestoreDatabase();
 
         const applicationBuilder = new ComponentBuilder(
             new StubAuthService(),

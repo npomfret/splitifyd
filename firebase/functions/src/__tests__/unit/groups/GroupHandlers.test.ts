@@ -1,6 +1,6 @@
 import { StubCloudTasksClient } from '@billsplit-wl/firebase-simulator';
-import { StubStorage } from '@billsplit-wl/test-support';
-import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, GroupUpdateBuilder, TenantFirestoreTestDatabase, UserRegistrationBuilder } from '@billsplit-wl/test-support';
+import {StubFirestoreDatabase, StubStorage} from '@billsplit-wl/test-support';
+import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, GroupUpdateBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { GroupHandlers } from '../../../groups/GroupHandlers';
@@ -595,7 +595,7 @@ describe('GroupHandlers - Unit Tests', () => {
 
     describe('Static Factory Method', () => {
         it('should create GroupHandlers instance with GroupService and FirestoreWriter', () => {
-            const db = new TenantFirestoreTestDatabase();
+            const db = new StubFirestoreDatabase();
             const authService = new StubAuthService();
             const componentBuilder = new ComponentBuilder(
                 authService,

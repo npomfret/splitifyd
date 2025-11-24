@@ -1,24 +1,28 @@
 // Unit tests for comment real-time subscriptions using TenantFirestoreTestDatabase
 // Migrated from integration/comments.test.ts to avoid Firebase emulator dependency
 
-import { CreateGroupRequestBuilder } from '@billsplit-wl/test-support';
+import { CreateGroupRequestBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { AppDriver } from '../AppDriver';
 
 describe('Comment Real-time Subscriptions - Unit Tests', () => {
     let appDriver: AppDriver;
-    const userIds = ['user-0', 'user-1', 'user-2'];
+    let userIds: string[];
 
-    beforeEach(() => {
+    beforeEach(async () => {
         appDriver = new AppDriver();
 
-        // Seed users
-        userIds.forEach((userId, index) => {
-            appDriver.seedUser(userId, {
-                displayName: `User ${index}`,
-                email: `user${index}@test.local`,
-            });
-        });
+        // Register users via API instead of seeding
+        userIds = [];
+        for (let index = 0; index < 3; index++) {
+            const registration = new UserRegistrationBuilder()
+                .withDisplayName(`User ${index}`)
+                .withEmail(`user${index}@test.local`)
+                .withPassword('password123456')
+                .build();
+            const registered = await appDriver.registerUser(registration);
+            userIds.push(registered.user.uid);
+        }
     });
 
     afterEach(() => {

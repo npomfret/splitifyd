@@ -1,6 +1,6 @@
 import { StubStorage, StubCloudTasksClient } from '@billsplit-wl/firebase-simulator';
 import { toPolicyId, toPolicyName, toPolicyText, toVersionHash } from '@billsplit-wl/shared';
-import { TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
+import {StubFirestoreDatabase} from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { PolicyHandlers } from '../../../policies/PolicyHandlers';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
@@ -329,7 +329,7 @@ describe('PolicyHandlers - Unit Tests', () => {
 
     describe('Static Factory Method', () => {
         it('should create PolicyHandlers instance with PolicyService', () => {
-            const db = new TenantFirestoreTestDatabase();
+            const db = new StubFirestoreDatabase();
             const authService = new StubAuthService();
             const componentBuilder = new ComponentBuilder(
                 authService,

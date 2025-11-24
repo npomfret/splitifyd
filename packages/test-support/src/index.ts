@@ -26,7 +26,6 @@ export * from './builders';
 export * from './error-proxy';
 export * from './errors/test-errors';
 export * from './firebase-emulator-config';
-export * from './firebase/TenantFirestoreTestDatabase';
 export * from './http-stubs';
 export * from './page-objects';
 export * from './Polling';

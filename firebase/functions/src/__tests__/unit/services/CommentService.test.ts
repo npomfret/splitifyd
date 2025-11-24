@@ -1,12 +1,9 @@
-import { toCommentId, toExpenseId, toGroupId, toUserId } from '@billsplit-wl/shared';
+import { toCommentId, toExpenseId, toGroupId } from '@billsplit-wl/shared';
 import { CreateExpenseCommentRequestBuilder, CreateExpenseRequestBuilder, CreateGroupCommentRequestBuilder, CreateGroupRequestBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { validateCommentId, validateCreateExpenseComment, validateCreateGroupComment, validateListCommentsQuery } from '../../../comments/validation';
 import { HTTP_STATUS } from '../../../constants';
-import { ActivityFeedService } from '../../../services/ActivityFeedService';
 import { CommentService } from '../../../services/CommentService';
-import { FirestoreReader, FirestoreWriter } from '../../../services/firestore';
-import { GroupMemberService } from '../../../services/GroupMemberService';
 import { ApiError } from '../../../utils/errors';
 import { AppDriver } from '../AppDriver';
 
@@ -18,14 +15,7 @@ describe('CommentService - Consolidated Tests', () => {
         // Create AppDriver which sets up all real services
         appDriver = new AppDriver();
 
-        // Get the service using appDriver's database
-        const db = appDriver.database;
-        const firestoreReader = new FirestoreReader(db);
-        const firestoreWriter = new FirestoreWriter(db);
-        const activityFeedService = new ActivityFeedService(firestoreReader, firestoreWriter);
-        const groupMemberService = new GroupMemberService(firestoreReader, firestoreWriter, activityFeedService);
-
-        commentService = new CommentService(firestoreReader, firestoreWriter, groupMemberService, activityFeedService);
+        commentService = appDriver.componentBuilder.buildCommentService();
     });
 
     describe('listGroupComments', () => {

@@ -1,11 +1,8 @@
 import { AuthenticatedUser, SystemUserRoles, toDisplayName, toUserId } from '@billsplit-wl/shared';
 import { NextFunction, Request, Response } from 'express';
-import { getIdentityToolkitConfig } from '../client-config';
 import { AUTH } from '../constants';
-import { getAuth, getFirestore, getStorage } from '../firebase';
 import { logger } from '../logger';
 import { LoggerContext } from '../logger';
-import { ComponentBuilder, type ServiceConfig } from '../services/ComponentBuilder';
 import { Errors, sendError } from '../utils/errors';
 import {getComponentBuilder} from "../ComponentBuilderSingleton";
 

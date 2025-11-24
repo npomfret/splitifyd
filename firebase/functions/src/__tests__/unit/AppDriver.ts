@@ -77,7 +77,7 @@ import {
     UserRegistration,
     VersionHash,
 } from '@billsplit-wl/shared';
-import {CreateGroupRequestBuilder, createStubRequest, createStubResponse, StubStorage, TenantFirestoreTestDatabase, UserRegistrationBuilder} from '@billsplit-wl/test-support';
+import {CreateGroupRequestBuilder, createStubRequest, createStubResponse, StubFirestoreDatabase, StubStorage, UserRegistrationBuilder} from '@billsplit-wl/test-support';
 import {StubCloudTasksClient} from '@billsplit-wl/firebase-simulator';
 import type {NextFunction, Request, RequestHandler, Response} from 'express';
 import type {UserRecord} from 'firebase-admin/auth';
@@ -129,33 +129,29 @@ type SeedUserData = Omit<Partial<UserRecord>, 'metadata'> & {
 };
 
 export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken> {
-    private db = new TenantFirestoreTestDatabase();
+    private db = new StubFirestoreDatabase();
     private storage = new StubStorage({defaultBucketName: 'app-driver-test-bucket'});
     private authService = new StubAuthService();
     private cloudTasksClient = new StubCloudTasksClient();
     private routeDefinitions: RouteDefinition[];
+    private readonly _componentBuilder: ComponentBuilder;
 
     constructor() {
         // Create a ComponentBuilder with our test dependencies
-        const serviceConfig = createUnitTestServiceConfig();
-
-        const componentBuilder = new ComponentBuilder(
+        this._componentBuilder = new ComponentBuilder(
             this.authService,
             this.db,
             this.storage,
             this.cloudTasksClient,
-            serviceConfig,
+            createUnitTestServiceConfig(),
         );
 
         // Create populated route definitions using the component builder
-        this.routeDefinitions = createRouteDefinitions(componentBuilder);
+        this.routeDefinitions = createRouteDefinitions(this._componentBuilder);
     }
 
-    /**
-     * Exposes the test database for direct assertions in tests
-     */
-    get database() {
-        return this.db;
+    get componentBuilder() {
+        return this._componentBuilder;
     }
 
     get storageStub(): StubStorage {
@@ -422,14 +418,6 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
             email: user.email,
             displayName: user.displayName,
         });
-    }
-
-    /**
-     * Seeds a tenant document in Firestore for testing tenant endpoints
-     * This creates the actual Firestore document that tenant update operations require
-     */
-    seedTenantDocument(tenantId: string, tenantData: Record<string, any> = {}) {
-        this.db.seedTenantDocument(tenantId, tenantData);
     }
 
     /**

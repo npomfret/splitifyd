@@ -1,22 +1,19 @@
-import { toTenantAccentColor, toTenantAppName, toTenantDomainName, toTenantFaviconUrl, toTenantLogoUrl, toTenantPrimaryColor, toTenantSecondaryColor, toTenantThemePaletteName, toUserId } from '@billsplit-wl/shared';
+import { toTenantAppName, toTenantDomainName, toTenantFaviconUrl, toTenantLogoUrl, toTenantPrimaryColor, toTenantSecondaryColor } from '@billsplit-wl/shared';
 import { AdminTenantRequestBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
-import { FirestoreReader } from '../../../services/firestore';
 import { TenantRegistryService, type TenantResolutionOptions } from '../../../services/tenant/TenantRegistryService';
 import { ApiError } from '../../../utils/errors';
 import { AppDriver } from '../AppDriver';
 
 describe('TenantRegistryService', () => {
     let app: AppDriver;
-    let firestoreReader: FirestoreReader;
     let service: TenantRegistryService;
     let adminUserId: string;
 
     beforeEach(async () => {
         app = new AppDriver();
-        firestoreReader = new FirestoreReader(app.database);
-        service = new TenantRegistryService(firestoreReader, 5000); // 5s cache for testing
+        service = app.componentBuilder.buildTenantRegistryService();
 
         // Create an admin user for tenant management
         const adminReg = new UserRegistrationBuilder()

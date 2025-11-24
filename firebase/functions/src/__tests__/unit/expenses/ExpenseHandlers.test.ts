@@ -1,13 +1,13 @@
 import { StubStorage, StubCloudTasksClient } from '@billsplit-wl/firebase-simulator';
 import type { UpdateExpenseRequest } from '@billsplit-wl/shared';
-import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, TenantFirestoreTestDatabase, UserRegistrationBuilder } from '@billsplit-wl/test-support';
+import {CreateExpenseRequestBuilder, CreateGroupRequestBuilder, StubFirestoreDatabase, UserRegistrationBuilder} from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ExpenseHandlers } from '../../../expenses/ExpenseHandlers';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import {AppDriver} from '../AppDriver';
 import { StubAuthService } from '../mocks/StubAuthService';
-import { toCurrencyISOCode, toUserId, USD } from '@billsplit-wl/shared';
+import { toCurrencyISOCode, USD } from '@billsplit-wl/shared';
 import {createUnitTestServiceConfig} from "../../test-config";
 
 describe('ExpenseHandlers - Unit Tests', () => {
@@ -474,7 +474,7 @@ describe('ExpenseHandlers - Unit Tests', () => {
 
     describe('Static Factory Method', () => {
         it('should create ExpenseHandlers instance with ExpenseService', () => {
-            const db = new TenantFirestoreTestDatabase();
+            const db = new StubFirestoreDatabase();
             const authService = new StubAuthService();
             const componentBuilder = new ComponentBuilder(
                 authService,

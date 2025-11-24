@@ -1,6 +1,6 @@
 import { StubStorage, StubCloudTasksClient } from '@billsplit-wl/firebase-simulator';
-import { CommentDTO, toEmail, toPassword, toDisplayName, toUserId } from '@billsplit-wl/shared';
-import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, TenantFirestoreTestDatabase, UserRegistrationBuilder } from '@billsplit-wl/test-support';
+import { CommentDTO, toEmail, toPassword, toDisplayName } from '@billsplit-wl/shared';
+import {CreateExpenseRequestBuilder, CreateGroupRequestBuilder, StubFirestoreDatabase, UserRegistrationBuilder} from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { CommentHandlers } from '../../../comments/CommentHandlers';
 import { HTTP_STATUS } from '../../../constants';
@@ -610,7 +610,7 @@ describe('CommentHandlers - Integration Tests', () => {
 
     describe('Static Factory Method', () => {
         it('should create CommentHandlers instance with CommentService', () => {
-            const db = new TenantFirestoreTestDatabase();
+            const db = new StubFirestoreDatabase();
             const authService = new StubAuthService();
             const componentBuilder = new ComponentBuilder(
                 authService,

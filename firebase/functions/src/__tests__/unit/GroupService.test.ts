@@ -1,15 +1,11 @@
 import { CreateGroupRequest, toGroupId, toUserId } from '@billsplit-wl/shared';
 import { CreateGroupRequestBuilder, CreateExpenseRequestBuilder, GroupUpdateBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
-import { StubCloudTasksClient } from '@billsplit-wl/firebase-simulator';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS, VALIDATION_LIMITS } from '../../constants';
 import { validateCreateGroup, validateGroupId, validateUpdateGroup } from '../../groups/validation';
-import { ComponentBuilder } from '../../services/ComponentBuilder';
 import { GroupService } from '../../services/GroupService';
 import { ApiError } from '../../utils/errors';
 import {AppDriver} from './AppDriver';
-import { StubAuthService } from './mocks/StubAuthService';
-import {createUnitTestServiceConfig} from "../test-config";
 
 describe('GroupService - Unit Tests', () => {
     let groupService: GroupService;
@@ -19,16 +15,7 @@ describe('GroupService - Unit Tests', () => {
         // Create AppDriver which sets up all real services
         appDriver = new AppDriver();
 
-        // Use ComponentBuilder to create the service with proper dependencies
-        const stubAuth = new StubAuthService();
-        const componentBuilder = new ComponentBuilder(
-            stubAuth,
-            appDriver.database,
-            appDriver.storageStub,
-            new StubCloudTasksClient(),
-            createUnitTestServiceConfig()
-        );
-        groupService = componentBuilder.buildGroupService();
+        groupService = appDriver.componentBuilder.buildGroupService();
     });
 
     describe('getGroupFullDetails', () => {

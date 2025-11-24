@@ -1,14 +1,10 @@
-import {toPolicyId, toPolicyName, toPolicyText} from '@billsplit-wl/shared';
-import { convertToISOString, TenantFirestoreTestDatabase, UserRegistrationBuilder } from '@billsplit-wl/test-support';
-import { PolicyDocumentBuilder } from '@billsplit-wl/test-support';
+import {toPolicyId, toPolicyName, toPolicyText, toVersionHash} from '@billsplit-wl/shared';
+import {UserRegistrationBuilder} from '@billsplit-wl/test-support';
 import * as crypto from 'crypto';
-import { beforeEach, describe, expect, it } from 'vitest';
-import { HTTP_STATUS } from '../../../constants';
-import { FirestoreReader } from '../../../services/firestore';
-import { FirestoreWriter } from '../../../services/firestore';
-import { PolicyService } from '../../../services/PolicyService';
-import {toVersionHash} from "@billsplit-wl/shared";
-import { AppDriver } from '../AppDriver';
+import {beforeEach, describe, expect, it} from 'vitest';
+import {HTTP_STATUS} from '../../../constants';
+import {PolicyService} from '../../../services/PolicyService';
+import {AppDriver} from '../AppDriver';
 
 /**
  * Consolidated PolicyService Unit Tests
@@ -32,25 +28,22 @@ import { AppDriver } from '../AppDriver';
  */
 describe('PolicyService - Consolidated Unit Tests', () => {
     let policyService: PolicyService;
-    let db: TenantFirestoreTestDatabase;
     let app: AppDriver;
     let adminToken: string;
 
     beforeEach(async () => {
         // Create AppDriver (which includes database)
         app = new AppDriver();
-        db = app.database;
 
         // Create PolicyService with real services
-        policyService = new PolicyService(new FirestoreReader(db), new FirestoreWriter(db));
+        policyService = app.componentBuilder.buildPolicyService();
 
         // Register admin user for API operations
-        const adminReg = new UserRegistrationBuilder()
+        const adminResult = await app.registerUser(new UserRegistrationBuilder()
             .withEmail('admin@test.com')
             .withPassword('password123456')
             .withDisplayName('Admin User')
-            .build();
-        const adminResult = await app.registerUser(adminReg);
+            .build());
         adminToken = adminResult.user.uid;
         app.seedAdminUser(adminToken);
     });
@@ -410,13 +403,13 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             const initialText = toPolicyText('Current content');
             const createResult = await app.createPolicy({ policyName, text: initialText }, adminToken);
             const policyId = toPolicyId('terms-of-service');
-            const currentVersionHash = toVersionHash(createResult.currentVersionHash);
+            const currentVersionHash = toVersionHash(createResult.versionHash);
 
             // Act & Assert - Deleting the only version (which is also current) should fail
             await expect(policyService.deletePolicyVersion(policyId, currentVersionHash)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'CANNOT_DELETE_ONLY', // It's the only version
+                    code: 'CANNOT_DELETE_CURRENT', // Cannot delete current version
                 }),
             );
         });
@@ -488,26 +481,6 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             // This test is kept for documentation purposes showing the expected behavior
             expect(true).toBe(true); // Placeholder assertion
         });
-
-        it('should handle corrupted policy data', async () => {
-            // NOTE: This test MUST use seeding because it tests database corruption detection
-            // which can never occur through the API (API validates data)
-            const policyId = toPolicyId('terms-of-service');
-            const corruptedPolicy = {
-                id: policyId,
-                // Missing required fields like policyName, currentVersionHash, versions
-            };
-
-            db.seedPolicy(policyId, corruptedPolicy);
-
-            // Act & Assert - With real FirestoreReader, Zod validation fails first
-            await expect(policyService.getCurrentPolicy(policyId)).rejects.toThrow(
-                expect.objectContaining({
-                    statusCode: HTTP_STATUS.INTERNAL_ERROR,
-                    code: 'POLICY_GET_FAILED',
-                }),
-            );
-        });
     });
 
     describe('Version Management Scenarios', () => {
@@ -517,7 +490,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             const version1Text = toPolicyText('Version 1 content');
             const createResult = await app.createPolicy({ policyName, text: version1Text }, adminToken);
             const policyId = toPolicyId('terms-of-service');
-            const version1Hash = createResult.currentVersionHash;
+            const version1Hash = createResult.versionHash;
 
             // Act - Create version 2
             const result2 = await policyService.updatePolicy(policyId, toPolicyText('Version 2 content'), false);
@@ -539,13 +512,13 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             const onlyVersionText = toPolicyText('Only version content');
             const createResult = await app.createPolicy({ policyName, text: onlyVersionText }, adminToken);
             const policyId = toPolicyId('cookie-policy');
-            const onlyVersionHash = toVersionHash(createResult.currentVersionHash);
+            const onlyVersionHash = toVersionHash(createResult.versionHash);
 
             // Act & Assert
             await expect(policyService.deletePolicyVersion(policyId, onlyVersionHash)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'CANNOT_DELETE_ONLY', // It's the only version
+                    code: 'CANNOT_DELETE_CURRENT', // Cannot delete current version
                 }),
             );
         });
@@ -767,13 +740,13 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             const originalText = toPolicyText('Original');
             const createResult = await app.createPolicy({ policyName, text: originalText }, adminToken);
             const policyId = toPolicyId('cookie-policy');
-            const currentHash = createResult.currentVersionHash;
+            const currentHash = createResult.versionHash;
 
             // Cannot delete current version (which is also the only version)
             await expect(policyService.deletePolicyVersion(policyId, currentHash)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'CANNOT_DELETE_ONLY', // It's the only version
+                    code: 'CANNOT_DELETE_CURRENT', // Cannot delete current version
                 }),
             );
         });

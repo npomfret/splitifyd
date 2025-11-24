@@ -1,6 +1,6 @@
-import {ClientUserBuilder, CreateGroupRequestBuilder, PasswordChangeRequestBuilder, StubStorage, TenantFirestoreTestDatabase, UserRegistrationBuilder, UserUpdateBuilder} from '@billsplit-wl/test-support';
+import {ClientUserBuilder, CreateGroupRequestBuilder, PasswordChangeRequestBuilder, StubFirestoreDatabase, StubStorage, UserRegistrationBuilder, UserUpdateBuilder} from '@billsplit-wl/test-support';
 import { StubCloudTasksClient } from '@billsplit-wl/firebase-simulator';
-import {DisplayName, SystemUserRoles, toDisplayName, toGroupId, toUserId} from '@billsplit-wl/shared';
+import {DisplayName, toDisplayName, toGroupId, toUserId} from '@billsplit-wl/shared';
 import {beforeAll, beforeEach, describe, expect, it, vi} from 'vitest';
 import {HTTP_STATUS} from '../../../constants';
 import {ComponentBuilder} from '../../../services/ComponentBuilder';
@@ -13,7 +13,7 @@ import {createUnitTestServiceConfig} from "../../test-config";
 
 describe('UserService - Consolidated Unit Tests', () => {
     let userService: UserService;
-    let db: TenantFirestoreTestDatabase;
+    let db: StubFirestoreDatabase;
     let stubAuth: StubAuthService;
 
     beforeAll(async () => {
@@ -23,7 +23,7 @@ describe('UserService - Consolidated Unit Tests', () => {
 
     beforeEach(() => {
         // Create stub database
-        db = new TenantFirestoreTestDatabase();
+        db = new StubFirestoreDatabase();
 
         // Create real services using stub database
         stubAuth = new StubAuthService();
@@ -945,14 +945,7 @@ describe('UserService - Consolidated Unit Tests', () => {
         it('should resolve multiple group member profiles efficiently', async () => {
             const appDriver = new AppDriver();
             // Create userService using AppDriver's database
-            const sharedAuth = new StubAuthService();
-            const appDriverUserService = new ComponentBuilder(
-                sharedAuth,
-                appDriver.database,
-                new StubStorage({ defaultBucketName: 'test-bucket' }),
-                new StubCloudTasksClient(),
-                createUnitTestServiceConfig()
-            ).buildUserService();
+            const appDriverUserService = appDriver.componentBuilder.buildUserService();
 
             // Register users via API
             const reg1 = new UserRegistrationBuilder().withEmail('member1@test.com').withDisplayName('Member One').withPassword('password12345').build();
@@ -988,14 +981,7 @@ describe('UserService - Consolidated Unit Tests', () => {
 
         it('should handle phantom members when user has left the group', async () => {
             const appDriver = new AppDriver();
-            const sharedAuth = new StubAuthService();
-            const appDriverUserService = new ComponentBuilder(
-                sharedAuth,
-                appDriver.database,
-                new StubStorage({ defaultBucketName: 'test-bucket' }),
-                new StubCloudTasksClient(),
-                createUnitTestServiceConfig()
-            ).buildUserService();
+            const appDriverUserService = appDriver.componentBuilder.buildUserService();
 
             // Register two users
             const reg1 = new UserRegistrationBuilder().withEmail('active@test.com').withDisplayName('Active Member').withPassword('password12345').build();
@@ -1028,14 +1014,7 @@ describe('UserService - Consolidated Unit Tests', () => {
 
         it('should handle empty user list', async () => {
             const appDriver = new AppDriver();
-            const sharedAuth = new StubAuthService();
-            const appDriverUserService = new ComponentBuilder(
-                sharedAuth,
-                appDriver.database,
-                new StubStorage({ defaultBucketName: 'test-bucket' }),
-                new StubCloudTasksClient(),
-                createUnitTestServiceConfig()
-            ).buildUserService();
+            const appDriverUserService = appDriver.componentBuilder.buildUserService();
 
             const reg = new UserRegistrationBuilder().withEmail('owner@test.com').withDisplayName('Owner').withPassword('password12345').build();
             const result = await appDriver.registerUser(reg);
@@ -1051,14 +1030,7 @@ describe('UserService - Consolidated Unit Tests', () => {
 
         it('should compute correct initials for single-word names', async () => {
             const appDriver = new AppDriver();
-            const sharedAuth = new StubAuthService();
-            const appDriverUserService = new ComponentBuilder(
-                sharedAuth,
-                appDriver.database,
-                new StubStorage({ defaultBucketName: 'test-bucket' }),
-                new StubCloudTasksClient(),
-                createUnitTestServiceConfig()
-            ).buildUserService();
+            const appDriverUserService = appDriver.componentBuilder.buildUserService();
 
             const reg = new UserRegistrationBuilder().withEmail('alice@test.com').withDisplayName('Alice').withPassword('password12345').build();
             const result = await appDriver.registerUser(reg);
@@ -1076,14 +1048,7 @@ describe('UserService - Consolidated Unit Tests', () => {
 
         it('should compute correct initials for multi-word names', async () => {
             const appDriver = new AppDriver();
-            const sharedAuth = new StubAuthService();
-            const appDriverUserService = new ComponentBuilder(
-                sharedAuth,
-                appDriver.database,
-                new StubStorage({ defaultBucketName: 'test-bucket' }),
-                new StubCloudTasksClient(),
-                createUnitTestServiceConfig()
-            ).buildUserService();
+            const appDriverUserService = appDriver.componentBuilder.buildUserService();
 
             const reg = new UserRegistrationBuilder().withEmail('john@test.com').withDisplayName('John Smith').withPassword('password12345').build();
             const result = await appDriver.registerUser(reg);
@@ -1101,14 +1066,7 @@ describe('UserService - Consolidated Unit Tests', () => {
 
         it('should limit initials to 2 characters max', async () => {
             const appDriver = new AppDriver();
-            const sharedAuth = new StubAuthService();
-            const appDriverUserService = new ComponentBuilder(
-                sharedAuth,
-                appDriver.database,
-                new StubStorage({ defaultBucketName: 'test-bucket' }),
-                new StubCloudTasksClient(),
-                createUnitTestServiceConfig()
-            ).buildUserService();
+            const appDriverUserService = appDriver.componentBuilder.buildUserService();
 
             const reg = new UserRegistrationBuilder().withEmail('fml@test.com').withDisplayName('First Middle Last').withPassword('password12345').build();
             const result = await appDriver.registerUser(reg);

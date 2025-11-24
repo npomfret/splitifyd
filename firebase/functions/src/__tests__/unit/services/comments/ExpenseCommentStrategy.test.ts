@@ -1,11 +1,8 @@
-import { toExpenseId, toGroupId, toUserId } from '@billsplit-wl/shared';
+import { toExpenseId, toGroupId } from '@billsplit-wl/shared';
 import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../../constants';
-import { ActivityFeedService } from '../../../../services/ActivityFeedService';
 import { ExpenseCommentStrategy } from '../../../../services/comments/ExpenseCommentStrategy';
-import { FirestoreReader, FirestoreWriter } from '../../../../services/firestore';
-import { GroupMemberService } from '../../../../services/GroupMemberService';
 import { ApiError } from '../../../../utils/errors';
 import { AppDriver } from '../../AppDriver';
 
@@ -16,15 +13,7 @@ describe('ExpenseCommentStrategy', () => {
     beforeEach(() => {
         // Create AppDriver which sets up all real services
         appDriver = new AppDriver();
-
-        // Get the strategy using appDriver's database but our own service instances
-        const db = appDriver.database;
-        const firestoreReader = new FirestoreReader(db);
-        const firestoreWriter = new FirestoreWriter(db);
-        const activityFeedService = new ActivityFeedService(firestoreReader, firestoreWriter);
-        const groupMemberService = new GroupMemberService(firestoreReader, firestoreWriter, activityFeedService);
-
-        strategy = new ExpenseCommentStrategy(firestoreReader, groupMemberService);
+        strategy = new ExpenseCommentStrategy(appDriver.componentBuilder.buildFirestoreReader(), appDriver.componentBuilder.buildGroupMemberService());
     });
 
     describe('verifyAccess', () => {

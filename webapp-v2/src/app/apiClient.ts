@@ -5,7 +5,7 @@
  * This ensures the server response matches our expected types
  */
 
-import { ApiSerializer, ISOString, SystemUserRoles, toDisplayName, toEmail, toUserId } from '@billsplit-wl/shared';
+import { ApiSerializer, ISOString } from '@billsplit-wl/shared';
 import type {
     API,
     AcceptMultiplePoliciesResponse,
@@ -78,7 +78,7 @@ import type {
     UserRegistration,
     VersionHash,
 } from '@billsplit-wl/shared';
-import { AdminUserProfileSchema, ApiErrorResponseSchema, ListAuthUsersResponseSchema, responseSchemas } from '@billsplit-wl/shared';
+import { ApiErrorResponseSchema, responseSchemas } from '@billsplit-wl/shared';
 import type { UpdateSettlementRequest } from '@billsplit-wl/shared';
 import { ExpenseId, GroupId } from '@billsplit-wl/shared';
 import { SettlementId } from '@billsplit-wl/shared';

@@ -1,6 +1,6 @@
 import { calculateEqualSplits, toAmount, toCurrencyISOCode, toUserId, USD } from '@billsplit-wl/shared';
 import { toGroupId } from '@billsplit-wl/shared';
-import { TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
+import {StubFirestoreDatabase} from '@billsplit-wl/test-support';
 import { ExpenseDTOBuilder, ExpenseSplitBuilder, SettlementDTOBuilder, SimplifiedDebtBuilder, UserBalanceBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { GroupBalanceDTO } from '../../../schemas';
@@ -10,7 +10,7 @@ import { GroupBalanceDTOBuilder } from '../../builders/GroupBalanceDTOBuilder';
 
 describe('IncrementalBalanceService - Unit Tests', () => {
     let service: IncrementalBalanceService;
-    let stubDb: TenantFirestoreTestDatabase;
+    let stubDb: StubFirestoreDatabase;
 
     const groupId = toGroupId('test-group-id');
     const userId1 = toUserId('user-1');
@@ -18,7 +18,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
     const userId3 = toUserId('user-3');
 
     beforeEach(() => {
-        stubDb = new TenantFirestoreTestDatabase();
+        stubDb = new StubFirestoreDatabase();
         service = new IncrementalBalanceService(new FirestoreWriter(stubDb));
     });
 

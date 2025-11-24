@@ -1,28 +1,30 @@
 // Unit tests for departed member transaction locking
 // Tests that expenses and settlements involving departed members become read-only (locked)
 
-import { calculateEqualSplits, GroupId, toAmount, toCurrencyISOCode, USD } from '@billsplit-wl/shared';
-import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, ExpenseUpdateBuilder, SettlementUpdateBuilder } from '@billsplit-wl/test-support';
+import { calculateEqualSplits, GroupId, toAmount, toUserId, USD } from '@billsplit-wl/shared';
+import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, ExpenseUpdateBuilder, SettlementUpdateBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { AppDriver } from '../AppDriver';
-import {toUserId} from "@billsplit-wl/shared";
 
 describe('Departed Member Transaction Locking - Unit Tests', () => {
     let appDriver: AppDriver;
-    const userIds = [toUserId('user-0'), toUserId('user-1'), toUserId('user-2'), toUserId('user-3')];
+    let userIds: string[];
     const usd = USD;
-    const eur = toCurrencyISOCode('EUR');
 
-    beforeEach(() => {
+    beforeEach(async () => {
         appDriver = new AppDriver();
 
-        // Seed users
-        userIds.forEach((userId, index) => {
-            appDriver.seedUser(userId, {
-                displayName: `User ${index}`,
-                email: `user${index}@test.local`,
-            });
-        });
+        // Register users via API instead of seeding
+        userIds = [];
+        for (let index = 0; index < 4; index++) {
+            const registration = new UserRegistrationBuilder()
+                .withDisplayName(`User ${index}`)
+                .withEmail(`user${index}@test.local`)
+                .withPassword('password123456')
+                .build();
+            const registered = await appDriver.registerUser(registration);
+            userIds.push(registered.user.uid);
+        }
     });
 
     afterEach(() => {
@@ -234,7 +236,7 @@ describe('Departed Member Transaction Locking - Unit Tests', () => {
                 .withAmount(120, 'USD')
                 .withDescription('Attempted update')
                 .withParticipants([userIds[0], userIds[1], userIds[2]])
-                .withSplits(calculateEqualSplits(toAmount(120), usd, [userIds[0], userIds[1], userIds[2]]))
+                .withSplits(calculateEqualSplits(toAmount(120), usd, [toUserId(userIds[0]), toUserId(userIds[1]), toUserId(userIds[2])]))
                 .build();
 
             await expect(appDriver.updateExpense(expense.id, updateData, userIds[0])).rejects.toThrow(
@@ -265,7 +267,7 @@ describe('Departed Member Transaction Locking - Unit Tests', () => {
                 .withAmount(120, 'USD')
                 .withDescription('Updated successfully')
                 .withParticipants([userIds[0], userIds[1], userIds[2]])
-                .withSplits(calculateEqualSplits(toAmount(120), usd, [userIds[0], userIds[1], userIds[2]]))
+                .withSplits(calculateEqualSplits(toAmount(120), usd, [toUserId(userIds[0]), toUserId(userIds[1]), toUserId(userIds[2])]))
                 .build();
 
             await expect(appDriver.updateExpense(expense.id, updateData, userIds[0])).resolves.toBeDefined();
@@ -683,7 +685,7 @@ describe('Departed Member Transaction Locking - Unit Tests', () => {
                     new ExpenseUpdateBuilder()
                         .withAmount(150, 'USD')
                         .withParticipants(userIds)
-                        .withSplits(calculateEqualSplits(toAmount(150), usd, userIds))
+                        .withSplits(calculateEqualSplits(toAmount(150), usd, userIds.map(toUserId)))
                         .build(),
                     userIds[0],
                 ),

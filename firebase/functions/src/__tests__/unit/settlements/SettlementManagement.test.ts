@@ -1,7 +1,6 @@
 import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, SettlementUpdateBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { AppDriver } from '../AppDriver';
-import { toUserId } from "@billsplit-wl/shared";
 
 /**
  * Settlement Management Unit Tests

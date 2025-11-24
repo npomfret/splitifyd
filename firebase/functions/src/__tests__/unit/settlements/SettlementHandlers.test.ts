@@ -1,5 +1,5 @@
 import { StubStorage, StubCloudTasksClient } from '@billsplit-wl/firebase-simulator';
-import { CreateGroupRequestBuilder, CreateSettlementRequestBuilder, SettlementUpdateBuilder, TenantFirestoreTestDatabase, UserRegistrationBuilder } from '@billsplit-wl/test-support';
+import {CreateGroupRequestBuilder, CreateSettlementRequestBuilder, SettlementUpdateBuilder, StubFirestoreDatabase, UserRegistrationBuilder} from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
@@ -1155,7 +1155,7 @@ describe('SettlementHandlers - Unit Tests', () => {
 
     describe('Static Factory Method', () => {
         it('should create SettlementHandlers instance with SettlementService', () => {
-            const db = new TenantFirestoreTestDatabase();
+            const db = new StubFirestoreDatabase();
             const authService = new StubAuthService();
             const componentBuilder = new ComponentBuilder(
                 authService,

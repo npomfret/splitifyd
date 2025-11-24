@@ -10,7 +10,7 @@
  */
 
 // Import types
-import type { CommentDTO, DisplayName, Email, ISOString, ShareLinkDTO, ShareLinkToken, UserId } from '@billsplit-wl/shared';
+import type { CommentDTO, DisplayName, Email, ShareLinkDTO, ShareLinkToken, UserId } from '@billsplit-wl/shared';
 import { normalizeDisplayNameForComparison } from '@billsplit-wl/shared';
 // Import schemas for validation
 import { ExpenseId, GroupId, PolicyId, ShareLinkId } from '@billsplit-wl/shared';

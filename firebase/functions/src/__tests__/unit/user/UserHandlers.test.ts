@@ -1,5 +1,5 @@
-import { StubStorage } from '@billsplit-wl/test-support';
-import { PasswordChangeRequestBuilder, TenantFirestoreTestDatabase, UserRegistrationBuilder, UserUpdateBuilder } from '@billsplit-wl/test-support';
+import {StubFirestoreDatabase, StubStorage} from '@billsplit-wl/test-support';
+import { PasswordChangeRequestBuilder, UserRegistrationBuilder, UserUpdateBuilder } from '@billsplit-wl/test-support';
 import { StubCloudTasksClient } from '@billsplit-wl/firebase-simulator';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
@@ -229,7 +229,7 @@ describe('UserHandlers - Integration Tests', () => {
 
     describe('Static Factory Method', () => {
         it('should create UserHandlers instance with UserService', () => {
-            const db = new TenantFirestoreTestDatabase();
+            const db = new StubFirestoreDatabase();
             const authService = new StubAuthService();
             const componentBuilder = new ComponentBuilder(
                 authService,

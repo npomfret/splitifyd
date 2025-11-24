@@ -6,22 +6,25 @@
  */
 
 import { toDisplayName, toGroupName } from '@billsplit-wl/shared';
-import { ClientUserBuilder } from '@billsplit-wl/test-support';
+import { UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { AppDriver } from '../AppDriver';
 
 describe('FirestoreReader Queries - Unit Tests', () => {
     let appDriver: AppDriver;
-    const userId = 'test-user-123';
+    let userId: string;
 
-    beforeEach(() => {
+    beforeEach(async () => {
         appDriver = new AppDriver();
-        const { role: _, photoURL: __, ...userData } = new ClientUserBuilder()
-            .withUid(userId)
+
+        // Register user via API instead of seeding
+        const registration = new UserRegistrationBuilder()
             .withDisplayName('Test User')
             .withEmail('test@example.com')
+            .withPassword('password123456')
             .build();
-        appDriver.seedUser(userId, userData);
+        const registered = await appDriver.registerUser(registration);
+        userId = registered.user.uid;
     });
 
     afterEach(() => {
@@ -177,13 +180,14 @@ describe('FirestoreReader Queries - Unit Tests', () => {
         });
 
         test('should throw error when user is not a member', async () => {
-            const otherUserId = 'other-user-456';
-            const { role: _, photoURL: __, ...otherUserData } = new ClientUserBuilder()
-                .withUid(otherUserId)
+            // Register another user via API instead of seeding
+            const otherUserRegistration = new UserRegistrationBuilder()
                 .withDisplayName('Other User')
                 .withEmail('other@example.com')
+                .withPassword('password123456')
                 .build();
-            appDriver.seedUser(otherUserId, otherUserData);
+            const otherUserRegistered = await appDriver.registerUser(otherUserRegistration);
+            const otherUserId = otherUserRegistered.user.uid;
 
             const group = await appDriver.createGroup({
                 name: toGroupName('Private Group'),
