@@ -101,7 +101,7 @@ async function listAdminUsers(firestore: Firestore): Promise<void> {
 
     adminUsers.forEach((user, index) => {
         const { id, data, authData } = user;
-        const roleLabel = getRoleLabel(data.role || SystemUserRoles.REGULAR);
+        const roleLabel = getRoleLabel(data.role || SystemUserRoles.SYSTEM_USER);
 
         // Prefer auth data for email and display name
         const email = authData?.email || data.email || 'N/A';

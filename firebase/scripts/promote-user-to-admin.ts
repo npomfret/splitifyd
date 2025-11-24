@@ -17,7 +17,7 @@
  * WARNING: This grants admin access to the user. Use with caution in production.
  */
 
-import { SystemUserRoles, toUserId, UserId } from '@billsplit-wl/shared';
+import { SystemUserRole, SystemUserRoles, toUserId, UserId } from '@billsplit-wl/shared';
 import * as admin from 'firebase-admin';
 import { Firestore } from 'firebase-admin/firestore';
 import { FirestoreCollections } from '../functions/src/constants';
@@ -50,7 +50,7 @@ if (!validRoles.includes(roleArg as any)) {
     process.exit(1);
 }
 
-const targetRole = roleArg as SystemUserRoles.SYSTEM_ADMIN | SystemUserRoles.TENANT_ADMIN;
+const targetRole = roleArg as typeof SystemUserRoles.SYSTEM_ADMIN | typeof SystemUserRoles.TENANT_ADMIN;
 
 // Parse environment and initialize Firebase
 const env = parseEnvironment(args);
@@ -122,7 +122,7 @@ async function getUserData(userId: UserId) {
 /**
  * Promote user to admin role
  */
-async function promoteUserToAdmin(userId: UserId, role: SystemUserRoles): Promise<void> {
+async function promoteUserToAdmin(userId: UserId, role: SystemUserRole): Promise<void> {
     const roleLabel = role === SystemUserRoles.SYSTEM_ADMIN ? 'SYSTEM ADMIN' : 'TENANT ADMIN';
 
     console.log('');

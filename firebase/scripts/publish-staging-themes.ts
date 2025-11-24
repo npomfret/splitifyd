@@ -53,11 +53,15 @@ const buildBranding = (displayName: string, tokens: BrandingTokens) => ({
     appName: displayName,
     logoUrl: tokens.assets.logoUrl,
     faviconUrl: tokens.assets.faviconUrl,
-    brandingTokens: tokens,
+    primaryColor: tokens.palette.primary,
+    secondaryColor: tokens.palette.secondary,
+    accentColor: tokens.palette.accent,
+    themePalette: 'default',
 });
 
 async function seedTenant(apiDriver: ApiDriver, token: string, seed: TenantSeed): Promise<void> {
     const fixtures: Record<BrandingTokenFixtureKey, BrandingTokens> = {
+        default: loopbackBrandingTokens,
         localhost: localhostBrandingTokens,
         loopback: loopbackBrandingTokens,
     };
@@ -71,6 +75,17 @@ async function seedTenant(apiDriver: ApiDriver, token: string, seed: TenantSeed)
     const tenantId = seed.tenantId;
     const primaryDomain = normalizeDomain(seed.primaryDomain);
     const aliasDomains = seed.aliasDomains.map(normalizeDomain);
+    const domains = Array.from(new Set([primaryDomain, ...aliasDomains]));
+
+    const payload = {
+        tenantId,
+        branding,
+        brandingTokens: {
+            tokens: fixture,
+        },
+        domains,
+        defaultTenant: seed.defaultTenant,
+    };
 
     logger.info(`Publishing theme for ${tenantId} (${seed.displayName})`, {
         tenantId,
@@ -78,12 +93,7 @@ async function seedTenant(apiDriver: ApiDriver, token: string, seed: TenantSeed)
         domain: primaryDomain,
     });
 
-    await apiDriver.adminUpdateTenantBranding(token, tenantId, {
-        tenantId,
-        branding,
-        primaryDomain,
-        aliasDomains,
-    });
+    await apiDriver.adminUpsertTenant(payload, token);
 
     logger.info(`✓ Theme published for ${tenantId}`);
 }
