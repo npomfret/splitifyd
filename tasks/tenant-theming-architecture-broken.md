@@ -344,5 +344,313 @@ Files to update:
 
 ---
 
+## Research Findings (2025-11-24)
+
+### Key Discoveries from Code Investigation
+
+#### 1. The Actual Data Flow (Verified)
+
+The complete flow from database to CSS generation:
+
+```
+Browser requests /api/theme.css
+    ↓
+TenantRegistryService.resolveTenant(host: "localhost")
+    ↓
+Firestore query: WHERE domains CONTAINS "localhost"
+    ↓
+Returns TenantRegistryRecord {
+    tenant: { branding: { primaryColor: "#3B82F6" } },  ← IGNORED!
+    brandingTokens: {
+        tokens: { palette: { primary: "#4f46e5" } }     ← USED!
+    }
+}
+    ↓
+ThemeArtifactService.buildCss(brandingTokens.tokens)
+    ↓
+Generates 100+ CSS custom properties from tokens ONLY
+    ↓
+Serves CSS with --palette-primary: #4f46e5 (from tokens, NOT branding)
+```
+
+**Confirmed**: Simple `branding` colors are **completely bypassed** during CSS generation.
+
+#### 2. TenantAdminService Auto-Generation Logic
+
+File: `/firebase/functions/src/services/tenant/TenantAdminService.ts`
+
+```typescript
+async upsertTenant(request: AdminUpsertTenantRequest) {
+    const dataToUpsert = {
+        ...rest,
+        brandingTokens: rest.brandingTokens || generateBrandingTokens(rest.branding)
+        //                                      ^^^ Only called if tokens not provided
+    };
+}
+```
+
+**Two code paths**:
+1. **Editor path**: Saves simple branding → Auto-generates "vanilla" tokens (no glass/aurora/fonts)
+2. **Script path**: Explicitly provides full tokens from fixtures → Overwrites editor changes
+
+**Problem**: Scripts run with `{ merge: false }` → **Destroys user edits!**
+
+#### 3. What generateBrandingTokens() Actually Produces
+
+File: `/firebase/functions/src/services/tenant/BrandingTokensGenerator.ts`
+
+The generator takes 5 colors and produces:
+- ✅ 11 palette colors (with mathematical variants)
+- ✅ Full semantic color system (50+ derived colors)
+- ✅ Spacing, radii, shadows (hardcoded defaults)
+- ✅ Basic typography (hardcoded fonts: Space Grotesk, Inter)
+- ❌ NO glassmorphism (`surface.glass` not generated)
+- ❌ NO aurora animation (`motion.enableParallax` set to false)
+- ❌ NO fluid typography (`typography.fluidScale` not generated)
+- ❌ NO custom fonts (`assets.fonts` not generated)
+- ❌ NO gradient system (`semantics.colors.gradient` not generated)
+
+**Result**: Generated theme is "vanilla" - looks nothing like Aurora!
+
+#### 4. Aurora Theme Features (What Makes It Special)
+
+File: `/packages/shared/src/fixtures/branding-tokens.ts:418-437`
+
+Aurora includes:
+```typescript
+{
+    typography: {
+        fluidScale: {  // Responsive sizing with clamp()
+            xs: 'clamp(0.75rem, 0.9vw, 0.875rem)',
+            hero: 'clamp(2.5rem, 5vw, 3.75rem)'
+        }
+    },
+    semantics: {
+        colors: {
+            surface: {
+                glass: 'rgba(25, 30, 50, 0.45)',        // Glassmorphism
+                glassBorder: 'rgba(255, 255, 255, 0.12)'
+            },
+            gradient: {
+                aurora: ['#6366f1', '#ec4899', '#22d3ee', '#34d399']  // 4-color gradient
+            }
+        }
+    },
+    motion: {
+        enableParallax: true,      // Animated background
+        enableMagneticHover: true, // Button hover effects
+        enableScrollReveal: true   // Scroll animations
+    }
+}
+```
+
+**CSS Generation Impact**: ThemeArtifactService checks these flags:
+- If `motion.enableParallax` → Adds `@keyframes aurora` animation
+- If `surface.glass` exists → Adds glassmorphism with backdrop-filter
+- If `fluidScale` exists → Adds responsive clamp() typography
+- If `assets.fonts` exists → Adds @font-face declarations
+
+#### 5. The E2E Test Problem
+
+Current test (which PASSES) verifies:
+```typescript
+✅ Simple branding fields save to Firestore
+✅ All form inputs update correctly
+✅ Changes persist after page refresh
+```
+
+But it does NOT verify:
+```typescript
+❌ brandingTokens updated correctly
+❌ Theme CSS actually changes
+❌ Aurora features preserved after edit
+```
+
+**The test passes but validates the WRONG behavior!**
+
+#### 6. Migration Risk Analysis
+
+**Safe changes** (no data loss):
+- Make editor preserve existing tokens
+- Change scripts to seed-once mode
+- Add export/backup feature
+
+**Risky changes** (potential data loss):
+- Making brandingTokens required (breaks tenants without it)
+- Removing auto-generation (breaks backward compatibility)
+- Deleting fixtures (loses Aurora theme definition)
+
+**Current tenant state** (based on scripts):
+- `localhost-tenant`: Has full Aurora tokens (safe to preserve)
+- `default-tenant`: Has full Brutalist tokens (safe to preserve)
+- `staging-tenant`: May or may not have tokens (needs check)
+
+---
+
+## Implementation Plan - Phase 1 (Immediate Fix)
+
+**Goal**: Stop destroying user changes, preserve Aurora theme
+
+### Changes Required
+
+#### 1. TenantEditorModal.tsx - Smart Merge Logic
+
+**Current code** (lines 206-210):
+```typescript
+const requestData = {
+    tenantId: formData.tenantId,
+    branding: { /* simple branding */ },
+    domains: normalizedDomains
+};
+```
+
+**New code**:
+```typescript
+const requestData = {
+    tenantId: formData.tenantId,
+    branding: { /* simple branding */ },
+    brandingTokens: {
+        tokens: mergeTokensSmartly(
+            existingTenant?.brandingTokens?.tokens,  // Preserve advanced features
+            formData  // Update simple colors only
+        )
+    },
+    domains: normalizedDomains
+};
+```
+
+**New function** (TokenMerger.ts):
+```typescript
+function mergeTokensSmartly(
+    existingTokens: BrandingTokens | undefined,
+    simpleEdits: TenantFormData
+): BrandingTokens {
+    // If no existing tokens, generate vanilla
+    if (!existingTokens) {
+        return generateBrandingTokens({
+            primaryColor: simpleEdits.primaryColor,
+            secondaryColor: simpleEdits.secondaryColor,
+            // ... other simple fields
+        });
+    }
+
+    // Preserve existing, update only edited colors
+    return {
+        ...existingTokens,
+        palette: {
+            ...existingTokens.palette,
+            primary: simpleEdits.primaryColor,
+            secondary: simpleEdits.secondaryColor,
+            accent: simpleEdits.accentColor,
+            // Regenerate variants based on new colors
+            primaryVariant: adjustColor(simpleEdits.primaryColor, 0.1),
+            secondaryVariant: adjustColor(simpleEdits.secondaryColor, 0.1)
+        },
+        semantics: {
+            ...existingTokens.semantics,
+            colors: {
+                ...existingTokens.semantics.colors,
+                surface: {
+                    ...existingTokens.semantics.colors.surface,
+                    base: simpleEdits.backgroundColor,
+                    overlay: simpleEdits.headerBackgroundColor
+                    // PRESERVE: glass, glassBorder, aurora, spotlight
+                },
+                interactive: {
+                    ...existingTokens.semantics.colors.interactive,
+                    primary: simpleEdits.primaryColor
+                    // PRESERVE: magnetic, glow
+                }
+                // PRESERVE: gradient array
+            }
+        },
+        // PRESERVE: typography.fluidScale
+        // PRESERVE: motion.enableParallax
+        // PRESERVE: assets.fonts
+    };
+}
+```
+
+#### 2. publish-local-themes.ts - Seed-Once Mode
+
+**Current code** (line 104):
+```typescript
+await apiRequest(baseUrl, 'POST', '/admin/tenants', payload, token);
+```
+
+**New code**:
+```typescript
+// Check if tenant exists first
+const existing = await apiRequest(baseUrl, 'GET', `/admin/tenants/${tenantId}`, null, token)
+    .catch(() => null);
+
+if (existing && !process.env.FORCE_OVERWRITE) {
+    logger.info(`⏭️  Tenant ${tenantId} already exists, skipping`);
+    return;
+}
+
+if (existing) {
+    logger.warn(`⚠️  Overwriting ${tenantId} (FORCE_OVERWRITE set)`);
+}
+
+await apiRequest(baseUrl, 'POST', '/admin/tenants', payload, token);
+```
+
+**Usage**:
+```bash
+# Normal mode (safe, won't overwrite)
+npm run theme:publish-local
+
+# Force mode (dangerous, overwrites)
+FORCE_OVERWRITE=1 npm run theme:publish-local
+```
+
+#### 3. E2E Test Fix
+
+**Add verification** (after save):
+```typescript
+// Verify brandingTokens were updated, not just branding
+const savedTenant = await apiDriver.getTenant(tenantId, user.token);
+
+expect(savedTenant.brandingTokens.tokens.palette.primary)
+    .toBe(UPDATED_TENANT_DATA.primaryColor);
+
+// Verify advanced features preserved
+if (initialTenant.brandingTokens.tokens.motion?.enableParallax) {
+    expect(savedTenant.brandingTokens.tokens.motion.enableParallax)
+        .toBe(true);  // Should still be enabled!
+}
+```
+
+#### 4. Backup Aurora Theme
+
+**New file**: `aurora-theme-backup.json`
+```bash
+# Export current Aurora tokens from Firestore
+firebase firestore:get tenants/localhost-tenant --project splitifyd \
+    | jq '.brandingTokens.tokens' > aurora-theme-backup.json
+```
+
+### Testing Checklist
+
+Before deployment:
+- [ ] Export Aurora theme to JSON backup
+- [ ] Run editor, change localhost primary color
+- [ ] Verify glassmorphism still works
+- [ ] Verify aurora animation still works
+- [ ] Verify color actually changed
+- [ ] Run `npm run theme:publish-local` again
+- [ ] Verify it doesn't overwrite changes
+- [ ] Run E2E test suite
+
+### Rollback Procedure
+
+If Aurora breaks:
+1. Import backup: `POST /admin/tenants` with JSON from `aurora-theme-backup.json`
+2. Hard refresh browser (Ctrl+Shift+R)
+3. Verify theme restored
+
+---
+
 **Author**: Claude Code
-**Last Updated**: 2025-11-24
+**Last Updated**: 2025-11-24 (Updated with research findings)
