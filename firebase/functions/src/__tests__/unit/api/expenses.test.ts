@@ -1,0 +1,463 @@
+import {
+    calculateEqualSplits,
+    calculatePercentageSplits,
+    toAmount,
+    toCurrencyISOCode,
+    USD,
+    toUserId,
+} from '@billsplit-wl/shared';
+import type { UserId } from '@billsplit-wl/shared';
+import {
+    CreateExpenseRequestBuilder,
+    CreateGroupRequestBuilder,
+    CreateSettlementRequestBuilder,
+    ExpenseSplitBuilder,
+    ExpenseUpdateBuilder,
+    UserRegistrationBuilder,
+} from '@billsplit-wl/test-support';
+import { afterEach, beforeEach, describe, it } from 'vitest';
+import { AppDriver } from '../AppDriver';
+
+describe('expenses', () => {
+    let appDriver: AppDriver;
+
+    let user1: UserId;
+    let user2: UserId;
+    let user3: UserId;
+
+    beforeEach(async () => {
+        appDriver = new AppDriver();
+
+        // Register users via API
+        const user1Reg = new UserRegistrationBuilder()
+            .withEmail('user1@example.com')
+            .withDisplayName('User one')
+            .withPassword('password12345')
+            .build();
+        const user1Result = await appDriver.registerUser(user1Reg);
+        user1 = toUserId(user1Result.user.uid);
+
+        const user2Reg = new UserRegistrationBuilder()
+            .withEmail('user2@example.com')
+            .withDisplayName('User two')
+            .withPassword('password12345')
+            .build();
+        const user2Result = await appDriver.registerUser(user2Reg);
+        user2 = toUserId(user2Result.user.uid);
+
+        const user3Reg = new UserRegistrationBuilder()
+            .withEmail('user3@example.com')
+            .withDisplayName('User three')
+            .withPassword('password12345')
+            .build();
+        const user3Result = await appDriver.registerUser(user3Reg);
+        user3 = toUserId(user3Result.user.uid);
+    });
+
+    afterEach(() => {
+        appDriver.dispose();
+    });
+
+    it('should revert balance change after expese deletion', async () => {
+        const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+
+        const groupId = group.id;
+
+        const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+        await appDriver.joinGroupByLink(shareToken, undefined, user2);
+
+        const participants = [user1, user2];
+
+        const createdExpense = await appDriver.createExpense(
+            new CreateExpenseRequestBuilder()
+                .withGroupId(groupId)
+                .withAmount(100, toCurrencyISOCode('EUR'))
+                .withPaidBy(user1)
+                .withParticipants(participants)
+                .withSplitType('equal')
+                .withSplits(calculateEqualSplits(toAmount(100), toCurrencyISOCode('EUR'), participants))
+                .build(),
+            user1,
+        );
+
+        let groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
+        const eur = toCurrencyISOCode('EUR');
+
+        expect(groupDetails.balances.balancesByCurrency![eur]![user1].owedBy[user2]).toBe('50.00');
+        expect(groupDetails.balances.balancesByCurrency![eur]![user1].netBalance).toBe('50.00');
+        expect(groupDetails.balances.balancesByCurrency![eur]![user2].owes[user1]).toBe('50.00');
+        expect(groupDetails.balances.balancesByCurrency![eur]![user2].netBalance).toBe('-50.00');
+
+        await appDriver.updateExpense(
+            createdExpense.id,
+            ExpenseUpdateBuilder
+                .minimal()
+                .withAmount(150.5, toCurrencyISOCode('EUR'))
+                .withParticipants(participants)
+                .withSplitType('equal')
+                .withSplits(calculateEqualSplits(toAmount(150.5), toCurrencyISOCode('EUR'), participants))
+                .build(),
+            user1,
+        );
+
+        groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
+
+        expect(groupDetails.balances.balancesByCurrency?.[eur]).toBeDefined();
+        expect((groupDetails.balances.balancesByCurrency![eur])![user1]).toBeDefined();
+        expect((groupDetails.balances.balancesByCurrency![eur])![user1].owedBy[user2]).toBe('75.25');
+        expect((groupDetails.balances.balancesByCurrency![eur])![user1].netBalance).toBe('75.25');
+        expect((groupDetails.balances.balancesByCurrency![eur])![user2].owes[user1]).toBe('75.25');
+        expect((groupDetails.balances.balancesByCurrency![eur])![user2].netBalance).toBe('-75.25');
+
+        await appDriver.createSettlement(
+            new CreateSettlementRequestBuilder()
+                .withGroupId(groupId)
+                .withPayerId(user2)
+                .withPayeeId(user1)
+                .withAmount(50.25, toCurrencyISOCode('EUR'))
+                .build(),
+            user2,
+        );
+
+        groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
+
+        expect(groupDetails.balances.balancesByCurrency![eur]![user1].owedBy[user2]).toBe('25.00');
+        expect(groupDetails.balances.balancesByCurrency![eur]![user1].netBalance).toBe('25.00');
+        expect(groupDetails.balances.balancesByCurrency![eur]![user2].owes[user1]).toBe('25.00');
+        expect(groupDetails.balances.balancesByCurrency![eur]![user2].netBalance).toBe('-25.00');
+
+        await appDriver.deleteExpense(createdExpense.id, user1);
+
+        groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
+
+        expect(groupDetails.balances.balancesByCurrency![eur]![user1].owes[user2]).toBe('50.25');
+        expect(groupDetails.balances.balancesByCurrency![eur]![user1].netBalance).toBe('-50.25');
+        expect(groupDetails.balances.balancesByCurrency![eur]![user2].owedBy[user1]).toBe('50.25');
+        expect(groupDetails.balances.balancesByCurrency![eur]![user2].netBalance).toBe('50.25');
+    });
+
+    it('should paginate expenses and settlements via group full details', async () => {
+        const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+        const groupId = group.id;
+        const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+        await appDriver.joinGroupByLink(shareToken, undefined, user2);
+
+        const participants = [user1, user2];
+
+        const createdExpenseIds: string[] = [];
+        for (let index = 0; index < 5; index += 1) {
+            const amount = 50 + index;
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withDescription(`Paginated expense ${index}`)
+                    .withAmount(amount, USD)
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(toAmount(amount), USD, participants))
+                    .build(),
+                user1,
+            );
+
+            createdExpenseIds.push(expense.id);
+        }
+
+        const settlementAmounts = [40, 30, 20, 10];
+        const createdSettlementIds: string[] = [];
+        for (const amount of settlementAmounts) {
+            const settlement = await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPayerId(user2)
+                    .withPayeeId(user1)
+                    .withAmount(amount, USD)
+                    .build(),
+                user2,
+            );
+
+            createdSettlementIds.push(settlement.id);
+        }
+
+        expect(createdSettlementIds).toHaveLength(settlementAmounts.length);
+
+        const firstPage = await appDriver.getGroupFullDetails(groupId, {
+            expenseLimit: 2,
+            settlementLimit: 2,
+        }, user1);
+
+        expect(firstPage.expenses.expenses).toHaveLength(2);
+        expect(firstPage.expenses.hasMore).toBe(true);
+        expect(firstPage.expenses.nextCursor).toBeDefined();
+
+        expect(firstPage.settlements.settlements).toHaveLength(2);
+        expect(firstPage.settlements.hasMore).toBe(true);
+        expect(firstPage.settlements.nextCursor).toBeDefined();
+
+        const secondPage = await appDriver.getGroupFullDetails(groupId, {
+            expenseLimit: 2,
+            expenseCursor: firstPage.expenses.nextCursor,
+            settlementLimit: 2,
+            settlementCursor: firstPage.settlements.nextCursor,
+        }, user1);
+
+        expect(secondPage.expenses.expenses.length).toBeGreaterThanOrEqual(1);
+
+        const seenSettlementIds = [
+            ...firstPage.settlements.settlements.map((settlement) => settlement.id),
+            ...secondPage.settlements.settlements.map((settlement) => settlement.id),
+        ];
+        let settlementCursor = secondPage.settlements.nextCursor;
+
+        while (settlementCursor) {
+            const nextPage = await appDriver.getGroupFullDetails(groupId, {
+                settlementLimit: 2,
+                settlementCursor,
+            }, user1);
+
+            seenSettlementIds.push(...nextPage.settlements.settlements.map((settlement) => settlement.id));
+            settlementCursor = nextPage.settlements.nextCursor;
+        }
+
+        const thirdPage = await appDriver.getGroupFullDetails(groupId, {
+            expenseLimit: 2,
+            expenseCursor: secondPage.expenses.nextCursor,
+        }, user1);
+
+        expect(secondPage.expenses.expenses).toHaveLength(2);
+        expect(secondPage.expenses.hasMore).toBe(true);
+        expect(secondPage.expenses.nextCursor).toBeDefined();
+
+        expect(thirdPage.expenses.expenses).toHaveLength(1);
+        expect(thirdPage.expenses.hasMore).toBe(false);
+        expect(thirdPage.expenses.nextCursor).toBeUndefined();
+
+        const allExpenseIds = [
+            ...firstPage.expenses.expenses,
+            ...secondPage.expenses.expenses,
+            ...thirdPage.expenses.expenses,
+        ]
+            .map((expense) => expense.id);
+
+        expect(new Set(allExpenseIds)).toEqual(new Set(createdExpenseIds));
+        expect(new Set(seenSettlementIds)).toEqual(new Set(createdSettlementIds));
+    });
+
+    it('should support exact split expenses with manual allocations', async () => {
+        const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+        const groupId = group.id;
+
+        const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+        await appDriver.joinGroupByLink(shareToken, undefined, user2);
+        await appDriver.joinGroupByLink(shareToken, undefined, user3);
+
+        const participants = [user1, user2, user3];
+
+        const exactSplits = ExpenseSplitBuilder
+            .exactSplit([
+                { uid: user1, amount: '120.10' },
+                { uid: user2, amount: '80.05' },
+                { uid: user3, amount: '75.10' },
+            ])
+            .build();
+
+        const createdExpense = await appDriver.createExpense(
+            new CreateExpenseRequestBuilder()
+                .withGroupId(groupId)
+                .withAmount(275.25, USD)
+                .withPaidBy(user2)
+                .withParticipants(participants)
+                .withSplitType('exact')
+                .withSplits(exactSplits)
+                .build(),
+            user2,
+        );
+
+        const groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
+
+        const recordedExpense = groupDetails.expenses.expenses.find((expense) => expense.id === createdExpense.id);
+        expect(recordedExpense).toBeDefined();
+        expect(recordedExpense!.splitType).toBe('exact');
+        expect(recordedExpense!.amount).toBe('275.25');
+        expect(recordedExpense!.currency).toBe(USD);
+        expect(recordedExpense!.paidBy).toBe(user2);
+        expect(recordedExpense!.splits).toEqual(exactSplits);
+    });
+
+    it('should allow percentage split expenses to be updated with new participants, currency, and payer', async () => {
+        const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+
+        const groupId = group.id;
+
+        const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+        await appDriver.joinGroupByLink(shareToken, undefined, user2);
+        await appDriver.joinGroupByLink(shareToken, undefined, user3);
+
+        const participants = [user1, user2, user3];
+
+        const percentageSplits = calculatePercentageSplits(toAmount(200), toCurrencyISOCode('EUR'), participants);
+        const createdExpense = await appDriver.createExpense(
+            new CreateExpenseRequestBuilder()
+                .withGroupId(groupId)
+                .withDescription('Team Outing EUR')
+                .withAmount(200, toCurrencyISOCode('EUR'))
+                .withPaidBy(user3)
+                .withParticipants(participants)
+                .withSplitType('percentage')
+                .withSplits(percentageSplits)
+                .build(),
+            user3,
+        );
+
+        let groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user3);
+        
+        const recordedExpenseBeforeUpdate = groupDetails.expenses.expenses.find((expense) => expense.id === createdExpense.id);
+        expect(recordedExpenseBeforeUpdate).toBeDefined();
+        expect(recordedExpenseBeforeUpdate!.splitType).toBe('percentage');
+        expect(recordedExpenseBeforeUpdate!.currency).toBe(toCurrencyISOCode('EUR'));
+        expect(recordedExpenseBeforeUpdate!.splits.map((split) => split.amount)).toEqual(percentageSplits.map((split) => split.amount));
+        expect(recordedExpenseBeforeUpdate!.splits.map((split) => split.percentage)).toEqual(percentageSplits.map((split) => split.percentage));
+
+        const updatedParticipants = [user1, user2];
+        const updatedSplits = calculateEqualSplits(toAmount(303), toCurrencyISOCode('JPY'), updatedParticipants);
+        await appDriver.updateExpense(
+            createdExpense.id,
+            ExpenseUpdateBuilder
+                .minimal()
+                .withDescription('Team Outing JPY')
+                .withAmount(303, toCurrencyISOCode('JPY'))
+                .withPaidBy(user1)
+                .withParticipants(updatedParticipants)
+                .withSplitType('equal')
+                .withSplits(updatedSplits)
+                .build(),
+            user1,
+        );
+
+        groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
+
+        const recordedExpenseAfterUpdate = groupDetails.expenses.expenses.find((expense) => expense.id === createdExpense.id);
+        expect(recordedExpenseAfterUpdate).toBeDefined();
+        expect(recordedExpenseAfterUpdate!.description).toBe('Team Outing JPY');
+        expect(recordedExpenseAfterUpdate!.currency).toBe(toCurrencyISOCode('JPY'));
+        expect(recordedExpenseAfterUpdate!.amount).toBe('303');
+        expect(recordedExpenseAfterUpdate!.paidBy).toBe(user1);
+        expect(recordedExpenseAfterUpdate!.splitType).toBe('equal');
+        expect(recordedExpenseAfterUpdate!.participants).toEqual(updatedParticipants);
+        expect(recordedExpenseAfterUpdate!.splits).toEqual(updatedSplits);
+    });
+
+    it('should preserve expense metadata and remove it cleanly on deletion', async () => {
+        const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+
+        const groupId = group.id;
+
+        const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+        await appDriver.joinGroupByLink(shareToken, undefined, user2);
+
+        const participants = [user1, user2];
+        const metadataSplits = calculateEqualSplits(toAmount(80), USD, participants);
+
+        const metadataExpense = await appDriver.createExpense(
+            new CreateExpenseRequestBuilder()
+                .withGroupId(groupId)
+                .withDescription('Hotel booking with receipt')
+                .withAmount(80, USD)
+                .withPaidBy(user1)
+                .withLabel('Travel')
+                .withDate('2024-06-15T12:30:00.000Z')
+                .withReceiptUrl('https://example.com/receipts/hotel.jpg')
+                .withParticipants(participants)
+                .withSplitType('equal')
+                .withSplits(metadataSplits)
+                .build(),
+            user1,
+        );
+
+        const secondarySplits = calculateEqualSplits(toAmount(50), USD, participants);
+        await appDriver.createExpense(
+            new CreateExpenseRequestBuilder()
+                .withGroupId(groupId)
+                .withDescription('Fuel stop')
+                .withAmount(50, USD)
+                .withPaidBy(user2)
+                .withParticipants(participants)
+                .withSplitType('equal')
+                .withSplits(secondarySplits)
+                .build(),
+            user2,
+        );
+
+        let groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
+
+        expect(groupDetails.expenses.expenses).toHaveLength(2);
+        const recordedMetadataExpense = groupDetails.expenses.expenses.find((expense) => expense.id === metadataExpense.id);
+        expect(recordedMetadataExpense).toBeDefined();
+        expect(recordedMetadataExpense!.description).toBe('Hotel booking with receipt');
+        expect(recordedMetadataExpense!.label).toBe('Travel');
+        expect(recordedMetadataExpense!.date).toBe('2024-06-15T12:30:00.000Z');
+        expect(recordedMetadataExpense!.receiptUrl).toBe('https://example.com/receipts/hotel.jpg');
+        expect(recordedMetadataExpense!.splits).toEqual(metadataSplits);
+
+        await appDriver.deleteExpense(metadataExpense.id, user1);
+
+        groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
+
+        expect(groupDetails.expenses.expenses).toHaveLength(1);
+        expect(groupDetails.expenses.expenses[0].description).toBe('Fuel stop');
+        expect(groupDetails.expenses.expenses[0].splits).toEqual(secondarySplits);
+    });
+
+    it('should create and list group/expense comments and fetch expense details', async () => {
+        const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+
+        const groupId = group.id;
+
+        const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+        await appDriver.joinGroupByLink(shareToken, undefined, user2);
+
+        const participants = [user1, user2];
+        const createdExpense = await appDriver.createExpense(
+            new CreateExpenseRequestBuilder()
+                .withGroupId(groupId)
+                .withDescription('Lunch at cafe')
+                .withAmount(60, USD)
+                .withPaidBy(user1)
+                .withParticipants(participants)
+                .withSplitType('equal')
+                .withSplits(calculateEqualSplits(toAmount(60), USD, participants))
+                .build(),
+            user1,
+        );
+
+        const groupCommentResponse = await appDriver.createGroupComment(groupId, 'Welcome to the group!', user1);
+        expect(groupCommentResponse.text).toBe('Welcome to the group!');
+
+        const secondGroupCommentResponse = await appDriver.createGroupComment(groupId, 'Happy to be here', user2);
+        expect(secondGroupCommentResponse.authorId).toBe(user2);
+        expect(secondGroupCommentResponse.text).toBe('Happy to be here');
+
+        const groupComments = await appDriver.listGroupComments(groupId, {}, user1);
+        expect(groupComments.hasMore).toBe(false);
+        expect(groupComments.comments).toHaveLength(2);
+        const groupCommentTexts = groupComments.comments.map((comment) => comment.text);
+        expect(groupCommentTexts).toEqual(expect.arrayContaining(['Welcome to the group!', 'Happy to be here']));
+
+        const expenseCommentResponse = await appDriver.createExpenseComment(createdExpense.id, 'Thanks for covering this', user2);
+        expect(expenseCommentResponse.authorId).toBe(user2);
+
+        await appDriver.createExpenseComment(createdExpense.id, 'Let us split next time', user1);
+
+        const expenseComments = await appDriver.listExpenseComments(createdExpense.id, {}, user1);
+        expect(expenseComments.hasMore).toBe(false);
+        expect(expenseComments.comments).toHaveLength(2);
+        const expenseCommentTexts = expenseComments.comments.map((comment) => comment.text);
+        expect(expenseCommentTexts).toEqual(expect.arrayContaining(['Thanks for covering this', 'Let us split next time']));
+
+        const expenseFullDetails = await appDriver.getExpenseFullDetails(createdExpense.id, user1);
+        expect(expenseFullDetails.expense.id).toBe(createdExpense.id);
+        expect(expenseFullDetails.expense.description).toBe('Lunch at cafe');
+        expect(expenseFullDetails.group.id).toBe(groupId);
+        expect(expenseFullDetails.members.members.some((member) => member.uid === user2)).toBe(true);
+    });
+});

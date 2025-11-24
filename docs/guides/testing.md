@@ -22,6 +22,16 @@
 - **Playwright** - Browser testing (E2E + webapp unit tests)
 - **Firebase Emulator** - Backend integration tests
 
+### Firebase Functions API Unit Tests
+
+The tests located in `firebase/functions/src/__tests__/unit/api/` are a critical part of the project's test suite. They are designed to cover all areas of the Firebase backend code.
+
+To ensure they run quickly and reliably, these tests:
+- **Bypass the HTTP interface:** They call the underlying function implementations directly.
+- **Use the Firebase Simulator:** This provides a local environment which simulates (in-memory) *some* Firebase services, which allows us to avoid the slow firbease emulator.
+
+When adding or changing any server-side behaviour, these tests should be the first port of call.
+
 ## Commands
 
 Avoid runnning entier suites, they are often very slow.  Focus on running specific test cases.
