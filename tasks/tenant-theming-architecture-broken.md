@@ -652,5 +652,602 @@ If Aurora breaks:
 
 ---
 
+## Implementation Plan - Phase 2 (Expose All Aurora Features)
+
+**Goal**: Make EVERY UI feature of the Aurora theme controllable in the tenant editor
+
+### Complete Aurora Feature Inventory
+
+Based on code analysis, Aurora includes these advanced features that are NOT in the editor:
+
+#### Motion & Animation System
+```typescript
+motion: {
+    enableParallax: true,           // Animated aurora background
+    enableMagneticHover: true,      // Button magnetic hover effect
+    enableScrollReveal: true,       // Scroll-triggered animations
+    durations: {
+        fast: '150ms',
+        normal: '300ms',
+        slow: '500ms'
+    },
+    easing: {
+        smooth: 'cubic-bezier(0.4, 0, 0.2, 1)',
+        bounce: 'cubic-bezier(0.68, -0.55, 0.265, 1.55)'
+    }
+}
+```
+
+#### Glassmorphism System
+```typescript
+semantics: {
+    colors: {
+        surface: {
+            glass: 'rgba(25, 30, 50, 0.45)',         // Semi-transparent glass
+            glassBorder: 'rgba(255, 255, 255, 0.12)' // Glass border
+        }
+    }
+},
+blur: {
+    glass: '12px'  // backdrop-filter blur amount
+}
+```
+
+#### Aurora Gradient System
+```typescript
+semantics: {
+    colors: {
+        gradient: {
+            aurora: ['#6366f1', '#ec4899', '#22d3ee', '#34d399']  // 4-color gradient array
+        }
+    }
+}
+```
+
+#### Fluid Typography System
+```typescript
+typography: {
+    fluidScale: {
+        xs: 'clamp(0.75rem, 0.9vw, 0.875rem)',
+        sm: 'clamp(0.875rem, 1vw, 1rem)',
+        base: 'clamp(1rem, 1.125vw, 1.125rem)',
+        lg: 'clamp(1.125rem, 1.25vw, 1.25rem)',
+        xl: 'clamp(1.25rem, 1.5vw, 1.5rem)',
+        '2xl': 'clamp(1.5rem, 2vw, 2rem)',
+        '3xl': 'clamp(1.875rem, 2.5vw, 2.5rem)',
+        hero: 'clamp(2.5rem, 5vw, 3.75rem)'
+    }
+}
+```
+
+#### Custom Fonts
+```typescript
+assets: {
+    fonts: {
+        heading: 'https://fonts.googleapis.com/.../SpaceGrotesk.woff2',
+        body: 'https://fonts.googleapis.com/.../Inter.woff2',
+        mono: 'https://fonts.googleapis.com/.../JetBrainsMono.woff2'
+    }
+}
+```
+
+#### Special Surface Colors
+```typescript
+semantics: {
+    colors: {
+        surface: {
+            aurora: 'rgba(99, 102, 241, 0.05)',    // Aurora-tinted surfaces
+            spotlight: 'rgba(236, 72, 153, 0.08)', // Spotlight surfaces
+            magnetic: 'rgba(34, 211, 238, 0.1)',   // Magnetic hover surfaces
+            glow: 'rgba(52, 211, 153, 0.12)'       // Glow surfaces
+        }
+    }
+}
+```
+
+### Editor UI Mockups
+
+#### New Section: Motion & Effects
+```typescript
+<Card title="Motion & Effects">
+    <Checkbox
+        label="Enable Aurora Background Animation"
+        checked={formData.enableAuroraAnimation}
+        onChange={(checked) => setFormData({ ...formData, enableAuroraAnimation: checked })}
+    />
+    <Checkbox
+        label="Enable Glassmorphism (frosted glass effect)"
+        checked={formData.enableGlassmorphism}
+        onChange={(checked) => setFormData({ ...formData, enableGlassmorphism: checked })}
+    />
+    <Checkbox
+        label="Enable Magnetic Hover (button hover effects)"
+        checked={formData.enableMagneticHover}
+        onChange={(checked) => setFormData({ ...formData, enableMagneticHover: checked })}
+    />
+    <Checkbox
+        label="Enable Scroll Reveal (scroll animations)"
+        checked={formData.enableScrollReveal}
+        onChange={(checked) => setFormData({ ...formData, enableScrollReveal: checked })}
+    />
+</Card>
+```
+
+#### New Section: Aurora Gradient Editor
+```typescript
+<Card title="Aurora Gradient" visible={formData.enableAuroraAnimation}>
+    <p>4-color gradient for animated background</p>
+    <div class="gradient-editor">
+        <ColorPicker
+            label="Color 1 (Indigo)"
+            value={formData.auroraGradient[0]}
+            onChange={(color) => updateGradientColor(0, color)}
+        />
+        <ColorPicker
+            label="Color 2 (Pink)"
+            value={formData.auroraGradient[1]}
+            onChange={(color) => updateGradientColor(1, color)}
+        />
+        <ColorPicker
+            label="Color 3 (Cyan)"
+            value={formData.auroraGradient[2]}
+            onChange={(color) => updateGradientColor(2, color)}
+        />
+        <ColorPicker
+            label="Color 4 (Green)"
+            value={formData.auroraGradient[3]}
+            onChange={(color) => updateGradientColor(3, color)}
+        />
+    </div>
+    <div class="gradient-preview" style={`
+        background: linear-gradient(
+            135deg,
+            ${formData.auroraGradient[0]},
+            ${formData.auroraGradient[1]},
+            ${formData.auroraGradient[2]},
+            ${formData.auroraGradient[3]}
+        );
+    `}>
+        Live Preview
+    </div>
+</Card>
+```
+
+#### New Section: Glassmorphism Settings
+```typescript
+<Card title="Glassmorphism Settings" visible={formData.enableGlassmorphism}>
+    <ColorPicker
+        label="Glass Surface Color"
+        value={formData.glassBackground}
+        onChange={(color) => setFormData({ ...formData, glassBackground: color })}
+        supportAlpha={true}
+    />
+    <Slider
+        label="Glass Opacity"
+        min={0}
+        max={1}
+        step={0.05}
+        value={formData.glassOpacity}
+        onChange={(value) => setFormData({ ...formData, glassOpacity: value })}
+    />
+    <ColorPicker
+        label="Glass Border Color"
+        value={formData.glassBorderColor}
+        onChange={(color) => setFormData({ ...formData, glassBorderColor: color })}
+        supportAlpha={true}
+    />
+    <Input
+        label="Blur Amount"
+        value={formData.glassBlur}
+        onChange={(value) => setFormData({ ...formData, glassBlur: value })}
+        placeholder="12px"
+    />
+    <div class="glass-preview" style={`
+        background: ${formData.glassBackground};
+        border: 1px solid ${formData.glassBorderColor};
+        backdrop-filter: blur(${formData.glassBlur});
+    `}>
+        Live Glass Preview
+    </div>
+</Card>
+```
+
+#### New Section: Typography Settings
+```typescript
+<Card title="Typography Settings">
+    <Checkbox
+        label="Enable Fluid Typography (responsive sizing)"
+        checked={formData.enableFluidTypography}
+        onChange={(checked) => setFormData({ ...formData, enableFluidTypography: checked })}
+    />
+    <Select
+        label="Heading Font"
+        value={formData.headingFont}
+        options={[
+            { value: 'space-grotesk', label: 'Space Grotesk (Aurora default)' },
+            { value: 'inter', label: 'Inter' },
+            { value: 'system', label: 'System Default' }
+        ]}
+        onChange={(value) => setFormData({ ...formData, headingFont: value })}
+    />
+    <Select
+        label="Body Font"
+        value={formData.bodyFont}
+        options={[
+            { value: 'inter', label: 'Inter (Aurora default)' },
+            { value: 'space-grotesk', label: 'Space Grotesk' },
+            { value: 'system', label: 'System Default' }
+        ]}
+        onChange={(value) => setFormData({ ...formData, bodyFont: value })}
+    />
+    <Select
+        label="Monospace Font"
+        value={formData.monoFont}
+        options={[
+            { value: 'jetbrains-mono', label: 'JetBrains Mono (Aurora default)' },
+            { value: 'fira-code', label: 'Fira Code' },
+            { value: 'system', label: 'System Default' }
+        ]}
+        onChange={(value) => setFormData({ ...formData, monoFont: value })}
+    />
+</Card>
+```
+
+### Updated FormData Interface
+
+```typescript
+interface TenantFormData {
+    // ... existing fields ...
+
+    // Motion & Effects
+    enableAuroraAnimation: boolean;
+    enableGlassmorphism: boolean;
+    enableMagneticHover: boolean;
+    enableScrollReveal: boolean;
+
+    // Aurora Gradient (4 colors)
+    auroraGradient: [string, string, string, string];
+
+    // Glassmorphism
+    glassBackground: string;       // rgba(25, 30, 50, 0.45)
+    glassOpacity: number;          // 0-1
+    glassBorderColor: string;      // rgba(255, 255, 255, 0.12)
+    glassBlur: string;             // '12px'
+
+    // Typography
+    enableFluidTypography: boolean;
+    headingFont: string;           // 'space-grotesk' | 'inter' | 'system'
+    bodyFont: string;              // 'inter' | 'space-grotesk' | 'system'
+    monoFont: string;              // 'jetbrains-mono' | 'fira-code' | 'system'
+}
+```
+
+### Updated mergeTokensSmartly() Function
+
+```typescript
+function mergeTokensSmartly(
+    existingTokens: BrandingTokens | undefined,
+    formData: TenantFormData
+): BrandingTokens {
+    // If no existing tokens, generate vanilla base
+    if (!existingTokens) {
+        const base = generateBrandingTokens({
+            primaryColor: formData.primaryColor,
+            secondaryColor: formData.secondaryColor,
+            accentColor: formData.accentColor,
+            backgroundColor: formData.backgroundColor,
+            headerBackgroundColor: formData.headerBackgroundColor
+        });
+
+        // Apply feature flags from form
+        return applyFeatureFlags(base, formData);
+    }
+
+    // Preserve existing, update edited fields
+    const updated = {
+        ...existingTokens,
+
+        // Update basic colors
+        palette: {
+            ...existingTokens.palette,
+            primary: formData.primaryColor,
+            secondary: formData.secondaryColor,
+            accent: formData.accentColor,
+            // Regenerate variants
+            primaryVariant: adjustColor(formData.primaryColor, 0.1),
+            secondaryVariant: adjustColor(formData.secondaryColor, 0.1)
+        },
+
+        semantics: {
+            ...existingTokens.semantics,
+            colors: {
+                ...existingTokens.semantics.colors,
+
+                surface: {
+                    ...existingTokens.semantics.colors.surface,
+                    base: formData.backgroundColor,
+                    overlay: formData.headerBackgroundColor,
+
+                    // Conditional glassmorphism
+                    ...(formData.enableGlassmorphism ? {
+                        glass: formData.glassBackground,
+                        glassBorder: formData.glassBorderColor
+                    } : {})
+                },
+
+                // Conditional aurora gradient
+                ...(formData.enableAuroraAnimation ? {
+                    gradient: {
+                        aurora: formData.auroraGradient
+                    }
+                } : {})
+            }
+        },
+
+        // Conditional glassmorphism blur
+        ...(formData.enableGlassmorphism ? {
+            blur: {
+                ...existingTokens.blur,
+                glass: formData.glassBlur
+            }
+        } : {}),
+
+        // Motion feature flags
+        motion: {
+            ...existingTokens.motion,
+            enableParallax: formData.enableAuroraAnimation,
+            enableMagneticHover: formData.enableMagneticHover,
+            enableScrollReveal: formData.enableScrollReveal
+        },
+
+        // Conditional fluid typography
+        typography: {
+            ...existingTokens.typography,
+            ...(formData.enableFluidTypography ? {
+                fluidScale: existingTokens.typography.fluidScale || {
+                    xs: 'clamp(0.75rem, 0.9vw, 0.875rem)',
+                    sm: 'clamp(0.875rem, 1vw, 1rem)',
+                    base: 'clamp(1rem, 1.125vw, 1.125rem)',
+                    lg: 'clamp(1.125rem, 1.25vw, 1.25rem)',
+                    xl: 'clamp(1.25rem, 1.5vw, 1.5rem)',
+                    '2xl': 'clamp(1.5rem, 2vw, 2rem)',
+                    '3xl': 'clamp(1.875rem, 2.5vw, 2.5rem)',
+                    hero: 'clamp(2.5rem, 5vw, 3.75rem)'
+                }
+            } : {})
+        },
+
+        // Font selection
+        assets: {
+            ...existingTokens.assets,
+            fonts: {
+                heading: getFontUrl(formData.headingFont),
+                body: getFontUrl(formData.bodyFont),
+                mono: getFontUrl(formData.monoFont)
+            }
+        }
+    };
+
+    return updated;
+}
+
+function getFontUrl(font: string): string {
+    const fontMap: Record<string, string> = {
+        'space-grotesk': 'https://fonts.googleapis.com/.../SpaceGrotesk.woff2',
+        'inter': 'https://fonts.googleapis.com/.../Inter.woff2',
+        'jetbrains-mono': 'https://fonts.googleapis.com/.../JetBrainsMono.woff2',
+        'fira-code': 'https://fonts.googleapis.com/.../FiraCode.woff2',
+        'system': ''  // Empty URL = use system font
+    };
+    return fontMap[font] || '';
+}
+```
+
+### Updated Page Object Methods
+
+Add to `TenantEditorModalPage.ts`:
+
+```typescript
+// Motion & Effects
+get enableAuroraAnimationCheckbox() {
+    return this.page.getByTestId('enable-aurora-animation-checkbox');
+}
+
+get enableGlassmorphismCheckbox() {
+    return this.page.getByTestId('enable-glassmorphism-checkbox');
+}
+
+get enableMagneticHoverCheckbox() {
+    return this.page.getByTestId('enable-magnetic-hover-checkbox');
+}
+
+get enableScrollRevealCheckbox() {
+    return this.page.getByTestId('enable-scroll-reveal-checkbox');
+}
+
+// Aurora Gradient
+get auroraColor1Input() {
+    return this.page.getByTestId('aurora-color-1-input');
+}
+
+get auroraColor2Input() {
+    return this.page.getByTestId('aurora-color-2-input');
+}
+
+get auroraColor3Input() {
+    return this.page.getByTestId('aurora-color-3-input');
+}
+
+get auroraColor4Input() {
+    return this.page.getByTestId('aurora-color-4-input');
+}
+
+// Glassmorphism
+get glassBackgroundInput() {
+    return this.page.getByTestId('glass-background-input');
+}
+
+get glassOpacitySlider() {
+    return this.page.getByTestId('glass-opacity-slider');
+}
+
+get glassBorderColorInput() {
+    return this.page.getByTestId('glass-border-color-input');
+}
+
+get glassBlurInput() {
+    return this.page.getByTestId('glass-blur-input');
+}
+
+// Typography
+get enableFluidTypographyCheckbox() {
+    return this.page.getByTestId('enable-fluid-typography-checkbox');
+}
+
+get headingFontSelect() {
+    return this.page.getByTestId('heading-font-select');
+}
+
+// Actions
+async toggleAuroraAnimation(checked: boolean) {
+    const checkbox = this.enableAuroraAnimationCheckbox;
+    const isCurrentlyChecked = await checkbox.isChecked();
+    if (isCurrentlyChecked !== checked) {
+        await checkbox.click();
+    }
+}
+
+async setAuroraGradient(colors: [string, string, string, string]) {
+    await this.auroraColor1Input.fill(colors[0]);
+    await this.auroraColor2Input.fill(colors[1]);
+    await this.auroraColor3Input.fill(colors[2]);
+    await this.auroraColor4Input.fill(colors[3]);
+}
+
+async toggleGlassmorphism(checked: boolean) {
+    const checkbox = this.enableGlassmorphismCheckbox;
+    const isCurrentlyChecked = await checkbox.isChecked();
+    if (isCurrentlyChecked !== checked) {
+        await checkbox.click();
+    }
+}
+
+async setGlassmorphismSettings(settings: {
+    background: string;
+    opacity: number;
+    borderColor: string;
+    blur: string;
+}) {
+    await this.glassBackgroundInput.fill(settings.background);
+    await this.glassOpacitySlider.fill(settings.opacity.toString());
+    await this.glassBorderColorInput.fill(settings.borderColor);
+    await this.glassBlurInput.fill(settings.blur);
+}
+```
+
+### E2E Test Additions
+
+Add to `tenant-editor.e2e.test.ts`:
+
+```typescript
+test('admin can toggle aurora animation and it affects tokens', async ({ createLoggedInBrowsers }) => {
+    // ... setup tenant with aurora enabled ...
+
+    // Disable aurora animation
+    await tenantEditorModal.toggleAuroraAnimation(false);
+    await tenantEditorModal.clickSave();
+    await tenantEditorModal.clickPublish();
+
+    // Verify motion.enableParallax is now false
+    const savedTenant = await apiDriver.getTenant(tenantId, user.token);
+    expect(savedTenant.brandingTokens.tokens.motion.enableParallax).toBe(false);
+
+    // Verify CSS no longer has aurora animation
+    const cssResponse = await page.request.get(cssUrl);
+    const cssText = await cssResponse.text();
+    expect(cssText).not.toContain('@keyframes aurora');
+});
+
+test('admin can customize aurora gradient colors', async ({ createLoggedInBrowsers }) => {
+    // ... setup ...
+
+    const newGradient: [string, string, string, string] = ['#ff0000', '#00ff00', '#0000ff', '#ffff00'];
+    await tenantEditorModal.setAuroraGradient(newGradient);
+    await tenantEditorModal.clickSave();
+
+    // Verify gradient array updated
+    const savedTenant = await apiDriver.getTenant(tenantId, user.token);
+    expect(savedTenant.brandingTokens.tokens.semantics.colors.gradient.aurora)
+        .toEqual(newGradient);
+});
+
+test('admin can toggle glassmorphism and it affects tokens', async ({ createLoggedInBrowsers }) => {
+    // ... setup tenant without glassmorphism ...
+
+    // Enable glassmorphism
+    await tenantEditorModal.toggleGlassmorphism(true);
+    await tenantEditorModal.setGlassmorphismSettings({
+        background: 'rgba(0, 0, 0, 0.5)',
+        opacity: 0.5,
+        borderColor: 'rgba(255, 255, 255, 0.1)',
+        blur: '10px'
+    });
+    await tenantEditorModal.clickSave();
+    await tenantEditorModal.clickPublish();
+
+    // Verify glass properties added
+    const savedTenant = await apiDriver.getTenant(tenantId, user.token);
+    expect(savedTenant.brandingTokens.tokens.semantics.colors.surface.glass)
+        .toBe('rgba(0, 0, 0, 0.5)');
+    expect(savedTenant.brandingTokens.tokens.blur.glass).toBe('10px');
+
+    // Verify CSS has backdrop-filter
+    const cssResponse = await page.request.get(cssUrl);
+    const cssText = await cssResponse.text();
+    expect(cssText).toContain('backdrop-filter');
+    expect(cssText).toContain('blur(10px)');
+});
+
+test('admin can disable all aurora features and get vanilla theme', async ({ createLoggedInBrowsers }) => {
+    // ... setup tenant with full Aurora theme ...
+
+    // Disable all features
+    await tenantEditorModal.toggleAuroraAnimation(false);
+    await tenantEditorModal.toggleGlassmorphism(false);
+    await tenantEditorModal.toggleMagneticHover(false);
+    await tenantEditorModal.toggleScrollReveal(false);
+    await tenantEditorModal.clickSave();
+    await tenantEditorModal.clickPublish();
+
+    // Verify all feature flags disabled
+    const savedTenant = await apiDriver.getTenant(tenantId, user.token);
+    expect(savedTenant.brandingTokens.tokens.motion.enableParallax).toBe(false);
+    expect(savedTenant.brandingTokens.tokens.motion.enableMagneticHover).toBe(false);
+    expect(savedTenant.brandingTokens.tokens.motion.enableScrollReveal).toBe(false);
+    expect(savedTenant.brandingTokens.tokens.semantics.colors.surface.glass).toBeUndefined();
+});
+```
+
+### Implementation Order
+
+1. **Backend first**: Update `mergeTokensSmartly()` function
+2. **Schema**: Update FormData interface
+3. **UI**: Add new form sections (Motion, Gradient, Glass, Typography)
+4. **Page Object**: Add new locators and methods
+5. **E2E Tests**: Add feature toggle tests
+6. **Manual Testing**: Verify all features work together
+
+### Success Criteria
+
+- [ ] All Aurora features controllable via checkboxes/inputs
+- [ ] Disabling a feature removes it from tokens (not just sets to false)
+- [ ] Enabling a feature adds proper defaults
+- [ ] All changes persist across page refresh
+- [ ] E2E tests verify tokens, not just UI state
+- [ ] CSS generation respects all feature flags
+- [ ] Live preview shows changes before save
+
+---
+
 **Author**: Claude Code
-**Last Updated**: 2025-11-24 (Updated with research findings)
+**Last Updated**: 2025-11-24 (Updated with Phase 2 implementation plan)
