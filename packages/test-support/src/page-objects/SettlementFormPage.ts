@@ -256,6 +256,10 @@ export class SettlementFormPage extends BasePage {
             el.dispatchEvent(new Event('input', { bubbles: true }));
             el.dispatchEvent(new Event('change', { bubbles: true }));
         }, value);
+
+        // Wait for Preact to re-render the payee dropdown with updated filter
+        // The payee dropdown filters out the selected payer, so it needs time to update
+        await this.page.waitForTimeout(100);
     }
 
     async selectPayee(payeeName: string): Promise<void> {
