@@ -7,8 +7,8 @@
  *
  * Flags:
  *   --default-only: Only sync the default tenant (isDefault: true)
+ *   --tenant-id <id>: Only sync specific tenant by ID
  */
-import { createFirestoreDatabase } from '@billsplit-wl/firebase-simulator';
 import {
     toShowLandingPageFlag,
     toShowMarketingContentFlag,
@@ -19,15 +19,20 @@ import {
     toTenantDomainName,
     toTenantFaviconUrl,
     toTenantHeaderBackgroundColor,
+    toTenantId,
     toTenantLogoUrl,
     toTenantPrimaryColor,
     toTenantSecondaryColor,
 } from '@billsplit-wl/shared';
 import * as admin from 'firebase-admin';
-import { Firestore, Timestamp } from 'firebase-admin/firestore';
 import * as fs from 'fs';
 import * as path from 'path';
-import { FirestoreCollections } from '../functions/src/constants';
+import { getIdentityToolkitConfig } from '../functions/src/client-config';
+import { getAuth, getFirestore, getStorage } from '../functions/src/firebase';
+import { getServiceConfig } from '../functions/src/merge/ServiceConfig';
+import type { AdminUpsertTenantRequest } from '../functions/src/schemas/tenant';
+import { ComponentBuilder } from '../functions/src/services/ComponentBuilder';
+import { TenantAdminService } from '../functions/src/services/tenant/TenantAdminService';
 import { initializeFirebase, parseEnvironment, type ScriptEnvironment } from './firebase-init';
 
 interface TenantConfig {
@@ -50,15 +55,27 @@ interface TenantConfig {
     isDefault: boolean;
 }
 
-async function resolveFirestore(env: ScriptEnvironment): Promise<Firestore> {
-    if (env.isEmulator) {
-        const firebaseModule = await import('../functions/src/firebase');
-        return firebaseModule.getFirestore();
-    }
-    return admin.firestore();
+async function buildTenantAdminService(env: ScriptEnvironment): Promise<TenantAdminService> {
+    const firestore = env.isEmulator ? getFirestore() : admin.firestore();
+    const auth = env.isEmulator ? getAuth() : admin.auth();
+    const storage = env.isEmulator ? getStorage() : admin.storage();
+    const identityToolkit = getIdentityToolkitConfig();
+    const serviceConfig = getServiceConfig();
+
+    const componentBuilder = ComponentBuilder.createComponentBuilder(
+        firestore,
+        auth,
+        storage,
+        identityToolkit,
+        serviceConfig,
+    );
+    return componentBuilder.buildTenantAdminService();
 }
 
-async function syncTenantConfigs(firestore: Firestore, options?: { defaultOnly?: boolean; tenantId?: string; }) {
+async function syncTenantConfigs(
+    tenantAdminService: TenantAdminService,
+    options?: { defaultOnly?: boolean; tenantId?: string; },
+) {
     const configPath = path.join(__dirname, 'tenant-configs.json');
     const configData = fs.readFileSync(configPath, 'utf-8');
     let configs: TenantConfig[] = JSON.parse(configData);
@@ -77,74 +94,47 @@ async function syncTenantConfigs(firestore: Firestore, options?: { defaultOnly?:
         console.log('🔄 Syncing all tenant configurations from JSON...');
     }
 
-    const db = createFirestoreDatabase(firestore);
-    const now = Timestamp.now();
+    // Normalize domains (remove port for storage)
+    const normalizeDomain = (domain: string): string => {
+        return domain.replace(/:\d+$/, '');
+    };
 
     for (const config of configs) {
-        const tenantRef = db.collection(FirestoreCollections.TENANTS).doc(config.id);
-        const existingDoc = await tenantRef.get();
-
-        // Normalize domains (remove port for storage)
-        const normalizeDomain = (domain: string): string => {
-            return domain.replace(/:\d+$/, '');
-        };
-
         const domains = config.domains.map((d) => toTenantDomainName(normalizeDomain(d)));
 
-        if (existingDoc.exists) {
-            // For existing tenants, use update() to preserve brandingTokens.artifact (theme CSS)
-            const updateData: Record<string, any> = {
-                'branding.appName': toTenantAppName(config.branding.appName),
-                'branding.logoUrl': toTenantLogoUrl(config.branding.logoUrl),
-                'branding.faviconUrl': toTenantFaviconUrl(config.branding.faviconUrl),
-                'branding.primaryColor': toTenantPrimaryColor(config.branding.primaryColor),
-                'branding.secondaryColor': toTenantSecondaryColor(config.branding.secondaryColor),
-                'branding.marketingFlags.showLandingPage': toShowLandingPageFlag(config.branding.marketingFlags?.showLandingPage ?? false),
-                'branding.marketingFlags.showMarketingContent': toShowMarketingContentFlag(config.branding.marketingFlags?.showMarketingContent ?? false),
-                'branding.marketingFlags.showPricingPage': toShowPricingPageFlag(config.branding.marketingFlags?.showPricingPage ?? false),
-                domains,
-                defaultTenant: toTenantDefaultFlag(config.isDefault),
-                updatedAt: now,
-            };
-
-            if (config.branding.backgroundColor) {
-                updateData['branding.backgroundColor'] = toTenantBackgroundColor(config.branding.backgroundColor);
-            }
-            if (config.branding.headerBackgroundColor) {
-                updateData['branding.headerBackgroundColor'] = toTenantHeaderBackgroundColor(config.branding.headerBackgroundColor);
-            }
-
-            await tenantRef.update(updateData);
-        } else {
-            // For new tenants, use set() to create the document
-            const tenantDoc = {
-                branding: {
-                    appName: toTenantAppName(config.branding.appName),
-                    logoUrl: toTenantLogoUrl(config.branding.logoUrl),
-                    faviconUrl: toTenantFaviconUrl(config.branding.faviconUrl),
-                    primaryColor: toTenantPrimaryColor(config.branding.primaryColor),
-                    secondaryColor: toTenantSecondaryColor(config.branding.secondaryColor),
-                    ...(config.branding.backgroundColor && {
-                        backgroundColor: toTenantBackgroundColor(config.branding.backgroundColor),
-                    }),
-                    ...(config.branding.headerBackgroundColor && {
-                        headerBackgroundColor: toTenantHeaderBackgroundColor(config.branding.headerBackgroundColor),
-                    }),
-                    marketingFlags: {
-                        showLandingPage: toShowLandingPageFlag(config.branding.marketingFlags?.showLandingPage ?? false),
-                        showMarketingContent: toShowMarketingContentFlag(config.branding.marketingFlags?.showMarketingContent ?? false),
-                        showPricingPage: toShowPricingPageFlag(config.branding.marketingFlags?.showPricingPage ?? false),
-                    },
+        // Build request object that will be validated by the schema
+        const request: AdminUpsertTenantRequest = {
+            tenantId: toTenantId(config.id),
+            branding: {
+                appName: toTenantAppName(config.branding.appName),
+                logoUrl: toTenantLogoUrl(config.branding.logoUrl),
+                faviconUrl: toTenantFaviconUrl(config.branding.faviconUrl),
+                primaryColor: toTenantPrimaryColor(config.branding.primaryColor),
+                secondaryColor: toTenantSecondaryColor(config.branding.secondaryColor),
+                ...(config.branding.backgroundColor && {
+                    backgroundColor: toTenantBackgroundColor(config.branding.backgroundColor),
+                }),
+                ...(config.branding.headerBackgroundColor && {
+                    headerBackgroundColor: toTenantHeaderBackgroundColor(config.branding.headerBackgroundColor),
+                }),
+                marketingFlags: {
+                    showLandingPage: toShowLandingPageFlag(config.branding.marketingFlags?.showLandingPage ?? false),
+                    showMarketingContent: toShowMarketingContentFlag(config.branding.marketingFlags?.showMarketingContent ?? false),
+                    showPricingPage: toShowPricingPageFlag(config.branding.marketingFlags?.showPricingPage ?? false),
                 },
-                domains,
-                defaultTenant: toTenantDefaultFlag(config.isDefault),
-                createdAt: now,
-                updatedAt: now,
-            };
+            },
+            domains,
+            defaultTenant: toTenantDefaultFlag(config.isDefault),
+        };
 
-            await tenantRef.set(tenantDoc);
+        // Use the service layer which includes all validation
+        try {
+            const result = await tenantAdminService.upsertTenant(request);
+            console.log(`  ✓ ${result.created ? 'Created' : 'Updated'} tenant: ${config.id} (${config.branding.appName})`);
+        } catch (error) {
+            console.error(`  ✗ Failed to sync tenant: ${config.id}`);
+            throw error;
         }
-        console.log(`  ✓ Synced tenant: ${config.id} (${config.branding.appName})`);
     }
 
     console.log('✅ Tenant configurations synced successfully');
@@ -172,8 +162,8 @@ async function main(): Promise<void> {
         console.log('✅ Connected to Deployed Firebase');
     }
 
-    const firestore = await resolveFirestore(env);
-    await syncTenantConfigs(firestore, { defaultOnly, tenantId });
+    const tenantAdminService = await buildTenantAdminService(env);
+    await syncTenantConfigs(tenantAdminService, { defaultOnly, tenantId });
 
     console.log('✅ Tenant sync complete');
 }
@@ -186,4 +176,4 @@ if (require.main === module) {
     });
 }
 
-export { syncTenantConfigs };
+export { buildTenantAdminService, syncTenantConfigs };

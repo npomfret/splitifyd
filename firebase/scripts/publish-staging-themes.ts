@@ -3,22 +3,10 @@
  * Publish themes for staging tenants to deployed Firebase
  *
  * Usage:
- *   ./scripts/publish-staging-themes.ts <admin-email> <admin-password> <base-url>
+ *   ./scripts/publish-staging-themes.ts
  *
- * Arguments:
- *   admin-email    - Email address of system admin account
- *   admin-password - Password for admin account
- *   base-url       - Base URL of deployed Firebase Functions (e.g., https://us-central1-splitifyd.cloudfunctions.net/api)
- *
- * Example:
- *   ./scripts/publish-staging-themes.ts admin@example.com mypassword https://us-central1-splitifyd.cloudfunctions.net/api
- *
- * Prerequisites:
- *   - Admin user must already exist and have system_admin role
- *   - Use promote-user-to-admin.ts to create/promote the admin user first
- *
- * This script publishes themes for staging-default-tenant and staging-tenant
- * to the deployed Firebase environment (not emulator).
+ * This script syncs staging-tenant configuration to deployed Firebase (staging-1),
+ * which includes updating branding tokens. Uses TenantAdminService for proper validation.
  */
 import { localhostBrandingTokens, loopbackBrandingTokens, type BrandingTokens } from '@billsplit-wl/shared';
 import type { BrandingTokenFixtureKey } from '@billsplit-wl/shared';
@@ -135,63 +123,38 @@ async function seedTenant(baseUrl: string, token: string, seed: TenantSeed): Pro
     logger.info(`✓ Theme published for ${tenantId}`);
 }
 
-export async function publishStagingThemes(
-    adminEmail: string,
-    adminPassword: string,
-    baseUrl: string,
-): Promise<void> {
-    const STAGING_TENANT_SEEDS = loadStagingTenantSeeds();
-
+export async function publishStagingThemes(): Promise<void> {
     logger.info('🎨 Publishing themes for staging tenants...');
-    logger.info(`Found ${STAGING_TENANT_SEEDS.length} staging tenants to publish`);
 
-    logger.info(`Authenticating as ${adminEmail}...`);
-    const loginResponse = await apiRequest(baseUrl, 'POST', '/register', {
-        email: adminEmail,
-        password: adminPassword,
-        displayName: adminEmail.split('@')[0],
-    });
-    const token = loginResponse.token;
-    logger.info(`✓ Authenticated successfully`);
+    // Just call sync-tenant-configs which uses TenantAdminService properly
+    const { buildTenantAdminService, syncTenantConfigs } = await import('./sync-tenant-configs');
+    const { parseEnvironment, initializeFirebase } = await import('./firebase-init');
 
-    for (const seed of STAGING_TENANT_SEEDS) {
-        try {
-            await seedTenant(baseUrl, token, seed);
-        } catch (error) {
-            logger.error(`Failed to seed ${seed.tenantId}`, { error });
-            throw error;
-        }
-    }
+    const env = parseEnvironment(['staging']);
+    initializeFirebase(env);
+
+    const tenantAdminService = await buildTenantAdminService(env);
+
+    // Sync staging-tenant which will update/create it with proper branding tokens
+    await syncTenantConfigs(tenantAdminService, { tenantId: 'staging-tenant' });
 
     logger.info('✅ Staging themes published successfully');
-    logger.info(`  - staging-default-tenant: Brutalist theme (fallback)`);
     logger.info(`  - staging-tenant: Aurora theme (splitifyd.web.app)`);
 }
 
 async function main(): Promise<void> {
-    const args = process.argv.slice(2);
-
-    if (args.length < 3) {
-        console.error('❌ Usage: script.ts <admin-email> <admin-password> <base-url>');
-        console.error('');
-        console.error('Arguments:');
-        console.error('  admin-email    - Email address of system admin account');
-        console.error('  admin-password - Password for admin account');
-        console.error('  base-url       - Base URL of deployed Firebase Functions');
-        console.error('');
-        console.error('Example:');
-        console.error('  ./scripts/publish-staging-themes.ts admin@example.com mypassword https://us-central1-splitifyd.cloudfunctions.net/api');
-        process.exit(1);
-    }
-
-    const [adminEmail, adminPassword, baseUrl] = args;
-
-    await publishStagingThemes(adminEmail, adminPassword, baseUrl);
+    await publishStagingThemes();
 }
 
 // Run if executed directly
 if (require.main === module) {
     main().catch((error) => {
+        console.error('❌ Staging theme publishing script failed');
+        console.error('Error details:', error);
+        if (error instanceof Error) {
+            console.error('Message:', error.message);
+            console.error('Stack:', error.stack);
+        }
         logger.error('Staging theme publishing script failed', { error });
         process.exit(1);
     });

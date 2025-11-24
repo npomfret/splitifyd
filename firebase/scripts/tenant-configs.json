@@ -22,25 +22,6 @@
     "id": "default-tenant",
     "domains": ["127.0.0.1"],
     "branding": {
-      "appName": "Splitomatic",
-      "logoUrl": "/logo.svg",
-      "faviconUrl": "/favicon.ico",
-      "primaryColor": "#F97316",
-      "secondaryColor": "#EA580C",
-      "backgroundColor": "#FFF7ED",
-      "headerBackgroundColor": "#FDBA74",
-      "marketingFlags": {
-        "showLandingPage": false,
-        "showMarketingContent": false,
-        "showPricingPage": false
-      }
-    },
-    "isDefault": true
-  },
-  {
-    "id": "staging-default-tenant",
-    "domains": [],
-    "branding": {
       "appName": "BillSplit",
       "logoUrl": "/logo.svg",
       "faviconUrl": "/favicon.ico",
@@ -54,7 +35,7 @@
         "showPricingPage": false
       }
     },
-    "isDefault": false
+    "isDefault": true
   },
   {
     "id": "staging-tenant",
