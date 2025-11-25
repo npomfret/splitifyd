@@ -1,7 +1,11 @@
 import type { BrandingTokens, TenantBranding } from '@billsplit-wl/shared';
 import { generateBrandingTokens } from './branding-tokens-generator';
 
-interface SimpleBranding {
+/**
+ * Represents the flattened form values from the tenant editor modal.
+ * These simple edits are merged into the full BrandingTokens structure.
+ */
+export interface BrandingFormEdits {
     primaryColor: string;
     secondaryColor: string;
     accentColor: string;
@@ -34,36 +38,36 @@ interface SimpleBranding {
  */
 export function mergeTokensSmartly(
     existingTokens: TenantBranding | undefined,
-    simpleEdits: SimpleBranding,
+    formEdits: BrandingFormEdits,
 ): TenantBranding | undefined {
-    console.log('[mergeTokensSmartly] Called with glassColor:', simpleEdits.glassColor);
-    console.log('[mergeTokensSmartly] Called with glassBorderColor:', simpleEdits.glassBorderColor);
+    console.log('[mergeTokensSmartly] Called with glassColor:', formEdits.glassColor);
+    console.log('[mergeTokensSmartly] Called with glassBorderColor:', formEdits.glassBorderColor);
     console.log('[mergeTokensSmartly] Has existing tokens?:', !!existingTokens?.tokens);
 
     // Check if user made any motion/typography/aurora/glass edits
-    const hasAdvancedEdits = simpleEdits.enableAuroraAnimation !== undefined ||
-        simpleEdits.enableGlassmorphism !== undefined ||
-        simpleEdits.enableMagneticHover !== undefined ||
-        simpleEdits.enableScrollReveal !== undefined ||
-        simpleEdits.fontFamilySans !== undefined ||
-        simpleEdits.fontFamilySerif !== undefined ||
-        simpleEdits.fontFamilyMono !== undefined ||
-        simpleEdits.auroraGradient !== undefined ||
-        simpleEdits.glassColor !== undefined ||
-        simpleEdits.glassBorderColor !== undefined;
+    const hasAdvancedEdits = formEdits.enableAuroraAnimation !== undefined ||
+        formEdits.enableGlassmorphism !== undefined ||
+        formEdits.enableMagneticHover !== undefined ||
+        formEdits.enableScrollReveal !== undefined ||
+        formEdits.fontFamilySans !== undefined ||
+        formEdits.fontFamilySerif !== undefined ||
+        formEdits.fontFamilyMono !== undefined ||
+        formEdits.auroraGradient !== undefined ||
+        formEdits.glassColor !== undefined ||
+        formEdits.glassBorderColor !== undefined;
 
     // If no existing tokens AND user has made advanced edits (motion, typography, etc.),
     // generate complete tokens using the frontend generator, then apply the edits
     if (!existingTokens?.tokens && hasAdvancedEdits) {
-        console.log('[mergeTokensSmartly] Generating tokens - glass color:', simpleEdits.glassColor);
-        console.log('[mergeTokensSmartly] Generating tokens - glass border:', simpleEdits.glassBorderColor);
+        console.log('[mergeTokensSmartly] Generating tokens - glass color:', formEdits.glassColor);
+        console.log('[mergeTokensSmartly] Generating tokens - glass border:', formEdits.glassBorderColor);
 
         const generatedTokens = generateBrandingTokens({
-            primaryColor: simpleEdits.primaryColor,
-            secondaryColor: simpleEdits.secondaryColor,
-            accentColor: simpleEdits.accentColor,
-            backgroundColor: simpleEdits.backgroundColor,
-            headerBackgroundColor: simpleEdits.headerBackgroundColor,
+            primaryColor: formEdits.primaryColor,
+            secondaryColor: formEdits.secondaryColor,
+            accentColor: formEdits.accentColor,
+            backgroundColor: formEdits.backgroundColor,
+            headerBackgroundColor: formEdits.headerBackgroundColor,
         });
 
         // Apply motion effect overrides
@@ -71,61 +75,61 @@ export function mergeTokensSmartly(
             ...generatedTokens.tokens,
             motion: {
                 ...generatedTokens.tokens.motion,
-                ...(simpleEdits.enableAuroraAnimation !== undefined && {
-                    enableParallax: simpleEdits.enableAuroraAnimation,
+                ...(formEdits.enableAuroraAnimation !== undefined && {
+                    enableParallax: formEdits.enableAuroraAnimation,
                 }),
-                ...(simpleEdits.enableMagneticHover !== undefined && {
-                    enableMagneticHover: simpleEdits.enableMagneticHover,
+                ...(formEdits.enableMagneticHover !== undefined && {
+                    enableMagneticHover: formEdits.enableMagneticHover,
                 }),
-                ...(simpleEdits.enableScrollReveal !== undefined && {
-                    enableScrollReveal: simpleEdits.enableScrollReveal,
+                ...(formEdits.enableScrollReveal !== undefined && {
+                    enableScrollReveal: formEdits.enableScrollReveal,
                 }),
             },
             typography: {
                 ...generatedTokens.tokens.typography,
                 fontFamily: {
                     ...generatedTokens.tokens.typography.fontFamily,
-                    ...(simpleEdits.fontFamilySans && {
-                        sans: simpleEdits.fontFamilySans,
+                    ...(formEdits.fontFamilySans && {
+                        sans: formEdits.fontFamilySans,
                     }),
-                    ...(simpleEdits.fontFamilySerif && {
-                        serif: simpleEdits.fontFamilySerif,
+                    ...(formEdits.fontFamilySerif && {
+                        serif: formEdits.fontFamilySerif,
                     }),
-                    ...(simpleEdits.fontFamilyMono && {
-                        mono: simpleEdits.fontFamilyMono,
+                    ...(formEdits.fontFamilyMono && {
+                        mono: formEdits.fontFamilyMono,
                     }),
                 },
             },
         };
 
         // Apply aurora gradient if specified (must have at least 2 colors per schema)
-        if (simpleEdits.auroraGradient && simpleEdits.auroraGradient.length >= 2) {
+        if (formEdits.auroraGradient && formEdits.auroraGradient.length >= 2) {
             tokens.semantics = {
                 ...tokens.semantics,
                 colors: {
                     ...tokens.semantics.colors,
                     gradient: {
                         ...tokens.semantics.colors.gradient,
-                        aurora: simpleEdits.auroraGradient as `#${string}`[],
+                        aurora: formEdits.auroraGradient as `#${string}`[],
                     },
                 },
             };
         }
 
         // Apply glassmorphism color settings if provided
-        if (simpleEdits.glassColor || simpleEdits.glassBorderColor) {
+        if (formEdits.glassColor || formEdits.glassBorderColor) {
             console.log('[mergeTokensSmartly] Applying glass colors');
             const existingSurface = tokens.semantics.colors.surface;
             const updatedSurface: any = { ...existingSurface };
 
-            if (simpleEdits.glassColor) {
-                updatedSurface.glass = simpleEdits.glassColor as `rgba(${string})`;
+            if (formEdits.glassColor) {
+                updatedSurface.glass = formEdits.glassColor as `rgba(${string})`;
             } else if (existingSurface.glass) {
                 updatedSurface.glass = existingSurface.glass;
             }
 
-            if (simpleEdits.glassBorderColor) {
-                updatedSurface.glassBorder = simpleEdits.glassBorderColor as `rgba(${string})`;
+            if (formEdits.glassBorderColor) {
+                updatedSurface.glassBorder = formEdits.glassBorderColor as `rgba(${string})`;
             } else if (existingSurface.glassBorder) {
                 updatedSurface.glassBorder = existingSurface.glassBorder;
             }
@@ -178,13 +182,13 @@ export function mergeTokensSmartly(
         // Update palette colors
         palette: {
             ...existing.palette,
-            primary: simpleEdits.primaryColor as `#${string}`,
-            primaryVariant: adjustColor(simpleEdits.primaryColor, 0.1),
-            secondary: simpleEdits.secondaryColor as `#${string}`,
-            secondaryVariant: adjustColor(simpleEdits.secondaryColor, 0.1),
-            accent: simpleEdits.accentColor as `#${string}`,
-            neutral: simpleEdits.backgroundColor as `#${string}`,
-            neutralVariant: adjustColor(simpleEdits.backgroundColor, 0.05),
+            primary: formEdits.primaryColor as `#${string}`,
+            primaryVariant: adjustColor(formEdits.primaryColor, 0.1),
+            secondary: formEdits.secondaryColor as `#${string}`,
+            secondaryVariant: adjustColor(formEdits.secondaryColor, 0.1),
+            accent: formEdits.accentColor as `#${string}`,
+            neutral: formEdits.backgroundColor as `#${string}`,
+            neutralVariant: adjustColor(formEdits.backgroundColor, 0.05),
             // PRESERVE: success, warning, danger, info
         },
 
@@ -197,20 +201,20 @@ export function mergeTokensSmartly(
                 surface: (() => {
                     const baseSurface = {
                         ...existing.semantics.colors.surface,
-                        base: simpleEdits.backgroundColor as `#${string}`,
-                        raised: adjustColor(simpleEdits.backgroundColor, -0.02),
-                        sunken: adjustColor(simpleEdits.backgroundColor, 0.05),
-                        overlay: simpleEdits.headerBackgroundColor as `#${string}`,
+                        base: formEdits.backgroundColor as `#${string}`,
+                        raised: adjustColor(formEdits.backgroundColor, -0.02),
+                        sunken: adjustColor(formEdits.backgroundColor, 0.05),
+                        overlay: formEdits.headerBackgroundColor as `#${string}`,
                     };
 
                     // Handle glassmorphism conditionally
-                    if (simpleEdits.enableGlassmorphism !== undefined) {
-                        if (simpleEdits.enableGlassmorphism) {
+                    if (formEdits.enableGlassmorphism !== undefined) {
+                        if (formEdits.enableGlassmorphism) {
                             // Use provided glass colors, or preserve existing, or use defaults
                             return {
                                 ...baseSurface,
-                                glass: (simpleEdits.glassColor || existing.semantics.colors.surface.glass || 'rgba(25, 30, 50, 0.45)') as `rgba(${string})`,
-                                glassBorder: (simpleEdits.glassBorderColor || existing.semantics.colors.surface.glassBorder || 'rgba(255, 255, 255, 0.12)') as `rgba(${string})`,
+                                glass: (formEdits.glassColor || existing.semantics.colors.surface.glass || 'rgba(25, 30, 50, 0.45)') as `rgba(${string})`,
+                                glassBorder: (formEdits.glassBorderColor || existing.semantics.colors.surface.glassBorder || 'rgba(255, 255, 255, 0.12)') as `rgba(${string})`,
                             };
                         }
                         // If explicitly disabled, remove glass properties
@@ -219,11 +223,11 @@ export function mergeTokensSmartly(
                     }
 
                     // If glassmorphism toggle not specified, but colors provided, update them
-                    if (simpleEdits.glassColor || simpleEdits.glassBorderColor) {
+                    if (formEdits.glassColor || formEdits.glassBorderColor) {
                         return {
                             ...baseSurface,
-                            glass: (simpleEdits.glassColor || existing.semantics.colors.surface.glass) as `rgba(${string})`,
-                            glassBorder: (simpleEdits.glassBorderColor || existing.semantics.colors.surface.glassBorder) as `rgba(${string})`,
+                            glass: (formEdits.glassColor || existing.semantics.colors.surface.glass) as `rgba(${string})`,
+                            glassBorder: (formEdits.glassBorderColor || existing.semantics.colors.surface.glassBorder) as `rgba(${string})`,
                         };
                     }
 
@@ -233,41 +237,41 @@ export function mergeTokensSmartly(
 
                 text: {
                     ...existing.semantics.colors.text,
-                    primary: simpleEdits.headerBackgroundColor as `#${string}`,
-                    secondary: adjustColor(simpleEdits.headerBackgroundColor, -0.3),
-                    muted: adjustColor(simpleEdits.headerBackgroundColor, -0.5),
-                    inverted: simpleEdits.backgroundColor as `#${string}`,
-                    accent: simpleEdits.accentColor as `#${string}`,
+                    primary: formEdits.headerBackgroundColor as `#${string}`,
+                    secondary: adjustColor(formEdits.headerBackgroundColor, -0.3),
+                    muted: adjustColor(formEdits.headerBackgroundColor, -0.5),
+                    inverted: formEdits.backgroundColor as `#${string}`,
+                    accent: formEdits.accentColor as `#${string}`,
                 },
 
                 interactive: {
                     ...existing.semantics.colors.interactive,
-                    primary: simpleEdits.primaryColor as `#${string}`,
-                    primaryHover: adjustColor(simpleEdits.primaryColor, 0.1),
-                    primaryActive: adjustColor(simpleEdits.primaryColor, 0.15),
-                    secondary: simpleEdits.secondaryColor as `#${string}`,
-                    secondaryHover: adjustColor(simpleEdits.secondaryColor, 0.1),
-                    secondaryActive: adjustColor(simpleEdits.secondaryColor, 0.15),
-                    accent: simpleEdits.accentColor as `#${string}`,
+                    primary: formEdits.primaryColor as `#${string}`,
+                    primaryHover: adjustColor(formEdits.primaryColor, 0.1),
+                    primaryActive: adjustColor(formEdits.primaryColor, 0.15),
+                    secondary: formEdits.secondaryColor as `#${string}`,
+                    secondaryHover: adjustColor(formEdits.secondaryColor, 0.1),
+                    secondaryActive: adjustColor(formEdits.secondaryColor, 0.15),
+                    accent: formEdits.accentColor as `#${string}`,
                     // PRESERVE: primaryForeground, secondaryForeground, destructive*, magnetic
                 },
 
                 border: {
                     ...existing.semantics.colors.border,
-                    subtle: adjustColor(simpleEdits.backgroundColor, 0.1),
-                    default: adjustColor(simpleEdits.backgroundColor, 0.2),
-                    strong: adjustColor(simpleEdits.backgroundColor, 0.3),
-                    focus: simpleEdits.accentColor as `#${string}`,
+                    subtle: adjustColor(formEdits.backgroundColor, 0.1),
+                    default: adjustColor(formEdits.backgroundColor, 0.2),
+                    strong: adjustColor(formEdits.backgroundColor, 0.3),
+                    focus: formEdits.accentColor as `#${string}`,
                     // PRESERVE: warning
                 },
 
                 // PRESERVE: status
 
                 // Update gradient if provided (must have at least 2 colors per schema)
-                ...(simpleEdits.auroraGradient && simpleEdits.auroraGradient.length >= 2 && {
+                ...(formEdits.auroraGradient && formEdits.auroraGradient.length >= 2 && {
                     gradient: {
                         ...existing.semantics.colors.gradient,
-                        aurora: simpleEdits.auroraGradient as `#${string}`[],
+                        aurora: formEdits.auroraGradient as `#${string}`[],
                     },
                 }),
             },
@@ -278,14 +282,14 @@ export function mergeTokensSmartly(
         // Update motion feature flags
         motion: {
             ...existing.motion,
-            ...(simpleEdits.enableAuroraAnimation !== undefined && {
-                enableParallax: simpleEdits.enableAuroraAnimation,
+            ...(formEdits.enableAuroraAnimation !== undefined && {
+                enableParallax: formEdits.enableAuroraAnimation,
             }),
-            ...(simpleEdits.enableMagneticHover !== undefined && {
-                enableMagneticHover: simpleEdits.enableMagneticHover,
+            ...(formEdits.enableMagneticHover !== undefined && {
+                enableMagneticHover: formEdits.enableMagneticHover,
             }),
-            ...(simpleEdits.enableScrollReveal !== undefined && {
-                enableScrollReveal: simpleEdits.enableScrollReveal,
+            ...(formEdits.enableScrollReveal !== undefined && {
+                enableScrollReveal: formEdits.enableScrollReveal,
             }),
         },
 
@@ -294,14 +298,14 @@ export function mergeTokensSmartly(
             ...existing.typography,
             fontFamily: {
                 ...existing.typography.fontFamily,
-                ...(simpleEdits.fontFamilySans && {
-                    sans: simpleEdits.fontFamilySans,
+                ...(formEdits.fontFamilySans && {
+                    sans: formEdits.fontFamilySans,
                 }),
-                ...(simpleEdits.fontFamilySerif && {
-                    serif: simpleEdits.fontFamilySerif,
+                ...(formEdits.fontFamilySerif && {
+                    serif: formEdits.fontFamilySerif,
                 }),
-                ...(simpleEdits.fontFamilyMono && {
-                    mono: simpleEdits.fontFamilyMono,
+                ...(formEdits.fontFamilyMono && {
+                    mono: formEdits.fontFamilyMono,
                 }),
             },
             // PRESERVE: sizes, weights, lineHeights, letterSpacing, semantics, fluidScale
