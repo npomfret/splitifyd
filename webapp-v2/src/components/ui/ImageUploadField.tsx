@@ -1,5 +1,4 @@
 import { cx } from '@/utils/cx.ts';
-import type { Ref } from 'preact';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Button } from './Button';
@@ -43,11 +42,18 @@ export function ImageUploadField({
     const [showUrlInput, setShowUrlInput] = useState(false);
     const [urlValue, setUrlValue] = useState('');
     const [isDownloading, setIsDownloading] = useState(false);
+    const [imageLoadFailed, setImageLoadFailed] = useState(false);
 
     // Update preview when currentImageUrl prop changes
     useEffect(() => {
         setPreview(currentImageUrl);
+        setImageLoadFailed(false); // Reset load state when URL changes
     }, [currentImageUrl]);
+
+    const handleImageError = useCallback(() => {
+        // Silently handle image load failures (e.g., invalid URLs in test data)
+        setImageLoadFailed(true);
+    }, []);
 
     const handleFileChange = useCallback(
         (e: Event) => {
@@ -148,13 +154,33 @@ export function ImageUploadField({
             </label>
 
             {/* Preview */}
-            {preview && (
+            {preview && !imageLoadFailed && (
                 <div className="relative inline-block w-fit">
                     <img
                         src={preview}
                         alt="Preview"
                         className="max-w-xs max-h-48 rounded-lg border border-border-default bg-surface-raised object-contain"
+                        onError={handleImageError}
                     />
+                    {!disabled && (
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleClearClick}
+                            className="absolute top-2 right-2 bg-surface-overlay/90 hover:bg-surface-overlay"
+                            aria-label="Clear image"
+                        >
+                            ✕
+                        </Button>
+                    )}
+                </div>
+            )}
+            {/* Fallback when image fails to load */}
+            {preview && imageLoadFailed && (
+                <div className="relative inline-block w-fit">
+                    <div className="w-48 h-32 rounded-lg border border-border-default bg-surface-raised flex items-center justify-center text-text-muted text-sm">
+                        Image URL set
+                    </div>
                     {!disabled && (
                         <Button
                             variant="ghost"

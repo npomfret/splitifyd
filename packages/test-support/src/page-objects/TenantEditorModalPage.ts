@@ -24,20 +24,12 @@ export class TenantEditorModalPage extends BasePage {
         return this.page.getByLabel(/app name/i);
     }
 
-    protected getLogoUrlInput(): Locator {
-        return this.page.getByLabel(/logo url/i);
-    }
-
     protected getLogoUploadField(): Locator {
         return this.page.getByTestId('logo-upload-field');
     }
 
     protected getFaviconUploadField(): Locator {
         return this.page.getByTestId('favicon-upload-field');
-    }
-
-    protected getFaviconUrlInput(): Locator {
-        return this.page.getByLabel(/favicon url/i);
     }
 
     protected getPrimaryColorInput(): Locator {
@@ -195,17 +187,27 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     async fillLogoUrl(value: string): Promise<void> {
-        const input = this.getLogoUrlInput();
-        await input.click();
-        await input.clear();
-        await input.pressSequentially(value, { delay: 10 });
+        // The logo field uses ImageUploadField with URL input mode
+        const logoField = this.getLogoUploadField();
+        await logoField.getByRole('button', { name: 'Or enter URL' }).click();
+        const urlInput = this.page.getByTestId('logo-upload-field-url-input');
+        await urlInput.fill(value);
+        // Click Download button to set the URL
+        await logoField.getByRole('button', { name: 'Download' }).click();
+        // Wait for the download button to disappear (indicates download completed or URL input closed)
+        await expect(logoField.getByRole('button', { name: 'Download' })).not.toBeVisible();
     }
 
     async fillFaviconUrl(value: string): Promise<void> {
-        const input = this.getFaviconUrlInput();
-        await input.click();
-        await input.clear();
-        await input.pressSequentially(value, { delay: 10 });
+        // The favicon field uses ImageUploadField with URL input mode
+        const faviconField = this.getFaviconUploadField();
+        await faviconField.getByRole('button', { name: 'Or enter URL' }).click();
+        const urlInput = this.page.getByTestId('favicon-upload-field-url-input');
+        await urlInput.fill(value);
+        // Click Download button to set the URL
+        await faviconField.getByRole('button', { name: 'Download' }).click();
+        // Wait for the download button to disappear (indicates download completed or URL input closed)
+        await expect(faviconField.getByRole('button', { name: 'Download' })).not.toBeVisible();
     }
 
     async addDomain(domain: string): Promise<void> {
@@ -440,7 +442,7 @@ export class TenantEditorModalPage extends BasePage {
         }
     }
 
-    async verifyFieldValue(field: 'tenantId' | 'appName' | 'logoUrl', expectedValue: string): Promise<void> {
+    async verifyFieldValue(field: 'tenantId' | 'appName', expectedValue: string): Promise<void> {
         let input: Locator;
         switch (field) {
             case 'tenantId':
@@ -449,9 +451,6 @@ export class TenantEditorModalPage extends BasePage {
             case 'appName':
                 input = this.getAppNameInput();
                 break;
-            case 'logoUrl':
-                input = this.getLogoUrlInput();
-                break;
         }
         await expect(input).toHaveValue(expectedValue);
     }
@@ -459,8 +458,8 @@ export class TenantEditorModalPage extends BasePage {
     async verifyAllBasicFieldsVisible(): Promise<void> {
         await expect(this.getTenantIdInput()).toBeVisible();
         await expect(this.getAppNameInput()).toBeVisible();
-        await expect(this.getLogoUrlInput()).toBeVisible();
-        await expect(this.getFaviconUrlInput()).toBeVisible();
+        await expect(this.getLogoUploadField()).toBeVisible();
+        await expect(this.getFaviconUploadField()).toBeVisible();
         await expect(this.getNewDomainInput()).toBeVisible();
     }
 
@@ -573,12 +572,8 @@ export class TenantEditorModalPage extends BasePage {
         await expect(this.getAppNameInput()).toHaveValue(expectedValue);
     }
 
-    async verifyLogoUrlValue(expectedValue: string): Promise<void> {
-        await expect(this.getLogoUrlInput()).toHaveValue(expectedValue);
-    }
-    async verifyFaviconUrlValue(expectedValue: string): Promise<void> {
-        await expect(this.getFaviconUrlInput()).toHaveValue(expectedValue);
-    }
+    // Logo and Favicon URL verification not available - UI uses ImageUploadField with file upload
+    // To verify logo/favicon, check the image preview or the currentImageUrl prop
 
     async verifyPrimaryColorValue(expectedValue: string): Promise<void> {
         await expect(this.getPrimaryColorInput()).toHaveValue(expectedValue);

@@ -24,8 +24,8 @@ export class AdminTenantRequestBuilder {
             tenantId: toTenantId(tenantId || 'test-tenant'),
             branding: {
                 appName: toTenantAppName('Test Tenant App'),
-                logoUrl: toTenantLogoUrl('https://foo/branding/test/logo.svg'),
-                faviconUrl: toTenantFaviconUrl('https://foo/branding/test/favicon.png'),
+                logoUrl: toTenantLogoUrl('/test-assets/logo.svg'),
+                faviconUrl: toTenantFaviconUrl('/test-assets/favicon.png'),
                 primaryColor: toTenantPrimaryColor('#2563eb'),
                 secondaryColor: toTenantSecondaryColor('#7c3aed'),
                 accentColor: toTenantAccentColor('#f97316'),
@@ -120,8 +120,8 @@ export class AdminTenantRequestBuilder {
                     lg: '0 20px 60px rgba(15, 23, 42, 0.18)',
                 },
                 assets: {
-                    logoUrl: 'https://foo/branding/test/logo.svg',
-                    faviconUrl: 'https://foo/branding/test/favicon.png',
+                    logoUrl: '/test-assets/logo.svg',
+                    faviconUrl: '/test-assets/favicon.png',
                 },
                 legal: {
                     companyName: 'Test Company',
