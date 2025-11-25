@@ -4,8 +4,8 @@ interface BrandingColors {
     primaryColor: string;
     secondaryColor: string;
     accentColor: string;
-    backgroundColor: string;
-    headerBackgroundColor: string;
+    surfaceColor: string;
+    textColor: string;
     logoUrl?: string;
     faviconUrl?: string;
 }
@@ -20,8 +20,8 @@ export function generateBrandingTokens(branding: BrandingColors): TenantBranding
     const primaryColor = branding.primaryColor || '#2563eb';
     const secondaryColor = branding.secondaryColor || '#7c3aed';
     const accentColor = branding.accentColor || '#f97316';
-    const backgroundColor = branding.backgroundColor || '#ffffff';
-    const headerBackgroundColor = branding.headerBackgroundColor || '#111827';
+    const surfaceColor = branding.surfaceColor || '#ffffff';
+    const textColor = branding.textColor || '#111827';
 
     // Helper to adjust color brightness (positive = darken, negative = lighten)
     const adjustColor = (color: string, amount: number): string => {
@@ -56,8 +56,8 @@ export function generateBrandingTokens(branding: BrandingColors): TenantBranding
             secondary: secondaryColor as `#${string}`,
             secondaryVariant: adjustColor(secondaryColor, 0.1) as `#${string}`,
             accent: accentColor as `#${string}`,
-            neutral: backgroundColor as `#${string}`,
-            neutralVariant: adjustColor(backgroundColor, 0.05) as `#${string}`,
+            neutral: surfaceColor as `#${string}`,
+            neutralVariant: adjustColor(surfaceColor, 0.05) as `#${string}`,
             success: '#22c55e' as `#${string}`,
             warning: '#eab308' as `#${string}`,
             danger: '#ef4444' as `#${string}`,
@@ -141,17 +141,17 @@ export function generateBrandingTokens(branding: BrandingColors): TenantBranding
         semantics: {
             colors: {
                 surface: {
-                    base: backgroundColor as `#${string}`,
-                    raised: adjustColor(backgroundColor, -0.02) as `#${string}`, // Lighten
-                    sunken: adjustColor(backgroundColor, 0.05) as `#${string}`,
-                    overlay: headerBackgroundColor as `#${string}`,
+                    base: surfaceColor as `#${string}`,
+                    raised: adjustColor(surfaceColor, -0.02) as `#${string}`, // Lighten
+                    sunken: adjustColor(surfaceColor, 0.05) as `#${string}`,
+                    overlay: textColor as `#${string}`,
                     warning: '#fef3c7' as `#${string}`,
                 },
                 text: {
-                    primary: headerBackgroundColor as `#${string}`,
-                    secondary: adjustColor(headerBackgroundColor, -0.3) as `#${string}`,
-                    muted: adjustColor(headerBackgroundColor, -0.5) as `#${string}`,
-                    inverted: backgroundColor as `#${string}`,
+                    primary: textColor as `#${string}`,
+                    secondary: adjustColor(textColor, -0.3) as `#${string}`,
+                    muted: adjustColor(textColor, -0.5) as `#${string}`,
+                    inverted: surfaceColor as `#${string}`,
                     accent: accentColor as `#${string}`,
                 },
                 interactive: {
@@ -170,9 +170,9 @@ export function generateBrandingTokens(branding: BrandingColors): TenantBranding
                     accent: accentColor as `#${string}`,
                 },
                 border: {
-                    subtle: adjustColor(backgroundColor, 0.1) as `#${string}`,
-                    default: adjustColor(backgroundColor, 0.2) as `#${string}`,
-                    strong: adjustColor(backgroundColor, 0.3) as `#${string}`,
+                    subtle: adjustColor(surfaceColor, 0.1) as `#${string}`,
+                    default: adjustColor(surfaceColor, 0.2) as `#${string}`,
+                    strong: adjustColor(surfaceColor, 0.3) as `#${string}`,
                     focus: accentColor as `#${string}`,
                     warning: '#fbbf24' as `#${string}`,
                 },

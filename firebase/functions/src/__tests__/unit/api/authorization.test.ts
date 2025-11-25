@@ -933,8 +933,8 @@ describe('authorization', () => {
                         primaryColor: toTenantPrimaryColor('#ff0000'), // Different color
                         secondaryColor: toTenantPrimaryColor('#7c3aed'),
                         accentColor: toTenantPrimaryColor('#f97316'),
-                        backgroundColor: toTenantPrimaryColor('#ffffff'),
-                        headerBackgroundColor: toTenantPrimaryColor('#111827'),
+                        surfaceColor: toTenantPrimaryColor('#ffffff'),
+                        textColor: toTenantPrimaryColor('#111827'),
                     },
                     domains: [toTenantDomainName(`${tenantId}.test`)],
                 };

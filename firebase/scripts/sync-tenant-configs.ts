@@ -13,17 +13,19 @@ import {
     toShowLandingPageFlag,
     toShowMarketingContentFlag,
     toShowPricingPageFlag,
+    toTenantAccentColor,
     toTenantAppName,
-    toTenantBackgroundColor,
     toTenantDefaultFlag,
     toTenantDomainName,
     toTenantFaviconUrl,
-    toTenantHeaderBackgroundColor,
     toTenantId,
     toTenantLogoUrl,
     toTenantPrimaryColor,
     toTenantSecondaryColor,
+    toTenantSurfaceColor,
+    toTenantTextColor,
 } from '@billsplit-wl/shared';
+import { ApiDriver } from '@billsplit-wl/test-support';
 import * as admin from 'firebase-admin';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -45,8 +47,9 @@ interface TenantConfig {
         faviconUrl: string;
         primaryColor: string;
         secondaryColor: string;
-        backgroundColor?: string;
-        headerBackgroundColor?: string;
+        accentColor?: string;
+        surfaceColor?: string;
+        textColor?: string;
         marketingFlags?: {
             showLandingPage?: boolean;
             showMarketingContent?: boolean;
@@ -188,11 +191,14 @@ async function syncTenantConfigs(
                 faviconUrl: toTenantFaviconUrl(faviconUrl),
                 primaryColor: toTenantPrimaryColor(config.branding.primaryColor),
                 secondaryColor: toTenantSecondaryColor(config.branding.secondaryColor),
-                ...(config.branding.backgroundColor && {
-                    backgroundColor: toTenantBackgroundColor(config.branding.backgroundColor),
+                ...(config.branding.accentColor && {
+                    accentColor: toTenantAccentColor(config.branding.accentColor),
                 }),
-                ...(config.branding.headerBackgroundColor && {
-                    headerBackgroundColor: toTenantHeaderBackgroundColor(config.branding.headerBackgroundColor),
+                ...(config.branding.surfaceColor && {
+                    surfaceColor: toTenantSurfaceColor(config.branding.surfaceColor),
+                }),
+                ...(config.branding.textColor && {
+                    textColor: toTenantTextColor(config.branding.textColor),
                 }),
                 marketingFlags: {
                     showLandingPage: toShowLandingPageFlag(config.branding.marketingFlags?.showLandingPage ?? false),
@@ -210,6 +216,17 @@ async function syncTenantConfigs(
             console.log(`  ✓ ${result.created ? 'Created' : 'Updated'} tenant: ${config.id} (${config.branding.appName})`);
         } catch (error) {
             console.error(`  ✗ Failed to sync tenant: ${config.id}`);
+            throw error;
+        }
+
+        // Publish theme CSS via API
+        try {
+            const apiDriver = new ApiDriver();
+            const adminUser = await apiDriver.getDefaultAdminUser();
+            const publishResult = await apiDriver.publishTenantTheme({ tenantId: config.id }, adminUser.token);
+            console.log(`  ✓ Published theme: ${publishResult.artifact.hash}`);
+        } catch (error) {
+            console.error(`  ✗ Failed to publish theme for tenant: ${config.id}`);
             throw error;
         }
     }

@@ -434,7 +434,7 @@ test.describe('Tenant Editor Modal', () => {
             await tenantEditorModal.setPrimaryColor('#1a73e8');
             await tenantEditorModal.setSecondaryColor('#34a853');
             await tenantEditorModal.setAccentColor('#fbbc04');
-            await tenantEditorModal.setHeaderBackgroundColor('#111827');
+            await tenantEditorModal.setTextColor('#111827');
             await tenantEditorModal.addDomain(`${tenantId}.example.com`);
 
             // Save tenant
@@ -488,8 +488,8 @@ test.describe('Tenant Editor Modal', () => {
                 .withPrimaryColor('#3B82F6')
                 .withSecondaryColor('#8B5CF6')
                 .withAccentColor('#000000')
-                .withBackgroundColor('#000000')
-                .withHeaderBackgroundColor('#000000')
+                .withSurfaceColor('#000000')
+                .withTextColor('#000000')
                 .withCustomCss('')
                 .withMarketingFlags({
                     showLandingPage: true,
@@ -509,10 +509,10 @@ test.describe('Tenant Editor Modal', () => {
                     };
                     const serialized = ApiSerializer.serialize(responsePayload);
 
-                    console.log('[TEST] GET /admin/browser/tenants - mockTenant.tenant.branding.backgroundColor:', mockTenant.tenant.branding.backgroundColor);
+                    console.log('[TEST] GET /admin/browser/tenants - mockTenant.tenant.branding.surfaceColor:', mockTenant.tenant.branding.surfaceColor);
                     console.log('[TEST] GET /admin/browser/tenants - mockTenant.tenant.branding.appName:', mockTenant.tenant.branding.appName);
                     console.log('[TEST] GET /admin/browser/tenants - serialized response length:', serialized.length);
-                    console.log('[TEST] GET /admin/browser/tenants - serialized response contains backgroundColor:', serialized.includes('backgroundColor'));
+                    console.log('[TEST] GET /admin/browser/tenants - serialized response contains surfaceColor:', serialized.includes('surfaceColor'));
 
                     await route.fulfill({
                         status: 200,
@@ -528,7 +528,7 @@ test.describe('Tenant Editor Modal', () => {
                 if (route.request().method() === 'POST') {
                     const requestBody = await route.request().postDataJSON();
 
-                    console.log('[TEST] POST /admin/tenants - requestBody.branding.backgroundColor:', requestBody.branding?.backgroundColor);
+                    console.log('[TEST] POST /admin/tenants - requestBody.branding.surfaceColor:', requestBody.branding?.surfaceColor);
                     console.log('[TEST] POST /admin/tenants - requestBody.branding.appName:', requestBody.branding?.appName);
                     console.log('[TEST] POST /admin/tenants - requestBody.brandingTokens exists?:', !!requestBody.brandingTokens);
                     console.log('[TEST] POST /admin/tenants - requestBody.brandingTokens.tokens?.motion?.enableMagneticHover:', requestBody.brandingTokens?.tokens?.motion?.enableMagneticHover);
@@ -550,7 +550,7 @@ test.describe('Tenant Editor Modal', () => {
 
                     mockTenant.tenant.updatedAt = toISOString(new Date().toISOString());
 
-                    console.log('[TEST] POST /admin/tenants - AFTER MERGE mockTenant.tenant.branding.backgroundColor:', mockTenant.tenant.branding.backgroundColor);
+                    console.log('[TEST] POST /admin/tenants - AFTER MERGE mockTenant.tenant.branding.surfaceColor:', mockTenant.tenant.branding.surfaceColor);
                     console.log('[TEST] POST /admin/tenants - AFTER MERGE mockTenant.tenant.branding.appName:', mockTenant.tenant.branding.appName);
 
                     await route.fulfill({
@@ -579,8 +579,8 @@ test.describe('Tenant Editor Modal', () => {
             await tenantEditorModal.setPrimaryColor('#aa11bb');
             await tenantEditorModal.setSecondaryColor('#bb22cc');
             await tenantEditorModal.setAccentColor('#cc33dd');
-            await tenantEditorModal.setBackgroundColor('#dddddd');
-            await tenantEditorModal.setHeaderBackgroundColor('#111111');
+            await tenantEditorModal.setSurfaceColor('#dddddd');
+            await tenantEditorModal.setTextColor('#111111');
 
             // Custom CSS
             await tenantEditorModal.setCustomCss('/* updated css */');
@@ -628,8 +628,8 @@ test.describe('Tenant Editor Modal', () => {
             await tenantEditorModal.verifyPrimaryColorValue('#aa11bb');
             await tenantEditorModal.verifySecondaryColorValue('#bb22cc');
             await tenantEditorModal.verifyAccentColorValue('#cc33dd');
-            await tenantEditorModal.verifyBackgroundColorValue('#dddddd');
-            await tenantEditorModal.verifyHeaderBackgroundColorValue('#111111');
+            await tenantEditorModal.verifySurfaceColorValue('#dddddd');
+            await tenantEditorModal.verifyTextColorValue('#111111');
 
             // Verify custom CSS
             await tenantEditorModal.verifyCustomCssValue('/* updated css */');

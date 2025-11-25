@@ -9,8 +9,8 @@ export interface BrandingFormEdits {
     primaryColor: string;
     secondaryColor: string;
     accentColor: string;
-    backgroundColor: string;
-    headerBackgroundColor: string;
+    surfaceColor: string;
+    textColor: string;
     // Motion & Effects
     enableAuroraAnimation?: boolean;
     enableGlassmorphism?: boolean;
@@ -66,8 +66,8 @@ export function mergeTokensSmartly(
             primaryColor: formEdits.primaryColor,
             secondaryColor: formEdits.secondaryColor,
             accentColor: formEdits.accentColor,
-            backgroundColor: formEdits.backgroundColor,
-            headerBackgroundColor: formEdits.headerBackgroundColor,
+            surfaceColor: formEdits.surfaceColor,
+            textColor: formEdits.textColor,
         });
 
         // Apply motion effect overrides
@@ -187,8 +187,8 @@ export function mergeTokensSmartly(
             secondary: formEdits.secondaryColor as `#${string}`,
             secondaryVariant: adjustColor(formEdits.secondaryColor, 0.1),
             accent: formEdits.accentColor as `#${string}`,
-            neutral: formEdits.backgroundColor as `#${string}`,
-            neutralVariant: adjustColor(formEdits.backgroundColor, 0.05),
+            neutral: formEdits.surfaceColor as `#${string}`,
+            neutralVariant: adjustColor(formEdits.surfaceColor, 0.05),
             // PRESERVE: success, warning, danger, info
         },
 
@@ -201,10 +201,10 @@ export function mergeTokensSmartly(
                 surface: (() => {
                     const baseSurface = {
                         ...existing.semantics.colors.surface,
-                        base: formEdits.backgroundColor as `#${string}`,
-                        raised: adjustColor(formEdits.backgroundColor, -0.02),
-                        sunken: adjustColor(formEdits.backgroundColor, 0.05),
-                        overlay: formEdits.headerBackgroundColor as `#${string}`,
+                        base: formEdits.surfaceColor as `#${string}`,
+                        raised: adjustColor(formEdits.surfaceColor, -0.02),
+                        sunken: adjustColor(formEdits.surfaceColor, 0.05),
+                        overlay: formEdits.textColor as `#${string}`,
                     };
 
                     // Handle glassmorphism conditionally
@@ -237,10 +237,10 @@ export function mergeTokensSmartly(
 
                 text: {
                     ...existing.semantics.colors.text,
-                    primary: formEdits.headerBackgroundColor as `#${string}`,
-                    secondary: adjustColor(formEdits.headerBackgroundColor, -0.3),
-                    muted: adjustColor(formEdits.headerBackgroundColor, -0.5),
-                    inverted: formEdits.backgroundColor as `#${string}`,
+                    primary: formEdits.textColor as `#${string}`,
+                    secondary: adjustColor(formEdits.textColor, -0.3),
+                    muted: adjustColor(formEdits.textColor, -0.5),
+                    inverted: formEdits.surfaceColor as `#${string}`,
                     accent: formEdits.accentColor as `#${string}`,
                 },
 
@@ -258,9 +258,9 @@ export function mergeTokensSmartly(
 
                 border: {
                     ...existing.semantics.colors.border,
-                    subtle: adjustColor(formEdits.backgroundColor, 0.1),
-                    default: adjustColor(formEdits.backgroundColor, 0.2),
-                    strong: adjustColor(formEdits.backgroundColor, 0.3),
+                    subtle: adjustColor(formEdits.surfaceColor, 0.1),
+                    default: adjustColor(formEdits.surfaceColor, 0.2),
+                    strong: adjustColor(formEdits.surfaceColor, 0.3),
                     focus: formEdits.accentColor as `#${string}`,
                     // PRESERVE: warning
                 },

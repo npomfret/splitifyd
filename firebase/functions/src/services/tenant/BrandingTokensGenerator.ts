@@ -10,8 +10,23 @@ export function generateBrandingTokens(branding: AdminUpsertTenantRequest['brand
     const primaryColor = branding.primaryColor || '#2563eb';
     const secondaryColor = branding.secondaryColor || '#7c3aed';
     const accentColor = branding.accentColor || '#f97316';
-    const backgroundColor = branding.backgroundColor || '#ffffff';
-    const headerBackgroundColor = branding.headerBackgroundColor || '#111827';
+    const surfaceColor = branding.surfaceColor || '#ffffff';
+    const textColor = branding.textColor || '#111827';
+
+    // Helper to calculate relative luminance (0 = black, 1 = white)
+    const getLuminance = (color: string): number => {
+        const hex = color.replace('#', '');
+        const r = parseInt(hex.substring(0, 2), 16) / 255;
+        const g = parseInt(hex.substring(2, 4), 16) / 255;
+        const b = parseInt(hex.substring(4, 6), 16) / 255;
+        // Simplified luminance calculation
+        return 0.299 * r + 0.587 * g + 0.114 * b;
+    };
+
+    // Helper to pick contrasting foreground color
+    const getContrastingForeground = (bgColor: string): `#${string}` => {
+        return getLuminance(bgColor) > 0.5 ? '#171717' as `#${string}` : '#ffffff' as `#${string}`;
+    };
 
     // Helper to adjust color brightness (positive = darken, negative = lighten)
     const adjustColor = (color: string, amount: number): string => {
@@ -46,8 +61,8 @@ export function generateBrandingTokens(branding: AdminUpsertTenantRequest['brand
             secondary: secondaryColor as `#${string}`,
             secondaryVariant: adjustColor(secondaryColor, 0.1) as `#${string}`,
             accent: accentColor as `#${string}`,
-            neutral: backgroundColor as `#${string}`,
-            neutralVariant: adjustColor(backgroundColor, 0.05) as `#${string}`,
+            neutral: surfaceColor as `#${string}`,
+            neutralVariant: adjustColor(surfaceColor, 0.05) as `#${string}`,
             success: '#22c55e' as `#${string}`,
             warning: '#eab308' as `#${string}`,
             danger: '#ef4444' as `#${string}`,
@@ -131,28 +146,29 @@ export function generateBrandingTokens(branding: AdminUpsertTenantRequest['brand
         semantics: {
             colors: {
                 surface: {
-                    base: backgroundColor as `#${string}`,
-                    raised: adjustColor(backgroundColor, -0.02) as `#${string}`, // Lighten
-                    sunken: adjustColor(backgroundColor, 0.05) as `#${string}`,
-                    overlay: headerBackgroundColor as `#${string}`,
+                    base: surfaceColor as `#${string}`,
+                    // For dark surfaces, lighten more significantly; for light surfaces, darken slightly
+                    raised: adjustColor(surfaceColor, getLuminance(surfaceColor) < 0.5 ? -0.15 : 0.02) as `#${string}`,
+                    sunken: adjustColor(surfaceColor, getLuminance(surfaceColor) < 0.5 ? 0.1 : 0.05) as `#${string}`,
+                    overlay: textColor as `#${string}`,
                     warning: '#fef3c7' as `#${string}`,
                 },
                 text: {
-                    primary: headerBackgroundColor as `#${string}`,
-                    secondary: adjustColor(headerBackgroundColor, -0.3) as `#${string}`,
-                    muted: adjustColor(headerBackgroundColor, -0.5) as `#${string}`,
-                    inverted: backgroundColor as `#${string}`,
+                    primary: textColor as `#${string}`,
+                    secondary: adjustColor(textColor, -0.3) as `#${string}`,
+                    muted: adjustColor(textColor, -0.5) as `#${string}`,
+                    inverted: surfaceColor as `#${string}`,
                     accent: accentColor as `#${string}`,
                 },
                 interactive: {
                     primary: primaryColor as `#${string}`,
                     primaryHover: adjustColor(primaryColor, 0.1) as `#${string}`,
                     primaryActive: adjustColor(primaryColor, 0.15) as `#${string}`,
-                    primaryForeground: '#ffffff' as `#${string}`,
+                    primaryForeground: getContrastingForeground(primaryColor),
                     secondary: secondaryColor as `#${string}`,
                     secondaryHover: adjustColor(secondaryColor, 0.1) as `#${string}`,
                     secondaryActive: adjustColor(secondaryColor, 0.15) as `#${string}`,
-                    secondaryForeground: '#ffffff' as `#${string}`,
+                    secondaryForeground: getContrastingForeground(secondaryColor),
                     destructive: '#ef4444' as `#${string}`,
                     destructiveHover: '#dc3e3e' as `#${string}`,
                     destructiveActive: '#c93838' as `#${string}`,
@@ -160,9 +176,10 @@ export function generateBrandingTokens(branding: AdminUpsertTenantRequest['brand
                     accent: accentColor as `#${string}`,
                 },
                 border: {
-                    subtle: adjustColor(backgroundColor, 0.1) as `#${string}`,
-                    default: adjustColor(backgroundColor, 0.2) as `#${string}`,
-                    strong: adjustColor(backgroundColor, 0.3) as `#${string}`,
+                    // For dark surfaces, lighten borders; for light surfaces, darken them
+                    subtle: adjustColor(surfaceColor, getLuminance(surfaceColor) < 0.5 ? -0.15 : 0.1) as `#${string}`,
+                    default: adjustColor(surfaceColor, getLuminance(surfaceColor) < 0.5 ? -0.25 : 0.2) as `#${string}`,
+                    strong: adjustColor(surfaceColor, getLuminance(surfaceColor) < 0.5 ? -0.35 : 0.3) as `#${string}`,
                     focus: accentColor as `#${string}`,
                     warning: '#fbbf24' as `#${string}`,
                 },
@@ -171,6 +188,12 @@ export function generateBrandingTokens(branding: AdminUpsertTenantRequest['brand
                     warning: '#eab308' as `#${string}`,
                     danger: '#ef4444' as `#${string}`,
                     info: '#38bdf8' as `#${string}`,
+                },
+                gradient: {
+                    // Primary button gradient - from primary to slightly darker variant
+                    primary: [primaryColor, adjustColor(primaryColor, 0.15)] as [`#${string}`, `#${string}`],
+                    // Accent gradient - from accent to primary
+                    accent: [accentColor, primaryColor] as [`#${string}`, `#${string}`],
                 },
             },
             spacing: {

@@ -447,8 +447,8 @@ describe('API Schema Validation', () => {
                         primaryColor: '#3B82F6',
                         secondaryColor: '#8B5CF6',
                         accentColor: '#EC4899',
-                        backgroundColor: '#ffffff',
-                        headerBackgroundColor: '#1F2937',
+                        surfaceColor: '#ffffff',
+                        textColor: '#1F2937',
                         themePalette: 'default',
                         customCSS: '/* test */',
                         marketingFlags: {
@@ -468,7 +468,7 @@ describe('API Schema Validation', () => {
             expect(result.config.branding.appName).toBe('Test App');
             expect(result.config.branding.logoUrl).toBe('/logo.svg');
             expect(result.config.branding.primaryColor).toBe('#3B82F6');
-            expect(result.config.branding.backgroundColor).toBe('#ffffff');
+            expect(result.config.branding.surfaceColor).toBe('#ffffff');
             expect(result.config.branding.customCSS).toBe('/* test */');
             expect(result.domains).toHaveLength(2);
         });

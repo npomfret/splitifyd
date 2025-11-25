@@ -163,13 +163,13 @@ const auroraSemantics: BrandingTokens['semantics'] = {
   },
 };
 
-// Brutalist theme
+// Brutalist theme (dark)
 const brutalistSemantics: BrandingTokens['semantics'] = {
   colors: {
     surface: {
-      base: '#fafafa',
-      raised: '#ffffff',
-      dropdown: '#f4f4f5',  // NEW: Brutalist value
+      base: '#171717',
+      raised: '#262626',
+      dropdown: '#303030',  // NEW: Brutalist value
     },
   },
 };
@@ -246,13 +246,13 @@ npm run theme:publish-local
 
 1. ✅ Am I using semantic tokens? (`bg-surface-*`, `text-text-*`, etc.)
 2. ✅ Is this change configurable per tenant?
-3. ✅ Will this work for BOTH dark themes (Aurora) AND light themes (Brutalist)?
+3. ✅ Will this work for BOTH Aurora (vibrant dark) AND Brutalist (minimal dark) themes?
 4. ✅ Did I avoid hardcoding any colors, fonts, or spacing?
 5. ✅ If this uses transparency, is the text still readable?
 
 **After making UI changes:**
 
-1. ✅ Test on both `localhost` (Aurora theme) and `127.0.0.1` (Brutalist theme)
+1. ✅ Test on both `localhost` (Aurora - vibrant) and `127.0.0.1` (Brutalist - minimal)
 2. ✅ Run: `cd firebase && npm run theme:publish-local`
 3. ✅ Hard refresh browser: Cmd+Shift+R (Mac) or Ctrl+Shift+R (Windows)
 4. ✅ Check for hardcoded colors: `grep -r "bg-gray\|bg-blue\|text-gray" webapp-v2/src/components`
@@ -555,7 +555,7 @@ When creating a user page (mandatory requirement):
 
 - [ ] File is NOT in `/admin/` directory
 - [ ] Uses ONLY semantic tokens
-- [ ] Works for both Aurora (dark) and Brutalist (light) themes
+- [ ] Works for both Aurora (vibrant dark) and Brutalist (minimal dark) themes
 - [ ] NO hardcoded colors (except in `/admin/` pages - future exception)
 - [ ] Loads tenant branding from `/api/theme.css`
 
@@ -586,24 +586,35 @@ When creating a user page (mandatory requirement):
   {
     "id": "localhost-tenant",              // Unique tenant ID
     "domains": ["localhost"],              // Domain mapping (without port)
-    "isDefault": true,                     // ONE tenant must be default
+    "isDefault": false,                    // ONE tenant must be default
     "branding": {
-      "appName": "BillSplit Demo",
+      "appName": "Splitifyd Demo",
       "logoUrl": "/logo.svg",
       "faviconUrl": "/favicon.ico",
-      "primaryColor": "#3B82F6",           // Hex color (legacy, not used in new themes)
-      "secondaryColor": "#8B5CF6"          // Hex color (legacy, not used in new themes)
-    },
-    "features": {
-      "enableAdvancedReporting": true,
-      "enableMultiCurrency": true,
-      "enableCustomFields": true,
-      "maxGroupsPerUser": 100,
-      "maxUsersPerGroup": 50
+      "primaryColor": "#3B82F6",           // Main interactive color (buttons, links)
+      "secondaryColor": "#8B5CF6",         // Secondary actions
+      "accentColor": "#EC4899",            // Highlights, focus states (optional)
+      "surfaceColor": "#EFF6FF",           // Cards, containers, borders
+      "textColor": "#DBEAFE",              // Primary text, headings, overlays
+      "marketingFlags": {
+        "showLandingPage": true,
+        "showMarketingContent": true,
+        "showPricingPage": true
+      }
     }
   }
 ]
 ```
+
+**Branding Field Reference:**
+
+| Field | Description | Used For |
+|-------|-------------|----------|
+| `primaryColor` | Main brand color | Buttons, links, primary actions |
+| `secondaryColor` | Secondary brand color | Secondary buttons, accents |
+| `accentColor` | Highlight color (optional) | Focus rings, highlights, text accents |
+| `surfaceColor` | Container color | Card backgrounds, borders (derives `surface.base`, `surface.raised`, `border.*`) |
+| `textColor` | Text color | Primary text, headings, overlay backgrounds (derives `text.primary`, `text.secondary`, `surface.overlay`) |
 
 ### How Tenants Are Loaded
 
@@ -732,12 +743,12 @@ The system ships with **two distinct demo tenants** for local development:
 ```
 
 #### 2. Brutalist Theme (`127.0.0.1` / loopback)
-**"Intentionally Bland"** - A minimal, grayscale UI with zero animations
+**"Dark Minimalism"** - A dark, minimal grayscale UI with zero animations
 
 **Visual characteristics:**
-- Light background (`#fafafa`)
+- Dark background (`#171717` - neutral-900)
 - Flat surfaces (no glassmorphism, no gradients)
-- Grayscale palette (grays 50-900)
+- Grayscale palette (neutrals only, no pure white or black)
 - Sharp corners (4px border radius everywhere)
 - Zero animations (all durations set to 0ms)
 - No parallax, no hover effects
@@ -746,15 +757,17 @@ The system ships with **two distinct demo tenants** for local development:
 **Primary colors:**
 ```typescript
 {
-  primary: '#a1a1aa',           // Gray 400
+  primary: '#737373',           // Neutral 500
+  secondary: '#525252',         // Neutral 600
+  accent: '#a3a3a3',            // Neutral 400
   surface: {
-    base: '#fafafa',            // Gray 50
-    raised: '#ffffff',          // White
-    overlay: '#f4f4f5',         // Gray 100
+    base: '#171717',            // Neutral 900 (dark)
+    raised: '#262626',          // Neutral 800
+    overlay: '#404040',         // Neutral 700
   },
   text: {
-    primary: '#18181b',         // Gray 900
-    secondary: '#71717a',       // Gray 500
+    primary: '#e5e5e5',         // Neutral 200 (off-white, not pure white)
+    secondary: '#a3a3a3',       // Neutral 400
   }
 }
 ```

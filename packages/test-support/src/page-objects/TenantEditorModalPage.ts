@@ -44,12 +44,12 @@ export class TenantEditorModalPage extends BasePage {
         return this.page.getByLabel(/^Accent Color$/i);
     }
 
-    protected getBackgroundColorInput(): Locator {
-        return this.page.getByLabel(/^Background Color$/i);
+    protected getSurfaceColorInput(): Locator {
+        return this.page.getByLabel(/^Surface Color$/i);
     }
 
-    protected getHeaderBackgroundColorInput(): Locator {
-        return this.page.getByLabel(/^Header Background Color$/i);
+    protected getTextColorInput(): Locator {
+        return this.page.getByLabel(/^Text Color$/i);
     }
 
     protected getCustomCssInput(): Locator {
@@ -231,12 +231,12 @@ export class TenantEditorModalPage extends BasePage {
         await this.getAccentColorInput().fill(color);
     }
 
-    async setBackgroundColor(color: string): Promise<void> {
-        await this.getBackgroundColorInput().fill(color);
+    async setSurfaceColor(color: string): Promise<void> {
+        await this.getSurfaceColorInput().fill(color);
     }
 
-    async setHeaderBackgroundColor(color: string): Promise<void> {
-        await this.getHeaderBackgroundColorInput().fill(color);
+    async setTextColor(color: string): Promise<void> {
+        await this.getTextColorInput().fill(color);
     }
 
     async setCustomCss(css: string): Promise<void> {
@@ -467,8 +467,8 @@ export class TenantEditorModalPage extends BasePage {
         await expect(this.getPrimaryColorInput()).toBeVisible();
         await expect(this.getSecondaryColorInput()).toBeVisible();
         await expect(this.getAccentColorInput()).toBeVisible();
-        await expect(this.getBackgroundColorInput()).toBeVisible();
-        await expect(this.getHeaderBackgroundColorInput()).toBeVisible();
+        await expect(this.getSurfaceColorInput()).toBeVisible();
+        await expect(this.getTextColorInput()).toBeVisible();
     }
 
     async verifyTypographyFieldsVisible(): Promise<void> {
@@ -587,12 +587,12 @@ export class TenantEditorModalPage extends BasePage {
         await expect(this.getAccentColorInput()).toHaveValue(expectedValue);
     }
 
-    async verifyBackgroundColorValue(expectedValue: string): Promise<void> {
-        await expect(this.getBackgroundColorInput()).toHaveValue(expectedValue);
+    async verifySurfaceColorValue(expectedValue: string): Promise<void> {
+        await expect(this.getSurfaceColorInput()).toHaveValue(expectedValue);
     }
 
-    async verifyHeaderBackgroundColorValue(expectedValue: string): Promise<void> {
-        await expect(this.getHeaderBackgroundColorInput()).toHaveValue(expectedValue);
+    async verifyTextColorValue(expectedValue: string): Promise<void> {
+        await expect(this.getTextColorInput()).toHaveValue(expectedValue);
     }
 
     async verifyCustomCssValue(expectedValue: string): Promise<void> {

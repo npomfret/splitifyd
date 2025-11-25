@@ -85,11 +85,11 @@ export const toTenantPrimaryColor = (value: string): TenantPrimaryColor => value
 export type TenantSecondaryColor = BrandedString<'TenantSecondaryColor'>;
 export const toTenantSecondaryColor = (value: string): TenantSecondaryColor => value as TenantSecondaryColor;
 
-export type TenantBackgroundColor = BrandedString<'TenantBackgroundColor'>;
-export const toTenantBackgroundColor = (value: string): TenantBackgroundColor => value as TenantBackgroundColor;
+export type TenantSurfaceColor = BrandedString<'TenantSurfaceColor'>;
+export const toTenantSurfaceColor = (value: string): TenantSurfaceColor => value as TenantSurfaceColor;
 
-export type TenantHeaderBackgroundColor = BrandedString<'TenantHeaderBackgroundColor'>;
-export const toTenantHeaderBackgroundColor = (value: string): TenantHeaderBackgroundColor => value as TenantHeaderBackgroundColor;
+export type TenantTextColor = BrandedString<'TenantTextColor'>;
+export const toTenantTextColor = (value: string): TenantTextColor => value as TenantTextColor;
 
 export type TenantAccentColor = BrandedString<'TenantAccentColor'>;
 export const toTenantAccentColor = (value: string): TenantAccentColor => value as TenantAccentColor;
@@ -274,8 +274,8 @@ export interface BrandingConfig {
     faviconUrl?: TenantFaviconUrl; // Optional - falls back to logoUrl if not provided
     primaryColor: TenantPrimaryColor;
     secondaryColor: TenantSecondaryColor;
-    backgroundColor?: TenantBackgroundColor;
-    headerBackgroundColor?: TenantHeaderBackgroundColor;
+    surfaceColor?: TenantSurfaceColor;
+    textColor?: TenantTextColor;
     accentColor?: TenantAccentColor;
     themePalette?: TenantThemePaletteName;
     customCSS?: TenantCustomCss;
@@ -1572,8 +1572,8 @@ export interface AdminUpsertTenantRequest {
         faviconUrl?: string;
         primaryColor: string;
         secondaryColor: string;
-        backgroundColor?: string;
-        headerBackgroundColor?: string;
+        surfaceColor?: string;
+        textColor?: string;
         accentColor?: string;
         themePalette?: string;
         customCSS?: string;

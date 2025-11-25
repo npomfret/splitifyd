@@ -31,7 +31,7 @@ The tenant theming system had a **fundamentally broken architecture** where the 
     "appName": "Splitifyd Demo",
     "primaryColor": "#3B82F6",      // User thinks this controls the theme
     "secondaryColor": "#8B5CF6",
-    "backgroundColor": "#EFF6FF"
+    "surfaceColor": "#EFF6FF"
   }
 }
 ```
@@ -72,7 +72,7 @@ const fixtureMap: Record<string, BrandingTokenFixtureKey> = {
 
 `webapp-v2/src/components/admin/TenantEditorModal.tsx` exposes these fields:
 - `primaryColor`, `secondaryColor`, `accentColor`
-- `backgroundColor`, `headerBackgroundColor`
+- `surfaceColor`, `textColor`
 - `appName`, `logoUrl`, `faviconUrl`
 - Marketing flags
 
@@ -588,8 +588,8 @@ function mergeTokensSmartly(
                 ...existingTokens.semantics.colors,
                 surface: {
                     ...existingTokens.semantics.colors.surface,
-                    base: simpleEdits.backgroundColor,
-                    overlay: simpleEdits.headerBackgroundColor
+                    base: simpleEdits.surfaceColor,
+                    overlay: simpleEdits.textColor
                     // PRESERVE: glass, glassBorder, aurora, spotlight
                 },
                 interactive: {
@@ -972,8 +972,8 @@ function mergeTokensSmartly(
             primaryColor: formData.primaryColor,
             secondaryColor: formData.secondaryColor,
             accentColor: formData.accentColor,
-            backgroundColor: formData.backgroundColor,
-            headerBackgroundColor: formData.headerBackgroundColor
+            surfaceColor: formData.surfaceColor,
+            textColor: formData.textColor
         });
 
         // Apply feature flags from form
@@ -1002,8 +1002,8 @@ function mergeTokensSmartly(
 
                 surface: {
                     ...existingTokens.semantics.colors.surface,
-                    base: formData.backgroundColor,
-                    overlay: formData.headerBackgroundColor,
+                    base: formData.surfaceColor,
+                    overlay: formData.textColor,
 
                     // Conditional glassmorphism
                     ...(formData.enableGlassmorphism ? {

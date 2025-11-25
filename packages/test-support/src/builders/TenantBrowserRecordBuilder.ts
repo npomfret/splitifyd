@@ -5,19 +5,19 @@ import {
     toShowPricingPageFlag,
     toTenantAccentColor,
     toTenantAppName,
-    toTenantBackgroundColor,
+    toTenantSurfaceColor,
     toTenantCustomCss,
     toTenantDefaultFlag,
     toTenantDomainName,
     toTenantFaviconUrl,
-    toTenantHeaderBackgroundColor,
+    toTenantTextColor,
     toTenantId,
     toTenantLogoUrl,
     toTenantPrimaryColor,
     toTenantSecondaryColor,
     toTenantThemePaletteName,
 } from '@billsplit-wl/shared';
-import type { ISOString, TenantAccentColor, TenantAppName, TenantBackgroundColor, TenantBranding, TenantBrowserRecord, TenantCustomCss, TenantDomainName, TenantFaviconUrl, TenantHeaderBackgroundColor, TenantId, TenantLogoUrl, TenantPrimaryColor, TenantSecondaryColor, TenantThemePaletteName } from '@billsplit-wl/shared';
+import type { ISOString, TenantAccentColor, TenantAppName, TenantSurfaceColor, TenantBranding, TenantBrowserRecord, TenantCustomCss, TenantDomainName, TenantFaviconUrl, TenantTextColor, TenantId, TenantLogoUrl, TenantPrimaryColor, TenantSecondaryColor, TenantThemePaletteName } from '@billsplit-wl/shared';
 
 /**
  * Builder for TenantBrowserRecord - the tenant representation returned by /admin/browser/tenants
@@ -39,8 +39,8 @@ export class TenantBrowserRecordBuilder {
                     primaryColor: toTenantPrimaryColor('#3B82F6'),
                     secondaryColor: toTenantSecondaryColor('#8B5CF6'),
                     accentColor: toTenantAccentColor('#EC4899'),
-                    backgroundColor: toTenantBackgroundColor('#ffffff'),
-                    headerBackgroundColor: toTenantHeaderBackgroundColor('#1F2937'),
+                    surfaceColor: toTenantSurfaceColor('#ffffff'),
+                    textColor: toTenantTextColor('#1F2937'),
                     themePalette: toTenantThemePaletteName('default'),
                     customCSS: toTenantCustomCss(''),
                     marketingFlags: {
@@ -93,13 +93,13 @@ export class TenantBrowserRecordBuilder {
         return this;
     }
 
-    withBackgroundColor(color: TenantBackgroundColor | string): this {
-        this.record.tenant.branding.backgroundColor = toTenantBackgroundColor(color);
+    withSurfaceColor(color: TenantSurfaceColor | string): this {
+        this.record.tenant.branding.surfaceColor = toTenantSurfaceColor(color);
         return this;
     }
 
-    withHeaderBackgroundColor(color: TenantHeaderBackgroundColor | string): this {
-        this.record.tenant.branding.headerBackgroundColor = toTenantHeaderBackgroundColor(color);
+    withTextColor(color: TenantTextColor | string): this {
+        this.record.tenant.branding.textColor = toTenantTextColor(color);
         return this;
     }
 
@@ -160,8 +160,8 @@ export class TenantBrowserRecordBuilder {
                     primaryColor: this.record.tenant.branding.primaryColor,
                     secondaryColor: this.record.tenant.branding.secondaryColor,
                     accentColor: this.record.tenant.branding.accentColor,
-                    backgroundColor: this.record.tenant.branding.backgroundColor,
-                    headerBackgroundColor: this.record.tenant.branding.headerBackgroundColor,
+                    surfaceColor: this.record.tenant.branding.surfaceColor,
+                    textColor: this.record.tenant.branding.textColor,
                     themePalette: this.record.tenant.branding.themePalette,
                     customCSS: this.record.tenant.branding.customCSS,
                     marketingFlags: {

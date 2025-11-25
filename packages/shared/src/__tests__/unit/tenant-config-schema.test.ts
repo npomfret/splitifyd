@@ -12,12 +12,12 @@ import { describe, expect, it } from 'vitest';
  * - So the field gets stripped during schema validation
  * - And the UI receives undefined
  *
- * This was the root cause of the tenant editor bug where backgroundColor
+ * This was the root cause of the tenant editor bug where surfaceColor
  * and other fields were being stripped out.
  */
 describe('Tenant API Response Validation', () => {
     describe('TenantConfigSchema', () => {
-        it('should validate ALL branding fields including backgroundColor and headerBackgroundColor', () => {
+        it('should validate ALL branding fields including surfaceColor and textColor', () => {
             // Use builder to create test data with ALL fields
             const tenantRecord = new TenantBrowserRecordBuilder()
                 .withTenantId('test-tenant')
@@ -27,8 +27,8 @@ describe('Tenant API Response Validation', () => {
                 .withPrimaryColor('#3B82F6')
                 .withSecondaryColor('#8B5CF6')
                 .withAccentColor('#EC4899')
-                .withBackgroundColor('#ffffff')
-                .withHeaderBackgroundColor('#1F2937')
+                .withSurfaceColor('#ffffff')
+                .withTextColor('#1F2937')
                 .withThemePalette('default')
                 .withCustomCss('/* test */')
                 .withMarketingFlags({
@@ -51,8 +51,8 @@ describe('Tenant API Response Validation', () => {
             expect(branding.primaryColor).toBe('#3B82F6');
             expect(branding.secondaryColor).toBe('#8B5CF6');
             expect(branding.accentColor).toBe('#EC4899');
-            expect(branding.backgroundColor).toBe('#ffffff');
-            expect(branding.headerBackgroundColor).toBe('#1F2937');
+            expect(branding.surfaceColor).toBe('#ffffff');
+            expect(branding.textColor).toBe('#1F2937');
             expect(branding.themePalette).toBe('default');
             expect(branding.customCSS).toBe('/* test */');
             expect(branding.marketingFlags).toBeDefined();

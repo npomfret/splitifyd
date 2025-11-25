@@ -69,7 +69,7 @@ export function Header({ variant = 'default', showAuth = true }: HeaderProps) {
     };
 
     return (
-        <header class='border-b border-border-subtle backdrop-blur-sm sticky top-0 z-50' style='background: rgba(var(--surface-base-rgb), 0.7);'>
+        <header class='border-b border-border-subtle sticky top-0 z-50 bg-surface-raised'>
             <div class='max-w-7xl mx-auto px-4'>
                 <nav class='flex items-center justify-between h-16 relative'>
                     <div class='flex items-center space-x-8'>

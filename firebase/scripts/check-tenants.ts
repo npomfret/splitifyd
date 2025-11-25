@@ -23,7 +23,7 @@ async function checkTenants() {
         console.log('  Primary:', data.primaryDomain);
         console.log('  App Name:', data.branding?.appName);
         console.log('  Primary Color:', data.branding?.primaryColor);
-        console.log('  Header BG:', data.branding?.headerBackgroundColor);
+        console.log('  Text Color:', data.branding?.textColor);
     });
 }
 

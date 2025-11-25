@@ -13,8 +13,8 @@ interface TenantData {
     primaryColor: string;
     secondaryColor: string;
     accentColor: string;
-    backgroundColor: string;
-    headerBackgroundColor: string;
+    surfaceColor: string;
+    textColor: string;
     customCSS: string;
     showLandingPage: boolean;
     showMarketingContent: boolean;
@@ -78,8 +78,8 @@ const DEFAULT_TENANT_DATA: TenantData = {
     primaryColor: '#1a73e8',
     secondaryColor: '#34a853',
     accentColor: '#fbbc04',
-    backgroundColor: '#ffffff',
-    headerBackgroundColor: '#111827',
+    surfaceColor: '#ffffff',
+    textColor: '#111827',
     customCSS: '',
     showLandingPage: true,
     showMarketingContent: true,
@@ -117,7 +117,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
     useEffect(() => {
         if (mode === 'edit' && tenant) {
             // TODO: Restore logging once branding structure is finalized
-            // console.log('[TenantEditorModal] Loading - backgroundColor from branding:', tenant.tenant.branding?.backgroundColor);
+            // console.log('[TenantEditorModal] Loading - surfaceColor from branding:', tenant.tenant.branding?.surfaceColor);
             // console.log('[TenantEditorModal] Loading - appName from branding:', tenant.tenant.branding?.appName);
 
             const branding = tenant.tenant.branding as any;
@@ -136,8 +136,8 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                 primaryColor: tokens?.semantics?.colors?.interactive?.primary ?? tenant.tenant.branding?.primaryColor ?? '',
                 secondaryColor: tokens?.palette?.secondary ?? tenant.tenant.branding?.secondaryColor ?? '',
                 accentColor: tokens?.semantics?.colors?.interactive?.accent ?? tenant.tenant.branding?.accentColor ?? '',
-                backgroundColor: tokens?.semantics?.colors?.surface?.base ?? branding?.backgroundColor ?? '',
-                headerBackgroundColor: tokens?.semantics?.colors?.surface?.overlay ?? branding?.headerBackgroundColor ?? '',
+                surfaceColor: tokens?.semantics?.colors?.surface?.base ?? branding?.surfaceColor ?? '',
+                textColor: tokens?.semantics?.colors?.text?.primary ?? branding?.textColor ?? '',
                 customCSS: branding?.customCSS ?? '',
                 showLandingPage: tenant.tenant.branding?.marketingFlags?.showLandingPage ?? false,
                 showMarketingContent: tenant.tenant.branding?.marketingFlags?.showMarketingContent ?? false,
@@ -241,11 +241,11 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                 },
             };
 
-            if (formData.backgroundColor.trim()) {
-                branding.backgroundColor = formData.backgroundColor;
+            if (formData.surfaceColor.trim()) {
+                branding.surfaceColor = formData.surfaceColor;
             }
-            if (formData.headerBackgroundColor.trim()) {
-                branding.headerBackgroundColor = formData.headerBackgroundColor;
+            if (formData.textColor.trim()) {
+                branding.textColor = formData.textColor;
             }
             if (formData.customCSS.trim()) {
                 branding.customCSS = formData.customCSS;
@@ -258,8 +258,8 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                     primaryColor: formData.primaryColor,
                     secondaryColor: formData.secondaryColor,
                     accentColor: formData.accentColor,
-                    backgroundColor: formData.backgroundColor,
-                    headerBackgroundColor: formData.headerBackgroundColor,
+                    surfaceColor: formData.surfaceColor,
+                    textColor: formData.textColor,
                     enableAuroraAnimation: formData.enableAuroraAnimation,
                     enableGlassmorphism: formData.enableGlassmorphism,
                     enableMagneticHover: formData.enableMagneticHover,
@@ -558,37 +558,37 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
 
                                 <div class='grid grid-cols-2 gap-4'>
                                     <div>
-                                        <label for='background-color-input' class='block text-sm font-medium leading-6 text-text-primary mb-2'>
-                                            Background Color
+                                        <label for='surface-color-input' class='block text-sm font-medium leading-6 text-text-primary mb-2'>
+                                            Surface Color
                                         </label>
                                         <input
-                                            id='background-color-input'
+                                            id='surface-color-input'
                                             type='color'
-                                            value={formData.backgroundColor}
-                                            onInput={(e) => setFormData({ ...formData, backgroundColor: (e.target as HTMLInputElement).value })}
+                                            value={formData.surfaceColor}
+                                            onInput={(e) => setFormData({ ...formData, surfaceColor: (e.target as HTMLInputElement).value })}
                                             disabled={isSaving}
                                             class='block h-10 w-full rounded-md border border-border-default bg-surface-base cursor-pointer'
-                                            data-testid='background-color-input'
+                                            data-testid='surface-color-input'
                                         />
-                                        <p class='mt-1 text-xs text-text-muted'>{formData.backgroundColor}</p>
-                                        <p class='mt-1 text-xs text-text-muted'>Used for: main page background</p>
+                                        <p class='mt-1 text-xs text-text-muted'>{formData.surfaceColor}</p>
+                                        <p class='mt-1 text-xs text-text-muted'>Used for: cards, containers, borders</p>
                                     </div>
 
                                     <div>
-                                        <label for='header-background-color-input' class='block text-sm font-medium leading-6 text-text-primary mb-2'>
-                                            Header Background Color
+                                        <label for='text-color-input' class='block text-sm font-medium leading-6 text-text-primary mb-2'>
+                                            Text Color
                                         </label>
                                         <input
-                                            id='header-background-color-input'
+                                            id='text-color-input'
                                             type='color'
-                                            value={formData.headerBackgroundColor}
-                                            onInput={(e) => setFormData({ ...formData, headerBackgroundColor: (e.target as HTMLInputElement).value })}
+                                            value={formData.textColor}
+                                            onInput={(e) => setFormData({ ...formData, textColor: (e.target as HTMLInputElement).value })}
                                             disabled={isSaving}
                                             class='block h-10 w-full rounded-md border border-border-default bg-surface-base cursor-pointer'
-                                            data-testid='header-background-color-input'
+                                            data-testid='text-color-input'
                                         />
-                                        <p class='mt-1 text-xs text-text-muted'>{formData.headerBackgroundColor}</p>
-                                        <p class='mt-1 text-xs text-text-muted'>Used for: top navigation bar background</p>
+                                        <p class='mt-1 text-xs text-text-muted'>{formData.textColor}</p>
+                                        <p class='mt-1 text-xs text-text-muted'>Used for: primary text, headings, overlay backgrounds</p>
                                     </div>
                                 </div>
 
