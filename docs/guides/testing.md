@@ -36,20 +36,15 @@ When adding or changing any server-side behaviour, these tests should be the fir
 
 Avoid runnning entier suites, they are often very slow.  Focus on running specific test cases.
 
-To run single tests:
+To run single tests, use `run-test.sh`, it is a universal single-test runner (works in src parent). You must `cd` to the correct dir and then:
 
 ```bash
-# Single unit test:
-npx vitest run src/__tests__/unit/your-test.test.ts
-```
+npx vitest run file-pattern optional-test-pattern
 
-```bash
-# Universal single-test runner (works in root or any src parent)
-./run-test.sh webapp-v2/login                 # Webapp Playwright file match
-./run-test.sh webapp-v2/login "should show"   # Specific test name
-./run-test.sh e2e-tests/user-and-access       # E2E Playwright integration
-HEADED=1 ./run-test.sh webapp-v2/login        # Visible browser
-RUNS=10 ./run-test.sh e2e-tests/site-quality  # Loop until fail (10 runs)
+# eg
+cd foo
+./run-test.sh login.test.ts                 # Webapp Playwright file match
+./run-test.sh login.test.ts "should show"   # Specific test name
 ```
 
 Notes:
@@ -58,7 +53,7 @@ Notes:
 - `HEADED=1` opens the Playwright browser. `RUNS=N` repeats N times.
 - From inside a workspace (e.g., `cd webapp-v2`), drop the workspace prefix: `./run-test.sh login`.
 
-To run a suite, these commands can be run from the root or any subdir
+Avoid running suites, they take too long. To run a suite, these commands can be run from the root or any subdir
 ```bash
 # Root (all workspaces)
 npm run test              # All tests
