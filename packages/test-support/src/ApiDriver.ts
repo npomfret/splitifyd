@@ -709,7 +709,35 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
     }
 
     async uploadTenantImage(tenantId: string, assetType: 'logo' | 'favicon', file: File | Buffer, contentType: string, token?: AuthToken): Promise<{ url: string; }> {
-        throw new Error('uploadTenantImage not implemented in ApiDriver');
+        const url = `${this.baseUrl}/admin/tenants/${tenantId}/assets/${assetType}`;
+        const body = Buffer.isBuffer(file) ? file : Buffer.from(await file.arrayBuffer());
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': contentType,
+                Accept: 'application/json',
+                Host: 'localhost',
+                ...(token && { Authorization: `Bearer ${token}` }),
+            },
+            body,
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            let parsedError: unknown = errorText;
+            try {
+                parsedError = JSON.parse(errorText);
+            } catch {
+                // keep as text
+            }
+            const error = new Error(`API request to /admin/tenants/${tenantId}/assets/${assetType} failed with status ${response.status}`);
+            (error as any).status = response.status;
+            (error as any).response = parsedError;
+            throw error;
+        }
+
+        return await response.json() as { url: string };
     }
 
     // ===== ADMIN API: TENANT SETTINGS =====

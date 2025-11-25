@@ -52,8 +52,16 @@ export const applyStandardMiddleware = (app: express.Application) => {
     // Validate content type for non-GET requests
     app.use(validateContentType);
 
-    // Parse JSON with size limit
-    app.use(express.json({ limit: getConfig().requestBodyLimit }));
+    // Parse JSON with size limit (skip for binary upload routes)
+    const jsonParser = express.json({ limit: getConfig().requestBodyLimit });
+    const rawParser = express.raw({ type: ['image/*', 'application/octet-stream'], limit: '2mb' });
+    app.use((req, res, next) => {
+        // Use raw body parsing for binary upload routes
+        if (req.path.match(/^\/admin\/tenants\/[^/]+\/assets\/[^/]+$/)) {
+            return rawParser(req, res, next);
+        }
+        return jsonParser(req, res, next);
+    });
 
     // Resolve tenant context for all subsequent middleware and handlers
     app.use(createTenantIdentificationMiddleware(tenantRegistryService, tenantIdentificationConfig));

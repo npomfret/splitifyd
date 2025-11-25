@@ -32,6 +32,9 @@ export interface RouteDefinition {
     /** Production availability */
     productionOnly?: boolean;
     testOnly?: boolean;
+
+    /** Skip Content-Type validation (for binary uploads) */
+    skipContentTypeValidation?: boolean;
 }
 
 /**
@@ -217,6 +220,7 @@ const routeDefinitions: RouteDefinition[] = [
         handlerName: 'uploadTenantImage',
         category: 'admin',
         middleware: ['authenticateAdmin'],
+        skipContentTypeValidation: true,
     },
 
     // === Registration ===

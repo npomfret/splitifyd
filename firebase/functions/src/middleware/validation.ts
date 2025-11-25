@@ -76,11 +76,42 @@ export const validateRequestStructure = (req: Request, res: Response, next: Next
 };
 
 /**
+ * Routes that accept binary uploads (not JSON)
+ * These paths are matched using a simple pattern where :param matches any segment
+ */
+const BINARY_UPLOAD_ROUTES = [
+    '/admin/tenants/:tenantId/assets/:assetType',
+];
+
+/**
+ * Check if a request path matches a binary upload route pattern
+ */
+function isBinaryUploadRoute(path: string): boolean {
+    return BINARY_UPLOAD_ROUTES.some(pattern => {
+        const patternParts = pattern.split('/');
+        const pathParts = path.split('/');
+
+        if (patternParts.length !== pathParts.length) {
+            return false;
+        }
+
+        return patternParts.every((part, i) => {
+            return part.startsWith(':') || part === pathParts[i];
+        });
+    });
+}
+
+/**
  * Validate content type for JSON endpoints
  */
 export const validateContentType = (req: Request, res: Response, next: NextFunction): void => {
     // Skip for GET requests, DELETE requests without body, and OPTIONS (CORS preflight)
     if (req.method === 'GET' || req.method === 'OPTIONS' || req.method === 'DELETE') {
+        return next();
+    }
+
+    // Skip for binary upload routes
+    if (isBinaryUploadRoute(req.path)) {
         return next();
     }
 
