@@ -43,7 +43,6 @@ const AdminPage = lazy(() => import('./pages/AdminPage').then((m) => ({ default:
 const AdminTenantsPage = lazy(() => import('./pages/AdminTenantsPage').then((m) => ({ default: m.AdminTenantsPage }))); // @deprecated
 const AdminDiagnosticsPage = lazy(() => import('./pages/AdminDiagnosticsPage').then((m) => ({ default: m.AdminDiagnosticsPage }))); // @deprecated
 const TenantBrandingPage = lazy(() => import('./pages/TenantBrandingPage').then((m) => ({ default: m.TenantBrandingPage })));
-const DomainManagementPage = lazy(() => import('./pages/DomainManagementPage').then((m) => ({ default: m.DomainManagementPage })));
 
 // Wrapper component to handle Suspense for lazy-loaded components
 function LazyRoute<T extends ComponentType<any>>({ component: Component, ...props }: LazyRouteProps<T>): VNode {
@@ -128,7 +127,6 @@ const AdminRoute = createProtectedRoute(AdminPage);
 const AdminTenantsRoute = createProtectedRoute(AdminTenantsPage); // @deprecated
 const AdminDiagnosticsRoute = createProtectedRoute(AdminDiagnosticsPage); // @deprecated
 const TenantBrandingRoute = createProtectedRoute(TenantBrandingPage);
-const DomainManagementRoute = createProtectedRoute(DomainManagementPage);
 
 export function App() {
     const authStore = useAuth();
@@ -184,7 +182,6 @@ export function App() {
                 {/* Settings Routes - Protected */}
                 <Route path='/settings' component={SettingsRoute} />
                 <Route path='/settings/tenant/branding' component={TenantBrandingRoute} />
-                <Route path='/settings/tenant/domains' component={DomainManagementRoute} />
 
                 {/* Admin Routes - Protected (System Admin only) */}
                 <Route path='/admin' component={AdminRoute} />

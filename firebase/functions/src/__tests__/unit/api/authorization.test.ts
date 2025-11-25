@@ -290,7 +290,6 @@ describe('authorization', () => {
                         branding: expect.any(Object),
                     }),
                     domains: expect.any(Array),
-                    primaryDomain: expect.any(String),
                 });
 
                 expect(settings.config.branding).toMatchObject({
@@ -322,11 +321,9 @@ describe('authorization', () => {
 
                 expect(result).toMatchObject({
                     domains: expect.any(Array),
-                    primaryDomain: expect.any(String),
                 });
 
                 expect(result.domains.length).toBeGreaterThan(0);
-                expect(result.domains).toContain(result.primaryDomain);
             });
             it('should deny regular user access to list domains', async () => {
                 const result = await appDriver.getTenantDomains(user2);
@@ -464,7 +461,6 @@ describe('authorization', () => {
 
                 expect(result).toMatchObject({
                     domains: expect.any(Array),
-                    primaryDomain: expect.any(String),
                 });
             });
         });

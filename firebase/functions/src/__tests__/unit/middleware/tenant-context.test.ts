@@ -29,7 +29,6 @@ describe('tenantContextMiddleware', () => {
                 .withCreatedAt('2025-01-15T10:00:00.000Z')
                 .withUpdatedAt('2025-01-20T14:30:00.000Z'),
         )
-        .withPrimaryDomain('app.example.com')
         .withDomains(['app.example.com'])
         .asDefault()
         .withSource('domain')

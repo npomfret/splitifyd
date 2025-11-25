@@ -423,6 +423,8 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
             headers,
             // Don't send cookies/credentials to avoid CORS complications
             credentials: 'omit',
+            // CRITICAL: Disable browser caching to prevent stale data after updates
+            cache: 'no-store',
         };
 
         if (signal) {

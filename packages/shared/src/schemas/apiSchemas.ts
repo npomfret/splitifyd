@@ -22,8 +22,10 @@ import {
     toShowPricingPageFlag,
     toTenantAccentColor,
     toTenantAppName,
+    toTenantBackgroundColor,
     toTenantCustomCss,
     toTenantFaviconUrl,
+    toTenantHeaderBackgroundColor,
     toTenantId,
     toTenantLogoUrl,
     toTenantPrimaryColor,
@@ -32,6 +34,7 @@ import {
     toUserId,
     UserId,
 } from '../shared-types';
+import { TenantBrandingSchema } from '../types/branding';
 
 const UserThemeColorSchema = z.object({
     light: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, 'Must be a valid hex color'),
@@ -75,6 +78,8 @@ const BrandingConfigSchema = z.object({
     primaryColor: z.string().min(1).transform(toTenantPrimaryColor),
     secondaryColor: z.string().min(1).transform(toTenantSecondaryColor),
     accentColor: z.string().min(1).transform(toTenantAccentColor).optional(),
+    backgroundColor: z.string().min(1).transform(toTenantBackgroundColor).optional(),
+    headerBackgroundColor: z.string().min(1).transform(toTenantHeaderBackgroundColor).optional(),
     themePalette: z.string().min(1).transform(toTenantThemePaletteName).optional(),
     customCSS: z.string().transform(toTenantCustomCss).optional(),
     marketingFlags: BrandingMarketingFlagsSchema.optional(),
@@ -91,7 +96,6 @@ export const AppConfigurationSchema = z.object({
     firebase: FirebaseConfigSchema,
     environment: EnvironmentConfigSchema,
     formDefaults: FormDefaultsSchema,
-    tenant: TenantConfigSchema.optional(),
     firebaseAuthUrl: z.string().optional(),
     firebaseFirestoreUrl: z.string().optional(),
 });
@@ -530,20 +534,18 @@ export const TenantSettingsResponseSchema = z.object({
     tenantId: z.string().min(1).transform(toTenantId),
     config: TenantConfigSchema,
     domains: z.array(z.string().min(1).transform((v: string) => v as any)),
-    primaryDomain: z.string().min(1).transform((v: string) => v as any),
 });
 
 export const TenantDomainsResponseSchema = z.object({
     domains: z.array(z.string().min(1).transform((v: string) => v as any)),
-    primaryDomain: z.string().min(1).transform((v: string) => v as any),
 });
 
 // Admin tenant list schemas
 export const AdminTenantItemSchema = z.object({
     tenant: TenantConfigSchema,
-    primaryDomain: z.string().nullable(),
     domains: z.array(z.string()),
     isDefault: z.boolean(),
+    brandingTokens: TenantBrandingSchema.optional(),
 });
 
 export const AdminTenantsListResponseSchema = z.object({

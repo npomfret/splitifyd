@@ -80,7 +80,6 @@ import type { GroupBalanceDTO, ParsedShareLink, UserDocument } from '../../schem
 
 export interface TenantRegistryRecord {
     tenant: TenantConfig;
-    primaryDomain: TenantDomainName | null;
     domains: TenantDomainName[];
     isDefault: TenantDefaultFlag;
     brandingTokens?: TenantBranding;

@@ -15,12 +15,25 @@ interface TenantData {
     accentColor: string;
     backgroundColor: string;
     headerBackgroundColor: string;
-    themePalette: string;
     customCSS: string;
     showLandingPage: boolean;
     showMarketingContent: boolean;
     showPricingPage: boolean;
     domains: string[];
+    // Motion & Effects
+    enableAuroraAnimation: boolean;
+    enableGlassmorphism: boolean;
+    enableMagneticHover: boolean;
+    enableScrollReveal: boolean;
+    // Typography
+    fontFamilySans: string;
+    fontFamilySerif: string;
+    fontFamilyMono: string;
+    // Aurora Gradient (2-4 colors)
+    auroraGradient: string[]; // Array of hex colors
+    // Glassmorphism Settings
+    glassColor: string; // RGBA color for glass effect
+    glassBorderColor: string; // RGBA color for glass border
 }
 
 interface TenantConfig {
@@ -38,7 +51,6 @@ interface TenantConfig {
             showPricingPage?: boolean;
         };
     };
-    brandingTokens?: TenantBranding;
     createdAt: string;
     updatedAt: string;
 }
@@ -47,6 +59,7 @@ interface FullTenant {
     tenant: TenantConfig;
     domains: string[];
     isDefault: boolean;
+    brandingTokens?: TenantBranding; // Moved to top level to match TenantRegistryRecord
 }
 
 interface TenantEditorModalProps {
@@ -67,12 +80,25 @@ const DEFAULT_TENANT_DATA: TenantData = {
     accentColor: '#fbbc04',
     backgroundColor: '#ffffff',
     headerBackgroundColor: '#111827',
-    themePalette: 'default',
     customCSS: '',
     showLandingPage: true,
     showMarketingContent: true,
     showPricingPage: false,
     domains: [],
+    // Motion & Effects defaults
+    enableAuroraAnimation: false,
+    enableGlassmorphism: false,
+    enableMagneticHover: false,
+    enableScrollReveal: false,
+    // Typography defaults
+    fontFamilySans: 'Space Grotesk, Inter, system-ui, -apple-system, BlinkMacSystemFont',
+    fontFamilySerif: 'Fraunces, Georgia, serif',
+    fontFamilyMono: 'JetBrains Mono, SFMono-Regular, Menlo, monospace',
+    // Aurora Gradient defaults (4 colors)
+    auroraGradient: ['#6366f1', '#ec4899', '#22d3ee', '#34d399'],
+    // Glassmorphism defaults
+    glassColor: 'rgba(25, 30, 50, 0.45)',
+    glassBorderColor: 'rgba(255, 255, 255, 0.12)',
 };
 
 export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: TenantEditorModalProps) {
@@ -90,23 +116,49 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
     // Update form data when tenant or mode changes
     useEffect(() => {
         if (mode === 'edit' && tenant) {
+            // TODO: Restore logging once branding structure is finalized
+            // console.log('[TenantEditorModal] Loading - backgroundColor from branding:', tenant.tenant.branding?.backgroundColor);
+            // console.log('[TenantEditorModal] Loading - appName from branding:', tenant.tenant.branding?.appName);
+
             const branding = tenant.tenant.branding as any;
+            const tokens = tenant.brandingTokens?.tokens; // Access brandingTokens from top level
+
+            console.log('[TenantEditorModal] Loading - branding object keys:', Object.keys(branding || {}));
+            console.log('[TenantEditorModal] Loading - tokens exist?:', !!tokens);
+
+            // CRITICAL: NO DEFAULTS! Show exactly what comes from the API
             setFormData({
-                tenantId: tenant.tenant.tenantId || '',
-                appName: tenant.tenant.branding?.appName || '',
-                logoUrl: tenant.tenant.branding?.logoUrl || '',
-                faviconUrl: tenant.tenant.branding?.faviconUrl || tenant.tenant.branding?.logoUrl || '',
-                primaryColor: tenant.tenant.branding?.primaryColor || '#1a73e8',
-                secondaryColor: tenant.tenant.branding?.secondaryColor || '#34a853',
-                accentColor: tenant.tenant.branding?.accentColor || '#fbbc04',
-                backgroundColor: branding?.backgroundColor || '#ffffff',
-                headerBackgroundColor: branding?.headerBackgroundColor || '#111827',
-                themePalette: branding?.themePalette || 'default',
-                customCSS: branding?.customCSS || '',
-                showLandingPage: tenant.tenant.branding?.marketingFlags?.showLandingPage ?? true,
-                showMarketingContent: tenant.tenant.branding?.marketingFlags?.showMarketingContent ?? true,
+                tenantId: tenant.tenant.tenantId,
+                appName: tenant.tenant.branding?.appName ?? '',
+                logoUrl: tenant.tenant.branding?.logoUrl ?? '',
+                faviconUrl: tenant.tenant.branding?.faviconUrl ?? '',
+                // Load colors from brandingTokens (source of truth) OR simple branding - NO hardcoded defaults
+                primaryColor: tokens?.semantics?.colors?.interactive?.primary ?? tenant.tenant.branding?.primaryColor ?? '',
+                secondaryColor: tokens?.palette?.secondary ?? tenant.tenant.branding?.secondaryColor ?? '',
+                accentColor: tokens?.semantics?.colors?.interactive?.accent ?? tenant.tenant.branding?.accentColor ?? '',
+                backgroundColor: tokens?.semantics?.colors?.surface?.base ?? branding?.backgroundColor ?? '',
+                headerBackgroundColor: tokens?.semantics?.colors?.surface?.overlay ?? branding?.headerBackgroundColor ?? '',
+                customCSS: branding?.customCSS ?? '',
+                showLandingPage: tenant.tenant.branding?.marketingFlags?.showLandingPage ?? false,
+                showMarketingContent: tenant.tenant.branding?.marketingFlags?.showMarketingContent ?? false,
                 showPricingPage: tenant.tenant.branding?.marketingFlags?.showPricingPage ?? false,
-                domains: tenant.domains || [],
+                domains: tenant.domains ?? [],
+                // Load motion settings from brandingTokens - NO defaults
+                enableAuroraAnimation: tokens?.motion?.enableParallax ?? false,
+                enableGlassmorphism: !!(tokens?.semantics?.colors?.surface?.glass),
+                enableMagneticHover: tokens?.motion?.enableMagneticHover ?? false,
+                enableScrollReveal: tokens?.motion?.enableScrollReveal ?? false,
+                // Load typography from brandingTokens - NO defaults
+                fontFamilySans: tokens?.typography?.fontFamily?.sans ?? '',
+                fontFamilySerif: tokens?.typography?.fontFamily?.serif ?? '',
+                fontFamilyMono: tokens?.typography?.fontFamily?.mono ?? '',
+                // Load aurora gradient from brandingTokens - NO defaults
+                auroraGradient: Array.isArray(tokens?.semantics?.colors?.gradient?.aurora)
+                    ? tokens.semantics.colors.gradient.aurora
+                    : [],
+                // Load glassmorphism from brandingTokens - NO defaults
+                glassColor: tokens?.semantics?.colors?.surface?.glass ?? '',
+                glassBorderColor: tokens?.semantics?.colors?.surface?.glassBorder ?? '',
             });
         } else if (mode === 'create') {
             setFormData({ ...DEFAULT_TENANT_DATA });
@@ -134,7 +186,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
             return;
         }
         if (!/^[a-z0-9-]+$/.test(formData.tenantId)) {
-            setErrorMessage('Tenant ID must contain only lowercase letters, numbers, and hyphens');
+            setErrorMessage('Invalid Tenant ID: must contain only lowercase letters, numbers, and hyphens');
             return;
         }
         if (!formData.appName.trim()) {
@@ -195,22 +247,29 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
             if (formData.headerBackgroundColor.trim()) {
                 branding.headerBackgroundColor = formData.headerBackgroundColor;
             }
-            if (formData.themePalette.trim()) {
-                branding.themePalette = formData.themePalette;
-            }
             if (formData.customCSS.trim()) {
                 branding.customCSS = formData.customCSS;
             }
 
-            // Smart merge: preserve existing brandingTokens, only update edited colors
+            // Smart merge: preserve existing brandingTokens, only update edited colors, motion flags, and typography
             const brandingTokens = mergeTokensSmartly(
-                tenant?.tenant.brandingTokens,
+                tenant?.brandingTokens, // Access brandingTokens from top level
                 {
                     primaryColor: formData.primaryColor,
                     secondaryColor: formData.secondaryColor,
                     accentColor: formData.accentColor,
                     backgroundColor: formData.backgroundColor,
                     headerBackgroundColor: formData.headerBackgroundColor,
+                    enableAuroraAnimation: formData.enableAuroraAnimation,
+                    enableGlassmorphism: formData.enableGlassmorphism,
+                    enableMagneticHover: formData.enableMagneticHover,
+                    enableScrollReveal: formData.enableScrollReveal,
+                    fontFamilySans: formData.fontFamilySans,
+                    fontFamilySerif: formData.fontFamilySerif,
+                    fontFamilyMono: formData.fontFamilyMono,
+                    auroraGradient: formData.auroraGradient,
+                    glassColor: formData.glassColor,
+                    glassBorderColor: formData.glassBorderColor,
                 },
             );
 
@@ -223,7 +282,16 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
 
             const result = await apiClient.adminUpsertTenant(requestData);
             const action = result.created ? 'created' : 'updated';
-            setSuccessMessage(`Tenant ${action} successfully!`);
+
+            // Automatically publish theme after save to regenerate CSS
+            try {
+                await apiClient.publishTenantTheme({ tenantId: formData.tenantId });
+                setSuccessMessage(`Tenant ${action} and theme published successfully!`);
+            } catch (publishError: any) {
+                // Save succeeded but publish failed - show warning
+                setSuccessMessage(`Tenant ${action} successfully, but theme publish failed. Click "Publish Theme" manually.`);
+                logError('Auto-publish after save failed', publishError);
+            }
 
             // Notify parent to refresh data
             onSave();
@@ -372,7 +440,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                 <div class='flex-1 overflow-y-auto px-6 py-6'>
                     <div class='space-y-6'>
                         {/* Success Message */}
-                        {successMessage && <Alert type='success' message={successMessage} />}
+                        {successMessage && <Alert type='success' message={successMessage} data-testid='tenant-editor-success-message' />}
 
                         {/* Error Message */}
                         {errorMessage && <Alert type='error' message={errorMessage} />}
@@ -437,10 +505,11 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
 
                                 <div class='grid grid-cols-3 gap-4'>
                                     <div>
-                                        <label class='block text-sm font-medium leading-6 text-text-primary mb-2'>
+                                        <label for='primary-color-input' class='block text-sm font-medium leading-6 text-text-primary mb-2'>
                                             Primary Color
                                         </label>
                                         <input
+                                            id='primary-color-input'
                                             type='color'
                                             value={formData.primaryColor}
                                             onInput={(e) => setFormData({ ...formData, primaryColor: (e.target as HTMLInputElement).value })}
@@ -449,13 +518,15 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                             data-testid='primary-color-input'
                                         />
                                         <p class='mt-1 text-xs text-text-muted'>{formData.primaryColor}</p>
+                                        <p class='mt-1 text-xs text-text-muted'>Used for: buttons, links, focused inputs</p>
                                     </div>
 
                                     <div>
-                                        <label class='block text-sm font-medium leading-6 text-text-primary mb-2'>
+                                        <label for='secondary-color-input' class='block text-sm font-medium leading-6 text-text-primary mb-2'>
                                             Secondary Color
                                         </label>
                                         <input
+                                            id='secondary-color-input'
                                             type='color'
                                             value={formData.secondaryColor}
                                             onInput={(e) => setFormData({ ...formData, secondaryColor: (e.target as HTMLInputElement).value })}
@@ -464,13 +535,15 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                             data-testid='secondary-color-input'
                                         />
                                         <p class='mt-1 text-xs text-text-muted'>{formData.secondaryColor}</p>
+                                        <p class='mt-1 text-xs text-text-muted'>Used for: success states, confirmations</p>
                                     </div>
 
                                     <div>
-                                        <label class='block text-sm font-medium leading-6 text-text-primary mb-2'>
+                                        <label for='accent-color-input' class='block text-sm font-medium leading-6 text-text-primary mb-2'>
                                             Accent Color
                                         </label>
                                         <input
+                                            id='accent-color-input'
                                             type='color'
                                             value={formData.accentColor}
                                             onInput={(e) => setFormData({ ...formData, accentColor: (e.target as HTMLInputElement).value })}
@@ -479,15 +552,17 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                             data-testid='accent-color-input'
                                         />
                                         <p class='mt-1 text-xs text-text-muted'>{formData.accentColor}</p>
+                                        <p class='mt-1 text-xs text-text-muted'>Used for: highlights, warnings, badges</p>
                                     </div>
                                 </div>
 
                                 <div class='grid grid-cols-2 gap-4'>
                                     <div>
-                                        <label class='block text-sm font-medium leading-6 text-text-primary mb-2'>
+                                        <label for='background-color-input' class='block text-sm font-medium leading-6 text-text-primary mb-2'>
                                             Background Color
                                         </label>
                                         <input
+                                            id='background-color-input'
                                             type='color'
                                             value={formData.backgroundColor}
                                             onInput={(e) => setFormData({ ...formData, backgroundColor: (e.target as HTMLInputElement).value })}
@@ -496,13 +571,15 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                             data-testid='background-color-input'
                                         />
                                         <p class='mt-1 text-xs text-text-muted'>{formData.backgroundColor}</p>
+                                        <p class='mt-1 text-xs text-text-muted'>Used for: main page background</p>
                                     </div>
 
                                     <div>
-                                        <label class='block text-sm font-medium leading-6 text-text-primary mb-2'>
+                                        <label for='header-background-color-input' class='block text-sm font-medium leading-6 text-text-primary mb-2'>
                                             Header Background Color
                                         </label>
                                         <input
+                                            id='header-background-color-input'
                                             type='color'
                                             value={formData.headerBackgroundColor}
                                             onInput={(e) => setFormData({ ...formData, headerBackgroundColor: (e.target as HTMLInputElement).value })}
@@ -511,23 +588,16 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                             data-testid='header-background-color-input'
                                         />
                                         <p class='mt-1 text-xs text-text-muted'>{formData.headerBackgroundColor}</p>
+                                        <p class='mt-1 text-xs text-text-muted'>Used for: top navigation bar background</p>
                                     </div>
                                 </div>
 
-                                <Input
-                                    label='Theme Palette'
-                                    value={formData.themePalette}
-                                    onChange={(value) => setFormData({ ...formData, themePalette: value })}
-                                    placeholder='default'
-                                    disabled={isSaving}
-                                    data-testid='theme-palette-input'
-                                />
-
                                 <div class='space-y-1'>
-                                    <label class='block text-sm font-medium leading-6 text-text-primary'>
+                                    <label for='custom-css-input' class='block text-sm font-medium leading-6 text-text-primary'>
                                         Custom CSS
                                     </label>
                                     <textarea
+                                        id='custom-css-input'
                                         value={formData.customCSS}
                                         onInput={(event) => setFormData({ ...formData, customCSS: (event.target as HTMLTextAreaElement).value })}
                                         placeholder='/* Optional tenant-specific CSS */'
@@ -579,6 +649,227 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                             />
                                             <span class='text-text-primary'>Pricing Page</span>
                                         </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </Card>
+
+                        {/* Motion & Effects Section */}
+                        <Card padding='md'>
+                            <div class='space-y-4'>
+                                <div>
+                                    <h3 class='text-lg font-semibold text-text-primary'>Motion & Effects</h3>
+                                    <p class='mt-1 text-sm text-text-muted'>
+                                        Control animations and interactive behaviors for your theme
+                                    </p>
+                                </div>
+
+                                <div class='space-y-3'>
+                                    <label class='flex items-center gap-3 text-sm'>
+                                        <input
+                                            type='checkbox'
+                                            checked={formData.enableAuroraAnimation}
+                                            onChange={(e) => setFormData({ ...formData, enableAuroraAnimation: (e.target as HTMLInputElement).checked })}
+                                            disabled={isSaving}
+                                            class='h-4 w-4 rounded'
+                                            data-testid='enable-aurora-animation-checkbox'
+                                        />
+                                        <div>
+                                            <span class='font-medium text-text-primary'>Aurora Background Animation</span>
+                                            <p class='text-xs text-text-muted'>Animated gradient background with parallax effect</p>
+                                        </div>
+                                    </label>
+
+                                    <label class='flex items-center gap-3 text-sm'>
+                                        <input
+                                            type='checkbox'
+                                            checked={formData.enableGlassmorphism}
+                                            onChange={(e) => setFormData({ ...formData, enableGlassmorphism: (e.target as HTMLInputElement).checked })}
+                                            disabled={isSaving}
+                                            class='h-4 w-4 rounded'
+                                            data-testid='enable-glassmorphism-checkbox'
+                                        />
+                                        <div>
+                                            <span class='font-medium text-text-primary'>Glassmorphism</span>
+                                            <p class='text-xs text-text-muted'>Frosted glass effect with blur and transparency</p>
+                                        </div>
+                                    </label>
+
+                                    <label class='flex items-center gap-3 text-sm'>
+                                        <input
+                                            type='checkbox'
+                                            checked={formData.enableMagneticHover}
+                                            onChange={(e) => setFormData({ ...formData, enableMagneticHover: (e.target as HTMLInputElement).checked })}
+                                            disabled={isSaving}
+                                            class='h-4 w-4 rounded'
+                                            data-testid='enable-magnetic-hover-checkbox'
+                                        />
+                                        <div>
+                                            <span class='font-medium text-text-primary'>Magnetic Hover</span>
+                                            <p class='text-xs text-text-muted'>Buttons follow cursor with magnetic attraction</p>
+                                        </div>
+                                    </label>
+
+                                    <label class='flex items-center gap-3 text-sm'>
+                                        <input
+                                            type='checkbox'
+                                            checked={formData.enableScrollReveal}
+                                            onChange={(e) => setFormData({ ...formData, enableScrollReveal: (e.target as HTMLInputElement).checked })}
+                                            disabled={isSaving}
+                                            class='h-4 w-4 rounded'
+                                            data-testid='enable-scroll-reveal-checkbox'
+                                        />
+                                        <div>
+                                            <span class='font-medium text-text-primary'>Scroll Reveal</span>
+                                            <p class='text-xs text-text-muted'>Animate elements as they enter viewport</p>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        </Card>
+
+                        {/* Typography Section */}
+                        <Card padding='md'>
+                            <div class='space-y-4'>
+                                <div>
+                                    <h3 class='text-lg font-semibold text-text-primary'>Typography</h3>
+                                    <p class='mt-1 text-sm text-text-muted'>
+                                        Configure font families for your theme
+                                    </p>
+                                </div>
+
+                                <div class='space-y-1'>
+                                    <label for='font-family-sans-input' class='block text-sm font-medium leading-6 text-text-primary'>
+                                        Sans-Serif Font Family
+                                    </label>
+                                    <input
+                                        id='font-family-sans-input'
+                                        type='text'
+                                        value={formData.fontFamilySans}
+                                        onInput={(e) => setFormData({ ...formData, fontFamilySans: (e.target as HTMLInputElement).value })}
+                                        placeholder='Space Grotesk, Inter, system-ui, -apple-system, BlinkMacSystemFont'
+                                        disabled={isSaving}
+                                        class='w-full rounded-md border border-border-default bg-surface-base px-3 py-2 text-sm text-text-primary'
+                                        data-testid='font-family-sans-input'
+                                    />
+                                    <p class='text-xs text-text-muted'>Font stack for body text and UI elements</p>
+                                </div>
+
+                                <div class='space-y-1'>
+                                    <label for='font-family-serif-input' class='block text-sm font-medium leading-6 text-text-primary'>
+                                        Serif Font Family
+                                    </label>
+                                    <input
+                                        id='font-family-serif-input'
+                                        type='text'
+                                        value={formData.fontFamilySerif}
+                                        onInput={(e) => setFormData({ ...formData, fontFamilySerif: (e.target as HTMLInputElement).value })}
+                                        placeholder='Fraunces, Georgia, serif'
+                                        disabled={isSaving}
+                                        class='w-full rounded-md border border-border-default bg-surface-base px-3 py-2 text-sm text-text-primary'
+                                        data-testid='font-family-serif-input'
+                                    />
+                                    <p class='text-xs text-text-muted'>Font stack for headings and display text</p>
+                                </div>
+
+                                <div class='space-y-1'>
+                                    <label for='font-family-mono-input' class='block text-sm font-medium leading-6 text-text-primary'>
+                                        Monospace Font Family
+                                    </label>
+                                    <input
+                                        id='font-family-mono-input'
+                                        type='text'
+                                        value={formData.fontFamilyMono}
+                                        onInput={(e) => setFormData({ ...formData, fontFamilyMono: (e.target as HTMLInputElement).value })}
+                                        placeholder='JetBrains Mono, SFMono-Regular, Menlo, monospace'
+                                        disabled={isSaving}
+                                        class='w-full rounded-md border border-border-default bg-surface-base px-3 py-2 text-sm text-text-primary'
+                                        data-testid='font-family-mono-input'
+                                    />
+                                    <p class='text-xs text-text-muted'>Font stack for code and technical content</p>
+                                </div>
+                            </div>
+                        </Card>
+
+                        {/* Aurora Gradient Editor Section */}
+                        <Card padding='md'>
+                            <div class='space-y-4'>
+                                <div>
+                                    <h3 class='text-lg font-semibold text-text-primary'>Aurora Gradient</h3>
+                                    <p class='mt-1 text-sm text-text-muted'>
+                                        Configure up to 4 colors for the aurora background animation. Appears as an animated gradient behind the page content when "Aurora Background Animation" is enabled.
+                                    </p>
+                                </div>
+
+                                <div class='grid grid-cols-2 md:grid-cols-4 gap-4'>
+                                    {[0, 1, 2, 3].map((index) => (
+                                        <div key={index}>
+                                            <label for={`aurora-gradient-color-${index + 1}-input`} class='block text-sm font-medium leading-6 text-text-primary mb-2'>
+                                                Color {index + 1}
+                                            </label>
+                                            <input
+                                                id={`aurora-gradient-color-${index + 1}-input`}
+                                                type='color'
+                                                value={formData.auroraGradient[index] || '#000000'}
+                                                onInput={(e) => {
+                                                    const newGradient = [...formData.auroraGradient];
+                                                    newGradient[index] = (e.target as HTMLInputElement).value;
+                                                    setFormData({ ...formData, auroraGradient: newGradient });
+                                                }}
+                                                disabled={isSaving}
+                                                class='block h-10 w-full rounded-md border border-border-default bg-surface-base cursor-pointer'
+                                                data-testid={`aurora-gradient-color-${index + 1}-input`}
+                                            />
+                                            <p class='mt-1 text-xs text-text-muted'>{formData.auroraGradient[index] || '#000000'}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </Card>
+
+                        {/* Glassmorphism Settings Section */}
+                        <Card padding='md'>
+                            <div class='space-y-4'>
+                                <div>
+                                    <h3 class='text-lg font-semibold text-text-primary'>Glassmorphism Settings</h3>
+                                    <p class='mt-1 text-sm text-text-muted'>
+                                        Configure glass colors for frosted glass effects (RGBA format). Applied to cards, modals, and panels when "Glassmorphism" is enabled.
+                                    </p>
+                                </div>
+
+                                <div class='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                                    <div class='space-y-1'>
+                                        <label for='glass-color-input' class='block text-sm font-medium leading-6 text-text-primary'>
+                                            Glass Color
+                                        </label>
+                                        <input
+                                            id='glass-color-input'
+                                            type='text'
+                                            value={formData.glassColor}
+                                            onInput={(e) => setFormData({ ...formData, glassColor: (e.target as HTMLInputElement).value })}
+                                            placeholder='rgba(25, 30, 50, 0.45)'
+                                            disabled={isSaving}
+                                            class='w-full rounded-md border border-border-default bg-surface-base px-3 py-2 text-sm text-text-primary font-mono'
+                                            data-testid='glass-color-input'
+                                        />
+                                        <p class='text-xs text-text-muted'>Used for: card and modal backgrounds with blur effect</p>
+                                    </div>
+
+                                    <div class='space-y-1'>
+                                        <label for='glass-border-color-input' class='block text-sm font-medium leading-6 text-text-primary'>
+                                            Glass Border Color
+                                        </label>
+                                        <input
+                                            id='glass-border-color-input'
+                                            type='text'
+                                            value={formData.glassBorderColor}
+                                            onInput={(e) => setFormData({ ...formData, glassBorderColor: (e.target as HTMLInputElement).value })}
+                                            placeholder='rgba(255, 255, 255, 0.12)'
+                                            disabled={isSaving}
+                                            class='w-full rounded-md border border-border-default bg-surface-base px-3 py-2 text-sm text-text-primary font-mono'
+                                            data-testid='glass-border-color-input'
+                                        />
+                                        <p class='text-xs text-text-muted'>Used for: subtle borders around glass surfaces</p>
                                     </div>
                                 </div>
                             </div>

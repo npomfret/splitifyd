@@ -39,6 +39,11 @@ export class TenantBrowserHandlers {
             logger.info('Fetching all tenant configurations');
             const tenants = await this.firestoreReader.listAllTenants();
 
+            // Log first tenant's branding for debugging
+            if (tenants.length > 0) {
+                console.log('[TenantBrowserHandlers] First tenant branding:', JSON.stringify(tenants[0].tenant.branding, null, 2));
+            }
+
             // Normalize Timestamp objects to ISO strings for JSON serialization
             const serialized = tenants.map((tenant) => normalizeFirestoreValue(tenant));
 

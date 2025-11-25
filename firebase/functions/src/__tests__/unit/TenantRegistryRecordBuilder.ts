@@ -8,18 +8,12 @@ export class TenantRegistryRecordBuilder {
 
     constructor(tenantId?: string) {
         this.record.tenant = new TenantConfigBuilder(tenantId).build();
-        this.record.primaryDomain = toTenantDomainName('app.example.com');
         this.record.domains = [toTenantDomainName('app.example.com'), toTenantDomainName('example.com')];
         this.record.isDefault = toTenantDefaultFlag(false);
     }
 
     withTenantConfig(config: TenantConfigBuilder): this {
         this.record.tenant = config.build();
-        return this;
-    }
-
-    withPrimaryDomain(domain: TenantDomainName | string): this {
-        this.record.primaryDomain = toTenantDomainName(domain);
         return this;
     }
 

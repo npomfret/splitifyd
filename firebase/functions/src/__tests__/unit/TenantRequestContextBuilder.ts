@@ -10,7 +10,6 @@ export class TenantRequestContextBuilder {
         this.context.tenantId = toTenantId(tenantId || 'test-tenant');
         this.context.config = new TenantConfigBuilder(tenantId).build();
         this.context.domains = [toTenantDomainName('app.example.com')];
-        this.context.primaryDomain = toTenantDomainName('app.example.com');
         this.context.isDefault = toTenantDefaultFlag(false);
         this.context.source = 'domain';
     }
@@ -27,11 +26,6 @@ export class TenantRequestContextBuilder {
 
     withDomains(domains: Array<TenantDomainName | string>): this {
         this.context.domains = domains.map(d => toTenantDomainName(d));
-        return this;
-    }
-
-    withPrimaryDomain(domain: TenantDomainName | string): this {
-        this.context.primaryDomain = toTenantDomainName(domain);
         return this;
     }
 

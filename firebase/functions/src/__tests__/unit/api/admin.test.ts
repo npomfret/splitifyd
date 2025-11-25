@@ -1,7 +1,7 @@
 import { SystemUserRoles, toTenantAccentColor, toTenantAppName, toTenantDomainName, toTenantLogoUrl, toTenantPrimaryColor, toTenantSecondaryColor, toUserId } from '@billsplit-wl/shared';
 import type { UserId } from '@billsplit-wl/shared';
 import { AdminTenantRequestBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
-import { afterEach, beforeEach, describe, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { AppDriver } from '../AppDriver';
 
 describe('Admin Tests', () => {
@@ -15,7 +15,9 @@ describe('Admin Tests', () => {
     });
 
     afterEach(() => {
-        appDriver.dispose();
+        if (appDriver) {
+            appDriver.dispose();
+        }
     });
 
     describe('Admin Tenant Management', () => {
@@ -389,6 +391,413 @@ describe('Admin Tests', () => {
                 // URLs should be different (different content hashes)
                 expect(firstUrl).not.toBe(secondUrl);
                 expect(secondUrl).toBeDefined();
+            });
+        });
+
+        describe('Motion Features - brandingTokens preservation', () => {
+            it('should enable motion features when brandingTokens provided with flags', async () => {
+                const tenantId = `test-motion-enabled-${Date.now()}`;
+                const payload = AdminTenantRequestBuilder
+                    .forTenant(tenantId)
+                    .withAuroraTheme() // Enables all motion features
+                    .withDomains([toTenantDomainName(`${tenantId}.test.local`)])
+                    .build();
+
+                const result = await appDriver.adminUpsertTenant(payload, localAdminUser);
+                expect(result.created).toBe(true);
+
+                // Fetch the tenant and verify motion flags
+                const response = await appDriver.listAllTenants(localAdminUser);
+                const createdTenant = response.tenants.find(t => t.tenant.tenantId === tenantId);
+
+                expect(createdTenant).toBeDefined();
+                expect(createdTenant?.brandingTokens).toBeDefined();
+                expect(createdTenant?.brandingTokens?.tokens).toBeDefined();
+                expect(createdTenant?.brandingTokens?.tokens.motion).toBeDefined();
+                expect(createdTenant?.brandingTokens?.tokens.motion?.enableParallax).toBe(true);
+                expect(createdTenant?.brandingTokens?.tokens.motion?.enableMagneticHover).toBe(true);
+                expect(createdTenant?.brandingTokens?.tokens.motion?.enableScrollReveal).toBe(true);
+                expect(createdTenant?.brandingTokens?.tokens.semantics.colors.surface.glass).toBe('rgba(25, 30, 50, 0.45)');
+                expect(createdTenant?.brandingTokens?.tokens.semantics.colors.surface.glassBorder).toBe('rgba(255, 255, 255, 0.12)');
+            });
+
+            it('should preserve motion features when updating tenant with new brandingTokens', async () => {
+                const tenantId = `test-motion-update-${Date.now()}`;
+
+                // Create tenant with Aurora theme (motion enabled)
+                const createPayload = AdminTenantRequestBuilder
+                    .forTenant(tenantId)
+                    .withAuroraTheme()
+                    .withDomains([toTenantDomainName(`${tenantId}.test.local`)])
+                    .build();
+
+                await appDriver.adminUpsertTenant(createPayload, localAdminUser);
+
+                // Update tenant with modified brandingTokens (change color but keep motion)
+                const updatePayload = AdminTenantRequestBuilder
+                    .forTenant(tenantId)
+                    .withAuroraTheme()
+                    .withPrimaryColor('#ff0000') // Change color
+                    .withDomains([toTenantDomainName(`${tenantId}.test.local`)])
+                    .build();
+
+                const updateResult = await appDriver.adminUpsertTenant(updatePayload, localAdminUser);
+                expect(updateResult.created).toBe(false);
+
+                // Verify motion features still enabled
+                const response = await appDriver.listAllTenants(localAdminUser);
+                const updatedTenant = response.tenants.find(t => t.tenant.tenantId === tenantId);
+
+                expect(updatedTenant!.brandingTokens?.tokens.motion?.enableParallax).toBe(true);
+                expect(updatedTenant!.brandingTokens?.tokens.motion?.enableMagneticHover).toBe(true);
+                expect(updatedTenant!.brandingTokens?.tokens.semantics.colors.surface.glass).toBe('rgba(25, 30, 50, 0.45)');
+                expect(updatedTenant!.brandingTokens?.tokens.palette.primary).toBe('#ff0000'); // Color changed
+            });
+
+            it('should disable motion features when brandingTokens provided with flags set to false', async () => {
+                const tenantId = `test-motion-disabled-${Date.now()}`;
+
+                // Create with motion enabled
+                const createPayload = AdminTenantRequestBuilder
+                    .forTenant(tenantId)
+                    .withAuroraTheme()
+                    .withDomains([toTenantDomainName(`${tenantId}.test.local`)])
+                    .build();
+
+                await appDriver.adminUpsertTenant(createPayload, localAdminUser);
+
+                // Update to disable motion features
+                const updatePayload = AdminTenantRequestBuilder
+                    .forTenant(tenantId)
+                    .withDomains([toTenantDomainName(`${tenantId}.test.local`)])
+                    .build();
+
+                // Manually set motion flags to false
+                updatePayload.brandingTokens!.tokens.motion!.enableParallax = false;
+                updatePayload.brandingTokens!.tokens.motion!.enableMagneticHover = false;
+                updatePayload.brandingTokens!.tokens.motion!.enableScrollReveal = false;
+                // Remove glass properties
+                delete (updatePayload.brandingTokens!.tokens.semantics.colors.surface as any).glass;
+                delete (updatePayload.brandingTokens!.tokens.semantics.colors.surface as any).glassBorder;
+
+                await appDriver.adminUpsertTenant(updatePayload, localAdminUser);
+
+                // Verify motion features now disabled
+                const response = await appDriver.listAllTenants(localAdminUser);
+                const updatedTenant = response.tenants.find(t => t.tenant.tenantId === tenantId);
+
+                expect(updatedTenant!.brandingTokens?.tokens.motion?.enableParallax).toBe(false);
+                expect(updatedTenant!.brandingTokens?.tokens.motion?.enableMagneticHover).toBe(false);
+                // Note: Glass properties may still exist in Firestore due to merge:true behavior.
+                // The motion flags control whether they're actually used by the UI.
+            });
+
+            it('should generate vanilla brandingTokens when none provided (motion disabled by default)', async () => {
+                const tenantId = `test-motion-vanilla-${Date.now()}`;
+                const payload = AdminTenantRequestBuilder
+                    .forTenant(tenantId)
+                    .withDomains([toTenantDomainName(`${tenantId}.test.local`)])
+                    .build();
+
+                // Remove brandingTokens to let backend auto-generate
+                delete (payload as any).brandingTokens;
+
+                const result = await appDriver.adminUpsertTenant(payload, localAdminUser);
+                expect(result.created).toBe(true);
+
+                // Verify motion features are disabled (vanilla theme)
+                const response = await appDriver.listAllTenants(localAdminUser);
+                const createdTenant = response.tenants.find(t => t.tenant.tenantId === tenantId);
+
+                expect(createdTenant!.brandingTokens?.tokens.motion?.enableParallax).toBe(false);
+                expect(createdTenant!.brandingTokens?.tokens.motion?.enableMagneticHover).toBe(false);
+                expect(createdTenant!.brandingTokens?.tokens.motion?.enableScrollReveal).toBe(false);
+                expect(createdTenant!.brandingTokens?.tokens.semantics.colors.surface.glass).toBeUndefined();
+            });
+        });
+
+        describe('Typography Settings', () => {
+            it('should persist custom font families when creating tenant with typography', async () => {
+                const tenantId = `test-typography-${Date.now()}`;
+                const customFonts = {
+                    sans: 'Roboto, Arial, sans-serif',
+                    serif: 'Merriweather, Georgia, serif',
+                    mono: 'Fira Code, Consolas, monospace',
+                };
+
+                const payload = AdminTenantRequestBuilder
+                    .forTenant(tenantId)
+                    .withDomains([toTenantDomainName(`${tenantId}.test.local`)])
+                    .build();
+
+                // Customize typography
+                payload.brandingTokens!.tokens.typography.fontFamily = customFonts;
+
+                const result = await appDriver.adminUpsertTenant(payload, localAdminUser);
+                expect(result.created).toBe(true);
+
+                // Verify typography persisted
+                const response = await appDriver.listAllTenants(localAdminUser);
+                const createdTenant = response.tenants.find(t => t.tenant.tenantId === tenantId);
+
+                expect(createdTenant?.brandingTokens?.tokens.typography.fontFamily.sans).toBe(customFonts.sans);
+                expect(createdTenant?.brandingTokens?.tokens.typography.fontFamily.serif).toBe(customFonts.serif);
+                expect(createdTenant?.brandingTokens?.tokens.typography.fontFamily.mono).toBe(customFonts.mono);
+            });
+
+            it('should preserve existing typography when updating other branding fields', async () => {
+                const tenantId = `test-typography-preserve-${Date.now()}`;
+                const customFonts = {
+                    sans: 'Montserrat, Helvetica, sans-serif',
+                    serif: 'Playfair Display, Times New Roman, serif',
+                    mono: 'Source Code Pro, Courier, monospace',
+                };
+
+                // Create tenant with custom typography
+                const createPayload = AdminTenantRequestBuilder
+                    .forTenant(tenantId)
+                    .withDomains([toTenantDomainName(`${tenantId}.test.local`)])
+                    .build();
+
+                createPayload.brandingTokens!.tokens.typography.fontFamily = customFonts;
+
+                await appDriver.adminUpsertTenant(createPayload, localAdminUser);
+
+                // Fetch existing tenant to get current brandingTokens
+                const existingResponse = await appDriver.listAllTenants(localAdminUser);
+                const existingTenant = existingResponse.tenants.find(t => t.tenant.tenantId === tenantId);
+
+                // Update tenant with different color, but preserve existing typography
+                const updatePayload = AdminTenantRequestBuilder
+                    .forTenant(tenantId)
+                    .withPrimaryColor('#00ff00')
+                    .withDomains([toTenantDomainName(`${tenantId}.test.local`)])
+                    .build();
+
+                // Manually preserve the custom typography from existing tenant
+                if (existingTenant?.brandingTokens?.tokens.typography) {
+                    updatePayload.brandingTokens!.tokens.typography.fontFamily = existingTenant.brandingTokens.tokens.typography.fontFamily;
+                }
+
+                const updateResult = await appDriver.adminUpsertTenant(updatePayload, localAdminUser);
+                expect(updateResult.created).toBe(false);
+
+                // Verify typography still intact
+                const response = await appDriver.listAllTenants(localAdminUser);
+                const updatedTenant = response.tenants.find(t => t.tenant.tenantId === tenantId);
+
+                expect(updatedTenant?.brandingTokens?.tokens.typography.fontFamily.sans).toBe(customFonts.sans);
+                expect(updatedTenant?.brandingTokens?.tokens.typography.fontFamily.serif).toBe(customFonts.serif);
+                expect(updatedTenant?.brandingTokens?.tokens.typography.fontFamily.mono).toBe(customFonts.mono);
+                expect(updatedTenant?.brandingTokens?.tokens.palette.primary).toBe('#00ff00');
+            });
+
+            it('should use default typography when not explicitly provided', async () => {
+                const tenantId = `test-typography-default-${Date.now()}`;
+                const payload = AdminTenantRequestBuilder
+                    .forTenant(tenantId)
+                    .withDomains([toTenantDomainName(`${tenantId}.test.local`)])
+                    .build();
+
+                const result = await appDriver.adminUpsertTenant(payload, localAdminUser);
+                expect(result.created).toBe(true);
+
+                // Verify default typography applied
+                const response = await appDriver.listAllTenants(localAdminUser);
+                const createdTenant = response.tenants.find(t => t.tenant.tenantId === tenantId);
+
+                expect(createdTenant?.brandingTokens?.tokens.typography.fontFamily.sans).toBe('Space Grotesk, Inter, system-ui, -apple-system, BlinkMacSystemFont');
+                expect(createdTenant?.brandingTokens?.tokens.typography.fontFamily.serif).toBe('Fraunces, Georgia, serif');
+                expect(createdTenant?.brandingTokens?.tokens.typography.fontFamily.mono).toBe('JetBrains Mono, SFMono-Regular, Menlo, monospace');
+            });
+        });
+
+        describe('Aurora Gradient Settings', () => {
+            it('should persist custom aurora gradient colors when creating tenant', async () => {
+                const tenantId = `test-gradient-${Date.now()}`;
+                const customGradient = ['#ff0000', '#00ff00', '#0000ff', '#ffff00'];
+
+                const payload = AdminTenantRequestBuilder
+                    .forTenant(tenantId)
+                    .withDomains([toTenantDomainName(`${tenantId}.test.local`)])
+                    .build();
+
+                // Set custom aurora gradient
+                if (!payload.brandingTokens!.tokens.semantics.colors.gradient) {
+                    payload.brandingTokens!.tokens.semantics.colors.gradient = {};
+                }
+                payload.brandingTokens!.tokens.semantics.colors.gradient.aurora = customGradient as `#${string}`[];
+
+                const result = await appDriver.adminUpsertTenant(payload, localAdminUser);
+                expect(result.created).toBe(true);
+
+                // Verify gradient persisted
+                const response = await appDriver.listAllTenants(localAdminUser);
+                const createdTenant = response.tenants.find(t => t.tenant.tenantId === tenantId);
+
+                expect(createdTenant?.brandingTokens?.tokens.semantics.colors.gradient?.aurora).toEqual(customGradient);
+            });
+
+            it('should preserve existing gradient when updating other branding fields', async () => {
+                const tenantId = `test-gradient-preserve-${Date.now()}`;
+                const customGradient = ['#aa0000', '#00aa00', '#0000aa', '#aaaa00'];
+
+                // Create tenant with custom gradient
+                const createPayload = AdminTenantRequestBuilder
+                    .forTenant(tenantId)
+                    .withDomains([toTenantDomainName(`${tenantId}.test.local`)])
+                    .build();
+
+                if (!createPayload.brandingTokens!.tokens.semantics.colors.gradient) {
+                    createPayload.brandingTokens!.tokens.semantics.colors.gradient = {};
+                }
+                createPayload.brandingTokens!.tokens.semantics.colors.gradient.aurora = customGradient as `#${string}`[];
+
+                await appDriver.adminUpsertTenant(createPayload, localAdminUser);
+
+                // Fetch existing tenant to get current brandingTokens
+                const existingResponse = await appDriver.listAllTenants(localAdminUser);
+                const existingTenant = existingResponse.tenants.find(t => t.tenant.tenantId === tenantId);
+
+                // Update tenant with different color, but preserve existing gradient
+                const updatePayload = AdminTenantRequestBuilder
+                    .forTenant(tenantId)
+                    .withPrimaryColor('#ff00ff')
+                    .withDomains([toTenantDomainName(`${tenantId}.test.local`)])
+                    .build();
+
+                // Manually preserve the custom gradient from existing tenant
+                if (existingTenant?.brandingTokens?.tokens.semantics.colors.gradient) {
+                    if (!updatePayload.brandingTokens!.tokens.semantics.colors.gradient) {
+                        updatePayload.brandingTokens!.tokens.semantics.colors.gradient = {};
+                    }
+                    updatePayload.brandingTokens!.tokens.semantics.colors.gradient.aurora = existingTenant.brandingTokens.tokens.semantics.colors.gradient.aurora;
+                }
+
+                const updateResult = await appDriver.adminUpsertTenant(updatePayload, localAdminUser);
+                expect(updateResult.created).toBe(false);
+
+                // Verify gradient still intact
+                const response = await appDriver.listAllTenants(localAdminUser);
+                const updatedTenant = response.tenants.find(t => t.tenant.tenantId === tenantId);
+
+                expect(updatedTenant?.brandingTokens?.tokens.semantics.colors.gradient?.aurora).toEqual(customGradient);
+                expect(updatedTenant?.brandingTokens?.tokens.palette.primary).toBe('#ff00ff');
+            });
+
+            it('should handle gradient correctly when not explicitly provided', async () => {
+                const tenantId = `test-gradient-default-${Date.now()}`;
+                const payload = AdminTenantRequestBuilder
+                    .forTenant(tenantId)
+                    .withDomains([toTenantDomainName(`${tenantId}.test.local`)])
+                    .build();
+
+                const result = await appDriver.adminUpsertTenant(payload, localAdminUser);
+                expect(result.created).toBe(true);
+
+                // Verify branding tokens were created
+                const response = await appDriver.listAllTenants(localAdminUser);
+                const createdTenant = response.tenants.find(t => t.tenant.tenantId === tenantId);
+
+                // Gradient is optional in the schema, may or may not be present
+                expect(createdTenant?.brandingTokens?.tokens).toBeDefined();
+                expect(createdTenant?.brandingTokens?.tokens.semantics.colors).toBeDefined();
+            });
+        });
+
+        describe('Glassmorphism Settings', () => {
+            it('should persist custom glassmorphism colors when creating tenant', async () => {
+                const tenantId = `test-glass-${Date.now()}`;
+                const customGlass = {
+                    glass: 'rgba(10, 20, 30, 0.6)',
+                    glassBorder: 'rgba(200, 210, 220, 0.2)',
+                };
+
+                const payload = AdminTenantRequestBuilder
+                    .forTenant(tenantId)
+                    .withAuroraTheme() // Enables glassmorphism
+                    .withDomains([toTenantDomainName(`${tenantId}.test.local`)])
+                    .build();
+
+                // Override glass colors
+                payload.brandingTokens!.tokens.semantics.colors.surface.glass = customGlass.glass as `rgba(${string})`;
+                payload.brandingTokens!.tokens.semantics.colors.surface.glassBorder = customGlass.glassBorder as `rgba(${string})`;
+
+                const result = await appDriver.adminUpsertTenant(payload, localAdminUser);
+                expect(result.created).toBe(true);
+
+                // Verify glass colors persisted
+                const response = await appDriver.listAllTenants(localAdminUser);
+                const createdTenant = response.tenants.find(t => t.tenant.tenantId === tenantId);
+
+                expect(createdTenant?.brandingTokens?.tokens.semantics.colors.surface.glass).toBe(customGlass.glass);
+                expect(createdTenant?.brandingTokens?.tokens.semantics.colors.surface.glassBorder).toBe(customGlass.glassBorder);
+            });
+
+            it('should preserve existing glassmorphism when updating other fields', async () => {
+                const tenantId = `test-glass-preserve-${Date.now()}`;
+                const customGlass = {
+                    glass: 'rgba(50, 60, 70, 0.5)',
+                    glassBorder: 'rgba(100, 150, 200, 0.15)',
+                };
+
+                // Create tenant with custom glass colors
+                const createPayload = AdminTenantRequestBuilder
+                    .forTenant(tenantId)
+                    .withAuroraTheme()
+                    .withDomains([toTenantDomainName(`${tenantId}.test.local`)])
+                    .build();
+
+                createPayload.brandingTokens!.tokens.semantics.colors.surface.glass = customGlass.glass as `rgba(${string})`;
+                createPayload.brandingTokens!.tokens.semantics.colors.surface.glassBorder = customGlass.glassBorder as `rgba(${string})`;
+
+                await appDriver.adminUpsertTenant(createPayload, localAdminUser);
+
+                // Fetch existing tenant
+                const existingResponse = await appDriver.listAllTenants(localAdminUser);
+                const existingTenant = existingResponse.tenants.find(t => t.tenant.tenantId === tenantId);
+
+                // Update tenant with different color, but preserve glassmorphism
+                const updatePayload = AdminTenantRequestBuilder
+                    .forTenant(tenantId)
+                    .withPrimaryColor('#aa00aa')
+                    .withDomains([toTenantDomainName(`${tenantId}.test.local`)])
+                    .build();
+
+                // Manually preserve glass colors
+                if (existingTenant?.brandingTokens?.tokens.semantics.colors.surface) {
+                    updatePayload.brandingTokens!.tokens.semantics.colors.surface.glass = existingTenant.brandingTokens.tokens.semantics.colors.surface.glass;
+                    updatePayload.brandingTokens!.tokens.semantics.colors.surface.glassBorder = existingTenant.brandingTokens.tokens.semantics.colors.surface.glassBorder;
+                }
+
+                const updateResult = await appDriver.adminUpsertTenant(updatePayload, localAdminUser);
+                expect(updateResult.created).toBe(false);
+
+                // Verify glass colors still intact
+                const response = await appDriver.listAllTenants(localAdminUser);
+                const updatedTenant = response.tenants.find(t => t.tenant.tenantId === tenantId);
+
+                expect(updatedTenant?.brandingTokens?.tokens.semantics.colors.surface.glass).toBe(customGlass.glass);
+                expect(updatedTenant?.brandingTokens?.tokens.semantics.colors.surface.glassBorder).toBe(customGlass.glassBorder);
+                expect(updatedTenant?.brandingTokens?.tokens.palette.primary).toBe('#aa00aa');
+            });
+
+            it('should not have glassmorphism when not enabled', async () => {
+                const tenantId = `test-glass-disabled-${Date.now()}`;
+                const payload = AdminTenantRequestBuilder
+                    .forTenant(tenantId)
+                    .withDomains([toTenantDomainName(`${tenantId}.test.local`)])
+                    .build();
+
+                const result = await appDriver.adminUpsertTenant(payload, localAdminUser);
+                expect(result.created).toBe(true);
+
+                // Verify no glass properties
+                const response = await appDriver.listAllTenants(localAdminUser);
+                const createdTenant = response.tenants.find(t => t.tenant.tenantId === tenantId);
+
+                expect(createdTenant?.brandingTokens?.tokens.semantics.colors.surface.glass).toBeUndefined();
+                expect(createdTenant?.brandingTokens?.tokens.semantics.colors.surface.glassBorder).toBeUndefined();
             });
         });
     });

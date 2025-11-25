@@ -1,4 +1,5 @@
 import type { BrandingTokens, TenantBranding } from '@billsplit-wl/shared';
+import { generateBrandingTokens } from './branding-tokens-generator';
 
 interface SimpleBranding {
     primaryColor: string;
@@ -6,6 +7,20 @@ interface SimpleBranding {
     accentColor: string;
     backgroundColor: string;
     headerBackgroundColor: string;
+    // Motion & Effects
+    enableAuroraAnimation?: boolean;
+    enableGlassmorphism?: boolean;
+    enableMagneticHover?: boolean;
+    enableScrollReveal?: boolean;
+    // Typography
+    fontFamilySans?: string;
+    fontFamilySerif?: string;
+    fontFamilyMono?: string;
+    // Aurora Gradient
+    auroraGradient?: string[];
+    // Glassmorphism
+    glassColor?: string;
+    glassBorderColor?: string;
 }
 
 /**
@@ -13,14 +28,118 @@ interface SimpleBranding {
  * preserving advanced features like glassmorphism, aurora animations, fluid typography, etc.
  *
  * Strategy:
- * - If no existing tokens → return undefined (let backend auto-generate)
+ * - If no existing tokens AND no motion/typography edits → return undefined (let backend auto-generate)
+ * - If no existing tokens BUT has motion/typography edits → generate tokens with those features
  * - If existing tokens → update ONLY the edited colors, preserve everything else
  */
 export function mergeTokensSmartly(
     existingTokens: TenantBranding | undefined,
     simpleEdits: SimpleBranding,
 ): TenantBranding | undefined {
-    // If no existing tokens, don't pass anything - let backend auto-generate vanilla
+    console.log('[mergeTokensSmartly] Called with glassColor:', simpleEdits.glassColor);
+    console.log('[mergeTokensSmartly] Called with glassBorderColor:', simpleEdits.glassBorderColor);
+    console.log('[mergeTokensSmartly] Has existing tokens?:', !!existingTokens?.tokens);
+
+    // Check if user made any motion/typography/aurora/glass edits
+    const hasAdvancedEdits = simpleEdits.enableAuroraAnimation !== undefined ||
+        simpleEdits.enableGlassmorphism !== undefined ||
+        simpleEdits.enableMagneticHover !== undefined ||
+        simpleEdits.enableScrollReveal !== undefined ||
+        simpleEdits.fontFamilySans !== undefined ||
+        simpleEdits.fontFamilySerif !== undefined ||
+        simpleEdits.fontFamilyMono !== undefined ||
+        simpleEdits.auroraGradient !== undefined ||
+        simpleEdits.glassColor !== undefined ||
+        simpleEdits.glassBorderColor !== undefined;
+
+    // If no existing tokens AND user has made advanced edits (motion, typography, etc.),
+    // generate complete tokens using the frontend generator, then apply the edits
+    if (!existingTokens?.tokens && hasAdvancedEdits) {
+        console.log('[mergeTokensSmartly] Generating tokens - glass color:', simpleEdits.glassColor);
+        console.log('[mergeTokensSmartly] Generating tokens - glass border:', simpleEdits.glassBorderColor);
+
+        const generatedTokens = generateBrandingTokens({
+            primaryColor: simpleEdits.primaryColor,
+            secondaryColor: simpleEdits.secondaryColor,
+            accentColor: simpleEdits.accentColor,
+            backgroundColor: simpleEdits.backgroundColor,
+            headerBackgroundColor: simpleEdits.headerBackgroundColor,
+        });
+
+        // Apply motion effect overrides
+        const tokens: BrandingTokens = {
+            ...generatedTokens.tokens,
+            motion: {
+                ...generatedTokens.tokens.motion,
+                ...(simpleEdits.enableAuroraAnimation !== undefined && {
+                    enableParallax: simpleEdits.enableAuroraAnimation,
+                }),
+                ...(simpleEdits.enableMagneticHover !== undefined && {
+                    enableMagneticHover: simpleEdits.enableMagneticHover,
+                }),
+                ...(simpleEdits.enableScrollReveal !== undefined && {
+                    enableScrollReveal: simpleEdits.enableScrollReveal,
+                }),
+            },
+            typography: {
+                ...generatedTokens.tokens.typography,
+                fontFamily: {
+                    ...generatedTokens.tokens.typography.fontFamily,
+                    ...(simpleEdits.fontFamilySans && {
+                        sans: simpleEdits.fontFamilySans,
+                    }),
+                    ...(simpleEdits.fontFamilySerif && {
+                        serif: simpleEdits.fontFamilySerif,
+                    }),
+                    ...(simpleEdits.fontFamilyMono && {
+                        mono: simpleEdits.fontFamilyMono,
+                    }),
+                },
+            },
+        };
+
+        // Apply aurora gradient if specified (must have at least 2 colors per schema)
+        if (simpleEdits.auroraGradient && simpleEdits.auroraGradient.length >= 2) {
+            tokens.semantics = {
+                ...tokens.semantics,
+                colors: {
+                    ...tokens.semantics.colors,
+                    gradient: {
+                        ...tokens.semantics.colors.gradient,
+                        aurora: simpleEdits.auroraGradient as `#${string}`[],
+                    },
+                },
+            };
+        }
+
+        // Apply glassmorphism color settings if provided
+        if (simpleEdits.glassColor || simpleEdits.glassBorderColor) {
+            console.log('[mergeTokensSmartly] Applying glass colors');
+            const existingSurface = tokens.semantics.colors.surface;
+            const updatedSurface: any = { ...existingSurface };
+
+            if (simpleEdits.glassColor) {
+                updatedSurface.glass = simpleEdits.glassColor as `rgba(${string})`;
+            } else if (existingSurface.glass) {
+                updatedSurface.glass = existingSurface.glass;
+            }
+
+            if (simpleEdits.glassBorderColor) {
+                updatedSurface.glassBorder = simpleEdits.glassBorderColor as `rgba(${string})`;
+            } else if (existingSurface.glassBorder) {
+                updatedSurface.glassBorder = existingSurface.glassBorder;
+            }
+
+            tokens.semantics.colors.surface = updatedSurface;
+        }
+
+        console.log('[mergeTokensSmartly] Final glass color:', tokens.semantics.colors.surface.glass);
+        console.log('[mergeTokensSmartly] Final glass border:', tokens.semantics.colors.surface.glassBorder);
+
+        return { tokens };
+    }
+
+    // If no existing tokens AND no advanced edits, let backend auto-generate
     if (!existingTokens?.tokens) {
         return undefined;
     }
@@ -75,14 +194,42 @@ export function mergeTokensSmartly(
             colors: {
                 ...existing.semantics.colors,
 
-                surface: {
-                    ...existing.semantics.colors.surface,
-                    base: simpleEdits.backgroundColor as `#${string}`,
-                    raised: adjustColor(simpleEdits.backgroundColor, -0.02),
-                    sunken: adjustColor(simpleEdits.backgroundColor, 0.05),
-                    overlay: simpleEdits.headerBackgroundColor as `#${string}`,
-                    // PRESERVE: glass, glassBorder, aurora, spotlight, magnetic, glow, warning
-                },
+                surface: (() => {
+                    const baseSurface = {
+                        ...existing.semantics.colors.surface,
+                        base: simpleEdits.backgroundColor as `#${string}`,
+                        raised: adjustColor(simpleEdits.backgroundColor, -0.02),
+                        sunken: adjustColor(simpleEdits.backgroundColor, 0.05),
+                        overlay: simpleEdits.headerBackgroundColor as `#${string}`,
+                    };
+
+                    // Handle glassmorphism conditionally
+                    if (simpleEdits.enableGlassmorphism !== undefined) {
+                        if (simpleEdits.enableGlassmorphism) {
+                            // Use provided glass colors, or preserve existing, or use defaults
+                            return {
+                                ...baseSurface,
+                                glass: (simpleEdits.glassColor || existing.semantics.colors.surface.glass || 'rgba(25, 30, 50, 0.45)') as `rgba(${string})`,
+                                glassBorder: (simpleEdits.glassBorderColor || existing.semantics.colors.surface.glassBorder || 'rgba(255, 255, 255, 0.12)') as `rgba(${string})`,
+                            };
+                        }
+                        // If explicitly disabled, remove glass properties
+                        const { glass, glassBorder, ...withoutGlass } = baseSurface;
+                        return withoutGlass;
+                    }
+
+                    // If glassmorphism toggle not specified, but colors provided, update them
+                    if (simpleEdits.glassColor || simpleEdits.glassBorderColor) {
+                        return {
+                            ...baseSurface,
+                            glass: (simpleEdits.glassColor || existing.semantics.colors.surface.glass) as `rgba(${string})`,
+                            glassBorder: (simpleEdits.glassBorderColor || existing.semantics.colors.surface.glassBorder) as `rgba(${string})`,
+                        };
+                    }
+
+                    // If not specified, preserve existing glass properties
+                    return baseSurface;
+                })(),
 
                 text: {
                     ...existing.semantics.colors.text,
@@ -114,14 +261,52 @@ export function mergeTokensSmartly(
                     // PRESERVE: warning
                 },
 
-                // PRESERVE: status, gradient
+                // PRESERVE: status
+
+                // Update gradient if provided (must have at least 2 colors per schema)
+                ...(simpleEdits.auroraGradient && simpleEdits.auroraGradient.length >= 2 && {
+                    gradient: {
+                        ...existing.semantics.colors.gradient,
+                        aurora: simpleEdits.auroraGradient as `#${string}`[],
+                    },
+                }),
             },
 
             // PRESERVE: spacing, typography
         },
 
-        // PRESERVE: typography (including fluidScale if exists)
-        // PRESERVE: motion (including enableParallax, enableMagneticHover, enableScrollReveal)
+        // Update motion feature flags
+        motion: {
+            ...existing.motion,
+            ...(simpleEdits.enableAuroraAnimation !== undefined && {
+                enableParallax: simpleEdits.enableAuroraAnimation,
+            }),
+            ...(simpleEdits.enableMagneticHover !== undefined && {
+                enableMagneticHover: simpleEdits.enableMagneticHover,
+            }),
+            ...(simpleEdits.enableScrollReveal !== undefined && {
+                enableScrollReveal: simpleEdits.enableScrollReveal,
+            }),
+        },
+
+        // Update typography font families if provided
+        typography: {
+            ...existing.typography,
+            fontFamily: {
+                ...existing.typography.fontFamily,
+                ...(simpleEdits.fontFamilySans && {
+                    sans: simpleEdits.fontFamilySans,
+                }),
+                ...(simpleEdits.fontFamilySerif && {
+                    serif: simpleEdits.fontFamilySerif,
+                }),
+                ...(simpleEdits.fontFamilyMono && {
+                    mono: simpleEdits.fontFamilyMono,
+                }),
+            },
+            // PRESERVE: sizes, weights, lineHeights, letterSpacing, semantics, fluidScale
+        },
+
         // PRESERVE: assets (including custom fonts)
         // PRESERVE: spacing, radii, shadows, legal
     };

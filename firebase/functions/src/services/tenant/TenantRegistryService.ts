@@ -182,7 +182,6 @@ export class TenantRegistryService {
             tenantId: record.tenant.tenantId,
             config: record.tenant,
             domains: record.domains,
-            primaryDomain: record.primaryDomain,
             isDefault: record.isDefault,
             source,
             themeArtifact: record.brandingTokens?.artifact ?? null,

@@ -1526,7 +1526,6 @@ export interface TenantSettingsResponse {
     tenantId: TenantId;
     config: TenantConfig;
     domains: TenantDomainName[];
-    primaryDomain: TenantDomainName;
 }
 
 /**
@@ -1551,7 +1550,6 @@ export interface UpdateTenantBrandingRequest {
  */
 export interface TenantDomainsResponse {
     domains: TenantDomainName[];
-    primaryDomain: TenantDomainName;
 }
 
 /**
@@ -1629,7 +1627,6 @@ export interface ListFirestoreUsersResponse {
 
 export interface TenantBrowserRecord {
     tenant: TenantConfig;
-    primaryDomain: TenantDomainName | null;
     domains: TenantDomainName[];
     isDefault: TenantDefaultFlag;
     brandingTokens?: TenantBranding;

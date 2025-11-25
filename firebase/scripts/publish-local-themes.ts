@@ -80,8 +80,8 @@ async function seedTenant(api: ApiDriver, adminToken: string, seed: TenantSeed):
     // Check if tenant already exists (seed-once mode)
     let existingTenant = null;
     try {
-        const tenants = await api.listTenants(adminToken);
-        existingTenant = tenants.find(t => t.tenant.tenantId === seed.tenantId);
+        const response = await api.listAllTenants(adminToken);
+        existingTenant = response.tenants.find((t: any) => t.tenant.tenantId === seed.tenantId);
     } catch (error) {
         // Ignore error, assume tenant doesn't exist
     }

@@ -3,7 +3,6 @@ export { AdminTenantsPage } from './AdminTenantsPage';
 export { BasePage } from './BasePage';
 export { CreateGroupModalPage } from './CreateGroupModalPage';
 export { DashboardPage } from './DashboardPage';
-export { DomainManagementPage } from './DomainManagementPage';
 export { ExpenseDetailPage } from './ExpenseDetailPage';
 export { ExpenseFormPage } from './ExpenseFormPage';
 export { GroupDetailPage } from './GroupDetailPage';

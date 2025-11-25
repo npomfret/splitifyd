@@ -133,6 +133,27 @@ export class AdminTenantsPage extends BasePage {
         return modal;
     }
 
+    async clickEditButtonForTenant<T = TenantEditorModalPage>(
+        appName: string,
+        pageFactory?: (page: Page) => T,
+    ): Promise<T> {
+        const tenantCard = this.getTenantCardByName(appName);
+        const editButton = tenantCard.locator('[data-testid^="edit-tenant-"]');
+        await editButton.click();
+        const modal = pageFactory ? pageFactory(this.page) : (new TenantEditorModalPage(this.page) as unknown as T);
+        return modal;
+    }
+
+    async clickEditButtonForTenantById<T = TenantEditorModalPage>(
+        tenantId: string,
+        pageFactory?: (page: Page) => T,
+    ): Promise<T> {
+        const editButton = this.page.locator(`[data-testid="edit-tenant-${tenantId}"]`);
+        await editButton.click();
+        const modal = pageFactory ? pageFactory(this.page) : (new TenantEditorModalPage(this.page) as unknown as T);
+        return modal;
+    }
+
     /**
      * Verification Methods
      */
@@ -242,7 +263,6 @@ export class AdminTenantsPage extends BasePage {
         appName: string;
         tenantId: string;
         isDefault: boolean;
-        primaryDomain: string | null;
     }> {
         const card = this.getTenantCardByName(appName);
         await expect(card).toBeVisible();
@@ -260,15 +280,10 @@ export class AdminTenantsPage extends BasePage {
         const defaultBadge = card.locator('text=Default');
         const isDefault = await defaultBadge.count() > 0;
 
-        // Extract primary domain
-        const primaryDomainMatch = cardText.match(/Primary Domain:\s*([^\s]+)/);
-        const primaryDomain = primaryDomainMatch ? primaryDomainMatch[1] : null;
-
         return {
             appName,
             tenantId,
             isDefault,
-            primaryDomain,
         };
     }
 

@@ -927,4 +927,28 @@ export class DashboardPage extends BasePage {
     async verifyActivityFeedLoadMoreHidden(): Promise<void> {
         await expect(this.getActivityFeedLoadMoreButton()).not.toBeVisible();
     }
+
+    /**
+     * Navigate to admin tenants page via user menu
+     */
+    async navigateToAdminTenantsPage(): Promise<import('./AdminTenantsPage').AdminTenantsPage> {
+        const { AdminTenantsPage } = await import('./AdminTenantsPage');
+
+        // Open user menu and click admin link
+        await this.header.openUserMenuAndVerifyAdminLinkVisible();
+
+        // Wait for navigation response
+        await Promise.all([
+            this.page.waitForResponse(response =>
+                response.url().includes('/user/profile') &&
+                response.status() === 200
+            ),
+            this.page.goto('/admin/tenants', { waitUntil: 'load' }),
+        ]);
+
+        const adminTenantsPage = new AdminTenantsPage(this.page);
+        await adminTenantsPage.verifyPageLoaded();
+
+        return adminTenantsPage;
+    }
 }

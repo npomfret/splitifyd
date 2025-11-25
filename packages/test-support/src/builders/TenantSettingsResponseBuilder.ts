@@ -1,5 +1,5 @@
 import { toTenantDomainName, toTenantId } from '@billsplit-wl/shared';
-import type { TenantDomainName, TenantId } from '@billsplit-wl/shared';
+import type { TenantDomainName } from '@billsplit-wl/shared';
 import type { TenantSettingsResponse } from '@billsplit-wl/shared';
 import { TenantConfigBuilder } from './TenantConfigBuilder';
 
@@ -10,10 +10,9 @@ export class TenantSettingsResponseBuilder {
         this.response.tenantId = toTenantId(tenantId || 'test-tenant');
         this.response.config = new TenantConfigBuilder(tenantId).build();
         this.response.domains = [toTenantDomainName('localhost')];
-        this.response.primaryDomain = toTenantDomainName('localhost');
     }
 
-    withTenantId(tenantId: TenantId | string): this {
+    withTenantId(tenantId: string): this {
         this.response.tenantId = toTenantId(tenantId);
         return this;
     }
@@ -25,11 +24,6 @@ export class TenantSettingsResponseBuilder {
 
     withDomains(domains: Array<TenantDomainName | string>): this {
         this.response.domains = domains.map(d => toTenantDomainName(d));
-        return this;
-    }
-
-    withPrimaryDomain(domain: TenantDomainName | string): this {
-        this.response.primaryDomain = toTenantDomainName(domain);
         return this;
     }
 

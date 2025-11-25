@@ -107,6 +107,17 @@ const generateUserStyleDisplayName = (): string => {
     return parts.join(' ');
 };
 
+const assertNoCacheHeaders = (endpoint:string, headers: Headers) => {
+    const cacheControl = headers.get('cache-control');
+    if (!cacheControl || !cacheControl.includes('no-store')) {
+        throw new Error(
+            `API endpoint ${endpoint} must have Cache-Control: no-store header. ` +
+            `Got: ${cacheControl || '(none)'}. ` +
+            `This prevents stale data from being served after updates.`,
+        );
+    }
+};
+
 const config = getFirebaseEmulatorConfig();
 const FIREBASE_API_KEY = config.firebaseApiKey;
 const FIREBASE_AUTH_URL = `http://localhost:${config.authPort}`;
@@ -296,7 +307,7 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return await this.apiRequest('/groups/join', 'POST', { shareToken, groupDisplayName: displayName }, token);
     }
 
-    async previewGroupByLink(shareToken: ShareLinkToken, token?: AuthToken): Promise<PreviewGroupResponse> {
+    async previewGroupByLink(shareToken: ShareLinkToken, token: AuthToken): Promise<PreviewGroupResponse> {
         return await this.apiRequest('/groups/preview', 'POST', { shareToken }, token);
     }
 
@@ -443,7 +454,7 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
     }
 
     async getCurrentPolicy(policyId: PolicyId): Promise<CurrentPolicyResponse> {
-        return await this.apiRequest(`/policies/${policyId}/current`, 'GET', null, null);
+        return await this.apiRequest(`/policies/${policyId}/current`, 'GET', null);
     }
 
     async acceptMultiplePolicies(acceptances: AcceptPolicyRequest[], token: AuthToken): Promise<AcceptMultiplePoliciesResponse> {
@@ -512,35 +523,48 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
     /**
      * Update user account status (admin-only)
      */
-    async updateUser(uid: UserId, updates: UpdateUserStatusRequest, token?: AuthToken): Promise<AdminUserProfile> {
-        return await this.apiRequest(`/admin/users/${uid}`, 'PUT', updates, token || null) as AdminUserProfile;
+    async updateUser(uid: UserId, updates: UpdateUserStatusRequest, token: AuthToken): Promise<AdminUserProfile> {
+        return await this.apiRequest(`/admin/users/${uid}`, 'PUT', updates, token) as AdminUserProfile;
     }
 
     /**
      * Update user role (admin-only)
      */
-    async updateUserRole(uid: UserId, updates: UpdateUserRoleRequest, token?: AuthToken): Promise<AdminUserProfile> {
-        return await this.apiRequest(`/admin/users/${uid}/role`, 'PUT', updates, token || null) as AdminUserProfile;
+    async updateUserRole(uid: UserId, updates: UpdateUserRoleRequest, token: AuthToken): Promise<AdminUserProfile> {
+        return await this.apiRequest(`/admin/users/${uid}/role`, 'PUT', updates, token) as AdminUserProfile;
     }
 
-    private async apiRequest(endpoint: string, method: string = 'POST', body: unknown = null, token: string | null = null): Promise<any> {
+    private async apiRequest(
+        endpoint: string,
+        method: string = 'POST',
+        body: unknown = null,
+        token: string | null = null,
+        options = {
+            /** by default - authenticated responses should not be cached */
+            assertHeaders: (endpoint:string, headers: Headers) => token && assertNoCacheHeaders(endpoint, headers)
+        }
+    ): Promise<any> {
         const url = `${this.baseUrl}${endpoint}`;
-        const options: RequestInit = {
+        const fetchOptions: RequestInit = {
             method,
             headers: {
                 'Content-Type': 'application/json',
                 Accept: 'application/x-serialized-json',
-                Host: 'localhost',
+                Host: 'localhost',// todo: extract this from the url if it's important
                 ...(token && { Authorization: `Bearer ${token}` }),
             },
         };
 
         if (body && method !== 'GET') {
-            options.body = JSON.stringify(body);
+            fetchOptions.body = JSON.stringify(body);
         }
 
         try {
-            const response = await fetch(url, options);
+            const response = await fetch(url, fetchOptions);
+
+            // Assert response headers
+            options.assertHeaders(endpoint, response.headers);
+
             if (!response.ok) {
                 const errorText = await response.text();
                 let parsedError: unknown = errorText;
@@ -643,19 +667,19 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
 
     // ===== ADMIN API: POLICY MANAGEMENT =====
 
-    async createPolicy(request: CreatePolicyRequest, token?: AuthToken): Promise<CreatePolicyResponse> {
-        return await this.apiRequest('/admin/policies', 'POST', request, token || null) as CreatePolicyResponse;
+    async createPolicy(request: CreatePolicyRequest, token: AuthToken): Promise<CreatePolicyResponse> {
+        return await this.apiRequest('/admin/policies', 'POST', request, token) as CreatePolicyResponse;
     }
 
     async listPolicies(token?: AuthToken): Promise<ListPoliciesResponse> {
-        return await this.apiRequest('/admin/policies', 'GET', null, token || null) as ListPoliciesResponse;
+        return await this.apiRequest('/admin/policies', 'GET', null, token) as ListPoliciesResponse;
     }
 
     /**
      * Helper method to get a single policy by ID with all its versions.
      * Not part of the AdminAPI interface - used internally by tests/scripts.
      */
-    async getPolicy(policyId: PolicyId, token?: AuthToken): Promise<PolicyDTO> {
+    async getPolicy(policyId: PolicyId, token: AuthToken): Promise<PolicyDTO> {
         const response = await this.listPolicies(token);
         const policy = response.policies.find(p => p.id === policyId);
         if (!policy) {
@@ -664,46 +688,46 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return policy;
     }
 
-    async getPolicyVersion(policyId: PolicyId, versionHash: VersionHash, token?: AuthToken): Promise<PolicyVersion & { versionHash: VersionHash; }> {
-        return await this.apiRequest(`/admin/policies/${policyId}/versions/${versionHash}`, 'GET', null, token || null) as PolicyVersion & { versionHash: VersionHash; };
+    async getPolicyVersion(policyId: PolicyId, versionHash: VersionHash, token: AuthToken): Promise<PolicyVersion & { versionHash: VersionHash; }> {
+        return await this.apiRequest(`/admin/policies/${policyId}/versions/${versionHash}`, 'GET', null, token) as PolicyVersion & { versionHash: VersionHash; };
     }
 
-    async updatePolicy(policyId: PolicyId, request: UpdatePolicyRequest, token?: AuthToken): Promise<UpdatePolicyResponse> {
-        return await this.apiRequest(`/admin/policies/${policyId}`, 'PUT', request, token || null) as UpdatePolicyResponse;
+    async updatePolicy(policyId: PolicyId, request: UpdatePolicyRequest, token: AuthToken): Promise<UpdatePolicyResponse> {
+        return await this.apiRequest(`/admin/policies/${policyId}`, 'PUT', request, token) as UpdatePolicyResponse;
     }
 
-    async publishPolicy(policyId: PolicyId, versionHash: VersionHash, token?: AuthToken): Promise<PublishPolicyResponse> {
-        return await this.apiRequest(`/admin/policies/${policyId}/publish`, 'POST', { versionHash }, token || null) as PublishPolicyResponse;
+    async publishPolicy(policyId: PolicyId, versionHash: VersionHash, token: AuthToken): Promise<PublishPolicyResponse> {
+        return await this.apiRequest(`/admin/policies/${policyId}/publish`, 'POST', { versionHash }, token) as PublishPolicyResponse;
     }
 
-    async deletePolicyVersion(policyId: PolicyId, versionHash: VersionHash, token?: AuthToken): Promise<DeletePolicyVersionResponse> {
-        return await this.apiRequest(`/admin/policies/${policyId}/versions/${versionHash}`, 'DELETE', null, token || null) as DeletePolicyVersionResponse;
+    async deletePolicyVersion(policyId: PolicyId, versionHash: VersionHash, token: AuthToken): Promise<DeletePolicyVersionResponse> {
+        return await this.apiRequest(`/admin/policies/${policyId}/versions/${versionHash}`, 'DELETE', null, token) as DeletePolicyVersionResponse;
     }
 
     // ===== ADMIN API: USER/TENANT BROWSING =====
 
-    async listAuthUsers(options: ListAuthUsersOptions, token?: AuthToken): Promise<ListAuthUsersResponse> {
+    async listAuthUsers(options: ListAuthUsersOptions, token: AuthToken): Promise<ListAuthUsersResponse> {
         const query = `?${new URLSearchParams(options as any).toString()}`;
-        return await this.apiRequest(`/admin/browser/users/auth${query}`, 'GET', null, token || null) as ListAuthUsersResponse;
+        return await this.apiRequest(`/admin/browser/users/auth${query}`, 'GET', null, token) as ListAuthUsersResponse;
     }
 
-    async listFirestoreUsers(options: ListFirestoreUsersOptions, token?: AuthToken): Promise<ListFirestoreUsersResponse> {
+    async listFirestoreUsers(options: ListFirestoreUsersOptions, token: AuthToken): Promise<ListFirestoreUsersResponse> {
         const query = `?${new URLSearchParams(options as any).toString()}`;
-        return await this.apiRequest(`/admin/browser/users/firestore${query}`, 'GET', null, token || null) as ListFirestoreUsersResponse;
+        return await this.apiRequest(`/admin/browser/users/firestore${query}`, 'GET', null, token) as ListFirestoreUsersResponse;
     }
 
     async listAllTenants(token?: AuthToken): Promise<ListAllTenantsResponse> {
-        return await this.apiRequest('/admin/browser/tenants', 'GET', null, token || null) as ListAllTenantsResponse;
+        return await this.apiRequest('/admin/browser/tenants', 'GET', null, token) as ListAllTenantsResponse;
     }
 
     // ===== ADMIN API: TENANT MANAGEMENT =====
 
-    async adminUpsertTenant(request: AdminUpsertTenantRequest, token?: AuthToken): Promise<AdminUpsertTenantResponse> {
-        return await this.apiRequest('/admin/tenants', 'POST', request, token || null) as AdminUpsertTenantResponse;
+    async adminUpsertTenant(request: AdminUpsertTenantRequest, token: AuthToken): Promise<AdminUpsertTenantResponse> {
+        return await this.apiRequest('/admin/tenants', 'POST', request, token) as AdminUpsertTenantResponse;
     }
 
-    async publishTenantTheme(request: PublishTenantThemeRequest, token?: AuthToken): Promise<PublishTenantThemeResponse> {
-        return await this.apiRequest('/admin/tenants/publish', 'POST', request, token || null) as PublishTenantThemeResponse;
+    async publishTenantTheme(request: PublishTenantThemeRequest, token: AuthToken): Promise<PublishTenantThemeResponse> {
+        return await this.apiRequest('/admin/tenants/publish', 'POST', request, token) as PublishTenantThemeResponse;
     }
 
     async uploadTenantImage(tenantId: string, assetType: 'logo' | 'favicon', file: File | Buffer, contentType: string, token?: AuthToken): Promise<{ url: string; }> {
@@ -741,19 +765,19 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
     // ===== ADMIN API: TENANT SETTINGS =====
 
     async getTenantSettings(token?: AuthToken): Promise<TenantSettingsResponse> {
-        return await this.apiRequest('/settings/tenant', 'GET', null, token || null) as TenantSettingsResponse;
+        return await this.apiRequest('/settings/tenant', 'GET', null, token) as TenantSettingsResponse;
     }
 
-    async updateTenantBranding(request: UpdateTenantBrandingRequest, token?: AuthToken): Promise<MessageResponse> {
-        return await this.apiRequest('/settings/tenant/branding', 'PUT', request, token || null) as MessageResponse;
+    async updateTenantBranding(request: UpdateTenantBrandingRequest, token: AuthToken): Promise<MessageResponse> {
+        return await this.apiRequest('/settings/tenant/branding', 'PUT', request, token) as MessageResponse;
     }
 
     async getTenantDomains(token?: AuthToken): Promise<TenantDomainsResponse> {
-        return await this.apiRequest('/settings/tenant/domains', 'GET', null, token || null) as TenantDomainsResponse;
+        return await this.apiRequest('/settings/tenant/domains', 'GET', null, token) as TenantDomainsResponse;
     }
 
-    async addTenantDomain(request: AddTenantDomainRequest, token?: AuthToken): Promise<MessageResponse> {
-        return await this.apiRequest('/settings/tenant/domains', 'POST', request, token || null) as MessageResponse;
+    async addTenantDomain(request: AddTenantDomainRequest, token: AuthToken): Promise<MessageResponse> {
+        return await this.apiRequest('/settings/tenant/domains', 'POST', request, token) as MessageResponse;
     }
 
     async fetchThemeCss(options?: { tenantId?: string; version?: string; }): Promise<{ status: number; css: string; headers: Headers; }> {

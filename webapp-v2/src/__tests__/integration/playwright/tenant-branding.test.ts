@@ -30,7 +30,6 @@ const mockTenantSettings: TenantSettingsResponse = new TenantSettingsResponseBui
             .withUpdatedAt('2025-01-01T00:00:00.000Z'),
     )
     .withDomains(['localhost'])
-    .withPrimaryDomain('localhost')
     .build();
 
 test.describe('Tenant Branding Page - Access Control', () => {

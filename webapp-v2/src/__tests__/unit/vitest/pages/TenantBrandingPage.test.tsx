@@ -60,7 +60,6 @@ const mockTenantSettings: TenantSettingsResponse = {
         updatedAt: '2025-01-01T00:00:00.000Z' as any,
     },
     domains: ['localhost' as any],
-    primaryDomain: 'localhost' as any,
 };
 
 const mockTenantAdminUser = {

@@ -425,14 +425,14 @@ test.describe('Settings Page - UI Elements and Layout', () => {
         // 2. Verify profile information section header (use role for specificity)
         await expect(page.getByRole('heading', { name: 'Profile Information' })).toBeVisible();
 
-        // 3. Verify profile information subheader
-        await expect(page.getByText('Update the details other members see across Demo Expenses.')).toBeVisible();
+        // 3. Verify profile information subheader (use regex to match any app name)
+        await expect(page.getByText(/Update the details other members see across/)).toBeVisible();
 
         // 4. Verify password section header
         await expect(page.getByRole('heading', { name: 'Password' })).toBeVisible();
 
-        // 5. Verify password intro text
-        await expect(page.getByText('Set a strong password to keep your Demo Expenses account secure.')).toBeVisible();
+        // 5. Verify password intro text (use regex to match any app name)
+        await expect(page.getByText(/Set a strong password to keep your .* account secure/)).toBeVisible();
     });
 
     test('should display page hero label', async ({ authenticatedPage }) => {

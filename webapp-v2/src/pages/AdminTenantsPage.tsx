@@ -43,16 +43,18 @@ export function AdminTenantsPage() {
         loadTenants();
     }, [isSystemAdmin, isAuthLoading]);
 
-    const loadTenants = async () => {
+    const loadTenants = async (): Promise<TenantBrowserRecord[]> => {
         setIsLoading(true);
         setError(null);
 
         try {
             const response = await apiClient.listAllTenants();
             setTenants(response.tenants);
+            return response.tenants;
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to load tenants');
             logError('Failed to load tenants', err);
+            return [];
         } finally {
             setIsLoading(false);
         }
@@ -80,9 +82,20 @@ export function AdminTenantsPage() {
         setSelectedTenant(null);
     };
 
-    const handleModalSave = () => {
+    const handleModalSave = async () => {
+        const tenantIdBeforeSave = selectedTenant?.tenant.tenantId;
+
         // Refresh tenant list after save
-        loadTenants();
+        const refreshedTenants = await loadTenants();
+
+        // CRITICAL: Update selectedTenant reference to point to the refreshed tenant data from the reloaded list
+        // Without this, the modal would show stale data if reopened because React state holds old object reference
+        if (tenantIdBeforeSave) {
+            const updatedTenant = refreshedTenants.find(t => t.tenant.tenantId === tenantIdBeforeSave);
+            if (updatedTenant) {
+                setSelectedTenant(updatedTenant);
+            }
+        }
     };
 
     if (!isSystemAdmin) {
@@ -152,21 +165,10 @@ export function AdminTenantsPage() {
                                                             <span class='text-slate-400'>Tenant ID:</span> <span class='font-mono text-slate-200'>{tenant.tenant.tenantId}</span>
                                                         </div>
 
-                                                        {tenant.primaryDomain && (
-                                                            <div>
-                                                                <span class='text-slate-400'>Primary Domain:</span>{' '}
-                                                                <Clickable
-                                                                    onClick={() => handleSwitchTenant(tenant.primaryDomain!)}
-                                                                    className='font-mono text-blue-400 hover:text-blue-300 hover:underline cursor-pointer'
-                                                                    title='Click to switch to this tenant'
-                                                                    aria-label={`Switch to tenant ${tenant.primaryDomain}`}
-                                                                    eventName='admin_switch_tenant'
-                                                                    eventProps={{ domain: tenant.primaryDomain }}
-                                                                >
-                                                                    {tenant.primaryDomain}
-                                                                </Clickable>
-                                                            </div>
-                                                        )}
+                                                        <div>
+                                                            <span class='text-slate-400'>Primary Domain:</span>{' '}
+                                                            <span class='font-mono text-slate-200'>{tenant.domains[0] || 'None'}</span>
+                                                        </div>
 
                                                         {tenant.domains.length > 0 && (
                                                             <div>

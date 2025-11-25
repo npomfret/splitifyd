@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { areDisplayNamesEquivalent, normalizeDisplayNameForComparison } from '../base58-normalization';
+import { areDisplayNamesEquivalent, normalizeDisplayNameForComparison } from '../../base58-normalization';
 
 describe('normalizeDisplayNameForComparison', () => {
     it('should convert to lowercase', () => {

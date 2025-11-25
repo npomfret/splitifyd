@@ -47,7 +47,6 @@ describe('getEnhancedConfigResponse', () => {
             tenantId: sourceTenant.tenantId,
             config: sourceTenant,
             domains: [],
-            primaryDomain: null,
             isDefault: toTenantDefaultFlag(false),
             source: 'override',
         };
@@ -90,7 +89,6 @@ describe('getEnhancedConfigResponse', () => {
             tenantId: tenant.tenantId,
             config: tenant,
             domains: [],
-            primaryDomain: null,
             isDefault: toTenantDefaultFlag(false),
             source: 'domain',
             themeArtifact: {
@@ -129,7 +127,6 @@ describe('getEnhancedConfigResponse', () => {
             tenantId: tenantWithoutMarketingFlags.tenantId,
             config: tenantWithoutMarketingFlags,
             domains: [],
-            primaryDomain: null,
             isDefault: toTenantDefaultFlag(false),
             source: 'override',
         };

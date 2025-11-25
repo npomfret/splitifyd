@@ -303,7 +303,6 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
                 tenantId: tenantRecord.tenantId,
                 config: tenantRecord.config,
                 domains: tenantRecord.domains,
-                primaryDomain: tenantRecord.primaryDomain,
             });
         } catch (error) {
             logger.error('Failed to get tenant settings', error);
@@ -398,7 +397,6 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
 
             res.json({
                 domains: tenantRecord.domains,
-                primaryDomain: tenantRecord.primaryDomain,
             });
         } catch (error) {
             logger.error('Failed to list tenant domains', error);

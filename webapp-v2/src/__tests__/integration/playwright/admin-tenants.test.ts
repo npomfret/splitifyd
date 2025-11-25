@@ -195,7 +195,6 @@ test.describe('Admin Tenants Page - System Admin View', () => {
         expect(tenantData).toHaveProperty('appName');
         expect(tenantData).toHaveProperty('tenantId');
         expect(tenantData).toHaveProperty('isDefault');
-        expect(tenantData).toHaveProperty('primaryDomain');
 
         // Verify data types
         expect(typeof tenantData.appName).toBe('string');

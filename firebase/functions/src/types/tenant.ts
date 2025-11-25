@@ -6,7 +6,6 @@ export interface TenantRequestContext {
     tenantId: TenantId;
     config: TenantConfig;
     domains: TenantDomainName[];
-    primaryDomain: TenantDomainName | null;
     isDefault: TenantDefaultFlag;
     source: TenantResolutionSource;
     themeArtifact?: BrandingArtifactMetadata | null;

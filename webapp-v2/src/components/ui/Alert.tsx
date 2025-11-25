@@ -8,9 +8,10 @@ interface AlertProps {
     message: string;
     dismissible?: boolean;
     onDismiss?: () => void;
+    'data-testid'?: string;
 }
 
-export function Alert({ type, title, message, dismissible = false, onDismiss }: AlertProps) {
+export function Alert({ type, title, message, dismissible = false, onDismiss, 'data-testid': testId }: AlertProps) {
     const { t } = useTranslation();
     const [isVisible, setIsVisible] = useState(true);
 
@@ -79,7 +80,7 @@ export function Alert({ type, title, message, dismissible = false, onDismiss }: 
     const styles = typeStyles[type];
 
     return (
-        <div className={`${styles.bg} ${styles.border} ${styles.text} border rounded-lg p-4`} role='alert'>
+        <div className={`${styles.bg} ${styles.border} ${styles.text} border rounded-lg p-4`} role='alert' data-testid={testId}>
             <div className='flex items-start'>
                 {styles.icon}
                 <div className='flex-1'>

@@ -1,7 +1,7 @@
 import { toEmail, toPassword, toPolicyId, toPolicyName, toPolicyText, toVersionHash } from '@billsplit-wl/shared';
 import type { UserId } from '@billsplit-wl/shared';
 import { PasswordChangeRequestBuilder, RegisterRequestBuilder, UserUpdateBuilder } from '@billsplit-wl/test-support';
-import { afterEach, beforeEach, describe, it } from 'vitest';
+import { afterEach, beforeEach, describe, it, vi } from 'vitest';
 import { AppDriver } from '../AppDriver';
 
 describe('user, policy and notification tests', () => {
@@ -159,6 +159,28 @@ describe('user, policy and notification tests', () => {
 
                 const status = await appDriver.getUserPolicyStatus(user1);
                 expect(status.policies[0].userAcceptedHash).toBeUndefined();
+            });
+
+            it('should propagate error when Firestore write fails', async () => {
+                const policy1 = await appDriver.createPolicy({
+                    policyName: toPolicyName('Terms Of Service'),
+                    text: toPolicyText('Terms of Service v1'),
+                }, adminUser);
+
+                const firestoreWriter = appDriver.componentBuilder.buildFirestoreWriter();
+                const updateUserSpy = vi.spyOn(firestoreWriter, 'updateUser').mockRejectedValueOnce(
+                    new Error('Firestore write failed'),
+                );
+
+                await expect(
+                    appDriver.acceptMultiplePolicies([
+                        { policyId: policy1.id, versionHash: policy1.versionHash },
+                    ], user1),
+                )
+                    .rejects
+                    .toMatchObject({ code: 'POLICIES_ACCEPT_FAILED' });
+
+                updateUserSpy.mockRestore();
             });
         });
 

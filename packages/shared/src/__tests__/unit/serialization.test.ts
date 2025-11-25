@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, it } from 'vitest';
-import { ApiSerializer, type SerializableDefinition } from '../api/serialization';
+import { ApiSerializer, type SerializableDefinition } from '../../api/serialization';
 
 describe('ApiSerializer', () => {
     it('serializes data to JSON and preserves values', () => {

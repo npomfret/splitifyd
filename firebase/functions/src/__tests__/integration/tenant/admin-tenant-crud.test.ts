@@ -1,5 +1,5 @@
 import type { PooledTestUser } from '@billsplit-wl/shared';
-import { toTenantAccentColor, toTenantAppName, toTenantDomainName, toTenantFaviconUrl, toTenantLogoUrl, toTenantPrimaryColor, toTenantSecondaryColor } from '@billsplit-wl/shared';
+import { toTenantAccentColor, toTenantAppName, toTenantBackgroundColor, toTenantCustomCss, toTenantDomainName, toTenantFaviconUrl, toTenantHeaderBackgroundColor, toTenantLogoUrl, toTenantPrimaryColor, toTenantSecondaryColor, toTenantThemePaletteName } from '@billsplit-wl/shared';
 import { AdminTenantRequestBuilder, ApiDriver } from '@billsplit-wl/test-support';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { FirestoreCollections } from '../../../constants';
@@ -209,6 +209,91 @@ describe('Admin tenant CRUD operations', () => {
             expect(tenantData?.branding?.appName).toBe('Updated Name');
             expect(tenantData?.branding?.logoUrl).toBe('/logo-new.svg');
             expect(tenantData?.branding?.primaryColor).toBe('#0000ff');
+        });
+
+        it('should complete load/save/load cycle with EVERY field', async () => {
+            const tenantId = `tenant-round-trip-${Date.now()}`;
+            const domain = `${tenantId}.local`;
+
+            // Create initial tenant with all fields
+            await apiDriver.adminUpsertTenant(
+                AdminTenantRequestBuilder
+                    .forTenant(tenantId)
+                    .withAppName('Test Tenant')
+                    .withBranding({
+                        appName: toTenantAppName('Test Tenant'),
+                        logoUrl: toTenantLogoUrl('/logo.svg'),
+                        faviconUrl: toTenantFaviconUrl('/favicon.ico'),
+                        primaryColor: toTenantPrimaryColor('#3B82F6'),
+                        secondaryColor: toTenantSecondaryColor('#8B5CF6'),
+                        accentColor: toTenantAccentColor('#EC4899'),
+                        backgroundColor: toTenantBackgroundColor('#ffffff'),
+                        headerBackgroundColor: toTenantHeaderBackgroundColor('#1F2937'),
+                        themePalette: toTenantThemePaletteName('default'),
+                        customCSS: toTenantCustomCss('/* initial */'),
+                        marketingFlags: {
+                            showLandingPage: true,
+                            showMarketingContent: true,
+                            showPricingPage: false,
+                        },
+                    })
+                    .withDomains([domain])
+                    .build(),
+                adminUser.token,
+            );
+
+            // Load via list API
+            const listResult1 = await apiDriver.listAllTenants(adminUser.token);
+            const tenant1 = listResult1.tenants.find((t: any) => t.tenant.tenantId === tenantId);
+            expect(tenant1?.tenant.branding.appName).toBe('Test Tenant');
+
+            // Update tenant with EVERY field changed
+            await apiDriver.adminUpsertTenant(
+                AdminTenantRequestBuilder
+                    .forTenant(tenantId)
+                    .withAppName('Updated Test App')
+                    .withBranding({
+                        appName: toTenantAppName('Updated Test App'),
+                        logoUrl: toTenantLogoUrl('/updated-logo.svg'),
+                        faviconUrl: toTenantFaviconUrl('/updated-favicon.ico'),
+                        primaryColor: toTenantPrimaryColor('#aa11bb'),
+                        secondaryColor: toTenantSecondaryColor('#bb22cc'),
+                        accentColor: toTenantAccentColor('#cc33dd'),
+                        backgroundColor: toTenantBackgroundColor('#dddddd'),
+                        headerBackgroundColor: toTenantHeaderBackgroundColor('#111111'),
+                        themePalette: toTenantThemePaletteName('test-palette'),
+                        customCSS: toTenantCustomCss('/* updated css */'),
+                        marketingFlags: {
+                            showLandingPage: false,
+                            showMarketingContent: false,
+                            showPricingPage: true,
+                        },
+                    })
+                    .withDomains([domain])
+                    .build(),
+                adminUser.token,
+            );
+
+            // Load again via list API - verify EVERY field updated
+            const listResult2 = await apiDriver.listAllTenants(adminUser.token);
+            const tenant2 = listResult2.tenants.find((t: any) => t.tenant.tenantId === tenantId);
+
+            // Verify ALL branding fields
+            expect(tenant2?.tenant.branding.appName).toBe('Updated Test App');
+            expect(tenant2?.tenant.branding.logoUrl).toBe('/updated-logo.svg');
+            expect(tenant2?.tenant.branding.faviconUrl).toBe('/updated-favicon.ico');
+            expect(tenant2?.tenant.branding.primaryColor).toBe('#aa11bb');
+            expect(tenant2?.tenant.branding.secondaryColor).toBe('#bb22cc');
+            expect(tenant2?.tenant.branding.accentColor).toBe('#cc33dd');
+            expect(tenant2?.tenant.branding.backgroundColor).toBe('#dddddd');
+            expect(tenant2?.tenant.branding.headerBackgroundColor).toBe('#111111');
+            expect(tenant2?.tenant.branding.themePalette).toBe('test-palette');
+            expect(tenant2?.tenant.branding.customCSS).toBe('/* updated css */');
+
+            // Verify ALL marketing flags
+            expect(tenant2?.tenant.branding.marketingFlags?.showLandingPage).toBe(false);
+            expect(tenant2?.tenant.branding.marketingFlags?.showMarketingContent).toBe(false);
+            expect(tenant2?.tenant.branding.marketingFlags?.showPricingPage).toBe(true);
         });
 
         it('should update tenant domains', async () => {

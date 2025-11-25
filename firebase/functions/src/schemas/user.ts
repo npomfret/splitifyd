@@ -30,7 +30,7 @@ const UserDocumentIdSchema = z.object({
  * Create Document schema with strongly-typed ID
  * Apply .strip() to handle legacy fields (like removed 'themeColor' and 'displayName') for backward compatibility
  */
-const UserDocumentSchema = BaseUserSchema.merge(UserDocumentIdSchema).strict().strip();
+const UserDocumentSchema = BaseUserSchema.merge(UserDocumentIdSchema).strip();
 
 /**
  * Zod schema for User document validation

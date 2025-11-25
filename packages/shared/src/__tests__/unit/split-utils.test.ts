@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { USD } from '../currencies';
-import { type CurrencyISOCode, toAmount, toCurrencyISOCode, toUserId } from '../shared-types';
-import { amountToSmallestUnit, calculateEqualSplits, calculateExactSplits, calculatePercentageSplits, getCurrencyDecimals, roundToCurrencyPrecision } from '../split-utils';
+import { USD } from '../../currencies';
+import { type CurrencyISOCode, toAmount, toCurrencyISOCode, toUserId } from '../../shared-types';
+import { amountToSmallestUnit, calculateEqualSplits, calculateExactSplits, calculatePercentageSplits, getCurrencyDecimals, roundToCurrencyPrecision } from '../../split-utils';
 
 const amountFor = (value: number | string, currency: CurrencyISOCode): string => roundToCurrencyPrecision(toAmount(value), currency);
 const sumSplitAmounts = (splits: Array<{ amount: string; }>): number => splits.reduce((sum, split) => sum + Number(split.amount), 0);

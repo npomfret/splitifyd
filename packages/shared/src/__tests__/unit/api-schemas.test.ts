@@ -1,0 +1,656 @@
+import {
+    ActivityFeedItemSchema,
+    ActivityFeedResponseSchema,
+    AdminTenantItemSchema,
+    AdminTenantsListResponseSchema,
+    AdminUserProfileSchema,
+    ApiErrorResponseSchema,
+    AppConfigurationSchema,
+    BalanceDisplaySchema,
+    CurrencyBalanceDisplaySchema,
+    ExpenseSplitSchema,
+    ListAuthUsersResponseSchema,
+    SimplifiedDebtSchema,
+    TenantDomainsResponseSchema,
+    TenantSettingsResponseSchema,
+} from '@billsplit-wl/shared';
+import { describe, expect, it } from 'vitest';
+
+/**
+ * API Schema Validation Tests
+ *
+ * These tests verify that the Zod schemas include ALL fields that the backend
+ * returns and the UI expects. This catches bugs where:
+ * - Backend stores and returns a field
+ * - But the Zod schema doesn't include it
+ * - So the field gets stripped during schema validation
+ * - And the UI receives undefined
+ *
+ * Every schema exported from apiSchemas.ts must have comprehensive tests here.
+ */
+
+describe('API Schema Validation', () => {
+    describe('AppConfigurationSchema', () => {
+        it('should validate complete app configuration with all optional fields', () => {
+            const config = {
+                firebase: {
+                    apiKey: 'test-api-key',
+                    authDomain: 'test.firebaseapp.com',
+                    projectId: 'test-project',
+                    storageBucket: 'test.appspot.com',
+                    messagingSenderId: '123456789',
+                    appId: '1:123:web:abc',
+                    measurementId: 'G-ABC123',
+                },
+                environment: {
+                    warningBanner: 'Test environment',
+                },
+                formDefaults: {
+                    displayName: 'Test User',
+                    email: 'test@example.com',
+                    password: 'testpass123',
+                },
+                firebaseAuthUrl: 'http://localhost:9099',
+                firebaseFirestoreUrl: 'http://localhost:8080',
+            };
+
+            const result = AppConfigurationSchema.parse(config);
+
+            expect(result.firebase.apiKey).toBe('test-api-key');
+            expect(result.firebase.authDomain).toBe('test.firebaseapp.com');
+            expect(result.firebase.projectId).toBe('test-project');
+            expect(result.firebase.storageBucket).toBe('test.appspot.com');
+            expect(result.firebase.messagingSenderId).toBe('123456789');
+            expect(result.firebase.appId).toBe('1:123:web:abc');
+            expect(result.firebase.measurementId).toBe('G-ABC123');
+            expect(result.environment.warningBanner).toBe('Test environment');
+            expect(result.formDefaults.displayName).toBe('Test User');
+            expect(result.formDefaults.email).toBe('test@example.com');
+            expect(result.formDefaults.password).toBe('testpass123');
+            expect(result.firebaseAuthUrl).toBe('http://localhost:9099');
+            expect(result.firebaseFirestoreUrl).toBe('http://localhost:8080');
+        });
+
+        it('should validate minimal app configuration without optional fields', () => {
+            const config = {
+                firebase: {
+                    apiKey: 'test-api-key',
+                    authDomain: 'test.firebaseapp.com',
+                    projectId: 'test-project',
+                    storageBucket: 'test.appspot.com',
+                    messagingSenderId: '123456789',
+                    appId: '1:123:web:abc',
+                },
+                environment: {},
+                formDefaults: {},
+            };
+
+            const result = AppConfigurationSchema.parse(config);
+
+            expect(result.firebase.apiKey).toBe('test-api-key');
+            expect(result.environment.warningBanner).toBeUndefined();
+            expect(result.formDefaults.displayName).toBeUndefined();
+        });
+    });
+
+    describe('ExpenseSplitSchema', () => {
+        it('should validate expense split with all fields', () => {
+            const split = {
+                uid: 'user123',
+                amount: '150.50',
+                percentage: 33.33,
+                userName: 'John Doe',
+            };
+
+            const result = ExpenseSplitSchema.parse(split);
+
+            expect(result.uid).toBe('user123');
+            expect(result.amount).toBe('150.50');
+            expect(result.percentage).toBe(33.33);
+            expect(result.userName).toBe('John Doe');
+        });
+
+        it('should validate expense split without optional fields', () => {
+            const split = {
+                uid: 'user123',
+                amount: '150.50',
+            };
+
+            const result = ExpenseSplitSchema.parse(split);
+
+            expect(result.uid).toBe('user123');
+            expect(result.amount).toBe('150.50');
+            expect(result.percentage).toBeUndefined();
+            expect(result.userName).toBeUndefined();
+        });
+    });
+
+    describe('SimplifiedDebtSchema', () => {
+        it('should validate simplified debt with all required fields', () => {
+            const debt = {
+                from: { uid: 'user1' },
+                to: { uid: 'user2' },
+                amount: '50.00',
+                currency: 'USD',
+            };
+
+            const result = SimplifiedDebtSchema.parse(debt);
+
+            expect(result.from.uid).toBe('user1');
+            expect(result.to.uid).toBe('user2');
+            expect(result.amount).toBe('50.00');
+            expect(result.currency).toBe('USD');
+        });
+
+        it('should reject invalid currency codes', () => {
+            const debt = {
+                from: { uid: 'user1' },
+                to: { uid: 'user2' },
+                amount: '50.00',
+                currency: 'US', // Invalid - must be 3 chars
+            };
+
+            expect(() => SimplifiedDebtSchema.parse(debt)).toThrow();
+        });
+    });
+
+    describe('ApiErrorResponseSchema', () => {
+        it('should validate structured error format', () => {
+            const error = {
+                error: {
+                    code: 'VALIDATION_ERROR',
+                    message: 'Invalid input',
+                    details: { field: 'email' },
+                },
+            };
+
+            const result = ApiErrorResponseSchema.parse(error);
+
+            expect(result).toBeDefined();
+        });
+
+        it('should validate simple error format', () => {
+            const error = {
+                error: 'Something went wrong',
+                field: 'email',
+            };
+
+            const result = ApiErrorResponseSchema.parse(error);
+
+            expect(result).toBeDefined();
+        });
+
+        it('should validate simple error format without optional field', () => {
+            const error = {
+                error: 'Something went wrong',
+            };
+
+            const result = ApiErrorResponseSchema.parse(error);
+
+            expect(result).toBeDefined();
+        });
+    });
+
+    describe('AdminUserProfileSchema', () => {
+        it('should validate complete admin user profile with all fields', () => {
+            const profile = {
+                uid: 'user123',
+                email: 'admin@example.com',
+                emailVerified: true,
+                displayName: 'Admin User',
+                photoURL: 'https://example.com/photo.jpg',
+                role: 'system_admin' as const,
+                disabled: false,
+                metadata: {
+                    creationTime: '2024-01-01T00:00:00.000Z',
+                    lastSignInTime: '2024-01-15T10:30:00.000Z',
+                },
+                createdAt: '2024-01-01T00:00:00.000Z',
+                updatedAt: '2024-01-15T10:30:00.000Z',
+                preferredLanguage: 'en',
+                acceptedPolicies: {
+                    terms: 'v1.0',
+                    privacy: 'v1.0',
+                },
+            };
+
+            const result = AdminUserProfileSchema.parse(profile);
+
+            expect(result.email).toBe('admin@example.com');
+            expect(result.emailVerified).toBe(true);
+            expect(result.displayName).toBe('Admin User');
+            expect(result.photoURL).toBe('https://example.com/photo.jpg');
+            expect(result.role).toBe('system_admin' as const);
+            expect(result.disabled).toBe(false);
+            expect(result.metadata.creationTime).toBe('2024-01-01T00:00:00.000Z');
+            expect(result.metadata.lastSignInTime).toBe('2024-01-15T10:30:00.000Z');
+            expect(result.createdAt).toBe('2024-01-01T00:00:00.000Z');
+            expect(result.updatedAt).toBe('2024-01-15T10:30:00.000Z');
+            expect(result.preferredLanguage).toBe('en');
+            expect(result.acceptedPolicies).toEqual({ terms: 'v1.0', privacy: 'v1.0' });
+        });
+
+        it('should validate minimal admin user profile without optional fields', () => {
+            const profile = {
+                uid: 'user123',
+                email: 'admin@example.com',
+                emailVerified: false,
+                displayName: 'Admin User',
+                photoURL: null,
+                role: 'system_user' as const,
+                disabled: false,
+                metadata: {
+                    creationTime: '2024-01-01T00:00:00.000Z',
+                },
+            };
+
+            const result = AdminUserProfileSchema.parse(profile);
+
+            expect(result.email).toBe('admin@example.com');
+            expect(result.photoURL).toBeNull();
+            expect(result.metadata.lastSignInTime).toBeUndefined();
+            expect(result.createdAt).toBeUndefined();
+        });
+    });
+
+    describe('ListAuthUsersResponseSchema', () => {
+        it('should validate list of users with pagination', () => {
+            const response = {
+                users: [
+                    {
+                        uid: 'user1',
+                        email: 'user1@example.com',
+                        emailVerified: true,
+                        displayName: 'User One',
+                        photoURL: null,
+                        role: 'system_user' as const,
+                        disabled: false,
+                        metadata: {
+                            creationTime: '2024-01-01T00:00:00.000Z',
+                        },
+                    },
+                    {
+                        uid: 'user2',
+                        email: 'user2@example.com',
+                        emailVerified: false,
+                        displayName: 'User Two',
+                        photoURL: 'https://example.com/photo.jpg',
+                        role: 'system_admin' as const,
+                        disabled: false,
+                        metadata: {
+                            creationTime: '2024-01-02T00:00:00.000Z',
+                            lastSignInTime: '2024-01-15T12:00:00.000Z',
+                        },
+                    },
+                ],
+                nextPageToken: 'token123',
+                hasMore: true,
+            };
+
+            const result = ListAuthUsersResponseSchema.parse(response);
+
+            expect(result.users).toHaveLength(2);
+            expect(result.users[0].email).toBe('user1@example.com');
+            expect(result.users[1].email).toBe('user2@example.com');
+            expect(result.nextPageToken).toBe('token123');
+            expect(result.hasMore).toBe(true);
+        });
+
+        it('should validate empty users list', () => {
+            const response = {
+                users: [],
+                hasMore: false,
+            };
+
+            const result = ListAuthUsersResponseSchema.parse(response);
+
+            expect(result.users).toHaveLength(0);
+            expect(result.hasMore).toBe(false);
+            expect(result.nextPageToken).toBeUndefined();
+        });
+    });
+
+    describe('ActivityFeedItemSchema', () => {
+        it('should validate activity feed item with all detail fields', () => {
+            const item = {
+                id: 'activity123',
+                userId: 'user1',
+                groupId: 'group1',
+                groupName: 'Test Group',
+                eventType: 'expense-created',
+                action: 'create',
+                actorId: 'user2',
+                actorName: 'John Doe',
+                timestamp: '2024-01-15T10:30:00.000Z',
+                details: {
+                    expenseId: 'expense1',
+                    expenseDescription: 'Dinner',
+                    commentId: 'comment1',
+                    commentPreview: 'Great!',
+                    settlementId: 'settlement1',
+                    settlementDescription: 'Payment',
+                    targetUserId: 'user3',
+                    targetUserName: 'Jane Doe',
+                    previousGroupName: 'Old Group Name',
+                },
+                createdAt: '2024-01-15T10:30:00.000Z',
+            };
+
+            const result = ActivityFeedItemSchema.parse(item);
+
+            expect(result.id).toBe('activity123');
+            expect(result.groupName).toBe('Test Group');
+            expect(result.eventType).toBe('expense-created');
+            expect(result.action).toBe('create');
+            expect(result.actorName).toBe('John Doe');
+            expect(result.timestamp).toBe('2024-01-15T10:30:00.000Z');
+            expect(result.details.expenseId).toBe('expense1');
+            expect(result.details.expenseDescription).toBe('Dinner');
+            expect(result.details.commentId).toBe('comment1');
+            expect(result.details.commentPreview).toBe('Great!');
+            expect(result.details.settlementId).toBe('settlement1');
+            expect(result.details.targetUserId).toBe('user3');
+            expect(result.details.targetUserName).toBe('Jane Doe');
+            expect(result.details.previousGroupName).toBe('Old Group Name');
+            expect(result.createdAt).toBe('2024-01-15T10:30:00.000Z');
+        });
+
+        it('should validate activity feed item with minimal details', () => {
+            const item = {
+                id: 'activity123',
+                userId: 'user1',
+                groupId: 'group1',
+                groupName: 'Test Group',
+                eventType: 'member-joined',
+                action: 'join',
+                actorId: 'user2',
+                actorName: 'John Doe',
+                timestamp: '2024-01-15T10:30:00.000Z',
+                details: {},
+            };
+
+            const result = ActivityFeedItemSchema.parse(item);
+
+            expect(result.id).toBe('activity123');
+            expect(result.details.expenseId).toBeUndefined();
+            expect(result.details.commentId).toBeUndefined();
+            expect(result.createdAt).toBeUndefined();
+        });
+    });
+
+    describe('ActivityFeedResponseSchema', () => {
+        it('should validate activity feed response with items and pagination', () => {
+            const response = {
+                items: [
+                    {
+                        id: 'activity1',
+                        userId: 'user1',
+                        groupId: 'group1',
+                        groupName: 'Group 1',
+                        eventType: 'expense-created',
+                        action: 'create',
+                        actorId: 'user2',
+                        actorName: 'John',
+                        timestamp: '2024-01-15T10:30:00.000Z',
+                        details: {},
+                    },
+                    {
+                        id: 'activity2',
+                        userId: 'user1',
+                        groupId: 'group2',
+                        groupName: 'Group 2',
+                        eventType: 'member-joined',
+                        action: 'join',
+                        actorId: 'user3',
+                        actorName: 'Jane',
+                        timestamp: '2024-01-14T10:30:00.000Z',
+                        details: {},
+                    },
+                ],
+                hasMore: true,
+                nextCursor: 'cursor123',
+            };
+
+            const result = ActivityFeedResponseSchema.parse(response);
+
+            expect(result.items).toHaveLength(2);
+            expect(result.items[0].id).toBe('activity1');
+            expect(result.items[1].id).toBe('activity2');
+            expect(result.hasMore).toBe(true);
+            expect(result.nextCursor).toBe('cursor123');
+        });
+
+        it('should validate empty activity feed', () => {
+            const response = {
+                items: [],
+                hasMore: false,
+            };
+
+            const result = ActivityFeedResponseSchema.parse(response);
+
+            expect(result.items).toHaveLength(0);
+            expect(result.hasMore).toBe(false);
+            expect(result.nextCursor).toBeUndefined();
+        });
+    });
+
+    describe('TenantSettingsResponseSchema', () => {
+        it('should validate tenant settings response with all fields', () => {
+            const response = {
+                tenantId: 'tenant123',
+                config: {
+                    tenantId: 'tenant123',
+                    branding: {
+                        appName: 'Test App',
+                        logoUrl: '/logo.svg',
+                        faviconUrl: '/favicon.ico',
+                        primaryColor: '#3B82F6',
+                        secondaryColor: '#8B5CF6',
+                        accentColor: '#EC4899',
+                        backgroundColor: '#ffffff',
+                        headerBackgroundColor: '#1F2937',
+                        themePalette: 'default',
+                        customCSS: '/* test */',
+                        marketingFlags: {
+                            showLandingPage: true,
+                            showMarketingContent: false,
+                            showPricingPage: true,
+                        },
+                    },
+                    createdAt: '2024-01-01T00:00:00.000Z',
+                    updatedAt: '2024-01-15T10:30:00.000Z',
+                },
+                domains: ['example.com', 'test.example.com'],
+            };
+
+            const result = TenantSettingsResponseSchema.parse(response);
+
+            expect(result.config.branding.appName).toBe('Test App');
+            expect(result.config.branding.logoUrl).toBe('/logo.svg');
+            expect(result.config.branding.primaryColor).toBe('#3B82F6');
+            expect(result.config.branding.backgroundColor).toBe('#ffffff');
+            expect(result.config.branding.customCSS).toBe('/* test */');
+            expect(result.domains).toHaveLength(2);
+        });
+    });
+
+    describe('TenantDomainsResponseSchema', () => {
+        it('should validate tenant domains response', () => {
+            const response = {
+                domains: ['example.com', 'test.example.com', 'staging.example.com'],
+            };
+
+            const result = TenantDomainsResponseSchema.parse(response);
+
+            expect(result.domains).toHaveLength(3);
+            expect(result.domains).toContain('example.com');
+            expect(result.domains).toContain('test.example.com');
+        });
+    });
+
+    describe('AdminTenantItemSchema', () => {
+        it('should validate admin tenant item with all fields', () => {
+            const item = {
+                tenant: {
+                    tenantId: 'tenant1',
+                    branding: {
+                        appName: 'Tenant App',
+                        logoUrl: '/logo.svg',
+                        faviconUrl: '/favicon.ico',
+                        primaryColor: '#3B82F6',
+                        secondaryColor: '#8B5CF6',
+                    },
+                    createdAt: '2024-01-01T00:00:00.000Z',
+                    updatedAt: '2024-01-15T10:30:00.000Z',
+                },
+                domains: ['tenant1.example.com', 'www.tenant1.example.com'],
+                isDefault: false,
+            };
+
+            const result = AdminTenantItemSchema.parse(item);
+
+            expect(result.tenant.branding.appName).toBe('Tenant App');
+            expect(result.domains).toHaveLength(2);
+            expect(result.isDefault).toBe(false);
+        });
+
+        it('should validate admin tenant item with empty domains', () => {
+            const item = {
+                tenant: {
+                    tenantId: 'tenant1',
+                    branding: {
+                        appName: 'Tenant App',
+                        logoUrl: '/logo.svg',
+                        primaryColor: '#3B82F6',
+                        secondaryColor: '#8B5CF6',
+                    },
+                    createdAt: '2024-01-01T00:00:00.000Z',
+                    updatedAt: '2024-01-15T10:30:00.000Z',
+                },
+                domains: [],
+                isDefault: true,
+            };
+
+            const result = AdminTenantItemSchema.parse(item);
+
+            expect(result.domains).toHaveLength(0);
+            expect(result.isDefault).toBe(true);
+        });
+    });
+
+    describe('AdminTenantsListResponseSchema', () => {
+        it('should validate tenants list response with multiple tenants', () => {
+            const response = {
+                tenants: [
+                    {
+                        tenant: {
+                            tenantId: 'tenant1',
+                            branding: {
+                                appName: 'Tenant 1',
+                                logoUrl: '/logo1.svg',
+                                primaryColor: '#3B82F6',
+                                secondaryColor: '#8B5CF6',
+                            },
+                            createdAt: '2024-01-01T00:00:00.000Z',
+                            updatedAt: '2024-01-15T10:30:00.000Z',
+                        },
+                        domains: ['tenant1.example.com'],
+                        isDefault: false,
+                    },
+                    {
+                        tenant: {
+                            tenantId: 'tenant2',
+                            branding: {
+                                appName: 'Tenant 2',
+                                logoUrl: '/logo2.svg',
+                                primaryColor: '#EC4899',
+                                secondaryColor: '#10B981',
+                            },
+                            createdAt: '2024-01-02T00:00:00.000Z',
+                            updatedAt: '2024-01-16T10:30:00.000Z',
+                        },
+                        domains: [],
+                        isDefault: true,
+                    },
+                ],
+                count: 2,
+            };
+
+            const result = AdminTenantsListResponseSchema.parse(response);
+
+            expect(result.tenants).toHaveLength(2);
+            expect(result.tenants[0].tenant.branding.appName).toBe('Tenant 1');
+            expect(result.tenants[1].tenant.branding.appName).toBe('Tenant 2');
+            expect(result.count).toBe(2);
+        });
+
+        it('should validate empty tenants list', () => {
+            const response = {
+                tenants: [],
+                count: 0,
+            };
+
+            const result = AdminTenantsListResponseSchema.parse(response);
+
+            expect(result.tenants).toHaveLength(0);
+            expect(result.count).toBe(0);
+        });
+    });
+
+    describe('CurrencyBalanceDisplaySchema', () => {
+        it('should validate currency balance with all fields', () => {
+            const balance = {
+                currency: 'USD',
+                netBalance: '150.50',
+                totalOwed: '200.00',
+                totalOwing: '49.50',
+            };
+
+            const result = CurrencyBalanceDisplaySchema.parse(balance);
+
+            expect(result.currency).toBe('USD');
+            expect(result.netBalance).toBe('150.50');
+            expect(result.totalOwed).toBe('200.00');
+            expect(result.totalOwing).toBe('49.50');
+        });
+    });
+
+    describe('BalanceDisplaySchema', () => {
+        it('should validate balance display with multiple currencies', () => {
+            const balance = {
+                balancesByCurrency: {
+                    USD: {
+                        currency: 'USD',
+                        netBalance: '150.50',
+                        totalOwed: '200.00',
+                        totalOwing: '49.50',
+                    },
+                    EUR: {
+                        currency: 'EUR',
+                        netBalance: '-25.00',
+                        totalOwed: '50.00',
+                        totalOwing: '75.00',
+                    },
+                },
+            };
+
+            const result = BalanceDisplaySchema.parse(balance);
+
+            expect(Object.keys(result.balancesByCurrency)).toHaveLength(2);
+            expect(result.balancesByCurrency.USD.currency).toBe('USD');
+            expect(result.balancesByCurrency.USD.netBalance).toBe('150.50');
+            expect(result.balancesByCurrency.EUR.currency).toBe('EUR');
+            expect(result.balancesByCurrency.EUR.netBalance).toBe('-25.00');
+        });
+
+        it('should validate empty balance display', () => {
+            const balance = {
+                balancesByCurrency: {},
+            };
+
+            const result = BalanceDisplaySchema.parse(balance);
+
+            expect(Object.keys(result.balancesByCurrency)).toHaveLength(0);
+        });
+    });
+});

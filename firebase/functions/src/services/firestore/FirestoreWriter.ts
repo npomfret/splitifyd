@@ -672,11 +672,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                 };
             } catch (error) {
                 logger.error('Failed to update user document', error, { userId, updates: Object.keys(updates) });
-                return {
-                    id: userId,
-                    success: false,
-                    error: error instanceof Error ? error.message : 'Unknown error',
-                };
+                throw error;
             }
         });
     }

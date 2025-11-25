@@ -305,6 +305,22 @@ export class AdminTenantRequestBuilder {
     }
 
     /**
+     * Enables Aurora theme features (motion animations + glassmorphism).
+     * Useful for testing motion control toggles.
+     */
+    withAuroraTheme(): this {
+        this.tokens.motion!.enableParallax = true;
+        this.tokens.motion!.enableMagneticHover = true;
+        this.tokens.motion!.enableScrollReveal = true;
+
+        // Add glassmorphism properties
+        this.tokens.semantics!.colors!.surface!.glass = 'rgba(25, 30, 50, 0.45)';
+        this.tokens.semantics!.colors!.surface!.glassBorder = 'rgba(255, 255, 255, 0.12)';
+
+        return this;
+    }
+
+    /**
      * Sets a specific value in the typography letter spacing.
      * Useful for testing edge cases like negative CSS values.
      */

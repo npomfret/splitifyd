@@ -185,13 +185,10 @@ export class FirestoreReader implements IFirestoreReader {
 
         // Domains are now a simple array
         const domains = parsed.domains;
-        // Primary domain is just the first domain for backward compatibility
-        const primaryDomain = domains.length > 0 ? domains[0] : null;
         const isDefault: TenantDefaultFlag = parsed.defaultTenant ?? toTenantDefaultFlag(false);
 
         return {
             tenant,
-            primaryDomain,
             domains,
             isDefault,
             brandingTokens: parsed.brandingTokens,

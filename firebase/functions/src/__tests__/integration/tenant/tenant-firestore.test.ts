@@ -99,7 +99,6 @@ describe('Tenant Firestore Integration', () => {
             expect(result).not.toBeNull();
             expect(result?.domains).toContain(toTenantDomainName(testDomain));
             expect(result?.domains).toContain(toTenantDomainName(testAliasDomain));
-            expect(result?.primaryDomain).toBe(toTenantDomainName(testDomain));
         });
 
         it('should convert Timestamps to ISO strings in config', async () => {
@@ -118,7 +117,7 @@ describe('Tenant Firestore Integration', () => {
 
             expect(result).not.toBeNull();
             expect(result?.tenant.tenantId).toBe(testTenantId);
-            expect(result?.primaryDomain).toBe(toTenantDomainName(testDomain));
+            expect(result?.domains).toContain(toTenantDomainName(testDomain));
         });
 
         it('should retrieve tenant by alias domain', async () => {
@@ -164,7 +163,6 @@ describe('Tenant Firestore Integration', () => {
 // Helper function to assert TenantRegistryRecord structure
 function assertTenantRegistryRecordStructure(record: TenantRegistryRecord): void {
     expect(record).toHaveProperty('tenant');
-    expect(record).toHaveProperty('primaryDomain');
     expect(record).toHaveProperty('domains');
     expect(record).toHaveProperty('isDefault');
 

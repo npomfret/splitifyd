@@ -26,7 +26,6 @@ describe('TenantIdentification middleware', () => {
                 .withCreatedAt('2025-01-01T00:00:00.000Z')
                 .withUpdatedAt('2025-01-02T12:00:00.000Z'),
         )
-        .withPrimaryDomain('app.example.com')
         .withDomains(['app.example.com'])
         .asDefault()
         .withSource('domain')
