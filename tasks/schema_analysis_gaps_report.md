@@ -5,7 +5,7 @@
 While the project has a strong foundation for a schema-driven architecture, particularly in the `packages/shared` directory, its application is inconsistent. This has resulted in significant gaps across multiple areas:
 
 1. **CRITICAL**: No backend response validation - responses are never validated against schemas before sending (mitigated by frontend validation)
-2. **CRITICAL**: No schema contract tests - no verification that API responses match defined schemas
+2. ~~**CRITICAL**: No schema contract tests~~ → **RESOLVED** (commit 2bd04f1b added comprehensive `api-schemas.test.ts`)
 3. **HIGH**: Frontend forms don't use shared request schemas - manual validation duplicates rules (acknowledged gap with future plan)
 4. **HIGH**: Sanitization inconsistency - create operations sanitize, but updates often don't
 5. **HIGH**: Groups module uses legacy validation pattern instead of `createRequestValidator`
@@ -16,10 +16,11 @@ While the project has a strong foundation for a schema-driven architecture, part
 
 | Priority | Count | Description |
 |----------|-------|-------------|
-| CRITICAL | 2 | Must fix - security/reliability risks |
+| CRITICAL | 1 | Must fix - security/reliability risks |
 | HIGH | 5 | Should fix - significant maintenance burden |
 | MEDIUM | 4 | Nice to have - consistency improvements |
 | LOW | 2 | Minor - housekeeping |
+| RESOLVED | 1 | Recently fixed |
 
 ---
 
@@ -62,23 +63,23 @@ res.status(HTTP_STATUS.CREATED).json(group);  // Never validated server-side
 
 ---
 
-## 2. Schema Testing Gaps [CRITICAL]
+## 2. Schema Testing Gaps [RESOLVED ✅]
 
-**No tests verify that API responses actually match defined schemas.**
+**~~No tests verify that API responses actually match defined schemas.~~**
 
-### Evidence
-- Handler tests (`ExpenseHandlers.test.ts`, `GroupHandlers.test.ts`) verify business logic, NOT response shapes
-- No integration tests deserialize responses through Zod schemas
-- `validation-monitor.ts` exists but is ONLY used for Firestore document validation, NOT API responses
+### Status: RESOLVED (November 2025)
 
-### Missing Test Coverage
-- No tests validate `createExpense` response matches `ExpenseDTO` schema
-- No tests validate `listGroups` response matches `ListGroupsResponse` schema
-- No tests validate error responses match the `ApiErrorResponseSchema`
+Commit `2bd04f1b` added comprehensive API schema validation tests in `packages/shared/src/__tests__/unit/api-schemas.test.ts` (656 lines).
 
-### Impact
-- Schema drift goes undetected
-- API contract violations only discovered at runtime in production
+### What Was Added
+- Tests verify Zod schemas include ALL fields that backend returns
+- Comprehensive coverage for: `AppConfigurationSchema`, `ExpenseSplitSchema`, `SimplifiedDebtSchema`, `ApiErrorResponseSchema`, `TenantDomainsResponseSchema`, `TenantSettingsResponseSchema`, `AdminTenantItemSchema`, `AdminTenantsListResponseSchema`, `ActivityFeedItemSchema`, `ActivityFeedResponseSchema`, `BalanceDisplaySchema`, `CurrencyBalanceDisplaySchema`, `ListAuthUsersResponseSchema`
+- Tests both required and optional fields
+- Tests validation rejection of invalid data
+
+### Remaining Gap
+- Handler-level integration tests that validate actual API responses through schemas are still not present
+- The new tests verify schema correctness, but don't verify handlers return schema-compliant data
 
 ---
 
@@ -386,7 +387,7 @@ private parseQuery(query: Record<string, unknown>): ActivityFeedQuery {
 
 ### Immediate (Critical)
 1. Add response validation middleware that validates all responses before sending
-2. Add schema contract tests for all endpoints
+2. ~~Add schema contract tests for all endpoints~~ → DONE (commit 2bd04f1b)
 3. Apply sanitization consistently to all update operations
 
 ### Short-term (High Priority)

@@ -1,8 +1,15 @@
 # API Inconsistency and Duplication Report
 
+> **Last Updated:** November 2025 - Updated to reflect recent tenant configuration improvements
+
 ### Summary of Findings
 
 The investigation reveals several significant inconsistencies and gaps in the project's API layer. The core issues stem from a lack of consistent standards that are then propagated from the backend to the frontend.
+
+### Recent Improvements (November 2025)
+
+- **Tenant Model Simplified:** `primaryDomain` field removed from tenant model (commit 2bd04f1b). The `domains` array is now the single source of truth for tenant domain configuration.
+- **Schema Testing Added:** Comprehensive API schema validation tests added to catch schema/response mismatches.
 
 1.  **Inconsistent Endpoint Naming:** The backend API, defined in `firebase/functions/src/routes/route-config.ts`, uses inconsistent parameter naming in its routes (e.g., `:id`, `:groupId`, `:settlementId`, `:uid`). This forces the frontend client (`webapp-v2/src/app/apiClient.ts`) to implement brittle and error-prone normalization logic to match API calls to their respective response schemas.
 
