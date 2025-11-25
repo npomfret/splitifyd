@@ -728,11 +728,9 @@ test.describe('Tenant Editor Modal', () => {
             const logoImage = logoUploadField.locator('img[alt="Preview"]');
             const logoFallback = logoUploadField.getByText('Image URL set');
 
-            // Either the actual image loads or the fallback UI shows
-            const imageVisible = await logoImage.isVisible().catch(() => false);
-            const fallbackVisible = await logoFallback.isVisible().catch(() => false);
-
-            expect(imageVisible || fallbackVisible).toBeTruthy();
+            // Wait for either image preview or fallback to appear
+            // Use Playwright's built-in waiting with or()
+            await expect(logoImage.or(logoFallback)).toBeVisible();
         });
     });
 });
