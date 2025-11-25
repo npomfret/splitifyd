@@ -170,15 +170,6 @@ export class ThemePage extends BasePage {
 
         const ratio = this.calculateContrastRatio(textPrimaryColor, surfaceBaseColor);
 
-        // Debug output
-        if (ratio < MIN_CONTRAST_RATIO) {
-            console.log(`Contrast check failed:
-  --semantics-colors-text-primary: ${textPrimaryColor}
-  --semantics-colors-surface-base: ${surfaceBaseColor}
-  Ratio: ${ratio}
-  Required: ${MIN_CONTRAST_RATIO}`);
-        }
-
         expect(ratio).toBeGreaterThanOrEqual(MIN_CONTRAST_RATIO);
     }
 

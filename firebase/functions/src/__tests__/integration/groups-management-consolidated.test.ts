@@ -310,9 +310,6 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             expect(successes.length).toBeGreaterThan(0);
 
             if (failures.length > 0) {
-                for (const failure of failures) {
-                    console.log(JSON.stringify(failure));
-                }
                 expect(conflicts.length).toBeGreaterThan(0);
             }
 

@@ -556,8 +556,6 @@ export class DashboardPage extends BasePage {
         const ownerGroupDetailPage = await this.createGroupAndNavigate(groupName, groupDescription);
         const groupId = ownerGroupDetailPage.inferGroupId();
 
-        console.log(`${creatorDisplayName} created new group "${groupName}" (id: ${groupId}) and ${dashboardPages.length} users will join...`);
-
         const groupDetailPages: GroupDetailPage[] = [ownerGroupDetailPage];
 
         if (dashboardPages.length) {
@@ -585,7 +583,6 @@ export class DashboardPage extends BasePage {
                 for (const gdp of groupDetailPages) {
                     await gdp.waitForMemberCount(currentMemberCount, 15000);
                 }
-                console.log(`All ${currentMemberCount} browsers now show ${currentMemberCount} members`);
             }
         }
 

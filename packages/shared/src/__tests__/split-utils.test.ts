@@ -700,9 +700,6 @@ describe('Split Utils', () => {
                 const parsed = JSON.parse(jsonString);
 
                 // The error is small but real
-                console.log('Balance after JSON:', parsed.balance);
-                console.log('Expected:', 20.2);
-                console.log('Difference:', parsed.balance - 20.2);
 
                 // ❌ With numbers, the balance drifts from the expected value
                 expect(parsed.balance).not.toBe(20.2);
@@ -751,8 +748,6 @@ describe('Split Utils', () => {
 
                 // Expected: 0
                 // Actual: 5.551115123125783e-17
-                console.log('Final balance:', parsed.balance);
-                console.log('Expected:', 0);
 
                 // ❌ Validation fails because balance !== expected exact value
                 // ✅ With strings: each operation maintains exact precision
@@ -774,9 +769,6 @@ describe('Split Utils', () => {
 
                 // ❌ Floating point: 33.33 * 0.85 = 28.3305 !== 28.42
                 // This would fail validation even though the amounts are correct
-
-                console.log('Calculated EUR:', calculatedEur);
-                console.log('Sent EUR:', parsed.eur);
 
                 // This test demonstrates the issue but would fail with strict equality
                 expect(calculatedEur).toBeCloseTo(parsed.eur, 2);
@@ -879,9 +871,6 @@ describe('Split Utils', () => {
                 expect(0.1 + 0.2).toBe(0.30000000000000004);
 
                 // This affects ALL financial calculations
-                console.log('0.1 + 0.2 =', 0.1 + 0.2);
-                console.log('Expected: 0.3');
-                console.log('Difference:', (0.1 + 0.2) - 0.3);
 
                 // ✅ SOLUTION: Use strings for API, parse to numbers only for calculations
                 // Store results as strings immediately after calculation
@@ -902,8 +891,6 @@ describe('Split Utils', () => {
                 }
                 // Expected: 1.00
                 // Actual: might have accumulated error
-                console.log('100 additions of 0.01:', balance);
-                console.log('Expected: 1.00');
 
                 // ✅ SOLUTION: Strings don't accumulate errors
                 // Each operation is exact: "0.01" + "0.01" + ... = exactly "1.00"

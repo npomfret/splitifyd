@@ -618,7 +618,6 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         const policyStatus = await this.apiRequest('/user/policies/status', 'GET', null, token);
 
         if (!policyStatus.policies || policyStatus.policies.length === 0) {
-            console.log('No policies found to accept');
             return;
         }
 
@@ -629,7 +628,6 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
             versionHash: policy.currentVersionHash,
         }));
 
-        // console.log(`Accepting ${acceptances.length} policies for test user`);
         await this.apiRequest('/user/policies/accept-multiple', 'POST', { acceptances }, token);
     }
 

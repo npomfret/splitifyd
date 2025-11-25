@@ -337,7 +337,6 @@ export class CreateGroupModalPage extends BasePage {
         } catch (error) {
             throw new Error(`Create Group Modal must be open before calling createGroup("${name}"). Modal not found or already closed.`);
         }
-        console.log(`Creating new group: ${name}`);
         await this.fillGroupForm(name, description, displayName);
         await this.submitForm();
     }

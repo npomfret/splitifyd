@@ -87,7 +87,6 @@ function getServiceEnv(): z.infer<typeof serviceEnvSchema> {
         logger.error('Invalid service configuration environment variables', errorObj);
 
         if (error instanceof z.ZodError) {
-            // console.log(JSON.stringify(process.env, null, 2))
             const errorMessages = error.issues.map((e: z.ZodIssue) => `${e.path.join('.')}: ${e.message}`).join(', ');
             throw new Error(`Service configuration validation failed: ${errorMessages}`);
         }

@@ -43,8 +43,6 @@ describe('Hardcoded Values Validation', () => {
                 return;
             }
 
-            // console.log(file);
-
             const filePath = path.join(projectRoot, file);
 
             if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) {
