@@ -3,6 +3,7 @@
 **Author:** Gemini
 **Date:** 2025-11-24
 **Status:** Proposed
+**Reviewed:** 2025-11-25 (sanity check completed)
 
 ## 1. Executive Summary
 
@@ -68,8 +69,9 @@ This change will impact data schemas, backend logic for policy acceptance, and a
 4.  **API Payloads:**
     -   Review and update any API endpoints that return or accept `acceptedPolicies` to ensure they conform to the new structure. This includes public user profiles and admin-related user data endpoints.
 
-5.  **Data Migration (Optional but Recommended):**
-    -   A migration script should be written to update existing user documents in Firestore. For current records, the script would transform `policyId: versionHash` into `policyId: { versionHash: <timestamp> }`. The timestamp could be the user's `updatedAt` field or a new timestamp generated at the time of migration, though the former is preferable if accurate. This is a lossy migration in terms of the acceptance date, but it brings the data into the new format. All new acceptances going forward will have an accurate timestamp.
+5.  **Data Migration:** ~~(Optional but Recommended)~~
+    -   ~~A migration script should be written to update existing user documents in Firestore.~~
+    -   **Not required** - no existing data to migrate.
 
 ## 5. Stakeholders
 
@@ -94,6 +96,12 @@ acceptedPolicies?: Record<PolicyId, Record<VersionHash, ISOString>>;
 #### 6.2 Zod Schemas
 
 **`firebase/functions/src/schemas/user.ts`** (line 18)
+
+> **Note:** `ISOStringSchema` does not exist in the codebase. Create it first:
+> ```typescript
+> export const ISOStringSchema = z.string().datetime().transform(toISOString);
+> ```
+
 ```typescript
 // Before:
 acceptedPolicies: z.record(PolicyIdSchema, VersionHashSchema).optional(),
@@ -126,6 +134,9 @@ acceptedPolicies?: Record<string, Record<string, string>>;
 **`firebase/functions/src/services/UserPolicyService.ts`**
 
 **Accept policies (lines 65-72)** - change from overwriting to adding:
+
+> **Critical:** The original proposal has a race condition (read-modify-write pattern). Use a Firestore transaction instead:
+
 ```typescript
 // Before:
 const acceptedPolicies: Record<string, string> = {};
@@ -133,16 +144,37 @@ acceptances.forEach((acceptance) => {
     acceptedPolicies[acceptance.policyId] = acceptance.versionHash;
 });
 
-// After:
-const user = await this.firestoreReader.getUser(userId);
-const now = new Date().toISOString();
-const existingPolicies = user?.acceptedPolicies ?? {};
-const acceptedPolicies: Record<string, Record<string, string>> = { ...existingPolicies };
-acceptances.forEach((acceptance) => {
-    acceptedPolicies[acceptance.policyId] = {
-        ...(acceptedPolicies[acceptance.policyId] ?? {}),
-        [acceptance.versionHash]: now,
-    };
+// After (using Firestore transaction for atomicity):
+return this.firestoreWriter.runTransaction(async (transaction) => {
+    const userRef = this.db.collection('users').doc(userId);
+    const userDoc = await transaction.get(userRef);
+
+    if (!userDoc.exists) {
+        throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', 'User not found');
+    }
+
+    const existingPolicies = userDoc.data()?.acceptedPolicies ?? {};
+    const now = new Date().toISOString();
+    const updatedPolicies: Record<string, Record<string, string>> = { ...existingPolicies };
+
+    acceptances.forEach((acceptance) => {
+        const policyHistory = updatedPolicies[acceptance.policyId] ?? {};
+        // No-op if already accepted (preserve original timestamp)
+        if (!(acceptance.versionHash in policyHistory)) {
+            updatedPolicies[acceptance.policyId] = {
+                ...policyHistory,
+                [acceptance.versionHash]: now,
+            };
+        }
+    });
+
+    transaction.update(userRef, { acceptedPolicies: updatedPolicies });
+
+    return acceptances.map((a) => ({
+        policyId: a.policyId,
+        versionHash: a.versionHash,
+        acceptedAt: now,
+    }));
 });
 ```
 
@@ -210,3 +242,26 @@ Run after implementation:
 npx vitest run firebase/functions/src/__tests__/unit/api/users.test.ts
 npx vitest run firebase/functions/src/__tests__/unit/services/PolicyService.test.ts
 ```
+
+### Additional Test Cases to Add
+
+1. **Re-acceptance behavior:** Accepting same policy version twice should preserve original timestamp (no-op)
+2. **History preservation:** Accepting new version preserves old version in history
+3. **User not found:** Returns 404 when accepting policies for non-existent user
+4. **Concurrent acceptance:** Transaction ensures both succeed without data loss
+
+---
+
+## 7. Sanity Check Notes (2025-11-25)
+
+### Verified Correct
+- All file locations and line numbers are accurate
+- All "Before" code snippets match the codebase
+- The proposed data structure change is sound
+
+### Corrections Applied
+1. **Race condition fixed:** Changed from read-modify-write to Firestore transaction
+2. **Missing schema noted:** `ISOStringSchema` needs to be created
+3. **Null check added:** Handle user not found case
+4. **Re-acceptance behavior defined:** No-op (preserve original timestamp)
+5. **Migration removed:** Not required (no existing data)
