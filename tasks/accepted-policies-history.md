@@ -76,3 +76,137 @@ This change will impact data schemas, backend logic for policy acceptance, and a
 -   **Backend:** Firestore data structure, services, API.
 -   **Frontend:** Logic for displaying policy banners/modals and handling acceptance.
 -   **QA/Testing:** Tests will need significant updates to reflect the new data shape and logic.
+
+## 6. Detailed Implementation Plan
+
+### Files to Modify
+
+#### 6.1 Type Definitions
+**`packages/shared/src/shared-types.ts`** (line 599)
+```typescript
+// Before:
+acceptedPolicies?: Record<PolicyId, VersionHash>;
+
+// After:
+acceptedPolicies?: Record<PolicyId, Record<VersionHash, ISOString>>;
+```
+
+#### 6.2 Zod Schemas
+
+**`firebase/functions/src/schemas/user.ts`** (line 18)
+```typescript
+// Before:
+acceptedPolicies: z.record(PolicyIdSchema, VersionHashSchema).optional(),
+
+// After:
+acceptedPolicies: z.record(PolicyIdSchema, z.record(VersionHashSchema, ISOStringSchema)).optional(),
+```
+
+**`packages/shared/src/schemas/apiSchemas.ts`** (line 404)
+```typescript
+// Before:
+acceptedPolicies: z.record(z.string(), z.string()).optional(),
+
+// After:
+acceptedPolicies: z.record(z.string(), z.record(z.string(), z.string())).optional(),
+```
+
+#### 6.3 Firestore Interface
+**`firebase/functions/src/services/firestore/IFirestoreWriter.ts`** (line 41)
+```typescript
+// Before:
+acceptedPolicies?: Record<string, string>;
+
+// After:
+acceptedPolicies?: Record<string, Record<string, string>>;
+```
+
+#### 6.4 Service Layer
+
+**`firebase/functions/src/services/UserPolicyService.ts`**
+
+**Accept policies (lines 65-72)** - change from overwriting to adding:
+```typescript
+// Before:
+const acceptedPolicies: Record<string, string> = {};
+acceptances.forEach((acceptance) => {
+    acceptedPolicies[acceptance.policyId] = acceptance.versionHash;
+});
+
+// After:
+const user = await this.firestoreReader.getUser(userId);
+const now = new Date().toISOString();
+const existingPolicies = user?.acceptedPolicies ?? {};
+const acceptedPolicies: Record<string, Record<string, string>> = { ...existingPolicies };
+acceptances.forEach((acceptance) => {
+    acceptedPolicies[acceptance.policyId] = {
+        ...(acceptedPolicies[acceptance.policyId] ?? {}),
+        [acceptance.versionHash]: now,
+    };
+});
+```
+
+**Get policy status (lines 115-123)** - check if current version exists in history:
+```typescript
+// Before:
+const userAcceptedHash = userAcceptedPolicies[policyId] as VersionHash | undefined;
+const needsAcceptance = !userAcceptedHash || userAcceptedHash !== currentVersionHash;
+
+// After:
+const policyHistory = userAcceptedPolicies[policyId] ?? {};
+const hasAcceptedCurrentVersion = currentVersionHash in policyHistory;
+const needsAcceptance = !hasAcceptedCurrentVersion;
+// For userAcceptedHash in DTO, return currentVersionHash if accepted, else undefined
+const userAcceptedHash = hasAcceptedCurrentVersion ? currentVersionHash : undefined;
+```
+
+#### 6.5 User Registration
+**`firebase/functions/src/services/UserService2.ts`** (lines 601-619)
+```typescript
+// Before:
+acceptedPolicies[policy.id] = policy.currentVersionHash;
+
+// After:
+const now = new Date().toISOString();
+acceptedPolicies[policy.id] = { [policy.currentVersionHash]: now };
+```
+
+Also update return type from `Record<string, string>` to `Record<string, Record<string, string>>`.
+
+#### 6.6 Admin/Browser Handlers
+- **`firebase/functions/src/admin/UserAdminHandlers.ts`** (line 68) - remove `as any` cast
+- **`firebase/functions/src/browser/UserBrowserHandlers.ts`** (line 176) - update type cast
+
+#### 6.7 Test Builders
+- **`packages/test-support/src/builders/UserProfileBuilder.ts`** (line 69)
+- **`packages/test-support/src/builders/AdminUserProfileBuilder.ts`** (line 85)
+
+Update method signatures:
+```typescript
+// Before:
+withAcceptedPolicies(policies: Record<PolicyId, VersionHash>): this
+
+// After:
+withAcceptedPolicies(policies: Record<PolicyId, Record<VersionHash, ISOString>>): this
+```
+
+#### 6.8 Tests to Update
+- `firebase/functions/src/__tests__/unit/api/users.test.ts` - update assertions for new structure
+- Any test fixtures using old `acceptedPolicies` format
+
+### Implementation Order
+
+1. `shared-types.ts` - change the type (causes compile errors that guide remaining changes)
+2. `user.ts` schema, `apiSchemas.ts`, `IFirestoreWriter.ts` - fix schema/interface types
+3. `UserPolicyService.ts` - update write and read logic
+4. `UserService2.ts` - update registration
+5. Handler files - fix type casts
+6. Test builders and test files
+
+### Testing
+
+Run after implementation:
+```bash
+npx vitest run firebase/functions/src/__tests__/unit/api/users.test.ts
+npx vitest run firebase/functions/src/__tests__/unit/services/PolicyService.test.ts
+```
