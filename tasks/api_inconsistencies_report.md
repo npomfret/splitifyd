@@ -1,6 +1,6 @@
 # API Inconsistency and Duplication Report
 
-> **Last Updated:** November 2025 - Issues #1-4, #6, #9 resolved; Remaining: API contract issues (#5, #7, #8)
+> **Last Updated:** November 2025 - Issues #1-5, #6, #9 resolved; Remaining: API contract issues (#7, #8)
 
 ### Summary of Findings
 
@@ -26,6 +26,7 @@ The investigation reveals several significant inconsistencies and gaps in the pr
   - Group preview endpoint
 - **joinGroupByLink Signature Fixed:** Removed ambiguous `displayNameOrToken?: DisplayName | AuthToken` parameter. The new signature is clear: `joinGroupByLink(shareToken, groupDisplayName, token?)`.
 - **JoinGroupResponse success Field Removed:** Removed the redundant `success: boolean` field from `JoinGroupResponse`. The `memberStatus` field (`'active'` | `'pending'`) now conveys whether the user was auto-approved or requires admin approval. HTTP status codes indicate request success/failure.
+- **Cloud Tasks OIDC Authentication Added:** The `/tasks/processMerge` endpoint now uses proper OIDC token verification via the `authenticateCloudTask` middleware. Cloud Tasks is configured to send OIDC tokens signed by the project's service account, and the middleware verifies these tokens in production (skipped in emulator mode).
 
 1.  ~~**Inconsistent Endpoint Naming:**~~ **RESOLVED.** Route parameters are now consistently named across all endpoints (`:groupId`, `:expenseId`, `:policyId`, `:userId`, `:settlementId`, `:memberId`). The frontend client normalization logic has been simplified accordingly.
 
@@ -35,9 +36,9 @@ The investigation reveals several significant inconsistencies and gaps in the pr
 
 4.  ~~**Schema Duplication:**~~ **RESOLVED.** Removed local `ListFirestoreUsersResponseSchema` from `apiClient.ts`. The endpoint now uses the shared schema.
 
-5.  **Potential Security Gap:** The `/tasks/processMerge` endpoint relies on cloud infrastructure for authorization, as noted by a comment in `route-config.ts`. This deviates from the consistent application-level middleware pattern (`authenticate`, `authenticateAdmin`) used elsewhere and could be a point of failure if the infrastructure is misconfigured.
+5.  ~~**Potential Security Gap:**~~ **RESOLVED.** The `/tasks/processMerge` endpoint now uses the `authenticateCloudTask` middleware which verifies OIDC tokens from Cloud Tasks. The MergeService configures Cloud Tasks to send OIDC tokens signed by the project's service account. In emulator mode, the middleware skips verification since the StubCloudTasksClient doesn't send real tokens.
 
-In summary, the API layer has made excellent progress on standardization. Issues #1-4, #6, and #9 are now resolved (route parameter naming, validation patterns, schema coverage, schema location, ambiguous method signatures, and redundant response fields). Remaining issues are API contract inconsistencies (#5, #7, #8) related to security gaps, return type consistency, and error format standardization.
+In summary, the API layer has made excellent progress on standardization. Issues #1-5, #6, and #9 are now resolved (route parameter naming, validation patterns, schema coverage, schema location, Cloud Tasks security, ambiguous method signatures, and redundant response fields). Remaining issues are API contract inconsistencies (#7, #8) related to error format standardization and return type consistency.
 ---
 
 ### 6. API Contract Inconsistencies (`packages/shared/src/api.ts`)

@@ -1,4 +1,4 @@
-import type { ICloudTasksClient } from './cloudtasks-types';
+import type { ICloudTasksClient, OidcToken } from './cloudtasks-types';
 
 /**
  * Task that has been enqueued
@@ -10,6 +10,8 @@ export interface EnqueuedTask {
     method: string;
     headers: Record<string, string>;
     body: string;
+    /** OIDC token config if provided (not validated in stub, just stored) */
+    oidcToken?: OidcToken;
     enqueuedAt: Date;
 }
 
@@ -38,6 +40,7 @@ export class StubCloudTasksClient implements ICloudTasksClient {
                 url: string;
                 headers?: Record<string, string>;
                 body?: string;
+                oidcToken?: OidcToken;
             };
         };
     }): Promise<[{ name: string; }]> {
@@ -51,6 +54,7 @@ export class StubCloudTasksClient implements ICloudTasksClient {
             method: request.task.httpRequest.httpMethod,
             headers: request.task.httpRequest.headers || {},
             body: request.task.httpRequest.body || '',
+            oidcToken: request.task.httpRequest.oidcToken,
             enqueuedAt: new Date(),
         };
 

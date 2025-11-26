@@ -1,9 +1,12 @@
 import { AuthenticatedUser, SystemUserRoles, toDisplayName, toUserId } from '@billsplit-wl/shared';
 import { NextFunction, Request, Response } from 'express';
+import { OAuth2Client } from 'google-auth-library';
+import { getConfig } from '../client-config';
 import { getComponentBuilder } from '../ComponentBuilderSingleton';
 import { AUTH } from '../constants';
 import { logger } from '../logger';
 import { LoggerContext } from '../logger';
+import { getServiceConfig } from '../merge/ServiceConfig';
 import { Errors, sendError } from '../utils/errors';
 
 const applicationBuilder = getComponentBuilder();
@@ -188,4 +191,72 @@ export const authenticateTenantAdmin = async (req: AuthenticatedRequest, res: Re
         }
         await requireTenantAdmin(req, res, next);
     });
+};
+
+/**
+ * Middleware for Cloud Tasks endpoints - verifies OIDC token from GCP service account
+ *
+ * Cloud Tasks sends an OIDC token in the Authorization header when configured with
+ * oidcToken in the task request. This middleware verifies that token to ensure
+ * only Cloud Tasks can invoke the endpoint.
+ *
+ * In emulator mode, this check is skipped since the StubCloudTasksClient doesn't
+ * send real OIDC tokens.
+ */
+export const authenticateCloudTask = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const correlationId = req.headers['x-correlation-id'] as string;
+    const config = getConfig();
+
+    // Skip authentication in emulator mode - Cloud Tasks stub doesn't send OIDC tokens
+    if (config.isEmulator) {
+        next();
+        return;
+    }
+
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        logger.warn('Cloud Task request missing authorization header', { correlationId });
+        sendError(res, Errors.UNAUTHORIZED(), correlationId);
+        return;
+    }
+
+    const token = authHeader.substring(AUTH.BEARER_TOKEN_PREFIX_LENGTH);
+
+    try {
+        const serviceConfig = getServiceConfig();
+        const client = new OAuth2Client();
+
+        // Verify the OIDC token - Cloud Tasks sends tokens signed by Google
+        const ticket = await client.verifyIdToken({
+            idToken: token,
+            audience: serviceConfig.functionsUrl,
+        });
+
+        const payload = ticket.getPayload();
+        if (!payload) {
+            throw new Error('OIDC token payload is empty');
+        }
+
+        // Verify the token is from a GCP service account
+        // Cloud Tasks uses the project's default service account or a custom one
+        if (!payload.email || !payload.email.endsWith('gserviceaccount.com')) {
+            logger.warn('Cloud Task token not from service account', {
+                correlationId,
+                email: payload.email,
+            });
+            sendError(res, Errors.FORBIDDEN(), correlationId);
+            return;
+        }
+
+        // Token is valid and from a service account
+        logger.info('Cloud Task authenticated', {
+            correlationId,
+            serviceAccount: payload.email,
+        });
+
+        next();
+    } catch (error) {
+        logger.error('Cloud Task OIDC token verification failed', error, { correlationId });
+        sendError(res, Errors.INVALID_TOKEN(), correlationId);
+    }
 };

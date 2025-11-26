@@ -273,9 +273,18 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
             });
         };
 
+        /**
+         * Test Cloud Task middleware - skips OIDC verification in tests (like emulator mode)
+         */
+        const authenticateCloudTask: RequestHandler = async (_req: Request, _res: Response, next: NextFunction) => {
+            // In tests, we skip OIDC token verification (same as emulator mode)
+            next();
+        };
+
         return {
             authenticate,
             authenticateAdmin,
+            authenticateCloudTask,
             authenticateSystemUser,
             authenticateTenantAdmin,
         };

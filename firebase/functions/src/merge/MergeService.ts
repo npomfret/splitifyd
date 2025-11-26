@@ -194,6 +194,10 @@ export class MergeService {
                             'Content-Type': 'application/json',
                         },
                         body: JSON.stringify({ jobId }),
+                        oidcToken: {
+                            serviceAccountEmail: this.config.cloudTasksServiceAccount,
+                            audience: this.config.functionsUrl,
+                        },
                     },
                 },
             });

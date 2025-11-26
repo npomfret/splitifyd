@@ -25,6 +25,11 @@ export interface ServiceConfig {
      * Storage emulator host (e.g., "localhost:9199"), or null for production
      */
     storageEmulatorHost: string | null;
+    /**
+     * Service account email for Cloud Tasks OIDC authentication
+     * Defaults to the project's default App Engine service account
+     */
+    cloudTasksServiceAccount: string;
 }
 
 // Cache for lazy-loaded service configuration
@@ -65,6 +70,7 @@ function getProjectId(): string {
 const serviceEnvSchema = z.object({
     GCLOUD_PROJECT: z.string().min(1, 'GCLOUD_PROJECT is required').optional(), // Can be inferred from FIREBASE_CONFIG
     CLOUD_TASKS_LOCATION: z.string().min(1, 'CLOUD_TASKS_LOCATION is required'),
+    CLOUD_TASKS_SERVICE_ACCOUNT: z.string().optional(), // Defaults to project's default App Engine service account
     FUNCTIONS_URL: z.string().min(1, 'FUNCTIONS_URL is required'),
     MIN_REGISTRATION_DURATION_MS: z.coerce.number().min(0, 'MIN_REGISTRATION_DURATION_MS must be non-negative'),
     INSTANCE_NAME: z.string().min(1, 'INSTANCE_NAME is required'),
@@ -104,6 +110,9 @@ function buildServiceConfig(): ServiceConfig {
     // Get project ID (can be inferred from FIREBASE_CONFIG in emulator)
     const projectId = env.GCLOUD_PROJECT || getProjectId();
 
+    // Service account defaults to the project's default App Engine service account
+    const cloudTasksServiceAccount = env.CLOUD_TASKS_SERVICE_ACCOUNT || `${projectId}@appspot.gserviceaccount.com`;
+
     // In production (not emulator), all variables must be properly set
     if (!inEmulator) {
         const requiredVars = ['CLOUD_TASKS_LOCATION', 'FUNCTIONS_URL'];
@@ -116,6 +125,7 @@ function buildServiceConfig(): ServiceConfig {
         return {
             projectId,
             cloudTasksLocation: env.CLOUD_TASKS_LOCATION!,
+            cloudTasksServiceAccount,
             functionsUrl: env.FUNCTIONS_URL!,
             minRegistrationDurationMs: env.MIN_REGISTRATION_DURATION_MS,
             storageEmulatorHost: null,
@@ -130,6 +140,7 @@ function buildServiceConfig(): ServiceConfig {
     return {
         projectId,
         cloudTasksLocation: env.CLOUD_TASKS_LOCATION,
+        cloudTasksServiceAccount,
         functionsUrl: env.FUNCTIONS_URL,
         minRegistrationDurationMs: env.MIN_REGISTRATION_DURATION_MS,
         storageEmulatorHost: env.FIREBASE_STORAGE_EMULATOR_HOST || null,

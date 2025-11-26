@@ -9,6 +9,7 @@ export function createUnitTestServiceConfig(): ServiceConfig {
     return {
         projectId: 'test-project',
         cloudTasksLocation: 'location',
+        cloudTasksServiceAccount: 'test-project@appspot.gserviceaccount.com',
         functionsUrl: 'http://foo:9999',
         minRegistrationDurationMs: 0,
         storageEmulatorHost: null,

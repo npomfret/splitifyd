@@ -21,7 +21,7 @@ export interface RouteDefinition {
     handler?: RequestHandler;
 
     /** Middleware names to apply before the handler */
-    middleware?: Array<'authenticate' | 'authenticateAdmin' | 'authenticateSystemUser' | 'authenticateTenantAdmin'>;
+    middleware?: Array<'authenticate' | 'authenticateAdmin' | 'authenticateCloudTask' | 'authenticateSystemUser' | 'authenticateTenantAdmin'>;
 
     /** Optional tag for categorization/documentation */
     category?: 'diagnostic' | 'public' | 'test' | 'user' | 'auth' | 'resource' | 'admin';
@@ -196,7 +196,7 @@ const routeDefinitions: RouteDefinition[] = [
         path: '/tasks/processMerge',
         handlerName: 'processMergeTask',
         category: 'resource',
-        // Note: Should be protected by Cloud Tasks auth in production
+        middleware: ['authenticateCloudTask'],
     },
 
     // === Tenant Admin ===
