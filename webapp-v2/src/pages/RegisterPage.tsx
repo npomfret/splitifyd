@@ -2,7 +2,7 @@ import { Button, Checkbox } from '@/components/ui';
 import { FloatingInput } from '@/components/ui/FloatingInput';
 import { STORAGE_KEYS } from '@/constants.ts';
 import { navigationService } from '@/services/navigation.service';
-import { toDisplayName, toEmail, toPassword } from '@billsplit-wl/shared';
+import { RegisterRequestSchema, toDisplayName, toEmail, toPassword } from '@billsplit-wl/shared';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
@@ -88,30 +88,46 @@ export function RegisterPage() {
     }, [authStore.user]);
 
     const validateForm = (): string | null => {
-        if (!name.trim()) {
-            return t('registerPage.validation.nameRequired');
-        }
-        if (!email.trim()) {
-            return t('registerPage.validation.emailRequired');
-        }
-        if (!password) {
-            return t('registerPage.validation.passwordRequired');
-        }
-        if (password.length < 12) {
-            return t('registerPage.validation.passwordTooShort');
-        }
+        // Check confirmPassword match first (not in schema)
         if (password !== confirmPassword) {
             return t('registerPage.validation.passwordsNoMatch');
         }
-        if (!agreeToTerms) {
-            return t('registerPage.validation.termsRequired');
+
+        // Validate using shared schema
+        const result = RegisterRequestSchema.safeParse({
+            email,
+            password,
+            displayName: name,
+            termsAccepted: agreeToTerms,
+            cookiePolicyAccepted: agreeToCookies,
+            privacyPolicyAccepted: agreeToPrivacy,
+        });
+
+        if (!result.success) {
+            // Map schema error paths to user-friendly messages
+            const firstError = result.error.issues[0];
+            const path = firstError.path[0];
+
+            switch (path) {
+                case 'displayName':
+                    return t('registerPage.validation.nameRequired');
+                case 'email':
+                    return t('registerPage.validation.emailRequired');
+                case 'password':
+                    return firstError.message.includes('12')
+                        ? t('registerPage.validation.passwordTooShort')
+                        : t('registerPage.validation.passwordRequired');
+                case 'termsAccepted':
+                    return t('registerPage.validation.termsRequired');
+                case 'cookiePolicyAccepted':
+                    return t('registerPage.validation.cookiesRequired');
+                case 'privacyPolicyAccepted':
+                    return t('registerPage.validation.privacyRequired');
+                default:
+                    return firstError.message;
+            }
         }
-        if (!agreeToCookies) {
-            return t('registerPage.validation.cookiesRequired');
-        }
-        if (!agreeToPrivacy) {
-            return t('registerPage.validation.privacyRequired');
-        }
+
         return null;
     };
 

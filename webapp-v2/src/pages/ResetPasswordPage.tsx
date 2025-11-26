@@ -1,7 +1,7 @@
 import { Button, Card, Stack, Typography } from '@/components/ui';
 import { Clickable } from '@/components/ui/Clickable';
 import { navigationService } from '@/services/navigation.service';
-import { toEmail } from '@billsplit-wl/shared';
+import { EmailSchema, toEmail } from '@billsplit-wl/shared';
 import { signal } from '@preact/signals';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
@@ -29,14 +29,15 @@ export function ResetPasswordPage() {
     const handleSubmit = async (e: Event) => {
         e.preventDefault();
 
-        const email = emailSignal.value.trim();
-        if (!email) return;
+        // Validate email using shared schema
+        const emailResult = EmailSchema.safeParse(emailSignal.value);
+        if (!emailResult.success) return;
 
         setIsLoading(true);
         setError(null);
 
         try {
-            await authStore.resetPassword(toEmail(email));
+            await authStore.resetPassword(toEmail(emailResult.data));
             setEmailSent(true);
         } catch (error) {
             setError(authStore.error || t('pages.resetPasswordPage.failedToSendReset'));
@@ -115,7 +116,7 @@ export function ResetPasswordPage() {
                     />
                 </div>
 
-                <SubmitButton loading={isLoading} disabled={!emailSignal.value.trim()}>
+                <SubmitButton loading={isLoading} disabled={!EmailSchema.safeParse(emailSignal.value).success}>
                     {t('pages.resetPasswordPage.sendResetInstructions')}
                 </SubmitButton>
 

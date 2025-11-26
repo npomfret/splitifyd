@@ -18,9 +18,9 @@ While the project has a strong foundation for a schema-driven architecture, part
 |----------|-------|-------------|
 | CRITICAL | 0 | Must fix - security/reliability risks |
 | HIGH | 1 | Should fix - significant maintenance burden |
-| MEDIUM | 3 | Nice to have - consistency improvements |
+| MEDIUM | 2 | Nice to have - consistency improvements |
 | LOW | 2 | Minor - housekeeping |
-| RESOLVED | 9 | Recently fixed |
+| RESOLVED | 10 | Recently fixed |
 
 ---
 
@@ -292,27 +292,18 @@ private validateField(field: string, value?: any): string | null {
 
 ---
 
-## 7. Local Schema Definitions in Frontend [MEDIUM]
+## 7. Local Schema Definitions in Frontend [RESOLVED ✅]
 
-**`webapp-v2/src/app/apiClient.ts` defines local Zod schemas instead of using shared.**
+**~~`webapp-v2/src/app/apiClient.ts` defines local Zod schemas instead of using shared.~~**
 
-```typescript
-// Lines 194-200
-const FirestoreUserSchema = z.object({ id: z.string() }).passthrough();
+### Status: RESOLVED (November 2025)
 
-const ListFirestoreUsersResponseSchema = z.object({
-    users: z.array(FirestoreUserSchema),
-    nextCursor: z.string().optional(),
-    hasMore: z.boolean(),
-});
-```
+Investigation found **no local schemas** in `apiClient.ts`. All schemas are centralized in `packages/shared/src/schemas/apiSchemas.ts`. The report was outdated - the codebase already follows the correct pattern.
 
-### Context
-These are admin-only endpoints (2 schemas total). Not a widespread pattern.
-
-### Impact
-- Minor duplication
-- Could indicate schema mismatch between API and frontend expectations
+The `apiClient.ts` file:
+- Imports `ApiErrorResponseSchema` and `responseSchemas` from shared package
+- Uses centralized `responseSchemas` registry for endpoint validation
+- Contains no local schema definitions
 
 ---
 

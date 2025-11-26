@@ -1,7 +1,7 @@
 import { Button, Checkbox } from '@/components/ui';
 import { STORAGE_KEYS } from '@/constants.ts';
 import { navigationService } from '@/services/navigation.service';
-import { toEmail, toPassword } from '@billsplit-wl/shared';
+import { EmailSchema, toEmail, toPassword } from '@billsplit-wl/shared';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
@@ -77,21 +77,21 @@ export function LoginPage() {
     const handleSubmit = async (e: Event) => {
         e.preventDefault();
 
-        const trimmedEmail = email.trim();
-
-        if (!trimmedEmail || !password) {
-            const errors = [];
-            if (!trimmedEmail) errors.push(t('loginPage.validation.emailRequired'));
-            if (!password) errors.push(t('loginPage.validation.passwordRequired'));
-            // Validation errors are handled by the form UI
+        // Validate email using shared schema
+        const emailResult = EmailSchema.safeParse(email);
+        if (!emailResult.success || !password) {
+            // Validation errors prevent form submission
+            // Detailed errors are shown by the backend if needed
             return;
         }
 
+        const validEmail = emailResult.data;
+
         try {
-            await authStore.login(toEmail(trimmedEmail), toPassword(password), rememberMe);
+            await authStore.login(toEmail(validEmail), toPassword(password), rememberMe);
             // Redirect will happen via useEffect when user state updates
         } catch (error) {
-            logError('Login attempt failed', error, { email: trimmedEmail });
+            logError('Login attempt failed', error, { email: validEmail });
             // Error is already set in authStore.errorSignal by the login() method
         }
     };
@@ -114,7 +114,7 @@ export function LoginPage() {
         }
     }, [email, password]);
 
-    const isFormValid = email.trim() && password;
+    const isFormValid = EmailSchema.safeParse(email).success && password;
 
     const errorValue = authStore.errorSignal.value;
     const loadingValue = authStore.loadingSignal.value;
