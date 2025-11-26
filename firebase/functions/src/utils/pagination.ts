@@ -11,8 +11,19 @@ export function decodeCursor(cursor: string): CursorData {
         const decodedCursor = Buffer.from(cursor, 'base64').toString('utf-8');
         const cursorData = JSON.parse(decodedCursor);
 
+        // Validate updatedAt field
         if (!cursorData.updatedAt || typeof cursorData.updatedAt !== 'string') {
             throw new Error('Invalid cursor: missing or invalid updatedAt');
+        }
+
+        // Validate id field
+        if (!cursorData.id || typeof cursorData.id !== 'string') {
+            throw new Error('Invalid cursor: missing or invalid id');
+        }
+
+        // Validate timestamp format (must be parseable as a date)
+        if (isNaN(Date.parse(cursorData.updatedAt))) {
+            throw new Error('Invalid cursor: updatedAt is not a valid date');
         }
 
         return cursorData as CursorData;

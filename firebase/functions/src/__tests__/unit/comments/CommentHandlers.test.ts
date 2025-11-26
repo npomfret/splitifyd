@@ -389,7 +389,7 @@ describe('CommentHandlers - Integration Tests', () => {
             expect(thirdPage.nextCursor).toBeUndefined();
         });
 
-        it('should ignore invalid pagination parameters gracefully', async () => {
+        it('should reject invalid pagination limit', async () => {
             // Register user via API instead of seeding
             const userResult = await appDriver.registerUser(
                 new UserRegistrationBuilder().build(),
@@ -400,11 +400,9 @@ describe('CommentHandlers - Integration Tests', () => {
 
             await appDriver.createGroupComment(group.id, 'Validation comment', userId);
 
-            const limitResult = await appDriver.listGroupComments(group.id, { limit: 0 }, userId);
-            expect(limitResult.comments.length).toBeGreaterThanOrEqual(1);
-
-            const cursorResult = await appDriver.listGroupComments(group.id, { cursor: 'invalid-cursor' }, userId);
-            expect(cursorResult.comments.length).toBeGreaterThanOrEqual(1);
+            // limit: 0 should fail validation (min is 1)
+            await expect(appDriver.listGroupComments(group.id, { limit: 0 }, userId))
+                .rejects.toThrow('Limit must be at least 1');
         });
     });
 
@@ -580,7 +578,7 @@ describe('CommentHandlers - Integration Tests', () => {
             expect(secondPage.nextCursor).toBeUndefined();
         });
 
-        it('should ignore invalid pagination inputs for expense comments', async () => {
+        it('should reject invalid pagination limit for expense comments', async () => {
             // Register user via API instead of seeding
             const userResult = await appDriver.registerUser(
                 new UserRegistrationBuilder().build(),
@@ -600,11 +598,9 @@ describe('CommentHandlers - Integration Tests', () => {
 
             await appDriver.createExpenseComment(expense.id, 'Expense validation comment', userId);
 
-            const limitResult = await appDriver.listExpenseComments(expense.id, { limit: 0 }, userId);
-            expect(limitResult.comments.length).toBeGreaterThanOrEqual(1);
-
-            const cursorResult = await appDriver.listExpenseComments(expense.id, { cursor: 'invalid-cursor' }, userId);
-            expect(cursorResult.comments.length).toBeGreaterThanOrEqual(1);
+            // limit: 0 should fail validation (min is 1)
+            await expect(appDriver.listExpenseComments(expense.id, { limit: 0 }, userId))
+                .rejects.toThrow('Limit must be at least 1');
         });
     });
 

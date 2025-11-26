@@ -20,7 +20,7 @@ While the project has a strong foundation for a schema-driven architecture, part
 | HIGH | 1 | Should fix - significant maintenance burden |
 | MEDIUM | 4 | Nice to have - consistency improvements |
 | LOW | 2 | Minor - housekeeping |
-| RESOLVED | 6 | Recently fixed |
+| RESOLVED | 8 | Recently fixed |
 
 ---
 
@@ -98,7 +98,7 @@ All missing response schemas were added to `packages/shared/src/schemas/apiSchem
 
 ---
 
-## 4. Validation Edge Cases [PARTIALLY RESOLVED]
+## 4. Validation Edge Cases [RESOLVED ✅]
 
 ### 4.1 Sanitization Inconsistency [RESOLVED ✅]
 
@@ -130,23 +130,72 @@ All missing response schemas were added to `packages/shared/src/schemas/apiSchem
 #### Breaking API Change
 Both expense and settlement updates now **require `currency` field when `amount` is provided**.
 
-### 4.3 Pagination Limits Not Enforced
+### 4.3 Pagination Limits Not Enforced [RESOLVED ✅]
 
-**No maximum limit enforced - `?limit=999999` would create huge queries.**
+**~~No maximum limit enforced - `?limit=999999` would create huge queries.~~**
 
+#### Status: RESOLVED (November 2025)
+
+All pagination endpoints now enforce `DOCUMENT_CONFIG.LIST_LIMIT` (100) as maximum.
+
+#### Changes Made
+
+**CommentHandlers.ts** - Switched from raw `parseInt` to `validateListCommentsQuery`:
 ```typescript
-// CommentHandlers.ts:62
-const parsedLimit = parseInt(limit as string, 10) || 8;
-// No max limit check!
+// Before:
+const { cursor, limit = 8 } = req.query;
+// ... limit: parseInt(limit as string, 10) || 8,
+
+// After:
+const { cursor, limit } = validateListCommentsQuery(req.query);
 ```
 
-**Files:**
-- `firebase/functions/src/comments/CommentHandlers.ts:62, 69, 96, 103`
-- `firebase/functions/src/utils/pagination.ts`
+**GroupHandlers.ts** - Added `Math.min()` to `getGroupFullDetails` pagination params:
+```typescript
+const expenseLimit = Math.min(parseInt(req.query.expenseLimit as string) || 8, DOCUMENT_CONFIG.LIST_LIMIT);
+const settlementLimit = Math.min(parseInt(req.query.settlementLimit as string) || 8, DOCUMENT_CONFIG.LIST_LIMIT);
+const commentLimit = Math.min(parseInt(req.query.commentLimit as string) || 8, DOCUMENT_CONFIG.LIST_LIMIT);
+```
 
-### 4.4 Weak Cursor Validation
+### 4.4 Weak Cursor Validation [RESOLVED ✅]
 
-Cursor validation accepts any base64 string without validating internal structure until parse time.
+**~~Cursor validation accepts any base64 string without validating internal structure until parse time.~~**
+
+#### Status: RESOLVED (November 2025)
+
+The `decodeCursor` function now validates:
+1. `updatedAt` field exists and is a string
+2. `id` field exists and is a string
+3. `updatedAt` is a valid parseable date
+
+#### Implementation (`pagination.ts`)
+```typescript
+export function decodeCursor(cursor: string): CursorData {
+    try {
+        const decodedCursor = Buffer.from(cursor, 'base64').toString('utf-8');
+        const cursorData = JSON.parse(decodedCursor);
+
+        if (!cursorData.updatedAt || typeof cursorData.updatedAt !== 'string') {
+            throw new Error('Invalid cursor: missing or invalid updatedAt');
+        }
+        if (!cursorData.id || typeof cursorData.id !== 'string') {
+            throw new Error('Invalid cursor: missing or invalid id');
+        }
+        if (isNaN(Date.parse(cursorData.updatedAt))) {
+            throw new Error('Invalid cursor: updatedAt is not a valid date');
+        }
+
+        return cursorData as CursorData;
+    } catch (error) {
+        throw Errors.INVALID_INPUT('Invalid cursor format');
+    }
+}
+```
+
+#### Tests Added (`pagination.test.ts`)
+- `should throw error for missing id`
+- `should throw error for non-string id`
+- `should throw error for invalid date format`
 
 ---
 
@@ -369,6 +418,6 @@ private parseQuery(query: Record<string, unknown>): ActivityFeedQuery {
 ### Medium-term (Important)
 8. Standardize error response format
 9. Add query parameter schemas for all list endpoints
-10. Enforce pagination limits (min/max bounds)
+10. ~~Enforce pagination limits (min/max bounds)~~ → DONE (November 2025)
 11. Move inline validation to centralized validators
 

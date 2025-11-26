@@ -48,6 +48,21 @@ describe('Pagination Utilities', () => {
             const invalidData = Buffer.from(JSON.stringify({ updatedAt: 123, id: 'doc123' })).toString('base64');
             expect(() => decodeCursor(invalidData)).toThrow(Errors.INVALID_INPUT('Invalid cursor format'));
         });
+
+        it('should throw error for missing id', () => {
+            const invalidData = Buffer.from(JSON.stringify({ updatedAt: '2023-12-01T10:00:00.000Z' })).toString('base64');
+            expect(() => decodeCursor(invalidData)).toThrow(Errors.INVALID_INPUT('Invalid cursor format'));
+        });
+
+        it('should throw error for non-string id', () => {
+            const invalidData = Buffer.from(JSON.stringify({ updatedAt: '2023-12-01T10:00:00.000Z', id: 123 })).toString('base64');
+            expect(() => decodeCursor(invalidData)).toThrow(Errors.INVALID_INPUT('Invalid cursor format'));
+        });
+
+        it('should throw error for invalid date format', () => {
+            const invalidData = Buffer.from(JSON.stringify({ updatedAt: 'not-a-date', id: 'doc123' })).toString('base64');
+            expect(() => decodeCursor(invalidData)).toThrow(Errors.INVALID_INPUT('Invalid cursor format'));
+        });
     });
 
     describe('buildPaginatedQuery', () => {

@@ -8,7 +8,7 @@ import { HTTP_STATUS } from '../constants';
 import { logger } from '../logger';
 import { CommentService } from '../services/CommentService';
 import { ApiError } from '../utils/errors';
-import { validateCreateExpenseComment, validateCreateGroupComment } from './validation';
+import { validateCreateExpenseComment, validateCreateGroupComment, validateListCommentsQuery } from './validation';
 
 export class CommentHandlers {
     constructor(private readonly commentService: CommentService) {
@@ -59,14 +59,14 @@ export class CommentHandlers {
                 throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_GROUP_ID', 'Group ID is required');
             }
 
-            const { cursor, limit = 8 } = req.query;
+            const { cursor, limit } = validateListCommentsQuery(req.query);
 
             const comments = await this.commentService.listGroupComments(
                 groupId,
                 userId,
                 {
-                    cursor: cursor as string,
-                    limit: parseInt(limit as string, 10) || 8,
+                    cursor,
+                    limit,
                 },
             );
 
@@ -93,14 +93,14 @@ export class CommentHandlers {
                 throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_EXPENSE_ID', 'Expense ID is required');
             }
 
-            const { cursor, limit = 8 } = req.query;
+            const { cursor, limit } = validateListCommentsQuery(req.query);
 
             const comments = await this.commentService.listExpenseComments(
                 toExpenseId(expenseId),
                 userId,
                 {
-                    cursor: cursor as string,
-                    limit: parseInt(limit as string, 10) || 8,
+                    cursor,
+                    limit,
                 },
             );
 

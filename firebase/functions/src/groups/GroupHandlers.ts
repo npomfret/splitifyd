@@ -119,14 +119,14 @@ export class GroupHandlers {
         }
         const groupId = validateGroupId(req.params.groupId);
 
-        // Parse pagination parameters from query string
-        const expenseLimit = parseInt(req.query.expenseLimit as string) || 8;
+        // Parse pagination parameters from query string with max limit enforcement
+        const expenseLimit = Math.min(parseInt(req.query.expenseLimit as string) || 8, DOCUMENT_CONFIG.LIST_LIMIT);
         const expenseCursor = req.query.expenseCursor as string;
-        const settlementLimit = parseInt(req.query.settlementLimit as string) || 8;
+        const settlementLimit = Math.min(parseInt(req.query.settlementLimit as string) || 8, DOCUMENT_CONFIG.LIST_LIMIT);
         const settlementCursor = req.query.settlementCursor as string;
         const includeDeletedExpenses = req.query.includeDeletedExpenses === 'true';
         const includeDeletedSettlements = req.query.includeDeletedSettlements === 'true';
-        const commentLimit = parseInt(req.query.commentLimit as string) || 8;
+        const commentLimit = Math.min(parseInt(req.query.commentLimit as string) || 8, DOCUMENT_CONFIG.LIST_LIMIT);
         const commentCursor = req.query.commentCursor as string;
 
         const result = await this.groupService.getGroupFullDetails(groupId, userId, {
