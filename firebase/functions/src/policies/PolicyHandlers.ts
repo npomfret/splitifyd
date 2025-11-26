@@ -29,38 +29,38 @@ export class PolicyHandlers {
     };
 
     /**
-     * GET /admin/policies/:id - Get policy details and version history
+     * GET /admin/policies/:policyId - Get policy details and version history
      */
     getPolicy = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-        const { id } = req.params;
+        const { policyId } = req.params;
 
         try {
-            const policy = await this.policyService.getPolicy(toPolicyId(id));
+            const policy = await this.policyService.getPolicy(toPolicyId(policyId));
 
             res.json(policy);
         } catch (error) {
             logger.error('Failed to get policy', error as Error, {
                 userId: req.user?.uid,
-                policyId: id,
+                policyId,
             });
             throw error;
         }
     };
 
     /**
-     * GET /admin/policies/:id/versions/:hash - Get specific version content
+     * GET /admin/policies/:policyId/versions/:hash - Get specific version content
      */
     getPolicyVersion = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-        const { id, hash } = req.params;
+        const { policyId, hash } = req.params;
 
         try {
-            const version = await this.policyService.getPolicyVersion(toPolicyId(id), toVersionHash(hash));
+            const version = await this.policyService.getPolicyVersion(toPolicyId(policyId), toVersionHash(hash));
 
             res.json(version);
         } catch (error) {
             logger.error('Failed to get policy version', error as Error, {
                 userId: req.user?.uid,
-                policyId: id,
+                policyId,
                 versionHash: hash,
             });
             throw error;
@@ -68,17 +68,17 @@ export class PolicyHandlers {
     };
 
     /**
-     * PUT /admin/policies/:id - Create new draft version (not published)
+     * PUT /admin/policies/:policyId - Create new draft version (not published)
      */
     updatePolicy = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-        const { id } = req.params;
+        const { policyId } = req.params;
 
         // Validate request body using Zod
         const validatedData = validateUpdatePolicy(req.body);
         const { text, publish = false } = validatedData;
 
         try {
-            const result = await this.policyService.updatePolicy(toPolicyId(id), toPolicyText(text), publish);
+            const result = await this.policyService.updatePolicy(toPolicyId(policyId), toPolicyText(text), publish);
 
             const response: UpdatePolicyResponse = {
                 versionHash: result.versionHash,
@@ -89,23 +89,23 @@ export class PolicyHandlers {
         } catch (error) {
             logger.error('Failed to update policy', error as Error, {
                 userId: req.user?.uid,
-                policyId: id,
+                policyId,
             });
             throw error;
         }
     };
 
     /**
-     * POST /admin/policies/:id/publish - Publish draft as current version
+     * POST /admin/policies/:policyId/publish - Publish draft as current version
      */
     publishPolicy = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-        const { id } = req.params;
+        const { policyId } = req.params;
 
         // Validate request body using shared Zod schema
         const { versionHash } = validatePublishPolicy(req.body);
 
         try {
-            const result = await this.policyService.publishPolicy(toPolicyId(id), versionHash);
+            const result = await this.policyService.publishPolicy(toPolicyId(policyId), versionHash);
 
             const response: PublishPolicyResponse = {
                 currentVersionHash: result.currentVersionHash,
@@ -114,7 +114,7 @@ export class PolicyHandlers {
         } catch (error) {
             logger.error('Failed to publish policy', error as Error, {
                 userId: req.user?.uid,
-                policyId: id,
+                policyId,
                 versionHash,
             });
             throw error;
@@ -147,20 +147,20 @@ export class PolicyHandlers {
     };
 
     /**
-     * DELETE /admin/policies/:id/versions/:hash - Remove old version (with safeguards)
+     * DELETE /admin/policies/:policyId/versions/:hash - Remove old version (with safeguards)
      */
     deletePolicyVersion = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-        const { id, hash } = req.params;
+        const { policyId, hash } = req.params;
 
         try {
-            await this.policyService.deletePolicyVersion(toPolicyId(id), toVersionHash(hash));
+            await this.policyService.deletePolicyVersion(toPolicyId(policyId), toVersionHash(hash));
 
             const response: DeletePolicyVersionResponse = {};
             res.json(response);
         } catch (error) {
             logger.error('Failed to delete policy version', error as Error, {
                 userId: req.user?.uid,
-                policyId: id,
+                policyId,
                 versionHash: hash,
             });
             throw error;

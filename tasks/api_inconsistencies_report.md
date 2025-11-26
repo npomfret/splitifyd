@@ -1,6 +1,6 @@
 # API Inconsistency and Duplication Report
 
-> **Last Updated:** November 2025 - Updated to reflect recent tenant configuration improvements
+> **Last Updated:** November 2025 - Updated to reflect route parameter naming standardization
 
 ### Summary of Findings
 
@@ -10,8 +10,14 @@ The investigation reveals several significant inconsistencies and gaps in the pr
 
 - **Tenant Model Simplified:** `primaryDomain` field removed from tenant model (commit 2bd04f1b). The `domains` array is now the single source of truth for tenant domain configuration.
 - **Schema Testing Added:** Comprehensive API schema validation tests added to catch schema/response mismatches.
+- **Route Parameter Naming Standardized:** All route parameters now use resource-specific names consistently:
+  - `:id` → `:groupId` (for group routes)
+  - `:id` → `:expenseId` (for expense routes)
+  - `:id` → `:policyId` (for policy routes)
+  - `:uid` → `:userId` (for admin user routes)
+  - Frontend normalization logic simplified from 7 special-case patterns to 6 generic replacements.
 
-1.  **Inconsistent Endpoint Naming:** The backend API, defined in `firebase/functions/src/routes/route-config.ts`, uses inconsistent parameter naming in its routes (e.g., `:id`, `:groupId`, `:settlementId`, `:uid`). This forces the frontend client (`webapp-v2/src/app/apiClient.ts`) to implement brittle and error-prone normalization logic to match API calls to their respective response schemas.
+1.  ~~**Inconsistent Endpoint Naming:**~~ **RESOLVED.** Route parameters are now consistently named across all endpoints (`:groupId`, `:expenseId`, `:policyId`, `:userId`, `:settlementId`, `:memberId`). The frontend client normalization logic has been simplified accordingly.
 
 2.  **Inconsistent Error Handling:** The backend employs two distinct patterns for request validation. A newer, cleaner `parseWithApiError` function is used in some features (like `groups`), while an older, more verbose `createZodErrorMapper` factory is used in others (`user`, `expenses`, `comments`). This suggests an incomplete refactoring and adds cognitive overhead for developers.
 
@@ -21,14 +27,14 @@ The investigation reveals several significant inconsistencies and gaps in the pr
 
 5.  **Potential Security Gap:** The `/tasks/processMerge` endpoint relies on cloud infrastructure for authorization, as noted by a comment in `route-config.ts`. This deviates from the consistent application-level middleware pattern (`authenticate`, `authenticateAdmin`) used elsewhere and could be a point of failure if the infrastructure is misconfigured.
 
-In summary, the API layer suffers from a lack of standardization that has led to inconsistencies in naming, error handling, and schema validation, creating technical debt and potential for bugs.
+In summary, the API layer has made progress on standardization (route parameter naming is now consistent), but still has issues with error handling patterns, schema coverage, and response format consistency that create technical debt.
 ---
 
 ### 6. API Contract Inconsistencies (`packages/shared/src/api.ts`)
 
 A direct analysis of the API's TypeScript interfaces reveals inconsistencies in the API's *contract*, before it is even implemented.
 
-*   **Inconsistent Identifier Naming:** The names of parameters used for resource IDs are inconsistent across different methods. For example, `getGroupFullDetails(groupId: GroupId, ...)` uses `groupId`, while `updateExpense(expenseId: ExpenseId, ...)` uses `expenseId`, and `updateUser(uid: UserId, ...)` uses `uid`. This lack of a standard convention adds cognitive load and is the root cause of brittle normalization logic in the frontend client.
+*   ~~**Inconsistent Identifier Naming:**~~ **RESOLVED.** Route parameters now use consistent resource-specific naming (`:groupId`, `:expenseId`, `:policyId`, `:userId`). The frontend normalization logic has been simplified.
 
 *   **Ambiguous Method Signature:** The `joinGroupByLink` method has a confusing signature: `joinGroupByLink(shareToken: ShareLinkToken, displayNameOrToken?: DisplayName | AuthToken, token?: AuthToken)`. The presence of two optional parameters that could both be an `AuthToken` is ambiguous and likely a bug or a remnant of an incomplete refactoring.
 

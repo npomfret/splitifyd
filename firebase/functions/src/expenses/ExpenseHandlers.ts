@@ -63,7 +63,7 @@ export class ExpenseHandlers {
      */
     getExpenseFullDetails = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
         const userId = validateUserAuth(req);
-        const expenseId = validateExpenseId(req.params.id);
+        const expenseId = validateExpenseId(req.params.expenseId);
 
         try {
             const result = await this.expenseService.getExpenseFullDetails(expenseId, userId);

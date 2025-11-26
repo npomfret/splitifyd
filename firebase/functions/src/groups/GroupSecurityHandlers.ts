@@ -15,14 +15,14 @@ export class GroupSecurityHandlers {
 
     private async validateAdminRequest(req: AuthenticatedRequest): Promise<{ userId: UserId; groupId: GroupId; }> {
         const userId = validateUserAuth(req);
-        const groupId = validateGroupId(req.params.id);
+        const groupId = validateGroupId(req.params.groupId);
         await this.groupMemberService.ensureActiveGroupAdmin(groupId, userId);
         return { userId, groupId };
     }
 
     private async validateMemberApprovalRequest(req: AuthenticatedRequest): Promise<{ userId: UserId; groupId: GroupId; }> {
         const userId = validateUserAuth(req);
-        const groupId = validateGroupId(req.params.id);
+        const groupId = validateGroupId(req.params.groupId);
         await this.groupMemberService.ensureCanManagePendingMembers(groupId, userId);
         return { userId, groupId };
     }

@@ -574,7 +574,7 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
     }
 
     async getGroupFullDetails(groupId: GroupId | string, options: GetGroupFullDetailsOptions = {}, authToken: AuthToken) {
-        const req = createStubRequest(authToken, {}, { id: groupId });
+        const req = createStubRequest(authToken, {}, { groupId });
         const query: Record<string, string> = {};
 
         if (options.expenseLimit !== undefined) {
@@ -637,13 +637,13 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
     }
 
     async updateGroup(groupId: GroupId | string, updates: UpdateGroupRequest, authToken: AuthToken) {
-        const req = createStubRequest(authToken, updates, { id: groupId });
+        const req = createStubRequest(authToken, updates, { groupId });
         const res = await this.dispatchByHandler('updateGroup', req);
         return res.getJson() as MessageResponse;
     }
 
     async deleteGroup(groupId: GroupId | string, authToken: AuthToken) {
-        const req = createStubRequest(authToken, {}, { id: groupId });
+        const req = createStubRequest(authToken, {}, { groupId });
         const res = await this.dispatchByHandler('deleteGroup', req);
         return res.getJson() as MessageResponse;
     }
@@ -664,61 +664,61 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
     }
 
     async leaveGroup(groupId: GroupId | string, authToken: AuthToken): Promise<MessageResponse> {
-        const req = createStubRequest(authToken, {}, { id: groupId });
+        const req = createStubRequest(authToken, {}, { groupId });
         const res = await this.dispatchByHandler('leaveGroup', req);
         return res.getJson() as MessageResponse;
     }
 
     async removeGroupMember(groupId: GroupId | string, memberId: UserId | string, authToken: AuthToken): Promise<MessageResponse> {
-        const req = createStubRequest(authToken, {}, { id: groupId, memberId });
+        const req = createStubRequest(authToken, {}, { groupId, memberId });
         const res = await this.dispatchByHandler('removeGroupMember', req);
         return res.getJson() as MessageResponse;
     }
 
     async archiveGroupForUser(groupId: GroupId | string, authToken: AuthToken): Promise<MessageResponse> {
-        const req = createStubRequest(authToken, {}, { id: groupId });
+        const req = createStubRequest(authToken, {}, { groupId });
         const res = await this.dispatchByHandler('archiveGroupForUser', req);
         return res.getJson() as MessageResponse;
     }
 
     async unarchiveGroupForUser(groupId: GroupId | string, authToken: AuthToken): Promise<MessageResponse> {
-        const req = createStubRequest(authToken, {}, { id: groupId });
+        const req = createStubRequest(authToken, {}, { groupId });
         const res = await this.dispatchByHandler('unarchiveGroupForUser', req);
         return res.getJson() as MessageResponse;
     }
 
     async updateGroupMemberDisplayName(groupId: GroupId | string, displayName: DisplayName | string, authToken: AuthToken): Promise<MessageResponse> {
-        const req = createStubRequest(authToken, { displayName }, { id: groupId });
+        const req = createStubRequest(authToken, { displayName }, { groupId });
         const res = await this.dispatchByHandler('updateGroupMemberDisplayName', req);
         return res.getJson() as MessageResponse;
     }
 
     async updateGroupPermissions(groupId: GroupId | string, updates: Partial<GroupPermissions>, authToken: AuthToken): Promise<MessageResponse> {
-        const req = createStubRequest(authToken, updates, { id: groupId });
+        const req = createStubRequest(authToken, updates, { groupId });
         const res = await this.dispatchByHandler('updateGroupPermissions', req);
         return res.getJson() as MessageResponse;
     }
 
     async getPendingMembers(groupId: GroupId | string, authToken: AuthToken): Promise<GroupMembershipDTO[]> {
-        const req = createStubRequest(authToken, {}, { id: groupId });
+        const req = createStubRequest(authToken, {}, { groupId });
         const res = await this.dispatchByHandler('getPendingMembers', req);
         return res.getJson() as GroupMembershipDTO[];
     }
 
     async updateMemberRole(groupId: GroupId | string, memberId: UserId, role: MemberRole, authToken: AuthToken): Promise<MessageResponse> {
-        const req = createStubRequest(authToken, { role }, { id: groupId, memberId });
+        const req = createStubRequest(authToken, { role }, { groupId, memberId });
         const res = await this.dispatchByHandler('updateMemberRole', req);
         return res.getJson() as MessageResponse;
     }
 
     async approveMember(groupId: GroupId | string, memberId: UserId, authToken: AuthToken): Promise<MessageResponse> {
-        const req = createStubRequest(authToken, {}, { id: groupId, memberId });
+        const req = createStubRequest(authToken, {}, { groupId, memberId });
         const res = await this.dispatchByHandler('approveMember', req);
         return res.getJson() as MessageResponse;
     }
 
     async rejectMember(groupId: GroupId | string, memberId: UserId, authToken: AuthToken): Promise<MessageResponse> {
-        const req = createStubRequest(authToken, {}, { id: groupId, memberId });
+        const req = createStubRequest(authToken, {}, { groupId, memberId });
         const res = await this.dispatchByHandler('rejectMember', req);
         return res.getJson() as MessageResponse;
     }
@@ -749,7 +749,7 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
     }
 
     async getExpenseFullDetails(expenseId: ExpenseId | string, authToken: AuthToken) {
-        const req = createStubRequest(authToken, {}, { id: expenseId });
+        const req = createStubRequest(authToken, {}, { expenseId });
         const res = await this.dispatchByHandler('getExpenseFullDetails', req);
         return res.getJson() as ExpenseFullDetailsDTO;
     }
@@ -895,25 +895,25 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
     // ===== ADMIN API: USER MANAGEMENT =====
 
     async updateUser(uid: UserId, updates: UpdateUserStatusRequest, token?: AuthToken): Promise<AdminUserProfile> {
-        const req = createStubRequest(token || '', updates, { uid });
+        const req = createStubRequest(token || '', updates, { userId: uid });
         const res = await this.dispatchByHandler('updateUserAdmin', req);
         return res.getJson() as AdminUserProfile;
     }
 
     async updateUserRole(uid: UserId, updates: UpdateUserRoleRequest, token?: AuthToken): Promise<AdminUserProfile> {
-        const req = createStubRequest(token || '', updates, { uid });
+        const req = createStubRequest(token || '', updates, { userId: uid });
         const res = await this.dispatchByHandler('updateUserRoleAdmin', req);
         return res.getJson() as AdminUserProfile;
     }
 
     async getUserAuth(uid: UserId, token?: AuthToken): Promise<any> {
-        const req = createStubRequest(token || '', {}, { uid });
+        const req = createStubRequest(token || '', {}, { userId: uid });
         const res = await this.dispatchByHandler('getUserAuth', req);
         return res.getJson();
     }
 
     async getUserFirestore(uid: UserId, token?: AuthToken): Promise<any> {
-        const req = createStubRequest(token || '', {}, { uid });
+        const req = createStubRequest(token || '', {}, { userId: uid });
         const res = await this.dispatchByHandler('getUserFirestore', req);
         return res.getJson();
     }
@@ -958,25 +958,25 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
     }
 
     async getPolicyVersion(policyId: PolicyId, versionHash: VersionHash, token: AuthToken): Promise<PolicyVersion & { versionHash: VersionHash; }> {
-        const req = createStubRequest(token, {}, { id: policyId, hash: versionHash });
+        const req = createStubRequest(token, {}, { policyId, hash: versionHash });
         const res = await this.dispatchByHandler('getPolicyVersion', req);
         return res.getJson() as PolicyVersion & { versionHash: VersionHash; };
     }
 
     async updatePolicy(policyId: PolicyId, request: UpdatePolicyRequest, token: AuthToken): Promise<UpdatePolicyResponse> {
-        const req = createStubRequest(token, request, { id: policyId });
+        const req = createStubRequest(token, request, { policyId });
         const res = await this.dispatchByHandler('updatePolicy', req);
         return res.getJson() as UpdatePolicyResponse;
     }
 
     async publishPolicy(policyId: PolicyId, versionHash: VersionHash, token: AuthToken): Promise<PublishPolicyResponse> {
-        const req = createStubRequest(token, { versionHash }, { id: policyId });
+        const req = createStubRequest(token, { versionHash }, { policyId });
         const res = await this.dispatchByHandler('publishPolicy', req);
         return res.getJson() as PublishPolicyResponse;
     }
 
     async deletePolicyVersion(policyId: PolicyId, versionHash: VersionHash, token: AuthToken): Promise<DeletePolicyVersionResponse> {
-        const req = createStubRequest(token, {}, { id: policyId, hash: versionHash });
+        const req = createStubRequest(token, {}, { policyId, hash: versionHash });
         const res = await this.dispatchByHandler('deletePolicyVersion', req);
         return res.getJson() as DeletePolicyVersionResponse;
     }
@@ -994,7 +994,7 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
     }
 
     async getCurrentPolicy(policyId: PolicyId): Promise<CurrentPolicyResponse> {
-        const req = createStubRequest('', {}, { id: policyId });
+        const req = createStubRequest('', {}, { policyId });
         const res = await this.dispatchByHandler('getCurrentPolicy', req);
         return res.getJson() as CurrentPolicyResponse;
     }

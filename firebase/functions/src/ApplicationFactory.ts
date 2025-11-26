@@ -511,8 +511,8 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
 
         // Public policy handlers (inline)
         getCurrentPolicy: async (req, res) => {
-            const { id } = req.params;
-            const result = await policyService.getCurrentPolicy(toPolicyId(id));
+            const { policyId } = req.params;
+            const result = await policyService.getCurrentPolicy(toPolicyId(policyId));
             res.json(result);
         },
 

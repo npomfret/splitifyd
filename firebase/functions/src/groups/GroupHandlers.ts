@@ -39,7 +39,7 @@ export class GroupHandlers {
         if (!userId) {
             throw Errors.UNAUTHORIZED();
         }
-        const groupId = validateGroupId(req.params.id);
+        const groupId = validateGroupId(req.params.groupId);
 
         // Validate request body
         const updates = validateUpdateGroup(req.body);
@@ -61,7 +61,7 @@ export class GroupHandlers {
         if (!userId) {
             throw Errors.UNAUTHORIZED();
         }
-        const groupId = validateGroupId(req.params.id);
+        const groupId = validateGroupId(req.params.groupId);
 
         // Use GroupService to delete the group
         const response = await this.groupService.deleteGroup(groupId, userId);
@@ -123,7 +123,7 @@ export class GroupHandlers {
         if (!userId) {
             throw Errors.UNAUTHORIZED();
         }
-        const groupId = validateGroupId(req.params.id);
+        const groupId = validateGroupId(req.params.groupId);
 
         // Parse pagination parameters from query string
         const expenseLimit = parseInt(req.query.expenseLimit as string) || 8;
@@ -157,7 +157,7 @@ export class GroupHandlers {
         if (!userId) {
             throw Errors.UNAUTHORIZED();
         }
-        const groupId = validateGroupId(req.params.id);
+        const groupId = validateGroupId(req.params.groupId);
 
         // Validate request body
         const { displayName } = validateUpdateDisplayName(req.body);

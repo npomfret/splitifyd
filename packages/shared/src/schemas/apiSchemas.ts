@@ -559,14 +559,14 @@ export const responseSchemas = {
     'GET /activity-feed': ActivityFeedResponseSchema,
     'GET /groups': ListGroupsResponseSchema,
     'POST /groups': GroupSchema,
-    '/groups/:id': GroupSchema,
-    'PUT /groups/:id': MessageResponseSchema,
-    '/groups/:id/members': GroupMembersResponseSchema,
-    '/groups/:id/full-details': GroupFullDetailsSchema,
+    '/groups/:groupId': GroupSchema,
+    'PUT /groups/:groupId': MessageResponseSchema,
+    '/groups/:groupId/members': GroupMembersResponseSchema,
+    '/groups/:groupId/full-details': GroupFullDetailsSchema,
     '/expenses': ExpenseDataSchema,
     'DELETE /expenses': MessageResponseSchema,
     '/expenses/group': ExpenseListResponseSchema,
-    '/expenses/:id/full-details': ExpenseFullDetailsSchema,
+    '/expenses/:expenseId/full-details': ExpenseFullDetailsSchema,
     '/groups/balances': GroupBalancesSchema,
     'POST /groups/share': ShareableLinkResponseSchema,
     '/groups/share': ShareableLinkResponseSchema,
@@ -590,11 +590,11 @@ export const responseSchemas = {
     'POST /user/change-password': MessageResponseSchema,
     'POST /user/reset-password': MessageResponseSchema,
     // Group member endpoints
-    'POST /groups/:id/leave': MessageResponseSchema,
-    'DELETE /groups/:id/members/:memberId': MessageResponseSchema,
-    'PUT /groups/:id/members/display-name': MessageResponseSchema,
+    'POST /groups/:groupId/leave': MessageResponseSchema,
+    'DELETE /groups/:groupId/members/:memberId': MessageResponseSchema,
+    'PUT /groups/:groupId/members/display-name': MessageResponseSchema,
     // Policy endpoints
-    'GET /policies/:id/current': CurrentPolicyResponseSchema,
+    'GET /policies/:policyId/current': CurrentPolicyResponseSchema,
     'GET /user/policies/status': UserPolicyStatusResponseSchema,
     'POST /user/policies/accept-multiple': AcceptMultiplePoliciesResponseSchema,
     // Tenant settings endpoints
@@ -606,8 +606,8 @@ export const responseSchemas = {
     'GET /admin/browser/tenants': AdminTenantsListResponseSchema,
     // Admin user management endpoints
     'GET /admin/browser/users/auth': ListAuthUsersResponseSchema,
-    'PUT /admin/users/:uid': AdminUserProfileSchema,
-    'PUT /admin/users/:uid/role': AdminUserProfileSchema,
+    'PUT /admin/users/:userId': AdminUserProfileSchema,
+    'PUT /admin/users/:userId/role': AdminUserProfileSchema,
 } as const;
 
 // Schema for the currency-specific balance data used in GroupService.addComputedFields

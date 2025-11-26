@@ -2,9 +2,9 @@ import { ApiErrorResponseSchema, responseSchemas, USD } from '@billsplit-wl/shar
 import { GroupDTOBuilder, GroupMemberBuilder } from '@billsplit-wl/test-support';
 import { describe, expect, it } from 'vitest';
 
-const groupDetailSchema = responseSchemas['/groups/:id'];
+const groupDetailSchema = responseSchemas['/groups/:groupId'];
 const groupListSchema = responseSchemas['GET /groups'];
-const groupMembersSchema = responseSchemas['/groups/:id/members'];
+const groupMembersSchema = responseSchemas['/groups/:groupId/members'];
 
 const buildGroupResponse = () => {
     const group = new GroupDTOBuilder()

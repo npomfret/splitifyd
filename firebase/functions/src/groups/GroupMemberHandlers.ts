@@ -11,7 +11,7 @@ export class GroupMemberHandlers {
 
     leaveGroup = async (req: AuthenticatedRequest, res: Response) => {
         const userId = req.user?.uid;
-        const groupId = validateGroupId(req.params.id);
+        const groupId = validateGroupId(req.params.groupId);
 
         try {
             const result = await this.groupMemberService.leaveGroup(userId!, groupId);
@@ -27,7 +27,7 @@ export class GroupMemberHandlers {
 
     removeGroupMember = async (req: AuthenticatedRequest, res: Response) => {
         const userId = req.user?.uid;
-        const groupId = validateGroupId(req.params.id);
+        const groupId = validateGroupId(req.params.groupId);
         const memberId = toUserId(req.params.memberId);
 
         try {
@@ -45,7 +45,7 @@ export class GroupMemberHandlers {
 
     archiveGroupForUser = async (req: AuthenticatedRequest, res: Response) => {
         const userId = req.user?.uid;
-        const groupId = validateGroupId(req.params.id);
+        const groupId = validateGroupId(req.params.groupId);
 
         try {
             const result = await this.groupMemberService.archiveGroupForUser(groupId, userId!);
@@ -61,7 +61,7 @@ export class GroupMemberHandlers {
 
     unarchiveGroupForUser = async (req: AuthenticatedRequest, res: Response) => {
         const userId = req.user?.uid;
-        const groupId = validateGroupId(req.params.id);
+        const groupId = validateGroupId(req.params.groupId);
 
         try {
             const result = await this.groupMemberService.unarchiveGroupForUser(groupId, userId!);

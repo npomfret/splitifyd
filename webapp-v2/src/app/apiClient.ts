@@ -550,31 +550,14 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
             let validator: z.ZodSchema<any> | undefined = config.schema;
             if (!validator) {
                 // Normalize endpoint by replacing IDs with placeholders to match schema keys
-                // Note: Schema has inconsistent placeholder naming (:id vs :expenseId vs :groupId)
-                // We need to try multiple patterns and fallback appropriately
-                let normalizedEndpoint = endpoint;
-
-                // Try specific patterns first (match schema inconsistencies)
-                if (endpoint.includes('/expenses/') && endpoint.includes('/comments')) {
-                    // /expenses/abc123/comments -> /expenses/:expenseId/comments
-                    normalizedEndpoint = endpoint.replace(/\/expenses\/[^/]+(?=\/)/g, '/expenses/:expenseId');
-                } else if (endpoint.includes('/expenses/') && endpoint.includes('/full-details')) {
-                    // /expenses/abc123/full-details -> /expenses/:id/full-details
-                    normalizedEndpoint = endpoint.replace(/\/expenses\/[^/]+(?=\/)/g, '/expenses/:id');
-                } else if (endpoint.includes('/groups/') && endpoint.includes('/comments')) {
-                    // /groups/xyz789/comments -> /groups/:groupId/comments
-                    normalizedEndpoint = endpoint.replace(/\/groups\/[^/]+(?=\/)/g, '/groups/:groupId');
-                } else if (endpoint.includes('/settlements/')) {
-                    // /settlements/def456 -> /settlements/:settlementId or just /settlements/def456/... -> /settlements/:settlementId/...
-                    normalizedEndpoint = endpoint.replace(/\/settlements\/[a-zA-Z0-9_-]{15,}/g, '/settlements/:settlementId');
-                } else if (endpoint.includes('/policies/') && endpoint.includes('/current')) {
-                    // /policies/policy123/current -> /policies/:id/current
-                    normalizedEndpoint = endpoint.replace(/\/policies\/[^/]+(?=\/)/g, '/policies/:id');
-                } else if (endpoint.match(/\/groups\/[a-zA-Z0-9_-]{15,}($|\/)/)) {
-                    // /groups/abc123def456... -> /groups/:id (only if segment looks like an ID)
-                    normalizedEndpoint = endpoint.replace(/\/groups\/[a-zA-Z0-9_-]{15,}/g, '/groups/:id');
-                }
-                // No generic fallback - only normalize when we have specific patterns
+                // All route parameters are now consistently named (e.g., :groupId, :expenseId, :policyId)
+                let normalizedEndpoint = endpoint
+                    .replace(/\/groups\/[a-zA-Z0-9_-]{15,}/g, '/groups/:groupId')
+                    .replace(/\/expenses\/[a-zA-Z0-9_-]{15,}/g, '/expenses/:expenseId')
+                    .replace(/\/settlements\/[a-zA-Z0-9_-]{15,}/g, '/settlements/:settlementId')
+                    .replace(/\/policies\/[a-zA-Z0-9_-]+(?=\/)/g, '/policies/:policyId')
+                    .replace(/\/admin\/users\/[a-zA-Z0-9_-]+/g, '/admin/users/:userId')
+                    .replace(/\/members\/[a-zA-Z0-9_-]{15,}/g, '/members/:memberId');
 
                 // Get validator for this endpoint, trying method-specific first
                 const methodEndpoint = `${options.method} ${normalizedEndpoint}` as keyof typeof responseSchemas;
