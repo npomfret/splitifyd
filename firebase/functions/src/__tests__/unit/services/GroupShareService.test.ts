@@ -307,7 +307,7 @@ describe('GroupShareService', () => {
             const result = await groupShareService.joinGroupByLink(newUserId, toShareLinkToken(shareToken), toDisplayName('New User'));
 
             expect(result.groupId).toBe(groupId);
-            expect(result.success).toBe(true);
+            expect(result.memberStatus).toBe(MemberStatuses.ACTIVE);
         });
 
         it('should throw DISPLAY_NAME_CONFLICT error when display name matches existing member', async () => {
@@ -360,7 +360,6 @@ describe('GroupShareService', () => {
 
         it('should mark joins as pending when admin approval is required', async () => {
             const result = await groupShareService.joinGroupByLink(pendingUserId, toShareLinkToken(shareToken), toDisplayName('Pending User'));
-            expect(result.success).toBe(false);
             expect(result.memberStatus).toBe(MemberStatuses.PENDING);
 
             const storedMembership = await firestoreReader.getGroupMember(groupId, pendingUserId);
@@ -386,7 +385,6 @@ describe('GroupShareService', () => {
 
         it('should activate members immediately when approval is automatic', async () => {
             const result = await groupShareService.joinGroupByLink(toUserId(joiningUserId1), toShareLinkToken(shareToken), toDisplayName('Joining User'));
-            expect(result.success).toBe(true);
             expect(result.memberStatus).toBe(MemberStatuses.ACTIVE);
 
             const storedMembership = await firestoreReader.getGroupMember(groupId, toUserId(joiningUserId1));

@@ -1,4 +1,4 @@
-import { calculateEqualSplits, PooledTestUser, toAmount, USD } from '@billsplit-wl/shared';
+import { calculateEqualSplits, PooledTestUser, toAmount, toDisplayName, USD } from '@billsplit-wl/shared';
 import {
     ApiDriver,
     borrowTestUsers,
@@ -57,8 +57,8 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
 
             // Both users try to join simultaneously
             const joinPromises = [
-                apiDriver.joinGroupByLink(shareLink.shareToken, users[1].token),
-                apiDriver.joinGroupByLink(shareLink.shareToken, users[2].token),
+                apiDriver.joinGroupByLink(shareLink.shareToken, toDisplayName('Member 1'), users[1].token),
+                apiDriver.joinGroupByLink(shareLink.shareToken, toDisplayName('Member 2'), users[2].token),
             ];
 
             const results = await Promise.allSettled(joinPromises);
@@ -97,7 +97,7 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
 
             // Add second user as member
             const shareLink = await apiDriver.generateShareableLink(testGroup.id, undefined, users[0].token);
-            await apiDriver.joinGroupByLink(shareLink.shareToken, users[1].token);
+            await apiDriver.joinGroupByLink(shareLink.shareToken, toDisplayName('Member 1'), users[1].token);
 
             // Same user tries multiple concurrent updates
             const updatePromises = [
@@ -332,7 +332,7 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             // User joins while expense is being created simultaneously
             const usd = USD;
             const promises = [
-                apiDriver.joinGroupByLink(shareLink.shareToken, users[1].token),
+                apiDriver.joinGroupByLink(shareLink.shareToken, toDisplayName('Member 1'), users[1].token),
                 apiDriver.createExpense(
                     new CreateExpenseRequestBuilder()
                         .withGroupId(testGroup.id)
@@ -375,7 +375,7 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
 
             // Add second user to the group
             const shareLink = await apiDriver.generateShareableLink(group.id, undefined, users[0].token);
-            await apiDriver.joinGroupByLink(shareLink.shareToken, users[1].token);
+            await apiDriver.joinGroupByLink(shareLink.shareToken, toDisplayName('Member 1'), users[1].token);
 
             // Verify 2 members before deletion
             const { members } = await apiDriver.getGroupFullDetails(group.id, undefined, users[0].token);
@@ -411,7 +411,7 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
 
             // Add second user to the group
             const shareResponse = await apiDriver.generateShareableLink(testGroup.id, undefined, user1.token);
-            await apiDriver.joinGroupByLink(shareResponse.shareToken, user2.token);
+            await apiDriver.joinGroupByLink(shareResponse.shareToken, toDisplayName('Member 2'), user2.token);
 
             // Create an expense
             const usd = USD;
@@ -463,8 +463,8 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
 
             // Add other users to the group
             const shareResponse = await apiDriver.generateShareableLink(testGroup.id, undefined, user1.token);
-            await apiDriver.joinGroupByLink(shareResponse.shareToken, user2.token);
-            await apiDriver.joinGroupByLink(shareResponse.shareToken, user3.token);
+            await apiDriver.joinGroupByLink(shareResponse.shareToken, toDisplayName('Member 2'), user2.token);
+            await apiDriver.joinGroupByLink(shareResponse.shareToken, toDisplayName('Member 3'), user3.token);
 
             // Create multiple expenses and soft-delete them all
             const expenseIds: string[] = [];
@@ -517,8 +517,9 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
 
             // Add multiple members to create subcollection documents
             const shareResponse = await apiDriver.generateShareableLink(testGroup.id, undefined, owner.token);
-            for (const member of members) {
-                await apiDriver.joinGroupByLink(shareResponse.shareToken, member.token);
+            for (let i = 0; i < members.length; i++) {
+                const member = members[i];
+                await apiDriver.joinGroupByLink(shareResponse.shareToken, toDisplayName(`Member ${i + 1}`), member.token);
             }
 
             // Verify all members are in the group
@@ -558,7 +559,7 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
 
             // Add second user
             const shareResponse = await apiDriver.generateShareableLink(testGroup.id, undefined, user1.token);
-            await apiDriver.joinGroupByLink(shareResponse.shareToken, user2.token);
+            await apiDriver.joinGroupByLink(shareResponse.shareToken, toDisplayName('Member 2'), user2.token);
 
             // Create an active expense (don't delete it)
             const usd = USD;
@@ -608,9 +609,9 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
 
             // Add multiple members to create member documents
             const shareResponse = await apiDriver.generateShareableLink(groupId, undefined, owner.token);
-            await apiDriver.joinGroupByLink(shareResponse.shareToken, member1.token);
-            await apiDriver.joinGroupByLink(shareResponse.shareToken, member2.token);
-            await apiDriver.joinGroupByLink(shareResponse.shareToken, member3.token);
+            await apiDriver.joinGroupByLink(shareResponse.shareToken, toDisplayName('Member 1'), member1.token);
+            await apiDriver.joinGroupByLink(shareResponse.shareToken, toDisplayName('Member 2'), member2.token);
+            await apiDriver.joinGroupByLink(shareResponse.shareToken, toDisplayName('Member 3'), member3.token);
 
             // Create multiple expenses (both active and soft-deleted) to populate various collections
             const expenses = [];

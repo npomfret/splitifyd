@@ -1069,7 +1069,6 @@ export interface PreviewGroupResponse {
 export interface JoinGroupResponse {
     groupId: GroupId;
     groupName: GroupName;
-    success: boolean;
     memberStatus: MemberStatus;
 }
 

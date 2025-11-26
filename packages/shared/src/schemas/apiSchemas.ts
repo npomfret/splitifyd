@@ -252,7 +252,6 @@ const ShareableLinkResponseSchema = z.object({
 const JoinGroupResponseSchema = z.object({
     groupId: z.string(),
     groupName: z.string(),
-    success: z.boolean(),
     memberStatus: z.enum(['active', 'pending', 'archived']),
 });
 
@@ -637,8 +636,20 @@ export const PublishTenantThemeResponseSchema = z.object({
 // Group Member Management Schemas
 // ========================================================================
 
+// GroupMembershipDTO schema - the raw membership document (different from GroupMemberDTO)
+const GroupMembershipDTOSchema = z.object({
+    uid: z.string().min(1).transform(toUserId),
+    groupId: z.string().min(1).transform(toGroupId),
+    memberRole: z.enum(['admin', 'member', 'viewer']),
+    memberStatus: z.enum(['active', 'pending', 'archived']),
+    joinedAt: z.string().datetime().transform(toISOString),
+    invitedBy: z.string().transform(toUserId).optional(),
+    theme: UserThemeColorSchema,
+    groupDisplayName: z.string().min(1).transform(toDisplayName),
+});
+
 // Pending members response - array of GroupMembershipDTO
-const PendingMembersResponseSchema = z.array(GroupMemberDTOSchema);
+const PendingMembersResponseSchema = z.array(GroupMembershipDTOSchema);
 
 // ========================================================================
 // Admin Policy Schemas

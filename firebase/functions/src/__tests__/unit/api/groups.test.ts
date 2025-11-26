@@ -158,7 +158,7 @@ describe('groups', () => {
         expect(preview.isAlreadyMember).toBe(false);
 
         const joinResult = await appDriver.joinGroupByLink(shareLink.shareToken, undefined, user2);
-        expect(joinResult.success).toBe(true);
+        expect(joinResult.memberStatus).toBe('active');
 
         const members = (await appDriver.getGroupFullDetails(groupId, {}, user1)).members.members;
         expect(members.some(({ uid }) => uid === user2)).toBe(true);

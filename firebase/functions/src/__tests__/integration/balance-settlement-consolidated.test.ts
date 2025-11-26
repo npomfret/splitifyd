@@ -1,4 +1,4 @@
-import { PooledTestUser, USD } from '@billsplit-wl/shared';
+import { PooledTestUser, toDisplayName, USD } from '@billsplit-wl/shared';
 import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, CreateGroupRequestBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, test } from 'vitest';
 
@@ -38,8 +38,8 @@ describe('Balance & Settlement - Consolidated Tests', () => {
                 users[0].token,
             );
             const shareLink = await apiDriver.generateShareableLink(testGroup.id, undefined, users[0].token);
-            await apiDriver.joinGroupByLink(shareLink.shareToken, users[1].token);
-            await apiDriver.joinGroupByLink(shareLink.shareToken, users[2].token);
+            await apiDriver.joinGroupByLink(shareLink.shareToken, toDisplayName('Member 1'), users[1].token);
+            await apiDriver.joinGroupByLink(shareLink.shareToken, toDisplayName('Member 2'), users[2].token);
 
             await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()

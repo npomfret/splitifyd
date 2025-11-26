@@ -1,6 +1,6 @@
 # API Inconsistency and Duplication Report
 
-> **Last Updated:** November 2025 - Issues #1-4 resolved; Remaining: API contract issues (#5-9)
+> **Last Updated:** November 2025 - Issues #1-4, #6, #9 resolved; Remaining: API contract issues (#5, #7, #8)
 
 ### Summary of Findings
 
@@ -24,6 +24,8 @@ The investigation reveals several significant inconsistencies and gaps in the pr
   - Admin user: auth record, firestore record for single user
   - Admin tenant: create/update, asset uploads
   - Group preview endpoint
+- **joinGroupByLink Signature Fixed:** Removed ambiguous `displayNameOrToken?: DisplayName | AuthToken` parameter. The new signature is clear: `joinGroupByLink(shareToken, groupDisplayName, token?)`.
+- **JoinGroupResponse success Field Removed:** Removed the redundant `success: boolean` field from `JoinGroupResponse`. The `memberStatus` field (`'active'` | `'pending'`) now conveys whether the user was auto-approved or requires admin approval. HTTP status codes indicate request success/failure.
 
 1.  ~~**Inconsistent Endpoint Naming:**~~ **RESOLVED.** Route parameters are now consistently named across all endpoints (`:groupId`, `:expenseId`, `:policyId`, `:userId`, `:settlementId`, `:memberId`). The frontend client normalization logic has been simplified accordingly.
 
@@ -35,7 +37,7 @@ The investigation reveals several significant inconsistencies and gaps in the pr
 
 5.  **Potential Security Gap:** The `/tasks/processMerge` endpoint relies on cloud infrastructure for authorization, as noted by a comment in `route-config.ts`. This deviates from the consistent application-level middleware pattern (`authenticate`, `authenticateAdmin`) used elsewhere and could be a point of failure if the infrastructure is misconfigured.
 
-In summary, the API layer has made excellent progress on standardization. Issues #1-4 are now resolved (route parameter naming, validation patterns, schema coverage, and schema location). Remaining issues are API contract inconsistencies (#5-9) related to response format consistency.
+In summary, the API layer has made excellent progress on standardization. Issues #1-4, #6, and #9 are now resolved (route parameter naming, validation patterns, schema coverage, schema location, ambiguous method signatures, and redundant response fields). Remaining issues are API contract inconsistencies (#5, #7, #8) related to security gaps, return type consistency, and error format standardization.
 ---
 
 ### 6. API Contract Inconsistencies (`packages/shared/src/api.ts`)
@@ -44,7 +46,7 @@ A direct analysis of the API's TypeScript interfaces reveals inconsistencies in 
 
 *   ~~**Inconsistent Identifier Naming:**~~ **RESOLVED.** Route parameters now use consistent resource-specific naming (`:groupId`, `:expenseId`, `:policyId`, `:userId`). The frontend normalization logic has been simplified.
 
-*   **Ambiguous Method Signature:** The `joinGroupByLink` method has a confusing signature: `joinGroupByLink(shareToken: ShareLinkToken, displayNameOrToken?: DisplayName | AuthToken, token?: AuthToken)`. The presence of two optional parameters that could both be an `AuthToken` is ambiguous and likely a bug or a remnant of an incomplete refactoring.
+*   ~~**Ambiguous Method Signature:**~~ **RESOLVED.** The `joinGroupByLink` signature has been clarified to `joinGroupByLink(shareToken: ShareLinkToken, groupDisplayName: DisplayName, token?: AuthToken)`. The ambiguous `displayNameOrToken` parameter was removed.
 
 *   **Inconsistent Return Types on Updates:** There is no consistent pattern for the return value of update operations.
     *   Some methods, like `updateExpense`, return the entire updated resource (`Promise<ExpenseDTO>`).
@@ -62,4 +64,4 @@ A detailed look at how the API communicates outcomes reveals significant inconsi
 
 *   **Inconsistent Success Payloads on Update:** As noted previously, the API is inconsistent in what it returns for a successful `update` operation. Some endpoints return the full, updated resource, while others return a generic `MessageResponse`. This complicates frontend state management, as the client cannot rely on a single pattern for updating its local cache after a mutation.
 
-*   **Anti-Pattern in `JoinGroupResponseSchema`:** The schema for the "join group" response contains a `success: boolean` field. Communicating the success or failure of an API call via a boolean in a 200 OK response body is an anti-pattern. The HTTP status code itself should indicate the outcome (e.g., 2xx for success, 4xx/5xx for failure), with the response body for a failure conforming to the defined error schema.
+*   ~~**Anti-Pattern in `JoinGroupResponseSchema`:**~~ **RESOLVED.** Removed the `success: boolean` field from `JoinGroupResponse`. HTTP status codes now indicate success/failure. The `memberStatus` field (`'active'` | `'pending'`) conveys whether the user was auto-approved or requires admin approval.

@@ -11,7 +11,6 @@ export class JoinGroupResponseBuilder {
     private fields: JoinGroupResponse = {
         groupId: toGroupId(`group-${generateShortId()}`),
         groupName: toGroupName('Test Group'),
-        success: true,
         memberStatus: 'active',
     };
 
@@ -25,11 +24,6 @@ export class JoinGroupResponseBuilder {
         return this;
     }
 
-    withSuccess(success: boolean): this {
-        this.fields.success = success;
-        return this;
-    }
-
     withMemberStatus(status: MemberStatus): this {
         this.fields.memberStatus = status;
         return this;
@@ -40,12 +34,11 @@ export class JoinGroupResponseBuilder {
     }
 
     /**
-     * Creates a successful join response
+     * Creates a successful join response (memberStatus: 'active')
      */
     static success(groupName: GroupName | string = toGroupName('Test Group')): JoinGroupResponseBuilder {
         return new JoinGroupResponseBuilder()
             .withGroupName(groupName)
-            .withSuccess(true)
             .withMemberStatus('active');
     }
 }

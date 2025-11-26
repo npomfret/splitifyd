@@ -119,7 +119,7 @@ export interface API<AuthToken> {
 
     generateShareableLink(groupId: GroupId, expiresAt?: ISOString, token?: AuthToken): Promise<ShareLinkResponse>;
     previewGroupByLink(shareToken: ShareLinkToken, token?: AuthToken): Promise<PreviewGroupResponse>;
-    joinGroupByLink(shareToken: ShareLinkToken, displayNameOrToken?: DisplayName | AuthToken, token?: AuthToken): Promise<JoinGroupResponse>;
+    joinGroupByLink(shareToken: ShareLinkToken, groupDisplayName: DisplayName, token?: AuthToken): Promise<JoinGroupResponse>;
 
     createExpense(request: CreateExpenseRequest, token?: AuthToken): Promise<ExpenseDTO>;
     updateExpense(expenseId: ExpenseId, request: UpdateExpenseRequest, token?: AuthToken): Promise<ExpenseDTO>;

@@ -727,7 +727,7 @@ async function joinGroupsRandomly(users: AuthenticatedFirebaseUser[], groups: Gr
 
                 if (shouldJoin) {
                     joinPromises.push(
-                        runQueued(() => driver.joinGroupByLink(group.inviteLink, user.token)).then(() => {
+                        runQueued(() => driver.joinGroupByLink(group.inviteLink, user.displayName, user.token)).then(() => {
                             joinedCount++;
                             // Track membership
                             const updatedMembers = groupMemberships.get(group.id) || [];
@@ -756,7 +756,7 @@ async function ensureBillSplitterInAllGroups(
         const hasBillSplitter = members.some((member) => member.uid === billSplitterUser.uid);
 
         if (!hasBillSplitter) {
-            await runQueued(() => driver.joinGroupByLink(group.inviteLink, billSplitterUser.token));
+            await runQueued(() => driver.joinGroupByLink(group.inviteLink, billSplitterUser.displayName, billSplitterUser.token));
             console.log(`Ensured Bill Splitter is a member of group: ${group.name}`);
 
             const refreshedDetails = await runQueued(() => driver.getGroupFullDetails(group.id, undefined, billSplitterUser.token));
@@ -857,7 +857,7 @@ async function configureLargeGroupAdvancedScenarios(
         const user = await runQueued(() => driver.createUser(applicant.registration));
         users.push(user);
         applicantUsers[applicant.key] = user;
-        await runQueued(() => driver.joinGroupByLink(largeGroup.inviteLink, user.token));
+        await runQueued(() => driver.joinGroupByLink(largeGroup.inviteLink, user.displayName, user.token));
         console.log(`Received join request from ${user.displayName}; awaiting approval in "Large Group"`);
     }
 

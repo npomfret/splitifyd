@@ -550,7 +550,6 @@ export class GroupShareService {
         return {
             groupId,
             groupName: result.groupName,
-            success: !requiresApproval,
             memberStatus: memberDoc.memberStatus,
         };
     }

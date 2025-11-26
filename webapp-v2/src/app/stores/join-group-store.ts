@@ -156,7 +156,7 @@ class JoinGroupStore {
                 };
             }
 
-            this.#joinSuccessSignal.value = response.success;
+            this.#joinSuccessSignal.value = response.memberStatus === 'active';
             return response;
         } catch (error: any) {
             let errorMessage = 'Failed to join group';

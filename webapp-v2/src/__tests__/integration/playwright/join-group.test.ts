@@ -125,7 +125,6 @@ test.describe('Join Group Page - Successful Join', () => {
         const pendingJoinResponse = new JoinGroupResponseBuilder()
             .withGroupId('group-managed')
             .withGroupName('Managed Group')
-            .withSuccess(false)
             .withMemberStatus('pending')
             .build();
         await mockJoinGroupApi(page, pendingJoinResponse);

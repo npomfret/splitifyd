@@ -51,7 +51,7 @@ describe('Group sharing workflow (stub firestore)', () => {
         // Members can also generate a link once they join
         const joinResult = await appDriver.joinGroupByLink(ownerShare.shareToken, undefined, member);
         expect(joinResult.groupId).toBe(group.id);
-        expect(joinResult.success).toBe(true);
+        expect(joinResult.memberStatus).toBe('active');
 
         const memberShare = await appDriver.generateShareableLink(group.id, undefined, member);
         expect(memberShare.shareToken).toHaveLength(16);
@@ -65,7 +65,7 @@ describe('Group sharing workflow (stub firestore)', () => {
         // Additional users can join via the same link
         const joinerResult = await appDriver.joinGroupByLink(ownerShare.shareToken, undefined, joiner);
         expect(joinerResult.groupId).toBe(group.id);
-        expect(joinerResult.success).toBe(true);
+        expect(joinerResult.memberStatus).toBe('active');
 
         const detailsForJoiner = await appDriver.getGroupFullDetails(group.id, {}, joiner);
         expect(detailsForJoiner.members.members.map((m) => m.uid)).toEqual(expect.arrayContaining([owner, member, joiner]));
@@ -99,7 +99,7 @@ describe('Group sharing workflow (stub firestore)', () => {
         for (const userId of joiners) {
             const response = await appDriver.joinGroupByLink(shareLink.shareToken, undefined, userId);
             expect(response.groupId).toBe(group.id);
-            expect(response.success).toBe(true);
+            expect(response.memberStatus).toBe('active');
         }
 
         const ownerView = await appDriver.getGroupFullDetails(group.id, {}, owner);

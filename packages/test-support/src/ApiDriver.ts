@@ -302,9 +302,8 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return await this.apiRequest('/groups/share', 'POST', body, token);
     }
 
-    async joinGroupByLink(shareToken: ShareLinkToken | string, token: AuthToken): Promise<JoinGroupResponse> {
-        const displayName = generateUserStyleDisplayName();
-        return await this.apiRequest('/groups/join', 'POST', { shareToken, groupDisplayName: displayName }, token);
+    async joinGroupByLink(shareToken: ShareLinkToken | string, groupDisplayName: DisplayName | string, token?: AuthToken): Promise<JoinGroupResponse> {
+        return await this.apiRequest('/groups/join', 'POST', { shareToken, groupDisplayName }, token);
     }
 
     async previewGroupByLink(shareToken: ShareLinkToken, token: AuthToken): Promise<PreviewGroupResponse> {
@@ -336,7 +335,8 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
 
             // Step 3: Have other members join using the share link
             for (const member of toAdd) {
-                await this.joinGroupByLink(shareToken, member.token);
+                const displayName = toDisplayName(generateUserStyleDisplayName());
+                await this.joinGroupByLink(shareToken, displayName, member.token);
             }
         }
     }

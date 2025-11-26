@@ -53,8 +53,7 @@ describe('Group Security Endpoints', () => {
 
             const { shareToken } = await apiDriver.generateShareableLink(group.id, undefined, adminUser.token);
 
-            const joinResult = await apiDriver.joinGroupByLink(shareToken, memberUser.token);
-            expect(joinResult.success).toBe(false);
+            const joinResult = await apiDriver.joinGroupByLink(shareToken, memberUser.displayName, memberUser.token);
             expect(joinResult.memberStatus).toBe(MemberStatuses.PENDING);
 
             let pendingMembers = await apiDriver.getPendingMembers(group.id, adminUser.token);
@@ -80,8 +79,7 @@ describe('Group Security Endpoints', () => {
             const detailsAfterCustomPermissions = await apiDriver.getGroupFullDetails(group.id, undefined, adminUser.token);
             expect(detailsAfterCustomPermissions.group.permissions.expenseEditing).toBe(PermissionLevels.ADMIN_ONLY);
 
-            const joinResultExtra = await apiDriver.joinGroupByLink(shareToken, extraUser.token);
-            expect(joinResultExtra.success).toBe(false);
+            const joinResultExtra = await apiDriver.joinGroupByLink(shareToken, extraUser.displayName, extraUser.token);
             expect(joinResultExtra.memberStatus).toBe(MemberStatuses.PENDING);
 
             pendingMembers = await apiDriver.getPendingMembers(group.id, adminUser.token);
