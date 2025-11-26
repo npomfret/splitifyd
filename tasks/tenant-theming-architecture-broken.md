@@ -435,6 +435,47 @@ The BrandingTokens schema has 144+ fields. The ~40 exposed fields give users con
 
 ---
 
+## Testing Strategy
+
+To ensure robustness, the theming system will be exhaustively tested at multiple levels across the stack.
+
+### Unit Tests (`firebase/functions/src/__tests__/unit/api`)
+- **`buildBrandingTokensFromForm()`**: Test that form data correctly overwrites base preset tokens. Verify conditional logic for toggles (e.g., `enableGlassmorphism`).
+- **`extractFormDataFromTokens()`**: Test that token data is correctly extracted into the form state, including fallbacks for older token structures.
+- **`ThemeArtifactService.buildCss()`**: Test that `BrandingTokens` are correctly transformed into a CSS string with the right variable names and values.
+- **`getPresetFormData()`**: Test that each preset (`brutalist`, `fancy`) returns the expected default form data.
+
+### API Integration Tests
+- **Admin API (`firebase/functions/src/__tests__/integration/admin`)**:
+    - Test `adminUpsertTenant` endpoint with valid and invalid payloads.
+    - Verify validation rules for `tenantId`, `appName`, and `domains`.
+    - Check for correct error handling (e.g., `DUPLICATE_DOMAIN`).
+- **Tenant API (`firebase/functions/src/__tests__/integration/tenant`)**:
+    - Test `publishTenantTheme` endpoint. Ensure it correctly generates and saves the CSS artifact.
+    - Test that it fails correctly if `brandingTokens` are missing.
+
+### Web Tests (`webapp-v2/src/__tests__/integration/playwright`)
+- **`TenantEditorModal.tsx`**:
+    - Test that the form correctly loads initial data for an existing tenant.
+    - Test that selecting a preset in create mode populates the form correctly.
+    - Test conditional section visibility (e.g., "Aurora Gradient" section).
+    - Test form interactions: color pickers, toggles, font weight selectors.
+    - Mock API calls and verify that the form submits the correct payload.
+
+### End-to-End (E2E) Tests (`e2e-tests/src/__tests__/integration`)
+- **Full Tenant Lifecycle**:
+    1. Create a new tenant using the "Brutalist" preset.
+    2. Verify the app loads with the expected minimal theme.
+    3. Edit the tenant, enable features like Glassmorphism, and change colors.
+    4. Save and publish the theme.
+    5. Reload the app and verify the new theme is active by checking specific CSS variables and visual effects.
+- **Feature Coverage Expansion**:
+    - Close the coverage gap identified in "Known Issues".
+    - Add tests for logo/favicon upload, domain management, all color fields, all motion toggles, and typography controls.
+    - Add tests for form validation (e.g., invalid domains) and API error handling in the UI.
+
+---
+
 ## Files Modified
 
 | File | Change | Status |
