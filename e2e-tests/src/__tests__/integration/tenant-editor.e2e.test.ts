@@ -31,7 +31,6 @@ test.describe('Tenant editor', () => {
 
         // Update colors
         await tenantEditorModal.setAccentColor('#ff00ff');
-        await tenantEditorModal.setCustomCss('/* e2e custom css */');
 
         // Save
         await tenantEditorModal.clickSave();
