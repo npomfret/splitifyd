@@ -131,7 +131,7 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
     const modalContent = (
         <div
             className='fixed inset-0 flex items-center justify-center p-4 z-50'
-            style={{ backgroundColor: 'var(--modal-backdrop, rgba(0, 0, 0, 0.4))', backdropFilter: 'blur(4px)' }}
+            style={{ backgroundColor: 'var(--semantics-colors-surface-overlay, rgba(0, 0, 0, 0.4))', backdropFilter: 'blur(4px)' }}
             data-testid='policy-modal-overlay'
         >
             <div

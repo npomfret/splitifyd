@@ -34,10 +34,10 @@ export default {
                 xl: 'var(--spacing-xl, 1.5rem)',
             },
             borderRadius: {
-                sm: 'var(--radius-sm, 0.25rem)',
-                md: 'var(--radius-md, 0.5rem)',
-                lg: 'var(--radius-lg, 1rem)',
-                full: 'var(--radius-full, 9999px)',
+                sm: 'var(--radii-sm, 0.25rem)',
+                md: 'var(--radii-md, 0.5rem)',
+                lg: 'var(--radii-lg, 1rem)',
+                full: 'var(--radii-full, 9999px)',
             },
             fontSize: {
                 xs: ['var(--text-xs, 0.75rem)', 'var(--text-leading-xs, 1rem)'],

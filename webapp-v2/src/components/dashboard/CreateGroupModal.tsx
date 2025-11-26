@@ -197,7 +197,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
     return (
         <div
             class='fixed inset-0 overflow-y-auto h-full w-full z-50'
-            style={{ backgroundColor: 'var(--modal-backdrop, rgba(0, 0, 0, 0.4))', backdropFilter: 'blur(4px)' }}
+            style={{ backgroundColor: 'var(--semantics-colors-surface-overlay, rgba(0, 0, 0, 0.4))', backdropFilter: 'blur(4px)' }}
             onClick={handleBackdropClick}
             role='presentation'
         >

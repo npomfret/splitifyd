@@ -329,6 +329,23 @@ describe('ThemeArtifactService', () => {
             expect(result.generatedAtEpochMs).toBeLessThanOrEqual(after);
         });
 
+        it('should generate motion feature flag CSS variables when motion is defined', async () => {
+            const tokensWithMotion: BrandingTokens = {
+                ...mockTokens,
+                motion: {
+                    enableParallax: true,
+                    enableMagneticHover: false,
+                    enableScrollReveal: true,
+                },
+            };
+
+            const result = await service.generate('test-tenant', tokensWithMotion);
+
+            expect(result.cssContent).toContain('--motion-enable-parallax: true');
+            expect(result.cssContent).toContain('--motion-enable-magnetic-hover: false');
+            expect(result.cssContent).toContain('--motion-enable-scroll-reveal: true');
+        });
+
         it('should propagate storage errors', async () => {
             const error = new Error('Storage failed');
             const failingStorage = new StubThemeArtifactStorage();

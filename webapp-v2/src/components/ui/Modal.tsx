@@ -79,7 +79,7 @@ export function Modal({ open, onClose, size = 'sm', labelledBy, describedBy, cla
                 <motion.div
                     className='fixed inset-0 z-50 flex items-center justify-center px-4 py-8'
                     style={{
-                        backgroundColor: 'var(--modal-backdrop, rgba(0, 0, 0, 0.4))',
+                        backgroundColor: 'var(--semantics-colors-surface-overlay, rgba(0, 0, 0, 0.4))',
                         backdropFilter: 'blur(4px)',
                     }}
                     onClick={handleBackdropClick}
