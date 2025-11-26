@@ -1,6 +1,6 @@
 # API Inconsistency and Duplication Report
 
-> **Last Updated:** November 2025 - Issues #1, #2, #4 resolved; Issue #3 assessed in detail
+> **Last Updated:** November 2025 - Issues #1-4 resolved; Remaining: API contract issues (#5-9)
 
 ### Summary of Findings
 
@@ -18,25 +18,24 @@ The investigation reveals several significant inconsistencies and gaps in the pr
   - Frontend normalization logic simplified from 7 special-case patterns to 6 generic replacements.
 - **Validation Patterns Standardized:** Commit `a9b18242` migrated all validation to the `createRequestValidator` pattern. All 9 validation files now use consistent error handling with `createZodErrorMapper` for field-specific error messages.
 - **Schema Duplication Removed:** Deleted local `ListFirestoreUsersResponseSchema` from `webapp-v2/src/app/apiClient.ts`. The endpoint now uses the shared schema from `apiSchemas.ts`. Also removed obsolete `id` → `uid` field mapping (backend already returns `uid`).
+- **Schema Coverage Completed:** Added 18 new endpoint schemas to `apiSchemas.ts`:
+  - Group member management: permissions, archive, unarchive, pending members, role updates, approve/reject
+  - Admin policy: list, get single, get version, delete version
+  - Admin user: auth record, firestore record for single user
+  - Admin tenant: create/update, asset uploads
+  - Group preview endpoint
 
 1.  ~~**Inconsistent Endpoint Naming:**~~ **RESOLVED.** Route parameters are now consistently named across all endpoints (`:groupId`, `:expenseId`, `:policyId`, `:userId`, `:settlementId`, `:memberId`). The frontend client normalization logic has been simplified accordingly.
 
 2.  ~~**Inconsistent Error Handling:**~~ **RESOLVED.** All 9 validation files now use the consistent `createRequestValidator` pattern with `createZodErrorMapper` for field-specific error messages (commit `a9b18242`). The legacy `parseWithApiError` function has been deprecated.
 
-3.  **Incomplete Schema Coverage:** Several API endpoints are missing response schemas in `apiSchemas.ts`. Missing schemas include:
-    - Group member management: `PUT /groups/:groupId/security/permissions`, `POST /groups/:groupId/archive`, `POST /groups/:groupId/unarchive`, `GET /groups/:groupId/members/pending`, `PUT /groups/:groupId/members/:memberId/role`, `POST /groups/:groupId/members/:memberId/approve`, `POST /groups/:groupId/members/:memberId/reject`
-    - Admin policy: `GET /admin/policies` (list), `GET /admin/policies/:policyId`, `GET /admin/policies/:policyId/versions/:hash`, `DELETE /admin/policies/:policyId/versions/:hash`
-    - Admin user: `GET /admin/users/:userId/auth`, `GET /admin/users/:userId/firestore`
-    - Admin tenant: `POST /admin/tenants`, `POST /admin/tenants/:tenantId/assets/:assetType`
-    - Group preview: `GET /groups/preview`
-
-    Note: Merge and policy create/update/publish schemas were added in commit `a9b18242`.
+3.  ~~**Incomplete Schema Coverage:**~~ **RESOLVED.** All API endpoints now have response schemas in `apiSchemas.ts`. Added schemas for group member management (permissions, archive, unarchive, pending, role, approve, reject), admin policy CRUD, admin user record fetching, admin tenant operations, and group preview.
 
 4.  ~~**Schema Duplication:**~~ **RESOLVED.** Removed local `ListFirestoreUsersResponseSchema` from `apiClient.ts`. The endpoint now uses the shared schema.
 
 5.  **Potential Security Gap:** The `/tasks/processMerge` endpoint relies on cloud infrastructure for authorization, as noted by a comment in `route-config.ts`. This deviates from the consistent application-level middleware pattern (`authenticate`, `authenticateAdmin`) used elsewhere and could be a point of failure if the infrastructure is misconfigured.
 
-In summary, the API layer has made good progress on standardization (route parameter naming, validation patterns, and schema location are now consistent), but still has issues with schema coverage for admin endpoints and response format consistency that create technical debt.
+In summary, the API layer has made excellent progress on standardization. Issues #1-4 are now resolved (route parameter naming, validation patterns, schema coverage, and schema location). Remaining issues are API contract inconsistencies (#5-9) related to response format consistency.
 ---
 
 ### 6. API Contract Inconsistencies (`packages/shared/src/api.ts`)

@@ -633,6 +633,92 @@ export const PublishTenantThemeResponseSchema = z.object({
     }),
 });
 
+// ========================================================================
+// Group Member Management Schemas
+// ========================================================================
+
+// Pending members response - array of GroupMembershipDTO
+const PendingMembersResponseSchema = z.array(GroupMemberDTOSchema);
+
+// ========================================================================
+// Admin Policy Schemas
+// ========================================================================
+
+const PolicyVersionSchema = z.object({
+    text: z.string().min(1),
+    createdAt: z.string().datetime().transform(toISOString),
+});
+
+const PolicyDTOSchema = z.object({
+    id: z.string().min(1),
+    policyName: z.string().min(1),
+    currentVersionHash: z.string().min(1),
+    versions: z.record(z.string(), PolicyVersionSchema),
+});
+
+const ListPoliciesResponseSchema = z.object({
+    policies: z.array(PolicyDTOSchema),
+    count: z.number().int().min(0),
+});
+
+const PolicyVersionResponseSchema = PolicyVersionSchema.extend({
+    versionHash: z.string().min(1),
+});
+
+const DeletePolicyVersionResponseSchema = z.object({});
+
+// ========================================================================
+// Admin User Schemas
+// ========================================================================
+
+// Raw Firebase Auth user record (passthrough for flexibility)
+const AdminUserAuthRecordSchema = z.object({
+    uid: z.string().min(1),
+    email: z.string().optional(),
+    emailVerified: z.boolean().optional(),
+    displayName: z.string().optional(),
+    disabled: z.boolean().optional(),
+    metadata: z.object({
+        creationTime: z.string().optional(),
+        lastSignInTime: z.string().optional(),
+    }).optional(),
+}).passthrough();
+
+// Raw Firestore user document (passthrough for flexibility)
+const AdminUserFirestoreRecordSchema = z.object({
+    uid: z.string().min(1).transform(toUserId).optional(),
+    displayName: z.string().transform(toDisplayName).optional(),
+    email: z.string().email().transform(toEmail).optional(),
+    role: z.nativeEnum(SystemUserRoles).optional(),
+    createdAt: z.string().optional(),
+    updatedAt: z.string().optional(),
+}).passthrough();
+
+// ========================================================================
+// Admin Tenant Schemas
+// ========================================================================
+
+const UpsertTenantResponseSchema = z.object({
+    tenantId: z.string().min(1),
+    created: z.boolean(),
+});
+
+const UploadTenantAssetResponseSchema = z.object({
+    url: z.string().min(1),
+});
+
+// ========================================================================
+// Group Preview Schema
+// ========================================================================
+
+const GroupPreviewResponseSchema = z.object({
+    groupId: z.string().min(1).transform(toGroupId),
+    groupName: z.string().min(1).transform(toGroupName),
+    groupDescription: z.string(),
+    memberCount: z.number().int().min(0),
+    isAlreadyMember: z.boolean(),
+});
+
 export const responseSchemas = {
     '/config': AppConfigurationSchema,
     '/health': HealthCheckResponseSchema,
@@ -674,6 +760,15 @@ export const responseSchemas = {
     'DELETE /groups/:groupId': MessageResponseSchema,
     'DELETE /groups/:groupId/members/:memberId': MessageResponseSchema,
     'PUT /groups/:groupId/members/display-name': MessageResponseSchema,
+    'PUT /groups/:groupId/security/permissions': MessageResponseSchema,
+    'POST /groups/:groupId/archive': MessageResponseSchema,
+    'POST /groups/:groupId/unarchive': MessageResponseSchema,
+    'GET /groups/:groupId/members/pending': PendingMembersResponseSchema,
+    'PUT /groups/:groupId/members/:memberId/role': MessageResponseSchema,
+    'POST /groups/:groupId/members/:memberId/approve': MessageResponseSchema,
+    'POST /groups/:groupId/members/:memberId/reject': MessageResponseSchema,
+    // Group preview endpoint
+    'POST /groups/preview': GroupPreviewResponseSchema,
     // Policy endpoints
     'GET /policies/:policyId/current': CurrentPolicyResponseSchema,
     'GET /user/policies/status': UserPolicyStatusResponseSchema,
@@ -690,15 +785,23 @@ export const responseSchemas = {
     'GET /admin/browser/users/firestore': ListFirestoreUsersResponseSchema,
     'PUT /admin/users/:userId': AdminUserProfileSchema,
     'PUT /admin/users/:userId/role': AdminUserProfileSchema,
+    'GET /admin/users/:userId/auth': AdminUserAuthRecordSchema,
+    'GET /admin/users/:userId/firestore': AdminUserFirestoreRecordSchema,
     // Merge endpoints
     'POST /merge': InitiateMergeResponseSchema,
     'GET /merge/:jobId': MergeJobResponseSchema,
     // Policy admin endpoints
+    'GET /admin/policies': ListPoliciesResponseSchema,
     'POST /admin/policies': CreatePolicyResponseSchema,
+    'GET /admin/policies/:policyId': PolicyDTOSchema,
     'PUT /admin/policies/:policyId': UpdatePolicyResponseSchema,
     'POST /admin/policies/:policyId/publish': PublishPolicyResponseSchema,
-    // Tenant theme endpoints
+    'GET /admin/policies/:policyId/versions/:hash': PolicyVersionResponseSchema,
+    'DELETE /admin/policies/:policyId/versions/:hash': DeletePolicyVersionResponseSchema,
+    // Tenant admin endpoints
+    'POST /admin/tenants': UpsertTenantResponseSchema,
     'POST /admin/tenants/publish': PublishTenantThemeResponseSchema,
+    'POST /admin/tenants/:tenantId/assets/:assetType': UploadTenantAssetResponseSchema,
 } as const;
 
 // Schema for the currency-specific balance data used in GroupService.addComputedFields
