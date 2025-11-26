@@ -798,8 +798,7 @@ describe('authorization', () => {
             });
 
             it('should use updated branding colors when publishing theme', async () => {
-                // Create a tenant with initial branding colors using the builder methods
-                // that update BOTH branding AND brandingTokens
+                // Create a tenant with initial branding colors
                 const testTenantId = 'tenant-color-update-test';
                 const initialAccentColor = '#22d3ee'; // Teal
                 const updatedAccentColor = '#ff00ff'; // Magenta
@@ -816,19 +815,16 @@ describe('authorization', () => {
 
                 await appDriver.adminUpsertTenant(initialPayload, systemAdmin);
 
-                // Update only the branding colors WITHOUT updating brandingTokens
-                // This simulates what happens when using the UI tenant editor
-                const updatedPayload = {
-                    tenantId: testTenantId,
-                    branding: {
-                        appName: toTenantAppName('Test App'),
-                        logoUrl: toTenantLogoUrl('/logo.svg'),
-                        primaryColor: toTenantPrimaryColor('#2563eb'),
-                        secondaryColor: toTenantPrimaryColor('#7c3aed'),
-                        accentColor: toTenantPrimaryColor(updatedAccentColor), // NEW COLOR
-                    },
-                    domains: [toTenantDomainName(`${testTenantId}.test`)],
-                };
+                // Update with new accent color - brandingTokens is now required
+                const updatedPayload = AdminTenantRequestBuilder
+                    .forTenant(testTenantId)
+                    .withDomains([`${testTenantId}.test`])
+                    .withAppName('Test App')
+                    .withLogoUrl('/logo.svg')
+                    .withPrimaryColor('#2563eb')
+                    .withSecondaryColor('#7c3aed')
+                    .withAccentColor(updatedAccentColor)
+                    .build();
 
                 await appDriver.adminUpsertTenant(updatedPayload, systemAdmin);
 
@@ -844,7 +840,6 @@ describe('authorization', () => {
                 const cssContent = cssFile!.content.toString('utf8').toLowerCase();
 
                 // The published CSS should contain the UPDATED accent color
-                // because brandingTokens are regenerated when branding is updated
                 expect(cssContent).toContain(updatedAccentColor.toLowerCase());
                 expect(cssContent).not.toContain(initialAccentColor.toLowerCase());
             });
@@ -912,20 +907,16 @@ describe('authorization', () => {
             it('should generate different hash after token update', async () => {
                 const result1 = await appDriver.publishTenantTheme({ tenantId }, systemAdmin);
 
-                // Update tenant with different color
-                const updatePayload = {
-                    tenantId,
-                    branding: {
-                        appName: toTenantAppName('Test App'),
-                        logoUrl: toTenantLogoUrl('/logo.svg'),
-                        primaryColor: toTenantPrimaryColor('#ff0000'), // Different color
-                        secondaryColor: toTenantPrimaryColor('#7c3aed'),
-                        accentColor: toTenantPrimaryColor('#f97316'),
-                        surfaceColor: toTenantPrimaryColor('#ffffff'),
-                        textColor: toTenantPrimaryColor('#111827'),
-                    },
-                    domains: [toTenantDomainName(`${tenantId}.test`)],
-                };
+                // Update tenant with different color - brandingTokens is now required
+                const updatePayload = AdminTenantRequestBuilder
+                    .forTenant(tenantId)
+                    .withDomains([`${tenantId}.test`])
+                    .withAppName('Test App')
+                    .withLogoUrl('/logo.svg')
+                    .withPrimaryColor('#ff0000') // Different color
+                    .withSecondaryColor('#7c3aed')
+                    .withAccentColor('#f97316')
+                    .build();
 
                 await appDriver.adminUpsertTenant(updatePayload, systemAdmin);
 

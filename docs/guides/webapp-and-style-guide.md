@@ -1311,6 +1311,149 @@ export function Card({ children, variant = 'default', onClick, className = '' }:
 
 ---
 
+## TenantEditorModal Testing
+
+The TenantEditorModal is the primary UI for tenant configuration. It manages ~144 branding token fields across collapsible sections.
+
+### Test Files
+
+- **Playwright (webapp-v2)**: `webapp-v2/src/__tests__/integration/playwright/tenant-editor-modal.test.ts` - MSW-mocked tests
+- **E2E (e2e-tests)**: `e2e-tests/src/__tests__/integration/tenant-editor.e2e.test.ts` - Real emulator tests
+- **Page Object**: `packages/test-support/src/page-objects/TenantEditorModalPage.ts`
+
+### Page Object Usage
+
+The `TenantEditorModalPage` class encapsulates all modal interactions:
+
+```typescript
+import { AdminTenantsPage, TenantEditorModalPage } from '@billsplit-wl/test-support';
+
+// Navigate and open editor
+const adminTenantsPage = new AdminTenantsPage(page);
+await adminTenantsPage.navigate();
+await adminTenantsPage.verifyPageLoaded();
+
+const tenantEditorModal = await adminTenantsPage.clickEditButtonForFirstTenant();
+await tenantEditorModal.verifyModalIsOpen();
+
+// Edit fields (expands sections automatically)
+await tenantEditorModal.setPrimaryColor('#ff0000');
+await tenantEditorModal.setFontFamilySans('Roboto, sans-serif');
+await tenantEditorModal.toggleMagneticHover(true);
+await tenantEditorModal.setAuroraGradientColor1('#aabbcc');
+
+// Save and verify
+await tenantEditorModal.clickSave();
+await tenantEditorModal.verifyModalIsClosed();
+```
+
+### Section Expansion
+
+The modal uses collapsible sections. The page object auto-expands sections when needed:
+
+```typescript
+// These methods expand their parent section before interacting
+await tenantEditorModal.setPrimaryColor('#ff0000');      // Expands "Actions" section
+await tenantEditorModal.setSurfaceColor('#112233');      // Expands "Surfaces" section
+await tenantEditorModal.setFontFamilySans('Roboto');     // Expands "Typography" section
+await tenantEditorModal.toggleMagneticHover(true);       // Expands "Motion & Effects" section
+```
+
+Manual section control:
+```typescript
+await tenantEditorModal.expandActionsSection();
+await tenantEditorModal.expandTypographySection();
+await tenantEditorModal.expandMotionEffectsSection();
+await tenantEditorModal.collapseAllSections();
+```
+
+### Test Categories
+
+**Core CRUD Operations:**
+- Edit and save colors
+- Field persistence across page refresh
+- Multiple field updates at once
+
+**Motion & Effects:**
+- Toggle all motion flags (aurora, glassmorphism, magnetic hover, scroll reveal)
+- Enable Aurora-style theme (all motion on)
+- Disable Brutalist-style theme (all motion off)
+
+**Typography:**
+- Update font families (sans, serif, mono)
+
+**Advanced Controls:**
+- Aurora gradient colors (4 color stops)
+- Glassmorphism colors (glass, glassBorder)
+
+**Marketing Flags:**
+- Toggle landing page, marketing content, pricing page
+
+**Theme Publishing:**
+- Verify published CSS contains configured colors
+- Verify CSS contains motion configuration
+
+### Running Tests
+
+```bash
+# Playwright tests (MSW mocked)
+cd webapp-v2
+npm run test:playwright -- --grep "Tenant Editor"
+
+# E2E tests (requires emulator)
+cd e2e-tests
+npm run test -- --grep "Tenant editor"
+
+# Run specific test file
+npx playwright test tenant-editor-modal.test.ts
+npx playwright test tenant-editor.e2e.test.ts
+```
+
+### Creating New Tests
+
+1. Use the `AdminTenantRequestBuilder` to create test tenants with specific configurations
+2. Use `TenantEditorModalPage` methods for all modal interactions
+3. Verify persistence by closing and reopening the modal
+4. For theme CSS verification, use `clickPublishAndGetCssUrl()` and fetch the CSS
+
+Example test structure:
+```typescript
+test('admin can configure new feature', async ({ createLoggedInBrowsers }) => {
+    const [{ page, user }] = await createLoggedInBrowsers(1);
+
+    const apiDriver = new ApiDriver();
+    await apiDriver.promoteUserToAdmin(user.uid);
+
+    // Create tenant with unique ID
+    const tenantId = `test-feature-${Date.now()}`;
+    await apiDriver.adminUpsertTenant(
+        AdminTenantRequestBuilder
+            .forTenant(tenantId)
+            .withAppName(`Feature Test`)
+            .withDomains([`${tenantId}.example.com`])
+            .build(),
+        user.token,
+    );
+
+    // Open editor
+    const adminTenantsPage = new AdminTenantsPage(page);
+    await adminTenantsPage.navigate();
+    const tenantEditorModal = await adminTenantsPage.clickEditButtonForFirstTenant();
+
+    // Configure and save
+    await tenantEditorModal.setNewFeature('value');
+    await tenantEditorModal.clickSave();
+    await tenantEditorModal.verifyModalIsClosed();
+
+    // Verify persistence
+    const tenantEditorModal2 = await adminTenantsPage.clickEditButtonForFirstTenant();
+    await tenantEditorModal2.verifyNewFeatureValue('value');
+    await tenantEditorModal2.clickClose();
+});
+```
+
+---
+
 ## Observability & Resilience
 - `TokenRefreshIndicator` and auth store refresh timers keep sessions alive; `usePolicyAcceptance` polls with abortable requests.
 - `streamingMetrics` tracks realtime vs REST fallback health—call `trackRestRefresh` on manual reloads.

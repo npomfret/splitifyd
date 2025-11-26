@@ -245,21 +245,20 @@ describe('Admin Tests', () => {
             it('should normalize and deduplicate domains', async () => {
                 const tenantId = `test-normalize-${Date.now()}`;
 
-                // Submit with port numbers and duplicates (should be normalized)
-                const payload = {
-                    tenantId,
-                    branding: {
-                        appName: toTenantAppName('Normalize Test'),
-                        logoUrl: toTenantLogoUrl('/logo.svg'),
-                        primaryColor: toTenantPrimaryColor('#ff0000'),
-                        secondaryColor: toTenantSecondaryColor('#00ff00'),
-                    },
-                    domains: [
-                        'example.com:8080', // Should strip port
-                        'EXAMPLE.COM', // Should lowercase
-                        'example.com', // Duplicate after normalization
-                    ] as any,
-                };
+                // Use builder then override domains with ones that need normalization
+                const payload = AdminTenantRequestBuilder
+                    .forTenant(tenantId)
+                    .withAppName('Normalize Test')
+                    .withPrimaryColor('#ff0000')
+                    .withSecondaryColor('#00ff00')
+                    .build();
+
+                // Override domains with ones that need normalization
+                (payload as any).domains = [
+                    'example.com:8080', // Should strip port
+                    'EXAMPLE.COM', // Should lowercase
+                    'example.com', // Duplicate after normalization
+                ];
 
                 const result = await appDriver.adminUpsertTenant(payload, localAdminUser);
                 expect(result.created).toBe(true);
@@ -492,27 +491,19 @@ describe('Admin Tests', () => {
                 // The motion flags control whether they're actually used by the UI.
             });
 
-            it('should generate vanilla brandingTokens when none provided (motion disabled by default)', async () => {
+            it('should reject tenant creation when brandingTokens is missing', async () => {
                 const tenantId = `test-motion-vanilla-${Date.now()}`;
                 const payload = AdminTenantRequestBuilder
                     .forTenant(tenantId)
                     .withDomains([toTenantDomainName(`${tenantId}.test.local`)])
                     .build();
 
-                // Remove brandingTokens to let backend auto-generate
+                // Remove brandingTokens - should be rejected (no longer auto-generated)
                 delete (payload as any).brandingTokens;
 
-                const result = await appDriver.adminUpsertTenant(payload, localAdminUser);
-                expect(result.created).toBe(true);
-
-                // Verify motion features are disabled (vanilla theme)
-                const response = await appDriver.listAllTenants(localAdminUser);
-                const createdTenant = response.tenants.find(t => t.tenant.tenantId === tenantId);
-
-                expect(createdTenant!.brandingTokens?.tokens.motion?.enableParallax).toBe(false);
-                expect(createdTenant!.brandingTokens?.tokens.motion?.enableMagneticHover).toBe(false);
-                expect(createdTenant!.brandingTokens?.tokens.motion?.enableScrollReveal).toBe(false);
-                expect(createdTenant!.brandingTokens?.tokens.semantics.colors.surface.glass).toBeUndefined();
+                await expect(appDriver.adminUpsertTenant(payload, localAdminUser))
+                    .rejects
+                    .toMatchObject({ code: 'INVALID_TENANT_PAYLOAD' });
             });
         });
 

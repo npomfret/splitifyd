@@ -137,6 +137,7 @@ export class AdminTenantRequestBuilder {
                             sunken: '#eff1f3',
                             overlay: '#0f172a',
                             warning: '#fef3c7',
+                            muted: '#e2e8f0',
                         },
                         text: {
                             primary: '#0f172a',

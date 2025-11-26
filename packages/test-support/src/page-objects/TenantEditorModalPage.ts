@@ -23,7 +23,15 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     async expandActionsSection(): Promise<void> {
-        await this.expandSectionIfNeeded('section-actions');
+        await this.expandSectionIfNeeded('section-palette');
+    }
+
+    async expandPaletteSection(): Promise<void> {
+        await this.expandSectionIfNeeded('section-palette');
+    }
+
+    async expandInteractiveSection(): Promise<void> {
+        await this.expandSectionIfNeeded('section-interactive');
     }
 
     async expandSurfacesSection(): Promise<void> {
@@ -56,6 +64,18 @@ export class TenantEditorModalPage extends BasePage {
 
     async expandStatusColorsSection(): Promise<void> {
         await this.expandSectionIfNeeded('section-status-colors');
+    }
+
+    async expandAuroraGradientSection(): Promise<void> {
+        // First expand the parent motion-effects section, then aurora-gradient
+        await this.expandMotionEffectsSection();
+        await this.expandSectionIfNeeded('section-aurora-gradient');
+    }
+
+    async expandGlassmorphismSection(): Promise<void> {
+        // First expand the parent motion-effects section, then glassmorphism-settings
+        await this.expandMotionEffectsSection();
+        await this.expandSectionIfNeeded('section-glassmorphism-settings');
     }
 
     // ✅ Protected locators - internal use only (semantic selectors preferred over test IDs)
@@ -391,22 +411,27 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     async setAuroraGradientColor1(color: string): Promise<void> {
+        await this.expandAuroraGradientSection();
         await this.getAuroraGradientColor1Input().fill(color);
     }
 
     async setAuroraGradientColor2(color: string): Promise<void> {
+        await this.expandAuroraGradientSection();
         await this.getAuroraGradientColor2Input().fill(color);
     }
 
     async setAuroraGradientColor3(color: string): Promise<void> {
+        await this.expandAuroraGradientSection();
         await this.getAuroraGradientColor3Input().fill(color);
     }
 
     async setAuroraGradientColor4(color: string): Promise<void> {
+        await this.expandAuroraGradientSection();
         await this.getAuroraGradientColor4Input().fill(color);
     }
 
     async setGlassColor(value: string): Promise<void> {
+        await this.expandGlassmorphismSection();
         const input = this.getGlassColorInput();
         await input.click();
         await input.clear();
@@ -414,6 +439,7 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     async setGlassBorderColor(value: string): Promise<void> {
+        await this.expandGlassmorphismSection();
         const input = this.getGlassBorderColorInput();
         await input.click();
         await input.clear();
@@ -525,8 +551,11 @@ export class TenantEditorModalPage extends BasePage {
     async verifyAllBasicFieldsVisible(): Promise<void> {
         await expect(this.getTenantIdInput()).toBeVisible();
         await expect(this.getAppNameInput()).toBeVisible();
+        // Logo/favicon are in a separate collapsible section
+        await this.expandLogoAssetsSection();
         await expect(this.getLogoUploadField()).toBeVisible();
         await expect(this.getFaviconUploadField()).toBeVisible();
+        // Domain input is in basic info section
         await expect(this.getNewDomainInput()).toBeVisible();
     }
 
@@ -557,6 +586,7 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     async verifyAuroraGradientColorsVisible(): Promise<void> {
+        await this.expandAuroraGradientSection();
         await expect(this.getAuroraGradientColor1Input()).toBeVisible();
         await expect(this.getAuroraGradientColor2Input()).toBeVisible();
         await expect(this.getAuroraGradientColor3Input()).toBeVisible();
@@ -564,6 +594,7 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     async verifyGlassmorphismColorsVisible(): Promise<void> {
+        await this.expandGlassmorphismSection();
         await expect(this.getGlassColorInput()).toBeVisible();
         await expect(this.getGlassBorderColorInput()).toBeVisible();
     }
@@ -618,26 +649,32 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     async verifyAuroraGradientColor1Value(expectedValue: string): Promise<void> {
+        await this.expandAuroraGradientSection();
         await expect(this.getAuroraGradientColor1Input()).toHaveValue(expectedValue);
     }
 
     async verifyAuroraGradientColor2Value(expectedValue: string): Promise<void> {
+        await this.expandAuroraGradientSection();
         await expect(this.getAuroraGradientColor2Input()).toHaveValue(expectedValue);
     }
 
     async verifyAuroraGradientColor3Value(expectedValue: string): Promise<void> {
+        await this.expandAuroraGradientSection();
         await expect(this.getAuroraGradientColor3Input()).toHaveValue(expectedValue);
     }
 
     async verifyAuroraGradientColor4Value(expectedValue: string): Promise<void> {
+        await this.expandAuroraGradientSection();
         await expect(this.getAuroraGradientColor4Input()).toHaveValue(expectedValue);
     }
 
     async verifyGlassColorValue(expectedValue: string): Promise<void> {
+        await this.expandGlassmorphismSection();
         await expect(this.getGlassColorInput()).toHaveValue(expectedValue);
     }
 
     async verifyGlassBorderColorValue(expectedValue: string): Promise<void> {
+        await this.expandGlassmorphismSection();
         await expect(this.getGlassBorderColorInput()).toHaveValue(expectedValue);
     }
 
@@ -756,5 +793,214 @@ export class TenantEditorModalPage extends BasePage {
     async waitForFormPopulated(): Promise<void> {
         // Wait for app name to have a non-empty value indicating form is populated
         await expect(this.getAppNameInput()).not.toHaveValue('');
+    }
+
+    // ========================================
+    // Advanced Form Field Methods
+    // ========================================
+
+    // Spacing section
+    async expandSpacingSection(): Promise<void> {
+        await this.expandSectionIfNeeded('section-spacing');
+    }
+
+    protected getSpacing2xsInput(): Locator {
+        return this.page.getByTestId('spacing-2xs-input');
+    }
+
+    protected getSpacingXsInput(): Locator {
+        return this.page.getByTestId('spacing-xs-input');
+    }
+
+    protected getSpacingSmInput(): Locator {
+        return this.page.getByTestId('spacing-sm-input');
+    }
+
+    protected getSpacingMdInput(): Locator {
+        return this.page.getByTestId('spacing-md-input');
+    }
+
+    protected getSpacingLgInput(): Locator {
+        return this.page.getByTestId('spacing-lg-input');
+    }
+
+    async verifySpacingFieldsVisible(): Promise<void> {
+        await this.expandSpacingSection();
+        await expect(this.getSpacing2xsInput()).toBeVisible();
+        await expect(this.getSpacingXsInput()).toBeVisible();
+        await expect(this.getSpacingSmInput()).toBeVisible();
+    }
+
+    // Radii section
+    async expandRadiiSection(): Promise<void> {
+        await this.expandSectionIfNeeded('section-radii');
+    }
+
+    protected getRadiiSmInput(): Locator {
+        return this.page.getByTestId('radii-sm-input');
+    }
+
+    protected getRadiiMdInput(): Locator {
+        return this.page.getByTestId('radii-md-input');
+    }
+
+    protected getRadiiLgInput(): Locator {
+        return this.page.getByTestId('radii-lg-input');
+    }
+
+    async verifyRadiiFieldsVisible(): Promise<void> {
+        await this.expandRadiiSection();
+        await expect(this.getRadiiSmInput()).toBeVisible();
+        await expect(this.getRadiiMdInput()).toBeVisible();
+        await expect(this.getRadiiLgInput()).toBeVisible();
+    }
+
+    async setRadiiSm(value: string): Promise<void> {
+        await this.expandRadiiSection();
+        await this.getRadiiSmInput().fill(value);
+    }
+
+    async verifyRadiiSmValue(expectedValue: string): Promise<void> {
+        await this.expandRadiiSection();
+        await expect(this.getRadiiSmInput()).toHaveValue(expectedValue);
+    }
+
+    // Shadows section
+    async expandShadowsSection(): Promise<void> {
+        await this.expandSectionIfNeeded('section-shadows');
+    }
+
+    protected getShadowSmInput(): Locator {
+        return this.page.getByTestId('shadow-sm-input');
+    }
+
+    protected getShadowMdInput(): Locator {
+        return this.page.getByTestId('shadow-md-input');
+    }
+
+    protected getShadowLgInput(): Locator {
+        return this.page.getByTestId('shadow-lg-input');
+    }
+
+    async verifyShadowFieldsVisible(): Promise<void> {
+        await this.expandShadowsSection();
+        await expect(this.getShadowSmInput()).toBeVisible();
+        await expect(this.getShadowMdInput()).toBeVisible();
+        await expect(this.getShadowLgInput()).toBeVisible();
+    }
+
+    async setShadowSm(value: string): Promise<void> {
+        await this.expandShadowsSection();
+        const input = this.getShadowSmInput();
+        await input.click();
+        await input.clear();
+        await input.pressSequentially(value, { delay: 10 });
+    }
+
+    async verifyShadowSmValue(expectedValue: string): Promise<void> {
+        await this.expandShadowsSection();
+        await expect(this.getShadowSmInput()).toHaveValue(expectedValue);
+    }
+
+    // Legal section
+    async expandLegalSection(): Promise<void> {
+        await this.expandSectionIfNeeded('section-legal');
+    }
+
+    protected getCompanyNameInput(): Locator {
+        return this.page.getByTestId('company-name-input');
+    }
+
+    protected getSupportEmailInput(): Locator {
+        return this.page.getByTestId('support-email-input');
+    }
+
+    protected getPrivacyPolicyUrlInput(): Locator {
+        return this.page.getByTestId('privacy-policy-url-input');
+    }
+
+    protected getTermsOfServiceUrlInput(): Locator {
+        return this.page.getByTestId('terms-of-service-url-input');
+    }
+
+    async verifyLegalFieldsVisible(): Promise<void> {
+        await this.expandLegalSection();
+        await expect(this.getCompanyNameInput()).toBeVisible();
+        await expect(this.getSupportEmailInput()).toBeVisible();
+        await expect(this.getPrivacyPolicyUrlInput()).toBeVisible();
+        await expect(this.getTermsOfServiceUrlInput()).toBeVisible();
+    }
+
+    async setCompanyName(value: string): Promise<void> {
+        await this.expandLegalSection();
+        const input = this.getCompanyNameInput();
+        await input.click();
+        await input.clear();
+        await input.pressSequentially(value, { delay: 10 });
+    }
+
+    async verifyCompanyNameValue(expectedValue: string): Promise<void> {
+        await this.expandLegalSection();
+        await expect(this.getCompanyNameInput()).toHaveValue(expectedValue);
+    }
+
+    async setSupportEmail(value: string): Promise<void> {
+        await this.expandLegalSection();
+        const input = this.getSupportEmailInput();
+        await input.click();
+        await input.clear();
+        await input.pressSequentially(value, { delay: 10 });
+    }
+
+    async verifySupportEmailValue(expectedValue: string): Promise<void> {
+        await this.expandLegalSection();
+        await expect(this.getSupportEmailInput()).toHaveValue(expectedValue);
+    }
+
+    // Interactive colors section (expandInteractiveSection defined above)
+
+    protected getInteractivePrimaryInput(): Locator {
+        return this.page.getByTestId('interactive-primary-color-input');
+    }
+
+    protected getInteractivePrimaryHoverInput(): Locator {
+        return this.page.getByTestId('interactive-primary-hover-color-input');
+    }
+
+    protected getInteractiveDestructiveInput(): Locator {
+        return this.page.getByTestId('interactive-destructive-color-input');
+    }
+
+    async verifyInteractiveFieldsVisible(): Promise<void> {
+        await this.expandInteractiveSection();
+        await expect(this.getInteractivePrimaryInput()).toBeVisible();
+        await expect(this.getInteractivePrimaryHoverInput()).toBeVisible();
+        await expect(this.getInteractiveDestructiveInput()).toBeVisible();
+    }
+
+    async setInteractivePrimaryColor(color: string): Promise<void> {
+        await this.expandInteractiveSection();
+        await this.getInteractivePrimaryInput().fill(color);
+    }
+
+    async verifyInteractivePrimaryColorValue(expectedValue: string): Promise<void> {
+        await this.expandInteractiveSection();
+        await expect(this.getInteractivePrimaryInput()).toHaveValue(expectedValue);
+    }
+
+    // Helper to count total visible sections
+    async countExpandedSections(): Promise<number> {
+        const expandedButtons = await this.page.locator('[data-expanded="true"]').count();
+        return expandedButtons;
+    }
+
+    // Helper to collapse all sections
+    async collapseAllSections(): Promise<void> {
+        const expandedButtons = this.page.locator('[data-expanded="true"]');
+        const count = await expandedButtons.count();
+        for (let i = 0; i < count; i++) {
+            await expandedButtons.nth(0).click();
+            await this.page.waitForTimeout(50);
+        }
     }
 }

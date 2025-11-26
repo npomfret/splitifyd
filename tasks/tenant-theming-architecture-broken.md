@@ -300,3 +300,67 @@ The following changes were made to fix the architecture:
 - All design values in production come from Firestore/JSON data, NOT TypeScript code
 - Test builders (`AdminTenantRequestBuilder`) provide test-only data (acceptable for tests)
 - tenant-configs.json is the single source of truth for seed tenants
+
+---
+
+### Phase 3: Premium Theme Features & Testing (2025-11-26)
+
+**New Features Implemented:**
+
+1. **Premium CSS Enhancements** (`global.css`, `landing.css`)
+   - Glassmorphism hover glow effects on `.glass-panel`
+   - Animated gradient text shimmer (`@keyframes gradient-shift`)
+   - Hero image enhanced shadows with primary color glow
+   - Feature card cursor-following glow overlay
+   - CTA section animated radial glow
+   - All effects use CSS variables from theme tokens
+
+2. **ThemeArtifactService Enhancements**
+   - Added palette RGB variants (`--palette-primary-rgb`, `--palette-secondary-rgb`, `--palette-accent-rgb`)
+   - Enables `rgba()` usage in glow effects without hardcoding colors
+
+3. **Three Example Tenant Themes** (`tenant-configs.json`)
+   - **localhost-tenant (Aurora)**: Violet/Cyan/Pink dark theme with full motion, glassmorphism, aurora gradient
+   - **staging-tenant (Neon Emerald)**: Emerald/Cyan/Gold dark theme with same premium features, different palette
+   - **default-tenant (Clean Light)**: Blue/Indigo/Violet light theme, minimal effects, high readability
+
+4. **Comprehensive E2E Testing** (`e2e-tests/tenant-editor.e2e.test.ts`)
+   - Core CRUD operations
+   - Motion & Effects toggles
+   - Typography customization
+   - Advanced controls (aurora gradient, glassmorphism)
+   - Marketing flags
+   - Theme publishing with CSS verification
+
+5. **Simplified Playwright Tests** (`webapp-v2/tenant-editor-modal.test.ts`)
+   - 14 focused tests covering modal operations, form display, validation, domain management
+   - Uses MSW mocks for fast, isolated testing
+   - Page object auto-expands collapsible sections
+
+6. **Page Object Enhancements** (`TenantEditorModalPage.ts`)
+   - Auto-section expansion in all setter/verify methods
+   - Added methods for spacing, radii, shadows, legal, interactive colors
+   - Supports nested sections (aurora gradient, glassmorphism under motion)
+
+7. **Documentation Updates** (`webapp-and-style-guide.md`)
+   - Added "TenantEditorModal Testing" section with usage examples
+   - Page object usage patterns
+   - Test category explanations
+   - Running tests guide
+
+**Test Status:**
+- ✅ 14/14 `tenant-editor-modal.test.ts` (Playwright, MSW-mocked)
+- ✅ 55/55 `authorization.test.ts` (unit tests)
+- ✅ E2E tests passing with real emulator
+
+**Files Modified:**
+- `webapp-v2/src/styles/global.css` - Premium component styles
+- `webapp-v2/src/styles/landing.css` - Landing page enhancements
+- `firebase/functions/src/services/tenant/ThemeArtifactService.ts` - RGB variants
+- `firebase/scripts/tenant-configs.json` - Three themed tenants
+- `e2e-tests/src/__tests__/integration/tenant-editor.e2e.test.ts` - Comprehensive tests
+- `webapp-v2/src/__tests__/integration/playwright/tenant-editor-modal.test.ts` - Simplified tests
+- `packages/test-support/src/page-objects/TenantEditorModalPage.ts` - Enhanced page object
+- `packages/test-support/src/builders/AdminTenantRequestBuilder.ts` - Added `surface.muted` field
+- `firebase/functions/src/__tests__/unit/api/authorization.test.ts` - Fixed brandingTokens requirement
+- `docs/guides/webapp-and-style-guide.md` - Testing documentation
