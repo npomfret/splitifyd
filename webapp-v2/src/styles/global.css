@@ -34,6 +34,62 @@
         box-shadow: 0 0 20px rgba(var(--interactive-primary-rgb), 0.4),
                     0 8px 16px rgba(0, 0, 0, 0.3);
     }
+
+    /* Glassmorphism panel with hover glow per Modern UI/UX guide section 2.1 */
+    .glass-panel {
+        position: relative;
+        overflow: hidden;
+        border-radius: var(--radii-lg, 1rem);
+        border: 1px solid var(--border-glassBorder, rgba(255, 255, 255, 0.08));
+        box-shadow: var(--shadows-md, 0 4px 12px rgba(0, 0, 0, 0.1));
+    }
+
+    /* Hover glow overlay for glass panels */
+    .glass-panel::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+            120deg,
+            rgba(255, 255, 255, 0.1),
+            transparent 60%
+        );
+        opacity: 0;
+        transition: opacity var(--motion-duration-base, 320ms) var(--motion-easing-standard, cubic-bezier(0.22, 1, 0.36, 1));
+        pointer-events: none; /* CRITICAL: Don't block interaction */
+        z-index: 1;
+    }
+
+    .glass-panel:hover::after {
+        opacity: 1;
+    }
+
+    /* Hero eyebrow text (uppercase label above headlines) */
+    .eyebrow {
+        text-transform: uppercase;
+        letter-spacing: 0.4em;
+        font-size: var(--typography-sizes-xs, 0.75rem);
+        color: var(--text-eyebrow, var(--text-muted));
+        margin-bottom: 0.75rem;
+    }
+
+    .eyebrow.tight {
+        margin-bottom: 0.35rem;
+    }
+
+    /* Hero text styling - uses theme's hero color */
+    .hero-text {
+        color: var(--text-hero, var(--text-primary));
+    }
+
+    /* Code text styling - uses theme's code color */
+    .code-text {
+        font-family: var(--typography-fontFamily-mono, monospace);
+        color: var(--text-code, var(--palette-accent));
+        background: rgba(var(--palette-accent-rgb, 139 92 246), 0.1);
+        padding: 0.125rem 0.375rem;
+        border-radius: var(--radii-sm, 0.25rem);
+    }
 }
 
 /* Scroll reveal animations per Modern UI/UX guide section 4.1 */

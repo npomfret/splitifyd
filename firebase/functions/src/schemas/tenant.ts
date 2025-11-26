@@ -70,7 +70,7 @@ export type TenantDocument = z.infer<typeof TenantDocumentSchema>;
 export const AdminUpsertTenantRequestSchema = z.object({
     tenantId: z.string().min(1).transform(toTenantId),
     branding: BrandingSchema,
-    brandingTokens: TenantBrandingSchema.optional(),
+    brandingTokens: TenantBrandingSchema, // Required - no auto-generation
     domains: DomainSchema,
     defaultTenant: z.boolean().transform(toTenantDefaultFlag).optional(),
 });

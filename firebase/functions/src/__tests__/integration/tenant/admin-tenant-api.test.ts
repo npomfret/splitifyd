@@ -13,15 +13,31 @@ describe('Admin tenant API - integration', () => {
         adminUser = await apiDriver.getDefaultAdminUser();
     });
 
-    it('auto-generates branding tokens when not provided (UI flow)', async () => {
-        const tenantId = `tenant-ui-${Date.now()}`;
+    it('rejects tenant creation without brandingTokens (no auto-generation)', async () => {
+        const tenantId = `tenant-no-tokens-${Date.now()}`;
         const uniqueDomain = `${tenantId}.local`;
         const payload = AdminTenantRequestBuilder
             .forTenant(tenantId)
             .withDomains([uniqueDomain])
             .build();
-        delete payload.brandingTokens;
 
+        // Remove brandingTokens to test rejection
+        delete (payload as any).brandingTokens;
+
+        // Should reject with validation error
+        await expect(apiDriver.adminUpsertTenant(payload, adminUser.token))
+            .rejects.toThrow(/brandingTokens/i);
+    });
+
+    it('accepts tenant creation with full brandingTokens', async () => {
+        const tenantId = `tenant-with-tokens-${Date.now()}`;
+        const uniqueDomain = `${tenantId}.local`;
+        const payload = AdminTenantRequestBuilder
+            .forTenant(tenantId)
+            .withDomains([uniqueDomain])
+            .build();
+
+        // Should succeed with brandingTokens included
         const result = await apiDriver.adminUpsertTenant(payload, adminUser.token);
 
         expect(result).toMatchObject({
@@ -29,7 +45,7 @@ describe('Admin tenant API - integration', () => {
             created: true,
         });
 
-        // Verify tokens were auto-generated from branding colors
+        // Verify tokens were stored correctly
         const tenantDoc = await getFirestore().collection(FirestoreCollections.TENANTS).doc(tenantId).get();
         expect(tenantDoc.exists).toBe(true);
         expect(tenantDoc.data()?.brandingTokens).toBeDefined();

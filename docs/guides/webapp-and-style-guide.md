@@ -150,30 +150,8 @@ const BrandingSemanticColorSchema = z.object({
 });
 ```
 
-**Step 2:** Add to ALL theme fixtures (`packages/shared/src/fixtures/branding-tokens.ts`)
-```typescript
-// Aurora theme
-const auroraSemantics: BrandingTokens['semantics'] = {
-  colors: {
-    surface: {
-      base: '#1a1d2e',
-      raised: '#252944',
-      dropdown: '#2a2f4a',  // NEW: Aurora value
-    },
-  },
-};
-
-// Brutalist theme (dark)
-const brutalistSemantics: BrandingTokens['semantics'] = {
-  colors: {
-    surface: {
-      base: '#171717',
-      raised: '#262626',
-      dropdown: '#303030',  // NEW: Brutalist value
-    },
-  },
-};
-```
+**Step 2:** Update TenantEditorModal to include the new field
+The new token will be configurable via the TenantEditorModal UI. All design values come from Firestore, not code.
 
 **Step 3:** Update CSS generator (`firebase/functions/src/services/theme/ThemeArtifactService.ts`)
 ```typescript
@@ -264,7 +242,7 @@ npm run theme:publish-local
 
 ### "My theme changes aren't showing up"
 
-- [ ] Did you edit `packages/shared/src/fixtures/branding-tokens.ts`?
+- [ ] Did you update the tenant via TenantEditorModal?
 - [ ] Did you run `cd firebase && npm run theme:publish-local`?
 - [ ] Did you hard refresh the browser (Cmd+Shift+R)?
 - [ ] Check browser console: Is `/api/theme.css` loading?
@@ -627,23 +605,24 @@ When creating a user page (mandatory requirement):
 1. Calls `createAllDemoTenants()` → syncs ALL tenants from tenant-configs.json
 2. Calls `publishLocalThemes()` → publishes ALL tenant themes
 
-### Theme Fixture Mapping
+### Creating Tenants
 
-Each tenant ID maps to a branding token fixture in `packages/shared/src/fixtures/branding-tokens.ts`:
+**ALL design values come from Firestore, set via TenantEditorModal.**
 
-```typescript
-// In publish-local-themes.ts
-const fixtureMap: Record<string, BrandingTokenFixtureKey> = {
-  'localhost-tenant': 'localhost',    // Uses Aurora theme
-  'default-tenant': 'loopback',       // Uses Brutalist theme
-};
-```
+There are NO fixtures or presets. To create a tenant:
 
-**To add a new tenant:**
-1. Add entry to `tenant-configs.json`
-2. Add mapping to `fixtureMap` in `publish-local-themes.ts` (lines 26-29)
-3. Create branding fixture in `@billsplit/shared/src/fixtures/branding-tokens.ts`
-4. Restart emulator
+1. Start the emulator
+2. Log in as admin
+3. Go to Admin → Tenants
+4. Click "Create Tenant"
+5. Choose "Start from empty" or "Copy from existing tenant"
+6. Fill in all required fields (colors, fonts, etc.)
+7. Save and publish
+
+**To add a new tenant for development:**
+1. Create tenant via TenantEditorModal UI
+2. The tenant data is stored in Firestore
+3. Run `cd firebase && npm run theme:publish-local` to publish CSS
 
 ### Verifying Tenant Setup
 
@@ -667,7 +646,7 @@ curl http://127.0.0.1:6005/api/theme.css | head -50
 
 **⚠️ IMPORTANT:** After making ANY changes to:
 - Theme generation code (`ThemeArtifactService.ts`)
-- Branding token fixtures (`packages/shared/src/fixtures/branding-tokens.ts`)
+- Tenant data via TenantEditorModal
 - Tenant configs (`firebase/scripts/tenant-configs.json`)
 
 You MUST run: `cd firebase && npm run theme:publish-local`
@@ -1052,25 +1031,27 @@ test('Brutalist theme disables magnetic hover', async ({ page }) => {
 - `webapp-v2/src/components/ui/Button.tsx` - Magnetic hover integration
 - `webapp-v2/src/components/ui/Card.tsx` - Magnetic hover support
 
-**Theme fixtures** (`packages/shared/src/fixtures/branding-tokens.ts`):
+**Motion configuration is per-tenant** (set via TenantEditorModal):
+
+Motion settings are stored in Firestore as part of the tenant's `brandingTokens.motion` field.
+Each tenant can enable/disable motion effects independently. Example values:
+
 ```typescript
-// Aurora theme - motion enabled
-const auroraMotion: BrandingTokens['motion'] = {
+// Aurora-style theme - motion enabled
+motion: {
   enableParallax: true,
   enableMagneticHover: true,
   enableScrollReveal: true,
-  defaultDuration: 320,
-  defaultEasing: 'cubic-bezier(0.22, 1, 0.36, 1)',
-};
+  duration: { base: 250, fast: 150 },
+}
 
-// Brutalist theme - motion disabled
-const brutalistMotion: BrandingTokens['motion'] = {
+// Brutalist-style theme - motion disabled
+motion: {
   enableParallax: false,
   enableMagneticHover: false,
   enableScrollReveal: false,
-  defaultDuration: 0,
-  defaultEasing: 'linear',
-};
+  duration: { base: 0, fast: 0 },
+}
 ```
 
 ---

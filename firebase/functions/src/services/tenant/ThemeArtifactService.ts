@@ -150,6 +150,12 @@ export class ThemeArtifactService {
         // Use surface.muted if available, otherwise fall back to surface.raised
         entries.push(['surface-muted', this.hexToRgb(colors.surface.muted || colors.surface.raised)]);
 
+        // Add palette RGB variants for use in rgba() glow effects
+        const { palette } = tokens;
+        entries.push(['palette-primary', this.hexToRgb(palette.primary)]);
+        entries.push(['palette-secondary', this.hexToRgb(palette.secondary)]);
+        entries.push(['palette-accent', this.hexToRgb(palette.accent)]);
+
         return entries;
     }
 

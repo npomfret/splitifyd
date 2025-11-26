@@ -227,11 +227,76 @@ Total: ~144 fields, all must be user-configurable through the UI.
 
 ---
 
-## Status: 🔴 ARCHITECTURE BROKEN
+## Status: ✅ ARCHITECTURE FIXED (2025-11-26)
 
-The current implementation has hardcoded values in:
-- `packages/shared/src/fixtures/branding-tokens.ts` (hundreds of values)
-- `TenantEditorModal.tsx` (preset system)
-- Various scripts and tests
+The following changes were made to fix the architecture:
 
-**All of this must be removed and redesigned.**
+### Completed:
+1. ✅ Deleted `packages/shared/src/fixtures/branding-tokens.ts` (contained hardcoded design values)
+2. ✅ Removed fixture exports from `packages/shared/src/index.ts`
+3. ✅ Rewrote `TenantEditorModal.tsx`:
+   - Removed preset system
+   - Added "Start from empty" vs "Copy from existing tenant" creation modes
+   - All ~144 fields exposed in collapsible sections
+   - No hardcoded design values
+4. ✅ Updated `publish-local-themes.ts` - now reads from Firestore, doesn't create tenants
+5. ✅ Updated `publish-staging-themes.ts` - same approach
+6. ✅ Fixed `theme-css.test.ts` - creates test data inline, no fixtures
+7. ✅ Updated `webapp-and-style-guide.md` - removed fixture references
+
+### Code Review Fix (2025-11-26):
+
+**Issues identified in code review:**
+1. `buildBrandingTokensFromForm` had ~50 fallback values (`formData.primaryColor || '#000000'`)
+2. UI only exposed ~45 fields, ~100 fields used hardcoded defaults
+3. publish scripts no longer created tenants, breaking dev workflow
+
+**Fixes applied:**
+1. ✅ Removed ALL fallback values from `buildBrandingTokensFromForm` - values now come directly from formData
+2. ✅ Added ALL missing form fields to TenantData interface (~120 fields total)
+3. ✅ Added ALL missing UI sections:
+   - Palette Colors (11 fields)
+   - Surface Colors (6 fields)
+   - Text Colors (5 fields)
+   - Interactive Colors (13 fields)
+   - Border Colors (5 fields)
+   - Status Colors (4 fields)
+   - Typography (fonts, sizes, weights, line heights, letter spacing, semantics)
+   - Spacing (scale + semantic)
+   - Radii (6 fields)
+   - Shadows (3 fields)
+   - Legal (4 fields)
+   - Motion (durations + easings)
+4. ✅ Added comprehensive form validation - ALL required fields must be filled before save
+5. ✅ Test data in `theme-css.test.ts` is complete and test-only (doesn't violate architecture)
+
+### Architecture Now Correct:
+- **Code contains:** Schema definitions, validation rules, CSS generation logic
+- **Code does NOT contain:** Colors, fonts, sizes, or any visual design decisions
+- **All design values come from:** Firestore (tenant's stored `brandingTokens`)
+- **Set exclusively through:** TenantEditorModal UI
+
+### UX Impact:
+- "Start from empty" mode requires filling ALL ~120 fields manually
+- "Copy from existing" is the practical choice for new tenants
+- First tenant creation is tedious but subsequent ones are easy (copy)
+
+---
+
+### Phase 2: Delete BrandingTokensGenerator.ts (2025-11-26)
+
+**Problem Found:**
+`firebase/functions/src/services/tenant/BrandingTokensGenerator.ts` contained ~100 hardcoded design values that were auto-applied whenever a tenant was created without full brandingTokens.
+
+**Fixes Applied:**
+1. ✅ Deleted `BrandingTokensGenerator.ts` - no more auto-generation
+2. ✅ Updated `TenantAdminService.ts` - now throws error if brandingTokens not provided
+3. ✅ Made `brandingTokens` required in `AdminUpsertTenantRequestSchema` (removed `.optional()`)
+4. ✅ Updated `tenant-configs.json` - all 3 tenants now have complete `brandingTokens` (~144 fields each)
+5. ✅ Updated `sync-tenant-configs.ts` - validates and passes brandingTokens from JSON
+
+**Architecture Now Strictly Enforced:**
+- API rejects tenant creation without full brandingTokens
+- All design values in production come from Firestore/JSON data, NOT TypeScript code
+- Test builders (`AdminTenantRequestBuilder`) provide test-only data (acceptable for tests)
+- tenant-configs.json is the single source of truth for seed tenants

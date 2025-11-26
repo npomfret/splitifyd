@@ -10,6 +10,7 @@
  *   --tenant-id <id>: Only sync specific tenant by ID
  */
 import {
+    type TenantBranding,
     toShowLandingPageFlag,
     toShowMarketingContentFlag,
     toShowPricingPageFlag,
@@ -56,6 +57,7 @@ interface TenantConfig {
             showPricingPage?: boolean;
         };
     };
+    brandingTokens: TenantBranding; // Required - no auto-generation
     isDefault: boolean;
 }
 
@@ -182,6 +184,11 @@ async function syncTenantConfigs(
             config.branding.faviconUrl,
         );
 
+        // Validate brandingTokens are present
+        if (!config.brandingTokens) {
+            throw new Error(`Tenant '${config.id}' is missing required brandingTokens in tenant-configs.json`);
+        }
+
         // Build request object that will be validated by the schema
         const request: AdminUpsertTenantRequest = {
             tenantId: toTenantId(config.id),
@@ -206,6 +213,7 @@ async function syncTenantConfigs(
                     showPricingPage: toShowPricingPageFlag(config.branding.marketingFlags?.showPricingPage ?? false),
                 },
             },
+            brandingTokens: config.brandingTokens,
             domains,
             defaultTenant: toTenantDefaultFlag(config.isDefault),
         };

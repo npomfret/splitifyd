@@ -1,8 +1,7 @@
 // Export all shared types
 export * from './shared-types';
 
-// Export branding tokens and schemas
-export * from './fixtures/branding-tokens';
+// Export branding types and schemas (values come from Firestore, not code)
 export * from './types/branding';
 
 // Export user colors constants

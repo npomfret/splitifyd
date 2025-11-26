@@ -3,7 +3,6 @@ import { HTTP_STATUS } from '../../constants';
 import type { AdminUpsertTenantRequest } from '../../schemas/tenant';
 import { ApiError } from '../../utils/errors';
 import type { IFirestoreReader, IFirestoreWriter } from '../firestore';
-import { generateBrandingTokens } from './BrandingTokensGenerator';
 import { ThemeArtifactService } from './ThemeArtifactService';
 
 export class TenantAdminService {
@@ -16,14 +15,17 @@ export class TenantAdminService {
     async upsertTenant(request: AdminUpsertTenantRequest) {
         const { tenantId, ...rest } = request;
 
-        // If brandingTokens are not provided, generate them from branding colors
-        // This ensures tokens are always in sync with branding configuration
-        const dataToUpsert = {
-            ...rest,
-            brandingTokens: rest.brandingTokens || generateBrandingTokens(rest.branding),
-        };
+        // brandingTokens are required - no auto-generation
+        // All design values must come from explicit configuration
+        if (!rest.brandingTokens) {
+            throw new ApiError(
+                HTTP_STATUS.BAD_REQUEST,
+                'BRANDING_TOKENS_REQUIRED',
+                'brandingTokens must be provided - no auto-generation allowed',
+            );
+        }
 
-        return this.firestoreWriter.upsertTenant(tenantId, dataToUpsert);
+        return this.firestoreWriter.upsertTenant(tenantId, rest);
     }
 
     async publishTenantTheme(tenantId: TenantId, operatorId: string): Promise<PublishTenantThemeResult> {

@@ -1,108 +1,69 @@
 #!/usr/bin/env npx tsx
 
-import type { BrandingTokenFixtureKey, BrandingTokens } from '@billsplit-wl/shared';
-import { brandingTokenFixtures } from '@billsplit-wl/shared';
+/**
+ * Publishes theme CSS for existing local tenants.
+ *
+ * ARCHITECTURE NOTE:
+ * This script does NOT create tenants or define theme values.
+ * ALL theme values must come from Firestore, set via TenantEditorModal.
+ *
+ * This script:
+ * 1. Reads existing tenants from Firestore
+ * 2. Publishes their theme CSS artifacts
+ *
+ * To create a new tenant with theme, use the TenantEditorModal UI.
+ */
+
 import { ApiDriver } from '@billsplit-wl/test-support';
 import * as fs from 'fs';
 import * as path from 'path';
 import { logger } from './logger';
 
-type TenantSeed = {
-    tenantId: string;
-    displayName: string;
-    primaryDomain: string;
-    aliasDomains?: string[];
-    fixture: BrandingTokenFixtureKey;
-    defaultTenant?: boolean;
+type TenantConfig = {
+    id: string;
+    domains: string[];
+    branding: {
+        appName: string;
+        logoUrl: string;
+        faviconUrl: string;
+        primaryColor: string;
+        secondaryColor: string;
+        accentColor?: string;
+        surfaceColor?: string;
+        textColor?: string;
+        marketingFlags?: {
+            showLandingPage?: boolean;
+            showMarketingContent?: boolean;
+            showPricingPage?: boolean;
+        };
+    };
+    isDefault: boolean;
 };
 
-// Load tenants from tenant-configs.json - SINGLE SOURCE OF TRUTH
-function loadTenantSeeds(): TenantSeed[] {
+// Load tenant IDs from config (just for reference, not for theme data)
+function loadTenantConfigs(): TenantConfig[] {
     const configPath = path.join(__dirname, 'tenant-configs.json');
     const configData = fs.readFileSync(configPath, 'utf-8');
-    const configs = JSON.parse(configData);
-
-    // Map fixture names based on tenant ID
-    const fixtureMap: Record<string, BrandingTokenFixtureKey> = {
-        'localhost-tenant': 'localhost', // Aurora theme (dev)
-        'default-tenant': 'loopback', // Brutalist theme (dev)
-        'staging-default-tenant': 'loopback', // Brutalist theme (staging fallback)
-        'staging-tenant': 'localhost', // Aurora theme (staging production domain)
-    };
-
-    return configs.map((config: any) => ({
-        tenantId: config.id,
-        displayName: config.branding.appName,
-        primaryDomain: config.domains[0] || 'localhost',
-        aliasDomains: config.domains.slice(1),
-        fixture: fixtureMap[config.id] || 'localhost',
-        defaultTenant: config.isDefault,
-    }));
+    return JSON.parse(configData);
 }
 
-const TENANT_SEEDS = loadTenantSeeds();
+async function publishTenantTheme(api: ApiDriver, adminToken: string, tenantId: string): Promise<void> {
+    // Check if tenant exists
+    const response = await api.listAllTenants(adminToken);
+    const tenant = response.tenants.find((t: any) => t.tenant.tenantId === tenantId);
 
-const normalizeDomain = (value: string): string => {
-    return value.trim().toLowerCase().replace(/^https?:\/\//, '').split('/')[0].replace(/:\d+$/, '');
-};
-
-const buildBranding = (displayName: string, tokens: BrandingTokens) => ({
-    appName: displayName,
-    logoUrl: tokens.assets.logoUrl,
-    faviconUrl: tokens.assets.faviconUrl,
-    primaryColor: tokens.palette.primary,
-    secondaryColor: tokens.palette.secondary,
-    accentColor: tokens.palette.accent,
-    themePalette: 'default',
-});
-
-async function seedTenant(api: ApiDriver, adminToken: string, seed: TenantSeed): Promise<void> {
-    const tokens = brandingTokenFixtures[seed.fixture];
-
-    if (!tokens) {
-        throw new Error(`No branding token fixture found for key "${seed.fixture}"`);
-    }
-
-    const primaryDomain = normalizeDomain(seed.primaryDomain);
-    const aliasDomains = seed.aliasDomains?.map(normalizeDomain) ?? [];
-    const domains = Array.from(new Set([primaryDomain, ...aliasDomains]));
-
-    const payload = {
-        tenantId: seed.tenantId,
-        branding: buildBranding(seed.displayName, tokens),
-        brandingTokens: {
-            tokens,
-        },
-        domains,
-        defaultTenant: seed.defaultTenant,
-    };
-
-    // Check if tenant already exists (seed-once mode)
-    let existingTenant = null;
-    try {
-        const response = await api.listAllTenants(adminToken);
-        existingTenant = response.tenants.find((t: any) => t.tenant.tenantId === seed.tenantId);
-    } catch (error) {
-        // Ignore error, assume tenant doesn't exist
-    }
-
-    const forceOverwrite = process.env.FORCE_OVERWRITE === '1' || process.env.FORCE_OVERWRITE === 'true';
-
-    if (existingTenant && !forceOverwrite) {
-        logger.info(`⏭️  ${seed.tenantId} already exists, skipping (set FORCE_OVERWRITE=1 to overwrite)`);
+    if (!tenant) {
+        logger.warn(`⚠️  Tenant ${tenantId} does not exist. Create it via TenantEditorModal first.`);
         return;
     }
 
-    if (existingTenant && forceOverwrite) {
-        logger.warn(`⚠️  Overwriting ${seed.tenantId} (FORCE_OVERWRITE set)`);
+    if (!tenant.brandingTokens?.tokens) {
+        logger.warn(`⚠️  Tenant ${tenantId} has no branding tokens. Configure theme via TenantEditorModal first.`);
+        return;
     }
 
-    logger.info(`→ Upserting ${seed.tenantId} (${seed.displayName})`);
-    await api.adminUpsertTenant(payload, adminToken);
-    logger.info(`   ✓ Upserted`);
-
-    logger.info(`→ Publishing theme for ${seed.tenantId}`);
-    const publishResult = await api.publishTenantTheme({ tenantId: seed.tenantId }, adminToken);
+    logger.info(`→ Publishing theme for ${tenantId}`);
+    const publishResult = await api.publishTenantTheme({ tenantId }, adminToken);
     logger.info(`   ✓ Published hash ${publishResult.artifact.hash}`);
 }
 
@@ -113,24 +74,33 @@ export async function publishLocalThemes(options?: { defaultOnly?: boolean; }): 
     const admin = await apiDriver.getDefaultAdminUser();
     logger.info(`Authenticated as ${admin.email}`);
 
-    // Filter tenants based on options
+    // Get tenant IDs from config
+    const configs = loadTenantConfigs();
     const tenantsToPublish = options?.defaultOnly
-        ? TENANT_SEEDS.filter(seed => seed.defaultTenant === true)
-        : TENANT_SEEDS;
+        ? configs.filter(c => c.isDefault === true)
+        : configs;
 
-    for (const seed of tenantsToPublish) {
+    let published = 0;
+    let skipped = 0;
+
+    for (const config of tenantsToPublish) {
         try {
-            await seedTenant(apiDriver, admin.token, seed);
+            await publishTenantTheme(apiDriver, admin.token, config.id);
+            published++;
         } catch (error) {
-            logger.error(`Failed to seed ${seed.tenantId}`, { error });
-            throw error;
+            logger.error(`Failed to publish theme for ${config.id}`, { error });
+            skipped++;
         }
     }
 
-    if (options?.defaultOnly) {
-        logger.info('✅ Default tenant theme ready.');
-    } else {
-        logger.info('✅ Local themes ready: visit http://localhost:5173 (localhost) or http://127.0.0.1:5173 (loopback).');
+    if (published > 0) {
+        logger.info(`✅ Published ${published} theme(s).`);
+    }
+    if (skipped > 0) {
+        logger.warn(`⚠️  Skipped ${skipped} tenant(s). Create them via TenantEditorModal.`);
+    }
+    if (published === 0 && skipped === 0) {
+        logger.info('No tenants found to publish. Create tenants via TenantEditorModal first.');
     }
 }
 
