@@ -177,7 +177,7 @@ test.describe('Dashboard Error Handling', () => {
         const dashboardPage = new DashboardPage(page);
 
         // Mock API failure - matches all groups API requests with includeMetadata=true
-        await mockApiFailure(page, '/api/groups?includeMetadata=true', 500, { error: 'Internal Server Error' });
+        await mockApiFailure(page, '/api/groups?includeMetadata=true', 500, { error: { code: 'INTERNAL_ERROR', message: 'Internal Server Error' } });
         await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
@@ -191,7 +191,7 @@ test.describe('Dashboard Error Handling', () => {
         const dashboardPage = new DashboardPage(page);
 
         // Mock initial API failure - matches all groups API requests with includeMetadata=true
-        await mockApiFailure(page, '/api/groups?includeMetadata=true', 500, { error: 'Server temporarily unavailable' });
+        await mockApiFailure(page, '/api/groups?includeMetadata=true', 500, { error: { code: 'SERVICE_UNAVAILABLE', message: 'Server temporarily unavailable' } });
         await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
@@ -221,7 +221,7 @@ test.describe('Dashboard Error Handling', () => {
         const dashboardPage = new DashboardPage(page);
 
         // Mock network timeout - matches all groups API requests with includeMetadata=true
-        await mockApiFailure(page, '/api/groups?includeMetadata=true', 408, { error: 'Request timeout' });
+        await mockApiFailure(page, '/api/groups?includeMetadata=true', 408, { error: { code: 'TIMEOUT', message: 'Request timeout' } });
         await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });

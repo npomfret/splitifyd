@@ -353,8 +353,8 @@ test.describe('Registration Form Loading States', () => {
         await registerPage.acceptAllPolicies();
         await registerPage.submitForm();
 
-        // Wait for error to appear
-        await registerPage.verifyErrorMessage('Network error occurred.');
+        // Wait for error to appear (UI transforms to user-friendly message)
+        await registerPage.verifyErrorMessage('Network error. Please check your connection.');
 
         // Form should be re-enabled after error
         await registerPage.verifyFormEnabled();

@@ -39,7 +39,7 @@ test.describe('Network & Server Error Handling', () => {
                 // Use a proper HTTP error status instead of network failure
                 route.fulfill({
                     status: 503, // Service Unavailable - more realistic network error
-                    body: JSON.stringify({ error: 'Service temporarily unavailable' }),
+                    body: JSON.stringify({ error: { code: 'SERVICE_UNAVAILABLE', message: 'Service temporarily unavailable' } }),
                     headers: { 'Content-Type': 'application/json' },
                 });
             } else {
@@ -130,7 +130,7 @@ test.describe('Network & Server Error Handling', () => {
             if (method === 'POST') {
                 route.fulfill({
                     status: 500,
-                    body: JSON.stringify({ error: 'Internal Server Error' }),
+                    body: JSON.stringify({ error: { code: 'INTERNAL_ERROR', message: 'Internal Server Error' } }),
                     headers: { 'Content-Type': 'application/json' },
                 });
             } else {
@@ -218,7 +218,7 @@ test.describe('Network & Server Error Handling', () => {
             if (method === 'POST') {
                 route.fulfill({
                     status: 400,
-                    body: JSON.stringify({ error: 'Invalid group data', field: 'name' }),
+                    body: JSON.stringify({ error: { code: 'INVALID_GROUP_NAME', message: 'Invalid group data', details: { field: 'name' } } }),
                     headers: { 'Content-Type': 'application/json' },
                 });
             } else {

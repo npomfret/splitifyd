@@ -97,8 +97,8 @@ test.describe('Registration Authentication Flow', () => {
         // Attempt registration with validly formatted email that backend rejects
         await registerPage.registerExpectingFailure('Test User', toEmail('badformat@example.com'), 'Password1234');
 
-        // Verify backend error message is shown
-        await registerPage.verifyErrorMessage('This email address is invalid.');
+        // Verify user-friendly error message is shown (UI transforms API messages)
+        await registerPage.verifyErrorMessage('Please enter a valid email address.');
     });
 });
 

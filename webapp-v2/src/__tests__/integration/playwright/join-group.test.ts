@@ -43,7 +43,7 @@ test.describe('Join Group Page - Error States', () => {
         await setupSuccessfulApiMocks(page);
 
         await mockGroupPreviewFailure(page, 404, {
-            error: 'Share link not found or has expired',
+            error: { code: 'NOT_FOUND', message: 'Share link not found or has expired' },
         });
 
         await page.goto('/join?shareToken=invalid-link');
@@ -152,7 +152,7 @@ test.describe('Join Group Page - Successful Join', () => {
         await mockGroupPreviewApi(page, previewResponse);
 
         await mockJoinGroupFailure(page, 403, {
-            error: 'You do not have permission to join this group',
+            error: { code: 'FORBIDDEN', message: 'You do not have permission to join this group' },
         });
 
         await page.goto('/join?shareToken=test-link-123');

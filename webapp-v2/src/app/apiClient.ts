@@ -469,35 +469,16 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
                     retryAttempt: attemptNumber > 1 ? attemptNumber : undefined,
                 });
 
-                // Try to parse as API error
+                // Try to parse as API error (structured format only)
                 const errorResult = ApiErrorResponseSchema.safeParse(errorData);
                 if (errorResult.success) {
-                    const parsedError = errorResult.data;
-
-                    // Handle structured error format
-                    if (typeof parsedError.error === 'object' && 'message' in parsedError.error) {
-                        throw new ApiError(parsedError.error.message, parsedError.error.code, parsedError.error.details, {
-                            url,
-                            method: options.method,
-                            status: response.status,
-                            statusText: response.statusText,
-                        });
-                    } // Handle simple error format
-                    else if (typeof parsedError.error === 'string') {
-                        const simpleError = parsedError as { error: string; field?: string; };
-                        const code = simpleError.field ? `VALIDATION_${simpleError.field.toUpperCase()}` : 'VALIDATION_ERROR';
-                        throw new ApiError(
-                            simpleError.error,
-                            code,
-                            { field: simpleError.field },
-                            {
-                                url,
-                                method: options.method,
-                                status: response.status,
-                                statusText: response.statusText,
-                            },
-                        );
-                    }
+                    const { code, message, details } = errorResult.data.error;
+                    throw new ApiError(message, code, details, {
+                        url,
+                        method: options.method,
+                        status: response.status,
+                        statusText: response.statusText,
+                    });
                 }
 
                 // Fallback error

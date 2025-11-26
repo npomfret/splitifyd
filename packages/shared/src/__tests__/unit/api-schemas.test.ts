@@ -169,25 +169,23 @@ describe('API Schema Validation', () => {
             expect(result).toBeDefined();
         });
 
-        it('should validate simple error format', () => {
+        it('should reject simple error format (string instead of object)', () => {
             const error = {
                 error: 'Something went wrong',
                 field: 'email',
             };
 
-            const result = ApiErrorResponseSchema.parse(error);
-
-            expect(result).toBeDefined();
+            expect(() => ApiErrorResponseSchema.parse(error)).toThrow();
         });
 
-        it('should validate simple error format without optional field', () => {
+        it('should reject error missing code field', () => {
             const error = {
-                error: 'Something went wrong',
+                error: {
+                    message: 'Something went wrong',
+                },
             };
 
-            const result = ApiErrorResponseSchema.parse(error);
-
-            expect(result).toBeDefined();
+            expect(() => ApiErrorResponseSchema.parse(error)).toThrow();
         });
     });
 

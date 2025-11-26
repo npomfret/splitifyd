@@ -153,8 +153,10 @@ export function registerFailureHandler(
         'POST',
         '/api/register',
         {
-            error: error.message,
-            code: error.code,
+            error: {
+                code: error.code,
+                message: error.message,
+            },
         },
         {
             status,

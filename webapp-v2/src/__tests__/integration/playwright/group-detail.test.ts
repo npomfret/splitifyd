@@ -868,7 +868,7 @@ test.describe('Group Detail - Error Handling', () => {
         const groupId = 'non-existent-group';
 
         // Mock 404 error
-        await mockApiFailure(page, `/api/groups/${groupId}/full-details`, 404, { error: 'Group not found' });
+        await mockApiFailure(page, `/api/groups/${groupId}/full-details`, 404, { error: { code: 'NOT_FOUND', message: 'Group not found' } });
 
         await page.goto(`/groups/${groupId}`);
 
@@ -882,7 +882,7 @@ test.describe('Group Detail - Error Handling', () => {
         const groupId = 'forbidden-group';
 
         // Mock 403 error
-        await mockApiFailure(page, `/api/groups/${groupId}/full-details`, 403, { error: 'Permission denied' });
+        await mockApiFailure(page, `/api/groups/${groupId}/full-details`, 403, { error: { code: 'FORBIDDEN', message: 'Permission denied' } });
 
         await page.goto(`/groups/${groupId}`);
 
@@ -896,7 +896,7 @@ test.describe('Group Detail - Error Handling', () => {
         const groupId = 'error-group';
 
         // Mock 500 error
-        await mockApiFailure(page, `/api/groups/${groupId}/full-details`, 500, { error: 'Internal Server Error' });
+        await mockApiFailure(page, `/api/groups/${groupId}/full-details`, 500, { error: { code: 'INTERNAL_ERROR', message: 'Internal Server Error' } });
 
         await page.goto(`/groups/${groupId}`);
 
@@ -910,7 +910,7 @@ test.describe('Group Detail - Error Handling', () => {
         const groupId = 'timeout-group';
 
         // Mock 408 timeout error
-        await mockApiFailure(page, `/api/groups/${groupId}/full-details`, 408, { error: 'Request timeout' });
+        await mockApiFailure(page, `/api/groups/${groupId}/full-details`, 408, { error: { code: 'TIMEOUT', message: 'Request timeout' } });
 
         await page.goto(`/groups/${groupId}`);
 

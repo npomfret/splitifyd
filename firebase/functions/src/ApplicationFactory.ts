@@ -121,7 +121,7 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
             res.status(204).send();
         } catch (error) {
             logger.error('Error processing CSP violation report', error);
-            res.status(500).json({ error: 'Internal server error' });
+            res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: 'Internal server error' } });
         }
     };
 
@@ -142,7 +142,7 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
 
     const borrowTestUser: RequestHandler = async (req, res) => {
         if (!isPoolEnabled()) {
-            res.status(403).json({ error: 'Test pool only available in emulator or test environments' });
+            res.status(403).json({ error: { code: 'FORBIDDEN', message: 'Test pool only available in emulator or test environments' } });
             return;
         }
 
@@ -152,22 +152,25 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
         } catch (error: any) {
             logger.error('Failed to borrow test user', error);
             res.status(500).json({
-                error: 'Failed to borrow test user',
-                details: error.message,
+                error: {
+                    code: 'INTERNAL_ERROR',
+                    message: 'Failed to borrow test user',
+                    details: error.message,
+                },
             });
         }
     };
 
     const returnTestUser: RequestHandler = async (req, res) => {
         if (!isPoolEnabled()) {
-            res.status(403).json({ error: 'Test pool only available in emulator or test environments' });
+            res.status(403).json({ error: { code: 'FORBIDDEN', message: 'Test pool only available in emulator or test environments' } });
             return;
         }
 
         const { email } = req.body;
 
         if (!email) {
-            res.status(400).json({ error: 'Email required' });
+            res.status(400).json({ error: { code: 'BAD_REQUEST', message: 'Email required' } });
             return;
         }
 
@@ -182,22 +185,25 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
         } catch (error: any) {
             logger.error('Failed to return test user', error);
             res.status(500).json({
-                error: 'Failed to return test user',
-                details: error.message,
+                error: {
+                    code: 'INTERNAL_ERROR',
+                    message: 'Failed to return test user',
+                    details: error.message,
+                },
             });
         }
     };
 
     const promoteTestUserToAdmin: RequestHandler = async (req, res) => {
         if (!isPoolEnabled()) {
-            res.status(403).json({ error: 'Test pool only available in emulator or test environments' });
+            res.status(403).json({ error: { code: 'FORBIDDEN', message: 'Test pool only available in emulator or test environments' } });
             return;
         }
 
         const { uid } = req.body;
 
         if (!uid) {
-            res.status(400).json({ error: 'User ID required' });
+            res.status(400).json({ error: { code: 'BAD_REQUEST', message: 'User ID required' } });
             return;
         }
 
@@ -208,8 +214,11 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
         } catch (error: any) {
             logger.error('Failed to promote user to admin', error);
             res.status(500).json({
-                error: 'Failed to promote user to admin',
-                details: error.message,
+                error: {
+                    code: 'INTERNAL_ERROR',
+                    message: 'Failed to promote user to admin',
+                    details: error.message,
+                },
             });
         }
     };

@@ -561,7 +561,7 @@ test.describe('Dashboard Share Group Modal', () => {
         await mockActivityFeedApi(page, []);
 
         // Mock API failure for share link generation
-        await mockApiFailure(page, `/api/groups/group-123/share-link`, 500, { error: 'Failed to generate share link' });
+        await mockApiFailure(page, `/api/groups/group-123/share-link`, 500, { error: { code: 'SHARE_LINK_FAILED', message: 'Failed to generate share link' } });
 
         await dashboardPage.navigate();
         await dashboardPage.waitForGroupsToLoad();

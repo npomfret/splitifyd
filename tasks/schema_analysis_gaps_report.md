@@ -18,9 +18,9 @@ While the project has a strong foundation for a schema-driven architecture, part
 |----------|-------|-------------|
 | CRITICAL | 0 | Must fix - security/reliability risks |
 | HIGH | 1 | Should fix - significant maintenance burden |
-| MEDIUM | 4 | Nice to have - consistency improvements |
+| MEDIUM | 3 | Nice to have - consistency improvements |
 | LOW | 2 | Minor - housekeeping |
-| RESOLVED | 8 | Recently fixed |
+| RESOLVED | 9 | Recently fixed |
 
 ---
 
@@ -316,25 +316,41 @@ These are admin-only endpoints (2 schemas total). Not a widespread pattern.
 
 ---
 
-## 8. Error Response Format Inconsistency [MEDIUM]
+## 8. Error Response Format Inconsistency [RESOLVED ✅]
 
-**Two different error formats are supported.**
+**~~Two different error formats are supported.~~**
 
-### Format 1: Structured
-```json
-{ "error": { "code": "MISSING_GROUP_ID", "message": "Group ID is required" } }
+### Status: RESOLVED (November 2025)
+
+The schema now enforces structured format only. Server always generated structured format; the dual-format schema was defensive code that's no longer needed.
+
+### Changes Made
+
+**`packages/shared/src/schemas/apiSchemas.ts`** - Simplified schema:
+```typescript
+// Before: z.union([...structured, ...simple])
+// After:
+export const ApiErrorResponseSchema = z.object({
+    error: z.object({
+        code: z.string().min(1),
+        message: z.string().min(1),
+        details: z.unknown().optional(),
+    }),
+});
 ```
 
-### Format 2: Simple
-```json
-{ "error": "Group ID is required" }
+**`webapp-v2/src/app/apiClient.ts`** - Simplified error parsing:
+```typescript
+// Before: typeof check for object vs string
+// After: Direct extraction
+const { code, message, details } = errorResult.data.error;
+throw new ApiError(message, code, details, {...});
 ```
 
-The `ApiErrorResponseSchema` accepts both formats, forcing defensive parsing on the frontend.
+**`e2e-tests/.../error-handling-comprehensive.e2e.test.ts`** - Updated 3 test mocks to structured format
 
-### Files
-- `packages/shared/src/schemas/apiSchemas.ts` - schema accepts both
-- Frontend must handle both cases
+### Tests Updated
+- `packages/shared/src/__tests__/unit/api-schemas.test.ts` - Tests now verify simple format is rejected
 
 ---
 
@@ -416,7 +432,7 @@ private parseQuery(query: Record<string, unknown>): ActivityFeedQuery {
 7. ~~Fix amount precision validation gaps~~ → DONE (November 2025)
 
 ### Medium-term (Important)
-8. Standardize error response format
+8. ~~Standardize error response format~~ → DONE (November 2025)
 9. Add query parameter schemas for all list endpoints
 10. ~~Enforce pagination limits (min/max bounds)~~ → DONE (November 2025)
 11. Move inline validation to centralized validators

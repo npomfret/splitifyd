@@ -439,7 +439,7 @@ export async function mockApiFailure(
     page: Page,
     url: string,
     status: number,
-    error: { error: string; },
+    error: { error: { code: string; message: string; details?: unknown; }; },
     options: { delayMs?: number; } = {},
 ): Promise<void> {
     const delay = getApiDelay(options.delayMs);
@@ -736,7 +736,7 @@ export async function mockUpdateGroupPermissionsApi(
 export async function mockGroupPreviewFailure(
     page: Page,
     status: number,
-    error: { error: string; },
+    error: { error: { code: string; message: string; details?: unknown; }; },
     options: { delayMs?: number; } = {},
 ): Promise<void> {
     const delay = getApiDelay(options.delayMs);
@@ -759,7 +759,7 @@ export async function mockGroupPreviewFailure(
 export async function mockJoinGroupFailure(
     page: Page,
     status: number,
-    error: { error: string; },
+    error: { error: { code: string; message: string; details?: unknown; }; },
     options: { delayMs?: number; } = {},
 ): Promise<void> {
     const delay = getApiDelay(options.delayMs);

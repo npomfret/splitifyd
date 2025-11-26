@@ -252,8 +252,8 @@ test.describe('Registration Page Error Recovery', () => {
         // Should remain on register page
         await expect(page).toHaveURL(/\/register/);
 
-        // Error should be displayed
-        await registerPage.verifyErrorMessage('Network error occurred.');
+        // Error should be displayed (UI transforms to user-friendly message)
+        await registerPage.verifyErrorMessage('Network error. Please check your connection.');
 
         // Form should be usable for retry
         await registerPage.verifyFormEnabled();

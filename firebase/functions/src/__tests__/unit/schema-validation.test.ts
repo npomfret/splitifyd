@@ -134,20 +134,20 @@ describe('Shared schema validation', () => {
         expect(() => groupMembersSchema.parse(membersPayload)).toThrow();
     });
 
-    it('supports both structured and legacy API error formats', () => {
-        const structuredError = {
+    it('accepts valid API error format and rejects invalid formats', () => {
+        const validError = {
             error: {
                 code: 'INVALID_AMOUNT',
                 message: 'Amount must be a positive number',
             },
         };
 
-        const legacyError = {
+        const invalidError = {
             error: 'Amount must be a positive number',
             field: 'amount',
         };
 
-        expect(() => ApiErrorResponseSchema.parse(structuredError)).not.toThrow();
-        expect(() => ApiErrorResponseSchema.parse(legacyError)).not.toThrow();
+        expect(() => ApiErrorResponseSchema.parse(validError)).not.toThrow();
+        expect(() => ApiErrorResponseSchema.parse(invalidError)).toThrow();
     });
 });

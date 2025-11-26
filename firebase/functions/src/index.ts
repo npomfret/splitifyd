@@ -92,11 +92,11 @@ function setupRoutes(app: express.Application): void {
     if (!config.isEmulator) {
         app.all(/^\/test-pool.*/, (req, res) => {
             logger.warn('Test endpoint accessed in deployed environment', { path: req.path, ip: req.ip });
-            res.status(404).json({ error: 'Not found' });
+            res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Not found' } });
         });
         app.all(/^\/test\/user.*/, (req, res) => {
             logger.warn('Test endpoint accessed in production', { path: req.path, ip: req.ip });
-            res.status(404).json({ error: 'Not found' });
+            res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Not found' } });
         });
     }
 

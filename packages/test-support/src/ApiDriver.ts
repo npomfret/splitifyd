@@ -742,7 +742,8 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
                 Host: 'localhost',
                 ...(token && { Authorization: `Bearer ${token}` }),
             },
-            body,
+            // Buffer is compatible with fetch body at runtime, but TS types don't recognize it
+            body: body as unknown as BodyInit,
         });
 
         if (!response.ok) {

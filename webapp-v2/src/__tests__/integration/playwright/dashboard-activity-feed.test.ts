@@ -144,7 +144,7 @@ test.describe('Activity Feed - Error Handling', () => {
             await route.fulfill({
                 status: 500,
                 contentType: 'application/json',
-                body: JSON.stringify({ error: 'Internal Server Error' }),
+                body: JSON.stringify({ error: { code: 'INTERNAL_ERROR', message: 'Internal Server Error' } }),
             });
         });
 
@@ -170,7 +170,7 @@ test.describe('Activity Feed - Error Handling', () => {
                 await route.fulfill({
                     status: 500,
                     contentType: 'application/json',
-                    body: JSON.stringify({ error: 'Internal Server Error' }),
+                    body: JSON.stringify({ error: { code: 'INTERNAL_ERROR', message: 'Internal Server Error' } }),
                 });
             } else {
                 // Second request succeeds

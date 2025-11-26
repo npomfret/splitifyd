@@ -269,22 +269,14 @@ const HealthCheckResponseSchema = z.object({
     }),
 });
 
-// Error response schema - supports both structured and simple error formats
-export const ApiErrorResponseSchema = z.union([
-    // Structured error format (preferred)
-    z.object({
-        error: z.object({
-            code: z.string().min(1),
-            message: z.string().min(1),
-            details: z.unknown().optional(),
-        }),
+// Error response schema - structured format only
+export const ApiErrorResponseSchema = z.object({
+    error: z.object({
+        code: z.string().min(1),
+        message: z.string().min(1),
+        details: z.unknown().optional(),
     }),
-    // Simple error format (current server implementation)
-    z.object({
-        error: z.string().min(1),
-        field: z.string().optional(),
-    }),
-]);
+});
 
 // Map of endpoints to their response schemas
 const RegisterResponseSchema = z.object({
