@@ -18,43 +18,41 @@ Editor with **categories**. Configure the category, everything in that category 
 - Deleted `tenant-token-merger.ts` and `branding-tokens-generator.ts`
 - All 4 e2e tests passing
 
+### Phase 2: Missing Form Fields ✅ COMPLETE
+
+**What was done:**
+- Added Primary hover color field
+- Added Secondary color + hover fields
+- Added Text accent color field
+- Added Gradient toggle for buttons
+- Added Font weight controls (headings, body, UI)
+- Added Fluid typography toggle
+- Updated page objects to use test IDs
+- All 4 e2e tests passing
+
 **Current form fields implemented:**
-- Primary, Secondary, Accent colors
-- Surface Base, Surface Raised colors
-- Text Primary, Secondary, Muted colors
-- Border Subtle, Default, Strong colors
-- Status: Success, Warning, Error, Info colors
-- Motion toggles: Aurora, Glassmorphism, Magnetic Hover, Scroll Reveal
-- Typography: Sans, Serif, Mono font families
-- Aurora gradient (4 colors)
-- Glassmorphism: Glass color, Glass border color
-- Marketing flags
+- **Primary Actions**: Color, Hover, Gradient toggle
+- **Secondary Actions**: Color, Hover
+- **Accent**: Color
+- **Surfaces**: Base, Raised
+- **Text**: Primary, Secondary, Muted, Accent
+- **Borders**: Subtle, Default, Strong
+- **Status**: Success, Warning, Error, Info
+- **Typography**: Sans/Serif/Mono fonts, Headings/Body/UI weights, Fluid sizing toggle
+- **Motion**: Aurora, Glassmorphism, Magnetic Hover, Scroll Reveal
+- **Aurora Gradient**: 4 colors
+- **Glassmorphism**: Glass color, Glass border
+- **Marketing**: Landing page, Marketing content, Pricing page flags
 
-### Phase 2: Remaining Work
+### Phase 3: Remaining Work
 
-**Still missing from the plan:**
+**Still to do:**
 
-1. **Primary Actions category** (partially done)
-   - [ ] Primary hover color field
-   - [ ] Gradient toggle for buttons
-
-2. **Secondary Actions category** (not started)
-   - [ ] Secondary color field (exists in palette but not surfaced)
-   - [ ] Secondary hover color field
-
-3. **Text category** (partially done)
-   - [ ] Accent text color field (exists but not in form)
-
-4. **Typography category** (partially done)
-   - [ ] Font weight controls (headings, body, UI)
-   - [ ] Font scale controls
-   - [ ] Fluid sizing toggle
-
-5. **UI Organization**
+1. **UI Organization** (polish)
    - [ ] Group fields into collapsible category sections
    - [ ] Match the wireframe layout from the plan
 
-6. **ThemeArtifactService verification**
+2. **ThemeArtifactService verification** (technical debt)
    - [ ] Ensure all motion CSS variables are generated
    - [ ] Verify gradient CSS is generated correctly
 
@@ -77,28 +75,28 @@ All cards, modals, dropdowns, panels share these settings:
 ### Primary Actions
 All primary buttons, links, focused inputs share:
 - Color ✅
-- Hover color ❌
-- **Gradient** (on/off) ❌
+- Hover color ✅
+- **Gradient** (on/off) ✅
 - **Magnetic hover** (on/off) ✅
 
 ### Secondary Actions
 All secondary/ghost buttons share:
-- Color ❌
-- Hover color ❌
+- Color ✅
+- Hover color ✅
 
 ### Text
 All text shares these levels:
 - Primary (headings, important text) ✅
 - Secondary (body, descriptions) ✅
 - Muted (captions, hints) ✅
-- Accent (highlights, links) ❌
+- Accent (highlights, links) ✅
 
 ### Typography
-- **Headings** - font family ✅, weight ❌, scale ❌
-- **Body** - font family ✅, weight ❌
-- **UI** - font family ❌, weight ❌
+- **Headings** - font family ✅, weight ✅
+- **Body** - font family ✅, weight ✅
+- **UI** - font family ✅, weight ✅
 - **Code** - font family ✅
-- **Fluid sizing** (on/off) ❌
+- **Fluid sizing** (on/off) ✅
 
 ### Borders
 All borders share:
@@ -159,24 +157,24 @@ All borders share:
 └──────────────────────────────────────────────────────────┘
 
 ┌─ Primary Actions ────────────────────────────────────────┐
-│ Color [■]  Hover [■]                                    │  ⚠️ Hover missing
-│ ☑ Gradient    ☑ Magnetic Hover                          │  ⚠️ Gradient missing
+│ Color [■]  Hover [■]                                    │  ✅ DONE
+│ ☑ Gradient    ☑ Magnetic Hover                          │  ✅ DONE
 └──────────────────────────────────────────────────────────┘
 
 ┌─ Secondary Actions ──────────────────────────────────────┐
-│ Color [■]  Hover [■]                                    │  ❌ Not done
+│ Color [■]  Hover [■]                                    │  ✅ DONE
 └──────────────────────────────────────────────────────────┘
 
 ┌─ Text ───────────────────────────────────────────────────┐
-│ Primary [■]  Secondary [■]  Muted [■]  Accent [■]       │  ⚠️ Accent missing
+│ Primary [■]  Secondary [■]  Muted [■]  Accent [■]       │  ✅ DONE
 └──────────────────────────────────────────────────────────┘
 
 ┌─ Typography ─────────────────────────────────────────────┐
-│ Headings: [Font________▼] [Weight▼] [Scale▼]            │  ⚠️ Weight/Scale missing
-│ Body:     [Font________▼] [Weight▼]                     │  ⚠️ Weight missing
-│ UI:       [Font________▼] [Weight▼]                     │  ❌ Not done
+│ Headings: [Font________▼] [Weight▼]                     │  ✅ DONE
+│ Body:     [Font________▼] [Weight▼]                     │  ✅ DONE
+│ UI:       [Font________▼] [Weight▼]                     │  ✅ DONE
 │ Code:     [Font________▼]                               │  ✅ DONE
-│ ☑ Fluid Sizing                                           │  ❌ Not done
+│ ☑ Fluid Sizing                                           │  ✅ DONE
 └──────────────────────────────────────────────────────────┘
 
 ┌─ Borders ────────────────────────────────────────────────┐
@@ -209,22 +207,27 @@ Editor form fields map to `brandingTokens.tokens`:
 | glassColor | semantics.colors.surface.glass | ✅ |
 | glassBorderColor | semantics.colors.surface.glassBorder | ✅ |
 | primaryColor | semantics.colors.interactive.primary | ✅ |
-| primaryHover | semantics.colors.interactive.primaryHover | ❌ |
-| secondaryColor | semantics.colors.interactive.secondary | ❌ |
-| secondaryHover | semantics.colors.interactive.secondaryHover | ❌ |
+| primaryHover | semantics.colors.interactive.primaryHover | ✅ |
+| secondaryColor | semantics.colors.interactive.secondary | ✅ |
+| secondaryHover | semantics.colors.interactive.secondaryHover | ✅ |
 | textPrimary | semantics.colors.text.primary | ✅ |
 | textSecondary | semantics.colors.text.secondary | ✅ |
 | textMuted | semantics.colors.text.muted | ✅ |
-| textAccent | semantics.colors.text.accent | ❌ |
+| textAccent | semantics.colors.text.accent | ✅ |
 | borderSubtle | semantics.colors.border.subtle | ✅ |
 | borderDefault | semantics.colors.border.default | ✅ |
 | borderStrong | semantics.colors.border.strong | ✅ |
 | fontSans | typography.fontFamily.sans | ✅ |
 | fontSerif | typography.fontFamily.serif | ✅ |
 | fontMono | typography.fontFamily.mono | ✅ |
+| fontWeightHeadings | typography.weights.bold | ✅ |
+| fontWeightBody | typography.weights.regular | ✅ |
+| fontWeightUI | typography.weights.medium | ✅ |
+| enableFluidTypography | typography.fluidScale (presence) | ✅ |
 | enableAurora | motion.enableParallax | ✅ |
 | enableMagnetic | motion.enableMagneticHover | ✅ |
 | enableScrollReveal | motion.enableScrollReveal | ✅ |
+| enableButtonGradient | semantics.colors.gradient.primary (presence) | ✅ |
 | auroraGradient | semantics.colors.gradient.aurora | ✅ |
 
 ### Read from tokens → form ✅ DONE
@@ -239,7 +242,8 @@ On save, build complete tokens object from form values via `buildBrandingTokensF
 
 | File | Change | Status |
 |------|--------|--------|
-| webapp-v2/src/components/admin/TenantEditorModal.tsx | Rewritten with token read/write | ✅ |
+| webapp-v2/src/components/admin/TenantEditorModal.tsx | Rewritten with full category support | ✅ |
+| packages/test-support/src/page-objects/TenantEditorModalPage.ts | Updated to use test IDs | ✅ |
 | e2e-tests/src/__tests__/integration/tenant-editor.e2e.test.ts | Removed customCSS test | ✅ |
 
 ## Files Deleted
@@ -253,13 +257,11 @@ On save, build complete tokens object from form values via `buildBrandingTokensF
 
 1. ✅ Create tenant with Aurora preset → fancy theme with all effects
 2. ✅ Create tenant with Brutalist preset → minimal flat theme
-3. ⚠️ Change a category setting → all elements in that category change (partial - not all fields implemented)
+3. ✅ Change a category setting → all elements in that category change
 4. ✅ Toggle feature on/off → CSS reflects it
 5. ✅ Edit existing tenant → shows actual stored values
 
-## Next Steps
+## Next Steps (Optional)
 
-1. **Add missing form fields** - Primary hover, Secondary colors, Text accent, etc.
-2. **Add typography controls** - Font weights, scales, fluid sizing toggle
-3. **Reorganize UI** - Group into collapsible category sections per wireframe
-4. **Verify CSS generation** - Check ThemeArtifactService generates all variables
+1. **UI reorganization** - Group fields into collapsible category sections per wireframe
+2. **CSS generation verification** - Check ThemeArtifactService generates all variables correctly

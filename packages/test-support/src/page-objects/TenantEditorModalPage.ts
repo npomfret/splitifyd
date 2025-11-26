@@ -33,27 +33,28 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     protected getPrimaryColorInput(): Locator {
-        return this.page.getByLabel(/^Primary Color$/i);
+        return this.page.getByTestId('primary-color-input');
     }
 
     protected getSecondaryColorInput(): Locator {
-        return this.page.getByLabel(/^Secondary Color$/i);
+        return this.page.getByTestId('secondary-color-input');
     }
 
     protected getAccentColorInput(): Locator {
-        return this.page.getByLabel(/^Accent Color$/i);
+        return this.page.getByTestId('accent-color-input');
     }
 
     protected getSurfaceColorInput(): Locator {
-        return this.page.getByLabel(/^Surface Color$/i);
+        return this.page.getByTestId('surface-color-input');
     }
 
     protected getTextColorInput(): Locator {
-        return this.page.getByLabel(/^Text Color$/i);
+        return this.page.getByTestId('text-primary-color-input');
     }
 
     protected getCustomCssInput(): Locator {
-        return this.page.getByLabel(/^Custom CSS$/i);
+        // Custom CSS was removed from the form
+        return this.page.locator('[data-testid="custom-css-input"]');
     }
 
     protected getShowLandingPageCheckbox(): Locator {
