@@ -1,11 +1,16 @@
-import { MemberStatuses } from '@billsplit-wl/shared';
-import type { MemberStatus } from '@billsplit-wl/shared';
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
-import { DOCUMENT_CONFIG, HTTP_STATUS } from '../constants';
+import { HTTP_STATUS } from '../constants';
 import { GroupService } from '../services/GroupService';
 import { Errors } from '../utils/errors';
-import { validateCreateGroup, validateGroupId, validateUpdateDisplayName, validateUpdateGroup } from './validation';
+import {
+    validateCreateGroup,
+    validateGroupFullDetailsQuery,
+    validateGroupId,
+    validateListGroupsQuery,
+    validateUpdateDisplayName,
+    validateUpdateGroup,
+} from './validation';
 
 export class GroupHandlers {
     constructor(private readonly groupService: GroupService) {}
@@ -72,34 +77,14 @@ export class GroupHandlers {
             throw Errors.UNAUTHORIZED();
         }
 
-        // Parse pagination parameters
-        const limit = Math.min(parseInt(req.query.limit as string) || DOCUMENT_CONFIG.LIST_LIMIT, DOCUMENT_CONFIG.LIST_LIMIT);
-        const cursor = req.query.cursor as string;
-        const direction = (req.query.order as 'asc' | 'desc') ?? 'desc';
-        const statusFilterParam = typeof req.query.statusFilter === 'string' ? req.query.statusFilter : undefined;
-
-        let statusFilter: MemberStatus | MemberStatus[] | undefined;
-        if (statusFilterParam) {
-            const allowedStatuses = new Set<string>(Object.values(MemberStatuses));
-            const requestedStatuses = statusFilterParam
-                .split(',')
-                .map((status) => status.trim().toLowerCase())
-                .filter((status) => status.length > 0 && allowedStatuses.has(status));
-            const uniqueStatuses = Array.from(new Set(requestedStatuses)) as MemberStatus[];
-
-            if (uniqueStatuses.length === 1) {
-                statusFilter = uniqueStatuses[0];
-            } else if (uniqueStatuses.length > 1) {
-                statusFilter = uniqueStatuses;
-            }
-        }
+        const { limit, cursor, order, statusFilter } = validateListGroupsQuery(req.query);
 
         const response = await this.groupService.listGroups(userId, {
             limit,
             cursor,
             orderBy: {
                 field: 'updatedAt',
-                direction,
+                direction: order,
             },
             statusFilter,
         });
@@ -119,26 +104,9 @@ export class GroupHandlers {
         }
         const groupId = validateGroupId(req.params.groupId);
 
-        // Parse pagination parameters from query string with max limit enforcement
-        const expenseLimit = Math.min(parseInt(req.query.expenseLimit as string) || 8, DOCUMENT_CONFIG.LIST_LIMIT);
-        const expenseCursor = req.query.expenseCursor as string;
-        const settlementLimit = Math.min(parseInt(req.query.settlementLimit as string) || 8, DOCUMENT_CONFIG.LIST_LIMIT);
-        const settlementCursor = req.query.settlementCursor as string;
-        const includeDeletedExpenses = req.query.includeDeletedExpenses === 'true';
-        const includeDeletedSettlements = req.query.includeDeletedSettlements === 'true';
-        const commentLimit = Math.min(parseInt(req.query.commentLimit as string) || 8, DOCUMENT_CONFIG.LIST_LIMIT);
-        const commentCursor = req.query.commentCursor as string;
+        const queryParams = validateGroupFullDetailsQuery(req.query);
 
-        const result = await this.groupService.getGroupFullDetails(groupId, userId, {
-            expenseLimit,
-            expenseCursor,
-            includeDeletedExpenses,
-            settlementLimit,
-            settlementCursor,
-            includeDeletedSettlements,
-            commentLimit,
-            commentCursor,
-        });
+        const result = await this.groupService.getGroupFullDetails(groupId, userId, queryParams);
 
         res.json(result);
     };

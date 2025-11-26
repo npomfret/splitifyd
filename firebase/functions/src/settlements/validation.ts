@@ -1,6 +1,8 @@
 import {
     CreateSettlementRequest,
     CreateSettlementRequestSchema,
+    type GroupId,
+    ListSettlementsQuerySchema,
     type SettlementId,
     toGroupId,
     toISOString,
@@ -193,3 +195,35 @@ export const validateSettlementId = (value: unknown): SettlementId => {
 
     return toSettlementId(result.data);
 };
+
+// ========================================================================
+// List Query Validators
+// ========================================================================
+
+const listSettlementsQueryErrorMapper = createZodErrorMapper(
+    {
+        limit: {
+            code: 'INVALID_QUERY_PARAMS',
+            message: (issue) => issue.message,
+        },
+    },
+    {
+        defaultCode: 'INVALID_QUERY_PARAMS',
+        defaultMessage: (issue) => issue.message,
+    },
+);
+
+export interface ListSettlementsQueryResult {
+    limit: number;
+    cursor?: string;
+    includeDeleted: boolean;
+}
+
+/**
+ * Validate list settlements query parameters.
+ */
+export const validateListSettlementsQuery = createRequestValidator({
+    schema: ListSettlementsQuerySchema,
+    preValidate: (payload: unknown) => payload ?? {},
+    mapError: listSettlementsQueryErrorMapper,
+}) as (query: unknown) => ListSettlementsQueryResult;

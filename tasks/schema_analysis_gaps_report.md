@@ -18,10 +18,10 @@ While the project has a strong foundation for a schema-driven architecture, part
 |----------|-------|-------------|
 | CRITICAL | 0 | Must fix - security/reliability risks |
 | HIGH | 0 | Should fix - significant maintenance burden |
-| MEDIUM | 1 | Nice to have - consistency improvements |
+| MEDIUM | 0 | Nice to have - consistency improvements |
 | LOW | 2 | Minor - housekeeping |
 | PARTIAL | 1 | Partially resolved (item #6) |
-| RESOLVED | 11 | Recently fixed |
+| RESOLVED | 12 | Recently fixed |
 
 ---
 
@@ -353,17 +353,59 @@ Both handlers migrated to centralized validators using `createRequestValidator` 
 
 ---
 
-## 10. Query Parameter Validation Gaps [MEDIUM]
+## 10. Query Parameter Validation Gaps [RESOLVED ✅]
 
-**Query parameters not consistently validated with schemas.**
+**~~Query parameters not consistently validated with schemas.~~**
 
-| Endpoint | Has Query Schema |
-|----------|-----------------|
-| Comments list | ✅ `ListCommentsQuerySchema` |
-| Expenses list | ❌ No schema |
-| Settlements list | ❌ No schema |
-| Users list (admin) | ❌ No schema |
-| Activity feed | ❌ Manual parsing |
+### Status: RESOLVED (November 2025)
+
+All list endpoints now use Zod schemas with `createRequestValidator` pattern.
+
+### Endpoints Updated
+
+| Endpoint | Schema | Notes |
+|----------|--------|-------|
+| Comments list | ✅ `ListCommentsQuerySchema` | Already done |
+| Activity feed | ✅ `ActivityFeedQuerySchema` | Done in item #9 |
+| Groups list | ✅ `ListGroupsQuerySchema` | New - includes order + statusFilter |
+| Group full details | ✅ `GroupFullDetailsQuerySchema` | New - multiple pagination cursors |
+| Expenses list | ✅ `ListExpensesQuerySchema` | New endpoint: `GET /groups/:groupId/expenses` |
+| Settlements list | ✅ `ListSettlementsQuerySchema` | New endpoint: `GET /groups/:groupId/settlements` |
+| Users list (Auth) | ✅ `ListAuthUsersQuerySchema` | Admin endpoint - supports email/uid filter |
+| Users list (Firestore) | ✅ `ListFirestoreUsersQuerySchema` | Admin endpoint - supports email/uid/displayName filter |
+
+### Files Changed
+
+**Shared Package:**
+- `packages/shared/src/schemas/apiRequests.ts` - Added 6 new query schemas
+
+**Groups Module:**
+- `firebase/functions/src/groups/validation.ts` - Added `validateListGroupsQuery`, `validateGroupFullDetailsQuery`
+- `firebase/functions/src/groups/GroupHandlers.ts` - Updated `listGroups`, `getGroupFullDetails` to use validators
+
+**Browser Module (Admin):**
+- `firebase/functions/src/browser/validation.ts` - NEW FILE with `validateListAuthUsersQuery`, `validateListFirestoreUsersQuery`
+- `firebase/functions/src/browser/UserBrowserHandlers.ts` - Updated to use validators
+
+**Expenses Module:**
+- `firebase/functions/src/expenses/validation.ts` - Added `validateListExpensesQuery`, `validateGroupIdParam`
+- `firebase/functions/src/expenses/ExpenseHandlers.ts` - Added `listGroupExpenses` handler
+
+**Settlements Module:**
+- `firebase/functions/src/settlements/validation.ts` - Added `validateListSettlementsQuery`, `validateGroupIdParam`
+- `firebase/functions/src/settlements/SettlementHandlers.ts` - Added `listGroupSettlements` handler
+
+**Routes:**
+- `firebase/functions/src/routes/route-config.ts` - Added 2 new routes
+
+### Tests Added
+
+- `groups-validation.test.ts` - 16 tests
+- `browser-validation.test.ts` - 19 tests
+- `expenses-list-validation.test.ts` - 15 tests
+- `settlements-list-validation.test.ts` - 15 tests
+
+**Total: 65 new unit tests**
 
 ---
 
@@ -406,7 +448,7 @@ Both handlers migrated to centralized validators using `createRequestValidator` 
 
 ### Medium-term (Important)
 8. ~~Standardize error response format~~ → DONE (November 2025)
-9. Add query parameter schemas for all list endpoints
+9. ~~Add query parameter schemas for all list endpoints~~ → DONE (November 2025)
 10. ~~Enforce pagination limits (min/max bounds)~~ → DONE (November 2025)
-11. Move inline validation to centralized validators
+11. ~~Move inline validation to centralized validators~~ → DONE (November 2025 - items #9 and #10)
 

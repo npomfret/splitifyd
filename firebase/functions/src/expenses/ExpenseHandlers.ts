@@ -3,9 +3,15 @@ import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { validateUserAuth } from '../auth/utils';
 import { HTTP_STATUS } from '../constants';
+import { validateGroupIdParam } from '../groups/validation';
 import { logger } from '../logger';
 import { ExpenseService } from '../services/ExpenseService';
-import { validateCreateExpense, validateExpenseId, validateUpdateExpense } from './validation';
+import {
+    validateCreateExpense,
+    validateExpenseId,
+    validateListExpensesQuery,
+    validateUpdateExpense,
+} from './validation';
 
 export class ExpenseHandlers {
     constructor(private readonly expenseService: ExpenseService) {
@@ -71,6 +77,31 @@ export class ExpenseHandlers {
         } catch (error) {
             logger.error('Error in getExpenseFullDetails', error, {
                 expenseId,
+                userId,
+            });
+            throw error;
+        }
+    };
+
+    /**
+     * List expenses for a group with pagination
+     */
+    listGroupExpenses = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+        const userId = validateUserAuth(req);
+        const groupId = validateGroupIdParam(req.params);
+        const { limit, cursor, includeDeleted } = validateListExpensesQuery(req.query);
+
+        try {
+            const result = await this.expenseService.listGroupExpenses(groupId, userId, {
+                limit,
+                cursor,
+                includeDeleted,
+            });
+
+            res.status(HTTP_STATUS.OK).json(result);
+        } catch (error) {
+            logger.error('Failed to list group expenses', error, {
+                groupId,
                 userId,
             });
             throw error;

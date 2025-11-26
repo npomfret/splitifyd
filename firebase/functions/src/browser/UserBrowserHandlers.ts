@@ -1,5 +1,5 @@
-import { AdminUserProfile, DisplayName, Email, PolicyId, SystemUserRoles, toDisplayName, UserId, VersionHash } from '@billsplit-wl/shared';
-import { toEmail, toUserId } from '@billsplit-wl/shared';
+import { AdminUserProfile, PolicyId, SystemUserRoles, toDisplayName, toUserId, VersionHash } from '@billsplit-wl/shared';
+import { toEmail } from '@billsplit-wl/shared';
 import type { Request, Response } from 'express';
 import type { UserRecord } from 'firebase-admin/auth';
 import { FirestoreCollections } from '../constants';
@@ -7,41 +7,7 @@ import { type IDocumentSnapshot, type IFirestoreDatabase, Timestamp } from '../f
 import { logger } from '../logger';
 import type { IAuthService } from '../services/auth';
 import type { IFirestoreReader } from '../services/firestore';
-
-interface ListAuthQuery {
-    limit: number;
-    pageToken?: string;
-    email?: Email;
-    uid?: UserId;
-}
-
-interface ListFirestoreQuery {
-    limit: number;
-    cursor?: string;
-    email?: Email;
-    uid?: UserId;
-    displayName?: DisplayName;
-}
-
-const DEFAULT_AUTH_LIMIT = 50;
-const MAX_AUTH_LIMIT = 1000;
-const DEFAULT_FIRESTORE_LIMIT = 50;
-const MAX_FIRESTORE_LIMIT = 200;
-
-function parseLimit(raw: unknown, fallback: number, max: number): number {
-    if (typeof raw === 'string') {
-        const parsed = Number.parseInt(raw, 10);
-        if (!Number.isNaN(parsed) && parsed > 0) {
-            return Math.min(parsed, max);
-        }
-    }
-
-    if (typeof raw === 'number' && Number.isFinite(raw) && raw > 0) {
-        return Math.min(Math.trunc(raw), max);
-    }
-
-    return fallback;
-}
+import { validateListAuthUsersQuery, validateListFirestoreUsersQuery } from './validation';
 
 function serializeUserRecord(record: UserRecord) {
     return {
@@ -179,12 +145,7 @@ export class UserBrowserHandlers {
     }
 
     listAuthUsers = async (req: Request, res: Response): Promise<void> => {
-        const query: ListAuthQuery = {
-            limit: parseLimit(req.query.limit, DEFAULT_AUTH_LIMIT, MAX_AUTH_LIMIT),
-            pageToken: typeof req.query.pageToken === 'string' ? req.query.pageToken : undefined,
-            email: typeof req.query.email === 'string' ? toEmail(req.query.email) : undefined,
-            uid: typeof req.query.uid === 'string' ? toUserId(req.query.uid) : undefined,
-        };
+        const query = validateListAuthUsersQuery(req.query);
 
         try {
             if (query.email) {
@@ -219,13 +180,7 @@ export class UserBrowserHandlers {
     };
 
     listFirestoreUsers = async (req: Request, res: Response): Promise<void> => {
-        const query: ListFirestoreQuery = {
-            limit: parseLimit(req.query.limit, DEFAULT_FIRESTORE_LIMIT, MAX_FIRESTORE_LIMIT),
-            cursor: typeof req.query.cursor === 'string' ? req.query.cursor : undefined,
-            email: typeof req.query.email === 'string' ? toEmail(req.query.email) : undefined,
-            uid: typeof req.query.uid === 'string' ? toUserId(req.query.uid) : undefined,
-            displayName: typeof req.query.displayName === 'string' ? toDisplayName(req.query.displayName) : undefined,
-        };
+        const query = validateListFirestoreUsersQuery(req.query);
 
         try {
             if (query.uid) {

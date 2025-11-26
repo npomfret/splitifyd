@@ -462,11 +462,13 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
         updateExpense: expenseHandlers.updateExpense,
         deleteExpense: expenseHandlers.deleteExpense,
         getExpenseFullDetails: expenseHandlers.getExpenseFullDetails,
+        listGroupExpenses: expenseHandlers.listGroupExpenses,
 
         // Settlement handlers
         createSettlement: settlementHandlers.createSettlement,
         updateSettlement: settlementHandlers.updateSettlement,
         deleteSettlement: settlementHandlers.deleteSettlement,
+        listGroupSettlements: settlementHandlers.listGroupSettlements,
 
         // Comment handlers
         createComment: commentHandlers.createComment,

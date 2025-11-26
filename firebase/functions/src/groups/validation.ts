@@ -1,9 +1,13 @@
 import {
     CreateGroupRequest,
     CreateGroupRequestSchema,
+    GroupFullDetailsQuerySchema,
     GroupId,
     GroupPermissions,
+    ListGroupsQuerySchema,
     MemberRoles,
+    MemberStatuses,
+    type MemberStatus,
     PermissionLevels,
     toDisplayName,
     toGroupId,
@@ -189,6 +193,14 @@ export const validateGroupId = (id: unknown): GroupId => {
 };
 
 /**
+ * Validate group ID from route params.
+ */
+export const validateGroupIdParam = (params: unknown): GroupId => {
+    const groupId = (params as Record<string, unknown>)?.groupId;
+    return validateGroupId(groupId);
+};
+
+/**
  * Validate member ID
  */
 export const validateMemberId = (memberId: unknown): UserId => {
@@ -247,3 +259,113 @@ export const validateUpdateMemberRoleRequest = createRequestValidator({
     preValidate: (payload: unknown) => payload ?? {},
     mapError: updateMemberRoleErrorMapper,
 }) as (body: unknown) => UpdateMemberRoleRequestBody;
+
+// ========================================================================
+// List Query Validators
+// ========================================================================
+
+const listGroupsQueryErrorMapper = createZodErrorMapper(
+    {
+        limit: {
+            code: 'INVALID_QUERY_PARAMS',
+            message: (issue) => issue.message,
+        },
+        order: {
+            code: 'INVALID_QUERY_PARAMS',
+            message: () => 'Order must be "asc" or "desc"',
+        },
+    },
+    {
+        defaultCode: 'INVALID_QUERY_PARAMS',
+        defaultMessage: (issue) => issue.message,
+    },
+);
+
+export interface ListGroupsQueryResult {
+    limit: number;
+    cursor: string | undefined;
+    order: 'asc' | 'desc';
+    statusFilter?: MemberStatus | MemberStatus[];
+}
+
+/**
+ * Validate list groups query parameters.
+ * Parses statusFilter from comma-separated string to MemberStatus array.
+ */
+const baseValidateListGroupsQuery = createRequestValidator({
+    schema: ListGroupsQuerySchema,
+    preValidate: (payload: unknown) => payload ?? {},
+    mapError: listGroupsQueryErrorMapper,
+});
+
+export const validateListGroupsQuery = (query: unknown): ListGroupsQueryResult => {
+    const value = baseValidateListGroupsQuery(query);
+
+    let statusFilter: MemberStatus | MemberStatus[] | undefined;
+
+    if (value.statusFilter) {
+        const allowedStatuses = new Set<string>(Object.values(MemberStatuses));
+        const uniqueStatuses = [
+            ...new Set(
+                value.statusFilter
+                    .split(',')
+                    .map((s: string) => s.trim().toLowerCase())
+                    .filter((s: string) => s.length > 0 && allowedStatuses.has(s)),
+            ),
+        ] as MemberStatus[];
+
+        if (uniqueStatuses.length === 1) {
+            statusFilter = uniqueStatuses[0];
+        } else if (uniqueStatuses.length > 1) {
+            statusFilter = uniqueStatuses;
+        }
+    }
+
+    return {
+        limit: value.limit,
+        cursor: value.cursor,
+        order: value.order,
+        statusFilter,
+    };
+};
+
+const groupFullDetailsQueryErrorMapper = createZodErrorMapper(
+    {
+        expenseLimit: {
+            code: 'INVALID_QUERY_PARAMS',
+            message: (issue) => issue.message,
+        },
+        settlementLimit: {
+            code: 'INVALID_QUERY_PARAMS',
+            message: (issue) => issue.message,
+        },
+        commentLimit: {
+            code: 'INVALID_QUERY_PARAMS',
+            message: (issue) => issue.message,
+        },
+    },
+    {
+        defaultCode: 'INVALID_QUERY_PARAMS',
+        defaultMessage: (issue) => issue.message,
+    },
+);
+
+export interface GroupFullDetailsQueryResult {
+    expenseLimit: number;
+    expenseCursor?: string;
+    settlementLimit: number;
+    settlementCursor?: string;
+    commentLimit: number;
+    commentCursor?: string;
+    includeDeletedExpenses: boolean;
+    includeDeletedSettlements: boolean;
+}
+
+/**
+ * Validate group full details query parameters.
+ */
+export const validateGroupFullDetailsQuery = createRequestValidator({
+    schema: GroupFullDetailsQuerySchema,
+    preValidate: (payload: unknown) => payload ?? {},
+    mapError: groupFullDetailsQueryErrorMapper,
+}) as (query: unknown) => GroupFullDetailsQueryResult;

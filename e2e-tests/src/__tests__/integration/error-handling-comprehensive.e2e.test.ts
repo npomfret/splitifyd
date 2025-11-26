@@ -308,7 +308,7 @@ test.describe('Form Validation & UI Error Handling', () => {
             (page: Page) => new ExpenseFormPage(page),
         );
 
-        // Create invalid form state that passes client validation but fails server validation
+        // Fill out a completely valid form from client perspective
         await expenseFormPage.fillDescription('Test expense');
         await expenseFormPage.fillAmount('50');
 
@@ -323,8 +323,25 @@ test.describe('Form Validation & UI Error Handling', () => {
 
         await expenseFormPage.verifySaveButtonEnabled();
 
-        await expenseFormPage.typeLabelText(''); // Clear label to trigger server error
-        await expenseFormPage.submitForm(); // Use submitForm() instead of clickSaveExpenseButton() since we expect validation error
+        // Intercept the POST /expenses request and return a 400 server validation error
+        await page.route('**/api/expenses', async (route) => {
+            if (route.request().method() === 'POST') {
+                await route.fulfill({
+                    status: 400,
+                    contentType: 'application/json',
+                    body: JSON.stringify({
+                        error: {
+                            code: 'VALIDATION_ERROR',
+                            message: 'Server validation failed',
+                        },
+                    }),
+                });
+            } else {
+                await route.continue();
+            }
+        });
+
+        await expenseFormPage.submitForm();
 
         await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
         await expect(page.getByRole('heading', { name: /something went wrong/i })).toBeVisible({ timeout: 5000 });

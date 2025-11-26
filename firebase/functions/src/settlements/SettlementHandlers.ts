@@ -2,10 +2,16 @@ import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { validateUserAuth } from '../auth/utils';
 import { HTTP_STATUS } from '../constants';
+import { validateGroupIdParam } from '../groups/validation';
 import { SettlementService } from '../services/SettlementService';
 import { logger } from '../utils/contextual-logger';
 import { LoggerContext } from '../utils/logger-context';
-import { validateCreateSettlement, validateSettlementId, validateUpdateSettlement } from './validation';
+import {
+    validateCreateSettlement,
+    validateListSettlementsQuery,
+    validateSettlementId,
+    validateUpdateSettlement,
+} from './validation';
 
 export class SettlementHandlers {
     constructor(private readonly settlementService: SettlementService) {
@@ -49,5 +55,30 @@ export class SettlementHandlers {
         logger.info('settlement-soft-deleted', { id: settlementId });
 
         res.status(HTTP_STATUS.OK).json({ message: 'Settlement deleted successfully' });
+    };
+
+    /**
+     * List settlements for a group with pagination
+     */
+    listGroupSettlements = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+        const userId = validateUserAuth(req);
+        const groupId = validateGroupIdParam(req.params);
+        const { limit, cursor, includeDeleted } = validateListSettlementsQuery(req.query);
+
+        try {
+            const result = await this.settlementService.listSettlements(groupId, userId, {
+                limit,
+                cursor,
+                includeDeleted,
+            });
+
+            res.status(HTTP_STATUS.OK).json(result);
+        } catch (error) {
+            logger.error('Failed to list group settlements', error as Error, {
+                groupId,
+                userId,
+            });
+            throw error;
+        }
     };
 }

@@ -260,6 +260,13 @@ const routeDefinitions: RouteDefinition[] = [
         category: 'resource',
         middleware: ['authenticate'],
     },
+    {
+        method: 'GET',
+        path: `/${FirestoreCollections.GROUPS}/:groupId/${FirestoreCollections.EXPENSES}`,
+        handlerName: 'listGroupExpenses',
+        category: 'resource',
+        middleware: ['authenticate'],
+    },
 
     // === Groups ===
     {
@@ -415,6 +422,13 @@ const routeDefinitions: RouteDefinition[] = [
         method: 'DELETE',
         path: `/${FirestoreCollections.SETTLEMENTS}/:settlementId`,
         handlerName: 'deleteSettlement',
+        category: 'resource',
+        middleware: ['authenticate'],
+    },
+    {
+        method: 'GET',
+        path: `/${FirestoreCollections.GROUPS}/:groupId/${FirestoreCollections.SETTLEMENTS}`,
+        handlerName: 'listGroupSettlements',
         category: 'resource',
         middleware: ['authenticate'],
     },

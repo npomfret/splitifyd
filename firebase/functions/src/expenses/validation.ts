@@ -1,4 +1,16 @@
-import { CreateExpenseRequest, CreateExpenseRequestSchema, ExpenseId, SplitTypes, toExpenseId, toGroupId, toISOString, UpdateExpenseRequest, UpdateExpenseRequestSchema } from '@billsplit-wl/shared';
+import {
+    CreateExpenseRequest,
+    CreateExpenseRequestSchema,
+    ExpenseId,
+    GroupId,
+    ListExpensesQuerySchema,
+    SplitTypes,
+    toExpenseId,
+    toGroupId,
+    toISOString,
+    UpdateExpenseRequest,
+    UpdateExpenseRequestSchema,
+} from '@billsplit-wl/shared';
 import { toUserId } from '@billsplit-wl/shared';
 import { z } from 'zod';
 import { HTTP_STATUS } from '../constants';
@@ -317,3 +329,35 @@ export const validateUpdateExpense = (body: unknown): UpdateExpenseRequest => {
 
     return update;
 };
+
+// ========================================================================
+// List Query Validators
+// ========================================================================
+
+const listExpensesQueryErrorMapper = createZodErrorMapper(
+    {
+        limit: {
+            code: 'INVALID_QUERY_PARAMS',
+            message: (issue) => issue.message,
+        },
+    },
+    {
+        defaultCode: 'INVALID_QUERY_PARAMS',
+        defaultMessage: (issue) => issue.message,
+    },
+);
+
+export interface ListExpensesQueryResult {
+    limit: number;
+    cursor?: string;
+    includeDeleted: boolean;
+}
+
+/**
+ * Validate list expenses query parameters.
+ */
+export const validateListExpensesQuery = createRequestValidator({
+    schema: ListExpensesQuerySchema,
+    preValidate: (payload: unknown) => payload ?? {},
+    mapError: listExpensesQueryErrorMapper,
+}) as (query: unknown) => ListExpensesQueryResult;

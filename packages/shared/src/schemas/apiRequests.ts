@@ -658,3 +658,163 @@ export const UpdateDisplayNameRequestSchema = z.object({
         .trim()
         .transform(toDisplayName),
 });
+
+// ---------------------------------------------------------------------------
+// List query schemas
+// ---------------------------------------------------------------------------
+
+/**
+ * Query schema for listing groups with pagination and filtering.
+ * statusFilter is a comma-separated string of member statuses (e.g., "active,invited").
+ */
+export const ListGroupsQuerySchema = z
+    .object({
+        limit: z
+            .preprocess(
+                toNumber,
+                z.number().int().min(1).max(100),
+            )
+            .optional()
+            .default(100),
+        cursor: z
+            .preprocess(
+                (value) => (typeof value === 'string' ? value.trim() : value),
+                z.string().min(1),
+            )
+            .optional(),
+        order: z.enum(['asc', 'desc']).optional().default('desc'),
+        statusFilter: z.string().optional(),
+    })
+    .passthrough()
+    .transform((value) => ({
+        limit: value.limit,
+        cursor: value.cursor,
+        order: value.order,
+        statusFilter: value.statusFilter,
+    }));
+
+/**
+ * Helper to create a pagination limit schema with number preprocessing.
+ */
+const createLimitSchema = (defaultValue: number, maxValue: number) =>
+    z
+        .preprocess(
+            toNumber,
+            z
+                .number()
+                .int('Limit must be an integer')
+                .min(1, 'Limit must be at least 1')
+                .max(maxValue, `Limit cannot exceed ${maxValue}`),
+        )
+        .optional()
+        .default(defaultValue);
+
+/**
+ * Query schema for group full details endpoint with multiple pagination cursors.
+ */
+export const GroupFullDetailsQuerySchema = z.object({
+    expenseLimit: createLimitSchema(8, 100),
+    expenseCursor: z.string().optional(),
+    settlementLimit: createLimitSchema(8, 100),
+    settlementCursor: z.string().optional(),
+    commentLimit: createLimitSchema(8, 100),
+    commentCursor: z.string().optional(),
+    includeDeletedExpenses: z.preprocess((v) => v === 'true', z.boolean()).optional().default(false),
+    includeDeletedSettlements: z.preprocess((v) => v === 'true', z.boolean()).optional().default(false),
+});
+
+/**
+ * Query schema for listing expenses in a group.
+ */
+export const ListExpensesQuerySchema = z
+    .object({
+        limit: z
+            .preprocess(
+                toNumber,
+                z.number().int().min(1).max(100),
+            )
+            .optional()
+            .default(20),
+        cursor: z
+            .preprocess(
+                (value) => (typeof value === 'string' ? value.trim() : value),
+                z.string().min(1),
+            )
+            .optional(),
+        includeDeleted: z.preprocess((v) => v === 'true', z.boolean()).optional().default(false),
+    })
+    .passthrough()
+    .transform((value) => ({
+        limit: value.limit,
+        cursor: value.cursor,
+        includeDeleted: value.includeDeleted,
+    }));
+
+/**
+ * Query schema for listing settlements in a group.
+ */
+export const ListSettlementsQuerySchema = z
+    .object({
+        limit: z
+            .preprocess(
+                toNumber,
+                z.number().int().min(1).max(100),
+            )
+            .optional()
+            .default(20),
+        cursor: z
+            .preprocess(
+                (value) => (typeof value === 'string' ? value.trim() : value),
+                z.string().min(1),
+            )
+            .optional(),
+        includeDeleted: z.preprocess((v) => v === 'true', z.boolean()).optional().default(false),
+    })
+    .passthrough()
+    .transform((value) => ({
+        limit: value.limit,
+        cursor: value.cursor,
+        includeDeleted: value.includeDeleted,
+    }));
+
+/**
+ * Query schema for listing Firebase Auth users (admin endpoint).
+ * Uses pageToken for Firebase Auth pagination (not cursor-based).
+ */
+export const ListAuthUsersQuerySchema = z.object({
+    limit: createLimitSchema(50, 1000),
+    pageToken: z.string().optional(),
+    email: EmailSchema.optional(),
+    uid: z.string().min(1, 'UID cannot be empty').optional(),
+});
+
+/**
+ * Query schema for listing Firestore users (admin endpoint).
+ */
+export const ListFirestoreUsersQuerySchema = z
+    .object({
+        limit: z
+            .preprocess(
+                toNumber,
+                z.number().int().min(1).max(200),
+            )
+            .optional()
+            .default(50),
+        cursor: z
+            .preprocess(
+                (value) => (typeof value === 'string' ? value.trim() : value),
+                z.string().min(1),
+            )
+            .optional(),
+        email: EmailSchema.optional(),
+        uid: z.string().min(1, 'UID cannot be empty').optional(),
+        displayName: z.string().optional(),
+    })
+    .passthrough()
+    .transform((value) => ({
+        limit: value.limit,
+        cursor: value.cursor,
+        email: value.email,
+        uid: value.uid,
+        displayName: value.displayName,
+    }));
