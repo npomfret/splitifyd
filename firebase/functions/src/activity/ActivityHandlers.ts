@@ -5,11 +5,7 @@ import { validateUserAuth } from '../auth/utils';
 import { HTTP_STATUS } from '../constants';
 import { logger } from '../logger';
 import { ActivityFeedService } from '../services/ActivityFeedService';
-
-interface ActivityFeedQuery {
-    limit?: number;
-    cursor?: string;
-}
+import { validateActivityFeedQuery } from './validation';
 
 interface ActivityFeedResponse {
     items: ActivityFeedItem[];
@@ -22,7 +18,7 @@ export class ActivityFeedHandlers {
 
     getActivityFeed = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
         const userId = validateUserAuth(req);
-        const { limit, cursor } = this.parseQuery(req.query);
+        const { limit, cursor } = validateActivityFeedQuery(req.query);
 
         try {
             const result = await this.activityFeedService.getActivityFeedForUser(userId, { limit, cursor });
@@ -41,21 +37,4 @@ export class ActivityFeedHandlers {
             throw error;
         }
     };
-
-    private parseQuery(query: Record<string, unknown>): ActivityFeedQuery {
-        const result: ActivityFeedQuery = {};
-
-        if (typeof query.limit === 'string') {
-            const parsedLimit = parseInt(query.limit, 10);
-            if (!Number.isNaN(parsedLimit) && parsedLimit > 0) {
-                result.limit = parsedLimit;
-            }
-        }
-
-        if (typeof query.cursor === 'string' && query.cursor.trim().length > 0) {
-            result.cursor = query.cursor;
-        }
-
-        return result;
-    }
 }

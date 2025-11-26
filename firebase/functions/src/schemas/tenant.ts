@@ -81,6 +81,13 @@ export const PublishTenantThemeRequestSchema = z.object({
     tenantId: z.string().min(1).transform(toTenantId),
 });
 
+export const UploadTenantAssetParamsSchema = z.object({
+    tenantId: z.string().min(1).transform(toTenantId),
+    assetType: z.enum(['logo', 'favicon']),
+});
+
+export type UploadTenantAssetParams = z.infer<typeof UploadTenantAssetParamsSchema>;
+
 /**
  * Schema for updating tenant branding (partial update)
  * Used for PUT /settings/tenant/branding endpoint

@@ -18,10 +18,10 @@ While the project has a strong foundation for a schema-driven architecture, part
 |----------|-------|-------------|
 | CRITICAL | 0 | Must fix - security/reliability risks |
 | HIGH | 0 | Should fix - significant maintenance burden |
-| MEDIUM | 2 | Nice to have - consistency improvements |
+| MEDIUM | 1 | Nice to have - consistency improvements |
 | LOW | 2 | Minor - housekeeping |
 | PARTIAL | 1 | Partially resolved (item #6) |
-| RESOLVED | 10 | Recently fixed |
+| RESOLVED | 11 | Recently fixed |
 
 ---
 
@@ -329,29 +329,27 @@ throw new ApiError(message, code, details, {...});
 
 ---
 
-## 9. Inline Validation in Handlers [MEDIUM]
+## 9. Inline Validation in Handlers [RESOLVED ✅]
 
-**Some handlers have inline validation instead of using centralized validators.**
+**~~Some handlers have inline validation instead of using centralized validators.~~**
 
-### Examples
+### Status: RESOLVED (November 2025)
 
-**Activity Feed** (`ActivityHandlers.ts:45-60`):
-```typescript
-private parseQuery(query: Record<string, unknown>): ActivityFeedQuery {
-    // Manual validation instead of using a schema
-    if (typeof query.limit === 'string') {
-        const parsedLimit = parseInt(query.limit, 10);
-        if (!Number.isNaN(parsedLimit)) result.limit = parsedLimit;
-    }
-}
-```
+Both handlers migrated to centralized validators using `createRequestValidator` pattern.
 
-**Tenant Admin** (`TenantAdminHandlers.ts:54-72`):
-- Inline file validation for images using separate utility functions
+### Changes Made
 
-### Impact
-- Inconsistent error handling (some paths fail silently with defaults)
-- Validation logic scattered across codebase
+**ActivityHandlers.ts:**
+- Added `ActivityFeedQuerySchema` to shared package
+- Created `validateActivityFeedQuery` using `createRequestValidator`
+- Removed manual `parseQuery` method
+- Invalid `?limit=abc` now throws `INVALID_QUERY_PARAMS` (previously silent default)
+
+**TenantAdminHandlers.ts:**
+- Added `UploadTenantAssetParamsSchema` for params validation
+- Created `validateUploadTenantAssetParams` using `createRequestValidator`
+- Removed inline if-statement for assetType validation
+- Image validation utilities (`validateLogoImage`/`validateFaviconImage`) unchanged (already well-encapsulated)
 
 ---
 

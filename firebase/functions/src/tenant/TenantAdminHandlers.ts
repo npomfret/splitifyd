@@ -1,12 +1,13 @@
 import type { RequestHandler } from 'express';
 import type { AuthenticatedRequest } from '../auth/middleware';
-import { FirestoreCollections, HTTP_STATUS } from '../constants';
+import { HTTP_STATUS } from '../constants';
 import { AdminUpsertTenantRequestSchema, PublishTenantThemeRequestSchema } from '../schemas/tenant';
 import type { IFirestoreReader } from '../services/firestore/IFirestoreReader';
 import { TenantAdminService } from '../services/tenant/TenantAdminService';
 import type { TenantAssetStorage } from '../services/storage/TenantAssetStorage';
 import { ApiError } from '../utils/errors';
 import { validateFaviconImage, validateLogoImage } from '../utils/validation/imageValidation';
+import { validateUploadTenantAssetParams } from './validation';
 
 export class TenantAdminHandlers {
     constructor(
@@ -49,12 +50,8 @@ export class TenantAdminHandlers {
     };
 
     uploadTenantImage: RequestHandler = async (req, res) => {
-        const { tenantId, assetType } = req.params;
-
-        // Validate asset type
-        if (assetType !== 'logo' && assetType !== 'favicon') {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_ASSET_TYPE', 'Asset type must be "logo" or "favicon"');
-        }
+        // Validate params using schema
+        const { tenantId, assetType } = validateUploadTenantAssetParams(req.params);
 
         // Validate request has file data
         if (!req.body || req.body.length === 0) {

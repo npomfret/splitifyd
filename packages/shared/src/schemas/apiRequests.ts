@@ -508,6 +508,16 @@ export const ListCommentsQuerySchema = createPaginationSchema({
 });
 
 // ---------------------------------------------------------------------------
+// Activity feed requests
+// ---------------------------------------------------------------------------
+
+export const ActivityFeedQuerySchema = createPaginationSchema({
+    defaultLimit: 10,
+    minLimit: 1,
+    maxLimit: 100,
+});
+
+// ---------------------------------------------------------------------------
 // Policy requests
 // ---------------------------------------------------------------------------
 
