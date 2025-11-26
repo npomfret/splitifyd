@@ -44,15 +44,33 @@ Editor with **categories**. Configure the category, everything in that category 
 - **Glassmorphism**: Glass color, Glass border
 - **Marketing**: Landing page, Marketing content, Pricing page flags
 
-### Phase 3: Remaining Work
+### Phase 3: UI Organization ✅ COMPLETE
+
+**What was done:**
+- Rewrote TenantEditorModal with collapsible `Section` component
+- Created reusable `ColorInput` and `Toggle` helper components
+- Organized into 12 collapsible sections matching the wireframe:
+  - Basic Info (always open)
+  - Theme Preset (create mode, always open)
+  - Logo & Assets
+  - Actions (Primary/Secondary/Accent colors)
+  - Surfaces (Base, Raised)
+  - Text (Primary, Secondary, Muted, Accent)
+  - Borders (Subtle, Default, Strong)
+  - Status Colors (Success, Warning, Error, Info)
+  - Motion & Effects (Aurora, Glassmorphism, Magnetic Hover, Scroll Reveal)
+  - Aurora Gradient (conditional, 4 colors)
+  - Glassmorphism Settings (conditional, RGBA colors)
+  - Typography (Fonts, Weights, Fluid toggle)
+  - Marketing (Landing page, Marketing content, Pricing page)
+- Updated page objects to expand sections before interacting with fields
+- All 4 e2e tests passing
+
+### Phase 4: Remaining Work (Optional)
 
 **Still to do:**
 
-1. **UI Organization** (polish)
-   - [ ] Group fields into collapsible category sections
-   - [ ] Match the wireframe layout from the plan
-
-2. **ThemeArtifactService verification** (technical debt)
+1. **ThemeArtifactService verification** (technical debt)
    - [ ] Ensure all motion CSS variables are generated
    - [ ] Verify gradient CSS is generated correctly
 

@@ -7,6 +7,57 @@ export class TenantEditorModalPage extends BasePage {
         super(page);
     }
 
+    // ✅ Section expansion helpers
+    protected getSectionButton(testId: string): Locator {
+        return this.page.getByTestId(testId);
+    }
+
+    protected async expandSectionIfNeeded(testId: string): Promise<void> {
+        const button = this.getSectionButton(testId);
+        const isExpanded = await button.getAttribute('data-expanded');
+        if (isExpanded !== 'true') {
+            await button.click();
+            // Wait for content to be visible
+            await this.page.waitForTimeout(100);
+        }
+    }
+
+    async expandActionsSection(): Promise<void> {
+        await this.expandSectionIfNeeded('section-actions');
+    }
+
+    async expandSurfacesSection(): Promise<void> {
+        await this.expandSectionIfNeeded('section-surfaces');
+    }
+
+    async expandTextSection(): Promise<void> {
+        await this.expandSectionIfNeeded('section-text');
+    }
+
+    async expandMotionEffectsSection(): Promise<void> {
+        await this.expandSectionIfNeeded('section-motion-effects');
+    }
+
+    async expandTypographySection(): Promise<void> {
+        await this.expandSectionIfNeeded('section-typography');
+    }
+
+    async expandMarketingSection(): Promise<void> {
+        await this.expandSectionIfNeeded('section-marketing');
+    }
+
+    async expandLogoAssetsSection(): Promise<void> {
+        await this.expandSectionIfNeeded('section-logo-assets');
+    }
+
+    async expandBordersSection(): Promise<void> {
+        await this.expandSectionIfNeeded('section-borders');
+    }
+
+    async expandStatusColorsSection(): Promise<void> {
+        await this.expandSectionIfNeeded('section-status-colors');
+    }
+
     // ✅ Protected locators - internal use only (semantic selectors preferred over test IDs)
     protected getModal(): Locator {
         return this.page.getByRole('dialog');
@@ -71,7 +122,7 @@ export class TenantEditorModalPage extends BasePage {
 
     // Motion & Effects
     protected getEnableAuroraAnimationCheckbox(): Locator {
-        return this.page.getByLabel(/aurora background animation/i);
+        return this.page.getByLabel(/aurora background/i);
     }
 
     protected getEnableGlassmorphismCheckbox(): Locator {
@@ -88,45 +139,45 @@ export class TenantEditorModalPage extends BasePage {
 
     // Typography Controls
     protected getFontFamilySansInput(): Locator {
-        return this.page.locator('#font-family-sans-input');
+        return this.page.getByTestId('font-family-sans-input');
     }
 
     protected getFontFamilySerifInput(): Locator {
-        return this.page.locator('#font-family-serif-input');
+        return this.page.getByTestId('font-family-serif-input');
     }
 
     protected getFontFamilyMonoInput(): Locator {
-        return this.page.locator('#font-family-mono-input');
+        return this.page.getByTestId('font-family-mono-input');
     }
 
-    // Aurora Gradient (4 colors) - using label-based selectors now that labels have proper 'for' attributes
+    // Aurora Gradient (4 colors)
     protected getAuroraGradientSection(): Locator {
         return this.page.getByRole('heading', { name: /aurora gradient/i }).locator('..');
     }
 
     protected getAuroraGradientColor1Input(): Locator {
-        return this.page.locator('#aurora-gradient-color-1-input');
+        return this.page.getByTestId('aurora-gradient-color-1-input');
     }
 
     protected getAuroraGradientColor2Input(): Locator {
-        return this.page.locator('#aurora-gradient-color-2-input');
+        return this.page.getByTestId('aurora-gradient-color-2-input');
     }
 
     protected getAuroraGradientColor3Input(): Locator {
-        return this.page.locator('#aurora-gradient-color-3-input');
+        return this.page.getByTestId('aurora-gradient-color-3-input');
     }
 
     protected getAuroraGradientColor4Input(): Locator {
-        return this.page.locator('#aurora-gradient-color-4-input');
+        return this.page.getByTestId('aurora-gradient-color-4-input');
     }
 
     // Glassmorphism Colors
     protected getGlassColorInput(): Locator {
-        return this.page.locator('#glass-color-input');
+        return this.page.getByTestId('glass-color-input');
     }
 
     protected getGlassBorderColorInput(): Locator {
-        return this.page.locator('#glass-border-color-input');
+        return this.page.getByTestId('glass-border-color-input');
     }
 
     protected getNewDomainInput(): Locator {
@@ -221,22 +272,27 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     async setPrimaryColor(color: string): Promise<void> {
+        await this.expandActionsSection();
         await this.getPrimaryColorInput().fill(color);
     }
 
     async setSecondaryColor(color: string): Promise<void> {
+        await this.expandActionsSection();
         await this.getSecondaryColorInput().fill(color);
     }
 
     async setAccentColor(color: string): Promise<void> {
+        await this.expandActionsSection();
         await this.getAccentColorInput().fill(color);
     }
 
     async setSurfaceColor(color: string): Promise<void> {
+        await this.expandSurfacesSection();
         await this.getSurfaceColorInput().fill(color);
     }
 
     async setTextColor(color: string): Promise<void> {
+        await this.expandTextSection();
         await this.getTextColorInput().fill(color);
     }
 
@@ -248,6 +304,7 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     async toggleShowLandingPage(checked: boolean): Promise<void> {
+        await this.expandMarketingSection();
         const checkbox = this.getShowLandingPageCheckbox();
         const isCurrentlyChecked = await checkbox.isChecked();
         if (isCurrentlyChecked !== checked) {
@@ -256,6 +313,7 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     async toggleShowMarketingContent(checked: boolean): Promise<void> {
+        await this.expandMarketingSection();
         const checkbox = this.getShowMarketingContentCheckbox();
         const isCurrentlyChecked = await checkbox.isChecked();
         if (isCurrentlyChecked !== checked) {
@@ -264,6 +322,7 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     async toggleShowPricingPage(checked: boolean): Promise<void> {
+        await this.expandMarketingSection();
         const checkbox = this.getShowPricingPageCheckbox();
         const isCurrentlyChecked = await checkbox.isChecked();
         if (isCurrentlyChecked !== checked) {
@@ -272,6 +331,7 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     async toggleAuroraAnimation(checked: boolean): Promise<void> {
+        await this.expandMotionEffectsSection();
         const checkbox = this.getEnableAuroraAnimationCheckbox();
         const isCurrentlyChecked = await checkbox.isChecked();
         if (isCurrentlyChecked !== checked) {
@@ -280,6 +340,7 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     async toggleGlassmorphism(checked: boolean): Promise<void> {
+        await this.expandMotionEffectsSection();
         const checkbox = this.getEnableGlassmorphismCheckbox();
         const isCurrentlyChecked = await checkbox.isChecked();
         if (isCurrentlyChecked !== checked) {
@@ -288,6 +349,7 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     async toggleMagneticHover(checked: boolean): Promise<void> {
+        await this.expandMotionEffectsSection();
         const checkbox = this.getEnableMagneticHoverCheckbox();
         const isCurrentlyChecked = await checkbox.isChecked();
         if (isCurrentlyChecked !== checked) {
@@ -296,6 +358,7 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     async toggleScrollReveal(checked: boolean): Promise<void> {
+        await this.expandMotionEffectsSection();
         const checkbox = this.getEnableScrollRevealCheckbox();
         const isCurrentlyChecked = await checkbox.isChecked();
         if (isCurrentlyChecked !== checked) {
@@ -304,6 +367,7 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     async setFontFamilySans(value: string): Promise<void> {
+        await this.expandTypographySection();
         const input = this.getFontFamilySansInput();
         await input.click();
         await input.clear();
@@ -311,6 +375,7 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     async setFontFamilySerif(value: string): Promise<void> {
+        await this.expandTypographySection();
         const input = this.getFontFamilySerifInput();
         await input.click();
         await input.clear();
@@ -318,6 +383,7 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     async setFontFamilyMono(value: string): Promise<void> {
+        await this.expandTypographySection();
         const input = this.getFontFamilyMonoInput();
         await input.click();
         await input.clear();
@@ -465,20 +531,25 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     async verifyAllColorFieldsVisible(): Promise<void> {
+        await this.expandActionsSection();
         await expect(this.getPrimaryColorInput()).toBeVisible();
         await expect(this.getSecondaryColorInput()).toBeVisible();
         await expect(this.getAccentColorInput()).toBeVisible();
+        await this.expandSurfacesSection();
         await expect(this.getSurfaceColorInput()).toBeVisible();
+        await this.expandTextSection();
         await expect(this.getTextColorInput()).toBeVisible();
     }
 
     async verifyTypographyFieldsVisible(): Promise<void> {
+        await this.expandTypographySection();
         await expect(this.getFontFamilySansInput()).toBeVisible();
         await expect(this.getFontFamilySerifInput()).toBeVisible();
         await expect(this.getFontFamilyMonoInput()).toBeVisible();
     }
 
     async verifyMotionEffectsCheckboxesVisible(): Promise<void> {
+        await this.expandMotionEffectsSection();
         await expect(this.getEnableAuroraAnimationCheckbox()).toBeVisible();
         await expect(this.getEnableGlassmorphismCheckbox()).toBeVisible();
         await expect(this.getEnableMagneticHoverCheckbox()).toBeVisible();
@@ -502,6 +573,7 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     async verifyShowLandingPageChecked(expected: boolean): Promise<void> {
+        await this.expandMarketingSection();
         const checkbox = this.getShowLandingPageCheckbox();
         if (expected) {
             await expect(checkbox).toBeChecked();
@@ -511,18 +583,22 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     async verifyFontFamilySansValue(expectedValue: string): Promise<void> {
+        await this.expandTypographySection();
         await expect(this.getFontFamilySansInput()).toHaveValue(expectedValue);
     }
 
     async verifyFontFamilySerifValue(expectedValue: string): Promise<void> {
+        await this.expandTypographySection();
         await expect(this.getFontFamilySerifInput()).toHaveValue(expectedValue);
     }
 
     async verifyFontFamilyMonoValue(expectedValue: string): Promise<void> {
+        await this.expandTypographySection();
         await expect(this.getFontFamilyMonoInput()).toHaveValue(expectedValue);
     }
 
     async verifyAuroraAnimationChecked(expected: boolean): Promise<void> {
+        await this.expandMotionEffectsSection();
         const checkbox = this.getEnableAuroraAnimationCheckbox();
         if (expected) {
             await expect(checkbox).toBeChecked();
@@ -532,6 +608,7 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     async verifyGlassmorphismChecked(expected: boolean): Promise<void> {
+        await this.expandMotionEffectsSection();
         const checkbox = this.getEnableGlassmorphismCheckbox();
         if (expected) {
             await expect(checkbox).toBeChecked();
@@ -577,22 +654,27 @@ export class TenantEditorModalPage extends BasePage {
     // To verify logo/favicon, check the image preview or the currentImageUrl prop
 
     async verifyPrimaryColorValue(expectedValue: string): Promise<void> {
+        await this.expandActionsSection();
         await expect(this.getPrimaryColorInput()).toHaveValue(expectedValue);
     }
 
     async verifySecondaryColorValue(expectedValue: string): Promise<void> {
+        await this.expandActionsSection();
         await expect(this.getSecondaryColorInput()).toHaveValue(expectedValue);
     }
 
     async verifyAccentColorValue(expectedValue: string): Promise<void> {
+        await this.expandActionsSection();
         await expect(this.getAccentColorInput()).toHaveValue(expectedValue);
     }
 
     async verifySurfaceColorValue(expectedValue: string): Promise<void> {
+        await this.expandSurfacesSection();
         await expect(this.getSurfaceColorInput()).toHaveValue(expectedValue);
     }
 
     async verifyTextColorValue(expectedValue: string): Promise<void> {
+        await this.expandTextSection();
         await expect(this.getTextColorInput()).toHaveValue(expectedValue);
     }
 
@@ -601,6 +683,7 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     async verifyShowMarketingContentChecked(expected: boolean): Promise<void> {
+        await this.expandMarketingSection();
         const checkbox = this.getShowMarketingContentCheckbox();
         if (expected) {
             await expect(checkbox).toBeChecked();
@@ -610,6 +693,7 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     async verifyShowPricingPageChecked(expected: boolean): Promise<void> {
+        await this.expandMarketingSection();
         const checkbox = this.getShowPricingPageCheckbox();
         if (expected) {
             await expect(checkbox).toBeChecked();
@@ -619,6 +703,7 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     async verifyMagneticHoverChecked(expected: boolean): Promise<void> {
+        await this.expandMotionEffectsSection();
         const checkbox = this.getEnableMagneticHoverCheckbox();
         if (expected) {
             await expect(checkbox).toBeChecked();
@@ -628,6 +713,7 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     async verifyScrollRevealChecked(expected: boolean): Promise<void> {
+        await this.expandMotionEffectsSection();
         const checkbox = this.getEnableScrollRevealCheckbox();
         if (expected) {
             await expect(checkbox).toBeChecked();
