@@ -1,628 +1,237 @@
-# Tenant Theming - Fix Plan
+# Tenant Theming Architecture - Complete Redesign
 
-## Goal
+## Critical Constraint
 
-Allow tenant admins to fully customize their app's look and feel through a category-based editor. Each category (e.g., "Primary Actions", "Text", "Surfaces") controls multiple related UI elements, ensuring visual consistency while giving meaningful control. No hardcoded values - everything the user sees can be configured.
+**NO hardcoded design values in code.** Ever.
 
-**Critical Constraint**: Any number of tenants with unique domains can be added. Therefore, NO tenant-specific code is allowed anywhere in the codebase. All theming must be purely data-driven from the tenant's stored `brandingTokens`.
+This means:
+- NO colors in TypeScript/TSX files
+- NO font names in TypeScript/TSX files
+- NO sizes, spacing, radii in TypeScript/TSX files
+- NO "presets" or "defaults" in code
 
-**Implementation Rule**: If any hardcoded tenant-specific values are discovered in CSS or TSX files during implementation, they MUST be fixed immediately and documented in this file.
-
-**Acceptable Limitation**: If NO tenants exist (not even a default tenant), the app will not be usable. This is acceptable - the system requires at least one tenant to function.
-
-## Problem
-
-The editor reads from `tenant.branding` but CSS is generated from `brandingTokens.tokens`. Editor shows wrong values.
-
-## Solution
-
-Editor with **categories**. Configure the category, everything in that category gets the same treatment.
-
-**Key Design Decision**: Users configure CATEGORIES, not individual tokens. This gives users meaningful control over the UI while preventing them from making inconsistent or broken themes. For example:
-- All forms follow the same UI patterns
-- All headings/sub-headings are consistent
-- All containers look the same
-- Primary buttons all behave identically
-
-This is the "middle ground" between no customization and exposing 144+ individual token fields.
+**ALL design values must come from:**
+- Firestore (tenant's stored `brandingTokens`)
+- Set exclusively through the TenantEditorModal UI
 
 ---
 
-## Progress
+## Why This Matters
 
-### Phase 1: Core Architecture Fix ✅ COMPLETE
+Any number of tenants with unique domains can be added. Each tenant controls their own look and feel through the admin UI. If design values are hardcoded anywhere in the codebase, tenants cannot customize them.
 
-**What was done:**
-- Rewrote TenantEditorModal to read/write directly to `brandingTokens.tokens`
-- Added preset selection (Aurora/Brutalist/Blank) for create mode
-- Deleted `tenant-token-merger.ts` and `branding-tokens-generator.ts`
-- All 4 e2e tests passing
-
-### Phase 2: Missing Form Fields ✅ COMPLETE
-
-**What was done:**
-- Added Primary hover color field
-- Added Secondary color + hover fields
-- Added Text accent color field
-- Added Gradient toggle for buttons
-- Added Font weight controls (headings, body, UI)
-- Added Fluid typography toggle
-- Updated page objects to use test IDs
-- All 4 e2e tests passing
-
-### Phase 3: UI Organization ✅ COMPLETE
-
-**What was done:**
-- Rewrote TenantEditorModal with collapsible `Section` component
-- Created reusable `ColorInput` and `Toggle` helper components
-- Organized into 12 collapsible sections matching the wireframe
-- Updated page objects to expand sections before interacting with fields
-- All 4 e2e tests passing
-
-### Phase 4: Architecture Clarification ✅ COMPLETE
-
-**Decision Made:**
-
-The user clarified that the goal is NOT to expose every individual token (144+ fields). Instead, the goal is **category-based configuration** where:
-
-1. Users configure a category (e.g., "Primary Actions")
-2. All UI elements in that category inherit the same settings
-3. This prevents users from "ruining the UI" with inconsistent settings
-
-**What was attempted (WRONG):**
-- I attempted to rewrite TenantEditorModal with 144+ individual fields
-- This would have exposed every single token to the user
-- This was reverted because it was the wrong approach
-
-**What is correct (CURRENT):**
-- The existing category-based TenantEditorModal is correct
-- It exposes ~40 category-level settings that map to multiple tokens
-- Presets provide sensible defaults for all unmapped tokens
-- All 4 e2e tests pass
-
-### Phase 5: Bug Fixes & Verification ✅ COMPLETE (November 2025)
-
-**What was done:**
-1. **Verified motion CSS variables work correctly** - Added unit test to `ThemeArtifactService.test.ts`
-2. **Fixed radii variable naming mismatch** - Updated `tailwind.config.js` (`--radius-*` → `--radii-*`)
-3. **Fixed modal backdrop CSS variables** - Updated 3 modal components to use `--semantics-colors-surface-overlay`
-4. **All 4 e2e tests passing**
-
-See "Known Issues" section below for detailed resolution notes.
+**If NO tenants exist, the app will not be usable.** This is acceptable - the system requires at least one tenant to function.
 
 ---
 
-## Architecture
+## What Code Should Contain
 
-### How Categories Work
+1. **Schema definitions** - What fields exist, their types (BrandingTokensSchema)
+2. **Validation rules** - Zod schemas for validation
+3. **CSS variable generation logic** - ThemeArtifactService converts tokens to CSS
+4. **UI components** - TenantEditorModal for editing tokens
 
-When a user configures a category setting, it affects multiple UI elements:
+## What Code Should NOT Contain
 
-| Category | What It Affects |
-|----------|-----------------|
-| Primary Color | All primary buttons, links, focus rings, selected states |
-| Secondary Color | All secondary/ghost buttons, subtle interactive elements |
-| Surface Base | All cards, modals, dropdowns, form backgrounds |
-| Surface Raised | Elevated cards, popovers, tooltips |
-| Text Primary | All headings, important labels, primary content |
-| Text Secondary | Body text, descriptions, secondary content |
-| Text Muted | Captions, hints, placeholders, disabled text |
-| Border Default | Input borders, card borders, dividers |
+1. Colors (e.g., `#4f46e5`, `rgba(...)`)
+2. Font names (e.g., `Space Grotesk`, `Inter`)
+3. Sizes (e.g., `12px`, `1rem`)
+4. Shadows, radii, spacing values
+5. Any visual design decisions
 
-### Token Inheritance
+---
 
-The `BrandingTokens` schema has 144+ fields, but users only configure ~40 category settings. The remaining values come from:
+## Tenant Creation Options
 
-1. **Preset Base**: When creating a tenant, user picks Aurora/Brutalist/Blank preset
-2. **Spread Pattern**: `buildBrandingTokensFromForm()` starts with preset tokens, then overwrites with user's category values
-3. **Consistency**: Unmapped tokens (like specific component padding) stay consistent with the preset
+There are exactly TWO ways to create a tenant:
 
-### Data Flow
+### Option 1: Empty Slate
+- Start with a completely blank form
+- User fills in EVERY required field
+- No defaults, no presets
+- Form shows placeholders with expected format (e.g., `#RRGGBB`)
+
+### Option 2: Copy Existing Tenant
+- Select an existing tenant from dropdown
+- Clone ALL of its brandingTokens
+- Modify as needed
+- This is the ONLY way to get "starting values"
+
+---
+
+## UI Organization
+
+Based on expert consultation from [UX Collective](https://uxdesign.cc/themeable-design-systems-313898c07eab), [Adobe Spectrum](https://spectrum.adobe.com/page/design-tokens/), [USWDS](https://designsystem.digital.gov/design-tokens/), and [Penpot](https://penpot.app/blog/what-are-design-tokens-a-complete-guide/):
+
+### Token Collections (Collapsible Sections)
+
+```
+┌─ Create Tenant ──────────────────────────────────────────┐
+│                                                          │
+│ ○ Start from empty    ○ Copy from existing tenant [▼]   │
+│                                                          │
+└──────────────────────────────────────────────────────────┘
+
+┌─ Basic Info ─────────────────────────────────────────────┐
+│ Tenant ID: [____________]  App Name: [____________]      │
+│ Domains: [____________] [Add]                            │
+└──────────────────────────────────────────────────────────┘
+
+▼ Colors
+  ├── Palette (primary, secondary, accent, neutral, status)
+  ├── Surfaces (base, raised, sunken, overlay, glass)
+  ├── Text (primary, secondary, muted, accent, inverted)
+  ├── Interactive (primary, secondary, destructive states)
+  └── Borders (subtle, default, strong, focus)
+
+▼ Typography
+  ├── Font Families (sans, serif, mono)
+  ├── Sizes (xs through 5xl)
+  ├── Weights (regular, medium, semibold, bold)
+  └── Line Heights & Letter Spacing
+
+▼ Spacing & Layout
+  ├── Scale (2xs through 2xl)
+  └── Semantic (page, section, card, component)
+
+▼ Radii & Shadows
+  ├── Corner Radius (none, sm, md, lg, pill, full)
+  └── Shadows (sm, md, lg)
+
+▼ Motion
+  ├── Durations (instant, fast, base, slow, glacial)
+  ├── Easings (standard, decelerate, accelerate, spring)
+  └── Features (parallax, magnetic, scroll reveal)
+
+▼ Assets
+  ├── Logo URL
+  ├── Favicon URL
+  └── Font URLs
+
+▼ Legal
+  ├── Company Name
+  ├── Support Email
+  └── Policy URLs
+
+[Cancel]                              [Save & Publish]
+```
+
+### Live Preview Panel
+
+As user fills in values, show a live preview:
+- Sample button with primary/secondary colors
+- Sample card with surface/border colors
+- Sample text with typography settings
+- Immediate feedback without defaults
+
+---
+
+## Data Flow
 
 ```
 ┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
-│  Editor Form    │────▶│  Form Handler    │────▶│   Firestore     │
-│  (~40 fields)   │     │  builds tokens   │     │  brandingTokens │
+│  TenantEditor   │────▶│  API: upsert     │────▶│   Firestore     │
+│  Modal (UI)     │     │  tenant          │     │  brandingTokens │
 └─────────────────┘     └──────────────────┘     └─────────────────┘
                                                           │
                                                           ▼
 ┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
 │   CSS Output    │◀────│  ThemeArtifact   │◀────│  flattenTokens  │
-│   (variables)   │     │  Service         │     │                 │
+│   (variables)   │     │  Service         │     │  (recursive)    │
 └─────────────────┘     └──────────────────┘     └─────────────────┘
 ```
 
 ---
 
-## Categories (Implemented)
+## Files to Delete
 
-The UI is organized into collapsible sections. Here's what each section contains:
+| File | Reason |
+|------|--------|
+| `packages/shared/src/fixtures/branding-tokens.ts` | Contains hardcoded design values - MUST BE DELETED |
 
-### Basic Info (section-basic-info)
-- Tenant ID (create only, immutable after)
-- App Name
-- Domains list (add/remove)
+## Files That Import Fixtures (Must Be Modified)
 
-### Theme Preset (section-theme-preset) - Create Mode Only
-- Aurora (dark glassmorphic with animations)
-- Brutalist (minimal grayscale)
-- Blank (light theme, clean slate)
-
-### Logo & Assets (section-logo-assets)
-- Logo upload/URL
-- Favicon upload/URL
-
-### Actions (section-actions)
-**Primary:**
-- Color + Hover color
-- Gradient toggle
-
-**Secondary:**
-- Color + Hover color
-
-**Accent:**
-- Color
-
-### Surfaces (section-surfaces)
-- Base color
-- Raised color
-
-### Text (section-text)
-- Primary color
-- Secondary color
-- Muted color
-- Accent color
-
-### Borders (section-borders)
-- Subtle color
-- Default color
-- Strong color
-
-### Status Colors (section-status-colors)
-- Success, Warning, Error, Info colors
-
-### Motion & Effects (section-motion-effects)
-- Aurora Background toggle
-- Glassmorphism toggle
-- Magnetic Hover toggle
-- Scroll Reveal toggle
-
-### Aurora Gradient (section-aurora-gradient) - Conditional
-Shows when Aurora Animation is enabled:
-- 4 gradient colors
-
-### Glassmorphism Settings (section-glassmorphism-settings) - Conditional
-Shows when Glassmorphism is enabled:
-- Glass color (RGBA)
-- Glass border color (RGBA)
-
-### Typography (section-typography)
-- Sans font family
-- Serif font family
-- Mono font family
-- Heading weight (select)
-- Body weight (select)
-- UI weight (select)
-- Fluid Typography toggle
-
-### Marketing (section-marketing)
-- Landing Page toggle
-- Marketing Content toggle
-- Pricing Page toggle
+| File | Required Change |
+|------|-----------------|
+| `packages/shared/src/index.ts` | Remove fixture exports |
+| `webapp-v2/src/components/admin/TenantEditorModal.tsx` | Remove presets, add copy-tenant flow |
+| `firebase/scripts/publish-local-themes.ts` | Rewrite without fixtures |
+| `firebase/scripts/publish-staging-themes.ts` | Rewrite without fixtures |
+| `firebase/functions/src/__tests__/integration/tenant/theme-css.test.ts` | Create test data in Firestore, not from fixtures |
+| `scripts/verify-theme-css.ts` | Rewrite without fixtures |
 
 ---
 
-## Presets
+## BrandingTokens Schema
 
-**Aurora:**
-- Background: Aurora ON, neon gradients
-- Surfaces: Glassmorphism ON, dark
-- Primary: Gradient ON, Magnetic ON, indigo
-- Typography: Space Grotesk headings, Inter body, Fluid ON
-- Animations: Scroll reveal ON
+The schema in `packages/shared/src/types/branding.ts` defines the STRUCTURE only:
 
-**Brutalist:**
-- Background: Aurora OFF
-- Surfaces: Glassmorphism OFF, gray
-- Primary: Gradient OFF, Magnetic OFF, gray
-- Typography: System fonts, Fluid OFF
-- Animations: All OFF
+- `palette` - 11 hex colors (primary, secondary, accent, neutral, status colors)
+- `typography` - font families, sizes, weights, line heights, letter spacing
+- `spacing` - scale values (2xs through 2xl)
+- `radii` - corner radius values (none, sm, md, lg, pill, full)
+- `shadows` - elevation levels (sm, md, lg)
+- `assets` - logo, favicon, font URLs
+- `legal` - company info, policy URLs
+- `semantics` - surface colors, text colors, interactive states, borders, status, gradients
+- `motion` - durations, easings, feature flags
 
----
-
-## Editor UI (Actual Layout)
-
-```
-┌─ Basic Info (always open) ───────────────────────────────┐
-│ [Tenant ID_____] (disabled on edit)                      │
-│ [App Name______]                                         │
-│ Domains: [chip][chip][x] + [input] [Add]                │
-└──────────────────────────────────────────────────────────┘
-
-┌─ Theme Preset (create mode only) ────────────────────────┐
-│ [Aurora] [Brutalist] [Blank] ← clickable cards          │
-└──────────────────────────────────────────────────────────┘
-
-▼ Logo & Assets
-  ┌────────────┐  ┌────────────┐
-  │   Logo     │  │  Favicon   │
-  │  [upload]  │  │  [upload]  │
-  └────────────┘  └────────────┘
-
-▼ Actions
-  ── Primary ──
-  Color [■]  Hover [■]
-  ☑ Gradient buttons
-  ── Secondary ──
-  Color [■]  Hover [■]
-  ── Accent ──
-  Color [■]
-
-▼ Surfaces
-  Base [■]  Raised [■]
-
-▼ Text
-  Primary [■]  Secondary [■]  Muted [■]  Accent [■]
-
-▼ Borders
-  Subtle [■]  Default [■]  Strong [■]
-
-▼ Status Colors
-  Success [■]  Warning [■]  Error [■]  Info [■]
-
-▼ Motion & Effects
-  ☑ Aurora Background
-  ☑ Glassmorphism
-  ☑ Magnetic Hover
-  ☑ Scroll Reveal
-
-▼ Aurora Gradient (when Aurora enabled)
-  [■] [■] [■] [■]
-
-▼ Glassmorphism Settings (when Glassmorphism enabled)
-  Glass [rgba(...)____]  Border [rgba(...)____]
-
-▼ Typography
-  Sans:  [_________]  Serif: [_________]  Mono: [_________]
-  Heading [▼700]  Body [▼400]  UI [▼500]
-  ☑ Fluid Typography
-
-▼ Marketing
-  ☐ Landing Page  ☐ Marketing Content  ☐ Pricing Page
-
-──────────────────────────────────────────────────────────
-[Cancel]                    [Publish Theme] [Save Changes]
-```
-
-**Notes:**
-- Sections marked with ▼ are collapsible (closed by default except Basic Info)
-- Aurora Gradient section only appears when Aurora Background is enabled
-- Glassmorphism Settings only appears when Glassmorphism is enabled
-- Theme Preset only appears in create mode
-- "Publish Theme" button only appears in edit mode
+Total: ~144 fields, all must be user-configurable through the UI.
 
 ---
 
-## Implementation Details
+## Implementation Steps
 
-### Form → Tokens Mapping (Complete)
+### Phase 1: Delete Fixtures
+1. Delete `packages/shared/src/fixtures/branding-tokens.ts`
+2. Remove exports from `packages/shared/src/index.ts`
+3. Fix all import errors
 
-Editor form fields map to `brandingTokens.tokens`. Many fields write to **multiple token locations** for backward compatibility:
+### Phase 2: Rewrite TenantEditorModal
+1. Remove preset selection
+2. Add "Start from empty" vs "Copy existing tenant" toggle
+3. Expose ALL 144 fields organized into collapsible sections
+4. Add live preview panel
+5. Add real-time validation
 
-| Form Field | Token Paths (writes to all) | UI Section |
-|------------|----------------------------|------------|
-| primaryColor | `palette.primary`, `semantics.colors.interactive.primary` | Actions |
-| primaryHoverColor | `semantics.colors.interactive.primaryHover` | Actions |
-| secondaryColor | `palette.secondary`, `semantics.colors.interactive.secondary` | Actions |
-| secondaryHoverColor | `semantics.colors.interactive.secondaryHover` | Actions |
-| accentColor | `palette.accent`, `semantics.colors.interactive.accent` | Actions |
-| surfaceColor | `palette.neutral`, `semantics.colors.surface.base` | Surfaces |
-| surfaceRaisedColor | `semantics.colors.surface.raised` | Surfaces |
-| textPrimaryColor | `semantics.colors.text.primary` | Text |
-| textSecondaryColor | `semantics.colors.text.secondary` | Text |
-| textMutedColor | `semantics.colors.text.muted` | Text |
-| textAccentColor | `semantics.colors.text.accent` | Text |
-| borderSubtleColor | `semantics.colors.border.subtle` | Borders |
-| borderDefaultColor | `semantics.colors.border.default` | Borders |
-| borderStrongColor | `semantics.colors.border.strong` | Borders |
-| successColor | `palette.success`, `semantics.colors.status.success` | Status Colors |
-| warningColor | `palette.warning`, `semantics.colors.status.warning` | Status Colors |
-| errorColor | `palette.danger`, `semantics.colors.status.danger` | Status Colors |
-| infoColor | `palette.info`, `semantics.colors.status.info` | Status Colors |
-| fontFamilySans | `typography.fontFamily.sans` | Typography |
-| fontFamilySerif | `typography.fontFamily.serif` | Typography |
-| fontFamilyMono | `typography.fontFamily.mono` | Typography |
-| fontWeightHeadings | `typography.weights.bold` | Typography |
-| fontWeightBody | `typography.weights.regular` | Typography |
-| fontWeightUI | `typography.weights.medium` | Typography |
-| enableFluidTypography | `typography.fluidScale` (presence) | Typography |
-| enableAuroraAnimation | `motion.enableParallax` | Motion & Effects |
-| enableGlassmorphism | `semantics.colors.surface.glass` (presence) | Motion & Effects |
-| enableMagneticHover | `motion.enableMagneticHover` | Motion & Effects |
-| enableScrollReveal | `motion.enableScrollReveal` | Motion & Effects |
-| enableButtonGradient | `semantics.colors.gradient.primary` (presence) | Actions |
-| auroraGradient[0-3] | `semantics.colors.gradient.aurora` | Aurora Gradient |
-| glassColor | `semantics.colors.surface.glass` | Glassmorphism Settings |
-| glassBorderColor | `semantics.colors.surface.glassBorder` | Glassmorphism Settings |
-| logoUrl | `assets.logoUrl` | Logo & Assets |
-| faviconUrl | `assets.faviconUrl` | Logo & Assets |
-| showLandingPage | `branding.marketingFlags.showLandingPage` | Marketing |
-| showMarketingContent | `branding.marketingFlags.showMarketingContent` | Marketing |
-| showPricingPage | `branding.marketingFlags.showPricingPage` | Marketing |
+### Phase 3: Update Scripts
+1. Rewrite `publish-local-themes.ts` to use API calls or Firestore directly
+2. Rewrite `publish-staging-themes.ts` similarly
+3. Test data must come from Firestore, not code
 
-### Key Functions
-
-**`extractFormDataFromTokens(tokens)`** - Reads tokens into form state
-- Uses fallback chain: `tokens.semantics?.colors?.X || tokens.palette?.X || ''`
-- Handles array extraction for `auroraGradient`
-- Called on edit mode to populate form
-
-**`buildBrandingTokensFromForm(formData, existingTokens)`** - Builds tokens from form
-- Starts with base tokens (from preset or existing tenant)
-- Spreads user's category values over base tokens
-- Conditionally includes/excludes based on toggles:
-  - `fluidScale` only when `enableFluidTypography` is true
-  - `glass`/`glassBorder` only when `enableGlassmorphism` is true
-  - `gradient.aurora` only when `enableAuroraAnimation` is true AND has 2+ colors
-  - `gradient.primary` only when `enableButtonGradient` is true
-
-**`getPresetFormData(preset)`** - Gets default form values for a preset
-- `'aurora'` → extracts from `brandingTokenFixtures.localhost`
-- `'brutalist'` → extracts from `brandingTokenFixtures.loopback`
-- `'blank'` → returns hardcoded light theme values
-
-### Tokens NOT Exposed in UI (Inherited from Preset)
-
-The BrandingTokens schema has 144+ fields. The ~40 exposed fields give users control over the most impactful visual elements. These tokens are **inherited from the preset** and NOT directly editable:
-
-**Palette:** `primaryVariant`, `secondaryVariant`, `neutralVariant`
-
-**Typography:** All `sizes`, `lineHeights`, `letterSpacing`, `semantics` mappings
-
-**Spacing:** All `spacing` scale and semantic spacing values
-
-**Radii:** All corner radius values (`none`, `sm`, `md`, `lg`, `pill`, `full`)
-
-**Shadows:** All shadow values (`sm`, `md`, `lg`)
-
-**Assets:** `wordmarkUrl`, `heroIllustrationUrl`, `backgroundTextureUrl`, `fonts.*`
-
-**Legal:** `companyName`, `supportEmail`, `privacyPolicyUrl`, `termsOfServiceUrl`
-
-**Surface colors:** `sunken`, `overlay`, `warning`, `muted`, `aurora`, `spotlight`
-
-**Text colors:** `inverted`, `disabled`, `hero`, `eyebrow`, `code`
-
-**Interactive:** `primaryActive`, `primaryForeground`, `secondaryActive`, `secondaryForeground`, `destructive*`, `ghost`, `magnetic`, `glow`
-
-**Border:** `focus`, `warning`, `error`
-
-**Gradient:** `accent`, `text`
-
-**Motion:** All `duration` and `easing` values
-
-### UI Section Test IDs
-
-| Section | Test ID | Condition |
-|---------|---------|-----------|
-| Basic Info | `section-basic-info` | Always visible |
-| Theme Preset | `section-theme-preset` | Create mode only |
-| Logo & Assets | `section-logo-assets` | Always visible |
-| Actions | `section-actions` | Always visible |
-| Surfaces | `section-surfaces` | Always visible |
-| Text | `section-text` | Always visible |
-| Borders | `section-borders` | Always visible |
-| Status Colors | `section-status-colors` | Always visible |
-| Motion & Effects | `section-motion-effects` | Always visible |
-| Aurora Gradient | `section-aurora-gradient` | When `enableAuroraAnimation` is true |
-| Glassmorphism Settings | `section-glassmorphism-settings` | When `enableGlassmorphism` is true |
-| Typography | `section-typography` | Always visible |
-| Marketing | `section-marketing` | Always visible |
-
-### API Integration
-
-**Endpoints used:**
-- `apiClient.adminUpsertTenant(request)` - Create or update tenant
-- `apiClient.publishTenantTheme({ tenantId })` - Auto-called after save
-- `apiClient.uploadTenantImage(tenantId, type, file)` - For logo/favicon uploads
-
-**Error codes handled:**
-- `INVALID_TENANT_PAYLOAD` - Invalid tenant data
-- `PERMISSION_DENIED` - User lacks permissions
-- `DUPLICATE_DOMAIN` - Domain already assigned to another tenant
-- `TENANT_NOT_FOUND` - Tenant doesn't exist (on publish)
-- `TENANT_TOKENS_MISSING` - Missing brandingTokens (on publish)
-
-### Validation Rules
-
-| Field | Rule |
-|-------|------|
-| `tenantId` | Required, lowercase letters/numbers/hyphens only (`/^[a-z0-9-]+$/`) |
-| `appName` | Required |
-| `primaryColor` | Required |
-| `secondaryColor` | Required |
-| `domains` | At least one required, validated against domain regex |
+### Phase 4: Fix Tests
+1. Integration tests create test tenants via API
+2. No test should import fixture data
+3. Test data is stored in Firestore during test setup
 
 ---
 
-## Testing Strategy
+## Previous Mistakes (Lessons Learned)
 
-To ensure robustness, the theming system will be exhaustively tested at multiple levels across the stack.
+### What I kept doing wrong:
+1. Putting color values in TypeScript files
+2. Treating fixtures as "presets"
+3. Making changes without documenting in this file first
+4. Not recognizing that ANY hardcoded design value is a violation
 
-### Unit Tests (`firebase/functions/src/__tests__/unit/api`)
-- **`buildBrandingTokensFromForm()`**: Test that form data correctly overwrites base preset tokens. Verify conditional logic for toggles (e.g., `enableGlassmorphism`).
-- **`extractFormDataFromTokens()`**: Test that token data is correctly extracted into the form state, including fallbacks for older token structures.
-- **`ThemeArtifactService.buildCss()`**: Test that `BrandingTokens` are correctly transformed into a CSS string with the right variable names and values.
-- **`getPresetFormData()`**: Test that each preset (`brutalist`, `fancy`) returns the expected default form data.
+### Why this happened:
+- I was trying to provide "convenience" through defaults
+- But defaults in code prevent tenant customization
+- The system must be purely data-driven
 
-### API Integration Tests
-- **Admin API (`firebase/functions/src/__tests__/integration/admin`)**:
-    - Test `adminUpsertTenant` endpoint with valid and invalid payloads.
-    - Verify validation rules for `tenantId`, `appName`, and `domains`.
-    - Check for correct error handling (e.g., `DUPLICATE_DOMAIN`).
-- **Tenant API (`firebase/functions/src/__tests__/integration/tenant`)**:
-    - Test `publishTenantTheme` endpoint. Ensure it correctly generates and saves the CSS artifact.
-    - Test that it fails correctly if `brandingTokens` are missing.
-
-### Web Tests (`webapp-v2/src/__tests__/integration/playwright`)
-- **`TenantEditorModal.tsx`**:
-    - Test that the form correctly loads initial data for an existing tenant.
-    - Test that selecting a preset in create mode populates the form correctly.
-    - Test conditional section visibility (e.g., "Aurora Gradient" section).
-    - Test form interactions: color pickers, toggles, font weight selectors.
-    - Mock API calls and verify that the form submits the correct payload.
-
-### End-to-End (E2E) Tests (`e2e-tests/src/__tests__/integration`)
-- **Full Tenant Lifecycle**:
-    1. Create a new tenant using the "Brutalist" preset.
-    2. Verify the app loads with the expected minimal theme.
-    3. Edit the tenant, enable features like Glassmorphism, and change colors.
-    4. Save and publish the theme.
-    5. Reload the app and verify the new theme is active by checking specific CSS variables and visual effects.
-- **Feature Coverage Expansion**:
-    - Close the coverage gap identified in "Known Issues".
-    - Add tests for logo/favicon upload, domain management, all color fields, all motion toggles, and typography controls.
-    - Add tests for form validation (e.g., invalid domains) and API error handling in the UI.
+### The correct approach:
+- Code defines STRUCTURE (schema)
+- Data (Firestore) contains VALUES
+- UI (TenantEditorModal) is the ONLY way to set values
+- There are NO shortcuts, NO defaults, NO presets
 
 ---
 
-## Files Modified
+## Status: 🔴 ARCHITECTURE BROKEN
 
-| File | Change | Status |
-|------|--------|--------|
-| webapp-v2/src/components/admin/TenantEditorModal.tsx | Rewritten with full category support | ✅ |
-| packages/test-support/src/page-objects/TenantEditorModalPage.ts | Updated to use test IDs | ✅ |
-| e2e-tests/src/__tests__/integration/tenant-editor.e2e.test.ts | Removed customCSS test | ✅ |
-| webapp-v2/tailwind.config.js | Fixed radii variable names (`--radius-*` → `--radii-*`) | ✅ |
-| webapp-v2/src/components/ui/Modal.tsx | Use `--semantics-colors-surface-overlay` for backdrop | ✅ |
-| webapp-v2/src/components/dashboard/CreateGroupModal.tsx | Use `--semantics-colors-surface-overlay` for backdrop | ✅ |
-| webapp-v2/src/components/policy/PolicyAcceptanceModal.tsx | Use `--semantics-colors-surface-overlay` for backdrop | ✅ |
-| firebase/functions/src/__tests__/unit/services/tenant/ThemeArtifactService.test.ts | Added motion CSS variables test | ✅ |
+The current implementation has hardcoded values in:
+- `packages/shared/src/fixtures/branding-tokens.ts` (hundreds of values)
+- `TenantEditorModal.tsx` (preset system)
+- Various scripts and tests
 
-## Files Deleted
-
-| File | Reason | Status |
-|------|--------|--------|
-| webapp-v2/src/utils/tenant-token-merger.ts | Not needed | ✅ |
-| webapp-v2/src/utils/branding-tokens-generator.ts | Not needed | ✅ |
-
----
-
-## Success Criteria
-
-1. ✅ Create tenant with Aurora preset → fancy theme with all effects
-2. ✅ Create tenant with Brutalist preset → minimal flat theme
-3. ✅ Change a category setting → all elements in that category change
-4. ✅ Toggle feature on/off → CSS reflects it
-5. ✅ Edit existing tenant → shows actual stored values
-6. ✅ All 4 e2e tests pass
-
----
-
-## Lessons Learned
-
-### What NOT to do:
-- Do NOT expose every individual token (144+ fields) to users
-- This would let users create broken/inconsistent themes
-- This was attempted and reverted
-
-### What IS correct:
-- Category-based configuration (~40 settings)
-- Presets provide sensible defaults for unmapped tokens
-- Users get meaningful control without granular complexity
-- Forms, headings, containers all stay consistent within their category
-
----
-
-## Known Issues (Remaining Work)
-
-### ~~Issue 1: Motion Feature Flags Not Generating CSS Variables~~ ✅ VERIFIED WORKING
-
-**Original claim:** `useThemeConfig()` reads CSS variables that are never generated.
-
-**Investigation result:** This issue was INCORRECT. The motion CSS variables ARE correctly generated:
-
-1. `ThemeArtifactService.flattenTokens()` walks ALL tokens including `motion.enableParallax`, etc.
-2. Boolean values are converted to strings (`String(true)` → `"true"`) at line 178-180
-3. The Aurora fixture sets `enableParallax: true`, `enableMagneticHover: true`, `enableScrollReveal: true`
-4. The Brutalist fixture sets all three to `false`
-5. `buildBrandingTokensFromForm()` includes `motion: { ... }` in the output
-
-**Unit test added:** `ThemeArtifactService.test.ts` - "should generate motion feature flag CSS variables when motion is defined" - **PASSES**
-
-**No fix needed.** The system works as designed.
-
-### ~~Issue 2: Radii Variable Naming Mismatch~~ ✅ FIXED (November 2025)
-
-**Problem:**
-- Generated CSS variable: `--radii-lg` (from token path `radii.lg`)
-- Tailwind config expected: `--radius-lg`
-
-**Fix applied:** Updated `webapp-v2/tailwind.config.js` borderRadius section to use `--radii-*` variable names. The CSS generation was correct; Tailwind consumption was misaligned.
-
-### ~~Issue 3: Modal Backdrop CSS Variable~~ ✅ FIXED (November 2025)
-
-**Problem:** Modal components referenced `--modal-backdrop` which doesn't exist in generated CSS.
-
-**Files fixed (exhaustive list):**
-- `webapp-v2/src/components/ui/Modal.tsx`
-- `webapp-v2/src/components/dashboard/CreateGroupModal.tsx`
-- `webapp-v2/src/components/policy/PolicyAcceptanceModal.tsx`
-
-**Fix applied:** Changed `var(--modal-backdrop, ...)` to `var(--semantics-colors-surface-overlay, rgba(0, 0, 0, 0.4))`.
-
-**Not a bug (verified correct):**
-- `global.css` and `landing.css` use `var(--motion-duration-base, 320ms)` - this is proper CSS fallback pattern
-- `blur(4px)` backdrop-filter is a fixed design choice, not a themeable token
-
-### Issue 4: E2E Test Coverage Gap
-
-**Problem:** Only 4 e2e tests exist, covering ~15-20% of functionality.
-
-**What's tested:**
-- Accent color change + publish
-- App name + primary color + landing page toggle persistence
-- Glassmorphism + magnetic hover toggles
-- Advanced section visibility
-
-**What's NOT tested:**
-- Logo/favicon upload
-- Domain management (add/remove)
-- 8 of 10 color fields
-- 6 of 8 motion toggles
-- Typography font weights
-- Fluid typography toggle
-- Form validation (empty fields, invalid domains)
-- Error scenarios (failed publish, API errors)
-
----
-
-## Hardcoded Values (Acceptable by Design)
-
-### Admin CSS (`webapp-v2/src/styles/admin.css`)
-
-The admin pages use a **fixed neutral theme** (indigo/amber) intentionally. This is NOT a bug - admin pages should have consistent branding regardless of tenant.
-
-### "Blank" Preset Defaults (`TenantEditorModal.tsx` lines 226-259)
-
-The "Blank" preset has hardcoded light theme defaults. This is acceptable because:
-1. It's the starting point for tenants who want a clean slate
-2. Presets exist to provide sensible defaults
-3. Users can override any value after creation
-
----
-
-## Status: 🔄 IN PROGRESS
-
-**What works:**
-- ✅ Category-based TenantEditorModal with ~40 form fields
-- ✅ Presets (Aurora/Brutalist/Blank) initialize form on create
-- ✅ `buildBrandingTokensFromForm()` generates valid BrandingTokens
-- ✅ `ThemeArtifactService.buildCss()` converts tokens to CSS variables
-- ✅ All 4 e2e tests pass
-
-**What needs fixing:**
-- ✅ ~~Motion feature flags not generating CSS variables~~ (VERIFIED WORKING)
-- ✅ ~~Radii variable naming mismatch~~ (FIXED - updated Tailwind config)
-- ✅ ~~Hardcoded fallbacks in Modal/CSS~~ (FIXED - modals now use generated CSS vars)
-- ❌ E2E test coverage is only ~15-20%
+**All of this must be removed and redesigned.**
