@@ -9,6 +9,7 @@ import {
     calculateExactSplits,
     calculatePercentageSplits,
     CreateExpenseRequest,
+    CurrencyCodeSchema,
     ExpenseDTO,
     ExpenseSplit,
     smallestUnitToAmountString,
@@ -17,10 +18,29 @@ import {
 import { ExpenseId, GroupId } from '@billsplit-wl/shared';
 import type { CurrencyISOCode, UserId } from '@billsplit-wl/shared';
 import { toCurrencyISOCode } from '@billsplit-wl/shared';
+import { z } from 'zod';
 import { ReadonlySignal, signal } from '@preact/signals';
 import { apiClient, ApiError } from '../apiClient';
 import { enhancedGroupDetailStore } from './group-detail-store-enhanced';
 import { enhancedGroupsStore as groupsStore } from './groups-store-enhanced';
+
+// Form-level validation schema for simple fields
+// Complex fields (splits, date, participants) use manual validation
+const ExpenseFormFieldsSchema = z.object({
+    description: z
+        .string()
+        .min(1, 'Description is required')
+        .max(200, 'Description must be less than 200 characters'),
+    amount: z
+        .string()
+        .min(1, 'Amount is required')
+        .regex(/^\d+(\.\d+)?$/, 'Invalid amount format')
+        .refine((val) => parseFloat(val) > 0, 'Amount must be greater than 0')
+        .refine((val) => parseFloat(val) < 1000000, 'Amount seems too large'),
+    currency: CurrencyCodeSchema,
+    label: z.string().min(1, 'Label is required').max(50, 'Label must be less than 50 characters'),
+    paidBy: z.string().min(1, 'Please select who paid'),
+});
 
 interface ExpenseFormStore {
     // Form fields
@@ -257,6 +277,23 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     private getActiveCurrency(): CurrencyISOCode | null {
         const currency = this.#currencySignal.value;
         return currency ? toCurrencyISOCode(currency) : null;
+    }
+
+    private getFieldValue(field: string): unknown {
+        switch (field) {
+            case 'description':
+                return this.#descriptionSignal.value;
+            case 'amount':
+                return this.#amountSignal.value;
+            case 'currency':
+                return this.#currencySignal.value;
+            case 'label':
+                return this.#labelSignal.value;
+            case 'paidBy':
+                return this.#paidBySignal.value;
+            default:
+                return undefined;
+        }
     }
 
     private toUnits(amount: Amount): number {
@@ -765,48 +802,35 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     }
 
     private validateField(field: string, value?: any): string | null {
-        switch (field) {
-            case 'description':
-                const desc = value ?? this.#descriptionSignal.value;
-                if (!desc.trim()) {
-                    return 'Description is required';
-                } else if (desc.length > 100) {
-                    return 'Description must be less than 100 characters';
-                }
-                break;
+        // Schema-validated fields
+        const schemaFields = ['description', 'amount', 'currency', 'label', 'paidBy'] as const;
 
-            case 'amount':
-                const amountValue = this.normalizeAmountInput((value ?? this.#amountSignal.value) as Amount | number);
-                if (amountValue.trim() === '') {
-                    return 'Amount is required';
-                }
-                const numericAmount = parseFloat(amountValue);
-                if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
-                    return 'Amount must be greater than 0';
-                } else if (numericAmount > 1000000) {
-                    return 'Amount seems too large';
-                }
+        if (schemaFields.includes(field as typeof schemaFields[number])) {
+            const fieldValue = value ?? this.getFieldValue(field);
+            const fieldSchema = ExpenseFormFieldsSchema.shape[field as keyof typeof ExpenseFormFieldsSchema.shape];
+            const result = fieldSchema.safeParse(fieldValue);
 
-                // Validate currency precision if currency is set
+            if (!result.success) {
+                return result.error.issues[0]?.message || 'Invalid value';
+            }
+
+            // Additional currency-dependent amount precision check (not in schema)
+            if (field === 'amount') {
                 const currency = this.getActiveCurrency();
                 if (currency) {
+                    const amountValue = this.normalizeAmountInput(fieldValue as Amount | number);
                     const precisionError = getAmountPrecisionError(amountValue, currency);
                     if (precisionError) {
                         return precisionError;
                     }
                 }
-                break;
+            }
 
-            case 'currency':
-                const curr = value ?? this.#currencySignal.value;
-                if (!curr || curr.trim() === '') {
-                    return 'Currency is required';
-                }
-                if (curr.length !== 3) {
-                    return 'Currency must be a 3-letter code (e.g., USD, EUR)';
-                }
-                break;
+            return null;
+        }
 
+        // Manual validation for complex fields
+        switch (field) {
             case 'date':
                 const dt = value ?? this.#dateSignal.value;
                 if (!dt) {
@@ -815,13 +839,6 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
                 // Check if date is in the future (compares local dates properly)
                 if (isDateInFuture(dt)) {
                     return 'Date cannot be in the future';
-                }
-                break;
-
-            case 'paidBy':
-                const pb = value ?? this.#paidBySignal.value;
-                if (!pb) {
-                    return 'Please select who paid';
                 }
                 break;
 
@@ -879,6 +896,9 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
 
         const dateError = this.validateField('date');
         if (dateError) errors.date = dateError;
+
+        const labelError = this.validateField('label');
+        if (labelError) errors.label = labelError;
 
         const payerError = this.validateField('paidBy');
         if (payerError) errors.paidBy = payerError;

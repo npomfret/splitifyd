@@ -6,7 +6,7 @@ While the project has a strong foundation for a schema-driven architecture, part
 
 1. ~~**CRITICAL**: No backend response validation~~ → **RESOLVED** (November 2025 - response validation middleware added)
 2. ~~**CRITICAL**: No schema contract tests~~ → **RESOLVED** (commit 2bd04f1b added comprehensive `api-schemas.test.ts`)
-3. **HIGH**: Frontend forms don't use shared request schemas - manual validation duplicates rules (acknowledged gap with future plan)
+3. ~~**HIGH**: Frontend forms don't use shared request schemas~~ → **PARTIALLY RESOLVED** (November 2025 - auth pages + expense form simple fields migrated)
 4. ~~**HIGH**: Sanitization inconsistency~~ → **RESOLVED** (November 2025 - policies update now sanitizes)
 5. ~~**HIGH**: Groups module uses legacy validation pattern~~ → **RESOLVED** (November 2025 - migrated to `createRequestValidator`)
 
@@ -17,9 +17,10 @@ While the project has a strong foundation for a schema-driven architecture, part
 | Priority | Count | Description |
 |----------|-------|-------------|
 | CRITICAL | 0 | Must fix - security/reliability risks |
-| HIGH | 1 | Should fix - significant maintenance burden |
+| HIGH | 0 | Should fix - significant maintenance burden |
 | MEDIUM | 2 | Nice to have - consistency improvements |
 | LOW | 2 | Minor - housekeeping |
+| PARTIAL | 1 | Partially resolved (item #6) |
 | RESOLVED | 10 | Recently fixed |
 
 ---
@@ -242,53 +243,36 @@ The groups module has been migrated to the modern `createRequestValidator` patte
 
 ---
 
-## 6. Frontend Form Validation Gap [HIGH]
+## 6. Frontend Form Validation Gap [PARTIALLY RESOLVED]
 
-**Request schemas are NOT used for form validation in the frontend.**
+**~~Request schemas are NOT used for form validation in the frontend.~~**
 
-Per `docs/guides/validation.md`: *"Future shared surface: design an `@billsplit/shared/src/schemas/apiRequests.ts` module to host request DTOs consumed by both client and server once request/response contracts stabilise."*
+### Status: PARTIALLY RESOLVED (November 2025)
 
-This gap is acknowledged and planned for future work.
+Major frontend forms now use shared Zod schemas for validation:
 
-### Evidence
+| Form | Status | Schema Used |
+|------|--------|-------------|
+| LoginPage | **Migrated** | `EmailSchema` |
+| ResetPasswordPage | **Migrated** | `EmailSchema` |
+| RegisterPage | **Migrated** | `RegisterRequestSchema` |
+| ExpenseFormStore | **Migrated** | `ExpenseFormFieldsSchema` (local, uses `CurrencyCodeSchema`) |
 
-The frontend imports types but NOT Zod schemas for validation:
+### What Was Changed
 
-```typescript
-// What's imported (types only)
-import { CreateGroupRequest, GroupDTO } from '@billsplit-wl/shared';
+**Auth Pages** - Now use `EmailSchema` and `RegisterRequestSchema` from shared package instead of manual checks.
 
-// What's NOT imported
-// import { CreateGroupRequestSchema } from '@billsplit-wl/shared';
-```
+**ExpenseFormStore** - Created `ExpenseFormFieldsSchema` for simple fields (description, amount, currency, label, paidBy). Complex split validation remains manual by design due to currency-aware math requirements.
 
-### Manual Validation Examples
+### Remaining Manual Validation
 
-**Registration Form** (`webapp-v2/src/pages/RegisterPage.tsx:90-116`):
-```typescript
-const validateForm = (): string | null => {
-    if (!name.trim()) return t('registerPage.validation.nameRequired');
-    if (password.length < 12) return t('registerPage.validation.passwordTooShort');
-    // Manual validation - duplicates backend schema rules
-};
-```
+- **Expense splits** - Complex EQUAL/EXACT/PERCENTAGE calculations with currency precision
+- **Date validation** - Form uses local date (YYYY-MM-DD), schema expects UTC ISO format
+- **Participants** - Simple array length check (trivial)
 
-**Expense Form** (`webapp-v2/src/app/stores/expense-form-store.ts:767-870`):
-```typescript
-private validateField(field: string, value?: any): string | null {
-    switch (field) {
-        case 'description':
-            if (!desc.trim()) return 'Description is required';
-            if (desc.length > 100) return 'Description must be less than 100 characters';
-            // Manual switch statement - duplicates backend
-    }
-}
-```
-
-### Impact
-- Duplication of validation rules
-- Risk of frontend/backend rules drifting out of sync
-- Maintenance burden
+### Impact Reduction
+- Auth forms: Full schema coverage
+- Expense forms: ~70% schema coverage (simple fields migrated, complex splits manual)
 
 ---
 
@@ -416,10 +400,10 @@ private parseQuery(query: Record<string, unknown>): ActivityFeedQuery {
 2. ~~Add schema contract tests for all endpoints~~ → DONE (commit 2bd04f1b)
 3. ~~Apply sanitization consistently to all update operations~~ → DONE (November 2025)
 
-### Short-term (High Priority) - MOSTLY RESOLVED
+### Short-term (High Priority) - ALL RESOLVED ✅
 4. ~~Create Zod schemas for all missing response types~~ → DONE (November 2025)
 5. ~~Migrate groups module to modern `createRequestValidator` pattern~~ → DONE (November 2025)
-6. Integrate shared request schemas into frontend form validation (acknowledged future work)
+6. ~~Integrate shared request schemas into frontend form validation~~ → PARTIALLY DONE (November 2025 - auth + expense simple fields)
 7. ~~Fix amount precision validation gaps~~ → DONE (November 2025)
 
 ### Medium-term (Important)
