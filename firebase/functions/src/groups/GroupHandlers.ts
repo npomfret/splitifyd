@@ -5,7 +5,7 @@ import { AuthenticatedRequest } from '../auth/middleware';
 import { DOCUMENT_CONFIG, HTTP_STATUS } from '../constants';
 import { GroupService } from '../services/GroupService';
 import { Errors } from '../utils/errors';
-import { sanitizeGroupData, validateCreateGroup, validateGroupId, validateUpdateDisplayName, validateUpdateGroup } from './validation';
+import { validateCreateGroup, validateGroupId, validateUpdateDisplayName, validateUpdateGroup } from './validation';
 
 export class GroupHandlers {
     constructor(private readonly groupService: GroupService) {}
@@ -19,14 +19,11 @@ export class GroupHandlers {
             throw Errors.UNAUTHORIZED();
         }
 
-        // Validate request body
+        // Validate and sanitize request body
         const groupData = validateCreateGroup(req.body);
 
-        // Sanitize group data
-        const sanitizedData = sanitizeGroupData(groupData);
-
         // Use GroupService to create the group
-        const group = await this.groupService.createGroup(userId, sanitizedData);
+        const group = await this.groupService.createGroup(userId, groupData);
 
         res.status(HTTP_STATUS.CREATED).json(group);
     };
@@ -41,14 +38,11 @@ export class GroupHandlers {
         }
         const groupId = validateGroupId(req.params.groupId);
 
-        // Validate request body
+        // Validate and sanitize request body
         const updates = validateUpdateGroup(req.body);
 
-        // Sanitize update data
-        const sanitizedUpdates = sanitizeGroupData(updates);
-
         // Use GroupService to update the group
-        const response = await this.groupService.updateGroup(groupId, userId, sanitizedUpdates);
+        const response = await this.groupService.updateGroup(groupId, userId, updates);
 
         res.json(response);
     };

@@ -553,6 +553,86 @@ export const AdminTenantsListResponseSchema = z.object({
     count: z.number(),
 });
 
+// ========================================================================
+// Merge Response Schemas
+// ========================================================================
+
+const MergeJobStatusSchema = z.enum(['pending', 'processing', 'completed', 'failed']);
+
+export const InitiateMergeResponseSchema = z.object({
+    jobId: z.string().min(1),
+    status: MergeJobStatusSchema,
+});
+
+export const MergeJobResponseSchema = z.object({
+    id: z.string().min(1),
+    primaryUserId: z.string().min(1).transform(toUserId),
+    secondaryUserId: z.string().min(1).transform(toUserId),
+    status: MergeJobStatusSchema,
+    createdAt: z.string().datetime().transform(toISOString),
+    startedAt: z.string().datetime().transform(toISOString).optional(),
+    completedAt: z.string().datetime().transform(toISOString).optional(),
+    error: z.string().optional(),
+});
+
+// ========================================================================
+// Policy Admin Response Schemas
+// ========================================================================
+
+export const CreatePolicyResponseSchema = z.object({
+    id: z.string().min(1),
+    versionHash: z.string().min(1),
+});
+
+export const UpdatePolicyResponseSchema = z.object({
+    versionHash: z.string().min(1),
+    published: z.boolean(),
+    currentVersionHash: z.string().min(1).optional(),
+});
+
+export const PublishPolicyResponseSchema = z.object({
+    currentVersionHash: z.string().min(1),
+});
+
+// ========================================================================
+// Admin Browser Response Schemas
+// ========================================================================
+
+// Schema for Firestore user profile (simpler than AdminUserProfile from Auth)
+const FirestoreUserProfileSchema = z.object({
+    uid: z.string().min(1).transform(toUserId),
+    displayName: z.string().transform(toDisplayName),
+    email: z.string().email().transform(toEmail),
+    role: z.nativeEnum(SystemUserRoles).optional(),
+    photoURL: z.string().nullable().optional(),
+    createdAt: z.string().optional(),
+    updatedAt: z.string().optional(),
+    preferredLanguage: z.string().optional(),
+});
+
+export const ListFirestoreUsersResponseSchema = z.object({
+    users: z.array(FirestoreUserProfileSchema),
+    nextCursor: z.string().optional(),
+    hasMore: z.boolean(),
+});
+
+// ========================================================================
+// Tenant Theme Response Schemas
+// ========================================================================
+
+export const PublishTenantThemeResponseSchema = z.object({
+    cssUrl: z.string().min(1),
+    tokensUrl: z.string().min(1),
+    artifact: z.object({
+        hash: z.string().min(1),
+        cssUrl: z.string().min(1),
+        tokensUrl: z.string().min(1),
+        version: z.number().int().min(0),
+        generatedAtEpochMs: z.number().int().min(0),
+        generatedBy: z.string().min(1),
+    }),
+});
+
 export const responseSchemas = {
     '/config': AppConfigurationSchema,
     '/health': HealthCheckResponseSchema,
@@ -591,6 +671,7 @@ export const responseSchemas = {
     'POST /user/reset-password': MessageResponseSchema,
     // Group member endpoints
     'POST /groups/:groupId/leave': MessageResponseSchema,
+    'DELETE /groups/:groupId': MessageResponseSchema,
     'DELETE /groups/:groupId/members/:memberId': MessageResponseSchema,
     'PUT /groups/:groupId/members/display-name': MessageResponseSchema,
     // Policy endpoints
@@ -606,8 +687,18 @@ export const responseSchemas = {
     'GET /admin/browser/tenants': AdminTenantsListResponseSchema,
     // Admin user management endpoints
     'GET /admin/browser/users/auth': ListAuthUsersResponseSchema,
+    'GET /admin/browser/users/firestore': ListFirestoreUsersResponseSchema,
     'PUT /admin/users/:userId': AdminUserProfileSchema,
     'PUT /admin/users/:userId/role': AdminUserProfileSchema,
+    // Merge endpoints
+    'POST /merge': InitiateMergeResponseSchema,
+    'GET /merge/:jobId': MergeJobResponseSchema,
+    // Policy admin endpoints
+    'POST /admin/policies': CreatePolicyResponseSchema,
+    'PUT /admin/policies/:policyId': UpdatePolicyResponseSchema,
+    'POST /admin/policies/:policyId/publish': PublishPolicyResponseSchema,
+    // Tenant theme endpoints
+    'POST /admin/tenants/publish': PublishTenantThemeResponseSchema,
 } as const;
 
 // Schema for the currency-specific balance data used in GroupService.addComputedFields

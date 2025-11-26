@@ -37,7 +37,7 @@ describe('Comments Validation', () => {
 
         it('should throw error for invalid target id', () => {
             expect(() => validateCreateGroupComment('', { text: 'Valid comment' })).toThrow(ApiError);
-            expect(() => validateCreateGroupComment('', { text: 'Valid comment' })).toThrow('group ID is required');
+            expect(() => validateCreateGroupComment('', { text: 'Valid comment' })).toThrow('Group ID is required');
         });
     });
 

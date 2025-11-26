@@ -163,8 +163,10 @@ describe('authorization', () => {
         const groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
         const settlementId = groupDetails.settlements.settlements[0].id;
 
+        // Currency is required when updating amount
         await expect(appDriver.updateSettlement(settlementId, {
             amount: '45.00',
+            currency: USD,
         }, user1))
             .rejects
             .toMatchObject({ code: 'NOT_SETTLEMENT_CREATOR' });

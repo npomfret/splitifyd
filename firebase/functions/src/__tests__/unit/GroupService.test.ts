@@ -228,8 +228,7 @@ describe('GroupService - Unit Tests', () => {
                     expect(() => validateCreateGroup(dataWithoutName)).toThrow(
                         expect.objectContaining({
                             statusCode: HTTP_STATUS.BAD_REQUEST,
-                            code: 'INVALID_INPUT',
-                            details: expect.stringMatching(/required/i),
+                            code: 'INVALID_GROUP_NAME',
                         }),
                     );
                 });
@@ -244,8 +243,7 @@ describe('GroupService - Unit Tests', () => {
                     expect(() => validateCreateGroup(data)).toThrow(
                         expect.objectContaining({
                             statusCode: HTTP_STATUS.BAD_REQUEST,
-                            code: 'INVALID_INPUT',
-                            details: expect.stringMatching(/less than.*characters/i),
+                            code: 'INVALID_GROUP_NAME',
                         }),
                     );
                 });

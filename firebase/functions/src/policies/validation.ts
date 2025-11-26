@@ -134,7 +134,7 @@ export const validateUpdatePolicy = createRequestValidator({
     schema: UpdatePolicyRequestSchema,
     preValidate: (payload: unknown) => payload ?? {},
     transform: (value) => ({
-        text: value.text,
+        text: sanitizeInputString(value.text),
         publish: value.publish,
     }),
     mapError: (error) => mapPolicyError(error),

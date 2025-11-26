@@ -238,6 +238,15 @@ export const validateCreateExpense = (body: unknown): CreateExpenseRequest => {
 export const validateUpdateExpense = (body: unknown): UpdateExpenseRequest => {
     const update = baseUpdateExpenseValidator(body);
 
+    // Require currency when updating amount (breaking API change - allows precision validation)
+    if (update.amount !== undefined && update.currency === undefined) {
+        throw new ApiError(
+            HTTP_STATUS.BAD_REQUEST,
+            'MISSING_CURRENCY',
+            'Currency is required when updating amount',
+        );
+    }
+
     if (update.amount !== undefined && update.currency !== undefined) {
         try {
             validateAmountPrecision(update.amount, update.currency);

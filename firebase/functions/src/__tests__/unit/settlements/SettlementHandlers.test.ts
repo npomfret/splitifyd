@@ -710,7 +710,8 @@ describe('SettlementHandlers - Unit Tests', () => {
             const userResult = await appDriver.registerUser(userReg);
             const userId = userResult.user.uid;
 
-            const updateRequest = { amount: '150' };
+            // Currency is required when updating amount
+            const updateRequest = { amount: '150', currency: USD };
 
             await expect(appDriver.updateSettlement('non-existent-settlement', updateRequest, userId)).rejects.toThrow(
                 expect.objectContaining({

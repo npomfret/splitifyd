@@ -5,6 +5,9 @@ import {
     GroupPermissions,
     MemberRoles,
     PermissionLevels,
+    toDisplayName,
+    toGroupId,
+    toGroupName,
     toUserId,
     UpdateDisplayNameRequest,
     UpdateDisplayNameRequestSchema,
@@ -12,112 +15,192 @@ import {
     UpdateGroupRequestSchema,
     UserId,
 } from '@billsplit-wl/shared';
-import { toGroupId, toGroupName } from '@billsplit-wl/shared';
-import { toDisplayName } from '@billsplit-wl/shared';
 import { z } from 'zod';
 import { HTTP_STATUS } from '../constants';
 import { ApiError } from '../utils/errors';
-import { sanitizeString } from '../utils/security';
-import { parseWithApiError } from '../utils/validation';
+import { createRequestValidator, createZodErrorMapper, sanitizeInputString } from '../validation/common';
+
+// ========================================================================
+// Error Mappers
+// ========================================================================
+
+const createGroupErrorMapper = createZodErrorMapper(
+    {
+        name: {
+            code: 'INVALID_GROUP_NAME',
+            message: () => 'Group name is required',
+        },
+        groupDisplayName: {
+            code: 'INVALID_DISPLAY_NAME',
+            message: () => 'Display name is required',
+        },
+        description: {
+            code: 'INVALID_DESCRIPTION',
+            message: (issue) => issue.message,
+        },
+        currency: {
+            code: 'INVALID_CURRENCY',
+            message: () => 'Currency must be a valid 3-letter code',
+        },
+        members: {
+            code: 'INVALID_MEMBERS',
+            message: (issue) => issue.message,
+        },
+    },
+    {
+        defaultCode: 'INVALID_INPUT',
+        defaultMessage: (issue) => issue.message,
+    },
+);
+
+const updateGroupErrorMapper = createZodErrorMapper(
+    {
+        name: {
+            code: 'INVALID_GROUP_NAME',
+            message: (issue) => issue.message,
+        },
+        description: {
+            code: 'INVALID_DESCRIPTION',
+            message: (issue) => issue.message,
+        },
+    },
+    {
+        defaultCode: 'INVALID_INPUT',
+        defaultMessage: (issue) => issue.message,
+    },
+);
+
+const updateDisplayNameErrorMapper = createZodErrorMapper(
+    {
+        displayName: {
+            code: 'INVALID_DISPLAY_NAME',
+            message: () => 'Display name is required',
+        },
+    },
+    {
+        defaultCode: 'INVALID_INPUT',
+        defaultMessage: (issue) => issue.message,
+    },
+);
+
+const updatePermissionsErrorMapper = createZodErrorMapper(
+    {
+        expenseEditing: {
+            code: 'INVALID_PERMISSION',
+            message: () => 'Invalid expense editing permission',
+        },
+        expenseDeletion: {
+            code: 'INVALID_PERMISSION',
+            message: () => 'Invalid expense deletion permission',
+        },
+        memberInvitation: {
+            code: 'INVALID_PERMISSION',
+            message: () => 'Invalid member invitation permission',
+        },
+        memberApproval: {
+            code: 'INVALID_PERMISSION',
+            message: () => 'Invalid member approval requirement',
+        },
+        settingsManagement: {
+            code: 'INVALID_PERMISSION',
+            message: () => 'Invalid settings management permission',
+        },
+    },
+    {
+        defaultCode: 'INVALID_INPUT',
+        defaultMessage: (issue) => issue.message,
+    },
+);
+
+const updateMemberRoleErrorMapper = createZodErrorMapper(
+    {
+        role: {
+            code: 'INVALID_ROLE',
+            message: () => 'Invalid member role',
+        },
+    },
+    {
+        defaultCode: 'INVALID_INPUT',
+        defaultMessage: (issue) => issue.message,
+    },
+);
+
+// ========================================================================
+// Validators
+// ========================================================================
 
 /**
  * Validate create group request
  */
-export const validateCreateGroup = (body: unknown): CreateGroupRequest => {
-    return parseWithApiError(CreateGroupRequestSchema, body, {
-        name: {
-            code: 'INVALID_INPUT',
-            message: '', // Use Zod's message
-        },
-        groupDisplayName: {
-            code: 'INVALID_INPUT',
-            message: '',
-        },
-        description: {
-            code: 'INVALID_INPUT',
-            message: '', // Use Zod's message
-        },
-    });
-};
+export const validateCreateGroup = createRequestValidator({
+    schema: CreateGroupRequestSchema,
+    preValidate: (payload: unknown) => payload ?? {},
+    transform: (value) => ({
+        name: toGroupName(sanitizeInputString(value.name)),
+        groupDisplayName: toDisplayName(sanitizeInputString(value.groupDisplayName).trim()),
+        description: value.description ? sanitizeInputString(value.description) : undefined,
+    }),
+    mapError: createGroupErrorMapper,
+}) as (body: unknown) => CreateGroupRequest;
 
 /**
  * Validate update group request
  */
-export const validateUpdateGroup = (body: unknown): UpdateGroupRequest => {
-    return parseWithApiError(UpdateGroupRequestSchema, body, {
-        name: {
-            code: 'INVALID_INPUT',
-            message: '', // Use Zod's message
-        },
-        description: {
-            code: 'INVALID_INPUT',
-            message: '', // Use Zod's message
-        },
-    });
-};
+export const validateUpdateGroup = createRequestValidator({
+    schema: UpdateGroupRequestSchema,
+    preValidate: (payload: unknown) => payload ?? {},
+    transform: (value) => {
+        const update: UpdateGroupRequest = {};
+
+        if (value.name !== undefined) {
+            update.name = toGroupName(sanitizeInputString(value.name));
+        }
+
+        if (value.description !== undefined) {
+            update.description = sanitizeInputString(value.description);
+        }
+
+        return update;
+    },
+    mapError: updateGroupErrorMapper,
+}) as (body: unknown) => UpdateGroupRequest;
 
 /**
  * Validate update display name request
  */
-export const validateUpdateDisplayName = (body: unknown): UpdateDisplayNameRequest => {
-    const maybeObject = typeof body === 'object' && body !== null ? body as Record<string, unknown> : undefined;
-    const preSanitizedBody = maybeObject
-        ? {
-            ...maybeObject,
-            displayName: typeof maybeObject.displayName === 'string'
-                ? sanitizeString(maybeObject.displayName).trim()
-                : maybeObject.displayName,
-        }
-        : body;
-
-    const parsed = parseWithApiError(UpdateDisplayNameRequestSchema, preSanitizedBody, {
-        displayName: {
-            code: 'INVALID_INPUT',
-            message: '', // Use Zod's message
-        },
-    });
-
-    return {
-        displayName: toDisplayName(sanitizeString(parsed.displayName).trim()),
-    };
-};
+export const validateUpdateDisplayName = createRequestValidator({
+    schema: UpdateDisplayNameRequestSchema,
+    preValidate: (payload: unknown) => payload ?? {},
+    transform: (value) => ({
+        displayName: toDisplayName(sanitizeInputString(value.displayName).trim()),
+    }),
+    mapError: updateDisplayNameErrorMapper,
+}) as (body: unknown) => UpdateDisplayNameRequest;
 
 /**
  * Validate group ID
  */
 export const validateGroupId = (id: unknown): GroupId => {
     if (!id || typeof id !== 'string' || id.trim().length === 0) {
-        throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_INPUT', 'group ID is required');
+        throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_GROUP_ID', 'Group ID is required');
     }
 
     return toGroupId(id.trim());
 };
 
 /**
- * Sanitize group data for safe storage
+ * Validate member ID
  */
-export const sanitizeGroupData = <T extends CreateGroupRequest | UpdateGroupRequest>(data: T): T => {
-    const sanitized: any = {};
-
-    if ('name' in data && data.name) {
-        sanitized.name = toGroupName(sanitizeString(data.name as string));
+export const validateMemberId = (memberId: unknown): UserId => {
+    if (!memberId || typeof memberId !== 'string' || memberId.trim().length === 0) {
+        throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_MEMBER_ID', 'Member ID is required');
     }
-
-    if ('groupDisplayName' in data && data.groupDisplayName !== undefined) {
-        sanitized.groupDisplayName = sanitizeString((data as any).groupDisplayName).trim();
-    }
-
-    if ('description' in data && data.description !== undefined) {
-        sanitized.description = sanitizeString(data.description);
-    }
-
-    // Handle members array if present
-    if ('members' in data && data.members) {
-        sanitized.members = data.members;
-    }
-
-    return sanitized as T;
+    return toUserId(memberId.trim());
 };
+
+// ========================================================================
+// Permission Schemas
+// ========================================================================
 
 const ExpensePermissionSchema = z.enum([
     PermissionLevels.ANYONE,
@@ -147,28 +230,20 @@ const UpdateMemberRoleSchema = z.object({
 type UpdateGroupPermissionsRequest = Partial<GroupPermissions>;
 type UpdateMemberRoleRequestBody = z.infer<typeof UpdateMemberRoleSchema>;
 
-export const validateUpdateGroupPermissionsRequest = (body: unknown): UpdateGroupPermissionsRequest => {
-    return parseWithApiError(UpdateGroupPermissionsSchema, body, {
-        expenseEditing: { code: 'INVALID_INPUT', message: 'Invalid expense editing permission' },
-        expenseDeletion: { code: 'INVALID_INPUT', message: 'Invalid expense deletion permission' },
-        memberInvitation: { code: 'INVALID_INPUT', message: 'Invalid member invitation permission' },
-        memberApproval: { code: 'INVALID_INPUT', message: 'Invalid member approval requirement' },
-        settingsManagement: { code: 'INVALID_INPUT', message: 'Invalid settings management permission' },
-    }) as UpdateGroupPermissionsRequest;
-};
+/**
+ * Validate update group permissions request
+ */
+export const validateUpdateGroupPermissionsRequest = createRequestValidator({
+    schema: UpdateGroupPermissionsSchema,
+    preValidate: (payload: unknown) => payload ?? {},
+    mapError: updatePermissionsErrorMapper,
+}) as (body: unknown) => UpdateGroupPermissionsRequest;
 
-export const validateUpdateMemberRoleRequest = (body: unknown): UpdateMemberRoleRequestBody => {
-    return parseWithApiError(UpdateMemberRoleSchema, body, {
-        role: {
-            code: 'INVALID_INPUT',
-            message: 'Invalid member role',
-        },
-    });
-};
-
-export const validateMemberId = (memberId: unknown): UserId => {
-    if (!memberId || typeof memberId !== 'string' || memberId.trim().length === 0) {
-        throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_INPUT', 'member ID is required');
-    }
-    return toUserId(memberId.trim());
-};
+/**
+ * Validate update member role request
+ */
+export const validateUpdateMemberRoleRequest = createRequestValidator({
+    schema: UpdateMemberRoleSchema,
+    preValidate: (payload: unknown) => payload ?? {},
+    mapError: updateMemberRoleErrorMapper,
+}) as (body: unknown) => UpdateMemberRoleRequestBody;

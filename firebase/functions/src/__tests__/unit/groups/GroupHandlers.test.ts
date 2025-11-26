@@ -74,7 +74,7 @@ describe('GroupHandlers - Unit Tests', () => {
             await expect(appDriver.createGroup(groupRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_INPUT',
+                    code: 'INVALID_GROUP_NAME',
                 }),
             );
         });
@@ -88,7 +88,7 @@ describe('GroupHandlers - Unit Tests', () => {
             await expect(appDriver.createGroup(groupRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_INPUT',
+                    code: 'INVALID_GROUP_NAME',
                 }),
             );
         });
@@ -101,7 +101,7 @@ describe('GroupHandlers - Unit Tests', () => {
             await expect(appDriver.createGroup(groupRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_INPUT',
+                    code: 'INVALID_DISPLAY_NAME',
                 }),
             );
         });
@@ -114,7 +114,7 @@ describe('GroupHandlers - Unit Tests', () => {
             await expect(appDriver.createGroup(groupRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_INPUT',
+                    code: 'INVALID_DISPLAY_NAME',
                 }),
             );
         });
@@ -129,7 +129,7 @@ describe('GroupHandlers - Unit Tests', () => {
             await expect(appDriver.createGroup(groupRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_INPUT',
+                    code: 'INVALID_DESCRIPTION',
                 }),
             );
         });
@@ -140,7 +140,7 @@ describe('GroupHandlers - Unit Tests', () => {
             await expect(appDriver.createGroup(invalidRequest as any, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_INPUT',
+                    code: 'INVALID_GROUP_NAME',
                 }),
             );
         });
@@ -253,7 +253,7 @@ describe('GroupHandlers - Unit Tests', () => {
             await expect(appDriver.updateGroup('', updateRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_INPUT',
+                    code: 'MISSING_GROUP_ID',
                 }),
             );
         });
@@ -267,7 +267,7 @@ describe('GroupHandlers - Unit Tests', () => {
             await expect(appDriver.updateGroup('test-group', updateRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_INPUT',
+                    code: 'INVALID_GROUP_NAME',
                 }),
             );
         });
@@ -281,7 +281,7 @@ describe('GroupHandlers - Unit Tests', () => {
             await expect(appDriver.updateGroup('test-group', updateRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_INPUT',
+                    code: 'INVALID_DESCRIPTION',
                 }),
             );
         });
@@ -311,7 +311,7 @@ describe('GroupHandlers - Unit Tests', () => {
             await expect(appDriver.deleteGroup('', 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_INPUT',
+                    code: 'MISSING_GROUP_ID',
                 }),
             );
         });
@@ -426,7 +426,7 @@ describe('GroupHandlers - Unit Tests', () => {
             await expect(appDriver.updateGroupMemberDisplayName('test-group', '', 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_INPUT',
+                    code: 'INVALID_DISPLAY_NAME',
                 }),
             );
         });
@@ -437,7 +437,7 @@ describe('GroupHandlers - Unit Tests', () => {
             await expect(appDriver.updateGroupMemberDisplayName('test-group', longName, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_INPUT',
+                    code: 'INVALID_DISPLAY_NAME',
                 }),
             );
         });
@@ -446,7 +446,7 @@ describe('GroupHandlers - Unit Tests', () => {
             await expect(appDriver.updateGroupMemberDisplayName('test-group', undefined as any, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_INPUT',
+                    code: 'INVALID_DISPLAY_NAME',
                 }),
             );
         });

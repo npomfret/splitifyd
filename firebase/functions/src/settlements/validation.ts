@@ -11,6 +11,7 @@ import {
 import { toUserId } from '@billsplit-wl/shared';
 import { z } from 'zod';
 import { HTTP_STATUS } from '../constants';
+import { validateAmountPrecision } from '../utils/amount-validation';
 import { ApiError } from '../utils/errors';
 import { createRequestValidator, createZodErrorMapper, sanitizeInputString } from '../validation/common';
 
@@ -143,11 +144,40 @@ const settlementIdSchema = z
     .min(1, 'Settlement ID cannot be empty');
 
 export const validateCreateSettlement = (body: unknown): CreateSettlementRequest => {
-    return baseValidateCreateSettlement(body);
+    const value = baseValidateCreateSettlement(body);
+
+    // Validate amount precision against currency
+    try {
+        validateAmountPrecision(value.amount, value.currency);
+    } catch (error) {
+        throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_AMOUNT_PRECISION', (error as Error).message);
+    }
+
+    return value;
 };
 
 export const validateUpdateSettlement = (body: unknown): UpdateSettlementRequest => {
-    return baseValidateUpdateSettlement(body);
+    const update = baseValidateUpdateSettlement(body);
+
+    // Require currency when updating amount (allows precision validation)
+    if (update.amount !== undefined && update.currency === undefined) {
+        throw new ApiError(
+            HTTP_STATUS.BAD_REQUEST,
+            'MISSING_CURRENCY',
+            'Currency is required when updating amount',
+        );
+    }
+
+    // Validate amount precision against currency
+    if (update.amount !== undefined && update.currency !== undefined) {
+        try {
+            validateAmountPrecision(update.amount, update.currency);
+        } catch (error) {
+            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_AMOUNT_PRECISION', (error as Error).message);
+        }
+    }
+
+    return update;
 };
 
 export const validateSettlementId = (value: unknown): SettlementId => {

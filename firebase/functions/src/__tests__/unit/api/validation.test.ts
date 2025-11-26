@@ -259,7 +259,7 @@ describe('validation and edge cases', () => {
 
         await expect(appDriver.updateGroupMemberDisplayName(groupId, '', user2))
             .rejects
-            .toMatchObject({ code: 'INVALID_INPUT' });
+            .toMatchObject({ code: 'INVALID_DISPLAY_NAME' });
     });
 
     it('should reject group member display name updates when the name collides with another member (base58 normalization)', async () => {
@@ -476,7 +476,7 @@ describe('validation and edge cases', () => {
                 ),
             )
                 .rejects
-                .toMatchObject({ code: 'INVALID_INPUT' });
+                .toMatchObject({ code: 'INVALID_DESCRIPTION' });
         });
 
         it('should enforce maximum length on expense description', async () => {

@@ -4,11 +4,11 @@
 
 While the project has a strong foundation for a schema-driven architecture, particularly in the `packages/shared` directory, its application is inconsistent. This has resulted in significant gaps across multiple areas:
 
-1. **CRITICAL**: No backend response validation - responses are never validated against schemas before sending (mitigated by frontend validation)
+1. ~~**CRITICAL**: No backend response validation~~ → **RESOLVED** (November 2025 - response validation middleware added)
 2. ~~**CRITICAL**: No schema contract tests~~ → **RESOLVED** (commit 2bd04f1b added comprehensive `api-schemas.test.ts`)
 3. **HIGH**: Frontend forms don't use shared request schemas - manual validation duplicates rules (acknowledged gap with future plan)
-4. **HIGH**: Sanitization inconsistency - create operations sanitize, but updates often don't
-5. **HIGH**: Groups module uses legacy validation pattern instead of `createRequestValidator`
+4. ~~**HIGH**: Sanitization inconsistency~~ → **RESOLVED** (November 2025 - policies update now sanitizes)
+5. ~~**HIGH**: Groups module uses legacy validation pattern~~ → **RESOLVED** (November 2025 - migrated to `createRequestValidator`)
 
 ---
 
@@ -16,50 +16,40 @@ While the project has a strong foundation for a schema-driven architecture, part
 
 | Priority | Count | Description |
 |----------|-------|-------------|
-| CRITICAL | 1 | Must fix - security/reliability risks |
-| HIGH | 5 | Should fix - significant maintenance burden |
+| CRITICAL | 0 | Must fix - security/reliability risks |
+| HIGH | 1 | Should fix - significant maintenance burden |
 | MEDIUM | 4 | Nice to have - consistency improvements |
 | LOW | 2 | Minor - housekeeping |
-| RESOLVED | 1 | Recently fixed |
+| RESOLVED | 6 | Recently fixed |
 
 ---
 
-## 1. Backend Response Validation [CRITICAL]
+## 1. Backend Response Validation [RESOLVED ✅]
 
-**The backend does NOT validate its own responses before sending them to clients.**
+**~~The backend does NOT validate its own responses before sending them to clients.~~**
 
-### Mitigating Factor
+### Status: RESOLVED (November 2025)
 
-Per `docs/guides/code.md`, the **frontend DOES validate API responses** using Zod schemas via `apiClient`. This provides runtime protection on the client side, catching malformed responses before they corrupt application state.
+Response validation middleware was added to `firebase/functions/src/utils/middleware.ts`.
 
-However, this is defense-in-depth, not a substitute for server-side validation.
+### Implementation Details
 
-### Evidence
+1. **Response validation middleware** intercepts all `res.json()` calls
+2. **Path normalization** converts Express paths to schema keys (e.g., `/groups/abc123` → `/groups/:id`)
+3. **Schema lookup** matches `METHOD /path` against `responseSchemas` in `apiSchemas.ts`
+4. **Strict mode**: Returns 500 `RESPONSE_VALIDATION_FAILED` error if response doesn't match schema
+5. **Only validates 2xx responses** - error responses have different structure
 
-Handlers directly call `res.json(serviceResult)` without schema validation:
+### Key Functions Added
+- `normalizePath(path: string)` - Normalizes dynamic path segments to parameter placeholders
+- `getResponseSchema(method: string, path: string)` - Looks up response schema for endpoint
 
-```typescript
-// ExpenseHandlers.ts:20
-const expense = await this.expenseService.createExpense(userId, expenseData);
-res.status(HTTP_STATUS.CREATED).json(expense);  // Never validated server-side
+### Tests Added
+- `firebase/functions/src/__tests__/unit/middleware/response-validation.test.ts` (18 tests)
 
-// GroupHandlers.ts
-const group = await this.groupService.createGroup(userId, sanitizedData);
-res.status(HTTP_STATUS.CREATED).json(group);  // Never validated server-side
-```
-
-### Affected Files
-- `firebase/functions/src/expenses/ExpenseHandlers.ts`
-- `firebase/functions/src/groups/GroupHandlers.ts`
-- `firebase/functions/src/settlements/SettlementHandlers.ts`
-- `firebase/functions/src/comments/CommentHandlers.ts`
-- All other handler files
-
-### Impact
-- Services could return malformed data (missing fields, wrong types, extra fields)
-- Frontend validation catches issues at runtime, but errors surface to users rather than failing fast on server
-- No server-side guarantee that responses match TypeScript types
-- Potential for schema drift between what server sends and what schemas define
+### Bug Fixes During Implementation
+- Fixed path normalization to exclude static endpoints (`/groups/share`, `/groups/join`, etc.) using negative lookahead regex
+- Added missing `DELETE /groups/:id` schema
 
 ---
 
@@ -83,68 +73,62 @@ Commit `2bd04f1b` added comprehensive API schema validation tests in `packages/s
 
 ---
 
-## 3. Missing Response Schemas [HIGH]
+## 3. Missing Response Schemas [RESOLVED ✅]
 
-**9+ response types have TypeScript interfaces but no Zod schemas.**
+**~~9+ response types have TypeScript interfaces but no Zod schemas.~~**
 
-Per `docs/guides/types.md`: *"ALL request/response types MUST be defined in the shared package... No exceptions - request/response types always go in shared."*
+### Status: RESOLVED (November 2025)
 
-These missing schemas violate project guidelines.
+All missing response schemas were added to `packages/shared/src/schemas/apiSchemas.ts`.
 
-### Missing Schemas
+### Schemas Added
 
-| Type | Location in `shared-types.ts` | Notes |
-|------|-------------------------------|-------|
-| `RegisterResponse` | Lines 1076-1083 | No schema |
-| `MergeJobResponse` | Lines 1155-1164 | No schema |
-| `InitiateMergeResponse` | Lines 1147-1150 | No schema |
-| `CreatePolicyResponse` | Lines 1248-1261 | No schema |
-| `UpdatePolicyResponse` | Lines 1248-1261 | No schema |
-| `PublishPolicyResponse` | Lines 1248-1261 | No schema |
-| `ListAuthUsersResponse` | Lines 1614-1628 | No schema |
-| `ListFirestoreUsersResponse` | Lines 1614-1628 | No schema |
-| `TenantBrowserRecord` | Lines 1630-1645 | No schema |
-| `ListAllTenantsResponse` | Lines 1630-1645 | No schema |
-| `PublishTenantThemeResponse` | Lines 1651-1664 | No schema |
+| Schema | Notes |
+|--------|-------|
+| `InitiateMergeResponseSchema` | For POST /merge |
+| `MergeJobResponseSchema` | For GET /merge/:jobId |
+| `CreatePolicyResponseSchema` | For POST /admin/policies |
+| `UpdatePolicyResponseSchema` | For PUT /admin/policies/:id |
+| `PublishPolicyResponseSchema` | For POST /admin/policies/:id/publish |
+| `ListFirestoreUsersResponseSchema` | For GET /admin/browser/users/firestore |
+| `PublishTenantThemeResponseSchema` | For POST /admin/tenants/publish |
 
-### Impact
-- Cannot validate these responses at runtime
-- Frontend cannot verify API contracts for these endpoints
+### Bug Fix
+`PublishTenantThemeResponseSchema` was initially incorrect (had `success` and `message` fields). Fixed to match actual `PublishTenantThemeResult` type with `cssUrl`, `tokensUrl`, and `artifact` fields.
 
 ---
 
-## 4. Validation Edge Cases [HIGH]
+## 4. Validation Edge Cases [PARTIALLY RESOLVED]
 
-### 4.1 Sanitization Inconsistency
+### 4.1 Sanitization Inconsistency [RESOLVED ✅]
 
-**Create operations sanitize inputs, but update operations often skip sanitization.**
+**~~Create operations sanitize inputs, but update operations often skip sanitization.~~**
 
-| Feature | Create Sanitizes | Update Sanitizes | Gap |
-|---------|------------------|------------------|-----|
-| Groups | ✅ Yes | ❌ No | `validateUpdateGroup` uses `parseWithApiError` directly |
-| Policies | ✅ Yes | ❌ No | `validateUpdatePolicy` passes `value.text` without sanitization |
-| Expenses | ✅ Yes | ✅ Yes | Consistent |
-| Settlements | ✅ Yes | ✅ Yes | Consistent |
+#### Status: RESOLVED (November 2025)
 
-**Files with gaps:**
-- `firebase/functions/src/groups/validation.ts:47-56` - `validateUpdateGroup` bypasses sanitization
-- `firebase/functions/src/policies/validation.ts:137` - `validateUpdatePolicy` doesn't sanitize text
+| Feature | Create Sanitizes | Update Sanitizes | Status |
+|---------|------------------|------------------|--------|
+| Groups | ✅ Yes | ✅ Yes | Fixed - migrated to `createRequestValidator` with integrated sanitization |
+| Policies | ✅ Yes | ✅ Yes | Fixed - added `sanitizeInputString(value.text)` to transform |
+| Expenses | ✅ Yes | ✅ Yes | Already consistent |
+| Settlements | ✅ Yes | ✅ Yes | Already consistent |
 
-**Security Impact:** XSS vulnerabilities via update operations
+### 4.2 Amount Precision Validation Gaps [RESOLVED ✅]
 
-### 4.2 Amount Precision Validation Gaps
+**~~Settlement operations missing precision validation.~~**
+
+#### Status: RESOLVED (November 2025)
 
 | Scenario | Validated | Notes |
 |----------|-----------|-------|
 | Expense create with amount+currency | ✅ Yes | Precision checked |
 | Expense update with amount+currency | ✅ Yes | Precision checked |
-| Expense update with amount only | ❌ No | Skips precision check (line 291-293 comments on this) |
-| Settlement create | ❌ No | No precision validation at all |
-| Settlement update | ❌ No | Only validates if both amount AND currency provided |
+| Expense update with amount only | ✅ Yes | Now requires currency when updating amount |
+| Settlement create | ✅ Yes | Added `validateAmountPrecision` |
+| Settlement update | ✅ Yes | Now requires currency when updating amount + precision validation |
 
-**Files:**
-- `firebase/functions/src/expenses/validation.ts:291-293`
-- `firebase/functions/src/settlements/validation.ts:241-246`
+#### Breaking API Change
+Both expense and settlement updates now **require `currency` field when `amount` is provided**.
 
 ### 4.3 Pagination Limits Not Enforced
 
@@ -166,60 +150,46 @@ Cursor validation accepts any base64 string without validating internal structur
 
 ---
 
-## 5. Backend Validation Pattern Inconsistency [HIGH]
+## 5. Backend Validation Pattern Inconsistency [RESOLVED ✅]
 
-**Two competing validation patterns exist in the codebase.**
+**~~Two competing validation patterns exist in the codebase.~~**
 
-Per `docs/guides/validation.md`: *"Build request validators with `createRequestValidator` so that parsing, sanitisation, and error mapping remain consistent."*
+### Status: RESOLVED (November 2025)
 
-The groups module does not follow this guidance.
+The groups module has been migrated to the modern `createRequestValidator` pattern.
 
 ### Modern Pattern: `createRequestValidator`
 
-**Used in:** `auth`, `comments`, `expenses`, `merge`, `policies`, `settlements`, `user` (7 modules)
+**Now used in:** `auth`, `comments`, `expenses`, `groups`, `merge`, `policies`, `settlements`, `user` (8 modules)
 
 **Location:** `firebase/functions/src/validation/common/request-validator.ts`
 
-**Features:**
-- Field-specific error codes (`MISSING_GROUP_ID`, `INVALID_AMOUNT`)
-- Function-based messages that inspect Zod issues
-- Integrated `transform` step for sanitization
-- Separate `mapError` handler
+### Groups Module Migration
 
-```typescript
-const baseCreateExpenseValidator = createRequestValidator({
-    schema: CreateExpenseRequestSchema,
-    transform: (value) => ({
-        description: sanitizeInputString(value.description),
-        // All sanitization in one place
-    }),
-    mapError: (error) => createExpenseErrorMapper(error),
-});
-```
+#### Files Modified
+- `firebase/functions/src/groups/validation.ts` - Complete rewrite
+- `firebase/functions/src/groups/GroupHandlers.ts` - Removed `sanitizeGroupData` calls
 
-### Legacy Pattern: `parseWithApiError`
+#### Changes
+- Migrated from legacy `parseWithApiError` to modern `createRequestValidator` pattern
+- Created field-specific error mappers:
+  - `createGroupErrorMapper`
+  - `updateGroupErrorMapper`
+  - `updateDisplayNameErrorMapper`
+  - `updatePermissionsErrorMapper`
+  - `updateMemberRoleErrorMapper`
+- Integrated sanitization into validator transforms
+- Removed `sanitizeGroupData()` function
 
-**Used in:** `groups` (1 module)
+#### New Error Codes
 
-**Location:** `firebase/functions/src/utils/validation.ts`
-
-**Features:**
-- Generic `INVALID_INPUT` error codes
-- Static string messages only
-- Sanitization done separately in `sanitizeGroupData()`
-
-```typescript
-export const validateCreateGroup = (body: unknown): CreateGroupRequest => {
-    return parseWithApiError(CreateGroupRequestSchema, body, {
-        name: { code: 'INVALID_INPUT', message: '' },
-    });
-};
-```
-
-### Impact
-- Inconsistent error codes for clients
-- Duplicated sanitization logic
-- Harder to maintain
+| Old Code | New Code |
+|----------|----------|
+| `INVALID_INPUT` | `INVALID_GROUP_NAME` |
+| `INVALID_INPUT` | `INVALID_DISPLAY_NAME` |
+| `INVALID_INPUT` | `INVALID_DESCRIPTION` |
+| `INVALID_INPUT` | `MISSING_GROUP_ID` |
+| `INVALID_INPUT` | `MISSING_MEMBER_ID` |
 
 ---
 
@@ -385,16 +355,16 @@ private parseQuery(query: Record<string, unknown>): ActivityFeedQuery {
 
 ## Recommendations
 
-### Immediate (Critical)
-1. Add response validation middleware that validates all responses before sending
+### Immediate (Critical) - ALL RESOLVED ✅
+1. ~~Add response validation middleware that validates all responses before sending~~ → DONE (November 2025)
 2. ~~Add schema contract tests for all endpoints~~ → DONE (commit 2bd04f1b)
-3. Apply sanitization consistently to all update operations
+3. ~~Apply sanitization consistently to all update operations~~ → DONE (November 2025)
 
-### Short-term (High Priority)
-4. Create Zod schemas for all missing response types
-5. Migrate groups module to modern `createRequestValidator` pattern
-6. Integrate shared request schemas into frontend form validation
-7. Fix amount precision validation gaps
+### Short-term (High Priority) - MOSTLY RESOLVED
+4. ~~Create Zod schemas for all missing response types~~ → DONE (November 2025)
+5. ~~Migrate groups module to modern `createRequestValidator` pattern~~ → DONE (November 2025)
+6. Integrate shared request schemas into frontend form validation (acknowledged future work)
+7. ~~Fix amount precision validation gaps~~ → DONE (November 2025)
 
 ### Medium-term (Important)
 8. Standardize error response format
