@@ -191,14 +191,6 @@ type RequestInterceptor = (config: RequestConfig) => RequestConfig | Promise<Req
 type ResponseInterceptor = <T>(response: T, config: RequestConfig) => T | Promise<T>;
 
 // Retry configuration
-const FirestoreUserSchema = z.object({ id: z.string() }).passthrough();
-
-const ListFirestoreUsersResponseSchema = z.object({
-    users: z.array(FirestoreUserSchema),
-    nextCursor: z.string().optional(),
-    hasMore: z.boolean(),
-});
-
 const RETRY_CONFIG = {
     maxAttempts: 3,
     retryableHttpMethods: ['GET', 'PUT'] as const,
@@ -996,21 +988,11 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
             query.displayName = options.displayName;
         }
 
-        const response = await this.request({
+        return this.request<ListFirestoreUsersResponse>({
             endpoint: '/admin/browser/users/firestore',
             method: 'GET',
             query: Object.keys(query).length > 0 ? query : undefined,
-            schema: ListFirestoreUsersResponseSchema,
         });
-
-        // Map 'id' field to 'uid' to match FirestoreUser interface
-        return {
-            ...response,
-            users: response.users.map((user: any) => ({
-                ...user,
-                uid: user.id || user.uid,
-            })),
-        } as ListFirestoreUsersResponse;
     }
 
     async listAllTenants(): Promise<ListAllTenantsResponse> {

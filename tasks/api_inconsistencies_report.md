@@ -1,6 +1,6 @@
 # API Inconsistency and Duplication Report
 
-> **Last Updated:** November 2025 - Updated to reflect route parameter naming standardization
+> **Last Updated:** November 2025 - Issues #1, #2, #4 resolved; Issue #3 assessed in detail
 
 ### Summary of Findings
 
@@ -16,18 +16,27 @@ The investigation reveals several significant inconsistencies and gaps in the pr
   - `:id` → `:policyId` (for policy routes)
   - `:uid` → `:userId` (for admin user routes)
   - Frontend normalization logic simplified from 7 special-case patterns to 6 generic replacements.
+- **Validation Patterns Standardized:** Commit `a9b18242` migrated all validation to the `createRequestValidator` pattern. All 9 validation files now use consistent error handling with `createZodErrorMapper` for field-specific error messages.
+- **Schema Duplication Removed:** Deleted local `ListFirestoreUsersResponseSchema` from `webapp-v2/src/app/apiClient.ts`. The endpoint now uses the shared schema from `apiSchemas.ts`. Also removed obsolete `id` → `uid` field mapping (backend already returns `uid`).
 
 1.  ~~**Inconsistent Endpoint Naming:**~~ **RESOLVED.** Route parameters are now consistently named across all endpoints (`:groupId`, `:expenseId`, `:policyId`, `:userId`, `:settlementId`, `:memberId`). The frontend client normalization logic has been simplified accordingly.
 
-2.  **Inconsistent Error Handling:** The backend employs two distinct patterns for request validation. A newer, cleaner `parseWithApiError` function is used in some features (like `groups`), while an older, more verbose `createZodErrorMapper` factory is used in others (`user`, `expenses`, `comments`). This suggests an incomplete refactoring and adds cognitive overhead for developers.
+2.  ~~**Inconsistent Error Handling:**~~ **RESOLVED.** All 9 validation files now use the consistent `createRequestValidator` pattern with `createZodErrorMapper` for field-specific error messages (commit `a9b18242`). The legacy `parseWithApiError` function has been deprecated.
 
-3.  **Incomplete Schema Coverage:** A large number of API endpoints defined in the backend are missing corresponding response schemas in the shared `packages/shared/src/schemas/apiSchemas.ts` file. This includes many group member management endpoints, all admin policy endpoints, and account merge endpoints. As a result, the frontend does not perform runtime validation for these API calls, undermining the type safety and error-checking goals of the architecture.
+3.  **Incomplete Schema Coverage:** Several API endpoints are missing response schemas in `apiSchemas.ts`. Missing schemas include:
+    - Group member management: `PUT /groups/:groupId/security/permissions`, `POST /groups/:groupId/archive`, `POST /groups/:groupId/unarchive`, `GET /groups/:groupId/members/pending`, `PUT /groups/:groupId/members/:memberId/role`, `POST /groups/:groupId/members/:memberId/approve`, `POST /groups/:groupId/members/:memberId/reject`
+    - Admin policy: `GET /admin/policies` (list), `GET /admin/policies/:policyId`, `GET /admin/policies/:policyId/versions/:hash`, `DELETE /admin/policies/:policyId/versions/:hash`
+    - Admin user: `GET /admin/users/:userId/auth`, `GET /admin/users/:userId/firestore`
+    - Admin tenant: `POST /admin/tenants`, `POST /admin/tenants/:tenantId/assets/:assetType`
+    - Group preview: `GET /groups/preview`
 
-4.  **Schema Duplication:** The frontend `apiClient.ts` defines its own local Zod schema for the `/admin/browser/users/firestore` endpoint. This is a direct result of that endpoint's schema being missing from the shared `apiSchemas.ts`, forcing the frontend developer to create a one-off solution.
+    Note: Merge and policy create/update/publish schemas were added in commit `a9b18242`.
+
+4.  ~~**Schema Duplication:**~~ **RESOLVED.** Removed local `ListFirestoreUsersResponseSchema` from `apiClient.ts`. The endpoint now uses the shared schema.
 
 5.  **Potential Security Gap:** The `/tasks/processMerge` endpoint relies on cloud infrastructure for authorization, as noted by a comment in `route-config.ts`. This deviates from the consistent application-level middleware pattern (`authenticate`, `authenticateAdmin`) used elsewhere and could be a point of failure if the infrastructure is misconfigured.
 
-In summary, the API layer has made progress on standardization (route parameter naming is now consistent), but still has issues with error handling patterns, schema coverage, and response format consistency that create technical debt.
+In summary, the API layer has made good progress on standardization (route parameter naming, validation patterns, and schema location are now consistent), but still has issues with schema coverage for admin endpoints and response format consistency that create technical debt.
 ---
 
 ### 6. API Contract Inconsistencies (`packages/shared/src/api.ts`)
