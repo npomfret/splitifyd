@@ -13,7 +13,7 @@ import {
     SimplifiedDebtSchema,
     TenantDomainsResponseSchema,
     TenantSettingsResponseSchema,
-} from '@billsplit-wl/shared';
+} from '../../index';
 import { describe, expect, it } from 'vitest';
 
 /**

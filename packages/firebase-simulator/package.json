@@ -27,7 +27,7 @@
     "test:integration": "ORIGINAL_TEST_SCRIPT=test:integration node ../../scripts/test-wrapper.js"
   },
   "devDependencies": {
-    "@billsplit-wl/test-support": "^1.0.0",
+    "@billsplit-wl/test-support": "*",
     "@types/node": "^24.0.14",
     "tsup": "^8.0.0",
     "typescript": "^5.8.3",

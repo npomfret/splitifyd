@@ -1,5 +1,4 @@
-import { TenantConfigSchema } from '@billsplit-wl/shared';
-import { TenantBrowserRecordBuilder } from '@billsplit-wl/test-support';
+import { TenantConfigSchema } from '../../index';
 import { describe, expect, it } from 'vitest';
 
 /**
@@ -14,32 +13,38 @@ import { describe, expect, it } from 'vitest';
  *
  * This was the root cause of the tenant editor bug where surfaceColor
  * and other fields were being stripped out.
+ *
+ * NOTE: This test uses inline test data instead of builders from test-support
+ * to avoid circular dependencies (shared -> test-support -> shared).
  */
 describe('Tenant API Response Validation', () => {
     describe('TenantConfigSchema', () => {
         it('should validate ALL branding fields including surfaceColor and textColor', () => {
-            // Use builder to create test data with ALL fields
-            const tenantRecord = new TenantBrowserRecordBuilder()
-                .withTenantId('test-tenant')
-                .withAppName('Test App')
-                .withLogoUrl('/logo.svg')
-                .withFaviconUrl('/favicon.ico')
-                .withPrimaryColor('#3B82F6')
-                .withSecondaryColor('#8B5CF6')
-                .withAccentColor('#EC4899')
-                .withSurfaceColor('#ffffff')
-                .withTextColor('#1F2937')
-                .withThemePalette('default')
-                .withCustomCss('/* test */')
-                .withMarketingFlags({
-                    showLandingPage: true,
-                    showMarketingContent: true,
-                    showPricingPage: false,
-                })
-                .build();
+            // Inline test data to avoid circular dependency with test-support
+            const tenantConfig = {
+                id: 'test-tenant',
+                domains: ['test.example.com'],
+                branding: {
+                    appName: 'Test App',
+                    logoUrl: '/logo.svg',
+                    faviconUrl: '/favicon.ico',
+                    primaryColor: '#3B82F6',
+                    secondaryColor: '#8B5CF6',
+                    accentColor: '#EC4899',
+                    surfaceColor: '#ffffff',
+                    textColor: '#1F2937',
+                    themePalette: 'default',
+                    customCSS: '/* test */',
+                    marketingFlags: {
+                        showLandingPage: true,
+                        showMarketingContent: true,
+                        showPricingPage: false,
+                    },
+                },
+            };
 
             // Parse the tenant config with the schema - this simulates schema validation
-            const result = TenantConfigSchema.parse(tenantRecord.tenant);
+            const result = TenantConfigSchema.parse(tenantConfig);
 
             // Verify ALL branding fields are preserved after schema validation
             const branding = result.branding;
