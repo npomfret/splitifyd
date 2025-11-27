@@ -19,9 +19,9 @@ While the project has a strong foundation for a schema-driven architecture, part
 | CRITICAL | 0 | Must fix - security/reliability risks |
 | HIGH | 0 | Should fix - significant maintenance burden |
 | MEDIUM | 0 | Nice to have - consistency improvements |
-| LOW | 1 | Minor - housekeeping |
-| PARTIAL | 1 | Partially resolved (item #6) |
-| RESOLVED | 13 | Recently fixed |
+| LOW | 0 | Minor - housekeeping |
+| PARTIAL | 1 | Partially resolved (item #6 - intentionally partial) |
+| RESOLVED | 14 | All actionable items complete |
 
 ---
 
@@ -447,15 +447,33 @@ All ID validation now uses centralized Zod schema validators in `validation/comm
 
 ---
 
-## 12. Empty Content Validation [LOW]
+## 12. Empty Content Validation [RESOLVED ✅]
 
-**Comment text allows whitespace-only content after sanitization.**
+**~~Comment text allows whitespace-only content after sanitization.~~**
 
+### Status: RESOLVED (November 2025)
+
+Investigation revealed this was **already handled** by the existing validation.
+
+### How It Works
+
+`CommentTextSchema` in `packages/shared/src/schemas/apiRequests.ts`:
 ```typescript
-// comments/validation.ts:27
-// Uses CommentBodySchema - validates it's a string, then sanitizes
-// But "   " becomes "" after trim and is still allowed
+export const CommentTextSchema = z
+    .string()
+    .trim()           // ← Trims whitespace first
+    .min(1, '...')    // ← Then rejects empty strings
+    .max(500, '...');
 ```
+
+**Flow:** Input `"   "` → `.trim()` → `""` → `.min(1)` → **REJECTED** ✅
+
+### Existing Tests Confirm This
+
+- `comments-validation.test.ts`: "throws ApiError for blank text"
+- `CommentHandlers.test.ts`: "should reject comment with only whitespace"
+
+Both tests verify `{ text: '  ' }` throws `INVALID_COMMENT_TEXT` (HTTP 400).
 
 ---
 
