@@ -22,7 +22,6 @@ import { ExpenseHandlers } from './expenses/ExpenseHandlers';
 import { GroupHandlers } from './groups/GroupHandlers';
 import { GroupMemberHandlers } from './groups/GroupMemberHandlers';
 import { GroupShareHandlers } from './groups/GroupShareHandlers';
-import { MergeHandlers } from './merge/MergeHandlers';
 import { PolicyHandlers } from './policies/PolicyHandlers';
 import { UserHandlers as PolicyUserHandlers } from './policies/UserHandlers';
 import { SettlementHandlers } from './settlements/SettlementHandlers';

@@ -2,7 +2,7 @@ import type { RequestHandler } from 'express';
 import type { AuthenticatedRequest } from '../auth/middleware';
 import { HTTP_STATUS } from '../constants';
 import { AdminUpsertTenantRequestSchema, PublishTenantThemeRequestSchema } from '../schemas/tenant';
-import type { IFirestoreReader } from '../services/firestore/IFirestoreReader';
+import type { IFirestoreReader } from '../services/firestore';
 import type { TenantAssetStorage } from '../services/storage/TenantAssetStorage';
 import { TenantAdminService } from '../services/tenant/TenantAdminService';
 import { ApiError } from '../utils/errors';

@@ -3,7 +3,6 @@ import {
     toTenantAccentColor,
     toTenantAppName,
     toTenantCustomCss,
-    toTenantDomainName,
     toTenantFaviconUrl,
     toTenantLogoUrl,
     toTenantPrimaryColor,

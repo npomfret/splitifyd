@@ -3,9 +3,7 @@
 import { PolicyIds, PolicyName, toPolicyName, toPolicyText } from '@billsplit-wl/shared';
 import { ApiDriver, getFirebaseEmulatorConfig } from '@billsplit-wl/test-support';
 import * as fs from 'fs';
-import assert from 'node:assert';
 import * as path from 'path';
-import { loadRuntimeConfig } from '../shared/scripts-config';
 import { getEnvironment, initializeFirebase } from './firebase-init';
 import { signInExistingBillSplitter } from './test-data-generator';
 

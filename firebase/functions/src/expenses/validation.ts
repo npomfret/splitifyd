@@ -2,7 +2,6 @@ import {
     CreateExpenseRequest,
     CreateExpenseRequestSchema,
     ExpenseId,
-    GroupId,
     ListExpensesQuerySchema,
     SplitTypes,
     toExpenseId,

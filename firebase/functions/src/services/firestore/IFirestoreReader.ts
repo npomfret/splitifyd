@@ -13,7 +13,7 @@
  * - Real-time subscription management
  */
 
-import type { ActivityFeedItem, CommentId, ExpenseId, ISOString, MemberStatus, TenantConfig, TenantDefaultFlag, TenantDomainName, TenantId, UserId } from '@billsplit-wl/shared';
+import type { ActivityFeedItem, CommentId, ExpenseId, ISOString, MemberStatus, TenantDomainName, TenantId, UserId } from '@billsplit-wl/shared';
 import type { IDocumentReference, IDocumentSnapshot, IQuerySnapshot, ITransaction } from '../../firestore-wrapper';
 import type { FirestoreAuditMetadata } from '../../schemas/common';
 

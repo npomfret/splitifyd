@@ -1,7 +1,6 @@
 import {
     CreateSettlementRequest,
     CreateSettlementRequestSchema,
-    type GroupId,
     ListSettlementsQuerySchema,
     type SettlementId,
     toGroupId,

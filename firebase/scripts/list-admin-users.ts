@@ -12,7 +12,7 @@
  */
 import { SystemUserRoles } from '@billsplit-wl/shared';
 import * as admin from 'firebase-admin';
-import type { Firestore, QueryDocumentSnapshot } from 'firebase-admin/firestore';
+import type { Firestore } from 'firebase-admin/firestore';
 import { FirestoreCollections } from '../functions/src/constants';
 import { getFirestore } from '../functions/src/firebase';
 import { initializeFirebase, parseEnvironment, type ScriptEnvironment } from './firebase-init';
