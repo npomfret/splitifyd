@@ -1183,7 +1183,7 @@ test.describe('Expense Form', () => {
             await expenseFormPage.selectPayer(testUser.displayName);
             await expenseFormPage.selectSplitParticipants(['User 2']);
             await expenseFormPage.fillAmount('');
-            await expenseFormPage.verifyAmountErrorMessageContains('Amount is required');
+            await expenseFormPage.verifyAmountErrorMessageContains('valid decimal number');
             await expenseFormPage.expectAmountValue('');
             await expenseFormPage.expectFormOpen();
             await expect(page).toHaveURL(new RegExp(`/groups/${groupId}/add-expense`));
@@ -1197,7 +1197,7 @@ test.describe('Expense Form', () => {
             await expenseFormPage.fillDescription('Zero amount');
             await expenseFormPage.selectCurrency('USD');
             await expenseFormPage.fillAmount('0');
-            await expenseFormPage.verifyAmountErrorMessageContains('Amount must be greater than 0');
+            await expenseFormPage.verifyAmountErrorMessageContains('Amount must be greater than zero');
             await expenseFormPage.expectAmountValue('0');
             await expenseFormPage.expectFormOpen();
             await expect(page).toHaveURL(new RegExp(`/groups/${groupId}/add-expense`));
@@ -1249,7 +1249,7 @@ test.describe('Expense Form', () => {
             await expenseFormPage.selectPayer(testUser.displayName);
             await expenseFormPage.selectSplitParticipants(['User 2']);
 
-            await expenseFormPage.verifyAmountErrorMessageContains('Amount seems too large');
+            await expenseFormPage.verifyAmountErrorMessageContains('Amount cannot exceed');
             await expenseFormPage.expectAmountValue('1000001');
             await expenseFormPage.expectFormOpen();
             await expect(page).toHaveURL(new RegExp(`/groups/${groupId}/add-expense`));

@@ -256,23 +256,28 @@ Major frontend forms now use shared Zod schemas for validation:
 | LoginPage | **Migrated** | `EmailSchema` |
 | ResetPasswordPage | **Migrated** | `EmailSchema` |
 | RegisterPage | **Migrated** | `RegisterRequestSchema` |
-| ExpenseFormStore | **Migrated** | `ExpenseFormFieldsSchema` (local, uses `CurrencyCodeSchema`) |
+| ExpenseFormStore | **Migrated** | `ExpenseFormFieldsSchema` (uses `CurrencyCodeSchema`, `createAmountSchema`) |
 
 ### What Was Changed
 
 **Auth Pages** - Now use `EmailSchema` and `RegisterRequestSchema` from shared package instead of manual checks.
 
-**ExpenseFormStore** - Created `ExpenseFormFieldsSchema` for simple fields (description, amount, currency, label, paidBy). Complex split validation remains manual by design due to currency-aware math requirements.
+**ExpenseFormStore** - Uses `ExpenseFormFieldsSchema` for simple fields:
+- `amount` - Uses shared `createAmountSchema()` for consistent validation with backend
+- `currency` - Uses shared `CurrencyCodeSchema`
+- `description`, `label`, `paidBy` - Local schemas (string validation only)
 
-### Remaining Manual Validation
+Complex split validation remains manual by design due to currency-aware math requirements.
 
-- **Expense splits** - Complex EQUAL/EXACT/PERCENTAGE calculations with currency precision
-- **Date validation** - Form uses local date (YYYY-MM-DD), schema expects UTC ISO format
-- **Participants** - Simple array length check (trivial)
+### Remaining Manual Validation (Intentionally Not Migrated)
+
+- **Expense splits** - Complex EQUAL/EXACT/PERCENTAGE calculations with currency precision, cross-field validation (splits must sum to total), floating-point safe math
+- **Date validation** - Form uses local date (YYYY-MM-DD), schema expects UTC ISO format - format mismatch prevents direct schema usage
+- **Participants** - Simple array length check (trivial, schema would add no value)
 
 ### Impact Reduction
 - Auth forms: Full schema coverage
-- Expense forms: ~70% schema coverage (simple fields migrated, complex splits manual)
+- Expense forms: ~75% schema coverage (simple fields use shared schemas, complex splits appropriately manual)
 
 ---
 

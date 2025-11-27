@@ -8,6 +8,7 @@ import {
     calculateEqualSplits,
     calculateExactSplits,
     calculatePercentageSplits,
+    createAmountSchema,
     CreateExpenseRequest,
     CurrencyCodeSchema,
     ExpenseDTO,
@@ -31,12 +32,7 @@ const ExpenseFormFieldsSchema = z.object({
         .string()
         .min(1, 'Description is required')
         .max(200, 'Description must be less than 200 characters'),
-    amount: z
-        .string()
-        .min(1, 'Amount is required')
-        .regex(/^\d+(\.\d+)?$/, 'Invalid amount format')
-        .refine((val) => parseFloat(val) > 0, 'Amount must be greater than 0')
-        .refine((val) => parseFloat(val) < 1000000, 'Amount seems too large'),
+    amount: createAmountSchema(),
     currency: CurrencyCodeSchema,
     label: z.string().min(1, 'Label is required').max(50, 'Label must be less than 50 characters'),
     paidBy: z.string().min(1, 'Please select who paid'),
