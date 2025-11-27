@@ -3,9 +3,9 @@ import { TenantEditorModal } from '@/components/admin/TenantEditorModal';
 import { Alert, Button, Card, LoadingSpinner } from '@/components/ui';
 import { configStore } from '@/stores/config-store.ts';
 import { logError } from '@/utils/browser-logger';
-import type { TenantBrowserRecord } from '@billsplit-wl/shared';
+import type { TenantFullRecord } from '@billsplit-wl/shared';
 
-type Tenant = TenantBrowserRecord;
+type Tenant = TenantFullRecord;
 import { useEffect, useState } from 'preact/hooks';
 
 // Extended tenant type with computed fields from the backend
@@ -50,7 +50,7 @@ export function AdminTenantsTab() {
         setIsModalOpen(true);
     };
 
-    const handleEditTenant = (tenant: TenantBrowserRecord) => {
+    const handleEditTenant = (tenant: TenantFullRecord) => {
         setModalMode('edit');
         setSelectedTenant(tenant);
         setIsModalOpen(true);

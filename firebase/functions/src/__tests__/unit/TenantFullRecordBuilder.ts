@@ -1,10 +1,9 @@
 import { toTenantDefaultFlag, toTenantDomainName } from '@billsplit-wl/shared';
-import type { TenantDomainName } from '@billsplit-wl/shared';
+import type { TenantDomainName, TenantFullRecord } from '@billsplit-wl/shared';
 import { TenantConfigBuilder } from '@billsplit-wl/test-support';
-import type { TenantRegistryRecord } from '../../services/firestore';
 
-export class TenantRegistryRecordBuilder {
-    private record: Partial<TenantRegistryRecord> = {};
+export class TenantFullRecordBuilder {
+    private record: Partial<TenantFullRecord> = {};
 
     constructor(tenantId?: string) {
         this.record.tenant = new TenantConfigBuilder(tenantId).build();
@@ -32,7 +31,7 @@ export class TenantRegistryRecordBuilder {
         return this;
     }
 
-    build(): TenantRegistryRecord {
-        return this.record as TenantRegistryRecord;
+    build(): TenantFullRecord {
+        return this.record as TenantFullRecord;
     }
 }

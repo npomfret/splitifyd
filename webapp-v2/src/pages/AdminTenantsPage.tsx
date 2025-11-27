@@ -3,7 +3,7 @@ import { Alert, Button, Card, LoadingSpinner } from '@/components/ui';
 import { Clickable } from '@/components/ui/Clickable';
 import { navigationService } from '@/services/navigation.service';
 import { logError } from '@/utils/browser-logger';
-import type { TenantBrowserRecord } from '@billsplit-wl/shared';
+import type { TenantFullRecord } from '@billsplit-wl/shared';
 import { SystemUserRoles } from '@billsplit-wl/shared';
 import { useEffect, useState } from 'preact/hooks';
 import { apiClient } from '../app/apiClient';
@@ -13,12 +13,12 @@ import { configStore } from '../stores/config-store';
 
 export function AdminTenantsPage() {
     const authStore = useAuthRequired();
-    const [tenants, setTenants] = useState<TenantBrowserRecord[]>([]);
+    const [tenants, setTenants] = useState<TenantFullRecord[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
-    const [selectedTenant, setSelectedTenant] = useState<TenantBrowserRecord | null>(null);
+    const [selectedTenant, setSelectedTenant] = useState<TenantFullRecord | null>(null);
 
     const user = authStore.user;
     const isSystemAdmin = user?.role === SystemUserRoles.SYSTEM_ADMIN;
@@ -43,7 +43,7 @@ export function AdminTenantsPage() {
         loadTenants();
     }, [isSystemAdmin, isAuthLoading]);
 
-    const loadTenants = async (): Promise<TenantBrowserRecord[]> => {
+    const loadTenants = async (): Promise<TenantFullRecord[]> => {
         setIsLoading(true);
         setError(null);
 
@@ -71,7 +71,7 @@ export function AdminTenantsPage() {
         setIsModalOpen(true);
     };
 
-    const handleEditTenant = (tenant: TenantBrowserRecord) => {
+    const handleEditTenant = (tenant: TenantFullRecord) => {
         setModalMode('edit');
         setSelectedTenant(tenant);
         setIsModalOpen(true);

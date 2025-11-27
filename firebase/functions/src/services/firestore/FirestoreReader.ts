@@ -10,7 +10,7 @@
  * for migration guidance.
  */
 
-import type { CommentId, TenantConfig, TenantDefaultFlag, TenantDomainName, TenantId } from '@billsplit-wl/shared';
+import type { CommentId, TenantConfig, TenantDefaultFlag, TenantDomainName, TenantFullRecord, TenantId } from '@billsplit-wl/shared';
 // Note: ParsedGroupMemberDocument no longer exported from schemas after DTO migration
 // FirestoreReader now works directly with GroupMembershipDTO from @billsplit-wl/shared
 import {
@@ -72,7 +72,6 @@ import type {
     IFirestoreReader,
     PaginatedResult,
     QueryOptions,
-    TenantRegistryRecord,
 } from './IFirestoreReader';
 
 const EVENT_ACTION_MAP: Record<ActivityFeedEventType, ActivityFeedAction> = {
@@ -161,7 +160,7 @@ export class FirestoreReader implements IFirestoreReader {
         return `${FirestoreCollections.EXPENSES}/${expenseId}/${FirestoreCollections.COMMENTS}`;
     }
 
-    private parseTenantDocument(snapshot: IDocumentSnapshot): TenantRegistryRecord {
+    private parseTenantDocument(snapshot: IDocumentSnapshot): TenantFullRecord {
         const rawData = snapshot.data();
 
         if (!rawData) {
@@ -1532,7 +1531,7 @@ export class FirestoreReader implements IFirestoreReader {
     // Tenant Registry Operations
     // ========================================================================
 
-    async getTenantById(tenantId: TenantId): Promise<TenantRegistryRecord | null> {
+    async getTenantById(tenantId: TenantId): Promise<TenantFullRecord | null> {
         try {
             const doc = await this.db.collection(FirestoreCollections.TENANTS).doc(tenantId).get();
 
@@ -1547,7 +1546,7 @@ export class FirestoreReader implements IFirestoreReader {
         }
     }
 
-    async getTenantByDomain(domain: TenantDomainName): Promise<TenantRegistryRecord | null> {
+    async getTenantByDomain(domain: TenantDomainName): Promise<TenantFullRecord | null> {
         try {
             const query = await this
                 .db
@@ -1567,7 +1566,7 @@ export class FirestoreReader implements IFirestoreReader {
         }
     }
 
-    async getDefaultTenant(): Promise<TenantRegistryRecord | null> {
+    async getDefaultTenant(): Promise<TenantFullRecord | null> {
         try {
             const query = await this
                 .db
@@ -1587,7 +1586,7 @@ export class FirestoreReader implements IFirestoreReader {
         }
     }
 
-    async listAllTenants(): Promise<TenantRegistryRecord[]> {
+    async listAllTenants(): Promise<TenantFullRecord[]> {
         try {
             const query = await this.db.collection(FirestoreCollections.TENANTS).orderBy('createdAt', 'desc').get();
 

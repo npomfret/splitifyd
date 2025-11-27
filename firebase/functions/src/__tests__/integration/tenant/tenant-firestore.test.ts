@@ -1,4 +1,5 @@
 import {
+    TenantFullRecord,
     toShowLandingPageFlag,
     toShowMarketingContentFlag,
     toShowPricingPageFlag,
@@ -15,7 +16,6 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { getFirestore } from '../../../firebase';
 import { createFirestoreDatabase } from '../../../firestore-wrapper';
 import { FirestoreReader, FirestoreWriter } from '../../../services/firestore';
-import type { TenantRegistryRecord } from '../../../services/firestore';
 
 describe('Tenant Firestore Integration', () => {
     const wrappedDb = createFirestoreDatabase(getFirestore());
@@ -155,13 +155,13 @@ describe('Tenant Firestore Integration', () => {
             const result = await firestoreReader.getDefaultTenant();
 
             expect(result).not.toBeNull();
-            assertTenantRegistryRecordStructure(result!);
+            assertTenantFullRecordStructure(result!);
         });
     });
 });
 
-// Helper function to assert TenantRegistryRecord structure
-function assertTenantRegistryRecordStructure(record: TenantRegistryRecord): void {
+// Helper function to assert TenantFullRecord structure
+function assertTenantFullRecordStructure(record: TenantFullRecord): void {
     expect(record).toHaveProperty('tenant');
     expect(record).toHaveProperty('domains');
     expect(record).toHaveProperty('isDefault');

@@ -1611,7 +1611,7 @@ export interface ListFirestoreUsersResponse {
     hasMore: boolean;
 }
 
-export interface TenantBrowserRecord {
+export interface TenantFullRecord {
     tenant: TenantConfig;
     domains: TenantDomainName[];
     isDefault: TenantDefaultFlag;
@@ -1623,7 +1623,7 @@ export interface TenantBrowserRecord {
  * Returned by GET /admin/browser/tenants endpoint (system_admin only)
  */
 export interface ListAllTenantsResponse {
-    tenants: TenantBrowserRecord[];
+    tenants: TenantFullRecord[];
     count: number;
 }
 

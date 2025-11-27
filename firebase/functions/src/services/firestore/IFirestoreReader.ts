@@ -72,18 +72,11 @@ export interface GetGroupsForUserOptions extends Pick<PaginationOptions, 'limit'
 }
 
 // Import parsed types from schemas
-import type { CommentDTO, ExpenseDTO, GroupDTO, GroupMembershipDTO, PolicyDTO, SettlementDTO, ShareLinkToken, TenantBranding } from '@billsplit-wl/shared';
+import type { CommentDTO, ExpenseDTO, GroupDTO, GroupMembershipDTO, PolicyDTO, SettlementDTO, ShareLinkToken, TenantFullRecord } from '@billsplit-wl/shared';
 import { GroupId, ShareLinkId } from '@billsplit-wl/shared';
 import { SettlementId } from '@billsplit-wl/shared';
 import { PolicyId } from '@billsplit-wl/shared';
 import type { GroupBalanceDTO, ParsedShareLink, UserDocument } from '../../schemas';
-
-export interface TenantRegistryRecord {
-    tenant: TenantConfig;
-    domains: TenantDomainName[];
-    isDefault: TenantDefaultFlag;
-    brandingTokens?: TenantBranding;
-}
 
 export interface IFirestoreReader {
     // ========================================================================
@@ -138,22 +131,22 @@ export interface IFirestoreReader {
     /**
      * Get tenant registry record by tenant ID
      */
-    getTenantById(tenantId: TenantId): Promise<TenantRegistryRecord | null>;
+    getTenantById(tenantId: TenantId): Promise<TenantFullRecord | null>;
 
     /**
      * Find tenant registry record by domain/host name
      */
-    getTenantByDomain(domain: TenantDomainName): Promise<TenantRegistryRecord | null>;
+    getTenantByDomain(domain: TenantDomainName): Promise<TenantFullRecord | null>;
 
     /**
      * Retrieve the default tenant configuration
      */
-    getDefaultTenant(): Promise<TenantRegistryRecord | null>;
+    getDefaultTenant(): Promise<TenantFullRecord | null>;
 
     /**
      * List all tenant configurations (system admin only)
      */
-    listAllTenants(): Promise<TenantRegistryRecord[]>;
+    listAllTenants(): Promise<TenantFullRecord[]>;
 
     // ========================================================================
     // Collection Read Operations - User-related

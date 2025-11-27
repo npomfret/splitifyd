@@ -1,9 +1,8 @@
-import { TenantDomainName, TenantId, toTenantDomainName, toTenantId } from '@billsplit-wl/shared';
+import { TenantDomainName, TenantFullRecord, TenantId, toTenantDomainName, toTenantId } from '@billsplit-wl/shared';
 import { HTTP_STATUS } from '../../constants';
 import { logger } from '../../logger';
 import type { TenantRequestContext } from '../../types/tenant';
 import { ApiError } from '../../utils/errors';
-import type { TenantRegistryRecord } from '../firestore';
 import type { IFirestoreReader } from '../firestore';
 
 export interface TenantResolutionOptions {
@@ -13,7 +12,7 @@ export interface TenantResolutionOptions {
 }
 
 interface CacheEntry {
-    record: TenantRegistryRecord;
+    record: TenantFullRecord;
     expiresAt: number;
 }
 
@@ -71,7 +70,7 @@ export class TenantRegistryService {
         this.cacheByDomain.clear();
     }
 
-    private getByTenantId(tenantId: TenantId): Promise<TenantRegistryRecord | null> {
+    private getByTenantId(tenantId: TenantId): Promise<TenantFullRecord | null> {
         const cacheKey = tenantId as unknown as string;
         const cached = this.getFromCache(this.cacheByTenantId, cacheKey);
         if (cached) {
@@ -80,7 +79,7 @@ export class TenantRegistryService {
         return this.loadTenantById(cacheKey, tenantId);
     }
 
-    private async loadTenantById(cacheKey: string, tenantId: TenantId): Promise<TenantRegistryRecord | null> {
+    private async loadTenantById(cacheKey: string, tenantId: TenantId): Promise<TenantFullRecord | null> {
         try {
             const record = await this.firestoreReader.getTenantById(tenantId);
             if (!record) {
@@ -95,7 +94,7 @@ export class TenantRegistryService {
         }
     }
 
-    private getByDomain(domain: TenantDomainName): Promise<TenantRegistryRecord | null> {
+    private getByDomain(domain: TenantDomainName): Promise<TenantFullRecord | null> {
         const cacheKey = domain as unknown as string;
         const cached = this.getFromCache(this.cacheByDomain, cacheKey);
         if (cached) {
@@ -104,7 +103,7 @@ export class TenantRegistryService {
         return this.loadTenantByDomain(cacheKey, domain);
     }
 
-    private async loadTenantByDomain(cacheKey: string, domain: TenantDomainName): Promise<TenantRegistryRecord | null> {
+    private async loadTenantByDomain(cacheKey: string, domain: TenantDomainName): Promise<TenantFullRecord | null> {
         try {
             logger.info('Loading tenant by domain from Firestore', { domain });
             const record = await this.firestoreReader.getTenantByDomain(domain);
@@ -122,7 +121,7 @@ export class TenantRegistryService {
         }
     }
 
-    private async getDefaultTenant(): Promise<TenantRegistryRecord | null> {
+    private async getDefaultTenant(): Promise<TenantFullRecord | null> {
         const cached = this.getFromCache(this.cacheByTenantId, DEFAULT_CACHE_KEY);
         if (cached) {
             return cached;
@@ -143,7 +142,7 @@ export class TenantRegistryService {
         }
     }
 
-    private getFromCache(map: Map<string, CacheEntry>, key: string): TenantRegistryRecord | null {
+    private getFromCache(map: Map<string, CacheEntry>, key: string): TenantFullRecord | null {
         const entry = map.get(key);
         if (!entry) {
             return null;
@@ -155,14 +154,14 @@ export class TenantRegistryService {
         return entry.record;
     }
 
-    private storeRecord(key: string, record: TenantRegistryRecord): void {
+    private storeRecord(key: string, record: TenantFullRecord): void {
         const expiresAt = Date.now() + this.cacheTtlMs;
         this.cacheByTenantId.set(key, { record, expiresAt });
         const canonicalKey = record.tenant.tenantId as unknown as string;
         this.cacheByTenantId.set(canonicalKey, { record, expiresAt });
     }
 
-    private indexDomains(record: TenantRegistryRecord): void {
+    private indexDomains(record: TenantFullRecord): void {
         const expiresAt = Date.now() + this.cacheTtlMs;
         for (const domain of record.domains) {
             const cacheKey = domain as unknown as string;
@@ -177,7 +176,7 @@ export class TenantRegistryService {
         return toTenantDomainName(withoutPort);
     }
 
-    private toResolution(record: TenantRegistryRecord, source: 'domain' | 'override' | 'default'): TenantRequestContext {
+    private toResolution(record: TenantFullRecord, source: 'domain' | 'override' | 'default'): TenantRequestContext {
         return {
             tenantId: record.tenant.tenantId,
             config: record.tenant,
