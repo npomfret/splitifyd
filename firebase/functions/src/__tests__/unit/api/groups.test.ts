@@ -488,4 +488,168 @@ describe('groups', () => {
             expect(pendingAfterActions).toHaveLength(0);
         });
     });
+
+    describe('listGroups edge cases', () => {
+        it('should ignore invalid statusFilter values and return results', async () => {
+            // Invalid status filter values are silently ignored (defensive programming)
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+
+            // Invalid filter value should be ignored, defaults to no filter
+            const result = await appDriver.listGroups({ statusFilter: 'invalid' as any }, user1);
+
+            // Should still return the group since invalid filter is ignored
+            expect(result.groups).toHaveLength(1);
+            expect(result.groups[0].id).toBe(group.id);
+        });
+
+        it('should support multiple statusFilter values', async () => {
+            const group1 = await appDriver.createGroup(
+                new CreateGroupRequestBuilder().withName('Active Group').build(),
+                user1,
+            );
+            const group2 = await appDriver.createGroup(
+                new CreateGroupRequestBuilder().withName('Group to Archive').build(),
+                user1,
+            );
+
+            await appDriver.archiveGroupForUser(group2.id, user1);
+
+            // Request both active and archived
+            const result = await appDriver.listGroups({ statusFilter: ['active', 'archived'] }, user1);
+
+            expect(result.groups).toHaveLength(2);
+            expect(result.groups.map((g) => g.id)).toContain(group1.id);
+            expect(result.groups.map((g) => g.id)).toContain(group2.id);
+        });
+
+        it('should default to active filter when no statusFilter provided', async () => {
+            const activeGroup = await appDriver.createGroup(
+                new CreateGroupRequestBuilder().withName('Active Group').build(),
+                user1,
+            );
+            const archivedGroup = await appDriver.createGroup(
+                new CreateGroupRequestBuilder().withName('Archived Group').build(),
+                user1,
+            );
+
+            await appDriver.archiveGroupForUser(archivedGroup.id, user1);
+
+            const result = await appDriver.listGroups({}, user1);
+
+            expect(result.groups).toHaveLength(1);
+            expect(result.groups[0].id).toBe(activeGroup.id);
+        });
+    });
+
+    describe('updateMemberRole edge cases', () => {
+        it('should reject role update for non-existent member', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+
+            await expect(
+                appDriver.updateMemberRole(group.id, user2, MemberRoles.ADMIN, user1),
+            ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+        });
+
+        it('should reject role update by non-owner', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+            await appDriver.joinGroupByLink(shareToken, undefined, user3);
+
+            // user2 tries to promote user3 to admin
+            await expect(
+                appDriver.updateMemberRole(group.id, user3, MemberRoles.ADMIN, user2),
+            ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+        });
+
+        it('should allow owner to promote and demote members', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+
+            // Promote to admin
+            await appDriver.updateMemberRole(group.id, user2, MemberRoles.ADMIN, user1);
+
+            let details = await appDriver.getGroupFullDetails(group.id, {}, user1);
+            const promotedMember = details.members.members.find((m) => m.uid === user2);
+            expect(promotedMember?.memberRole).toBe(MemberRoles.ADMIN);
+
+            // Demote back to member
+            await appDriver.updateMemberRole(group.id, user2, MemberRoles.MEMBER, user1);
+
+            details = await appDriver.getGroupFullDetails(group.id, {}, user1);
+            const demotedMember = details.members.members.find((m) => m.uid === user2);
+            expect(demotedMember?.memberRole).toBe(MemberRoles.MEMBER);
+        });
+
+        it('should reject invalid role value', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+
+            await expect(
+                appDriver.updateMemberRole(group.id, user2, 'superadmin' as any, user1),
+            ).rejects.toMatchObject({ code: 'INVALID_ROLE' });
+        });
+    });
+
+    describe('pending member approval edge cases', () => {
+        it('should reject approving a non-existent member', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+
+            // Enable admin approval requirement
+            await appDriver.updateGroupPermissions(group.id, { memberApproval: 'admin-required' }, user1);
+
+            await expect(
+                appDriver.approveMember(group.id, user2, user1),
+            ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+        });
+
+        it('should reject rejecting a non-existent member', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+
+            // Enable admin approval requirement
+            await appDriver.updateGroupPermissions(group.id, { memberApproval: 'admin-required' }, user1);
+
+            await expect(
+                appDriver.rejectMember(group.id, user2, user1),
+            ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+        });
+
+        it('should no-op when approving an already active member', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+
+            // user2 is already active (auto-approved), trying to approve again should be a no-op
+            // This should not throw - it succeeds silently
+            await appDriver.approveMember(group.id, user2, user1);
+
+            // Verify member is still active
+            const details = await appDriver.getGroupFullDetails(group.id, {}, user1);
+            const member = details.members.members.find((m) => m.uid === user2);
+            expect(member?.memberStatus).toBe(MemberStatuses.ACTIVE);
+        });
+
+        it('should reject approving by a non-owner when approval required', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+
+            // Enable admin approval requirement
+            await appDriver.updateGroupPermissions(group.id, { memberApproval: 'admin-required' }, user1);
+
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, user1);
+
+            // First join and approve user2 so they can be an active member
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+            await appDriver.approveMember(group.id, user2, user1);
+
+            // Now user3 tries to join (will be pending)
+            await appDriver.joinGroupByLink(shareToken, undefined, user3);
+
+            // user2 (not owner) tries to approve user3
+            await expect(
+                appDriver.approveMember(group.id, user3, user2),
+            ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+        });
+    });
 });
