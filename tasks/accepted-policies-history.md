@@ -81,10 +81,11 @@ This change will impact data schemas, backend logic for policy acceptance, and a
 
 ## 6. Detailed Implementation Plan
 
-### Files to Modify
+### Implementation Order
 
-#### 6.1 Type Definitions
-**`packages/shared/src/shared-types.ts`** (line 599)
+#### Phase 1: Type Definitions (causes compile errors that guide remaining changes)
+
+**Step 1: `packages/shared/src/shared-types.ts`** (line 599)
 ```typescript
 // Before:
 acceptedPolicies?: Record<PolicyId, VersionHash>;
@@ -93,34 +94,7 @@ acceptedPolicies?: Record<PolicyId, VersionHash>;
 acceptedPolicies?: Record<PolicyId, Record<VersionHash, ISOString>>;
 ```
 
-#### 6.2 Zod Schemas
-
-**`firebase/functions/src/schemas/user.ts`** (line 18)
-
-> **Note:** `ISOStringSchema` does not exist in the codebase. Create it first:
-> ```typescript
-> export const ISOStringSchema = z.string().datetime().transform(toISOString);
-> ```
-
-```typescript
-// Before:
-acceptedPolicies: z.record(PolicyIdSchema, VersionHashSchema).optional(),
-
-// After:
-acceptedPolicies: z.record(PolicyIdSchema, z.record(VersionHashSchema, ISOStringSchema)).optional(),
-```
-
-**`packages/shared/src/schemas/apiSchemas.ts`** (line 404)
-```typescript
-// Before:
-acceptedPolicies: z.record(z.string(), z.string()).optional(),
-
-// After:
-acceptedPolicies: z.record(z.string(), z.record(z.string(), z.string())).optional(),
-```
-
-#### 6.3 Firestore Interface
-**`firebase/functions/src/services/firestore/IFirestoreWriter.ts`** (line 41)
+**Step 2: `firebase/functions/src/services/firestore/IFirestoreWriter.ts`** (line 41)
 ```typescript
 // Before:
 acceptedPolicies?: Record<string, string>;
@@ -129,91 +103,71 @@ acceptedPolicies?: Record<string, string>;
 acceptedPolicies?: Record<string, Record<string, string>>;
 ```
 
-#### 6.4 Service Layer
+#### Phase 2: Schema Updates
 
-**`firebase/functions/src/services/UserPolicyService.ts`**
-
-**Accept policies (lines 65-72)** - change from overwriting to adding:
-
-> **Critical:** The original proposal has a race condition (read-modify-write pattern). Use a Firestore transaction instead:
-
+**Step 3: `firebase/functions/src/schemas/user.ts`** (line 18)
 ```typescript
+// Add import: toISOString from @billsplit-wl/shared
+
 // Before:
-const acceptedPolicies: Record<string, string> = {};
-acceptances.forEach((acceptance) => {
-    acceptedPolicies[acceptance.policyId] = acceptance.versionHash;
-});
+acceptedPolicies: z.record(PolicyIdSchema, VersionHashSchema).optional(),
 
-// After (using Firestore transaction for atomicity):
-return this.firestoreWriter.runTransaction(async (transaction) => {
-    const userRef = this.db.collection('users').doc(userId);
-    const userDoc = await transaction.get(userRef);
-
-    if (!userDoc.exists) {
-        throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', 'User not found');
-    }
-
-    const existingPolicies = userDoc.data()?.acceptedPolicies ?? {};
-    const now = new Date().toISOString();
-    const updatedPolicies: Record<string, Record<string, string>> = { ...existingPolicies };
-
-    acceptances.forEach((acceptance) => {
-        const policyHistory = updatedPolicies[acceptance.policyId] ?? {};
-        // No-op if already accepted (preserve original timestamp)
-        if (!(acceptance.versionHash in policyHistory)) {
-            updatedPolicies[acceptance.policyId] = {
-                ...policyHistory,
-                [acceptance.versionHash]: now,
-            };
-        }
-    });
-
-    transaction.update(userRef, { acceptedPolicies: updatedPolicies });
-
-    return acceptances.map((a) => ({
-        policyId: a.policyId,
-        versionHash: a.versionHash,
-        acceptedAt: now,
-    }));
-});
+// After:
+acceptedPolicies: z.record(
+    PolicyIdSchema,
+    z.record(VersionHashSchema, z.string().datetime().transform(toISOString))
+).optional(),
 ```
 
-**Get policy status (lines 115-123)** - check if current version exists in history:
+**Step 4: `packages/shared/src/schemas/apiSchemas.ts`** (line 398)
+```typescript
+// Before:
+acceptedPolicies: z.record(z.string(), z.string()).optional(),
+
+// After:
+acceptedPolicies: z.record(z.string(), z.record(z.string(), z.string())).optional(),
+```
+
+#### Phase 3: Service Logic
+
+**Step 5: `firebase/functions/src/services/UserPolicyService.ts`**
+
+Update `_acceptMultiplePolicies` (lines 50-98) to use transaction for atomicity:
+- Add import: `isoStringNow` from `@billsplit-wl/shared`, `FirestoreCollections` from constants
+- Use `firestoreWriter.runTransaction()` to atomically read-modify-write
+- Use `getDocumentReferenceInTransaction()` to get user doc ref
+- Build updated policies map preserving history (no-op if version already accepted)
+
+Update `getUserPolicyStatus` (lines 115-123):
 ```typescript
 // Before:
 const userAcceptedHash = userAcceptedPolicies[policyId] as VersionHash | undefined;
 const needsAcceptance = !userAcceptedHash || userAcceptedHash !== currentVersionHash;
 
 // After:
-const policyHistory = userAcceptedPolicies[policyId] ?? {};
+const policyHistory = (userAcceptedPolicies[policyId] ?? {}) as Record<VersionHash, string>;
 const hasAcceptedCurrentVersion = currentVersionHash in policyHistory;
 const needsAcceptance = !hasAcceptedCurrentVersion;
-// For userAcceptedHash in DTO, return currentVersionHash if accepted, else undefined
 const userAcceptedHash = hasAcceptedCurrentVersion ? currentVersionHash : undefined;
 ```
 
-#### 6.5 User Registration
-**`firebase/functions/src/services/UserService2.ts`** (lines 601-619)
+**Step 6: `firebase/functions/src/services/UserService2.ts`** (lines 593-611)
+
+Update `getCurrentPolicyVersions` return type and implementation:
 ```typescript
 // Before:
+private async getCurrentPolicyVersions(): Promise<Record<string, string>>
 acceptedPolicies[policy.id] = policy.currentVersionHash;
 
 // After:
-const now = new Date().toISOString();
+private async getCurrentPolicyVersions(): Promise<Record<string, Record<string, string>>>
+const now = toISOString(new Date().toISOString());
 acceptedPolicies[policy.id] = { [policy.currentVersionHash]: now };
 ```
 
-Also update return type from `Record<string, string>` to `Record<string, Record<string, string>>`.
+#### Phase 4: Test Builders
 
-#### 6.6 Admin/Browser Handlers
-- **`firebase/functions/src/admin/UserAdminHandlers.ts`** (line 68) - remove `as any` cast
-- **`firebase/functions/src/browser/UserBrowserHandlers.ts`** (line 176) - update type cast
-
-#### 6.7 Test Builders
-- **`packages/test-support/src/builders/UserProfileBuilder.ts`** (line 69)
-- **`packages/test-support/src/builders/AdminUserProfileBuilder.ts`** (line 85)
-
-Update method signatures:
+**Step 7: `packages/test-support/src/builders/UserProfileBuilder.ts`** (line 69)
 ```typescript
 // Before:
 withAcceptedPolicies(policies: Record<PolicyId, VersionHash>): this
@@ -222,33 +176,37 @@ withAcceptedPolicies(policies: Record<PolicyId, VersionHash>): this
 withAcceptedPolicies(policies: Record<PolicyId, Record<VersionHash, ISOString>>): this
 ```
 
-#### 6.8 Tests to Update
-- `firebase/functions/src/__tests__/unit/api/users.test.ts` - update assertions for new structure
-- Any test fixtures using old `acceptedPolicies` format
+**Step 8: `packages/test-support/src/builders/AdminUserProfileBuilder.ts`** (line 85)
+Same change as above.
 
-### Implementation Order
+#### Phase 5: Test Updates
 
-1. `shared-types.ts` - change the type (causes compile errors that guide remaining changes)
-2. `user.ts` schema, `apiSchemas.ts`, `IFirestoreWriter.ts` - fix schema/interface types
-3. `UserPolicyService.ts` - update write and read logic
-4. `UserService2.ts` - update registration
-5. Handler files - fix type casts
-6. Test builders and test files
+**Step 9: `firebase/functions/src/__tests__/unit/api/users.test.ts`**
+- Update any test fixtures using old `acceptedPolicies` format
+- Add new test cases:
+  - Re-acceptance of same version preserves original timestamp (no-op)
+  - Accepting new version preserves old version in history
 
-### Testing
+### Key Implementation Details
 
-Run after implementation:
+#### Transaction Pattern
+Use existing `IFirestoreWriter` methods:
+- `runTransaction<T>(updateFunction: (transaction: ITransaction) => Promise<T>): Promise<T>`
+- `getDocumentReferenceInTransaction(transaction, collection, documentId): IDocumentReference`
+
+#### Re-acceptance Behavior
+If a user accepts the same policy version twice, preserve the original timestamp (no-op).
+
+#### Timestamp Storage
+ISO strings stored as plain strings in Firestore (not converted to Firestore Timestamps). This is audit data.
+
+### Verification
+
+After implementation:
 ```bash
-npx vitest run firebase/functions/src/__tests__/unit/api/users.test.ts
-npx vitest run firebase/functions/src/__tests__/unit/services/PolicyService.test.ts
+npm run build
+cd firebase/functions && npx vitest run src/__tests__/unit/api/users.test.ts -t "policy"
 ```
-
-### Additional Test Cases to Add
-
-1. **Re-acceptance behavior:** Accepting same policy version twice should preserve original timestamp (no-op)
-2. **History preservation:** Accepting new version preserves old version in history
-3. **User not found:** Returns 404 when accepting policies for non-existent user
-4. **Concurrent acceptance:** Transaction ensures both succeed without data loss
 
 ---
 
@@ -261,7 +219,7 @@ npx vitest run firebase/functions/src/__tests__/unit/services/PolicyService.test
 
 ### Corrections Applied
 1. **Race condition fixed:** Changed from read-modify-write to Firestore transaction
-2. **Missing schema noted:** `ISOStringSchema` needs to be created
+2. **Missing schema noted:** `ISOStringSchema` needs to be created inline as `z.string().datetime().transform(toISOString)`
 3. **Null check added:** Handle user not found case
 4. **Re-acceptance behavior defined:** No-op (preserve original timestamp)
 5. **Migration removed:** Not required (no existing data)
