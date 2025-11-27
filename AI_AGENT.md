@@ -1,6 +1,7 @@
 Read these first!
 
 - @README.md
+- @docs/guides/api.md
 - @docs/guides/ask.md
 - @docs/guides/building.md
 - @docs/guides/code.md
