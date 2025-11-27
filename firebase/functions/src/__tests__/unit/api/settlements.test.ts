@@ -353,4 +353,127 @@ describe('settlements', () => {
             ).rejects.toMatchObject({ code: 'SETTLEMENT_NOT_FOUND' });
         });
     });
+
+    describe('listGroupSettlements edge cases', () => {
+        it('should reject listing settlements for non-existent group (returns FORBIDDEN for security)', async () => {
+            // For security reasons, returns FORBIDDEN instead of NOT_FOUND to avoid leaking group existence
+            await expect(
+                appDriver.listGroupSettlements('non-existent-group-id', {}, user1),
+            ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+        });
+
+        it('should reject listing settlements as non-member', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+
+            // user2 is NOT a member
+            await expect(
+                appDriver.listGroupSettlements(group.id, {}, user2),
+            ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+        });
+
+        it('should return empty list for group with no settlements', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+
+            const result = await appDriver.listGroupSettlements(group.id, {}, user1);
+            expect(result.settlements).toEqual([]);
+            expect(result.hasMore).toBe(false);
+            expect(result.nextCursor).toBeUndefined();
+        });
+
+        it('should support pagination for group settlements', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            const groupId = group.id;
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+
+            const participants = [user1, user2];
+
+            // Create an expense to have a balance
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(500, USD)
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(toAmount(500), USD, participants))
+                    .build(),
+                user1,
+            );
+
+            // Create 5 settlements
+            for (let i = 0; i < 5; i += 1) {
+                await appDriver.createSettlement(
+                    new CreateSettlementRequestBuilder()
+                        .withGroupId(groupId)
+                        .withPayerId(user2)
+                        .withPayeeId(user1)
+                        .withAmount(10 + i, USD)
+                        .build(),
+                    user2,
+                );
+            }
+
+            // Request with limit of 2
+            const firstPage = await appDriver.listGroupSettlements(groupId, { limit: 2 }, user1);
+            expect(firstPage.settlements).toHaveLength(2);
+            expect(firstPage.hasMore).toBe(true);
+            expect(firstPage.nextCursor).toBeDefined();
+
+            // Get next page
+            const secondPage = await appDriver.listGroupSettlements(groupId, { limit: 2, cursor: firstPage.nextCursor }, user1);
+            expect(secondPage.settlements).toHaveLength(2);
+            expect(secondPage.hasMore).toBe(true);
+        });
+
+        it('should not include deleted settlements by default', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            const groupId = group.id;
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+
+            const participants = [user1, user2];
+
+            // Create an expense to have a balance
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(200, USD)
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(toAmount(200), USD, participants))
+                    .build(),
+                user1,
+            );
+
+            const settlement1 = await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPayerId(user2)
+                    .withPayeeId(user1)
+                    .withAmount(30, USD)
+                    .build(),
+                user2,
+            );
+
+            const settlement2 = await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPayerId(user2)
+                    .withPayeeId(user1)
+                    .withAmount(20, USD)
+                    .build(),
+                user2,
+            );
+
+            // Delete second settlement
+            await appDriver.deleteSettlement(settlement2.id, user1);
+
+            // By default, deleted settlements should not appear
+            const result = await appDriver.listGroupSettlements(groupId, {}, user1);
+            expect(result.settlements).toHaveLength(1);
+            expect(result.settlements[0].id).toBe(settlement1.id);
+        });
+    });
 });

@@ -39,11 +39,14 @@ import {
     ListAuthUsersResponse,
     ListCommentsOptions,
     ListCommentsResponse,
+    ListExpensesResponse,
     ListFirestoreUsersOptions,
     ListFirestoreUsersResponse,
     ListGroupsOptions,
     ListGroupsResponse,
     ListPoliciesResponse,
+    ListSettlementsOptions,
+    ListSettlementsResponse,
     MemberRole,
     MergeJobResponse,
     PasswordChangeRequest,
@@ -92,6 +95,15 @@ import { ApiError } from '../../utils/errors';
 import { Errors, sendError } from '../../utils/errors';
 import { createUnitTestServiceConfig } from '../test-config';
 import { StubAuthService } from './mocks/StubAuthService';
+
+/**
+ * Options for listing expenses in a group
+ */
+interface ListExpensesOptions {
+    limit?: number;
+    cursor?: string;
+    includeDeleted?: boolean;
+}
 
 /**
  * Extended request interface for authenticated requests in AppDriver
@@ -768,6 +780,24 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return res.getJson() as ExpenseFullDetailsDTO;
     }
 
+    async listGroupExpenses(groupId: GroupId | string, options: ListExpensesOptions = {}, authToken: AuthToken): Promise<ListExpensesResponse> {
+        const req = createStubRequest(authToken, {}, { groupId });
+        const query: Record<string, string> = {};
+        if (options.limit !== undefined) {
+            query.limit = String(options.limit);
+        }
+        if (options.cursor !== undefined) {
+            query.cursor = options.cursor;
+        }
+        if (options.includeDeleted !== undefined) {
+            query.includeDeleted = String(options.includeDeleted);
+        }
+        req.query = query;
+        const res = await this.dispatchByHandler('listGroupExpenses', req);
+        this.throwIfError(res);
+        return res.getJson() as ListExpensesResponse;
+    }
+
     async createSettlement(data: CreateSettlementRequest, authToken: AuthToken): Promise<SettlementDTO> {
         const req = createStubRequest(authToken, data);
         const res = await this.dispatchByHandler('createSettlement', req);
@@ -785,6 +815,24 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         const req = createStubRequest(authToken, {}, { settlementId });
         const res = await this.dispatchByHandler('deleteSettlement', req);
         this.throwIfError(res);
+    }
+
+    async listGroupSettlements(groupId: GroupId | string, options: ListSettlementsOptions = {}, authToken: AuthToken): Promise<ListSettlementsResponse> {
+        const req = createStubRequest(authToken, {}, { groupId });
+        const query: Record<string, string> = {};
+        if (options.limit !== undefined) {
+            query.limit = String(options.limit);
+        }
+        if (options.cursor !== undefined) {
+            query.cursor = options.cursor;
+        }
+        if (options.includeDeleted !== undefined) {
+            query.includeDeleted = String(options.includeDeleted);
+        }
+        req.query = query;
+        const res = await this.dispatchByHandler('listGroupSettlements', req);
+        this.throwIfError(res);
+        return res.getJson() as ListSettlementsResponse;
     }
 
     async getSettlement(groupId: GroupId | string, settlementId: SettlementId | string, authToken: AuthToken): Promise<SettlementWithMembers> {

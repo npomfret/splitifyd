@@ -546,4 +546,114 @@ describe('expenses', () => {
             ).rejects.toMatchObject({ code: 'NOT_FOUND' });
         });
     });
+
+    describe('listGroupExpenses edge cases', () => {
+        it('should reject listing expenses for non-existent group (returns FORBIDDEN for security)', async () => {
+            // For security reasons, returns FORBIDDEN instead of NOT_FOUND to avoid leaking group existence
+            await expect(
+                appDriver.listGroupExpenses('non-existent-group-id', {}, user1),
+            ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+        });
+
+        it('should reject listing expenses as non-member', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+
+            // user2 is NOT a member
+            await expect(
+                appDriver.listGroupExpenses(group.id, {}, user2),
+            ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+        });
+
+        it('should return empty list for group with no expenses', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+
+            const result = await appDriver.listGroupExpenses(group.id, {}, user1);
+            expect(result.expenses).toEqual([]);
+            expect(result.hasMore).toBe(false);
+            expect(result.nextCursor).toBeUndefined();
+        });
+
+        it('should support pagination for group expenses', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            const groupId = group.id;
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+
+            const participants = [user1, user2];
+
+            // Create 5 expenses
+            for (let i = 0; i < 5; i += 1) {
+                await appDriver.createExpense(
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(groupId)
+                        .withDescription(`Expense ${i}`)
+                        .withAmount(50 + i, USD)
+                        .withPaidBy(user1)
+                        .withParticipants(participants)
+                        .withSplitType('equal')
+                        .withSplits(calculateEqualSplits(toAmount(50 + i), USD, participants))
+                        .build(),
+                    user1,
+                );
+            }
+
+            // Request with limit of 2
+            const firstPage = await appDriver.listGroupExpenses(groupId, { limit: 2 }, user1);
+            expect(firstPage.expenses).toHaveLength(2);
+            expect(firstPage.hasMore).toBe(true);
+            expect(firstPage.nextCursor).toBeDefined();
+
+            // Get next page
+            const secondPage = await appDriver.listGroupExpenses(groupId, { limit: 2, cursor: firstPage.nextCursor }, user1);
+            expect(secondPage.expenses).toHaveLength(2);
+            expect(secondPage.hasMore).toBe(true);
+        });
+
+        it('should not include deleted expenses by default', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            const groupId = group.id;
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+
+            const participants = [user1, user2];
+
+            const expense1 = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withDescription('Active expense')
+                    .withAmount(100, USD)
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(toAmount(100), USD, participants))
+                    .build(),
+                user1,
+            );
+
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withDescription('Expense to delete')
+                    .withAmount(50, USD)
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(toAmount(50), USD, participants))
+                    .build(),
+                user1,
+            );
+
+            // Delete second expense
+            const allExpenses = await appDriver.listGroupExpenses(groupId, {}, user1);
+            const expenseToDelete = allExpenses.expenses.find(e => e.description === 'Expense to delete');
+            if (expenseToDelete) {
+                await appDriver.deleteExpense(expenseToDelete.id, user1);
+            }
+
+            // By default, deleted expenses should not appear
+            const result = await appDriver.listGroupExpenses(groupId, {}, user1);
+            expect(result.expenses).toHaveLength(1);
+            expect(result.expenses[0].id).toBe(expense1.id);
+        });
+    });
 });

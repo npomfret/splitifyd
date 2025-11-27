@@ -75,7 +75,12 @@ export class SettlementService {
         LoggerContext.update({ userId, operation: 'list-settlements' });
 
         timer.startPhase('query');
-        await this.firestoreReader.verifyGroupMembership(groupId, userId);
+        // Verify user is a member of the group
+        const isMember = await this.firestoreReader.verifyGroupMembership(groupId, userId);
+        if (!isMember) {
+            throw Errors.FORBIDDEN();
+        }
+
         const result = await this._getGroupSettlementsData(groupId, options);
         timer.endPhase();
 
