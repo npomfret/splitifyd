@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { validateListSettlementsQuery } from '../../settlements/validation';
 import { HTTP_STATUS } from '../../constants';
+import { validateListSettlementsQuery } from '../../settlements/validation';
 
 describe('settlements/validation - list queries', () => {
     describe('validateListSettlementsQuery', () => {

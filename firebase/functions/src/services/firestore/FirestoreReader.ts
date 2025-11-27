@@ -64,15 +64,7 @@ import {
 } from '../../schemas';
 import type { TopLevelGroupMemberDocument } from '../../types';
 import { newTopLevelMembershipDocId } from '../../utils/idGenerator';
-import type {
-    BatchGroupFetchOptions,
-    FirestoreOrderField,
-    GetGroupsForUserOptions,
-    GroupsPaginationCursor,
-    IFirestoreReader,
-    PaginatedResult,
-    QueryOptions,
-} from './IFirestoreReader';
+import type { BatchGroupFetchOptions, FirestoreOrderField, GetGroupsForUserOptions, GroupsPaginationCursor, IFirestoreReader, PaginatedResult, QueryOptions } from './IFirestoreReader';
 
 const EVENT_ACTION_MAP: Record<ActivityFeedEventType, ActivityFeedAction> = {
     [ActivityFeedEventTypes.EXPENSE_CREATED]: ActivityFeedActions.CREATE,

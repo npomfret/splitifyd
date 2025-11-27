@@ -946,8 +946,8 @@ export class DashboardPage extends BasePage {
         // Wait for navigation response
         await Promise.all([
             this.page.waitForResponse(response =>
-                response.url().includes('/user/profile') &&
-                response.status() === 200
+                response.url().includes('/user/profile')
+                && response.status() === 200
             ),
             this.page.goto('/admin/tenants', { waitUntil: 'load' }),
         ]);

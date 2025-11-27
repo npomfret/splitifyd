@@ -5,16 +5,16 @@ import {
     toShowPricingPageFlag,
     toTenantAccentColor,
     toTenantAppName,
-    toTenantSurfaceColor,
     toTenantCustomCss,
     toTenantDefaultFlag,
     toTenantDomainName,
     toTenantFaviconUrl,
-    toTenantTextColor,
     toTenantId,
     toTenantLogoUrl,
     toTenantPrimaryColor,
     toTenantSecondaryColor,
+    toTenantSurfaceColor,
+    toTenantTextColor,
     toTenantThemePaletteName,
 } from '@billsplit-wl/shared';
 import { z } from 'zod';

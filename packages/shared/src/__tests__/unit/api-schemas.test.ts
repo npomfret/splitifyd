@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import {
     ActivityFeedItemSchema,
     ActivityFeedResponseSchema,
@@ -14,7 +15,6 @@ import {
     TenantDomainsResponseSchema,
     TenantSettingsResponseSchema,
 } from '../../index';
-import { describe, expect, it } from 'vitest';
 
 /**
  * API Schema Validation Tests

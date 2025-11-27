@@ -1261,7 +1261,7 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
         tenantId: string,
         assetType: 'logo' | 'favicon',
         file: File,
-    ): Promise<{ url: string }> {
+    ): Promise<{ url: string; }> {
         const url = `/api/admin/tenants/${encodeURIComponent(tenantId)}/assets/${assetType}`;
 
         const headers: Record<string, string> = {

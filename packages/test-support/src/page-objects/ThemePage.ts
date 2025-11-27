@@ -52,7 +52,7 @@ export class ThemePage extends BasePage {
     /**
      * Get sign up button's computed background colors (for comparison between themes)
      */
-    async getSignUpButtonColors(): Promise<{ backgroundColor: string; backgroundImage: string }> {
+    async getSignUpButtonColors(): Promise<{ backgroundColor: string; backgroundImage: string; }> {
         const signUpButton = this.page.getByTestId('header-signup-link');
         await expect(signUpButton).toBeVisible();
 

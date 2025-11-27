@@ -58,8 +58,8 @@ export function Skeleton({
                 className,
             )}
             style={style}
-            aria-hidden="true"
-            role="presentation"
+            aria-hidden='true'
+            role='presentation'
         />
     );
 }
@@ -71,12 +71,12 @@ export function Skeleton({
 /**
  * Skeleton for a card with title and description
  */
-export function SkeletonCard({ className }: { className?: string }) {
+export function SkeletonCard({ className }: { className?: string; }) {
     return (
         <div className={cx('space-y-3', className)}>
-            <Skeleton height={120} className="w-full" />
-            <Skeleton variant="text" width="80%" />
-            <Skeleton variant="text" width="60%" />
+            <Skeleton height={120} className='w-full' />
+            <Skeleton variant='text' width='80%' />
+            <Skeleton variant='text' width='60%' />
         </div>
     );
 }

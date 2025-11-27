@@ -325,8 +325,10 @@ describe('Admin Tests', () => {
                 const invalidContentType = 'application/json'; // Not an image
 
                 await expect(
-                    appDriver.uploadTenantImage(tenantId, 'logo', imageBuffer, invalidContentType, localAdminUser)
-                ).rejects.toThrow();
+                    appDriver.uploadTenantImage(tenantId, 'logo', imageBuffer, invalidContentType, localAdminUser),
+                )
+                    .rejects
+                    .toThrow();
             });
 
             it('should reject upload with missing content type', async () => {
@@ -334,8 +336,10 @@ describe('Admin Tests', () => {
                 const contentType = ''; // Empty content type
 
                 await expect(
-                    appDriver.uploadTenantImage(tenantId, 'logo', imageBuffer, contentType, localAdminUser)
-                ).rejects.toThrow();
+                    appDriver.uploadTenantImage(tenantId, 'logo', imageBuffer, contentType, localAdminUser),
+                )
+                    .rejects
+                    .toThrow();
             });
 
             it('should reject upload for non-existent tenant', async () => {
@@ -343,8 +347,10 @@ describe('Admin Tests', () => {
                 const contentType = 'image/png';
 
                 await expect(
-                    appDriver.uploadTenantImage('non-existent-tenant', 'logo', imageBuffer, contentType, localAdminUser)
-                ).rejects.toThrow();
+                    appDriver.uploadTenantImage('non-existent-tenant', 'logo', imageBuffer, contentType, localAdminUser),
+                )
+                    .rejects
+                    .toThrow();
             });
 
             it('should reject upload with empty buffer', async () => {
@@ -352,12 +358,14 @@ describe('Admin Tests', () => {
                 const contentType = 'image/png';
 
                 await expect(
-                    appDriver.uploadTenantImage(tenantId, 'logo', emptyBuffer, contentType, localAdminUser)
-                ).rejects.toThrow();
+                    appDriver.uploadTenantImage(tenantId, 'logo', emptyBuffer, contentType, localAdminUser),
+                )
+                    .rejects
+                    .toThrow();
             });
 
             it('should handle different image formats correctly', async () => {
-                const formats: Array<{ type: 'png' | 'jpeg' | 'gif' | 'webp', contentType: string, expectedExt: string }> = [
+                const formats: Array<{ type: 'png' | 'jpeg' | 'gif' | 'webp'; contentType: string; expectedExt: string; }> = [
                     { type: 'jpeg', contentType: 'image/jpeg', expectedExt: 'jpg' },
                     { type: 'png', contentType: 'image/png', expectedExt: 'png' },
                     { type: 'gif', contentType: 'image/gif', expectedExt: 'gif' },
@@ -370,7 +378,7 @@ describe('Admin Tests', () => {
                         'logo',
                         createValidImageBuffer(type),
                         contentType,
-                        localAdminUser
+                        localAdminUser,
                     );
                     expect(result.url).toContain(`.${expectedExt}`);
                 }

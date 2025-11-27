@@ -485,8 +485,9 @@ export class TenantEditorModalPage extends BasePage {
     async clickPublishAndGetCssUrl(): Promise<string> {
         const [publishResponse] = await Promise.all([
             this.page.waitForResponse(
-                response => response.url().includes('/admin/tenants/publish') &&
-                           response.status() === 200
+                response =>
+                    response.url().includes('/admin/tenants/publish')
+                    && response.status() === 200,
             ),
             this.clickPublish(),
         ]);

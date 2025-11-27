@@ -26,7 +26,8 @@ describe('Admin tenant API - integration', () => {
 
         // Should reject with validation error
         await expect(apiDriver.adminUpsertTenant(payload, adminUser.token))
-            .rejects.toThrow(/brandingTokens/i);
+            .rejects
+            .toThrow(/brandingTokens/i);
     });
 
     it('accepts tenant creation with full brandingTokens', async () => {

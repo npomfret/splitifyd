@@ -16,7 +16,7 @@ interface ImageUploadFieldProps {
     helperText?: string;
     'data-testid'?: string;
     className?: string;
-    allowUrlInput?: boolean;  // NEW: Allow entering URL to download image
+    allowUrlInput?: boolean; // NEW: Allow entering URL to download image
 }
 
 export function ImageUploadField({
@@ -148,27 +148,27 @@ export function ImageUploadField({
     return (
         <div className={cx('flex flex-col gap-2', className)} data-testid={dataTestId}>
             {/* Label */}
-            <label className="text-sm font-medium text-text-primary">
+            <label className='text-sm font-medium text-text-primary'>
                 {label}
-                {required && <span className="text-semantic-error ml-1">*</span>}
+                {required && <span className='text-semantic-error ml-1'>*</span>}
             </label>
 
             {/* Preview */}
             {preview && !imageLoadFailed && (
-                <div className="relative inline-block w-fit">
+                <div className='relative inline-block w-fit'>
                     <img
                         src={preview}
-                        alt="Preview"
-                        className="max-w-xs max-h-48 rounded-lg border border-border-default bg-surface-raised object-contain"
+                        alt='Preview'
+                        className='max-w-xs max-h-48 rounded-lg border border-border-default bg-surface-raised object-contain'
                         onError={handleImageError}
                     />
                     {!disabled && (
                         <Button
-                            variant="ghost"
-                            size="sm"
+                            variant='ghost'
+                            size='sm'
                             onClick={handleClearClick}
-                            className="absolute top-2 right-2 bg-surface-overlay/90 hover:bg-surface-overlay"
-                            aria-label="Clear image"
+                            className='absolute top-2 right-2 bg-surface-overlay/90 hover:bg-surface-overlay'
+                            aria-label='Clear image'
                         >
                             ✕
                         </Button>
@@ -177,17 +177,17 @@ export function ImageUploadField({
             )}
             {/* Fallback when image fails to load */}
             {preview && imageLoadFailed && (
-                <div className="relative inline-block w-fit">
-                    <div className="w-48 h-32 rounded-lg border border-border-default bg-surface-raised flex items-center justify-center text-text-muted text-sm">
+                <div className='relative inline-block w-fit'>
+                    <div className='w-48 h-32 rounded-lg border border-border-default bg-surface-raised flex items-center justify-center text-text-muted text-sm'>
                         Image URL set
                     </div>
                     {!disabled && (
                         <Button
-                            variant="ghost"
-                            size="sm"
+                            variant='ghost'
+                            size='sm'
                             onClick={handleClearClick}
-                            className="absolute top-2 right-2 bg-surface-overlay/90 hover:bg-surface-overlay"
-                            aria-label="Clear image"
+                            className='absolute top-2 right-2 bg-surface-overlay/90 hover:bg-surface-overlay'
+                            aria-label='Clear image'
                         >
                             ✕
                         </Button>
@@ -198,33 +198,33 @@ export function ImageUploadField({
             {/* File Input (hidden) */}
             <input
                 ref={inputRef}
-                type="file"
+                type='file'
                 accept={accept}
                 onChange={handleFileChange}
                 disabled={disabled}
-                className="hidden"
+                className='hidden'
                 aria-label={label}
             />
 
             {/* Upload Button or URL Input */}
             {!preview && !showUrlInput && (
-                <div className="flex gap-2">
+                <div className='flex gap-2'>
                     <Button
-                        type="button"
-                        variant="secondary"
+                        type='button'
+                        variant='secondary'
                         onClick={handleChooseFileClick}
                         disabled={disabled}
-                        className="w-full sm:w-auto"
+                        className='w-full sm:w-auto'
                     >
                         {t('common.chooseFile', 'Choose File')}
                     </Button>
                     {allowUrlInput && (
                         <Button
-                            type="button"
-                            variant="ghost"
+                            type='button'
+                            variant='ghost'
                             onClick={() => setShowUrlInput(true)}
                             disabled={disabled}
-                            className="w-full sm:w-auto"
+                            className='w-full sm:w-auto'
                         >
                             Or enter URL
                         </Button>
@@ -234,10 +234,10 @@ export function ImageUploadField({
 
             {/* URL Input */}
             {allowUrlInput && showUrlInput && !preview && (
-                <div className="flex gap-2">
+                <div className='flex gap-2'>
                     <input
                         ref={urlInputRef}
-                        type="text"
+                        type='text'
                         value={urlValue}
                         onChange={(e) => setUrlValue((e.target as HTMLInputElement).value)}
                         onKeyDown={(e) => {
@@ -246,24 +246,24 @@ export function ImageUploadField({
                                 handleUrlDownload();
                             }
                         }}
-                        placeholder="https://example.com/image.png"
+                        placeholder='https://example.com/image.png'
                         disabled={disabled || isDownloading}
-                        className="flex-1 rounded-lg border border-border-default bg-surface-base px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:border-interactive-primary focus:outline-none focus:ring-2 focus:ring-interactive-primary/20"
+                        className='flex-1 rounded-lg border border-border-default bg-surface-base px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:border-interactive-primary focus:outline-none focus:ring-2 focus:ring-interactive-primary/20'
                         data-testid={`${dataTestId}-url-input`}
                         aria-label={`${label} URL`}
                     />
                     <Button
-                        type="button"
-                        variant="primary"
+                        type='button'
+                        variant='primary'
                         onClick={handleUrlDownload}
                         disabled={disabled || isDownloading || !urlValue.trim()}
-                        className="whitespace-nowrap"
+                        className='whitespace-nowrap'
                     >
                         {isDownloading ? 'Downloading...' : 'Download'}
                     </Button>
                     <Button
-                        type="button"
-                        variant="ghost"
+                        type='button'
+                        variant='ghost'
                         onClick={() => {
                             setShowUrlInput(false);
                             setUrlValue('');
@@ -277,19 +277,17 @@ export function ImageUploadField({
 
             {/* File Name */}
             {fileName && (
-                <p className="text-sm text-text-secondary">
+                <p className='text-sm text-text-secondary'>
                     {t('common.selectedFile', 'Selected')}: {fileName}
                 </p>
             )}
 
             {/* Helper Text */}
-            {helperText && !error && (
-                <p className="text-sm text-text-muted">{helperText}</p>
-            )}
+            {helperText && !error && <p className='text-sm text-text-muted'>{helperText}</p>}
 
             {/* Error */}
             {error && (
-                <p className="text-sm text-semantic-error" role="alert">
+                <p className='text-sm text-semantic-error' role='alert'>
                     {error}
                 </p>
             )}

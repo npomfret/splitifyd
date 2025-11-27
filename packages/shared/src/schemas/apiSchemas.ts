@@ -22,14 +22,14 @@ import {
     toShowPricingPageFlag,
     toTenantAccentColor,
     toTenantAppName,
-    toTenantSurfaceColor,
     toTenantCustomCss,
     toTenantFaviconUrl,
-    toTenantTextColor,
     toTenantId,
     toTenantLogoUrl,
     toTenantPrimaryColor,
     toTenantSecondaryColor,
+    toTenantSurfaceColor,
+    toTenantTextColor,
     toTenantThemePaletteName,
     toUserId,
     UserId,
@@ -674,27 +674,33 @@ const DeletePolicyVersionResponseSchema = z.object({});
 // ========================================================================
 
 // Raw Firebase Auth user record (passthrough for flexibility)
-const AdminUserAuthRecordSchema = z.object({
-    uid: z.string().min(1),
-    email: z.string().optional(),
-    emailVerified: z.boolean().optional(),
-    displayName: z.string().optional(),
-    disabled: z.boolean().optional(),
-    metadata: z.object({
-        creationTime: z.string().optional(),
-        lastSignInTime: z.string().optional(),
-    }).optional(),
-}).passthrough();
+const AdminUserAuthRecordSchema = z
+    .object({
+        uid: z.string().min(1),
+        email: z.string().optional(),
+        emailVerified: z.boolean().optional(),
+        displayName: z.string().optional(),
+        disabled: z.boolean().optional(),
+        metadata: z
+            .object({
+                creationTime: z.string().optional(),
+                lastSignInTime: z.string().optional(),
+            })
+            .optional(),
+    })
+    .passthrough();
 
 // Raw Firestore user document (passthrough for flexibility)
-const AdminUserFirestoreRecordSchema = z.object({
-    uid: z.string().min(1).transform(toUserId).optional(),
-    displayName: z.string().transform(toDisplayName).optional(),
-    email: z.string().email().transform(toEmail).optional(),
-    role: z.nativeEnum(SystemUserRoles).optional(),
-    createdAt: z.string().optional(),
-    updatedAt: z.string().optional(),
-}).passthrough();
+const AdminUserFirestoreRecordSchema = z
+    .object({
+        uid: z.string().min(1).transform(toUserId).optional(),
+        displayName: z.string().transform(toDisplayName).optional(),
+        email: z.string().email().transform(toEmail).optional(),
+        role: z.nativeEnum(SystemUserRoles).optional(),
+        createdAt: z.string().optional(),
+        updatedAt: z.string().optional(),
+    })
+    .passthrough();
 
 // ========================================================================
 // Admin Tenant Schemas

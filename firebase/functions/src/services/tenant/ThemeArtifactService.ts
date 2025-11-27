@@ -511,6 +511,7 @@ export class ThemeArtifactService {
             `    background: ${skeletonBase};`,
             '  }',
             '}',
-        ].join('\n');
+        ]
+            .join('\n');
     }
 }

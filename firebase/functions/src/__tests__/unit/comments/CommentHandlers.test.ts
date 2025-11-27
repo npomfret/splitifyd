@@ -402,7 +402,8 @@ describe('CommentHandlers - Integration Tests', () => {
 
             // limit: 0 should fail validation (min is 1)
             await expect(appDriver.listGroupComments(group.id, { limit: 0 }, userId))
-                .rejects.toThrow('Limit must be at least 1');
+                .rejects
+                .toThrow('Limit must be at least 1');
         });
     });
 
@@ -600,7 +601,8 @@ describe('CommentHandlers - Integration Tests', () => {
 
             // limit: 0 should fail validation (min is 1)
             await expect(appDriver.listExpenseComments(expense.id, { limit: 0 }, userId))
-                .rejects.toThrow('Limit must be at least 1');
+                .rejects
+                .toThrow('Limit must be at least 1');
         });
     });
 

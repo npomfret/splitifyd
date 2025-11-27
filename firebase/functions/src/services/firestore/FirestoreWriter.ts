@@ -1478,7 +1478,8 @@ export class FirestoreWriter implements IFirestoreWriter {
     async reassignGroupOwnership(fromUserId: UserId, toUserId: UserId): Promise<number> {
         return measureDb('FirestoreWriter.reassignGroupOwnership', async () => {
             try {
-                const groupsSnapshot = await this.db
+                const groupsSnapshot = await this
+                    .db
                     .collection(FirestoreCollections.GROUPS)
                     .where('ownerId', '==', fromUserId)
                     .get();
@@ -1501,7 +1502,8 @@ export class FirestoreWriter implements IFirestoreWriter {
     async reassignGroupMemberships(fromUserId: UserId, toUserId: UserId): Promise<number> {
         return measureDb('FirestoreWriter.reassignGroupMemberships', async () => {
             try {
-                const membershipsSnapshot = await this.db
+                const membershipsSnapshot = await this
+                    .db
                     .collection(FirestoreCollections.GROUP_MEMBERSHIPS)
                     .where('userId', '==', fromUserId)
                     .get();
@@ -1524,7 +1526,8 @@ export class FirestoreWriter implements IFirestoreWriter {
     async reassignExpensePayer(fromUserId: UserId, toUserId: UserId): Promise<number> {
         return measureDb('FirestoreWriter.reassignExpensePayer', async () => {
             try {
-                const expensesSnapshot = await this.db
+                const expensesSnapshot = await this
+                    .db
                     .collection(FirestoreCollections.EXPENSES)
                     .where('paidBy', '==', fromUserId)
                     .get();
@@ -1547,7 +1550,8 @@ export class FirestoreWriter implements IFirestoreWriter {
     async reassignExpenseParticipants(fromUserId: UserId, toUserId: UserId): Promise<number> {
         return measureDb('FirestoreWriter.reassignExpenseParticipants', async () => {
             try {
-                const expensesSnapshot = await this.db
+                const expensesSnapshot = await this
+                    .db
                     .collection(FirestoreCollections.EXPENSES)
                     .where('participants', 'array-contains', fromUserId)
                     .get();
@@ -1573,7 +1577,8 @@ export class FirestoreWriter implements IFirestoreWriter {
     async reassignSettlementPayer(fromUserId: UserId, toUserId: UserId): Promise<number> {
         return measureDb('FirestoreWriter.reassignSettlementPayer', async () => {
             try {
-                const settlementsSnapshot = await this.db
+                const settlementsSnapshot = await this
+                    .db
                     .collection(FirestoreCollections.SETTLEMENTS)
                     .where('payerId', '==', fromUserId)
                     .get();
@@ -1596,7 +1601,8 @@ export class FirestoreWriter implements IFirestoreWriter {
     async reassignSettlementPayee(fromUserId: UserId, toUserId: UserId): Promise<number> {
         return measureDb('FirestoreWriter.reassignSettlementPayee', async () => {
             try {
-                const settlementsSnapshot = await this.db
+                const settlementsSnapshot = await this
+                    .db
                     .collection(FirestoreCollections.SETTLEMENTS)
                     .where('payeeId', '==', fromUserId)
                     .get();
@@ -1619,7 +1625,8 @@ export class FirestoreWriter implements IFirestoreWriter {
     async reassignCommentAuthors(fromUserId: UserId, toUserId: UserId): Promise<number> {
         return measureDb('FirestoreWriter.reassignCommentAuthors', async () => {
             try {
-                const commentsSnapshot = await this.db
+                const commentsSnapshot = await this
+                    .db
                     .collection(FirestoreCollections.COMMENTS)
                     .where('authorId', '==', fromUserId)
                     .get();
@@ -1642,7 +1649,8 @@ export class FirestoreWriter implements IFirestoreWriter {
     async reassignActivityFeedActors(fromUserId: UserId, toUserId: UserId): Promise<number> {
         return measureDb('FirestoreWriter.reassignActivityFeedActors', async () => {
             try {
-                const activitySnapshot = await this.db
+                const activitySnapshot = await this
+                    .db
                     .collection(FirestoreCollections.ACTIVITY_FEED)
                     .where('actorId', '==', fromUserId)
                     .get();
@@ -1665,7 +1673,8 @@ export class FirestoreWriter implements IFirestoreWriter {
     async reassignShareLinkTokens(fromUserId: UserId, toUserId: UserId): Promise<number> {
         return measureDb('FirestoreWriter.reassignShareLinkTokens', async () => {
             try {
-                const tokensSnapshot = await this.db
+                const tokensSnapshot = await this
+                    .db
                     .collection(FirestoreCollections.SHARE_LINK_TOKENS)
                     .where('createdBy', '==', fromUserId)
                     .get();

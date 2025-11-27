@@ -1,5 +1,4 @@
 import { StubCloudTasksClient } from '@billsplit-wl/firebase-simulator';
-import { ApiError } from '../../utils/errors';
 import {
     AcceptMultiplePoliciesResponse,
     AcceptPolicyRequest,
@@ -90,6 +89,7 @@ import { createRouteDefinitions, RouteDefinition } from '../../routes/route-conf
 import { ComponentBuilder } from '../../services/ComponentBuilder';
 import { FirestoreReader } from '../../services/firestore';
 import { RegisterUserResult } from '../../services/UserService2';
+import { ApiError } from '../../utils/errors';
 import { Errors, sendError } from '../../utils/errors';
 import { createUnitTestServiceConfig } from '../test-config';
 import { StubAuthService } from './mocks/StubAuthService';
@@ -1234,7 +1234,7 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         req.headers['content-type'] = contentType;
 
         const res = await this.dispatchByHandler('uploadTenantImage', req);
-        return res.getJson() as { url: string };
+        return res.getJson() as { url: string; };
     }
 
     // ===== ADMIN API: TENANT SETTINGS =====

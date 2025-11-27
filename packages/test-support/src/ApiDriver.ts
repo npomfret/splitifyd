@@ -104,13 +104,13 @@ const generateUserStyleDisplayName = (): string => {
     return parts.join(' ');
 };
 
-const assertNoCacheHeaders = (endpoint:string, headers: Headers) => {
+const assertNoCacheHeaders = (endpoint: string, headers: Headers) => {
     const cacheControl = headers.get('cache-control');
     if (!cacheControl || !cacheControl.includes('no-store')) {
         throw new Error(
-            `API endpoint ${endpoint} must have Cache-Control: no-store header. ` +
-            `Got: ${cacheControl || '(none)'}. ` +
-            `This prevents stale data from being served after updates.`,
+            `API endpoint ${endpoint} must have Cache-Control: no-store header. `
+                + `Got: ${cacheControl || '(none)'}. `
+                + `This prevents stale data from being served after updates.`,
         );
     }
 };
@@ -537,8 +537,8 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         token: string | null = null,
         options = {
             /** by default - authenticated responses should not be cached */
-            assertHeaders: (endpoint:string, headers: Headers) => token && assertNoCacheHeaders(endpoint, headers)
-        }
+            assertHeaders: (endpoint: string, headers: Headers) => token && assertNoCacheHeaders(endpoint, headers),
+        },
     ): Promise<any> {
         const url = `${this.baseUrl}${endpoint}`;
         const fetchOptions: RequestInit = {
@@ -546,7 +546,7 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
             headers: {
                 'Content-Type': 'application/json',
                 Accept: 'application/x-serialized-json',
-                Host: 'localhost',// todo: extract this from the url if it's important
+                Host: 'localhost', // todo: extract this from the url if it's important
                 ...(token && { Authorization: `Bearer ${token}` }),
             },
         };
@@ -756,7 +756,7 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
             throw error;
         }
 
-        return await response.json() as { url: string };
+        return await response.json() as { url: string; };
     }
 
     // ===== ADMIN API: TENANT SETTINGS =====

@@ -6,12 +6,7 @@ import { validateGroupIdParam } from '../groups/validation';
 import { SettlementService } from '../services/SettlementService';
 import { logger } from '../utils/contextual-logger';
 import { LoggerContext } from '../utils/logger-context';
-import {
-    validateCreateSettlement,
-    validateListSettlementsQuery,
-    validateSettlementId,
-    validateUpdateSettlement,
-} from './validation';
+import { validateCreateSettlement, validateListSettlementsQuery, validateSettlementId, validateUpdateSettlement } from './validation';
 
 export class SettlementHandlers {
     constructor(private readonly settlementService: SettlementService) {

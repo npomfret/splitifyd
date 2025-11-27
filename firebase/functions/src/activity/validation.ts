@@ -28,4 +28,4 @@ export const validateActivityFeedQuery = createRequestValidator({
     schema: ActivityFeedQuerySchema,
     preValidate: (payload: unknown) => payload ?? {},
     mapError: (error) => mapActivityFeedQueryError(error),
-}) as (query: unknown) => { cursor?: string; limit: number };
+}) as (query: unknown) => { cursor?: string; limit: number; };

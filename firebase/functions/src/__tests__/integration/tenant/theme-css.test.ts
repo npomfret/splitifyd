@@ -1,13 +1,5 @@
 import type { BrandingTokens, PooledTestUser } from '@billsplit-wl/shared';
-import {
-    toTenantAccentColor,
-    toTenantAppName,
-    toTenantFaviconUrl,
-    toTenantLogoUrl,
-    toTenantPrimaryColor,
-    toTenantSecondaryColor,
-    toTenantThemePaletteName,
-} from '@billsplit-wl/shared';
+import { toTenantAccentColor, toTenantAppName, toTenantFaviconUrl, toTenantLogoUrl, toTenantPrimaryColor, toTenantSecondaryColor, toTenantThemePaletteName } from '@billsplit-wl/shared';
 import { ApiDriver, getFirebaseEmulatorConfig } from '@billsplit-wl/test-support';
 import { AdminTenantRequestBuilder } from '@billsplit-wl/test-support';
 import { beforeAll, describe, expect, it } from 'vitest';

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { validateGroupFullDetailsQuery, validateGroupIdParam, validateListGroupsQuery } from '../../groups/validation';
 import { HTTP_STATUS } from '../../constants';
+import { validateGroupFullDetailsQuery, validateGroupIdParam, validateListGroupsQuery } from '../../groups/validation';
 
 describe('groups/validation', () => {
     describe('validateListGroupsQuery', () => {

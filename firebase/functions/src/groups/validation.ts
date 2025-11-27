@@ -6,8 +6,8 @@ import {
     GroupPermissions,
     ListGroupsQuerySchema,
     MemberRoles,
-    MemberStatuses,
     type MemberStatus,
+    MemberStatuses,
     PermissionLevels,
     toDisplayName,
     toGroupId,
@@ -307,7 +307,8 @@ export const validateListGroupsQuery = (query: unknown): ListGroupsQueryResult =
         const allowedStatuses = new Set<string>(Object.values(MemberStatuses));
         const uniqueStatuses = [
             ...new Set(
-                value.statusFilter
+                value
+                    .statusFilter
                     .split(',')
                     .map((s: string) => s.trim().toLowerCase())
                     .filter((s: string) => s.length > 0 && allowedStatuses.has(s)),

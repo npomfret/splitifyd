@@ -580,10 +580,12 @@ function buildBrandingTokensFromForm(formData: TenantData): TenantBranding {
                     overlay: formData.surfaceOverlayColor as `rgba(${string})`,
                     warning: formData.surfaceWarningColor as `#${string}`,
                     muted: formData.surfaceMutedColor as `#${string}`,
-                    ...(formData.enableGlassmorphism && formData.glassColor ? {
-                        glass: formData.glassColor as `rgba(${string})`,
-                        glassBorder: formData.glassBorderColor as `rgba(${string})`,
-                    } : {}),
+                    ...(formData.enableGlassmorphism && formData.glassColor
+                        ? {
+                            glass: formData.glassColor as `rgba(${string})`,
+                            glassBorder: formData.glassBorderColor as `rgba(${string})`,
+                        }
+                        : {}),
                 },
                 text: {
                     primary: formData.textPrimaryColor as `#${string}`,
@@ -621,12 +623,16 @@ function buildBrandingTokensFromForm(formData: TenantData): TenantBranding {
                     info: formData.statusInfoColor as `#${string}`,
                 },
                 gradient: {
-                    ...(formData.enableParallax && formData.auroraGradient.length >= 2 ? {
-                        aurora: formData.auroraGradient as `#${string}`[],
-                    } : {}),
-                    ...(formData.enableButtonGradient && formData.interactivePrimaryColor && formData.interactivePrimaryHoverColor ? {
-                        primary: [formData.interactivePrimaryColor, formData.interactivePrimaryHoverColor] as [`#${string}`, `#${string}`],
-                    } : {}),
+                    ...(formData.enableParallax && formData.auroraGradient.length >= 2
+                        ? {
+                            aurora: formData.auroraGradient as `#${string}`[],
+                        }
+                        : {}),
+                    ...(formData.enableButtonGradient && formData.interactivePrimaryColor && formData.interactivePrimaryHoverColor
+                        ? {
+                            primary: [formData.interactivePrimaryColor, formData.interactivePrimaryHoverColor] as [`#${string}`, `#${string}`],
+                        }
+                        : {}),
                 },
             },
             spacing: {
@@ -859,7 +865,8 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
     useEffect(() => {
         if (open && mode === 'create') {
             setIsLoadingTenants(true);
-            apiClient.listAllTenants()
+            apiClient
+                .listAllTenants()
                 .then((response) => {
                     setExistingTenants(response.tenants);
                 })
@@ -1152,7 +1159,10 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
     };
 
     const handlePublish = async () => {
-        if (!formData.tenantId) { setErrorMessage('Tenant ID is required for publishing'); return; }
+        if (!formData.tenantId) {
+            setErrorMessage('Tenant ID is required for publishing');
+            return;
+        }
         setIsPublishing(true);
         setErrorMessage('');
         setSuccessMessage('');
@@ -1197,7 +1207,10 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
     };
 
     const handleLogoUpload = async (file: File) => {
-        if (!formData.tenantId) { setErrorMessage('Please save the tenant first before uploading images'); return; }
+        if (!formData.tenantId) {
+            setErrorMessage('Please save the tenant first before uploading images');
+            return;
+        }
         try {
             const result = await apiClient.uploadTenantImage(formData.tenantId, 'logo', file);
             setFormData({ ...formData, logoUrl: result.url });
@@ -1209,7 +1222,10 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
     };
 
     const handleFaviconUpload = async (file: File) => {
-        if (!formData.tenantId) { setErrorMessage('Please save the tenant first before uploading images'); return; }
+        if (!formData.tenantId) {
+            setErrorMessage('Please save the tenant first before uploading images');
+            return;
+        }
         try {
             const result = await apiClient.uploadTenantImage(formData.tenantId, 'favicon', file);
             setFormData({ ...formData, faviconUrl: result.url });
@@ -1294,29 +1310,30 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
 
                                     {creationMode === 'copy' && (
                                         <div class='space-y-3'>
-                                            {isLoadingTenants ? (
-                                                <p class='text-sm text-text-muted'>Loading tenants...</p>
-                                            ) : existingTenants.length === 0 ? (
-                                                <p class='text-sm text-text-muted'>No existing tenants to copy from.</p>
-                                            ) : (
-                                                <select
-                                                    value={selectedSourceTenantId}
-                                                    onChange={(e) => setSelectedSourceTenantId((e.target as HTMLSelectElement).value)}
-                                                    class='w-full rounded-md border border-border-default bg-surface-base px-3 py-2 text-sm'
-                                                    data-testid='source-tenant-select'
-                                                >
-                                                    <option value=''>Select a tenant to copy...</option>
-                                                    {existingTenants.map((t) => (
-                                                        <option key={t.tenant.tenantId} value={t.tenant.tenantId}>
-                                                            {t.tenant.tenantId} - {t.tenant.branding?.appName || 'Unnamed'}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                            )}
+                                            {isLoadingTenants
+                                                ? <p class='text-sm text-text-muted'>Loading tenants...</p>
+                                                : existingTenants.length === 0
+                                                ? <p class='text-sm text-text-muted'>No existing tenants to copy from.</p>
+                                                : (
+                                                    <select
+                                                        value={selectedSourceTenantId}
+                                                        onChange={(e) => setSelectedSourceTenantId((e.target as HTMLSelectElement).value)}
+                                                        class='w-full rounded-md border border-border-default bg-surface-base px-3 py-2 text-sm'
+                                                        data-testid='source-tenant-select'
+                                                    >
+                                                        <option value=''>Select a tenant to copy...</option>
+                                                        {existingTenants.map((t) => (
+                                                            <option key={t.tenant.tenantId} value={t.tenant.tenantId}>
+                                                                {t.tenant.tenantId} - {t.tenant.branding?.appName || 'Unnamed'}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                )}
                                             {selectedSourceTenantId && (
                                                 <div class='bg-surface-raised border border-border-subtle rounded-lg p-4'>
                                                     <p class='text-sm text-text-secondary'>
-                                                        All theme settings will be copied from <strong>{selectedSourceTenantId}</strong>. You will still need to set a unique Tenant ID, App Name, and domains.
+                                                        All theme settings will be copied from{' '}
+                                                        <strong>{selectedSourceTenantId}</strong>. You will still need to set a unique Tenant ID, App Name, and domains.
                                                     </p>
                                                 </div>
                                             )}
@@ -1357,7 +1374,12 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                         {formData.domains.map((domain, index) => (
                                             <span key={index} class='inline-flex items-center gap-1 px-2 py-1 bg-surface-raised border border-border-default rounded text-sm font-mono'>
                                                 {domain}
-                                                <button onClick={() => handleRemoveDomain(index)} class='text-text-muted hover:text-status-danger' data-testid={`remove-domain-${index}`}>
+                                                <button
+                                                    onClick={() =>
+                                                        handleRemoveDomain(index)}
+                                                    class='text-text-muted hover:text-status-danger'
+                                                    data-testid={`remove-domain-${index}`}
+                                                >
                                                     <svg class='w-4 h-4' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
                                                         <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12' />
                                                     </svg>
@@ -1425,33 +1447,129 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                         <Section title='Palette Colors' description='Core color palette (11 required)' defaultOpen={mode === 'create' && creationMode === 'empty'} testId='section-palette'>
                             <div class='space-y-4'>
                                 <div class='grid grid-cols-2 gap-4'>
-                                    <ColorInput id='primary-color' label='Primary *' value={formData.primaryColor} onChange={(v) => update({ primaryColor: v })} disabled={isSaving} testId='primary-color-input' />
-                                    <ColorInput id='primary-variant' label='Primary Variant *' value={formData.primaryVariantColor} onChange={(v) => update({ primaryVariantColor: v })} disabled={isSaving} testId='primary-variant-color-input' />
+                                    <ColorInput
+                                        id='primary-color'
+                                        label='Primary *'
+                                        value={formData.primaryColor}
+                                        onChange={(v) => update({ primaryColor: v })}
+                                        disabled={isSaving}
+                                        testId='primary-color-input'
+                                    />
+                                    <ColorInput
+                                        id='primary-variant'
+                                        label='Primary Variant *'
+                                        value={formData.primaryVariantColor}
+                                        onChange={(v) => update({ primaryVariantColor: v })}
+                                        disabled={isSaving}
+                                        testId='primary-variant-color-input'
+                                    />
                                 </div>
                                 <div class='grid grid-cols-2 gap-4'>
-                                    <ColorInput id='secondary-color' label='Secondary *' value={formData.secondaryColor} onChange={(v) => update({ secondaryColor: v })} disabled={isSaving} testId='secondary-color-input' />
-                                    <ColorInput id='secondary-variant' label='Secondary Variant *' value={formData.secondaryVariantColor} onChange={(v) => update({ secondaryVariantColor: v })} disabled={isSaving} testId='secondary-variant-color-input' />
+                                    <ColorInput
+                                        id='secondary-color'
+                                        label='Secondary *'
+                                        value={formData.secondaryColor}
+                                        onChange={(v) => update({ secondaryColor: v })}
+                                        disabled={isSaving}
+                                        testId='secondary-color-input'
+                                    />
+                                    <ColorInput
+                                        id='secondary-variant'
+                                        label='Secondary Variant *'
+                                        value={formData.secondaryVariantColor}
+                                        onChange={(v) => update({ secondaryVariantColor: v })}
+                                        disabled={isSaving}
+                                        testId='secondary-variant-color-input'
+                                    />
                                 </div>
-                                <ColorInput id='accent-color' label='Accent *' value={formData.accentColor} onChange={(v) => update({ accentColor: v })} disabled={isSaving} testId='accent-color-input' />
+                                <ColorInput
+                                    id='accent-color'
+                                    label='Accent *'
+                                    value={formData.accentColor}
+                                    onChange={(v) => update({ accentColor: v })}
+                                    disabled={isSaving}
+                                    testId='accent-color-input'
+                                />
                                 <div class='grid grid-cols-2 gap-4'>
-                                    <ColorInput id='neutral-color' label='Neutral *' value={formData.neutralColor} onChange={(v) => update({ neutralColor: v })} disabled={isSaving} testId='neutral-color-input' />
-                                    <ColorInput id='neutral-variant' label='Neutral Variant *' value={formData.neutralVariantColor} onChange={(v) => update({ neutralVariantColor: v })} disabled={isSaving} testId='neutral-variant-color-input' />
+                                    <ColorInput
+                                        id='neutral-color'
+                                        label='Neutral *'
+                                        value={formData.neutralColor}
+                                        onChange={(v) => update({ neutralColor: v })}
+                                        disabled={isSaving}
+                                        testId='neutral-color-input'
+                                    />
+                                    <ColorInput
+                                        id='neutral-variant'
+                                        label='Neutral Variant *'
+                                        value={formData.neutralVariantColor}
+                                        onChange={(v) => update({ neutralVariantColor: v })}
+                                        disabled={isSaving}
+                                        testId='neutral-variant-color-input'
+                                    />
                                 </div>
                                 <div class='grid grid-cols-4 gap-4'>
-                                    <ColorInput id='success-color' label='Success *' value={formData.successColor} onChange={(v) => update({ successColor: v })} disabled={isSaving} testId='success-color-input' />
-                                    <ColorInput id='warning-color' label='Warning *' value={formData.warningColor} onChange={(v) => update({ warningColor: v })} disabled={isSaving} testId='warning-color-input' />
-                                    <ColorInput id='danger-color' label='Danger *' value={formData.dangerColor} onChange={(v) => update({ dangerColor: v })} disabled={isSaving} testId='danger-color-input' />
+                                    <ColorInput
+                                        id='success-color'
+                                        label='Success *'
+                                        value={formData.successColor}
+                                        onChange={(v) => update({ successColor: v })}
+                                        disabled={isSaving}
+                                        testId='success-color-input'
+                                    />
+                                    <ColorInput
+                                        id='warning-color'
+                                        label='Warning *'
+                                        value={formData.warningColor}
+                                        onChange={(v) => update({ warningColor: v })}
+                                        disabled={isSaving}
+                                        testId='warning-color-input'
+                                    />
+                                    <ColorInput
+                                        id='danger-color'
+                                        label='Danger *'
+                                        value={formData.dangerColor}
+                                        onChange={(v) => update({ dangerColor: v })}
+                                        disabled={isSaving}
+                                        testId='danger-color-input'
+                                    />
                                     <ColorInput id='info-color' label='Info *' value={formData.infoColor} onChange={(v) => update({ infoColor: v })} disabled={isSaving} testId='info-color-input' />
                                 </div>
                             </div>
                         </Section>
 
                         {/* Surface Colors */}
-                        <Section title='Surface Colors' description='Background, card, and overlay colors (6 required)' defaultOpen={mode === 'create' && creationMode === 'empty'} testId='section-surfaces'>
+                        <Section
+                            title='Surface Colors'
+                            description='Background, card, and overlay colors (6 required)'
+                            defaultOpen={mode === 'create' && creationMode === 'empty'}
+                            testId='section-surfaces'
+                        >
                             <div class='grid grid-cols-3 gap-4'>
-                                <ColorInput id='surface-base' label='Base *' value={formData.surfaceBaseColor} onChange={(v) => update({ surfaceBaseColor: v })} disabled={isSaving} testId='surface-base-color-input' />
-                                <ColorInput id='surface-raised' label='Raised *' value={formData.surfaceRaisedColor} onChange={(v) => update({ surfaceRaisedColor: v })} disabled={isSaving} testId='surface-raised-color-input' />
-                                <ColorInput id='surface-sunken' label='Sunken *' value={formData.surfaceSunkenColor} onChange={(v) => update({ surfaceSunkenColor: v })} disabled={isSaving} testId='surface-sunken-color-input' />
+                                <ColorInput
+                                    id='surface-base'
+                                    label='Base *'
+                                    value={formData.surfaceBaseColor}
+                                    onChange={(v) => update({ surfaceBaseColor: v })}
+                                    disabled={isSaving}
+                                    testId='surface-base-color-input'
+                                />
+                                <ColorInput
+                                    id='surface-raised'
+                                    label='Raised *'
+                                    value={formData.surfaceRaisedColor}
+                                    onChange={(v) => update({ surfaceRaisedColor: v })}
+                                    disabled={isSaving}
+                                    testId='surface-raised-color-input'
+                                />
+                                <ColorInput
+                                    id='surface-sunken'
+                                    label='Sunken *'
+                                    value={formData.surfaceSunkenColor}
+                                    onChange={(v) => update({ surfaceSunkenColor: v })}
+                                    disabled={isSaving}
+                                    testId='surface-sunken-color-input'
+                                />
                             </div>
                             <div class='grid grid-cols-3 gap-4 mt-4'>
                                 <div>
@@ -1466,19 +1584,68 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                         data-testid='surface-overlay-color-input'
                                     />
                                 </div>
-                                <ColorInput id='surface-warning' label='Warning *' value={formData.surfaceWarningColor} onChange={(v) => update({ surfaceWarningColor: v })} disabled={isSaving} testId='surface-warning-color-input' />
-                                <ColorInput id='surface-muted' label='Muted *' value={formData.surfaceMutedColor} onChange={(v) => update({ surfaceMutedColor: v })} disabled={isSaving} testId='surface-muted-color-input' />
+                                <ColorInput
+                                    id='surface-warning'
+                                    label='Warning *'
+                                    value={formData.surfaceWarningColor}
+                                    onChange={(v) => update({ surfaceWarningColor: v })}
+                                    disabled={isSaving}
+                                    testId='surface-warning-color-input'
+                                />
+                                <ColorInput
+                                    id='surface-muted'
+                                    label='Muted *'
+                                    value={formData.surfaceMutedColor}
+                                    onChange={(v) => update({ surfaceMutedColor: v })}
+                                    disabled={isSaving}
+                                    testId='surface-muted-color-input'
+                                />
                             </div>
                         </Section>
 
                         {/* Text Colors */}
                         <Section title='Text Colors' description='Text color hierarchy (5 required)' defaultOpen={mode === 'create' && creationMode === 'empty'} testId='section-text'>
                             <div class='grid grid-cols-5 gap-4'>
-                                <ColorInput id='text-primary' label='Primary *' value={formData.textPrimaryColor} onChange={(v) => update({ textPrimaryColor: v })} disabled={isSaving} testId='text-primary-color-input' />
-                                <ColorInput id='text-secondary' label='Secondary *' value={formData.textSecondaryColor} onChange={(v) => update({ textSecondaryColor: v })} disabled={isSaving} testId='text-secondary-color-input' />
-                                <ColorInput id='text-muted' label='Muted *' value={formData.textMutedColor} onChange={(v) => update({ textMutedColor: v })} disabled={isSaving} testId='text-muted-color-input' />
-                                <ColorInput id='text-inverted' label='Inverted *' value={formData.textInvertedColor} onChange={(v) => update({ textInvertedColor: v })} disabled={isSaving} testId='text-inverted-color-input' />
-                                <ColorInput id='text-accent' label='Accent *' value={formData.textAccentColor} onChange={(v) => update({ textAccentColor: v })} disabled={isSaving} testId='text-accent-color-input' />
+                                <ColorInput
+                                    id='text-primary'
+                                    label='Primary *'
+                                    value={formData.textPrimaryColor}
+                                    onChange={(v) => update({ textPrimaryColor: v })}
+                                    disabled={isSaving}
+                                    testId='text-primary-color-input'
+                                />
+                                <ColorInput
+                                    id='text-secondary'
+                                    label='Secondary *'
+                                    value={formData.textSecondaryColor}
+                                    onChange={(v) => update({ textSecondaryColor: v })}
+                                    disabled={isSaving}
+                                    testId='text-secondary-color-input'
+                                />
+                                <ColorInput
+                                    id='text-muted'
+                                    label='Muted *'
+                                    value={formData.textMutedColor}
+                                    onChange={(v) => update({ textMutedColor: v })}
+                                    disabled={isSaving}
+                                    testId='text-muted-color-input'
+                                />
+                                <ColorInput
+                                    id='text-inverted'
+                                    label='Inverted *'
+                                    value={formData.textInvertedColor}
+                                    onChange={(v) => update({ textInvertedColor: v })}
+                                    disabled={isSaving}
+                                    testId='text-inverted-color-input'
+                                />
+                                <ColorInput
+                                    id='text-accent'
+                                    label='Accent *'
+                                    value={formData.textAccentColor}
+                                    onChange={(v) => update({ textAccentColor: v })}
+                                    disabled={isSaving}
+                                    testId='text-accent-color-input'
+                                />
                             </div>
                         </Section>
 
@@ -1487,48 +1654,208 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                             <div class='space-y-4'>
                                 <h4 class='text-xs font-semibold text-text-muted uppercase tracking-wide'>Primary</h4>
                                 <div class='grid grid-cols-4 gap-4'>
-                                    <ColorInput id='interactive-primary' label='Default *' value={formData.interactivePrimaryColor} onChange={(v) => update({ interactivePrimaryColor: v })} disabled={isSaving} testId='interactive-primary-color-input' />
-                                    <ColorInput id='interactive-primary-hover' label='Hover *' value={formData.interactivePrimaryHoverColor} onChange={(v) => update({ interactivePrimaryHoverColor: v })} disabled={isSaving} testId='interactive-primary-hover-color-input' />
-                                    <ColorInput id='interactive-primary-active' label='Active *' value={formData.interactivePrimaryActiveColor} onChange={(v) => update({ interactivePrimaryActiveColor: v })} disabled={isSaving} testId='interactive-primary-active-color-input' />
-                                    <ColorInput id='interactive-primary-fg' label='Foreground *' value={formData.interactivePrimaryForegroundColor} onChange={(v) => update({ interactivePrimaryForegroundColor: v })} disabled={isSaving} testId='interactive-primary-foreground-color-input' />
+                                    <ColorInput
+                                        id='interactive-primary'
+                                        label='Default *'
+                                        value={formData.interactivePrimaryColor}
+                                        onChange={(v) => update({ interactivePrimaryColor: v })}
+                                        disabled={isSaving}
+                                        testId='interactive-primary-color-input'
+                                    />
+                                    <ColorInput
+                                        id='interactive-primary-hover'
+                                        label='Hover *'
+                                        value={formData.interactivePrimaryHoverColor}
+                                        onChange={(v) => update({ interactivePrimaryHoverColor: v })}
+                                        disabled={isSaving}
+                                        testId='interactive-primary-hover-color-input'
+                                    />
+                                    <ColorInput
+                                        id='interactive-primary-active'
+                                        label='Active *'
+                                        value={formData.interactivePrimaryActiveColor}
+                                        onChange={(v) => update({ interactivePrimaryActiveColor: v })}
+                                        disabled={isSaving}
+                                        testId='interactive-primary-active-color-input'
+                                    />
+                                    <ColorInput
+                                        id='interactive-primary-fg'
+                                        label='Foreground *'
+                                        value={formData.interactivePrimaryForegroundColor}
+                                        onChange={(v) => update({ interactivePrimaryForegroundColor: v })}
+                                        disabled={isSaving}
+                                        testId='interactive-primary-foreground-color-input'
+                                    />
                                 </div>
                                 <h4 class='text-xs font-semibold text-text-muted uppercase tracking-wide'>Secondary</h4>
                                 <div class='grid grid-cols-4 gap-4'>
-                                    <ColorInput id='interactive-secondary' label='Default *' value={formData.interactiveSecondaryColor} onChange={(v) => update({ interactiveSecondaryColor: v })} disabled={isSaving} testId='interactive-secondary-color-input' />
-                                    <ColorInput id='interactive-secondary-hover' label='Hover *' value={formData.interactiveSecondaryHoverColor} onChange={(v) => update({ interactiveSecondaryHoverColor: v })} disabled={isSaving} testId='interactive-secondary-hover-color-input' />
-                                    <ColorInput id='interactive-secondary-active' label='Active *' value={formData.interactiveSecondaryActiveColor} onChange={(v) => update({ interactiveSecondaryActiveColor: v })} disabled={isSaving} testId='interactive-secondary-active-color-input' />
-                                    <ColorInput id='interactive-secondary-fg' label='Foreground *' value={formData.interactiveSecondaryForegroundColor} onChange={(v) => update({ interactiveSecondaryForegroundColor: v })} disabled={isSaving} testId='interactive-secondary-foreground-color-input' />
+                                    <ColorInput
+                                        id='interactive-secondary'
+                                        label='Default *'
+                                        value={formData.interactiveSecondaryColor}
+                                        onChange={(v) => update({ interactiveSecondaryColor: v })}
+                                        disabled={isSaving}
+                                        testId='interactive-secondary-color-input'
+                                    />
+                                    <ColorInput
+                                        id='interactive-secondary-hover'
+                                        label='Hover *'
+                                        value={formData.interactiveSecondaryHoverColor}
+                                        onChange={(v) => update({ interactiveSecondaryHoverColor: v })}
+                                        disabled={isSaving}
+                                        testId='interactive-secondary-hover-color-input'
+                                    />
+                                    <ColorInput
+                                        id='interactive-secondary-active'
+                                        label='Active *'
+                                        value={formData.interactiveSecondaryActiveColor}
+                                        onChange={(v) => update({ interactiveSecondaryActiveColor: v })}
+                                        disabled={isSaving}
+                                        testId='interactive-secondary-active-color-input'
+                                    />
+                                    <ColorInput
+                                        id='interactive-secondary-fg'
+                                        label='Foreground *'
+                                        value={formData.interactiveSecondaryForegroundColor}
+                                        onChange={(v) => update({ interactiveSecondaryForegroundColor: v })}
+                                        disabled={isSaving}
+                                        testId='interactive-secondary-foreground-color-input'
+                                    />
                                 </div>
-                                <ColorInput id='interactive-accent' label='Accent *' value={formData.interactiveAccentColor} onChange={(v) => update({ interactiveAccentColor: v })} disabled={isSaving} testId='interactive-accent-color-input' />
+                                <ColorInput
+                                    id='interactive-accent'
+                                    label='Accent *'
+                                    value={formData.interactiveAccentColor}
+                                    onChange={(v) => update({ interactiveAccentColor: v })}
+                                    disabled={isSaving}
+                                    testId='interactive-accent-color-input'
+                                />
                                 <h4 class='text-xs font-semibold text-text-muted uppercase tracking-wide'>Destructive</h4>
                                 <div class='grid grid-cols-4 gap-4'>
-                                    <ColorInput id='interactive-destructive' label='Default *' value={formData.interactiveDestructiveColor} onChange={(v) => update({ interactiveDestructiveColor: v })} disabled={isSaving} testId='interactive-destructive-color-input' />
-                                    <ColorInput id='interactive-destructive-hover' label='Hover *' value={formData.interactiveDestructiveHoverColor} onChange={(v) => update({ interactiveDestructiveHoverColor: v })} disabled={isSaving} testId='interactive-destructive-hover-color-input' />
-                                    <ColorInput id='interactive-destructive-active' label='Active *' value={formData.interactiveDestructiveActiveColor} onChange={(v) => update({ interactiveDestructiveActiveColor: v })} disabled={isSaving} testId='interactive-destructive-active-color-input' />
-                                    <ColorInput id='interactive-destructive-fg' label='Foreground *' value={formData.interactiveDestructiveForegroundColor} onChange={(v) => update({ interactiveDestructiveForegroundColor: v })} disabled={isSaving} testId='interactive-destructive-foreground-color-input' />
+                                    <ColorInput
+                                        id='interactive-destructive'
+                                        label='Default *'
+                                        value={formData.interactiveDestructiveColor}
+                                        onChange={(v) => update({ interactiveDestructiveColor: v })}
+                                        disabled={isSaving}
+                                        testId='interactive-destructive-color-input'
+                                    />
+                                    <ColorInput
+                                        id='interactive-destructive-hover'
+                                        label='Hover *'
+                                        value={formData.interactiveDestructiveHoverColor}
+                                        onChange={(v) => update({ interactiveDestructiveHoverColor: v })}
+                                        disabled={isSaving}
+                                        testId='interactive-destructive-hover-color-input'
+                                    />
+                                    <ColorInput
+                                        id='interactive-destructive-active'
+                                        label='Active *'
+                                        value={formData.interactiveDestructiveActiveColor}
+                                        onChange={(v) => update({ interactiveDestructiveActiveColor: v })}
+                                        disabled={isSaving}
+                                        testId='interactive-destructive-active-color-input'
+                                    />
+                                    <ColorInput
+                                        id='interactive-destructive-fg'
+                                        label='Foreground *'
+                                        value={formData.interactiveDestructiveForegroundColor}
+                                        onChange={(v) => update({ interactiveDestructiveForegroundColor: v })}
+                                        disabled={isSaving}
+                                        testId='interactive-destructive-foreground-color-input'
+                                    />
                                 </div>
-                                <Toggle label='Gradient buttons' checked={formData.enableButtonGradient} onChange={(v) => update({ enableButtonGradient: v })} disabled={isSaving} testId='enable-button-gradient-checkbox' />
+                                <Toggle
+                                    label='Gradient buttons'
+                                    checked={formData.enableButtonGradient}
+                                    onChange={(v) => update({ enableButtonGradient: v })}
+                                    disabled={isSaving}
+                                    testId='enable-button-gradient-checkbox'
+                                />
                             </div>
                         </Section>
 
                         {/* Border Colors */}
                         <Section title='Border Colors' description='Border color levels (5 required)' defaultOpen={mode === 'create' && creationMode === 'empty'} testId='section-borders'>
                             <div class='grid grid-cols-5 gap-4'>
-                                <ColorInput id='border-subtle' label='Subtle *' value={formData.borderSubtleColor} onChange={(v) => update({ borderSubtleColor: v })} disabled={isSaving} testId='border-subtle-color-input' />
-                                <ColorInput id='border-default' label='Default *' value={formData.borderDefaultColor} onChange={(v) => update({ borderDefaultColor: v })} disabled={isSaving} testId='border-default-color-input' />
-                                <ColorInput id='border-strong' label='Strong *' value={formData.borderStrongColor} onChange={(v) => update({ borderStrongColor: v })} disabled={isSaving} testId='border-strong-color-input' />
-                                <ColorInput id='border-focus' label='Focus *' value={formData.borderFocusColor} onChange={(v) => update({ borderFocusColor: v })} disabled={isSaving} testId='border-focus-color-input' />
-                                <ColorInput id='border-warning' label='Warning *' value={formData.borderWarningColor} onChange={(v) => update({ borderWarningColor: v })} disabled={isSaving} testId='border-warning-color-input' />
+                                <ColorInput
+                                    id='border-subtle'
+                                    label='Subtle *'
+                                    value={formData.borderSubtleColor}
+                                    onChange={(v) => update({ borderSubtleColor: v })}
+                                    disabled={isSaving}
+                                    testId='border-subtle-color-input'
+                                />
+                                <ColorInput
+                                    id='border-default'
+                                    label='Default *'
+                                    value={formData.borderDefaultColor}
+                                    onChange={(v) => update({ borderDefaultColor: v })}
+                                    disabled={isSaving}
+                                    testId='border-default-color-input'
+                                />
+                                <ColorInput
+                                    id='border-strong'
+                                    label='Strong *'
+                                    value={formData.borderStrongColor}
+                                    onChange={(v) => update({ borderStrongColor: v })}
+                                    disabled={isSaving}
+                                    testId='border-strong-color-input'
+                                />
+                                <ColorInput
+                                    id='border-focus'
+                                    label='Focus *'
+                                    value={formData.borderFocusColor}
+                                    onChange={(v) => update({ borderFocusColor: v })}
+                                    disabled={isSaving}
+                                    testId='border-focus-color-input'
+                                />
+                                <ColorInput
+                                    id='border-warning'
+                                    label='Warning *'
+                                    value={formData.borderWarningColor}
+                                    onChange={(v) => update({ borderWarningColor: v })}
+                                    disabled={isSaving}
+                                    testId='border-warning-color-input'
+                                />
                             </div>
                         </Section>
 
                         {/* Status Colors */}
                         <Section title='Status Colors' description='Semantic status colors (4 required)' testId='section-status-colors'>
                             <div class='grid grid-cols-4 gap-4'>
-                                <ColorInput id='status-success' label='Success *' value={formData.statusSuccessColor} onChange={(v) => update({ statusSuccessColor: v })} disabled={isSaving} testId='status-success-color-input' />
-                                <ColorInput id='status-warning' label='Warning *' value={formData.statusWarningColor} onChange={(v) => update({ statusWarningColor: v })} disabled={isSaving} testId='status-warning-color-input' />
-                                <ColorInput id='status-danger' label='Danger *' value={formData.statusDangerColor} onChange={(v) => update({ statusDangerColor: v })} disabled={isSaving} testId='status-danger-color-input' />
-                                <ColorInput id='status-info' label='Info *' value={formData.statusInfoColor} onChange={(v) => update({ statusInfoColor: v })} disabled={isSaving} testId='status-info-color-input' />
+                                <ColorInput
+                                    id='status-success'
+                                    label='Success *'
+                                    value={formData.statusSuccessColor}
+                                    onChange={(v) => update({ statusSuccessColor: v })}
+                                    disabled={isSaving}
+                                    testId='status-success-color-input'
+                                />
+                                <ColorInput
+                                    id='status-warning'
+                                    label='Warning *'
+                                    value={formData.statusWarningColor}
+                                    onChange={(v) => update({ statusWarningColor: v })}
+                                    disabled={isSaving}
+                                    testId='status-warning-color-input'
+                                />
+                                <ColorInput
+                                    id='status-danger'
+                                    label='Danger *'
+                                    value={formData.statusDangerColor}
+                                    onChange={(v) => update({ statusDangerColor: v })}
+                                    disabled={isSaving}
+                                    testId='status-danger-color-input'
+                                />
+                                <ColorInput
+                                    id='status-info'
+                                    label='Info *'
+                                    value={formData.statusInfoColor}
+                                    onChange={(v) => update({ statusInfoColor: v })}
+                                    disabled={isSaving}
+                                    testId='status-info-color-input'
+                                />
                             </div>
                         </Section>
 
@@ -1537,51 +1864,146 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                             <div class='space-y-4'>
                                 <h4 class='text-xs font-semibold text-text-muted uppercase tracking-wide'>Feature Flags</h4>
                                 <div class='space-y-3'>
-                                    <Toggle label='Parallax / Aurora Background' description='Animated gradient background' checked={formData.enableParallax} onChange={(v) => update({ enableParallax: v })} disabled={isSaving} testId='enable-parallax-checkbox' />
-                                    <Toggle label='Glassmorphism' description='Frosted glass effect' checked={formData.enableGlassmorphism} onChange={(v) => update({ enableGlassmorphism: v })} disabled={isSaving} testId='enable-glassmorphism-checkbox' />
-                                    <Toggle label='Magnetic Hover' description='Buttons follow cursor' checked={formData.enableMagneticHover} onChange={(v) => update({ enableMagneticHover: v })} disabled={isSaving} testId='enable-magnetic-hover-checkbox' />
-                                    <Toggle label='Scroll Reveal' description='Animate elements on scroll' checked={formData.enableScrollReveal} onChange={(v) => update({ enableScrollReveal: v })} disabled={isSaving} testId='enable-scroll-reveal-checkbox' />
+                                    <Toggle
+                                        label='Parallax / Aurora Background'
+                                        description='Animated gradient background'
+                                        checked={formData.enableParallax}
+                                        onChange={(v) => update({ enableParallax: v })}
+                                        disabled={isSaving}
+                                        testId='enable-parallax-checkbox'
+                                    />
+                                    <Toggle
+                                        label='Glassmorphism'
+                                        description='Frosted glass effect'
+                                        checked={formData.enableGlassmorphism}
+                                        onChange={(v) => update({ enableGlassmorphism: v })}
+                                        disabled={isSaving}
+                                        testId='enable-glassmorphism-checkbox'
+                                    />
+                                    <Toggle
+                                        label='Magnetic Hover'
+                                        description='Buttons follow cursor'
+                                        checked={formData.enableMagneticHover}
+                                        onChange={(v) => update({ enableMagneticHover: v })}
+                                        disabled={isSaving}
+                                        testId='enable-magnetic-hover-checkbox'
+                                    />
+                                    <Toggle
+                                        label='Scroll Reveal'
+                                        description='Animate elements on scroll'
+                                        checked={formData.enableScrollReveal}
+                                        onChange={(v) => update({ enableScrollReveal: v })}
+                                        disabled={isSaving}
+                                        testId='enable-scroll-reveal-checkbox'
+                                    />
                                 </div>
                                 <h4 class='text-xs font-semibold text-text-muted uppercase tracking-wide'>Durations (ms)</h4>
                                 <div class='grid grid-cols-5 gap-4'>
                                     <div>
                                         <label class='block text-xs font-medium text-text-secondary mb-1'>Instant</label>
-                                        <input type='number' value={formData.motionDurationInstant} onInput={(e) => update({ motionDurationInstant: parseInt((e.target as HTMLInputElement).value) || 0 })} disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm' data-testid='motion-duration-instant-input' />
+                                        <input
+                                            type='number'
+                                            value={formData.motionDurationInstant}
+                                            onInput={(e) => update({ motionDurationInstant: parseInt((e.target as HTMLInputElement).value) || 0 })}
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm'
+                                            data-testid='motion-duration-instant-input'
+                                        />
                                     </div>
                                     <div>
                                         <label class='block text-xs font-medium text-text-secondary mb-1'>Fast</label>
-                                        <input type='number' value={formData.motionDurationFast} onInput={(e) => update({ motionDurationFast: parseInt((e.target as HTMLInputElement).value) || 0 })} disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm' data-testid='motion-duration-fast-input' />
+                                        <input
+                                            type='number'
+                                            value={formData.motionDurationFast}
+                                            onInput={(e) => update({ motionDurationFast: parseInt((e.target as HTMLInputElement).value) || 0 })}
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm'
+                                            data-testid='motion-duration-fast-input'
+                                        />
                                     </div>
                                     <div>
                                         <label class='block text-xs font-medium text-text-secondary mb-1'>Base</label>
-                                        <input type='number' value={formData.motionDurationBase} onInput={(e) => update({ motionDurationBase: parseInt((e.target as HTMLInputElement).value) || 0 })} disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm' data-testid='motion-duration-base-input' />
+                                        <input
+                                            type='number'
+                                            value={formData.motionDurationBase}
+                                            onInput={(e) => update({ motionDurationBase: parseInt((e.target as HTMLInputElement).value) || 0 })}
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm'
+                                            data-testid='motion-duration-base-input'
+                                        />
                                     </div>
                                     <div>
                                         <label class='block text-xs font-medium text-text-secondary mb-1'>Slow</label>
-                                        <input type='number' value={formData.motionDurationSlow} onInput={(e) => update({ motionDurationSlow: parseInt((e.target as HTMLInputElement).value) || 0 })} disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm' data-testid='motion-duration-slow-input' />
+                                        <input
+                                            type='number'
+                                            value={formData.motionDurationSlow}
+                                            onInput={(e) => update({ motionDurationSlow: parseInt((e.target as HTMLInputElement).value) || 0 })}
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm'
+                                            data-testid='motion-duration-slow-input'
+                                        />
                                     </div>
                                     <div>
                                         <label class='block text-xs font-medium text-text-secondary mb-1'>Glacial</label>
-                                        <input type='number' value={formData.motionDurationGlacial} onInput={(e) => update({ motionDurationGlacial: parseInt((e.target as HTMLInputElement).value) || 0 })} disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm' data-testid='motion-duration-glacial-input' />
+                                        <input
+                                            type='number'
+                                            value={formData.motionDurationGlacial}
+                                            onInput={(e) => update({ motionDurationGlacial: parseInt((e.target as HTMLInputElement).value) || 0 })}
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm'
+                                            data-testid='motion-duration-glacial-input'
+                                        />
                                     </div>
                                 </div>
                                 <h4 class='text-xs font-semibold text-text-muted uppercase tracking-wide'>Easing Curves</h4>
                                 <div class='grid grid-cols-2 gap-4'>
                                     <div>
                                         <label class='block text-xs font-medium text-text-secondary mb-1'>Standard</label>
-                                        <input type='text' value={formData.motionEasingStandard} onInput={(e) => update({ motionEasingStandard: (e.target as HTMLInputElement).value })} placeholder='cubic-bezier(0.4, 0, 0.2, 1)' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono' data-testid='motion-easing-standard-input' />
+                                        <input
+                                            type='text'
+                                            value={formData.motionEasingStandard}
+                                            onInput={(e) => update({ motionEasingStandard: (e.target as HTMLInputElement).value })}
+                                            placeholder='cubic-bezier(0.4, 0, 0.2, 1)'
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono'
+                                            data-testid='motion-easing-standard-input'
+                                        />
                                     </div>
                                     <div>
                                         <label class='block text-xs font-medium text-text-secondary mb-1'>Decelerate</label>
-                                        <input type='text' value={formData.motionEasingDecelerate} onInput={(e) => update({ motionEasingDecelerate: (e.target as HTMLInputElement).value })} placeholder='cubic-bezier(0, 0, 0.2, 1)' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono' data-testid='motion-easing-decelerate-input' />
+                                        <input
+                                            type='text'
+                                            value={formData.motionEasingDecelerate}
+                                            onInput={(e) => update({ motionEasingDecelerate: (e.target as HTMLInputElement).value })}
+                                            placeholder='cubic-bezier(0, 0, 0.2, 1)'
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono'
+                                            data-testid='motion-easing-decelerate-input'
+                                        />
                                     </div>
                                     <div>
                                         <label class='block text-xs font-medium text-text-secondary mb-1'>Accelerate</label>
-                                        <input type='text' value={formData.motionEasingAccelerate} onInput={(e) => update({ motionEasingAccelerate: (e.target as HTMLInputElement).value })} placeholder='cubic-bezier(0.4, 0, 1, 1)' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono' data-testid='motion-easing-accelerate-input' />
+                                        <input
+                                            type='text'
+                                            value={formData.motionEasingAccelerate}
+                                            onInput={(e) => update({ motionEasingAccelerate: (e.target as HTMLInputElement).value })}
+                                            placeholder='cubic-bezier(0.4, 0, 1, 1)'
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono'
+                                            data-testid='motion-easing-accelerate-input'
+                                        />
                                     </div>
                                     <div>
                                         <label class='block text-xs font-medium text-text-secondary mb-1'>Spring</label>
-                                        <input type='text' value={formData.motionEasingSpring} onInput={(e) => update({ motionEasingSpring: (e.target as HTMLInputElement).value })} placeholder='cubic-bezier(0.175, 0.885, 0.32, 1.275)' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono' data-testid='motion-easing-spring-input' />
+                                        <input
+                                            type='text'
+                                            value={formData.motionEasingSpring}
+                                            onInput={(e) => update({ motionEasingSpring: (e.target as HTMLInputElement).value })}
+                                            placeholder='cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono'
+                                            data-testid='motion-easing-spring-input'
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -1649,66 +2071,377 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                 <div class='grid grid-cols-3 gap-4'>
                                     <div>
                                         <label class='block text-xs font-medium text-text-secondary mb-1'>Sans *</label>
-                                        <input type='text' value={formData.fontFamilySans} onInput={(e) => update({ fontFamilySans: (e.target as HTMLInputElement).value })} placeholder='Inter, system-ui' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm' data-testid='font-family-sans-input' />
+                                        <input
+                                            type='text'
+                                            value={formData.fontFamilySans}
+                                            onInput={(e) => update({ fontFamilySans: (e.target as HTMLInputElement).value })}
+                                            placeholder='Inter, system-ui'
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm'
+                                            data-testid='font-family-sans-input'
+                                        />
                                     </div>
                                     <div>
                                         <label class='block text-xs font-medium text-text-secondary mb-1'>Serif</label>
-                                        <input type='text' value={formData.fontFamilySerif} onInput={(e) => update({ fontFamilySerif: (e.target as HTMLInputElement).value })} placeholder='Georgia, serif' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm' data-testid='font-family-serif-input' />
+                                        <input
+                                            type='text'
+                                            value={formData.fontFamilySerif}
+                                            onInput={(e) => update({ fontFamilySerif: (e.target as HTMLInputElement).value })}
+                                            placeholder='Georgia, serif'
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm'
+                                            data-testid='font-family-serif-input'
+                                        />
                                     </div>
                                     <div>
                                         <label class='block text-xs font-medium text-text-secondary mb-1'>Mono *</label>
-                                        <input type='text' value={formData.fontFamilyMono} onInput={(e) => update({ fontFamilyMono: (e.target as HTMLInputElement).value })} placeholder='Monaco, monospace' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm' data-testid='font-family-mono-input' />
+                                        <input
+                                            type='text'
+                                            value={formData.fontFamilyMono}
+                                            onInput={(e) => update({ fontFamilyMono: (e.target as HTMLInputElement).value })}
+                                            placeholder='Monaco, monospace'
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm'
+                                            data-testid='font-family-mono-input'
+                                        />
                                     </div>
                                 </div>
 
                                 <h4 class='text-xs font-semibold text-text-muted uppercase tracking-wide'>Sizes (rem)</h4>
                                 <div class='grid grid-cols-5 gap-4'>
-                                    <div><label class='block text-xs font-medium text-text-secondary mb-1'>XS *</label><input type='text' value={formData.typographySizeXs} onInput={(e) => update({ typographySizeXs: (e.target as HTMLInputElement).value })} placeholder='0.75rem' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono' /></div>
-                                    <div><label class='block text-xs font-medium text-text-secondary mb-1'>SM *</label><input type='text' value={formData.typographySizeSm} onInput={(e) => update({ typographySizeSm: (e.target as HTMLInputElement).value })} placeholder='0.875rem' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono' /></div>
-                                    <div><label class='block text-xs font-medium text-text-secondary mb-1'>MD *</label><input type='text' value={formData.typographySizeMd} onInput={(e) => update({ typographySizeMd: (e.target as HTMLInputElement).value })} placeholder='1rem' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono' /></div>
-                                    <div><label class='block text-xs font-medium text-text-secondary mb-1'>LG *</label><input type='text' value={formData.typographySizeLg} onInput={(e) => update({ typographySizeLg: (e.target as HTMLInputElement).value })} placeholder='1.125rem' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono' /></div>
-                                    <div><label class='block text-xs font-medium text-text-secondary mb-1'>XL *</label><input type='text' value={formData.typographySizeXl} onInput={(e) => update({ typographySizeXl: (e.target as HTMLInputElement).value })} placeholder='1.25rem' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono' /></div>
+                                    <div>
+                                        <label class='block text-xs font-medium text-text-secondary mb-1'>XS *</label>
+                                        <input
+                                            type='text'
+                                            value={formData.typographySizeXs}
+                                            onInput={(e) => update({ typographySizeXs: (e.target as HTMLInputElement).value })}
+                                            placeholder='0.75rem'
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono'
+                                        />
+                                    </div>
+                                    <div>
+                                        <label class='block text-xs font-medium text-text-secondary mb-1'>SM *</label>
+                                        <input
+                                            type='text'
+                                            value={formData.typographySizeSm}
+                                            onInput={(e) => update({ typographySizeSm: (e.target as HTMLInputElement).value })}
+                                            placeholder='0.875rem'
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono'
+                                        />
+                                    </div>
+                                    <div>
+                                        <label class='block text-xs font-medium text-text-secondary mb-1'>MD *</label>
+                                        <input
+                                            type='text'
+                                            value={formData.typographySizeMd}
+                                            onInput={(e) => update({ typographySizeMd: (e.target as HTMLInputElement).value })}
+                                            placeholder='1rem'
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono'
+                                        />
+                                    </div>
+                                    <div>
+                                        <label class='block text-xs font-medium text-text-secondary mb-1'>LG *</label>
+                                        <input
+                                            type='text'
+                                            value={formData.typographySizeLg}
+                                            onInput={(e) => update({ typographySizeLg: (e.target as HTMLInputElement).value })}
+                                            placeholder='1.125rem'
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono'
+                                        />
+                                    </div>
+                                    <div>
+                                        <label class='block text-xs font-medium text-text-secondary mb-1'>XL *</label>
+                                        <input
+                                            type='text'
+                                            value={formData.typographySizeXl}
+                                            onInput={(e) => update({ typographySizeXl: (e.target as HTMLInputElement).value })}
+                                            placeholder='1.25rem'
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono'
+                                        />
+                                    </div>
                                 </div>
                                 <div class='grid grid-cols-4 gap-4'>
-                                    <div><label class='block text-xs font-medium text-text-secondary mb-1'>2XL *</label><input type='text' value={formData.typographySize2xl} onInput={(e) => update({ typographySize2xl: (e.target as HTMLInputElement).value })} placeholder='1.5rem' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono' /></div>
-                                    <div><label class='block text-xs font-medium text-text-secondary mb-1'>3XL *</label><input type='text' value={formData.typographySize3xl} onInput={(e) => update({ typographySize3xl: (e.target as HTMLInputElement).value })} placeholder='1.875rem' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono' /></div>
-                                    <div><label class='block text-xs font-medium text-text-secondary mb-1'>4XL *</label><input type='text' value={formData.typographySize4xl} onInput={(e) => update({ typographySize4xl: (e.target as HTMLInputElement).value })} placeholder='2.25rem' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono' /></div>
-                                    <div><label class='block text-xs font-medium text-text-secondary mb-1'>5XL *</label><input type='text' value={formData.typographySize5xl} onInput={(e) => update({ typographySize5xl: (e.target as HTMLInputElement).value })} placeholder='3rem' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono' /></div>
+                                    <div>
+                                        <label class='block text-xs font-medium text-text-secondary mb-1'>2XL *</label>
+                                        <input
+                                            type='text'
+                                            value={formData.typographySize2xl}
+                                            onInput={(e) => update({ typographySize2xl: (e.target as HTMLInputElement).value })}
+                                            placeholder='1.5rem'
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono'
+                                        />
+                                    </div>
+                                    <div>
+                                        <label class='block text-xs font-medium text-text-secondary mb-1'>3XL *</label>
+                                        <input
+                                            type='text'
+                                            value={formData.typographySize3xl}
+                                            onInput={(e) => update({ typographySize3xl: (e.target as HTMLInputElement).value })}
+                                            placeholder='1.875rem'
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono'
+                                        />
+                                    </div>
+                                    <div>
+                                        <label class='block text-xs font-medium text-text-secondary mb-1'>4XL *</label>
+                                        <input
+                                            type='text'
+                                            value={formData.typographySize4xl}
+                                            onInput={(e) => update({ typographySize4xl: (e.target as HTMLInputElement).value })}
+                                            placeholder='2.25rem'
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono'
+                                        />
+                                    </div>
+                                    <div>
+                                        <label class='block text-xs font-medium text-text-secondary mb-1'>5XL *</label>
+                                        <input
+                                            type='text'
+                                            value={formData.typographySize5xl}
+                                            onInput={(e) => update({ typographySize5xl: (e.target as HTMLInputElement).value })}
+                                            placeholder='3rem'
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono'
+                                        />
+                                    </div>
                                 </div>
 
                                 <h4 class='text-xs font-semibold text-text-muted uppercase tracking-wide'>Weights</h4>
                                 <div class='grid grid-cols-4 gap-4'>
-                                    <div><label class='block text-xs font-medium text-text-secondary mb-1'>Regular *</label><input type='number' value={formData.fontWeightRegular} onInput={(e) => update({ fontWeightRegular: parseInt((e.target as HTMLInputElement).value) || 0 })} placeholder='400' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm' /></div>
-                                    <div><label class='block text-xs font-medium text-text-secondary mb-1'>Medium *</label><input type='number' value={formData.fontWeightMedium} onInput={(e) => update({ fontWeightMedium: parseInt((e.target as HTMLInputElement).value) || 0 })} placeholder='500' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm' /></div>
-                                    <div><label class='block text-xs font-medium text-text-secondary mb-1'>Semibold *</label><input type='number' value={formData.fontWeightSemibold} onInput={(e) => update({ fontWeightSemibold: parseInt((e.target as HTMLInputElement).value) || 0 })} placeholder='600' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm' /></div>
-                                    <div><label class='block text-xs font-medium text-text-secondary mb-1'>Bold *</label><input type='number' value={formData.fontWeightBold} onInput={(e) => update({ fontWeightBold: parseInt((e.target as HTMLInputElement).value) || 0 })} placeholder='700' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm' /></div>
+                                    <div>
+                                        <label class='block text-xs font-medium text-text-secondary mb-1'>Regular *</label>
+                                        <input
+                                            type='number'
+                                            value={formData.fontWeightRegular}
+                                            onInput={(e) => update({ fontWeightRegular: parseInt((e.target as HTMLInputElement).value) || 0 })}
+                                            placeholder='400'
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm'
+                                        />
+                                    </div>
+                                    <div>
+                                        <label class='block text-xs font-medium text-text-secondary mb-1'>Medium *</label>
+                                        <input
+                                            type='number'
+                                            value={formData.fontWeightMedium}
+                                            onInput={(e) => update({ fontWeightMedium: parseInt((e.target as HTMLInputElement).value) || 0 })}
+                                            placeholder='500'
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm'
+                                        />
+                                    </div>
+                                    <div>
+                                        <label class='block text-xs font-medium text-text-secondary mb-1'>Semibold *</label>
+                                        <input
+                                            type='number'
+                                            value={formData.fontWeightSemibold}
+                                            onInput={(e) => update({ fontWeightSemibold: parseInt((e.target as HTMLInputElement).value) || 0 })}
+                                            placeholder='600'
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm'
+                                        />
+                                    </div>
+                                    <div>
+                                        <label class='block text-xs font-medium text-text-secondary mb-1'>Bold *</label>
+                                        <input
+                                            type='number'
+                                            value={formData.fontWeightBold}
+                                            onInput={(e) => update({ fontWeightBold: parseInt((e.target as HTMLInputElement).value) || 0 })}
+                                            placeholder='700'
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm'
+                                        />
+                                    </div>
                                 </div>
 
                                 <h4 class='text-xs font-semibold text-text-muted uppercase tracking-wide'>Line Heights</h4>
                                 <div class='grid grid-cols-3 gap-4'>
-                                    <div><label class='block text-xs font-medium text-text-secondary mb-1'>Compact *</label><input type='text' value={formData.lineHeightCompact} onInput={(e) => update({ lineHeightCompact: (e.target as HTMLInputElement).value })} placeholder='1.25rem' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono' /></div>
-                                    <div><label class='block text-xs font-medium text-text-secondary mb-1'>Standard *</label><input type='text' value={formData.lineHeightStandard} onInput={(e) => update({ lineHeightStandard: (e.target as HTMLInputElement).value })} placeholder='1.5rem' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono' /></div>
-                                    <div><label class='block text-xs font-medium text-text-secondary mb-1'>Spacious *</label><input type='text' value={formData.lineHeightSpacious} onInput={(e) => update({ lineHeightSpacious: (e.target as HTMLInputElement).value })} placeholder='1.75rem' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono' /></div>
+                                    <div>
+                                        <label class='block text-xs font-medium text-text-secondary mb-1'>Compact *</label>
+                                        <input
+                                            type='text'
+                                            value={formData.lineHeightCompact}
+                                            onInput={(e) => update({ lineHeightCompact: (e.target as HTMLInputElement).value })}
+                                            placeholder='1.25rem'
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono'
+                                        />
+                                    </div>
+                                    <div>
+                                        <label class='block text-xs font-medium text-text-secondary mb-1'>Standard *</label>
+                                        <input
+                                            type='text'
+                                            value={formData.lineHeightStandard}
+                                            onInput={(e) => update({ lineHeightStandard: (e.target as HTMLInputElement).value })}
+                                            placeholder='1.5rem'
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono'
+                                        />
+                                    </div>
+                                    <div>
+                                        <label class='block text-xs font-medium text-text-secondary mb-1'>Spacious *</label>
+                                        <input
+                                            type='text'
+                                            value={formData.lineHeightSpacious}
+                                            onInput={(e) => update({ lineHeightSpacious: (e.target as HTMLInputElement).value })}
+                                            placeholder='1.75rem'
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono'
+                                        />
+                                    </div>
                                 </div>
 
                                 <h4 class='text-xs font-semibold text-text-muted uppercase tracking-wide'>Letter Spacing</h4>
                                 <div class='grid grid-cols-3 gap-4'>
-                                    <div><label class='block text-xs font-medium text-text-secondary mb-1'>Tight *</label><input type='text' value={formData.letterSpacingTight} onInput={(e) => update({ letterSpacingTight: (e.target as HTMLInputElement).value })} placeholder='-0.02rem' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono' /></div>
-                                    <div><label class='block text-xs font-medium text-text-secondary mb-1'>Normal *</label><input type='text' value={formData.letterSpacingNormal} onInput={(e) => update({ letterSpacingNormal: (e.target as HTMLInputElement).value })} placeholder='0rem' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono' /></div>
-                                    <div><label class='block text-xs font-medium text-text-secondary mb-1'>Wide *</label><input type='text' value={formData.letterSpacingWide} onInput={(e) => update({ letterSpacingWide: (e.target as HTMLInputElement).value })} placeholder='0.02rem' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono' /></div>
+                                    <div>
+                                        <label class='block text-xs font-medium text-text-secondary mb-1'>Tight *</label>
+                                        <input
+                                            type='text'
+                                            value={formData.letterSpacingTight}
+                                            onInput={(e) => update({ letterSpacingTight: (e.target as HTMLInputElement).value })}
+                                            placeholder='-0.02rem'
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono'
+                                        />
+                                    </div>
+                                    <div>
+                                        <label class='block text-xs font-medium text-text-secondary mb-1'>Normal *</label>
+                                        <input
+                                            type='text'
+                                            value={formData.letterSpacingNormal}
+                                            onInput={(e) => update({ letterSpacingNormal: (e.target as HTMLInputElement).value })}
+                                            placeholder='0rem'
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono'
+                                        />
+                                    </div>
+                                    <div>
+                                        <label class='block text-xs font-medium text-text-secondary mb-1'>Wide *</label>
+                                        <input
+                                            type='text'
+                                            value={formData.letterSpacingWide}
+                                            onInput={(e) => update({ letterSpacingWide: (e.target as HTMLInputElement).value })}
+                                            placeholder='0.02rem'
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono'
+                                        />
+                                    </div>
                                 </div>
 
                                 <h4 class='text-xs font-semibold text-text-muted uppercase tracking-wide'>Semantic Sizes</h4>
                                 <div class='grid grid-cols-4 gap-4'>
-                                    <div><label class='block text-xs font-medium text-text-secondary mb-1'>Body *</label><select value={formData.typographySemanticBody} onChange={(e) => update({ typographySemanticBody: (e.target as HTMLSelectElement).value })} disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm'><option value='xs'>xs</option><option value='sm'>sm</option><option value='md'>md</option><option value='lg'>lg</option><option value='xl'>xl</option></select></div>
-                                    <div><label class='block text-xs font-medium text-text-secondary mb-1'>Body Strong *</label><select value={formData.typographySemanticBodyStrong} onChange={(e) => update({ typographySemanticBodyStrong: (e.target as HTMLSelectElement).value })} disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm'><option value='xs'>xs</option><option value='sm'>sm</option><option value='md'>md</option><option value='lg'>lg</option><option value='xl'>xl</option></select></div>
-                                    <div><label class='block text-xs font-medium text-text-secondary mb-1'>Caption *</label><select value={formData.typographySemanticCaption} onChange={(e) => update({ typographySemanticCaption: (e.target as HTMLSelectElement).value })} disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm'><option value='xs'>xs</option><option value='sm'>sm</option><option value='md'>md</option><option value='lg'>lg</option><option value='xl'>xl</option></select></div>
-                                    <div><label class='block text-xs font-medium text-text-secondary mb-1'>Button *</label><select value={formData.typographySemanticButton} onChange={(e) => update({ typographySemanticButton: (e.target as HTMLSelectElement).value })} disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm'><option value='xs'>xs</option><option value='sm'>sm</option><option value='md'>md</option><option value='lg'>lg</option><option value='xl'>xl</option></select></div>
+                                    <div>
+                                        <label class='block text-xs font-medium text-text-secondary mb-1'>Body *</label>
+                                        <select
+                                            value={formData.typographySemanticBody}
+                                            onChange={(e) => update({ typographySemanticBody: (e.target as HTMLSelectElement).value })}
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm'
+                                        >
+                                            <option value='xs'>xs</option>
+                                            <option value='sm'>sm</option>
+                                            <option value='md'>md</option>
+                                            <option value='lg'>lg</option>
+                                            <option value='xl'>xl</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class='block text-xs font-medium text-text-secondary mb-1'>Body Strong *</label>
+                                        <select
+                                            value={formData.typographySemanticBodyStrong}
+                                            onChange={(e) => update({ typographySemanticBodyStrong: (e.target as HTMLSelectElement).value })}
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm'
+                                        >
+                                            <option value='xs'>xs</option>
+                                            <option value='sm'>sm</option>
+                                            <option value='md'>md</option>
+                                            <option value='lg'>lg</option>
+                                            <option value='xl'>xl</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class='block text-xs font-medium text-text-secondary mb-1'>Caption *</label>
+                                        <select
+                                            value={formData.typographySemanticCaption}
+                                            onChange={(e) => update({ typographySemanticCaption: (e.target as HTMLSelectElement).value })}
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm'
+                                        >
+                                            <option value='xs'>xs</option>
+                                            <option value='sm'>sm</option>
+                                            <option value='md'>md</option>
+                                            <option value='lg'>lg</option>
+                                            <option value='xl'>xl</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class='block text-xs font-medium text-text-secondary mb-1'>Button *</label>
+                                        <select
+                                            value={formData.typographySemanticButton}
+                                            onChange={(e) => update({ typographySemanticButton: (e.target as HTMLSelectElement).value })}
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm'
+                                        >
+                                            <option value='xs'>xs</option>
+                                            <option value='sm'>sm</option>
+                                            <option value='md'>md</option>
+                                            <option value='lg'>lg</option>
+                                            <option value='xl'>xl</option>
+                                        </select>
+                                    </div>
                                 </div>
                                 <div class='grid grid-cols-3 gap-4'>
-                                    <div><label class='block text-xs font-medium text-text-secondary mb-1'>Eyebrow *</label><select value={formData.typographySemanticEyebrow} onChange={(e) => update({ typographySemanticEyebrow: (e.target as HTMLSelectElement).value })} disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm'><option value='xs'>xs</option><option value='sm'>sm</option><option value='md'>md</option><option value='lg'>lg</option><option value='xl'>xl</option></select></div>
-                                    <div><label class='block text-xs font-medium text-text-secondary mb-1'>Heading *</label><select value={formData.typographySemanticHeading} onChange={(e) => update({ typographySemanticHeading: (e.target as HTMLSelectElement).value })} disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm'><option value='xl'>xl</option><option value='2xl'>2xl</option><option value='3xl'>3xl</option><option value='4xl'>4xl</option><option value='5xl'>5xl</option></select></div>
-                                    <div><label class='block text-xs font-medium text-text-secondary mb-1'>Display *</label><select value={formData.typographySemanticDisplay} onChange={(e) => update({ typographySemanticDisplay: (e.target as HTMLSelectElement).value })} disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm'><option value='2xl'>2xl</option><option value='3xl'>3xl</option><option value='4xl'>4xl</option><option value='5xl'>5xl</option></select></div>
+                                    <div>
+                                        <label class='block text-xs font-medium text-text-secondary mb-1'>Eyebrow *</label>
+                                        <select
+                                            value={formData.typographySemanticEyebrow}
+                                            onChange={(e) => update({ typographySemanticEyebrow: (e.target as HTMLSelectElement).value })}
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm'
+                                        >
+                                            <option value='xs'>xs</option>
+                                            <option value='sm'>sm</option>
+                                            <option value='md'>md</option>
+                                            <option value='lg'>lg</option>
+                                            <option value='xl'>xl</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class='block text-xs font-medium text-text-secondary mb-1'>Heading *</label>
+                                        <select
+                                            value={formData.typographySemanticHeading}
+                                            onChange={(e) => update({ typographySemanticHeading: (e.target as HTMLSelectElement).value })}
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm'
+                                        >
+                                            <option value='xl'>xl</option>
+                                            <option value='2xl'>2xl</option>
+                                            <option value='3xl'>3xl</option>
+                                            <option value='4xl'>4xl</option>
+                                            <option value='5xl'>5xl</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class='block text-xs font-medium text-text-secondary mb-1'>Display *</label>
+                                        <select
+                                            value={formData.typographySemanticDisplay}
+                                            onChange={(e) => update({ typographySemanticDisplay: (e.target as HTMLSelectElement).value })}
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm'
+                                        >
+                                            <option value='2xl'>2xl</option>
+                                            <option value='3xl'>3xl</option>
+                                            <option value='4xl'>4xl</option>
+                                            <option value='5xl'>5xl</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
                         </Section>
@@ -1718,20 +2451,130 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                             <div class='space-y-4'>
                                 <h4 class='text-xs font-semibold text-text-muted uppercase tracking-wide'>Scale</h4>
                                 <div class='grid grid-cols-7 gap-4'>
-                                    <div><label class='block text-xs font-medium text-text-secondary mb-1'>2XS *</label><input type='text' value={formData.spacing2xs} onInput={(e) => update({ spacing2xs: (e.target as HTMLInputElement).value })} placeholder='0.25rem' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono' /></div>
-                                    <div><label class='block text-xs font-medium text-text-secondary mb-1'>XS *</label><input type='text' value={formData.spacingXs} onInput={(e) => update({ spacingXs: (e.target as HTMLInputElement).value })} placeholder='0.5rem' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono' /></div>
-                                    <div><label class='block text-xs font-medium text-text-secondary mb-1'>SM *</label><input type='text' value={formData.spacingSm} onInput={(e) => update({ spacingSm: (e.target as HTMLInputElement).value })} placeholder='0.75rem' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono' /></div>
-                                    <div><label class='block text-xs font-medium text-text-secondary mb-1'>MD *</label><input type='text' value={formData.spacingMd} onInput={(e) => update({ spacingMd: (e.target as HTMLInputElement).value })} placeholder='1rem' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono' /></div>
-                                    <div><label class='block text-xs font-medium text-text-secondary mb-1'>LG *</label><input type='text' value={formData.spacingLg} onInput={(e) => update({ spacingLg: (e.target as HTMLInputElement).value })} placeholder='1.5rem' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono' /></div>
-                                    <div><label class='block text-xs font-medium text-text-secondary mb-1'>XL *</label><input type='text' value={formData.spacingXl} onInput={(e) => update({ spacingXl: (e.target as HTMLInputElement).value })} placeholder='2rem' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono' /></div>
-                                    <div><label class='block text-xs font-medium text-text-secondary mb-1'>2XL *</label><input type='text' value={formData.spacing2xl} onInput={(e) => update({ spacing2xl: (e.target as HTMLInputElement).value })} placeholder='3rem' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono' /></div>
+                                    <div>
+                                        <label class='block text-xs font-medium text-text-secondary mb-1'>2XS *</label>
+                                        <input
+                                            type='text'
+                                            value={formData.spacing2xs}
+                                            onInput={(e) => update({ spacing2xs: (e.target as HTMLInputElement).value })}
+                                            placeholder='0.25rem'
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono'
+                                        />
+                                    </div>
+                                    <div>
+                                        <label class='block text-xs font-medium text-text-secondary mb-1'>XS *</label>
+                                        <input
+                                            type='text'
+                                            value={formData.spacingXs}
+                                            onInput={(e) => update({ spacingXs: (e.target as HTMLInputElement).value })}
+                                            placeholder='0.5rem'
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono'
+                                        />
+                                    </div>
+                                    <div>
+                                        <label class='block text-xs font-medium text-text-secondary mb-1'>SM *</label>
+                                        <input
+                                            type='text'
+                                            value={formData.spacingSm}
+                                            onInput={(e) => update({ spacingSm: (e.target as HTMLInputElement).value })}
+                                            placeholder='0.75rem'
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono'
+                                        />
+                                    </div>
+                                    <div>
+                                        <label class='block text-xs font-medium text-text-secondary mb-1'>MD *</label>
+                                        <input
+                                            type='text'
+                                            value={formData.spacingMd}
+                                            onInput={(e) => update({ spacingMd: (e.target as HTMLInputElement).value })}
+                                            placeholder='1rem'
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono'
+                                        />
+                                    </div>
+                                    <div>
+                                        <label class='block text-xs font-medium text-text-secondary mb-1'>LG *</label>
+                                        <input
+                                            type='text'
+                                            value={formData.spacingLg}
+                                            onInput={(e) => update({ spacingLg: (e.target as HTMLInputElement).value })}
+                                            placeholder='1.5rem'
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono'
+                                        />
+                                    </div>
+                                    <div>
+                                        <label class='block text-xs font-medium text-text-secondary mb-1'>XL *</label>
+                                        <input
+                                            type='text'
+                                            value={formData.spacingXl}
+                                            onInput={(e) => update({ spacingXl: (e.target as HTMLInputElement).value })}
+                                            placeholder='2rem'
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono'
+                                        />
+                                    </div>
+                                    <div>
+                                        <label class='block text-xs font-medium text-text-secondary mb-1'>2XL *</label>
+                                        <input
+                                            type='text'
+                                            value={formData.spacing2xl}
+                                            onInput={(e) => update({ spacing2xl: (e.target as HTMLInputElement).value })}
+                                            placeholder='3rem'
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono'
+                                        />
+                                    </div>
                                 </div>
                                 <h4 class='text-xs font-semibold text-text-muted uppercase tracking-wide'>Semantic</h4>
                                 <div class='grid grid-cols-4 gap-4'>
-                                    <div><label class='block text-xs font-medium text-text-secondary mb-1'>Page Padding *</label><input type='text' value={formData.spacingPagePadding} onInput={(e) => update({ spacingPagePadding: (e.target as HTMLInputElement).value })} placeholder='1.5rem' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono' /></div>
-                                    <div><label class='block text-xs font-medium text-text-secondary mb-1'>Section Gap *</label><input type='text' value={formData.spacingSectionGap} onInput={(e) => update({ spacingSectionGap: (e.target as HTMLInputElement).value })} placeholder='2rem' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono' /></div>
-                                    <div><label class='block text-xs font-medium text-text-secondary mb-1'>Card Padding *</label><input type='text' value={formData.spacingCardPadding} onInput={(e) => update({ spacingCardPadding: (e.target as HTMLInputElement).value })} placeholder='1.5rem' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono' /></div>
-                                    <div><label class='block text-xs font-medium text-text-secondary mb-1'>Component Gap *</label><input type='text' value={formData.spacingComponentGap} onInput={(e) => update({ spacingComponentGap: (e.target as HTMLInputElement).value })} placeholder='1rem' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono' /></div>
+                                    <div>
+                                        <label class='block text-xs font-medium text-text-secondary mb-1'>Page Padding *</label>
+                                        <input
+                                            type='text'
+                                            value={formData.spacingPagePadding}
+                                            onInput={(e) => update({ spacingPagePadding: (e.target as HTMLInputElement).value })}
+                                            placeholder='1.5rem'
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono'
+                                        />
+                                    </div>
+                                    <div>
+                                        <label class='block text-xs font-medium text-text-secondary mb-1'>Section Gap *</label>
+                                        <input
+                                            type='text'
+                                            value={formData.spacingSectionGap}
+                                            onInput={(e) => update({ spacingSectionGap: (e.target as HTMLInputElement).value })}
+                                            placeholder='2rem'
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono'
+                                        />
+                                    </div>
+                                    <div>
+                                        <label class='block text-xs font-medium text-text-secondary mb-1'>Card Padding *</label>
+                                        <input
+                                            type='text'
+                                            value={formData.spacingCardPadding}
+                                            onInput={(e) => update({ spacingCardPadding: (e.target as HTMLInputElement).value })}
+                                            placeholder='1.5rem'
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono'
+                                        />
+                                    </div>
+                                    <div>
+                                        <label class='block text-xs font-medium text-text-secondary mb-1'>Component Gap *</label>
+                                        <input
+                                            type='text'
+                                            value={formData.spacingComponentGap}
+                                            onInput={(e) => update({ spacingComponentGap: (e.target as HTMLInputElement).value })}
+                                            placeholder='1rem'
+                                            disabled={isSaving}
+                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono'
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         </Section>
@@ -1739,40 +2582,188 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                         {/* Radii */}
                         <Section title='Border Radii' description='Corner radius values' testId='section-radii'>
                             <div class='grid grid-cols-6 gap-4'>
-                                <div><label class='block text-xs font-medium text-text-secondary mb-1'>None *</label><input type='text' value={formData.radiiNone} onInput={(e) => update({ radiiNone: (e.target as HTMLInputElement).value })} placeholder='0px' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono' /></div>
-                                <div><label class='block text-xs font-medium text-text-secondary mb-1'>SM *</label><input type='text' value={formData.radiiSm} onInput={(e) => update({ radiiSm: (e.target as HTMLInputElement).value })} placeholder='4px' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono' /></div>
-                                <div><label class='block text-xs font-medium text-text-secondary mb-1'>MD *</label><input type='text' value={formData.radiiMd} onInput={(e) => update({ radiiMd: (e.target as HTMLInputElement).value })} placeholder='8px' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono' /></div>
-                                <div><label class='block text-xs font-medium text-text-secondary mb-1'>LG *</label><input type='text' value={formData.radiiLg} onInput={(e) => update({ radiiLg: (e.target as HTMLInputElement).value })} placeholder='12px' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono' /></div>
-                                <div><label class='block text-xs font-medium text-text-secondary mb-1'>Pill *</label><input type='text' value={formData.radiiPill} onInput={(e) => update({ radiiPill: (e.target as HTMLInputElement).value })} placeholder='9999px' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono' /></div>
-                                <div><label class='block text-xs font-medium text-text-secondary mb-1'>Full *</label><input type='text' value={formData.radiiFull} onInput={(e) => update({ radiiFull: (e.target as HTMLInputElement).value })} placeholder='9999px' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono' /></div>
+                                <div>
+                                    <label class='block text-xs font-medium text-text-secondary mb-1'>None *</label>
+                                    <input
+                                        type='text'
+                                        value={formData.radiiNone}
+                                        onInput={(e) => update({ radiiNone: (e.target as HTMLInputElement).value })}
+                                        placeholder='0px'
+                                        disabled={isSaving}
+                                        class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono'
+                                    />
+                                </div>
+                                <div>
+                                    <label class='block text-xs font-medium text-text-secondary mb-1'>SM *</label>
+                                    <input
+                                        type='text'
+                                        value={formData.radiiSm}
+                                        onInput={(e) => update({ radiiSm: (e.target as HTMLInputElement).value })}
+                                        placeholder='4px'
+                                        disabled={isSaving}
+                                        class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono'
+                                    />
+                                </div>
+                                <div>
+                                    <label class='block text-xs font-medium text-text-secondary mb-1'>MD *</label>
+                                    <input
+                                        type='text'
+                                        value={formData.radiiMd}
+                                        onInput={(e) => update({ radiiMd: (e.target as HTMLInputElement).value })}
+                                        placeholder='8px'
+                                        disabled={isSaving}
+                                        class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono'
+                                    />
+                                </div>
+                                <div>
+                                    <label class='block text-xs font-medium text-text-secondary mb-1'>LG *</label>
+                                    <input
+                                        type='text'
+                                        value={formData.radiiLg}
+                                        onInput={(e) => update({ radiiLg: (e.target as HTMLInputElement).value })}
+                                        placeholder='12px'
+                                        disabled={isSaving}
+                                        class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono'
+                                    />
+                                </div>
+                                <div>
+                                    <label class='block text-xs font-medium text-text-secondary mb-1'>Pill *</label>
+                                    <input
+                                        type='text'
+                                        value={formData.radiiPill}
+                                        onInput={(e) => update({ radiiPill: (e.target as HTMLInputElement).value })}
+                                        placeholder='9999px'
+                                        disabled={isSaving}
+                                        class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono'
+                                    />
+                                </div>
+                                <div>
+                                    <label class='block text-xs font-medium text-text-secondary mb-1'>Full *</label>
+                                    <input
+                                        type='text'
+                                        value={formData.radiiFull}
+                                        onInput={(e) => update({ radiiFull: (e.target as HTMLInputElement).value })}
+                                        placeholder='9999px'
+                                        disabled={isSaving}
+                                        class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono'
+                                    />
+                                </div>
                             </div>
                         </Section>
 
                         {/* Shadows */}
                         <Section title='Shadows' description='Box shadow values' testId='section-shadows'>
                             <div class='grid grid-cols-3 gap-4'>
-                                <div><label class='block text-xs font-medium text-text-secondary mb-1'>Small *</label><input type='text' value={formData.shadowSm} onInput={(e) => update({ shadowSm: (e.target as HTMLInputElement).value })} placeholder='0 1px 2px 0 rgba(0, 0, 0, 0.05)' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono' /></div>
-                                <div><label class='block text-xs font-medium text-text-secondary mb-1'>Medium *</label><input type='text' value={formData.shadowMd} onInput={(e) => update({ shadowMd: (e.target as HTMLInputElement).value })} placeholder='0 4px 6px -1px rgba(0, 0, 0, 0.1)' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono' /></div>
-                                <div><label class='block text-xs font-medium text-text-secondary mb-1'>Large *</label><input type='text' value={formData.shadowLg} onInput={(e) => update({ shadowLg: (e.target as HTMLInputElement).value })} placeholder='0 10px 15px -3px rgba(0, 0, 0, 0.1)' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono' /></div>
+                                <div>
+                                    <label class='block text-xs font-medium text-text-secondary mb-1'>Small *</label>
+                                    <input
+                                        type='text'
+                                        value={formData.shadowSm}
+                                        onInput={(e) => update({ shadowSm: (e.target as HTMLInputElement).value })}
+                                        placeholder='0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+                                        disabled={isSaving}
+                                        class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono'
+                                    />
+                                </div>
+                                <div>
+                                    <label class='block text-xs font-medium text-text-secondary mb-1'>Medium *</label>
+                                    <input
+                                        type='text'
+                                        value={formData.shadowMd}
+                                        onInput={(e) => update({ shadowMd: (e.target as HTMLInputElement).value })}
+                                        placeholder='0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                                        disabled={isSaving}
+                                        class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono'
+                                    />
+                                </div>
+                                <div>
+                                    <label class='block text-xs font-medium text-text-secondary mb-1'>Large *</label>
+                                    <input
+                                        type='text'
+                                        value={formData.shadowLg}
+                                        onInput={(e) => update({ shadowLg: (e.target as HTMLInputElement).value })}
+                                        placeholder='0 10px 15px -3px rgba(0, 0, 0, 0.1)'
+                                        disabled={isSaving}
+                                        class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono'
+                                    />
+                                </div>
                             </div>
                         </Section>
 
                         {/* Legal */}
                         <Section title='Legal' description='Company and policy information' testId='section-legal'>
                             <div class='grid grid-cols-2 gap-4'>
-                                <div><label class='block text-xs font-medium text-text-secondary mb-1'>Company Name *</label><input type='text' value={formData.legalCompanyName} onInput={(e) => update({ legalCompanyName: (e.target as HTMLInputElement).value })} placeholder='Your Company' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm' /></div>
-                                <div><label class='block text-xs font-medium text-text-secondary mb-1'>Support Email *</label><input type='email' value={formData.legalSupportEmail} onInput={(e) => update({ legalSupportEmail: (e.target as HTMLInputElement).value })} placeholder='support@example.com' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm' /></div>
-                                <div><label class='block text-xs font-medium text-text-secondary mb-1'>Privacy Policy URL *</label><input type='url' value={formData.legalPrivacyPolicyUrl} onInput={(e) => update({ legalPrivacyPolicyUrl: (e.target as HTMLInputElement).value })} placeholder='https://example.com/privacy' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm' /></div>
-                                <div><label class='block text-xs font-medium text-text-secondary mb-1'>Terms of Service URL *</label><input type='url' value={formData.legalTermsOfServiceUrl} onInput={(e) => update({ legalTermsOfServiceUrl: (e.target as HTMLInputElement).value })} placeholder='https://example.com/terms' disabled={isSaving} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm' /></div>
+                                <div>
+                                    <label class='block text-xs font-medium text-text-secondary mb-1'>Company Name *</label>
+                                    <input
+                                        type='text'
+                                        value={formData.legalCompanyName}
+                                        onInput={(e) => update({ legalCompanyName: (e.target as HTMLInputElement).value })}
+                                        placeholder='Your Company'
+                                        disabled={isSaving}
+                                        class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm'
+                                    />
+                                </div>
+                                <div>
+                                    <label class='block text-xs font-medium text-text-secondary mb-1'>Support Email *</label>
+                                    <input
+                                        type='email'
+                                        value={formData.legalSupportEmail}
+                                        onInput={(e) => update({ legalSupportEmail: (e.target as HTMLInputElement).value })}
+                                        placeholder='support@example.com'
+                                        disabled={isSaving}
+                                        class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm'
+                                    />
+                                </div>
+                                <div>
+                                    <label class='block text-xs font-medium text-text-secondary mb-1'>Privacy Policy URL *</label>
+                                    <input
+                                        type='url'
+                                        value={formData.legalPrivacyPolicyUrl}
+                                        onInput={(e) => update({ legalPrivacyPolicyUrl: (e.target as HTMLInputElement).value })}
+                                        placeholder='https://example.com/privacy'
+                                        disabled={isSaving}
+                                        class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm'
+                                    />
+                                </div>
+                                <div>
+                                    <label class='block text-xs font-medium text-text-secondary mb-1'>Terms of Service URL *</label>
+                                    <input
+                                        type='url'
+                                        value={formData.legalTermsOfServiceUrl}
+                                        onInput={(e) => update({ legalTermsOfServiceUrl: (e.target as HTMLInputElement).value })}
+                                        placeholder='https://example.com/terms'
+                                        disabled={isSaving}
+                                        class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm'
+                                    />
+                                </div>
                             </div>
                         </Section>
 
                         {/* Marketing */}
                         <Section title='Marketing' description='Page visibility flags' testId='section-marketing'>
                             <div class='space-y-3'>
-                                <Toggle label='Landing Page' checked={formData.showLandingPage} onChange={(v) => update({ showLandingPage: v })} disabled={isSaving} testId='show-landing-page-checkbox' />
-                                <Toggle label='Marketing Content' checked={formData.showMarketingContent} onChange={(v) => update({ showMarketingContent: v })} disabled={isSaving} testId='show-marketing-content-checkbox' />
-                                <Toggle label='Pricing Page' checked={formData.showPricingPage} onChange={(v) => update({ showPricingPage: v })} disabled={isSaving} testId='show-pricing-page-checkbox' />
+                                <Toggle
+                                    label='Landing Page'
+                                    checked={formData.showLandingPage}
+                                    onChange={(v) => update({ showLandingPage: v })}
+                                    disabled={isSaving}
+                                    testId='show-landing-page-checkbox'
+                                />
+                                <Toggle
+                                    label='Marketing Content'
+                                    checked={formData.showMarketingContent}
+                                    onChange={(v) => update({ showMarketingContent: v })}
+                                    disabled={isSaving}
+                                    testId='show-marketing-content-checkbox'
+                                />
+                                <Toggle
+                                    label='Pricing Page'
+                                    checked={formData.showPricingPage}
+                                    onChange={(v) => update({ showPricingPage: v })}
+                                    disabled={isSaving}
+                                    testId='show-pricing-page-checkbox'
+                                />
                             </div>
                         </Section>
                     </div>

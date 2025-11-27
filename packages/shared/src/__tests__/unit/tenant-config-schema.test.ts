@@ -1,5 +1,5 @@
-import { TenantConfigSchema } from '../../index';
 import { describe, expect, it } from 'vitest';
+import { TenantConfigSchema } from '../../index';
 
 /**
  * Tenant Response Validation Tests

@@ -5,12 +5,7 @@ import { HTTP_STATUS } from '../constants';
 import { validateGroupIdParam } from '../groups/validation';
 import { logger } from '../logger';
 import { ExpenseService } from '../services/ExpenseService';
-import {
-    validateCreateExpense,
-    validateExpenseId,
-    validateListExpensesQuery,
-    validateUpdateExpense,
-} from './validation';
+import { validateCreateExpense, validateExpenseId, validateListExpensesQuery, validateUpdateExpense } from './validation';
 
 export class ExpenseHandlers {
     constructor(private readonly expenseService: ExpenseService) {

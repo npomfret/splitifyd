@@ -147,13 +147,17 @@ describe('Account Merge API', () => {
         it('should reject task when jobId is missing', async () => {
             await expect(
                 appDriver.processMergeTask(''),
-            ).rejects.toMatchObject({ code: 'MISSING_FIELD' });
+            )
+                .rejects
+                .toMatchObject({ code: 'MISSING_FIELD' });
         });
 
         it('should reject task when job does not exist', async () => {
             await expect(
                 appDriver.processMergeTask('non-existent-job'),
-            ).rejects.toBeDefined();
+            )
+                .rejects
+                .toBeDefined();
         });
 
         it('should reject task when job is not in pending status', async () => {
@@ -166,7 +170,9 @@ describe('Account Merge API', () => {
             // Try to process again (should fail - not pending)
             await expect(
                 appDriver.processMergeTask(mergeResult.jobId),
-            ).rejects.toMatchObject({ code: 'INVALID_JOB_STATUS' });
+            )
+                .rejects
+                .toMatchObject({ code: 'INVALID_JOB_STATUS' });
         });
     });
 
@@ -206,7 +212,9 @@ describe('Account Merge API', () => {
                     { secondaryUserId: 'non-existent' as UserId },
                     user1,
                 ),
-            ).rejects.toMatchObject({ code: 'MERGE_NOT_ELIGIBLE' });
+            )
+                .rejects
+                .toMatchObject({ code: 'MERGE_NOT_ELIGIBLE' });
         });
     });
 });

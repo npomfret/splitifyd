@@ -72,7 +72,7 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                 return () => clearTimeout(timer);
             }
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [canAcceptCurrent, isLastPolicy, allPoliciesAccepted, loading]);
 
     const handleAcceptPolicy = (policyId: string) => {

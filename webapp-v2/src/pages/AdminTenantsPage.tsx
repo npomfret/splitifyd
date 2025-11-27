@@ -166,8 +166,7 @@ export function AdminTenantsPage() {
                                                         </div>
 
                                                         <div>
-                                                            <span class='text-slate-400'>Primary Domain:</span>{' '}
-                                                            <span class='font-mono text-slate-200'>{tenant.domains[0] || 'None'}</span>
+                                                            <span class='text-slate-400'>Primary Domain:</span> <span class='font-mono text-slate-200'>{tenant.domains[0] || 'None'}</span>
                                                         </div>
 
                                                         {tenant.domains.length > 0 && (

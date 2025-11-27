@@ -3,14 +3,7 @@ import { AuthenticatedRequest } from '../auth/middleware';
 import { HTTP_STATUS } from '../constants';
 import { GroupService } from '../services/GroupService';
 import { Errors } from '../utils/errors';
-import {
-    validateCreateGroup,
-    validateGroupFullDetailsQuery,
-    validateGroupId,
-    validateListGroupsQuery,
-    validateUpdateDisplayName,
-    validateUpdateGroup,
-} from './validation';
+import { validateCreateGroup, validateGroupFullDetailsQuery, validateGroupId, validateListGroupsQuery, validateUpdateDisplayName, validateUpdateGroup } from './validation';
 
 export class GroupHandlers {
     constructor(private readonly groupService: GroupService) {}
