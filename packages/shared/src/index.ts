@@ -27,3 +27,6 @@ export * from './base58-normalization';
 export * from './api/serialization';
 
 export * from './api';
+
+// Export builders for testing
+export * from './builders';

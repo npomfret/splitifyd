@@ -1,7 +1,5 @@
-import { toTenantDomainName, toTenantId } from '@billsplit-wl/shared';
-import type { TenantDomainName } from '@billsplit-wl/shared';
-import type { TenantSettingsResponse } from '@billsplit-wl/shared';
-import { TenantConfigBuilder } from './TenantConfigBuilder';
+import { TenantConfigBuilder, toTenantDomainName, toTenantId } from '@billsplit-wl/shared';
+import type { TenantDomainName, TenantSettingsResponse } from '@billsplit-wl/shared';
 
 export class TenantSettingsResponseBuilder {
     private response: Partial<TenantSettingsResponse> = {};

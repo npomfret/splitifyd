@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { TenantConfigSchema } from '../../index';
+import { TenantConfigBuilder, TenantConfigSchema } from '../../index';
 
 /**
  * Tenant Response Validation Tests
@@ -13,53 +13,46 @@ import { TenantConfigSchema } from '../../index';
  *
  * This was the root cause of the tenant editor bug where surfaceColor
  * and other fields were being stripped out.
- *
- * NOTE: This test uses inline test data instead of builders from test-support
- * to avoid circular dependencies (shared -> test-support -> shared).
  */
 describe('Tenant API Response Validation', () => {
     describe('TenantConfigSchema', () => {
-        it('should validate ALL branding fields including surfaceColor and textColor', () => {
-            // Inline test data to avoid circular dependency with test-support
-            const tenantConfig = {
-                id: 'test-tenant',
-                domains: ['test.example.com'],
-                branding: {
-                    appName: 'Test App',
-                    logoUrl: '/logo.svg',
-                    faviconUrl: '/favicon.ico',
-                    primaryColor: '#3B82F6',
-                    secondaryColor: '#8B5CF6',
-                    accentColor: '#EC4899',
-                    surfaceColor: '#ffffff',
-                    textColor: '#1F2937',
-                    themePalette: 'default',
-                    customCSS: '/* test */',
-                    marketingFlags: {
-                        showLandingPage: true,
-                        showMarketingContent: true,
-                        showPricingPage: false,
-                    },
-                },
-            };
+        it('should preserve ALL branding fields including optional ones after schema validation', () => {
+            const tenantConfig = new TenantConfigBuilder()
+                .withAccentColor('#EC4899')
+                .withSurfaceColor('#ffffff')
+                .withTextColor('#1F2937')
+                .withThemePalette('default')
+                .withCustomCSS('/* test */')
+                .withMarketingFlags({
+                    showLandingPage: true,
+                    showMarketingContent: true,
+                    showPricingPage: false,
+                })
+                .build();
 
-            // Parse the tenant config with the schema - this simulates schema validation
             const result = TenantConfigSchema.parse(tenantConfig);
 
-            // Verify ALL branding fields are preserved after schema validation
-            const branding = result.branding;
+            // Verify required fields
+            expect(result.tenantId).toBe('test-tenant');
+            expect(result.createdAt).toBeDefined();
+            expect(result.updatedAt).toBeDefined();
 
-            // Every field must be validated to prevent regression
+            // Verify required branding fields
+            const { branding } = result;
             expect(branding.appName).toBe('Test App');
-            expect(branding.logoUrl).toBe('/logo.svg');
-            expect(branding.faviconUrl).toBe('/favicon.ico');
-            expect(branding.primaryColor).toBe('#3B82F6');
-            expect(branding.secondaryColor).toBe('#8B5CF6');
+            expect(branding.logoUrl).toBe('https://example.com/logo.svg');
+            expect(branding.faviconUrl).toBe('https://example.com/favicon.ico');
+            expect(branding.primaryColor).toBe('#0066CC');
+            expect(branding.secondaryColor).toBe('#FF6600');
+
+            // Verify optional branding fields are preserved (not stripped)
             expect(branding.accentColor).toBe('#EC4899');
             expect(branding.surfaceColor).toBe('#ffffff');
             expect(branding.textColor).toBe('#1F2937');
             expect(branding.themePalette).toBe('default');
             expect(branding.customCSS).toBe('/* test */');
+
+            // Verify marketing flags
             expect(branding.marketingFlags).toBeDefined();
             expect(branding.marketingFlags?.showLandingPage).toBe(true);
             expect(branding.marketingFlags?.showMarketingContent).toBe(true);

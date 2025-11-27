@@ -1,5 +1,5 @@
 import type { AppConfiguration, EnvironmentConfig, FirebaseConfig, FormDefaults, TenantConfig, ThemeConfig } from '@billsplit-wl/shared';
-import { TenantConfigBuilder } from './TenantConfigBuilder';
+import { TenantConfigBuilder } from '@billsplit-wl/shared';
 
 export type TenantBrandingFlagsOverrides = Partial<TenantConfig['branding']['marketingFlags']>;
 export type TenantBrandingOverrides = Partial<TenantConfig['branding']>;

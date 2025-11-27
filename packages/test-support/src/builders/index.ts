@@ -41,7 +41,7 @@ export { SettlementWithMembersBuilder } from './SettlementWithMembersBuilder';
 export { ShareLinkBuilder } from './ShareLinkBuilder';
 export { SimplifiedDebtBuilder } from './SimplifiedDebtBuilder';
 export { SplitAssertionBuilder } from './SplitAssertionBuilder';
-export { TenantConfigBuilder } from './TenantConfigBuilder';
+export { TenantConfigBuilder } from '@billsplit-wl/shared';
 export { TenantSettingsResponseBuilder } from './TenantSettingsResponseBuilder';
 export { TestUserBuilder } from './TestUserBuilder';
 export { ThemeBuilder } from './ThemeBuilder';

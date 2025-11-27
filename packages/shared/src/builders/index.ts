@@ -1,0 +1,1 @@
+export { TenantConfigBuilder } from './TenantConfigBuilder';
