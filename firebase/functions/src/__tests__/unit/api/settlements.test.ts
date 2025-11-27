@@ -225,4 +225,132 @@ describe('settlements', () => {
         expect(groupDetails.balances.balancesByCurrency![eur]![user2].owes[user1]).toBe('75.25');
         expect(groupDetails.balances.balancesByCurrency![eur]![user2].netBalance).toBe('-75.25');
     });
+
+    describe('settlement edge cases', () => {
+        it('should reject creating settlement in non-existent group', async () => {
+            await expect(
+                appDriver.createSettlement(
+                    new CreateSettlementRequestBuilder()
+                        .withGroupId('non-existent-group-id')
+                        .withPayerId(user2)
+                        .withPayeeId(user1)
+                        .withAmount(50, USD)
+                        .build(),
+                    user2,
+                ),
+            ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+        });
+
+        it('should reject creating settlement by non-member', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+
+            // user2 is NOT a member
+            await expect(
+                appDriver.createSettlement(
+                    new CreateSettlementRequestBuilder()
+                        .withGroupId(group.id)
+                        .withPayerId(user2)
+                        .withPayeeId(user1)
+                        .withAmount(50, USD)
+                        .build(),
+                    user2,
+                ),
+            ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+        });
+
+        it('should reject updating non-existent settlement', async () => {
+            await expect(
+                appDriver.updateSettlement(
+                    'non-existent-settlement-id',
+                    new SettlementUpdateBuilder().withAmount('100.00', USD).build(),
+                    user1,
+                ),
+            ).rejects.toMatchObject({ code: 'SETTLEMENT_NOT_FOUND' });
+        });
+
+        it('should reject updating settlement by non-creator', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            const groupId = group.id;
+
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+
+            const participants = [user1, user2];
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(100, USD)
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(toAmount(100), USD, participants))
+                    .build(),
+                user1,
+            );
+
+            const settlement = await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPayerId(user2)
+                    .withPayeeId(user1)
+                    .withAmount(30, USD)
+                    .build(),
+                user2,
+            );
+
+            // user1 (not the creator) trying to update
+            await expect(
+                appDriver.updateSettlement(
+                    settlement.id,
+                    new SettlementUpdateBuilder().withAmount('50.00', USD).build(),
+                    user1,
+                ),
+            ).rejects.toMatchObject({ code: 'NOT_SETTLEMENT_CREATOR' });
+        });
+
+        it('should reject deleting non-existent settlement', async () => {
+            await expect(
+                appDriver.deleteSettlement('non-existent-settlement-id', user1),
+            ).rejects.toMatchObject({ code: 'SETTLEMENT_NOT_FOUND' });
+        });
+
+        it('should reject deleting already-deleted settlement (returns SETTLEMENT_NOT_FOUND)', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            const groupId = group.id;
+
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+
+            const participants = [user1, user2];
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(100, USD)
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(toAmount(100), USD, participants))
+                    .build(),
+                user1,
+            );
+
+            const settlement = await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPayerId(user2)
+                    .withPayeeId(user1)
+                    .withAmount(30, USD)
+                    .build(),
+                user2,
+            );
+
+            // Delete once
+            await appDriver.deleteSettlement(settlement.id, user1);
+
+            // Try to delete again - returns NOT_FOUND because soft-deleted settlements are filtered out
+            await expect(
+                appDriver.deleteSettlement(settlement.id, user1),
+            ).rejects.toMatchObject({ code: 'SETTLEMENT_NOT_FOUND' });
+        });
+    });
 });

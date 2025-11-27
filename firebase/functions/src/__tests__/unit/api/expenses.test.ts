@@ -424,4 +424,126 @@ describe('expenses', () => {
         expect(expenseFullDetails.group.id).toBe(groupId);
         expect(expenseFullDetails.members.members.some((member) => member.uid === user2)).toBe(true);
     });
+
+    describe('expense edge cases', () => {
+        it('should reject creating expense in non-existent group', async () => {
+            const participants = [user1];
+            await expect(
+                appDriver.createExpense(
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId('non-existent-group-id')
+                        .withAmount(100, USD)
+                        .withPaidBy(user1)
+                        .withParticipants(participants)
+                        .withSplitType('equal')
+                        .withSplits(calculateEqualSplits(toAmount(100), USD, participants))
+                        .build(),
+                    user1,
+                ),
+            ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+        });
+
+        it('should reject creating expense by non-member', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            // user2 is NOT a member
+            const participants = [user1];
+
+            await expect(
+                appDriver.createExpense(
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(group.id)
+                        .withAmount(100, USD)
+                        .withPaidBy(user1)
+                        .withParticipants(participants)
+                        .withSplitType('equal')
+                        .withSplits(calculateEqualSplits(toAmount(100), USD, participants))
+                        .build(),
+                    user2,
+                ),
+            ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+        });
+
+        it('should reject creating expense with payer not in participants', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            // user2 is NOT in participants list but is set as payer
+            const participants = [user1];
+
+            await expect(
+                appDriver.createExpense(
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(group.id)
+                        .withAmount(100, USD)
+                        .withPaidBy(user2)
+                        .withParticipants(participants)
+                        .withSplitType('equal')
+                        .withSplits(calculateEqualSplits(toAmount(100), USD, participants))
+                        .build(),
+                    user1,
+                ),
+            ).rejects.toMatchObject({ code: 'PAYER_NOT_PARTICIPANT' });
+        });
+
+        it('should reject creating expense with non-member participant', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            // user2 is NOT a member but is in participants list
+            const participants = [user1, user2];
+
+            await expect(
+                appDriver.createExpense(
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(group.id)
+                        .withAmount(100, USD)
+                        .withPaidBy(user1)
+                        .withParticipants(participants)
+                        .withSplitType('equal')
+                        .withSplits(calculateEqualSplits(toAmount(100), USD, participants))
+                        .build(),
+                    user1,
+                ),
+            ).rejects.toMatchObject({ code: 'MEMBER_NOT_IN_GROUP' });
+        });
+
+        it('should reject updating non-existent expense', async () => {
+            await expect(
+                appDriver.updateExpense(
+                    'non-existent-expense-id',
+                    ExpenseUpdateBuilder.minimal().withDescription('Updated').build(),
+                    user1,
+                ),
+            ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+        });
+
+        it('should reject deleting non-existent expense', async () => {
+            await expect(
+                appDriver.deleteExpense('non-existent-expense-id', user1),
+            ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+        });
+
+        it('should reject getting details for non-existent expense', async () => {
+            await expect(
+                appDriver.getExpenseFullDetails('non-existent-expense-id', user1),
+            ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+        });
+
+        it('should reject getting expense details as non-member (returns NOT_FOUND for security)', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            const participants = [user1];
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withAmount(100, USD)
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(toAmount(100), USD, participants))
+                    .build(),
+                user1,
+            );
+
+            // user2 is NOT a member - returns NOT_FOUND to avoid leaking existence info
+            await expect(
+                appDriver.getExpenseFullDetails(expense.id, user2),
+            ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+        });
+    });
 });

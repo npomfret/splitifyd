@@ -61,4 +61,101 @@ describe('comments', () => {
         const comments = await appDriver.listExpenseComments(expense.id, {}, user1);
         expect(comments.comments[0].text).toBe('Thanks');
     });
+
+    describe('comment edge cases', () => {
+        it('should reject creating group comment for non-existent group', async () => {
+            await expect(
+                appDriver.createGroupComment('non-existent-group-id', 'Test comment', user1),
+            ).rejects.toMatchObject({ code: 'GROUP_NOT_FOUND' });
+        });
+
+        it('should reject creating group comment as non-member', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+
+            // user2 is NOT a member
+            await expect(
+                appDriver.createGroupComment(group.id, 'Test comment', user2),
+            ).rejects.toMatchObject({ code: 'ACCESS_DENIED' });
+        });
+
+        it('should reject creating expense comment for non-existent expense', async () => {
+            await expect(
+                appDriver.createExpenseComment('non-existent-expense-id', 'Test comment', user1),
+            ).rejects.toMatchObject({ code: 'EXPENSE_NOT_FOUND' });
+        });
+
+        it('should reject listing group comments for non-existent group', async () => {
+            await expect(
+                appDriver.listGroupComments('non-existent-group-id', {}, user1),
+            ).rejects.toMatchObject({ code: 'GROUP_NOT_FOUND' });
+        });
+
+        it('should reject listing group comments as non-member', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+
+            // user2 is NOT a member
+            await expect(
+                appDriver.listGroupComments(group.id, {}, user2),
+            ).rejects.toMatchObject({ code: 'ACCESS_DENIED' });
+        });
+
+        it('should reject listing expense comments for non-existent expense', async () => {
+            await expect(
+                appDriver.listExpenseComments('non-existent-expense-id', {}, user1),
+            ).rejects.toMatchObject({ code: 'EXPENSE_NOT_FOUND' });
+        });
+
+        it('should reject listing expense comments as non-member', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            const participants = [user1];
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withAmount(50, USD)
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(toAmount(50), USD, participants))
+                    .build(),
+                user1,
+            );
+
+            // user2 is NOT a member
+            await expect(
+                appDriver.listExpenseComments(expense.id, {}, user2),
+            ).rejects.toMatchObject({ code: 'ACCESS_DENIED' });
+        });
+
+        it('should reject empty comment text after sanitization', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            const groupId = group.id;
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+
+            // Comment with only script tag should be sanitized to empty and rejected
+            await expect(
+                appDriver.createGroupComment(groupId, '<script>alert(1)</script>', user1),
+            ).rejects.toThrow();
+        });
+
+        it('should support pagination for group comments', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            const groupId = group.id;
+
+            // Create 5 comments
+            for (let i = 0; i < 5; i += 1) {
+                await appDriver.createGroupComment(groupId, `Comment ${i}`, user1);
+            }
+
+            // Request with limit of 2
+            const firstPage = await appDriver.listGroupComments(groupId, { limit: 2 }, user1);
+            expect(firstPage.comments).toHaveLength(2);
+            expect(firstPage.hasMore).toBe(true);
+            expect(firstPage.nextCursor).toBeDefined();
+
+            // Get next page
+            const secondPage = await appDriver.listGroupComments(groupId, { limit: 2, cursor: firstPage.nextCursor }, user1);
+            expect(secondPage.comments).toHaveLength(2);
+        });
+    });
 });
