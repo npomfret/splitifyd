@@ -242,9 +242,10 @@ describe('ExpenseHandlers - Unit Tests', () => {
                 description: 'Updated description',
             };
 
-            const result = await appDriver.updateExpense(expense.id, updateRequest, userId);
+            await appDriver.updateExpense(expense.id, updateRequest, userId);
 
-            expect(result.description).toBe('Updated description');
+            const updatedExpense = await appDriver.getExpense(expense.id, userId);
+            expect(updatedExpense.description).toBe('Updated description');
         });
 
         it('should update expense label successfully', async () => {
@@ -270,9 +271,10 @@ describe('ExpenseHandlers - Unit Tests', () => {
                 label: 'Transport',
             };
 
-            const result = await appDriver.updateExpense(expense.id, updateRequest, userId);
+            await appDriver.updateExpense(expense.id, updateRequest, userId);
 
-            expect(result.label).toBe('Transport');
+            const updatedExpense = await appDriver.getExpense(expense.id, userId);
+            expect(updatedExpense.label).toBe('Transport');
         });
 
         it('should reject update with invalid expense ID', async () => {
@@ -358,11 +360,11 @@ describe('ExpenseHandlers - Unit Tests', () => {
 
             const expense = await appDriver.createExpense(expenseRequest, userId);
 
-            const result = await appDriver.deleteExpense(expense.id, userId);
+            // Returns 204 No Content on success
+            await appDriver.deleteExpense(expense.id, userId);
 
-            expect(result).toMatchObject({
-                message: 'Expense deleted successfully',
-            });
+            // Verify expense was deleted by trying to fetch it
+            await expect(appDriver.getExpenseFullDetails(expense.id, userId)).rejects.toThrow();
         });
 
         it('should reject delete with invalid expense ID', async () => {
@@ -410,11 +412,11 @@ describe('ExpenseHandlers - Unit Tests', () => {
 
             const expense = await appDriver.createExpense(expenseRequest, creatorId);
 
-            const result = await appDriver.deleteExpense(expense.id, adminId);
+            // Returns 204 No Content on success
+            await appDriver.deleteExpense(expense.id, adminId);
 
-            expect(result).toMatchObject({
-                message: 'Expense deleted successfully',
-            });
+            // Verify expense was deleted by trying to fetch it
+            await expect(appDriver.getExpenseFullDetails(expense.id, adminId)).rejects.toThrow();
         });
     });
 
@@ -764,7 +766,7 @@ describe('ExpenseHandlers - Unit Tests', () => {
             }, admin);
 
             // Non-creator group member should also be able to update
-            const updated = await appDriver.updateExpense(created.id, {
+            await appDriver.updateExpense(created.id, {
                 description: 'Updated by non-creator',
                 amount: '120.00',
                 currency: usd,
@@ -776,6 +778,7 @@ describe('ExpenseHandlers - Unit Tests', () => {
                 ],
             }, member2);
 
+            const updated = await appDriver.getExpense(created.id, member2);
             expect(updated.description).toBe('Updated by non-creator');
         });
     });

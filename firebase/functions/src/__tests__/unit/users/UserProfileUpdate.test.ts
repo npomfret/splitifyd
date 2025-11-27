@@ -30,8 +30,9 @@ describe('User Profile Update - Integration Tests', () => {
         test('updates the display name', async () => {
             const newDisplayName = `Updated Name ${Date.now()}`;
 
-            const updatedProfile = await appDriver.updateUserProfile({ displayName: newDisplayName }, userId);
+            await appDriver.updateUserProfile({ displayName: newDisplayName }, userId);
 
+            const updatedProfile = await appDriver.getUserProfile(userId);
             expect(updatedProfile.displayName).toBe(newDisplayName);
             expect(updatedProfile.email).toBe('user@test.local');
             expect(typeof updatedProfile.emailVerified).toBe('boolean');
@@ -55,11 +56,12 @@ describe('User Profile Update - Integration Tests', () => {
         test('updates email when password is valid', async () => {
             const newEmail = toEmail(`updated-${Date.now()}@test.local`);
 
-            const updatedProfile = await appDriver.changeEmail({
+            await appDriver.changeEmail({
                 currentPassword: toPassword('ValidPass123!'),
                 newEmail,
             }, userId);
 
+            const updatedProfile = await appDriver.getUserProfile(userId);
             expect(updatedProfile.email).toBe(newEmail.toLowerCase());
             expect(updatedProfile.emailVerified).toBe(false);
         });

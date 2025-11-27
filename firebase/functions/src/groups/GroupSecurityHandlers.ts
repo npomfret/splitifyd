@@ -31,8 +31,8 @@ export class GroupSecurityHandlers {
         const { userId, groupId } = await this.validateAdminRequest(req);
         const updates = validateUpdateGroupPermissionsRequest(req.body);
 
-        const result = await this.groupService.updateGroupPermissions(groupId, userId, updates);
-        res.status(HTTP_STATUS.OK).json(result);
+        await this.groupService.updateGroupPermissions(groupId, userId, updates);
+        res.status(HTTP_STATUS.NO_CONTENT).send();
     };
 
     updateMemberRole = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
@@ -40,24 +40,24 @@ export class GroupSecurityHandlers {
         const memberId = validateMemberId(req.params.memberId);
         const { role } = validateUpdateMemberRoleRequest(req.body);
 
-        const result = await this.groupMemberService.updateMemberRole(userId, groupId, memberId, role);
-        res.status(HTTP_STATUS.OK).json(result);
+        await this.groupMemberService.updateMemberRole(userId, groupId, memberId, role);
+        res.status(HTTP_STATUS.NO_CONTENT).send();
     };
 
     approveMember = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
         const { userId, groupId } = await this.validateMemberApprovalRequest(req);
         const memberId = validateMemberId(req.params.memberId);
 
-        const result = await this.groupMemberService.approveMember(userId, groupId, memberId);
-        res.status(HTTP_STATUS.OK).json(result);
+        await this.groupMemberService.approveMember(userId, groupId, memberId);
+        res.status(HTTP_STATUS.NO_CONTENT).send();
     };
 
     rejectMember = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
         const { userId, groupId } = await this.validateMemberApprovalRequest(req);
         const memberId = validateMemberId(req.params.memberId);
 
-        const result = await this.groupMemberService.rejectMember(userId, groupId, memberId);
-        res.status(HTTP_STATUS.OK).json(result);
+        await this.groupMemberService.rejectMember(userId, groupId, memberId);
+        res.status(HTTP_STATUS.NO_CONTENT).send();
     };
 
     getPendingMembers = async (req: AuthenticatedRequest, res: Response): Promise<void> => {

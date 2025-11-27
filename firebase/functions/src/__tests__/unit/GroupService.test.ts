@@ -96,12 +96,8 @@ describe('GroupService - Unit Tests', () => {
                 .withDescription('Updated Description')
                 .build();
 
-            // Act
-            const result = await groupService.updateGroup(groupId, userId, updateRequest);
-
-            // Assert
-            expect(result).toBeDefined();
-            expect(result.message).toBeDefined();
+            // Act & Assert - should not throw (returns void)
+            await groupService.updateGroup(groupId, userId, updateRequest);
         });
     });
 
@@ -114,12 +110,8 @@ describe('GroupService - Unit Tests', () => {
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
             const groupId = toGroupId(group.id);
 
-            // Act
-            const result = await groupService.deleteGroup(groupId, userId);
-
-            // Assert
-            expect(result).toBeDefined();
-            expect(result.message).toBeDefined();
+            // Act & Assert - should not throw (returns void)
+            await groupService.deleteGroup(groupId, userId);
         });
     });
 

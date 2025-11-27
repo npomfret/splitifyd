@@ -38,6 +38,12 @@ export function createStubResponse(): any {
             jsonData = data;
             return res;
         },
+        send: (data?: any) => {
+            if (data !== undefined) {
+                jsonData = data;
+            }
+            return res;
+        },
         getStatus: () => statusCode,
         getJson: () => jsonData,
     };

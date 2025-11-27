@@ -312,8 +312,8 @@ export class UserService {
         return measureDb('UserService2.getProfile', async () => this._getProfile(userId));
     }
 
-    async updateProfile(userId: UserId, requestBody: unknown, language: string = 'en'): Promise<UserProfileResponse> {
-        return measureDb('UserService2.updateProfile', async () => this._updateProfile(userId, requestBody, language));
+    async updateProfile(userId: UserId, requestBody: unknown, language: string = 'en'): Promise<void> {
+        await measureDb('UserService2.updateProfile', async () => this._updateProfile(userId, requestBody, language));
     }
 
     private async _getProfile(userId: UserId): Promise<UserProfileResponse> {
@@ -376,10 +376,9 @@ export class UserService {
      * Change a user's password
      * @param userId - The Firebase UID of the user
      * @param requestBody - The raw request body containing password change data
-     * @returns Success message
      * @throws ApiError if password change fails
      */
-    async changePassword(userId: UserId, requestBody: unknown): Promise<{ message: string; }> {
+    async changePassword(userId: UserId, requestBody: unknown): Promise<void> {
         LoggerContext.update({ userId, operation: 'change-password' });
 
         // Validate the request body
@@ -407,10 +406,6 @@ export class UserService {
             });
 
             logger.info('Password changed successfully');
-
-            return {
-                message: 'Password changed successfully',
-            };
         } catch (error: unknown) {
             // Check if error is from Firebase Auth (user not found)
             if (error && typeof error === 'object' && 'code' in error && error.code === 'auth/user-not-found') {
@@ -427,9 +422,8 @@ export class UserService {
      * Change a user's email address
      * @param userId - Firebase UID of the user
      * @param requestBody - Raw request payload containing current password and new email
-     * @returns Updated user profile
      */
-    async changeEmail(userId: UserId, requestBody: unknown): Promise<UserProfileResponse> {
+    async changeEmail(userId: UserId, requestBody: unknown): Promise<void> {
         LoggerContext.update({ userId, operation: 'change-email' });
 
         const validatedData = validateChangeEmail(requestBody);
@@ -453,8 +447,6 @@ export class UserService {
                 email: validatedData.newEmail,
                 emailVerified: false,
             });
-
-            return this._getProfile(userId);
         } catch (error: unknown) {
             if (error instanceof ApiError) {
                 throw error;

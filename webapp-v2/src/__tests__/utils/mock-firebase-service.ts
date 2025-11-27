@@ -14,7 +14,7 @@ import {
     registerSuccessHandler,
 } from '@/test/msw/handlers.ts';
 import type { SerializedBodyMatcher, SerializedMswHandler } from '@/test/msw/types.ts';
-import { type ActivityFeedItem, ApiSerializer, ClientUser, ExpenseId, GroupId, ListGroupsResponse, MessageResponse, UserId } from '@billsplit-wl/shared';
+import { type ActivityFeedItem, ApiSerializer, ClientUser, ExpenseId, GroupId, ListGroupsResponse, UserId } from '@billsplit-wl/shared';
 import type { Page, Response, Route } from '@playwright/test';
 
 interface AuthError {
@@ -624,16 +624,15 @@ export async function mockGenerateShareLinkApi(
 export async function mockArchiveGroupApi(
     page: Page,
     groupId: GroupId | string,
-    response: MessageResponse = { message: 'Group archived successfully' },
     options: { delayMs?: number; status?: number; once?: boolean; } = {},
 ): Promise<void> {
     const delay = getApiDelay(options.delayMs);
 
     await registerMswHandlers(
         page,
-        createJsonHandler('POST', `/api/groups/${groupId}/archive`, response, {
+        createJsonHandler('POST', `/api/groups/${groupId}/archive`, undefined, {
             delayMs: delay,
-            status: options.status ?? 200,
+            status: options.status ?? 204,
             once: options.once,
         }),
     );
@@ -642,16 +641,15 @@ export async function mockArchiveGroupApi(
 export async function mockUnarchiveGroupApi(
     page: Page,
     groupId: GroupId | string,
-    response: MessageResponse = { message: 'Group unarchived successfully' },
     options: { delayMs?: number; status?: number; once?: boolean; } = {},
 ): Promise<void> {
     const delay = getApiDelay(options.delayMs);
 
     await registerMswHandlers(
         page,
-        createJsonHandler('POST', `/api/groups/${groupId}/unarchive`, response, {
+        createJsonHandler('POST', `/api/groups/${groupId}/unarchive`, undefined, {
             delayMs: delay,
-            status: options.status ?? 200,
+            status: options.status ?? 204,
             once: options.once,
         }),
     );

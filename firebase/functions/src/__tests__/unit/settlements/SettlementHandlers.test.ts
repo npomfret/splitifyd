@@ -553,12 +553,13 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withAmount(150.75, 'USD')
                 .build();
 
-            const result = await appDriver.updateSettlement(created.id, updateRequest, userId);
+            // Returns 204 No Content
+            await appDriver.updateSettlement(created.id, updateRequest, userId);
 
-            expect(result).toMatchObject({
-                id: created.id,
-                amount: '150.75',
-            });
+            // Verify the update persisted
+            const fullDetails = await appDriver.getGroupFullDetails(group.id, {}, userId);
+            const updated = fullDetails.settlements.settlements.find((s: any) => s.id === created.id);
+            expect(updated?.amount).toBe('150.75');
         });
 
         it('should update settlement note successfully', async () => {
@@ -606,12 +607,13 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withNote('Updated note')
                 .build();
 
-            const result = await appDriver.updateSettlement(created.id, updateRequest, userId);
+            // Returns 204 No Content
+            await appDriver.updateSettlement(created.id, updateRequest, userId);
 
-            expect(result).toMatchObject({
-                id: created.id,
-                note: 'Updated note',
-            });
+            // Verify the update persisted
+            const fullDetails = await appDriver.getGroupFullDetails(group.id, {}, userId);
+            const updated = fullDetails.settlements.settlements.find((s: any) => s.id === created.id);
+            expect(updated?.note).toBe('Updated note');
         });
 
         it('sanitizes settlement note updates before persisting', async () => {
@@ -659,8 +661,9 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withNote('Updated<script>alert(1)</script>')
                 .build();
 
-            const result = await appDriver.updateSettlement(created.id, updateRequest, userId);
+            await appDriver.updateSettlement(created.id, updateRequest, userId);
 
+            const result = await appDriver.getSettlement(group.id, created.id, userId);
             expect(result.note).toBe('Updated');
         });
 
@@ -915,11 +918,8 @@ describe('SettlementHandlers - Unit Tests', () => {
 
             const created = await appDriver.createSettlement(settlementRequest, userId);
 
-            const result = await appDriver.deleteSettlement(created.id, userId);
-
-            expect(result).toMatchObject({
-                message: 'Settlement deleted successfully',
-            });
+            // Returns 204 No Content
+            await appDriver.deleteSettlement(created.id, userId);
         });
 
         it('should reject delete with invalid settlement ID', async () => {
@@ -988,11 +988,8 @@ describe('SettlementHandlers - Unit Tests', () => {
 
             const created = await appDriver.createSettlement(settlementRequest, creatorId);
 
-            const result = await appDriver.deleteSettlement(created.id, adminId);
-
-            expect(result).toMatchObject({
-                message: 'Settlement deleted successfully',
-            });
+            // Returns 204 No Content
+            await appDriver.deleteSettlement(created.id, adminId);
         });
 
         it('should reject delete when user is not a group member', async () => {
@@ -1146,11 +1143,8 @@ describe('SettlementHandlers - Unit Tests', () => {
 
             const created = await appDriver.createSettlement(settlementRequest, creatorId);
 
-            const result = await appDriver.deleteSettlement(created.id, creatorId);
-
-            expect(result).toMatchObject({
-                message: 'Settlement deleted successfully',
-            });
+            // Returns 204 No Content
+            await appDriver.deleteSettlement(created.id, creatorId);
         });
     });
 

@@ -288,10 +288,9 @@ const RegisterResponseSchema = z.object({
     }),
 });
 
-// Generic message response for operations like DELETE
-const MessageResponseSchema = z.object({
-    message: z.string().min(1),
-});
+// Empty response schema for 204 No Content responses
+// Used to signal that the endpoint returns no body
+export const EmptyResponseSchema = z.void();
 
 // Settlement schemas
 const SettlementSchema = z.object({
@@ -729,11 +728,12 @@ export const responseSchemas = {
     'GET /groups': ListGroupsResponseSchema,
     'POST /groups': GroupSchema,
     '/groups/:groupId': GroupSchema,
-    'PUT /groups/:groupId': MessageResponseSchema,
+    'PUT /groups/:groupId': EmptyResponseSchema,
     '/groups/:groupId/members': GroupMembersResponseSchema,
     '/groups/:groupId/full-details': GroupFullDetailsSchema,
     '/expenses': ExpenseDataSchema,
-    'DELETE /expenses': MessageResponseSchema,
+    'PUT /expenses/:expenseId': EmptyResponseSchema,
+    'DELETE /expenses/:expenseId': EmptyResponseSchema,
     '/expenses/group': ExpenseListResponseSchema,
     '/expenses/:expenseId/full-details': ExpenseFullDetailsSchema,
     '/groups/balances': GroupBalancesSchema,
@@ -742,9 +742,9 @@ export const responseSchemas = {
     '/groups/join': JoinGroupResponseSchema,
     '/register': RegisterResponseSchema,
     'POST /settlements': SettlementSchema,
-    'PUT /settlements/:settlementId': SettlementListItemSchema,
+    'PUT /settlements/:settlementId': EmptyResponseSchema,
     'GET /settlements/:settlementId': SettlementListItemSchema,
-    'DELETE /settlements/:settlementId': MessageResponseSchema,
+    'DELETE /settlements/:settlementId': EmptyResponseSchema,
     '/settlements': ListSettlementsResponseSchema,
     '/settlements/:settlementId': SettlementListItemSchema,
     // Comment endpoints
@@ -754,22 +754,22 @@ export const responseSchemas = {
     'GET /expenses/:expenseId/comments': ListCommentsApiResponseSchema,
     // User profile endpoints
     'GET /user/profile': UserProfileResponseSchema,
-    'PUT /user/profile': UserProfileResponseSchema,
-    'POST /user/change-email': UserProfileResponseSchema,
-    'POST /user/change-password': MessageResponseSchema,
-    'POST /user/reset-password': MessageResponseSchema,
+    'PUT /user/profile': EmptyResponseSchema,
+    'POST /user/change-email': EmptyResponseSchema,
+    'POST /user/change-password': EmptyResponseSchema,
+    'POST /user/reset-password': EmptyResponseSchema,
     // Group member endpoints
-    'POST /groups/:groupId/leave': MessageResponseSchema,
-    'DELETE /groups/:groupId': MessageResponseSchema,
-    'DELETE /groups/:groupId/members/:memberId': MessageResponseSchema,
-    'PUT /groups/:groupId/members/display-name': MessageResponseSchema,
-    'PUT /groups/:groupId/security/permissions': MessageResponseSchema,
-    'POST /groups/:groupId/archive': MessageResponseSchema,
-    'POST /groups/:groupId/unarchive': MessageResponseSchema,
+    'POST /groups/:groupId/leave': EmptyResponseSchema,
+    'DELETE /groups/:groupId': EmptyResponseSchema,
+    'DELETE /groups/:groupId/members/:memberId': EmptyResponseSchema,
+    'PUT /groups/:groupId/members/display-name': EmptyResponseSchema,
+    'PUT /groups/:groupId/security/permissions': EmptyResponseSchema,
+    'POST /groups/:groupId/archive': EmptyResponseSchema,
+    'POST /groups/:groupId/unarchive': EmptyResponseSchema,
     'GET /groups/:groupId/members/pending': PendingMembersResponseSchema,
-    'PUT /groups/:groupId/members/:memberId/role': MessageResponseSchema,
-    'POST /groups/:groupId/members/:memberId/approve': MessageResponseSchema,
-    'POST /groups/:groupId/members/:memberId/reject': MessageResponseSchema,
+    'PUT /groups/:groupId/members/:memberId/role': EmptyResponseSchema,
+    'POST /groups/:groupId/members/:memberId/approve': EmptyResponseSchema,
+    'POST /groups/:groupId/members/:memberId/reject': EmptyResponseSchema,
     // Group preview endpoint
     'POST /groups/preview': GroupPreviewResponseSchema,
     // Policy endpoints
@@ -779,15 +779,15 @@ export const responseSchemas = {
     // Tenant settings endpoints
     'GET /settings/tenant': TenantSettingsResponseSchema,
     'GET /settings/tenant/domains': TenantDomainsResponseSchema,
-    'PUT /settings/tenant/branding': MessageResponseSchema,
-    'POST /settings/tenant/domains': MessageResponseSchema,
+    'PUT /settings/tenant/branding': EmptyResponseSchema,
+    'POST /settings/tenant/domains': EmptyResponseSchema,
     // Admin tenant endpoints
     'GET /admin/browser/tenants': AdminTenantsListResponseSchema,
     // Admin user management endpoints
     'GET /admin/browser/users/auth': ListAuthUsersResponseSchema,
     'GET /admin/browser/users/firestore': ListFirestoreUsersResponseSchema,
-    'PUT /admin/users/:userId': AdminUserProfileSchema,
-    'PUT /admin/users/:userId/role': AdminUserProfileSchema,
+    'PUT /admin/users/:userId': EmptyResponseSchema,
+    'PUT /admin/users/:userId/role': EmptyResponseSchema,
     'GET /admin/users/:userId/auth': AdminUserAuthRecordSchema,
     'GET /admin/users/:userId/firestore': AdminUserFirestoreRecordSchema,
     // Merge endpoints

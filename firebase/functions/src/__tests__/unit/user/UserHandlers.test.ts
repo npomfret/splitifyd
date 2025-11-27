@@ -32,11 +32,12 @@ describe('UserHandlers - Integration Tests', () => {
                 .withDisplayName('New Name')
                 .build();
 
-            const result = await appDriver.updateUserProfile(updateRequest, userId);
+            // Returns 204 No Content
+            await appDriver.updateUserProfile(updateRequest, userId);
 
-            expect(result).toMatchObject({
-                displayName: 'New Name',
-            });
+            // Verify the update persisted
+            const profile = await appDriver.getUserProfile(userId);
+            expect(profile.displayName).toBe('New Name');
         });
 
         it('should update preferredLanguage successfully', async () => {
@@ -69,11 +70,12 @@ describe('UserHandlers - Integration Tests', () => {
                 .withPreferredLanguage('en')
                 .build();
 
-            const result = await appDriver.updateUserProfile(updateRequest, userId);
+            // Returns 204 No Content
+            await appDriver.updateUserProfile(updateRequest, userId);
 
-            expect(result).toMatchObject({
-                displayName: 'New Name',
-            });
+            // Verify the update persisted
+            const profile = await appDriver.getUserProfile(userId);
+            expect(profile.displayName).toBe('New Name');
         });
 
         it('should reject update with no fields provided', async () => {
@@ -148,11 +150,9 @@ describe('UserHandlers - Integration Tests', () => {
                 .withNewPassword('NewValidPass456!')
                 .build();
 
-            const result = await appDriver.changePassword(passwordRequest, userId);
-
-            expect(result).toMatchObject({
-                message: 'Password changed successfully',
-            });
+            // Returns 204 No Content
+            await appDriver.changePassword(passwordRequest, userId);
+            // Password changed successfully (no response body to verify)
         });
 
         it('should allow lowercase-only passwords when they meet the length requirement', async () => {
@@ -170,9 +170,8 @@ describe('UserHandlers - Integration Tests', () => {
                 .withNewPassword('lowercaseonlypass')
                 .build();
 
-            await expect(appDriver.changePassword(passwordRequest, userId)).resolves.toMatchObject({
-                message: 'Password changed successfully',
-            });
+            // Returns 204 No Content
+            await appDriver.changePassword(passwordRequest, userId);
         });
 
         it('should allow passwords without numbers or special characters when long enough', async () => {
@@ -190,9 +189,8 @@ describe('UserHandlers - Integration Tests', () => {
                 .withNewPassword('OnlyLettersHere')
                 .build();
 
-            await expect(appDriver.changePassword(passwordRequest, userId)).resolves.toMatchObject({
-                message: 'Password changed successfully',
-            });
+            // Returns 204 No Content
+            await appDriver.changePassword(passwordRequest, userId);
         });
 
         it('should reject password change with new password shorter than 12 characters', async () => {

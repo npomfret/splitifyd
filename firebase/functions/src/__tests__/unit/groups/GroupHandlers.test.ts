@@ -168,11 +168,12 @@ describe('GroupHandlers - Unit Tests', () => {
                 .withName('New Name')
                 .build();
 
-            const result = await appDriver.updateGroup(group.id, updateRequest, userId);
+            // Returns 204 No Content on success
+            await appDriver.updateGroup(group.id, updateRequest, userId);
 
-            expect(result).toMatchObject({
-                message: 'Group updated successfully',
-            });
+            // Verify the update persisted
+            const updatedGroup = await appDriver.getGroupFullDetails(group.id, {}, userId);
+            expect(updatedGroup.group.name).toBe('New Name');
         });
 
         it('should update group description successfully', async () => {
@@ -197,11 +198,12 @@ describe('GroupHandlers - Unit Tests', () => {
                 .withDescription('New description')
                 .build();
 
-            const result = await appDriver.updateGroup(group.id, updateRequest, userId);
+            // Returns 204 No Content on success
+            await appDriver.updateGroup(group.id, updateRequest, userId);
 
-            expect(result).toMatchObject({
-                message: 'Group updated successfully',
-            });
+            // Verify the update persisted
+            const updatedGroup = await appDriver.getGroupFullDetails(group.id, {}, userId);
+            expect(updatedGroup.group.description).toBe('New description');
         });
 
         it('should update both name and description', async () => {
@@ -227,11 +229,13 @@ describe('GroupHandlers - Unit Tests', () => {
                 .withDescription('New description')
                 .build();
 
-            const result = await appDriver.updateGroup(group.id, updateRequest, userId);
+            // Returns 204 No Content on success
+            await appDriver.updateGroup(group.id, updateRequest, userId);
 
-            expect(result).toMatchObject({
-                message: 'Group updated successfully',
-            });
+            // Verify the updates persisted
+            const updatedGroup = await appDriver.getGroupFullDetails(group.id, {}, userId);
+            expect(updatedGroup.group.name).toBe('New Name');
+            expect(updatedGroup.group.description).toBe('New description');
         });
 
         it('should reject update with no fields provided', async () => {
@@ -300,11 +304,11 @@ describe('GroupHandlers - Unit Tests', () => {
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 
-            const result = await appDriver.deleteGroup(group.id, userId);
+            // Returns 204 No Content on success
+            await appDriver.deleteGroup(group.id, userId);
 
-            expect(result).toMatchObject({
-                message: 'Group deleted successfully',
-            });
+            // Verify group was deleted by trying to fetch it
+            await expect(appDriver.getGroupFullDetails(group.id, {}, userId)).rejects.toThrow();
         });
 
         it('should reject delete with empty group ID', async () => {
@@ -395,11 +399,13 @@ describe('GroupHandlers - Unit Tests', () => {
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 
-            const result = await appDriver.updateGroupMemberDisplayName(group.id, 'New Display Name', userId);
+            // Returns 204 No Content on success
+            await appDriver.updateGroupMemberDisplayName(group.id, 'New Display Name', userId);
 
-            expect(result).toMatchObject({
-                message: 'Display name updated successfully',
-            });
+            // Verify the update persisted
+            const groupDetails = await appDriver.getGroupFullDetails(group.id, {}, userId);
+            const member = groupDetails.members.members.find((m: any) => m.uid === userId);
+            expect(member?.groupDisplayName).toBe('New Display Name');
         });
 
         it('sanitizes group display name updates before persisting', async () => {

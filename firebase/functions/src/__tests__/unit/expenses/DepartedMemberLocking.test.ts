@@ -277,7 +277,8 @@ describe('Departed Member Transaction Locking - Unit Tests', () => {
                 .withSplits(calculateEqualSplits(toAmount(120), usd, [toUserId(userIds[0]), toUserId(userIds[1]), toUserId(userIds[2])]))
                 .build();
 
-            await expect(appDriver.updateExpense(expense.id, updateData, userIds[0])).resolves.toBeDefined();
+            // Returns 204 No Content on success
+            await appDriver.updateExpense(expense.id, updateData, userIds[0]);
 
             // Verify update succeeded
             const updated = await appDriver.getExpense(expense.id, userIds[0]);
@@ -579,7 +580,8 @@ describe('Departed Member Transaction Locking - Unit Tests', () => {
                 .withAmount(40, 'USD')
                 .build();
 
-            await expect(appDriver.updateSettlement(settlement.id, updateData, userIds[1])).resolves.toBeDefined();
+            // Returns 204 No Content on success
+            await appDriver.updateSettlement(settlement.id, updateData, userIds[1]);
 
             // Verify update succeeded
             const fullDetails = await appDriver.getGroupFullDetails(group.id, {}, userIds[0]);

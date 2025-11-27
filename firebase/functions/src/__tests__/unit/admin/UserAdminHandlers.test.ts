@@ -25,15 +25,12 @@ describe('UserAdminHandlers - Unit Tests', () => {
             const registered = await appDriver.registerUser(registration);
             const userId = registered.user.uid;
 
-            // Disable the user via admin API
-            const result = await appDriver.updateUser(userId, { disabled: true }, adminToken);
+            // Disable the user via admin API (returns 204 No Content)
+            await appDriver.updateUser(userId, { disabled: true }, adminToken);
 
-            // Verify response
-            expect(result).toMatchObject({
-                uid: userId,
-                email: 'user1@test.com',
-                disabled: true,
-            });
+            // Verify user was disabled by fetching their record
+            const userRecord = await appDriver.getUserAuth(userId, adminToken);
+            expect(userRecord.disabled).toBe(true);
         });
 
         it('should successfully enable a disabled user account', async () => {
@@ -48,15 +45,12 @@ describe('UserAdminHandlers - Unit Tests', () => {
             // First disable the user
             await appDriver.updateUser(userId, { disabled: true }, adminToken);
 
-            // Then enable the user
-            const result = await appDriver.updateUser(userId, { disabled: false }, adminToken);
+            // Then enable the user (returns 204 No Content)
+            await appDriver.updateUser(userId, { disabled: false }, adminToken);
 
-            // Verify response
-            expect(result).toMatchObject({
-                uid: userId,
-                email: 'user1@test.com',
-                disabled: false,
-            });
+            // Verify user was enabled by fetching their record
+            const userRecord = await appDriver.getUserAuth(userId, adminToken);
+            expect(userRecord.disabled).toBe(false);
         });
 
         it('should reject request with invalid UID', async () => {
@@ -162,16 +156,12 @@ describe('UserAdminHandlers - Unit Tests', () => {
             const registered = await appDriver.registerUser(registration);
             const userId = registered.user.uid;
 
-            // Update role to system_admin
-            const result = await appDriver.updateUserRole(userId, { role: SystemUserRoles.SYSTEM_ADMIN }, adminToken);
+            // Update role to system_admin (returns 204 No Content)
+            await appDriver.updateUserRole(userId, { role: SystemUserRoles.SYSTEM_ADMIN }, adminToken);
 
-            // Verify response
-            expect(result).toMatchObject({
-                uid: userId,
-                email: 'user1@test.com',
-                displayName: 'User One',
-                role: SystemUserRoles.SYSTEM_ADMIN,
-            });
+            // Verify role was updated by fetching from Firestore
+            const userData = await appDriver.getUserFirestore(userId, adminToken);
+            expect(userData.role).toBe(SystemUserRoles.SYSTEM_ADMIN);
         });
 
         it('should successfully update user role to tenant_admin', async () => {
@@ -182,15 +172,12 @@ describe('UserAdminHandlers - Unit Tests', () => {
             const registered = await appDriver.registerUser(registration);
             const userId = registered.user.uid;
 
-            // Update role to tenant_admin
-            const result = await appDriver.updateUserRole(userId, { role: SystemUserRoles.TENANT_ADMIN }, adminToken);
+            // Update role to tenant_admin (returns 204 No Content)
+            await appDriver.updateUserRole(userId, { role: SystemUserRoles.TENANT_ADMIN }, adminToken);
 
-            // Verify response
-            expect(result).toMatchObject({
-                uid: userId,
-                email: 'user2@test.com',
-                role: SystemUserRoles.TENANT_ADMIN,
-            });
+            // Verify role was updated by fetching from Firestore
+            const userData = await appDriver.getUserFirestore(userId, adminToken);
+            expect(userData.role).toBe(SystemUserRoles.TENANT_ADMIN);
         });
 
         it('should successfully remove user role by setting to null', async () => {
@@ -205,10 +192,11 @@ describe('UserAdminHandlers - Unit Tests', () => {
             await appDriver.updateUserRole(userId, { role: SystemUserRoles.SYSTEM_ADMIN }, adminToken);
 
             // Then remove role (set to null, defaults to system_user)
-            const result = await appDriver.updateUserRole(userId, { role: null }, adminToken);
+            await appDriver.updateUserRole(userId, { role: null }, adminToken);
 
-            // Verify role is now system_user
-            expect(result.role).toBe(SystemUserRoles.SYSTEM_USER);
+            // Verify role is now system_user by fetching from Firestore
+            const userData = await appDriver.getUserFirestore(userId, adminToken);
+            expect(userData.role).toBe(SystemUserRoles.SYSTEM_USER);
         });
 
         it('should reject invalid role value', async () => {

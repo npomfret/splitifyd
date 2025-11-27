@@ -66,11 +66,12 @@ To maintain consistency and prevent duplication, follow these guidelines when de
 - **CRITICAL RULE**: ALL request and response types **MUST** be defined in the shared package
 - This includes:
     - ALL API request types (e.g., `CreateGroupRequest`, `UpdateGroupRequest`, `CreateExpenseRequest`)
-    - ALL API response types (e.g., `MessageResponse`, `CreateSettlementResponse`, `UpdatePolicyResponse`)
+    - ALL API response types (e.g., `SettlementDTO`, `GroupDTO`, `UserProfileResponse`)
     - Even if only the server uses them today, the client should be able to import them
-- Examples: `RegisteredUser`, `GroupMemberDTO`, `UserBalance`, `SimplifiedDebt`, `MessageResponse`, `UpdateGroupRequest`
+- Examples: `RegisteredUser`, `GroupMemberDTO`, `UserBalance`, `SimplifiedDebt`, `UpdateGroupRequest`
 - Import these types in both client and server code
 - **No exceptions** - request/response types always go in shared
+- **Note**: Update/delete operations return HTTP 204 No Content (void) - no response type needed
 
 ### 4. Service-Internal Types
 

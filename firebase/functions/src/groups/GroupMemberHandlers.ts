@@ -1,6 +1,7 @@
 import { toUserId } from '@billsplit-wl/shared';
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
+import { HTTP_STATUS } from '../constants';
 import { GroupMemberService } from '../services/GroupMemberService';
 import { logger } from '../utils/contextual-logger';
 import { validateGroupId } from './validation';
@@ -14,8 +15,8 @@ export class GroupMemberHandlers {
         const groupId = validateGroupId(req.params.groupId);
 
         try {
-            const result = await this.groupMemberService.leaveGroup(userId!, groupId);
-            res.json(result);
+            await this.groupMemberService.leaveGroup(userId!, groupId);
+            res.status(HTTP_STATUS.NO_CONTENT).send();
         } catch (error) {
             logger.error('Error in leaveGroup', error, {
                 groupId,
@@ -31,8 +32,8 @@ export class GroupMemberHandlers {
         const memberId = toUserId(req.params.memberId);
 
         try {
-            const result = await this.groupMemberService.removeGroupMember(userId!, groupId, memberId);
-            res.json(result);
+            await this.groupMemberService.removeGroupMember(userId!, groupId, memberId);
+            res.status(HTTP_STATUS.NO_CONTENT).send();
         } catch (error) {
             logger.error('Error in removeGroupMember', error, {
                 groupId,
@@ -48,8 +49,8 @@ export class GroupMemberHandlers {
         const groupId = validateGroupId(req.params.groupId);
 
         try {
-            const result = await this.groupMemberService.archiveGroupForUser(groupId, userId!);
-            res.json(result);
+            await this.groupMemberService.archiveGroupForUser(groupId, userId!);
+            res.status(HTTP_STATUS.NO_CONTENT).send();
         } catch (error) {
             logger.error('Error in archiveGroupForUser', error, {
                 groupId,
@@ -64,8 +65,8 @@ export class GroupMemberHandlers {
         const groupId = validateGroupId(req.params.groupId);
 
         try {
-            const result = await this.groupMemberService.unarchiveGroupForUser(groupId, userId!);
-            res.json(result);
+            await this.groupMemberService.unarchiveGroupForUser(groupId, userId!);
+            res.status(HTTP_STATUS.NO_CONTENT).send();
         } catch (error) {
             logger.error('Error in unarchiveGroupForUser', error, {
                 groupId,

@@ -128,10 +128,7 @@ describe('Archive Groups - Archive/Unarchive Operations', () => {
             const groupId = toGroupId(group.id);
 
             // Act - Archive the membership
-            const result = await appDriver.archiveGroupForUser(groupId, userId);
-
-            // Assert
-            expect(result.message).toBe('Group archived successfully');
+            await appDriver.archiveGroupForUser(groupId, userId);
 
             // Verify via listGroups that the group is now archived
             const archivedGroups = await appDriver.listGroups({ statusFilter: MemberStatuses.ARCHIVED }, userId);
@@ -178,10 +175,7 @@ describe('Archive Groups - Archive/Unarchive Operations', () => {
             await appDriver.archiveGroupForUser(groupId, userId);
 
             // Act - Unarchive the membership
-            const result = await appDriver.unarchiveGroupForUser(groupId, userId);
-
-            // Assert
-            expect(result.message).toBe('Group unarchived successfully');
+            await appDriver.unarchiveGroupForUser(groupId, userId);
 
             // Verify via listGroups that the group is now active
             const activeGroups = await appDriver.listGroups({}, userId);

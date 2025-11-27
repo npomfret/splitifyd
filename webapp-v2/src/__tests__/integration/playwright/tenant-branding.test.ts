@@ -271,11 +271,7 @@ test.describe('Tenant Branding Page - Form Submission', () => {
             if (route.request().method() === 'PUT') {
                 capturedRequestBody = await route.request().postDataJSON();
                 await route.fulfill({
-                    status: 200,
-                    contentType: 'application/json',
-                    body: JSON.stringify({
-                        message: 'Branding updated successfully',
-                    }),
+                    status: 204,
                 });
             } else {
                 await route.continue();

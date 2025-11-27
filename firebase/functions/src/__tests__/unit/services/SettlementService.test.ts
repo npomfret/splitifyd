@@ -410,8 +410,8 @@ describe('SettlementService - Unit Tests', () => {
             );
             const settlementId = toSettlementId(settlement.id);
 
-            // Act & Assert - Should succeed without throwing
-            await expect(appDriver.deleteSettlement(settlementId, creatorId)).resolves.toBeDefined();
+            // Act & Assert - Should succeed without throwing (returns 204 No Content)
+            await appDriver.deleteSettlement(settlementId, creatorId);
         });
 
         it('should prevent soft deleting already deleted settlement', async () => {
@@ -482,8 +482,8 @@ describe('SettlementService - Unit Tests', () => {
             );
             const settlementId = toSettlementId(settlement.id);
 
-            // Act & Assert - Should succeed
-            await expect(appDriver.deleteSettlement(settlementId, creatorId)).resolves.toBeDefined();
+            // Act & Assert - Should succeed (returns 204 No Content)
+            await appDriver.deleteSettlement(settlementId, creatorId);
         });
 
         it('should allow group admin to soft delete settlement', async () => {
@@ -519,8 +519,8 @@ describe('SettlementService - Unit Tests', () => {
             );
             const settlementId = toSettlementId(settlement.id);
 
-            // Act & Assert - Admin should be able to delete settlement created by another member
-            await expect(appDriver.deleteSettlement(settlementId, adminId)).resolves.toBeDefined();
+            // Act & Assert - Admin should be able to delete settlement created by another member (returns 204 No Content)
+            await appDriver.deleteSettlement(settlementId, adminId);
         });
 
         it('should prevent non-creator non-admin from soft deleting settlement', async () => {

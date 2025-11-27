@@ -430,25 +430,24 @@ describe('user, policy and notification tests', () => {
 
         describe('updateUserProfile', () => {
             it('should update display name successfully', async () => {
-                const updatedProfile = await appDriver.updateUserProfile(
+                await appDriver.updateUserProfile(
                     new UserUpdateBuilder().withDisplayName('Updated Name').build(),
                     user1,
                 );
-
-                expect(updatedProfile.displayName).toBe('Updated Name');
 
                 const profile = await appDriver.getUserProfile(user1);
                 expect(profile.displayName).toBe('Updated Name');
             });
 
             it('should sanitize display name input', async () => {
-                const updatedProfile = await appDriver.updateUserProfile(
+                await appDriver.updateUserProfile(
                     new UserUpdateBuilder().withDisplayName('<script>alert("xss")</script>Clean Name').build(),
                     user1,
                 );
 
-                expect(updatedProfile.displayName).not.toContain('<script>');
-                expect(updatedProfile.displayName).toContain('Clean Name');
+                const profile = await appDriver.getUserProfile(user1);
+                expect(profile.displayName).not.toContain('<script>');
+                expect(profile.displayName).toContain('Clean Name');
             });
 
             it('should reject empty display name', async () => {
@@ -474,15 +473,14 @@ describe('user, policy and notification tests', () => {
             const VALID_NEW_PASSWORD = toPassword('NewSecurePass123!');
 
             it('should successfully change password with valid credentials', async () => {
-                const result = await appDriver.changePassword(
+                // Password change succeeds if no error is thrown
+                await appDriver.changePassword(
                     new PasswordChangeRequestBuilder()
                         .withCurrentPassword(VALID_CURRENT_PASSWORD)
                         .withNewPassword(VALID_NEW_PASSWORD)
                         .build(),
                     user1,
                 );
-
-                expect(result.message).toBe('Password changed successfully');
             });
         });
 
@@ -491,21 +489,23 @@ describe('user, policy and notification tests', () => {
             const NEW_EMAIL = toEmail('newemail@example.com');
 
             it('should successfully change email with valid credentials', async () => {
-                const profile = await appDriver.changeEmail({
+                await appDriver.changeEmail({
                     currentPassword: CURRENT_PASSWORD,
                     newEmail: NEW_EMAIL,
                 }, user1);
 
+                const profile = await appDriver.getUserProfile(user1);
                 expect(profile.email).toBe(NEW_EMAIL);
                 expect(profile.emailVerified).toBe(false);
             });
 
             it('should lowercase email address', async () => {
-                const profile = await appDriver.changeEmail({
+                await appDriver.changeEmail({
                     currentPassword: CURRENT_PASSWORD,
                     newEmail: toEmail('NewEmail@EXAMPLE.COM'),
                 }, user1);
 
+                const profile = await appDriver.getUserProfile(user1);
                 expect(profile.email).toBe('newemail@example.com');
             });
         });

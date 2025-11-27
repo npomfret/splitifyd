@@ -14,7 +14,6 @@ import type {
     AdminAPI,
     AdminUpsertTenantRequest,
     AdminUpsertTenantResponse,
-    AdminUserProfile,
     API,
     AppConfiguration,
     ChangeEmailRequest,
@@ -50,7 +49,6 @@ import type {
     ListPoliciesResponse,
     MemberRole,
     MergeJobResponse,
-    MessageResponse,
     PasswordChangeRequest,
     PolicyAcceptanceStatusDTO,
     PolicyId,
@@ -62,7 +60,6 @@ import type {
     PublishTenantThemeResponse,
     RegisterResponse,
     SettlementDTO,
-    SettlementWithMembers,
     ShareLinkResponse,
     ShareLinkToken,
     TenantDomainsResponse,
@@ -490,6 +487,15 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
                 });
             }
 
+            // Handle 204 No Content - return immediately without parsing body
+            if (response.status === 204) {
+                logApiResponse(options.method, endpoint, response.status, {
+                    duration,
+                    retryAttempt: attemptNumber > 1 ? attemptNumber : undefined,
+                });
+                return undefined as T;
+            }
+
             // Parse response
             let data: T | undefined;
             if (rawBody) {
@@ -738,32 +744,32 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
         });
     }
 
-    async leaveGroup(groupId: GroupId): Promise<MessageResponse> {
-        return this.request({
+    async leaveGroup(groupId: GroupId): Promise<void> {
+        await this.request({
             endpoint: '/groups/:id/leave',
             method: 'POST',
             params: { id: groupId },
         });
     }
 
-    async archiveGroupForUser(groupId: GroupId): Promise<MessageResponse> {
-        return this.request({
+    async archiveGroupForUser(groupId: GroupId): Promise<void> {
+        await this.request({
             endpoint: '/groups/:id/archive',
             method: 'POST',
             params: { id: groupId },
         });
     }
 
-    async unarchiveGroupForUser(groupId: GroupId): Promise<MessageResponse> {
-        return this.request({
+    async unarchiveGroupForUser(groupId: GroupId): Promise<void> {
+        await this.request({
             endpoint: '/groups/:id/unarchive',
             method: 'POST',
             params: { id: groupId },
         });
     }
 
-    async removeGroupMember(groupId: GroupId, memberId: UserId): Promise<MessageResponse> {
-        return this.request({
+    async removeGroupMember(groupId: GroupId, memberId: UserId): Promise<void> {
+        await this.request({
             endpoint: '/groups/:id/members/:memberId',
             method: 'DELETE',
             params: { id: groupId, memberId },
@@ -778,16 +784,16 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
         });
     }
 
-    async updateGroup(id: string, data: UpdateGroupRequest): Promise<MessageResponse> {
-        return this.request({
+    async updateGroup(id: string, data: UpdateGroupRequest): Promise<void> {
+        await this.request({
             endpoint: `/groups/${id}`,
             method: 'PUT',
             body: data,
         });
     }
 
-    async deleteGroup(id: string): Promise<MessageResponse> {
-        return this.request({
+    async deleteGroup(id: string): Promise<void> {
+        await this.request({
             endpoint: `/groups/${id}`,
             method: 'DELETE',
         });
@@ -801,8 +807,8 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
         });
     }
 
-    async updateExpense(expenseId: ExpenseId, data: UpdateExpenseRequest): Promise<ExpenseDTO> {
-        return this.request({
+    async updateExpense(expenseId: ExpenseId, data: UpdateExpenseRequest): Promise<void> {
+        await this.request({
             endpoint: '/expenses',
             method: 'PUT',
             query: { id: expenseId },
@@ -810,8 +816,8 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
         });
     }
 
-    async deleteExpense(expenseId: ExpenseId): Promise<MessageResponse> {
-        return this.request({
+    async deleteExpense(expenseId: ExpenseId): Promise<void> {
+        await this.request({
             endpoint: '/expenses',
             method: 'DELETE',
             query: { id: expenseId },
@@ -833,8 +839,8 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
         });
     }
 
-    async updateSettlement(settlementId: SettlementId, data: UpdateSettlementRequest): Promise<SettlementWithMembers> {
-        return this.request({
+    async updateSettlement(settlementId: SettlementId, data: UpdateSettlementRequest): Promise<void> {
+        await this.request({
             endpoint: '/settlements/:settlementId',
             method: 'PUT',
             params: { settlementId },
@@ -842,8 +848,8 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
         });
     }
 
-    async deleteSettlement(settlementId: SettlementId): Promise<MessageResponse> {
-        return this.request({
+    async deleteSettlement(settlementId: SettlementId): Promise<void> {
+        await this.request({
             endpoint: '/settlements/:settlementId',
             method: 'DELETE',
             params: { settlementId },
@@ -863,31 +869,31 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
         });
     }
 
-    async updateGroupPermissions(groupId: GroupId, permissions: Partial<GroupPermissions>): Promise<MessageResponse> {
-        return this.request({
+    async updateGroupPermissions(groupId: GroupId, permissions: Partial<GroupPermissions>): Promise<void> {
+        await this.request({
             endpoint: `/groups/${groupId}/security/permissions`,
             method: 'PATCH',
             body: permissions,
         });
     }
 
-    async updateMemberRole(groupId: GroupId, memberId: UserId, role: MemberRole): Promise<MessageResponse> {
-        return this.request({
+    async updateMemberRole(groupId: GroupId, memberId: UserId, role: MemberRole): Promise<void> {
+        await this.request({
             endpoint: `/groups/${groupId}/members/${memberId}/role`,
             method: 'PATCH',
             body: { role },
         });
     }
 
-    async approveMember(groupId: GroupId, memberId: UserId): Promise<MessageResponse> {
-        return this.request({
+    async approveMember(groupId: GroupId, memberId: UserId): Promise<void> {
+        await this.request({
             endpoint: `/groups/${groupId}/members/${memberId}/approve`,
             method: 'POST',
         });
     }
 
-    async rejectMember(groupId: GroupId, memberId: UserId): Promise<MessageResponse> {
-        return this.request({
+    async rejectMember(groupId: GroupId, memberId: UserId): Promise<void> {
+        await this.request({
             endpoint: `/groups/${groupId}/members/${memberId}/reject`,
             method: 'POST',
         });
@@ -989,8 +995,8 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
      * Update user account status (enable/disable)
      * Admin-only endpoint
      */
-    async updateUser(uid: UserId, updates: UpdateUserStatusRequest): Promise<AdminUserProfile> {
-        return this.request<AdminUserProfile>({
+    async updateUser(uid: UserId, updates: UpdateUserStatusRequest): Promise<void> {
+        await this.request({
             endpoint: '/admin/users/:uid',
             method: 'PUT',
             params: { uid },
@@ -1002,13 +1008,12 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
      * Update user role (system_admin, tenant_admin, or regular user)
      * Admin-only endpoint
      */
-    async updateUserRole(uid: UserId, updates: UpdateUserRoleRequest): Promise<AdminUserProfile> {
-        return this.request<AdminUserProfile>({
+    async updateUserRole(uid: UserId, updates: UpdateUserRoleRequest): Promise<void> {
+        await this.request({
             endpoint: '/admin/users/:uid/role',
             method: 'PUT',
             params: { uid },
             body: updates,
-            // Schema automatically picked up from responseSchemas
         });
     }
 
@@ -1088,8 +1093,8 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
         });
     }
 
-    async updateGroupMemberDisplayName(groupId: GroupId, displayName: DisplayName): Promise<MessageResponse> {
-        return this.request({
+    async updateGroupMemberDisplayName(groupId: GroupId, displayName: DisplayName): Promise<void> {
+        await this.request({
             endpoint: '/groups/:id/members/display-name',
             method: 'PUT',
             params: { id: groupId },
@@ -1114,24 +1119,24 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
         return this.getUserProfileInternal(signal);
     }
 
-    async updateUserProfile(data: UpdateUserProfileRequest): Promise<UserProfileResponse> {
-        return this.request({
+    async updateUserProfile(data: UpdateUserProfileRequest): Promise<void> {
+        await this.request({
             endpoint: '/user/profile',
             method: 'PUT',
             body: data,
         });
     }
 
-    async changePassword(data: PasswordChangeRequest): Promise<MessageResponse> {
-        return this.request({
+    async changePassword(data: PasswordChangeRequest): Promise<void> {
+        await this.request({
             endpoint: '/user/change-password',
             method: 'POST',
             body: data,
         });
     }
 
-    async changeEmail(data: ChangeEmailRequest): Promise<UserProfileResponse> {
-        return this.request({
+    async changeEmail(data: ChangeEmailRequest): Promise<void> {
+        await this.request({
             endpoint: '/user/change-email',
             method: 'POST',
             body: data,
@@ -1290,8 +1295,8 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
         });
     }
 
-    async updateTenantBranding(request: UpdateTenantBrandingRequest): Promise<MessageResponse> {
-        return this.request({
+    async updateTenantBranding(request: UpdateTenantBrandingRequest): Promise<void> {
+        await this.request({
             endpoint: '/settings/tenant/branding',
             method: 'PUT',
             body: request,
@@ -1305,8 +1310,8 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
         });
     }
 
-    async addTenantDomain(request: AddTenantDomainRequest): Promise<MessageResponse> {
-        return this.request({
+    async addTenantDomain(request: AddTenantDomainRequest): Promise<void> {
+        await this.request({
             endpoint: '/settings/tenant/domains',
             method: 'POST',
             body: request,

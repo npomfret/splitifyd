@@ -47,9 +47,9 @@ export class GroupHandlers {
         const updates = validateUpdateGroup(req.body);
 
         // Use GroupService to update the group
-        const response = await this.groupService.updateGroup(groupId, userId, updates);
+        await this.groupService.updateGroup(groupId, userId, updates);
 
-        res.json(response);
+        res.status(HTTP_STATUS.NO_CONTENT).send();
     };
 
     /**
@@ -63,9 +63,9 @@ export class GroupHandlers {
         const groupId = validateGroupId(req.params.groupId);
 
         // Use GroupService to delete the group
-        const response = await this.groupService.deleteGroup(groupId, userId);
+        await this.groupService.deleteGroup(groupId, userId);
 
-        res.json(response);
+        res.status(HTTP_STATUS.NO_CONTENT).send();
     };
 
     /**
@@ -127,6 +127,6 @@ export class GroupHandlers {
         // Update the display name using FirestoreWriter directly
         await this.groupService.updateGroupMemberDisplayName(groupId, userId, displayName);
 
-        res.json({ message: 'Display name updated successfully' });
+        res.status(HTTP_STATUS.NO_CONTENT).send();
     };
 }

@@ -5,7 +5,6 @@ import type {
     AddTenantDomainRequest,
     AdminUpsertTenantRequest,
     AdminUpsertTenantResponse,
-    AdminUserProfile,
     ChangeEmailRequest,
     CommentDTO,
     CommentText,
@@ -44,7 +43,6 @@ import type {
     ListPoliciesResponse,
     MemberRole,
     MergeJobResponse,
-    MessageResponse,
     PasswordChangeRequest,
     PolicyId,
     PolicyVersion,
@@ -55,7 +53,6 @@ import type {
     PublishTenantThemeResponse,
     SettlementDTO,
     SettlementId,
-    SettlementWithMembers,
     ShareLinkResponse,
     ShareLinkToken,
     TenantDomainsResponse,
@@ -101,20 +98,20 @@ export interface API<AuthToken> {
     listGroups(options?: ListGroupsOptions, token?: AuthToken): Promise<ListGroupsResponse>;
     getGroupFullDetails(groupId: GroupId, options?: GetGroupFullDetailsOptions, token?: AuthToken): Promise<GroupFullDetailsDTO>;
     createGroup(request: CreateGroupRequest, token?: AuthToken): Promise<GroupDTO>;
-    updateGroup(groupId: GroupId, updates: UpdateGroupRequest, token?: AuthToken): Promise<MessageResponse>;
-    deleteGroup(groupId: GroupId, token?: AuthToken): Promise<MessageResponse>;
-    leaveGroup(groupId: GroupId, token?: AuthToken): Promise<MessageResponse>;
-    archiveGroupForUser(groupId: GroupId, token?: AuthToken): Promise<MessageResponse>;
-    unarchiveGroupForUser(groupId: GroupId, token?: AuthToken): Promise<MessageResponse>;
-    updateGroupPermissions(groupId: GroupId, permissions: Partial<GroupPermissions>, token?: AuthToken): Promise<MessageResponse>;
-    updateGroupMemberDisplayName(groupId: GroupId, displayName: DisplayName, token?: AuthToken): Promise<MessageResponse>;
+    updateGroup(groupId: GroupId, updates: UpdateGroupRequest, token?: AuthToken): Promise<void>;
+    deleteGroup(groupId: GroupId, token?: AuthToken): Promise<void>;
+    leaveGroup(groupId: GroupId, token?: AuthToken): Promise<void>;
+    archiveGroupForUser(groupId: GroupId, token?: AuthToken): Promise<void>;
+    unarchiveGroupForUser(groupId: GroupId, token?: AuthToken): Promise<void>;
+    updateGroupPermissions(groupId: GroupId, permissions: Partial<GroupPermissions>, token?: AuthToken): Promise<void>;
+    updateGroupMemberDisplayName(groupId: GroupId, displayName: DisplayName, token?: AuthToken): Promise<void>;
 
     getActivityFeed(options?: GetActivityFeedOptions, token?: AuthToken): Promise<ActivityFeedResponse>;
 
-    updateMemberRole(groupId: GroupId, memberId: UserId, role: MemberRole, token?: AuthToken): Promise<MessageResponse>;
-    approveMember(groupId: GroupId, memberId: UserId, token?: AuthToken): Promise<MessageResponse>;
-    rejectMember(groupId: GroupId, memberId: UserId, token?: AuthToken): Promise<MessageResponse>;
-    removeGroupMember(groupId: GroupId, memberId: UserId, token?: AuthToken): Promise<MessageResponse>;
+    updateMemberRole(groupId: GroupId, memberId: UserId, role: MemberRole, token?: AuthToken): Promise<void>;
+    approveMember(groupId: GroupId, memberId: UserId, token?: AuthToken): Promise<void>;
+    rejectMember(groupId: GroupId, memberId: UserId, token?: AuthToken): Promise<void>;
+    removeGroupMember(groupId: GroupId, memberId: UserId, token?: AuthToken): Promise<void>;
     getPendingMembers(groupId: GroupId, token?: AuthToken): Promise<GroupMembershipDTO[]>;
 
     generateShareableLink(groupId: GroupId, expiresAt?: ISOString, token?: AuthToken): Promise<ShareLinkResponse>;
@@ -122,15 +119,15 @@ export interface API<AuthToken> {
     joinGroupByLink(shareToken: ShareLinkToken, groupDisplayName: DisplayName, token?: AuthToken): Promise<JoinGroupResponse>;
 
     createExpense(request: CreateExpenseRequest, token?: AuthToken): Promise<ExpenseDTO>;
-    updateExpense(expenseId: ExpenseId, request: UpdateExpenseRequest, token?: AuthToken): Promise<ExpenseDTO>;
-    deleteExpense(expenseId: ExpenseId, token?: AuthToken): Promise<MessageResponse>;
+    updateExpense(expenseId: ExpenseId, request: UpdateExpenseRequest, token?: AuthToken): Promise<void>;
+    deleteExpense(expenseId: ExpenseId, token?: AuthToken): Promise<void>;
     getExpenseFullDetails(expenseId: ExpenseId, token?: AuthToken): Promise<ExpenseFullDetailsDTO>;
     createExpenseComment(expenseId: ExpenseId, text: CommentText, token?: AuthToken): Promise<CommentDTO>;
     listExpenseComments(expenseId: ExpenseId, options?: ListCommentsOptions, token?: AuthToken): Promise<ListCommentsResponse>;
 
     createSettlement(request: CreateSettlementRequest, token?: AuthToken): Promise<SettlementDTO>;
-    updateSettlement(settlementId: SettlementId, request: UpdateSettlementRequest, token?: AuthToken): Promise<SettlementWithMembers>;
-    deleteSettlement(settlementId: SettlementId, token?: AuthToken): Promise<MessageResponse>;
+    updateSettlement(settlementId: SettlementId, request: UpdateSettlementRequest, token?: AuthToken): Promise<void>;
+    deleteSettlement(settlementId: SettlementId, token?: AuthToken): Promise<void>;
 
     createGroupComment(groupId: GroupId, text: CommentText, token?: AuthToken): Promise<CommentDTO>;
     listGroupComments(groupId: GroupId, options?: ListCommentsOptions, token?: AuthToken): Promise<ListCommentsResponse>;
@@ -139,9 +136,9 @@ export interface API<AuthToken> {
     getUserPolicyStatus(token?: AuthToken): Promise<UserPolicyStatusResponse>;
 
     getUserProfile(token?: AuthToken): Promise<UserProfileResponse>;
-    updateUserProfile(request: UpdateUserProfileRequest, token?: AuthToken): Promise<UserProfileResponse>;
-    changePassword(request: PasswordChangeRequest, token?: AuthToken): Promise<MessageResponse>;
-    changeEmail(request: ChangeEmailRequest, token?: AuthToken): Promise<UserProfileResponse>;
+    updateUserProfile(request: UpdateUserProfileRequest, token?: AuthToken): Promise<void>;
+    changePassword(request: PasswordChangeRequest, token?: AuthToken): Promise<void>;
+    changeEmail(request: ChangeEmailRequest, token?: AuthToken): Promise<void>;
 
     initiateMerge(request: InitiateMergeRequest, token?: AuthToken): Promise<InitiateMergeResponse>;
     getMergeStatus(jobId: string, token?: AuthToken): Promise<MergeJobResponse>;
@@ -200,13 +197,13 @@ export interface AdminAPI<AuthToken> {
      * Update user account status (enable/disable)
      * Requires: system_admin role
      */
-    updateUser(uid: UserId, updates: UpdateUserStatusRequest, token?: AuthToken): Promise<AdminUserProfile>;
+    updateUser(uid: UserId, updates: UpdateUserStatusRequest, token?: AuthToken): Promise<void>;
 
     /**
      * Update user role (system_admin, tenant_admin, or regular user)
      * Requires: system_admin role
      */
-    updateUserRole(uid: UserId, updates: UpdateUserRoleRequest, token?: AuthToken): Promise<AdminUserProfile>;
+    updateUserRole(uid: UserId, updates: UpdateUserRoleRequest, token?: AuthToken): Promise<void>;
 
     // ===== USER/TENANT BROWSING (system_user or system_admin role) =====
 
@@ -260,7 +257,7 @@ export interface AdminAPI<AuthToken> {
      * Update tenant branding configuration
      * Requires: tenant_admin or system_admin role
      */
-    updateTenantBranding(request: UpdateTenantBrandingRequest, token?: AuthToken): Promise<MessageResponse>;
+    updateTenantBranding(request: UpdateTenantBrandingRequest, token?: AuthToken): Promise<void>;
 
     /**
      * List tenant domains
@@ -272,7 +269,7 @@ export interface AdminAPI<AuthToken> {
      * Add a new tenant domain
      * Requires: tenant_admin or system_admin role
      */
-    addTenantDomain(request: AddTenantDomainRequest, token?: AuthToken): Promise<MessageResponse>;
+    addTenantDomain(request: AddTenantDomainRequest, token?: AuthToken): Promise<void>;
 }
 
 /**
@@ -312,7 +309,7 @@ export interface TestAPI {
      *
      * @param uid - User ID to promote to admin
      */
-    promoteUserToAdmin(uid: UserId): Promise<MessageResponse>;
+    promoteUserToAdmin(uid: UserId): Promise<void>;
 
     /**
      * Clear all policy acceptances for the authenticated user

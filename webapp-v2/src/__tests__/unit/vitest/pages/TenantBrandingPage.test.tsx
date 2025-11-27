@@ -279,7 +279,7 @@ describe('TenantBrandingPage', () => {
         });
 
         it('should call updateTenantBranding with correct data when saved', async () => {
-            mockedApiClient.updateTenantBranding.mockResolvedValueOnce({ message: 'Success' });
+            mockedApiClient.updateTenantBranding.mockResolvedValueOnce(undefined);
 
             render(<TenantBrandingPage />);
 
@@ -305,7 +305,7 @@ describe('TenantBrandingPage', () => {
         });
 
         it('should show success message after successful save', async () => {
-            mockedApiClient.updateTenantBranding.mockResolvedValueOnce({ message: 'Success' });
+            mockedApiClient.updateTenantBranding.mockResolvedValueOnce(undefined);
 
             render(<TenantBrandingPage />);
 
@@ -367,7 +367,7 @@ describe('TenantBrandingPage', () => {
         });
 
         it('should call API when save button is clicked', async () => {
-            mockedApiClient.updateTenantBranding.mockResolvedValueOnce({ message: 'Success' });
+            mockedApiClient.updateTenantBranding.mockResolvedValueOnce(undefined);
 
             render(<TenantBrandingPage />);
 

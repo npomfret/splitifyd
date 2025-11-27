@@ -1,4 +1,5 @@
 import { StubCloudTasksClient } from '@billsplit-wl/firebase-simulator';
+import { ApiError } from '../../utils/errors';
 import {
     AcceptMultiplePoliciesResponse,
     AcceptPolicyRequest,
@@ -9,7 +10,6 @@ import {
     AdminAPI,
     AdminUpsertTenantRequest,
     AdminUpsertTenantResponse,
-    AdminUserProfile,
     API,
     ChangeEmailRequest,
     CommentDTO,
@@ -47,7 +47,6 @@ import {
     ListPoliciesResponse,
     MemberRole,
     MergeJobResponse,
-    MessageResponse,
     PasswordChangeRequest,
     PolicyDTO,
     PolicyId,
@@ -645,16 +644,16 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return res.getJson() as PreviewGroupResponse;
     }
 
-    async updateGroup(groupId: GroupId | string, updates: UpdateGroupRequest, authToken: AuthToken) {
+    async updateGroup(groupId: GroupId | string, updates: UpdateGroupRequest, authToken: AuthToken): Promise<void> {
         const req = createStubRequest(authToken, updates, { groupId });
         const res = await this.dispatchByHandler('updateGroup', req);
-        return res.getJson() as MessageResponse;
+        this.throwIfError(res);
     }
 
-    async deleteGroup(groupId: GroupId | string, authToken: AuthToken) {
+    async deleteGroup(groupId: GroupId | string, authToken: AuthToken): Promise<void> {
         const req = createStubRequest(authToken, {}, { groupId });
         const res = await this.dispatchByHandler('deleteGroup', req);
-        return res.getJson() as MessageResponse;
+        this.throwIfError(res);
     }
 
     async getGroup(groupId: GroupId | string, authToken: AuthToken): Promise<GroupDTO> {
@@ -672,40 +671,40 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return details.expenses;
     }
 
-    async leaveGroup(groupId: GroupId | string, authToken: AuthToken): Promise<MessageResponse> {
+    async leaveGroup(groupId: GroupId | string, authToken: AuthToken): Promise<void> {
         const req = createStubRequest(authToken, {}, { groupId });
         const res = await this.dispatchByHandler('leaveGroup', req);
-        return res.getJson() as MessageResponse;
+        this.throwIfError(res);
     }
 
-    async removeGroupMember(groupId: GroupId | string, memberId: UserId | string, authToken: AuthToken): Promise<MessageResponse> {
+    async removeGroupMember(groupId: GroupId | string, memberId: UserId | string, authToken: AuthToken): Promise<void> {
         const req = createStubRequest(authToken, {}, { groupId, memberId });
         const res = await this.dispatchByHandler('removeGroupMember', req);
-        return res.getJson() as MessageResponse;
+        this.throwIfError(res);
     }
 
-    async archiveGroupForUser(groupId: GroupId | string, authToken: AuthToken): Promise<MessageResponse> {
+    async archiveGroupForUser(groupId: GroupId | string, authToken: AuthToken): Promise<void> {
         const req = createStubRequest(authToken, {}, { groupId });
         const res = await this.dispatchByHandler('archiveGroupForUser', req);
-        return res.getJson() as MessageResponse;
+        this.throwIfError(res);
     }
 
-    async unarchiveGroupForUser(groupId: GroupId | string, authToken: AuthToken): Promise<MessageResponse> {
+    async unarchiveGroupForUser(groupId: GroupId | string, authToken: AuthToken): Promise<void> {
         const req = createStubRequest(authToken, {}, { groupId });
         const res = await this.dispatchByHandler('unarchiveGroupForUser', req);
-        return res.getJson() as MessageResponse;
+        this.throwIfError(res);
     }
 
-    async updateGroupMemberDisplayName(groupId: GroupId | string, displayName: DisplayName | string, authToken: AuthToken): Promise<MessageResponse> {
+    async updateGroupMemberDisplayName(groupId: GroupId | string, displayName: DisplayName | string, authToken: AuthToken): Promise<void> {
         const req = createStubRequest(authToken, { displayName }, { groupId });
         const res = await this.dispatchByHandler('updateGroupMemberDisplayName', req);
-        return res.getJson() as MessageResponse;
+        this.throwIfError(res);
     }
 
-    async updateGroupPermissions(groupId: GroupId | string, updates: Partial<GroupPermissions>, authToken: AuthToken): Promise<MessageResponse> {
+    async updateGroupPermissions(groupId: GroupId | string, updates: Partial<GroupPermissions>, authToken: AuthToken): Promise<void> {
         const req = createStubRequest(authToken, updates, { groupId });
         const res = await this.dispatchByHandler('updateGroupPermissions', req);
-        return res.getJson() as MessageResponse;
+        this.throwIfError(res);
     }
 
     async getPendingMembers(groupId: GroupId | string, authToken: AuthToken): Promise<GroupMembershipDTO[]> {
@@ -714,22 +713,22 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return res.getJson() as GroupMembershipDTO[];
     }
 
-    async updateMemberRole(groupId: GroupId | string, memberId: UserId, role: MemberRole, authToken: AuthToken): Promise<MessageResponse> {
+    async updateMemberRole(groupId: GroupId | string, memberId: UserId, role: MemberRole, authToken: AuthToken): Promise<void> {
         const req = createStubRequest(authToken, { role }, { groupId, memberId });
         const res = await this.dispatchByHandler('updateMemberRole', req);
-        return res.getJson() as MessageResponse;
+        this.throwIfError(res);
     }
 
-    async approveMember(groupId: GroupId | string, memberId: UserId, authToken: AuthToken): Promise<MessageResponse> {
+    async approveMember(groupId: GroupId | string, memberId: UserId, authToken: AuthToken): Promise<void> {
         const req = createStubRequest(authToken, {}, { groupId, memberId });
         const res = await this.dispatchByHandler('approveMember', req);
-        return res.getJson() as MessageResponse;
+        this.throwIfError(res);
     }
 
-    async rejectMember(groupId: GroupId | string, memberId: UserId, authToken: AuthToken): Promise<MessageResponse> {
+    async rejectMember(groupId: GroupId | string, memberId: UserId, authToken: AuthToken): Promise<void> {
         const req = createStubRequest(authToken, {}, { groupId, memberId });
         const res = await this.dispatchByHandler('rejectMember', req);
-        return res.getJson() as MessageResponse;
+        this.throwIfError(res);
     }
 
     async createExpense(expenseRequest: CreateExpenseRequest, authToken: AuthToken): Promise<ExpenseDTO> {
@@ -738,18 +737,18 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return res.getJson() as ExpenseDTO;
     }
 
-    async updateExpense(expenseId: ExpenseId | string, data: UpdateExpenseRequest, authToken: AuthToken): Promise<ExpenseDTO> {
+    async updateExpense(expenseId: ExpenseId | string, data: UpdateExpenseRequest, authToken: AuthToken): Promise<void> {
         const req = createStubRequest(authToken, data);
         req.query = { id: expenseId };
         const res = await this.dispatchByHandler('updateExpense', req);
-        return res.getJson() as ExpenseDTO;
+        this.throwIfError(res);
     }
 
-    async deleteExpense(expenseId: ExpenseId | string, authToken: AuthToken) {
+    async deleteExpense(expenseId: ExpenseId | string, authToken: AuthToken): Promise<void> {
         const req = createStubRequest(authToken, {});
         req.query = { id: expenseId };
         const res = await this.dispatchByHandler('deleteExpense', req);
-        return res.getJson() as MessageResponse;
+        this.throwIfError(res);
     }
 
     async getExpense(expenseId: ExpenseId | string, authToken: AuthToken): Promise<ExpenseDTO> {
@@ -769,16 +768,16 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return res.getJson() as SettlementDTO;
     }
 
-    async updateSettlement(settlementId: SettlementId | string, data: UpdateSettlementRequest, authToken: AuthToken): Promise<SettlementWithMembers> {
+    async updateSettlement(settlementId: SettlementId | string, data: UpdateSettlementRequest, authToken: AuthToken): Promise<void> {
         const req = createStubRequest(authToken, data, { settlementId });
         const res = await this.dispatchByHandler('updateSettlement', req);
-        return res.getJson() as SettlementWithMembers;
+        this.throwIfError(res);
     }
 
-    async deleteSettlement(settlementId: SettlementId | string, authToken: AuthToken): Promise<MessageResponse> {
+    async deleteSettlement(settlementId: SettlementId | string, authToken: AuthToken): Promise<void> {
         const req = createStubRequest(authToken, {}, { settlementId });
         const res = await this.dispatchByHandler('deleteSettlement', req);
-        return res.getJson() as MessageResponse;
+        this.throwIfError(res);
     }
 
     async getSettlement(groupId: GroupId | string, settlementId: SettlementId | string, authToken: AuthToken): Promise<SettlementWithMembers> {
@@ -863,22 +862,22 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return res.getJson() as UserProfileResponse;
     }
 
-    async updateUserProfile(updateRequest: UpdateUserProfileRequest, authToken: AuthToken): Promise<UserProfileResponse> {
+    async updateUserProfile(updateRequest: UpdateUserProfileRequest, authToken: AuthToken): Promise<void> {
         const req = createStubRequest(authToken, updateRequest);
         const res = await this.dispatchByHandler('updateUserProfile', req);
-        return res.getJson() as UserProfileResponse;
+        this.throwIfError(res);
     }
 
-    async changePassword(passwordRequest: PasswordChangeRequest, authToken: AuthToken): Promise<MessageResponse> {
+    async changePassword(passwordRequest: PasswordChangeRequest, authToken: AuthToken): Promise<void> {
         const req = createStubRequest(authToken, passwordRequest);
         const res = await this.dispatchByHandler('changePassword', req);
-        return res.getJson() as MessageResponse;
+        this.throwIfError(res);
     }
 
-    async changeEmail(changeEmailRequest: ChangeEmailRequest, authToken: AuthToken): Promise<UserProfileResponse> {
+    async changeEmail(changeEmailRequest: ChangeEmailRequest, authToken: AuthToken): Promise<void> {
         const req = createStubRequest(authToken, changeEmailRequest);
         const res = await this.dispatchByHandler('changeEmail', req);
-        return res.getJson() as UserProfileResponse;
+        this.throwIfError(res);
     }
 
     // ===== MERGE API =====
@@ -903,16 +902,16 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
 
     // ===== ADMIN API: USER MANAGEMENT =====
 
-    async updateUser(uid: UserId, updates: UpdateUserStatusRequest, token?: AuthToken): Promise<AdminUserProfile> {
+    async updateUser(uid: UserId, updates: UpdateUserStatusRequest, token?: AuthToken): Promise<void> {
         const req = createStubRequest(token || '', updates, { userId: uid });
         const res = await this.dispatchByHandler('updateUserAdmin', req);
-        return res.getJson() as AdminUserProfile;
+        this.throwIfError(res);
     }
 
-    async updateUserRole(uid: UserId, updates: UpdateUserRoleRequest, token?: AuthToken): Promise<AdminUserProfile> {
+    async updateUserRole(uid: UserId, updates: UpdateUserRoleRequest, token?: AuthToken): Promise<void> {
         const req = createStubRequest(token || '', updates, { userId: uid });
         const res = await this.dispatchByHandler('updateUserRoleAdmin', req);
-        return res.getJson() as AdminUserProfile;
+        this.throwIfError(res);
     }
 
     async getUserAuth(uid: UserId, token?: AuthToken): Promise<any> {
@@ -927,10 +926,9 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return res.getJson();
     }
 
-    async promoteUserToAdmin(uid: UserId): Promise<MessageResponse> {
+    async promoteUserToAdmin(uid: UserId): Promise<void> {
         const req = createStubRequest('', { uid });
-        const res = await this.dispatchByHandler('promoteTestUserToAdmin', req);
-        return res.getJson() as MessageResponse;
+        await this.dispatchByHandler('promoteTestUserToAdmin', req);
     }
 
     async registerUser(registration: UserRegistration): Promise<RegisterUserResult> {
@@ -1247,10 +1245,10 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return res.getJson() as TenantSettingsResponse;
     }
 
-    async updateTenantBranding(request: UpdateTenantBrandingRequest, token: AuthToken): Promise<MessageResponse> {
+    async updateTenantBranding(request: UpdateTenantBrandingRequest, token: AuthToken): Promise<void> {
         const req = createStubRequest(token, request);
         const res = await this.dispatchByHandler('updateTenantBranding', req);
-        return res.getJson() as MessageResponse;
+        this.throwIfError(res);
     }
 
     async getTenantDomains(token: AuthToken): Promise<TenantDomainsResponse> {
@@ -1259,9 +1257,23 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return res.getJson() as TenantDomainsResponse;
     }
 
-    async addTenantDomain(request: AddTenantDomainRequest, token: AuthToken): Promise<MessageResponse> {
+    async addTenantDomain(request: AddTenantDomainRequest, token: AuthToken): Promise<void> {
         const req = createStubRequest(token, request);
         const res = await this.dispatchByHandler('addTenantDomain', req);
-        return res.getJson() as MessageResponse;
+        this.throwIfError(res);
+    }
+
+    /**
+     * Checks if the response contains an error and throws an ApiError if so.
+     * Used for void methods that need to properly propagate errors.
+     */
+    private throwIfError(res: any): void {
+        const status = res.getStatus();
+        const json = res.getJson();
+
+        if (status && status >= 400 && json?.error) {
+            // ApiError constructor: (statusCode, code, message, details)
+            throw new ApiError(status, json.error.code || 'UNKNOWN_ERROR', json.error.message || 'Unknown error', json.error.details);
+        }
     }
 }

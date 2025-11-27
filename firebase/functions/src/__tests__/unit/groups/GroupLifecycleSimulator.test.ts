@@ -88,8 +88,7 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
             owner.id,
         );
 
-        const response = await appDriver.deleteGroup(group.id, owner.id);
-        expect(response.message).toBe('Group deleted successfully');
+        await appDriver.deleteGroup(group.id, owner.id);
 
         await expect(appDriver.getGroupFullDetails(group.id, {}, owner.id)).rejects.toThrow();
         await expect(appDriver.getGroupFullDetails(group.id, {}, member.id)).rejects.toThrow();
@@ -100,8 +99,8 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
         const groupsAfterDelete = await appDriver.listGroups({}, owner.id);
         expect(groupsAfterDelete.groups.some(({ id }) => id === group.id)).toBe(false);
 
-        const repeatDelete = await appDriver.deleteGroup(group.id, owner.id);
-        expect(repeatDelete.message).toBe('Group deleted successfully');
+        // Repeat delete should succeed (idempotent)
+        await appDriver.deleteGroup(group.id, owner.id);
     });
 
     it('prevents non-owners from deleting groups', async () => {
@@ -188,8 +187,7 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
 
         const group = await createGroupWithMembers(owner.id, [member.id], 'Leave Group');
 
-        const response = await appDriver.leaveGroup(group.id, member.id);
-        expect(response.message).toContain('Successfully left the group');
+        await appDriver.leaveGroup(group.id, member.id);
 
         const remainingMembers = (await appDriver.getGroupFullDetails(group.id, {}, owner.id)).members.members;
         expect(remainingMembers.some(({ uid }) => uid === member.id)).toBe(false);

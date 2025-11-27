@@ -344,11 +344,8 @@ describe('authorization', () => {
                     primaryColor: toTenantPrimaryColor('#FF0000'),
                 };
 
-                const result = await appDriver.updateTenantBranding(brandingData, user1);
-
-                expect(result).toMatchObject({
-                    message: 'Tenant branding updated successfully',
-                });
+                // Returns 204 No Content on success
+                await appDriver.updateTenantBranding(brandingData, user1);
 
                 // Verify the update persisted
                 const settings = await appDriver.getTenantSettings(user1);
@@ -357,30 +354,26 @@ describe('authorization', () => {
             });
 
             it('should update partial branding fields', async () => {
-                const result = await appDriver.updateTenantBranding({
+                // Returns 204 No Content on success
+                await appDriver.updateTenantBranding({
                     logoUrl: toTenantLogoUrl('https://custom.com/logo.svg'),
                 }, user1);
 
-                expect(result).toMatchObject({
-                    message: 'Tenant branding updated successfully',
-                });
-
+                // Verify the update persisted
                 const settings = await appDriver.getTenantSettings(user1);
                 expect(settings.config.branding.logoUrl).toBe('https://custom.com/logo.svg');
             });
 
             it('should update marketing flags', async () => {
-                const result = await appDriver.updateTenantBranding({
+                // Returns 204 No Content on success
+                await appDriver.updateTenantBranding({
                     marketingFlags: {
                         showLandingPage: toShowLandingPageFlag(false),
                         showPricingPage: toShowPricingPageFlag(true),
                     },
                 }, user1);
 
-                expect(result).toMatchObject({
-                    message: 'Tenant branding updated successfully',
-                });
-
+                // Verify the update persisted
                 const settings = await appDriver.getTenantSettings(user1);
                 expect(settings.config.branding.marketingFlags?.showLandingPage).toBe(false);
                 expect(settings.config.branding.marketingFlags?.showPricingPage).toBe(true);
@@ -391,25 +384,25 @@ describe('authorization', () => {
                     appName: toTenantAppName('Custom Brand'),
                 };
 
-                const result = await appDriver.updateTenantBranding(brandingData, user2);
-                expect(result).toMatchObject({
-                    error: {
+                await expect(appDriver.updateTenantBranding(brandingData, user2)).rejects.toThrow(
+                    expect.objectContaining({
                         code: 'FORBIDDEN',
-                    },
-                });
+                    }),
+                );
             });
 
             it('should allow system admin to update branding', async () => {
                 const systemAdmin = user3;
                 appDriver.seedAdminUser(systemAdmin); // Promote to system admin
 
-                const result = await appDriver.updateTenantBranding({
+                // Returns 204 No Content on success
+                await appDriver.updateTenantBranding({
                     appName: toTenantAppName('System Admin Updated'),
                 }, systemAdmin);
 
-                expect(result).toMatchObject({
-                    message: 'Tenant branding updated successfully',
-                });
+                // Verify the update persisted
+                const settings = await appDriver.getTenantSettings(systemAdmin);
+                expect(settings.config.branding.appName).toBe('System Admin Updated');
             });
         });
 
@@ -419,14 +412,12 @@ describe('authorization', () => {
                     domain: toTenantDomainName('custom.example.com'),
                 };
 
-                const result = await appDriver.addTenantDomain(domainData, user1);
-
-                expect(result).toMatchObject({
-                    error: {
+                await expect(appDriver.addTenantDomain(domainData, user1)).rejects.toThrow(
+                    expect.objectContaining({
                         code: 'NOT_IMPLEMENTED',
                         message: expect.stringContaining('not yet implemented'),
-                    },
-                });
+                    }),
+                );
             });
 
             it('should deny regular user access to add domain', async () => {
@@ -434,12 +425,11 @@ describe('authorization', () => {
                     domain: toTenantDomainName('custom.example.com'),
                 };
 
-                const result = await appDriver.addTenantDomain(domainData, user2);
-                expect(result).toMatchObject({
-                    error: {
+                await expect(appDriver.addTenantDomain(domainData, user2)).rejects.toThrow(
+                    expect.objectContaining({
                         code: 'FORBIDDEN',
-                    },
-                });
+                    }),
+                );
             });
         });
 
@@ -474,13 +464,11 @@ describe('authorization', () => {
             unexpectedField: 'should fail',
         };
 
-        const result = await appDriver.updateTenantBranding(invalidData, adminUser);
-
-        expect(result).toMatchObject({
-            error: {
+        await expect(appDriver.updateTenantBranding(invalidData, adminUser)).rejects.toThrow(
+            expect.objectContaining({
                 code: 'VALIDATION_ERROR',
-            },
-        });
+            }),
+        );
     });
 
     it('should reject invalid branding data', async () => {
@@ -488,14 +476,12 @@ describe('authorization', () => {
             appName: toTenantAppName(''), // Empty string not allowed
         };
 
-        const result = await appDriver.updateTenantBranding(invalidData, adminUser);
-
-        expect(result).toMatchObject({
-            error: {
+        await expect(appDriver.updateTenantBranding(invalidData, adminUser)).rejects.toThrow(
+            expect.objectContaining({
                 code: 'VALIDATION_ERROR',
                 message: expect.stringContaining('Invalid branding update request'),
-            },
-        });
+            }),
+        );
     });
 
     describe('Admin Tenant Management', () => {
@@ -1113,72 +1099,64 @@ describe('authorization', () => {
 
         describe('PUT /api/admin/users/:uid - updateUser (disable/enable)', () => {
             it('should allow admin to disable a user account', async () => {
-                const result = await appDriver.updateUser(regularUser, { disabled: true }, adminUser);
+                // Returns 204 No Content on success
+                await appDriver.updateUser(regularUser, { disabled: true }, adminUser);
 
-                expect(result).toMatchObject({
-                    uid: regularUser,
-                    email: 'regular@test.com',
-                    disabled: true,
-                });
+                // Verify user was disabled
+                const userRecord = await appDriver.getUserAuth(regularUser, adminUser);
+                expect(userRecord.disabled).toBe(true);
             });
 
             it('should allow admin to enable a disabled user account', async () => {
                 // First disable the user
                 await appDriver.updateUser(regularUser, { disabled: true }, adminUser);
 
-                // Then enable them
-                const result = await appDriver.updateUser(regularUser, { disabled: false }, adminUser);
+                // Then enable them (returns 204 No Content on success)
+                await appDriver.updateUser(regularUser, { disabled: false }, adminUser);
 
-                expect(result).toMatchObject({
-                    uid: regularUser,
-                    email: 'regular@test.com',
-                    disabled: false,
-                });
+                // Verify user was enabled
+                const userRecord = await appDriver.getUserAuth(regularUser, adminUser);
+                expect(userRecord.disabled).toBe(false);
             });
 
             it('should reject non-admin user', async () => {
-                const result = await appDriver.updateUser(regularUser, { disabled: true }, regularUser);
-                expect(result).toMatchObject({
-                    error: {
+                await expect(appDriver.updateUser(regularUser, { disabled: true }, regularUser)).rejects.toThrow(
+                    expect.objectContaining({
                         code: 'FORBIDDEN',
-                    },
-                });
+                    }),
+                );
             });
         });
 
         describe('PUT /api/admin/users/:uid/role - updateUserRole', () => {
             it('should allow admin to promote user to system_admin', async () => {
-                const result = await appDriver.updateUserRole(regularUser, { role: SystemUserRoles.SYSTEM_ADMIN }, adminUser);
+                // Returns 204 No Content on success
+                await appDriver.updateUserRole(regularUser, { role: SystemUserRoles.SYSTEM_ADMIN }, adminUser);
 
-                expect(result).toMatchObject({
-                    uid: regularUser,
-                    email: 'regular@test.com',
-                });
-                // Role verification removed: updateUserRole API response already confirms the role was set
+                // Verify role was updated
+                const userData = await appDriver.getUserFirestore(regularUser, adminUser);
+                expect(userData.role).toBe(SystemUserRoles.SYSTEM_ADMIN);
             });
 
             it('should allow admin to promote user to tenant_admin', async () => {
-                const result = await appDriver.updateUserRole(regularUser, { role: SystemUserRoles.TENANT_ADMIN }, adminUser);
+                // Returns 204 No Content on success
+                await appDriver.updateUserRole(regularUser, { role: SystemUserRoles.TENANT_ADMIN }, adminUser);
 
-                expect(result).toMatchObject({
-                    uid: regularUser,
-                    email: 'regular@test.com',
-                });
-                // Role verification removed: updateUserRole API response already confirms the role was set
+                // Verify role was updated
+                const userData = await appDriver.getUserFirestore(regularUser, adminUser);
+                expect(userData.role).toBe(SystemUserRoles.TENANT_ADMIN);
             });
 
             it('should allow admin to demote user by setting role to null', async () => {
                 // First promote the user
                 await appDriver.updateUserRole(regularUser, { role: SystemUserRoles.SYSTEM_ADMIN }, adminUser);
 
-                // Then demote them
-                const result = await appDriver.updateUserRole(regularUser, { role: null }, adminUser);
+                // Then demote them (returns 204 No Content on success)
+                await appDriver.updateUserRole(regularUser, { role: null }, adminUser);
 
-                expect(result).toMatchObject({
-                    uid: regularUser,
-                    email: 'regular@test.com',
-                });
-                // Role verification removed: updateUserRole API response already confirms the role was set
+                // Verify role was demoted to system_user
+                const userData = await appDriver.getUserFirestore(regularUser, adminUser);
+                expect(userData.role).toBe(SystemUserRoles.SYSTEM_USER);
             });
         });
     });

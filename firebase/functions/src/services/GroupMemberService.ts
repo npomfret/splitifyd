@@ -8,7 +8,6 @@ import {
     MemberRole,
     MemberRoles,
     MemberStatuses,
-    MessageResponse,
     toCurrencyISOCode,
     UserId,
 } from '@billsplit-wl/shared';
@@ -131,16 +130,16 @@ export class GroupMemberService {
         return { group, actorMember };
     }
 
-    async leaveGroup(userId: UserId, groupId: GroupId): Promise<MessageResponse> {
-        return measure.measureDb('GroupMemberService.leaveGroup', async () => this._removeMemberFromGroup(userId, groupId, userId, true));
+    async leaveGroup(userId: UserId, groupId: GroupId): Promise<void> {
+        await measure.measureDb('GroupMemberService.leaveGroup', async () => this._removeMemberFromGroup(userId, groupId, userId, true));
     }
 
-    async removeGroupMember(userId: UserId, groupId: GroupId, memberId: UserId): Promise<MessageResponse> {
-        return measure.measureDb('GroupMemberService.removeGroupMember', async () => this._removeMemberFromGroup(userId, groupId, memberId, false));
+    async removeGroupMember(userId: UserId, groupId: GroupId, memberId: UserId): Promise<void> {
+        await measure.measureDb('GroupMemberService.removeGroupMember', async () => this._removeMemberFromGroup(userId, groupId, memberId, false));
     }
 
-    async updateMemberRole(requestingUserId: UserId, groupId: GroupId, targetUserId: UserId, newRole: MemberRole): Promise<MessageResponse> {
-        return measure.measureDb('GroupMemberService.updateMemberRole', async () => {
+    async updateMemberRole(requestingUserId: UserId, groupId: GroupId, targetUserId: UserId, newRole: MemberRole): Promise<void> {
+        await measure.measureDb('GroupMemberService.updateMemberRole', async () => {
             if (!targetUserId) {
                 throw Errors.MISSING_FIELD('memberId');
             }
@@ -156,8 +155,9 @@ export class GroupMemberService {
                 throw Errors.NOT_FOUND('Group member');
             }
 
+            // No-op if role is already set
             if (targetMembership.memberRole === newRole) {
-                return { message: 'Member role unchanged' };
+                return;
             }
 
             if (targetMembership.memberRole === MemberRoles.ADMIN && newRole !== MemberRoles.ADMIN) {
@@ -190,13 +190,11 @@ export class GroupMemberService {
                 targetUserId,
                 newRole,
             });
-
-            return { message: 'Member role updated successfully' };
         });
     }
 
-    async approveMember(requestingUserId: UserId, groupId: GroupId, targetUserId: UserId): Promise<MessageResponse> {
-        return measure.measureDb('GroupMemberService.approveMember', async () => {
+    async approveMember(requestingUserId: UserId, groupId: GroupId, targetUserId: UserId): Promise<void> {
+        await measure.measureDb('GroupMemberService.approveMember', async () => {
             if (!targetUserId) {
                 throw Errors.MISSING_FIELD('memberId');
             }
@@ -209,8 +207,9 @@ export class GroupMemberService {
                 throw Errors.NOT_FOUND('Group member');
             }
 
+            // No-op if member is already active
             if (targetMembership.memberStatus === MemberStatuses.ACTIVE) {
-                return { message: 'Member is already active' };
+                return;
             }
 
             const actorDisplayName = targetMembership.groupDisplayName;
@@ -280,13 +279,11 @@ export class GroupMemberService {
                 groupId,
                 targetUserId,
             });
-
-            return { message: 'Member approved successfully' };
         });
     }
 
-    async rejectMember(requestingUserId: UserId, groupId: GroupId, targetUserId: UserId): Promise<MessageResponse> {
-        return measure.measureDb('GroupMemberService.rejectMember', async () => {
+    async rejectMember(requestingUserId: UserId, groupId: GroupId, targetUserId: UserId): Promise<void> {
+        await measure.measureDb('GroupMemberService.rejectMember', async () => {
             if (!targetUserId) {
                 throw Errors.MISSING_FIELD('memberId');
             }
@@ -316,8 +313,6 @@ export class GroupMemberService {
                 groupId,
                 targetUserId,
             });
-
-            return { message: 'Member rejected successfully' };
         });
     }
 
@@ -337,7 +332,7 @@ export class GroupMemberService {
      * @param targetUserId - The user being removed (could be same as requesting user for leave)
      * @param isLeaving - true for self-leave, false for admin removal
      */
-    private async _removeMemberFromGroup(requestingUserId: UserId, groupId: GroupId, targetUserId: UserId, isLeaving: boolean): Promise<MessageResponse> {
+    private async _removeMemberFromGroup(requestingUserId: UserId, groupId: GroupId, targetUserId: UserId, isLeaving: boolean): Promise<void> {
         const timer = new PerformanceTimer();
 
         LoggerContext.setBusinessContext({ groupId });
@@ -493,10 +488,6 @@ export class GroupMemberService {
             groupId,
             timings: timer.getTimings(),
         });
-
-        return {
-            message: isLeaving ? 'Successfully left the group' : 'Member removed successfully',
-        };
     }
 
     async isGroupMemberAsync(groupId: GroupId, userId: UserId): Promise<boolean> {
@@ -513,7 +504,7 @@ export class GroupMemberService {
      * Archive a group for the current user (user-specific view control)
      * This hides the group from the user's dashboard without leaving or deleting it
      */
-    async archiveGroupForUser(groupId: GroupId, userId: UserId): Promise<MessageResponse> {
+    async archiveGroupForUser(groupId: GroupId, userId: UserId): Promise<void> {
         const member = await this.firestoreReader.getGroupMember(groupId, userId);
 
         if (!member) {
@@ -538,13 +529,12 @@ export class GroupMemberService {
         });
 
         logger.info('group-archived-for-user', { groupId, userId });
-        return { message: 'Group archived successfully' };
     }
 
     /**
      * Unarchive a group for the current user (restore to active view)
      */
-    async unarchiveGroupForUser(groupId: GroupId, userId: UserId): Promise<MessageResponse> {
+    async unarchiveGroupForUser(groupId: GroupId, userId: UserId): Promise<void> {
         const member = await this.firestoreReader.getGroupMember(groupId, userId);
 
         if (!member) {
@@ -569,6 +559,5 @@ export class GroupMemberService {
         });
 
         logger.info('group-unarchived-for-user', { groupId, userId });
-        return { message: 'Group unarchived successfully' };
     }
 }

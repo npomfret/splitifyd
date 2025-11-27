@@ -268,8 +268,7 @@ describe('groups', () => {
             expect(groups.groups[0].id).toBe(groupId);
 
             // Archive the group
-            const archiveResult = await appDriver.archiveGroupForUser(groupId, user2);
-            expect(archiveResult.message).toBe('Group archived successfully');
+            await appDriver.archiveGroupForUser(groupId, user2);
 
             // Verify group no longer appears in default list
             groups = await appDriver.listGroups({}, user2);
@@ -281,8 +280,7 @@ describe('groups', () => {
             expect(archivedGroups.groups[0].id).toBe(groupId);
 
             // Unarchive the group
-            const unarchiveResult = await appDriver.unarchiveGroupForUser(groupId, user2);
-            expect(unarchiveResult.message).toBe('Group unarchived successfully');
+            await appDriver.unarchiveGroupForUser(groupId, user2);
 
             // Verify group appears again
             groups = await appDriver.listGroups({}, user2);
@@ -426,8 +424,7 @@ describe('groups', () => {
             await appDriver.updateGroupPermissions(group.id, { memberApproval: 'automatic' }, user1);
 
             // User2 (non-admin) should be able to reject user3
-            const rejectResult = await appDriver.rejectMember(group.id, user3, user2);
-            expect(rejectResult.message).toBe('Member rejected successfully');
+            await appDriver.rejectMember(group.id, user3, user2);
 
             // Verify user3 was removed
             const pendingMembers = await appDriver.getPendingMembers(group.id, user1);
@@ -460,11 +457,9 @@ describe('groups', () => {
         it('should manage permissions and pending members through security handlers', async () => {
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
-            const permissionsUpdate = await appDriver.updateGroupPermissions(group.id, {
+            await appDriver.updateGroupPermissions(group.id, {
                 memberApproval: 'admin-required',
             }, user1);
-
-            expect(permissionsUpdate.message).toBe('Permissions updated successfully');
 
             const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, user1);
             await appDriver.joinGroupByLink(shareToken, undefined, user2);
@@ -479,8 +474,7 @@ describe('groups', () => {
             await appDriver.approveMember(group.id, user2, user1);
             await appDriver.updateMemberRole(group.id, user2, MemberRoles.ADMIN, user1);
 
-            const rejection = await appDriver.rejectMember(group.id, user3, user1);
-            expect(rejection.message).toBe('Member rejected successfully');
+            await appDriver.rejectMember(group.id, user3, user1);
 
             const groupDetails = await appDriver.getGroupFullDetails(group.id, {}, user1);
             const approvedMember = groupDetails.members.members.find((member) => member.uid === user2);

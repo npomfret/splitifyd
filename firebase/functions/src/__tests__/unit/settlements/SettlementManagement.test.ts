@@ -204,9 +204,10 @@ describe('Settlement Management - Unit Tests', () => {
                 .withNote('Updated note')
                 .build();
 
-            const updated = await appDriver.updateSettlement(created.id, updateData, creatorUserId);
+            await appDriver.updateSettlement(created.id, updateData, creatorUserId);
 
-            // Assert
+            // Assert by refetching
+            const updated = await appDriver.getSettlement(group.id, created.id, creatorUserId);
             expect(updated.id).toBe(created.id);
             expect(updated.amount).toBe('150');
             expect(updated.note).toBe('Updated note');
@@ -369,10 +370,7 @@ describe('Settlement Management - Unit Tests', () => {
             const created = await appDriver.createSettlement(settlementData, creatorUserId);
 
             // Act: Delete settlement
-            const result = await appDriver.deleteSettlement(created.id, creatorUserId);
-
-            // Assert
-            expect(result.message).toMatch(/deleted successfully/i);
+            await appDriver.deleteSettlement(created.id, creatorUserId);
 
             // Verify settlement is soft-deleted
             // Note: After soft delete, the settlement should not appear in normal getGroupFullDetails
@@ -675,10 +673,7 @@ describe('Settlement Management - Unit Tests', () => {
             const created = await appDriver.createSettlement(settlementData, creatorUserId);
 
             // Act: Admin deletes settlement created by another user
-            const result = await appDriver.deleteSettlement(created.id, adminUserId);
-
-            // Assert
-            expect(result.message).toMatch(/deleted successfully/i);
+            await appDriver.deleteSettlement(created.id, adminUserId);
 
             // Verify soft delete - settlement should be in includeDeletedSettlements but not in normal list
             const fullDetailsWithDeleted = await appDriver.getGroupFullDetails(group.id, {

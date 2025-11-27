@@ -131,7 +131,7 @@ export class UserAdminHandlers {
             }
 
             // Update user
-            const updatedUser = await this.authService.updateUser(userIdParam, { disabled });
+            await this.authService.updateUser(userIdParam, { disabled });
 
             // Log the action for audit trail
             const action = disabled ? 'disabled' : 'enabled';
@@ -141,9 +141,7 @@ export class UserAdminHandlers {
                 action,
             });
 
-            // Build and return AdminUserProfile
-            const adminProfile = await this.buildAdminUserProfile(updatedUser, userIdParam);
-            res.json(adminProfile);
+            res.status(HTTP_STATUS.NO_CONTENT).send();
         } catch (error) {
             // Re-throw ApiError as-is
             if (error instanceof ApiError) {
@@ -335,16 +333,6 @@ export class UserAdminHandlers {
             // When role is null, default to SYSTEM_USER
             await this.firestoreWriter.updateUser(userId, { role: role ?? SystemUserRoles.SYSTEM_USER });
 
-            // Fetch updated user to return
-            const updatedUser = await this.authService.getUser(userId);
-            if (!updatedUser) {
-                throw new ApiError(
-                    HTTP_STATUS.NOT_FOUND,
-                    'USER_NOT_FOUND',
-                    `User with UID ${userIdParam} not found after update`,
-                );
-            }
-
             // Log the action for audit trail
             const newRole = role ?? SystemUserRoles.SYSTEM_USER;
             logger.info('Admin updated user role in Firestore', {
@@ -353,9 +341,7 @@ export class UserAdminHandlers {
                 newRole,
             });
 
-            // Build and return AdminUserProfile
-            const adminProfile = await this.buildAdminUserProfile(updatedUser, userIdParam);
-            res.json(adminProfile);
+            res.status(HTTP_STATUS.NO_CONTENT).send();
         } catch (error) {
             // Re-throw ApiError as-is
             if (error instanceof ApiError) {

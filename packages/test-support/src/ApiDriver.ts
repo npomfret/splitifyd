@@ -7,7 +7,6 @@ import {
     type AdminAPI,
     type AdminUpsertTenantRequest,
     type AdminUpsertTenantResponse,
-    AdminUserProfile,
     type API,
     ApiSerializer,
     AuthenticatedFirebaseUser,
@@ -47,7 +46,6 @@ import {
     type ListPoliciesResponse,
     type MemberRole,
     MergeJobResponse,
-    MessageResponse,
     PasswordChangeRequest,
     type PolicyDTO,
     PolicyId,
@@ -61,7 +59,6 @@ import {
     RegisterResponse,
     type SettlementDTO,
     SettlementId,
-    SettlementWithMembers,
     ShareLinkResponse,
     type TenantDomainsResponse,
     type TenantSettingsResponse,
@@ -258,12 +255,12 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return response as ExpenseDTO;
     }
 
-    async updateExpense(expenseId: ExpenseId | string, data: UpdateExpenseRequest, token: AuthToken): Promise<ExpenseDTO> {
-        return await this.apiRequest(`/expenses?id=${expenseId}`, 'PUT', data, token);
+    async updateExpense(expenseId: ExpenseId | string, data: UpdateExpenseRequest, token: AuthToken): Promise<void> {
+        await this.apiRequest(`/expenses?id=${expenseId}`, 'PUT', data, token);
     }
 
-    async deleteExpense(expenseId: ExpenseId | string, token: AuthToken): Promise<MessageResponse> {
-        return await this.apiRequest(`/expenses?id=${expenseId}`, 'DELETE', null, token);
+    async deleteExpense(expenseId: ExpenseId | string, token: AuthToken): Promise<void> {
+        await this.apiRequest(`/expenses?id=${expenseId}`, 'DELETE', null, token);
     }
 
     async getExpense(expenseId: ExpenseId | string, token: AuthToken): Promise<ExpenseDTO> {
@@ -276,13 +273,12 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return response as SettlementDTO;
     }
 
-    async updateSettlement(settlementId: SettlementId | string, data: UpdateSettlementRequest, token: AuthToken): Promise<SettlementWithMembers> {
-        const response = await this.apiRequest(`/settlements/${settlementId}`, 'PUT', data, token);
-        return response;
+    async updateSettlement(settlementId: SettlementId | string, data: UpdateSettlementRequest, token: AuthToken): Promise<void> {
+        await this.apiRequest(`/settlements/${settlementId}`, 'PUT', data, token);
     }
 
-    async deleteSettlement(settlementId: SettlementId | string, token: AuthToken): Promise<MessageResponse> {
-        return await this.apiRequest(`/settlements/${settlementId}`, 'DELETE', null, token);
+    async deleteSettlement(settlementId: SettlementId | string, token: AuthToken): Promise<void> {
+        await this.apiRequest(`/settlements/${settlementId}`, 'DELETE', null, token);
     }
 
     async pollGroupBalancesUntil(groupId: GroupId | string, token: string, matcher: Matcher<GroupBalances>, options?: PollOptions): Promise<GroupBalances> {
@@ -378,32 +374,32 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return await this.apiRequest(`/expenses/${expenseId}/full-details`, 'GET', null, token);
     }
 
-    async updateGroup(groupId: GroupId | string, data: UpdateGroupRequest, token: AuthToken): Promise<MessageResponse> {
-        return await this.apiRequest(`/groups/${groupId}`, 'PUT', data, token);
+    async updateGroup(groupId: GroupId | string, data: UpdateGroupRequest, token: AuthToken): Promise<void> {
+        await this.apiRequest(`/groups/${groupId}`, 'PUT', data, token);
     }
 
-    async deleteGroup(groupId: GroupId | string, token: AuthToken): Promise<MessageResponse> {
-        return await this.apiRequest(`/groups/${groupId}`, 'DELETE', null, token);
+    async deleteGroup(groupId: GroupId | string, token: AuthToken): Promise<void> {
+        await this.apiRequest(`/groups/${groupId}`, 'DELETE', null, token);
     }
 
-    async updateGroupPermissions(groupId: GroupId | string, permissions: Partial<GroupPermissions>, token: AuthToken): Promise<MessageResponse> {
-        return await this.apiRequest(`/groups/${groupId}/security/permissions`, 'PATCH', permissions, token);
+    async updateGroupPermissions(groupId: GroupId | string, permissions: Partial<GroupPermissions>, token: AuthToken): Promise<void> {
+        await this.apiRequest(`/groups/${groupId}/security/permissions`, 'PATCH', permissions, token);
     }
 
-    async updateMemberRole(groupId: GroupId | string, memberId: UserId | string, role: MemberRole, token: AuthToken): Promise<MessageResponse> {
-        return await this.apiRequest(`/groups/${groupId}/members/${memberId}/role`, 'PATCH', { role }, token);
+    async updateMemberRole(groupId: GroupId | string, memberId: UserId | string, role: MemberRole, token: AuthToken): Promise<void> {
+        await this.apiRequest(`/groups/${groupId}/members/${memberId}/role`, 'PATCH', { role }, token);
     }
 
-    async updateGroupMemberDisplayName(groupId: GroupId | string, displayName: DisplayName | string, token: AuthToken): Promise<MessageResponse> {
-        return await this.apiRequest(`/groups/${groupId}/members/display-name`, 'PUT', { displayName }, token);
+    async updateGroupMemberDisplayName(groupId: GroupId | string, displayName: DisplayName | string, token: AuthToken): Promise<void> {
+        await this.apiRequest(`/groups/${groupId}/members/display-name`, 'PUT', { displayName }, token);
     }
 
-    async approveMember(groupId: GroupId | string, memberId: UserId | string, token: AuthToken): Promise<MessageResponse> {
-        return await this.apiRequest(`/groups/${groupId}/members/${memberId}/approve`, 'POST', {}, token);
+    async approveMember(groupId: GroupId | string, memberId: UserId | string, token: AuthToken): Promise<void> {
+        await this.apiRequest(`/groups/${groupId}/members/${memberId}/approve`, 'POST', {}, token);
     }
 
-    async rejectMember(groupId: GroupId | string, memberId: UserId | string, token: AuthToken): Promise<MessageResponse> {
-        return await this.apiRequest(`/groups/${groupId}/members/${memberId}/reject`, 'POST', {}, token);
+    async rejectMember(groupId: GroupId | string, memberId: UserId | string, token: AuthToken): Promise<void> {
+        await this.apiRequest(`/groups/${groupId}/members/${memberId}/reject`, 'POST', {}, token);
     }
 
     async getPendingMembers(groupId: GroupId | string, token: AuthToken): Promise<GroupMembershipDTO[]> {
@@ -437,20 +433,20 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return await this.apiRequest('/register', 'POST', userData);
     }
 
-    async leaveGroup(groupId: GroupId | string, token: AuthToken): Promise<MessageResponse> {
-        return await this.apiRequest(`/groups/${groupId}/leave`, 'POST', null, token);
+    async leaveGroup(groupId: GroupId | string, token: AuthToken): Promise<void> {
+        await this.apiRequest(`/groups/${groupId}/leave`, 'POST', null, token);
     }
 
-    async archiveGroupForUser(groupId: GroupId | string, token: AuthToken): Promise<MessageResponse> {
-        return await this.apiRequest(`/groups/${groupId}/archive`, 'POST', null, token);
+    async archiveGroupForUser(groupId: GroupId | string, token: AuthToken): Promise<void> {
+        await this.apiRequest(`/groups/${groupId}/archive`, 'POST', null, token);
     }
 
-    async unarchiveGroupForUser(groupId: GroupId | string, token: AuthToken): Promise<MessageResponse> {
-        return await this.apiRequest(`/groups/${groupId}/unarchive`, 'POST', null, token);
+    async unarchiveGroupForUser(groupId: GroupId | string, token: AuthToken): Promise<void> {
+        await this.apiRequest(`/groups/${groupId}/unarchive`, 'POST', null, token);
     }
 
-    async removeGroupMember(groupId: GroupId | string, memberId: UserId | string, token: AuthToken): Promise<MessageResponse> {
-        return await this.apiRequest(`/groups/${groupId}/members/${memberId}`, 'DELETE', null, token);
+    async removeGroupMember(groupId: GroupId | string, memberId: UserId | string, token: AuthToken): Promise<void> {
+        await this.apiRequest(`/groups/${groupId}/members/${memberId}`, 'DELETE', null, token);
     }
 
     async getCurrentPolicy(policyId: PolicyId): Promise<CurrentPolicyResponse> {
@@ -465,16 +461,16 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return await this.apiRequest('/user/policies/status', 'GET', null, token);
     }
 
-    async changePassword(passwordRequest: PasswordChangeRequest, token: AuthToken): Promise<MessageResponse> {
-        return await this.apiRequest('/user/change-password', 'POST', passwordRequest, token);
+    async changePassword(passwordRequest: PasswordChangeRequest, token: AuthToken): Promise<void> {
+        await this.apiRequest('/user/change-password', 'POST', passwordRequest, token);
     }
 
-    async updateUserProfile(profileData: UpdateUserProfileRequest, token: AuthToken): Promise<UserProfileResponse> {
-        return await this.apiRequest('/user/profile', 'PUT', profileData, token);
+    async updateUserProfile(profileData: UpdateUserProfileRequest, token: AuthToken): Promise<void> {
+        await this.apiRequest('/user/profile', 'PUT', profileData, token);
     }
 
-    async changeEmail(changeEmailRequest: ChangeEmailRequest, token: AuthToken): Promise<UserProfileResponse> {
-        return await this.apiRequest('/user/change-email', 'POST', changeEmailRequest, token);
+    async changeEmail(changeEmailRequest: ChangeEmailRequest, token: AuthToken): Promise<void> {
+        await this.apiRequest('/user/change-email', 'POST', changeEmailRequest, token);
     }
 
     async getUserProfile(token: AuthToken): Promise<UserProfileResponse> {
@@ -523,15 +519,15 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
     /**
      * Update user account status (admin-only)
      */
-    async updateUser(uid: UserId, updates: UpdateUserStatusRequest, token: AuthToken): Promise<AdminUserProfile> {
-        return await this.apiRequest(`/admin/users/${uid}`, 'PUT', updates, token) as AdminUserProfile;
+    async updateUser(uid: UserId, updates: UpdateUserStatusRequest, token: AuthToken): Promise<void> {
+        await this.apiRequest(`/admin/users/${uid}`, 'PUT', updates, token);
     }
 
     /**
      * Update user role (admin-only)
      */
-    async updateUserRole(uid: UserId, updates: UpdateUserRoleRequest, token: AuthToken): Promise<AdminUserProfile> {
-        return await this.apiRequest(`/admin/users/${uid}/role`, 'PUT', updates, token) as AdminUserProfile;
+    async updateUserRole(uid: UserId, updates: UpdateUserRoleRequest, token: AuthToken): Promise<void> {
+        await this.apiRequest(`/admin/users/${uid}/role`, 'PUT', updates, token);
     }
 
     private async apiRequest(
@@ -660,9 +656,9 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         await this.apiRequest('/user/clear-policy-acceptances', 'POST', {}, token);
     }
 
-    async promoteUserToAdmin(uid: UserId): Promise<MessageResponse> {
+    async promoteUserToAdmin(uid: UserId): Promise<void> {
         // Promote user to system_admin role (test/emulator only)
-        return (await this.apiRequest('/test-pool/promote-to-admin', 'POST', { uid })) as MessageResponse;
+        await this.apiRequest('/test-pool/promote-to-admin', 'POST', { uid });
     }
 
     // ===== ADMIN API: POLICY MANAGEMENT =====
@@ -769,16 +765,16 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return await this.apiRequest('/settings/tenant', 'GET', null, token) as TenantSettingsResponse;
     }
 
-    async updateTenantBranding(request: UpdateTenantBrandingRequest, token: AuthToken): Promise<MessageResponse> {
-        return await this.apiRequest('/settings/tenant/branding', 'PUT', request, token) as MessageResponse;
+    async updateTenantBranding(request: UpdateTenantBrandingRequest, token: AuthToken): Promise<void> {
+        await this.apiRequest('/settings/tenant/branding', 'PUT', request, token);
     }
 
     async getTenantDomains(token?: AuthToken): Promise<TenantDomainsResponse> {
         return await this.apiRequest('/settings/tenant/domains', 'GET', null, token) as TenantDomainsResponse;
     }
 
-    async addTenantDomain(request: AddTenantDomainRequest, token: AuthToken): Promise<MessageResponse> {
-        return await this.apiRequest('/settings/tenant/domains', 'POST', request, token) as MessageResponse;
+    async addTenantDomain(request: AddTenantDomainRequest, token: AuthToken): Promise<void> {
+        await this.apiRequest('/settings/tenant/domains', 'POST', request, token);
     }
 
     async fetchThemeCss(options?: { tenantId?: string; version?: string; }): Promise<{ status: number; css: string; headers: Headers; }> {

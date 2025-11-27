@@ -1043,10 +1043,6 @@ export interface ExpenseFullDetailsDTO {
 // API Response Types
 // ========================================================================
 
-export interface MessageResponse {
-    message: string;
-}
-
 export interface ShareLinkResponse {
     shareToken: ShareLinkToken;
     shareablePath: string;
@@ -1303,15 +1299,6 @@ export interface PublishPolicyResult {
 export interface CreatePolicyResult {
     id: PolicyId;
     currentVersionHash: VersionHash;
-}
-
-// ========================================================================
-// Test Pool Response Types
-// ========================================================================
-
-export interface ReturnTestUserResponse {
-    message: string;
-    email: Email;
 }
 
 // ========================================================================

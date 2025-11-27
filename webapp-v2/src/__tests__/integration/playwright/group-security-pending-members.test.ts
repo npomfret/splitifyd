@@ -131,7 +131,7 @@ async function setupManagedGroupRoutes(page: Page, user: ClientUser): Promise<Ma
 
         activeMembers = [...activeMembers.filter((member) => member.uid !== memberId), activeVersion];
 
-        await fulfillWithSerialization(route, { body: { message: 'Member approved successfully' } });
+        await route.fulfill({ status: 204 });
     });
 
     await page.route(`**/api/groups/${groupId}/members/*/reject`, async (route) => {
@@ -147,7 +147,7 @@ async function setupManagedGroupRoutes(page: Page, user: ClientUser): Promise<Ma
         pendingMembers = pendingMembers.filter((member) => member.uid !== memberId);
         activeMembers = activeMembers.filter((member) => member.uid !== memberId);
 
-        await fulfillWithSerialization(route, { body: { message: 'Member rejected successfully' } });
+        await route.fulfill({ status: 204 });
     });
 
     return {

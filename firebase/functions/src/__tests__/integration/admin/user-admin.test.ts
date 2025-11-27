@@ -56,15 +56,8 @@ describe('Admin User Management - Integration Tests', () => {
 
     describe('PUT /admin/users/:uid - Disable User', () => {
         it('should successfully disable a user account', async () => {
-            // Execute: Disable the target user
-            const response = await apiDriver.updateUser(targetUser.uid, { disabled: true }, adminUser.token);
-
-            // Verify: Response contains updated user record
-            expect(response).toMatchObject({
-                uid: targetUser.uid,
-                email: targetUser.email,
-                disabled: true,
-            });
+            // Execute: Disable the target user (returns 204 No Content)
+            await apiDriver.updateUser(targetUser.uid, { disabled: true }, adminUser.token);
 
             // Verify: User is actually disabled in Firebase Auth
             const userRecord = await auth.getUser(targetUser.uid);
@@ -75,15 +68,8 @@ describe('Admin User Management - Integration Tests', () => {
             // Setup: Ensure user is disabled
             await auth.updateUser(targetUser.uid, { disabled: true });
 
-            // Execute: Enable the target user
-            const response = await apiDriver.updateUser(targetUser.uid, { disabled: false }, adminUser.token);
-
-            // Verify: Response contains updated user record
-            expect(response).toMatchObject({
-                uid: targetUser.uid,
-                email: targetUser.email,
-                disabled: false,
-            });
+            // Execute: Enable the target user (returns 204 No Content)
+            await apiDriver.updateUser(targetUser.uid, { disabled: false }, adminUser.token);
 
             // Verify: User is actually enabled in Firebase Auth
             const userRecord = await auth.getUser(targetUser.uid);

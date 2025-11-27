@@ -60,8 +60,8 @@ test.describe('Dashboard group archiving', () => {
         // Initial active dashboard load shows the group
         await queueActive(activeResponse);
 
-        await mockArchiveGroupApi(page, group.id, undefined, { once: true });
-        await mockUnarchiveGroupApi(page, group.id, undefined, { once: true });
+        await mockArchiveGroupApi(page, group.id, { once: true });
+        await mockUnarchiveGroupApi(page, group.id, { once: true });
 
         await mockGroupCommentsApi(page, group.id);
         await mockGroupDetailApi(page, group.id, fullDetailsActive, { once: false });

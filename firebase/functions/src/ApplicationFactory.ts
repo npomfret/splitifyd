@@ -1,4 +1,4 @@
-import { ReturnTestUserResponse, TestErrorResponse, TestSuccessResponse } from '@billsplit-wl/shared';
+import { TestErrorResponse, TestSuccessResponse } from '@billsplit-wl/shared';
 import type { RequestHandler } from 'express';
 import { getConfig as getClientConfig, getConfig as getServerConfig } from './client-config';
 import { buildEnvPayload, buildHealthPayload, resolveHealthStatusCode, runHealthChecks } from './endpoints/diagnostics';
@@ -176,12 +176,7 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
 
         try {
             await testPool.returnUser(email);
-
-            const response: ReturnTestUserResponse = {
-                message: 'User returned to pool',
-                email,
-            };
-            res.json(response);
+            res.status(204).send();
         } catch (error: any) {
             logger.error('Failed to return test user', error);
             res.status(500).json({
@@ -210,7 +205,7 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
         try {
             // Update Firestore document only
             await firestoreWriter.promoteUserToAdmin(uid);
-            res.json({ message: 'User promoted to admin', uid });
+            res.status(204).send();
         } catch (error: any) {
             logger.error('Failed to promote user to admin', error);
             res.status(500).json({
@@ -370,9 +365,7 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
             // Clear tenant registry cache to force reload of updated configuration
             tenantRegistryService.clearCache();
 
-            res.json({
-                message: 'Tenant branding updated successfully',
-            });
+            res.status(204).send();
         } catch (error) {
             logger.error('Failed to update tenant branding', error);
             res.status(500).json({

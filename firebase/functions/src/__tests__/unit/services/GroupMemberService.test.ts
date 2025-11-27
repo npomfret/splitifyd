@@ -157,11 +157,9 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             await appDriver.addMembersToGroup(groupId, adminUserId, [memberUserId]);
 
             // Act
-            const response = await appDriver.updateMemberRole(groupId, memberUserId, MemberRoles.ADMIN, adminUserId);
+            await appDriver.updateMemberRole(groupId, memberUserId, MemberRoles.ADMIN, adminUserId);
 
-            // Assert
-            expect(response.message).toContain('Member role updated');
-
+            // Assert - verify the role was updated
             const updatedMember = await firestoreReader.getGroupMember(groupId, memberUserId);
             expect(updatedMember?.memberRole).toBe(MemberRoles.ADMIN);
         });
@@ -202,12 +200,10 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             const shareLink = await appDriver.generateShareableLink(groupId, undefined, adminUserId);
             await appDriver.joinGroupByLink(shareLink.shareToken, undefined, newUserId);
 
-            // Act - trying to approve an already-active member
-            const response = await appDriver.approveMember(groupId, newUserId, adminUserId);
+            // Act - trying to approve an already-active member (no-op, succeeds silently)
+            await appDriver.approveMember(groupId, newUserId, adminUserId);
 
-            // Assert - in non-admin-required groups, member is already active
-            expect(response.message).toContain('Member is already active');
-
+            // Assert - member should still be active
             const approvedMember = await firestoreReader.getGroupMember(groupId, newUserId);
             expect(approvedMember?.memberStatus).toBe(MemberStatuses.ACTIVE);
         });
@@ -228,11 +224,9 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             await appDriver.joinGroupByLink(shareLink.shareToken, undefined, pendingUserId);
 
             // Act
-            const response = await appDriver.rejectMember(groupId, pendingUserId, adminUserId);
+            await appDriver.rejectMember(groupId, pendingUserId, adminUserId);
 
-            // Assert
-            expect(response.message).toContain('Member rejected');
-
+            // Assert - member should be rejected
             const rejectedMember = await firestoreReader.getGroupMember(groupId, pendingUserId);
             expect(rejectedMember).toBeNull();
         });
@@ -329,14 +323,10 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
             // Member has zero balance (no expenses involving them), so they can leave
 
-            // Act
-            const result = await appDriver.leaveGroup(groupId, memberId);
+            // Act (returns 204 No Content)
+            await appDriver.leaveGroup(groupId, memberId);
 
-            // Assert
-            expect(result).toEqual({
-                message: 'Successfully left the group',
-            });
-
+            // Assert - verify member is no longer in group by checking activity feed
             const remainingFeed = await firestoreReader.getActivityFeedForUser(otherId);
             const leaveEvent = remainingFeed.items.find(item => item.eventType === ActivityFeedEventTypes.MEMBER_LEFT);
             expect(leaveEvent).toMatchObject({
@@ -471,14 +461,10 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
             // Member has zero balance (no expenses involving them)
 
-            // Act
-            const result = await appDriver.removeGroupMember(groupId, memberId, creatorId);
+            // Act (returns 204 No Content)
+            await appDriver.removeGroupMember(groupId, memberId, creatorId);
 
-            // Assert
-            expect(result).toEqual({
-                message: 'Member removed successfully',
-            });
-
+            // Assert - verify member was removed by checking activity feed
             const ownerFeed = await firestoreReader.getActivityFeedForUser(creatorId);
             const leaveEvent = ownerFeed.items.find(item => item.eventType === ActivityFeedEventTypes.MEMBER_LEFT);
             expect(leaveEvent).toMatchObject({

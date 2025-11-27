@@ -167,12 +167,12 @@ describe('Response Validation', () => {
             expect(result.success).toBe(false);
         });
 
-        it('validates message response for DELETE operations', () => {
-            const schema = getResponseSchema('DELETE', '/expenses');
+        it('validates void response for DELETE operations', () => {
+            const schema = getResponseSchema('DELETE', '/expenses/expense-123');
             expect(schema).toBeDefined();
 
-            const validResponse = { message: 'Expense deleted successfully' };
-            const result = schema!.safeParse(validResponse);
+            // DELETE operations return 204 No Content (void)
+            const result = schema!.safeParse(undefined);
             expect(result.success).toBe(true);
         });
 

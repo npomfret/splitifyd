@@ -15,7 +15,6 @@ import {
     ListGroupsResponse,
     MemberRoles,
     MemberStatuses,
-    MessageResponse,
     SecurityPresets,
     smallestUnitToAmountString,
     toCurrencyISOCode,
@@ -408,7 +407,7 @@ export class GroupService {
      * Update an existing group
      * Only the owner can update a group
      */
-    async updateGroup(groupId: GroupId, userId: UserId, updates: UpdateGroupRequest): Promise<MessageResponse> {
+    async updateGroup(groupId: GroupId, userId: UserId, updates: UpdateGroupRequest): Promise<void> {
         const timer = new PerformanceTimer();
 
         // Fetch group with write access check
@@ -517,11 +516,9 @@ export class GroupService {
             id: groupId,
             timings: timer.getTimings(),
         });
-
-        return { message: 'Group updated successfully' };
     }
 
-    async updateGroupPermissions(groupId: GroupId, userId: UserId, updates: Partial<GroupPermissions>): Promise<MessageResponse> {
+    async updateGroupPermissions(groupId: GroupId, userId: UserId, updates: Partial<GroupPermissions>): Promise<void> {
         if (!updates || Object.values(updates).every((value) => value === undefined)) {
             throw Errors.INVALID_INPUT({ message: 'No permissions provided for update' });
         }
@@ -571,16 +568,15 @@ export class GroupService {
             groupId,
             updatedFields: Object.keys(updates),
         });
-
-        return { message: 'Permissions updated successfully' };
     }
 
-    async deleteGroup(groupId: GroupId, userId: UserId): Promise<MessageResponse> {
+    async deleteGroup(groupId: GroupId, userId: UserId): Promise<void> {
         // Fetch group with write access check
         const { group } = await this.fetchGroupWithAccess(groupId, userId, true, { includeDeleted: true });
 
+        // Already deleted - no-op
         if (group.deletedAt) {
-            return { message: 'Group deleted successfully' };
+            return;
         }
         const memberIds = await this.firestoreReader.getAllGroupMemberIds(groupId);
         const requestContext = { groupId, memberCount: memberIds.length, members: memberIds };
@@ -682,8 +678,6 @@ export class GroupService {
             ...requestContext,
             performedDeletion,
         });
-
-        return { message: 'Group deleted successfully' };
     }
 
     /**

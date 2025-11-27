@@ -31,8 +31,8 @@ export class UserHandlers {
             throw Errors.UNAUTHORIZED();
         }
 
-        const updatedProfile = await this.userService.updateProfile(userId, req.body, req.language);
-        res.status(HTTP_STATUS.OK).json(updatedProfile);
+        await this.userService.updateProfile(userId, req.body, req.language);
+        res.status(HTTP_STATUS.NO_CONTENT).send();
     };
 
     /**
@@ -45,8 +45,8 @@ export class UserHandlers {
             throw Errors.UNAUTHORIZED();
         }
 
-        const result = await this.userService.changePassword(userId, req.body);
-        res.status(HTTP_STATUS.OK).json(result);
+        await this.userService.changePassword(userId, req.body);
+        res.status(HTTP_STATUS.NO_CONTENT).send();
     };
 
     /**
@@ -59,7 +59,7 @@ export class UserHandlers {
             throw Errors.UNAUTHORIZED();
         }
 
-        const profile = await this.userService.changeEmail(userId, req.body);
-        res.status(HTTP_STATUS.OK).json(profile);
+        await this.userService.changeEmail(userId, req.body);
+        res.status(HTTP_STATUS.NO_CONTENT).send();
     };
 }

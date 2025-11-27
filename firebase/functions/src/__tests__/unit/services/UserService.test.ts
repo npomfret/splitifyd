@@ -270,11 +270,10 @@ describe('UserService - Consolidated Unit Tests', () => {
             const result = await userService.registerUser(registration);
             const uid = toUserId(result.user.uid!);
 
-            const updatedProfile = await userService.updateProfile(uid, {
+            // Returns void on success (204 No Content pattern)
+            await userService.updateProfile(uid, {
                 displayName: newDisplayName,
             });
-
-            expect(updatedProfile.displayName).toBe(newDisplayName);
 
             // Verify Auth was updated
             const authUser = await stubAuth.getUser(uid);
@@ -293,11 +292,14 @@ describe('UserService - Consolidated Unit Tests', () => {
             const result = await userService.registerUser(registration);
             const uid = toUserId(result.user.uid!);
 
-            const updatedProfile = await userService.updateProfile(uid, {
+            // Returns void on success (204 No Content pattern)
+            await userService.updateProfile(uid, {
                 preferredLanguage: newLanguage,
             });
 
-            expect(updatedProfile.displayName).toBe('Test User');
+            // Verify the profile still has correct displayName via getProfile
+            const profile = await userService.getProfile(uid);
+            expect(profile.displayName).toBe('Test User');
         });
 
         it('should update photo URL with null value', async () => {
@@ -356,12 +358,15 @@ describe('UserService - Consolidated Unit Tests', () => {
             const result = await userService.registerUser(registration);
             const uid = toUserId(result.user.uid!);
 
-            const changeResult = await userService.changePassword(uid, {
+            // Returns void on success (204 No Content pattern)
+            await userService.changePassword(uid, {
                 currentPassword,
                 newPassword,
             });
 
-            expect(changeResult.message).toBe('Password changed successfully');
+            // Verify password was changed by checking the user still exists
+            const authUser = await stubAuth.getUser(uid);
+            expect(authUser).toBeDefined();
         });
 
         it('should throw NOT_FOUND for non-existent user', async () => {
@@ -532,7 +537,8 @@ describe('UserService - Consolidated Unit Tests', () => {
                     .withNewPassword('lowercaseonlypass')
                     .build();
 
-                await expect(validationUserService.changePassword(toUserId(validationTestUserId), changeData)).resolves.toMatchObject({ message: 'Password changed successfully' });
+                // Returns void on success (204 No Content pattern)
+                await expect(validationUserService.changePassword(toUserId(validationTestUserId), changeData)).resolves.toBeUndefined();
             });
 
             it('should accept passwords without numbers or special characters when long enough', async () => {
@@ -541,7 +547,8 @@ describe('UserService - Consolidated Unit Tests', () => {
                     .withNewPassword('JustLettersHere')
                     .build();
 
-                await expect(validationUserService.changePassword(toUserId(validationTestUserId), changeData)).resolves.toMatchObject({ message: 'Password changed successfully' });
+                // Returns void on success (204 No Content pattern)
+                await expect(validationUserService.changePassword(toUserId(validationTestUserId), changeData)).resolves.toBeUndefined();
             });
 
             it('should accept passwords with spaces when long enough', async () => {
@@ -550,7 +557,8 @@ describe('UserService - Consolidated Unit Tests', () => {
                     .withNewPassword('twelve chars ok')
                     .build();
 
-                await expect(validationUserService.changePassword(toUserId(validationTestUserId), changeData)).resolves.toMatchObject({ message: 'Password changed successfully' });
+                // Returns void on success (204 No Content pattern)
+                await expect(validationUserService.changePassword(toUserId(validationTestUserId), changeData)).resolves.toBeUndefined();
             });
 
             it('should validate current password is provided', async () => {

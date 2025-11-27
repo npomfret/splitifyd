@@ -1,6 +1,6 @@
 # API Inconsistency and Duplication Report
 
-> **Last Updated:** November 2025 - Issues #1-5, #6, #9 resolved; Remaining: API contract issues (#7, #8)
+> **Last Updated:** November 2025 - All issues resolved (#1-9)
 
 ### Summary of Findings
 
@@ -27,6 +27,8 @@ The investigation reveals several significant inconsistencies and gaps in the pr
 - **joinGroupByLink Signature Fixed:** Removed ambiguous `displayNameOrToken?: DisplayName | AuthToken` parameter. The new signature is clear: `joinGroupByLink(shareToken, groupDisplayName, token?)`.
 - **JoinGroupResponse success Field Removed:** Removed the redundant `success: boolean` field from `JoinGroupResponse`. The `memberStatus` field (`'active'` | `'pending'`) now conveys whether the user was auto-approved or requires admin approval. HTTP status codes indicate request success/failure.
 - **Cloud Tasks OIDC Authentication Added:** The `/tasks/processMerge` endpoint now uses proper OIDC token verification via the `authenticateCloudTask` middleware. Cloud Tasks is configured to send OIDC tokens signed by the project's service account, and the middleware verifies these tokens in production (skipped in emulator mode).
+- **Error Response Schema Standardized:** Commit `3076bcd2` enforced structured-only API error format. The schema now only accepts `{ error: { code, message, details } }`. The legacy `{ error: string, field? }` format was removed.
+- **Update/Delete Return Types Standardized:** All update and delete operations now return HTTP 204 No Content (void). This follows REST best practices where mutations that don't need to return data use 204. The frontend now re-fetches data when needed (which it was already doing via `refreshAll()`). This eliminates the inconsistency between methods returning `MessageResponse`, full resource DTOs, or other variations.
 
 1.  ~~**Inconsistent Endpoint Naming:**~~ **RESOLVED.** Route parameters are now consistently named across all endpoints (`:groupId`, `:expenseId`, `:policyId`, `:userId`, `:settlementId`, `:memberId`). The frontend client normalization logic has been simplified accordingly.
 
@@ -38,7 +40,7 @@ The investigation reveals several significant inconsistencies and gaps in the pr
 
 5.  ~~**Potential Security Gap:**~~ **RESOLVED.** The `/tasks/processMerge` endpoint now uses the `authenticateCloudTask` middleware which verifies OIDC tokens from Cloud Tasks. The MergeService configures Cloud Tasks to send OIDC tokens signed by the project's service account. In emulator mode, the middleware skips verification since the StubCloudTasksClient doesn't send real tokens.
 
-In summary, the API layer has made excellent progress on standardization. Issues #1-5, #6, and #9 are now resolved (route parameter naming, validation patterns, schema coverage, schema location, Cloud Tasks security, ambiguous method signatures, and redundant response fields). Remaining issues are API contract inconsistencies (#7, #8) related to error format standardization and return type consistency.
+In summary, the API layer is now fully standardized. All issues (#1-9) are resolved: route parameter naming, validation patterns, schema coverage, schema location, Cloud Tasks security, ambiguous method signatures, redundant response fields, error format standardization, and update/delete return type consistency.
 ---
 
 ### 6. API Contract Inconsistencies (`packages/shared/src/api.ts`)
@@ -49,20 +51,17 @@ A direct analysis of the API's TypeScript interfaces reveals inconsistencies in 
 
 *   ~~**Ambiguous Method Signature:**~~ **RESOLVED.** The `joinGroupByLink` signature has been clarified to `joinGroupByLink(shareToken: ShareLinkToken, groupDisplayName: DisplayName, token?: AuthToken)`. The ambiguous `displayNameOrToken` parameter was removed.
 
-*   **Inconsistent Return Types on Updates:** There is no consistent pattern for the return value of update operations.
-    *   Some methods, like `updateExpense`, return the entire updated resource (`Promise<ExpenseDTO>`).
-    *   Others, like `updateGroup`, return a generic success message (`Promise<MessageResponse>`).
-    This forces the frontend to handle mutation responses differently depending on the endpoint, adding complexity to state management.
+*   ~~**Inconsistent Return Types on Updates:**~~ **RESOLVED.** All update and delete operations now return `Promise<void>` (HTTP 204 No Content). This follows REST best practices where mutations that don't need to return data simply return a 204 status code. The frontend re-fetches data when needed, which aligns with its existing `refreshAll()` pattern.
 ---
 
 ### 7. Deep Dive: API Response Strategy (Success, Failure, and Errors)
 
 A detailed look at how the API communicates outcomes reveals significant inconsistencies at the contract level.
 
-*   **Inconsistent Error Response Schema:** The core schema for API errors, `ApiErrorResponseSchema`, officially defines two different shapes for an error payload: a "structured" preferred format (`{ error: { code, message } }`) and a "simple" legacy format (`{ error: string, field?: string }`). The existence of two different error contracts is a major source of complexity.
+*   ~~**Inconsistent Error Response Schema:**~~ **RESOLVED.** Commit `3076bcd2` enforced structured-only API error format. The `ApiErrorResponseSchema` now only accepts the structured format `{ error: { code, message, details } }`. The legacy `{ error: string, field? }` format was removed.
 
-*   **Redundant Frontend Error Handling:** The frontend `apiClient.ts` is forced to defensively handle both of these error formats. While it successfully normalizes them into a single, consistent `ApiError` class for the rest of the application, this client-side complexity is redundant and only exists to work around the backend's lack of a single error standard.
+*   ~~**Redundant Frontend Error Handling:**~~ **RESOLVED.** With the schema standardized, the frontend only needs to handle one error format. The defensive parsing of legacy formats is no longer needed.
 
-*   **Inconsistent Success Payloads on Update:** As noted previously, the API is inconsistent in what it returns for a successful `update` operation. Some endpoints return the full, updated resource, while others return a generic `MessageResponse`. This complicates frontend state management, as the client cannot rely on a single pattern for updating its local cache after a mutation.
+*   ~~**Inconsistent Success Payloads on Update:**~~ **RESOLVED.** All update operations now return HTTP 204 No Content. The frontend re-fetches data when needed, aligning with its existing `refreshAll()` pattern. This eliminates the need for special handling of different return types.
 
 *   ~~**Anti-Pattern in `JoinGroupResponseSchema`:**~~ **RESOLVED.** Removed the `success: boolean` field from `JoinGroupResponse`. HTTP status codes now indicate success/failure. The `memberStatus` field (`'active'` | `'pending'`) conveys whether the user was auto-approved or requires admin approval.

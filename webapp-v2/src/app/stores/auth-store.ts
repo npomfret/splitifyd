@@ -348,7 +348,10 @@ class AuthStoreImpl implements AuthStore {
 
         try {
             // Call API to update user profile
-            const updatedUser = await apiClient.updateUserProfile(updates);
+            await apiClient.updateUserProfile(updates);
+
+            // Re-fetch the user profile to get the updated data
+            const updatedUser = await apiClient.getUserProfile();
 
             // Update the user signal with the new data from server
             if (this.#userSignal.value) {
@@ -376,7 +379,10 @@ class AuthStoreImpl implements AuthStore {
         this.#isUpdatingProfileSignal.value = true;
 
         try {
-            const updatedProfile = await apiClient.changeEmail(payload);
+            await apiClient.changeEmail(payload);
+
+            // Re-fetch the user profile to get the updated data
+            const updatedProfile = await apiClient.getUserProfile();
 
             if (this.#userSignal.value) {
                 this.#userSignal.value = {

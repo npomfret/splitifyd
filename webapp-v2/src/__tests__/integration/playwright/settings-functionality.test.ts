@@ -54,9 +54,14 @@ test.describe('Settings Page - Profile Update Functionality', () => {
         // 4. Verify save button is enabled when changes are made
         await settingsPage.verifySaveButtonEnabled();
 
-        // 5. Mock the API response for profile update
+        // 5. Mock the API response for profile update (204 No Content) and re-fetch (GET with updated data)
         await page.route('**/api/user/profile', async (route) => {
             if (route.request().method() === 'PUT') {
+                await route.fulfill({
+                    status: 204,
+                });
+            } else if (route.request().method() === 'GET') {
+                // Return updated profile data on re-fetch
                 await route.fulfill({
                     status: 200,
                     contentType: 'application/json',
@@ -64,7 +69,8 @@ test.describe('Settings Page - Profile Update Functionality', () => {
                         displayName: newDisplayName,
                         email: user.email,
                         emailVerified: user.emailVerified ?? true,
-                        role: user.role || 'system_user',
+                        photoURL: user.photoURL,
+                        role: user.role,
                     }),
                 });
             } else {

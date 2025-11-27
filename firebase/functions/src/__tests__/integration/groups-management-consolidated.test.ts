@@ -433,10 +433,7 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             // (It should have deletedAt field set but still be in the collection)
 
             // Hard delete should succeed and clean up all data including soft-deleted expenses
-            const deleteResponse = await apiDriver.deleteGroup(testGroup.id, user1.token);
-
-            expect(deleteResponse).toHaveProperty('message');
-            expect(deleteResponse.message).toBe('Group deleted successfully');
+            await apiDriver.deleteGroup(testGroup.id, user1.token);
 
             const deletedGroup = await firestoreReader.getGroup(testGroup.id, { includeDeleted: true });
             expect(deletedGroup).not.toBeNull();
@@ -488,10 +485,7 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             }
 
             // Try to delete the group - should work with the fix
-            const deleteResponse = await apiDriver.deleteGroup(testGroup.id, user1.token);
-
-            expect(deleteResponse).toHaveProperty('message');
-            expect(deleteResponse.message).toBe('Group deleted successfully');
+            await apiDriver.deleteGroup(testGroup.id, user1.token);
 
             const deletedGroup = await firestoreReader.getGroup(testGroup.id, { includeDeleted: true });
             expect(deletedGroup).not.toBeNull();
@@ -527,10 +521,7 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             expect(groupMembers.members).toHaveLength(4); // owner + 3 members
 
             // Delete the group
-            const deleteResponse = await apiDriver.deleteGroup(testGroup.id, owner.token);
-
-            expect(deleteResponse).toHaveProperty('message');
-            expect(deleteResponse.message).toBe('Group deleted successfully');
+            await apiDriver.deleteGroup(testGroup.id, owner.token);
 
             const deletedGroup = await firestoreReader.getGroup(testGroup.id, { includeDeleted: true });
             expect(deletedGroup).not.toBeNull();
@@ -575,10 +566,7 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             const createdExpense = await apiDriver.createExpense(expenseData, user1.token);
 
             // Hard delete should succeed even with active expenses
-            const deleteResponse = await apiDriver.deleteGroup(testGroup.id, user1.token);
-
-            expect(deleteResponse).toHaveProperty('message');
-            expect(deleteResponse.message).toBe('Group deleted successfully');
+            await apiDriver.deleteGroup(testGroup.id, user1.token);
 
             const deletedGroup = await firestoreReader.getGroup(testGroup.id, { includeDeleted: true });
             expect(deletedGroup).not.toBeNull();
@@ -667,10 +655,7 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             expect(totalExpenseComments).toBeGreaterThanOrEqual(3); // 3 expense comments total
 
             // Perform soft delete
-            const deleteResponse = await apiDriver.deleteGroup(groupId, owner.token);
-
-            expect(deleteResponse).toHaveProperty('message');
-            expect(deleteResponse.message).toBe('Group deleted successfully');
+            await apiDriver.deleteGroup(groupId, owner.token);
 
             const deletedGroup = await firestoreReader.getGroup(groupId, { includeDeleted: true });
             expect(deletedGroup).not.toBeNull();

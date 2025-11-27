@@ -1,4 +1,3 @@
-import { MessageResponse } from '@billsplit-wl/shared';
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { validateUserAuth } from '../auth/utils';
@@ -39,8 +38,8 @@ export class ExpenseHandlers {
         const updateData = validateUpdateExpense(req.body);
 
         try {
-            const updatedExpense = await this.expenseService.updateExpense(expenseId, userId, updateData);
-            res.json(updatedExpense);
+            await this.expenseService.updateExpense(expenseId, userId, updateData);
+            res.status(HTTP_STATUS.NO_CONTENT).send();
         } catch (error) {
             logger.error('Failed to update expense', error, {
                 expenseId,
@@ -56,11 +55,7 @@ export class ExpenseHandlers {
         const expenseId = validateExpenseId(req.query.id);
 
         await this.expenseService.deleteExpense(expenseId, userId);
-
-        const response: MessageResponse = {
-            message: 'Expense deleted successfully',
-        };
-        res.json(response);
+        res.status(HTTP_STATUS.NO_CONTENT).send();
     };
 
     /**

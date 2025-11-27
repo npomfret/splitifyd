@@ -37,12 +37,12 @@ export class SettlementHandlers {
 
         const updateData = validateUpdateSettlement(req.body);
 
-        const settlement = await this.settlementService.updateSettlement(settlementId, updateData, userId);
+        await this.settlementService.updateSettlement(settlementId, updateData, userId);
 
         LoggerContext.setBusinessContext({ settlementId });
         logger.info('settlement-updated', { id: settlementId });
 
-        res.status(HTTP_STATUS.OK).json(settlement);
+        res.status(HTTP_STATUS.NO_CONTENT).send();
     };
 
     deleteSettlement = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
@@ -54,7 +54,7 @@ export class SettlementHandlers {
         LoggerContext.setBusinessContext({ settlementId });
         logger.info('settlement-soft-deleted', { id: settlementId });
 
-        res.status(HTTP_STATUS.OK).json({ message: 'Settlement deleted successfully' });
+        res.status(HTTP_STATUS.NO_CONTENT).send();
     };
 
     /**
