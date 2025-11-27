@@ -245,6 +245,66 @@ describe('notification system', () => {
     });
 
     describe('activity feed endpoint', () => {
+        describe('pagination edge cases', () => {
+            it('should reject limit of 0', async () => {
+                await expect(
+                    appDriver.getActivityFeed({ limit: 0 }, user1),
+                ).rejects.toMatchObject({ code: 'INVALID_QUERY_PARAMS' });
+            });
+
+            it('should reject negative limit', async () => {
+                await expect(
+                    appDriver.getActivityFeed({ limit: -1 }, user1),
+                ).rejects.toMatchObject({ code: 'INVALID_QUERY_PARAMS' });
+            });
+
+            it('should reject limit exceeding maximum (100)', async () => {
+                await expect(
+                    appDriver.getActivityFeed({ limit: 101 }, user1),
+                ).rejects.toMatchObject({ code: 'INVALID_QUERY_PARAMS' });
+            });
+
+            it('should handle empty activity feed gracefully', async () => {
+                // New user with no activity
+                const result = await appDriver.getActivityFeed({}, user1);
+                expect(result.items).toEqual([]);
+                expect(result.hasMore).toBe(false);
+                expect(result.nextCursor).toBeUndefined();
+            });
+
+            it('should respect limit parameter', async () => {
+                const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+
+                // Create a few activities
+                await appDriver.createGroupComment(group.id, 'Comment 1', user1);
+                await appDriver.createGroupComment(group.id, 'Comment 2', user1);
+
+                // Request with limit of 1
+                const result = await appDriver.getActivityFeed({ limit: 1 }, user1);
+                expect(result.items).toHaveLength(1);
+            });
+
+            it('should return hasMore=true when more items exist', async () => {
+                const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+
+                // Create enough activities
+                await appDriver.createGroupComment(group.id, 'Comment 1', user1);
+                await appDriver.createGroupComment(group.id, 'Comment 2', user1);
+                await appDriver.createGroupComment(group.id, 'Comment 3', user1);
+
+                const result = await appDriver.getActivityFeed({ limit: 2 }, user1);
+                expect(result.hasMore).toBe(true);
+                expect(result.nextCursor).toBeDefined();
+            });
+
+            it('should use default limit when not specified', async () => {
+                // Default is 10 per ActivityFeedQuerySchema
+                const result = await appDriver.getActivityFeed({}, user1);
+                expect(result.items).toBeDefined();
+                // Should not throw
+            });
+        });
+
         it('should fetch activity feed items via the HTTP handler', async () => {
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
             const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, user1);

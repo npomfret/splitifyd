@@ -576,7 +576,7 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
 
         req.query = query;
         const res = await this.dispatchByHandler('listGroups', req);
-
+        this.throwIfError(res);
         return res.getJson() as ListGroupsResponse;
     }
 
@@ -605,13 +605,14 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
 
         req.query = query;
         const res = await this.dispatchByHandler('getGroupFullDetails', req);
-
+        this.throwIfError(res);
         return res.getJson() as GroupFullDetailsDTO;
     }
 
     async createGroup(groupRequest = new CreateGroupRequestBuilder().build(), authToken: AuthToken) {
         const req = createStubRequest(authToken, groupRequest);
         const res = await this.dispatchByHandler('createGroup', req);
+        this.throwIfError(res);
         return res.getJson() as GroupDTO;
     }
 
@@ -623,6 +624,7 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
 
         const req = createStubRequest(authToken, body);
         const res = await this.dispatchByHandler('generateShareableLink', req);
+        this.throwIfError(res);
         return res.getJson() as ShareLinkResponse;
     }
 
@@ -630,6 +632,7 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         const displayName = groupDisplayName || `User ${authToken}`;
         const req = createStubRequest(authToken, { shareToken, groupDisplayName: displayName });
         const res = await this.dispatchByHandler('joinGroupByLink', req);
+        this.throwIfError(res);
         return res.getJson() as JoinGroupResponse;
     }
 
@@ -640,6 +643,7 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
 
         const req = createStubRequest(authToken, { shareToken });
         const res = await this.dispatchByHandler('previewGroupByLink', req);
+        this.throwIfError(res);
         return res.getJson() as PreviewGroupResponse;
     }
 
@@ -709,6 +713,7 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
     async getPendingMembers(groupId: GroupId | string, authToken: AuthToken): Promise<GroupMembershipDTO[]> {
         const req = createStubRequest(authToken, {}, { groupId });
         const res = await this.dispatchByHandler('getPendingMembers', req);
+        this.throwIfError(res);
         return res.getJson() as GroupMembershipDTO[];
     }
 
@@ -733,6 +738,7 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
     async createExpense(expenseRequest: CreateExpenseRequest, authToken: AuthToken): Promise<ExpenseDTO> {
         const req = createStubRequest(authToken, expenseRequest);
         const res = await this.dispatchByHandler('createExpense', req);
+        this.throwIfError(res);
         return res.getJson() as ExpenseDTO;
     }
 
@@ -758,12 +764,14 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
     async getExpenseFullDetails(expenseId: ExpenseId | string, authToken: AuthToken) {
         const req = createStubRequest(authToken, {}, { expenseId });
         const res = await this.dispatchByHandler('getExpenseFullDetails', req);
+        this.throwIfError(res);
         return res.getJson() as ExpenseFullDetailsDTO;
     }
 
     async createSettlement(data: CreateSettlementRequest, authToken: AuthToken): Promise<SettlementDTO> {
         const req = createStubRequest(authToken, data);
         const res = await this.dispatchByHandler('createSettlement', req);
+        this.throwIfError(res);
         return res.getJson() as SettlementDTO;
     }
 
@@ -818,6 +826,7 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
     async createGroupComment(groupId: GroupId | string, text: CommentText | string, authToken: AuthToken): Promise<CommentDTO> {
         const req = createStubRequest(authToken, { text }, { groupId });
         const res = await this.dispatchByHandler('createComment', req);
+        this.throwIfError(res);
         return res.getJson() as CommentDTO;
     }
 
@@ -858,6 +867,7 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
     async getUserProfile(authToken: AuthToken): Promise<UserProfileResponse> {
         const req = createStubRequest(authToken, {});
         const res = await this.dispatchByHandler('getUserProfile', req);
+        this.throwIfError(res);
         return res.getJson() as UserProfileResponse;
     }
 
@@ -1018,7 +1028,7 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
 
         req.query = query;
         const res = await this.dispatchByHandler('getActivityFeed', req);
-
+        this.throwIfError(res);
         return res.getJson() as ActivityFeedResponse;
     }
 
@@ -1205,6 +1215,7 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
     async listAllTenants(token?: AuthToken): Promise<ListAllTenantsResponse> {
         const req = createStubRequest(token || '', {});
         const res = await this.dispatchByHandler('listAllTenants', req);
+        this.throwIfError(res);
         return res.getJson() as ListAllTenantsResponse;
     }
 
@@ -1241,6 +1252,7 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
     async getTenantSettings(token: AuthToken): Promise<TenantSettingsResponse> {
         const req = createStubRequest(token, {});
         const res = await this.dispatchByHandler('getTenantSettings', req);
+        this.throwIfError(res);
         return res.getJson() as TenantSettingsResponse;
     }
 

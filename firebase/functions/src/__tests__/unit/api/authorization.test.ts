@@ -308,12 +308,9 @@ describe('authorization', () => {
             });
 
             it('should deny regular user access to tenant settings', async () => {
-                const result = await appDriver.getTenantSettings(user2);
-                expect(result).toMatchObject({
-                    error: {
-                        code: 'FORBIDDEN',
-                    },
-                });
+                await expect(
+                    appDriver.getTenantSettings(user2),
+                ).rejects.toMatchObject({ code: 'FORBIDDEN' });
             });
         });
 
@@ -1026,9 +1023,9 @@ describe('authorization', () => {
             const regularUserResult = await appDriver.registerUser(regularUserReg);
             const regularUser = toUserId(regularUserResult.user.uid);
 
-            const result = await appDriver.listAllTenants(regularUser);
-
-            expect((result as any).error?.code).toBe('FORBIDDEN');
+            await expect(
+                appDriver.listAllTenants(regularUser),
+            ).rejects.toMatchObject({ code: 'FORBIDDEN' });
         });
 
         it('enriches auth users with their Firestore roles', async () => {
