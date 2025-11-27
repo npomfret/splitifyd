@@ -174,7 +174,7 @@ export class UserService {
                 createdAt: userData.createdAt,
                 updatedAt: userData.updatedAt,
                 preferredLanguage: userData.preferredLanguage,
-                acceptedPolicies: userData.acceptedPolicies as Record<PolicyId, VersionHash> | undefined,
+                acceptedPolicies: userData.acceptedPolicies,
             };
         } catch (error) {
             // Check if error is from Firebase Auth (user not found)
@@ -590,15 +590,16 @@ export class UserService {
         }
     }
 
-    private async getCurrentPolicyVersions(): Promise<Record<string, string>> {
+    private async getCurrentPolicyVersions(): Promise<Record<string, Record<string, string>>> {
         try {
             const policies = await this.firestoreReader.getAllPolicies();
+            const now = toISOString(new Date().toISOString());
 
-            const acceptedPolicies: Record<string, string> = {};
+            const acceptedPolicies: Record<string, Record<string, string>> = {};
 
             policies.forEach((policy) => {
                 if (policy.currentVersionHash) {
-                    acceptedPolicies[policy.id] = policy.currentVersionHash;
+                    acceptedPolicies[policy.id] = { [policy.currentVersionHash]: now };
                 }
             });
 

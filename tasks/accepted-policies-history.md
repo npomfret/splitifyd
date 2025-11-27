@@ -2,8 +2,9 @@
 
 **Author:** Gemini
 **Date:** 2025-11-24
-**Status:** Proposed
+**Status:** ✅ Completed
 **Reviewed:** 2025-11-25 (sanity check completed)
+**Implemented:** 2025-11-27
 
 ## 1. Executive Summary
 
@@ -223,3 +224,46 @@ cd firebase/functions && npx vitest run src/__tests__/unit/api/users.test.ts -t 
 3. **Null check added:** Handle user not found case
 4. **Re-acceptance behavior defined:** No-op (preserve original timestamp)
 5. **Migration removed:** Not required (no existing data)
+
+---
+
+## 8. Implementation Notes (2025-11-27)
+
+### Files Modified
+
+| File | Change |
+|------|--------|
+| `packages/shared/src/shared-types.ts` | Changed `acceptedPolicies` type to nested record |
+| `firebase/functions/src/services/firestore/IFirestoreWriter.ts` | Updated interface type |
+| `firebase/functions/src/schemas/user.ts` | Updated Zod schema with nested record and `toISOString` import |
+| `packages/shared/src/schemas/apiSchemas.ts` | Updated API response schema |
+| `firebase/functions/src/services/UserPolicyService.ts` | Rewrote `_acceptMultiplePolicies` with transactions, updated `getUserPolicyStatus` |
+| `firebase/functions/src/services/UserService2.ts` | Updated `getCurrentPolicyVersions`, removed outdated type cast |
+| `firebase/functions/src/browser/UserBrowserHandlers.ts` | Removed outdated type cast |
+| `packages/test-support/src/builders/UserProfileBuilder.ts` | Updated method signature |
+| `packages/test-support/src/builders/AdminUserProfileBuilder.ts` | Updated method signature |
+| `firebase/functions/src/__tests__/unit/api/users.test.ts` | Updated test mocks and expectations |
+
+### Test Updates
+
+Two existing tests required adjustment:
+1. **"should propagate error when Firestore write fails"** - Changed mock from `updateUser` to `runTransaction`
+2. **"should show pending when user has accepted old versions"** - Updated expectation: `userAcceptedHash` is now `undefined` when user hasn't accepted the current version (correct behavior for history-based model)
+
+Two new tests added for history-specific behavior:
+1. **"should preserve original timestamp when re-accepting same version (no-op)"** - Verifies re-acceptance doesn't create duplicate entries
+2. **"should preserve history when accepting new policy version"** - Verifies accepting v2 doesn't lose record of v1 acceptance
+
+### Verification
+
+- ✅ `npm run build` passes
+- ✅ All 29 policy-related tests pass (`npx vitest run src/__tests__/unit/api/users.test.ts -t "policy"`)
+  - 2 new tests added for history-specific behavior
+
+### Key Behaviors Implemented
+
+1. **Transaction-based writes**: Policy acceptance uses Firestore transactions to prevent race conditions
+2. **History preservation**: Re-accepting the same version is a no-op (preserves original timestamp)
+3. **ISO string timestamps**: Stored as plain strings in Firestore (audit data, not converted to Firestore Timestamps)
+4. **`userAcceptedHash` semantics**: Returns `currentVersionHash` if user has accepted it, `undefined` otherwise
+5. **API returns actual timestamp**: For re-acceptance, API returns the original stored timestamp, not the current time

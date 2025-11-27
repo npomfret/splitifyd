@@ -139,7 +139,7 @@ export class UserBrowserHandlers {
                 createdAt: firestoreUser.createdAt,
                 updatedAt: firestoreUser.updatedAt,
                 preferredLanguage: firestoreUser.preferredLanguage,
-                acceptedPolicies: firestoreUser.acceptedPolicies as Record<PolicyId, VersionHash> | undefined,
+                acceptedPolicies: firestoreUser.acceptedPolicies,
             };
         });
     }

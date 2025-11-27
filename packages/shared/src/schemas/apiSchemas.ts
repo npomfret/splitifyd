@@ -395,7 +395,7 @@ export const AdminUserProfileSchema = z
         createdAt: z.string().optional(),
         updatedAt: z.string().optional(),
         preferredLanguage: z.string().optional(),
-        acceptedPolicies: z.record(z.string(), z.string()).optional(), // Record<PolicyId, VersionHash>
+        acceptedPolicies: z.record(z.string(), z.record(z.string(), z.string())).optional(), // Record<PolicyId, Record<VersionHash, ISOString>>
     })
     .passthrough();
 

@@ -1,6 +1,6 @@
-import { PolicyAcceptanceStatusDTO, PolicyId, UserPolicyStatusResponse, VersionHash } from '@billsplit-wl/shared';
+import { isoStringNow, PolicyAcceptanceStatusDTO, PolicyId, UserPolicyStatusResponse, VersionHash } from '@billsplit-wl/shared';
 import type { UserId } from '@billsplit-wl/shared';
-import { HTTP_STATUS } from '../constants';
+import { FirestoreCollections, HTTP_STATUS } from '../constants';
 import { logger } from '../logger';
 import { measureDb } from '../monitoring/measure';
 import { ApiError } from '../utils/errors';
@@ -62,32 +62,57 @@ export class UserPolicyService {
                 await this.validatePolicyAndVersion(policyId, versionHash);
             }
 
-            // Build the update object with nested structure (not dot notation)
-            const acceptedPolicies: Record<string, string> = {};
-            acceptances.forEach((acceptance) => {
-                acceptedPolicies[acceptance.policyId] = acceptance.versionHash;
+            // Use transaction for atomic read-modify-write to preserve history
+            const now = isoStringNow();
+            const results = await this.firestoreWriter.runTransaction(async (transaction) => {
+                const userRef = this.firestoreWriter.getDocumentReferenceInTransaction(
+                    transaction,
+                    FirestoreCollections.USERS,
+                    userId,
+                );
+                const userDoc = await transaction.get(userRef);
+
+                if (!userDoc.exists) {
+                    throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', 'User not found');
+                }
+
+                const userData = userDoc.data() || {};
+                const existingPolicies: Record<string, Record<string, string>> = userData.acceptedPolicies ?? {};
+
+                // Build updated policies map (preserve history, only add new entries)
+                const updatedPolicies: Record<string, Record<string, string>> = { ...existingPolicies };
+                const acceptedResults: Array<{ policyId: PolicyId; versionHash: VersionHash; acceptedAt: string; }> = [];
+
+                for (const acceptance of acceptances) {
+                    const policyHistory = updatedPolicies[acceptance.policyId] ?? {};
+                    const existingTimestamp = policyHistory[acceptance.versionHash];
+
+                    // No-op if already accepted (preserve original timestamp)
+                    if (!existingTimestamp) {
+                        updatedPolicies[acceptance.policyId] = {
+                            ...policyHistory,
+                            [acceptance.versionHash]: now,
+                        };
+                    }
+
+                    acceptedResults.push({
+                        policyId: acceptance.policyId,
+                        versionHash: acceptance.versionHash,
+                        acceptedAt: existingTimestamp ?? now,
+                    });
+                }
+
+                transaction.update(userRef, { acceptedPolicies: updatedPolicies });
+
+                return acceptedResults;
             });
-
-            const updateData = {
-                acceptedPolicies, // Nested object structure
-                // updatedAt is automatically added by FirestoreWriter
-            };
-
-            // Update user document with all acceptances
-            await this.firestoreWriter.updateUser(userId, updateData);
-
-            const acceptedAt = new Date().toISOString();
 
             logger.info('policies-accepted', {
                 ids: acceptances.map((a) => a.policyId).join(','),
                 userId,
             });
 
-            return acceptances.map((acceptance) => ({
-                policyId: acceptance.policyId,
-                versionHash: acceptance.versionHash,
-                acceptedAt,
-            }));
+            return results;
         } catch (error) {
             if (error instanceof ApiError) {
                 throw error;
@@ -119,8 +144,12 @@ export class UserPolicyService {
             allPolicies.forEach((policy) => {
                 const policyId = policy.id;
                 const currentVersionHash = policy.currentVersionHash;
-                const userAcceptedHash = userAcceptedPolicies[policyId] as VersionHash | undefined;
-                const needsAcceptance = !userAcceptedHash || userAcceptedHash !== currentVersionHash;
+                // Check if current version exists in the policy's acceptance history
+                const policyHistory = (userAcceptedPolicies[policyId] ?? {}) as Record<VersionHash, string>;
+                const hasAcceptedCurrentVersion = currentVersionHash in policyHistory;
+                const needsAcceptance = !hasAcceptedCurrentVersion;
+                // Return currentVersionHash if accepted, undefined otherwise
+                const userAcceptedHash = hasAcceptedCurrentVersion ? currentVersionHash : undefined;
 
                 if (needsAcceptance) {
                     totalPending++;

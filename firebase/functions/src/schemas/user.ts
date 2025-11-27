@@ -1,4 +1,4 @@
-import { PolicyIdSchema, SystemUserRoles, toEmail, VersionHashSchema } from '@billsplit-wl/shared';
+import { PolicyIdSchema, SystemUserRoles, toEmail, toISOString, VersionHashSchema } from '@billsplit-wl/shared';
 import type { Email } from '@billsplit-wl/shared';
 import { z } from 'zod';
 import { OptionalAuditFieldsSchema, UserIdSchema } from './common';
@@ -15,7 +15,9 @@ const BaseUserSchema = z
         email: z.string().email().transform(toEmail).optional() as z.ZodOptional<z.ZodType<Email>>, // Email might be in Auth only
         preferredLanguage: z.string().optional(),
         role: z.nativeEnum(SystemUserRoles),
-        acceptedPolicies: z.record(PolicyIdSchema, VersionHashSchema).optional(),
+        acceptedPolicies: z
+            .record(PolicyIdSchema, z.record(VersionHashSchema, z.string().datetime().transform(toISOString)))
+            .optional(),
     })
     .merge(OptionalAuditFieldsSchema);
 

@@ -66,7 +66,7 @@ export class UserProfileBuilder {
         return this;
     }
 
-    withAcceptedPolicies(policies: Record<PolicyId, VersionHash>): this {
+    withAcceptedPolicies(policies: Record<PolicyId, Record<VersionHash, ISOString>>): this {
         this.user.acceptedPolicies = policies;
         return this;
     }

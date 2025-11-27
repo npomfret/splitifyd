@@ -596,7 +596,7 @@ export interface UserProfile {
 
     // Optional user data
     preferredLanguage?: string;
-    acceptedPolicies?: Record<PolicyId, VersionHash>;
+    acceptedPolicies?: Record<PolicyId, Record<VersionHash, ISOString>>;
 }
 
 /**

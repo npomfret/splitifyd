@@ -38,7 +38,7 @@ export interface BatchWriteResult {
 interface FirestoreUserDocumentFields {
     role?: SystemUserRole;
     preferredLanguage?: string;
-    acceptedPolicies?: Record<string, string>;
+    acceptedPolicies?: Record<string, Record<string, string>>;
     createdAt?: ISOString;
     updatedAt?: ISOString;
 }
