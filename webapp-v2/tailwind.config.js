@@ -40,11 +40,22 @@ export default {
                 full: 'var(--radii-full, 9999px)',
             },
             fontSize: {
+                // Fixed sizes (existing)
                 xs: ['var(--text-xs, 0.75rem)', 'var(--text-leading-xs, 1rem)'],
                 sm: ['var(--text-sm, 0.875rem)', 'var(--text-leading-sm, 1.25rem)'],
                 base: ['var(--text-base, 1rem)', 'var(--text-leading-base, 1.5rem)'],
                 lg: ['var(--text-lg, 1.125rem)', 'var(--text-leading-lg, 1.75rem)'],
                 xl: ['var(--text-xl, 1.25rem)', 'var(--text-leading-xl, 1.75rem)'],
+                // Fluid sizes - scale smoothly across viewports using tenant CSS variables
+                'fluid-xs': ['var(--fluid-xs, 0.75rem)', { lineHeight: '1rem' }],
+                'fluid-sm': ['var(--fluid-sm, 0.875rem)', { lineHeight: '1.25rem' }],
+                'fluid-base': ['var(--fluid-base, 1rem)', { lineHeight: '1.5rem' }],
+                'fluid-lg': ['var(--fluid-lg, 1.125rem)', { lineHeight: '1.75rem' }],
+                'fluid-xl': ['var(--fluid-xl, 1.25rem)', { lineHeight: '1.75rem' }],
+                'fluid-2xl': ['var(--fluid-2xl, 1.5rem)', { lineHeight: '2rem' }],
+                'fluid-3xl': ['var(--fluid-3xl, 1.875rem)', { lineHeight: '2.25rem' }],
+                'fluid-4xl': ['var(--fluid-4xl, 2.25rem)', { lineHeight: '2.5rem' }],
+                'fluid-hero': ['var(--fluid-hero, 3rem)', { lineHeight: '1.1' }],
             },
             boxShadow: {
                 sm: 'var(--shadow-sm, 0 1px 2px rgba(15, 23, 42, 0.12))',

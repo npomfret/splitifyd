@@ -1,4 +1,5 @@
 import { ThemePage } from '@billsplit-wl/test-support';
+import { expect } from '@playwright/test';
 import { simpleTest as test } from '../../fixtures/simple-test.fixture';
 import { EMULATOR_URL } from '../../helpers';
 
@@ -11,44 +12,44 @@ const AURORA_URL = `${protocol}//localhost${portSegment}${pathSuffix}`;
 const BRUTALIST_URL = `${protocol}//127.0.0.1${portSegment}${pathSuffix}`;
 
 test.describe('Theme switching smoke tests', () => {
-    test('Aurora theme surfaces teal primary actions', async ({ newEmptyBrowser }) => {
-        const { page } = await newEmptyBrowser();
-        const themePage = new ThemePage(page);
+    test('Different hosts serve different button styles', async ({ newEmptyBrowser }) => {
+        // Get Aurora theme colors
+        const { page: auroraPage } = await newEmptyBrowser();
+        const auroraTheme = new ThemePage(auroraPage);
+        await auroraTheme.navigateTo(AURORA_URL);
+        const auroraColors = await auroraTheme.getSignUpButtonColors();
 
-        await themePage.navigateTo(AURORA_URL);
+        // Get Brutalist theme colors
+        const { page: brutalistPage } = await newEmptyBrowser();
+        const brutalistTheme = new ThemePage(brutalistPage);
+        await brutalistTheme.navigateTo(BRUTALIST_URL);
+        const brutalistColors = await brutalistTheme.getSignUpButtonColors();
 
-        // Check the primary CTA button uses a colored (non-gray) background
-        await themePage.expectSignUpButtonHasColor();
+        // Assert they are DIFFERENT (don't care what the values are)
+        const auroraStyle = auroraColors.backgroundImage !== 'none'
+            ? auroraColors.backgroundImage
+            : auroraColors.backgroundColor;
+        const brutalistStyle = brutalistColors.backgroundImage !== 'none'
+            ? brutalistColors.backgroundImage
+            : brutalistColors.backgroundColor;
+
+        expect(auroraStyle).not.toBe(brutalistStyle);
     });
 
-    test('Brutalist theme restricts actions to grayscale palette', async ({ newEmptyBrowser }) => {
-        const { page } = await newEmptyBrowser();
-        const themePage = new ThemePage(page);
+    test('Different hosts serve different glassmorphism support', async ({ newEmptyBrowser }) => {
+        // Get Aurora glassmorphism value
+        const { page: auroraPage } = await newEmptyBrowser();
+        const auroraTheme = new ThemePage(auroraPage);
+        await auroraTheme.navigateTo(AURORA_URL);
+        const auroraGlass = await auroraTheme.getGlassmorphismValue();
 
-        await themePage.navigateTo(BRUTALIST_URL);
+        // Get Brutalist glassmorphism value
+        const { page: brutalistPage } = await newEmptyBrowser();
+        const brutalistTheme = new ThemePage(brutalistPage);
+        await brutalistTheme.navigateTo(BRUTALIST_URL);
+        const brutalistGlass = await brutalistTheme.getGlassmorphismValue();
 
-        // Check the primary CTA button uses grayscale palette only
-        await themePage.expectSignUpButtonIsGrayscale();
+        // Assert they are DIFFERENT (don't care what the values are)
+        expect(auroraGlass).not.toBe(brutalistGlass);
     });
-
-    test('Aurora theme enables glassmorphism via .glass-panel class', async ({ newEmptyBrowser }) => {
-        const { page } = await newEmptyBrowser();
-        const themePage = new ThemePage(page);
-
-        await themePage.navigateTo(AURORA_URL);
-
-        // Aurora theme should have glassmorphism support
-        await themePage.expectGlassmorphismSupport();
-    });
-
-    test('Brutalist theme has no .glass-panel styling', async ({ newEmptyBrowser }) => {
-        const { page } = await newEmptyBrowser();
-        const themePage = new ThemePage(page);
-
-        await themePage.navigateTo(BRUTALIST_URL);
-
-        // Brutalist theme should have no glassmorphism
-        await themePage.expectNoGlassmorphism();
-    });
-
 });

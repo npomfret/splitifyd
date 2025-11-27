@@ -133,7 +133,9 @@
               "glass": "rgba(139, 92, 246, 0.08)",
               "glassBorder": "rgba(139, 92, 246, 0.2)",
               "aurora": "rgba(6, 182, 212, 0.05)",
-              "spotlight": "rgba(244, 114, 182, 0.1)"
+              "spotlight": "rgba(244, 114, 182, 0.1)",
+              "skeleton": "#1E293B",
+              "skeletonShimmer": "#334155"
             },
             "text": {
               "primary": "#F8FAFC",
@@ -227,16 +229,16 @@
     "id": "default-tenant",
     "domains": ["127.0.0.1"],
     "branding": {
-      "appName": "BillSplit",
+      "appName": "Splitifyd",
       "logoUrl": "/logo.svg",
       "faviconUrl": "/favicon.ico",
-      "primaryColor": "#3B82F6",
-      "secondaryColor": "#6366F1",
-      "accentColor": "#8B5CF6",
-      "surfaceColor": "#F8FAFC",
-      "textColor": "#0F172A",
+      "primaryColor": "#737373",
+      "secondaryColor": "#525252",
+      "accentColor": "#A3A3A3",
+      "surfaceColor": "#171717",
+      "textColor": "#E5E5E5",
       "marketingFlags": {
-        "showLandingPage": false,
+        "showLandingPage": true,
         "showMarketingContent": false,
         "showPricingPage": false
       }
@@ -245,23 +247,23 @@
       "tokens": {
         "version": 1,
         "palette": {
-          "primary": "#3B82F6",
-          "primaryVariant": "#2563EB",
-          "secondary": "#6366F1",
-          "secondaryVariant": "#4F46E5",
-          "accent": "#8B5CF6",
-          "neutral": "#F8FAFC",
-          "neutralVariant": "#F1F5F9",
+          "primary": "#737373",
+          "primaryVariant": "#525252",
+          "secondary": "#525252",
+          "secondaryVariant": "#404040",
+          "accent": "#A3A3A3",
+          "neutral": "#171717",
+          "neutralVariant": "#262626",
           "success": "#22C55E",
           "warning": "#F59E0B",
           "danger": "#EF4444",
-          "info": "#0EA5E9"
+          "info": "#737373"
         },
         "typography": {
           "fontFamily": {
-            "sans": "Space Grotesk, Inter, system-ui, -apple-system, sans-serif",
-            "serif": "Fraunces, Georgia, serif",
-            "mono": "Geist Mono, JetBrains Mono, monospace"
+            "sans": "Inter, system-ui, -apple-system, sans-serif",
+            "serif": "Georgia, serif",
+            "mono": "JetBrains Mono, monospace"
           },
           "sizes": {
             "xs": "0.75rem",
@@ -312,74 +314,76 @@
         "radii": {
           "none": "0px",
           "sm": "4px",
-          "md": "8px",
-          "lg": "16px",
+          "md": "4px",
+          "lg": "4px",
           "pill": "999px",
           "full": "9999px"
         },
         "shadows": {
-          "sm": "0 1px 2px rgba(0, 0, 0, 0.05)",
-          "md": "0 4px 12px rgba(0, 0, 0, 0.1)",
-          "lg": "0 20px 60px rgba(0, 0, 0, 0.15)"
+          "sm": "0 1px 2px rgba(0, 0, 0, 0.3)",
+          "md": "0 4px 12px rgba(0, 0, 0, 0.4)",
+          "lg": "0 20px 60px rgba(0, 0, 0, 0.5)"
         },
         "assets": {
           "logoUrl": "/logo.svg",
           "faviconUrl": "/favicon.ico"
         },
         "legal": {
-          "companyName": "BillSplit",
-          "supportEmail": "support@billsplit.local",
-          "privacyPolicyUrl": "https://billsplit.local/legal/privacy",
-          "termsOfServiceUrl": "https://billsplit.local/legal/terms"
+          "companyName": "Splitifyd",
+          "supportEmail": "support@splitifyd.local",
+          "privacyPolicyUrl": "https://splitifyd.local/legal/privacy",
+          "termsOfServiceUrl": "https://splitifyd.local/legal/terms"
         },
         "semantics": {
           "colors": {
             "surface": {
-              "base": "#F8FAFC",
-              "raised": "#FFFFFF",
-              "sunken": "#F1F5F9",
-              "overlay": "#0F172A",
-              "warning": "#FEF3C7",
-              "muted": "#E2E8F0"
+              "base": "#171717",
+              "raised": "#262626",
+              "sunken": "#0A0A0A",
+              "overlay": "#404040",
+              "warning": "#451A03",
+              "muted": "#404040",
+              "skeleton": "#262626",
+              "skeletonShimmer": "#404040"
             },
             "text": {
-              "primary": "#0F172A",
-              "secondary": "#475569",
-              "muted": "#64748B",
-              "inverted": "#F8FAFC",
-              "accent": "#3B82F6"
+              "primary": "#E5E5E5",
+              "secondary": "#A3A3A3",
+              "muted": "#737373",
+              "inverted": "#171717",
+              "accent": "#D4D4D4"
             },
             "interactive": {
-              "primary": "#3B82F6",
-              "primaryHover": "#2563EB",
-              "primaryActive": "#1D4ED8",
-              "primaryForeground": "#FFFFFF",
-              "secondary": "#6366F1",
-              "secondaryHover": "#4F46E5",
-              "secondaryActive": "#4338CA",
-              "secondaryForeground": "#FFFFFF",
+              "primary": "#737373",
+              "primaryHover": "#A3A3A3",
+              "primaryActive": "#525252",
+              "primaryForeground": "#171717",
+              "secondary": "#525252",
+              "secondaryHover": "#737373",
+              "secondaryActive": "#404040",
+              "secondaryForeground": "#E5E5E5",
               "destructive": "#EF4444",
-              "destructiveHover": "#DC2626",
-              "destructiveActive": "#B91C1C",
+              "destructiveHover": "#F87171",
+              "destructiveActive": "#DC2626",
               "destructiveForeground": "#FFFFFF",
-              "accent": "#8B5CF6"
+              "accent": "#A3A3A3"
             },
             "border": {
-              "subtle": "#E2E8F0",
-              "default": "#CBD5E1",
-              "strong": "#94A3B8",
-              "focus": "#3B82F6",
-              "warning": "#FCD34D"
+              "subtle": "#262626",
+              "default": "#404040",
+              "strong": "#525252",
+              "focus": "#A3A3A3",
+              "warning": "#F59E0B"
             },
             "status": {
               "success": "#22C55E",
               "warning": "#F59E0B",
               "danger": "#EF4444",
-              "info": "#0EA5E9"
+              "info": "#737373"
             },
             "gradient": {
-              "primary": ["#3B82F6", "#6366F1"],
-              "accent": ["#8B5CF6", "#A78BFA"]
+              "primary": ["#737373", "#525252"],
+              "accent": ["#A3A3A3", "#737373"]
             }
           },
           "spacing": {
@@ -400,17 +404,17 @@
         },
         "motion": {
           "duration": {
-            "instant": 50,
-            "fast": 150,
-            "base": 250,
-            "slow": 400,
-            "glacial": 800
+            "instant": 0,
+            "fast": 0,
+            "base": 0,
+            "slow": 0,
+            "glacial": 0
           },
           "easing": {
-            "standard": "cubic-bezier(0.22, 1, 0.36, 1)",
-            "decelerate": "cubic-bezier(0.05, 0.7, 0.1, 1)",
-            "accelerate": "cubic-bezier(0.3, 0, 0.8, 0.15)",
-            "spring": "cubic-bezier(0.34, 1.56, 0.64, 1)"
+            "standard": "linear",
+            "decelerate": "linear",
+            "accelerate": "linear",
+            "spring": "linear"
           },
           "enableParallax": false,
           "enableMagneticHover": false,
@@ -554,7 +558,9 @@
               "glass": "rgba(16, 185, 129, 0.08)",
               "glassBorder": "rgba(16, 185, 129, 0.2)",
               "aurora": "rgba(6, 182, 212, 0.06)",
-              "spotlight": "rgba(245, 158, 11, 0.12)"
+              "spotlight": "rgba(245, 158, 11, 0.12)",
+              "skeleton": "#1E332A",
+              "skeletonShimmer": "#2D4A3D"
             },
             "text": {
               "primary": "#ECFDF5",

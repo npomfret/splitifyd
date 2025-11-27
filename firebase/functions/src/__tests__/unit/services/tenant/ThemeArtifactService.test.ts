@@ -387,5 +387,44 @@ describe('ThemeArtifactService', () => {
             expect(result.cssContent).toContain(':root {');
             expect(result.cssContent).toContain('--palette-primary: #000000');
         });
+
+        it('should generate skeleton shimmer animation CSS', async () => {
+            const result = await service.generate('test-tenant', mockTokens);
+
+            // Skeleton animation is always generated (uses fallback colors if not defined)
+            expect(result.cssContent).toContain('@keyframes shimmer');
+            expect(result.cssContent).toContain('.skeleton {');
+            expect(result.cssContent).toContain('animation: shimmer');
+        });
+
+        it('should use explicit skeleton colors when defined', async () => {
+            const tokensWithSkeletonColors: BrandingTokens = {
+                ...mockTokens,
+                semantics: {
+                    ...mockTokens.semantics,
+                    colors: {
+                        ...mockTokens.semantics.colors,
+                        surface: {
+                            ...mockTokens.semantics.colors.surface,
+                            skeleton: '#1e293b',
+                            skeletonShimmer: '#334155',
+                        },
+                    },
+                },
+            };
+
+            const result = await service.generate('test-tenant', tokensWithSkeletonColors);
+
+            expect(result.cssContent).toContain('#1e293b');
+            expect(result.cssContent).toContain('#334155');
+        });
+
+        it('should disable skeleton animation when prefers-reduced-motion', async () => {
+            const result = await service.generate('test-tenant', mockTokens);
+
+            expect(result.cssContent).toContain('@media (prefers-reduced-motion: reduce)');
+            expect(result.cssContent).toContain('.skeleton {');
+            expect(result.cssContent).toContain('animation: none');
+        });
     });
 });

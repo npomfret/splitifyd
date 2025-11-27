@@ -83,6 +83,8 @@ export function Button({
     const baseClasses = [
         'inline-flex items-center justify-center font-semibold rounded-md',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-base',
+        // Polished hover effect (lift + scale) - uses theme CSS variables for timing
+        'btn-polished',
         fullWidth ? 'w-full' : 'inline-flex',
         isDisabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer',
         loading ? 'gap-2' : '',

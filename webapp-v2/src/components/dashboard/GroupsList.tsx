@@ -3,7 +3,7 @@ import { enhancedGroupsStore } from '@/app/stores/groups-store-enhanced.ts';
 import { navigationService } from '@/services/navigation.service';
 import { GroupId } from '@billsplit-wl/shared';
 import { useTranslation } from 'react-i18next';
-import { LoadingSpinner, Pagination } from '../ui';
+import { LoadingSpinner, Pagination, SkeletonCard } from '../ui';
 import { EmptyGroupsState } from './EmptyGroupsState';
 import { GroupCard } from './GroupCard';
 
@@ -30,9 +30,10 @@ export function GroupsList({ onCreateGroup, onInvite, onAddExpense }: GroupsList
 
     if (enhancedGroupsStore.loading && !enhancedGroupsStore.initialized) {
         return (
-            <div class='flex items-center justify-center py-8'>
-                <LoadingSpinner />
-                <span class='ml-3 text-text-muted'>{t('dashboardComponents.groupsList.loading')}</span>
+            <div class='grid-auto-fit grid-auto-fit-lg' aria-busy='true' aria-label={t('dashboardComponents.groupsList.loading')}>
+                <SkeletonCard />
+                <SkeletonCard />
+                <SkeletonCard />
             </div>
         );
     }
@@ -88,7 +89,7 @@ export function GroupsList({ onCreateGroup, onInvite, onAddExpense }: GroupsList
 
     return (
         <>
-            <div class='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6' data-testid='groups-grid' ref={gridRef}>
+            <div class='grid-auto-fit grid-auto-fit-lg' data-testid='groups-grid' ref={gridRef}>
                 {enhancedGroupsStore.isCreatingGroup && (
                     <div class='border-2 border-dashed border-border-default rounded-lg p-8 flex items-center justify-center transition-all duration-200'>
                         <LoadingSpinner />

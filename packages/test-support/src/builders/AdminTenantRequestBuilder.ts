@@ -138,6 +138,9 @@ export class AdminTenantRequestBuilder {
                             overlay: '#0f172a',
                             warning: '#fef3c7',
                             muted: '#e2e8f0',
+                            // Skeleton loader colors (for shimmer animation)
+                            skeleton: '#e2e8f0',
+                            skeletonShimmer: '#f1f5f9',
                         },
                         text: {
                             primary: '#0f172a',

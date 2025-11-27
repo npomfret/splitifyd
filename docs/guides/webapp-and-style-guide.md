@@ -1123,7 +1123,73 @@ UI kit under `components/ui` provides audited components (all use semantic token
 - **Ready for Integration:** `Radio`, `Switch`, `Select`, `FloatingPasswordInput`, `FormField` are fully implemented with semantic tokens, accessibility, and TypeScript types. They are exported from `components/ui/index.ts` and ready to be used in forms.
 - **Note:** Some custom checkbox/radio implementations exist for specialized layouts (e.g., card-based radio buttons in `SplitTypeSelector`). These can be migrated to the standard components in future refactoring.
 
+**Phase 4 Components (Modern UI/UX - COMPLETE 2025-11-26):**
+- `Skeleton` - Base skeleton loading placeholder with tenant-configurable shimmer animation
+- `SkeletonCard` - Preset skeleton for card loading states (integrated: GroupsList)
+
 **Motion enhancements:** See [Motion Enhancement System](#motion-enhancement-system-phase-2) for details on magnetic hover, scroll reveals, and theme-controlled animations.
+
+### Skeleton Loaders
+
+Skeleton components use tenant-defined colors from the theme CSS:
+
+```tsx
+import { Skeleton, SkeletonCard } from '@/components/ui';
+
+// Card loading state
+<SkeletonCard />
+
+// Custom skeleton
+<Skeleton width={200} height={20} />
+<Skeleton variant="circular" width={48} height={48} />
+<Skeleton variant="text" width="80%" />
+```
+
+**Tenant configuration:** Add `skeleton` and `skeletonShimmer` to `semantics.colors.surface` in branding tokens. Falls back to `surface.muted` and `surface.raised` if not defined.
+
+### Fluid Typography
+
+Use `text-fluid-*` classes for smoothly scaling text across viewports:
+
+```tsx
+// Hero headings - scales from ~2.5rem to ~4rem
+<h1 className="text-fluid-hero">Welcome</h1>
+
+// Body text that scales
+<p className="text-fluid-lg">Description</p>
+```
+
+Available sizes: `text-fluid-xs`, `text-fluid-sm`, `text-fluid-base`, `text-fluid-lg`, `text-fluid-xl`, `text-fluid-2xl`, `text-fluid-3xl`, `text-fluid-4xl`, `text-fluid-hero`
+
+**Tenant configuration:** Values come from `typography.fluidScale` in branding tokens (uses `clamp()` for smooth scaling).
+
+### Auto-fit Grids
+
+Use `.grid-auto-fit` for intrinsically responsive grids without explicit breakpoints:
+
+```tsx
+// Adapts columns based on available space
+<div className="grid-auto-fit">
+  {items.map(item => <Card key={item.id} />)}
+</div>
+
+// Size variants for different content
+<div className="grid-auto-fit grid-auto-fit-sm">  {/* min 200px items */}
+<div className="grid-auto-fit grid-auto-fit-md">  {/* min 280px items (default) */}
+<div className="grid-auto-fit grid-auto-fit-lg">  {/* min 360px items */}
+```
+
+### Button Hover Polish
+
+All buttons automatically have the `.btn-polished` class which adds a subtle lift effect on hover:
+
+```css
+.btn-polished:hover:not(:disabled) {
+    transform: translateY(-2px) scale(1.01);
+}
+```
+
+This uses tenant CSS variables for timing (`--motion-duration-base`) and easing (`--motion-easing-standard`). Automatically disabled when user prefers reduced motion.
 
 ### Interactive Elements & Analytics
 

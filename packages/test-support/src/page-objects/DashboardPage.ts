@@ -140,13 +140,11 @@ export class DashboardPage extends BasePage {
 
     /**
      * Verify responsive layout classes are applied to the groups grid
+     * Uses grid-auto-fit for intrinsically responsive layout
      */
     async verifyGroupsGridResponsiveLayout(): Promise<void> {
         const grid = this.getGroupsGrid();
-        await expect(grid).toHaveClass(/grid/);
-        await expect(grid).toHaveClass(/grid-cols-1/);
-        await expect(grid).toHaveClass(/md:grid-cols-2/);
-        await expect(grid).toHaveClass(/xl:grid-cols-3/);
+        await expect(grid).toHaveClass(/grid-auto-fit/);
     }
 
     /**
@@ -287,11 +285,19 @@ export class DashboardPage extends BasePage {
     }
 
     /**
-     * Loading spinner for groups
-     * Uses role="status" for semantic loading indicators
+     * Loading state for groups - either skeleton cards or spinner
+     * Skeletons use aria-busy="true", spinner uses role="status"
      */
     protected getGroupsLoadingSpinner(): Locator {
-        return this.getGroupsContainer().getByRole('status');
+        // Match either skeleton loading state or spinner
+        return this.getGroupsContainer().locator('[aria-busy="true"], [role="status"]');
+    }
+
+    /**
+     * Skeleton loading cards container
+     */
+    protected getGroupsSkeletonContainer(): Locator {
+        return this.getGroupsContainer().locator('[aria-busy="true"]');
     }
 
     protected getGroupsFilterButton(filter: 'active' | 'archived'): Locator {
@@ -730,11 +736,11 @@ export class DashboardPage extends BasePage {
     }
 
     /**
-     * Verify groups are loading
+     * Verify groups are loading (skeleton cards or spinner visible)
      */
     async verifyGroupsLoading(): Promise<void> {
+        // Check for either skeleton loading state (aria-busy) or spinner (role=status)
         await expect(this.getGroupsLoadingSpinner()).toBeVisible();
-        await expect(this.page.getByText(translation.dashboardComponents.groupsList.loading)).toBeVisible();
     }
 
     /**

@@ -25,6 +25,7 @@ export { RelativeTime } from './RelativeTime';
 export { Select } from './Select';
 export type { SelectOption } from './Select';
 export { SidebarCard } from './SidebarCard';
+export { Skeleton, SkeletonCard } from './Skeleton';
 export { Stack } from './Stack';
 export { Surface } from './Surface';
 export { Switch } from './Switch';

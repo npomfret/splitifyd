@@ -114,6 +114,13 @@ export class ThemeArtifactService {
             sections.push(motionQuery);
         }
 
+        // Skeleton loader shimmer animation
+        const skeletonAnimation = this.generateSkeletonAnimation(tokens);
+        if (skeletonAnimation) {
+            sections.push('');
+            sections.push(skeletonAnimation);
+        }
+
         return sections.join('\n') + '\n';
     }
 
@@ -457,5 +464,53 @@ export class ThemeArtifactService {
             '}',
         ]
             .join('\n');
+    }
+
+    /**
+     * Generate skeleton loader shimmer animation
+     * Uses tenant-defined skeleton colors or falls back to surface colors
+     */
+    private generateSkeletonAnimation(tokens: BrandingTokens): string | null {
+        const surface = tokens.semantics.colors.surface;
+
+        // Use explicit skeleton colors if defined, otherwise fall back to surface colors
+        const skeletonBase = surface.skeleton || surface.muted || surface.raised;
+        const skeletonShimmer = surface.skeletonShimmer || surface.raised;
+
+        return [
+            '/* Skeleton loader shimmer animation */',
+            '@keyframes shimmer {',
+            '  0% { background-position: 200% 0; }',
+            '  100% { background-position: -200% 0; }',
+            '}',
+            '',
+            '.skeleton {',
+            '  background: linear-gradient(',
+            '    90deg,',
+            `    ${skeletonBase} 25%,`,
+            `    ${skeletonShimmer} 50%,`,
+            `    ${skeletonBase} 75%`,
+            '  );',
+            '  background-size: 200% 100%;',
+            '  animation: shimmer 1.5s ease-in-out infinite;',
+            '  border-radius: var(--radii-sm, 0.25rem);',
+            '}',
+            '',
+            '.skeleton-text {',
+            '  height: 1em;',
+            '}',
+            '',
+            '.skeleton-circular {',
+            '  border-radius: 50%;',
+            '}',
+            '',
+            '/* Disable shimmer animation when reduced motion preferred */',
+            '@media (prefers-reduced-motion: reduce) {',
+            '  .skeleton {',
+            '    animation: none;',
+            `    background: ${skeletonBase};`,
+            '  }',
+            '}',
+        ].join('\n');
     }
 }

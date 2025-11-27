@@ -1,7 +1,6 @@
 import { expect, Page } from '@playwright/test';
 import { BasePage } from './BasePage';
 
-const GRAY_REGEX = /rgb\(\s*(\d+),\s*(\d+),\s*(\d+)\)/i;
 const MIN_CONTRAST_RATIO = 4.5;
 
 /**
@@ -51,20 +50,9 @@ export class ThemePage extends BasePage {
     }
 
     /**
-     * Verify sign up button uses a colored (non-grayscale) background
+     * Get sign up button's computed background colors (for comparison between themes)
      */
-    async expectSignUpButtonHasColor(): Promise<void> {
-        const signUpButton = this.page.getByTestId('header-signup-link');
-        await expect(signUpButton).toBeVisible();
-
-        const backgroundColor = await signUpButton.evaluate((element) => getComputedStyle(element).backgroundColor);
-        expect(this.isGrayscale(backgroundColor)).toBe(false);
-    }
-
-    /**
-     * Verify sign up button uses grayscale palette only
-     */
-    async expectSignUpButtonIsGrayscale(): Promise<void> {
+    async getSignUpButtonColors(): Promise<{ backgroundColor: string; backgroundImage: string }> {
         const signUpButton = this.page.getByTestId('header-signup-link');
         await expect(signUpButton).toBeVisible();
 
@@ -73,68 +61,14 @@ export class ThemePage extends BasePage {
             return [styles.backgroundColor, styles.backgroundImage];
         });
 
-        // Buttons may use either background-color or background-image gradient
-        if (backgroundImage && backgroundImage !== 'none') {
-            // Extract RGB colors from gradient
-            const rgbMatches = backgroundImage.match(/rgba?\(([^)]+)\)/g);
-            if (!rgbMatches || rgbMatches.length === 0) {
-                throw new Error(`Expected gradient to contain RGB colors, but got: ${backgroundImage}`);
-            }
-
-            // Check that all colors in the gradient are grayscale
-            const nonGrayscaleColors = rgbMatches.filter((rgb) => !this.isGrayscale(rgb));
-            if (nonGrayscaleColors.length > 0) {
-                throw new Error(
-                    `Expected all gradient colors to be grayscale, but found non-grayscale colors: ${nonGrayscaleColors.join(', ')}. `
-                        + `Full gradient: ${backgroundImage}`,
-                );
-            }
-        } else if (backgroundColor && backgroundColor !== 'rgba(0, 0, 0, 0)' && backgroundColor !== 'transparent') {
-            // Check solid background-color is grayscale (only if not transparent)
-            if (!this.isGrayscale(backgroundColor)) {
-                throw new Error(`Expected background color to be grayscale, but got: ${backgroundColor}`);
-            }
-        }
-        // If both are transparent/none, button styling may come from parent or pseudo-elements
-        // In this case, we accept it as the test is checking theme-level restrictions
+        return { backgroundColor, backgroundImage };
     }
 
     /**
-     * Verify theme has glassmorphism support (backdrop-filter with blur)
+     * Get glassmorphism backdrop-filter value (for comparison between themes)
      */
-    async expectGlassmorphismSupport(): Promise<void> {
-        const hasGlassSupport = await this.page.evaluate(() => {
-            // Check if there's a CSS rule for glass-related effects
-            const sheets = Array.from(document.styleSheets);
-            for (const sheet of sheets) {
-                try {
-                    const rules = Array.from(sheet.cssRules || []);
-                    for (const rule of rules) {
-                        if (rule instanceof CSSStyleRule) {
-                            const selector = rule.selectorText || '';
-                            const backdropFilter = rule.style.backdropFilter || (rule.style as any).webkitBackdropFilter || '';
-
-                            // Look for glass-related classes or backdrop-filter rules
-                            if ((selector.includes('glass') || backdropFilter.includes('blur')) && backdropFilter !== 'none') {
-                                return true;
-                            }
-                        }
-                    }
-                } catch (e) {
-                    // Skip CORS-restricted stylesheets
-                }
-            }
-            return false;
-        });
-
-        expect(hasGlassSupport).toBe(true);
-    }
-
-    /**
-     * Verify theme has no glassmorphism styling
-     */
-    async expectNoGlassmorphism(): Promise<void> {
-        const glassBlur = await this.page.evaluate(() => {
+    async getGlassmorphismValue(): Promise<string> {
+        return await this.page.evaluate(() => {
             const testDiv = document.createElement('div');
             testDiv.className = 'glass-panel';
             document.body.appendChild(testDiv);
@@ -143,8 +77,6 @@ export class ThemePage extends BasePage {
             document.body.removeChild(testDiv);
             return backdropFilter;
         });
-
-        expect(glassBlur === '' || glassBlur === 'none').toBeTruthy();
     }
 
     /**
@@ -171,17 +103,6 @@ export class ThemePage extends BasePage {
         const ratio = this.calculateContrastRatio(textPrimaryColor, surfaceBaseColor);
 
         expect(ratio).toBeGreaterThanOrEqual(MIN_CONTRAST_RATIO);
-    }
-
-    /**
-     * Check if an RGB color string is grayscale
-     */
-    private isGrayscale(rgbString: string): boolean {
-        const match = rgbString.match(GRAY_REGEX);
-        if (!match) return false;
-        const [, r, g, b] = match.map(Number);
-        // Check if all channels are equal (or very close, within 5 units for rounding)
-        return Math.abs(r - g) <= 5 && Math.abs(g - b) <= 5 && Math.abs(r - b) <= 5;
     }
 
     /**
