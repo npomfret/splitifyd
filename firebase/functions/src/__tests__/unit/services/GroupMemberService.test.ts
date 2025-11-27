@@ -503,7 +503,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             const groupId = toGroupId(group.id);
 
             // Act & Assert
-            await expect(appDriver.removeGroupMember(groupId, toUserId(''), creatorId)).rejects.toThrow(/Missing required field.*memberId/);
+            await expect(appDriver.removeGroupMember(groupId, toUserId(''), creatorId)).rejects.toThrow(/Invalid member ID/);
         });
     });
 

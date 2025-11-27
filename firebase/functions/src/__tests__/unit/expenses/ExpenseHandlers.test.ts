@@ -88,7 +88,7 @@ describe('ExpenseHandlers - Unit Tests', () => {
             await expect(appDriver.createExpense(expenseRequest, userId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'MISSING_GROUP_ID',
+                    code: 'INVALID_GROUP_ID',
                 }),
             );
         });

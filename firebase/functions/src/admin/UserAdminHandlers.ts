@@ -5,6 +5,7 @@ import { logger } from '../logger';
 import type { IAuthService } from '../services/auth';
 import type { IFirestoreReader, IFirestoreWriter } from '../services/firestore';
 import { ApiError } from '../utils/errors';
+import { validateUserIdParam } from '../validation/common';
 
 /**
  * Handler for admin user management operations
@@ -74,19 +75,8 @@ export class UserAdminHandlers {
      * PUT /admin/users/:userId
      */
     updateUser = async (req: Request, res: Response): Promise<void> => {
-        const { userId: userIdParam } = req.params;
+        const userId = validateUserIdParam(req.params);
         const { disabled } = req.body;
-
-        // Validate UID
-        if (!userIdParam || typeof userIdParam !== 'string' || userIdParam.trim().length === 0) {
-            throw new ApiError(
-                HTTP_STATUS.BAD_REQUEST,
-                'INVALID_UID',
-                'User ID is required and must be a non-empty string',
-            );
-        }
-
-        const userId = toUserId(userIdParam);
 
         // Validate payload - only 'disabled' field is allowed
         if (typeof disabled !== 'boolean') {
@@ -111,7 +101,7 @@ export class UserAdminHandlers {
 
         // Prevent self-disable
         const requestingUser = (req as any).user;
-        if (requestingUser && requestingUser.uid === userIdParam) {
+        if (requestingUser && requestingUser.uid === userId) {
             throw new ApiError(
                 HTTP_STATUS.CONFLICT,
                 'CANNOT_DISABLE_SELF',
@@ -126,18 +116,18 @@ export class UserAdminHandlers {
                 throw new ApiError(
                     HTTP_STATUS.NOT_FOUND,
                     'USER_NOT_FOUND',
-                    `User with UID ${userIdParam} not found`,
+                    `User with UID ${userId} not found`,
                 );
             }
 
             // Update user
-            await this.authService.updateUser(userIdParam, { disabled });
+            await this.authService.updateUser(userId, { disabled });
 
             // Log the action for audit trail
             const action = disabled ? 'disabled' : 'enabled';
             logger.info(`Admin ${action} user`, {
                 actorUid: requestingUser?.uid,
-                targetUid: userIdParam,
+                targetUid: userId,
                 action,
             });
 
@@ -150,7 +140,7 @@ export class UserAdminHandlers {
 
             logger.error('Failed to update user', error as Error, {
                 actorUid: requestingUser?.uid,
-                targetUid: userIdParam,
+                targetUid: userId,
                 disabled,
             });
 
@@ -167,18 +157,7 @@ export class UserAdminHandlers {
      * GET /admin/users/:userId/auth
      */
     getUserAuth = async (req: Request, res: Response): Promise<void> => {
-        const { userId: userIdParam } = req.params;
-
-        // Validate UID
-        if (!userIdParam || typeof userIdParam !== 'string' || userIdParam.trim().length === 0) {
-            throw new ApiError(
-                HTTP_STATUS.BAD_REQUEST,
-                'INVALID_UID',
-                'User ID is required and must be a non-empty string',
-            );
-        }
-
-        const userId = toUserId(userIdParam);
+        const userId = validateUserIdParam(req.params);
 
         try {
             const userRecord = await this.authService.getUser(userId);
@@ -186,7 +165,7 @@ export class UserAdminHandlers {
                 throw new ApiError(
                     HTTP_STATUS.NOT_FOUND,
                     'USER_NOT_FOUND',
-                    `User with UID ${userIdParam} not found`,
+                    `User with UID ${userId} not found`,
                 );
             }
 
@@ -209,7 +188,7 @@ export class UserAdminHandlers {
             }
 
             logger.error('Failed to get user auth record', error as Error, {
-                targetUid: userIdParam,
+                targetUid: userId,
             });
 
             throw new ApiError(
@@ -225,18 +204,7 @@ export class UserAdminHandlers {
      * GET /admin/users/:userId/firestore
      */
     getUserFirestore = async (req: Request, res: Response): Promise<void> => {
-        const { userId: userIdParam } = req.params;
-
-        // Validate UID
-        if (!userIdParam || typeof userIdParam !== 'string' || userIdParam.trim().length === 0) {
-            throw new ApiError(
-                HTTP_STATUS.BAD_REQUEST,
-                'INVALID_UID',
-                'User ID is required and must be a non-empty string',
-            );
-        }
-
-        const userId = toUserId(userIdParam);
+        const userId = validateUserIdParam(req.params);
 
         try {
             const firestoreData = await this.firestoreReader.getUser(userId);
@@ -244,7 +212,7 @@ export class UserAdminHandlers {
                 throw new ApiError(
                     HTTP_STATUS.NOT_FOUND,
                     'USER_NOT_FOUND',
-                    `Firestore user document with UID ${userIdParam} not found`,
+                    `Firestore user document with UID ${userId} not found`,
                 );
             }
 
@@ -256,7 +224,7 @@ export class UserAdminHandlers {
             }
 
             logger.error('Failed to get user firestore document', error as Error, {
-                targetUid: userIdParam,
+                targetUid: userId,
             });
 
             throw new ApiError(
@@ -272,19 +240,8 @@ export class UserAdminHandlers {
      * PUT /admin/users/:userId/role
      */
     updateUserRole = async (req: Request, res: Response): Promise<void> => {
-        const { userId: userIdParam } = req.params;
+        const userId = validateUserIdParam(req.params);
         const { role } = req.body;
-
-        // Validate UID
-        if (!userIdParam || typeof userIdParam !== 'string' || userIdParam.trim().length === 0) {
-            throw new ApiError(
-                HTTP_STATUS.BAD_REQUEST,
-                'INVALID_UID',
-                'User ID is required and must be a non-empty string',
-            );
-        }
-
-        const userId = toUserId(userIdParam);
 
         // Validate role - must be a valid SystemUserRole or null (to remove role)
         const validRoles = Object.values(SystemUserRoles);
@@ -310,7 +267,7 @@ export class UserAdminHandlers {
 
         // Prevent self-role change
         const requestingUser = (req as any).user;
-        if (requestingUser && requestingUser.uid === userIdParam) {
+        if (requestingUser && requestingUser.uid === userId) {
             throw new ApiError(
                 HTTP_STATUS.CONFLICT,
                 'CANNOT_CHANGE_OWN_ROLE',
@@ -325,7 +282,7 @@ export class UserAdminHandlers {
                 throw new ApiError(
                     HTTP_STATUS.NOT_FOUND,
                     'USER_NOT_FOUND',
-                    `User with UID ${userIdParam} not found`,
+                    `User with UID ${userId} not found`,
                 );
             }
 
@@ -337,7 +294,7 @@ export class UserAdminHandlers {
             const newRole = role ?? SystemUserRoles.SYSTEM_USER;
             logger.info('Admin updated user role in Firestore', {
                 actorUid: requestingUser?.uid,
-                targetUid: userIdParam,
+                targetUid: userId,
                 newRole,
             });
 
@@ -350,7 +307,7 @@ export class UserAdminHandlers {
 
             logger.error('Failed to update user role', error as Error, {
                 actorUid: requestingUser?.uid,
-                targetUid: userIdParam,
+                targetUid: userId,
                 role,
             });
 

@@ -2,10 +2,8 @@ import {
     CreateSettlementRequest,
     CreateSettlementRequestSchema,
     ListSettlementsQuerySchema,
-    type SettlementId,
     toGroupId,
     toISOString,
-    toSettlementId,
     UpdateSettlementRequest,
     UpdateSettlementRequestSchema,
 } from '@billsplit-wl/shared';
@@ -14,7 +12,16 @@ import { z } from 'zod';
 import { HTTP_STATUS } from '../constants';
 import { validateAmountPrecision } from '../utils/amount-validation';
 import { ApiError } from '../utils/errors';
-import { createRequestValidator, createZodErrorMapper, sanitizeInputString } from '../validation/common';
+import {
+    createRequestValidator,
+    createZodErrorMapper,
+    sanitizeInputString,
+    validateGroupIdParam,
+    validateSettlementId,
+} from '../validation/common';
+
+// Re-export centralized ID validators for backward compatibility
+export { validateGroupIdParam, validateSettlementId };
 
 const createSettlementErrorMapper = createZodErrorMapper(
     {
@@ -139,11 +146,6 @@ const baseValidateUpdateSettlement = createRequestValidator({
     mapError: (error) => mapUpdateSettlementError(error),
 }) as (body: unknown) => UpdateSettlementRequest;
 
-const settlementIdSchema = z
-    .string()
-    .trim()
-    .min(1, 'Settlement ID cannot be empty');
-
 export const validateCreateSettlement = (body: unknown): CreateSettlementRequest => {
     const value = baseValidateCreateSettlement(body);
 
@@ -179,20 +181,6 @@ export const validateUpdateSettlement = (body: unknown): UpdateSettlementRequest
     }
 
     return update;
-};
-
-export const validateSettlementId = (value: unknown): SettlementId => {
-    const result = settlementIdSchema.safeParse(value);
-    if (!result.success) {
-        const [issue] = result.error.issues;
-        throw new ApiError(
-            HTTP_STATUS.BAD_REQUEST,
-            'INVALID_SETTLEMENT_ID',
-            issue.message,
-        );
-    }
-
-    return toSettlementId(result.data);
 };
 
 // ========================================================================

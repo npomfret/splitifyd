@@ -159,7 +159,7 @@ describe('groups/validation', () => {
             expect(() => validateGroupIdParam({})).toThrowError(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'MISSING_GROUP_ID',
+                    code: 'INVALID_GROUP_ID',
                 }),
             );
         });
@@ -168,7 +168,7 @@ describe('groups/validation', () => {
             expect(() => validateGroupIdParam({ groupId: '' })).toThrowError(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'MISSING_GROUP_ID',
+                    code: 'INVALID_GROUP_ID',
                 }),
             );
         });
@@ -177,7 +177,7 @@ describe('groups/validation', () => {
             expect(() => validateGroupIdParam({ groupId: '   ' })).toThrowError(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'MISSING_GROUP_ID',
+                    code: 'INVALID_GROUP_ID',
                 }),
             );
         });

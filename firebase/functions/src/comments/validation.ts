@@ -1,9 +1,15 @@
-import { CommentBodySchema, type CommentId, type CommentText, CreateExpenseCommentRequest, CreateGroupCommentRequest, ListCommentsQuerySchema, toCommentId, toCommentText } from '@billsplit-wl/shared';
-import { HTTP_STATUS } from '../constants';
-import { validateExpenseId } from '../expenses/validation';
-import { validateGroupId } from '../groups/validation';
-import { ApiError } from '../utils/errors';
-import { createRequestValidator, createZodErrorMapper, sanitizeInputString } from '../validation/common';
+import { CommentBodySchema, type CommentText, CreateExpenseCommentRequest, CreateGroupCommentRequest, ListCommentsQuerySchema, toCommentText } from '@billsplit-wl/shared';
+import {
+    createRequestValidator,
+    createZodErrorMapper,
+    sanitizeInputString,
+    validateCommentId,
+    validateExpenseId,
+    validateGroupId,
+} from '../validation/common';
+
+// Re-export centralized ID validators for backward compatibility
+export { validateCommentId, validateExpenseId, validateGroupId };
 
 const mapCommentError = createZodErrorMapper(
     {
@@ -81,11 +87,4 @@ export const validateCreateExpenseComment = (targetId: string, body: unknown): C
 
 export const validateListCommentsQuery = (query: unknown): { cursor?: string; limit: number; } => {
     return baseValidateListCommentsQuery(query);
-};
-
-export const validateCommentId = (id: unknown): CommentId => {
-    if (typeof id !== 'string' || !id.trim()) {
-        throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_COMMENT_ID', 'Invalid comment ID');
-    }
-    return toCommentId(id.trim());
 };

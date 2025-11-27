@@ -2,7 +2,6 @@ import {
     CreateGroupRequest,
     CreateGroupRequestSchema,
     GroupFullDetailsQuerySchema,
-    GroupId,
     GroupPermissions,
     ListGroupsQuerySchema,
     MemberRoles,
@@ -10,19 +9,24 @@ import {
     MemberStatuses,
     PermissionLevels,
     toDisplayName,
-    toGroupId,
     toGroupName,
-    toUserId,
     UpdateDisplayNameRequest,
     UpdateDisplayNameRequestSchema,
     UpdateGroupRequest,
     UpdateGroupRequestSchema,
-    UserId,
 } from '@billsplit-wl/shared';
 import { z } from 'zod';
-import { HTTP_STATUS } from '../constants';
-import { ApiError } from '../utils/errors';
-import { createRequestValidator, createZodErrorMapper, sanitizeInputString } from '../validation/common';
+import {
+    createRequestValidator,
+    createZodErrorMapper,
+    sanitizeInputString,
+    validateGroupId,
+    validateGroupIdParam,
+    validateMemberId,
+} from '../validation/common';
+
+// Re-export centralized ID validators for backward compatibility
+export { validateGroupId, validateGroupIdParam, validateMemberId };
 
 // ========================================================================
 // Error Mappers
@@ -180,35 +184,6 @@ export const validateUpdateDisplayName = createRequestValidator({
     }),
     mapError: updateDisplayNameErrorMapper,
 }) as (body: unknown) => UpdateDisplayNameRequest;
-
-/**
- * Validate group ID
- */
-export const validateGroupId = (id: unknown): GroupId => {
-    if (!id || typeof id !== 'string' || id.trim().length === 0) {
-        throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_GROUP_ID', 'Group ID is required');
-    }
-
-    return toGroupId(id.trim());
-};
-
-/**
- * Validate group ID from route params.
- */
-export const validateGroupIdParam = (params: unknown): GroupId => {
-    const groupId = (params as Record<string, unknown>)?.groupId;
-    return validateGroupId(groupId);
-};
-
-/**
- * Validate member ID
- */
-export const validateMemberId = (memberId: unknown): UserId => {
-    if (!memberId || typeof memberId !== 'string' || memberId.trim().length === 0) {
-        throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_MEMBER_ID', 'Member ID is required');
-    }
-    return toUserId(memberId.trim());
-};
 
 // ========================================================================
 // Permission Schemas

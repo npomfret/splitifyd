@@ -18,7 +18,7 @@ export class GroupShareHandlers {
         const body = (req.body ?? {}) as Partial<GenerateShareLinkRequest>;
         const { groupId } = body;
         if (!groupId || typeof groupId !== 'string') {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_GROUP_ID', 'Group ID is required');
+            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_GROUP_ID', 'Invalid group ID');
         }
 
         const validGroupId = toGroupId(groupId);

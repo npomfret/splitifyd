@@ -59,7 +59,7 @@ describe('UserAdminHandlers - Unit Tests', () => {
                 appDriver.updateUser(toUserId(''), { disabled: true }, adminToken),
             )
                 .rejects
-                .toThrow('User ID is required');
+                .toThrow('Invalid user ID');
         });
 
         it('should reject request with non-boolean disabled field', async () => {
@@ -128,7 +128,7 @@ describe('UserAdminHandlers - Unit Tests', () => {
                 appDriver.updateUser(toUserId('   '), { disabled: true }, adminToken),
             )
                 .rejects
-                .toThrow('User ID is required');
+                .toThrow('Invalid user ID');
         });
 
         it('should handle missing disabled field', async () => {
@@ -222,7 +222,7 @@ describe('UserAdminHandlers - Unit Tests', () => {
                 appDriver.updateUserRole(toUserId(''), { role: SystemUserRoles.SYSTEM_ADMIN }, adminToken),
             )
                 .rejects
-                .toThrow('User ID is required');
+                .toThrow('Invalid user ID');
         });
 
         it('should reject request with extra fields', async () => {
@@ -280,7 +280,7 @@ describe('UserAdminHandlers - Unit Tests', () => {
                 appDriver.updateUserRole(toUserId('   '), { role: SystemUserRoles.SYSTEM_ADMIN }, adminToken),
             )
                 .rejects
-                .toThrow('User ID is required');
+                .toThrow('Invalid user ID');
         });
     });
 });

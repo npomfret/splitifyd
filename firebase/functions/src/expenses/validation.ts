@@ -1,10 +1,8 @@
 import {
     CreateExpenseRequest,
     CreateExpenseRequestSchema,
-    ExpenseId,
     ListExpensesQuerySchema,
     SplitTypes,
-    toExpenseId,
     toGroupId,
     toISOString,
     UpdateExpenseRequest,
@@ -16,13 +14,22 @@ import { HTTP_STATUS } from '../constants';
 import { SplitStrategyFactory } from '../services/splits/SplitStrategyFactory';
 import { validateAmountPrecision } from '../utils/amount-validation';
 import { ApiError } from '../utils/errors';
-import { createRequestValidator, createZodErrorMapper, sanitizeInputString } from '../validation/common';
+import {
+    createRequestValidator,
+    createZodErrorMapper,
+    sanitizeInputString,
+    validateExpenseId,
+    validateGroupIdParam,
+} from '../validation/common';
+
+// Re-export centralized ID validators for backward compatibility
+export { validateExpenseId, validateGroupIdParam };
 
 const createExpenseErrorMapper = createZodErrorMapper(
     {
         groupId: {
-            code: 'MISSING_GROUP_ID',
-            message: () => 'Group ID is required',
+            code: 'INVALID_GROUP_ID',
+            message: () => 'Invalid group ID',
         },
         paidBy: {
             code: 'MISSING_PAYER',
@@ -207,14 +214,6 @@ const baseUpdateExpenseValidator = createRequestValidator({
     },
     mapError: (error) => mapUpdateExpenseError(error),
 }) as (body: unknown) => UpdateExpenseRequest;
-
-export const validateExpenseId = (id: unknown): ExpenseId => {
-    if (typeof id !== 'string' || !id.trim()) {
-        throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_EXPENSE_ID', 'Invalid expense ID');
-    }
-
-    return toExpenseId(id.trim());
-};
 
 export const validateCreateExpense = (body: unknown): CreateExpenseRequest => {
     const value = baseCreateExpenseValidator(body);

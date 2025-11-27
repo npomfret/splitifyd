@@ -104,7 +104,7 @@ function getDefaultErrorCode(fieldPath: string, zodCode: string): string {
     if (fieldPath.includes('password')) return 'INVALID_PASSWORD';
     if (fieldPath.includes('amount')) return 'INVALID_AMOUNT';
     if (fieldPath.includes('date')) return 'INVALID_DATE';
-    if (fieldPath.includes('groupId')) return 'MISSING_GROUP_ID';
+    if (fieldPath.includes('groupId')) return 'INVALID_GROUP_ID';
     if (fieldPath.includes('paidBy')) return 'MISSING_PAYER';
     if (fieldPath.includes('description')) return 'INVALID_DESCRIPTION';
     if (fieldPath.includes('label')) return 'INVALID_LABEL';

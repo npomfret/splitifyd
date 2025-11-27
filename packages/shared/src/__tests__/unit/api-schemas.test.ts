@@ -207,8 +207,8 @@ describe('API Schema Validation', () => {
                 updatedAt: '2024-01-15T10:30:00.000Z',
                 preferredLanguage: 'en',
                 acceptedPolicies: {
-                    terms: 'v1.0',
-                    privacy: 'v1.0',
+                    terms: { 'v1.0': '2024-01-01T00:00:00.000Z' },
+                    privacy: { 'v1.0': '2024-01-01T00:00:00.000Z' },
                 },
             };
 
@@ -225,7 +225,10 @@ describe('API Schema Validation', () => {
             expect(result.createdAt).toBe('2024-01-01T00:00:00.000Z');
             expect(result.updatedAt).toBe('2024-01-15T10:30:00.000Z');
             expect(result.preferredLanguage).toBe('en');
-            expect(result.acceptedPolicies).toEqual({ terms: 'v1.0', privacy: 'v1.0' });
+            expect(result.acceptedPolicies).toEqual({
+                terms: { 'v1.0': '2024-01-01T00:00:00.000Z' },
+                privacy: { 'v1.0': '2024-01-01T00:00:00.000Z' },
+            });
         });
 
         it('should validate minimal admin user profile without optional fields', () => {

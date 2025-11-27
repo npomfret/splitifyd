@@ -19,9 +19,9 @@ While the project has a strong foundation for a schema-driven architecture, part
 | CRITICAL | 0 | Must fix - security/reliability risks |
 | HIGH | 0 | Should fix - significant maintenance burden |
 | MEDIUM | 0 | Nice to have - consistency improvements |
-| LOW | 2 | Minor - housekeeping |
+| LOW | 1 | Minor - housekeeping |
 | PARTIAL | 1 | Partially resolved (item #6) |
-| RESOLVED | 12 | Recently fixed |
+| RESOLVED | 13 | Recently fixed |
 
 ---
 
@@ -409,15 +409,36 @@ All list endpoints now use Zod schemas with `createRequestValidator` pattern.
 
 ---
 
-## 11. ID Validation Inconsistency [LOW]
+## 11. ID Validation Inconsistency [RESOLVED ✅]
 
-**Some paths use explicit validators, others rely on type coercion alone.**
+**~~Some paths use explicit validators, others rely on type coercion alone.~~**
 
-| ID Type | Explicit Validation | Type Coercion Only |
-|---------|--------------------|--------------------|
-| GroupId | `groups/validation.ts:88-94` | `expenses/validation.ts:71` |
-| ExpenseId | `expenses/validation.ts:200-206` | - |
-| UserId | `groups/validation.ts:169-174` | `expenses/validation.ts:79` |
+### Status: RESOLVED (November 2025)
+
+All ID validation now uses centralized Zod schema validators in `validation/common/id-validators.ts`.
+
+### Implementation
+
+1. **Created unified ID validators** using `createIdValidator<T>()` factory pattern
+2. **Migrated all handlers** to use centralized validators:
+   - `validateGroupId`, `validateGroupIdParam` - groups, expenses, settlements modules
+   - `validateExpenseId` - expenses, comments modules
+   - `validateSettlementId` - settlements module
+   - `validateCommentId` - comments module
+   - `validateUserId`, `validateUserIdParam` - admin/merge/auth handlers
+   - `validatePolicyId`, `validatePolicyIdParam` - policy handlers
+   - `validateMemberId` - group member handlers
+3. **Standardized error codes** to `INVALID_*_ID` format
+4. **Removed inline validation** from handlers (replaced with validator calls)
+
+### Files Changed
+- `validation/common/id-validators.ts` - New centralized validators
+- `groups/validation.ts`, `expenses/validation.ts`, `settlements/validation.ts`, `comments/validation.ts` - Re-export centralized validators
+- `admin/UserAdminHandlers.ts` - Uses `validateUserIdParam`
+- `policies/PolicyHandlers.ts` - Uses `validatePolicyIdParam`
+- `merge/MergeHandlers.ts` - Uses `validateUserId`
+- `groups/GroupMemberHandlers.ts` - Uses `validateMemberId`
+- `auth/utils.ts` - Uses `validateUserId`
 
 ---
 

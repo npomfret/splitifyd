@@ -1,8 +1,8 @@
-import { toUserId } from '@billsplit-wl/shared';
 import type { Response } from 'express';
 import type { AuthenticatedRequest } from '../auth/middleware';
 import { HTTP_STATUS } from '../constants';
 import { Errors } from '../utils/errors';
+import { validateUserId } from '../validation/common';
 import type { MergeService } from './MergeService';
 import type { MergeTaskService } from './MergeTaskService';
 import { validateInitiateMergeRequest, validateJobId } from './validation';
@@ -29,16 +29,13 @@ export class MergeHandlers {
      * secondaryUserId will be merged into it.
      */
     initiateMerge = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-        const primaryUserIdString = req.user?.uid;
-        if (!primaryUserIdString) {
-            throw Errors.UNAUTHORIZED();
-        }
+        const primaryUserId = validateUserId(req.user?.uid);
 
         // Validate request body
         const { secondaryUserId } = validateInitiateMergeRequest(req.body);
 
         // Initiate the merge
-        const result = await this.mergeService.initiateMerge(toUserId(primaryUserIdString), secondaryUserId);
+        const result = await this.mergeService.initiateMerge(primaryUserId, secondaryUserId);
 
         res.status(HTTP_STATUS.CREATED).json(result);
     };
@@ -48,15 +45,11 @@ export class MergeHandlers {
      * Get the status of a merge job
      */
     getMergeStatus = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-        const userIdString = req.user?.uid;
-        if (!userIdString) {
-            throw Errors.UNAUTHORIZED();
-        }
-
+        const userId = validateUserId(req.user?.uid);
         const jobId = validateJobId(req.params.jobId);
 
         // Get job via service (includes authorization check)
-        const job = await this.mergeService.getMergeJobForUser(jobId, toUserId(userIdString));
+        const job = await this.mergeService.getMergeJobForUser(jobId, userId);
 
         res.json(job);
     };

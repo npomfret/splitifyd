@@ -4,6 +4,7 @@ import { AuthenticatedRequest } from '../auth/middleware';
 import { HTTP_STATUS } from '../constants';
 import { logger } from '../logger';
 import { PolicyService } from '../services/PolicyService';
+import { validatePolicyIdParam } from '../validation/common';
 import { validateCreatePolicy, validatePublishPolicy, validateUpdatePolicy } from './validation';
 
 export class PolicyHandlers {
@@ -32,10 +33,10 @@ export class PolicyHandlers {
      * GET /admin/policies/:policyId - Get policy details and version history
      */
     getPolicy = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-        const { policyId } = req.params;
+        const policyId = validatePolicyIdParam(req.params);
 
         try {
-            const policy = await this.policyService.getPolicy(toPolicyId(policyId));
+            const policy = await this.policyService.getPolicy(policyId);
 
             res.json(policy);
         } catch (error) {
@@ -51,10 +52,11 @@ export class PolicyHandlers {
      * GET /admin/policies/:policyId/versions/:hash - Get specific version content
      */
     getPolicyVersion = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-        const { policyId, hash } = req.params;
+        const policyId = validatePolicyIdParam(req.params);
+        const { hash } = req.params;
 
         try {
-            const version = await this.policyService.getPolicyVersion(toPolicyId(policyId), toVersionHash(hash));
+            const version = await this.policyService.getPolicyVersion(policyId, toVersionHash(hash));
 
             res.json(version);
         } catch (error) {
@@ -71,14 +73,14 @@ export class PolicyHandlers {
      * PUT /admin/policies/:policyId - Create new draft version (not published)
      */
     updatePolicy = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-        const { policyId } = req.params;
+        const policyId = validatePolicyIdParam(req.params);
 
         // Validate request body using Zod
         const validatedData = validateUpdatePolicy(req.body);
         const { text, publish = false } = validatedData;
 
         try {
-            const result = await this.policyService.updatePolicy(toPolicyId(policyId), toPolicyText(text), publish);
+            const result = await this.policyService.updatePolicy(policyId, toPolicyText(text), publish);
 
             const response: UpdatePolicyResponse = {
                 versionHash: result.versionHash,
@@ -99,13 +101,13 @@ export class PolicyHandlers {
      * POST /admin/policies/:policyId/publish - Publish draft as current version
      */
     publishPolicy = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-        const { policyId } = req.params;
+        const policyId = validatePolicyIdParam(req.params);
 
         // Validate request body using shared Zod schema
         const { versionHash } = validatePublishPolicy(req.body);
 
         try {
-            const result = await this.policyService.publishPolicy(toPolicyId(policyId), versionHash);
+            const result = await this.policyService.publishPolicy(policyId, versionHash);
 
             const response: PublishPolicyResponse = {
                 currentVersionHash: result.currentVersionHash,
@@ -150,10 +152,11 @@ export class PolicyHandlers {
      * DELETE /admin/policies/:policyId/versions/:hash - Remove old version (with safeguards)
      */
     deletePolicyVersion = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-        const { policyId, hash } = req.params;
+        const policyId = validatePolicyIdParam(req.params);
+        const { hash } = req.params;
 
         try {
-            await this.policyService.deletePolicyVersion(toPolicyId(policyId), toVersionHash(hash));
+            await this.policyService.deletePolicyVersion(policyId, toVersionHash(hash));
 
             const response: DeletePolicyVersionResponse = {};
             res.json(response);

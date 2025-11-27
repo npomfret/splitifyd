@@ -1,6 +1,4 @@
 import { CommentDTO } from '@billsplit-wl/shared';
-import { toGroupId } from '@billsplit-wl/shared';
-import { toExpenseId } from '@billsplit-wl/shared';
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { validateUserAuth } from '../auth/utils';
@@ -8,7 +6,13 @@ import { HTTP_STATUS } from '../constants';
 import { logger } from '../logger';
 import { CommentService } from '../services/CommentService';
 import { ApiError } from '../utils/errors';
-import { validateCreateExpenseComment, validateCreateGroupComment, validateListCommentsQuery } from './validation';
+import {
+    validateCreateExpenseComment,
+    validateCreateGroupComment,
+    validateExpenseId,
+    validateGroupId,
+    validateListCommentsQuery,
+} from './validation';
 
 export class CommentHandlers {
     constructor(private readonly commentService: CommentService) {
@@ -53,12 +57,7 @@ export class CommentHandlers {
     listGroupComments = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
         try {
             const userId = validateUserAuth(req);
-            const groupId = toGroupId(req.params.groupId);
-
-            if (!groupId) {
-                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_GROUP_ID', 'Group ID is required');
-            }
-
+            const groupId = validateGroupId(req.params.groupId);
             const { cursor, limit } = validateListCommentsQuery(req.query);
 
             const comments = await this.commentService.listGroupComments(
@@ -87,16 +86,11 @@ export class CommentHandlers {
     listExpenseComments = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
         try {
             const userId = validateUserAuth(req);
-            const expenseId = req.params.expenseId;
-
-            if (!expenseId) {
-                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_EXPENSE_ID', 'Expense ID is required');
-            }
-
+            const expenseId = validateExpenseId(req.params.expenseId);
             const { cursor, limit } = validateListCommentsQuery(req.query);
 
             const comments = await this.commentService.listExpenseComments(
-                toExpenseId(expenseId),
+                expenseId,
                 userId,
                 {
                     cursor,

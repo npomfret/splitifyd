@@ -1,5 +1,22 @@
-import { isValidCurrency, toGroupId, toGroupName, toUserId } from '@billsplit-wl/shared';
-import type { GroupId, GroupName, UserId } from '@billsplit-wl/shared';
+import {
+    isValidCurrency,
+    toCommentId,
+    toExpenseId,
+    toGroupId,
+    toGroupName,
+    toPolicyId,
+    toSettlementId,
+    toUserId,
+} from '@billsplit-wl/shared';
+import type {
+    CommentId,
+    ExpenseId,
+    GroupId,
+    GroupName,
+    PolicyId,
+    SettlementId,
+    UserId,
+} from '@billsplit-wl/shared';
 import { z } from 'zod';
 import { FieldValue, Timestamp } from '../firestore-wrapper';
 
@@ -65,11 +82,39 @@ const DocumentIdSchema = z.object({
     id: z.string().min(1),
 });
 
-export const UserIdSchema = z.string().min(1).describe('Firebase Auth UID').transform(toUserId) as z.ZodType<UserId>;
+export const UserIdSchema = z.string().trim().min(1).describe('Firebase Auth UID').transform(toUserId) as z.ZodType<UserId>;
 
-export const GroupIdSchema = z.string().min(1).describe('Firestore Group document ID').transform(toGroupId) as z.ZodType<GroupId>;
+export const GroupIdSchema = z.string().trim().min(1).describe('Firestore Group document ID').transform(toGroupId) as z.ZodType<GroupId>;
 
-export const GroupNameSchema = z.string().min(1).describe('Group name').transform(toGroupName) as z.ZodType<GroupName>;
+export const GroupNameSchema = z.string().trim().min(1).describe('Group name').transform(toGroupName) as z.ZodType<GroupName>;
+
+export const ExpenseIdSchema = z
+    .string()
+    .trim()
+    .min(1)
+    .describe('Firestore Expense document ID')
+    .transform(toExpenseId) as z.ZodType<ExpenseId>;
+
+export const SettlementIdSchema = z
+    .string()
+    .trim()
+    .min(1)
+    .describe('Firestore Settlement document ID')
+    .transform(toSettlementId) as z.ZodType<SettlementId>;
+
+export const CommentIdSchema = z
+    .string()
+    .trim()
+    .min(1)
+    .describe('Firestore Comment document ID')
+    .transform(toCommentId) as z.ZodType<CommentId>;
+
+export const PolicyIdSchema = z
+    .string()
+    .trim()
+    .min(1)
+    .describe('Firestore Policy document ID')
+    .transform(toPolicyId) as z.ZodType<PolicyId>;
 
 export const CurrencyCodeSchema = z
     .string()

@@ -413,8 +413,8 @@ describe('CommentService - Consolidated Tests', () => {
                     expect(() => validateCreateGroupComment(id as any, new CreateGroupCommentRequestBuilder().withText('Valid').build())).toThrow(
                         expect.objectContaining({
                             statusCode: HTTP_STATUS.BAD_REQUEST,
-                            code: 'MISSING_GROUP_ID',
-                            message: 'Group ID is required',
+                            code: 'INVALID_GROUP_ID',
+                            message: 'Invalid group ID',
                         }),
                     );
                 }
@@ -639,7 +639,7 @@ describe('CommentService - Consolidated Tests', () => {
 
             it('should provide specific error codes for different validation failures', () => {
                 expect(() => validateCreateGroupComment(groupTargetId, new CreateGroupCommentRequestBuilder().withText('').build())).toThrow(expect.objectContaining({ code: 'INVALID_COMMENT_TEXT' }));
-                expect(() => validateCreateGroupComment('', new CreateGroupCommentRequestBuilder().withText('Valid').build())).toThrow(expect.objectContaining({ code: 'MISSING_GROUP_ID' }));
+                expect(() => validateCreateGroupComment('', new CreateGroupCommentRequestBuilder().withText('Valid').build())).toThrow(expect.objectContaining({ code: 'INVALID_GROUP_ID' }));
                 expect(() => validateCreateExpenseComment('', new CreateExpenseCommentRequestBuilder().withText('Valid').build())).toThrow(expect.objectContaining({ code: 'INVALID_EXPENSE_ID' }));
             });
         });

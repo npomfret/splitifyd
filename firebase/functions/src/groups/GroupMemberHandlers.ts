@@ -1,10 +1,9 @@
-import { toUserId } from '@billsplit-wl/shared';
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { HTTP_STATUS } from '../constants';
 import { GroupMemberService } from '../services/GroupMemberService';
 import { logger } from '../utils/contextual-logger';
-import { validateGroupId } from './validation';
+import { validateGroupId, validateMemberId } from './validation';
 
 export class GroupMemberHandlers {
     constructor(private readonly groupMemberService: GroupMemberService) {
@@ -29,7 +28,7 @@ export class GroupMemberHandlers {
     removeGroupMember = async (req: AuthenticatedRequest, res: Response) => {
         const userId = req.user?.uid;
         const groupId = validateGroupId(req.params.groupId);
-        const memberId = toUserId(req.params.memberId);
+        const memberId = validateMemberId(req.params.memberId);
 
         try {
             await this.groupMemberService.removeGroupMember(userId!, groupId, memberId);

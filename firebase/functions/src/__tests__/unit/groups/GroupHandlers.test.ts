@@ -257,7 +257,7 @@ describe('GroupHandlers - Unit Tests', () => {
             await expect(appDriver.updateGroup('', updateRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'MISSING_GROUP_ID',
+                    code: 'INVALID_GROUP_ID',
                 }),
             );
         });
@@ -315,7 +315,7 @@ describe('GroupHandlers - Unit Tests', () => {
             await expect(appDriver.deleteGroup('', 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'MISSING_GROUP_ID',
+                    code: 'INVALID_GROUP_ID',
                 }),
             );
         });

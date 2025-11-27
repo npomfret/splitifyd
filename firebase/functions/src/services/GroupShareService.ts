@@ -221,7 +221,7 @@ export class GroupShareService {
         let expiredLinksRemoved = 0;
 
         if (!groupId) {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_GROUP_ID', 'Group ID is required');
+            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_GROUP_ID', 'Invalid group ID');
         }
 
         timer.startPhase('query');
