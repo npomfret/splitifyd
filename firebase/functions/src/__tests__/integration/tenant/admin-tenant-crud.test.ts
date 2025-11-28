@@ -62,16 +62,11 @@ describe('Admin tenant CRUD operations', () => {
         });
 
         it('should reject tenant without tenant ID', async () => {
-            const payload = {
-                tenantId: '',
-                branding: {
-                    appName: 'Test',
-                    logoUrl: '/logo.svg',
-                    primaryColor: '#ff0000',
-                    secondaryColor: '#00ff00',
-                },
-                domains: ['test.local'],
-            };
+            const payload = AdminTenantRequestBuilder
+                .forTenant('temp-tenant')
+                .withInvalidTenantId('')
+                .withDomains(['test.local'])
+                .build();
 
             try {
                 await apiDriver.adminUpsertTenant(payload as any, adminUser.token);
@@ -380,16 +375,11 @@ describe('Admin tenant CRUD operations', () => {
         it('should validate color format', async () => {
             const tenantId = `tenant-color-${Date.now()}`;
 
-            const payload = {
-                tenantId,
-                branding: {
-                    appName: 'Test Colors',
-                    logoUrl: '/logo.svg',
-                    primaryColor: 'invalid-color',
-                    secondaryColor: '#34a853',
-                },
-                domains: [`${tenantId}.local`],
-            };
+            const payload = AdminTenantRequestBuilder
+                .forTenant(tenantId)
+                .withInvalidPrimaryColor('invalid-color')
+                .withDomains([`${tenantId}.local`])
+                .build();
 
             try {
                 await apiDriver.adminUpsertTenant(payload as any, adminUser.token);

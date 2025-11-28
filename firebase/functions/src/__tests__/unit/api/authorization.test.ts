@@ -5,8 +5,6 @@ import {
     toPolicyId,
     toPolicyName,
     toPolicyText,
-    toShowLandingPageFlag,
-    toShowPricingPageFlag,
     toTenantAppName,
     toTenantDomainName,
     toTenantFaviconUrl,
@@ -17,7 +15,16 @@ import {
     USD,
 } from '@billsplit-wl/shared';
 import type { UserId } from '@billsplit-wl/shared';
-import { AdminTenantRequestBuilder, CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
+import {
+    AddTenantDomainRequestBuilder,
+    AdminTenantRequestBuilder,
+    CreateExpenseRequestBuilder,
+    CreateGroupRequestBuilder,
+    CreateSettlementRequestBuilder,
+    SettlementUpdateBuilder,
+    TenantBrandingUpdateBuilder,
+    UserRegistrationBuilder,
+} from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, it } from 'vitest';
 import { AppDriver } from '../AppDriver';
 
@@ -164,10 +171,10 @@ describe('authorization', () => {
         const settlementId = groupDetails.settlements.settlements[0].id;
 
         // Currency is required when updating amount
-        await expect(appDriver.updateSettlement(settlementId, {
-            amount: '45.00',
-            currency: USD,
-        }, user1))
+        const updateRequest = SettlementUpdateBuilder.empty()
+            .withAmount(45.00, USD)
+            .build();
+        await expect(appDriver.updateSettlement(settlementId, updateRequest, user1))
             .rejects
             .toMatchObject({ code: 'NOT_SETTLEMENT_CREATOR' });
     });
@@ -336,10 +343,10 @@ describe('authorization', () => {
 
         describe('PUT /settings/tenant/branding', () => {
             it('should allow tenant admin to update branding', async () => {
-                const brandingData = {
-                    appName: toTenantAppName('Custom Brand'),
-                    primaryColor: toTenantPrimaryColor('#FF0000'),
-                };
+                const brandingData = TenantBrandingUpdateBuilder.empty()
+                    .withAppName('Custom Brand')
+                    .withPrimaryColor('#FF0000')
+                    .build();
 
                 // Returns 204 No Content on success
                 await appDriver.updateTenantBranding(brandingData, user1);
@@ -351,10 +358,12 @@ describe('authorization', () => {
             });
 
             it('should update partial branding fields', async () => {
+                const brandingData = TenantBrandingUpdateBuilder.empty()
+                    .withLogoUrl('https://custom.com/logo.svg')
+                    .build();
+
                 // Returns 204 No Content on success
-                await appDriver.updateTenantBranding({
-                    logoUrl: toTenantLogoUrl('https://custom.com/logo.svg'),
-                }, user1);
+                await appDriver.updateTenantBranding(brandingData, user1);
 
                 // Verify the update persisted
                 const settings = await appDriver.getTenantSettings(user1);
@@ -362,13 +371,12 @@ describe('authorization', () => {
             });
 
             it('should update marketing flags', async () => {
+                const brandingData = TenantBrandingUpdateBuilder.empty()
+                    .withMarketingFlags({ showLandingPage: false, showPricingPage: true })
+                    .build();
+
                 // Returns 204 No Content on success
-                await appDriver.updateTenantBranding({
-                    marketingFlags: {
-                        showLandingPage: toShowLandingPageFlag(false),
-                        showPricingPage: toShowPricingPageFlag(true),
-                    },
-                }, user1);
+                await appDriver.updateTenantBranding(brandingData, user1);
 
                 // Verify the update persisted
                 const settings = await appDriver.getTenantSettings(user1);
@@ -377,9 +385,9 @@ describe('authorization', () => {
             });
 
             it('should deny regular user access to update branding', async () => {
-                const brandingData = {
-                    appName: toTenantAppName('Custom Brand'),
-                };
+                const brandingData = TenantBrandingUpdateBuilder.empty()
+                    .withAppName('Custom Brand')
+                    .build();
 
                 await expect(appDriver.updateTenantBranding(brandingData, user2)).rejects.toThrow(
                     expect.objectContaining({
@@ -392,10 +400,12 @@ describe('authorization', () => {
                 const systemAdmin = user3;
                 appDriver.seedAdminUser(systemAdmin); // Promote to system admin
 
+                const brandingData = TenantBrandingUpdateBuilder.empty()
+                    .withAppName('System Admin Updated')
+                    .build();
+
                 // Returns 204 No Content on success
-                await appDriver.updateTenantBranding({
-                    appName: toTenantAppName('System Admin Updated'),
-                }, systemAdmin);
+                await appDriver.updateTenantBranding(brandingData, systemAdmin);
 
                 // Verify the update persisted
                 const settings = await appDriver.getTenantSettings(systemAdmin);
@@ -405,9 +415,9 @@ describe('authorization', () => {
 
         describe('POST /settings/tenant/domains', () => {
             it('should return 501 not implemented for domain addition', async () => {
-                const domainData = {
-                    domain: toTenantDomainName('custom.example.com'),
-                };
+                const domainData = new AddTenantDomainRequestBuilder()
+                    .withDomain('custom.example.com')
+                    .build();
 
                 await expect(appDriver.addTenantDomain(domainData, user1)).rejects.toThrow(
                     expect.objectContaining({
@@ -418,9 +428,9 @@ describe('authorization', () => {
             });
 
             it('should deny regular user access to add domain', async () => {
-                const domainData = {
-                    domain: toTenantDomainName('custom.example.com'),
-                };
+                const domainData = new AddTenantDomainRequestBuilder()
+                    .withDomain('custom.example.com')
+                    .build();
 
                 await expect(appDriver.addTenantDomain(domainData, user2)).rejects.toThrow(
                     expect.objectContaining({
@@ -456,10 +466,10 @@ describe('authorization', () => {
     });
 
     it('should reject extra fields', async () => {
-        const invalidData = {
-            appName: toTenantAppName('Valid'),
-            unexpectedField: 'should fail',
-        };
+        const invalidData = TenantBrandingUpdateBuilder.empty()
+            .withAppName('Valid')
+            .withExtraField('unexpectedField', 'should fail')
+            .build();
 
         await expect(appDriver.updateTenantBranding(invalidData, adminUser)).rejects.toThrow(
             expect.objectContaining({
@@ -469,9 +479,9 @@ describe('authorization', () => {
     });
 
     it('should reject invalid branding data', async () => {
-        const invalidData = {
-            appName: toTenantAppName(''), // Empty string not allowed
-        };
+        const invalidData = TenantBrandingUpdateBuilder.empty()
+            .withInvalidAppName('') // Empty string not allowed
+            .build();
 
         await expect(appDriver.updateTenantBranding(invalidData, adminUser)).rejects.toThrow(
             expect.objectContaining({

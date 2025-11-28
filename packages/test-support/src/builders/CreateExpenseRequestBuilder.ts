@@ -100,6 +100,67 @@ export class CreateExpenseRequestBuilder {
         return this;
     }
 
+    withInvalidGroupId(value: string = ''): this {
+        (this.expense as any).groupId = value;
+        return this;
+    }
+
+    withInvalidPaidBy(value: string = ''): this {
+        (this.expense as any).paidBy = value;
+        return this;
+    }
+
+    withInvalidAmount(value: number): this {
+        (this.expense as any).amount = value;
+        return this;
+    }
+
+    withInvalidDescription(value: string = ''): this {
+        (this.expense as any).description = value;
+        return this;
+    }
+
+    withInvalidLabel(value: string): this {
+        (this.expense as any).label = value;
+        return this;
+    }
+
+    withInvalidSplitType(value: string): this {
+        (this.expense as any).splitType = value;
+        this.splitsExplicitlySet = true;
+        return this;
+    }
+
+    withInvalidParticipants(value: string[] = []): this {
+        (this.expense as any).participants = value;
+        this.splitsExplicitlySet = true;
+        return this;
+    }
+
+    /** For testing split total validation - modifies split amounts to mismatch expense total */
+    withMismatchedSplitTotal(splitAmounts: string[]): this {
+        if (splitAmounts.length !== this.expense.splits.length) {
+            throw new Error('Must provide same number of split amounts as participants');
+        }
+        this.expense.splits = this.expense.splits.map((split, i) => ({
+            ...split,
+            amount: splitAmounts[i],
+        }));
+        this.splitsExplicitlySet = true;
+        return this;
+    }
+
+    /** For testing currency precision validation - sets amount and split amounts with invalid precision */
+    withInvalidCurrencyPrecision(amount: string, splitAmounts: string[]): this {
+        (this.expense as any).amount = amount;
+        this.expense.splits = this.expense.splits.map((split, i) => ({
+            ...split,
+            amount: splitAmounts[i] || amount,
+        }));
+        this.splitsExplicitlySet = true;
+        return this;
+    }
+
     build(): CreateExpenseRequest {
         // Only recalculate splits if they weren't explicitly set via withSplits()
         // This allows tests to provide invalid splits for validation testing

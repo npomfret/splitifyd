@@ -46,22 +46,15 @@ describe('validation and edge cases', () => {
         await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
         const participants = [user1, user2];
-        const baseExpense = new CreateExpenseRequestBuilder()
+        const invalidExpense = new CreateExpenseRequestBuilder()
             .withGroupId(groupId)
             .withAmount(100, USD)
             .withPaidBy(user1)
             .withParticipants(participants)
             .withSplitType('exact')
             .withSplits(calculateEqualSplits(toAmount(100), USD, participants))
+            .withMismatchedSplitTotal(['80.00', '30.00']) // total 110 != 100
             .build();
-
-        const invalidExpense = {
-            ...baseExpense,
-            splits: [
-                { ...baseExpense.splits[0], amount: '80.00' },
-                { ...baseExpense.splits[1], amount: '30.00' },
-            ],
-        };
 
         await expect(appDriver.createExpense(invalidExpense, user1))
             .rejects
@@ -76,23 +69,16 @@ describe('validation and edge cases', () => {
         await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
         const participants = [user1, user2];
-        const baseExpense = new CreateExpenseRequestBuilder()
+        // JPY doesn't support decimals, so 12.34 is invalid precision
+        const invalidExpense = new CreateExpenseRequestBuilder()
             .withGroupId(groupId)
             .withAmount(12, toCurrencyISOCode('JPY'))
             .withPaidBy(user1)
             .withParticipants(participants)
             .withSplitType('exact')
             .withSplits(calculateEqualSplits(toAmount(12), toCurrencyISOCode('JPY'), participants))
+            .withInvalidCurrencyPrecision('12.34', ['6.17', '6.17'])
             .build();
-
-        const invalidExpense = {
-            ...baseExpense,
-            amount: '12.34',
-            splits: baseExpense.splits.map((split) => ({
-                ...split,
-                amount: '6.17',
-            })),
-        };
 
         await expect(appDriver.createExpense(invalidExpense, user1))
             .rejects

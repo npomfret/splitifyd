@@ -14,6 +14,10 @@ export class CreateGroupRequestBuilder {
         };
     }
 
+    static empty(): EmptyCreateGroupRequestBuilder {
+        return new EmptyCreateGroupRequestBuilder();
+    }
+
     withName(name: GroupName | string): this {
         this.group.name = typeof name === 'string' ? toGroupName(name) : name;
         return this;
@@ -40,5 +44,29 @@ export class CreateGroupRequestBuilder {
         }
 
         return result;
+    }
+}
+
+/** Builder for creating empty/partial requests for validation testing */
+class EmptyCreateGroupRequestBuilder {
+    private group: Partial<CreateGroupRequest> = {};
+
+    withName(name: GroupName | string): this {
+        this.group.name = typeof name === 'string' ? toGroupName(name) : name;
+        return this;
+    }
+
+    withDescription(description: string): this {
+        this.group.description = description;
+        return this;
+    }
+
+    withGroupDisplayName(displayName: DisplayName | string): this {
+        this.group.groupDisplayName = typeof displayName === 'string' ? toDisplayName(displayName) : displayName;
+        return this;
+    }
+
+    build(): Partial<CreateGroupRequest> {
+        return { ...this.group };
     }
 }

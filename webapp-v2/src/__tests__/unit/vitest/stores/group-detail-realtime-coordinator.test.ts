@@ -1,7 +1,8 @@
 import type { ActivityFeedRealtimeConsumer, ActivityFeedRealtimePayload } from '@/app/services/activity-feed-realtime-service';
 import { GroupDetailRealtimeCoordinator } from '@/app/stores/helpers/group-detail-realtime-coordinator';
 import type { GroupId } from '@billsplit-wl/shared';
-import { toGroupId, toUserId } from '@billsplit-wl/shared';
+import { toGroupId, toGroupName, toUserId } from '@billsplit-wl/shared';
+import { ActivityFeedItemBuilder, ActivityFeedRealtimePayloadBuilder } from '@billsplit-wl/test-support';
 import { describe, expect, it, vi } from 'vitest';
 
 interface TestContext {
@@ -88,19 +89,16 @@ describe('GroupDetailRealtimeCoordinator', () => {
         const consumer = ctx.getConsumer();
         expect(consumer).toBeDefined();
 
-        const payload: ActivityFeedRealtimePayload = {
-            items: [],
-            newItems: [
-                {
-                    id: 'event-1',
-                    eventType: 'member-left',
-                    groupId,
-                    details: { targetUserId: 'user-1' },
-                } as any,
-            ],
-            hasMore: false,
-            nextCursor: null,
-        };
+        const memberLeftEvent = ActivityFeedItemBuilder
+            .memberLeft('event-1', toUserId('user-1'), groupId, toGroupName('Test Group'), 'Test User', 'user-1', toUserId('user-1'))
+            .build();
+
+        const payload = new ActivityFeedRealtimePayloadBuilder()
+            .withItems([])
+            .withNewItems([memberLeftEvent])
+            .withHasMore(false)
+            .withNullCursor()
+            .build();
 
         consumer?.onUpdate(payload);
 
@@ -118,19 +116,16 @@ describe('GroupDetailRealtimeCoordinator', () => {
         ctx.setActiveGroup(groupId);
 
         const consumer = ctx.getConsumer();
-        const payload: ActivityFeedRealtimePayload = {
-            items: [],
-            newItems: [
-                {
-                    id: 'event-2',
-                    eventType: 'expense-created',
-                    groupId,
-                    details: {},
-                } as any,
-            ],
-            hasMore: false,
-            nextCursor: null,
-        };
+        const expenseCreatedEvent = ActivityFeedItemBuilder
+            .expenseCreated('event-2', toUserId('user-1'), groupId, toGroupName('Test Group'), 'Test User', 'Lunch')
+            .build();
+
+        const payload = new ActivityFeedRealtimePayloadBuilder()
+            .withItems([])
+            .withNewItems([expenseCreatedEvent])
+            .withHasMore(false)
+            .withNullCursor()
+            .build();
 
         consumer?.onUpdate(payload);
 
@@ -152,19 +147,18 @@ describe('GroupDetailRealtimeCoordinator', () => {
         ctx.coordinator.deregisterComponent(groupId);
         ctx.coordinator.deregisterComponent(groupId); // remove remaining subscriber & deregister
 
-        consumer?.onUpdate({
-            items: [],
-            newItems: [
-                {
-                    id: 'event-3',
-                    eventType: 'expense-created',
-                    groupId,
-                    details: {},
-                } as any,
-            ],
-            hasMore: false,
-            nextCursor: null,
-        });
+        const expenseCreatedEvent = ActivityFeedItemBuilder
+            .expenseCreated('event-3', toUserId('user-1'), groupId, toGroupName('Test Group'), 'Test User', 'Lunch')
+            .build();
+
+        const payload = new ActivityFeedRealtimePayloadBuilder()
+            .withItems([])
+            .withNewItems([expenseCreatedEvent])
+            .withHasMore(false)
+            .withNullCursor()
+            .build();
+
+        consumer?.onUpdate(payload);
 
         expect(ctx.onActivityRefresh).not.toHaveBeenCalled();
     });

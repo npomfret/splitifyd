@@ -52,6 +52,12 @@ export class UserRegistrationBuilder {
         return this;
     }
 
+    /** For testing password validation - sets a password that's too weak */
+    withInvalidPassword(password: string): this {
+        (this.userRegistration as any).password = toPassword(password);
+        return this;
+    }
+
     from(data: UserRegistration): this {
         this.userRegistration = { ...data };
         return this;

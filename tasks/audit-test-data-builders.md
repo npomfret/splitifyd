@@ -2,7 +2,64 @@
 
 This document reports the findings of an audit of all test files in the project. The audit was conducted to identify any test cases that manually create raw data objects instead of using the required builder pattern.
 
-## Summary of Findings
+## Progress (Updated 2025-01-28)
+
+### ✅ COMPLETED - New Builders Created
+- `TenantBrandingUpdateBuilder` - For `UpdateTenantBrandingRequest` testing
+- `AddTenantDomainRequestBuilder` - For `AddTenantDomainRequest` testing
+- `ActivityFeedResponseBuilder` - For `ActivityFeedResponse` objects
+- `ActivityFeedRealtimePayloadBuilder` - For `ActivityFeedRealtimePayload` objects
+
+### ✅ COMPLETED - Enhanced Existing Builders
+- `CreateExpenseRequestBuilder`: Added `withMismatchedSplitTotal()`, `withInvalidCurrencyPrecision()`
+- `UserRegistrationBuilder`: Added `withInvalidPassword()`
+- `AdminTenantRequestBuilder`: Added `withInvalidTenantId()`, `withInvalidPrimaryColor()`
+- `ActivityFeedRealtimePayloadBuilder`: Added `withNullCursor()`
+- `CreateGroupRequestBuilder`: Added `static empty()` factory method
+- `BrandingTokensBuilder`: Added `withWordmarkUrl()`, `withMotionFlags()`, `withAllPaletteColors()`
+
+### ✅ COMPLETED - Fixed Test Files
+| File | Status |
+|------|--------|
+| `GroupLifecycleSimulator.test.ts` | ✅ Fixed - uses `registerUser()` helper with `UserRegistrationBuilder` |
+| `security-rules.test.ts` | ✅ Fixed - uses `GroupUpdateBuilder`, `ExpenseUpdateBuilder`, `SettlementUpdateBuilder` |
+| `ExpenseHandlers.test.ts` | ✅ Fixed - uses `ExpenseUpdateBuilder` and `withInvalidX()` methods |
+| `ThemeArtifactService.test.ts` | ✅ Fixed - uses `BrandingTokensBuilder` |
+| `admin.test.ts` | ✅ Fixed - uses `AdminTenantRequestBuilder` with new helper methods |
+| `GroupHandlers.test.ts` | ✅ Fixed - uses `CreateGroupRequestBuilder.empty()` and `GroupUpdateBuilder.empty()` |
+| `SettlementHandlers.test.ts` | ✅ Fixed - uses `SettlementUpdateBuilder.empty()` |
+| `GroupService.test.ts` | ✅ Fixed - uses `GroupUpdateBuilder` methods |
+| `authorization.test.ts` | ✅ Fixed - uses `TenantBrandingUpdateBuilder`, `AddTenantDomainRequestBuilder`, `SettlementUpdateBuilder` |
+| `validation.test.ts` | ✅ Fixed - uses `CreateExpenseRequestBuilder` with `withMismatchedSplitTotal()`, `withInvalidCurrencyPrecision()` |
+| `admin-tenant-crud.test.ts` | ✅ Fixed - uses `AdminTenantRequestBuilder` with `withInvalidTenantId()`, `withInvalidPrimaryColor()` |
+| `auth-and-registration.test.ts` | ✅ Fixed - uses `UserRegistrationBuilder` with `withInvalidPassword()` |
+| `activity-feed-store.test.ts` | ✅ Fixed - uses `ActivityFeedResponseBuilder`, `ActivityFeedRealtimePayloadBuilder` |
+| `group-detail-realtime-coordinator.test.ts` | ✅ Fixed - uses `ActivityFeedItemBuilder`, `ActivityFeedRealtimePayloadBuilder` |
+
+### ⏭️ ACCEPTABLE EXCEPTIONS (No Changes Needed)
+| File | Reason |
+|------|--------|
+| `CommentService.test.ts` | Query parameter validation tests - testing raw query objects is appropriate |
+| `check-invalid-data-does-not-break-the-api.integration.test.ts` | Intentionally corrupted data for error handling tests |
+| `split-utils.test.ts` | Testing raw numbers to demonstrate floating point issues (why we use strings) |
+| `PolicyService.test.ts` | Extracting subset of fields from existing object for assertion |
+| `ThemeArtifactStorage.test.ts` | Internal storage service payload, not a DTO |
+| `debtSimplifier.test.ts` | Already uses `UserBalanceBuilder` - false positive in audit |
+
+### 🔄 REMAINING (Low Priority)
+- `e2e-tests/src/__tests__/integration/expense-and-balance-lifecycle.e2e.test.ts`
+- `webapp-v2/src/__tests__/integration/playwright/group-security-pending-members.test.ts`
+- `webapp-v2/src/__tests__/integration/playwright/policy-acceptance-modal.test.ts`
+- `webapp-v2/src/__tests__/integration/playwright/group-detail-comments-pagination.test.ts`
+- `webapp-v2/src/__tests__/integration/playwright/settlement-history-locked.test.ts`
+- `webapp-v2/src/__tests__/unit/vitest/stores/groups-realtime-coordinator.test.ts`
+- `webapp-v2/src/__tests__/integration/playwright/dashboard-archive-groups.test.ts`
+- `webapp-v2/src/__tests__/unit/vitest/stores/group-detail-side-effects.test.ts`
+- `webapp-v2/src/__tests__/unit/vitest/stores/comments-store.test.ts`
+
+---
+
+## Original Findings
 
 The following files contain violations of the builder pattern requirement. Each entry includes the file path, line number, and the code that violates the rule.
 

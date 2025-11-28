@@ -1,7 +1,7 @@
 import type { ActivityFeedRealtimeConsumer, ActivityFeedRealtimePayload, ActivityFeedRealtimeService } from '@/app/services/activity-feed-realtime-service';
 import { ActivityFeedStoreImpl } from '@/app/stores/activity-feed-store';
-import { type ActivityFeedItem, type ActivityFeedResponse, toGroupId, toGroupName, toUserId, type UserId } from '@billsplit-wl/shared';
-import { ActivityFeedItemBuilder } from '@billsplit-wl/test-support';
+import { type ActivityFeedItem, toGroupId, toGroupName, toUserId, type UserId } from '@billsplit-wl/shared';
+import { ActivityFeedItemBuilder, ActivityFeedRealtimePayloadBuilder, ActivityFeedResponseBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 
@@ -89,17 +89,17 @@ describe('ActivityFeedStoreImpl', () => {
             const initialItems = Array.from({ length: 10 }, (_, index) => buildItem(`item-${index}`, index));
             const olderItems = [buildItem('older-0', 10), buildItem('older-1', 11), buildItem('older-2', 12)];
 
-            const initialResponse: ActivityFeedResponse = {
-                items: initialItems,
-                hasMore: true,
-                nextCursor: initialItems[initialItems.length - 1]!.id,
-            };
+            const initialResponse = new ActivityFeedResponseBuilder()
+                .withItems(initialItems)
+                .withHasMore(true)
+                .withNextCursor(initialItems[initialItems.length - 1]!.id)
+                .build();
 
-            const loadMoreResponse: ActivityFeedResponse = {
-                items: olderItems,
-                hasMore: false,
-                nextCursor: undefined,
-            };
+            const loadMoreResponse = new ActivityFeedResponseBuilder()
+                .withItems(olderItems)
+                .withHasMore(false)
+                .withoutNextCursor()
+                .build();
 
             (store as any).applyInitialResponse(initialResponse, true);
             (store as any).applyLoadMoreResponse(loadMoreResponse);
@@ -108,12 +108,12 @@ describe('ActivityFeedStoreImpl', () => {
 
             const newTopItem = buildItem('realtime-new', -1);
             const realtimeFirstPage = [newTopItem, ...initialItems.slice(0, 9)];
-            const realtimeUpdate: ActivityFeedRealtimePayload = {
-                items: realtimeFirstPage,
-                newItems: [newTopItem],
-                hasMore: true,
-                nextCursor: realtimeFirstPage[realtimeFirstPage.length - 1]!.id,
-            };
+            const realtimeUpdate = new ActivityFeedRealtimePayloadBuilder()
+                .withItems(realtimeFirstPage)
+                .withNewItems([newTopItem])
+                .withHasMore(true)
+                .withNextCursor(realtimeFirstPage[realtimeFirstPage.length - 1]!.id)
+                .build();
 
             (store as any).handleRealtimeUpdate(realtimeUpdate);
 
@@ -125,21 +125,21 @@ describe('ActivityFeedStoreImpl', () => {
         it('merges load more response without duplicates', () => {
             const initialItems = Array.from({ length: 10 }, (_, index) => buildItem(`item-${index}`, index));
 
-            const initialResponse: ActivityFeedResponse = {
-                items: initialItems,
-                hasMore: true,
-                nextCursor: 'item-9',
-            };
+            const initialResponse = new ActivityFeedResponseBuilder()
+                .withItems(initialItems)
+                .withHasMore(true)
+                .withNextCursor('item-9')
+                .build();
 
             (store as any).applyInitialResponse(initialResponse, true);
 
             const olderItems = [buildItem('older-0', 10), buildItem('item-9', 9), buildItem('older-1', 11)];
 
-            const loadMoreResponse: ActivityFeedResponse = {
-                items: olderItems,
-                hasMore: false,
-                nextCursor: undefined,
-            };
+            const loadMoreResponse = new ActivityFeedResponseBuilder()
+                .withItems(olderItems)
+                .withHasMore(false)
+                .withoutNextCursor()
+                .build();
 
             (store as any).applyLoadMoreResponse(loadMoreResponse);
 
@@ -298,11 +298,13 @@ describe('ActivityFeedStoreImpl', () => {
 
     describe('Empty State', () => {
         it('handles empty initial response', async () => {
-            mockedApiClient.getActivityFeed.mockResolvedValue({
-                items: [],
-                hasMore: false,
-                nextCursor: undefined,
-            });
+            mockedApiClient.getActivityFeed.mockResolvedValue(
+                new ActivityFeedResponseBuilder()
+                    .withItems([])
+                    .withHasMore(false)
+                    .withoutNextCursor()
+                    .build()
+            );
 
             await store.registerComponent('comp-1', toUserId('user-1'));
 
@@ -312,12 +314,12 @@ describe('ActivityFeedStoreImpl', () => {
         });
 
         it('sets initialized when realtime update is empty', () => {
-            const update: ActivityFeedRealtimePayload = {
-                items: [],
-                newItems: [],
-                hasMore: false,
-                nextCursor: null,
-            };
+            const update = new ActivityFeedRealtimePayloadBuilder()
+                .withItems([])
+                .withNewItems([])
+                .withHasMore(false)
+                .withNullCursor()
+                .build();
 
             (store as any).handleRealtimeUpdate(update);
 
@@ -329,11 +331,13 @@ describe('ActivityFeedStoreImpl', () => {
     describe('Reset', () => {
         it('clears all state and subscriptions', async () => {
             const items = [buildItem('1', 1)];
-            mockedApiClient.getActivityFeed.mockResolvedValue({
-                items,
-                hasMore: true,
-                nextCursor: '1',
-            });
+            mockedApiClient.getActivityFeed.mockResolvedValue(
+                new ActivityFeedResponseBuilder()
+                    .withItems(items)
+                    .withHasMore(true)
+                    .withNextCursor('1')
+                    .build()
+            );
 
             await store.registerComponent('comp-1', toUserId('user-1'));
 

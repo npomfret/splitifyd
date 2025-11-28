@@ -1,4 +1,5 @@
 import type { BrandingTokens } from '@billsplit-wl/shared';
+import { BrandingTokensBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { ThemeArtifactStorage } from '../../../../services/storage/ThemeArtifactStorage';
 import { ThemeArtifactService } from '../../../../services/tenant/ThemeArtifactService';
@@ -19,162 +20,10 @@ class StubThemeArtifactStorage implements ThemeArtifactStorage {
 describe('ThemeArtifactService', () => {
     let service: ThemeArtifactService;
     let storage: StubThemeArtifactStorage;
-
-    const mockTokens: BrandingTokens = {
-        version: 1,
-        palette: {
-            primary: '#0066cc',
-            primaryVariant: '#0052a3',
-            secondary: '#ff6600',
-            secondaryVariant: '#cc5200',
-            accent: '#00cc99',
-            neutral: '#666666',
-            neutralVariant: '#888888',
-            success: '#28a745',
-            warning: '#ffc107',
-            danger: '#dc3545',
-            info: '#17a2b8',
-        },
-        typography: {
-            fontFamily: {
-                sans: 'Inter, system-ui, sans-serif',
-                serif: 'Georgia, serif',
-                mono: 'Fira Code, monospace',
-            },
-            sizes: {
-                xs: '0.75rem',
-                sm: '0.875rem',
-                md: '1rem',
-                lg: '1.125rem',
-                xl: '1.25rem',
-                '2xl': '1.5rem',
-                '3xl': '1.875rem',
-                '4xl': '2.25rem',
-                '5xl': '3rem',
-            },
-            weights: {
-                regular: 400,
-                medium: 500,
-                semibold: 600,
-                bold: 700,
-            },
-            lineHeights: {
-                compact: '1.25rem',
-                standard: '1.5rem',
-                spacious: '1.75rem',
-            },
-            letterSpacing: {
-                tight: '-0.01rem',
-                normal: '0rem',
-                wide: '0.05rem',
-            },
-            semantics: {
-                body: 'md',
-                bodyStrong: 'md',
-                caption: 'sm',
-                button: 'md',
-                eyebrow: 'xs',
-                heading: 'xl',
-                display: '3xl',
-            },
-        },
-        spacing: {
-            '2xs': '0.25rem',
-            xs: '0.5rem',
-            sm: '0.75rem',
-            md: '1rem',
-            lg: '1.5rem',
-            xl: '2rem',
-            '2xl': '3rem',
-        },
-        radii: {
-            none: '0rem',
-            sm: '0.125rem',
-            md: '0.25rem',
-            lg: '0.5rem',
-            pill: '9999px',
-            full: '50rem',
-        },
-        shadows: {
-            sm: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-            md: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-            lg: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-        },
-        assets: {
-            logoUrl: 'https://example.com/logo.svg',
-            faviconUrl: 'https://example.com/favicon.ico',
-            wordmarkUrl: 'https://example.com/wordmark.svg',
-        },
-        legal: {
-            companyName: 'Test Company',
-            supportEmail: 'support@example.com',
-            privacyPolicyUrl: 'https://example.com/privacy',
-            termsOfServiceUrl: 'https://example.com/terms',
-        },
-        semantics: {
-            colors: {
-                surface: {
-                    base: '#ffffff',
-                    raised: '#f9f9f9',
-                    sunken: '#f0f0f0',
-                    overlay: '#000000',
-                    warning: '#fffacd',
-                },
-                text: {
-                    primary: '#000000',
-                    secondary: '#666666',
-                    muted: '#999999',
-                    inverted: '#ffffff',
-                    accent: '#0066cc',
-                },
-                interactive: {
-                    primary: '#0066cc',
-                    primaryHover: '#0052a3',
-                    primaryActive: '#003d7a',
-                    primaryForeground: '#ffffff',
-                    secondary: '#f0f0f0',
-                    secondaryHover: '#e0e0e0',
-                    secondaryActive: '#d0d0d0',
-                    secondaryForeground: '#000000',
-                    accent: '#22c55e',
-                    destructive: '#dc3545',
-                    destructiveHover: '#c82333',
-                    destructiveActive: '#bd2130',
-                    destructiveForeground: '#ffffff',
-                },
-                border: {
-                    subtle: '#f0f0f0',
-                    default: '#d0d0d0',
-                    strong: '#999999',
-                    focus: '#0066cc',
-                    warning: '#ffd700',
-                },
-                status: {
-                    success: '#28a745',
-                    warning: '#ffc107',
-                    danger: '#dc3545',
-                    info: '#17a2b8',
-                },
-            },
-            spacing: {
-                pagePadding: '1rem',
-                sectionGap: '2rem',
-                cardPadding: '1.5rem',
-                componentGap: '0.5rem',
-            },
-            typography: {
-                body: 'md',
-                bodyStrong: 'md',
-                caption: 'sm',
-                button: 'md',
-                eyebrow: 'xs',
-                heading: 'xl',
-                display: '3xl',
-            },
-        },
-    };
+    let mockTokens: BrandingTokens;
 
     beforeEach(() => {
+        mockTokens = new BrandingTokensBuilder().build();
         storage = new StubThemeArtifactStorage();
         service = new ThemeArtifactService(storage);
     });
@@ -202,7 +51,9 @@ describe('ThemeArtifactService', () => {
         it('should produce different hashes for different tokens', async () => {
             const result1 = await service.generate('test-tenant', mockTokens);
 
-            const differentTokens: BrandingTokens = { ...mockTokens, palette: { ...mockTokens.palette, primary: '#ff0000' as `#${string}` } };
+            const differentTokens = new BrandingTokensBuilder()
+                .withPrimaryColor('#ff0000')
+                .build();
             const result2 = await service.generate('test-tenant', differentTokens);
 
             expect(result1.hash).not.toBe(result2.hash);
@@ -250,16 +101,16 @@ describe('ThemeArtifactService', () => {
         it('should flatten nested tokens into CSS variables', async () => {
             const result = await service.generate('test-tenant', mockTokens);
 
-            // Palette colors should be flattened
-            expect(result.cssContent).toContain('--palette-primary: #0066cc');
-            expect(result.cssContent).toContain('--palette-secondary: #ff6600');
+            // Palette colors should be flattened (using builder defaults)
+            expect(result.cssContent).toContain('--palette-primary: #2563eb');
+            expect(result.cssContent).toContain('--palette-secondary: #7c3aed');
 
             // Typography should be flattened
             expect(result.cssContent).toContain('--typography-sizes-md: 1rem');
             expect(result.cssContent).toContain('--typography-weights-bold: 700');
 
-            // Spacing should be flattened
-            expect(result.cssContent).toContain('--spacing-md: 1rem');
+            // Spacing should be flattened (builder default for md is 0.75rem)
+            expect(result.cssContent).toContain('--spacing-md: 0.75rem');
         });
 
         it('should sort CSS variables alphabetically', async () => {
@@ -275,10 +126,10 @@ describe('ThemeArtifactService', () => {
         it('should handle nested objects in tokens', async () => {
             const result = await service.generate('test-tenant', mockTokens);
 
-            // Semantics colors are deeply nested
-            expect(result.cssContent).toContain('--semantics-colors-surface-base: #ffffff');
-            expect(result.cssContent).toContain('--semantics-colors-text-primary: #000000');
-            expect(result.cssContent).toContain('--semantics-colors-interactive-primary: #0066cc');
+            // Semantics colors are deeply nested (using builder defaults)
+            expect(result.cssContent).toContain('--semantics-colors-surface-base: #f8fafc');
+            expect(result.cssContent).toContain('--semantics-colors-text-primary: #0f172a');
+            expect(result.cssContent).toContain('--semantics-colors-interactive-primary: #2563eb');
         });
 
         it('should handle numeric values in tokens', async () => {
@@ -298,13 +149,9 @@ describe('ThemeArtifactService', () => {
         });
 
         it('should skip null and undefined values', async () => {
-            const tokensWithNulls = {
-                ...mockTokens,
-                assets: {
-                    ...mockTokens.assets,
-                    wordmarkUrl: undefined,
-                },
-            };
+            const tokensWithNulls = new BrandingTokensBuilder()
+                .withWordmarkUrl(undefined)
+                .build();
 
             const result = await service.generate('test-tenant', tokensWithNulls);
 
@@ -330,14 +177,13 @@ describe('ThemeArtifactService', () => {
         });
 
         it('should generate motion feature flag CSS variables when motion is defined', async () => {
-            const tokensWithMotion: BrandingTokens = {
-                ...mockTokens,
-                motion: {
+            const tokensWithMotion = new BrandingTokensBuilder()
+                .withMotionFlags({
                     enableParallax: true,
                     enableMagneticHover: false,
                     enableScrollReveal: true,
-                },
-            };
+                })
+                .build();
 
             const result = await service.generate('test-tenant', tokensWithMotion);
 
@@ -358,29 +204,9 @@ describe('ThemeArtifactService', () => {
         });
 
         it('should handle minimal token set', async () => {
-            const minimalTokens: BrandingTokens = {
-                version: 1,
-                palette: {
-                    primary: '#000000',
-                    primaryVariant: '#000000',
-                    secondary: '#000000',
-                    secondaryVariant: '#000000',
-                    accent: '#000000',
-                    neutral: '#000000',
-                    neutralVariant: '#000000',
-                    success: '#000000',
-                    warning: '#000000',
-                    danger: '#000000',
-                    info: '#000000',
-                },
-                typography: mockTokens.typography,
-                spacing: mockTokens.spacing,
-                radii: mockTokens.radii,
-                shadows: mockTokens.shadows,
-                assets: mockTokens.assets,
-                legal: mockTokens.legal,
-                semantics: mockTokens.semantics,
-            };
+            const minimalTokens = new BrandingTokensBuilder()
+                .withAllPaletteColors('#000000')
+                .build();
 
             const result = await service.generate('test-tenant', minimalTokens);
 
@@ -398,20 +224,9 @@ describe('ThemeArtifactService', () => {
         });
 
         it('should use explicit skeleton colors when defined', async () => {
-            const tokensWithSkeletonColors: BrandingTokens = {
-                ...mockTokens,
-                semantics: {
-                    ...mockTokens.semantics,
-                    colors: {
-                        ...mockTokens.semantics.colors,
-                        surface: {
-                            ...mockTokens.semantics.colors.surface,
-                            skeleton: '#1e293b',
-                            skeletonShimmer: '#334155',
-                        },
-                    },
-                },
-            };
+            const tokensWithSkeletonColors = new BrandingTokensBuilder()
+                .withSkeletonColors('#1e293b', '#334155')
+                .build();
 
             const result = await service.generate('test-tenant', tokensWithSkeletonColors);
 

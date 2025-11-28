@@ -347,7 +347,9 @@ describe('GroupService - Unit Tests', () => {
                 });
 
                 it('should trim whitespace from names in updates', () => {
-                    const update = { name: '  Updated Name  ' };
+                    const update = GroupUpdateBuilder.empty()
+                        .withName('  Updated Name  ')
+                        .build();
                     const result = validateUpdateGroup(update);
                     expect(result.name).toBe('Updated Name');
                 });
@@ -363,7 +365,9 @@ describe('GroupService - Unit Tests', () => {
                 });
 
                 it('should reject description updates that are too long', () => {
-                    const update = { description: 'A'.repeat(VALIDATION_LIMITS.MAX_GROUP_DESCRIPTION_LENGTH + 1) };
+                    const update = GroupUpdateBuilder.empty()
+                        .withInvalidDescription('A'.repeat(VALIDATION_LIMITS.MAX_GROUP_DESCRIPTION_LENGTH + 1))
+                        .build();
 
                     expect(() => validateUpdateGroup(update)).toThrow(
                         expect.objectContaining({
@@ -373,7 +377,9 @@ describe('GroupService - Unit Tests', () => {
                 });
 
                 it('should trim whitespace from descriptions in updates', () => {
-                    const update = { description: '  Updated description  ' };
+                    const update = GroupUpdateBuilder.empty()
+                        .withDescription('  Updated description  ')
+                        .build();
                     const result = validateUpdateGroup(update);
                     expect(result.description).toBe('Updated description');
                 });

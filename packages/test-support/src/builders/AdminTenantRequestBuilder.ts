@@ -293,6 +293,45 @@ export class AdminTenantRequestBuilder {
         return this;
     }
 
+    withEmptyDomains(): this {
+        (this.payload as any).domains = [];
+        return this;
+    }
+
+    withFontFamily(fonts: { sans?: string; serif?: string; mono?: string }): this {
+        if (fonts.sans) this.tokens.typography.fontFamily.sans = fonts.sans;
+        if (fonts.serif) this.tokens.typography.fontFamily.serif = fonts.serif;
+        if (fonts.mono) this.tokens.typography.fontFamily.mono = fonts.mono;
+        return this;
+    }
+
+    withGradient(gradient: { primary?: [string, string]; accent?: [string, string]; aurora?: string[] }): this {
+        if (!this.tokens.semantics.colors.gradient) {
+            this.tokens.semantics.colors.gradient = {} as any;
+        }
+        if (gradient.primary) {
+            this.tokens.semantics.colors.gradient!.primary = gradient.primary as any;
+        }
+        if (gradient.accent) {
+            this.tokens.semantics.colors.gradient!.accent = gradient.accent as any;
+        }
+        if (gradient.aurora) {
+            this.tokens.semantics.colors.gradient!.aurora = gradient.aurora as any;
+        }
+        return this;
+    }
+
+    withEmptyGradient(): this {
+        this.tokens.semantics.colors.gradient = {} as any;
+        return this;
+    }
+
+    withGlassColors(glass: string, glassBorder: string): this {
+        this.tokens.semantics.colors.surface.glass = glass as any;
+        this.tokens.semantics.colors.surface.glassBorder = glassBorder as any;
+        return this;
+    }
+
     asDefaultTenant(): this {
         this.payload.defaultTenant = toTenantDefaultFlag(true);
         return this;
@@ -360,5 +399,20 @@ export class AdminTenantRequestBuilder {
      */
     static forTenant(tenantId: string): AdminTenantRequestBuilder {
         return new AdminTenantRequestBuilder(tenantId);
+    }
+
+    /** For testing validation - sets an invalid (empty) tenant ID */
+    withInvalidTenantId(tenantId: string): this {
+        (this.payload as any).tenantId = tenantId;
+        return this;
+    }
+
+    /** For testing validation - sets an invalid primary color in both branding and tokens */
+    withInvalidPrimaryColor(color: string): this {
+        (this.payload.branding as any).primaryColor = color;
+        if (this.payload.brandingTokens?.tokens?.palette) {
+            (this.payload.brandingTokens.tokens.palette as any).primary = color;
+        }
+        return this;
     }
 }

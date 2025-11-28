@@ -135,7 +135,7 @@ describe('GroupHandlers - Unit Tests', () => {
         });
 
         it('should reject group creation with missing name field', async () => {
-            const invalidRequest = {};
+            const invalidRequest = CreateGroupRequestBuilder.empty().build();
 
             await expect(appDriver.createGroup(invalidRequest as any, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
@@ -239,7 +239,7 @@ describe('GroupHandlers - Unit Tests', () => {
         });
 
         it('should reject update with no fields provided', async () => {
-            const updateRequest = {};
+            const updateRequest = GroupUpdateBuilder.empty().build();
 
             await expect(appDriver.updateGroup('test-group', updateRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({

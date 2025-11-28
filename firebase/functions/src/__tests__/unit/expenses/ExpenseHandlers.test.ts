@@ -1,7 +1,7 @@
 import { StubCloudTasksClient, StubStorage } from '@billsplit-wl/firebase-simulator';
 import type { UpdateExpenseRequest } from '@billsplit-wl/shared';
 import { toCurrencyISOCode, USD } from '@billsplit-wl/shared';
-import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, StubFirestoreDatabase, UserRegistrationBuilder } from '@billsplit-wl/test-support';
+import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, ExpenseUpdateBuilder, StubFirestoreDatabase, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ExpenseHandlers } from '../../../expenses/ExpenseHandlers';
@@ -82,8 +82,9 @@ describe('ExpenseHandlers - Unit Tests', () => {
 
         it('should reject expense with missing group ID', async () => {
             const userId = 'test-user';
-            const expenseRequest = new CreateExpenseRequestBuilder().build();
-            (expenseRequest as any).groupId = '';
+            const expenseRequest = new CreateExpenseRequestBuilder()
+                .withInvalidGroupId('')
+                .build();
 
             await expect(appDriver.createExpense(expenseRequest, userId)).rejects.toThrow(
                 expect.objectContaining({
@@ -95,8 +96,9 @@ describe('ExpenseHandlers - Unit Tests', () => {
 
         it('should reject expense with missing payer', async () => {
             const userId = 'test-user';
-            const expenseRequest = new CreateExpenseRequestBuilder().build();
-            (expenseRequest as any).paidBy = '';
+            const expenseRequest = new CreateExpenseRequestBuilder()
+                .withInvalidPaidBy('')
+                .build();
 
             await expect(appDriver.createExpense(expenseRequest, userId)).rejects.toThrow(
                 expect.objectContaining({
@@ -108,8 +110,9 @@ describe('ExpenseHandlers - Unit Tests', () => {
 
         it('should reject expense with zero amount', async () => {
             const userId = 'test-user';
-            const expenseRequest = new CreateExpenseRequestBuilder().build();
-            (expenseRequest as any).amount = 0;
+            const expenseRequest = new CreateExpenseRequestBuilder()
+                .withInvalidAmount(0)
+                .build();
 
             await expect(appDriver.createExpense(expenseRequest, userId)).rejects.toThrow(
                 expect.objectContaining({
@@ -121,8 +124,9 @@ describe('ExpenseHandlers - Unit Tests', () => {
 
         it('should reject expense with negative amount', async () => {
             const userId = 'test-user';
-            const expenseRequest = new CreateExpenseRequestBuilder().build();
-            (expenseRequest as any).amount = -50;
+            const expenseRequest = new CreateExpenseRequestBuilder()
+                .withInvalidAmount(-50)
+                .build();
 
             await expect(appDriver.createExpense(expenseRequest, userId)).rejects.toThrow(
                 expect.objectContaining({
@@ -134,8 +138,9 @@ describe('ExpenseHandlers - Unit Tests', () => {
 
         it('should reject expense with empty description', async () => {
             const userId = 'test-user';
-            const expenseRequest = new CreateExpenseRequestBuilder().build();
-            (expenseRequest as any).description = '';
+            const expenseRequest = new CreateExpenseRequestBuilder()
+                .withInvalidDescription('')
+                .build();
 
             await expect(appDriver.createExpense(expenseRequest, userId)).rejects.toThrow(
                 expect.objectContaining({
@@ -147,8 +152,9 @@ describe('ExpenseHandlers - Unit Tests', () => {
 
         it('should reject expense with invalid label', async () => {
             const userId = 'test-user';
-            const expenseRequest = new CreateExpenseRequestBuilder().build();
-            (expenseRequest as any).label = 'a'.repeat(51);
+            const expenseRequest = new CreateExpenseRequestBuilder()
+                .withInvalidLabel('a'.repeat(51))
+                .build();
 
             await expect(appDriver.createExpense(expenseRequest, userId)).rejects.toThrow(
                 expect.objectContaining({
@@ -160,8 +166,9 @@ describe('ExpenseHandlers - Unit Tests', () => {
 
         it('should reject expense with invalid split type', async () => {
             const userId = 'test-user';
-            const expenseRequest = new CreateExpenseRequestBuilder().build();
-            (expenseRequest as any).splitType = 'invalid';
+            const expenseRequest = new CreateExpenseRequestBuilder()
+                .withInvalidSplitType('invalid')
+                .build();
 
             await expect(appDriver.createExpense(expenseRequest, userId)).rejects.toThrow(
                 expect.objectContaining({
@@ -173,8 +180,9 @@ describe('ExpenseHandlers - Unit Tests', () => {
 
         it('should reject expense with no participants', async () => {
             const userId = 'test-user';
-            const expenseRequest = new CreateExpenseRequestBuilder().build();
-            (expenseRequest as any).participants = [];
+            const expenseRequest = new CreateExpenseRequestBuilder()
+                .withInvalidParticipants([])
+                .build();
 
             await expect(appDriver.createExpense(expenseRequest, userId)).rejects.toThrow(
                 expect.objectContaining({
@@ -238,9 +246,9 @@ describe('ExpenseHandlers - Unit Tests', () => {
 
             const expense = await appDriver.createExpense(expenseRequest, userId);
 
-            const updateRequest: UpdateExpenseRequest = {
-                description: 'Updated description',
-            };
+            const updateRequest = ExpenseUpdateBuilder.minimal()
+                .withDescription('Updated description')
+                .build();
 
             const newExpense = await appDriver.updateExpense(expense.id, updateRequest, userId);
 
@@ -268,9 +276,9 @@ describe('ExpenseHandlers - Unit Tests', () => {
 
             const expense = await appDriver.createExpense(expenseRequest, userId);
 
-            const updateRequest: UpdateExpenseRequest = {
-                label: 'Transport',
-            };
+            const updateRequest = ExpenseUpdateBuilder.minimal()
+                .withLabel('Transport')
+                .build();
 
             const newExpense = await appDriver.updateExpense(expense.id, updateRequest, userId);
 
@@ -280,7 +288,9 @@ describe('ExpenseHandlers - Unit Tests', () => {
         });
 
         it('should reject update with invalid expense ID', async () => {
-            const updateRequest: UpdateExpenseRequest = { amount: '150' };
+            const updateRequest = ExpenseUpdateBuilder.minimal()
+                .withAmount(150, 'USD')
+                .build();
 
             await expect(appDriver.updateExpense('', updateRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
@@ -291,7 +301,7 @@ describe('ExpenseHandlers - Unit Tests', () => {
         });
 
         it('should reject update with no fields provided', async () => {
-            const updateRequest = {};
+            const updateRequest = ExpenseUpdateBuilder.minimal().build();
 
             await expect(appDriver.updateExpense('test-expense', updateRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
@@ -302,10 +312,9 @@ describe('ExpenseHandlers - Unit Tests', () => {
         });
 
         it('should reject update with invalid amount precision when currency provided', async () => {
-            const updateRequest: UpdateExpenseRequest = {
-                amount: '100.50',
-                currency: jpy,
-            };
+            const updateRequest = ExpenseUpdateBuilder.minimal()
+                .withAmount(100.50, jpy)
+                .build();
 
             await expect(appDriver.updateExpense('test-expense', updateRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
@@ -316,9 +325,9 @@ describe('ExpenseHandlers - Unit Tests', () => {
         });
 
         it('should reject update with empty description', async () => {
-            const updateRequest: UpdateExpenseRequest = {
-                description: '',
-            };
+            const updateRequest = ExpenseUpdateBuilder.minimal()
+                .withInvalidDescription('')
+                .build();
 
             await expect(appDriver.updateExpense('test-expense', updateRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
@@ -329,9 +338,9 @@ describe('ExpenseHandlers - Unit Tests', () => {
         });
 
         it('should reject update with invalid label length', async () => {
-            const updateRequest: UpdateExpenseRequest = {
-                label: 'a'.repeat(51),
-            };
+            const updateRequest = ExpenseUpdateBuilder.minimal()
+                .withInvalidLabel('a'.repeat(51))
+                .build();
 
             await expect(appDriver.updateExpense('test-expense', updateRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({

@@ -124,17 +124,10 @@ describe('Admin Tests', () => {
             });
 
             it('should reject tenant with no domains', async () => {
-                const payload = {
-                    tenantId: 'tenant_no_domains',
-                    branding: {
-                        appName: toTenantAppName('Test App'),
-                        logoUrl: toTenantLogoUrl('https://example.com/logo.png'),
-                        primaryColor: toTenantPrimaryColor('#ff0000'),
-                        secondaryColor: toTenantSecondaryColor('#00ff00'),
-                        accentColor: toTenantAccentColor('#0000ff'),
-                    },
-                    domains: [] as any,
-                };
+                const payload = AdminTenantRequestBuilder
+                    .forTenant('tenant_no_domains')
+                    .withEmptyDomains()
+                    .build();
 
                 await expect(appDriver.adminUpsertTenant(payload, localAdminUser))
                     .rejects
@@ -518,19 +511,19 @@ describe('Admin Tests', () => {
         describe('Typography Settings', () => {
             it('should persist custom font families when creating tenant with typography', async () => {
                 const tenantId = `test-typography-${Date.now()}`;
-                const customFonts = {
-                    sans: 'Roboto, Arial, sans-serif',
-                    serif: 'Merriweather, Georgia, serif',
-                    mono: 'Fira Code, Consolas, monospace',
-                };
+                const expectedSans = 'Roboto, Arial, sans-serif';
+                const expectedSerif = 'Merriweather, Georgia, serif';
+                const expectedMono = 'Fira Code, Consolas, monospace';
 
                 const payload = AdminTenantRequestBuilder
                     .forTenant(tenantId)
                     .withDomains([toTenantDomainName(`${tenantId}.test.local`)])
+                    .withFontFamily({
+                        sans: expectedSans,
+                        serif: expectedSerif,
+                        mono: expectedMono,
+                    })
                     .build();
-
-                // Customize typography
-                payload.brandingTokens!.tokens.typography.fontFamily = customFonts;
 
                 const result = await appDriver.adminUpsertTenant(payload, localAdminUser);
                 expect(result.created).toBe(true);
@@ -539,26 +532,27 @@ describe('Admin Tests', () => {
                 const response = await appDriver.listAllTenants(localAdminUser);
                 const createdTenant = response.tenants.find(t => t.tenant.tenantId === tenantId);
 
-                expect(createdTenant?.brandingTokens?.tokens.typography.fontFamily.sans).toBe(customFonts.sans);
-                expect(createdTenant?.brandingTokens?.tokens.typography.fontFamily.serif).toBe(customFonts.serif);
-                expect(createdTenant?.brandingTokens?.tokens.typography.fontFamily.mono).toBe(customFonts.mono);
+                expect(createdTenant?.brandingTokens?.tokens.typography.fontFamily.sans).toBe(expectedSans);
+                expect(createdTenant?.brandingTokens?.tokens.typography.fontFamily.serif).toBe(expectedSerif);
+                expect(createdTenant?.brandingTokens?.tokens.typography.fontFamily.mono).toBe(expectedMono);
             });
 
             it('should preserve existing typography when updating other branding fields', async () => {
                 const tenantId = `test-typography-preserve-${Date.now()}`;
-                const customFonts = {
-                    sans: 'Montserrat, Helvetica, sans-serif',
-                    serif: 'Playfair Display, Times New Roman, serif',
-                    mono: 'Source Code Pro, Courier, monospace',
-                };
+                const expectedSans = 'Montserrat, Helvetica, sans-serif';
+                const expectedSerif = 'Playfair Display, Times New Roman, serif';
+                const expectedMono = 'Source Code Pro, Courier, monospace';
 
                 // Create tenant with custom typography
                 const createPayload = AdminTenantRequestBuilder
                     .forTenant(tenantId)
                     .withDomains([toTenantDomainName(`${tenantId}.test.local`)])
+                    .withFontFamily({
+                        sans: expectedSans,
+                        serif: expectedSerif,
+                        mono: expectedMono,
+                    })
                     .build();
-
-                createPayload.brandingTokens!.tokens.typography.fontFamily = customFonts;
 
                 await appDriver.adminUpsertTenant(createPayload, localAdminUser);
 
@@ -585,9 +579,9 @@ describe('Admin Tests', () => {
                 const response = await appDriver.listAllTenants(localAdminUser);
                 const updatedTenant = response.tenants.find(t => t.tenant.tenantId === tenantId);
 
-                expect(updatedTenant?.brandingTokens?.tokens.typography.fontFamily.sans).toBe(customFonts.sans);
-                expect(updatedTenant?.brandingTokens?.tokens.typography.fontFamily.serif).toBe(customFonts.serif);
-                expect(updatedTenant?.brandingTokens?.tokens.typography.fontFamily.mono).toBe(customFonts.mono);
+                expect(updatedTenant?.brandingTokens?.tokens.typography.fontFamily.sans).toBe(expectedSans);
+                expect(updatedTenant?.brandingTokens?.tokens.typography.fontFamily.serif).toBe(expectedSerif);
+                expect(updatedTenant?.brandingTokens?.tokens.typography.fontFamily.mono).toBe(expectedMono);
                 expect(updatedTenant?.brandingTokens?.tokens.palette.primary).toBe('#00ff00');
             });
 
@@ -619,13 +613,8 @@ describe('Admin Tests', () => {
                 const payload = AdminTenantRequestBuilder
                     .forTenant(tenantId)
                     .withDomains([toTenantDomainName(`${tenantId}.test.local`)])
+                    .withGradient({ aurora: customGradient })
                     .build();
-
-                // Set custom aurora gradient
-                if (!payload.brandingTokens!.tokens.semantics.colors.gradient) {
-                    payload.brandingTokens!.tokens.semantics.colors.gradient = {};
-                }
-                payload.brandingTokens!.tokens.semantics.colors.gradient.aurora = customGradient as `#${string}`[];
 
                 const result = await appDriver.adminUpsertTenant(payload, localAdminUser);
                 expect(result.created).toBe(true);
@@ -645,12 +634,8 @@ describe('Admin Tests', () => {
                 const createPayload = AdminTenantRequestBuilder
                     .forTenant(tenantId)
                     .withDomains([toTenantDomainName(`${tenantId}.test.local`)])
+                    .withGradient({ aurora: customGradient })
                     .build();
-
-                if (!createPayload.brandingTokens!.tokens.semantics.colors.gradient) {
-                    createPayload.brandingTokens!.tokens.semantics.colors.gradient = {};
-                }
-                createPayload.brandingTokens!.tokens.semantics.colors.gradient.aurora = customGradient as `#${string}`[];
 
                 await appDriver.adminUpsertTenant(createPayload, localAdminUser);
 
@@ -707,20 +692,15 @@ describe('Admin Tests', () => {
         describe('Glassmorphism Settings', () => {
             it('should persist custom glassmorphism colors when creating tenant', async () => {
                 const tenantId = `test-glass-${Date.now()}`;
-                const customGlass = {
-                    glass: 'rgba(10, 20, 30, 0.6)',
-                    glassBorder: 'rgba(200, 210, 220, 0.2)',
-                };
+                const expectedGlass = 'rgba(10, 20, 30, 0.6)';
+                const expectedGlassBorder = 'rgba(200, 210, 220, 0.2)';
 
                 const payload = AdminTenantRequestBuilder
                     .forTenant(tenantId)
                     .withAuroraTheme() // Enables glassmorphism
                     .withDomains([toTenantDomainName(`${tenantId}.test.local`)])
+                    .withGlassColors(expectedGlass, expectedGlassBorder)
                     .build();
-
-                // Override glass colors
-                payload.brandingTokens!.tokens.semantics.colors.surface.glass = customGlass.glass as `rgba(${string})`;
-                payload.brandingTokens!.tokens.semantics.colors.surface.glassBorder = customGlass.glassBorder as `rgba(${string})`;
 
                 const result = await appDriver.adminUpsertTenant(payload, localAdminUser);
                 expect(result.created).toBe(true);
@@ -729,26 +709,22 @@ describe('Admin Tests', () => {
                 const response = await appDriver.listAllTenants(localAdminUser);
                 const createdTenant = response.tenants.find(t => t.tenant.tenantId === tenantId);
 
-                expect(createdTenant?.brandingTokens?.tokens.semantics.colors.surface.glass).toBe(customGlass.glass);
-                expect(createdTenant?.brandingTokens?.tokens.semantics.colors.surface.glassBorder).toBe(customGlass.glassBorder);
+                expect(createdTenant?.brandingTokens?.tokens.semantics.colors.surface.glass).toBe(expectedGlass);
+                expect(createdTenant?.brandingTokens?.tokens.semantics.colors.surface.glassBorder).toBe(expectedGlassBorder);
             });
 
             it('should preserve existing glassmorphism when updating other fields', async () => {
                 const tenantId = `test-glass-preserve-${Date.now()}`;
-                const customGlass = {
-                    glass: 'rgba(50, 60, 70, 0.5)',
-                    glassBorder: 'rgba(100, 150, 200, 0.15)',
-                };
+                const expectedGlass = 'rgba(50, 60, 70, 0.5)';
+                const expectedGlassBorder = 'rgba(100, 150, 200, 0.15)';
 
                 // Create tenant with custom glass colors
                 const createPayload = AdminTenantRequestBuilder
                     .forTenant(tenantId)
                     .withAuroraTheme()
                     .withDomains([toTenantDomainName(`${tenantId}.test.local`)])
+                    .withGlassColors(expectedGlass, expectedGlassBorder)
                     .build();
-
-                createPayload.brandingTokens!.tokens.semantics.colors.surface.glass = customGlass.glass as `rgba(${string})`;
-                createPayload.brandingTokens!.tokens.semantics.colors.surface.glassBorder = customGlass.glassBorder as `rgba(${string})`;
 
                 await appDriver.adminUpsertTenant(createPayload, localAdminUser);
 
@@ -776,8 +752,8 @@ describe('Admin Tests', () => {
                 const response = await appDriver.listAllTenants(localAdminUser);
                 const updatedTenant = response.tenants.find(t => t.tenant.tenantId === tenantId);
 
-                expect(updatedTenant?.brandingTokens?.tokens.semantics.colors.surface.glass).toBe(customGlass.glass);
-                expect(updatedTenant?.brandingTokens?.tokens.semantics.colors.surface.glassBorder).toBe(customGlass.glassBorder);
+                expect(updatedTenant?.brandingTokens?.tokens.semantics.colors.surface.glass).toBe(expectedGlass);
+                expect(updatedTenant?.brandingTokens?.tokens.semantics.colors.surface.glassBorder).toBe(expectedGlassBorder);
                 expect(updatedTenant?.brandingTokens?.tokens.palette.primary).toBe('#aa00aa');
             });
 

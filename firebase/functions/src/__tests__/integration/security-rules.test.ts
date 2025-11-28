@@ -4,12 +4,15 @@ import {
     ClientUserBuilder,
     CommentBuilder,
     ExpenseDTOBuilder,
+    ExpenseUpdateBuilder,
     getFirestorePort,
     GroupBalanceDocumentBuilder,
     GroupDTOBuilder,
     GroupMemberDocumentBuilder,
+    GroupUpdateBuilder,
     PolicyDocumentBuilder,
     SettlementDTOBuilder,
+    SettlementUpdateBuilder,
 } from '@billsplit-wl/test-support';
 import { assertFails, assertSucceeds, initializeTestEnvironment } from '@firebase/rules-unit-testing';
 import { collection, doc, getDoc, getDocs, limit, onSnapshot, query, setDoc } from 'firebase/firestore';
@@ -137,9 +140,9 @@ describe('Firestore Security Rules (Production)', () => {
         });
 
         it('should deny all client writes to groups', async () => {
-            const updateData = {
-                name: 'Updated Group Name',
-            };
+            const updateData = GroupUpdateBuilder.empty()
+                .withName('Updated Group Name')
+                .build();
 
             // Even group members cannot write
             await assertFails(setDoc(doc(user1Db, 'groups', groupId), updateData, { merge: true }));
@@ -192,9 +195,9 @@ describe('Firestore Security Rules (Production)', () => {
         });
 
         it('should deny all client writes to expenses', async () => {
-            const updateData = {
-                description: 'Updated Expense',
-            };
+            const updateData = ExpenseUpdateBuilder.minimal()
+                .withDescription('Updated Expense')
+                .build();
 
             // Even group members cannot write
             await assertFails(setDoc(doc(user1Db, 'expenses', expenseId), updateData, { merge: true }));
@@ -237,9 +240,9 @@ describe('Firestore Security Rules (Production)', () => {
         });
 
         it('should deny all client writes to settlements', async () => {
-            const updateData = {
-                amount: '75',
-            };
+            const updateData = SettlementUpdateBuilder.empty()
+                .withAmount(75, 'USD')
+                .build();
 
             // No clients can write settlements
             await assertFails(setDoc(doc(user1Db, 'settlements', settlementId), updateData, { merge: true }));

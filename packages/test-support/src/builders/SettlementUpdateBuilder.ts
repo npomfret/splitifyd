@@ -8,15 +8,23 @@ import { convertToISOString, generateShortId, randomDate, randomValidCurrencyAmo
 export class SettlementUpdateBuilder {
     private update: Partial<UpdateSettlementRequest>;
 
-    constructor() {
-        const { currency, amount } = randomValidCurrencyAmountPair(5, 200);
+    constructor(useDefaults: boolean = true) {
+        if (useDefaults) {
+            const { currency, amount } = randomValidCurrencyAmountPair(5, 200);
 
-        this.update = {
-            amount,
-            currency,
-            date: convertToISOString(randomDate()),
-            note: `Updated settlement ${generateShortId()}`,
-        };
+            this.update = {
+                amount,
+                currency,
+                date: convertToISOString(randomDate()),
+                note: `Updated settlement ${generateShortId()}`,
+            };
+        } else {
+            this.update = {};
+        }
+    }
+
+    static empty(): SettlementUpdateBuilder {
+        return new SettlementUpdateBuilder(false);
     }
 
     withAmount(amount: Amount | number, currency: CurrencyISOCode | string): this {
@@ -37,6 +45,16 @@ export class SettlementUpdateBuilder {
 
     withNote(note: string): this {
         this.update.note = note;
+        return this;
+    }
+
+    withInvalidAmount(value: string): this {
+        (this.update as any).amount = value;
+        return this;
+    }
+
+    withInvalidNote(value: string): this {
+        (this.update as any).note = value;
         return this;
     }
 

@@ -84,6 +84,21 @@ export class ExpenseUpdateBuilder {
         return this;
     }
 
+    withInvalidDescription(value: string = ''): this {
+        (this.update as any).description = value;
+        return this;
+    }
+
+    withInvalidLabel(value: string): this {
+        (this.update as any).label = value;
+        return this;
+    }
+
+    withInvalidAmount(value: string): this {
+        (this.update as any).amount = value;
+        return this;
+    }
+
     build(): Partial<UpdateExpenseRequest> {
         return {
             ...(this.update.amount !== undefined && { amount: this.update.amount }),

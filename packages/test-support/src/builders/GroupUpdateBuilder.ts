@@ -4,11 +4,19 @@ import { generateShortId, randomChoice, randomString } from '../test-helpers';
 export class GroupUpdateBuilder {
     private update: Partial<UpdateGroupRequest>;
 
-    constructor() {
-        this.update = {
-            name: toGroupName(`${randomChoice(['Updated', 'New', 'Modified', 'Changed'])} ${randomChoice(['Team', 'Group', 'Squad', 'Club'])} ${randomString(4)}`),
-            description: `${randomChoice(['Updated', 'Modified', 'New'])} description ${generateShortId()}`,
-        };
+    constructor(useDefaults: boolean = true) {
+        if (useDefaults) {
+            this.update = {
+                name: toGroupName(`${randomChoice(['Updated', 'New', 'Modified', 'Changed'])} ${randomChoice(['Team', 'Group', 'Squad', 'Club'])} ${randomString(4)}`),
+                description: `${randomChoice(['Updated', 'Modified', 'New'])} description ${generateShortId()}`,
+            };
+        } else {
+            this.update = {};
+        }
+    }
+
+    static empty(): GroupUpdateBuilder {
+        return new GroupUpdateBuilder(false);
     }
 
     withName(name: string | GroupName): this {
@@ -18,6 +26,16 @@ export class GroupUpdateBuilder {
 
     withDescription(description: string): this {
         this.update.description = description;
+        return this;
+    }
+
+    withInvalidName(value: string): this {
+        (this.update as any).name = value;
+        return this;
+    }
+
+    withInvalidDescription(value: string): this {
+        (this.update as any).description = value;
         return this;
     }
 

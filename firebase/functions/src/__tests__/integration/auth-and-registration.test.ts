@@ -208,7 +208,10 @@ describe('Authentication and Registration - Integration Tests (Essential Firebas
                     .build();
 
                 // First attempt with invalid password
-                const invalidData = { ...userData, password: toPassword('123') }; // Too weak
+                const invalidData = new UserRegistrationBuilder()
+                    .from(userData)
+                    .withInvalidPassword('123') // Too weak
+                    .build();
 
                 await expect(apiDriver.register(invalidData)).rejects.toThrow(/400|password/i);
 

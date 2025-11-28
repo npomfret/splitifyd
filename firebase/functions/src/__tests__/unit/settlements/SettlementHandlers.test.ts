@@ -669,7 +669,9 @@ describe('SettlementHandlers - Unit Tests', () => {
         });
 
         it('should reject update with invalid settlement ID', async () => {
-            const updateRequest = { amount: '150' };
+            const updateRequest = SettlementUpdateBuilder.empty()
+                .withAmount(150, 'USD')
+                .build();
 
             await expect(appDriver.updateSettlement('', updateRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
@@ -680,7 +682,7 @@ describe('SettlementHandlers - Unit Tests', () => {
         });
 
         it('should reject update with no fields provided', async () => {
-            const updateRequest = {};
+            const updateRequest = SettlementUpdateBuilder.empty().build();
 
             await expect(appDriver.updateSettlement('test-settlement', updateRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
@@ -691,10 +693,9 @@ describe('SettlementHandlers - Unit Tests', () => {
         });
 
         it('should reject update with invalid amount precision when currency provided', async () => {
-            const updateRequest = {
-                amount: '100.50',
-                currency: toCurrencyISOCode('JPY'),
-            };
+            const updateRequest = SettlementUpdateBuilder.empty()
+                .withAmount(100.50, toCurrencyISOCode('JPY'))
+                .build();
 
             await expect(appDriver.updateSettlement('test-settlement', updateRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
@@ -715,7 +716,9 @@ describe('SettlementHandlers - Unit Tests', () => {
             const userId = userResult.user.uid;
 
             // Currency is required when updating amount
-            const updateRequest = { amount: '150', currency: USD };
+            const updateRequest = SettlementUpdateBuilder.empty()
+                .withAmount(150, 'USD')
+                .build();
 
             await expect(appDriver.updateSettlement('non-existent-settlement', updateRequest, userId)).rejects.toThrow(
                 expect.objectContaining({
@@ -844,7 +847,9 @@ describe('SettlementHandlers - Unit Tests', () => {
         });
 
         it('should reject update with zero amount', async () => {
-            const updateRequest = { amount: '0' };
+            const updateRequest = SettlementUpdateBuilder.empty()
+                .withInvalidAmount('0')
+                .build();
 
             await expect(appDriver.updateSettlement('test-settlement', updateRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
@@ -855,7 +860,9 @@ describe('SettlementHandlers - Unit Tests', () => {
         });
 
         it('should reject update with negative amount', async () => {
-            const updateRequest = { amount: '-50' };
+            const updateRequest = SettlementUpdateBuilder.empty()
+                .withInvalidAmount('-50')
+                .build();
 
             await expect(appDriver.updateSettlement('test-settlement', updateRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
@@ -867,7 +874,9 @@ describe('SettlementHandlers - Unit Tests', () => {
 
         it('should reject update with excessively long note', async () => {
             const longNote = 'a'.repeat(501);
-            const updateRequest = { note: longNote };
+            const updateRequest = SettlementUpdateBuilder.empty()
+                .withInvalidNote(longNote)
+                .build();
 
             await expect(appDriver.updateSettlement('test-settlement', updateRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
