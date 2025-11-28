@@ -1,64 +1,85 @@
 # Task: Resolve Inconsistent Modal Implementations
 
 ## Objective
-To improve code consistency and maintainability by refactoring all modal components to use a single, generic `Modal` component.
+Refactor all modal components to use the generic `Modal` component from `src/components/ui/Modal.tsx`.
 
-## Background
-An audit of the `tsx` files in `webapp-v2` revealed that while the distinction between "pages" and "modals" is generally consistent, the implementation of modals is not. Several key modal components have their own custom logic for rendering and behavior, rather than using the generic `Modal` component provided in `src/components/ui/Modal.tsx`.
+## Audit Findings
 
-## Current State
-- A generic `Modal` component exists at `src/components/ui/Modal.tsx`.
-- Components like `PolicyAcceptanceModal` use this generic component correctly.
-- Components like `CreateGroupModal` and `ShareGroupModal` re-implement their own modal logic, including backdrops, closing behavior, and animations.
+### Modals Correctly Using Generic Modal
+| Component | Location |
+|-----------|----------|
+| UserEditorModal | `components/admin/UserEditorModal.tsx` |
+| ConfirmDialog | `components/ui/ConfirmDialog.tsx` |
+
+### Modals Requiring Refactoring
+| Component | Location | Issues |
+|-----------|----------|--------|
+| CreateGroupModal | `components/dashboard/CreateGroupModal.tsx` | Custom backdrop, no animations, manual escape/backdrop handling |
+| ShareGroupModal | `components/group/ShareGroupModal.tsx` | Custom backdrop, no animations |
+| PolicyAcceptanceModal | `components/policy/PolicyAcceptanceModal.tsx` | Manual `createPortal()`, custom backdrop, no animations |
+| GroupSettingsModal | `components/group/GroupSettingsModal.tsx` | Custom backdrop, nested custom confirm dialog |
+
+### Out of Scope
+- **Admin modals** (TenantEditorModal) - isolated from tenant theming
+- **Page-to-modal conversions** (AddExpensePage, ExpenseDetailPage) - separate task
 
 ## Problems
-- **Code Duplication**: The same modal boilerplate is repeated in multiple files.
-- **Inconsistent UX**: Custom implementations can lead to subtle visual and behavioral differences between modals, creating a disjointed user experience.
-- **Maintenance Overhead**: Changes to modal behavior or styling must be manually applied to each custom implementation.
+- **Code Duplication**: ~100-200 lines of duplicate backdrop/animation code
+- **Inconsistent UX**: No animations in custom modals vs spring animations in generic Modal
+- **Missing Motion Preferences**: Custom modals don't respect `prefers-reduced-motion`
+- **Maintenance Overhead**: Changes must be applied to each custom implementation
 
 ## Deliverables
 
-### 1. Refactor `CreateGroupModal`
-- [ ] Modify `webapp-v2/src/components/dashboard/CreateGroupModal.tsx` to use the generic `Modal` component.
-- [ ] Replace the custom `div` structure with the `<Modal>` component.
-- [ ] Pass the `isOpen` prop to `open` and `onClose` to `onClose`.
-- [ ] Ensure all modal content, including the header, form, and footer, is correctly nested within the `Modal` component.
-- [ ] Verify that all functionality (form submission, validation, closing) remains intact.
+### 1. Refactor CreateGroupModal
+- [ ] Replace custom backdrop div with `<Modal open={isOpen} onClose={onClose} size="sm">`
+- [ ] Remove manual escape key and backdrop click handlers (Modal handles these)
+- [ ] Keep form content inside `<Surface>` wrapper
+- [ ] Verify form submission and validation still work
 
-### 2. Refactor `ShareGroupModal`
-- [ ] Modify `webapp-v2/src/components/group/ShareGroupModal.tsx` to use the generic `Modal` component.
-- [ ] Replace the custom `div` structure with the `<Modal>` component.
-- [ ] Pass the `isOpen` prop to `open` and `onClose` to `onClose`.
-- [ ] Ensure all modal content and functionality (generating link, copying, QR code) remains intact.
+### 2. Refactor ShareGroupModal
+- [ ] Replace custom backdrop div with `<Modal open={isOpen} onClose={onClose} size="sm">`
+- [ ] Keep QR code generation and clipboard logic
+- [ ] Toast notification remains separate concern
 
-### 3. Audit for Other Custom Modals
-- [ ] Perform a search for other components that might be implementing modal logic from scratch.
-- [ ] Refactor any other instances that are found.
+### 3. Refactor PolicyAcceptanceModal
+- [ ] Replace `createPortal()` + custom backdrop with `<Modal>`
+- [ ] Keep multi-policy navigation state and content rendering
 
-### 4. Testing
-- [ ] Manually test the refactored modals to ensure they open, close, and function as expected.
-- [ ] Run relevant unit and integration tests to catch any regressions.
+### 4. Refactor GroupSettingsModal
+- [ ] Replace outer backdrop with `<Modal open={isOpen} onClose={onClose} size="lg">`
+- [ ] Replace nested delete confirmation div with `<ConfirmDialog>` component
+- [ ] Keep all tab logic and form state
 
-## User's Suggestion: Expense Form and Detail View as Modals
+### 5. Update Page Object Models
+- [ ] Check if any Playwright POMs reference modal-specific selectors that will change
+- [ ] Update selectors if backdrop/dialog structure changes
+- [ ] Verify `data-testid` attributes are preserved
 
-The user has also suggested that the expense form (`AddExpensePage`) and the expense detail view (`ExpenseDetailPage`) should be modals.
+### 6. Testing
+- [ ] Manual test: open, close (X button, backdrop click, escape key), form submission
+- [ ] Run Playwright tests that interact with these modals
+- [ ] Verify animations work and respect motion preferences
 
-### `AddExpensePage` to Modal
-- **Current**: A full-page form at `/groups/:groupId/add-expense`.
-- **Proposed**: A modal for creating a new expense.
-- **Analysis**: This is a significant design change. The current form is complex, with logic for selecting participants and splitting amounts. Moving this to a modal could make the UI feel cramped. However, it could also provide a more seamless user experience, as the user would not navigate away from the group page.
-- **Implications**:
-    - The routing logic in `App.tsx` would need to be changed.
-    - The URL structure would need to be re-evaluated. Should opening the modal change the URL?
-    - The `useExpenseForm` hook would need to be adapted to work within a modal context.
+## Refactoring Pattern
 
-### `ExpenseDetailPage` to Modal
-- **Current**: A full page showing expense details at `/groups/:groupId/expenses/:expenseId`.
-- **Proposed**: A modal for viewing expense details.
-- **Analysis**: This is also a significant change. A dedicated page allows for a detailed breakdown, including comments and split information. A modal might be too small for this.
-- **Implications**:
-    - This would also require changes to routing and URL handling.
-    - It would change how users navigate to and share specific expenses.
+```tsx
+// BEFORE: Custom backdrop/dialog
+<div className="fixed inset-0 bg-black/50 ...">
+  <div role="dialog" aria-modal="true" ...>
+    {/* Content */}
+  </div>
+</div>
 
-### Recommendation on User's Suggestion
-Before proceeding with this refactoring, it is important to have a clear plan for the user experience. I will ask the user for more details on how they envision the navigation and URL handling for these new modals.
+// AFTER: Generic Modal wrapper
+<Modal open={isOpen} onClose={onClose} size="md">
+  <Surface padding="lg" ...>
+    {/* Same content - unchanged */}
+  </Surface>
+</Modal>
+```
+
+## Reference Files
+- `webapp-v2/src/components/ui/Modal.tsx` - generic Modal implementation
+- `webapp-v2/src/components/ui/ConfirmDialog.tsx` - example of Modal wrapper
+- `webapp-v2/src/components/admin/UserEditorModal.tsx` - correct usage example
