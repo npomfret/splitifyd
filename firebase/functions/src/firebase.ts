@@ -1,21 +1,20 @@
-import { config as loadEnv } from 'dotenv';
+import {config as loadEnv} from 'dotenv';
 import * as admin from 'firebase-admin';
 import assert from 'node:assert';
-import { existsSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
-import { getInstanceName, isDevInstanceName } from './shared/instance-name';
+import {existsSync, readFileSync} from 'node:fs';
+import {join} from 'node:path';
+import {getInstanceName, isDevInstanceName} from './shared/instance-name';
 
 const envPath = join(__dirname, '../.env');
 if (!process.env.__INSTANCE_NAME && existsSync(envPath)) {
-    loadEnv({ path: envPath });
+    loadEnv({path: envPath});
 }
 
 /**
  * Check if running in Firebase emulator (local development)
  */
 export function isEmulator() {
-    const name = getInstanceName();
-    return isDevInstanceName(name) && process.env.FUNCTIONS_EMULATOR === 'true';
+    return process.env.FUNCTIONS_EMULATOR === 'true';
 }
 
 /**
@@ -53,12 +52,13 @@ function getApp(): admin.app.App {
             // Try to get the default app if it exists
             app = admin.app();
         } catch (error) {
-            // No app exists, create a new one
-            // In emulator/test mode, use FIREBASE_CONFIG env var which includes storageBucket
-            // In production, use explicit project ID
-            const config = process.env.FIREBASE_CONFIG
-                ? JSON.parse(process.env.FIREBASE_CONFIG)
-                : { projectId: process.env.GCLOUD_PROJECT! };
+
+            if (!process.env.FIREBASE_CONFIG) {
+                throw Error("both the emulator and prod should provide env.FIREBASE_CONFIG");
+            }
+
+            // FIREBASE_CONFIG looks like: {"projectId":"splitifyd","storageBucket":"splitifyd.firebasestorage.app"}
+            const config = JSON.parse(process.env.FIREBASE_CONFIG!);
 
             app = admin.initializeApp(config);
 
