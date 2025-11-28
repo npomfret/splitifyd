@@ -1,5 +1,6 @@
 import {z} from 'zod';
 import {logger} from '../logger';
+import {getFirebaseConfigFromEnvVar, inferProjectId} from "../firebase";
 
 /**
  * Configuration for MergeService and related cloud infrastructure
@@ -52,7 +53,6 @@ function isRealFirebase(): boolean {
 // All required fields must be explicitly set in .env files - no defaults
 // Custom env vars use __ prefix to distinguish from Firebase-provided vars
 const serviceEnvSchema = z.object({
-    GCLOUD_PROJECT: z.string().min(1, 'GCLOUD_PROJECT is required').optional(), // Can be inferred from FIREBASE_CONFIG
     __CLOUD_TASKS_LOCATION: z.string().min(1, '__CLOUD_TASKS_LOCATION is required'),
     __CLOUD_TASKS_SERVICE_ACCOUNT: z.string().optional(), // Defaults to project's default App Engine service account
     __FUNCTIONS_URL: z.string().min(1, '__FUNCTIONS_URL is required'),
@@ -84,13 +84,6 @@ function getServiceEnv(): z.infer<typeof serviceEnvSchema> {
     }
 }
 
-function inferProjectId() {
-    // FIREBASE_CONFIG is an env var provided to us, it looks like: {"projectId":"splitifyd","storageBucket":"splitifyd.firebasestorage.app"}
-    const config = JSON.parse(process.env.FIREBASE_CONFIG!);
-    const projectId = config.projectId;
-    return projectId;
-}
-
 /**
  * Build ServiceConfig from environment variables
  */
@@ -109,7 +102,6 @@ function buildServiceConfig(): ServiceConfig {
         };
     } else if (isRealFirebase()) {
         const requiredVars = [
-            'GCLOUD_PROJECT',
             '__CLOUD_TASKS_LOCATION',
             '__FUNCTIONS_URL',
             '__CLOUD_TASKS_SERVICE_ACCOUNT',

@@ -31,6 +31,16 @@ function isTest() {
 // Lazy-initialized app instance - DO NOT initialize at module level
 let app: admin.app.App | undefined;
 
+export function getFirebaseConfigFromEnvVar() {
+    return JSON.parse(process.env.FIREBASE_CONFIG!);
+}
+
+export function inferProjectId() {
+    // FIREBASE_CONFIG is an env var provided to us, it looks like: {"projectId":"splitifyd","storageBucket":"splitifyd.firebasestorage.app"}
+    const config = getFirebaseConfigFromEnvVar();
+    return config.projectId;
+}
+
 /**
  * Get or create the Firebase Admin app instance
  * This follows the recommended pattern from Firebase docs:
@@ -39,15 +49,6 @@ let app: admin.app.App | undefined;
  */
 function getApp(): admin.app.App {
     if (!app) {
-        // Validate GCLOUD_PROJECT is available (Firebase provides this automatically in production)
-        if (!process.env.GCLOUD_PROJECT) {
-            if (isTest()) {
-                throw Error('env.GCLOUD_PROJECT should be set in vitest.config.ts in any test environment - and make sure you are running from the correct directory!');
-            } else {
-                throw Error('env.GCLOUD_PROJECT should be set by Firebase or in your environment');
-            }
-        }
-
         try {
             // Try to get the default app if it exists
             app = admin.app();
@@ -58,7 +59,7 @@ function getApp(): admin.app.App {
             }
 
             // FIREBASE_CONFIG looks like: {"projectId":"splitifyd","storageBucket":"splitifyd.firebasestorage.app"}
-            const config = JSON.parse(process.env.FIREBASE_CONFIG!);
+            const config = getFirebaseConfigFromEnvVar();
 
             app = admin.initializeApp(config);
 

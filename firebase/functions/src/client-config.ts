@@ -5,6 +5,7 @@ import { DOCUMENT_CONFIG, SYSTEM, VALIDATION_LIMITS } from './constants';
 import { logger } from './logger';
 import { validateAppConfiguration } from './middleware/config-validation';
 import { assertValidInstanceName, type InstanceName, isDevInstanceName } from './shared/instance-name';
+import {getFirebaseConfigFromEnvVar, inferProjectId} from "./firebase";
 
 // Cache for lazy-loaded configurations
 let cachedConfig: ClientConfig | null = null;
@@ -32,7 +33,7 @@ const instanceNameSchema = z
 const envSchema = z.object({
     __INSTANCE_NAME: instanceNameSchema,
     FUNCTIONS_EMULATOR: z.string().optional(),
-    GCLOUD_PROJECT: z.string().optional(),
+    FIREBASE_CONFIG: z.string().optional(),
     __CLIENT_API_KEY: z.string().optional(),
     __CLIENT_AUTH_DOMAIN: z.string().optional(),
     __CLIENT_STORAGE_BUCKET: z.string().optional(),
@@ -96,7 +97,7 @@ function buildConfig(): ClientConfig {
 
     // Validate required deployed environment variables
     if (!isEmulator) {
-        const requiredVars = ['GCLOUD_PROJECT', '__CLIENT_API_KEY', '__CLIENT_AUTH_DOMAIN', '__CLIENT_STORAGE_BUCKET', '__CLIENT_MESSAGING_SENDER_ID', '__CLIENT_APP_ID'];
+        const requiredVars = ['__CLIENT_API_KEY', '__CLIENT_AUTH_DOMAIN', '__CLIENT_STORAGE_BUCKET', '__CLIENT_MESSAGING_SENDER_ID', '__CLIENT_APP_ID'];
 
         const missing = requiredVars.filter((key) => !env[key as keyof typeof env]);
         if (missing.length > 0) {
@@ -177,7 +178,7 @@ function getWarningBanner(config: ClientConfig): string | undefined {
 function buildAppConfiguration(): AppConfiguration {
     const config = getConfig();
     const env = getEnv();
-    const projectId = env.GCLOUD_PROJECT!;
+    const projectId = inferProjectId();
 
     // Build firebase config based on environment
     const MINIMAL_EMULATOR_CLIENT_CONFIG = {
