@@ -53,6 +53,7 @@ import type {
     PublishTenantThemeResponse,
     SettlementDTO,
     SettlementId,
+    SettlementWithMembers,
     ShareLinkResponse,
     ShareLinkToken,
     TenantDomainsResponse,
@@ -119,14 +120,14 @@ export interface API<AuthToken> {
     joinGroupByLink(shareToken: ShareLinkToken, groupDisplayName: DisplayName, token?: AuthToken): Promise<JoinGroupResponse>;
 
     createExpense(request: CreateExpenseRequest, token?: AuthToken): Promise<ExpenseDTO>;
-    updateExpense(expenseId: ExpenseId, request: UpdateExpenseRequest, token?: AuthToken): Promise<void>;
+    updateExpense(expenseId: ExpenseId, request: UpdateExpenseRequest, token?: AuthToken): Promise<ExpenseDTO>;
     deleteExpense(expenseId: ExpenseId, token?: AuthToken): Promise<void>;
     getExpenseFullDetails(expenseId: ExpenseId, token?: AuthToken): Promise<ExpenseFullDetailsDTO>;
     createExpenseComment(expenseId: ExpenseId, text: CommentText, token?: AuthToken): Promise<CommentDTO>;
     listExpenseComments(expenseId: ExpenseId, options?: ListCommentsOptions, token?: AuthToken): Promise<ListCommentsResponse>;
 
     createSettlement(request: CreateSettlementRequest, token?: AuthToken): Promise<SettlementDTO>;
-    updateSettlement(settlementId: SettlementId, request: UpdateSettlementRequest, token?: AuthToken): Promise<void>;
+    updateSettlement(settlementId: SettlementId, request: UpdateSettlementRequest, token?: AuthToken): Promise<SettlementWithMembers>;
     deleteSettlement(settlementId: SettlementId, token?: AuthToken): Promise<void>;
 
     createGroupComment(groupId: GroupId, text: CommentText, token?: AuthToken): Promise<CommentDTO>;

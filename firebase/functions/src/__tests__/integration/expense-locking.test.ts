@@ -95,9 +95,16 @@ describe('Expense Locking - Firebase Transaction Behavior', () => {
 
         // Verify final state - Firebase should have persisted one of the updates
         // This confirms optimistic locking worked correctly
+        // Note: With edit history via soft deletes, updates create NEW expenses with new IDs
+        // and soft-delete the original. We need to find the current (non-superseded) expense.
         const expenses = await apiDriver.getGroupExpenses(group.id, user1.token);
-        const updatedExpense = expenses.expenses.find((e: any) => e.id === expense.id);
-        expect(updatedExpense).toBeDefined();
-        expect(['200', '300']).toContain(updatedExpense?.amount);
+
+        // Find the current expense (one that hasn't been superseded)
+        const currentExpenses = expenses.expenses.filter((e: any) => e.supersededBy === null);
+        expect(currentExpenses.length).toBeGreaterThanOrEqual(1);
+
+        // The final amount should be one of our update values
+        const finalAmount = currentExpenses[0]?.amount;
+        expect(['200', '300']).toContain(finalAmount);
     });
 });

@@ -52,7 +52,7 @@ describe('expenses', () => {
         expect(groupDetails.balances.balancesByCurrency![eur]![user2].owes[user1]).toBe('50.00');
         expect(groupDetails.balances.balancesByCurrency![eur]![user2].netBalance).toBe('-50.00');
 
-        await appDriver.updateExpense(
+        const updatedExpense = await appDriver.updateExpense(
             createdExpense.id,
             ExpenseUpdateBuilder
                 .minimal()
@@ -90,7 +90,8 @@ describe('expenses', () => {
         expect(groupDetails.balances.balancesByCurrency![eur]![user2].owes[user1]).toBe('25.00');
         expect(groupDetails.balances.balancesByCurrency![eur]![user2].netBalance).toBe('-25.00');
 
-        await appDriver.deleteExpense(createdExpense.id, user1);
+        // Delete the NEW expense (update creates a new ID, original is soft-deleted)
+        await appDriver.deleteExpense(updatedExpense.id, user1);
 
         groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
@@ -284,7 +285,7 @@ describe('expenses', () => {
 
         const updatedParticipants = [user1, user2];
         const updatedSplits = calculateEqualSplits(toAmount(303), toCurrencyISOCode('JPY'), updatedParticipants);
-        await appDriver.updateExpense(
+        const updatedExpense = await appDriver.updateExpense(
             createdExpense.id,
             ExpenseUpdateBuilder
                 .minimal()
@@ -300,7 +301,8 @@ describe('expenses', () => {
 
         groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
-        const recordedExpenseAfterUpdate = groupDetails.expenses.expenses.find((expense) => expense.id === createdExpense.id);
+        // Update creates a new expense with a new ID (original is soft-deleted)
+        const recordedExpenseAfterUpdate = groupDetails.expenses.expenses.find((expense) => expense.id === updatedExpense.id);
         expect(recordedExpenseAfterUpdate).toBeDefined();
         expect(recordedExpenseAfterUpdate!.description).toBe('Team Outing JPY');
         expect(recordedExpenseAfterUpdate!.currency).toBe(toCurrencyISOCode('JPY'));
@@ -654,6 +656,173 @@ describe('expenses', () => {
             const result = await appDriver.listGroupExpenses(groupId, {}, user1);
             expect(result.expenses).toHaveLength(1);
             expect(result.expenses[0].id).toBe(expense1.id);
+        });
+    });
+
+    describe('edit history (supersededBy)', () => {
+        it('should return new expense with new ID when updating', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            const groupId = group.id;
+
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+
+            const participants = [user1, user2];
+            const originalExpense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withDescription('Original expense')
+                    .withAmount(100, USD)
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(toAmount(100), USD, participants))
+                    .build(),
+                user1,
+            );
+
+            const updatedExpense = await appDriver.updateExpense(
+                originalExpense.id,
+                ExpenseUpdateBuilder
+                    .minimal()
+                    .withDescription('Updated expense')
+                    .withAmount(150, USD)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(toAmount(150), USD, participants))
+                    .build(),
+                user1,
+            );
+
+            // The returned expense should have a NEW ID (not the original)
+            expect(updatedExpense.id).not.toBe(originalExpense.id);
+            expect(updatedExpense.description).toBe('Updated expense');
+            expect(updatedExpense.amount).toBe('150');
+            expect(updatedExpense.supersededBy).toBeNull();
+        });
+
+        it('should set supersededBy on original expense when updated', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            const groupId = group.id;
+
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+
+            const participants = [user1, user2];
+            const originalExpense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withDescription('Original expense')
+                    .withAmount(100, USD)
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(toAmount(100), USD, participants))
+                    .build(),
+                user1,
+            );
+
+            const updatedExpense = await appDriver.updateExpense(
+                originalExpense.id,
+                ExpenseUpdateBuilder
+                    .minimal()
+                    .withDescription('Updated expense')
+                    .withAmount(150, USD)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(toAmount(150), USD, participants))
+                    .build(),
+                user1,
+            );
+
+            // Fetch the original expense directly to verify supersededBy was set
+            const originalExpenseAfterUpdate = await appDriver.getExpenseById(originalExpense.id);
+            expect(originalExpenseAfterUpdate.supersededBy).toBe(updatedExpense.id);
+            expect(originalExpenseAfterUpdate.deletedAt).not.toBeNull();
+            expect(originalExpenseAfterUpdate.deletedBy).toBe(user1);
+        });
+
+        it('should prevent deletion of superseded expense', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            const groupId = group.id;
+
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+
+            const participants = [user1, user2];
+            const originalExpense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withDescription('Original expense')
+                    .withAmount(100, USD)
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(toAmount(100), USD, participants))
+                    .build(),
+                user1,
+            );
+
+            // Update the expense (which soft-deletes the original and creates a new one)
+            await appDriver.updateExpense(
+                originalExpense.id,
+                ExpenseUpdateBuilder
+                    .minimal()
+                    .withDescription('Updated expense')
+                    .withAmount(150, USD)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(toAmount(150), USD, participants))
+                    .build(),
+                user1,
+            );
+
+            // Attempting to delete the original (superseded) expense should fail
+            await expect(appDriver.deleteExpense(originalExpense.id, user1))
+                .rejects.toThrow('Cannot delete a superseded expense');
+        });
+
+        it('should not return superseded expense in group details', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            const groupId = group.id;
+
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+
+            const participants = [user1, user2];
+            const originalExpense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withDescription('Original expense')
+                    .withAmount(100, USD)
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(toAmount(100), USD, participants))
+                    .build(),
+                user1,
+            );
+
+            // Update the expense (which soft-deletes the original)
+            const updatedExpense = await appDriver.updateExpense(
+                originalExpense.id,
+                ExpenseUpdateBuilder
+                    .minimal()
+                    .withDescription('Updated expense')
+                    .withAmount(150, USD)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(toAmount(150), USD, participants))
+                    .build(),
+                user1,
+            );
+
+            // Fetch group details - should only return the new expense, not the superseded one
+            const groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
+
+            expect(groupDetails.expenses.expenses).toHaveLength(1);
+            expect(groupDetails.expenses.expenses[0].id).toBe(updatedExpense.id);
+            expect(groupDetails.expenses.expenses.find((e) => e.id === originalExpense.id)).toBeUndefined();
         });
     });
 });

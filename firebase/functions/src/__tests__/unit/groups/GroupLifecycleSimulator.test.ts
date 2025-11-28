@@ -658,7 +658,7 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
             );
 
             const participants = [owner.id, member.id];
-            await appDriver.updateExpense(
+            const newExpense = await appDriver.updateExpense(
                 initialExpense.id,
                 new ExpenseUpdateBuilder()
                     .withAmount(80, 'USD')
@@ -669,7 +669,8 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
                 owner.id,
             );
 
-            const updatedExpense = await appDriver.getExpenseFullDetails(initialExpense.id, owner.id);
+            // Update creates a new expense with a new ID (edit history via soft deletes)
+            const updatedExpense = await appDriver.getExpenseFullDetails(newExpense.id, owner.id);
             expect(updatedExpense.expense.amount).toBe('80');
             expect(updatedExpense.expense.description).toBe('Updated Expense');
 

@@ -41,6 +41,7 @@ export class ExpenseDTOBuilder {
             label: randomLabel(),
             deletedAt: null,
             deletedBy: null,
+            supersededBy: null,
             isLocked: false, // Default to unlocked
         };
     }

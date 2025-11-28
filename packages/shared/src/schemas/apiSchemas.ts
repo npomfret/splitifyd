@@ -192,6 +192,7 @@ const ExpenseDataSchema = z.object({
     receiptUrl: z.string().optional(),
     deletedAt: z.string().nullable().optional(), // Soft delete timestamp
     deletedBy: z.string().nullable().optional(), // User who deleted the expense
+    supersededBy: z.string().nullable(), // ExpenseId of newer version if edited, null if current
     isLocked: z.boolean().optional(), // True if any participant has left the group
 });
 
@@ -336,6 +337,7 @@ const SettlementListItemSchema = z.object({
     createdAt: z.string(),
     deletedAt: z.string().nullable().optional(), // Soft delete timestamp
     deletedBy: z.string().nullable().optional(), // User who deleted the settlement
+    supersededBy: z.string().nullable(), // SettlementId of newer version if edited, null if current
     isLocked: z.boolean().optional(), // True if payer or payee has left the group
 });
 
@@ -738,7 +740,7 @@ export const responseSchemas = {
     '/groups/:groupId/members': GroupMembersResponseSchema,
     '/groups/:groupId/full-details': GroupFullDetailsSchema,
     '/expenses': ExpenseDataSchema,
-    'PUT /expenses/:expenseId': EmptyResponseSchema,
+    'PUT /expenses/:expenseId': ExpenseDataSchema,
     'DELETE /expenses/:expenseId': EmptyResponseSchema,
     '/expenses/group': ExpenseListResponseSchema,
     '/expenses/:expenseId/full-details': ExpenseFullDetailsSchema,
@@ -748,7 +750,7 @@ export const responseSchemas = {
     '/groups/join': JoinGroupResponseSchema,
     '/register': RegisterResponseSchema,
     'POST /settlements': SettlementSchema,
-    'PUT /settlements/:settlementId': EmptyResponseSchema,
+    'PUT /settlements/:settlementId': SettlementListItemSchema,
     'GET /settlements/:settlementId': SettlementListItemSchema,
     'DELETE /settlements/:settlementId': EmptyResponseSchema,
     '/settlements': ListSettlementsResponseSchema,

@@ -204,14 +204,19 @@ describe('Settlement Management - Unit Tests', () => {
                 .withNote('Updated note')
                 .build();
 
-            await appDriver.updateSettlement(created.id, updateData, creatorUserId);
+            const updatedSettlement = await appDriver.updateSettlement(created.id, updateData, creatorUserId);
 
-            // Assert by refetching
-            const updated = await appDriver.getSettlement(group.id, created.id, creatorUserId);
-            expect(updated.id).toBe(created.id);
-            expect(updated.amount).toBe('150');
-            expect(updated.note).toBe('Updated note');
-            expect(updated.currency).toBe('USD'); // Currency unchanged
+            // Assert: Update returns NEW settlement with NEW ID (edit history via soft deletes)
+            expect(updatedSettlement.id).not.toBe(created.id);
+            expect(updatedSettlement.amount).toBe('150');
+            expect(updatedSettlement.note).toBe('Updated note');
+            expect(updatedSettlement.currency).toBe('USD'); // Currency unchanged
+
+            // Verify by refetching using the NEW ID
+            const refetched = await appDriver.getSettlement(group.id, updatedSettlement.id, creatorUserId);
+            expect(refetched.id).toBe(updatedSettlement.id);
+            expect(refetched.amount).toBe('150');
+            expect(refetched.note).toBe('Updated note')
         });
 
         it('should reject update by non-creator', async () => {

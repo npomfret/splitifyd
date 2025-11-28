@@ -59,6 +59,7 @@ import {
     RegisterResponse,
     type SettlementDTO,
     SettlementId,
+    type SettlementWithMembers,
     ShareLinkResponse,
     type TenantDomainsResponse,
     type TenantSettingsResponse,
@@ -255,8 +256,9 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return response as ExpenseDTO;
     }
 
-    async updateExpense(expenseId: ExpenseId | string, data: UpdateExpenseRequest, token: AuthToken): Promise<void> {
-        await this.apiRequest(`/expenses?id=${expenseId}`, 'PUT', data, token);
+    async updateExpense(expenseId: ExpenseId | string, data: UpdateExpenseRequest, token: AuthToken): Promise<ExpenseDTO> {
+        const response = await this.apiRequest(`/expenses?id=${expenseId}`, 'PUT', data, token);
+        return response as ExpenseDTO;
     }
 
     async deleteExpense(expenseId: ExpenseId | string, token: AuthToken): Promise<void> {
@@ -273,8 +275,9 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return response as SettlementDTO;
     }
 
-    async updateSettlement(settlementId: SettlementId | string, data: UpdateSettlementRequest, token: AuthToken): Promise<void> {
-        await this.apiRequest(`/settlements/${settlementId}`, 'PUT', data, token);
+    async updateSettlement(settlementId: SettlementId | string, data: UpdateSettlementRequest, token: AuthToken): Promise<SettlementWithMembers> {
+        const response = await this.apiRequest(`/settlements/${settlementId}`, 'PUT', data, token);
+        return response as SettlementWithMembers;
     }
 
     async deleteSettlement(settlementId: SettlementId | string, token: AuthToken): Promise<void> {

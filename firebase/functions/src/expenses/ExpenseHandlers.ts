@@ -33,8 +33,8 @@ export class ExpenseHandlers {
         const updateData = validateUpdateExpense(req.body);
 
         try {
-            await this.expenseService.updateExpense(expenseId, userId, updateData);
-            res.status(HTTP_STATUS.NO_CONTENT).send();
+            const newExpense = await this.expenseService.updateExpense(expenseId, userId, updateData);
+            res.status(HTTP_STATUS.OK).json(newExpense);
         } catch (error) {
             logger.error('Failed to update expense', error, {
                 expenseId,

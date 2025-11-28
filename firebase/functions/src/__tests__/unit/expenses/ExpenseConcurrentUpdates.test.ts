@@ -99,11 +99,12 @@ describe('Expense Concurrent Updates - Unit Tests', () => {
         expect(successes.length).toBeGreaterThan(0);
         expect(successes.length + failures.length).toBe(2);
 
-        // Verify final state - expense should have one of the updated amounts
+        // Verify final state - update creates new expense with new ID (edit history via soft deletes)
+        // The successful update(s) created new expense(s), original is soft-deleted
         const { expenses } = await appDriver.getGroupExpenses(group.id, {}, userId);
-        const updatedExpense = expenses.find((e) => e.id === expense.id);
-        expect(updatedExpense).toBeDefined();
-        expect(['200', '300']).toContain(updatedExpense?.amount);
+        // Should have at least one expense with an updated amount
+        const updatedAmounts = expenses.map((e) => e.amount);
+        expect(updatedAmounts.some((a) => ['200', '300'].includes(a))).toBe(true);
     });
 
     test('should demonstrate transaction conflict behavior with concurrent amount changes', async () => {
@@ -162,11 +163,12 @@ describe('Expense Concurrent Updates - Unit Tests', () => {
         expect(successes.length).toBeGreaterThan(0);
         expect(successes.length + failures.length).toBe(2);
 
-        // Verify final state has one of the updated amounts
+        // Verify final state - update creates new expense with new ID (edit history via soft deletes)
+        // The successful update(s) created new expense(s), original is soft-deleted
         const { expenses } = await appDriver.getGroupExpenses(group.id, {}, userId);
-        const updatedExpense = expenses.find((e) => e.id === expense.id);
-        expect(updatedExpense).toBeDefined();
-        expect(['150', '200']).toContain(updatedExpense?.amount);
+        // Should have at least one expense with an updated amount
+        const updatedAmounts = expenses.map((e) => e.amount);
+        expect(updatedAmounts.some((a) => ['150', '200'].includes(a))).toBe(true);
     });
 
     test('should reject updates from non-members', async () => {

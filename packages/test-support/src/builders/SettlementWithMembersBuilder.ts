@@ -42,6 +42,7 @@ export class SettlementWithMembersBuilder {
             createdAt: convertToISOString(new Date()),
             deletedAt: null,
             deletedBy: null,
+            supersededBy: null,
             isLocked: false, // Default to unlocked
         };
     }

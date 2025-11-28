@@ -60,6 +60,7 @@ import type {
     PublishTenantThemeResponse,
     RegisterResponse,
     SettlementDTO,
+    SettlementWithMembers,
     ShareLinkResponse,
     ShareLinkToken,
     TenantDomainsResponse,
@@ -807,8 +808,8 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
         });
     }
 
-    async updateExpense(expenseId: ExpenseId, data: UpdateExpenseRequest): Promise<void> {
-        await this.request({
+    async updateExpense(expenseId: ExpenseId, data: UpdateExpenseRequest): Promise<ExpenseDTO> {
+        return this.request({
             endpoint: '/expenses',
             method: 'PUT',
             query: { id: expenseId },
@@ -839,8 +840,8 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
         });
     }
 
-    async updateSettlement(settlementId: SettlementId, data: UpdateSettlementRequest): Promise<void> {
-        await this.request({
+    async updateSettlement(settlementId: SettlementId, data: UpdateSettlementRequest): Promise<SettlementWithMembers> {
+        return this.request({
             endpoint: '/settlements/:settlementId',
             method: 'PUT',
             params: { settlementId },

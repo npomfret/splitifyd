@@ -1003,7 +1003,8 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
                 splits: this.#splitsSignal.value,
             };
 
-            await apiClient.updateExpense(expenseId, updateRequest as CreateExpenseRequest);
+            // updateExpense returns the NEW expense (edit history creates a new document with new ID)
+            const updatedExpense = await apiClient.updateExpense(expenseId, updateRequest as CreateExpenseRequest);
 
             // Track recent label and amount
             storageManager.addRecentLabel(this.#labelSignal.value);
@@ -1011,9 +1012,6 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
 
             // Clear draft immediately after successful update
             this.clearDraft(groupId);
-
-            // Fetch the updated expense to return
-            const { expense: updatedExpense } = await apiClient.getExpenseFullDetails(expenseId);
 
             // Refresh group data to show the updated expense (non-blocking)
             // Don't await this to avoid blocking navigation

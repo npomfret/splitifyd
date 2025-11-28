@@ -12,6 +12,7 @@ const BaseSettlementSchema = z
         date: FirestoreTimestampSchema,
         createdBy: UserIdSchema,
         note: z.string().optional(),
+        supersededBy: z.string().nullable(), // SettlementId of newer version, null if current
     })
     .merge(AuditFieldsSchema)
     .merge(SoftDeletionFieldsSchema);

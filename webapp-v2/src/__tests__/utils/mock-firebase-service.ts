@@ -12,6 +12,7 @@ import {
     joinGroupHandler,
     registerFailureHandler,
     registerSuccessHandler,
+    updateExpenseHandler,
 } from '@/test/msw/handlers.ts';
 import type { SerializedBodyMatcher, SerializedMswHandler } from '@/test/msw/types.ts';
 import { type ActivityFeedItem, ApiSerializer, ClientUser, ExpenseId, GroupId, ListGroupsResponse, UserId } from '@billsplit-wl/shared';
@@ -548,6 +549,28 @@ export async function mockExpenseCommentsApi(
                 delayMs: delay,
             },
         ),
+    );
+}
+
+/**
+ * Mock expense update API endpoint
+ * The update endpoint returns the NEW expense (with a new ID due to edit history via soft deletes)
+ */
+export async function mockUpdateExpenseApi(
+    page: Page,
+    oldExpenseId: ExpenseId | string,
+    newExpenseResponse: any,
+    options: { delayMs?: number; status?: number; once?: boolean; } = {},
+): Promise<void> {
+    const delay = getApiDelay(options.delayMs);
+
+    await registerMswHandlers(
+        page,
+        updateExpenseHandler(String(oldExpenseId), newExpenseResponse, {
+            delayMs: delay,
+            status: options.status ?? 200,
+            once: options.once ?? true,
+        }),
     );
 }
 

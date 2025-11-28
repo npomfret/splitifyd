@@ -62,11 +62,22 @@ These interfaces are implemented by:
 - `listGroups` returns `ListGroupsResponse`
 - `getGroupFullDetails` returns `GroupFullDetailsDTO`
 
-**Update and delete operations** return HTTP 204 No Content (void):
-- `updateGroup`, `deleteGroup`, `updateExpense`, `deleteExpense`, etc.
-- The frontend re-fetches data when needed via `refreshAll()` patterns
+**Update operations** return HTTP 200 with the updated resource when the client needs the response data (e.g., when the operation generates a new ID), or HTTP 204 No Content when no response is needed. Check `packages/shared/src/api.ts` for the definitive return types.
 
-This convention eliminates ambiguity about what update/delete endpoints return.
+**Delete operations** return HTTP 204 No Content (void).
+
+### Real-Time Data Refresh via Activity Feed
+
+The frontend does not poll for changes. Instead, mutations trigger activity feed events, and the activity feed drives data refresh:
+
+1. **Mutation occurs** - User creates/updates/deletes an expense, settlement, etc.
+2. **Activity event generated** - Backend records an activity feed item for the action
+3. **Real-time push** - Activity feed service pushes new events to subscribed clients
+4. **Refresh triggered** - Frontend receives event and calls `refreshAll()` to reload group data
+
+This means **activity feed events are critical infrastructure**, not just a UI feature. Every mutation that affects group state must generate an appropriate activity event, or other clients will not see the change until they manually refresh.
+
+See `webapp-v2/src/app/stores/helpers/group-detail-realtime-coordinator.ts` for the implementation.
 
 ---
 

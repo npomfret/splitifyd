@@ -13,7 +13,6 @@ import {
     UpdateExpenseRequest,
     UserId,
 } from '@billsplit-wl/shared';
-import { z } from 'zod';
 import { FirestoreCollections, HTTP_STATUS } from '../constants';
 import * as expenseValidation from '../expenses/validation';
 import type { IDocumentReference } from '../firestore-wrapper';
@@ -44,35 +43,21 @@ export class ExpenseService {
 
     /**
      * Fetch and validate an expense document
+     * @param includeSoftDeleted - If true, returns soft-deleted expenses (needed to check supersededBy before throwing NOT_FOUND)
      */
-    private async fetchExpense(expenseId: ExpenseId): Promise<ExpenseDTO> {
-        // Use FirestoreReader for read operation
-        const expenseData = await this.firestoreReader.getExpense(expenseId);
+    private async fetchExpense(expenseId: ExpenseId, includeSoftDeleted = false): Promise<ExpenseDTO> {
+        // Use FirestoreReader for read operation - pass includeSoftDeleted to bypass soft-delete filter
+        const expenseData = await this.firestoreReader.getExpense(expenseId, { includeSoftDeleted });
 
         if (!expenseData) {
             throw Errors.NOT_FOUND('Expense');
         }
 
-        // Validate the expense data structure
-        let expense: ExpenseDTO;
-        try {
-            // Data already validated by FirestoreReader - it's an ExpenseDTO with ISO strings
-            expense = {
-                ...expenseData,
-                receiptUrl: expenseData.receiptUrl || undefined,
-            };
-        } catch (error) {
-            logger.error('Invalid expense document structure', error as Error, {
-                expenseId,
-                validationErrors: error instanceof z.ZodError ? error.issues : undefined,
-            });
-            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_EXPENSE_DATA', 'Expense data is corrupted');
-        }
-
-        // Check if the expense is soft-deleted
-        if (expense.deletedAt) {
-            throw Errors.NOT_FOUND('Expense');
-        }
+        // Data already validated by FirestoreReader - it's an ExpenseDTO with ISO strings
+        const expense: ExpenseDTO = {
+            ...expenseData,
+            receiptUrl: expenseData.receiptUrl || undefined,
+        };
 
         return expense;
     }
@@ -200,6 +185,7 @@ export class ExpenseService {
             updatedAt: now,
             deletedAt: null,
             deletedBy: null,
+            supersededBy: null,
         };
 
         // Only add receiptUrl if it's defined
@@ -317,10 +303,10 @@ export class ExpenseService {
 
         // Fetch the existing expense
         timer.startPhase('query');
-        const expense = await this.fetchExpense(expenseId);
+        const oldExpense = await this.fetchExpense(expenseId);
 
         // Check if expense is locked (any participant has left)
-        const isLocked = await this.isExpenseLocked(expense);
+        const isLocked = await this.isExpenseLocked(oldExpense);
         if (isLocked) {
             throw new ApiError(
                 HTTP_STATUS.BAD_REQUEST,
@@ -334,13 +320,13 @@ export class ExpenseService {
             group,
             memberIds,
             actorMember,
-        } = await this.groupMemberService.getGroupAccessContext(expense.groupId, userId);
+        } = await this.groupMemberService.getGroupAccessContext(oldExpense.groupId, userId);
         timer.endPhase();
 
         // Group is already a GroupDTO from FirestoreReader
         // Check if user can edit expenses in this group
         // Convert expense to ExpenseData format for permission check
-        const canEditExpense = PermissionEngineAsync.checkPermission(actorMember, group, userId, 'expenseEditing', { expense: expense });
+        const canEditExpense = PermissionEngineAsync.checkPermission(actorMember, group, userId, 'expenseEditing', { expense: oldExpense });
         if (!canEditExpense) {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You do not have permission to edit this expense');
         }
@@ -357,50 +343,57 @@ export class ExpenseService {
             }
         }
 
-        const splitsToValidate = updateData.splits ?? expense.splits;
+        const splitsToValidate = updateData.splits ?? oldExpense.splits;
         const uniqueSplitParticipants = Array.from(new Set(splitsToValidate.map((split) => split.uid)));
         await Promise.all(uniqueSplitParticipants.map(async (splitUid) => {
             if (!memberIds.includes(splitUid)) {
                 throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PARTICIPANT', `Split participant ${splitUid} is not a member of the group`);
             }
-            const memberRecord = await this.firestoreReader.getGroupMember(expense.groupId, splitUid);
+            const memberRecord = await this.firestoreReader.getGroupMember(oldExpense.groupId, splitUid);
             if (!memberRecord) {
                 throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PARTICIPANT', `Split participant ${splitUid} is not a member of the group`);
             }
         }));
 
-        // Build update object with ISO timestamp
-        // Note: updatedAt will be set to current ISO timestamp for optimistic locking
-        // FirestoreWriter will convert ISO strings to Timestamps when writing
-        const updates: any = {
-            ...updateData,
-            updatedAt: new Date().toISOString(), // ISO string for DTO
+        // Generate new expense ID for the updated version
+        const newExpenseId = toExpenseId(this.firestoreWriter.generateDocumentId(FirestoreCollections.EXPENSES));
+        const now = toISOString(new Date().toISOString());
+
+        // Build the new expense data (merging old expense with updates)
+        const splits = updateData.splits !== undefined ? updateData.splits : oldExpense.splits;
+        const splitType = updateData.splitType !== undefined ? updateData.splitType : oldExpense.splitType;
+
+        const newExpenseData: Omit<ExpenseDTO, 'isLocked'> = {
+            id: newExpenseId,
+            groupId: oldExpense.groupId,
+            createdBy: oldExpense.createdBy, // Preserve original creator
+            paidBy: updateData.paidBy ?? oldExpense.paidBy,
+            amount: updateData.amount ?? oldExpense.amount,
+            currency: updateData.currency ?? oldExpense.currency,
+            description: updateData.description ?? oldExpense.description,
+            label: updateData.label ?? oldExpense.label,
+            date: updateData.date ?? oldExpense.date,
+            splitType,
+            participants: updateData.participants ?? oldExpense.participants,
+            splits,
+            receiptUrl: updateData.receiptUrl !== undefined ? updateData.receiptUrl : oldExpense.receiptUrl,
+            createdAt: now, // New version gets new creation timestamp
+            updatedAt: now,
+            deletedAt: null,
+            deletedBy: null,
+            supersededBy: null,
         };
-
-        // Date is already an ISO string from updateData, no conversion needed
-        // FirestoreWriter handles ISO → Timestamp conversion
-
-        // Use client-calculated splits if provided (already validated)
-        if (updateData.splitType || updateData.participants || updateData.splits || updateData.amount) {
-            const splitType = updateData.splitType !== undefined ? updateData.splitType : expense.splitType;
-            const splits = updateData.splits !== undefined ? updateData.splits : expense.splits;
-
-            // Client always sends splits calculated using currency-aware logic from @billsplit-wl/shared
-            updates.splits = splits;
-            updates.splitType = splitType;
-        }
 
         // Declare variables outside transaction for activity feed
         let activityItem: any = null;
         let activityRecipients: UserId[] = [];
 
-        // Use transaction to update expense atomically with optimistic locking and balance update
+        // Use transaction to soft-delete old expense and create new one atomically
         timer.startPhase('transaction');
         await this.firestoreWriter.runTransaction(async (transaction) => {
             // ===== READ PHASE: All reads must happen before any writes =====
 
             // Re-fetch expense within transaction to check for concurrent updates
-            // Now using DTO method which returns ISO strings
             const currentExpense = await this.firestoreReader.getExpenseInTransaction(transaction, expenseId);
 
             if (!currentExpense) {
@@ -408,44 +401,51 @@ export class ExpenseService {
             }
 
             // Check if expense was updated since we fetched it (compare ISO strings)
-            // Both timestamps are now ISO strings, so we can compare directly
-            if (expense.updatedAt !== currentExpense.updatedAt) {
+            if (oldExpense.updatedAt !== currentExpense.updatedAt) {
                 throw new ApiError(HTTP_STATUS.CONFLICT, 'CONCURRENT_UPDATE', 'Expense was modified by another user. Please refresh and try again.');
             }
 
             // Read current balance BEFORE any writes (Firestore transaction rule)
-            const currentBalance = await this.firestoreWriter.getGroupBalanceInTransaction(transaction, expense.groupId);
+            const currentBalance = await this.firestoreWriter.getGroupBalanceInTransaction(transaction, oldExpense.groupId);
 
             // ===== WRITE PHASE: All writes happen after reads =====
 
-            // Create history entry with ISO timestamp
-            // Filter out undefined values for Firestore compatibility
-            const cleanExpenseData = Object.fromEntries(Object.entries(expense).filter(([, value]) => value !== undefined));
+            // 1. Soft-delete old expense and link to new version via supersededBy
+            this.firestoreWriter.updateInTransaction(transaction, `${FirestoreCollections.EXPENSES}/${expenseId}`, {
+                supersededBy: newExpenseId,
+                deletedAt: now,
+                deletedBy: userId,
+                updatedAt: now,
+            });
 
-            // Save history and update expense
-            // FirestoreWriter will convert ISO strings to Timestamps
-            this.firestoreWriter.updateInTransaction(transaction, `${FirestoreCollections.EXPENSES}/${expenseId}`, updates);
+            // 2. Create new expense document
+            this.firestoreWriter.createInTransaction(
+                transaction,
+                FirestoreCollections.EXPENSES,
+                newExpenseId,
+                newExpenseData,
+            );
 
             // Update group timestamp to track activity
-            await this.firestoreWriter.touchGroup(expense.groupId, transaction);
+            await this.firestoreWriter.touchGroup(oldExpense.groupId, transaction);
 
             // Apply incremental balance update with old and new expense
-            const newExpense: ExpenseDTO = { ...expense, ...updates };
-            this.incrementalBalanceService.applyExpenseUpdated(transaction, expense.groupId, currentBalance, expense, newExpense, memberIds);
+            const newExpenseForBalance: ExpenseDTO = { ...newExpenseData, isLocked: false };
+            this.incrementalBalanceService.applyExpenseUpdated(transaction, oldExpense.groupId, currentBalance, oldExpense, newExpenseForBalance, memberIds);
 
             // Build activity item - will be recorded AFTER transaction commits
             activityItem = this.activityFeedService.buildGroupActivityItem({
-                groupId: expense.groupId,
+                groupId: oldExpense.groupId,
                 groupName: group.name,
                 eventType: ActivityFeedEventTypes.EXPENSE_UPDATED,
                 action: ActivityFeedActions.UPDATE,
                 actorId: userId,
                 actorName: actorMember.groupDisplayName,
-                timestamp: updates.updatedAt,
+                timestamp: now,
                 details: this.activityFeedService.buildDetails({
                     expense: {
-                        id: expenseId,
-                        description: newExpense.description,
+                        id: newExpenseId, // Reference the new expense
+                        description: newExpenseData.description,
                     },
                 }),
             });
@@ -461,30 +461,23 @@ export class ExpenseService {
             });
         }
 
-        // Fetch and return the updated expense
-        timer.startPhase('refetch');
-        const updatedExpense = await this.firestoreReader.getExpense(expenseId);
-        timer.endPhase();
-
-        if (!updatedExpense) {
-            throw Errors.NOT_FOUND('Expense');
-        }
-
         // Set business context for logging
-        LoggerContext.setBusinessContext({ groupId: expense.groupId, expenseId });
+        LoggerContext.setBusinessContext({ groupId: oldExpense.groupId, expenseId: newExpenseId });
         logger.info('expense-updated', {
-            id: expenseId,
+            oldId: expenseId,
+            newId: newExpenseId,
             changes: Object.keys(updateData),
             timings: timer.getTimings(),
         });
 
-        // The expense from IFirestoreReader is already validated and includes the ID
-        const normalizedExpense = this.normalizeValidatedExpense(updatedExpense);
+        // Build the complete ExpenseDTO with computed isLocked field
+        const newExpenseWithLock: ExpenseDTO = { ...newExpenseData, isLocked: false };
+        const expense: ExpenseDTO = {
+            ...newExpenseData,
+            isLocked: await this.isExpenseLocked(newExpenseWithLock),
+        };
 
-        // Add computed isLocked field
-        normalizedExpense.isLocked = await this.isExpenseLocked(normalizedExpense);
-
-        return normalizedExpense;
+        return expense;
     }
 
     /**
@@ -567,9 +560,24 @@ export class ExpenseService {
     private async _deleteExpense(expenseId: ExpenseId, userId: UserId): Promise<void> {
         const timer = new PerformanceTimer();
 
-        // Fetch the existing expense
+        // Fetch the existing expense (include soft-deleted to check supersededBy before throwing NOT_FOUND)
         timer.startPhase('query');
-        const expense = await this.fetchExpense(expenseId);
+        const expense = await this.fetchExpense(expenseId, true);
+
+        // Prevent deletion of superseded expenses (they're already archived via edit history)
+        // This check MUST come before the deletedAt check to return the correct error
+        if (expense.supersededBy !== null) {
+            throw new ApiError(
+                HTTP_STATUS.BAD_REQUEST,
+                'CANNOT_DELETE_SUPERSEDED',
+                'Cannot delete a superseded expense - it has already been replaced by a newer version',
+            );
+        }
+
+        // If the expense is already soft-deleted (user-initiated deletion), return NOT_FOUND
+        if (expense.deletedAt) {
+            throw Errors.NOT_FOUND('Expense');
+        }
 
         // Get group data and verify permissions
         const {

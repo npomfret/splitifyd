@@ -50,9 +50,10 @@ export function useFormSubmission({ groupId, expenseId, isEditMode, isCopyMode, 
 
         try {
             if (isEditMode && expenseId) {
-                await expenseFormStore.updateExpense(groupId, expenseId);
-                // Navigate back to expense detail after successful update
-                await navigationService.goToExpenseDetail(groupId, expenseId);
+                // updateExpense returns the NEW expense (edit history creates a new document with new ID)
+                const updatedExpense = await expenseFormStore.updateExpense(groupId, expenseId);
+                // Navigate to the NEW expense detail page (ID changed due to edit history)
+                await navigationService.goToExpenseDetail(groupId, updatedExpense.id);
             } else {
                 await expenseFormStore.saveExpense(groupId);
                 // Navigate back to group detail after creating new expense (including copy mode)

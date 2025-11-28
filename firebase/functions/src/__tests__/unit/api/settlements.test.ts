@@ -476,4 +476,145 @@ describe('settlements', () => {
             expect(result.settlements[0].id).toBe(settlement1.id);
         });
     });
+
+    describe('edit history (supersededBy)', () => {
+        it('should return new settlement with new ID when updating', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            const groupId = group.id;
+
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+
+            const participants = [user1, user2];
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(100, USD)
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(toAmount(100), USD, participants))
+                    .build(),
+                user1,
+            );
+
+            const originalSettlement = await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPayerId(user2)
+                    .withPayeeId(user1)
+                    .withAmount(30, USD)
+                    .withNote('Original payment')
+                    .build(),
+                user2,
+            );
+
+            const updatedSettlement = await appDriver.updateSettlement(
+                originalSettlement.id,
+                new SettlementUpdateBuilder()
+                    .withAmount('40.00', USD)
+                    .withNote('Updated payment')
+                    .build(),
+                user2,
+            );
+
+            // The returned settlement should have a NEW ID (not the original)
+            expect(updatedSettlement.id).not.toBe(originalSettlement.id);
+            expect(updatedSettlement.amount).toBe('40.00');
+            expect(updatedSettlement.note).toBe('Updated payment');
+        });
+
+        it('should set supersededBy on original settlement when updated', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            const groupId = group.id;
+
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+
+            const participants = [user1, user2];
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(100, USD)
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(toAmount(100), USD, participants))
+                    .build(),
+                user1,
+            );
+
+            const originalSettlement = await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPayerId(user2)
+                    .withPayeeId(user1)
+                    .withAmount(30, USD)
+                    .withNote('Original payment')
+                    .build(),
+                user2,
+            );
+
+            const updatedSettlement = await appDriver.updateSettlement(
+                originalSettlement.id,
+                new SettlementUpdateBuilder()
+                    .withAmount('40.00', USD)
+                    .withNote('Updated payment')
+                    .build(),
+                user2,
+            );
+
+            // Fetch the original settlement directly to verify supersededBy was set
+            const originalSettlementAfterUpdate = await appDriver.getSettlementById(originalSettlement.id);
+            expect(originalSettlementAfterUpdate.supersededBy).toBe(updatedSettlement.id);
+            expect(originalSettlementAfterUpdate.deletedAt).not.toBeNull();
+            expect(originalSettlementAfterUpdate.deletedBy).toBe(user2);
+        });
+
+        it('should prevent deletion of superseded settlement', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            const groupId = group.id;
+
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+
+            const participants = [user1, user2];
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(100, USD)
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(toAmount(100), USD, participants))
+                    .build(),
+                user1,
+            );
+
+            const originalSettlement = await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPayerId(user2)
+                    .withPayeeId(user1)
+                    .withAmount(30, USD)
+                    .withNote('Original payment')
+                    .build(),
+                user2,
+            );
+
+            // Update the settlement (which soft-deletes the original and creates a new one)
+            await appDriver.updateSettlement(
+                originalSettlement.id,
+                new SettlementUpdateBuilder()
+                    .withAmount('40.00', USD)
+                    .withNote('Updated payment')
+                    .build(),
+                user2,
+            );
+
+            // Attempting to delete the original (superseded) settlement should fail
+            await expect(appDriver.deleteSettlement(originalSettlement.id, user1))
+                .rejects.toThrow('Cannot delete a superseded settlement');
+        });
+    });
 });

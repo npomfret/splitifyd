@@ -14,7 +14,6 @@ import {
     UserId,
 } from '@billsplit-wl/shared';
 import { FirestoreCollections, HTTP_STATUS } from '../constants';
-import { FieldValue } from '../firestore-wrapper';
 import { logger } from '../logger';
 import * as measure from '../monitoring/measure';
 import { PerformanceTimer } from '../monitoring/PerformanceTimer';
@@ -137,6 +136,7 @@ export class SettlementService {
             // Soft delete fields - initialize to null (not deleted)
             deletedAt: null,
             deletedBy: null,
+            supersededBy: null,
         };
 
         // Generate settlement ID before transaction
@@ -256,17 +256,14 @@ export class SettlementService {
         LoggerContext.update({ userId, operation: 'update-settlement' });
 
         timer.startPhase('query');
-        const settlementData = await this.firestoreReader.getSettlement(settlementId);
+        const oldSettlement = await this.firestoreReader.getSettlement(settlementId);
 
-        if (!settlementData) {
+        if (!oldSettlement) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'SETTLEMENT_NOT_FOUND', 'Settlement not found');
         }
 
-        // Settlement data is already validated by FirestoreReader
-        const settlement = settlementData;
-
         // Check if settlement is locked (payer or payee has left)
-        const isLocked = await this.isSettlementLocked(settlement, settlement.groupId);
+        const isLocked = await this.isSettlementLocked(oldSettlement, oldSettlement.groupId);
         if (isLocked) {
             throw new ApiError(
                 HTTP_STATUS.BAD_REQUEST,
@@ -275,37 +272,13 @@ export class SettlementService {
             );
         }
 
-        if (settlement.createdBy !== userId) {
+        if (oldSettlement.createdBy !== userId) {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_SETTLEMENT_CREATOR', 'Only the creator can update this settlement');
         }
 
-        // Note: updates type includes FieldValue which is a special Firestore sentinel value
-        const updates: Partial<Pick<SettlementDTO, 'amount' | 'currency' | 'date'>> & { note?: string | any; } = {};
-
-        if (updateData.amount !== undefined) {
-            updates.amount = updateData.amount;
-        }
-
-        if (updateData.currency !== undefined) {
-            updates.currency = updateData.currency;
-        }
-
-        if (updateData.date !== undefined) {
-            updates.date = updateData.date; // Already ISO string, no conversion needed
-        }
-
-        if (updateData.note !== undefined) {
-            if (updateData.note) {
-                updates.note = updateData.note;
-            } else {
-                // If note is explicitly set to empty string or null, remove it
-                updates.note = FieldValue.delete();
-            }
-        }
-
         const [member, memberIds] = await Promise.all([
-            this.firestoreReader.getGroupMember(settlement.groupId, userId),
-            this.firestoreReader.getAllGroupMemberIds(settlement.groupId),
+            this.firestoreReader.getGroupMember(oldSettlement.groupId, userId),
+            this.firestoreReader.getAllGroupMemberIds(oldSettlement.groupId),
         ]);
 
         if (!member) {
@@ -319,13 +292,38 @@ export class SettlementService {
 
         timer.endPhase();
 
-        const updatedNote = updateData.note === undefined ? settlement.note : updateData.note || undefined;
+        // Generate new settlement ID for the updated version
+        const newSettlementId = toSettlementId(this.firestoreWriter.generateDocumentId(FirestoreCollections.SETTLEMENTS));
+        const now = toISOString(new Date().toISOString());
+
+        // Handle note field - if explicitly set to empty string or null, don't include it
+        const newNote = updateData.note !== undefined
+            ? (updateData.note || undefined)
+            : oldSettlement.note;
+
+        // Build the new settlement data (merging old settlement with updates)
+        const newSettlementData: Omit<SettlementDTO, 'isLocked'> = {
+            id: newSettlementId,
+            groupId: oldSettlement.groupId,
+            payerId: oldSettlement.payerId, // Immutable
+            payeeId: oldSettlement.payeeId, // Immutable
+            amount: updateData.amount ?? oldSettlement.amount,
+            currency: updateData.currency ?? oldSettlement.currency,
+            date: updateData.date ?? oldSettlement.date,
+            note: newNote,
+            createdBy: oldSettlement.createdBy, // Preserve original creator
+            createdAt: now, // New version gets new creation timestamp
+            updatedAt: now,
+            deletedAt: null,
+            deletedBy: null,
+            supersededBy: null,
+        };
 
         // Declare variables outside transaction for activity feed
         let activityItem: any = null;
         let activityRecipients: UserId[] = [];
 
-        // Update with optimistic locking and balance update
+        // Use transaction to soft-delete old settlement and create new one atomically
         timer.startPhase('transaction');
         await this.firestoreWriter.runTransaction(async (transaction) => {
             // ===== READ PHASE: All reads must happen before any writes =====
@@ -336,50 +334,56 @@ export class SettlementService {
             }
 
             // Check for concurrent updates
-            if (settlement.updatedAt !== currentSettlement.updatedAt) {
+            if (oldSettlement.updatedAt !== currentSettlement.updatedAt) {
                 throw new ApiError(HTTP_STATUS.CONFLICT, 'CONCURRENT_UPDATE', 'Document was modified concurrently');
             }
 
-            const groupInTx = await this.firestoreReader.getGroupInTransaction(transaction, settlement.groupId);
+            const groupInTx = await this.firestoreReader.getGroupInTransaction(transaction, oldSettlement.groupId);
             if (!groupInTx) {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
             }
 
             // Read current balance BEFORE any writes (Firestore transaction rule)
-            const currentBalance = await this.firestoreWriter.getGroupBalanceInTransaction(transaction, settlement.groupId);
+            const currentBalance = await this.firestoreWriter.getGroupBalanceInTransaction(transaction, oldSettlement.groupId);
 
             // ===== WRITE PHASE: All writes happen after reads =====
 
-            const updateTimestamp = toISOString(new Date().toISOString());
-            const documentPath = `${FirestoreCollections.SETTLEMENTS}/${settlementId}`;
-            this.firestoreWriter.updateInTransaction(transaction, documentPath, {
-                ...updates,
-                updatedAt: updateTimestamp, // ISO string, FirestoreWriter converts
+            // 1. Soft-delete old settlement and link to new version via supersededBy
+            this.firestoreWriter.updateInTransaction(transaction, `${FirestoreCollections.SETTLEMENTS}/${settlementId}`, {
+                supersededBy: newSettlementId,
+                deletedAt: now,
+                deletedBy: userId,
+                updatedAt: now,
             });
 
+            // 2. Create new settlement document
+            this.firestoreWriter.createInTransaction(
+                transaction,
+                FirestoreCollections.SETTLEMENTS,
+                newSettlementId,
+                newSettlementData,
+            );
+
             // Update group timestamp to track activity
-            await this.firestoreWriter.touchGroup(settlement.groupId, transaction);
+            await this.firestoreWriter.touchGroup(oldSettlement.groupId, transaction);
 
             // Apply incremental balance update with old and new settlement
-            const newSettlement: SettlementDTO = { ...settlement, ...updates, updatedAt: updateTimestamp } as SettlementDTO;
-            if (updates.note === FieldValue.delete()) {
-                delete (newSettlement as any).note;
-            }
-            this.incrementalBalanceService.applySettlementUpdated(transaction, settlement.groupId, currentBalance, settlement, newSettlement, memberIds);
+            const newSettlementForBalance: SettlementDTO = { ...newSettlementData, isLocked: false };
+            this.incrementalBalanceService.applySettlementUpdated(transaction, oldSettlement.groupId, currentBalance, oldSettlement, newSettlementForBalance, memberIds);
 
             // Build activity item - will be recorded AFTER transaction commits
             activityItem = this.activityFeedService.buildGroupActivityItem({
-                groupId: settlement.groupId,
+                groupId: oldSettlement.groupId,
                 groupName: groupInTx.name,
                 eventType: ActivityFeedEventTypes.SETTLEMENT_UPDATED,
                 action: ActivityFeedActions.UPDATE,
                 actorId: userId,
                 actorName: actorDisplayName,
-                timestamp: updateTimestamp,
+                timestamp: now,
                 details: this.activityFeedService.buildDetails({
                     settlement: {
-                        id: settlementId,
-                        description: updatedNote,
+                        id: newSettlementId, // Reference the new settlement
+                        description: newNote,
                     },
                 }),
             });
@@ -395,39 +399,39 @@ export class SettlementService {
         }
 
         timer.startPhase('refetch');
-        const updatedSettlement = await this.firestoreReader.getSettlement(settlementId);
-
         // Fetch group member data for payer and payee to return complete response
         const [payerData, payeeData] = await Promise.all([
-            this.userService.resolveGroupMemberProfile(updatedSettlement!.groupId, updatedSettlement!.payerId),
-            this.userService.resolveGroupMemberProfile(updatedSettlement!.groupId, updatedSettlement!.payeeId),
+            this.userService.resolveGroupMemberProfile(newSettlementData.groupId, newSettlementData.payerId),
+            this.userService.resolveGroupMemberProfile(newSettlementData.groupId, newSettlementData.payeeId),
         ]);
         timer.endPhase();
 
         logger.info('settlement-updated', {
-            settlementId,
-            groupId: settlement.groupId,
+            oldId: settlementId,
+            newId: newSettlementId,
+            groupId: oldSettlement.groupId,
             timings: timer.getTimings(),
         });
 
         const settlementWithMembers: SettlementWithMembers = {
-            id: settlementId,
-            groupId: updatedSettlement!.groupId,
+            id: newSettlementId,
+            groupId: newSettlementData.groupId,
             payer: payerData,
             payee: payeeData,
-            amount: updatedSettlement!.amount,
-            currency: updatedSettlement!.currency,
-            date: updatedSettlement!.date,
-            note: updatedSettlement!.note,
-            createdAt: updatedSettlement!.createdAt,
-            deletedAt: updatedSettlement!.deletedAt,
-            deletedBy: updatedSettlement!.deletedBy,
+            amount: newSettlementData.amount,
+            currency: newSettlementData.currency,
+            date: newSettlementData.date,
+            note: newSettlementData.note,
+            createdAt: newSettlementData.createdAt,
+            deletedAt: newSettlementData.deletedAt,
+            deletedBy: newSettlementData.deletedBy,
+            supersededBy: newSettlementData.supersededBy,
             // Compute isLocked by checking if payer or payee has left the group
             isLocked: false, // Will be set below
         };
 
         // Add computed isLocked field
-        const currentMemberIds = await this.firestoreReader.getAllGroupMemberIds(settlement.groupId);
+        const currentMemberIds = await this.firestoreReader.getAllGroupMemberIds(oldSettlement.groupId);
         settlementWithMembers.isLocked = !currentMemberIds.includes(payerData.uid) || !currentMemberIds.includes(payeeData.uid);
 
         return settlementWithMembers;
@@ -466,7 +470,8 @@ export class SettlementService {
         LoggerContext.update({ userId, operation: 'soft-delete-settlement' });
 
         timer.startPhase('query');
-        const settlementData = await this.firestoreReader.getSettlement(settlementId);
+        // Include soft-deleted settlements so we can check supersededBy before throwing NOT_FOUND
+        const settlementData = await this.firestoreReader.getSettlement(settlementId, { includeSoftDeleted: true });
 
         if (!settlementData) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'SETTLEMENT_NOT_FOUND', 'Settlement not found');
@@ -474,9 +479,19 @@ export class SettlementService {
 
         const settlement = settlementData;
 
-        // Check if already soft-deleted
+        // Prevent deletion of superseded settlements (they're already archived via edit history)
+        // This check MUST come before the deletedAt check to return the correct error
+        if (settlement.supersededBy !== null) {
+            throw new ApiError(
+                HTTP_STATUS.BAD_REQUEST,
+                'CANNOT_DELETE_SUPERSEDED',
+                'Cannot delete a superseded settlement - it has already been replaced by a newer version',
+            );
+        }
+
+        // Check if already soft-deleted (user-initiated deletion)
         if (settlement.deletedAt) {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'ALREADY_DELETED', 'Settlement is already deleted');
+            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'SETTLEMENT_NOT_FOUND', 'Settlement not found');
         }
 
         // Permission check: User must be settlement creator or group admin
@@ -589,6 +604,7 @@ export class SettlementService {
                     createdAt: settlement.createdAt,
                     deletedAt: settlement.deletedAt,
                     deletedBy: settlement.deletedBy,
+                    supersededBy: settlement.supersededBy,
                     isLocked,
                 } as SettlementWithMembers;
             }),

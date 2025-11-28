@@ -32,6 +32,7 @@ export class SettlementDTOBuilder {
             updatedAt: convertToISOString(new Date()),
             deletedAt: null,
             deletedBy: null,
+            supersededBy: null,
             isLocked: false,
         };
     }

@@ -23,6 +23,7 @@ const BaseExpenseSchema = z
         splits: z.array(FirestoreExpenseSplitSchema),
         receiptUrl: z.string().url().optional().nullable(),
         isLocked: z.boolean().optional(), // True if any participant has left the group
+        supersededBy: z.string().nullable(), // ExpenseId of newer version, null if current
     })
     .merge(AuditFieldsSchema)
     .merge(SoftDeletionFieldsSchema);

@@ -277,11 +277,11 @@ describe('Departed Member Transaction Locking - Unit Tests', () => {
                 .withSplits(calculateEqualSplits(toAmount(120), usd, [toUserId(userIds[0]), toUserId(userIds[1]), toUserId(userIds[2])]))
                 .build();
 
-            // Returns 204 No Content on success
-            await appDriver.updateExpense(expense.id, updateData, userIds[0]);
+            // Update creates new expense with new ID (edit history via soft deletes)
+            const newExpense = await appDriver.updateExpense(expense.id, updateData, userIds[0]);
 
-            // Verify update succeeded
-            const updated = await appDriver.getExpense(expense.id, userIds[0]);
+            // Verify update succeeded using the NEW expense ID
+            const updated = await appDriver.getExpense(newExpense.id, userIds[0]);
             expect(updated.amount).toBe('120');
             expect(updated.description).toBe('Updated successfully');
         });
@@ -580,12 +580,12 @@ describe('Departed Member Transaction Locking - Unit Tests', () => {
                 .withAmount(40, 'USD')
                 .build();
 
-            // Returns 204 No Content on success
-            await appDriver.updateSettlement(settlement.id, updateData, userIds[1]);
+            // Update creates new settlement with new ID (edit history via soft deletes)
+            const newSettlement = await appDriver.updateSettlement(settlement.id, updateData, userIds[1]);
 
-            // Verify update succeeded
+            // Verify update succeeded using the NEW settlement ID
             const fullDetails = await appDriver.getGroupFullDetails(group.id, {}, userIds[0]);
-            const updated = fullDetails.settlements.settlements.find((s) => s.id === settlement.id);
+            const updated = fullDetails.settlements.settlements.find((s) => s.id === newSettlement.id);
             expect(updated?.amount).toBe('40');
             expect(updated?.note).toBe('Updated payment amount');
         });

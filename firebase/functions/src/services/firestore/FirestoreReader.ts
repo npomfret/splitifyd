@@ -292,7 +292,7 @@ export class FirestoreReader implements IFirestoreReader {
         }
     }
 
-    async getExpense(expenseId: ExpenseId): Promise<ExpenseDTO | null> {
+    async getExpense(expenseId: ExpenseId, options?: { includeSoftDeleted?: boolean }): Promise<ExpenseDTO | null> {
         try {
             const expenseDoc = await this.db.collection(FirestoreCollections.EXPENSES).doc(expenseId).get();
 
@@ -309,8 +309,14 @@ export class FirestoreReader implements IFirestoreReader {
 
             // Convert Timestamps to ISO strings for DTO
             const convertedData = this.convertTimestampsToISO(expenseData);
+            const expense = convertedData as unknown as ExpenseDTO;
 
-            return convertedData as unknown as ExpenseDTO;
+            // Return null if expense is soft-deleted (unless explicitly including them)
+            if (!options?.includeSoftDeleted && expense.deletedAt) {
+                return null;
+            }
+
+            return expense;
         } catch (error) {
             logger.error('Failed to get expense', error);
             throw error;
@@ -863,7 +869,7 @@ export class FirestoreReader implements IFirestoreReader {
      * - Reduces resource usage by 90%+ for users with many groups
      */
 
-    async getSettlement(settlementId: SettlementId): Promise<SettlementDTO | null> {
+    async getSettlement(settlementId: SettlementId, options?: { includeSoftDeleted?: boolean }): Promise<SettlementDTO | null> {
         try {
             const settlementDoc = await this.db.collection(FirestoreCollections.SETTLEMENTS).doc(settlementId).get();
 
@@ -882,8 +888,8 @@ export class FirestoreReader implements IFirestoreReader {
             const convertedData = this.convertTimestampsToISO(settlementData);
             const settlement = convertedData as unknown as SettlementDTO;
 
-            // Return null if settlement is soft-deleted
-            if (settlement.deletedAt) {
+            // Return null if settlement is soft-deleted (unless explicitly including them)
+            if (!options?.includeSoftDeleted && settlement.deletedAt) {
                 return null;
             }
 
@@ -1317,6 +1323,7 @@ export class FirestoreReader implements IFirestoreReader {
                         'updatedAt',
                         'deletedAt',
                         'deletedBy',
+                        'supersededBy',
                     )
                     .orderBy('date', 'desc')
                     .orderBy('createdAt', 'desc')

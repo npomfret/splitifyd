@@ -667,8 +667,10 @@ describe('balances', () => {
 
         const balanceAfterEqual = amountToSmallestUnit(eurBalances![user1].netBalance, CURRENCY);
 
+        // Update creates new expense with new ID (edit history via soft deletes)
+        // Chain updates using the returned new expense IDs
         const percentageSplits = calculatePercentageSplits(AMOUNT, CURRENCY, participants, 0);
-        await appDriver.updateExpense(
+        const expenseAfterPercentage = await appDriver.updateExpense(
             createdExpense.id,
             ExpenseUpdateBuilder
                 .minimal()
@@ -693,8 +695,8 @@ describe('balances', () => {
             uid: split.uid,
             amount: split.amount,
         }));
-        await appDriver.updateExpense(
-            createdExpense.id,
+        const expenseAfterExact = await appDriver.updateExpense(
+            expenseAfterPercentage.id,
             ExpenseUpdateBuilder
                 .minimal()
                 .withAmount(AMOUNT, CURRENCY)
@@ -716,7 +718,7 @@ describe('balances', () => {
 
         const finalEqualSplits = calculateEqualSplits(AMOUNT, CURRENCY, participants, 0);
         await appDriver.updateExpense(
-            createdExpense.id,
+            expenseAfterExact.id,
             ExpenseUpdateBuilder
                 .minimal()
                 .withAmount(AMOUNT, CURRENCY)

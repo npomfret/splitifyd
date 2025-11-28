@@ -1,4 +1,4 @@
-import { ClientUser, PolicyId, SystemUserRoles, toISOString, UserProfile, UserProfileResponse, UserRegistration, VersionHash } from '@billsplit-wl/shared';
+import { ClientUser, SystemUserRoles, toISOString, UserProfile, UserProfileResponse, UserRegistration } from '@billsplit-wl/shared';
 import { GroupMember, GroupMembershipDTO, GroupMembersResponse } from '@billsplit-wl/shared';
 import { GroupId } from '@billsplit-wl/shared';
 import { DisplayName } from '@billsplit-wl/shared';

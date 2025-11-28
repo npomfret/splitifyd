@@ -181,6 +181,37 @@ export function firebaseInitConfigHandler(options: HandlerOptions = {}): Seriali
     );
 }
 
+export function expenseFullDetailsHandler(
+    expenseId: string,
+    response: unknown,
+    options: HandlerOptions = {},
+): SerializedMswHandler {
+    return createJsonHandler('GET', `/api/expenses/${expenseId}/full-details`, response, options);
+}
+
+export function expenseCommentsHandler(
+    expenseId: string,
+    response: unknown,
+    options: HandlerOptions = {},
+): SerializedMswHandler {
+    return createJsonHandler('GET', `/api/expenses/${expenseId}/comments`, response, options);
+}
+
+export function updateExpenseHandler(
+    expenseId: string,
+    response: unknown,
+    options: HandlerOptions = {},
+): SerializedMswHandler {
+    return createJsonHandler('PUT', `/api/expenses`, response, {
+        ...options,
+        urlKind: options.urlKind ?? 'prefix',
+        query: {
+            ...(options.query ?? {}),
+            id: expenseId,
+        },
+    });
+}
+
 export function appConfigHandler(options: HandlerOptions = {}): SerializedMswHandler {
     return createJsonHandler(
         'GET',

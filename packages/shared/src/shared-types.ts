@@ -917,6 +917,7 @@ interface Expense extends SoftDeletable {
     participants: UserId[];
     splits: ExpenseSplit[];
     receiptUrl?: string;
+    supersededBy: ExpenseId | null; // Non-null if this expense was edited (replaced by newer version)
 }
 
 /**
@@ -962,6 +963,7 @@ interface Settlement extends SoftDeletable {
     date: ISOString;
     note?: string;
     createdBy: UserId;
+    supersededBy: SettlementId | null; // Non-null if this settlement was edited (replaced by newer version)
 }
 
 /**
@@ -1018,6 +1020,7 @@ export interface SettlementWithMembers extends SoftDeletable {
     note?: string;
     createdAt: ISOString;
     isLocked: boolean; // True if payer or payee has left the group (computed field, always present)
+    supersededBy: SettlementId | null; // Non-null if this settlement was edited (replaced by newer version)
 }
 
 // ========================================================================

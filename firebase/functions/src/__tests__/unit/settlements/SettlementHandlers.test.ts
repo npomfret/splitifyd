@@ -553,12 +553,12 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withAmount(150.75, 'USD')
                 .build();
 
-            // Returns 204 No Content
-            await appDriver.updateSettlement(created.id, updateRequest, userId);
+            // Update creates new settlement with new ID (edit history via soft deletes)
+            const updatedSettlement = await appDriver.updateSettlement(created.id, updateRequest, userId);
 
-            // Verify the update persisted
+            // Verify the update persisted using the NEW settlement ID
             const fullDetails = await appDriver.getGroupFullDetails(group.id, {}, userId);
-            const updated = fullDetails.settlements.settlements.find((s: any) => s.id === created.id);
+            const updated = fullDetails.settlements.settlements.find((s: any) => s.id === updatedSettlement.id);
             expect(updated?.amount).toBe('150.75');
         });
 
@@ -607,12 +607,12 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withNote('Updated note')
                 .build();
 
-            // Returns 204 No Content
-            await appDriver.updateSettlement(created.id, updateRequest, userId);
+            // Update creates new settlement with new ID (edit history via soft deletes)
+            const updatedSettlement = await appDriver.updateSettlement(created.id, updateRequest, userId);
 
-            // Verify the update persisted
+            // Verify the update persisted using the NEW settlement ID
             const fullDetails = await appDriver.getGroupFullDetails(group.id, {}, userId);
-            const updated = fullDetails.settlements.settlements.find((s: any) => s.id === created.id);
+            const updated = fullDetails.settlements.settlements.find((s: any) => s.id === updatedSettlement.id);
             expect(updated?.note).toBe('Updated note');
         });
 
@@ -661,9 +661,10 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withNote('Updated<script>alert(1)</script>')
                 .build();
 
-            await appDriver.updateSettlement(created.id, updateRequest, userId);
+            // Update creates new settlement with new ID (edit history via soft deletes)
+            const updatedSettlement = await appDriver.updateSettlement(created.id, updateRequest, userId);
 
-            const result = await appDriver.getSettlement(group.id, created.id, userId);
+            const result = await appDriver.getSettlement(group.id, updatedSettlement.id, userId);
             expect(result.note).toBe('Updated');
         });
 

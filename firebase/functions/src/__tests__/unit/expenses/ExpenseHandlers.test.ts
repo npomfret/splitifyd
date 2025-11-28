@@ -242,9 +242,10 @@ describe('ExpenseHandlers - Unit Tests', () => {
                 description: 'Updated description',
             };
 
-            await appDriver.updateExpense(expense.id, updateRequest, userId);
+            const newExpense = await appDriver.updateExpense(expense.id, updateRequest, userId);
 
-            const updatedExpense = await appDriver.getExpense(expense.id, userId);
+            // Update creates a new expense with a new ID (edit history via soft deletes)
+            const updatedExpense = await appDriver.getExpense(newExpense.id, userId);
             expect(updatedExpense.description).toBe('Updated description');
         });
 
@@ -271,9 +272,10 @@ describe('ExpenseHandlers - Unit Tests', () => {
                 label: 'Transport',
             };
 
-            await appDriver.updateExpense(expense.id, updateRequest, userId);
+            const newExpense = await appDriver.updateExpense(expense.id, updateRequest, userId);
 
-            const updatedExpense = await appDriver.getExpense(expense.id, userId);
+            // Update creates a new expense with a new ID (edit history via soft deletes)
+            const updatedExpense = await appDriver.getExpense(newExpense.id, userId);
             expect(updatedExpense.label).toBe('Transport');
         });
 
@@ -647,14 +649,16 @@ describe('ExpenseHandlers - Unit Tests', () => {
             // Add small delay to ensure updatedAt > createdAt (prevent identical timestamps)
             await new Promise((resolve) => setTimeout(resolve, 10));
 
-            await appDriver.updateExpense(created.id, updateData, user1);
+            const newExpense = await appDriver.updateExpense(created.id, updateData, user1);
 
-            const updated = await appDriver.getExpense(created.id, user1);
+            // Update creates a new expense with a new ID (edit history via soft deletes)
+            const updated = await appDriver.getExpense(newExpense.id, user1);
             expect(updated.description).toBe('Updated Test Expense');
             expect(updated.amount).toBe('150.50');
             expect(updated.label).toBe('food');
             expect(updated.updatedAt).toBeDefined();
-            expect(new Date(updated.updatedAt!).getTime()).toBeGreaterThan(new Date(updated.createdAt).getTime());
+            // New expense has createdAt = updatedAt (it's a new document)
+            expect(new Date(updated.updatedAt!).getTime()).toBeGreaterThanOrEqual(new Date(updated.createdAt).getTime());
         });
 
         it('should flip balance direction when payer changes', async () => {
@@ -754,7 +758,7 @@ describe('ExpenseHandlers - Unit Tests', () => {
             const created = await appDriver.createExpense(expenseData, admin);
 
             // Creator should be able to update
-            await appDriver.updateExpense(created.id, {
+            const firstUpdate = await appDriver.updateExpense(created.id, {
                 amount: '150.00',
                 currency: usd,
                 participants: [admin, member1],
@@ -765,8 +769,8 @@ describe('ExpenseHandlers - Unit Tests', () => {
                 ],
             }, admin);
 
-            // Non-creator group member should also be able to update
-            await appDriver.updateExpense(created.id, {
+            // Non-creator group member should also be able to update (using the NEW expense ID from first update)
+            const secondUpdate = await appDriver.updateExpense(firstUpdate.id, {
                 description: 'Updated by non-creator',
                 amount: '120.00',
                 currency: usd,
@@ -778,7 +782,8 @@ describe('ExpenseHandlers - Unit Tests', () => {
                 ],
             }, member2);
 
-            const updated = await appDriver.getExpense(created.id, member2);
+            // Update creates a new expense with a new ID (edit history via soft deletes)
+            const updated = await appDriver.getExpense(secondUpdate.id, member2);
             expect(updated.description).toBe('Updated by non-creator');
         });
     });

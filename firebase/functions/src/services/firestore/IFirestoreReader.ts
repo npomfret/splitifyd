@@ -100,16 +100,18 @@ export interface IFirestoreReader {
     /**
      * Get an expense document by ID
      * @param expenseId - The expense ID
+     * @param options - Optional flags for retrieval behavior
      * @returns Expense document or null if not found
      */
-    getExpense(expenseId: ExpenseId): Promise<ExpenseDTO | null>;
+    getExpense(expenseId: ExpenseId, options?: { includeSoftDeleted?: boolean }): Promise<ExpenseDTO | null>;
 
     /**
      * Get a settlement document by ID
      * @param settlementId - The settlement ID
+     * @param options - Optional flags for retrieval behavior
      * @returns Settlement document or null if not found
      */
-    getSettlement(settlementId: SettlementId): Promise<SettlementDTO | null>;
+    getSettlement(settlementId: SettlementId, options?: { includeSoftDeleted?: boolean }): Promise<SettlementDTO | null>;
 
     /**
      * Get a policy document by ID

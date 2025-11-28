@@ -1,5 +1,7 @@
 # Edit History via Soft Deletes
 
+**Status:** ✅ COMPLETE
+
 Expense edits (and other entity edits) currently overwrite the previous data. This loses the edit history.
 
 **Problem:** No audit trail of changes - can't see what an expense looked like before it was edited.
@@ -78,3 +80,42 @@ supersededBy: SettlementId | null;  // For settlements
 - UI to view edit history
 - API endpoints to fetch history chain
 - Migration of existing data
+
+---
+
+## Implementation Summary
+
+All items from the plan above have been implemented:
+
+### Files Modified
+
+| File | Change |
+|------|--------|
+| `packages/shared/src/shared-types.ts` | Added `supersededBy` to `Expense`, `Settlement`, and `SettlementWithMembers` interfaces |
+| `packages/shared/src/api.ts` | Changed `updateExpense` return type to `ExpenseDTO`, `updateSettlement` to `SettlementWithMembers` |
+| `packages/shared/src/schemas/apiSchemas.ts` | Added `supersededBy` to schemas, updated PUT response schemas |
+| `firebase/functions/src/schemas/expense.ts` | Added `supersededBy` field |
+| `firebase/functions/src/schemas/settlement.ts` | Added `supersededBy` field |
+| `firebase/functions/src/services/ExpenseService.ts` | Rewrote `updateExpense` to soft-delete + create new; added guard in `_deleteExpense` |
+| `firebase/functions/src/services/SettlementService.ts` | Rewrote `updateSettlement` to soft-delete + create new; added guard in `softDeleteSettlement` |
+| `firebase/functions/src/services/firestore/FirestoreReader.ts` | Added `includeSoftDeleted` option to `getExpense` and `getSettlement` |
+| `firebase/functions/src/services/firestore/IFirestoreReader.ts` | Updated interface signatures |
+| `firebase/functions/src/expenses/ExpenseHandlers.ts` | Returns 200 with new expense data |
+| `firebase/functions/src/settlements/SettlementHandlers.ts` | Returns 200 with new settlement data |
+| `webapp-v2/src/app/apiClient.ts` | Updated return types |
+| `packages/test-support/src/ApiDriver.ts` | Updated return types |
+| `firebase/functions/src/__tests__/unit/AppDriver.ts` | Updated return types, added `getExpenseById`/`getSettlementById` helpers |
+| `packages/test-support/src/builders/*.ts` | Added `supersededBy: null` defaults |
+
+### Tests Added
+
+**Expense tests** (`firebase/functions/src/__tests__/unit/api/expenses.test.ts`):
+- `should return new expense with new ID when updating`
+- `should set supersededBy on original expense when updated`
+- `should prevent deletion of superseded expense`
+- `should not return superseded expense in group details`
+
+**Settlement tests** (`firebase/functions/src/__tests__/unit/api/settlements.test.ts`):
+- `should return new settlement with new ID when updating`
+- `should set supersededBy on original settlement when updated`
+- `should prevent deletion of superseded settlement`

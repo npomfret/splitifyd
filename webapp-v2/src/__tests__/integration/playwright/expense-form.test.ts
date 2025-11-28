@@ -2,10 +2,10 @@ import type { GroupId } from '@billsplit-wl/shared';
 import { DisplayName, toUserId } from '@billsplit-wl/shared';
 import { toDisplayName } from '@billsplit-wl/shared';
 import { toCurrencyISOCode, USD } from '@billsplit-wl/shared';
-import { ExpenseFormPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder } from '@billsplit-wl/test-support';
+import { ExpenseDTOBuilder, ExpenseFormPage, ExpenseFullDetailsBuilder, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder } from '@billsplit-wl/test-support';
 import type { Page } from '@playwright/test';
 import { expect, test } from '../../utils/console-logging-fixture';
-import { mockGroupCommentsApi, mockGroupDetailApi } from '../../utils/mock-firebase-service';
+import { mockExpenseCommentsApi, mockExpenseDetailApi, mockGroupCommentsApi, mockGroupDetailApi, mockUpdateExpenseApi } from '../../utils/mock-firebase-service';
 
 type MemberSeed = {
     uid: string;
@@ -1254,6 +1254,79 @@ test.describe('Expense Form', () => {
             await expenseFormPage.expectFormOpen();
             await expect(page).toHaveURL(new RegExp(`/groups/${groupId}/add-expense`));
             await expectNoGlobalError(expenseFormPage);
+        });
+    });
+
+    test.describe('Expense Editing (Edit History)', () => {
+        test('should navigate to NEW expense ID after editing (edit history creates new document)', async ({ authenticatedPage }) => {
+            const { page, user: testUser } = authenticatedPage;
+            const groupId = 'test-group-edit-history';
+            const oldExpenseId = 'original-expense-id';
+            const newExpenseId = 'new-expense-id-after-edit';
+
+            // Build group with minimal args
+            const group = GroupDTOBuilder
+                .groupForUser(toUserId(testUser.uid))
+                .withId(groupId)
+                .build();
+
+            const members = [
+                new GroupMemberBuilder()
+                    .withUid(testUser.uid)
+                    .withDisplayName(testUser.displayName)
+                    .build(),
+            ];
+
+            const fullDetails = new GroupFullDetailsBuilder().withGroup(group).withMembers(members).build();
+
+            // Original expense - specify fields needed for form to load without errors
+            const originalExpense = new ExpenseDTOBuilder()
+                .withExpenseId(oldExpenseId)
+                .withGroupId(groupId)
+                .withPaidBy(testUser.uid)
+                .withParticipants([testUser.uid])
+                .build();
+
+            const expenseFullDetails = new ExpenseFullDetailsBuilder()
+                .withExpense(originalExpense)
+                .withGroup(group)
+                .withMembers(members)
+                .build();
+
+            // Updated expense - only needs NEW ID (the key difference we're testing)
+            const updatedExpense = new ExpenseDTOBuilder()
+                .withExpenseId(newExpenseId)
+                .withGroupId(groupId)
+                .build();
+
+            const updatedExpenseFullDetails = new ExpenseFullDetailsBuilder()
+                .withExpense(updatedExpense)
+                .withGroup(group)
+                .withMembers(members)
+                .build();
+
+            // Mock APIs
+            await mockGroupDetailApi(page, groupId, fullDetails);
+            await mockGroupCommentsApi(page, groupId);
+            await mockExpenseDetailApi(page, oldExpenseId, expenseFullDetails);
+            await mockExpenseCommentsApi(page, oldExpenseId);
+            await mockUpdateExpenseApi(page, oldExpenseId, updatedExpense);
+            await mockExpenseDetailApi(page, newExpenseId, updatedExpenseFullDetails);
+            await mockExpenseCommentsApi(page, newExpenseId);
+
+            // Navigate to edit expense page
+            await page.goto(`/groups/${groupId}/add-expense?id=${oldExpenseId}&edit=true`);
+
+            const expenseFormPage = new ExpenseFormPage(page);
+            await expenseFormPage.waitForExpenseFormSections();
+
+            // Make changes and submit
+            await expenseFormPage.fillDescription('Updated');
+            await expenseFormPage.clickUpdateExpenseButton();
+
+            // CRITICAL: Verify navigation goes to the NEW expense ID, not the old one
+            await expect(page).toHaveURL(new RegExp(`/groups/${groupId}/expenses/${newExpenseId}`));
+            await expect(page).not.toHaveURL(new RegExp(oldExpenseId));
         });
     });
 });

@@ -754,11 +754,11 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return res.getJson() as ExpenseDTO;
     }
 
-    async updateExpense(expenseId: ExpenseId | string, data: UpdateExpenseRequest, authToken: AuthToken): Promise<void> {
+    async updateExpense(expenseId: ExpenseId | string, data: UpdateExpenseRequest, authToken: AuthToken): Promise<ExpenseDTO> {
         const req = createStubRequest(authToken, data);
         req.query = { id: expenseId };
         const res = await this.dispatchByHandler('updateExpense', req);
-        this.throwIfError(res);
+        return res.getJson() as ExpenseDTO;
     }
 
     async deleteExpense(expenseId: ExpenseId | string, authToken: AuthToken): Promise<void> {
@@ -780,6 +780,40 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return res.getJson() as ExpenseFullDetailsDTO;
     }
 
+    /**
+     * Direct database access to get an expense by ID, including deleted/superseded expenses.
+     * This bypasses the API layer and reads directly from the stub database.
+     * Useful for testing edit history (supersededBy) functionality.
+     */
+    async getExpenseById(expenseId: ExpenseId | string): Promise<ExpenseDTO> {
+        const firestoreReader = new FirestoreReader(this.db);
+        const expense = await firestoreReader.getExpense(
+            typeof expenseId === 'string' ? expenseId as ExpenseId : expenseId,
+            { includeSoftDeleted: true },
+        );
+        if (!expense) {
+            throw new Error(`Expense not found: ${expenseId}`);
+        }
+        return expense;
+    }
+
+    /**
+     * Direct database access to get a settlement by ID, including deleted/superseded settlements.
+     * This bypasses the API layer and reads directly from the stub database.
+     * Useful for testing edit history (supersededBy) functionality.
+     */
+    async getSettlementById(settlementId: SettlementId | string): Promise<SettlementDTO> {
+        const firestoreReader = new FirestoreReader(this.db);
+        const settlement = await firestoreReader.getSettlement(
+            typeof settlementId === 'string' ? settlementId as SettlementId : settlementId,
+            { includeSoftDeleted: true },
+        );
+        if (!settlement) {
+            throw new Error(`Settlement not found: ${settlementId}`);
+        }
+        return settlement;
+    }
+
     async listGroupExpenses(groupId: GroupId | string, options: ListExpensesOptions = {}, authToken: AuthToken): Promise<ListExpensesResponse> {
         const req = createStubRequest(authToken, {}, { groupId });
         const query: Record<string, string> = {};
@@ -797,7 +831,6 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         this.throwIfError(res);
         return res.getJson() as ListExpensesResponse;
     }
-
     async createSettlement(data: CreateSettlementRequest, authToken: AuthToken): Promise<SettlementDTO> {
         const req = createStubRequest(authToken, data);
         const res = await this.dispatchByHandler('createSettlement', req);
@@ -805,10 +838,10 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return res.getJson() as SettlementDTO;
     }
 
-    async updateSettlement(settlementId: SettlementId | string, data: UpdateSettlementRequest, authToken: AuthToken): Promise<void> {
+    async updateSettlement(settlementId: SettlementId | string, data: UpdateSettlementRequest, authToken: AuthToken): Promise<SettlementWithMembers> {
         const req = createStubRequest(authToken, data, { settlementId });
         const res = await this.dispatchByHandler('updateSettlement', req);
-        this.throwIfError(res);
+        return res.getJson() as SettlementWithMembers;
     }
 
     async deleteSettlement(settlementId: SettlementId | string, authToken: AuthToken): Promise<void> {
