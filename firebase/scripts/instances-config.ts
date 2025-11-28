@@ -8,6 +8,7 @@ export interface InstancePorts {
     firestore: number;
     hosting: number;
     storage: number;
+    tasks: number;
 }
 
 export interface InstanceConfig {

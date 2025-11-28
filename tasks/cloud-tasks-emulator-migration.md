@@ -1,78 +1,45 @@
-# Migrate to Firebase Cloud Tasks Emulator
+# Cloud Tasks Emulator Support
 
-## Background
+## Status: IMPLEMENTED
 
-As of August 2024, the Firebase Emulator Suite now includes Cloud Tasks emulation ([PR #7475](https://github.com/firebase/firebase-tools/pull/7475)). Previously, Cloud Tasks was not supported ([Issue #4884](https://github.com/firebase/firebase-tools/issues/4884)), which is why we created `StubCloudTasksClient` in `@billsplit-wl/firebase-simulator`.
+As of August 2024, Firebase Emulator Suite includes Cloud Tasks emulation ([PR #7475](https://github.com/firebase/firebase-tools/pull/7475)).
 
-## Current Architecture
+## What Was Done
 
+1. **Added tasks emulator port configuration**
+   - `firebase/scripts/instances-config.ts` - added `tasks` to `InstancePorts` interface
+   - `firebase/instances.json` - added `tasks` port for each instance (6007, 7007, 8007, 9007)
+
+2. **Updated firebase config template**
+   - `firebase/firebase.template.json` - added `tasks` emulator section
+
+3. **Updated config generator**
+   - `firebase/scripts/generate-firebase-config.ts` - added `EMULATOR_TASKS_PORT` replacement
+
+## How It Works
+
+The `@google-cloud/tasks` SDK automatically detects `CLOUD_TASKS_EMULATOR_HOST` environment variable when the Firebase tasks emulator is running. No code changes were needed in `ComponentBuilder` or `MergeService` - they already use the real SDK via `createCloudTasksClient()`.
+
+When the emulator starts:
+1. Tasks emulator runs on configured port (e.g., 6007 for dev1)
+2. Firebase sets `CLOUD_TASKS_EMULATOR_HOST=localhost:6007`
+3. `@google-cloud/tasks` SDK routes requests to emulator instead of GCP
+
+## StubCloudTasksClient
+
+`StubCloudTasksClient` in `@billsplit-wl/firebase-simulator` is still used for **unit tests** where we don't run the emulator. This provides:
+- Fast test execution (no emulator startup)
+- Ability to inspect enqueued tasks
+- Deterministic test behavior
+
+## Testing
+
+After restarting dev environment (`./dev1.sh`), verify tasks emulator starts:
 ```
-ICloudTasksClient (interface)
-├── CloudTasksClientWrapper - wraps real @google-cloud/tasks for production
-└── StubCloudTasksClient - in-memory stub for testing
+✔  tasks: Tasks Emulator at 127.0.0.1:6007
 ```
-
-**Files:**
-- `packages/firebase-simulator/src/cloudtasks-types.ts` - interface definition
-- `packages/firebase-simulator/src/admin-cloudtasks.ts` - production wrapper
-- `packages/firebase-simulator/src/StubCloudTasksClient.ts` - test stub
-- `firebase/functions/src/services/ComponentBuilder.ts` - creates client
-- `firebase/functions/src/merge/MergeService.ts` - main consumer
-
-**Current Usage:**
-- `MergeService` uses Cloud Tasks to enqueue async merge jobs
-- Tasks call back to `/processMerge` endpoint
-- In unit tests, `StubCloudTasksClient` captures enqueued tasks for assertions
-
-## Why Migrate?
-
-1. **Real behavior in emulator** - tasks actually execute with proper timing/retry
-2. **End-to-end testing** - can test full task lifecycle without mocking
-3. **Reduced maintenance** - less custom code to maintain
-4. **Consistency** - same behavior in emulator as production
-
-## Recommended Approach
-
-### Keep Both Implementations
-
-| Context | Implementation | Reason |
-|---------|---------------|--------|
-| Unit tests | `StubCloudTasksClient` | Fast, inspectable, no emulator needed |
-| Emulator runtime | Real Cloud Tasks emulator | Actual task execution and timing |
-| Production | `CloudTasksClientWrapper` | Real GCP Cloud Tasks |
-
-### Implementation Steps
-
-1. **Enable Cloud Tasks in emulator config**
-   - Update `firebase.json` to include tasks emulator
-   - Configure tasks emulator port in `instances.json`
-
-2. **Update ComponentBuilder**
-   - Detect if tasks emulator is running
-   - Use real client when emulator available, stub otherwise
-
-3. **Update environment handling**
-   - `__CLOUD_TASKS_LOCATION` only required when tasks emulator NOT available
-   - When tasks emulator runs, it provides the location automatically
-
-4. **Test task execution in emulator**
-   - Verify tasks are enqueued and executed
-   - Check `/processMerge` endpoint receives callbacks
-
-### Environment Variable Changes
-
-After migration:
-- `__CLOUD_TASKS_LOCATION` - only needed in `.env.firebase.example` (staging/prod)
-- Dev instances can omit it if using tasks emulator
-
-## Open Questions
-
-1. **Tasks emulator port** - need to add to `instances.json` port mappings
-2. **OIDC tokens** - does emulator validate them or skip?
-3. **Queue creation** - does emulator auto-create queues or need config?
 
 ## References
 
 - [Firebase Cloud Tasks Emulator PR](https://github.com/firebase/firebase-tools/pull/7475)
 - [Firebase Task Functions Docs](https://firebase.google.com/docs/functions/task-functions)
-- [Run functions locally](https://firebase.google.com/docs/functions/local-emulator)

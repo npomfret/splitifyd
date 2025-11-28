@@ -166,6 +166,10 @@
         "port": {{EMULATOR_STORAGE_PORT}},
         "host": "0.0.0.0"
     },
+    "tasks": {
+        "port": {{EMULATOR_TASKS_PORT}},
+        "host": "0.0.0.0"
+    },
     "ui": {
         "enabled": true,
         "port": {{EMULATOR_UI_PORT}},

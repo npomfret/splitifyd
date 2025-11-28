@@ -44,6 +44,7 @@ const replacements: Record<string, string | number> = {
     EMULATOR_FIRESTORE_PORT: portConfig.firestore,
     EMULATOR_HOSTING_PORT: portConfig.hosting,
     EMULATOR_STORAGE_PORT: portConfig.storage,
+    EMULATOR_TASKS_PORT: portConfig.tasks,
     FUNCTIONS_SOURCE: functionsSource,
     FUNCTIONS_PREDEPLOY: process.env.FUNCTIONS_PREDEPLOY || '',
 };

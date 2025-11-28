@@ -7,7 +7,8 @@
       "functions": 6003,
       "firestore": 6004,
       "hosting": 6005,
-      "storage": 6006
+      "storage": 6006,
+      "tasks": 6007
     }
   },
   "dev2": {
@@ -18,7 +19,8 @@
       "functions": 7003,
       "firestore": 7004,
       "hosting": 7005,
-      "storage": 7006
+      "storage": 7006,
+      "tasks": 7007
     }
   },
   "dev3": {
@@ -29,7 +31,8 @@
       "functions": 8003,
       "firestore": 8004,
       "hosting": 8005,
-      "storage": 8006
+      "storage": 8006,
+      "tasks": 8007
     }
   },
   "dev4": {
@@ -40,7 +43,8 @@
       "functions": 9003,
       "firestore": 9004,
       "hosting": 9005,
-      "storage": 9006
+      "storage": 9006,
+      "tasks": 9007
     }
   },
   "staging-1": {
@@ -51,7 +55,8 @@
       "functions": -1,
       "firestore": -1,
       "hosting": -1,
-      "storage": -1
+      "storage": -1,
+      "tasks": -1
     }
   }
 }
