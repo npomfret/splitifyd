@@ -2,9 +2,9 @@ import { getPorts, getProjectId } from '@billsplit-wl/test-support';
 import * as admin from 'firebase-admin';
 import * as fs from 'fs';
 import * as path from 'path';
-import { getInstanceEnvironment, loadRuntimeConfig, type ScriptEnvironment } from '../shared/scripts-config';
+import { getInstanceEnvironment, loadRuntimeConfig, type ScriptEnvironment } from './scripts-config';
 
-export { type ScriptEnvironment } from '../shared/scripts-config';
+export { type ScriptEnvironment } from './scripts-config';
 
 export function isDeployed() {
     const env = getInstanceEnvironment();
@@ -62,6 +62,9 @@ export function getEnvironment(args?: string[]): ScriptEnvironment {
 export function initializeFirebase(env: ScriptEnvironment): void {
     console.log(`🎯 Initializing Firebase for ${env.environment}`);
 
+    // Get project ID from .firebaserc (single source of truth)
+    const projectId = getProjectId();
+
     if (!env.isEmulator) {
         console.log('   Using Production Firebase');
 
@@ -76,18 +79,11 @@ export function initializeFirebase(env: ScriptEnvironment): void {
         if (admin.apps.length === 0) {
             console.log('🔑 Initializing Firebase Admin with service account...');
             const credential = admin.credential.cert(serviceAccountPath);
-            const projectId = process.env.GCLOUD_PROJECT ?? process.env.PROJECT_ID;
-            const appOptions: admin.AppOptions = projectId
-                ? {
-                    credential,
-                    projectId,
-                    storageBucket: `${projectId}.firebasestorage.app`,
-                }
-                : {
-                    credential,
-                };
-
-            admin.initializeApp(appOptions);
+            admin.initializeApp({
+                credential,
+                projectId,
+                storageBucket: `${projectId}.firebasestorage.app`,
+            });
         } else {
             console.log('   Firebase Admin already initialized');
         }
@@ -96,16 +92,6 @@ export function initializeFirebase(env: ScriptEnvironment): void {
 
         // Ensure runtime config is loaded
         loadRuntimeConfig();
-
-        const projectId = process.env.GCLOUD_PROJECT ?? (() => {
-            try {
-                const id = getProjectId();
-                process.env.GCLOUD_PROJECT = id;
-                return id;
-            } catch {
-                return undefined;
-            }
-        })();
 
         try {
             const ports = getPorts();
@@ -127,10 +113,9 @@ export function initializeFirebase(env: ScriptEnvironment): void {
             }
 
             if (!process.env.FIREBASE_CONFIG) {
-                const resolvedProjectId = projectId ?? 'local-test';
                 process.env.FIREBASE_CONFIG = JSON.stringify({
-                    projectId: resolvedProjectId,
-                    storageBucket: `${resolvedProjectId}.appspot.com`,
+                    projectId,
+                    storageBucket: `${projectId}.appspot.com`,
                 });
             }
         } catch (error) {
@@ -139,10 +124,9 @@ export function initializeFirebase(env: ScriptEnvironment): void {
 
         // Initialize Firebase Admin in emulator mode
         if (admin.apps.length === 0) {
-            const resolvedProjectId = projectId ?? 'local-test';
             admin.initializeApp({
-                projectId: resolvedProjectId,
-                storageBucket: `${resolvedProjectId}.appspot.com`,
+                projectId,
+                storageBucket: `${projectId}.appspot.com`,
             });
             console.log('   Firebase Admin initialized for emulator');
         } else {

@@ -12,7 +12,7 @@
     "test:unit": "ORIGINAL_TEST_SCRIPT=test:unit node ../scripts/test-wrapper.js",
     "test:integration": "ORIGINAL_TEST_SCRIPT=test:integration node ../scripts/test-wrapper.js",
     "link-webapp": "rm -rf public && ln -sf ../webapp-v2/dist public",
-    "start-emulators": "npm run kill-emulators && tsx scripts/generate-firebase-config.ts && export GCLOUD_PROJECT=splitifyd && tsx scripts/start-with-data.ts",
+    "start-emulators": "npm run kill-emulators && tsx scripts/generate-firebase-config.ts && tsx scripts/start-with-data.ts",
     "sync-tenants": "FORCE_OVERWRITE=1 tsx scripts/publish-local-themes.ts",
     "theme:publish-local": "tsx scripts/publish-local-themes.ts",
     "storage:setup": "tsx scripts/setup-storage-bucket.ts",

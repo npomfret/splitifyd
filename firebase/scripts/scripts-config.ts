@@ -7,7 +7,7 @@
  *
  * Usage in scripts:
  * ```typescript
- * import { loadRuntimeConfig, getInstanceEnvironment } from '../shared/scripts-config';
+ * import { loadRuntimeConfig, getInstanceEnvironment } from './scripts-config';
  *
  * // Load and validate environment
  * const config = loadRuntimeConfig();
@@ -79,7 +79,6 @@ const runtimeEnvSchema = z.object({
             }
         })
         .transform((value) => value as InstanceName),
-    GCLOUD_PROJECT: z.string().optional(),
     FUNCTIONS_EMULATOR: z.string().optional(),
     FIRESTORE_EMULATOR_HOST: z.string().optional(),
     FIREBASE_AUTH_EMULATOR_HOST: z.string().optional(),

@@ -1,13 +1,16 @@
 #!/usr/bin/env npx tsx
 
+import { getProjectId } from '@billsplit-wl/test-support';
 import { execSync } from 'child_process';
 import { existsSync } from 'fs';
 import { join, resolve } from 'path';
 import { logger } from './logger';
 
-const DEFAULT_PROJECT = process.env.DEFAULT_FIREBASE_PROJECT ?? 'demo-expenses';
-let activeProject = process.env.GCLOUD_PROJECT ?? DEFAULT_PROJECT;
 const credentialsPath = resolve(join(__dirname, '../service-account-key.json'));
+
+function getActiveProject(): string {
+    return getProjectId();
+}
 
 function ensureAuthEnv() {
     if (!process.env.GOOGLE_APPLICATION_CREDENTIALS) {
@@ -17,12 +20,6 @@ function ensureAuthEnv() {
         process.env.GOOGLE_APPLICATION_CREDENTIALS = credentialsPath;
         logger.info(`🔐 Using service account credentials from ${credentialsPath}`);
     }
-
-    if (!process.env.GCLOUD_PROJECT) {
-        process.env.GCLOUD_PROJECT = DEFAULT_PROJECT;
-    }
-
-    activeProject = process.env.GCLOUD_PROJECT;
 }
 
 type LogProvider = 'firebase' | 'gcloud' | 'logging';
@@ -146,13 +143,15 @@ let gcloudAuthenticated = false;
 
 try {
     ensureAuthEnv();
+    const activeProject = getActiveProject();
+
     if (provider === 'gcloud') {
-        ensureGcloudAuth();
+        ensureGcloudAuth(activeProject);
     } else if (provider === 'logging') {
         if (tail) {
             console.warn('⚠️  --tail is not supported with provider "logging". Ignoring.');
         }
-        ensureGcloudAuth();
+        ensureGcloudAuth(activeProject);
     }
 
     let command: string;
@@ -187,7 +186,7 @@ try {
 
         logger.info(`📋 Using gcloud to ${tail ? 'stream' : `fetch last ${lines} lines of`} logs${functionName ? ` for function: ${functionName}` : ' for all functions'}`);
     } else {
-        const effectiveFilter = filter ?? buildDefaultLoggingFilter(functionName);
+        const effectiveFilter = filter ?? buildDefaultLoggingFilter(activeProject, functionName);
         const commandParts = ['gcloud', 'logging', 'read', shellQuote(effectiveFilter), '--project', activeProject, '--limit', `${lines}`, '--format', format];
 
         command = commandParts.join(' ');
@@ -208,13 +207,13 @@ try {
     process.exit(1);
 }
 
-function ensureGcloudAuth() {
+function ensureGcloudAuth(projectId: string) {
     if (gcloudAuthenticated) {
         return;
     }
 
     try {
-        execSync(`gcloud auth activate-service-account --key-file "${credentialsPath}" --project "${activeProject}"`, {
+        execSync(`gcloud auth activate-service-account --key-file "${credentialsPath}" --project "${projectId}"`, {
             stdio: 'inherit',
             cwd: process.cwd(),
             env: process.env,
@@ -226,8 +225,8 @@ function ensureGcloudAuth() {
     }
 }
 
-function buildDefaultLoggingFilter(functionName?: string): string {
-    const baseFilter = ['resource.type="cloud_run_revision"', `resource.labels.project_id="${activeProject}"`];
+function buildDefaultLoggingFilter(projectId: string, functionName?: string): string {
+    const baseFilter = ['resource.type="cloud_run_revision"', `resource.labels.project_id="${projectId}"`];
 
     if (functionName) {
         baseFilter.push(`resource.labels.service_name="${functionName}"`);

@@ -3,7 +3,7 @@
 import { execSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
-import { loadEnvFile, requireInstanceName } from '../shared/scripts-config';
+import { loadEnvFile, requireInstanceName } from './scripts-config';
 import { requireInstanceConfig } from './instances-config';
 import { logger } from './logger';
 

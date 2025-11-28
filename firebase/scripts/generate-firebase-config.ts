@@ -2,7 +2,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { loadRuntimeConfig } from '../shared/scripts-config';
+import { loadRuntimeConfig } from './scripts-config';
 import { resolvePortsForMode } from './instances-config';
 import { logger } from './logger';
 

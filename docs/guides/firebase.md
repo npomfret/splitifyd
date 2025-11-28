@@ -28,7 +28,7 @@ Concise rules for working with the Firebase emulator stack and the instance swit
 - `npm run deploy:prod` runs `switch-instance prod`, rebuilds workspaces with `INSTANCE_NAME=prod` (which triggers compilation), stages local tarballs for shared packages, installs production deps, and expects `lib/index.js` from `tsconfig.deploy.json`.
 - If the Firebase CLI throws `Authentication Error: Your credentials are no longer valid` during deploy, clear the stale interactive login (`firebase logout` or remove `~/.config/configstore/firebase-tools.json`) so the CLI falls back to `firebase/service-account-key.json`.
 - `firebase/functions/src/firebase.ts` lazily loads `.env` if `INSTANCE_NAME` is missing so Cloud Functions analysis gets the right settings.
-- Export `GCLOUD_PROJECT` before running the deploy pipeline; the tooling assumes it exists.
+- Project ID is read from `firebase/.firebaserc` - no need to set `GCLOUD_PROJECT`.
 - If you run deploy commands with a service account, grant it the following:
   - **Firebase Admin** (`roles/firebase.admin`) – deploy functions, rules, and hosting
   - **Firebase Rules Admin** (`roles/firebaserules.admin`) – publish Firestore security rules

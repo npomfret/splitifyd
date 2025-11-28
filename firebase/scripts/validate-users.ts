@@ -14,7 +14,7 @@ import { ZodError, type ZodIssue } from 'zod';
 import { FirestoreCollections } from '../functions/src/constants';
 import { getFirestore } from '../functions/src/firebase';
 import { UserDocumentSchema } from '../functions/src/schemas';
-import { loadRuntimeConfig } from '../shared/scripts-config';
+import { loadRuntimeConfig } from './scripts-config';
 import { initializeFirebase, parseEnvironment, type ScriptEnvironment } from './firebase-init';
 
 // Load and validate runtime configuration

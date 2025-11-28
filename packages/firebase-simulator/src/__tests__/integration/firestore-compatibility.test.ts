@@ -28,8 +28,6 @@ function configureTestEnvironment() {
     }
 
     const { projectId, firestorePort, authPort } = cachedConfig;
-    process.env.GCLOUD_PROJECT = projectId;
-    process.env.GOOGLE_CLOUD_PROJECT = projectId;
     process.env.FIREBASE_CONFIG = JSON.stringify({ projectId });
     process.env.FIRESTORE_EMULATOR_HOST = `127.0.0.1:${firestorePort}`;
     process.env.FIREBASE_AUTH_EMULATOR_HOST = `127.0.0.1:${authPort}`;
@@ -38,7 +36,7 @@ function configureTestEnvironment() {
 function ensureFirestore() {
     configureTestEnvironment();
     if (getApps().length === 0) {
-        const projectId = process.env.GCLOUD_PROJECT ?? 'demo-simulator';
+        const projectId = cachedConfig!.projectId;
         initializeApp({ projectId });
         const firestore = getAdminFirestore();
         if (process.env.FIRESTORE_EMULATOR_HOST) {

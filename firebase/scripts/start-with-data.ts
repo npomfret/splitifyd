@@ -1,12 +1,12 @@
 #!/usr/bin/env npx tsx
 
-import { getPorts, getProjectId } from '@billsplit-wl/test-support';
+import { getPorts } from '@billsplit-wl/test-support';
 import { ChildProcess } from 'child_process';
 import { exec } from 'child_process';
 import assert from 'node:assert';
 import * as path from 'path';
 import { promisify } from 'util';
-import { loadRuntimeConfig } from '../shared/scripts-config';
+import { loadRuntimeConfig } from './scripts-config';
 import { logger } from './logger';
 import { seedPolicies } from './seed-policies';
 import { startEmulator } from './start-emulator';
@@ -72,7 +72,6 @@ async function runCreateDemoTenantsStep(): Promise<void> {
 // Load and validate runtime configuration
 const runtimeConfig = loadRuntimeConfig();
 assert(runtimeConfig.__INSTANCE_NAME.startsWith('dev'), `__INSTANCE_NAME=${runtimeConfig.__INSTANCE_NAME} is not allowed when starting emulators`);
-assert(process.env.GCLOUD_PROJECT, 'GCLOUD_PROJECT must be set');
 
 // Get Firebase configuration using centralized loader
 let UI_PORT: number;
@@ -87,14 +86,7 @@ try {
     process.exit(1);
 }
 
-// Get project ID using centralized loader
-const PROJECT_ID = getProjectId();
-
-// sanity check
-assert(PROJECT_ID === process.env.GCLOUD_PROJECT, `PROJECT_ID=${PROJECT_ID} but GCLOUD_PROJECT=${process.env.GCLOUD_PROJECT}`);
-
 logger.info('🚀 Starting Firebase emulator with default user setup...', {
-    projectId: PROJECT_ID,
     uiPort: UI_PORT,
     functionsPort: FUNCTIONS_PORT,
 });

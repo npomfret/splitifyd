@@ -39,7 +39,7 @@ let firestoreDb: ReturnType<typeof createFirestoreDatabase>;
 
 function getFirestoreDb() {
     if (!firestoreDb) {
-        // Import getFirestore lazily to avoid module-level execution before GCLOUD_PROJECT is set
+        // Import getFirestore lazily to avoid module-level execution before Firebase is initialized
         const { getFirestore } = require('../functions/src/firebase');
         firestoreDb = createFirestoreDatabase(getFirestore());
     }

@@ -26,7 +26,7 @@ import {
     toTenantSurfaceColor,
     toTenantTextColor,
 } from '@billsplit-wl/shared';
-import { ApiDriver, type ApiDriverConfig } from '@billsplit-wl/test-support';
+import { ApiDriver, type ApiDriverConfig, getProjectId } from '@billsplit-wl/test-support';
 import * as admin from 'firebase-admin';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -150,10 +150,10 @@ async function syncTenantConfigs(
     if (env.isEmulator) {
         apiDriver = new ApiDriver();
     } else {
-        const projectId = process.env.GCLOUD_PROJECT;
+        const projectId = getProjectId();
         const apiKey = process.env.__CLIENT_API_KEY;
-        if (!projectId || !apiKey) {
-            throw new Error('GCLOUD_PROJECT and __CLIENT_API_KEY must be set for deployed environments');
+        if (!apiKey) {
+            throw new Error('__CLIENT_API_KEY must be set for deployed environments');
         }
         const deployedConfig: ApiDriverConfig = {
             baseUrl: `https://${projectId}.web.app/api`,
