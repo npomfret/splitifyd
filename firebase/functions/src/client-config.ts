@@ -15,7 +15,7 @@ let cachedEnv: z.infer<typeof envSchema> | null = null;
 const instanceNameSchema = z
     .string()
     .refine((value) => value !== undefined && value !== '', {
-        message: 'INSTANCE_NAME environment variable is required',
+        message: '__INSTANCE_NAME environment variable is required',
     })
     .superRefine((value, ctx) => {
         try {
@@ -30,20 +30,20 @@ const instanceNameSchema = z
     .transform((value) => value as InstanceName);
 
 const envSchema = z.object({
-    INSTANCE_NAME: instanceNameSchema,
+    __INSTANCE_NAME: instanceNameSchema,
     FUNCTIONS_EMULATOR: z.string().optional(),
     GCLOUD_PROJECT: z.string().optional(),
-    CLIENT_API_KEY: z.string().optional(),
-    CLIENT_AUTH_DOMAIN: z.string().optional(),
-    CLIENT_STORAGE_BUCKET: z.string().optional(),
-    CLIENT_MESSAGING_SENDER_ID: z.string().optional(),
-    CLIENT_APP_ID: z.string().optional(),
-    CLIENT_MEASUREMENT_ID: z.string().optional(),
+    __CLIENT_API_KEY: z.string().optional(),
+    __CLIENT_AUTH_DOMAIN: z.string().optional(),
+    __CLIENT_STORAGE_BUCKET: z.string().optional(),
+    __CLIENT_MESSAGING_SENDER_ID: z.string().optional(),
+    __CLIENT_APP_ID: z.string().optional(),
+    __CLIENT_MEASUREMENT_ID: z.string().optional(),
     FIREBASE_AUTH_EMULATOR_HOST: z.string().optional(),
     FIRESTORE_EMULATOR_HOST: z.string().optional(),
-    DEV_FORM_EMAIL: z.string().optional(),
-    DEV_FORM_PASSWORD: z.string().optional(),
-    WARNING_BANNER: z.string().optional(),
+    __DEV_FORM_EMAIL: z.string().optional(),
+    __DEV_FORM_PASSWORD: z.string().optional(),
+    __WARNING_BANNER: z.string().optional(),
 });
 
 // Type for the CONFIG object
@@ -91,12 +91,12 @@ function getEnv(): z.infer<typeof envSchema> {
 // Build the CONFIG object lazily
 function buildConfig(): ClientConfig {
     const env = getEnv();
-    const name = env.INSTANCE_NAME;
+    const name = env.__INSTANCE_NAME;
     const isEmulator = isDevInstanceName(name);
 
     // Validate required deployed environment variables
     if (!isEmulator) {
-        const requiredVars = ['GCLOUD_PROJECT', 'CLIENT_API_KEY', 'CLIENT_AUTH_DOMAIN', 'CLIENT_STORAGE_BUCKET', 'CLIENT_MESSAGING_SENDER_ID', 'CLIENT_APP_ID'];
+        const requiredVars = ['GCLOUD_PROJECT', '__CLIENT_API_KEY', '__CLIENT_AUTH_DOMAIN', '__CLIENT_STORAGE_BUCKET', '__CLIENT_MESSAGING_SENDER_ID', '__CLIENT_APP_ID'];
 
         const missing = requiredVars.filter((key) => !env[key as keyof typeof env]);
         if (missing.length > 0) {
@@ -120,10 +120,10 @@ function buildConfig(): ClientConfig {
             previewLength: DOCUMENT_CONFIG.PREVIEW_LENGTH,
         },
         formDefaults: {
-            email: toEmail(env.DEV_FORM_EMAIL ?? ''),
-            password: env.DEV_FORM_PASSWORD ?? '',
+            email: toEmail(env.__DEV_FORM_EMAIL ?? ''),
+            password: env.__DEV_FORM_PASSWORD ?? '',
         },
-        warningBanner: env.WARNING_BANNER ?? '',
+        warningBanner: env.__WARNING_BANNER ?? '',
     };
 }
 
@@ -194,21 +194,21 @@ function buildAppConfiguration(): AppConfiguration {
     const firebase: FirebaseConfig = config.isEmulator
         ? MINIMAL_EMULATOR_CLIENT_CONFIG
         : {
-            apiKey: env.CLIENT_API_KEY!,
-            authDomain: env.CLIENT_AUTH_DOMAIN!,
+            apiKey: env.__CLIENT_API_KEY!,
+            authDomain: env.__CLIENT_AUTH_DOMAIN!,
             projectId,
-            storageBucket: env.CLIENT_STORAGE_BUCKET!,
-            messagingSenderId: env.CLIENT_MESSAGING_SENDER_ID!,
-            appId: env.CLIENT_APP_ID!,
-            measurementId: env.CLIENT_MEASUREMENT_ID,
+            storageBucket: env.__CLIENT_STORAGE_BUCKET!,
+            messagingSenderId: env.__CLIENT_MESSAGING_SENDER_ID!,
+            appId: env.__CLIENT_APP_ID!,
+            measurementId: env.__CLIENT_MEASUREMENT_ID,
         };
 
     // Validate required fields in deployed environment
     if (!config.isEmulator && (!firebase.apiKey || !firebase.authDomain || !firebase.storageBucket || !firebase.messagingSenderId || !firebase.appId)) {
         logger.error('Firebase config is incomplete in deployed environment', new Error('Missing required Firebase config'), {
-            hasApiKey: !!env.CLIENT_API_KEY,
-            hasAuthDomain: !!env.CLIENT_AUTH_DOMAIN,
-            instanceName: env.INSTANCE_NAME,
+            hasApiKey: !!env.__CLIENT_API_KEY,
+            hasAuthDomain: !!env.__CLIENT_AUTH_DOMAIN,
+            instanceName: env.__INSTANCE_NAME,
         });
         throw new Error('Firebase configuration is incomplete in deployed environment');
     }
@@ -247,7 +247,7 @@ function getIdentityToolkitBaseUrl(): string {
 
 function getIdentityToolkitApiKey(): string {
     const env = getEnv();
-    const apiKey = env.CLIENT_API_KEY ?? (() => getAppConfig().firebase.apiKey)();
+    const apiKey = env.__CLIENT_API_KEY ?? (() => getAppConfig().firebase.apiKey)();
 
     if (!apiKey || apiKey.trim().length === 0) {
         throw new Error('Firebase API key is not configured');

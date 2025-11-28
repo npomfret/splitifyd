@@ -3,34 +3,34 @@
 /**
  * Conditional build script for Firebase Functions
  *
- * This script determines compilation strategy based on INSTANCE_NAME:
+ * This script determines compilation strategy based on __INSTANCE_NAME:
  * - dev1-4: Creates tsx wrapper for direct TypeScript execution (no compilation)
  * - test/prod: Runs full production build (tsc + esbuild)
  *
- * INSTANCE_NAME is the single source of truth for both runtime behavior and compilation strategy.
+ * __INSTANCE_NAME is the single source of truth for both runtime behavior and compilation strategy.
  */
 
 const fs = require('fs');
 const path = require('path');
 const dotenv = require('dotenv');
 
-// Load INSTANCE_NAME from .env file
+// Load __INSTANCE_NAME from .env file
 const envPath = path.join(__dirname, '..', '.env');
 if (fs.existsSync(envPath)) {
     dotenv.config({ path: envPath });
 }
 
-const instanceName = process.env.INSTANCE_NAME;
+const instanceName = process.env.__INSTANCE_NAME;
 if (!instanceName) {
-    console.error('❌ INSTANCE_NAME environment variable is required');
-    console.error('💡 Make sure .env file exists and contains INSTANCE_NAME');
+    console.error('❌ __INSTANCE_NAME environment variable is required');
+    console.error('💡 Make sure .env file exists and contains __INSTANCE_NAME');
     process.exit(1);
 }
 
 const needsCompilation = instanceName.startsWith('staging-');
 
 if (needsCompilation) {
-    console.log(`🏗️  Running production build for Firebase Functions (INSTANCE_NAME=${instanceName})...`);
+    console.log(`🏗️  Running production build for Firebase Functions (__INSTANCE_NAME=${instanceName})...`);
     require('child_process').execSync('npm run build:prod', { stdio: 'inherit' });
 } else {
     console.log(`⚡ Setting up development mode for ${instanceName} (using tsx for direct TypeScript execution)`);

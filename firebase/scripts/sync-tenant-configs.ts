@@ -151,9 +151,9 @@ async function syncTenantConfigs(
         apiDriver = new ApiDriver();
     } else {
         const projectId = process.env.GCLOUD_PROJECT;
-        const apiKey = process.env.CLIENT_API_KEY;
+        const apiKey = process.env.__CLIENT_API_KEY;
         if (!projectId || !apiKey) {
-            throw new Error('GCLOUD_PROJECT and CLIENT_API_KEY must be set for deployed environments');
+            throw new Error('GCLOUD_PROJECT and __CLIENT_API_KEY must be set for deployed environments');
         }
         const deployedConfig: ApiDriverConfig = {
             baseUrl: `https://${projectId}.web.app/api`,

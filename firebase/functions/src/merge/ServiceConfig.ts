@@ -67,13 +67,14 @@ function getProjectId(): string {
 
 // Define environment variable schema for service config
 // All required fields must be explicitly set in .env files - no defaults
+// Custom env vars use __ prefix to distinguish from Firebase-provided vars
 const serviceEnvSchema = z.object({
     GCLOUD_PROJECT: z.string().min(1, 'GCLOUD_PROJECT is required').optional(), // Can be inferred from FIREBASE_CONFIG
-    CLOUD_TASKS_LOCATION: z.string().min(1, 'CLOUD_TASKS_LOCATION is required'),
-    CLOUD_TASKS_SERVICE_ACCOUNT: z.string().optional(), // Defaults to project's default App Engine service account
-    FUNCTIONS_URL: z.string().min(1, 'FUNCTIONS_URL is required'),
-    MIN_REGISTRATION_DURATION_MS: z.coerce.number().min(0, 'MIN_REGISTRATION_DURATION_MS must be non-negative'),
-    INSTANCE_NAME: z.string().min(1, 'INSTANCE_NAME is required'),
+    __CLOUD_TASKS_LOCATION: z.string().min(1, '__CLOUD_TASKS_LOCATION is required'),
+    __CLOUD_TASKS_SERVICE_ACCOUNT: z.string().optional(), // Defaults to project's default App Engine service account
+    __FUNCTIONS_URL: z.string().min(1, '__FUNCTIONS_URL is required'),
+    __MIN_REGISTRATION_DURATION_MS: z.coerce.number().min(0, '__MIN_REGISTRATION_DURATION_MS must be non-negative'),
+    __INSTANCE_NAME: z.string().min(1, '__INSTANCE_NAME is required'),
     FUNCTIONS_EMULATOR: z.string().optional(),
     FIREBASE_CONFIG: z.string().optional(),
     FIREBASE_STORAGE_EMULATOR_HOST: z.string().optional(),
@@ -111,11 +112,11 @@ function buildServiceConfig(): ServiceConfig {
     const projectId = env.GCLOUD_PROJECT || getProjectId();
 
     // Service account defaults to the project's default App Engine service account
-    const cloudTasksServiceAccount = env.CLOUD_TASKS_SERVICE_ACCOUNT || `${projectId}@appspot.gserviceaccount.com`;
+    const cloudTasksServiceAccount = env.__CLOUD_TASKS_SERVICE_ACCOUNT || `${projectId}@appspot.gserviceaccount.com`;
 
     // In production (not emulator), all variables must be properly set
     if (!inEmulator) {
-        const requiredVars = ['CLOUD_TASKS_LOCATION', 'FUNCTIONS_URL'];
+        const requiredVars = ['__CLOUD_TASKS_LOCATION', '__FUNCTIONS_URL'];
         const missing = requiredVars.filter((key) => !env[key as keyof typeof env]);
 
         if (missing.length > 0) {
@@ -124,25 +125,25 @@ function buildServiceConfig(): ServiceConfig {
 
         return {
             projectId,
-            cloudTasksLocation: env.CLOUD_TASKS_LOCATION!,
+            cloudTasksLocation: env.__CLOUD_TASKS_LOCATION!,
             cloudTasksServiceAccount,
-            functionsUrl: env.FUNCTIONS_URL!,
-            minRegistrationDurationMs: env.MIN_REGISTRATION_DURATION_MS,
+            functionsUrl: env.__FUNCTIONS_URL!,
+            minRegistrationDurationMs: env.__MIN_REGISTRATION_DURATION_MS,
             storageEmulatorHost: null,
         };
     }
 
     // In emulator mode, these values must still be explicitly set
-    if (!env.CLOUD_TASKS_LOCATION || !env.FUNCTIONS_URL) {
-        throw new Error('CLOUD_TASKS_LOCATION and FUNCTIONS_URL must be explicitly set in emulator mode');
+    if (!env.__CLOUD_TASKS_LOCATION || !env.__FUNCTIONS_URL) {
+        throw new Error('__CLOUD_TASKS_LOCATION and __FUNCTIONS_URL must be explicitly set in emulator mode');
     }
 
     return {
         projectId,
-        cloudTasksLocation: env.CLOUD_TASKS_LOCATION,
+        cloudTasksLocation: env.__CLOUD_TASKS_LOCATION,
         cloudTasksServiceAccount,
-        functionsUrl: env.FUNCTIONS_URL,
-        minRegistrationDurationMs: env.MIN_REGISTRATION_DURATION_MS,
+        functionsUrl: env.__FUNCTIONS_URL,
+        minRegistrationDurationMs: env.__MIN_REGISTRATION_DURATION_MS,
         storageEmulatorHost: env.FIREBASE_STORAGE_EMULATOR_HOST || null,
     };
 }

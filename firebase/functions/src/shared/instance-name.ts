@@ -11,21 +11,21 @@ export function assertValidInstanceName(value: string | undefined): asserts valu
     }
 
     const allowed = 'dev<number>, staging-<number>';
-    throw new Error(`INSTANCE_NAME must be one of ${allowed}. Received: ${value ?? 'undefined'}`);
+    throw new Error(`__INSTANCE_NAME must be one of ${allowed}. Received: ${value ?? 'undefined'}`);
 }
 
 export function requireInstanceName(): InstanceName {
-    const name = process.env.INSTANCE_NAME;
+    const name = process.env.__INSTANCE_NAME;
     assertValidInstanceName(name);
     return name;
 }
 
 /**
  * Get instance name with strict validation - no defaults.
- * INSTANCE_NAME must be set explicitly via environment variables.
+ * __INSTANCE_NAME must be set explicitly via environment variables.
  */
 export function getInstanceName(): InstanceName {
-    const name = process.env.INSTANCE_NAME;
+    const name = process.env.__INSTANCE_NAME;
     assertValidInstanceName(name);
     return name;
 }

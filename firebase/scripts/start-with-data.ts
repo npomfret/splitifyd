@@ -83,7 +83,7 @@ async function runEnsureBillSplitterUserStep(): Promise<void> {
 
 // Load and validate runtime configuration
 const runtimeConfig = loadRuntimeConfig();
-assert(runtimeConfig.INSTANCE_NAME.startsWith('dev'), `INSTANCE_NAME=${runtimeConfig.INSTANCE_NAME} is not allowed when starting emulators`);
+assert(runtimeConfig.__INSTANCE_NAME.startsWith('dev'), `__INSTANCE_NAME=${runtimeConfig.__INSTANCE_NAME} is not allowed when starting emulators`);
 assert(process.env.GCLOUD_PROJECT, 'GCLOUD_PROJECT must be set');
 
 // Get Firebase configuration using centralized loader

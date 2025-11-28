@@ -33,7 +33,7 @@ if (env.isEmulator) {
     process.env.FIRESTORE_EMULATOR_HOST = `127.0.0.1:${emulator.firestorePort}`;
     process.env.FIREBASE_AUTH_EMULATOR_HOST = emulator.identityToolkit.host;
     process.env.FIREBASE_STORAGE_EMULATOR_HOST = `127.0.0.1:${emulator.storagePort}`;
-    process.env.CLIENT_API_KEY = emulator.identityToolkit.apiKey;
+    process.env.__CLIENT_API_KEY = emulator.identityToolkit.apiKey;
 }
 
 // Get component builder for service access

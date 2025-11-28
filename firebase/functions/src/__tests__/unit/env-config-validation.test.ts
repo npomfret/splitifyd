@@ -39,7 +39,7 @@ describe('Environment Configuration Validation', () => {
         });
 
         it('should contain all expected core environment variables', () => {
-            const expectedVars = ['DEV_FORM_EMAIL', 'DEV_FORM_PASSWORD', 'WARNING_BANNER'];
+            const expectedVars = ['__DEV_FORM_EMAIL', '__DEV_FORM_PASSWORD', '__WARNING_BANNER'];
 
             expectedVars.forEach((varName) => {
                 expect(templateConfig.variables.has(varName)).toBe(true);
@@ -113,7 +113,7 @@ describe('Environment Configuration Validation', () => {
             });
 
             it('should have valid email format for development form email', () => {
-                const emailVar = envConfig.variables.get('DEV_FORM_EMAIL');
+                const emailVar = envConfig.variables.get('__DEV_FORM_EMAIL');
                 if (emailVar && emailVar.value && emailVar.value.trim() !== '') {
                     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                     expect(emailRegex.test(emailVar.value)).toBe(true);

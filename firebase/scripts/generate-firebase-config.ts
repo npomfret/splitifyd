@@ -19,40 +19,37 @@ if (!fs.existsSync(templatePath)) {
 
 let configContent: string = fs.readFileSync(templatePath, 'utf8');
 
-const instanceName = runtimeConfig.INSTANCE_NAME;
+const instanceName = runtimeConfig.__INSTANCE_NAME;
 const isDeployed = !instanceName.startsWith('dev');
 
-// Optional staging variables with defaults
-const optionalVars: Record<string, string> = {
-    FUNCTIONS_SOURCE: 'functions',
-    FUNCTIONS_PREDEPLOY: '',
-};
+const portConfig = resolvePortsForMode(instanceName);
 
-if (isDeployed && !process.env.FUNCTIONS_SOURCE) {
-    logger.error('❌ FUNCTIONS_SOURCE must be defined for deployed environment.');
-    process.exit(1);
+// Determine functions source - 'functions' for dev, env var for deployed
+let functionsSource: string;
+if (isDeployed) {
+    if (!process.env.__FUNCTIONS_SOURCE) {
+        logger.error('❌ __FUNCTIONS_SOURCE must be defined for deployed environment.');
+        process.exit(1);
+    }
+    functionsSource = process.env.__FUNCTIONS_SOURCE;
+} else {
+    functionsSource = 'functions';
 }
 
-const portConfig = resolvePortsForMode(instanceName);
-const portPlaceholders: Record<string, number> = {
+// Replace all template placeholders
+const replacements: Record<string, string | number> = {
     EMULATOR_UI_PORT: portConfig.ui,
     EMULATOR_AUTH_PORT: portConfig.auth,
     EMULATOR_FUNCTIONS_PORT: portConfig.functions,
     EMULATOR_FIRESTORE_PORT: portConfig.firestore,
     EMULATOR_HOSTING_PORT: portConfig.hosting,
     EMULATOR_STORAGE_PORT: portConfig.storage,
+    FUNCTIONS_SOURCE: functionsSource,
+    FUNCTIONS_PREDEPLOY: process.env.FUNCTIONS_PREDEPLOY || '',
 };
 
-Object.entries(portPlaceholders).forEach(([placeholderKey, portValue]) => {
-    const placeholder: string = `{{${placeholderKey}}}`;
-    configContent = configContent.replace(new RegExp(placeholder, 'g'), portValue.toString());
-});
-
-// Replace optional variables (staging configuration)
-Object.entries(optionalVars).forEach(([varName, defaultValue]) => {
-    const placeholder: string = `{{${varName}}}`;
-    const value: string = process.env[varName] || defaultValue;
-    configContent = configContent.replace(new RegExp(placeholder, 'g'), value);
+Object.entries(replacements).forEach(([placeholder, value]) => {
+    configContent = configContent.replace(new RegExp(`{{${placeholder}}}`, 'g'), String(value));
 });
 
 // Parse the config to handle empty predeploy array
@@ -65,8 +62,8 @@ fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
 
 if (isDeployed) {
     logger.info('🔥 Firebase configuration generated for deployed environment', {
-        functions_source: process.env.FUNCTIONS_SOURCE || optionalVars.FUNCTIONS_SOURCE,
-        functions_predeploy: process.env.FUNCTIONS_PREDEPLOY || optionalVars.FUNCTIONS_PREDEPLOY,
+        functions_source: replacements.FUNCTIONS_SOURCE,
+        functions_predeploy: replacements.FUNCTIONS_PREDEPLOY,
     });
 } else {
     logger.info('🔥 Firebase configuration generated for emulator', {

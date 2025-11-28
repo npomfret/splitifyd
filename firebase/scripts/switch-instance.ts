@@ -51,7 +51,7 @@ try {
     loadEnvFile(targetPath);
     const instanceName = requireInstanceName();
     if (instanceName !== expectedName) {
-        logger.error('❌ INSTANCE_NAME does not match requested instance', {
+        logger.error('❌ __INSTANCE_NAME does not match requested instance', {
             requested: instance,
             instanceName,
             expected: expectedName,
@@ -80,7 +80,7 @@ try {
         });
     } else {
         logger.info('🚀 Deployed environment configured - ready for deployment', {
-            functions_source: process.env.FUNCTIONS_SOURCE,
+            functions_source: process.env.__FUNCTIONS_SOURCE,
             functions_predeploy: process.env.FUNCTIONS_PREDEPLOY,
         });
     }

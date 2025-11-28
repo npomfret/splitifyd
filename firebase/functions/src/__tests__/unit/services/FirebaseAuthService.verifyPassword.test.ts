@@ -28,20 +28,20 @@ describe('FirebaseAuthService.verifyPassword', () => {
 
     beforeEach(() => {
         vi.restoreAllMocks();
-        envSnapshot.CLIENT_API_KEY = process.env.CLIENT_API_KEY;
+        envSnapshot.__CLIENT_API_KEY = process.env.__CLIENT_API_KEY;
         envSnapshot.FIREBASE_AUTH_API_KEY = process.env.FIREBASE_AUTH_API_KEY;
         envSnapshot.FIREBASE_AUTH_EMULATOR_HOST = process.env.FIREBASE_AUTH_EMULATOR_HOST;
-        delete process.env.CLIENT_API_KEY;
+        delete process.env.__CLIENT_API_KEY;
         delete process.env.FIREBASE_AUTH_API_KEY;
         delete process.env.FIREBASE_AUTH_EMULATOR_HOST;
     });
 
     afterEach(() => {
         vi.restoreAllMocks();
-        if (envSnapshot.CLIENT_API_KEY !== undefined) {
-            process.env.CLIENT_API_KEY = envSnapshot.CLIENT_API_KEY;
+        if (envSnapshot.__CLIENT_API_KEY !== undefined) {
+            process.env.__CLIENT_API_KEY = envSnapshot.__CLIENT_API_KEY;
         } else {
-            delete process.env.CLIENT_API_KEY;
+            delete process.env.__CLIENT_API_KEY;
         }
 
         if (envSnapshot.FIREBASE_AUTH_API_KEY !== undefined) {

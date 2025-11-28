@@ -31,7 +31,7 @@ export default async function setup() {
     process.env.FIREBASE_AUTH_EMULATOR_HOST = emulatorConfig.identityToolkit.host;
     process.env.FIRESTORE_EMULATOR_HOST = `127.0.0.1:${emulatorConfig.firestorePort}`;
     process.env.FIREBASE_STORAGE_EMULATOR_HOST = `127.0.0.1:${emulatorConfig.storagePort}`;
-    process.env.CLIENT_API_KEY = emulatorConfig.identityToolkit.apiKey;
+    process.env.__CLIENT_API_KEY = emulatorConfig.identityToolkit.apiKey;
     process.env.FUNCTIONS_EMULATOR = 'true';
     process.env.FIREBASE_CONFIG = JSON.stringify({
         projectId: getProjectId(),

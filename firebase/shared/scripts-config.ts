@@ -14,7 +14,7 @@
  * const env = getInstanceEnvironment();
  *
  * console.log(`Running in ${env.environment} mode`);
- * console.log(`Instance: ${config.INSTANCE_NAME}`);
+ * console.log(`Instance: ${config.__INSTANCE_NAME}`);
  * ```
  */
 
@@ -51,7 +51,7 @@ function readCurrentInstanceFile(): string | undefined {
  * containing only the variables needed for runtime behavior (not client config).
  */
 const runtimeEnvSchema = z.object({
-    INSTANCE_NAME: z
+    __INSTANCE_NAME: z
         .string()
         .optional()
         .transform((value) => {
@@ -64,7 +64,7 @@ const runtimeEnvSchema = z.object({
             }
             const fromFile = readCurrentInstanceFile();
             if (!fromFile) {
-                throw new Error('INSTANCE_NAME must be set via environment variable or .current-instance file');
+                throw new Error('__INSTANCE_NAME must be set via environment variable or .current-instance file');
             }
             return fromFile;
         })
@@ -157,7 +157,7 @@ export function loadRuntimeConfig(): RuntimeConfig {
 }
 
 /**
- * Get script environment information based on INSTANCE_NAME.
+ * Get script environment information based on __INSTANCE_NAME.
  *
  * This determines whether the script is running against:
  * - Emulator (dev1, dev2, dev3, dev4)
@@ -168,7 +168,7 @@ export function loadRuntimeConfig(): RuntimeConfig {
  */
 export function getInstanceEnvironment(config?: RuntimeConfig): ScriptEnvironment {
     const cfg = config ?? getRuntimeConfig();
-    const name = cfg.INSTANCE_NAME;
+    const name = cfg.__INSTANCE_NAME;
     const isEmulator = isDevInstanceName(name);
     const isDeployed = !isEmulator;
 
@@ -181,13 +181,13 @@ export function getInstanceEnvironment(config?: RuntimeConfig): ScriptEnvironmen
 }
 
 /**
- * Require that INSTANCE_NAME is set and valid.
+ * Require that __INSTANCE_NAME is set and valid.
  * Convenience function for scripts that need instance name validation.
  *
  * @returns The validated instance name
- * @throws {Error} If INSTANCE_NAME is not set or invalid
+ * @throws {Error} If __INSTANCE_NAME is not set or invalid
  */
 export function requireInstanceName(): InstanceName {
     const config = getRuntimeConfig();
-    return config.INSTANCE_NAME;
+    return config.__INSTANCE_NAME;
 }

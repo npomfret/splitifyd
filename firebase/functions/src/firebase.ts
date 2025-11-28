@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { getInstanceName, isDevInstanceName } from './shared/instance-name';
 
 const envPath = join(__dirname, '../.env');
-if (!process.env.INSTANCE_NAME && existsSync(envPath)) {
+if (!process.env.__INSTANCE_NAME && existsSync(envPath)) {
     loadEnv({ path: envPath });
 }
 
