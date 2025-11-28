@@ -48,6 +48,9 @@ firebase/emulator-data/
 # Firebase service account keys
 firebase/functions/*service-account-key.json
 
+# Firebase staging/prod environment (contains secrets)
+firebase/functions/.env.instancestaging-1
+
 # Firebase public directory is a symlink to webapp-v2/dist (via link-webapp script)
 
 # macOS
