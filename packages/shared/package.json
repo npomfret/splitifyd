@@ -27,6 +27,7 @@
     "test:integration": "ORIGINAL_TEST_SCRIPT=test:integration node ../../scripts/test-wrapper.js"
   },
   "devDependencies": {
+    "@types/node": "^24.0.14",
     "tsup": "^8.0.0",
     "typescript": "^5.8.3"
   },
