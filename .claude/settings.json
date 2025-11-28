@@ -14,8 +14,18 @@
   "permissions": {
     "allow": [
       "Bash(awk:*)",
+      "Bash(./run-test.sh:*)",
+      "Bash(do:*)",
+      "Bash(for:*)",
+      "Bash(timeout:*)",
+      "Bash(curl:*)",
       "Bash(bat:*)",
+      "Bash(echo:*)",
+      "Bash(lsof:*)",
       "Bash(cat:*)",
+      "Bash(sed:*)",
+      "Bash(grep:*)",
+      "Bash(awk:*)",
       "Bash(chmod:*)",
       "Bash(concurrently:*)",
       "Bash(cp:*)",
