@@ -84,6 +84,13 @@ function getServiceEnv(): z.infer<typeof serviceEnvSchema> {
     }
 }
 
+function inferProjectId() {
+    // FIREBASE_CONFIG is an env var provided to us, it looks like: {"projectId":"splitifyd","storageBucket":"splitifyd.firebasestorage.app"}
+    const config = JSON.parse(process.env.FIREBASE_CONFIG!);
+    const projectId = config.projectId;
+    return projectId;
+}
+
 /**
  * Build ServiceConfig from environment variables
  */
@@ -91,12 +98,9 @@ function buildServiceConfig(): ServiceConfig {
     const env = getServiceEnv();
 
     if (process.env.FUNCTIONS_CONTROL_API) {
-        // this is startup
-        const config = JSON.parse(process.env.FIREBASE_CONFIG!);
-        const projectId = config.projectId;
-
+        // this is deployment
         return {
-            projectId,
+            projectId: inferProjectId(),
             cloudTasksLocation: "foo",
             cloudTasksServiceAccount: "foo",
             functionsUrl: "foo",
@@ -118,7 +122,7 @@ function buildServiceConfig(): ServiceConfig {
         }
 
         return {
-            projectId: env.GCLOUD_PROJECT!,
+            projectId: inferProjectId(),
             cloudTasksLocation: env.__CLOUD_TASKS_LOCATION!,
             cloudTasksServiceAccount: env.__CLOUD_TASKS_SERVICE_ACCOUNT!,
             functionsUrl: env.__FUNCTIONS_URL!,
@@ -126,8 +130,6 @@ function buildServiceConfig(): ServiceConfig {
             storageEmulatorHost: null,
         };
     } else if (isEmulator()) {
-        // Get project ID (can be inferred from FIREBASE_CONFIG in emulator)
-
         const requiredVars = [
             'FIREBASE_CONFIG',
             '__MIN_REGISTRATION_DURATION_MS'
@@ -139,11 +141,8 @@ function buildServiceConfig(): ServiceConfig {
             throw new Error(`Missing required service configuration in production: ${missing.join(', ')}`);
         }
 
-        const config = JSON.parse(process.env.FIREBASE_CONFIG!);
-        const projectId = config.projectId;
-
         return {
-            projectId,
+            projectId: inferProjectId(),
             cloudTasksLocation: env.__CLOUD_TASKS_LOCATION,
             cloudTasksServiceAccount: "foo",
             functionsUrl: env.__FUNCTIONS_URL,
