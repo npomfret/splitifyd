@@ -1,6 +1,6 @@
 import { createJsonHandler, policiesStatusHandler } from '@/test/msw/handlers.ts';
 import { toPolicyId, toPolicyName, toVersionHash } from '@billsplit-wl/shared';
-import { ClientUserBuilder, LoginPage, PolicyAcceptanceModalPage } from '@billsplit-wl/test-support';
+import { ClientUserBuilder, LoginPage, PolicyAcceptanceModalPage, PolicyAcceptanceStatusDTOBuilder, UserPolicyStatusResponseBuilder } from '@billsplit-wl/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { mockGroupsApi } from '../../utils/mock-firebase-service';
 
@@ -25,38 +25,49 @@ test.describe('Policy Acceptance Modal', () => {
             },
         });
 
-        const pendingPolicies = [
-            {
-                policyId: toPolicyId('terms-of-service'),
-                policyName: toPolicyName('Terms of Service'),
-                currentVersionHash: toVersionHash('tos-hash-v2'),
-                userAcceptedHash: toVersionHash('tos-hash-v1'),
-                needsAcceptance: true,
-            },
-            {
-                policyId: toPolicyId('privacy-policy'),
-                policyName: toPolicyName('Privacy Policy'),
-                currentVersionHash: toVersionHash('privacy-hash-v3'),
-                userAcceptedHash: toVersionHash('privacy-hash-v2'),
-                needsAcceptance: true,
-            },
-        ];
+        const tosPolicy = new PolicyAcceptanceStatusDTOBuilder()
+            .withPolicyId('terms-of-service')
+            .withPolicyName('Terms of Service')
+            .withCurrentVersionHash('tos-hash-v2')
+            .withUserAcceptedHash('tos-hash-v1')
+            .withNeedsAcceptance(true)
+            .build();
 
-        const pendingResponse = {
-            needsAcceptance: true,
-            policies: pendingPolicies,
-            totalPending: pendingPolicies.length,
-        };
+        const privacyPolicy = new PolicyAcceptanceStatusDTOBuilder()
+            .withPolicyId('privacy-policy')
+            .withPolicyName('Privacy Policy')
+            .withCurrentVersionHash('privacy-hash-v3')
+            .withUserAcceptedHash('privacy-hash-v2')
+            .withNeedsAcceptance(true)
+            .build();
 
-        const acceptedResponse = {
-            needsAcceptance: false,
-            policies: pendingPolicies.map((policy) => ({
-                ...policy,
-                needsAcceptance: false,
-                userAcceptedHash: policy.currentVersionHash,
-            })),
-            totalPending: 0,
-        };
+        const pendingPolicies = [tosPolicy, privacyPolicy];
+
+        const acceptedTosPolicy = new PolicyAcceptanceStatusDTOBuilder()
+            .withPolicyId('terms-of-service')
+            .withPolicyName('Terms of Service')
+            .withCurrentVersionHash('tos-hash-v2')
+            .withUserAcceptedHash('tos-hash-v2')
+            .withNeedsAcceptance(false)
+            .build();
+
+        const acceptedPrivacyPolicy = new PolicyAcceptanceStatusDTOBuilder()
+            .withPolicyId('privacy-policy')
+            .withPolicyName('Privacy Policy')
+            .withCurrentVersionHash('privacy-hash-v3')
+            .withUserAcceptedHash('privacy-hash-v3')
+            .withNeedsAcceptance(false)
+            .build();
+
+        const pendingResponse = new UserPolicyStatusResponseBuilder()
+            .withPolicies(pendingPolicies)
+            .hasPending()
+            .build();
+
+        const acceptedResponse = new UserPolicyStatusResponseBuilder()
+            .withPolicies([acceptedTosPolicy, acceptedPrivacyPolicy])
+            .allAccepted()
+            .build();
 
         await msw.use(policiesStatusHandler(acceptedResponse));
         await msw.use(policiesStatusHandler(pendingResponse, { once: true }));

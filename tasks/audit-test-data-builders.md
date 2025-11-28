@@ -9,14 +9,16 @@ This document reports the findings of an audit of all test files in the project.
 - `AddTenantDomainRequestBuilder` - For `AddTenantDomainRequest` testing
 - `ActivityFeedResponseBuilder` - For `ActivityFeedResponse` objects
 - `ActivityFeedRealtimePayloadBuilder` - For `ActivityFeedRealtimePayload` objects
+- `PolicyAcceptanceStatusDTOBuilder` - For `PolicyAcceptanceStatusDTO` objects
+- `UserPolicyStatusResponseBuilder` - For `UserPolicyStatusResponse` objects
 
 ### ✅ COMPLETED - Enhanced Existing Builders
 - `CreateExpenseRequestBuilder`: Added `withMismatchedSplitTotal()`, `withInvalidCurrencyPrecision()`
 - `UserRegistrationBuilder`: Added `withInvalidPassword()`
-- `AdminTenantRequestBuilder`: Added `withInvalidTenantId()`, `withInvalidPrimaryColor()`
+- `AdminTenantRequestBuilder`: Added `withInvalidTenantId()`, `withInvalidPrimaryColor()`, `withEmptyDomains()`, `withFontFamily()`, `withGradient()`, `withGlassColors()`
 - `ActivityFeedRealtimePayloadBuilder`: Added `withNullCursor()`
 - `CreateGroupRequestBuilder`: Added `static empty()` factory method
-- `BrandingTokensBuilder`: Added `withWordmarkUrl()`, `withMotionFlags()`, `withAllPaletteColors()`
+- `BrandingTokensBuilder`: Added `withWordmarkUrl()`, `withMotionFlags()`, `withAllPaletteColors()`, `withGradient()`, `withFontFamily()`, `withGlassColors()`
 
 ### ✅ COMPLETED - Fixed Test Files
 | File | Status |
@@ -35,6 +37,11 @@ This document reports the findings of an audit of all test files in the project.
 | `auth-and-registration.test.ts` | ✅ Fixed - uses `UserRegistrationBuilder` with `withInvalidPassword()` |
 | `activity-feed-store.test.ts` | ✅ Fixed - uses `ActivityFeedResponseBuilder`, `ActivityFeedRealtimePayloadBuilder` |
 | `group-detail-realtime-coordinator.test.ts` | ✅ Fixed - uses `ActivityFeedItemBuilder`, `ActivityFeedRealtimePayloadBuilder` |
+| `groups-realtime-coordinator.test.ts` | ✅ Fixed - uses `ActivityFeedItemBuilder`, `ActivityFeedRealtimePayloadBuilder` |
+| `group-detail-comments-pagination.test.ts` | ✅ Fixed - uses `ListCommentsResponseBuilder` |
+| `settlement-history-locked.test.ts` | ✅ Fixed - uses `SettlementWithMembersBuilder.withIsLocked()` |
+| `dashboard-archive-groups.test.ts` | ✅ Fixed - uses separate `GroupMemberBuilder` calls instead of spreading |
+| `policy-acceptance-modal.test.ts` | ✅ Fixed - uses `PolicyAcceptanceStatusDTOBuilder`, `UserPolicyStatusResponseBuilder` |
 
 ### ⏭️ ACCEPTABLE EXCEPTIONS (No Changes Needed)
 | File | Reason |
@@ -45,17 +52,13 @@ This document reports the findings of an audit of all test files in the project.
 | `PolicyService.test.ts` | Extracting subset of fields from existing object for assertion |
 | `ThemeArtifactStorage.test.ts` | Internal storage service payload, not a DTO |
 | `debtSimplifier.test.ts` | Already uses `UserBalanceBuilder` - false positive in audit |
+| `expense-and-balance-lifecycle.e2e.test.ts` | UI form data for Playwright page objects, not DTOs |
+| `group-security-pending-members.test.ts` | Deriving state from existing entry for mock response |
+| `group-detail-side-effects.test.ts` | Internal mock objects for store helper testing |
+| `comments-store.test.ts` | Mock service interface for ActivityFeedRealtimeService |
 
-### 🔄 REMAINING (Low Priority)
-- `e2e-tests/src/__tests__/integration/expense-and-balance-lifecycle.e2e.test.ts`
-- `webapp-v2/src/__tests__/integration/playwright/group-security-pending-members.test.ts`
-- `webapp-v2/src/__tests__/integration/playwright/policy-acceptance-modal.test.ts`
-- `webapp-v2/src/__tests__/integration/playwright/group-detail-comments-pagination.test.ts`
-- `webapp-v2/src/__tests__/integration/playwright/settlement-history-locked.test.ts`
-- `webapp-v2/src/__tests__/unit/vitest/stores/groups-realtime-coordinator.test.ts`
-- `webapp-v2/src/__tests__/integration/playwright/dashboard-archive-groups.test.ts`
-- `webapp-v2/src/__tests__/unit/vitest/stores/group-detail-side-effects.test.ts`
-- `webapp-v2/src/__tests__/unit/vitest/stores/comments-store.test.ts`
+### ✅ AUDIT COMPLETE
+All test files have been reviewed and fixed or marked as acceptable exceptions.
 
 ---
 

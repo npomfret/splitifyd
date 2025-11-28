@@ -1,5 +1,4 @@
-import type { ListCommentsResponse } from '@billsplit-wl/shared';
-import { CommentBuilder, GroupBalancesBuilder, GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, ThemeBuilder } from '@billsplit-wl/test-support';
+import { CommentBuilder, GroupBalancesBuilder, GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, ListCommentsResponseBuilder, ThemeBuilder } from '@billsplit-wl/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { fulfillWithSerialization, mockGroupCommentsApi } from '../../utils/mock-firebase-service';
 
@@ -63,16 +62,17 @@ test.describe('Group Detail - Comment Pagination', () => {
             .withText('Second page follow-up comment')
             .build();
 
-        const initialComments: ListCommentsResponse = {
-            comments: [commentPage1Welcome, commentPage1Reminder],
-            hasMore: true,
-            nextCursor: 'cursor-comments-page-2',
-        };
+        const initialComments = new ListCommentsResponseBuilder()
+            .withComments([commentPage1Welcome, commentPage1Reminder])
+            .withHasMore(true)
+            .withNextCursor('cursor-comments-page-2')
+            .build();
 
-        const nextPageComments: ListCommentsResponse = {
-            comments: [commentPage2Update, commentPage2FollowUp],
-            hasMore: false,
-        };
+        const nextPageComments = new ListCommentsResponseBuilder()
+            .withComments([commentPage2Update, commentPage2FollowUp])
+            .withHasMore(false)
+            .withoutNextCursor()
+            .build();
 
         const initialFullDetails = new GroupFullDetailsBuilder()
             .withGroup(group)
@@ -173,16 +173,17 @@ test.describe('Group Detail - Comment Pagination Button', () => {
             .withText('Next page button comment')
             .build();
 
-        const initialComments: ListCommentsResponse = {
-            comments: [commentPage1],
-            hasMore: true,
-            nextCursor: 'cursor-comments-page-button',
-        };
+        const initialComments = new ListCommentsResponseBuilder()
+            .withComments([commentPage1])
+            .withHasMore(true)
+            .withNextCursor('cursor-comments-page-button')
+            .build();
 
-        const nextPageComments: ListCommentsResponse = {
-            comments: [commentPage2],
-            hasMore: false,
-        };
+        const nextPageComments = new ListCommentsResponseBuilder()
+            .withComments([commentPage2])
+            .withHasMore(false)
+            .withoutNextCursor()
+            .build();
 
         const fullDetails = new GroupFullDetailsBuilder()
             .withGroup(group)

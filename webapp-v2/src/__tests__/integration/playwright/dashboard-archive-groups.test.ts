@@ -31,7 +31,12 @@ test.describe('Dashboard group archiving', () => {
             .withTheme(memberTheme)
             .withStatus(MemberStatuses.ACTIVE)
             .build();
-        const archivedMember = { ...activeMember, memberStatus: MemberStatuses.ARCHIVED };
+        const archivedMember = new GroupMemberBuilder()
+            .withUid(user.uid)
+            .withDisplayName(user.displayName)
+            .withTheme(memberTheme)
+            .withStatus(MemberStatuses.ARCHIVED)
+            .build();
 
         const fullDetailsActive = new GroupFullDetailsBuilder()
             .withGroup(group)

@@ -1,6 +1,7 @@
-import type { ActivityFeedRealtimeConsumer, ActivityFeedRealtimePayload } from '@/app/services/activity-feed-realtime-service';
+import type { ActivityFeedRealtimeConsumer } from '@/app/services/activity-feed-realtime-service';
 import { GroupsRealtimeCoordinator } from '@/app/stores/helpers/groups-realtime-coordinator';
-import { type GroupId, toGroupId, toUserId } from '@billsplit-wl/shared';
+import { type GroupId, toGroupId, toGroupName, toUserId } from '@billsplit-wl/shared';
+import { ActivityFeedItemBuilder, ActivityFeedRealtimePayloadBuilder } from '@billsplit-wl/test-support';
 import { signal } from '@preact/signals';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -104,19 +105,16 @@ describe('GroupsRealtimeCoordinator', () => {
         const consumer = ctx.getConsumer();
         expect(consumer).toBeDefined();
 
-        const payload: ActivityFeedRealtimePayload = {
-            items: [],
-            newItems: [
-                {
-                    id: 'event-1',
-                    eventType: 'member-left',
-                    groupId,
-                    details: { targetUserId: userId, targetUserName: 'User One' },
-                } as any,
-            ],
-            hasMore: false,
-            nextCursor: null,
-        };
+        const memberLeftEvent = ActivityFeedItemBuilder
+            .memberLeft('event-1', userId, groupId, toGroupName('Test Group'), 'User One', 'User One', userId)
+            .build();
+
+        const payload = new ActivityFeedRealtimePayloadBuilder()
+            .withItems([])
+            .withNewItems([memberLeftEvent])
+            .withHasMore(false)
+            .withNullCursor()
+            .build();
 
         consumer?.onUpdate(payload);
 
@@ -132,19 +130,17 @@ describe('GroupsRealtimeCoordinator', () => {
         ctx.onRefresh.mockClear();
 
         const consumer = ctx.getConsumer();
-        const payload: ActivityFeedRealtimePayload = {
-            items: [],
-            newItems: [
-                {
-                    id: 'event-2',
-                    eventType: 'expense-created',
-                    groupId: toGroupId('group-1'),
-                    details: {},
-                } as any,
-            ],
-            hasMore: false,
-            nextCursor: null,
-        };
+
+        const expenseCreatedEvent = ActivityFeedItemBuilder
+            .expenseCreated('event-2', userId, toGroupId('group-1'), toGroupName('Test Group'), 'Test User', 'Test Expense')
+            .build();
+
+        const payload = new ActivityFeedRealtimePayloadBuilder()
+            .withItems([])
+            .withNewItems([expenseCreatedEvent])
+            .withHasMore(false)
+            .withNullCursor()
+            .build();
 
         consumer?.onUpdate(payload);
 

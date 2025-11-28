@@ -133,6 +133,16 @@ test.describe('Settlement History - Locked Settlement UI', () => {
             .withIsLocked(false)
             .build();
 
+        const lockedSettlement = new SettlementWithMembersBuilder()
+            .withId('settlement-789')
+            .withGroupId(groupId)
+            .withPayer(testUserMember)
+            .withPayee(otherUser)
+            .withAmount(25.0, 'USD')
+            .withNote('Reactive Test Payment')
+            .withIsLocked(true)
+            .build();
+
         const group = GroupDTOBuilder
             .groupForUser(testUser.uid)
             .withId(groupId)
@@ -157,7 +167,6 @@ test.describe('Settlement History - Locked Settlement UI', () => {
         await groupDetailPage.verifySettlementVisible(/\$25\.00/);
         await groupDetailPage.verifySettlementEditEnabled(/\$25\.00/, translationEn.settlementHistory.editPaymentTooltip);
 
-        const lockedSettlement = { ...initialSettlement, isLocked: true };
         await mockGroupDetailApi(
             page,
             groupId,

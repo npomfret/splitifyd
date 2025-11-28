@@ -4,7 +4,7 @@ export interface ActivityFeedRealtimePayload {
     items: ActivityFeedItem[];
     newItems: ActivityFeedItem[];
     hasMore: boolean;
-    nextCursor?: string | null;
+    nextCursor: string | null;
 }
 
 export class ActivityFeedRealtimePayloadBuilder {
@@ -12,6 +12,7 @@ export class ActivityFeedRealtimePayloadBuilder {
         items: [],
         newItems: [],
         hasMore: false,
+        nextCursor: null,
     };
 
     withItems(items: ActivityFeedItem[]): this {
@@ -34,14 +35,15 @@ export class ActivityFeedRealtimePayloadBuilder {
         return this;
     }
 
-    withoutNextCursor(): this {
-        delete this.payload.nextCursor;
-        return this;
-    }
-
+    /** Sets nextCursor to null (use when there are no more pages) */
     withNullCursor(): this {
         this.payload.nextCursor = null;
         return this;
+    }
+
+    /** Alias for withNullCursor() for backward compatibility */
+    withoutNextCursor(): this {
+        return this.withNullCursor();
     }
 
     build(): ActivityFeedRealtimePayload {
@@ -49,7 +51,7 @@ export class ActivityFeedRealtimePayloadBuilder {
             items: [...this.payload.items],
             newItems: [...this.payload.newItems],
             hasMore: this.payload.hasMore,
-            ...(this.payload.nextCursor && { nextCursor: this.payload.nextCursor }),
+            nextCursor: this.payload.nextCursor,
         };
     }
 }
