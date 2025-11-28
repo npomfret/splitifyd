@@ -63,10 +63,45 @@ Run `npm run build` every time you are done making changes.
 - Remove redundant tests
 - Merge tests the test the same thing
 - Keep tests simpler than the code they validate
-- The most important tests are the integration and e2e tests.
 
 - Always trust internal data (e.g. data we get from our own server)
 - Never trust data from external sources (e.g. data we get from our users)
+
+### Critical Test Suites
+
+We have two high-value test suites that mock/stub Firebase but exercise the vast majority of application code. These are our primary defense against bugs and should be used exhaustively.
+
+**`webapp-v2/src/__tests__/integration/playwright`** — Client-side integration tests
+- Uses MSW (Mock Service Worker) to intercept API calls
+- Runs real browser via Playwright against the actual webapp
+- Exercises the full UI: routing, state management, form validation, API integration
+- **Use for:** Exhaustively testing all user flows, edge cases, and error handling in the client
+- Fast feedback loop (no emulator needed), ideal for TDD on frontend features
+- Tests use builders to provide correctly structured firebase responses
+- Tests can be slow to run, be accuracy is far more important than speed
+
+**`firebase/functions/src/__tests__/unit/api`** — Server-side API tests
+- Uses Firebase Simulator for in-memory Firestore (no emulator process)
+- Calls handlers directly (bypasses HTTP layer)
+- Exercises services, validation, business logic, and (simulated) database operations
+- **Use for:** Exhaustively testing all API endpoints, authorization, and data transformations
+- Extremely fast execution, should cover every API behavior including edge cases
+- Can and must be used for very fine grained testing
+
+### Emulator-Based Tests (Coarse-Grained)
+
+These suites run against the full Firebase Emulator and are suited for end-to-end validation:
+
+**`firebase/functions/src/__tests__/integration`** — Backend integration tests
+- Requires running emulator
+- Tests real HTTP requests against the API
+- Use for verifying emulator behavior, Cloud Functions triggers, and cross-service interactions
+
+**`e2e-tests/src/__tests__/integration`** — Full end-to-end tests
+- Multi-browser tests with real users against the emulator
+- Tests complete user journeys across client and server
+- Use for smoke testing, multi-user scenarios, and validating the full stack works together
+- Slower to run; rely on the playwright/API tests above for comprehensive coverage
 
 ## Cleanliness
 
