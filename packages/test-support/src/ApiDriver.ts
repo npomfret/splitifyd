@@ -116,14 +116,22 @@ const assertNoCacheHeaders = (endpoint: string, headers: Headers) => {
     }
 };
 
-const config = getFirebaseEmulatorConfig();
-const FIREBASE_API_KEY = config.firebaseApiKey;
-const FIREBASE_AUTH_URL = `http://localhost:${config.authPort}`;
-const API_BASE_URL = config.baseUrl;
 const DEFAULT_ADMIN_EMAIL = (process.env.TEST_ADMIN_EMAIL || 'test1@test.com') as Email;
 const DEFAULT_ADMIN_PASSWORD = process.env.TEST_ADMIN_PASSWORD || 'passwordpass';
 
 export type AuthToken = string;
+
+/**
+ * Configuration for ApiDriver when targeting non-emulator environments.
+ */
+export interface ApiDriverConfig {
+    /** API endpoint base URL (e.g., 'https://myapp.web.app/api') */
+    baseUrl: string;
+    /** Firebase API key for authentication */
+    firebaseApiKey: string;
+    /** Firebase Auth base URL (e.g., 'https://identitytoolkit.googleapis.com' for production) */
+    authBaseUrl: string;
+}
 
 /**
  * HTTP-based API driver for testing against the Firebase emulator.
@@ -135,17 +143,29 @@ export type AuthToken = string;
  */
 export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>, TestAPI {
     private baseUrl: string;
-    private readonly authPort: number;
+    private readonly authBaseUrl: string;
     private readonly firebaseApiKey: string;
 
     static readonly matchers = {
         balanceHasUpdate: () => (balances: GroupBalances) => balances.simplifiedDebts && balances.simplifiedDebts.length >= 0 && !!balances.lastUpdated,
     };
 
-    constructor() {
-        this.baseUrl = API_BASE_URL;
-        this.authPort = Number(new URL(FIREBASE_AUTH_URL).port);
-        this.firebaseApiKey = FIREBASE_API_KEY;
+    /**
+     * Create an ApiDriver instance.
+     * @param config - Optional configuration for non-emulator environments.
+     *                 If omitted, defaults to emulator configuration.
+     */
+    constructor(config?: ApiDriverConfig) {
+        if (config) {
+            this.baseUrl = config.baseUrl;
+            this.firebaseApiKey = config.firebaseApiKey;
+            this.authBaseUrl = config.authBaseUrl;
+        } else {
+            const emulatorConfig = getFirebaseEmulatorConfig();
+            this.baseUrl = emulatorConfig.baseUrl;
+            this.firebaseApiKey = emulatorConfig.firebaseApiKey;
+            this.authBaseUrl = `http://localhost:${emulatorConfig.authPort}/identitytoolkit.googleapis.com`;
+        }
     }
 
     getBaseUrl(): string {
@@ -210,7 +230,7 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         let signInResponse: Response;
         if (userInfo.token) {
             // Exchange custom token for ID token
-            signInResponse = await fetch(`http://localhost:${this.authPort}/identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=${this.firebaseApiKey}`, {
+            signInResponse = await fetch(`${this.authBaseUrl}/v1/accounts:signInWithCustomToken?key=${this.firebaseApiKey}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -219,7 +239,7 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
                 }),
             });
         } else {
-            signInResponse = await fetch(`http://localhost:${this.authPort}/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${this.firebaseApiKey}`, {
+            signInResponse = await fetch(`${this.authBaseUrl}/v1/accounts:signInWithPassword?key=${this.firebaseApiKey}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

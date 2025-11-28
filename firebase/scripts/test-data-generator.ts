@@ -558,7 +558,7 @@ export async function createDefaultTenant(): Promise<void> {
     const { parseEnvironment } = await import('./firebase-init');
     const env = parseEnvironment(['emulator']);
     const services = await buildServices(env);
-    await syncTenantConfigs(services, { defaultOnly: true });
+    await syncTenantConfigs(services, env, { defaultOnly: true });
 
     // After syncing the default tenant, publish its theme CSS
     console.log('🎨 Publishing theme CSS for default tenant...');
@@ -573,7 +573,7 @@ export async function createAllDemoTenants(): Promise<void> {
     const { parseEnvironment } = await import('./firebase-init');
     const env = parseEnvironment(['emulator']);
     const services = await buildServices(env);
-    await syncTenantConfigs(services);
+    await syncTenantConfigs(services, env);
 
     // After syncing basic tenant configs, publish the theme CSS artifacts
     console.log('🎨 Publishing theme CSS artifacts for all tenants...');

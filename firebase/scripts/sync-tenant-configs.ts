@@ -26,6 +26,7 @@ import {
     toTenantSurfaceColor,
     toTenantTextColor,
 } from '@billsplit-wl/shared';
+import { ApiDriver, type ApiDriverConfig } from '@billsplit-wl/test-support';
 import * as admin from 'firebase-admin';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -141,8 +142,32 @@ function getContentTypeFromExtension(ext: string): string {
 
 async function syncTenantConfigs(
     services: ServiceComponents,
+    env: ScriptEnvironment,
     options?: { defaultOnly?: boolean; tenantId?: string; },
 ) {
+    // Create ApiDriver with appropriate configuration
+    let apiDriver: ApiDriver;
+    if (env.isEmulator) {
+        apiDriver = new ApiDriver();
+    } else {
+        const projectId = process.env.GCLOUD_PROJECT;
+        const apiKey = process.env.CLIENT_API_KEY;
+        if (!projectId || !apiKey) {
+            throw new Error('GCLOUD_PROJECT and CLIENT_API_KEY must be set for deployed environments');
+        }
+        const deployedConfig: ApiDriverConfig = {
+            baseUrl: `https://${projectId}.web.app/api`,
+            firebaseApiKey: apiKey,
+            authBaseUrl: 'https://identitytoolkit.googleapis.com',
+        };
+        apiDriver = new ApiDriver(deployedConfig);
+    }
+
+    // Get admin user token for API calls
+    console.log('🔑 Authenticating admin user...');
+    const adminUser = await apiDriver.getDefaultAdminUser();
+    console.log(`   ✓ Authenticated as admin`);
+
     const configPath = path.join(__dirname, 'tenant-configs.json');
     const configData = fs.readFileSync(configPath, 'utf-8');
     let configs: TenantConfig[] = JSON.parse(configData);
@@ -226,12 +251,9 @@ async function syncTenantConfigs(
             throw error;
         }
 
-        // Publish theme CSS directly via service
+        // Publish theme CSS via API
         try {
-            const publishResult = await services.tenantAdminService.publishTenantTheme(
-                toTenantId(config.id),
-                'sync-script',
-            );
+            const publishResult = await apiDriver.publishTenantTheme({ tenantId: config.id }, adminUser.token);
             console.log(`  ✓ Published theme: ${publishResult.artifact.hash}`);
         } catch (error) {
             console.error(`  ✗ Failed to publish theme for tenant: ${config.id}`);
@@ -265,7 +287,7 @@ async function main(): Promise<void> {
     }
 
     const services = await buildServices(env);
-    await syncTenantConfigs(services, { defaultOnly, tenantId });
+    await syncTenantConfigs(services, env, { defaultOnly, tenantId });
 
     console.log('✅ Tenant sync complete');
 }

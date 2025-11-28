@@ -29,7 +29,7 @@ export async function publishStagingThemes(): Promise<void> {
 
     // Sync staging-tenant which will publish the theme from existing Firestore data
     // Note: If tenant doesn't exist, it must be created via TenantEditorModal first
-    await syncTenantConfigs(services, { tenantId: 'staging-tenant' });
+    await syncTenantConfigs(services, env, { tenantId: 'staging-tenant' });
 
     logger.info('✅ Staging themes published successfully');
     logger.info(`  - staging-tenant: Theme published from Firestore data`);
