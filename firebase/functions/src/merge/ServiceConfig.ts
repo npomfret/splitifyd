@@ -1,5 +1,5 @@
-import { z } from 'zod';
-import { logger } from '../logger';
+import {z} from 'zod';
+import {logger} from '../logger';
 
 /**
  * Configuration for MergeService and related cloud infrastructure
@@ -43,27 +43,10 @@ function isEmulator(): boolean {
     return process.env.FUNCTIONS_EMULATOR === 'true';
 }
 
-/**
- * Get project ID from FIREBASE_CONFIG or GCLOUD_PROJECT
- */
-function getProjectId(): string {
-    if (process.env.GCLOUD_PROJECT) {
-        return process.env.GCLOUD_PROJECT;
-    }
-
-    if (process.env.FIREBASE_CONFIG) {
-        try {
-            const config = JSON.parse(process.env.FIREBASE_CONFIG);
-            if (config.projectId) {
-                return config.projectId;
-            }
-        } catch (e) {
-            // Ignore parse errors, will be caught by validation
-        }
-    }
-
-    throw new Error('Unable to determine project ID from GCLOUD_PROJECT or FIREBASE_CONFIG');
+function isRealFirebase(): boolean {
+    return process.env.GAE_RUNTIME !== undefined;
 }
+
 
 // Define environment variable schema for service config
 // All required fields must be explicitly set in .env files - no defaults
@@ -106,46 +89,70 @@ function getServiceEnv(): z.infer<typeof serviceEnvSchema> {
  */
 function buildServiceConfig(): ServiceConfig {
     const env = getServiceEnv();
-    const inEmulator = isEmulator();
 
-    // Get project ID (can be inferred from FIREBASE_CONFIG in emulator)
-    const projectId = env.GCLOUD_PROJECT || getProjectId();
+    if (process.env.FUNCTIONS_CONTROL_API) {
+        // this is startup
+        const config = JSON.parse(process.env.FIREBASE_CONFIG!);
+        const projectId = config.projectId;
 
-    // Service account defaults to the project's default App Engine service account
-    const cloudTasksServiceAccount = env.__CLOUD_TASKS_SERVICE_ACCOUNT || `${projectId}@appspot.gserviceaccount.com`;
-
-    // In production (not emulator), all variables must be properly set
-    if (!inEmulator) {
-        const requiredVars = ['__CLOUD_TASKS_LOCATION', '__FUNCTIONS_URL'];
-        const missing = requiredVars.filter((key) => !env[key as keyof typeof env]);
+        return {
+            projectId,
+            cloudTasksLocation: "foo",
+            cloudTasksServiceAccount: "foo",
+            functionsUrl: "foo",
+            minRegistrationDurationMs: -1,
+            storageEmulatorHost: "foo",
+        };
+    } else if (isRealFirebase()) {
+        const requiredVars = [
+            'GCLOUD_PROJECT',
+            '__CLOUD_TASKS_LOCATION',
+            '__FUNCTIONS_URL',
+            '__CLOUD_TASKS_SERVICE_ACCOUNT',
+            '__MIN_REGISTRATION_DURATION_MS'
+        ];
+        const missing = requiredVars.filter((key) => env[key as keyof typeof env] === undefined);
 
         if (missing.length > 0) {
             throw new Error(`Missing required service configuration in production: ${missing.join(', ')}`);
         }
 
         return {
-            projectId,
+            projectId: env.GCLOUD_PROJECT!,
             cloudTasksLocation: env.__CLOUD_TASKS_LOCATION!,
-            cloudTasksServiceAccount,
+            cloudTasksServiceAccount: env.__CLOUD_TASKS_SERVICE_ACCOUNT!,
             functionsUrl: env.__FUNCTIONS_URL!,
-            minRegistrationDurationMs: env.__MIN_REGISTRATION_DURATION_MS,
+            minRegistrationDurationMs: env.__MIN_REGISTRATION_DURATION_MS!,
             storageEmulatorHost: null,
         };
-    }
+    } else if (isEmulator()) {
+        // Get project ID (can be inferred from FIREBASE_CONFIG in emulator)
 
-    // In emulator mode, these values must still be explicitly set
-    if (!env.__CLOUD_TASKS_LOCATION || !env.__FUNCTIONS_URL) {
-        throw new Error('__CLOUD_TASKS_LOCATION and __FUNCTIONS_URL must be explicitly set in emulator mode');
-    }
+        const requiredVars = [
+            'FIREBASE_CONFIG',
+            '__MIN_REGISTRATION_DURATION_MS'
+        ];
+        const missing = requiredVars.filter((key) => env[key as keyof typeof env] === undefined);
 
-    return {
-        projectId,
-        cloudTasksLocation: env.__CLOUD_TASKS_LOCATION,
-        cloudTasksServiceAccount,
-        functionsUrl: env.__FUNCTIONS_URL,
-        minRegistrationDurationMs: env.__MIN_REGISTRATION_DURATION_MS,
-        storageEmulatorHost: env.FIREBASE_STORAGE_EMULATOR_HOST || null,
-    };
+        if (missing.length > 0) {
+            // console.log(JSON.stringify(process.env, null, 2))
+            throw new Error(`Missing required service configuration in production: ${missing.join(', ')}`);
+        }
+
+        const config = JSON.parse(process.env.FIREBASE_CONFIG!);
+        const projectId = config.projectId;
+
+        return {
+            projectId,
+            cloudTasksLocation: env.__CLOUD_TASKS_LOCATION,
+            cloudTasksServiceAccount: "foo",
+            functionsUrl: env.__FUNCTIONS_URL,
+            minRegistrationDurationMs: env.__MIN_REGISTRATION_DURATION_MS,
+            storageEmulatorHost: env.FIREBASE_STORAGE_EMULATOR_HOST || null,
+        };
+    } else {
+        throw Error("should not get here")
+    }
 }
 
 /**

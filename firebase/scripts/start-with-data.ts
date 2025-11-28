@@ -10,14 +10,14 @@ import { loadRuntimeConfig } from '../shared/scripts-config';
 import { logger } from './logger';
 import { seedPolicies } from './seed-policies';
 import { startEmulator } from './start-emulator';
-import { createAllDemoTenants, generateBillSplitterUser } from './test-data-generator';
+import { createAllDemoTenants } from './test-data-generator';
 
 const execPromise = promisify(exec);
 
 async function runSeedPoliciesStep(): Promise<void> {
     logger.info('');
     logger.info('═══════════════════════════════════════════════════════');
-    logger.info(`📊 STARTING POLICY SEEDING ...`);
+    logger.info(`📊 SEEDING POLICIES & ADMIN USER ...`);
     logger.info('═══════════════════════════════════════════════════════');
     logger.info('');
 
@@ -26,6 +26,7 @@ async function runSeedPoliciesStep(): Promise<void> {
     logger.info('');
     logger.info('✅ Policy seeding completed successfully!');
     logger.info('📋 Privacy policy, terms, and cookie policy are now available');
+    logger.info('🔑 Sign in with test1@test.com to access the emulator');
 }
 
 async function runSetupStorageBucketStep(): Promise<void> {
@@ -67,19 +68,6 @@ async function runCreateDemoTenantsStep(): Promise<void> {
     logger.info('🎨 Theme CSS available at /api/theme.css for localhost + loopback hosts');
 }
 
-async function runEnsureBillSplitterUserStep(): Promise<void> {
-    logger.info('');
-    logger.info('═══════════════════════════════════════════════════════');
-    logger.info('👤 ENSURING DEFAULT TEST USER...');
-    logger.info('═══════════════════════════════════════════════════════');
-    logger.info('');
-
-    await generateBillSplitterUser();
-
-    logger.info('');
-    logger.info('✅ Default Bill Splitter user is ready!');
-    logger.info('🔑 Sign in with test1@test.com to access the emulator');
-}
 
 // Load and validate runtime configuration
 const runtimeConfig = loadRuntimeConfig();
@@ -125,16 +113,14 @@ const main = async () => {
 
         logger.info('🚀 You can now use the webapp and all endpoints are available');
 
-        // Step 2: Seed policies (must be before user creation so policies are accepted during registration)
+        // Step 2: Seed policies and ensure Bill Splitter admin exists
+        // (admin user is created first, then used to seed policies via API)
         await runSeedPoliciesStep();
 
         // Step 3: Setup Cloud Storage bucket (needed before publishing themes)
         await runSetupStorageBucketStep();
 
-        // Step 4: Ensure default test user exists (needed for tenant creation)
-        await runEnsureBillSplitterUserStep();
-
-        // Step 5: Create demo tenants (localhost + 127.0.0.1) and publish themes
+        // Step 4: Create demo tenants (localhost + 127.0.0.1) and publish themes
         await runCreateDemoTenantsStep();
 
         logger.info('');
