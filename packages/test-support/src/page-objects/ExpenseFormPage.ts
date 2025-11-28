@@ -111,10 +111,24 @@ export class ExpenseFormPage extends BasePage {
     }
 
     /**
-     * Get payer radio button by display name (scoped to Who Paid section)
+     * Get payer dropdown trigger button (scoped to Who Paid section)
      */
-    private getPayerRadio(displayName: DisplayName | string): Locator {
-        return this.getWhoPaidSection().getByRole('radio', { name: displayName });
+    private getPayerTrigger(): Locator {
+        return this.getWhoPaidSection().getByTestId('payer-selector-trigger');
+    }
+
+    /**
+     * Get payer search input (scoped to Who Paid section)
+     */
+    private getPayerSearchInput(): Locator {
+        return this.getWhoPaidSection().getByTestId('payer-selector-search');
+    }
+
+    /**
+     * Get payer option by display name (scoped to Who Paid section)
+     */
+    private getPayerOption(displayName: DisplayName | string): Locator {
+        return this.getWhoPaidSection().getByRole('option', { name: displayName });
     }
 
     /**
@@ -389,48 +403,30 @@ export class ExpenseFormPage extends BasePage {
 
     /**
      * Select who paid by display name (what user sees on screen)
+     * Uses the dropdown payer selector UI
      */
     async selectPayer(displayName: DisplayName | string): Promise<void> {
-        const radioByUid = this.page.locator(`input[type="radio"][name="paidBy"][value="${displayName}"]`);
+        const trigger = this.getPayerTrigger();
+        await expect(trigger).toBeVisible();
 
-        if (await radioByUid.isVisible().catch(() => false)) {
-            const labelForUid = this.page.locator(`label:has(input[type="radio"][name="paidBy"][value="${displayName}"])`).first();
-            await expect(labelForUid).toBeVisible();
-            await labelForUid.click();
-            return;
-        }
+        // Open the dropdown
+        await this.clickButton(trigger, { buttonName: 'Payer selector' });
 
-        const labelByText = this
-            .page
-            .locator('label')
-            .filter({ has: this.page.locator('input[type="radio"][name="paidBy"]') })
-            .filter({ hasText: displayName })
-            .first();
+        // Wait for search input to be visible (dropdown is open)
+        const searchInput = this.getPayerSearchInput();
+        await expect(searchInput).toBeVisible({ timeout: 2000 });
 
-        if (await labelByText.isVisible().catch(() => false)) {
-            await labelByText.click();
-            return;
-        }
+        // Type to filter (optional but helps with long member lists)
+        await this.fillPreactInput(searchInput, displayName);
 
-        const radio = this.getPayerRadio(displayName);
-        if (await radio.isVisible().catch(() => false)) {
-            await radio.check();
-            return;
-        }
+        // Click the matching option
+        const option = this.getPayerOption(displayName);
+        await expect(option).toBeVisible({ timeout: 2000 });
+        await option.click();
 
-        const availableOptions = await this
-            .page
-            .locator('label:has(input[type="radio"][name="paidBy"])')
-            .allTextContents();
-
-        throw new Error(
-            `Could not find payer "${displayName}". Available options: ${
-                availableOptions
-                    .map((text) => text.trim())
-                    .filter(Boolean)
-                    .join(', ')
-            }`,
-        );
+        // Verify dropdown closed and selection was made
+        await expect(searchInput).not.toBeVisible({ timeout: 2000 });
+        await expect(trigger).toContainText(displayName);
     }
 
     /**

@@ -1,5 +1,6 @@
+import { useDropdownSelector } from '@/app/hooks/useDropdownSelector';
 import type { ExpenseLabel } from '@billsplit-wl/shared';
-import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
+import { useCallback, useMemo, useRef } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 
 interface LabelSuggestionInputProps {
@@ -15,35 +16,34 @@ interface LabelSuggestionInputProps {
 
 export function LabelSuggestionInput({ value, onChange, suggestions, className = '', error, label, placeholder, required = false }: LabelSuggestionInputProps) {
     const { t } = useTranslation();
-    const [isOpen, setIsOpen] = useState(false);
-    const [filteredSuggestions, setFilteredSuggestions] = useState<ExpenseLabel[]>(suggestions);
-    const [highlightedIndex, setHighlightedIndex] = useState(-1);
     const inputRef = useRef<HTMLInputElement>(null);
-    const dropdownRef = useRef<HTMLDivElement>(null);
-    const inputId = `label-input-${Math.random().toString(36).substr(2, 9)}`;
+    const inputId = useMemo(() => `label-input-${Math.random().toString(36).substr(2, 9)}`, []);
 
-    // Filter suggestions based on input value
-    useEffect(() => {
-        if (!value.trim()) {
-            setFilteredSuggestions(suggestions);
-        } else {
-            const filtered = suggestions.filter((suggestion) => suggestion.displayName.toLowerCase().includes(value.toLowerCase()) || suggestion.name.toLowerCase().includes(value.toLowerCase()));
-            setFilteredSuggestions(filtered);
-        }
-        setHighlightedIndex(-1);
-    }, [value, suggestions]);
+    const filterFn = useCallback(
+        (suggestion: ExpenseLabel, searchTerm: string) =>
+            suggestion.displayName.toLowerCase().includes(searchTerm.toLowerCase()) || suggestion.name.toLowerCase().includes(searchTerm.toLowerCase()),
+        [],
+    );
 
-    // Handle click outside to close dropdown
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (dropdownRef.current && inputRef.current && !dropdownRef.current.contains(event.target as Node) && !inputRef.current.contains(event.target as Node)) {
-                setIsOpen(false);
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
+    const {
+        isOpen,
+        highlightedIndex,
+        filteredItems: filteredSuggestions,
+        dropdownRef,
+        open,
+        selectItem,
+        handleKeyDown,
+        setHighlightedIndex,
+    } = useDropdownSelector({
+        items: suggestions,
+        onSelect: (suggestion) => {
+            onChange(suggestion.name);
+            inputRef.current?.focus();
+        },
+        filterFn,
+        mode: 'combobox',
+        externalSearchTerm: value,
+    });
 
     const handleInputChange = useCallback(
         (e: Event) => {
@@ -54,55 +54,8 @@ export function LabelSuggestionInput({ value, onChange, suggestions, className =
     );
 
     const handleInputFocus = useCallback(() => {
-        setIsOpen(true);
-    }, []);
-
-    const handleSuggestionClick = useCallback(
-        (suggestion: ExpenseLabel) => {
-            onChange(suggestion.name);
-            setIsOpen(false);
-            inputRef.current?.focus();
-        },
-        [onChange],
-    );
-
-    const handleKeyDown = useCallback(
-        (e: KeyboardEvent) => {
-            if (!isOpen) {
-                if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-                    e.preventDefault();
-                    setIsOpen(true);
-                }
-                return;
-            }
-
-            switch (e.key) {
-                case 'ArrowDown':
-                    e.preventDefault();
-                    setHighlightedIndex((prev) => (prev < filteredSuggestions.length - 1 ? prev + 1 : 0));
-                    break;
-                case 'ArrowUp':
-                    e.preventDefault();
-                    setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : filteredSuggestions.length - 1));
-                    break;
-                case 'Enter':
-                    e.preventDefault();
-                    if (highlightedIndex >= 0 && highlightedIndex < filteredSuggestions.length) {
-                        handleSuggestionClick(filteredSuggestions[highlightedIndex]);
-                    }
-                    break;
-                case 'Escape':
-                    e.preventDefault();
-                    setIsOpen(false);
-                    setHighlightedIndex(-1);
-                    break;
-                case 'Tab':
-                    setIsOpen(false);
-                    break;
-            }
-        },
-        [isOpen, filteredSuggestions, highlightedIndex, handleSuggestionClick],
-    );
+        open();
+    }, [open]);
 
     // Base styling similar to Input component
     const baseInputClasses = [
@@ -172,7 +125,8 @@ export function LabelSuggestionInput({ value, onChange, suggestions, className =
                         {filteredSuggestions.map((suggestion, index) => (
                             <div
                                 key={suggestion.name}
-                                onClick={() => handleSuggestionClick(suggestion)}
+                                onClick={() => selectItem(suggestion)}
+                                onMouseEnter={() => setHighlightedIndex(index)}
                                 className={`cursor-pointer select-none relative py-2 pl-3 pr-9 flex items-center space-x-3 ${
                                     index === highlightedIndex ? 'bg-interactive-primary text-interactive-primary-foreground' : 'text-text-primary hover:bg-surface-muted'
                                 }`}

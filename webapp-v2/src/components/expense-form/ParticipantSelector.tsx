@@ -3,15 +3,10 @@ import { toUserId, UserId } from '@billsplit-wl/shared';
 import { useTranslation } from 'react-i18next';
 import { Avatar, Button, Card } from '../ui';
 import { Stack } from '../ui/Stack';
+import type { ExpenseFormMember } from './types';
 
-interface Member { // todo: strong these be strongly typed?
-    uid: string;
-    groupDisplayName: string;
-    displayName?: string | null;
-}
-
-interface ParticipantSelectorProps { // todo: strong these be strongly typed?
-    members: Member[];
+interface ParticipantSelectorProps {
+    members: ExpenseFormMember[];
     participants: string[];
     paidBy: string;
     validationErrors: any;

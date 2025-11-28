@@ -5,3 +5,4 @@ export { ParticipantSelector } from './ParticipantSelector';
 export { PayerSelector } from './PayerSelector';
 export { SplitAmountInputs } from './SplitAmountInputs';
 export { SplitTypeSelector } from './SplitTypeSelector';
+export type { ExpenseFormMember } from './types';

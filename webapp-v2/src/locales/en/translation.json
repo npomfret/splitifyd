@@ -1196,7 +1196,11 @@
     },
     "payerSelector": {
       "label": "Who paid?",
-      "requiredIndicator": "*"
+      "requiredIndicator": "*",
+      "selectPayer": "Select who paid",
+      "searchPlaceholder": "Search members...",
+      "membersList": "Group members",
+      "noResults": "No members match your search"
     },
     "splitAmountInputs": {
       "exactAmountsInstruction": "Enter exact amounts for each person:",

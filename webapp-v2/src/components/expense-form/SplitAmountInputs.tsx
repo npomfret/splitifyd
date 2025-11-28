@@ -3,12 +3,7 @@ import { getGroupDisplayName } from '@/utils/displayName';
 import { Amount, amountToSmallestUnit, smallestUnitToAmountString, toCurrencyISOCode, toUserId, UserId, ZERO } from '@billsplit-wl/shared';
 import { useTranslation } from 'react-i18next';
 import { Avatar, CurrencyAmount } from '../ui';
-
-interface Member {
-    uid: string;
-    groupDisplayName: string;
-    displayName?: string | null;
-}
+import type { ExpenseFormMember } from './types';
 
 interface Split { // todo: should these be strongly typed?
     uid: string;
@@ -16,13 +11,13 @@ interface Split { // todo: should these be strongly typed?
     percentage?: number;
 }
 
-interface SplitAmountInputsProps { // todo: should these be strongly typed?
+interface SplitAmountInputsProps {
     splitType: string;
     amount: Amount;
     currency: string;
     participants: string[];
     splits: Split[];
-    members: Member[];
+    members: ExpenseFormMember[];
     updateSplitAmount: (uid: UserId, amount: Amount) => void;
     updateSplitPercentage: (uid: UserId, percentage: number) => void;
 }
@@ -34,7 +29,7 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
             acc[member.uid] = member;
             return acc;
         },
-        {} as Record<string, Member>,
+        {} as Record<string, ExpenseFormMember>,
     );
 
     const normalizedAmount = typeof amount === 'string' ? amount.trim() : amount;
