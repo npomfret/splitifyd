@@ -37,6 +37,20 @@ export function Modal({ open, onClose, size = 'sm', labelledBy, describedBy, cla
         return () => mediaQuery.removeEventListener('change', handleChange);
     }, []);
 
+    // Handle escape key to close modal
+    useEffect(() => {
+        if (!open || !onClose) return;
+
+        const handleEscape = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                onClose();
+            }
+        };
+
+        document.addEventListener('keydown', handleEscape);
+        return () => document.removeEventListener('keydown', handleEscape);
+    }, [open, onClose]);
+
     if (typeof document === 'undefined') {
         return null;
     }
@@ -82,6 +96,7 @@ export function Modal({ open, onClose, size = 'sm', labelledBy, describedBy, cla
                         backgroundColor: 'var(--semantics-colors-surface-overlay, rgba(0, 0, 0, 0.4))',
                         backdropFilter: 'blur(4px)',
                     }}
+                    role='presentation'
                     onClick={handleBackdropClick}
                     data-testid={dataTestId}
                     variants={backdropVariants}

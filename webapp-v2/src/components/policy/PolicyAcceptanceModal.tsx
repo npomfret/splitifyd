@@ -1,9 +1,9 @@
 import { apiClient, type PolicyAcceptanceStatusDTO } from '@/app/apiClient.ts';
 import { ErrorState, LoadingSpinner, Tooltip } from '@/components/ui';
 import { Clickable } from '@/components/ui/Clickable';
+import { Modal } from '@/components/ui/Modal';
 import { logError } from '@/utils/browser-logger.ts';
 import { PolicyId } from '@billsplit-wl/shared';
-import { createPortal } from 'preact/compat';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Button } from '../ui/Button';
@@ -120,28 +120,20 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
         return null;
     }
 
-    // Guard against SSR
-    if (typeof document === 'undefined') {
-        return null;
-    }
-
     const titleId = 'policy-modal-title';
     const subtitleId = 'policy-modal-subtitle';
 
-    const modalContent = (
-        <div
-            className='fixed inset-0 flex items-center justify-center p-4 z-50'
-            style={{ backgroundColor: 'var(--semantics-colors-surface-overlay, rgba(0, 0, 0, 0.4))', backdropFilter: 'blur(4px)' }}
+    return (
+        <Modal
+            open={true}
+            onClose={onClose}
+            size='lg'
+            className='max-w-4xl max-h-[90vh] flex flex-col'
+            labelledBy={titleId}
+            describedBy={subtitleId}
             data-testid='policy-modal-overlay'
         >
-            <div
-                className='bg-surface-base border-border-default rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col opacity-100'
-                role='dialog'
-                aria-modal='true'
-                aria-labelledby={titleId}
-                aria-describedby={subtitleId}
-                data-testid='policy-modal-card'
-            >
+            <div data-testid='policy-modal-card' className='flex flex-col h-full'>
                 {/* Header */}
                 <div className='flex items-center justify-between p-6 border-b border-border-default' data-testid='policy-modal-header'>
                     <div>
@@ -319,8 +311,6 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                     </div>
                 </div>
             </div>
-        </div>
+        </Modal>
     );
-
-    return createPortal(modalContent, document.body);
 }

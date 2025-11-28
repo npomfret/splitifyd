@@ -2,6 +2,7 @@ import { ApiError } from '@/app/apiClient';
 import { useAuthRequired } from '@/app/hooks/useAuthRequired';
 import { enhancedGroupsStore } from '@/app/stores/groups-store-enhanced.ts';
 import { Clickable } from '@/components/ui/Clickable';
+import { Modal } from '@/components/ui/Modal';
 import { logInfo } from '@/utils/browser-logger';
 import { CreateGroupRequest, GroupId, toDisplayName, toGroupName } from '@billsplit-wl/shared';
 import { signal, useComputed } from '@preact/signals';
@@ -24,7 +25,6 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [validationError, setValidationError] = useState<string | null>(null);
     const [displayNameValidationError, setDisplayNameValidationError] = useState<string | null>(null);
-    const modalRef = useRef<HTMLDivElement>(null);
     const emitModalDebugLog = (message: string, data?: Record<string, unknown>) => {
         logInfo(message, data);
     };
@@ -52,45 +52,6 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
             enhancedGroupsStore.clearValidationError();
         }
     }, [isOpen, currentUser.value?.displayName]);
-
-    // Handle escape key to close modal
-    useEffect(() => {
-        if (!isOpen) return;
-
-        const handleEscape = (e: KeyboardEvent) => {
-            if (e.key === 'Escape' && !isSubmitting) {
-                emitModalDebugLog('[CreateGroupModal] Closing modal: Escape key pressed', {
-                    key: e.key,
-                    isSubmitting,
-                });
-                onClose();
-            }
-        };
-
-        document.addEventListener('keydown', handleEscape);
-        return () => document.removeEventListener('keydown', handleEscape);
-    }, [isOpen, onClose, isSubmitting]);
-
-    // Handle click outside modal to close - but not during submission
-    const handleBackdropClick = (e: Event) => {
-        if (e.target !== e.currentTarget) {
-            return;
-        }
-
-        if (isSubmitting) {
-            emitModalDebugLog('[CreateGroupModal] Ignored backdrop click while submitting', {
-                isSubmitting,
-            });
-            return;
-        }
-
-        emitModalDebugLog('[CreateGroupModal] Closing modal: Backdrop clicked', {
-            isSubmitting,
-            eventType: e.type,
-            timestamp: new Date().toISOString(),
-        });
-        onClose();
-    };
 
     const validateForm = (): string | null => {
         const name = groupNameSignal.value.trim();
@@ -185,8 +146,6 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
         }
     };
 
-    if (!isOpen) return null;
-
     const trimmedGroupName = groupNameSignal.value.trim();
     const trimmedDisplayName = groupDisplayNameSignal.value.trim();
     const isFormValid = trimmedGroupName.length >= 2
@@ -195,19 +154,13 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
         && DISPLAY_NAME_PATTERN.test(trimmedDisplayName);
 
     return (
-        <div
-            class='fixed inset-0 overflow-y-auto h-full w-full z-50'
-            style={{ backgroundColor: 'var(--semantics-colors-surface-overlay, rgba(0, 0, 0, 0.4))', backdropFilter: 'blur(4px)' }}
-            onClick={handleBackdropClick}
-            role='presentation'
+        <Modal
+            open={isOpen}
+            onClose={isSubmitting ? undefined : onClose}
+            size='sm'
+            labelledBy='create-group-modal-title'
         >
-            <div
-                class='relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-surface-base border-border-default opacity-100'
-                ref={modalRef}
-                role='dialog'
-                aria-modal='true'
-                aria-labelledby='create-group-modal-title'
-            >
+            <div class='p-5'>
                 {/* Modal Header */}
                 <div class='flex items-center justify-between mb-6'>
                     <h3 id='create-group-modal-title' class='text-lg font-semibold text-text-primary'>
@@ -344,6 +297,6 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                     </div>
                 </Form>
             </div>
-        </div>
+        </Modal>
     );
 }

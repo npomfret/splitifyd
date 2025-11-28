@@ -2,6 +2,7 @@ import { apiClient, ApiError } from '@/app/apiClient.ts';
 import { useAuthRequired } from '@/app/hooks/useAuthRequired.ts';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced.ts';
 import { Clickable } from '@/components/ui/Clickable';
+import { Modal } from '@/components/ui/Modal';
 import { logError } from '@/utils/browser-logger.ts';
 import { GroupDTO, GroupMember, GroupMembershipDTO, GroupPermissions, MemberRole, PermissionLevels, SecurityPreset, toDisplayName, toGroupName, UserId } from '@billsplit-wl/shared';
 import { useComputed } from '@preact/signals';
@@ -316,32 +317,6 @@ export function GroupSettingsModal({
             setPendingMembers([]);
         }
     }, [isOpen, securityTabAvailable, group.permissions, members, canApproveMembers, loadPendingMembers]);
-
-    useEffect(() => {
-        if (!isOpen) {
-            return;
-        }
-
-        const handleEscape = (event: KeyboardEvent) => {
-            if (event.key === 'Escape' && !showDeleteConfirm) {
-                event.preventDefault();
-                onClose();
-            }
-        };
-
-        window.addEventListener('keydown', handleEscape, { capture: true });
-        return () => window.removeEventListener('keydown', handleEscape, { capture: true });
-    }, [isOpen, onClose, showDeleteConfirm]);
-
-    if (!isOpen) {
-        return null;
-    }
-
-    const handleBackdropClick = (event: Event) => {
-        if (event.target === event.currentTarget && !showDeleteConfirm) {
-            onClose();
-        }
-    };
 
     const validateGeneralForm = (): string | null => {
         const name = groupName.trim();
@@ -916,13 +891,13 @@ export function GroupSettingsModal({
 
     return (
         <>
-            <div className='fixed inset-0 bg-black/40 backdrop-blur-sm overflow-y-auto h-full w-full z-50' onClick={handleBackdropClick} role='presentation'>
-                <div
-                    className='relative top-12 mx-auto w-full max-w-3xl bg-surface-base border-border-default rounded-xl shadow-xl border border-border-default opacity-100'
-                    role='dialog'
-                    aria-modal='true'
-                    aria-labelledby='group-settings-modal-title'
-                >
+            <Modal
+                open={isOpen}
+                onClose={showDeleteConfirm ? undefined : onClose}
+                size='lg'
+                className='max-w-3xl'
+                labelledBy='group-settings-modal-title'
+            >
                     <div className='flex items-center justify-between px-6 py-4 border-b border-border-default'>
                         <div>
                             <h2 id='group-settings-modal-title' className='text-lg font-semibold text-text-primary' data-testid='group-settings-modal-title'>
@@ -981,12 +956,15 @@ export function GroupSettingsModal({
                         {activeTab === 'general' && generalTabAvailable && renderGeneralTab()}
                         {activeTab === 'security' && securityTabAvailable && renderSecurityTab()}
                     </div>
-                </div>
-            </div>
+            </Modal>
 
-            {showDeleteConfirm && (
-                <div className='fixed inset-0 bg-black/40 backdrop-blur-sm overflow-y-auto h-full w-full z-50 flex items-center justify-center'>
-                    <div className='relative bg-surface-base border-border-default rounded-lg shadow-lg max-w-md w-full mx-4 opacity-100' data-testid='delete-group-dialog'>
+            <Modal
+                open={showDeleteConfirm}
+                onClose={isDeleting ? undefined : handleDeleteCancel}
+                size='sm'
+                className='max-w-md'
+            >
+                    <div data-testid='delete-group-dialog'>
                         <div className='px-6 py-4 border-b border-border-default'>
                             <h3 className='text-lg font-semibold text-semantic-error flex items-center'>
                                 <span className='mr-2'>⚠️</span>
@@ -1039,8 +1017,7 @@ export function GroupSettingsModal({
                             </Button>
                         </div>
                     </div>
-                </div>
-            )}
+            </Modal>
         </>
     );
 }

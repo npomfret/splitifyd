@@ -9,6 +9,36 @@ vi.mock('@/app/apiClient.ts', () => ({
     },
 }));
 
+// Mock Modal component to avoid framer-motion context issues in unit tests
+vi.mock('@/components/ui/Modal', async () => {
+    const preactHooks = await vi.importActual<typeof import('preact/hooks')>('preact/hooks');
+    return {
+        Modal: ({ open, onClose, children, 'data-testid': dataTestId, labelledBy }: any) => {
+            // Handle escape key to close modal (mirrors real Modal behavior)
+            // Note: Using window because fireEvent.keyDown in tests targets window
+            preactHooks.useEffect(() => {
+                if (!open || !onClose) return;
+                const handleEscape = (e: KeyboardEvent) => {
+                    if (e.key === 'Escape') {
+                        onClose();
+                    }
+                };
+                window.addEventListener('keydown', handleEscape);
+                return () => window.removeEventListener('keydown', handleEscape);
+            }, [open, onClose]);
+
+            if (!open) return null;
+            return (
+                <div role="presentation" data-testid={dataTestId} onClick={(e: any) => e.target === e.currentTarget && onClose?.()}>
+                    <div role="dialog" aria-modal="true" aria-labelledby={labelledBy}>
+                        {children}
+                    </div>
+                </div>
+            );
+        },
+    };
+});
+
 vi.mock('@/utils/browser-logger.ts', () => ({
     logError: vi.fn(),
     logButtonClick: vi.fn(),

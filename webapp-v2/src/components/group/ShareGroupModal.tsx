@@ -1,6 +1,7 @@
 import { apiClient } from '@/app/apiClient.ts';
 import { Button, LoadingSpinner, Tooltip } from '@/components/ui';
 import { Clickable } from '@/components/ui/Clickable';
+import { Modal } from '@/components/ui/Modal';
 import { logError } from '@/utils/browser-logger.ts';
 import { formatDateTimeInUserTimeZone } from '@/utils/dateUtils.ts';
 import { GroupId } from '@billsplit-wl/shared';
@@ -49,27 +50,6 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
     const [refreshCounter, setRefreshCounter] = useState(0);
     const expirationContainerClass = shareLink ? 'space-y-2 border-t border-border-default pt-4' : 'space-y-2 pt-4';
     const normalizedGroupName = groupName.trim();
-
-    // Handle escape key to close modal
-    // Pattern matches CreateGroupModal for consistency and reliability
-    // Uses capture phase for more reliable event handling (especially in Playwright tests)
-    useEffect(() => {
-        if (!isOpen) return;
-
-        const handleEscape = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') {
-                // Prevent default and stop propagation to avoid conflicts with other handlers
-                e.preventDefault();
-                e.stopPropagation();
-                onClose();
-            }
-        };
-
-        // Use capture phase for maximum reliability across browsers and test frameworks
-        // This ensures the handler fires before other event listeners
-        window.addEventListener('keydown', handleEscape, { capture: true });
-        return () => window.removeEventListener('keydown', handleEscape, { capture: true });
-    }, [isOpen, onClose]);
 
     // Cleanup timers on unmount
     useEffect(() => {
@@ -194,23 +174,14 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
         }
     };
 
-    const handleBackdropClick = (e: Event) => {
-        if (e.target === e.currentTarget) {
-            onClose();
-        }
-    };
-
-    if (!isOpen) return null;
-
     return (
         <>
-            <div class='fixed inset-0 bg-black/40 backdrop-blur-sm overflow-y-auto h-full w-full z-50' onClick={handleBackdropClick} role='presentation'>
-                <div
-                    class='relative top-20 mx-auto w-96 shadow-2xl rounded-2xl bg-surface-base border border-border-default overflow-hidden opacity-100'
-                    role='dialog'
-                    aria-modal='true'
-                    aria-labelledby='share-modal-title'
-                >
+            <Modal
+                open={isOpen}
+                onClose={onClose}
+                size='sm'
+                labelledBy='share-modal-title'
+            >
                     {/* Modal Header */}
                     <div class='px-5 py-3 border-b border-border-default'>
                         <div class='flex items-center justify-between'>
@@ -383,8 +354,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
+            </Modal>
 
             {/* Toast notification */}
             {showToast && (
