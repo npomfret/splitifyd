@@ -81,6 +81,7 @@ export function initializeFirebase(env: ScriptEnvironment): void {
                 ? {
                     credential,
                     projectId,
+                    storageBucket: `${projectId}.firebasestorage.app`,
                 }
                 : {
                     credential,

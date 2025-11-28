@@ -26,7 +26,6 @@ import {
     toTenantSurfaceColor,
     toTenantTextColor,
 } from '@billsplit-wl/shared';
-import { ApiDriver } from '@billsplit-wl/test-support';
 import * as admin from 'firebase-admin';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -227,11 +226,12 @@ async function syncTenantConfigs(
             throw error;
         }
 
-        // Publish theme CSS via API
+        // Publish theme CSS directly via service
         try {
-            const apiDriver = new ApiDriver();
-            const adminUser = await apiDriver.getDefaultAdminUser();
-            const publishResult = await apiDriver.publishTenantTheme({ tenantId: config.id }, adminUser.token);
+            const publishResult = await services.tenantAdminService.publishTenantTheme(
+                toTenantId(config.id),
+                'sync-script',
+            );
             console.log(`  ✓ Published theme: ${publishResult.artifact.hash}`);
         } catch (error) {
             console.error(`  ✗ Failed to publish theme for tenant: ${config.id}`);
