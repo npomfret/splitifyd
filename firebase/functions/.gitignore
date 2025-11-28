@@ -14,7 +14,7 @@ firebase-debug.*.log
 
 # Environment variables
 .env
-.env.instanceprod
+.env.instancestaging-1
 .env.bak
 # Allow example files to be checked in
 !.env.*.example
