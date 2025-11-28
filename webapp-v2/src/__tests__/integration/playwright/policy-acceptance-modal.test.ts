@@ -1,5 +1,4 @@
 import { createJsonHandler, policiesStatusHandler } from '@/test/msw/handlers.ts';
-import { toPolicyId, toPolicyName, toVersionHash } from '@billsplit-wl/shared';
 import { ClientUserBuilder, LoginPage, PolicyAcceptanceModalPage, PolicyAcceptanceStatusDTOBuilder, UserPolicyStatusResponseBuilder } from '@billsplit-wl/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { mockGroupsApi } from '../../utils/mock-firebase-service';

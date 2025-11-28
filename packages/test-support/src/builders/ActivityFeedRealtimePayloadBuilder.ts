@@ -41,7 +41,7 @@ export class ActivityFeedRealtimePayloadBuilder {
         return this;
     }
 
-    /** Alias for withNullCursor() for backward compatibility */
+    /** Alias for withNullCursor() - reads more naturally in some contexts */
     withoutNextCursor(): this {
         return this.withNullCursor();
     }
