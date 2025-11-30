@@ -1,6 +1,8 @@
+import i18n from '@/i18n';
 import { logWarning } from '@/utils/browser-logger.ts';
 import { getAmountPrecisionError } from '@/utils/currency-validation.ts';
 import { getUTCDateTime, isDateInFuture } from '@/utils/dateUtils.ts';
+import { translateApiError } from '@/utils/error-translation';
 import type { UserScopedStorage } from '@/utils/userScopedStorage.ts';
 import {
     Amount,
@@ -1163,12 +1165,8 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     }
 
     private getErrorMessage(error: unknown): string {
-        if (error instanceof ApiError) {
-            return error.message;
-        } else if (error instanceof Error) {
-            return error.message;
-        }
-        return 'An unexpected error occurred';
+        const t = i18n.t.bind(i18n);
+        return translateApiError(error, t);
     }
 }
 

@@ -5,11 +5,15 @@ import { ActivityFeedItemBuilder, ActivityFeedRealtimePayloadBuilder, ActivityFe
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 
-vi.mock('@/app/apiClient', () => ({
-    apiClient: {
-        getActivityFeed: vi.fn(),
-    },
-}));
+vi.mock('@/app/apiClient', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('@/app/apiClient')>();
+    return {
+        ...actual,
+        apiClient: {
+            getActivityFeed: vi.fn(),
+        },
+    };
+});
 
 vi.mock('@/utils/browser-logger', () => ({
     logInfo: vi.fn(),

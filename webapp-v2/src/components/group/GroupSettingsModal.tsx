@@ -4,6 +4,7 @@ import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanc
 import { Clickable } from '@/components/ui/Clickable';
 import { Modal } from '@/components/ui/Modal';
 import { logError } from '@/utils/browser-logger.ts';
+import { translateApiError } from '@/utils/error-translation';
 import { GroupDTO, GroupMember, GroupMembershipDTO, GroupPermissions, MemberRole, PermissionLevels, SecurityPreset, toDisplayName, toGroupName, UserId } from '@billsplit-wl/shared';
 import { useComputed } from '@preact/signals';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
@@ -395,10 +396,8 @@ export function GroupSettingsModal({
         } catch (error: unknown) {
             if (error instanceof ApiError && error.code === 'DISPLAY_NAME_TAKEN') {
                 setDisplayNameServerError(t('groupDisplayNameSettings.errors.taken'));
-            } else if (error instanceof ApiError) {
-                setDisplayNameServerError(error.message || t('groupDisplayNameSettings.errors.unknown'));
             } else {
-                setDisplayNameServerError(t('groupDisplayNameSettings.errors.unknown'));
+                setDisplayNameServerError(translateApiError(error, t, t('groupDisplayNameSettings.errors.unknown')));
             }
         } finally {
             setIsSavingDisplayName(false);
@@ -436,9 +435,8 @@ export function GroupSettingsModal({
             setGroupDescription(trimmedDescription);
             showGeneralSuccess(t('editGroupModal.success.updated'));
             await onGroupUpdated?.();
-        } catch (error) {
-            const message = error instanceof Error ? error.message : t('editGroupModal.validation.updateFailed');
-            setValidationError(message);
+        } catch (error: unknown) {
+            setValidationError(translateApiError(error, t, t('editGroupModal.validation.updateFailed')));
         } finally {
             setIsSubmitting(false);
         }
@@ -463,9 +461,8 @@ export function GroupSettingsModal({
             apiClient.deleteGroup(group.id).catch((error) => {
                 logError('Group deletion failed after redirect', error, { groupId: group.id });
             });
-        } catch (error) {
-            const message = error instanceof Error ? error.message : t('editGroupModal.deleteConfirmDialog.deleteFailed');
-            setDeleteError(message);
+        } catch (error: unknown) {
+            setDeleteError(translateApiError(error, t, t('editGroupModal.deleteConfirmDialog.deleteFailed')));
             enhancedGroupDetailStore.setDeletingGroup(false);
             setIsDeleting(false);
         }

@@ -4,6 +4,8 @@
  * Manages the state for joining a group via share link
  */
 
+import i18n from '@/i18n';
+import { translateApiError } from '@/utils/error-translation';
 import { GroupDTO, JoinGroupResponse, MemberStatus } from '@billsplit-wl/shared';
 import { DisplayName } from '@billsplit-wl/shared';
 import { toISOString } from '@billsplit-wl/shared';
@@ -101,15 +103,17 @@ class JoinGroupStore {
             this.#memberStatusSignal.value = null;
 
             // Don't auto-redirect if user is already a member - let them see the UI and click "Go to Group"
-        } catch (error: any) {
+        } catch (error: unknown) {
             this.#loadingPreviewSignal.value = false;
+            const t = i18n.t.bind(i18n);
+            const errorWithCode = error as { code?: string };
 
-            if (error.code === 'INVALID_LINK' || error.code === 'LINK_EXPIRED') {
-                this.#errorSignal.value = 'This invitation link is invalid or has expired';
-            } else if (error.code === 'GROUP_NOT_FOUND') {
-                this.#errorSignal.value = 'This group no longer exists';
+            if (errorWithCode.code === 'INVALID_LINK' || errorWithCode.code === 'LINK_EXPIRED') {
+                this.#errorSignal.value = t('joinGroupPage.errors.invalidLink');
+            } else if (errorWithCode.code === 'GROUP_NOT_FOUND') {
+                this.#errorSignal.value = t('joinGroupPage.errors.groupNotFound');
             } else {
-                this.#errorSignal.value = error.message || 'Failed to load group information';
+                this.#errorSignal.value = translateApiError(error, t, t('joinGroupPage.errors.loadFailed'));
             }
         }
     }
@@ -158,23 +162,25 @@ class JoinGroupStore {
 
             this.#joinSuccessSignal.value = response.memberStatus === 'active';
             return response;
-        } catch (error: any) {
-            let errorMessage = 'Failed to join group';
+        } catch (error: unknown) {
+            const t = i18n.t.bind(i18n);
+            const errorWithCode = error as { code?: string; message?: string };
+            let errorMessage: string;
 
-            if (error.code === 'DISPLAY_NAME_CONFLICT') {
+            if (errorWithCode.code === 'DISPLAY_NAME_CONFLICT') {
                 // Re-throw conflict errors so the UI can handle them specially
                 this.#joiningSignal.value = false;
                 throw error;
-            } else if (error.code === 'ALREADY_MEMBER') {
-                errorMessage = 'You are already a member of this group';
-            } else if (error.code === 'INVALID_LINK' || error.code === 'LINK_EXPIRED') {
-                errorMessage = 'This invitation link is invalid or has expired';
-            } else if (error.code === 'GROUP_NOT_FOUND') {
-                errorMessage = 'This group no longer exists';
-            } else if (error.code === 'CONCURRENT_UPDATE') {
-                errorMessage = 'The group was being updated by another user. Please try again.';
-            } else if (error.message) {
-                errorMessage = error.message;
+            } else if (errorWithCode.code === 'ALREADY_MEMBER') {
+                errorMessage = t('joinGroupPage.errors.alreadyMember');
+            } else if (errorWithCode.code === 'INVALID_LINK' || errorWithCode.code === 'LINK_EXPIRED') {
+                errorMessage = t('joinGroupPage.errors.invalidLink');
+            } else if (errorWithCode.code === 'GROUP_NOT_FOUND') {
+                errorMessage = t('joinGroupPage.errors.groupNotFound');
+            } else if (errorWithCode.code === 'CONCURRENT_UPDATE') {
+                errorMessage = t('apiErrors.CONFLICT');
+            } else {
+                errorMessage = translateApiError(error, t, t('joinGroupPage.errors.joinFailed'));
             }
 
             this.#joiningSignal.value = false;

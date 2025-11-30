@@ -78,17 +78,17 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
 
         const trimmedName = displayName.trim();
         if (!trimmedName) {
-            setNameError('Display name is required');
+            setNameError(t('joinGroupPage.displayName.errors.required'));
             return;
         }
 
         if (trimmedName.length < 2) {
-            setNameError('Display name must be at least 2 characters');
+            setNameError(t('createGroup.validation.displayNameTooShort'));
             return;
         }
 
         if (trimmedName.length > 50) {
-            setNameError('Display name cannot exceed 50 characters');
+            setNameError(t('createGroup.validation.displayNameTooLong'));
             return;
         }
 
@@ -99,9 +99,10 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
             if (joinedGroup) {
                 setShowNamePrompt(false);
             }
-        } catch (error: any) {
-            if (error.code === 'DISPLAY_NAME_CONFLICT') {
-                setNameError(error.message || 'This name is already in use. Please choose a different name.');
+        } catch (error: unknown) {
+            const errorWithCode = error as { code?: string };
+            if (errorWithCode.code === 'DISPLAY_NAME_CONFLICT') {
+                setNameError(t('joinGroupPage.displayName.errors.taken'));
             }
         }
     };

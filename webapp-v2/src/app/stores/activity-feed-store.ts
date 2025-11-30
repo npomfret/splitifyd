@@ -1,4 +1,6 @@
+import i18n from '@/i18n';
 import { logError, logWarning } from '@/utils/browser-logger.ts';
+import { translateApiError } from '@/utils/error-translation';
 import type { ActivityFeedItem, ActivityFeedResponse, UserId } from '@billsplit-wl/shared';
 import { ReadonlySignal, signal } from '@preact/signals';
 import { apiClient } from '../apiClient';
@@ -120,9 +122,9 @@ export class ActivityFeedStoreImpl implements ActivityFeedStore {
             });
 
             this.applyLoadMoreResponse(response);
-        } catch (error: any) {
-            const message = error instanceof Error ? error.message : 'We could not load your recent activity right now. Please try again.';
-            this.#errorSignal.value = message;
+        } catch (error: unknown) {
+            const t = i18n.t.bind(i18n);
+            this.#errorSignal.value = translateApiError(error, t, t('activityFeed.error.loadFailed'));
             logError('ActivityFeedStore.loadMore failed', error);
         } finally {
             this.#loadingMoreSignal.value = false;

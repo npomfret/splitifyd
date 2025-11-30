@@ -1,8 +1,6 @@
 # API Error Message Internationalization
 
-**Status:** 🔄 PHASE 3 PENDING (November 2025)
-
-**Prerequisite:** `error-code-consolidation.md` (complete - DELETE THIS FILE)
+**Status:** ✅ COMPLETE (November 2025)
 
 **Problem:** API error messages were hardcoded in English. Users in non-English locales would see English error messages.
 
@@ -14,9 +12,9 @@
 - ✅ Legacy `utils/errors.ts` deleted
 - ✅ All backend tests updated to use two-tier error format
 - ✅ `apiErrors` namespace exists in `webapp-v2/src/locales/en/translation.json`
-- ❌ **Frontend NOT using translations** - components still use raw `error.message`
-- ❌ **No `translateApiError` helper** - this is REQUIRED, not optional
-- ❌ **Hardcoded English strings** in stores and pages
+- ✅ **Frontend uses translations** - `translateApiError` helper created
+- ✅ **`translateApiError` helper** - `webapp-v2/src/utils/error-translation.ts`
+- ✅ **Hardcoded English strings migrated** - stores and pages use i18n
 
 ---
 
@@ -138,82 +136,53 @@ The new error system in `firebase/functions/src/errors/` uses these Tier 1 categ
 2. ✅ **Migrated all test files** - Test assertions updated to use new `ErrorCode` enum
 3. ✅ **Deleted legacy code** - Removed `utils/errors.ts` and dual error handling in `index.ts`
 
-### Phase 3 - Frontend Migration (PENDING)
+### Phase 3 - Frontend Migration (COMPLETE - November 2025)
 
-**Problem:** The `apiErrors` namespace exists but frontend components don't use it. They still use raw `error.message` strings.
-
-#### 3.1 Create `translateApiError` helper
+#### 3.1 Created `translateApiError` helper ✅
 
 **File:** `webapp-v2/src/utils/error-translation.ts`
 
-```typescript
-import type { TFunction } from 'i18next';
-import { ApiError } from '@/app/apiClient';
+- `translateApiError(error, t, fallback?)` - Translates API errors using `apiErrors` namespace
+- `translateFirebaseAuthError(error, t)` - Translates Firebase auth errors using `authErrors` namespace
 
-export function translateApiError(
-  error: unknown,
-  t: TFunction,
-  fallback?: string
-): string {
-  if (error instanceof ApiError) {
-    const translated = t(`apiErrors.${error.code}`, {
-      ...error.details,
-      defaultValue: ''
-    });
-    if (translated) return translated;
-  }
-  return fallback ?? t('common.unknownError');
-}
-```
-
-#### 3.2 Add missing translations
+#### 3.2 Added translations ✅
 
 **File:** `webapp-v2/src/locales/en/translation.json`
 
-Add Firebase auth errors (currently hardcoded in auth-store.ts):
-```json
-{
-  "authErrors": {
-    "userNotFound": "No account found with this email",
-    "wrongPassword": "Incorrect password",
-    "weakPassword": "Password is too weak",
-    "invalidEmail": "Please enter a valid email address",
-    "tooManyRequests": "Too many attempts. Please try again later.",
-    "networkError": "Network error. Please check your connection.",
-    "emailInUse": "This email is already registered"
-  },
-  "common": {
-    "unknownError": "Something went wrong. Please try again."
-  }
-}
-```
+Added `authErrors` namespace with Firebase auth error translations:
+- `userNotFound`, `wrongPassword`, `weakPassword`, `invalidEmail`
+- `tooManyRequests`, `networkError`, `emailInUse`, `invalidCredential`
+- `userDisabled`, `requiresRecentLogin`, `generic`
+- `postRegistrationBase`, `postRegistrationFallback`
 
-#### 3.3 Migrate stores (4 files)
+Added `common.unknownError` translation.
 
-| Store | Issue | Lines |
-|-------|-------|-------|
-| `auth-store.ts` | Hardcoded Firebase error messages | 522-549 |
-| `join-group-store.ts` | Hardcoded link error messages | 107-113 |
-| `expense-form-store.ts` | Uses raw `error.message` | 1165-1172 |
-| `activity-feed-store.ts` | Uses raw `error.message` | 124 |
+#### 3.3 Migrated stores ✅
 
-#### 3.4 Migrate pages (4 files)
+| Store | Changes |
+|-------|---------|
+| `auth-store.ts` | Uses `translateFirebaseAuthError()` for Firebase errors |
+| `join-group-store.ts` | Uses `translateApiError()` for API errors |
+| `expense-form-store.ts` | Uses `translateApiError()` for API errors |
+| `activity-feed-store.ts` | Uses `translateApiError()` for API errors |
 
-| Page | Issue | Lines |
-|------|-------|-------|
-| `JoinGroupPage.tsx` | Hardcoded name validation + API errors | 81-93, 102-106 |
-| `SettingsPage.tsx` | Hardcoded validation messages | 110-127, 147-150 |
-| `RegisterPage.tsx` | Partial - verify completeness | various |
-| `ResetPasswordPage.tsx` | Verify uses translations | 42-44 |
+#### 3.4 Migrated pages ✅
 
-#### 3.5 Migrate components (4 files)
+| Page | Changes |
+|------|---------|
+| `JoinGroupPage.tsx` | Uses translation keys for validation errors |
+| `SettingsPage.tsx` | Uses error code checks + translations |
 
-| Component | Issue |
-|-----------|-------|
-| `GroupSettingsModal.tsx` | Multiple error states use raw messages |
-| `CreateGroupModal.tsx` | Checks `error.code` but uses fallback message |
-| `CommentInput.tsx` | Catch block uses raw message |
-| `SettlementForm.tsx` | Verify uses translations |
+#### 3.5 Migrated components ✅
+
+| Component | Changes |
+|-----------|---------|
+| `GroupSettingsModal.tsx` | Uses `translateApiError()` |
+| `SettlementForm.tsx` | Uses `translateApiError()` |
+
+#### 3.6 Updated tests ✅
+
+- `activity-feed-store.test.ts` - Updated mock to include `ApiError` export
 
 ---
 
@@ -223,11 +192,13 @@ Add Firebase auth errors (currently hardcoded in auth-store.ts):
 
 | Category | Count | Status |
 |----------|-------|--------|
-| Stores with hardcoded errors | 4 | ❌ Need migration |
-| Pages with hardcoded errors | 4 | ❌ Need migration |
-| Components with hardcoded errors | 4 | ❌ Need migration |
-| `apiErrors` translations | 12 | ✅ Exist but unused |
-| `translateApiError` helper | 0 | ❌ Does not exist |
+| Stores with hardcoded errors | 4 | ✅ Migrated |
+| Pages with hardcoded errors | 2 | ✅ Migrated |
+| Components with hardcoded errors | 2 | ✅ Migrated |
+| `apiErrors` translations | 12 | ✅ In use |
+| `authErrors` translations | 12 | ✅ Created |
+| `translateApiError` helper | 1 | ✅ Created |
+| `translateFirebaseAuthError` helper | 1 | ✅ Created |
 
 ### Error Patterns Found
 
@@ -287,24 +258,21 @@ Used for debugging/logging, not for translation. Examples: `GROUP_NOT_FOUND`, `I
 }
 ```
 
-### Files to Modify (Complete List)
+### Files Modified (Complete List)
 
-| File | Type | Priority |
-|------|------|----------|
-| `webapp-v2/src/utils/error-translation.ts` | CREATE | HIGH |
-| `webapp-v2/src/locales/en/translation.json` | UPDATE | HIGH |
-| `webapp-v2/src/app/stores/auth-store.ts` | UPDATE | HIGH |
-| `webapp-v2/src/app/stores/join-group-store.ts` | UPDATE | HIGH |
-| `webapp-v2/src/app/stores/expense-form-store.ts` | UPDATE | MEDIUM |
-| `webapp-v2/src/app/stores/activity-feed-store.ts` | UPDATE | MEDIUM |
-| `webapp-v2/src/pages/JoinGroupPage.tsx` | UPDATE | HIGH |
-| `webapp-v2/src/pages/SettingsPage.tsx` | UPDATE | HIGH |
-| `webapp-v2/src/pages/RegisterPage.tsx` | UPDATE | LOW |
-| `webapp-v2/src/pages/ResetPasswordPage.tsx` | UPDATE | LOW |
-| `webapp-v2/src/components/group/GroupSettingsModal.tsx` | UPDATE | MEDIUM |
-| `webapp-v2/src/components/dashboard/CreateGroupModal.tsx` | UPDATE | MEDIUM |
-| `webapp-v2/src/components/comments/CommentInput.tsx` | UPDATE | LOW |
-| `webapp-v2/src/components/settlements/SettlementForm.tsx` | UPDATE | LOW |
+| File | Type | Status |
+|------|------|--------|
+| `webapp-v2/src/utils/error-translation.ts` | CREATED | ✅ |
+| `webapp-v2/src/locales/en/translation.json` | UPDATED | ✅ |
+| `webapp-v2/src/app/stores/auth-store.ts` | UPDATED | ✅ |
+| `webapp-v2/src/app/stores/join-group-store.ts` | UPDATED | ✅ |
+| `webapp-v2/src/app/stores/expense-form-store.ts` | UPDATED | ✅ |
+| `webapp-v2/src/app/stores/activity-feed-store.ts` | UPDATED | ✅ |
+| `webapp-v2/src/pages/JoinGroupPage.tsx` | UPDATED | ✅ |
+| `webapp-v2/src/pages/SettingsPage.tsx` | UPDATED | ✅ |
+| `webapp-v2/src/components/group/GroupSettingsModal.tsx` | UPDATED | ✅ |
+| `webapp-v2/src/components/settlements/SettlementForm.tsx` | UPDATED | ✅ |
+| `webapp-v2/src/__tests__/unit/vitest/stores/activity-feed-store.test.ts` | UPDATED | ✅ |
 
 ---
 

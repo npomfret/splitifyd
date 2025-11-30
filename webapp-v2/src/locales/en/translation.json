@@ -12,6 +12,21 @@
     "SERVICE_ERROR": "Something went wrong. Please try again.",
     "UNAVAILABLE": "Service temporarily unavailable. Please try again later."
   },
+  "authErrors": {
+    "userNotFound": "No account found with this email",
+    "wrongPassword": "Incorrect password",
+    "weakPassword": "Password is too weak. Please use at least 6 characters.",
+    "invalidEmail": "Please enter a valid email address",
+    "tooManyRequests": "Too many attempts. Please try again later.",
+    "networkError": "Network error. Please check your connection.",
+    "emailInUse": "This email is already registered",
+    "invalidCredential": "Invalid email or password",
+    "userDisabled": "This account has been disabled",
+    "requiresRecentLogin": "Please sign in again to continue",
+    "generic": "Authentication failed. Please try again.",
+    "postRegistrationBase": "Your account was created, but we could not sign you in automatically.",
+    "postRegistrationFallback": "Your account was created, but we could not sign you in automatically. Please sign in manually."
+  },
   "pagination": {
     "previous": "Previous",
     "next": "Next",
@@ -19,6 +34,7 @@
   },
   "common": {
     "loading": "Loading...",
+    "unknownError": "Something went wrong. Please try again.",
     "cancel": "Cancel",
     "save": "Save",
     "delete": "Delete",

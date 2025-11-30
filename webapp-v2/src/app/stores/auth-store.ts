@@ -1,5 +1,7 @@
 import { USER_ID_KEY } from '@/constants.ts';
+import i18n from '@/i18n';
 import { logError } from '@/utils/browser-logger.ts';
+import { translateFirebaseAuthError } from '@/utils/error-translation';
 import { createUserScopedStorage } from '@/utils/userScopedStorage.ts';
 import type { ClientUser, Email, Password, UserId } from '@billsplit-wl/shared';
 import { AuthErrors } from '@billsplit-wl/shared';
@@ -509,43 +511,41 @@ class AuthStoreImpl implements AuthStore {
     }
 
     private buildPostRegistrationLoginErrorMessage(error: unknown): string {
-        const baseMessage = 'Your account was created, but we could not sign you in automatically.';
+        const t = i18n.t.bind(i18n);
+        const baseMessage = t('authErrors.postRegistrationBase');
         const detailedMessage = this.getAuthErrorMessage(error);
+        const genericMessage = t('authErrors.generic');
 
-        if (!detailedMessage || detailedMessage === 'An authentication error occurred.') {
-            return `${baseMessage} Please sign in manually.`;
+        if (!detailedMessage || detailedMessage === genericMessage) {
+            return t('authErrors.postRegistrationFallback');
         }
 
         return `${baseMessage} ${detailedMessage}`;
     }
 
-    private getAuthErrorMessage(error: any): string {
-        // Handle API errors from our backend (e.g., EMAIL_EXISTS)
-        if (error?.code === AuthErrors.EMAIL_EXISTS_CODE) {
-            return 'This email is already registered.';
-        }
+    private getAuthErrorMessage(error: unknown): string {
+        const t = i18n.t.bind(i18n);
 
-        // Handle Firebase Auth errors
-        if (error?.code) {
-            switch (error.code) {
-                case 'auth/user-not-found':
-                case 'auth/wrong-password':
-                    return 'Invalid email or password.';
-                case AuthErrors.EMAIL_EXISTS:
-                    return 'This email is already registered.';
-                case 'auth/weak-password':
-                    return 'Password is too weak. Please use at least 12 characters.';
-                case 'auth/invalid-email':
-                    return 'Please enter a valid email address.';
-                case 'auth/too-many-requests':
-                    return 'Too many failed attempts. Please try again later.';
-                case 'auth/network-request-failed':
-                    return 'Network error. Please check your connection.';
-                default:
-                    return error.message || 'An authentication error occurred.';
+        // Handle API errors from our backend (e.g., EMAIL_EXISTS)
+        if (error && typeof error === 'object' && 'code' in error) {
+            const errorWithCode = error as { code: string; message?: string };
+
+            if (errorWithCode.code === AuthErrors.EMAIL_EXISTS_CODE || errorWithCode.code === AuthErrors.EMAIL_EXISTS) {
+                return t('authErrors.emailInUse');
+            }
+
+            // Handle Firebase Auth errors using the translation helper
+            if (errorWithCode.code.startsWith('auth/')) {
+                return translateFirebaseAuthError(error, t);
             }
         }
-        return error?.message || 'An unexpected error occurred.';
+
+        // Fallback for generic errors
+        if (error instanceof Error && error.message) {
+            return error.message;
+        }
+
+        return t('authErrors.generic');
     }
 
     // State getters - defined after methods for clarity but before export

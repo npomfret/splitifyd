@@ -7,6 +7,7 @@ import { formatCurrency } from '@/utils/currency';
 import { getAmountPrecisionError } from '@/utils/currency-validation.ts';
 import { getUTCMidnight, isDateInFuture } from '@/utils/dateUtils.ts';
 import { getGroupDisplayName } from '@/utils/displayName';
+import { translateApiError } from '@/utils/error-translation';
 import {
     amountToSmallestUnit,
     CreateSettlementRequest,
@@ -362,8 +363,8 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                 onSuccess();
             }
             onClose();
-        } catch (error) {
-            setValidationError(error instanceof Error ? error.message : t('settlementForm.validation.recordPaymentFailed'));
+        } catch (error: unknown) {
+            setValidationError(translateApiError(error, t, t('settlementForm.validation.recordPaymentFailed')));
         } finally {
             setIsSubmitting(false);
         }

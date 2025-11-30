@@ -143,8 +143,9 @@ export function SettingsPage() {
                 newPassword: '',
                 confirmNewPassword: '',
             });
-        } catch (error: any) {
-            if (error.message.includes('Current password is incorrect')) {
+        } catch (error: unknown) {
+            const errorWithCode = error as { code?: string; message?: string };
+            if (errorWithCode.code === 'AUTH_INVALID' || errorWithCode.message?.includes('Current password is incorrect')) {
                 setErrorMessage(t('settingsPage.errorMessages.currentPasswordIncorrect'));
             } else {
                 setErrorMessage(t('settingsPage.errorMessages.passwordChangeFailed'));
@@ -213,13 +214,16 @@ export function SettingsPage() {
                 newEmail: updatedEmail,
                 currentPassword: '',
             });
-        } catch (error: any) {
-            const message = typeof error?.message === 'string' ? error.message : '';
-            if (message.includes('Current password is incorrect')) {
+        } catch (error: unknown) {
+            const errorWithCode = error as { code?: string; message?: string };
+            const code = errorWithCode.code;
+            const message = typeof errorWithCode.message === 'string' ? errorWithCode.message : '';
+
+            if (code === 'AUTH_INVALID' || message.includes('Current password is incorrect')) {
                 setErrorMessage(t('settingsPage.errorMessages.currentPasswordIncorrect'));
-            } else if (message.toLowerCase().includes('already exists')) {
+            } else if (code === 'ALREADY_EXISTS' || message.toLowerCase().includes('already exists')) {
                 setErrorMessage(t('settingsPage.errorMessages.emailInUse'));
-            } else if (message.toLowerCase().includes('valid email')) {
+            } else if (code === 'VALIDATION_ERROR' || message.toLowerCase().includes('valid email')) {
                 setErrorMessage(t('settingsPage.errorMessages.emailInvalid'));
             } else if (message.toLowerCase().includes('different from current email')) {
                 setErrorMessage(t('settingsPage.errorMessages.emailSameAsCurrent'));
