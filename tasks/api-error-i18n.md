@@ -80,14 +80,9 @@ Error translations in `webapp-v2/src/locales/{lng}/translation.json`:
 
 1. ✅ **Updated `Errors` factory** - All errors include interpolation data (`resource`, `field`, `detail`) in the data object
 
-2. ❌ **Create error translation helper** (REQUIRED) - Build a utility that maps API error responses to localized strings:
-   ```typescript
-   function translateApiError(error: ApiErrorResponse, t: TFunction): string {
-     return t(`apiErrors.${error.code}`, error);
-   }
-   ```
+2. ✅ **Create error translation helper** - Built `translateApiError()` and `translateFirebaseAuthError()` in `webapp-v2/src/utils/error-translation.ts`
 
-3. ❌ **Update error display components** - Components still use raw `error.message` instead of translations
+3. ✅ **Update error display components** - All stores, pages, and components now use translation helpers
 
 4. ✅ **Removed backend i18n infrastructure** - Deleted `firebase/functions/src/locales/`, `utils/i18n.ts`, and removed i18next dependencies
 
