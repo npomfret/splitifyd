@@ -8,9 +8,9 @@ import { ServiceConfig } from '../merge/ServiceConfig';
 export function createUnitTestServiceConfig(): ServiceConfig {
     return {
         projectId: 'test-project',
-        cloudTasksLocation: 'location',
+        cloudTasksLocation: 'us-central1',
         cloudTasksServiceAccount: 'test-project@appspot.gserviceaccount.com',
-        functionsUrl: 'http://foo:9999',
+        functionsUrl: 'http://localhost:5001/test-project/us-central1',
         minRegistrationDurationMs: 0,
         storageEmulatorHost: null,
     };

@@ -12,7 +12,6 @@ export default defineConfig({
             __INSTANCE_NAME: 'dev1',
             __MIN_REGISTRATION_DURATION_MS: '0',
             __CLOUD_TASKS_LOCATION: 'us-central1',
-            __FUNCTIONS_URL: 'http://localhost:5001/splitifyd/us-central1',
         },
         include: ['src/**/*.test.ts'],
         exclude: ['node_modules', 'lib', 'dist'],

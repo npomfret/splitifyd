@@ -1,6 +1,8 @@
 import {z} from 'zod';
+import * as fs from 'fs';
+import * as path from 'path';
 import {logger} from '../logger';
-import {getFirebaseConfigFromEnvVar, inferProjectId} from "../firebase";
+import {inferProjectId} from "../firebase";
 
 /**
  * Configuration for MergeService and related cloud infrastructure
@@ -55,13 +57,47 @@ function isRealFirebase(): boolean {
 const serviceEnvSchema = z.object({
     __CLOUD_TASKS_LOCATION: z.string().min(1, '__CLOUD_TASKS_LOCATION is required'),
     __CLOUD_TASKS_SERVICE_ACCOUNT: z.string().optional(), // Defaults to project's default App Engine service account
-    __FUNCTIONS_URL: z.string().min(1, '__FUNCTIONS_URL is required'),
     __MIN_REGISTRATION_DURATION_MS: z.coerce.number().min(0, '__MIN_REGISTRATION_DURATION_MS must be non-negative'),
     __INSTANCE_NAME: z.string().min(1, '__INSTANCE_NAME is required'),
     FUNCTIONS_EMULATOR: z.string().optional(),
     FIREBASE_CONFIG: z.string().optional(),
     FIREBASE_STORAGE_EMULATOR_HOST: z.string().optional(),
 });
+
+/**
+ * Read functions port from firebase.json for emulator mode.
+ * The file is located in the parent directory (firebase/).
+ */
+function getFunctionsPortFromFirebaseJson(): number {
+    // firebase.json is in firebase/ directory, we're in firebase/functions/src/
+    const firebaseJsonPath = path.resolve(__dirname, '../../../firebase.json');
+
+    if (!fs.existsSync(firebaseJsonPath)) {
+        throw new Error(`firebase.json not found at ${firebaseJsonPath}`);
+    }
+
+    const firebaseConfig = JSON.parse(fs.readFileSync(firebaseJsonPath, 'utf-8'));
+    const port = firebaseConfig?.emulators?.functions?.port;
+
+    if (!port) {
+        throw new Error('emulators.functions.port not found in firebase.json');
+    }
+
+    return port;
+}
+
+/**
+ * Build the functions URL from available configuration.
+ * - Deployed: https://{region}-{projectId}.cloudfunctions.net
+ * - Emulator: http://localhost:{functionsPort}/{projectId}/{region}
+ */
+function buildFunctionsUrl(projectId: string, cloudTasksLocation: string): string {
+    if (isEmulator()) {
+        const functionsPort = getFunctionsPortFromFirebaseJson();
+        return `http://localhost:${functionsPort}/${projectId}/${cloudTasksLocation}`;
+    }
+    return `https://${cloudTasksLocation}-${projectId}.cloudfunctions.net`;
+}
 
 /**
  * Lazy environment variable loader for service config
@@ -103,7 +139,6 @@ function buildServiceConfig(): ServiceConfig {
     } else if (isRealFirebase()) {
         const requiredVars = [
             '__CLOUD_TASKS_LOCATION',
-            '__FUNCTIONS_URL',
             '__CLOUD_TASKS_SERVICE_ACCOUNT',
             '__MIN_REGISTRATION_DURATION_MS'
         ];
@@ -113,31 +148,37 @@ function buildServiceConfig(): ServiceConfig {
             throw new Error(`Missing required service configuration in production: ${missing.join(', ')}`);
         }
 
+        const projectId = inferProjectId();
+        const cloudTasksLocation = env.__CLOUD_TASKS_LOCATION!;
+
         return {
-            projectId: inferProjectId(),
-            cloudTasksLocation: env.__CLOUD_TASKS_LOCATION!,
+            projectId,
+            cloudTasksLocation,
             cloudTasksServiceAccount: env.__CLOUD_TASKS_SERVICE_ACCOUNT!,
-            functionsUrl: env.__FUNCTIONS_URL!,
+            functionsUrl: buildFunctionsUrl(projectId, cloudTasksLocation),
             minRegistrationDurationMs: env.__MIN_REGISTRATION_DURATION_MS!,
             storageEmulatorHost: null,
         };
     } else if (isEmulator()) {
         const requiredVars = [
             'FIREBASE_CONFIG',
-            '__MIN_REGISTRATION_DURATION_MS'
+            '__MIN_REGISTRATION_DURATION_MS',
+            '__CLOUD_TASKS_LOCATION'
         ];
         const missing = requiredVars.filter((key) => env[key as keyof typeof env] === undefined);
 
         if (missing.length > 0) {
-            // console.log(JSON.stringify(process.env, null, 2))
-            throw new Error(`Missing required service configuration in production: ${missing.join(', ')}`);
+            throw new Error(`Missing required service configuration in emulator: ${missing.join(', ')}`);
         }
 
+        const projectId = inferProjectId();
+        const cloudTasksLocation = env.__CLOUD_TASKS_LOCATION;
+
         return {
-            projectId: inferProjectId(),
-            cloudTasksLocation: env.__CLOUD_TASKS_LOCATION,
+            projectId,
+            cloudTasksLocation,
             cloudTasksServiceAccount: "foo",
-            functionsUrl: env.__FUNCTIONS_URL,
+            functionsUrl: buildFunctionsUrl(projectId, cloudTasksLocation),
             minRegistrationDurationMs: env.__MIN_REGISTRATION_DURATION_MS,
             storageEmulatorHost: env.FIREBASE_STORAGE_EMULATOR_HOST || null,
         };
