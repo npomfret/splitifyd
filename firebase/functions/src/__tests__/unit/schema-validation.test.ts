@@ -135,19 +135,43 @@ describe('Shared schema validation', () => {
     });
 
     it('accepts valid API error format and rejects invalid formats', () => {
-        const validError = {
+        // Valid error with two-tier error codes
+        const validErrorWithDetail = {
             error: {
-                code: 'INVALID_AMOUNT',
-                message: 'Amount must be a positive number',
+                code: 'VALIDATION_ERROR',
+                detail: 'INVALID_AMOUNT',
+                field: 'amount',
             },
         };
 
+        // Valid error with just category code
+        const validErrorCodeOnly = {
+            error: {
+                code: 'NOT_FOUND',
+                resource: 'Group',
+            },
+        };
+
+        // Valid error with multiple fields
+        const validErrorMultipleFields = {
+            error: {
+                code: 'VALIDATION_ERROR',
+                fields: {
+                    email: 'INVALID_EMAIL',
+                    password: 'PASSWORD_TOO_SHORT',
+                },
+            },
+        };
+
+        // Invalid error - wrong structure (old format)
         const invalidError = {
             error: 'Amount must be a positive number',
             field: 'amount',
         };
 
-        expect(() => ApiErrorResponseSchema.parse(validError)).not.toThrow();
+        expect(() => ApiErrorResponseSchema.parse(validErrorWithDetail)).not.toThrow();
+        expect(() => ApiErrorResponseSchema.parse(validErrorCodeOnly)).not.toThrow();
+        expect(() => ApiErrorResponseSchema.parse(validErrorMultipleFields)).not.toThrow();
         expect(() => ApiErrorResponseSchema.parse(invalidError)).toThrow();
     });
 });

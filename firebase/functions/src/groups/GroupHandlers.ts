@@ -1,8 +1,8 @@
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { HTTP_STATUS } from '../constants';
+import { Errors } from '../errors';
 import { GroupService } from '../services/GroupService';
-import { Errors } from '../utils/errors';
 import { validateCreateGroup, validateGroupFullDetailsQuery, validateGroupId, validateListGroupsQuery, validateUpdateDisplayName, validateUpdateGroup } from './validation';
 
 export class GroupHandlers {
@@ -14,7 +14,7 @@ export class GroupHandlers {
     createGroup = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
         const userId = req.user?.uid;
         if (!userId) {
-            throw Errors.UNAUTHORIZED();
+            throw Errors.authRequired();
         }
 
         // Validate and sanitize request body
@@ -32,7 +32,7 @@ export class GroupHandlers {
     updateGroup = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
         const userId = req.user?.uid;
         if (!userId) {
-            throw Errors.UNAUTHORIZED();
+            throw Errors.authRequired();
         }
         const groupId = validateGroupId(req.params.groupId);
 
@@ -51,7 +51,7 @@ export class GroupHandlers {
     deleteGroup = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
         const userId = req.user?.uid;
         if (!userId) {
-            throw Errors.UNAUTHORIZED();
+            throw Errors.authRequired();
         }
         const groupId = validateGroupId(req.params.groupId);
 
@@ -67,7 +67,7 @@ export class GroupHandlers {
     listGroups = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
         const userId = req.user?.uid;
         if (!userId) {
-            throw Errors.UNAUTHORIZED();
+            throw Errors.authRequired();
         }
 
         const { limit, cursor, order, statusFilter } = validateListGroupsQuery(req.query);
@@ -93,7 +93,7 @@ export class GroupHandlers {
     getGroupFullDetails = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
         const userId = req.user?.uid;
         if (!userId) {
-            throw Errors.UNAUTHORIZED();
+            throw Errors.authRequired();
         }
         const groupId = validateGroupId(req.params.groupId);
 
@@ -110,7 +110,7 @@ export class GroupHandlers {
     updateGroupMemberDisplayName = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
         const userId = req.user?.uid;
         if (!userId) {
-            throw Errors.UNAUTHORIZED();
+            throw Errors.authRequired();
         }
         const groupId = validateGroupId(req.params.groupId);
 

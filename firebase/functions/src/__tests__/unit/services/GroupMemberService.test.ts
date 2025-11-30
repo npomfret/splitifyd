@@ -3,6 +3,7 @@ import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, UserRegistratio
 import { beforeEach, describe, expect, it, test } from 'vitest';
 import { IFirestoreReader } from '../../../services/firestore';
 import { GroupMemberService } from '../../../services/GroupMemberService';
+import { ErrorCode } from '../../../errors/ErrorCode';
 import { AppDriver } from '../AppDriver';
 
 describe('GroupMemberService - Consolidated Unit Tests', () => {
@@ -178,7 +179,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             )
                 .rejects
                 .toMatchObject({
-                    details: { message: expect.stringMatching(/last active admin/i) },
+                    code: ErrorCode.INVALID_REQUEST,
                 });
         });
 
@@ -271,7 +272,9 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             const groupId = toGroupId(group.id);
 
             // Act & Assert
-            await expect(appDriver.leaveGroup(groupId, creatorId)).rejects.toThrow(/Invalid input data/);
+            await expect(appDriver.leaveGroup(groupId, creatorId)).rejects.toMatchObject({
+                code: ErrorCode.INVALID_REQUEST,
+            });
         });
 
         test('should prevent leaving with outstanding balance', async () => {
@@ -301,7 +304,9 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             );
 
             // Act & Assert - member owes $50 and cannot leave
-            await expect(appDriver.leaveGroup(groupId, memberId)).rejects.toThrow(/Invalid input data/);
+            await expect(appDriver.leaveGroup(groupId, memberId)).rejects.toMatchObject({
+                code: ErrorCode.CONFLICT,
+            });
         });
 
         test('should allow member to leave when balance is settled', async () => {
@@ -353,7 +358,9 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             const groupId = toGroupId(group.id);
 
             // Act & Assert
-            await expect(groupMemberService.leaveGroup(toUserId(''), groupId)).rejects.toThrow(/Authentication required/);
+            await expect(groupMemberService.leaveGroup(toUserId(''), groupId)).rejects.toMatchObject({
+                code: ErrorCode.AUTH_REQUIRED,
+            });
         });
 
         test('should reject leave request for non-existent group', async () => {
@@ -362,7 +369,9 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             const userId = user.user.uid;
 
             // Act & Assert - No group created
-            await expect(appDriver.leaveGroup(toGroupId('nonexistent-group-id'), userId)).rejects.toThrow(/Group not found/);
+            await expect(appDriver.leaveGroup(toGroupId('nonexistent-group-id'), userId)).rejects.toMatchObject({
+                code: ErrorCode.NOT_FOUND,
+            });
         });
 
         test('should reject leave request for non-member', async () => {
@@ -377,7 +386,9 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             const groupId = toGroupId(group.id);
 
             // Act & Assert - nonMember is not a member of the group
-            await expect(appDriver.leaveGroup(groupId, nonMemberId)).rejects.toThrow(/Invalid input data/);
+            await expect(appDriver.leaveGroup(groupId, nonMemberId)).rejects.toMatchObject({
+                code: ErrorCode.INVALID_REQUEST,
+            });
         });
     });
 
@@ -400,7 +411,9 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             await appDriver.addMembersToGroup(groupId, creatorId, [memberId, targetId]);
 
             // Act & Assert - Non-creator (memberId) trying to remove targetId
-            await expect(appDriver.removeGroupMember(groupId, targetId, memberId)).rejects.toThrow(/Access denied/);
+            await expect(appDriver.removeGroupMember(groupId, targetId, memberId)).rejects.toMatchObject({
+                code: ErrorCode.FORBIDDEN,
+            });
         });
 
         test('should prevent removing the group creator', async () => {
@@ -412,7 +425,9 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             const groupId = toGroupId(group.id);
 
             // Act & Assert - creator trying to remove themselves
-            await expect(appDriver.removeGroupMember(groupId, creatorId, creatorId)).rejects.toThrow(/Invalid input data/);
+            await expect(appDriver.removeGroupMember(groupId, creatorId, creatorId)).rejects.toMatchObject({
+                code: ErrorCode.INVALID_REQUEST,
+            });
         });
 
         test('should prevent removing member with outstanding balance', async () => {
@@ -442,7 +457,9 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             );
 
             // Act & Assert - member is owed $25 and cannot be removed
-            await expect(appDriver.removeGroupMember(groupId, memberId, creatorId)).rejects.toThrow(/Invalid input data/);
+            await expect(appDriver.removeGroupMember(groupId, memberId, creatorId)).rejects.toMatchObject({
+                code: ErrorCode.CONFLICT,
+            });
         });
 
         test('should allow creator to remove member with settled balance', async () => {
@@ -491,7 +508,9 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             const groupId = toGroupId(group.id);
 
             // Act & Assert - nonexistent user
-            await expect(appDriver.removeGroupMember(groupId, toUserId('nonexistent-user'), creatorId)).rejects.toThrow(/Invalid input data/);
+            await expect(appDriver.removeGroupMember(groupId, toUserId('nonexistent-user'), creatorId)).rejects.toMatchObject({
+                code: ErrorCode.INVALID_REQUEST,
+            });
         });
 
         test('should require valid member ID for removal', async () => {
@@ -503,7 +522,9 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             const groupId = toGroupId(group.id);
 
             // Act & Assert
-            await expect(appDriver.removeGroupMember(groupId, toUserId(''), creatorId)).rejects.toThrow(/Invalid member ID/);
+            await expect(appDriver.removeGroupMember(groupId, toUserId(''), creatorId)).rejects.toMatchObject({
+                code: ErrorCode.VALIDATION_ERROR,
+            });
         });
     });
 
@@ -517,7 +538,9 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             const groupId = toGroupId(group.id);
 
             // Act & Assert
-            await expect(groupMemberService.leaveGroup(toUserId(''), groupId)).rejects.toThrow(/Authentication required/);
+            await expect(groupMemberService.leaveGroup(toUserId(''), groupId)).rejects.toMatchObject({
+                code: ErrorCode.AUTH_REQUIRED,
+            });
         });
 
         test('should handle null user ID in leave request', async () => {
@@ -529,7 +552,9 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             const groupId = toGroupId(group.id);
 
             // Act & Assert
-            await expect(groupMemberService.leaveGroup(null as any, groupId)).rejects.toThrow(/Authentication required/);
+            await expect(groupMemberService.leaveGroup(null as any, groupId)).rejects.toMatchObject({
+                code: ErrorCode.AUTH_REQUIRED,
+            });
         });
 
         test('should handle undefined user ID in leave request', async () => {
@@ -541,7 +566,9 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             const groupId = toGroupId(group.id);
 
             // Act & Assert
-            await expect(groupMemberService.leaveGroup(undefined as any, groupId)).rejects.toThrow(/Authentication required/);
+            await expect(groupMemberService.leaveGroup(undefined as any, groupId)).rejects.toMatchObject({
+                code: ErrorCode.AUTH_REQUIRED,
+            });
         });
     });
 });

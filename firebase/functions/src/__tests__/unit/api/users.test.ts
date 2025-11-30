@@ -2,6 +2,7 @@ import { toEmail, toPassword, toPolicyId, toPolicyName, toPolicyText, toVersionH
 import type { UserId } from '@billsplit-wl/shared';
 import { PasswordChangeRequestBuilder, RegisterRequestBuilder, UserUpdateBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, it, vi } from 'vitest';
+import { HTTP_STATUS } from '../../../constants';
 import { AppDriver } from '../AppDriver';
 
 describe('user, policy and notification tests', () => {
@@ -160,7 +161,11 @@ describe('user, policy and notification tests', () => {
             it('should reject empty acceptances array', async () => {
                 await expect(appDriver.acceptMultiplePolicies([], user1))
                     .rejects
-                    .toMatchObject({ code: 'INVALID_ACCEPTANCES' });
+                    .toMatchObject({
+                        statusCode: HTTP_STATUS.BAD_REQUEST,
+                        code: 'VALIDATION_ERROR',
+                        data: expect.objectContaining({ detail: 'INVALID_ACCEPTANCES' }),
+                    });
             });
 
             it('should reject when policyId is missing', async () => {
@@ -170,7 +175,11 @@ describe('user, policy and notification tests', () => {
                     ], user1),
                 )
                     .rejects
-                    .toMatchObject({ code: 'INVALID_ACCEPTANCES' });
+                    .toMatchObject({
+                        statusCode: HTTP_STATUS.BAD_REQUEST,
+                        code: 'VALIDATION_ERROR',
+                        data: expect.objectContaining({ detail: 'INVALID_ACCEPTANCES' }),
+                    });
             });
 
             it('should reject when versionHash is missing', async () => {
@@ -180,7 +189,11 @@ describe('user, policy and notification tests', () => {
                     ], user1),
                 )
                     .rejects
-                    .toMatchObject({ code: 'INVALID_ACCEPTANCES' });
+                    .toMatchObject({
+                        statusCode: HTTP_STATUS.BAD_REQUEST,
+                        code: 'VALIDATION_ERROR',
+                        data: expect.objectContaining({ detail: 'INVALID_ACCEPTANCES' }),
+                    });
             });
 
             it('should reject when policy does not exist', async () => {
@@ -190,7 +203,10 @@ describe('user, policy and notification tests', () => {
                     ], user1),
                 )
                     .rejects
-                    .toMatchObject({ code: 'POLICY_NOT_FOUND' });
+                    .toMatchObject({
+                        statusCode: HTTP_STATUS.NOT_FOUND,
+                        code: 'NOT_FOUND',
+                    });
             });
 
             it('should reject when version hash is invalid for existing policy', async () => {
@@ -205,7 +221,10 @@ describe('user, policy and notification tests', () => {
                     ], user1),
                 )
                     .rejects
-                    .toMatchObject({ code: 'INVALID_VERSION_HASH' });
+                    .toMatchObject({
+                        statusCode: HTTP_STATUS.BAD_REQUEST,
+                        code: 'VALIDATION_ERROR',
+                    });
             });
 
             it('should reject entire batch if any policy is invalid', async () => {
@@ -221,7 +240,10 @@ describe('user, policy and notification tests', () => {
                     ], user1),
                 )
                     .rejects
-                    .toMatchObject({ code: 'POLICY_NOT_FOUND' });
+                    .toMatchObject({
+                        statusCode: HTTP_STATUS.NOT_FOUND,
+                        code: 'NOT_FOUND',
+                    });
 
                 const status = await appDriver.getUserPolicyStatus(user1);
                 expect(status.policies[0].userAcceptedHash).toBeUndefined();
@@ -244,7 +266,10 @@ describe('user, policy and notification tests', () => {
                     ], user1),
                 )
                     .rejects
-                    .toMatchObject({ code: 'POLICIES_ACCEPT_FAILED' });
+                    .toMatchObject({
+                        statusCode: HTTP_STATUS.INTERNAL_ERROR,
+                        code: 'SERVICE_ERROR',
+                    });
 
                 runTransactionSpy.mockRestore();
             });

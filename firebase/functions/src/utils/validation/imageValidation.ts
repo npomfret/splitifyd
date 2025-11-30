@@ -1,5 +1,4 @@
-import { HTTP_STATUS } from '../../constants';
-import { ApiError } from '../errors';
+import { ErrorCode, ErrorDetail, Errors } from '../../errors';
 
 export interface ImageValidationOptions {
     maxSizeBytes?: number;
@@ -49,35 +48,22 @@ export function validateImageUpload(
 
     // 1. Size validation
     if (buffer.length === 0) {
-        throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'EMPTY_FILE', 'Uploaded file is empty');
+        throw Errors.validationError('file', 'EMPTY_FILE');
     }
 
     if (buffer.length > maxSizeBytes) {
-        const sizeMB = (maxSizeBytes / 1024 / 1024).toFixed(1);
-        throw new ApiError(
-            HTTP_STATUS.BAD_REQUEST,
-            'IMAGE_TOO_LARGE',
-            `Image exceeds ${sizeMB}MB limit`,
-        );
+        throw Errors.validationError('file', 'IMAGE_TOO_LARGE');
     }
 
     // 2. Content-Type validation
     if (!contentType) {
-        throw new ApiError(
-            HTTP_STATUS.BAD_REQUEST,
-            'MISSING_CONTENT_TYPE',
-            'Content-Type header is required',
-        );
+        throw Errors.validationError('contentType', ErrorDetail.MISSING_FIELD);
     }
 
     const normalizedContentType = contentType.toLowerCase().split(';')[0].trim();
 
     if (!allowedTypes.includes(normalizedContentType)) {
-        throw new ApiError(
-            HTTP_STATUS.BAD_REQUEST,
-            'INVALID_IMAGE_TYPE',
-            `Invalid image content type: ${contentType}. Allowed types: ${allowedTypes.join(', ')}`,
-        );
+        throw Errors.validationError('contentType', 'INVALID_IMAGE_TYPE');
     }
 
     // 3. Magic number validation (check file headers match content type)
@@ -109,11 +95,7 @@ function validateMagicNumber(buffer: Buffer, contentType: string): void {
                 isValid = true;
                 break;
             } else {
-                throw new ApiError(
-                    HTTP_STATUS.BAD_REQUEST,
-                    'CONTENT_TYPE_MISMATCH',
-                    `File appears to be ${format} but Content-Type is ${contentType}`,
-                );
+                throw Errors.validationError('file', 'CONTENT_TYPE_MISMATCH');
             }
         }
     }
@@ -124,20 +106,12 @@ function validateMagicNumber(buffer: Buffer, contentType: string): void {
         isValid = header.includes('<?xml') || header.includes('<svg') || header.trim().startsWith('<svg');
 
         if (!isValid) {
-            throw new ApiError(
-                HTTP_STATUS.BAD_REQUEST,
-                'INVALID_SVG',
-                'File does not appear to be a valid SVG',
-            );
+            throw Errors.validationError('file', 'INVALID_SVG');
         }
     }
 
     if (!isValid) {
-        throw new ApiError(
-            HTTP_STATUS.BAD_REQUEST,
-            'CORRUPTED_IMAGE',
-            'File content does not match image format. File may be corrupted or renamed.',
-        );
+        throw Errors.validationError('file', 'CORRUPTED_IMAGE');
     }
 }
 

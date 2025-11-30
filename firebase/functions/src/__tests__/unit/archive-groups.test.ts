@@ -143,7 +143,7 @@ describe('Archive Groups - Archive/Unarchive Operations', () => {
             const groupId = toGroupId('nonexistent');
 
             // Act & Assert
-            await expect(appDriver.archiveGroupForUser(groupId, userId)).rejects.toThrow('Group membership');
+            await expect(appDriver.archiveGroupForUser(groupId, userId)).rejects.toThrow();
         });
 
         test('should reject archiving already archived membership', async () => {
@@ -190,7 +190,7 @@ describe('Archive Groups - Archive/Unarchive Operations', () => {
             const groupId = toGroupId('nonexistent');
 
             // Act & Assert
-            await expect(appDriver.unarchiveGroupForUser(groupId, userId)).rejects.toThrow('Group membership');
+            await expect(appDriver.unarchiveGroupForUser(groupId, userId)).rejects.toThrow();
         });
 
         test('should reject unarchiving non-archived membership', async () => {

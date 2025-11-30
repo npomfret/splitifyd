@@ -7,7 +7,7 @@ import type {
     UserId,
 } from '@billsplit-wl/shared';
 import { z } from 'zod';
-import { HTTP_STATUS } from '../../constants';
+import { Errors } from '../../errors';
 import {
     CommentIdSchema,
     ExpenseIdSchema,
@@ -16,7 +16,6 @@ import {
     SettlementIdSchema,
     UserIdSchema,
 } from '../../schemas/common';
-import { ApiError } from '../../utils/errors';
 
 /**
  * Factory function to create consistent ID validators using Zod schemas.
@@ -24,17 +23,16 @@ import { ApiError } from '../../utils/errors';
  * All ID validators follow the same pattern:
  * 1. Parse with Zod schema (validates non-empty string + transforms to branded type)
  * 2. Return branded type on success
- * 3. Throw ApiError with consistent error code on failure
+ * 3. Throw validation error on failure
  */
 function createIdValidator<T>(
     schema: z.ZodType<T>,
-    errorCode: string,
-    errorMessage: string,
+    fieldName: string,
 ): (value: unknown) => T {
     return (value: unknown): T => {
         const result = schema.safeParse(value);
         if (!result.success) {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, errorCode, errorMessage);
+            throw Errors.validationError(fieldName);
         }
         return result.data;
     };
@@ -46,38 +44,32 @@ function createIdValidator<T>(
 
 export const validateGroupId = createIdValidator<GroupId>(
     GroupIdSchema,
-    'INVALID_GROUP_ID',
-    'Invalid group ID',
+    'groupId',
 );
 
 export const validateExpenseId = createIdValidator<ExpenseId>(
     ExpenseIdSchema,
-    'INVALID_EXPENSE_ID',
-    'Invalid expense ID',
+    'expenseId',
 );
 
 export const validateSettlementId = createIdValidator<SettlementId>(
     SettlementIdSchema,
-    'INVALID_SETTLEMENT_ID',
-    'Invalid settlement ID',
+    'settlementId',
 );
 
 export const validateCommentId = createIdValidator<CommentId>(
     CommentIdSchema,
-    'INVALID_COMMENT_ID',
-    'Invalid comment ID',
+    'commentId',
 );
 
 export const validateUserId = createIdValidator<UserId>(
     UserIdSchema,
-    'INVALID_USER_ID',
-    'Invalid user ID',
+    'userId',
 );
 
 export const validatePolicyId = createIdValidator<PolicyId>(
     PolicyIdSchema,
-    'INVALID_POLICY_ID',
-    'Invalid policy ID',
+    'policyId',
 );
 
 // ============================================================================
@@ -105,7 +97,7 @@ export const validatePolicyIdParam = (params: unknown): PolicyId =>
 export const validateMemberId = (value: unknown): UserId => {
     const result = UserIdSchema.safeParse(value);
     if (!result.success) {
-        throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_MEMBER_ID', 'Invalid member ID');
+        throw Errors.validationError('memberId');
     }
     return result.data;
 };

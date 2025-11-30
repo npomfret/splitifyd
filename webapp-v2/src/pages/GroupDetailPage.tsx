@@ -136,7 +136,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
     const errorValue = error.value;
     const groupValue = group.value;
     const shouldRedirectToDashboard = errorValue === GROUP_DETAIL_ERROR_CODES.GROUP_DELETED || errorValue === GROUP_DETAIL_ERROR_CODES.USER_REMOVED_FROM_GROUP;
-    const shouldRedirectToNotFoundFromError = typeof errorValue === 'string' && /not found/i.test(errorValue);
+    const shouldRedirectToNotFoundFromError = typeof errorValue === 'string' && (/not found/i.test(errorValue) || errorValue === 'NOT_FOUND');
     const shouldRedirectToNotFoundFromMissingGroup = isInitialized.value && !groupValue && !errorValue;
     const shouldShowInlineError = Boolean(errorValue) && !shouldRedirectToDashboard && !shouldRedirectToNotFoundFromError;
 

@@ -1,0 +1,120 @@
+/**
+ * Consolidated Error Codes
+ *
+ * Two-tier error system:
+ * - Tier 1 (ErrorCode): Category codes for i18n translation (~12 codes)
+ * - Tier 2 (detail field): Specific codes for debugging (not translated)
+ *
+ * @see tasks/error-code-consolidation.md
+ */
+
+/**
+ * Primary error codes - these are the ONLY codes that get translated in the frontend.
+ * Keep this list small (~12-15 codes max) for manageable i18n.
+ */
+export const ErrorCode = {
+    // Authentication (401)
+    AUTH_REQUIRED: 'AUTH_REQUIRED',
+    AUTH_INVALID: 'AUTH_INVALID',
+
+    // Authorization (403)
+    FORBIDDEN: 'FORBIDDEN',
+
+    // Resource errors (404, 409)
+    NOT_FOUND: 'NOT_FOUND',
+    ALREADY_EXISTS: 'ALREADY_EXISTS',
+    CONFLICT: 'CONFLICT',
+
+    // Input validation (400)
+    VALIDATION_ERROR: 'VALIDATION_ERROR',
+    INVALID_REQUEST: 'INVALID_REQUEST',
+
+    // Rate limiting (429)
+    RATE_LIMITED: 'RATE_LIMITED',
+
+    // Server errors (500, 503)
+    SERVICE_ERROR: 'SERVICE_ERROR',
+    UNAVAILABLE: 'UNAVAILABLE',
+} as const;
+
+export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];
+
+/**
+ * Detail codes for debugging - NOT translated.
+ * These provide specificity for logging and programmatic error handling.
+ * Add new detail codes freely without affecting i18n.
+ */
+export const ErrorDetail = {
+    // Auth details
+    TOKEN_EXPIRED: 'TOKEN_EXPIRED',
+    TOKEN_INVALID: 'TOKEN_INVALID',
+    TOKEN_MISSING: 'TOKEN_MISSING',
+
+    // Permission details
+    NOT_GROUP_MEMBER: 'NOT_GROUP_MEMBER',
+    NOT_GROUP_ADMIN: 'NOT_GROUP_ADMIN',
+    NOT_OWNER: 'NOT_OWNER',
+    INSUFFICIENT_PERMISSIONS: 'INSUFFICIENT_PERMISSIONS',
+
+    // Resource details (for NOT_FOUND)
+    GROUP_NOT_FOUND: 'GROUP_NOT_FOUND',
+    EXPENSE_NOT_FOUND: 'EXPENSE_NOT_FOUND',
+    SETTLEMENT_NOT_FOUND: 'SETTLEMENT_NOT_FOUND',
+    USER_NOT_FOUND: 'USER_NOT_FOUND',
+    COMMENT_NOT_FOUND: 'COMMENT_NOT_FOUND',
+    POLICY_NOT_FOUND: 'POLICY_NOT_FOUND',
+    TENANT_NOT_FOUND: 'TENANT_NOT_FOUND',
+    SHARE_LINK_NOT_FOUND: 'SHARE_LINK_NOT_FOUND',
+    BALANCE_NOT_FOUND: 'BALANCE_NOT_FOUND',
+    MEMBER_NOT_FOUND: 'MEMBER_NOT_FOUND',
+
+    // Conflict details (for ALREADY_EXISTS)
+    ALREADY_MEMBER: 'ALREADY_MEMBER',
+    EMAIL_ALREADY_EXISTS: 'EMAIL_ALREADY_EXISTS',
+    DISPLAY_NAME_TAKEN: 'DISPLAY_NAME_TAKEN',
+    POLICY_EXISTS: 'POLICY_EXISTS',
+    VERSION_EXISTS: 'VERSION_EXISTS',
+    ALREADY_DELETED: 'ALREADY_DELETED',
+
+    // Conflict details (for CONFLICT)
+    CONCURRENT_UPDATE: 'CONCURRENT_UPDATE',
+    OUTSTANDING_BALANCE: 'OUTSTANDING_BALANCE',
+
+    // Validation details (for VALIDATION_ERROR)
+    INVALID_AMOUNT: 'INVALID_AMOUNT',
+    INVALID_AMOUNT_PRECISION: 'INVALID_AMOUNT_PRECISION',
+    INVALID_SPLIT_TOTAL: 'INVALID_SPLIT_TOTAL',
+    INVALID_PERCENTAGE_TOTAL: 'INVALID_PERCENTAGE_TOTAL',
+    INVALID_PAYER: 'INVALID_PAYER',
+    INVALID_PARTICIPANT: 'INVALID_PARTICIPANT',
+    INVALID_EMAIL: 'INVALID_EMAIL',
+    INVALID_PASSWORD: 'INVALID_PASSWORD',
+    INVALID_CURSOR: 'INVALID_CURSOR',
+    INVALID_DATE: 'INVALID_DATE',
+    MISSING_FIELD: 'MISSING_FIELD',
+    DUPLICATE_SPLIT_USERS: 'DUPLICATE_SPLIT_USERS',
+    PAYER_NOT_PARTICIPANT: 'PAYER_NOT_PARTICIPANT',
+    SAME_PAYER_PAYEE: 'SAME_PAYER_PAYEE',
+
+    // Request details (for INVALID_REQUEST)
+    LINK_EXPIRED: 'LINK_EXPIRED',
+    LINK_INVALID: 'LINK_INVALID',
+    DOCUMENT_TOO_LARGE: 'DOCUMENT_TOO_LARGE',
+    EMPTY_FILE: 'EMPTY_FILE',
+    MISSING_FILE: 'MISSING_FILE',
+    NO_UPDATE_FIELDS: 'NO_UPDATE_FIELDS',
+
+    // Capacity limits
+    GROUP_AT_CAPACITY: 'GROUP_AT_CAPACITY',
+
+    // Service error details
+    DATABASE_ERROR: 'DATABASE_ERROR',
+    AUTH_SERVICE_ERROR: 'AUTH_SERVICE_ERROR',
+    POLICY_SERVICE_ERROR: 'POLICY_SERVICE_ERROR',
+    MERGE_FAILED: 'MERGE_FAILED',
+    CREATION_FAILED: 'CREATION_FAILED',
+    UPDATE_FAILED: 'UPDATE_FAILED',
+    DELETE_FAILED: 'DELETE_FAILED',
+} as const;
+
+export type ErrorDetail = (typeof ErrorDetail)[keyof typeof ErrorDetail];

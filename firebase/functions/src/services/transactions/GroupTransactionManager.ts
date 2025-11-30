@@ -1,7 +1,7 @@
 import type { GroupDTO, GroupId } from '@billsplit-wl/shared';
+import { ErrorDetail, Errors } from '../../errors';
 import type { ITransaction } from '../../firestore-wrapper';
 import type { GroupBalanceDTO } from '../../schemas';
-import { Errors } from '../../utils/errors';
 import type { IFirestoreReader, IFirestoreWriter } from '../firestore';
 
 export interface GroupTransactionOptions {
@@ -69,7 +69,7 @@ export class GroupTransactionManager {
                 group = await this.firestoreReader.getGroupInTransaction(transaction, groupId);
 
                 if (!group) {
-                    throw Errors.NOT_FOUND('Group');
+                    throw Errors.notFound('Group', ErrorDetail.GROUP_NOT_FOUND);
                 }
             }
 

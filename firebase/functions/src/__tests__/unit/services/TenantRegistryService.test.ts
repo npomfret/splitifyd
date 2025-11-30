@@ -2,8 +2,9 @@ import { toTenantAppName, toTenantDomainName, toTenantFaviconUrl, toTenantLogoUr
 import { AdminTenantRequestBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
+import { ErrorCode } from '../../../errors/ErrorCode';
 import { TenantRegistryService, type TenantResolutionOptions } from '../../../services/tenant/TenantRegistryService';
-import { ApiError } from '../../../utils/errors';
+import { ApiError } from '../../../errors';
 import { AppDriver } from '../AppDriver';
 
 describe('TenantRegistryService', () => {
@@ -73,7 +74,7 @@ describe('TenantRegistryService', () => {
             await expect(service.resolveTenant(options)).rejects.toThrow(ApiError);
             await expect(service.resolveTenant(options)).rejects.toMatchObject({
                 statusCode: HTTP_STATUS.FORBIDDEN,
-                code: 'TENANT_OVERRIDE_NOT_ALLOWED',
+                code: ErrorCode.FORBIDDEN,
             });
         });
 
@@ -89,7 +90,7 @@ describe('TenantRegistryService', () => {
             await expect(service.resolveTenant(options)).rejects.toThrow(ApiError);
             await expect(service.resolveTenant(options)).rejects.toMatchObject({
                 statusCode: HTTP_STATUS.NOT_FOUND,
-                code: 'TENANT_OVERRIDE_NOT_FOUND',
+                code: ErrorCode.NOT_FOUND,
             });
         });
     });
@@ -224,7 +225,7 @@ describe('TenantRegistryService', () => {
             await expect(service.resolveTenant(options)).rejects.toThrow(ApiError);
             await expect(service.resolveTenant(options)).rejects.toMatchObject({
                 statusCode: HTTP_STATUS.NOT_FOUND,
-                code: 'TENANT_NOT_FOUND',
+                code: ErrorCode.NOT_FOUND,
             });
         });
     });

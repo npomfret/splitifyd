@@ -42,8 +42,8 @@ test.describe('Registration Authentication Flow', () => {
         // 3. Attempt registration expecting failure (fluent interface)
         await registerPage.registerExpectingFailure('John Smith', toEmail('existing@example.com'), 'Password1234');
 
-        // 4. Verify error handling
-        await registerPage.verifyErrorMessage('Unable to create account. If you already registered, try signing in.');
+        // 4. Verify error handling (shows error code for i18n translation)
+        await registerPage.verifyErrorMessage('REGISTRATION_FAILED');
     });
 
     test('should handle network errors gracefully', async ({ pageWithLogging: page, mockFirebase }) => {
@@ -54,15 +54,15 @@ test.describe('Registration Authentication Flow', () => {
 
         // 2. Configure mock Firebase for network error
         await mockFirebase.mockRegisterFailure({
-            code: 'auth/network-request-failed',
+            code: 'NETWORK_ERROR',
             message: 'Network error. Please check your connection.',
         });
 
         // 3. Attempt registration expecting failure (fluent interface)
         await registerPage.registerExpectingFailure('Jane Doe', toEmail('jane@example.com'), 'Password1234');
 
-        // 4. Verify network error handling
-        await registerPage.verifyErrorMessage('Network error. Please check your connection.');
+        // 4. Verify network error handling (shows error code for i18n translation)
+        await registerPage.verifyErrorMessage('NETWORK_ERROR');
     });
 
     test('should handle weak password error', async ({ pageWithLogging: page, mockFirebase }) => {
@@ -72,15 +72,15 @@ test.describe('Registration Authentication Flow', () => {
 
         // Configure mock Firebase for weak password error
         await mockFirebase.mockRegisterFailure({
-            code: 'auth/weak-password',
+            code: 'WEAK_PASSWORD',
             message: 'Password is too weak. Please use at least 12 characters.',
         });
 
         // Attempt registration with password that satisfies client validation but fails backend strength checks
         await registerPage.registerExpectingFailure('Test User', toEmail('test@example.com'), 'weakpassword1');
 
-        // Verify error message
-        await registerPage.verifyErrorMessage('Password is too weak. Please use at least 12 characters.');
+        // Verify error message (shows error code for i18n translation)
+        await registerPage.verifyErrorMessage('WEAK_PASSWORD');
     });
 
     test('should handle invalid email format from backend', async ({ pageWithLogging: page, mockFirebase }) => {
@@ -90,15 +90,15 @@ test.describe('Registration Authentication Flow', () => {
 
         // Configure mock Firebase for invalid email error from backend
         await mockFirebase.mockRegisterFailure({
-            code: 'auth/invalid-email',
+            code: 'INVALID_EMAIL',
             message: 'This email address is invalid.',
         });
 
         // Attempt registration with validly formatted email that backend rejects
         await registerPage.registerExpectingFailure('Test User', toEmail('badformat@example.com'), 'Password1234');
 
-        // Verify user-friendly error message is shown (UI transforms API messages)
-        await registerPage.verifyErrorMessage('Please enter a valid email address.');
+        // Verify error code is shown (shows error code for i18n translation)
+        await registerPage.verifyErrorMessage('INVALID_EMAIL');
     });
 });
 

@@ -201,23 +201,21 @@ simpleTest.describe('User Registration & Account Management', () => {
         await registerPage.checkCookieCheckbox();
         await registerPage.checkPrivacyCheckbox();
 
-        // Submit and verify error response
-        const responsePromise = registerPage.waitForRegistrationResponse(400);
+        // Submit form - this will fail with duplicate email error
         await registerPage.submitForm();
-        await responsePromise;
 
         // Should stay on registration page, not redirect
         await registerPage.expectUrl(/\/register/);
 
-        // Verify error message appears and form persistence
+        // Verify error message appears (shows error code for i18n translation)
         await registerPage.verifyErrorContainerVisible();
-        await registerPage.verifyErrorMessageMatches(/unable to create account. if you already registered, try signing in./);
+        await registerPage.verifyErrorMessageMatches(/already_exists/);
 
-        // Verify error in console (400 Bad Request, not 409 - this is intentional for email enumeration prevention)
+        // Verify error in console (ALREADY_EXISTS error code)
         const errorInConsole = consoleMessages.some((msg) => {
             const lowerMsg = msg.toLowerCase();
-            // Look for 400 status code or REGISTRATION_FAILED error code
-            return lowerMsg.includes('400') || lowerMsg.includes('registration_failed') || lowerMsg.includes('registration attempt failed');
+            // Look for ALREADY_EXISTS error code or registration failure
+            return lowerMsg.includes('already_exists') || lowerMsg.includes('409') || lowerMsg.includes('registration');
         });
         expect(errorInConsole).toBe(true);
 

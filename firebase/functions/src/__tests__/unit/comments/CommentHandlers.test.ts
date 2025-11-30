@@ -88,7 +88,8 @@ describe('CommentHandlers - Integration Tests', () => {
             await expect(appDriver.createGroupComment(groupId, '', userId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_COMMENT_TEXT',
+                    code: 'VALIDATION_ERROR',
+                    data: expect.objectContaining({ detail: 'INVALID_COMMENT_TEXT' }),
                 }),
             );
         });
@@ -100,7 +101,8 @@ describe('CommentHandlers - Integration Tests', () => {
             await expect(appDriver.createGroupComment(groupId, '   ', userId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_COMMENT_TEXT',
+                    code: 'VALIDATION_ERROR',
+                    data: expect.objectContaining({ detail: 'INVALID_COMMENT_TEXT' }),
                 }),
             );
         });
@@ -113,7 +115,8 @@ describe('CommentHandlers - Integration Tests', () => {
             await expect(appDriver.createGroupComment(groupId, longText, userId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_COMMENT_TEXT',
+                    code: 'VALIDATION_ERROR',
+                    data: expect.objectContaining({ detail: 'INVALID_COMMENT_TEXT' }),
                 }),
             );
         });
@@ -403,7 +406,13 @@ describe('CommentHandlers - Integration Tests', () => {
             // limit: 0 should fail validation (min is 1)
             await expect(appDriver.listGroupComments(group.id, { limit: 0 }, userId))
                 .rejects
-                .toThrow('Limit must be at least 1');
+                .toThrow(
+                    expect.objectContaining({
+                        statusCode: HTTP_STATUS.BAD_REQUEST,
+                        code: 'VALIDATION_ERROR',
+                        data: expect.objectContaining({ detail: 'INVALID_QUERY_PARAMS' }),
+                    }),
+                );
         });
     });
 
@@ -602,7 +611,13 @@ describe('CommentHandlers - Integration Tests', () => {
             // limit: 0 should fail validation (min is 1)
             await expect(appDriver.listExpenseComments(expense.id, { limit: 0 }, userId))
                 .rejects
-                .toThrow('Limit must be at least 1');
+                .toThrow(
+                    expect.objectContaining({
+                        statusCode: HTTP_STATUS.BAD_REQUEST,
+                        code: 'VALIDATION_ERROR',
+                        data: expect.objectContaining({ detail: 'INVALID_QUERY_PARAMS' }),
+                    }),
+                );
         });
     });
 

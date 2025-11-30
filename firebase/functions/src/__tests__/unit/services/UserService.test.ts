@@ -1,12 +1,11 @@
 import { StubCloudTasksClient } from '@billsplit-wl/firebase-simulator';
 import { DisplayName, toDisplayName, toGroupId, toUserId } from '@billsplit-wl/shared';
 import { ClientUserBuilder, CreateGroupRequestBuilder, PasswordChangeRequestBuilder, StubFirestoreDatabase, StubStorage, UserRegistrationBuilder, UserUpdateBuilder } from '@billsplit-wl/test-support';
-import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import { UserService } from '../../../services/UserService2';
-import { ApiError } from '../../../utils/errors';
-import { initializeI18n } from '../../../utils/i18n';
+import { ApiError, ErrorCode } from '../../../errors';
 import { createUnitTestServiceConfig } from '../../test-config';
 import { AppDriver } from '../AppDriver';
 import { StubAuthService } from '../mocks/StubAuthService';
@@ -15,11 +14,6 @@ describe('UserService - Consolidated Unit Tests', () => {
     let userService: UserService;
     let db: StubFirestoreDatabase;
     let stubAuth: StubAuthService;
-
-    beforeAll(async () => {
-        // Initialize i18n for validation error translations
-        await initializeI18n();
-    });
 
     beforeEach(() => {
         // Create stub database
@@ -84,9 +78,8 @@ describe('UserService - Consolidated Unit Tests', () => {
 
             await expect(userService.registerUser(duplicateData)).rejects.toThrow(
                 expect.objectContaining({
-                    statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'REGISTRATION_FAILED',
-                    message: 'Unable to create account. If you already registered, try signing in.',
+                    statusCode: HTTP_STATUS.CONFLICT,
+                    code: 'ALREADY_EXISTS',
                 }),
             );
         });
@@ -128,8 +121,8 @@ describe('UserService - Consolidated Unit Tests', () => {
 
                 const expectation = expect(registrationPromise).rejects.toThrow(
                     expect.objectContaining({
-                        statusCode: HTTP_STATUS.BAD_REQUEST,
-                        code: 'REGISTRATION_FAILED',
+                        statusCode: HTTP_STATUS.CONFLICT,
+                        code: 'ALREADY_EXISTS',
                     }),
                 );
 
@@ -158,7 +151,11 @@ describe('UserService - Consolidated Unit Tests', () => {
                 .withPrivacyPolicyAccepted(true)
                 .build();
 
-            await expect(userService.registerUser(userData)).rejects.toThrow('You must accept the Terms of Service');
+            await expect(userService.registerUser(userData)).rejects.toThrow(
+                expect.objectContaining({
+                    code: ErrorCode.VALIDATION_ERROR,
+                }),
+            );
 
             // Test cookie policy validation
             const userData2 = new UserRegistrationBuilder()
@@ -169,7 +166,11 @@ describe('UserService - Consolidated Unit Tests', () => {
                 .withPrivacyPolicyAccepted(true)
                 .build();
 
-            await expect(userService.registerUser(userData2)).rejects.toThrow('You must accept the Cookie Policy');
+            await expect(userService.registerUser(userData2)).rejects.toThrow(
+                expect.objectContaining({
+                    code: ErrorCode.VALIDATION_ERROR,
+                }),
+            );
 
             // Test privacy policy validation
             const userData3 = new UserRegistrationBuilder()
@@ -180,7 +181,11 @@ describe('UserService - Consolidated Unit Tests', () => {
                 .withPrivacyPolicyAccepted(false)
                 .build();
 
-            await expect(userService.registerUser(userData3)).rejects.toThrow('You must accept the Privacy Policy');
+            await expect(userService.registerUser(userData3)).rejects.toThrow(
+                expect.objectContaining({
+                    code: ErrorCode.VALIDATION_ERROR,
+                }),
+            );
         });
 
         it('should assign theme color and role during registration', async () => {
@@ -236,7 +241,7 @@ describe('UserService - Consolidated Unit Tests', () => {
             await expect(userService.getUser(nonExistentUid)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.NOT_FOUND,
-                    code: 'NOT_FOUND',
+                    code: ErrorCode.NOT_FOUND,
                 }),
             );
         });
@@ -252,7 +257,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                 .build();
             stubAuth.setUser(uid, userData);
 
-            await expect(userService.getUser(uid)).rejects.toThrow('User incomplete-user missing required fields: email and displayName are mandatory');
+            await expect(userService.getUser(uid)).rejects.toThrow();
         });
     });
 
@@ -424,7 +429,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                 // email is undefined
             });
 
-            await expect(userService.getUser(uid)).rejects.toThrow('User no-email-user missing required fields: email and displayName are mandatory');
+            await expect(userService.getUser(uid)).rejects.toThrow();
         });
     });
 
@@ -626,7 +631,11 @@ describe('UserService - Consolidated Unit Tests', () => {
                     .withPrivacyPolicyAccepted(true)
                     .build();
 
-                await expect(validationUserService.registerUser(registrationData)).rejects.toThrow(/Terms of Service/);
+                await expect(validationUserService.registerUser(registrationData)).rejects.toThrow(
+                    expect.objectContaining({
+                        code: ErrorCode.VALIDATION_ERROR,
+                    }),
+                );
             });
 
             it('should require cookie policy acceptance', async () => {
@@ -639,7 +648,11 @@ describe('UserService - Consolidated Unit Tests', () => {
                     .withPrivacyPolicyAccepted(true)
                     .build();
 
-                await expect(validationUserService.registerUser(registrationData)).rejects.toThrow(/Cookie Policy/);
+                await expect(validationUserService.registerUser(registrationData)).rejects.toThrow(
+                    expect.objectContaining({
+                        code: ErrorCode.VALIDATION_ERROR,
+                    }),
+                );
             });
 
             it('should require privacy policy acceptance', async () => {
@@ -652,7 +665,11 @@ describe('UserService - Consolidated Unit Tests', () => {
                     .withPrivacyPolicyAccepted(false)
                     .build();
 
-                await expect(validationUserService.registerUser(registrationData)).rejects.toThrow(/Privacy Policy/);
+                await expect(validationUserService.registerUser(registrationData)).rejects.toThrow(
+                    expect.objectContaining({
+                        code: ErrorCode.VALIDATION_ERROR,
+                    }),
+                );
             });
 
             it('should validate displayName during registration', async () => {
@@ -694,20 +711,20 @@ describe('UserService - Consolidated Unit Tests', () => {
                 expect(() => {
                     const displayName: DisplayName = toDisplayName('');
                     if (!displayName || displayName.trim().length === 0) {
-                        throw new ApiError(400, 'INVALID_DISPLAY_NAME', 'Display name cannot be empty');
+                        throw new ApiError(400, ErrorCode.VALIDATION_ERROR, { detail: 'INVALID_DISPLAY_NAME', message: 'Display name cannot be empty' });
                     }
                 })
-                    .toThrow('Display name cannot be empty');
+                    .toThrow(expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR }));
             });
 
             it('should reject display names with only whitespace', () => {
                 expect(() => {
                     const displayName = '   ';
                     if (!displayName || displayName.trim().length === 0) {
-                        throw new ApiError(400, 'INVALID_DISPLAY_NAME', 'Display name cannot be empty');
+                        throw new ApiError(400, ErrorCode.VALIDATION_ERROR, { detail: 'INVALID_DISPLAY_NAME', message: 'Display name cannot be empty' });
                     }
                 })
-                    .toThrow('Display name cannot be empty');
+                    .toThrow(expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR }));
             });
 
             it('should reject display names that are too long', () => {
@@ -715,20 +732,20 @@ describe('UserService - Consolidated Unit Tests', () => {
                     const displayName = 'a'.repeat(101);
                     const maxLength = 100;
                     if (displayName.length > maxLength) {
-                        throw new ApiError(400, 'INVALID_DISPLAY_NAME', `Display name cannot exceed ${maxLength} characters`);
+                        throw new ApiError(400, ErrorCode.VALIDATION_ERROR, { detail: 'INVALID_DISPLAY_NAME', message: `Display name cannot exceed ${maxLength} characters` });
                     }
                 })
-                    .toThrow('Display name cannot exceed 100 characters');
+                    .toThrow(expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR }));
             });
 
             it('should accept valid display names', () => {
                 expect(() => {
                     const displayName = 'Valid Display Name';
                     if (!displayName || displayName.trim().length === 0) {
-                        throw new ApiError(400, 'INVALID_DISPLAY_NAME', 'Display name cannot be empty');
+                        throw new ApiError(400, ErrorCode.VALIDATION_ERROR, { detail: 'INVALID_DISPLAY_NAME', message: 'Display name cannot be empty' });
                     }
                     if (displayName.length > 100) {
-                        throw new ApiError(400, 'INVALID_DISPLAY_NAME', 'Display name cannot exceed 100 characters');
+                        throw new ApiError(400, ErrorCode.VALIDATION_ERROR, { detail: 'INVALID_DISPLAY_NAME', message: 'Display name cannot exceed 100 characters' });
                     }
                 })
                     .not
@@ -756,10 +773,10 @@ describe('UserService - Consolidated Unit Tests', () => {
                     expect(() => {
                         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                         if (!emailRegex.test(email)) {
-                            throw new ApiError(400, 'INVALID_EMAIL', 'Invalid email format');
+                            throw new ApiError(400, ErrorCode.VALIDATION_ERROR, { detail: 'INVALID_EMAIL', message: 'Invalid email format' });
                         }
                     })
-                        .toThrow('Invalid email format');
+                        .toThrow(expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR }));
                 });
             });
 
@@ -770,7 +787,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                     expect(() => {
                         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                         if (!emailRegex.test(email)) {
-                            throw new ApiError(400, 'INVALID_EMAIL', 'Invalid email format');
+                            throw new ApiError(400, ErrorCode.VALIDATION_ERROR, { detail: 'INVALID_EMAIL', message: 'Invalid email format' });
                         }
                     })
                         .not
@@ -785,10 +802,10 @@ describe('UserService - Consolidated Unit Tests', () => {
                     const password = '123';
                     const minLength = 12;
                     if (password.length < minLength) {
-                        throw new ApiError(400, 'WEAK_PASSWORD', `Password must be at least ${minLength} characters long`);
+                        throw new ApiError(400, ErrorCode.VALIDATION_ERROR, { detail: 'WEAK_PASSWORD', message: `Password must be at least ${minLength} characters long` });
                     }
                 })
-                    .toThrow('Password must be at least 12 characters long');
+                    .toThrow(expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR }));
             });
 
             it('should accept passwords of any composition when length requirement is met', () => {
@@ -798,7 +815,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                     expect(() => {
                         const minLength = 12;
                         if (password.length < minLength) {
-                            throw new ApiError(400, 'WEAK_PASSWORD', `Password must be at least ${minLength} characters long`);
+                            throw new ApiError(400, ErrorCode.VALIDATION_ERROR, { detail: 'WEAK_PASSWORD', message: `Password must be at least ${minLength} characters long` });
                         }
                     })
                         .not
@@ -812,10 +829,10 @@ describe('UserService - Consolidated Unit Tests', () => {
                     const newPassword = 'SamePassword1234!';
 
                     if (currentPassword === newPassword) {
-                        throw new ApiError(400, 'INVALID_PASSWORD', 'New password must be different from current password');
+                        throw new ApiError(400, ErrorCode.VALIDATION_ERROR, { detail: 'INVALID_PASSWORD', message: 'New password must be different from current password' });
                     }
                 })
-                    .toThrow('New password must be different from current password');
+                    .toThrow(expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR }));
             });
         });
 
@@ -826,10 +843,10 @@ describe('UserService - Consolidated Unit Tests', () => {
                     const validLanguages = ['en', 'es', 'fr', 'de'];
 
                     if (!validLanguages.includes(language)) {
-                        throw new ApiError(400, 'INVALID_LANGUAGE', 'Invalid language code');
+                        throw new ApiError(400, ErrorCode.VALIDATION_ERROR, { detail: 'INVALID_LANGUAGE', message: 'Invalid language code' });
                     }
                 })
-                    .toThrow('Invalid language code');
+                    .toThrow(expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR }));
             });
 
             it('should accept valid language codes', () => {
@@ -838,7 +855,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                     const validLanguages = ['en', 'es', 'fr', 'de'];
 
                     if (!validLanguages.includes(language)) {
-                        throw new ApiError(400, 'INVALID_LANGUAGE', 'Invalid language code');
+                        throw new ApiError(400, ErrorCode.VALIDATION_ERROR, { detail: 'INVALID_LANGUAGE', message: 'Invalid language code' });
                     }
                 })
                     .not
@@ -853,10 +870,10 @@ describe('UserService - Consolidated Unit Tests', () => {
                     const urlRegex = /^https?:\/\/.+/;
 
                     if (photoURL && !urlRegex.test(photoURL)) {
-                        throw new ApiError(400, 'INVALID_URL', 'Invalid photo URL format');
+                        throw new ApiError(400, ErrorCode.VALIDATION_ERROR, { detail: 'INVALID_URL', message: 'Invalid photo URL format' });
                     }
                 })
-                    .toThrow('Invalid photo URL format');
+                    .toThrow(expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR }));
             });
 
             it('should accept valid photo URLs', () => {
@@ -865,7 +882,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                     const urlRegex = /^https?:\/\/.+/;
 
                     if (photoURL && !urlRegex.test(photoURL)) {
-                        throw new ApiError(400, 'INVALID_URL', 'Invalid photo URL format');
+                        throw new ApiError(400, ErrorCode.VALIDATION_ERROR, { detail: 'INVALID_URL', message: 'Invalid photo URL format' });
                     }
                 })
                     .not
@@ -878,7 +895,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                     const urlRegex = /^https?:\/\/.+/;
 
                     if (photoURL && !urlRegex.test(photoURL)) {
-                        throw new ApiError(400, 'INVALID_URL', 'Invalid photo URL format');
+                        throw new ApiError(400, ErrorCode.VALIDATION_ERROR, { detail: 'INVALID_URL', message: 'Invalid photo URL format' });
                     }
                 })
                     .not
@@ -892,10 +909,10 @@ describe('UserService - Consolidated Unit Tests', () => {
                     const confirmDelete = false;
 
                     if (!confirmDelete) {
-                        throw new ApiError(400, 'CONFIRMATION_REQUIRED', 'Account deletion must be confirmed');
+                        throw new ApiError(400, ErrorCode.VALIDATION_ERROR, { detail: 'CONFIRMATION_REQUIRED', message: 'Account deletion must be confirmed' });
                     }
                 })
-                    .toThrow('Account deletion must be confirmed');
+                    .toThrow(expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR }));
             });
 
             it('should accept valid deletion confirmation', () => {
@@ -903,7 +920,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                     const confirmDelete = true;
 
                     if (!confirmDelete) {
-                        throw new ApiError(400, 'CONFIRMATION_REQUIRED', 'Account deletion must be confirmed');
+                        throw new ApiError(400, ErrorCode.VALIDATION_ERROR, { detail: 'CONFIRMATION_REQUIRED', message: 'Account deletion must be confirmed' });
                     }
                 })
                     .not
@@ -917,10 +934,10 @@ describe('UserService - Consolidated Unit Tests', () => {
                     const termsAccepted = false;
 
                     if (!termsAccepted) {
-                        throw new ApiError(400, 'TERMS_REQUIRED', 'You must accept the Terms of Service');
+                        throw new ApiError(400, ErrorCode.VALIDATION_ERROR, { detail: 'TERMS_REQUIRED', message: 'You must accept the Terms of Service' });
                     }
                 })
-                    .toThrow('You must accept the Terms of Service');
+                    .toThrow(expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR }));
             });
 
             it('should require cookie policy acceptance', () => {
@@ -928,10 +945,10 @@ describe('UserService - Consolidated Unit Tests', () => {
                     const cookiePolicyAccepted = false;
 
                     if (!cookiePolicyAccepted) {
-                        throw new ApiError(400, 'COOKIE_POLICY_REQUIRED', 'You must accept the Cookie Policy');
+                        throw new ApiError(400, ErrorCode.VALIDATION_ERROR, { detail: 'COOKIE_POLICY_REQUIRED', message: 'You must accept the Cookie Policy' });
                     }
                 })
-                    .toThrow('You must accept the Cookie Policy');
+                    .toThrow(expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR }));
             });
 
             it('should accept valid policy acceptances', () => {
@@ -940,10 +957,10 @@ describe('UserService - Consolidated Unit Tests', () => {
                     const cookiePolicyAccepted = true;
 
                     if (!termsAccepted) {
-                        throw new ApiError(400, 'TERMS_REQUIRED', 'You must accept the Terms of Service');
+                        throw new ApiError(400, ErrorCode.VALIDATION_ERROR, { detail: 'TERMS_REQUIRED', message: 'You must accept the Terms of Service' });
                     }
                     if (!cookiePolicyAccepted) {
-                        throw new ApiError(400, 'COOKIE_POLICY_REQUIRED', 'You must accept the Cookie Policy');
+                        throw new ApiError(400, ErrorCode.VALIDATION_ERROR, { detail: 'COOKIE_POLICY_REQUIRED', message: 'You must accept the Cookie Policy' });
                     }
                 })
                     .not

@@ -13,12 +13,12 @@ import {
 } from '@billsplit-wl/shared';
 import { toISOString } from '@billsplit-wl/shared';
 import { FirestoreCollections } from '../constants';
+import { ApiError, Errors, ErrorDetail } from '../errors';
 import { FieldValue } from '../firestore-wrapper';
 import { logger, LoggerContext } from '../logger';
 import * as measure from '../monitoring/measure';
 import { PerformanceTimer } from '../monitoring/PerformanceTimer';
 import { PermissionEngineAsync } from '../permissions/permission-engine-async';
-import { ApiError, Errors } from '../utils/errors';
 import { newTopLevelMembershipDocId } from '../utils/idGenerator';
 import { ActivityFeedService } from './ActivityFeedService';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
@@ -52,13 +52,13 @@ export class GroupMemberService {
         options: AdminGuardOptions = {},
     ): Promise<GroupMembershipDTO> {
         if (!userId) {
-            throw options.unauthorizedErrorFactory?.() ?? Errors.UNAUTHORIZED();
+            throw options.unauthorizedErrorFactory?.() ?? Errors.authRequired();
         }
 
         const membership = await this.firestoreReader.getGroupMember(groupId, userId);
 
         if (!membership || membership.memberRole !== MemberRoles.ADMIN || membership.memberStatus !== MemberStatuses.ACTIVE) {
-            throw options.forbiddenErrorFactory?.() ?? Errors.FORBIDDEN();
+            throw options.forbiddenErrorFactory?.() ?? Errors.forbidden(ErrorDetail.INSUFFICIENT_PERMISSIONS);
         }
 
         return membership;
@@ -94,11 +94,11 @@ export class GroupMemberService {
         ]);
 
         if (!group) {
-            throw options.notFoundErrorFactory?.() ?? Errors.NOT_FOUND('Group');
+            throw options.notFoundErrorFactory?.() ?? Errors.notFound('Group', ErrorDetail.GROUP_NOT_FOUND);
         }
 
         if (!actorMember || !memberIds.includes(userId)) {
-            throw options.forbiddenErrorFactory?.() ?? Errors.FORBIDDEN();
+            throw options.forbiddenErrorFactory?.() ?? Errors.forbidden(ErrorDetail.NOT_GROUP_MEMBER);
         }
 
         return {
@@ -114,17 +114,17 @@ export class GroupMemberService {
         options: AdminGuardOptions = {},
     ): Promise<{ group: GroupDTO; actorMember: GroupMembershipDTO; }> {
         if (!userId) {
-            throw options.unauthorizedErrorFactory?.() ?? Errors.UNAUTHORIZED();
+            throw options.unauthorizedErrorFactory?.() ?? Errors.authRequired();
         }
 
         const { group, actorMember } = await this.getGroupAccessContext(groupId, userId, {
-            notFoundErrorFactory: () => Errors.NOT_FOUND('Group'),
-            forbiddenErrorFactory: options.forbiddenErrorFactory ?? (() => Errors.FORBIDDEN()),
+            notFoundErrorFactory: () => Errors.notFound('Group', ErrorDetail.GROUP_NOT_FOUND),
+            forbiddenErrorFactory: options.forbiddenErrorFactory ?? (() => Errors.forbidden(ErrorDetail.INSUFFICIENT_PERMISSIONS)),
         });
 
         const canApproveMembers = PermissionEngineAsync.checkPermission(actorMember, group, userId, 'memberApproval');
         if (!canApproveMembers) {
-            throw options.forbiddenErrorFactory?.() ?? Errors.FORBIDDEN();
+            throw options.forbiddenErrorFactory?.() ?? Errors.forbidden(ErrorDetail.INSUFFICIENT_PERMISSIONS);
         }
 
         return { group, actorMember };
@@ -141,7 +141,7 @@ export class GroupMemberService {
     async updateMemberRole(requestingUserId: UserId, groupId: GroupId, targetUserId: UserId, newRole: MemberRole): Promise<void> {
         await measure.measureDb('GroupMemberService.updateMemberRole', async () => {
             if (!targetUserId) {
-                throw Errors.MISSING_FIELD('memberId');
+                throw Errors.validationError('memberId', ErrorDetail.MISSING_FIELD);
             }
 
             await this.ensureActiveGroupAdmin(groupId, requestingUserId);
@@ -152,7 +152,7 @@ export class GroupMemberService {
             ]);
 
             if (!targetMembership) {
-                throw Errors.NOT_FOUND('Group member');
+                throw Errors.notFound('Group member', ErrorDetail.MEMBER_NOT_FOUND);
             }
 
             // No-op if role is already set
@@ -163,7 +163,7 @@ export class GroupMemberService {
             if (targetMembership.memberRole === MemberRoles.ADMIN && newRole !== MemberRoles.ADMIN) {
                 const activeAdminCount = allMembers.filter((member) => member.memberRole === MemberRoles.ADMIN && member.memberStatus === MemberStatuses.ACTIVE).length;
                 if (activeAdminCount <= 1) {
-                    throw Errors.INVALID_INPUT({ message: 'Cannot remove the last active admin from the group' });
+                    throw Errors.invalidRequest('Cannot remove the last active admin from the group');
                 }
             }
 
@@ -173,7 +173,7 @@ export class GroupMemberService {
                 const membershipRef = this.firestoreWriter.getDocumentReferenceInTransaction(transaction, FirestoreCollections.GROUP_MEMBERSHIPS, membershipDocId);
                 const membershipSnap = await transaction.get(membershipRef);
                 if (!membershipSnap.exists) {
-                    throw Errors.NOT_FOUND('Group member');
+                    throw Errors.notFound('Group member', ErrorDetail.MEMBER_NOT_FOUND);
                 }
 
                 transaction.update(membershipRef, {
@@ -196,7 +196,7 @@ export class GroupMemberService {
     async approveMember(requestingUserId: UserId, groupId: GroupId, targetUserId: UserId): Promise<void> {
         await measure.measureDb('GroupMemberService.approveMember', async () => {
             if (!targetUserId) {
-                throw Errors.MISSING_FIELD('memberId');
+                throw Errors.validationError('memberId', ErrorDetail.MISSING_FIELD);
             }
 
             const { group } = await this.ensureCanManagePendingMembers(groupId, requestingUserId);
@@ -204,7 +204,7 @@ export class GroupMemberService {
             const targetMembership = await this.firestoreReader.getGroupMember(groupId, targetUserId);
 
             if (!targetMembership) {
-                throw Errors.NOT_FOUND('Group member');
+                throw Errors.notFound('Group member', ErrorDetail.MEMBER_NOT_FOUND);
             }
 
             // No-op if member is already active
@@ -224,7 +224,7 @@ export class GroupMemberService {
                 const membershipRef = this.firestoreWriter.getDocumentReferenceInTransaction(transaction, FirestoreCollections.GROUP_MEMBERSHIPS, membershipDocId);
                 const membershipSnap = await transaction.get(membershipRef);
                 if (!membershipSnap.exists) {
-                    throw Errors.NOT_FOUND('Group member');
+                    throw Errors.notFound('Group member', ErrorDetail.MEMBER_NOT_FOUND);
                 }
 
                 const membershipsSnapshot = await this.firestoreReader.getGroupMembershipsInTransaction(transaction, groupId);
@@ -285,14 +285,14 @@ export class GroupMemberService {
     async rejectMember(requestingUserId: UserId, groupId: GroupId, targetUserId: UserId): Promise<void> {
         await measure.measureDb('GroupMemberService.rejectMember', async () => {
             if (!targetUserId) {
-                throw Errors.MISSING_FIELD('memberId');
+                throw Errors.validationError('memberId', ErrorDetail.MISSING_FIELD);
             }
 
             await this.ensureCanManagePendingMembers(groupId, requestingUserId);
 
             const targetMembership = await this.firestoreReader.getGroupMember(groupId, targetUserId);
             if (!targetMembership) {
-                throw Errors.NOT_FOUND('Group member');
+                throw Errors.notFound('Group member', ErrorDetail.MEMBER_NOT_FOUND);
             }
 
             await this.runMembershipTransaction(groupId, async (context) => {
@@ -301,7 +301,7 @@ export class GroupMemberService {
                 const membershipRef = this.firestoreWriter.getDocumentReferenceInTransaction(transaction, FirestoreCollections.GROUP_MEMBERSHIPS, membershipDocId);
                 const membershipSnap = await transaction.get(membershipRef);
                 if (!membershipSnap.exists) {
-                    throw Errors.NOT_FOUND('Group member');
+                    throw Errors.notFound('Group member', ErrorDetail.MEMBER_NOT_FOUND);
                 }
 
                 transaction.delete(membershipRef);
@@ -343,44 +343,44 @@ export class GroupMemberService {
         });
 
         if (!requestingUserId) {
-            throw Errors.UNAUTHORIZED();
+            throw Errors.authRequired();
         }
 
         if (!isLeaving && !targetUserId) {
-            throw Errors.MISSING_FIELD('memberId');
+            throw Errors.validationError('memberId', ErrorDetail.MISSING_FIELD);
         }
 
         timer.startPhase('query');
         const group = await this.firestoreReader.getGroup(groupId);
         if (!group) {
-            throw Errors.NOT_FOUND('Group');
+            throw Errors.notFound('Group', ErrorDetail.GROUP_NOT_FOUND);
         }
 
         const memberDoc = await this.firestoreReader.getGroupMember(groupId, targetUserId);
         if (!memberDoc) {
             const message = isLeaving ? 'You are not a member of this group' : 'User is not a member of this group';
-            throw Errors.INVALID_INPUT({ message });
+            throw Errors.invalidRequest(message);
         }
 
         // Authorization and validation logic
         if (isLeaving) {
             // User leaving themselves
             if (group.createdBy === targetUserId) {
-                throw Errors.INVALID_INPUT({ message: 'Group creator cannot leave the group' });
+                throw Errors.invalidRequest('Group creator cannot leave the group');
             }
 
             const memberIds = await this.firestoreReader.getAllGroupMemberIds(groupId);
             if (memberIds.length === 1) {
-                throw Errors.INVALID_INPUT({ message: 'Cannot leave group - you are the only member' });
+                throw Errors.invalidRequest('Cannot leave group - you are the only member');
             }
         } else {
             // Admin removing someone else
             if (group.createdBy !== requestingUserId) {
-                throw Errors.FORBIDDEN();
+                throw Errors.forbidden(ErrorDetail.NOT_OWNER);
             }
 
             if (targetUserId === group.createdBy) {
-                throw Errors.INVALID_INPUT({ message: 'Group creator cannot be removed' });
+                throw Errors.invalidRequest('Group creator cannot be removed');
             }
         }
 
@@ -397,17 +397,15 @@ export class GroupMemberService {
                     const balanceUnits = amountToSmallestUnit(targetBalance.netBalance, currency);
                     if (balanceUnits !== 0) {
                         const message = isLeaving ? 'Cannot leave group with outstanding balance' : 'Cannot remove member with outstanding balance';
-                        throw Errors.INVALID_INPUT({ message });
+                        throw Errors.conflict(message);
                     }
                 }
             }
         } catch (balanceError: unknown) {
             // If it's our specific "outstanding balance" error from the validation above, re-throw it
             if (balanceError instanceof ApiError) {
-                const details = balanceError.details;
-                const hasOutstandingBalance = details?.message?.includes('Cannot leave group with outstanding balance')
-                    || details?.message?.includes('Cannot remove member with outstanding balance');
-                if (hasOutstandingBalance) {
+                // Check if it's the conflict error we just threw
+                if (balanceError.code === 'CONFLICT') {
                     throw balanceError;
                 }
             }
@@ -420,7 +418,7 @@ export class GroupMemberService {
                 targetUserId,
                 operation: isLeaving ? 'leave-group' : 'remove-member',
             });
-            throw Errors.INTERNAL_ERROR();
+            throw Errors.serviceError(ErrorDetail.DATABASE_ERROR);
         }
         timer.endPhase();
 
@@ -508,13 +506,11 @@ export class GroupMemberService {
         const member = await this.firestoreReader.getGroupMember(groupId, userId);
 
         if (!member) {
-            throw Errors.NOT_FOUND('Group membership');
+            throw Errors.notFound('Group membership', ErrorDetail.MEMBER_NOT_FOUND);
         }
 
         if (member.memberStatus !== MemberStatuses.ACTIVE) {
-            throw Errors.INVALID_INPUT({
-                message: 'Can only archive active group memberships',
-            });
+            throw Errors.invalidRequest('Can only archive active group memberships');
         }
 
         const now = new Date().toISOString();
@@ -538,13 +534,11 @@ export class GroupMemberService {
         const member = await this.firestoreReader.getGroupMember(groupId, userId);
 
         if (!member) {
-            throw Errors.NOT_FOUND('Group membership');
+            throw Errors.notFound('Group membership', ErrorDetail.MEMBER_NOT_FOUND);
         }
 
         if (member.memberStatus !== MemberStatuses.ARCHIVED) {
-            throw Errors.INVALID_INPUT({
-                message: 'Can only unarchive archived group memberships',
-            });
+            throw Errors.invalidRequest('Can only unarchive archived group memberships');
         }
 
         const now = new Date().toISOString();

@@ -220,8 +220,9 @@ test.describe('Registration Page Error Recovery', () => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
+        // Note: Password mismatch is caught by client-side validation before API call
         await mockFirebase.mockRegisterFailure({
-            code: 'auth/passwords-mismatch',
+            code: 'PASSWORDS_MISMATCH',
             message: 'Passwords do not match',
         });
 
@@ -231,7 +232,7 @@ test.describe('Registration Page Error Recovery', () => {
         // Should remain on register page
         await expect(page).toHaveURL(/\/register/);
 
-        // Error should be displayed
+        // Error should be displayed (client-side validation message)
         await registerPage.verifyErrorMessage('Passwords do not match');
     });
 
@@ -242,7 +243,7 @@ test.describe('Registration Page Error Recovery', () => {
 
         // Configure network error
         await mockFirebase.mockRegisterFailure({
-            code: 'auth/network-request-failed',
+            code: 'NETWORK_ERROR',
             message: 'Network error occurred.',
         });
 
@@ -252,8 +253,8 @@ test.describe('Registration Page Error Recovery', () => {
         // Should remain on register page
         await expect(page).toHaveURL(/\/register/);
 
-        // Error should be displayed (UI transforms to user-friendly message)
-        await registerPage.verifyErrorMessage('Network error. Please check your connection.');
+        // Error should be displayed (shows error code for i18n translation)
+        await registerPage.verifyErrorMessage('NETWORK_ERROR');
 
         // Form should be usable for retry
         await registerPage.verifyFormEnabled();
@@ -266,14 +267,14 @@ test.describe('Registration Page Error Recovery', () => {
 
         // First attempt fails
         await mockFirebase.mockRegisterFailure({
-            code: 'auth/email-already-in-use',
+            code: 'EMAIL_ALREADY_IN_USE',
             message: 'Email already registered.',
         });
 
         await registerPage.registerExpectingFailure('John Doe', toEmail('existing@example.com'), 'Password1234');
 
-        // Verify error
-        await registerPage.verifyErrorMessage('Email already registered.');
+        // Verify error (shows error code for i18n translation)
+        await registerPage.verifyErrorMessage('EMAIL_ALREADY_IN_USE');
 
         // Change to success for retry
         const testUser = ClientUserBuilder

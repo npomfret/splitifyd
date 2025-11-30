@@ -76,7 +76,7 @@ describe('Admin Tests', () => {
                 await expect(appDriver.adminUpsertTenant(secondTenant, localAdminUser))
                     .rejects
                     .toMatchObject({
-                        code: 'DUPLICATE_DOMAIN',
+                        code: 'ALREADY_EXISTS',
                     });
             });
 
@@ -107,7 +107,7 @@ describe('Admin Tests', () => {
                 await expect(appDriver.adminUpsertTenant(secondTenant, localAdminUser))
                     .rejects
                     .toMatchObject({
-                        code: 'DUPLICATE_DOMAIN',
+                        code: 'ALREADY_EXISTS',
                     });
             });
 
@@ -120,7 +120,7 @@ describe('Admin Tests', () => {
 
                 await expect(appDriver.adminUpsertTenant(payload, localAdminUser))
                     .rejects
-                    .toMatchObject({ code: 'INVALID_TENANT_PAYLOAD' });
+                    .toMatchObject({ code: 'VALIDATION_ERROR' });
             });
 
             it('should reject tenant with no domains', async () => {
@@ -131,7 +131,7 @@ describe('Admin Tests', () => {
 
                 await expect(appDriver.adminUpsertTenant(payload, localAdminUser))
                     .rejects
-                    .toMatchObject({ code: 'INVALID_TENANT_PAYLOAD' });
+                    .toMatchObject({ code: 'VALIDATION_ERROR' });
             });
 
             it('should create tenant with valid data and return created=true', async () => {
@@ -262,7 +262,7 @@ describe('Admin Tests', () => {
             it('should reject when tenant does not exist', async () => {
                 await expect(appDriver.publishTenantTheme({ tenantId: 'unknown-tenant' }, adminUser))
                     .rejects
-                    .toMatchObject({ code: 'TENANT_NOT_FOUND' });
+                    .toMatchObject({ code: 'NOT_FOUND' });
             });
         });
 
@@ -504,7 +504,7 @@ describe('Admin Tests', () => {
 
                 await expect(appDriver.adminUpsertTenant(payload, localAdminUser))
                     .rejects
-                    .toMatchObject({ code: 'INVALID_TENANT_PAYLOAD' });
+                    .toMatchObject({ code: 'VALIDATION_ERROR' });
             });
         });
 

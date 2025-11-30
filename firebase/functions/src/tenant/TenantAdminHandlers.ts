@@ -5,7 +5,8 @@ import { AdminUpsertTenantRequestSchema, PublishTenantThemeRequestSchema } from 
 import type { IFirestoreReader } from '../services/firestore';
 import type { TenantAssetStorage } from '../services/storage/TenantAssetStorage';
 import { TenantAdminService } from '../services/tenant/TenantAdminService';
-import { ApiError } from '../utils/errors';
+import { Errors } from '../errors/Errors';
+import { ErrorDetail } from '../errors/ErrorCode';
 import { validateFaviconImage, validateLogoImage } from '../utils/validation/imageValidation';
 import { validateUploadTenantAssetParams } from './validation';
 
@@ -20,7 +21,8 @@ export class TenantAdminHandlers {
         const parseResult = AdminUpsertTenantRequestSchema.safeParse(req.body);
 
         if (!parseResult.success) {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_TENANT_PAYLOAD', 'Tenant payload failed validation', {
+            throw Errors.validation({
+                detail: 'INVALID_TENANT_PAYLOAD',
                 issues: parseResult.error.issues,
             });
         }
@@ -37,7 +39,8 @@ export class TenantAdminHandlers {
         const parseResult = PublishTenantThemeRequestSchema.safeParse(req.body);
 
         if (!parseResult.success) {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_TENANT_ID', 'Tenant ID is required', {
+            throw Errors.validation({
+                detail: 'INVALID_TENANT_ID',
                 issues: parseResult.error.issues,
             });
         }
@@ -55,7 +58,7 @@ export class TenantAdminHandlers {
 
         // Validate request has file data
         if (!req.body || req.body.length === 0) {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_FILE', 'No file data provided');
+            throw Errors.invalidRequest(ErrorDetail.MISSING_FILE);
         }
 
         const contentType = req.headers['content-type'];

@@ -1,8 +1,8 @@
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { HTTP_STATUS } from '../constants';
+import { Errors } from '../errors';
 import { UserPolicyService } from '../services/UserPolicyService';
-import { ApiError } from '../utils/errors';
 import { validateAcceptMultiplePolicies } from './validation';
 
 export class UserHandlers {
@@ -12,7 +12,7 @@ export class UserHandlers {
     acceptMultiplePolicies = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
         const userId = req.user?.uid;
         if (!userId) {
-            throw new ApiError(HTTP_STATUS.UNAUTHORIZED, 'AUTH_REQUIRED', 'Authentication required');
+            throw Errors.authRequired();
         }
 
         // Validate request body using shared Zod schema
@@ -28,7 +28,7 @@ export class UserHandlers {
     getUserPolicyStatus = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
         const userId = req.user?.uid;
         if (!userId) {
-            throw new ApiError(HTTP_STATUS.UNAUTHORIZED, 'AUTH_REQUIRED', 'Authentication required');
+            throw Errors.authRequired();
         }
 
         const response = await this.userPolicyService.getUserPolicyStatus(userId);

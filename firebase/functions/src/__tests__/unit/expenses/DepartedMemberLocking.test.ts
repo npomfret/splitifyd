@@ -246,9 +246,9 @@ describe('Departed Member Transaction Locking - Unit Tests', () => {
                 .withSplits(calculateEqualSplits(toAmount(120), usd, [toUserId(userIds[0]), toUserId(userIds[1]), toUserId(userIds[2])]))
                 .build();
 
-            await expect(appDriver.updateExpense(expense.id, updateData, userIds[0])).rejects.toThrow(
-                /expense.*locked|cannot.*edit.*locked|cannot.*edit.*expense|participants.*left/i,
-            );
+            await expect(appDriver.updateExpense(expense.id, updateData, userIds[0])).rejects.toMatchObject({
+                code: 'INVALID_REQUEST',
+            });
         });
 
         test('should allow editing expense when no participants have left', async () => {
@@ -304,9 +304,9 @@ describe('Departed Member Transaction Locking - Unit Tests', () => {
                 .withSplitType('equal')
                 .build();
 
-            await expect(appDriver.createExpense(expenseData, userIds[0])).rejects.toThrow(
-                /not.*member|departed|left.*group|cannot.*create.*expense|participant.*not/i,
-            );
+            await expect(appDriver.createExpense(expenseData, userIds[0])).rejects.toMatchObject({
+                code: 'VALIDATION_ERROR',
+            });
         });
 
         test('should allow creating expense with only current members', async () => {
@@ -497,9 +497,9 @@ describe('Departed Member Transaction Locking - Unit Tests', () => {
                 .withNote('Attempted update')
                 .build();
 
-            await expect(appDriver.updateSettlement(settlement.id, updateData, userIds[0])).rejects.toThrow(
-                /settlement.*locked|cannot.*edit.*locked|cannot.*edit.*settlement|payer.*left|payee.*left/i,
-            );
+            await expect(appDriver.updateSettlement(settlement.id, updateData, userIds[0])).rejects.toMatchObject({
+                code: 'INVALID_REQUEST',
+            });
         });
 
         test('should prevent editing settlement when payee has left', async () => {
@@ -540,9 +540,9 @@ describe('Departed Member Transaction Locking - Unit Tests', () => {
                 .withNote('Attempted update')
                 .build();
 
-            await expect(appDriver.updateSettlement(settlement.id, updateData, userIds[1])).rejects.toThrow(
-                /settlement.*locked|cannot.*edit.*locked|cannot.*edit.*settlement|payer.*left|payee.*left/i,
-            );
+            await expect(appDriver.updateSettlement(settlement.id, updateData, userIds[1])).rejects.toMatchObject({
+                code: 'INVALID_REQUEST',
+            });
         });
 
         test('should allow editing settlement when both parties are current members', async () => {
@@ -608,9 +608,9 @@ describe('Departed Member Transaction Locking - Unit Tests', () => {
                         .build(),
                     userIds[0],
                 ),
-            )
-                .rejects
-                .toThrow(/not.*member|departed|left.*group|cannot.*create.*settlement/i);
+            ).rejects.toMatchObject({
+                code: 'VALIDATION_ERROR',
+            });
         });
 
         test('should prevent creating settlement with departed payee', async () => {
@@ -632,9 +632,9 @@ describe('Departed Member Transaction Locking - Unit Tests', () => {
                         .build(),
                     userIds[1],
                 ),
-            )
-                .rejects
-                .toThrow(/not.*member|departed|left.*group|cannot.*create.*settlement/i);
+            ).rejects.toMatchObject({
+                code: 'VALIDATION_ERROR',
+            });
         });
     });
 
@@ -700,7 +700,7 @@ describe('Departed Member Transaction Locking - Unit Tests', () => {
                 ),
             )
                 .rejects
-                .toThrow(/expense.*locked|cannot.*edit.*locked|cannot.*edit.*expense|participants.*left/i);
+                .toMatchObject({ code: 'INVALID_REQUEST' });
         });
 
         test('should compute lock status dynamically on each read', async () => {

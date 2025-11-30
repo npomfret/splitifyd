@@ -1,18 +1,17 @@
 import { Amount, amountToSmallestUnit, compareAmounts, CurrencyISOCode, ExpenseSplit, normalizeAmount, UserId } from '@billsplit-wl/shared';
-import { HTTP_STATUS } from '../../constants';
-import { ApiError } from '../../utils/errors';
+import { ErrorDetail, Errors } from '../../errors';
 import { ISplitStrategy } from './ISplitStrategy';
 
 export class EqualSplitStrategy implements ISplitStrategy {
     validateSplits(totalAmount: Amount, participants: UserId[], splits: ExpenseSplit[], currencyCode: CurrencyISOCode): void {
         if (!Array.isArray(splits) || splits.length !== participants.length) {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_SPLITS', 'Splits must be provided for all participants');
+            throw Errors.validationError('splits', ErrorDetail.MISSING_FIELD);
         }
 
         // Validate that all splits have amounts
         for (const split of splits) {
             if (split.amount === undefined || split.amount === null) {
-                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_SPLIT_AMOUNT', 'Split amount is required');
+                throw Errors.validationError('amount', ErrorDetail.MISSING_FIELD);
             }
         }
 
@@ -28,21 +27,21 @@ export class EqualSplitStrategy implements ISplitStrategy {
         const splitUnits = normalizedSplits.reduce((sum, split) => sum + amountToSmallestUnit(split.amount, currencyCode), 0);
 
         if (splitUnits !== totalUnits) {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_SPLIT_TOTAL', 'Split amounts must equal total amount');
+            throw Errors.validationError('splits', ErrorDetail.INVALID_SPLIT_TOTAL);
         }
 
         // Validate no duplicate users
         const splitUserIds = normalizedSplits.map((s: ExpenseSplit) => s.uid);
         const uniqueSplitUserIds = new Set(splitUserIds);
         if (splitUserIds.length !== uniqueSplitUserIds.size) {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'DUPLICATE_SPLIT_USERS', 'Each participant can only appear once in splits');
+            throw Errors.validationError('splits', ErrorDetail.DUPLICATE_SPLIT_USERS);
         }
 
         // Validate all split users are participants
         const participantSet = new Set(participants);
         for (const userId of splitUserIds) {
             if (!participantSet.has(userId)) {
-                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_SPLIT_USER', 'Split user must be a participant');
+                throw Errors.validationError('splits', ErrorDetail.INVALID_PARTICIPANT);
             }
         }
 
@@ -53,7 +52,7 @@ export class EqualSplitStrategy implements ISplitStrategy {
 
         // For equal splits, we should have at most 2 unique amounts (base amount and base + remainder)
         if (uniqueAmounts.length > 2) {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_EQUAL_SPLITS', 'For equal split type, all participants should have equal amounts');
+            throw Errors.validationError('splits', ErrorDetail.INVALID_SPLIT_TOTAL);
         }
 
         const participantCount = participants.length;
@@ -61,7 +60,7 @@ export class EqualSplitStrategy implements ISplitStrategy {
 
         if (remainderUnits === 0) {
             if (uniqueAmounts.length !== 1) {
-                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_EQUAL_SPLITS', 'For equal split type, all participants should have equal amounts');
+                throw Errors.validationError('splits', ErrorDetail.INVALID_SPLIT_TOTAL);
             }
             return;
         }
@@ -74,19 +73,19 @@ export class EqualSplitStrategy implements ISplitStrategy {
             );
 
             if (diffUnits === 0) {
-                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_EQUAL_SPLITS', 'For equal split type, all participants should have equal amounts');
+                throw Errors.validationError('splits', ErrorDetail.INVALID_SPLIT_TOTAL);
             }
 
             // Count how many people get the larger amount
             const largerCount = amounts.filter((a) => a === largerAmount).length;
 
             if (largerCount === 0) {
-                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_EQUAL_SPLITS', 'For equal split type, all participants should have equal amounts');
+                throw Errors.validationError('splits', ErrorDetail.INVALID_SPLIT_TOTAL);
             }
 
             // The extra units distributed must exactly match the remainder produced by integer division
             if (largerCount * diffUnits !== remainderUnits) {
-                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_EQUAL_SPLITS', 'For equal split type, all participants should have equal amounts');
+                throw Errors.validationError('splits', ErrorDetail.INVALID_SPLIT_TOTAL);
             }
         }
     }

@@ -33,14 +33,14 @@ test.describe('Authentication Flow', () => {
 
         // 2. Configure mock Firebase for login failure
         mockFirebase.mockLoginFailure({
-            code: 'auth/wrong-password',
+            code: 'INVALID_CREDENTIALS',
             message: 'Invalid email or password.',
         });
 
         // 3. Attempt login expecting failure (fluent interface)
         await loginPage.loginExpectingFailure(toEmail('test@example.com'), 'wrong-password');
 
-        // 4. Verify error handling
+        // 4. Verify error handling (frontend displays translated message)
         await loginPage.verifyErrorMessage('Invalid email or password.');
     });
 
@@ -52,14 +52,14 @@ test.describe('Authentication Flow', () => {
 
         // 2. Configure mock Firebase for network error
         mockFirebase.mockLoginFailure({
-            code: 'auth/network-request-failed',
+            code: 'NETWORK_ERROR',
             message: 'Network error. Please check your connection.',
         });
 
         // 3. Attempt login expecting failure (fluent interface)
         await loginPage.loginExpectingFailure(toEmail('test@example.com'), 'password123');
 
-        // 4. Verify network error handling
+        // 4. Verify network error handling (frontend displays translated message)
         await loginPage.verifyErrorMessage('Network error. Please check your connection.');
     });
 });
@@ -122,14 +122,14 @@ test.describe('LoginPage Reactivity and UI States', () => {
 
         // Configure mock Firebase for login failure
         mockFirebase.mockLoginFailure({
-            code: 'auth/wrong-password',
+            code: 'INVALID_CREDENTIALS',
             message: 'Invalid email or password.',
         });
 
         // Attempt login expecting failure (waits for error to appear)
         await loginPage.loginExpectingFailure(toEmail('test@example.com'), 'wrong-password');
 
-        // Verify error appears
+        // Verify error appears (frontend displays translated message)
         await loginPage.verifyErrorMessage('Invalid email or password.');
 
         // Navigate away and back to login
@@ -193,14 +193,14 @@ test.describe('LoginPage Reactivity and UI States', () => {
 
         // First login attempt with error
         mockFirebase.mockLoginFailure({
-            code: 'auth/wrong-password',
+            code: 'INVALID_CREDENTIALS',
             message: 'Invalid email or password.',
         });
 
         // Use fluent method that waits for error
         await loginPage.loginExpectingFailure(toEmail('test@example.com'), 'wrong-password');
 
-        // Verify error appears
+        // Verify error appears (frontend displays translated message)
         await loginPage.verifyErrorMessage('Invalid email or password.');
 
         // Change mock to success for second attempt

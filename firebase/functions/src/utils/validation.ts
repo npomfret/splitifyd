@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { HTTP_STATUS } from '../constants';
-import { ApiError } from './errors';
+import { ApiError, ErrorCode } from '../errors';
 
 /**
  * Error mapping interface for custom error codes and messages
@@ -77,17 +77,16 @@ export function parseWithApiError<T>(
 
                 throw new ApiError(
                     HTTP_STATUS.BAD_REQUEST,
-                    customMapping.code,
-                    message,
-                    details,
+                    ErrorCode.VALIDATION_ERROR,
+                    { detail: customMapping.code, field: fieldPath, message: details || message },
                 );
             }
 
             // Default error mapping based on field name and error type
-            const errorCode = getDefaultErrorCode(fieldPath, firstError.code);
+            const errorDetail = getDefaultErrorCode(fieldPath, firstError.code);
             const errorMessage = firstError.message;
 
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, errorCode, errorMessage, firstError.message);
+            throw new ApiError(HTTP_STATUS.BAD_REQUEST, ErrorCode.VALIDATION_ERROR, { detail: errorDetail, field: fieldPath, message: errorMessage });
         }
 
         // Re-throw non-Zod errors
@@ -117,11 +116,11 @@ function getDefaultErrorCode(fieldPath: string, zodCode: string): string {
         case 'invalid_type':
         case 'invalid_string':
         case 'invalid_number':
-            return 'INVALID_INPUT';
+            return 'VALIDATION_ERROR';
         case 'too_small':
         case 'too_big':
-            return 'INVALID_INPUT';
+            return 'VALIDATION_ERROR';
         default:
-            return 'INVALID_INPUT';
+            return 'VALIDATION_ERROR';
     }
 }

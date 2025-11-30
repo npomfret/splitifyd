@@ -482,7 +482,7 @@ describe('expenses', () => {
                         .build(),
                     user1,
                 ),
-            ).rejects.toMatchObject({ code: 'PAYER_NOT_PARTICIPANT' });
+            ).rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
         });
 
         it('should reject creating expense with non-member participant', async () => {
@@ -502,7 +502,7 @@ describe('expenses', () => {
                         .build(),
                     user1,
                 ),
-            ).rejects.toMatchObject({ code: 'MEMBER_NOT_IN_GROUP' });
+            ).rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
         });
 
         it('should reject updating non-existent expense', async () => {
@@ -779,7 +779,7 @@ describe('expenses', () => {
 
             // Attempting to delete the original (superseded) expense should fail
             await expect(appDriver.deleteExpense(originalExpense.id, user1))
-                .rejects.toThrow('Cannot delete a superseded expense');
+                .rejects.toMatchObject({ code: 'INVALID_REQUEST' });
         });
 
         it('should not return superseded expense in group details', async () => {

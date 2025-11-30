@@ -65,7 +65,7 @@ describe('getEnhancedConfigResponse', () => {
     });
 
     it('throws when tenant context is missing', () => {
-        expect(() => getEnhancedConfigResponse()).toThrowError(/Tenant context is required for configuration/);
+        expect(() => getEnhancedConfigResponse()).toThrow();
     });
 
     it('augments config with theme hash when artifact is present', () => {

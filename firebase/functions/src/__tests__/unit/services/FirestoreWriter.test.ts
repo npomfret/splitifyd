@@ -5,9 +5,10 @@ import { toTenantAppName, toTenantDomainName, toTenantFaviconUrl, toTenantId, to
 import { CreateGroupRequestBuilder, StubFirestoreDatabase, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
+import { ErrorCode } from '../../../errors/ErrorCode';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import type { IFirestoreReader, IFirestoreWriter } from '../../../services/firestore';
-import { ApiError } from '../../../utils/errors';
+import { ApiError } from '../../../errors';
 import { AppDriver } from '../AppDriver';
 import { StubAuthService } from '../mocks/StubAuthService';
 import { TenantPayloadBuilder } from '../TenantPayloadBuilder';
@@ -100,10 +101,10 @@ describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
 
             expect(caughtError).toBeInstanceOf(ApiError);
             expect(caughtError?.statusCode).toBe(HTTP_STATUS.NOT_FOUND);
-            expect(caughtError?.code).toBe('GROUP_MEMBER_NOT_FOUND');
+            expect(caughtError?.code).toBe(ErrorCode.NOT_FOUND);
         });
 
-        it('should throw INVALID_INPUT when display name is empty', async () => {
+        it('should throw VALIDATION_ERROR when display name is empty', async () => {
             // Act & Assert
             let caughtError: ApiError | undefined;
             try {
@@ -114,7 +115,7 @@ describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
 
             expect(caughtError).toBeInstanceOf(ApiError);
             expect(caughtError?.statusCode).toBe(HTTP_STATUS.BAD_REQUEST);
-            expect(caughtError?.code).toBe('INVALID_INPUT');
+            expect(caughtError?.code).toBe(ErrorCode.VALIDATION_ERROR);
         });
 
         it('should not modify other member fields when updating display name', async () => {
@@ -181,8 +182,7 @@ describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
 
             expect(caughtError).toBeInstanceOf(ApiError);
             expect(caughtError?.statusCode).toBe(HTTP_STATUS.CONFLICT);
-            expect(caughtError?.code).toBe('DISPLAY_NAME_TAKEN');
-            expect(caughtError?.message).toContain(takenName);
+            expect(caughtError?.code).toBe(ErrorCode.CONFLICT);
         });
 
         it('should allow user to keep their current display name (idempotent)', async () => {
@@ -264,8 +264,7 @@ describe('FirestoreWriter.upsertTenant - Default Tenant Enforcement', () => {
         // Assert
         expect(caughtError).toBeInstanceOf(ApiError);
         expect(caughtError?.statusCode).toBe(HTTP_STATUS.BAD_REQUEST);
-        expect(caughtError?.code).toBe('CANNOT_REMOVE_DEFAULT_TENANT');
-        expect(caughtError?.message).toContain('Cannot remove default tenant flag');
+        expect(caughtError?.code).toBe(ErrorCode.VALIDATION_ERROR);
     });
 
     it('should transfer default flag when setting another tenant as default', async () => {

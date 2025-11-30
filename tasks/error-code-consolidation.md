@@ -1,14 +1,18 @@
 # Error Code Consolidation
 
+**Status:** ✅ COMPLETE (November 2025)
+
 **Prerequisite for:** `api-error-i18n.md`
 
-**Problem:** The codebase has ~115 unique error codes scattered across handlers and services, with significant redundancy and inconsistency. Before implementing i18n, we need to consolidate to a manageable, well-organized set.
+**Problem:** The codebase had ~115 unique error codes scattered across handlers and services, with significant redundancy and inconsistency. We consolidated to a manageable, well-organized hierarchical set.
 
-**Current Issues:**
-- Redundant codes: `FORBIDDEN` vs `ACCESS_DENIED` vs `NOT_AUTHORIZED` vs `INSUFFICIENT_PERMISSIONS`
-- Inconsistent specificity: Generic `NOT_FOUND` alongside `GROUP_NOT_FOUND`, `EXPENSE_NOT_FOUND`, etc.
-- Mixed concerns: Some codes are user-facing, others are internal/admin-only
-- No hierarchy: Flat namespace makes categorization impossible
+**Current State:**
+- ✅ New error system infrastructure created (`firebase/functions/src/errors/`)
+- ✅ Two-tier hierarchy implemented: ~12 category codes for i18n, 100+ detail codes for debugging
+- ✅ Backend i18n infrastructure removed (no longer needed)
+- ✅ All files migrated to new error system
+- ✅ Legacy `utils/errors.ts` deleted
+- ✅ All unit tests updated to assert new two-tier error codes (e.g., `{ code: 'VALIDATION_ERROR', data: { detail: 'INVALID_AMOUNT' } }`)
 
 ---
 
@@ -285,6 +289,47 @@ After consolidation, only ~12 category codes need translation (vs 115 before):
 3. **Debugging preserved** - `detail` field retains specific error info for logs
 4. **Type safety** - `ErrorCode` enum prevents typos
 5. **Extensible** - New specific errors add `detail` values, not new categories
+
+---
+
+## Implementation Summary
+
+### Phase 1 - Infrastructure (Complete)
+
+#### Files Created
+- `firebase/functions/src/errors/ErrorCode.ts` - Tier 1 category codes and Tier 2 detail codes
+- `firebase/functions/src/errors/ApiError.ts` - New ApiError class with structured data support
+- `firebase/functions/src/errors/Errors.ts` - New error factory with category-based methods
+- `firebase/functions/src/errors/index.ts` - Barrel export
+
+#### Files Modified
+- `firebase/functions/src/index.ts` - Updated error handling to use new `errors/` module
+- `firebase/functions/src/utils/middleware.ts` - Removed i18n middleware
+- `webapp-v2/src/locales/en/translation.json` - Added `apiErrors` translations
+
+#### Files Deleted
+- `firebase/functions/src/utils/errors.ts` - Replaced by `errors/` module
+- `firebase/functions/src/utils/i18n.ts` - Backend i18n no longer needed
+- `firebase/functions/src/locales/` - Backend translation files no longer needed
+
+#### Dependencies Removed
+- `i18next` - No longer needed on backend
+- `i18next-fs-backend` - No longer needed on backend
+
+### Phase 2 - Migration (Complete)
+
+All files successfully migrated to new `errors/` module:
+- ✅ All handlers migrated (`TenantAdminHandlers.ts`, `CommentHandlers.ts`, `MergeHandlers.ts`, `GroupHandlers.ts`, etc.)
+- ✅ All services migrated (`GroupService.ts`, `SettlementService.ts`, `CommentService.ts`, `PolicyService.ts`, etc.)
+- ✅ All auth files migrated (`middleware.ts`, `utils.ts`, `FirebaseAuthService.ts`)
+- ✅ All validation files migrated (`id-validators.ts`, `errors.ts`)
+- ✅ All test files migrated (`AppDriver.ts`, ~70+ test files)
+
+Post-migration cleanup:
+- ✅ Removed dual error handling from `index.ts`
+- ✅ Deleted deprecated `utils/errors.ts`
+- ✅ Deleted `utils/i18n.ts`
+- ✅ Deleted `locales/` directory
 
 ---
 

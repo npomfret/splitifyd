@@ -10,7 +10,7 @@ import { logger } from './logger';
 import { disableETags } from './middleware/cache-control';
 import { createRouteDefinitions } from './routes/route-config';
 import { logMetrics } from './scheduled/metrics-logger';
-import { ApiError } from './utils/errors';
+import { ApiError } from './errors';
 import { applyStandardMiddleware } from './utils/middleware';
 
 let app: express.Application | null = null;
@@ -93,11 +93,11 @@ function setupRoutes(app: express.Application): void {
     if (!config.isEmulator) {
         app.all(/^\/test-pool.*/, (req, res) => {
             logger.warn('Test endpoint accessed in deployed environment', { path: req.path, ip: req.ip });
-            res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Not found' } });
+            res.status(404).json({ error: { code: 'NOT_FOUND', resource: 'Endpoint' } });
         });
         app.all(/^\/test\/user.*/, (req, res) => {
             logger.warn('Test endpoint accessed in production', { path: req.path, ip: req.ip });
-            res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Not found' } });
+            res.status(404).json({ error: { code: 'NOT_FOUND', resource: 'Endpoint' } });
         });
     }
 
@@ -106,13 +106,13 @@ function setupRoutes(app: express.Application): void {
         res.status(HTTP_STATUS.NOT_FOUND).json({
             error: {
                 code: 'NOT_FOUND',
-                message: 'Endpoint not found',
+                resource: 'Endpoint',
             },
         });
     });
 
     // Global error handler
-    app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    app.use((err: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {
         const correlationId = req.headers['x-correlation-id'] as string;
 
         if (res.headersSent) {
@@ -125,6 +125,7 @@ function setupRoutes(app: express.Application): void {
             return;
         }
 
+        // Handle ApiError format
         if (err instanceof ApiError) {
             logger.error('API error occurred', err, {
                 correlationId,
@@ -132,13 +133,12 @@ function setupRoutes(app: express.Application): void {
                 path: req.path,
                 statusCode: err.statusCode,
                 errorCode: err.code,
+                errorDetail: err.data?.detail,
             });
 
             res.status(err.statusCode).json({
                 error: {
-                    code: err.code,
-                    message: err.message,
-                    details: err.details,
+                    ...err.toJSON(),
                     correlationId,
                 },
             });
@@ -155,8 +155,7 @@ function setupRoutes(app: express.Application): void {
 
         res.status(HTTP_STATUS.INTERNAL_ERROR).json({
             error: {
-                code: 'INTERNAL_ERROR',
-                message: 'An unexpected error occurred',
+                code: 'SERVICE_ERROR',
                 correlationId,
             },
         });

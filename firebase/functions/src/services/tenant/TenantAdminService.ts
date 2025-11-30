@@ -1,7 +1,7 @@
 import { type BrandingArtifactMetadata, type PublishTenantThemeResult, type TenantId, toTenantId } from '@billsplit-wl/shared';
-import { HTTP_STATUS } from '../../constants';
 import type { AdminUpsertTenantRequest } from '../../schemas/tenant';
-import { ApiError } from '../../utils/errors';
+import { Errors } from '../../errors/Errors';
+import { ErrorDetail } from '../../errors/ErrorCode';
 import type { IFirestoreReader, IFirestoreWriter } from '../firestore';
 import { ThemeArtifactService } from './ThemeArtifactService';
 
@@ -18,11 +18,7 @@ export class TenantAdminService {
         // brandingTokens are required - no auto-generation
         // All design values must come from explicit configuration
         if (!rest.brandingTokens) {
-            throw new ApiError(
-                HTTP_STATUS.BAD_REQUEST,
-                'BRANDING_TOKENS_REQUIRED',
-                'brandingTokens must be provided - no auto-generation allowed',
-            );
+            throw Errors.invalidRequest('brandingTokens must be provided - no auto-generation allowed');
         }
 
         return this.firestoreWriter.upsertTenant(tenantId, rest);
@@ -31,11 +27,11 @@ export class TenantAdminService {
     async publishTenantTheme(tenantId: TenantId, operatorId: string): Promise<PublishTenantThemeResult> {
         const record = await this.firestoreReader.getTenantById(toTenantId(tenantId));
         if (!record) {
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'TENANT_NOT_FOUND', 'Tenant not found');
+            throw Errors.notFound('Tenant', ErrorDetail.TENANT_NOT_FOUND, tenantId);
         }
 
         if (!record.brandingTokens?.tokens) {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'TENANT_TOKENS_MISSING', 'Tenant is missing branding tokens');
+            throw Errors.invalidRequest('Tenant is missing branding tokens');
         }
 
         const artifactResult = await this.themeArtifactService.generate(record.tenant.tenantId, record.brandingTokens.tokens);

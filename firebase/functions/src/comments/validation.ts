@@ -24,7 +24,7 @@ const mapCommentError = createZodErrorMapper(
         },
     },
     {
-        defaultCode: 'INVALID_INPUT',
+        defaultCode: 'VALIDATION_ERROR',
         defaultMessage: (issue) => issue.message,
     },
 );

@@ -3,7 +3,7 @@ import { describe, expect, test } from 'vitest';
 import { VALIDATION_LIMITS } from '../../../constants';
 import { validateCreateExpense, validateUpdateExpense } from '../../../expenses/validation';
 import { validateCreateGroup } from '../../../groups/validation';
-import { ApiError } from '../../../utils/errors';
+import { ApiError } from '../../../errors';
 
 describe('String Length Validation - Focused Tests', () => {
     const baseValidExpenseData = new CreateExpenseRequestBuilder()

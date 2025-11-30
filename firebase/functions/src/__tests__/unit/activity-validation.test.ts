@@ -27,7 +27,8 @@ describe('activity/validation', () => {
             expect(() => validateActivityFeedQuery({ limit: 'abc' })).toThrowError(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_QUERY_PARAMS',
+                    code: 'VALIDATION_ERROR',
+                    data: expect.objectContaining({ detail: 'INVALID_QUERY_PARAMS' }),
                 }),
             );
         });
@@ -36,7 +37,8 @@ describe('activity/validation', () => {
             expect(() => validateActivityFeedQuery({ limit: '0' })).toThrowError(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_QUERY_PARAMS',
+                    code: 'VALIDATION_ERROR',
+                    data: expect.objectContaining({ detail: 'INVALID_QUERY_PARAMS' }),
                 }),
             );
         });
@@ -45,7 +47,8 @@ describe('activity/validation', () => {
             expect(() => validateActivityFeedQuery({ limit: '-5' })).toThrowError(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_QUERY_PARAMS',
+                    code: 'VALIDATION_ERROR',
+                    data: expect.objectContaining({ detail: 'INVALID_QUERY_PARAMS' }),
                 }),
             );
         });
@@ -57,7 +60,8 @@ describe('activity/validation', () => {
             expect(() => validateActivityFeedQuery({ limit: '101' })).toThrowError(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_QUERY_PARAMS',
+                    code: 'VALIDATION_ERROR',
+                    data: expect.objectContaining({ detail: 'INVALID_QUERY_PARAMS' }),
                 }),
             );
         });

@@ -58,7 +58,7 @@ describe('validation and edge cases', () => {
 
         await expect(appDriver.createExpense(invalidExpense, user1))
             .rejects
-            .toMatchObject({ code: 'INVALID_SPLIT_TOTAL' });
+            .toMatchObject({ code: 'VALIDATION_ERROR' });
     });
 
     it('should reject expense creation with invalid currency precision', async () => {
@@ -82,7 +82,7 @@ describe('validation and edge cases', () => {
 
         await expect(appDriver.createExpense(invalidExpense, user1))
             .rejects
-            .toMatchObject({ code: 'INVALID_AMOUNT_PRECISION' });
+            .toMatchObject({ code: 'VALIDATION_ERROR' });
     });
 
     it('should reject group comment creation with empty text', async () => {
@@ -94,13 +94,13 @@ describe('validation and edge cases', () => {
 
         await expect(appDriver.createGroupComment(groupId, '', user1))
             .rejects
-            .toMatchObject({ code: 'INVALID_COMMENT_TEXT' });
+            .toMatchObject({ code: 'VALIDATION_ERROR', data: { detail: 'INVALID_COMMENT_TEXT' } });
     });
 
     it('should reject share link previews with invalid tokens', async () => {
         await expect(appDriver.previewGroupByLink('invalid-token-123' as ShareLinkToken, user1))
             .rejects
-            .toMatchObject({ code: 'INVALID_LINK' });
+            .toMatchObject({ code: 'NOT_FOUND' });
     });
 
     it('should reject group updates without any fields', async () => {
@@ -108,7 +108,7 @@ describe('validation and edge cases', () => {
 
         await expect(appDriver.updateGroup(group.id, {} as any, user1))
             .rejects
-            .toMatchObject({ code: 'INVALID_INPUT' });
+            .toMatchObject({ code: 'VALIDATION_ERROR' });
     });
 
     it('should reject settlement updates with invalid amount precision', async () => {
@@ -171,7 +171,7 @@ describe('validation and edge cases', () => {
 
         await expect(appDriver.createExpenseComment(expense.id, '', user1))
             .rejects
-            .toMatchObject({ code: 'INVALID_COMMENT_TEXT' });
+            .toMatchObject({ code: 'VALIDATION_ERROR', data: { detail: 'INVALID_COMMENT_TEXT' } });
     });
 
     it('should reject expense creation with invalid receipt URL', async () => {
@@ -195,7 +195,7 @@ describe('validation and edge cases', () => {
 
         await expect(appDriver.createExpense(expense, user1))
             .rejects
-            .toMatchObject({ code: 'INVALID_INPUT' });
+            .toMatchObject({ code: 'VALIDATION_ERROR' });
     });
 
     it('should reject expense updates when participants include non-members', async () => {
@@ -233,7 +233,7 @@ describe('validation and edge cases', () => {
             user1,
         ))
             .rejects
-            .toMatchObject({ code: 'INVALID_PARTICIPANT' });
+            .toMatchObject({ code: 'VALIDATION_ERROR' });
     });
 
     it('should reject group member display name updates with empty value', async () => {
@@ -245,7 +245,7 @@ describe('validation and edge cases', () => {
 
         await expect(appDriver.updateGroupMemberDisplayName(groupId, '', user2))
             .rejects
-            .toMatchObject({ code: 'INVALID_DISPLAY_NAME' });
+            .toMatchObject({ code: 'VALIDATION_ERROR', data: { detail: 'INVALID_DISPLAY_NAME' } });
     });
 
     it('should reject group member display name updates when the name collides with another member (base58 normalization)', async () => {
@@ -260,7 +260,7 @@ describe('validation and edge cases', () => {
 
         await expect(appDriver.updateGroupMemberDisplayName(groupId, 'ALICE', user2))
             .rejects
-            .toMatchObject({ code: 'DISPLAY_NAME_TAKEN' });
+            .toMatchObject({ code: 'CONFLICT' });
     });
 
     it('should reject settlements involving non-members', async () => {
@@ -279,7 +279,7 @@ describe('validation and edge cases', () => {
 
         await expect(appDriver.createSettlement(settlement, user1))
             .rejects
-            .toMatchObject({ code: 'MEMBER_NOT_IN_GROUP' });
+            .toMatchObject({ code: 'VALIDATION_ERROR' });
     });
 
     describe('split validation', () => {
@@ -310,7 +310,7 @@ describe('validation and edge cases', () => {
 
             await expect(appDriver.createExpense(expenseRequest, user1))
                 .rejects
-                .toMatchObject({ code: 'INVALID_PERCENTAGE_TOTAL' });
+                .toMatchObject({ code: 'VALIDATION_ERROR' });
         });
 
         it('should reject negative percentage in splits', async () => {
@@ -338,7 +338,7 @@ describe('validation and edge cases', () => {
 
             await expect(appDriver.createExpense(expenseRequest, user1))
                 .rejects
-                .toMatchObject({ code: 'INVALID_INPUT' });
+                .toMatchObject({ code: 'VALIDATION_ERROR' });
         });
 
         it('should reject expense where payer is not a participant', async () => {
@@ -360,7 +360,7 @@ describe('validation and edge cases', () => {
 
             await expect(appDriver.createExpense(expenseRequest, user1))
                 .rejects
-                .toMatchObject({ code: 'PAYER_NOT_PARTICIPANT' });
+                .toMatchObject({ code: 'VALIDATION_ERROR' });
         });
 
         it('should handle equal split with single participant', async () => {
@@ -462,7 +462,7 @@ describe('validation and edge cases', () => {
                 ),
             )
                 .rejects
-                .toMatchObject({ code: 'INVALID_DESCRIPTION' });
+                .toMatchObject({ code: 'VALIDATION_ERROR', data: { detail: 'INVALID_DESCRIPTION' } });
         });
 
         it('should enforce maximum length on expense description', async () => {
@@ -487,7 +487,7 @@ describe('validation and edge cases', () => {
                 ),
             )
                 .rejects
-                .toMatchObject({ code: 'INVALID_DESCRIPTION' });
+                .toMatchObject({ code: 'VALIDATION_ERROR', data: { detail: 'INVALID_DESCRIPTION' } });
         });
 
         it('should handle expense with many participants', async () => {
@@ -560,7 +560,7 @@ describe('validation and edge cases', () => {
                 ),
             )
                 .rejects
-                .toMatchObject({ code: 'INVALID_AMOUNT' });
+                .toMatchObject({ code: 'VALIDATION_ERROR', data: { detail: 'INVALID_AMOUNT' } });
         });
 
         it('should reject creating expense with negative amount', async () => {
@@ -582,7 +582,7 @@ describe('validation and edge cases', () => {
                 ),
             )
                 .rejects
-                .toMatchObject({ code: 'INVALID_AMOUNT' });
+                .toMatchObject({ code: 'VALIDATION_ERROR', data: { detail: 'INVALID_AMOUNT' } });
         });
 
         it('should reject settlement with zero amount', async () => {
@@ -656,20 +656,22 @@ describe('validation and edge cases', () => {
 
     describe('user account endpoints', () => {
         it('should reject registration when privacy policy is not accepted', async () => {
-            await expect(
-                appDriver.registerUser(
-                    new RegisterRequestBuilder()
-                        .withDisplayName('Privacy Reject')
-                        .withEmail('privacy.reject@example.com')
-                        .withPassword('ValidPass123!')
-                        .withTermsAccepted(true)
-                        .withCookiePolicyAccepted(true)
-                        .withPrivacyPolicyAccepted(false)
-                        .build(),
-                ),
-            )
-                .rejects
-                .toThrow(/Privacy Policy/);
+            const result = await appDriver.registerUser(
+                new RegisterRequestBuilder()
+                    .withDisplayName('Privacy Reject')
+                    .withEmail('privacy.reject@example.com')
+                    .withPassword('ValidPass123!')
+                    .withTermsAccepted(true)
+                    .withCookiePolicyAccepted(true)
+                    .withPrivacyPolicyAccepted(false)
+                    .build(),
+            );
+
+            expect(result).toMatchObject({
+                error: {
+                    code: 'VALIDATION_ERROR',
+                },
+            });
         });
 
         describe('changePassword', () => {
@@ -687,7 +689,7 @@ describe('validation and edge cases', () => {
                     ),
                 )
                     .rejects
-                    .toThrow(/password is incorrect/i);
+                    .toMatchObject({ code: 'AUTH_INVALID' });
             });
 
             it('should reject when new password is same as current', async () => {
@@ -701,7 +703,7 @@ describe('validation and edge cases', () => {
                     ),
                 )
                     .rejects
-                    .toThrow(/invalid input/i);
+                    .toMatchObject({ code: 'VALIDATION_ERROR' });
             });
 
             it('should reject when new password is too short', async () => {
@@ -715,7 +717,7 @@ describe('validation and edge cases', () => {
                     ),
                 )
                     .rejects
-                    .toThrow(/invalid input/i);
+                    .toMatchObject({ code: 'VALIDATION_ERROR' });
             });
 
             it('should reject when currentPassword field is missing', async () => {
@@ -728,7 +730,7 @@ describe('validation and edge cases', () => {
                     ),
                 )
                     .rejects
-                    .toThrow(/invalid input/i);
+                    .toMatchObject({ code: 'VALIDATION_ERROR' });
             });
 
             it('should reject when newPassword field is missing', async () => {
@@ -741,7 +743,7 @@ describe('validation and edge cases', () => {
                     ),
                 )
                     .rejects
-                    .toThrow(/invalid input/i);
+                    .toMatchObject({ code: 'VALIDATION_ERROR' });
             });
 
             it('should reject when currentPassword is empty string', async () => {
@@ -755,7 +757,7 @@ describe('validation and edge cases', () => {
                     ),
                 )
                     .rejects
-                    .toThrow(/invalid input/i);
+                    .toMatchObject({ code: 'VALIDATION_ERROR' });
             });
 
             it('should reject when newPassword is empty string', async () => {
@@ -769,7 +771,7 @@ describe('validation and edge cases', () => {
                     ),
                 )
                     .rejects
-                    .toThrow(/invalid input/i);
+                    .toMatchObject({ code: 'VALIDATION_ERROR' });
             });
         });
 
@@ -785,7 +787,7 @@ describe('validation and edge cases', () => {
                     }, user1),
                 )
                     .rejects
-                    .toThrow(/password is incorrect/i);
+                    .toMatchObject({ code: 'AUTH_INVALID' });
             });
 
             it('should reject when new email is same as current email', async () => {
@@ -798,7 +800,7 @@ describe('validation and edge cases', () => {
                     }, user1),
                 )
                     .rejects
-                    .toThrow(/must be different/i);
+                    .toMatchObject({ code: 'INVALID_REQUEST' });
             });
 
             it('should reject when new email has invalid format', async () => {
@@ -809,7 +811,7 @@ describe('validation and edge cases', () => {
                     }, user1),
                 )
                     .rejects
-                    .toThrow(/invalid input/i);
+                    .toMatchObject({ code: 'VALIDATION_ERROR' });
             });
 
             it('should reject when currentPassword field is missing', async () => {
@@ -819,7 +821,7 @@ describe('validation and edge cases', () => {
                     } as any, user1),
                 )
                     .rejects
-                    .toThrow(/invalid input/i);
+                    .toMatchObject({ code: 'VALIDATION_ERROR' });
             });
 
             it('should reject when newEmail field is missing', async () => {
@@ -829,7 +831,7 @@ describe('validation and edge cases', () => {
                     } as any, user1),
                 )
                     .rejects
-                    .toThrow(/invalid input/i);
+                    .toMatchObject({ code: 'VALIDATION_ERROR' });
             });
 
             it('should reject when currentPassword is empty string', async () => {
@@ -840,7 +842,7 @@ describe('validation and edge cases', () => {
                     }, user1),
                 )
                     .rejects
-                    .toThrow(/invalid input/i);
+                    .toMatchObject({ code: 'VALIDATION_ERROR' });
             });
 
             it('should reject when newEmail is empty string', async () => {
@@ -851,7 +853,7 @@ describe('validation and edge cases', () => {
                     }, user1),
                 )
                     .rejects
-                    .toThrow(/invalid input/i);
+                    .toMatchObject({ code: 'VALIDATION_ERROR' });
             });
 
             it('should reject when email is already in use by another account', async () => {
@@ -864,7 +866,7 @@ describe('validation and edge cases', () => {
                     }, user1),
                 )
                     .rejects
-                    .toThrow(/already exists/i);
+                    .toMatchObject({ code: 'ALREADY_EXISTS' });
             });
         });
     });
@@ -902,8 +904,7 @@ describe('validation and edge cases', () => {
         await expect(appDriver.removeGroupMember(groupId, user3, user1))
             .rejects
             .toMatchObject({
-                code: 'INVALID_INPUT',
-                details: { message: 'Cannot remove member with outstanding balance' },
+                code: 'CONFLICT',
             });
     });
 

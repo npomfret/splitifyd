@@ -2,8 +2,9 @@ import { toExpenseId, toGroupId } from '@billsplit-wl/shared';
 import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../../constants';
+import { ErrorCode } from '../../../../errors/ErrorCode';
 import { ExpenseCommentStrategy } from '../../../../services/comments/ExpenseCommentStrategy';
-import { ApiError } from '../../../../utils/errors';
+import { ApiError } from '../../../../errors';
 import { AppDriver } from '../../AppDriver';
 
 describe('ExpenseCommentStrategy', () => {
@@ -52,7 +53,7 @@ describe('ExpenseCommentStrategy', () => {
             // Assert
             expect(error).toBeInstanceOf(ApiError);
             expect(error.statusCode).toBe(HTTP_STATUS.NOT_FOUND);
-            expect(error.code).toBe('EXPENSE_NOT_FOUND');
+            expect(error.code).toBe(ErrorCode.NOT_FOUND);
         });
 
         it('should throw NOT_FOUND when expense is soft deleted', async () => {
@@ -82,7 +83,7 @@ describe('ExpenseCommentStrategy', () => {
             // Assert
             expect(error).toBeInstanceOf(ApiError);
             expect(error.statusCode).toBe(HTTP_STATUS.NOT_FOUND);
-            expect(error.code).toBe('EXPENSE_NOT_FOUND');
+            expect(error.code).toBe(ErrorCode.NOT_FOUND);
         });
 
         it('should throw FORBIDDEN when user is not a member of expense group', async () => {
@@ -112,7 +113,7 @@ describe('ExpenseCommentStrategy', () => {
             // Assert
             expect(error).toBeInstanceOf(ApiError);
             expect(error.statusCode).toBe(HTTP_STATUS.FORBIDDEN);
-            expect(error.code).toBe('ACCESS_DENIED');
+            expect(error.code).toBe(ErrorCode.FORBIDDEN);
         });
     });
 });

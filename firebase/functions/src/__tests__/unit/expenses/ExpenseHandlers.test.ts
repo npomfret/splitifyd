@@ -89,7 +89,8 @@ describe('ExpenseHandlers - Unit Tests', () => {
             await expect(appDriver.createExpense(expenseRequest, userId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_GROUP_ID',
+                    code: 'VALIDATION_ERROR',
+                    data: expect.objectContaining({ detail: 'INVALID_GROUP_ID' }),
                 }),
             );
         });
@@ -103,7 +104,8 @@ describe('ExpenseHandlers - Unit Tests', () => {
             await expect(appDriver.createExpense(expenseRequest, userId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'MISSING_PAYER',
+                    code: 'VALIDATION_ERROR',
+                    data: expect.objectContaining({ detail: 'MISSING_PAYER' }),
                 }),
             );
         });
@@ -117,7 +119,8 @@ describe('ExpenseHandlers - Unit Tests', () => {
             await expect(appDriver.createExpense(expenseRequest, userId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_AMOUNT',
+                    code: 'VALIDATION_ERROR',
+                    data: expect.objectContaining({ detail: 'INVALID_AMOUNT' }),
                 }),
             );
         });
@@ -131,7 +134,8 @@ describe('ExpenseHandlers - Unit Tests', () => {
             await expect(appDriver.createExpense(expenseRequest, userId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_AMOUNT',
+                    code: 'VALIDATION_ERROR',
+                    data: expect.objectContaining({ detail: 'INVALID_AMOUNT' }),
                 }),
             );
         });
@@ -145,7 +149,8 @@ describe('ExpenseHandlers - Unit Tests', () => {
             await expect(appDriver.createExpense(expenseRequest, userId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_DESCRIPTION',
+                    code: 'VALIDATION_ERROR',
+                    data: expect.objectContaining({ detail: 'INVALID_DESCRIPTION' }),
                 }),
             );
         });
@@ -159,7 +164,8 @@ describe('ExpenseHandlers - Unit Tests', () => {
             await expect(appDriver.createExpense(expenseRequest, userId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_LABEL',
+                    code: 'VALIDATION_ERROR',
+                    data: expect.objectContaining({ detail: 'INVALID_LABEL' }),
                 }),
             );
         });
@@ -173,7 +179,8 @@ describe('ExpenseHandlers - Unit Tests', () => {
             await expect(appDriver.createExpense(expenseRequest, userId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_SPLIT_TYPE',
+                    code: 'VALIDATION_ERROR',
+                    data: expect.objectContaining({ detail: 'INVALID_SPLIT_TYPE' }),
                 }),
             );
         });
@@ -187,7 +194,8 @@ describe('ExpenseHandlers - Unit Tests', () => {
             await expect(appDriver.createExpense(expenseRequest, userId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_PARTICIPANTS',
+                    code: 'VALIDATION_ERROR',
+                    data: expect.objectContaining({ detail: 'INVALID_PARTICIPANTS' }),
                 }),
             );
         });
@@ -205,7 +213,7 @@ describe('ExpenseHandlers - Unit Tests', () => {
             await expect(appDriver.createExpense(expenseRequest, userId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'PAYER_NOT_PARTICIPANT',
+                    code: 'VALIDATION_ERROR',
                 }),
             );
         });
@@ -220,7 +228,7 @@ describe('ExpenseHandlers - Unit Tests', () => {
             await expect(appDriver.createExpense(expenseRequest, userId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_AMOUNT_PRECISION',
+                    code: 'VALIDATION_ERROR',
                 }),
             );
         });
@@ -295,7 +303,7 @@ describe('ExpenseHandlers - Unit Tests', () => {
             await expect(appDriver.updateExpense('', updateRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_EXPENSE_ID',
+                    code: 'VALIDATION_ERROR',
                 }),
             );
         });
@@ -306,7 +314,7 @@ describe('ExpenseHandlers - Unit Tests', () => {
             await expect(appDriver.updateExpense('test-expense', updateRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'NO_UPDATE_FIELDS',
+                    code: 'INVALID_REQUEST',
                 }),
             );
         });
@@ -319,7 +327,7 @@ describe('ExpenseHandlers - Unit Tests', () => {
             await expect(appDriver.updateExpense('test-expense', updateRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_AMOUNT_PRECISION',
+                    code: 'VALIDATION_ERROR',
                 }),
             );
         });
@@ -332,7 +340,8 @@ describe('ExpenseHandlers - Unit Tests', () => {
             await expect(appDriver.updateExpense('test-expense', updateRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_DESCRIPTION',
+                    code: 'VALIDATION_ERROR',
+                    data: expect.objectContaining({ detail: 'INVALID_DESCRIPTION' }),
                 }),
             );
         });
@@ -345,7 +354,8 @@ describe('ExpenseHandlers - Unit Tests', () => {
             await expect(appDriver.updateExpense('test-expense', updateRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_LABEL',
+                    code: 'VALIDATION_ERROR',
+                    data: expect.objectContaining({ detail: 'INVALID_LABEL' }),
                 }),
             );
         });
@@ -382,7 +392,7 @@ describe('ExpenseHandlers - Unit Tests', () => {
             await expect(appDriver.deleteExpense('', 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_EXPENSE_ID',
+                    code: 'VALIDATION_ERROR',
                 }),
             );
         });
@@ -471,7 +481,7 @@ describe('ExpenseHandlers - Unit Tests', () => {
             await expect(appDriver.getExpenseFullDetails('', 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_EXPENSE_ID',
+                    code: 'VALIDATION_ERROR',
                 }),
             );
         });

@@ -4,10 +4,10 @@ import { OAuth2Client } from 'google-auth-library';
 import { getConfig } from '../client-config';
 import { getComponentBuilder } from '../ComponentBuilderSingleton';
 import { AUTH } from '../constants';
+import { Errors, ErrorDetail } from '../errors';
 import { logger } from '../logger';
 import { LoggerContext } from '../logger';
 import { getServiceConfig } from '../merge/ServiceConfig';
-import { Errors, sendError } from '../utils/errors';
 
 const applicationBuilder = getComponentBuilder();
 const firestoreReader = applicationBuilder.buildFirestoreReader();
@@ -31,13 +31,10 @@ export const authenticate = async (req: AuthenticatedRequest, res: Response, nex
         return;
     }
 
-    const correlationId = req.headers['x-correlation-id'] as string;
-
     // Extract token from Authorization header
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        sendError(res, Errors.UNAUTHORIZED(), correlationId);
-        return;
+        throw Errors.authRequired(ErrorDetail.TOKEN_MISSING);
     }
 
     const token = authHeader.substring(AUTH.BEARER_TOKEN_PREFIX_LENGTH); // Remove 'Bearer ' prefix
@@ -50,11 +47,11 @@ export const authenticate = async (req: AuthenticatedRequest, res: Response, nex
         const userRecord = await authService.getUser(toUserId(decodedToken.uid));
 
         if (!userRecord) {
-            throw new Error('User not found in Firebase Auth');
+            throw Errors.notFound('User', ErrorDetail.USER_NOT_FOUND);
         }
 
         if (!userRecord.displayName) {
-            throw new Error('User missing required field: displayName is mandatory');
+            throw Errors.validationError('displayName', ErrorDetail.MISSING_FIELD);
         }
 
         // Fetch user role from Firestore using centralized reader
@@ -75,8 +72,13 @@ export const authenticate = async (req: AuthenticatedRequest, res: Response, nex
 
         next();
     } catch (error) {
-        logger.error('Token verification failed', error, { correlationId });
-        sendError(res, Errors.INVALID_TOKEN(), correlationId);
+        // Re-throw ApiErrors (they're already properly formatted)
+        if (error instanceof Error && error.name === 'ApiError') {
+            throw error;
+        }
+        // Wrap other errors as auth invalid
+        logger.error('Token verification failed', error, { correlationId: req.headers['x-correlation-id'] });
+        throw Errors.authInvalid(ErrorDetail.TOKEN_INVALID);
     }
 };
 
@@ -84,27 +86,21 @@ export const authenticate = async (req: AuthenticatedRequest, res: Response, nex
  * Admin middleware - requires user to be authenticated and have admin role
  * Must be used after authenticate middleware
  */
-const requireAdmin = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
+const requireAdmin = async (req: AuthenticatedRequest, _res: Response, next: NextFunction): Promise<void> => {
     // Skip for OPTIONS requests (CORS preflight)
     if (req.method === 'OPTIONS') {
         next();
         return;
     }
 
-    const correlationId = req.headers['x-correlation-id'] as string;
-
     // Check if user is authenticated (should be set by authenticate middleware)
     if (!req.user) {
-        // Admin access attempted without authentication
-        sendError(res, Errors.UNAUTHORIZED(), correlationId);
-        return;
+        throw Errors.authRequired();
     }
 
     // Check if user has admin role
     if (req.user.role !== SystemUserRoles.SYSTEM_ADMIN) {
-        // Admin access denied - insufficient permissions
-        sendError(res, Errors.FORBIDDEN(), correlationId);
-        return;
+        throw Errors.forbidden(ErrorDetail.INSUFFICIENT_PERMISSIONS);
     }
 
     next();
@@ -123,22 +119,18 @@ export const authenticateAdmin = async (req: AuthenticatedRequest, res: Response
     });
 };
 
-const requireSystemRole = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
+const requireSystemRole = async (req: AuthenticatedRequest, _res: Response, next: NextFunction): Promise<void> => {
     if (req.method === 'OPTIONS') {
         next();
         return;
     }
 
-    const correlationId = req.headers['x-correlation-id'] as string;
-
     if (!req.user) {
-        sendError(res, Errors.UNAUTHORIZED(), correlationId);
-        return;
+        throw Errors.authRequired();
     }
 
     if (req.user.role !== SystemUserRoles.SYSTEM_USER && req.user.role !== SystemUserRoles.SYSTEM_ADMIN) {
-        sendError(res, Errors.FORBIDDEN(), correlationId);
-        return;
+        throw Errors.forbidden(ErrorDetail.INSUFFICIENT_PERMISSIONS);
     }
 
     next();
@@ -158,23 +150,19 @@ export const authenticateSystemUser = async (req: AuthenticatedRequest, res: Res
  * Tenant admin middleware - requires user to be authenticated and have tenant-admin or system-admin role
  * Must be used after authenticate middleware
  */
-const requireTenantAdmin = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
+const requireTenantAdmin = async (req: AuthenticatedRequest, _res: Response, next: NextFunction): Promise<void> => {
     if (req.method === 'OPTIONS') {
         next();
         return;
     }
 
-    const correlationId = req.headers['x-correlation-id'] as string;
-
     if (!req.user) {
-        sendError(res, Errors.UNAUTHORIZED(), correlationId);
-        return;
+        throw Errors.authRequired();
     }
 
     // Allow both tenant-admin and system-admin roles
     if (req.user.role !== SystemUserRoles.TENANT_ADMIN && req.user.role !== SystemUserRoles.SYSTEM_ADMIN) {
-        sendError(res, Errors.FORBIDDEN(), correlationId);
-        return;
+        throw Errors.forbidden(ErrorDetail.INSUFFICIENT_PERMISSIONS);
     }
 
     next();
@@ -203,7 +191,7 @@ export const authenticateTenantAdmin = async (req: AuthenticatedRequest, res: Re
  * In emulator mode, this check is skipped since the StubCloudTasksClient doesn't
  * send real OIDC tokens.
  */
-export const authenticateCloudTask = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const authenticateCloudTask = async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
     const correlationId = req.headers['x-correlation-id'] as string;
     const config = getConfig();
 
@@ -216,8 +204,7 @@ export const authenticateCloudTask = async (req: Request, res: Response, next: N
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
         logger.warn('Cloud Task request missing authorization header', { correlationId });
-        sendError(res, Errors.UNAUTHORIZED(), correlationId);
-        return;
+        throw Errors.authRequired(ErrorDetail.TOKEN_MISSING);
     }
 
     const token = authHeader.substring(AUTH.BEARER_TOKEN_PREFIX_LENGTH);
@@ -234,7 +221,7 @@ export const authenticateCloudTask = async (req: Request, res: Response, next: N
 
         const payload = ticket.getPayload();
         if (!payload) {
-            throw new Error('OIDC token payload is empty');
+            throw Errors.authInvalid(ErrorDetail.TOKEN_INVALID);
         }
 
         // Verify the token is from a GCP service account
@@ -244,8 +231,7 @@ export const authenticateCloudTask = async (req: Request, res: Response, next: N
                 correlationId,
                 email: payload.email,
             });
-            sendError(res, Errors.FORBIDDEN(), correlationId);
-            return;
+            throw Errors.forbidden(ErrorDetail.INSUFFICIENT_PERMISSIONS);
         }
 
         // Token is valid and from a service account
@@ -256,7 +242,11 @@ export const authenticateCloudTask = async (req: Request, res: Response, next: N
 
         next();
     } catch (error) {
+        // Re-throw ApiErrors
+        if (error instanceof Error && error.name === 'ApiError') {
+            throw error;
+        }
         logger.error('Cloud Task OIDC token verification failed', error, { correlationId });
-        sendError(res, Errors.INVALID_TOKEN(), correlationId);
+        throw Errors.authInvalid(ErrorDetail.TOKEN_INVALID);
     }
 };

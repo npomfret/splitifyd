@@ -18,11 +18,11 @@ import { toVersionHash } from '@billsplit-wl/shared';
 import * as crypto from 'crypto';
 import { z } from 'zod';
 import { ALLOWED_POLICY_IDS, HTTP_STATUS } from '../constants';
+import { ApiError, Errors, ErrorDetail } from '../errors';
 import { logger } from '../logger';
 import { measureDb } from '../monitoring/measure';
 import { PerformanceTimer } from '../monitoring/PerformanceTimer';
 import { PolicyDocumentSchema } from '../schemas';
-import { ApiError } from '../utils/errors';
 import { LoggerContext } from '../utils/logger-context';
 import { IFirestoreReader } from './firestore';
 import { IFirestoreWriter } from './firestore';
@@ -42,13 +42,13 @@ export class PolicyService {
     private async validatePolicyAfterUpdate(policyId: PolicyId, operationType: 'update' | 'publish' | 'version deletion', additionalContext: Record<string, unknown> = {}): Promise<void> {
         const updatedDoc = await this.firestoreReader.getRawPolicyDocument(policyId);
         if (!updatedDoc) {
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'POLICY_NOT_FOUND', `Policy not found after ${operationType}`);
+            throw Errors.notFound('Policy', ErrorDetail.POLICY_NOT_FOUND);
         }
 
         try {
             const rawData = updatedDoc.data();
             if (!rawData) {
-                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'POLICY_DATA_NULL', `Policy document data is null after ${operationType}`);
+                throw Errors.serviceError(ErrorDetail.DATABASE_ERROR);
             }
             // Add document ID to data for validation
             const dataWithId = { ...rawData, id: updatedDoc.id };
@@ -59,7 +59,7 @@ export class PolicyService {
                 ...additionalContext,
                 validationErrors: validationError instanceof z.ZodError ? validationError.issues : undefined,
             });
-            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, `INVALID_POLICY_AFTER_${operationType.replace(' ', '_').toUpperCase()}`, `Policy document became invalid after ${operationType}`);
+            throw Errors.serviceError(ErrorDetail.UPDATE_FAILED);
         }
     }
 
@@ -89,7 +89,7 @@ export class PolicyService {
                 throw error;
             }
             logger.error('Failed to list policies', error as Error);
-            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'POLICY_LIST_FAILED', 'Failed to retrieve policies');
+            throw Errors.serviceError(ErrorDetail.POLICY_SERVICE_ERROR);
         }
     }
 
@@ -101,7 +101,7 @@ export class PolicyService {
             const policy = await this.firestoreReader.getPolicy(id);
 
             if (!policy) {
-                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'POLICY_NOT_FOUND', 'Policy not found');
+                throw Errors.notFound('Policy', ErrorDetail.POLICY_NOT_FOUND);
             }
 
             return policy as PolicyDTO;
@@ -110,7 +110,7 @@ export class PolicyService {
                 throw error;
             }
             logger.error('Failed to get policy', error as Error, { policyId: id });
-            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'POLICY_GET_FAILED', 'Failed to retrieve policy');
+            throw Errors.serviceError(ErrorDetail.POLICY_SERVICE_ERROR);
         }
     }
 
@@ -122,16 +122,16 @@ export class PolicyService {
             const policy = await this.firestoreReader.getPolicy(id);
 
             if (!policy) {
-                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'POLICY_NOT_FOUND', 'Policy not found');
+                throw Errors.notFound('Policy', ErrorDetail.POLICY_NOT_FOUND);
             }
 
             if (!policy.versions) {
-                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'CORRUPT_POLICY_DATA', 'Policy document is missing versions data');
+                throw Errors.serviceError(ErrorDetail.DATABASE_ERROR);
             }
 
             const version = policy.versions[hash];
             if (!version) {
-                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'VERSION_NOT_FOUND', 'Policy version not found');
+                throw Errors.notFound('Policy version', 'VERSION_NOT_FOUND');
             }
 
             return {
@@ -143,7 +143,7 @@ export class PolicyService {
                 throw error;
             }
             logger.error('Failed to get policy version', error as Error, { policyId: id, versionHash: hash });
-            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'VERSION_GET_FAILED', 'Failed to retrieve policy version');
+            throw Errors.serviceError(ErrorDetail.POLICY_SERVICE_ERROR);
         }
     }
 
@@ -164,7 +164,7 @@ export class PolicyService {
             timer.endPhase();
 
             if (!doc) {
-                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'POLICY_NOT_FOUND', 'Policy not found');
+                throw Errors.notFound('Policy', ErrorDetail.POLICY_NOT_FOUND);
             }
 
             const versionHash = this.calculatePolicyHash(text);
@@ -177,14 +177,14 @@ export class PolicyService {
 
             const data = doc.data();
             if (!data || !data.versions) {
-                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'CORRUPT_POLICY_DATA', 'Policy document is missing versions data');
+                throw Errors.serviceError(ErrorDetail.DATABASE_ERROR);
             }
 
             const versions = { ...data.versions };
 
             // Check if this exact version already exists
             if (versions[versionHash]) {
-                throw new ApiError(HTTP_STATUS.CONFLICT, 'VERSION_ALREADY_EXISTS', 'A version with this content already exists');
+                throw Errors.alreadyExists('Policy version', ErrorDetail.VERSION_EXISTS);
             }
 
             versions[versionHash] = newVersion;
@@ -223,7 +223,7 @@ export class PolicyService {
                 throw error;
             }
             logger.error('Failed to update policy', error as Error, { policyId: id });
-            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'POLICY_UPDATE_FAILED', 'Failed to update policy');
+            throw Errors.serviceError(ErrorDetail.UPDATE_FAILED);
         }
     }
 
@@ -232,7 +232,7 @@ export class PolicyService {
      */
     async publishPolicyInternal(id: PolicyId, versionHash: VersionHash): Promise<PublishPolicyResult> {
         if (!versionHash) {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'VERSION_HASH_REQUIRED', 'Version hash is required');
+            throw Errors.validationError('versionHash', ErrorDetail.MISSING_FIELD);
         }
 
         try {
@@ -243,17 +243,17 @@ export class PolicyService {
             timer.endPhase();
 
             if (!doc) {
-                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'POLICY_NOT_FOUND', 'Policy not found');
+                throw Errors.notFound('Policy', ErrorDetail.POLICY_NOT_FOUND);
             }
 
             const data = doc.data();
             if (!data || !data.versions) {
-                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'CORRUPT_POLICY_DATA', 'Policy document is missing versions data');
+                throw Errors.serviceError(ErrorDetail.DATABASE_ERROR);
             }
 
             // Verify the version exists
             if (!data.versions[versionHash]) {
-                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'VERSION_NOT_FOUND', 'Policy version not found');
+                throw Errors.notFound('Policy version', 'VERSION_NOT_FOUND');
             }
 
             // Update current version hash (updatedAt is automatically added by FirestoreWriter)
@@ -276,7 +276,7 @@ export class PolicyService {
                 throw error;
             }
             logger.error('Failed to publish policy', error as Error, { policyId: id, versionHash });
-            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'POLICY_PUBLISH_FAILED', 'Failed to publish policy');
+            throw Errors.serviceError(ErrorDetail.UPDATE_FAILED);
         }
     }
 
@@ -310,7 +310,7 @@ export class PolicyService {
      */
     async createPolicyInternal(policyName: PolicyName, text: PolicyText, customId?: PolicyId): Promise<CreatePolicyResult> {
         if (!policyName || !text) {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_FIELDS', 'Policy name and text are required');
+            throw Errors.validationError('policyName', ErrorDetail.MISSING_FIELD);
         }
 
         try {
@@ -321,11 +321,7 @@ export class PolicyService {
 
             // Validate that only standard policies can be created
             if (!ALLOWED_POLICY_IDS.has(id)) {
-                throw new ApiError(
-                    HTTP_STATUS.BAD_REQUEST,
-                    'INVALID_POLICY_ID',
-                    `Only standard policies are allowed. Policy ID '${id}' is not permitted. Allowed policies: ${Array.from(ALLOWED_POLICY_IDS).join(', ')}`,
-                );
+                throw Errors.invalidRequest(`Only standard policies are allowed. Policy ID '${id}' is not permitted. Allowed policies: ${Array.from(ALLOWED_POLICY_IDS).join(', ')}`);
             }
 
             // Check if policy already exists
@@ -333,7 +329,7 @@ export class PolicyService {
             const existingDoc = await this.firestoreReader.getRawPolicyDocument(id);
             timer.endPhase();
             if (existingDoc) {
-                throw new ApiError(HTTP_STATUS.CONFLICT, 'POLICY_EXISTS', 'Policy already exists');
+                throw Errors.alreadyExists('Policy', ErrorDetail.POLICY_EXISTS);
             }
 
             const versionHash = this.calculatePolicyHash(text);
@@ -368,7 +364,7 @@ export class PolicyService {
                 throw error;
             }
             logger.error('Failed to create policy', error as Error, { policyName, customId });
-            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'POLICY_CREATE_FAILED', 'Failed to create policy');
+            throw Errors.serviceError(ErrorDetail.CREATION_FAILED);
         }
     }
 
@@ -397,29 +393,29 @@ export class PolicyService {
             timer.endPhase();
 
             if (!doc) {
-                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'POLICY_NOT_FOUND', 'Policy not found');
+                throw Errors.notFound('Policy', ErrorDetail.POLICY_NOT_FOUND);
             }
 
             const data = doc.data();
             if (!data || !data.versions) {
-                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'CORRUPT_POLICY_DATA', 'Policy document is missing versions data');
+                throw Errors.serviceError(ErrorDetail.DATABASE_ERROR);
             }
 
             const versions = data.versions;
 
             // Cannot delete current version
             if (data.currentVersionHash === hash) {
-                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'CANNOT_DELETE_CURRENT', 'Cannot delete the current published version');
+                throw Errors.invalidRequest('Cannot delete the current published version');
             }
 
             // Cannot delete if it's the only version
             if (Object.keys(versions).length <= 1) {
-                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'CANNOT_DELETE_ONLY', 'Cannot delete the only version of a policy');
+                throw Errors.invalidRequest('Cannot delete the only version of a policy');
             }
 
             // Version must exist
             if (!versions[hash]) {
-                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'VERSION_NOT_FOUND', 'Version not found');
+                throw Errors.notFound('Policy version', 'VERSION_NOT_FOUND');
             }
 
             // Remove the version from the versions object
@@ -444,7 +440,7 @@ export class PolicyService {
                 throw error;
             }
             logger.error('Failed to delete policy version', error as Error, { policyId: id, versionHash: hash });
-            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'VERSION_DELETE_FAILED', 'Failed to delete policy version');
+            throw Errors.serviceError(ErrorDetail.DELETE_FAILED);
         }
     }
 
@@ -456,16 +452,16 @@ export class PolicyService {
             const policy = await this.firestoreReader.getPolicy(id);
 
             if (!policy) {
-                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'POLICY_NOT_FOUND', 'Policy not found');
+                throw Errors.notFound('Policy', ErrorDetail.POLICY_NOT_FOUND);
             }
 
             if (!policy.currentVersionHash || !policy.versions || !policy.policyName) {
-                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'CORRUPT_POLICY_DATA', 'Policy document is missing required fields');
+                throw Errors.serviceError(ErrorDetail.DATABASE_ERROR);
             }
 
             const currentVersion = policy.versions[policy.currentVersionHash];
             if (!currentVersion) {
-                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'VERSION_NOT_FOUND', 'Current policy version not found in versions map');
+                throw Errors.serviceError(ErrorDetail.DATABASE_ERROR);
             }
 
             return {
@@ -480,7 +476,7 @@ export class PolicyService {
                 throw error;
             }
             logger.error('Failed to get current policy', error as Error, { policyId: id });
-            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'POLICY_GET_FAILED', 'Failed to retrieve current policy');
+            throw Errors.serviceError(ErrorDetail.POLICY_SERVICE_ERROR);
         }
     }
 }

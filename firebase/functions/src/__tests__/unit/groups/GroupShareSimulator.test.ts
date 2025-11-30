@@ -59,7 +59,7 @@ describe('Group sharing workflow (stub firestore)', () => {
 
         // Non-members cannot generate links
         await expect(appDriver.generateShareableLink(group.id, undefined, outsider)).rejects.toMatchObject({
-            code: 'UNAUTHORIZED',
+            code: 'FORBIDDEN',
         });
 
         // Additional users can join via the same link
@@ -72,12 +72,12 @@ describe('Group sharing workflow (stub firestore)', () => {
 
         // Duplicate joins are rejected with a clear error
         await expect(appDriver.joinGroupByLink(ownerShare.shareToken, undefined, joiner)).rejects.toMatchObject({
-            code: 'ALREADY_MEMBER',
+            code: 'ALREADY_EXISTS',
         });
 
-        // Invalid tokens surface INVALID_LINK errors
+        // Invalid tokens surface NOT_FOUND errors (share link not found)
         await expect(appDriver.joinGroupByLink('INVALID_TOKEN_12345', undefined, member)).rejects.toMatchObject({
-            code: 'INVALID_LINK',
+            code: 'NOT_FOUND',
         });
     });
 

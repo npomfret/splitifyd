@@ -45,7 +45,7 @@ describe('PolicyService - Integration Tests (Essential Firebase Operations Only)
                 createResult = await policyService.createPolicy(policyName, initialText);
             } catch (error: any) {
                 // If policy already exists from previous test run, get the existing one
-                if (error.code === 'POLICY_EXISTS') {
+                if (error.code === 'CONFLICT' || error.code === 'ALREADY_EXISTS') {
                     const existingPolicy = await policyService.getPolicy(policyId);
                     createResult = {
                         id: existingPolicy.id,

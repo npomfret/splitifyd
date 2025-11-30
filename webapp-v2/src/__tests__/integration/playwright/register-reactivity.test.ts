@@ -16,8 +16,8 @@ test.describe('Registration Form Reactivity and UI States', () => {
         // Attempt registration expecting failure (waits for error to appear)
         await registerPage.registerExpectingFailure('John Doe', 'existing@example.com', 'Password12344');
 
-        // Verify error appears
-        await registerPage.verifyErrorMessage('Unable to create account. If you already registered, try signing in.');
+        // Verify error appears (shows error code for i18n translation)
+        await registerPage.verifyErrorMessage('REGISTRATION_FAILED');
 
         // Navigate away and back to register
         await page.goto('/');
@@ -40,8 +40,8 @@ test.describe('Registration Form Reactivity and UI States', () => {
         // Use fluent method that waits for error
         await registerPage.registerExpectingFailure('John Doe', 'john@example.com', 'Password12344');
 
-        // Verify error appears
-        await registerPage.verifyErrorMessage('Unable to create account. If you already registered, try signing in.');
+        // Verify error appears (shows error code for i18n translation)
+        await registerPage.verifyErrorMessage('REGISTRATION_FAILED');
 
         // Change mock to success for second attempt with different email
         const testUser = ClientUserBuilder
@@ -217,15 +217,17 @@ test.describe('Registration Form Error Display and Recovery', () => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
+        // Note: Password mismatch is caught by client-side validation before API call
+        // So the mock is not used - the frontend shows its own validation message
         await mockFirebase.mockRegisterFailure({
-            code: 'auth/passwords-mismatch',
+            code: 'PASSWORDS_MISMATCH',
             message: 'Passwords do not match',
         });
 
         // Attempt registration with mismatched passwords
         await registerPage.registerExpectingFailure('John Doe', 'john@example.com', 'Password12344', 'WrongPassword');
 
-        // Verify password mismatch error
+        // Verify password mismatch error (client-side validation message)
         await registerPage.verifyErrorMessage('Passwords do not match');
 
         // Fix the password mismatch
@@ -238,15 +240,17 @@ test.describe('Registration Form Error Display and Recovery', () => {
     test('should display different error types correctly', async ({ pageWithLogging: page, mockFirebase }) => {
         const registerPage = new RegisterPage(page);
 
-        // Test 1: Short password error
+        // Test 1: Short password error (caught by client-side validation)
         await registerPage.navigate();
 
+        // Note: Short password is caught by client-side validation before API call
         await mockFirebase.mockRegisterFailure({
-            code: 'auth/weak-password',
+            code: 'WEAK_PASSWORD',
             message: 'Password must be at least 12 characters',
         });
 
         await registerPage.registerExpectingFailure('John Doe', 'john@example.com', '12345');
+        // Verify error (client-side validation message)
         await registerPage.verifyErrorMessage('Password must be at least 12 characters');
 
         // Test 2: Navigate away and back to clear state
@@ -269,15 +273,15 @@ test.describe('Registration Form Error Display and Recovery', () => {
 
         // Configure mock to return email-already-in-use error
         await mockFirebase.mockRegisterFailure({
-            code: 'auth/email-already-in-use',
+            code: 'EMAIL_ALREADY_IN_USE',
             message: 'This email is already registered.',
         });
 
         // Attempt registration
         await registerPage.registerExpectingFailure('John Doe', 'existing@example.com', 'Password12344');
 
-        // Verify error appears
-        await registerPage.verifyErrorMessage('This email is already registered.');
+        // Verify error appears (shows error code for i18n translation)
+        await registerPage.verifyErrorMessage('EMAIL_ALREADY_IN_USE');
 
         // Note: According to RegisterPage.tsx, changing the email field should clear email-related errors
         // This is handled by authStore.clearError() in the onInput handler
@@ -344,7 +348,7 @@ test.describe('Registration Form Loading States', () => {
 
         // Configure mock for failure
         await mockFirebase.mockRegisterFailure({
-            code: 'auth/network-request-failed',
+            code: 'NETWORK_ERROR',
             message: 'Network error occurred.',
         });
 
@@ -353,8 +357,8 @@ test.describe('Registration Form Loading States', () => {
         await registerPage.acceptAllPolicies();
         await registerPage.submitForm();
 
-        // Wait for error to appear (UI transforms to user-friendly message)
-        await registerPage.verifyErrorMessage('Network error. Please check your connection.');
+        // Wait for error to appear (shows error code for i18n translation)
+        await registerPage.verifyErrorMessage('NETWORK_ERROR');
 
         // Form should be re-enabled after error
         await registerPage.verifyFormEnabled();

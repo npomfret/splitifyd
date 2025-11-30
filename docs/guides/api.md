@@ -17,7 +17,7 @@ The API is built on Express.js running as a Firebase Cloud Function. All routes 
 | `packages/shared/src/schemas/apiSchemas.ts` | Zod schemas for runtime response validation |
 | `firebase/functions/src/index.ts` | Express app entry point, route registration |
 | `firebase/functions/src/routes/route-config.ts` | Route definitions mapping paths to handlers |
-| `firebase/functions/src/utils/errors.ts` | `ApiError` class and standard error factory (`Errors`) |
+| `firebase/functions/src/errors/` | Error system: `ApiError`, `ErrorCode`, and `Errors` factory |
 | `firebase/functions/src/constants.ts` | `HTTP_STATUS` codes and other constants |
 
 ### API Interface Hierarchy
@@ -124,35 +124,44 @@ User roles are stored in Firestore at `users/{userId}` with a required `role` fi
 
 ### Error Response Format
 
-All errors follow a single structured format:
+All errors follow a single structured format (no `message` field - clients use `code` for i18n):
 
 ```
 {
   "error": {
     "code": "ERROR_CODE",
-    "message": "Human-readable description",
-    "details": { ... },        // Optional field-specific details
-    "correlationId": "..."     // Optional request correlation ID
+    "detail": "DETAIL_CODE",     // Optional - specific cause for debugging
+    "resource": "group",         // Optional - affected resource type
+    "field": "amount",           // Optional - specific field for validation errors
+    "correlationId": "..."       // Optional request correlation ID
   }
 }
 ```
 
+### Error Code Architecture
+
+The error system uses a **two-tier hierarchy** for i18n support:
+
+- **Tier 1 (Category codes)**: ~12 codes for client-side translation (e.g., `VALIDATION_ERROR`, `NOT_FOUND`, `FORBIDDEN`)
+- **Tier 2 (Detail codes)**: 100+ specific codes for debugging (e.g., `INVALID_AMOUNT`, `MEMBER_NOT_IN_GROUP`)
+
+Clients translate category codes to user-facing messages. Detail codes are for logging/debugging.
+
 ### Standard Error Codes
 
-The `Errors` factory in `firebase/functions/src/utils/errors.ts` provides standard errors:
+The `Errors` factory in `firebase/functions/src/errors/Errors.ts` provides standard errors:
 
 | Factory | Code | HTTP Status | Usage |
 |---------|------|-------------|-------|
-| `Errors.UNAUTHORIZED()` | `UNAUTHORIZED` | 401 | Missing authentication |
-| `Errors.INVALID_TOKEN()` | `INVALID_TOKEN` | 401 | Bad or expired token |
-| `Errors.FORBIDDEN()` | `FORBIDDEN` | 403 | Insufficient permissions |
-| `Errors.INVALID_INPUT(details)` | `INVALID_INPUT` | 400 | General validation failure |
-| `Errors.MISSING_FIELD(field)` | `MISSING_FIELD` | 400 | Required field not provided |
-| `Errors.NOT_FOUND(resource)` | `NOT_FOUND` | 404 | Resource doesn't exist |
-| `Errors.ALREADY_EXISTS(resource)` | `ALREADY_EXISTS` | 409 | Duplicate resource |
-| `Errors.CONCURRENT_UPDATE()` | `CONCURRENT_UPDATE` | 409 | Optimistic locking failure |
+| `Errors.authRequired()` | `AUTH_REQUIRED` | 401 | Missing authentication |
+| `Errors.invalidToken()` | `INVALID_TOKEN` | 401 | Bad or expired token |
+| `Errors.forbidden()` | `FORBIDDEN` | 403 | Insufficient permissions |
+| `Errors.validationError()` | `VALIDATION_ERROR` | 400 | Input validation failure |
+| `Errors.notFound()` | `NOT_FOUND` | 404 | Resource doesn't exist |
+| `Errors.conflict()` | `CONFLICT` | 409 | Duplicate or concurrent update |
+| `Errors.invalidRequest()` | `INVALID_REQUEST` | 400 | Business rule violation |
 
-Additionally, `VALIDATION_ERROR` is returned by the Zod validation layer (via `createZodErrorMapper`) for field-specific schema validation failures.
+All factory methods accept optional `detail`, `resource`, and `field` parameters for specificity.
 
 ### Validation Errors
 
@@ -246,10 +255,10 @@ Schema validation tests in `packages/shared/src/__tests__/unit/api-schemas.test.
 
 **Deleting a resource:** DELETE, return 204 No Content
 
-**Validation failure:** Return 400 with `VALIDATION_ERROR`, `INVALID_INPUT`, or `MISSING_FIELD`
+**Validation failure:** Return 400 with `VALIDATION_ERROR`
 
 **Not found:** Return 404 with `NOT_FOUND`
 
 **Permission denied:** Return 403 with `FORBIDDEN`
 
-**Unauthenticated:** Return 401 with `UNAUTHORIZED`
+**Unauthenticated:** Return 401 with `AUTH_REQUIRED`

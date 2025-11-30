@@ -1,5 +1,5 @@
 import { ChangeEmailRequestSchema, ChangePasswordRequestSchema, UpdateUserProfileRequestSchema } from '@billsplit-wl/shared';
-import { Errors } from '../utils/errors';
+import { ErrorDetail, Errors } from '../errors';
 import { createRequestValidator, createZodErrorMapper, sanitizeInputString } from '../validation/common';
 
 interface UpdateUserProfileRequest {
@@ -11,7 +11,7 @@ interface UpdateUserProfileRequest {
 const mapUpdateProfileError = createZodErrorMapper(
     {
         displayName: {
-            code: 'INVALID_INPUT',
+            code: 'VALIDATION_ERROR',
             details: (issue) => {
                 if (issue.code === 'invalid_type') {
                     return 'Display name cannot be empty';
@@ -20,16 +20,16 @@ const mapUpdateProfileError = createZodErrorMapper(
             },
         },
         photoURL: {
-            code: 'INVALID_INPUT',
+            code: 'VALIDATION_ERROR',
             details: () => 'Invalid photo URL format',
         },
         preferredLanguage: {
-            code: 'INVALID_INPUT',
+            code: 'VALIDATION_ERROR',
             details: () => 'Language must be one of: en',
         },
     },
     {
-        defaultCode: 'INVALID_INPUT',
+        defaultCode: 'VALIDATION_ERROR',
         defaultMessage: 'Invalid input data',
         defaultDetails: (issue) => issue.message,
     },
@@ -58,7 +58,7 @@ const baseValidateUpdateUserProfile = createRequestValidator({
     mapError: (error) => mapUpdateProfileError(error),
 }) as (body: unknown) => UpdateUserProfileRequest;
 
-export const validateUpdateUserProfile = (body: unknown, _language: string = 'en'): UpdateUserProfileRequest => {
+export const validateUpdateUserProfile = (body: unknown): UpdateUserProfileRequest => {
     return baseValidateUpdateUserProfile(body);
 };
 
@@ -70,7 +70,7 @@ interface ChangePasswordRequest {
 const mapChangePasswordError = createZodErrorMapper(
     {
         currentPassword: {
-            code: 'INVALID_INPUT',
+            code: 'VALIDATION_ERROR',
             details: (issue) => {
                 if (issue.code === 'invalid_type') {
                     return 'Current password is required';
@@ -79,7 +79,7 @@ const mapChangePasswordError = createZodErrorMapper(
             },
         },
         newPassword: {
-            code: 'INVALID_INPUT',
+            code: 'VALIDATION_ERROR',
             details: (issue) => {
                 if (issue.code === 'invalid_type') {
                     return 'New password is required';
@@ -92,7 +92,7 @@ const mapChangePasswordError = createZodErrorMapper(
         },
     },
     {
-        defaultCode: 'INVALID_INPUT',
+        defaultCode: 'VALIDATION_ERROR',
         defaultMessage: 'Invalid input data',
         defaultDetails: (issue) => issue.message,
     },
@@ -103,7 +103,7 @@ export const validateChangePassword = createRequestValidator({
     preValidate: (payload: unknown) => payload ?? {},
     transform: (value) => {
         if (value.currentPassword === value.newPassword) {
-            throw Errors.INVALID_INPUT('New password must be different from current password');
+            throw Errors.validationError('newPassword', ErrorDetail.INVALID_PASSWORD);
         }
 
         return value as ChangePasswordRequest;
@@ -119,7 +119,7 @@ interface ChangeEmailRequest {
 const mapChangeEmailError = createZodErrorMapper(
     {
         currentPassword: {
-            code: 'INVALID_INPUT',
+            code: 'VALIDATION_ERROR',
             details: (issue) => {
                 if (issue.code === 'invalid_type') {
                     return 'Current password is required';
@@ -128,7 +128,7 @@ const mapChangeEmailError = createZodErrorMapper(
             },
         },
         newEmail: {
-            code: 'INVALID_INPUT',
+            code: 'VALIDATION_ERROR',
             details: (issue) => {
                 if (issue.code === 'invalid_type') {
                     return 'New email is required';
@@ -147,7 +147,7 @@ const mapChangeEmailError = createZodErrorMapper(
         },
     },
     {
-        defaultCode: 'INVALID_INPUT',
+        defaultCode: 'VALIDATION_ERROR',
         defaultMessage: 'Invalid input data',
         defaultDetails: (issue) => issue.message,
     },

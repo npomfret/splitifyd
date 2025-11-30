@@ -64,15 +64,17 @@ test.describe('Registration Form Validation', () => {
 
         await registerPage.navigate();
 
+        // Note: Password mismatch is caught by client-side validation before API call
+        // So the mock is not used - the frontend shows its own validation message
         await mockFirebase.mockRegisterFailure({
-            code: 'auth/passwords-mismatch',
+            code: 'PASSWORDS_MISMATCH',
             message: 'Passwords do not match',
         });
 
         // Attempt registration with mismatched passwords
         await registerPage.registerExpectingFailure('John Doe', toEmail('test@example.com'), 'Password12344', 'DifferentPassword456');
 
-        // Verify password mismatch error appears
+        // Verify password mismatch error appears (client-side validation message)
         await registerPage.verifyErrorMessage('Passwords do not match');
     });
 
@@ -81,15 +83,16 @@ test.describe('Registration Form Validation', () => {
 
         await registerPage.navigate();
 
+        // Note: Short password is caught by client-side validation before API call
         await mockFirebase.mockRegisterFailure({
-            code: 'auth/weak-password',
+            code: 'WEAK_PASSWORD',
             message: 'Password must be at least 12 characters',
         });
 
         // Attempt registration with short password
         await registerPage.registerExpectingFailure('John Doe', toEmail('test@example.com'), '12345');
 
-        // Verify password length error appears
+        // Verify password length error appears (client-side validation message)
         await registerPage.verifyErrorMessage('Password must be at least 12 characters');
     });
 

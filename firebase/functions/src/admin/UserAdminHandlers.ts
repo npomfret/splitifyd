@@ -1,10 +1,10 @@
 import { AdminUserProfile, SystemUserRoles, toDisplayName, toEmail, toUserId } from '@billsplit-wl/shared';
 import type { Request, Response } from 'express';
 import { HTTP_STATUS } from '../constants';
+import { ApiError, Errors, ErrorDetail } from '../errors';
 import { logger } from '../logger';
 import type { IAuthService } from '../services/auth';
 import type { IFirestoreReader, IFirestoreWriter } from '../services/firestore';
-import { ApiError } from '../utils/errors';
 import { validateUserIdParam } from '../validation/common';
 
 /**
@@ -23,18 +23,10 @@ export class UserAdminHandlers {
     private async buildAdminUserProfile(userRecord: any, userId: string): Promise<AdminUserProfile> {
         // Validate required fields
         if (!userRecord.email) {
-            throw new ApiError(
-                HTTP_STATUS.INTERNAL_ERROR,
-                'INVALID_USER_DATA',
-                'User record missing required email field',
-            );
+            throw Errors.serviceError('INVALID_USER_DATA');
         }
         if (!userRecord.displayName) {
-            throw new ApiError(
-                HTTP_STATUS.INTERNAL_ERROR,
-                'INVALID_USER_DATA',
-                'User record missing required displayName field',
-            );
+            throw Errors.serviceError('INVALID_USER_DATA');
         }
 
         // Get Firestore user data - MUST exist for data consistency
@@ -43,11 +35,7 @@ export class UserAdminHandlers {
             logger.error('Data consistency error: user exists in Auth but missing Firestore document', {
                 userId,
             });
-            throw new ApiError(
-                HTTP_STATUS.INTERNAL_ERROR,
-                'DATA_CONSISTENCY_ERROR',
-                'User missing Firestore document',
-            );
+            throw Errors.serviceError('DATA_CONSISTENCY_ERROR');
         }
 
         return {
@@ -80,11 +68,7 @@ export class UserAdminHandlers {
 
         // Validate payload - only 'disabled' field is allowed
         if (typeof disabled !== 'boolean') {
-            throw new ApiError(
-                HTTP_STATUS.BAD_REQUEST,
-                'INVALID_PAYLOAD',
-                'Request body must contain a boolean "disabled" field',
-            );
+            throw Errors.validationError('disabled', ErrorDetail.MISSING_FIELD);
         }
 
         // Prevent unwanted fields
@@ -92,32 +76,20 @@ export class UserAdminHandlers {
         const providedFields = Object.keys(req.body);
         const invalidFields = providedFields.filter(field => !allowedFields.includes(field));
         if (invalidFields.length > 0) {
-            throw new ApiError(
-                HTTP_STATUS.BAD_REQUEST,
-                'INVALID_FIELDS',
-                `Only "disabled" field is allowed. Invalid fields: ${invalidFields.join(', ')}`,
-            );
+            throw Errors.invalidRequest('INVALID_FIELDS');
         }
 
         // Prevent self-disable
         const requestingUser = (req as any).user;
         if (requestingUser && requestingUser.uid === userId) {
-            throw new ApiError(
-                HTTP_STATUS.CONFLICT,
-                'CANNOT_DISABLE_SELF',
-                'You cannot disable your own account',
-            );
+            throw Errors.conflict('CANNOT_DISABLE_SELF');
         }
 
         try {
             // Check if user exists
             const existingUser = await this.authService.getUser(userId);
             if (!existingUser) {
-                throw new ApiError(
-                    HTTP_STATUS.NOT_FOUND,
-                    'USER_NOT_FOUND',
-                    `User with UID ${userId} not found`,
-                );
+                throw Errors.notFound('User', ErrorDetail.USER_NOT_FOUND);
             }
 
             // Update user
@@ -144,11 +116,7 @@ export class UserAdminHandlers {
                 disabled,
             });
 
-            throw new ApiError(
-                HTTP_STATUS.INTERNAL_ERROR,
-                'UPDATE_FAILED',
-                'Failed to update user account',
-            );
+            throw Errors.serviceError(ErrorDetail.UPDATE_FAILED);
         }
     };
 
@@ -162,11 +130,7 @@ export class UserAdminHandlers {
         try {
             const userRecord = await this.authService.getUser(userId);
             if (!userRecord) {
-                throw new ApiError(
-                    HTTP_STATUS.NOT_FOUND,
-                    'USER_NOT_FOUND',
-                    `User with UID ${userId} not found`,
-                );
+                throw Errors.notFound('User', ErrorDetail.USER_NOT_FOUND);
             }
 
             // Remove sensitive fields from the auth record
@@ -191,11 +155,7 @@ export class UserAdminHandlers {
                 targetUid: userId,
             });
 
-            throw new ApiError(
-                HTTP_STATUS.INTERNAL_ERROR,
-                'GET_AUTH_FAILED',
-                'Failed to get Firebase Auth user record',
-            );
+            throw Errors.serviceError(ErrorDetail.AUTH_SERVICE_ERROR);
         }
     };
 
@@ -209,11 +169,7 @@ export class UserAdminHandlers {
         try {
             const firestoreData = await this.firestoreReader.getUser(userId);
             if (!firestoreData) {
-                throw new ApiError(
-                    HTTP_STATUS.NOT_FOUND,
-                    'USER_NOT_FOUND',
-                    `Firestore user document with UID ${userId} not found`,
-                );
+                throw Errors.notFound('User', ErrorDetail.USER_NOT_FOUND);
             }
 
             // Return raw Firestore document
@@ -227,11 +183,7 @@ export class UserAdminHandlers {
                 targetUid: userId,
             });
 
-            throw new ApiError(
-                HTTP_STATUS.INTERNAL_ERROR,
-                'GET_FIRESTORE_FAILED',
-                'Failed to get Firestore user document',
-            );
+            throw Errors.serviceError(ErrorDetail.DATABASE_ERROR);
         }
     };
 
@@ -246,11 +198,7 @@ export class UserAdminHandlers {
         // Validate role - must be a valid SystemUserRole or null (to remove role)
         const validRoles = Object.values(SystemUserRoles);
         if (role !== null && !validRoles.includes(role)) {
-            throw new ApiError(
-                HTTP_STATUS.BAD_REQUEST,
-                'INVALID_ROLE',
-                `Role must be one of: ${validRoles.join(', ')}, or null to remove role`,
-            );
+            throw Errors.validationError('role', 'INVALID_ROLE');
         }
 
         // Prevent unwanted fields
@@ -258,32 +206,20 @@ export class UserAdminHandlers {
         const providedFields = Object.keys(req.body);
         const invalidFields = providedFields.filter(field => !allowedFields.includes(field));
         if (invalidFields.length > 0) {
-            throw new ApiError(
-                HTTP_STATUS.BAD_REQUEST,
-                'INVALID_FIELDS',
-                `Only "role" field is allowed. Invalid fields: ${invalidFields.join(', ')}`,
-            );
+            throw Errors.invalidRequest('INVALID_FIELDS');
         }
 
         // Prevent self-role change
         const requestingUser = (req as any).user;
         if (requestingUser && requestingUser.uid === userId) {
-            throw new ApiError(
-                HTTP_STATUS.CONFLICT,
-                'CANNOT_CHANGE_OWN_ROLE',
-                'You cannot change your own role',
-            );
+            throw Errors.conflict('CANNOT_CHANGE_OWN_ROLE');
         }
 
         try {
             // Check if user exists
             const existingUser = await this.authService.getUser(userId);
             if (!existingUser) {
-                throw new ApiError(
-                    HTTP_STATUS.NOT_FOUND,
-                    'USER_NOT_FOUND',
-                    `User with UID ${userId} not found`,
-                );
+                throw Errors.notFound('User', ErrorDetail.USER_NOT_FOUND);
             }
 
             // Update Firestore role instead of custom claims
@@ -311,11 +247,7 @@ export class UserAdminHandlers {
                 role,
             });
 
-            throw new ApiError(
-                HTTP_STATUS.INTERNAL_ERROR,
-                'UPDATE_ROLE_FAILED',
-                'Failed to update user role',
-            );
+            throw Errors.serviceError(ErrorDetail.UPDATE_FAILED);
         }
     };
 }

@@ -69,7 +69,7 @@ describe('Groups Management - CRUD and Access Control Unit Tests', () => {
         });
 
         test('should require valid group data for creation', async () => {
-            // Empty name should fail
+            // Empty name should fail with validation error
             await expect(
                 appDriver.createGroup(
                     new CreateGroupRequestBuilder()
@@ -79,7 +79,7 @@ describe('Groups Management - CRUD and Access Control Unit Tests', () => {
                 ),
             )
                 .rejects
-                .toThrow(/required|invalid|name/i);
+                .toThrow('VALIDATION_ERROR');
         });
     });
 
@@ -89,14 +89,10 @@ describe('Groups Management - CRUD and Access Control Unit Tests', () => {
             const testGroup = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userIds[0]);
 
             // Non-existent group
-            await expect(appDriver.getGroupFullDetails('non-existent-id', {}, userIds[0])).rejects.toThrow(
-                /not.*found|does.*not.*exist/i,
-            );
+            await expect(appDriver.getGroupFullDetails('non-existent-id', {}, userIds[0])).rejects.toThrow('NOT_FOUND');
 
             // Non-member access (should be denied)
-            await expect(appDriver.getGroupFullDetails(testGroup.id, {}, userIds[1])).rejects.toThrow(
-                /not.*found|not.*member|access.*denied/i,
-            );
+            await expect(appDriver.getGroupFullDetails(testGroup.id, {}, userIds[1])).rejects.toThrow('NOT_FOUND');
 
             // Add user 1 to group
             await appDriver.addMembersToGroup(testGroup.id, userIds[0], [userIds[1]]);
@@ -120,13 +116,9 @@ describe('Groups Management - CRUD and Access Control Unit Tests', () => {
             );
 
             // User 1 should not be able to access
-            await expect(appDriver.getGroupFullDetails(privateGroup.id, {}, userIds[1])).rejects.toThrow(
-                /not.*found|not.*member|access.*denied/i,
-            );
+            await expect(appDriver.getGroupFullDetails(privateGroup.id, {}, userIds[1])).rejects.toThrow('NOT_FOUND');
 
-            await expect(appDriver.getGroupBalances(privateGroup.id, userIds[1])).rejects.toThrow(
-                /not.*found|not.*member|access.*denied/i,
-            );
+            await expect(appDriver.getGroupBalances(privateGroup.id, userIds[1])).rejects.toThrow('NOT_FOUND');
         });
     });
 
@@ -167,7 +159,7 @@ describe('Groups Management - CRUD and Access Control Unit Tests', () => {
                 ),
             )
                 .rejects
-                .toThrow(/not.*found|not.*member|access.*denied/i);
+                .toThrow('FORBIDDEN');
         });
 
         test('should prevent member (not owner) from deleting group', async () => {
@@ -175,9 +167,7 @@ describe('Groups Management - CRUD and Access Control Unit Tests', () => {
             await appDriver.addMembersToGroup(testGroup.id, userIds[0], [userIds[1]]);
 
             // Member (not owner) should not be able to delete group
-            await expect(appDriver.deleteGroup(testGroup.id, userIds[1])).rejects.toThrow(
-                /forbidden|unauthorized|only.*owner|only.*admin|access.*denied/i,
-            );
+            await expect(appDriver.deleteGroup(testGroup.id, userIds[1])).rejects.toThrow('FORBIDDEN');
         });
     });
 
@@ -215,7 +205,7 @@ describe('Groups Management - CRUD and Access Control Unit Tests', () => {
                 ),
             )
                 .rejects
-                .toThrow(/forbidden|unauthorized|only.*owner|only.*admin|permission.*denied|access.*denied/i);
+                .toThrow('FORBIDDEN');
         });
     });
 
@@ -226,18 +216,14 @@ describe('Groups Management - CRUD and Access Control Unit Tests', () => {
             // Test multiple endpoints require valid user
             const nonExistentUser = 'non-existent-user';
 
-            await expect(appDriver.getGroupFullDetails(testGroup.id, {}, nonExistentUser)).rejects.toThrow(
-                /not.*found|user.*not.*exist|not.*member|access.*denied/i,
-            );
+            // Non-existent user should get NOT_FOUND for read operations (security - doesn't reveal group exists)
+            await expect(appDriver.getGroupFullDetails(testGroup.id, {}, nonExistentUser)).rejects.toThrow('NOT_FOUND');
 
-            await expect(appDriver.getGroupBalances(testGroup.id, nonExistentUser)).rejects.toThrow(
-                /not.*found|user.*not.*exist|not.*member|access.*denied/i,
-            );
+            await expect(appDriver.getGroupBalances(testGroup.id, nonExistentUser)).rejects.toThrow('NOT_FOUND');
 
-            await expect(appDriver.getGroupExpenses(testGroup.id, {}, nonExistentUser)).rejects.toThrow(
-                /not.*found|user.*not.*exist|not.*member|access.*denied/i,
-            );
+            await expect(appDriver.getGroupExpenses(testGroup.id, {}, nonExistentUser)).rejects.toThrow('NOT_FOUND');
 
+            // Non-existent user should get FORBIDDEN for write operations
             await expect(
                 appDriver.updateGroup(
                     testGroup.id,
@@ -248,7 +234,7 @@ describe('Groups Management - CRUD and Access Control Unit Tests', () => {
                 ),
             )
                 .rejects
-                .toThrow(/not.*found|user.*not.*exist|not.*member|access.*denied/i);
+                .toThrow('FORBIDDEN');
         });
     });
 });

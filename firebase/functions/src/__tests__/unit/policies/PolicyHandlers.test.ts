@@ -2,6 +2,7 @@ import { StubCloudTasksClient, StubStorage } from '@billsplit-wl/firebase-simula
 import { toPolicyId, toPolicyName, toPolicyText, toVersionHash } from '@billsplit-wl/shared';
 import { StubFirestoreDatabase } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
+import { HTTP_STATUS } from '../../../constants';
 import { PolicyHandlers } from '../../../policies/PolicyHandlers';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import { createUnitTestServiceConfig } from '../../test-config';
@@ -32,11 +33,27 @@ describe('PolicyHandlers - Unit Tests', () => {
         });
 
         it('should reject creation with missing policy name', async () => {
-            await expect(appDriver.createPolicy({ policyName: '', text: 'Some policy text' } as any, adminToken)).rejects.toThrow();
+            await expect(appDriver.createPolicy({ policyName: '', text: 'Some policy text' } as any, adminToken))
+                .rejects
+                .toThrow(
+                    expect.objectContaining({
+                        statusCode: HTTP_STATUS.BAD_REQUEST,
+                        code: 'VALIDATION_ERROR',
+                        data: expect.objectContaining({ detail: 'INVALID_REQUEST' }),
+                    }),
+                );
         });
 
         it('should reject creation with missing text', async () => {
-            await expect(appDriver.createPolicy({ policyName: 'Privacy Policy', text: '' } as any, adminToken)).rejects.toThrow();
+            await expect(appDriver.createPolicy({ policyName: 'Privacy Policy', text: '' } as any, adminToken))
+                .rejects
+                .toThrow(
+                    expect.objectContaining({
+                        statusCode: HTTP_STATUS.BAD_REQUEST,
+                        code: 'VALIDATION_ERROR',
+                        data: expect.objectContaining({ detail: 'INVALID_REQUEST' }),
+                    }),
+                );
         });
 
         it('should reject creation when policy already exists', async () => {
@@ -45,14 +62,17 @@ describe('PolicyHandlers - Unit Tests', () => {
                 text: toPolicyText('Original terms...'),
             }, adminToken);
 
-            await expect(
-                appDriver.createPolicy({
-                    policyName: toPolicyName('Terms of Service'),
-                    text: toPolicyText('Updated terms...'),
-                }, adminToken),
-            )
+            await expect(appDriver.createPolicy({
+                policyName: toPolicyName('Terms of Service'),
+                text: toPolicyText('Updated terms...'),
+            }, adminToken))
                 .rejects
-                .toThrow('Policy already exists');
+                .toThrow(
+                    expect.objectContaining({
+                        statusCode: HTTP_STATUS.CONFLICT,
+                        code: 'ALREADY_EXISTS',
+                    }),
+                );
         });
     });
 
@@ -109,7 +129,9 @@ describe('PolicyHandlers - Unit Tests', () => {
         it('should reject request for non-existent policy', async () => {
             const policyId = toPolicyId('non-existent-policy');
 
-            await expect(appDriver.getPolicy(policyId, adminToken)).rejects.toThrow('Policy not found');
+            await expect(appDriver.getPolicy(policyId, adminToken))
+                .rejects
+                .toThrow(/Policy not found/);
         });
     });
 
@@ -133,7 +155,14 @@ describe('PolicyHandlers - Unit Tests', () => {
             const policyId = toPolicyId('non-existent-policy');
             const versionHash = toVersionHash('some-hash');
 
-            await expect(appDriver.getPolicyVersion(policyId, versionHash, adminToken)).rejects.toThrow('Policy not found');
+            await expect(appDriver.getPolicyVersion(policyId, versionHash, adminToken))
+                .rejects
+                .toThrow(
+                    expect.objectContaining({
+                        statusCode: HTTP_STATUS.NOT_FOUND,
+                        code: 'NOT_FOUND',
+                    }),
+                );
         });
 
         it('should reject request for non-existent version', async () => {
@@ -142,9 +171,14 @@ describe('PolicyHandlers - Unit Tests', () => {
                 text: toPolicyText('Original text'),
             }, adminToken);
 
-            await expect(appDriver.getPolicyVersion(created.id, toVersionHash('non-existent-hash'), adminToken)).rejects.toThrow(
-                'Policy version not found',
-            );
+            await expect(appDriver.getPolicyVersion(created.id, toVersionHash('non-existent-hash'), adminToken))
+                .rejects
+                .toThrow(
+                    expect.objectContaining({
+                        statusCode: HTTP_STATUS.NOT_FOUND,
+                        code: 'NOT_FOUND',
+                    }),
+                );
         });
     });
 
@@ -197,7 +231,11 @@ describe('PolicyHandlers - Unit Tests', () => {
                 } as any, adminToken),
             )
                 .rejects
-                .toThrow();
+                .toThrow(
+                    expect.objectContaining({
+                        statusCode: HTTP_STATUS.BAD_REQUEST,
+                    }),
+                );
         });
 
         it('should reject update for non-existent policy', async () => {
@@ -209,7 +247,12 @@ describe('PolicyHandlers - Unit Tests', () => {
                 }, adminToken),
             )
                 .rejects
-                .toThrow('Policy not found');
+                .toThrow(
+                    expect.objectContaining({
+                        statusCode: HTTP_STATUS.NOT_FOUND,
+                        code: 'NOT_FOUND',
+                    }),
+                );
         });
     });
 
@@ -238,13 +281,26 @@ describe('PolicyHandlers - Unit Tests', () => {
                 text: toPolicyText('Original text'),
             }, adminToken);
 
-            await expect(appDriver.publishPolicy(created.id, '' as any, adminToken)).rejects.toThrow();
+            await expect(appDriver.publishPolicy(created.id, '' as any, adminToken))
+                .rejects
+                .toThrow(
+                    expect.objectContaining({
+                        statusCode: HTTP_STATUS.BAD_REQUEST,
+                    }),
+                );
         });
 
         it('should reject publish for non-existent policy', async () => {
             const policyId = toPolicyId('non-existent-policy');
 
-            await expect(appDriver.publishPolicy(policyId, toVersionHash('some-hash'), adminToken)).rejects.toThrow('Policy not found');
+            await expect(appDriver.publishPolicy(policyId, toVersionHash('some-hash'), adminToken))
+                .rejects
+                .toThrow(
+                    expect.objectContaining({
+                        statusCode: HTTP_STATUS.NOT_FOUND,
+                        code: 'NOT_FOUND',
+                    }),
+                );
         });
 
         it('should reject publish for non-existent version', async () => {
@@ -253,9 +309,14 @@ describe('PolicyHandlers - Unit Tests', () => {
                 text: toPolicyText('Original text'),
             }, adminToken);
 
-            await expect(appDriver.publishPolicy(created.id, toVersionHash('non-existent-hash'), adminToken)).rejects.toThrow(
-                'Policy version not found',
-            );
+            await expect(appDriver.publishPolicy(created.id, toVersionHash('non-existent-hash'), adminToken))
+                .rejects
+                .toThrow(
+                    expect.objectContaining({
+                        statusCode: HTTP_STATUS.NOT_FOUND,
+                        code: 'NOT_FOUND',
+                    }),
+                );
         });
     });
 
@@ -282,9 +343,14 @@ describe('PolicyHandlers - Unit Tests', () => {
                 text: toPolicyText('Current version'),
             }, adminToken);
 
-            await expect(appDriver.deletePolicyVersion(created.id, created.versionHash, adminToken)).rejects.toThrow(
-                'Cannot delete the current published version',
-            );
+            await expect(appDriver.deletePolicyVersion(created.id, created.versionHash, adminToken))
+                .rejects
+                .toThrow(
+                    expect.objectContaining({
+                        statusCode: HTTP_STATUS.BAD_REQUEST,
+                        code: 'INVALID_REQUEST',
+                    }),
+                );
         });
 
         it('should reject deletion when it would leave no versions', async () => {
@@ -307,7 +373,14 @@ describe('PolicyHandlers - Unit Tests', () => {
             const policyId = toPolicyId('non-existent-policy');
             const versionHash = toVersionHash('some-hash');
 
-            await expect(appDriver.deletePolicyVersion(policyId, versionHash, adminToken)).rejects.toThrow('Policy not found');
+            await expect(appDriver.deletePolicyVersion(policyId, versionHash, adminToken))
+                .rejects
+                .toThrow(
+                    expect.objectContaining({
+                        statusCode: HTTP_STATUS.NOT_FOUND,
+                        code: 'NOT_FOUND',
+                    }),
+                );
         });
 
         it('should reject deletion for non-existent version', async () => {
@@ -321,9 +394,14 @@ describe('PolicyHandlers - Unit Tests', () => {
                 publish: false,
             }, adminToken);
 
-            await expect(appDriver.deletePolicyVersion(created.id, toVersionHash('non-existent-hash'), adminToken)).rejects.toThrow(
-                'Version not found',
-            );
+            await expect(appDriver.deletePolicyVersion(created.id, toVersionHash('non-existent-hash'), adminToken))
+                .rejects
+                .toThrow(
+                    expect.objectContaining({
+                        statusCode: HTTP_STATUS.NOT_FOUND,
+                        code: 'NOT_FOUND',
+                    }),
+                );
         });
     });
 

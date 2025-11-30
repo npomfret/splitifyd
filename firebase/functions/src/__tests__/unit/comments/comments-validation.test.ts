@@ -2,7 +2,7 @@ import { CreateExpenseCommentRequest, CreateGroupCommentRequest } from '@billspl
 import { describe, expect, it } from 'vitest';
 import { validateCommentId, validateCreateExpenseComment, validateCreateGroupComment, validateListCommentsQuery } from '../../../comments/validation';
 import { HTTP_STATUS } from '../../../constants';
-import { ApiError } from '../../../utils/errors';
+import { ApiError } from '../../../errors';
 
 describe('comments/validation', () => {
     describe('validateCreateGroupComment', () => {
@@ -21,7 +21,8 @@ describe('comments/validation', () => {
             expect(() => validateCreateGroupComment('group-123', { text: '  ' })).toThrowError(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_COMMENT_TEXT',
+                    code: 'VALIDATION_ERROR',
+                    data: expect.objectContaining({ detail: 'INVALID_COMMENT_TEXT' }),
                 }),
             );
         });
@@ -60,7 +61,8 @@ describe('comments/validation', () => {
             expect(() => validateListCommentsQuery({ limit: 0 })).toThrowError(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_QUERY_PARAMS',
+                    code: 'VALIDATION_ERROR',
+                    data: expect.objectContaining({ detail: 'INVALID_QUERY_PARAMS' }),
                 }),
             );
         });
@@ -76,7 +78,7 @@ describe('comments/validation', () => {
             expect(() => validateCommentId('')).toThrowError(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_COMMENT_ID',
+                    code: 'VALIDATION_ERROR',
                 }),
             );
         });

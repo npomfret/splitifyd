@@ -6,8 +6,7 @@
  */
 
 import { z } from 'zod';
-import { HTTP_STATUS } from '../../constants';
-import { ApiError } from '../../utils/errors';
+import { ErrorCode, ErrorDetail, Errors } from '../../errors';
 import { createPasswordSchema, createRequestValidator, DisplayNameSchema, EmailSchema, PhoneNumberSchema } from '../../validation/common';
 import { AuthErrorCode } from './auth-types';
 
@@ -50,55 +49,29 @@ const listUsersOptionsSchema = z
     })
     .partial();
 
-const mapAuthValidationError = (error: z.ZodError, defaultCode: AuthErrorCode): never => {
+const mapAuthValidationError = (error: z.ZodError, defaultDetail: ErrorDetail): never => {
     const firstError = error.issues[0];
     const field = firstError.path[0];
-    let errorCode = defaultCode;
-    let errorMessage = firstError.message;
+    let detail = defaultDetail;
 
     if (typeof field === 'string') {
         switch (field) {
             case 'password':
-                errorCode = AuthErrorCode.WEAK_PASSWORD;
-                if (errorMessage === 'Required') {
-                    errorMessage = 'Password is required';
-                } else if (errorMessage.includes('Expected string')) {
-                    errorMessage = 'Password is required';
-                } else if (!errorMessage.includes('12 characters')) {
-                    errorMessage = 'Password must be at least 12 characters long';
-                }
-                break;
+                throw Errors.validationError('password', ErrorDetail.INVALID_PASSWORD);
             case 'displayName':
-                errorCode = AuthErrorCode.INVALID_DISPLAY_NAME;
-                if (errorMessage === 'Required') {
-                    errorMessage = 'Display name is required';
-                }
-                break;
+                throw Errors.validationError('displayName');
             case 'photoURL':
-                errorCode = AuthErrorCode.INVALID_PHOTO_URL;
-                if (errorMessage === 'Required') {
-                    errorMessage = 'Photo URL must be a valid URI';
-                }
-                break;
+                throw Errors.validationError('photoURL');
             case 'phoneNumber':
-                errorCode = AuthErrorCode.INVALID_PHONE_NUMBER;
-                if (errorMessage === 'Required' || errorMessage.includes('Expected string')) {
-                    errorMessage = 'Phone number must be in E.164 format (e.g., +1234567890)';
-                }
-                break;
+                throw Errors.validationError('phoneNumber');
             case 'email':
-                if (errorMessage === 'Required' || errorMessage.includes('Expected string')) {
-                    errorMessage = 'Email is required';
-                }
-                break;
+                throw Errors.validationError('email', ErrorDetail.INVALID_EMAIL);
             default:
-                errorCode = defaultCode;
+                throw Errors.validationError(String(field), detail);
         }
-    } else if (errorMessage === 'Required' && defaultCode === AuthErrorCode.INVALID_EMAIL) {
-        errorMessage = 'Email is required';
     }
 
-    throw new ApiError(HTTP_STATUS.BAD_REQUEST, errorCode, errorMessage);
+    throw Errors.validation({ detail });
 };
 
 type CreateUserData = z.infer<typeof createUserSchema>;
@@ -110,7 +83,7 @@ type UpdateUserData = z.infer<typeof updateUserSchema>;
 export const validateCreateUser = createRequestValidator({
     schema: createUserSchema,
     preValidate: (payload: unknown) => payload ?? {},
-    mapError: (error) => mapAuthValidationError(error, AuthErrorCode.INVALID_EMAIL),
+    mapError: (error) => mapAuthValidationError(error, ErrorDetail.INVALID_EMAIL),
 }) as (data: unknown) => CreateUserData;
 
 /**
@@ -119,7 +92,7 @@ export const validateCreateUser = createRequestValidator({
 export const validateUpdateUser = createRequestValidator({
     schema: updateUserSchema,
     preValidate: (payload: unknown) => payload ?? {},
-    mapError: (error) => mapAuthValidationError(error, AuthErrorCode.INVALID_EMAIL),
+    mapError: (error) => mapAuthValidationError(error, ErrorDetail.INVALID_EMAIL),
 }) as (data: unknown) => UpdateUserData;
 
 /**
@@ -129,7 +102,7 @@ export function validateUserId(uid: unknown): string {
     const result = userIdSchema.safeParse(uid);
 
     if (!result.success) {
-        throw new ApiError(HTTP_STATUS.BAD_REQUEST, AuthErrorCode.INVALID_UID, result.error.issues[0].message);
+        throw Errors.validationError('uid');
     }
 
     return result.data;
@@ -142,7 +115,7 @@ export function validateIdToken(token: unknown): string {
     const result = idTokenSchema.safeParse(token);
 
     if (!result.success) {
-        throw new ApiError(HTTP_STATUS.BAD_REQUEST, AuthErrorCode.INVALID_TOKEN, result.error.issues[0].message);
+        throw Errors.validationError('token', ErrorDetail.TOKEN_INVALID);
     }
 
     return result.data;
@@ -155,7 +128,7 @@ export function validateCustomClaims(claims: unknown): Record<string, unknown> {
     const result = customClaimsSchema.safeParse(claims);
 
     if (!result.success) {
-        throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_CUSTOM_CLAIMS', result.error.issues[0].message);
+        throw Errors.validationError('claims');
     }
 
     return result.data ?? {};
@@ -165,7 +138,7 @@ export function validateEmailAddress(email: unknown): string {
     const result = EmailSchema.safeParse(email);
 
     if (!result.success) {
-        throw new ApiError(HTTP_STATUS.BAD_REQUEST, AuthErrorCode.INVALID_EMAIL, result.error.issues[0].message);
+        throw Errors.validationError('email', ErrorDetail.INVALID_EMAIL);
     }
 
     return result.data;
@@ -175,7 +148,7 @@ export function validateListUsersOptions(options: unknown): { limit?: number; pa
     const result = listUsersOptionsSchema.safeParse(options ?? {});
 
     if (!result.success) {
-        throw new ApiError(HTTP_STATUS.BAD_REQUEST, AuthErrorCode.INVALID_ARGUMENT, result.error.issues[0].message);
+        throw Errors.invalidRequest();
     }
 
     return result.data;

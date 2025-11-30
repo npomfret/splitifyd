@@ -9,11 +9,11 @@ import { toEmail, toUserId } from '@billsplit-wl/shared';
 import { UpdateRequest, UserRecord } from 'firebase-admin/auth';
 import { validateRegisterRequest } from '../auth/validation';
 import { HTTP_STATUS } from '../constants';
+import { ApiError, Errors, ErrorDetail } from '../errors';
 import { logger } from '../logger';
 import { measureDb } from '../monitoring/measure';
 import type { UserDocument } from '../schemas';
 import { validateChangeEmail, validateChangePassword, validateUpdateUserProfile } from '../user/validation';
-import { ApiError, Errors } from '../utils/errors';
 import { createPhantomGroupMember } from '../utils/groupMembershipHelpers';
 import { LoggerContext } from '../utils/logger-context';
 import { withMinimumDuration } from '../utils/timing';
@@ -93,7 +93,7 @@ export class UserService {
             // Check if user exists
             if (!userRecord) {
                 logger.error('User not found in Firebase Auth', new Error(`User ${userId} not found`));
-                throw Errors.NOT_FOUND('User not found');
+                throw Errors.notFound('User', ErrorDetail.USER_NOT_FOUND);
             }
 
             // Ensure required fields are present
@@ -105,7 +105,7 @@ export class UserService {
             // User MUST exist in both Auth and Firestore - data consistency check
             if (!userData) {
                 logger.error('Data consistency error: user exists in Auth but missing Firestore document', new Error(`User ${userId} has no Firestore document`));
-                throw Errors.INTERNAL_ERROR();
+                throw Errors.serviceError(ErrorDetail.DATABASE_ERROR);
             }
 
             const profile = this.createUserProfile(userRecord, userData);
@@ -116,7 +116,7 @@ export class UserService {
             const firebaseError = error as { code?: string; };
             if (firebaseError.code === 'auth/user-not-found') {
                 logger.error('User not found in Firebase Auth', error as Error);
-                throw Errors.NOT_FOUND('User not found');
+                throw Errors.notFound('User', ErrorDetail.USER_NOT_FOUND);
             }
 
             logger.error('Failed to get user profile', error as Error);
@@ -148,7 +148,7 @@ export class UserService {
             // Check if user exists
             if (!userRecord) {
                 logger.error('User not found in Firebase Auth', new Error(`User ${userId} not found`));
-                throw Errors.NOT_FOUND('User not found');
+                throw Errors.notFound('User', ErrorDetail.USER_NOT_FOUND);
             }
 
             // Ensure required fields are present
@@ -160,7 +160,7 @@ export class UserService {
             // User MUST exist in both Auth and Firestore - data consistency check
             if (!userData) {
                 logger.error('Data consistency error: user exists in Auth but missing Firestore document', new Error(`User ${userId} has no Firestore document`));
-                throw Errors.INTERNAL_ERROR();
+                throw Errors.serviceError(ErrorDetail.DATABASE_ERROR);
             }
 
             // Return complete UserProfile with all fields
@@ -181,7 +181,7 @@ export class UserService {
             const firebaseError = error as { code?: string; };
             if (firebaseError.code === 'auth/user-not-found') {
                 logger.error('User not found in Firebase Auth', error as Error);
-                throw Errors.NOT_FOUND('User not found');
+                throw Errors.notFound('User', ErrorDetail.USER_NOT_FOUND);
             }
 
             logger.error('Failed to get complete user profile', error as Error);
@@ -304,7 +304,6 @@ export class UserService {
      * Update a user's profile
      * @param userId - The Firebase UID of the user
      * @param requestBody - The raw request body containing profile update data
-     * @param language - The user's preferred language for validation messages
      * @returns The updated user profile
      * @throws ApiError if update fails
      */
@@ -312,8 +311,8 @@ export class UserService {
         return measureDb('UserService2.getProfile', async () => this._getProfile(userId));
     }
 
-    async updateProfile(userId: UserId, requestBody: unknown, language: string = 'en'): Promise<void> {
-        await measureDb('UserService2.updateProfile', async () => this._updateProfile(userId, requestBody, language));
+    async updateProfile(userId: UserId, requestBody: unknown): Promise<void> {
+        await measureDb('UserService2.updateProfile', async () => this._updateProfile(userId, requestBody));
     }
 
     private async _getProfile(userId: UserId): Promise<UserProfileResponse> {
@@ -326,11 +325,10 @@ export class UserService {
         };
     }
 
-    private async _updateProfile(userId: UserId, requestBody: unknown, language: string = 'en'): Promise<UserProfileResponse> {
+    private async _updateProfile(userId: UserId, requestBody: unknown): Promise<UserProfileResponse> {
         LoggerContext.update({ userId, operation: 'update-profile' });
 
-        // Validate the request body with localized error messages
-        const validatedData = validateUpdateUserProfile(requestBody, language);
+        const validatedData = validateUpdateUserProfile(requestBody);
 
         try {
             // Build update object for Firebase Auth
@@ -364,7 +362,7 @@ export class UserService {
             // Check if error is from Firebase Auth (user not found)
             if (error && typeof error === 'object' && 'code' in error && error.code === 'auth/user-not-found') {
                 logger.error('User not found in Firebase Auth', error as unknown as Error);
-                throw Errors.NOT_FOUND('User not found');
+                throw Errors.notFound('User', ErrorDetail.USER_NOT_FOUND);
             }
 
             logger.error('Failed to update user profile', error as unknown as Error);
@@ -388,16 +386,16 @@ export class UserService {
             // Get user to ensure they exist
             const userRecord = await this.authService.getUser(userId);
             if (!userRecord) {
-                throw Errors.NOT_FOUND('User not found');
+                throw Errors.notFound('User', ErrorDetail.USER_NOT_FOUND);
             }
             if (!userRecord.email) {
-                throw Errors.INVALID_INPUT('User email not found');
+                throw Errors.invalidRequest('User email not found');
             }
 
             // Verify current password
             const isCurrentPasswordValid = await this.authService.verifyPassword(toEmail(userRecord.email), validatedData.currentPassword);
             if (!isCurrentPasswordValid) {
-                throw new ApiError(HTTP_STATUS.UNAUTHORIZED, 'INVALID_PASSWORD', 'Current password is incorrect');
+                throw Errors.authInvalid(ErrorDetail.INVALID_PASSWORD);
             }
 
             // Update password in Firebase Auth
@@ -410,7 +408,7 @@ export class UserService {
             // Check if error is from Firebase Auth (user not found)
             if (error && typeof error === 'object' && 'code' in error && error.code === 'auth/user-not-found') {
                 logger.error('User not found in Firebase Auth', error as unknown as Error);
-                throw Errors.NOT_FOUND('User not found');
+                throw Errors.notFound('User', ErrorDetail.USER_NOT_FOUND);
             }
 
             logger.error('Failed to change password', error as unknown as Error);
@@ -431,16 +429,16 @@ export class UserService {
         try {
             const userRecord = await this.authService.getUser(userId);
             if (!userRecord || !userRecord.email) {
-                throw Errors.NOT_FOUND('User not found');
+                throw Errors.notFound('User', ErrorDetail.USER_NOT_FOUND);
             }
 
             if (userRecord.email.toLowerCase() === validatedData.newEmail.toLowerCase()) {
-                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'EMAIL_UNCHANGED', 'New email must be different from current email');
+                throw Errors.invalidRequest('New email must be different from current email');
             }
 
             const isCurrentPasswordValid = await this.authService.verifyPassword(toEmail(userRecord.email), validatedData.currentPassword);
             if (!isCurrentPasswordValid) {
-                throw new ApiError(HTTP_STATUS.UNAUTHORIZED, 'INVALID_PASSWORD', 'Current password is incorrect');
+                throw Errors.authInvalid(ErrorDetail.INVALID_PASSWORD);
             }
 
             await this.authService.updateUser(userId, {
@@ -454,18 +452,18 @@ export class UserService {
 
             const firebaseCode = this.extractErrorCode(error);
             if (firebaseCode && this.isSensitiveRegistrationErrorCode(firebaseCode)) {
-                throw new ApiError(HTTP_STATUS.CONFLICT, 'EMAIL_ALREADY_EXISTS', 'An account with this email already exists');
+                throw Errors.alreadyExists('Email', ErrorDetail.EMAIL_ALREADY_EXISTS);
             }
 
             if (error && typeof error === 'object' && 'code' in error && (error as { code?: string; }).code === 'auth/user-not-found') {
                 const err = error instanceof Error ? error : new Error(String(error));
                 logger.error('User not found in Firebase Auth during email change', err);
-                throw Errors.NOT_FOUND('User not found');
+                throw Errors.notFound('User', ErrorDetail.USER_NOT_FOUND);
             }
 
             const err = error instanceof Error ? error : new Error(String(error));
             logger.error('Failed to change user email', err);
-            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'EMAIL_CHANGE_FAILED', 'Failed to change email');
+            throw Errors.serviceError(ErrorDetail.UPDATE_FAILED);
         }
     }
 
@@ -607,7 +605,7 @@ export class UserService {
         } catch (error) {
             logger.error('Failed to get current policy versions', error);
             // Registration must fail if policies cannot be retrieved - compliance requirement
-            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'POLICY_SERVICE_UNAVAILABLE', 'Registration temporarily unavailable - unable to retrieve policy versions');
+            throw Errors.unavailable(ErrorDetail.POLICY_SERVICE_ERROR);
         }
     }
 
@@ -616,7 +614,7 @@ export class UserService {
 
         if (code && this.isSensitiveRegistrationErrorCode(code)) {
             logger.warn('Registration failed due to sensitive auth error', { code });
-            return new ApiError(HTTP_STATUS.BAD_REQUEST, REGISTRATION_FAILURE_ERROR_CODE, REGISTRATION_FAILURE_MESSAGE);
+            return Errors.invalidRequest(REGISTRATION_FAILURE_MESSAGE);
         }
 
         if (error instanceof ApiError) {
@@ -624,7 +622,7 @@ export class UserService {
         }
 
         logger.error('Unexpected error during user registration', error as Error);
-        return new ApiError(HTTP_STATUS.INTERNAL_ERROR, REGISTRATION_FAILURE_ERROR_CODE, REGISTRATION_FAILURE_MESSAGE);
+        return Errors.serviceError(REGISTRATION_FAILURE_MESSAGE);
     }
 
     private extractErrorCode(error: unknown): string | null {

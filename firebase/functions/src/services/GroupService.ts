@@ -24,14 +24,14 @@ import {
     UpdateGroupRequest,
 } from '@billsplit-wl/shared';
 import { DisplayName } from '@billsplit-wl/shared';
-import { DOCUMENT_CONFIG, FirestoreCollections, HTTP_STATUS } from '../constants';
+import { DOCUMENT_CONFIG, FirestoreCollections } from '../constants';
+import { ApiError, Errors, ErrorDetail } from '../errors';
 import { logger, LoggerContext } from '../logger';
 import * as measure from '../monitoring/measure';
 import { PerformanceTimer } from '../monitoring/PerformanceTimer';
 import { PermissionEngine } from '../permissions';
 import { GroupBalanceDTO } from '../schemas';
 import * as dateHelpers from '../utils/dateHelpers';
-import { ApiError, Errors } from '../utils/errors';
 import { newTopLevelMembershipDocId } from '../utils/idGenerator';
 import { ActivityFeedService } from './ActivityFeedService';
 import { CommentService } from './CommentService';
@@ -138,7 +138,7 @@ export class GroupService {
         const group = await this.firestoreReader.getGroup(groupId, { includeDeleted });
 
         if (!group) {
-            throw Errors.NOT_FOUND('Group');
+            throw Errors.notFound('Group', ErrorDetail.GROUP_NOT_FOUND);
         }
 
         if (requireWriteAccess) {
@@ -146,7 +146,7 @@ export class GroupService {
         } else {
             const membership = await this.firestoreReader.getGroupMember(group.id, userId);
             if (!membership) {
-                throw Errors.NOT_FOUND('Group');
+                throw Errors.notFound('Group', ErrorDetail.GROUP_NOT_FOUND);
             }
         }
 
@@ -442,16 +442,12 @@ export class GroupService {
             const actorMembershipDoc = membershipSnapshot.docs.find((doc) => doc.data().uid === userId);
             const actorDisplayName = actorMembershipDoc?.data().groupDisplayName?.trim();
             if (!actorDisplayName) {
-                throw new ApiError(
-                    HTTP_STATUS.INTERNAL_ERROR,
-                    'GROUP_DISPLAY_NAME_MISSING',
-                    'Group member is missing required display name',
-                );
+                throw Errors.serviceError('GROUP_DISPLAY_NAME_MISSING');
             }
 
             // Optimistic locking: Check if group was updated since we fetched it (compare ISO strings)
             if (group.updatedAt !== currentGroup.updatedAt) {
-                throw Errors.CONCURRENT_UPDATE();
+                throw Errors.conflict(ErrorDetail.CONCURRENT_UPDATE);
             }
 
             // Create updated data with current timestamp for optimistic response
@@ -520,7 +516,7 @@ export class GroupService {
 
     async updateGroupPermissions(groupId: GroupId, userId: UserId, updates: Partial<GroupPermissions>): Promise<void> {
         if (!updates || Object.values(updates).every((value) => value === undefined)) {
-            throw Errors.INVALID_INPUT({ message: 'No permissions provided for update' });
+            throw Errors.validationError('permissions', 'NO_PERMISSIONS_PROVIDED');
         }
 
         const groupPromise = this.firestoreReader.getGroup(groupId);
@@ -528,7 +524,7 @@ export class GroupService {
         const group = await groupPromise;
 
         if (!group) {
-            throw Errors.NOT_FOUND('Group');
+            throw Errors.notFound('Group', ErrorDetail.GROUP_NOT_FOUND);
         }
 
         const mergedPermissions: GroupPermissions = {
@@ -541,11 +537,11 @@ export class GroupService {
             const transaction = context.transaction;
             const groupInTx = await this.firestoreReader.getGroupInTransaction(transaction, groupId);
             if (!groupInTx) {
-                throw Errors.NOT_FOUND('Group');
+                throw Errors.notFound('Group', ErrorDetail.GROUP_NOT_FOUND);
             }
 
             if (groupInTx.updatedAt !== group.updatedAt) {
-                throw Errors.CONCURRENT_UPDATE();
+                throw Errors.conflict(ErrorDetail.CONCURRENT_UPDATE);
             }
 
             const membershipSnapshot = await this.firestoreReader.getGroupMembershipsInTransaction(transaction, groupId);
@@ -590,7 +586,7 @@ export class GroupService {
             const transaction = context.transaction;
             const currentGroup = context.group;
             if (!currentGroup) {
-                throw Errors.NOT_FOUND('Group');
+                throw Errors.notFound('Group', ErrorDetail.GROUP_NOT_FOUND);
             }
 
             if (currentGroup.deletedAt) {
@@ -600,7 +596,7 @@ export class GroupService {
 
             // Optimistic locking to prevent concurrent updates from clobbering each other
             if (group.updatedAt !== currentGroup.updatedAt) {
-                throw Errors.CONCURRENT_UPDATE();
+                throw Errors.conflict(ErrorDetail.CONCURRENT_UPDATE);
             }
 
             const membershipSnapshot = await this.firestoreReader.getGroupMembershipsInTransaction(transaction, groupId);
@@ -614,11 +610,7 @@ export class GroupService {
             const actorMembershipDoc = membershipSnapshot.docs.find((doc) => doc.data().uid === userId);
             const actorDisplayName = actorMembershipDoc?.data().groupDisplayName?.trim();
             if (!actorDisplayName) {
-                throw new ApiError(
-                    HTTP_STATUS.INTERNAL_ERROR,
-                    'GROUP_DISPLAY_NAME_MISSING',
-                    'Group member is missing required display name',
-                );
+                throw Errors.serviceError('GROUP_DISPLAY_NAME_MISSING');
             }
 
             this.firestoreWriter.updateInTransaction(transaction, `${FirestoreCollections.GROUPS}/${groupId}`, {
@@ -638,11 +630,7 @@ export class GroupService {
                 const memberDoc = membershipSnapshot.docs.find((doc) => (doc.data() as { uid?: string; }).uid === memberId);
                 const targetUserName = (memberDoc?.data() as { groupDisplayName?: string; })?.groupDisplayName?.trim();
                 if (!targetUserName) {
-                    throw new ApiError(
-                        HTTP_STATUS.INTERNAL_ERROR,
-                        'GROUP_DISPLAY_NAME_MISSING',
-                        'Group member is missing required display name',
-                    );
+                    throw Errors.serviceError('GROUP_DISPLAY_NAME_MISSING');
                 }
                 const activityItem = this.activityFeedService.buildGroupActivityItem({
                     groupId,
@@ -702,7 +690,7 @@ export class GroupService {
         } = {},
     ): Promise<GroupFullDetailsDTO> {
         if (!userId) {
-            throw Errors.UNAUTHORIZED();
+            throw Errors.authRequired();
         }
 
         // Validate and set defaults for pagination

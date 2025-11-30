@@ -10,8 +10,6 @@ const external = [
     'firebase-functions',
     // Keep large/native dependencies external
     'express',
-    'i18next',
-    'i18next-fs-backend',
     'joi',
     'dotenv',
     'xss',

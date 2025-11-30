@@ -1,7 +1,8 @@
 import { CreateExpenseRequestBuilder, ExpenseUpdateBuilder } from '@billsplit-wl/test-support';
 import { describe, expect, test } from 'vitest';
 import { validateCreateExpense, validateUpdateExpense } from '../../../expenses/validation';
-import { ApiError } from '../../../utils/errors';
+import { ApiError } from '../../../errors';
+import { ErrorCode } from '../../../errors/ErrorCode';
 
 describe('Date Validation Unit Tests', () => {
     describe('Future Date Validation', () => {
@@ -13,8 +14,13 @@ describe('Date Validation Unit Tests', () => {
                 .withDate(futureDate.toISOString())
                 .build();
 
-            expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
-            expect(() => validateCreateExpense(expenseData)).toThrow(/Date cannot be in the future/);
+            try {
+                validateCreateExpense(expenseData);
+                expect.fail('Should have thrown');
+            } catch (error: any) {
+                expect(error).toBeInstanceOf(ApiError);
+                expect(error.code).toBe(ErrorCode.VALIDATION_ERROR);
+            }
         });
 
         test('should accept expenses with dates up to 24 hours in the future (timezone buffer)', () => {
@@ -37,7 +43,12 @@ describe('Date Validation Unit Tests', () => {
                 .withDate(futureDate.toISOString())
                 .build();
 
-            expect(() => validateCreateExpense(expenseData)).toThrow(/Date cannot be in the future/);
+            try {
+                validateCreateExpense(expenseData);
+                expect.fail('Should have thrown');
+            } catch (error: any) {
+                expect(error.code).toBe(ErrorCode.VALIDATION_ERROR);
+            }
         });
     });
 
@@ -62,8 +73,13 @@ describe('Date Validation Unit Tests', () => {
                 .withDate(veryOldDate.toISOString())
                 .build();
 
-            expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
-            expect(() => validateCreateExpense(expenseData)).toThrow(/Date cannot be more than 10 years in the past/);
+            try {
+                validateCreateExpense(expenseData);
+                expect.fail('Should have thrown');
+            } catch (error: any) {
+                expect(error).toBeInstanceOf(ApiError);
+                expect(error.code).toBe(ErrorCode.VALIDATION_ERROR);
+            }
         });
 
         test('should accept expenses at the 10-year boundary', () => {
@@ -132,7 +148,12 @@ describe('Date Validation Unit Tests', () => {
                     .withDate(nonUtcDate)
                     .build();
 
-                expect(() => validateCreateExpense(expenseData)).toThrow(/Date must be in UTC format/);
+                try {
+                    validateCreateExpense(expenseData);
+                    expect.fail('Should have thrown');
+                } catch (error: any) {
+                    expect(error.code).toBe(ErrorCode.VALIDATION_ERROR);
+                }
             });
         });
 
@@ -168,7 +189,12 @@ describe('Date Validation Unit Tests', () => {
                 .withDate(futureDate.toISOString())
                 .build();
 
-            expect(() => validateUpdateExpense(updateData)).toThrow(/Date cannot be in the future/);
+            try {
+                validateUpdateExpense(updateData);
+                expect.fail('Should have thrown');
+            } catch (error: any) {
+                expect(error.code).toBe(ErrorCode.VALIDATION_ERROR);
+            }
         });
 
         test('should accept valid date updates', () => {

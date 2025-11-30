@@ -1,4 +1,17 @@
 {
+  "apiErrors": {
+    "AUTH_REQUIRED": "Please sign in to continue",
+    "AUTH_INVALID": "Your session has expired. Please sign in again.",
+    "FORBIDDEN": "You don't have permission to do this",
+    "NOT_FOUND": "{{resource}} not found",
+    "ALREADY_EXISTS": "{{resource}} already exists",
+    "CONFLICT": "Someone else made changes. Please refresh and try again.",
+    "VALIDATION_ERROR": "Please check your input and try again",
+    "INVALID_REQUEST": "Something went wrong with your request",
+    "RATE_LIMITED": "Too many requests. Please wait a moment.",
+    "SERVICE_ERROR": "Something went wrong. Please try again.",
+    "UNAVAILABLE": "Service temporarily unavailable. Please try again later."
+  },
   "pagination": {
     "previous": "Previous",
     "next": "Next",

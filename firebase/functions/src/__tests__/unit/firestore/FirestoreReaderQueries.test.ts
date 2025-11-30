@@ -197,7 +197,7 @@ describe('FirestoreReader Queries - Unit Tests', () => {
 
             // Other user should not be able to access
             // Note: The system returns "Group not found" for security (doesn't reveal group exists)
-            await expect(appDriver.getGroup(group.id, otherUserId)).rejects.toThrow(/not found|not.*member|forbidden|access.*denied/i);
+            await expect(appDriver.getGroup(group.id, otherUserId)).rejects.toThrow('NOT_FOUND');
         });
     });
 

@@ -265,7 +265,7 @@ describe('settlements', () => {
                     new SettlementUpdateBuilder().withAmount('100.00', USD).build(),
                     user1,
                 ),
-            ).rejects.toMatchObject({ code: 'SETTLEMENT_NOT_FOUND' });
+            ).rejects.toMatchObject({ code: 'NOT_FOUND' });
         });
 
         it('should reject updating settlement by non-creator', async () => {
@@ -305,13 +305,13 @@ describe('settlements', () => {
                     new SettlementUpdateBuilder().withAmount('50.00', USD).build(),
                     user1,
                 ),
-            ).rejects.toMatchObject({ code: 'NOT_SETTLEMENT_CREATOR' });
+            ).rejects.toMatchObject({ code: 'FORBIDDEN' });
         });
 
         it('should reject deleting non-existent settlement', async () => {
             await expect(
                 appDriver.deleteSettlement('non-existent-settlement-id', user1),
-            ).rejects.toMatchObject({ code: 'SETTLEMENT_NOT_FOUND' });
+            ).rejects.toMatchObject({ code: 'NOT_FOUND' });
         });
 
         it('should reject deleting already-deleted settlement (returns SETTLEMENT_NOT_FOUND)', async () => {
@@ -350,7 +350,7 @@ describe('settlements', () => {
             // Try to delete again - returns NOT_FOUND because soft-deleted settlements are filtered out
             await expect(
                 appDriver.deleteSettlement(settlement.id, user1),
-            ).rejects.toMatchObject({ code: 'SETTLEMENT_NOT_FOUND' });
+            ).rejects.toMatchObject({ code: 'NOT_FOUND' });
         });
     });
 
@@ -614,7 +614,7 @@ describe('settlements', () => {
 
             // Attempting to delete the original (superseded) settlement should fail
             await expect(appDriver.deleteSettlement(originalSettlement.id, user1))
-                .rejects.toThrow('Cannot delete a superseded settlement');
+                .rejects.toMatchObject({ code: 'INVALID_REQUEST' });
         });
     });
 });

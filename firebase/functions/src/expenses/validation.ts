@@ -10,10 +10,9 @@ import {
 } from '@billsplit-wl/shared';
 import { toUserId } from '@billsplit-wl/shared';
 import { z } from 'zod';
-import { HTTP_STATUS } from '../constants';
+import { ErrorDetail, Errors } from '../errors';
 import { SplitStrategyFactory } from '../services/splits/SplitStrategyFactory';
 import { validateAmountPrecision } from '../utils/amount-validation';
-import { ApiError } from '../utils/errors';
 import {
     createRequestValidator,
     createZodErrorMapper,
@@ -53,7 +52,7 @@ const createExpenseErrorMapper = createZodErrorMapper(
             message: () => 'Label must be between 1 and 50 characters',
         },
         date: {
-            code: 'INVALID_DATE',
+            code: 'VALIDATION_ERROR',
             message: (issue) => issue.message,
         },
         splitType: {
@@ -65,16 +64,16 @@ const createExpenseErrorMapper = createZodErrorMapper(
             message: (issue) => issue.message,
         },
         splits: {
-            code: 'INVALID_INPUT',
+            code: 'VALIDATION_ERROR',
             message: (issue) => issue.message,
         },
         receiptUrl: {
-            code: 'INVALID_INPUT',
+            code: 'VALIDATION_ERROR',
             message: (issue) => issue.message,
         },
     },
     {
-        defaultCode: 'INVALID_INPUT',
+        defaultCode: 'VALIDATION_ERROR',
         defaultMessage: (issue) => issue.message,
     },
 );
@@ -126,7 +125,7 @@ const updateExpenseErrorMapperBase = createZodErrorMapper(
             message: () => 'Label must be between 1 and 50 characters',
         },
         date: {
-            code: 'INVALID_DATE',
+            code: 'VALIDATION_ERROR',
             message: (issue) => issue.message,
         },
         splitType: {
@@ -147,14 +146,14 @@ const updateExpenseErrorMapperBase = createZodErrorMapper(
         },
     },
     {
-        defaultCode: 'INVALID_INPUT',
+        defaultCode: 'VALIDATION_ERROR',
         defaultMessage: (issue) => issue.message,
     },
 );
 
 const mapUpdateExpenseError = (error: z.ZodError): never => {
     if (error.issues.some((issue) => issue.message === 'No valid fields to update')) {
-        throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'NO_UPDATE_FIELDS', 'No valid fields to update');
+        throw Errors.invalidRequest(ErrorDetail.NO_UPDATE_FIELDS);
     }
 
     return updateExpenseErrorMapperBase(error);
@@ -219,13 +218,13 @@ export const validateCreateExpense = (body: unknown): CreateExpenseRequest => {
     const value = baseCreateExpenseValidator(body);
 
     if (!value.participants.includes(value.paidBy)) {
-        throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'PAYER_NOT_PARTICIPANT', 'Payer must be a participant');
+        throw Errors.validationError('paidBy', ErrorDetail.PAYER_NOT_PARTICIPANT);
     }
 
     try {
         validateAmountPrecision(value.amount, value.currency);
     } catch (error) {
-        throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_AMOUNT_PRECISION', (error as Error).message);
+        throw Errors.validationError('amount', ErrorDetail.INVALID_AMOUNT_PRECISION);
     }
 
     for (const split of value.splits) {
@@ -233,7 +232,7 @@ export const validateCreateExpense = (body: unknown): CreateExpenseRequest => {
             try {
                 validateAmountPrecision(split.amount, value.currency);
             } catch (error) {
-                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_SPLIT_AMOUNT_PRECISION', (error as Error).message);
+                throw Errors.validationError('splits', ErrorDetail.INVALID_AMOUNT_PRECISION);
             }
         }
     }
@@ -250,18 +249,14 @@ export const validateUpdateExpense = (body: unknown): UpdateExpenseRequest => {
 
     // Require currency when updating amount (breaking API change - allows precision validation)
     if (update.amount !== undefined && update.currency === undefined) {
-        throw new ApiError(
-            HTTP_STATUS.BAD_REQUEST,
-            'MISSING_CURRENCY',
-            'Currency is required when updating amount',
-        );
+        throw Errors.validationError('currency', ErrorDetail.MISSING_FIELD);
     }
 
     if (update.amount !== undefined && update.currency !== undefined) {
         try {
             validateAmountPrecision(update.amount, update.currency);
         } catch (error) {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_AMOUNT_PRECISION', (error as Error).message);
+            throw Errors.validationError('amount', ErrorDetail.INVALID_AMOUNT_PRECISION);
         }
     }
 
@@ -272,19 +267,11 @@ export const validateUpdateExpense = (body: unknown): UpdateExpenseRequest => {
 
     if (requiresSplitValidation) {
         if (!update.participants) {
-            throw new ApiError(
-                HTTP_STATUS.BAD_REQUEST,
-                'MISSING_PARTICIPANTS',
-                'Participants are required for split updates',
-            );
+            throw Errors.validationError('participants', ErrorDetail.MISSING_FIELD);
         }
 
         if (!update.splits || update.splits.length !== update.participants.length) {
-            throw new ApiError(
-                HTTP_STATUS.BAD_REQUEST,
-                'INVALID_SPLITS',
-                'Splits must be provided for all participants',
-            );
+            throw Errors.validationError('splits', ErrorDetail.INVALID_PARTICIPANT);
         }
 
         if (update.currency && update.splits) {
@@ -293,11 +280,7 @@ export const validateUpdateExpense = (body: unknown): UpdateExpenseRequest => {
                     try {
                         validateAmountPrecision(split.amount, update.currency);
                     } catch (error) {
-                        throw new ApiError(
-                            HTTP_STATUS.BAD_REQUEST,
-                            'INVALID_SPLIT_AMOUNT_PRECISION',
-                            (error as Error).message,
-                        );
+                        throw Errors.validationError('splits', ErrorDetail.INVALID_AMOUNT_PRECISION);
                     }
                 }
             }
@@ -322,7 +305,7 @@ export const validateUpdateExpense = (body: unknown): UpdateExpenseRequest => {
     }
 
     if (update.participants && update.paidBy && !update.participants.includes(update.paidBy)) {
-        throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'PAYER_NOT_PARTICIPANT', 'Payer must be a participant');
+        throw Errors.validationError('paidBy', ErrorDetail.PAYER_NOT_PARTICIPANT);
     }
 
     return update;

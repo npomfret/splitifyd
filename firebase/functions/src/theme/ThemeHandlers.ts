@@ -1,9 +1,9 @@
 import { BrandingArtifactMetadata } from '@billsplit-wl/shared';
 import type { RequestHandler } from 'express';
 import { HTTP_STATUS } from '../constants';
+import { ErrorDetail, Errors } from '../errors';
 import { logger } from '../logger';
 import type { IFirestoreReader } from '../services/firestore';
-import { ApiError } from '../utils/errors';
 
 export class ThemeHandlers {
     constructor(private readonly firestoreReader: IFirestoreReader) {}
@@ -12,7 +12,7 @@ export class ThemeHandlers {
         const tenantContext = req.tenant;
 
         if (!tenantContext) {
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'TENANT_NOT_FOUND', 'Unable to resolve tenant for this request');
+            throw Errors.notFound('tenant', ErrorDetail.TENANT_NOT_FOUND);
         }
 
         const record = await this.firestoreReader.getTenantById(tenantContext.tenantId);
@@ -52,20 +52,12 @@ export class ThemeHandlers {
         // Accept both https:// (production) and http:// (emulator)
         if (!artifact.cssUrl.startsWith('https://') && !artifact.cssUrl.startsWith('http://')) {
             logger.error('Invalid CSS artifact URL - must be HTTP(S)', { cssUrl: artifact.cssUrl });
-            throw new ApiError(
-                HTTP_STATUS.SERVICE_UNAVAILABLE,
-                'THEME_STORAGE_INVALID',
-                'Theme CSS URL must be HTTP(S)',
-            );
+            throw Errors.unavailable('THEME_STORAGE_INVALID');
         }
 
         const response = await fetch(artifact.cssUrl);
         if (!response.ok) {
-            throw new ApiError(
-                HTTP_STATUS.SERVICE_UNAVAILABLE,
-                'THEME_FETCH_FAILED',
-                `Failed to fetch theme from Cloud Storage: ${response.status}`,
-            );
+            throw Errors.unavailable('THEME_FETCH_FAILED');
         }
         return response.text();
     }

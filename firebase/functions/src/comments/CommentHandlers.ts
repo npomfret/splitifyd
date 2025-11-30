@@ -3,9 +3,9 @@ import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { validateUserAuth } from '../auth/utils';
 import { HTTP_STATUS } from '../constants';
+import { Errors } from '../errors';
 import { logger } from '../logger';
 import { CommentService } from '../services/CommentService';
-import { ApiError } from '../utils/errors';
 import {
     validateCreateExpenseComment,
     validateCreateGroupComment,
@@ -30,7 +30,7 @@ export class CommentHandlers {
             const targetId = routeTargetsGroup ? req.params.groupId : req.params.expenseId;
 
             if (!targetId) {
-                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_TARGET_ID', 'Target ID is required');
+                throw Errors.validationError('targetId', 'INVALID_TARGET_ID');
             }
 
             let comment: CommentDTO;

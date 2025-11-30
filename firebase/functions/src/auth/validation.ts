@@ -1,13 +1,12 @@
 import { RegisterRequestSchema, UserRegistration } from '@billsplit-wl/shared';
 import { z } from 'zod';
-import { HTTP_STATUS } from '../constants';
-import { ApiError } from '../utils/errors';
+import { ApiError, ErrorDetail, Errors } from '../errors';
 import { createRequestValidator } from '../validation/common';
 
 const mapRegisterError = (error: z.ZodError): never => {
     const firstError = error.issues[0];
     const field = firstError.path[0];
-    let errorCode = 'INVALID_INPUT';
+    let errorCode = 'VALIDATION_ERROR';
     let errorMessage = firstError.message;
 
     switch (field) {
@@ -75,7 +74,7 @@ const mapRegisterError = (error: z.ZodError): never => {
             break;
     }
 
-    throw new ApiError(HTTP_STATUS.BAD_REQUEST, errorCode, errorMessage);
+    throw Errors.validationError(String(field), errorCode as ErrorDetail);
 };
 
 export const validateRegisterRequest = createRequestValidator({

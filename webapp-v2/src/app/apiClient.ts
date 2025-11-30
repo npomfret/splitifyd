@@ -470,8 +470,9 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
                 // Try to parse as API error (structured format only)
                 const errorResult = ApiErrorResponseSchema.safeParse(errorData);
                 if (errorResult.success) {
-                    const { code, message, details } = errorResult.data.error;
-                    throw new ApiError(message, code, details, {
+                    const { code, ...errorDetails } = errorResult.data.error;
+                    // Use code as message for i18n lookup, store full error object as details
+                    throw new ApiError(code, code, errorDetails, {
                         url,
                         method: options.method,
                         status: response.status,

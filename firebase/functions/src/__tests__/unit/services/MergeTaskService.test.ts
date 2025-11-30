@@ -4,6 +4,7 @@ import { SystemUserRoles, toUserId } from '@billsplit-wl/shared';
 import { StubStorage } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { FirestoreCollections } from '../../../constants';
+import { ErrorCode } from '../../../errors/ErrorCode';
 import type { MergeTaskService } from '../../../merge/MergeTaskService';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import { StubAuthService } from '../mocks/StubAuthService';
@@ -108,7 +109,9 @@ describe('MergeTaskService', () => {
             });
 
             // Act & Assert: Should throw error for non-pending job
-            await expect(mergeTaskService.executeMerge(jobId)).rejects.toThrow('not in pending status');
+            await expect(mergeTaskService.executeMerge(jobId)).rejects.toMatchObject({
+                code: ErrorCode.INVALID_REQUEST,
+            });
         });
 
         it('should throw error if job does not exist', async () => {

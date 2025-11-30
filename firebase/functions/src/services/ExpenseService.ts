@@ -13,14 +13,14 @@ import {
     UpdateExpenseRequest,
     UserId,
 } from '@billsplit-wl/shared';
-import { FirestoreCollections, HTTP_STATUS } from '../constants';
+import { FirestoreCollections } from '../constants';
 import * as expenseValidation from '../expenses/validation';
 import type { IDocumentReference } from '../firestore-wrapper';
 import { logger, LoggerContext } from '../logger';
 import * as measure from '../monitoring/measure';
 import { PerformanceTimer } from '../monitoring/PerformanceTimer';
 import { PermissionEngineAsync } from '../permissions/permission-engine-async';
-import { ApiError, Errors } from '../utils/errors';
+import { Errors, ErrorDetail } from '../errors';
 import { ActivityFeedService } from './ActivityFeedService';
 import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
@@ -50,7 +50,7 @@ export class ExpenseService {
         const expenseData = await this.firestoreReader.getExpense(expenseId, { includeSoftDeleted });
 
         if (!expenseData) {
-            throw Errors.NOT_FOUND('Expense');
+            throw Errors.notFound('Expense', ErrorDetail.EXPENSE_NOT_FOUND);
         }
 
         // Data already validated by FirestoreReader - it's an ExpenseDTO with ISO strings
@@ -97,7 +97,7 @@ export class ExpenseService {
         // Verify user is a member of the group that owns this expense
         const isMember = await this.firestoreReader.verifyGroupMembership(expense.groupId, userId);
         if (!isMember) {
-            throw Errors.NOT_FOUND('Expense');
+            throw Errors.notFound('Expense', ErrorDetail.EXPENSE_NOT_FOUND);
         }
         timer.endPhase();
 
@@ -139,21 +139,17 @@ export class ExpenseService {
         // Check if user can create expenses in this group
         const canCreateExpense = PermissionEngineAsync.checkPermission(actorMember, group, userId, 'expenseEditing');
         if (!canCreateExpense) {
-            throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You do not have permission to create expenses in this group');
+            throw Errors.forbidden(ErrorDetail.INSUFFICIENT_PERMISSIONS);
         }
 
         if (!memberIds.includes(validatedExpenseData.paidBy)) {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PAYER', 'Payer must be a member of the group');
+            throw Errors.validationError('paidBy', ErrorDetail.INVALID_PAYER);
         }
 
         // Verify all participants are still in the group (race condition protection)
         for (const participantId of validatedExpenseData.participants) {
             if (!memberIds.includes(participantId)) {
-                throw new ApiError(
-                    HTTP_STATUS.BAD_REQUEST,
-                    'MEMBER_NOT_IN_GROUP',
-                    `Cannot create expense - participant ${participantId} is not in the group`,
-                );
+                throw Errors.validationError('participants', ErrorDetail.INVALID_PARTICIPANT);
             }
         }
 
@@ -207,7 +203,7 @@ export class ExpenseService {
             const groupInTx = await this.firestoreReader.getGroupInTransaction(transaction, expenseData.groupId);
 
             if (!groupInTx) {
-                throw Errors.NOT_FOUND('Group');
+                throw Errors.notFound('Group', ErrorDetail.GROUP_NOT_FOUND);
             }
             timer.endPhase();
 
@@ -270,7 +266,7 @@ export class ExpenseService {
 
         // Ensure the expense was created successfully
         if (!createdExpenseRef) {
-            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'EXPENSE_CREATION_FAILED', 'Failed to create expense');
+            throw Errors.serviceError(ErrorDetail.CREATION_FAILED);
         }
 
         // Set business context for logging
@@ -308,11 +304,7 @@ export class ExpenseService {
         // Check if expense is locked (any participant has left)
         const isLocked = await this.isExpenseLocked(oldExpense);
         if (isLocked) {
-            throw new ApiError(
-                HTTP_STATUS.BAD_REQUEST,
-                'EXPENSE_LOCKED',
-                'Cannot edit expense - one or more participants have left the group',
-            );
+            throw Errors.invalidRequest('EXPENSE_LOCKED');
         }
 
         // Get group data and verify permissions
@@ -328,17 +320,17 @@ export class ExpenseService {
         // Convert expense to ExpenseData format for permission check
         const canEditExpense = PermissionEngineAsync.checkPermission(actorMember, group, userId, 'expenseEditing', { expense: oldExpense });
         if (!canEditExpense) {
-            throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You do not have permission to edit this expense');
+            throw Errors.forbidden(ErrorDetail.INSUFFICIENT_PERMISSIONS);
         }
 
         if (updateData.paidBy && !memberIds.includes(updateData.paidBy)) {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PAYER', 'Payer must be a member of the group');
+            throw Errors.validationError('paidBy', ErrorDetail.INVALID_PAYER);
         }
 
         if (updateData.participants) {
             for (const participantId of updateData.participants) {
                 if (!memberIds.includes(participantId)) {
-                    throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PARTICIPANT', `Participant ${participantId} is not a member of the group`);
+                    throw Errors.validationError('participants', ErrorDetail.INVALID_PARTICIPANT);
                 }
             }
         }
@@ -347,11 +339,11 @@ export class ExpenseService {
         const uniqueSplitParticipants = Array.from(new Set(splitsToValidate.map((split) => split.uid)));
         await Promise.all(uniqueSplitParticipants.map(async (splitUid) => {
             if (!memberIds.includes(splitUid)) {
-                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PARTICIPANT', `Split participant ${splitUid} is not a member of the group`);
+                throw Errors.validationError('splits', ErrorDetail.INVALID_PARTICIPANT);
             }
             const memberRecord = await this.firestoreReader.getGroupMember(oldExpense.groupId, splitUid);
             if (!memberRecord) {
-                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PARTICIPANT', `Split participant ${splitUid} is not a member of the group`);
+                throw Errors.validationError('splits', ErrorDetail.INVALID_PARTICIPANT);
             }
         }));
 
@@ -397,12 +389,12 @@ export class ExpenseService {
             const currentExpense = await this.firestoreReader.getExpenseInTransaction(transaction, expenseId);
 
             if (!currentExpense) {
-                throw Errors.NOT_FOUND('Expense');
+                throw Errors.notFound('Expense', ErrorDetail.EXPENSE_NOT_FOUND);
             }
 
             // Check if expense was updated since we fetched it (compare ISO strings)
             if (oldExpense.updatedAt !== currentExpense.updatedAt) {
-                throw new ApiError(HTTP_STATUS.CONFLICT, 'CONCURRENT_UPDATE', 'Expense was modified by another user. Please refresh and try again.');
+                throw Errors.conflict(ErrorDetail.CONCURRENT_UPDATE);
             }
 
             // Read current balance BEFORE any writes (Firestore transaction rule)
@@ -520,7 +512,7 @@ export class ExpenseService {
         timer.startPhase('query');
         const isMember = await this.firestoreReader.verifyGroupMembership(groupId, userId);
         if (!isMember) {
-            throw Errors.FORBIDDEN();
+            throw Errors.forbidden(ErrorDetail.NOT_GROUP_MEMBER);
         }
 
         // Use the centralized FirestoreReader method
@@ -567,16 +559,12 @@ export class ExpenseService {
         // Prevent deletion of superseded expenses (they're already archived via edit history)
         // This check MUST come before the deletedAt check to return the correct error
         if (expense.supersededBy !== null) {
-            throw new ApiError(
-                HTTP_STATUS.BAD_REQUEST,
-                'CANNOT_DELETE_SUPERSEDED',
-                'Cannot delete a superseded expense - it has already been replaced by a newer version',
-            );
+            throw Errors.invalidRequest('CANNOT_DELETE_SUPERSEDED');
         }
 
         // If the expense is already soft-deleted (user-initiated deletion), return NOT_FOUND
         if (expense.deletedAt) {
-            throw Errors.NOT_FOUND('Expense');
+            throw Errors.notFound('Expense', ErrorDetail.EXPENSE_NOT_FOUND);
         }
 
         // Get group data and verify permissions
@@ -589,7 +577,7 @@ export class ExpenseService {
 
         const canDeleteExpense = PermissionEngineAsync.checkPermission(actorMember, group, userId, 'expenseDeletion', { expense: expense });
         if (!canDeleteExpense) {
-            throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You do not have permission to delete this expense');
+            throw Errors.forbidden(ErrorDetail.INSUFFICIENT_PERMISSIONS);
         }
 
         // Declare variables outside transaction for activity feed
@@ -605,13 +593,13 @@ export class ExpenseService {
                 // Do ALL reads first - using DTO methods
                 const currentExpense = await this.firestoreReader.getExpenseInTransaction(transaction, expenseId);
                 if (!currentExpense) {
-                    throw Errors.NOT_FOUND('Expense');
+                    throw Errors.notFound('Expense', ErrorDetail.EXPENSE_NOT_FOUND);
                 }
 
                 // Get group doc to ensure it exists (though we already checked above)
                 const groupInTx = await this.firestoreReader.getGroupInTransaction(transaction, expense.groupId);
                 if (!groupInTx) {
-                    throw new ApiError(HTTP_STATUS.NOT_FOUND, 'INVALID_GROUP', 'Group not found');
+                    throw Errors.notFound('Group', ErrorDetail.GROUP_NOT_FOUND);
                 }
 
                 // Read current balance BEFORE any writes (Firestore transaction rule)
@@ -619,7 +607,7 @@ export class ExpenseService {
 
                 // Check for concurrent updates (compare ISO strings)
                 if (expense.updatedAt !== currentExpense.updatedAt) {
-                    throw Errors.CONCURRENT_UPDATE();
+                    throw Errors.conflict(ErrorDetail.CONCURRENT_UPDATE);
                 }
 
                 // ===== WRITE PHASE: All writes happen after reads =====
@@ -694,17 +682,17 @@ export class ExpenseService {
         const groupId = expense.groupId;
         const groupData = await this.firestoreReader.getGroup(groupId);
         if (!groupData) {
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
+            throw Errors.notFound('Group', ErrorDetail.GROUP_NOT_FOUND);
         }
 
         if (!groupData?.name) {
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Invalid group data');
+            throw Errors.notFound('Group', ErrorDetail.GROUP_NOT_FOUND);
         }
 
         // Verify user is a member of the group that owns this expense
         const isMember = await this.firestoreReader.verifyGroupMembership(groupId, userId);
         if (!isMember) {
-            throw Errors.NOT_FOUND('Expense');
+            throw Errors.notFound('Expense', ErrorDetail.EXPENSE_NOT_FOUND);
         }
 
         // Transform group data using same pattern as groups handler (without deprecated members field)

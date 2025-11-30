@@ -91,8 +91,7 @@ import { createRouteDefinitions, RouteDefinition } from '../../routes/route-conf
 import { ComponentBuilder } from '../../services/ComponentBuilder';
 import { FirestoreReader } from '../../services/firestore';
 import { RegisterUserResult } from '../../services/UserService2';
-import { ApiError } from '../../utils/errors';
-import { Errors, sendError } from '../../utils/errors';
+import { ApiError, Errors } from '../../errors';
 import { createUnitTestServiceConfig } from '../test-config';
 import { StubAuthService } from './mocks/StubAuthService';
 
@@ -185,8 +184,7 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
          */
         const authenticate: RequestHandler = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
             if (!req.user || !req.user.uid) {
-                sendError(res as any, Errors.UNAUTHORIZED(), undefined);
-                return;
+                throw Errors.authRequired();
             }
 
             // Fetch role from Firestore (mimics production middleware)
@@ -199,7 +197,8 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
                 // User might not exist in Firestore yet (e.g., during registration), continue anyway
             }
 
-            next();
+            // Await next to properly propagate errors from combined middlewares
+            await Promise.resolve(next());
         };
 
         /**
@@ -207,13 +206,11 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
          */
         const requireAdmin: RequestHandler = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
             if (!req.user) {
-                sendError(res as any, Errors.UNAUTHORIZED(), undefined);
-                return;
+                throw Errors.authRequired();
             }
 
             if (req.user.role !== SystemUserRoles.SYSTEM_ADMIN) {
-                sendError(res as any, Errors.FORBIDDEN(), undefined);
-                return;
+                throw Errors.forbidden();
             }
 
             next();
@@ -224,36 +221,40 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
          */
         const requireSystemRole: RequestHandler = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
             if (!req.user) {
-                sendError(res as any, Errors.UNAUTHORIZED(), undefined);
-                return;
+                throw Errors.authRequired();
             }
 
             if (req.user.role !== SystemUserRoles.SYSTEM_USER && req.user.role !== SystemUserRoles.SYSTEM_ADMIN) {
-                sendError(res as any, Errors.FORBIDDEN(), undefined);
-                return;
+                throw Errors.forbidden();
             }
 
             next();
         };
 
         const authenticateAdmin: RequestHandler = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-            await authenticate(req, res, async (error?: any) => {
-                if (error) {
-                    next(error);
-                    return;
-                }
-                await requireAdmin(req, res, next);
-            });
+            try {
+                await authenticate(req, res, async (error?: any) => {
+                    if (error) {
+                        throw error;
+                    }
+                    await requireAdmin(req, res, next);
+                });
+            } catch (err) {
+                throw err;
+            }
         };
 
         const authenticateSystemUser: RequestHandler = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-            await authenticate(req, res, async (error?: any) => {
-                if (error) {
-                    next(error);
-                    return;
-                }
-                await requireSystemRole(req, res, next);
-            });
+            try {
+                await authenticate(req, res, async (error?: any) => {
+                    if (error) {
+                        throw error;
+                    }
+                    await requireSystemRole(req, res, next);
+                });
+            } catch (err) {
+                throw err;
+            }
         };
 
         /**
@@ -261,26 +262,27 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
          */
         const requireTenantAdmin: RequestHandler = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
             if (!req.user) {
-                sendError(res as any, Errors.UNAUTHORIZED(), undefined);
-                return;
+                throw Errors.authRequired();
             }
 
             if (req.user.role !== SystemUserRoles.TENANT_ADMIN && req.user.role !== SystemUserRoles.SYSTEM_ADMIN) {
-                sendError(res as any, Errors.FORBIDDEN(), undefined);
-                return;
+                throw Errors.forbidden();
             }
 
             next();
         };
 
         const authenticateTenantAdmin: RequestHandler = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-            await authenticate(req, res, async (error?: any) => {
-                if (error) {
-                    next(error);
-                    return;
-                }
-                await requireTenantAdmin(req, res, next);
-            });
+            try {
+                await authenticate(req, res, async (error?: any) => {
+                    if (error) {
+                        throw error;
+                    }
+                    await requireTenantAdmin(req, res, next);
+                });
+            } catch (err) {
+                throw err;
+            }
         };
 
         /**
@@ -349,57 +351,70 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
             }
         }
 
-        // Execute middleware chain
-        for (const middleware of middlewareChain) {
-            let nextCalled = false;
-            let error: any = null;
+        try {
+            // Execute middleware chain
+            for (const middleware of middlewareChain) {
+                let nextCalled = false;
+                let error: any = null;
 
-            await new Promise<void>((resolve, reject) => {
-                const next = (err?: any) => {
-                    nextCalled = true;
-                    if (err) {
-                        error = err;
-                        reject(err);
-                    } else {
+                await new Promise<void>((resolve, reject) => {
+                    const next = (err?: any) => {
+                        nextCalled = true;
+                        if (err) {
+                            error = err;
+                            reject(err);
+                        } else {
+                            resolve();
+                        }
+                    };
+
+                    // Execute middleware
+                    const result = middleware(req, res, next) as void | Promise<void>;
+
+                    // Handle async middleware
+                    if (result && result instanceof Promise) {
+                        result
+                            .then(() => {
+                                if (!nextCalled) {
+                                    resolve();
+                                }
+                            })
+                            .catch(reject);
+                    } else if (!nextCalled) {
+                        // Synchronous middleware that didn't call next - assume success
                         resolve();
                     }
-                };
+                });
 
-                // Execute middleware
-                const result = middleware(req, res, next) as void | Promise<void>;
-
-                // Handle async middleware
-                if (result && result instanceof Promise) {
-                    result
-                        .then(() => {
-                            if (!nextCalled) {
-                                resolve();
-                            }
-                        })
-                        .catch(reject);
-                } else if (!nextCalled) {
-                    // Synchronous middleware that didn't call next - assume success
-                    resolve();
+                // If middleware sent a response (e.g., error), stop execution
+                if (res.getStatus && res.getStatus()) {
+                    return res;
                 }
-            });
 
-            // If middleware sent a response (e.g., error), stop execution
-            if (res.getStatus && res.getStatus()) {
+                if (error) {
+                    throw error;
+                }
+            }
+
+            // Middleware passed, now call the handler
+            // Provide a no-op next function for Express handlers
+            const next = () => {
+            };
+            await handlerFn(req, res, next);
+
+            return res;
+        } catch (err) {
+            // Convert thrown ApiError to HTTP response (mirrors Express error handler)
+            if (err instanceof ApiError) {
+                res.status(err.statusCode).json({
+                    error: {
+                        ...err.toJSON(),
+                    },
+                });
                 return res;
             }
-
-            if (error) {
-                throw error;
-            }
+            throw err;
         }
-
-        // Middleware passed, now call the handler
-        // Provide a no-op next function for Express handlers
-        const next = () => {
-        };
-        await handlerFn(req, res, next);
-
-        return res;
     }
 
     seedUser(userId: UserId | string, userData: SeedUserData = {}) {
@@ -758,6 +773,7 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         const req = createStubRequest(authToken, data);
         req.query = { id: expenseId };
         const res = await this.dispatchByHandler('updateExpense', req);
+        this.throwIfError(res);
         return res.getJson() as ExpenseDTO;
     }
 
@@ -841,6 +857,7 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
     async updateSettlement(settlementId: SettlementId | string, data: UpdateSettlementRequest, authToken: AuthToken): Promise<SettlementWithMembers> {
         const req = createStubRequest(authToken, data, { settlementId });
         const res = await this.dispatchByHandler('updateSettlement', req);
+        this.throwIfError(res);
         return res.getJson() as SettlementWithMembers;
     }
 
@@ -922,12 +939,14 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         }
         req.query = query;
         const res = await this.dispatchByHandler('listGroupComments', req);
+        this.throwIfError(res);
         return res.getJson() as ListCommentsResponse;
     }
 
     async createExpenseComment(expenseId: ExpenseId | string, text: CommentText | string, authToken: AuthToken): Promise<CommentDTO> {
         const req = createStubRequest(authToken, { text }, { expenseId });
         const res = await this.dispatchByHandler('createCommentForExpense', req);
+        this.throwIfError(res);
         return res.getJson() as CommentDTO;
     }
 
@@ -942,6 +961,7 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         }
         req.query = query;
         const res = await this.dispatchByHandler('listExpenseComments', req);
+        this.throwIfError(res);
         return res.getJson() as ListCommentsResponse;
     }
 
@@ -1007,12 +1027,14 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
     async getUserAuth(uid: UserId, token?: AuthToken): Promise<any> {
         const req = createStubRequest(token || '', {}, { userId: uid });
         const res = await this.dispatchByHandler('getUserAuth', req);
+        this.throwIfError(res);
         return res.getJson();
     }
 
     async getUserFirestore(uid: UserId, token?: AuthToken): Promise<any> {
         const req = createStubRequest(token || '', {}, { userId: uid });
         const res = await this.dispatchByHandler('getUserFirestore', req);
+        this.throwIfError(res);
         return res.getJson();
     }
 
@@ -1032,6 +1054,7 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
     async createPolicy(request: CreatePolicyRequest, token: AuthToken): Promise<CreatePolicyResponse> {
         const req = createStubRequest(token, request);
         const res = await this.dispatchByHandler('createPolicy', req);
+        this.throwIfError(res);
         return res.getJson() as CreatePolicyResponse;
     }
 
@@ -1057,36 +1080,42 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
     async getPolicyVersion(policyId: PolicyId, versionHash: VersionHash, token: AuthToken): Promise<PolicyVersion & { versionHash: VersionHash; }> {
         const req = createStubRequest(token, {}, { policyId, hash: versionHash });
         const res = await this.dispatchByHandler('getPolicyVersion', req);
+        this.throwIfError(res);
         return res.getJson() as PolicyVersion & { versionHash: VersionHash; };
     }
 
     async updatePolicy(policyId: PolicyId, request: UpdatePolicyRequest, token: AuthToken): Promise<UpdatePolicyResponse> {
         const req = createStubRequest(token, request, { policyId });
         const res = await this.dispatchByHandler('updatePolicy', req);
+        this.throwIfError(res);
         return res.getJson() as UpdatePolicyResponse;
     }
 
     async publishPolicy(policyId: PolicyId, versionHash: VersionHash, token: AuthToken): Promise<PublishPolicyResponse> {
         const req = createStubRequest(token, { versionHash }, { policyId });
         const res = await this.dispatchByHandler('publishPolicy', req);
+        this.throwIfError(res);
         return res.getJson() as PublishPolicyResponse;
     }
 
     async deletePolicyVersion(policyId: PolicyId, versionHash: VersionHash, token: AuthToken): Promise<DeletePolicyVersionResponse> {
         const req = createStubRequest(token, {}, { policyId, hash: versionHash });
         const res = await this.dispatchByHandler('deletePolicyVersion', req);
+        this.throwIfError(res);
         return res.getJson() as DeletePolicyVersionResponse;
     }
 
     async acceptMultiplePolicies(acceptances: AcceptPolicyRequest[], authToken: AuthToken): Promise<AcceptMultiplePoliciesResponse> {
         const req = createStubRequest(authToken, { acceptances });
         const res = await this.dispatchByHandler('acceptMultiplePolicies', req);
+        this.throwIfError(res);
         return res.getJson() as AcceptMultiplePoliciesResponse;
     }
 
     async getUserPolicyStatus(authToken: AuthToken): Promise<UserPolicyStatusResponse> {
         const req = createStubRequest(authToken, {});
         const res = await this.dispatchByHandler('getUserPolicyStatus', req);
+        this.throwIfError(res);
         return res.getJson() as UserPolicyStatusResponse;
     }
 
@@ -1305,12 +1334,14 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
     async adminUpsertTenant(request: AdminUpsertTenantRequest, token: AuthToken): Promise<AdminUpsertTenantResponse> {
         const req = createStubRequest(token, request);
         const res = await this.dispatchByHandler('adminUpsertTenant', req);
+        this.throwIfError(res);
         return res.getJson() as AdminUpsertTenantResponse;
     }
 
     async publishTenantTheme(request: PublishTenantThemeRequest, token: AuthToken): Promise<PublishTenantThemeResponse> {
         const req = createStubRequest(token, request);
         const res = await this.dispatchByHandler('publishTenantTheme', req);
+        this.throwIfError(res);
         return res.getJson() as PublishTenantThemeResponse;
     }
 
@@ -1325,6 +1356,7 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         req.headers['content-type'] = contentType;
 
         const res = await this.dispatchByHandler('uploadTenantImage', req);
+        this.throwIfError(res);
         return res.getJson() as { url: string; };
     }
 
@@ -1364,8 +1396,8 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         const json = res.getJson();
 
         if (status && status >= 400 && json?.error) {
-            // ApiError constructor: (statusCode, code, message, details)
-            throw new ApiError(status, json.error.code || 'UNKNOWN_ERROR', json.error.message || 'Unknown error', json.error.details);
+            // ApiError constructor: (statusCode, code, data?)
+            throw new ApiError(status, json.error.code || 'UNKNOWN_ERROR', json.error);
         }
     }
 }

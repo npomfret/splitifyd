@@ -173,8 +173,8 @@ describe('groups', () => {
 
         await new Promise((resolve) => setTimeout(resolve, 1200));
 
-        await expect(appDriver.previewGroupByLink(shareToken, user2)).rejects.toMatchObject({ code: 'LINK_EXPIRED' });
-        await expect(appDriver.joinGroupByLink(shareToken, undefined, user2)).rejects.toMatchObject({ code: 'INVALID_LINK' });
+        await expect(appDriver.previewGroupByLink(shareToken, user2)).rejects.toMatchObject({ code: 'INVALID_REQUEST' });
+        await expect(appDriver.joinGroupByLink(shareToken, undefined, user2)).rejects.toMatchObject({ code: 'NOT_FOUND' });
     });
 
     it('should let members update their own group display name', async () => {
@@ -314,7 +314,7 @@ describe('groups', () => {
             // Try to archive again - should fail
             await expect(appDriver.archiveGroupForUser(groupId, user2))
                 .rejects
-                .toMatchObject({ code: 'INVALID_INPUT' });
+                .toMatchObject({ code: 'INVALID_REQUEST' });
         });
 
         it('should reject unarchiving a non-archived membership', async () => {
@@ -327,7 +327,7 @@ describe('groups', () => {
             // Try to unarchive an active membership
             await expect(appDriver.unarchiveGroupForUser(groupId, user2))
                 .rejects
-                .toMatchObject({ code: 'INVALID_INPUT' });
+                .toMatchObject({ code: 'INVALID_REQUEST' });
         });
 
         it('should allow multiple archive/unarchive cycles', async () => {
@@ -589,7 +589,12 @@ describe('groups', () => {
 
             await expect(
                 appDriver.updateMemberRole(group.id, user2, 'superadmin' as any, user1),
-            ).rejects.toMatchObject({ code: 'INVALID_ROLE' });
+            ).rejects.toMatchObject({
+                code: 'VALIDATION_ERROR',
+                data: {
+                    detail: 'INVALID_ROLE'
+                }
+            });
         });
     });
 

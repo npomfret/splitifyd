@@ -5,7 +5,6 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import { UserHandlers } from '../../../user/UserHandlers';
-import { initializeI18n } from '../../../utils/i18n';
 import { createUnitTestServiceConfig } from '../../test-config';
 import { AppDriver } from '../AppDriver';
 import { StubAuthService } from '../mocks/StubAuthService';
@@ -14,7 +13,6 @@ describe('UserHandlers - Integration Tests', () => {
     let appDriver: AppDriver;
 
     beforeEach(async () => {
-        await initializeI18n();
         appDriver = new AppDriver();
     });
 
@@ -85,7 +83,7 @@ describe('UserHandlers - Integration Tests', () => {
             await expect(appDriver.updateUserProfile(updateRequest, userId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_INPUT',
+                    code: 'VALIDATION_ERROR',
                 }),
             );
         });
@@ -100,7 +98,7 @@ describe('UserHandlers - Integration Tests', () => {
             await expect(appDriver.updateUserProfile(updateRequest, userId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_INPUT',
+                    code: 'VALIDATION_ERROR',
                 }),
             );
         });
@@ -114,7 +112,7 @@ describe('UserHandlers - Integration Tests', () => {
             await expect(appDriver.updateUserProfile(updateRequest, userId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_INPUT',
+                    code: 'VALIDATION_ERROR',
                 }),
             );
         });
@@ -128,7 +126,7 @@ describe('UserHandlers - Integration Tests', () => {
             await expect(appDriver.updateUserProfile(updateRequest, userId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_INPUT',
+                    code: 'VALIDATION_ERROR',
                 }),
             );
         });
@@ -203,7 +201,7 @@ describe('UserHandlers - Integration Tests', () => {
             await expect(appDriver.changePassword(passwordRequest, userId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_INPUT',
+                    code: 'VALIDATION_ERROR',
                 }),
             );
         });
@@ -219,7 +217,7 @@ describe('UserHandlers - Integration Tests', () => {
             await expect(appDriver.changePassword(passwordRequest, userId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_INPUT',
+                    code: 'VALIDATION_ERROR',
                 }),
             );
         });

@@ -18,7 +18,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import type { IFirestoreReader } from '../../../services/firestore';
 import { GroupShareService } from '../../../services/GroupShareService';
-import { ApiError } from '../../../utils/errors';
+import { ApiError } from '../../../errors';
+import { ErrorCode } from '../../../errors/ErrorCode';
 import { AppDriver } from '../AppDriver';
 
 let ownerId1: string;
@@ -150,7 +151,7 @@ describe('GroupShareService', () => {
 
             expect(caughtError).toBeInstanceOf(ApiError);
             expect(caughtError?.statusCode).toBe(HTTP_STATUS.BAD_REQUEST);
-            expect(caughtError?.message).toContain('Link ID is required');
+            expect(caughtError?.code).toBe(ErrorCode.VALIDATION_ERROR);
         });
     });
 
@@ -167,7 +168,7 @@ describe('GroupShareService', () => {
 
             expect(caughtError).toBeInstanceOf(ApiError);
             expect(caughtError?.statusCode).toBe(HTTP_STATUS.NOT_FOUND);
-            expect(caughtError?.message).toContain('Group not found');
+            expect(caughtError?.code).toBe(ErrorCode.NOT_FOUND);
         });
 
         it('should generate shareable link for group owner', async () => {
@@ -207,7 +208,7 @@ describe('GroupShareService', () => {
             const pastExpiry = new Date(Date.now() - 60 * 1000).toISOString();
 
             await expect(groupShareService.generateShareableLink(toUserId(userId), groupId, pastExpiry)).rejects.toMatchObject({
-                code: 'INVALID_EXPIRATION',
+                code: ErrorCode.VALIDATION_ERROR,
             });
         });
 
@@ -218,7 +219,7 @@ describe('GroupShareService', () => {
             const farExpiry = new Date(Date.now() + (6 * 24 * 60 * 60 * 1000)).toISOString();
 
             await expect(groupShareService.generateShareableLink(toUserId(userId), groupId, farExpiry)).rejects.toMatchObject({
-                code: 'INVALID_EXPIRATION',
+                code: ErrorCode.VALIDATION_ERROR,
             });
         });
 
@@ -279,8 +280,7 @@ describe('GroupShareService', () => {
 
             expect(caughtError).toBeInstanceOf(ApiError);
             expect(caughtError?.statusCode).toBe(HTTP_STATUS.BAD_REQUEST);
-            expect(caughtError?.code).toBe('GROUP_AT_CAPACITY');
-            expect(caughtError?.message).toContain(`${MAX_GROUP_MEMBERS} members`);
+            expect(caughtError?.code).toBe(ErrorCode.INVALID_REQUEST);
         });
     });
 
@@ -317,8 +317,7 @@ describe('GroupShareService', () => {
 
             // Attempt to join with same display name should throw error
             await expect(groupShareService.joinGroupByLink(newUserId, toShareLinkToken(shareToken), toDisplayName('Test User'))).rejects.toMatchObject({
-                code: 'DISPLAY_NAME_CONFLICT',
-                message: expect.stringContaining('Test User'),
+                code: ErrorCode.ALREADY_EXISTS,
             });
         });
 
@@ -329,8 +328,7 @@ describe('GroupShareService', () => {
 
             // Attempt to join with "Test User" (different case) should throw error
             await expect(groupShareService.joinGroupByLink(newUserId, toShareLinkToken(shareToken), toDisplayName('Test User'))).rejects.toMatchObject({
-                code: 'DISPLAY_NAME_CONFLICT',
-                message: expect.stringContaining('Test User'),
+                code: ErrorCode.ALREADY_EXISTS,
             });
         });
     });

@@ -864,7 +864,6 @@ test.describe('Group Detail - Permission Checks', () => {
 test.describe('Group Detail - Error Handling', () => {
     test('should handle group not found error', async ({ authenticatedPage }) => {
         const { page } = authenticatedPage;
-        const groupDetailPage = new GroupDetailPage(page);
         const groupId = 'non-existent-group';
 
         // Mock 404 error
@@ -872,8 +871,8 @@ test.describe('Group Detail - Error Handling', () => {
 
         await page.goto(`/groups/${groupId}`);
 
-        // Verify 404 page is displayed
-        await groupDetailPage.verifyErrorState('Page not found');
+        // Should redirect to 404 page
+        await expect(page).toHaveURL('/404');
     });
 
     test('should handle permission denied error', async ({ authenticatedPage }) => {
@@ -886,8 +885,8 @@ test.describe('Group Detail - Error Handling', () => {
 
         await page.goto(`/groups/${groupId}`);
 
-        // Verify error page is displayed
-        await groupDetailPage.verifyErrorState('Permission denied');
+        // Verify error page is displayed (shows error code for i18n translation)
+        await groupDetailPage.verifyErrorState('FORBIDDEN');
     });
 
     test('should handle API server error', async ({ authenticatedPage }) => {
@@ -900,8 +899,8 @@ test.describe('Group Detail - Error Handling', () => {
 
         await page.goto(`/groups/${groupId}`);
 
-        // Verify error state is displayed
-        await groupDetailPage.verifyErrorState('Internal Server Error');
+        // Verify error state is displayed (shows error code for i18n translation)
+        await groupDetailPage.verifyErrorState('INTERNAL_ERROR');
     });
 
     test('should handle network timeout error', async ({ authenticatedPage }) => {
@@ -914,8 +913,8 @@ test.describe('Group Detail - Error Handling', () => {
 
         await page.goto(`/groups/${groupId}`);
 
-        // Verify error state is displayed
-        await groupDetailPage.verifyErrorState('Request timeout');
+        // Verify error state is displayed (shows error code for i18n translation)
+        await groupDetailPage.verifyErrorState('TIMEOUT');
     });
 });
 

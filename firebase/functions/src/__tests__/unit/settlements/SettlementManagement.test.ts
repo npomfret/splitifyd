@@ -126,12 +126,12 @@ describe('Settlement Management - Unit Tests', () => {
 
             const created = await appDriver.createSettlement(settlementData, creatorUserId);
 
-            // Act & Assert: Outsider cannot retrieve settlement
+            // Act & Assert: Outsider cannot retrieve settlement (NOT_FOUND for security)
             await expect(
                 appDriver.getSettlement(group.id, created.id, outsiderUserId),
             )
                 .rejects
-                .toThrow(/status 403.*NOT_GROUP_MEMBER/);
+                .toThrow('NOT_FOUND');
         });
 
         it('should handle non-existent settlement', async () => {
@@ -151,7 +151,7 @@ describe('Settlement Management - Unit Tests', () => {
                 appDriver.getSettlement(group.id, 'non-existent-id', userId),
             )
                 .rejects
-                .toThrow(/status 404.*SETTLEMENT_NOT_FOUND/);
+                .toThrow('NOT_FOUND');
         });
     });
 
@@ -277,7 +277,7 @@ describe('Settlement Management - Unit Tests', () => {
                 appDriver.updateSettlement(created.id, updateData, otherMemberUserId),
             )
                 .rejects
-                .toThrow(/Only the creator can update this settlement/);
+                .toThrow('FORBIDDEN');
         });
 
         it('should validate update data', async () => {
@@ -329,7 +329,7 @@ describe('Settlement Management - Unit Tests', () => {
                 appDriver.updateSettlement(created.id, invalidUpdateData, creatorUserId),
             )
                 .rejects
-                .toThrow(/Amount must be a valid decimal number/);
+                .toThrow('VALIDATION_ERROR');
         });
     });
 
@@ -447,7 +447,7 @@ describe('Settlement Management - Unit Tests', () => {
                 appDriver.deleteSettlement(created.id, otherMemberUserId),
             )
                 .rejects
-                .toThrow(/Only the creator or group admin can delete this settlement/);
+                .toThrow('FORBIDDEN');
         });
 
         it('should handle deletion of non-existent settlement', async () => {
@@ -467,7 +467,7 @@ describe('Settlement Management - Unit Tests', () => {
                 appDriver.deleteSettlement('non-existent-id', userId),
             )
                 .rejects
-                .toThrow(/Settlement not found/);
+                .toThrow('NOT_FOUND');
         });
     });
 
@@ -561,7 +561,7 @@ describe('Settlement Management - Unit Tests', () => {
                 appDriver.getGroupFullDetails(group.id, {}, leavingMemberUserId),
             )
                 .rejects
-                .toThrow(/status 404.*NOT_FOUND|status 403.*NOT_GROUP_MEMBER|Group not found/);
+                .toThrow('NOT_FOUND');
         });
     });
 
@@ -757,7 +757,7 @@ describe('Settlement Management - Unit Tests', () => {
                 appDriver.deleteSettlement(created.id, otherMemberUserId),
             )
                 .rejects
-                .toThrow(/Only the creator or group admin can delete this settlement/);
+                .toThrow('FORBIDDEN');
         });
 
         it('should prevent double deletion of already deleted settlement', async () => {
@@ -808,7 +808,7 @@ describe('Settlement Management - Unit Tests', () => {
                 appDriver.deleteSettlement(created.id, creatorUserId),
             )
                 .rejects
-                .toThrow(/Settlement not found/);
+                .toThrow('NOT_FOUND');
         });
 
         it('should not allow updating a soft deleted settlement', async () => {
@@ -864,7 +864,7 @@ describe('Settlement Management - Unit Tests', () => {
                 appDriver.updateSettlement(created.id, updateData, creatorUserId),
             )
                 .rejects
-                .toThrow(/Settlement not found/);
+                .toThrow('NOT_FOUND');
         });
     });
 });

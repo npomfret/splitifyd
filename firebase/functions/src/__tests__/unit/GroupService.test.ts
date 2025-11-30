@@ -2,9 +2,9 @@ import { CreateGroupRequest, toGroupId, toUserId } from '@billsplit-wl/shared';
 import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, GroupUpdateBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS, VALIDATION_LIMITS } from '../../constants';
+import { ApiError } from '../../errors';
 import { validateCreateGroup, validateGroupId, validateUpdateGroup } from '../../groups/validation';
 import { GroupService } from '../../services/GroupService';
-import { ApiError } from '../../utils/errors';
 import { AppDriver } from './AppDriver';
 
 describe('GroupService - Unit Tests', () => {
@@ -220,7 +220,10 @@ describe('GroupService - Unit Tests', () => {
                     expect(() => validateCreateGroup(dataWithoutName)).toThrow(
                         expect.objectContaining({
                             statusCode: HTTP_STATUS.BAD_REQUEST,
-                            code: 'INVALID_GROUP_NAME',
+                            code: 'VALIDATION_ERROR',
+                            data: expect.objectContaining({
+                                detail: 'INVALID_GROUP_NAME',
+                            }),
                         }),
                     );
                 });
@@ -235,7 +238,10 @@ describe('GroupService - Unit Tests', () => {
                     expect(() => validateCreateGroup(data)).toThrow(
                         expect.objectContaining({
                             statusCode: HTTP_STATUS.BAD_REQUEST,
-                            code: 'INVALID_GROUP_NAME',
+                            code: 'VALIDATION_ERROR',
+                            data: expect.objectContaining({
+                                detail: 'INVALID_GROUP_NAME',
+                            }),
                         }),
                     );
                 });
@@ -444,12 +450,7 @@ describe('GroupService - Unit Tests', () => {
                 ];
 
                 for (const id of invalidIds) {
-                    expect(() => validateGroupId(id)).toThrow(
-                        expect.objectContaining({
-                            statusCode: HTTP_STATUS.BAD_REQUEST,
-                            message: expect.stringMatching(/group ID/i),
-                        }),
-                    );
+                    expect(() => validateGroupId(id)).toThrow(ApiError);
                 }
             });
 

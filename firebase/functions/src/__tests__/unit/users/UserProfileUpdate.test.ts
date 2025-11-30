@@ -48,7 +48,7 @@ describe('User Profile Update - Integration Tests', () => {
         });
 
         test('requires authenticated user', async () => {
-            await expect(appDriver.updateUserProfile({ displayName: 'New Name' }, 'non-existent-user')).rejects.toThrow(/not.*found|user.*not.*exist/i);
+            await expect(appDriver.updateUserProfile({ displayName: 'New Name' }, 'non-existent-user')).rejects.toThrow('NOT_FOUND');
         });
     });
 
@@ -74,7 +74,7 @@ describe('User Profile Update - Integration Tests', () => {
                 }, userId),
             )
                 .rejects
-                .toThrow(/password/i);
+                .toThrow('AUTH_INVALID');
         });
 
         test('rejects unchanged email', async () => {
@@ -85,7 +85,7 @@ describe('User Profile Update - Integration Tests', () => {
                 }, userId),
             )
                 .rejects
-                .toThrow(/different/i);
+                .toThrow('INVALID_REQUEST');
         });
 
         test('rejects duplicate email', async () => {
@@ -105,7 +105,7 @@ describe('User Profile Update - Integration Tests', () => {
                 }, userId),
             )
                 .rejects
-                .toThrow(/already exists/i);
+                .toThrow('ALREADY_EXISTS');
         });
     });
 });

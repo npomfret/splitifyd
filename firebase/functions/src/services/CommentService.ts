@@ -1,10 +1,10 @@
 import type { ExpenseId, GroupId, UserId } from '@billsplit-wl/shared';
 import { ActivityFeedActions, ActivityFeedEventTypes, CommentDTO, CreateExpenseCommentRequest, CreateGroupCommentRequest, ListCommentsResponse, toCommentId, toISOString } from '@billsplit-wl/shared';
 import { HTTP_STATUS } from '../constants';
+import { ApiError, Errors, ErrorDetail } from '../errors';
 import { logger } from '../logger';
 import * as measure from '../monitoring/measure';
 import { PerformanceTimer } from '../monitoring/PerformanceTimer';
-import { ApiError } from '../utils/errors';
 import * as loggerContext from '../utils/logger-context';
 import { ActivityFeedService } from './ActivityFeedService';
 import { ExpenseCommentStrategy } from './comments/ExpenseCommentStrategy';
@@ -122,8 +122,8 @@ export class CommentService {
             memberIds,
             actorMember,
         } = await this.groupMemberService.getGroupAccessContext(groupId, userId, {
-            notFoundErrorFactory: () => new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found'),
-            forbiddenErrorFactory: () => new ApiError(HTTP_STATUS.FORBIDDEN, 'ACCESS_DENIED', 'User is not a member of this group'),
+            notFoundErrorFactory: () => Errors.notFound('Group', ErrorDetail.GROUP_NOT_FOUND),
+            forbiddenErrorFactory: () => Errors.forbidden(ErrorDetail.NOT_GROUP_MEMBER),
         });
 
         const now = toISOString(new Date().toISOString());
@@ -178,7 +178,7 @@ export class CommentService {
         timer.startPhase('refetch');
         const createdComment = await this.firestoreReader.getGroupComment(groupId, toCommentId(commentId));
         if (!createdComment) {
-            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'COMMENT_CREATION_FAILED', 'Failed to retrieve created comment');
+            throw Errors.serviceError(ErrorDetail.CREATION_FAILED);
         }
         timer.endPhase();
 
@@ -205,7 +205,7 @@ export class CommentService {
 
         const expense = await this.firestoreReader.getExpense(expenseId);
         if (!expense || expense.deletedAt) {
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'EXPENSE_NOT_FOUND', 'Expense not found');
+            throw Errors.notFound('Expense', ErrorDetail.EXPENSE_NOT_FOUND);
         }
 
         const {
@@ -213,8 +213,8 @@ export class CommentService {
             memberIds,
             actorMember,
         } = await this.groupMemberService.getGroupAccessContext(expense.groupId, userId, {
-            notFoundErrorFactory: () => new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found'),
-            forbiddenErrorFactory: () => new ApiError(HTTP_STATUS.FORBIDDEN, 'ACCESS_DENIED', 'User is not a member of this group'),
+            notFoundErrorFactory: () => Errors.notFound('Group', ErrorDetail.GROUP_NOT_FOUND),
+            forbiddenErrorFactory: () => Errors.forbidden(ErrorDetail.NOT_GROUP_MEMBER),
         });
 
         const authorName = actorMember.groupDisplayName;
@@ -276,7 +276,7 @@ export class CommentService {
         timer.startPhase('refetch');
         const createdComment = await this.firestoreReader.getExpenseComment(expenseId, toCommentId(commentId));
         if (!createdComment) {
-            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'COMMENT_CREATION_FAILED', 'Failed to retrieve created comment');
+            throw Errors.serviceError(ErrorDetail.CREATION_FAILED);
         }
         timer.endPhase();
 

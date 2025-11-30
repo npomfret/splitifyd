@@ -458,7 +458,7 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
         it('requires authentication', async () => {
             await expect(
                 appDriver.listGroups({ limit: 1 }, ''),
-            ).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
+            ).rejects.toMatchObject({ code: 'AUTH_REQUIRED' });
         });
 
         it('supports includeMetadata flag', async () => {

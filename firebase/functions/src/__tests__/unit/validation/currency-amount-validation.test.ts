@@ -2,7 +2,8 @@ import { CreateExpenseRequestBuilder, CreateSettlementRequestBuilder, ExpenseSpl
 import { describe, expect, it } from 'vitest';
 import { validateCreateExpense } from '../../../expenses/validation';
 import { validateCreateSettlement } from '../../../settlements/validation';
-import { ApiError } from '../../../utils/errors';
+import { ApiError } from '../../../errors';
+import { ErrorCode } from '../../../errors/ErrorCode';
 
 describe('Currency-Aware Amount Validation', () => {
     describe('Zero Decimal Currencies (JPY, KRW, VND, etc.)', () => {
@@ -27,8 +28,13 @@ describe('Currency-Aware Amount Validation', () => {
                 .withPaidBy('user1')
                 .build();
 
-            expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
-            expect(() => validateCreateExpense(expenseData)).toThrow(/whole number for JPY/);
+            try {
+                validateCreateExpense(expenseData);
+                expect.fail('Should have thrown');
+            } catch (error: any) {
+                expect(error).toBeInstanceOf(ApiError);
+                expect(error.code).toBe(ErrorCode.VALIDATION_ERROR);
+            }
         });
 
         it('should reject decimal split amounts for KRW', () => {
@@ -40,8 +46,13 @@ describe('Currency-Aware Amount Validation', () => {
                 .withSplits(new ExpenseSplitBuilder().withSplit('user1', '5000.5').withSplit('user2', '4999.5').build())
                 .build();
 
-            expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
-            expect(() => validateCreateExpense(expenseData)).toThrow(/whole number for KRW/);
+            try {
+                validateCreateExpense(expenseData);
+                expect.fail('Should have thrown');
+            } catch (error: any) {
+                expect(error).toBeInstanceOf(ApiError);
+                expect(error.code).toBe(ErrorCode.VALIDATION_ERROR);
+            }
         });
     });
 
@@ -67,8 +78,13 @@ describe('Currency-Aware Amount Validation', () => {
                 .withPaidBy('user1')
                 .build();
 
-            expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
-            expect(() => validateCreateExpense(expenseData)).toThrow(/at most 2 decimal.*EUR/);
+            try {
+                validateCreateExpense(expenseData);
+                expect.fail('Should have thrown');
+            } catch (error: any) {
+                expect(error).toBeInstanceOf(ApiError);
+                expect(error.code).toBe(ErrorCode.VALIDATION_ERROR);
+            }
         });
     });
 
@@ -94,8 +110,13 @@ describe('Currency-Aware Amount Validation', () => {
                 .withPaidBy('user1')
                 .build();
 
-            expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
-            expect(() => validateCreateExpense(expenseData)).toThrow(/at most 3 decimal.*KWD/);
+            try {
+                validateCreateExpense(expenseData);
+                expect.fail('Should have thrown');
+            } catch (error: any) {
+                expect(error).toBeInstanceOf(ApiError);
+                expect(error.code).toBe(ErrorCode.VALIDATION_ERROR);
+            }
         });
     });
 
@@ -121,8 +142,13 @@ describe('Currency-Aware Amount Validation', () => {
                 .withPaidBy('user1')
                 .build();
 
-            expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
-            expect(() => validateCreateExpense(expenseData)).toThrow(/at most 1 decimal.*MRU/);
+            try {
+                validateCreateExpense(expenseData);
+                expect.fail('Should have thrown');
+            } catch (error: any) {
+                expect(error).toBeInstanceOf(ApiError);
+                expect(error.code).toBe(ErrorCode.VALIDATION_ERROR);
+            }
         });
     });
 
@@ -140,7 +166,12 @@ describe('Currency-Aware Amount Validation', () => {
                 .withAmount(100.5, 'JPY')
                 .build();
 
-            expect(() => validateCreateSettlement(settlementData)).toThrow(/whole number for JPY/);
+            try {
+                validateCreateSettlement(settlementData);
+                expect.fail('Should have thrown');
+            } catch (error: any) {
+                expect(error.code).toBe(ErrorCode.VALIDATION_ERROR);
+            }
         });
 
         it('should accept 3 decimals for BHD settlement', () => {

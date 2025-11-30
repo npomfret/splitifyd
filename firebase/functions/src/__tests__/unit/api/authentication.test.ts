@@ -31,13 +31,13 @@ describe('authentication edge cases', () => {
             // The middleware checks if req.user exists
             await expect(
                 appDriver.createGroup(new CreateGroupRequestBuilder().build(), '' as UserId),
-            ).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
+            ).rejects.toMatchObject({ code: 'AUTH_REQUIRED' });
         });
 
         it('should reject group listing without authentication', async () => {
             await expect(
                 appDriver.listGroups({}, '' as UserId),
-            ).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
+            ).rejects.toMatchObject({ code: 'AUTH_REQUIRED' });
         });
 
         it('should reject expense creation without authentication', async () => {
@@ -60,19 +60,19 @@ describe('authentication edge cases', () => {
                         .build(),
                     '' as UserId,
                 ),
-            ).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
+            ).rejects.toMatchObject({ code: 'AUTH_REQUIRED' });
         });
 
         it('should reject activity feed access without authentication', async () => {
             await expect(
                 appDriver.getActivityFeed({}, '' as UserId),
-            ).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
+            ).rejects.toMatchObject({ code: 'AUTH_REQUIRED' });
         });
 
         it('should reject user profile access without authentication', async () => {
             await expect(
                 appDriver.getUserProfile('' as UserId),
-            ).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
+            ).rejects.toMatchObject({ code: 'AUTH_REQUIRED' });
         });
     });
 

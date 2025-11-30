@@ -16,10 +16,10 @@ import { normalizeDisplayNameForComparison } from '@billsplit-wl/shared';
 import { ExpenseId, GroupId, PolicyId, ShareLinkId } from '@billsplit-wl/shared';
 import { z } from 'zod';
 import { ALLOWED_POLICY_IDS, FirestoreCollections, HTTP_STATUS } from '../../constants';
+import { ApiError, ErrorDetail, Errors } from '../../errors';
 import { FieldValue, type IDocumentReference, type IFirestoreDatabase, type ITransaction, type IWriteBatch, Timestamp } from '../../firestore-wrapper';
 import { logger } from '../../logger';
 import { measureDb } from '../../monitoring/measure';
-import { ApiError } from '../../utils/errors';
 
 import type { BrandingArtifactMetadata } from '@billsplit-wl/shared';
 import { SystemUserRoles } from '@billsplit-wl/shared';
@@ -696,7 +696,7 @@ export class FirestoreWriter implements IFirestoreWriter {
 
             // Validate display name before transaction
             if (!trimmedDisplayName) {
-                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_INPUT', 'Display name cannot be empty');
+                throw Errors.validationError('displayName', ErrorDetail.MISSING_FIELD);
             }
 
             const normalizedNewDisplayName = normalizeDisplayNameForComparison(trimmedDisplayName);
@@ -708,7 +708,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                 const membershipsSnapshot = await transaction.get(membershipQuery);
 
                 if (membershipsSnapshot.empty) {
-                    throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
+                    throw Errors.notFound('Group', ErrorDetail.GROUP_NOT_FOUND);
                 }
 
                 // Check if display name is already taken by another user
@@ -729,13 +729,13 @@ export class FirestoreWriter implements IFirestoreWriter {
                 });
 
                 if (nameTaken) {
-                    throw new ApiError(HTTP_STATUS.CONFLICT, 'DISPLAY_NAME_TAKEN', `Display name "${trimmedDisplayName}" is already in use in this group`);
+                    throw Errors.conflict(ErrorDetail.DISPLAY_NAME_TAKEN);
                 }
 
                 // Find the target member's document
                 const memberDoc = membershipsSnapshot.docs.find((doc) => doc.data().uid === userId);
                 if (!memberDoc) {
-                    throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_MEMBER_NOT_FOUND', 'User is not a member of this group');
+                    throw Errors.notFound('Member', ErrorDetail.MEMBER_NOT_FOUND);
                 }
 
                 // PHASE 2: ALL WRITES AFTER ALL READS
@@ -785,12 +785,12 @@ export class FirestoreWriter implements IFirestoreWriter {
         const doc = await transaction.get(balanceRef);
 
         if (!doc.exists) {
-            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'BALANCE_NOT_FOUND', `Balance not found for group ${groupId}`);
+            throw Errors.notFound('Balance', ErrorDetail.BALANCE_NOT_FOUND);
         }
 
         const data = doc.data();
         if (!data) {
-            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'BALANCE_READ_ERROR', 'Balance document is empty');
+            throw Errors.serviceError(ErrorDetail.DATABASE_ERROR);
         }
 
         // Validate and convert to DTO (Timestamps → ISO strings)
@@ -1049,11 +1049,7 @@ export class FirestoreWriter implements IFirestoreWriter {
 
                 // Validate policy ID - only standard policies are allowed (database constraint)
                 if (!ALLOWED_POLICY_IDS.has(policyRef.id)) {
-                    throw new ApiError(
-                        HTTP_STATUS.BAD_REQUEST,
-                        'INVALID_POLICY_ID',
-                        `Database constraint: Only standard policies are allowed. Policy ID '${policyRef.id}' is not permitted.`,
-                    );
+                    throw Errors.validationError('policyId');
                 }
 
                 // Validate with temp timestamps for schema validation
@@ -1317,11 +1313,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                             // Check if any conflicting tenant is NOT the current tenant
                             const conflictingDoc = conflictingTenantsSnapshot.docs.find((doc) => doc.id !== tenantId);
                             if (conflictingDoc) {
-                                throw new ApiError(
-                                    HTTP_STATUS.CONFLICT,
-                                    'DUPLICATE_DOMAIN',
-                                    `Domain '${domain}' is already assigned to tenant '${conflictingDoc.id}'`,
-                                );
+                                throw Errors.alreadyExists('Domain');
                             }
                         }
                     }
@@ -1334,11 +1326,7 @@ export class FirestoreWriter implements IFirestoreWriter {
 
                         // Cannot remove default flag without transferring it to another tenant
                         if (isCurrentlyDefault && newDefaultFlag === false) {
-                            throw new ApiError(
-                                HTTP_STATUS.BAD_REQUEST,
-                                'CANNOT_REMOVE_DEFAULT_TENANT',
-                                'Cannot remove default tenant flag. A default tenant must always exist. Set another tenant as default first.',
-                            );
+                            throw Errors.validationError('defaultTenant', ErrorDetail.MISSING_FIELD);
                         }
                     }
 
@@ -1396,7 +1384,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                 if (error instanceof ApiError) {
                     throw error;
                 }
-                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'TENANT_UPSERT_FAILED', 'Unable to upsert tenant');
+                throw Errors.serviceError(ErrorDetail.UPDATE_FAILED);
             }
         });
     }
@@ -1416,7 +1404,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                 };
             } catch (error) {
                 logger.error('Failed to update tenant theme artifact', error, { tenantId });
-                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'TENANT_ARTIFACT_UPDATE_FAILED', 'Unable to record theme artifact metadata');
+                throw Errors.serviceError(ErrorDetail.UPDATE_FAILED);
             }
         });
     }
@@ -1437,7 +1425,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                 };
             } catch (error) {
                 logger.error('Failed to create merge job', error, { jobId });
-                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'MERGE_JOB_CREATE_FAILED', 'Unable to create merge job document');
+                throw Errors.serviceError(ErrorDetail.CREATION_FAILED);
             }
         });
     }
@@ -1470,7 +1458,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                 };
             } catch (err) {
                 logger.error('Failed to update merge job status', err, { jobId, status });
-                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'MERGE_JOB_UPDATE_FAILED', 'Unable to update merge job status');
+                throw Errors.serviceError(ErrorDetail.UPDATE_FAILED);
             }
         });
     }
@@ -1494,7 +1482,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                 return groupsSnapshot.size;
             } catch (err) {
                 logger.error('Failed to reassign group ownership', err, { fromUserId, toUserId });
-                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'REASSIGN_FAILED', 'Failed to reassign group ownership');
+                throw Errors.serviceError(ErrorDetail.UPDATE_FAILED);
             }
         });
     }
@@ -1518,7 +1506,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                 return membershipsSnapshot.size;
             } catch (err) {
                 logger.error('Failed to reassign group memberships', err, { fromUserId, toUserId });
-                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'REASSIGN_FAILED', 'Failed to reassign group memberships');
+                throw Errors.serviceError(ErrorDetail.UPDATE_FAILED);
             }
         });
     }
@@ -1542,7 +1530,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                 return expensesSnapshot.size;
             } catch (err) {
                 logger.error('Failed to reassign expense payer', err, { fromUserId, toUserId });
-                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'REASSIGN_FAILED', 'Failed to reassign expense payer');
+                throw Errors.serviceError(ErrorDetail.UPDATE_FAILED);
             }
         });
     }
@@ -1569,7 +1557,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                 return expensesSnapshot.size;
             } catch (err) {
                 logger.error('Failed to reassign expense participants', err, { fromUserId, toUserId });
-                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'REASSIGN_FAILED', 'Failed to reassign expense participants');
+                throw Errors.serviceError(ErrorDetail.UPDATE_FAILED);
             }
         });
     }
@@ -1593,7 +1581,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                 return settlementsSnapshot.size;
             } catch (err) {
                 logger.error('Failed to reassign settlement payer', err, { fromUserId, toUserId });
-                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'REASSIGN_FAILED', 'Failed to reassign settlement payer');
+                throw Errors.serviceError(ErrorDetail.UPDATE_FAILED);
             }
         });
     }
@@ -1617,7 +1605,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                 return settlementsSnapshot.size;
             } catch (err) {
                 logger.error('Failed to reassign settlement payee', err, { fromUserId, toUserId });
-                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'REASSIGN_FAILED', 'Failed to reassign settlement payee');
+                throw Errors.serviceError(ErrorDetail.UPDATE_FAILED);
             }
         });
     }
@@ -1641,7 +1629,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                 return commentsSnapshot.size;
             } catch (err) {
                 logger.error('Failed to reassign comment authors', err, { fromUserId, toUserId });
-                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'REASSIGN_FAILED', 'Failed to reassign comment authors');
+                throw Errors.serviceError(ErrorDetail.UPDATE_FAILED);
             }
         });
     }
@@ -1665,7 +1653,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                 return activitySnapshot.size;
             } catch (err) {
                 logger.error('Failed to reassign activity feed actors', err, { fromUserId, toUserId });
-                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'REASSIGN_FAILED', 'Failed to reassign activity feed actors');
+                throw Errors.serviceError(ErrorDetail.UPDATE_FAILED);
             }
         });
     }
@@ -1689,7 +1677,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                 return tokensSnapshot.size;
             } catch (err) {
                 logger.error('Failed to reassign share link tokens', err, { fromUserId, toUserId });
-                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'REASSIGN_FAILED', 'Failed to reassign share link tokens');
+                throw Errors.serviceError(ErrorDetail.UPDATE_FAILED);
             }
         });
     }
@@ -1711,7 +1699,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                 };
             } catch (err) {
                 logger.error('Failed to mark user as merged', err, { userId, mergedIntoUserId });
-                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'MARK_MERGED_FAILED', 'Failed to mark user as merged');
+                throw Errors.serviceError(ErrorDetail.UPDATE_FAILED);
             }
         });
     }

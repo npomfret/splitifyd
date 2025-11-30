@@ -676,7 +676,7 @@ describe('SettlementHandlers - Unit Tests', () => {
             await expect(appDriver.updateSettlement('', updateRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_SETTLEMENT_ID',
+                    code: 'VALIDATION_ERROR',
                 }),
             );
         });
@@ -687,7 +687,7 @@ describe('SettlementHandlers - Unit Tests', () => {
             await expect(appDriver.updateSettlement('test-settlement', updateRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'VALIDATION_ERROR',
+                    code: 'INVALID_REQUEST',
                 }),
             );
         });
@@ -936,7 +936,7 @@ describe('SettlementHandlers - Unit Tests', () => {
             await expect(appDriver.deleteSettlement('', 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_SETTLEMENT_ID',
+                    code: 'VALIDATION_ERROR',
                 }),
             );
         });

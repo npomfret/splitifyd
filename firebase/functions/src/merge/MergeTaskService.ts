@@ -1,9 +1,9 @@
 import type { UserId } from '@billsplit-wl/shared';
-import { HTTP_STATUS } from '../constants';
 import { logger } from '../logger';
 import type { IAuthService } from '../services/auth';
 import type { IFirestoreReader, IFirestoreWriter } from '../services/firestore';
-import { ApiError } from '../utils/errors';
+import { Errors } from '../errors/Errors';
+import { ErrorDetail } from '../errors/ErrorCode';
 import { LoggerContext } from '../utils/logger-context';
 import type { MergeJobDocument } from './MergeService';
 
@@ -56,11 +56,7 @@ export class MergeTaskService {
 
             // Step 2: Validate job status
             if (job.status !== 'pending') {
-                throw new ApiError(
-                    HTTP_STATUS.BAD_REQUEST,
-                    'INVALID_JOB_STATUS',
-                    `Job ${jobId} is not in pending status (current: ${job.status})`,
-                );
+                throw Errors.invalidRequest(`Job ${jobId} is not in pending status (current: ${job.status})`);
             }
 
             // Step 3: Mark job as processing
@@ -89,11 +85,8 @@ export class MergeTaskService {
             logger.info('merge-completed', summary);
             return summary;
         } catch (error) {
-            if (error instanceof ApiError) {
-                throw error;
-            }
             logger.error('Failed to execute merge', error as Error, { jobId });
-            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'MERGE_EXECUTION_FAILED', 'Failed to execute account merge');
+            throw error;
         }
     }
 
@@ -162,11 +155,7 @@ export class MergeTaskService {
             });
         } catch (error) {
             logger.error('data-migrations-failed', error as Error, { fromUserId, toUserId });
-            throw new ApiError(
-                HTTP_STATUS.INTERNAL_ERROR,
-                'MIGRATION_FAILED',
-                `Data migration failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-            );
+            throw Errors.serviceError(ErrorDetail.MERGE_FAILED);
         }
     }
 
@@ -176,7 +165,7 @@ export class MergeTaskService {
     private async getJobDocument(jobId: string): Promise<MergeJobDocument> {
         const job = await this.firestoreReader.getMergeJob(jobId);
         if (!job) {
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'JOB_NOT_FOUND', `Merge job ${jobId} not found`);
+            throw Errors.notFound('MergeJob', 'JOB_NOT_FOUND', jobId);
         }
         return job;
     }

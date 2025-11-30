@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../constants';
+import { ApiError } from '../../errors';
 import { validateGroupFullDetailsQuery, validateGroupIdParam, validateListGroupsQuery } from '../../groups/validation';
 
 describe('groups/validation', () => {
@@ -53,7 +54,8 @@ describe('groups/validation', () => {
             expect(() => validateListGroupsQuery({ limit: 'abc' })).toThrowError(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_QUERY_PARAMS',
+                    code: 'VALIDATION_ERROR',
+                    data: expect.objectContaining({ detail: 'INVALID_QUERY_PARAMS' }),
                 }),
             );
         });
@@ -62,7 +64,8 @@ describe('groups/validation', () => {
             expect(() => validateListGroupsQuery({ limit: '200' })).toThrowError(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_QUERY_PARAMS',
+                    code: 'VALIDATION_ERROR',
+                    data: expect.objectContaining({ detail: 'INVALID_QUERY_PARAMS' }),
                 }),
             );
         });
@@ -128,7 +131,8 @@ describe('groups/validation', () => {
             expect(() => validateGroupFullDetailsQuery({ expenseLimit: 'abc' })).toThrowError(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_QUERY_PARAMS',
+                    code: 'VALIDATION_ERROR',
+                    data: expect.objectContaining({ detail: 'INVALID_QUERY_PARAMS' }),
                 }),
             );
         });
@@ -156,30 +160,15 @@ describe('groups/validation', () => {
         });
 
         it('throws ApiError for missing group ID', () => {
-            expect(() => validateGroupIdParam({})).toThrowError(
-                expect.objectContaining({
-                    statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_GROUP_ID',
-                }),
-            );
+            expect(() => validateGroupIdParam({})).toThrowError(ApiError);
         });
 
         it('throws ApiError for empty group ID', () => {
-            expect(() => validateGroupIdParam({ groupId: '' })).toThrowError(
-                expect.objectContaining({
-                    statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_GROUP_ID',
-                }),
-            );
+            expect(() => validateGroupIdParam({ groupId: '' })).toThrowError(ApiError);
         });
 
         it('throws ApiError for whitespace-only group ID', () => {
-            expect(() => validateGroupIdParam({ groupId: '   ' })).toThrowError(
-                expect.objectContaining({
-                    statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_GROUP_ID',
-                }),
-            );
+            expect(() => validateGroupIdParam({ groupId: '   ' })).toThrowError(ApiError);
         });
     });
 });

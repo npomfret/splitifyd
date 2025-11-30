@@ -1,8 +1,8 @@
 import { TenantDomainName, TenantFullRecord, TenantId, toTenantDomainName, toTenantId } from '@billsplit-wl/shared';
-import { HTTP_STATUS } from '../../constants';
 import { logger } from '../../logger';
 import type { TenantRequestContext } from '../../types/tenant';
-import { ApiError } from '../../utils/errors';
+import { Errors } from '../../errors/Errors';
+import { ErrorDetail } from '../../errors/ErrorCode';
 import type { IFirestoreReader } from '../firestore';
 
 export interface TenantResolutionOptions {
@@ -32,7 +32,7 @@ export class TenantRegistryService {
 
         if (overrideTenantId) {
             if (!allowOverride) {
-                throw new ApiError(HTTP_STATUS.FORBIDDEN, 'TENANT_OVERRIDE_NOT_ALLOWED', 'Tenant override header is not permitted in this environment');
+                throw Errors.forbidden('TENANT_OVERRIDE_NOT_ALLOWED');
             }
             const tenantId = toTenantId(overrideTenantId);
             const record = await this.getByTenantId(tenantId);
@@ -41,7 +41,7 @@ export class TenantRegistryService {
                 return this.toResolution(record, 'override');
             }
             // If override tenant doesn't exist and fallback is not allowed, throw error
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'TENANT_OVERRIDE_NOT_FOUND', 'Specified tenant override does not exist');
+            throw Errors.notFound('Tenant', 'TENANT_OVERRIDE_NOT_FOUND', overrideTenantId);
         }
 
         if (host) {
@@ -62,7 +62,7 @@ export class TenantRegistryService {
             return this.toResolution(record, 'default');
         }
 
-        throw new ApiError(HTTP_STATUS.NOT_FOUND, 'TENANT_NOT_FOUND', 'Unable to resolve tenant for request');
+        throw Errors.notFound('Tenant', ErrorDetail.TENANT_NOT_FOUND);
     }
 
     clearCache(): void {

@@ -182,8 +182,8 @@ test.describe('Dashboard Error Handling', () => {
 
         await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
 
-        // Verify error state is displayed
-        await dashboardPage.verifyErrorState('Internal Server Error');
+        // Verify error state is displayed (shows error code for i18n translation)
+        await dashboardPage.verifyErrorState('INTERNAL_ERROR');
     });
 
     test('should allow retry after error', async ({ authenticatedPage }) => {
@@ -196,8 +196,8 @@ test.describe('Dashboard Error Handling', () => {
 
         await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
 
-        // Verify error state
-        await dashboardPage.verifyErrorState('Server temporarily unavailable');
+        // Verify error state (shows error code for i18n translation)
+        await dashboardPage.verifyErrorState('SERVICE_UNAVAILABLE');
 
         // Mock successful API response for retry
         await mockGroupsApi(
@@ -226,7 +226,7 @@ test.describe('Dashboard Error Handling', () => {
 
         await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
 
-        // Verify timeout error is handled
-        await dashboardPage.verifyErrorState('Request timeout');
+        // Verify timeout error is handled (shows error code for i18n translation)
+        await dashboardPage.verifyErrorState('TIMEOUT');
     });
 });

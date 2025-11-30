@@ -164,7 +164,8 @@ test.describe('Join Group Page - Successful Join', () => {
         await joinGroupPage.waitForDisplayNameModal(1000);
         await joinGroupPage.submitDisplayNameModal();
 
-        await joinGroupPage.verifyErrorMessageContains('You do not have permission to join this group');
+        // Error code is displayed for i18n translation
+        await joinGroupPage.verifyErrorMessageContains('FORBIDDEN');
     });
 });
 

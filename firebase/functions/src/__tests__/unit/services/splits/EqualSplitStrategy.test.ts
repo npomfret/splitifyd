@@ -42,49 +42,49 @@ describe('EqualSplitStrategy', () => {
         it('should reject when splits array is missing', () => {
             const participants = [user1, user2];
 
-            expect(() => strategy.validateSplits('100', participants, undefined as any, USD)).toThrow('Splits must be provided');
+            expect(() => strategy.validateSplits('100', participants, undefined as any, USD)).toThrow('VALIDATION_ERROR');
         });
 
         it('should reject when splits length does not match participants', () => {
             const participants = [user1, user2, user3];
             const splits = calculateEqualSplits(toAmount(100), USD, [user1, user2]);
 
-            expect(() => strategy.validateSplits('100', participants, splits, USD)).toThrow('Splits must be provided');
+            expect(() => strategy.validateSplits('100', participants, splits, USD)).toThrow('VALIDATION_ERROR');
         });
 
         it('should reject when split amount is missing', () => {
             const participants = [user1, user2];
             const splits = new ExpenseSplitBuilder().withSplit(user1, '50').withInvalidAmountSplit(user2, undefined).build();
 
-            expect(() => strategy.validateSplits('100', participants, splits, USD)).toThrow('Split amount is required');
+            expect(() => strategy.validateSplits('100', participants, splits, USD)).toThrow('VALIDATION_ERROR');
         });
 
         it('should reject when splits do not sum to total', () => {
             const participants = [user1, user2];
             const splits = new ExpenseSplitBuilder().withSplit(user1, '40').withSplit(user2, '40').build();
 
-            expect(() => strategy.validateSplits('100', participants, splits, USD)).toThrow('Split amounts must equal total amount');
+            expect(() => strategy.validateSplits('100', participants, splits, USD)).toThrow('VALIDATION_ERROR');
         });
 
         it('should reject when there are duplicate users', () => {
             const participants = [user1, user2];
             const splits = new ExpenseSplitBuilder().withSplit(user1, '50').withSplit(user1, '50').build();
 
-            expect(() => strategy.validateSplits('100', participants, splits, USD)).toThrow('Each participant can only appear once');
+            expect(() => strategy.validateSplits('100', participants, splits, USD)).toThrow('VALIDATION_ERROR');
         });
 
         it('should reject when split user is not a participant', () => {
             const participants = [user1, user2];
             const splits = new ExpenseSplitBuilder().withSplit(user1, '50').withSplit(user3, '50').build();
 
-            expect(() => strategy.validateSplits('100', participants, splits, USD)).toThrow('Split user must be a participant');
+            expect(() => strategy.validateSplits('100', participants, splits, USD)).toThrow('VALIDATION_ERROR');
         });
 
         it('should reject unequal splits for equal split type', () => {
             const participants = [user1, user2];
             const splits = new ExpenseSplitBuilder().withSplit(user1, '70').withSplit(user2, '30').build();
 
-            expect(() => strategy.validateSplits('100', participants, splits, USD)).toThrow('all participants should have equal amounts');
+            expect(() => strategy.validateSplits('100', participants, splits, USD)).toThrow('VALIDATION_ERROR');
         });
 
         it('should allow remainder distribution (one person gets slightly more)', () => {

@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { toEmail } from '@billsplit-wl/shared';
 import { FirebaseAuthService } from '../../../services/auth';
 import { AuthErrorCode } from '../../../services/auth/auth-types';
-import { ApiError } from '../../../utils/errors';
+import { ApiError } from '../../../errors';
 
 const noopAuth = {} as unknown as Auth;
 
@@ -106,7 +106,7 @@ describe('FirebaseAuthService.verifyPassword', () => {
         const service = createService();
 
         await expect(service.verifyPassword(toEmail('user@example.com'), 'Secret123!')).rejects.toMatchObject({
-            code: AuthErrorCode.TOO_MANY_REQUESTS,
+            code: 'RATE_LIMITED',
             statusCode: 429,
         });
 
@@ -120,7 +120,7 @@ describe('FirebaseAuthService.verifyPassword', () => {
         const service = createService();
 
         await expect(service.verifyPassword(toEmail('user@example.com'), 'Secret123!')).rejects.toMatchObject({
-            code: AuthErrorCode.SERVICE_UNAVAILABLE,
+            code: 'UNAVAILABLE',
             statusCode: 503,
         });
 
@@ -150,7 +150,7 @@ describe('FirebaseAuthService.verifyPassword', () => {
         const error = await service.verifyPassword(toEmail('user@example.com'), 'Secret123!').catch((err) => err);
 
         expect(error).toBeInstanceOf(ApiError);
-        expect(error).toMatchObject({ code: 'AUTH_CONFIGURATION_ERROR' });
+        expect(error).toMatchObject({ code: 'SERVICE_ERROR' });
         expect(fetchSpy).not.toHaveBeenCalled();
 
         fetchSpy.mockRestore();

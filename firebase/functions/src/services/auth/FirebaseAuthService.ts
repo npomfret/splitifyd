@@ -56,10 +56,10 @@ interface ValidatedUpdateUserRequest extends UpdateRequest {
 }
 import { DisplayName, UserId } from '@billsplit-wl/shared';
 import type { Email } from '@billsplit-wl/shared';
+import { ApiError, ErrorDetail, Errors } from '../../errors';
 import { HTTP_STATUS } from '../../constants';
 import { logger } from '../../logger';
 import { measureDb } from '../../monitoring/measure';
-import { ApiError, Errors } from '../../utils/errors';
 import { LoggerContext } from '../../utils/logger-context';
 import { AuthErrorCode, FIREBASE_AUTH_ERROR_MAP } from './auth-types';
 import { validateCreateUser, validateCustomClaims, validateEmailAddress, validateIdToken, validateListUsersOptions, validateUpdateUser, validateUserId } from './auth-validation';
@@ -126,29 +126,29 @@ export class FirebaseAuthService implements IAuthService {
 
             switch (appErrorCode) {
                 case AuthErrorCode.USER_NOT_FOUND:
-                    return Errors.NOT_FOUND('User not found');
+                    return Errors.notFound('User', ErrorDetail.USER_NOT_FOUND);
                 case AuthErrorCode.EMAIL_ALREADY_EXISTS:
-                    return new ApiError(HTTP_STATUS.CONFLICT, appErrorCode, 'An account with this email already exists');
+                    return Errors.alreadyExists('Email', ErrorDetail.EMAIL_ALREADY_EXISTS);
                 case AuthErrorCode.INVALID_EMAIL:
-                    return new ApiError(HTTP_STATUS.BAD_REQUEST, appErrorCode, 'Invalid email format');
+                    return Errors.validationError('email', ErrorDetail.INVALID_EMAIL);
                 case AuthErrorCode.WEAK_PASSWORD:
-                    return new ApiError(HTTP_STATUS.BAD_REQUEST, appErrorCode, 'Password does not meet requirements');
+                    return Errors.validationError('password', ErrorDetail.INVALID_PASSWORD);
                 case AuthErrorCode.INVALID_TOKEN:
-                    return new ApiError(HTTP_STATUS.UNAUTHORIZED, appErrorCode, 'Invalid authentication token');
+                    return Errors.authInvalid(ErrorDetail.TOKEN_INVALID);
                 case AuthErrorCode.TOKEN_EXPIRED:
-                    return new ApiError(HTTP_STATUS.UNAUTHORIZED, appErrorCode, 'Authentication token has expired');
+                    return Errors.authInvalid(ErrorDetail.TOKEN_EXPIRED);
                 case AuthErrorCode.INSUFFICIENT_PERMISSIONS:
-                    return new ApiError(HTTP_STATUS.FORBIDDEN, appErrorCode, 'Insufficient permissions');
+                    return Errors.forbidden(ErrorDetail.INSUFFICIENT_PERMISSIONS);
                 case AuthErrorCode.TOO_MANY_REQUESTS:
-                    return new ApiError(HTTP_STATUS.TOO_MANY_REQUESTS, appErrorCode, 'Too many requests');
+                    return Errors.rateLimited();
                 default:
-                    return new ApiError(HTTP_STATUS.INTERNAL_ERROR, appErrorCode, error.message);
+                    return Errors.serviceError(ErrorDetail.AUTH_SERVICE_ERROR);
             }
         }
 
         // Unknown Firebase error
         logger.error(`Unknown Firebase Auth error: ${firebaseCode}`, error, context);
-        return new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'AUTH_UNKNOWN_ERROR', 'Authentication service error');
+        return Errors.serviceError(ErrorDetail.AUTH_SERVICE_ERROR);
     }
 
     /**
@@ -158,11 +158,11 @@ export class FirebaseAuthService implements IAuthService {
         const { apiKey, baseUrl } = this.identityToolkitConfig;
 
         if (!apiKey || apiKey.trim().length === 0) {
-            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'AUTH_CONFIGURATION_ERROR', 'Identity Toolkit API key is not configured');
+            throw Errors.serviceError(ErrorDetail.AUTH_SERVICE_ERROR);
         }
 
         if (!baseUrl || baseUrl.trim().length === 0) {
-            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'AUTH_CONFIGURATION_ERROR', 'Identity Toolkit base URL is not configured');
+            throw Errors.serviceError(ErrorDetail.AUTH_SERVICE_ERROR);
         }
 
         return this.identityToolkitConfig;
@@ -459,7 +459,7 @@ export class FirebaseAuthService implements IAuthService {
                 } catch (error) {
                     const errorMessage = error instanceof Error ? error.message : String(error);
                     logger.error('Password verification request failed', { ...context, errorMessage });
-                    throw new ApiError(HTTP_STATUS.SERVICE_UNAVAILABLE, AuthErrorCode.SERVICE_UNAVAILABLE, 'Password verification service unavailable');
+                    throw Errors.unavailable(ErrorDetail.AUTH_SERVICE_ERROR);
                 }
 
                 if (response.ok) {
@@ -485,7 +485,7 @@ export class FirebaseAuthService implements IAuthService {
 
                 if (message === 'TOO_MANY_ATTEMPTS_TRY_LATER') {
                     logger.warn('Password verification rate limited', { ...context });
-                    throw new ApiError(HTTP_STATUS.TOO_MANY_REQUESTS, AuthErrorCode.TOO_MANY_REQUESTS, 'Too many password verification attempts. Please try again later.');
+                    throw Errors.rateLimited();
                 }
 
                 logger.error('Password verification failed with unexpected error', {
@@ -494,11 +494,9 @@ export class FirebaseAuthService implements IAuthService {
                     message: rawMessage,
                 });
 
-                throw new ApiError(
-                    response.status >= 500 ? HTTP_STATUS.INTERNAL_ERROR : response.status,
-                    AuthErrorCode.SERVICE_UNAVAILABLE,
-                    'Authentication service error',
-                );
+                throw response.status >= 500
+                    ? Errors.serviceError(ErrorDetail.AUTH_SERVICE_ERROR)
+                    : Errors.unavailable(ErrorDetail.AUTH_SERVICE_ERROR);
             },
             context,
         );

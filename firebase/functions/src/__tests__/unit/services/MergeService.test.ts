@@ -4,6 +4,7 @@ import { SystemUserRoles, toUserId } from '@billsplit-wl/shared';
 import { StubStorage } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { FirestoreCollections } from '../../../constants';
+import { ErrorCode } from '../../../errors/ErrorCode';
 import type { MergeService } from '../../../merge/MergeService';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import { StubAuthService } from '../mocks/StubAuthService';
@@ -349,7 +350,9 @@ describe('MergeService', () => {
             const userId = toUserId('same-user');
 
             // Act & Assert
-            await expect(mergeService.initiateMerge(userId, userId)).rejects.toThrow('Cannot merge user with themselves');
+            await expect(mergeService.initiateMerge(userId, userId)).rejects.toMatchObject({
+                code: ErrorCode.INVALID_REQUEST,
+            });
 
             // Assert: No job created
             const jobs = await db.collection(FirestoreCollections.ACCOUNT_MERGES).get();
@@ -393,7 +396,9 @@ describe('MergeService', () => {
             });
 
             // Act & Assert
-            await expect(mergeService.initiateMerge(primaryUserId, secondaryUserId)).rejects.toThrow('Primary user email must be verified');
+            await expect(mergeService.initiateMerge(primaryUserId, secondaryUserId)).rejects.toMatchObject({
+                code: ErrorCode.INVALID_REQUEST,
+            });
 
             // Assert: No job created
             const jobs = await db.collection(FirestoreCollections.ACCOUNT_MERGES).get();

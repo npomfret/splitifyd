@@ -3,7 +3,8 @@ import { CreateExpenseRequestBuilder, CreateSettlementRequestBuilder, ExpenseSpl
 import { describe, expect, it } from 'vitest';
 import { validateCreateExpense } from '../../../expenses/validation';
 import { validateCreateSettlement } from '../../../settlements/validation';
-import { ApiError } from '../../../utils/errors';
+import { ApiError } from '../../../errors';
+import { ErrorCode } from '../../../errors/ErrorCode';
 
 describe('Input Validation Unit Tests', () => {
     describe('Amount Validation', () => {
@@ -29,8 +30,13 @@ describe('Input Validation Unit Tests', () => {
                     .withPaidBy('user1')
                     .build();
 
-                expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
-                expect(() => validateCreateExpense(expenseData)).toThrow(/at most 2 decimal/);
+                try {
+                    validateCreateExpense(expenseData);
+                    expect.fail('Should have thrown');
+                } catch (error: any) {
+                    expect(error).toBeInstanceOf(ApiError);
+                    expect(error.code).toBe(ErrorCode.VALIDATION_ERROR);
+                }
             });
 
             it('should handle very large amounts', () => {
@@ -288,7 +294,13 @@ describe('Input Validation Unit Tests', () => {
                 .withAmount(-50, 'USD')
                 .build();
 
-            expect(() => validateCreateSettlement(settlementData)).toThrow(/valid decimal number/);
+            try {
+                validateCreateSettlement(settlementData);
+                expect.fail('Should have thrown');
+            } catch (error: any) {
+                expect(error).toBeInstanceOf(ApiError);
+                expect(error.code).toBe(ErrorCode.VALIDATION_ERROR);
+            }
         });
 
         it('should reject zero settlement amounts', () => {
@@ -296,7 +308,13 @@ describe('Input Validation Unit Tests', () => {
                 .withAmount(0, 'USD')
                 .build();
 
-            expect(() => validateCreateSettlement(settlementData)).toThrow(/greater than zero/);
+            try {
+                validateCreateSettlement(settlementData);
+                expect.fail('Should have thrown');
+            } catch (error: any) {
+                expect(error).toBeInstanceOf(ApiError);
+                expect(error.code).toBe(ErrorCode.VALIDATION_ERROR);
+            }
         });
 
         it('should validate settlement amount does not exceed maximum', () => {
@@ -304,7 +322,13 @@ describe('Input Validation Unit Tests', () => {
                 .withAmount(1000000, 'USD')
                 .build();
 
-            expect(() => validateCreateSettlement(settlementData)).toThrow(/999,999\.99/);
+            try {
+                validateCreateSettlement(settlementData);
+                expect.fail('Should have thrown');
+            } catch (error: any) {
+                expect(error).toBeInstanceOf(ApiError);
+                expect(error.code).toBe(ErrorCode.VALIDATION_ERROR);
+            }
         });
 
         it('should accept valid settlement amounts', () => {

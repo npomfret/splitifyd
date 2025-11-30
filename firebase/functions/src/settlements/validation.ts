@@ -9,9 +9,8 @@ import {
 } from '@billsplit-wl/shared';
 import { toUserId } from '@billsplit-wl/shared';
 import { z } from 'zod';
-import { HTTP_STATUS } from '../constants';
+import { ErrorDetail, Errors } from '../errors';
 import { validateAmountPrecision } from '../utils/amount-validation';
-import { ApiError } from '../utils/errors';
 import {
     createRequestValidator,
     createZodErrorMapper,
@@ -107,11 +106,7 @@ const baseValidateCreateSettlement = createRequestValidator({
 
 const mapUpdateSettlementError = (error: z.ZodError): never => {
     if (error.issues.some((issue) => issue.message === 'At least one field must be provided for update')) {
-        throw new ApiError(
-            HTTP_STATUS.BAD_REQUEST,
-            'VALIDATION_ERROR',
-            'At least one field must be provided for update',
-        );
+        throw Errors.invalidRequest(ErrorDetail.NO_UPDATE_FIELDS);
     }
 
     return updateSettlementErrorMapperBase(error);
@@ -153,7 +148,7 @@ export const validateCreateSettlement = (body: unknown): CreateSettlementRequest
     try {
         validateAmountPrecision(value.amount, value.currency);
     } catch (error) {
-        throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_AMOUNT_PRECISION', (error as Error).message);
+        throw Errors.validationError('amount', ErrorDetail.INVALID_AMOUNT_PRECISION);
     }
 
     return value;
@@ -164,11 +159,7 @@ export const validateUpdateSettlement = (body: unknown): UpdateSettlementRequest
 
     // Require currency when updating amount (allows precision validation)
     if (update.amount !== undefined && update.currency === undefined) {
-        throw new ApiError(
-            HTTP_STATUS.BAD_REQUEST,
-            'MISSING_CURRENCY',
-            'Currency is required when updating amount',
-        );
+        throw Errors.validationError('currency', ErrorDetail.MISSING_FIELD);
     }
 
     // Validate amount precision against currency
@@ -176,7 +167,7 @@ export const validateUpdateSettlement = (body: unknown): UpdateSettlementRequest
         try {
             validateAmountPrecision(update.amount, update.currency);
         } catch (error) {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_AMOUNT_PRECISION', (error as Error).message);
+            throw Errors.validationError('amount', ErrorDetail.INVALID_AMOUNT_PRECISION);
         }
     }
 

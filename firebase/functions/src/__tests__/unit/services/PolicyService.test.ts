@@ -3,6 +3,7 @@ import { UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import * as crypto from 'crypto';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
+import { ErrorCode } from '../../../errors/ErrorCode';
 import { PolicyService } from '../../../services/PolicyService';
 import { AppDriver } from '../AppDriver';
 
@@ -108,7 +109,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             await expect(policyService.createPolicy(policyName, policyText)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.CONFLICT,
-                    code: 'POLICY_EXISTS',
+                    code: ErrorCode.ALREADY_EXISTS,
                 }),
             );
         });
@@ -117,7 +118,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             await expect(policyService.createPolicy(toPolicyName(''), toPolicyText('content'))).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'MISSING_FIELDS',
+                    code: ErrorCode.VALIDATION_ERROR,
                 }),
             );
         });
@@ -126,7 +127,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             await expect(policyService.createPolicy(toPolicyName('name'), toPolicyText(''))).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'MISSING_FIELDS',
+                    code: ErrorCode.VALIDATION_ERROR,
                 }),
             );
         });
@@ -158,7 +159,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             await expect(policyService.getPolicy(policyId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.NOT_FOUND,
-                    code: 'POLICY_NOT_FOUND',
+                    code: ErrorCode.NOT_FOUND,
                 }),
             );
         });
@@ -210,7 +211,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             await expect(policyService.updatePolicy(policyId, existingText)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.CONFLICT,
-                    code: 'VERSION_ALREADY_EXISTS',
+                    code: ErrorCode.ALREADY_EXISTS,
                 }),
             );
         });
@@ -223,7 +224,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             await expect(policyService.updatePolicy(policyId, toPolicyText('text'))).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.NOT_FOUND,
-                    code: 'POLICY_NOT_FOUND',
+                    code: ErrorCode.NOT_FOUND,
                 }),
             );
         });
@@ -258,7 +259,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             await expect(policyService.publishPolicy(policyId, versionHash)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.NOT_FOUND,
-                    code: 'POLICY_NOT_FOUND',
+                    code: ErrorCode.NOT_FOUND,
                 }),
             );
         });
@@ -276,7 +277,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             await expect(policyService.publishPolicy(policyId, nonExistentVersionHash)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.NOT_FOUND,
-                    code: 'VERSION_NOT_FOUND',
+                    code: ErrorCode.NOT_FOUND,
                 }),
             );
         });
@@ -351,7 +352,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             await expect(policyService.getCurrentPolicy(policyId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.NOT_FOUND,
-                    code: 'POLICY_NOT_FOUND',
+                    code: ErrorCode.NOT_FOUND,
                 }),
             );
         });
@@ -392,7 +393,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             await expect(policyService.getPolicyVersion(policyId, nonExistentVersionHash)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.NOT_FOUND,
-                    code: 'VERSION_NOT_FOUND',
+                    code: ErrorCode.NOT_FOUND,
                 }),
             );
         });
@@ -411,7 +412,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             await expect(policyService.deletePolicyVersion(policyId, currentVersionHash)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'CANNOT_DELETE_CURRENT', // Cannot delete current version
+                    code: ErrorCode.INVALID_REQUEST, // Cannot delete current version
                 }),
             );
         });
@@ -446,7 +447,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             await expect(policyService.deletePolicyVersion(policyId, versionHash)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.NOT_FOUND,
-                    code: 'POLICY_NOT_FOUND',
+                    code: ErrorCode.NOT_FOUND,
                 }),
             );
         });
@@ -468,7 +469,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             await expect(policyService.deletePolicyVersion(policyId, nonExistentVersion)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.NOT_FOUND,
-                    code: 'VERSION_NOT_FOUND',
+                    code: ErrorCode.NOT_FOUND,
                 }),
             );
         });
@@ -520,7 +521,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             await expect(policyService.deletePolicyVersion(policyId, onlyVersionHash)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'CANNOT_DELETE_CURRENT', // Cannot delete current version
+                    code: ErrorCode.INVALID_REQUEST, // Cannot delete current version
                 }),
             );
         });
@@ -748,7 +749,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             await expect(policyService.deletePolicyVersion(policyId, currentHash)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'CANNOT_DELETE_CURRENT', // Cannot delete current version
+                    code: ErrorCode.INVALID_REQUEST, // Cannot delete current version
                 }),
             );
         });
@@ -763,7 +764,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             await expect(policyService.createPolicy(policyName, toPolicyText('Content 2'))).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.CONFLICT,
-                    code: 'POLICY_EXISTS',
+                    code: ErrorCode.ALREADY_EXISTS,
                 }),
             );
         });
@@ -783,7 +784,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
                 .toThrow(
                     expect.objectContaining({
                         statusCode: HTTP_STATUS.CONFLICT,
-                        code: 'VERSION_ALREADY_EXISTS',
+                        code: ErrorCode.ALREADY_EXISTS,
                     }),
                 );
 
@@ -816,21 +817,21 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             await expect(policyService.getPolicy(nonExistentId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.NOT_FOUND,
-                    code: 'POLICY_NOT_FOUND',
+                    code: ErrorCode.NOT_FOUND,
                 }),
             );
 
             await expect(policyService.updatePolicy(nonExistentId, toPolicyText('text'))).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.NOT_FOUND,
-                    code: 'POLICY_NOT_FOUND',
+                    code: ErrorCode.NOT_FOUND,
                 }),
             );
 
             await expect(policyService.publishPolicy(nonExistentId, toVersionHash('hash'))).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.NOT_FOUND,
-                    code: 'POLICY_NOT_FOUND',
+                    code: ErrorCode.NOT_FOUND,
                 }),
             );
         });
@@ -848,7 +849,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             await expect(policyService.publishPolicy(policyId, invalidHash)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.NOT_FOUND,
-                    code: 'VERSION_NOT_FOUND',
+                    code: ErrorCode.NOT_FOUND,
                 }),
             );
 
@@ -860,11 +861,11 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             );
 
             // Try to delete invalid version - policy only has one version
-            // so it should fail with CANNOT_DELETE_ONLY instead of version not found
+            // so it should fail with INVALID_REQUEST instead of version not found
             await expect(policyService.deletePolicyVersion(policyId, invalidHash)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'CANNOT_DELETE_ONLY',
+                    code: ErrorCode.INVALID_REQUEST,
                 }),
             );
         });

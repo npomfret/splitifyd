@@ -3,10 +3,10 @@ import { TenantConfigBuilder } from '@billsplit-wl/test-support';
 import express from 'express';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
+import { ApiError, ErrorCode } from '../../../errors';
 import { type TenantContextConfig, tenantContextMiddleware } from '../../../middleware/tenant-context';
 import { TenantRegistryService } from '../../../services/tenant/TenantRegistryService';
 import type { TenantRequestContext } from '../../../types/tenant';
-import { ApiError } from '../../../utils/errors';
 import { TenantRequestContextBuilder } from '../TenantRequestContextBuilder';
 
 describe('tenantContextMiddleware', () => {
@@ -256,7 +256,7 @@ describe('tenantContextMiddleware', () => {
 
     describe('error handling', () => {
         it('should pass errors to next function', async () => {
-            const error = new ApiError(HTTP_STATUS.NOT_FOUND, 'TENANT_NOT_FOUND', 'Tenant not found');
+            const error = new ApiError(HTTP_STATUS.NOT_FOUND, ErrorCode.NOT_FOUND, { resource: 'Tenant' });
             vi.mocked(mockTenantRegistry.resolveTenant).mockRejectedValue(error);
 
             mockRequest.headers = { host: 'unknown.example.com' };

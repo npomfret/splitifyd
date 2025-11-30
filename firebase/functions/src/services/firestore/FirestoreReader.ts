@@ -36,12 +36,12 @@ import {
     type UserId,
 } from '@billsplit-wl/shared';
 import { FirestoreCollections, HTTP_STATUS } from '../../constants';
+import { ApiError, ErrorDetail, Errors } from '../../errors';
 import { FieldPath, Filter, type IDocumentReference, type IDocumentSnapshot, type IFirestoreDatabase, type IQuery, type IQuerySnapshot, type ITransaction, Timestamp } from '../../firestore-wrapper';
 import { logger } from '../../logger';
 import type { MergeJobDocument } from '../../merge/MergeService';
 import { measureDb } from '../../monitoring/measure';
 import { assertTimestamp, safeParseISOToTimestamp } from '../../utils/dateHelpers';
-import { ApiError } from '../../utils/errors';
 
 // Import all schemas for validation (these still validate Timestamp objects from Firestore)
 import { ShareLinkId, toCommentId, toExpenseId, toGroupId, toGroupName, toISOString, toSettlementId, toShareLinkId, toTenantDefaultFlag, toUserId } from '@billsplit-wl/shared';
@@ -156,7 +156,7 @@ export class FirestoreReader implements IFirestoreReader {
         const rawData = snapshot.data();
 
         if (!rawData) {
-            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'TENANT_DATA_MISSING', 'Tenant document data is missing');
+            throw Errors.serviceError(ErrorDetail.DATABASE_ERROR);
         }
 
         const parsed = TenantDocumentSchema.parse({
@@ -273,12 +273,12 @@ export class FirestoreReader implements IFirestoreReader {
             const doc = await this.db.collection(FirestoreCollections.GROUPS).doc(groupId).collection('metadata').doc('balance').get();
 
             if (!doc.exists) {
-                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'BALANCE_NOT_FOUND', `Balance not found for group ${groupId}`);
+                throw Errors.notFound('Balance', ErrorDetail.BALANCE_NOT_FOUND);
             }
 
             const data = doc.data();
             if (!data) {
-                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'BALANCE_READ_ERROR', 'Balance document is empty');
+                throw Errors.serviceError(ErrorDetail.DATABASE_ERROR);
             }
 
             // Validate with Firestore schema (expects Timestamps)
@@ -703,7 +703,7 @@ export class FirestoreReader implements IFirestoreReader {
 
             // Detect overflow - group exceeds maximum size
             if (snapshot.size > MAX_GROUP_MEMBERS) {
-                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'GROUP_TOO_LARGE', `Group exceeds maximum size of ${MAX_GROUP_MEMBERS} members`);
+                throw Errors.invalidRequest(ErrorDetail.GROUP_AT_CAPACITY);
             }
 
             // Extract uids and convert to branded UserId type
@@ -729,7 +729,7 @@ export class FirestoreReader implements IFirestoreReader {
 
             // Detect overflow - group exceeds maximum size - should never happen!
             if (snapshot.size > MAX_GROUP_MEMBERS) {
-                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'GROUP_TOO_LARGE', `Group exceeds maximum size of ${MAX_GROUP_MEMBERS} members`);
+                throw Errors.invalidRequest(ErrorDetail.GROUP_AT_CAPACITY);
             }
 
             const parsedMembers: GroupMembershipDTO[] = [];
@@ -782,7 +782,7 @@ export class FirestoreReader implements IFirestoreReader {
             if (options.cursor) {
                 const cursorDoc = await collectionRef.doc(options.cursor).get();
                 if (!cursorDoc.exists) {
-                    throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_CURSOR', 'Activity feed cursor is invalid or expired');
+                    throw Errors.validationError('cursor', ErrorDetail.INVALID_CURSOR);
                 }
                 query = query.startAfter(cursorDoc);
             }

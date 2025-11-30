@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../../constants';
 import { validateFaviconImage, validateImageUpload, validateLogoImage } from '../../../../utils/validation/imageValidation';
+import { ErrorCode } from '../../../../errors/ErrorCode';
 
 describe('imageValidation', () => {
     describe('validateImageUpload', () => {
@@ -12,7 +13,7 @@ describe('imageValidation', () => {
                     validateImageUpload(buffer, 'image/png');
                     expect.fail('Should have thrown');
                 } catch (error: any) {
-                    expect(error.message).toContain('Uploaded file is empty');
+                    expect(error.code).toBe(ErrorCode.VALIDATION_ERROR);
                 }
             });
 
@@ -24,7 +25,7 @@ describe('imageValidation', () => {
                     validateImageUpload(buffer, 'image/png', { maxSizeBytes: maxSize });
                     expect.fail('Should have thrown');
                 } catch (error: any) {
-                    expect(error.message).toMatch(/exceeds 2\.0MB limit/);
+                    expect(error.code).toBe(ErrorCode.VALIDATION_ERROR);
                 }
             });
 
@@ -45,7 +46,7 @@ describe('imageValidation', () => {
                     validateImageUpload(buffer, undefined);
                     expect.fail('Should have thrown');
                 } catch (error: any) {
-                    expect(error.message).toContain('Content-Type header is required');
+                    expect(error.code).toBe(ErrorCode.VALIDATION_ERROR);
                 }
             });
 
@@ -56,7 +57,7 @@ describe('imageValidation', () => {
                     validateImageUpload(buffer, 'application/pdf');
                     expect.fail('Should have thrown');
                 } catch (error: any) {
-                    expect(error.message).toContain('Invalid image content type');
+                    expect(error.code).toBe(ErrorCode.VALIDATION_ERROR);
                 }
             });
 
@@ -111,19 +112,34 @@ describe('imageValidation', () => {
                 // PNG magic number but claiming to be JPEG
                 const buffer = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, ...Array(100).fill(0)]);
 
-                expect(() => validateImageUpload(buffer, 'image/jpeg')).toThrow(/File appears to be png but Content-Type is image\/jpeg/);
+                try {
+                    validateImageUpload(buffer, 'image/jpeg');
+                    expect.fail('Should have thrown');
+                } catch (error: any) {
+                    expect(error.code).toBe(ErrorCode.VALIDATION_ERROR);
+                }
             });
 
             it('should reject corrupted file with no valid magic number', () => {
                 const buffer = Buffer.from([0x00, 0x00, 0x00, 0x00, ...Array(100).fill(0)]);
 
-                expect(() => validateImageUpload(buffer, 'image/png')).toThrow(/File content does not match image format/);
+                try {
+                    validateImageUpload(buffer, 'image/png');
+                    expect.fail('Should have thrown');
+                } catch (error: any) {
+                    expect(error.code).toBe(ErrorCode.VALIDATION_ERROR);
+                }
             });
 
             it('should reject invalid SVG content', () => {
                 const buffer = Buffer.from('this is not an SVG file');
 
-                expect(() => validateImageUpload(buffer, 'image/svg+xml')).toThrow(/does not appear to be a valid SVG/);
+                try {
+                    validateImageUpload(buffer, 'image/svg+xml');
+                    expect.fail('Should have thrown');
+                } catch (error: any) {
+                    expect(error.code).toBe(ErrorCode.VALIDATION_ERROR);
+                }
             });
         });
 
@@ -136,7 +152,7 @@ describe('imageValidation', () => {
                     expect.fail('Should have thrown');
                 } catch (error: any) {
                     expect(error.statusCode).toBe(HTTP_STATUS.BAD_REQUEST);
-                    expect(error.code).toBe('EMPTY_FILE');
+                    expect(error.code).toBe(ErrorCode.VALIDATION_ERROR);
                 }
             });
         });
@@ -146,7 +162,12 @@ describe('imageValidation', () => {
         it('should enforce 2MB limit for logos', () => {
             const buffer = Buffer.alloc(2.5 * 1024 * 1024); // 2.5MB
 
-            expect(() => validateLogoImage(buffer, 'image/png')).toThrow(/exceeds 2\.0MB limit/);
+            try {
+                validateLogoImage(buffer, 'image/png');
+                expect.fail('Should have thrown');
+            } catch (error: any) {
+                expect(error.code).toBe(ErrorCode.VALIDATION_ERROR);
+            }
         });
 
         it('should accept common logo formats', () => {
@@ -161,7 +182,12 @@ describe('imageValidation', () => {
         it('should reject ICO format for logos', () => {
             const buffer = Buffer.from([0x00, 0x00, 0x01, 0x00, ...Array(100).fill(0)]);
 
-            expect(() => validateLogoImage(buffer, 'image/x-icon')).toThrow(/Invalid image content type/);
+            try {
+                validateLogoImage(buffer, 'image/x-icon');
+                expect.fail('Should have thrown');
+            } catch (error: any) {
+                expect(error.code).toBe(ErrorCode.VALIDATION_ERROR);
+            }
         });
     });
 
@@ -169,7 +195,12 @@ describe('imageValidation', () => {
         it('should enforce 512KB limit for favicons', () => {
             const buffer = Buffer.alloc(600 * 1024); // 600KB
 
-            expect(() => validateFaviconImage(buffer, 'image/x-icon')).toThrow(/exceeds 0\.5MB limit/);
+            try {
+                validateFaviconImage(buffer, 'image/x-icon');
+                expect.fail('Should have thrown');
+            } catch (error: any) {
+                expect(error.code).toBe(ErrorCode.VALIDATION_ERROR);
+            }
         });
 
         it('should accept favicon formats', () => {
@@ -186,7 +217,12 @@ describe('imageValidation', () => {
         it('should reject JPEG format for favicons', () => {
             const buffer = Buffer.from([0xff, 0xd8, 0xff, 0xe0, ...Array(100).fill(0)]);
 
-            expect(() => validateFaviconImage(buffer, 'image/jpeg')).toThrow(/Invalid image content type/);
+            try {
+                validateFaviconImage(buffer, 'image/jpeg');
+                expect.fail('Should have thrown');
+            } catch (error: any) {
+                expect(error.code).toBe(ErrorCode.VALIDATION_ERROR);
+            }
         });
     });
 });

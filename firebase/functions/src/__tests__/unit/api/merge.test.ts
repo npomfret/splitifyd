@@ -39,24 +39,28 @@ describe('Account Merge API', () => {
         });
 
         it('should reject merge when user tries to merge with themselves', async () => {
-            await expect(
-                appDriver.initiateMerge({
-                    secondaryUserId: user1,
-                }, user1),
-            )
-                .rejects
-                .toMatchObject({ code: 'MERGE_NOT_ELIGIBLE' });
+            const result = await appDriver.initiateMerge({
+                secondaryUserId: user1,
+            }, user1);
+
+            expect(result).toMatchObject({
+                error: {
+                    code: 'INVALID_REQUEST',
+                },
+            });
         });
 
         it('should reject merge when secondary user does not exist', async () => {
             const nonExistentUser = 'non-existent-user' as UserId;
-            await expect(
-                appDriver.initiateMerge({
-                    secondaryUserId: nonExistentUser,
-                }, user1),
-            )
-                .rejects
-                .toMatchObject({ code: 'MERGE_NOT_ELIGIBLE' });
+            const result = await appDriver.initiateMerge({
+                secondaryUserId: nonExistentUser,
+            }, user1);
+
+            expect(result).toMatchObject({
+                error: {
+                    code: 'INVALID_REQUEST',
+                },
+            });
         });
 
         it('should require authentication', async () => {
@@ -67,7 +71,7 @@ describe('Account Merge API', () => {
             // Auth middleware returns error response instead of throwing
             expect(result).toMatchObject({
                 error: {
-                    code: 'UNAUTHORIZED',
+                    code: 'AUTH_REQUIRED',
                 },
             });
         });
@@ -86,11 +90,13 @@ describe('Account Merge API', () => {
         });
 
         it('should reject when job does not exist', async () => {
-            await expect(
-                appDriver.getMergeStatus('non-existent-job', user1),
-            )
-                .rejects
-                .toMatchObject({ code: 'NOT_FOUND' });
+            const result = await appDriver.getMergeStatus('non-existent-job', user1);
+
+            expect(result).toMatchObject({
+                error: {
+                    code: 'NOT_FOUND',
+                },
+            });
         });
 
         it('should reject when user is not authorized to view job', async () => {
@@ -105,11 +111,13 @@ describe('Account Merge API', () => {
             }, user1);
 
             // Try to get status as a different user (user3)
-            await expect(
-                appDriver.getMergeStatus(mergeResult.jobId, user3),
-            )
-                .rejects
-                .toMatchObject({ code: 'FORBIDDEN' });
+            const result = await appDriver.getMergeStatus(mergeResult.jobId, user3);
+
+            expect(result).toMatchObject({
+                error: {
+                    code: 'FORBIDDEN',
+                },
+            });
         });
 
         it('should require authentication', async () => {
@@ -118,7 +126,7 @@ describe('Account Merge API', () => {
             // Auth middleware returns error response instead of throwing
             expect(result).toMatchObject({
                 error: {
-                    code: 'UNAUTHORIZED',
+                    code: 'AUTH_REQUIRED',
                 },
             });
         });
@@ -145,19 +153,23 @@ describe('Account Merge API', () => {
         });
 
         it('should reject task when jobId is missing', async () => {
-            await expect(
-                appDriver.processMergeTask(''),
-            )
-                .rejects
-                .toMatchObject({ code: 'MISSING_FIELD' });
+            const result = await appDriver.processMergeTask('');
+
+            expect(result).toMatchObject({
+                error: {
+                    code: 'VALIDATION_ERROR',
+                },
+            });
         });
 
         it('should reject task when job does not exist', async () => {
-            await expect(
-                appDriver.processMergeTask('non-existent-job'),
-            )
-                .rejects
-                .toBeDefined();
+            const result = await appDriver.processMergeTask('non-existent-job');
+
+            expect(result).toMatchObject({
+                error: {
+                    code: 'NOT_FOUND',
+                },
+            });
         });
 
         it('should reject task when job is not in pending status', async () => {
@@ -168,11 +180,13 @@ describe('Account Merge API', () => {
             await appDriver.processMergeTask(mergeResult.jobId);
 
             // Try to process again (should fail - not pending)
-            await expect(
-                appDriver.processMergeTask(mergeResult.jobId),
-            )
-                .rejects
-                .toMatchObject({ code: 'INVALID_JOB_STATUS' });
+            const result = await appDriver.processMergeTask(mergeResult.jobId);
+
+            expect(result).toMatchObject({
+                error: {
+                    code: 'INVALID_REQUEST',
+                },
+            });
         });
     });
 
@@ -206,15 +220,17 @@ describe('Account Merge API', () => {
         });
 
         it('should handle merge failure gracefully', async () => {
-            // Create merge with non-existent secondary user - should throw
-            await expect(
-                appDriver.initiateMerge(
-                    { secondaryUserId: 'non-existent' as UserId },
-                    user1,
-                ),
-            )
-                .rejects
-                .toMatchObject({ code: 'MERGE_NOT_ELIGIBLE' });
+            // Create merge with non-existent secondary user
+            const result = await appDriver.initiateMerge(
+                { secondaryUserId: 'non-existent' as UserId },
+                user1,
+            );
+
+            expect(result).toMatchObject({
+                error: {
+                    code: 'INVALID_REQUEST',
+                },
+            });
         });
     });
 });

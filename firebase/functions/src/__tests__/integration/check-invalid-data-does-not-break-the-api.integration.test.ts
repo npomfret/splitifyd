@@ -153,8 +153,9 @@ describe('Invalid Data Resilience - API should not break with bad data', () => {
             await malformedGroupRef.set(malformedGroup);
             testGroupIds.push(malformedGroupRef.id);
 
-            // API should handle malformed data gracefully - expect internal error for completely malformed data
-            await expect(apiDriver.getGroup(malformedGroupRef.id, testUser.token)).rejects.toThrow(/INTERNAL_ERROR|Group not found|Permission denied|Invalid data/);
+            // API should handle malformed data gracefully - expect error for completely malformed data
+            // Error codes: SERVICE_ERROR (new) or INTERNAL_ERROR (legacy), NOT_FOUND, FORBIDDEN
+            await expect(apiDriver.getGroup(malformedGroupRef.id, testUser.token)).rejects.toThrow(/SERVICE_ERROR|INTERNAL_ERROR|NOT_FOUND|FORBIDDEN|Group not found|Permission denied|Invalid data/);
         });
 
         test('should validate data integrity in FirestoreReader with corrupted documents', async () => {

@@ -13,11 +13,11 @@ import {
     UpdateSettlementRequest,
     UserId,
 } from '@billsplit-wl/shared';
-import { FirestoreCollections, HTTP_STATUS } from '../constants';
+import { FirestoreCollections } from '../constants';
+import { ApiError, Errors, ErrorDetail } from '../errors';
 import { logger } from '../logger';
 import * as measure from '../monitoring/measure';
 import { PerformanceTimer } from '../monitoring/PerformanceTimer';
-import { ApiError, Errors } from '../utils/errors';
 import { LoggerContext } from '../utils/logger-context';
 import { ActivityFeedService } from './ActivityFeedService';
 import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
@@ -77,7 +77,7 @@ export class SettlementService {
         // Verify user is a member of the group
         const isMember = await this.firestoreReader.verifyGroupMembership(groupId, userId);
         if (!isMember) {
-            throw Errors.FORBIDDEN();
+            throw Errors.forbidden(ErrorDetail.NOT_GROUP_MEMBER);
         }
 
         const result = await this._getGroupSettlementsData(groupId, options);
@@ -110,11 +110,7 @@ export class SettlementService {
         // Verify payer and payee are still in the group (race condition protection)
         for (const uid of [settlementData.payerId, settlementData.payeeId]) {
             if (!memberIds.includes(uid)) {
-                throw new ApiError(
-                    HTTP_STATUS.BAD_REQUEST,
-                    'MEMBER_NOT_IN_GROUP',
-                    `Cannot create settlement - user is not in the group`,
-                );
+                throw Errors.validationError('payerId', ErrorDetail.NOT_GROUP_MEMBER);
             }
         }
 
@@ -158,7 +154,7 @@ export class SettlementService {
             // Verify group still exists
             const groupInTx = await this.firestoreReader.getGroupInTransaction(transaction, settlementData.groupId);
             if (!groupInTx) {
-                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
+                throw Errors.notFound('Group', ErrorDetail.GROUP_NOT_FOUND);
             }
             timer.endPhase();
 
@@ -259,21 +255,17 @@ export class SettlementService {
         const oldSettlement = await this.firestoreReader.getSettlement(settlementId);
 
         if (!oldSettlement) {
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'SETTLEMENT_NOT_FOUND', 'Settlement not found');
+            throw Errors.notFound('Settlement', ErrorDetail.SETTLEMENT_NOT_FOUND);
         }
 
         // Check if settlement is locked (payer or payee has left)
         const isLocked = await this.isSettlementLocked(oldSettlement, oldSettlement.groupId);
         if (isLocked) {
-            throw new ApiError(
-                HTTP_STATUS.BAD_REQUEST,
-                'SETTLEMENT_LOCKED',
-                'Cannot edit settlement - payer or payee has left the group',
-            );
+            throw Errors.invalidRequest('SETTLEMENT_LOCKED');
         }
 
         if (oldSettlement.createdBy !== userId) {
-            throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_SETTLEMENT_CREATOR', 'Only the creator can update this settlement');
+            throw Errors.forbidden('NOT_SETTLEMENT_CREATOR');
         }
 
         const [member, memberIds] = await Promise.all([
@@ -282,12 +274,12 @@ export class SettlementService {
         ]);
 
         if (!member) {
-            throw Errors.FORBIDDEN();
+            throw Errors.forbidden(ErrorDetail.NOT_GROUP_MEMBER);
         }
 
         const actorDisplayName = member.groupDisplayName?.trim();
         if (!actorDisplayName) {
-            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'GROUP_DISPLAY_NAME_MISSING', 'Group member is missing required display name');
+            throw Errors.serviceError('GROUP_DISPLAY_NAME_MISSING');
         }
 
         timer.endPhase();
@@ -330,17 +322,17 @@ export class SettlementService {
 
             const currentSettlement = await this.firestoreReader.getSettlementInTransaction(transaction, settlementId);
             if (!currentSettlement) {
-                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'SETTLEMENT_NOT_FOUND', 'Settlement not found');
+                throw Errors.notFound('Settlement', ErrorDetail.SETTLEMENT_NOT_FOUND);
             }
 
             // Check for concurrent updates
             if (oldSettlement.updatedAt !== currentSettlement.updatedAt) {
-                throw new ApiError(HTTP_STATUS.CONFLICT, 'CONCURRENT_UPDATE', 'Document was modified concurrently');
+                throw Errors.conflict(ErrorDetail.CONCURRENT_UPDATE);
             }
 
             const groupInTx = await this.firestoreReader.getGroupInTransaction(transaction, oldSettlement.groupId);
             if (!groupInTx) {
-                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
+                throw Errors.notFound('Group', ErrorDetail.GROUP_NOT_FOUND);
             }
 
             // Read current balance BEFORE any writes (Firestore transaction rule)
@@ -474,7 +466,7 @@ export class SettlementService {
         const settlementData = await this.firestoreReader.getSettlement(settlementId, { includeSoftDeleted: true });
 
         if (!settlementData) {
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'SETTLEMENT_NOT_FOUND', 'Settlement not found');
+            throw Errors.notFound('Settlement', ErrorDetail.SETTLEMENT_NOT_FOUND);
         }
 
         const settlement = settlementData;
@@ -482,29 +474,25 @@ export class SettlementService {
         // Prevent deletion of superseded settlements (they're already archived via edit history)
         // This check MUST come before the deletedAt check to return the correct error
         if (settlement.supersededBy !== null) {
-            throw new ApiError(
-                HTTP_STATUS.BAD_REQUEST,
-                'CANNOT_DELETE_SUPERSEDED',
-                'Cannot delete a superseded settlement - it has already been replaced by a newer version',
-            );
+            throw Errors.invalidRequest('CANNOT_DELETE_SUPERSEDED');
         }
 
         // Check if already soft-deleted (user-initiated deletion)
         if (settlement.deletedAt) {
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'SETTLEMENT_NOT_FOUND', 'Settlement not found');
+            throw Errors.notFound('Settlement', ErrorDetail.SETTLEMENT_NOT_FOUND);
         }
 
         // Permission check: User must be settlement creator or group admin
         const memberData = await this.firestoreReader.getGroupMember(settlement.groupId, userId);
         if (!memberData) {
-            throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_GROUP_MEMBER', 'User is not a member of this group');
+            throw Errors.forbidden(ErrorDetail.NOT_GROUP_MEMBER);
         }
 
         const isCreator = settlement.createdBy === userId;
 
         if (!isCreator) {
             await this.groupMemberService.ensureActiveGroupAdmin(settlement.groupId, userId, {
-                forbiddenErrorFactory: () => new ApiError(HTTP_STATUS.FORBIDDEN, 'INSUFFICIENT_PERMISSIONS', 'Only the creator or group admin can delete this settlement'),
+                forbiddenErrorFactory: () => Errors.forbidden(ErrorDetail.INSUFFICIENT_PERMISSIONS),
             });
         }
 
@@ -517,12 +505,12 @@ export class SettlementService {
         await this.firestoreWriter.runTransaction(async (transaction) => {
             const currentSettlement = await this.firestoreReader.getSettlementInTransaction(transaction, settlementId);
             if (!currentSettlement) {
-                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'SETTLEMENT_NOT_FOUND', 'Settlement not found');
+                throw Errors.notFound('Settlement', ErrorDetail.SETTLEMENT_NOT_FOUND);
             }
 
             // Check for concurrent updates
             if (settlement.updatedAt !== currentSettlement.updatedAt) {
-                throw new ApiError(HTTP_STATUS.CONFLICT, 'CONCURRENT_UPDATE', 'Document was modified concurrently');
+                throw Errors.conflict(ErrorDetail.CONCURRENT_UPDATE);
             }
 
             // Read current balance BEFORE any writes (Firestore transaction rule)

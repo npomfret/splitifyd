@@ -1,13 +1,13 @@
 import { NextFunction, Request, Response } from 'express';
 import { getConfig } from '../client-config';
+import { Errors } from '../errors';
 import { logger } from '../logger';
-import { Errors, sendError } from '../utils/errors';
 import { checkForDangerousPatterns } from '../utils/security';
 
 /**
  * Validate request size and structure depth
  */
-export const validateRequestStructure = (req: Request, res: Response, next: NextFunction): void => {
+export const validateRequestStructure = (req: Request, _res: Response, next: NextFunction): void => {
     if (!req.body) {
         return next();
     }
@@ -18,19 +18,19 @@ export const validateRequestStructure = (req: Request, res: Response, next: Next
     // Single recursive validation function
     const validateObject = (obj: unknown, depth = 0): void => {
         if (depth > maxObjectDepth) {
-            throw Errors.INVALID_INPUT(`Request structure too deep (max ${maxObjectDepth} levels)`);
+            throw Errors.invalidRequest('STRUCTURE_TOO_DEEP');
         }
 
         if (typeof obj === 'string') {
             if (obj.length > maxStringLength) {
-                throw Errors.INVALID_INPUT(`String too long (max ${maxStringLength} characters)`);
+                throw Errors.invalidRequest('STRING_TOO_LONG');
             }
             return;
         }
 
         if (Array.isArray(obj)) {
             if (obj.length > maxPropertyCount) {
-                throw Errors.INVALID_INPUT(`Array too large (max ${maxPropertyCount} items)`);
+                throw Errors.invalidRequest('ARRAY_TOO_LARGE');
             }
             obj.forEach((item) => validateObject(item, depth + 1));
             return;
@@ -39,12 +39,12 @@ export const validateRequestStructure = (req: Request, res: Response, next: Next
         if (obj && typeof obj === 'object') {
             const keys = Object.keys(obj);
             if (keys.length > maxPropertyCount) {
-                throw Errors.INVALID_INPUT(`Too many properties in object (max ${maxPropertyCount})`);
+                throw Errors.invalidRequest('TOO_MANY_PROPERTIES');
             }
 
             for (const key of keys) {
                 if (key.length > maxPropertyNameLength) {
-                    throw Errors.INVALID_INPUT(`Property name too long (max ${maxPropertyNameLength} characters)`);
+                    throw Errors.invalidRequest('PROPERTY_NAME_TOO_LONG');
                 }
                 const value = (obj as Record<string, unknown>)[key];
                 validateObject(value, depth + 1);
@@ -59,7 +59,7 @@ export const validateRequestStructure = (req: Request, res: Response, next: Next
     try {
         requestString = JSON.stringify(req.body);
     } catch {
-        throw Errors.INVALID_INPUT('Circular reference detected in request');
+        throw Errors.invalidRequest('CIRCULAR_REFERENCE');
     }
 
     const dangerCheck = checkForDangerousPatterns(requestString);
@@ -69,7 +69,7 @@ export const validateRequestStructure = (req: Request, res: Response, next: Next
             path: req.path,
             method: req.method,
         });
-        throw Errors.INVALID_INPUT(`Request contains potentially dangerous content: ${dangerCheck.matchedPattern}`);
+        throw Errors.invalidRequest('DANGEROUS_CONTENT');
     }
 
     next();
@@ -104,7 +104,7 @@ function isBinaryUploadRoute(path: string): boolean {
 /**
  * Validate content type for JSON endpoints
  */
-export const validateContentType = (req: Request, res: Response, next: NextFunction): void => {
+export const validateContentType = (req: Request, _res: Response, next: NextFunction): void => {
     // Skip for GET requests, DELETE requests without body, and OPTIONS (CORS preflight)
     if (req.method === 'GET' || req.method === 'OPTIONS' || req.method === 'DELETE') {
         return next();
@@ -124,7 +124,7 @@ export const validateContentType = (req: Request, res: Response, next: NextFunct
     }
 
     if (!contentType || !contentType.includes('application/json')) {
-        return sendError(res, Errors.INVALID_INPUT('Content-Type must be application/json'), req.headers['x-correlation-id'] as string);
+        throw Errors.invalidRequest('INVALID_CONTENT_TYPE');
     }
 
     next();

@@ -34,7 +34,8 @@ describe('tenant/validation', () => {
                 .toThrowError(
                     expect.objectContaining({
                         statusCode: HTTP_STATUS.BAD_REQUEST,
-                        code: 'INVALID_ASSET_TYPE',
+                        code: 'VALIDATION_ERROR',
+                        data: expect.objectContaining({ detail: 'INVALID_ASSET_TYPE' }),
                     }),
                 );
         });
@@ -49,7 +50,8 @@ describe('tenant/validation', () => {
                 .toThrowError(
                     expect.objectContaining({
                         statusCode: HTTP_STATUS.BAD_REQUEST,
-                        code: 'INVALID_TENANT_ID',
+                        code: 'VALIDATION_ERROR',
+                        data: expect.objectContaining({ detail: 'INVALID_TENANT_ID' }),
                     }),
                 );
         });
@@ -63,7 +65,8 @@ describe('tenant/validation', () => {
                 .toThrowError(
                     expect.objectContaining({
                         statusCode: HTTP_STATUS.BAD_REQUEST,
-                        code: 'INVALID_TENANT_ID',
+                        code: 'VALIDATION_ERROR',
+                        data: expect.objectContaining({ detail: 'INVALID_TENANT_ID' }),
                     }),
                 );
         });
@@ -77,7 +80,8 @@ describe('tenant/validation', () => {
                 .toThrowError(
                     expect.objectContaining({
                         statusCode: HTTP_STATUS.BAD_REQUEST,
-                        code: 'INVALID_ASSET_TYPE',
+                        code: 'VALIDATION_ERROR',
+                        data: expect.objectContaining({ detail: 'INVALID_ASSET_TYPE' }),
                     }),
                 );
         });

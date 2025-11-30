@@ -1,9 +1,9 @@
 import { isoStringNow, PolicyAcceptanceStatusDTO, PolicyId, UserPolicyStatusResponse, VersionHash } from '@billsplit-wl/shared';
 import type { UserId } from '@billsplit-wl/shared';
 import { FirestoreCollections, HTTP_STATUS } from '../constants';
+import { ApiError, Errors, ErrorDetail } from '../errors';
 import { logger } from '../logger';
 import { measureDb } from '../monitoring/measure';
-import { ApiError } from '../utils/errors';
 import { LoggerContext } from '../utils/logger-context';
 import { IFirestoreReader } from './firestore';
 import { IFirestoreWriter } from './firestore';
@@ -32,11 +32,11 @@ export class UserPolicyService {
         const policy = await this.firestoreReader.getPolicy(policyId);
 
         if (!policy) {
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'POLICY_NOT_FOUND', `Policy ${policyId} not found`);
+            throw Errors.notFound('Policy', ErrorDetail.POLICY_NOT_FOUND);
         }
 
         if (!policy.versions[versionHash]) {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_VERSION_HASH', `Version hash ${versionHash} not found for policy ${policyId}`);
+            throw Errors.validationError('versionHash', 'Version hash not found for policy');
         }
     }
 
@@ -56,7 +56,7 @@ export class UserPolicyService {
                 const { policyId, versionHash } = acceptance;
 
                 if (!policyId || !versionHash) {
-                    throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_REQUEST', 'Each acceptance must have policyId and versionHash');
+                    throw Errors.invalidRequest('Each acceptance must have policyId and versionHash');
                 }
 
                 await this.validatePolicyAndVersion(policyId, versionHash);
@@ -73,7 +73,7 @@ export class UserPolicyService {
                 const userDoc = await transaction.get(userRef);
 
                 if (!userDoc.exists) {
-                    throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', 'User not found');
+                    throw Errors.notFound('User', ErrorDetail.USER_NOT_FOUND);
                 }
 
                 const userData = userDoc.data() || {};
@@ -118,7 +118,7 @@ export class UserPolicyService {
                 throw error;
             }
             logger.error('Failed to accept multiple policies', error as Error, { userId, acceptancesCount: acceptances.length });
-            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'POLICIES_ACCEPT_FAILED', 'Failed to accept multiple policies');
+            throw Errors.serviceError(ErrorDetail.POLICY_SERVICE_ERROR);
         }
     }
 
@@ -134,7 +134,7 @@ export class UserPolicyService {
             const user = await this.firestoreReader.getUser(userId);
 
             if (!user) {
-                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', 'User not found');
+                throw Errors.notFound('User', ErrorDetail.USER_NOT_FOUND);
             }
 
             const userAcceptedPolicies = user.acceptedPolicies || {};
@@ -176,7 +176,7 @@ export class UserPolicyService {
                 throw error;
             }
             logger.error('Failed to get user policy status', error as Error, { userId });
-            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'USER_POLICY_STATUS_FAILED', 'Failed to get user policy status');
+            throw Errors.serviceError(ErrorDetail.POLICY_SERVICE_ERROR);
         }
     }
 }

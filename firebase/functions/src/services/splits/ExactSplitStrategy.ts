@@ -1,18 +1,17 @@
 import { Amount, amountToSmallestUnit, CurrencyISOCode, ExpenseSplit, normalizeAmount, UserId } from '@billsplit-wl/shared';
-import { HTTP_STATUS } from '../../constants';
-import { ApiError } from '../../utils/errors';
+import { ErrorDetail, Errors } from '../../errors';
 import { ISplitStrategy } from './ISplitStrategy';
 
 export class ExactSplitStrategy implements ISplitStrategy {
     validateSplits(totalAmount: Amount, participants: UserId[], splits: ExpenseSplit[], currencyCode: CurrencyISOCode): void {
         if (!Array.isArray(splits) || splits.length !== participants.length) {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_SPLITS', 'Splits must be provided for all participants');
+            throw Errors.validationError('splits', ErrorDetail.MISSING_FIELD);
         }
 
         // Validate that all splits have amounts
         for (const split of splits) {
             if (split.amount === undefined || split.amount === null) {
-                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_SPLIT_AMOUNT', 'Split amount is required for exact splits');
+                throw Errors.validationError('amount', ErrorDetail.MISSING_FIELD);
             }
         }
 
@@ -30,21 +29,21 @@ export class ExactSplitStrategy implements ISplitStrategy {
         );
 
         if (splitUnits !== totalUnits) {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_SPLIT_TOTAL', 'Split amounts must equal total amount');
+            throw Errors.validationError('splits', ErrorDetail.INVALID_SPLIT_TOTAL);
         }
 
         // Validate no duplicate users
         const splitUserIds = normalizedSplits.map((s: ExpenseSplit) => s.uid);
         const uniqueSplitUserIds = new Set(splitUserIds);
         if (splitUserIds.length !== uniqueSplitUserIds.size) {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'DUPLICATE_SPLIT_USERS', 'Each participant can only appear once in splits');
+            throw Errors.validationError('splits', ErrorDetail.DUPLICATE_SPLIT_USERS);
         }
 
         // Validate all split users are participants
         const participantSet = new Set(participants);
         for (const userId of splitUserIds) {
             if (!participantSet.has(userId)) {
-                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_SPLIT_USER', 'Split user must be a participant');
+                throw Errors.validationError('splits', ErrorDetail.INVALID_PARTICIPANT);
             }
         }
     }

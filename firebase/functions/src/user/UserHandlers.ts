@@ -1,9 +1,8 @@
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { HTTP_STATUS } from '../constants';
+import { Errors } from '../errors';
 import { UserService } from '../services/UserService2';
-import { Errors } from '../utils/errors';
-import { LocalizedRequest } from '../utils/i18n';
 
 export class UserHandlers {
     constructor(private readonly userService: UserService) {
@@ -15,7 +14,7 @@ export class UserHandlers {
     getUserProfile = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
         const userId = req.user?.uid;
         if (!userId) {
-            throw Errors.UNAUTHORIZED();
+            throw Errors.authRequired();
         }
 
         const profile = await this.userService.getProfile(userId);
@@ -25,13 +24,13 @@ export class UserHandlers {
     /**
      * Update current user's profile
      */
-    updateUserProfile = async (req: AuthenticatedRequest & LocalizedRequest, res: Response): Promise<void> => {
+    updateUserProfile = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
         const userId = req.user?.uid;
         if (!userId) {
-            throw Errors.UNAUTHORIZED();
+            throw Errors.authRequired();
         }
 
-        await this.userService.updateProfile(userId, req.body, req.language);
+        await this.userService.updateProfile(userId, req.body);
         res.status(HTTP_STATUS.NO_CONTENT).send();
     };
 
@@ -42,7 +41,7 @@ export class UserHandlers {
     changePassword = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
         const userId = req.user?.uid;
         if (!userId) {
-            throw Errors.UNAUTHORIZED();
+            throw Errors.authRequired();
         }
 
         await this.userService.changePassword(userId, req.body);
@@ -56,7 +55,7 @@ export class UserHandlers {
     changeEmail = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
         const userId = req.user?.uid;
         if (!userId) {
-            throw Errors.UNAUTHORIZED();
+            throw Errors.authRequired();
         }
 
         await this.userService.changeEmail(userId, req.body);

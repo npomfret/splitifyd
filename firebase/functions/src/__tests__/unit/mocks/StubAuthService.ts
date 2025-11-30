@@ -1,8 +1,7 @@
 import type { Email, UserId } from '@billsplit-wl/shared';
 import type { CreateRequest, DecodedIdToken, ListUsersResult, UpdateRequest, UserRecord } from 'firebase-admin/auth';
-import { HTTP_STATUS } from '../../../constants';
+import { ErrorDetail, Errors } from '../../../errors';
 import type { IAuthService } from '../../../services/auth';
-import { ApiError } from '../../../utils/errors';
 
 /**
  * In-memory stub implementation of IAuthService for unit testing
@@ -75,7 +74,7 @@ export class StubAuthService implements IAuthService {
         if (userData.email) {
             const existingUser = Array.from(this.users.values()).find((u) => u.email === userData.email);
             if (existingUser && !this.deletedUsers.has(existingUser.uid)) {
-                throw new ApiError(HTTP_STATUS.CONFLICT, 'EMAIL_ALREADY_EXISTS', 'An account with this email already exists');
+                throw Errors.alreadyExists('Email', ErrorDetail.EMAIL_ALREADY_EXISTS);
             }
         }
 
@@ -106,7 +105,7 @@ export class StubAuthService implements IAuthService {
 
     async getUser(uid: UserId): Promise<UserRecord | null> {
         if (this.deletedUsers.has(uid)) {
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', `User ${uid} not found`);
+            throw Errors.notFound('User', ErrorDetail.USER_NOT_FOUND, uid);
         }
         return this.users.get(uid) || null;
     }
@@ -143,14 +142,14 @@ export class StubAuthService implements IAuthService {
     async updateUser(uid: string, updates: UpdateRequest): Promise<UserRecord> {
         const existingUser = this.users.get(uid);
         if (!existingUser || this.deletedUsers.has(uid)) {
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', `User ${uid} not found`);
+            throw Errors.notFound('User', ErrorDetail.USER_NOT_FOUND, uid);
         }
 
         // Check for email conflicts if updating email
         if (updates.email && updates.email !== existingUser.email) {
             const conflictingUser = Array.from(this.users.values()).find((u) => u.email === updates.email);
             if (conflictingUser && !this.deletedUsers.has(conflictingUser.uid)) {
-                throw new ApiError(HTTP_STATUS.CONFLICT, 'EMAIL_ALREADY_EXISTS', 'An account with this email already exists');
+                throw Errors.alreadyExists('Email', ErrorDetail.EMAIL_ALREADY_EXISTS);
             }
         }
 
@@ -177,7 +176,7 @@ export class StubAuthService implements IAuthService {
     async deleteUser(uid: string): Promise<void> {
         const user = this.users.get(uid);
         if (!user || this.deletedUsers.has(uid)) {
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', `User ${uid} not found`);
+            throw Errors.notFound('User', ErrorDetail.USER_NOT_FOUND, uid);
         }
         this.markUserAsDeleted(uid);
     }
@@ -185,7 +184,7 @@ export class StubAuthService implements IAuthService {
     async verifyIdToken(idToken: string): Promise<DecodedIdToken> {
         const decoded = this.decodedTokens.get(idToken);
         if (!decoded) {
-            throw new ApiError(HTTP_STATUS.UNAUTHORIZED, 'INVALID_TOKEN', 'Invalid ID token');
+            throw Errors.authInvalid(ErrorDetail.TOKEN_INVALID);
         }
         return decoded;
     }
@@ -193,7 +192,7 @@ export class StubAuthService implements IAuthService {
     async createCustomToken(uid: string, additionalClaims?: object): Promise<string> {
         const user = this.users.get(uid);
         if (!user || this.deletedUsers.has(uid)) {
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', `User ${uid} not found`);
+            throw Errors.notFound('User', ErrorDetail.USER_NOT_FOUND, uid);
         }
 
         const token = `custom-token-${uid}-${Date.now()}`;

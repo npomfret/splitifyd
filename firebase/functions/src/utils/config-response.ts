@@ -2,7 +2,7 @@ import { AppConfiguration, TenantConfig, toShowLandingPageFlag, toShowMarketingC
 import { getTenantAwareAppConfig } from '../client-config';
 import { HTTP_STATUS } from '../constants';
 import type { TenantRequestContext } from '../types/tenant';
-import { ApiError } from './errors';
+import { ErrorDetail, Errors } from '../errors';
 
 const cloneTenantConfig = (tenant: TenantConfig): TenantConfig => {
     const { marketingFlags, ...restOfBranding } = tenant.branding;
@@ -25,7 +25,7 @@ const cloneTenantConfig = (tenant: TenantConfig): TenantConfig => {
 
 export const getEnhancedConfigResponse = (context?: TenantRequestContext): AppConfiguration => {
     if (!context) {
-        throw new ApiError(HTTP_STATUS.NOT_FOUND, 'TENANT_NOT_FOUND', 'Tenant context is required for configuration');
+        throw Errors.notFound('Tenant', ErrorDetail.TENANT_NOT_FOUND);
     }
 
     const effectiveTenant = cloneTenantConfig(context.config);

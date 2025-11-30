@@ -134,7 +134,7 @@ describe('authorization', () => {
 
         await expect(appDriver.generateShareableLink(groupId, undefined, user2))
             .rejects
-            .toMatchObject({ code: 'UNAUTHORIZED' });
+            .toMatchObject({ code: 'FORBIDDEN' });
     });
 
     it('should reject settlement updates by non-creators', async () => {
@@ -176,7 +176,7 @@ describe('authorization', () => {
             .build();
         await expect(appDriver.updateSettlement(settlementId, updateRequest, user1))
             .rejects
-            .toMatchObject({ code: 'NOT_SETTLEMENT_CREATOR' });
+            .toMatchObject({ code: 'FORBIDDEN' });
     });
 
     describe('policy administration flows', () => {
@@ -226,14 +226,18 @@ describe('authorization', () => {
             const policyName = toPolicyName('Terms of Service');
             const policyId = toPolicyId('terms-of-service');
 
+            // Attempt to update a non-existent policy should throw
             await expect(
                 appDriver.updatePolicy(policyId, {
                     text: toPolicyText('Updated terms version 1'),
                     publish: true,
-                }, adminUser),
-            )
-                .rejects
-                .toThrow(/Policy not found/);
+                }, adminUser)
+            ).rejects.toMatchObject({
+                code: 'NOT_FOUND',
+                data: {
+                    detail: 'POLICY_NOT_FOUND',
+                },
+            });
 
             const created = await appDriver.createPolicy({
                 policyName,
@@ -419,12 +423,9 @@ describe('authorization', () => {
                     .withDomain('custom.example.com')
                     .build();
 
-                await expect(appDriver.addTenantDomain(domainData, user1)).rejects.toThrow(
-                    expect.objectContaining({
-                        code: 'NOT_IMPLEMENTED',
-                        message: expect.stringContaining('not yet implemented'),
-                    }),
-                );
+                await expect(appDriver.addTenantDomain(domainData, user1)).rejects.toMatchObject({
+                    code: 'NOT_IMPLEMENTED',
+                });
             });
 
             it('should deny regular user access to add domain', async () => {
@@ -483,12 +484,9 @@ describe('authorization', () => {
             .withInvalidAppName('') // Empty string not allowed
             .build();
 
-        await expect(appDriver.updateTenantBranding(invalidData, adminUser)).rejects.toThrow(
-            expect.objectContaining({
-                code: 'VALIDATION_ERROR',
-                message: expect.stringContaining('Invalid branding update request'),
-            }),
-        );
+        await expect(appDriver.updateTenantBranding(invalidData, adminUser)).rejects.toMatchObject({
+            code: 'VALIDATION_ERROR',
+        });
     });
 
     describe('Admin Tenant Management', () => {
@@ -550,11 +548,8 @@ describe('authorization', () => {
 
                 const payload = AdminTenantRequestBuilder.forTenant('tenant_unauthorized').build();
 
-                const result = await appDriver.adminUpsertTenant(payload, regularUser);
-                expect(result).toMatchObject({
-                    error: {
-                        code: 'FORBIDDEN',
-                    },
+                await expect(appDriver.adminUpsertTenant(payload, regularUser)).rejects.toMatchObject({
+                    code: 'FORBIDDEN',
                 });
             });
 
@@ -861,11 +856,8 @@ describe('authorization', () => {
                 const regularUserResult = await appDriver.registerUser(regularUserReg);
                 const regularUser = toUserId(regularUserResult.user.uid);
 
-                const result = await appDriver.publishTenantTheme({ tenantId }, regularUser);
-                expect(result).toMatchObject({
-                    error: {
-                        code: 'FORBIDDEN',
-                    },
+                await expect(appDriver.publishTenantTheme({ tenantId }, regularUser)).rejects.toMatchObject({
+                    code: 'FORBIDDEN',
                 });
             });
 

@@ -5,11 +5,10 @@
   "scripts": {
     "build": "npm run build:check && node scripts/conditional-build.js",
     "build:check": "tsc --project tsconfig.build.json --noEmit",
-    "build:prod": "npm run clean && tsc --project tsconfig.deploy.json && npm run copy:locales && node esbuild.config.js",
+    "build:prod": "npm run clean && tsc --project tsconfig.deploy.json && node esbuild.config.js",
     "bundle": "node esbuild.config.js",
     "clean": "rm -rf lib coverage",
     "super-clean": "npm run clean && rm -rf node_modules",
-    "copy:locales": "cp -r src/locales lib/ || mkdir -p lib/locales && cp -r src/locales/* lib/locales/",
     "test": "ORIGINAL_TEST_SCRIPT=test node ../../scripts/test-wrapper.js",
     "test:unit": "ORIGINAL_TEST_SCRIPT=test:unit node ../../scripts/test-wrapper.js",
     "test:integration": "ORIGINAL_TEST_SCRIPT=test:integration node ../../scripts/test-wrapper.js",
@@ -30,14 +29,12 @@
     "express": "^5.1.0",
     "firebase-admin": "^13.4.0",
     "firebase-functions": "^6.4.0",
-    "i18next": "^25.4.2",
-    "i18next-fs-backend": "^2.6.0",
     "xss": "^1.0.15",
     "zod": "^4.0.5"
   },
   "devDependencies": {
-    "@firebase/rules-unit-testing": "^5.0.0",
     "@billsplit-wl/test-support": "*",
+    "@firebase/rules-unit-testing": "^5.0.0",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
     "@types/lodash": "^4.17.6",

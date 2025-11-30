@@ -2,7 +2,7 @@ import { toUserId, USD } from '@billsplit-wl/shared';
 import { ExpenseSplitBuilder } from '@billsplit-wl/test-support';
 import { describe, expect, it } from 'vitest';
 import { PercentageSplitStrategy } from '../../../../services/splits/PercentageSplitStrategy';
-import { ApiError } from '../../../../utils/errors';
+import { ErrorCode } from '../../../../errors';
 
 describe('PercentageSplitStrategy', () => {
     const strategy = new PercentageSplitStrategy();
@@ -26,7 +26,9 @@ describe('PercentageSplitStrategy', () => {
         });
 
         it('should throw error if splits are not provided', () => {
-            expect(() => strategy.validateSplits('100', participants, undefined as any, USD)).toThrow(new ApiError(400, 'INVALID_SPLITS', 'Splits must be provided for all participants'));
+            expect(() => strategy.validateSplits('100', participants, undefined as any, USD)).toThrow(
+                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR })
+            );
         });
 
         it('should throw error if percentages do not sum to 100', () => {
@@ -37,7 +39,9 @@ describe('PercentageSplitStrategy', () => {
                     { uid: userId3, percentage: 20 }, // Total = 90, not 100
                 ], USD)
                 .build();
-            expect(() => strategy.validateSplits('100', participants, splits, USD)).toThrow(new ApiError(400, 'INVALID_PERCENTAGE_TOTAL', 'Percentages must add up to 100'));
+            expect(() => strategy.validateSplits('100', participants, splits, USD)).toThrow(
+                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR })
+            );
         });
 
         it('should allow high precision percentages that still sum to 100', () => {

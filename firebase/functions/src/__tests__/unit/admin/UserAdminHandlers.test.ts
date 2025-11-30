@@ -2,7 +2,7 @@ import { SystemUserRoles, toUserId } from '@billsplit-wl/shared';
 import { UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
-import { ApiError } from '../../../utils/errors';
+import { ApiError } from '../../../errors';
 import { AppDriver } from '../AppDriver';
 
 describe('UserAdminHandlers - Unit Tests', () => {
@@ -55,11 +55,13 @@ describe('UserAdminHandlers - Unit Tests', () => {
 
         it('should reject request with invalid UID', async () => {
             // Try to update user with empty UID
-            await expect(
-                appDriver.updateUser(toUserId(''), { disabled: true }, adminToken),
-            )
-                .rejects
-                .toThrow('Invalid user ID');
+            try {
+                await appDriver.updateUser(toUserId(''), { disabled: true }, adminToken);
+                expect.fail('Expected updateUser to throw ApiError');
+            } catch (error) {
+                expect(error).toBeInstanceOf(ApiError);
+                expect((error as ApiError).code).toBe('VALIDATION_ERROR');
+            }
         });
 
         it('should reject request with non-boolean disabled field', async () => {
@@ -69,11 +71,13 @@ describe('UserAdminHandlers - Unit Tests', () => {
             const userId = registered.user.uid;
 
             // Try to update with invalid disabled value
-            await expect(
-                appDriver.updateUser(userId, { disabled: 'true' } as any, adminToken),
-            )
-                .rejects
-                .toThrow('boolean "disabled" field');
+            try {
+                await appDriver.updateUser(userId, { disabled: 'true' } as any, adminToken);
+                expect.fail('Expected updateUser to throw ApiError');
+            } catch (error) {
+                expect(error).toBeInstanceOf(ApiError);
+                expect((error as ApiError).code).toBe('VALIDATION_ERROR');
+            }
         });
 
         it('should reject request with extra fields', async () => {
@@ -83,11 +87,13 @@ describe('UserAdminHandlers - Unit Tests', () => {
             const userId = registered.user.uid;
 
             // Try to update with extra fields
-            await expect(
-                appDriver.updateUser(userId, { disabled: true, email: 'new@test.com' } as any, adminToken),
-            )
-                .rejects
-                .toThrow('Only "disabled" field is allowed');
+            try {
+                await appDriver.updateUser(userId, { disabled: true, email: 'new@test.com' } as any, adminToken);
+                expect.fail('Expected updateUser to throw ApiError');
+            } catch (error) {
+                expect(error).toBeInstanceOf(ApiError);
+                expect((error as ApiError).code).toBe('INVALID_REQUEST');
+            }
         });
 
         it('should prevent user from disabling their own account', async () => {
@@ -102,11 +108,13 @@ describe('UserAdminHandlers - Unit Tests', () => {
             await appDriver.promoteUserToAdmin(userId);
 
             // Try to disable own account using own token
-            await expect(
-                appDriver.updateUser(userId, { disabled: true }, userToken),
-            )
-                .rejects
-                .toThrow('cannot disable your own account');
+            try {
+                await appDriver.updateUser(userId, { disabled: true }, userToken);
+                expect.fail('Expected updateUser to throw ApiError');
+            } catch (error) {
+                expect(error).toBeInstanceOf(ApiError);
+                expect((error as ApiError).code).toBe('CONFLICT');
+            }
         });
 
         it('should return 404 for non-existent user', async () => {
@@ -118,17 +126,19 @@ describe('UserAdminHandlers - Unit Tests', () => {
             } catch (error) {
                 expect(error).toBeInstanceOf(ApiError);
                 expect((error as ApiError).statusCode).toBe(HTTP_STATUS.NOT_FOUND);
-                expect((error as ApiError).code).toBe('USER_NOT_FOUND');
+                expect((error as ApiError).code).toBe('NOT_FOUND');
             }
         });
 
         it('should validate that UID is a non-empty string', async () => {
             // Test with whitespace-only UID
-            await expect(
-                appDriver.updateUser(toUserId('   '), { disabled: true }, adminToken),
-            )
-                .rejects
-                .toThrow('Invalid user ID');
+            try {
+                await appDriver.updateUser(toUserId('   '), { disabled: true }, adminToken);
+                expect.fail('Expected updateUser to throw ApiError');
+            } catch (error) {
+                expect(error).toBeInstanceOf(ApiError);
+                expect((error as ApiError).code).toBe('VALIDATION_ERROR');
+            }
         });
 
         it('should handle missing disabled field', async () => {
@@ -138,11 +148,13 @@ describe('UserAdminHandlers - Unit Tests', () => {
             const userId = registered.user.uid;
 
             // Try to update without disabled field
-            await expect(
-                appDriver.updateUser(userId, {} as any, adminToken),
-            )
-                .rejects
-                .toThrow('boolean "disabled" field');
+            try {
+                await appDriver.updateUser(userId, {} as any, adminToken);
+                expect.fail('Expected updateUser to throw ApiError');
+            } catch (error) {
+                expect(error).toBeInstanceOf(ApiError);
+                expect((error as ApiError).code).toBe('VALIDATION_ERROR');
+            }
         });
     });
 
@@ -211,18 +223,20 @@ describe('UserAdminHandlers - Unit Tests', () => {
                 expect.fail('Expected updateUserRole to throw ApiError');
             } catch (error) {
                 expect(error).toBeInstanceOf(ApiError);
-                expect((error as ApiError).code).toBe('INVALID_ROLE');
+                expect((error as ApiError).code).toBe('VALIDATION_ERROR');
                 expect((error as ApiError).statusCode).toBe(HTTP_STATUS.BAD_REQUEST);
             }
         });
 
         it('should reject request with invalid UID', async () => {
             // Try to update role with empty UID
-            await expect(
-                appDriver.updateUserRole(toUserId(''), { role: SystemUserRoles.SYSTEM_ADMIN }, adminToken),
-            )
-                .rejects
-                .toThrow('Invalid user ID');
+            try {
+                await appDriver.updateUserRole(toUserId(''), { role: SystemUserRoles.SYSTEM_ADMIN }, adminToken);
+                expect.fail('Expected updateUserRole to throw ApiError');
+            } catch (error) {
+                expect(error).toBeInstanceOf(ApiError);
+                expect((error as ApiError).code).toBe('VALIDATION_ERROR');
+            }
         });
 
         it('should reject request with extra fields', async () => {
@@ -232,11 +246,13 @@ describe('UserAdminHandlers - Unit Tests', () => {
             const userId = registered.user.uid;
 
             // Try to update with extra fields
-            await expect(
-                appDriver.updateUserRole(userId, { role: SystemUserRoles.SYSTEM_ADMIN, email: 'new@test.com' } as any, adminToken),
-            )
-                .rejects
-                .toThrow('Only "role" field is allowed');
+            try {
+                await appDriver.updateUserRole(userId, { role: SystemUserRoles.SYSTEM_ADMIN, email: 'new@test.com' } as any, adminToken);
+                expect.fail('Expected updateUserRole to throw ApiError');
+            } catch (error) {
+                expect(error).toBeInstanceOf(ApiError);
+                expect((error as ApiError).code).toBe('INVALID_REQUEST');
+            }
         });
 
         it('should prevent user from changing their own role', async () => {
@@ -256,7 +272,7 @@ describe('UserAdminHandlers - Unit Tests', () => {
                 expect.fail('Expected updateUserRole to throw ApiError');
             } catch (error) {
                 expect(error).toBeInstanceOf(ApiError);
-                expect((error as ApiError).code).toBe('CANNOT_CHANGE_OWN_ROLE');
+                expect((error as ApiError).code).toBe('CONFLICT');
                 expect((error as ApiError).statusCode).toBe(HTTP_STATUS.CONFLICT);
             }
         });
@@ -270,17 +286,19 @@ describe('UserAdminHandlers - Unit Tests', () => {
             } catch (error) {
                 expect(error).toBeInstanceOf(ApiError);
                 expect((error as ApiError).statusCode).toBe(HTTP_STATUS.NOT_FOUND);
-                expect((error as ApiError).code).toBe('USER_NOT_FOUND');
+                expect((error as ApiError).code).toBe('NOT_FOUND');
             }
         });
 
         it('should validate that UID is a non-empty string', async () => {
             // Test with whitespace-only UID
-            await expect(
-                appDriver.updateUserRole(toUserId('   '), { role: SystemUserRoles.SYSTEM_ADMIN }, adminToken),
-            )
-                .rejects
-                .toThrow('Invalid user ID');
+            try {
+                await appDriver.updateUserRole(toUserId('   '), { role: SystemUserRoles.SYSTEM_ADMIN }, adminToken);
+                expect.fail('Expected updateUserRole to throw ApiError');
+            } catch (error) {
+                expect(error).toBeInstanceOf(ApiError);
+                expect((error as ApiError).code).toBe('VALIDATION_ERROR');
+            }
         });
     });
 });

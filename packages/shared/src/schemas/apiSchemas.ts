@@ -270,12 +270,16 @@ const HealthCheckResponseSchema = z.object({
     }),
 });
 
-// Error response schema - structured format only
+// Error response schema - two-tier error code format
 export const ApiErrorResponseSchema = z.object({
     error: z.object({
-        code: z.string().min(1),
-        message: z.string().min(1),
-        details: z.unknown().optional(),
+        code: z.string().min(1), // Category code (e.g., VALIDATION_ERROR, NOT_FOUND)
+        detail: z.string().optional(), // Specific error detail (e.g., INVALID_AMOUNT, GROUP_NOT_FOUND)
+        resource: z.string().optional(), // Resource type (e.g., 'Group', 'Expense')
+        resourceId: z.string().optional(), // Resource ID for logging
+        field: z.string().optional(), // Field name for single-field validation errors
+        fields: z.record(z.string(), z.string()).optional(), // Multiple field errors for validation
+        correlationId: z.string().optional(), // Request correlation ID
     }),
 });
 

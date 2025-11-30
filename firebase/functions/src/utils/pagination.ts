@@ -1,5 +1,5 @@
 import type { IQuery } from '../firestore-wrapper';
-import { Errors } from './errors';
+import { ErrorDetail, Errors } from '../errors';
 
 export interface CursorData {
     updatedAt: string;
@@ -28,7 +28,7 @@ export function decodeCursor(cursor: string): CursorData {
 
         return cursorData as CursorData;
     } catch (error) {
-        throw Errors.INVALID_INPUT('Invalid cursor format');
+        throw Errors.validationError('cursor', ErrorDetail.INVALID_CURSOR);
     }
 }
 

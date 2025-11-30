@@ -1,11 +1,11 @@
 import type { ICloudTasksClient } from '@billsplit-wl/firebase-simulator';
 import type { ISOString, UserId } from '@billsplit-wl/shared';
 import { isoStringNow } from '@billsplit-wl/shared';
-import { HTTP_STATUS } from '../constants';
 import { logger } from '../logger';
 import type { IAuthService } from '../services/auth';
 import type { IFirestoreReader, IFirestoreWriter } from '../services/firestore';
-import { ApiError } from '../utils/errors';
+import { Errors } from '../errors/Errors';
+import { ErrorDetail } from '../errors/ErrorCode';
 import { LoggerContext } from '../utils/logger-context';
 import { ServiceConfig } from './ServiceConfig';
 
@@ -131,15 +131,8 @@ export class MergeService {
                 eligible: true,
             };
         } catch (error) {
-            if (error instanceof ApiError) {
-                throw error;
-            }
             logger.error('Failed to validate merge eligibility', error as Error, { primaryUserId, secondaryUserId });
-            throw new ApiError(
-                HTTP_STATUS.INTERNAL_ERROR,
-                'MERGE_VALIDATION_FAILED',
-                'Failed to validate merge eligibility',
-            );
+            throw error;
         }
     }
 
@@ -155,11 +148,7 @@ export class MergeService {
             // Step 1: Validate eligibility
             const eligibility = await this.validateMergeEligibility(primaryUserId, secondaryUserId);
             if (!eligibility.eligible) {
-                throw new ApiError(
-                    HTTP_STATUS.BAD_REQUEST,
-                    'MERGE_NOT_ELIGIBLE',
-                    eligibility.reason || 'Users cannot be merged',
-                );
+                throw Errors.invalidRequest(eligibility.reason || 'Users cannot be merged');
             }
 
             // Step 2: Create merge job document
@@ -209,11 +198,8 @@ export class MergeService {
                 status: 'pending',
             };
         } catch (error) {
-            if (error instanceof ApiError) {
-                throw error;
-            }
             logger.error('Failed to initiate merge', error as Error, { primaryUserId, secondaryUserId });
-            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'MERGE_INITIATION_FAILED', 'Failed to initiate account merge');
+            throw error;
         }
     }
 
@@ -234,26 +220,19 @@ export class MergeService {
             const job = await this.firestoreReader.getMergeJob(jobId);
 
             if (!job) {
-                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'NOT_FOUND', 'Merge job not found');
+                throw Errors.notFound('MergeJob', 'JOB_NOT_FOUND', jobId);
             }
 
             // Verify user is authorized (must be primary or secondary user)
             if (job.primaryUserId !== userId && job.secondaryUserId !== userId) {
-                throw new ApiError(
-                    HTTP_STATUS.FORBIDDEN,
-                    'FORBIDDEN',
-                    'You are not authorized to view this merge job',
-                );
+                throw Errors.forbidden(ErrorDetail.INSUFFICIENT_PERMISSIONS);
             }
 
             logger.info('merge-job-retrieved', { jobId, userId });
             return job;
         } catch (error) {
-            if (error instanceof ApiError) {
-                throw error;
-            }
             logger.error('Failed to get merge job', error as Error, { jobId, userId });
-            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'MERGE_JOB_FETCH_FAILED', 'Failed to retrieve merge job');
+            throw error;
         }
     }
 }

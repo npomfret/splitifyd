@@ -1,5 +1,5 @@
-import { HTTP_STATUS } from '../../constants';
-import { ApiError } from '../../utils/errors';
+import type { ExpenseId, UserId } from '@billsplit-wl/shared';
+import { ErrorDetail, Errors } from '../../errors';
 import type { IFirestoreReader } from '../firestore';
 import { GroupMemberService } from '../GroupMemberService';
 import { ICommentStrategy } from './ICommentStrategy';
@@ -22,19 +22,18 @@ export class ExpenseCommentStrategy implements ICommentStrategy<ExpenseId> {
         // Get the expense and verify it exists and is not deleted
         const expense = await this.firestoreReader.getExpense(expenseId);
         if (!expense || expense.deletedAt) {
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'EXPENSE_NOT_FOUND', 'Expense not found');
+            throw Errors.notFound('Expense', ErrorDetail.EXPENSE_NOT_FOUND);
         }
 
         // Verify the group exists
         const group = await this.firestoreReader.getGroup(expense.groupId);
         if (!group) {
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
+            throw Errors.notFound('Group', ErrorDetail.GROUP_NOT_FOUND);
         }
 
         // Verify user is a member of the group that the expense belongs to
         if (!(await this.groupMemberService.isGroupMemberAsync(group.id, userId))) {
-            throw new ApiError(HTTP_STATUS.FORBIDDEN, 'ACCESS_DENIED', 'User is not a member of this group');
+            throw Errors.forbidden(ErrorDetail.NOT_GROUP_MEMBER);
         }
     }
 }
-import type { ExpenseId, UserId } from '@billsplit-wl/shared';

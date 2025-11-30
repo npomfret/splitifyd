@@ -18,11 +18,11 @@ import {
 import { toISOString } from '@billsplit-wl/shared';
 import { z } from 'zod';
 import { FirestoreCollections, HTTP_STATUS } from '../constants';
+import { ApiError, Errors, ErrorDetail } from '../errors';
 import { logger, LoggerContext } from '../logger';
 import * as measure from '../monitoring/measure';
 import { PerformanceTimer } from '../monitoring/PerformanceTimer';
 import { ShareLinkDataSchema } from '../schemas';
-import { ApiError } from '../utils/errors';
 import { createTopLevelMembershipDocument } from '../utils/groupMembershipHelpers';
 import { generateShareToken, newTopLevelMembershipDocId } from '../utils/idGenerator';
 import { ActivityFeedService } from './ActivityFeedService';
@@ -55,17 +55,17 @@ export class GroupShareService {
         if (requestedExpiresAt) {
             const parsed = new Date(requestedExpiresAt);
             if (Number.isNaN(parsed.getTime())) {
-                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_EXPIRATION', 'Invalid share link expiration timestamp');
+                throw Errors.validationError('expiresAt', ErrorDetail.INVALID_DATE);
             }
 
             const expiresAtMs = parsed.getTime();
             if (expiresAtMs <= nowMs) {
-                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_EXPIRATION', 'Share link expiration must be in the future');
+                throw Errors.validationError('expiresAt', 'Share link expiration must be in the future');
             }
 
             const maxAllowed = nowMs + SHARE_LINK_MAX_EXPIRATION_MS + SHARE_LINK_EXPIRATION_DRIFT_MS;
             if (expiresAtMs > maxAllowed) {
-                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_EXPIRATION', 'Share link expiration exceeds the maximum allowed duration');
+                throw Errors.validationError('expiresAt', 'Share link expiration exceeds the maximum allowed duration');
             }
 
             return toISOString(new Date(expiresAtMs).toISOString());
@@ -221,7 +221,7 @@ export class GroupShareService {
         let expiredLinksRemoved = 0;
 
         if (!groupId) {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_GROUP_ID', 'Invalid group ID');
+            throw Errors.validationError('groupId', ErrorDetail.MISSING_FIELD);
         }
 
         timer.startPhase('query');
@@ -231,11 +231,11 @@ export class GroupShareService {
         ]);
 
         if (!group) {
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
+            throw Errors.notFound('Group', ErrorDetail.GROUP_NOT_FOUND);
         }
 
         if (!isMember) {
-            throw new ApiError(HTTP_STATUS.FORBIDDEN, 'UNAUTHORIZED', 'Only group members can generate share links');
+            throw Errors.forbidden(ErrorDetail.NOT_GROUP_MEMBER);
         }
 
         const shareTokenString = generateShareToken();
@@ -250,7 +250,7 @@ export class GroupShareService {
             // Read 1: Check group exists
             const freshGroupDoc = await this.firestoreReader.getRawGroupDocumentInTransaction(transaction, groupId);
             if (!freshGroupDoc) {
-                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
+                throw Errors.notFound('Group', ErrorDetail.GROUP_NOT_FOUND);
             }
 
             const now = toISOString(new Date().toISOString());
@@ -278,7 +278,7 @@ export class GroupShareService {
                     createdBy: userId,
                     validationErrors: error instanceof z.ZodError ? error.issues : undefined,
                 });
-                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_SHARELINK_DATA', 'Failed to create share link due to invalid data structure');
+                throw Errors.serviceError(ErrorDetail.CREATION_FAILED);
             }
 
             // Write 2: Delete expired links
@@ -325,24 +325,24 @@ export class GroupShareService {
         isAlreadyMember: boolean;
     }> {
         if (!shareToken) {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_LINK_ID', 'Link ID is required');
+            throw Errors.validationError('shareToken', ErrorDetail.MISSING_FIELD);
         }
 
         const shareLinkLookup = await this.findShareLinkByToken(shareToken);
 
         if (shareLinkLookup.status === 'missing') {
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'INVALID_LINK', 'Invalid or expired share link');
+            throw Errors.notFound('Share link', ErrorDetail.SHARE_LINK_NOT_FOUND);
         }
 
         if (shareLinkLookup.status === 'expired') {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'LINK_EXPIRED', 'This invitation link has expired. Please request a new one from the group admin.');
+            throw Errors.invalidRequest(ErrorDetail.LINK_EXPIRED);
         }
 
         const { groupId } = shareLinkLookup;
 
         const group = await this.firestoreReader.getGroup(groupId);
         if (!group) {
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
+            throw Errors.notFound('Group', ErrorDetail.GROUP_NOT_FOUND);
         }
         const isAlreadyMember = await this.groupMemberService.isGroupMemberAsync(group.id, userId);
 
@@ -366,7 +366,7 @@ export class GroupShareService {
         const timer = new PerformanceTimer();
 
         if (!shareToken) {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_LINK_ID', 'Link ID is required');
+            throw Errors.validationError('shareToken', ErrorDetail.MISSING_FIELD);
         }
 
         // Performance optimization: Find shareLink outside transaction
@@ -374,11 +374,11 @@ export class GroupShareService {
         const shareLinkLookup = await this.findShareLinkByToken(shareToken);
 
         if (shareLinkLookup.status === 'missing') {
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'INVALID_LINK', 'Invalid or expired share link');
+            throw Errors.notFound('Share link', ErrorDetail.SHARE_LINK_NOT_FOUND);
         }
 
         if (shareLinkLookup.status === 'expired') {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'LINK_EXPIRED', 'This invitation link has expired. Please request a new one from the group admin.');
+            throw Errors.invalidRequest(ErrorDetail.LINK_EXPIRED);
         }
 
         const { groupId, shareLink } = shareLinkLookup;
@@ -386,17 +386,17 @@ export class GroupShareService {
         // Pre-validate group exists outside transaction to fail fast
         const preCheckGroup = await this.firestoreReader.getGroup(groupId);
         if (!preCheckGroup) {
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
+            throw Errors.notFound('Group', ErrorDetail.GROUP_NOT_FOUND);
         }
         const requiresApproval = preCheckGroup.permissions?.memberApproval === 'admin-required';
 
         // Early membership check to avoid transaction if user is already a member
         const existingMember = await this.firestoreReader.getGroupMember(groupId, userId);
         if (existingMember) {
-            throw new ApiError(HTTP_STATUS.CONFLICT, 'ALREADY_MEMBER', 'You are already a member of this group');
+            throw Errors.alreadyExists('Group membership', ErrorDetail.ALREADY_MEMBER);
         }
         if (await this.groupMemberService.isGroupOwnerAsync(preCheckGroup.id, userId)) {
-            throw new ApiError(HTTP_STATUS.CONFLICT, 'ALREADY_MEMBER', 'You are already the owner of this group');
+            throw Errors.alreadyExists('Group membership', ErrorDetail.ALREADY_MEMBER);
         }
 
         // Pre-compute member data outside transaction for speed
@@ -409,18 +409,14 @@ export class GroupShareService {
         } = await this.userService.checkDisplayNameConflict(groupId, groupDisplayName);
 
         if (displayNameConflict) {
-            throw new ApiError(
-                HTTP_STATUS.CONFLICT,
-                'DISPLAY_NAME_CONFLICT',
-                `The name "${groupDisplayName}" is already in use by another member. Please choose a different name.`,
-            );
+            throw Errors.alreadyExists('Display name', ErrorDetail.DISPLAY_NAME_TAKEN);
         }
 
         const existingMemberIds = existingMembers.map((member) => member.uid);
 
         // Enforce hard cap on group size
         if (existingMemberIds.length >= MAX_GROUP_MEMBERS) {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'GROUP_AT_CAPACITY', `Cannot add member. Group has reached maximum size of ${MAX_GROUP_MEMBERS} members`);
+            throw Errors.invalidRequest(ErrorDetail.GROUP_AT_CAPACITY);
         }
 
         const themeColor = this.generateUniqueThemeColor(
@@ -453,7 +449,7 @@ export class GroupShareService {
             const transaction = context.transaction;
             const groupInTransaction = context.group;
             if (!groupInTransaction) {
-                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
+                throw Errors.notFound('Group', ErrorDetail.GROUP_NOT_FOUND);
             }
 
             timer.startPhase('transaction:getMemberships');

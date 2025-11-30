@@ -2,6 +2,7 @@ import { toGroupId } from '@billsplit-wl/shared';
 import { CreateGroupRequestBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../../constants';
+import { ErrorCode } from '../../../../errors/ErrorCode';
 import { GroupCommentStrategy } from '../../../../services/comments/GroupCommentStrategy';
 import { AppDriver } from '../../AppDriver';
 
@@ -39,7 +40,7 @@ describe('GroupCommentStrategy', () => {
             await expect(strategy.verifyAccess(nonexistentGroupId, userId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.NOT_FOUND,
-                    code: 'GROUP_NOT_FOUND',
+                    code: ErrorCode.NOT_FOUND,
                 }),
             );
         });
@@ -59,7 +60,7 @@ describe('GroupCommentStrategy', () => {
             await expect(strategy.verifyAccess(groupId, nonMemberId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.FORBIDDEN,
-                    code: 'ACCESS_DENIED',
+                    code: ErrorCode.FORBIDDEN,
                 }),
             );
         });

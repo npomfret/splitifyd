@@ -2,6 +2,7 @@ import { toGroupId, toSettlementId } from '@billsplit-wl/shared';
 import { CreateGroupRequestBuilder, CreateSettlementRequestBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
+import { ErrorCode } from '../../../errors/ErrorCode';
 import { AppDriver } from '../AppDriver';
 
 describe('SettlementService - Unit Tests', () => {
@@ -194,7 +195,7 @@ describe('SettlementService - Unit Tests', () => {
             await expect(appDriver.createSettlement(settlementData, creatorId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'MEMBER_NOT_IN_GROUP',
+                    code: ErrorCode.VALIDATION_ERROR,
                 }),
             );
         });
@@ -228,7 +229,7 @@ describe('SettlementService - Unit Tests', () => {
             await expect(appDriver.createSettlement(settlementData, creatorId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'MEMBER_NOT_IN_GROUP',
+                    code: ErrorCode.VALIDATION_ERROR,
                 }),
             );
         });
@@ -257,8 +258,7 @@ describe('SettlementService - Unit Tests', () => {
             await expect(appDriver.createSettlement(settlementData, creatorId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.NOT_FOUND,
-                    code: 'NOT_FOUND',
-                    message: 'Group not found',
+                    code: ErrorCode.NOT_FOUND,
                 }),
             );
         });
@@ -449,7 +449,7 @@ describe('SettlementService - Unit Tests', () => {
             await expect(appDriver.deleteSettlement(settlementId, creatorId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.NOT_FOUND,
-                    code: 'SETTLEMENT_NOT_FOUND',
+                    code: ErrorCode.NOT_FOUND,
                 }),
             );
         });
@@ -559,6 +559,7 @@ describe('SettlementService - Unit Tests', () => {
             await expect(appDriver.deleteSettlement(settlementId, otherId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.FORBIDDEN,
+                    code: ErrorCode.FORBIDDEN,
                 }),
             );
         });
@@ -576,7 +577,7 @@ describe('SettlementService - Unit Tests', () => {
             await expect(appDriver.deleteSettlement(nonExistentSettlementId, userId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.NOT_FOUND,
-                    code: 'SETTLEMENT_NOT_FOUND',
+                    code: ErrorCode.NOT_FOUND,
                 }),
             );
         });
@@ -617,6 +618,7 @@ describe('SettlementService - Unit Tests', () => {
             await expect(appDriver.deleteSettlement(settlementId, nonMemberId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.FORBIDDEN,
+                    code: ErrorCode.FORBIDDEN,
                 }),
             );
         });

@@ -1,12 +1,19 @@
 # API Error Message Internationalization
 
-API error messages (e.g., "Authentication required", "Access denied", "Group not found") are hardcoded in English in `firebase/functions/src/utils/errors.ts` and throughout the backend.
+**Status:** ✅ PHASE 2 COMPLETE (November 2025)
 
-These messages are displayed directly to users in the frontend UI.
+**Prerequisite:** `error-code-consolidation.md` (complete)
 
-**Problem:** Users in non-English locales see English error messages.
+**Problem:** API error messages were hardcoded in English. Users in non-English locales would see English error messages.
 
-**Scope:** Determine strategy for translating API error messages to support i18n.
+**Solution:** Client-side localization using error codes. The API returns structured error data with codes and interpolation parameters. The frontend translates using the `apiErrors` namespace.
+
+**Current State:**
+- ✅ Infrastructure complete (new error system, frontend translations)
+- ✅ Migration complete - all files use new `errors/` module
+- ✅ Legacy `utils/errors.ts` deleted
+- ✅ All tests updated to use two-tier error format
+- ⏳ Frontend translation helper not yet created (optional enhancement)
 
 ---
 
@@ -48,57 +55,58 @@ No `message` field needed - the frontend handles all user-facing text.
 
 ### Frontend Translation Structure
 
-Add error translations to `webapp-v2/src/locales/{lng}/translation.json`:
+Error translations in `webapp-v2/src/locales/{lng}/translation.json`:
 
 ```json
 {
   "apiErrors": {
-    "UNAUTHORIZED": "Please sign in to continue",
-    "INVALID_TOKEN": "Your session has expired. Please sign in again.",
+    "AUTH_REQUIRED": "Please sign in to continue",
+    "AUTH_INVALID": "Your session has expired. Please sign in again.",
     "FORBIDDEN": "You don't have permission to do this",
     "NOT_FOUND": "{{resource}} not found",
     "ALREADY_EXISTS": "{{resource}} already exists",
-    "INVALID_INPUT": "Please check your input and try again",
-    "MISSING_FIELD": "{{field}} is required",
-    "CONCURRENT_UPDATE": "Someone else updated this. Please refresh and try again.",
-    "INTERNAL_ERROR": "Something went wrong. Please try again.",
-    "DATABASE_ERROR": "Unable to save your changes. Please try again."
+    "CONFLICT": "Someone else made changes. Please refresh and try again.",
+    "VALIDATION_ERROR": "Please check your input and try again",
+    "INVALID_REQUEST": "Something went wrong with your request",
+    "RATE_LIMITED": "Too many requests. Please wait a moment.",
+    "SERVICE_ERROR": "Something went wrong. Please try again.",
+    "UNAVAILABLE": "Service temporarily unavailable. Please try again later."
   }
 }
 ```
 
-### Implementation Steps
+### Implementation Steps (Complete)
 
-1. **Update `Errors` factory** - Ensure all errors include interpolation data (e.g., `resource`, `field`) in the `details` object
+1. ✅ **Updated `Errors` factory** - All errors include interpolation data (`resource`, `field`, `detail`) in the data object
 
-2. **Create error translation helper** - Build a utility that maps API error responses to localized strings:
+2. ⏳ **Create error translation helper** (optional enhancement) - Build a utility that maps API error responses to localized strings:
    ```typescript
    function translateApiError(error: ApiErrorResponse, t: TFunction): string {
-     return t(`apiErrors.${error.code}`, error.details);
+     return t(`apiErrors.${error.code}`, error);
    }
    ```
 
-3. **Update error display components** - Use the helper wherever API errors are shown to users
+3. ✅ **Updated error display components** - Components now expect error codes for i18n translation
 
-4. **Remove backend i18n infrastructure** - Delete `firebase/functions/src/locales/` and remove i18next from backend dependencies (it's currently unused for error responses anyway)
+4. ✅ **Removed backend i18n infrastructure** - Deleted `firebase/functions/src/locales/`, `utils/i18n.ts`, and removed i18next dependencies
 
-### Error Code Inventory
+### Current Error Codes
 
-Current error codes in `firebase/functions/src/utils/errors.ts`:
+The new error system in `firebase/functions/src/errors/` uses these Tier 1 category codes:
 
-| Code | Current Message | Interpolation Params |
-|------|-----------------|---------------------|
-| `UNAUTHORIZED` | "Authentication required" | - |
-| `INVALID_TOKEN` | "Invalid authentication token" | - |
-| `FORBIDDEN` | "Access denied" | - |
-| `INVALID_INPUT` | "Invalid input data" | `details` object |
-| `MISSING_FIELD` | "Missing required field: {field}" | `field` |
-| `DOCUMENT_TOO_LARGE` | "Document exceeds maximum size of 1MB" | - |
-| `NOT_FOUND` | "{resource} not found" | `resource` |
-| `ALREADY_EXISTS` | "{resource} already exists" | `resource` |
-| `CONCURRENT_UPDATE` | "Document was modified..." | - |
-| `INTERNAL_ERROR` | "An internal error occurred" | - |
-| `DATABASE_ERROR` | "Database operation failed" | - |
+| Code | HTTP Status | Interpolation Params |
+|------|-------------|---------------------|
+| `AUTH_REQUIRED` | 401 | - |
+| `AUTH_INVALID` | 401 | `detail` |
+| `FORBIDDEN` | 403 | `detail` |
+| `NOT_FOUND` | 404 | `resource`, `detail`, `resourceId` |
+| `ALREADY_EXISTS` | 409 | `resource`, `detail` |
+| `CONFLICT` | 409 | `detail` |
+| `VALIDATION_ERROR` | 400 | `field`, `fields`, `detail` |
+| `INVALID_REQUEST` | 400 | `detail` |
+| `RATE_LIMITED` | 429 | - |
+| `SERVICE_ERROR` | 500 | `detail` |
+| `UNAVAILABLE` | 503 | `detail` |
 
 ### What NOT to Do
 
@@ -114,7 +122,41 @@ Current error codes in `firebase/functions/src/utils/errors.ts`:
 
 ---
 
-## Complete Error Code Inventory (Audit Result)
+## Implementation Summary
+
+### Phase 1 - Infrastructure (Complete)
+1. ✅ **Consolidated error codes** - ~115 codes → ~12 category codes (Tier 1) + detail codes (Tier 2)
+2. ✅ **Created new error system** - `firebase/functions/src/errors/` with `ErrorCode`, `ApiError`, and `Errors` factory
+3. ✅ **Added frontend translations** - `webapp-v2/src/locales/en/translation.json` has `apiErrors` namespace
+4. ✅ **Removed backend i18n** - Deleted `utils/i18n.ts`, `locales/` directory, and i18next dependencies
+
+### Phase 2 - Migration (Complete)
+1. ✅ **Migrated all production files** - All handlers, services, and middleware now use `errors/` module
+2. ✅ **Migrated all test files** - Test assertions updated to use new `ErrorCode` enum
+3. ✅ **Deleted legacy code** - Removed `utils/errors.ts` and dual error handling in `index.ts`
+4. ⏳ **Create frontend translation helper** - Utility to map API errors to localized strings (optional enhancement)
+
+### Frontend Translation Example
+```json
+{
+  "apiErrors": {
+    "AUTH_REQUIRED": "Please sign in to continue",
+    "NOT_FOUND": "{{resource}} not found",
+    "VALIDATION_ERROR": "Please check your input and try again"
+  }
+}
+```
+
+### Error Translation Helper (To Be Created)
+```typescript
+function translateApiError(error: ApiErrorResponse, t: TFunction): string {
+  return t(`apiErrors.${error.code}`, error);
+}
+```
+
+---
+
+## Complete Error Code Inventory (Historical - Pre-Consolidation)
 
 This is the comprehensive list of unique error codes found during the codebase audit.
 

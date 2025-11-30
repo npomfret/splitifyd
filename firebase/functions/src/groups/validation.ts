@@ -56,7 +56,7 @@ const createGroupErrorMapper = createZodErrorMapper(
         },
     },
     {
-        defaultCode: 'INVALID_INPUT',
+        defaultCode: 'VALIDATION_ERROR',
         defaultMessage: (issue) => issue.message,
     },
 );
@@ -73,7 +73,7 @@ const updateGroupErrorMapper = createZodErrorMapper(
         },
     },
     {
-        defaultCode: 'INVALID_INPUT',
+        defaultCode: 'VALIDATION_ERROR',
         defaultMessage: (issue) => issue.message,
     },
 );
@@ -86,7 +86,7 @@ const updateDisplayNameErrorMapper = createZodErrorMapper(
         },
     },
     {
-        defaultCode: 'INVALID_INPUT',
+        defaultCode: 'VALIDATION_ERROR',
         defaultMessage: (issue) => issue.message,
     },
 );
@@ -115,7 +115,7 @@ const updatePermissionsErrorMapper = createZodErrorMapper(
         },
     },
     {
-        defaultCode: 'INVALID_INPUT',
+        defaultCode: 'VALIDATION_ERROR',
         defaultMessage: (issue) => issue.message,
     },
 );
@@ -128,7 +128,7 @@ const updateMemberRoleErrorMapper = createZodErrorMapper(
         },
     },
     {
-        defaultCode: 'INVALID_INPUT',
+        defaultCode: 'VALIDATION_ERROR',
         defaultMessage: (issue) => issue.message,
     },
 );
