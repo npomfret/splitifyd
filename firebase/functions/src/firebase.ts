@@ -17,6 +17,47 @@ export function isEmulator() {
     return process.env.FUNCTIONS_EMULATOR === 'true';
 }
 
+interface EmulatorPorts {
+    functions: number;
+    firestore: number;
+    auth: number;
+    storage: number;
+}
+
+let cachedEmulatorPorts: EmulatorPorts | null = null;
+
+/**
+ * Read emulator ports from firebase.json.
+ * Cached after first read since the file doesn't change at runtime.
+ */
+export function getEmulatorPorts(): EmulatorPorts {
+    if (cachedEmulatorPorts) {
+        return cachedEmulatorPorts;
+    }
+
+    const firebaseJsonPath = join(__dirname, '../../firebase.json');
+    if (!existsSync(firebaseJsonPath)) {
+        throw new Error(`firebase.json not found at ${firebaseJsonPath}`);
+    }
+
+    const config = JSON.parse(readFileSync(firebaseJsonPath, 'utf8'));
+    const emulators = config.emulators;
+
+    if (!emulators?.functions?.port || !emulators?.firestore?.port ||
+        !emulators?.auth?.port || !emulators?.storage?.port) {
+        throw new Error('All emulator ports must be defined in firebase.json');
+    }
+
+    cachedEmulatorPorts = {
+        functions: emulators.functions.port,
+        firestore: emulators.firestore.port,
+        auth: emulators.auth.port,
+        storage: emulators.storage.port,
+    };
+
+    return cachedEmulatorPorts;
+}
+
 /**
  * Check if deployed to Firebase (not emulator)
  */
@@ -83,32 +124,20 @@ function configureEmulatorSettings(appInstance: admin.app.App): void {
         assert(process.env.FIREBASE_STORAGE_EMULATOR_HOST);
         assert(process.env.FIREBASE_CONFIG);
     } else if (isTest()) {
-        const firebaseJsonPath = join(__dirname, '../../firebase.json');
-        const firebaseJsonContent = readFileSync(firebaseJsonPath, 'utf8');
-        const firebaseConfig = JSON.parse(firebaseJsonContent);
+        const ports = getEmulatorPorts();
 
         // Configure Firestore emulator
-        assert(firebaseConfig.emulators?.firestore?.port, 'firestore port must be defined in firebase.json emulators configuration');
-        const firestorePort = firebaseConfig.emulators.firestore.port;
-        assert(typeof firestorePort === 'number', 'firestore port in firebase.json must be a number');
-
         const firestore = appInstance.firestore();
         firestore.settings({
-            host: `localhost:${firestorePort}`,
+            host: `localhost:${ports.firestore}`,
             ssl: false,
         });
 
         // Configure Auth emulator
-        assert(firebaseConfig.emulators?.auth?.port, 'firebase auth port must be defined in firebase.json emulators configuration');
-        const authPort = firebaseConfig.emulators.auth.port;
-        assert(typeof authPort === 'number', 'firebase auth port in firebase.json must be a number');
-        process.env['FIREBASE_AUTH_EMULATOR_HOST'] = `localhost:${authPort}`;
+        process.env['FIREBASE_AUTH_EMULATOR_HOST'] = `localhost:${ports.auth}`;
 
         // Configure Storage emulator
-        assert(firebaseConfig.emulators?.storage?.port, 'firebase storage port must be defined in firebase.json emulators configuration');
-        const storagePort = firebaseConfig.emulators.storage.port;
-        assert(typeof storagePort === 'number', 'firebase storage port in firebase.json must be a number');
-        process.env['FIREBASE_STORAGE_EMULATOR_HOST'] = `localhost:${storagePort}`;
+        process.env['FIREBASE_STORAGE_EMULATOR_HOST'] = `localhost:${ports.storage}`;
     }
 }
 

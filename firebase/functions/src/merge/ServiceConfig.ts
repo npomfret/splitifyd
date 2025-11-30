@@ -1,8 +1,6 @@
 import {z} from 'zod';
-import * as fs from 'fs';
-import * as path from 'path';
 import {logger} from '../logger';
-import {inferProjectId} from "../firebase";
+import {getEmulatorPorts, inferProjectId} from "../firebase";
 
 /**
  * Configuration for MergeService and related cloud infrastructure
@@ -65,35 +63,13 @@ const serviceEnvSchema = z.object({
 });
 
 /**
- * Read functions port from firebase.json for emulator mode.
- * The file is located in the parent directory (firebase/).
- */
-function getFunctionsPortFromFirebaseJson(): number {
-    // firebase.json is in firebase/ directory, we're in firebase/functions/src/
-    const firebaseJsonPath = path.resolve(__dirname, '../../../firebase.json');
-
-    if (!fs.existsSync(firebaseJsonPath)) {
-        throw new Error(`firebase.json not found at ${firebaseJsonPath}`);
-    }
-
-    const firebaseConfig = JSON.parse(fs.readFileSync(firebaseJsonPath, 'utf-8'));
-    const port = firebaseConfig?.emulators?.functions?.port;
-
-    if (!port) {
-        throw new Error('emulators.functions.port not found in firebase.json');
-    }
-
-    return port;
-}
-
-/**
  * Build the functions URL from available configuration.
  * - Deployed: https://{region}-{projectId}.cloudfunctions.net
  * - Emulator: http://localhost:{functionsPort}/{projectId}/{region}
  */
 function buildFunctionsUrl(projectId: string, cloudTasksLocation: string): string {
     if (isEmulator()) {
-        const functionsPort = getFunctionsPortFromFirebaseJson();
+        const functionsPort = getEmulatorPorts().functions;
         return `http://localhost:${functionsPort}/${projectId}/${cloudTasksLocation}`;
     }
     return `https://${cloudTasksLocation}-${projectId}.cloudfunctions.net`;
