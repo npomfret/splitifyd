@@ -1,19 +1,22 @@
 # API Error Message Internationalization
 
-**Status:** ✅ PHASE 2 COMPLETE (November 2025)
+**Status:** 🔄 PHASE 3 PENDING (November 2025)
 
-**Prerequisite:** `error-code-consolidation.md` (complete)
+**Prerequisite:** `error-code-consolidation.md` (complete - DELETE THIS FILE)
 
 **Problem:** API error messages were hardcoded in English. Users in non-English locales would see English error messages.
 
 **Solution:** Client-side localization using error codes. The API returns structured error data with codes and interpolation parameters. The frontend translates using the `apiErrors` namespace.
 
 **Current State:**
-- ✅ Infrastructure complete (new error system, frontend translations)
-- ✅ Migration complete - all files use new `errors/` module
+- ✅ Backend infrastructure complete (new error system in `firebase/functions/src/errors/`)
+- ✅ Backend migration complete - all handlers/services use `errors/` module
 - ✅ Legacy `utils/errors.ts` deleted
-- ✅ All tests updated to use two-tier error format
-- ⏳ Frontend translation helper not yet created (optional enhancement)
+- ✅ All backend tests updated to use two-tier error format
+- ✅ `apiErrors` namespace exists in `webapp-v2/src/locales/en/translation.json`
+- ❌ **Frontend NOT using translations** - components still use raw `error.message`
+- ❌ **No `translateApiError` helper** - this is REQUIRED, not optional
+- ❌ **Hardcoded English strings** in stores and pages
 
 ---
 
@@ -75,18 +78,18 @@ Error translations in `webapp-v2/src/locales/{lng}/translation.json`:
 }
 ```
 
-### Implementation Steps (Complete)
+### Implementation Steps
 
 1. ✅ **Updated `Errors` factory** - All errors include interpolation data (`resource`, `field`, `detail`) in the data object
 
-2. ⏳ **Create error translation helper** (optional enhancement) - Build a utility that maps API error responses to localized strings:
+2. ❌ **Create error translation helper** (REQUIRED) - Build a utility that maps API error responses to localized strings:
    ```typescript
    function translateApiError(error: ApiErrorResponse, t: TFunction): string {
      return t(`apiErrors.${error.code}`, error);
    }
    ```
 
-3. ✅ **Updated error display components** - Components now expect error codes for i18n translation
+3. ❌ **Update error display components** - Components still use raw `error.message` instead of translations
 
 4. ✅ **Removed backend i18n infrastructure** - Deleted `firebase/functions/src/locales/`, `utils/i18n.ts`, and removed i18next dependencies
 
@@ -125,34 +128,183 @@ The new error system in `firebase/functions/src/errors/` uses these Tier 1 categ
 ## Implementation Summary
 
 ### Phase 1 - Infrastructure (Complete)
-1. ✅ **Consolidated error codes** - ~115 codes → ~12 category codes (Tier 1) + detail codes (Tier 2)
+1. ✅ **Consolidated error codes** - ~115 codes → ~12 category codes (Tier 1) + 52 detail codes (Tier 2)
 2. ✅ **Created new error system** - `firebase/functions/src/errors/` with `ErrorCode`, `ApiError`, and `Errors` factory
 3. ✅ **Added frontend translations** - `webapp-v2/src/locales/en/translation.json` has `apiErrors` namespace
 4. ✅ **Removed backend i18n** - Deleted `utils/i18n.ts`, `locales/` directory, and i18next dependencies
 
-### Phase 2 - Migration (Complete)
+### Phase 2 - Backend Migration (Complete)
 1. ✅ **Migrated all production files** - All handlers, services, and middleware now use `errors/` module
 2. ✅ **Migrated all test files** - Test assertions updated to use new `ErrorCode` enum
 3. ✅ **Deleted legacy code** - Removed `utils/errors.ts` and dual error handling in `index.ts`
-4. ⏳ **Create frontend translation helper** - Utility to map API errors to localized strings (optional enhancement)
 
-### Frontend Translation Example
+### Phase 3 - Frontend Migration (PENDING)
+
+**Problem:** The `apiErrors` namespace exists but frontend components don't use it. They still use raw `error.message` strings.
+
+#### 3.1 Create `translateApiError` helper
+
+**File:** `webapp-v2/src/utils/error-translation.ts`
+
+```typescript
+import type { TFunction } from 'i18next';
+import { ApiError } from '@/app/apiClient';
+
+export function translateApiError(
+  error: unknown,
+  t: TFunction,
+  fallback?: string
+): string {
+  if (error instanceof ApiError) {
+    const translated = t(`apiErrors.${error.code}`, {
+      ...error.details,
+      defaultValue: ''
+    });
+    if (translated) return translated;
+  }
+  return fallback ?? t('common.unknownError');
+}
+```
+
+#### 3.2 Add missing translations
+
+**File:** `webapp-v2/src/locales/en/translation.json`
+
+Add Firebase auth errors (currently hardcoded in auth-store.ts):
 ```json
 {
-  "apiErrors": {
-    "AUTH_REQUIRED": "Please sign in to continue",
-    "NOT_FOUND": "{{resource}} not found",
-    "VALIDATION_ERROR": "Please check your input and try again"
+  "authErrors": {
+    "userNotFound": "No account found with this email",
+    "wrongPassword": "Incorrect password",
+    "weakPassword": "Password is too weak",
+    "invalidEmail": "Please enter a valid email address",
+    "tooManyRequests": "Too many attempts. Please try again later.",
+    "networkError": "Network error. Please check your connection.",
+    "emailInUse": "This email is already registered"
+  },
+  "common": {
+    "unknownError": "Something went wrong. Please try again."
   }
 }
 ```
 
-### Error Translation Helper (To Be Created)
+#### 3.3 Migrate stores (4 files)
+
+| Store | Issue | Lines |
+|-------|-------|-------|
+| `auth-store.ts` | Hardcoded Firebase error messages | 522-549 |
+| `join-group-store.ts` | Hardcoded link error messages | 107-113 |
+| `expense-form-store.ts` | Uses raw `error.message` | 1165-1172 |
+| `activity-feed-store.ts` | Uses raw `error.message` | 124 |
+
+#### 3.4 Migrate pages (4 files)
+
+| Page | Issue | Lines |
+|------|-------|-------|
+| `JoinGroupPage.tsx` | Hardcoded name validation + API errors | 81-93, 102-106 |
+| `SettingsPage.tsx` | Hardcoded validation messages | 110-127, 147-150 |
+| `RegisterPage.tsx` | Partial - verify completeness | various |
+| `ResetPasswordPage.tsx` | Verify uses translations | 42-44 |
+
+#### 3.5 Migrate components (4 files)
+
+| Component | Issue |
+|-----------|-------|
+| `GroupSettingsModal.tsx` | Multiple error states use raw messages |
+| `CreateGroupModal.tsx` | Checks `error.code` but uses fallback message |
+| `CommentInput.tsx` | Catch block uses raw message |
+| `SettlementForm.tsx` | Verify uses translations |
+
+---
+
+## Frontend Error Handling Audit (November 2025)
+
+### Audit Summary
+
+| Category | Count | Status |
+|----------|-------|--------|
+| Stores with hardcoded errors | 4 | ❌ Need migration |
+| Pages with hardcoded errors | 4 | ❌ Need migration |
+| Components with hardcoded errors | 4 | ❌ Need migration |
+| `apiErrors` translations | 12 | ✅ Exist but unused |
+| `translateApiError` helper | 0 | ❌ Does not exist |
+
+### Error Patterns Found
+
+**Pattern 1: Raw error.message usage**
 ```typescript
-function translateApiError(error: ApiErrorResponse, t: TFunction): string {
-  return t(`apiErrors.${error.code}`, error);
+// Found in: expense-form-store.ts, activity-feed-store.ts, CommentInput.tsx
+const message = error instanceof Error ? error.message : 'Unknown error';
+```
+
+**Pattern 2: Error code checking with hardcoded fallback**
+```typescript
+// Found in: join-group-store.ts, JoinGroupPage.tsx, CreateGroupModal.tsx
+if (error.code === 'DISPLAY_NAME_CONFLICT') {
+  setError(error.message || 'This name is already in use');  // Hardcoded!
 }
 ```
+
+**Pattern 3: Firebase auth errors (completely hardcoded)**
+```typescript
+// Found in: auth-store.ts lines 522-549
+switch (error.code) {
+  case 'auth/user-not-found':
+    return 'No account found with this email';  // Hardcoded!
+  case 'auth/wrong-password':
+    return 'Incorrect password';  // Hardcoded!
+  // ... 6 more hardcoded cases
+}
+```
+
+**Pattern 4: Validation errors (hardcoded)**
+```typescript
+// Found in: SettingsPage.tsx, JoinGroupPage.tsx
+if (displayName.length < 2) {
+  setError('Display name must be at least 2 characters');  // Hardcoded!
+}
+```
+
+### Backend Error System Reference
+
+The backend provides well-structured errors that the frontend should translate:
+
+**Tier 1 Category Codes (12):**
+`AUTH_REQUIRED`, `AUTH_INVALID`, `FORBIDDEN`, `NOT_FOUND`, `ALREADY_EXISTS`, `CONFLICT`, `VALIDATION_ERROR`, `INVALID_REQUEST`, `RATE_LIMITED`, `SERVICE_ERROR`, `UNAVAILABLE`
+
+**Tier 2 Detail Codes (52+):**
+Used for debugging/logging, not for translation. Examples: `GROUP_NOT_FOUND`, `INVALID_AMOUNT`, `DISPLAY_NAME_TAKEN`, `TOKEN_EXPIRED`
+
+**Error Response Structure:**
+```json
+{
+  "error": {
+    "code": "NOT_FOUND",
+    "detail": "GROUP_NOT_FOUND",
+    "resource": "Group",
+    "resourceId": "abc123"
+  }
+}
+```
+
+### Files to Modify (Complete List)
+
+| File | Type | Priority |
+|------|------|----------|
+| `webapp-v2/src/utils/error-translation.ts` | CREATE | HIGH |
+| `webapp-v2/src/locales/en/translation.json` | UPDATE | HIGH |
+| `webapp-v2/src/app/stores/auth-store.ts` | UPDATE | HIGH |
+| `webapp-v2/src/app/stores/join-group-store.ts` | UPDATE | HIGH |
+| `webapp-v2/src/app/stores/expense-form-store.ts` | UPDATE | MEDIUM |
+| `webapp-v2/src/app/stores/activity-feed-store.ts` | UPDATE | MEDIUM |
+| `webapp-v2/src/pages/JoinGroupPage.tsx` | UPDATE | HIGH |
+| `webapp-v2/src/pages/SettingsPage.tsx` | UPDATE | HIGH |
+| `webapp-v2/src/pages/RegisterPage.tsx` | UPDATE | LOW |
+| `webapp-v2/src/pages/ResetPasswordPage.tsx` | UPDATE | LOW |
+| `webapp-v2/src/components/group/GroupSettingsModal.tsx` | UPDATE | MEDIUM |
+| `webapp-v2/src/components/dashboard/CreateGroupModal.tsx` | UPDATE | MEDIUM |
+| `webapp-v2/src/components/comments/CommentInput.tsx` | UPDATE | LOW |
+| `webapp-v2/src/components/settlements/SettlementForm.tsx` | UPDATE | LOW |
 
 ---
 
