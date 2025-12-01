@@ -30,7 +30,7 @@ describe('configStore', () => {
             messagingSenderId: 'test',
             appId: 'test',
         },
-        environment: {},
+        warningBanner: "foo",
         formDefaults: {},
         tenant: branding
             ? {

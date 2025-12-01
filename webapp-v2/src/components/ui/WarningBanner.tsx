@@ -3,7 +3,7 @@ import { useConfig } from '@/hooks/useConfig.ts';
 export function WarningBanner() {
     const config = useConfig();
 
-    if (!config?.environment?.warningBanner) {
+    if (!config?.warningBanner) {
         return null;
     }
 
@@ -18,7 +18,7 @@ export function WarningBanner() {
                 zIndex: 9999,
             }}
         >
-            <p className='text-center text-sm font-medium text-white'>{config.environment.warningBanner}</p>
+            <p className='text-center text-sm font-medium text-white'>{config.warningBanner}</p>
         </div>
     );
 }

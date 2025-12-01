@@ -20,7 +20,7 @@ Concise rules for working with the Firebase emulator stack and the instance swit
 
 - `firebase/functions/src/client-config.ts` owns env parsing; everything flows from `INSTANCE_NAME`.
 - `firebase/functions/src/firebase.ts` reads the same instance name to select admin credentials for dev or prod. Seeder scripts load `.env` before imports so production APIs are never hit accidentally.
-- `/api/env` is only mounted when running a dev instance (`dev1`-`dev4`).
+- `/api/env` returns server environment diagnostics and is protected by `authenticateAdmin` middleware (system_admin only).
 
 ## Build & Deploy Pipeline
 

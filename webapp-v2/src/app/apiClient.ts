@@ -25,6 +25,7 @@ import type {
     CreateSettlementRequest,
     CurrentPolicyResponse,
     DeletePolicyVersionResponse,
+    EnvironmentDiagnosticsResponse,
     ExpenseDTO,
     ExpenseFullDetailsDTO,
     GenerateShareLinkRequest,
@@ -88,7 +89,8 @@ import type { CommentText } from '@billsplit-wl/shared';
 import { z } from 'zod';
 import { logApiRequest, logApiResponse, logError, logWarning } from '../utils/browser-logger';
 
-// All types are now imported from shared-types
+// Re-export types for consumers
+export type { EnvironmentDiagnosticsResponse };
 
 class ApiValidationError extends Error {
     constructor(
@@ -1335,6 +1337,15 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
             endpoint: '/merge/:jobId',
             method: 'GET',
             params: { jobId },
+        });
+    }
+
+    // ===== ADMIN API: DIAGNOSTICS =====
+
+    async getEnvironmentDiagnostics(): Promise<EnvironmentDiagnosticsResponse> {
+        return this.request({
+            endpoint: '/env',
+            method: 'GET',
         });
     }
 }

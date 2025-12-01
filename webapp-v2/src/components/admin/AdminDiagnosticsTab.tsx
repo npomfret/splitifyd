@@ -1,69 +1,10 @@
+import { apiClient, type EnvironmentDiagnosticsResponse } from '@/app/apiClient';
 import { Alert, Card, Stack, Typography } from '@/components/ui';
 import { logError } from '@/utils/browser-logger';
 import { useEffect, useState } from 'preact/hooks';
 
-interface EnvPayload {
-    status: {
-        timestamp: string;
-        environment: string;
-        nodeVersion: string;
-        uptimeSeconds: number;
-        memorySummary: {
-            rssMb: number;
-            heapUsedMb: number;
-            heapTotalMb: number;
-            externalMb: number;
-        };
-    };
-    env: Record<string, string | undefined>;
-    build: {
-        timestamp: string;
-        date: string;
-        version: string;
-    };
-    runtime: {
-        startTime: string;
-        uptime: number;
-        uptimeHuman: string;
-    };
-    memory: {
-        rss: string;
-        heapTotal: string;
-        heapUsed: string;
-        external: string;
-        arrayBuffers: string;
-        heapAvailable: string;
-        heapLimit: string;
-        totalHeapSize: string;
-        totalHeapExecutableSize: string;
-        totalPhysicalSize: string;
-        totalAvailableSize: string;
-        mallocedMemory: string;
-        peakMallocedMemory: string;
-        heapSpaces: Array<{
-            spaceName: string;
-            spaceSize: string;
-            spaceUsed: string;
-            spaceAvailable: string;
-            physicalSize: string;
-        }>;
-    };
-    filesystem: {
-        currentDirectory: string;
-        files: Array<{
-            name: string;
-            type?: string;
-            size?: string | null;
-            modified?: string;
-            mode?: string;
-            isSymbolicLink?: boolean;
-            error?: string;
-        }>;
-    };
-}
-
 export function AdminDiagnosticsTab() {
-    const [envData, setEnvData] = useState<EnvPayload | null>(null);
+    const [envData, setEnvData] = useState<EnvironmentDiagnosticsResponse | null>(null);
     const [envLoading, setEnvLoading] = useState(false);
     const [envError, setEnvError] = useState<string | null>(null);
 
@@ -72,16 +13,7 @@ export function AdminDiagnosticsTab() {
             setEnvLoading(true);
             setEnvError(null);
             try {
-                const response = await fetch('/api/env');
-                if (!response.ok) {
-                    if (response.status === 404) {
-                        setEnvError('Environment diagnostics are only available in non-production environments');
-                    } else {
-                        setEnvError(`Failed to fetch environment data: ${response.statusText}`);
-                    }
-                    return;
-                }
-                const data = await response.json();
+                const data = await apiClient.getEnvironmentDiagnostics();
                 setEnvData(data);
             } catch (error) {
                 logError('Failed to fetch environment data', error);

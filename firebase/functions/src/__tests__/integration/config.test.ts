@@ -109,8 +109,8 @@ describe('Config Endpoint Integration Tests', () => {
             const config = await deserializeConfig<any>(response);
 
             expect(config).toHaveProperty('firebase');
-            expect(config).toHaveProperty('environment');
             expect(config).toHaveProperty('formDefaults');
+            // warningBanner is optional at root level
             // firebaseAuthUrl and firebaseFirestoreUrl are only present in development
         });
 
@@ -155,15 +155,13 @@ describe('Config Endpoint Integration Tests', () => {
             }
         });
 
-        test('should have valid environment configuration', async () => {
+        test('should have valid warningBanner if present', async () => {
             const response = await fetch(configUrl);
             const config = await deserializeConfig<any>(response);
 
-            expect(config.environment).toBeDefined();
-            expect(typeof config.environment).toBe('object');
-
-            if (config.environment.warningBanner) {
-                expect(typeof config.environment.warningBanner).toBe('string');
+            // warningBanner is optional at root level
+            if (config.warningBanner !== undefined) {
+                expect(typeof config.warningBanner).toBe('string');
             }
         });
 
@@ -327,7 +325,7 @@ describe('Config Endpoint Integration Tests', () => {
 
             // Core config should be identical
             expect(config1.firebase).toEqual(config2.firebase);
-            expect(config1.environment).toEqual(config2.environment);
+            expect(config1.warningBanner).toEqual(config2.warningBanner);
             expect(config1.firebaseAuthUrl).toEqual(config2.firebaseAuthUrl);
         });
 
@@ -344,7 +342,6 @@ describe('Config Endpoint Integration Tests', () => {
             const configs = await Promise.all(responses.map((r) => deserializeConfig<any>(r)));
             for (const config of configs) {
                 expect(config).toHaveProperty('firebase');
-                expect(config).toHaveProperty('environment');
                 expect(config).toHaveProperty('formDefaults');
             }
 

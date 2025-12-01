@@ -20,6 +20,7 @@ import {
     CurrentPolicyResponse,
     DeletePolicyVersionResponse,
     DisplayName,
+    EnvironmentDiagnosticsResponse,
     ExpenseDTO,
     ExpenseFullDetailsDTO,
     ExpenseId,
@@ -1385,6 +1386,12 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         const req = createStubRequest(token, request);
         const res = await this.dispatchByHandler('addTenantDomain', req);
         this.throwIfError(res);
+    }
+
+    async getEnvironmentDiagnostics(token: AuthToken): Promise<EnvironmentDiagnosticsResponse> {
+        const req = createStubRequest(token, {});
+        const res = await this.dispatchByHandler('getEnv', req);
+        return res.getJson() as EnvironmentDiagnosticsResponse;
     }
 
     /**

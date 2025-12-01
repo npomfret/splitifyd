@@ -1,4 +1,4 @@
-import type { AppConfiguration, EnvironmentConfig, FirebaseConfig, FormDefaults, TenantConfig, ThemeConfig } from '@billsplit-wl/shared';
+import type { AppConfiguration, FirebaseConfig, FormDefaults, TenantConfig, ThemeConfig } from '@billsplit-wl/shared';
 import { TenantConfigBuilder } from '@billsplit-wl/shared';
 
 export type TenantBrandingFlagsOverrides = Partial<TenantConfig['branding']['marketingFlags']>;
@@ -19,17 +19,12 @@ export class AppConfigurationBuilder {
             messagingSenderId: 'test',
             appId: 'test',
         };
-        this.config.environment = {};
+        this.config.warningBanner = "warningBanner";
         this.config.formDefaults = {};
     }
 
     withFirebaseConfig(firebase: FirebaseConfig): this {
         this.config.firebase = firebase;
-        return this;
-    }
-
-    withEnvironmentConfig(environment: EnvironmentConfig): this {
-        this.config.environment = environment;
         return this;
     }
 

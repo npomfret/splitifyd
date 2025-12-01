@@ -17,6 +17,7 @@ import type {
     DeletePolicyVersionResponse,
     DisplayName,
     Email,
+    EnvironmentDiagnosticsResponse,
     ExpenseDTO,
     ExpenseFullDetailsDTO,
     ExpenseId,
@@ -271,6 +272,14 @@ export interface AdminAPI<AuthToken> {
      * Requires: tenant_admin or system_admin role
      */
     addTenantDomain(request: AddTenantDomainRequest, token?: AuthToken): Promise<void>;
+
+    // ===== DIAGNOSTICS (system_admin only) =====
+
+    /**
+     * Get server environment diagnostics
+     * Requires: system_admin role
+     */
+    getEnvironmentDiagnostics(token?: AuthToken): Promise<EnvironmentDiagnosticsResponse>;
 }
 
 /**

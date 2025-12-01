@@ -55,10 +55,6 @@ const FirebaseConfigSchema = z.object({
     measurementId: z.string().optional(),
 });
 
-const EnvironmentConfigSchema = z.object({
-    warningBanner: z.string().optional(),
-});
-
 const FormDefaultsSchema = z.object({
     displayName: z.string().optional(),
     email: z.string().optional(),
@@ -94,7 +90,7 @@ export const TenantConfigSchema = z.object({
 
 export const AppConfigurationSchema = z.object({
     firebase: FirebaseConfigSchema,
-    environment: EnvironmentConfigSchema,
+    warningBanner: z.string().optional(),
     formDefaults: FormDefaultsSchema,
     firebaseAuthUrl: z.string().optional(),
     firebaseFirestoreUrl: z.string().optional(),

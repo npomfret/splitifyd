@@ -19,6 +19,7 @@ import {
     type CreateSettlementRequest,
     CurrentPolicyResponse,
     type DeletePolicyVersionResponse,
+    type EnvironmentDiagnosticsResponse,
     DisplayName,
     ExpenseDTO,
     ExpenseFullDetailsDTO,
@@ -798,6 +799,10 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
 
     async addTenantDomain(request: AddTenantDomainRequest, token: AuthToken): Promise<void> {
         await this.apiRequest('/settings/tenant/domains', 'POST', request, token);
+    }
+
+    async getEnvironmentDiagnostics(token: AuthToken): Promise<EnvironmentDiagnosticsResponse> {
+        return await this.apiRequest('/env', 'GET', null, token) as EnvironmentDiagnosticsResponse;
     }
 
     async fetchThemeCss(options?: { tenantId?: string; version?: string; }): Promise<{ status: number; css: string; headers: Headers; }> {

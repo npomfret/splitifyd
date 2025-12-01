@@ -42,9 +42,7 @@ describe('API Schema Validation', () => {
                     appId: '1:123:web:abc',
                     measurementId: 'G-ABC123',
                 },
-                environment: {
-                    warningBanner: 'Test environment',
-                },
+                warningBanner: 'Test environment',
                 formDefaults: {
                     displayName: 'Test User',
                     email: 'test@example.com',
@@ -63,7 +61,7 @@ describe('API Schema Validation', () => {
             expect(result.firebase.messagingSenderId).toBe('123456789');
             expect(result.firebase.appId).toBe('1:123:web:abc');
             expect(result.firebase.measurementId).toBe('G-ABC123');
-            expect(result.environment.warningBanner).toBe('Test environment');
+            expect(result.warningBanner).toBe('Test environment');
             expect(result.formDefaults.displayName).toBe('Test User');
             expect(result.formDefaults.email).toBe('test@example.com');
             expect(result.formDefaults.password).toBe('testpass123');
@@ -81,14 +79,13 @@ describe('API Schema Validation', () => {
                     messagingSenderId: '123456789',
                     appId: '1:123:web:abc',
                 },
-                environment: {},
                 formDefaults: {},
             };
 
             const result = AppConfigurationSchema.parse(config);
 
             expect(result.firebase.apiKey).toBe('test-api-key');
-            expect(result.environment.warningBanner).toBeUndefined();
+            expect(result.warningBanner).toBeUndefined();
             expect(result.formDefaults.displayName).toBeUndefined();
         });
     });

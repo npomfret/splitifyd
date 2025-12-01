@@ -159,7 +159,6 @@ export const api = onRequest(
 );
 
 export { logMetrics };
-export { env } from './endpoints/env';
 export { health } from './endpoints/health';
 
 // Exposed for integration testing to allow direct access to the Express app

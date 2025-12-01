@@ -471,10 +471,6 @@ export interface FirebaseConfig {
     measurementId?: string;
 }
 
-export interface EnvironmentConfig {
-    warningBanner?: string;
-}
-
 export interface FormDefaults {
     displayName?: string;
     email?: string;
@@ -488,7 +484,7 @@ export interface ThemeConfig {
 
 export interface AppConfiguration {
     firebase: FirebaseConfig;
-    environment: EnvironmentConfig;
+    warningBanner?: string;
     formDefaults: FormDefaults;
     tenant?: TenantConfig;
     theme?: ThemeConfig | null;
@@ -1547,6 +1543,89 @@ export interface TenantDomainsResponse {
  */
 export interface AddTenantDomainRequest {
     domain: TenantDomainName;
+}
+
+// ========================================================================
+// Environment Diagnostics Types (Admin)
+// ========================================================================
+
+/**
+ * Memory summary in the environment diagnostics status
+ */
+export interface EnvironmentMemorySummary {
+    rssMb: number;
+    heapUsedMb: number;
+    heapTotalMb: number;
+    externalMb: number;
+}
+
+/**
+ * V8 heap space information
+ */
+export interface EnvironmentHeapSpace {
+    spaceName: string;
+    spaceSize: string;
+    spaceUsed: string;
+    spaceAvailable: string;
+    physicalSize: string;
+}
+
+/**
+ * File information in environment diagnostics
+ */
+export interface EnvironmentFileInfo {
+    name: string;
+    type?: string;
+    size?: string | null;
+    modified?: string;
+    mode?: string;
+    isSymbolicLink?: boolean;
+    error?: string;
+}
+
+/**
+ * Environment diagnostics response
+ * Returned by GET /api/env endpoint (admin-only)
+ */
+export interface EnvironmentDiagnosticsResponse {
+    status: {
+        timestamp: string;
+        environment: string;
+        nodeVersion: string;
+        uptimeSeconds: number;
+        memorySummary: EnvironmentMemorySummary;
+    };
+    env: Record<string, string | undefined>;
+    build: {
+        timestamp: string;
+        date: string;
+        version: string;
+    };
+    runtime: {
+        startTime: string;
+        uptime: number;
+        uptimeHuman: string;
+    };
+    memory: {
+        rss: string;
+        heapTotal: string;
+        heapUsed: string;
+        external: string;
+        arrayBuffers: string;
+        heapAvailable: string;
+        heapLimit: string;
+        totalHeapSize: string;
+        totalHeapExecutableSize: string;
+        totalPhysicalSize: string;
+        totalAvailableSize: string;
+        mallocedMemory: string;
+        peakMallocedMemory: string;
+        heapSpaces: EnvironmentHeapSpace[];
+    };
+    filesystem: {
+        currentDirectory: string;
+        files: EnvironmentFileInfo[];
+    };
 }
 
 /**

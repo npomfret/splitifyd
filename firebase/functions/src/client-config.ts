@@ -1,5 +1,5 @@
 import type {Email} from '@billsplit-wl/shared';
-import {AppConfiguration, EnvironmentConfig, FirebaseConfig, TenantConfig, toEmail} from '@billsplit-wl/shared';
+import {AppConfiguration, FirebaseConfig, TenantConfig, toEmail} from '@billsplit-wl/shared';
 import {z} from 'zod';
 import {DOCUMENT_CONFIG, VALIDATION_LIMITS} from './constants';
 import {logger} from './logger';
@@ -190,10 +190,6 @@ function getFirebaseFirestoreUrl(config: ClientConfig, env: z.infer<typeof envSc
     return `http://${firestoreHost}`;
 }
 
-function getWarningBanner(config: ClientConfig): string | undefined {
-    return config.warningBanner || undefined;
-}
-
 // Build the complete AppConfiguration lazily
 function buildAppConfiguration(): AppConfiguration {
     const config = getClientConfig();
@@ -234,13 +230,9 @@ function buildAppConfiguration(): AppConfiguration {
         throw new Error('Firebase configuration is incomplete in deployed environment');
     }
 
-    const environment: EnvironmentConfig = {
-        warningBanner: getWarningBanner(config),
-    };
-
     return {
         firebase,
-        environment,
+        warningBanner: config.warningBanner || undefined,
         formDefaults: config.formDefaults,
         firebaseAuthUrl: getFirebaseAuthUrl(config, env),
         firebaseFirestoreUrl: getFirebaseFirestoreUrl(config, env),

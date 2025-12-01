@@ -75,7 +75,8 @@ const routeDefinitions: RouteDefinition[] = [
         method: 'GET',
         path: '/env',
         handlerName: 'getEnv',
-        category: 'diagnostic',
+        middleware: ['authenticateAdmin'],
+        category: 'admin',
         isInline: true,
     },
     {
