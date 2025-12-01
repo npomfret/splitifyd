@@ -28,20 +28,10 @@ export function applySecurityHeaders(req: Request, res: Response, next: NextFunc
     res.setHeader('X-Permitted-Cross-Domain-Policies', 'none'); // Restrict Flash/PDF cross-domain policies
 
     const config = getClientConfig();
-    if (!config.isEmulator) {
-        res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload'); // Force HTTPS for 1 year
-        res.setHeader(
-            'Content-Security-Policy',
-            'default-src \'self\'; '
-                + 'script-src \'self\' https://apis.google.com https://www.gstatic.com; '
-                + 'style-src \'self\' https://fonts.googleapis.com; '
-                + 'font-src \'self\' https://fonts.gstatic.com; '
-                + 'img-src \'self\' data: https:; '
-                + 'connect-src \'self\' https://*.googleapis.com https://*.firebaseio.com https://*.firebaseapp.com wss://*.firebaseio.com; '
-                + 'frame-ancestors \'none\'; '
-                + 'report-uri /csp-violation-report;',
-        );
+    if (config.securityHeaders.hstsEnabled) {
+        res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
     }
+    res.setHeader('Content-Security-Policy', config.securityHeaders.cspPolicy);
 
     next();
 }

@@ -1,7 +1,7 @@
 import type {Email} from '@billsplit-wl/shared';
 import {AppConfiguration, EnvironmentConfig, FirebaseConfig, TenantConfig, toEmail} from '@billsplit-wl/shared';
 import {z} from 'zod';
-import {DOCUMENT_CONFIG, SYSTEM, VALIDATION_LIMITS} from './constants';
+import {DOCUMENT_CONFIG, VALIDATION_LIMITS} from './constants';
 import {logger} from './logger';
 import {validateAppConfiguration} from './middleware/config-validation';
 import {assertValidInstanceName, type InstanceName} from './shared/instance-name';
@@ -52,15 +52,10 @@ interface ClientConfig {
     isEmulator: boolean;
     requestBodyLimit: string;
     validation: {
-        maxRequestSizeBytes: number;
         maxObjectDepth: number;
         maxStringLength: number;
         maxPropertyCount: number;
         maxPropertyNameLength: number;
-    };
-    document: {
-        listLimit: number;
-        previewLength: number;
     };
     formDefaults: {
         email: Email;
@@ -68,6 +63,11 @@ interface ClientConfig {
     };
     warningBanner: string;
     cacheMaxAgeSeconds: number;
+    staticPageCacheSeconds: Record<string, number>;
+    securityHeaders: {
+        hstsEnabled: boolean;
+        cspPolicy: string;
+    };
 }
 
 // Lazy environment variable loader
@@ -108,15 +108,10 @@ function buildConfig(): ClientConfig {
         isEmulator: emulator,
         requestBodyLimit: '1mb',
         validation: {
-            maxRequestSizeBytes: SYSTEM.BYTES_PER_KB * SYSTEM.BYTES_PER_KB,
             maxObjectDepth: VALIDATION_LIMITS.MAX_DOCUMENT_DEPTH,
             maxStringLength: DOCUMENT_CONFIG.DEPLOYED_MAX_STRING_LENGTH,
             maxPropertyCount: DOCUMENT_CONFIG.DEPLOYED_MAX_PROPERTY_COUNT,
             maxPropertyNameLength: VALIDATION_LIMITS.MAX_PROPERTY_NAME_LENGTH,
-        },
-        document: {
-            listLimit: DOCUMENT_CONFIG.LIST_LIMIT,
-            previewLength: DOCUMENT_CONFIG.PREVIEW_LENGTH,
         },
         formDefaults: {
             email: toEmail(env.__DEV_FORM_EMAIL ?? ''),
@@ -124,6 +119,32 @@ function buildConfig(): ClientConfig {
         },
         warningBanner: env.__WARNING_BANNER ?? '',
         cacheMaxAgeSeconds: emulator ? 60 : 300,
+        staticPageCacheSeconds: {
+            '/': 300,
+            '/login': 300,
+            '/terms': emulator ? 300 : 3600,
+            '/privacy': emulator ? 300 : 3600,
+            '/config': emulator ? 300 : 3600,
+        },
+        securityHeaders: {
+            hstsEnabled: !emulator,
+            cspPolicy: emulator
+                ? "default-src 'self'; "
+                    + "script-src 'self'; "
+                    + "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+                    + "font-src 'self' https://fonts.gstatic.com; "
+                    + "img-src 'self' data: https:; "
+                    + "connect-src 'self' http://localhost:* ws://localhost:*; "
+                    + "frame-ancestors 'none';"
+                : "default-src 'self'; "
+                    + "script-src 'self' https://apis.google.com https://www.gstatic.com; "
+                    + "style-src 'self' https://fonts.googleapis.com; "
+                    + "font-src 'self' https://fonts.gstatic.com; "
+                    + "img-src 'self' data: https:; "
+                    + "connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.firebaseapp.com wss://*.firebaseio.com; "
+                    + "frame-ancestors 'none'; "
+                    + "report-uri /csp-violation-report;",
+        },
     };
 }
 

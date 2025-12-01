@@ -6,7 +6,7 @@ import { getClientConfig } from '../client-config';
  *
  * Strategy:
  * - API endpoints (/api/*): No caching allowed
- * - Static pages: Minimal caching (5 minutes in dev, up to 1 hour in prod)
+ * - Static pages: Minimal caching (configured in ClientConfig)
  * - All responses: Disable ETags to prevent 304 responses
  */
 export function applyCacheControl(req: Request, res: Response, next: NextFunction): void {
@@ -17,25 +17,10 @@ export function applyCacheControl(req: Request, res: Response, next: NextFunctio
     }
 
     const config = getClientConfig();
+    const maxAge = config.staticPageCacheSeconds[req.path];
 
-    // Define static pages and config endpoints that can have minimal caching
-    const staticPages: Record<string, { dev: number; prod: number; }> = {
-        '/': { dev: 300, prod: 300 }, // 5 minutes
-        '/login': { dev: 300, prod: 300 }, // 5 minutes
-        '/terms': { dev: 300, prod: 3600 }, // 5 min dev, 1 hour prod
-        '/privacy': { dev: 300, prod: 3600 }, // 5 min dev, 1 hour prod
-        '/config': { dev: 300, prod: 3600 }, // Firebase config can be cached
-    };
-
-    // Check if this is a static page
-    const staticPageConfig = staticPages[req.path];
-
-    if (staticPageConfig) {
-        // Static pages can have minimal caching
-        const maxAge = config.isEmulator ? staticPageConfig.dev : staticPageConfig.prod;
+    if (maxAge !== undefined) {
         res.setHeader('Cache-Control', `public, max-age=${maxAge}`);
-
-        // Applied caching for cacheable endpoint
     } else {
         // API endpoints and all other paths: NO caching
         res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
