@@ -17,6 +17,11 @@ export class UserRegistrationBuilder {
         };
     }
 
+    /** Create an empty builder for testing incomplete/invalid registration data */
+    static empty(): EmptyUserRegistrationBuilder {
+        return new EmptyUserRegistrationBuilder();
+    }
+
     withEmail(email: Email | string): this {
         this.userRegistration.email = typeof email === 'string' ? toEmail(email) : email;
         return this;
@@ -65,5 +70,44 @@ export class UserRegistrationBuilder {
 
     build(): UserRegistration {
         return { ...this.userRegistration };
+    }
+}
+
+/** Builder for creating empty/partial registration requests for validation testing */
+class EmptyUserRegistrationBuilder {
+    private data: Partial<UserRegistration> = {};
+
+    withEmail(email: Email | string): this {
+        this.data.email = typeof email === 'string' ? toEmail(email) : email;
+        return this;
+    }
+
+    withPassword(password: Password | string): this {
+        this.data.password = typeof password === 'string' ? toPassword(password) : password;
+        return this;
+    }
+
+    withDisplayName(displayName: DisplayName | string): this {
+        this.data.displayName = typeof displayName === 'string' ? toDisplayName(displayName) : displayName;
+        return this;
+    }
+
+    withTermsAccepted(accepted: boolean): this {
+        this.data.termsAccepted = accepted;
+        return this;
+    }
+
+    withCookiePolicyAccepted(accepted: boolean): this {
+        this.data.cookiePolicyAccepted = accepted;
+        return this;
+    }
+
+    withPrivacyPolicyAccepted(accepted: boolean): this {
+        this.data.privacyPolicyAccepted = accepted;
+        return this;
+    }
+
+    build(): Partial<UserRegistration> {
+        return { ...this.data };
     }
 }

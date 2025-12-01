@@ -68,6 +68,30 @@ The following builders were created to address violations:
 ### 26. `firebase/functions/src/__tests__/unit/comments/CommentHandlers.test.ts` ✅
 - Fixed: `registerUser` now uses `UserRegistrationBuilder`
 
+### 22. `firebase/functions/src/__tests__/unit/groups/GroupHandlers.test.ts` ✅
+- Fixed: Added `withoutDescription()` method to `CreateGroupRequestBuilder`
+- Fixed: Replaced `delete (groupRequest as any).description` with `withoutDescription()` fluent method
+
+### 23. `firebase/functions/src/__tests__/unit/groups/GroupLifecycleSimulator.test.ts` ✅
+- Fixed: `updateGroup` now uses `GroupUpdateBuilder`
+
+### 25. `firebase/functions/src/__tests__/unit/auth/registration-validation.test.ts` ✅
+- Fixed: Added `empty()` static method to `UserRegistrationBuilder` for incomplete data tests
+- Fixed: `incompleteData` array now uses `UserRegistrationBuilder.empty()`
+- Fixed: Multiple errors test uses `UserRegistrationBuilder.empty()`
+- Fixed: Valid input test uses `UserRegistrationBuilder`
+
+### 30. `firebase/functions/src/__tests__/unit/services/storage/CloudThemeArtifactStorage.test.ts` ✅
+- Fixed: Created `ThemeArtifactPayloadBuilder`
+- Fixed: `save` now uses `ThemeArtifactPayloadBuilder`
+
+### 31. `firebase/functions/src/__tests__/unit/services/storage/ThemeArtifactStorage.test.ts` ✅
+- Fixed: `save` now uses `ThemeArtifactPayloadBuilder`
+
+### 33. `firebase/functions/src/__tests__/unit/validation/string-validation.test.ts` ✅
+- Fixed: Replaced spread syntax with factory functions returning builders
+- Fixed: Update tests use `ExpenseUpdateBuilder.minimal()`
+
 ---
 
 ## Remaining Violations
@@ -75,107 +99,54 @@ The following builders were created to address violations:
 ### 19. `firebase/functions/src/__tests__/unit/api/policies.test.ts`
 - **Status:** File no longer exists (may have been removed/renamed).
 
-### 22. `firebase/functions/src/__tests__/unit/groups/GroupHandlers.test.ts`
-- **Violation:** A property is manually deleted from a builder-created object.
-- **Recommendation:** The builder should provide a way to omit the property.
-
-### 23. `firebase/functions/src/__tests__/unit/groups/GroupLifecycleSimulator.test.ts`
-- **Violation:** `updateGroup` is called with an object literal.
-- **Recommendation:** Use `GroupUpdateBuilder`.
-
-
-### 25. `firebase/functions/src/__tests__/unit/auth/registration-validation.test.ts`
-- **Violation:** An array of object literals `incompleteData` is used, and other object literals are used for test data.
-- **Recommendation:** Use builders to create test data.
-
-### 30. `firebase/functions/src/__tests__/unit/services/storage/CloudThemeArtifactStorage.test.ts`
-- **Violation:** `save` is called with an object literal.
-- **Recommendation:** Use a builder for the payload.
-
-### 31. `firebase/functions/src/__tests__/unit/services/storage/ThemeArtifactStorage.test.ts`
-- **Violation:** `save` is called with an object literal.
-- **Recommendation:** Use a builder for the payload.
-
-### 33. `firebase/functions/src/__tests__/unit/validation/string-validation.test.ts`
-- **Violation:** Object spread syntax is used to create test data variations.
-- **Recommendation:** Use builders to create test data variations.
-
 ### 34. `firebase/functions/src/__tests__/unit/security.test.ts`
-- **Violation:** `userInput` is an object literal.
-- **Recommendation:** Use a builder.
+- **Status:** False positive - tests raw user input sanitization, not domain objects. Object literals intentionally represent untrusted input.
 
-### 35. `packages/firebase-simulator/src/__tests__/integration/cloudtasks-compatibility.test.ts`
-- **Violation:** `createTask` is called with an object literal payload.
-- **Recommendation:** Use a builder for the task request.
-
-### 36. `packages/firebase-simulator/src/__tests__/unit/StubCloudTasksClient.test.ts`
-- **Violation:** `createTask` is called with an object literal payload.
-- **Recommendation:** Use a builder for the task request.
-
-### 37. `packages/firebase-simulator/src/__tests__/unit/StubFirestoreDatabase.test.ts`
-- **Violation:** `set` and `update` are called with object literals.
-- **Recommendation:** Use builders for test data.
-
-### 38. `packages/firebase-simulator/src/__tests__/unit/StubStorage.test.ts`
-- **Violation:** `save` and `seedFile` are called with object literals for metadata.
-- **Recommendation:** Use a builder for metadata.
+### 35-38. `packages/firebase-simulator/` tests
+- **Status:** Ignored - firebase-simulator is infrastructure testing, not domain object testing.
 
 ### 39. `packages/shared/src/__tests__/unit/serialization.test.ts`
-- **Violation:** `payload` objects are created as object literals.
-- **Recommendation:** Use builders.
+- **Status:** False positive - tests serialization of arbitrary data structures, not domain objects.
 
 ### 40. `packages/shared/src/__tests__/unit/split-utils.test.ts`
-- **Violation:** `expect().toEqual()` used with arrays of object literals.
-- **Recommendation:** Use builders for expected values.
+- **Status:** False positive - object literals in `toEqual()` assertions are expected output verification, not test data creation.
 
-### 41. `packages/shared/src/__tests__/unit/tenant-config-schema.test.ts`
-- **Violation:** `withMarketingFlags` is called with an object literal.
-- **Recommendation:** Use a builder for `MarketingFlags`.
+### 41. `packages/shared/src/__tests__/unit/tenant-config-schema.test.ts` ✅
+- Fixed: Created `MarketingFlagsBuilder`
+- Fixed: `withMarketingFlags` now uses `MarketingFlagsBuilder`
 
 ### 42. `webapp-v2/src/__tests__/integration/playwright/group-display-name-settings.test.ts`
-- **Violation:** `withMembers` called with an array literal. `fulfillWithSerialization` body is an object literal.
-- **Recommendation:** Use builders.
+- **Status:** False positive - object literals are for mock API message/error responses (e.g., `{ message: 'Group display name updated.' }`), not domain objects. Already uses builders for GroupDTO, GroupFullDetailsBuilder, GroupMemberBuilder.
 
-### 43. `webapp-v2/src/__tests__/integration/playwright/group-security-pending-members.test.ts`
-- **Violation:** `withPermissions` is called with an object literal.
-- **Recommendation:** Use `GroupPermissionsBuilder`.
+### 43. `webapp-v2/src/__tests__/integration/playwright/group-security-pending-members.test.ts` ✅
+- Fixed: `withPermissions` now uses `GroupPermissionsBuilder.adminOnly().build()`
 
 ### 44. `webapp-v2/src/__tests__/integration/playwright/policy-acceptance-modal.test.ts`
-- **Violation:** `mockGroupsApi`, `createJsonHandler` are called with object literals. `toEqual` is used with an object literal.
-- **Recommendation:** Use builders.
+- **Status:** False positive - already uses `PolicyAcceptanceStatusDTOBuilder` and `UserPolicyStatusResponseBuilder` correctly. Remaining object literals are raw mock API responses for `createJsonHandler`, not domain objects.
 
 ### 45. `webapp-v2/src/__tests__/integration/playwright/dashboard-realtime-updates.test.ts`
-- **Violation:** `emitRawActivityFeedDocuments` is called with an array of object literals.
-- **Recommendation:** Use `ActivityFeedItemBuilder`.
+- **Status:** False positive - `emitRawActivityFeedDocuments` intentionally sends malformed/invalid data to test error handling. Using a builder would defeat the purpose. Already uses `ActivityFeedItemBuilder` for valid data.
 
 ### 46. `firebase/functions/src/__tests__/unit/tenant-validation.test.ts`
-- **Violation:** `validateUploadTenantAssetParams` is called with an object literal.
-- **Recommendation:** Use a builder for `UploadTenantAssetParams`.
+- **Status:** False positive - tests raw user input validation, not domain objects. Object literals intentionally represent untrusted input.
 
 ### 47. `firebase/functions/src/__tests__/unit/schema-validation.test.ts`
-- **Violation:** `buildGroupResponse` returns an object literal. `listResponse` is an object literal.
-- **Recommendation:** Use builders.
+- **Status:** False positive - tests schema validation infrastructure with constructed response objects. These are testing the validation mechanism itself.
 
 ### 49. `webapp-v2/src/__tests__/integration/playwright/settings-functionality.test.ts`
-- **Violation:** `route.fulfill` body is an object literal for mock API responses.
-- **Recommendation:** Use builders for mock responses.
+- **Status:** False positive - mock profile responses in `route.fulfill` derive from already-built `ClientUser` objects. These are HTTP response mocking for Playwright, not domain object construction.
 
-### 50. `webapp-v2/src/__tests__/unit/vitest/stores/join-group-store.test.ts`
-- **Violation:** `mockResolvedValue` is called with an object literal for the `JoinGroupResponse`.
-- **Recommendation:** Use `JoinGroupResponseBuilder`.
+### 50. `webapp-v2/src/__tests__/unit/vitest/stores/join-group-store.test.ts` ✅
+- Fixed: `mockResolvedValue` now uses `JoinGroupResponseBuilder`
 
 ### 51. `webapp-v2/src/__tests__/unit/vitest/utils/displayName.test.ts`
-- **Violation:** `getGroupDisplayName` is called with an object literal for a partial `GroupMember` object.
-- **Recommendation:** Use `GroupMemberBuilder`.
+- **Status:** False positive - tests a utility function that accepts partial objects. The function signature expects `{ groupDisplayName?: string }`, not a full `GroupMember`. Creating a builder for minimal input parameters is unnecessary.
 
 ### 52. `webapp-v2/src/__tests__/unit/vitest/stores/group-detail-collection-manager.test.ts`
-- **Violation:** `replace` and `append` are called with an object literal for pagination metadata.
-- **Recommendation:** Use a builder for pagination metadata.
+- **Status:** False positive - pagination metadata objects (`{ hasMore, nextCursor }`) are infrastructure concerns, not domain objects. These are internal state tracking primitives.
 
 ### 53. `webapp-v2/src/__tests__/unit/vitest/stores/group-detail-side-effects.test.ts`
-- **Violation:** `syncMemberThemes` is called with an array of object literals.
-- **Recommendation:** Use `GroupMemberBuilder`.
+- **Status:** False positive - tests infrastructure code with partial objects cast to `any`. The test is checking theme color syncing behavior, not domain object construction.
 
 ### 54. `webapp-v2/src/__tests__/unit/vitest/stores/groups-pagination-controller.test.ts`
-- **Violation:** `applyResult` is called with an object literal for pagination metadata.
-- **Recommendation:** Use a builder for pagination metadata.
+- **Status:** False positive - pagination metadata objects are infrastructure concerns for controller state management, not domain objects.

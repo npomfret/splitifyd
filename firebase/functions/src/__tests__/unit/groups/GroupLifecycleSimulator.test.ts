@@ -1,6 +1,5 @@
 import { amountToSmallestUnit, calculateEqualSplits, FirebaseUser, MemberRoles, MemberStatuses, toAmount, toCurrencyISOCode, USD } from '@billsplit-wl/shared';
-import { toGroupName } from '@billsplit-wl/shared';
-import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, ExpenseUpdateBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
+import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, ExpenseUpdateBuilder, GroupUpdateBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { AppDriver } from '../AppDriver';
 
@@ -137,9 +136,9 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
         const memberResult = await appDriver.getGroupFullDetails(group.id, {}, member.uid);
         expect(memberResult.group.id).toBe(group.id);
 
-        await expect(appDriver.updateGroup(group.id, {
-            name: toGroupName('Intrusion Attempt'),
-        }, member.uid))
+        await expect(appDriver.updateGroup(group.id, new GroupUpdateBuilder()
+            .withName('Intrusion Attempt')
+            .build(), member.uid))
             .rejects
             .toThrow();
 

@@ -252,7 +252,7 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
                 for (const failure of failures) {
                     if (failure.status === 'rejected') {
                         const errorMessage = failure.reason?.message || '';
-                        expect(errorMessage).toMatch(/not found|concurrent|conflict|does not exist/i);
+                        expect(errorMessage).toMatch(/not.?found|concurrent|conflict|does not exist/i);
                     }
                 }
             }

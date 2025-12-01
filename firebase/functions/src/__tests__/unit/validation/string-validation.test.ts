@@ -1,4 +1,4 @@
-import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder } from '@billsplit-wl/test-support';
+import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, ExpenseUpdateBuilder } from '@billsplit-wl/test-support';
 import { describe, expect, test } from 'vitest';
 import { VALIDATION_LIMITS } from '../../../constants';
 import { validateCreateExpense, validateUpdateExpense } from '../../../expenses/validation';
@@ -6,16 +6,14 @@ import { validateCreateGroup } from '../../../groups/validation';
 import { ApiError } from '../../../errors';
 
 describe('String Length Validation - Focused Tests', () => {
-    const baseValidExpenseData = new CreateExpenseRequestBuilder()
+    const createBaseExpenseBuilder = () => new CreateExpenseRequestBuilder()
         .withAmount(1, 'USD')
         .withGroupId('test-group-id')
-        .withDescription('Test expense')
-        .build();
+        .withDescription('Test expense');
 
-    const baseValidGroupData = new CreateGroupRequestBuilder()
+    const createBaseGroupBuilder = () => new CreateGroupRequestBuilder()
         .withName('Test Group')
-        .withDescription('Test group description')
-        .build();
+        .withDescription('Test group description');
 
     describe('Critical Validation Boundaries', () => {
         test('should enforce expense description length limit', () => {
@@ -24,18 +22,20 @@ describe('String Length Validation - Focused Tests', () => {
 
             // Should reject over limit
             expect(() =>
-                validateCreateExpense({
-                    ...baseValidExpenseData,
-                    description: tooLongDescription,
-                })
+                validateCreateExpense(
+                    createBaseExpenseBuilder()
+                        .withDescription(tooLongDescription)
+                        .build()
+                )
             )
                 .toThrow(ApiError);
 
             // Should accept at limit
-            const result = validateCreateExpense({
-                ...baseValidExpenseData,
-                description: maxDescription,
-            });
+            const result = validateCreateExpense(
+                createBaseExpenseBuilder()
+                    .withDescription(maxDescription)
+                    .build()
+            );
             expect(result.description).toHaveLength(200);
         });
 
@@ -45,35 +45,39 @@ describe('String Length Validation - Focused Tests', () => {
 
             // Should reject over limit
             expect(() =>
-                validateCreateGroup({
-                    ...baseValidGroupData,
-                    name: tooLongName,
-                })
+                validateCreateGroup(
+                    createBaseGroupBuilder()
+                        .withName(tooLongName)
+                        .build()
+                )
             )
                 .toThrow(ApiError);
 
             // Should accept at limit
-            const result = validateCreateGroup({
-                ...baseValidGroupData,
-                name: maxName,
-            });
+            const result = validateCreateGroup(
+                createBaseGroupBuilder()
+                    .withName(maxName)
+                    .build()
+            );
             expect(result.name).toHaveLength(VALIDATION_LIMITS.MAX_GROUP_NAME_LENGTH);
         });
 
         test('should trim whitespace and reject empty strings', () => {
             // Should trim and accept
-            const expenseResult = validateCreateExpense({
-                ...baseValidExpenseData,
-                description: '  Valid description  ',
-            });
+            const expenseResult = validateCreateExpense(
+                createBaseExpenseBuilder()
+                    .withDescription('  Valid description  ')
+                    .build()
+            );
             expect(expenseResult.description).toBe('Valid description');
 
             // Should reject empty
             expect(() =>
-                validateCreateExpense({
-                    ...baseValidExpenseData,
-                    description: '   ', // Only whitespace
-                })
+                validateCreateExpense(
+                    createBaseExpenseBuilder()
+                        .withDescription('   ') // Only whitespace
+                        .build()
+                )
             )
                 .toThrow(ApiError);
         });
@@ -83,16 +87,18 @@ describe('String Length Validation - Focused Tests', () => {
         test('should preserve special characters in text fields', () => {
             const specialText = 'Café & Restaurant - 50% off @ John\'s!';
 
-            const expenseResult = validateCreateExpense({
-                ...baseValidExpenseData,
-                description: specialText,
-            });
+            const expenseResult = validateCreateExpense(
+                createBaseExpenseBuilder()
+                    .withDescription(specialText)
+                    .build()
+            );
             expect(expenseResult.description).toBe(specialText);
 
-            const groupResult = validateCreateGroup({
-                ...baseValidGroupData,
-                name: specialText,
-            });
+            const groupResult = validateCreateGroup(
+                createBaseGroupBuilder()
+                    .withName(specialText)
+                    .build()
+            );
             expect(groupResult.name).toBe(specialText);
         });
     });
@@ -103,17 +109,21 @@ describe('String Length Validation - Focused Tests', () => {
 
             // Should reject same as create
             expect(() =>
-                validateUpdateExpense({
-                    description: tooLongDescription,
-                })
+                validateUpdateExpense(
+                    ExpenseUpdateBuilder.minimal()
+                        .withDescription(tooLongDescription)
+                        .build()
+                )
             )
                 .toThrow(ApiError);
 
             // Should accept valid update
-            const result = validateUpdateExpense({
-                description: 'Updated description',
-                label: 'Updated label',
-            });
+            const result = validateUpdateExpense(
+                ExpenseUpdateBuilder.minimal()
+                    .withDescription('Updated description')
+                    .withLabel('Updated label')
+                    .build()
+            );
             expect(result.description).toBe('Updated description');
             expect(result.label).toBe('Updated label');
         });

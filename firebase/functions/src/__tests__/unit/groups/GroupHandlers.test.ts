@@ -56,8 +56,8 @@ describe('GroupHandlers - Unit Tests', () => {
             const groupRequest = new CreateGroupRequestBuilder()
                 .withName('Simple Group')
                 .withGroupDisplayName('Skipper')
+                .withoutDescription()
                 .build();
-            delete (groupRequest as any).description;
 
             const result = await appDriver.createGroup(groupRequest, userId);
 

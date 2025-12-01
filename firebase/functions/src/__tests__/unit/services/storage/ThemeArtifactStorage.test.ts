@@ -1,4 +1,5 @@
 import { StubStorage } from '@billsplit-wl/firebase-simulator';
+import { ThemeArtifactPayloadBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { computeSha256, createThemeArtifactStorage, resetThemeArtifactStorage } from '../../../../services/storage/ThemeArtifactStorage';
 
@@ -21,12 +22,12 @@ describe('ThemeArtifactStorage factory', () => {
     it('saves artifacts via the stub storage instance', async () => {
         const storage = createThemeArtifactStorage({ storage: stubStorage, storageEmulatorHost: null });
 
-        const payload = {
-            tenantId: 'tenant-abc',
-            hash: 'hash-123',
-            cssContent: 'body { color: #000; }',
-            tokensJson: '{"palette":{"primary":"#000000"}}',
-        };
+        const payload = new ThemeArtifactPayloadBuilder()
+            .withTenantId('tenant-abc')
+            .withHash('hash-123')
+            .withCssContent('body { color: #000; }')
+            .withTokensJson('{"palette":{"primary":"#000000"}}')
+            .build();
 
         const result = await storage.save(payload);
 

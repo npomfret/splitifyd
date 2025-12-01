@@ -1,3 +1,4 @@
+import { MarketingFlagsBuilder } from '@billsplit-wl/test-support';
 import { describe, expect, it } from 'vitest';
 import { TenantConfigBuilder, TenantConfigSchema } from '../../index';
 
@@ -23,11 +24,13 @@ describe('Tenant API Response Validation', () => {
                 .withTextColor('#1F2937')
                 .withThemePalette('default')
                 .withCustomCSS('/* test */')
-                .withMarketingFlags({
-                    showLandingPage: true,
-                    showMarketingContent: true,
-                    showPricingPage: false,
-                })
+                .withMarketingFlags(
+                    new MarketingFlagsBuilder()
+                        .withShowLandingPage(true)
+                        .withShowMarketingContent(true)
+                        .withShowPricingPage(false)
+                        .build()
+                )
                 .build();
 
             const result = TenantConfigSchema.parse(tenantConfig);

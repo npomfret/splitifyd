@@ -1,5 +1,4 @@
 import type { UserRegistration } from '@billsplit-wl/shared';
-import { toDisplayName, toEmail, toPassword } from '@billsplit-wl/shared';
 import { UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { describe, expect, it } from 'vitest';
 import { validateRegisterRequest } from '../../../auth/validation';
@@ -245,13 +244,56 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
     describe('Required Fields Validation', () => {
         it('should require all mandatory fields', () => {
             const incompleteData = [
-                { password: 'passwordpass', displayName: 'Test User', termsAccepted: true, cookiePolicyAccepted: true, privacyPolicyAccepted: true }, // missing email
-                { email: 'test@example.com', displayName: 'Test User', termsAccepted: true, cookiePolicyAccepted: true, privacyPolicyAccepted: true }, // missing password
-                { email: 'test@example.com', password: 'passwordpass', termsAccepted: true, cookiePolicyAccepted: true, privacyPolicyAccepted: true }, // missing displayName
-                { email: 'test@example.com', password: 'passwordpass', displayName: 'Test User', cookiePolicyAccepted: true, privacyPolicyAccepted: true }, // missing termsAccepted
-                { email: 'test@example.com', password: 'passwordpass', displayName: 'Test User', termsAccepted: true, privacyPolicyAccepted: true }, // missing cookiePolicyAccepted
-                { email: 'test@example.com', password: 'passwordpass', displayName: 'Test User', termsAccepted: true, cookiePolicyAccepted: true }, // missing privacyPolicyAccepted
-                {}, // missing all
+                // missing email
+                UserRegistrationBuilder.empty()
+                    .withPassword('passwordpass')
+                    .withDisplayName('Test User')
+                    .withTermsAccepted(true)
+                    .withCookiePolicyAccepted(true)
+                    .withPrivacyPolicyAccepted(true)
+                    .build(),
+                // missing password
+                UserRegistrationBuilder.empty()
+                    .withEmail('test@example.com')
+                    .withDisplayName('Test User')
+                    .withTermsAccepted(true)
+                    .withCookiePolicyAccepted(true)
+                    .withPrivacyPolicyAccepted(true)
+                    .build(),
+                // missing displayName
+                UserRegistrationBuilder.empty()
+                    .withEmail('test@example.com')
+                    .withPassword('passwordpass')
+                    .withTermsAccepted(true)
+                    .withCookiePolicyAccepted(true)
+                    .withPrivacyPolicyAccepted(true)
+                    .build(),
+                // missing termsAccepted
+                UserRegistrationBuilder.empty()
+                    .withEmail('test@example.com')
+                    .withPassword('passwordpass')
+                    .withDisplayName('Test User')
+                    .withCookiePolicyAccepted(true)
+                    .withPrivacyPolicyAccepted(true)
+                    .build(),
+                // missing cookiePolicyAccepted
+                UserRegistrationBuilder.empty()
+                    .withEmail('test@example.com')
+                    .withPassword('passwordpass')
+                    .withDisplayName('Test User')
+                    .withTermsAccepted(true)
+                    .withPrivacyPolicyAccepted(true)
+                    .build(),
+                // missing privacyPolicyAccepted
+                UserRegistrationBuilder.empty()
+                    .withEmail('test@example.com')
+                    .withPassword('passwordpass')
+                    .withDisplayName('Test User')
+                    .withTermsAccepted(true)
+                    .withCookiePolicyAccepted(true)
+                    .build(),
+                // missing all
+                UserRegistrationBuilder.empty().build(),
             ];
 
             for (const data of incompleteData) {
@@ -407,14 +449,14 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
 
         it('should report the first validation error when multiple errors exist', () => {
             // Data with multiple validation errors
-            const data = {
-                email: 'invalid-email', // invalid format
-                password: 'weak', // too weak
-                displayName: '', // empty
-                termsAccepted: false, // not accepted
-                cookiePolicyAccepted: false, // not accepted
-                privacyPolicyAccepted: false, // not accepted
-            };
+            const data = UserRegistrationBuilder.empty()
+                .withEmail('invalid-email') // invalid format
+                .withPassword('weak') // too weak
+                .withDisplayName('') // empty
+                .withTermsAccepted(false) // not accepted
+                .withCookiePolicyAccepted(false) // not accepted
+                .withPrivacyPolicyAccepted(false) // not accepted
+                .build();
 
             // Should only report the first error (email in this case to match legacy validation order)
             expect(() => validateRegisterRequest(data as any)).toThrow(
@@ -427,14 +469,14 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
 
     describe('Valid Registration Data Processing', () => {
         it('should return processed and normalized data for valid input', () => {
-            const inputData = {
-                email: toEmail('  TEST@EXAMPLE.COM  '),
-                password: toPassword('passwordpass'),
-                displayName: toDisplayName('  Test User  '),
-                termsAccepted: true,
-                cookiePolicyAccepted: true,
-                privacyPolicyAccepted: true,
-            };
+            const inputData = new UserRegistrationBuilder()
+                .withEmail('  TEST@EXAMPLE.COM  ')
+                .withPassword('passwordpass')
+                .withDisplayName('  Test User  ')
+                .withTermsAccepted(true)
+                .withCookiePolicyAccepted(true)
+                .withPrivacyPolicyAccepted(true)
+                .build();
 
             const result = validateRegisterRequest(inputData);
 

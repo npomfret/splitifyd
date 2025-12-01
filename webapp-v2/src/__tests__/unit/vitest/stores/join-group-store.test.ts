@@ -20,6 +20,7 @@ vi.mock('@/app/apiClient', () => {
 import { apiClient } from '@/app/apiClient';
 import { joinGroupStore } from '@/app/stores/join-group-store';
 import { toDisplayName } from '@billsplit-wl/shared';
+import { JoinGroupResponseBuilder } from '@billsplit-wl/test-support';
 
 const mockedApiClient = apiClient as unknown as {
     joinGroupByLink: Mock;
@@ -33,12 +34,13 @@ afterEach(() => {
 
 describe('joinGroupStore', () => {
     it('successfully joins a group with provided display name', async () => {
-        mockedApiClient.joinGroupByLink.mockResolvedValue({
-            groupId: 'group-123',
-            groupName: 'Test Group',
-            success: true,
-            memberStatus: 'active',
-        });
+        const joinResponse = new JoinGroupResponseBuilder()
+            .withGroupId('group-123')
+            .withGroupName('Test Group')
+            .withMemberStatus('active')
+            .build();
+
+        mockedApiClient.joinGroupByLink.mockResolvedValue(joinResponse);
 
         const response = await joinGroupStore.joinGroup('share-link', toDisplayName('John Doe'));
 

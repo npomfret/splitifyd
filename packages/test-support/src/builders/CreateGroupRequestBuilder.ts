@@ -28,6 +28,11 @@ export class CreateGroupRequestBuilder {
         return this;
     }
 
+    withoutDescription(): this {
+        this.group.description = undefined;
+        return this;
+    }
+
     withGroupDisplayName(displayName: DisplayName | string): this {
         this.group.groupDisplayName = typeof displayName === 'string' ? toDisplayName(displayName) : displayName;
         return this;

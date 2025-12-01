@@ -3,7 +3,7 @@ import { MemberStatuses, UserId } from '@billsplit-wl/shared';
 import type { GroupName } from '@billsplit-wl/shared';
 import { DisplayName } from '@billsplit-wl/shared';
 import { toDisplayName } from '@billsplit-wl/shared';
-import { GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, GroupMembershipDTOBuilder } from '@billsplit-wl/test-support';
+import { GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, GroupMembershipDTOBuilder, GroupPermissionsBuilder } from '@billsplit-wl/test-support';
 import type { Page } from '@playwright/test';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { fulfillWithSerialization, mockGroupCommentsApi } from '../../utils/mock-firebase-service';
@@ -58,13 +58,7 @@ async function setupManagedGroupRoutes(page: Page, user: ClientUser): Promise<Ma
         .withId(groupId)
         .withName(groupName)
         .withCreatedBy(user.uid)
-        .withPermissions({
-            memberApproval: 'admin-required',
-            memberInvitation: 'admin-only',
-            expenseEditing: 'owner-and-admin',
-            expenseDeletion: 'admin-only',
-            settingsManagement: 'admin-only',
-        })
+        .withPermissions(GroupPermissionsBuilder.adminOnly().build())
         .build();
 
     const ownerMember = new GroupMemberBuilder()
