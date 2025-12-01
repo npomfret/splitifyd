@@ -8,10 +8,9 @@
  * The integration test remains for testing actual Firebase optimistic locking behavior.
  */
 
-import { calculateEqualSplits, toAmount, toCurrencyISOCode, toGroupName, toUserId, USD } from '@billsplit-wl/shared';
-import { toDisplayName } from '@billsplit-wl/shared';
-import { CreateExpenseRequestBuilder, ExpenseUpdateBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
-import { beforeEach, describe, expect, test } from 'vitest';
+import { calculateEqualSplits, toAmount, toCurrencyISOCode, toUserId, USD } from '@billsplit-wl/shared';
+import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, ExpenseUpdateBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
+import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { AppDriver } from '../AppDriver';
 
 describe('Expense Concurrent Updates - Unit Tests', () => {
@@ -40,11 +39,14 @@ describe('Expense Concurrent Updates - Unit Tests', () => {
 
     test('should handle concurrent expense updates', async () => {
         // Create group
-        const group = await appDriver.createGroup({
-            name: toGroupName('Concurrent Update Test Group'),
-            groupDisplayName: toDisplayName('Owner Display'),
-            description: 'Testing expense concurrent updates',
-        }, userId);
+        const group = await appDriver.createGroup(
+            new CreateGroupRequestBuilder()
+                .withName('Concurrent Update Test Group')
+                .withGroupDisplayName('Owner Display')
+                .withDescription('Testing expense concurrent updates')
+                .build(),
+            userId,
+        );
 
         // Create an expense
         const expense = await appDriver.createExpense(
@@ -109,10 +111,13 @@ describe('Expense Concurrent Updates - Unit Tests', () => {
 
     test('should demonstrate transaction conflict behavior with concurrent amount changes', async () => {
         // Create group
-        const group = await appDriver.createGroup({
-            name: toGroupName('Transaction Conflict Test'),
-            groupDisplayName: toDisplayName('Owner Display'),
-        }, userId);
+        const group = await appDriver.createGroup(
+            new CreateGroupRequestBuilder()
+                .withName('Transaction Conflict Test')
+                .withGroupDisplayName('Owner Display')
+                .build(),
+            userId,
+        );
 
         // Create an expense
         const expense = await appDriver.createExpense(
@@ -182,10 +187,13 @@ describe('Expense Concurrent Updates - Unit Tests', () => {
         const nonMemberId = nonMemberResult.user.uid;
 
         // Create group and expense
-        const group = await appDriver.createGroup({
-            name: toGroupName('Access Control Test'),
-            groupDisplayName: toDisplayName('Owner Display'),
-        }, userId);
+        const group = await appDriver.createGroup(
+            new CreateGroupRequestBuilder()
+                .withName('Access Control Test')
+                .withGroupDisplayName('Owner Display')
+                .build(),
+            userId,
+        );
 
         const expense = await appDriver.createExpense(
             new CreateExpenseRequestBuilder()

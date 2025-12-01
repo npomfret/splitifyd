@@ -218,12 +218,10 @@ describe('expenses', () => {
 
         const participants = [user1, user2, user3];
 
-        const exactSplits = ExpenseSplitBuilder
-            .exactSplit([
-                { uid: user1, amount: '120.10' },
-                { uid: user2, amount: '80.05' },
-                { uid: user3, amount: '75.10' },
-            ])
+        const exactSplits = new ExpenseSplitBuilder()
+            .withSplit(user1, '120.10')
+            .withSplit(user2, '80.05')
+            .withSplit(user3, '75.10')
             .build();
 
         const createdExpense = await appDriver.createExpense(

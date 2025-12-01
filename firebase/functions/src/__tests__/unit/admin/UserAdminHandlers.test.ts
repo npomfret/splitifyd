@@ -1,5 +1,9 @@
 import { SystemUserRoles, toUserId } from '@billsplit-wl/shared';
-import { UserRegistrationBuilder } from '@billsplit-wl/test-support';
+import {
+    UpdateUserRoleRequestBuilder,
+    UpdateUserStatusRequestBuilder,
+    UserRegistrationBuilder,
+} from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ApiError } from '../../../errors';
@@ -26,7 +30,11 @@ describe('UserAdminHandlers - Unit Tests', () => {
             const userId = registered.user.uid;
 
             // Disable the user via admin API (returns 204 No Content)
-            await appDriver.updateUser(userId, { disabled: true }, adminToken);
+            await appDriver.updateUser(
+                userId,
+                UpdateUserStatusRequestBuilder.empty().asDisabled().build(),
+                adminToken,
+            );
 
             // Verify user was disabled by fetching their record
             const userRecord = await appDriver.getUserAuth(userId, adminToken);
@@ -43,10 +51,18 @@ describe('UserAdminHandlers - Unit Tests', () => {
             const userId = registered.user.uid;
 
             // First disable the user
-            await appDriver.updateUser(userId, { disabled: true }, adminToken);
+            await appDriver.updateUser(
+                userId,
+                UpdateUserStatusRequestBuilder.empty().asDisabled().build(),
+                adminToken,
+            );
 
             // Then enable the user (returns 204 No Content)
-            await appDriver.updateUser(userId, { disabled: false }, adminToken);
+            await appDriver.updateUser(
+                userId,
+                UpdateUserStatusRequestBuilder.empty().asEnabled().build(),
+                adminToken,
+            );
 
             // Verify user was enabled by fetching their record
             const userRecord = await appDriver.getUserAuth(userId, adminToken);
@@ -56,7 +72,11 @@ describe('UserAdminHandlers - Unit Tests', () => {
         it('should reject request with invalid UID', async () => {
             // Try to update user with empty UID
             try {
-                await appDriver.updateUser(toUserId(''), { disabled: true }, adminToken);
+                await appDriver.updateUser(
+                    toUserId(''),
+                    UpdateUserStatusRequestBuilder.empty().asDisabled().build(),
+                    adminToken,
+                );
                 expect.fail('Expected updateUser to throw ApiError');
             } catch (error) {
                 expect(error).toBeInstanceOf(ApiError);
@@ -109,7 +129,11 @@ describe('UserAdminHandlers - Unit Tests', () => {
 
             // Try to disable own account using own token
             try {
-                await appDriver.updateUser(userId, { disabled: true }, userToken);
+                await appDriver.updateUser(
+                    userId,
+                    UpdateUserStatusRequestBuilder.empty().asDisabled().build(),
+                    userToken,
+                );
                 expect.fail('Expected updateUser to throw ApiError');
             } catch (error) {
                 expect(error).toBeInstanceOf(ApiError);
@@ -121,7 +145,11 @@ describe('UserAdminHandlers - Unit Tests', () => {
             const nonExistentUserId = toUserId('nonexistent');
 
             try {
-                await appDriver.updateUser(nonExistentUserId, { disabled: true }, adminToken);
+                await appDriver.updateUser(
+                    nonExistentUserId,
+                    UpdateUserStatusRequestBuilder.empty().asDisabled().build(),
+                    adminToken,
+                );
                 expect.fail('Expected updateUser to throw ApiError');
             } catch (error) {
                 expect(error).toBeInstanceOf(ApiError);
@@ -133,7 +161,11 @@ describe('UserAdminHandlers - Unit Tests', () => {
         it('should validate that UID is a non-empty string', async () => {
             // Test with whitespace-only UID
             try {
-                await appDriver.updateUser(toUserId('   '), { disabled: true }, adminToken);
+                await appDriver.updateUser(
+                    toUserId('   '),
+                    UpdateUserStatusRequestBuilder.empty().asDisabled().build(),
+                    adminToken,
+                );
                 expect.fail('Expected updateUser to throw ApiError');
             } catch (error) {
                 expect(error).toBeInstanceOf(ApiError);
@@ -169,7 +201,11 @@ describe('UserAdminHandlers - Unit Tests', () => {
             const userId = registered.user.uid;
 
             // Update role to system_admin (returns 204 No Content)
-            await appDriver.updateUserRole(userId, { role: SystemUserRoles.SYSTEM_ADMIN }, adminToken);
+            await appDriver.updateUserRole(
+                userId,
+                UpdateUserRoleRequestBuilder.empty().asSystemAdmin().build(),
+                adminToken,
+            );
 
             // Verify role was updated by fetching from Firestore
             const userData = await appDriver.getUserFirestore(userId, adminToken);
@@ -185,7 +221,11 @@ describe('UserAdminHandlers - Unit Tests', () => {
             const userId = registered.user.uid;
 
             // Update role to tenant_admin (returns 204 No Content)
-            await appDriver.updateUserRole(userId, { role: SystemUserRoles.TENANT_ADMIN }, adminToken);
+            await appDriver.updateUserRole(
+                userId,
+                UpdateUserRoleRequestBuilder.empty().asTenantAdmin().build(),
+                adminToken,
+            );
 
             // Verify role was updated by fetching from Firestore
             const userData = await appDriver.getUserFirestore(userId, adminToken);
@@ -201,10 +241,18 @@ describe('UserAdminHandlers - Unit Tests', () => {
             const userId = registered.user.uid;
 
             // First promote to admin
-            await appDriver.updateUserRole(userId, { role: SystemUserRoles.SYSTEM_ADMIN }, adminToken);
+            await appDriver.updateUserRole(
+                userId,
+                UpdateUserRoleRequestBuilder.empty().asSystemAdmin().build(),
+                adminToken,
+            );
 
             // Then remove role (set to null, defaults to system_user)
-            await appDriver.updateUserRole(userId, { role: null }, adminToken);
+            await appDriver.updateUserRole(
+                userId,
+                UpdateUserRoleRequestBuilder.empty().asNoRole().build(),
+                adminToken,
+            );
 
             // Verify role is now system_user by fetching from Firestore
             const userData = await appDriver.getUserFirestore(userId, adminToken);
@@ -231,7 +279,11 @@ describe('UserAdminHandlers - Unit Tests', () => {
         it('should reject request with invalid UID', async () => {
             // Try to update role with empty UID
             try {
-                await appDriver.updateUserRole(toUserId(''), { role: SystemUserRoles.SYSTEM_ADMIN }, adminToken);
+                await appDriver.updateUserRole(
+                    toUserId(''),
+                    UpdateUserRoleRequestBuilder.empty().asSystemAdmin().build(),
+                    adminToken,
+                );
                 expect.fail('Expected updateUserRole to throw ApiError');
             } catch (error) {
                 expect(error).toBeInstanceOf(ApiError);
@@ -268,7 +320,11 @@ describe('UserAdminHandlers - Unit Tests', () => {
 
             // Try to change own role using own token
             try {
-                await appDriver.updateUserRole(userId, { role: SystemUserRoles.TENANT_ADMIN }, userToken);
+                await appDriver.updateUserRole(
+                    userId,
+                    UpdateUserRoleRequestBuilder.empty().asTenantAdmin().build(),
+                    userToken,
+                );
                 expect.fail('Expected updateUserRole to throw ApiError');
             } catch (error) {
                 expect(error).toBeInstanceOf(ApiError);
@@ -281,7 +337,11 @@ describe('UserAdminHandlers - Unit Tests', () => {
             const nonExistentUserId = toUserId('nonexistent');
 
             try {
-                await appDriver.updateUserRole(nonExistentUserId, { role: SystemUserRoles.SYSTEM_ADMIN }, adminToken);
+                await appDriver.updateUserRole(
+                    nonExistentUserId,
+                    UpdateUserRoleRequestBuilder.empty().asSystemAdmin().build(),
+                    adminToken,
+                );
                 expect.fail('Expected updateUserRole to throw ApiError');
             } catch (error) {
                 expect(error).toBeInstanceOf(ApiError);
@@ -293,7 +353,11 @@ describe('UserAdminHandlers - Unit Tests', () => {
         it('should validate that UID is a non-empty string', async () => {
             // Test with whitespace-only UID
             try {
-                await appDriver.updateUserRole(toUserId('   '), { role: SystemUserRoles.SYSTEM_ADMIN }, adminToken);
+                await appDriver.updateUserRole(
+                    toUserId('   '),
+                    UpdateUserRoleRequestBuilder.empty().asSystemAdmin().build(),
+                    adminToken,
+                );
                 expect.fail('Expected updateUserRole to throw ApiError');
             } catch (error) {
                 expect(error).toBeInstanceOf(ApiError);

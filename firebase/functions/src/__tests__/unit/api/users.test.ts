@@ -1,6 +1,14 @@
 import { toEmail, toPassword, toPolicyId, toPolicyName, toPolicyText, toVersionHash } from '@billsplit-wl/shared';
 import type { UserId } from '@billsplit-wl/shared';
-import { PasswordChangeRequestBuilder, RegisterRequestBuilder, UserUpdateBuilder } from '@billsplit-wl/test-support';
+import {
+    AcceptPolicyRequestBuilder,
+    ChangeEmailRequestBuilder,
+    CreatePolicyRequestBuilder,
+    PasswordChangeRequestBuilder,
+    RegisterRequestBuilder,
+    UpdatePolicyRequestBuilder,
+    UserUpdateBuilder,
+} from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, it, vi } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { AppDriver } from '../AppDriver';
@@ -30,13 +38,16 @@ describe('user, policy and notification tests', () => {
     describe('policy acceptance and status', () => {
         describe('acceptMultiplePolicies - happy path', () => {
             it('should accept a single policy', async () => {
-                const policy1 = await appDriver.createPolicy({
-                    policyName: toPolicyName('Terms Of Service'),
-                    text: toPolicyText('Terms of Service v1'),
-                }, adminUser);
+                const policy1 = await appDriver.createPolicy(
+                    new CreatePolicyRequestBuilder()
+                        .withPolicyName('Terms Of Service')
+                        .withText('Terms of Service v1')
+                        .build(),
+                    adminUser,
+                );
 
                 const result = await appDriver.acceptMultiplePolicies([
-                    { policyId: policy1.id, versionHash: policy1.versionHash },
+                    new AcceptPolicyRequestBuilder().forPolicy(policy1).build(),
                 ], user1);
 
                 expect(result.acceptedPolicies).toHaveLength(1);
@@ -46,25 +57,34 @@ describe('user, policy and notification tests', () => {
             });
 
             it('should accept multiple policies at once', async () => {
-                const policy1 = await appDriver.createPolicy({
-                    policyName: toPolicyName('Terms Of Service'),
-                    text: toPolicyText('Terms of Service v1'),
-                }, adminUser);
+                const policy1 = await appDriver.createPolicy(
+                    new CreatePolicyRequestBuilder()
+                        .withPolicyName('Terms Of Service')
+                        .withText('Terms of Service v1')
+                        .build(),
+                    adminUser,
+                );
 
-                const policy2 = await appDriver.createPolicy({
-                    policyName: toPolicyName('Privacy Policy'),
-                    text: toPolicyText('Privacy Policy v1'),
-                }, adminUser);
+                const policy2 = await appDriver.createPolicy(
+                    new CreatePolicyRequestBuilder()
+                        .withPolicyName('Privacy Policy')
+                        .withText('Privacy Policy v1')
+                        .build(),
+                    adminUser,
+                );
 
-                const policy3 = await appDriver.createPolicy({
-                    policyName: toPolicyName('Cookie Policy'),
-                    text: toPolicyText('Cookie Policy v1'),
-                }, adminUser);
+                const policy3 = await appDriver.createPolicy(
+                    new CreatePolicyRequestBuilder()
+                        .withPolicyName('Cookie Policy')
+                        .withText('Cookie Policy v1')
+                        .build(),
+                    adminUser,
+                );
 
                 const result = await appDriver.acceptMultiplePolicies([
-                    { policyId: policy1.id, versionHash: policy1.versionHash },
-                    { policyId: policy2.id, versionHash: policy2.versionHash },
-                    { policyId: policy3.id, versionHash: policy3.versionHash },
+                    new AcceptPolicyRequestBuilder().forPolicy(policy1).build(),
+                    new AcceptPolicyRequestBuilder().forPolicy(policy2).build(),
+                    new AcceptPolicyRequestBuilder().forPolicy(policy3).build(),
                 ], user1);
 
                 expect(result.acceptedPolicies).toHaveLength(3);
@@ -74,13 +94,16 @@ describe('user, policy and notification tests', () => {
             });
 
             it('should persist policy acceptance in user document', async () => {
-                const policy1 = await appDriver.createPolicy({
-                    policyName: toPolicyName('Terms Of Service'),
-                    text: toPolicyText('Terms of Service v1'),
-                }, adminUser);
+                const policy1 = await appDriver.createPolicy(
+                    new CreatePolicyRequestBuilder()
+                        .withPolicyName('Terms Of Service')
+                        .withText('Terms of Service v1')
+                        .build(),
+                    adminUser,
+                );
 
                 await appDriver.acceptMultiplePolicies([
-                    { policyId: policy1.id, versionHash: policy1.versionHash },
+                    new AcceptPolicyRequestBuilder().forPolicy(policy1).build(),
                 ], user2);
 
                 const status = await appDriver.getUserPolicyStatus(user2);
@@ -91,14 +114,17 @@ describe('user, policy and notification tests', () => {
             });
 
             it('should preserve original timestamp when re-accepting same version (no-op)', async () => {
-                const policy1 = await appDriver.createPolicy({
-                    policyName: toPolicyName('Terms Of Service'),
-                    text: toPolicyText('Terms of Service v1'),
-                }, adminUser);
+                const policy1 = await appDriver.createPolicy(
+                    new CreatePolicyRequestBuilder()
+                        .withPolicyName('Terms Of Service')
+                        .withText('Terms of Service v1')
+                        .build(),
+                    adminUser,
+                );
 
                 // First acceptance
                 const firstResult = await appDriver.acceptMultiplePolicies([
-                    { policyId: policy1.id, versionHash: policy1.versionHash },
+                    new AcceptPolicyRequestBuilder().forPolicy(policy1).build(),
                 ], user1);
 
                 const firstAcceptedAt = firstResult.acceptedPolicies[0].acceptedAt;
@@ -108,7 +134,7 @@ describe('user, policy and notification tests', () => {
 
                 // Second acceptance of same version - should be no-op
                 const secondResult = await appDriver.acceptMultiplePolicies([
-                    { policyId: policy1.id, versionHash: policy1.versionHash },
+                    new AcceptPolicyRequestBuilder().forPolicy(policy1).build(),
                 ], user1);
 
                 // API should return the original timestamp, not a new one
@@ -121,30 +147,40 @@ describe('user, policy and notification tests', () => {
             });
 
             it('should preserve history when accepting new policy version', async () => {
-                const policy1 = await appDriver.createPolicy({
-                    policyName: toPolicyName('Terms Of Service'),
-                    text: toPolicyText('Terms of Service v1'),
-                }, adminUser);
+                const policy1 = await appDriver.createPolicy(
+                    new CreatePolicyRequestBuilder()
+                        .withPolicyName('Terms Of Service')
+                        .withText('Terms of Service v1')
+                        .build(),
+                    adminUser,
+                );
 
                 const oldVersionHash = policy1.versionHash;
 
                 // Accept initial version
                 await appDriver.acceptMultiplePolicies([
-                    { policyId: policy1.id, versionHash: oldVersionHash },
+                    new AcceptPolicyRequestBuilder().forPolicy(policy1).build(),
                 ], user1);
 
                 // Update policy to new version
-                const updatedPolicy = await appDriver.updatePolicy(policy1.id, {
-                    text: toPolicyText('Terms of Service v2 - updated'),
-                    publish: true,
-                }, adminUser);
+                const updatedPolicy = await appDriver.updatePolicy(
+                    policy1.id,
+                    new UpdatePolicyRequestBuilder()
+                        .withText('Terms of Service v2 - updated')
+                        .asPublished()
+                        .build(),
+                    adminUser,
+                );
 
                 const newVersionHash = updatedPolicy.versionHash;
                 expect(newVersionHash).not.toBe(oldVersionHash);
 
                 // Accept new version
                 await appDriver.acceptMultiplePolicies([
-                    { policyId: policy1.id, versionHash: newVersionHash },
+                    new AcceptPolicyRequestBuilder()
+                        .withPolicyId(policy1.id)
+                        .withVersionHash(newVersionHash)
+                        .build(),
                 ], user1);
 
                 // User should now have accepted current version
@@ -171,7 +207,10 @@ describe('user, policy and notification tests', () => {
             it('should reject when policyId is missing', async () => {
                 await expect(
                     appDriver.acceptMultiplePolicies([
-                        { policyId: toPolicyId(''), versionHash: toVersionHash('some-hash') },
+                        new AcceptPolicyRequestBuilder()
+                            .withPolicyId('')
+                            .withVersionHash('some-hash')
+                            .build(),
                     ], user1),
                 )
                     .rejects
@@ -185,7 +224,10 @@ describe('user, policy and notification tests', () => {
             it('should reject when versionHash is missing', async () => {
                 await expect(
                     appDriver.acceptMultiplePolicies([
-                        { policyId: toPolicyId('some-policy'), versionHash: toVersionHash('') },
+                        new AcceptPolicyRequestBuilder()
+                            .withPolicyId('some-policy')
+                            .withVersionHash('')
+                            .build(),
                     ], user1),
                 )
                     .rejects
@@ -199,7 +241,10 @@ describe('user, policy and notification tests', () => {
             it('should reject when policy does not exist', async () => {
                 await expect(
                     appDriver.acceptMultiplePolicies([
-                        { policyId: toPolicyId('non-existent-policy'), versionHash: toVersionHash('some-hash') },
+                        new AcceptPolicyRequestBuilder()
+                            .withPolicyId('non-existent-policy')
+                            .withVersionHash('some-hash')
+                            .build(),
                     ], user1),
                 )
                     .rejects
@@ -210,14 +255,20 @@ describe('user, policy and notification tests', () => {
             });
 
             it('should reject when version hash is invalid for existing policy', async () => {
-                const policy1 = await appDriver.createPolicy({
-                    policyName: toPolicyName('Terms Of Service'),
-                    text: toPolicyText('Terms of Service v1'),
-                }, adminUser);
+                const policy1 = await appDriver.createPolicy(
+                    new CreatePolicyRequestBuilder()
+                        .withPolicyName('Terms Of Service')
+                        .withText('Terms of Service v1')
+                        .build(),
+                    adminUser,
+                );
 
                 await expect(
                     appDriver.acceptMultiplePolicies([
-                        { policyId: policy1.id, versionHash: toVersionHash('invalid-version-hash') },
+                        new AcceptPolicyRequestBuilder()
+                            .withPolicyId(policy1.id)
+                            .withVersionHash('invalid-version-hash')
+                            .build(),
                     ], user1),
                 )
                     .rejects
@@ -228,15 +279,21 @@ describe('user, policy and notification tests', () => {
             });
 
             it('should reject entire batch if any policy is invalid', async () => {
-                const policy1 = await appDriver.createPolicy({
-                    policyName: toPolicyName('Terms Of Service'),
-                    text: toPolicyText('Terms of Service v1'),
-                }, adminUser);
+                const policy1 = await appDriver.createPolicy(
+                    new CreatePolicyRequestBuilder()
+                        .withPolicyName('Terms Of Service')
+                        .withText('Terms of Service v1')
+                        .build(),
+                    adminUser,
+                );
 
                 await expect(
                     appDriver.acceptMultiplePolicies([
-                        { policyId: policy1.id, versionHash: policy1.versionHash },
-                        { policyId: toPolicyId('non-existent'), versionHash: toVersionHash('some-hash') },
+                        new AcceptPolicyRequestBuilder().forPolicy(policy1).build(),
+                        new AcceptPolicyRequestBuilder()
+                            .withPolicyId('non-existent')
+                            .withVersionHash('some-hash')
+                            .build(),
                     ], user1),
                 )
                     .rejects
@@ -250,10 +307,13 @@ describe('user, policy and notification tests', () => {
             });
 
             it('should propagate error when Firestore write fails', async () => {
-                const policy1 = await appDriver.createPolicy({
-                    policyName: toPolicyName('Terms Of Service'),
-                    text: toPolicyText('Terms of Service v1'),
-                }, adminUser);
+                const policy1 = await appDriver.createPolicy(
+                    new CreatePolicyRequestBuilder()
+                        .withPolicyName('Terms Of Service')
+                        .withText('Terms of Service v1')
+                        .build(),
+                    adminUser,
+                );
 
                 const firestoreWriter = appDriver.componentBuilder.buildFirestoreWriter();
                 const runTransactionSpy = vi.spyOn(firestoreWriter, 'runTransaction').mockRejectedValueOnce(
@@ -262,7 +322,7 @@ describe('user, policy and notification tests', () => {
 
                 await expect(
                     appDriver.acceptMultiplePolicies([
-                        { policyId: policy1.id, versionHash: policy1.versionHash },
+                        new AcceptPolicyRequestBuilder().forPolicy(policy1).build(),
                     ], user1),
                 )
                     .rejects
@@ -277,15 +337,21 @@ describe('user, policy and notification tests', () => {
 
         describe('getUserPolicyStatus - happy path', () => {
             it('should show all policies as pending when user has not accepted any', async () => {
-                const policy1 = await appDriver.createPolicy({
-                    policyName: toPolicyName('Terms Of Service'),
-                    text: toPolicyText('Terms of Service v1'),
-                }, adminUser);
+                const policy1 = await appDriver.createPolicy(
+                    new CreatePolicyRequestBuilder()
+                        .withPolicyName('Terms Of Service')
+                        .withText('Terms of Service v1')
+                        .build(),
+                    adminUser,
+                );
 
-                const policy2 = await appDriver.createPolicy({
-                    policyName: toPolicyName('Privacy Policy'),
-                    text: toPolicyText('Privacy Policy v1'),
-                }, adminUser);
+                const policy2 = await appDriver.createPolicy(
+                    new CreatePolicyRequestBuilder()
+                        .withPolicyName('Privacy Policy')
+                        .withText('Privacy Policy v1')
+                        .build(),
+                    adminUser,
+                );
 
                 const status = await appDriver.getUserPolicyStatus(user2);
 
@@ -305,19 +371,25 @@ describe('user, policy and notification tests', () => {
             });
 
             it('should show no pending policies when user has accepted current versions', async () => {
-                const policy1 = await appDriver.createPolicy({
-                    policyName: toPolicyName('Terms Of Service'),
-                    text: toPolicyText('Terms of Service v1'),
-                }, adminUser);
+                const policy1 = await appDriver.createPolicy(
+                    new CreatePolicyRequestBuilder()
+                        .withPolicyName('Terms Of Service')
+                        .withText('Terms of Service v1')
+                        .build(),
+                    adminUser,
+                );
 
-                const policy2 = await appDriver.createPolicy({
-                    policyName: toPolicyName('Privacy Policy'),
-                    text: toPolicyText('Privacy Policy v1'),
-                }, adminUser);
+                const policy2 = await appDriver.createPolicy(
+                    new CreatePolicyRequestBuilder()
+                        .withPolicyName('Privacy Policy')
+                        .withText('Privacy Policy v1')
+                        .build(),
+                    adminUser,
+                );
 
                 await appDriver.acceptMultiplePolicies([
-                    { policyId: policy1.id, versionHash: policy1.versionHash },
-                    { policyId: policy2.id, versionHash: policy2.versionHash },
+                    new AcceptPolicyRequestBuilder().forPolicy(policy1).build(),
+                    new AcceptPolicyRequestBuilder().forPolicy(policy2).build(),
                 ], user2);
 
                 const status = await appDriver.getUserPolicyStatus(user2);
@@ -333,21 +405,28 @@ describe('user, policy and notification tests', () => {
             });
 
             it('should show pending when user has accepted old versions', async () => {
-                const policy1 = await appDriver.createPolicy({
-                    policyName: toPolicyName('Terms Of Service'),
-                    text: toPolicyText('Terms of Service v1'),
-                }, adminUser);
+                const policy1 = await appDriver.createPolicy(
+                    new CreatePolicyRequestBuilder()
+                        .withPolicyName('Terms Of Service')
+                        .withText('Terms of Service v1')
+                        .build(),
+                    adminUser,
+                );
 
                 await appDriver.acceptMultiplePolicies([
-                    { policyId: policy1.id, versionHash: policy1.versionHash },
+                    new AcceptPolicyRequestBuilder().forPolicy(policy1).build(),
                 ], user2);
 
                 const oldVersionHash = policy1.versionHash;
 
-                const updatedPolicy = await appDriver.updatePolicy(policy1.id, {
-                    text: toPolicyText('Terms of Service v2 - updated'),
-                    publish: true,
-                }, adminUser);
+                const updatedPolicy = await appDriver.updatePolicy(
+                    policy1.id,
+                    new UpdatePolicyRequestBuilder()
+                        .withText('Terms of Service v2 - updated')
+                        .asPublished()
+                        .build(),
+                    adminUser,
+                );
 
                 const status = await appDriver.getUserPolicyStatus(user2);
 
@@ -365,30 +444,43 @@ describe('user, policy and notification tests', () => {
             });
 
             it('should show mixed acceptance state across multiple policies', async () => {
-                const policy1 = await appDriver.createPolicy({
-                    policyName: toPolicyName('Terms Of Service'),
-                    text: toPolicyText('Terms of Service v1'),
-                }, adminUser);
+                const policy1 = await appDriver.createPolicy(
+                    new CreatePolicyRequestBuilder()
+                        .withPolicyName('Terms Of Service')
+                        .withText('Terms of Service v1')
+                        .build(),
+                    adminUser,
+                );
 
-                const policy2 = await appDriver.createPolicy({
-                    policyName: toPolicyName('Privacy Policy'),
-                    text: toPolicyText('Privacy Policy v1'),
-                }, adminUser);
+                const policy2 = await appDriver.createPolicy(
+                    new CreatePolicyRequestBuilder()
+                        .withPolicyName('Privacy Policy')
+                        .withText('Privacy Policy v1')
+                        .build(),
+                    adminUser,
+                );
 
-                const policy3 = await appDriver.createPolicy({
-                    policyName: toPolicyName('Cookie Policy'),
-                    text: toPolicyText('Cookie Policy v1'),
-                }, adminUser);
+                const policy3 = await appDriver.createPolicy(
+                    new CreatePolicyRequestBuilder()
+                        .withPolicyName('Cookie Policy')
+                        .withText('Cookie Policy v1')
+                        .build(),
+                    adminUser,
+                );
 
                 await appDriver.acceptMultiplePolicies([
-                    { policyId: policy1.id, versionHash: policy1.versionHash },
-                    { policyId: policy2.id, versionHash: policy2.versionHash },
+                    new AcceptPolicyRequestBuilder().forPolicy(policy1).build(),
+                    new AcceptPolicyRequestBuilder().forPolicy(policy2).build(),
                 ], user2);
 
-                await appDriver.updatePolicy(policy1.id, {
-                    text: toPolicyText('Terms of Service v2'),
-                    publish: true,
-                }, adminUser);
+                await appDriver.updatePolicy(
+                    policy1.id,
+                    new UpdatePolicyRequestBuilder()
+                        .withText('Terms of Service v2')
+                        .asPublished()
+                        .build(),
+                    adminUser,
+                );
 
                 const status = await appDriver.getUserPolicyStatus(user2);
 
@@ -408,10 +500,13 @@ describe('user, policy and notification tests', () => {
 
         describe('getUserPolicyStatus - data integrity', () => {
             it('should return correct response structure', async () => {
-                await appDriver.createPolicy({
-                    policyName: toPolicyName('Terms Of Service'),
-                    text: toPolicyText('Terms of Service v1'),
-                }, adminUser);
+                await appDriver.createPolicy(
+                    new CreatePolicyRequestBuilder()
+                        .withPolicyName('Terms Of Service')
+                        .withText('Terms of Service v1')
+                        .build(),
+                    adminUser,
+                );
 
                 const status = await appDriver.getUserPolicyStatus(user2);
 
@@ -425,13 +520,16 @@ describe('user, policy and notification tests', () => {
             });
 
             it('should include all required fields in each policy', async () => {
-                const policy1 = await appDriver.createPolicy({
-                    policyName: toPolicyName('Terms Of Service'),
-                    text: toPolicyText('Terms of Service v1'),
-                }, adminUser);
+                const policy1 = await appDriver.createPolicy(
+                    new CreatePolicyRequestBuilder()
+                        .withPolicyName('Terms Of Service')
+                        .withText('Terms of Service v1')
+                        .build(),
+                    adminUser,
+                );
 
                 await appDriver.acceptMultiplePolicies([
-                    { policyId: policy1.id, versionHash: policy1.versionHash },
+                    new AcceptPolicyRequestBuilder().forPolicy(policy1).build(),
                 ], user2);
 
                 const status = await appDriver.getUserPolicyStatus(user2);
@@ -453,23 +551,32 @@ describe('user, policy and notification tests', () => {
             });
 
             it('should correctly count totalPending', async () => {
-                const policy1 = await appDriver.createPolicy({
-                    policyName: toPolicyName('Terms Of Service'),
-                    text: toPolicyText('Terms of Service v1'),
-                }, adminUser);
+                const policy1 = await appDriver.createPolicy(
+                    new CreatePolicyRequestBuilder()
+                        .withPolicyName('Terms Of Service')
+                        .withText('Terms of Service v1')
+                        .build(),
+                    adminUser,
+                );
 
-                const policy2 = await appDriver.createPolicy({
-                    policyName: toPolicyName('Privacy Policy'),
-                    text: toPolicyText('Privacy Policy v1'),
-                }, adminUser);
+                const policy2 = await appDriver.createPolicy(
+                    new CreatePolicyRequestBuilder()
+                        .withPolicyName('Privacy Policy')
+                        .withText('Privacy Policy v1')
+                        .build(),
+                    adminUser,
+                );
 
-                const policy3 = await appDriver.createPolicy({
-                    policyName: toPolicyName('Cookie Policy'),
-                    text: toPolicyText('Cookie Policy v1'),
-                }, adminUser);
+                const policy3 = await appDriver.createPolicy(
+                    new CreatePolicyRequestBuilder()
+                        .withPolicyName('Cookie Policy')
+                        .withText('Cookie Policy v1')
+                        .build(),
+                    adminUser,
+                );
 
                 await appDriver.acceptMultiplePolicies([
-                    { policyId: policy1.id, versionHash: policy1.versionHash },
+                    new AcceptPolicyRequestBuilder().forPolicy(policy1).build(),
                 ], user2);
 
                 const status = await appDriver.getUserPolicyStatus(user2);
@@ -581,10 +688,13 @@ describe('user, policy and notification tests', () => {
             const NEW_EMAIL = toEmail('newemail@example.com');
 
             it('should successfully change email with valid credentials', async () => {
-                await appDriver.changeEmail({
-                    currentPassword: CURRENT_PASSWORD,
-                    newEmail: NEW_EMAIL,
-                }, user1);
+                await appDriver.changeEmail(
+                    new ChangeEmailRequestBuilder()
+                        .withCurrentPassword(CURRENT_PASSWORD)
+                        .withNewEmail(NEW_EMAIL)
+                        .build(),
+                    user1,
+                );
 
                 const profile = await appDriver.getUserProfile(user1);
                 expect(profile.email).toBe(NEW_EMAIL);
@@ -592,10 +702,13 @@ describe('user, policy and notification tests', () => {
             });
 
             it('should lowercase email address', async () => {
-                await appDriver.changeEmail({
-                    currentPassword: CURRENT_PASSWORD,
-                    newEmail: toEmail('NewEmail@EXAMPLE.COM'),
-                }, user1);
+                await appDriver.changeEmail(
+                    new ChangeEmailRequestBuilder()
+                        .withCurrentPassword(CURRENT_PASSWORD)
+                        .withNewEmail('NewEmail@EXAMPLE.COM')
+                        .build(),
+                    user1,
+                );
 
                 const profile = await appDriver.getUserProfile(user1);
                 expect(profile.email).toBe('newemail@example.com');

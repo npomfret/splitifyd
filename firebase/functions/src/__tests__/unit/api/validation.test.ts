@@ -291,12 +291,10 @@ describe('validation and edge cases', () => {
             await appDriver.joinGroupByLink(shareToken, undefined, user3);
 
             const participants = [user1, user2, user3];
-            const invalidPercentageSplits = ExpenseSplitBuilder
-                .exactSplit([
-                    { uid: user1, amount: '40.00', percentage: 40 },
-                    { uid: user2, amount: '40.00', percentage: 40 },
-                    { uid: user3, amount: '19.00', percentage: 19 },
-                ])
+            const invalidPercentageSplits = new ExpenseSplitBuilder()
+                .withSplit(user1, '40.00', 40)
+                .withSplit(user2, '40.00', 40)
+                .withSplit(user3, '19.00', 19)
                 .build();
 
             const expenseRequest = new CreateExpenseRequestBuilder()
@@ -320,11 +318,9 @@ describe('validation and edge cases', () => {
             await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
             const participants = [user1, user2];
-            const invalidPercentageSplits = ExpenseSplitBuilder
-                .exactSplit([
-                    { uid: user1, amount: '120.00', percentage: 120 },
-                    { uid: user2, amount: '-20.00', percentage: -20 },
-                ])
+            const invalidPercentageSplits = new ExpenseSplitBuilder()
+                .withSplit(user1, '120.00', 120)
+                .withSplit(user2, '-20.00', -20)
                 .build();
 
             const expenseRequest = new CreateExpenseRequestBuilder()

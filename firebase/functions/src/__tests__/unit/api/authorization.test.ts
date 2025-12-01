@@ -20,9 +20,13 @@ import {
     AdminTenantRequestBuilder,
     CreateExpenseRequestBuilder,
     CreateGroupRequestBuilder,
+    CreatePolicyRequestBuilder,
     CreateSettlementRequestBuilder,
     SettlementUpdateBuilder,
     TenantBrandingUpdateBuilder,
+    UpdatePolicyRequestBuilder,
+    UpdateUserRoleRequestBuilder,
+    UpdateUserStatusRequestBuilder,
     UserRegistrationBuilder,
 } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, it } from 'vitest';
@@ -183,30 +187,41 @@ describe('authorization', () => {
         it('should allow admin to create, update, and publish policies', async () => {
             const policyName = toPolicyName('Privacy Policy');
 
-            const created = await appDriver.createPolicy({
-                policyName,
-                text: toPolicyText('Initial policy text'),
-            }, adminUser);
+            const created = await appDriver.createPolicy(
+                new CreatePolicyRequestBuilder()
+                    .withPolicyName(policyName)
+                    .withText(toPolicyText('Initial policy text'))
+                    .build(),
+                adminUser,
+            );
 
             expect(created).toMatchObject({
                 id: expect.any(String),
                 versionHash: expect.any(String),
             });
 
-            const draftUpdate = await appDriver.updatePolicy(created.id, {
-                text: toPolicyText('Updated draft policy text'),
-                publish: false,
-            }, adminUser);
+            const draftUpdate = await appDriver.updatePolicy(
+                created.id,
+                new UpdatePolicyRequestBuilder()
+                    .withText(toPolicyText('Updated draft policy text'))
+                    .asDraft()
+                    .build(),
+                adminUser,
+            );
 
             expect(draftUpdate).toMatchObject({
                 published: false,
                 versionHash: expect.any(String),
             });
 
-            const publishedUpdate = await appDriver.updatePolicy(created.id, {
-                text: toPolicyText('Final published policy text'),
-                publish: true,
-            }, adminUser);
+            const publishedUpdate = await appDriver.updatePolicy(
+                created.id,
+                new UpdatePolicyRequestBuilder()
+                    .withText(toPolicyText('Final published policy text'))
+                    .asPublished()
+                    .build(),
+                adminUser,
+            );
 
             expect(publishedUpdate).toMatchObject({
                 published: true,
@@ -228,10 +243,14 @@ describe('authorization', () => {
 
             // Attempt to update a non-existent policy should throw
             await expect(
-                appDriver.updatePolicy(policyId, {
-                    text: toPolicyText('Updated terms version 1'),
-                    publish: true,
-                }, adminUser)
+                appDriver.updatePolicy(
+                    policyId,
+                    new UpdatePolicyRequestBuilder()
+                        .withText(toPolicyText('Updated terms version 1'))
+                        .asPublished()
+                        .build(),
+                    adminUser,
+                )
             ).rejects.toMatchObject({
                 code: 'NOT_FOUND',
                 data: {
@@ -239,17 +258,24 @@ describe('authorization', () => {
                 },
             });
 
-            const created = await appDriver.createPolicy({
-                policyName,
-                text: toPolicyText('Initial terms content'),
-            }, adminUser);
+            const created = await appDriver.createPolicy(
+                new CreatePolicyRequestBuilder()
+                    .withPolicyName(policyName)
+                    .withText(toPolicyText('Initial terms content'))
+                    .build(),
+                adminUser,
+            );
 
             expect(created.id).toBe(policyId);
 
-            const update = await appDriver.updatePolicy(created.id, {
-                text: toPolicyText('Updated terms version 2'),
-                publish: true,
-            }, adminUser);
+            const update = await appDriver.updatePolicy(
+                created.id,
+                new UpdatePolicyRequestBuilder()
+                    .withText(toPolicyText('Updated terms version 2'))
+                    .asPublished()
+                    .build(),
+                adminUser,
+            );
 
             expect(update).toMatchObject({
                 published: true,
@@ -1090,7 +1116,11 @@ describe('authorization', () => {
         describe('PUT /api/admin/users/:uid - updateUser (disable/enable)', () => {
             it('should allow admin to disable a user account', async () => {
                 // Returns 204 No Content on success
-                await appDriver.updateUser(regularUser, { disabled: true }, adminUser);
+                await appDriver.updateUser(
+                    regularUser,
+                    UpdateUserStatusRequestBuilder.empty().asDisabled().build(),
+                    adminUser,
+                );
 
                 // Verify user was disabled
                 const userRecord = await appDriver.getUserAuth(regularUser, adminUser);
@@ -1099,10 +1129,18 @@ describe('authorization', () => {
 
             it('should allow admin to enable a disabled user account', async () => {
                 // First disable the user
-                await appDriver.updateUser(regularUser, { disabled: true }, adminUser);
+                await appDriver.updateUser(
+                    regularUser,
+                    UpdateUserStatusRequestBuilder.empty().asDisabled().build(),
+                    adminUser,
+                );
 
                 // Then enable them (returns 204 No Content on success)
-                await appDriver.updateUser(regularUser, { disabled: false }, adminUser);
+                await appDriver.updateUser(
+                    regularUser,
+                    UpdateUserStatusRequestBuilder.empty().asEnabled().build(),
+                    adminUser,
+                );
 
                 // Verify user was enabled
                 const userRecord = await appDriver.getUserAuth(regularUser, adminUser);
@@ -1110,7 +1148,13 @@ describe('authorization', () => {
             });
 
             it('should reject non-admin user', async () => {
-                await expect(appDriver.updateUser(regularUser, { disabled: true }, regularUser)).rejects.toThrow(
+                await expect(
+                    appDriver.updateUser(
+                        regularUser,
+                        UpdateUserStatusRequestBuilder.empty().asDisabled().build(),
+                        regularUser,
+                    ),
+                ).rejects.toThrow(
                     expect.objectContaining({
                         code: 'FORBIDDEN',
                     }),
@@ -1121,7 +1165,11 @@ describe('authorization', () => {
         describe('PUT /api/admin/users/:uid/role - updateUserRole', () => {
             it('should allow admin to promote user to system_admin', async () => {
                 // Returns 204 No Content on success
-                await appDriver.updateUserRole(regularUser, { role: SystemUserRoles.SYSTEM_ADMIN }, adminUser);
+                await appDriver.updateUserRole(
+                    regularUser,
+                    UpdateUserRoleRequestBuilder.empty().asSystemAdmin().build(),
+                    adminUser,
+                );
 
                 // Verify role was updated
                 const userData = await appDriver.getUserFirestore(regularUser, adminUser);
@@ -1130,7 +1178,11 @@ describe('authorization', () => {
 
             it('should allow admin to promote user to tenant_admin', async () => {
                 // Returns 204 No Content on success
-                await appDriver.updateUserRole(regularUser, { role: SystemUserRoles.TENANT_ADMIN }, adminUser);
+                await appDriver.updateUserRole(
+                    regularUser,
+                    UpdateUserRoleRequestBuilder.empty().asTenantAdmin().build(),
+                    adminUser,
+                );
 
                 // Verify role was updated
                 const userData = await appDriver.getUserFirestore(regularUser, adminUser);
@@ -1139,10 +1191,18 @@ describe('authorization', () => {
 
             it('should allow admin to demote user by setting role to null', async () => {
                 // First promote the user
-                await appDriver.updateUserRole(regularUser, { role: SystemUserRoles.SYSTEM_ADMIN }, adminUser);
+                await appDriver.updateUserRole(
+                    regularUser,
+                    UpdateUserRoleRequestBuilder.empty().asSystemAdmin().build(),
+                    adminUser,
+                );
 
                 // Then demote them (returns 204 No Content on success)
-                await appDriver.updateUserRole(regularUser, { role: null }, adminUser);
+                await appDriver.updateUserRole(
+                    regularUser,
+                    UpdateUserRoleRequestBuilder.empty().asNoRole().build(),
+                    adminUser,
+                );
 
                 // Verify role was demoted to system_user
                 const userData = await appDriver.getUserFirestore(regularUser, adminUser);

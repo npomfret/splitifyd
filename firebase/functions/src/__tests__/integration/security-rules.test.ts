@@ -1,9 +1,10 @@
-import { toExpenseId, toUserId, toVersionHash } from '@billsplit-wl/shared';
+import { toExpenseId, toUserId, toVersionHash, USD } from '@billsplit-wl/shared';
 import {
     ActivityFeedItemBuilder,
     ClientUserBuilder,
     CommentBuilder,
     ExpenseDTOBuilder,
+    ExpenseSplitBuilder,
     ExpenseUpdateBuilder,
     getFirestorePort,
     GroupBalanceDocumentBuilder,
@@ -177,10 +178,12 @@ describe('Firestore Security Rules (Production)', () => {
                         // Note: ExpenseDTOBuilder doesn't have memberIds - access is controlled differently
 
                         .withParticipants([userId1, userId2])
-                        .withSplits([
-                            { uid: userId1, amount: '50' },
-                            { uid: userId2, amount: '50' },
-                        ])
+                        .withSplits(
+                            new ExpenseSplitBuilder()
+                                .withSplit(userId1, '50')
+                                .withSplit(userId2, '50')
+                                .build(),
+                        )
                         .build();
 
                     await setDoc(doc(db, 'expenses', expenseId), expense);
@@ -452,10 +455,8 @@ describe('Firestore Security Rules (Production)', () => {
                     // Create a group balance document
                     const groupBalance = new GroupBalanceDocumentBuilder()
                         .withGroupId(groupId)
-                        .withBalances({
-                            'user1-id': { USD: '50' },
-                            'user2-id': { USD: '-50' },
-                        })
+                        .withBalance(userId1, USD, '50')
+                        .withBalance(userId2, USD, '-50')
                         .build();
 
                     await setDoc(doc(db, 'group-balances', groupId), groupBalance);

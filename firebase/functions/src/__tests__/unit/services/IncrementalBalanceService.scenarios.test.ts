@@ -1,7 +1,7 @@
 import type { SimplifiedDebt } from '@billsplit-wl/shared';
 import { toCurrencyISOCode, toGroupId, toUserId, USD } from '@billsplit-wl/shared';
 import { StubFirestoreDatabase } from '@billsplit-wl/test-support';
-import { ExpenseDTOBuilder, SettlementDTOBuilder, SimplifiedDebtBuilder, UserBalanceBuilder } from '@billsplit-wl/test-support';
+import { ExpenseDTOBuilder, ExpenseSplitBuilder, SettlementDTOBuilder, SimplifiedDebtBuilder, UserBalanceBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { IncrementalBalanceService } from '../../../services/balance/IncrementalBalanceService';
 import { FirestoreWriter } from '../../../services/firestore';
@@ -62,10 +62,12 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withPaidBy(user1)
                 .withSplitType('equal')
                 .withParticipants([user1, user2])
-                .withSplits([
-                    { uid: user1, amount: '100' },
-                    { uid: user2, amount: '100' },
-                ])
+                .withSplits(
+                    new ExpenseSplitBuilder()
+                        .withSplit(user1, '100')
+                        .withSplit(user2, '100')
+                        .build(),
+                )
                 .build();
 
             await stubDb.runTransaction(async (transaction) => {
@@ -149,10 +151,12 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withAmount(150, 'USD')
                 .withPaidBy(user1)
                 .withParticipants([user1, user2])
-                .withSplits([
-                    { uid: user1, amount: '75' },
-                    { uid: user2, amount: '75' },
-                ])
+                .withSplits(
+                    new ExpenseSplitBuilder()
+                        .withSplit(user1, '75')
+                        .withSplit(user2, '75')
+                        .build(),
+                )
                 .build();
 
             await stubDb.runTransaction(async (transaction) => {
@@ -172,10 +176,12 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withAmount(50, 'USD')
                 .withPaidBy(user1)
                 .withParticipants([user1, user2])
-                .withSplits([
-                    { uid: user1, amount: '25' },
-                    { uid: user2, amount: '25' },
-                ])
+                .withSplits(
+                    new ExpenseSplitBuilder()
+                        .withSplit(user1, '25')
+                        .withSplit(user2, '25')
+                        .build(),
+                )
                 .build();
 
             await stubDb.runTransaction(async (transaction) => {
@@ -750,10 +756,12 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withAmount(200, 'USD')
                 .withPaidBy(user1)
                 .withParticipants([user1, user2])
-                .withSplits([
-                    { uid: user1, amount: '100' },
-                    { uid: user2, amount: '100' },
-                ])
+                .withSplits(
+                    new ExpenseSplitBuilder()
+                        .withSplit(user1, '100')
+                        .withSplit(user2, '100')
+                        .build(),
+                )
                 .build();
 
             await stubDb.runTransaction(async (transaction) => {
@@ -785,10 +793,12 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withAmount(200, 'EUR') // Changed from USD to EUR
                 .withPaidBy(user1)
                 .withParticipants([user1, user2])
-                .withSplits([
-                    { uid: user1, amount: '100' },
-                    { uid: user2, amount: '100' },
-                ])
+                .withSplits(
+                    new ExpenseSplitBuilder()
+                        .withSplit(user1, '100')
+                        .withSplit(user2, '100')
+                        .build(),
+                )
                 .build();
 
             await stubDb.runTransaction(async (transaction) => {
@@ -847,10 +857,12 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withAmount(300, 'USD')
                 .withPaidBy(user1)
                 .withParticipants([user1, user2])
-                .withSplits([
-                    { uid: user1, amount: '150' },
-                    { uid: user2, amount: '150' },
-                ])
+                .withSplits(
+                    new ExpenseSplitBuilder()
+                        .withSplit(user1, '150')
+                        .withSplit(user2, '150')
+                        .build(),
+                )
                 .build();
 
             await stubDb.runTransaction(async (transaction) => {

@@ -1,4 +1,5 @@
 import type { UserId } from '@billsplit-wl/shared';
+import { InitiateMergeRequestBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { AppDriver } from '../AppDriver';
 
@@ -30,18 +31,20 @@ describe('Account Merge API', () => {
 
     describe('POST /merge - initiate merge', () => {
         it('should initiate merge between two eligible users', async () => {
-            const result = await appDriver.initiateMerge({
-                secondaryUserId: user2,
-            }, user1); // user1 is primary (authenticated user)
+            const result = await appDriver.initiateMerge(
+                new InitiateMergeRequestBuilder().withSecondaryUserId(user2).build(),
+                user1, // user1 is primary (authenticated user)
+            );
 
             expect(result.jobId).toBeDefined();
             expect(result.status).toBe('pending');
         });
 
         it('should reject merge when user tries to merge with themselves', async () => {
-            const result = await appDriver.initiateMerge({
-                secondaryUserId: user1,
-            }, user1);
+            const result = await appDriver.initiateMerge(
+                new InitiateMergeRequestBuilder().withSecondaryUserId(user1).build(),
+                user1,
+            );
 
             expect(result).toMatchObject({
                 error: {
@@ -52,9 +55,10 @@ describe('Account Merge API', () => {
 
         it('should reject merge when secondary user does not exist', async () => {
             const nonExistentUser = 'non-existent-user' as UserId;
-            const result = await appDriver.initiateMerge({
-                secondaryUserId: nonExistentUser,
-            }, user1);
+            const result = await appDriver.initiateMerge(
+                new InitiateMergeRequestBuilder().withSecondaryUserId(nonExistentUser).build(),
+                user1,
+            );
 
             expect(result).toMatchObject({
                 error: {
@@ -64,9 +68,10 @@ describe('Account Merge API', () => {
         });
 
         it('should require authentication', async () => {
-            const result = await appDriver.initiateMerge({
-                secondaryUserId: user2,
-            }, '' as any); // no auth token
+            const result = await appDriver.initiateMerge(
+                new InitiateMergeRequestBuilder().withSecondaryUserId(user2).build(),
+                '' as any, // no auth token
+            );
 
             // Auth middleware returns error response instead of throwing
             expect(result).toMatchObject({
@@ -79,9 +84,10 @@ describe('Account Merge API', () => {
 
     describe('GET /merge/:jobId - get merge status', () => {
         it('should return merge job status', async () => {
-            const mergeResult = await appDriver.initiateMerge({
-                secondaryUserId: user2,
-            }, user1);
+            const mergeResult = await appDriver.initiateMerge(
+                new InitiateMergeRequestBuilder().withSecondaryUserId(user2).build(),
+                user1,
+            );
 
             const status = await appDriver.getMergeStatus(mergeResult.jobId, user1);
             expect(status.id).toBe(mergeResult.jobId);
@@ -106,9 +112,10 @@ describe('Account Merge API', () => {
             appDriver.markEmailVerified(user3);
 
             // Create merge between user1 and user2
-            const mergeResult = await appDriver.initiateMerge({
-                secondaryUserId: user2,
-            }, user1);
+            const mergeResult = await appDriver.initiateMerge(
+                new InitiateMergeRequestBuilder().withSecondaryUserId(user2).build(),
+                user1,
+            );
 
             // Try to get status as a different user (user3)
             const result = await appDriver.getMergeStatus(mergeResult.jobId, user3);
@@ -135,7 +142,10 @@ describe('Account Merge API', () => {
     describe('POST /tasks/processMerge - process merge task', () => {
         it('should process merge task and migrate all data', async () => {
             // Arrange: Initiate merge (no need to create test data for this test)
-            const mergeResult = await appDriver.initiateMerge({ secondaryUserId: user2 }, user1);
+            const mergeResult = await appDriver.initiateMerge(
+                new InitiateMergeRequestBuilder().withSecondaryUserId(user2).build(),
+                user1,
+            );
 
             // Act: Process the merge task (simulates Cloud Task invocation)
             const taskResult = await appDriver.processMergeTask(mergeResult.jobId);
@@ -174,7 +184,10 @@ describe('Account Merge API', () => {
 
         it('should reject task when job is not in pending status', async () => {
             // Create a merge job
-            const mergeResult = await appDriver.initiateMerge({ secondaryUserId: user2 }, user1);
+            const mergeResult = await appDriver.initiateMerge(
+                new InitiateMergeRequestBuilder().withSecondaryUserId(user2).build(),
+                user1,
+            );
 
             // Process it once (moves to completed)
             await appDriver.processMergeTask(mergeResult.jobId);
@@ -193,7 +206,10 @@ describe('Account Merge API', () => {
     describe('End-to-end workflow', () => {
         it('should complete full merge workflow', async () => {
             // Step 1: Initiate merge
-            const mergeResult = await appDriver.initiateMerge({ secondaryUserId: user2 }, user1);
+            const mergeResult = await appDriver.initiateMerge(
+                new InitiateMergeRequestBuilder().withSecondaryUserId(user2).build(),
+                user1,
+            );
             expect(mergeResult.jobId).toBeDefined();
             expect(mergeResult.status).toBe('pending');
 
