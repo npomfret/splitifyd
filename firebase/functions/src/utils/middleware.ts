@@ -3,7 +3,7 @@ import { randomUUID } from 'crypto';
 import express from 'express';
 import type { ZodSchema } from 'zod';
 import type { AuthenticatedRequest } from '../auth/middleware';
-import { getConfig } from '../client-config';
+import { getClientConfig } from '../client-config';
 import { logger, LoggerContext } from '../logger';
 import { applyCacheControl } from '../middleware/cache-control';
 import { applySecurityHeaders } from '../middleware/security-headers';
@@ -17,7 +17,7 @@ const applicationBuilder = getComponentBuilder();
 const tenantRegistryService = applicationBuilder.buildTenantRegistryService();
 
 const tenantIdentificationConfig: TenantIdentificationConfig = {
-    allowOverrideHeader: () => getConfig().isEmulator,
+    allowOverrideHeader: () => getClientConfig().isEmulator,
 };
 
 /**
@@ -125,7 +125,7 @@ export const applyStandardMiddleware = (app: express.Application) => {
     app.use(validateContentType);
 
     // Parse JSON with size limit (skip for binary upload routes)
-    const jsonParser = express.json({ limit: getConfig().requestBodyLimit });
+    const jsonParser = express.json({ limit: getClientConfig().requestBodyLimit });
     const rawParser = express.raw({ type: ['image/*', 'application/octet-stream'], limit: '2mb' });
     app.use((req, res, next) => {
         // Use raw body parsing for binary upload routes

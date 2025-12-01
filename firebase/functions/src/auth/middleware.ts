@@ -1,7 +1,7 @@
 import { AuthenticatedUser, SystemUserRoles, toDisplayName, toUserId } from '@billsplit-wl/shared';
 import { NextFunction, Request, Response } from 'express';
 import { OAuth2Client } from 'google-auth-library';
-import { getConfig } from '../client-config';
+import { getClientConfig } from '../client-config';
 import { getComponentBuilder } from '../ComponentBuilderSingleton';
 import { AUTH } from '../constants';
 import { Errors, ErrorDetail } from '../errors';
@@ -192,8 +192,7 @@ export const authenticateTenantAdmin = async (req: AuthenticatedRequest, res: Re
  * send real OIDC tokens.
  */
 export const authenticateCloudTask = async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
-    const correlationId = req.headers['x-correlation-id'] as string;
-    const config = getConfig();
+    const config = getClientConfig();
 
     // Skip authentication in emulator mode - Cloud Tasks stub doesn't send OIDC tokens
     if (config.isEmulator) {
@@ -202,6 +201,7 @@ export const authenticateCloudTask = async (req: Request, _res: Response, next: 
     }
 
     const authHeader = req.headers.authorization;
+    const correlationId = req.headers['x-correlation-id'] as string;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
         logger.warn('Cloud Task request missing authorization header', { correlationId });
         throw Errors.authRequired(ErrorDetail.TOKEN_MISSING);

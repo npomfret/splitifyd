@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { getConfig } from '../client-config';
+import { getClientConfig } from '../client-config';
 import { Errors } from '../errors';
 import { logger } from '../logger';
 import { checkForDangerousPatterns } from '../utils/security';
@@ -12,7 +12,7 @@ export const validateRequestStructure = (req: Request, _res: Response, next: Nex
         return next();
     }
 
-    const config = getConfig();
+    const config = getClientConfig();
     const { maxObjectDepth, maxPropertyCount, maxStringLength, maxPropertyNameLength } = config.validation;
 
     // Single recursive validation function

@@ -2,7 +2,7 @@ import { toISOString } from '@billsplit-wl/shared';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as v8 from 'v8';
-import { getConfig } from '../client-config';
+import { getClientConfig } from '../client-config';
 import { getComponentBuilder } from '../ComponentBuilderSingleton';
 import { HTTP_STATUS, SYSTEM } from '../constants';
 import { getAuth } from '../firebase';
@@ -81,7 +81,7 @@ const describeWorkspace = () => {
 export const buildEnvPayload = () => {
     const uptimeSeconds = process.uptime();
     const memUsage = process.memoryUsage();
-    const config = getConfig();
+    const config = getClientConfig();
     const heapStats = v8.getHeapStatistics();
     const heapSpaces = v8.getHeapSpaceStatistics();
 

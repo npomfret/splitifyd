@@ -3,7 +3,6 @@ import type { RequestHandler } from 'express';
 import express from 'express';
 import { onRequest } from 'firebase-functions/v2/https';
 import { authenticate, authenticateAdmin, authenticateCloudTask, authenticateSystemUser, authenticateTenantAdmin } from './auth/middleware';
-import { getConfig as getClientConfig } from './client-config';
 import { getComponentBuilder } from './ComponentBuilderSingleton';
 import { HTTP_STATUS } from './constants';
 import { logger } from './logger';
@@ -54,19 +53,13 @@ function setupRoutes(app: express.Application): void {
         authenticateTenantAdmin,
     };
 
-    const config = getClientConfig();
-
     // Setup routes from configuration
     for (const route of routeDefinitions) {
-        // Skip test-only routes when deployed
-        if (route.testOnly && !config.isEmulator) {
-            continue;
-        }
-
         // Get the handler from the route definition (already populated)
+        // Skip routes without handlers (e.g., test-only routes not registered in production)
         const handler = route.handler;
         if (!handler) {
-            throw new Error(`Handler not found for route: ${route.handlerName}`);
+            continue;
         }
 
         // Build middleware chain
@@ -87,18 +80,6 @@ function setupRoutes(app: express.Application): void {
         // Register the route
         const method = route.method.toLowerCase() as keyof express.Application;
         (app[method] as Function)(route.path, ...middlewareChain, wrappedHandler);
-    }
-
-    // Add test endpoint protection for deployed environment
-    if (!config.isEmulator) {
-        app.all(/^\/test-pool.*/, (req, res) => {
-            logger.warn('Test endpoint accessed in deployed environment', { path: req.path, ip: req.ip });
-            res.status(404).json({ error: { code: 'NOT_FOUND', resource: 'Endpoint' } });
-        });
-        app.all(/^\/test\/user.*/, (req, res) => {
-            logger.warn('Test endpoint accessed in production', { path: req.path, ip: req.ip });
-            res.status(404).json({ error: { code: 'NOT_FOUND', resource: 'Endpoint' } });
-        });
     }
 
     // 404 handler for unmatched routes

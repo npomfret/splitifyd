@@ -31,7 +31,6 @@ export interface RouteDefinition {
 
     /** Production availability */
     productionOnly?: boolean;
-    testOnly?: boolean;
 
     /** Skip Content-Type validation (for binary uploads) */
     skipContentTypeValidation?: boolean;
@@ -102,34 +101,30 @@ const routeDefinitions: RouteDefinition[] = [
         category: 'public',
     },
 
-    // === Test Endpoints (non-production only) ===
+    // === Test Endpoints (emulator only - handlers not registered in production) ===
     {
         method: 'POST',
         path: '/test-pool/borrow',
         handlerName: 'borrowTestUser',
         category: 'test',
-        testOnly: true,
     },
     {
         method: 'POST',
         path: '/test-pool/return',
         handlerName: 'returnTestUser',
         category: 'test',
-        testOnly: true,
     },
     {
         method: 'POST',
         path: '/test-pool/promote-to-admin',
         handlerName: 'promoteTestUserToAdmin',
         category: 'test',
-        testOnly: true,
     },
     {
         method: 'POST',
         path: '/user/clear-policy-acceptances',
         handlerName: 'clearUserPolicyAcceptances',
         category: 'user',
-        testOnly: true,
     },
 
     // === User & Policy Management ===

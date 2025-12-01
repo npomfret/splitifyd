@@ -1,14 +1,13 @@
 import { TestErrorResponse, TestSuccessResponse } from '@billsplit-wl/shared';
 import type { RequestHandler } from 'express';
-import { getConfig as getClientConfig, getConfig as getServerConfig } from './client-config';
+import { getClientConfig } from './client-config';
 import { buildEnvPayload, buildHealthPayload, resolveHealthStatusCode, runHealthChecks } from './endpoints/diagnostics';
-import {isEmulator, isRealFirebase} from './firebase';
+import {isRealFirebase} from './firebase';
 import { logger } from './logger';
 import { metrics, toAggregatedReport } from './monitoring/lightweight-metrics';
 import { UpdateTenantBrandingRequestSchema } from './schemas/tenant';
 import type { IAuthService } from './services/auth';
 import { ComponentBuilder } from './services/ComponentBuilder';
-import { requireInstanceName } from './shared/instance-name';
 import { TestUserPoolService } from './test-pool/TestUserPoolService';
 import { getEnhancedConfigResponse } from './utils/config-response';
 
@@ -109,9 +108,8 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
         const config = getEnhancedConfigResponse(tenantContext);
 
         // Cache config: 60s in emulator for quick tenant branding updates, 5min when deployed for efficiency
-        const serverConfig = getServerConfig();
-        const cacheMaxAge = serverConfig.isEmulator ? 60 : 300;
-        res.setHeader('Cache-Control', `public, max-age=${cacheMaxAge}, must-revalidate`);
+        const serverConfig = getClientConfig();
+        res.setHeader('Cache-Control', `public, max-age=${serverConfig.cacheMaxAgeSeconds}, must-revalidate`);
         res.json(config);
     };
 
@@ -124,17 +122,10 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
         }
     };
 
-    // Test endpoint handlers (only active in non-production)
-    const config = getClientConfig();
-
+    // Test endpoint handlers (only registered in emulator environments)
     const testPool = TestUserPoolService.getInstance(firestoreWriter, userService, authService);
 
     const borrowTestUser: RequestHandler = async (req, res) => {
-        if (isRealFirebase()) {
-            res.status(403).json({ error: { code: 'FORBIDDEN', message: 'Only available in emulator environments' } });
-            return;
-        }
-
         try {
             const poolUser = await testPool.borrowUser();
             res.json(poolUser);
@@ -151,11 +142,6 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
     };
 
     const returnTestUser: RequestHandler = async (req, res) => {
-        if (isRealFirebase()) {
-            res.status(403).json({ error: { code: 'FORBIDDEN', message: 'Only available in emulator environments' } });
-            return;
-        }
-
         const { email } = req.body;
 
         if (!email) {
@@ -179,11 +165,6 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
     };
 
     const promoteTestUserToAdmin: RequestHandler = async (req, res) => {
-        if (isRealFirebase()) {
-            res.status(403).json({ error: { code: 'FORBIDDEN', message: 'Only available in emulator environments' } });
-            return;
-        }
-
         const { uid } = req.body;
 
         if (!uid) {
@@ -208,17 +189,6 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
     };
 
     const clearUserPolicyAcceptances: RequestHandler = async (req, res) => {
-        if (isRealFirebase()) {
-            const response: TestErrorResponse = {
-                error: {
-                    code: 'FORBIDDEN',
-                    message: 'Only available in emulator environments',
-                },
-            };
-            res.status(403).json(response);
-            return;
-        }
-
         const authHeader = req.headers.authorization;
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
             const response: TestErrorResponse = {
@@ -517,11 +487,13 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
         getConfig,
         reportCspViolation,
 
-        // Test endpoint handlers
-        borrowTestUser,
-        returnTestUser,
-        promoteTestUserToAdmin,
-        clearUserPolicyAcceptances,
+        // Test endpoint handlers (only in emulator environments)
+        ...(!isRealFirebase() ? {
+            borrowTestUser,
+            returnTestUser,
+            promoteTestUserToAdmin,
+            clearUserPolicyAcceptances,
+        } : {}),
 
         // Tenant settings handlers
         getTenantSettings,

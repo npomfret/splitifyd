@@ -67,6 +67,7 @@ interface ClientConfig {
         password: string;
     };
     warningBanner: string;
+    cacheMaxAgeSeconds: number;
 }
 
 // Lazy environment variable loader
@@ -102,8 +103,9 @@ function buildConfig(): ClientConfig {
         }
     }
 
+    const emulator = isEmulator();
     return {
-        isEmulator: isEmulator(),// todo: can we ensapsulate this ??
+        isEmulator: emulator,
         requestBodyLimit: '1mb',
         validation: {
             maxRequestSizeBytes: SYSTEM.BYTES_PER_KB * SYSTEM.BYTES_PER_KB,
@@ -121,11 +123,12 @@ function buildConfig(): ClientConfig {
             password: env.__DEV_FORM_PASSWORD ?? '',
         },
         warningBanner: env.__WARNING_BANNER ?? '',
+        cacheMaxAgeSeconds: emulator ? 60 : 300,
     };
 }
 
 // Export lazy getter for CONFIG
-export function getConfig(): ClientConfig {
+export function getClientConfig(): ClientConfig {
     if (!cachedConfig) {
         cachedConfig = buildConfig();
     }
@@ -172,7 +175,7 @@ function getWarningBanner(config: ClientConfig): string | undefined {
 
 // Build the complete AppConfiguration lazily
 function buildAppConfiguration(): AppConfiguration {
-    const config = getConfig();
+    const config = getClientConfig();
     const env = getEnv();
     const projectId = inferProjectId();
 
@@ -227,7 +230,7 @@ const IDENTITY_TOOLKIT_SERVICE_PATH = '/identitytoolkit.googleapis.com';
 const IDENTITY_TOOLKIT_PRODUCTION_BASE_URL = 'https://identitytoolkit.googleapis.com';
 
 function getIdentityToolkitBaseUrl(): string {
-    const config = getConfig();
+    const config = getClientConfig();
 
     if (!config.isEmulator) {
         return IDENTITY_TOOLKIT_PRODUCTION_BASE_URL;
@@ -265,7 +268,7 @@ function getAppConfig(): AppConfiguration {
     if (!cachedAppConfig) {
         try {
             const builtConfig = buildAppConfiguration();
-            const config = getConfig();
+            const config = getClientConfig();
 
             // Skip validation in emulator since we're using dummy values
             if (!config.isEmulator) {

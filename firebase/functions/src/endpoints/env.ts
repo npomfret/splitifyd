@@ -1,5 +1,5 @@
 import { onRequest } from 'firebase-functions/v2/https';
-import { getConfig } from '../client-config';
+import { getClientConfig } from '../client-config';
 import { HTTP_STATUS } from '../constants';
 import { buildEnvPayload } from './diagnostics';
 import { createDiagnosticsFunctionOptions, ensureGetMethod, type HttpRequest, type HttpResponse } from './http-utils';
@@ -9,7 +9,7 @@ export const env = onRequest(createDiagnosticsFunctionOptions(), async (req: Htt
         return;
     }
 
-    if (!getConfig().isEmulator) {
+    if (!getClientConfig().isEmulator) {
         res.status(HTTP_STATUS.NOT_FOUND).json({
             error: {
                 code: 'NOT_FOUND',
