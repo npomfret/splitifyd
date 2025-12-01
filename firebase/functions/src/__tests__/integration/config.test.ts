@@ -11,10 +11,6 @@ describe('Config Endpoint Integration Tests', () => {
     const apiDriver = new ApiDriver();
     const configUrl = `${apiDriver.getBaseUrl()}/config`;
 
-    afterEach(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-    });
-
     describe('Marketing Flags', () => {
         test('should include marketing flags for default tenant', async () => {
             const response = await fetch(configUrl);
