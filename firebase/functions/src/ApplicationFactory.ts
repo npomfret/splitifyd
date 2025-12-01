@@ -1,6 +1,6 @@
 import { TestErrorResponse, TestSuccessResponse } from '@billsplit-wl/shared';
 import type { RequestHandler } from 'express';
-import { getClientConfig } from './app-config';
+import { getAppConfig } from './app-config';
 import { buildEnvPayload, buildHealthPayload, resolveHealthStatusCode, runHealthChecks } from './endpoints/diagnostics';
 import {isRealFirebase} from './firebase';
 import { logger } from './logger';
@@ -108,7 +108,7 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
         const config = getEnhancedConfigResponse(tenantContext);
 
         // Cache config: 60s in emulator for quick tenant branding updates, 5min when deployed for efficiency
-        const serverConfig = getClientConfig();
+        const serverConfig = getAppConfig();
         res.setHeader('Cache-Control', `public, max-age=${serverConfig.cacheMaxAgeSeconds}, must-revalidate`);
         res.json(config);
     };

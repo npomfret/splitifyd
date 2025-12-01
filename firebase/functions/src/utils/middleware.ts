@@ -2,7 +2,7 @@ import { ApiSerializer, responseSchemas } from '@billsplit-wl/shared';
 import { randomUUID } from 'crypto';
 import express from 'express';
 import type { ZodSchema } from 'zod';
-import { getClientConfig } from '../app-config';
+import { getAppConfig } from '../app-config';
 import { logger, LoggerContext } from '../logger';
 import { applyCacheControl } from '../middleware/cache-control';
 import { applySecurityHeaders } from '../middleware/security-headers';
@@ -16,7 +16,7 @@ const applicationBuilder = getComponentBuilder();
 const tenantRegistryService = applicationBuilder.buildTenantRegistryService();
 
 const tenantIdentificationConfig: TenantIdentificationConfig = {
-    allowOverrideHeader: () => getClientConfig().isEmulator,
+    allowOverrideHeader: () => getAppConfig().isEmulator,
 };
 
 /**
@@ -124,7 +124,7 @@ export const applyStandardMiddleware = (app: express.Application) => {
     app.use(validateContentType);
 
     // Parse JSON with size limit (skip for binary upload routes)
-    const jsonParser = express.json({ limit: getClientConfig().requestBodyLimit });
+    const jsonParser = express.json({ limit: getAppConfig().requestBodyLimit });
     const rawParser = express.raw({ type: ['image/*', 'application/octet-stream'], limit: '2mb' });
     app.use((req, res, next) => {
         // Use raw body parsing for binary upload routes

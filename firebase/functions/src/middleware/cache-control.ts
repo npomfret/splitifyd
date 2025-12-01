@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { getClientConfig } from '../app-config';
+import { getAppConfig } from '../app-config';
 
 /**
  * Middleware to control caching behavior for all responses
@@ -16,7 +16,7 @@ export function applyCacheControl(req: Request, res: Response, next: NextFunctio
         return;
     }
 
-    const config = getClientConfig();
+    const config = getAppConfig();
     const maxAge = config.staticPageCacheSeconds[req.path];
 
     if (maxAge !== undefined) {

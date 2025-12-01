@@ -1,7 +1,7 @@
 import { AuthenticatedUser, SystemUserRoles, toDisplayName, toUserId } from '@billsplit-wl/shared';
 import { NextFunction, Request, Response } from 'express';
 import { OAuth2Client } from 'google-auth-library';
-import { getClientConfig } from '../app-config';
+import { getAppConfig } from '../app-config';
 import { getComponentBuilder } from '../ComponentBuilderSingleton';
 import { AUTH } from '../constants';
 import { Errors, ErrorDetail } from '../errors';
@@ -192,7 +192,7 @@ export const authenticateTenantAdmin = async (req: AuthenticatedRequest, res: Re
  * send real OIDC tokens.
  */
 export const authenticateCloudTask = async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
-    const config = getClientConfig();
+    const config = getAppConfig();
 
     if (!config.cloudTasks.requireOidcAuth) {
         next();

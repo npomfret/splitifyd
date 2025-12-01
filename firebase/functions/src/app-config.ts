@@ -156,7 +156,7 @@ function buildConfig(): AppConfig {
 }
 
 // Export lazy getter for CONFIG
-export function getClientConfig(): AppConfig {
+export function getAppConfig(): AppConfig {
     if (!cachedConfig) {
         cachedConfig = buildConfig();
     }
@@ -165,7 +165,7 @@ export function getClientConfig(): AppConfig {
 
 // Helper functions for building AppConfiguration
 function getFirebaseAuthUrl(config: AppConfig, env: z.infer<typeof envSchema>): string | undefined {
-    if (!config.isEmulator) {
+    if (!isEmulator()) {
         return undefined;
     }
 
@@ -179,7 +179,7 @@ function getFirebaseAuthUrl(config: AppConfig, env: z.infer<typeof envSchema>): 
 }
 
 function getFirebaseFirestoreUrl(config: AppConfig, env: z.infer<typeof envSchema>): string | undefined {
-    if (!config.isEmulator) {
+    if (!isEmulator()) {
         return undefined;
     }
 
@@ -199,9 +199,10 @@ function getFirebaseFirestoreUrl(config: AppConfig, env: z.infer<typeof envSchem
 
 // Build the complete AppConfiguration lazily
 function buildAppConfiguration(): ClientAppConfiguration {
-    const config = getClientConfig();
+    const config = getAppConfig();
     const env = getEnv();
     const projectId = inferProjectId();
+    const _isEmulator = isEmulator();
 
     // Build firebase config based on environment
     const MINIMAL_EMULATOR_CLIENT_CONFIG = {
@@ -215,7 +216,7 @@ function buildAppConfiguration(): ClientAppConfiguration {
         measurementId: '',
     };
 
-    const firebase: FirebaseConfig = config.isEmulator
+    const firebase: FirebaseConfig = _isEmulator
         ? MINIMAL_EMULATOR_CLIENT_CONFIG
         : {
             apiKey: env.__CLIENT_API_KEY!,
@@ -228,7 +229,7 @@ function buildAppConfiguration(): ClientAppConfiguration {
         };
 
     // Validate required fields in deployed environment
-    if (!config.isEmulator && (!firebase.apiKey || !firebase.authDomain || !firebase.storageBucket || !firebase.messagingSenderId || !firebase.appId)) {
+    if (!_isEmulator && (!firebase.apiKey || !firebase.authDomain || !firebase.storageBucket || !firebase.messagingSenderId || !firebase.appId)) {
         logger.error('Firebase config is incomplete in deployed environment', new Error('Missing required Firebase config'), {
             hasApiKey: !!env.__CLIENT_API_KEY,
             hasAuthDomain: !!env.__CLIENT_AUTH_DOMAIN,
@@ -250,9 +251,9 @@ const IDENTITY_TOOLKIT_SERVICE_PATH = '/identitytoolkit.googleapis.com';
 const IDENTITY_TOOLKIT_PRODUCTION_BASE_URL = 'https://identitytoolkit.googleapis.com';
 
 function getIdentityToolkitBaseUrl(): string {
-    const config = getClientConfig();
+    const config = getAppConfig();
 
-    if (!config.isEmulator) {
+    if (!isEmulator()) {
         return IDENTITY_TOOLKIT_PRODUCTION_BASE_URL;
     }
 
@@ -267,7 +268,7 @@ function getIdentityToolkitBaseUrl(): string {
 
 function getIdentityToolkitApiKey(): string {
     const env = getEnv();
-    const apiKey = env.__CLIENT_API_KEY ?? (() => getAppConfig().firebase.apiKey)();
+    const apiKey = env.__CLIENT_API_KEY ?? (() => getClientAppConfiguration().firebase.apiKey)();
 
     if (!apiKey || apiKey.trim().length === 0) {
         throw new Error('Firebase API key is not configured');
@@ -284,14 +285,13 @@ export function getIdentityToolkitConfig(): { apiKey: string; baseUrl: string; }
 }
 
 // Lazy getter for APP_CONFIG (used internally)
-function getAppConfig(): ClientAppConfiguration {
+function getClientAppConfiguration(): ClientAppConfiguration {
     if (!cachedAppConfig) {
         try {
             const builtConfig = buildAppConfiguration();
-            const config = getClientConfig();
 
             // Skip validation in emulator since we're using dummy values
-            if (!config.isEmulator) {
+            if (!isEmulator()) {
                 // Validate in deployed environment
                 cachedAppConfig = validateAppConfiguration(builtConfig);
             } else {
@@ -310,7 +310,7 @@ function getAppConfig(): ClientAppConfiguration {
 }
 
 export function getTenantAwareAppConfig(tenant?: TenantConfig): ClientAppConfiguration {
-    const baseConfig = getAppConfig();
+    const baseConfig = getClientAppConfiguration();
 
     if (!tenant) {
         return baseConfig;
