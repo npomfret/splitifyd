@@ -1,6 +1,6 @@
 import {z} from 'zod';
 import {logger} from '../logger';
-import {getEmulatorPorts, inferProjectId} from "../firebase";
+import {getEmulatorPorts, inferProjectId, isEmulator, isRealFirebase} from "../firebase";
 
 /**
  * Configuration for MergeService and related cloud infrastructure
@@ -36,18 +36,6 @@ export interface ServiceConfig {
 // Cache for lazy-loaded service configuration
 let cachedServiceConfig: ServiceConfig | null = null;
 let cachedEnv: z.infer<typeof serviceEnvSchema> | null = null;
-
-/**
- * Check if running in Firebase emulator
- */
-function isEmulator(): boolean {
-    return process.env.FUNCTIONS_EMULATOR === 'true';
-}
-
-function isRealFirebase(): boolean {
-    return process.env.GAE_RUNTIME !== undefined;
-}
-
 
 // Define environment variable schema for service config
 // All required fields must be explicitly set in .env files - no defaults

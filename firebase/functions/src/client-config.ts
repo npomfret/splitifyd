@@ -1,11 +1,11 @@
-import { AppConfiguration, EnvironmentConfig, FirebaseConfig, TenantConfig, toEmail } from '@billsplit-wl/shared';
-import type { Email } from '@billsplit-wl/shared';
-import { z } from 'zod';
-import { DOCUMENT_CONFIG, SYSTEM, VALIDATION_LIMITS } from './constants';
-import { logger } from './logger';
-import { validateAppConfiguration } from './middleware/config-validation';
-import { assertValidInstanceName, type InstanceName, isDevInstanceName } from './shared/instance-name';
-import {getFirebaseConfigFromEnvVar, inferProjectId} from "./firebase";
+import type {Email} from '@billsplit-wl/shared';
+import {AppConfiguration, EnvironmentConfig, FirebaseConfig, TenantConfig, toEmail} from '@billsplit-wl/shared';
+import {z} from 'zod';
+import {DOCUMENT_CONFIG, SYSTEM, VALIDATION_LIMITS} from './constants';
+import {logger} from './logger';
+import {validateAppConfiguration} from './middleware/config-validation';
+import {assertValidInstanceName, type InstanceName} from './shared/instance-name';
+import {inferProjectId, isEmulator, isRealFirebase} from "./firebase";
 
 // Cache for lazy-loaded configurations
 let cachedConfig: ClientConfig | null = null;
@@ -49,7 +49,6 @@ const envSchema = z.object({
 
 // Type for the CONFIG object
 interface ClientConfig {
-    instanceName: z.infer<typeof instanceNameSchema>;
     isEmulator: boolean;
     requestBodyLimit: string;
     validation: {
@@ -92,11 +91,9 @@ function getEnv(): z.infer<typeof envSchema> {
 // Build the CONFIG object lazily
 function buildConfig(): ClientConfig {
     const env = getEnv();
-    const name = env.__INSTANCE_NAME;
-    const isEmulator = isDevInstanceName(name);
 
     // Validate required deployed environment variables
-    if (!isEmulator) {
+    if (isRealFirebase()) {
         const requiredVars = ['__CLIENT_API_KEY', '__CLIENT_AUTH_DOMAIN', '__CLIENT_STORAGE_BUCKET', '__CLIENT_MESSAGING_SENDER_ID', '__CLIENT_APP_ID'];
 
         const missing = requiredVars.filter((key) => !env[key as keyof typeof env]);
@@ -106,14 +103,13 @@ function buildConfig(): ClientConfig {
     }
 
     return {
-        instanceName: name,
-        isEmulator,
+        isEmulator: isEmulator(),// todo: can we ensapsulate this ??
         requestBodyLimit: '1mb',
         validation: {
             maxRequestSizeBytes: SYSTEM.BYTES_PER_KB * SYSTEM.BYTES_PER_KB,
             maxObjectDepth: VALIDATION_LIMITS.MAX_DOCUMENT_DEPTH,
-            maxStringLength: isEmulator ? DOCUMENT_CONFIG.EMULATOR_MAX_STRING_LENGTH : DOCUMENT_CONFIG.DEPLOYED_MAX_STRING_LENGTH,
-            maxPropertyCount: isEmulator ? DOCUMENT_CONFIG.EMULATOR_MAX_PROPERTY_COUNT : DOCUMENT_CONFIG.DEPLOYED_MAX_PROPERTY_COUNT,
+            maxStringLength: DOCUMENT_CONFIG.DEPLOYED_MAX_STRING_LENGTH,
+            maxPropertyCount: DOCUMENT_CONFIG.DEPLOYED_MAX_PROPERTY_COUNT,
             maxPropertyNameLength: VALIDATION_LIMITS.MAX_PROPERTY_NAME_LENGTH,
         },
         document: {

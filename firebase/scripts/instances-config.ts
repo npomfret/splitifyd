@@ -11,9 +11,15 @@ export interface InstancePorts {
     tasks: number;
 }
 
+export interface DeployConfig {
+    functionsSource: string;
+    functionsPredeploy: string;
+}
+
 export interface InstanceConfig {
     instanceName: string;
     ports: InstancePorts;
+    deploy?: DeployConfig;
 }
 
 type InstancesMap = Record<string, InstanceConfig>;
@@ -58,4 +64,13 @@ export function resolvePortsForMode(instanceName: string): InstancePorts {
         throw new Error(`No port configuration found for INSTANCE_NAME="${instanceName}"`);
     }
     return entry.ports;
+}
+
+export function getDeployConfig(instanceName: string): DeployConfig | null {
+    const instances = loadInstancesFile();
+    const entry = Object.values(instances).find((candidate) => candidate.instanceName === instanceName);
+    if (!entry) {
+        return null;
+    }
+    return entry.deploy ?? null;
 }

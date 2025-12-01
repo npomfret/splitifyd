@@ -35,16 +35,12 @@ trap cleanup EXIT
 case "$DEPLOY_TARGET" in
     all|staging-1)
         echo "🚀 Deploying all (functions, rules, hosting)..."
-        export FUNCTIONS_SOURCE=".firebase/deploy/functions"
-        export FUNCTIONS_PREDEPLOY="echo Build completed by prepare-functions-deploy.js"
         node scripts/prepare-functions-deploy.js
         firebase deploy --only functions,firestore:rules,hosting
         ;;
 
     functions)
         echo "🚀 Deploying functions only..."
-        export FUNCTIONS_SOURCE=".firebase/deploy/functions"
-        export FUNCTIONS_PREDEPLOY="echo Build completed by prepare-functions-deploy.js"
         node scripts/prepare-functions-deploy.js
         firebase deploy --only functions
         ;;

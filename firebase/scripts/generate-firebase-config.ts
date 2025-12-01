@@ -3,7 +3,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { loadRuntimeConfig } from './scripts-config';
-import { resolvePortsForMode } from './instances-config';
+import { getDeployConfig, resolvePortsForMode } from './instances-config';
 import { logger } from './logger';
 
 // Load and validate runtime configuration
@@ -24,16 +24,20 @@ const isDeployed = !instanceName.startsWith('dev');
 
 const portConfig = resolvePortsForMode(instanceName);
 
-// Determine functions source - 'functions' for dev, env var for deployed
+// Determine functions source - 'functions' for dev, instances.json for deployed
+const deployConfig = getDeployConfig(instanceName);
 let functionsSource: string;
+let functionsPredeploy: string;
 if (isDeployed) {
-    if (!process.env.__FUNCTIONS_SOURCE) {
-        logger.error('❌ __FUNCTIONS_SOURCE must be defined for deployed environment.');
+    if (!deployConfig) {
+        logger.error('❌ Deploy config not found in instances.json for deployed environment.');
         process.exit(1);
     }
-    functionsSource = process.env.__FUNCTIONS_SOURCE;
+    functionsSource = deployConfig.functionsSource;
+    functionsPredeploy = deployConfig.functionsPredeploy;
 } else {
     functionsSource = 'functions';
+    functionsPredeploy = '';
 }
 
 // Replace all template placeholders
@@ -46,7 +50,7 @@ const replacements: Record<string, string | number> = {
     EMULATOR_STORAGE_PORT: portConfig.storage,
     EMULATOR_TASKS_PORT: portConfig.tasks,
     FUNCTIONS_SOURCE: functionsSource,
-    FUNCTIONS_PREDEPLOY: process.env.FUNCTIONS_PREDEPLOY || '',
+    FUNCTIONS_PREDEPLOY: functionsPredeploy,
 };
 
 Object.entries(replacements).forEach(([placeholder, value]) => {

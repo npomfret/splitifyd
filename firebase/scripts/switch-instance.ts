@@ -4,7 +4,7 @@ import { execSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import { loadEnvFile, requireInstanceName } from './scripts-config';
-import { requireInstanceConfig } from './instances-config';
+import { getDeployConfig, requireInstanceConfig } from './instances-config';
 import { logger } from './logger';
 
 const instance: string | undefined = process.argv[2];
@@ -79,9 +79,10 @@ try {
             nextStep: 'npm run dev:with-data',
         });
     } else {
+        const deployConfig = getDeployConfig(instanceName);
         logger.info('🚀 Deployed environment configured - ready for deployment', {
-            functions_source: process.env.__FUNCTIONS_SOURCE,
-            functions_predeploy: process.env.FUNCTIONS_PREDEPLOY,
+            functions_source: deployConfig?.functionsSource,
+            functions_predeploy: deployConfig?.functionsPredeploy,
         });
     }
 } catch (error: any) {

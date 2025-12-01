@@ -17,6 +17,10 @@ export function isEmulator() {
     return process.env.FUNCTIONS_EMULATOR === 'true';
 }
 
+export function isRealFirebase(): boolean {
+    return process.env.GAE_RUNTIME !== undefined;
+}
+
 interface EmulatorPorts {
     functions: number;
     firestore: number;
@@ -118,12 +122,15 @@ function getApp(): admin.app.App {
  */
 function configureEmulatorSettings(appInstance: admin.app.App): void {
     if (isEmulator()) {
-        // Sanity checks for emulator environment
+        // Sanity checks
         assert(process.env.FIREBASE_AUTH_EMULATOR_HOST);
         assert(process.env.FIRESTORE_EMULATOR_HOST);
         assert(process.env.FIREBASE_STORAGE_EMULATOR_HOST);
         assert(process.env.FIREBASE_CONFIG);
-    } else if (isTest()) {
+    } else if (isRealFirebase()) {
+        // Sanity checks
+        assert(process.env.FIREBASE_CONFIG);
+    } else {// we are in a test
         const ports = getEmulatorPorts();
 
         // Configure Firestore emulator

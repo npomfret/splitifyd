@@ -57,6 +57,10 @@
       "hosting": -1,
       "storage": -1,
       "tasks": -1
+    },
+    "deploy": {
+      "functionsSource": ".firebase/deploy/functions",
+      "functionsPredeploy": "node ./scripts/prepare-functions-deploy.js"
     }
   }
 }

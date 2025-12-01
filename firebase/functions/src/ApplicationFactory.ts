@@ -2,7 +2,7 @@ import { TestErrorResponse, TestSuccessResponse } from '@billsplit-wl/shared';
 import type { RequestHandler } from 'express';
 import { getConfig as getClientConfig, getConfig as getServerConfig } from './client-config';
 import { buildEnvPayload, buildHealthPayload, resolveHealthStatusCode, runHealthChecks } from './endpoints/diagnostics';
-import { isEmulator } from './firebase';
+import {isEmulator, isRealFirebase} from './firebase';
 import { logger } from './logger';
 import { metrics, toAggregatedReport } from './monitoring/lightweight-metrics';
 import { UpdateTenantBrandingRequestSchema } from './schemas/tenant';
@@ -127,21 +127,11 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
     // Test endpoint handlers (only active in non-production)
     const config = getClientConfig();
 
-    const isTestEnvironment = (): boolean => {
-        try {
-            return requireInstanceName() === 'dev1';
-        } catch {
-            return false;
-        }
-    };
-
-    const isPoolEnabled = (): boolean => isEmulator() || isTestEnvironment();
-
     const testPool = TestUserPoolService.getInstance(firestoreWriter, userService, authService);
 
     const borrowTestUser: RequestHandler = async (req, res) => {
-        if (!isPoolEnabled()) {
-            res.status(403).json({ error: { code: 'FORBIDDEN', message: 'Test pool only available in emulator or test environments' } });
+        if (isRealFirebase()) {
+            res.status(403).json({ error: { code: 'FORBIDDEN', message: 'Only available in emulator environments' } });
             return;
         }
 
@@ -161,8 +151,8 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
     };
 
     const returnTestUser: RequestHandler = async (req, res) => {
-        if (!isPoolEnabled()) {
-            res.status(403).json({ error: { code: 'FORBIDDEN', message: 'Test pool only available in emulator or test environments' } });
+        if (isRealFirebase()) {
+            res.status(403).json({ error: { code: 'FORBIDDEN', message: 'Only available in emulator environments' } });
             return;
         }
 
@@ -189,8 +179,8 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
     };
 
     const promoteTestUserToAdmin: RequestHandler = async (req, res) => {
-        if (!isPoolEnabled()) {
-            res.status(403).json({ error: { code: 'FORBIDDEN', message: 'Test pool only available in emulator or test environments' } });
+        if (isRealFirebase()) {
+            res.status(403).json({ error: { code: 'FORBIDDEN', message: 'Only available in emulator environments' } });
             return;
         }
 
@@ -218,11 +208,11 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
     };
 
     const clearUserPolicyAcceptances: RequestHandler = async (req, res) => {
-        if (!config.isEmulator) {
+        if (isRealFirebase()) {
             const response: TestErrorResponse = {
                 error: {
                     code: 'FORBIDDEN',
-                    message: 'Test endpoints not available in deployed environment',
+                    message: 'Only available in emulator environments',
                 },
             };
             res.status(403).json(response);
