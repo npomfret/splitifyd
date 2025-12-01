@@ -2,7 +2,7 @@ import { toTenantAppName, toTenantDomainName, toTenantFaviconUrl, toTenantLogoUr
 import { AdminTenantRequestBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
-import { ErrorCode } from '../../../errors/ErrorCode';
+import { ErrorCode } from '../../../errors';
 import { TenantRegistryService, type TenantResolutionOptions } from '../../../services/tenant/TenantRegistryService';
 import { ApiError } from '../../../errors';
 import { AppDriver } from '../AppDriver';

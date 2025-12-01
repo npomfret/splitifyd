@@ -5,8 +5,8 @@ import { AdminUpsertTenantRequestSchema, PublishTenantThemeRequestSchema } from 
 import type { IFirestoreReader } from '../services/firestore';
 import type { TenantAssetStorage } from '../services/storage/TenantAssetStorage';
 import { TenantAdminService } from '../services/tenant/TenantAdminService';
-import { Errors } from '../errors/Errors';
-import { ErrorDetail } from '../errors/ErrorCode';
+import { Errors } from '../errors';
+import { ErrorDetail } from '../errors';
 import { validateFaviconImage, validateLogoImage } from '../utils/validation/imageValidation';
 import { validateUploadTenantAssetParams } from './validation';
 

@@ -57,7 +57,6 @@ interface ValidatedUpdateUserRequest extends UpdateRequest {
 import { DisplayName, UserId } from '@billsplit-wl/shared';
 import type { Email } from '@billsplit-wl/shared';
 import { ApiError, ErrorDetail, Errors } from '../../errors';
-import { HTTP_STATUS } from '../../constants';
 import { logger } from '../../logger';
 import { measureDb } from '../../monitoring/measure';
 import { LoggerContext } from '../../utils/logger-context';

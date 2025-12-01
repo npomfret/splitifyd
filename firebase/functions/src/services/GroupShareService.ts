@@ -17,8 +17,8 @@ import {
 } from '@billsplit-wl/shared';
 import { toISOString } from '@billsplit-wl/shared';
 import { z } from 'zod';
-import { FirestoreCollections, HTTP_STATUS } from '../constants';
-import { ApiError, Errors, ErrorDetail } from '../errors';
+import { FirestoreCollections } from '../constants';
+import { Errors, ErrorDetail } from '../errors';
 import { logger, LoggerContext } from '../logger';
 import * as measure from '../monitoring/measure';
 import { PerformanceTimer } from '../monitoring/PerformanceTimer';

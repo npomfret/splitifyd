@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { ErrorCode, ErrorDetail } from '../../errors';
+import { ErrorCode } from '../../errors';
 import { buildPaginatedQuery, CursorData, decodeCursor, encodeCursor } from '../../utils/pagination';
 
 describe('Pagination Utilities', () => {

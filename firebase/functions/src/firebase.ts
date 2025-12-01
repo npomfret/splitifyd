@@ -3,7 +3,7 @@ import * as admin from 'firebase-admin';
 import assert from 'node:assert';
 import {existsSync, readFileSync} from 'node:fs';
 import {join} from 'node:path';
-import {getInstanceName, isDevInstanceName} from './shared/instance-name';
+import {getInstanceName} from './shared/instance-name';
 
 const envPath = join(__dirname, '../.env');
 if (!process.env.__INSTANCE_NAME && existsSync(envPath)) {

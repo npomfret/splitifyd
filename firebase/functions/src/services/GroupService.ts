@@ -25,7 +25,7 @@ import {
 } from '@billsplit-wl/shared';
 import { DisplayName } from '@billsplit-wl/shared';
 import { DOCUMENT_CONFIG, FirestoreCollections } from '../constants';
-import { ApiError, Errors, ErrorDetail } from '../errors';
+import { Errors, ErrorDetail } from '../errors';
 import { logger, LoggerContext } from '../logger';
 import * as measure from '../monitoring/measure';
 import { PerformanceTimer } from '../monitoring/PerformanceTimer';

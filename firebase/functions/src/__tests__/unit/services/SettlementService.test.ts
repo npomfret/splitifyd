@@ -2,7 +2,7 @@ import { toGroupId, toSettlementId } from '@billsplit-wl/shared';
 import { CreateGroupRequestBuilder, CreateSettlementRequestBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
-import { ErrorCode } from '../../../errors/ErrorCode';
+import { ErrorCode } from '../../../errors';
 import { AppDriver } from '../AppDriver';
 
 describe('SettlementService - Unit Tests', () => {

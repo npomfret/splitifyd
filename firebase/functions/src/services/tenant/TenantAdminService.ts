@@ -1,7 +1,7 @@
 import { type BrandingArtifactMetadata, type PublishTenantThemeResult, type TenantId, toTenantId } from '@billsplit-wl/shared';
 import type { AdminUpsertTenantRequest } from '../../schemas/tenant';
-import { Errors } from '../../errors/Errors';
-import { ErrorDetail } from '../../errors/ErrorCode';
+import { Errors } from '../../errors';
+import { ErrorDetail } from '../../errors';
 import type { IFirestoreReader, IFirestoreWriter } from '../firestore';
 import { ThemeArtifactService } from './ThemeArtifactService';
 

@@ -2,7 +2,7 @@ import { CreateExpenseRequestBuilder, ExpenseUpdateBuilder } from '@billsplit-wl
 import { describe, expect, test } from 'vitest';
 import { validateCreateExpense, validateUpdateExpense } from '../../../expenses/validation';
 import { ApiError } from '../../../errors';
-import { ErrorCode } from '../../../errors/ErrorCode';
+import { ErrorCode } from '../../../errors';
 
 describe('Date Validation Unit Tests', () => {
     describe('Future Date Validation', () => {

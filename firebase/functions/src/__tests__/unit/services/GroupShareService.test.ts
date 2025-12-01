@@ -19,7 +19,7 @@ import { HTTP_STATUS } from '../../../constants';
 import type { IFirestoreReader } from '../../../services/firestore';
 import { GroupShareService } from '../../../services/GroupShareService';
 import { ApiError } from '../../../errors';
-import { ErrorCode } from '../../../errors/ErrorCode';
+import { ErrorCode } from '../../../errors';
 import { AppDriver } from '../AppDriver';
 
 let ownerId1: string;

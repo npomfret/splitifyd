@@ -1,6 +1,5 @@
 import { AppConfiguration, TenantConfig, toShowLandingPageFlag, toShowMarketingContentFlag, toShowPricingPageFlag } from '@billsplit-wl/shared';
 import { getTenantAwareAppConfig } from '../client-config';
-import { HTTP_STATUS } from '../constants';
 import type { TenantRequestContext } from '../types/tenant';
 import { ErrorDetail, Errors } from '../errors';
 

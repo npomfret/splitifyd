@@ -4,7 +4,7 @@ import { SystemUserRoles, toUserId } from '@billsplit-wl/shared';
 import { StubStorage } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { FirestoreCollections } from '../../../constants';
-import { ErrorCode } from '../../../errors/ErrorCode';
+import { ErrorCode } from '../../../errors';
 import type { MergeTaskService } from '../../../merge/MergeTaskService';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import { StubAuthService } from '../mocks/StubAuthService';

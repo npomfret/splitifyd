@@ -5,7 +5,7 @@ import { validateCommentId, validateCreateExpenseComment, validateCreateGroupCom
 import { HTTP_STATUS } from '../../../constants';
 import { CommentService } from '../../../services/CommentService';
 import { ApiError } from '../../../errors';
-import { ErrorCode } from '../../../errors/ErrorCode';
+import { ErrorCode } from '../../../errors';
 import { AppDriver } from '../AppDriver';
 
 describe('CommentService - Consolidated Tests', () => {

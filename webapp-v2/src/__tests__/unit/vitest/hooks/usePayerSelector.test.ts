@@ -1,6 +1,5 @@
 import { usePayerSelector } from '@/app/hooks/usePayerSelector';
 import type { ExpenseFormMember } from '@/components/expense-form/types';
-import { toUserId, UserId } from '@billsplit-wl/shared';
 import { act, renderHook } from '@testing-library/preact';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 

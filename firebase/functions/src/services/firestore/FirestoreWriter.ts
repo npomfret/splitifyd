@@ -15,7 +15,7 @@ import { normalizeDisplayNameForComparison } from '@billsplit-wl/shared';
 // Import schemas for validation
 import { ExpenseId, GroupId, PolicyId, ShareLinkId } from '@billsplit-wl/shared';
 import { z } from 'zod';
-import { ALLOWED_POLICY_IDS, FirestoreCollections, HTTP_STATUS } from '../../constants';
+import { ALLOWED_POLICY_IDS, FirestoreCollections } from '../../constants';
 import { ApiError, ErrorDetail, Errors } from '../../errors';
 import { FieldValue, type IDocumentReference, type IFirestoreDatabase, type ITransaction, type IWriteBatch, Timestamp } from '../../firestore-wrapper';
 import { logger } from '../../logger';

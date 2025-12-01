@@ -3,7 +3,7 @@ import { UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import * as crypto from 'crypto';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
-import { ErrorCode } from '../../../errors/ErrorCode';
+import { ErrorCode } from '../../../errors';
 import { PolicyService } from '../../../services/PolicyService';
 import { AppDriver } from '../AppDriver';
 

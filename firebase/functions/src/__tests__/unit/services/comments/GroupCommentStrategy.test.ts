@@ -2,7 +2,7 @@ import { toGroupId } from '@billsplit-wl/shared';
 import { CreateGroupRequestBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../../constants';
-import { ErrorCode } from '../../../../errors/ErrorCode';
+import { ErrorCode } from '../../../../errors';
 import { GroupCommentStrategy } from '../../../../services/comments/GroupCommentStrategy';
 import { AppDriver } from '../../AppDriver';
 

@@ -2,7 +2,7 @@ import { toExpenseId, toGroupId } from '@billsplit-wl/shared';
 import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../../constants';
-import { ErrorCode } from '../../../../errors/ErrorCode';
+import { ErrorCode } from '../../../../errors';
 import { ExpenseCommentStrategy } from '../../../../services/comments/ExpenseCommentStrategy';
 import { ApiError } from '../../../../errors';
 import { AppDriver } from '../../AppDriver';

@@ -6,9 +6,8 @@
  */
 
 import { z } from 'zod';
-import { ErrorCode, ErrorDetail, Errors } from '../../errors';
+import { ErrorDetail, Errors } from '../../errors';
 import { createPasswordSchema, createRequestValidator, DisplayNameSchema, EmailSchema, PhoneNumberSchema } from '../../validation/common';
-import { AuthErrorCode } from './auth-types';
 
 const PhotoUrlSchema = z.string().url('Photo URL must be a valid URI');
 

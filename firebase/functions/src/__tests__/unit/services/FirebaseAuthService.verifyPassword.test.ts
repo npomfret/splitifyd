@@ -3,7 +3,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { toEmail } from '@billsplit-wl/shared';
 import { FirebaseAuthService } from '../../../services/auth';
-import { AuthErrorCode } from '../../../services/auth/auth-types';
 import { ApiError } from '../../../errors';
 
 const noopAuth = {} as unknown as Auth;

@@ -35,8 +35,8 @@ import {
     SettlementId,
     type UserId,
 } from '@billsplit-wl/shared';
-import { FirestoreCollections, HTTP_STATUS } from '../../constants';
-import { ApiError, ErrorDetail, Errors } from '../../errors';
+import { FirestoreCollections } from '../../constants';
+import { ErrorDetail, Errors } from '../../errors';
 import { FieldPath, Filter, type IDocumentReference, type IDocumentSnapshot, type IFirestoreDatabase, type IQuery, type IQuerySnapshot, type ITransaction, Timestamp } from '../../firestore-wrapper';
 import { logger } from '../../logger';
 import type { MergeJobDocument } from '../../merge/MergeService';

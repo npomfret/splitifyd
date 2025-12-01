@@ -1,6 +1,6 @@
 import { RegisterRequestSchema, UserRegistration } from '@billsplit-wl/shared';
 import { z } from 'zod';
-import { ApiError, ErrorDetail, Errors } from '../errors';
+import { ErrorDetail, Errors } from '../errors';
 import { createRequestValidator } from '../validation/common';
 
 const mapRegisterError = (error: z.ZodError): never => {

@@ -1,8 +1,8 @@
 import { TenantDomainName, TenantFullRecord, TenantId, toTenantDomainName, toTenantId } from '@billsplit-wl/shared';
 import { logger } from '../../logger';
 import type { TenantRequestContext } from '../../types/tenant';
-import { Errors } from '../../errors/Errors';
-import { ErrorDetail } from '../../errors/ErrorCode';
+import { Errors } from '../../errors';
+import { ErrorDetail } from '../../errors';
 import type { IFirestoreReader } from '../firestore';
 
 export interface TenantResolutionOptions {

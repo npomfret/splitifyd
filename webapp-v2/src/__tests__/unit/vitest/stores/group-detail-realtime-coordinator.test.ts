@@ -1,4 +1,4 @@
-import type { ActivityFeedRealtimeConsumer, ActivityFeedRealtimePayload } from '@/app/services/activity-feed-realtime-service';
+import type { ActivityFeedRealtimeConsumer } from '@/app/services/activity-feed-realtime-service';
 import { GroupDetailRealtimeCoordinator } from '@/app/stores/helpers/group-detail-realtime-coordinator';
 import type { GroupId } from '@billsplit-wl/shared';
 import { toGroupId, toGroupName, toUserId } from '@billsplit-wl/shared';

@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { validateCreateExpense } from '../../../expenses/validation';
 import { validateCreateSettlement } from '../../../settlements/validation';
 import { ApiError } from '../../../errors';
-import { ErrorCode } from '../../../errors/ErrorCode';
+import { ErrorCode } from '../../../errors';
 
 describe('Currency-Aware Amount Validation', () => {
     describe('Zero Decimal Currencies (JPY, KRW, VND, etc.)', () => {

@@ -1,4 +1,4 @@
-import { ErrorCode, ErrorDetail, Errors } from '../../errors';
+import { ErrorDetail, Errors } from '../../errors';
 
 export interface ImageValidationOptions {
     maxSizeBytes?: number;

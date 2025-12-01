@@ -3,7 +3,7 @@ import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, UserRegistratio
 import { beforeEach, describe, expect, it, test } from 'vitest';
 import { IFirestoreReader } from '../../../services/firestore';
 import { GroupMemberService } from '../../../services/GroupMemberService';
-import { ErrorCode } from '../../../errors/ErrorCode';
+import { ErrorCode } from '../../../errors';
 import { AppDriver } from '../AppDriver';
 
 describe('GroupMemberService - Consolidated Unit Tests', () => {

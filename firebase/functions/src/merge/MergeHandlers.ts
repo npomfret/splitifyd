@@ -1,8 +1,8 @@
 import type { Response } from 'express';
 import type { AuthenticatedRequest } from '../auth/middleware';
 import { HTTP_STATUS } from '../constants';
-import { Errors } from '../errors/Errors';
-import { ErrorDetail } from '../errors/ErrorCode';
+import { Errors } from '../errors';
+import { ErrorDetail } from '../errors';
 import { validateUserId } from '../validation/common';
 import type { MergeService } from './MergeService';
 import type { MergeTaskService } from './MergeTaskService';

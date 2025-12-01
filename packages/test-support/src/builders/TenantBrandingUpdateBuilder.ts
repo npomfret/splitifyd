@@ -1,5 +1,4 @@
 import type {
-    BrandingMarketingFlags,
     TenantAccentColor,
     TenantAppName,
     TenantCustomCss,

@@ -2,7 +2,6 @@ import { ApiSerializer, responseSchemas } from '@billsplit-wl/shared';
 import { randomUUID } from 'crypto';
 import express from 'express';
 import type { ZodSchema } from 'zod';
-import type { AuthenticatedRequest } from '../auth/middleware';
 import { getClientConfig } from '../client-config';
 import { logger, LoggerContext } from '../logger';
 import { applyCacheControl } from '../middleware/cache-control';

@@ -17,7 +17,7 @@ import { PolicyText } from '@billsplit-wl/shared';
 import { toVersionHash } from '@billsplit-wl/shared';
 import * as crypto from 'crypto';
 import { z } from 'zod';
-import { ALLOWED_POLICY_IDS, HTTP_STATUS } from '../constants';
+import { ALLOWED_POLICY_IDS } from '../constants';
 import { ApiError, Errors, ErrorDetail } from '../errors';
 import { logger } from '../logger';
 import { measureDb } from '../monitoring/measure';

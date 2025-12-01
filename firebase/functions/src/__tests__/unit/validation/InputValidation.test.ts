@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { validateCreateExpense } from '../../../expenses/validation';
 import { validateCreateSettlement } from '../../../settlements/validation';
 import { ApiError } from '../../../errors';
-import { ErrorCode } from '../../../errors/ErrorCode';
+import { ErrorCode } from '../../../errors';
 
 describe('Input Validation Unit Tests', () => {
     describe('Amount Validation', () => {

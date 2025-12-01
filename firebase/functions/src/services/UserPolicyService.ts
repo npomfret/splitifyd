@@ -1,6 +1,6 @@
 import { isoStringNow, PolicyAcceptanceStatusDTO, PolicyId, UserPolicyStatusResponse, VersionHash } from '@billsplit-wl/shared';
 import type { UserId } from '@billsplit-wl/shared';
-import { FirestoreCollections, HTTP_STATUS } from '../constants';
+import { FirestoreCollections } from '../constants';
 import { ApiError, Errors, ErrorDetail } from '../errors';
 import { logger } from '../logger';
 import { measureDb } from '../monitoring/measure';

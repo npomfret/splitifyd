@@ -2,8 +2,8 @@ import type { UserId } from '@billsplit-wl/shared';
 import { logger } from '../logger';
 import type { IAuthService } from '../services/auth';
 import type { IFirestoreReader, IFirestoreWriter } from '../services/firestore';
-import { Errors } from '../errors/Errors';
-import { ErrorDetail } from '../errors/ErrorCode';
+import { Errors } from '../errors';
+import { ErrorDetail } from '../errors';
 import { LoggerContext } from '../utils/logger-context';
 import type { MergeJobDocument } from './MergeService';
 

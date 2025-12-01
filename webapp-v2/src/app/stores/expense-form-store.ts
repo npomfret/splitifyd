@@ -23,7 +23,7 @@ import type { CurrencyISOCode, UserId } from '@billsplit-wl/shared';
 import { toCurrencyISOCode } from '@billsplit-wl/shared';
 import { ReadonlySignal, signal } from '@preact/signals';
 import { z } from 'zod';
-import { apiClient, ApiError } from '../apiClient';
+import { apiClient } from '../apiClient';
 import { enhancedGroupDetailStore } from './group-detail-store-enhanced';
 import { enhancedGroupsStore as groupsStore } from './groups-store-enhanced';
 
