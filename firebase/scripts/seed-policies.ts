@@ -67,18 +67,6 @@ async function ensureAdminUser(): Promise<string> {
 }
 
 /**
- * Check if policy already exists via public API
- */
-async function policyExists(policyId: PolicyId): Promise<boolean> {
-    try {
-        await apiDriver.getCurrentPolicy(policyId);
-        return true;
-    } catch {
-        return false;
-    }
-}
-
-/**
  * Seed policy using Admin API
  */
 async function seedPolicy(
@@ -88,12 +76,6 @@ async function seedPolicy(
     adminToken: string,
 ): Promise<void> {
     try {
-        // Check if policy already exists
-        if (await policyExists(policyId)) {
-            console.log(`⏭️  Policy ${policyId} already exists, skipping...`);
-            return;
-        }
-
         console.log(`📄 Creating policy: ${policyName}`);
 
         // Read policy text
