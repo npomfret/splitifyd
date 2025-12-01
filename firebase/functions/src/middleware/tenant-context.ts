@@ -1,10 +1,5 @@
 import express from 'express';
-import type { TenantResolutionOptions } from '../services/tenant/TenantRegistryService';
 import { TenantRegistryService } from '../services/tenant/TenantRegistryService';
-
-export interface TenantContextConfig {
-    allowOverrideHeader: () => boolean;
-}
 
 const extractHostHeader = (req: express.Request): string | null => {
     const forwarded = req.headers['x-forwarded-host'];
@@ -52,7 +47,7 @@ const isRouteExempt = (path: string): boolean => {
     return TENANT_OPTIONAL_PATTERNS.some(pattern => pattern.test(path));
 };
 
-export const tenantContextMiddleware = (tenantRegistry: TenantRegistryService, config: TenantContextConfig) => async (req: express.Request, _res: express.Response, next: express.NextFunction) => {
+export const tenantContextMiddleware = (tenantRegistry: TenantRegistryService) => async (req: express.Request, _res: express.Response, next: express.NextFunction) => {
     if (req.method === 'OPTIONS') {
         next();
         return;
@@ -66,15 +61,7 @@ export const tenantContextMiddleware = (tenantRegistry: TenantRegistryService, c
 
     try {
         const host = extractHostHeader(req);
-        const overrideTenantId = req.get('x-tenant-id');
-
-        const options: TenantResolutionOptions = {
-            host,
-            overrideTenantId,
-            allowOverride: config.allowOverrideHeader(),
-        };
-
-        const resolution = await tenantRegistry.resolveTenant(options);
+        const resolution = await tenantRegistry.resolveTenant({ host });
         req.tenant = resolution;
 
         next();

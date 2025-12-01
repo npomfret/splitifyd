@@ -1,10 +1,5 @@
 import express from 'express';
-import type { TenantResolutionOptions } from '../services/tenant/TenantRegistryService';
 import { TenantRegistryService } from '../services/tenant/TenantRegistryService';
-
-export interface TenantIdentificationConfig {
-    allowOverrideHeader: () => boolean;
-}
 
 const EXEMPT_ROUTES = [
     '/',
@@ -23,10 +18,7 @@ const EXEMPT_PATTERNS = [
 ];
 
 class TenantIdentification {
-    constructor(
-        private readonly tenantRegistry: TenantRegistryService,
-        private readonly config: TenantIdentificationConfig,
-    ) {}
+    constructor(private readonly tenantRegistry: TenantRegistryService,) {}
 
     public readonly handle = async (req: express.Request, _res: express.Response, next: express.NextFunction) => {
         if (req.method === 'OPTIONS' || this.shouldSkip(req)) {
@@ -53,13 +45,9 @@ class TenantIdentification {
         return exempt;
     }
 
-    private buildResolutionOptions(req: express.Request): TenantResolutionOptions {
-        const overrideTenantId = req.get('x-tenant-id');
-
+    private buildResolutionOptions(req: express.Request) {
         return {
             host: this.extractHost(req),
-            overrideTenantId,
-            allowOverride: this.config.allowOverrideHeader(),
         };
     }
 
@@ -82,8 +70,8 @@ class TenantIdentification {
     }
 }
 
-export const createTenantIdentificationMiddleware = (tenantRegistry: TenantRegistryService, config: TenantIdentificationConfig) => {
-    const identification = new TenantIdentification(tenantRegistry, config);
+export const createTenantIdentificationMiddleware = (tenantRegistry: TenantRegistryService) => {
+    const identification = new TenantIdentification(tenantRegistry);
     return identification.handle;
 };
 

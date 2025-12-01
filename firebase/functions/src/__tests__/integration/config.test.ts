@@ -1,9 +1,6 @@
 import { ApiSerializer } from '@billsplit-wl/shared';
 import { ApiDriver } from '@billsplit-wl/test-support';
-import { Timestamp } from 'firebase-admin/firestore';
-import { afterAll, afterEach, beforeAll, describe, expect, test } from 'vitest';
-import { FirestoreCollections } from '../../constants';
-import { getFirestore } from '../../firebase';
+import { afterEach, describe, expect, test } from 'vitest';
 
 const deserializeConfig = async <T>(response: Response): Promise<T> => {
     const raw = await response.text();
@@ -13,48 +10,12 @@ const deserializeConfig = async <T>(response: Response): Promise<T> => {
 describe('Config Endpoint Integration Tests', () => {
     const apiDriver = new ApiDriver();
     const configUrl = `${apiDriver.getBaseUrl()}/config`;
-    const fetchConfigForTenant = (tenantId: string) =>
-        fetch(configUrl, {
-            headers: {
-                'X-Tenant-ID': tenantId,
-            },
-        });
-
-    const db = getFirestore();
-    const marketingTenantId = `marketing-hidden-${Date.now()}`;
 
     afterEach(async () => {
         await new Promise((resolve) => setTimeout(resolve, 100));
     });
 
     describe('Marketing Flags', () => {
-        beforeAll(async () => {
-            await db.collection(FirestoreCollections.TENANTS).doc(marketingTenantId).set({
-                branding: {
-                    appName: 'Hidden Marketing Tenant',
-                    logoUrl: 'https://hidden.example.com/logo.svg',
-                    faviconUrl: 'https://hidden.example.com/favicon.ico',
-                    primaryColor: '#112233',
-                    secondaryColor: '#334455',
-                    marketingFlags: {
-                        showLandingPage: false,
-                        showMarketingContent: false,
-                        showPricingPage: false,
-                    },
-                },
-                domains: ['marketing-hidden.example.com'],
-                defaultTenant: false,
-                createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now(),
-            });
-            // Wait for tenant to be fully persisted and cache to be cleared
-            await new Promise((resolve) => setTimeout(resolve, 1500));
-        });
-
-        afterAll(async () => {
-            await db.collection(FirestoreCollections.TENANTS).doc(marketingTenantId).delete();
-        });
-
         test('should include marketing flags for default tenant', async () => {
             const response = await fetch(configUrl);
             const config = await deserializeConfig<any>(response);
@@ -63,18 +24,6 @@ describe('Config Endpoint Integration Tests', () => {
             expect(config.tenant.branding).toBeDefined();
             expect(config.tenant.branding.marketingFlags).toBeDefined();
             expect(config.tenant.branding.marketingFlags.showMarketingContent).toBe(true);
-        });
-
-        test('should surface marketing flags overrides for alternate tenant', async () => {
-            const response = await fetchConfigForTenant(marketingTenantId);
-            const config = await deserializeConfig<any>(response);
-
-            expect(config.tenant).toBeDefined();
-            expect(config.tenant.branding).toBeDefined();
-            expect(config.tenant.branding.marketingFlags).toBeDefined();
-            // Verify custom tenant was used
-            expect(config.tenant.branding.appName).toBe('Hidden Marketing Tenant');
-            expect(config.tenant.branding.marketingFlags.showMarketingContent).toBe(false);
         });
     });
 

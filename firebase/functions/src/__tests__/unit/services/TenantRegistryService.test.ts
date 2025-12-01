@@ -3,7 +3,7 @@ import { AdminTenantRequestBuilder, UserRegistrationBuilder } from '@billsplit-w
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ErrorCode } from '../../../errors';
-import { TenantRegistryService, type TenantResolutionOptions } from '../../../services/tenant/TenantRegistryService';
+import { TenantRegistryService } from '../../../services/tenant/TenantRegistryService';
 import { ApiError } from '../../../errors';
 import { AppDriver } from '../AppDriver';
 
@@ -33,68 +33,6 @@ describe('TenantRegistryService', () => {
         app.dispose();
     });
 
-    describe('resolveTenant - override mode', () => {
-        it('should resolve tenant by override header when allowed', async () => {
-            // Create tenant via API
-            const tenantData = AdminTenantRequestBuilder
-                .forTenant('test-tenant')
-                .withBranding({
-                    appName: toTenantAppName('Test App'),
-                    logoUrl: toTenantLogoUrl('https://example.com/logo.svg'),
-                    faviconUrl: toTenantFaviconUrl('https://example.com/favicon.ico'),
-                    primaryColor: toTenantPrimaryColor('#0066CC'),
-                    secondaryColor: toTenantSecondaryColor('#FF6600'),
-                })
-                .withDomains([toTenantDomainName('app.example.com'), toTenantDomainName('example.com')])
-                .build();
-
-            await app.adminUpsertTenant(tenantData, adminUserId);
-
-            const options: TenantResolutionOptions = {
-                host: 'localhost:3000',
-                overrideTenantId: 'test-tenant',
-                allowOverride: true,
-            };
-
-            const result = await service.resolveTenant(options);
-
-            expect(result.tenantId).toBe('test-tenant');
-            expect(result.source).toBe('override');
-            expect(result.config.tenantId).toBe('test-tenant');
-            expect(result.config.branding.appName).toBe('Test App');
-        });
-
-        it('should throw FORBIDDEN when override is not allowed', async () => {
-            const options: TenantResolutionOptions = {
-                host: 'localhost:3000',
-                overrideTenantId: 'test-tenant',
-                allowOverride: false,
-            };
-
-            await expect(service.resolveTenant(options)).rejects.toThrow(ApiError);
-            await expect(service.resolveTenant(options)).rejects.toMatchObject({
-                statusCode: HTTP_STATUS.FORBIDDEN,
-                code: ErrorCode.FORBIDDEN,
-            });
-        });
-
-        it('should throw NOT_FOUND when override tenant does not exist', async () => {
-            // No tenant created - it doesn't exist
-
-            const options: TenantResolutionOptions = {
-                host: 'localhost:3000',
-                overrideTenantId: 'nonexistent',
-                allowOverride: true,
-            };
-
-            await expect(service.resolveTenant(options)).rejects.toThrow(ApiError);
-            await expect(service.resolveTenant(options)).rejects.toMatchObject({
-                statusCode: HTTP_STATUS.NOT_FOUND,
-                code: ErrorCode.NOT_FOUND,
-            });
-        });
-    });
-
     describe('resolveTenant - domain resolution', () => {
         it('should resolve tenant by domain', async () => {
             // Create tenant via API with domain
@@ -112,13 +50,7 @@ describe('TenantRegistryService', () => {
 
             await app.adminUpsertTenant(tenantData, adminUserId);
 
-            const options: TenantResolutionOptions = {
-                host: 'app.example.com',
-                overrideTenantId: null,
-                allowOverride: false,
-            };
-
-            const result = await service.resolveTenant(options);
+            const result = await service.resolveTenant({ host: 'app.example.com' });
 
             expect(result.tenantId).toBe('test-tenant');
             expect(result.source).toBe('domain');
@@ -142,13 +74,7 @@ describe('TenantRegistryService', () => {
 
             await app.adminUpsertTenant(tenantData, adminUserId);
 
-            const options: TenantResolutionOptions = {
-                host: 'APP.EXAMPLE.COM:8080',
-                overrideTenantId: null,
-                allowOverride: false,
-            };
-
-            const result = await service.resolveTenant(options);
+            const result = await service.resolveTenant({ host: 'APP.EXAMPLE.COM:8080' });
 
             expect(result.tenantId).toBe('test-tenant');
         });
@@ -169,13 +95,7 @@ describe('TenantRegistryService', () => {
 
             await app.adminUpsertTenant(tenantData, adminUserId);
 
-            const options: TenantResolutionOptions = {
-                host: 'app.example.com, proxy.internal',
-                overrideTenantId: null,
-                allowOverride: false,
-            };
-
-            const result = await service.resolveTenant(options);
+            const result = await service.resolveTenant({ host: 'app.example.com, proxy.internal' });
 
             expect(result.tenantId).toBe('test-tenant');
         });
@@ -199,13 +119,7 @@ describe('TenantRegistryService', () => {
 
             await app.adminUpsertTenant(tenantData, adminUserId);
 
-            const options: TenantResolutionOptions = {
-                host: 'unknown.example.com',
-                overrideTenantId: null,
-                allowOverride: false,
-            };
-
-            const result = await service.resolveTenant(options);
+            const result = await service.resolveTenant({ host: 'unknown.example.com' });
 
             expect(result.tenantId).toBe('default-tenant');
             expect(result.source).toBe('default');
@@ -216,14 +130,8 @@ describe('TenantRegistryService', () => {
         it('throws when no tenant can be resolved and no default exists', async () => {
             // No tenants created at all
 
-            const options: TenantResolutionOptions = {
-                host: null,
-                overrideTenantId: null,
-                allowOverride: false,
-            };
-
-            await expect(service.resolveTenant(options)).rejects.toThrow(ApiError);
-            await expect(service.resolveTenant(options)).rejects.toMatchObject({
+            await expect(service.resolveTenant({ host: null })).rejects.toThrow(ApiError);
+            await expect(service.resolveTenant({ host: null })).rejects.toMatchObject({
                 statusCode: HTTP_STATUS.NOT_FOUND,
                 code: ErrorCode.NOT_FOUND,
             });
@@ -231,48 +139,6 @@ describe('TenantRegistryService', () => {
     });
 
     describe('resolution priority', () => {
-        it('should prioritize override over domain', async () => {
-            // Create both tenants via API
-            const testTenantData = AdminTenantRequestBuilder
-                .forTenant('test-tenant')
-                .withBranding({
-                    appName: toTenantAppName('Test App'),
-                    logoUrl: toTenantLogoUrl('https://example.com/logo.svg'),
-                    faviconUrl: toTenantFaviconUrl('https://example.com/favicon.ico'),
-                    primaryColor: toTenantPrimaryColor('#0066CC'),
-                    secondaryColor: toTenantSecondaryColor('#FF6600'),
-                })
-                .withDomains([toTenantDomainName('test.example.com')])
-                .build();
-
-            const domainTenantData = AdminTenantRequestBuilder
-                .forTenant('domain-tenant')
-                .withBranding({
-                    appName: toTenantAppName('Domain App'),
-                    logoUrl: toTenantLogoUrl('https://foo.com/logo.svg'),
-                    faviconUrl: toTenantFaviconUrl('https://foo.com/favicon.ico'),
-                    primaryColor: toTenantPrimaryColor('#1a73e8'),
-                    secondaryColor: toTenantSecondaryColor('#34a853'),
-                })
-                .withDomains([toTenantDomainName('app.foo.com')])
-                .build();
-
-            await app.adminUpsertTenant(testTenantData, adminUserId);
-            await app.adminUpsertTenant(domainTenantData, adminUserId);
-
-            const options: TenantResolutionOptions = {
-                host: 'app.foo.com',
-                overrideTenantId: 'test-tenant',
-                allowOverride: true,
-            };
-
-            const result = await service.resolveTenant(options);
-
-            // Override should win
-            expect(result.tenantId).toBe('test-tenant');
-            expect(result.source).toBe('override');
-        });
-
         it('should prioritize domain over default fallback', async () => {
             // Create domain tenant and default tenant via API
             const testTenantData = AdminTenantRequestBuilder
@@ -303,13 +169,7 @@ describe('TenantRegistryService', () => {
             await app.adminUpsertTenant(testTenantData, adminUserId);
             await app.adminUpsertTenant(defaultTenantData, adminUserId);
 
-            const options: TenantResolutionOptions = {
-                host: 'app.example.com',
-                overrideTenantId: null,
-                allowOverride: false,
-            };
-
-            const result = await service.resolveTenant(options);
+            const result = await service.resolveTenant({ host: 'app.example.com' });
 
             // Domain match should win over default
             expect(result.tenantId).toBe('test-tenant');

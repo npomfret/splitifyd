@@ -12,8 +12,7 @@ import { TestUserPoolService } from './test-pool/TestUserPoolService';
 import { getEnhancedConfigResponse } from './utils/config-response';
 
 // Handler imports
-import { toPolicyId } from '@billsplit-wl/shared';
-import { toUserId } from '@billsplit-wl/shared';
+import { toPolicyId, toTenantId, toUserId } from '@billsplit-wl/shared';
 import { ActivityFeedHandlers } from './activity/ActivityHandlers';
 import { UserAdminHandlers } from './admin/UserAdminHandlers';
 import { CommentHandlers } from './comments/CommentHandlers';
@@ -98,11 +97,7 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
         let tenantContext = (req as any).tenant;
 
         if (!tenantContext) {
-            tenantContext = await tenantRegistryService.resolveTenant({
-                host: null,
-                overrideTenantId: null,
-                allowOverride: false,
-            });
+            tenantContext = await tenantRegistryService.resolveTenant({ host: null });
         }
 
         const config = getEnhancedConfigResponse(tenantContext);
@@ -256,11 +251,7 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
             }
 
             // Fetch tenant configuration from registry
-            const tenantRecord = await tenantRegistryService.resolveTenant({
-                host: null,
-                overrideTenantId: tenantId,
-                allowOverride: true,
-            });
+            const tenantRecord = await tenantRegistryService.getTenantById(toTenantId(tenantId));
 
             res.json({
                 tenantId: tenantRecord.tenantId,
@@ -350,11 +341,7 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
                 return;
             }
 
-            const tenantRecord = await tenantRegistryService.resolveTenant({
-                host: null,
-                overrideTenantId: tenantId,
-                allowOverride: true,
-            });
+            const tenantRecord = await tenantRegistryService.getTenantById(toTenantId(tenantId));
 
             res.json({
                 domains: tenantRecord.domains,

@@ -7,8 +7,6 @@ import type { IFirestoreReader } from '../firestore';
 
 export interface TenantResolutionOptions {
     host?: string | null;
-    overrideTenantId?: string | null;
-    allowOverride: boolean;
 }
 
 interface CacheEntry {
@@ -26,23 +24,9 @@ export class TenantRegistryService {
     constructor(private readonly firestoreReader: IFirestoreReader, private readonly cacheTtlMs: number = DEFAULT_CACHE_TTL_MS) {}
 
     async resolveTenant(options: TenantResolutionOptions): Promise<TenantRequestContext> {
-        const { host, overrideTenantId, allowOverride } = options;
+        const { host } = options;
 
-        logger.info('TenantRegistryService.resolveTenant', { host, overrideTenantId, allowOverride });
-
-        if (overrideTenantId) {
-            if (!allowOverride) {
-                throw Errors.forbidden('TENANT_OVERRIDE_NOT_ALLOWED');
-            }
-            const tenantId = toTenantId(overrideTenantId);
-            const record = await this.getByTenantId(tenantId);
-            if (record) {
-                logger.info('Resolved tenant by override', { tenantId: record.tenant.tenantId });
-                return this.toResolution(record, 'override');
-            }
-            // If override tenant doesn't exist and fallback is not allowed, throw error
-            throw Errors.notFound('Tenant', 'TENANT_OVERRIDE_NOT_FOUND', overrideTenantId);
-        }
+        logger.info('TenantRegistryService.resolveTenant', { host });
 
         if (host) {
             const normalizedHost = this.normalizeHost(host);
@@ -65,21 +49,33 @@ export class TenantRegistryService {
         throw Errors.notFound('Tenant', ErrorDetail.TENANT_NOT_FOUND);
     }
 
+    async getTenantById(tenantId: TenantId): Promise<TenantRequestContext> {
+        logger.info('TenantRegistryService.getTenantById', { tenantId });
+
+        const record = await this.loadTenantByIdInternal(tenantId);
+        if (record) {
+            logger.info('Found tenant by ID', { tenantId: record.tenant.tenantId });
+            return this.toResolution(record, 'domain');
+        }
+
+        throw Errors.notFound('Tenant', ErrorDetail.TENANT_NOT_FOUND, tenantId as unknown as string);
+    }
+
     clearCache(): void {
         this.cacheByTenantId.clear();
         this.cacheByDomain.clear();
     }
 
-    private getByTenantId(tenantId: TenantId): Promise<TenantFullRecord | null> {
+    private loadTenantByIdInternal(tenantId: TenantId): Promise<TenantFullRecord | null> {
         const cacheKey = tenantId as unknown as string;
         const cached = this.getFromCache(this.cacheByTenantId, cacheKey);
         if (cached) {
             return Promise.resolve(cached);
         }
-        return this.loadTenantById(cacheKey, tenantId);
+        return this.loadTenantByIdFromDb(cacheKey, tenantId);
     }
 
-    private async loadTenantById(cacheKey: string, tenantId: TenantId): Promise<TenantFullRecord | null> {
+    private async loadTenantByIdFromDb(cacheKey: string, tenantId: TenantId): Promise<TenantFullRecord | null> {
         try {
             const record = await this.firestoreReader.getTenantById(tenantId);
             if (!record) {
@@ -176,7 +172,7 @@ export class TenantRegistryService {
         return toTenantDomainName(withoutPort);
     }
 
-    private toResolution(record: TenantFullRecord, source: 'domain' | 'override' | 'default'): TenantRequestContext {
+    private toResolution(record: TenantFullRecord, source: 'domain' | 'default'): TenantRequestContext {
         return {
             tenantId: record.tenant.tenantId,
             config: record.tenant,

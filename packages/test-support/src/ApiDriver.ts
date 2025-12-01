@@ -805,7 +805,7 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return await this.apiRequest('/env', 'GET', null, token) as EnvironmentDiagnosticsResponse;
     }
 
-    async fetchThemeCss(options?: { tenantId?: string; version?: string; }): Promise<{ status: number; css: string; headers: Headers; }> {
+    async fetchThemeCss(options?: { version?: string; }): Promise<{ status: number; css: string; headers: Headers; }> {
         const searchParams = new URLSearchParams();
         if (options?.version) {
             searchParams.set('v', options.version);
@@ -813,17 +813,11 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
 
         const url = `${this.baseUrl}/theme.css${searchParams.size ? `?${searchParams.toString()}` : ''}`;
 
-        const headers: Record<string, string> = {
-            Accept: 'text/css',
-        };
-
-        if (options?.tenantId) {
-            headers['x-tenant-id'] = options.tenantId;
-        }
-
         const response = await fetch(url, {
             method: 'GET',
-            headers,
+            headers: {
+                Accept: 'text/css',
+            },
         });
 
         const css = await response.text();

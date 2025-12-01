@@ -34,7 +34,7 @@ export class TenantRequestContextBuilder {
         return this;
     }
 
-    withSource(source: 'domain' | 'override' | 'default'): this {
+    withSource(source: 'domain' | 'default'): this {
         this.context.source = source;
         return this;
     }

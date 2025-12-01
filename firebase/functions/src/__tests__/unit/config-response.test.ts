@@ -48,7 +48,7 @@ describe('getEnhancedConfigResponse', () => {
             config: sourceTenant,
             domains: [],
             isDefault: toTenantDefaultFlag(false),
-            source: 'override',
+            source: 'domain',
         };
 
         const result = getEnhancedConfigResponse(context);
@@ -128,7 +128,7 @@ describe('getEnhancedConfigResponse', () => {
             config: tenantWithoutMarketingFlags,
             domains: [],
             isDefault: toTenantDefaultFlag(false),
-            source: 'override',
+            source: 'domain',
         };
 
         const result = getEnhancedConfigResponse(context);

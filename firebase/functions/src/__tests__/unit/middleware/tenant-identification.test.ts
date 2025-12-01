@@ -1,14 +1,13 @@
 import { TenantConfigBuilder } from '@billsplit-wl/test-support';
 import express from 'express';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { TenantIdentification, type TenantIdentificationConfig } from '../../../middleware/tenant-identification';
+import { TenantIdentification } from '../../../middleware/tenant-identification';
 import { TenantRegistryService } from '../../../services/tenant/TenantRegistryService';
 import type { TenantRequestContext } from '../../../types/tenant';
 import { TenantRequestContextBuilder } from '../TenantRequestContextBuilder';
 
 describe('TenantIdentification middleware', () => {
     let registry: TenantRegistryService;
-    let config: TenantIdentificationConfig;
     let request: Partial<express.Request>;
     let response: Partial<express.Response>;
     let next: ReturnType<typeof vi.fn>;
@@ -36,10 +35,6 @@ describe('TenantIdentification middleware', () => {
             resolveTenant: vi.fn(),
         } as unknown as TenantRegistryService;
 
-        config = {
-            allowOverrideHeader: vi.fn().mockReturnValue(true),
-        };
-
         request = {
             method: 'GET',
             path: '/secure-route',
@@ -55,7 +50,7 @@ describe('TenantIdentification middleware', () => {
     });
 
     const runMiddleware = async () => {
-        const identification = new TenantIdentification(registry, config);
+        const identification = new TenantIdentification(registry);
         await identification.handle(request as express.Request, response as express.Response, next);
     };
 
@@ -112,27 +107,6 @@ describe('TenantIdentification middleware', () => {
             );
         });
 
-        it('passes override header when present', async () => {
-            (request.get as ReturnType<typeof vi.fn>).mockReturnValue('override-tenant');
-
-            await runMiddleware();
-
-            expect(registry.resolveTenant).toHaveBeenCalledWith(
-                expect.objectContaining({ overrideTenantId: 'override-tenant' }),
-            );
-        });
-    });
-
-    describe('config policy', () => {
-        it('honours allowOverrideHeader flag', async () => {
-            vi.mocked(config.allowOverrideHeader).mockReturnValue(false);
-
-            await runMiddleware();
-
-            expect(registry.resolveTenant).toHaveBeenCalledWith(
-                expect.objectContaining({ allowOverride: false }),
-            );
-        });
     });
 
     describe('route exemptions', () => {
@@ -178,7 +152,7 @@ describe('TenantIdentification middleware', () => {
             const failure = new Error('boom');
             vi.mocked(registry.resolveTenant).mockRejectedValue(failure);
 
-            const identification = new TenantIdentification(registry, config);
+            const identification = new TenantIdentification(registry);
             await identification.handle(request as express.Request, response as express.Response, next);
 
             expect(next).toHaveBeenCalledWith(failure);

@@ -4,14 +4,13 @@ import express from 'express';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ApiError, ErrorCode } from '../../../errors';
-import { type TenantContextConfig, tenantContextMiddleware } from '../../../middleware/tenant-context';
+import { tenantContextMiddleware } from '../../../middleware/tenant-context';
 import { TenantRegistryService } from '../../../services/tenant/TenantRegistryService';
 import type { TenantRequestContext } from '../../../types/tenant';
 import { TenantRequestContextBuilder } from '../TenantRequestContextBuilder';
 
 describe('tenantContextMiddleware', () => {
     let mockTenantRegistry: TenantRegistryService;
-    let mockConfig: TenantContextConfig;
     let mockRequest: Partial<express.Request>;
     let mockResponse: Partial<express.Response>;
     let nextFunction: ReturnType<typeof vi.fn>;
@@ -39,10 +38,6 @@ describe('tenantContextMiddleware', () => {
             resolveTenant: vi.fn(),
         } as unknown as TenantRegistryService;
 
-        mockConfig = {
-            allowOverrideHeader: vi.fn().mockReturnValue(true),
-        };
-
         mockRequest = {
             method: 'GET',
             headers: {},
@@ -61,7 +56,7 @@ describe('tenantContextMiddleware', () => {
 
             mockRequest.headers = { host: 'app.example.com' };
 
-            const middleware = tenantContextMiddleware(mockTenantRegistry, mockConfig);
+            const middleware = tenantContextMiddleware(mockTenantRegistry);
             await middleware(mockRequest as express.Request, mockResponse as express.Response, nextFunction);
 
             expect(mockRequest.tenant).toEqual(mockTenantContext);
@@ -74,7 +69,7 @@ describe('tenantContextMiddleware', () => {
 
             mockRequest.headers = { host: 'app.example.com' };
 
-            const middleware = tenantContextMiddleware(mockTenantRegistry, mockConfig);
+            const middleware = tenantContextMiddleware(mockTenantRegistry);
             await middleware(mockRequest as express.Request, mockResponse as express.Response, nextFunction);
 
             expect(mockTenantRegistry.resolveTenant).toHaveBeenCalledWith(
@@ -92,7 +87,7 @@ describe('tenantContextMiddleware', () => {
                 host: 'internal.example.com',
             };
 
-            const middleware = tenantContextMiddleware(mockTenantRegistry, mockConfig);
+            const middleware = tenantContextMiddleware(mockTenantRegistry);
             await middleware(mockRequest as express.Request, mockResponse as express.Response, nextFunction);
 
             expect(mockTenantRegistry.resolveTenant).toHaveBeenCalledWith(
@@ -111,7 +106,7 @@ describe('tenantContextMiddleware', () => {
                 hostname: 'fallback.example.com',
             };
 
-            const middleware = tenantContextMiddleware(mockTenantRegistry, mockConfig);
+            const middleware = tenantContextMiddleware(mockTenantRegistry);
             await middleware(mockRequest as express.Request, mockResponse as express.Response, nextFunction);
 
             expect(mockTenantRegistry.resolveTenant).toHaveBeenCalledWith(
@@ -130,7 +125,7 @@ describe('tenantContextMiddleware', () => {
                 hostname: '',
             };
 
-            const middleware = tenantContextMiddleware(mockTenantRegistry, mockConfig);
+            const middleware = tenantContextMiddleware(mockTenantRegistry);
             await middleware(mockRequest as express.Request, mockResponse as express.Response, nextFunction);
 
             expect(mockTenantRegistry.resolveTenant).toHaveBeenCalledWith(
@@ -140,46 +135,13 @@ describe('tenantContextMiddleware', () => {
             );
         });
 
-        it('should extract x-tenant-id override header', async () => {
-            vi.mocked(mockTenantRegistry.resolveTenant).mockResolvedValue(mockTenantContext);
-
-            mockRequest.headers = { host: 'app.example.com' };
-            (mockRequest.get as ReturnType<typeof vi.fn>).mockReturnValue('override-tenant');
-
-            const middleware = tenantContextMiddleware(mockTenantRegistry, mockConfig);
-            await middleware(mockRequest as express.Request, mockResponse as express.Response, nextFunction);
-
-            expect(mockTenantRegistry.resolveTenant).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    overrideTenantId: 'override-tenant',
-                }),
-            );
-        });
-    });
-
-    describe('config policy enforcement', () => {
-        it('should pass allowOverride from config', async () => {
-            vi.mocked(mockTenantRegistry.resolveTenant).mockResolvedValue(mockTenantContext);
-            vi.mocked(mockConfig.allowOverrideHeader).mockReturnValue(false);
-
-            mockRequest.headers = { host: 'app.example.com' };
-
-            const middleware = tenantContextMiddleware(mockTenantRegistry, mockConfig);
-            await middleware(mockRequest as express.Request, mockResponse as express.Response, nextFunction);
-
-            expect(mockTenantRegistry.resolveTenant).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    allowOverride: false,
-                }),
-            );
-        });
     });
 
     describe('OPTIONS requests', () => {
         it('should skip tenant resolution for OPTIONS requests', async () => {
             mockRequest.method = 'OPTIONS';
 
-            const middleware = tenantContextMiddleware(mockTenantRegistry, mockConfig);
+            const middleware = tenantContextMiddleware(mockTenantRegistry);
             await middleware(mockRequest as express.Request, mockResponse as express.Response, nextFunction);
 
             expect(mockTenantRegistry.resolveTenant).not.toHaveBeenCalled();
@@ -199,7 +161,7 @@ describe('tenantContextMiddleware', () => {
                     headers: { host: 'app.example.com' },
                 };
 
-                const middleware = tenantContextMiddleware(mockTenantRegistry, mockConfig);
+                const middleware = tenantContextMiddleware(mockTenantRegistry);
                 await middleware(mockRequest as express.Request, mockResponse as express.Response, nextFunction);
 
                 expect(mockTenantRegistry.resolveTenant).not.toHaveBeenCalled();
@@ -227,7 +189,7 @@ describe('tenantContextMiddleware', () => {
                     headers: { host: 'app.example.com' },
                 };
 
-                const middleware = tenantContextMiddleware(mockTenantRegistry, mockConfig);
+                const middleware = tenantContextMiddleware(mockTenantRegistry);
                 await middleware(mockRequest as express.Request, mockResponse as express.Response, nextFunction);
 
                 expect(mockTenantRegistry.resolveTenant).not.toHaveBeenCalled();
@@ -246,7 +208,7 @@ describe('tenantContextMiddleware', () => {
                 headers: { host: 'app.example.com' },
             };
 
-            const middleware = tenantContextMiddleware(mockTenantRegistry, mockConfig);
+            const middleware = tenantContextMiddleware(mockTenantRegistry);
             await middleware(mockRequest as express.Request, mockResponse as express.Response, nextFunction);
 
             expect(mockTenantRegistry.resolveTenant).toHaveBeenCalled();
@@ -261,7 +223,7 @@ describe('tenantContextMiddleware', () => {
 
             mockRequest.headers = { host: 'unknown.example.com' };
 
-            const middleware = tenantContextMiddleware(mockTenantRegistry, mockConfig);
+            const middleware = tenantContextMiddleware(mockTenantRegistry);
             await middleware(mockRequest as express.Request, mockResponse as express.Response, nextFunction);
 
             expect(nextFunction).toHaveBeenCalledWith(error);
@@ -274,7 +236,7 @@ describe('tenantContextMiddleware', () => {
 
             mockRequest.headers = { host: 'app.example.com' };
 
-            const middleware = tenantContextMiddleware(mockTenantRegistry, mockConfig);
+            const middleware = tenantContextMiddleware(mockTenantRegistry);
             await middleware(mockRequest as express.Request, mockResponse as express.Response, nextFunction);
 
             expect(nextFunction).toHaveBeenCalledWith(error);
@@ -282,20 +244,20 @@ describe('tenantContextMiddleware', () => {
     });
 
     describe('source tracking', () => {
-        it('should preserve source from resolution', async () => {
-            const overrideContext: TenantRequestContext = {
+        it('should preserve domain source from resolution', async () => {
+            const domainContext: TenantRequestContext = {
                 ...mockTenantContext,
-                source: 'override',
+                source: 'domain',
             };
 
-            vi.mocked(mockTenantRegistry.resolveTenant).mockResolvedValue(overrideContext);
+            vi.mocked(mockTenantRegistry.resolveTenant).mockResolvedValue(domainContext);
 
             mockRequest.headers = { host: 'app.example.com' };
 
-            const middleware = tenantContextMiddleware(mockTenantRegistry, mockConfig);
+            const middleware = tenantContextMiddleware(mockTenantRegistry);
             await middleware(mockRequest as express.Request, mockResponse as express.Response, nextFunction);
 
-            expect(mockRequest.tenant?.source).toBe('override');
+            expect(mockRequest.tenant?.source).toBe('domain');
         });
 
         it('should preserve default source', async () => {
@@ -309,7 +271,7 @@ describe('tenantContextMiddleware', () => {
 
             mockRequest.headers = { host: 'unknown.example.com' };
 
-            const middleware = tenantContextMiddleware(mockTenantRegistry, mockConfig);
+            const middleware = tenantContextMiddleware(mockTenantRegistry);
             await middleware(mockRequest as express.Request, mockResponse as express.Response, nextFunction);
 
             expect(mockRequest.tenant?.source).toBe('default');

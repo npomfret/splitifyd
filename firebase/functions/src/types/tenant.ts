@@ -1,6 +1,6 @@
 import type { BrandingArtifactMetadata, TenantConfig, TenantDefaultFlag, TenantDomainName, TenantId } from '@billsplit-wl/shared';
 
-type TenantResolutionSource = 'domain' | 'override' | 'default';
+type TenantResolutionSource = 'domain' | 'default';
 
 export interface TenantRequestContext {
     tenantId: TenantId;

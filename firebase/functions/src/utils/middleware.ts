@@ -6,7 +6,7 @@ import { getAppConfig } from '../app-config';
 import { logger, LoggerContext } from '../logger';
 import { applyCacheControl } from '../middleware/cache-control';
 import { applySecurityHeaders } from '../middleware/security-headers';
-import { createTenantIdentificationMiddleware, type TenantIdentificationConfig } from '../middleware/tenant-identification';
+import { createTenantIdentificationMiddleware } from '../middleware/tenant-identification';
 import { validateContentType, validateRequestStructure } from '../middleware/validation';
 import '../types/tenant';
 import { getComponentBuilder } from '../ComponentBuilderSingleton';
@@ -14,10 +14,6 @@ import { Errors } from '../errors';
 
 const applicationBuilder = getComponentBuilder();
 const tenantRegistryService = applicationBuilder.buildTenantRegistryService();
-
-const tenantIdentificationConfig: TenantIdentificationConfig = {
-    allowOverrideHeader: () => getAppConfig().isEmulator,
-};
 
 /**
  * Normalize an Express path to match the responseSchemas keys
@@ -135,7 +131,7 @@ export const applyStandardMiddleware = (app: express.Application) => {
     });
 
     // Resolve tenant context for all subsequent middleware and handlers
-    app.use(createTenantIdentificationMiddleware(tenantRegistryService, tenantIdentificationConfig));
+    app.use(createTenantIdentificationMiddleware(tenantRegistryService));
 
     // Serialize all JSON responses through the API serializer with validation
     app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
