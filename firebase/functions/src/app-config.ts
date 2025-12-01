@@ -68,6 +68,10 @@ interface AppConfig {
         hstsEnabled: boolean;
         cspPolicy: string;
     };
+    cloudTasks: {
+        /** Skip OIDC auth in emulator since StubCloudTasksClient doesn't send real tokens */
+        requireOidcAuth: boolean;
+    };
 }
 
 // Lazy environment variable loader
@@ -144,6 +148,9 @@ function buildConfig(): AppConfig {
                     + "connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.firebaseapp.com wss://*.firebaseio.com; "
                     + "frame-ancestors 'none'; "
                     + "report-uri /csp-violation-report;",
+        },
+        cloudTasks: {
+            requireOidcAuth: !emulator,
         },
     };
 }

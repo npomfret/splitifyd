@@ -194,8 +194,7 @@ export const authenticateTenantAdmin = async (req: AuthenticatedRequest, res: Re
 export const authenticateCloudTask = async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
     const config = getClientConfig();
 
-    // Skip authentication in emulator mode - Cloud Tasks stub doesn't send OIDC tokens
-    if (config.isEmulator) {
+    if (!config.cloudTasks.requireOidcAuth) {
         next();
         return;
     }
