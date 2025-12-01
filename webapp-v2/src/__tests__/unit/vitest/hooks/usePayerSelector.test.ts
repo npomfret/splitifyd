@@ -1,12 +1,25 @@
 import { usePayerSelector } from '@/app/hooks/usePayerSelector';
 import type { ExpenseFormMember } from '@/components/expense-form/types';
+import { ExpenseFormMemberBuilder } from '@billsplit-wl/test-support';
 import { act, renderHook } from '@testing-library/preact';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const createTestMembers = (): ExpenseFormMember[] => [
-    { uid: 'user-1', groupDisplayName: 'Alice Smith', displayName: 'Alice' },
-    { uid: 'user-2', groupDisplayName: 'Bob Jones', displayName: 'Bob' },
-    { uid: 'user-3', groupDisplayName: 'Charlie Brown', displayName: null },
+    new ExpenseFormMemberBuilder()
+        .withUid('user-1')
+        .withGroupDisplayName('Alice Smith')
+        .withDisplayName('Alice')
+        .build(),
+    new ExpenseFormMemberBuilder()
+        .withUid('user-2')
+        .withGroupDisplayName('Bob Jones')
+        .withDisplayName('Bob')
+        .build(),
+    new ExpenseFormMemberBuilder()
+        .withUid('user-3')
+        .withGroupDisplayName('Charlie Brown')
+        .withDisplayName(null)
+        .build(),
 ];
 
 describe('usePayerSelector', () => {

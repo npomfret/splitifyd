@@ -1,16 +1,4 @@
 import type { PooledTestUser } from '@billsplit-wl/shared';
-import {
-    toTenantAccentColor,
-    toTenantAppName,
-    toTenantCustomCss,
-    toTenantFaviconUrl,
-    toTenantLogoUrl,
-    toTenantPrimaryColor,
-    toTenantSecondaryColor,
-    toTenantSurfaceColor,
-    toTenantTextColor,
-    toTenantThemePaletteName,
-} from '@billsplit-wl/shared';
 import { AdminTenantRequestBuilder, ApiDriver } from '@billsplit-wl/test-support';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { FirestoreCollections } from '../../../constants';
@@ -30,17 +18,13 @@ describe('Admin tenant CRUD operations', () => {
             const tenantId = `tenant-create-${Date.now()}`;
             const uniqueDomain = `${tenantId}.local`;
 
-            const payload = AdminTenantRequestBuilder
-                .forTenant(tenantId)
+            const payload = AdminTenantRequestBuilder.forTenant(tenantId)
                 .withAppName('Test Create Tenant')
-                .withBranding({
-                    appName: toTenantAppName('Test Create Tenant'),
-                    logoUrl: toTenantLogoUrl('/logo.svg'),
-                    faviconUrl: toTenantFaviconUrl('/favicon.ico'),
-                    primaryColor: toTenantPrimaryColor('#1a73e8'),
-                    secondaryColor: toTenantSecondaryColor('#34a853'),
-                    accentColor: toTenantAccentColor('#fbbc04'),
-                })
+                .withLogoUrl('/logo.svg')
+                .withFaviconUrl('/favicon.ico')
+                .withPrimaryColor('#1a73e8')
+                .withSecondaryColor('#34a853')
+                .withAccentColor('#fbbc04')
                 .withDomains([uniqueDomain])
                 .build();
 
@@ -80,14 +64,12 @@ describe('Admin tenant CRUD operations', () => {
         it('should reject tenant without app name', async () => {
             const tenantId = `tenant-no-appname-${Date.now()}`;
 
-            const payload = AdminTenantRequestBuilder
-                .forTenant(tenantId)
-                .withBranding({
-                    appName: toTenantAppName(''),
-                    logoUrl: toTenantLogoUrl('/logo.svg'),
-                    primaryColor: toTenantPrimaryColor('#1a73e8'),
-                    secondaryColor: toTenantSecondaryColor('#34a853'),
-                })
+            // Test empty appName validation
+            const payload = AdminTenantRequestBuilder.forTenant(tenantId)
+                .withAppName('')
+                .withLogoUrl('/logo.svg')
+                .withPrimaryColor('#1a73e8')
+                .withSecondaryColor('#34a853')
                 .withDomains([`${tenantId}.local`])
                 .build();
 
@@ -180,15 +162,11 @@ describe('Admin tenant CRUD operations', () => {
 
             // Create tenant
             await apiDriver.adminUpsertTenant(
-                AdminTenantRequestBuilder
-                    .forTenant(tenantId)
+                AdminTenantRequestBuilder.forTenant(tenantId)
                     .withAppName('Original Name')
-                    .withBranding({
-                        appName: toTenantAppName('Original Name'),
-                        logoUrl: toTenantLogoUrl('/logo-old.svg'),
-                        primaryColor: toTenantPrimaryColor('#ff0000'),
-                        secondaryColor: toTenantSecondaryColor('#00ff00'),
-                    })
+                    .withLogoUrl('/logo-old.svg')
+                    .withPrimaryColor('#ff0000')
+                    .withSecondaryColor('#00ff00')
                     .withDomains([domain])
                     .build(),
                 adminUser.token,
@@ -196,15 +174,11 @@ describe('Admin tenant CRUD operations', () => {
 
             // Update tenant
             const updateResult = await apiDriver.adminUpsertTenant(
-                AdminTenantRequestBuilder
-                    .forTenant(tenantId)
+                AdminTenantRequestBuilder.forTenant(tenantId)
                     .withAppName('Updated Name')
-                    .withBranding({
-                        appName: toTenantAppName('Updated Name'),
-                        logoUrl: toTenantLogoUrl('/logo-new.svg'),
-                        primaryColor: toTenantPrimaryColor('#0000ff'),
-                        secondaryColor: toTenantSecondaryColor('#ffff00'),
-                    })
+                    .withLogoUrl('/logo-new.svg')
+                    .withPrimaryColor('#0000ff')
+                    .withSecondaryColor('#ffff00')
                     .withDomains([domain])
                     .build(),
                 adminUser.token,
@@ -227,25 +201,21 @@ describe('Admin tenant CRUD operations', () => {
 
             // Create initial tenant with all fields
             await apiDriver.adminUpsertTenant(
-                AdminTenantRequestBuilder
-                    .forTenant(tenantId)
+                AdminTenantRequestBuilder.forTenant(tenantId)
                     .withAppName('Test Tenant')
-                    .withBranding({
-                        appName: toTenantAppName('Test Tenant'),
-                        logoUrl: toTenantLogoUrl('/logo.svg'),
-                        faviconUrl: toTenantFaviconUrl('/favicon.ico'),
-                        primaryColor: toTenantPrimaryColor('#3B82F6'),
-                        secondaryColor: toTenantSecondaryColor('#8B5CF6'),
-                        accentColor: toTenantAccentColor('#EC4899'),
-                        surfaceColor: toTenantSurfaceColor('#ffffff'),
-                        textColor: toTenantTextColor('#1F2937'),
-                        themePalette: toTenantThemePaletteName('default'),
-                        customCSS: toTenantCustomCss('/* initial */'),
-                        marketingFlags: {
-                            showLandingPage: true,
-                            showMarketingContent: true,
-                            showPricingPage: false,
-                        },
+                    .withLogoUrl('/logo.svg')
+                    .withFaviconUrl('/favicon.ico')
+                    .withPrimaryColor('#3B82F6')
+                    .withSecondaryColor('#8B5CF6')
+                    .withAccentColor('#EC4899')
+                    .withSurfaceColor('#ffffff')
+                    .withTextColor('#1F2937')
+                    .withThemePalette('default')
+                    .withCustomCSS('/* initial */')
+                    .withMarketingFlags({
+                        showLandingPage: true,
+                        showMarketingContent: true,
+                        showPricingPage: false,
                     })
                     .withDomains([domain])
                     .build(),
@@ -259,25 +229,21 @@ describe('Admin tenant CRUD operations', () => {
 
             // Update tenant with EVERY field changed
             await apiDriver.adminUpsertTenant(
-                AdminTenantRequestBuilder
-                    .forTenant(tenantId)
+                AdminTenantRequestBuilder.forTenant(tenantId)
                     .withAppName('Updated Test App')
-                    .withBranding({
-                        appName: toTenantAppName('Updated Test App'),
-                        logoUrl: toTenantLogoUrl('/updated-logo.svg'),
-                        faviconUrl: toTenantFaviconUrl('/updated-favicon.ico'),
-                        primaryColor: toTenantPrimaryColor('#aa11bb'),
-                        secondaryColor: toTenantSecondaryColor('#bb22cc'),
-                        accentColor: toTenantAccentColor('#cc33dd'),
-                        surfaceColor: toTenantSurfaceColor('#dddddd'),
-                        textColor: toTenantTextColor('#111111'),
-                        themePalette: toTenantThemePaletteName('test-palette'),
-                        customCSS: toTenantCustomCss('/* updated css */'),
-                        marketingFlags: {
-                            showLandingPage: false,
-                            showMarketingContent: false,
-                            showPricingPage: true,
-                        },
+                    .withLogoUrl('/updated-logo.svg')
+                    .withFaviconUrl('/updated-favicon.ico')
+                    .withPrimaryColor('#aa11bb')
+                    .withSecondaryColor('#bb22cc')
+                    .withAccentColor('#cc33dd')
+                    .withSurfaceColor('#dddddd')
+                    .withTextColor('#111111')
+                    .withThemePalette('test-palette')
+                    .withCustomCSS('/* updated css */')
+                    .withMarketingFlags({
+                        showLandingPage: false,
+                        showMarketingContent: false,
+                        showPricingPage: true,
                     })
                     .withDomains([domain])
                     .build(),
@@ -399,14 +365,11 @@ describe('Admin tenant CRUD operations', () => {
             const tenantId = `tenant-logo-formats-${Date.now()}`;
 
             // Test with various URL formats - all should be accepted
-            const payload = AdminTenantRequestBuilder
-                .forTenant(tenantId)
-                .withBranding({
-                    appName: toTenantAppName('Test URL Formats'),
-                    logoUrl: toTenantLogoUrl('/relative/path/logo.svg'),
-                    primaryColor: toTenantPrimaryColor('#1a73e8'),
-                    secondaryColor: toTenantSecondaryColor('#34a853'),
-                })
+            const payload = AdminTenantRequestBuilder.forTenant(tenantId)
+                .withAppName('Test URL Formats')
+                .withLogoUrl('/relative/path/logo.svg')
+                .withPrimaryColor('#1a73e8')
+                .withSecondaryColor('#34a853')
                 .withDomains([`${tenantId}.local`])
                 .build();
 

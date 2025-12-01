@@ -1,7 +1,16 @@
-import { StubCloudTasksClient, Timestamp } from '@billsplit-wl/firebase-simulator';
+import { StubCloudTasksClient } from '@billsplit-wl/firebase-simulator';
 import { StubFirestoreDatabase } from '@billsplit-wl/firebase-simulator';
-import { SystemUserRoles, toUserId } from '@billsplit-wl/shared';
-import { StubStorage } from '@billsplit-wl/test-support';
+import { toUserId } from '@billsplit-wl/shared';
+import {
+    AccountMergeJobDocumentBuilder,
+    CommentDocumentBuilder,
+    ExpenseDocumentBuilder,
+    GroupDocumentBuilder,
+    GroupMembershipDocumentBuilder,
+    SettlementSeedDocumentBuilder,
+    StubStorage,
+    UserDocumentBuilder,
+} from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { FirestoreCollections } from '../../../constants';
 import { ErrorCode } from '../../../errors';
@@ -51,30 +60,26 @@ describe('MergeTaskService', () => {
             const secondaryUserId = toUserId('secondary-user');
             const jobId = 'test-job-123';
 
-            db.seed(`users/${primaryUserId}`, {
-                id: primaryUserId,
-                email: 'primary@example.com',
-                role: SystemUserRoles.SYSTEM_USER,
-                createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now(),
-            });
+            db.seed(
+                `users/${primaryUserId}`,
+                new UserDocumentBuilder().withId(primaryUserId).withEmail('primary@example.com').build(),
+            );
 
-            db.seed(`users/${secondaryUserId}`, {
-                id: secondaryUserId,
-                email: 'secondary@example.com',
-                role: SystemUserRoles.SYSTEM_USER,
-                createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now(),
-            });
+            db.seed(
+                `users/${secondaryUserId}`,
+                new UserDocumentBuilder().withId(secondaryUserId).withEmail('secondary@example.com').build(),
+            );
 
             // Create pending merge job
-            db.seed(`account-merges/${jobId}`, {
-                id: jobId,
-                primaryUserId,
-                secondaryUserId,
-                status: 'pending',
-                createdAt: new Date().toISOString(),
-            });
+            db.seed(
+                `account-merges/${jobId}`,
+                new AccountMergeJobDocumentBuilder()
+                    .withId(jobId)
+                    .withPrimaryUserId(primaryUserId)
+                    .withSecondaryUserId(secondaryUserId)
+                    .asPending()
+                    .build(),
+            );
 
             // Act: Execute the merge
             const result = await mergeTaskService.executeMerge(jobId);
@@ -99,14 +104,15 @@ describe('MergeTaskService', () => {
             const primaryUserId = toUserId('primary-user');
             const secondaryUserId = toUserId('secondary-user');
 
-            db.seed(`account-merges/${jobId}`, {
-                id: jobId,
-                primaryUserId,
-                secondaryUserId,
-                status: 'processing',
-                createdAt: new Date().toISOString(),
-                startedAt: new Date().toISOString(),
-            });
+            db.seed(
+                `account-merges/${jobId}`,
+                new AccountMergeJobDocumentBuilder()
+                    .withId(jobId)
+                    .withPrimaryUserId(primaryUserId)
+                    .withSecondaryUserId(secondaryUserId)
+                    .asProcessing()
+                    .build(),
+            );
 
             // Act & Assert: Should throw error for non-pending job
             await expect(mergeTaskService.executeMerge(jobId)).rejects.toMatchObject({
@@ -125,68 +131,66 @@ describe('MergeTaskService', () => {
             const secondaryUserId = toUserId('secondary-user');
             const jobId = 'test-job-456';
 
-            db.seed(`users/${primaryUserId}`, {
-                id: primaryUserId,
-                email: 'primary@example.com',
-                role: SystemUserRoles.SYSTEM_USER,
-                createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now(),
-            });
+            db.seed(
+                `users/${primaryUserId}`,
+                new UserDocumentBuilder().withId(primaryUserId).withEmail('primary@example.com').build(),
+            );
 
-            db.seed(`users/${secondaryUserId}`, {
-                id: secondaryUserId,
-                email: 'secondary@example.com',
-                role: SystemUserRoles.SYSTEM_USER,
-                createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now(),
-            });
+            db.seed(
+                `users/${secondaryUserId}`,
+                new UserDocumentBuilder().withId(secondaryUserId).withEmail('secondary@example.com').build(),
+            );
 
             // Create test data owned by secondary user
-            db.seed(`groups/group-1`, {
-                id: 'group-1',
-                ownerId: secondaryUserId,
-                name: 'Test Group',
-                createdAt: Timestamp.now(),
-            });
+            db.seed(
+                `groups/group-1`,
+                new GroupDocumentBuilder().withId('group-1').withOwnerId(secondaryUserId).withName('Test Group').build(),
+            );
 
-            db.seed(`group-memberships/membership-1`, {
-                id: 'membership-1',
-                userId: secondaryUserId,
-                groupId: 'group-1',
-                createdAt: Timestamp.now(),
-            });
+            db.seed(
+                `group-memberships/membership-1`,
+                new GroupMembershipDocumentBuilder()
+                    .withId('membership-1')
+                    .withUserId(secondaryUserId)
+                    .withGroupId('group-1')
+                    .build(),
+            );
 
-            db.seed(`expenses/expense-1`, {
-                id: 'expense-1',
-                paidBy: secondaryUserId,
-                participants: [secondaryUserId, primaryUserId],
-                amount: '100',
-                createdAt: Timestamp.now(),
-            });
+            db.seed(
+                `expenses/expense-1`,
+                new ExpenseDocumentBuilder()
+                    .withId('expense-1')
+                    .withPaidBy(secondaryUserId)
+                    .withParticipants([secondaryUserId, primaryUserId])
+                    .withAmount('100')
+                    .build(),
+            );
 
-            db.seed(`settlements/settlement-1`, {
-                id: 'settlement-1',
-                payerId: secondaryUserId,
-                payeeId: primaryUserId,
-                amount: '50',
-                createdAt: Timestamp.now(),
-            });
+            db.seed(
+                `settlements/settlement-1`,
+                new SettlementSeedDocumentBuilder()
+                    .withId('settlement-1')
+                    .withPayerId(secondaryUserId)
+                    .withPayeeId(primaryUserId)
+                    .withAmount('50')
+                    .build(),
+            );
 
-            db.seed(`comments/comment-1`, {
-                id: 'comment-1',
-                authorId: secondaryUserId,
-                text: 'Test comment',
-                createdAt: Timestamp.now(),
-            });
+            db.seed(
+                `comments/comment-1`,
+                new CommentDocumentBuilder().withId('comment-1').withAuthorId(secondaryUserId).withText('Test comment').build(),
+            );
 
             // Create pending merge job
-            db.seed(`account-merges/${jobId}`, {
-                id: jobId,
-                primaryUserId,
-                secondaryUserId,
-                status: 'pending',
-                createdAt: new Date().toISOString(),
-            });
+            db.seed(
+                `account-merges/${jobId}`,
+                new AccountMergeJobDocumentBuilder()
+                    .withId(jobId)
+                    .withPrimaryUserId(primaryUserId)
+                    .withSecondaryUserId(secondaryUserId)
+                    .asPending()
+                    .build(),
+            );
 
             // Act: Execute the merge
             const result = await mergeTaskService.executeMerge(jobId);

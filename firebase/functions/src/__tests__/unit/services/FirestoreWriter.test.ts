@@ -1,7 +1,5 @@
 import { StubCloudTasksClient, StubStorage } from '@billsplit-wl/firebase-simulator';
-import { toGroupId, toUserId } from '@billsplit-wl/shared';
-import { toDisplayName } from '@billsplit-wl/shared';
-import { toTenantAppName, toTenantDomainName, toTenantFaviconUrl, toTenantId, toTenantLogoUrl, toTenantPrimaryColor, toTenantSecondaryColor } from '@billsplit-wl/shared';
+import { toDisplayName, toGroupId, toTenantDomainName, toTenantId, toUserId } from '@billsplit-wl/shared';
 import { CreateGroupRequestBuilder, StubFirestoreDatabase, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
@@ -228,13 +226,6 @@ describe('FirestoreWriter.upsertTenant - Default Tenant Enforcement', () => {
         await firestoreWriter.upsertTenant(
             tenantId,
             new TenantPayloadBuilder('test-tenant')
-                .withBranding({
-                    appName: toTenantAppName('Test Tenant 1'),
-                    logoUrl: toTenantLogoUrl('/logo.svg'),
-                    faviconUrl: toTenantFaviconUrl('/favicon.ico'),
-                    primaryColor: toTenantPrimaryColor('#000000'),
-                    secondaryColor: toTenantSecondaryColor('#ffffff'),
-                })
                 .withDomains([toTenantDomainName('test1.example.com')])
                 .withDefaultTenantFlag(true)
                 .build(),
@@ -246,13 +237,6 @@ describe('FirestoreWriter.upsertTenant - Default Tenant Enforcement', () => {
             await firestoreWriter.upsertTenant(
                 tenantId,
                 new TenantPayloadBuilder('test-tenant')
-                    .withBranding({
-                        appName: toTenantAppName('Test Tenant 1'),
-                        logoUrl: toTenantLogoUrl('/logo.svg'),
-                        faviconUrl: toTenantFaviconUrl('/favicon.ico'),
-                        primaryColor: toTenantPrimaryColor('#000000'),
-                        secondaryColor: toTenantSecondaryColor('#ffffff'),
-                    })
                     .withDomains([toTenantDomainName('test1.example.com')])
                     .withDefaultTenantFlag(false)
                     .build(),
@@ -275,13 +259,6 @@ describe('FirestoreWriter.upsertTenant - Default Tenant Enforcement', () => {
         await firestoreWriter.upsertTenant(
             tenant1Id,
             new TenantPayloadBuilder('test-tenant')
-                .withBranding({
-                    appName: toTenantAppName('Test Tenant 1'),
-                    logoUrl: toTenantLogoUrl('/logo.svg'),
-                    faviconUrl: toTenantFaviconUrl('/favicon.ico'),
-                    primaryColor: toTenantPrimaryColor('#000000'),
-                    secondaryColor: toTenantSecondaryColor('#ffffff'),
-                })
                 .withDomains([toTenantDomainName('test1.example.com')])
                 .withDefaultTenantFlag(true)
                 .build(),
@@ -295,13 +272,6 @@ describe('FirestoreWriter.upsertTenant - Default Tenant Enforcement', () => {
         await firestoreWriter.upsertTenant(
             tenant2Id,
             new TenantPayloadBuilder('test-tenant')
-                .withBranding({
-                    appName: toTenantAppName('Test Tenant 2'),
-                    logoUrl: toTenantLogoUrl('/logo.svg'),
-                    faviconUrl: toTenantFaviconUrl('/favicon.ico'),
-                    primaryColor: toTenantPrimaryColor('#000000'),
-                    secondaryColor: toTenantSecondaryColor('#ffffff'),
-                })
                 .withDomains([toTenantDomainName('test2.example.com')])
                 .withDefaultTenantFlag(true)
                 .build(),
@@ -324,13 +294,6 @@ describe('FirestoreWriter.upsertTenant - Default Tenant Enforcement', () => {
         await firestoreWriter.upsertTenant(
             tenant1Id,
             new TenantPayloadBuilder('test-tenant')
-                .withBranding({
-                    appName: toTenantAppName('Test Tenant 1'),
-                    logoUrl: toTenantLogoUrl('/logo.svg'),
-                    faviconUrl: toTenantFaviconUrl('/favicon.ico'),
-                    primaryColor: toTenantPrimaryColor('#000000'),
-                    secondaryColor: toTenantSecondaryColor('#ffffff'),
-                })
                 .withDomains([toTenantDomainName('test1.example.com')])
                 .withDefaultTenantFlag(true)
                 .build(),
@@ -340,13 +303,6 @@ describe('FirestoreWriter.upsertTenant - Default Tenant Enforcement', () => {
         await firestoreWriter.upsertTenant(
             tenant2Id,
             new TenantPayloadBuilder('test-tenant')
-                .withBranding({
-                    appName: toTenantAppName('Test Tenant 2'),
-                    logoUrl: toTenantLogoUrl('/logo.svg'),
-                    faviconUrl: toTenantFaviconUrl('/favicon.ico'),
-                    primaryColor: toTenantPrimaryColor('#000000'),
-                    secondaryColor: toTenantSecondaryColor('#ffffff'),
-                })
                 .withDomains([toTenantDomainName('test2.example.com')])
                 .withDefaultTenantFlag(false)
                 .build(),
@@ -368,13 +324,6 @@ describe('FirestoreWriter.upsertTenant - Default Tenant Enforcement', () => {
         await firestoreWriter.upsertTenant(
             tenant1Id,
             new TenantPayloadBuilder('test-tenant')
-                .withBranding({
-                    appName: toTenantAppName('Test Tenant 1'),
-                    logoUrl: toTenantLogoUrl('/logo.svg'),
-                    faviconUrl: toTenantFaviconUrl('/favicon.ico'),
-                    primaryColor: toTenantPrimaryColor('#000000'),
-                    secondaryColor: toTenantSecondaryColor('#ffffff'),
-                })
                 .withDomains([toTenantDomainName('test1.example.com')])
                 .withDefaultTenantFlag(true)
                 .build(),
@@ -382,13 +331,6 @@ describe('FirestoreWriter.upsertTenant - Default Tenant Enforcement', () => {
         await firestoreWriter.upsertTenant(
             tenant2Id,
             new TenantPayloadBuilder('test-tenant')
-                .withBranding({
-                    appName: toTenantAppName('Test Tenant 2'),
-                    logoUrl: toTenantLogoUrl('/logo.svg'),
-                    faviconUrl: toTenantFaviconUrl('/favicon.ico'),
-                    primaryColor: toTenantPrimaryColor('#000000'),
-                    secondaryColor: toTenantSecondaryColor('#ffffff'),
-                })
                 .withDomains([toTenantDomainName('test2.example.com')])
                 .withDefaultTenantFlag(false)
                 .build(),
@@ -398,13 +340,7 @@ describe('FirestoreWriter.upsertTenant - Default Tenant Enforcement', () => {
         await firestoreWriter.upsertTenant(
             tenant2Id,
             new TenantPayloadBuilder('test-tenant')
-                .withBranding({
-                    appName: toTenantAppName('Updated Tenant 2'),
-                    logoUrl: toTenantLogoUrl('/logo.svg'),
-                    faviconUrl: toTenantFaviconUrl('/favicon.ico'),
-                    primaryColor: toTenantPrimaryColor('#000000'),
-                    secondaryColor: toTenantSecondaryColor('#ffffff'),
-                })
+                .withAppName('Updated Tenant 2')
                 .withDomains([toTenantDomainName('test2.example.com')])
                 .withDefaultTenantFlag(false)
                 .build(),

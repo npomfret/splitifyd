@@ -211,9 +211,10 @@ describe('Date Validation Unit Tests', () => {
         });
 
         test('should allow updates without date field', () => {
-            const updateData = {
-                description: 'Updated description',
-            };
+            const updateData = ExpenseUpdateBuilder
+                .minimal()
+                .withDescription('Updated description')
+                .build();
 
             const result = validateUpdateExpense(updateData);
             expect(result).not.toHaveProperty('date');

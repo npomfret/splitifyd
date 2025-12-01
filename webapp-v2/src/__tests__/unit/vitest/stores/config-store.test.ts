@@ -1,9 +1,8 @@
 import { firebaseConfigManager } from '@/app/firebase-config';
 import { configStore } from '@/stores/config-store.ts';
 import { syncThemeHash } from '@/utils/theme-bootstrap';
-import type { ClientAppConfiguration, BrandingConfig } from '@billsplit-wl/shared';
-import { toISOString, toTenantId } from '@billsplit-wl/shared';
-import { BrandingConfigBuilder } from '@billsplit-wl/test-support';
+import { TenantConfigBuilder } from '@billsplit-wl/shared';
+import { AppConfigurationBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('@/app/firebase-config', () => ({
@@ -20,30 +19,17 @@ vi.mock('@/utils/theme-bootstrap', () => ({
 const getMetaThemeColor = (): HTMLMetaElement | null => document.querySelector('meta[name="theme-color"]');
 const getFavicon = (): HTMLLinkElement | null => document.querySelector('link[rel="icon"]');
 
-describe('configStore', () => {
-    const baseConfig = (branding?: BrandingConfig): ClientAppConfiguration => ({
-        firebase: {
-            apiKey: 'test',
-            authDomain: 'test',
-            projectId: 'test',
-            storageBucket: 'test',
-            messagingSenderId: 'test',
-            appId: 'test',
-        },
-        warningBanner: "foo",
-        formDefaults: {},
-        tenant: branding
-            ? {
-                tenantId: toTenantId('tenant'),
-                branding,
-                createdAt: toISOString('2025-01-01T00:00:00.000Z'),
-                updatedAt: toISOString('2025-01-01T00:00:00.000Z'),
-            }
-            : undefined,
-    });
+const buildConfig = (branding?: BrandingConfig) => {
+    const builder = new AppConfigurationBuilder();
+    if (branding) {
+        builder.withTenantConfig(new TenantConfigBuilder().withBranding(branding).build());
+    }
+    return builder.build();
+};
 
+describe('configStore', () => {
     beforeEach(() => {
-        vi.mocked(firebaseConfigManager.getConfig).mockResolvedValue(baseConfig());
+        vi.mocked(firebaseConfigManager.getConfig).mockResolvedValue(buildConfig());
         document.title = 'Splitifyd';
         getMetaThemeColor()?.remove();
         getFavicon()?.remove();
@@ -55,7 +41,7 @@ describe('configStore', () => {
     });
 
     it('updates branding metadata and theme when tenant branding exists', async () => {
-        const branding: BrandingConfig = new BrandingConfigBuilder()
+        const tenantConfig = new TenantConfigBuilder()
             .withAppName('Branded')
             .withLogoUrl('https://logo.svg')
             .withFaviconUrl('https://favicon.ico')
@@ -63,15 +49,17 @@ describe('configStore', () => {
             .withSecondaryColor('#445566')
             .build();
 
-        const config = baseConfig(branding);
-        config.theme = { hash: 'abc123' } as ClientAppConfiguration['theme'];
+        const config = new AppConfigurationBuilder()
+            .withTenantConfig(tenantConfig)
+            .withThemeConfig({ hash: 'abc123' })
+            .build();
         vi.mocked(firebaseConfigManager.getConfig).mockResolvedValue(config);
 
         await configStore.loadConfig();
 
-        expect(getMetaThemeColor()?.content).toBe(branding.primaryColor);
-        expect(getFavicon()?.getAttribute('href')).toBe(branding.faviconUrl);
-        expect(document.title).toBe(branding.appName);
+        expect(getMetaThemeColor()?.content).toBe(tenantConfig.branding.primaryColor);
+        expect(getFavicon()?.getAttribute('href')).toBe(tenantConfig.branding.faviconUrl);
+        expect(document.title).toBe(tenantConfig.branding.appName);
         expect(syncThemeHash).toHaveBeenCalledWith('abc123');
     });
 

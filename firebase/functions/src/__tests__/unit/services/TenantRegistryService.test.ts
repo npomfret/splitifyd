@@ -1,5 +1,5 @@
-import { toTenantAppName, toTenantDomainName, toTenantFaviconUrl, toTenantLogoUrl, toTenantPrimaryColor, toTenantSecondaryColor } from '@billsplit-wl/shared';
-import { AdminTenantRequestBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
+import { toTenantDomainName } from '@billsplit-wl/shared';
+import { AdminTenantRequestBuilder, BrandingConfigBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ErrorCode } from '../../../errors';
@@ -38,13 +38,7 @@ describe('TenantRegistryService', () => {
             // Create tenant via API with domain
             const tenantData = AdminTenantRequestBuilder
                 .forTenant('test-tenant')
-                .withBranding({
-                    appName: toTenantAppName('Test App'),
-                    logoUrl: toTenantLogoUrl('https://example.com/logo.svg'),
-                    faviconUrl: toTenantFaviconUrl('https://example.com/favicon.ico'),
-                    primaryColor: toTenantPrimaryColor('#0066CC'),
-                    secondaryColor: toTenantSecondaryColor('#FF6600'),
-                })
+                .withBranding(new BrandingConfigBuilder().build())
                 .withDomains([toTenantDomainName('app.example.com'), toTenantDomainName('example.com')])
                 .build();
 
@@ -62,13 +56,7 @@ describe('TenantRegistryService', () => {
             // Create tenant via API with lowercase domain
             const tenantData = AdminTenantRequestBuilder
                 .forTenant('test-tenant')
-                .withBranding({
-                    appName: toTenantAppName('Test App'),
-                    logoUrl: toTenantLogoUrl('https://example.com/logo.svg'),
-                    faviconUrl: toTenantFaviconUrl('https://example.com/favicon.ico'),
-                    primaryColor: toTenantPrimaryColor('#0066CC'),
-                    secondaryColor: toTenantSecondaryColor('#FF6600'),
-                })
+                .withBranding(new BrandingConfigBuilder().build())
                 .withDomains([toTenantDomainName('app.example.com')])
                 .build();
 
@@ -83,13 +71,7 @@ describe('TenantRegistryService', () => {
             // Create tenant via API
             const tenantData = AdminTenantRequestBuilder
                 .forTenant('test-tenant')
-                .withBranding({
-                    appName: toTenantAppName('Test App'),
-                    logoUrl: toTenantLogoUrl('https://example.com/logo.svg'),
-                    faviconUrl: toTenantFaviconUrl('https://example.com/favicon.ico'),
-                    primaryColor: toTenantPrimaryColor('#0066CC'),
-                    secondaryColor: toTenantSecondaryColor('#FF6600'),
-                })
+                .withBranding(new BrandingConfigBuilder().build())
                 .withDomains([toTenantDomainName('app.example.com')])
                 .build();
 
@@ -106,13 +88,13 @@ describe('TenantRegistryService', () => {
             // Create a default tenant via API
             const tenantData = AdminTenantRequestBuilder
                 .forTenant('default-tenant')
-                .withBranding({
-                    appName: toTenantAppName('Splitifyd'),
-                    logoUrl: toTenantLogoUrl('/logo.svg'),
-                    faviconUrl: toTenantFaviconUrl('/favicon.ico'),
-                    primaryColor: toTenantPrimaryColor('#1a73e8'),
-                    secondaryColor: toTenantSecondaryColor('#34a853'),
-                })
+                .withBranding(new BrandingConfigBuilder()
+                    .withAppName('Splitifyd')
+                    .withLogoUrl('/logo.svg')
+                    .withFaviconUrl('/favicon.ico')
+                    .withPrimaryColor('#1a73e8')
+                    .withSecondaryColor('#34a853')
+                    .build())
                 .withDomains([toTenantDomainName('app.foo.com')])
                 .asDefaultTenant()
                 .build();
@@ -143,25 +125,19 @@ describe('TenantRegistryService', () => {
             // Create domain tenant and default tenant via API
             const testTenantData = AdminTenantRequestBuilder
                 .forTenant('test-tenant')
-                .withBranding({
-                    appName: toTenantAppName('Test App'),
-                    logoUrl: toTenantLogoUrl('https://example.com/logo.svg'),
-                    faviconUrl: toTenantFaviconUrl('https://example.com/favicon.ico'),
-                    primaryColor: toTenantPrimaryColor('#0066CC'),
-                    secondaryColor: toTenantSecondaryColor('#FF6600'),
-                })
+                .withBranding(new BrandingConfigBuilder().build())
                 .withDomains([toTenantDomainName('app.example.com')])
                 .build();
 
             const defaultTenantData = AdminTenantRequestBuilder
                 .forTenant('default-tenant')
-                .withBranding({
-                    appName: toTenantAppName('Default App'),
-                    logoUrl: toTenantLogoUrl('/logo.svg'),
-                    faviconUrl: toTenantFaviconUrl('/favicon.ico'),
-                    primaryColor: toTenantPrimaryColor('#1a73e8'),
-                    secondaryColor: toTenantSecondaryColor('#34a853'),
-                })
+                .withBranding(new BrandingConfigBuilder()
+                    .withAppName('Default App')
+                    .withLogoUrl('/logo.svg')
+                    .withFaviconUrl('/favicon.ico')
+                    .withPrimaryColor('#1a73e8')
+                    .withSecondaryColor('#34a853')
+                    .build())
                 .withDomains([toTenantDomainName('default.com')])
                 .asDefaultTenant()
                 .build();

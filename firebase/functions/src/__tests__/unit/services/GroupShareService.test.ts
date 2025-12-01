@@ -13,7 +13,7 @@ import {
     toUserId,
     USER_COLORS,
 } from '@billsplit-wl/shared';
-import { CreateGroupRequestBuilder, ThemeBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
+import { CreateGroupRequestBuilder, GroupPermissionsBuilder, ThemeBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import type { IFirestoreReader } from '../../../services/firestore';
@@ -343,13 +343,11 @@ describe('GroupShareService', () => {
             groupId = await createGroupWithOwner(ownerId1);
 
             // Update group permissions to require admin approval via API
-            await app.updateGroupPermissions(groupId, {
-                expenseEditing: PermissionLevels.OWNER_AND_ADMIN,
-                expenseDeletion: PermissionLevels.OWNER_AND_ADMIN,
-                memberInvitation: PermissionLevels.ADMIN_ONLY,
-                memberApproval: 'admin-required',
-                settingsManagement: PermissionLevels.ADMIN_ONLY,
-            }, ownerId1);
+            await app.updateGroupPermissions(
+                groupId,
+                GroupPermissionsBuilder.adminOnly().build(),
+                ownerId1
+            );
 
             // Generate share link via API
             const shareLink = await groupShareService.generateShareableLink(toUserId(ownerId1), groupId);
@@ -489,9 +487,11 @@ describe('GroupShareService', () => {
             const groupId = await createGroupWithOwner(ownerUserId);
 
             // Update group to require admin approval
-            await app.updateGroupPermissions(groupId, {
-                memberApproval: 'admin-required',
-            }, ownerUserId);
+            await app.updateGroupPermissions(
+                groupId,
+                GroupPermissionsBuilder.requireAdminApproval().build(),
+                ownerUserId
+            );
 
             // Generate share link via API
             const shareLink = await groupShareService.generateShareableLink(ownerId, groupId);
@@ -500,9 +500,11 @@ describe('GroupShareService', () => {
             await groupShareService.joinGroupByLink(pendingMemberId, toShareLinkToken(shareLink.shareToken), toDisplayName('Pending Member'));
 
             // Change back to automatic approval for the next join
-            await app.updateGroupPermissions(groupId, {
-                memberApproval: 'automatic',
-            }, ownerUserId);
+            await app.updateGroupPermissions(
+                groupId,
+                GroupPermissionsBuilder.automaticApproval().build(),
+                ownerUserId
+            );
 
             // New user joins the group (will be active)
             await groupShareService.joinGroupByLink(toUserId(joiningUserId), toShareLinkToken(shareLink.shareToken), toDisplayName('Joining User'));

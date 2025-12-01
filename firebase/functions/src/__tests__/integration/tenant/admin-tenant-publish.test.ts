@@ -1,16 +1,12 @@
-import type { BrandingTokens, PooledTestUser } from '@billsplit-wl/shared';
+import type { PooledTestUser } from '@billsplit-wl/shared';
+import { toTenantDomainName } from '@billsplit-wl/shared';
 import {
-    toTenantAccentColor,
-    toTenantAppName,
-    toTenantDomainName,
-    toTenantFaviconUrl,
-    toTenantLogoUrl,
-    toTenantPrimaryColor,
-    toTenantSecondaryColor,
-    toTenantThemePaletteName,
-} from '@billsplit-wl/shared';
-import { ApiDriver, getFirebaseEmulatorConfig } from '@billsplit-wl/test-support';
-import { AdminTenantRequestBuilder } from '@billsplit-wl/test-support';
+    AdminTenantRequestBuilder,
+    ApiDriver,
+    getFirebaseEmulatorConfig,
+    PublishTenantThemeRequestBuilder,
+    UserDocumentBuilder,
+} from '@billsplit-wl/test-support';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { FirestoreCollections } from '../../../constants';
 import { getAuth, getFirestore } from '../../../firebase';
@@ -21,25 +17,14 @@ describe('Admin Tenant Theme Publishing', () => {
 
     let adminUser: PooledTestUser;
 
-    const mockTokens: BrandingTokens = AdminTenantRequestBuilder.forTenant('tenant-theme-tokens').buildTokens();
-
     beforeAll(async () => {
         adminUser = await apiDriver.getDefaultAdminUser();
     });
 
     const createTenantWithTokens = async (tenantId: string) => {
-        const tenantData = AdminTenantRequestBuilder
-            .forTenant(tenantId)
-            .withBranding({
-                appName: toTenantAppName('Test Theme Tenant'),
-                logoUrl: toTenantLogoUrl('https://foo/branding/test/logo.svg'),
-                faviconUrl: toTenantFaviconUrl('https://foo/branding/test/favicon.png'),
-                primaryColor: toTenantPrimaryColor('#2563eb'),
-                secondaryColor: toTenantSecondaryColor('#7c3aed'),
-                accentColor: toTenantAccentColor('#f97316'),
-                themePalette: toTenantThemePaletteName('default'),
-            })
-            .withBrandingTokens({ tokens: mockTokens })
+        // AdminTenantRequestBuilder provides sensible defaults for branding and tokens
+        const tenantData = AdminTenantRequestBuilder.forTenant(tenantId)
+            .withAppName('Test Theme Tenant')
             .withDomains([toTenantDomainName(`${tenantId}.example.com`)])
             .build();
 
@@ -71,12 +56,13 @@ describe('Admin Tenant Theme Publishing', () => {
         });
 
         // Create Firestore user document with non-admin role
-        await db.collection(FirestoreCollections.USERS).doc(regularUser.uid).set({
-            displayName: 'Regular Test User',
-            email: regularUser.email,
-            role: 'user', // Explicitly non-admin
-            createdAt: new Date(),
-        });
+        await db.collection(FirestoreCollections.USERS).doc(regularUser.uid).set(
+            new UserDocumentBuilder()
+                .withId(regularUser.uid)
+                .withDisplayName('Regular Test User')
+                .withEmail(regularUser.email!)
+                .build(),
+        );
 
         // Get custom token for this user with explicit non-admin role claim
         const customToken = await auth.createCustomToken(regularUser.uid, {
@@ -99,7 +85,10 @@ describe('Admin Tenant Theme Publishing', () => {
         // Attempt to publish tenant theme with non-admin user
         // Should be rejected (not authorized to perform this action)
         try {
-            const result = await apiDriver.publishTenantTheme({ tenantId }, idToken);
+            const result = await apiDriver.publishTenantTheme(
+                new PublishTenantThemeRequestBuilder().withTenantId(tenantId).build(),
+                idToken,
+            );
             throw new Error(`Expected request to be rejected but it succeeded with result: ${JSON.stringify(result)}`);
         } catch (error: any) {
             // Should be rejected - the key is that a non-admin user cannot publish themes
@@ -127,7 +116,10 @@ describe('Admin Tenant Theme Publishing', () => {
         await createTenantWithTokens(tenantId);
 
         // Step 2: Publish theme (adds brandingTokens.artifact)
-        const publishResult = await apiDriver.publishTenantTheme({ tenantId }, adminUser.token);
+        const publishResult = await apiDriver.publishTenantTheme(
+            new PublishTenantThemeRequestBuilder().withTenantId(tenantId).build(),
+            adminUser.token,
+        );
         expect(publishResult.artifact).toBeDefined();
         expect(publishResult.artifact.cssUrl).toBeDefined();
         expect(publishResult.artifact.hash).toBeDefined();
@@ -135,18 +127,12 @@ describe('Admin Tenant Theme Publishing', () => {
         const originalArtifact = publishResult.artifact;
 
         // Step 3: Upsert tenant again with different branding (simulating config update)
-        const updatedTenantData = AdminTenantRequestBuilder
-            .forTenant(tenantId)
-            .withBranding({
-                appName: toTenantAppName('Updated Theme Tenant'),
-                logoUrl: toTenantLogoUrl('https://foo/branding/updated/logo.svg'),
-                faviconUrl: toTenantFaviconUrl('https://foo/branding/updated/favicon.png'),
-                primaryColor: toTenantPrimaryColor('#dc2626'),
-                secondaryColor: toTenantSecondaryColor('#ea580c'),
-                accentColor: toTenantAccentColor('#16a34a'),
-                themePalette: toTenantThemePaletteName('default'),
-            })
-            .withBrandingTokens({ tokens: mockTokens })
+        // AdminTenantRequestBuilder provides defaults; only customize what test needs
+        const updatedTenantData = AdminTenantRequestBuilder.forTenant(tenantId)
+            .withAppName('Updated Theme Tenant')
+            .withPrimaryColor('#dc2626')
+            .withSecondaryColor('#ea580c')
+            .withAccentColor('#16a34a')
             .withDomains([toTenantDomainName(`${tenantId}.example.com`)])
             .build();
 

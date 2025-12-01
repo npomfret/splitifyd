@@ -1,7 +1,8 @@
-import type { AdminUpsertTenantRequest, BrandingTokens, TenantBranding, TenantDomainName, TenantId } from '@billsplit-wl/shared';
+import type { AdminUpsertTenantRequest, BrandingMarketingFlags, BrandingTokens, TenantBranding, TenantDomainName, TenantId } from '@billsplit-wl/shared';
 import {
     toTenantAccentColor,
     toTenantAppName,
+    toTenantCustomCss,
     toTenantDefaultFlag,
     toTenantDomainName,
     toTenantFaviconUrl,
@@ -9,6 +10,8 @@ import {
     toTenantLogoUrl,
     toTenantPrimaryColor,
     toTenantSecondaryColor,
+    toTenantSurfaceColor,
+    toTenantTextColor,
     toTenantThemePaletteName,
 } from '@billsplit-wl/shared';
 
@@ -269,6 +272,29 @@ export class AdminTenantRequestBuilder {
 
     withThemePalette(palette: string): this {
         this.payload.branding.themePalette = toTenantThemePaletteName(palette);
+        return this;
+    }
+
+    withSurfaceColor(color: string): this {
+        this.payload.branding.surfaceColor = toTenantSurfaceColor(color);
+        return this;
+    }
+
+    withTextColor(color: string): this {
+        this.payload.branding.textColor = toTenantTextColor(color);
+        return this;
+    }
+
+    withCustomCSS(css: string): this {
+        this.payload.branding.customCSS = toTenantCustomCss(css);
+        return this;
+    }
+
+    withMarketingFlags(flags: Partial<BrandingMarketingFlags>): this {
+        this.payload.branding.marketingFlags = {
+            ...this.payload.branding.marketingFlags,
+            ...flags,
+        };
         return this;
     }
 

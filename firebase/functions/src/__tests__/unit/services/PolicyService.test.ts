@@ -1,5 +1,5 @@
 import { toPolicyId, toPolicyName, toPolicyText, toVersionHash } from '@billsplit-wl/shared';
-import { UserRegistrationBuilder } from '@billsplit-wl/test-support';
+import { CreatePolicyRequestBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import * as crypto from 'crypto';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
@@ -103,7 +103,10 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             const policyText = toPolicyText('Some content');
 
             // Create policy via API
-            await app.createPolicy({ policyName, text: policyText }, adminToken);
+            await app.createPolicy(
+                new CreatePolicyRequestBuilder().withPolicyName(policyName).withText(policyText).build(),
+                adminToken,
+            );
 
             // Act & Assert - Try to create again
             await expect(policyService.createPolicy(policyName, policyText)).rejects.toThrow(
@@ -138,7 +141,10 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             // Arrange - Create policy via API
             const policyName = toPolicyName('Terms Of Service'); // Maps to 'terms-of-service'
             const policyText = toPolicyText('Test policy content');
-            await app.createPolicy({ policyName, text: policyText }, adminToken);
+            await app.createPolicy(
+                new CreatePolicyRequestBuilder().withPolicyName(policyName).withText(policyText).build(),
+                adminToken,
+            );
             const policyId = toPolicyId('terms-of-service');
 
             // Act
@@ -170,7 +176,10 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             // Arrange - Create policy via API
             const policyName = toPolicyName('Terms Of Service');
             const initialText = toPolicyText('Initial policy content');
-            await app.createPolicy({ policyName, text: initialText }, adminToken);
+            await app.createPolicy(
+                new CreatePolicyRequestBuilder().withPolicyName(policyName).withText(initialText).build(),
+                adminToken,
+            );
             const policyId = toPolicyId('terms-of-service');
 
             const newText = toPolicyText('Updated policy content');
@@ -187,7 +196,10 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             // Arrange - Create policy via API
             const policyName = toPolicyName('Cookie Policy');
             const initialText = toPolicyText('Initial policy content');
-            await app.createPolicy({ policyName, text: initialText }, adminToken);
+            await app.createPolicy(
+                new CreatePolicyRequestBuilder().withPolicyName(policyName).withText(initialText).build(),
+                adminToken,
+            );
             const policyId = toPolicyId('cookie-policy');
 
             const newText = toPolicyText('Published policy content');
@@ -204,7 +216,10 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             // Arrange - Create policy via API
             const policyName = toPolicyName('Privacy Policy');
             const existingText = toPolicyText('Default policy content for testing...');
-            await app.createPolicy({ policyName, text: existingText }, adminToken);
+            await app.createPolicy(
+                new CreatePolicyRequestBuilder().withPolicyName(policyName).withText(existingText).build(),
+                adminToken,
+            );
             const policyId = toPolicyId('privacy-policy');
 
             // Act & Assert - Try to update with same content
@@ -235,7 +250,10 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             // Arrange - Create policy via API and add new version
             const policyName = toPolicyName('Terms Of Service');
             const initialText = toPolicyText('Version 1 content');
-            await app.createPolicy({ policyName, text: initialText }, adminToken);
+            await app.createPolicy(
+                new CreatePolicyRequestBuilder().withPolicyName(policyName).withText(initialText).build(),
+                adminToken,
+            );
             const policyId = toPolicyId('terms-of-service');
 
             // Create a new version (unpublished)
@@ -268,7 +286,10 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             // Arrange - Create policy via API
             const policyName = toPolicyName('Cookie Policy');
             const initialText = toPolicyText('Initial content');
-            await app.createPolicy({ policyName, text: initialText }, adminToken);
+            await app.createPolicy(
+                new CreatePolicyRequestBuilder().withPolicyName(policyName).withText(initialText).build(),
+                adminToken,
+            );
             const policyId = toPolicyId('cookie-policy');
 
             const nonExistentVersionHash = toVersionHash('non-existent-version');
@@ -286,14 +307,14 @@ describe('PolicyService - Consolidated Unit Tests', () => {
     describe('listPolicies', () => {
         it('should return all policies with count', async () => {
             // Arrange - Create policies via API
-            await app.createPolicy({
-                policyName: toPolicyName('Privacy Policy'),
-                text: toPolicyText('Privacy content'),
-            }, adminToken);
-            await app.createPolicy({
-                policyName: toPolicyName('Terms Of Service'),
-                text: toPolicyText('Terms content'),
-            }, adminToken);
+            await app.createPolicy(
+                new CreatePolicyRequestBuilder().withPolicyName('Privacy Policy').withText('Privacy content').build(),
+                adminToken,
+            );
+            await app.createPolicy(
+                new CreatePolicyRequestBuilder().withPolicyName('Terms Of Service').withText('Terms content').build(),
+                adminToken,
+            );
 
             // Act
             const result = await policyService.listPolicies();
@@ -330,7 +351,10 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             // Arrange - Create policy via API
             const policyName = toPolicyName('Terms Of Service');
             const policyText = toPolicyText('Current policy content');
-            await app.createPolicy({ policyName, text: policyText }, adminToken);
+            await app.createPolicy(
+                new CreatePolicyRequestBuilder().withPolicyName(policyName).withText(policyText).build(),
+                adminToken,
+            );
             const policyId = toPolicyId('terms-of-service');
 
             // Act
@@ -363,7 +387,10 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             // Arrange - Create policy via API
             const policyName = toPolicyName('Terms Of Service');
             const initialText = toPolicyText('Version 1 content');
-            await app.createPolicy({ policyName, text: initialText }, adminToken);
+            await app.createPolicy(
+                new CreatePolicyRequestBuilder().withPolicyName(policyName).withText(initialText).build(),
+                adminToken,
+            );
             const policyId = toPolicyId('terms-of-service');
 
             // Create a new version
@@ -384,7 +411,10 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             // Arrange - Create policy via API
             const policyName = toPolicyName('Cookie Policy');
             const initialText = toPolicyText('Initial content');
-            await app.createPolicy({ policyName, text: initialText }, adminToken);
+            await app.createPolicy(
+                new CreatePolicyRequestBuilder().withPolicyName(policyName).withText(initialText).build(),
+                adminToken,
+            );
             const policyId = toPolicyId('cookie-policy');
 
             const nonExistentVersionHash = toVersionHash('non-existent-version');
@@ -404,7 +434,10 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             // Arrange - Create policy via API
             const policyName = toPolicyName('Terms Of Service');
             const initialText = toPolicyText('Current content');
-            const createResult = await app.createPolicy({ policyName, text: initialText }, adminToken);
+            const createResult = await app.createPolicy(
+                new CreatePolicyRequestBuilder().withPolicyName(policyName).withText(initialText).build(),
+                adminToken,
+            );
             const policyId = toPolicyId('terms-of-service');
             const currentVersionHash = toVersionHash(createResult.versionHash);
 
@@ -421,7 +454,10 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             // Arrange - Create policy via API with multiple versions
             const policyName = toPolicyName('Cookie Policy');
             const initialText = toPolicyText('Version 1 content');
-            await app.createPolicy({ policyName, text: initialText }, adminToken);
+            await app.createPolicy(
+                new CreatePolicyRequestBuilder().withPolicyName(policyName).withText(initialText).build(),
+                adminToken,
+            );
             const policyId = toPolicyId('cookie-policy');
 
             // Create version 2 and publish it
@@ -456,7 +492,10 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             // Arrange - Create policy via API with multiple versions
             const policyName = toPolicyName('Privacy Policy');
             const initialText = toPolicyText('Current content');
-            await app.createPolicy({ policyName, text: initialText }, adminToken);
+            await app.createPolicy(
+                new CreatePolicyRequestBuilder().withPolicyName(policyName).withText(initialText).build(),
+                adminToken,
+            );
             const policyId = toPolicyId('privacy-policy');
 
             // Add another version
@@ -491,7 +530,10 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             // Arrange - Create policy via API
             const policyName = toPolicyName('Terms Of Service');
             const version1Text = toPolicyText('Version 1 content');
-            const createResult = await app.createPolicy({ policyName, text: version1Text }, adminToken);
+            const createResult = await app.createPolicy(
+                new CreatePolicyRequestBuilder().withPolicyName(policyName).withText(version1Text).build(),
+                adminToken,
+            );
             const policyId = toPolicyId('terms-of-service');
             const version1Hash = createResult.versionHash;
 
@@ -513,7 +555,10 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             // Arrange - Create policy via API
             const policyName = toPolicyName('Cookie Policy');
             const onlyVersionText = toPolicyText('Only version content');
-            const createResult = await app.createPolicy({ policyName, text: onlyVersionText }, adminToken);
+            const createResult = await app.createPolicy(
+                new CreatePolicyRequestBuilder().withPolicyName(policyName).withText(onlyVersionText).build(),
+                adminToken,
+            );
             const policyId = toPolicyId('cookie-policy');
             const onlyVersionHash = toVersionHash(createResult.versionHash);
 
@@ -530,7 +575,10 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             // Arrange - Create policy via API with multiple versions
             const policyName = toPolicyName('Privacy Policy');
             const initialText = toPolicyText('Initial content');
-            await app.createPolicy({ policyName, text: initialText }, adminToken);
+            await app.createPolicy(
+                new CreatePolicyRequestBuilder().withPolicyName(policyName).withText(initialText).build(),
+                adminToken,
+            );
             const policyId = toPolicyId('privacy-policy');
 
             // Create a test version
@@ -553,7 +601,10 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             // Arrange - Create policy via API
             const policyName = toPolicyName('Terms Of Service');
             const baseText = toPolicyText('Base content');
-            await app.createPolicy({ policyName, text: baseText }, adminToken);
+            await app.createPolicy(
+                new CreatePolicyRequestBuilder().withPolicyName(policyName).withText(baseText).build(),
+                adminToken,
+            );
             const policyId = toPolicyId('terms-of-service');
 
             // Act - Simulate concurrent version creation
@@ -572,7 +623,10 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             // Arrange - Create policy via API with multiple versions
             const policyName = toPolicyName('Cookie Policy');
             const initialText = toPolicyText('Current content');
-            await app.createPolicy({ policyName, text: initialText }, adminToken);
+            await app.createPolicy(
+                new CreatePolicyRequestBuilder().withPolicyName(policyName).withText(initialText).build(),
+                adminToken,
+            );
             const policyId = toPolicyId('cookie-policy');
 
             // Create a new version
@@ -702,7 +756,10 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             const version2Text = toPolicyText('Version 2');
             const version3Text = toPolicyText('Version 3');
 
-            await app.createPolicy({ policyName, text: version1Text }, adminToken);
+            await app.createPolicy(
+                new CreatePolicyRequestBuilder().withPolicyName(policyName).withText(version1Text).build(),
+                adminToken,
+            );
             const policyId = toPolicyId('privacy-policy');
             const version1Hash = PolicyService.makeVersionHash('Version 1');
 
@@ -741,7 +798,10 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             // Arrange - Create policy via API
             const policyName = toPolicyName('Cookie Policy');
             const originalText = toPolicyText('Original');
-            const createResult = await app.createPolicy({ policyName, text: originalText }, adminToken);
+            const createResult = await app.createPolicy(
+                new CreatePolicyRequestBuilder().withPolicyName(policyName).withText(originalText).build(),
+                adminToken,
+            );
             const policyId = toPolicyId('cookie-policy');
             const currentHash = createResult.versionHash;
 
@@ -773,7 +833,10 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             // Arrange - Create policy via API
             const policyName = toPolicyName('Privacy Policy');
             const baseContent = toPolicyText('Base content');
-            await app.createPolicy({ policyName, text: baseContent }, adminToken);
+            await app.createPolicy(
+                new CreatePolicyRequestBuilder().withPolicyName(policyName).withText(baseContent).build(),
+                adminToken,
+            );
             const policyId = toPolicyId('privacy-policy');
 
             // Create same content version - should fail
@@ -795,14 +858,14 @@ describe('PolicyService - Consolidated Unit Tests', () => {
 
         it('should handle policy listing correctly', async () => {
             // Arrange - Create policies via API
-            await app.createPolicy({
-                policyName: toPolicyName('Privacy Policy'),
-                text: toPolicyText('Policy 1 content'),
-            }, adminToken);
-            await app.createPolicy({
-                policyName: toPolicyName('Cookie Policy'),
-                text: toPolicyText('Policy 2 content'),
-            }, adminToken);
+            await app.createPolicy(
+                new CreatePolicyRequestBuilder().withPolicyName('Privacy Policy').withText('Policy 1 content').build(),
+                adminToken,
+            );
+            await app.createPolicy(
+                new CreatePolicyRequestBuilder().withPolicyName('Cookie Policy').withText('Policy 2 content').build(),
+                adminToken,
+            );
 
             // Test listPolicies
             const listResult = await policyService.listPolicies();
@@ -840,7 +903,10 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             // Arrange - Create policy via API
             const policyName = toPolicyName('Terms Of Service');
             const policyText = toPolicyText('Content');
-            await app.createPolicy({ policyName, text: policyText }, adminToken);
+            await app.createPolicy(
+                new CreatePolicyRequestBuilder().withPolicyName(policyName).withText(policyText).build(),
+                adminToken,
+            );
             const policyId = toPolicyId('terms-of-service');
 
             const invalidHash = toVersionHash('invalid-hash');

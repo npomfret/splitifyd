@@ -1,14 +1,15 @@
+import { CursorDataBuilder } from '@billsplit-wl/test-support';
 import { describe, expect, it, vi } from 'vitest';
 import { ErrorCode } from '../../errors';
-import { buildPaginatedQuery, CursorData, decodeCursor, encodeCursor } from '../../utils/pagination';
+import { buildPaginatedQuery, decodeCursor, encodeCursor } from '../../utils/pagination';
 
 describe('Pagination Utilities', () => {
     describe('encodeCursor', () => {
         it('should encode cursor data to base64', () => {
-            const cursorData: CursorData = {
-                updatedAt: '2023-12-01T10:00:00.000Z',
-                id: 'doc123',
-            };
+            const cursorData = new CursorDataBuilder()
+                .withUpdatedAt('2023-12-01T10:00:00.000Z')
+                .withId('doc123')
+                .build();
 
             const encoded = encodeCursor(cursorData);
             const decoded = Buffer.from(encoded, 'base64').toString('utf-8');
@@ -19,10 +20,10 @@ describe('Pagination Utilities', () => {
 
     describe('decodeCursor', () => {
         it('should decode valid base64 cursor', () => {
-            const cursorData: CursorData = {
-                updatedAt: '2023-12-01T10:00:00.000Z',
-                id: 'doc123',
-            };
+            const cursorData = new CursorDataBuilder()
+                .withUpdatedAt('2023-12-01T10:00:00.000Z')
+                .withId('doc123')
+                .build();
 
             const encoded = Buffer.from(JSON.stringify(cursorData)).toString('base64');
             const decoded = decodeCursor(encoded);
@@ -100,10 +101,10 @@ describe('Pagination Utilities', () => {
         });
 
         it('should build query with cursor', () => {
-            const cursorData: CursorData = {
-                updatedAt: '2023-12-01T10:00:00.000Z',
-                id: 'doc123',
-            };
+            const cursorData = new CursorDataBuilder()
+                .withUpdatedAt('2023-12-01T10:00:00.000Z')
+                .withId('doc123')
+                .build();
             const cursor = encodeCursor(cursorData);
 
             const result = buildPaginatedQuery(mockQuery, cursor, 'asc', 20);

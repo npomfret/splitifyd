@@ -1,18 +1,8 @@
-import {
-    toISOString,
-    toShowLandingPageFlag,
-    toTenantAppName,
-    toTenantDefaultFlag,
-    toTenantFaviconUrl,
-    toTenantId,
-    toTenantLogoUrl,
-    toTenantPrimaryColor,
-    toTenantSecondaryColor,
-} from '@billsplit-wl/shared';
-import type { ClientAppConfiguration, TenantConfig } from '@billsplit-wl/shared';
+import type { ClientAppConfiguration } from '@billsplit-wl/shared';
+import { TenantConfigBuilder } from '@billsplit-wl/shared';
+import { BrandingArtifactMetadataBuilder, TenantRequestContextBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as clientConfig from '../../app-config';
-import type { TenantRequestContext } from '../../types/tenant';
 import { getEnhancedConfigResponse } from '../../utils/config-response';
 
 describe('getEnhancedConfigResponse', () => {
@@ -27,29 +17,13 @@ describe('getEnhancedConfigResponse', () => {
     });
 
     it('forwards provided tenant config without mutating input references', () => {
-        const sourceTenant: TenantConfig = {
-            tenantId: toTenantId('provided-tenant'),
-            branding: {
-                appName: toTenantAppName('Provided'),
-                logoUrl: toTenantLogoUrl('https://provided.example/logo.svg'),
-                faviconUrl: toTenantFaviconUrl('https://provided.example/favicon.ico'),
-                primaryColor: toTenantPrimaryColor('#123456'),
-                secondaryColor: toTenantSecondaryColor('#654321'),
-                marketingFlags: {
-                    showLandingPage: toShowLandingPageFlag(true),
-                },
-            },
-            createdAt: toISOString('2025-02-01T10:00:00.000Z'),
-            updatedAt: toISOString('2025-02-02T12:00:00.000Z'),
-        };
+        const sourceTenant = new TenantConfigBuilder('provided-tenant')
+            .withMarketingFlags({ showLandingPage: true })
+            .build();
 
-        const context: TenantRequestContext = {
-            tenantId: sourceTenant.tenantId,
-            config: sourceTenant,
-            domains: [],
-            isDefault: toTenantDefaultFlag(false),
-            source: 'domain',
-        };
+        const context = new TenantRequestContextBuilder()
+            .withConfig(sourceTenant)
+            .build();
 
         const result = getEnhancedConfigResponse(context);
 
@@ -69,37 +43,19 @@ describe('getEnhancedConfigResponse', () => {
     });
 
     it('augments config with theme hash when artifact is present', () => {
-        const tenant = {
-            tenantId: toTenantId('tenant-with-theme'),
-            branding: {
-                appName: toTenantAppName('With Theme'),
-                logoUrl: toTenantLogoUrl('https://example.com/logo.svg'),
-                faviconUrl: toTenantFaviconUrl('https://example.com/favicon.ico'),
-                primaryColor: toTenantPrimaryColor('#111111'),
-                secondaryColor: toTenantSecondaryColor('#222222'),
-                marketingFlags: {
-                    showLandingPage: toShowLandingPageFlag(false),
-                },
-            },
-            createdAt: toISOString('2025-02-01T00:00:00.000Z'),
-            updatedAt: toISOString('2025-02-02T00:00:00.000Z'),
-        } satisfies TenantConfig;
+        const tenant = new TenantConfigBuilder('tenant-with-theme')
+            .withMarketingFlags({ showLandingPage: false })
+            .build();
 
-        const context: TenantRequestContext = {
-            tenantId: tenant.tenantId,
-            config: tenant,
-            domains: [],
-            isDefault: toTenantDefaultFlag(false),
-            source: 'domain',
-            themeArtifact: {
-                hash: 'abc123',
-                cssUrl: 'https://storage.googleapis.com/test-bucket/theme-artifacts/tenant-with-theme/abc123/theme.css',
-                tokensUrl: 'https://storage.googleapis.com/test-bucket/theme-artifacts/tenant-with-theme/abc123/tokens.json',
-                version: 1,
-                generatedAtEpochMs: 123456789,
-                generatedBy: 'tester',
-            },
-        };
+        const themeArtifact = new BrandingArtifactMetadataBuilder()
+            .withHash('abc123')
+            .withGeneratedAtEpochMs(123456789)
+            .build();
+
+        const context = new TenantRequestContextBuilder()
+            .withConfig(tenant)
+            .withThemeArtifact(themeArtifact)
+            .build();
 
         const result = getEnhancedConfigResponse(context);
 
@@ -109,27 +65,12 @@ describe('getEnhancedConfigResponse', () => {
     });
 
     it('provides default marketingFlags when tenant has undefined marketingFlags', () => {
-        const tenantWithoutMarketingFlags: TenantConfig = {
-            tenantId: toTenantId('no-marketing-tenant'),
-            branding: {
-                appName: toTenantAppName('Test App'),
-                logoUrl: toTenantLogoUrl('/logo.svg'),
-                faviconUrl: toTenantFaviconUrl('/favicon.ico'),
-                primaryColor: toTenantPrimaryColor('#123456'),
-                secondaryColor: toTenantSecondaryColor('#654321'),
-                // marketingFlags intentionally omitted
-            },
-            createdAt: toISOString('2025-02-01T10:00:00.000Z'),
-            updatedAt: toISOString('2025-02-02T12:00:00.000Z'),
-        };
+        // TenantConfigBuilder doesn't set marketingFlags by default
+        const tenantWithoutMarketingFlags = new TenantConfigBuilder('no-marketing-tenant').build();
 
-        const context: TenantRequestContext = {
-            tenantId: tenantWithoutMarketingFlags.tenantId,
-            config: tenantWithoutMarketingFlags,
-            domains: [],
-            isDefault: toTenantDefaultFlag(false),
-            source: 'domain',
-        };
+        const context = new TenantRequestContextBuilder()
+            .withConfig(tenantWithoutMarketingFlags)
+            .build();
 
         const result = getEnhancedConfigResponse(context);
 
