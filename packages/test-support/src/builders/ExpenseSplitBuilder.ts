@@ -58,11 +58,14 @@ export class ExpenseSplitBuilder {
      * Add a single split entry
      */
     withSplit(uid: string | UserId, amount: Amount, percentage?: number): this {
-        this.splits.push({
+        const split: ExpenseSplit = {
             uid: typeof uid === 'string' ? toUserId(uid) : uid,
             amount,
-            percentage,
-        });
+        };
+        if (percentage !== undefined) {
+            split.percentage = percentage;
+        }
+        this.splits.push(split);
         return this;
     }
 
