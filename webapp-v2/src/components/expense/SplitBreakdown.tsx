@@ -52,7 +52,7 @@ export function SplitBreakdown({ expense, members }: SplitBreakdownProps) {
     return (
         <Stack spacing='md'>
             <div className='flex items-center justify-between'>
-                <h3 className='font-semibold text-text-primary dark:text-white'>
+                <h3 className='font-semibold text-text-primary dark:text-text-inverted'>
                     {t('expenseComponents.splitBreakdown.splitBetween')}
                     {expense.participants.length}
                     {expense.participants.length === 1 ? t('expenseComponents.splitBreakdown.person') : t('expenseComponents.splitBreakdown.people')}
@@ -79,7 +79,7 @@ export function SplitBreakdown({ expense, members }: SplitBreakdownProps) {
                                     <div className='relative'>
                                         <Avatar displayName={memberName} userId={split.uid} size='md' />
                                         {isPayer && (
-                                            <div className='absolute -bottom-1 -right-1 bg-interactive-accent text-white rounded-full p-0.5'>
+                                            <div className='absolute -bottom-1 -right-1 bg-interactive-accent text-text-inverted rounded-full p-0.5'>
                                                 <svg className='w-3 h-3' fill='currentColor' viewBox='0 0 20 20' aria-hidden='true' focusable='false'>
                                                     <path
                                                         fillRule='evenodd'
@@ -91,13 +91,13 @@ export function SplitBreakdown({ expense, members }: SplitBreakdownProps) {
                                         )}
                                     </div>
                                     <div>
-                                        <p className='font-medium text-text-primary dark:text-white'>{memberName}</p>
+                                        <p className='font-medium text-text-primary dark:text-text-inverted'>{memberName}</p>
                                         {isPayer && <p className='text-xs text-semantic-success dark:text-semantic-success'>{t('expenseComponents.splitBreakdown.paid')}</p>}
                                     </div>
                                 </div>
                                 <div className='text-right'>
                                     <p
-                                        className={`font-semibold ${isOwing ? 'text-semantic-error dark:text-semantic-error/80' : 'text-text-primary dark:text-white'}`}
+                                        className={`font-semibold ${isOwing ? 'text-semantic-error dark:text-semantic-error/80' : 'text-text-primary dark:text-text-inverted'}`}
                                         data-financial-amount='split'
                                         data-testid='split-amount'
                                     >

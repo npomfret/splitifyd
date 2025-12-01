@@ -359,7 +359,7 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                                     as='button'
                                     type='button'
                                     onClick={() => setShowReceiptModal(false)}
-                                    className='absolute top-2 right-2 z-10 bg-black bg-opacity-50 text-white rounded-full p-2 hover:bg-opacity-75 transition-all focus:outline-none focus:ring-2 focus:ring-white'
+                                    className='absolute top-2 right-2 z-10 bg-black bg-opacity-50 text-text-inverted rounded-full p-2 hover:bg-opacity-75 transition-all focus:outline-none focus:ring-2 focus:ring-text-inverted'
                                     aria-label={t('pages.expenseDetailPage.closeReceiptViewer')}
                                     eventName='receipt_modal_close'
                                     eventProps={{ expenseId }}

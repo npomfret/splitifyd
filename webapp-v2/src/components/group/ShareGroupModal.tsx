@@ -359,7 +359,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
             {/* Toast notification */}
             {showToast && (
                 <div class='fixed bottom-4 right-4 z-[60] animate-slide-up' role='status' aria-live='polite' data-testid='share-link-toast'>
-                    <div class='bg-text-primary text-white px-4 py-3 rounded-lg shadow-lg flex items-center space-x-2'>
+                    <div class='bg-text-primary text-text-inverted px-4 py-3 rounded-lg shadow-lg flex items-center space-x-2'>
                         <svg class='w-5 h-5 text-semantic-success' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
                             <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 13l4 4L19 7' />
                         </svg>

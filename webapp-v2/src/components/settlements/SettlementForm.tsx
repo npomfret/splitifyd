@@ -467,7 +467,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                     >
                                         {/* Avatar */}
                                         <div
-                                            class='w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold text-white'
+                                            class='w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold text-text-inverted'
                                             style={{ backgroundColor: payeeMember.themeColor?.light || '#6366f1' }}
                                         >
                                             {getGroupDisplayName(payeeMember).charAt(0).toUpperCase()}

@@ -41,22 +41,27 @@ The project guidelines (`docs/guides/code.md`, `docs/guides/webapp-and-style-gui
 ### Recommendation:
 Refactor components currently using `useState` for local state to leverage Preact Signals. This will ensure consistency across the codebase and fully embrace the chosen state management paradigm. The module-level signal in `ResetPasswordPage.tsx` must be moved into the component's state or an appropriate store.
 
-## 2. Styling: Hardcoded Colors vs. Semantic Tokens (Minor Inconsistency)
+## 2. ~~Styling: Hardcoded Colors vs. Semantic Tokens~~ RESOLVED
 
-The `webapp-and-style-guide.md` explicitly states: "**Use semantic tokens only. Never `bg-gray-*`, `text-white`, inline styles, or `:root` variables in CSS files.**" while noting that Admin pages can use hardcoded colors. This guideline aims for white-label compatibility.
+**Status:** Fixed (2025-12-01)
 
-### Violations/Inconsistencies:
+All `text-white` violations in non-admin components have been replaced with `text-text-inverted` to comply with white-label theming requirements.
 
-*   **Direct `text-white` Usage:**
-    *   `webapp-v2/src/components/ui/WarningBanner.tsx`: Uses `text-white`. This should be `text-text-inverted` for semantic consistency and white-labeling.
-    *   `webapp-v2/src/components/group/ShareGroupModal.tsx`: Uses `text-white` in the toast notification. This should also be `text-text-inverted`.
-    *   `webapp-v2/src/components/expense-form/SplitAmountInputs.tsx`: Uses `dark:text-white`. This should be `dark:text-text-inverted`.
+### Files Fixed (13 violations across 8 files):
 
-### Admin Page Exceptions:
-Admin components (`AdminTenantsPage.tsx`, `TenantEditorModal.tsx`, `AdminDiagnosticsTab.tsx`) correctly utilize hardcoded colors (e.g., `bg-slate-900`, `text-indigo-600`, `text-gray-800`), which is explicitly allowed by the style guide for admin UI that is not tenant-themed.
+| File | Changes |
+|------|---------|
+| `components/ui/WarningBanner.tsx` | `text-white` → `text-text-inverted` |
+| `components/group/ShareGroupModal.tsx` | `text-white` → `text-text-inverted` (toast) |
+| `components/expense-form/SplitAmountInputs.tsx` | 3x `dark:text-white` → `dark:text-text-inverted` |
+| `components/expense/SplitBreakdown.tsx` | 4x `text-white`/`dark:text-white` → `text-text-inverted`/`dark:text-text-inverted` |
+| `components/comments/CommentItem.tsx` | `text-white` → `text-text-inverted` (avatar) |
+| `components/settlements/SettlementForm.tsx` | `text-white` → `text-text-inverted` (avatar) |
+| `pages/ExpenseDetailPage.tsx` | `text-white` + `focus:ring-white` → `text-text-inverted` + `focus:ring-text-inverted` |
+| `app/providers/AuthProvider.tsx` | `text-white` → `text-text-inverted` (button) |
 
-### Recommendation:
-Replace direct uses of `text-white` with `text-text-inverted` in non-admin components to align with semantic token usage and white-label design principles.
+### Admin Page Exceptions (unchanged - allowed per style guide):
+Admin components (`AdminTenantsPage.tsx`, `TenantBrandingPage.tsx`, `AdminHeader.tsx`, `UserEditorModal.tsx`) correctly utilize hardcoded colors, which is explicitly allowed by the style guide for admin UI that is not tenant-themed.
 
 ## 3. Component Structure and Size (Maintainability Concern)
 
@@ -82,5 +87,14 @@ Define a proper, strongly typed interface for `Split` (and potentially other sim
 
 ---
 
+## Summary
+
+| Issue | Status | Priority |
+|-------|--------|----------|
+| 1. State Management (`useState` vs Signals) | Open | Significant |
+| 2. Styling (Hardcoded Colors) | **RESOLVED** | ~~Minor~~ |
+| 3. Component Size (`TenantEditorModal.tsx`) | Open | Low (admin-only) |
+| 4. Typing (`Split` interface) | Open | Minor |
+
 **Next Steps:**
-I will await your instructions on which of these inconsistencies, if any, you would like me to address first.
+Remaining open issues require user direction on priority and scope.

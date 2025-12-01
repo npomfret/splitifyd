@@ -76,7 +76,7 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
                                         const value = (e.target as HTMLInputElement).value || ZERO;
                                         updateSplitAmount(toUserId(participantId), value);
                                     }}
-                                    className='w-24 px-2 py-1 border border-border-default dark:border-border-strong rounded focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary dark:bg-text-primary dark:text-white text-right'
+                                    className='w-24 px-2 py-1 border border-border-default dark:border-border-strong rounded focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary dark:bg-text-primary dark:text-text-inverted text-right'
                                     autoComplete='off'
                                 />
                             </div>
@@ -140,7 +140,7 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
                                         const value = parseFloat((e.target as HTMLInputElement).value) || 0;
                                         updateSplitPercentage(toUserId(participantId), value);
                                     }}
-                                    className='w-20 px-2 py-1 border border-border-default dark:border-border-strong rounded focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary dark:bg-text-primary dark:text-white text-right'
+                                    className='w-20 px-2 py-1 border border-border-default dark:border-border-strong rounded focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary dark:bg-text-primary dark:text-text-inverted text-right'
                                     autoComplete='off'
                                 />
                                 <span className='text-text-muted'>{t('expenseComponents.splitAmountInputs.percentSign')}</span>
@@ -183,7 +183,7 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
                                     <Avatar displayName={memberName} userId={toUserId(split.uid)} size='sm' />
                                     <span className='text-sm text-text-muted dark:text-text-muted/80'>{memberName}</span>
                                 </div>
-                                <span className='text-sm font-medium text-text-primary dark:text-white'>
+                                <span className='text-sm font-medium text-text-primary dark:text-text-inverted'>
                                     <CurrencyAmount amount={split.amount} currency={toCurrencyISOCode(currency)} />
                                 </span>
                             </div>

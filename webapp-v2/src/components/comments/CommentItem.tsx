@@ -33,7 +33,7 @@ export function CommentItem({ comment, showAvatar = true, className = '' }: Comm
                     {comment.authorAvatar
                         ? <img src={comment.authorAvatar} alt={comment.authorName} className='w-8 h-8 rounded-full object-cover' />
                         : (
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium ${getAvatarColor(comment.authorId)}`}>
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-text-inverted text-sm font-medium ${getAvatarColor(comment.authorId)}`}>
                                 {getInitials(toDisplayName(comment.authorName))}
                             </div>
                         )}
