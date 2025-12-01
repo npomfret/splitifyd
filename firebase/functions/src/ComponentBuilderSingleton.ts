@@ -1,5 +1,5 @@
 // Initialize ApplicationBuilder
-import { getIdentityToolkitConfig } from './client-config';
+import { getIdentityToolkitConfig } from './app-config';
 import { getAuth, getFirestore, getStorage } from './firebase';
 import { getServiceConfig } from './merge/ServiceConfig';
 import { ComponentBuilder } from './services/ComponentBuilder';

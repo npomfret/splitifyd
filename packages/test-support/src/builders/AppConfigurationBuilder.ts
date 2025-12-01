@@ -1,4 +1,4 @@
-import type { AppConfiguration, FirebaseConfig, FormDefaults, TenantConfig, ThemeConfig } from '@billsplit-wl/shared';
+import type { ClientAppConfiguration, FirebaseConfig, FormDefaults, TenantConfig, ThemeConfig } from '@billsplit-wl/shared';
 import { TenantConfigBuilder } from '@billsplit-wl/shared';
 
 export type TenantBrandingFlagsOverrides = Partial<TenantConfig['branding']['marketingFlags']>;
@@ -8,7 +8,7 @@ export type TenantOverrides = Partial<Omit<TenantConfig, 'branding'>> & {
 };
 
 export class AppConfigurationBuilder {
-    private config: Partial<AppConfiguration> = {};
+    private config: Partial<ClientAppConfiguration> = {};
 
     constructor() {
         this.config.firebase = {
@@ -77,7 +77,7 @@ export class AppConfigurationBuilder {
         return this;
     }
 
-    build(): AppConfiguration {
-        return this.config as AppConfiguration;
+    build(): ClientAppConfiguration {
+        return this.config as ClientAppConfiguration;
     }
 }

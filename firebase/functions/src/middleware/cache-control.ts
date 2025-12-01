@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { getClientConfig } from '../client-config';
+import { getClientConfig } from '../app-config';
 
 /**
  * Middleware to control caching behavior for all responses

@@ -1,6 +1,6 @@
 import { Footer } from '@/components/layout/Footer';
 import { useConfig } from '@/hooks/useConfig.ts';
-import type { AppConfiguration } from '@billsplit-wl/shared';
+import type { ClientAppConfiguration } from '@billsplit-wl/shared';
 import { toShowPricingPageFlag } from '@billsplit-wl/shared';
 import { AppConfigurationBuilder } from '@billsplit-wl/test-support';
 import { render, screen } from '@testing-library/preact';
@@ -29,7 +29,7 @@ vi.mock('@/hooks/useConfig.ts', () => ({
 
 const mockedUseConfig = vi.mocked(useConfig);
 
-const buildConfig = (showPricingPage: boolean): AppConfiguration =>
+const buildConfig = (showPricingPage: boolean): ClientAppConfiguration =>
     new AppConfigurationBuilder()
         .withTenantOverrides({
             branding: {

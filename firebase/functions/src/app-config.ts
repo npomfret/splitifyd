@@ -1,5 +1,5 @@
 import type {Email} from '@billsplit-wl/shared';
-import {AppConfiguration, FirebaseConfig, TenantConfig, toEmail} from '@billsplit-wl/shared';
+import {ClientAppConfiguration, FirebaseConfig, TenantConfig, toEmail} from '@billsplit-wl/shared';
 import {z} from 'zod';
 import {DOCUMENT_CONFIG, VALIDATION_LIMITS} from './constants';
 import {logger} from './logger';
@@ -8,8 +8,8 @@ import {assertValidInstanceName, type InstanceName} from './shared/instance-name
 import {inferProjectId, isEmulator, isRealFirebase} from "./firebase";
 
 // Cache for lazy-loaded configurations
-let cachedConfig: ClientConfig | null = null;
-let cachedAppConfig: AppConfiguration | null = null;
+let cachedConfig: AppConfig | null = null;
+let cachedAppConfig: ClientAppConfiguration | null = null;
 let cachedEnv: z.infer<typeof envSchema> | null = null;
 
 // Define environment variable schema
@@ -48,7 +48,7 @@ const envSchema = z.object({
 });
 
 // Type for the CONFIG object
-interface ClientConfig {
+interface AppConfig {
     isEmulator: boolean;
     requestBodyLimit: string;
     validation: {
@@ -90,7 +90,7 @@ function getEnv(): z.infer<typeof envSchema> {
 }
 
 // Build the CONFIG object lazily
-function buildConfig(): ClientConfig {
+function buildConfig(): AppConfig {
     const env = getEnv();
 
     // Validate required deployed environment variables
@@ -149,7 +149,7 @@ function buildConfig(): ClientConfig {
 }
 
 // Export lazy getter for CONFIG
-export function getClientConfig(): ClientConfig {
+export function getClientConfig(): AppConfig {
     if (!cachedConfig) {
         cachedConfig = buildConfig();
     }
@@ -157,7 +157,7 @@ export function getClientConfig(): ClientConfig {
 }
 
 // Helper functions for building AppConfiguration
-function getFirebaseAuthUrl(config: ClientConfig, env: z.infer<typeof envSchema>): string | undefined {
+function getFirebaseAuthUrl(config: AppConfig, env: z.infer<typeof envSchema>): string | undefined {
     if (!config.isEmulator) {
         return undefined;
     }
@@ -171,7 +171,7 @@ function getFirebaseAuthUrl(config: ClientConfig, env: z.infer<typeof envSchema>
     return `http://${authHost}`;
 }
 
-function getFirebaseFirestoreUrl(config: ClientConfig, env: z.infer<typeof envSchema>): string | undefined {
+function getFirebaseFirestoreUrl(config: AppConfig, env: z.infer<typeof envSchema>): string | undefined {
     if (!config.isEmulator) {
         return undefined;
     }
@@ -191,7 +191,7 @@ function getFirebaseFirestoreUrl(config: ClientConfig, env: z.infer<typeof envSc
 }
 
 // Build the complete AppConfiguration lazily
-function buildAppConfiguration(): AppConfiguration {
+function buildAppConfiguration(): ClientAppConfiguration {
     const config = getClientConfig();
     const env = getEnv();
     const projectId = inferProjectId();
@@ -277,7 +277,7 @@ export function getIdentityToolkitConfig(): { apiKey: string; baseUrl: string; }
 }
 
 // Lazy getter for APP_CONFIG (used internally)
-function getAppConfig(): AppConfiguration {
+function getAppConfig(): ClientAppConfiguration {
     if (!cachedAppConfig) {
         try {
             const builtConfig = buildAppConfiguration();
@@ -302,7 +302,7 @@ function getAppConfig(): AppConfiguration {
     return cachedAppConfig;
 }
 
-export function getTenantAwareAppConfig(tenant?: TenantConfig): AppConfiguration {
+export function getTenantAwareAppConfig(tenant?: TenantConfig): ClientAppConfiguration {
     const baseConfig = getAppConfig();
 
     if (!tenant) {

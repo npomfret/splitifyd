@@ -1,5 +1,5 @@
-import { AppConfiguration, TenantConfig, toShowLandingPageFlag, toShowMarketingContentFlag, toShowPricingPageFlag } from '@billsplit-wl/shared';
-import { getTenantAwareAppConfig } from '../client-config';
+import { ClientAppConfiguration, TenantConfig, toShowLandingPageFlag, toShowMarketingContentFlag, toShowPricingPageFlag } from '@billsplit-wl/shared';
+import { getTenantAwareAppConfig } from '../app-config';
 import type { TenantRequestContext } from '../types/tenant';
 import { ErrorDetail, Errors } from '../errors';
 
@@ -22,7 +22,7 @@ const cloneTenantConfig = (tenant: TenantConfig): TenantConfig => {
     };
 };
 
-export const getEnhancedConfigResponse = (context?: TenantRequestContext): AppConfiguration => {
+export const getEnhancedConfigResponse = (context?: TenantRequestContext): ClientAppConfiguration => {
     if (!context) {
         throw Errors.notFound('Tenant', ErrorDetail.TENANT_NOT_FOUND);
     }

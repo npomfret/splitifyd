@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { getClientConfig } from '../client-config';
+import { getClientConfig } from '../app-config';
 
 export function applySecurityHeaders(req: Request, res: Response, next: NextFunction): void {
     // CORS headers

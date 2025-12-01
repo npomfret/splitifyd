@@ -1,4 +1,4 @@
-import type { AppConfiguration, BrandingConfig } from '@billsplit-wl/shared';
+import type { ClientAppConfiguration, BrandingConfig } from '@billsplit-wl/shared';
 import { ReadonlySignal, signal } from '@preact/signals';
 import { firebaseConfigManager } from '../app/firebase-config';
 import i18n from '../i18n';
@@ -80,13 +80,13 @@ const updateBrandingMetadata = (branding: BrandingConfig | null): void => {
 
 interface ConfigStore {
     // State getters - readonly values for external consumers
-    readonly config: AppConfiguration | null;
+    readonly config: ClientAppConfiguration | null;
     readonly loading: boolean;
     readonly error: Error | null;
     readonly appName: string;
 
     // Signal accessors for reactive components - return readonly signals
-    readonly configSignal: ReadonlySignal<AppConfiguration | null>;
+    readonly configSignal: ReadonlySignal<ClientAppConfiguration | null>;
     readonly loadingSignal: ReadonlySignal<boolean>;
     readonly errorSignal: ReadonlySignal<Error | null>;
 
@@ -97,7 +97,7 @@ interface ConfigStore {
 
 class ConfigStoreImpl implements ConfigStore {
     // Private signals - encapsulated within the class
-    readonly #configSignal = signal<AppConfiguration | null>(null);
+    readonly #configSignal = signal<ClientAppConfiguration | null>(null);
     readonly #loadingSignal = signal<boolean>(false);
     readonly #errorSignal = signal<Error | null>(null);
 
@@ -120,7 +120,7 @@ class ConfigStoreImpl implements ConfigStore {
     }
 
     // Signal accessors for reactive components - return readonly signals
-    get configSignal(): ReadonlySignal<AppConfiguration | null> {
+    get configSignal(): ReadonlySignal<ClientAppConfiguration | null> {
         return this.#configSignal;
     }
     get loadingSignal(): ReadonlySignal<boolean> {

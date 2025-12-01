@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { getClientConfig } from '../client-config';
+import { getClientConfig } from '../app-config';
 import { Errors } from '../errors';
 import { logger } from '../logger';
 import { checkForDangerousPatterns } from '../utils/security';

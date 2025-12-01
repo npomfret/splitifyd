@@ -9,14 +9,14 @@ import {
     toTenantPrimaryColor,
     toTenantSecondaryColor,
 } from '@billsplit-wl/shared';
-import type { AppConfiguration, TenantConfig } from '@billsplit-wl/shared';
+import type { ClientAppConfiguration, TenantConfig } from '@billsplit-wl/shared';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import * as clientConfig from '../../client-config';
+import * as clientConfig from '../../app-config';
 import type { TenantRequestContext } from '../../types/tenant';
 import { getEnhancedConfigResponse } from '../../utils/config-response';
 
 describe('getEnhancedConfigResponse', () => {
-    const mockAppConfig = { firebase: {}, environment: {}, formDefaults: {} } as unknown as AppConfiguration;
+    const mockAppConfig = { firebase: {}, environment: {}, formDefaults: {} } as unknown as ClientAppConfiguration;
 
     beforeEach(() => {
         vi.spyOn(clientConfig, 'getTenantAwareAppConfig').mockReturnValue(mockAppConfig);

@@ -2,7 +2,7 @@ import { toISOString } from '@billsplit-wl/shared';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as v8 from 'v8';
-import { getClientConfig } from '../client-config';
+import { getClientConfig } from '../app-config';
 import { getComponentBuilder } from '../ComponentBuilderSingleton';
 import { HTTP_STATUS, SYSTEM } from '../constants';
 import { getAuth } from '../firebase';

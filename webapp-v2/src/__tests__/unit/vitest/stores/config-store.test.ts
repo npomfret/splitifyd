@@ -1,7 +1,7 @@
 import { firebaseConfigManager } from '@/app/firebase-config';
 import { configStore } from '@/stores/config-store.ts';
 import { syncThemeHash } from '@/utils/theme-bootstrap';
-import type { AppConfiguration, BrandingConfig } from '@billsplit-wl/shared';
+import type { ClientAppConfiguration, BrandingConfig } from '@billsplit-wl/shared';
 import { toISOString, toTenantId } from '@billsplit-wl/shared';
 import { BrandingConfigBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -21,7 +21,7 @@ const getMetaThemeColor = (): HTMLMetaElement | null => document.querySelector('
 const getFavicon = (): HTMLLinkElement | null => document.querySelector('link[rel="icon"]');
 
 describe('configStore', () => {
-    const baseConfig = (branding?: BrandingConfig): AppConfiguration => ({
+    const baseConfig = (branding?: BrandingConfig): ClientAppConfiguration => ({
         firebase: {
             apiKey: 'test',
             authDomain: 'test',
@@ -64,7 +64,7 @@ describe('configStore', () => {
             .build();
 
         const config = baseConfig(branding);
-        config.theme = { hash: 'abc123' } as AppConfiguration['theme'];
+        config.theme = { hash: 'abc123' } as ClientAppConfiguration['theme'];
         vi.mocked(firebaseConfigManager.getConfig).mockResolvedValue(config);
 
         await configStore.loadConfig();

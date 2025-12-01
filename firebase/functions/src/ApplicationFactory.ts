@@ -1,6 +1,6 @@
 import { TestErrorResponse, TestSuccessResponse } from '@billsplit-wl/shared';
 import type { RequestHandler } from 'express';
-import { getClientConfig } from './client-config';
+import { getClientConfig } from './app-config';
 import { buildEnvPayload, buildHealthPayload, resolveHealthStatusCode, runHealthChecks } from './endpoints/diagnostics';
 import {isRealFirebase} from './firebase';
 import { logger } from './logger';

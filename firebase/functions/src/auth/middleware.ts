@@ -1,7 +1,7 @@
 import { AuthenticatedUser, SystemUserRoles, toDisplayName, toUserId } from '@billsplit-wl/shared';
 import { NextFunction, Request, Response } from 'express';
 import { OAuth2Client } from 'google-auth-library';
-import { getClientConfig } from '../client-config';
+import { getClientConfig } from '../app-config';
 import { getComponentBuilder } from '../ComponentBuilderSingleton';
 import { AUTH } from '../constants';
 import { Errors, ErrorDetail } from '../errors';

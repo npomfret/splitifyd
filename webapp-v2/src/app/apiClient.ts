@@ -15,7 +15,7 @@ import type {
     AdminUpsertTenantRequest,
     AdminUpsertTenantResponse,
     API,
-    AppConfiguration,
+    ClientAppConfiguration,
     ChangeEmailRequest,
     CommentDTO,
     CreateExpenseRequest,
@@ -1088,7 +1088,7 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
         return this.getCurrentPolicyInternal(policyId, signal);
     }
 
-    async getAppConfig(signal?: AbortSignal): Promise<AppConfiguration> {
+    async getAppConfig(signal?: AbortSignal): Promise<ClientAppConfiguration> {
         return this.request({
             endpoint: '/config',
             method: 'GET',

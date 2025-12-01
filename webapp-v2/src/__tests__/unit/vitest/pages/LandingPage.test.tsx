@@ -1,6 +1,6 @@
 import { useConfig } from '@/hooks/useConfig.ts';
 import { LandingPage } from '@/pages/LandingPage.tsx';
-import type { AppConfiguration } from '@billsplit-wl/shared';
+import type { ClientAppConfiguration } from '@billsplit-wl/shared';
 import { toShowMarketingContentFlag } from '@billsplit-wl/shared';
 import { AppConfigurationBuilder } from '@billsplit-wl/test-support';
 import { render, screen } from '@testing-library/preact';
@@ -35,7 +35,7 @@ vi.mock('@/hooks/useConfig.ts', () => ({
 
 const mockedUseConfig = vi.mocked(useConfig);
 
-const enableMarketing = (): AppConfiguration =>
+const enableMarketing = (): ClientAppConfiguration =>
     new AppConfigurationBuilder()
         .withTenantOverrides({
             branding: {
@@ -46,7 +46,7 @@ const enableMarketing = (): AppConfiguration =>
         })
         .build();
 
-const disableMarketing = (): AppConfiguration =>
+const disableMarketing = (): ClientAppConfiguration =>
     new AppConfigurationBuilder()
         .withTenantOverrides({
             branding: {

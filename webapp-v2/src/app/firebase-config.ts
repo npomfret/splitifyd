@@ -1,10 +1,10 @@
-import type { AppConfiguration } from '@billsplit-wl/shared';
+import type { ClientAppConfiguration } from '@billsplit-wl/shared';
 import { apiClient, ApiError } from './apiClient';
 
 class FirebaseConfigManager {
-    private configPromise: Promise<AppConfiguration> | null = null;
+    private configPromise: Promise<ClientAppConfiguration> | null = null;
 
-    async getConfig(): Promise<AppConfiguration> {
+    async getConfig(): Promise<ClientAppConfiguration> {
         if (!this.configPromise) {
             this.configPromise = this.fetchConfig();
         }
@@ -12,7 +12,7 @@ class FirebaseConfigManager {
         return this.configPromise;
     }
 
-    private async fetchConfig(): Promise<AppConfiguration> {
+    private async fetchConfig(): Promise<ClientAppConfiguration> {
         try {
             return await apiClient.getAppConfig();
         } catch (error) {

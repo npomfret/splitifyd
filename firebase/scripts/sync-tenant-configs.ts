@@ -30,7 +30,7 @@ import { ApiDriver, type ApiDriverConfig, getProjectId } from '@billsplit-wl/tes
 import * as admin from 'firebase-admin';
 import * as fs from 'fs';
 import * as path from 'path';
-import { getIdentityToolkitConfig } from '../functions/src/client-config';
+import { getIdentityToolkitConfig } from '../functions/src/app-config';
 import { getAuth, getFirestore, getStorage } from '../functions/src/firebase';
 import { getServiceConfig } from '../functions/src/merge/ServiceConfig';
 import type { AdminUpsertTenantRequest } from '../functions/src/schemas/tenant';

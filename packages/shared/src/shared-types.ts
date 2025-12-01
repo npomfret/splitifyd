@@ -482,7 +482,7 @@ export interface ThemeConfig {
     generatedAtEpochMs?: number;
 }
 
-export interface AppConfiguration {
+export interface ClientAppConfiguration {
     firebase: FirebaseConfig;
     warningBanner?: string;
     formDefaults: FormDefaults;
