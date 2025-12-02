@@ -97,6 +97,9 @@ You SHALL NOT, and shall not attempt to:
 - Use the Service to develop competing products
 - Frame, mirror, or embed the Service
 - Deep link to the Service without permission
+- Access, use, or attempt to use any application programming interface (API), whether documented or undocumented, except through the official user interface
+- Make any programmatic, automated, or machine-to-machine requests to the Service
+- Develop, distribute, or use any third-party applications, plugins, extensions, or integrations that interact with the Service
 
 ### 5.2 Content Prohibitions
 
@@ -136,7 +139,7 @@ You may be required to create an account. You agree to:
 - Not create multiple accounts
 - Accept liability for all account usage
 
-### 6.2 Account Termination
+### 6.2 Account Suspension and Termination
 
 We may suspend or terminate your account:
 
@@ -146,7 +149,13 @@ We may suspend or terminate your account:
 - With or without cause
 - In our sole and absolute discretion
 
+We may temporarily suspend your access to the Service at any time, for any duration, without notice or explanation. Temporary suspensions may be applied for reasons including but not limited to: suspected abuse, unusual activity patterns, violation of these Terms, or any other reason we deem appropriate. We are under no obligation to disclose the reason for any suspension, and you waive any right to demand an explanation.
+
 Upon termination, all licenses terminate immediately, but all other provisions survive.
+
+### 6.3 Fair Use Policy
+
+Your use of the Service is subject to a fair use policy. The specific terms of the fair use policy are not published and remain at our sole discretion. We reserve the right to determine what constitutes fair use, to modify fair use limits at any time without notice, and to suspend or terminate accounts that we determine, in our sole discretion, to be in violation of fair use. You have no right to receive notice of, or challenge, any fair use determination.
 
 ## 7. PAYMENT TERMS AND FUTURE MONETIZATION
 
@@ -175,7 +184,36 @@ If/when we introduce payments:
 - Currency exchange rates will be at our discretion
 - By continuing to use the Service after pricing is introduced, you accept all charges
 
-## 8. DISCLAIMERS AND WARRANTIES
+## 8. INFORMATIONAL PURPOSES AND FINANCIAL DISCLAIMER
+
+### 8.1 Not Financial, Legal, or Professional Advice
+
+THE SERVICE IS PROVIDED FOR INFORMATIONAL AND CONVENIENCE PURPOSES ONLY. THE SERVICE IS NOT INTENDED TO PROVIDE, AND SHALL NOT BE CONSTRUED AS PROVIDING, FINANCIAL, LEGAL, TAX, ACCOUNTING, OR ANY OTHER PROFESSIONAL ADVICE.
+
+### 8.2 No Reliance on Calculations
+
+ALL CALCULATIONS, AMOUNTS, BALANCES, SPLITS, SUGGESTED PAYMENTS, AND OTHER NUMERICAL DATA DISPLAYED BY THE SERVICE ARE PROVIDED FOR INFORMATIONAL REFERENCE ONLY. YOU EXPRESSLY ACKNOWLEDGE AND AGREE THAT:
+
+- The Service may contain errors, bugs, or inaccuracies in its calculations
+- Currency conversions, rounding, and mathematical operations may produce incorrect results
+- Data entry errors, synchronization issues, or system failures may cause incorrect information to be displayed
+- We make no representations or warranties regarding the accuracy, completeness, or reliability of any calculations or data
+- You must independently verify all amounts before making any financial decisions or transactions
+- You shall not rely on the Service as the sole basis for any financial decision, payment, or transaction
+- Any financial decisions you make based on information from the Service are made entirely at your own risk
+- We are not liable for any financial loss, overpayment, underpayment, or dispute arising from your reliance on the Service
+
+### 8.3 Independent Verification Required
+
+Before making any payment, settling any debt, or taking any financial action, you are solely responsible for independently verifying all amounts, calculations, and information through your own records and with all relevant parties. The Service is a convenience tool and does not replace proper financial record-keeping, accounting practices, or professional advice.
+
+## 9. DISCLAIMERS AND WARRANTIES
+
+### 9.1 No Guarantees Whatsoever
+
+WE MAKE ABSOLUTELY NO GUARANTEES OF ANY KIND. THE SERVICE IS PROVIDED ON A STRICTLY "USE AT YOUR OWN RISK" BASIS. WE DO NOT GUARANTEE THAT THE SERVICE WILL WORK, WILL BE AVAILABLE, WILL BE ACCURATE, WILL BE SUITABLE FOR ANY PURPOSE, OR WILL MEET ANY EXPECTATIONS. YOU EXPRESSLY ACKNOWLEDGE THAT YOU USE THE SERVICE ENTIRELY AT YOUR OWN RISK AND THAT WE HAVE MADE NO PROMISES, REPRESENTATIONS, OR ASSURANCES REGARDING THE SERVICE'S PERFORMANCE, RELIABILITY, AVAILABILITY, OR SUITABILITY.
+
+### 9.2 Comprehensive Disclaimer
 
 THE SERVICE IS PROVIDED "AS IS," "AS AVAILABLE," "WITH ALL FAULTS," AND "WITH ALL DEFECTS." TO THE MAXIMUM EXTENT PERMITTED BY LAW, WE DISCLAIM ALL WARRANTIES, EXPRESS, IMPLIED, STATUTORY, OR OTHERWISE, INCLUDING BUT NOT LIMITED TO:
 
@@ -192,6 +230,8 @@ THE SERVICE IS PROVIDED "AS IS," "AS AVAILABLE," "WITH ALL FAULTS," AND "WITH AL
 - COMPATIBILITY WITH YOUR SYSTEMS
 - MEETING YOUR REQUIREMENTS
 
+### 9.3 Specific Non-Warranties
+
 WE DO NOT WARRANT THAT:
 
 - The Service will meet your expectations
@@ -201,12 +241,19 @@ WE DO NOT WARRANT THAT:
 - Your data will be secure or not lost
 - Third-party services will function properly
 - Content is accurate or reliable
+- Calculations will be correct or complete
+- The Service will be available when you need it
+- Any functionality will work as intended
+- Updates or improvements will be provided
+- Support will be available
 
-YOU ASSUME ALL RISK OF USE. WE ARE NOT RESPONSIBLE FOR ANY DAMAGE TO YOUR COMPUTER SYSTEM, LOSS OF DATA, OR OTHER HARM RESULTING FROM YOUR USE OF THE SERVICE.
+### 9.4 Assumption of Risk
 
-## 9. LIMITATION OF LIABILITY
+YOU ASSUME ALL RISK OF USE. WE ARE NOT RESPONSIBLE FOR ANY DAMAGE TO YOUR COMPUTER SYSTEM, LOSS OF DATA, FINANCIAL LOSS, RELATIONSHIP DAMAGE, OR ANY OTHER HARM RESULTING FROM YOUR USE OF THE SERVICE. IF YOU ARE DISSATISFIED WITH THE SERVICE, YOUR SOLE AND EXCLUSIVE REMEDY IS TO DISCONTINUE USING THE SERVICE.
 
-### 9.1 Exclusion of Damages
+## 10. LIMITATION OF LIABILITY
+
+### 10.1 Exclusion of Damages
 
 TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL WE BE LIABLE FOR:
 
@@ -232,7 +279,7 @@ TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL WE BE LIABLE FOR:
 - LOSS OF CONSORTIUM
 - ANY OTHER PECUNIARY OR NON-PECUNIARY LOSS
 
-### 9.2 Cap on Liability
+### 10.2 Cap on Liability
 
 IF, DESPITE THE ABOVE, WE ARE FOUND LIABLE, OUR TOTAL AGGREGATE LIABILITY FOR ALL CLAIMS SHALL NOT EXCEED £1 (ONE BRITISH POUND). THIS LIMITATION APPLIES:
 
@@ -242,11 +289,11 @@ IF, DESPITE THE ABOVE, WE ARE FOUND LIABLE, OUR TOTAL AGGREGATE LIABILITY FOR AL
 - Even if remedies fail of their essential purpose
 - To the maximum extent permitted by law
 
-### 9.3 Time Limitation
+### 10.3 Time Limitation
 
 Any claim must be brought within 30 days of the event giving rise to the claim, or be forever barred.
 
-## 10. INDEMNIFICATION
+## 11. INDEMNIFICATION
 
 You agree to defend, indemnify, and hold harmless us and our officers, directors, employees, agents, licensors, suppliers, successors, and assigns from and against any claims, actions, demands, liabilities, damages, judgments, awards, losses, costs, expenses, or fees (including reasonable attorneys' fees) arising out of or relating to:
 
@@ -265,9 +312,9 @@ You agree to defend, indemnify, and hold harmless us and our officers, directors
 
 This indemnification survives termination and includes the right to select counsel and control defense.
 
-## 11. DISPUTE RESOLUTION AND ARBITRATION
+## 12. DISPUTE RESOLUTION AND ARBITRATION
 
-### 11.1 Mandatory Arbitration
+### 12.1 Mandatory Arbitration
 
 ANY DISPUTE SHALL BE RESOLVED EXCLUSIVELY THROUGH BINDING INDIVIDUAL ARBITRATION, EXCEPT THAT WE MAY SEEK INJUNCTIVE RELIEF IN COURT. You waive all rights to:
 
@@ -279,7 +326,7 @@ ANY DISPUTE SHALL BE RESOLVED EXCLUSIVELY THROUGH BINDING INDIVIDUAL ARBITRATION
 - Consolidated actions
 - Public injunctive relief
 
-### 11.2 Arbitration Process
+### 12.2 Arbitration Process
 
 - Arbitration shall be in London, England
 - English law applies without regard to conflicts
@@ -291,11 +338,11 @@ ANY DISPUTE SHALL BE RESOLVED EXCLUSIVELY THROUGH BINDING INDIVIDUAL ARBITRATION
 - Limited discovery at arbitrator's discretion
 - No punitive damages may be awarded
 
-### 11.3 Class Action Waiver
+### 12.3 Class Action Waiver
 
 YOU WAIVE ANY RIGHT TO PARTICIPATE IN CLASS ACTIONS. CLAIMS MAY ONLY BE BROUGHT INDIVIDUALLY. If this waiver is unenforceable, the entire arbitration provision is void.
 
-## 12. MODIFICATIONS TO TERMS
+## 13. MODIFICATIONS TO TERMS
 
 We reserve the absolute right to modify these Terms at any time without notice. Modifications are effective immediately upon posting. Your continued use constitutes acceptance. We may also:
 
@@ -307,9 +354,9 @@ We reserve the absolute right to modify these Terms at any time without notice. 
 
 You are responsible for reviewing Terms regularly. We have no obligation to notify you of changes.
 
-## 13. TERMINATION
+## 14. TERMINATION
 
-### 13.1 Termination by Us
+### 14.1 Termination by Us
 
 We may terminate your access immediately, without notice, for any reason, including but not limited to:
 
@@ -323,41 +370,41 @@ We may terminate your access immediately, without notice, for any reason, includ
 - Protecting other users
 - Our sole discretion
 
-### 13.2 Termination by You
+### 14.2 Termination by You
 
 You may terminate only by ceasing all use and deleting all copies of the Service. There are no refunds upon termination.
 
-### 13.3 Survival
+### 14.3 Survival
 
 The following sections survive termination indefinitely: Intellectual Property, Indemnification, Disclaimers, Limitation of Liability, Dispute Resolution, and any other provisions that by their nature should survive.
 
-## 14. GENERAL PROVISIONS
+## 15. GENERAL PROVISIONS
 
-### 14.1 Entire Agreement
+### 15.1 Entire Agreement
 
 These Terms, together with our Privacy Policy and Cookie Policy, constitute the entire agreement and supersede all prior agreements.
 
-### 14.2 Governing Law
+### 15.2 Governing Law
 
 These Terms are governed by English law without regard to conflict of law principles. You consent to exclusive jurisdiction in England.
 
-### 14.3 Severability
+### 15.3 Severability
 
 If any provision is unenforceable, we may replace it with a similar enforceable provision that achieves the same economic effect.
 
-### 14.4 No Waiver
+### 15.4 No Waiver
 
 Our failure to enforce any provision is not a waiver. Waivers must be in writing and signed by us.
 
-### 14.5 Assignment
+### 15.5 Assignment
 
 We may freely assign these Terms and your information. You may not assign without our written consent.
 
-### 14.6 Force Majeure
+### 15.6 Force Majeure
 
 We are not liable for any failure or delay due to circumstances beyond our reasonable control.
 
-### 14.7 Interpretation
+### 15.7 Interpretation
 
 - Ambiguities are resolved in our favor
 - "Including" means "including without limitation"
@@ -365,53 +412,53 @@ We are not liable for any failure or delay due to circumstances beyond our reaso
 - Headings are for convenience only
 - These Terms are not construed against the drafter
 
-### 14.8 Electronic Communications
+### 15.8 Electronic Communications
 
 You consent to electronic communications and agree they satisfy any legal requirement for writing.
 
-### 14.9 Export Controls
+### 15.9 Export Controls
 
 You comply with all export laws and regulations. You represent that you are not prohibited from receiving exports.
 
-### 14.10 No Third-Party Beneficiaries
+### 15.10 No Third-Party Beneficiaries
 
 These Terms are solely between you and us. No third party has any rights under these Terms.
 
-### 14.11 Relationship
+### 15.11 Relationship
 
 Nothing creates a partnership, joint venture, agency, or employment relationship. You have no authority to bind us.
 
-### 14.12 Notice
+### 15.12 Notice
 
 Legal notices to us must be sent by certified mail to our registered address. We may notify you electronically.
 
-### 14.13 Equitable Relief
+### 15.13 Equitable Relief
 
 You acknowledge that breach may cause irreparable harm for which monetary damages are inadequate, and we are entitled to injunctive relief.
 
-## 15. SPECIFIC SERVICE TERMS
+## 16. SPECIFIC SERVICE TERMS
 
-### 15.1 Beta Features
+### 16.1 Beta Features
 
 Beta features are provided AS-IS without any warranty. We may discontinue beta features at any time.
 
-### 15.2 Third-Party Services
+### 16.2 Third-Party Services
 
 We are not responsible for third-party services. Your use of third-party services is at your own risk.
 
-### 15.3 Updates
+### 16.3 Updates
 
 We may automatically download and install updates. You consent to automatic updates.
 
-### 15.4 Data Processing
+### 16.4 Data Processing
 
 By using the Service, you appoint us as your data processor and agent for any data processing activities.
 
-### 15.5 Feedback
+### 16.5 Feedback
 
 Any feedback you provide becomes our property. We may use feedback without compensation or attribution.
 
-## 16. ADDITIONAL ACKNOWLEDGMENTS
+## 17. ADDITIONAL ACKNOWLEDGMENTS
 
 BY USING THE SERVICE, YOU ACKNOWLEDGE AND AGREE THAT:
 
@@ -430,25 +477,25 @@ BY USING THE SERVICE, YOU ACKNOWLEDGE AND AGREE THAT:
 - Language barriers are not an excuse for non-compliance
 - You will not assist others in violating these Terms
 
-## 17. FINAL PROVISIONS
+## 18. FINAL PROVISIONS
 
-### 17.1 Reservation of Rights
+### 18.1 Reservation of Rights
 
 All rights not expressly granted are reserved. We may exercise any remedy available at law or equity.
 
-### 17.2 Cumulative Remedies
+### 18.2 Cumulative Remedies
 
 Our rights and remedies are cumulative and not exclusive. We may pursue multiple remedies simultaneously.
 
-### 17.3 Cost Shifting
+### 18.3 Cost Shifting
 
 In any dispute, the losing party pays all costs and attorneys' fees of the prevailing party.
 
-### 17.4 Statute of Limitations
+### 18.4 Statute of Limitations
 
 You waive any statute of limitations to the maximum extent permitted. Claims must be brought within 30 days.
 
-### 17.5 Publicity
+### 18.5 Publicity
 
 We may use your name and likeness for marketing without compensation.
 
