@@ -241,8 +241,7 @@
         "required": "Password is required",
         "tooShort": "Password must be at least 12 characters"
       }
-    },
-    "defaultLoginButton": "Continue with Email"
+    }
   },
   "dashboard": {
     "title": "Dashboard - {{appName}}",

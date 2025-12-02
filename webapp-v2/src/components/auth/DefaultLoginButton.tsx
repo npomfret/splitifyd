@@ -1,16 +1,16 @@
+// Dev-only convenience button that auto-fills and submits the login form.
+// Only renders when formDefaults.email is configured (dev environments).
 import { firebaseConfigManager } from '@/app/firebase-config.ts';
 import { useEffect, useState } from 'preact/hooks';
-import { useTranslation } from 'react-i18next';
 import { Button } from '../ui';
 
 interface DefaultLoginButtonProps {
-    onFillForm: (email: string, password: string) => Promise<void>;
-    onSubmit: () => void;
+    onFillForm: (email: string, password: string) => void;
+    onLogin: (email: string, password: string) => Promise<void>;
     disabled?: boolean;
 }
 
-export function DefaultLoginButton({ onFillForm, onSubmit, disabled }: DefaultLoginButtonProps) {
-    const { t } = useTranslation();
+export function DefaultLoginButton({ onFillForm, onLogin, disabled }: DefaultLoginButtonProps) {
     const [hasDefaults, setHasDefaults] = useState(false);
     const [loading, setLoading] = useState(false);
 
@@ -34,12 +34,11 @@ export function DefaultLoginButton({ onFillForm, onSubmit, disabled }: DefaultLo
         try {
             const config = await firebaseConfigManager.getConfig();
             if (config.formDefaults?.email && config.formDefaults?.password) {
-                // Wait for form to be filled before submitting
-                await onFillForm(config.formDefaults.email, config.formDefaults.password);
-                onSubmit();
+                onFillForm(config.formDefaults.email, config.formDefaults.password);
+                await onLogin(config.formDefaults.email, config.formDefaults.password);
             }
         } catch (error) {
-            // Error handling remains the same
+            // Silently fail - this is just a dev convenience feature
         } finally {
             setLoading(false);
         }
@@ -51,7 +50,7 @@ export function DefaultLoginButton({ onFillForm, onSubmit, disabled }: DefaultLo
 
     return (
         <Button type='button' variant='secondary' size='sm' onClick={handleDefaultLogin} disabled={disabled || loading} loading={loading} className='w-full' data-testid='default-login-button'>
-            {t('auth.defaultLoginButton')}
+            Quick Login
         </Button>
     );
 }

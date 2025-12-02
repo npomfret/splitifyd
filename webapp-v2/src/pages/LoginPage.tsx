@@ -3,7 +3,7 @@ import { STORAGE_KEYS } from '@/constants.ts';
 import { navigationService } from '@/services/navigation.service';
 import { EmailSchema, toEmail, toPassword } from '@billsplit-wl/shared';
 import { signal } from '@preact/signals';
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { AuthForm } from '../components/auth/AuthForm';
@@ -99,23 +99,14 @@ export function LoginPage() {
         }
     };
 
-    const fillFormResolver = useRef<(() => void) | null>(null);
-
-    const handleFillForm = async (defaultEmail: string, defaultPassword: string): Promise<void> => {
-        return new Promise((resolve) => {
-            fillFormResolver.current = resolve;
-            emailSignal.value = defaultEmail;
-            passwordSignal.value = defaultPassword;
-        });
+    const handleFillForm = (defaultEmail: string, defaultPassword: string): void => {
+        emailSignal.value = defaultEmail;
+        passwordSignal.value = defaultPassword;
     };
 
-    // Effect to resolve the promise when state has updated
-    useEffect(() => {
-        if (fillFormResolver.current) {
-            fillFormResolver.current();
-            fillFormResolver.current = null;
-        }
-    }, [email, password]);
+    const handleQuickLogin = async (defaultEmail: string, defaultPassword: string): Promise<void> => {
+        await authStore.login(toEmail(defaultEmail), toPassword(defaultPassword), false);
+    };
 
     const isFormValid = EmailSchema.safeParse(email).success && password;
 
@@ -153,7 +144,7 @@ export function LoginPage() {
                     {t('loginPage.submitButton')}
                 </SubmitButton>
 
-                <DefaultLoginButton onFillForm={handleFillForm} onSubmit={() => handleSubmit(new Event('submit'))} disabled={loadingValue} />
+                <DefaultLoginButton onFillForm={handleFillForm} onLogin={handleQuickLogin} disabled={loadingValue} />
 
                 <div class='text-center'>
                     <p class='text-sm text-text-muted'>
