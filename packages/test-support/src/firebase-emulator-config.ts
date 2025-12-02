@@ -45,7 +45,7 @@ export interface FirebaseConfig {
             port: number;
             host: string;
         };
-        storage?: {
+        storage: {
             port: number;
             host: string;
         };
@@ -64,7 +64,7 @@ export interface FirebaseEmulatorConfig {
     authPort: number;
     firestorePort: number;
     hostingPort: number;
-    storagePort: number;
+    firebaseStorageEmulatorHost: string;
     baseUrl: string;
     firebaseApiKey: string;
     identityToolkit: {
@@ -155,7 +155,7 @@ export function getPorts(): {
         firestore: config.emulators.firestore.port,
         auth: config.emulators.auth.port,
         hosting: config.emulators.hosting.port,
-        storage: config.emulators.storage?.port ?? 9199,
+        storage: config.emulators.storage.port,
         ui: config.emulators.ui.port,
     };
 }
@@ -190,8 +190,7 @@ export function getFirebaseEmulatorConfig(): FirebaseEmulatorConfig {
     const firebaseConfig = loadFirebaseConfig();
 
     // Read project ID from .firebaserc
-    const firebaseRcPath = path.join(projectRoot, 'firebase', '.firebaserc');
-    const firebaseRc = JSON.parse(fs.readFileSync(firebaseRcPath, 'utf8'));
+    const firebaseRc = JSON.parse(fs.readFileSync(path.join(projectRoot, 'firebase', '.firebaserc'), 'utf8'));
     const projectId = firebaseRc.projects.default;
 
     const functionsPort = firebaseConfig.emulators.functions.port;
@@ -199,7 +198,7 @@ export function getFirebaseEmulatorConfig(): FirebaseEmulatorConfig {
     const authHost = firebaseConfig.emulators.auth.host;
     const firestorePort = firebaseConfig.emulators.firestore.port;
     const hostingPort = firebaseConfig.emulators.hosting.port;
-    const storagePort = firebaseConfig.emulators.storage?.port ?? 9199;
+    const storagePort = firebaseConfig.emulators.storage.port;
 
     const firebaseApiKey = 'AIzaSyB3bUiVfOWkuJ8X0LAlFpT5xJitunVP6xg'; // Default API key for emulator
 
@@ -209,7 +208,7 @@ export function getFirebaseEmulatorConfig(): FirebaseEmulatorConfig {
         authPort,
         firestorePort,
         hostingPort,
-        storagePort,
+        firebaseStorageEmulatorHost: `127.0.0.1:${storagePort}`,
         baseUrl: `http://localhost:${functionsPort}/${projectId}/us-central1/api`,
         firebaseApiKey: firebaseApiKey,
         identityToolkit: {
