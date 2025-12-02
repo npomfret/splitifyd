@@ -1,21 +1,11 @@
-import { EMULATOR_URL } from '../helpers';
+import { ApiDriver } from '@billsplit-wl/test-support';
 
 async function globalSetup() {
-    const baseURL = EMULATOR_URL;
+    const apiDriver = new ApiDriver();
 
-    // Simple connectivity test without creating a browser instance
-    console.log(`Testing connectivity to ${baseURL}`);
-    const response = await fetch(baseURL);
-    if (response.ok) {
-        const registerResponse = await fetch(`${baseURL}/register`);
-        if (registerResponse.ok) {
-            console.log('✅ Register page accessible');
-        } else {
-            console.warn(`⚠️  Register page returned status ${registerResponse.status}`);
-        }
-    } else {
-        console.warn(`⚠️  Server responded with status ${response.status}, but tests will proceed`);
-    }
+    console.log('Testing API connectivity...');
+    const health = await apiDriver.getHealth();
+    console.log(`✅ API healthy: ${health.status}`);
 }
 
 export default globalSetup;

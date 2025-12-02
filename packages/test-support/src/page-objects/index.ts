@@ -4,6 +4,7 @@ export { BasePage } from './BasePage';
 export { CreateGroupModalPage } from './CreateGroupModalPage';
 export { DashboardPage } from './DashboardPage';
 export { ExpenseDetailPage } from './ExpenseDetailPage';
+export { FooterComponent } from './FooterComponent';
 export { ExpenseFormPage } from './ExpenseFormPage';
 export { GroupDetailPage } from './GroupDetailPage';
 export { GroupSettingsModalPage } from './GroupSettingsModalPage';

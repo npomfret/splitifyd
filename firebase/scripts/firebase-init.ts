@@ -114,7 +114,7 @@ export function initializeFirebase(env: ScriptEnvironment): void {
             const emulatorConfig = getFirebaseEmulatorConfig();
 
             process.env.FIREBASE_AUTH_EMULATOR_HOST = emulatorConfig.identityToolkit.host;
-            process.env.FIRESTORE_EMULATOR_HOST = `127.0.0.1:${emulatorConfig.firestorePort}`;
+            process.env.FIRESTORE_EMULATOR_HOST = emulatorConfig.firestoreEmulatorHost;
 
             if (!process.env.FIREBASE_CONFIG) {
                 process.env.FIREBASE_CONFIG = JSON.stringify({

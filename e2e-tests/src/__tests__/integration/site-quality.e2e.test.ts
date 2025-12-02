@@ -1,11 +1,13 @@
 import AxeBuilder from '@axe-core/playwright';
+import { FooterComponent } from '@billsplit-wl/test-support';
 import { expect, simpleTest as test } from '../../fixtures/simple-test.fixture';
-import { EMULATOR_URL, waitForApp } from '../../helpers';
+import { waitForApp } from '../../helpers';
 
 test.describe('Site Quality - Accessibility', () => {
     test('should not have critical accessibility issues', async ({ newEmptyBrowser }) => {
-        const { page } = await newEmptyBrowser();
-        await page.goto(EMULATOR_URL);
+        const { page, loginPage } = await newEmptyBrowser();
+        // Navigate from login to home page via header logo
+        await loginPage.navigateToHome();
         await waitForApp(page);
 
         // Run basic accessibility scan
@@ -21,10 +23,10 @@ test.describe('Site Quality - Accessibility', () => {
 
 test.describe('Site Quality - SEO', () => {
     test('should have proper SEO elements across all pages', async ({ newEmptyBrowser }) => {
-        const { page } = await newEmptyBrowser();
+        const { page, loginPage } = await newEmptyBrowser();
 
-        // Part 1: Homepage SEO validation
-        await page.goto(EMULATOR_URL);
+        // Part 1: Homepage SEO validation - navigate via header logo
+        await loginPage.navigateToHome();
 
         // Title validation
         const homeTitle = await page.title();
@@ -47,22 +49,27 @@ test.describe('Site Quality - SEO', () => {
         expect(htmlLang).toBe('en');
 
         // Part 2: Pricing page SEO validation (skip if pricing page feature is disabled)
-        await page.goto(`${EMULATOR_URL}/pricing`);
-        await waitForApp(page);
+        // Check if pricing link is available in footer
+        const footer = new FooterComponent(page);
+        const hasPricingLink = await footer.isPricingLinkVisible();
 
-        // Wait for the page to render and check if it's a 404
-        await page.waitForSelector('h1', { timeout: 5000 });
-        const h1Text = await page.locator('h1').first().textContent();
-        const is404 = h1Text?.includes('404') || false;
+        if (hasPricingLink) {
+            // Navigate to pricing via footer link
+            await footer.clickPricingLink();
+            await waitForApp(page);
 
-        if (!is404) {
-            await waitForApp(page); // Wait for React to mount and set meta tags
+            // Wait for the page to render
+            await page.waitForSelector('h1', { timeout: 5000 });
 
-            const appName = await page
-                .request
-                .get(`${EMULATOR_URL}/api/config`)
-                .then((response) => response.json())
-                .then((config) => config?.tenant?.branding?.appName ?? 'Splitifyd');
+            // Get app name from page context (already loaded)
+            const appName = await page.evaluate(() => {
+                const configScript = document.querySelector('script[data-config]');
+                if (configScript) {
+                    const config = JSON.parse(configScript.getAttribute('data-config') || '{}');
+                    return config?.tenant?.branding?.appName ?? 'Splitifyd';
+                }
+                return 'Splitifyd';
+            });
 
             // Title validation
             const pricingTitle = await page.title();

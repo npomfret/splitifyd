@@ -2,6 +2,7 @@ import {
     ApiDriver,
     DashboardPage,
     DEFAULT_PASSWORD,
+    FooterComponent,
     generateTestEmail,
     generateTestUserName,
     GroupDetailPage,
@@ -15,7 +16,6 @@ import {
 import { expect } from '@playwright/test';
 import { simpleTest } from '../../fixtures';
 import { getUserPool } from '../../fixtures/user-pool.fixture';
-import { EMULATOR_URL } from '../../helpers';
 
 type DashboardNavigable = SettingsPage | GroupDetailPage;
 
@@ -251,31 +251,34 @@ simpleTest.describe('User Registration & Account Management', () => {
 simpleTest.describe('Policy Acceptance', () => {
     simpleTest.describe('Policy Page Navigation', () => {
         simpleTest('should load and navigate between policy pages without errors', async ({ newEmptyBrowser }) => {
-            const { page } = await newEmptyBrowser();
+            const { page, loginPage } = await newEmptyBrowser();
+            const footer = new FooterComponent(page);
 
-            // Test all three policy pages load properly
-            const policyPages = [
-                { path: '/terms', heading: /Terms of Service|Terms and Conditions/ },
-                { path: '/privacy', heading: /Privacy Policy|Privacy/ },
-                { path: '/cookies', heading: /Cookie Policy|Cookie/ },
-            ];
+            // Test navigation to Terms page via footer link
+            await footer.clickTermsLink();
+            await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
+            await page.locator('h1').filter({ hasText: /Terms of Service|Terms and Conditions/ }).first().waitFor();
+            await expect(page.getByTestId('loading-spinner')).toBeHidden({ timeout: 5000 });
 
-            for (const { path, heading } of policyPages) {
-                await page.goto(`${EMULATOR_URL}${path}`);
-                await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
-                await page.locator('h1').filter({ hasText: heading }).first().waitFor();
+            // Navigate to Privacy page via footer link
+            await footer.clickPrivacyLink();
+            await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
+            await page.locator('h1').filter({ hasText: /Privacy Policy|Privacy/ }).first().waitFor();
+            await expect(page.getByTestId('loading-spinner')).toBeHidden({ timeout: 5000 });
 
-                // Wait for policy content to fully load - the loading spinner should disappear
-                await expect(page.getByTestId('loading-spinner')).toBeHidden({ timeout: 5000 });
-            }
+            // Navigate to Cookies page via footer link
+            await footer.clickCookiesLink();
+            await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
+            await page.locator('h1').filter({ hasText: /Cookie Policy|Cookie/ }).first().waitFor();
+            await expect(page.getByTestId('loading-spinner')).toBeHidden({ timeout: 5000 });
 
-            // Test footer navigation from login page
-            await page.goto(`${EMULATOR_URL}/login`);
-            await page.getByText('Terms of Service').first().click();
+            // Test footer navigation from login page back to policy pages
+            await loginPage.navigate();
+            await loginPage.footer.clickTermsLink();
             await expect(page).toHaveURL(/\/terms/);
 
-            await page.goto(`${EMULATOR_URL}/login`);
-            await page.getByText('Privacy Policy').first().click();
+            await loginPage.navigate();
+            await loginPage.footer.clickPrivacyLink();
             await expect(page).toHaveURL(/\/privacy/);
         });
     });
@@ -535,9 +538,9 @@ simpleTest.describe('Share Link Access Management', () => {
             const shareLink = await shareModal.getShareLink();
             await shareModal.closeModal();
 
-            // Navigate to share link with unauthenticated user
-            await unauthPage.goto(shareLink);
-            await unauthPage.waitForLoadState('domcontentloaded', { timeout: 5000 });
+            // Navigate to share link with unauthenticated user (simulating external link click)
+            const joinPage = new JoinGroupPage(unauthPage);
+            await joinPage.navigateToShareLink(shareLink);
 
             // Should be redirected to login page
             await expect(unauthPage).toHaveURL(/\/login/);
@@ -560,7 +563,6 @@ simpleTest.describe('Share Link Access Management', () => {
             expect(unauthPage.url()).toContain('/join?shareToken=');
 
             // User should now see the join group page and can join directly
-            const joinPage = new JoinGroupPage(unauthPage);
             await joinPage.clickJoinGroupAndWaitForJoin();
 
             // Should be redirected to the group
@@ -593,9 +595,9 @@ simpleTest.describe('Share Link Access Management', () => {
             // Get a second user to login with
             const [{ user: secondUser }] = await createLoggedInBrowsers(1);
 
-            // Navigate to share link with unauthenticated user
-            await unauthPage.goto(shareLink);
-            await unauthPage.waitForLoadState('domcontentloaded', { timeout: 5000 });
+            // Navigate to share link with unauthenticated user (simulating external link click)
+            const joinPage = new JoinGroupPage(unauthPage);
+            await joinPage.navigateToShareLink(shareLink);
 
             // Should be redirected to login page with returnUrl
             await expect(unauthPage).toHaveURL(/\/login/);
@@ -610,7 +612,6 @@ simpleTest.describe('Share Link Access Management', () => {
             await expect(unauthPage).toHaveURL(/\/join\?shareToken=/);
 
             // Complete the join process - we're already on the join page after login redirect
-            const joinPage = new JoinGroupPage(unauthPage);
             await joinPage.clickJoinGroupAndWaitForJoin();
 
             // Should be redirected to the group detail page

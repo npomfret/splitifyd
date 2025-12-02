@@ -4,6 +4,7 @@ import { TEST_ROUTES, TEST_TIMEOUTS } from '../test-constants';
 import { translationEn } from '../translations/translation-en';
 import { BasePage } from './BasePage';
 import { DashboardPage } from './DashboardPage';
+import { FooterComponent } from './FooterComponent';
 
 const translation = translationEn;
 
@@ -14,9 +15,31 @@ const translation = translationEn;
  */
 export class LoginPage extends BasePage {
     readonly url = '/login';
+    private _footer?: FooterComponent;
 
     constructor(page: Page) {
         super(page);
+    }
+
+    /**
+     * Access footer component for navigation to policy pages
+     */
+    get footer(): FooterComponent {
+        if (!this._footer) {
+            this._footer = new FooterComponent(this.page);
+        }
+        return this._footer;
+    }
+
+    // ============================================================================
+    // HEADER SELECTORS
+    // ============================================================================
+
+    /**
+     * Header logo link - navigates to home page for unauthenticated users
+     */
+    protected getHeaderLogoLink(): Locator {
+        return this.page.getByTestId('header-logo-link');
     }
 
     // ============================================================================
@@ -134,6 +157,15 @@ export class LoginPage extends BasePage {
     async navigate(): Promise<void> {
         await this.page.goto(this.url);
         await this.verifyLoginPageLoaded();
+    }
+
+    /**
+     * Navigate to the home/landing page by clicking the header logo.
+     * For unauthenticated users, this navigates to the home page.
+     */
+    async navigateToHome(): Promise<void> {
+        await this.getHeaderLogoLink().click();
+        await expect(this.page).toHaveURL(/^[^?]*\/(\?.*)?$/);
     }
 
     /**

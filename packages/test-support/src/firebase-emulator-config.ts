@@ -60,10 +60,9 @@ export interface FirebaseConfig {
 
 export interface FirebaseEmulatorConfig {
     projectId: string;
-    functionsPort: number;
-    authPort: number;
-    firestorePort: number;
-    hostingPort: number;
+    firestoreEmulatorHost: string;
+    firebaseAuthEmulatorHost: string;
+    emulatorHttpUrl: string;
     firebaseStorageEmulatorHost: string;
     baseUrl: string;
     firebaseApiKey: string;
@@ -192,6 +191,7 @@ export function getFirebaseEmulatorConfig(): FirebaseEmulatorConfig {
     // Read project ID from .firebaserc
     const firebaseRc = JSON.parse(fs.readFileSync(path.join(projectRoot, 'firebase', '.firebaserc'), 'utf8'));
     const projectId = firebaseRc.projects.default;
+    const region = `us-central1`;
 
     const functionsPort = firebaseConfig.emulators.functions.port;
     const authPort = firebaseConfig.emulators.auth.port;
@@ -204,12 +204,11 @@ export function getFirebaseEmulatorConfig(): FirebaseEmulatorConfig {
 
     return {
         projectId,
-        functionsPort,
-        authPort,
-        firestorePort,
-        hostingPort,
+        firebaseAuthEmulatorHost: `127.0.0.1:${authPort}`,
+        firestoreEmulatorHost: `127.0.0.1:${firestorePort}`,
+        emulatorHttpUrl: `http://localhost:${hostingPort}`,
         firebaseStorageEmulatorHost: `127.0.0.1:${storagePort}`,
-        baseUrl: `http://localhost:${functionsPort}/${projectId}/us-central1/api`,
+        baseUrl: `http://localhost:${functionsPort}/${projectId}/${region}/api`,
         firebaseApiKey: firebaseApiKey,
         identityToolkit: {
             apiKey: firebaseApiKey,

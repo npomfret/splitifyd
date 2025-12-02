@@ -27,17 +27,15 @@ function configureTestEnvironment() {
         cachedConfig = getFirebaseEmulatorConfig();
     }
 
-    const { projectId, firestorePort, authPort } = cachedConfig;
-    process.env.FIREBASE_CONFIG = JSON.stringify({ projectId });
-    process.env.FIRESTORE_EMULATOR_HOST = `127.0.0.1:${firestorePort}`;
-    process.env.FIREBASE_AUTH_EMULATOR_HOST = `127.0.0.1:${authPort}`;
+    process.env.FIREBASE_CONFIG = JSON.stringify({ projectId: cachedConfig.projectId });
+    process.env.FIRESTORE_EMULATOR_HOST = cachedConfig.firestoreEmulatorHost;
+    process.env.FIREBASE_AUTH_EMULATOR_HOST = cachedConfig.firebaseAuthEmulatorHost;
 }
 
 function ensureFirestore() {
     configureTestEnvironment();
     if (getApps().length === 0) {
-        const projectId = cachedConfig!.projectId;
-        initializeApp({ projectId });
+        initializeApp({ projectId: cachedConfig!.projectId });
         const firestore = getAdminFirestore();
         if (process.env.FIRESTORE_EMULATOR_HOST) {
             firestore.settings({ host: process.env.FIRESTORE_EMULATOR_HOST, ssl: false });
