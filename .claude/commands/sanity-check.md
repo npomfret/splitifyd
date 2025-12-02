@@ -21,6 +21,8 @@ Once you understand the changeset, and you understand and appreciate the guiding
 - [ ] have any relevant any task docs been accurately updated?
 - [ ] does it compile? (run `npm run build` from the project root)
 
+**DO NOT CHANGE ANY CODE**
+
 Finally: do you have any questions for the user?
 
 Report back.
