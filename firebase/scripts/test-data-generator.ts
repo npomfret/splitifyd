@@ -554,11 +554,15 @@ const generateRandomExpense = (): TestExpenseTemplate => {
 export async function createDefaultTenant(): Promise<void> {
     console.log('🏢 Creating default fallback tenant only...');
 
-    const { syncTenantConfigs, buildServices } = await import('./sync-tenant-configs');
-    const { parseEnvironment } = await import('./firebase-init');
-    const env = parseEnvironment(['emulator']);
-    const services = await buildServices(env);
-    await syncTenantConfigs(services, env, { defaultOnly: true });
+    const { syncTenantConfigs } = await import('./sync-tenant-configs');
+
+    // Create ApiDriver for API calls
+    const apiDriver = new ApiDriver();
+    console.log('🔑 Authenticating admin user...');
+    const adminUser = await apiDriver.getDefaultAdminUser();
+    console.log(`   ✓ Authenticated as admin`);
+
+    await syncTenantConfigs(apiDriver, adminUser.token, { defaultOnly: true });
 
     // After syncing the default tenant, publish its theme CSS
     console.log('🎨 Publishing theme CSS for default tenant...');
@@ -574,11 +578,15 @@ export async function createDefaultTenant(): Promise<void> {
 export async function syncDemoTenants(): Promise<void> {
     console.log('🏢 Syncing all demo tenants from JSON configuration...');
 
-    const { syncTenantConfigs, buildServices } = await import('./sync-tenant-configs');
-    const { parseEnvironment } = await import('./firebase-init');
-    const env = parseEnvironment(['emulator']);
-    const services = await buildServices(env);
-    await syncTenantConfigs(services, env, { skipThemePublish: true });
+    const { syncTenantConfigs } = await import('./sync-tenant-configs');
+
+    // Create ApiDriver for API calls
+    const apiDriver = new ApiDriver();
+    console.log('🔑 Authenticating admin user...');
+    const adminUser = await apiDriver.getDefaultAdminUser();
+    console.log(`   ✓ Authenticated as admin`);
+
+    await syncTenantConfigs(apiDriver, adminUser.token, { skipThemePublish: true });
 }
 
 /**

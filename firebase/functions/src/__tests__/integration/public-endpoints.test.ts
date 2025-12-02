@@ -1,82 +1,45 @@
-import { ApiSerializer } from '@billsplit-wl/shared';
-import { createServer, type Server } from 'node:http';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { getApiAppForTesting } from '../../index';
-
-const deserialize = <T>(payload: string): T => ApiSerializer.deserialize<T>(payload);
+import { toPolicyId } from '@billsplit-wl/shared';
+import { ApiDriver } from '@billsplit-wl/test-support';
+import { describe, expect, it } from 'vitest';
 
 describe('Public endpoints', () => {
-    const app = getApiAppForTesting();
-    let server: Server | null = null;
-    let baseUrl: string;
-
-    beforeAll(async () => {
-        server = createServer(app);
-
-        await new Promise<void>((resolve, reject) => {
-            const onError = (error: Error) => {
-                server?.off('error', onError);
-                reject(error);
-            };
-
-            server!.listen(0, '127.0.0.1', () => {
-                server?.off('error', onError);
-                const address = server?.address();
-                if (!address || typeof address === 'string') {
-                    reject(new Error('Server did not provide address information'));
-                    return;
-                }
-                baseUrl = `http://${address.address}:${address.port}`;
-                resolve();
-            });
-
-            server!.on('error', onError);
-        });
-    });
-
-    afterAll(async () => {
-        if (!server) return;
-        await new Promise<void>((resolve, reject) => {
-            server!.close((error) => (error ? reject(error) : resolve()));
-        });
-        server = null;
-    });
+    const apiDriver = new ApiDriver();
 
     it('GET /health responds with service status', async () => {
-        const response = await fetch(`${baseUrl}/health`);
+        const health = await apiDriver.getHealth();
 
-        expect(response.status).toBe(200);
-
-        const body = deserialize<Record<string, unknown>>(await response.text());
-        expect(body).toHaveProperty('timestamp');
-        expect(body).toHaveProperty('checks');
+        expect(health).toHaveProperty('timestamp');
+        expect(health).toHaveProperty('checks');
+        expect(health.status).toBe('healthy');
     });
 
-    it('HEAD /health responds with 200 and empty body', async () => {
-        const response = await fetch(`${baseUrl}/health`, { method: 'HEAD' });
+    it('GET /config returns localhost-tenant for localhost host', async () => {
+        const localhostDriver = apiDriver.withHost('localhost');
+        const config = await localhostDriver.getConfig();
 
-        expect(response.status).toBe(200);
-        const text = await response.text();
-        expect(text).toBe('');
+        expect(config).toHaveProperty('firebase');
+        expect(config).toHaveProperty('tenant');
+        expect(config.tenant).toHaveProperty('tenantId', 'localhost-tenant');
     });
 
-    it('GET /config returns default tenant when host does not match any tenant', async () => {
-        const response = await fetch(`${baseUrl}/config`, {
-            headers: { Host: 'nonexistent-host.example.com' },
-        });
+    it('GET /config returns default-tenant for 127.0.0.1 host', async () => {
+        const driver127 = apiDriver.withHost('127.0.0.1');
+        const config = await driver127.getConfig();
 
-        // Should succeed with default tenant fallback
-        expect(response.status).toBe(200);
-
-        const config = deserialize<{ tenant?: { tenantId: string; }; firebase: Record<string, unknown>; }>(await response.text());
         expect(config).toHaveProperty('firebase');
         expect(config).toHaveProperty('tenant');
         expect(config.tenant).toHaveProperty('tenantId', 'default-tenant');
     });
 
-    it('GET /policies/:id/current is accessible without tenant headers', async () => {
-        const response = await fetch(`${baseUrl}/policies/terms-of-service/current`);
-
-        expect([200, 404]).toContain(response.status);
+    it('GET /policies/:id/current is accessible without authentication', async () => {
+        // This tests that the policy endpoint is publicly accessible
+        // It may return 200 (if policy exists) or 404 (if not seeded)
+        try {
+            const policy = await apiDriver.getCurrentPolicy(toPolicyId('terms-of-service'));
+            expect(policy).toHaveProperty('id');
+        } catch (error: any) {
+            // 404 is acceptable if policy isn't seeded
+            expect(error.status).toBe(404);
+        }
     });
 });

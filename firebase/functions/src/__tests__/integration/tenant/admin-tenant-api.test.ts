@@ -1,9 +1,6 @@
 import type { PooledTestUser } from '@billsplit-wl/shared';
-import { ApiDriver } from '@billsplit-wl/test-support';
-import { AdminTenantRequestBuilder } from '@billsplit-wl/test-support';
+import { ApiDriver, AdminTenantRequestBuilder } from '@billsplit-wl/test-support';
 import { beforeAll, describe, expect, it } from 'vitest';
-import { FirestoreCollections } from '../../../constants';
-import { getFirestore } from '../../../firebase';
 
 describe('Admin tenant API - integration', () => {
     const apiDriver = new ApiDriver();
@@ -46,10 +43,11 @@ describe('Admin tenant API - integration', () => {
             created: true,
         });
 
-        // Verify tokens were stored correctly
-        const tenantDoc = await getFirestore().collection(FirestoreCollections.TENANTS).doc(tenantId).get();
-        expect(tenantDoc.exists).toBe(true);
-        expect(tenantDoc.data()?.brandingTokens).toBeDefined();
-        expect(tenantDoc.data()?.brandingTokens?.tokens?.palette?.primary).toBe(payload.branding.primaryColor);
+        // Verify tokens were stored correctly via list API
+        const listResult = await apiDriver.listAllTenants(adminUser.token);
+        const tenant = listResult.tenants.find((t: any) => t.tenant.tenantId === tenantId);
+        expect(tenant).toBeDefined();
+        expect(tenant?.brandingTokens).toBeDefined();
+        expect(tenant?.brandingTokens?.tokens?.palette?.primary).toBe(payload.branding.primaryColor);
     });
 });

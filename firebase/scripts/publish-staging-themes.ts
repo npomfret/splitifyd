@@ -13,23 +13,39 @@
  * To create a new tenant with theme, use the TenantEditorModal UI.
  */
 
+import { ApiDriver, type ApiDriverConfig } from '@billsplit-wl/test-support';
 import { logger } from '../functions/src/logger';
 
 export async function publishStagingThemes(): Promise<void> {
     logger.info('🎨 Publishing themes for staging tenants...');
 
-    // Just call sync-tenant-configs which uses TenantAdminService properly
-    const { buildServices, syncTenantConfigs } = await import('./sync-tenant-configs');
-    const { parseEnvironment, initializeFirebase } = await import('./firebase-init');
+    const { syncTenantConfigs } = await import('./sync-tenant-configs');
 
-    const env = parseEnvironment(['staging']);
-    initializeFirebase(env);
+    // Create ApiDriver for deployed environment
+    const projectId = process.env.GCLOUD_PROJECT;
+    if (!projectId) {
+        throw new Error('GCLOUD_PROJECT must be set for deployed environments');
+    }
+    const apiKey = process.env.__CLIENT_API_KEY;
+    if (!apiKey) {
+        throw new Error('__CLIENT_API_KEY must be set for deployed environments');
+    }
 
-    const services = await buildServices(env);
+    const deployedConfig: ApiDriverConfig = {
+        baseUrl: `https://${projectId}.web.app/api`,
+        firebaseApiKey: apiKey,
+        authBaseUrl: 'https://identitytoolkit.googleapis.com',
+    };
+    const apiDriver = new ApiDriver(deployedConfig);
+
+    // Get admin user token for API calls
+    logger.info('🔑 Authenticating admin user...');
+    const adminUser = await apiDriver.getDefaultAdminUser();
+    logger.info('   ✓ Authenticated as admin');
 
     // Sync staging-tenant which will publish the theme from existing Firestore data
     // Note: If tenant doesn't exist, it must be created via TenantEditorModal first
-    await syncTenantConfigs(services, env, { tenantId: 'staging-tenant' });
+    await syncTenantConfigs(apiDriver, adminUser.token, { tenantId: 'staging-tenant' });
 
     logger.info('✅ Staging themes published successfully');
     logger.info(`  - staging-tenant: Theme published from Firestore data`);

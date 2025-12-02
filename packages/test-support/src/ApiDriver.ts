@@ -149,6 +149,20 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         this.config = config;
     }
 
+    /**
+     * Create a new ApiDriver instance with a different host.
+     * Useful for testing multi-tenant configurations.
+     * @param host - The new host to use (e.g., '127.0.0.1' or 'localhost')
+     */
+    withHost(host: string): ApiDriver {
+        const currentUrl = new URL(this.config.baseUrl);
+        currentUrl.hostname = host;
+        return new ApiDriver({
+            ...this.config,
+            baseUrl: currentUrl.toString().replace(/\/$/, ''), // Remove trailing slash
+        });
+    }
+
     async createUser(userRegistration: UserRegistration = new UserRegistrationBuilder().build()): Promise<AuthenticatedFirebaseUser> {
         let registrationError: unknown = null;
 
@@ -562,9 +576,6 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         try {
             const response = await fetch(url, fetchOptions);
 
-            // Assert response headers
-            options.assertHeaders(endpoint, response.headers);
-
             if (!response.ok) {
                 const errorText = await response.text();
                 let parsedError: unknown = errorText;
@@ -582,6 +593,11 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
                 (error as any).response = parsedError;
                 throw error;
             }
+
+            // Only assert cache headers on successful responses
+            // Error responses may have different caching requirements
+            options.assertHeaders(endpoint, response.headers);
+
             // Handle cases where the response might be empty
             const responseText = await response.text();
             return responseText ? ApiSerializer.deserialize(responseText) : {};

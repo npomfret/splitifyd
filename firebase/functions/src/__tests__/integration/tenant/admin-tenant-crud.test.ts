@@ -13,12 +13,9 @@ import {
 } from '@billsplit-wl/shared';
 import { AdminTenantRequestBuilder, ApiDriver } from '@billsplit-wl/test-support';
 import { beforeAll, describe, expect, it } from 'vitest';
-import { FirestoreCollections } from '../../../constants';
-import { getFirestore } from '../../../firebase';
 
 describe('Admin tenant CRUD operations', () => {
     const apiDriver = new ApiDriver();
-    const db = getFirestore();
     let adminUser: PooledTestUser;
 
     beforeAll(async () => {
@@ -51,14 +48,13 @@ describe('Admin tenant CRUD operations', () => {
                 created: true,
             });
 
-            // Verify in Firestore
-            const tenantDoc = await db.collection(FirestoreCollections.TENANTS).doc(tenantId).get();
-            expect(tenantDoc.exists).toBe(true);
-
-            const tenantData = tenantDoc.data();
-            expect(tenantData?.branding?.appName).toBe('Test Create Tenant');
-            expect(tenantData?.branding?.logoUrl).toBe('/logo.svg');
-            expect(tenantData?.branding?.primaryColor).toBe('#1a73e8');
+            // Verify via list API
+            const listResult = await apiDriver.listAllTenants(adminUser.token);
+            const tenant = listResult.tenants.find((t: any) => t.tenant.tenantId === tenantId);
+            expect(tenant).toBeDefined();
+            expect(tenant?.tenant.branding?.appName).toBe('Test Create Tenant');
+            expect(tenant?.tenant.branding?.logoUrl).toBe('/logo.svg');
+            expect(tenant?.tenant.branding?.primaryColor).toBe('#1a73e8');
         });
 
         it('should reject tenant without tenant ID', async () => {
@@ -167,9 +163,10 @@ describe('Admin tenant CRUD operations', () => {
 
             expect(result.created).toBe(true);
 
-            // Verify tenant was created
-            const tenantDoc = await db.collection(FirestoreCollections.TENANTS).doc(tenantId).get();
-            expect(tenantDoc.exists).toBe(true);
+            // Verify tenant was created via list API
+            const listResult = await apiDriver.listAllTenants(adminUser.token);
+            const tenant = listResult.tenants.find((t: any) => t.tenant.tenantId === tenantId);
+            expect(tenant).toBeDefined();
         });
     });
 
@@ -212,13 +209,13 @@ describe('Admin tenant CRUD operations', () => {
 
             expect(updateResult.created).toBe(false);
 
-            // Verify in Firestore
-            const tenantDoc = await db.collection(FirestoreCollections.TENANTS).doc(tenantId).get();
-            const tenantData = tenantDoc.data();
+            // Verify via list API
+            const listResult = await apiDriver.listAllTenants(adminUser.token);
+            const tenant = listResult.tenants.find((t: any) => t.tenant.tenantId === tenantId);
 
-            expect(tenantData?.branding?.appName).toBe('Updated Name');
-            expect(tenantData?.branding?.logoUrl).toBe('/logo-new.svg');
-            expect(tenantData?.branding?.primaryColor).toBe('#0000ff');
+            expect(tenant?.tenant.branding?.appName).toBe('Updated Name');
+            expect(tenant?.tenant.branding?.logoUrl).toBe('/logo-new.svg');
+            expect(tenant?.tenant.branding?.primaryColor).toBe('#0000ff');
         });
 
         it('should complete load/save/load cycle with EVERY field', async () => {
@@ -347,9 +344,10 @@ describe('Admin tenant CRUD operations', () => {
                 adminUser.token,
             );
 
-            const firstDoc = await db.collection(FirestoreCollections.TENANTS).doc(tenantId).get();
-            const firstData = firstDoc.data();
-            const createdAt = firstData?.createdAt;
+            // Get tenant via list API to check createdAt
+            const listResult1 = await apiDriver.listAllTenants(adminUser.token);
+            const tenant1 = listResult1.tenants.find((t: any) => t.tenant.tenantId === tenantId);
+            const createdAt = tenant1?.tenant.createdAt;
 
             // Wait a bit
             await new Promise(resolve => setTimeout(resolve, 100));
@@ -364,14 +362,15 @@ describe('Admin tenant CRUD operations', () => {
                 adminUser.token,
             );
 
-            const secondDoc = await db.collection(FirestoreCollections.TENANTS).doc(tenantId).get();
-            const secondData = secondDoc.data();
+            // Get tenant again
+            const listResult2 = await apiDriver.listAllTenants(adminUser.token);
+            const tenant2 = listResult2.tenants.find((t: any) => t.tenant.tenantId === tenantId);
 
-            // createdAt should be preserved (as Timestamp object)
-            expect(secondData?.createdAt.toMillis()).toEqual(createdAt.toMillis());
+            // createdAt should be preserved
+            expect(tenant2?.tenant.createdAt).toEqual(createdAt);
 
             // updatedAt should be newer
-            expect(secondData?.updatedAt.toMillis()).toBeGreaterThan(createdAt.toMillis());
+            expect(new Date(tenant2?.tenant.updatedAt!).getTime()).toBeGreaterThan(new Date(createdAt!).getTime());
         });
     });
 

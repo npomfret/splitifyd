@@ -115,7 +115,11 @@ export const authenticateAdmin = async (req: AuthenticatedRequest, res: Response
             next(error);
             return;
         }
-        await requireAdmin(req, res, next);
+        try {
+            await requireAdmin(req, res, next);
+        } catch (adminError) {
+            next(adminError);
+        }
     });
 };
 

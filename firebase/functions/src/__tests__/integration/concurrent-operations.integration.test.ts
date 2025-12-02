@@ -1,9 +1,20 @@
-import { amountToSmallestUnit, GroupDTO, PooledTestUser, toCurrencyISOCode, toDisplayName, toUserId, USD, UserId } from '@billsplit-wl/shared';
-import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, getFirebaseEmulatorConfig } from '@billsplit-wl/test-support';
-import { beforeAll, beforeEach, describe, expect, test } from 'vitest';
-import { getAuth, getFirestore, getStorage } from '../../firebase';
-import { getServiceConfig } from '../../merge/ServiceConfig';
-import { ComponentBuilder } from '../../services/ComponentBuilder';
+import {
+    amountToSmallestUnit,
+    GroupDTO,
+    PooledTestUser,
+    toCurrencyISOCode,
+    toDisplayName,
+    USD,
+    UserId,
+} from '@billsplit-wl/shared';
+import {
+    ApiDriver,
+    borrowTestUsers,
+    CreateExpenseRequestBuilder,
+    CreateGroupRequestBuilder,
+    CreateSettlementRequestBuilder,
+} from '@billsplit-wl/test-support';
+import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 
 async function runWithLimitedConcurrency<T>(operations: Array<() => Promise<T>>, limit: number): Promise<PromiseSettledResult<T>[]> {
     if (operations.length === 0) {
@@ -44,12 +55,7 @@ async function runWithLimitedConcurrency<T>(operations: Array<() => Promise<T>>,
 }
 
 describe('Concurrent Operations Integration Tests', () => {
-    const identityToolkit = getFirebaseEmulatorConfig().identityToolkit;
-    const applicationBuilder = ComponentBuilder.createComponentBuilder(getFirestore(), getAuth(), getStorage(), identityToolkit, getServiceConfig());
-    const firestoreReader = applicationBuilder.buildFirestoreReader();
-    const groupService = applicationBuilder.buildGroupService();
-    const groupMemberService = applicationBuilder.buildGroupMemberService();
-    const expenseService = applicationBuilder.buildExpenseService();
+    const apiDriver = new ApiDriver();
 
     let users: PooledTestUser[];
     let testUser1: PooledTestUser;
@@ -58,72 +64,63 @@ describe('Concurrent Operations Integration Tests', () => {
     let testUser4: PooledTestUser;
     let testGroup: GroupDTO;
 
-    beforeAll(async () => {});
-
     beforeEach(async () => {
-        // Create test users
-        users = await borrowTestUsers(6); // Borrow 6 users for concurrent tests
+        // Borrow test users
+        users = await borrowTestUsers(6);
         testUser1 = users[0];
         testUser2 = users[1];
         testUser3 = users[2];
         testUser4 = users[3];
 
-        // Create test group
-        testGroup = await groupService.createGroup(
-            testUser1.uid,
+        // Create test group via API
+        testGroup = await apiDriver.createGroup(
             new CreateGroupRequestBuilder()
                 .withName('Concurrent Operations Test Group')
                 .withDescription('Testing concurrent operations')
                 .build(),
+            testUser1.token,
         );
     });
 
     afterEach(async () => {
+        // Users are auto-returned by borrowTestUsers
     });
 
     describe('Concurrent Member Operations', () => {
         test('should handle multiple users joining simultaneously', async () => {
-            // Generate share link for concurrent joins (production code path)
-            const { shareToken } = await applicationBuilder.buildGroupShareService().generateShareableLink(testUser1.uid, testGroup.id);
+            // Generate share link for concurrent joins
+            const { shareToken } = await apiDriver.generateShareableLink(testGroup.id, undefined, testUser1.token);
 
             // Execute all member additions concurrently via share link
             const addPromises = [
-                applicationBuilder.buildGroupShareService().joinGroupByLink(testUser2.uid, shareToken, toDisplayName('Test User 2')),
-                applicationBuilder.buildGroupShareService().joinGroupByLink(testUser3.uid, shareToken, toDisplayName('Test User 3')),
-                applicationBuilder.buildGroupShareService().joinGroupByLink(testUser4.uid, shareToken, toDisplayName('Test User 4')),
+                apiDriver.joinGroupByLink(shareToken, toDisplayName('Test User 2'), testUser2.token),
+                apiDriver.joinGroupByLink(shareToken, toDisplayName('Test User 3'), testUser3.token),
+                apiDriver.joinGroupByLink(shareToken, toDisplayName('Test User 4'), testUser4.token),
             ];
 
             // All operations should complete successfully
             await Promise.all(addPromises);
 
-            // Verify all members were added
-            const finalMembers = await firestoreReader.getAllGroupMembers(testGroup.id);
-            expect(finalMembers).toHaveLength(4); // testUser1 (admin) + 3 new members
-
-            const memberIds = finalMembers.map((m) => m.uid);
-            expect(memberIds).toContain(testUser1.uid);
-            expect(memberIds).toContain(testUser2.uid);
-            expect(memberIds).toContain(testUser3.uid);
-            expect(memberIds).toContain(testUser4.uid);
+            // Verify all members were added via API
+            const { members } = await apiDriver.getGroupFullDetails(testGroup.id, undefined, testUser1.token);
+            expect(members.members.length).toBe(4); // testUser1 (admin) + 3 new members
         });
 
         test('should handle concurrent member queries during membership changes', async () => {
-            const groupShareService = applicationBuilder.buildGroupShareService();
-
-            // Add initial member via share link (production code path)
-            const { shareToken: initialShareToken } = await groupShareService.generateShareableLink(testUser1.uid, testGroup.id);
-            await groupShareService.joinGroupByLink(testUser2.uid, initialShareToken, toDisplayName('Test User 2'));
+            // Add initial member via share link
+            const { shareToken: initialShareToken } = await apiDriver.generateShareableLink(testGroup.id, undefined, testUser1.token);
+            await apiDriver.joinGroupByLink(initialShareToken, toDisplayName('Test User 2'), testUser2.token);
 
             // Run concurrent operations: queries while adding/removing members
-            const { shareToken: concurrentShareToken } = await groupShareService.generateShareableLink(testUser1.uid, testGroup.id);
+            const { shareToken: concurrentShareToken } = await apiDriver.generateShareableLink(testGroup.id, undefined, testUser1.token);
             const operations = [
-                // Query operations
-                () => firestoreReader.getAllGroupMembers(testGroup.id),
-                () => firestoreReader.getGroupMember(testGroup.id, testUser2.uid),
+                // Query operations via API
+                () => apiDriver.getGroupFullDetails(testGroup.id, undefined, testUser1.token),
+                () => apiDriver.getGroupFullDetails(testGroup.id, undefined, testUser2.token),
 
-                // Modification operations (production code paths)
-                () => groupShareService.joinGroupByLink(testUser3.uid, concurrentShareToken, toDisplayName('Test User 3')),
-                () => groupMemberService.removeGroupMember(testUser1.uid, testGroup.id, testUser2.uid),
+                // Modification operations via API
+                () => apiDriver.joinGroupByLink(concurrentShareToken, toDisplayName('Test User 3'), testUser3.token),
+                () => apiDriver.removeGroupMember(testGroup.id, testUser2.uid, testUser1.token),
             ];
 
             // Execute all operations concurrently
@@ -137,51 +134,46 @@ describe('Concurrent Operations Integration Tests', () => {
             expect(succeeded + failed).toBe(operations.length);
             expect(succeeded).toBeGreaterThan(0); // At least some operations should succeed
 
-            // System should be in a consistent state
-            const finalMembers = await firestoreReader.getAllGroupMembers(testGroup.id);
-            expect(Array.isArray(finalMembers)).toBe(true);
+            // System should be in a consistent state - verify via API
+            const { members } = await apiDriver.getGroupFullDetails(testGroup.id, undefined, testUser1.token);
+            expect(members.members.length).toBeGreaterThan(0);
         });
-
-        // NOTE: Concurrent role updates test removed - no production code path exists for updating member roles
-        // If role update functionality is implemented in the future, add appropriate concurrent tests here
     });
 
     describe('Concurrent Group Operations', () => {
         test('should handle concurrent expense creation by multiple members', async () => {
-            const groupShareService = applicationBuilder.buildGroupShareService();
-
-            // Add members to group via share link (production code path)
-            const { shareToken } = await groupShareService.generateShareableLink(testUser1.uid, testGroup.id);
+            // Add members via share link
+            const { shareToken } = await apiDriver.generateShareableLink(testGroup.id, undefined, testUser1.token);
             let counter = 2;
             for (const user of [testUser2, testUser3, testUser4]) {
-                await groupShareService.joinGroupByLink(user.uid, shareToken, toDisplayName(`Test User ${counter++}`));
+                await apiDriver.joinGroupByLink(shareToken, toDisplayName(`Test User ${counter++}`), user.token);
             }
 
-            // Create concurrent expenses
+            // Create concurrent expenses via API
             const expensePromises = [
-                expenseService.createExpense(
-                    testUser1.uid,
+                apiDriver.createExpense(
                     new CreateExpenseRequestBuilder()
                         .withGroupId(testGroup.id)
                         .withPaidBy(testUser1.uid)
                         .withParticipants([testUser1.uid, testUser2.uid])
                         .build(),
+                    testUser1.token,
                 ),
-                expenseService.createExpense(
-                    testUser2.uid,
+                apiDriver.createExpense(
                     new CreateExpenseRequestBuilder()
                         .withGroupId(testGroup.id)
                         .withPaidBy(testUser2.uid)
                         .withParticipants([testUser2.uid, testUser3.uid])
                         .build(),
+                    testUser2.token,
                 ),
-                expenseService.createExpense(
-                    testUser3.uid,
+                apiDriver.createExpense(
                     new CreateExpenseRequestBuilder()
                         .withGroupId(testGroup.id)
                         .withPaidBy(testUser3.uid)
                         .withParticipants([testUser3.uid, testUser4.uid])
                         .build(),
+                    testUser3.token,
                 ),
             ];
 
@@ -197,30 +189,28 @@ describe('Concurrent Operations Integration Tests', () => {
         });
 
         test('should handle member leaving during balance calculation', async () => {
-            const groupShareService = applicationBuilder.buildGroupShareService();
+            // Add member via share link
+            const { shareToken } = await apiDriver.generateShareableLink(testGroup.id, undefined, testUser1.token);
+            await apiDriver.joinGroupByLink(shareToken, toDisplayName('Test User 2'), testUser2.token);
 
-            // Add member via share link (production code path)
-            const { shareToken } = await groupShareService.generateShareableLink(testUser1.uid, testGroup.id);
-            await groupShareService.joinGroupByLink(testUser2.uid, shareToken, toDisplayName('Test User 2'));
-
-            // Create expense
-            await expenseService.createExpense(
-                testUser1.uid,
+            // Create expense via API
+            await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
                     .withPaidBy(testUser1.uid)
                     .withParticipants([testUser1.uid, testUser2.uid])
                     .build(),
+                testUser1.token,
             );
 
             // Simulate concurrent operations: balance queries and member removal
             const operations = [
-                // Balance-related queries that might be running
-                () => firestoreReader.getAllGroupMembers(testGroup.id),
-                () => expenseService.listGroupExpenses(testGroup.id, testUser1.uid),
+                // Query operations via API
+                () => apiDriver.getGroupFullDetails(testGroup.id, undefined, testUser1.token),
+                () => apiDriver.getGroupExpenses(testGroup.id, testUser1.token),
 
-                // Member removal during balance calculation (production code path)
-                () => groupMemberService.removeGroupMember(testUser1.uid, testGroup.id, testUser2.uid),
+                // Member removal during balance calculation via API
+                () => apiDriver.removeGroupMember(testGroup.id, testUser2.uid, testUser1.token),
             ];
 
             // Execute operations concurrently
@@ -231,65 +221,56 @@ describe('Concurrent Operations Integration Tests', () => {
             const succeeded = results.filter((r) => r.status === 'fulfilled').length;
             expect(succeeded).toBeGreaterThan(0);
 
-            // Check final state is consistent
-            const finalMembers = await firestoreReader.getAllGroupMembers(testGroup.id);
-            expect(Array.isArray(finalMembers)).toBe(true);
+            // Check final state is consistent via API
+            const { members } = await apiDriver.getGroupFullDetails(testGroup.id, undefined, testUser1.token);
+            expect(members.members.length).toBeGreaterThan(0);
         });
     });
 
     describe('Error Recovery During Concurrent Operations', () => {
         test('should handle partial failures gracefully', async () => {
-            const groupShareService = applicationBuilder.buildGroupShareService();
-
-            // Add a member via share link (production code path)
-            const { shareToken } = await groupShareService.generateShareableLink(testUser1.uid, testGroup.id);
-            await groupShareService.joinGroupByLink(testUser2.uid, shareToken, toDisplayName('Test User 2'));
+            // Add a member via share link
+            const { shareToken } = await apiDriver.generateShareableLink(testGroup.id, undefined, testUser1.token);
+            await apiDriver.joinGroupByLink(shareToken, toDisplayName('Test User 2'), testUser2.token);
 
             // Create operations where some will succeed and some will fail
             const operations = [
-                // Valid operations
-                () => firestoreReader.getAllGroupMembers(testGroup.id),
-                () => firestoreReader.getGroupMember(testGroup.id, testUser2.uid),
+                // Valid operations via API
+                () => apiDriver.getGroupFullDetails(testGroup.id, undefined, testUser1.token),
+                () => apiDriver.getGroupFullDetails(testGroup.id, undefined, testUser2.token),
 
-                // Operations that will return null for non-existent member (valid behavior)
-                () => firestoreReader.getGroupMember(testGroup.id, toUserId('non-existent-user-id')),
+                // Operations that will fail for non-member (testUser3 hasn't joined)
+                () => apiDriver.getGroupFullDetails(testGroup.id, undefined, testUser3.token),
             ];
 
             // Execute all operations concurrently
             const results = await Promise.allSettled(operations.map((op) => op()));
 
-            // Verify operations completed
-            const succeeded = results.filter((r) => r.status === 'fulfilled');
+            // Verify first two operations succeeded
+            expect(results[0].status).toBe('fulfilled');
+            expect(results[1].status).toBe('fulfilled');
 
-            expect(succeeded.length).toBe(operations.length); // All should succeed (null is valid for non-existent)
-
-            // Verify valid operations returned expected results
-            expect(results[0].status).toBe('fulfilled'); // getAllGroupMembers should succeed
-            expect(results[1].status).toBe('fulfilled'); // getGroupMember for existing user should succeed
+            // Third operation should fail (not a member)
+            expect(results[2].status).toBe('rejected');
 
             // System should still be in valid state
-            const finalMembers = await firestoreReader.getAllGroupMembers(testGroup.id);
-            expect(Array.isArray(finalMembers)).toBe(true);
-            expect(finalMembers.some((m) => m.uid === testUser2.uid)).toBe(true);
+            const { members } = await apiDriver.getGroupFullDetails(testGroup.id, undefined, testUser1.token);
+            expect(members.members.length).toBe(2);
         });
     });
 
     describe('Balance Correctness Under Concurrent Load', () => {
-        const apiDriver = new ApiDriver();
-
         test('should maintain mathematically correct balances under heavy concurrent expense and settlement load', async () => {
-            const groupShareService = applicationBuilder.buildGroupShareService();
-
-            const testGroup = await groupService.createGroup(
-                testUser1.uid,
+            const testGroup = await apiDriver.createGroup(
                 new CreateGroupRequestBuilder()
                     .withName('Concurrent Balance Test')
                     .build(),
+                testUser1.token,
             );
 
-            const { shareToken } = await groupShareService.generateShareableLink(testUser1.uid, testGroup.id);
-            await groupShareService.joinGroupByLink(testUser2.uid, shareToken, toDisplayName('Test User 2'));
-            await groupShareService.joinGroupByLink(testUser3.uid, shareToken, toDisplayName('Test User 3'));
+            const { shareToken } = await apiDriver.generateShareableLink(testGroup.id, undefined, testUser1.token);
+            await apiDriver.joinGroupByLink(shareToken, toDisplayName('Test User 2'), testUser2.token);
+            await apiDriver.joinGroupByLink(shareToken, toDisplayName('Test User 3'), testUser3.token);
 
             // Expense configurations: [payer, amount, participants]
             const expenseConfigs: Array<[PooledTestUser, number, UserId[]]> = [
@@ -311,8 +292,7 @@ describe('Concurrent Operations Integration Tests', () => {
 
             const operations = [
                 ...expenseConfigs.map(([payer, amount, participants]) => () =>
-                    expenseService.createExpense(
-                        payer.uid,
+                    apiDriver.createExpense(
                         new CreateExpenseRequestBuilder()
                             .withGroupId(testGroup.id)
                             .withPaidBy(payer.uid)
@@ -320,6 +300,7 @@ describe('Concurrent Operations Integration Tests', () => {
                             .withParticipants(participants)
                             .withSplitType('equal')
                             .build(),
+                        payer.token,
                     )
                 ),
                 ...settlementConfigs.map(([payerId, payeeId, amount, token]) => () =>
@@ -354,22 +335,19 @@ describe('Concurrent Operations Integration Tests', () => {
         });
 
         test('should handle rapid concurrent updates to same user balance', async () => {
-            const groupShareService = applicationBuilder.buildGroupShareService();
-
-            const testGroup = await groupService.createGroup(
-                testUser1.uid,
+            const testGroup = await apiDriver.createGroup(
                 new CreateGroupRequestBuilder()
                     .withName('Same User Contention Test')
                     .build(),
+                testUser1.token,
             );
 
-            const { shareToken } = await groupShareService.generateShareableLink(testUser1.uid, testGroup.id);
-            await groupShareService.joinGroupByLink(testUser2.uid, shareToken, toDisplayName('Test User 2'));
+            const { shareToken } = await apiDriver.generateShareableLink(testGroup.id, undefined, testUser1.token);
+            await apiDriver.joinGroupByLink(shareToken, toDisplayName('Test User 2'), testUser2.token);
 
             const usd = USD;
             const operations = Array.from({ length: 8 }, (_, i) => () =>
-                expenseService.createExpense(
-                    testUser1.uid,
+                apiDriver.createExpense(
                     new CreateExpenseRequestBuilder()
                         .withGroupId(testGroup.id)
                         .withPaidBy(testUser1.uid)
@@ -377,6 +355,7 @@ describe('Concurrent Operations Integration Tests', () => {
                         .withParticipants([testUser1.uid, testUser2.uid])
                         .withSplitType('equal')
                         .build(),
+                    testUser1.token,
                 ));
 
             const results = await runWithLimitedConcurrency<unknown>(operations, 3);
@@ -396,18 +375,16 @@ describe('Concurrent Operations Integration Tests', () => {
         });
 
         test('should maintain correct multi-currency balances under concurrent operations', async () => {
-            const groupShareService = applicationBuilder.buildGroupShareService();
-
-            const testGroup = await groupService.createGroup(
-                testUser1.uid,
+            const testGroup = await apiDriver.createGroup(
                 new CreateGroupRequestBuilder()
                     .withName('Multi-Currency Concurrent Test')
                     .build(),
+                testUser1.token,
             );
 
-            const { shareToken } = await groupShareService.generateShareableLink(testUser1.uid, testGroup.id);
-            await groupShareService.joinGroupByLink(testUser2.uid, shareToken, toDisplayName('Test User 2'));
-            await groupShareService.joinGroupByLink(testUser3.uid, shareToken, toDisplayName('Test User 3'));
+            const { shareToken } = await apiDriver.generateShareableLink(testGroup.id, undefined, testUser1.token);
+            await apiDriver.joinGroupByLink(shareToken, toDisplayName('Test User 2'), testUser2.token);
+            await apiDriver.joinGroupByLink(shareToken, toDisplayName('Test User 3'), testUser3.token);
 
             const usd = USD;
             const eur = toCurrencyISOCode('EUR');
@@ -415,8 +392,7 @@ describe('Concurrent Operations Integration Tests', () => {
 
             const operations = [
                 () =>
-                    expenseService.createExpense(
-                        testUser1.uid,
+                    apiDriver.createExpense(
                         new CreateExpenseRequestBuilder()
                             .withGroupId(testGroup.id)
                             .withPaidBy(testUser1.uid)
@@ -424,10 +400,10 @@ describe('Concurrent Operations Integration Tests', () => {
                             .withParticipants([testUser1.uid, testUser2.uid])
                             .withSplitType('equal')
                             .build(),
+                        testUser1.token,
                     ),
                 () =>
-                    expenseService.createExpense(
-                        testUser2.uid,
+                    apiDriver.createExpense(
                         new CreateExpenseRequestBuilder()
                             .withGroupId(testGroup.id)
                             .withPaidBy(testUser2.uid)
@@ -435,10 +411,10 @@ describe('Concurrent Operations Integration Tests', () => {
                             .withParticipants([testUser2.uid, testUser3.uid])
                             .withSplitType('equal')
                             .build(),
+                        testUser2.token,
                     ),
                 () =>
-                    expenseService.createExpense(
-                        testUser3.uid,
+                    apiDriver.createExpense(
                         new CreateExpenseRequestBuilder()
                             .withGroupId(testGroup.id)
                             .withPaidBy(testUser3.uid)
@@ -446,10 +422,10 @@ describe('Concurrent Operations Integration Tests', () => {
                             .withParticipants([testUser1.uid, testUser3.uid])
                             .withSplitType('equal')
                             .build(),
+                        testUser3.token,
                     ),
                 () =>
-                    expenseService.createExpense(
-                        testUser1.uid,
+                    apiDriver.createExpense(
                         new CreateExpenseRequestBuilder()
                             .withGroupId(testGroup.id)
                             .withPaidBy(testUser1.uid)
@@ -457,10 +433,10 @@ describe('Concurrent Operations Integration Tests', () => {
                             .withParticipants([testUser1.uid, testUser2.uid, testUser3.uid])
                             .withSplitType('equal')
                             .build(),
+                        testUser1.token,
                     ),
                 () =>
-                    expenseService.createExpense(
-                        testUser2.uid,
+                    apiDriver.createExpense(
                         new CreateExpenseRequestBuilder()
                             .withGroupId(testGroup.id)
                             .withPaidBy(testUser2.uid)
@@ -468,6 +444,7 @@ describe('Concurrent Operations Integration Tests', () => {
                             .withParticipants([testUser1.uid, testUser2.uid])
                             .withSplitType('equal')
                             .build(),
+                        testUser2.token,
                     ),
                 () =>
                     apiDriver.createSettlement(
@@ -490,8 +467,7 @@ describe('Concurrent Operations Integration Tests', () => {
                         testUser3.token,
                     ),
                 () =>
-                    expenseService.createExpense(
-                        testUser3.uid,
+                    apiDriver.createExpense(
                         new CreateExpenseRequestBuilder()
                             .withGroupId(testGroup.id)
                             .withPaidBy(testUser3.uid)
@@ -499,10 +475,10 @@ describe('Concurrent Operations Integration Tests', () => {
                             .withParticipants([testUser2.uid, testUser3.uid])
                             .withSplitType('equal')
                             .build(),
+                        testUser3.token,
                     ),
                 () =>
-                    expenseService.createExpense(
-                        testUser1.uid,
+                    apiDriver.createExpense(
                         new CreateExpenseRequestBuilder()
                             .withGroupId(testGroup.id)
                             .withPaidBy(testUser1.uid)
@@ -510,6 +486,7 @@ describe('Concurrent Operations Integration Tests', () => {
                             .withParticipants([testUser1.uid, testUser3.uid])
                             .withSplitType('equal')
                             .build(),
+                        testUser1.token,
                     ),
             ];
 

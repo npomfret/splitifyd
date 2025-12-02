@@ -1,8 +1,8 @@
-import { getPorts, getProjectId } from '@billsplit-wl/test-support';
+import {getFirebaseEmulatorConfig, getPorts} from '@billsplit-wl/test-support';
 import * as admin from 'firebase-admin';
 import * as fs from 'fs';
 import * as path from 'path';
-import { getInstanceEnvironment, loadRuntimeConfig, type ScriptEnvironment } from './scripts-config';
+import {getInstanceEnvironment, loadRuntimeConfig, type ScriptEnvironment} from './scripts-config';
 
 export { type ScriptEnvironment } from './scripts-config';
 
@@ -62,9 +62,6 @@ export function getEnvironment(args?: string[]): ScriptEnvironment {
 export function initializeFirebase(env: ScriptEnvironment): void {
     console.log(`🎯 Initializing Firebase for ${env.environment}`);
 
-    // Get project ID from .firebaserc (single source of truth)
-    const projectId = getProjectId();
-
     if (!env.isEmulator) {
         console.log('   Using Production Firebase');
 
@@ -75,6 +72,8 @@ export function initializeFirebase(env: ScriptEnvironment): void {
             console.error('💡 Make sure you have downloaded the service account key and placed it in the firebase directory');
             process.exit(1);
         }
+
+        const projectId = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8')).project_id;
 
         if (admin.apps.length === 0) {
             console.log('🔑 Initializing Firebase Admin with service account...');
@@ -112,25 +111,29 @@ export function initializeFirebase(env: ScriptEnvironment): void {
                 process.env.FIREBASE_STORAGE_EMULATOR_HOST = `localhost:${ports.storage}`;
             }
 
+            const emulatorConfig = getFirebaseEmulatorConfig();
+
+            process.env.FIREBASE_AUTH_EMULATOR_HOST = emulatorConfig.identityToolkit.host;
+            process.env.FIRESTORE_EMULATOR_HOST = `127.0.0.1:${emulatorConfig.firestorePort}`;
+
             if (!process.env.FIREBASE_CONFIG) {
                 process.env.FIREBASE_CONFIG = JSON.stringify({
-                    projectId,
-                    storageBucket: `${projectId}.appspot.com`,
+                    projectId: emulatorConfig.projectId,
+                    storageBucket: `${(emulatorConfig.projectId)}.appspot.com`,
                 });
+            }
+
+            if (admin.apps.length === 0) {
+                admin.initializeApp({
+                    projectId: emulatorConfig.projectId,
+                    storageBucket: `${(emulatorConfig.projectId)}.appspot.com`,
+                });
+                console.log('   Firebase Admin initialized for emulator');
+            } else {
+                console.log('   Firebase Admin already initialized');
             }
         } catch (error) {
             console.warn('⚠️  Failed to load emulator ports from firebase.json', error);
-        }
-
-        // Initialize Firebase Admin in emulator mode
-        if (admin.apps.length === 0) {
-            admin.initializeApp({
-                projectId,
-                storageBucket: `${projectId}.appspot.com`,
-            });
-            console.log('   Firebase Admin initialized for emulator');
-        } else {
-            console.log('   Firebase Admin already initialized');
         }
     }
 }

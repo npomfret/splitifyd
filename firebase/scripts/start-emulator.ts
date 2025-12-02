@@ -1,9 +1,8 @@
 #!/usr/bin/env npx tsx
 
-import { getFunctionsPort, getProjectId, getRegion } from '@billsplit-wl/test-support';
+import { ApiDriver } from '@billsplit-wl/test-support';
 import { ChildProcess, spawn } from 'child_process';
 import * as fs from 'fs';
-import * as http from 'http';
 import * as path from 'path';
 import { logger } from './logger';
 
@@ -120,7 +119,6 @@ export async function startEmulator(config: EmulatorConfig): Promise<ChildProces
         logger.error('❌ API functions failed to become ready within timeout', {
             apiAttempts,
             maxApiAttempts,
-            apiPath: getApiPath(),
             note: 'This may indicate an issue with function deployment or configuration',
         });
         throw new Error('API functions failed to become ready');
@@ -145,39 +143,12 @@ export async function startEmulator(config: EmulatorConfig): Promise<ChildProces
     return emulatorProcess;
 }
 
-function getApiPath(): string {
-    return `/${getProjectId()}/${getRegion()}/api`;
-}
-
-function checkApiReady(): Promise<boolean> {
-    return new Promise((resolve) => {
-        const req = http.request(
-            {
-                hostname: 'localhost',
-                port: getFunctionsPort(),
-                path: getApiPath(),
-                method: 'GET',
-                timeout: 1000,
-            },
-            (res) => {
-                let data = '';
-
-                res.on('data', (chunk) => {
-                    data += chunk;
-                });
-
-                res.on('end', () => {
-                    if (data.includes('Function us-central1-api does not exist')) {
-                        resolve(false);
-                    } else {
-                        resolve(true);
-                    }
-                });
-            },
-        );
-
-        req.on('error', () => resolve(false));
-        req.on('timeout', () => resolve(false));
-        req.end();
-    });
+async function checkApiReady(): Promise<boolean> {
+    try {
+        const apiDriver = new ApiDriver();
+        await apiDriver.getHealth();
+        return true;
+    } catch {
+        return false;
+    }
 }

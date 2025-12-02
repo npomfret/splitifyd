@@ -1,6 +1,6 @@
 #!/usr/bin/env npx tsx
 /**
- * Sync tenant configurations from tenant-configs.json to Firestore.
+ * Sync tenant configurations from tenant-configs.json to Firestore via API.
  *
  * Usage:
  *   ./scripts/sync-tenant-configs.ts <emulator|production> [--default-only]
@@ -8,8 +8,10 @@
  * Flags:
  *   --default-only: Only sync the default tenant (isDefault: true)
  *   --tenant-id <id>: Only sync specific tenant by ID
+ *   --skip-theme-publish: Skip theme publishing step
  */
 import {
+    type AdminUpsertTenantRequest,
     type TenantBranding,
     toShowLandingPageFlag,
     toShowMarketingContentFlag,
@@ -26,18 +28,9 @@ import {
     toTenantSurfaceColor,
     toTenantTextColor,
 } from '@billsplit-wl/shared';
-import { ApiDriver, type ApiDriverConfig, getProjectId } from '@billsplit-wl/test-support';
-import * as admin from 'firebase-admin';
+import { ApiDriver, type ApiDriverConfig } from '@billsplit-wl/test-support';
 import * as fs from 'fs';
 import * as path from 'path';
-import { getIdentityToolkitConfig } from '../functions/src/app-config';
-import { getAuth, getFirestore, getStorage } from '../functions/src/firebase';
-import { getServiceConfig } from '../functions/src/merge/ServiceConfig';
-import type { AdminUpsertTenantRequest } from '../functions/src/schemas/tenant';
-import { ComponentBuilder } from '../functions/src/services/ComponentBuilder';
-import type { TenantAssetStorage } from '../functions/src/services/storage/TenantAssetStorage';
-import { TenantAdminService } from '../functions/src/services/tenant/TenantAdminService';
-import { initializeFirebase, parseEnvironment, type ScriptEnvironment } from './firebase-init';
 
 interface TenantConfig {
     id: string;
@@ -57,71 +50,14 @@ interface TenantConfig {
             showPricingPage?: boolean;
         };
     };
-    brandingTokens: TenantBranding; // Required - no auto-generation
+    brandingTokens: TenantBranding;
     isDefault: boolean;
 }
 
-interface ServiceComponents {
-    tenantAdminService: TenantAdminService;
-    tenantAssetStorage: TenantAssetStorage;
-}
-
-async function buildServices(env: ScriptEnvironment): Promise<ServiceComponents> {
-    const firestore = env.isEmulator ? getFirestore() : admin.firestore();
-    const auth = env.isEmulator ? getAuth() : admin.auth();
-    const storage = env.isEmulator ? getStorage() : admin.storage();
-    const identityToolkit = getIdentityToolkitConfig();
-    const serviceConfig = getServiceConfig();
-
-    const componentBuilder = ComponentBuilder.createComponentBuilder(
-        firestore,
-        auth,
-        storage,
-        identityToolkit,
-        serviceConfig,
-    );
-    return {
-        tenantAdminService: componentBuilder.buildTenantAdminService(),
-        tenantAssetStorage: componentBuilder.buildTenantAssetStorage(),
-    };
-}
-
-/**
- * Upload an image file to Storage if the URL starts with "file://".
- * Otherwise, return the URL as-is.
- *
- * @param assetStorage - TenantAssetStorage service
- * @param tenantId - Tenant ID
- * @param assetType - Asset type ('logo' or 'favicon')
- * @param urlOrPath - URL string or file:// path
- * @returns Public URL (uploaded or passed through)
- */
-async function uploadAssetIfLocal(
-    assetStorage: TenantAssetStorage,
-    tenantId: string,
-    assetType: 'logo' | 'favicon',
-    urlOrPath: string,
-): Promise<string> {
-    // If it starts with "file://", upload the local file
-    if (urlOrPath.startsWith('file://')) {
-        const filePath = urlOrPath.slice('file://'.length);
-        const absolutePath = path.isAbsolute(filePath) ? filePath : path.join(__dirname, filePath);
-
-        if (!fs.existsSync(absolutePath)) {
-            throw new Error(`File not found: ${absolutePath}`);
-        }
-
-        const buffer = fs.readFileSync(absolutePath);
-        const contentType = getContentTypeFromExtension(path.extname(absolutePath));
-
-        console.log(`  📤 Uploading ${assetType}: ${path.basename(absolutePath)}`);
-        const url = await assetStorage.uploadAsset(tenantId, assetType, buffer, contentType);
-        console.log(`     ✓ Uploaded to: ${url}`);
-        return url;
-    }
-
-    // Otherwise, return the URL as-is
-    return urlOrPath;
+interface SyncTenantOptions {
+    defaultOnly?: boolean;
+    tenantId?: string;
+    skipThemePublish?: boolean;
 }
 
 /**
@@ -140,46 +76,70 @@ function getContentTypeFromExtension(ext: string): string {
     return map[ext.toLowerCase()] || 'application/octet-stream';
 }
 
-interface SyncTenantOptions {
-    defaultOnly?: boolean;
-    tenantId?: string;
-    skipThemePublish?: boolean;
-}
+/**
+ * Upload an image file to Storage via API if the URL starts with "file://".
+ * Otherwise, return the URL as-is.
+ */
+async function uploadAssetIfLocal(
+    apiDriver: ApiDriver,
+    tenantId: string,
+    assetType: 'logo' | 'favicon',
+    urlOrPath: string,
+    adminToken: string,
+): Promise<string> {
+    if (urlOrPath.startsWith('file://')) {
+        const filePath = urlOrPath.slice('file://'.length);
+        const absolutePath = path.isAbsolute(filePath) ? filePath : path.join(__dirname, filePath);
 
-async function syncTenantConfigs(
-    services: ServiceComponents,
-    env: ScriptEnvironment,
-    options?: SyncTenantOptions,
-) {
-    // Only create ApiDriver and authenticate if we need to publish themes
-    let apiDriver: ApiDriver | null = null;
-    let adminToken: string | null = null;
-
-    if (!options?.skipThemePublish) {
-        // Create ApiDriver with appropriate configuration
-        if (env.isEmulator) {
-            apiDriver = new ApiDriver();
-        } else {
-            const projectId = getProjectId();
-            const apiKey = process.env.__CLIENT_API_KEY;
-            if (!apiKey) {
-                throw new Error('__CLIENT_API_KEY must be set for deployed environments');
-            }
-            const deployedConfig: ApiDriverConfig = {
-                baseUrl: `https://${projectId}.web.app/api`,
-                firebaseApiKey: apiKey,
-                authBaseUrl: 'https://identitytoolkit.googleapis.com',
-            };
-            apiDriver = new ApiDriver(deployedConfig);
+        if (!fs.existsSync(absolutePath)) {
+            throw new Error(`File not found: ${absolutePath}`);
         }
 
-        // Get admin user token for API calls
-        console.log('🔑 Authenticating admin user...');
-        const adminUser = await apiDriver.getDefaultAdminUser();
-        adminToken = adminUser.token;
-        console.log(`   ✓ Authenticated as admin`);
+        const buffer = fs.readFileSync(absolutePath);
+        const contentType = getContentTypeFromExtension(path.extname(absolutePath));
+
+        console.log(`  📤 Uploading ${assetType}: ${path.basename(absolutePath)}`);
+        const result = await apiDriver.uploadTenantImage(tenantId, assetType, buffer, contentType, adminToken);
+        console.log(`     ✓ Uploaded to: ${result.url}`);
+        return result.url;
     }
 
+    return urlOrPath;
+}
+
+/**
+ * Create ApiDriver configured for either emulator or deployed environment
+ */
+function createApiDriver(isEmulator: boolean): ApiDriver {
+    if (isEmulator) {
+        return new ApiDriver();
+    }
+
+    const projectId = process.env.GCLOUD_PROJECT;
+    if (!projectId) {
+        throw new Error('GCLOUD_PROJECT must be set for deployed environments');
+    }
+    const apiKey = process.env.__CLIENT_API_KEY;
+    if (!apiKey) {
+        throw new Error('__CLIENT_API_KEY must be set for deployed environments');
+    }
+
+    const deployedConfig: ApiDriverConfig = {
+        baseUrl: `https://${projectId}.web.app/api`,
+        firebaseApiKey: apiKey,
+        authBaseUrl: 'https://identitytoolkit.googleapis.com',
+    };
+    return new ApiDriver(deployedConfig);
+}
+
+/**
+ * Sync tenant configurations using the Admin API
+ */
+export async function syncTenantConfigs(
+    apiDriver: ApiDriver,
+    adminToken: string,
+    options?: SyncTenantOptions,
+): Promise<void> {
     const configPath = path.join(__dirname, 'tenant-configs.json');
     const configData = fs.readFileSync(configPath, 'utf-8');
     let configs: TenantConfig[] = JSON.parse(configData);
@@ -208,16 +168,18 @@ async function syncTenantConfigs(
 
         // Upload assets if they are local files
         const logoUrl = await uploadAssetIfLocal(
-            services.tenantAssetStorage,
+            apiDriver,
             config.id,
             'logo',
             config.branding.logoUrl,
+            adminToken,
         );
         const faviconUrl = await uploadAssetIfLocal(
-            services.tenantAssetStorage,
+            apiDriver,
             config.id,
             'favicon',
             config.branding.faviconUrl,
+            adminToken,
         );
 
         // Validate brandingTokens are present
@@ -225,7 +187,7 @@ async function syncTenantConfigs(
             throw new Error(`Tenant '${config.id}' is missing required brandingTokens in tenant-configs.json`);
         }
 
-        // Build request object that will be validated by the schema
+        // Build request object
         const request: AdminUpsertTenantRequest = {
             tenantId: toTenantId(config.id),
             branding: {
@@ -254,9 +216,9 @@ async function syncTenantConfigs(
             defaultTenant: toTenantDefaultFlag(config.isDefault),
         };
 
-        // Use the service layer which includes all validation
+        // Upsert tenant via Admin API
         try {
-            const result = await services.tenantAdminService.upsertTenant(request);
+            const result = await apiDriver.adminUpsertTenant(request, adminToken);
             console.log(`  ✓ ${result.created ? 'Created' : 'Updated'} tenant: ${config.id} (${config.branding.appName})`);
         } catch (error) {
             console.error(`  ✗ Failed to sync tenant: ${config.id}`);
@@ -264,7 +226,7 @@ async function syncTenantConfigs(
         }
 
         // Publish theme CSS via API (if not skipped)
-        if (apiDriver && adminToken) {
+        if (!options?.skipThemePublish) {
             try {
                 const publishResult = await apiDriver.publishTenantTheme({ tenantId: config.id }, adminToken);
                 console.log(`  ✓ Published theme: ${publishResult.artifact.hash}`);
@@ -281,6 +243,7 @@ async function syncTenantConfigs(
 async function main(): Promise<void> {
     const rawArgs = process.argv.slice(2);
     const defaultOnly = rawArgs.includes('--default-only');
+    const skipThemePublish = rawArgs.includes('--skip-theme-publish');
 
     // Parse --tenant-id flag
     const tenantIdIndex = rawArgs.indexOf('--tenant-id');
@@ -289,19 +252,27 @@ async function main(): Promise<void> {
         tenantId = rawArgs[tenantIdIndex + 1];
     }
 
+    // Determine environment from first positional argument
     const argsWithoutFlags = rawArgs.filter((arg) => !arg.startsWith('--') && arg !== tenantId);
-    const env = parseEnvironment(argsWithoutFlags);
+    const targetEnvironment = argsWithoutFlags[0];
 
-    initializeFirebase(env);
-
-    if (env.isEmulator) {
-        console.log('✅ Connected to Firebase Emulator');
-    } else {
-        console.log('✅ Connected to Deployed Firebase');
+    if (!targetEnvironment || !['emulator', 'staging', 'deployed'].includes(targetEnvironment)) {
+        console.error('❌ Usage: sync-tenant-configs.ts <emulator|staging> [--default-only] [--tenant-id <id>] [--skip-theme-publish]');
+        process.exit(1);
     }
 
-    const services = await buildServices(env);
-    await syncTenantConfigs(services, env, { defaultOnly, tenantId });
+    const isEmulator = targetEnvironment === 'emulator';
+    console.log(`🎯 Syncing tenant configs to ${isEmulator ? 'EMULATOR' : 'DEPLOYED'}`);
+
+    // Create ApiDriver for API calls
+    const apiDriver = createApiDriver(isEmulator);
+
+    // Get admin user token for API calls
+    console.log('🔑 Authenticating admin user...');
+    const adminUser = await apiDriver.getDefaultAdminUser();
+    console.log(`   ✓ Authenticated as admin`);
+
+    await syncTenantConfigs(apiDriver, adminUser.token, { defaultOnly, tenantId, skipThemePublish });
 
     console.log('✅ Tenant sync complete');
 }
@@ -313,5 +284,3 @@ if (require.main === module) {
         process.exit(1);
     });
 }
-
-export { buildServices, syncTenantConfigs };

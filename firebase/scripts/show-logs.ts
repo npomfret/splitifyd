@@ -1,16 +1,11 @@
 #!/usr/bin/env npx tsx
 
-import { getProjectId } from '@billsplit-wl/test-support';
-import { execSync } from 'child_process';
-import { existsSync } from 'fs';
-import { join, resolve } from 'path';
-import { logger } from './logger';
+import {execSync} from 'child_process';
+import {existsSync, readFileSync} from 'fs';
+import {join, resolve} from 'path';
+import {logger} from './logger';
 
 const credentialsPath = resolve(join(__dirname, '../service-account-key.json'));
-
-function getActiveProject(): string {
-    return getProjectId();
-}
 
 function ensureAuthEnv() {
     if (!process.env.GOOGLE_APPLICATION_CREDENTIALS) {
@@ -143,15 +138,15 @@ let gcloudAuthenticated = false;
 
 try {
     ensureAuthEnv();
-    const activeProject = getActiveProject();
+    const activeProject = "";
 
     if (provider === 'gcloud') {
-        ensureGcloudAuth(activeProject);
+        ensureGcloudAuth();
     } else if (provider === 'logging') {
         if (tail) {
             console.warn('⚠️  --tail is not supported with provider "logging". Ignoring.');
         }
-        ensureGcloudAuth(activeProject);
+        ensureGcloudAuth();
     }
 
     let command: string;
@@ -207,10 +202,12 @@ try {
     process.exit(1);
 }
 
-function ensureGcloudAuth(projectId: string) {
+function ensureGcloudAuth() {
     if (gcloudAuthenticated) {
         return;
     }
+
+    const projectId = JSON.parse(readFileSync(credentialsPath, "utf-8")).project_id;
 
     try {
         execSync(`gcloud auth activate-service-account --key-file "${credentialsPath}" --project "${projectId}"`, {

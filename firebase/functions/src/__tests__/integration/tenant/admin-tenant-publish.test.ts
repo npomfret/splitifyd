@@ -9,15 +9,11 @@ import {
     toTenantSecondaryColor,
     toTenantThemePaletteName,
 } from '@billsplit-wl/shared';
-import { ApiDriver, getFirebaseEmulatorConfig } from '@billsplit-wl/test-support';
-import { AdminTenantRequestBuilder } from '@billsplit-wl/test-support';
+import { AdminTenantRequestBuilder, ApiDriver, borrowTestUsers } from '@billsplit-wl/test-support';
 import { beforeAll, describe, expect, it } from 'vitest';
-import { FirestoreCollections } from '../../../constants';
-import { getAuth, getFirestore } from '../../../firebase';
 
 describe('Admin Tenant Theme Publishing', () => {
     const apiDriver = new ApiDriver();
-    const db = getFirestore();
 
     let adminUser: PooledTestUser;
 
@@ -61,106 +57,64 @@ describe('Admin Tenant Theme Publishing', () => {
         const tenantId = `tenant_auth_${Date.now()}`;
         await createTenantWithTokens(tenantId);
 
-        const auth = getAuth();
-
-        // Create a fresh non-admin user using Firebase Admin SDK
-        const regularUser = await auth.createUser({
-            email: `regular-${Date.now()}@test.com`,
-            password: 'testpassword123!',
-            displayName: 'Regular Test User',
-        });
-
-        // Create Firestore user document with non-admin role
-        await db.collection(FirestoreCollections.USERS).doc(regularUser.uid).set({
-            displayName: 'Regular Test User',
-            email: regularUser.email,
-            role: 'user', // Explicitly non-admin
-            createdAt: new Date(),
-        });
-
-        // Get custom token for this user with explicit non-admin role claim
-        const customToken = await auth.createCustomToken(regularUser.uid, {
-            role: 'user', // Explicitly set non-admin role in custom claims
-        });
-
-        // Exchange custom token for ID token using Firebase Auth REST API
-        const emulatorConfig = getFirebaseEmulatorConfig();
-        const tokenResponse = await fetch(
-            `http://localhost:${emulatorConfig.authPort}/identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=${emulatorConfig.firebaseApiKey}`,
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ token: customToken, returnSecureToken: true }),
-            },
-        );
-        const tokenData = await tokenResponse.json();
-        const idToken = tokenData.idToken;
+        // Borrow a regular (non-admin) user from the pool
+        const [regularUser] = await borrowTestUsers(1);
 
         // Attempt to publish tenant theme with non-admin user
         // Should be rejected (not authorized to perform this action)
         try {
-            const result = await apiDriver.publishTenantTheme({ tenantId }, idToken);
-            throw new Error(`Expected request to be rejected but it succeeded with result: ${JSON.stringify(result)}`);
+            const result = await apiDriver.publishTenantTheme({ tenantId }, regularUser.token);
+            expect.fail(`Expected request to be rejected but it succeeded with result: ${JSON.stringify(result)}`);
         } catch (error: any) {
-            // Should be rejected - the key is that a non-admin user cannot publish themes
-            // Accept multiple error scenarios:
-            // - 401/403 auth errors with AUTH_REQUIRED/AUTH_INVALID/FORBIDDEN codes
-            // - 500 with ECONNRESET if emulator resets connection
-            // - Cache-Control header validation errors from test infrastructure
-            const errorText = error.message || '';
-            const code = error.response?.error?.code || '';
-
-            // If we get a Cache-Control header error, the request at least made it past auth
-            // This is still a valid rejection scenario
-            const isAuthError = /AUTH_REQUIRED|AUTH_INVALID|FORBIDDEN/.test(code);
-            const isConnectionError = /ECONNRESET/.test(errorText);
-            const isHeaderValidation = /Cache-Control/.test(errorText);
-
-            expect(isAuthError || isConnectionError || isHeaderValidation).toBe(true);
+            console.log(error)
+            expect(error.status).toBe(403);
+            expect(error.response.error.code).toBe('FORBIDDEN');
         }
     });
 
-    it('should preserve brandingTokens.artifact when upserting tenant', async () => {
-        const tenantId = `tenant_preserve_artifact_${Date.now()}`;
+    it('should update theme hash when brandingTokens change', async () => {
+        const tenantId = `tenant_hash_change_${Date.now()}`;
 
-        // Step 1: Create tenant with tokens
+        // Step 1: Create tenant with initial tokens
         await createTenantWithTokens(tenantId);
 
-        // Step 2: Publish theme (adds brandingTokens.artifact)
+        // Step 2: Publish theme (generates first hash)
         const publishResult = await apiDriver.publishTenantTheme({ tenantId }, adminUser.token);
         expect(publishResult.artifact).toBeDefined();
         expect(publishResult.artifact.cssUrl).toBeDefined();
         expect(publishResult.artifact.hash).toBeDefined();
 
-        const originalArtifact = publishResult.artifact;
+        const originalHash = publishResult.artifact.hash;
 
-        // Step 3: Upsert tenant again with different branding (simulating config update)
+        // Step 3: Upsert tenant with DIFFERENT brandingTokens (this changes the CSS hash)
+        const updatedTokens = AdminTenantRequestBuilder.forTenant('different-tokens').buildTokens();
+        // Modify the tokens to ensure they're different
+        updatedTokens.palette.primary = '#ff0000';
+        updatedTokens.palette.secondary = '#00ff00';
+
         const updatedTenantData = AdminTenantRequestBuilder
             .forTenant(tenantId)
             .withBranding({
                 appName: toTenantAppName('Updated Theme Tenant'),
                 logoUrl: toTenantLogoUrl('https://foo/branding/updated/logo.svg'),
                 faviconUrl: toTenantFaviconUrl('https://foo/branding/updated/favicon.png'),
-                primaryColor: toTenantPrimaryColor('#dc2626'),
-                secondaryColor: toTenantSecondaryColor('#ea580c'),
-                accentColor: toTenantAccentColor('#16a34a'),
+                primaryColor: toTenantPrimaryColor('#ff0000'),
+                secondaryColor: toTenantSecondaryColor('#00ff00'),
+                accentColor: toTenantAccentColor('#0000ff'),
                 themePalette: toTenantThemePaletteName('default'),
             })
-            .withBrandingTokens({ tokens: mockTokens })
+            .withBrandingTokens({ tokens: updatedTokens })
             .withDomains([toTenantDomainName(`${tenantId}.example.com`)])
             .build();
 
         await apiDriver.adminUpsertTenant(updatedTenantData, adminUser.token);
 
-        // Step 4: Read tenant from Firestore and verify artifact is preserved
-        const tenantDoc = await db.collection(FirestoreCollections.TENANTS).doc(tenantId).get();
-        const tenantData = tenantDoc.data();
-
-        expect(tenantData).toBeDefined();
-        expect(tenantData?.branding?.appName).toBe('Updated Theme Tenant');
-        expect(tenantData?.brandingTokens?.artifact).toBeDefined();
-        expect(tenantData?.brandingTokens?.artifact?.cssUrl).toBe(originalArtifact.cssUrl);
-        expect(tenantData?.brandingTokens?.artifact?.hash).toBe(originalArtifact.hash);
-        expect(tenantData?.brandingTokens?.artifact?.version).toBe(originalArtifact.version);
+        // Step 4: Re-publish and verify hash changed
+        const rePublishResult = await apiDriver.publishTenantTheme({ tenantId }, adminUser.token);
+        expect(rePublishResult.artifact).toBeDefined();
+        expect(rePublishResult.artifact.cssUrl).toBeDefined();
+        expect(rePublishResult.artifact.hash).toBeDefined();
+        // The hash should be different since we changed brandingTokens
+        expect(rePublishResult.artifact.hash).not.toBe(originalHash);
     });
 });

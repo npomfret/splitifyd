@@ -1,4 +1,4 @@
-import { StubCloudTasksClient } from '@billsplit-wl/firebase-simulator';
+import { StubCloudTasksClient, StubFirestoreDatabase } from '@billsplit-wl/firebase-simulator';
 import {
     AcceptMultiplePoliciesResponse,
     AcceptPolicyRequest,
@@ -86,7 +86,7 @@ import {
     UserRegistration,
     VersionHash,
 } from '@billsplit-wl/shared';
-import { CreateGroupRequestBuilder, createStubRequest, createStubResponse, StubFirestoreDatabase, StubStorage, UserRegistrationBuilder } from '@billsplit-wl/test-support';
+import { CreateGroupRequestBuilder, createStubRequest, createStubResponse, StubStorage, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
 import type { UserRecord } from 'firebase-admin/auth';
 import { Timestamp } from 'firebase-admin/firestore';
@@ -174,6 +174,10 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
 
     get storageStub(): StubStorage {
         return this.storage;
+    }
+
+    get firestoreStub(): StubFirestoreDatabase {
+        return this.db;
     }
 
     /**

@@ -138,31 +138,6 @@ export function getUIPort(): number {
 }
 
 /**
- * Get the Firebase project ID from .firebaserc
- * @returns Firebase project ID
- */
-export function getProjectId(): string {
-    const projectRoot = findProjectRoot();
-    const firebaseRcPath = path.join(projectRoot, 'firebase', '.firebaserc');
-
-    try {
-        const firebaseRcContent = fs.readFileSync(firebaseRcPath, 'utf8');
-        const firebaseRc = JSON.parse(firebaseRcContent);
-        return firebaseRc.projects.default;
-    } catch (error) {
-        throw new Error(`Failed to read .firebaserc at ${firebaseRcPath}: ${error}`);
-    }
-}
-
-/**
- * Get the Firebase region (hardcoded to us-central1 as per project convention)
- * @returns Firebase region string
- */
-export function getRegion(): string {
-    return 'us-central1';
-}
-
-/**
  * Get all Firebase emulator ports as an object for destructuring
  * @returns Object with named port properties
  */
