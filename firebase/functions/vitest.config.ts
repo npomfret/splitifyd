@@ -5,13 +5,9 @@ export default defineConfig({
     test: {
         environment: 'node',
         globals: true,
-        globalSetup: ['./vitest.global-setup.ts'],
         setupFiles: ['./vitest.setup.ts'],
         silent: false,
         env: {
-            __INSTANCE_NAME: 'dev1',
-            __MIN_REGISTRATION_DURATION_MS: '0',
-            __CLOUD_TASKS_LOCATION: 'us-central1',
         },
         include: ['src/**/*.test.ts'],
         exclude: ['node_modules', 'lib', 'dist'],
