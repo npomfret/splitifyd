@@ -17,7 +17,7 @@ export function applyCacheControl(req: Request, res: Response, next: NextFunctio
     }
 
     const config = getAppConfig();
-    const maxAge = config.staticPageCacheSeconds[req.path];
+    const maxAge = config.cache.paths[req.path];
 
     if (maxAge !== undefined) {
         res.setHeader('Cache-Control', `public, max-age=${maxAge}`);

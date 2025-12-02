@@ -45,7 +45,21 @@ const envSchema = z.object({
     __DEV_FORM_EMAIL: z.string().optional(),
     __DEV_FORM_PASSWORD: z.string().optional(),
     __WARNING_BANNER: z.string().optional(),
+    // Cache configuration (seconds) - paths not listed get no-cache
+    __CACHE_PATH_HOME: z.coerce.number(),
+    __CACHE_PATH_LOGIN: z.coerce.number(),
+    __CACHE_PATH_TERMS: z.coerce.number(),
+    __CACHE_PATH_PRIVACY: z.coerce.number(),
+    __CACHE_PATH_API_CONFIG: z.coerce.number(),
+    __CACHE_THEME_VERSIONED: z.coerce.number(),
+    __CACHE_THEME_UNVERSIONED: z.coerce.number(),
 });
+
+interface CacheConfig {
+    paths: Record<string, number>;
+    themeVersioned: number;
+    themeUnversioned: number;
+}
 
 // Type for the CONFIG object
 interface AppConfig {
@@ -62,8 +76,7 @@ interface AppConfig {
         password: string;
     };
     warningBanner: string;
-    cacheMaxAgeSeconds: number;
-    staticPageCacheSeconds: Record<string, number>;
+    cache: CacheConfig;
     securityHeaders: {
         hstsEnabled: boolean;
         cspPolicy: string;
@@ -122,13 +135,16 @@ function buildConfig(): AppConfig {
             password: env.__DEV_FORM_PASSWORD ?? '',
         },
         warningBanner: env.__WARNING_BANNER ?? '',
-        cacheMaxAgeSeconds: emulator ? 60 : 300,
-        staticPageCacheSeconds: {
-            '/': 300,
-            '/login': 300,
-            '/terms': emulator ? 300 : 3600,
-            '/privacy': emulator ? 300 : 3600,
-            '/config': emulator ? 300 : 3600,
+        cache: {
+            paths: {
+                '/': env.__CACHE_PATH_HOME,
+                '/login': env.__CACHE_PATH_LOGIN,
+                '/terms': env.__CACHE_PATH_TERMS,
+                '/privacy': env.__CACHE_PATH_PRIVACY,
+                '/api/config': env.__CACHE_PATH_API_CONFIG,
+            },
+            themeVersioned: env.__CACHE_THEME_VERSIONED,
+            themeUnversioned: env.__CACHE_THEME_UNVERSIONED,
         },
         securityHeaders: {
             hstsEnabled: !emulator,

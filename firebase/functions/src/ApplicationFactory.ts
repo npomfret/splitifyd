@@ -102,9 +102,9 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
 
         const config = getEnhancedConfigResponse(tenantContext);
 
-        // Cache config: 60s in emulator for quick tenant branding updates, 5min when deployed for efficiency
         const serverConfig = getAppConfig();
-        res.setHeader('Cache-Control', `public, max-age=${serverConfig.cacheMaxAgeSeconds}, must-revalidate`);
+        const maxAge = serverConfig.cache.paths['/api/config'];
+        res.setHeader('Cache-Control', `public, max-age=${maxAge}, must-revalidate`);
         res.json(config);
     };
 

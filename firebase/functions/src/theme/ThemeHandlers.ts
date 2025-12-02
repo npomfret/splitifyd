@@ -1,5 +1,6 @@
 import { BrandingArtifactMetadata } from '@billsplit-wl/shared';
 import type { RequestHandler } from 'express';
+import { getAppConfig } from '../app-config';
 import { HTTP_STATUS } from '../constants';
 import { ErrorDetail, Errors } from '../errors';
 import { logger } from '../logger';
@@ -30,16 +31,13 @@ export class ThemeHandlers {
 
         res.setHeader('Content-Type', 'text/css; charset=utf-8');
 
-        // Content-addressed caching: when ?v=hash is present, cache aggressively since content is immutable
-        // Otherwise, use no-cache to ensure browsers check for updates
+        const config = getAppConfig();
         const requestedVersion = req.query.v;
         if (requestedVersion) {
-            // Version parameter present - enable aggressive caching
-            // The presence of ?v= indicates the client is requesting a specific immutable version
-            res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+            res.setHeader('Cache-Control', `public, max-age=${config.cache.themeVersioned}, immutable`);
         } else {
-            // No version - use no-cache so browsers always check for updates
-            res.setHeader('Cache-Control', 'no-cache');
+            const maxAge = config.cache.themeUnversioned;
+            res.setHeader('Cache-Control', maxAge > 0 ? `public, max-age=${maxAge}` : 'no-cache');
         }
 
         res.setHeader('ETag', `"${artifact.hash}"`);
