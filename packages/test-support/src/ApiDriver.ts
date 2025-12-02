@@ -1,4 +1,4 @@
-import type { CommentText, Email, GroupName, ISOString, ShareLinkToken, UserId } from '@billsplit-wl/shared';
+import type { CommentText, Email, GroupName, ISOString, Password, ShareLinkToken, UserId } from '@billsplit-wl/shared';
 import {
     AcceptMultiplePoliciesResponse,
     AcceptPolicyRequest,
@@ -117,8 +117,8 @@ const assertNoCacheHeaders = (endpoint: string, headers: Headers) => {
     }
 };
 
-const DEFAULT_ADMIN_EMAIL = (process.env.TEST_ADMIN_EMAIL || 'test1@test.com') as Email;
-const DEFAULT_ADMIN_PASSWORD = process.env.TEST_ADMIN_PASSWORD || 'passwordpass';
+const DEFAULT_ADMIN_EMAIL = 'test1@test.com' as Email;// todo: remove this duplication
+const DEFAULT_ADMIN_PASSWORD = 'passwordpass' as Password;// todo: remove this duplication
 
 export type AuthToken = string;
 
