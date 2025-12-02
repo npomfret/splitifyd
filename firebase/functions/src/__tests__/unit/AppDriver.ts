@@ -11,6 +11,7 @@ import {
     AdminUpsertTenantResponse,
     API,
     ChangeEmailRequest,
+    ClientAppConfiguration,
     CommentDTO,
     CommentText,
     CreateExpenseRequest,
@@ -31,6 +32,7 @@ import {
     GroupId,
     GroupMembershipDTO,
     GroupPermissions,
+    HealthResponse,
     InitiateMergeRequest,
     InitiateMergeResponse,
     ISOString,
@@ -59,6 +61,7 @@ import {
     PublishPolicyResponse,
     PublishTenantThemeRequest,
     PublishTenantThemeResponse,
+    RegisterResponse,
     SettlementDTO,
     SettlementId,
     SettlementWithMembers,
@@ -1044,10 +1047,15 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         await this.dispatchByHandler('promoteTestUserToAdmin', req);
     }
 
-    async registerUser(registration: UserRegistration): Promise<RegisterUserResult> {
-        const req = createStubRequest('', registration);
+    async register(userData: UserRegistration): Promise<RegisterResponse> {
+        const req = createStubRequest('', userData);
         const res = await this.dispatchByHandler('register', req);
-        return res.getJson() as RegisterUserResult;
+        return res.getJson() as RegisterResponse;
+    }
+
+    /** @deprecated Use register() instead */
+    async registerUser(registration: UserRegistration): Promise<RegisterUserResult> {
+        return this.register(registration);
     }
 
     // ===== ADMIN API: POLICY MANAGEMENT =====
@@ -1118,6 +1126,18 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         const res = await this.dispatchByHandler('getUserPolicyStatus', req);
         this.throwIfError(res);
         return res.getJson() as UserPolicyStatusResponse;
+    }
+
+    async getConfig(): Promise<ClientAppConfiguration> {
+        const req = createStubRequest('', {});
+        const res = await this.dispatchByHandler('getConfig', req);
+        return res.getJson() as ClientAppConfiguration;
+    }
+
+    async getHealth(): Promise<HealthResponse> {
+        const req = createStubRequest('', {});
+        const res = await this.dispatchByHandler('getHealth', req);
+        return res.getJson() as HealthResponse;
     }
 
     async getCurrentPolicy(policyId: PolicyId): Promise<CurrentPolicyResponse> {

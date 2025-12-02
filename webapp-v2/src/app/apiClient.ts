@@ -35,6 +35,7 @@ import type {
     GroupFullDetailsDTO,
     GroupMembershipDTO,
     GroupPermissions,
+    HealthResponse,
     InitiateMergeRequest,
     InitiateMergeResponse,
     JoinGroupResponse,
@@ -933,6 +934,22 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
             endpoint: '/register',
             method: 'POST',
             body: userData,
+        });
+    }
+
+    async getConfig(): Promise<ClientAppConfiguration> {
+        return this.request({
+            endpoint: '/config',
+            method: 'GET',
+            skipAuth: true,
+        });
+    }
+
+    async getHealth(): Promise<HealthResponse> {
+        return this.request({
+            endpoint: '/health',
+            method: 'GET',
+            skipAuth: true,
         });
     }
 

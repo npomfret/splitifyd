@@ -1076,6 +1076,23 @@ export interface RegisterResponse {
     };
 }
 
+export type HealthStatus = 'healthy' | 'unhealthy';
+
+export interface HealthCheckResult {
+    status: HealthStatus;
+    responseTime?: number;
+    error?: string;
+}
+
+export interface HealthResponse {
+    status: HealthStatus;
+    timestamp: ISOString;
+    checks: {
+        firestore: HealthCheckResult;
+        auth: HealthCheckResult;
+    };
+}
+
 export interface CurrentPolicyResponse {
     id: PolicyId;
     policyName: PolicyName;

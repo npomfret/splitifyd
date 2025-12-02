@@ -6,6 +6,7 @@ import type {
     AdminUpsertTenantRequest,
     AdminUpsertTenantResponse,
     ChangeEmailRequest,
+    ClientAppConfiguration,
     CommentDTO,
     CommentText,
     CreateExpenseRequest,
@@ -28,6 +29,7 @@ import type {
     GroupId,
     GroupMembershipDTO,
     GroupPermissions,
+    HealthResponse,
     InitiateMergeRequest,
     InitiateMergeResponse,
     ISOString,
@@ -52,6 +54,7 @@ import type {
     PublishPolicyResponse,
     PublishTenantThemeRequest,
     PublishTenantThemeResponse,
+    RegisterResponse,
     SettlementDTO,
     SettlementId,
     SettlementWithMembers,
@@ -72,6 +75,7 @@ import type {
     UserId,
     UserPolicyStatusResponse,
     UserProfileResponse,
+    UserRegistration,
     VersionHash,
 } from './shared-types';
 
@@ -83,6 +87,24 @@ export type AuthToken = string | void;
  * These endpoints are accessible without a valid auth token.
  */
 export interface PublicAPI {
+    /**
+     * Get client application configuration
+     * Public endpoint - no authentication required
+     */
+    getConfig(): Promise<ClientAppConfiguration>;
+
+    /**
+     * Get health status of the API
+     * Public endpoint - no authentication required
+     */
+    getHealth(): Promise<HealthResponse>;
+
+    /**
+     * Register a new user account
+     * Public endpoint - no authentication required
+     */
+    register(userData: UserRegistration): Promise<RegisterResponse>;
+
     /**
      * Get the current published version of a policy
      * Public endpoint - no authentication required

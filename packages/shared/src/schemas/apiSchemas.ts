@@ -254,14 +254,18 @@ const JoinGroupResponseSchema = z.object({
 
 // Health check schemas
 const HealthCheckResponseSchema = z.object({
+    status: z.enum(['healthy', 'unhealthy']),
+    timestamp: z.string().datetime(),
     checks: z.object({
         firestore: z.object({
             status: z.enum(['healthy', 'unhealthy']),
             responseTime: z.number().optional(),
+            error: z.string().optional(),
         }),
         auth: z.object({
             status: z.enum(['healthy', 'unhealthy']),
             responseTime: z.number().optional(),
+            error: z.string().optional(),
         }),
     }),
 });

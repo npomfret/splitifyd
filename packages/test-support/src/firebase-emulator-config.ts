@@ -246,6 +246,31 @@ export function getFirebaseEmulatorConfig(): FirebaseEmulatorConfig {
 }
 
 /**
+ * Configuration for ApiDriver
+ */
+export interface ApiDriverConfig {
+    /** API endpoint base URL (e.g., 'https://myapp.web.app/api') */
+    baseUrl: string;
+    /** Firebase API key for authentication */
+    firebaseApiKey: string;
+    /** Firebase Auth base URL for identity toolkit (e.g., 'https://identitytoolkit.googleapis.com' for production) */
+    authBaseUrl: string;
+}
+
+/**
+ * Get ApiDriver configuration for the Firebase emulator.
+ * @returns ApiDriverConfig for the emulator environment
+ */
+export function getApiDriverConfig(): ApiDriverConfig {
+    const config = getFirebaseEmulatorConfig();
+    return {
+        baseUrl: config.baseUrl,
+        firebaseApiKey: config.firebaseApiKey,
+        authBaseUrl: config.identityToolkit.baseUrl,
+    };
+}
+
+/**
  * Finds the project root by looking for firebase/firebase.json
  * @param startPath - Optional starting path (defaults to current working directory)
  * @returns Path to project root

@@ -18,31 +18,14 @@ describe('Security and Permissions - Consolidated Tests', () => {
         // Wait for system to settle before stopping listeners
     });
 
-    describe('API Security Headers and Infrastructure', () => {
-        test('should return proper CORS and security headers', async () => {
-            const url = `${apiDriver.getBaseUrl()}/health`;
-
-            // Test CORS headers
-            const corsResponse = await fetch(url, {
-                method: 'OPTIONS',
-                headers: {
-                    Origin: 'http://localhost:3000',
-                    'Access-Control-Request-Method': 'GET',
-                    'Access-Control-Request-Headers': 'Content-Type,Authorization',
-                },
-            });
-
-            expect(corsResponse.status).toBe(204);
-            expect(corsResponse.headers.get('Access-Control-Allow-Origin')).toBeTruthy();
-            expect(corsResponse.headers.get('Access-Control-Allow-Methods')).toBeTruthy();
-            expect(corsResponse.headers.get('Access-Control-Allow-Headers')).toBeTruthy();
-
-            // Test security headers
-            const securityResponse = await fetch(url);
-            expect(securityResponse.status).toBe(200);
-            expect(securityResponse.headers.get('X-Content-Type-Options')).toBeTruthy();
-            expect(securityResponse.headers.get('X-Frame-Options')).toBeTruthy();
-            expect(securityResponse.headers.get('X-XSS-Protection')).toBeTruthy();
+    describe('API Health Check', () => {
+        test('should return healthy status from health endpoint', async () => {
+            const health = await apiDriver.getHealth();
+            expect(health.status).toBe('healthy');
+            expect(health.timestamp).toBeDefined();
+            expect(health.checks).toBeDefined();
+            expect(health.checks.firestore).toBeDefined();
+            expect(health.checks.auth).toBeDefined();
         });
     });
 

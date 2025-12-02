@@ -11,6 +11,7 @@ import {
     ApiSerializer,
     AuthenticatedFirebaseUser,
     ChangeEmailRequest,
+    type ClientAppConfiguration,
     CommentDTO,
     type CreateExpenseRequest,
     type CreateGroupRequest,
@@ -32,6 +33,7 @@ import {
     GroupId,
     type GroupMembershipDTO,
     type GroupPermissions,
+    type HealthResponse,
     InitiateMergeRequest,
     InitiateMergeResponse,
     JoinGroupResponse,
@@ -84,7 +86,7 @@ import {
 } from '@billsplit-wl/shared';
 import { toUserId } from '@billsplit-wl/shared';
 import { UserRegistrationBuilder } from './builders';
-import { getFirebaseEmulatorConfig } from './firebase-emulator-config';
+import { ApiDriverConfig, getApiDriverConfig } from './firebase-emulator-config';
 import { Matcher, PollOptions, pollUntil } from './Polling';
 
 const randomLetters = (min: number, max: number): string => {
@@ -122,17 +124,8 @@ const DEFAULT_ADMIN_PASSWORD = 'passwordpass' as Password;// todo: remove this d
 
 export type AuthToken = string;
 
-/**
- * Configuration for ApiDriver when targeting non-emulator environments.
- */
-export interface ApiDriverConfig {
-    /** API endpoint base URL (e.g., 'https://myapp.web.app/api') */
-    baseUrl: string;
-    /** Firebase API key for authentication */
-    firebaseApiKey: string;
-    /** Firebase Auth base URL (e.g., 'https://identitytoolkit.googleapis.com' for production) */
-    authBaseUrl: string;
-}
+// Re-export for convenience
+export type { ApiDriverConfig } from './firebase-emulator-config';
 
 /**
  * HTTP-based API driver for testing against the Firebase emulator.
@@ -143,9 +136,7 @@ export interface ApiDriverConfig {
  * @see IApiClient for the complete list of supported operations
  */
 export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>, TestAPI {
-    private baseUrl: string;
-    private readonly authBaseUrl: string;
-    private readonly firebaseApiKey: string;
+    private readonly config: ApiDriverConfig;
 
     static readonly matchers = {
         balanceHasUpdate: () => (balances: GroupBalances) => balances.simplifiedDebts && balances.simplifiedDebts.length >= 0 && !!balances.lastUpdated,
@@ -153,35 +144,17 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
 
     /**
      * Create an ApiDriver instance.
-     * @param config - Optional configuration for non-emulator environments.
-     *                 If omitted, defaults to emulator configuration.
+     * @param config - Configuration for the API driver. Defaults to emulator configuration.
      */
-    constructor(config?: ApiDriverConfig) {
-        if (config) {
-            this.baseUrl = config.baseUrl;
-            this.firebaseApiKey = config.firebaseApiKey;
-            this.authBaseUrl = config.authBaseUrl;
-        } else {
-            const emulatorConfig = getFirebaseEmulatorConfig();
-            this.baseUrl = emulatorConfig.baseUrl;
-            this.firebaseApiKey = emulatorConfig.firebaseApiKey;
-            this.authBaseUrl = `http://localhost:${emulatorConfig.authPort}/identitytoolkit.googleapis.com`;
-        }
-    }
-
-    getBaseUrl(): string {
-        return this.baseUrl;
-    }
-
-    overrideBaseUrl(baseUrl: string): void {
-        this.baseUrl = baseUrl;
+    constructor(config: ApiDriverConfig = getApiDriverConfig()) {
+        this.config = config;
     }
 
     async createUser(userRegistration: UserRegistration = new UserRegistrationBuilder().build()): Promise<AuthenticatedFirebaseUser> {
         let registrationError: unknown = null;
 
         try {
-            await this.apiRequest('/register', 'POST', userRegistration);
+            await this.register(userRegistration);
         } catch (error) {
             registrationError = error;
             if (!this.isRegistrationRecoverable(error)) {
@@ -231,7 +204,7 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         let signInResponse: Response;
         if (userInfo.token) {
             // Exchange custom token for ID token
-            signInResponse = await fetch(`${this.authBaseUrl}/v1/accounts:signInWithCustomToken?key=${this.firebaseApiKey}`, {
+            signInResponse = await fetch(`${this.config.authBaseUrl}/v1/accounts:signInWithCustomToken?key=${this.config.firebaseApiKey}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -240,7 +213,7 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
                 }),
             });
         } else {
-            signInResponse = await fetch(`${this.authBaseUrl}/v1/accounts:signInWithPassword?key=${this.firebaseApiKey}`, {
+            signInResponse = await fetch(`${this.config.authBaseUrl}/v1/accounts:signInWithPassword?key=${this.config.firebaseApiKey}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -473,6 +446,14 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         await this.apiRequest(`/groups/${groupId}/members/${memberId}`, 'DELETE', null, token);
     }
 
+    async getConfig(): Promise<ClientAppConfiguration> {
+        return await this.apiRequest('/config', 'GET', null);
+    }
+
+    async getHealth(): Promise<HealthResponse> {
+        return await this.apiRequest('/health', 'GET', null);
+    }
+
     async getCurrentPolicy(policyId: PolicyId): Promise<CurrentPolicyResponse> {
         return await this.apiRequest(`/policies/${policyId}/current`, 'GET', null);
     }
@@ -564,7 +545,7 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
             assertHeaders: (endpoint: string, headers: Headers) => token && assertNoCacheHeaders(endpoint, headers),
         },
     ): Promise<any> {
-        const url = `${this.baseUrl}${endpoint}`;
+        const url = `${this.config.baseUrl}${endpoint}`;
         const fetchOptions: RequestInit = {
             method,
             headers: {
@@ -751,7 +732,7 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
     }
 
     async uploadTenantImage(tenantId: string, assetType: 'logo' | 'favicon', file: File | Buffer, contentType: string, token?: AuthToken): Promise<{ url: string; }> {
-        const url = `${this.baseUrl}/admin/tenants/${tenantId}/assets/${assetType}`;
+        const url = `${this.config.baseUrl}/admin/tenants/${tenantId}/assets/${assetType}`;
         const body = Buffer.isBuffer(file) ? file : Buffer.from(await file.arrayBuffer());
 
         const response = await fetch(url, {
@@ -811,7 +792,7 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
             searchParams.set('v', options.version);
         }
 
-        const url = `${this.baseUrl}/theme.css${searchParams.size ? `?${searchParams.toString()}` : ''}`;
+        const url = `${this.config.baseUrl}/theme.css${searchParams.size ? `?${searchParams.toString()}` : ''}`;
 
         const response = await fetch(url, {
             method: 'GET',
