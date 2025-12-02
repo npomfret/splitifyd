@@ -1,4 +1,5 @@
 import { cx } from '@/utils/cx.ts';
+import { signal } from '@preact/signals';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { ComponentChildren, JSX } from 'preact';
 import { createPortal } from 'preact/compat';
@@ -22,15 +23,16 @@ const sizeClasses = {
 };
 
 export function Modal({ open, onClose, size = 'sm', labelledBy, describedBy, className = '', children, 'data-testid': dataTestId }: ModalProps) {
-    const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+    // Component-local signal - initialized within useState to avoid stale state across instances
+    const [prefersReducedMotionSignal] = useState(() => signal(false));
 
     useEffect(() => {
         // Check for reduced motion preference
         const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-        setPrefersReducedMotion(mediaQuery.matches);
+        prefersReducedMotionSignal.value = mediaQuery.matches;
 
         const handleChange = (e: MediaQueryListEvent) => {
-            setPrefersReducedMotion(e.matches);
+            prefersReducedMotionSignal.value = e.matches;
         };
 
         mediaQuery.addEventListener('change', handleChange);
@@ -68,7 +70,7 @@ export function Modal({ open, onClose, size = 'sm', labelledBy, describedBy, cla
     };
 
     // Modal animation variants with spring physics
-    const modalVariants = prefersReducedMotion
+    const modalVariants = prefersReducedMotionSignal.value
         ? {
             hidden: { opacity: 0 },
             visible: { opacity: 1 },

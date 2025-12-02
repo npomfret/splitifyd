@@ -3,6 +3,7 @@ import { FloatingInput } from '@/components/ui/FloatingInput';
 import { STORAGE_KEYS } from '@/constants.ts';
 import { navigationService } from '@/services/navigation.service';
 import { RegisterRequestSchema, toDisplayName, toEmail, toPassword } from '@billsplit-wl/shared';
+import { signal } from '@preact/signals';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
@@ -17,50 +18,50 @@ export function RegisterPage() {
     const { t } = useTranslation();
     const authStore = useAuthRequired();
 
-    // Local form state - properly encapsulated within component
+    // Component-local signals - initialized within useState to avoid stale state across instances
     // Initialize from sessionStorage to persist across potential remounts
-    const [name, setName] = useState(() => {
+    const [nameSignal] = useState(() => {
         try {
-            return sessionStorage.getItem(STORAGE_KEYS.REGISTER_NAME) || '';
+            return signal(sessionStorage.getItem(STORAGE_KEYS.REGISTER_NAME) || '');
         } catch {
-            return '';
+            return signal('');
         }
     });
-    const [email, setEmail] = useState(() => {
+    const [emailSignal] = useState(() => {
         try {
-            return sessionStorage.getItem(STORAGE_KEYS.REGISTER_EMAIL) || '';
+            return signal(sessionStorage.getItem(STORAGE_KEYS.REGISTER_EMAIL) || '');
         } catch {
-            return '';
+            return signal('');
         }
     });
-    const [password, setPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
-    const [agreeToTerms, setAgreeToTerms] = useState(() => {
+    const [passwordSignal] = useState(() => signal(''));
+    const [confirmPasswordSignal] = useState(() => signal(''));
+    const [agreeToTermsSignal] = useState(() => {
         try {
-            return sessionStorage.getItem(STORAGE_KEYS.REGISTER_AGREE_TERMS) === 'true';
+            return signal(sessionStorage.getItem(STORAGE_KEYS.REGISTER_AGREE_TERMS) === 'true');
         } catch {
-            return false;
+            return signal(false);
         }
     });
-    const [agreeToCookies, setAgreeToCookies] = useState(() => {
+    const [agreeToCookiesSignal] = useState(() => {
         try {
-            return sessionStorage.getItem(STORAGE_KEYS.REGISTER_AGREE_COOKIES) === 'true';
+            return signal(sessionStorage.getItem(STORAGE_KEYS.REGISTER_AGREE_COOKIES) === 'true');
         } catch {
-            return false;
+            return signal(false);
         }
     });
-    const [agreeToPrivacy, setAgreeToPrivacy] = useState(() => {
+    const [agreeToPrivacySignal] = useState(() => {
         try {
-            return sessionStorage.getItem(STORAGE_KEYS.REGISTER_AGREE_PRIVACY) === 'true';
+            return signal(sessionStorage.getItem(STORAGE_KEYS.REGISTER_AGREE_PRIVACY) === 'true');
         } catch {
-            return false;
+            return signal(false);
         }
     });
-    const [localError, setLocalError] = useState<string | null>(null);
+    const [localErrorSignal] = useState(() => signal<string | null>(null));
 
     // Clear any previous errors when component mounts and remove legacy password cache entries
     useEffect(() => {
-        setLocalError(null);
+        localErrorSignal.value = null;
         try {
             sessionStorage.removeItem(STORAGE_KEYS.REGISTER_PASSWORD);
             sessionStorage.removeItem(STORAGE_KEYS.REGISTER_CONFIRM_PASSWORD);
@@ -86,6 +87,16 @@ export function RegisterPage() {
             }
         }
     }, [authStore.user]);
+
+    // Extract signal values for use in render
+    const name = nameSignal.value;
+    const email = emailSignal.value;
+    const password = passwordSignal.value;
+    const confirmPassword = confirmPasswordSignal.value;
+    const agreeToTerms = agreeToTermsSignal.value;
+    const agreeToCookies = agreeToCookiesSignal.value;
+    const agreeToPrivacy = agreeToPrivacySignal.value;
+    const localError = localErrorSignal.value;
 
     const validateForm = (): string | null => {
         // Check confirmPassword match first (not in schema)
@@ -137,11 +148,11 @@ export function RegisterPage() {
         const validationError = validateForm();
         if (validationError) {
             // Validation error is already displayed to the user
-            setLocalError(validationError);
+            localErrorSignal.value = validationError;
             return;
         }
 
-        setLocalError(null);
+        localErrorSignal.value = null;
 
         try {
             await authStore.register(toEmail(email.trim()), toPassword(password), toDisplayName(name.trim()), agreeToTerms, agreeToCookies, agreeToPrivacy);
@@ -173,7 +184,7 @@ export function RegisterPage() {
                     label={t('registerPage.fullNameLabel')}
                     value={name}
                     onChange={(value) => {
-                        setName(value);
+                        nameSignal.value = value;
                         try {
                             sessionStorage.setItem(STORAGE_KEYS.REGISTER_NAME, value);
                         } catch {
@@ -189,7 +200,7 @@ export function RegisterPage() {
                 <EmailInput
                     value={email}
                     onInput={(value) => {
-                        setEmail(value);
+                        emailSignal.value = value;
                         try {
                             sessionStorage.setItem(STORAGE_KEYS.REGISTER_EMAIL, value);
                         } catch {
@@ -207,7 +218,7 @@ export function RegisterPage() {
                     id='password-input'
                     value={password}
                     onInput={(value) => {
-                        setPassword(value);
+                        passwordSignal.value = value;
                     }}
                     label={t('registerPage.passwordLabel')}
                     placeholder={t('registerPage.passwordPlaceholder')}
@@ -219,7 +230,7 @@ export function RegisterPage() {
                     id='confirm-password-input'
                     value={confirmPassword}
                     onInput={(value) => {
-                        setConfirmPassword(value);
+                        confirmPasswordSignal.value = value;
                     }}
                     label={t('registerPage.confirmPasswordLabel')}
                     placeholder={t('registerPage.confirmPasswordPlaceholder')}
@@ -238,7 +249,7 @@ export function RegisterPage() {
                         }
                         checked={agreeToTerms}
                         onChange={(checked) => {
-                            setAgreeToTerms(checked);
+                            agreeToTermsSignal.value = checked;
                             try {
                                 sessionStorage.setItem(STORAGE_KEYS.REGISTER_AGREE_TERMS, checked.toString());
                             } catch {
@@ -260,7 +271,7 @@ export function RegisterPage() {
                         }
                         checked={agreeToCookies}
                         onChange={(checked) => {
-                            setAgreeToCookies(checked);
+                            agreeToCookiesSignal.value = checked;
                             try {
                                 sessionStorage.setItem(STORAGE_KEYS.REGISTER_AGREE_COOKIES, checked.toString());
                             } catch {
@@ -282,7 +293,7 @@ export function RegisterPage() {
                         }
                         checked={agreeToPrivacy}
                         onChange={(checked) => {
-                            setAgreeToPrivacy(checked);
+                            agreeToPrivacySignal.value = checked;
                             try {
                                 sessionStorage.setItem(STORAGE_KEYS.REGISTER_AGREE_PRIVACY, checked.toString());
                             } catch {

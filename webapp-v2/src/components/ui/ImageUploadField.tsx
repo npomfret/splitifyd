@@ -1,4 +1,5 @@
 import { cx } from '@/utils/cx.ts';
+import { signal } from '@preact/signals';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Button } from './Button';
@@ -37,22 +38,32 @@ export function ImageUploadField({
     const { t } = useTranslation();
     const inputRef = useRef<HTMLInputElement>(null);
     const urlInputRef = useRef<HTMLInputElement>(null);
-    const [preview, setPreview] = useState<string | undefined>(currentImageUrl);
-    const [fileName, setFileName] = useState<string | undefined>();
-    const [showUrlInput, setShowUrlInput] = useState(false);
-    const [urlValue, setUrlValue] = useState('');
-    const [isDownloading, setIsDownloading] = useState(false);
-    const [imageLoadFailed, setImageLoadFailed] = useState(false);
+
+    // Component-local signals - initialized within useState to avoid stale state across instances
+    const [previewSignal] = useState(() => signal<string | undefined>(currentImageUrl));
+    const [fileNameSignal] = useState(() => signal<string | undefined>(undefined));
+    const [showUrlInputSignal] = useState(() => signal(false));
+    const [urlValueSignal] = useState(() => signal(''));
+    const [isDownloadingSignal] = useState(() => signal(false));
+    const [imageLoadFailedSignal] = useState(() => signal(false));
+
+    // Extract signal values for use in render
+    const preview = previewSignal.value;
+    const fileName = fileNameSignal.value;
+    const showUrlInput = showUrlInputSignal.value;
+    const urlValue = urlValueSignal.value;
+    const isDownloading = isDownloadingSignal.value;
+    const imageLoadFailed = imageLoadFailedSignal.value;
 
     // Update preview when currentImageUrl prop changes
     useEffect(() => {
-        setPreview(currentImageUrl);
-        setImageLoadFailed(false); // Reset load state when URL changes
+        previewSignal.value = currentImageUrl;
+        imageLoadFailedSignal.value = false; // Reset load state when URL changes
     }, [currentImageUrl]);
 
     const handleImageError = useCallback(() => {
         // Silently handle image load failures (e.g., invalid URLs in test data)
-        setImageLoadFailed(true);
+        imageLoadFailedSignal.value = true;
     }, []);
 
     const handleFileChange = useCallback(
@@ -75,19 +86,19 @@ export function ImageUploadField({
             // Generate preview
             const reader = new FileReader();
             reader.onloadend = () => {
-                setPreview(reader.result as string);
+                previewSignal.value = reader.result as string;
             };
             reader.readAsDataURL(file);
 
-            setFileName(file.name);
+            fileNameSignal.value = file.name;
             onFileSelect(file);
         },
         [maxSizeMB, onFileSelect],
     );
 
     const handleClearClick = useCallback(() => {
-        setPreview(undefined);
-        setFileName(undefined);
+        previewSignal.value = undefined;
+        fileNameSignal.value = undefined;
         if (inputRef.current) {
             inputRef.current.value = '';
         }
@@ -99,12 +110,12 @@ export function ImageUploadField({
     }, []);
 
     const handleUrlDownload = useCallback(async () => {
-        if (!urlValue.trim()) return;
+        if (!urlValueSignal.value.trim()) return;
 
-        setIsDownloading(true);
+        isDownloadingSignal.value = true;
         try {
             // Resolve relative URLs against current origin
-            const absoluteUrl = urlValue.startsWith('http') ? urlValue : `${window.location.origin}${urlValue}`;
+            const absoluteUrl = urlValueSignal.value.startsWith('http') ? urlValueSignal.value : `${window.location.origin}${urlValueSignal.value}`;
 
             // Fetch the image from URL
             const response = await fetch(absoluteUrl);
@@ -121,7 +132,7 @@ export function ImageUploadField({
             }
 
             // Extract filename from URL or use default
-            const filename = urlValue.split('/').pop() || 'image';
+            const filename = urlValueSignal.value.split('/').pop() || 'image';
 
             // Create File from Blob
             const file = new File([blob], filename, { type: blob.type });
@@ -129,21 +140,21 @@ export function ImageUploadField({
             // Generate preview
             const reader = new FileReader();
             reader.onloadend = () => {
-                setPreview(reader.result as string);
+                previewSignal.value = reader.result as string;
             };
             reader.readAsDataURL(file);
 
-            setFileName(filename);
-            setShowUrlInput(false);
-            setUrlValue('');
+            fileNameSignal.value = filename;
+            showUrlInputSignal.value = false;
+            urlValueSignal.value = '';
             onFileSelect(file);
         } catch (error: any) {
             console.error('Failed to download image from URL:', error);
             // Let parent handle error display
         } finally {
-            setIsDownloading(false);
+            isDownloadingSignal.value = false;
         }
-    }, [urlValue, maxSizeMB, onFileSelect]);
+    }, [maxSizeMB, onFileSelect]);
 
     return (
         <div className={cx('flex flex-col gap-2', className)} data-testid={dataTestId}>
@@ -222,7 +233,7 @@ export function ImageUploadField({
                         <Button
                             type='button'
                             variant='ghost'
-                            onClick={() => setShowUrlInput(true)}
+                            onClick={() => { showUrlInputSignal.value = true; }}
                             disabled={disabled}
                             className='w-full sm:w-auto'
                         >
@@ -239,7 +250,7 @@ export function ImageUploadField({
                         ref={urlInputRef}
                         type='text'
                         value={urlValue}
-                        onChange={(e) => setUrlValue((e.target as HTMLInputElement).value)}
+                        onChange={(e) => { urlValueSignal.value = (e.target as HTMLInputElement).value; }}
                         onKeyDown={(e) => {
                             if (e.key === 'Enter') {
                                 e.preventDefault();
@@ -265,8 +276,8 @@ export function ImageUploadField({
                         type='button'
                         variant='ghost'
                         onClick={() => {
-                            setShowUrlInput(false);
-                            setUrlValue('');
+                            showUrlInputSignal.value = false;
+                            urlValueSignal.value = '';
                         }}
                         disabled={isDownloading}
                     >

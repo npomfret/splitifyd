@@ -6,6 +6,7 @@ import { logError } from '@/utils/browser-logger.ts';
 import { formatDateTimeInUserTimeZone } from '@/utils/dateUtils.ts';
 import { GroupId } from '@billsplit-wl/shared';
 import { toISOString } from '@billsplit-wl/shared';
+import { signal } from '@preact/signals';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { QRCodeCanvas } from 'qrcode.react';
 import { useTranslation } from 'react-i18next';
@@ -36,18 +37,31 @@ const getExpirationOption = (id: ShareLinkExpirationOptionId): ShareLinkExpirati
 
 export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGroupModalProps) {
     const { t } = useTranslation();
-    const [shareLink, setShareLink] = useState<string>('');
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [copied, setCopied] = useState(false);
-    const [showToast, setShowToast] = useState(false);
-    const [selectedExpirationId, setSelectedExpirationId] = useState<ShareLinkExpirationOptionId>(DEFAULT_EXPIRATION_OPTION_ID);
-    const [expiresAt, setExpiresAt] = useState<string | null>(null);
+
+    // Component-local signals - initialized within useState to avoid stale state across instances
+    const [shareLinkSignal] = useState(() => signal<string>(''));
+    const [loadingSignal] = useState(() => signal(false));
+    const [errorSignal] = useState(() => signal<string | null>(null));
+    const [copiedSignal] = useState(() => signal(false));
+    const [showToastSignal] = useState(() => signal(false));
+    const [selectedExpirationIdSignal] = useState(() => signal<ShareLinkExpirationOptionId>(DEFAULT_EXPIRATION_OPTION_ID));
+    const [expiresAtSignal] = useState(() => signal<string | null>(null));
+    const [refreshCounterSignal] = useState(() => signal(0));
+
+    // Extract signal values for use in render
+    const shareLink = shareLinkSignal.value;
+    const loading = loadingSignal.value;
+    const error = errorSignal.value;
+    const copied = copiedSignal.value;
+    const showToast = showToastSignal.value;
+    const selectedExpirationId = selectedExpirationIdSignal.value;
+    const expiresAt = expiresAtSignal.value;
+    const refreshCounter = refreshCounterSignal.value;
+
     const linkInputRef = useRef<HTMLInputElement>(null);
     const copiedTimerRef = useRef<number | null>(null);
     const toastTimerRef = useRef<number | null>(null);
     const requestIdRef = useRef(0);
-    const [refreshCounter, setRefreshCounter] = useState(0);
     const expirationContainerClass = shareLink ? 'space-y-2 border-t border-border-default pt-4' : 'space-y-2 pt-4';
     const normalizedGroupName = groupName.trim();
 
@@ -77,12 +91,12 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
             toastTimerRef.current = null;
         }
 
-        setShareLink('');
-        setExpiresAt(null);
-        setError(null);
-        setCopied(false);
-        setShowToast(false);
-        setSelectedExpirationId(DEFAULT_EXPIRATION_OPTION_ID);
+        shareLinkSignal.value = '';
+        expiresAtSignal.value = null;
+        errorSignal.value = null;
+        copiedSignal.value = false;
+        showToastSignal.value = false;
+        selectedExpirationIdSignal.value = DEFAULT_EXPIRATION_OPTION_ID;
     }, [isOpen, groupId]);
 
     useEffect(() => {
@@ -93,12 +107,12 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
         const requestId = requestIdRef.current + 1;
         requestIdRef.current = requestId;
 
-        setLoading(true);
-        setError(null);
-        setShareLink('');
-        setExpiresAt(null);
-        setCopied(false);
-        setShowToast(false);
+        loadingSignal.value = true;
+        errorSignal.value = null;
+        shareLinkSignal.value = '';
+        expiresAtSignal.value = null;
+        copiedSignal.value = false;
+        showToastSignal.value = false;
 
         const { durationMs } = getExpirationOption(selectedExpirationId);
         const requestedExpiresAt = toISOString(new Date(Date.now() + durationMs).toISOString());
@@ -112,18 +126,18 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                 }
 
                 const fullUrl = `${window.location.origin}${response.shareablePath}`;
-                setShareLink(fullUrl);
-                setExpiresAt(response.expiresAt);
+                shareLinkSignal.value = fullUrl;
+                expiresAtSignal.value = response.expiresAt;
             } catch (err) {
                 if (requestIdRef.current !== requestId) {
                     return;
                 }
 
                 logError('Failed to generate share link', err);
-                setError(errorMessage);
+                errorSignal.value = errorMessage;
             } finally {
                 if (requestIdRef.current === requestId) {
-                    setLoading(false);
+                    loadingSignal.value = false;
                 }
             }
         })();
@@ -142,32 +156,32 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
 
         try {
             await navigator.clipboard.writeText(shareLink);
-            setCopied(true);
-            setShowToast(true);
+            copiedSignal.value = true;
+            showToastSignal.value = true;
 
             copiedTimerRef.current = window.setTimeout(() => {
-                setCopied(false);
+                copiedSignal.value = false;
                 copiedTimerRef.current = null;
             }, 2000);
 
             toastTimerRef.current = window.setTimeout(() => {
-                setShowToast(false);
+                showToastSignal.value = false;
                 toastTimerRef.current = null;
             }, 3000);
         } catch (err) {
             if (linkInputRef.current) {
                 linkInputRef.current.select();
                 document.execCommand('copy');
-                setCopied(true);
-                setShowToast(true);
+                copiedSignal.value = true;
+                showToastSignal.value = true;
 
                 copiedTimerRef.current = window.setTimeout(() => {
-                    setCopied(false);
+                    copiedSignal.value = false;
                     copiedTimerRef.current = null;
                 }, 2000);
 
                 toastTimerRef.current = window.setTimeout(() => {
-                    setShowToast(false);
+                    showToastSignal.value = false;
                     toastTimerRef.current = null;
                 }, 3000);
             }
@@ -297,7 +311,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                                             <Tooltip content={t('shareGroupModal.generateNew')}>
                                                 <Button
                                                     type='button'
-                                                    onClick={() => setRefreshCounter((count) => count + 1)}
+                                                    onClick={() => { refreshCounterSignal.value = refreshCounterSignal.value + 1; }}
                                                     variant='ghost'
                                                     size='sm'
                                                     data-testid='generate-new-link-button'
@@ -334,7 +348,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                                                     key={option.id}
                                                     type='button'
                                                     data-testid={`share-link-expiration-${option.id}`}
-                                                    onClick={() => setSelectedExpirationId(option.id)}
+                                                    onClick={() => { selectedExpirationIdSignal.value = option.id; }}
                                                     aria-pressed={isSelected}
                                                     variant={isSelected ? 'primary' : 'secondary'}
                                                     size='sm'

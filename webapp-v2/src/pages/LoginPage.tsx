@@ -2,6 +2,7 @@ import { Button, Checkbox } from '@/components/ui';
 import { STORAGE_KEYS } from '@/constants.ts';
 import { navigationService } from '@/services/navigation.service';
 import { EmailSchema, toEmail, toPassword } from '@billsplit-wl/shared';
+import { signal } from '@preact/signals';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
@@ -17,22 +18,24 @@ export function LoginPage() {
     const { t } = useTranslation();
     const authStore = useAuthRequired();
 
-    // Access signal values directly in JSX for reactivity (Preact signals auto-subscribe)
-    // Note: Do NOT use useComputed here - it breaks reactivity when passed to child components
-
-    // Component state with sessionStorage persistence
-    const [email, setEmail] = useState(() => {
+    // Component-local signals - initialized within useState to avoid stale state across instances
+    const [emailSignal] = useState(() => {
         if (typeof window === 'undefined') {
-            return '';
+            return signal('');
         }
         try {
-            return sessionStorage.getItem(STORAGE_KEYS.LOGIN_EMAIL) || '';
+            return signal(sessionStorage.getItem(STORAGE_KEYS.LOGIN_EMAIL) || '');
         } catch {
-            return '';
+            return signal('');
         }
     });
-    const [password, setPassword] = useState('');
-    const [rememberMe, setRememberMe] = useState(false);
+    const [passwordSignal] = useState(() => signal(''));
+    const [rememberMeSignal] = useState(() => signal(false));
+
+    // Extract signal values for use in render
+    const email = emailSignal.value;
+    const password = passwordSignal.value;
+    const rememberMe = rememberMeSignal.value;
 
     // Persist to sessionStorage on changes
     useEffect(() => {
@@ -101,8 +104,8 @@ export function LoginPage() {
     const handleFillForm = async (defaultEmail: string, defaultPassword: string): Promise<void> => {
         return new Promise((resolve) => {
             fillFormResolver.current = resolve;
-            setEmail(defaultEmail);
-            setPassword(defaultPassword);
+            emailSignal.value = defaultEmail;
+            passwordSignal.value = defaultPassword;
         });
     };
 
@@ -122,15 +125,15 @@ export function LoginPage() {
     return (
         <AuthLayout title={t('loginPage.title')} description={t('loginPage.description')}>
             <AuthForm onSubmit={handleSubmit} error={errorValue} disabled={loadingValue}>
-                <EmailInput value={email} onInput={setEmail} autoFocus disabled={loadingValue} />
+                <EmailInput value={email} onInput={(value) => { emailSignal.value = value; }} autoFocus disabled={loadingValue} />
 
-                <FloatingPasswordInput value={password} onInput={setPassword} disabled={loadingValue} autoComplete='off' />
+                <FloatingPasswordInput value={password} onInput={(value) => { passwordSignal.value = value; }} disabled={loadingValue} autoComplete='off' />
 
                 <div class='flex items-center justify-between'>
                     <Checkbox
                         label={t('loginPage.rememberMe')}
                         checked={rememberMe}
-                        onChange={setRememberMe}
+                        onChange={(checked) => { rememberMeSignal.value = checked; }}
                         disabled={loadingValue}
                         data-testid='remember-me-checkbox'
                     />

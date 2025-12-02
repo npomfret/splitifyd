@@ -6,6 +6,7 @@ import { Modal } from '@/components/ui/Modal';
 import { logError } from '@/utils/browser-logger.ts';
 import { translateApiError } from '@/utils/error-translation';
 import { GroupDTO, GroupMember, GroupMembershipDTO, GroupPermissions, MemberRole, PermissionLevels, SecurityPreset, toDisplayName, toGroupName, UserId } from '@billsplit-wl/shared';
+import { signal } from '@preact/signals';
 import { useComputed } from '@preact/signals';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
@@ -117,60 +118,93 @@ export function GroupSettingsModal({
         return availableTabs[0] ?? null;
     }, [availableTabs, initialTab]);
 
-    const [activeTab, setActiveTab] = useState<GroupSettingsTab | null>(defaultTab);
+    // Component-local signals - initialized within useState to avoid stale state across instances
+    const [activeTabSignal] = useState(() => signal<GroupSettingsTab | null>(defaultTab));
 
-    // General settings state
-    const [groupName, setGroupName] = useState('');
-    const [groupDescription, setGroupDescription] = useState('');
-    const [initialName, setInitialName] = useState('');
-    const [initialDescription, setInitialDescription] = useState('');
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [validationError, setValidationError] = useState<string | null>(null);
-    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-    const [deleteError, setDeleteError] = useState<string | null>(null);
-    const [confirmationText, setConfirmationText] = useState('');
-    const [isDeleting, setIsDeleting] = useState(false);
-    const [generalSuccessMessage, setGeneralSuccessMessage] = useState<string | null>(null);
+    // General settings state signals
+    const [groupNameSignal] = useState(() => signal(''));
+    const [groupDescriptionSignal] = useState(() => signal(''));
+    const [initialNameSignal] = useState(() => signal(''));
+    const [initialDescriptionSignal] = useState(() => signal(''));
+    const [isSubmittingSignal] = useState(() => signal(false));
+    const [validationErrorSignal] = useState(() => signal<string | null>(null));
+    const [showDeleteConfirmSignal] = useState(() => signal(false));
+    const [deleteErrorSignal] = useState(() => signal<string | null>(null));
+    const [confirmationTextSignal] = useState(() => signal(''));
+    const [isDeletingSignal] = useState(() => signal(false));
+    const [generalSuccessMessageSignal] = useState(() => signal<string | null>(null));
     const generalSuccessTimerRef = useRef<number | null>(null);
 
-    // Display name settings state
-    const [displayName, setDisplayName] = useState('');
-    const [initialDisplayName, setInitialDisplayName] = useState('');
-    const [displayNameValidationError, setDisplayNameValidationError] = useState<string | null>(null);
-    const [displayNameServerError, setDisplayNameServerError] = useState<string | null>(null);
-    const [displayNameSuccessMessage, setDisplayNameSuccessMessage] = useState<string | null>(null);
-    const [isSavingDisplayName, setIsSavingDisplayName] = useState(false);
+    // Display name settings state signals
+    const [displayNameSignal] = useState(() => signal(''));
+    const [initialDisplayNameSignal] = useState(() => signal(''));
+    const [displayNameValidationErrorSignal] = useState(() => signal<string | null>(null));
+    const [displayNameServerErrorSignal] = useState(() => signal<string | null>(null));
+    const [displayNameSuccessMessageSignal] = useState(() => signal<string | null>(null));
+    const [isSavingDisplayNameSignal] = useState(() => signal(false));
     const displayNameSuccessTimerRef = useRef<number | null>(null);
 
-    // Security settings state
-    const [permissionDraft, setPermissionDraft] = useState<GroupPermissions>({ ...group.permissions });
-    const [selectedPreset, setSelectedPreset] = useState<ManagedPreset | 'custom'>(determinePreset(group.permissions));
-    const [isSavingSecurity, setIsSavingSecurity] = useState(false);
-    const [pendingMembers, setPendingMembers] = useState<GroupMembershipDTO[]>([]);
-    const [loadingPending, setLoadingPending] = useState(false);
-    const [pendingError, setPendingError] = useState<string | null>(null);
-    const [actionError, setActionError] = useState<string | null>(null);
-    const [pendingActionMember, setPendingActionMember] = useState<string | null>(null);
-    const [initialPermissions, setInitialPermissions] = useState<GroupPermissions>({ ...group.permissions });
-    const [permissionsSuccessMessage, setPermissionsSuccessMessage] = useState<string | null>(null);
+    // Security settings state signals
+    const [permissionDraftSignal] = useState(() => signal<GroupPermissions>({ ...group.permissions }));
+    const [selectedPresetSignal] = useState(() => signal<ManagedPreset | 'custom'>(determinePreset(group.permissions)));
+    const [isSavingSecuritySignal] = useState(() => signal(false));
+    const [pendingMembersSignal] = useState(() => signal<GroupMembershipDTO[]>([]));
+    const [loadingPendingSignal] = useState(() => signal(false));
+    const [pendingErrorSignal] = useState(() => signal<string | null>(null));
+    const [actionErrorSignal] = useState(() => signal<string | null>(null));
+    const [pendingActionMemberSignal] = useState(() => signal<string | null>(null));
+    const [initialPermissionsSignal] = useState(() => signal<GroupPermissions>({ ...group.permissions }));
+    const [permissionsSuccessMessageSignal] = useState(() => signal<string | null>(null));
     const permissionsSuccessTimerRef = useRef<number | null>(null);
-    const [memberRoleDrafts, setMemberRoleDrafts] = useState<Record<string, MemberRole>>({});
-    const [initialMemberRoles, setInitialMemberRoles] = useState<Record<string, MemberRole>>({});
+    const [memberRoleDraftsSignal] = useState(() => signal<Record<string, MemberRole>>({}));
+    const [initialMemberRolesSignal] = useState(() => signal<Record<string, MemberRole>>({}));
+
+    // Extract signal values for use in render
+    const activeTab = activeTabSignal.value;
+    const groupName = groupNameSignal.value;
+    const groupDescription = groupDescriptionSignal.value;
+    const initialName = initialNameSignal.value;
+    const initialDescription = initialDescriptionSignal.value;
+    const isSubmitting = isSubmittingSignal.value;
+    const validationError = validationErrorSignal.value;
+    const showDeleteConfirm = showDeleteConfirmSignal.value;
+    const deleteError = deleteErrorSignal.value;
+    const confirmationText = confirmationTextSignal.value;
+    const isDeleting = isDeletingSignal.value;
+    const generalSuccessMessage = generalSuccessMessageSignal.value;
+    const displayName = displayNameSignal.value;
+    const initialDisplayName = initialDisplayNameSignal.value;
+    const displayNameValidationError = displayNameValidationErrorSignal.value;
+    const displayNameServerError = displayNameServerErrorSignal.value;
+    const displayNameSuccessMessage = displayNameSuccessMessageSignal.value;
+    const isSavingDisplayName = isSavingDisplayNameSignal.value;
+    const permissionDraft = permissionDraftSignal.value;
+    const selectedPreset = selectedPresetSignal.value;
+    const isSavingSecurity = isSavingSecuritySignal.value;
+    const pendingMembers = pendingMembersSignal.value;
+    const loadingPending = loadingPendingSignal.value;
+    const pendingError = pendingErrorSignal.value;
+    const actionError = actionErrorSignal.value;
+    const pendingActionMember = pendingActionMemberSignal.value;
+    const initialPermissions = initialPermissionsSignal.value;
+    const permissionsSuccessMessage = permissionsSuccessMessageSignal.value;
+    const memberRoleDrafts = memberRoleDraftsSignal.value;
+    const initialMemberRoles = initialMemberRolesSignal.value;
 
     const clearGeneralSuccessMessage = useCallback(() => {
         if (generalSuccessTimerRef.current) {
             window.clearTimeout(generalSuccessTimerRef.current);
             generalSuccessTimerRef.current = null;
         }
-        setGeneralSuccessMessage(null);
+        generalSuccessMessageSignal.value = null;
     }, []);
 
     const showGeneralSuccess = useCallback(
         (message: string) => {
             clearGeneralSuccessMessage();
-            setGeneralSuccessMessage(message);
+            generalSuccessMessageSignal.value = message;
             generalSuccessTimerRef.current = window.setTimeout(() => {
-                setGeneralSuccessMessage(null);
+                generalSuccessMessageSignal.value = null;
                 generalSuccessTimerRef.current = null;
             }, 4000);
         },
@@ -182,15 +216,15 @@ export function GroupSettingsModal({
             window.clearTimeout(permissionsSuccessTimerRef.current);
             permissionsSuccessTimerRef.current = null;
         }
-        setPermissionsSuccessMessage(null);
+        permissionsSuccessMessageSignal.value = null;
     }, []);
 
     const showPermissionsSuccess = useCallback(
         (message: string) => {
             clearPermissionsSuccessMessage();
-            setPermissionsSuccessMessage(message);
+            permissionsSuccessMessageSignal.value = message;
             permissionsSuccessTimerRef.current = window.setTimeout(() => {
-                setPermissionsSuccessMessage(null);
+                permissionsSuccessMessageSignal.value = null;
                 permissionsSuccessTimerRef.current = null;
             }, 4000);
         },
@@ -199,7 +233,7 @@ export function GroupSettingsModal({
 
     useEffect(() => {
         if (isOpen) {
-            setActiveTab(defaultTab);
+            activeTabSignal.value = defaultTab;
         }
     }, [isOpen, defaultTab]);
 
@@ -237,10 +271,10 @@ export function GroupSettingsModal({
 
         const fallbackName = member.groupDisplayName.trim() || currentUser.value?.displayName || '';
 
-        setDisplayName(fallbackName);
-        setInitialDisplayName(fallbackName);
-        setDisplayNameValidationError(null);
-        setDisplayNameServerError(null);
+        displayNameSignal.value = fallbackName;
+        initialDisplayNameSignal.value = fallbackName;
+        displayNameValidationErrorSignal.value = null;
+        displayNameServerErrorSignal.value = null;
     }, [isOpen, members, currentUser.value]);
 
     useEffect(() => {
@@ -263,15 +297,15 @@ export function GroupSettingsModal({
         // Don't clear success message - let it auto-dismiss via timer
         // This prevents race condition where group refresh clears the message
 
-        setInitialName(group.name);
-        setInitialDescription(group.description || '');
-        setGroupName(group.name);
-        setGroupDescription(group.description || '');
-        setValidationError(null);
-        setDeleteError(null);
-        setShowDeleteConfirm(false);
-        setConfirmationText('');
-        setIsDeleting(false);
+        initialNameSignal.value = group.name;
+        initialDescriptionSignal.value = group.description || '';
+        groupNameSignal.value = group.name;
+        groupDescriptionSignal.value = group.description || '';
+        validationErrorSignal.value = null;
+        deleteErrorSignal.value = null;
+        showDeleteConfirmSignal.value = false;
+        confirmationTextSignal.value = '';
+        isDeletingSignal.value = false;
     }, [isOpen, canManageGeneralSettings, group.name, group.description]);
 
     const loadPendingMembers = useCallback(async () => {
@@ -279,16 +313,16 @@ export function GroupSettingsModal({
             return;
         }
 
-        setLoadingPending(true);
-        setPendingError(null);
+        loadingPendingSignal.value = true;
+        pendingErrorSignal.value = null;
         try {
             const results = await apiClient.getPendingMembers(group.id);
-            setPendingMembers(results);
+            pendingMembersSignal.value = results;
         } catch (error) {
             logError('Failed to load pending members', error, { groupId: group.id });
-            setPendingError(t('securitySettingsModal.errors.loadPending'));
+            pendingErrorSignal.value = t('securitySettingsModal.errors.loadPending');
         } finally {
-            setLoadingPending(false);
+            loadingPendingSignal.value = false;
         }
     }, [canApproveMembers, group.id, t]);
 
@@ -305,17 +339,17 @@ export function GroupSettingsModal({
             roleMap[member.uid] = member.memberRole;
         });
 
-        setPermissionDraft({ ...group.permissions });
-        setInitialPermissions({ ...group.permissions });
-        setSelectedPreset(determinePreset(group.permissions));
-        setActionError(null);
-        setMemberRoleDrafts(roleMap);
-        setInitialMemberRoles(roleMap);
+        permissionDraftSignal.value = { ...group.permissions };
+        initialPermissionsSignal.value = { ...group.permissions };
+        selectedPresetSignal.value = determinePreset(group.permissions);
+        actionErrorSignal.value = null;
+        memberRoleDraftsSignal.value = roleMap;
+        initialMemberRolesSignal.value = roleMap;
 
         if (canApproveMembers) {
             loadPendingMembers();
         } else {
-            setPendingMembers([]);
+            pendingMembersSignal.value = [];
         }
     }, [isOpen, securityTabAvailable, group.permissions, members, canApproveMembers, loadPendingMembers]);
 
@@ -340,15 +374,15 @@ export function GroupSettingsModal({
     const hasGeneralChanges = groupName !== initialName || groupDescription !== initialDescription;
     const isGeneralFormValid = groupName.trim().length >= 2;
     const handleDisplayNameChange = (value: string) => {
-        setDisplayName(value);
+        displayNameSignal.value = value;
         if (displayNameValidationError) {
-            setDisplayNameValidationError(null);
+            displayNameValidationErrorSignal.value = null;
         }
         if (displayNameServerError) {
-            setDisplayNameServerError(null);
+            displayNameServerErrorSignal.value = null;
         }
         if (displayNameSuccessMessage) {
-            setDisplayNameSuccessMessage(null);
+            displayNameSuccessMessageSignal.value = null;
         }
     };
 
@@ -358,49 +392,49 @@ export function GroupSettingsModal({
         const trimmedName = displayName.trim();
 
         if (!trimmedName) {
-            setDisplayNameValidationError(t('groupDisplayNameSettings.errors.required'));
+            displayNameValidationErrorSignal.value = t('groupDisplayNameSettings.errors.required');
             return;
         }
 
         if (trimmedName.length > 50) {
-            setDisplayNameValidationError(t('groupDisplayNameSettings.errors.tooLong'));
+            displayNameValidationErrorSignal.value = t('groupDisplayNameSettings.errors.tooLong');
             return;
         }
 
         if (trimmedName === initialDisplayName) {
-            setDisplayNameValidationError(t('groupDisplayNameSettings.errors.notChanged'));
+            displayNameValidationErrorSignal.value = t('groupDisplayNameSettings.errors.notChanged');
             return;
         }
 
-        setIsSavingDisplayName(true);
-        setDisplayNameValidationError(null);
-        setDisplayNameServerError(null);
-        setDisplayNameSuccessMessage(null);
+        isSavingDisplayNameSignal.value = true;
+        displayNameValidationErrorSignal.value = null;
+        displayNameServerErrorSignal.value = null;
+        displayNameSuccessMessageSignal.value = null;
 
         try {
             await apiClient.updateGroupMemberDisplayName(group.id, toDisplayName(trimmedName));
             await enhancedGroupDetailStore.refreshAll();
             await onGroupUpdated?.();
 
-            setInitialDisplayName(trimmedName);
-            setDisplayNameSuccessMessage(t('groupDisplayNameSettings.success'));
+            initialDisplayNameSignal.value = trimmedName;
+            displayNameSuccessMessageSignal.value = t('groupDisplayNameSettings.success');
 
             if (displayNameSuccessTimerRef.current) {
                 window.clearTimeout(displayNameSuccessTimerRef.current);
             }
 
             displayNameSuccessTimerRef.current = window.setTimeout(() => {
-                setDisplayNameSuccessMessage(null);
+                displayNameSuccessMessageSignal.value = null;
                 displayNameSuccessTimerRef.current = null;
             }, 4000);
         } catch (error: unknown) {
             if (error instanceof ApiError && error.code === 'DISPLAY_NAME_TAKEN') {
-                setDisplayNameServerError(t('groupDisplayNameSettings.errors.taken'));
+                displayNameServerErrorSignal.value = t('groupDisplayNameSettings.errors.taken');
             } else {
-                setDisplayNameServerError(translateApiError(error, t, t('groupDisplayNameSettings.errors.unknown')));
+                displayNameServerErrorSignal.value = translateApiError(error, t, t('groupDisplayNameSettings.errors.unknown'));
             }
         } finally {
-            setIsSavingDisplayName(false);
+            isSavingDisplayNameSignal.value = false;
         }
     };
 
@@ -409,7 +443,7 @@ export function GroupSettingsModal({
 
         const errorMessage = validateGeneralForm();
         if (errorMessage) {
-            setValidationError(errorMessage);
+            validationErrorSignal.value = errorMessage;
             return;
         }
 
@@ -417,8 +451,8 @@ export function GroupSettingsModal({
             return;
         }
 
-        setIsSubmitting(true);
-        setValidationError(null);
+        isSubmittingSignal.value = true;
+        validationErrorSignal.value = null;
 
         try {
             const trimmedName = toGroupName(groupName.trim());
@@ -429,32 +463,32 @@ export function GroupSettingsModal({
                 description: trimmedDescription ? trimmedDescription : undefined,
             });
 
-            setInitialName(trimmedName);
-            setInitialDescription(trimmedDescription);
-            setGroupName(trimmedName);
-            setGroupDescription(trimmedDescription);
+            initialNameSignal.value = trimmedName;
+            initialDescriptionSignal.value = trimmedDescription;
+            groupNameSignal.value = trimmedName;
+            groupDescriptionSignal.value = trimmedDescription;
             showGeneralSuccess(t('editGroupModal.success.updated'));
             await onGroupUpdated?.();
         } catch (error: unknown) {
-            setValidationError(translateApiError(error, t, t('editGroupModal.validation.updateFailed')));
+            validationErrorSignal.value = translateApiError(error, t, t('editGroupModal.validation.updateFailed'));
         } finally {
-            setIsSubmitting(false);
+            isSubmittingSignal.value = false;
         }
     };
 
     const handleDeleteClick = () => {
-        setShowDeleteConfirm(true);
-        setDeleteError(null);
-        setConfirmationText('');
+        showDeleteConfirmSignal.value = true;
+        deleteErrorSignal.value = null;
+        confirmationTextSignal.value = '';
     };
 
     const handleDeleteConfirm = async () => {
-        setIsDeleting(true);
-        setDeleteError(null);
+        isDeletingSignal.value = true;
+        deleteErrorSignal.value = null;
 
         try {
             enhancedGroupDetailStore.setDeletingGroup(true);
-            setShowDeleteConfirm(false);
+            showDeleteConfirmSignal.value = false;
             onDelete?.();
             onClose();
 
@@ -462,16 +496,16 @@ export function GroupSettingsModal({
                 logError('Group deletion failed after redirect', error, { groupId: group.id });
             });
         } catch (error: unknown) {
-            setDeleteError(translateApiError(error, t, t('editGroupModal.deleteConfirmDialog.deleteFailed')));
+            deleteErrorSignal.value = translateApiError(error, t, t('editGroupModal.deleteConfirmDialog.deleteFailed'));
             enhancedGroupDetailStore.setDeletingGroup(false);
-            setIsDeleting(false);
+            isDeletingSignal.value = false;
         }
     };
 
     const handleDeleteCancel = () => {
-        setShowDeleteConfirm(false);
-        setDeleteError(null);
-        setConfirmationText('');
+        showDeleteConfirmSignal.value = false;
+        deleteErrorSignal.value = null;
+        confirmationTextSignal.value = '';
     };
 
     const hasPermissionChanges = useMemo(() => {
@@ -486,10 +520,10 @@ export function GroupSettingsModal({
 
     const applyPreset = (preset: ManagedPreset) => {
         clearPermissionsSuccessMessage();
-        setActionError(null);
+        actionErrorSignal.value = null;
         const updatedPermissions = { ...PRESET_PERMISSIONS[preset] };
-        setPermissionDraft(updatedPermissions);
-        setSelectedPreset(preset);
+        permissionDraftSignal.value = updatedPermissions;
+        selectedPresetSignal.value = preset;
     };
 
     const saveSecuritySettings = async () => {
@@ -497,8 +531,8 @@ export function GroupSettingsModal({
             return;
         }
 
-        setIsSavingSecurity(true);
-        setActionError(null);
+        isSavingSecuritySignal.value = true;
+        actionErrorSignal.value = null;
         try {
             const updatedPermissions = { ...permissionDraft };
             if (hasPermissionChanges) {
@@ -516,46 +550,46 @@ export function GroupSettingsModal({
 
             await onGroupUpdated?.();
 
-            setInitialPermissions(updatedPermissions);
-            setSelectedPreset(determinePreset(updatedPermissions));
+            initialPermissionsSignal.value = updatedPermissions;
+            selectedPresetSignal.value = determinePreset(updatedPermissions);
 
             const nextRoleState: Record<string, MemberRole> = {};
             members.forEach((member) => {
                 const draftRole = memberRoleDrafts[member.uid];
                 nextRoleState[member.uid] = draftRole ?? member.memberRole;
             });
-            setInitialMemberRoles(nextRoleState);
-            setMemberRoleDrafts(nextRoleState);
+            initialMemberRolesSignal.value = nextRoleState;
+            memberRoleDraftsSignal.value = nextRoleState;
 
             showPermissionsSuccess(t('securitySettingsModal.success.updated'));
         } catch (error) {
             logError('Failed to update security settings', error, { groupId: group.id });
-            setActionError(t('securitySettingsModal.errors.updatePermissions'));
+            actionErrorSignal.value = t('securitySettingsModal.errors.updatePermissions');
         } finally {
-            setIsSavingSecurity(false);
+            isSavingSecuritySignal.value = false;
         }
     };
 
     const handlePermissionChange = (key: keyof GroupPermissions, value: string) => {
         clearPermissionsSuccessMessage();
-        setPermissionDraft((previous) => ({
-            ...previous,
+        permissionDraftSignal.value = {
+            ...permissionDraftSignal.value,
             [key]: value,
-        }));
-        setSelectedPreset('custom');
+        };
+        selectedPresetSignal.value = 'custom';
     };
 
     const updateMemberRoleDraft = (memberId: string, newRole: MemberRole) => {
         clearPermissionsSuccessMessage();
-        setMemberRoleDrafts((previous) => ({
-            ...previous,
+        memberRoleDraftsSignal.value = {
+            ...memberRoleDraftsSignal.value,
             [memberId]: newRole,
-        }));
+        };
     };
 
     const handlePendingAction = async (memberId: UserId, action: 'approve' | 'reject') => {
-        setPendingActionMember(memberId);
-        setActionError(null);
+        pendingActionMemberSignal.value = memberId;
+        actionErrorSignal.value = null;
         try {
             if (action === 'approve') {
                 await apiClient.approveMember(group.id, memberId);
@@ -566,9 +600,9 @@ export function GroupSettingsModal({
             await onGroupUpdated?.();
         } catch (error) {
             logError('Failed to process pending member', error, { memberId, action, groupId: group.id });
-            setActionError(t('securitySettingsModal.errors.pendingAction'));
+            actionErrorSignal.value = t('securitySettingsModal.errors.pendingAction');
         } finally {
-            setPendingActionMember(null);
+            pendingActionMemberSignal.value = null;
         }
     };
 
@@ -661,8 +695,8 @@ export function GroupSettingsModal({
                             placeholder={t('editGroupModal.groupNamePlaceholder')}
                             value={groupName}
                             onChange={(value) => {
-                                setGroupName(value);
-                                setValidationError(null);
+                                groupNameSignal.value = value;
+                                validationErrorSignal.value = null;
                                 clearGeneralSuccessMessage();
                             }}
                             required
@@ -679,8 +713,8 @@ export function GroupSettingsModal({
                                 placeholder={t('editGroupModal.descriptionPlaceholder')}
                                 value={groupDescription}
                                 onInput={(event) => {
-                                    setGroupDescription((event.target as HTMLTextAreaElement).value);
-                                    setValidationError(null);
+                                    groupDescriptionSignal.value = (event.target as HTMLTextAreaElement).value;
+                                    validationErrorSignal.value = null;
                                     clearGeneralSuccessMessage();
                                 }}
                                 disabled={isSubmitting}
@@ -929,7 +963,7 @@ export function GroupSettingsModal({
                                             as='button'
                                             key={tab}
                                             type='button'
-                                            onClick={() => setActiveTab(tab)}
+                                            onClick={() => { activeTabSignal.value = tab; }}
                                             className={`pb-2 text-sm font-medium border-b-2 transition-colors ${
                                                 isActive
                                                     ? 'border-interactive-primary text-interactive-primary'
@@ -984,7 +1018,7 @@ export function GroupSettingsModal({
 
                             <div className='mb-4'>
                                 <label className='block text-sm font-medium text-text-primary mb-2'>{t('editGroupModal.deleteConfirmDialog.typeToConfirm', { groupName: group.name })}</label>
-                                <Input type='text' placeholder={group.name} value={confirmationText} onChange={setConfirmationText} className='w-full' disabled={isDeleting} />
+                                <Input type='text' placeholder={group.name} value={confirmationText} onChange={(value) => { confirmationTextSignal.value = value; }} className='w-full' disabled={isDeleting} />
                             </div>
 
                             {deleteError && (

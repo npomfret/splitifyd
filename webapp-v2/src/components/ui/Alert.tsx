@@ -1,3 +1,4 @@
+import { signal } from '@preact/signals';
 import { useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Tooltip } from './Tooltip';
@@ -13,12 +14,13 @@ interface AlertProps {
 
 export function Alert({ type, title, message, dismissible = false, onDismiss, 'data-testid': testId }: AlertProps) {
     const { t } = useTranslation();
-    const [isVisible, setIsVisible] = useState(true);
+    // Component-local signal - initialized within useState to avoid stale state across instances
+    const [isVisibleSignal] = useState(() => signal(true));
 
-    if (!isVisible) return null;
+    if (!isVisibleSignal.value) return null;
 
     const handleDismiss = () => {
-        setIsVisible(false);
+        isVisibleSignal.value = false;
         onDismiss?.();
     };
 

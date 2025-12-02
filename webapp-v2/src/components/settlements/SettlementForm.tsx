@@ -23,6 +23,7 @@ import {
     UserId,
     ZERO,
 } from '@billsplit-wl/shared';
+import { signal } from '@preact/signals';
 import { useComputed } from '@preact/signals';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
@@ -55,20 +56,32 @@ interface SettlementFormProps {
 export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSuccess, editMode = false, settlementToEdit }: SettlementFormProps) {
     const { t } = useTranslation();
     const authStore = useAuthRequired();
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [validationError, setValidationError] = useState<string | null>(null);
-    const [warningMessage, setWarningMessage] = useState<string | null>(null);
     const modalRef = useRef<HTMLDivElement>(null);
-
-    // Form state - converted from module-level signals to component state
-    const [payerId, setPayerId] = useState<UserId | ''>('');
-    const [payeeId, setPayeeId] = useState<UserId | ''>('');
-    const [amount, setAmount] = useState(ZERO);
-    const [currency, setCurrency] = useState('');
-    const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-    const [note, setNote] = useState('');
-    const [amountPrecisionError, setAmountPrecisionError] = useState<string | null>(null);
     const previousIsOpenRef = useRef(isOpen);
+
+    // Component-local signals - initialized within useState to avoid stale state across instances
+    const [isSubmittingSignal] = useState(() => signal(false));
+    const [validationErrorSignal] = useState(() => signal<string | null>(null));
+    const [warningMessageSignal] = useState(() => signal<string | null>(null));
+    const [payerIdSignal] = useState(() => signal<UserId | ''>(''));
+    const [payeeIdSignal] = useState(() => signal<UserId | ''>(''));
+    const [amountSignal] = useState(() => signal(ZERO));
+    const [currencySignal] = useState(() => signal(''));
+    const [dateSignal] = useState(() => signal(new Date().toISOString().split('T')[0]));
+    const [noteSignal] = useState(() => signal(''));
+    const [amountPrecisionErrorSignal] = useState(() => signal<string | null>(null));
+
+    // Extract signal values for use in render
+    const isSubmitting = isSubmittingSignal.value;
+    const validationError = validationErrorSignal.value;
+    const warningMessage = warningMessageSignal.value;
+    const payerId = payerIdSignal.value;
+    const payeeId = payeeIdSignal.value;
+    const amount = amountSignal.value;
+    const currency = currencySignal.value;
+    const date = dateSignal.value;
+    const note = noteSignal.value;
+    const amountPrecisionError = amountPrecisionErrorSignal.value;
 
     const currentUser = authStore.user;
     const members = enhancedGroupDetailStore.members || [];
@@ -96,29 +109,29 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
             if (editMode && settlementToEdit) {
                 // Check if settlement is locked
                 if (settlementToEdit.isLocked) {
-                    setValidationError(t('settlementForm.errors.settlementLocked'));
-                    setIsSubmitting(false);
+                    validationErrorSignal.value = t('settlementForm.errors.settlementLocked');
+                    isSubmittingSignal.value = false;
                     return;
                 }
 
                 // Pre-populate form with settlement data for editing
-                setPayerId(settlementToEdit.payer.uid);
-                setPayeeId(settlementToEdit.payee.uid);
-                setAmount(settlementToEdit.amount);
-                setCurrency(settlementToEdit.currency);
-                setDate(settlementToEdit.date.split('T')[0]);
-                setNote(settlementToEdit.note || '');
+                payerIdSignal.value = settlementToEdit.payer.uid;
+                payeeIdSignal.value = settlementToEdit.payee.uid;
+                amountSignal.value = settlementToEdit.amount;
+                currencySignal.value = settlementToEdit.currency;
+                dateSignal.value = settlementToEdit.date.split('T')[0];
+                noteSignal.value = settlementToEdit.note || '';
             } else if (preselectedDebt && preselectedDebt.from && preselectedDebt.to && currentUser) {
-                setPayerId(preselectedDebt.from.uid);
-                setPayeeId(preselectedDebt.to.uid);
-                setAmount(preselectedDebt.amount);
-                setCurrency(preselectedDebt.currency);
-                setDate(new Date().toISOString().split('T')[0]);
-                setNote('');
+                payerIdSignal.value = preselectedDebt.from.uid;
+                payeeIdSignal.value = preselectedDebt.to.uid;
+                amountSignal.value = preselectedDebt.amount;
+                currencySignal.value = preselectedDebt.currency;
+                dateSignal.value = new Date().toISOString().split('T')[0];
+                noteSignal.value = '';
             } else if (currentUser) {
-                setPayerId(currentUser.uid);
-                setPayeeId('');
-                setAmount(ZERO);
+                payerIdSignal.value = currentUser.uid;
+                payeeIdSignal.value = '';
+                amountSignal.value = ZERO;
                 // Determine currency from existing group balances or recent expenses
                 const expenses = enhancedGroupDetailStore.expenses;
                 let detectedCurrency = '';
@@ -135,12 +148,12 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                 }
 
                 // Force user to select currency - no defaults allowed
-                setCurrency(detectedCurrency); // Will be empty string if no currency can be detected
-                setDate(new Date().toISOString().split('T')[0]);
-                setNote('');
+                currencySignal.value = detectedCurrency; // Will be empty string if no currency can be detected
+                dateSignal.value = new Date().toISOString().split('T')[0];
+                noteSignal.value = '';
             }
-            setValidationError(null);
-            setAmountPrecisionError(null);
+            validationErrorSignal.value = null;
+            amountPrecisionErrorSignal.value = null;
         }
     }, [isOpen, editMode, settlementToEdit, preselectedDebt, currentUser]); // Include all dependencies
 
@@ -188,19 +201,19 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
 
     useEffect(() => {
         if (amountPrecisionError) {
-            setWarningMessage(null);
+            warningMessageSignal.value = null;
             return;
         }
 
         if (!payerId || !payeeId || !currency || !amount) {
-            setWarningMessage(null);
+            warningMessageSignal.value = null;
             return;
         }
 
         const normalizedAmount = normalizeAmount(amount, toCurrencyISOCode(currency));
         const amountUnits = amountToSmallestUnit(normalizedAmount, toCurrencyISOCode(currency));
         if (amountUnits <= 0) {
-            setWarningMessage(null);
+            warningMessageSignal.value = null;
             return;
         }
 
@@ -210,21 +223,19 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
         if (currentDebtUnits === 0) {
             const payerName = getMemberName(payerId);
             const payeeName = getMemberName(payeeId);
-            setWarningMessage(t('settlementForm.warnings.noDebt', { payer: payerName, payee: payeeName, currency }));
+            warningMessageSignal.value = t('settlementForm.warnings.noDebt', { payer: payerName, payee: payeeName, currency });
             return;
         }
 
         if (amountUnits > currentDebtUnits) {
             const payerName = getMemberName(payerId);
             const payeeName = getMemberName(payeeId);
-            setWarningMessage(
-                t('settlementForm.warnings.overpayment', {
-                    payer: payerName,
-                    payee: payeeName,
-                    debt: formatCurrency(currentDebt, toCurrencyISOCode(currency)),
-                    amount: formatCurrency(normalizedAmount, toCurrencyISOCode(currency)),
-                }),
-            );
+            warningMessageSignal.value = t('settlementForm.warnings.overpayment', {
+                payer: payerName,
+                payee: payeeName,
+                debt: formatCurrency(currentDebt, toCurrencyISOCode(currency)),
+                amount: formatCurrency(normalizedAmount, toCurrencyISOCode(currency)),
+            });
             return;
         }
 
@@ -233,28 +244,26 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
             const payeeName = getMemberName(payeeId);
             const remainingUnits = currentDebtUnits - amountUnits;
             const remainingAmount = smallestUnitToAmountString(remainingUnits, toCurrencyISOCode(currency));
-            setWarningMessage(
-                t('settlementForm.warnings.underpayment', {
-                    payer: payerName,
-                    payee: payeeName,
-                    amount: formatCurrency(normalizedAmount, toCurrencyISOCode(currency)),
-                    remaining: formatCurrency(remainingAmount, toCurrencyISOCode(currency)),
-                }),
-            );
+            warningMessageSignal.value = t('settlementForm.warnings.underpayment', {
+                payer: payerName,
+                payee: payeeName,
+                amount: formatCurrency(normalizedAmount, toCurrencyISOCode(currency)),
+                remaining: formatCurrency(remainingAmount, toCurrencyISOCode(currency)),
+            });
             return;
         }
 
-        setWarningMessage(null);
+        warningMessageSignal.value = null;
     }, [payerId, payeeId, amount, currency, balances.value, amountPrecisionError, t]);
 
     const recalculatePrecisionError = (amountValue: string, currencyCode: string) => {
         if (!currencyCode || !amountValue || amountValue.trim() === '') {
-            setAmountPrecisionError(null);
+            amountPrecisionErrorSignal.value = null;
             return;
         }
 
         const precisionMessage = getAmountPrecisionError(amountValue, toCurrencyISOCode(currencyCode));
-        setAmountPrecisionError(precisionMessage);
+        amountPrecisionErrorSignal.value = precisionMessage;
     };
 
     const handleBackdropClick = (e: Event) => {
@@ -320,14 +329,14 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
     const handleSubmit = async (e: Event) => {
         e.preventDefault();
 
-        const validationError = validateForm();
-        if (validationError) {
-            setValidationError(validationError);
+        const formValidationError = validateForm();
+        if (formValidationError) {
+            validationErrorSignal.value = formValidationError;
             return;
         }
 
-        setIsSubmitting(true);
-        setValidationError(null);
+        isSubmittingSignal.value = true;
+        validationErrorSignal.value = null;
 
         try {
             if (editMode && settlementToEdit) {
@@ -364,9 +373,9 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
             }
             onClose();
         } catch (error: unknown) {
-            setValidationError(translateApiError(error, t, t('settlementForm.validation.recordPaymentFailed')));
+            validationErrorSignal.value = translateApiError(error, t, t('settlementForm.validation.recordPaymentFailed'));
         } finally {
-            setIsSubmitting(false);
+            isSubmittingSignal.value = false;
         }
     };
 
@@ -454,12 +463,12 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                         key={`${debt.to.uid}-${debt.currency}`}
                                         type='button'
                                         onClick={() => {
-                                            setPayerId(debt.from.uid);
-                                            setPayeeId(debt.to.uid);
-                                            setAmount(debt.amount);
-                                            setCurrency(debt.currency);
-                                            setDate(new Date().toISOString().split('T')[0]);
-                                            setNote('');
+                                            payerIdSignal.value = debt.from.uid;
+                                            payeeIdSignal.value = debt.to.uid;
+                                            amountSignal.value = debt.amount;
+                                            currencySignal.value = debt.currency;
+                                            dateSignal.value = new Date().toISOString().split('T')[0];
+                                            noteSignal.value = '';
                                             recalculatePrecisionError(debt.amount, debt.currency);
                                         }}
                                         class='inline-flex items-center justify-start gap-2 px-4 py-2 bg-interactive-primary/10 border border-border-default rounded-lg text-sm font-medium text-text-primary hover:bg-surface-muted hover:border-interactive-primary transition-colors focus:outline-none focus:ring-2 focus-visible:ring-interactive-primary w-full sm:w-[280px]'
@@ -503,7 +512,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                 value={payerId}
                                 onChange={(e) => {
                                     const value = (e.target as HTMLSelectElement).value;
-                                    setPayerId(value ? toUserId(value) : '');
+                                    payerIdSignal.value = value ? toUserId(value) : '';
                                 }}
                                 class='w-full px-3 py-2 border border-border-default rounded-md bg-surface-raised backdrop-blur-sm text-text-primary focus:outline-none focus:ring-2 focus-visible:ring-interactive-primary transition-colors duration-200'
                                 disabled={isSubmitting}
@@ -529,7 +538,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                 value={payeeId}
                                 onChange={(e) => {
                                     const value = (e.target as HTMLSelectElement).value;
-                                    setPayeeId(value ? toUserId(value) : '');
+                                    payeeIdSignal.value = value ? toUserId(value) : '';
                                 }}
                                 class='w-full px-3 py-2 border border-border-default rounded-md bg-surface-raised backdrop-blur-sm text-text-primary focus:outline-none focus:ring-2 focus-visible:ring-interactive-primary transition-colors duration-200'
                                 disabled={isSubmitting}
@@ -552,11 +561,11 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                 amount={amount || ZERO}
                                 currency={currency}
                                 onAmountChange={(value) => {
-                                    setAmount(value);
+                                    amountSignal.value = value;
                                     recalculatePrecisionError(value, currency);
                                 }}
                                 onCurrencyChange={(value) => {
-                                    setCurrency(value);
+                                    currencySignal.value = value;
                                     CurrencyService.getInstance().addToRecentCurrencies(toCurrencyISOCode(value));
                                     recalculatePrecisionError(amount, value);
                                 }}
@@ -584,7 +593,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                 data-testid='settlement-date-input'
                                 type='date'
                                 value={date}
-                                onInput={(e: Event) => setDate((e.target as HTMLInputElement).value)}
+                                onInput={(e: Event) => { dateSignal.value = (e.target as HTMLInputElement).value; }}
                                 max={new Date().toISOString().split('T')[0]}
                                 disabled={isSubmitting}
                                 required
@@ -604,7 +613,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                 type='text'
                                 placeholder={t('settlementForm.notePlaceholder')}
                                 value={note}
-                                onInput={(e: Event) => setNote((e.target as HTMLInputElement).value)}
+                                onInput={(e: Event) => { noteSignal.value = (e.target as HTMLInputElement).value; }}
                                 disabled={isSubmitting}
                                 maxLength={500}
                                 class='w-full px-3 py-2 border border-border-default rounded-md bg-surface-raised backdrop-blur-sm text-text-primary placeholder:text-text-muted/70 focus:outline-none focus:ring-2 focus-visible:ring-interactive-primary transition-colors duration-200'

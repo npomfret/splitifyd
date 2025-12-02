@@ -4,6 +4,7 @@ import { Clickable } from '@/components/ui/Clickable';
 import { Modal } from '@/components/ui/Modal';
 import { logError } from '@/utils/browser-logger.ts';
 import { PolicyId } from '@billsplit-wl/shared';
+import { signal } from '@preact/signals';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Button } from '../ui/Button';
@@ -20,12 +21,22 @@ interface PolicyAcceptanceModalProps {
 
 export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcceptanceModalProps) {
     const { t } = useTranslation();
-    const [acceptedPolicies, setAcceptedPolicies] = useState<Set<string>>(new Set());
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [currentPolicyIndex, setCurrentPolicyIndex] = useState(0);
-    const [policyContents, setPolicyContents] = useState<Record<string, string>>({});
-    const [loadingPolicy, setLoadingPolicy] = useState<string | null>(null);
+
+    // Component-local signals - initialized within useState to avoid stale state across instances
+    const [acceptedPoliciesSignal] = useState(() => signal<Set<string>>(new Set()));
+    const [loadingSignal] = useState(() => signal(false));
+    const [errorSignal] = useState(() => signal<string | null>(null));
+    const [currentPolicyIndexSignal] = useState(() => signal(0));
+    const [policyContentsSignal] = useState(() => signal<Record<string, string>>({}));
+    const [loadingPolicySignal] = useState(() => signal<string | null>(null));
+
+    // Extract signal values for use in render
+    const acceptedPolicies = acceptedPoliciesSignal.value;
+    const loading = loadingSignal.value;
+    const error = errorSignal.value;
+    const currentPolicyIndex = currentPolicyIndexSignal.value;
+    const policyContents = policyContentsSignal.value;
+    const loadingPolicy = loadingPolicySignal.value;
 
     const currentPolicy = policies[currentPolicyIndex];
     const totalPolicies = policies.length;
@@ -36,18 +47,18 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
     const loadPolicyContent = async (policyId: PolicyId) => {
         if (policyContents[policyId]) return; // Already loaded
 
-        setLoadingPolicy(policyId);
+        loadingPolicySignal.value = policyId;
         try {
             const policy = await apiClient.getCurrentPolicy(policyId);
-            setPolicyContents((prev) => ({
-                ...prev,
+            policyContentsSignal.value = {
+                ...policyContentsSignal.value,
                 [policyId]: policy.text,
-            }));
+            };
         } catch (err) {
             logError('Failed to load policy content', err as Error, { policyId });
-            setError(`Failed to load policy content: ${err instanceof Error ? err.message : 'Unknown error'}`);
+            errorSignal.value = `Failed to load policy content: ${err instanceof Error ? err.message : 'Unknown error'}`;
         } finally {
-            setLoadingPolicy(null);
+            loadingPolicySignal.value = null;
         }
     };
 
@@ -67,7 +78,7 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
             } else if (!isLastPolicy) {
                 // Not the last policy - auto-advance to next
                 const timer = setTimeout(() => {
-                    setCurrentPolicyIndex((prev) => prev + 1);
+                    currentPolicyIndexSignal.value = currentPolicyIndexSignal.value + 1;
                 }, 500); // Small delay for UX (show checkmark briefly)
                 return () => clearTimeout(timer);
             }
@@ -76,24 +87,24 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
     }, [canAcceptCurrent, isLastPolicy, allPoliciesAccepted, loading]);
 
     const handleAcceptPolicy = (policyId: string) => {
-        setAcceptedPolicies((prev) => new Set([...prev, policyId]));
+        acceptedPoliciesSignal.value = new Set([...acceptedPoliciesSignal.value, policyId]);
     };
 
     const handleNext = () => {
         if (!isLastPolicy) {
-            setCurrentPolicyIndex((prev) => prev + 1);
+            currentPolicyIndexSignal.value = currentPolicyIndexSignal.value + 1;
         }
     };
 
     const handlePrevious = () => {
         if (currentPolicyIndex > 0) {
-            setCurrentPolicyIndex((prev) => prev - 1);
+            currentPolicyIndexSignal.value = currentPolicyIndexSignal.value - 1;
         }
     };
 
     const submitAllPolicies = async () => {
-        setLoading(true);
-        setError(null);
+        loadingSignal.value = true;
+        errorSignal.value = null;
 
         try {
             const acceptances = policies.map((policy) => ({
@@ -110,9 +121,9 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
             await onAccept();
         } catch (err) {
             logError('Failed to accept policies', err as Error);
-            setError(`Failed to accept policies: ${err instanceof Error ? err.message : 'Unknown error'}`);
+            errorSignal.value = `Failed to accept policies: ${err instanceof Error ? err.message : 'Unknown error'}`;
         } finally {
-            setLoading(false);
+            loadingSignal.value = false;
         }
     };
 
@@ -199,7 +210,7 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                 <div className='flex-1 overflow-y-auto p-6'>
                     <Container>
                         <Stack spacing='md'>
-                            {error && <ErrorState title={t('policyComponents.policyAcceptanceModal.errorTitle')} error={error} onRetry={() => setError(null)} />}
+                            {error && <ErrorState title={t('policyComponents.policyAcceptanceModal.errorTitle')} error={error} onRetry={() => { errorSignal.value = null; }} />}
 
                             <Card data-testid='policy-card'>
                                 <Stack spacing='md'>
@@ -259,11 +270,9 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                                                                     if (e.currentTarget.checked) {
                                                                         handleAcceptPolicy(currentPolicy.policyId);
                                                                     } else {
-                                                                        setAcceptedPolicies((prev) => {
-                                                                            const newSet = new Set(prev);
-                                                                            newSet.delete(currentPolicy.policyId);
-                                                                            return newSet;
-                                                                        });
+                                                                        const newSet = new Set(acceptedPoliciesSignal.value);
+                                                                        newSet.delete(currentPolicy.policyId);
+                                                                        acceptedPoliciesSignal.value = newSet;
                                                                     }
                                                                 }}
                                                             />

@@ -3,6 +3,7 @@ import { Alert, Avatar, Button, Card, Form, Input } from '@/components/ui';
 import { logError } from '@/utils/browser-logger';
 import { SystemUserRoles, toEmail, toPassword } from '@billsplit-wl/shared';
 import { toDisplayName } from '@billsplit-wl/shared';
+import { signal } from '@preact/signals';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { apiClient } from '../app/apiClient';
@@ -25,24 +26,26 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export function SettingsPage() {
     const { t } = useTranslation();
     const authStore = useAuthRequired();
-    const [displayName, setDisplayName] = useState('');
-    const [originalDisplayName, setOriginalDisplayName] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
-    const [showPasswordForm, setShowPasswordForm] = useState(false);
-    const [passwordData, setPasswordData] = useState<PasswordChangeData>({
+
+    // Component-local signals - initialized within useState to avoid stale state across instances
+    const [displayNameSignal] = useState(() => signal(''));
+    const [originalDisplayNameSignal] = useState(() => signal(''));
+    const [isLoadingSignal] = useState(() => signal(false));
+    const [showPasswordFormSignal] = useState(() => signal(false));
+    const [passwordDataSignal] = useState(() => signal<PasswordChangeData>({
         currentPassword: '',
         newPassword: '',
         confirmNewPassword: '',
-    });
-    const [successMessage, setSuccessMessage] = useState('');
-    const [errorMessage, setErrorMessage] = useState('');
-    const [originalEmail, setOriginalEmail] = useState('');
-    const [showEmailForm, setShowEmailForm] = useState(false);
-    const [emailData, setEmailData] = useState<EmailChangeData>({
+    }));
+    const [successMessageSignal] = useState(() => signal(''));
+    const [errorMessageSignal] = useState(() => signal(''));
+    const [originalEmailSignal] = useState(() => signal(''));
+    const [showEmailFormSignal] = useState(() => signal(false));
+    const [emailDataSignal] = useState(() => signal<EmailChangeData>({
         newEmail: '',
         currentPassword: '',
-    });
-    const [isEmailLoading, setIsEmailLoading] = useState(false);
+    }));
+    const [isEmailLoadingSignal] = useState(() => signal(false));
 
     const user = authStore.user;
     const resolvedDisplayName = toDisplayName(user?.displayName?.trim() || user?.email?.split('@')[0] || '');
@@ -60,42 +63,42 @@ export function SettingsPage() {
     // Load user profile on component mount
     useEffect(() => {
         if (user) {
-            setDisplayName(user.displayName || '');
-            setOriginalDisplayName(user.displayName || '');
+            displayNameSignal.value = user.displayName || '';
+            originalDisplayNameSignal.value = user.displayName || '';
             const userEmail = user.email || '';
-            setOriginalEmail(userEmail);
-            setEmailData({
+            originalEmailSignal.value = userEmail;
+            emailDataSignal.value = {
                 newEmail: userEmail,
                 currentPassword: '',
-            });
+            };
         }
     }, [user]);
 
     // Clear messages after 5 seconds
     useEffect(() => {
-        if (successMessage || errorMessage) {
+        if (successMessageSignal.value || errorMessageSignal.value) {
             const timer = setTimeout(() => {
-                setSuccessMessage('');
-                setErrorMessage('');
+                successMessageSignal.value = '';
+                errorMessageSignal.value = '';
             }, 5000);
             return () => clearTimeout(timer);
         }
-    }, [successMessage, errorMessage]);
+    }, [successMessageSignal.value, errorMessageSignal.value]);
 
     const handleDisplayNameUpdate = async () => {
         if (!user || authStore.isUpdatingProfile) return;
 
-        setErrorMessage('');
-        setSuccessMessage('');
+        errorMessageSignal.value = '';
+        successMessageSignal.value = '';
 
         try {
             // Use the auth store's updateUserProfile method for real-time updates
-            await authStore.updateUserProfile({ displayName: toDisplayName(displayName.trim()) });
-            setOriginalDisplayName(displayName.trim());
-            setSuccessMessage(t('settingsPage.successMessages.profileUpdated'));
+            await authStore.updateUserProfile({ displayName: toDisplayName(displayNameSignal.value.trim()) });
+            originalDisplayNameSignal.value = displayNameSignal.value.trim();
+            successMessageSignal.value = t('settingsPage.successMessages.profileUpdated');
             // No need for token refresh or page reload - UI updates automatically via signals
         } catch (error) {
-            setErrorMessage(t('settingsPage.errorMessages.profileUpdateFailed'));
+            errorMessageSignal.value = t('settingsPage.errorMessages.profileUpdateFailed');
             logError('settingsPage.profileUpdateFailed', error, {
                 userId: user?.uid,
             });
@@ -103,32 +106,34 @@ export function SettingsPage() {
     };
 
     const handlePasswordChange = async () => {
-        if (!user || isLoading) return;
+        if (!user || isLoadingSignal.value) return;
+
+        const passwordData = passwordDataSignal.value;
 
         // Validation
         if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmNewPassword) {
-            setErrorMessage(t('settingsPage.errorMessages.passwordAndNewRequired'));
+            errorMessageSignal.value = t('settingsPage.errorMessages.passwordAndNewRequired');
             return;
         }
 
         if (passwordData.newPassword.length < 12) {
-            setErrorMessage(t('settingsPage.errorMessages.passwordTooShort'));
+            errorMessageSignal.value = t('settingsPage.errorMessages.passwordTooShort');
             return;
         }
 
         if (passwordData.newPassword !== passwordData.confirmNewPassword) {
-            setErrorMessage(t('settingsPage.errorMessages.passwordsNoMatch'));
+            errorMessageSignal.value = t('settingsPage.errorMessages.passwordsNoMatch');
             return;
         }
 
         if (passwordData.currentPassword === passwordData.newPassword) {
-            setErrorMessage(t('settingsPage.errorMessages.passwordSameAsCurrent'));
+            errorMessageSignal.value = t('settingsPage.errorMessages.passwordSameAsCurrent');
             return;
         }
 
-        setIsLoading(true);
-        setErrorMessage('');
-        setSuccessMessage('');
+        isLoadingSignal.value = true;
+        errorMessageSignal.value = '';
+        successMessageSignal.value = '';
 
         try {
             await apiClient.changePassword({
@@ -136,69 +141,70 @@ export function SettingsPage() {
                 newPassword: toPassword(passwordData.newPassword),
             });
 
-            setSuccessMessage(t('settingsPage.successMessages.passwordChanged'));
-            setShowPasswordForm(false);
-            setPasswordData({
+            successMessageSignal.value = t('settingsPage.successMessages.passwordChanged');
+            showPasswordFormSignal.value = false;
+            passwordDataSignal.value = {
                 currentPassword: '',
                 newPassword: '',
                 confirmNewPassword: '',
-            });
+            };
         } catch (error: unknown) {
             const errorWithCode = error as { code?: string; message?: string };
             if (errorWithCode.code === 'AUTH_INVALID' || errorWithCode.message?.includes('Current password is incorrect')) {
-                setErrorMessage(t('settingsPage.errorMessages.currentPasswordIncorrect'));
+                errorMessageSignal.value = t('settingsPage.errorMessages.currentPasswordIncorrect');
             } else {
-                setErrorMessage(t('settingsPage.errorMessages.passwordChangeFailed'));
+                errorMessageSignal.value = t('settingsPage.errorMessages.passwordChangeFailed');
             }
             logError('settingsPage.passwordChangeFailed', error, {
                 userId: user?.uid,
             });
         } finally {
-            setIsLoading(false);
+            isLoadingSignal.value = false;
         }
     };
 
     const handleStartEmailChange = () => {
         if (!user) return;
 
-        setErrorMessage('');
-        setSuccessMessage('');
-        setEmailData({
+        errorMessageSignal.value = '';
+        successMessageSignal.value = '';
+        emailDataSignal.value = {
             newEmail: user.email || '',
             currentPassword: '',
-        });
-        setShowEmailForm(true);
+        };
+        showEmailFormSignal.value = true;
     };
 
     const handleEmailChange = async () => {
-        if (!user || isEmailLoading) return;
+        if (!user || isEmailLoadingSignal.value) return;
 
+        const emailData = emailDataSignal.value;
         const trimmedEmail = emailData.newEmail.trim().toLowerCase();
-        const currentEmail = (originalEmail || '').toLowerCase();
+        const currentEmail = (originalEmailSignal.value || '').toLowerCase();
 
         if (!trimmedEmail) {
-            setErrorMessage(t('settingsPage.errorMessages.emailRequired'));
+            errorMessageSignal.value = t('settingsPage.errorMessages.emailRequired');
             return;
         }
 
         if (!EMAIL_REGEX.test(trimmedEmail)) {
-            setErrorMessage(t('settingsPage.errorMessages.emailInvalid'));
+            errorMessageSignal.value = t('settingsPage.errorMessages.emailInvalid');
             return;
         }
 
         if (trimmedEmail === currentEmail) {
-            setErrorMessage(t('settingsPage.errorMessages.emailSameAsCurrent'));
+            errorMessageSignal.value = t('settingsPage.errorMessages.emailSameAsCurrent');
             return;
         }
 
         if (!emailData.currentPassword.trim()) {
-            setErrorMessage(t('settingsPage.errorMessages.emailPasswordRequired'));
+            errorMessageSignal.value = t('settingsPage.errorMessages.emailPasswordRequired');
             return;
         }
 
-        setIsEmailLoading(true);
-        setErrorMessage('');
-        setSuccessMessage('');
+        isEmailLoadingSignal.value = true;
+        errorMessageSignal.value = '';
+        successMessageSignal.value = '';
 
         try {
             await authStore.changeEmail({
@@ -207,61 +213,73 @@ export function SettingsPage() {
             });
 
             const updatedEmail = authStore.user?.email ?? trimmedEmail;
-            setOriginalEmail(updatedEmail);
-            setSuccessMessage(t('settingsPage.successMessages.emailChanged'));
-            setShowEmailForm(false);
-            setEmailData({
+            originalEmailSignal.value = updatedEmail;
+            successMessageSignal.value = t('settingsPage.successMessages.emailChanged');
+            showEmailFormSignal.value = false;
+            emailDataSignal.value = {
                 newEmail: updatedEmail,
                 currentPassword: '',
-            });
+            };
         } catch (error: unknown) {
             const errorWithCode = error as { code?: string; message?: string };
             const code = errorWithCode.code;
             const message = typeof errorWithCode.message === 'string' ? errorWithCode.message : '';
 
             if (code === 'AUTH_INVALID' || message.includes('Current password is incorrect')) {
-                setErrorMessage(t('settingsPage.errorMessages.currentPasswordIncorrect'));
+                errorMessageSignal.value = t('settingsPage.errorMessages.currentPasswordIncorrect');
             } else if (code === 'ALREADY_EXISTS' || message.toLowerCase().includes('already exists')) {
-                setErrorMessage(t('settingsPage.errorMessages.emailInUse'));
+                errorMessageSignal.value = t('settingsPage.errorMessages.emailInUse');
             } else if (code === 'VALIDATION_ERROR' || message.toLowerCase().includes('valid email')) {
-                setErrorMessage(t('settingsPage.errorMessages.emailInvalid'));
+                errorMessageSignal.value = t('settingsPage.errorMessages.emailInvalid');
             } else if (message.toLowerCase().includes('different from current email')) {
-                setErrorMessage(t('settingsPage.errorMessages.emailSameAsCurrent'));
+                errorMessageSignal.value = t('settingsPage.errorMessages.emailSameAsCurrent');
             } else {
-                setErrorMessage(t('settingsPage.errorMessages.emailChangeFailed'));
+                errorMessageSignal.value = t('settingsPage.errorMessages.emailChangeFailed');
             }
             logError('settingsPage.emailChangeFailed', error, {
                 userId: user?.uid,
                 attemptedEmail: trimmedEmail,
             });
         } finally {
-            setIsEmailLoading(false);
+            isEmailLoadingSignal.value = false;
         }
     };
 
     const handleCancelEmailChange = () => {
-        setShowEmailForm(false);
-        setEmailData({
+        showEmailFormSignal.value = false;
+        emailDataSignal.value = {
             newEmail: user?.email || '',
             currentPassword: '',
-        });
-        setIsEmailLoading(false);
-        setErrorMessage('');
+        };
+        isEmailLoadingSignal.value = false;
+        errorMessageSignal.value = '';
     };
 
     const handleCancelPasswordChange = () => {
-        setShowPasswordForm(false);
-        setPasswordData({
+        showPasswordFormSignal.value = false;
+        passwordDataSignal.value = {
             currentPassword: '',
             newPassword: '',
             confirmNewPassword: '',
-        });
-        setErrorMessage('');
+        };
+        errorMessageSignal.value = '';
     };
 
     if (!user) {
         return null;
     }
+
+    const displayName = displayNameSignal.value;
+    const originalDisplayName = originalDisplayNameSignal.value;
+    const isLoading = isLoadingSignal.value;
+    const showPasswordForm = showPasswordFormSignal.value;
+    const passwordData = passwordDataSignal.value;
+    const successMessage = successMessageSignal.value;
+    const errorMessage = errorMessageSignal.value;
+    const originalEmail = originalEmailSignal.value;
+    const showEmailForm = showEmailFormSignal.value;
+    const emailData = emailDataSignal.value;
+    const isEmailLoading = isEmailLoadingSignal.value;
 
     const hasDisplayNameChanged = displayName.trim() !== originalDisplayName;
     const isDisplayNameEmpty = displayName.trim().length === 0;
@@ -371,7 +389,7 @@ export function SettingsPage() {
                                             <Input
                                                 label={t('settingsPage.displayNameLabel')}
                                                 value={displayName}
-                                                onChange={setDisplayName}
+                                                onChange={(value) => { displayNameSignal.value = value; }}
                                                 placeholder={t('settingsPage.displayNamePlaceholder')}
                                                 disabled={authStore.isUpdatingProfile}
                                                 error={isDisplayNameEmpty
@@ -431,7 +449,7 @@ export function SettingsPage() {
                                                     label={t('settingsPage.newEmailLabel')}
                                                     type='email'
                                                     value={emailData.newEmail}
-                                                    onChange={(value) => setEmailData((prev) => ({ ...prev, newEmail: value }))}
+                                                    onChange={(value) => { emailDataSignal.value = { ...emailDataSignal.value, newEmail: value }; }}
                                                     placeholder={t('settingsPage.newEmailPlaceholder')}
                                                     disabled={isEmailLoading}
                                                     error={shouldShowEmailFormatError ? t('settingsPage.errorMessages.emailInvalid') : undefined}
@@ -443,7 +461,7 @@ export function SettingsPage() {
                                                     label={t('settingsPage.emailPasswordLabel')}
                                                     type='password'
                                                     value={emailData.currentPassword}
-                                                    onChange={(value) => setEmailData((prev) => ({ ...prev, currentPassword: value }))}
+                                                    onChange={(value) => { emailDataSignal.value = { ...emailDataSignal.value, currentPassword: value }; }}
                                                     disabled={isEmailLoading}
                                                     id='email-password-input'
                                                     data-testid='email-password-input'
@@ -503,7 +521,7 @@ export function SettingsPage() {
 
                                     {!showPasswordForm
                                         ? (
-                                            <Button onClick={() => setShowPasswordForm(true)} data-testid='change-password-button'>
+                                            <Button onClick={() => { showPasswordFormSignal.value = true; }} data-testid='change-password-button'>
                                                 {t('settingsPage.changePasswordButton')}
                                             </Button>
                                         )
@@ -522,7 +540,7 @@ export function SettingsPage() {
                                                         type='password'
                                                         name='currentPassword'
                                                         value={passwordData.currentPassword}
-                                                        onChange={(value) => setPasswordData((prev) => ({ ...prev, currentPassword: value }))}
+                                                        onChange={(value) => { passwordDataSignal.value = { ...passwordDataSignal.value, currentPassword: value }; }}
                                                         disabled={isLoading}
                                                         id='current-password-input'
                                                         data-testid='current-password-input'
@@ -533,7 +551,7 @@ export function SettingsPage() {
                                                         type='password'
                                                         name='newPassword'
                                                         value={passwordData.newPassword}
-                                                        onChange={(value) => setPasswordData((prev) => ({ ...prev, newPassword: value }))}
+                                                        onChange={(value) => { passwordDataSignal.value = { ...passwordDataSignal.value, newPassword: value }; }}
                                                         disabled={isLoading}
                                                         id='new-password-input'
                                                         data-testid='new-password-input'
@@ -544,7 +562,7 @@ export function SettingsPage() {
                                                         type='password'
                                                         name='confirmNewPassword'
                                                         value={passwordData.confirmNewPassword}
-                                                        onChange={(value) => setPasswordData((prev) => ({ ...prev, confirmNewPassword: value }))}
+                                                        onChange={(value) => { passwordDataSignal.value = { ...passwordDataSignal.value, confirmNewPassword: value }; }}
                                                         disabled={isLoading}
                                                         id='confirm-password-input'
                                                         data-testid='confirm-password-input'

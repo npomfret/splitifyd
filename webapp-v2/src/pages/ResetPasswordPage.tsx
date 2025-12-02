@@ -11,19 +11,20 @@ import { AuthLayout } from '../components/auth/AuthLayout';
 import { EmailInput } from '../components/auth/EmailInput';
 import { SubmitButton } from '../components/auth/SubmitButton';
 
-const emailSignal = signal('');
-
 export function ResetPasswordPage() {
     const { t } = useTranslation();
     const authStore = useAuthRequired();
-    const [emailSent, setEmailSent] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+
+    // Component-local signals - initialized within useState to avoid stale state across instances
+    const [emailSignal] = useState(() => signal(''));
+    const [emailSentSignal] = useState(() => signal(false));
+    const [isLoadingSignal] = useState(() => signal(false));
+    const [errorSignal] = useState(() => signal<string | null>(null));
 
     // Clear any previous errors when component mounts
     useEffect(() => {
         authStore.clearError();
-        setError(null);
+        errorSignal.value = null;
     }, []);
 
     const handleSubmit = async (e: Event) => {
@@ -33,26 +34,26 @@ export function ResetPasswordPage() {
         const emailResult = EmailSchema.safeParse(emailSignal.value);
         if (!emailResult.success) return;
 
-        setIsLoading(true);
-        setError(null);
+        isLoadingSignal.value = true;
+        errorSignal.value = null;
 
         try {
             await authStore.resetPassword(toEmail(emailResult.data));
-            setEmailSent(true);
+            emailSentSignal.value = true;
         } catch (error) {
-            setError(authStore.error || t('pages.resetPasswordPage.failedToSendReset'));
+            errorSignal.value = authStore.error || t('pages.resetPasswordPage.failedToSendReset');
         } finally {
-            setIsLoading(false);
+            isLoadingSignal.value = false;
         }
     };
 
     const handleTryAgain = () => {
-        setEmailSent(false);
+        emailSentSignal.value = false;
         emailSignal.value = '';
-        setError(null);
+        errorSignal.value = null;
     };
 
-    if (emailSent) {
+    if (emailSentSignal.value) {
         return (
             <AuthLayout title={t('pages.resetPasswordPage.checkYourEmail')} description={t('pages.resetPasswordPage.resetInstructionsSent')}>
                 <Stack spacing='lg' className='text-center'>
@@ -103,7 +104,7 @@ export function ResetPasswordPage() {
 
     return (
         <AuthLayout title={t('pages.resetPasswordPage.resetPassword')} description={t('pages.resetPasswordPage.enterEmailForReset')}>
-            <AuthForm onSubmit={handleSubmit} error={error} disabled={isLoading}>
+            <AuthForm onSubmit={handleSubmit} error={errorSignal.value} disabled={isLoadingSignal.value}>
                 <div class='space-y-4'>
                     <p class='text-sm text-text-muted'>{t('pages.resetPasswordPage.enterEmailDescription')}</p>
 
@@ -112,11 +113,11 @@ export function ResetPasswordPage() {
                         onInput={(value) => (emailSignal.value = value)}
                         placeholder={t('pages.resetPasswordPage.emailPlaceholder')}
                         autoFocus
-                        disabled={isLoading}
+                        disabled={isLoadingSignal.value}
                     />
                 </div>
 
-                <SubmitButton loading={isLoading} disabled={!EmailSchema.safeParse(emailSignal.value).success}>
+                <SubmitButton loading={isLoadingSignal.value} disabled={!EmailSchema.safeParse(emailSignal.value).success}>
                     {t('pages.resetPasswordPage.sendResetInstructions')}
                 </SubmitButton>
 

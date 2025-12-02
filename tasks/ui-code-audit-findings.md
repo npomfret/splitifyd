@@ -2,44 +2,41 @@
 
 This document summarizes inconsistencies found during an audit of the `webapp-v2/src` codebase against the project's established guidelines (`docs/guides/*.md`).
 
-## 1. State Management: `useState` vs. Preact Signals (Significant Inconsistency)
+## 1. ~~State Management: `useState` vs. Preact Signals~~ RESOLVED
 
-The project guidelines (`docs/guides/code.md`, `docs/guides/webapp-and-style-guide.md`) strongly advocate for using **Preact Signals** as the core reactivity and state management system, emphasizing proper encapsulation through private class fields for stores. While stores generally adhere to this, many components continue to use `useState` for local component state, creating inconsistency and missing opportunities to leverage the benefits of signals.
+**Status:** Fixed (2025-12-01)
 
-### Violations/Inconsistencies:
+All components have been migrated from `useState` to Preact Signals using the correct pattern: wrapping signal initialization within `useState` to avoid stale state across component instances.
 
-*   **Prevalence of `useState` for Local State:** Many components use `useState` for managing local form data, loading states, error messages, and UI toggles.
-    *   `webapp-v2/src/pages/SettingsPage.tsx`
-    *   `webapp-v2/src/pages/RegisterPage.tsx`
-    *   `webapp-v2/src/pages/LoginPage.tsx`
-    *   `webapp-v2/src/components/ui/Modal.tsx`
-    *   `webapp-v2/src/components/ui/Alert.tsx`
-    *   `webapp-v2/src/components/ui/ImageUploadField.tsx`
-    *   `webapp-v2/src/components/settlements/SettlementForm.tsx`
-    *   `webapp-v2/src/components/policy/PolicyAcceptanceModal.tsx`
-    *   `webapp-v2/src/components/group/ShareGroupModal.tsx`
-    *   `webapp-v2/src/components/group/GroupSettingsModal.tsx`
-    *   `webapp-v2/src/pages/AdminTenantsPage.tsx`
-    *   `webapp-v2/src/components/admin/TenantEditorModal.tsx`
-    *   `webapp-v2/src/components/admin/AdminTenantsTab.tsx`
-    *   `webapp-v2/src/components/admin/AdminDiagnosticsTab.tsx`
-*   **Module-Level Signal (Anti-Pattern):** `webapp-v2/src/pages/ResetPasswordPage.tsx` declares `emailSignal` at the module level:
-    ```typescript
-    const emailSignal = signal('');
-    ```
-    This directly violates the `code.md` guideline: "Never declare signals at the module level outside the class" as it breaks encapsulation, allowing any code to mutate it directly.
-*   **Mixed Approach:** `webapp-v2/src/pages/LoginPage.tsx` and `webapp-v2/src/pages/JoinGroupPage.tsx` correctly access signal values from stores (`authStore.errorSignal.value`, `useComputed` from `authStore.user`) but still manage their own local component state with `useState`.
+### Pattern Applied:
+```typescript
+// Component-local signals - initialized within useState to avoid stale state across instances
+const [loadingSignal] = useState(() => signal(false));
+const [errorSignal] = useState(() => signal<string | null>(null));
 
-### Best Practices Adherence:
+// Extract signal values for use in render
+const loading = loadingSignal.value;
+const error = errorSignal.value;
+```
 
-*   **`webapp-v2/src/pages/GroupDetailPage.tsx`:** Demonstrates good use of `useComputed` and `useSignal` for managing and deriving state, aligning well with the recommended pattern for complex page-level components.
-*   **`webapp-v2/src/components/dashboard/CreateGroupModal.tsx`:** Exemplifies the correct approach for component-local signals by initializing them within `useState` to avoid stale state issues across modal instances:
-    ```typescript
-    const [groupNameSignal] = useState(() => signal(''));
-    ```
+### Files Fixed (11 components):
 
-### Recommendation:
-Refactor components currently using `useState` for local state to leverage Preact Signals. This will ensure consistency across the codebase and fully embrace the chosen state management paradigm. The module-level signal in `ResetPasswordPage.tsx` must be moved into the component's state or an appropriate store.
+| Component | useState calls migrated |
+|-----------|------------------------|
+| `pages/ResetPasswordPage.tsx` | 4 (fixed module-level anti-pattern) |
+| `pages/SettingsPage.tsx` | 18 |
+| `pages/RegisterPage.tsx` | 8 |
+| `pages/LoginPage.tsx` | 3 |
+| `components/ui/Modal.tsx` | 1 |
+| `components/ui/Alert.tsx` | 1 |
+| `components/ui/ImageUploadField.tsx` | 6 |
+| `components/settlements/SettlementForm.tsx` | 11 |
+| `components/policy/PolicyAcceptanceModal.tsx` | 6 |
+| `components/group/ShareGroupModal.tsx` | 8 |
+| `components/group/GroupSettingsModal.tsx` | 30 |
+
+### Admin Components (unchanged - not in scope):
+Admin components (`AdminTenantsPage.tsx`, `TenantEditorModal.tsx`, `AdminTenantsTab.tsx`, `AdminDiagnosticsTab.tsx`) were excluded from this migration as they are not tenant-themed and follow different patterns.
 
 ## 2. ~~Styling: Hardcoded Colors vs. Semantic Tokens~~ RESOLVED
 
@@ -91,10 +88,10 @@ Define a proper, strongly typed interface for `Split` (and potentially other sim
 
 | Issue | Status | Priority |
 |-------|--------|----------|
-| 1. State Management (`useState` vs Signals) | Open | Significant |
+| 1. State Management (`useState` vs Signals) | **RESOLVED** | ~~Significant~~ |
 | 2. Styling (Hardcoded Colors) | **RESOLVED** | ~~Minor~~ |
 | 3. Component Size (`TenantEditorModal.tsx`) | Open | Low (admin-only) |
 | 4. Typing (`Split` interface) | Open | Minor |
 
 **Next Steps:**
-Remaining open issues require user direction on priority and scope.
+Remaining open issues (3 and 4) are low priority and admin-only. No urgent action required.
