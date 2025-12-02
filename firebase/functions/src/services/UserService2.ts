@@ -600,6 +600,8 @@ export class UserService {
                 }
             });
 
+            // Allow registration when no policies exist (bootstrap scenario)
+            // The admin user needs to be created before policies can be seeded via API
             return acceptedPolicies;
         } catch (error) {
             logger.error('Failed to get current policy versions', error);

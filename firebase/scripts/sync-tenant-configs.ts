@@ -140,33 +140,45 @@ function getContentTypeFromExtension(ext: string): string {
     return map[ext.toLowerCase()] || 'application/octet-stream';
 }
 
+interface SyncTenantOptions {
+    defaultOnly?: boolean;
+    tenantId?: string;
+    skipThemePublish?: boolean;
+}
+
 async function syncTenantConfigs(
     services: ServiceComponents,
     env: ScriptEnvironment,
-    options?: { defaultOnly?: boolean; tenantId?: string; },
+    options?: SyncTenantOptions,
 ) {
-    // Create ApiDriver with appropriate configuration
-    let apiDriver: ApiDriver;
-    if (env.isEmulator) {
-        apiDriver = new ApiDriver();
-    } else {
-        const projectId = getProjectId();
-        const apiKey = process.env.__CLIENT_API_KEY;
-        if (!apiKey) {
-            throw new Error('__CLIENT_API_KEY must be set for deployed environments');
-        }
-        const deployedConfig: ApiDriverConfig = {
-            baseUrl: `https://${projectId}.web.app/api`,
-            firebaseApiKey: apiKey,
-            authBaseUrl: 'https://identitytoolkit.googleapis.com',
-        };
-        apiDriver = new ApiDriver(deployedConfig);
-    }
+    // Only create ApiDriver and authenticate if we need to publish themes
+    let apiDriver: ApiDriver | null = null;
+    let adminToken: string | null = null;
 
-    // Get admin user token for API calls
-    console.log('🔑 Authenticating admin user...');
-    const adminUser = await apiDriver.getDefaultAdminUser();
-    console.log(`   ✓ Authenticated as admin`);
+    if (!options?.skipThemePublish) {
+        // Create ApiDriver with appropriate configuration
+        if (env.isEmulator) {
+            apiDriver = new ApiDriver();
+        } else {
+            const projectId = getProjectId();
+            const apiKey = process.env.__CLIENT_API_KEY;
+            if (!apiKey) {
+                throw new Error('__CLIENT_API_KEY must be set for deployed environments');
+            }
+            const deployedConfig: ApiDriverConfig = {
+                baseUrl: `https://${projectId}.web.app/api`,
+                firebaseApiKey: apiKey,
+                authBaseUrl: 'https://identitytoolkit.googleapis.com',
+            };
+            apiDriver = new ApiDriver(deployedConfig);
+        }
+
+        // Get admin user token for API calls
+        console.log('🔑 Authenticating admin user...');
+        const adminUser = await apiDriver.getDefaultAdminUser();
+        adminToken = adminUser.token;
+        console.log(`   ✓ Authenticated as admin`);
+    }
 
     const configPath = path.join(__dirname, 'tenant-configs.json');
     const configData = fs.readFileSync(configPath, 'utf-8');
@@ -251,13 +263,15 @@ async function syncTenantConfigs(
             throw error;
         }
 
-        // Publish theme CSS via API
-        try {
-            const publishResult = await apiDriver.publishTenantTheme({ tenantId: config.id }, adminUser.token);
-            console.log(`  ✓ Published theme: ${publishResult.artifact.hash}`);
-        } catch (error) {
-            console.error(`  ✗ Failed to publish theme for tenant: ${config.id}`);
-            throw error;
+        // Publish theme CSS via API (if not skipped)
+        if (apiDriver && adminToken) {
+            try {
+                const publishResult = await apiDriver.publishTenantTheme({ tenantId: config.id }, adminToken);
+                console.log(`  ✓ Published theme: ${publishResult.artifact.hash}`);
+            } catch (error) {
+                console.error(`  ✗ Failed to publish theme for tenant: ${config.id}`);
+                throw error;
+            }
         }
     }
 

@@ -10,7 +10,7 @@ import { loadRuntimeConfig } from './scripts-config';
 import { logger } from './logger';
 import { seedPolicies } from './seed-policies';
 import { startEmulator } from './start-emulator';
-import { createAllDemoTenants } from './test-data-generator';
+import { publishDemoThemes, syncDemoTenants } from './test-data-generator';
 
 const execPromise = promisify(exec);
 
@@ -54,17 +54,30 @@ async function runSetupStorageBucketStep(): Promise<void> {
     }
 }
 
-async function runCreateDemoTenantsStep(): Promise<void> {
+async function runSyncDemoTenantsStep(): Promise<void> {
     logger.info('');
     logger.info('═══════════════════════════════════════════════════════');
-    logger.info('🏢 CREATING DEMO TENANTS...');
+    logger.info('🏢 SYNCING DEMO TENANTS...');
     logger.info('═══════════════════════════════════════════════════════');
     logger.info('');
 
-    await createAllDemoTenants();
+    await syncDemoTenants();
 
     logger.info('');
-    logger.info('✅ Demo tenants created and themes published!');
+    logger.info('✅ Demo tenants synced to Firestore!');
+}
+
+async function runPublishDemoThemesStep(): Promise<void> {
+    logger.info('');
+    logger.info('═══════════════════════════════════════════════════════');
+    logger.info('🎨 PUBLISHING DEMO THEMES...');
+    logger.info('═══════════════════════════════════════════════════════');
+    logger.info('');
+
+    await publishDemoThemes();
+
+    logger.info('');
+    logger.info('✅ Theme CSS published!');
     logger.info('🎨 Theme CSS available at /api/theme.css for localhost + loopback hosts');
 }
 
@@ -105,15 +118,18 @@ const main = async () => {
 
         logger.info('🚀 You can now use the webapp and all endpoints are available');
 
-        // Step 2: Seed policies and ensure Bill Splitter admin exists
-        // (admin user is created first, then used to seed policies via API)
+        // Step 2: Sync demo tenants to Firestore (needed before any API calls that require tenant resolution)
+        await runSyncDemoTenantsStep();
+
+        // Step 3: Seed policies and ensure Bill Splitter admin exists
+        // (admin user is created first, then used to seed policies via API, then accepts policies)
         await runSeedPoliciesStep();
 
-        // Step 3: Setup Cloud Storage bucket (needed before publishing themes)
+        // Step 4: Setup Cloud Storage bucket (needed before publishing themes)
         await runSetupStorageBucketStep();
 
-        // Step 4: Create demo tenants (localhost + 127.0.0.1) and publish themes
-        await runCreateDemoTenantsStep();
+        // Step 5: Publish demo themes (needs storage bucket)
+        await runPublishDemoThemesStep();
 
         logger.info('');
         logger.info('═══════════════════════════════════════════════════════');

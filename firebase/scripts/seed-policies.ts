@@ -1,6 +1,6 @@
 #!/usr/bin/env npx tsx
 
-import { PolicyIds, PolicyName, toPolicyName, toPolicyText } from '@billsplit-wl/shared';
+import { PolicyId, PolicyIds, PolicyName, toPolicyName, toPolicyText } from '@billsplit-wl/shared';
 import { ApiDriver, getFirebaseEmulatorConfig } from '@billsplit-wl/test-support';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -21,8 +21,6 @@ console.log(`🎯 Running policy seeding for ${env.environment}`);
 
 // Initialize Firebase using common pattern
 initializeFirebase(env);
-
-import { PolicyId } from '@billsplit-wl/shared';
 
 if (env.isEmulator) {
     const emulator = getFirebaseEmulatorConfig();
@@ -49,18 +47,19 @@ function readPolicyFile(filename: string): string {
 }
 
 /**
- * Get or create admin user for API operations
+ * Get or create admin user for API operations.
+ * This can be called before policies exist - registration now allows empty acceptedPolicies.
  */
 async function ensureAdminUser(): Promise<string> {
     // Try to sign in existing Bill Splitter admin
     const existingUser = await signInExistingBillSplitter();
     if (existingUser) {
-        console.log('✅ Using existing Bill Splitter admin for policy seeding');
+        console.log('✅ Using existing Bill Splitter admin');
         return existingUser.token;
     }
 
-    // Create the admin user (registration works without policies)
-    console.log('🆕 Creating Bill Splitter admin for policy seeding...');
+    // Create the admin user (registration allows empty acceptedPolicies for bootstrap)
+    console.log('🆕 Creating Bill Splitter admin...');
     const newUser = await generateBillSplitterUser();
     console.log('✅ Bill Splitter admin created');
     return newUser.token;
@@ -75,30 +74,34 @@ async function seedPolicy(
     filename: string,
     adminToken: string,
 ): Promise<void> {
-    try {
-        console.log(`📄 Creating policy: ${policyName}`);
+    console.log(`📄 Creating policy: ${policyName}`);
 
-        // Read policy text
-        const text = toPolicyText(readPolicyFile(filename));
+    // Read policy text
+    const text = toPolicyText(readPolicyFile(filename));
 
-        // Create policy via Admin API
-        const createResponse = await apiDriver.createPolicy(
-            { policyName, text },
-            adminToken,
-        );
-        console.log(`✅ Created policy: ${createResponse.id}`);
+    // Create policy via Admin API
+    const createResponse = await apiDriver.createPolicy(
+        { policyName, text },
+        adminToken,
+    );
+    console.log(`✅ Created policy: ${createResponse.id}`);
 
-        // Publish the policy
-        const publishResponse = await apiDriver.publishPolicy(
-            createResponse.id,
-            createResponse.versionHash,
-            adminToken,
-        );
-        console.log(`✅ Published policy ${policyId} (hash: ${publishResponse.currentVersionHash})`);
-    } catch (error) {
-        console.error(`❌ Failed to seed policy ${policyId}:`, error);
-        throw error;
-    }
+    // Publish the policy
+    const publishResponse = await apiDriver.publishPolicy(
+        createResponse.id,
+        createResponse.versionHash,
+        adminToken,
+    );
+    console.log(`✅ Published policy ${policyId} (hash: ${publishResponse.currentVersionHash})`);
+}
+
+/**
+ * Accept policies for the admin user who was created before policies existed
+ */
+async function acceptPoliciesForAdmin(adminToken: string): Promise<void> {
+    console.log('\n📝 Accepting policies for admin user...');
+    await apiDriver.acceptCurrentPublishedPolicies(adminToken);
+    console.log('✅ Admin accepted all current policies');
 }
 
 /**
@@ -118,11 +121,16 @@ async function verifyPolicies(): Promise<void> {
 }
 
 /**
- * Seed initial policies
+ * Seed initial policies.
+ *
+ * Bootstrap order:
+ * 1. Create admin user (registration allows empty acceptedPolicies for bootstrap)
+ * 2. Seed policies via Admin API
+ * 3. Accept policies for the admin user
+ * 4. Verify policies via public API
  */
 export async function seedPolicies() {
-    console.log(`📚 Reading policy documents from docs/policies...`);
-    console.log(`🌍 Target environment: ${env.environment}`);
+    console.log(`📚 Seeding policies for ${env.environment}...`);
 
     // Verify all policy files exist first
     try {
@@ -135,12 +143,10 @@ export async function seedPolicies() {
     }
 
     try {
-        // Get admin token for API operations
+        // Step 1: Create/get admin user (can be created before policies exist)
         const adminToken = await ensureAdminUser();
 
-        // Seed all policies via Admin API
-        // Note: Policy names must generate the correct kebab-case IDs
-        // "Terms of Service" → "terms-of-service"
+        // Step 2: Seed all policies via Admin API
         await seedPolicy(
             PolicyIds.TERMS_OF_SERVICE,
             toPolicyName('Terms of Service'),
@@ -160,7 +166,10 @@ export async function seedPolicies() {
             adminToken,
         );
 
-        // Verify all policies are accessible
+        // Step 3: Accept policies for the admin user (who was created before policies existed)
+        await acceptPoliciesForAdmin(adminToken);
+
+        // Step 4: Verify all policies are accessible via public API
         await verifyPolicies();
 
         console.log(`\n🎉 ${env.environment} POLICY SEEDING COMPLETED SUCCESSFULLY!`);

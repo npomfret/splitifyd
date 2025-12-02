@@ -33,7 +33,10 @@ export function generateTestUserName(prefix: string = 'User'): string {
     return generateNewUserDetails(prefix).displayName;
 }
 
+// Default test credentials - used for the bootstrap admin user and all test users
 export const DEFAULT_PASSWORD = toPassword('passwordpass');
+export const DEFAULT_ADMIN_EMAIL = toEmail('test1@test.com');
+export const DEFAULT_ADMIN_DISPLAY_NAME = toDisplayName('Bill Splitter');
 
 export function generateNewUserDetails(prefix = 'u') {
     const id = generateShortId();

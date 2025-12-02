@@ -119,8 +119,7 @@ const assertNoCacheHeaders = (endpoint: string, headers: Headers) => {
     }
 };
 
-const DEFAULT_ADMIN_EMAIL = 'test1@test.com' as Email;// todo: remove this duplication
-const DEFAULT_ADMIN_PASSWORD = 'passwordpass' as Password;// todo: remove this duplication
+import { DEFAULT_ADMIN_EMAIL, DEFAULT_PASSWORD } from './test-helpers';
 
 export type AuthToken = string;
 
@@ -821,13 +820,13 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         try {
             const credentials = await this.firebaseSignIn({
                 email: DEFAULT_ADMIN_EMAIL,
-                password: DEFAULT_ADMIN_PASSWORD,
+                password: DEFAULT_PASSWORD,
             });
 
             return {
                 ...credentials,
                 email: DEFAULT_ADMIN_EMAIL,
-                password: DEFAULT_ADMIN_PASSWORD,
+                password: DEFAULT_PASSWORD,
             };
         } catch (error) {
             const hint = `Default admin (${DEFAULT_ADMIN_EMAIL}) unavailable. Ensure the Bill Splitter test account exists (run firebase/scripts/start-with-data.ts).`;

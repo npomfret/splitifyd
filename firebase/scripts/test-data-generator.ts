@@ -31,7 +31,7 @@ import {
     UserRegistration,
     zeroAmount,
 } from '@billsplit-wl/shared';
-import { ApiDriver, CreateExpenseRequestBuilder, getFirebaseEmulatorConfig } from '@billsplit-wl/test-support';
+import { ApiDriver, CreateExpenseRequestBuilder, DEFAULT_ADMIN_DISPLAY_NAME, DEFAULT_ADMIN_EMAIL, DEFAULT_PASSWORD, getFirebaseEmulatorConfig } from '@billsplit-wl/test-support';
 import { FirestoreWriter } from '../functions/src/services/firestore';
 
 // Lazy initialization - will be set when Firebase is initialized
@@ -137,9 +137,9 @@ const queue = new TaskQueue(2);
 const runQueued = <T>(task: () => Promise<T>): Promise<T> => queue.enqueue(task);
 
 const BILL_SPLITTER_REGISTRATION: UserRegistration = {
-    email: toEmail('test1@test.com'),
-    password: toPassword('passwordpass'),
-    displayName: toDisplayName('Bill Splitter'),
+    email: DEFAULT_ADMIN_EMAIL,
+    password: DEFAULT_PASSWORD,
+    displayName: DEFAULT_ADMIN_DISPLAY_NAME,
     termsAccepted: true,
     cookiePolicyAccepted: true,
     privacyPolicyAccepted: true,
@@ -328,7 +328,7 @@ const generateTestUserRegistrations = (config: TestDataConfig): UserRegistration
             termsAccepted: true,
             cookiePolicyAccepted: true,
             privacyPolicyAccepted: true,
-            password: toPassword('passwordpass'),
+            password: DEFAULT_PASSWORD,
         });
     }
 
@@ -566,16 +566,26 @@ export async function createDefaultTenant(): Promise<void> {
     await publishLocalThemes({ defaultOnly: true });
 }
 
-export async function createAllDemoTenants(): Promise<void> {
+/**
+ * Sync demo tenants to Firestore (without publishing themes).
+ * This must be called early in the bootstrap process, before any API calls
+ * that require tenant resolution (like accepting policies).
+ */
+export async function syncDemoTenants(): Promise<void> {
     console.log('🏢 Syncing all demo tenants from JSON configuration...');
 
     const { syncTenantConfigs, buildServices } = await import('./sync-tenant-configs');
     const { parseEnvironment } = await import('./firebase-init');
     const env = parseEnvironment(['emulator']);
     const services = await buildServices(env);
-    await syncTenantConfigs(services, env);
+    await syncTenantConfigs(services, env, { skipThemePublish: true });
+}
 
-    // After syncing basic tenant configs, publish the theme CSS artifacts
+/**
+ * Publish theme CSS artifacts for all demo tenants.
+ * This requires the storage bucket to be set up first.
+ */
+export async function publishDemoThemes(): Promise<void> {
     console.log('🎨 Publishing theme CSS artifacts for all tenants...');
     const { publishLocalThemes } = await import('./publish-local-themes');
     await publishLocalThemes();
@@ -820,7 +830,7 @@ async function configureLargeGroupAdvancedScenarios(
             key: 'viewer',
             registration: {
                 email: toEmail(`managed.viewer+${timestampSuffix}@example.com`),
-                password: toPassword('passwordpass'),
+                password: DEFAULT_PASSWORD,
                 displayName: toDisplayName('Managed Viewer'),
                 termsAccepted: true,
                 cookiePolicyAccepted: true,
@@ -831,7 +841,7 @@ async function configureLargeGroupAdvancedScenarios(
             key: 'reject',
             registration: {
                 email: toEmail(`managed.reject+${timestampSuffix}@example.com`),
-                password: toPassword('passwordpass'),
+                password: DEFAULT_PASSWORD,
                 displayName: toDisplayName('Rejected Applicant'),
                 termsAccepted: true,
                 cookiePolicyAccepted: true,
@@ -842,7 +852,7 @@ async function configureLargeGroupAdvancedScenarios(
             key: 'pending',
             registration: {
                 email: toEmail(`managed.pending+${timestampSuffix}@example.com`),
-                password: toPassword('passwordpass'),
+                password: DEFAULT_PASSWORD,
                 displayName: toDisplayName('Pending Applicant'),
                 termsAccepted: true,
                 cookiePolicyAccepted: true,
@@ -1672,40 +1682,38 @@ export async function generateFullTestData(): Promise<void> {
 
     console.log(`🚀 Starting test data generation in ${testConfig.mode} mode`);
 
-    // Create all demo tenants (required for API routes to work)
-    console.log('Creating all demo tenants...');
-    const tenantCreationStart = Date.now();
-    await createAllDemoTenants();
-    logTiming('All demo tenants creation', tenantCreationStart);
+    // Step 1: Get Bill Splitter admin user (policies, tenants, themes already seeded by start-with-data.ts)
+    console.log('Getting Bill Splitter admin user...');
+    const adminCreationStart = Date.now();
+    const billSplitterUser = await generateBillSplitterUser();
+    logTiming('Bill Splitter admin retrieval', adminCreationStart);
 
-    // Initialize test pool users first (before regular test data)
+    // Step 2: Initialize test pool users
     console.log('Initializing test user pool...');
     const poolInitStart = Date.now();
     await createTestPoolUsers();
     logTiming('Test pool initialization', poolInitStart);
 
-    // Generate users based on config
+    // Generate users based on config (Bill Splitter is first in list)
     const TEST_USERS = generateTestUserRegistrations(testConfig);
 
-    // Create first 3 test users in parallel
-    console.log(`Creating first 3 test users in parallel...`);
+    // Create remaining test users (skip first user - Bill Splitter already created)
+    console.log(`Creating ${TEST_USERS.length - 1} additional test users...`);
     const userCreationStart = Date.now();
 
-    // Create first 3 users in parallel
-    const firstThreeUsers = TEST_USERS.slice(0, 3);
-    const remainingUsers = TEST_USERS.slice(3);
+    // Create users 2-3 in parallel
+    const usersToCreate = TEST_USERS.slice(1); // Skip Bill Splitter
+    const firstBatchUsers = usersToCreate.slice(0, 2);
+    const remainingUsers = usersToCreate.slice(2);
 
-    const additionalFirstUsers = firstThreeUsers.slice(1);
-    const [billSplitterUser, ...additionalParallelUsers] = await Promise.all([
-        generateBillSplitterUser(),
-        ...additionalFirstUsers.map((userInfo) =>
+    const parallelCreatedUsers = await Promise.all(
+        firstBatchUsers.map((userInfo) =>
             (async function(userInfo: UserRegistration): Promise<AuthenticatedFirebaseUser> {
                 return await runQueued(() => driver.createUser(userInfo));
             })(userInfo)
         ),
-    ]);
-    const parallelUsers = [billSplitterUser, ...additionalParallelUsers];
-    console.log(`✓ Created ${parallelUsers.length} users in parallel`);
+    );
+    console.log(`✓ Created ${parallelCreatedUsers.length} users in parallel`);
 
     // Create remaining users sequentially if any
     const sequentialUsers = [];
@@ -1714,8 +1722,8 @@ export async function generateFullTestData(): Promise<void> {
         sequentialUsers.push(user);
     }
 
-    const users = [...parallelUsers, ...sequentialUsers];
-    console.log(`✓ Total created ${users.length} users (${parallelUsers.length} parallel, ${sequentialUsers.length} sequential)`);
+    const users = [billSplitterUser, ...parallelCreatedUsers, ...sequentialUsers];
+    console.log(`✓ Total created ${users.length} users (1 admin + ${parallelCreatedUsers.length} parallel + ${sequentialUsers.length} sequential)`);
     logTiming('User creation', userCreationStart);
 
     // test1@test.com creates groups and collects invite links
