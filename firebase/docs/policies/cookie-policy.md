@@ -113,6 +113,11 @@ While we currently use only essential operational cookies necessary for the Serv
 - DNS tracking
 - Font enumeration
 - Hardware benchmark tracking
+- Service Worker interception and caching
+- Push notification tracking identifiers
+- Background Fetch API tracking
+- Periodic Background Sync tracking
+- Web Share Target API tracking
 
 ### 3.5 Cross-Application and Cross-Device Tracking
 
@@ -309,6 +314,14 @@ We employ techniques to ensure tracking persists despite:
 ### 7.3 Zombie Cookies
 
 We may use respawning technologies that recreate tracking mechanisms after deletion.
+
+### 7.4 Offline and Background Tracking
+
+- Data collected while you are offline will be stored locally and transmitted when connectivity resumes
+- The Service may continue collecting data in the background even when not actively in use
+- Background Sync and Periodic Background Sync may transmit data without your active knowledge
+- Push notifications may trigger data collection even when the Service is closed
+- Service Workers may intercept and log network requests independently of your browser session
 
 ## 8. YOUR CHOICES (SEVERELY LIMITED)
 

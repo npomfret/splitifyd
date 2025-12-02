@@ -10,7 +10,17 @@ By accessing, using, or continuing to use {{appName}} ("Service"), you unconditi
 
 The Service is strictly for users aged 18 and above. By using the Service, you warrant that you are at least 18 years old and have full legal capacity to consent to this Policy. If you are under 18, you are prohibited from using the Service. We assume no responsibility for verifying user age and bear no liability for minors' unauthorized access.
 
-## 3. Comprehensive Data Collection
+## 3. Informational Purposes and No Reliance
+
+THE SERVICE IS PROVIDED FOR INFORMATIONAL AND CONVENIENCE PURPOSES ONLY. You acknowledge that:
+
+- All calculations, amounts, balances, and financial data displayed may contain errors
+- You must independently verify all information before making any financial decisions
+- We make no representations regarding the accuracy of any data
+- You shall not rely on the Service for financial, legal, tax, or professional advice
+- Any decisions you make based on Service data are entirely at your own risk
+
+## 4. Comprehensive Data Collection
 
 While the Service is currently provided free of charge without advertising or active tracking, we reserve the absolute right to collect ANY AND ALL information in the future. Currently, we may collect minimal operational data. However, we explicitly reserve the right to collect, without further notice:
 
@@ -48,13 +58,18 @@ While the Service is currently provided free of charge without advertising or ac
 - Marketing partners
 - Any other available sources
 
-## 4. Unlimited Use of Your Information
+### No Programmatic Data Access
+
+You have no right to access your data through any application programming interface (API), data export functionality, or other programmatic means. We provide no data portability tools, export features, or developer access to user data. Any attempt to programmatically access, scrape, or extract data from the Service is strictly prohibited and may result in immediate account termination and legal action.
+
+## 5. Unlimited Use of Your Information
 
 We have absolute, unrestricted rights to use collected information for ANY purpose, including:
 
 - Operating, improving, and modifying the Service at our sole discretion
 - Creating user profiles for any purpose including sale to third parties
-- Training artificial intelligence, machine learning models, and algorithms
+- Training artificial intelligence, machine learning models, and algorithms (including models that may be commercialized, sold, licensed, or made publicly available)
+- Using your expense data, group names, comments, descriptions, and all behavioral patterns to develop AI products and services
 - Behavioral analysis and predictive modeling
 - Targeted advertising (first-party and third-party)
 - Sale, rental, or lease of data to any party
@@ -65,7 +80,11 @@ We have absolute, unrestricted rights to use collected information for ANY purpo
 
 You grant us an irrevocable, perpetual, worldwide, royalty-free, sublicensable, transferable license to use all your data and content for any purpose.
 
-## 5. Data Sharing and Disclosure
+### Derived Data and Insights
+
+All insights, analytics, profiles, predictions, patterns, trends, aggregations, and any other information derived from your data belong exclusively to us. You have no ownership interest, intellectual property rights, or other claims to any derived data. We may commercialize, sell, license, or otherwise exploit derived data without compensation or attribution to you.
+
+## 6. Data Sharing and Disclosure
 
 We may share your information with any party at our sole discretion, including:
 
@@ -80,15 +99,26 @@ We may share your information with any party at our sole discretion, including:
 
 We are not responsible for any third party's use of your information once shared.
 
-## 6. Data Retention
+## 7. Data Retention
 
 We retain all collected information indefinitely, including after account termination. We may maintain backups forever. Deletion requests may be ignored at our discretion. Even if we appear to delete data, we may retain copies for legal, technical, or business purposes.
 
-## 7. International Transfer
+### Backup and Anonymized Data Persistence
+
+Even after account deletion or data removal requests:
+
+- Backup copies may persist indefinitely in our systems and third-party backup services
+- Anonymized, pseudonymized, hashed, or aggregated versions of your data may be retained permanently
+- Data that has been shared with third parties cannot be recalled or deleted
+- Data used to train AI models becomes permanently embedded and cannot be extracted
+- Cached or archived copies may exist beyond our direct control
+- We have no obligation to purge data from all systems or notify you of retained copies
+
+## 8. International Transfer
 
 Your data may be transferred to, stored, and processed in any country where we or our partners operate. You consent to transfer to countries without adequate data protection laws. We assume no liability for data handling in other jurisdictions.
 
-## 8. Security Disclaimer
+## 9. Security Disclaimer
 
 While we may implement security measures, we make NO guarantee of security. You acknowledge that:
 
@@ -99,7 +129,7 @@ While we may implement security measures, we make NO guarantee of security. You 
 - We have no obligation to notify you of breaches
 - You waive any claims related to data security incidents
 
-## 9. Your Rights (Limitations)
+## 10. Your Rights (Limitations)
 
 You acknowledge and agree that:
 
@@ -112,15 +142,15 @@ You acknowledge and agree that:
 - You waive any rights not explicitly required by applicable law
 - Legal rights may be exercised only through arbitration (see Terms)
 
-## 10. Children's Information
+## 11. Children's Information
 
 If we discover users under 18, we may retain their data for legal compliance. Parents have no guaranteed right to access or delete children's information. We assume no special obligations regarding minors' data.
 
-## 11. Do Not Track
+## 12. Do Not Track
 
 We do not respond to "Do Not Track" signals. We track all users regardless of browser settings.
 
-## 12. California/GDPR/Privacy Law Disclosures
+## 13. California/GDPR/Privacy Law Disclosures
 
 Where legally required, users may have certain rights. However:
 
@@ -130,7 +160,7 @@ Where legally required, users may have certain rights. However:
 - We may take the full legal timeframe to respond
 - We may charge permissible fees
 
-## 13. Automated Decision Making
+## 14. Automated Decision Making
 
 We use automated systems for all decisions about you, including:
 
@@ -141,13 +171,13 @@ We use automated systems for all decisions about you, including:
 
 You have no right to human review of automated decisions.
 
-## 14. Marketing and Communications
+## 15. Marketing and Communications
 
 By using the Service, you consent to receive marketing communications through any medium. Opt-out requests may be honored at our discretion. Transactional messages cannot be opted out of.
 
-## 15. Cookies and Tracking
+## 16. Cookies, Tracking, and Future Advertising
 
-We use all available tracking technologies including:
+While the Service currently operates without third-party advertising, we reserve the absolute right to implement comprehensive advertising and tracking at any time. We may use all available tracking technologies including:
 
 - Cookies (persistent and session)
 - Web beacons and pixel tags
@@ -157,15 +187,34 @@ We use all available tracking technologies including:
 - Supercookies and permacookies
 - Canvas fingerprinting
 - WebRTC tracking
+- Service worker tracking
+- Push notification identifiers and tracking
+- Offline data collection (transmitted when connection resumes)
+- Background sync and periodic background sync
 - Any future tracking technology
 
-You consent to all tracking by using the Service.
+### Future Advertising Implementation
 
-## 16. Third-Party Links and Services
+We may at any time, without notice:
+
+- Implement first-party and third-party advertising
+- Share your data with advertising networks and demand-side platforms
+- Use your behavioral data for targeted advertising across the internet
+- Participate in real-time bidding for advertising inventory
+- Create advertising profiles that follow you across services
+- Monetize your attention, engagement, and behavioral patterns
+- Display personalized advertisements based on your expense data and groups
+- Integrate with major advertising platforms (Google, Meta, Amazon, etc.)
+
+By continuing to use the Service after any such implementation, you consent to all advertising and associated data collection.
+
+You consent to all current and future tracking by using the Service.
+
+## 17. Third-Party Links and Services
 
 We are not responsible for third-party privacy practices. Third parties may track you without our knowledge. We share no liability for external sites or services.
 
-## 17. Indemnification
+## 18. Indemnification
 
 You indemnify and hold us harmless from any claims related to:
 
@@ -174,7 +223,7 @@ You indemnify and hold us harmless from any claims related to:
 - Your use of the Service
 - Any dispute regarding privacy
 
-## 18. No Warranty
+## 19. No Warranty
 
 This Policy is provided "AS IS" without warranty. We make no guarantees about:
 
@@ -183,7 +232,7 @@ This Policy is provided "AS IS" without warranty. We make no guarantees about:
 - Legal sufficiency of this Policy
 - Your understanding of this Policy
 
-## 19. Limitation of Liability
+## 20. Limitation of Liability
 
 OUR TOTAL LIABILITY FOR ANY PRIVACY-RELATED CLAIM IS LIMITED TO £1. YOU WAIVE ALL RIGHTS TO DAMAGES INCLUDING:
 
@@ -194,7 +243,7 @@ OUR TOTAL LIABILITY FOR ANY PRIVACY-RELATED CLAIM IS LIMITED TO £1. YOU WAIVE A
 - Injunctive relief
 - Class action participation
 
-## 20. Governing Law and Disputes
+## 21. Governing Law and Disputes
 
 This Policy is governed by the laws of England and Wales. Any disputes must be resolved through binding individual arbitration in London, England. You waive all rights to:
 
@@ -205,15 +254,15 @@ This Policy is governed by the laws of England and Wales. Any disputes must be r
 
 The arbitrator's decision is final and non-appealable. You pay all arbitration costs regardless of outcome.
 
-## 21. Severability and Integration
+## 22. Severability and Integration
 
 If any provision is unenforceable, we may replace it with similar enforceable terms. This Policy, combined with our Terms and Conditions, constitutes the entire agreement. Any rights not explicitly granted to you are reserved by us.
 
-## 22. Contact
+## 23. Contact
 
 Questions may be submitted through the Service but we guarantee no response. We may use any communications for any purpose.
 
-## 23. Special Provisions
+## 24. Special Provisions
 
 ### Force Majeure
 
@@ -235,7 +284,7 @@ We may assign this Policy and your information to any party. You may not assign 
 
 All ambiguities are interpreted in our favor. Headers are for convenience only.
 
-## 24. FINAL ACKNOWLEDGMENT
+## 25. FINAL ACKNOWLEDGMENT
 
 BY USING THE SERVICE, YOU ACKNOWLEDGE THAT:
 
