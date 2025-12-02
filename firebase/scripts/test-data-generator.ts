@@ -1307,9 +1307,10 @@ async function finalizeLargeGroupAdvancedData(groups: GroupWithInvite[], groupMe
             description: `${expenseToUpdate.description} (updated)`,
             label: 'shopping',
         };
-        await runQueued(() => driver.updateExpense(expenseToUpdate.id, expenseUpdate, adminUser.token));
-        const updatedExpenseDetails = await runQueued(() => driver.getExpenseFullDetails(expenseToUpdate.id, adminUser.token));
-        console.log(`Updated expense ${expenseToUpdate.id} in "Large Group": "${updatedExpenseDetails.expense.description}"`);
+        // updateExpense returns the new expense (with new ID since updates create new versions)
+        const updatedExpense = await runQueued(() => driver.updateExpense(expenseToUpdate.id, expenseUpdate, adminUser.token));
+        const updatedExpenseDetails = await runQueued(() => driver.getExpenseFullDetails(updatedExpense.id, adminUser.token));
+        console.log(`Updated expense ${updatedExpense.id} in "Large Group": "${updatedExpenseDetails.expense.description}"`);
     }
 
     let currentMembers = groupMemberships.get(largeGroup.id) ?? [];
