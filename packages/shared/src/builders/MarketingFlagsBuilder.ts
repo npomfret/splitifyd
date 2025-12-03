@@ -1,5 +1,5 @@
-import type { BrandingMarketingFlags } from '@billsplit-wl/shared';
-import { toShowLandingPageFlag, toShowMarketingContentFlag, toShowPricingPageFlag } from '@billsplit-wl/shared';
+import type { BrandingMarketingFlags } from '../shared-types';
+import { toShowLandingPageFlag, toShowMarketingContentFlag, toShowPricingPageFlag } from '../shared-types';
 
 /**
  * Builder for BrandingMarketingFlags objects used in tenant config tests.

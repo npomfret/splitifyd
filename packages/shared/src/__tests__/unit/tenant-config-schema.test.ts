@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { TenantConfigBuilder, TenantConfigSchema } from '../../index';
+import { MarketingFlagsBuilder, TenantConfigBuilder, TenantConfigSchema } from '../../index';
 
 /**
  * Tenant Response Validation Tests
@@ -23,11 +23,13 @@ describe('Tenant API Response Validation', () => {
                 .withTextColor('#1F2937')
                 .withThemePalette('default')
                 .withCustomCSS('/* test */')
-                .withMarketingFlags({
-                    showLandingPage: true,
-                    showMarketingContent: true,
-                    showPricingPage: false,
-                })
+                .withMarketingFlags(
+                    new MarketingFlagsBuilder()
+                        .withShowLandingPage(true)
+                        .withShowMarketingContent(true)
+                        .withShowPricingPage(false)
+                        .build()
+                )
                 .build();
 
             const result = TenantConfigSchema.parse(tenantConfig);

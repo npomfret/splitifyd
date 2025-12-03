@@ -42,7 +42,7 @@ export { InitiateMergeRequestBuilder } from './InitiateMergeRequestBuilder';
 export { JoinGroupResponseBuilder } from './JoinGroupResponseBuilder';
 export { ListCommentsResponseBuilder } from './ListCommentsResponseBuilder';
 export { ListGroupsResponseBuilder } from './ListGroupsResponseBuilder';
-export { MarketingFlagsBuilder } from './MarketingFlagsBuilder';
+export { MarketingFlagsBuilder } from '@billsplit-wl/shared';
 export { PasswordChangeRequestBuilder } from './PasswordChangeRequestBuilder';
 export { PolicyAcceptanceStatusDTOBuilder } from './PolicyAcceptanceStatusDTOBuilder';
 export { PolicyDocumentBuilder } from './PolicyDocumentBuilder';
