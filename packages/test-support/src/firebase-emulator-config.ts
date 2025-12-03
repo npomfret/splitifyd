@@ -59,17 +59,13 @@ export interface FirebaseConfig {
     };
 }
 
-export interface FirebaseEmulatorConfig {
-    signInUrl: string
-}
-
 /**
  * Loads Firebase configuration from firebase.json
  * Walks up the directory tree to find firebase/firebase.json from any context
  * @param startPath - Optional starting path (defaults to current working directory)
  * @returns Parsed Firebase configuration
  */
-export function loadFirebaseConfig(startPath?: string): FirebaseConfig {
+function loadFirebaseConfig(startPath?: string): FirebaseConfig {
     const projectRoot = findProjectRoot(startPath);
     const firebaseConfigPath = path.join(projectRoot, 'firebase', 'firebase.json');
 
@@ -82,15 +78,6 @@ export function loadFirebaseConfig(startPath?: string): FirebaseConfig {
 }
 
 /**
- * Get the Firebase Functions emulator port
- * @returns Functions emulator port number
- */
-export function getFunctionsPort(): number {
-    const config = loadFirebaseConfig();
-    return config.emulators.functions.port;
-}
-
-/**
  * Get the Firebase Firestore emulator port
  * @returns Firestore emulator port number
  */
@@ -99,14 +86,6 @@ export function getFirestorePort(): number {
     return config.emulators.firestore.port;
 }
 
-/**
- * Get the Firebase Auth emulator port
- * @returns Auth emulator port number
- */
-export function getAuthPort(): number {
-    const config = loadFirebaseConfig();
-    return config.emulators.auth.port;
-}
 
 /**
  * Get the Firebase Hosting emulator port
@@ -115,38 +94,6 @@ export function getAuthPort(): number {
 export function getHostingPort(): number {
     const config = loadFirebaseConfig();
     return config.emulators.hosting.port;
-}
-
-/**
- * Get the Firebase UI emulator port
- * @returns UI emulator port number
- */
-export function getUIPort(): number {
-    const config = loadFirebaseConfig();
-    return config.emulators.ui.port;
-}
-
-/**
- * Get all Firebase emulator ports as an object for destructuring
- * @returns Object with named port properties
- */
-export function getPorts(): {
-    functions: number;
-    firestore: number;
-    auth: number;
-    hosting: number;
-    storage: number;
-    ui: number;
-} {
-    const config = loadFirebaseConfig();
-    return {
-        functions: config.emulators.functions.port,
-        firestore: config.emulators.firestore.port,
-        auth: config.emulators.auth.port,
-        hosting: config.emulators.hosting.port,
-        storage: config.emulators.storage.port,
-        ui: config.emulators.ui.port,
-    };
 }
 
 /**
@@ -168,20 +115,7 @@ export function getAllEmulatorPorts(): number[] {
     return ports;
 }
 
-/**
- * Cached emulator config from running app
- */
-let cachedEmulatorConfig: FirebaseEmulatorConfig | null = null;
-
-/**
- * Get Firebase emulator configuration by fetching from the running app.
- * @returns Promise<FirebaseEmulatorConfig> with signInUrl for authentication
- */
-export async function getFirebaseEmulatorConfig(): Promise<FirebaseEmulatorConfig> {
-    if (cachedEmulatorConfig) {
-        return cachedEmulatorConfig;
-    }
-
+export async function getFirebaseEmulatorSigninUrl(): Promise<string> {
     const firebaseConfig = loadFirebaseConfig();
     const hostingPort = firebaseConfig.emulators.hosting.port;
     const config = await loadClientAppConfiguration(emulatorHost, hostingPort);
@@ -193,8 +127,7 @@ export async function getFirebaseEmulatorConfig(): Promise<FirebaseEmulatorConfi
     const authUrl = new URL(config.firebaseAuthUrl);
     const signInUrl = `http://${authUrl.hostname}:${authUrl.port}/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${config.firebase.apiKey}`;
 
-    cachedEmulatorConfig = { signInUrl };
-    return cachedEmulatorConfig;
+    return signInUrl;
 }
 
 async function loadClientAppConfiguration(emulatorHost: string, hostingPort: number): Promise<ClientAppConfiguration> {
@@ -205,6 +138,7 @@ async function loadClientAppConfiguration(emulatorHost: string, hostingPort: num
     if (!response.ok) {
         throw new Error(`Failed to fetch config from ${hostingUrl}/api/bootstrap-config: ${response.status} ${response.statusText}`);
     }
+
     return (await response.json()) as ClientAppConfiguration
 }
 

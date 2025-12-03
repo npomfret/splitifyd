@@ -1,6 +1,5 @@
 #!/usr/bin/env npx tsx
 
-import { getPorts } from '@billsplit-wl/test-support';
 import { ChildProcess } from 'child_process';
 import assert from 'node:assert';
 import { loadRuntimeConfig } from './scripts-config';
@@ -56,35 +55,12 @@ async function runPublishDemoThemesStep(): Promise<void> {
 const runtimeConfig = loadRuntimeConfig();
 assert(runtimeConfig.__INSTANCE_NAME.startsWith('dev'), `__INSTANCE_NAME=${runtimeConfig.__INSTANCE_NAME} is not allowed when starting emulators`);
 
-// Get Firebase configuration using centralized loader
-let UI_PORT: number;
-let FUNCTIONS_PORT: number;
-let FIRESTORE_PORT: number;
-let AUTH_PORT: number;
-
-try {
-    ({ ui: UI_PORT, functions: FUNCTIONS_PORT, firestore: FIRESTORE_PORT, auth: AUTH_PORT } = getPorts());
-} catch (error) {
-    logger.error('❌ firebase.json not found. Run the build process first to generate it.', { error });
-    process.exit(1);
-}
-
-logger.info('🚀 Starting Firebase emulator with default user setup...', {
-    uiPort: UI_PORT,
-    functionsPort: FUNCTIONS_PORT,
-});
-
 let emulatorProcess: ChildProcess | null = null;
 
 const main = async () => {
     try {
         // Step 1: Start emulator
-        emulatorProcess = await startEmulator({
-            uiPort: UI_PORT,
-            functionsPort: FUNCTIONS_PORT,
-            firestorePort: FIRESTORE_PORT,
-            authPort: AUTH_PORT,
-        });
+        emulatorProcess = await startEmulator();
 
         logger.info('🚀 You can now use the webapp and all endpoints are available');
 

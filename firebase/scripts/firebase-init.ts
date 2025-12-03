@@ -1,10 +1,9 @@
-import { getFirebaseEmulatorConfig } from '@billsplit-wl/test-support';
 import * as admin from 'firebase-admin';
 import * as fs from 'fs';
 import * as path from 'path';
 import {getInstanceEnvironment, loadRuntimeConfig, type ScriptEnvironment} from './scripts-config';
 
-export { type ScriptEnvironment } from './scripts-config';
+export {type ScriptEnvironment} from './scripts-config';
 
 export function isDeployed() {
     const env = getInstanceEnvironment();
@@ -60,8 +59,6 @@ export function getEnvironment(args?: string[]): ScriptEnvironment {
 }
 
 export async function initializeFirebase(env: ScriptEnvironment): Promise<void> {
-    console.log(`🎯 Initializing Firebase for ${env.environment}`);
-
     if (!env.isEmulator) {
         console.log('   Using Production Firebase');
 
@@ -85,43 +82,6 @@ export async function initializeFirebase(env: ScriptEnvironment): Promise<void> 
             });
         } else {
             console.log('   Firebase Admin already initialized');
-        }
-    } else {
-        console.log('   Using Firebase Emulator Suite');
-
-        // Ensure runtime config is loaded
-        loadRuntimeConfig();
-
-        try {
-            // Fetch config from running app
-            const emulatorConfig = await getFirebaseEmulatorConfig();
-
-            // if (!process.env.FUNCTIONS_EMULATOR) {
-            //     process.env.FUNCTIONS_EMULATOR = 'true';
-            // }
-
-            // process.env.FIREBASE_AUTH_EMULATOR_HOST = emulatorConfig.identityToolkit.host;
-            // process.env.FIRESTORE_EMULATOR_HOST = emulatorConfig.firestoreEmulatorHost;
-            // process.env.FIREBASE_STORAGE_EMULATOR_HOST = emulatorConfig.firebaseStorageEmulatorHost;
-            //
-            // if (!process.env.FIREBASE_CONFIG) {
-            //     process.env.FIREBASE_CONFIG = JSON.stringify({
-            //         projectId: emulatorConfig.projectId,
-            //         storageBucket: `${emulatorConfig.projectId}.appspot.com`,
-            //     });
-            // }
-            //
-            // if (admin.apps.length === 0) {
-            //     admin.initializeApp({
-            //         projectId: emulatorConfig.projectId,
-            //         storageBucket: `${emulatorConfig.projectId}.appspot.com`,
-            //     });
-            //     console.log('   Firebase Admin initialized for emulator');
-            // } else {
-            //     console.log('   Firebase Admin already initialized');
-            // }
-        } catch (error) {
-            console.warn('⚠️  Failed to load emulator config from running app', error);
         }
     }
 }

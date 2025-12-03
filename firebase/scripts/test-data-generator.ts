@@ -30,7 +30,7 @@ import {
     UserRegistration,
     zeroAmount,
 } from '@billsplit-wl/shared';
-import { ApiDriver, CreateExpenseRequestBuilder, DEFAULT_ADMIN_DISPLAY_NAME, DEFAULT_ADMIN_EMAIL, DEFAULT_PASSWORD, getFirebaseEmulatorConfig } from '@billsplit-wl/test-support';
+import { ApiDriver, CreateExpenseRequestBuilder, DEFAULT_ADMIN_DISPLAY_NAME, DEFAULT_ADMIN_EMAIL, DEFAULT_PASSWORD, getFirebaseEmulatorSigninUrl } from '@billsplit-wl/test-support';
 
 // Initialize ApiDriver lazily
 let _driver: ApiDriver | null = null;
@@ -144,7 +144,7 @@ interface FirebaseSignInErrorResponse {
 }
 
 export async function signInExistingBillSplitter(): Promise<AuthenticatedFirebaseUser | null> {
-    const { signInUrl } = await getFirebaseEmulatorConfig();
+    const signInUrl  = await getFirebaseEmulatorSigninUrl();
 
     const response = await fetch(signInUrl, {
         method: 'POST',

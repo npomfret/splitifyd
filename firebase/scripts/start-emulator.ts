@@ -6,18 +6,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { logger } from './logger';
 
-interface EmulatorConfig {
-    uiPort: number;
-    functionsPort: number;
-    firestorePort: number;
-    authPort: number;
-}
-
-export async function startEmulator(config: EmulatorConfig): Promise<ChildProcess> {
-    logger.info('🚀 Starting Firebase emulator...', {
-        uiPort: config.uiPort,
-        functionsPort: config.functionsPort,
-    });
+export async function startEmulator(): Promise<ChildProcess> {
+    logger.info('🚀 Starting Firebase emulator...');
 
     const emulatorProcess = spawn('firebase', ['emulators:start'], {
         stdio: 'pipe',
