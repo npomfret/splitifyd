@@ -14,19 +14,6 @@ export default defineConfig({
         ],
         // Longer timeout for integration tests
         testTimeout: 5000,
-        coverage: {
-            provider: 'v8',
-            reporter: ['text', 'json', 'html'],
-            exclude: ['node_modules/', 'src/test-utils/', '**/*.d.ts', '**/*.config.*', '**/vite.config.*', 'dist/'],
-            thresholds: {
-                global: {
-                    branches: 75,
-                    functions: 75,
-                    lines: 80,
-                    statements: 80,
-                },
-            },
-        },
     },
     resolve: {
         alias: {

@@ -11,18 +11,6 @@ export default defineConfig({
         },
         include: ['src/**/*.test.ts'],
         exclude: ['node_modules', 'lib', 'dist'],
-        coverage: {
-            provider: 'v8',
-            reporter: ['text', 'json', 'html'],
-            exclude: [
-                'node_modules/',
-                'lib/',
-                'scripts/',
-                '**/*.d.ts',
-                '**/*.config.*',
-                'src/index.ts', // Entry point
-            ],
-        },
         testTimeout: 20000, // Increased for integration tests
         hookTimeout: 10000, // Increased for integration tests setup/teardown
         // Force sequential execution for Firebase integration tests

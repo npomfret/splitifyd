@@ -5,7 +5,7 @@
     "noImplicitReturns": true,
     "noUnusedLocals": false,
     "outDir": "lib",
-    "rootDir": "src",
+    "rootDir": ".",
     "sourceMap": true,
     "strict": true,
     "target": "es2020",
@@ -17,6 +17,6 @@
     "types": ["node", "vitest/globals"]
   },
   "compileOnSave": true,
-  "include": ["src"],
+  "include": ["src", "scripts", "vitest.config.ts", "vitest.setup.ts"],
   "exclude": ["node_modules", "lib"]
 }

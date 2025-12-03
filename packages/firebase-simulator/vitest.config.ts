@@ -13,8 +13,5 @@ export default defineConfig({
                 singleThread: true,
             },
         },
-        coverage: {
-            enabled: false,
-        },
     },
 });
