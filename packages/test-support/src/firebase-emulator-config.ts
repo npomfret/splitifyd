@@ -2,79 +2,48 @@ import type { ClientAppConfiguration } from '@billsplit-wl/shared';
 import * as fs from 'fs';
 import * as path from 'path';
 
-export interface FirebaseConfig {
-    functions: Array<{
-        source: string;
-        codebase: string;
-        ignore: string[];
-        predeploy: string[];
-    }>;
-    hosting: {
-        public: string;
-        ignore: string[];
-        headers: Array<{
-            source: string;
-            headers: Array<{
-                key: string;
-                value: string;
-            }>;
-        }>;
-        rewrites: Array<{
-            source: string;
-            function?: string;
-            destination?: string;
-        }>;
-    };
-    firestore: {
-        rules: string;
-        indexes: string;
-    };
+export interface FirebaseJsonConfig {
     emulators: {
-        auth: {
-            port: number;
-            host: string;
-        };
-        functions: {
-            port: number;
-            host: string;
-        };
-        firestore: {
-            port: number;
-            host: string;
-        };
-        hosting: {
-            port: number;
-            host: string;
-        };
-        storage: {
-            port: number;
-            host: string;
-        };
-        ui: {
-            enabled: boolean;
-            port: number;
-            host: string;
-        };
+        auth: { port: number; host: string };
+        functions: { port: number; host: string };
+        firestore: { port: number; host: string };
+        hosting: { port: number; host: string };
+        storage: { port: number; host: string };
+        tasks: { port: number; host: string };
+        ui: { enabled: boolean; port: number; host: string };
         singleProjectMode: boolean;
     };
 }
 
 /**
+ * Finds firebase.json by walking up the directory tree.
+ * Works from any context within the project.
+ */
+function findFirebaseJson(startPath?: string): string {
+    let currentPath = startPath || process.cwd();
+
+    while (currentPath !== path.dirname(currentPath)) {
+        // Try firebase/firebase.json (from project root)
+        const fromRoot = path.join(currentPath, 'firebase', 'firebase.json');
+        if (fs.existsSync(fromRoot)) return fromRoot;
+
+        // Try firebase.json directly (from within firebase/)
+        const direct = path.join(currentPath, 'firebase.json');
+        if (fs.existsSync(direct)) return direct;
+
+        currentPath = path.dirname(currentPath);
+    }
+
+    throw new Error('Could not find firebase.json');
+}
+
+/**
  * Loads Firebase configuration from firebase.json
  * Walks up the directory tree to find firebase/firebase.json from any context
- * @param startPath - Optional starting path (defaults to current working directory)
- * @returns Parsed Firebase configuration
  */
-function loadFirebaseConfig(startPath?: string): FirebaseConfig {
-    const projectRoot = findProjectRoot(startPath);
-    const firebaseConfigPath = path.join(projectRoot, 'firebase', 'firebase.json');
-
-    try {
-        const firebaseJsonContent = fs.readFileSync(firebaseConfigPath, 'utf8');
-        return JSON.parse(firebaseJsonContent);
-    } catch (error) {
-        throw new Error(`Failed to read firebase.json at ${firebaseConfigPath}: ${error}`);
-    }
+function loadFirebaseConfig(startPath?: string): FirebaseJsonConfig {
+    const configPath = findFirebaseJson(startPath);
+    return JSON.parse(fs.readFileSync(configPath, 'utf8'));
 }
 
 /**
@@ -142,9 +111,8 @@ async function loadClientAppConfiguration(hostingUrl: string): Promise<ClientApp
 const emulatorHost = '127.0.0.1';
 
 export function emulatorHostingURL() {
-    const firebaseConfig = loadFirebaseConfig();
-    const hostingPort = firebaseConfig.emulators.hosting.port;
-    return `http://${emulatorHost}:${hostingPort}`;
+    const config = loadFirebaseConfig();
+    return `http://${emulatorHost}:${config.emulators.hosting.port}`;
 }
 
 /**
@@ -177,27 +145,4 @@ export async function getApiDriverConfig(): Promise<ApiDriverConfig> {
         firebaseApiKey: config.firebase.apiKey,
         authBaseUrl: `${config.firebaseAuthUrl}/identitytoolkit.googleapis.com`,
     };
-}
-
-/**
- * Finds the project root by looking for firebase/firebase.json
- * @param startPath - Optional starting path (defaults to current working directory)
- * @returns Path to project root
- */
-function findProjectRoot(startPath?: string): string {
-    let currentPath = startPath || process.cwd();
-
-    while (currentPath !== path.dirname(currentPath)) {
-        try {
-            const firebaseJsonPath = path.join(currentPath, 'firebase', 'firebase.json');
-            if (fs.existsSync(firebaseJsonPath)) {
-                return currentPath;
-            }
-        } catch {
-            // Continue searching
-        }
-        currentPath = path.dirname(currentPath);
-    }
-
-    throw new Error('Could not find project root with firebase/firebase.json');
 }

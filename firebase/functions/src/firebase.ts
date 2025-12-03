@@ -1,8 +1,7 @@
 import {config as loadEnv} from 'dotenv';
 import * as admin from 'firebase-admin';
-import assert from 'node:assert';
 import {existsSync, readFileSync} from 'node:fs';
-import {join} from 'node:path';
+import {dirname, join} from 'node:path';
 
 const envPath = join(__dirname, '../.env');
 if (existsSync(envPath)) {
@@ -20,11 +19,41 @@ export function isRealFirebase(): boolean {
     return process.env.GAE_RUNTIME !== undefined;
 }
 
+interface FirebaseJsonConfig {
+    emulators: {
+        functions: {port: number; host: string};
+    };
+}
+
+/**
+ * Finds firebase.json by walking up the directory tree.
+ * Works from any context within the project.
+ */
+function findFirebaseJson(startPath?: string): string {
+    let currentPath = startPath || process.cwd();
+
+    while (currentPath !== dirname(currentPath)) {
+        // Try firebase/firebase.json (from project root)
+        const fromRoot = join(currentPath, 'firebase', 'firebase.json');
+        if (existsSync(fromRoot)) return fromRoot;
+
+        // Try firebase.json directly (from within firebase/)
+        const direct = join(currentPath, 'firebase.json');
+        if (existsSync(direct)) return direct;
+
+        currentPath = dirname(currentPath);
+    }
+
+    throw new Error('Could not find firebase.json');
+}
+
+function readFirebaseJson(startPath?: string): FirebaseJsonConfig {
+    const path = findFirebaseJson(startPath);
+    return JSON.parse(readFileSync(path, 'utf8'));
+}
+
 interface EmulatorPorts {
     functions: number;
-    firestore: number;
-    auth: number;
-    storage: number;
 }
 
 let cachedEmulatorPorts: EmulatorPorts | null = null;
@@ -37,25 +66,10 @@ export function getEmulatorPorts(): EmulatorPorts {
     if (cachedEmulatorPorts) {
         return cachedEmulatorPorts;
     }
-
-    const firebaseJsonPath = join(__dirname, '../../firebase.json');
-    if (!existsSync(firebaseJsonPath)) {
-        throw new Error(`firebase.json not found at ${firebaseJsonPath}`);
-    }
-
-    const config = JSON.parse(readFileSync(firebaseJsonPath, 'utf8'));
-    const emulators = config.emulators;
-
-    if (!emulators?.functions?.port || !emulators?.firestore?.port ||
-        !emulators?.auth?.port || !emulators?.storage?.port) {
-        throw new Error('All emulator ports must be defined in firebase.json');
-    }
+    const config = readFirebaseJson();
 
     cachedEmulatorPorts = {
-        functions: emulators.functions.port,
-        firestore: emulators.firestore.port,
-        auth: emulators.auth.port,
-        storage: emulators.storage.port,
+        functions: config.emulators.functions.port,
     };
 
     return cachedEmulatorPorts;
@@ -102,45 +116,9 @@ function getApp(): admin.app.App {
             const config = getFirebaseConfigFromEnvVar();
 
             app = admin.initializeApp(config);
-
-            // Configure emulator settings if needed
-            if (isEmulator()) {
-                configureEmulatorSettings(app);
-            }
         }
     }
     return app;
-}
-
-/**
- * Configure emulator settings for non-production environments
- */
-function configureEmulatorSettings(appInstance: admin.app.App): void {
-    if (isEmulator()) {
-        // Sanity checks
-        assert(process.env.FIREBASE_AUTH_EMULATOR_HOST);
-        assert(process.env.FIRESTORE_EMULATOR_HOST);
-        assert(process.env.FIREBASE_STORAGE_EMULATOR_HOST);
-        assert(process.env.FIREBASE_CONFIG);
-    } else if (isRealFirebase()) {
-        // Sanity checks
-        assert(process.env.FIREBASE_CONFIG);
-    } else {// we are in a test
-        const ports = getEmulatorPorts();
-
-        // Configure Firestore emulator
-        const firestore = appInstance.firestore();
-        firestore.settings({
-            host: `localhost:${ports.firestore}`,
-            ssl: false,
-        });
-
-        // Configure Auth emulator
-        process.env['FIREBASE_AUTH_EMULATOR_HOST'] = `localhost:${ports.auth}`;
-
-        // Configure Storage emulator
-        process.env['FIREBASE_STORAGE_EMULATOR_HOST'] = `localhost:${ports.storage}`;
-    }
 }
 
 // Lazy-initialized singleton instances to minimize connections

@@ -50,19 +50,6 @@ const serviceEnvSchema = z.object({
 });
 
 /**
- * Build the functions URL from available configuration.
- * - Deployed: https://{region}-{projectId}.cloudfunctions.net
- * - Emulator: http://localhost:{functionsPort}/{projectId}/{region}
- */
-function buildFunctionsUrl(projectId: string, cloudTasksLocation: string): string {
-    if (isEmulator()) {
-        const functionsPort = getEmulatorPorts().functions;
-        return `http://localhost:${functionsPort}/${projectId}/${cloudTasksLocation}`;
-    }
-    return `https://${cloudTasksLocation}-${projectId}.cloudfunctions.net`;
-}
-
-/**
  * Lazy environment variable loader for service config
  */
 function getServiceEnv(): z.infer<typeof serviceEnvSchema> {
@@ -118,7 +105,7 @@ function buildServiceConfig(): ServiceConfig {
             projectId,
             cloudTasksLocation,
             cloudTasksServiceAccount: env.__CLOUD_TASKS_SERVICE_ACCOUNT!,
-            functionsUrl: buildFunctionsUrl(projectId, cloudTasksLocation),
+            functionsUrl: `https://${cloudTasksLocation}-${projectId}.cloudfunctions.net`,
             minRegistrationDurationMs: env.__MIN_REGISTRATION_DURATION_MS!,
             storageEmulatorHost: null,
         };
@@ -136,12 +123,14 @@ function buildServiceConfig(): ServiceConfig {
 
         const projectId = inferProjectId();
         const cloudTasksLocation = env.__CLOUD_TASKS_LOCATION;
+        const functionsPort = getEmulatorPorts().functions;
+        const functionsUrl = `http://localhost:${functionsPort}/${projectId}/${cloudTasksLocation}`;
 
         return {
             projectId,
             cloudTasksLocation,
             cloudTasksServiceAccount: "foo",
-            functionsUrl: buildFunctionsUrl(projectId, cloudTasksLocation),
+            functionsUrl,
             minRegistrationDurationMs: env.__MIN_REGISTRATION_DURATION_MS,
             storageEmulatorHost: env.FIREBASE_STORAGE_EMULATOR_HOST || null,
         };
