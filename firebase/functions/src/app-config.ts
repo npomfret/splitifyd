@@ -4,7 +4,6 @@ import {z} from 'zod';
 import {DOCUMENT_CONFIG, VALIDATION_LIMITS} from './constants';
 import {logger} from './logger';
 import {validateAppConfiguration} from './middleware/config-validation';
-import {assertValidInstanceName, type InstanceName} from './shared/instance-name';
 import {inferProjectId, isEmulator, isRealFirebase} from "./firebase";
 
 // Cache for lazy-loaded configurations
@@ -13,25 +12,7 @@ let cachedAppConfig: ClientAppConfiguration | null = null;
 let cachedEnv: z.infer<typeof envSchema> | null = null;
 
 // Define environment variable schema
-const instanceNameSchema = z
-    .string()
-    .refine((value) => value !== undefined && value !== '', {
-        message: '__INSTANCE_NAME environment variable is required',
-    })
-    .superRefine((value, ctx) => {
-        try {
-            assertValidInstanceName(value);
-        } catch (error) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: error instanceof Error ? error.message : String(error),
-            });
-        }
-    })
-    .transform((value) => value as InstanceName);
-
 const envSchema = z.object({
-    __INSTANCE_NAME: instanceNameSchema,
     FUNCTIONS_EMULATOR: z.string().optional(),
     FIREBASE_CONFIG: z.string().optional(),
     __CLIENT_API_KEY: z.string().optional(),
@@ -249,7 +230,6 @@ function buildAppConfiguration(): ClientAppConfiguration {
         logger.error('Firebase config is incomplete in deployed environment', new Error('Missing required Firebase config'), {
             hasApiKey: !!env.__CLIENT_API_KEY,
             hasAuthDomain: !!env.__CLIENT_AUTH_DOMAIN,
-            instanceName: env.__INSTANCE_NAME,
         });
         throw new Error('Firebase configuration is incomplete in deployed environment');
     }

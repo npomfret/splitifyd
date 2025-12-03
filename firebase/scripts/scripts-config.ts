@@ -22,7 +22,26 @@ import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import * as path from 'path';
 import { z } from 'zod';
-import { assertValidInstanceName, type InstanceName, isDevInstanceName } from '../functions/src/shared/instance-name';
+
+// Instance name types and validation (for build scripts only, not runtime)
+type DevInstanceName = `dev${number}`;
+type StagingInstanceName = `staging-${number}`;
+export type InstanceName = DevInstanceName | StagingInstanceName;
+
+const DEV_NAME_PATTERN = /^dev[0-9]+$/;
+const STAGING_NAME_PATTERN = /^staging-[0-9]+$/;
+
+function assertValidInstanceName(value: string | undefined): asserts value is InstanceName {
+    if (typeof value === 'string' && (DEV_NAME_PATTERN.test(value) || STAGING_NAME_PATTERN.test(value))) {
+        return;
+    }
+    const allowed = 'dev<number>, staging-<number>';
+    throw new Error(`__INSTANCE_NAME must be one of ${allowed}. Received: ${value ?? 'undefined'}`);
+}
+
+export function isDevInstanceName(name: InstanceName): name is DevInstanceName {
+    return DEV_NAME_PATTERN.test(name);
+}
 
 /**
  * Read instance name from .current-instance file if it exists.

@@ -12,18 +12,19 @@
 
 const fs = require('fs');
 const path = require('path');
-const dotenv = require('dotenv');
 
-// Load __INSTANCE_NAME from .env file
-const envPath = path.join(__dirname, '..', '.env');
-if (fs.existsSync(envPath)) {
-    dotenv.config({ path: envPath });
+// Get __INSTANCE_NAME from environment variable or .current-instance file
+let instanceName = process.env.__INSTANCE_NAME;
+if (!instanceName) {
+    const currentInstancePath = path.join(__dirname, '../../.current-instance');
+    if (fs.existsSync(currentInstancePath)) {
+        instanceName = fs.readFileSync(currentInstancePath, 'utf8').trim();
+    }
 }
 
-const instanceName = process.env.__INSTANCE_NAME;
 if (!instanceName) {
-    console.error('❌ __INSTANCE_NAME environment variable is required');
-    console.error('💡 Make sure .env file exists and contains __INSTANCE_NAME');
+    console.error('❌ __INSTANCE_NAME not found');
+    console.error('💡 Either set __INSTANCE_NAME environment variable or run switch-instance.ts first');
     process.exit(1);
 }
 

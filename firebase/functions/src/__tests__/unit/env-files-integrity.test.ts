@@ -4,11 +4,10 @@ import {z} from 'zod';
 
 const FUNCTIONS_DIR = path.join(__dirname, '../../../');
 
-const DEV_INSTANCE_PATTERN = /^dev\d+$/;
-const STAGING_INSTANCE_PATTERN = /^staging-\d+$/;
+const DEV_FILE_PATTERN = /^\.env\.instance(\d+)$/;
+const STAGING_FILE_PATTERN = /^\.env\.instancestaging-(\d+)$/;
 
 const REQUIRED_DEV_VARS = [
-    '__INSTANCE_NAME',
     '__CACHE_PATH_HOME',
     '__CACHE_PATH_LOGIN',
     '__CACHE_PATH_TERMS',
@@ -55,8 +54,7 @@ interface ParsedEnvFile {
     filePath: string;
     fileName: string;
     variables: Map<string, string>;
-    instanceName: string | undefined;
-    instanceType: 'dev' | 'staging' | 'unknown';
+    instanceType: 'dev' | 'staging';
 }
 
 function parseEnvFile(filePath: string): ParsedEnvFile {
@@ -78,29 +76,20 @@ function parseEnvFile(filePath: string): ParsedEnvFile {
         }
     }
 
-    const instanceName = variables.get('__INSTANCE_NAME');
-    let instanceType: 'dev' | 'staging' | 'unknown' = 'unknown';
-
-    if (instanceName) {
-        if (DEV_INSTANCE_PATTERN.test(instanceName)) {
-            instanceType = 'dev';
-        } else if (STAGING_INSTANCE_PATTERN.test(instanceName)) {
-            instanceType = 'staging';
-        }
-    }
+    // Determine instance type from filename
+    const instanceType: 'dev' | 'staging' = STAGING_FILE_PATTERN.test(fileName) ? 'staging' : 'dev';
 
     return {
         filePath,
         fileName,
         variables,
-        instanceName,
         instanceType,
     };
 }
 
 function discoverEnvFiles(): ParsedEnvFile[] {
     const files = fs.readdirSync(FUNCTIONS_DIR)
-        .filter(file => file.match(/^\.env\.instance\d+$/) || file.match(/^\.env\.instancestaging-\d+$/))
+        .filter(file => DEV_FILE_PATTERN.test(file) || STAGING_FILE_PATTERN.test(file))
         .map(file => parseEnvFile(path.join(FUNCTIONS_DIR, file)));
 
     return files;
@@ -114,31 +103,6 @@ describe('Environment Files Integrity', () => {
     });
 
     describe.each(envFiles)('$fileName', (envFile) => {
-        it('should have __INSTANCE_NAME defined', () => {
-            expect(envFile.variables.has('__INSTANCE_NAME')).toBe(true);
-            expect(envFile.instanceName).toBeDefined();
-        });
-
-        it('should have valid __INSTANCE_NAME format', () => {
-            const instanceName = envFile.instanceName;
-            expect(instanceName).toBeDefined();
-
-            const isValidDev = DEV_INSTANCE_PATTERN.test(instanceName!);
-            const isValidStaging = STAGING_INSTANCE_PATTERN.test(instanceName!);
-            expect(isValidDev || isValidStaging).toBe(true);
-        });
-
-        it('should have __INSTANCE_NAME matching filename', () => {
-            const instanceName = envFile.instanceName!;
-            const expectedFileName = `.env.instance${instanceName.replace('dev', '')}`;
-            const expectedStagingFileName = `.env.instance${instanceName}`;
-
-            const matchesDev = envFile.fileName === expectedFileName;
-            const matchesStaging = envFile.fileName === expectedStagingFileName;
-
-            expect(matchesDev || matchesStaging).toBe(true);
-        });
-
         it('should have all required variables for its instance type', () => {
             const requiredVars = envFile.instanceType === 'staging'
                 ? REQUIRED_STAGING_VARS

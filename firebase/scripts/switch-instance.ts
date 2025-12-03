@@ -3,7 +3,6 @@
 import { execSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
-import { loadEnvFile, requireInstanceName } from './scripts-config';
 import { getDeployConfig, requireInstanceConfig } from './instances-config';
 import { logger } from './logger';
 
@@ -47,18 +46,7 @@ try {
         logger.info(`✅ Switched to instance ${instance} configuration via symlink`, { target: targetPath, source: sourcePath });
     }
 
-    // Load and validate the new configuration
-    loadEnvFile(targetPath);
-    const instanceName = requireInstanceName();
-    if (instanceName !== expectedName) {
-        logger.error('❌ __INSTANCE_NAME does not match requested instance', {
-            requested: instance,
-            instanceName,
-            expected: expectedName,
-        });
-        process.exit(1);
-    }
-
+    const instanceName = expectedName;
     const isDeployed: boolean = /^staging-/.test(instanceName);
 
     // Write current instance to .current-instance file for scripts to reference

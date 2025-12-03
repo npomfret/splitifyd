@@ -3,10 +3,9 @@ import * as admin from 'firebase-admin';
 import assert from 'node:assert';
 import {existsSync, readFileSync} from 'node:fs';
 import {join} from 'node:path';
-import {getInstanceName} from './shared/instance-name';
 
 const envPath = join(__dirname, '../.env');
-if (!process.env.__INSTANCE_NAME && existsSync(envPath)) {
+if (existsSync(envPath)) {
     loadEnv({path: envPath});
 }
 
@@ -67,10 +66,6 @@ export function getEmulatorPorts(): EmulatorPorts {
  */
 export function isDeployed() {
     return !isEmulator();
-}
-
-function isTest() {
-    return getInstanceName() === 'dev1';
 }
 
 // Lazy-initialized app instance - DO NOT initialize at module level

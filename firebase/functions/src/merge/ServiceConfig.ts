@@ -44,7 +44,6 @@ const serviceEnvSchema = z.object({
     __CLOUD_TASKS_LOCATION: z.string().min(1, '__CLOUD_TASKS_LOCATION is required'),
     __CLOUD_TASKS_SERVICE_ACCOUNT: z.string().optional(), // Defaults to project's default App Engine service account
     __MIN_REGISTRATION_DURATION_MS: z.coerce.number().min(0, '__MIN_REGISTRATION_DURATION_MS must be non-negative'),
-    __INSTANCE_NAME: z.string().min(1, '__INSTANCE_NAME is required'),
     FUNCTIONS_EMULATOR: z.string().optional(),
     FIREBASE_CONFIG: z.string().optional(),
     FIREBASE_STORAGE_EMULATOR_HOST: z.string().optional(),
