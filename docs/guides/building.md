@@ -7,17 +7,17 @@
 - Test entrypoints (`test`, `test:unit`, `test:integration`) must go through `scripts/test-wrapper.js`; it enforces no CLI args and maps each workspace to the correct runner.
 
 ## Environment Modes
-- `INSTANCE_NAME` is the single source of truth for both runtime environment and compilation strategy:
+- `__INSTANCE_NAME` is the single source of truth for both runtime environment and compilation strategy:
   - `dev1`, `dev2`, `dev3`, `dev4`: Development instances that use `tsx` wrappers for on-demand TypeScript execution (no compilation).
-  - `prod`: Production environment that forces full compilation with optimizations.
-- Set via `npm run switch-instance dev1` for local development. Deployment scripts automatically set `INSTANCE_NAME=prod`.
+  - `staging-1` (and future `staging-N`): Deployed environments that trigger full compilation with optimizations.
+- Set via `npm run switch-instance dev1` for local development.
 - Integration tests use `npm run build:prod` to force full compilation for production-like behavior.
-- Firebase deploy helpers (`deploy:prod`, `deploy:functions`, etc.) use `switch-instance.ts` to set `INSTANCE_NAME=prod`, rebuild the monorepo with full compilation, then run the `firebase` CLI.
+- Firebase deploy helpers (`deploy:all`, `deploy:functions`, etc.) in `firebase/package.json` use `switch-instance.ts` to set `__INSTANCE_NAME=staging-1`, rebuild the monorepo with full compilation, then run the `firebase` CLI.
 
 ## Package Builds
 - **webapp-v2**: Vite + `@preact/preset-vite`. `npm run build` performs `tsc --noEmit` against `tsconfig.build.json` before invoking `vite build`. `watch` leverages Vite’s build watcher for emulator hosting consistency.
 - **firebase/backend**: `npm run build` runs `tsc --project tsconfig.build.json` for scripts (no emit) and delegates to `functions` workspace for actual output. Scripts rely on `tsx`, so the build primarily type-checks.
-- **firebase/functions**: `build` triggers `tsconfig.build.json` (`--noEmit`) for fast CI validation, then `scripts/conditional-build.js` reads `INSTANCE_NAME` from `.env` to decide whether to produce tsx wrappers (dev1-4) or compiled artifacts (prod). `build:prod` forces a clean emit to `lib/` using `tsconfig.deploy.json` and copies locales.
+- **firebase/functions**: `build` triggers `tsconfig.build.json` (`--noEmit`) for fast CI validation, then `scripts/conditional-build.js` reads `__INSTANCE_NAME` from `.env` to decide whether to produce tsx wrappers (dev1-4) or compiled artifacts (staging-*). `build:prod` forces a clean emit to `lib/` using `tsconfig.deploy.json` and copies locales.
 - **e2e-tests**: `npm run build` runs `tsc --noEmit` to validate Playwright + Jest suites.
 - **Shared packages** (`packages/*`): built via `npm run build:packages` before anything depends on them; consumers reference `"*"` versions so stale builds cause runtime drift—keep them fresh.
 
@@ -34,5 +34,5 @@
 
 ## Practical Flow
 - Local development: First run `npm run switch-instance dev1` to configure your environment, then `npm run dev` (or `./dev1.sh` for color-coded terminals). The webapp builds on the fly; the backend serves emulator data from `firebase/emulator-data`.
-- Type checks without emit: `npm run build` validates TypeScript across all packages. Compilation happens automatically based on your current `INSTANCE_NAME`.
-- Release prep: Deployment scripts (`deploy:prod`, `deploy:functions`, etc.) automatically set `INSTANCE_NAME=prod`, run `npm run build:packages`, rebuild with full compilation, then invoke the `firebase` CLI.
+- Type checks without emit: `npm run build` validates TypeScript across all packages. Compilation happens automatically based on your current `__INSTANCE_NAME`.
+- Release prep: Deployment scripts (`deploy:all`, `deploy:functions`, etc. in `firebase/package.json`) automatically set `__INSTANCE_NAME=staging-1`, run `npm run build:packages`, rebuild with full compilation, then invoke the `firebase` CLI.

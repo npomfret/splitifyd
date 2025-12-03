@@ -8,16 +8,21 @@ type DeployMode = 'all' | 'functions' | 'hosting' | 'rules' | 'indexes';
 const repoRoot = resolve(__dirname, '../..');
 const firebaseDir = resolve(__dirname, '..');
 const functionsDir = join(firebaseDir, 'functions');
-const envTemplateName = '.env.instancestaging-1';
 const serviceAccountName = 'service-account-key.json';
 
-const deployScriptMap: Record<DeployMode, string> = {
-    all: 'deploy:staging-1:inner',
-    functions: 'deploy:functions:inner',
-    hosting: 'deploy:hosting:inner',
-    rules: 'deploy:rules:inner',
-    indexes: 'deploy:indexes:inner',
-};
+function getEnvTemplateName(instance: string): string {
+    return `.env.instance${instance}`;
+}
+
+function getDeployScriptMap(instance: string): Record<DeployMode, string[]> {
+    return {
+        all: ['deploy:staging-1:inner', instance],
+        functions: ['deploy:functions:inner', instance],
+        hosting: ['deploy:hosting:inner', instance],
+        rules: ['deploy:rules:inner', instance],
+        indexes: ['deploy:indexes:inner', instance],
+    };
+}
 
 function run(command: string, args: string[], options?: Parameters<typeof spawnSync>[2]): void {
     const result = spawnSync(command, args, {
@@ -31,14 +36,29 @@ function run(command: string, args: string[], options?: Parameters<typeof spawnS
     }
 }
 
-function parseMode(rawMode: string | undefined): DeployMode {
-    const normalised = (rawMode === undefined || rawMode === 'staging-1') ? 'all' : rawMode;
-    if (!Object.hasOwn(deployScriptMap, normalised)) {
-        throw new Error(
-            `Unknown deploy mode "${rawMode}". Expected one of: ${Object.keys(deployScriptMap).join(', ')}`,
-        );
+interface ParsedArgs {
+    mode: DeployMode;
+    instance: string;
+}
+
+function parseArgs(args: string[]): ParsedArgs {
+    const validModes: DeployMode[] = ['all', 'functions', 'hosting', 'rules', 'indexes'];
+    let mode: DeployMode = 'all';
+    let instance = 'staging-1';
+
+    for (const arg of args) {
+        if (validModes.includes(arg as DeployMode)) {
+            mode = arg as DeployMode;
+        } else if (/^staging-\d+$/.test(arg)) {
+            instance = arg;
+        } else if (arg) {
+            throw new Error(
+                `Unknown argument "${arg}". Expected mode (${validModes.join(', ')}) or instance (staging-N).`,
+            );
+        }
     }
-    return normalised as DeployMode;
+
+    return { mode, instance };
 }
 
 function ensureFile(path: string, description: string): void {
@@ -58,17 +78,18 @@ function installDependencies(cloneDir: string, env: NodeJS.ProcessEnv): void {
     run('npm', ['install'], { cwd: cloneDir, env });
 }
 
-function runMonorepoBuild(cloneDir: string, env: NodeJS.ProcessEnv): void {
+function runMonorepoBuild(cloneDir: string, instance: string, env: NodeJS.ProcessEnv): void {
     run('npm', ['run', 'build'], {
         cwd: cloneDir,
         env: {
             ...env,
-            __INSTANCE_NAME: 'staging-1',
+            __INSTANCE_NAME: instance,
         },
     });
 }
 
-function copySecretsIntoClone(cloneFirebaseDir: string): { envPath: string; serviceAccountPath: string; } {
+function copySecretsIntoClone(cloneFirebaseDir: string, instance: string): { envPath: string; serviceAccountPath: string; } {
+    const envTemplateName = getEnvTemplateName(instance);
     const envSource = join(functionsDir, envTemplateName);
     const envDestination = join(cloneFirebaseDir, 'functions', envTemplateName);
     copyFileSync(envSource, envDestination);
@@ -87,23 +108,27 @@ function runLinkWebapp(cloneFirebaseDir: string, env: NodeJS.ProcessEnv): void {
     run('npm', ['run', 'link-webapp'], { cwd: cloneFirebaseDir, env });
 }
 
-function runInnerDeploy(cloneFirebaseDir: string, mode: DeployMode, env: NodeJS.ProcessEnv): void {
-    const scriptName = deployScriptMap[mode];
-    run('npm', ['run', scriptName], { cwd: cloneFirebaseDir, env });
+function runInnerDeploy(cloneFirebaseDir: string, mode: DeployMode, instance: string, env: NodeJS.ProcessEnv): void {
+    const [scriptName, instanceArg] = getDeployScriptMap(instance)[mode];
+    run('npm', ['run', scriptName, '--', instanceArg], { cwd: cloneFirebaseDir, env });
 }
 
-function removeSecrets(cloneFirebaseDir: string): void {
+function removeSecrets(cloneFirebaseDir: string, instance: string): void {
+    const envTemplateName = getEnvTemplateName(instance);
     rmSync(join(cloneFirebaseDir, 'functions', envTemplateName), { force: true });
     rmSync(join(cloneFirebaseDir, 'functions', '.env'), { force: true });
     rmSync(join(cloneFirebaseDir, serviceAccountName), { force: true });
 }
 
-function deploy(mode: DeployMode): void {
+function deploy(mode: DeployMode, instance: string): void {
+    const envTemplateName = getEnvTemplateName(instance);
     const envSourcePath = join(functionsDir, envTemplateName);
     const serviceAccountSourcePath = join(firebaseDir, serviceAccountName);
 
-    ensureFile(envSourcePath, 'staging environment template (.env.instancestaging-1)');
+    ensureFile(envSourcePath, `staging environment template (${envTemplateName})`);
     ensureFile(serviceAccountSourcePath, 'service account key');
+
+    console.log(`🚀 Deploying ${mode} to ${instance} from fresh checkout...`);
 
     const { tempRoot, cloneDir } = cloneRepository();
     const cloneFirebaseDir = join(cloneDir, 'firebase');
@@ -121,41 +146,36 @@ function deploy(mode: DeployMode): void {
     try {
         installDependencies(cloneDir, deployEnv);
 
-        const { serviceAccountPath } = copySecretsIntoClone(cloneFirebaseDir);
+        const { serviceAccountPath } = copySecretsIntoClone(cloneFirebaseDir, instance);
         deployEnv.GOOGLE_APPLICATION_CREDENTIALS = serviceAccountPath;
 
-        runMonorepoBuild(cloneDir, deployEnv);
+        runMonorepoBuild(cloneDir, instance, deployEnv);
 
         if (mode === 'all' || mode === 'hosting') {
             runLinkWebapp(cloneFirebaseDir, deployEnv);
         }
 
-        runInnerDeploy(cloneFirebaseDir, mode, deployEnv);
+        runInnerDeploy(cloneFirebaseDir, mode, instance, deployEnv);
 
-        removeSecrets(cloneFirebaseDir);
+        removeSecrets(cloneFirebaseDir, instance);
         rmSync(tempRoot, { recursive: true, force: true });
-        console.log('✅ Deployment completed from fresh checkout');
+        console.log(`✅ Deployment to ${instance} completed from fresh checkout`);
         console.log('');
         console.log('📋 Next steps:');
-        console.log('  1. Set environment variables:');
-        console.log('     export STAGING_ADMIN_EMAIL="admin@example.com"');
-        console.log('     export STAGING_ADMIN_PASSWORD="your-password"');
-        console.log('     export STAGING_BASE_URL="https://us-central1-splitifyd.cloudfunctions.net/api"');
-        console.log('');
-        console.log('  2. Sync tenants to deployed Firebase:');
+        console.log('  1. Sync tenants to deployed Firebase:');
         console.log('     npm run postdeploy:sync-tenant');
         console.log('');
     } catch (error) {
-        removeSecrets(cloneFirebaseDir);
+        removeSecrets(cloneFirebaseDir, instance);
         console.error(`❌ Deployment failed. Temporary workspace preserved at ${cloneDir}`);
         throw error;
     }
 }
 
 function main(): void {
-    const modeArg = process.argv[2];
-    const mode = parseMode(modeArg);
-    deploy(mode);
+    const args = process.argv.slice(2);
+    const { mode, instance } = parseArgs(args);
+    deploy(mode, instance);
 }
 
 main();

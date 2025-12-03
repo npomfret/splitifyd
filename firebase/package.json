@@ -17,7 +17,7 @@
     "theme:publish-local": "tsx scripts/publish-local-themes.ts",
     "generate:test-data": "tsx scripts/generate-test-data.ts",
     "delete-firebase-data": "cd functions && node scripts/delete-firebase-data.js",
-    "deploy": "echo 'Use deploy:staging-1 for staging deployment'",
+    "deploy": "echo 'Use deploy:all or deploy:functions etc. Instance defaults to staging-1.'",
     "deploy:all": "npx tsx scripts/deploy-from-fresh-checkout.ts all",
     "deploy:functions": "npx tsx scripts/deploy-from-fresh-checkout.ts functions",
     "deploy:hosting": "npx tsx scripts/deploy-from-fresh-checkout.ts hosting",

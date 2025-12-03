@@ -2,15 +2,30 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
+const dotenv = require('dotenv');
 
 const rootDir = path.join(__dirname, '../..');
 const srcFunctions = path.join(__dirname, '../functions');
 const stageRoot = path.join(__dirname, '../.firebase/deploy');
 const stageFunctions = path.join(stageRoot, 'functions');
 
+// Load instance name from .env file (set by switch-instance.ts)
+const envPath = path.join(srcFunctions, '.env');
+if (fs.existsSync(envPath)) {
+    dotenv.config({ path: envPath });
+}
+
+const instanceName = process.env.__INSTANCE_NAME;
+if (!instanceName || !instanceName.startsWith('staging-')) {
+    console.error('❌ Error: __INSTANCE_NAME must be set to a staging instance');
+    console.error('   Run: tsx scripts/switch-instance.ts staging-1');
+    console.error(`   Current value: ${instanceName || '(not set)'}`);
+    process.exit(1);
+}
+
 const productionEnv = {
     ...process.env,
-    __INSTANCE_NAME: 'staging-1',
+    __INSTANCE_NAME: instanceName,
     BUILD_MODE: 'production',
 };
 
@@ -137,4 +152,5 @@ tarballs.forEach(({ filename, sourcePath }) => {
 });
 
 console.log(`\n✓ Deployment stage ready at ${stageFunctions}`);
+console.log(`Deploying to instance: ${instanceName}`);
 console.log('Firebase will deploy from this staged directory.');
