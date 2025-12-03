@@ -3,6 +3,7 @@ import { useConfig } from '@/hooks/useConfig.ts';
 import { configStore } from '@/stores/config-store';
 import { logError } from '@/utils/browser-logger';
 import { getThemeStorageKey } from '@/utils/theme-bootstrap';
+import { useComputed } from '@preact/signals';
 import { useEffect, useMemo, useState } from 'preact/hooks';
 
 const TRACKED_VARS = [
@@ -28,11 +29,11 @@ type ActionMessage = { type: 'success' | 'error'; text: string; } | null;
 
 export function AdminTenantConfigTab() {
     const config = useConfig();
-    const isLoading = configStore.loadingSignal.value;
+    const isLoading = useComputed(() => configStore.loadingSignal.value);
     const [computedVars, setComputedVars] = useState<Record<string, string>>({});
     const [actionMessage, setActionMessage] = useState<ActionMessage>(null);
 
-    if (isLoading || !config) {
+    if (isLoading.value || !config) {
         return <LoadingState message='Loading tenant configuration...' />;
     }
 

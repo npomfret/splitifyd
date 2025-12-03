@@ -1,4 +1,5 @@
 export { AdminDiagnosticsPage } from './AdminDiagnosticsPage';
+export { AdminTenantConfigPage } from './AdminTenantConfigPage';
 export { AdminTenantsPage } from './AdminTenantsPage';
 export { BasePage } from './BasePage';
 export { CreateGroupModalPage } from './CreateGroupModalPage';

@@ -88,10 +88,17 @@ export const TenantConfigSchema = z.object({
     updatedAt: z.string().datetime().transform(toISOString),
 });
 
+const ThemeConfigSchema = z.object({
+    hash: z.string().min(1),
+    generatedAtEpochMs: z.number().optional(),
+});
+
 export const AppConfigurationSchema = z.object({
     firebase: FirebaseConfigSchema,
     warningBanner: z.string().optional(),
     formDefaults: FormDefaultsSchema,
+    tenant: TenantConfigSchema.optional(),
+    theme: ThemeConfigSchema.nullable().optional(),
     firebaseAuthUrl: z.string().optional(),
     firebaseFirestoreUrl: z.string().optional(),
 });
