@@ -98,7 +98,10 @@ export function Button({
 
     const variantClasses: Record<NonNullable<ButtonProps['variant']>, Array<string | false>> = {
         primary: [
-            'bg-[image:var(--gradient-primary)] text-interactive-primary-foreground shadow-[var(--shadows-md)]',
+            // bg-interactive-primary provides solid color fallback, gradient overlays on top
+            'bg-interactive-primary text-interactive-primary-foreground shadow-[var(--shadows-md)]',
+            // Apply gradient as inline style via arbitrary property for better CSS variable support
+            '[background-image:var(--gradient-primary,none)]',
             !isDisabled && 'hover:shadow-[0_0_20px_rgba(var(--interactive-primary-rgb),0.3)]',
             'focus-visible:ring-interactive-primary',
             'transition-shadow duration-200',

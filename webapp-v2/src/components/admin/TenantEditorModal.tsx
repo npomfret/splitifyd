@@ -1239,10 +1239,10 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
     const update = (partial: Partial<TenantData>) => setFormData({ ...formData, ...partial });
 
     return (
-        <Modal open={open} onClose={handleCancel} size='lg' data-testid='tenant-editor-modal'>
-            <div class='flex flex-col max-h-[90vh]'>
+        <Modal open={open} onClose={handleCancel} size='lg' className='max-h-[90vh] flex flex-col' data-testid='tenant-editor-modal'>
+            <div class='flex flex-col min-h-0 h-full'>
                 {/* Header */}
-                <div class='flex items-center justify-between border-b border-border-default px-6 py-4'>
+                <div class='flex-shrink-0 flex items-center justify-between border-b border-border-default px-6 py-4'>
                     <div>
                         <h2 class='text-xl font-semibold text-text-primary'>
                             {mode === 'create' ? 'Create New Tenant' : 'Edit Tenant'}
@@ -1259,7 +1259,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                 </div>
 
                 {/* Content */}
-                <div class='flex-1 overflow-y-auto px-6 py-4'>
+                <div class='flex-1 min-h-0 overflow-y-auto px-6 py-4'>
                     <div class='space-y-4'>
                         {successMessage && <Alert type='success' message={successMessage} data-testid='tenant-editor-success-message' />}
                         {errorMessage && <Alert type='error' message={errorMessage} />}
@@ -2770,7 +2770,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                 </div>
 
                 {/* Footer */}
-                <div class='flex items-center justify-end gap-3 border-t border-border-default px-6 py-4'>
+                <div class='flex-shrink-0 flex items-center justify-end gap-3 border-t border-border-default px-6 py-4'>
                     <Button onClick={handleCancel} variant='secondary' disabled={isSaving || isPublishing} data-testid='cancel-button'>Cancel</Button>
                     {mode === 'edit' && (
                         <Button onClick={handlePublish} variant='primary' disabled={isSaving || isPublishing} loading={isPublishing} data-testid='publish-theme-button'>

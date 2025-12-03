@@ -72,6 +72,52 @@
   --admin-duration-base: 0ms;
   --admin-duration-slow: 0ms;
   --admin-easing: linear;
+
+  /* ==========================================================================
+   * Semantic Token Mappings for UI Components (Button, Input, etc.)
+   * These map to the same CSS variables that tenant themes provide.
+   * Without these, components using Tailwind semantic classes break.
+   * ========================================================================== */
+
+  /* Surface colors (RGB triplets for Tailwind alpha support) */
+  --surface-base-rgb: 249 250 251;           /* gray-50 */
+  --surface-muted-rgb: 243 244 246;          /* gray-100 */
+  --surface-raised-rgb: 255 255 255;         /* white */
+
+  /* Text colors (RGB triplets) */
+  --text-primary-rgb: 17 24 39;              /* gray-900 */
+  --text-muted-rgb: 75 85 99;                /* gray-600 */
+  --text-inverted-rgb: 255 255 255;          /* white */
+
+  /* Interactive colors (RGB triplets) */
+  --interactive-primary-rgb: 79 70 229;      /* indigo-600 */
+  --interactive-primary-foreground-rgb: 255 255 255; /* white */
+  --interactive-secondary-rgb: 107 114 128;  /* gray-500 */
+  --interactive-secondary-foreground-rgb: 255 255 255;
+  --interactive-accent-rgb: 245 158 11;      /* amber-500 */
+
+  /* Semantic status colors (RGB triplets) */
+  --semantic-success-rgb: 16 185 129;        /* green-500 */
+  --semantic-warning-rgb: 245 158 11;        /* amber-500 */
+  --semantic-error-rgb: 239 68 68;           /* red-500 */
+
+  /* Surface status colors (RGB triplets) */
+  --surface-warning-rgb: 254 252 232;        /* yellow-50 */
+  --surface-error-rgb: 254 226 226;          /* red-100 */
+
+  /* Border colors (RGB triplets) */
+  --border-default-rgb: 209 213 219;         /* gray-300 */
+  --border-strong-rgb: 156 163 175;          /* gray-400 */
+  --border-warning-rgb: 252 211 77;          /* amber-300 */
+  --border-error-rgb: 252 165 165;           /* red-300 */
+
+  /* Gradient for primary buttons */
+  --gradient-primary: linear-gradient(to right, #4f46e5, #6366f1); /* indigo-600 to indigo-500 */
+
+  /* Shadow variables */
+  --shadows-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadows-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadows-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
 /* Admin-specific base styles */
