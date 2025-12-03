@@ -16,7 +16,7 @@ import {
     type IStorage,
     type IStorageBucket,
     StubStorage,
-} from '@billsplit-wl/firebase-simulator';
+} from '../../index';
 import * as fs from 'fs';
 import { cert, getApps, initializeApp, type App } from 'firebase-admin/app';
 import { getStorage } from 'firebase-admin/storage';
