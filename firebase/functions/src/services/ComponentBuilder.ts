@@ -1,4 +1,4 @@
-import { createCloudTasksClient, type ICloudTasksClient } from '@billsplit-wl/firebase-simulator';
+import { createCloudTasksClient, type ICloudTasksClient } from 'ts-firebase-simulator';
 import type { Auth } from 'firebase-admin/auth';
 import type { Firestore } from 'firebase-admin/firestore';
 import type { Storage } from 'firebase-admin/storage';

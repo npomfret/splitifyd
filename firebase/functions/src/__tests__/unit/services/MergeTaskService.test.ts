@@ -1,5 +1,5 @@
-import { StubCloudTasksClient, Timestamp } from '@billsplit-wl/firebase-simulator';
-import { StubFirestoreDatabase } from '@billsplit-wl/firebase-simulator';
+import { StubCloudTasksClient, Timestamp } from 'ts-firebase-simulator';
+import { StubFirestoreDatabase } from 'ts-firebase-simulator';
 import { SystemUserRoles, toUserId } from '@billsplit-wl/shared';
 import { StubStorage } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';

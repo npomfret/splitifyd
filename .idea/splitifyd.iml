@@ -7,7 +7,6 @@
       <sourceFolder url="file://$MODULE_DIR$/webapp-v2/src/__tests__" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/firebase/functions/src/__tests__" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/packages/shared/src/__tests__" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/packages/firebase-simulator/src/__tests__" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/.tmp" />
       <excludeFolder url="file://$MODULE_DIR$/temp" />
       <excludeFolder url="file://$MODULE_DIR$/tmp" />

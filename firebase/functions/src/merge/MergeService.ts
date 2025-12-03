@@ -1,4 +1,4 @@
-import type { ICloudTasksClient } from '@billsplit-wl/firebase-simulator';
+import type { ICloudTasksClient } from 'ts-firebase-simulator';
 import type { ISOString, UserId } from '@billsplit-wl/shared';
 import { isoStringNow } from '@billsplit-wl/shared';
 import { logger } from '../logger';

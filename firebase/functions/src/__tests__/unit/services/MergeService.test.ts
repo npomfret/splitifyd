@@ -1,4 +1,4 @@
-import { StubCloudTasksClient, StubFirestoreDatabase } from '@billsplit-wl/firebase-simulator';
+import { StubCloudTasksClient, StubFirestoreDatabase } from 'ts-firebase-simulator';
 import { toUserId } from '@billsplit-wl/shared';
 import { AuthUserRecordBuilder, StubStorage, UserDocumentBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';

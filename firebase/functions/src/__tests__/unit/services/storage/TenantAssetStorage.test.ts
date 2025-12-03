@@ -1,4 +1,4 @@
-import { StubStorage } from '@billsplit-wl/firebase-simulator';
+import { StubStorage } from 'ts-firebase-simulator';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { createTenantAssetStorage, resetTenantAssetStorage } from '../../../../services/storage/TenantAssetStorage';
 

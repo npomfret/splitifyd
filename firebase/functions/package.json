@@ -22,7 +22,7 @@
   },
   "main": "lib/index.js",
   "dependencies": {
-    "@billsplit-wl/firebase-simulator": "*",
+    "ts-firebase-simulator": "^0.2.0",
     "@billsplit-wl/shared": "*",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",

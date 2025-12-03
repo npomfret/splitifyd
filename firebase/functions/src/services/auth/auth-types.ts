@@ -38,6 +38,7 @@ export const FIREBASE_AUTH_ERROR_MAP: Record<string, AuthErrorCode> = {
     'auth/invalid-email': AuthErrorCode.INVALID_EMAIL,
     'auth/weak-password': AuthErrorCode.WEAK_PASSWORD,
     'auth/invalid-id-token': AuthErrorCode.INVALID_TOKEN,
+    'auth/argument-error': AuthErrorCode.INVALID_TOKEN, // Malformed JWT (firebase-admin 13.6+)
     'auth/id-token-expired': AuthErrorCode.TOKEN_EXPIRED,
     'auth/insufficient-permission': AuthErrorCode.INSUFFICIENT_PERMISSIONS,
     'auth/operation-not-allowed': AuthErrorCode.OPERATION_NOT_ALLOWED,

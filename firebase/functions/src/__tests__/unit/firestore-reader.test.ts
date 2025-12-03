@@ -5,7 +5,7 @@
  * Uses the firebase-simulator stubs for in-memory testing without the emulator.
  */
 
-import { StubCloudTasksClient, StubFirestoreDatabase, StubStorage } from '@billsplit-wl/firebase-simulator';
+import { StubCloudTasksClient, StubFirestoreDatabase, StubStorage } from 'ts-firebase-simulator';
 import { describe, expect, test } from 'vitest';
 import { ComponentBuilder } from '../../services/ComponentBuilder';
 import { FirestoreReader } from '../../services/firestore';

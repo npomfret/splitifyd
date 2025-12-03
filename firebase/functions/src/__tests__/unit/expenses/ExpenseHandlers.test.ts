@@ -1,4 +1,4 @@
-import { StubCloudTasksClient, StubStorage } from '@billsplit-wl/firebase-simulator';
+import { StubCloudTasksClient, StubStorage } from 'ts-firebase-simulator';
 import type { UpdateExpenseRequest } from '@billsplit-wl/shared';
 import { toCurrencyISOCode, USD } from '@billsplit-wl/shared';
 import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, ExpenseUpdateBuilder, StubFirestoreDatabase, UserRegistrationBuilder } from '@billsplit-wl/test-support';

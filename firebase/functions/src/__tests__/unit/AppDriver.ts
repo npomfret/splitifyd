@@ -1,4 +1,4 @@
-import { StubCloudTasksClient, StubFirestoreDatabase } from '@billsplit-wl/firebase-simulator';
+import { StubCloudTasksClient, StubFirestoreDatabase } from 'ts-firebase-simulator';
 import {
     AcceptMultiplePoliciesResponse,
     AcceptPolicyRequest,

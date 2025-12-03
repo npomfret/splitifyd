@@ -216,7 +216,6 @@ dispatch_from_root() {
         "webapp-v2"
         "firebase/functions"
         "packages/shared"
-        "packages/firebase-simulator"
         "packages/test-support"
     )
 
@@ -256,7 +255,7 @@ main() {
         functions)
             run_functions_tests
             ;;
-        "@billsplit-wl/firebase-simulator")
+        "ts-firebase-simulator")
             run_generic_vitest "$WORKSPACE_ROOT/vitest.config.ts"
             ;;
         "@billsplit-wl/shared"|"@billsplit-wl/test-support")

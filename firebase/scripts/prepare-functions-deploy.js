@@ -34,10 +34,6 @@ const workspacePackages = [
         name: '@billsplit-wl/shared',
         directory: path.join(rootDir, 'packages/shared'),
     },
-    {
-        name: '@billsplit-wl/firebase-simulator',
-        directory: path.join(rootDir, 'packages/firebase-simulator'),
-    },
 ];
 
 console.log('=== Preparing Firebase Functions for Deployment ===');
