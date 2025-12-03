@@ -15,6 +15,7 @@
 import { ComponentChildren } from 'preact';
 import { useEffect } from 'preact/hooks';
 import { AdminHeader } from './AdminHeader';
+import adminCssUrl from '@/styles/admin.css?url';
 
 interface AdminLayoutProps {
     children: ComponentChildren;
@@ -33,10 +34,10 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             tenantThemeLink.disabled = true;
         }
 
-        // Create link element for admin.css
+        // Create link element for admin.css (using Vite's ?url import for correct path in all environments)
         const adminStylesheet = document.createElement('link');
         adminStylesheet.rel = 'stylesheet';
-        adminStylesheet.href = '/src/styles/admin.css';
+        adminStylesheet.href = adminCssUrl;
         adminStylesheet.id = 'admin-stylesheet';
         document.head.appendChild(adminStylesheet);
 
