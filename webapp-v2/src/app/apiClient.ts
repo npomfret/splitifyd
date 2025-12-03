@@ -945,6 +945,14 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
         });
     }
 
+    async getBootstrapConfig(): Promise<ClientAppConfiguration> {
+        return this.request({
+            endpoint: '/bootstrap-config',
+            method: 'GET',
+            skipAuth: true,
+        });
+    }
+
     async getHealth(): Promise<HealthResponse> {
         return this.request({
             endpoint: '/health',

@@ -94,6 +94,13 @@ export interface PublicAPI {
     getConfig(): Promise<ClientAppConfiguration>;
 
     /**
+     * Get bootstrap configuration for scripts that need to authenticate before tenants exist
+     * Returns minimal config without tenant-specific overrides
+     * Public endpoint - no authentication required
+     */
+    getBootstrapConfig(): Promise<ClientAppConfiguration>;
+
+    /**
      * Get health status of the API
      * Public endpoint - no authentication required
      */

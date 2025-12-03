@@ -1138,6 +1138,12 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return res.getJson() as ClientAppConfiguration;
     }
 
+    async getBootstrapConfig(): Promise<ClientAppConfiguration> {
+        const req = createStubRequest('', {});
+        const res = await this.dispatchByHandler('getBootstrapConfig', req);
+        return res.getJson() as ClientAppConfiguration;
+    }
+
     async getHealth(): Promise<HealthResponse> {
         const req = createStubRequest('', {});
         const res = await this.dispatchByHandler('getHealth', req);

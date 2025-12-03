@@ -116,9 +116,8 @@ export function getAllEmulatorPorts(): number[] {
 }
 
 export async function getFirebaseEmulatorSigninUrl(): Promise<string> {
-    const firebaseConfig = loadFirebaseConfig();
-    const hostingPort = firebaseConfig.emulators.hosting.port;
-    const config = await loadClientAppConfiguration(emulatorHost, hostingPort);
+    const hostingUrl = emulatorHostingURL();
+    const config = await loadClientAppConfiguration(hostingUrl);
 
     if (!config.firebaseAuthUrl) {
         throw new Error('firebaseAuthUrl not present in config - is the emulator running in dev mode?');
@@ -130,16 +129,14 @@ export async function getFirebaseEmulatorSigninUrl(): Promise<string> {
     return signInUrl;
 }
 
-async function loadClientAppConfiguration(emulatorHost: string, hostingPort: number): Promise<ClientAppConfiguration> {
-    const hostingUrl = `http://${emulatorHost}:${hostingPort}`;
-
+async function loadClientAppConfiguration(hostingUrl: string): Promise<ClientAppConfiguration> {
     // Use bootstrap-config which works even when no tenants are configured
     const response = await fetch(`${hostingUrl}/api/bootstrap-config`);
     if (!response.ok) {
         throw new Error(`Failed to fetch config from ${hostingUrl}/api/bootstrap-config: ${response.status} ${response.statusText}`);
     }
 
-    return (await response.json()) as ClientAppConfiguration
+    return (await response.json()) as ClientAppConfiguration;
 }
 
 const emulatorHost = '127.0.0.1';
@@ -168,16 +165,8 @@ export interface ApiDriverConfig {
  * @returns Promise<ApiDriverConfig> for the emulator environment
  */
 export async function getApiDriverConfig(): Promise<ApiDriverConfig> {
-    const firebaseConfig = loadFirebaseConfig();
-    const hostingPort = firebaseConfig.emulators.hosting.port;
-    const hostingUrl = `http://${emulatorHost}:${hostingPort}`;
-
-    const response = await fetch(`${hostingUrl}/api/bootstrap-config`);
-    if (!response.ok) {
-        throw new Error(`Failed to fetch config from ${hostingUrl}/api/bootstrap-config: ${response.status} ${response.statusText}`);
-    }
-
-    const config: ClientAppConfiguration = await response.json();
+    const hostingUrl = emulatorHostingURL();
+    const config = await loadClientAppConfiguration(hostingUrl);
 
     if (!config.firebaseAuthUrl) {
         throw new Error('firebaseAuthUrl not present in config - is the emulator running in dev mode?');

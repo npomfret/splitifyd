@@ -478,6 +478,10 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return await this.apiRequest('/config', 'GET', null);
     }
 
+    async getBootstrapConfig(): Promise<ClientAppConfiguration> {
+        return await this.apiRequest('/bootstrap-config', 'GET', null);
+    }
+
     async getHealth(): Promise<HealthResponse> {
         return await this.apiRequest('/health', 'GET', null);
     }
