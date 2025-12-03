@@ -163,7 +163,7 @@ function deploy(mode: DeployMode, instance: string): void {
         console.log('');
         console.log('📋 Next steps:');
         console.log('  1. Sync tenants to deployed Firebase:');
-        console.log('     npm run postdeploy:sync-tenant');
+        console.log('     GCLOUD_PROJECT=splitifyd npm run postdeploy:sync-tenant -- test@test.com passwordpass');
         console.log('');
     } catch (error) {
         removeSecrets(cloneFirebaseDir, instance);

@@ -42,11 +42,22 @@ case "$OPERATION" in
         ;;
 
     sync-tenant)
+        if [[ -z "${2:-}" ]] || [[ -z "${3:-}" ]]; then
+            echo "❌ Error: Email and password required for sync-tenant"
+            echo "Usage: $0 sync-tenant <email> <password>"
+            echo ""
+            echo "Example:"
+            echo "  GCLOUD_PROJECT=splitifyd $0 sync-tenant admin@example.com mypassword"
+            exit 1
+        fi
+        ADMIN_EMAIL="$2"
+        ADMIN_PASSWORD="$3"
+
         echo "🔄 Syncing staging tenant to deployed Firebase..."
         tsx scripts/switch-instance.ts staging-1
 
         echo "  📦 Syncing staging-tenant (splitifyd.web.app)..."
-        tsx scripts/publish-staging-themes.ts
+        tsx scripts/publish-staging-themes.ts "$ADMIN_EMAIL" "$ADMIN_PASSWORD"
 
         echo "✅ Tenant config synced and theme published"
         ;;

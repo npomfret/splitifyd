@@ -54,7 +54,7 @@ interface ValidatedUpdateUserRequest extends UpdateRequest {
     emailVerified?: boolean;
     disabled?: boolean;
 }
-import { DisplayName, UserId } from '@billsplit-wl/shared';
+import { DisplayName, SIGN_IN_WITH_PASSWORD_ENDPOINT, UserId } from '@billsplit-wl/shared';
 import type { Email } from '@billsplit-wl/shared';
 import { ApiError, ErrorDetail, Errors } from '../../errors';
 import { logger } from '../../logger';
@@ -80,8 +80,6 @@ interface IdentityToolkitErrorResponse {
         }>;
     };
 }
-
-const SIGN_IN_WITH_PASSWORD_ENDPOINT = '/v1/accounts:signInWithPassword';
 
 export class FirebaseAuthService implements IAuthService {
     constructor(

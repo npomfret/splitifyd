@@ -1,7 +1,7 @@
 import type { Auth } from 'firebase-admin/auth';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { toEmail } from '@billsplit-wl/shared';
+import {SIGN_IN_WITH_PASSWORD_ENDPOINT, toEmail } from '@billsplit-wl/shared';
 import { FirebaseAuthService } from '../../../services/auth';
 import { ApiError } from '../../../errors';
 
@@ -68,7 +68,7 @@ describe('FirebaseAuthService.verifyPassword', () => {
         const requestUrl = callArgs[0];
         const init = callArgs[1] ?? {};
 
-        expect(requestUrl).toBe('https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=test-api-key');
+        expect(requestUrl).toBe(`https://identitytoolkit.googleapis.com${SIGN_IN_WITH_PASSWORD_ENDPOINT}?key=test-api-key`);
         expect(init.method).toBe('POST');
         expect(init.headers).toEqual({ 'Content-Type': 'application/json' });
         expect(JSON.parse((init.body ?? '{}') as string)).toEqual({
@@ -135,7 +135,7 @@ describe('FirebaseAuthService.verifyPassword', () => {
         await service.verifyPassword(toEmail('user@example.com'), 'Secret123!');
 
         const callArgs = fetchSpy.mock.calls[0] as unknown as [RequestInfo | URL, RequestInit | undefined];
-        expect(callArgs[0]).toBe('http://127.0.0.1:9099/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=test-api-key');
+        expect(callArgs[0]).toBe(`http://127.0.0.1:9099/identitytoolkit.googleapis.com${SIGN_IN_WITH_PASSWORD_ENDPOINT}?key=test-api-key`);
 
         fetchSpy.mockRestore();
     });
