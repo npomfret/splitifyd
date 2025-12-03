@@ -2,20 +2,21 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
-const dotenv = require('dotenv');
 
 const rootDir = path.join(__dirname, '../..');
 const srcFunctions = path.join(__dirname, '../functions');
 const stageRoot = path.join(__dirname, '../.firebase/deploy');
 const stageFunctions = path.join(stageRoot, 'functions');
 
-// Load instance name from .env file (set by switch-instance.ts)
-const envPath = path.join(srcFunctions, '.env');
-if (fs.existsSync(envPath)) {
-    dotenv.config({ path: envPath });
+// Get instance name from .current-instance file (set by switch-instance.ts)
+let instanceName = process.env.__INSTANCE_NAME;
+if (!instanceName) {
+    const currentInstancePath = path.join(__dirname, '../.current-instance');
+    if (fs.existsSync(currentInstancePath)) {
+        instanceName = fs.readFileSync(currentInstancePath, 'utf8').trim();
+    }
 }
 
-const instanceName = process.env.__INSTANCE_NAME;
 if (!instanceName || !instanceName.startsWith('staging-')) {
     console.error('❌ Error: __INSTANCE_NAME must be set to a staging instance');
     console.error('   Run: tsx scripts/switch-instance.ts staging-1');
