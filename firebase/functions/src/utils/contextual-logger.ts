@@ -99,13 +99,22 @@ class ContextualLoggerImpl implements ContextualLogger {
     error(message: string, error: Error | any, additionalContext?: any): void {
         const context = this.getFullContext();
 
-        const errorData = error instanceof Error
-            ? {
+        let errorData: Record<string, unknown>;
+        if (error instanceof Error) {
+            // Capture all enumerable properties (e.g., code, path, issues for Zod/Firebase errors)
+            const enumerableProps: Record<string, unknown> = {};
+            for (const key of Object.keys(error)) {
+                enumerableProps[key] = (error as unknown as Record<string, unknown>)[key];
+            }
+            errorData = {
                 name: error.name,
                 message: error.message,
                 stack: error.stack,
-            }
-            : error;
+                ...enumerableProps,
+            };
+        } else {
+            errorData = error;
+        }
 
         const logData = this.buildLogData(context, { error: errorData }, true);
 
