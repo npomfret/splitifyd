@@ -77,7 +77,7 @@ export class UserBrowserHandlers {
                 disabled: authUser?.disabled ?? false,
                 metadata: {
                     creationTime: authUser?.metadata.creationTime ?? firestoreUser.createdAt ?? new Date().toISOString(),
-                    lastSignInTime: authUser?.metadata.lastSignInTime,
+                    lastSignInTime: authUser?.metadata.lastSignInTime ?? undefined, // Convert null to undefined
                 },
                 // Firestore fields
                 createdAt: firestoreUser.createdAt,
