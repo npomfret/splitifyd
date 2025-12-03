@@ -18,16 +18,17 @@
   ],
   "scripts": {
     "build": "npm run build:check && node scripts/conditional-build.js",
-    "build:check": "tsc --project tsconfig.build.json --noEmit",
+    "build:check": "tsc --noEmit",
     "watch": "tsup --watch",
     "clean": "rm -rf dist",
     "super-clean": "npm run clean && rm -rf node_modules",
-    "test": "ORIGINAL_TEST_SCRIPT=test node ../../scripts/test-wrapper.js",
-    "test:unit": "ORIGINAL_TEST_SCRIPT=test:unit node ../../scripts/test-wrapper.js",
-    "test:integration": "ORIGINAL_TEST_SCRIPT=test:integration node ../../scripts/test-wrapper.js"
+    "test": "vitest run",
+    "test:unit": "vitest run src/__tests__/unit",
+    "test:integration": "vitest run src/__tests__/integration",
+    "indexes:deploy": "npx tsx scripts/deploy-indexes.ts",
+    "test:wipe-data": "npx tsx scripts/wipe-test-data.ts"
   },
   "devDependencies": {
-    "@billsplit-wl/test-support": "*",
     "@types/node": "^24.0.14",
     "tsup": "^8.0.0",
     "typescript": "^5.8.3",

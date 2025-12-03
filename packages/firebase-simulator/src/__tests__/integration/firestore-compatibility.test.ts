@@ -3,6 +3,11 @@
  *
  * Verifies that StubFirestoreDatabase mirrors real Firestore behaviour by
  * executing identical operations against both implementations.
+ *
+ * Configuration:
+ * - Place a service account JSON file at: service-account-key.json
+ * - Or set GOOGLE_APPLICATION_CREDENTIALS environment variable
+ * - The service account file is gitignored
  */
 
 import {
@@ -15,79 +20,148 @@ import {
     Timestamp,
     type TriggerDefinition,
 } from '@billsplit-wl/firebase-simulator';
-import { getFirebaseEmulatorConfig } from '@billsplit-wl/test-support';
-import { getApps, initializeApp } from 'firebase-admin/app';
+import * as fs from 'fs';
+import { cert, getApps, initializeApp } from 'firebase-admin/app';
 import { getFirestore as getAdminFirestore } from 'firebase-admin/firestore';
+import * as path from 'path';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
-let cachedConfig: ReturnType<typeof getFirebaseEmulatorConfig> | null = null;
-
-const projectId = "splitifyd";// hard code htis for now - this can really be any project
-
-function configureTestEnvironment() {
-    if (!cachedConfig) {
-        cachedConfig = getFirebaseEmulatorConfig();
+function getServiceAccountPath(): string {
+    if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+        return process.env.GOOGLE_APPLICATION_CREDENTIALS;
     }
-
-    process.env.FIREBASE_CONFIG = JSON.stringify({ projectId });
-    process.env.FIRESTORE_EMULATOR_HOST = cachedConfig.firestoreEmulatorHost;
-    process.env.FIREBASE_AUTH_EMULATOR_HOST = cachedConfig.firebaseAuthEmulatorHost;
+    // __dirname is src/__tests__/integration, go up 3 levels to package root
+    const localPath = path.resolve(__dirname, '../../..', 'service-account-key.json');
+    if (fs.existsSync(localPath)) {
+        return localPath;
+    }
+    throw new Error(
+        'No service account found. Either:\n' +
+        '  1. Place service-account-key.json in packages/firebase-simulator/\n' +
+        '  2. Set GOOGLE_APPLICATION_CREDENTIALS environment variable',
+    );
 }
 
 function ensureFirestore() {
-    configureTestEnvironment();
     if (getApps().length === 0) {
-        initializeApp({ projectId });
-        const firestore = getAdminFirestore();
-        if (process.env.FIRESTORE_EMULATOR_HOST) {
-            firestore.settings({ host: process.env.FIRESTORE_EMULATOR_HOST, ssl: false });
-        }
-        return firestore;
+        const serviceAccountPath = getServiceAccountPath();
+        const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
+        initializeApp({
+            credential: cert(serviceAccount),
+            projectId: serviceAccount.project_id,
+        });
     }
     return getAdminFirestore();
 }
 
-describe('Firestore Stub Compatibility - Integration Test', () => {
-    let realDb: IFirestoreDatabase | undefined;
-    let stubDb: StubFirestoreDatabase;
-    const testCollectionPrefix = `compatibility-test-${Date.now()}`;
+// Fixed test data - seeded once, reused across tests
+const TEST_COLLECTION = 'firebase-simulator-test';
+const TEST_PAGINATION_COLLECTION = `${TEST_COLLECTION}-pagination`;
+const TEST_COLLECTION_GROUP_PARENTS = `${TEST_COLLECTION}-parents`;
+const TEST_LISTENER_QUERIES_COLLECTION = `${TEST_COLLECTION}-listener-queries`;
 
-    beforeAll(() => {
-        ensureFirestore(); // Warm up connection so individual tests stay fast.
+const BASE_COLLECTION_DATA = [
+    { id: 'user-1', name: 'Alice', age: 25, city: 'NYC' },
+    { id: 'user-2', name: 'Bob', age: 30, city: 'LA' },
+    { id: 'user-3', name: 'Charlie', age: 35, city: 'NYC' },
+    { id: 'user-4', name: 'David', age: 28, city: 'SF' },
+];
+
+const PAGINATION_DATA = Array.from({ length: 6 }, (_, index) => ({
+    id: `page-item-${index + 1}`,
+    index,
+    label: `Item ${index + 1}`,
+}));
+
+const COLLECTION_GROUP_DATA = [
+    {
+        parentId: 'parent-1',
+        items: [
+            { id: 'item-1', value: 'a', category: 'cat-1' },
+            { id: 'item-2', value: 'b', category: 'cat-1' },
+        ],
+    },
+    {
+        parentId: 'parent-2',
+        items: [
+            { id: 'item-3', value: 'c', category: 'cat-2' },
+            { id: 'item-4', value: 'd', category: 'cat-3' },
+        ],
+    },
+];
+
+describe('Firestore Stub Compatibility - Integration Test', () => {
+    let realDb: IFirestoreDatabase;
+    let stubDb: StubFirestoreDatabase;
+    // Unique prefix for tests that create/modify docs (to avoid conflicts)
+    const testCollectionPrefix = `${TEST_COLLECTION}-${Date.now()}`;
+
+    beforeAll(async () => {
+        realDb = createFirestoreDatabase(ensureFirestore());
+
+        // Seed shared test data once - check if already exists
+        const existingDoc = await realDb.collection(TEST_COLLECTION).doc('user-1').get();
+        if (!existingDoc.exists) {
+            // Seed base collection data
+            for (const data of BASE_COLLECTION_DATA) {
+                await realDb.collection(TEST_COLLECTION).doc(data.id).set(data);
+            }
+
+            // Seed pagination data
+            for (const data of PAGINATION_DATA) {
+                await realDb.collection(TEST_PAGINATION_COLLECTION).doc(data.id).set(data);
+            }
+
+            // Seed collection group data (in separate collection to not interfere with base queries)
+            for (const parent of COLLECTION_GROUP_DATA) {
+                await realDb.collection(TEST_COLLECTION_GROUP_PARENTS).doc(parent.parentId).set({ name: `Parent ${parent.parentId}` });
+                for (const item of parent.items) {
+                    await realDb.collection(TEST_COLLECTION_GROUP_PARENTS).doc(parent.parentId).collection('items').doc(item.id).set(item);
+                }
+            }
+        }
     });
 
     beforeEach(() => {
         realDb = createFirestoreDatabase(ensureFirestore());
         stubDb = new StubFirestoreDatabase();
+
+        // Seed stub with same data (in-memory, always fast)
+        for (const data of BASE_COLLECTION_DATA) {
+            stubDb.collection(TEST_COLLECTION).doc(data.id).set(data);
+        }
+        for (const data of PAGINATION_DATA) {
+            stubDb.collection(TEST_PAGINATION_COLLECTION).doc(data.id).set(data);
+        }
+        for (const parent of COLLECTION_GROUP_DATA) {
+            stubDb.collection(TEST_COLLECTION_GROUP_PARENTS).doc(parent.parentId).set({ name: `Parent ${parent.parentId}` });
+            for (const item of parent.items) {
+                stubDb.collection(TEST_COLLECTION_GROUP_PARENTS).doc(parent.parentId).collection('items').doc(item.id).set(item);
+            }
+        }
     });
 
     afterEach(async () => {
-        const collectionsToClean = [testCollectionPrefix, `${testCollectionPrefix}-pagination`];
+        // Clean up docs created by individual tests
+        const collectionsToClean = [testCollectionPrefix, TEST_LISTENER_QUERIES_COLLECTION];
 
         for (const collectionName of collectionsToClean) {
-            const snapshot = await realDb!.collection(collectionName).get();
-
-            if (collectionName === testCollectionPrefix) {
+            const snapshot = await realDb.collection(collectionName).get();
+            if (snapshot.docs.length > 0) {
+                // Clean subcollections
                 for (const doc of snapshot.docs) {
-                    const shareLinksSnapshot = await doc.ref.collection('shareLinks').get();
-                    const shareLinksBatch = realDb!.batch();
-                    shareLinksSnapshot.docs.forEach((linkDoc) => shareLinksBatch.delete(linkDoc.ref));
-                    if (shareLinksSnapshot.docs.length > 0) {
-                        await shareLinksBatch.commit();
-                    }
-
-                    const membersSnapshot = await doc.ref.collection('members').get();
-                    const membersBatch = realDb!.batch();
-                    membersSnapshot.docs.forEach((memberDoc) => membersBatch.delete(memberDoc.ref));
-                    if (membersSnapshot.docs.length > 0) {
-                        await membersBatch.commit();
+                    for (const subcollection of ['items', 'members', 'children']) {
+                        const subSnapshot = await doc.ref.collection(subcollection).get();
+                        if (subSnapshot.docs.length > 0) {
+                            const subBatch = realDb.batch();
+                            subSnapshot.docs.forEach((subDoc) => subBatch.delete(subDoc.ref));
+                            await subBatch.commit();
+                        }
                     }
                 }
-            }
-
-            const batch = realDb!.batch();
-            snapshot.docs.forEach((doc) => batch.delete(doc.ref));
-            if (snapshot.docs.length > 0) {
+                // Clean main docs
+                const batch = realDb.batch();
+                snapshot.docs.forEach((doc) => batch.delete(doc.ref));
                 await batch.commit();
             }
         }
@@ -179,40 +253,11 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
     });
 
     describe('Query Operations', () => {
-        const paginationCollection = `${testCollectionPrefix}-pagination`;
-
-        beforeEach(async () => {
-            const baseCollectionData = [
-                { id: 'user-1', name: 'Alice', age: 25, city: 'NYC' },
-                { id: 'user-2', name: 'Bob', age: 30, city: 'LA' },
-                { id: 'user-3', name: 'Charlie', age: 35, city: 'NYC' },
-                { id: 'user-4', name: 'David', age: 28, city: 'SF' },
-            ];
-
-            for (const data of baseCollectionData) {
-                if (realDb) {
-                    await realDb.collection(testCollectionPrefix).doc(data.id).set(data);
-                }
-                await stubDb.collection(testCollectionPrefix).doc(data.id).set(data);
-            }
-
-            const paginationData = Array.from({ length: 6 }, (_, index) => ({
-                id: `page-item-${index + 1}`,
-                index,
-                label: `Item ${index + 1}`,
-            }));
-
-            for (const data of paginationData) {
-                if (realDb) {
-                    await realDb.collection(paginationCollection).doc(data.id).set(data);
-                }
-                await stubDb.collection(paginationCollection).doc(data.id).set(data);
-            }
-        });
+        // Uses pre-seeded TEST_COLLECTION and TEST_PAGINATION_COLLECTION data
 
         it('should handle where queries identically', async () => {
             await testBothImplementations('where query', async (db, isStub) => {
-                const snapshot = await db.collection(testCollectionPrefix).where('city', '==', 'NYC').get();
+                const snapshot = await db.collection(TEST_COLLECTION).where('city', '==', 'NYC').get();
 
                 expect(snapshot.size, `Query result count (${isStub ? 'stub' : 'real'})`).toBe(2);
 
@@ -223,7 +268,7 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
 
         it('should handle range queries identically', async () => {
             await testBothImplementations('range query', async (db, isStub) => {
-                const snapshot = await db.collection(testCollectionPrefix).where('age', '>', 28).get();
+                const snapshot = await db.collection(TEST_COLLECTION).where('age', '>', 28).get();
 
                 expect(snapshot.size, `Range query count (${isStub ? 'stub' : 'real'})`).toBe(2);
 
@@ -234,7 +279,7 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
 
         it('should handle orderBy queries identically', async () => {
             await testBothImplementations('orderBy query', async (db, isStub) => {
-                const snapshot = await db.collection(testCollectionPrefix).orderBy('age', 'desc').get();
+                const snapshot = await db.collection(TEST_COLLECTION).orderBy('age', 'desc').get();
 
                 expect(snapshot.size, `OrderBy result count (${isStub ? 'stub' : 'real'})`).toBe(4);
 
@@ -245,7 +290,7 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
 
         it('should handle limit queries identically', async () => {
             await testBothImplementations('limit query', async (db, isStub) => {
-                const snapshot = await db.collection(testCollectionPrefix).orderBy('age').limit(2).get();
+                const snapshot = await db.collection(TEST_COLLECTION).orderBy('age').limit(2).get();
 
                 expect(snapshot.size, `Limit result count (${isStub ? 'stub' : 'real'})`).toBe(2);
 
@@ -256,7 +301,7 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
 
         it('should handle offset queries identically', async () => {
             await testBothImplementations('offset query', async (db, isStub) => {
-                const snapshot = await db.collection(testCollectionPrefix).orderBy('age').offset(2).limit(2).get();
+                const snapshot = await db.collection(TEST_COLLECTION).orderBy('age').offset(2).limit(2).get();
 
                 expect(snapshot.size, `Offset result count (${isStub ? 'stub' : 'real'})`).toBe(2);
 
@@ -267,7 +312,7 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
 
         it('should handle combined queries identically', async () => {
             await testBothImplementations('combined query', async (db, isStub) => {
-                const snapshot = await db.collection(testCollectionPrefix).where('city', '==', 'NYC').where('age', '>', 25).orderBy('age').get();
+                const snapshot = await db.collection(TEST_COLLECTION).where('city', '==', 'NYC').where('age', '>', 25).orderBy('age').get();
 
                 expect(snapshot.size, `Combined query count (${isStub ? 'stub' : 'real'})`).toBe(1);
 
@@ -278,7 +323,7 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
 
         it('should return identical results for paginated queries', async () => {
             await testBothImplementations('paginated query', async (db, isStub) => {
-                const baseQuery = db.collection(paginationCollection).orderBy('index');
+                const baseQuery = db.collection(TEST_PAGINATION_COLLECTION).orderBy('index');
 
                 const limit = 3;
                 const firstPage = await baseQuery.limit(limit).get();
@@ -396,50 +441,11 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
     });
 
     describe('Collection Group Queries', () => {
-        beforeEach(async () => {
-            const groups = [
-                {
-                    groupId: 'group-1',
-                    links: [
-                        { id: 'link-1', token: 'token-1', createdBy: 'user-1', testRunId: testCollectionPrefix },
-                        { id: 'link-2', token: 'token-2', createdBy: 'user-1', testRunId: testCollectionPrefix },
-                    ],
-                },
-                {
-                    groupId: 'group-2',
-                    links: [
-                        {
-                            id: 'link-3',
-                            token: 'token-3',
-                            createdBy: 'user-2',
-                            testRunId: testCollectionPrefix,
-                        },
-                        { id: 'link-4', token: 'token-4', createdBy: 'user-3', testRunId: testCollectionPrefix },
-                    ],
-                },
-            ];
-
-            for (const group of groups) {
-                const realGroupRef = realDb ? realDb.collection(testCollectionPrefix).doc(group.groupId) : undefined;
-                if (realGroupRef) {
-                    await realGroupRef.set({ name: `Group ${group.groupId}` });
-                }
-
-                const stubGroupRef = stubDb.collection(testCollectionPrefix).doc(group.groupId);
-                await stubGroupRef.set({ name: `Group ${group.groupId}` });
-
-                for (const link of group.links) {
-                    if (realGroupRef) {
-                        await realGroupRef.collection('shareLinks').doc(link.id).set(link);
-                    }
-                    await stubGroupRef.collection('shareLinks').doc(link.id).set(link);
-                }
-            }
-        });
+        // Uses pre-seeded COLLECTION_GROUP_DATA under TEST_COLLECTION
 
         it('should query collection groups identically', async () => {
             await testBothImplementations('collection group', async (db, isStub) => {
-                const snapshot = await db.collectionGroup('shareLinks').where('testRunId', '==', testCollectionPrefix).get();
+                const snapshot = await db.collectionGroup('items').get();
 
                 expect(snapshot.size, `Collection group size (${isStub ? 'stub' : 'real'})`).toBe(4);
             });
@@ -447,23 +453,22 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
 
         it('should filter collection group queries identically', async () => {
             await testBothImplementations('collection group filter', async (db, isStub) => {
-                const snapshot = await db.collectionGroup('shareLinks').where('testRunId', '==', testCollectionPrefix).where('createdBy', '==', 'user-1').get();
+                const snapshot = await db.collectionGroup('items').where('category', '==', 'cat-1').get();
 
-                expect(snapshot.size, `Filtered share links (${isStub ? 'stub' : 'real'})`).toBe(2);
+                expect(snapshot.size, `Filtered items (${isStub ? 'stub' : 'real'})`).toBe(2);
             });
         });
 
         it('should limit collection group queries identically', async () => {
             await testBothImplementations('collection group limit', async (db, isStub) => {
                 const snapshot = await db
-                    .collectionGroup('shareLinks')
-                    .where('testRunId', '==', testCollectionPrefix)
-                    .where('createdBy', '==', 'user-1')
+                    .collectionGroup('items')
+                    .where('category', '==', 'cat-1')
                     .limit(1)
                     .get();
 
-                expect(snapshot.size, `Limited filtered links (${isStub ? 'stub' : 'real'})`).toBe(1);
-                expect(snapshot.docs[0].id, `Limited link ID (${isStub ? 'stub' : 'real'})`).toBe('link-1');
+                expect(snapshot.size, `Limited filtered items (${isStub ? 'stub' : 'real'})`).toBe(1);
+                expect(snapshot.docs[0].id, `Limited item ID (${isStub ? 'stub' : 'real'})`).toBe('item-1');
             });
         });
     });
@@ -688,7 +693,15 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
 
             it('should stream filtered query snapshots identically', async () => {
                 await testBothImplementations('query listener', async (db, isStub) => {
-                    const collection = db.collection(`${testCollectionPrefix}-listener-queries`);
+                    const collection = db.collection(TEST_LISTENER_QUERIES_COLLECTION);
+
+                    // Clean up any existing docs first (from previous runs)
+                    const existing = await collection.get();
+                    if (existing.docs.length > 0) {
+                        const batch = db.batch();
+                        existing.docs.forEach((doc) => batch.delete(doc.ref));
+                        await batch.commit();
+                    }
 
                     await collection.doc('user-1').set({ name: 'Alice', city: 'NYC' });
                     await collection.doc('user-2').set({ name: 'Bob', city: 'LA' });

@@ -4,9 +4,9 @@ export default defineConfig({
     test: {
         threads: false,
         maxConcurrency: 1,
-        testTimeout: 5000,
-        hookTimeout: 5000,
-        teardownTimeout: 5000,
+        testTimeout: 10000,
+        hookTimeout: 10000,
+        teardownTimeout: 10000,
         setupFiles: ['./vitest.setup.ts'],
         poolOptions: {
             threads: {

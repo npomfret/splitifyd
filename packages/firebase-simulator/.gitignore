@@ -1,0 +1,12 @@
+# Service account credentials
+service-account*.json
+*-service-account.json
+credentials*.json
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Build output
+dist/
