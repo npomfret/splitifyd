@@ -173,6 +173,30 @@ export function getAllEmulatorPorts(): number[] {
  */
 let cachedEmulatorConfig: FirebaseEmulatorConfig | null = null;
 
+/**
+ * Get Firebase emulator configuration by fetching from the running app.
+ * @returns Promise<FirebaseEmulatorConfig> with signInUrl for authentication
+ */
+export async function getFirebaseEmulatorConfig(): Promise<FirebaseEmulatorConfig> {
+    if (cachedEmulatorConfig) {
+        return cachedEmulatorConfig;
+    }
+
+    const firebaseConfig = loadFirebaseConfig();
+    const hostingPort = firebaseConfig.emulators.hosting.port;
+    const config = await loadClientAppConfiguration(emulatorHost, hostingPort);
+
+    if (!config.firebaseAuthUrl) {
+        throw new Error('firebaseAuthUrl not present in config - is the emulator running in dev mode?');
+    }
+
+    const authUrl = new URL(config.firebaseAuthUrl);
+    const signInUrl = `http://${authUrl.hostname}:${authUrl.port}/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${config.firebase.apiKey}`;
+
+    cachedEmulatorConfig = { signInUrl };
+    return cachedEmulatorConfig;
+}
+
 async function loadClientAppConfiguration(emulatorHost: string, hostingPort: number): Promise<ClientAppConfiguration> {
     const hostingUrl = `http://${emulatorHost}:${hostingPort}`;
 
