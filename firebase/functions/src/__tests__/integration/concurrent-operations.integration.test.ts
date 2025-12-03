@@ -55,7 +55,11 @@ async function runWithLimitedConcurrency<T>(operations: Array<() => Promise<T>>,
 }
 
 describe('Concurrent Operations Integration Tests', () => {
-    const apiDriver = new ApiDriver();
+    let apiDriver: ApiDriver;
+
+    beforeAll(async () => {
+        apiDriver = await ApiDriver.create();
+    });
 
     let users: PooledTestUser[];
     let testUser1: PooledTestUser;

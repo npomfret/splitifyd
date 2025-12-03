@@ -1,56 +1,46 @@
 /**
  * FirestoreReader Unit Tests
  *
- * Tests the basic functionality of the FirestoreReader service and MockFirestoreReader
+ * Tests the basic functionality of the FirestoreReader service.
+ * Uses the firebase-simulator stubs for in-memory testing without the emulator.
  */
 
-import { createFirestoreDatabase, createStorage, StubCloudTasksClient } from '@billsplit-wl/firebase-simulator';
+import { StubCloudTasksClient, StubFirestoreDatabase, StubStorage } from '@billsplit-wl/firebase-simulator';
 import { describe, expect, test } from 'vitest';
-import { getAuth, getFirestore, getStorage } from '../../firebase';
-import { FirebaseAuthService } from '../../services/auth';
 import { ComponentBuilder } from '../../services/ComponentBuilder';
 import { FirestoreReader } from '../../services/firestore';
-
 import { createUnitTestServiceConfig } from '../test-config';
+import { StubAuthService } from './mocks/StubAuthService';
 
 describe('FirestoreReader', () => {
-    const firestore = getFirestore();
-    const auth = getAuth();
-    const storage = getStorage();
-
-    const wrappedDb = createFirestoreDatabase(firestore);
-    const wrappedStorage = createStorage(storage);
-    const authService = new FirebaseAuthService(
-        auth,
-        { apiKey: 'test-api-key', baseUrl: 'https://identitytoolkit.googleapis.com' },
-        true, // enableValidation
-        true, // enableMetrics
-    );
+    const db = new StubFirestoreDatabase();
+    const storage = new StubStorage({ defaultBucketName: 'test-bucket' });
+    const authService = new StubAuthService();
 
     const applicationBuilder = new ComponentBuilder(
         authService,
-        wrappedDb,
-        wrappedStorage,
+        db,
+        storage,
         new StubCloudTasksClient(),
         createUnitTestServiceConfig(),
     );
     const firestoreReader = applicationBuilder.buildFirestoreReader();
 
     test('should be instantiable', () => {
-        const reader = new FirestoreReader(createFirestoreDatabase(firestore));
+        const reader = new FirestoreReader(new StubFirestoreDatabase());
         expect(reader).toBeDefined();
         expect(typeof reader.getUser).toBe('function');
         expect(typeof reader.getGroup).toBe('function');
     });
 
-    test('should be available via ServiceRegistry', () => {
+    test('should be available via ComponentBuilder', () => {
         const reader = firestoreReader;
         expect(reader).toBeDefined();
         expect(typeof reader.getUser).toBe('function');
     });
 
     test('should have all required interface methods', () => {
-        const reader = new FirestoreReader(createFirestoreDatabase(firestore));
+        const reader = new FirestoreReader(new StubFirestoreDatabase());
 
         // Document operations
         expect(typeof reader.getUser).toBe('function');
@@ -63,11 +53,3 @@ describe('FirestoreReader', () => {
         expect(typeof reader.getGroupsForUserV2).toBe('function');
     });
 });
-
-// Note: Tests for the old StubFirestoreReader have been removed as we migrate to TenantFirestoreTestDatabase.
-// The TenantFirestoreTestDatabase is tested implicitly through its usage in service tests.
-
-// Note: Data validation tests have been removed as they test implementation details by seeding corrupted data.
-// The validation layer is tested implicitly through all API-driven tests - if validation wasn't working,
-// those tests would fail. Since corrupted states cannot be created through the API, these tests were
-// testing impossible scenarios.

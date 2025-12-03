@@ -11,7 +11,11 @@ import { beforeEach, describe, expect, test } from 'vitest';
  * - firebase/functions/src/__tests__/unit/comments/CommentRealtime.test.ts - Real-time subscriptions
  */
 describe('Comments Integration Tests (Firebase Security Rules Only)', () => {
-    const apiDriver = new ApiDriver();
+    let apiDriver: ApiDriver;
+
+    beforeAll(async () => {
+        apiDriver = await ApiDriver.create();
+    });
     let testGroup: any;
     let users: PooledTestUser[];
 

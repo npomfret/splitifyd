@@ -13,7 +13,11 @@ import { AdminTenantRequestBuilder, ApiDriver, borrowTestUsers } from '@billspli
 import { beforeAll, describe, expect, it } from 'vitest';
 
 describe('Admin Tenant Theme Publishing', () => {
-    const apiDriver = new ApiDriver();
+    let apiDriver: ApiDriver;
+
+    beforeAll(async () => {
+        apiDriver = await ApiDriver.create();
+    });
 
     let adminUser: PooledTestUser;
 

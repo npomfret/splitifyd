@@ -6,7 +6,7 @@ test.describe('Tenant editor', () => {
         test('admin can edit tenant colors and publish theme', async ({ createLoggedInBrowsers }) => {
             const [{ page, user }] = await createLoggedInBrowsers(1);
 
-            const apiDriver = new ApiDriver();
+            const apiDriver = await ApiDriver.create();
             await apiDriver.promoteUserToAdmin(user.uid);
 
             // Create tenant via API with unique name
@@ -51,7 +51,7 @@ test.describe('Tenant editor', () => {
         test('admin can update fields and they persist', async ({ createLoggedInBrowsers }) => {
             const [{ page, user }] = await createLoggedInBrowsers(1);
 
-            const apiDriver = new ApiDriver();
+            const apiDriver = await ApiDriver.create();
             await apiDriver.promoteUserToAdmin(user.uid);
 
             // Create tenant with unique name
@@ -102,7 +102,7 @@ test.describe('Tenant editor', () => {
         test('admin can update multiple color fields at once', async ({ createLoggedInBrowsers }) => {
             const [{ page, user }] = await createLoggedInBrowsers(1);
 
-            const apiDriver = new ApiDriver();
+            const apiDriver = await ApiDriver.create();
             await apiDriver.promoteUserToAdmin(user.uid);
 
             const tenantId = `test-multicolor-${Date.now()}`;
@@ -146,7 +146,7 @@ test.describe('Tenant editor', () => {
         test('admin can update font families', async ({ createLoggedInBrowsers }) => {
             const [{ page, user }] = await createLoggedInBrowsers(1);
 
-            const apiDriver = new ApiDriver();
+            const apiDriver = await ApiDriver.create();
             await apiDriver.promoteUserToAdmin(user.uid);
 
             const tenantId = `test-fonts-${Date.now()}`;
@@ -190,7 +190,7 @@ test.describe('Tenant editor', () => {
         test('tenant editor displays all advanced controls', async ({ createLoggedInBrowsers }) => {
             const [{ page, user }] = await createLoggedInBrowsers(1);
 
-            const apiDriver = new ApiDriver();
+            const apiDriver = await ApiDriver.create();
             await apiDriver.promoteUserToAdmin(user.uid);
 
             // Create tenant with aurora theme and unique name
@@ -229,7 +229,7 @@ test.describe('Tenant editor', () => {
         test('admin can toggle all marketing flags', async ({ createLoggedInBrowsers }) => {
             const [{ page, user }] = await createLoggedInBrowsers(1);
 
-            const apiDriver = new ApiDriver();
+            const apiDriver = await ApiDriver.create();
             await apiDriver.promoteUserToAdmin(user.uid);
 
             const tenantId = `test-marketing-${Date.now()}`;
@@ -289,7 +289,7 @@ test.describe('Tenant editor', () => {
         test('published theme CSS contains configured colors', async ({ createLoggedInBrowsers }) => {
             const [{ page, user }] = await createLoggedInBrowsers(1);
 
-            const apiDriver = new ApiDriver();
+            const apiDriver = await ApiDriver.create();
             await apiDriver.promoteUserToAdmin(user.uid);
 
             const tenantId = `test-publish-${Date.now()}`;

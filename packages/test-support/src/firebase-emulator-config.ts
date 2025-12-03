@@ -1,3 +1,4 @@
+import type { ClientAppConfiguration } from '@billsplit-wl/shared';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -59,18 +60,7 @@ export interface FirebaseConfig {
 }
 
 export interface FirebaseEmulatorConfig {
-    projectId: string;
-    firestoreEmulatorHost: string;
-    firebaseAuthEmulatorHost: string;
-    emulatorHttpUrl: string;
-    firebaseStorageEmulatorHost: string;
-    baseUrl: string;
-    firebaseApiKey: string;
-    identityToolkit: {
-        apiKey: string;
-        baseUrl: string;
-        host: string;
-    };
+    signInUrl: string
 }
 
 /**
@@ -179,43 +169,27 @@ export function getAllEmulatorPorts(): number[] {
 }
 
 /**
- * Reads Firebase emulator configuration from firebase.json and .firebaserc
- * @returns Firebase emulator configuration
+ * Cached emulator config from running app
  */
-export function getFirebaseEmulatorConfig(): FirebaseEmulatorConfig {
-    const projectRoot = findProjectRoot();
+let cachedEmulatorConfig: FirebaseEmulatorConfig | null = null;
 
-    // Read emulator configuration from firebase.json
+async function loadClientAppConfiguration(emulatorHost: string, hostingPort: number): Promise<ClientAppConfiguration> {
+    const hostingUrl = `http://${emulatorHost}:${hostingPort}`;
+
+    // Use bootstrap-config which works even when no tenants are configured
+    const response = await fetch(`${hostingUrl}/api/bootstrap-config`);
+    if (!response.ok) {
+        throw new Error(`Failed to fetch config from ${hostingUrl}/api/bootstrap-config: ${response.status} ${response.statusText}`);
+    }
+    return (await response.json()) as ClientAppConfiguration
+}
+
+const emulatorHost = '127.0.0.1';
+
+export function emulatorHostingURL() {
     const firebaseConfig = loadFirebaseConfig();
-
-    // Read project ID from .firebaserc
-    const firebaseRc = JSON.parse(fs.readFileSync(path.join(projectRoot, 'firebase', '.firebaserc'), 'utf8'));
-    const projectId = firebaseRc.projects.default;
-    const region = `us-central1`;
-
-    const functionsPort = firebaseConfig.emulators.functions.port;
-    const authPort = firebaseConfig.emulators.auth.port;
-    const authHost = firebaseConfig.emulators.auth.host;
-    const firestorePort = firebaseConfig.emulators.firestore.port;
     const hostingPort = firebaseConfig.emulators.hosting.port;
-    const storagePort = firebaseConfig.emulators.storage.port;
-
-    const firebaseApiKey = 'AIzaSyB3bUiVfOWkuJ8X0LAlFpT5xJitunVP6xg'; // Default API key for emulator
-
-    return {
-        projectId,
-        firebaseAuthEmulatorHost: `127.0.0.1:${authPort}`,
-        firestoreEmulatorHost: `127.0.0.1:${firestorePort}`,
-        emulatorHttpUrl: `http://localhost:${hostingPort}`,
-        firebaseStorageEmulatorHost: `127.0.0.1:${storagePort}`,
-        baseUrl: `http://localhost:${functionsPort}/${projectId}/${region}/api`,
-        firebaseApiKey: firebaseApiKey,
-        identityToolkit: {
-            apiKey: firebaseApiKey,
-            baseUrl: `http://${authHost}:${authPort}/identitytoolkit.googleapis.com`,
-            host: `${authHost}:${authPort}`,
-        },
-    };
+    return `http://${emulatorHost}:${hostingPort}`;
 }
 
 /**
@@ -231,15 +205,30 @@ export interface ApiDriverConfig {
 }
 
 /**
- * Get ApiDriver configuration for the Firebase emulator.
- * @returns ApiDriverConfig for the emulator environment
+ * Get ApiDriver configuration by fetching from the running app's /api/bootstrap-config endpoint.
+ * Uses bootstrap-config which works even when no tenants are configured.
+ * @returns Promise<ApiDriverConfig> for the emulator environment
  */
-export function getApiDriverConfig(): ApiDriverConfig {
-    const config = getFirebaseEmulatorConfig();
+export async function getApiDriverConfig(): Promise<ApiDriverConfig> {
+    const firebaseConfig = loadFirebaseConfig();
+    const hostingPort = firebaseConfig.emulators.hosting.port;
+    const hostingUrl = `http://${emulatorHost}:${hostingPort}`;
+
+    const response = await fetch(`${hostingUrl}/api/bootstrap-config`);
+    if (!response.ok) {
+        throw new Error(`Failed to fetch config from ${hostingUrl}/api/bootstrap-config: ${response.status} ${response.statusText}`);
+    }
+
+    const config: ClientAppConfiguration = await response.json();
+
+    if (!config.firebaseAuthUrl) {
+        throw new Error('firebaseAuthUrl not present in config - is the emulator running in dev mode?');
+    }
+
     return {
-        baseUrl: config.baseUrl,
-        firebaseApiKey: config.firebaseApiKey,
-        authBaseUrl: config.identityToolkit.baseUrl,
+        baseUrl: `${hostingUrl}/api`,
+        firebaseApiKey: config.firebase.apiKey,
+        authBaseUrl: `${config.firebaseAuthUrl}/identitytoolkit.googleapis.com`,
     };
 }
 
@@ -248,7 +237,7 @@ export function getApiDriverConfig(): ApiDriverConfig {
  * @param startPath - Optional starting path (defaults to current working directory)
  * @returns Path to project root
  */
-export function findProjectRoot(startPath?: string): string {
+function findProjectRoot(startPath?: string): string {
     let currentPath = startPath || process.cwd();
 
     while (currentPath !== path.dirname(currentPath)) {

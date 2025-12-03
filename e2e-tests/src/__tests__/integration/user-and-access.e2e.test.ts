@@ -335,7 +335,7 @@ simpleTest.describe('Policy Acceptance', () => {
 
     simpleTest.describe('Existing User Policy Updates', () => {
         simpleTest('should update each policy and accept them sequentially', async ({ browser }) => {
-            const apiDriver = new ApiDriver();
+            const apiDriver = await ApiDriver.create();
 
             // Borrow a test user from the pool
             const user = await apiDriver.borrowTestUser();
@@ -381,7 +381,7 @@ simpleTest.describe('Policy Acceptance', () => {
         });
 
         simpleTest('should validate policy modal structure and content', async ({ browser }) => {
-            const apiDriver = new ApiDriver();
+            const apiDriver = await ApiDriver.create();
 
             // Borrow a test user from the pool
             const user = await apiDriver.borrowTestUser();
@@ -500,7 +500,7 @@ simpleTest.describe('Share Link Access Management', () => {
             await expect(unauthPage).toHaveURL(/\/login/);
 
             // Get a second user to login with (but use the unauthenticated page)
-            const secondUser = await getUserPool().claimUser(unauthPage);
+            const secondUser = await (await getUserPool()).claimUser(unauthPage);
             await loginPage.login(secondUser.email, secondUser.password);
 
             // After successful login, user should be redirected to the join group page
@@ -519,7 +519,7 @@ simpleTest.describe('Share Link Access Management', () => {
             await expect(unauthPage).toHaveURL(JoinGroupPage.groupDetailUrlPattern(groupId));
 
             // Clean up the claimed user
-            await getUserPool().releaseUser(secondUser);
+            await (await getUserPool()).releaseUser(secondUser);
         });
 
         simpleTest('should allow unregistered user to register and join group via share link', async ({ createLoggedInBrowsers, newEmptyBrowser }) => {

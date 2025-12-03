@@ -1227,6 +1227,35 @@ export class FirestoreWriter implements IFirestoreWriter {
         });
     }
 
+    /**
+     * Atomically borrow an available test pool user.
+     * Uses a transaction to find an available user and mark it as borrowed.
+     */
+    async borrowAvailableTestPoolUser(): Promise<{ email: Email; token: string; password: string; } | null> {
+        return measureDb('FirestoreWriter.borrowAvailableTestPoolUser', async () => {
+            return this.db.runTransaction(async (transaction) => {
+                const availableUsersQuery = this.db.collection('test-user-pool').where('status', '==', 'available').limit(1);
+                const availableUsersSnapshot = await transaction.get(availableUsersQuery);
+
+                if (availableUsersSnapshot.empty) {
+                    return null;
+                }
+
+                const doc = availableUsersSnapshot.docs[0];
+                const data = doc.data() as { email: Email; token: string; password: string; status: string };
+
+                // Mark as borrowed within the transaction
+                transaction.update(doc.ref, { status: 'borrowed' });
+
+                return {
+                    email: data.email,
+                    token: data.token,
+                    password: data.password,
+                };
+            });
+        });
+    }
+
     // ========================================================================
     // Group Deletion and Recovery Operations
     // ========================================================================

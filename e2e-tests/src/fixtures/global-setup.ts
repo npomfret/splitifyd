@@ -1,7 +1,7 @@
 import { ApiDriver } from '@billsplit-wl/test-support';
 
 async function globalSetup() {
-    const apiDriver = new ApiDriver();
+    const apiDriver = await ApiDriver.create();
 
     console.log('Testing API connectivity...');
     const health = await apiDriver.getHealth();

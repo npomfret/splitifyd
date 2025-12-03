@@ -10,13 +10,3 @@ export interface TenantRequestContext {
     source: TenantResolutionSource;
     themeArtifact?: BrandingArtifactMetadata | null;
 }
-
-declare global {
-    namespace Express {
-        interface Request {
-            tenant?: TenantRequestContext;
-        }
-    }
-}
-
-export {};

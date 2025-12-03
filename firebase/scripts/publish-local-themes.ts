@@ -68,7 +68,7 @@ async function publishTenantTheme(api: ApiDriver, adminToken: string, tenantId: 
 }
 
 export async function publishLocalThemes(options?: { defaultOnly?: boolean; }): Promise<void> {
-    const apiDriver = new ApiDriver();
+    const apiDriver = await ApiDriver.create();
 
     logger.info('Authenticating default admin (Bill Splitter)…');
     const admin = await apiDriver.getDefaultAdminUser();

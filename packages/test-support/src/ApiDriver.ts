@@ -89,6 +89,8 @@ import { UserRegistrationBuilder } from './builders';
 import { ApiDriverConfig, getApiDriverConfig } from './firebase-emulator-config';
 import { Matcher, PollOptions, pollUntil } from './Polling';
 
+let cachedConfig: ApiDriverConfig | null = null;
+
 const randomLetters = (min: number, max: number): string => {
     const length = Math.floor(Math.random() * (max - min + 1)) + min;
     const alphabet = 'abcdefghijklmnopqrstuvwxyz';
@@ -142,10 +144,23 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
     };
 
     /**
-     * Create an ApiDriver instance.
-     * @param config - Configuration for the API driver. Defaults to emulator configuration.
+     * Create an ApiDriver instance using an async factory method.
+     * Fetches configuration from the running emulator's /api/config endpoint.
+     * @returns Promise<ApiDriver> configured for the emulator environment
      */
-    constructor(config: ApiDriverConfig = getApiDriverConfig()) {
+    static async create(): Promise<ApiDriver> {
+        if (!cachedConfig) {
+            cachedConfig = await getApiDriverConfig();
+        }
+        return new ApiDriver(cachedConfig);
+    }
+
+    /**
+     * Create an ApiDriver instance with explicit config.
+     * Prefer using ApiDriver.create() which fetches config from the running app.
+     * @param config - Configuration for the API driver
+     */
+    constructor(config: ApiDriverConfig) {
         this.config = config;
     }
 

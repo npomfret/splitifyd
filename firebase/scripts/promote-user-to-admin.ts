@@ -52,13 +52,9 @@ if (!validRoles.includes(roleArg as any)) {
 
 const targetRole = roleArg as typeof SystemUserRoles.SYSTEM_ADMIN | typeof SystemUserRoles.TENANT_ADMIN;
 
-// Parse environment and initialize Firebase
+// Parse environment
 const env = parseEnvironment(args);
-initializeFirebase(env);
-
 const { isEmulator, environment } = env;
-console.log(`🎯 Promoting user to admin in ${environment}`);
-console.log(`👤 User identifier: ${userIdentifier}`);
 
 let firestoreDb: Firestore;
 
@@ -66,6 +62,11 @@ let firestoreDb: Firestore;
  * Initialize Firebase database connection
  */
 async function initializeAppServices() {
+    // Initialize Firebase (fetches config from running app for emulator mode)
+    await initializeFirebase(env);
+
+    console.log(`🎯 Promoting user to admin in ${environment}`);
+    console.log(`👤 User identifier: ${userIdentifier}`);
     console.log('🔧 Initializing Firebase database connection...');
 
     if (!isEmulator) {

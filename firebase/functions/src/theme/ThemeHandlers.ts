@@ -2,19 +2,24 @@ import { BrandingArtifactMetadata } from '@billsplit-wl/shared';
 import type { RequestHandler } from 'express';
 import { getAppConfig } from '../app-config';
 import { HTTP_STATUS } from '../constants';
-import { ErrorDetail, Errors } from '../errors';
+import { Errors } from '../errors';
 import { logger } from '../logger';
 import type { IFirestoreReader } from '../services/firestore';
+import type { TenantRegistryService } from '../services/tenant/TenantRegistryService';
 
 export class ThemeHandlers {
-    constructor(private readonly firestoreReader: IFirestoreReader) {}
+    constructor(
+        private readonly firestoreReader: IFirestoreReader,
+        private readonly tenantRegistry: TenantRegistryService,
+    ) {}
 
     serveThemeCss: RequestHandler = async (req, res) => {
-        const tenantContext = req.tenant;
+        const host = req.headers['x-forwarded-host'] as string | undefined
+            ?? req.headers.host
+            ?? req.hostname
+            ?? null;
 
-        if (!tenantContext) {
-            throw Errors.notFound('tenant', ErrorDetail.TENANT_NOT_FOUND);
-        }
+        const tenantContext = await this.tenantRegistry.resolveTenant({ host });
 
         const record = await this.firestoreReader.getTenantById(tenantContext.tenantId);
         const artifact = record?.brandingTokens?.artifact;

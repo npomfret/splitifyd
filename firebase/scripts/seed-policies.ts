@@ -1,7 +1,7 @@
 #!/usr/bin/env npx tsx
 
 import { PolicyId, PolicyIds, PolicyName, toPolicyName, toPolicyText } from '@billsplit-wl/shared';
-import { ApiDriver, getFirebaseEmulatorConfig } from '@billsplit-wl/test-support';
+import { ApiDriver } from '@billsplit-wl/test-support';
 import * as fs from 'fs';
 import * as path from 'path';
 import { getEnvironment, initializeFirebase } from './firebase-init';
@@ -19,19 +19,23 @@ import { generateBillSplitterUser, signInExistingBillSplitter } from './test-dat
 const env = getEnvironment();
 console.log(`🎯 Running policy seeding for ${env.environment}`);
 
-// Initialize Firebase using common pattern
-initializeFirebase(env);
-
-if (env.isEmulator) {
-    const emulator = getFirebaseEmulatorConfig();
-    process.env.FIRESTORE_EMULATOR_HOST = emulator.firestoreEmulatorHost;
-    process.env.FIREBASE_AUTH_EMULATOR_HOST = emulator.identityToolkit.host;
-    process.env.FIREBASE_STORAGE_EMULATOR_HOST = emulator.firebaseStorageEmulatorHost;
-    process.env.__CLIENT_API_KEY = emulator.identityToolkit.apiKey;
+// API driver for all policy operations (lazily initialized)
+let _apiDriver: ApiDriver | null = null;
+async function getApiDriver(): Promise<ApiDriver> {
+    if (!_apiDriver) {
+        _apiDriver = await ApiDriver.create();
+    }
+    return _apiDriver;
 }
 
-// API driver for all policy operations
-const apiDriver = new ApiDriver();
+/**
+ * Initialize Firebase and set up emulator environment variables.
+ * Must be called before any Firebase operations.
+ */
+async function initialize(): Promise<void> {
+    // Initialize Firebase (this fetches config from running app for emulator mode)
+    await initializeFirebase(env);
+}
 
 /**
  * Read policy file from docs/policies directory
@@ -80,14 +84,14 @@ async function seedPolicy(
     const text = toPolicyText(readPolicyFile(filename));
 
     // Create policy via Admin API
-    const createResponse = await apiDriver.createPolicy(
+    const createResponse = await (await getApiDriver()).createPolicy(
         { policyName, text },
         adminToken,
     );
     console.log(`✅ Created policy: ${createResponse.id}`);
 
     // Publish the policy
-    const publishResponse = await apiDriver.publishPolicy(
+    const publishResponse = await (await getApiDriver()).publishPolicy(
         createResponse.id,
         createResponse.versionHash,
         adminToken,
@@ -100,7 +104,7 @@ async function seedPolicy(
  */
 async function acceptPoliciesForAdmin(adminToken: string): Promise<void> {
     console.log('\n📝 Accepting policies for admin user...');
-    await apiDriver.acceptCurrentPublishedPolicies(adminToken);
+    await (await getApiDriver()).acceptCurrentPublishedPolicies(adminToken);
     console.log('✅ Admin accepted all current policies');
 }
 
@@ -113,7 +117,7 @@ async function verifyPolicies(): Promise<void> {
     const policyIds = [PolicyIds.TERMS_OF_SERVICE, PolicyIds.COOKIE_POLICY, PolicyIds.PRIVACY_POLICY];
 
     for (const policyId of policyIds) {
-        const policy = await apiDriver.getCurrentPolicy(policyId);
+        const policy = await (await getApiDriver()).getCurrentPolicy(policyId);
         console.log(`✅ ${policy.policyName}: ${policy.text.length} chars`);
     }
 
@@ -124,12 +128,16 @@ async function verifyPolicies(): Promise<void> {
  * Seed initial policies.
  *
  * Bootstrap order:
- * 1. Create admin user (registration allows empty acceptedPolicies for bootstrap)
- * 2. Seed policies via Admin API
- * 3. Accept policies for the admin user
- * 4. Verify policies via public API
+ * 1. Initialize Firebase
+ * 2. Create admin user (registration allows empty acceptedPolicies for bootstrap)
+ * 3. Seed policies via Admin API
+ * 4. Accept policies for the admin user
+ * 5. Verify policies via public API
  */
 export async function seedPolicies() {
+    // Initialize Firebase before any operations
+    await initialize();
+
     console.log(`📚 Seeding policies for ${env.environment}...`);
 
     // Verify all policy files exist first

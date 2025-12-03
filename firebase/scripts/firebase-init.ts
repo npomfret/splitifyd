@@ -1,4 +1,4 @@
-import {getFirebaseEmulatorConfig, getPorts} from '@billsplit-wl/test-support';
+import { getFirebaseEmulatorConfig } from '@billsplit-wl/test-support';
 import * as admin from 'firebase-admin';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -59,7 +59,7 @@ export function getEnvironment(args?: string[]): ScriptEnvironment {
     }
 }
 
-export function initializeFirebase(env: ScriptEnvironment): void {
+export async function initializeFirebase(env: ScriptEnvironment): Promise<void> {
     console.log(`🎯 Initializing Firebase for ${env.environment}`);
 
     if (!env.isEmulator) {
@@ -93,47 +93,35 @@ export function initializeFirebase(env: ScriptEnvironment): void {
         loadRuntimeConfig();
 
         try {
-            const ports = getPorts();
+            // Fetch config from running app
+            const emulatorConfig = await getFirebaseEmulatorConfig();
 
-            if (!process.env.FUNCTIONS_EMULATOR) {
-                process.env.FUNCTIONS_EMULATOR = 'true';
-            }
+            // if (!process.env.FUNCTIONS_EMULATOR) {
+            //     process.env.FUNCTIONS_EMULATOR = 'true';
+            // }
 
-            if (!process.env.FIRESTORE_EMULATOR_HOST) {
-                process.env.FIRESTORE_EMULATOR_HOST = `localhost:${ports.firestore}`;
-            }
-
-            if (!process.env.FIREBASE_AUTH_EMULATOR_HOST) {
-                process.env.FIREBASE_AUTH_EMULATOR_HOST = `localhost:${ports.auth}`;
-            }
-
-            if (!process.env.FIREBASE_STORAGE_EMULATOR_HOST) {
-                process.env.FIREBASE_STORAGE_EMULATOR_HOST = `localhost:${ports.storage}`;
-            }
-
-            const emulatorConfig = getFirebaseEmulatorConfig();
-
-            process.env.FIREBASE_AUTH_EMULATOR_HOST = emulatorConfig.identityToolkit.host;
-            process.env.FIRESTORE_EMULATOR_HOST = emulatorConfig.firestoreEmulatorHost;
-
-            if (!process.env.FIREBASE_CONFIG) {
-                process.env.FIREBASE_CONFIG = JSON.stringify({
-                    projectId: emulatorConfig.projectId,
-                    storageBucket: `${(emulatorConfig.projectId)}.appspot.com`,
-                });
-            }
-
-            if (admin.apps.length === 0) {
-                admin.initializeApp({
-                    projectId: emulatorConfig.projectId,
-                    storageBucket: `${(emulatorConfig.projectId)}.appspot.com`,
-                });
-                console.log('   Firebase Admin initialized for emulator');
-            } else {
-                console.log('   Firebase Admin already initialized');
-            }
+            // process.env.FIREBASE_AUTH_EMULATOR_HOST = emulatorConfig.identityToolkit.host;
+            // process.env.FIRESTORE_EMULATOR_HOST = emulatorConfig.firestoreEmulatorHost;
+            // process.env.FIREBASE_STORAGE_EMULATOR_HOST = emulatorConfig.firebaseStorageEmulatorHost;
+            //
+            // if (!process.env.FIREBASE_CONFIG) {
+            //     process.env.FIREBASE_CONFIG = JSON.stringify({
+            //         projectId: emulatorConfig.projectId,
+            //         storageBucket: `${emulatorConfig.projectId}.appspot.com`,
+            //     });
+            // }
+            //
+            // if (admin.apps.length === 0) {
+            //     admin.initializeApp({
+            //         projectId: emulatorConfig.projectId,
+            //         storageBucket: `${emulatorConfig.projectId}.appspot.com`,
+            //     });
+            //     console.log('   Firebase Admin initialized for emulator');
+            // } else {
+            //     console.log('   Firebase Admin already initialized');
+            // }
         } catch (error) {
-            console.warn('⚠️  Failed to load emulator ports from firebase.json', error);
+            console.warn('⚠️  Failed to load emulator config from running app', error);
         }
     }
 }

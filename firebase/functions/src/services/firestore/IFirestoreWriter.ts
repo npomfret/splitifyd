@@ -275,6 +275,13 @@ export interface IFirestoreWriter {
      */
     updateTestPoolUser(email: Email, updates: { status?: 'available' | 'borrowed'; }): Promise<WriteResult>;
 
+    /**
+     * Atomically borrow an available test pool user.
+     * Uses a transaction to find an available user and mark it as borrowed.
+     * @returns The borrowed user data, or null if no available users exist
+     */
+    borrowAvailableTestPoolUser(): Promise<{ email: Email; token: string; password: string; } | null>;
+
     // ========================================================================
     // System Operations
     // ========================================================================

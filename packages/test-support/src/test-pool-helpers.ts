@@ -26,7 +26,7 @@ import { ApiDriver } from './ApiDriver';
  * ```
  */
 export async function borrowTestUsers(count: number): Promise<PooledTestUser[]> {
-    const apiDriver = new ApiDriver();
+    const apiDriver = await ApiDriver.create();
     const users: PooledTestUser[] = [];
 
     // Borrow users sequentially to avoid Firebase emulator multi-instance issues

@@ -1,5 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
-import { EMULATOR_URL } from './src/helpers';
+import {emulatorHostingURL} from "@billsplit-wl/test-support";
 
 /**
  * @see https://playwright.dev/docs/test-configuration
@@ -29,7 +29,7 @@ export default defineConfig({
     /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
     use: {
         /* Base URL to use in actions like `await page.goto('/')`. */
-        baseURL: EMULATOR_URL,
+        baseURL: emulatorHostingURL(),
 
         /* Set the locale for all tests */
         locale: 'en-US',

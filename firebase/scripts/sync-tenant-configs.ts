@@ -110,9 +110,9 @@ async function uploadAssetIfLocal(
 /**
  * Create ApiDriver configured for either emulator or deployed environment
  */
-function createApiDriver(isEmulator: boolean): ApiDriver {
+async function createApiDriver(isEmulator: boolean): Promise<ApiDriver> {
     if (isEmulator) {
-        return new ApiDriver();
+        return await ApiDriver.create();
     }
 
     const projectId = process.env.GCLOUD_PROJECT;
@@ -265,7 +265,7 @@ async function main(): Promise<void> {
     console.log(`🎯 Syncing tenant configs to ${isEmulator ? 'EMULATOR' : 'DEPLOYED'}`);
 
     // Create ApiDriver for API calls
-    const apiDriver = createApiDriver(isEmulator);
+    const apiDriver = await createApiDriver(isEmulator);
 
     // Get admin user token for API calls
     console.log('🔑 Authenticating admin user...');

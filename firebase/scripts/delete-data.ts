@@ -181,7 +181,7 @@ async function main(): Promise<void> {
     const requestedCollections = rawArgs.slice(1).map((name) => name.trim()).filter((name) => name.length > 0);
     const uniqueRequestedCollections = Array.from(new Set(requestedCollections));
     ensureInstanceModeMatchesTarget(env);
-    initializeFirebase(env);
+    await initializeFirebase(env);
 
     if (env.isEmulator) {
         console.log('⚠️  You are connected to the EMULATOR. This script will clear emulator data only.');

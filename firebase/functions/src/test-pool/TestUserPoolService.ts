@@ -1,7 +1,5 @@
 import type { Email } from '@billsplit-wl/shared';
 import { toDisplayName, toEmail, toPassword } from '@billsplit-wl/shared';
-import { getFirestore } from '../firebase';
-import { createFirestoreDatabase, type IFirestoreDatabase } from '../firestore-wrapper';
 import type { IAuthService } from '../services/auth';
 import type { IFirestoreWriter } from '../services/firestore';
 import { UserService } from '../services/UserService2';
@@ -12,19 +10,12 @@ interface PoolUser {
     password: string;
 }
 
-interface FirestorePoolUser extends PoolUser {
-    status: 'available' | 'borrowed';
-    createdAt: FirebaseFirestore.Timestamp;
-}
-
 const POOL_PREFIX = 'testpool';
 const POOL_DOMAIN = 'example.com';
 const POOL_PASSWORD = 'passwordpass';
-const POOL_COLLECTION = 'test-user-pool';
 
 export class TestUserPoolService {
     private static instance: TestUserPoolService;
-    private readonly db: IFirestoreDatabase = createFirestoreDatabase(getFirestore());
 
     constructor(
         private readonly firestoreWriter: IFirestoreWriter,
@@ -40,40 +31,11 @@ export class TestUserPoolService {
     }
 
     async borrowUser(): Promise<PoolUser> {
-        // Use transaction to atomically claim an available user
-        const result = await this.firestoreWriter.runTransaction(async (transaction) => {
-            // Query for available users directly within transaction
-            // Since we deleted the deprecated getTestUsersByStatus method,
-            // we implement this query directly using the Firestore instance
-            const availableUsersQuery = this.db.collection(POOL_COLLECTION).where('status', '==', 'available').limit(1);
-            const availableUsersSnapshot = await transaction.get(availableUsersQuery);
-
-            if (!availableUsersSnapshot.empty) {
-                // Found an available user - claim it atomically
-                const doc = availableUsersSnapshot.docs[0];
-                const data = doc.data() as FirestorePoolUser;
-
-                // Update status to borrowed within transaction
-                this.firestoreWriter.updateInTransaction(transaction, doc.ref.path, { status: 'borrowed' });
-
-                return {
-                    email: data.email,
-                    token: data.token,
-                    password: data.password,
-                };
-            }
-
-            // No available users - return null to create new one outside transaction
-            return null;
-        });
+        // Try to atomically claim an available user from the pool
+        const result = await this.firestoreWriter.borrowAvailableTestPoolUser();
 
         if (result) {
-            return {
-                // todo: this should problably be a PooledTestUser
-                email: result.email!,
-                token: result.token!,
-                password: result.password!,
-            };
+            return result;
         }
 
         // No available users found - create a new one

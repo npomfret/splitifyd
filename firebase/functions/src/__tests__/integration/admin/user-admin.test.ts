@@ -8,7 +8,11 @@ import { HTTP_STATUS } from '../../../constants';
  * Tests the PUT /admin/users/:uid endpoint for disabling/enabling user accounts
  */
 describe('Admin User Management - Integration Tests', () => {
-    const apiDriver = new ApiDriver();
+    let apiDriver: ApiDriver;
+
+    beforeAll(async () => {
+        apiDriver = await ApiDriver.create();
+    });
 
     let adminUser: PooledTestUser;
     let targetUser: PooledTestUser;

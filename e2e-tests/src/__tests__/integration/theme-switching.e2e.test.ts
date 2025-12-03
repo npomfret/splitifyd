@@ -1,15 +1,10 @@
-import { ThemePage } from '@billsplit-wl/test-support';
+import { getHostingPort, ThemePage } from '@billsplit-wl/test-support';
 import { expect } from '@playwright/test';
 import { simpleTest as test } from '../../fixtures/simple-test.fixture';
-import { EMULATOR_URL } from '../../helpers';
 
-const emulatorUrl = new URL(EMULATOR_URL);
-const portSegment = emulatorUrl.port ? `:${emulatorUrl.port}` : '';
-const pathSuffix = emulatorUrl.pathname === '/' ? '' : emulatorUrl.pathname;
-const protocol = emulatorUrl.protocol || 'http:';
-
-const AURORA_URL = `${protocol}//localhost${portSegment}${pathSuffix}`;
-const BRUTALIST_URL = `${protocol}//127.0.0.1${portSegment}${pathSuffix}`;
+const port = getHostingPort();
+const AURORA_URL = `http://localhost:${port}`;
+const BRUTALIST_URL = `http://127.0.0.1:${port}`;
 
 test.describe('Theme switching smoke tests', () => {
     test('Different hosts serve different button styles', async ({ newEmptyBrowser }) => {

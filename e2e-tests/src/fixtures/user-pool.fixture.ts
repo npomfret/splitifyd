@@ -10,13 +10,18 @@ export class UserPool {
     private apiDriver: ApiDriver;
     private usersInUse: Set<string> = new Set(); // Track borrowed users
 
-    constructor() {
+    private constructor(apiDriver: ApiDriver) {
+        this.apiDriver = apiDriver;
+    }
+
+    static async create(): Promise<UserPool> {
         if (UserPool.instance) {
-            throw new Error('UserPool has already been instantiated! Use getUserPool() to get the existing instance.');
+            return UserPool.instance;
         }
 
-        UserPool.instance = this;
-        this.apiDriver = new ApiDriver();
+        const apiDriver = await ApiDriver.create();
+        UserPool.instance = new UserPool(apiDriver);
+        return UserPool.instance;
     }
 
     static resetInstance(): void {
@@ -54,9 +59,9 @@ let globalUserPool: UserPool | undefined;
  * Get or create the user pool for this worker.
  * Each worker gets its own pool instance.
  */
-export function getUserPool(): UserPool {
+export async function getUserPool(): Promise<UserPool> {
     if (!globalUserPool) {
-        globalUserPool = new UserPool();
+        globalUserPool = await UserPool.create();
     }
     return globalUserPool;
 }

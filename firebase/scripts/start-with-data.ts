@@ -2,17 +2,12 @@
 
 import { getPorts } from '@billsplit-wl/test-support';
 import { ChildProcess } from 'child_process';
-import { exec } from 'child_process';
 import assert from 'node:assert';
-import * as path from 'path';
-import { promisify } from 'util';
 import { loadRuntimeConfig } from './scripts-config';
 import { logger } from './logger';
 import { seedPolicies } from './seed-policies';
 import { startEmulator } from './start-emulator';
 import { publishDemoThemes, syncDemoTenants } from './test-data-generator';
-
-const execPromise = promisify(exec);
 
 async function runSeedPoliciesStep(): Promise<void> {
     logger.info('');
@@ -27,31 +22,6 @@ async function runSeedPoliciesStep(): Promise<void> {
     logger.info('✅ Policy seeding completed successfully!');
     logger.info('📋 Privacy policy, terms, and cookie policy are now available');
     logger.info('🔑 Sign in with test1@test.com to access the emulator');
-}
-
-async function runSetupStorageBucketStep(): Promise<void> {
-    logger.info('');
-    logger.info('═══════════════════════════════════════════════════════');
-    logger.info('🪣 SETTING UP CLOUD STORAGE BUCKET...');
-    logger.info('═══════════════════════════════════════════════════════');
-    logger.info('');
-
-    try {
-        // Run the storage setup script in emulator mode
-        const { stdout, stderr } = await execPromise('npx tsx scripts/setup-storage-bucket.ts emulator', {
-            cwd: path.join(__dirname, '..'),
-        });
-
-        if (stdout) logger.info(stdout.trim());
-        if (stderr) logger.error(stderr.trim());
-
-        logger.info('');
-        logger.info('✅ Cloud Storage bucket setup complete!');
-    } catch (error) {
-        logger.warn('⚠️  Storage bucket setup script failed (bucket will be auto-created on first use)', {
-            error: error instanceof Error ? error.message : String(error),
-        });
-    }
 }
 
 async function runSyncDemoTenantsStep(): Promise<void> {
@@ -118,17 +88,14 @@ const main = async () => {
 
         logger.info('🚀 You can now use the webapp and all endpoints are available');
 
-        // Step 2: Sync demo tenants to Firestore (needed before any API calls that require tenant resolution)
-        await runSyncDemoTenantsStep();
-
-        // Step 3: Seed policies and ensure Bill Splitter admin exists
-        // (admin user is created first, then used to seed policies via API, then accepts policies)
+        // Step 2: Seed policies and ensure Bill Splitter admin exists
+        // (admin user must be created first - subsequent steps need admin authentication)
         await runSeedPoliciesStep();
 
-        // Step 4: Setup Cloud Storage bucket (needed before publishing themes)
-        await runSetupStorageBucketStep();
+        // Step 3: Sync demo tenants to Firestore (requires admin user for API calls)
+        await runSyncDemoTenantsStep();
 
-        // Step 5: Publish demo themes (needs storage bucket)
+        // Step 4: Publish demo themes (bucket auto-created on first write in emulator)
         await runPublishDemoThemesStep();
 
         logger.info('');

@@ -16,7 +16,11 @@ import { borrowTestUsers, CreateExpenseRequestBuilder, CreateGroupRequestBuilder
 import { ApiDriver } from '@billsplit-wl/test-support';
 
 describe('Expense Locking - Firebase Transaction Behavior', () => {
-    const apiDriver = new ApiDriver();
+    let apiDriver: ApiDriver;
+
+    beforeAll(async () => {
+        apiDriver = await ApiDriver.create();
+    });
 
     let user1: UserToken;
 

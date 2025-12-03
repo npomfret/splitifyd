@@ -38,7 +38,14 @@ interface SimpleTestFixtures {
     createLoggedInBrowsers(count: number): Promise<Array<{ page: Page; dashboardPage: DashboardPage; user: PooledTestUser; }>>;
 }
 
-const apiDriver = new ApiDriver();
+let cachedApiDriver: ApiDriver | null = null;
+
+async function getApiDriver(): Promise<ApiDriver> {
+    if (!cachedApiDriver) {
+        cachedApiDriver = await ApiDriver.create();
+    }
+    return cachedApiDriver;
+}
 
 export const simpleTest = baseTest.extend<SimpleTestFixtures>({
     newEmptyBrowser: async ({ browser }, use, testInfo) => {
@@ -113,7 +120,8 @@ export const simpleTest = baseTest.extend<SimpleTestFixtures>({
 
     createLoggedInBrowsers: async ({ browser }, use, testInfo) => {
         const browserInstances: BrowserInstance[] = [];
-        const userPool = getUserPool();
+        const userPool = await getUserPool();
+        const apiDriver = await getApiDriver();
 
         const createMultipleBrowsers = async (count: number) => {
             // First, claim all users sequentially

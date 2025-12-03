@@ -87,6 +87,13 @@ const routeDefinitions: RouteDefinition[] = [
         isInline: true,
     },
     {
+        method: 'GET',
+        path: '/bootstrap-config',
+        handlerName: 'getBootstrapConfig',
+        category: 'diagnostic',
+        isInline: true,
+    },
+    {
         method: 'POST',
         path: '/csp-violation-report',
         handlerName: 'reportCspViolation',

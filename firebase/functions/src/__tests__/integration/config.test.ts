@@ -1,8 +1,12 @@
 import { ApiDriver } from '@billsplit-wl/test-support';
-import { describe, expect, test } from 'vitest';
+import { beforeAll, describe, expect, test } from 'vitest';
 
 describe('Config Endpoint Integration Tests', () => {
-    const apiDriver = new ApiDriver();
+    let apiDriver: ApiDriver;
+
+    beforeAll(async () => {
+        apiDriver = await ApiDriver.create();
+    });
 
     describe('Marketing Flags', () => {
         test('should include marketing flags for default tenant', async () => {
@@ -11,7 +15,8 @@ describe('Config Endpoint Integration Tests', () => {
             expect(config.tenant).toBeDefined();
             expect(config.tenant!.branding).toBeDefined();
             expect(config.tenant!.branding.marketingFlags).toBeDefined();
-            expect(config.tenant!.branding.marketingFlags!.showMarketingContent).toBe(true);
+            // The default tenant (brutalist theme at 127.0.0.1) has marketing disabled
+            expect(config.tenant!.branding.marketingFlags!.showMarketingContent).toBe(false);
         });
     });
 

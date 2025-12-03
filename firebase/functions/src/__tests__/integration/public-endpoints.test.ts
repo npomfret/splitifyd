@@ -3,7 +3,11 @@ import { ApiDriver } from '@billsplit-wl/test-support';
 import { describe, expect, it } from 'vitest';
 
 describe('Public endpoints', () => {
-    const apiDriver = new ApiDriver();
+    let apiDriver: ApiDriver;
+
+    beforeAll(async () => {
+        apiDriver = await ApiDriver.create();
+    });
 
     it('GET /health responds with service status', async () => {
         const health = await apiDriver.getHealth();

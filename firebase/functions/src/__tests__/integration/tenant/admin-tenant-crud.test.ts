@@ -15,7 +15,11 @@ import { AdminTenantRequestBuilder, ApiDriver } from '@billsplit-wl/test-support
 import { beforeAll, describe, expect, it } from 'vitest';
 
 describe('Admin tenant CRUD operations', () => {
-    const apiDriver = new ApiDriver();
+    let apiDriver: ApiDriver;
+
+    beforeAll(async () => {
+        apiDriver = await ApiDriver.create();
+    });
     let adminUser: PooledTestUser;
 
     beforeAll(async () => {

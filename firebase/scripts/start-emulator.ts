@@ -145,7 +145,7 @@ export async function startEmulator(config: EmulatorConfig): Promise<ChildProces
 
 async function checkApiReady(): Promise<boolean> {
     try {
-        const apiDriver = new ApiDriver();
+        const apiDriver = await ApiDriver.create();
         await apiDriver.getHealth();
         return true;
     } catch {

@@ -1,6 +1,6 @@
 import { TestErrorResponse, TestSuccessResponse } from '@billsplit-wl/shared';
 import type { RequestHandler } from 'express';
-import { getAppConfig } from './app-config';
+import { getAppConfig, getTenantAwareAppConfig } from './app-config';
 import { buildEnvPayload, buildHealthPayload, resolveHealthStatusCode, runHealthChecks } from './endpoints/diagnostics';
 import {isRealFirebase} from './firebase';
 import { logger } from './logger';
@@ -66,7 +66,7 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
         componentBuilder.buildTenantAssetStorage(),
         componentBuilder.buildFirestoreReader(),
     );
-    const themeHandlers = new ThemeHandlers(componentBuilder.buildFirestoreReader());
+    const themeHandlers = new ThemeHandlers(componentBuilder.buildFirestoreReader(), tenantRegistryService);
 
     // Inline diagnostic handlers
     const getMetrics: RequestHandler = (req, res) => {
@@ -92,19 +92,24 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
     };
 
     const getConfig: RequestHandler = async (req, res) => {
-        // Get tenant configuration from request context (set by tenant identification middleware)
-        // If not present (exempt route), resolve the default tenant
-        let tenantContext = (req as any).tenant;
+        const host = req.headers['x-forwarded-host'] as string | undefined
+            ?? req.headers.host
+            ?? req.hostname
+            ?? null;
 
-        if (!tenantContext) {
-            tenantContext = await tenantRegistryService.resolveTenant({ host: null });
-        }
-
+        const tenantContext = await tenantRegistryService.resolveTenant({ host });
         const config = getEnhancedConfigResponse(tenantContext);
 
         const serverConfig = getAppConfig();
         const maxAge = serverConfig.cache.paths['/api/config'];
         res.setHeader('Cache-Control', `public, max-age=${maxAge}, must-revalidate`);
+        res.json(config);
+    };
+
+    const getBootstrapConfig: RequestHandler = async (_req, res) => {
+        // Minimal config for scripts that need to authenticate before tenants exist
+        const config = getTenantAwareAppConfig();
+        res.setHeader('Cache-Control', 'no-cache');
         res.json(config);
     };
 
@@ -472,6 +477,7 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
         headHealth,
         getEnv,
         getConfig,
+        getBootstrapConfig,
         reportCspViolation,
 
         // Test endpoint handlers (only in emulator environments)

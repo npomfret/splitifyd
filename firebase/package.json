@@ -15,7 +15,6 @@
     "start-emulators": "npm run kill-emulators && tsx scripts/generate-firebase-config.ts && tsx scripts/start-with-data.ts",
     "sync-tenants": "FORCE_OVERWRITE=1 tsx scripts/publish-local-themes.ts",
     "theme:publish-local": "tsx scripts/publish-local-themes.ts",
-    "storage:setup": "tsx scripts/setup-storage-bucket.ts",
     "generate:test-data": "tsx scripts/generate-test-data.ts",
     "delete-firebase-data": "cd functions && node scripts/delete-firebase-data.js",
     "deploy": "echo 'Use deploy:staging-1 for staging deployment'",
@@ -33,7 +32,6 @@
     "postdeploy:sync-tenant": "bash scripts/staging-operations.sh sync-tenant",
     "seed-policies:staging-1": "bash scripts/staging-operations.sh seed-policies",
     "logs": "firebase functions:log",
-    "list-admin-users": "tsx scripts/list-admin-users.ts",
     "promote-user": "tsx scripts/promote-user-to-admin.ts"
   },
   "author": "",

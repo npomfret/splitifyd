@@ -10,7 +10,7 @@ loadRuntimeConfig();
 async function main(): Promise<void> {
     // Initialize Firebase (project ID is read from .firebaserc)
     const env = getEnvironmentForModule();
-    initializeFirebase(env);
+    await initializeFirebase(env);
 
     await generateFullTestData();
 }

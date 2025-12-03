@@ -7,7 +7,11 @@ import { v4 as uuidv4 } from 'uuid';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 
 describe('Security and Permissions - Consolidated Tests', () => {
-    const apiDriver = new ApiDriver();
+    let apiDriver: ApiDriver;
+
+    beforeAll(async () => {
+        apiDriver = await ApiDriver.create();
+    });
     let users: PooledTestUser[];
 
     beforeEach(async () => {

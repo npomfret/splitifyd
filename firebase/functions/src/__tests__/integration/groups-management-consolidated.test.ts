@@ -19,7 +19,11 @@ import { beforeEach, describe, expect, test } from 'vitest';
 // firebase/functions/src/__tests__/unit/groups/GroupCRUDAndAccessControl.test.ts
 
 describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
-    const apiDriver = new ApiDriver();
+    let apiDriver: ApiDriver;
+
+    beforeAll(async () => {
+        apiDriver = await ApiDriver.create();
+    });
     let users: PooledTestUser[];
 
     beforeEach(async () => {

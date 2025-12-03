@@ -5,7 +5,11 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 const TEST_TIMEOUT_MS = 60_000;
 
 describe('Group Security Endpoints', () => {
-    const apiDriver = new ApiDriver();
+    let apiDriver: ApiDriver;
+
+    beforeAll(async () => {
+        apiDriver = await ApiDriver.create();
+    });
     let adminUser: Awaited<ReturnType<ApiDriver['createUser']>>;
     let memberUser: Awaited<ReturnType<ApiDriver['createUser']>>;
     let extraUser: Awaited<ReturnType<ApiDriver['createUser']>>;

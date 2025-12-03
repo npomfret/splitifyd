@@ -3,7 +3,11 @@ import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, CreateGroupReq
 import { beforeEach, describe, expect, test } from 'vitest';
 
 describe('Balance & Settlement - Consolidated Tests', () => {
-    const apiDriver = new ApiDriver();
+    let apiDriver: ApiDriver;
+
+    beforeAll(async () => {
+        apiDriver = await ApiDriver.create();
+    });
     let users: PooledTestUser[];
 
     beforeEach(async () => {
