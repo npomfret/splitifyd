@@ -1,24 +1,13 @@
 import { AdminUserProfile, SystemUserRoles, toDisplayName, toUserId } from '@billsplit-wl/shared';
 import { toEmail } from '@billsplit-wl/shared';
 import type { Request, Response } from 'express';
-import type { UserRecord } from 'firebase-admin/auth';
 import { FirestoreCollections } from '../constants';
 import { type IDocumentSnapshot, type IFirestoreDatabase, Timestamp } from '../firestore-wrapper';
 import { logger } from '../logger';
 import type { IAuthService } from '../services/auth';
 import type { IFirestoreReader } from '../services/firestore';
+import type { UserDocument } from '../schemas';
 import { validateListAuthUsersQuery, validateListFirestoreUsersQuery } from './validation';
-
-function serializeUserRecord(record: UserRecord) {
-    return {
-        uid: record.uid,
-        email: record.email ?? null,
-        emailVerified: record.emailVerified ?? false,
-        displayName: record.displayName ?? null,
-        disabled: record.disabled ?? false,
-        metadata: record.metadata,
-    };
-}
 
 function normalizeFirestoreValue(value: unknown): unknown {
     if (value instanceof Timestamp) {
@@ -58,82 +47,37 @@ export class UserBrowserHandlers {
     ) {}
 
     /**
-     * Enrich auth users with their Firestore data to create complete AdminUserProfile
+     * Enrich Firestore users with their Auth data to create complete AdminUserProfile.
+     * Starts from Firestore (source of truth for app users) and enriches with Auth metadata.
      */
-    private async enrichWithFirestoreRoles(users: UserRecord[]): Promise<AdminUserProfile[]> {
-        if (!this.firestoreReader) {
-            // If no firestoreReader, return auth users with minimal data (no Firestore fields)
-            return users.map((authUser) => {
-                // Use placeholder values for missing required fields
-                const email = authUser.email || `${authUser.uid}@missing-email.local`;
-                const displayName = authUser.displayName || `User ${authUser.uid.substring(0, 8)}`;
-
-                if (!authUser.email || !authUser.displayName) {
-                    logger.warn(`User ${authUser.uid} missing required fields - using placeholders (email: ${!!authUser.email}, displayName: ${!!authUser.displayName})`);
-                }
-
-                return {
-                    uid: toUserId(authUser.uid),
-                    displayName: toDisplayName(displayName),
-                    email: toEmail(email),
-                    emailVerified: authUser.emailVerified ?? false,
-                    photoURL: authUser.photoURL || null,
-                    role: SystemUserRoles.SYSTEM_USER,
-                    disabled: authUser.disabled ?? false,
-                    metadata: {
-                        creationTime: authUser.metadata.creationTime,
-                        lastSignInTime: authUser.metadata.lastSignInTime,
-                    },
-                };
-            });
-        }
-
-        // Fetch Firestore user documents for all users in parallel
-        const firestoreUsers = await Promise.all(
-            users.map((user) => this.firestoreReader!.getUser(toUserId(user.uid))),
+    private async enrichWithAuthData(firestoreUsers: UserDocument[]): Promise<AdminUserProfile[]> {
+        // Fetch Auth records for all users in parallel
+        const authUsers = await Promise.all(
+            firestoreUsers.map((user) => this.authService.getUser(user.id)),
         );
 
-        // Merge auth users with their Firestore data to create AdminUserProfile
-        return users.map((authUser, index) => {
-            const firestoreUser = firestoreUsers[index];
+        return firestoreUsers.map((firestoreUser, index) => {
+            const authUser = authUsers[index];
 
-            // Use placeholder values for missing required fields
-            const email = authUser.email || `${authUser.uid}@missing-email.local`;
-            const displayName = authUser.displayName || `User ${authUser.uid.substring(0, 8)}`;
+            // Auth data - use defaults if Auth record is missing (shouldn't happen normally)
+            const email = authUser?.email || firestoreUser.email || `${firestoreUser.id}@missing-email.local`;
+            const displayName = authUser?.displayName || `User ${firestoreUser.id.substring(0, 8)}`;
 
-            if (!authUser.email || !authUser.displayName) {
-                logger.warn(`User ${authUser.uid} missing required fields - using placeholders (email: ${!!authUser.email}, displayName: ${!!authUser.displayName})`);
-            }
-
-            // If no Firestore document, use defaults
-            if (!firestoreUser) {
-                logger.warn(`User ${authUser.uid} exists in Auth but missing Firestore document - using defaults`);
-                return {
-                    uid: toUserId(authUser.uid),
-                    displayName: toDisplayName(displayName),
-                    email: toEmail(email),
-                    emailVerified: authUser.emailVerified ?? false,
-                    photoURL: authUser.photoURL || null,
-                    role: SystemUserRoles.SYSTEM_USER,
-                    disabled: authUser.disabled ?? false,
-                    metadata: {
-                        creationTime: authUser.metadata.creationTime,
-                        lastSignInTime: authUser.metadata.lastSignInTime,
-                    },
-                };
+            if (!authUser) {
+                logger.warn(`User ${firestoreUser.id} exists in Firestore but missing Auth record`);
             }
 
             return {
-                uid: toUserId(authUser.uid),
+                uid: firestoreUser.id,
                 displayName: toDisplayName(displayName),
                 email: toEmail(email),
-                emailVerified: authUser.emailVerified ?? false,
-                photoURL: authUser.photoURL || null,
+                emailVerified: authUser?.emailVerified ?? false,
+                photoURL: authUser?.photoURL || null,
                 role: firestoreUser.role,
-                disabled: authUser.disabled ?? false,
+                disabled: authUser?.disabled ?? false,
                 metadata: {
-                    creationTime: authUser.metadata.creationTime,
-                    lastSignInTime: authUser.metadata.lastSignInTime,
+                    creationTime: authUser?.metadata.creationTime ?? firestoreUser.createdAt ?? new Date().toISOString(),
+                    lastSignInTime: authUser?.metadata.lastSignInTime,
                 },
                 // Firestore fields
                 createdAt: firestoreUser.createdAt,
@@ -144,31 +88,79 @@ export class UserBrowserHandlers {
         });
     }
 
+    /**
+     * List Firestore users with pagination
+     */
+    private async listFirestoreUserDocuments(options: { limit: number; cursor?: string }): Promise<{ users: UserDocument[]; nextCursor?: string; hasMore: boolean }> {
+        if (!this.firestoreReader) {
+            throw new Error('FirestoreReader is required for listing users');
+        }
+
+        let query = this.db.collection(FirestoreCollections.USERS).orderBy('__name__').limit(options.limit + 1);
+        if (options.cursor) {
+            query = query.startAfter(options.cursor);
+        }
+
+        const snapshot = await query.get();
+        const docs = snapshot.docs.slice(0, options.limit);
+        const hasMore = snapshot.docs.length > options.limit;
+        const nextCursor = hasMore ? docs[docs.length - 1]?.id : undefined;
+
+        // Get full user documents via FirestoreReader for proper validation
+        const users = await Promise.all(
+            docs.map((doc) => this.firestoreReader!.getUser(toUserId(doc.id))),
+        );
+
+        // Filter out nulls (shouldn't happen, but be safe)
+        const validUsers = users.filter((u): u is UserDocument => u !== null);
+
+        return { users: validUsers, nextCursor, hasMore };
+    }
+
     listAuthUsers = async (req: Request, res: Response): Promise<void> => {
         const query = validateListAuthUsersQuery(req.query);
 
         try {
+            // Search by email - look up in Auth first (email not stored in Firestore)
             if (query.email) {
-                const user = await this.authService.getUserByEmail(query.email);
-                const enrichedUsers = user ? await this.enrichWithFirestoreRoles([user]) : [];
+                const authUser = await this.authService.getUserByEmail(query.email);
+                if (!authUser) {
+                    res.json({ users: [], hasMore: false });
+                    return;
+                }
+                const firestoreUser = await this.firestoreReader?.getUser(toUserId(authUser.uid));
+                if (!firestoreUser) {
+                    res.json({ users: [], hasMore: false });
+                    return;
+                }
+                const enrichedUsers = await this.enrichWithAuthData([firestoreUser]);
                 res.json({ users: enrichedUsers, hasMore: false });
                 return;
             }
 
+            // Search by UID - look up in Firestore
             if (query.uid) {
-                const user = await this.authService.getUser(query.uid);
-                const enrichedUsers = user ? await this.enrichWithFirestoreRoles([user]) : [];
+                const firestoreUser = await this.firestoreReader?.getUser(toUserId(query.uid));
+                if (!firestoreUser) {
+                    res.json({ users: [], hasMore: false });
+                    return;
+                }
+                const enrichedUsers = await this.enrichWithAuthData([firestoreUser]);
                 res.json({ users: enrichedUsers, hasMore: false });
                 return;
             }
 
-            const result = await this.authService.listUsers({ limit: query.limit, pageToken: query.pageToken });
-            const enrichedUsers = await this.enrichWithFirestoreRoles(result.users);
+            // List users - start from Firestore, enrich with Auth
+            const result = await this.listFirestoreUserDocuments({
+                limit: query.limit,
+                cursor: query.pageToken,
+            });
+            const enrichedUsers = await this.enrichWithAuthData(result.users);
 
             res.json({
                 users: enrichedUsers,
-                nextPageToken: result.pageToken ?? undefined,
-                hasMore: Boolean(result.pageToken),
+                nextPageToken: result.nextCursor,
+                hasMore: result.hasMore,
             });
         } catch (error) {
             logger.error('Failed to list auth users', error as Error, {

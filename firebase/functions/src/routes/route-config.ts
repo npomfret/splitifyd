@@ -1,6 +1,7 @@
 import type { RequestHandler } from 'express';
 import { createHandlerRegistry } from '../ApplicationFactory';
 import { FirestoreCollections } from '../constants';
+import { isRealFirebase } from '../firebase';
 import { logger } from '../logger';
 import { ComponentBuilder } from '../services/ComponentBuilder';
 
@@ -132,7 +133,7 @@ const routeDefinitions: RouteDefinition[] = [
         method: 'POST',
         path: '/user/clear-policy-acceptances',
         handlerName: 'clearUserPolicyAcceptances',
-        category: 'user',
+        category: 'test',
     },
 
     // === User & Policy Management ===
@@ -612,11 +613,15 @@ export function createRouteDefinitions(componentBuilder: ComponentBuilder) {
         if (handler) {
             route.handler = handler;
         } else if (!route.isInline) {
-            logger.warn('route-handler-missing', {
-                method: route.method,
-                path: route.path,
-                handlerName: route.handlerName,
-            });
+            // Test routes are intentionally excluded from production - don't warn
+            const isExpectedMissing = route.category === 'test' && isRealFirebase();
+            if (!isExpectedMissing) {
+                logger.warn('route-handler-missing', {
+                    method: route.method,
+                    path: route.path,
+                    handlerName: route.handlerName,
+                });
+            }
         }
     }
 
