@@ -6,7 +6,8 @@ This document defines the key architectural patterns, rules, and standards for t
 
 ## TypeScript
 
-- It MUST compile!
+- It MUST compile! 
+- All of it must compile.  Never exclude TypeScript code from a compile.
 - **DO NOT use `ts-node`** - it always causes ERR_UNKNOWN_FILE_EXTENSION problems.
 - **Always use `tsx` instead** for TypeScript execution.
 - Use `npx tsx script.ts` in npm scripts and bash commands.
