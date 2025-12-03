@@ -1,11 +1,23 @@
 #!/usr/bin/env npx tsx
 
-import {execSync} from 'child_process';
+import {execSync, spawnSync} from 'child_process';
 import {existsSync, readFileSync} from 'fs';
 import {join, resolve} from 'path';
 import {logger} from './logger';
 
 const credentialsPath = resolve(join(__dirname, '../service-account-key.json'));
+
+// ANSI color codes
+const colors = {
+    reset: '\x1b[0m',
+    red: '\x1b[31m',
+    yellow: '\x1b[33m',
+    blue: '\x1b[34m',
+    cyan: '\x1b[36m',
+    gray: '\x1b[90m',
+    white: '\x1b[37m',
+    bold: '\x1b[1m',
+};
 
 function ensureAuthEnv() {
     if (!process.env.GOOGLE_APPLICATION_CREDENTIALS) {
@@ -18,7 +30,7 @@ function ensureAuthEnv() {
 }
 
 type LogProvider = 'firebase' | 'gcloud' | 'logging';
-type LogFormat = 'text' | 'json' | 'yaml';
+type LogFormat = 'text' | 'json' | 'yaml' | 'pretty';
 
 interface ParsedArgs {
     functionName?: string;
@@ -28,20 +40,21 @@ interface ParsedArgs {
     region: string;
     filter?: string;
     format: LogFormat;
+    errorsOnly: boolean;
 }
 
 function parseArgs(): ParsedArgs {
     const args = process.argv.slice(2);
 
     if (args.includes('--help') || args.includes('-h')) {
-        console.log('Usage: tsx scripts/show-logs.ts [function-name] [--lines <n>] [--tail] [--provider firebase|gcloud|logging] [--region <name>] [--filter <expr>] [--format text|json|yaml]');
+        console.log('Usage: tsx scripts/show-logs.ts [function-name] [--lines <n>] [--tail] [--provider firebase|gcloud|logging] [--region <name>] [--filter <expr>] [--format text|json|yaml|pretty] [--errors]');
         console.log('');
         console.log('Examples:');
-        console.log('  tsx scripts/show-logs.ts                                    # All functions (Cloud Run logs, 50 lines)');
+        console.log('  tsx scripts/show-logs.ts                                    # All functions, pretty format (default)');
         console.log('  tsx scripts/show-logs.ts api --lines 100                    # Specific function (100 entries)');
-        console.log('  tsx scripts/show-logs.ts api --provider firebase            # Use Firebase CLI instead of gcloud');
-        console.log('  tsx scripts/show-logs.ts api --provider logging --format json');
-        console.log('  tsx scripts/show-logs.ts api --tail                         # Follow logs via gcloud functions');
+        console.log('  tsx scripts/show-logs.ts --errors                           # Only show errors');
+        console.log('  tsx scripts/show-logs.ts api --format json                  # Raw JSON output');
+        console.log('  tsx scripts/show-logs.ts api --tail                         # Follow logs in real-time');
         console.log('');
         console.log('Available functions:');
         console.log('  - api');
@@ -58,7 +71,8 @@ function parseArgs(): ParsedArgs {
     let provider: LogProvider = 'firebase';
     let region = process.env.FIREBASE_DEFAULT_REGION || 'us-central1';
     let filter: string | undefined;
-    let format: LogFormat = 'text';
+    let format: LogFormat = 'pretty';
+    let errorsOnly = false;
 
     for (let i = 0; i < args.length; i += 1) {
         const arg = args[i];
@@ -109,14 +123,18 @@ function parseArgs(): ParsedArgs {
             }
             case '--format': {
                 const next = args[i + 1] as LogFormat | undefined;
-                if (!next || !['text', 'json', 'yaml'].includes(next)) {
-                    console.error('❌ Format must be one of: text, json, yaml');
+                if (!next || !['text', 'json', 'yaml', 'pretty'].includes(next)) {
+                    console.error('❌ Format must be one of: text, json, yaml, pretty');
                     process.exit(1);
                 }
                 format = next;
                 i += 1;
                 break;
             }
+            case '--errors':
+            case '-e':
+                errorsOnly = true;
+                break;
             default: {
                 if (arg.startsWith('-')) {
                     console.error(`❌ Unknown option: ${arg}`);
@@ -130,15 +148,126 @@ function parseArgs(): ParsedArgs {
         }
     }
 
-    return { functionName, lines, tail, provider, region, filter, format };
+    return { functionName, lines, tail, provider, region, filter, format, errorsOnly };
 }
 
-const { functionName, lines, tail, provider, region, filter, format } = parseArgs();
+const { functionName, lines, tail, provider, region, filter, format, errorsOnly } = parseArgs();
 let gcloudAuthenticated = false;
+
+/**
+ * Format a log entry for pretty output
+ */
+function formatLogEntry(line: string): string | null {
+    // Parse the firebase log format: TIMESTAMP LEVEL FUNCTION: JSON_DATA
+    const match = line.match(/^(\d{4}-\d{2}-\d{2}T[\d:.]+Z)\s+([EIDW])\s+(\w+):\s*(.*)$/);
+    if (!match) {
+        return line; // Return as-is if not matching expected format
+    }
+
+    const [, timestamp, level, func, jsonPart] = match;
+    const time = new Date(timestamp).toLocaleTimeString();
+
+    // Determine color based on level
+    let levelColor = colors.white;
+    let levelIcon = '•';
+    if (level === 'E') {
+        levelColor = colors.red;
+        levelIcon = '✖';
+    } else if (level === 'W') {
+        levelColor = colors.yellow;
+        levelIcon = '⚠';
+    } else if (level === 'I') {
+        levelColor = colors.blue;
+        levelIcon = 'ℹ';
+    }
+
+    // Filter errors only if requested
+    if (errorsOnly && level !== 'E') {
+        return null;
+    }
+
+    // Try to parse JSON
+    let parsed: any;
+    try {
+        parsed = JSON.parse(jsonPart);
+    } catch {
+        // Not JSON, return formatted line
+        return `${colors.gray}${time}${colors.reset} ${levelColor}${levelIcon}${colors.reset} ${colors.cyan}${func}${colors.reset} ${jsonPart}`;
+    }
+
+    // Format error logs specially
+    if (level === 'E' && parsed.error) {
+        const output: string[] = [];
+        output.push(`${colors.gray}${time}${colors.reset} ${levelColor}${levelIcon} ERROR${colors.reset} ${colors.cyan}${func}${colors.reset}`);
+
+        if (parsed.requestPath) {
+            output.push(`  ${colors.gray}Path:${colors.reset} ${parsed.requestMethod || 'GET'} ${parsed.requestPath}`);
+        }
+        if (parsed.correlationId) {
+            output.push(`  ${colors.gray}CorrelationId:${colors.reset} ${parsed.correlationId}`);
+        }
+
+        const err = parsed.error;
+        if (err.code) {
+            output.push(`  ${colors.gray}Code:${colors.reset} ${colors.red}${err.code}${colors.reset}`);
+        }
+        if (err.data?.detail) {
+            output.push(`  ${colors.gray}Detail:${colors.reset} ${colors.red}${err.data.detail}${colors.reset}`);
+        }
+        if (err.errors && Array.isArray(err.errors)) {
+            output.push(`  ${colors.gray}Validation Errors:${colors.reset}`);
+            for (const e of err.errors) {
+                output.push(`    ${colors.red}• ${e.path}:${colors.reset} ${e.message} (${e.code})`);
+            }
+        }
+        if (err.payload) {
+            // Truncate payload for readability
+            const payload = err.payload.length > 200 ? err.payload.substring(0, 200) + '...' : err.payload;
+            output.push(`  ${colors.gray}Payload:${colors.reset} ${payload}`);
+        }
+        if (err.stack && !err.errors) {
+            // Only show stack if no validation errors (they're more useful)
+            const stackLines = err.stack.split('\n').slice(0, 3);
+            output.push(`  ${colors.gray}Stack:${colors.reset}`);
+            for (const stackLine of stackLines) {
+                output.push(`    ${colors.gray}${stackLine}${colors.reset}`);
+            }
+        }
+
+        return output.join('\n');
+    }
+
+    // Format info logs
+    const message = parsed.message || '';
+    const details: string[] = [];
+
+    if (parsed.operation) details.push(`op=${parsed.operation}`);
+    if (parsed.userId) details.push(`user=${parsed.userId.substring(0, 8)}...`);
+    if (parsed.correlationId) details.push(`cid=${parsed.correlationId.substring(0, 8)}...`);
+
+    const detailStr = details.length > 0 ? ` ${colors.gray}(${details.join(', ')})${colors.reset}` : '';
+
+    return `${colors.gray}${time}${colors.reset} ${levelColor}${levelIcon}${colors.reset} ${colors.cyan}${func}${colors.reset} ${message}${detailStr}`;
+}
+
+/**
+ * Process and format log output
+ */
+function processLogs(output: string): void {
+    const lines = output.split('\n');
+    for (const line of lines) {
+        if (!line.trim()) continue;
+        const formatted = formatLogEntry(line);
+        if (formatted !== null) {
+            console.log(formatted);
+        }
+    }
+}
 
 try {
     ensureAuthEnv();
-    const activeProject = "";
+    const serviceAccount = JSON.parse(readFileSync(credentialsPath, 'utf-8'));
+    const activeProject = serviceAccount.project_id;
 
     if (provider === 'gcloud') {
         ensureGcloudAuth();
@@ -150,6 +279,7 @@ try {
     }
 
     let command: string;
+    const usePrettyFormat = format === 'pretty';
 
     if (provider === 'firebase') {
         const baseCommand = `firebase functions:log --project ${activeProject}`;
@@ -165,7 +295,7 @@ try {
                 ? `${baseCommand} --only functions:${functionName} --lines ${lines}`
                 : `${baseCommand} --lines ${lines}`;
 
-            logger.info(`📋 Showing last ${lines} lines of logs${functionName ? ` for function: ${functionName}` : ' for all functions'} via Firebase CLI`);
+            logger.info(`📋 Showing last ${lines} lines of logs${functionName ? ` for function: ${functionName}` : ' for all functions'}${errorsOnly ? ' (errors only)' : ''}`);
         }
     } else if (provider === 'gcloud') {
         const commandParts = ['gcloud', 'functions', 'logs', 'read'];
@@ -182,18 +312,44 @@ try {
         logger.info(`📋 Using gcloud to ${tail ? 'stream' : `fetch last ${lines} lines of`} logs${functionName ? ` for function: ${functionName}` : ' for all functions'}`);
     } else {
         const effectiveFilter = filter ?? buildDefaultLoggingFilter(activeProject, functionName);
-        const commandParts = ['gcloud', 'logging', 'read', shellQuote(effectiveFilter), '--project', activeProject, '--limit', `${lines}`, '--format', format];
+        const actualFormat = usePrettyFormat ? 'json' : format;
+        const commandParts = ['gcloud', 'logging', 'read', shellQuote(effectiveFilter), '--project', activeProject, '--limit', `${lines}`, '--format', actualFormat];
 
         command = commandParts.join(' ');
 
         logger.info(`📋 Using gcloud logging to fetch ${lines} entries${functionName ? ` for function: ${functionName}` : ''} (format: ${format})`);
     }
 
-    execSync(command, {
-        stdio: 'inherit',
-        cwd: process.cwd(),
-        env: process.env,
-    });
+    if (usePrettyFormat && !tail) {
+        // Capture output and format it
+        const result = spawnSync(command, {
+            shell: true,
+            cwd: process.cwd(),
+            env: process.env,
+            encoding: 'utf-8',
+            maxBuffer: 10 * 1024 * 1024, // 10MB
+        });
+
+        if (result.error) {
+            throw result.error;
+        }
+        if (result.stdout) {
+            processLogs(result.stdout);
+        }
+        if (result.stderr) {
+            console.error(result.stderr);
+        }
+        if (result.status !== 0) {
+            process.exit(result.status ?? 1);
+        }
+    } else {
+        // Stream directly for tail mode or non-pretty format
+        execSync(command, {
+            stdio: 'inherit',
+            cwd: process.cwd(),
+            env: process.env,
+        });
+    }
 } catch (error: any) {
     logger.error('❌ Failed to fetch Firebase Functions logs', {
         error: error.message,
