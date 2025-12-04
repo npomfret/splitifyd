@@ -12,10 +12,20 @@
  */
 
 import { useAuth } from '@/app/hooks/useAuth.ts';
+import { Clickable } from '@/components/ui/Clickable';
+import { useConfig } from '@/hooks/useConfig.ts';
+import { useNavigation } from '@/hooks/useNavigation';
 import { navigationService } from '@/services/navigation.service';
+import { useTranslation } from 'react-i18next';
 
 export function AdminHeader() {
+    const { t } = useTranslation();
     const authStore = useAuth();
+    const config = useConfig();
+    const navigation = useNavigation();
+    const branding = config?.tenant?.branding ?? null;
+    const logoUrl = branding?.logoUrl ?? '/images/logo.svg';
+    const appName = branding?.appName ?? t('header.logoAlt');
 
     const handleLogout = async () => {
         if (!authStore) return;
@@ -31,7 +41,22 @@ export function AdminHeader() {
     return (
         <header class='admin-header'>
             <div class='max-w-7xl mx-auto px-4'>
-                <nav class='flex items-center justify-end h-16'>
+                <nav class='flex items-center justify-between h-16'>
+                    {/* Left Section - Logo link to Dashboard */}
+                    <Clickable
+                        onClick={() => navigation.goToDashboard()}
+                        className='flex items-center gap-3'
+                        data-testid='header-logo-link'
+                        aria-label={appName}
+                        eventName='admin_header_logo_click'
+                        eventProps={{ destination: 'dashboard' }}
+                    >
+                        <img src={logoUrl} alt={appName} class='h-8' />
+                        <span class='text-gray-900 font-semibold leading-6 whitespace-nowrap'>
+                            {appName}
+                        </span>
+                    </Clickable>
+
                     {/* Right Section - User Info and Logout Button */}
                     <div class='flex items-center gap-4'>
                         {authStore?.user && (
