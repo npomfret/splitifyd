@@ -86,9 +86,34 @@ export const store = new StoreImpl();
 
 ---
 
-## Admin Exception
+## Routing
 
-Pages in `pages/admin/` and `components/admin/` **can** use hardcoded colors. These use `AdminLayout` which isolates from tenant theming. See `styles/admin.css`.
+- **Router:** `preact-router` in `App.tsx`
+- **Code splitting:** All pages lazy-loaded via `lazy()` from `preact/compat`
+- **Auth guard:** `ProtectedRoute` wraps authenticated routes, redirects to login
+
+---
+
+## i18n
+
+- **Framework:** `i18next` with `react-i18next`
+- **Translations:** `locales/en/translation.json`
+- **Usage:** `const { t } = useTranslation(); t('key.path')`
+- **Rule:** Never hardcode user-facing text
+
+---
+
+## API Client
+
+- **Location:** `app/apiClient.ts`
+- **Pattern:** Singleton with runtime response validation via Zod
+- **Schemas:** `@billsplit/shared/schemas/apiSchemas.ts`
+
+---
+
+## Admin Pages (No Theming)
+
+Pages under `pages/admin/` and `components/admin/` are **completely isolated from tenant theming**. They use a fixed admin stylesheet (`styles/admin.css`) and `AdminLayout`. Hardcoded colors are permitted here - admin UI must look consistent across all tenants.
 
 ---
 
@@ -116,6 +141,7 @@ Pages in `pages/admin/` and `components/admin/` **can** use hardcoded colors. Th
 | `<div onClick={...}>` | `<Clickable onClick={...}>` |
 | `bg-surface-raised/50` on menus | `bg-surface-raised` (opaque) |
 | Module-level signals | Private class field signals |
+| Hardcoded strings in UI | `t('translation.key')` |
 
 ---
 
