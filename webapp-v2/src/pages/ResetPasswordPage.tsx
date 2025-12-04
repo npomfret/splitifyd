@@ -47,12 +47,6 @@ export function ResetPasswordPage() {
         }
     };
 
-    const handleTryAgain = () => {
-        emailSentSignal.value = false;
-        emailSignal.value = '';
-        errorSignal.value = null;
-    };
-
     if (emailSentSignal.value) {
         return (
             <AuthLayout title={t('pages.resetPasswordPage.checkYourEmail')} description={t('pages.resetPasswordPage.resetInstructionsSent')}>
@@ -88,15 +82,9 @@ export function ResetPasswordPage() {
                         </ul>
                     </Card>
 
-                    <Stack spacing='sm'>
-                        <Button variant='secondary' fullWidth onClick={handleTryAgain}>
-                            {t('pages.resetPasswordPage.sendToDifferentEmail')}
-                        </Button>
-
-                        <Button variant='ghost' fullWidth onClick={() => navigationService.goToLogin()}>
-                            {t('pages.resetPasswordPage.backToSignIn')}
-                        </Button>
-                    </Stack>
+                    <Button variant='ghost' fullWidth onClick={() => navigationService.goToLogin()}>
+                        {t('pages.resetPasswordPage.backToSignIn')}
+                    </Button>
                 </Stack>
             </AuthLayout>
         );
