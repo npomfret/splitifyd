@@ -1,20 +1,26 @@
 import type { CommentDTO } from '@billsplit-wl/shared';
 import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 import { useTranslation } from 'react-i18next';
-import { EmptyState, LoadingSpinner, SkeletonCommentItem } from '../ui';
+import { Alert, EmptyState, LoadingSpinner, SkeletonCommentItem } from '../ui';
 import { CommentItem } from './CommentItem';
 
 interface CommentsListProps {
     comments: CommentDTO[];
     loading?: boolean;
+    error?: string | null;
     hasMore?: boolean;
     onLoadMore?: () => Promise<void>;
     maxHeight?: string;
     className?: string;
 }
 
-export function CommentsList({ comments, loading = false, hasMore = false, onLoadMore, maxHeight = '400px', className = '' }: CommentsListProps) {
+export function CommentsList({ comments, loading = false, error, hasMore = false, onLoadMore, maxHeight = '400px', className = '' }: CommentsListProps) {
     const { t } = useTranslation();
+
+    if (error) {
+        return <Alert type='error' message={error} data-testid='comments-error' />;
+    }
+
     if (loading && comments.length === 0) {
         return (
             <div className='space-y-4 px-1' aria-busy='true' aria-label={t('comments.commentsList.loading')}>

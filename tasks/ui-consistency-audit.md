@@ -93,7 +93,7 @@ This audit identified issues in **6 major areas**. **P0, P1, and P2 priorities a
 2. ~~**JoinGroupPage uses hardcoded emoji**~~ ✅ Fixed - uses ExclamationTriangleIcon and CheckCircleIcon
 3. ~~**Hardcoded error strings** in AdminTenantConfigTab, ImageUploadField~~ ✅ Fixed - all use translations
 4. **Toast component exists but is never used** - `components/ui/Toast.tsx`
-5. **No error display** in CommentsList - silent failures
+5. ~~**No error display** in CommentsList - silent failures~~ ✅ Fixed - added error prop with Alert display
 
 ### Files to Fix:
 | File | Issue | Status |
@@ -101,7 +101,7 @@ This audit identified issues in **6 major areas**. **P0, P1, and P2 priorities a
 | `components/dashboard/GroupsList.tsx` | Use ErrorState component instead of custom | ✅ Done |
 | `pages/JoinGroupPage.tsx` | Replace emoji with SVG icon | ✅ Done |
 | `components/admin/AdminTenantConfigTab.tsx` | Use translations | ✅ Already done |
-| `components/group/GroupSettingsModal.tsx` | Use Alert component | Pending |
+| `components/group/GroupSettingsModal.tsx` | Use Alert component | ✅ Done |
 
 ---
 
@@ -251,11 +251,11 @@ The `Typography` component is now used across the codebase with standardized var
 |------|--------|--------|
 | `components/group/ExpensesList.tsx` | No loading skeleton | ✅ Done |
 | `components/settlements/SettlementHistory.tsx` | No loading skeleton | ✅ Done |
-| `components/comments/CommentsList.tsx` | No loading skeleton, no error state | ✅ Done (skeleton) |
+| `components/comments/CommentsList.tsx` | No loading skeleton, no error state | ✅ Done (skeleton + error) |
 | `components/group/MembersListWithManagement.tsx` | No loading skeleton | ✅ Done |
 | `components/dashboard/CreateGroupModal.tsx` | Modal padding | ✅ Done |
 | `components/group/ShareGroupModal.tsx` | Modal padding | ✅ Done |
-| `components/group/GroupSettingsModal.tsx` | Alert usage, modal structure | ✅ Done (structure) |
+| `components/group/GroupSettingsModal.tsx` | Alert usage, modal structure | ✅ Done (structure + Alert) |
 
 ---
 

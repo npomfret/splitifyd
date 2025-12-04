@@ -2,7 +2,7 @@ import { apiClient, ApiError } from '@/app/apiClient.ts';
 import { useAuthRequired } from '@/app/hooks/useAuthRequired.ts';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced.ts';
 import { Clickable } from '@/components/ui/Clickable';
-import { XCircleIcon, XIcon } from '@/components/ui/icons';
+import { XIcon } from '@/components/ui/icons';
 import { Modal } from '@/components/ui/Modal';
 import { logError } from '@/utils/browser-logger.ts';
 import { translateApiError } from '@/utils/error-translation';
@@ -11,7 +11,7 @@ import { signal } from '@preact/signals';
 import { useComputed } from '@preact/signals';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
-import { Button, Form, Input, LoadingSpinner, Tooltip } from '../ui';
+import { Alert, Button, Form, Input, LoadingSpinner, Tooltip } from '../ui';
 
 const PRESET_PERMISSIONS: Record<Exclude<SecurityPreset, 'custom'>, GroupPermissions> = {
     open: {
@@ -648,9 +648,7 @@ export function GroupSettingsModal({
                         />
 
                         {displayNameServerError && (
-                            <div className='bg-surface-error border border-border-error rounded-md px-3 py-2 text-sm text-semantic-error' role='alert'>
-                                {displayNameServerError}
-                            </div>
+                            <Alert type='error' message={displayNameServerError} data-testid='group-display-name-error' />
                         )}
 
                         {displayNameSuccessMessage && (
@@ -723,18 +721,7 @@ export function GroupSettingsModal({
                         </div>
 
                         {validationError && (
-                            <div className='bg-surface-error border border-border-error rounded-md p-3'>
-                                <div className='flex'>
-                                    <div className='flex-shrink-0'>
-<XCircleIcon size={20} className='text-semantic-error/80' />
-                                    </div>
-                                    <div className='ml-3'>
-                                        <p className='text-sm text-semantic-error' role='alert' data-testid='edit-group-validation-error'>
-                                            {validationError}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
+                            <Alert type='error' message={validationError} data-testid='edit-group-validation-error' />
                         )}
                     </div>
 
@@ -769,9 +756,7 @@ export function GroupSettingsModal({
                 </div>
             )}
             {actionError && (
-                <div className='bg-surface-error border border-border-error text-semantic-error text-sm rounded-md p-3' role='alert'>
-                    {actionError}
-                </div>
+                <Alert type='error' message={actionError} />
             )}
 
             <section>
@@ -861,7 +846,7 @@ export function GroupSettingsModal({
             {canApproveMembers && (
                 <section>
                     <h3 className='text-base font-semibold text-text-primary mb-3'>{t('securitySettingsModal.pendingMembers.heading')}</h3>
-                    {pendingError && <div className='bg-surface-error border border-border-error text-semantic-error text-sm rounded-md p-3 mb-3'>{pendingError}</div>}
+                    {pendingError && <Alert type='error' message={pendingError} />}
                     {loadingPending && (
                         <div className='flex justify-center py-6'>
                             <LoadingSpinner />
@@ -1012,11 +997,7 @@ export function GroupSettingsModal({
                             </div>
 
                             {deleteError && (
-                                <div className='bg-surface-error border border-border-error rounded-md p-3 mb-4'>
-                                    <p className='text-sm text-semantic-error' role='alert'>
-                                        {deleteError}
-                                    </p>
-                                </div>
+                                <Alert type='error' message={deleteError} />
                             )}
 
                             {isDeleting && (
