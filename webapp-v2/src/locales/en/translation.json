@@ -1113,7 +1113,7 @@
   "groupDisplayNameSettings": {
     "title": "Group display name",
     "description": "Choose how other members see you in this group.",
-    "inputLabel": "Display name in this group",
+    "inputLabel": "Your display name in this group",
     "inputPlaceholder": "Enter a unique display name",
     "save": "Save display name",
     "saving": "Saving...",

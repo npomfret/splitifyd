@@ -1,11 +1,44 @@
 # Bug Report: UI/UX Issues in Group Settings: Field Label and Default Tab
 
+## Status: RESOLVED
+
 ## Overview
 This bug report addresses two separate UI/UX issues within the Group Settings interface:
 1.  **Incorrect Field Label:** The input field for setting a user's display name specific to a group has an ambiguous label.
 2.  **Incorrect Default Tab:** The Group Settings modal does not default to the "General" tab upon opening.
 
 These issues create user confusion and a suboptimal workflow.
+
+## Resolution
+
+### Issue 1: Field Label - FIXED
+**Change:** Updated label from "Display name in this group" to "Your display name in this group"
+
+**File modified:** `webapp-v2/src/locales/en/translation.json:1116`
+```json
+"inputLabel": "Your display name in this group"
+```
+
+### Issue 2: Default Tab - NO CHANGE NEEDED
+Upon investigation, the default tab behavior is already correct:
+- **Group owners** see the "General" tab by default
+- **Non-owners** see the "Identity" (display name) tab by default, because they cannot access the "General" tab (it's owner-only)
+
+The logic in `webapp-v2/src/pages/GroupDetailPage.tsx:241-243`:
+```typescript
+const defaultTab = isGroupOwner.value ? 'general' : 'identity';
+```
+
+This is the correct UX - showing users the most relevant tab they have access to.
+
+## Testing
+All existing tests pass:
+- `group-display-name-settings.test.ts` (3 tests passed)
+- Full build compiles successfully
+
+---
+
+## Original Bug Report
 
 ## Steps to Reproduce
 1.  Log in to the application.
