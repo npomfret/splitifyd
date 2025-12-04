@@ -791,16 +791,14 @@ export function GroupSettingsModal({
                                 type='button'
                                 onClick={() => applyPreset(preset)}
                                 variant='ghost'
-                                className={`h-full border rounded-lg px-4 py-3 text-left transition ${
+                                className={`h-full flex-col items-start border rounded-lg px-4 py-3 text-left transition ${
                                     isActive
                                         ? 'border-interactive-primary bg-interactive-primary/10 shadow-sm'
                                         : 'border-border-default hover:border-interactive-primary/40 hover:bg-interactive-primary/10/40'
                                 }`}
                                 data-testid={`preset-button-${preset}`}
                             >
-                                <div className='flex items-center justify-between'>
-                                    <span className='font-medium text-text-primary'>{t(`securitySettingsModal.presets.${preset}.label`)}</span>
-                                </div>
+                                <span className='font-medium text-text-primary'>{t(`securitySettingsModal.presets.${preset}.label`)}</span>
                                 <p className='text-sm text-text-primary/70 mt-1'>{t(`securitySettingsModal.presets.${preset}.description`)}</p>
                                 {isActive && <span className='text-xs text-interactive-primary font-medium mt-2 block'>{t('securitySettingsModal.presets.activeBadge')}</span>}
                             </Button>

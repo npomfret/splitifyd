@@ -1,5 +1,7 @@
 # Bug Report: Group Security Presets - Squashed Text
 
+**Status: RESOLVED**
+
 ## Overview
 When editing a group and navigating to the "Security & Permissions" section, the two preset options displayed at the top have their text content severely squashed or compressed. This makes the text difficult to read and negatively impacts the user interface.
 
@@ -29,3 +31,24 @@ This issue is likely related to CSS styling or layout constraints within the com
 
 ## Priority
 Medium - Primarily a UI/UX issue that affects readability and aesthetic, but doesn't prevent functionality entirely. It could, however, lead to user errors in selecting appropriate security settings.
+
+---
+
+## Resolution
+
+**Fixed on:** 2025-12-04
+
+### Root Cause
+The Button component (`webapp-v2/src/components/ui/Button.tsx`) applies `inline-flex items-center justify-center` as base classes. When preset buttons contained multi-line content (label + description + optional badge), this horizontal flex layout squashed the content horizontally instead of stacking it vertically.
+
+Additionally, an unnecessary wrapper `<div className='flex items-center justify-between'>` around the label added another horizontal flex layer with no purpose (only one child element).
+
+### Fix Applied
+**File:** `webapp-v2/src/components/group/GroupSettingsModal.tsx` (lines 794-801)
+
+1. Added `flex-col items-start` to the Button's className to override the default horizontal flex layout and stack content vertically with left alignment
+2. Removed the unnecessary wrapper div around the label span
+
+### Testing
+- Build passes with no TypeScript errors (`npm run build`)
+- Manual verification required: Navigate to a group you own → Settings → Security & Permissions tab → verify preset buttons display readable text
