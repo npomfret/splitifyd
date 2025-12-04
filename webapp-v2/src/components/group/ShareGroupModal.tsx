@@ -277,6 +277,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                                                 onClick={copyToClipboard}
                                                 variant='ghost'
                                                 size='sm'
+                                                magnetic={false}
                                                 data-testid='copy-link-button'
                                                 ariaLabel={t('shareGroupModal.copyLinkAriaLabel')}
                                                 className='absolute right-2 top-1/2 -translate-y-1/2'
