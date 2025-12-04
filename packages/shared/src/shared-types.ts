@@ -1656,7 +1656,7 @@ export interface AdminUpsertTenantRequest {
     tenantId: string;
     branding: {
         appName: string;
-        logoUrl: string;
+        logoUrl?: string;
         faviconUrl?: string;
         primaryColor: string;
         secondaryColor: string;

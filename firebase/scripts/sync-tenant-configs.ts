@@ -150,21 +150,13 @@ export async function syncTenantConfigs(
     for (const config of configs) {
         const domains = config.domains.map((d) => toTenantDomainName(normalizeDomain(d)));
 
-        // Upload assets if they are local files
-        const logoUrl = await uploadAssetIfLocal(
-            apiDriver,
-            config.id,
-            'logo',
-            config.branding.logoUrl,
-            adminToken,
-        );
-        const faviconUrl = await uploadAssetIfLocal(
-            apiDriver,
-            config.id,
-            'favicon',
-            config.branding.faviconUrl,
-            adminToken,
-        );
+        // Upload assets if they are local files (only if configured)
+        const logoUrl = config.branding.logoUrl
+            ? await uploadAssetIfLocal(apiDriver, config.id, 'logo', config.branding.logoUrl, adminToken)
+            : undefined;
+        const faviconUrl = config.branding.faviconUrl
+            ? await uploadAssetIfLocal(apiDriver, config.id, 'favicon', config.branding.faviconUrl, adminToken)
+            : undefined;
 
         // Validate brandingTokens are present
         if (!config.brandingTokens) {
@@ -176,10 +168,10 @@ export async function syncTenantConfigs(
             tenantId: toTenantId(config.id),
             branding: {
                 appName: toTenantAppName(config.branding.appName),
-                logoUrl: toTenantLogoUrl(logoUrl),
-                faviconUrl: toTenantFaviconUrl(faviconUrl),
                 primaryColor: toTenantPrimaryColor(config.branding.primaryColor),
                 secondaryColor: toTenantSecondaryColor(config.branding.secondaryColor),
+                ...(logoUrl && { logoUrl: toTenantLogoUrl(logoUrl) }),
+                ...(faviconUrl && { faviconUrl: toTenantFaviconUrl(faviconUrl) }),
                 ...(config.branding.accentColor && {
                     accentColor: toTenantAccentColor(config.branding.accentColor),
                 }),

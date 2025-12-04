@@ -3,8 +3,6 @@
   "domains": ["127.0.0.1"],
   "branding": {
     "appName": "Splitifyd",
-    "logoUrl": "/logo.svg",
-    "faviconUrl": "/favicon.ico",
     "primaryColor": "#737373",
     "secondaryColor": "#525252",
     "accentColor": "#A3A3A3",
@@ -97,10 +95,7 @@
         "md": "0 4px 12px rgba(0, 0, 0, 0.4)",
         "lg": "0 20px 60px rgba(0, 0, 0, 0.5)"
       },
-      "assets": {
-        "logoUrl": "/logo.svg",
-        "faviconUrl": "/favicon.ico"
-      },
+      "assets": {},
       "legal": {
         "companyName": "Splitifyd",
         "supportEmail": "support@splitifyd.local",

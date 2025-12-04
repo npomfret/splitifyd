@@ -13,8 +13,8 @@ export interface TenantConfig {
     domains: string[];
     branding: {
         appName: string;
-        logoUrl: string;
-        faviconUrl: string;
+        logoUrl?: string;
+        faviconUrl?: string;
         primaryColor: string;
         secondaryColor: string;
         accentColor?: string;

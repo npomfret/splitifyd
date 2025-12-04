@@ -3,8 +3,6 @@
   "domains": ["splitifyd.web.app"],
   "branding": {
     "appName": "Splitifyd Neon",
-    "logoUrl": "/logo.svg",
-    "faviconUrl": "/favicon.ico",
     "primaryColor": "#10B981",
     "secondaryColor": "#06B6D4",
     "accentColor": "#F59E0B",
@@ -110,10 +108,7 @@
         "md": "0 8px 24px rgba(16, 185, 129, 0.25)",
         "lg": "0 24px 64px rgba(16, 185, 129, 0.35)"
       },
-      "assets": {
-        "logoUrl": "/logo.svg",
-        "faviconUrl": "/favicon.ico"
-      },
+      "assets": {},
       "legal": {
         "companyName": "Splitifyd",
         "supportEmail": "support@splitifyd.app",

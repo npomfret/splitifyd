@@ -849,7 +849,9 @@
   "header": {
     "logoAlt": "{{appName}}",
     "login": "Login",
-    "signUp": "Sign Up"
+    "signUp": "Sign Up",
+    "goToHome": "Go to home",
+    "goToDashboard": "Go to dashboard"
   },
   "userMenu": {
     "dashboard": "Dashboard",
