@@ -50,6 +50,7 @@ const BrandingSchema = z.object({
     themePalette: z.string().min(1).transform(toTenantThemePaletteName).optional(),
     customCSS: z.string().transform(toTenantCustomCss).optional(),
     marketingFlags: BrandingMarketingFlagsSchema.optional(),
+    showAppNameInHeader: z.boolean().optional(), // Show app name text next to logo (default: true)
 });
 
 const DomainSchema = z.array(DomainStringSchema).min(1, 'At least one domain is required');
@@ -105,5 +106,6 @@ export const UpdateTenantBrandingRequestSchema = z
         themePalette: z.string().min(1).transform(toTenantThemePaletteName).optional(),
         customCSS: z.string().transform(toTenantCustomCss).optional(),
         marketingFlags: BrandingMarketingFlagsSchema.partial().optional(),
+        showAppNameInHeader: z.boolean().optional(),
     })
     .strict();

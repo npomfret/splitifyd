@@ -192,6 +192,30 @@ test.describe('Tenant Editor Modal', () => {
         });
     });
 
+    test.describe('Header Display Options', () => {
+        test('should toggle show app name in header option', async ({ systemAdminPage }) => {
+            const { page } = systemAdminPage;
+            const adminTenantsPage = new AdminTenantsPage(page);
+            const tenantEditorModal = new TenantEditorModalPage(page);
+
+            await adminTenantsPage.navigate();
+            await adminTenantsPage.waitForTenantsLoaded();
+            await tenantEditorModal.clickCreateTenant();
+            await tenantEditorModal.waitForModalToBeVisible();
+
+            // Check initial state (should be checked by default - show app name)
+            await tenantEditorModal.verifyShowAppNameInHeaderChecked(true);
+
+            // Toggle off (for logos that contain the app name)
+            await tenantEditorModal.toggleShowAppNameInHeader(false);
+            await tenantEditorModal.verifyShowAppNameInHeaderChecked(false);
+
+            // Toggle back on
+            await tenantEditorModal.toggleShowAppNameInHeader(true);
+            await tenantEditorModal.verifyShowAppNameInHeaderChecked(true);
+        });
+    });
+
     test.describe('Typography', () => {
         test('should allow setting custom font families', async ({ systemAdminPage }) => {
             const { page } = systemAdminPage;

@@ -25,6 +25,7 @@ export function Header({ variant = 'default', showAuth = true }: HeaderProps) {
     const branding = config?.tenant?.branding ?? null;
     const logoUrl = branding?.logoUrl ?? '/images/logo.svg';
     const appName = branding?.appName ?? t('header.logoAlt');
+    const showAppName = branding?.showAppNameInHeader !== false;
 
     const getNavLinks = () => {
         if (variant === 'minimal') {
@@ -73,19 +74,23 @@ export function Header({ variant = 'default', showAuth = true }: HeaderProps) {
             <div class='max-w-7xl mx-auto px-4'>
                 <nav class='flex items-center justify-between h-16 relative'>
                     <div class='flex items-center space-x-8'>
-                        <Clickable
-                            onClick={() => (isAuthenticated.value ? navigation.goToDashboard() : navigation.goHome())}
-                            className='flex items-center gap-3'
-                            data-testid='header-logo-link'
-                            aria-label={appName}
-                            eventName='header_logo_click'
-                            eventProps={{ destination: isAuthenticated.value ? 'dashboard' : 'home' }}
-                        >
-                            <img src={logoUrl} alt={appName} class='h-8' />
-                            <span class='text-text-primary font-semibold leading-6 whitespace-nowrap'>
-                                {appName}
-                            </span>
-                        </Clickable>
+                        <div class='flex items-center gap-3'>
+                            <Clickable
+                                onClick={() => (isAuthenticated.value ? navigation.goToDashboard() : navigation.goHome())}
+                                className='cursor-pointer'
+                                data-testid='header-logo-link'
+                                aria-label='Go to home'
+                                eventName='header_logo_click'
+                                eventProps={{ destination: isAuthenticated.value ? 'dashboard' : 'home' }}
+                            >
+                                <img src={logoUrl} alt={appName} class='h-8' />
+                            </Clickable>
+                            {showAppName && (
+                                <span class='text-text-primary font-semibold leading-6 whitespace-nowrap'>
+                                    {appName}
+                                </span>
+                            )}
+                        </div>
                         {getNavLinks()}
                     </div>
                     {getAuthSection()}

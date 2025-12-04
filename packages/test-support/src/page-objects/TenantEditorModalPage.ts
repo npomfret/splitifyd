@@ -58,6 +58,10 @@ export class TenantEditorModalPage extends BasePage {
         await this.expandSectionIfNeeded('section-logo-assets');
     }
 
+    async expandHeaderDisplaySection(): Promise<void> {
+        await this.expandSectionIfNeeded('section-header-display');
+    }
+
     async expandBordersSection(): Promise<void> {
         await this.expandSectionIfNeeded('section-borders');
     }
@@ -138,6 +142,11 @@ export class TenantEditorModalPage extends BasePage {
 
     protected getShowPricingPageCheckbox(): Locator {
         return this.page.getByLabel(/pricing page/i);
+    }
+
+    // Header Display
+    protected getShowAppNameInHeaderCheckbox(): Locator {
+        return this.page.getByLabel(/show app name in header/i);
     }
 
     // Motion & Effects
@@ -344,6 +353,15 @@ export class TenantEditorModalPage extends BasePage {
     async toggleShowPricingPage(checked: boolean): Promise<void> {
         await this.expandMarketingSection();
         const checkbox = this.getShowPricingPageCheckbox();
+        const isCurrentlyChecked = await checkbox.isChecked();
+        if (isCurrentlyChecked !== checked) {
+            await checkbox.click();
+        }
+    }
+
+    async toggleShowAppNameInHeader(checked: boolean): Promise<void> {
+        await this.expandHeaderDisplaySection();
+        const checkbox = this.getShowAppNameInHeaderCheckbox();
         const isCurrentlyChecked = await checkbox.isChecked();
         if (isCurrentlyChecked !== checked) {
             await checkbox.click();
@@ -733,6 +751,16 @@ export class TenantEditorModalPage extends BasePage {
     async verifyShowPricingPageChecked(expected: boolean): Promise<void> {
         await this.expandMarketingSection();
         const checkbox = this.getShowPricingPageCheckbox();
+        if (expected) {
+            await expect(checkbox).toBeChecked();
+        } else {
+            await expect(checkbox).not.toBeChecked();
+        }
+    }
+
+    async verifyShowAppNameInHeaderChecked(expected: boolean): Promise<void> {
+        await this.expandHeaderDisplaySection();
+        const checkbox = this.getShowAppNameInHeaderCheckbox();
         if (expected) {
             await expect(checkbox).toBeChecked();
         } else {

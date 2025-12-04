@@ -170,6 +170,9 @@ interface TenantData {
     showMarketingContent: boolean;
     showPricingPage: boolean;
 
+    // Header display options
+    showAppNameInHeader: boolean;
+
     // Optional advanced features
     enableButtonGradient: boolean;
     enableGlassmorphism: boolean;
@@ -192,6 +195,7 @@ interface TenantConfig {
             showMarketingContent?: boolean;
             showPricingPage?: boolean;
         };
+        showAppNameInHeader?: boolean;
     };
     createdAt: string;
     updatedAt: string;
@@ -839,6 +843,9 @@ const EMPTY_TENANT_DATA: TenantData = {
     showMarketingContent: true,
     showPricingPage: false,
 
+    // Header display options
+    showAppNameInHeader: true,
+
     // Optional advanced features
     enableButtonGradient: false,
     enableGlassmorphism: false,
@@ -912,6 +919,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                     showLandingPage: tenant.tenant.branding?.marketingFlags?.showLandingPage ?? false,
                     showMarketingContent: tenant.tenant.branding?.marketingFlags?.showMarketingContent ?? false,
                     showPricingPage: tenant.tenant.branding?.marketingFlags?.showPricingPage ?? false,
+                    showAppNameInHeader: tenant.tenant.branding?.showAppNameInHeader ?? true,
                     domains: tenant.domains ?? [],
                 });
             } else {
@@ -922,6 +930,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                     showLandingPage: tenant.tenant.branding?.marketingFlags?.showLandingPage ?? false,
                     showMarketingContent: tenant.tenant.branding?.marketingFlags?.showMarketingContent ?? false,
                     showPricingPage: tenant.tenant.branding?.marketingFlags?.showPricingPage ?? false,
+                    showAppNameInHeader: tenant.tenant.branding?.showAppNameInHeader ?? true,
                     domains: tenant.domains ?? [],
                 });
             }
@@ -1116,6 +1125,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                     showMarketingContent: formData.showMarketingContent,
                     showPricingPage: formData.showPricingPage,
                 },
+                showAppNameInHeader: formData.showAppNameInHeader,
             };
 
             const brandingTokens = buildBrandingTokensFromForm(formData);
@@ -1439,6 +1449,20 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                     helperText={!formData.tenantId ? 'Save tenant first' : 'ICO, PNG, SVG'}
                                     allowUrlInput={true}
                                     data-testid='favicon-upload-field'
+                                />
+                            </div>
+                        </Section>
+
+                        {/* Header Display */}
+                        <Section title='Header Display' description='Logo and app name visibility' testId='section-header-display'>
+                            <div class='space-y-3'>
+                                <Toggle
+                                    label='Show App Name in Header'
+                                    description='Display app name text next to logo (disable if logo contains the name)'
+                                    checked={formData.showAppNameInHeader}
+                                    onChange={(v) => update({ showAppNameInHeader: v })}
+                                    disabled={isSaving}
+                                    testId='show-app-name-in-header-checkbox'
                                 />
                             </div>
                         </Section>

@@ -26,6 +26,7 @@ export function AdminHeader() {
     const branding = config?.tenant?.branding ?? null;
     const logoUrl = branding?.logoUrl ?? '/images/logo.svg';
     const appName = branding?.appName ?? t('header.logoAlt');
+    const showAppName = branding?.showAppNameInHeader !== false;
 
     const handleLogout = async () => {
         if (!authStore) return;
@@ -42,20 +43,24 @@ export function AdminHeader() {
         <header class='admin-header'>
             <div class='max-w-7xl mx-auto px-4'>
                 <nav class='flex items-center justify-between h-16'>
-                    {/* Left Section - Logo link to Dashboard */}
-                    <Clickable
-                        onClick={() => navigation.goToDashboard()}
-                        className='flex items-center gap-3'
-                        data-testid='header-logo-link'
-                        aria-label={appName}
-                        eventName='admin_header_logo_click'
-                        eventProps={{ destination: 'dashboard' }}
-                    >
-                        <img src={logoUrl} alt={appName} class='h-8' />
-                        <span class='text-gray-900 font-semibold leading-6 whitespace-nowrap'>
-                            {appName}
-                        </span>
-                    </Clickable>
+                    {/* Left Section - Logo link to Dashboard + App Name */}
+                    <div class='flex items-center gap-3'>
+                        <Clickable
+                            onClick={() => navigation.goToDashboard()}
+                            className='cursor-pointer'
+                            data-testid='header-logo-link'
+                            aria-label={`Go to dashboard`}
+                            eventName='admin_header_logo_click'
+                            eventProps={{ destination: 'dashboard' }}
+                        >
+                            <img src={logoUrl} alt={appName} class='h-8' />
+                        </Clickable>
+                        {showAppName && (
+                            <span class='text-gray-900 font-semibold leading-6 whitespace-nowrap'>
+                                {appName}
+                            </span>
+                        )}
+                    </div>
 
                     {/* Right Section - User Info and Logout Button */}
                     <div class='flex items-center gap-4'>

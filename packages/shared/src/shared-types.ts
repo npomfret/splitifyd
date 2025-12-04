@@ -280,6 +280,7 @@ export interface BrandingConfig {
     themePalette?: TenantThemePaletteName;
     customCSS?: TenantCustomCss;
     marketingFlags?: BrandingMarketingFlags;
+    showAppNameInHeader?: boolean; // Show app name text next to logo (default: true)
 }
 
 export interface TenantConfig {
