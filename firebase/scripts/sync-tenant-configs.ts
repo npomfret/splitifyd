@@ -3,15 +3,27 @@
  * Sync tenant configurations from docs/tenants/ to Firestore via API.
  *
  * Usage:
- *   ./scripts/sync-tenant-configs.ts <emulator|production> [--default-only]
+ *   npx tsx scripts/sync-tenant-configs.ts <base-url> <email> <password> [options]
  *
- * Flags:
+ * Examples:
+ *   # Local emulator (using default admin user)
+ *   npx tsx scripts/sync-tenant-configs.ts http://localhost:6005 test1@test.com passwordpass
+ *
+ *   # Staging/production
+ *   npx tsx scripts/sync-tenant-configs.ts https://splitifyd.web.app admin@example.com yourpassword
+ *
+ *   # Single tenant
+ *   npx tsx scripts/sync-tenant-configs.ts http://localhost:6005 test1@test.com passwordpass --tenant-id staging-tenant
+ *
+ * Options:
  *   --default-only: Only sync the default tenant (isDefault: true)
  *   --tenant-id <id>: Only sync specific tenant by ID
  *   --skip-theme-publish: Skip theme publishing step
  */
 import {
     type AdminUpsertTenantRequest,
+    type ClientAppConfiguration,
+    SIGN_IN_WITH_PASSWORD_ENDPOINT,
     toShowLandingPageFlag,
     toShowMarketingContentFlag,
     toShowPricingPageFlag,
@@ -27,7 +39,7 @@ import {
     toTenantSurfaceColor,
     toTenantTextColor,
 } from '@billsplit-wl/shared';
-import { ApiDriver, type ApiDriverConfig } from '@billsplit-wl/test-support';
+import { ApiDriver, type ApiDriverConfig, emulatorHostingURL } from '@billsplit-wl/test-support';
 import * as fs from 'fs';
 import * as path from 'path';
 import { getTenantDirectory, loadAllTenantConfigs, loadTenantConfig, type TenantConfig } from './lib/load-tenant-configs';
@@ -167,28 +179,77 @@ async function uploadAssetIfLocal(
 }
 
 /**
- * Create ApiDriver configured for either emulator or deployed environment
+ * Fetch Firebase API key from the app's bootstrap-config endpoint.
  */
-async function createApiDriver(isEmulator: boolean): Promise<ApiDriver> {
-    if (isEmulator) {
-        return await ApiDriver.create();
+async function fetchApiKey(baseUrl: string): Promise<string> {
+    const apiUrl = baseUrl.endsWith('/') ? `${baseUrl}api` : `${baseUrl}/api`;
+    console.log(`🔑 Fetching API key from ${apiUrl}/bootstrap-config...`);
+
+    const configResponse = await fetch(`${apiUrl}/bootstrap-config`);
+    if (!configResponse.ok) {
+        throw new Error(`Failed to fetch config from ${apiUrl}/bootstrap-config: ${configResponse.status} ${configResponse.statusText}`);
     }
 
-    const projectId = process.env.GCLOUD_PROJECT;
-    if (!projectId) {
-        throw new Error('GCLOUD_PROJECT must be set for deployed environments');
-    }
-    const apiKey = process.env.__CLIENT_API_KEY;
-    if (!apiKey) {
-        throw new Error('__CLIENT_API_KEY must be set for deployed environments');
+    const appConfig: ClientAppConfiguration = await configResponse.json();
+    return appConfig.firebase.apiKey;
+}
+
+/**
+ * Authenticate with email/password via Firebase REST API.
+ */
+async function authenticateWithCredentials(
+    apiDriver: ApiDriver,
+    email: string,
+    password: string,
+): Promise<string> {
+    const config = (apiDriver as any).config as ApiDriverConfig;
+    const signInResponse = await fetch(`${config.authBaseUrl}${SIGN_IN_WITH_PASSWORD_ENDPOINT}?key=${config.firebaseApiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            email,
+            password,
+            returnSecureToken: true,
+        }),
+    });
+
+    if (!signInResponse.ok) {
+        const error = (await signInResponse.json()) as { error?: { message?: string } };
+        throw new Error(`Authentication failed: ${error.error?.message || 'Unknown error'}`);
     }
 
-    const deployedConfig: ApiDriverConfig = {
-        baseUrl: `https://${projectId}.web.app/api`,
+    const authData = (await signInResponse.json()) as { idToken: string };
+    return authData.idToken;
+}
+
+/**
+ * Create ApiDriver from base URL by fetching config from bootstrap-config endpoint.
+ */
+async function createApiDriverFromUrl(baseUrl: string): Promise<ApiDriver> {
+    const apiKey = await fetchApiKey(baseUrl);
+    const apiUrl = baseUrl.endsWith('/') ? `${baseUrl}api` : `${baseUrl}/api`;
+
+    // Determine auth base URL - use emulator auth if localhost, otherwise production
+    const isLocalhost = baseUrl.includes('localhost') || baseUrl.includes('127.0.0.1');
+
+    // For localhost, we need to fetch the full config to get the auth emulator URL
+    let authBaseUrl = 'https://identitytoolkit.googleapis.com';
+    if (isLocalhost) {
+        const configResponse = await fetch(`${apiUrl}/bootstrap-config`);
+        if (configResponse.ok) {
+            const appConfig: ClientAppConfiguration = await configResponse.json();
+            if (appConfig.firebaseAuthUrl) {
+                authBaseUrl = `${appConfig.firebaseAuthUrl}/identitytoolkit.googleapis.com`;
+            }
+        }
+    }
+
+    const driverConfig: ApiDriverConfig = {
+        baseUrl: apiUrl,
         firebaseApiKey: apiKey,
-        authBaseUrl: 'https://identitytoolkit.googleapis.com',
+        authBaseUrl,
     };
-    return new ApiDriver(deployedConfig);
+    return new ApiDriver(driverConfig);
 }
 
 /**
@@ -298,39 +359,89 @@ export async function syncTenantConfigs(
     console.log('✅ Tenant configurations synced successfully');
 }
 
-async function main(): Promise<void> {
-    const rawArgs = process.argv.slice(2);
-    const defaultOnly = rawArgs.includes('--default-only');
-    const skipThemePublish = rawArgs.includes('--skip-theme-publish');
+/**
+ * Sync tenant configurations for local emulator using default admin user.
+ * This is a convenience function for npm scripts and test-data-generator.
+ * Auto-detects the emulator URL from firebase.json.
+ */
+export async function syncLocalTenantConfigs(options?: SyncTenantOptions): Promise<void> {
+    const baseUrl = emulatorHostingURL();
+    console.log(`🎯 Syncing tenant configs to local emulator at ${baseUrl}`);
 
-    // Parse --tenant-id flag
-    const tenantIdIndex = rawArgs.indexOf('--tenant-id');
+    const apiDriver = await ApiDriver.create();
+
+    console.log('🔑 Authenticating default admin...');
+    const admin = await apiDriver.getDefaultAdminUser();
+    console.log(`   ✓ Authenticated as ${admin.email}`);
+
+    await syncTenantConfigs(apiDriver, admin.token, options);
+}
+
+interface CliOptions {
+    baseUrl: string;
+    email: string;
+    password: string;
+    defaultOnly: boolean;
+    skipThemePublish: boolean;
+    tenantId?: string;
+}
+
+function parseArgs(): CliOptions {
+    const args = process.argv.slice(2);
+
+    // Parse flags
     let tenantId: string | undefined;
-    if (tenantIdIndex !== -1 && tenantIdIndex + 1 < rawArgs.length) {
-        tenantId = rawArgs[tenantIdIndex + 1];
+    let defaultOnly = false;
+    let skipThemePublish = false;
+    const positionalArgs: string[] = [];
+
+    for (let i = 0; i < args.length; i++) {
+        if (args[i] === '--tenant-id' && i + 1 < args.length) {
+            tenantId = args[++i];
+        } else if (args[i] === '--default-only') {
+            defaultOnly = true;
+        } else if (args[i] === '--skip-theme-publish') {
+            skipThemePublish = true;
+        } else if (!args[i].startsWith('--')) {
+            positionalArgs.push(args[i]);
+        }
     }
 
-    // Determine environment from first positional argument
-    const argsWithoutFlags = rawArgs.filter((arg) => !arg.startsWith('--') && arg !== tenantId);
-    const targetEnvironment = argsWithoutFlags[0];
+    const [baseUrl, email, password] = positionalArgs;
 
-    if (!targetEnvironment || !['emulator', 'staging', 'deployed'].includes(targetEnvironment)) {
-        console.error('❌ Usage: sync-tenant-configs.ts <emulator|staging> [--default-only] [--tenant-id <id>] [--skip-theme-publish]');
+    if (!baseUrl || !email || !password) {
+        console.error('Usage: npx tsx scripts/sync-tenant-configs.ts <base-url> <email> <password> [options]');
+        console.error('');
+        console.error('Examples:');
+        console.error('  npx tsx scripts/sync-tenant-configs.ts http://localhost:6005 test1@test.com passwordpass');
+        console.error('  npx tsx scripts/sync-tenant-configs.ts https://splitifyd.web.app admin@example.com yourpassword');
+        console.error('  npx tsx scripts/sync-tenant-configs.ts http://localhost:6005 test1@test.com passwordpass --tenant-id staging-tenant');
+        console.error('');
+        console.error('Options:');
+        console.error('  --default-only         Only sync the default tenant');
+        console.error('  --tenant-id <id>       Only sync specific tenant by ID');
+        console.error('  --skip-theme-publish   Skip theme publishing step');
         process.exit(1);
     }
 
-    const isEmulator = targetEnvironment === 'emulator';
-    console.log(`🎯 Syncing tenant configs to ${isEmulator ? 'EMULATOR' : 'DEPLOYED'}`);
+    return { baseUrl, email, password, tenantId, defaultOnly, skipThemePublish };
+}
 
-    // Create ApiDriver for API calls
-    const apiDriver = await createApiDriver(isEmulator);
+async function main(): Promise<void> {
+    const options = parseArgs();
+    const { baseUrl, email, password, tenantId, defaultOnly, skipThemePublish } = options;
 
-    // Get admin user token for API calls
-    console.log('🔑 Authenticating admin user...');
-    const adminUser = await apiDriver.getDefaultAdminUser();
-    console.log(`   ✓ Authenticated as admin`);
+    console.log(`🎯 Syncing tenant configs to ${baseUrl}`);
 
-    await syncTenantConfigs(apiDriver, adminUser.token, { defaultOnly, tenantId, skipThemePublish });
+    // Create ApiDriver from base URL
+    const apiDriver = await createApiDriverFromUrl(baseUrl);
+
+    // Authenticate with provided credentials
+    console.log(`🔑 Authenticating as ${email}...`);
+    const token = await authenticateWithCredentials(apiDriver, email, password);
+    console.log('   ✓ Authenticated');
+
+    await syncTenantConfigs(apiDriver, token, { defaultOnly, tenantId, skipThemePublish });
 
     console.log('✅ Tenant sync complete');
 }

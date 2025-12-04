@@ -545,20 +545,8 @@ const generateRandomExpense = (): TestExpenseTemplate => {
 export async function createDefaultTenant(): Promise<void> {
     console.log('🏢 Creating default fallback tenant only...');
 
-    const { syncTenantConfigs } = await import('../sync-tenant-configs');
-
-    // Create ApiDriver for API calls
-    const apiDriver = await ApiDriver.create();
-    console.log('🔑 Authenticating admin user...');
-    const adminUser = await apiDriver.getDefaultAdminUser();
-    console.log(`   ✓ Authenticated as admin`);
-
-    await syncTenantConfigs(apiDriver, adminUser.token, { defaultOnly: true });
-
-    // After syncing the default tenant, publish its theme CSS
-    console.log('🎨 Publishing theme CSS for default tenant...');
-    const { publishLocalThemes } = await import('../publish-themes');
-    await publishLocalThemes({ defaultOnly: true });
+    const { syncLocalTenantConfigs } = await import('../sync-tenant-configs');
+    await syncLocalTenantConfigs({ defaultOnly: true });
 }
 
 /**
@@ -569,15 +557,8 @@ export async function createDefaultTenant(): Promise<void> {
 export async function syncDemoTenants(): Promise<void> {
     console.log('🏢 Syncing all demo tenants from JSON configuration...');
 
-    const { syncTenantConfigs } = await import('../sync-tenant-configs');
-
-    // Create ApiDriver for API calls
-    const apiDriver = await ApiDriver.create();
-    console.log('🔑 Authenticating admin user...');
-    const adminUser = await apiDriver.getDefaultAdminUser();
-    console.log(`   ✓ Authenticated as admin`);
-
-    await syncTenantConfigs(apiDriver, adminUser.token, { skipThemePublish: true });
+    const { syncLocalTenantConfigs } = await import('../sync-tenant-configs');
+    await syncLocalTenantConfigs({ skipThemePublish: true });
 }
 
 /**
@@ -586,8 +567,8 @@ export async function syncDemoTenants(): Promise<void> {
  */
 export async function publishDemoThemes(): Promise<void> {
     console.log('🎨 Publishing theme CSS artifacts for all tenants...');
-    const { publishLocalThemes } = await import('../publish-themes');
-    await publishLocalThemes();
+    const { syncLocalTenantConfigs } = await import('../sync-tenant-configs');
+    await syncLocalTenantConfigs();
 }
 
 async function createTestPoolUsers(): Promise<void> {
