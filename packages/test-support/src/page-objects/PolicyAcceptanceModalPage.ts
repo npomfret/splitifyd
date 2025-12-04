@@ -1,5 +1,8 @@
 import { expect, Locator, Page, Request } from '@playwright/test';
+import { translationEn } from '../translations/translation-en';
 import { BasePage } from './BasePage';
+
+const translation = translationEn.policyComponents.policyAcceptanceModal;
 
 /**
  * Policy acceptance modal page object following the modern POM pattern.
@@ -15,55 +18,67 @@ export class PolicyAcceptanceModalPage extends BasePage {
     // ============================================================================
 
     protected getModalOverlay(): Locator {
-        return this.page.getByTestId('policy-modal-overlay');
+        return this.page.getByRole('dialog');
     }
 
     protected getModalContainer(): Locator {
+        // Container within the dialog - kept as test-id for scoping
         return this.page.getByTestId('policy-modal-card');
     }
 
     protected getTitle(): Locator {
-        return this.page.getByTestId('policy-modal-title');
+        // Modal title heading
+        return this.getModalContainer().getByRole('heading', { name: translation.title });
     }
 
     protected getSubtitle(): Locator {
-        return this.page.getByTestId('policy-modal-subtitle');
+        // Subtitle paragraph (found by ID)
+        return this.page.locator('#policy-modal-subtitle');
     }
 
     protected getProgressBar(): Locator {
-        return this.page.getByTestId('policy-progress-track');
+        // Progress bar has role='progressbar'
+        return this.getModalContainer().getByRole('progressbar');
     }
 
     protected getPolicyCard(): Locator {
+        // Policy card - kept as test-id for scoping
         return this.page.getByTestId('policy-card');
     }
 
     protected getPolicyTitle(): Locator {
-        return this.page.getByTestId('current-policy-title');
+        // Policy name heading within the card (h3) - first heading only
+        return this.getPolicyCard().getByRole('heading').first();
     }
 
     protected getAcceptedBadge(): Locator {
-        return this.page.getByTestId('policy-accepted-badge');
+        // Badge now has role='status' with aria-label
+        return this.getPolicyCard().getByRole('status');
     }
 
     protected getPolicyContent(): Locator {
+        // Policy content container - kept as test-id
         return this.page.getByTestId('policy-content');
     }
 
     protected getLoadingSpinner(): Locator {
+        // Loading spinner container - kept as test-id
         return this.page.getByTestId('policy-content-loading');
     }
 
     protected getAcceptanceSection(): Locator {
+        // Acceptance section container - kept as test-id
         return this.page.getByTestId('policy-acceptance-section');
     }
 
     protected getAcceptanceCheckbox(): Locator {
-        return this.page.getByTestId('policy-accept-checkbox');
+        // Checkbox with label association - use getByLabel with partial match
+        return this.getAcceptanceSection().getByRole('checkbox');
     }
 
     protected getAcceptanceLabel(): Locator {
-        return this.page.getByTestId('policy-accept-label');
+        // The label for the checkbox
+        return this.getAcceptanceSection().locator('label');
     }
 
     // ============================================================================

@@ -86,7 +86,7 @@ export class LoginPage extends BasePage {
      * Remember me checkbox within the login form
      */
     protected getRememberMeCheckbox(): Locator {
-        return this.getLoginFormContainer().getByTestId('remember-me-checkbox');
+        return this.getLoginFormContainer().getByLabel('Remember me');
     }
 
     // ============================================================================
@@ -111,7 +111,7 @@ export class LoginPage extends BasePage {
      * Sign up button/link to navigate to register page
      */
     protected getSignUpButton(): Locator {
-        return this.getLoginFormContainer().getByTestId('loginpage-signup-button');
+        return this.getLoginFormContainer().getByRole('button', { name: 'Sign up' });
     }
 
     /**

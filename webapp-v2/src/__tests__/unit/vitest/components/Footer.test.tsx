@@ -53,7 +53,8 @@ describe('Footer', () => {
     it('shows the pricing link when the pricing flag is enabled', () => {
         const { container } = render(<Footer />);
 
-        expect(screen.getByTestId('footer-pricing-link')).toBeInTheDocument();
+        // Pricing link now uses aria-label instead of data-testid
+        expect(screen.getByRole('button', { name: 'Go to pricing page' })).toBeInTheDocument();
         const grid = container.querySelector('.grid');
         expect(grid?.classList.contains('md:grid-cols-3')).toBe(true);
     });
@@ -62,7 +63,8 @@ describe('Footer', () => {
         mockedUseConfig.mockReturnValue(buildConfig(false));
         const { container } = render(<Footer />);
 
-        expect(screen.queryByTestId('footer-pricing-link')).not.toBeInTheDocument();
+        // Pricing link now uses aria-label instead of data-testid
+        expect(screen.queryByRole('button', { name: 'Go to pricing page' })).not.toBeInTheDocument();
         const grid = container.querySelector('.grid');
         expect(grid?.classList.contains('md:grid-cols-2')).toBe(true);
     });
@@ -71,7 +73,8 @@ describe('Footer', () => {
         mockedUseConfig.mockReturnValue(null);
         const { container } = render(<Footer />);
 
-        expect(screen.queryByTestId('footer-pricing-link')).not.toBeInTheDocument();
+        // Pricing link now uses aria-label instead of data-testid
+        expect(screen.queryByRole('button', { name: 'Go to pricing page' })).not.toBeInTheDocument();
         const grid = container.querySelector('.grid');
         expect(grid?.classList.contains('md:grid-cols-2')).toBe(true);
     });

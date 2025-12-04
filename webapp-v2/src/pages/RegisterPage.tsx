@@ -257,7 +257,6 @@ export function RegisterPage() {
                             }
                         }}
                         disabled={isSubmitting}
-                        data-testid='terms-checkbox'
                     />
 
                     <Checkbox
@@ -279,7 +278,6 @@ export function RegisterPage() {
                             }
                         }}
                         disabled={isSubmitting}
-                        data-testid='cookies-checkbox'
                     />
 
                     <Checkbox
@@ -301,7 +299,6 @@ export function RegisterPage() {
                             }
                         }}
                         disabled={isSubmitting}
-                        data-testid='privacy-checkbox'
                     />
                 </div>
 

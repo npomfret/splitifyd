@@ -124,8 +124,9 @@ test.describe('Tenant theme smoke suite', () => {
             await page.waitForURL('/login');
 
             // Check the "Sign up" link text color on the login page
+            // The sign-up link is within the login form, use .text-interactive-primary to target it
             await themePage.expectElementColorMatches(
-                '[data-testid="loginpage-signup-button"]',
+                'button.text-interactive-primary:has-text("Sign up")',
                 'color',
                 fixture.cssVars.interactivePrimary,
             );

@@ -23,11 +23,19 @@ export class HeaderPage extends BasePage {
     }
 
     protected getDashboardLink(): Locator {
-        return this.page.locator('[data-testid="user-menu-dashboard-link"]');
+        return this.getUserDropdownMenu().getByRole('menuitem', { name: 'Dashboard' });
     }
 
     protected getAdminLink(): Locator {
-        return this.page.locator('[data-testid="user-menu-admin-link"]');
+        return this.getUserDropdownMenu().getByRole('menuitem', { name: 'Admin' });
+    }
+
+    protected getSettingsLink(): Locator {
+        return this.getUserDropdownMenu().getByRole('menuitem', { name: 'Settings' });
+    }
+
+    protected getSignOutButton(): Locator {
+        return this.getUserDropdownMenu().getByRole('menuitem', { name: /sign out/i });
     }
 
     /**
@@ -87,7 +95,7 @@ export class HeaderPage extends BasePage {
         // Wait for both the dropdown to be visible AND the sign-out button to be present
         await expect(dropdownMenu).toBeVisible();
 
-        const signOutButton = dropdownMenu.locator('[data-testid="sign-out-button"]');
+        const signOutButton = this.getSignOutButton();
         await expect(signOutButton).toBeVisible();
         await expect(signOutButton).toBeEnabled();
 
@@ -145,15 +153,15 @@ export class HeaderPage extends BasePage {
     }
 
     async verifyDashboardMenuItemVisible(): Promise<void> {
-        await expect(this.getUserDropdownMenu().getByTestId('user-menu-dashboard-link')).toBeVisible();
+        await expect(this.getDashboardLink()).toBeVisible();
     }
 
     async verifySettingsMenuItemVisible(): Promise<void> {
-        await expect(this.getUserDropdownMenu().getByTestId('user-menu-settings-link')).toBeVisible();
+        await expect(this.getSettingsLink()).toBeVisible();
     }
 
     async verifySignOutMenuItemVisible(): Promise<void> {
-        await expect(this.getUserDropdownMenu().getByTestId('sign-out-button')).toBeVisible();
+        await expect(this.getSignOutButton()).toBeVisible();
     }
 
     async verifyUserMenuButtonVisible(): Promise<void> {

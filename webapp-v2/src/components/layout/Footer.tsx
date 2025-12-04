@@ -32,7 +32,6 @@ export function Footer() {
                                         type='button'
                                         onClick={() => navigation.goToPricing()}
                                         className='text-sm text-text-muted hover:text-interactive-primary transition-colors'
-                                        data-testid='footer-pricing-link'
                                         aria-label='Go to pricing page'
                                         eventName='footer_link_click'
                                         eventProps={{ destination: 'pricing' }}
@@ -54,7 +53,6 @@ export function Footer() {
                                     type='button'
                                     onClick={() => navigation.goToTerms()}
                                     className='text-sm text-text-muted hover:text-interactive-primary transition-colors'
-                                    data-testid='footer-terms-link'
                                     aria-label='Go to terms of service'
                                     eventName='footer_link_click'
                                     eventProps={{ destination: 'terms' }}
@@ -68,7 +66,6 @@ export function Footer() {
                                     type='button'
                                     onClick={() => navigation.goToPrivacyPolicy()}
                                     className='text-sm text-text-muted hover:text-interactive-primary transition-colors'
-                                    data-testid='footer-privacy-link'
                                     aria-label='Go to privacy policy'
                                     eventName='footer_link_click'
                                     eventProps={{ destination: 'privacy' }}
@@ -82,7 +79,6 @@ export function Footer() {
                                     type='button'
                                     onClick={() => navigation.goToCookiePolicy()}
                                     className='text-sm text-text-muted hover:text-interactive-primary transition-colors'
-                                    data-testid='footer-cookies-link'
                                     aria-label='Go to cookie policy'
                                     eventName='footer_link_click'
                                     eventProps={{ destination: 'cookies' }}

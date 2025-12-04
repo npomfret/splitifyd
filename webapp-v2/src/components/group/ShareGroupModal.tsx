@@ -225,7 +225,6 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                                 type='button'
                                 onClick={onClose}
                                 className='text-text-muted/80 hover:text-text-muted transition-colors rounded-full p-1 hover:bg-surface-muted'
-                                data-testid='close-share-modal-button'
                                 aria-label={t('shareGroupModal.closeButtonAriaLabel')}
                                 eventName='modal_close'
                                 eventProps={{ modalName: 'share_group', method: 'x_button' }}
@@ -250,7 +249,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
 
                         {error && (
                             <div class='bg-surface-error border border-border-error rounded-md p-3 mb-4'>
-                                <p class='text-sm text-semantic-error' role='alert' data-testid='share-group-error-message'>
+                                <p class='text-sm text-semantic-error' role='alert'>
                                     {error}
                                 </p>
                             </div>
@@ -278,7 +277,6 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                                                 variant='ghost'
                                                 size='sm'
                                                 magnetic={false}
-                                                data-testid='copy-link-button'
                                                 ariaLabel={t('shareGroupModal.copyLinkAriaLabel')}
                                                 className='absolute right-2 top-1/2 -translate-y-1/2'
                                             >
@@ -315,7 +313,6 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                                                     onClick={() => { refreshCounterSignal.value = refreshCounterSignal.value + 1; }}
                                                     variant='ghost'
                                                     size='sm'
-                                                    data-testid='generate-new-link-button'
                                                     disabled={loading}
                                                     ariaLabel={t('shareGroupModal.generateNew')}
                                                     className='rounded-full'
@@ -373,7 +370,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
 
             {/* Toast notification */}
             {showToast && (
-                <div class='fixed bottom-4 right-4 z-[60] animate-slide-up' role='status' aria-live='polite' data-testid='share-link-toast'>
+                <div class='fixed bottom-4 right-4 z-[60] animate-slide-up' role='status' aria-live='polite'>
                     <div class='bg-text-primary text-text-inverted px-4 py-3 rounded-lg shadow-lg flex items-center space-x-2'>
                         <svg class='w-5 h-5 text-semantic-success' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
                             <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 13l4 4L19 7' />

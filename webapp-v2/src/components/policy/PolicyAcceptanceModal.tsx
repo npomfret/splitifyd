@@ -148,10 +148,10 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                 {/* Header */}
                 <div className='flex items-center justify-between p-6 border-b border-border-default' data-testid='policy-modal-header'>
                     <div>
-                        <Typography variant="pageTitle" as="h2" id={titleId} data-testid="policy-modal-title">
+                        <Typography variant="pageTitle" as="h2" id={titleId}>
                             {t('policyComponents.policyAcceptanceModal.title')}
                         </Typography>
-                        <p className='text-sm text-text-muted mt-1' id={subtitleId} data-testid='policy-modal-subtitle'>
+                        <p className='text-sm text-text-muted mt-1' id={subtitleId}>
                             {t('policyComponents.policyAcceptanceModal.policyLabel')}
                             {currentPolicyIndex + 1}
                             {t('policyComponents.policyAcceptanceModal.of')}
@@ -196,7 +196,6 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                         aria-valuenow={acceptedPolicies.size}
                         aria-valuemin={0}
                         aria-valuemax={totalPolicies}
-                        data-testid='policy-progress-track'
                     >
                         <div
                             className='bg-interactive-primary h-2 rounded-full transition-all duration-300'
@@ -215,13 +214,14 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                             <Card data-testid='policy-card'>
                                 <Stack spacing='md'>
                                     <div className='flex items-center justify-between'>
-                                        <h3 className='text-lg font-semibold text-text-primary' data-testid='current-policy-title'>
+                                        <h3 className='text-lg font-semibold text-text-primary'>
                                             {currentPolicy.policyName}
                                         </h3>
                                         {canAcceptCurrent && (
                                             <span
                                                 className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-semantic-success-subtle text-semantic-success-emphasis'
-                                                data-testid='policy-accepted-badge'
+                                                role='status'
+                                                aria-label={t('policyComponents.policyAcceptanceModal.acceptedAriaLabel') || 'Accepted'}
                                             >
                                                 {t('policyComponents.policyAcceptanceModal.acceptedIcon')}
                                             </span>
@@ -265,7 +265,6 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                                                                 id={`accept-${currentPolicy.policyId}`}
                                                                 className='h-4 w-4 text-interactive-primary focus:ring-interactive-primary border-border-default rounded'
                                                                 autoComplete='off'
-                                                                data-testid='policy-accept-checkbox'
                                                                 onChange={(e) => {
                                                                     if (e.currentTarget.checked) {
                                                                         handleAcceptPolicy(currentPolicy.policyId);
@@ -276,7 +275,7 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                                                                     }
                                                                 }}
                                                             />
-                                                            <label htmlFor={`accept-${currentPolicy.policyId}`} className='ml-2 text-sm text-semantic-info-emphasis' data-testid='policy-accept-label'>
+                                                            <label htmlFor={`accept-${currentPolicy.policyId}`} className='ml-2 text-sm text-semantic-info-emphasis'>
                                                                 {t('policyComponents.policyAcceptanceModal.acceptCheckbox')}
                                                                 {currentPolicy.policyName.toLowerCase()}
                                                             </label>

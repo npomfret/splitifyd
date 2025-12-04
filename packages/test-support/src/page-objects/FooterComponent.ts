@@ -20,19 +20,19 @@ export class FooterComponent extends BasePage {
     }
 
     protected getTermsLink(): Locator {
-        return this.page.getByTestId('footer-terms-link');
+        return this.getFooter().getByRole('button', { name: /terms of service/i });
     }
 
     protected getPrivacyLink(): Locator {
-        return this.page.getByTestId('footer-privacy-link');
+        return this.getFooter().getByRole('button', { name: /privacy policy/i });
     }
 
     protected getCookiesLink(): Locator {
-        return this.page.getByTestId('footer-cookies-link');
+        return this.getFooter().getByRole('button', { name: /cookie policy/i });
     }
 
     protected getPricingLink(): Locator {
-        return this.page.getByTestId('footer-pricing-link');
+        return this.getFooter().getByRole('button', { name: /pricing/i });
     }
 
     // ============================================================================

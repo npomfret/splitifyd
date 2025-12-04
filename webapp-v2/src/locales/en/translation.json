@@ -1399,6 +1399,7 @@
       "progress": "Progress",
       "accepted": " accepted",
       "acceptedIcon": "✓ Accepted",
+      "acceptedAriaLabel": "Accepted",
       "loadingContent": "Loading policy content...",
       "acceptanceRequired": "Policy Acceptance Required",
       "acceptanceInstructions": "Please read the policy above and click \"Accept\" to continue using {{appName}}.",

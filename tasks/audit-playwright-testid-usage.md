@@ -51,71 +51,177 @@ The following patterns of `getByTestId` misuse are the most common and should be
 
 ## 4. Detailed File-by-File Analysis
 
-### `UserEditorModalPage.ts` (7 violations)
-- **Problem:** Uses `getByTestId` for tabs, inputs, and buttons.
-- **Recommendation:**
-    - `profile-tab`: `getByRole('tab', { name: 'Profile' })`
-    - `role-tab`: `getByRole('tab', { name: 'Role' })`
-    - `display-name-input`: `getByLabelText('Display Name')`
-    - `email-input`: `getByLabelText('Email')`
-    - `save-profile-button`, `save-role-button`, `cancel-button`: Use `getByRole('button', { name: '...' })`
+### `UserEditorModalPage.ts` ~~(7 violations)~~ ✅ COMPLETED
+- **Status:** Refactored to use semantic selectors
+- **TSX changes (UserEditorModal.tsx):**
+    - Added `role="tablist"` to nav element
+    - Added `role="tab"` and `aria-selected` to tab buttons
+    - Added `id` to inputs and `htmlFor` to labels for proper label association
+    - Removed `data-testid` from tabs and inputs (no longer needed)
+- **Page object changes:**
+    - `getModal()` → `getByRole('dialog')`
+    - `getProfileTab()` → `getByRole('tab', { name: 'Profile' })`
+    - `getRoleTab()` → `getByRole('tab', { name: 'Role' })`
+    - `getDisplayNameInput()` → `getByLabel('Display Name')`
+    - `getEmailInput()` → `getByLabel('Email Address')`
+    - `getSaveProfileButton()` → `getByRole('button', { name: 'Save' })` (scoped to modal)
+    - `getCancelButton()` → `getByRole('button', { name: /cancel|close/i })`
+    - `verifyProfileTabIsActive()` now uses `aria-selected` instead of CSS class
 
-### `HeaderPage.ts` (3 violations)
-- **Problem:** Dropdown menu items are selected with `testid`.
-- **Recommendation:** Use `getByRole('menuitem', { name: '...' })`.
-    - `user-menu-dashboard-link`: `getByRole('menuitem', { name: 'Dashboard' })`
-    - `user-menu-settings-link`: `getByRole('menuitem', { name: 'Settings' })`
-    - `sign-out-button`: `getByRole('menuitem', { name: 'Sign Out' })`
+### `HeaderPage.ts` ~~(3 violations)~~ ✅ COMPLETED
+- **Status:** Refactored to use semantic selectors
+- **Changes made:**
+    - `getDashboardLink()` → `getByRole('menuitem', { name: 'Dashboard' })`
+    - `getAdminLink()` → `getByRole('menuitem', { name: 'Admin' })`
+    - Added `getSettingsLink()` → `getByRole('menuitem', { name: 'Settings' })`
+    - Added `getSignOutButton()` → `getByRole('menuitem', { name: /sign out/i })`
+- **Kept as test-id (justified):**
+    - `getUserMenuButton()` - button displays dynamic user name/email
+    - `getUserDropdownMenu()` - menu container for scoping child queries
 
-### `LoginPage.ts` / `RegisterPage.ts` (6 violations)
-- **Problem:** Checkboxes and links are selected with `testid`.
-- **Recommendation:**
-    - `remember-me-checkbox`, `terms-checkbox`, etc.: `getByLabelText('Remember me')`
-    - `loginpage-signup-button`, `header-logo-link`: `getByRole('link', { name: '...' })`
+### `LoginPage.ts` / `RegisterPage.ts` ~~(6 violations)~~ ✅ COMPLETED
+- **Status:** Refactored to use semantic selectors
+- **LoginPage.ts changes:**
+    - `getRememberMeCheckbox()` → `getByLabel('Remember me')`
+    - `getSignUpButton()` → `getByRole('button', { name: 'Sign up' })`
+    - `getHeaderLogoLink()` kept as test-id (non-semantic span element)
+- **RegisterPage.ts changes:**
+    - `getTermsCheckbox()` → `getByLabel(/Terms of Service/i)`
+    - `getCookiesCheckbox()` → `getByLabel(/Cookie Policy/i)`
+    - `getPrivacyCheckbox()` → `getByLabel(/Privacy Policy/i)`
+- **TSX changes:**
+    - Removed `data-testid` from checkboxes and sign-up button (labels already exist)
 
-### `FooterComponent.ts` (4 violations)
-- **Problem:** All footer links use `testid`.
-- **Recommendation:** Replace all with `getByRole('link', { name: '...' })`. For example, `getByRole('link', { name: 'Terms' })`.
+### `FooterComponent.ts` ~~(4 violations)~~ ✅ COMPLETED
+- **Status:** Refactored to use semantic selectors
+- **Page object changes:**
+    - `getTermsLink()` → `getByRole('button', { name: /terms of service/i })`
+    - `getPrivacyLink()` → `getByRole('button', { name: /privacy policy/i })`
+    - `getCookiesLink()` → `getByRole('button', { name: /cookie policy/i })`
+    - `getPricingLink()` → `getByRole('button', { name: /pricing/i })`
+- **TSX changes:**
+    - Removed `data-testid` from all footer Clickable elements (aria-labels exist)
 
-### `GroupSettingsModalPage.ts` (24 violations)
-- **Problem:** This file is a major offender, using `testid` for tabs, inputs, buttons, and dynamic elements.
-- **Recommendation:**
-    - `group-settings-tab-*`: `getByRole('tab', { name: '...' })`
-    - `group-name-input`, `group-description-input`: `getByLabelText(...)`
-    - `save-changes-button`, `delete-group-button`, etc.: `getByRole('button', { name: '...' })`
-    - `permission-select-*`: These are likely `select` elements and should be selected with `getByLabelText(...)`.
-    - `pending-approve-*`, `pending-reject-*`: These are buttons and should have accessible names. `getByRole('button', { name: 'Approve <Member Name>' })`.
+### `GroupSettingsModalPage.ts` ~~(24 violations)~~ ✅ COMPLETED
+- **Status:** Refactored to use semantic selectors
+- **TSX changes (GroupSettingsModal.tsx):**
+    - Added `role="tablist"` to tab nav element
+    - Added `role="tab"` and `aria-selected` to tab buttons
+    - Added `id`/`htmlFor` for label associations on inputs
+    - Added `aria-label` to status banners for differentiation
+    - Removed `data-testid` from tabs, inputs, and status elements
+- **Page object changes:**
+    - `getTabButton()` → `getByRole('tab', { name: translation.groupSettingsModal.tabs[tab] })`
+    - `getGroupNameInput()` → `getByLabel(translation.editGroupModal.groupNameLabel)`
+    - `getGroupDescriptionInput()` → `getByLabel(translation.editGroupModal.descriptionLabel)`
+    - `getDisplayNameInput()` → `getByLabel(translation.groupDisplayNameSettings.inputLabel)`
+    - `getDisplayNameSaveButton()` → `getDisplayNameSection().getByRole('button', { name: 'Save' })`
+    - `getDisplayNameError()` → `getDisplayNameSection().getByRole('alert')`
+    - `getDisplayNameSuccess()` → `getDisplayNameSection().getByRole('status')`
+    - `getSaveButton()` → `getByRole('button', { name: 'Save' }).last()`
+    - `getCancelButton()` → `getByRole('button', { name: 'Cancel' })`
+    - `getDeleteButton()` → `getByRole('button', { name: 'Delete Group' })`
+    - `getCloseButton()` → Uses aria-label from header
+    - `getFooterCloseButton()` → `getByRole('button', { name: 'Close' })`
+    - `getSecuritySuccessAlert()` → `getByRole('status', { name: 'success' })`
+    - `getSecurityUnsavedBanner()` → `getByRole('status', { name: 'unsaved changes' })`
+    - `getGeneralSuccessAlert()` → `locator('form').getByRole('status')`
+    - `getValidationError()` → `locator('form').getByRole('alert')`
+- **Kept as test-id (justified):**
+    - `getPresetButton(preset)` - Dynamic button name based on preset type
+    - `getPermissionSelect(key)` - Dynamic select based on permission key
+    - `getPendingApproveButton(memberId)` - Dynamic button per member
+    - `getPendingRejectButton(memberId)` - Dynamic button per member
+    - `getModalContainer()` - Uses title test-id for scoping
+    - `getDeleteDialog()` - Uses test-id for scoping the delete confirmation dialog
 
-### `ShareGroupModalPage.ts` (8 violations)
-- **Problem:** Inputs and buttons are selected with `testid`.
-- **Recommendation:**
-    - `share-link-input`: `getByLabelText('Share Link')`
-    - `copy-link-button`: `getByRole('button', { name: 'Copy Link' })`
-    - `generate-new-link-button`: `getByRole('button', { name: 'Generate New Link' })`
-    - `loading-spinner`: `getByRole('status', { name: 'Loading' })` (assuming it has an ARIA label).
-    - `share-link-expiration-*`: Should be `getByLabelText` if it's a radio group or select.
+### `ShareGroupModalPage.ts` ~~(8 violations)~~ ✅ COMPLETED
+- **Status:** Refactored to use semantic selectors
+- **TSX changes (ShareGroupModal.tsx):**
+    - Removed `data-testid` from close button (has aria-label)
+    - Removed `data-testid` from copy button (has aria-label)
+    - Removed `data-testid` from generate button (has aria-label)
+    - Removed `data-testid` from error message (has role='alert')
+    - Removed `data-testid` from toast (has role='status')
+- **Page object changes:**
+    - `getCloseButton()` → `getByRole('button', { name: closeButtonAriaLabel })`
+    - `getCopyLinkButton()` → `getByRole('button', { name: copyLinkAriaLabel })`
+    - `getGenerateNewLinkButton()` → `getByRole('button', { name: generateNew })`
+    - `getErrorMessage()` → `getByRole('alert')`
+    - `getToastNotification()` → `getByRole('status').filter({ hasText: linkCopied })`
+- **Kept as test-id (justified):**
+    - `getShareLinkInput()` - Input has no label (value is the share URL)
+    - `getLoadingSpinner()` - Generic spinner element
+    - `getExpirationOption(optionValue)` - Dynamic buttons per expiration option
 
-### `DashboardPage.ts` (13 violations)
-- **Problem:** A mix of legitimate and unnecessary `testid` usage.
-- **Recommendation:**
-    - `pagination-next`, `pagination-previous`: `getByRole('link', { name: /Next/i })` or `getByRole('button', { name: /Next/i })`.
-    - `user-menu-button`: `getByRole('button', { name: 'User menu' })` or similar accessible name.
-    - `activity-feed-item`: This could be a legitimate use if items are generic. A better approach is to select the list (`getByRole('list', { name: 'Activity feed' })`) and then find items within it (`getByRole('listitem')`).
+### `DashboardPage.ts` ~~(13 violations)~~ ✅ COMPLETED
+- **Status:** Refactored to use semantic selectors
+- **TSX changes (Pagination.tsx, ActivityFeedCard.tsx, GroupsList.tsx):**
+    - Removed `data-testid` from pagination buttons (have aria-labels and text content)
+    - Removed `data-testid` from error elements (have `role='alert'`)
+- **Page object changes:**
+    - `getPaginationNextButton()` → `getByRole('button', { name: translation.pagination.next })`
+    - `getPaginationPreviousButton()` → `getByRole('button', { name: translation.pagination.previous })`
+    - `getPaginationNextButtonMobile()` → Mobile container scoped `.sm\\:hidden` + `getByRole('button')`
+    - `getPaginationPreviousButtonMobile()` → Mobile container scoped `.sm\\:hidden` + `getByRole('button')`
+    - `getErrorContainer()` → `getByRole('alert').last()` (error message)
+    - `getErrorHeading()` → `getByRole('alert').first()` (error title)
+    - `getActivityFeedError()` → `getByRole('alert')`
+    - `getActivityFeedEmptyState()` → `locator('div').filter({ hasText: translation.activityFeed.emptyState.title })`
+    - `getActivityFeedItems()` → `getByRole('listitem')`
+- **Kept as test-id (justified):**
+    - `activity-feed-card` - Container for scoping
+    - `groups-grid` - Container for scoping
+    - `group-card` - Individual card containers for filtering
+    - `archived-badge` - Badge element (no semantic alternative)
+    - `archived-groups-empty-state` - Container for scoping
 
-### `TenantEditorModalPage.ts` (~50 violations)
-- **Problem:** Extreme overuse of `testid` for every single form field. The modal is likely one large `form`.
-- **Recommendation:** A full refactor is required. Every input should be selected with `getByLabelText`.
-    - `logo-upload-field`: `getByLabelText('Logo')`
-    - `primary-color-input`: `getByLabelText('Primary Color')`
-    - `font-family-sans-input`: `getByLabelText('Sans-serif Font Family')`
-    - `add-domain-button`: `getByRole('button', { name: 'Add domain' })`
+### `TenantEditorModalPage.ts` (~50 violations) ⏸️ DEFERRED
+- **Status:** Deferred - requires major refactoring of admin-only functionality
+- **Analysis:** The ColorInput component has proper `<label for={id}>` associations, so most inputs COULD use `getByLabel()`. However:
+    - The modal has ~50 form fields across many collapsible sections
+    - Some inputs already use semantic selectors in the page object (checkboxes via getByLabel)
+    - Section expansion buttons use test-ids with `data-expanded` attribute for state checking
+- **Partial semantic selectors already in use:**
+    - `getModal()` → `getByRole('dialog')` ✅
+    - `getModalHeading()` → `getByRole('heading', { name: /create|edit tenant/i })` ✅
+    - `getTenantIdInput()` → `getByLabel(/tenant id/i)` ✅
+    - `getAppNameInput()` → `getByLabel(/app name/i)` ✅
+    - Most checkbox inputs use `getByLabel()` ✅
+- **Test-ids that could be converted (future work):**
+    - ColorInput fields: `primary-color-input` → `getByLabel('Primary *')`
+    - Section buttons: `section-palette` → `getByRole('button', { name: 'Palette Colors' })`
+    - Font inputs: `font-family-sans-input` → `getByLabel(/Sans.*Font/i)`
+- **Test-ids to keep (justified):**
+    - `logo-upload-field`, `favicon-upload-field` - Complex ImageUploadField components
+    - `remove-domain-${index}` - Dynamic per-domain buttons
+    - `source-tenant-select` - Dynamic select element
+- **Note:** This is admin-only functionality. Recommend incremental refactoring as tests are modified.
 
-### `PolicyAcceptanceModalPage.ts` (13 violations)
-- **Problem:** All elements in the modal, including titles, badges, and checkboxes, use `testid`.
-- **Recommendation:**
-    - `policy-modal-title`: `getByRole('heading', { name: '...' })`
-    - `policy-accept-checkbox`: `getByLabelText('I accept the terms...')`
-    - `policy-accepted-badge`: Can be found via text: `getByText('Accepted')`.
+### `PolicyAcceptanceModalPage.ts` ~~(13 violations)~~ ✅ COMPLETED
+- **Status:** Refactored to use semantic selectors
+- **TSX changes (PolicyAcceptanceModal.tsx):**
+    - Removed `data-testid` from modal title heading (use `getByRole('heading')`)
+    - Removed `data-testid` from subtitle paragraph (use `locator('#policy-modal-subtitle')`)
+    - Removed `data-testid` from progress bar (has `role='progressbar'`)
+    - Removed `data-testid` from policy title heading (use `getByRole('heading')`)
+    - Removed `data-testid` from accepted badge (added `role='status'` and `aria-label`)
+    - Removed `data-testid` from checkbox and label (has proper `htmlFor`/`id` association)
+- **Page object changes:**
+    - `getModalOverlay()` → `getByRole('dialog')`
+    - `getTitle()` → `getByRole('heading', { name: translation.title })`
+    - `getSubtitle()` → `locator('#policy-modal-subtitle')`
+    - `getProgressBar()` → `getByRole('progressbar')`
+    - `getPolicyTitle()` → `getPolicyCard().getByRole('heading')`
+    - `getAcceptedBadge()` → `getPolicyCard().getByRole('status')`
+    - `getAcceptanceCheckbox()` → `getAcceptanceSection().getByRole('checkbox')`
+    - `getAcceptanceLabel()` → `getAcceptanceSection().locator('label')`
+- **Kept as test-id (justified):**
+    - `policy-modal-card` - Container for scoping
+    - `policy-card` - Card container for scoping
+    - `policy-content` - Content container
+    - `policy-content-loading` - Loading indicator container
+    - `policy-acceptance-section` - Section container for scoping
 
 ### Acceptable Use Cases (or cases requiring more investigation)
 Some `testid` usage might be acceptable, but should be reviewed:

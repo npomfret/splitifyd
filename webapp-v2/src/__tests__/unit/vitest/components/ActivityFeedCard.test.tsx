@@ -224,7 +224,8 @@ describe('ActivityFeedCard', () => {
 
             render(<ActivityFeedCard userId={toUserId('user-1')} />);
 
-            expect(screen.getByTestId('activity-feed-error')).toBeInTheDocument();
+            // Error message now uses role='alert' instead of data-testid
+            expect(screen.getByRole('alert')).toBeInTheDocument();
             expect(screen.getByText('We could not load your recent activity right now. Please try again.')).toBeInTheDocument();
         });
 

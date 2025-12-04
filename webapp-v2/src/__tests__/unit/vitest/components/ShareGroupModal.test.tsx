@@ -258,9 +258,9 @@ describe('ShareGroupModal', () => {
             />,
         );
 
-        const errorElement = await screen.findByTestId('share-group-error-message');
+        // Error message now uses role='alert' instead of data-testid
+        const errorElement = await screen.findByRole('alert');
         expect(errorElement).toHaveTextContent('shareGroupModal.errors.generateLinkFailed');
-        expect(errorElement).toHaveAttribute('role', 'alert');
 
         // Link input should not be visible on error
         expect(screen.queryByTestId('share-link-input')).not.toBeInTheDocument();
@@ -286,7 +286,8 @@ describe('ShareGroupModal', () => {
             />,
         );
 
-        const copyButton = await screen.findByTestId('copy-link-button');
+        // Copy button now uses aria-label instead of data-testid
+        const copyButton = await screen.findByRole('button', { name: 'shareGroupModal.copyLinkAriaLabel' });
         fireEvent.click(copyButton);
 
         await waitFor(() => {
@@ -337,7 +338,8 @@ describe('ShareGroupModal', () => {
             />,
         );
 
-        const closeButton = await screen.findByTestId('close-share-modal-button');
+        // Close button now uses aria-label instead of data-testid
+        const closeButton = await screen.findByRole('button', { name: 'shareGroupModal.closeButtonAriaLabel' });
         fireEvent.click(closeButton);
 
         expect(onClose).toHaveBeenCalledTimes(1);

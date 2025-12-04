@@ -195,19 +195,23 @@ export class DashboardPage extends BasePage {
     }
 
     private getPaginationNextButton(): Locator {
-        return this.page.getByTestId('pagination-next');
+        // Desktop pagination next button with aria-label
+        return this.getPaginationContainer().getByRole('button', { name: translation.pagination.next });
     }
 
     private getPaginationPreviousButton(): Locator {
-        return this.page.getByTestId('pagination-previous');
+        // Desktop pagination previous button with aria-label
+        return this.getPaginationContainer().getByRole('button', { name: translation.pagination.previous });
     }
 
     private getPaginationNextButtonMobile(): Locator {
-        return this.page.getByTestId('pagination-next-mobile');
+        // Mobile pagination next button (shows text content)
+        return this.page.locator('.sm\\:hidden').getByRole('button', { name: translation.pagination.next });
     }
 
     private getPaginationPreviousButtonMobile(): Locator {
-        return this.page.getByTestId('pagination-previous-mobile');
+        // Mobile pagination previous button (shows text content)
+        return this.page.locator('.sm\\:hidden').getByRole('button', { name: translation.pagination.previous });
     }
 
     async verifyPaginationHidden(): Promise<void> {
@@ -808,24 +812,26 @@ export class DashboardPage extends BasePage {
     }
 
     /**
-     * Activity feed empty state
+     * Activity feed empty state (contains 'No activity yet' text)
      */
     private getActivityFeedEmptyState(): Locator {
-        return this.getActivityFeedContainer().getByTestId('activity-feed-empty');
+        return this.getActivityFeedContainer().locator('div').filter({
+            hasText: translation.activityFeed.emptyState.title,
+        }).first();
     }
 
     /**
-     * Activity feed error message
+     * Activity feed error message (has role='alert')
      */
     private getActivityFeedError(): Locator {
-        return this.getActivityFeedContainer().getByTestId('activity-feed-error');
+        return this.getActivityFeedContainer().getByRole('alert');
     }
 
     /**
-     * Activity feed items
+     * Activity feed items (list items in the activity feed)
      */
     private getActivityFeedItems(): Locator {
-        return this.getActivityFeedContainer().getByTestId('activity-feed-item');
+        return this.getActivityFeedContainer().getByRole('listitem');
     }
 
     /**

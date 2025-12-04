@@ -637,17 +637,17 @@ export function GroupSettingsModal({
 
                     <form onSubmit={handleDisplayNameSubmit} className='space-y-4'>
                         <Input
+                            id='group-display-name-input'
                             label={t('groupDisplayNameSettings.inputLabel')}
                             placeholder={t('groupDisplayNameSettings.inputPlaceholder')}
                             value={displayName}
                             onChange={handleDisplayNameChange}
                             disabled={isSavingDisplayName}
                             error={displayNameValidationError || undefined}
-                            data-testid='group-display-name-input'
                         />
 
                         {displayNameServerError && (
-                            <div className='bg-surface-error border border-border-error rounded-md px-3 py-2 text-sm text-semantic-error' role='alert' data-testid='group-display-name-error'>
+                            <div className='bg-surface-error border border-border-error rounded-md px-3 py-2 text-sm text-semantic-error' role='alert'>
                                 {displayNameServerError}
                             </div>
                         )}
@@ -656,7 +656,6 @@ export function GroupSettingsModal({
                             <div
                                 className='bg-interactive-accent/10 border border-semantic-success/40 rounded-md px-3 py-2 text-sm text-semantic-success'
                                 role='status'
-                                data-testid='group-display-name-success'
                             >
                                 {displayNameSuccessMessage}
                             </div>
@@ -684,12 +683,12 @@ export function GroupSettingsModal({
                             <div
                                 className='bg-interactive-accent/10 border border-semantic-success/40 rounded-md px-3 py-2 text-sm text-semantic-success'
                                 role='status'
-                                data-testid='group-general-success'
                             >
                                 {generalSuccessMessage}
                             </div>
                         )}
                         <Input
+                            id='group-name-input'
                             label={t('editGroupModal.groupNameLabel')}
                             type='text'
                             placeholder={t('editGroupModal.groupNamePlaceholder')}
@@ -702,12 +701,12 @@ export function GroupSettingsModal({
                             required
                             disabled={isSubmitting}
                             error={validationError || undefined}
-                            data-testid='group-name-input'
                         />
 
                         <div>
-                            <label className='block text-sm font-medium text-text-primary mb-2'>{t('editGroupModal.descriptionLabel')}</label>
+                            <label htmlFor='group-description-textarea' className='block text-sm font-medium text-text-primary mb-2'>{t('editGroupModal.descriptionLabel')}</label>
                             <textarea
+                                id='group-description-textarea'
                                 className='w-full px-3 py-2 border border-border-default bg-surface-raised backdrop-blur-sm text-text-primary placeholder:text-text-muted/70 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary resize-none transition-colors duration-200'
                                 rows={3}
                                 placeholder={t('editGroupModal.descriptionPlaceholder')}
@@ -719,7 +718,6 @@ export function GroupSettingsModal({
                                 }}
                                 disabled={isSubmitting}
                                 maxLength={200}
-                                data-testid='group-description-input'
                             />
                         </div>
 
@@ -766,12 +764,12 @@ export function GroupSettingsModal({
     const renderSecurityTab = () => (
         <div className='space-y-6'>
             {hasSecurityChanges && !permissionsSuccessMessage && (
-                <div className='bg-interactive-primary/10 border border-interactive-primary/20 text-interactive-primary text-sm rounded-md p-3' role='status' data-testid='security-unsaved-banner'>
+                <div className='bg-interactive-primary/10 border border-interactive-primary/20 text-interactive-primary text-sm rounded-md p-3' role='status' aria-label='unsaved changes'>
                     {t('securitySettingsModal.unsavedChanges')}
                 </div>
             )}
             {permissionsSuccessMessage && (
-                <div className='bg-interactive-accent/10 border border-semantic-success/40 text-semantic-success text-sm rounded-md p-3' role='status' data-testid='security-permissions-success'>
+                <div className='bg-interactive-accent/10 border border-semantic-success/40 text-semantic-success text-sm rounded-md p-3' role='status' aria-label='success'>
                     {permissionsSuccessMessage}
                 </div>
             )}
@@ -954,7 +952,7 @@ export function GroupSettingsModal({
 
                     {availableTabs.length > 1 && (
                         <div className='px-6 pt-4 border-b border-border-default'>
-                            <div className='flex gap-4'>
+                            <nav className='flex gap-4' role='tablist' aria-label={t('groupSettingsModal.title')}>
                                 {availableTabs.map((tab) => {
                                     const isActive = tab === activeTab;
                                     return (
@@ -962,14 +960,14 @@ export function GroupSettingsModal({
                                             as='button'
                                             key={tab}
                                             type='button'
+                                            role='tab'
+                                            aria-selected={isActive}
                                             onClick={() => { activeTabSignal.value = tab; }}
                                             className={`pb-2 text-sm font-medium border-b-2 transition-colors ${
                                                 isActive
                                                     ? 'border-interactive-primary text-interactive-primary'
                                                     : 'border-transparent text-text-muted hover:text-text-primary hover:border-border-default'
                                             }`}
-                                            data-testid={`group-settings-tab-${tab}`}
-                                            aria-label={`Switch to ${tab} tab`}
                                             eventName='modal_tab_change'
                                             eventProps={{ modalName: 'group_settings', tab }}
                                         >
@@ -977,7 +975,7 @@ export function GroupSettingsModal({
                                         </Clickable>
                                     );
                                 })}
-                            </div>
+                            </nav>
                         </div>
                     )}
 

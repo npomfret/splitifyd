@@ -79,7 +79,7 @@ export function ActivityFeedCard({ userId }: ActivityFeedCardProps) {
                 {error.value
                     ? (
                         <div className='bg-surface-error border border-border-error rounded-md p-4 mb-4'>
-                            <p className='text-sm text-semantic-error mb-3' role='alert' data-testid='activity-feed-error'>
+                            <p className='text-sm text-semantic-error mb-3' role='alert'>
                                 {t('activityFeed.error.loadFailed')}
                             </p>
                             <Button

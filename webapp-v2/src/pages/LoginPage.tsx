@@ -126,7 +126,6 @@ export function LoginPage() {
                         checked={rememberMe}
                         onChange={(checked) => { rememberMeSignal.value = checked; }}
                         disabled={loadingValue}
-                        data-testid='remember-me-checkbox'
                     />
 
                     <Button
@@ -151,7 +150,6 @@ export function LoginPage() {
                         {t('loginPage.noAccount')}{' '}
                         <Button
                             type='button'
-                            data-testid='loginpage-signup-button'
                             onClick={() => {
                                 // Preserve returnUrl when navigating to register
                                 const urlParams = new URLSearchParams(window.location.search);

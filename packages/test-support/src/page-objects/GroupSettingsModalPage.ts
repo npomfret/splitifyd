@@ -39,7 +39,13 @@ export class GroupSettingsModalPage extends BasePage {
     }
 
     protected getTabButton(tab: GroupSettingsTab): Locator {
-        return this.getModalContainer().getByTestId(`group-settings-tab-${tab}`);
+        // Map tab to translation key for the tab name
+        const tabNames: Record<GroupSettingsTab, string> = {
+            identity: translation.groupSettingsModal.tabs.identity,
+            general: translation.groupSettingsModal.tabs.general,
+            security: translation.groupSettingsModal.tabs.security,
+        };
+        return this.getModalContainer().getByRole('tab', { name: tabNames[tab] });
     }
 
     async hasTab(tab: GroupSettingsTab): Promise<boolean> {
@@ -120,11 +126,11 @@ export class GroupSettingsModalPage extends BasePage {
     // ============================================================================
 
     protected getGroupNameInput(): Locator {
-        return this.getModalContainer().getByTestId('group-name-input');
+        return this.getModalContainer().getByLabel(translation.editGroupModal.groupNameLabel);
     }
 
     protected getGroupDescriptionInput(): Locator {
-        return this.getModalContainer().getByTestId('group-description-input');
+        return this.getModalContainer().getByLabel(translation.editGroupModal.descriptionLabel);
     }
 
     // ============================================================================
@@ -132,23 +138,29 @@ export class GroupSettingsModalPage extends BasePage {
     // ============================================================================
 
     protected getDisplayNameSection(): Locator {
-        return this.getModalContainer().getByTestId('group-display-name-settings');
+        // The section contains the display name heading
+        return this.getModalContainer().locator('section').filter({
+            has: this.page.getByText(translation.groupDisplayNameSettings.title, { exact: true }),
+        });
     }
 
     protected getDisplayNameInput(): Locator {
-        return this.getModalContainer().getByTestId('group-display-name-input');
+        return this.getModalContainer().getByLabel(translation.groupDisplayNameSettings.inputLabel);
     }
 
     protected getDisplayNameSaveButton(): Locator {
-        return this.getModalContainer().getByTestId('group-display-name-save-button');
+        // Save button in the identity/display name section (within the form)
+        return this.getDisplayNameSection().getByRole('button', { name: translation.common.save });
     }
 
     protected getDisplayNameError(): Locator {
-        return this.getModalContainer().getByTestId('group-display-name-error');
+        // Alert role for error messages in the display name section
+        return this.getDisplayNameSection().getByRole('alert');
     }
 
     protected getDisplayNameSuccess(): Locator {
-        return this.getModalContainer().getByTestId('group-display-name-success');
+        // Status role for success messages in the display name section
+        return this.getDisplayNameSection().getByRole('status');
     }
 
     // ============================================================================
@@ -156,23 +168,26 @@ export class GroupSettingsModalPage extends BasePage {
     // ============================================================================
 
     protected getSaveButton(): Locator {
-        return this.getModalContainer().getByTestId('save-changes-button');
+        // Save button in the general tab footer (not in identity section)
+        return this.getModalContainer().getByRole('button', { name: translation.common.save }).last();
     }
 
     protected getCancelButton(): Locator {
-        return this.getModalContainer().getByTestId('cancel-edit-group-button');
+        return this.getModalContainer().getByRole('button', { name: translation.editGroupModal.cancelButton });
     }
 
     protected getDeleteButton(): Locator {
-        return this.getModalContainer().getByTestId('delete-group-button');
+        return this.getModalContainer().getByRole('button', { name: translation.editGroupModal.deleteGroupButton });
     }
 
     protected getCloseButton(): Locator {
-        return this.getModalContainer().getByTestId('close-group-settings-button');
+        // X close button in the modal header (has aria-label)
+        return this.getModalContainer().getByRole('button', { name: translation.groupHeader.groupSettingsAriaLabel });
     }
 
     protected getFooterCloseButton(): Locator {
-        return this.getModalContainer().getByTestId('group-settings-close-button');
+        // Close button in the security tab footer
+        return this.getModalContainer().getByRole('button', { name: translation.common.close });
     }
 
     // ============================================================================
@@ -184,7 +199,9 @@ export class GroupSettingsModalPage extends BasePage {
     }
 
     protected getSecuritySaveButton(): Locator {
-        return this.getModalContainer().getByTestId('save-security-button');
+        // Save button in security tab footer, distinct from Close button
+        // Use the border-t class section to scope to the footer area
+        return this.getModalContainer().locator('.border-t').filter({ hasText: translation.common.close }).getByRole('button', { name: translation.common.save });
     }
 
     protected getPermissionSelect(key: string): Locator {
@@ -204,7 +221,8 @@ export class GroupSettingsModalPage extends BasePage {
     // ============================================================================
 
     protected getValidationError(): Locator {
-        return this.getModalContainer().getByTestId('edit-group-validation-error');
+        // Validation error alert in the general tab form
+        return this.getModalContainer().locator('form').getByRole('alert');
     }
 
     async waitForModalToOpen(options: { tab?: GroupSettingsTab; timeout?: number; } = {}): Promise<void> {
@@ -310,15 +328,18 @@ export class GroupSettingsModalPage extends BasePage {
     }
 
     protected getGeneralSuccessAlert(): Locator {
-        return this.getModalContainer().getByTestId('group-general-success');
+        // Success status in the general tab (within form)
+        return this.getModalContainer().locator('form').getByRole('status');
     }
 
     protected getSecuritySuccessAlert(): Locator {
-        return this.getModalContainer().getByTestId('security-permissions-success');
+        // Success status in security tab (has aria-label='success')
+        return this.getModalContainer().getByRole('status', { name: 'success' });
     }
 
     protected getSecurityUnsavedBanner(): Locator {
-        return this.getModalContainer().getByTestId('security-unsaved-banner');
+        // Unsaved banner in security tab (has aria-label='unsaved changes')
+        return this.getModalContainer().getByRole('status', { name: 'unsaved changes' });
     }
 
     async submitForm(): Promise<void> {

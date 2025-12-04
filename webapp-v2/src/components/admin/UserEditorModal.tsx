@@ -165,7 +165,7 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
 
                 {/* Tabs */}
                 <div class='border-b border-border-default px-6'>
-                    <nav class='flex space-x-4' aria-label={t('admin.userEditor.tabs.ariaLabel')}>
+                    <nav class='flex space-x-4' role='tablist' aria-label={t('admin.userEditor.tabs.ariaLabel')}>
                         <button
                             onClick={() => handleTabChange('profile')}
                             class={`py-3 px-2 text-sm font-medium border-b-2 transition-colors ${
@@ -173,7 +173,8 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                                     ? 'border-interactive-primary text-interactive-primary'
                                     : 'border-transparent text-text-muted hover:text-text-primary'
                             }`}
-                            data-testid='profile-tab'
+                            role='tab'
+                            aria-selected={activeTab === 'profile'}
                         >
                             {t('admin.userEditor.tabs.profile')}
                         </button>
@@ -184,7 +185,8 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                                     ? 'border-interactive-primary text-interactive-primary'
                                     : 'border-transparent text-text-muted hover:text-text-primary'
                             }`}
-                            data-testid='role-tab'
+                            role='tab'
+                            aria-selected={activeTab === 'role'}
                         >
                             {t('admin.userEditor.tabs.role')}
                         </button>
@@ -195,6 +197,8 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                                     ? 'border-interactive-primary text-interactive-primary'
                                     : 'border-transparent text-text-muted hover:text-text-primary'
                             }`}
+                            role='tab'
+                            aria-selected={activeTab === 'firebase-auth'}
                         >
                             {t('admin.userEditor.tabs.firebaseAuth')}
                         </button>
@@ -205,6 +209,8 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                                     ? 'border-interactive-primary text-interactive-primary'
                                     : 'border-transparent text-text-muted hover:text-text-primary'
                             }`}
+                            role='tab'
+                            aria-selected={activeTab === 'firestore'}
                         >
                             {t('admin.userEditor.tabs.firestore')}
                         </button>
@@ -225,27 +231,27 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
 
                             <div class='space-y-4'>
                                 <div>
-                                    <label class='block text-sm font-medium text-text-primary mb-2'>
+                                    <label htmlFor='user-editor-display-name' class='block text-sm font-medium text-text-primary mb-2'>
                                         {t('admin.userEditor.profile.displayName')}
                                     </label>
                                     <Input
+                                        id='user-editor-display-name'
                                         value={displayName}
                                         onChange={setDisplayName}
                                         placeholder={t('admin.userEditor.profile.displayNamePlaceholder')}
-                                        data-testid='display-name-input'
                                     />
                                 </div>
 
                                 <div>
-                                    <label class='block text-sm font-medium text-text-primary mb-2'>
+                                    <label htmlFor='user-editor-email' class='block text-sm font-medium text-text-primary mb-2'>
                                         {t('admin.userEditor.profile.email')}
                                     </label>
                                     <Input
+                                        id='user-editor-email'
                                         type='email'
                                         value={email}
                                         onChange={setEmail}
                                         placeholder={t('admin.userEditor.profile.emailPlaceholder')}
-                                        data-testid='email-input'
                                     />
                                 </div>
                             </div>

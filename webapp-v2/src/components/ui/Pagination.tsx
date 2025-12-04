@@ -26,7 +26,6 @@ export function Pagination({ currentPage, hasMore, hasPrevious, onNext, onPrevio
                     disabled={!hasPrevious || loading}
                     variant='secondary'
                     size='md'
-                    data-testid='pagination-previous-mobile'
                 >
                     {t('pagination.previous')}
                 </Button>
@@ -35,7 +34,6 @@ export function Pagination({ currentPage, hasMore, hasPrevious, onNext, onPrevio
                     disabled={!hasMore || loading}
                     variant='secondary'
                     size='md'
-                    data-testid='pagination-next-mobile'
                     className='ml-3'
                 >
                     {t('pagination.next')}
@@ -54,7 +52,6 @@ export function Pagination({ currentPage, hasMore, hasPrevious, onNext, onPrevio
                             disabled={!hasPrevious || loading}
                             variant='secondary'
                             size='sm'
-                            data-testid='pagination-previous'
                             ariaLabel={t('pagination.previous')}
                             className='rounded-l-md rounded-r-none'
                         >
@@ -71,7 +68,6 @@ export function Pagination({ currentPage, hasMore, hasPrevious, onNext, onPrevio
                             disabled={!hasMore || loading}
                             variant='secondary'
                             size='sm'
-                            data-testid='pagination-next'
                             ariaLabel={t('pagination.next')}
                             className='rounded-r-md rounded-l-none'
                         >

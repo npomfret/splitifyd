@@ -15,35 +15,35 @@ export class UserEditorModalPage extends BasePage {
 
     // ✅ Protected locators - internal use only
     protected getModal(): Locator {
-        return this.page.getByTestId('user-editor-modal');
+        return this.page.getByRole('dialog');
     }
 
     protected getProfileTab(): Locator {
-        return this.page.getByTestId('profile-tab');
+        return this.page.getByRole('tab', { name: 'Profile' });
     }
 
     protected getRoleTab(): Locator {
-        return this.page.getByTestId('role-tab');
+        return this.page.getByRole('tab', { name: 'Role' });
     }
 
     protected getDisplayNameInput(): Locator {
-        return this.page.getByTestId('display-name-input');
+        return this.page.getByLabel('Display Name');
     }
 
     protected getEmailInput(): Locator {
-        return this.page.getByTestId('email-input');
+        return this.page.getByLabel('Email Address');
     }
 
     protected getSaveProfileButton(): Locator {
-        return this.page.getByTestId('save-profile-button');
+        return this.getModal().getByRole('button', { name: 'Save' });
     }
 
     protected getSaveRoleButton(): Locator {
-        return this.page.getByTestId('save-role-button');
+        return this.getModal().getByRole('button', { name: 'Save' });
     }
 
     protected getCancelButton(): Locator {
-        return this.page.getByTestId('cancel-button');
+        return this.getModal().getByRole('button', { name: /cancel|close/i });
     }
 
     protected getSuccessAlert(): Locator {
@@ -98,7 +98,7 @@ export class UserEditorModalPage extends BasePage {
     }
 
     async verifyProfileTabIsActive(): Promise<void> {
-        await expect(this.getProfileTab()).toHaveClass(/border-interactive-primary/);
+        await expect(this.getProfileTab()).toHaveAttribute('aria-selected', 'true');
     }
 
     async verifyDisplayNameInputVisible(): Promise<void> {

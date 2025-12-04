@@ -403,7 +403,7 @@ describe('GroupShareService', () => {
             // Join via share link
             await groupShareService.joinGroupByLink(toUserId(joiningUserId), toShareLinkToken(shareLink.shareToken), toDisplayName('Joining User'));
 
-            // Verify activity feed for owner contains member-joined event
+// Verify activity feed for owner contains member-joined event
             const ownerFeed = await firestoreReader.getActivityFeedForUser(ownerId);
             const ownerMemberJoinedEvent = ownerFeed.items.find(
                 (item) => item.eventType === ActivityFeedEventTypes.MEMBER_JOINED,

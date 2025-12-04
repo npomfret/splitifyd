@@ -58,10 +58,11 @@ export class ShareGroupModalPage extends BasePage {
     }
 
     /**
-     * Toast notification
+     * Toast notification (status role for copy confirmation)
      */
     protected getToastNotification(): Locator {
-        return this.page.getByTestId('share-link-toast');
+        // Toast is outside the modal, so we search the page directly
+        return this.page.getByRole('status').filter({ hasText: translation.shareGroupModal.linkCopied });
     }
 
     // ============================================================================
@@ -76,24 +77,24 @@ export class ShareGroupModalPage extends BasePage {
     }
 
     /**
-     * Copy link button
+     * Copy link button (has aria-label)
      */
     protected getCopyLinkButton(): Locator {
-        return this.getModalContainer().getByTestId('copy-link-button');
+        return this.getModalContainer().getByRole('button', { name: translation.shareGroupModal.copyLinkAriaLabel });
     }
 
     /**
-     * Generate new link button
+     * Generate new link button (has aria-label)
      */
     protected getGenerateNewLinkButton(): Locator {
-        return this.getModalContainer().getByTestId('generate-new-link-button');
+        return this.getModalContainer().getByRole('button', { name: translation.shareGroupModal.generateNew });
     }
 
     /**
-     * Close button (X icon)
+     * Close button (X icon, has aria-label)
      */
     protected getCloseButton(): Locator {
-        return this.getModalContainer().getByTestId('close-share-modal-button');
+        return this.getModalContainer().getByRole('button', { name: translation.shareGroupModal.closeButtonAriaLabel });
     }
 
     /**
@@ -111,10 +112,10 @@ export class ShareGroupModalPage extends BasePage {
     }
 
     /**
-     * Error message
+     * Error message (has role='alert')
      */
     protected getErrorMessage(): Locator {
-        return this.getModalContainer().getByTestId('share-group-error-message');
+        return this.getModalContainer().getByRole('alert');
     }
 
     // ============================================================================
