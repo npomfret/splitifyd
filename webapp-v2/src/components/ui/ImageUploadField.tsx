@@ -195,8 +195,12 @@ export function ImageUploadField({
             {/* Fallback when image fails to load */}
             {preview && imageLoadFailed && (
                 <div className='relative inline-block w-fit'>
-                    <div className='w-48 h-32 rounded-lg border border-border-default bg-surface-raised flex items-center justify-center text-text-muted text-sm'>
-                        Image URL set
+                    <div className='w-48 h-32 rounded-lg border border-border-warning bg-surface-warning/10 flex flex-col items-center justify-center text-text-muted text-xs p-2 gap-1'>
+                        <span className='text-2xl'>⚠️</span>
+                        <span>Image failed to load</span>
+                        <span className='text-text-muted/70 truncate max-w-full' title={preview}>
+                            {preview.length > 30 ? `...${preview.slice(-30)}` : preview}
+                        </span>
                     </div>
                     {!disabled && (
                         <Button

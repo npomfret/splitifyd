@@ -911,28 +911,34 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
     useEffect(() => {
         if (mode === 'edit' && tenant) {
             const tokens = tenant.brandingTokens?.tokens;
+            const branding = tenant.tenant.branding;
             if (tokens) {
                 const tokenData = extractFormDataFromTokens(tokens);
                 setFormData({
                     ...EMPTY_TENANT_DATA,
                     ...tokenData,
                     tenantId: tenant.tenant.tenantId,
-                    appName: tenant.tenant.branding?.appName ?? '',
-                    showLandingPage: tenant.tenant.branding?.marketingFlags?.showLandingPage ?? false,
-                    showMarketingContent: tenant.tenant.branding?.marketingFlags?.showMarketingContent ?? false,
-                    showPricingPage: tenant.tenant.branding?.marketingFlags?.showPricingPage ?? false,
-                    showAppNameInHeader: tenant.tenant.branding?.showAppNameInHeader ?? true,
+                    appName: branding?.appName ?? '',
+                    // Logo/favicon from branding takes precedence over tokens.assets
+                    logoUrl: branding?.logoUrl ?? tokenData.logoUrl ?? '',
+                    faviconUrl: branding?.faviconUrl ?? tokenData.faviconUrl ?? '',
+                    showLandingPage: branding?.marketingFlags?.showLandingPage ?? false,
+                    showMarketingContent: branding?.marketingFlags?.showMarketingContent ?? false,
+                    showPricingPage: branding?.marketingFlags?.showPricingPage ?? false,
+                    showAppNameInHeader: branding?.showAppNameInHeader ?? true,
                     domains: tenant.domains ?? [],
                 });
             } else {
                 setFormData({
                     ...EMPTY_TENANT_DATA,
                     tenantId: tenant.tenant.tenantId,
-                    appName: tenant.tenant.branding?.appName ?? '',
-                    showLandingPage: tenant.tenant.branding?.marketingFlags?.showLandingPage ?? false,
-                    showMarketingContent: tenant.tenant.branding?.marketingFlags?.showMarketingContent ?? false,
-                    showPricingPage: tenant.tenant.branding?.marketingFlags?.showPricingPage ?? false,
-                    showAppNameInHeader: tenant.tenant.branding?.showAppNameInHeader ?? true,
+                    appName: branding?.appName ?? '',
+                    logoUrl: branding?.logoUrl ?? '',
+                    faviconUrl: branding?.faviconUrl ?? '',
+                    showLandingPage: branding?.marketingFlags?.showLandingPage ?? false,
+                    showMarketingContent: branding?.marketingFlags?.showMarketingContent ?? false,
+                    showPricingPage: branding?.marketingFlags?.showPricingPage ?? false,
+                    showAppNameInHeader: branding?.showAppNameInHeader ?? true,
                     domains: tenant.domains ?? [],
                 });
             }

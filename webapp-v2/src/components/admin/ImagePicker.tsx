@@ -41,11 +41,14 @@ export function ImagePicker({
 
     return (
         <Modal open={isOpen} onClose={handleClose} size='lg'>
-            <div className='flex flex-col h-[60vh]'>
+            <div className='flex flex-col h-[70vh] p-6'>
                 {/* Header */}
                 <div className='flex items-center justify-between pb-4 mb-4 border-b border-border-default'>
-                    <h2 className='text-lg font-semibold text-text-primary'>{title}</h2>
-                    <button onClick={handleClose} className='text-text-muted hover:text-text-primary'>
+                    <h2 className='text-xl font-semibold text-text-primary'>{title}</h2>
+                    <button
+                        onClick={handleClose}
+                        className='p-2 rounded-lg text-text-muted hover:text-text-primary hover:bg-surface-muted transition-colors'
+                    >
                         <svg className='h-5 w-5' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
                             <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
                         </svg>
@@ -53,11 +56,12 @@ export function ImagePicker({
                 </div>
 
                 {/* Image Library */}
-                <div className='flex-1 overflow-y-auto'>
+                <div className='flex-1 overflow-y-auto -mx-6 px-6'>
                     <TenantImageLibrary
                         tenantId={tenantId}
                         onSelect={handleImageSelect}
                         selectedImageUrl={selectedImage?.url || currentImageUrl}
+                        pickerMode
                     />
                 </div>
 

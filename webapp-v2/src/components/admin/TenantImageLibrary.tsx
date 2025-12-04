@@ -7,9 +7,11 @@ interface TenantImageLibraryProps {
     tenantId: string;
     onSelect?: (image: TenantImageDTO) => void;
     selectedImageUrl?: string;
+    /** When true, shows a simplified UI optimized for image selection */
+    pickerMode?: boolean;
 }
 
-export function TenantImageLibrary({ tenantId, onSelect, selectedImageUrl }: TenantImageLibraryProps) {
+export function TenantImageLibrary({ tenantId, onSelect, selectedImageUrl, pickerMode = false }: TenantImageLibraryProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [uploadName, setUploadName] = useState('');
     const [uploading, setUploading] = useState(false);
@@ -112,130 +114,159 @@ export function TenantImageLibrary({ tenantId, onSelect, selectedImageUrl }: Ten
         );
     }
 
+    const [showUpload, setShowUpload] = useState(!pickerMode);
+
     return (
         <div className='space-y-4'>
             {/* Upload Section */}
-            <div className='p-4 rounded-lg border border-border-default bg-surface-muted'>
-                <div className='flex flex-col gap-3'>
-                    <div className='flex gap-2'>
-                        <input
-                            type='text'
-                            placeholder='Image name (optional)'
-                            value={uploadName}
-                            onChange={(e) => setUploadName((e.target as HTMLInputElement).value)}
-                            className='flex-1 rounded-lg border border-border-default bg-surface-base px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:border-interactive-primary focus:outline-none focus:ring-2 focus:ring-interactive-primary/20'
-                            disabled={uploading}
-                        />
-                        <input
-                            ref={fileInputRef}
-                            type='file'
-                            accept='image/jpeg,image/png,image/gif,image/svg+xml,image/webp'
-                            onChange={handleFileSelect}
-                            className='hidden'
-                            disabled={uploading}
-                        />
-                        <Button
-                            type='button'
-                            variant='secondary'
-                            onClick={() => fileInputRef.current?.click()}
-                            disabled={uploading}
-                        >
-                            {uploading ? 'Uploading...' : 'Upload Image'}
-                        </Button>
-                    </div>
-                    {uploadError && <p className='text-sm text-semantic-error'>{uploadError}</p>}
-                    <p className='text-xs text-text-muted'>Supported: JPEG, PNG, GIF, SVG, WebP (max 5MB)</p>
+            {pickerMode ? (
+                <div className='flex items-center justify-between'>
+                    <p className='text-sm text-text-muted'>
+                        {images.length} image{images.length !== 1 ? 's' : ''} in library
+                    </p>
+                    <button
+                        type='button'
+                        onClick={() => setShowUpload(!showUpload)}
+                        className='text-sm text-interactive-primary hover:text-interactive-primary/80 transition-colors'
+                    >
+                        {showUpload ? 'Hide upload' : '+ Upload new'}
+                    </button>
                 </div>
-            </div>
+            ) : null}
+
+            {(showUpload || !pickerMode) && (
+                <div className='p-4 rounded-lg border border-border-default bg-surface-muted'>
+                    <div className='flex flex-col gap-3'>
+                        <div className='flex gap-2'>
+                            <input
+                                type='text'
+                                placeholder='Image name (optional)'
+                                value={uploadName}
+                                onChange={(e) => setUploadName((e.target as HTMLInputElement).value)}
+                                className='flex-1 rounded-lg border border-border-default bg-surface-base px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:border-interactive-primary focus:outline-none focus:ring-2 focus:ring-interactive-primary/20'
+                                disabled={uploading}
+                            />
+                            <input
+                                ref={fileInputRef}
+                                type='file'
+                                accept='image/jpeg,image/png,image/gif,image/svg+xml,image/webp'
+                                onChange={handleFileSelect}
+                                className='hidden'
+                                disabled={uploading}
+                            />
+                            <Button
+                                type='button'
+                                variant='secondary'
+                                onClick={() => fileInputRef.current?.click()}
+                                disabled={uploading}
+                            >
+                                {uploading ? 'Uploading...' : 'Upload Image'}
+                            </Button>
+                        </div>
+                        {uploadError && <p className='text-sm text-semantic-error'>{uploadError}</p>}
+                        <p className='text-xs text-text-muted'>Supported: JPEG, PNG, GIF, SVG, WebP (max 5MB)</p>
+                    </div>
+                </div>
+            )}
 
             {/* Error Display */}
             {error && <div className='p-3 rounded-lg bg-semantic-error/10 text-semantic-error text-sm'>{error}</div>}
 
             {/* Image Grid */}
             {images.length === 0 ? (
-                <div className='text-center py-8 text-text-muted'>
-                    No images in library. Upload one to get started.
+                <div className='text-center py-12 text-text-muted'>
+                    <div className='text-4xl mb-3'>🖼️</div>
+                    <p>No images in library</p>
+                    <p className='text-sm mt-1'>Upload one to get started</p>
                 </div>
             ) : (
-                <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4'>
-                    {images.map((image) => (
-                        <div
-                            key={image.id}
-                            className={`group relative rounded-lg border overflow-hidden transition-all ${
-                                selectedImageUrl === image.url
-                                    ? 'border-interactive-primary ring-2 ring-interactive-primary/20'
-                                    : 'border-border-default hover:border-border-strong'
-                            }`}
-                        >
-                            {/* Image Preview */}
+                <div className={`grid gap-4 ${pickerMode ? 'grid-cols-3 sm:grid-cols-4 lg:grid-cols-5' : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4'}`}>
+                    {images.map((image) => {
+                        const isSelected = selectedImageUrl === image.url;
+                        return (
                             <div
-                                className='aspect-square bg-surface-muted flex items-center justify-center cursor-pointer'
+                                key={image.id}
+                                className={`group relative rounded-xl border-2 overflow-hidden transition-all cursor-pointer ${
+                                    isSelected
+                                        ? 'border-interactive-primary ring-2 ring-interactive-primary/30 shadow-lg'
+                                        : 'border-transparent hover:border-border-strong bg-surface-muted'
+                                }`}
                                 onClick={() => onSelect?.(image)}
                             >
-                                <img
-                                    src={image.url}
-                                    alt={image.name}
-                                    className='max-w-full max-h-full object-contain'
-                                    loading='lazy'
-                                />
-                            </div>
+                                {/* Image Preview */}
+                                <div className='aspect-square bg-surface-muted flex items-center justify-center p-3'>
+                                    <img
+                                        src={image.url}
+                                        alt={image.name}
+                                        className='max-w-full max-h-full object-contain'
+                                        loading='lazy'
+                                    />
+                                </div>
 
-                            {/* Image Info */}
-                            <div className='p-2 bg-surface-base'>
-                                {editingId === image.id ? (
-                                    <div className='flex gap-1'>
-                                        <input
-                                            type='text'
-                                            value={editName}
-                                            onChange={(e) => setEditName((e.target as HTMLInputElement).value)}
-                                            onKeyDown={(e) => {
-                                                if (e.key === 'Enter') handleRename(image.id);
-                                                if (e.key === 'Escape') cancelEditing();
-                                            }}
-                                            className='flex-1 rounded border border-border-default bg-surface-base px-2 py-1 text-xs text-text-primary focus:border-interactive-primary focus:outline-none'
-                                            autoFocus
-                                        />
-                                        <Button variant='ghost' size='sm' onClick={() => handleRename(image.id)}>
-                                            Save
-                                        </Button>
-                                        <Button variant='ghost' size='sm' onClick={cancelEditing}>
-                                            X
-                                        </Button>
-                                    </div>
-                                ) : (
-                                    <div className='flex items-center justify-between'>
-                                        <span className='text-xs text-text-primary truncate' title={image.name}>
-                                            {image.name}
-                                        </span>
-                                        <div className='flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity'>
-                                            <button
-                                                onClick={() => startEditing(image)}
-                                                className='p-1 text-text-muted hover:text-text-primary text-xs'
-                                                title='Rename'
-                                            >
-                                                Edit
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(image.id)}
-                                                disabled={deletingId === image.id}
-                                                className='p-1 text-text-muted hover:text-semantic-error text-xs disabled:opacity-50'
-                                                title='Delete'
-                                            >
-                                                {deletingId === image.id ? '...' : 'Del'}
-                                            </button>
+                                {/* Image Info */}
+                                <div className='p-2 bg-surface-base border-t border-border-default'>
+                                    {editingId === image.id ? (
+                                        <div className='flex gap-1' onClick={(e) => e.stopPropagation()}>
+                                            <input
+                                                type='text'
+                                                value={editName}
+                                                onChange={(e) => setEditName((e.target as HTMLInputElement).value)}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter') handleRename(image.id);
+                                                    if (e.key === 'Escape') cancelEditing();
+                                                }}
+                                                className='flex-1 rounded border border-border-default bg-surface-base px-2 py-1 text-xs text-text-primary focus:border-interactive-primary focus:outline-none'
+                                                autoFocus
+                                            />
+                                            <Button variant='ghost' size='sm' onClick={() => handleRename(image.id)}>
+                                                ✓
+                                            </Button>
+                                            <Button variant='ghost' size='sm' onClick={cancelEditing}>
+                                                ✕
+                                            </Button>
                                         </div>
+                                    ) : (
+                                        <div className='flex items-center justify-between min-h-[24px]'>
+                                            <span className='text-xs text-text-primary truncate font-medium' title={image.name}>
+                                                {image.name}
+                                            </span>
+                                            {!pickerMode && (
+                                                <div
+                                                    className='flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity'
+                                                    onClick={(e) => e.stopPropagation()}
+                                                >
+                                                    <button
+                                                        onClick={() => startEditing(image)}
+                                                        className='p-1 text-text-muted hover:text-text-primary text-xs'
+                                                        title='Rename'
+                                                    >
+                                                        ✏️
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDelete(image.id)}
+                                                        disabled={deletingId === image.id}
+                                                        className='p-1 text-text-muted hover:text-semantic-error text-xs disabled:opacity-50'
+                                                        title='Delete'
+                                                    >
+                                                        {deletingId === image.id ? '...' : '🗑️'}
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Selection Indicator */}
+                                {isSelected && (
+                                    <div className='absolute top-2 right-2 w-6 h-6 rounded-full bg-interactive-primary flex items-center justify-center shadow-md'>
+                                        <svg className='w-4 h-4 text-interactive-primary-foreground' fill='none' viewBox='0 0 24 24' stroke='currentColor' strokeWidth={3}>
+                                            <path strokeLinecap='round' strokeLinejoin='round' d='M5 13l4 4L19 7' />
+                                        </svg>
                                     </div>
                                 )}
                             </div>
-
-                            {/* Selection Indicator */}
-                            {selectedImageUrl === image.url && (
-                                <div className='absolute top-2 right-2 w-5 h-5 rounded-full bg-interactive-primary flex items-center justify-center'>
-                                    <span className='text-interactive-primary-foreground text-xs'>✓</span>
-                                </div>
-                            )}
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
         </div>
