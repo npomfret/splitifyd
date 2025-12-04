@@ -1,6 +1,6 @@
 import { apiClient } from '@/app/apiClient';
 import { ImagePicker } from '@/components/admin/ImagePicker';
-import { Alert, Button, ImageUploadField, Input, Modal } from '@/components/ui';
+import { Alert, Button, ColorInput, ImageUploadField, Input, Modal, RgbaColorInput } from '@/components/ui';
 import { logError } from '@/utils/browser-logger';
 import type { AdminUpsertTenantRequest, BrandingTokens, TenantBranding } from '@billsplit-wl/shared';
 import { useCallback, useEffect, useState } from 'preact/hooks';
@@ -251,42 +251,6 @@ function Section({ title, description, defaultOpen = false, testId, children }: 
                 </svg>
             </button>
             {isOpen && <div class='px-4 py-4 space-y-4 border-t border-border-subtle'>{children}</div>}
-        </div>
-    );
-}
-
-// Color Input Component with placeholder showing expected format
-function ColorInput({ id, label, value, onChange, disabled, testId, placeholder = '#RRGGBB' }: {
-    id: string;
-    label: string;
-    value: string;
-    onChange: (value: string) => void;
-    disabled?: boolean;
-    testId: string;
-    placeholder?: string;
-}) {
-    return (
-        <div>
-            <label for={id} class='block text-xs font-medium text-text-secondary mb-1'>{label}</label>
-            <div class='flex items-center gap-2'>
-                <input
-                    id={id}
-                    type='color'
-                    value={value || '#000000'}
-                    onInput={(e) => onChange((e.target as HTMLInputElement).value)}
-                    disabled={disabled}
-                    class='h-8 w-12 rounded border border-border-default bg-surface-base cursor-pointer'
-                    data-testid={testId}
-                />
-                <input
-                    type='text'
-                    value={value}
-                    onInput={(e) => onChange((e.target as HTMLInputElement).value)}
-                    disabled={disabled}
-                    placeholder={placeholder}
-                    class='flex-1 text-xs text-text-muted font-mono rounded border border-border-default bg-surface-base px-2 py-1'
-                />
-            </div>
         </div>
     );
 }
@@ -1559,7 +1523,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                         testId='neutral-variant-color-input'
                                     />
                                 </div>
-                                <div class='grid grid-cols-4 gap-4'>
+                                <div class='grid grid-cols-2 gap-4'>
                                     <ColorInput
                                         id='success-color'
                                         label='Success *'
@@ -1584,7 +1548,14 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                         disabled={isSaving}
                                         testId='danger-color-input'
                                     />
-                                    <ColorInput id='info-color' label='Info *' value={formData.infoColor} onChange={(v) => update({ infoColor: v })} disabled={isSaving} testId='info-color-input' />
+                                    <ColorInput
+                                        id='info-color'
+                                        label='Info *'
+                                        value={formData.infoColor}
+                                        onChange={(v) => update({ infoColor: v })}
+                                        disabled={isSaving}
+                                        testId='info-color-input'
+                                    />
                                 </div>
                             </div>
                         </Section>
@@ -1596,7 +1567,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                             defaultOpen={mode === 'create' && creationMode === 'empty'}
                             testId='section-surfaces'
                         >
-                            <div class='grid grid-cols-3 gap-4'>
+                            <div class='grid grid-cols-2 gap-4'>
                                 <ColorInput
                                     id='surface-base'
                                     label='Base *'
@@ -1622,19 +1593,15 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                     testId='surface-sunken-color-input'
                                 />
                             </div>
-                            <div class='grid grid-cols-3 gap-4 mt-4'>
-                                <div>
-                                    <label class='block text-xs font-medium text-text-secondary mb-1'>Overlay * (rgba)</label>
-                                    <input
-                                        type='text'
-                                        value={formData.surfaceOverlayColor}
-                                        onInput={(e) => update({ surfaceOverlayColor: (e.target as HTMLInputElement).value })}
-                                        placeholder='rgba(0, 0, 0, 0.5)'
-                                        disabled={isSaving}
-                                        class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono'
-                                        data-testid='surface-overlay-color-input'
-                                    />
-                                </div>
+                            <div class='grid grid-cols-2 gap-4 mt-4'>
+                                <RgbaColorInput
+                                    id='surface-overlay'
+                                    label='Overlay * (rgba)'
+                                    value={formData.surfaceOverlayColor}
+                                    onChange={(v) => update({ surfaceOverlayColor: v })}
+                                    disabled={isSaving}
+                                    testId='surface-overlay-color-input'
+                                />
                                 <ColorInput
                                     id='surface-warning'
                                     label='Warning *'
@@ -1656,7 +1623,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
 
                         {/* Text Colors */}
                         <Section title='Text Colors' description='Text color hierarchy (5 required)' defaultOpen={mode === 'create' && creationMode === 'empty'} testId='section-text'>
-                            <div class='grid grid-cols-5 gap-4'>
+                            <div class='grid grid-cols-2 gap-4'>
                                 <ColorInput
                                     id='text-primary'
                                     label='Primary *'
@@ -1704,7 +1671,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                         <Section title='Interactive Colors' description='Button and link states (13 required)' testId='section-interactive'>
                             <div class='space-y-4'>
                                 <h4 class='text-xs font-semibold text-text-muted uppercase tracking-wide'>Primary</h4>
-                                <div class='grid grid-cols-4 gap-4'>
+                                <div class='grid grid-cols-2 gap-4'>
                                     <ColorInput
                                         id='interactive-primary'
                                         label='Default *'
@@ -1739,7 +1706,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                     />
                                 </div>
                                 <h4 class='text-xs font-semibold text-text-muted uppercase tracking-wide'>Secondary</h4>
-                                <div class='grid grid-cols-4 gap-4'>
+                                <div class='grid grid-cols-2 gap-4'>
                                     <ColorInput
                                         id='interactive-secondary'
                                         label='Default *'
@@ -1782,7 +1749,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                     testId='interactive-accent-color-input'
                                 />
                                 <h4 class='text-xs font-semibold text-text-muted uppercase tracking-wide'>Destructive</h4>
-                                <div class='grid grid-cols-4 gap-4'>
+                                <div class='grid grid-cols-2 gap-4'>
                                     <ColorInput
                                         id='interactive-destructive'
                                         label='Default *'
@@ -1828,7 +1795,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
 
                         {/* Border Colors */}
                         <Section title='Border Colors' description='Border color levels (5 required)' defaultOpen={mode === 'create' && creationMode === 'empty'} testId='section-borders'>
-                            <div class='grid grid-cols-5 gap-4'>
+                            <div class='grid grid-cols-2 gap-4'>
                                 <ColorInput
                                     id='border-subtle'
                                     label='Subtle *'
@@ -1874,7 +1841,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
 
                         {/* Status Colors */}
                         <Section title='Status Colors' description='Semantic status colors (4 required)' testId='section-status-colors'>
-                            <div class='grid grid-cols-4 gap-4'>
+                            <div class='grid grid-cols-2 gap-4'>
                                 <ColorInput
                                     id='status-success'
                                     label='Success *'
@@ -2063,7 +2030,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                         {/* Aurora Gradient */}
                         {formData.enableParallax && (
                             <Section title='Aurora Gradient' description='2-4 colors for the aurora animation' testId='section-aurora-gradient' defaultOpen={true}>
-                                <div class='grid grid-cols-4 gap-4'>
+                                <div class='grid grid-cols-2 gap-4'>
                                     {[0, 1, 2, 3].map((i) => (
                                         <ColorInput
                                             key={i}
@@ -2087,30 +2054,24 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                         {formData.enableGlassmorphism && (
                             <Section title='Glassmorphism Settings' description='Glass effect colors (RGBA)' testId='section-glassmorphism-settings' defaultOpen={true}>
                                 <div class='grid grid-cols-2 gap-4'>
-                                    <div>
-                                        <label class='block text-xs font-medium text-text-secondary mb-1'>Glass Color</label>
-                                        <input
-                                            type='text'
-                                            value={formData.glassColor}
-                                            onInput={(e) => update({ glassColor: (e.target as HTMLInputElement).value })}
-                                            placeholder='rgba(25, 30, 50, 0.45)'
-                                            disabled={isSaving}
-                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono'
-                                            data-testid='glass-color-input'
-                                        />
-                                    </div>
-                                    <div>
-                                        <label class='block text-xs font-medium text-text-secondary mb-1'>Glass Border</label>
-                                        <input
-                                            type='text'
-                                            value={formData.glassBorderColor}
-                                            onInput={(e) => update({ glassBorderColor: (e.target as HTMLInputElement).value })}
-                                            placeholder='rgba(255, 255, 255, 0.12)'
-                                            disabled={isSaving}
-                                            class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm font-mono'
-                                            data-testid='glass-border-color-input'
-                                        />
-                                    </div>
+                                    <RgbaColorInput
+                                        id='glass-color'
+                                        label='Glass Color'
+                                        value={formData.glassColor}
+                                        onChange={(v) => update({ glassColor: v })}
+                                        placeholder='rgba(25, 30, 50, 0.45)'
+                                        disabled={isSaving}
+                                        testId='glass-color-input'
+                                    />
+                                    <RgbaColorInput
+                                        id='glass-border'
+                                        label='Glass Border'
+                                        value={formData.glassBorderColor}
+                                        onChange={(v) => update({ glassBorderColor: v })}
+                                        placeholder='rgba(255, 255, 255, 0.12)'
+                                        disabled={isSaving}
+                                        testId='glass-border-color-input'
+                                    />
                                 </div>
                             </Section>
                         )}

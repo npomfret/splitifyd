@@ -3,6 +3,8 @@ export { Avatar } from './Avatar';
 export { Button } from './Button';
 export { Card } from './Card';
 export { Checkbox } from './Checkbox';
+export { ColorInput, RgbaColorInput } from './ColorInput';
+export type { ColorInputProps, RgbaColorInputProps } from './ColorInput';
 export { ConfirmDialog } from './ConfirmDialog';
 export { CurrencyAmount } from './CurrencyAmount';
 export { CurrencyAmountInput } from './CurrencyAmountInput';

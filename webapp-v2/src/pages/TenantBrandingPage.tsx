@@ -1,4 +1,4 @@
-import { Alert, Button, Card, Form, Input, LoadingSpinner } from '@/components/ui';
+import { Alert, Button, Card, ColorInput, Form, Input, LoadingSpinner } from '@/components/ui';
 import { logError } from '@/utils/browser-logger';
 import { SystemUserRoles } from '@billsplit-wl/shared';
 import type { TenantSettingsResponse, UpdateTenantBrandingRequest } from '@billsplit-wl/shared';
@@ -252,35 +252,23 @@ export function TenantBrandingPage() {
                                     />
 
                                     <div class='grid grid-cols-2 gap-4'>
-                                        <div>
-                                            <label class='block text-sm font-medium leading-6 text-text-primary mb-2'>
-                                                Primary Color
-                                            </label>
-                                            <input
-                                                type='color'
-                                                value={primaryColor}
-                                                onInput={(e) => setPrimaryColor((e.target as HTMLInputElement).value)}
-                                                disabled={isSaving}
-                                                class='block h-10 w-full rounded-md border border-border-default bg-surface-base cursor-pointer disabled:cursor-not-allowed disabled:opacity-50'
-                                                data-testid='primary-color-input'
-                                            />
-                                            <p class='mt-1 text-xs text-text-muted'>{primaryColor}</p>
-                                        </div>
+                                        <ColorInput
+                                            id='primary-color'
+                                            label='Primary Color'
+                                            value={primaryColor}
+                                            onChange={setPrimaryColor}
+                                            disabled={isSaving}
+                                            testId='primary-color-input'
+                                        />
 
-                                        <div>
-                                            <label class='block text-sm font-medium leading-6 text-text-primary mb-2'>
-                                                Secondary Color
-                                            </label>
-                                            <input
-                                                type='color'
-                                                value={secondaryColor}
-                                                onInput={(e) => setSecondaryColor((e.target as HTMLInputElement).value)}
-                                                disabled={isSaving}
-                                                class='block h-10 w-full rounded-md border border-border-default bg-surface-base cursor-pointer disabled:cursor-not-allowed disabled:opacity-50'
-                                                data-testid='secondary-color-input'
-                                            />
-                                            <p class='mt-1 text-xs text-text-muted'>{secondaryColor}</p>
-                                        </div>
+                                        <ColorInput
+                                            id='secondary-color'
+                                            label='Secondary Color'
+                                            value={secondaryColor}
+                                            onChange={setSecondaryColor}
+                                            disabled={isSaving}
+                                            testId='secondary-color-input'
+                                        />
                                     </div>
                                 </Form>
                             </div>
