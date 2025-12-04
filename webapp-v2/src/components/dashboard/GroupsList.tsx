@@ -30,7 +30,7 @@ export function GroupsList({ onCreateGroup, onInvite, onAddExpense }: GroupsList
 
     if (enhancedGroupsStore.loading && !enhancedGroupsStore.initialized) {
         return (
-            <div class='grid-auto-fit grid-auto-fit-lg' aria-busy='true' aria-label={t('dashboardComponents.groupsList.loading')}>
+            <div class='grid-auto-fit grid-auto-fit-md' aria-busy='true' aria-label={t('dashboardComponents.groupsList.loading')}>
                 <SkeletonCard />
                 <SkeletonCard />
                 <SkeletonCard />
@@ -89,7 +89,7 @@ export function GroupsList({ onCreateGroup, onInvite, onAddExpense }: GroupsList
 
     return (
         <>
-            <div class='grid-auto-fit grid-auto-fit-lg' data-testid='groups-grid' ref={gridRef}>
+            <div class='grid-auto-fit grid-auto-fit-md' data-testid='groups-grid' ref={gridRef}>
                 {enhancedGroupsStore.isCreatingGroup && (
                     <div class='border-2 border-dashed border-border-default rounded-lg p-8 flex items-center justify-center transition-all duration-200'>
                         <LoadingSpinner />

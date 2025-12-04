@@ -48,28 +48,30 @@ The security preset buttons in the Group Settings Modal ("Security & Permissions
 - [x] Remove magnetic effect from group card containers on the dashboard
 - [x] Remove magnetic effect from security preset buttons in GroupSettingsModal
 - [x] Review other large container elements that may have magnetic effect applied inappropriately
+- [x] Fix layout regression - groups should display in multi-column grid on desktop
 
 ---
 
 ## Resolution (2025-12-04)
 
-### Status: MAGNETIC EFFECT ISSUES RESOLVED
+### Status: ALL ISSUES RESOLVED
 
 ### Root Cause
-1. **GroupCard**: Explicitly set `magnetic={true}` on Card component, overriding the Card's default of `magnetic={false}`
-2. **Security Presets**: Button component defaults to `magnetic={true}` (line 44 of Button.tsx), so all buttons inherit magnetic effect unless explicitly disabled
+1. **Magnetic Effect - GroupCard**: Explicitly set `magnetic={true}` on Card component, overriding the Card's default of `magnetic={false}`
+2. **Magnetic Effect - Security Presets**: Button component defaults to `magnetic={true}` (line 44 of Button.tsx), so all buttons inherit magnetic effect unless explicitly disabled
+3. **Layout Regression**: GroupsList used `grid-auto-fit-lg` (360px minimum) which was too large for the dashboard's main content area (~786px after sidebar and padding). With 360px minimum, only 2 columns could fit, and with padding/gap considerations the layout was constrained.
 
 ### Fix Applied
 1. **GroupCard.tsx** (line 106): Removed `magnetic={true}` prop - Card now uses its default `magnetic={false}`
 2. **GroupSettingsModal.tsx** (line 794): Added `magnetic={false}` to preset buttons to override Button's default
+3. **GroupsList.tsx** (lines 33, 92): Changed from `grid-auto-fit-lg` (360px min) to `grid-auto-fit-md` (280px min) to allow more columns in the available space
 
 ### Files Changed
 - `webapp-v2/src/components/dashboard/GroupCard.tsx`
 - `webapp-v2/src/components/group/GroupSettingsModal.tsx`
+- `webapp-v2/src/components/dashboard/GroupsList.tsx`
 
 ### Testing
 - Build passed with no errors
 - Manual verification: Hover over group cards on dashboard and preset buttons in settings - magnetic effect no longer applied
-
-### Note on Layout Regression
-The single-column layout issue mentioned in this bug report is a separate concern and was not addressed in this fix. Only the magnetic effect work items were resolved.
+- Layout now displays groups in multi-column grid on desktop (2-3 columns depending on viewport width)
