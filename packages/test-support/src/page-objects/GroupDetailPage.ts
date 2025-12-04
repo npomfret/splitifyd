@@ -568,14 +568,10 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * Empty expenses state - looks for "no expenses" message
-     * Targets the <p> element specifically to avoid matching parent containers
+     * Empty expenses state - uses EmptyState component with data-testid
      */
     protected getEmptyExpensesState(): Locator {
-        return this
-            .getExpensesContainer()
-            .locator('p')
-            .filter({ hasText: /no.*expenses/i });
+        return this.getExpensesContainer().getByTestId('expenses-empty-state');
     }
 
     // ============================================================================

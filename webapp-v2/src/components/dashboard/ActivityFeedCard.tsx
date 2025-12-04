@@ -1,12 +1,14 @@
 import { useStaggeredReveal } from '@/app/hooks/useScrollReveal';
 import { activityFeedStore } from '@/app/stores/activity-feed-store.ts';
 import { Button } from '@/components/ui/Button';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { RelativeTime } from '@/components/ui/RelativeTime.tsx';
 import { SkeletonActivityItem } from '@/components/ui/Skeleton';
 import { routes } from '@/constants/routes.ts';
 import { navigationService } from '@/services/navigation.service.ts';
 import { logError } from '@/utils/browser-logger.ts';
 import type { ActivityFeedItem, UserId } from '@billsplit-wl/shared';
+import { ClockIcon } from '@heroicons/react/24/outline';
 import { useComputed } from '@preact/signals';
 import type { TFunction } from 'i18next';
 import { useEffect } from 'preact/hooks';
@@ -92,10 +94,12 @@ export function ActivityFeedCard({ userId }: ActivityFeedCardProps) {
 
                 {!error.value && initialized.value && items.value.length === 0
                     ? (
-                        <div className='text-sm text-text-muted' data-testid='activity-feed-empty'>
-                            <p className='font-medium text-text-primary mb-1'>{t('activityFeed.emptyState.title')}</p>
-                            <p>{t('activityFeed.emptyState.description')}</p>
-                        </div>
+                        <EmptyState
+                            icon={<ClockIcon className='w-12 h-12' aria-hidden='true' />}
+                            title={t('activityFeed.emptyState.title')}
+                            description={t('activityFeed.emptyState.description')}
+                            data-testid='activity-feed-empty'
+                        />
                     )
                     : null}
 

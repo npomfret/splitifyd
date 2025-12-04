@@ -61,10 +61,10 @@ export class DashboardPage extends BasePage {
     }
 
     /**
-     * Error message container within the dashboard
+     * Error message container within the dashboard (uses ErrorState component)
      */
     protected getErrorContainer(): Locator {
-        return this.getGroupsContainer().getByTestId('groups-load-error-message');
+        return this.getGroupsContainer().getByTestId('error-message');
     }
 
     // ============================================================================
@@ -86,10 +86,10 @@ export class DashboardPage extends BasePage {
     }
 
     /**
-     * Error state heading
+     * Error state heading (uses ErrorState component)
      */
     protected getErrorHeading(): Locator {
-        return this.page.getByTestId('groups-load-error-title');
+        return this.getGroupsContainer().getByTestId('error-title');
     }
 
     // ============================================================================

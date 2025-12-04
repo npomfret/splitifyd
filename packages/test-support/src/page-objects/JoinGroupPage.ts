@@ -105,7 +105,8 @@ export class JoinGroupPage extends BasePage {
     }
 
     private getSuccessIcon(): Locator {
-        return this.page.getByText('✅');
+        // Success icon is now an SVG inside the success container
+        return this.getJoinSuccessContainer().locator('svg').first();
     }
 
     // ============================================================================

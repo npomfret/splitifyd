@@ -82,42 +82,43 @@ The webapp has **multiple categories of UI inconsistencies**. This audit identif
 
 ### Critical Issues:
 
-1. **GroupsList reimplements ErrorState** (`components/dashboard/GroupsList.tsx:41-71`) - duplicated code
-2. **JoinGroupPage uses hardcoded emoji** "⚠️" instead of semantic icon (`pages/JoinGroupPage.tsx:122`)
+1. ~~**GroupsList reimplements ErrorState**~~ ✅ Fixed - now uses ErrorState component
+2. ~~**JoinGroupPage uses hardcoded emoji**~~ ✅ Fixed - uses ExclamationTriangleIcon and CheckCircleIcon
 3. **Hardcoded error strings** in AdminTenantConfigTab, ImageUploadField
 4. **Toast component exists but is never used** - `components/ui/Toast.tsx`
 5. **No error display** in CommentsList - silent failures
 
 ### Files to Fix:
-| File | Issue |
-|------|-------|
-| `components/dashboard/GroupsList.tsx` | Use ErrorState component instead of custom |
-| `pages/JoinGroupPage.tsx` | Replace emoji with SVG icon |
-| `components/admin/AdminTenantConfigTab.tsx` | Use translations |
-| `components/group/GroupSettingsModal.tsx` | Use Alert component |
+| File | Issue | Status |
+|------|-------|--------|
+| `components/dashboard/GroupsList.tsx` | Use ErrorState component instead of custom | ✅ Done |
+| `pages/JoinGroupPage.tsx` | Replace emoji with SVG icon | ✅ Done |
+| `components/admin/AdminTenantConfigTab.tsx` | Use translations | Pending |
+| `components/group/GroupSettingsModal.tsx` | Use Alert component | Pending |
 
 ---
 
 ## 3. EMPTY STATE INCONSISTENCIES
 
-### Patterns Found (5 different approaches):
+### Current Status: ✅ Standardized
 
-| Pattern | Usage | Icon | Action |
-|---------|-------|------|--------|
-| EmptyState component | EmptyGroupsState only | Yes | Yes |
-| Text only | ExpensesList | No | No |
-| Icon + text | CommentsList, SettlementHistory | Yes | No |
-| Title + description | ActivityFeedCard | No | No |
-| Icon + title + text | GroupsList (archived) | Yes | No |
+All list components now use the `EmptyState` component with consistent structure:
 
-### Critical Issues:
+| Component | Icon | Status |
+|-----------|------|--------|
+| ExpensesList | ReceiptPercentIcon | ✅ Done |
+| SettlementHistory | BanknotesIcon | ✅ Done |
+| CommentsList | ChatBubbleLeftRightIcon | ✅ Done |
+| GroupsList (archived) | ArchiveBoxIcon | ✅ Done |
+| ActivityFeedCard | ClockIcon | ✅ Done |
+| EmptyGroupsState | (custom) | ✅ Already using EmptyState |
 
-1. **EmptyState component exists but only used once** (EmptyGroupsState wrapper)
-2. **No consistent pattern** - some have icons, some don't, some have actions
-3. **ExpensesList** - Just shows text "No expenses yet" with no visual treatment
-
-### Recommendation:
-All empty states should use `EmptyState` component with consistent structure.
+### Pattern Applied:
+All empty states use `EmptyState` component with:
+- Heroicons outline icon (w-12 h-12)
+- Title from translations
+- Optional description from translations
+- Consistent padding via className
 
 ---
 
@@ -212,12 +213,12 @@ The codebase has a well-designed `Typography` component with variants:
 2. ~~Raw `<button>` elements - use Button component~~ ✅ Done (ActivityFeedCard)
 3. ~~Hardcoded admin colors~~ ✅ Exempt (admin uses isolated theming)
 
-### P1 - High Priority (Current)
+### P1 - High Priority ✅ COMPLETE
 4. ~~**Standardize list loading**~~ ✅ Done - All list components now use skeletons
-5. GroupsList error state - use ErrorState component
-6. JoinGroupPage emoji - use SVG icon
+5. ~~GroupsList error state~~ ✅ Done - uses ErrorState component
+6. ~~JoinGroupPage emoji~~ ✅ Done - uses SVG icons (ExclamationTriangleIcon, CheckCircleIcon)
 7. ~~UserEditorModal "Loading..."~~ ✅ Done - uses LoadingSpinner
-8. Empty state standardization
+8. ~~Empty state standardization~~ ✅ Done - All list components use EmptyState
 
 ### P2 - Medium Priority
 8. Modal padding standardization

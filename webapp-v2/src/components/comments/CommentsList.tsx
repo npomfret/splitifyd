@@ -1,7 +1,7 @@
 import type { CommentDTO } from '@billsplit-wl/shared';
 import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 import { useTranslation } from 'react-i18next';
-import { LoadingSpinner, SkeletonCommentItem } from '../ui';
+import { EmptyState, LoadingSpinner, SkeletonCommentItem } from '../ui';
 import { CommentItem } from './CommentItem';
 
 interface CommentsListProps {
@@ -27,11 +27,13 @@ export function CommentsList({ comments, loading = false, hasMore = false, onLoa
 
     if (!loading && comments.length === 0) {
         return (
-            <div className='flex flex-col items-center justify-center py-8 text-text-muted/80 dark:text-text-muted'>
-                <ChatBubbleLeftRightIcon className='w-12 h-12 mb-2 opacity-50' aria-hidden='true' focusable='false' />
-                <p className='text-sm'>{t('comments.commentsList.empty')}</p>
-                <p className='text-xs mt-1'>{t('comments.commentsList.emptySubtext')}</p>
-            </div>
+            <EmptyState
+                icon={<ChatBubbleLeftRightIcon className='w-12 h-12' aria-hidden='true' />}
+                title={t('comments.commentsList.empty')}
+                description={t('comments.commentsList.emptySubtext')}
+                data-testid='comments-empty-state'
+                className='py-8'
+            />
         );
     }
 
@@ -42,7 +44,7 @@ export function CommentsList({ comments, loading = false, hasMore = false, onLoa
         >
             <div className='space-y-4 px-1'>
                 {comments
-                    .map((comment) => <CommentItem key={comment.id} comment={comment} className='pb-4 border-b border-border-default dark:border-border-strong last:border-0' />)}
+                    .map((comment) => <CommentItem key={comment.id} comment={comment} className='pb-4 border-b border-border-default last:border-0' />)}
             </div>
 
             {hasMore && (
@@ -51,7 +53,7 @@ export function CommentsList({ comments, loading = false, hasMore = false, onLoa
                         onClick={onLoadMore}
                         disabled={loading}
                         data-testid='load-more-comments-button'
-                        className='px-4 py-2 text-sm text-interactive-primary hover:text-interactive-primary dark:text-interactive-primary dark:hover:text-interactive-primary font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
+                        className='px-4 py-2 text-sm text-interactive-primary hover:text-interactive-primary font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
                     >
                         {loading
                             ? (

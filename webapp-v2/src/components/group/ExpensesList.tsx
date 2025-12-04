@@ -1,11 +1,13 @@
 import { useStaggeredReveal } from '@/app/hooks/useScrollReveal';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced';
 import type { ExpenseDTO } from '@billsplit-wl/shared';
+import { ReceiptPercentIcon } from '@heroicons/react/24/outline';
 import { useComputed } from '@preact/signals';
 import { useTranslation } from 'react-i18next';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { Checkbox } from '../ui/Checkbox';
+import { EmptyState } from '../ui/EmptyState';
 import { SkeletonExpenseItem } from '../ui/Skeleton';
 import { Stack } from '../ui/Stack';
 import { ExpenseItem } from './ExpenseItem';
@@ -64,7 +66,13 @@ export function ExpensesList({
                     <SkeletonExpenseItem />
                     <SkeletonExpenseItem />
                 </div>
-            ) : expenses.value.length === 0 ? <p className='text-text-muted'>{t('expensesList.noExpensesYet')}</p> : (
+            ) : expenses.value.length === 0 ? (
+                <EmptyState
+                    icon={<ReceiptPercentIcon className='w-12 h-12' aria-hidden='true' />}
+                    title={t('expensesList.noExpensesYet')}
+                    data-testid='expenses-empty-state'
+                />
+            ) : (
                 <Stack spacing='md' ref={listRef}>
                     {expenses.value.map((expense, index) => (
                         <div

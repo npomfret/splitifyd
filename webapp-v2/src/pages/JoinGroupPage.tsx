@@ -4,12 +4,9 @@
  * Handles joining a group via share link invitation
  */
 
-import { Card } from '@/components/ui';
-import { Stack } from '@/components/ui';
-import { Button } from '@/components/ui';
-import { LoadingSpinner } from '@/components/ui';
-import { Input } from '@/components/ui';
+import { Button, Card, Input, LoadingSpinner, Stack } from '@/components/ui';
 import { navigationService } from '@/services/navigation.service';
+import { CheckCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { toDisplayName } from '@billsplit-wl/shared';
 import { useComputed } from '@preact/signals';
 import { useEffect, useState } from 'preact/hooks';
@@ -119,8 +116,8 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
                 <div className='min-h-screen bg-surface-muted flex items-center justify-center p-4'>
                     <Card className='w-full max-w-md'>
                         <div className='text-center py-8'>
-                            <div className='text-semantic-error text-4xl mb-4' role='alert' data-testid='invalid-link-warning'>
-                                ⚠️
+                            <div className='text-semantic-error mb-4' role='alert' data-testid='invalid-link-warning'>
+                                <ExclamationTriangleIcon className='w-12 h-12 mx-auto' aria-hidden='true' />
                             </div>
                             <h2 className='text-xl font-semibold text-text-primary mb-2'>{t('errors.invalidLink')}</h2>
                             <p className='text-text-muted mb-6'>{t('joinGroupPage.errors.invalidLink')}</p>
@@ -157,8 +154,8 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
                 <div className='min-h-screen bg-surface-muted flex items-center justify-center p-4'>
                     <Card className='w-full max-w-md'>
                         <div className='text-center py-8'>
-                            <div className='text-semantic-error text-4xl mb-4' role='alert' data-testid='unable-join-warning'>
-                                ⚠️
+                            <div className='text-semantic-error mb-4' role='alert' data-testid='unable-join-warning'>
+                                <ExclamationTriangleIcon className='w-12 h-12 mx-auto' aria-hidden='true' />
                             </div>
                             <h2 className='text-xl font-semibold text-text-primary mb-2'>{t('joinGroupPage.errors.joinFailed')}</h2>
                             <p className='text-text-muted mb-6'>{error}</p>
@@ -179,7 +176,9 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
                 <div className='min-h-screen bg-surface-muted flex items-center justify-center p-4' data-join-success='true'>
                     <Card className='w-full max-w-md'>
                         <div className='text-center py-8'>
-                            <div className='text-semantic-success text-4xl mb-4'>✅</div>
+                            <div className='text-semantic-success mb-4'>
+                                <CheckCircleIcon className='w-12 h-12 mx-auto' aria-hidden='true' />
+                            </div>
                             <h2 className='text-xl font-semibold text-text-primary mb-2'>{t('joinGroupPage.welcome', { groupName: group.name })}</h2>
                             <p className='text-text-muted mb-6'>{t('joinGroupPage.joinSuccess')}</p>
                             <Stack spacing='md'>

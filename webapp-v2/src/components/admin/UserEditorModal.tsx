@@ -3,7 +3,7 @@ import { Alert, Button, Card, Input, LoadingSpinner, Modal } from '@/components/
 import { logError } from '@/utils/browser-logger';
 import type { AdminUserProfile, DisplayName, Email, SystemUserRole, UpdateUserProfileAdminRequest } from '@billsplit-wl/shared';
 import { SystemUserRoles, toDisplayName, toEmail } from '@billsplit-wl/shared';
-import { useState } from 'preact/hooks';
+import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 
 interface UserEditorModalProps {
@@ -31,6 +31,18 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
     // Profile tab state
     const [displayName, setDisplayName] = useState(String(user.displayName ?? ''));
     const [email, setEmail] = useState(String(user.email ?? ''));
+
+    // Sync state when user prop changes (modal is always mounted)
+    useEffect(() => {
+        setDisplayName(String(user.displayName ?? ''));
+        setEmail(String(user.email ?? ''));
+        setSelectedRole(user.role ?? SystemUserRoles.SYSTEM_USER);
+        setErrorMessage('');
+        setSuccessMessage('');
+        setFirebaseAuthData(null);
+        setFirestoreData(null);
+        setActiveTab('profile');
+    }, [user.uid]);
 
     const handleSaveProfile = async () => {
         setIsSaving(true);
