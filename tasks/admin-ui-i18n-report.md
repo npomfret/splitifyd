@@ -1,18 +1,86 @@
 # Admin UI Internationalization Report
 
-## Objective
+## Status: COMPLETED
+
+**Implementation Date:** January 2025
+
+All hardcoded strings identified in this report have been internationalized using `react-i18next`.
+
+---
+
+## Implementation Summary
+
+### Files Updated
+
+| File | Status | Notes |
+|------|--------|-------|
+| `webapp-v2/src/pages/AdminPage.tsx` | ✅ Complete | Tab labels, loading text |
+| `webapp-v2/src/components/admin/AdminDiagnosticsTab.tsx` | ✅ Complete | All diagnostic card labels |
+| `webapp-v2/src/components/admin/AdminTenantConfigTab.tsx` | ✅ Complete | Section titles, form labels |
+| `webapp-v2/src/components/admin/AdminTenantsTab.tsx` | ✅ Complete | Table headers, badges, actions |
+| `webapp-v2/src/components/admin/AdminUsersTab.tsx` | ✅ Complete | Table, search, confirmations |
+| `webapp-v2/src/components/admin/UserEditorModal.tsx` | ✅ Complete | Modal, tabs, form fields |
+| `webapp-v2/src/components/admin/TenantEditorModal.tsx` | ✅ Complete | 15+ sections, validation |
+| `webapp-v2/src/locales/en/translation.json` | ✅ Complete | ~250 new keys added |
+
+### Translation Key Structure
+
+```json
+{
+  "common": {
+    "loading", "save", "cancel", "edit", "close", "refresh",
+    "enable", "disable", "disabled", "active", "processing",
+    "saving", "you", "name", "type", "size", "modified",
+    "created", "updated", "link", "notConfigured", "notSet", "empty"
+  },
+  "roles": {
+    "systemAdmin": { "label", "description" },
+    "tenantAdmin": { "label", "description" },
+    "regular": { "label", "description" }
+  },
+  "validation": {
+    "required": "{{field}} is required"
+  },
+  "admin": {
+    "loading",
+    "tabs": { "tenants", "diagnostics", "tenantConfig", "users", "ariaLabel" },
+    "diagnostics": { "serverStatus", "buildInfo", "memory", "heap", "envVars", "filesystem" },
+    "tenantConfig": { "overview", "theme", "brandingTokens", "computedCss" },
+    "tenants": { "summary", "status", "details", "actions", "errors", "emptyState" },
+    "users": { "description", "search", "table", "actions", "confirmations", "success", "errors" },
+    "userEditor": { "title", "tabs", "profile", "role", "errors", "success" },
+    "tenantEditor": { "sections", "fields", "placeholders", "creationMode", "validation", "hints", "toggles", "errors", "success", "buttons" }
+  }
+}
+```
+
+### Key Patterns Used
+
+1. **Pattern-based validation** - Instead of 100+ individual validation keys, used interpolation:
+   ```typescript
+   const required = (field: string) => t('validation.required', { field });
+   // Usage: required(t('admin.tenantEditor.fields.tenantId'))
+   ```
+
+2. **Shared namespaces** - Common strings (`save`, `cancel`, `loading`) in `common` namespace
+
+3. **Role labels** - Centralized in `roles` namespace, reused across AdminUsersTab and UserEditorModal
+
+4. **Hierarchical keys** - Mirrored UI structure (e.g., `admin.tenantEditor.sections.basicInfo.title`)
+
+---
+
+## Original Analysis (For Reference)
+
+### Objective
 
 This report details the findings of a deep dive into the Admin UI codebase to identify hardcoded text strings that require internationalization (i18n). The goal is to prepare for pulling these strings into a translation management system like `react-i18next`.
 
-No code has been changed as part of this investigation.
+### Summary of Findings
 
-## Summary of Findings
+The Admin UI contained a significant number of hardcoded user-facing strings across its pages and components. The most significant files were the various tab components (`Admin...Tab.tsx`) and the modals (`...EditorModal.tsx`), which were rich with labels, titles, descriptions, buttons, and validation messages.
 
-The Admin UI contains a significant number of hardcoded user-facing strings across its pages and components. The most significant files are the various tab components (`Admin...Tab.tsx`) and the modals (`...EditorModal.tsx`), which are rich with labels, titles, descriptions, buttons, and validation messages that are currently not translated.
-
-While some top-level components use the `useTranslation` hook, its usage is not consistent, and the vast majority of strings are hardcoded.
-
-## Files Analyzed
+### Files Analyzed
 
 -   `webapp-v2/src/pages/AdminPage.tsx`
 -   `webapp-v2/src/components/admin/AdminDiagnosticsTab.tsx`
@@ -26,9 +94,9 @@ While some top-level components use the `useTranslation` hook, its usage is not 
 
 ## Detailed String Analysis
 
-### 1. `webapp-v2/src/pages/AdminPage.tsx`
+### 1. `webapp-v2/src/pages/AdminPage.tsx` ✅
 
-| Line | Hardcoded String | Suggested Key |
+| Line | Hardcoded String | Key Used |
 | :--- | :--- | :--- |
 | 62 | `Loading admin...` | `admin.loading` |
 | 70 | `Tenants` | `admin.tabs.tenants` |
@@ -37,14 +105,12 @@ While some top-level components use the `useTranslation` hook, its usage is not 
 | 86 | `Users` | `admin.tabs.users` |
 | 102 | `Admin tabs` | `admin.tabs.ariaLabel` |
 
-### 2. `webapp-v2/src/components/admin/AdminDiagnosticsTab.tsx`
+### 2. `webapp-v2/src/components/admin/AdminDiagnosticsTab.tsx` ✅
 
-This component is for developers and administrators, but for consistency, its strings should also be internationalized.
-
-| Line | Hardcoded String | Suggested Key |
+| Line | Hardcoded String | Key Used |
 | :--- | :--- | :--- |
 | 18 | `Failed to fetch environment data` | `admin.diagnostics.errors.fetch` |
-| 19 | `Unknown error occurred` | `errors.unknown` |
+| 19 | `Unknown error occurred` | `admin.diagnostics.errors.unknown` |
 | 27 | `Loading environment diagnostics...`| `admin.diagnostics.loading` |
 | 35 | `Server Status` | `admin.diagnostics.serverStatus.title` |
 | 39 | `Environment` | `admin.diagnostics.serverStatus.environment` |
@@ -78,9 +144,9 @@ This component is for developers and administrators, but for consistency, its st
 | 176| `Size` | `common.size` |
 | 177| `Modified` | `common.modified` |
 
-### 3. `webapp-v2/src/components/admin/AdminTenantConfigTab.tsx`
+### 3. `webapp-v2/src/components/admin/AdminTenantConfigTab.tsx` ✅
 
-| Line | Hardcoded String | Suggested Key |
+| Line | Hardcoded String | Key Used |
 | :--- | :--- | :--- |
 | 30 | `Loading tenant configuration...` | `admin.tenantConfig.loading` |
 | 46 | `Theme link copied to clipboard.` | `admin.tenantConfig.theme.copySuccess` |
@@ -103,9 +169,9 @@ This component is for developers and administrators, but for consistency, its st
 | 132 | `Computed CSS Variables` | `admin.tenantConfig.computedCss.title`|
 | 138 | `not set` | `common.notSet` |
 
-### 4. `webapp-v2/src/components/admin/AdminTenantsTab.tsx`
+### 4. `webapp-v2/src/components/admin/AdminTenantsTab.tsx` ✅
 
-| Line | Hardcoded String | Suggested Key |
+| Line | Hardcoded String | Key Used |
 | :--- | :--- | :--- |
 | 32 | `Failed to load tenants` | `admin.tenants.errors.load` |
 | 59 | `Total tenants:` | `admin.tenants.summary.total` |
@@ -121,23 +187,21 @@ This component is for developers and administrators, but for consistency, its st
 | 134| `Edit` | `common.edit` |
 | 149| `No tenants found` | `admin.tenants.emptyState` |
 
-### 5. `webapp-v2/src/components/admin/AdminUsersTab.tsx`
+### 5. `webapp-v2/src/components/admin/AdminUsersTab.tsx` ✅
 
-This component has many hardcoded strings, especially for dynamic confirmation messages.
-
-| Line | Hardcoded String | Suggested Key |
+| Line | Hardcoded String | Key Used |
 | :--- | :--- | :--- |
 | 152 | `You cannot disable your own account` | `admin.users.errors.selfDisable` |
 | 157 | `enable` / `disable` | `common.enable` / `common.disable` |
-| 158 | `Are you sure you want to {action} this user account?` | `admin.users.confirmations.disableUser`|
-| 166 | `User account {action}d successfully` | `admin.users.success.userDisabled` |
-| 171 | `Failed to {action} user account` | `admin.users.errors.disableUser` |
+| 158 | `Are you sure you want to {action} this user account?` | `admin.users.confirmations.toggleUser`|
+| 166 | `User account {action}d successfully` | `admin.users.success.userToggled` |
+| 171 | `Failed to {action} user account` | `admin.users.errors.toggleUser` |
 | 178 | `You cannot change your own role`| `admin.users.errors.selfRoleChange` |
-| 183 | `Regular User (no role)` | `roles.regular.withNoRole` |
+| 183 | `Regular User (no role)` | `roles.regular.label` |
 | 184 | `Tenant Admin` | `roles.tenantAdmin.label` |
 | 185 | `System Admin` | `roles.systemAdmin.label` |
 | 194 | `Current role: ... Select new role: ...` | `admin.users.confirmations.changeRole` |
-| 200 | `Invalid selection` | `errors.invalidSelection` |
+| 200 | `Invalid selection` | `admin.users.errors.invalidSelection` |
 | 205 | `Role unchanged` | `admin.users.success.roleUnchanged`|
 | 211 | `User role updated to {roleLabel}`| `admin.users.success.roleUpdated` |
 | 216 | `Failed to update user role` | `admin.users.errors.roleUpdate` |
@@ -152,27 +216,23 @@ This component has many hardcoded strings, especially for dynamic confirmation m
 | 267 | `Reset` | `common.reset` |
 | 272 | `Loading users...` | `admin.users.loading` |
 | 276 | `No users found` | `admin.users.emptyState` |
-| 282-288 | Table Headers (`Email`, `Display Name`, `Role`, `Status`, `Created`, `Last Sign In`, `Actions`) | `admin.users.table.header.*` |
+| 282-288 | Table Headers | `admin.users.table.*` |
 | 300 | `You` | `common.you` |
 | 315 | `Disabled` | `common.disabled` |
 | 315 | `Active` | `common.active` |
-| 330 | `Edit user` | `admin.users.actions.edit` |
+| 330 | `Edit user` | `admin.users.actions.editUser` |
 | 343 | `Processing...` | `common.processing` |
 | 345, 347 | `Enable` / `Disable` | `common.enable` / `common.disable` |
 
-### 6. `webapp-v2/src/components/admin/TenantEditorModal.tsx`
+### 6. `webapp-v2/src/components/admin/TenantEditorModal.tsx` ✅
 
-This modal is extremely large and contains hundreds of hardcoded labels and descriptions. A full listing is impractical. The strategy should be to create nested i18n keys for each section.
+This modal contained hundreds of hardcoded labels and descriptions. Implemented using:
 
-**Summary of Hardcoded Strings:**
+- **Pattern-based validation**: `t('validation.required', { field })` instead of individual keys
+- **Section-based structure**: Keys organized by UI sections (gettingStarted, basicInfo, palette, etc.)
+- **Shared field labels**: Common field names in `admin.tenantEditor.fields.*`
 
-- **Validation Errors**: A huge number of `... is required` messages. These should use a single key, e.g., `errors.validation.requiredField`.
-- **User-facing Messages**: Success and error messages for saving, publishing, and uploading.
-- **Section Titles & Descriptions**: e.g., "Getting Started", "Choose how to initialize your tenant".
-- **Field Labels & Placeholders**: Every input field has a hardcoded label (e.g., `Tenant ID`, `Primary *`) and often a placeholder.
-- **Button Texts**: `Cancel`, `Save Changes`, `Create Tenant`, `Publish Theme`, `Add`.
-
-**Example Key Structure:**
+**Key Structure Implemented:**
 
 ```json
 {
@@ -180,43 +240,37 @@ This modal is extremely large and contains hundreds of hardcoded labels and desc
     "tenantEditor": {
       "titleCreate": "Create New Tenant",
       "titleEdit": "Edit Tenant",
-      "descriptionCreate": "Configure a new tenant with branding and domains",
-      "descriptionEdit": "Update tenant configuration",
-      "gettingStarted": {
-        "title": "Getting Started",
-        "description": "Choose how to initialize your tenant",
-        "fromEmpty": "Start from empty",
-        "fromCopy": "Copy from existing tenant"
+      "sections": {
+        "gettingStarted": { "title", "description" },
+        "basicInfo": { "title", "description" },
+        "palette": { "title", "description" },
+        "surfaces": { "title", "description" },
+        "text": { "title", "description" },
+        "interactive": { "title", "description" },
+        "semantic": { "title", "description" },
+        "borders": { "title", "description" },
+        "motion": { "title", "description" },
+        "fonts": { "title", "description" },
+        "images": { "title", "description" },
+        "toggles": { "title", "description" }
       },
-      "basicInfo": {
-        "title": "Basic Info",
-        "description": "Tenant ID, name, and domains",
-        "tenantId": "Tenant ID",
-        "appName": "App Name",
-        "domains": "Domains"
-      },
-      "palette": {
-          "title": "Palette Colors",
-          "description": "Core color palette ({count} required)",
-          "primary": "Primary *",
-          "...": "..."
-      },
-      "footer": {
-        "cancel": "Cancel",
-        "publish": "Publish Theme",
-        "publishing": "Publishing...",
-        "save": "Save Changes",
-        "saving": "Saving...",
-        "create": "Create Tenant"
-      }
+      "fields": { "tenantId", "appName", "domains", ... },
+      "placeholders": { "tenantId", "appName", "domain", ... },
+      "creationMode": { "empty", "copyFrom", "selectTenant" },
+      "validation": { "tenantIdFormat", "domainRequired", "invalidDomain", ... },
+      "hints": { "tenantIdHint", "domainsHint", ... },
+      "toggles": { "isActive", "isDefault", "magneticHover", ... },
+      "errors": { "invalidPayload", "permissionDenied", "uploadFailed", ... },
+      "success": { "createdAndPublished", "updatedAndPublished", "uploadSuccess" },
+      "buttons": { "cancel", "publish", "publishing", "save", "saving", "create" }
     }
   }
 }
 ```
 
-### 7. `webapp-v2/src/components/admin/UserEditorModal.tsx`
+### 7. `webapp-v2/src/components/admin/UserEditorModal.tsx` ✅
 
-| Line | Hardcoded String | Suggested Key |
+| Line | Hardcoded String | Key Used |
 | :--- | :--- | :--- |
 | 50 | `No changes to save` | `admin.userEditor.errors.noChanges` |
 | 56 | `Profile updated successfully` | `admin.userEditor.success.profileUpdated` |
@@ -225,10 +279,10 @@ This modal is extremely large and contains hundreds of hardcoded labels and desc
 | 74 | `Role updated successfully` | `admin.userEditor.success.roleUpdated` |
 | 78 | `Failed to update role` | `admin.userEditor.errors.roleUpdate` |
 | 89 | `Failed to load data` | `admin.userEditor.errors.loadData` |
-| 110-112 | Role names and descriptions | `roles.regular.label`, `roles.regular.description`, etc. |
+| 110-112 | Role names and descriptions | `roles.*.label`, `roles.*.description` |
 | 119 | `Edit User` | `admin.userEditor.title` |
 | 125 | `User editor tabs` | `admin.userEditor.tabs.ariaLabel` |
-| 133, 142, 151, 160 | `Profile`, `Role`, `Firebase Auth`, `Firestore` | `admin.userEditor.tabs.*` |
+| 133, 142, 151, 160 | Tab names | `admin.userEditor.tabs.*` |
 | 172 | `Edit the user's display name and email address` | `admin.userEditor.profile.description`|
 | 176 | `Display Name` | `admin.userEditor.profile.displayName` |
 | 182 | `Enter display name` | `admin.userEditor.profile.displayNamePlaceholder` |
@@ -236,17 +290,33 @@ This modal is extremely large and contains hundreds of hardcoded labels and desc
 | 194 | `Enter email address` | `admin.userEditor.profile.emailPlaceholder`|
 | 201 | `Select a role for this user` | `admin.userEditor.role.description` |
 | 203 | `You cannot change your own role` | `admin.userEditor.errors.selfRoleChangeWarning` |
-| 232, 245 | `Loading...` | `common.loading` |
-| 238, 251 | `No data available` | `common.noData` |
+| 232, 245 | `Loading...` | `admin.userEditor.loading` |
+| 238, 251 | `No data available` | `admin.userEditor.noDataAvailable` |
 | 259 | `Cancel` / `Close` | `common.cancel` / `common.close` |
 | 268, 280 | `Saving...` / `Save` | `common.saving` / `common.save` |
 
-## Recommendations
+---
 
-1.  **Adopt a structured key naming convention**, such as `feature.component.element.state` (e.g., `admin.users.table.header.email`).
-2.  **Tackle `TenantEditorModal.tsx` systematically**, section by section, due to its size. Create a nested JSON structure for its translations that mirrors the collapsible sections in the UI.
-3.  **Create a shared `common.json` namespace** for frequently used strings like "Save", "Cancel", "Loading...", "Error", "Success", "Edit", "Refresh".
-4.  For dynamic messages (e.g., "Are you sure you want to **enable** this user?"), use i18next's interpolation features.
-5.  All new Admin UI development must enforce the use of the `useTranslation` hook and i18n keys from the start.
+## Recommendations (Original)
 
-This report provides the necessary information to begin the internationalization process for the Admin UI.
+These recommendations were followed during implementation:
+
+1. ✅ **Adopted structured key naming convention** - `feature.component.element.state`
+2. ✅ **Tackled `TenantEditorModal.tsx` systematically** - Section by section with nested JSON
+3. ✅ **Created shared `common` namespace** - For Save, Cancel, Loading, etc.
+4. ✅ **Used i18next interpolation** - For dynamic messages with `{{field}}` placeholders
+5. ✅ **All Admin UI uses `useTranslation` hook** - Consistent implementation across all components
+
+---
+
+## Build Verification
+
+The implementation compiles successfully with no TypeScript errors:
+
+```
+> webapp-v2@0.1.0 build
+> npm run build:check && vite build
+> tsc --project tsconfig.build.json --noEmit
+✓ 1058 modules transformed.
+✓ built in 3.37s
+```

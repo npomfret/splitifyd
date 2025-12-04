@@ -4,6 +4,7 @@ import { logError } from '@/utils/browser-logger';
 import type { AdminUserProfile, DisplayName, Email, SystemUserRole, UpdateUserProfileAdminRequest } from '@billsplit-wl/shared';
 import { SystemUserRoles, toDisplayName, toEmail } from '@billsplit-wl/shared';
 import { useState } from 'preact/hooks';
+import { useTranslation } from 'react-i18next';
 
 interface UserEditorModalProps {
     open: boolean;
@@ -16,6 +17,7 @@ interface UserEditorModalProps {
 type TabType = 'profile' | 'role' | 'firebase-auth' | 'firestore';
 
 export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: UserEditorModalProps) {
+    const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState<TabType>('profile');
     const [selectedRole, setSelectedRole] = useState<SystemUserRole>(user.role ?? SystemUserRoles.SYSTEM_USER);
     const [isSaving, setIsSaving] = useState(false);
@@ -46,20 +48,20 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
             }
 
             if (Object.keys(updates).length === 0) {
-                setErrorMessage('No changes to save');
+                setErrorMessage(t('admin.userEditor.errors.noChanges'));
                 setIsSaving(false);
                 return;
             }
 
             await apiClient.updateUserProfileAdmin(user.uid, updates);
-            setSuccessMessage('Profile updated successfully');
+            setSuccessMessage(t('admin.userEditor.success.profileUpdated'));
             setTimeout(() => {
                 onSave();
                 onClose();
             }, 1000);
         } catch (error) {
             logError('Failed to update user profile', error);
-            setErrorMessage(error instanceof Error ? error.message : 'Failed to update profile');
+            setErrorMessage(error instanceof Error ? error.message : t('admin.userEditor.errors.profileUpdate'));
         } finally {
             setIsSaving(false);
         }
@@ -67,7 +69,7 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
 
     const handleSaveRole = async () => {
         if (isCurrentUser) {
-            setErrorMessage('Cannot change your own role');
+            setErrorMessage(t('admin.userEditor.errors.selfRoleChange'));
             return;
         }
 
@@ -77,14 +79,14 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
 
         try {
             await apiClient.updateUserRole(user.uid, { role: selectedRole });
-            setSuccessMessage('Role updated successfully');
+            setSuccessMessage(t('admin.userEditor.success.roleUpdated'));
             setTimeout(() => {
                 onSave();
                 onClose();
             }, 1000);
         } catch (error) {
             logError('Failed to update user role', error);
-            setErrorMessage(error instanceof Error ? error.message : 'Failed to update role');
+            setErrorMessage(error instanceof Error ? error.message : t('admin.userEditor.errors.roleUpdate'));
         } finally {
             setIsSaving(false);
         }
@@ -99,7 +101,7 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
             setFirebaseAuthData(authData);
         } catch (error) {
             logError('Failed to load Firebase Auth data', error);
-            setFirebaseAuthData({ error: 'Failed to load data' });
+            setFirebaseAuthData({ error: t('admin.userEditor.errors.loadData') });
         } finally {
             setLoadingAuth(false);
         }
@@ -114,7 +116,7 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
             setFirestoreData(firestoreDoc);
         } catch (error) {
             logError('Failed to load Firestore data', error);
-            setFirestoreData({ error: 'Failed to load data' });
+            setFirestoreData({ error: t('admin.userEditor.errors.loadData') });
         } finally {
             setLoadingFirestore(false);
         }
@@ -132,9 +134,9 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
     };
 
     const roleOptions = [
-        { value: SystemUserRoles.SYSTEM_USER, label: 'Regular User', description: 'Standard user with no administrative privileges' },
-        { value: SystemUserRoles.TENANT_ADMIN, label: 'Tenant Admin', description: 'Can manage tenant settings and configuration' },
-        { value: SystemUserRoles.SYSTEM_ADMIN, label: 'System Admin', description: 'Full system access and control' },
+        { value: SystemUserRoles.SYSTEM_USER, label: t('roles.regular.label'), description: t('roles.regular.description') },
+        { value: SystemUserRoles.TENANT_ADMIN, label: t('roles.tenantAdmin.label'), description: t('roles.tenantAdmin.description') },
+        { value: SystemUserRoles.SYSTEM_ADMIN, label: t('roles.systemAdmin.label'), description: t('roles.systemAdmin.description') },
     ];
 
     const hasProfileChanges = displayName.trim() !== String(user.displayName ?? '') ||
@@ -145,13 +147,13 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
             <div class='flex flex-col max-h-[90vh] overflow-hidden'>
                 {/* Header */}
                 <div class='border-b border-border-default px-6 py-4'>
-                    <h2 class='text-xl font-semibold text-text-primary'>Edit User</h2>
+                    <h2 class='text-xl font-semibold text-text-primary'>{t('admin.userEditor.title')}</h2>
                     <p class='text-sm text-text-muted mt-1'>{user.email}</p>
                 </div>
 
                 {/* Tabs */}
                 <div class='border-b border-border-default px-6'>
-                    <nav class='flex space-x-4' aria-label='User editor tabs'>
+                    <nav class='flex space-x-4' aria-label={t('admin.userEditor.tabs.ariaLabel')}>
                         <button
                             onClick={() => handleTabChange('profile')}
                             class={`py-3 px-2 text-sm font-medium border-b-2 transition-colors ${
@@ -161,7 +163,7 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                             }`}
                             data-testid='profile-tab'
                         >
-                            Profile
+                            {t('admin.userEditor.tabs.profile')}
                         </button>
                         <button
                             onClick={() => handleTabChange('role')}
@@ -172,7 +174,7 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                             }`}
                             data-testid='role-tab'
                         >
-                            Role
+                            {t('admin.userEditor.tabs.role')}
                         </button>
                         <button
                             onClick={() => handleTabChange('firebase-auth')}
@@ -182,7 +184,7 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                                     : 'border-transparent text-text-muted hover:text-text-primary'
                             }`}
                         >
-                            Firebase Auth
+                            {t('admin.userEditor.tabs.firebaseAuth')}
                         </button>
                         <button
                             onClick={() => handleTabChange('firestore')}
@@ -192,7 +194,7 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                                     : 'border-transparent text-text-muted hover:text-text-primary'
                             }`}
                         >
-                            Firestore
+                            {t('admin.userEditor.tabs.firestore')}
                         </button>
                     </nav>
                 </div>
@@ -207,30 +209,30 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                     {/* Profile Tab */}
                     {activeTab === 'profile' && (
                         <div class='space-y-6'>
-                            <p class='text-sm text-text-muted'>Edit the user's display name and email address</p>
+                            <p class='text-sm text-text-muted'>{t('admin.userEditor.profile.description')}</p>
 
                             <div class='space-y-4'>
                                 <div>
                                     <label class='block text-sm font-medium text-text-primary mb-2'>
-                                        Display Name
+                                        {t('admin.userEditor.profile.displayName')}
                                     </label>
                                     <Input
                                         value={displayName}
                                         onChange={setDisplayName}
-                                        placeholder='Enter display name'
+                                        placeholder={t('admin.userEditor.profile.displayNamePlaceholder')}
                                         data-testid='display-name-input'
                                     />
                                 </div>
 
                                 <div>
                                     <label class='block text-sm font-medium text-text-primary mb-2'>
-                                        Email Address
+                                        {t('admin.userEditor.profile.email')}
                                     </label>
                                     <Input
                                         type='email'
                                         value={email}
                                         onChange={setEmail}
-                                        placeholder='Enter email address'
+                                        placeholder={t('admin.userEditor.profile.emailPlaceholder')}
                                         data-testid='email-input'
                                     />
                                 </div>
@@ -241,9 +243,9 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                     {/* Role Tab */}
                     {activeTab === 'role' && (
                         <div class='space-y-4'>
-                            <p class='text-sm text-text-muted'>Select a role for this user</p>
+                            <p class='text-sm text-text-muted'>{t('admin.userEditor.role.description')}</p>
 
-                            {isCurrentUser && <Alert type='warning' message='You cannot change your own role' />}
+                            {isCurrentUser && <Alert type='warning' message={t('admin.userEditor.errors.selfRoleChangeWarning')} />}
 
                             <div class='space-y-3'>
                                 {roleOptions.map((option) => (
@@ -277,7 +279,7 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                     {/* Firebase Auth Document Tab */}
                     {activeTab === 'firebase-auth' && (
                         <div>
-                            {loadingAuth ? <div class='text-center py-8 text-text-muted'>Loading...</div> : firebaseAuthData
+                            {loadingAuth ? <div class='text-center py-8 text-text-muted'>{t('admin.userEditor.loading')}</div> : firebaseAuthData
                                 ? (
                                     <Card padding='md' className='bg-surface-muted'>
                                         <pre class='text-xs overflow-x-auto whitespace-pre-wrap break-all'>
@@ -285,14 +287,14 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                                         </pre>
                                     </Card>
                                 )
-                                : <div class='text-center py-8 text-text-muted'>No data available</div>}
+                                : <div class='text-center py-8 text-text-muted'>{t('admin.userEditor.noDataAvailable')}</div>}
                         </div>
                     )}
 
                     {/* Firestore Document Tab */}
                     {activeTab === 'firestore' && (
                         <div>
-                            {loadingFirestore ? <div class='text-center py-8 text-text-muted'>Loading...</div> : firestoreData
+                            {loadingFirestore ? <div class='text-center py-8 text-text-muted'>{t('admin.userEditor.loading')}</div> : firestoreData
                                 ? (
                                     <Card padding='md' className='bg-surface-muted'>
                                         <pre class='text-xs overflow-x-auto whitespace-pre-wrap break-all'>
@@ -300,7 +302,7 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                                         </pre>
                                     </Card>
                                 )
-                                : <div class='text-center py-8 text-text-muted'>No data available</div>}
+                                : <div class='text-center py-8 text-text-muted'>{t('admin.userEditor.noDataAvailable')}</div>}
                         </div>
                     )}
                 </div>
@@ -313,7 +315,7 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                         disabled={isSaving}
                         data-testid='cancel-button'
                     >
-                        {activeTab === 'profile' || activeTab === 'role' ? 'Cancel' : 'Close'}
+                        {activeTab === 'profile' || activeTab === 'role' ? t('common.cancel') : t('common.close')}
                     </Button>
                     {activeTab === 'profile' && (
                         <Button
@@ -324,7 +326,7 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                             data-testid='save-profile-button'
                             className='!bg-gradient-to-r !from-indigo-600 !to-purple-600 !text-white !shadow-lg hover:!shadow-indigo-500/30'
                         >
-                            {isSaving ? 'Saving...' : 'Save'}
+                            {isSaving ? t('common.saving') : t('common.save')}
                         </Button>
                     )}
                     {activeTab === 'role' && (
@@ -336,7 +338,7 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                             data-testid='save-role-button'
                             className='!bg-gradient-to-r !from-indigo-600 !to-purple-600 !text-white !shadow-lg hover:!shadow-indigo-500/30'
                         >
-                            {isSaving ? 'Saving...' : 'Save'}
+                            {isSaving ? t('common.saving') : t('common.save')}
                         </Button>
                     )}
                 </div>

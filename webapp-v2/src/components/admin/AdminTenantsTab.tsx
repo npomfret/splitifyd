@@ -4,12 +4,14 @@ import { Alert, Button, Card, LoadingSpinner } from '@/components/ui';
 import { configStore } from '@/stores/config-store.ts';
 import { logError } from '@/utils/browser-logger';
 import type { TenantFullRecord } from '@billsplit-wl/shared';
+import { useEffect, useState } from 'preact/hooks';
+import { useTranslation } from 'react-i18next';
 
 type Tenant = TenantFullRecord;
-import { useEffect, useState } from 'preact/hooks';
 
 // Extended tenant type with computed fields from the backend
 export function AdminTenantsTab() {
+    const { t } = useTranslation();
     const [tenants, setTenants] = useState<Tenant[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -32,7 +34,7 @@ export function AdminTenantsTab() {
             const response = await apiClient.listAllTenants();
             setTenants(response.tenants);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to load tenants');
+            setError(err instanceof Error ? err.message : t('admin.tenants.errors.load'));
             logError('Failed to load tenants', err);
         } finally {
             setIsLoading(false);
@@ -106,15 +108,15 @@ export function AdminTenantsTab() {
                 <div class='flex items-center gap-3'>
                     <div class='w-2 h-2 rounded-full bg-amber-500 animate-pulse'></div>
                     <p class='text-sm text-gray-700'>
-                        Total tenants: <span class='font-bold text-amber-700'>{tenants.length}</span>
+                        {t('admin.tenants.summary.total')} <span class='font-bold text-amber-700'>{tenants.length}</span>
                     </p>
                 </div>
                 <div class='flex gap-2'>
                     <Button onClick={handleCreateTenant} variant='primary' size='sm' data-testid='create-tenant-button'>
-                        Create New Tenant
+                        {t('admin.tenants.actions.create')}
                     </Button>
                     <Button onClick={loadTenants} variant='secondary' size='sm' className='!bg-white !text-gray-800 !border-gray-300 hover:!bg-gray-50'>
-                        Refresh
+                        {t('common.refresh')}
                     </Button>
                 </div>
             </div>
@@ -137,24 +139,24 @@ export function AdminTenantsTab() {
                                         </h3>
                                         {isCurrentTenant && (
                                             <span class='inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-emerald-100 text-emerald-700 border border-emerald-300'>
-                                                Active
+                                                {t('admin.tenants.status.active')}
                                             </span>
                                         )}
                                         {tenant.isDefault && (
                                             <span class='inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-amber-100 text-amber-700 border border-amber-300'>
-                                                Default
+                                                {t('admin.tenants.status.default')}
                                             </span>
                                         )}
                                     </div>
 
                                     <div class='space-y-2 text-sm'>
                                         <div>
-                                            <span class='text-indigo-600'>Tenant ID:</span> <span class='font-mono text-gray-800'>{tenant.tenant.tenantId}</span>
+                                            <span class='text-indigo-600'>{t('admin.tenants.details.tenantId')}</span> <span class='font-mono text-gray-800'>{tenant.tenant.tenantId}</span>
                                         </div>
 
                                         {tenant.domains.length > 0 && (
                                             <div>
-                                                <span class='text-indigo-600'>Domains:</span>{' '}
+                                                <span class='text-indigo-600'>{t('admin.tenants.details.domains')}</span>{' '}
                                                 <span class='font-mono text-gray-800'>
                                                     {tenant.domains.map((domain, idx) => (
                                                         <>
@@ -162,7 +164,7 @@ export function AdminTenantsTab() {
                                                             <button
                                                                 onClick={() => handleSwitchTenant(domain)}
                                                                 class='text-amber-700 hover:text-amber-600 hover:underline cursor-pointer transition-colors'
-                                                                title='Click to switch to this tenant'
+                                                                title={t('admin.tenants.actions.switchTenant')}
                                                             >
                                                                 {domain}
                                                             </button>
@@ -174,10 +176,10 @@ export function AdminTenantsTab() {
 
                                         <div class='pt-3 text-xs text-indigo-600 flex gap-4'>
                                             <div>
-                                                Created: <span class='text-gray-700'>{new Date(tenant.tenant.createdAt).toLocaleDateString()}</span>
+                                                {t('common.created')}: <span class='text-gray-700'>{new Date(tenant.tenant.createdAt).toLocaleDateString()}</span>
                                             </div>
                                             <div>
-                                                Updated: <span class='text-gray-700'>{new Date(tenant.tenant.updatedAt).toLocaleDateString()}</span>
+                                                {t('common.updated')}: <span class='text-gray-700'>{new Date(tenant.tenant.updatedAt).toLocaleDateString()}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -190,7 +192,7 @@ export function AdminTenantsTab() {
                                         className='!bg-white !text-gray-800 !border-gray-300 hover:!bg-gray-50'
                                         data-testid={`edit-tenant-${tenant.tenant.tenantId}`}
                                     >
-                                        Edit
+                                        {t('common.edit')}
                                     </Button>
                                 </div>
                             </div>
@@ -211,7 +213,7 @@ export function AdminTenantsTab() {
                             />
                         </svg>
                     </div>
-                    <p class='text-indigo-700 text-lg'>No tenants found</p>
+                    <p class='text-indigo-700 text-lg'>{t('admin.tenants.emptyState')}</p>
                 </Card>
             )}
 

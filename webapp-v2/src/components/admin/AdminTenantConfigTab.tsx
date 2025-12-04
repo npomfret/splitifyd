@@ -5,6 +5,7 @@ import { logError } from '@/utils/browser-logger';
 import { getThemeStorageKey } from '@/utils/theme-bootstrap';
 import { useComputed } from '@preact/signals';
 import { useEffect, useMemo, useState } from 'preact/hooks';
+import { useTranslation } from 'react-i18next';
 
 const TRACKED_VARS = [
     '--surface-base-rgb',
@@ -28,13 +29,14 @@ const TRACKED_VARS = [
 type ActionMessage = { type: 'success' | 'error'; text: string; } | null;
 
 export function AdminTenantConfigTab() {
+    const { t } = useTranslation();
     const config = useConfig();
     const isLoading = useComputed(() => configStore.loadingSignal.value);
     const [computedVars, setComputedVars] = useState<Record<string, string>>({});
     const [actionMessage, setActionMessage] = useState<ActionMessage>(null);
 
     if (isLoading.value || !config) {
-        return <LoadingState message='Loading tenant configuration...' />;
+        return <LoadingState message={t('admin.tenantConfig.loading')} />;
     }
 
     const themeLink = useMemo(() => {
@@ -63,10 +65,10 @@ export function AdminTenantConfigTab() {
     const handleCopyThemeLink = async () => {
         try {
             await navigator.clipboard.writeText(themeLink);
-            showMessage({ type: 'success', text: 'Theme link copied to clipboard.' });
+            showMessage({ type: 'success', text: t('admin.tenantConfig.theme.copySuccess') });
         } catch (error) {
             logError('Failed to copy theme link', error);
-            showMessage({ type: 'error', text: 'Unable to copy theme link. Please copy manually.' });
+            showMessage({ type: 'error', text: t('admin.tenantConfig.theme.copyError') });
         }
     };
 
@@ -93,19 +95,19 @@ export function AdminTenantConfigTab() {
                 <Stack spacing='sm'>
                     <div class='flex items-center gap-2 mb-2'>
                         <div class='w-1 h-6 bg-gradient-to-b from-amber-500 to-orange-600 rounded-full'></div>
-                        <Typography variant='heading' className='text-amber-700'>Tenant Overview</Typography>
+                        <Typography variant='heading' className='text-amber-700'>{t('admin.tenantConfig.overview.title')}</Typography>
                     </div>
                     <div class='grid gap-4 md:grid-cols-3 text-sm'>
                         <div class='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
-                            <p class='text-indigo-600 text-xs mb-1'>Tenant ID</p>
-                            <p class='font-mono text-amber-700 font-medium'>{config?.tenant?.tenantId ?? 'unknown'}</p>
+                            <p class='text-indigo-600 text-xs mb-1'>{t('admin.tenantConfig.overview.tenantId')}</p>
+                            <p class='font-mono text-amber-700 font-medium'>{config?.tenant?.tenantId ?? t('common.unknown')}</p>
                         </div>
                         <div class='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
-                            <p class='text-indigo-600 text-xs mb-1'>App Name</p>
-                            <p class='text-gray-800 font-medium'>{tenantBranding?.appName ?? 'Not configured'}</p>
+                            <p class='text-indigo-600 text-xs mb-1'>{t('admin.tenantConfig.overview.appName')}</p>
+                            <p class='text-gray-800 font-medium'>{tenantBranding?.appName ?? t('common.notConfigured')}</p>
                         </div>
                         <div class='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
-                            <p class='text-indigo-600 text-xs mb-1'>Last Updated</p>
+                            <p class='text-indigo-600 text-xs mb-1'>{t('admin.tenantConfig.overview.lastUpdated')}</p>
                             <p class='text-gray-800 font-medium'>{config?.tenant?.updatedAt ?? '—'}</p>
                         </div>
                     </div>
@@ -118,9 +120,9 @@ export function AdminTenantConfigTab() {
                         <div>
                             <div class='flex items-center gap-2 mb-1'>
                                 <div class='w-1 h-6 bg-gradient-to-b from-amber-500 to-orange-600 rounded-full'></div>
-                                <Typography variant='heading' className='text-amber-700'>Theme Artifact</Typography>
+                                <Typography variant='heading' className='text-amber-700'>{t('admin.tenantConfig.theme.title')}</Typography>
                             </div>
-                            <Typography variant='caption' className='text-indigo-600 ml-3'>Hash + CSS delivery helpers</Typography>
+                            <Typography variant='caption' className='text-indigo-600 ml-3'>{t('admin.tenantConfig.theme.description')}</Typography>
                         </div>
                         <div class='flex flex-wrap gap-3'>
                             <Button
@@ -129,24 +131,24 @@ export function AdminTenantConfigTab() {
                                 onClick={handleCopyThemeLink}
                                 data-testid='copy-theme-link-button'
                             >
-                                Copy Theme Link
+                                {t('admin.tenantConfig.theme.copyLink')}
                             </Button>
                             <Button variant='ghost' size='sm' onClick={handleForceReload} data-testid='force-reload-theme-button'>
-                                Force Reload Theme
+                                {t('admin.tenantConfig.theme.forceReload')}
                             </Button>
                         </div>
                     </div>
                     <div class='grid gap-4 text-sm md:grid-cols-3'>
                         <div class='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
-                            <p class='text-indigo-600 text-xs mb-1'>Active Hash</p>
-                            <p class='font-mono text-amber-700 font-medium'>{config?.theme?.hash ?? 'not published'}</p>
+                            <p class='text-indigo-600 text-xs mb-1'>{t('admin.tenantConfig.theme.activeHash')}</p>
+                            <p class='font-mono text-amber-700 font-medium'>{config?.theme?.hash ?? t('admin.tenantConfig.theme.notPublished')}</p>
                         </div>
                         <div class='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
-                            <p class='text-indigo-600 text-xs mb-1'>Generated At</p>
+                            <p class='text-indigo-600 text-xs mb-1'>{t('admin.tenantConfig.theme.generatedAt')}</p>
                             <p class='text-gray-800 text-xs'>{config?.theme?.generatedAtEpochMs ? new Date(config.theme.generatedAtEpochMs).toISOString() : '—'}</p>
                         </div>
                         <div class='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
-                            <p class='text-indigo-600 text-xs mb-1'>Link</p>
+                            <p class='text-indigo-600 text-xs mb-1'>{t('common.link')}</p>
                             <p class='font-mono text-amber-700 text-xs break-all'>{themeLink}</p>
                         </div>
                     </div>
@@ -158,7 +160,7 @@ export function AdminTenantConfigTab() {
                     <Stack spacing='md'>
                         <div class='flex items-center gap-2 mb-2'>
                             <div class='w-1 h-6 bg-gradient-to-b from-amber-500 to-orange-600 rounded-full'></div>
-                            <Typography variant='heading' className='text-amber-700'>Branding Tokens</Typography>
+                            <Typography variant='heading' className='text-amber-700'>{t('admin.tenantConfig.brandingTokens.title')}</Typography>
                         </div>
                         <pre class='bg-indigo-50 rounded-md p-4 text-sm overflow-x-auto border border-indigo-200 text-gray-800'>{JSON.stringify(tenantBranding, null, 2)}</pre>
                     </Stack>
@@ -169,13 +171,13 @@ export function AdminTenantConfigTab() {
                 <Stack spacing='md'>
                     <div class='flex items-center gap-2 mb-2'>
                         <div class='w-1 h-6 bg-gradient-to-b from-amber-500 to-orange-600 rounded-full'></div>
-                        <Typography variant='heading' className='text-amber-700'>Computed CSS Variables</Typography>
+                        <Typography variant='heading' className='text-amber-700'>{t('admin.tenantConfig.computedCss.title')}</Typography>
                     </div>
                     <div class='grid gap-3 md:grid-cols-2'>
                         {Object.entries(computedVars).map(([variable, value]) => (
                             <div key={variable} class='rounded-md border border-indigo-200 bg-indigo-50 px-4 py-3'>
                                 <p class='text-xs uppercase text-indigo-600 mb-1'>{variable}</p>
-                                <p class='font-mono text-sm text-amber-700'>{value || 'not set'}</p>
+                                <p class='font-mono text-sm text-amber-700'>{value || t('common.notSet')}</p>
                             </div>
                         ))}
                     </div>

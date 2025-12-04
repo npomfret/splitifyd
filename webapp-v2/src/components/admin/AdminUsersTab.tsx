@@ -144,13 +144,13 @@ export function AdminUsersTab() {
     const handleDisableUser = async (uid: UserId, currentlyDisabled: boolean) => {
         // Prevent self-disable
         if (uid === user.uid) {
-            window.alert('You cannot disable your own account');
+            window.alert(t('admin.users.errors.selfDisable'));
             return;
         }
 
         // Confirm action
-        const action = currentlyDisabled ? 'enable' : 'disable';
-        const confirmMessage = `Are you sure you want to ${action} this user account?`;
+        const action = currentlyDisabled ? t('common.enable').toLowerCase() : t('common.disable').toLowerCase();
+        const confirmMessage = t('admin.users.confirmations.disableUser', { action });
 
         if (!window.confirm(confirmMessage)) {
             return;
@@ -161,13 +161,13 @@ export function AdminUsersTab() {
             await apiClient.updateUser(uid, { disabled: !currentlyDisabled });
 
             logInfo(`User account ${action}d`, { uid, disabled: !currentlyDisabled });
-            window.alert(`User account ${action}d successfully`);
+            window.alert(t('admin.users.success.userToggled', { action }));
 
             // Reload the user list
             await loadUsers(hasSearchApplied.value ? undefined : pageHistory.value[pageHistory.value.length - 1]);
         } catch (err) {
             logError(`Failed to ${action} user`, err);
-            window.alert(`Failed to ${action} user account`);
+            window.alert(t('admin.users.errors.disableUser', { action }));
         } finally {
             operationInProgress.value = null;
         }
@@ -176,38 +176,38 @@ export function AdminUsersTab() {
     const handleUpdateRole = async (uid: UserId, currentRole: string | null) => {
         // Prevent self-role change
         if (uid === user.uid) {
-            window.alert('You cannot change your own role');
+            window.alert(t('admin.users.errors.selfRoleChange'));
             return;
         }
 
         // Get new role from user
         const roleOptions = [
-            { value: '', label: 'Regular User (no role)' },
-            { value: SystemUserRoles.TENANT_ADMIN, label: 'Tenant Admin' },
-            { value: SystemUserRoles.SYSTEM_ADMIN, label: 'System Admin' },
+            { value: '', label: t('admin.users.rolePrompt.regularUser') },
+            { value: SystemUserRoles.TENANT_ADMIN, label: t('roles.tenantAdmin.label') },
+            { value: SystemUserRoles.SYSTEM_ADMIN, label: t('roles.systemAdmin.label') },
         ];
 
         const currentRoleLabel = currentRole === SystemUserRoles.TENANT_ADMIN
-            ? 'Tenant Admin'
+            ? t('roles.tenantAdmin.label')
             : currentRole === SystemUserRoles.SYSTEM_ADMIN
-            ? 'System Admin'
-            : 'Regular User';
+            ? t('roles.systemAdmin.label')
+            : t('roles.regular.label');
 
-        const message = `Current role: ${currentRoleLabel}\n\nSelect new role:\n${roleOptions.map((opt, i) => `${i + 1}. ${opt.label}`).join('\n')}`;
+        const message = t('admin.users.rolePrompt.title', { currentRole: currentRoleLabel }) + '\n' + roleOptions.map((opt, i) => `${i + 1}. ${opt.label}`).join('\n');
         const choice = window.prompt(message, '1');
 
         if (!choice) return;
 
         const selectedIndex = parseInt(choice, 10) - 1;
         if (selectedIndex < 0 || selectedIndex >= roleOptions.length) {
-            window.alert('Invalid selection');
+            window.alert(t('admin.users.errors.invalidSelection'));
             return;
         }
 
         const newRole = (roleOptions[selectedIndex].value || null) as SystemUserRole | null;
 
         if (newRole === currentRole) {
-            window.alert('Role unchanged');
+            window.alert(t('admin.users.success.roleUnchanged'));
             return;
         }
 
@@ -216,13 +216,13 @@ export function AdminUsersTab() {
             await apiClient.updateUserRole(uid, { role: newRole });
 
             logInfo('User role updated', { uid, oldRole: currentRole, newRole });
-            window.alert(`User role updated to ${roleOptions[selectedIndex].label}`);
+            window.alert(t('admin.users.success.roleUpdated', { role: roleOptions[selectedIndex].label }));
 
             // Reload the user list
             await loadUsers(hasSearchApplied.value ? undefined : pageHistory.value[pageHistory.value.length - 1]);
         } catch (err) {
             logError('Failed to update user role', err);
-            window.alert('Failed to update user role');
+            window.alert(t('admin.users.errors.roleUpdate'));
         } finally {
             operationInProgress.value = null;
         }
@@ -239,9 +239,9 @@ export function AdminUsersTab() {
     }
 
     function formatRole(role: string | null): string {
-        if (role === SystemUserRoles.SYSTEM_ADMIN) return 'System Admin';
-        if (role === SystemUserRoles.TENANT_ADMIN) return 'Tenant Admin';
-        if (!role) return 'Regular User';
+        if (role === SystemUserRoles.SYSTEM_ADMIN) return t('roles.systemAdmin.label');
+        if (role === SystemUserRoles.TENANT_ADMIN) return t('roles.tenantAdmin.label');
+        if (!role) return t('roles.regular.label');
         return role;
     }
 
@@ -262,40 +262,40 @@ export function AdminUsersTab() {
         <div class='space-y-6'>
             <div class='flex items-center justify-between'>
                 <p class='text-sm text-gray-700'>
-                    Manage user accounts, roles, and permissions
+                    {t('admin.users.description')}
                 </p>
                 <Button variant='secondary' size='sm' onClick={handleReset}>
-                    Refresh
+                    {t('common.refresh')}
                 </Button>
             </div>
 
             <Card className='p-6 space-y-6 bg-white/70 border border-indigo-200'>
                 <form class='flex gap-4' onSubmit={handleSearch}>
                     <label class='flex flex-col text-sm text-gray-800 flex-1'>
-                        <span class='mb-1'>Search by email or UID</span>
+                        <span class='mb-1'>{t('admin.users.search.label')}</span>
                         <Input
                             value={searchValue.value}
                             onChange={(value) => (searchValue.value = value)}
-                            placeholder='Enter email or UID...'
+                            placeholder={t('admin.users.search.placeholder')}
                         />
                     </label>
                     <div class='flex gap-2 items-end'>
-                        <Button type='submit' variant='primary'>Search</Button>
+                        <Button type='submit' variant='primary'>{t('common.search')}</Button>
                         <Button type='button' variant='secondary' onClick={handleReset}>
-                            Reset
+                            {t('common.reset')}
                         </Button>
                     </div>
                 </form>
 
                 {loading.value && (
                     <div class='flex justify-center py-6'>
-                        <LoadingState message='Loading users...' />
+                        <LoadingState message={t('admin.users.loading')} />
                     </div>
                 )}
 
                 {error.value && <Alert type='error' message={error.value} />}
 
-                {!loading.value && users.value.length === 0 && !error.value && <Alert type='info' message='No users found' />}
+                {!loading.value && users.value.length === 0 && !error.value && <Alert type='info' message={t('admin.users.emptyState')} />}
 
                 {users.value.length > 0 && (
                     <div class='overflow-x-auto border border-indigo-200 rounded-lg'>
@@ -303,25 +303,25 @@ export function AdminUsersTab() {
                             <thead class='bg-indigo-50'>
                                 <tr>
                                     <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider'>
-                                        Email
+                                        {t('admin.users.table.email')}
                                     </th>
                                     <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider'>
-                                        Display Name
+                                        {t('admin.users.table.displayName')}
                                     </th>
                                     <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider'>
-                                        Role
+                                        {t('admin.users.table.role')}
                                     </th>
                                     <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider'>
-                                        Status
+                                        {t('admin.users.table.status')}
                                     </th>
                                     <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider'>
-                                        Created
+                                        {t('admin.users.table.created')}
                                     </th>
                                     <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider'>
-                                        Last Sign In
+                                        {t('admin.users.table.lastSignIn')}
                                     </th>
                                     <th scope='col' class='px-4 py-3 text-right text-xs font-medium text-indigo-700 uppercase tracking-wider'>
-                                        Actions
+                                        {t('admin.users.table.actions')}
                                     </th>
                                 </tr>
                             </thead>
@@ -338,7 +338,7 @@ export function AdminUsersTab() {
                                                 {String(authUser.email ?? '')}
                                                 {isCurrentUser && (
                                                     <span class='ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700'>
-                                                        You
+                                                        {t('common.you')}
                                                     </span>
                                                 )}
                                             </td>
@@ -358,7 +358,7 @@ export function AdminUsersTab() {
                                                             : 'bg-green-100 text-green-700 border border-green-300'
                                                     }`}
                                                 >
-                                                    {authUser.disabled ? 'Disabled' : 'Active'}
+                                                    {authUser.disabled ? t('common.disabled') : t('common.active')}
                                                 </span>
                                             </td>
                                             <td class='px-4 py-3 text-sm text-gray-700'>
@@ -373,7 +373,7 @@ export function AdminUsersTab() {
                                                         onClick={() => editingUser.value = authUser}
                                                         disabled={operationInProgress.value === `role-${uid}`}
                                                         class='p-2 text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
-                                                        title='Edit user'
+                                                        title={t('admin.users.actions.editUser')}
                                                         data-testid={`edit-user-${uid}`}
                                                     >
                                                         <svg class='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -392,10 +392,10 @@ export function AdminUsersTab() {
                                                         disabled={isCurrentUser || operationInProgress.value === `disable-${uid}` || operationInProgress.value === `enable-${uid}`}
                                                     >
                                                         {operationInProgress.value === `disable-${uid}` || operationInProgress.value === `enable-${uid}`
-                                                            ? 'Processing...'
+                                                            ? t('common.processing')
                                                             : authUser.disabled
-                                                            ? 'Enable'
-                                                            : 'Disable'}
+                                                            ? t('common.enable')
+                                                            : t('common.disable')}
                                                     </Button>
                                                 </div>
                                             </td>

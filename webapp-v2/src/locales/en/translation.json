@@ -37,6 +37,7 @@
     "unknownError": "Something went wrong. Please try again.",
     "cancel": "Cancel",
     "save": "Save",
+    "saving": "Saving...",
     "delete": "Delete",
     "edit": "Edit",
     "close": "Close",
@@ -74,6 +75,7 @@
     "chooseFile": "Choose File",
     "active": "Active",
     "inactive": "Inactive",
+    "disabled": "Disabled",
     "total": "Total",
     "member": "Member",
     "members": "Members",
@@ -84,6 +86,32 @@
     "settings": "Settings",
     "understood": "Understood",
     "titleSuffix": " - {{appName}}",
+    "refresh": "Refresh",
+    "reset": "Reset",
+    "add": "Add",
+    "create": "Create",
+    "processing": "Processing...",
+    "enable": "Enable",
+    "disable": "Disable",
+    "created": "Created",
+    "updated": "Updated",
+    "modified": "Modified",
+    "name": "Name",
+    "type": "Type",
+    "size": "Size",
+    "link": "Link",
+    "value": "Value",
+    "notConfigured": "Not configured",
+    "notSet": "not set",
+    "empty": "(empty)",
+    "noData": "No data available",
+    "default": "Default",
+    "actions": "Actions",
+    "status": "Status",
+    "email": "Email",
+    "displayName": "Display Name",
+    "role": "Role",
+    "lastSignIn": "Last Sign In",
     "placeholder": {
       "amount": "0.00",
       "search": "Search...",
@@ -1618,6 +1646,394 @@
       "title": "Terms of Service",
       "description": "Terms of Service for {{appName}} - Read about our policies and user agreements.",
       "loadError": "Error loading terms"
+    }
+  },
+  "validation": {
+    "required": "{{field}} is required",
+    "invalidColorFormat": "{{field}} must be in #RRGGBB format",
+    "invalidUrl": "{{field}} must be a valid URL",
+    "invalidEmail": "{{field}} must be a valid email address",
+    "tooShort": "{{field}} must be at least {{min}} characters",
+    "tooLong": "{{field}} must be {{max}} characters or fewer"
+  },
+  "roles": {
+    "systemAdmin": {
+      "label": "System Admin",
+      "description": "Full system access and control"
+    },
+    "tenantAdmin": {
+      "label": "Tenant Admin",
+      "description": "Can manage tenant settings and configuration"
+    },
+    "regular": {
+      "label": "Regular User",
+      "description": "Standard user with no administrative privileges"
+    }
+  },
+  "admin": {
+    "loading": "Loading admin...",
+    "tabs": {
+      "tenants": "Tenants",
+      "diagnostics": "Diagnostics",
+      "tenantConfig": "Tenant Config",
+      "users": "Users",
+      "ariaLabel": "Admin tabs"
+    },
+    "tenantConfig": {
+      "loading": "Loading tenant configuration...",
+      "overview": {
+        "title": "Tenant Overview",
+        "tenantId": "Tenant ID",
+        "appName": "App Name",
+        "lastUpdated": "Last Updated"
+      },
+      "theme": {
+        "title": "Theme Artifact",
+        "description": "Hash + CSS delivery helpers",
+        "copyLink": "Copy Theme Link",
+        "forceReload": "Force Reload Theme",
+        "activeHash": "Active Hash",
+        "notPublished": "not published",
+        "generatedAt": "Generated At",
+        "copySuccess": "Theme link copied to clipboard.",
+        "copyError": "Unable to copy theme link. Please copy manually."
+      },
+      "brandingTokens": {
+        "title": "Branding Tokens"
+      },
+      "computedCss": {
+        "title": "Computed CSS Variables"
+      }
+    },
+    "tenants": {
+      "summary": {
+        "total": "Total tenants:"
+      },
+      "actions": {
+        "create": "Create New Tenant",
+        "switchTenant": "Click to switch to this tenant"
+      },
+      "status": {
+        "active": "Active",
+        "default": "Default"
+      },
+      "details": {
+        "tenantId": "Tenant ID:",
+        "domains": "Domains:"
+      },
+      "emptyState": "No tenants found",
+      "errors": {
+        "load": "Failed to load tenants"
+      }
+    },
+    "diagnostics": {
+      "loading": "Loading environment diagnostics...",
+      "errors": {
+        "fetch": "Failed to fetch environment data",
+        "unknown": "Unknown error occurred"
+      },
+      "serverStatus": {
+        "title": "Server Status",
+        "environment": "Environment",
+        "nodeVersion": "Node Version",
+        "uptime": "Uptime",
+        "startedAt": "Started At"
+      },
+      "buildInfo": {
+        "title": "Build Information",
+        "version": "Version",
+        "buildDate": "Build Date",
+        "buildTimestamp": "Build Timestamp"
+      },
+      "memory": {
+        "title": "Memory Usage",
+        "rss": "RSS (Resident Set Size)",
+        "heapUsed": "Heap Used",
+        "heapTotal": "Heap Total",
+        "heapAvailable": "Heap Available",
+        "external": "External Memory",
+        "arrayBuffers": "Array Buffers",
+        "heapLimit": "Heap Limit"
+      },
+      "heap": {
+        "title": "V8 Heap Spaces",
+        "size": "Size:",
+        "used": "Used:",
+        "available": "Available:"
+      },
+      "envVars": {
+        "title": "Environment Variables",
+        "variable": "Variable",
+        "value": "Value"
+      },
+      "filesystem": {
+        "title": "Filesystem",
+        "cwd": "Working Directory"
+      }
+    },
+    "users": {
+      "description": "Manage user accounts, roles, and permissions",
+      "loading": "Loading users...",
+      "emptyState": "No users found",
+      "search": {
+        "label": "Search by email or UID",
+        "placeholder": "Enter email or UID..."
+      },
+      "table": {
+        "email": "Email",
+        "displayName": "Display Name",
+        "role": "Role",
+        "status": "Status",
+        "created": "Created",
+        "lastSignIn": "Last Sign In",
+        "actions": "Actions"
+      },
+      "actions": {
+        "editUser": "Edit user"
+      },
+      "confirmations": {
+        "disableUser": "Are you sure you want to {{action}} this user account?"
+      },
+      "success": {
+        "userToggled": "User account {{action}}d successfully",
+        "roleUpdated": "User role updated to {{role}}",
+        "roleUnchanged": "Role unchanged"
+      },
+      "errors": {
+        "selfDisable": "You cannot disable your own account",
+        "selfRoleChange": "You cannot change your own role",
+        "disableUser": "Failed to {{action}} user account",
+        "roleUpdate": "Failed to update user role",
+        "invalidSelection": "Invalid selection"
+      },
+      "rolePrompt": {
+        "title": "Current role: {{currentRole}}\n\nSelect new role:",
+        "regularUser": "Regular User (no role)"
+      }
+    },
+    "userEditor": {
+      "title": "Edit User",
+      "tabs": {
+        "ariaLabel": "User editor tabs",
+        "profile": "Profile",
+        "role": "Role",
+        "firebaseAuth": "Firebase Auth",
+        "firestore": "Firestore"
+      },
+      "profile": {
+        "description": "Edit the user's display name and email address",
+        "displayName": "Display Name",
+        "displayNamePlaceholder": "Enter display name",
+        "email": "Email Address",
+        "emailPlaceholder": "Enter email address"
+      },
+      "role": {
+        "description": "Select a role for this user"
+      },
+      "loading": "Loading...",
+      "noDataAvailable": "No data available",
+      "errors": {
+        "noChanges": "No changes to save",
+        "selfRoleChange": "Cannot change your own role",
+        "selfRoleChangeWarning": "You cannot change your own role",
+        "profileUpdate": "Failed to update profile",
+        "roleUpdate": "Failed to update role",
+        "loadData": "Failed to load data"
+      },
+      "success": {
+        "profileUpdated": "Profile updated successfully",
+        "roleUpdated": "Role updated successfully"
+      }
+    },
+    "tenantEditor": {
+      "titleCreate": "Create New Tenant",
+      "titleEdit": "Edit Tenant",
+      "descriptionCreate": "Configure a new tenant with branding and domains",
+      "descriptionEdit": "Update tenant configuration",
+      "sections": {
+        "gettingStarted": {
+          "title": "Getting Started",
+          "description": "Choose how to initialize your tenant"
+        },
+        "basicInfo": {
+          "title": "Basic Info",
+          "description": "Tenant ID, name, and domains"
+        },
+        "assets": {
+          "title": "Assets",
+          "description": "Logo and favicon images"
+        },
+        "paletteColors": {
+          "title": "Palette Colors",
+          "description": "Core brand colors"
+        },
+        "surfaceColors": {
+          "title": "Surface Colors",
+          "description": "Background and container colors"
+        },
+        "textColors": {
+          "title": "Text Colors",
+          "description": "Typography colors"
+        },
+        "interactiveColors": {
+          "title": "Interactive Colors",
+          "description": "Button and link colors"
+        },
+        "borderColors": {
+          "title": "Border Colors",
+          "description": "Border and divider colors"
+        },
+        "statusColors": {
+          "title": "Status Colors",
+          "description": "Feedback and alert colors"
+        },
+        "typography": {
+          "title": "Typography",
+          "description": "Font families, sizes, and weights"
+        },
+        "spacing": {
+          "title": "Spacing",
+          "description": "Spacing scale and semantic spacing"
+        },
+        "radii": {
+          "title": "Border Radii",
+          "description": "Corner rounding values"
+        },
+        "shadows": {
+          "title": "Shadows",
+          "description": "Box shadow definitions"
+        },
+        "legal": {
+          "title": "Legal",
+          "description": "Company info and legal links"
+        },
+        "motion": {
+          "title": "Motion",
+          "description": "Animation durations and easings"
+        },
+        "featureFlags": {
+          "title": "Feature Flags",
+          "description": "Enable or disable features"
+        },
+        "advanced": {
+          "title": "Advanced",
+          "description": "Optional visual effects"
+        }
+      },
+      "fields": {
+        "tenantId": "Tenant ID",
+        "appName": "App Name",
+        "domains": "Domains",
+        "logoUrl": "Logo URL",
+        "faviconUrl": "Favicon URL",
+        "primaryColor": "Primary Color",
+        "primaryVariantColor": "Primary Variant",
+        "secondaryColor": "Secondary Color",
+        "secondaryVariantColor": "Secondary Variant",
+        "accentColor": "Accent Color",
+        "neutralColor": "Neutral Color",
+        "neutralVariantColor": "Neutral Variant",
+        "successColor": "Success Color",
+        "warningColor": "Warning Color",
+        "dangerColor": "Danger Color",
+        "infoColor": "Info Color"
+      },
+      "placeholders": {
+        "tenantId": "my-tenant-id",
+        "appName": "My Expense App",
+        "domain": "Add new domain...",
+        "selectTenant": "Select a tenant to copy..."
+      },
+      "creationMode": {
+        "empty": "Start from empty",
+        "copy": "Copy from existing tenant",
+        "emptyDescription": "You will need to fill in all required fields. Colors should be in #RRGGBB format.",
+        "copyDescription": "All theme settings will be copied from {{tenant}}. You will still need to set a unique Tenant ID, App Name, and domains."
+      },
+      "validation": {
+        "tenantIdFormat": "Invalid Tenant ID: must contain only lowercase letters, numbers, and hyphens",
+        "domainRequired": "At least one domain is required",
+        "invalidDomain": "Invalid domain: {{domain}}",
+        "saveTenantFirst": "Please save the tenant first before uploading images",
+        "tenantIdRequiredForPublish": "Tenant ID is required for publishing"
+      },
+      "hints": {
+        "tenantIdReadonly": "Tenant ID cannot be changed",
+        "colorFormat": "#RRGGBB"
+      },
+      "toggles": {
+        "showLandingPage": {
+          "label": "Show Landing Page",
+          "description": "Display a public landing page for this tenant"
+        },
+        "showMarketingContent": {
+          "label": "Show Marketing Content",
+          "description": "Display marketing content on public pages"
+        },
+        "showPricingPage": {
+          "label": "Show Pricing Page",
+          "description": "Display pricing information"
+        },
+        "showAppNameInHeader": {
+          "label": "Show App Name in Header",
+          "description": "Display the app name next to the logo"
+        },
+        "enableParallax": {
+          "label": "Enable Parallax",
+          "description": "Enable parallax scrolling effects"
+        },
+        "enableMagneticHover": {
+          "label": "Enable Magnetic Hover",
+          "description": "Enable magnetic hover effects on buttons"
+        },
+        "enableScrollReveal": {
+          "label": "Enable Scroll Reveal",
+          "description": "Enable scroll-triggered animations"
+        },
+        "enableButtonGradient": {
+          "label": "Enable Button Gradient",
+          "description": "Use gradient backgrounds on buttons"
+        },
+        "enableGlassmorphism": {
+          "label": "Enable Glassmorphism",
+          "description": "Enable frosted glass effects"
+        }
+      },
+      "loading": {
+        "tenants": "Loading tenants..."
+      },
+      "empty": {
+        "noTenants": "No existing tenants to copy from."
+      },
+      "errors": {
+        "invalidPayload": "Invalid tenant data. Please check all fields and try again.",
+        "permissionDenied": "You do not have permission to modify tenant settings.",
+        "duplicateDomain": "One or more domains are already assigned to another tenant.",
+        "saveFailed": "Failed to save tenant. Please try again.",
+        "tenantNotFound": "Tenant does not exist. Save it before publishing.",
+        "tokensMissing": "Tenant is missing branding tokens. Please configure branding and save first.",
+        "publishFailed": "Failed to publish theme. Please try again.",
+        "uploadFailed": "Failed to upload {{type}}"
+      },
+      "success": {
+        "createdAndPublished": "Tenant created and theme published successfully!",
+        "updatedAndPublished": "Tenant updated and theme published successfully!",
+        "createdPublishFailed": "Tenant created successfully, but theme publish failed. Click \"Publish Theme\" manually.",
+        "updatedPublishFailed": "Tenant updated successfully, but theme publish failed. Click \"Publish Theme\" manually.",
+        "themePublished": "Theme published successfully!",
+        "logoUploaded": "Logo uploaded successfully!",
+        "faviconUploaded": "Favicon uploaded successfully!",
+        "logoSelected": "Logo selected from library",
+        "faviconSelected": "Favicon selected from library"
+      },
+      "buttons": {
+        "save": "Save Tenant",
+        "publish": "Publish Theme",
+        "addDomain": "Add",
+        "removeDomain": "Remove",
+        "chooseFromLibrary": "Choose from Library",
+        "uploadNew": "Upload New"
+      }
     }
   }
 }

@@ -4,6 +4,7 @@ import { Alert, Button, ImageUploadField, Input, Modal } from '@/components/ui';
 import { logError } from '@/utils/browser-logger';
 import type { AdminUpsertTenantRequest, BrandingTokens, TenantBranding } from '@billsplit-wl/shared';
 import { useCallback, useEffect, useState } from 'preact/hooks';
+import { useTranslation } from 'react-i18next';
 
 type CreationMode = 'empty' | 'copy';
 
@@ -856,6 +857,7 @@ const EMPTY_TENANT_DATA: TenantData = {
 };
 
 export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: TenantEditorModalProps) {
+    const { t } = useTranslation();
     const [formData, setFormData] = useState<TenantData>(EMPTY_TENANT_DATA);
     const [isSaving, setIsSaving] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
@@ -963,138 +965,141 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
 
     // Check if all required fields are filled - removed since we now require ALL fields
 
+    // Helper function for required field validation using pattern-based i18n
+    const required = (field: string) => t('validation.required', { field });
+
     // Validate all required fields - NO fallback values allowed
     const validateAllRequiredFields = (): string | null => {
         // Basic info
-        if (!formData.tenantId.trim()) return 'Tenant ID is required';
-        if (!/^[a-z0-9-]+$/.test(formData.tenantId)) return 'Invalid Tenant ID: must contain only lowercase letters, numbers, and hyphens';
-        if (!formData.appName.trim()) return 'App name is required';
-        if (formData.domains.length === 0) return 'At least one domain is required';
+        if (!formData.tenantId.trim()) return required(t('admin.tenantEditor.fields.tenantId'));
+        if (!/^[a-z0-9-]+$/.test(formData.tenantId)) return t('admin.tenantEditor.validation.tenantIdFormat');
+        if (!formData.appName.trim()) return required(t('admin.tenantEditor.fields.appName'));
+        if (formData.domains.length === 0) return t('admin.tenantEditor.validation.domainRequired');
 
         // Palette colors (11)
-        if (!formData.primaryColor.trim()) return 'Primary color is required';
-        if (!formData.primaryVariantColor.trim()) return 'Primary variant color is required';
-        if (!formData.secondaryColor.trim()) return 'Secondary color is required';
-        if (!formData.secondaryVariantColor.trim()) return 'Secondary variant color is required';
-        if (!formData.accentColor.trim()) return 'Accent color is required';
-        if (!formData.neutralColor.trim()) return 'Neutral color is required';
-        if (!formData.neutralVariantColor.trim()) return 'Neutral variant color is required';
-        if (!formData.successColor.trim()) return 'Success color is required';
-        if (!formData.warningColor.trim()) return 'Warning color is required';
-        if (!formData.dangerColor.trim()) return 'Danger color is required';
-        if (!formData.infoColor.trim()) return 'Info color is required';
+        if (!formData.primaryColor.trim()) return required(t('admin.tenantEditor.fields.primaryColor'));
+        if (!formData.primaryVariantColor.trim()) return required(t('admin.tenantEditor.fields.primaryVariantColor'));
+        if (!formData.secondaryColor.trim()) return required(t('admin.tenantEditor.fields.secondaryColor'));
+        if (!formData.secondaryVariantColor.trim()) return required(t('admin.tenantEditor.fields.secondaryVariantColor'));
+        if (!formData.accentColor.trim()) return required(t('admin.tenantEditor.fields.accentColor'));
+        if (!formData.neutralColor.trim()) return required(t('admin.tenantEditor.fields.neutralColor'));
+        if (!formData.neutralVariantColor.trim()) return required(t('admin.tenantEditor.fields.neutralVariantColor'));
+        if (!formData.successColor.trim()) return required(t('admin.tenantEditor.fields.successColor'));
+        if (!formData.warningColor.trim()) return required(t('admin.tenantEditor.fields.warningColor'));
+        if (!formData.dangerColor.trim()) return required(t('admin.tenantEditor.fields.dangerColor'));
+        if (!formData.infoColor.trim()) return required(t('admin.tenantEditor.fields.infoColor'));
 
         // Surface colors (6)
-        if (!formData.surfaceBaseColor.trim()) return 'Surface base color is required';
-        if (!formData.surfaceRaisedColor.trim()) return 'Surface raised color is required';
-        if (!formData.surfaceSunkenColor.trim()) return 'Surface sunken color is required';
-        if (!formData.surfaceOverlayColor.trim()) return 'Surface overlay color is required';
-        if (!formData.surfaceWarningColor.trim()) return 'Surface warning color is required';
-        if (!formData.surfaceMutedColor.trim()) return 'Surface muted color is required';
+        if (!formData.surfaceBaseColor.trim()) return required('Surface base color');
+        if (!formData.surfaceRaisedColor.trim()) return required('Surface raised color');
+        if (!formData.surfaceSunkenColor.trim()) return required('Surface sunken color');
+        if (!formData.surfaceOverlayColor.trim()) return required('Surface overlay color');
+        if (!formData.surfaceWarningColor.trim()) return required('Surface warning color');
+        if (!formData.surfaceMutedColor.trim()) return required('Surface muted color');
 
         // Text colors (5)
-        if (!formData.textPrimaryColor.trim()) return 'Text primary color is required';
-        if (!formData.textSecondaryColor.trim()) return 'Text secondary color is required';
-        if (!formData.textMutedColor.trim()) return 'Text muted color is required';
-        if (!formData.textInvertedColor.trim()) return 'Text inverted color is required';
-        if (!formData.textAccentColor.trim()) return 'Text accent color is required';
+        if (!formData.textPrimaryColor.trim()) return required('Text primary color');
+        if (!formData.textSecondaryColor.trim()) return required('Text secondary color');
+        if (!formData.textMutedColor.trim()) return required('Text muted color');
+        if (!formData.textInvertedColor.trim()) return required('Text inverted color');
+        if (!formData.textAccentColor.trim()) return required('Text accent color');
 
         // Interactive colors (13)
-        if (!formData.interactivePrimaryColor.trim()) return 'Interactive primary color is required';
-        if (!formData.interactivePrimaryHoverColor.trim()) return 'Interactive primary hover color is required';
-        if (!formData.interactivePrimaryActiveColor.trim()) return 'Interactive primary active color is required';
-        if (!formData.interactivePrimaryForegroundColor.trim()) return 'Interactive primary foreground color is required';
-        if (!formData.interactiveSecondaryColor.trim()) return 'Interactive secondary color is required';
-        if (!formData.interactiveSecondaryHoverColor.trim()) return 'Interactive secondary hover color is required';
-        if (!formData.interactiveSecondaryActiveColor.trim()) return 'Interactive secondary active color is required';
-        if (!formData.interactiveSecondaryForegroundColor.trim()) return 'Interactive secondary foreground color is required';
-        if (!formData.interactiveAccentColor.trim()) return 'Interactive accent color is required';
-        if (!formData.interactiveDestructiveColor.trim()) return 'Interactive destructive color is required';
-        if (!formData.interactiveDestructiveHoverColor.trim()) return 'Interactive destructive hover color is required';
-        if (!formData.interactiveDestructiveActiveColor.trim()) return 'Interactive destructive active color is required';
-        if (!formData.interactiveDestructiveForegroundColor.trim()) return 'Interactive destructive foreground color is required';
+        if (!formData.interactivePrimaryColor.trim()) return required('Interactive primary color');
+        if (!formData.interactivePrimaryHoverColor.trim()) return required('Interactive primary hover color');
+        if (!formData.interactivePrimaryActiveColor.trim()) return required('Interactive primary active color');
+        if (!formData.interactivePrimaryForegroundColor.trim()) return required('Interactive primary foreground color');
+        if (!formData.interactiveSecondaryColor.trim()) return required('Interactive secondary color');
+        if (!formData.interactiveSecondaryHoverColor.trim()) return required('Interactive secondary hover color');
+        if (!formData.interactiveSecondaryActiveColor.trim()) return required('Interactive secondary active color');
+        if (!formData.interactiveSecondaryForegroundColor.trim()) return required('Interactive secondary foreground color');
+        if (!formData.interactiveAccentColor.trim()) return required('Interactive accent color');
+        if (!formData.interactiveDestructiveColor.trim()) return required('Interactive destructive color');
+        if (!formData.interactiveDestructiveHoverColor.trim()) return required('Interactive destructive hover color');
+        if (!formData.interactiveDestructiveActiveColor.trim()) return required('Interactive destructive active color');
+        if (!formData.interactiveDestructiveForegroundColor.trim()) return required('Interactive destructive foreground color');
 
         // Border colors (5)
-        if (!formData.borderSubtleColor.trim()) return 'Border subtle color is required';
-        if (!formData.borderDefaultColor.trim()) return 'Border default color is required';
-        if (!formData.borderStrongColor.trim()) return 'Border strong color is required';
-        if (!formData.borderFocusColor.trim()) return 'Border focus color is required';
-        if (!formData.borderWarningColor.trim()) return 'Border warning color is required';
+        if (!formData.borderSubtleColor.trim()) return required('Border subtle color');
+        if (!formData.borderDefaultColor.trim()) return required('Border default color');
+        if (!formData.borderStrongColor.trim()) return required('Border strong color');
+        if (!formData.borderFocusColor.trim()) return required('Border focus color');
+        if (!formData.borderWarningColor.trim()) return required('Border warning color');
 
         // Status colors (4)
-        if (!formData.statusSuccessColor.trim()) return 'Status success color is required';
-        if (!formData.statusWarningColor.trim()) return 'Status warning color is required';
-        if (!formData.statusDangerColor.trim()) return 'Status danger color is required';
-        if (!formData.statusInfoColor.trim()) return 'Status info color is required';
+        if (!formData.statusSuccessColor.trim()) return required('Status success color');
+        if (!formData.statusWarningColor.trim()) return required('Status warning color');
+        if (!formData.statusDangerColor.trim()) return required('Status danger color');
+        if (!formData.statusInfoColor.trim()) return required('Status info color');
 
         // Typography
-        if (!formData.fontFamilySans.trim()) return 'Sans font family is required';
-        if (!formData.fontFamilyMono.trim()) return 'Mono font family is required';
-        if (!formData.typographySizeXs.trim()) return 'Typography size xs is required';
-        if (!formData.typographySizeSm.trim()) return 'Typography size sm is required';
-        if (!formData.typographySizeMd.trim()) return 'Typography size md is required';
-        if (!formData.typographySizeLg.trim()) return 'Typography size lg is required';
-        if (!formData.typographySizeXl.trim()) return 'Typography size xl is required';
-        if (!formData.typographySize2xl.trim()) return 'Typography size 2xl is required';
-        if (!formData.typographySize3xl.trim()) return 'Typography size 3xl is required';
-        if (!formData.typographySize4xl.trim()) return 'Typography size 4xl is required';
-        if (!formData.typographySize5xl.trim()) return 'Typography size 5xl is required';
-        if (!formData.fontWeightRegular) return 'Font weight regular is required';
-        if (!formData.fontWeightMedium) return 'Font weight medium is required';
-        if (!formData.fontWeightSemibold) return 'Font weight semibold is required';
-        if (!formData.fontWeightBold) return 'Font weight bold is required';
-        if (!formData.lineHeightCompact.trim()) return 'Line height compact is required';
-        if (!formData.lineHeightStandard.trim()) return 'Line height standard is required';
-        if (!formData.lineHeightSpacious.trim()) return 'Line height spacious is required';
-        if (!formData.letterSpacingTight.trim()) return 'Letter spacing tight is required';
-        if (!formData.letterSpacingNormal.trim()) return 'Letter spacing normal is required';
-        if (!formData.letterSpacingWide.trim()) return 'Letter spacing wide is required';
+        if (!formData.fontFamilySans.trim()) return required('Sans font family');
+        if (!formData.fontFamilyMono.trim()) return required('Mono font family');
+        if (!formData.typographySizeXs.trim()) return required('Typography size xs');
+        if (!formData.typographySizeSm.trim()) return required('Typography size sm');
+        if (!formData.typographySizeMd.trim()) return required('Typography size md');
+        if (!formData.typographySizeLg.trim()) return required('Typography size lg');
+        if (!formData.typographySizeXl.trim()) return required('Typography size xl');
+        if (!formData.typographySize2xl.trim()) return required('Typography size 2xl');
+        if (!formData.typographySize3xl.trim()) return required('Typography size 3xl');
+        if (!formData.typographySize4xl.trim()) return required('Typography size 4xl');
+        if (!formData.typographySize5xl.trim()) return required('Typography size 5xl');
+        if (!formData.fontWeightRegular) return required('Font weight regular');
+        if (!formData.fontWeightMedium) return required('Font weight medium');
+        if (!formData.fontWeightSemibold) return required('Font weight semibold');
+        if (!formData.fontWeightBold) return required('Font weight bold');
+        if (!formData.lineHeightCompact.trim()) return required('Line height compact');
+        if (!formData.lineHeightStandard.trim()) return required('Line height standard');
+        if (!formData.lineHeightSpacious.trim()) return required('Line height spacious');
+        if (!formData.letterSpacingTight.trim()) return required('Letter spacing tight');
+        if (!formData.letterSpacingNormal.trim()) return required('Letter spacing normal');
+        if (!formData.letterSpacingWide.trim()) return required('Letter spacing wide');
 
         // Spacing
-        if (!formData.spacing2xs.trim()) return 'Spacing 2xs is required';
-        if (!formData.spacingXs.trim()) return 'Spacing xs is required';
-        if (!formData.spacingSm.trim()) return 'Spacing sm is required';
-        if (!formData.spacingMd.trim()) return 'Spacing md is required';
-        if (!formData.spacingLg.trim()) return 'Spacing lg is required';
-        if (!formData.spacingXl.trim()) return 'Spacing xl is required';
-        if (!formData.spacing2xl.trim()) return 'Spacing 2xl is required';
-        if (!formData.spacingPagePadding.trim()) return 'Page padding is required';
-        if (!formData.spacingSectionGap.trim()) return 'Section gap is required';
-        if (!formData.spacingCardPadding.trim()) return 'Card padding is required';
-        if (!formData.spacingComponentGap.trim()) return 'Component gap is required';
+        if (!formData.spacing2xs.trim()) return required('Spacing 2xs');
+        if (!formData.spacingXs.trim()) return required('Spacing xs');
+        if (!formData.spacingSm.trim()) return required('Spacing sm');
+        if (!formData.spacingMd.trim()) return required('Spacing md');
+        if (!formData.spacingLg.trim()) return required('Spacing lg');
+        if (!formData.spacingXl.trim()) return required('Spacing xl');
+        if (!formData.spacing2xl.trim()) return required('Spacing 2xl');
+        if (!formData.spacingPagePadding.trim()) return required('Page padding');
+        if (!formData.spacingSectionGap.trim()) return required('Section gap');
+        if (!formData.spacingCardPadding.trim()) return required('Card padding');
+        if (!formData.spacingComponentGap.trim()) return required('Component gap');
 
         // Radii
-        if (!formData.radiiNone.trim()) return 'Radius none is required';
-        if (!formData.radiiSm.trim()) return 'Radius sm is required';
-        if (!formData.radiiMd.trim()) return 'Radius md is required';
-        if (!formData.radiiLg.trim()) return 'Radius lg is required';
-        if (!formData.radiiPill.trim()) return 'Radius pill is required';
-        if (!formData.radiiFull.trim()) return 'Radius full is required';
+        if (!formData.radiiNone.trim()) return required('Radius none');
+        if (!formData.radiiSm.trim()) return required('Radius sm');
+        if (!formData.radiiMd.trim()) return required('Radius md');
+        if (!formData.radiiLg.trim()) return required('Radius lg');
+        if (!formData.radiiPill.trim()) return required('Radius pill');
+        if (!formData.radiiFull.trim()) return required('Radius full');
 
         // Shadows
-        if (!formData.shadowSm.trim()) return 'Shadow sm is required';
-        if (!formData.shadowMd.trim()) return 'Shadow md is required';
-        if (!formData.shadowLg.trim()) return 'Shadow lg is required';
+        if (!formData.shadowSm.trim()) return required('Shadow sm');
+        if (!formData.shadowMd.trim()) return required('Shadow md');
+        if (!formData.shadowLg.trim()) return required('Shadow lg');
 
         // Legal
-        if (!formData.legalCompanyName.trim()) return 'Legal company name is required';
-        if (!formData.legalSupportEmail.trim()) return 'Legal support email is required';
-        if (!formData.legalPrivacyPolicyUrl.trim()) return 'Legal privacy policy URL is required';
-        if (!formData.legalTermsOfServiceUrl.trim()) return 'Legal terms of service URL is required';
+        if (!formData.legalCompanyName.trim()) return required('Company name');
+        if (!formData.legalSupportEmail.trim()) return required('Support email');
+        if (!formData.legalPrivacyPolicyUrl.trim()) return required('Privacy policy URL');
+        if (!formData.legalTermsOfServiceUrl.trim()) return required('Terms of service URL');
 
         // Motion (durations and easings)
-        if (!formData.motionDurationInstant && formData.motionDurationInstant !== 0) return 'Motion duration instant is required';
-        if (!formData.motionDurationFast && formData.motionDurationFast !== 0) return 'Motion duration fast is required';
-        if (!formData.motionDurationBase && formData.motionDurationBase !== 0) return 'Motion duration base is required';
-        if (!formData.motionDurationSlow && formData.motionDurationSlow !== 0) return 'Motion duration slow is required';
-        if (!formData.motionDurationGlacial && formData.motionDurationGlacial !== 0) return 'Motion duration glacial is required';
-        if (!formData.motionEasingStandard.trim()) return 'Motion easing standard is required';
-        if (!formData.motionEasingDecelerate.trim()) return 'Motion easing decelerate is required';
-        if (!formData.motionEasingAccelerate.trim()) return 'Motion easing accelerate is required';
-        if (!formData.motionEasingSpring.trim()) return 'Motion easing spring is required';
+        if (!formData.motionDurationInstant && formData.motionDurationInstant !== 0) return required('Motion duration instant');
+        if (!formData.motionDurationFast && formData.motionDurationFast !== 0) return required('Motion duration fast');
+        if (!formData.motionDurationBase && formData.motionDurationBase !== 0) return required('Motion duration base');
+        if (!formData.motionDurationSlow && formData.motionDurationSlow !== 0) return required('Motion duration slow');
+        if (!formData.motionDurationGlacial && formData.motionDurationGlacial !== 0) return required('Motion duration glacial');
+        if (!formData.motionEasingStandard.trim()) return required('Motion easing standard');
+        if (!formData.motionEasingDecelerate.trim()) return required('Motion easing decelerate');
+        if (!formData.motionEasingAccelerate.trim()) return required('Motion easing accelerate');
+        if (!formData.motionEasingSpring.trim()) return required('Motion easing spring');
 
         // Logo URL
-        if (!formData.logoUrl.trim()) return 'Logo URL is required';
+        if (!formData.logoUrl.trim()) return required(t('admin.tenantEditor.fields.logoUrl'));
 
         return null;
     };
@@ -1109,7 +1114,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
         const domainRegex = /^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)*$/i;
         for (const domain of formData.domains) {
             if (!domainRegex.test(domain)) {
-                setErrorMessage(`Invalid domain: ${domain}`);
+                setErrorMessage(t('admin.tenantEditor.validation.invalidDomain', { domain }));
                 return;
             }
         }
@@ -1146,13 +1151,13 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
             } as AdminUpsertTenantRequest;
 
             const result = await apiClient.adminUpsertTenant(requestData);
-            const action = result.created ? 'created' : 'updated';
+            const isCreated = result.created;
 
             try {
                 await apiClient.publishTenantTheme({ tenantId: formData.tenantId });
-                setSuccessMessage(`Tenant ${action} and theme published successfully!`);
+                setSuccessMessage(isCreated ? t('admin.tenantEditor.success.createdAndPublished') : t('admin.tenantEditor.success.updatedAndPublished'));
             } catch (publishError: any) {
-                setSuccessMessage(`Tenant ${action} successfully, but theme publish failed. Click "Publish Theme" manually.`);
+                setSuccessMessage(isCreated ? t('admin.tenantEditor.success.createdPublishFailed') : t('admin.tenantEditor.success.updatedPublishFailed'));
                 logError('Auto-publish after save failed', publishError);
             }
 
@@ -1163,12 +1168,12 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
             }, 1500);
         } catch (error: any) {
             const userFriendlyMessage = error.code === 'INVALID_TENANT_PAYLOAD'
-                ? 'Invalid tenant data. Please check all fields and try again.'
+                ? t('admin.tenantEditor.errors.invalidPayload')
                 : error.code === 'PERMISSION_DENIED'
-                ? 'You do not have permission to modify tenant settings.'
+                ? t('admin.tenantEditor.errors.permissionDenied')
                 : error.code === 'DUPLICATE_DOMAIN'
-                ? error.message || 'One or more domains are already assigned to another tenant.'
-                : error.message || 'Failed to save tenant. Please try again.';
+                ? error.message || t('admin.tenantEditor.errors.duplicateDomain')
+                : error.message || t('admin.tenantEditor.errors.saveFailed');
             setErrorMessage(userFriendlyMessage);
             logError('Failed to save tenant', error);
         } finally {
@@ -1178,7 +1183,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
 
     const handlePublish = async () => {
         if (!formData.tenantId) {
-            setErrorMessage('Tenant ID is required for publishing');
+            setErrorMessage(t('admin.tenantEditor.validation.tenantIdRequiredForPublish'));
             return;
         }
         setIsPublishing(true);
@@ -1187,13 +1192,13 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
 
         try {
             await apiClient.publishTenantTheme({ tenantId: formData.tenantId });
-            setSuccessMessage('Theme published successfully!');
+            setSuccessMessage(t('admin.tenantEditor.success.themePublished'));
         } catch (error: any) {
             const userFriendlyMessage = error.code === 'TENANT_NOT_FOUND'
-                ? 'Tenant does not exist. Save it before publishing.'
+                ? t('admin.tenantEditor.errors.tenantNotFound')
                 : error.code === 'TENANT_TOKENS_MISSING'
-                ? 'Tenant is missing branding tokens. Please configure branding and save first.'
-                : error.message || 'Failed to publish theme. Please try again.';
+                ? t('admin.tenantEditor.errors.tokensMissing')
+                : error.message || t('admin.tenantEditor.errors.publishFailed');
             setErrorMessage(userFriendlyMessage);
             logError('Failed to publish tenant theme', error);
         } finally {
@@ -1226,30 +1231,30 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
 
     const handleLogoUpload = async (file: File) => {
         if (!formData.tenantId) {
-            setErrorMessage('Please save the tenant first before uploading images');
+            setErrorMessage(t('admin.tenantEditor.validation.saveTenantFirst'));
             return;
         }
         try {
             const result = await apiClient.uploadTenantImage(formData.tenantId, 'logo', file);
             setFormData({ ...formData, logoUrl: result.url });
-            setSuccessMessage('Logo uploaded successfully!');
+            setSuccessMessage(t('admin.tenantEditor.success.logoUploaded'));
         } catch (error: any) {
-            setErrorMessage(error.message || 'Failed to upload logo');
+            setErrorMessage(error.message || t('admin.tenantEditor.errors.uploadFailed', { type: 'logo' }));
             logError('Failed to upload logo', error);
         }
     };
 
     const handleFaviconUpload = async (file: File) => {
         if (!formData.tenantId) {
-            setErrorMessage('Please save the tenant first before uploading images');
+            setErrorMessage(t('admin.tenantEditor.validation.saveTenantFirst'));
             return;
         }
         try {
             const result = await apiClient.uploadTenantImage(formData.tenantId, 'favicon', file);
             setFormData({ ...formData, faviconUrl: result.url });
-            setSuccessMessage('Favicon uploaded successfully!');
+            setSuccessMessage(t('admin.tenantEditor.success.faviconUploaded'));
         } catch (error: any) {
-            setErrorMessage(error.message || 'Failed to upload favicon');
+            setErrorMessage(error.message || t('admin.tenantEditor.errors.uploadFailed', { type: 'favicon' }));
             logError('Failed to upload favicon', error);
         }
     };
@@ -1258,13 +1263,13 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
 
     const handleLogoFromLibrary = useCallback((url: string) => {
         setFormData((prev) => ({ ...prev, logoUrl: url }));
-        setSuccessMessage('Logo selected from library');
-    }, []);
+        setSuccessMessage(t('admin.tenantEditor.success.logoSelected'));
+    }, [t]);
 
     const handleFaviconFromLibrary = useCallback((url: string) => {
         setFormData((prev) => ({ ...prev, faviconUrl: url }));
-        setSuccessMessage('Favicon selected from library');
-    }, []);
+        setSuccessMessage(t('admin.tenantEditor.success.faviconSelected'));
+    }, [t]);
 
     return (
         <>
@@ -1274,10 +1279,10 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                 <div class='flex-shrink-0 flex items-center justify-between border-b border-border-default px-6 py-4'>
                     <div>
                         <h2 class='text-xl font-semibold text-text-primary'>
-                            {mode === 'create' ? 'Create New Tenant' : 'Edit Tenant'}
+                            {mode === 'create' ? t('admin.tenantEditor.titleCreate') : t('admin.tenantEditor.titleEdit')}
                         </h2>
                         <p class='mt-1 text-sm text-text-muted'>
-                            {mode === 'create' ? 'Configure a new tenant with branding and domains' : 'Update tenant configuration'}
+                            {mode === 'create' ? t('admin.tenantEditor.descriptionCreate') : t('admin.tenantEditor.descriptionEdit')}
                         </p>
                     </div>
                     <button onClick={handleCancel} class='text-text-muted hover:text-text-primary' data-testid='close-modal-button'>
@@ -1295,7 +1300,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
 
                         {/* Creation Mode Selection - Create Mode Only */}
                         {mode === 'create' && (
-                            <Section title='Getting Started' description='Choose how to initialize your tenant' defaultOpen={true} testId='section-creation-mode'>
+                            <Section title={t('admin.tenantEditor.sections.gettingStarted.title')} description={t('admin.tenantEditor.sections.gettingStarted.description')} defaultOpen={true} testId='section-creation-mode'>
                                 <div class='space-y-4'>
                                     <div class='flex gap-4'>
                                         <label class='flex items-center gap-2 cursor-pointer'>
@@ -1312,7 +1317,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                                 class='h-4 w-4'
                                                 data-testid='creation-mode-empty'
                                             />
-                                            <span class='text-sm font-medium text-text-primary'>Start from empty</span>
+                                            <span class='text-sm font-medium text-text-primary'>{t('admin.tenantEditor.creationMode.empty')}</span>
                                         </label>
                                         <label class='flex items-center gap-2 cursor-pointer'>
                                             <input
@@ -1325,14 +1330,14 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                                 class='h-4 w-4'
                                                 data-testid='creation-mode-copy'
                                             />
-                                            <span class='text-sm font-medium text-text-primary'>Copy from existing tenant</span>
+                                            <span class='text-sm font-medium text-text-primary'>{t('admin.tenantEditor.creationMode.copy')}</span>
                                         </label>
                                     </div>
 
                                     {creationMode === 'empty' && (
                                         <div class='bg-surface-raised border border-border-subtle rounded-lg p-4'>
                                             <p class='text-sm text-text-secondary'>
-                                                You will need to fill in all required fields. Colors should be in <code class='font-mono text-xs bg-surface-sunken px-1 rounded'>#RRGGBB</code> format.
+                                                {t('admin.tenantEditor.creationMode.emptyDescription')}
                                             </p>
                                         </div>
                                     )}
@@ -1340,9 +1345,9 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                     {creationMode === 'copy' && (
                                         <div class='space-y-3'>
                                             {isLoadingTenants
-                                                ? <p class='text-sm text-text-muted'>Loading tenants...</p>
+                                                ? <p class='text-sm text-text-muted'>{t('admin.tenantEditor.loading.tenants')}</p>
                                                 : existingTenants.length === 0
-                                                ? <p class='text-sm text-text-muted'>No existing tenants to copy from.</p>
+                                                ? <p class='text-sm text-text-muted'>{t('admin.tenantEditor.empty.noTenants')}</p>
                                                 : (
                                                     <select
                                                         value={selectedSourceTenantId}
@@ -1350,10 +1355,10 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                                         class='w-full rounded-md border border-border-default bg-surface-base px-3 py-2 text-sm'
                                                         data-testid='source-tenant-select'
                                                     >
-                                                        <option value=''>Select a tenant to copy...</option>
-                                                        {existingTenants.map((t) => (
-                                                            <option key={t.tenant.tenantId} value={t.tenant.tenantId}>
-                                                                {t.tenant.tenantId} - {t.tenant.branding?.appName || 'Unnamed'}
+                                                        <option value=''>{t('admin.tenantEditor.placeholders.selectTenant')}</option>
+                                                        {existingTenants.map((tenant) => (
+                                                            <option key={tenant.tenant.tenantId} value={tenant.tenant.tenantId}>
+                                                                {tenant.tenant.tenantId} - {tenant.tenant.branding?.appName || t('common.unknown')}
                                                             </option>
                                                         ))}
                                                     </select>
@@ -1361,8 +1366,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                             {selectedSourceTenantId && (
                                                 <div class='bg-surface-raised border border-border-subtle rounded-lg p-4'>
                                                     <p class='text-sm text-text-secondary'>
-                                                        All theme settings will be copied from{' '}
-                                                        <strong>{selectedSourceTenantId}</strong>. You will still need to set a unique Tenant ID, App Name, and domains.
+                                                        {t('admin.tenantEditor.creationMode.copyDescription', { tenant: selectedSourceTenantId })}
                                                     </p>
                                                 </div>
                                             )}
@@ -1373,20 +1377,20 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                         )}
 
                         {/* Basic Info - Always Open */}
-                        <Section title='Basic Info' description='Tenant ID, name, and domains' defaultOpen={true} testId='section-basic-info'>
+                        <Section title={t('admin.tenantEditor.sections.basicInfo.title')} description={t('admin.tenantEditor.sections.basicInfo.description')} defaultOpen={true} testId='section-basic-info'>
                             <Input
-                                label='Tenant ID'
+                                label={t('admin.tenantEditor.fields.tenantId')}
                                 value={formData.tenantId}
                                 onChange={(value) => update({ tenantId: value })}
-                                placeholder='my-tenant-id'
+                                placeholder={t('admin.tenantEditor.placeholders.tenantId')}
                                 disabled={mode === 'edit' || isSaving}
                                 required
                                 data-testid='tenant-id-input'
                             />
-                            {mode === 'edit' && <p class='text-xs text-text-muted -mt-2'>Tenant ID cannot be changed</p>}
+                            {mode === 'edit' && <p class='text-xs text-text-muted -mt-2'>{t('admin.tenantEditor.hints.tenantIdReadonly')}</p>}
 
                             <Input
-                                label='App Name'
+                                label={t('admin.tenantEditor.fields.appName')}
                                 value={formData.appName}
                                 onChange={(value) => update({ appName: value })}
                                 placeholder='My Expense App'
