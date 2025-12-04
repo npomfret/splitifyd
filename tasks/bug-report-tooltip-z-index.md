@@ -1,34 +1,25 @@
 # Bug Report: Tooltip Z-Index Issues Causing Clipping
 
+**Status: RESOLVED**
+
 ## Overview
 Tooltips across the application are sometimes partially or fully obscured by other UI elements. This indicates a problem with the `z-index` stacking order, where the tooltips are rendered underneath other components that have a higher `z-index` or are in a different stacking context.
 
-## Steps to Reproduce
-1. Log in to the application.
-2. Navigate to various pages where tooltips are used. Some examples might include:
-    - Hovering over action icons (e.g., Edit, Delete) in a list.
-    - Hovering over truncated text or information icons.
-    - Hovering over disabled buttons.
-3. Trigger a tooltip in a situation where it is near other components, especially within modals, cards, or complex layouts.
-4. Observe whether the tooltip is fully visible or if it gets "clipped" or hidden behind an adjacent element.
+## Root Cause
+The Tooltip component (`webapp-v2/src/components/ui/Tooltip.tsx`) was rendering inline with `position: absolute` and no explicit z-index. When tooltips appeared inside containers with `overflow: hidden`, `transform`, or other properties that create new stacking contexts, they got clipped or appeared behind other elements.
 
-## Expected Behavior
-Tooltips should always appear on top of all other page content, ensuring they are fully visible and readable to the user regardless of their position on the screen.
+## Solution
+Refactored the Tooltip component to:
+1. **Render via `createPortal` to `document.body`** - escapes parent stacking contexts entirely
+2. **Use `position: fixed` with `z-50`** - ensures tooltips appear above most content (same level as modals)
+3. **Calculate position dynamically** - uses `getBoundingClientRect()` to position relative to trigger element
+4. **Auto-flip when near viewport edges** - if `placement='top'` but no room above, flips to bottom (and vice versa)
+5. **Clamp horizontal position** - prevents tooltip from overflowing left/right viewport edges
+6. **Recalculate on scroll/resize** - position updates dynamically as the page scrolls or window resizes
 
-## Actual Behavior
-Tooltips are sometimes clipped by parent containers or appear behind other elements, making them difficult or impossible to read. This is a classic `z-index` issue.
+## Files Modified
+- `webapp-v2/src/components/ui/Tooltip.tsx`
 
-## Impact
-- **User Experience:** This makes the application feel buggy and unprofessional. Users cannot read the helpful information provided by the tooltips, which can lead to confusion.
-- **Usability:** If a tooltip contains critical information (e.g., explaining why a button is disabled), this bug can prevent the user from understanding the state of the UI.
-
-## Possible Cause (Initial Thoughts)
-This problem is almost certainly related to CSS stacking contexts. The tooltip component likely has a `z-index` that is not high enough to overcome the `z-index` of other components. The issue might be exacerbated by:
-- Parent containers with `overflow: hidden`, `transform`, `opacity < 1`, or other properties that create a new stacking context, "trapping" the tooltip's `z-index` within that context.
-- The `z-index` of other components (like modals, headers, or sidebars) being set to an excessively high value.
-- The tooltip component not being rendered at the root of the DOM (e.g., via a Preact portal), which would free it from the `z-index` constraints of its parent elements.
-
-A common solution is to ensure the tooltip component uses a portal to render at the top level of the document body and has a very high `z-index` (e.g., `z-50` or higher in Tailwind CSS).
-
-## Priority
-Low to Medium - This is a UI polish issue. It doesn't break functionality but significantly degrades the user experience and can hide important contextual information.
+## Testing
+- Build passes (`npm run build`)
+- Existing component tests pass (GroupCard, Clickable)
