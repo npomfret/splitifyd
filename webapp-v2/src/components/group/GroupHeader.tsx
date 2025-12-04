@@ -6,12 +6,11 @@ import { Button, Card, RelativeTime, Tooltip } from '../ui';
 interface GroupHeaderProps {
     group: GroupDTO;
     members: GroupMember[];
-    expenseCount?: number;
     onSettings?: () => void;
     showSettingsButton?: boolean;
 }
 
-export function GroupHeader({ group, members, expenseCount = 0, onSettings, showSettingsButton }: GroupHeaderProps) {
+export function GroupHeader({ group, members, onSettings, showSettingsButton }: GroupHeaderProps) {
     const { t } = useTranslation();
     return (
         <Card variant='glass' className='p-6 border-border-default'>
@@ -38,16 +37,10 @@ export function GroupHeader({ group, members, expenseCount = 0, onSettings, show
                 </div>
             </div>
 
-            <div className='flex gap-6 text-sm text-text-muted'>
-                <div data-testid='member-count'>{t('groupHeader.membersCount', { count: members.length })}</div>
-                <div data-testid='expense-count'>
-                    {expenseCount} <span className='font-medium'>{t('groupHeader.recent')}</span> {t('groupHeader.expenses')}
-                </div>
-                {group.createdAt && (
-                    <div>
-                        {t('groupHeader.createdPrefix')} <RelativeTime date={group.createdAt} />
-                    </div>
-                )}
+            <div className='text-sm text-text-muted' data-testid='group-stats'>
+                {t('groupHeader.membersCount', { count: members.length })},{' '}
+                <RelativeTime date={group.createdAt} /> {t('groupHeader.old')},{' '}
+                {t('groupHeader.lastUpdated')} <RelativeTime date={group.updatedAt} />
             </div>
         </Card>
     );

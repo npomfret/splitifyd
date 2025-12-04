@@ -909,9 +909,8 @@
     "membersCount": "{{count}} members",
     "membersCount_one": "{{count}} member",
     "membersCount_other": "{{count}} members",
-    "recent": "Recent",
-    "expenses": "expenses",
-    "createdPrefix": "Created",
+    "old": "old",
+    "lastUpdated": "last updated",
     "groupSettingsAriaLabel": "Group settings",
     "groupSecurityAriaLabel": "Security and permissions"
   },

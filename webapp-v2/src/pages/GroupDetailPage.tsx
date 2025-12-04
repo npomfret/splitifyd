@@ -327,7 +327,6 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                         <GroupHeader
                             group={group.value!}
                             members={members.value}
-                            expenseCount={expenses.value.length}
                             onSettings={handleSettings}
                             showSettingsButton={canShowSettingsButton.value}
                         />

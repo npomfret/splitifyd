@@ -557,67 +557,6 @@ test.describe('Group Detail - Expenses Display', () => {
         // Verify empty state is displayed
         await groupDetailPage.verifyEmptyExpensesState();
     });
-
-    test('should show expense count in header', async ({ authenticatedPage }) => {
-        const { page, user: testUser } = authenticatedPage;
-        const groupDetailPage = new GroupDetailPage(page);
-        const groupId = 'group-expense-count';
-
-        const group = GroupDTOBuilder
-            .groupForUser(testUser.uid)
-            .withId(groupId)
-            .withName('Expense Count Group')
-            .build();
-
-        const members = [
-            new GroupMemberBuilder()
-                .withUid(testUser.uid)
-                .withDisplayName(testUser.displayName)
-                .withGroupDisplayName(testUser.displayName)
-                .withTheme(
-                    ThemeBuilder
-                        .blue()
-                        .build(),
-                )
-                .build(),
-        ];
-
-        const expenses = [
-            new ExpenseDTOBuilder()
-                .withExpenseId('exp-1')
-                .withPaidBy(testUser.uid)
-                .withParticipants([testUser.uid])
-                .withGroupId(groupId)
-                .build(),
-            new ExpenseDTOBuilder()
-                .withExpenseId('exp-2')
-                .withPaidBy(testUser.uid)
-                .withParticipants([testUser.uid])
-                .withGroupId(groupId)
-                .build(),
-            new ExpenseDTOBuilder()
-                .withExpenseId('exp-3')
-                .withPaidBy(testUser.uid)
-                .withParticipants([testUser.uid])
-                .withGroupId(groupId)
-                .build(),
-        ];
-
-        const fullDetails = new GroupFullDetailsBuilder()
-            .withGroup(group)
-            .withMembers(members)
-            .withExpenses(expenses)
-            .build();
-
-        await mockGroupDetailApi(page, groupId, fullDetails);
-        await mockGroupCommentsApi(page, groupId);
-
-        await groupDetailPage.navigateToGroup(groupId);
-        await groupDetailPage.waitForGroupToLoad();
-
-        // Verify expense count is displayed
-        await groupDetailPage.verifyExpenseCountText('3');
-    });
 });
 
 test.describe('Group Detail - Balance Display', () => {

@@ -307,19 +307,11 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * Member count display - finds count in the group header card
+     * Group stats display - finds the stats line in the group header card
+     * Shows: "{X} members, {time} old, last updated {time}"
      */
-    protected getMemberCount(): Locator {
-        // Use the data-testid from GroupHeader component
-        return this.page.locator('[data-testid="member-count"]');
-    }
-
-    /**
-     * Expense count display - finds count near the Expenses heading
-     */
-    protected getExpenseCount(): Locator {
-        // Use the data-testid attribute for reliable selection
-        return this.page.locator('[data-testid="expense-count"]');
+    protected getGroupStats(): Locator {
+        return this.page.locator('[data-testid="group-stats"]');
     }
 
     // ============================================================================
@@ -437,17 +429,17 @@ export class GroupDetailPage extends BasePage {
      * Get the actual member count displayed in the header
      */
     async getCurrentMemberCount(): Promise<number> {
-        const memberCountElement = this.getMemberCount();
-        await expect(memberCountElement).toBeVisible({ timeout: 1000 });
+        const groupStatsElement = this.getGroupStats();
+        await expect(groupStatsElement).toBeVisible({ timeout: 1000 });
 
-        const memberText = await memberCountElement.textContent();
-        if (!memberText) {
-            throw new Error('Could not find member count text in UI');
+        const statsText = await groupStatsElement.textContent();
+        if (!statsText) {
+            throw new Error('Could not find group stats text in UI');
         }
 
-        const match = memberText.match(/(\d+)\s+member/i);
+        const match = statsText.match(/(\d+)\s+member/i);
         if (!match) {
-            throw new Error(`Could not parse member count from text: "${memberText}"`);
+            throw new Error(`Could not parse member count from text: "${statsText}"`);
         }
 
         return parseInt(match[1], 10);
@@ -1715,10 +1707,10 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * Verify the member count element is visible
+     * Verify the group stats element is visible (shows members, age, last updated)
      */
     async verifyMemberCountElementVisible(): Promise<void> {
-        await expect(this.getMemberCount()).toBeVisible();
+        await expect(this.getGroupStats()).toBeVisible();
     }
 
     /**
@@ -1886,10 +1878,10 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * Verify member count text contains expected value
+     * Verify group stats text contains expected value (e.g., member count)
      */
     async verifyMemberCountText(text: string): Promise<void> {
-        await expect(this.getMemberCount()).toContainText(text);
+        await expect(this.getGroupStats()).toContainText(text);
     }
 
     /**
@@ -1897,13 +1889,6 @@ export class GroupDetailPage extends BasePage {
      */
     async verifySecuritySettingsButtonVisible(): Promise<void> {
         await expect(this.getSecuritySettingsButton()).toBeVisible();
-    }
-
-    /**
-     * Verify expense count text contains expected value
-     */
-    async verifyExpenseCountText(text: string): Promise<void> {
-        await expect(this.getExpenseCount()).toContainText(text);
     }
 
     // Public locator accessors for tests
