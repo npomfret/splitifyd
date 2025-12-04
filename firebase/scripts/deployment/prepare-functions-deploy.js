@@ -3,15 +3,15 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-const rootDir = path.join(__dirname, '../..');
-const srcFunctions = path.join(__dirname, '../functions');
-const stageRoot = path.join(__dirname, '../.firebase/deploy');
+const rootDir = path.join(__dirname, '../../..');
+const srcFunctions = path.join(__dirname, '../../functions');
+const stageRoot = path.join(__dirname, '../../.firebase/deploy');
 const stageFunctions = path.join(stageRoot, 'functions');
 
 // Get instance name from .current-instance file (set by switch-instance.ts)
 let instanceName = process.env.__INSTANCE_NAME;
 if (!instanceName) {
-    const currentInstancePath = path.join(__dirname, '../.current-instance');
+    const currentInstancePath = path.join(__dirname, '../../.current-instance');
     if (fs.existsSync(currentInstancePath)) {
         instanceName = fs.readFileSync(currentInstancePath, 'utf8').trim();
     }
