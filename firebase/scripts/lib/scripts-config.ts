@@ -50,7 +50,7 @@ export function isDevInstanceName(name: InstanceName): name is DevInstanceName {
  * @returns The instance name from the file, or undefined if file doesn't exist
  */
 function readCurrentInstanceFile(): string | undefined {
-    const currentInstancePath = path.join(__dirname, '../.current-instance');
+    const currentInstancePath = path.join(__dirname, '../../.current-instance');
     try {
         if (fs.existsSync(currentInstancePath)) {
             const content = fs.readFileSync(currentInstancePath, 'utf8').trim();
@@ -127,7 +127,7 @@ export interface ScriptEnvironment {
  * @returns true if .env was loaded, false if not found
  */
 export function loadEnvFile(envPath?: string): boolean {
-    const defaultPath = path.join(__dirname, '../functions/.env');
+    const defaultPath = path.join(__dirname, '../../functions/.env');
     const targetPath = envPath ?? defaultPath;
 
     if (fs.existsSync(targetPath)) {

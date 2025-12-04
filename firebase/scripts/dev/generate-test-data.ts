@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 
-import { loadRuntimeConfig } from '../scripts-config';
-import { getEnvironmentForModule, initializeFirebase } from '../firebase-init';
+import { loadRuntimeConfig } from '../lib/scripts-config';
+import { getEnvironmentForModule, initializeFirebase } from '../lib/firebase-init';
 import { generateFullTestData } from './test-data-generator';
 
 // Load and validate runtime configuration

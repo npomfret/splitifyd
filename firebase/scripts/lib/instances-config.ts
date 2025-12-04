@@ -24,7 +24,7 @@ export interface InstanceConfig {
 
 type InstancesMap = Record<string, InstanceConfig>;
 
-const FIREBASE_DIR = path.join(__dirname, '..');
+const FIREBASE_DIR = path.join(__dirname, '../..');
 const INSTANCES_FILE = path.join(FIREBASE_DIR, 'instances.json');
 
 let cachedInstances: InstancesMap | null = null;

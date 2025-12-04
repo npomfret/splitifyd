@@ -34,7 +34,7 @@ export interface TenantConfig {
  * Get the path to the tenants directory
  */
 export function getTenantsDirectory(): string {
-    return path.join(__dirname, '..', 'docs', 'tenants');
+    return path.join(__dirname, '../..', 'docs', 'tenants');
 }
 
 /**

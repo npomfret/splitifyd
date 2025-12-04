@@ -4,7 +4,7 @@ import { execSync } from 'child_process';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import * as readline from 'readline';
-import { logger } from '../logger';
+import { logger } from '../lib/logger';
 
 interface DeployedFunction {
     name: string;

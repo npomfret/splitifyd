@@ -2,9 +2,9 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { loadRuntimeConfig } from '../scripts-config';
-import { getDeployConfig, resolvePortsForMode } from '../instances-config';
-import { logger } from '../logger';
+import { loadRuntimeConfig } from '../lib/scripts-config';
+import { getDeployConfig, resolvePortsForMode } from '../lib/instances-config';
+import { logger } from '../lib/logger';
 
 // Load and validate runtime configuration
 const runtimeConfig = loadRuntimeConfig();

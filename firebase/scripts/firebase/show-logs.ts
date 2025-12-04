@@ -3,7 +3,7 @@
 import {execSync, spawnSync} from 'child_process';
 import {existsSync, readFileSync} from 'fs';
 import {join, resolve} from 'path';
-import {logger} from '../logger';
+import {logger} from '../lib/logger';
 
 const credentialsPath = resolve(join(__dirname, '../../service-account-key.json'));
 

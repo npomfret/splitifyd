@@ -28,8 +28,8 @@
 
 import { SIGN_IN_WITH_PASSWORD_ENDPOINT, type ClientAppConfiguration } from '@billsplit-wl/shared';
 import { ApiDriver, type ApiDriverConfig } from '@billsplit-wl/test-support';
-import { logger } from './logger';
-import { loadAllTenantConfigs, loadTenantConfig, type TenantConfig } from './load-tenant-configs';
+import { logger } from './lib/logger';
+import { loadAllTenantConfigs, loadTenantConfig, type TenantConfig } from './lib/load-tenant-configs';
 
 interface PublishOptions {
     baseUrl: string;

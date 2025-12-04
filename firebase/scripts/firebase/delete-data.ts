@@ -11,8 +11,8 @@ import type { CollectionReference, Firestore, QueryDocumentSnapshot } from 'fire
 import { stdin as input, stdout as output } from 'node:process';
 import { createInterface } from 'readline/promises';
 import { getFirestore } from '../../functions/src/firebase';
-import { getInstanceEnvironment, loadRuntimeConfig } from '../scripts-config';
-import { initializeFirebase, parseEnvironment, type ScriptEnvironment } from '../firebase-init';
+import { getInstanceEnvironment, loadRuntimeConfig } from '../lib/scripts-config';
+import { initializeFirebase, parseEnvironment, type ScriptEnvironment } from '../lib/firebase-init';
 
 // Load runtime configuration at the start
 loadRuntimeConfig();

@@ -62,7 +62,7 @@ export async function initializeFirebase(env: ScriptEnvironment): Promise<void> 
     if (!env.isEmulator) {
         console.log('   Using Production Firebase');
 
-        const serviceAccountPath = path.join(__dirname, '../service-account-key.json');
+        const serviceAccountPath = path.join(__dirname, '../../service-account-key.json');
 
         if (!fs.existsSync(serviceAccountPath)) {
             console.error('❌ Service account key not found at firebase/service-account-key.json');

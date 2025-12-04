@@ -30,7 +30,7 @@ import {
 import { ApiDriver, type ApiDriverConfig } from '@billsplit-wl/test-support';
 import * as fs from 'fs';
 import * as path from 'path';
-import { getTenantDirectory, loadAllTenantConfigs, loadTenantConfig, type TenantConfig } from './load-tenant-configs';
+import { getTenantDirectory, loadAllTenantConfigs, loadTenantConfig, type TenantConfig } from './lib/load-tenant-configs';
 
 interface SyncTenantOptions {
     defaultOnly?: boolean;

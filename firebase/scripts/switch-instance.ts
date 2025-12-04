@@ -3,8 +3,8 @@
 import { execSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
-import { getDeployConfig, requireInstanceConfig } from './instances-config';
-import { logger } from './logger';
+import { getDeployConfig, requireInstanceConfig } from './lib/instances-config';
+import { logger } from './lib/logger';
 
 const instance: string | undefined = process.argv[2];
 
