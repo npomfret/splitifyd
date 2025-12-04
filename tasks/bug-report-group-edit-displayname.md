@@ -1,30 +1,34 @@
-# Bug Report: Group Edit Form Populates with User Display Name
+# Bug Report: UI/UX Issues in Group Settings: Field Label and Default Tab
 
 ## Overview
-When a user attempts to edit a group's details, specifically the group's display name, the input field is incorrectly pre-populated with the *current user's display name* instead of the *group's current display name*. This leads to user confusion and requires manual correction of the field.
+This bug report addresses two separate UI/UX issues within the Group Settings interface:
+1.  **Incorrect Field Label:** The input field for setting a user's display name specific to a group has an ambiguous label.
+2.  **Incorrect Default Tab:** The Group Settings modal does not default to the "General" tab upon opening.
+
+These issues create user confusion and a suboptimal workflow.
 
 ## Steps to Reproduce
-1. Log in to the application.
-2. Navigate to a group that you own or have permission to edit.
-3. Access the group's settings or edit interface (e.g., via a "Group Settings" modal or page).
-4. Observe the input field intended for editing the group's display name.
+1.  Log in to the application.
+2.  Navigate to a group.
+3.  Open the "Group Settings" modal.
+4.  **Issue 1 (Default Tab):** Observe which tab is selected by default.
+5.  **Issue 2 (Field Label):** Navigate to the "General" tab and observe the label for the user's display name field.
 
 ## Expected Behavior
-The input field for the group's display name should be pre-populated with the *current display name of the group*.
+1.  **Default Tab:** When the "Group Settings" modal is opened, the "General" tab should be selected by default.
+2.  **Field Label:** The label for the user-specific display name field on the "General" tab should read: "**Your display name in this group**".
 
 ## Actual Behavior
-The input field for the group's display name is pre-populated with the *current logged-in user's display name*.
+1.  **Default Tab:** The modal defaults to a tab other than "General".
+2.  **Field Label:** The label currently reads: "**Display name in this group**". This is ambiguous and could be misinterpreted as the setting for the group's overall name, rather than the user's name within that specific group.
 
 ## Impact
-- **User Experience:** Confusing for users, as the form does not reflect the actual group data.
-- **Data Integrity:** Users may inadvertently save their own display name as the group name if they do not notice the pre-population error and proceed to save changes.
-- **Efficiency:** Requires an extra step for users to delete the incorrect pre-filled data and manually enter the correct group name.
+-   **User Experience:** The ambiguity of the field label can cause confusion, leading users to believe they are editing the group's name instead of their own alias within it.
+-   **Efficiency:** The incorrect default tab requires users to perform an extra click to get to the most common settings, which is inefficient.
 
 ## Possible Cause (Initial Thoughts)
-It appears there might be an incorrect variable binding or data fetching logic within the group edit form. Instead of fetching the `group.displayName`, it seems to be retrieving `user.displayName` (or a similar user-related property) for pre-population. This could be due to:
-- An incorrect prop being passed to the input component.
-- A wrong state variable being used to initialize the form field.
-- An issue in the data mapping layer when preparing the form data.
+-   **Default Tab:** The state management or routing logic for the tabs in the `GroupSettingsModal` component likely has the wrong initial state or is missing logic to default to the "General" tab.
+-   **Field Label:** This is likely a hardcoded string in the component rendering the input field on the "General" tab that needs to be updated for clarity.
 
 ## Priority
-Medium - Affects user experience and data accuracy, but has a simple workaround (manual correction).
+Medium - These are UI/UX polish issues that cause confusion but do not break core functionality.
