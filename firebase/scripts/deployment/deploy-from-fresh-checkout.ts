@@ -5,8 +5,8 @@ import { join, resolve } from 'node:path';
 
 type DeployMode = 'all' | 'functions' | 'hosting' | 'rules' | 'indexes';
 
-const repoRoot = resolve(__dirname, '../..');
-const firebaseDir = resolve(__dirname, '..');
+const repoRoot = resolve(__dirname, '../../..');
+const firebaseDir = resolve(__dirname, '../..');
 const functionsDir = join(firebaseDir, 'functions');
 const serviceAccountName = 'service-account-key.json';
 

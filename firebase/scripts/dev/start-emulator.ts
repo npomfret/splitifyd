@@ -4,7 +4,7 @@ import { ApiDriver } from '@billsplit-wl/test-support';
 import { ChildProcess, spawn } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
-import { logger } from './logger';
+import { logger } from '../logger';
 
 export async function startEmulator(): Promise<ChildProcess> {
     logger.info('🚀 Starting Firebase emulator...');

@@ -4,7 +4,7 @@ import { execSync } from 'child_process';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import * as readline from 'readline';
-import { logger } from './logger';
+import { logger } from '../logger';
 
 interface DeployedFunction {
     name: string;
@@ -15,7 +15,7 @@ interface DeployedFunction {
 }
 
 async function getProjectId(): Promise<string> {
-    const serviceAccountPath = join(__dirname, '../service-account-key.json');
+    const serviceAccountPath = join(__dirname, '../../service-account-key.json');
     try {
         const serviceAccount = JSON.parse(readFileSync(serviceAccountPath, 'utf8'));
         return serviceAccount.project_id;
@@ -29,7 +29,7 @@ async function getProjectId(): Promise<string> {
 }
 
 async function authenticateWithFirebase(): Promise<void> {
-    const serviceAccountPath = join(__dirname, '../service-account-key.json');
+    const serviceAccountPath = join(__dirname, '../../service-account-key.json');
     try {
         logger.info('🔐 Setting Firebase service account...');
         process.env.GOOGLE_APPLICATION_CREDENTIALS = serviceAccountPath;

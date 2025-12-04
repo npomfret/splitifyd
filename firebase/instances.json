@@ -60,7 +60,7 @@
     },
     "deploy": {
       "functionsSource": ".firebase/deploy/functions",
-      "functionsPredeploy": "node ./scripts/prepare-functions-deploy.js"
+      "functionsPredeploy": "node ./scripts/deployment/prepare-functions-deploy.js"
     }
   }
 }

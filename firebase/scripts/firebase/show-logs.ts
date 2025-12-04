@@ -3,9 +3,9 @@
 import {execSync, spawnSync} from 'child_process';
 import {existsSync, readFileSync} from 'fs';
 import {join, resolve} from 'path';
-import {logger} from './logger';
+import {logger} from '../logger';
 
-const credentialsPath = resolve(join(__dirname, '../service-account-key.json'));
+const credentialsPath = resolve(join(__dirname, '../../service-account-key.json'));
 
 // ANSI color codes
 const colors = {

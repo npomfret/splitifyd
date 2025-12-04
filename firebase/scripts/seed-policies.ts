@@ -5,7 +5,7 @@ import { ApiDriver } from '@billsplit-wl/test-support';
 import * as fs from 'fs';
 import * as path from 'path';
 import { getEnvironment, initializeFirebase } from './firebase-init';
-import { generateBillSplitterUser, signInExistingBillSplitter } from './test-data-generator';
+import { generateBillSplitterUser, signInExistingBillSplitter } from './dev/test-data-generator';
 
 /*
  * This script seeds policy files using the Admin API

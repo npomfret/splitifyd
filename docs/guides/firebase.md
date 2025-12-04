@@ -14,7 +14,7 @@ Concise rules for working with the Firebase emulator stack and the instance swit
 - Each `firebase/functions/.env.instance*` contains Firebase client keys and dev form defaults. The `__INSTANCE_NAME` is included in each file.
 - `npm run switch-instance <n>` (invoked by `dev1.sh` … `dev4.sh`) writes the instance name to `firebase/.current-instance`, symlinks (dev) or copies (staging) the template to `.env`, then regenerates `firebase/firebase.json` from port mappings in `instances.json`.
 - Never edit `firebase.json`; it is always generated.
-- `firebase/scripts/start-with-data.ts` reads `__INSTANCE_NAME`, validates it's a dev instance, reads ports from the generated config, seeds policies, and provisions the default user.
+- `firebase/scripts/dev/start-with-data.ts` reads `__INSTANCE_NAME`, validates it's a dev instance, reads ports from the generated config, seeds policies, and provisions the default user.
 
 ## Runtime Config Consumers
 
@@ -32,7 +32,7 @@ Concise rules for working with the Firebase emulator stack and the instance swit
   - **Firebase Rules Admin** (`roles/firebaserules.admin`) – publish Firestore security rules
   - **Service Account User** (`roles/iam.serviceAccountUser`) – let the deploy impersonate the runtime service account (default is `PROJECT_NUMBER-compute@developer.gserviceaccount.com`)
   - **Cloud Scheduler Admin** (`roles/cloudscheduler.admin`) – manage scheduled Cloud Functions triggers
-  - Run `bash firebase/scripts/grant-deploy-roles.sh` from the repo root (pass a custom email if you use a different service account) to apply all bindings in one shot.
+  - Run `bash firebase/scripts/deployment/grant-deploy-roles.sh` from the repo root (pass a custom email if you use a different service account) to apply all bindings in one shot.
 
 ## Deployment
 
@@ -52,7 +52,7 @@ Use `npm run deploy:all` (or `deploy:functions`, `deploy:hosting`, etc.) from `f
 
 ### Direct Deployment (Quick iteration)
 
-Use `bash scripts/deploy-staging.sh [target]` from `firebase/` directory. This:
+Use `bash scripts/deployment/deploy-staging.sh [target]` from `firebase/` directory. This:
 1. Switches to staging-1 instance
 2. Builds and stages functions in-place
 3. Deploys via Firebase CLI
@@ -75,7 +75,7 @@ Before deploying, ensure you have:
 
 1. **Service account key** at `firebase/service-account-key.json`
 2. **Staging environment config** at `firebase/functions/.env.instancestaging-1` (copy from `.env.firebase.example` and fill in real values)
-3. **Service account permissions** (run `bash firebase/scripts/grant-deploy-roles.sh`)
+3. **Service account permissions** (run `bash firebase/scripts/deployment/grant-deploy-roles.sh`)
 
 ### Post-Deployment
 

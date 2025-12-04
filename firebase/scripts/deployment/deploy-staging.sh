@@ -6,7 +6,7 @@ set -euo pipefail
 # Example: ./scripts/deploy-staging.sh functions staging-1
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-FIREBASE_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+FIREBASE_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 cd "$FIREBASE_DIR"
 
@@ -58,13 +58,13 @@ trap cleanup EXIT
 case "$DEPLOY_TARGET" in
     all)
         echo "🚀 Deploying all (functions, rules, hosting) to $INSTANCE..."
-        node scripts/prepare-functions-deploy.js
+        node scripts/deployment/prepare-functions-deploy.js
         firebase deploy --only functions,firestore:rules,hosting
         ;;
 
     functions)
         echo "🚀 Deploying functions only to $INSTANCE..."
-        node scripts/prepare-functions-deploy.js
+        node scripts/deployment/prepare-functions-deploy.js
         firebase deploy --only functions
         ;;
 

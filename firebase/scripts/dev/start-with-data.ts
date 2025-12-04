@@ -2,9 +2,9 @@
 
 import { ChildProcess } from 'child_process';
 import assert from 'node:assert';
-import { loadRuntimeConfig } from './scripts-config';
-import { logger } from './logger';
-import { seedPolicies } from './seed-policies';
+import { loadRuntimeConfig } from '../scripts-config';
+import { logger } from '../logger';
+import { seedPolicies } from '../seed-policies';
 import { startEmulator } from './start-emulator';
 import { publishDemoThemes, syncDemoTenants } from './test-data-generator';
 

@@ -2,7 +2,7 @@
 
 import { getAllEmulatorPorts } from '@billsplit-wl/test-support';
 import { execSync } from 'child_process';
-import { logger } from './logger';
+import { logger } from '../logger';
 
 let ports: number[] = [];
 try {

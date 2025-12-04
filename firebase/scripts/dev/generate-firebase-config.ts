@@ -2,15 +2,15 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { loadRuntimeConfig } from './scripts-config';
-import { getDeployConfig, resolvePortsForMode } from './instances-config';
-import { logger } from './logger';
+import { loadRuntimeConfig } from '../scripts-config';
+import { getDeployConfig, resolvePortsForMode } from '../instances-config';
+import { logger } from '../logger';
 
 // Load and validate runtime configuration
 const runtimeConfig = loadRuntimeConfig();
 
-const templatePath = path.join(__dirname, '../firebase.template.json');
-const configPath = path.join(__dirname, '../firebase.json');
+const templatePath = path.join(__dirname, '../../firebase.template.json');
+const configPath = path.join(__dirname, '../../firebase.json');
 
 if (!fs.existsSync(templatePath)) {
     logger.error('❌ firebase.template.json not found');

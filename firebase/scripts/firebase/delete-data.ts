@@ -1,7 +1,7 @@
 #!/usr/bin/env npx tsx
 /**
  * Usage:
- *   ./firebase/scripts/delete-data.ts <emulator|production> [collectionId...]
+ *   ./firebase/scripts/firebase/delete-data.ts <emulator|production> [collectionId...]
  *
  * If collection IDs are supplied, only those collections (minus protected ones) are deleted.
  * Otherwise, every non-protected collection will be purged.
@@ -10,9 +10,9 @@ import * as admin from 'firebase-admin';
 import type { CollectionReference, Firestore, QueryDocumentSnapshot } from 'firebase-admin/firestore';
 import { stdin as input, stdout as output } from 'node:process';
 import { createInterface } from 'readline/promises';
-import { getFirestore } from '../functions/src/firebase';
-import { getInstanceEnvironment, loadRuntimeConfig } from './scripts-config';
-import { initializeFirebase, parseEnvironment, type ScriptEnvironment } from './firebase-init';
+import { getFirestore } from '../../functions/src/firebase';
+import { getInstanceEnvironment, loadRuntimeConfig } from '../scripts-config';
+import { initializeFirebase, parseEnvironment, type ScriptEnvironment } from '../firebase-init';
 
 // Load runtime configuration at the start
 loadRuntimeConfig();

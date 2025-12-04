@@ -55,7 +55,7 @@ try {
     logger.info('📝 Updated .current-instance file', { instanceName });
 
     // Generate firebase.json for both emulator and production environments
-    execSync('tsx scripts/generate-firebase-config.ts', {
+    execSync('tsx scripts/dev/generate-firebase-config.ts', {
         cwd: path.join(__dirname, '..'),
         stdio: 'inherit',
     });

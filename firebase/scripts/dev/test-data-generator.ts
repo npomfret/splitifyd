@@ -545,7 +545,7 @@ const generateRandomExpense = (): TestExpenseTemplate => {
 export async function createDefaultTenant(): Promise<void> {
     console.log('🏢 Creating default fallback tenant only...');
 
-    const { syncTenantConfigs } = await import('./sync-tenant-configs');
+    const { syncTenantConfigs } = await import('../sync-tenant-configs');
 
     // Create ApiDriver for API calls
     const apiDriver = await ApiDriver.create();
@@ -557,7 +557,7 @@ export async function createDefaultTenant(): Promise<void> {
 
     // After syncing the default tenant, publish its theme CSS
     console.log('🎨 Publishing theme CSS for default tenant...');
-    const { publishLocalThemes } = await import('./publish-themes');
+    const { publishLocalThemes } = await import('../publish-themes');
     await publishLocalThemes({ defaultOnly: true });
 }
 
@@ -569,7 +569,7 @@ export async function createDefaultTenant(): Promise<void> {
 export async function syncDemoTenants(): Promise<void> {
     console.log('🏢 Syncing all demo tenants from JSON configuration...');
 
-    const { syncTenantConfigs } = await import('./sync-tenant-configs');
+    const { syncTenantConfigs } = await import('../sync-tenant-configs');
 
     // Create ApiDriver for API calls
     const apiDriver = await ApiDriver.create();
@@ -586,7 +586,7 @@ export async function syncDemoTenants(): Promise<void> {
  */
 export async function publishDemoThemes(): Promise<void> {
     console.log('🎨 Publishing theme CSS artifacts for all tenants...');
-    const { publishLocalThemes } = await import('./publish-themes');
+    const { publishLocalThemes } = await import('../publish-themes');
     await publishLocalThemes();
 }
 
