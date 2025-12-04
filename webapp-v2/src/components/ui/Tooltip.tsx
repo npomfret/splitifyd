@@ -1,6 +1,6 @@
 import type { JSX } from 'preact';
-import { cloneElement, isValidElement } from 'preact/compat';
-import { useRef, useState } from 'preact/hooks';
+import { cloneElement, createPortal, isValidElement } from 'preact/compat';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 
 export type TooltipPlacement = 'top' | 'bottom';
 
@@ -10,6 +10,14 @@ interface TooltipProps {
     placement?: TooltipPlacement;
     className?: string;
 }
+
+interface TooltipPosition {
+    top: number;
+    left: number;
+    actualPlacement: TooltipPlacement;
+}
+
+const TOOLTIP_OFFSET = 8; // Gap between trigger and tooltip
 
 // Utility to compose existing event handlers without dropping them
 function composeEventHandlers<T extends Event>(
@@ -26,6 +34,9 @@ function composeEventHandlers<T extends Event>(
 
 export function Tooltip({ content, children, placement = 'top', className }: TooltipProps) {
     const [isVisible, setIsVisible] = useState(false);
+    const [position, setPosition] = useState<TooltipPosition | null>(null);
+    const triggerRef = useRef<HTMLSpanElement>(null);
+    const tooltipRef = useRef<HTMLSpanElement>(null);
     const idRef = useRef<string>();
 
     if (!idRef.current) {
@@ -33,6 +44,66 @@ export function Tooltip({ content, children, placement = 'top', className }: Too
     }
 
     const tooltipId = idRef.current;
+
+    const calculatePosition = useCallback(() => {
+        if (!triggerRef.current || !tooltipRef.current) return;
+
+        const triggerRect = triggerRef.current.getBoundingClientRect();
+        const tooltipRect = tooltipRef.current.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+        const viewportWidth = window.innerWidth;
+
+        // Calculate horizontal center
+        let left = triggerRect.left + triggerRect.width / 2 - tooltipRect.width / 2;
+
+        // Clamp to viewport bounds with padding
+        const horizontalPadding = 8;
+        left = Math.max(horizontalPadding, Math.min(left, viewportWidth - tooltipRect.width - horizontalPadding));
+
+        // Determine vertical placement with auto-flip
+        let actualPlacement = placement;
+        let top: number;
+
+        if (placement === 'top') {
+            top = triggerRect.top - tooltipRect.height - TOOLTIP_OFFSET;
+            // Flip to bottom if not enough room above
+            if (top < 0) {
+                actualPlacement = 'bottom';
+                top = triggerRect.bottom + TOOLTIP_OFFSET;
+            }
+        } else {
+            top = triggerRect.bottom + TOOLTIP_OFFSET;
+            // Flip to top if not enough room below
+            if (top + tooltipRect.height > viewportHeight) {
+                actualPlacement = 'top';
+                top = triggerRect.top - tooltipRect.height - TOOLTIP_OFFSET;
+            }
+        }
+
+        setPosition({ top, left, actualPlacement });
+    }, [placement]);
+
+    // Recalculate position when visible or on scroll/resize
+    useLayoutEffect(() => {
+        if (!isVisible) return;
+
+        calculatePosition();
+
+        window.addEventListener('scroll', calculatePosition, true);
+        window.addEventListener('resize', calculatePosition);
+
+        return () => {
+            window.removeEventListener('scroll', calculatePosition, true);
+            window.removeEventListener('resize', calculatePosition);
+        };
+    }, [isVisible, calculatePosition]);
+
+    // Reset position when hidden
+    useEffect(() => {
+        if (!isVisible) {
+            setPosition(null);
+        }
+    }, [isVisible]);
 
     const show = () => setIsVisible(true);
     const hide = () => setIsVisible(false);
@@ -45,31 +116,45 @@ export function Tooltip({ content, children, placement = 'top', className }: Too
         })
         : children;
 
-    const positionClasses = placement === 'bottom'
-        ? 'top-full mt-2'
-        : 'bottom-full mb-2';
+    const wrapperClasses = ['inline-flex', className].filter(Boolean).join(' ');
 
-    const wrapperClasses = ['relative inline-flex', className].filter(Boolean).join(' ');
+    // SSR safety check
+    if (typeof document === 'undefined') {
+        return (
+            <span className={wrapperClasses}>
+                {tooltipChild}
+            </span>
+        );
+    }
+
+    const tooltipElement = (
+        <span
+            ref={tooltipRef}
+            id={tooltipId}
+            role='tooltip'
+            className={`pointer-events-none fixed z-50 whitespace-nowrap rounded-md border border-border-strong bg-surface-raised px-2.5 py-1.5 text-xs font-medium text-text-primary shadow-md transition-opacity duration-150 backdrop-blur-sm ${
+                isVisible && position ? 'opacity-100' : 'opacity-0'
+            }`}
+            style={position ? { top: `${position.top}px`, left: `${position.left}px` } : { top: '-9999px', left: '-9999px' }}
+            aria-hidden={!isVisible}
+        >
+            {content}
+        </span>
+    );
 
     return (
-        <span
-            className={wrapperClasses}
-            onMouseEnter={show}
-            onMouseLeave={hide}
-            onFocus={show}
-            onBlur={hide}
-        >
-            {tooltipChild}
+        <>
             <span
-                id={tooltipId}
-                role='tooltip'
-                className={`pointer-events-none absolute left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md border border-border-strong bg-surface-raised px-2.5 py-1.5 text-xs font-medium text-text-primary shadow-md transition-opacity duration-150 backdrop-blur-sm ${positionClasses} ${
-                    isVisible ? 'opacity-100' : 'opacity-0'
-                }`}
-                aria-hidden={!isVisible}
+                ref={triggerRef}
+                className={wrapperClasses}
+                onMouseEnter={show}
+                onMouseLeave={hide}
+                onFocus={show}
+                onBlur={hide}
             >
-                {content}
+                {tooltipChild}
             </span>
-        </span>
+            {createPortal(tooltipElement, document.body)}
+        </>
     );
 }
