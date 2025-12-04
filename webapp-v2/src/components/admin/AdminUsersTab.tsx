@@ -419,8 +419,9 @@ export function AdminUsersTab() {
                 )}
             </Card>
 
-            {/* User Editor Modal - always mounted to prevent disappearing */}
+            {/* User Editor Modal - key forces re-mount when user changes to reinitialize form state */}
             <UserEditorModal
+                key={editingUser.value?.uid ?? 'no-user'}
                 open={editingUser.value !== null}
                 onClose={() => editingUser.value = null}
                 onSave={() => {

@@ -187,8 +187,9 @@ describe('TenantBrandingPage', () => {
 
             expect(screen.getByDisplayValue('/logo.svg')).toBeInTheDocument();
             expect(screen.getByDisplayValue('/favicon.ico')).toBeInTheDocument();
-            expect(screen.getByDisplayValue('#1a73e8')).toBeInTheDocument();
-            expect(screen.getByDisplayValue('#34a853')).toBeInTheDocument();
+            // ColorInput has two inputs (color picker + text), so use testId for the color picker
+            expect(screen.getByTestId('primary-color-input')).toHaveValue('#1a73e8');
+            expect(screen.getByTestId('secondary-color-input')).toHaveValue('#34a853');
         });
 
         it('should populate marketing flags correctly', async () => {
@@ -244,7 +245,7 @@ describe('TenantBrandingPage', () => {
             render(<TenantBrandingPage />);
 
             await waitFor(() => {
-                expect(screen.getByDisplayValue('#1a73e8')).toBeInTheDocument();
+                expect(screen.getByTestId('primary-color-input')).toHaveValue('#1a73e8');
             });
 
             const primaryColorInput = screen.getByTestId('primary-color-input') as HTMLInputElement;
