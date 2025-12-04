@@ -1,5 +1,5 @@
 import { apiClient, type PolicyAcceptanceStatusDTO } from '@/app/apiClient.ts';
-import { ErrorState, LoadingSpinner, Tooltip } from '@/components/ui';
+import { ErrorState, LoadingSpinner, Tooltip, Typography } from '@/components/ui';
 import { Clickable } from '@/components/ui/Clickable';
 import { Modal } from '@/components/ui/Modal';
 import { logError } from '@/utils/browser-logger.ts';
@@ -148,9 +148,9 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                 {/* Header */}
                 <div className='flex items-center justify-between p-6 border-b border-border-default' data-testid='policy-modal-header'>
                     <div>
-                        <h2 className='text-2xl font-bold text-text-primary' id={titleId} data-testid='policy-modal-title'>
+                        <Typography variant="pageTitle" as="h2" id={titleId} data-testid="policy-modal-title">
                             {t('policyComponents.policyAcceptanceModal.title')}
-                        </h2>
+                        </Typography>
                         <p className='text-sm text-text-muted mt-1' id={subtitleId} data-testid='policy-modal-subtitle'>
                             {t('policyComponents.policyAcceptanceModal.policyLabel')}
                             {currentPolicyIndex + 1}

@@ -8,7 +8,7 @@ import { CreateGroupRequest, GroupId, toDisplayName, toGroupName } from '@billsp
 import { signal, useComputed } from '@preact/signals';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
-import { Button, Form, Input, Tooltip } from '../ui';
+import { Button, Form, Input, Tooltip, Typography } from '../ui';
 
 interface CreateGroupModalProps {
     isOpen: boolean;
@@ -162,9 +162,9 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
         >
             {/* Modal Header */}
             <div class='flex items-center justify-between px-6 py-4 border-b border-border-default'>
-                <h3 id='create-group-modal-title' class='text-lg font-semibold text-text-primary'>
+                <Typography variant="subheading" id="create-group-modal-title">
                     {t('createGroupModal.title')}
-                </h3>
+                </Typography>
                 <Tooltip content={t('createGroupModal.closeButtonAriaLabel')}>
                     <Clickable
                         as='button'

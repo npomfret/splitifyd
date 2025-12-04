@@ -1,7 +1,7 @@
 import { getGroupDisplayName } from '@/utils/displayName';
 import { toUserId, UserId } from '@billsplit-wl/shared';
 import { useTranslation } from 'react-i18next';
-import { Avatar, Button, Card } from '../ui';
+import { Avatar, Button, Card, Typography } from '../ui';
 import { Stack } from '../ui/Stack';
 import type { ExpenseFormMember } from './types';
 
@@ -22,12 +22,12 @@ export function ParticipantSelector({ members, participants, paidBy, validationE
         <Card variant='glass' className='border-border-default' data-testid='split-between-section'>
             <Stack spacing='md'>
                 <div className='flex items-center justify-between'>
-                    <h2 className='text-lg font-semibold text-text-primary'>
+                    <Typography variant="subheading" as="h2">
                         {t('expenseComponents.participantSelector.label')}{' '}
                         <span className='text-semantic-error' data-testid='required-indicator'>
                             {t('expenseComponents.participantSelector.requiredIndicator')}
                         </span>
-                    </h2>
+                    </Typography>
                     <div className='flex gap-2'>
                         <Button type='button' variant='ghost' size='sm' onClick={handleSelectAll}>
                             {t('expenseComponents.participantSelector.selectAll')}

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { RelativeTime } from '@/components/ui/RelativeTime.tsx';
 import { SkeletonActivityItem } from '@/components/ui/Skeleton';
+import { Typography } from '@/components/ui/Typography';
 import { routes } from '@/constants/routes.ts';
 import { navigationService } from '@/services/navigation.service.ts';
 import { logError } from '@/utils/browser-logger.ts';
@@ -61,7 +62,7 @@ export function ActivityFeedCard({ userId }: ActivityFeedCardProps) {
         <div className='glass-panel border-border-default rounded-lg shadow-lg border border-border-default' data-testid='activity-feed-card'>
             <div className='p-6'>
                 <div className='flex items-center justify-between mb-4'>
-                    <h3 className='text-lg font-semibold text-text-primary'>{t('activityFeed.title')}</h3>
+                    <Typography variant="subheading">{t('activityFeed.title')}</Typography>
                 </div>
 
                 {/* Loading skeleton */}

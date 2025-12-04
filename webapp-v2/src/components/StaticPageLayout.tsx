@@ -1,5 +1,6 @@
 import { ComponentChildren } from 'preact';
 import { BaseLayout } from './layout/BaseLayout';
+import { Typography } from './ui/Typography';
 
 interface StaticPageLayoutProps {
     title: string;
@@ -16,7 +17,7 @@ export function StaticPageLayout({ title, description, canonical, ogImage, struc
             {/* Main Content */}
             <main class='max-w-4xl mx-auto px-4 py-12'>
                 <div class='bg-surface-muted border-border-default rounded-lg shadow-sm p-8'>
-                    <h1 class='text-3xl font-bold text-text-primary mb-6'>{title}</h1>
+                    <Typography variant="display" className="mb-6">{title}</Typography>
                     <div class='prose max-w-none text-text-primary prose-headings:text-text-primary prose-a:text-interactive-primary'>{children}</div>
                 </div>
             </main>

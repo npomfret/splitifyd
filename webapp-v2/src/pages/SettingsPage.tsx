@@ -1,5 +1,5 @@
 import { themeStore } from '@/app/stores/theme-store.ts';
-import { Alert, Avatar, Button, Card, Form, Input } from '@/components/ui';
+import { Alert, Avatar, Button, Card, Form, Input, Typography } from '@/components/ui';
 import { logError } from '@/utils/browser-logger';
 import { SystemUserRoles, toEmail, toPassword } from '@billsplit-wl/shared';
 import { toDisplayName } from '@billsplit-wl/shared';
@@ -297,9 +297,9 @@ export function SettingsPage() {
                             {t('settingsPage.heroLabel')}
                         </span>
                         <div class='flex flex-col gap-2'>
-                            <h1 class='text-3xl font-semibold text-text-primary' data-testid='account-settings-header'>
+                            <Typography variant="display" className="font-semibold" data-testid="account-settings-header">
                                 {t('settingsPage.accountSettingsHeader')}
-                            </h1>
+                            </Typography>
                             <p class='max-w-2xl text-sm text-text-muted sm:text-base'>{t('settingsPage.accountSettingsSubheader')}</p>
                         </div>
                     </div>
@@ -372,7 +372,7 @@ export function SettingsPage() {
                             <Card padding='lg' data-testid='profile-information-section'>
                                 <div class='space-y-6'>
                                     <div class='space-y-2'>
-                                        <h2 class='text-xl font-semibold text-text-primary'>{t('settingsPage.profileInformationHeader')}</h2>
+                                        <Typography variant="heading">{t('settingsPage.profileInformationHeader')}</Typography>
                                         <p class='text-sm text-text-muted'>{t('settingsPage.profileInformationSubheader')}</p>
                                     </div>
 
@@ -417,7 +417,7 @@ export function SettingsPage() {
                             <Card padding='lg' data-testid='email-section'>
                                 <div class='space-y-6'>
                                     <div class='space-y-2'>
-                                        <h2 class='text-xl font-semibold text-text-primary'>{t('settingsPage.emailSectionTitle')}</h2>
+                                        <Typography variant="heading">{t('settingsPage.emailSectionTitle')}</Typography>
                                         <p class='text-sm text-text-muted'>{t('settingsPage.emailSectionDescription')}</p>
                                     </div>
 
@@ -497,7 +497,7 @@ export function SettingsPage() {
                             <Card padding='lg' data-testid='password-section'>
                                 <div class='space-y-6'>
                                     <div class='space-y-2'>
-                                        <h2 class='text-xl font-semibold text-text-primary'>{t('settingsPage.passwordHeader')}</h2>
+                                        <Typography variant="heading">{t('settingsPage.passwordHeader')}</Typography>
                                         <p class='text-sm text-text-muted'>{t('settingsPage.passwordIntro')}</p>
                                     </div>
 

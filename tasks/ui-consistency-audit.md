@@ -2,14 +2,21 @@
 
 ## Executive Summary
 
-The webapp has **multiple categories of UI inconsistencies**. This audit identified issues in **6 major areas** that need standardization:
+This audit identified issues in **6 major areas**. **P0, P1, and P2 priorities are now complete.**
 
-1. Loading States - skeleton vs spinner vs text
-2. Error States - 9 different patterns
-3. Empty States - inconsistent use of EmptyState component
-4. Button/Action Patterns - raw buttons, hardcoded colors
-5. Spacing/Layout - modal padding inconsistencies
-6. Typography - Typography component exists but never used
+| Area | Status |
+|------|--------|
+| 1. Loading States | ✅ Complete - All lists use skeletons |
+| 2. Error States | ✅ Complete - ErrorState/Alert standardized |
+| 3. Empty States | ✅ Complete - EmptyState component adopted |
+| 4. Button/Action Patterns | ⚠️ Admin exempt (isolated theming) |
+| 5. Spacing/Layout | ✅ Complete - Modal padding standardized |
+| 6. Typography | ✅ Complete - Typography component adopted |
+
+**Remaining (P3 - Low Priority):**
+- Toast integration (unused component)
+- Form spacing standardization
+- List item spacing patterns
 
 ---
 
@@ -171,34 +178,33 @@ All primary modals now follow the standard structure:
 
 ---
 
-## 6. TYPOGRAPHY INCONSISTENCIES
+## 6. TYPOGRAPHY ✅ COMPLETE
 
-### Critical Finding: Typography component exists but is NEVER USED
+### Typography Component Now Adopted
 
-The codebase has a well-designed `Typography` component with variants:
-- `display` - text-3xl font-bold
-- `heading` - text-xl font-semibold
-- `body` - text-base
-- `caption` - text-sm text-text-muted
-- `eyebrow` - text-xs font-semibold
+The `Typography` component is now used across the codebase with standardized variants:
 
-**Search for `<Typography` returns ZERO matches** - everyone uses raw HTML headings.
+| Variant | Styles | Use Case |
+|---------|--------|----------|
+| `display` | text-3xl font-bold | Hero headings (h1) |
+| `pageTitle` | text-2xl font-bold | Page titles (h1) |
+| `heading` | text-xl font-semibold | Section headings (h2) |
+| `subheading` | text-lg font-semibold | Card/modal headers (h2/h3) |
+| `bodyStrong` | text-base font-semibold | Emphasized body text |
+| `body` | text-base | Body text |
+| `caption` | text-sm text-text-muted | Helper text |
+| `eyebrow` | text-xs font-semibold uppercase | Labels |
 
-### Inconsistent Heading Patterns:
+### Migration Summary
+- Added 2 new variants: `subheading`, `pageTitle`
+- Migrated ~30 headings across ~20 files
+- Fixed theming violation in SplitBreakdown.tsx (removed `dark:` class)
 
-| Component | Element | Classes |
-|-----------|---------|---------|
-| GroupHeader | h1 | text-2xl font-bold |
-| DashboardPage | h2 | text-2xl font-bold |
-| NotFoundPage | h1 | text-6xl font-bold |
-| BalanceSummary | h2 | text-lg font-semibold |
-| EmptyState | h3 | text-lg font-medium |
-
-### Issues:
-1. **Typography component unused** - critical waste
-2. **No consistent size hierarchy** - h1 can be text-2xl or text-6xl
-3. **Mixed font weights** - bold, semibold, medium used arbitrarily
-4. **Dark mode CSS classes** in CommentItem (`dark:text-text-muted/20`) violates theming rules
+### Exclusions (kept as raw HTML)
+- Admin pages - isolated theming system
+- Landing pages - marketing-specific designs
+- PolicyRenderer - generates HTML from markdown
+- NotFoundPage - special text-6xl design choice
 
 ---
 
@@ -216,9 +222,9 @@ The codebase has a well-designed `Typography` component with variants:
 7. ~~UserEditorModal "Loading..."~~ ✅ Done - uses LoadingSpinner
 8. ~~Empty state standardization~~ ✅ Done - All list components use EmptyState
 
-### P2 - Medium Priority
+### P2 - Medium Priority ✅ COMPLETE
 8. ~~Modal padding standardization~~ ✅ Done - All primary modals use standard padding
-9. Typography component adoption
+9. ~~Typography component adoption~~ ✅ Done - Added subheading/pageTitle variants, migrated ~30 headings
 10. ~~Hardcoded strings - use translations~~ ✅ Done
 
 ### P3 - Low Priority (Future)

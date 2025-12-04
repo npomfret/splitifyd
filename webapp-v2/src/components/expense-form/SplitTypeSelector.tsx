@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Card } from '../ui';
+import { Card, Typography } from '../ui';
 import { Stack } from '../ui/Stack';
 
 interface SplitTypeSelectorProps {
@@ -12,7 +12,7 @@ export function SplitTypeSelector({ splitType, updateField }: SplitTypeSelectorP
     return (
         <Card variant='glass' className='border-border-default' data-testid='how-to-split-section'>
             <Stack spacing='md'>
-                <h2 className='text-lg font-semibold text-text-primary'>{t('expenseComponents.splitTypeSelector.label')}</h2>
+                <Typography variant="subheading" as="h2">{t('expenseComponents.splitTypeSelector.label')}</Typography>
                 <div className='grid grid-cols-3 gap-3'>
                     <label
                         className={`

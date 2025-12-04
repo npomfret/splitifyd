@@ -1,7 +1,7 @@
 import { apiClient } from '@/app/apiClient';
 import { useAuthRequired } from '@/app/hooks/useAuthRequired';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced';
-import { Avatar, Button, Card, ConfirmDialog, SidebarCard, SkeletonMemberItem, Tooltip } from '@/components/ui';
+import { Avatar, Button, Card, ConfirmDialog, SidebarCard, SkeletonMemberItem, Tooltip, Typography } from '@/components/ui';
 import { navigationService } from '@/services/navigation.service';
 import { logError } from '@/utils/browser-logger';
 import { getGroupDisplayName } from '@/utils/displayName';
@@ -245,10 +245,10 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
         : (
             <Card data-testid='members-container'>
                 <div className={headerClasses}>
-                    <h2 className='text-lg font-semibold text-text-primary flex items-baseline gap-2'>
+                    <Typography variant="subheading" as="h2" className="flex items-baseline gap-2">
                         <span>{t('membersList.title')}</span>
                         <span className='text-sm font-medium text-text-muted'>({memberCount.value})</span>
-                    </h2>
+                    </Typography>
                     <div className='flex items-center gap-1.5'>
                         {inviteButton}
                         <Tooltip content={toggleLabel}>

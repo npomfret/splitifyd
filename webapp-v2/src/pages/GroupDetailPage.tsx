@@ -1,7 +1,7 @@
 import { CommentsSection } from '@/components/comments';
 import { BalanceSummary, ExpensesList, GroupActions, GroupHeader, GroupSettingsModal, LeaveGroupDialog, MembersListWithManagement, ShareGroupModal } from '@/components/group';
 import { SettlementForm, SettlementHistory } from '@/components/settlements';
-import { Button, Card, LoadingSpinner } from '@/components/ui';
+import { Button, Card, LoadingSpinner, Typography } from '@/components/ui';
 import { Stack } from '@/components/ui';
 import { SidebarCard } from '@/components/ui/SidebarCard';
 import { GROUP_DETAIL_ERROR_CODES } from '@/constants/error-codes.ts';
@@ -190,7 +190,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
             <BaseLayout>
                 <div className='container mx-auto px-4 py-8' data-testid='error-container'>
                     <Card className='p-6 text-center'>
-                        <h2 className='text-xl font-semibold mb-2'>{t('pages.groupDetailPage.errorLoadingGroup')}</h2>
+                        <Typography variant="heading" className="mb-2">{t('pages.groupDetailPage.errorLoadingGroup')}</Typography>
                         <p className='text-text-muted mb-4'>{errorValue}</p>
                         <Button variant='primary' onClick={() => navigationService.goToDashboard()}>
                             {t('pages.groupDetailPage.backToDashboard')}

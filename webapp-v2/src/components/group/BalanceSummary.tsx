@@ -11,6 +11,7 @@ import { useComputed, useSignal } from '@preact/signals';
 import { useMemo } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Card } from '../ui/Card';
+import { Typography } from '../ui/Typography';
 
 interface BalanceSummaryProps {
     variant?: 'default' | 'sidebar';
@@ -230,7 +231,7 @@ export function BalanceSummary({ variant = 'default', onSettleUp }: BalanceSumma
     return (
         <Card variant='glass' className='p-6 border-border-default' data-testid='balance-summary-main'>
             <div className='flex items-center justify-between mb-4'>
-                <h2 className='text-lg font-semibold'>{t('balanceSummary.title')}</h2>
+                <Typography variant="subheading" as="h2">{t('balanceSummary.title')}</Typography>
                 {/* Filter toggle for non-sidebar variant */}
                 <Checkbox
                     label={t('balanceSummary.showAll')}

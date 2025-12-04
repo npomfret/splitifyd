@@ -27,7 +27,7 @@ import { signal } from '@preact/signals';
 import { useComputed } from '@preact/signals';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
-import { Button, CurrencyAmount, CurrencyAmountInput, Form, Tooltip } from '../ui';
+import { Button, CurrencyAmount, CurrencyAmountInput, Form, Tooltip, Typography } from '../ui';
 
 /**
  * Get the maximum allowed amount string for a given currency
@@ -427,9 +427,9 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                 aria-labelledby='settlement-form-title'
             >
                 <div class='flex justify-between items-center mb-4'>
-                    <h2 id='settlement-form-title' class='text-xl font-semibold text-text-primary'>
+                    <Typography variant="heading" id="settlement-form-title">
                         {editMode ? t('settlementForm.updateSettlement') : t('settlementForm.recordSettlement')}
-                    </h2>
+                    </Typography>
                     <Tooltip content={t('settlementForm.closeModal')}>
                         <Clickable
                             as='button'

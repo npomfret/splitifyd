@@ -1,4 +1,4 @@
-import { CurrencyAmount } from '@/components/ui';
+import { CurrencyAmount, Typography } from '@/components/ui';
 import { getGroupDisplayName } from '@/utils/displayName';
 import { amountToSmallestUnit, ExpenseDTO, GroupMember } from '@billsplit-wl/shared';
 import { SplitTypes } from '@billsplit-wl/shared';
@@ -52,11 +52,11 @@ export function SplitBreakdown({ expense, members }: SplitBreakdownProps) {
     return (
         <Stack spacing='md'>
             <div className='flex items-center justify-between'>
-                <h3 className='font-semibold text-text-primary dark:text-text-inverted'>
+                <Typography variant="bodyStrong" as="h3">
                     {t('expenseComponents.splitBreakdown.splitBetween')}
                     {expense.participants.length}
                     {expense.participants.length === 1 ? t('expenseComponents.splitBreakdown.person') : t('expenseComponents.splitBreakdown.people')}
-                </h3>
+                </Typography>
                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getSplitTypeBadgeColor(expense.splitType)}`}>{getSplitTypeLabel(expense.splitType)}</span>
             </div>
 

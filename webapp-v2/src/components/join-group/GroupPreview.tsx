@@ -8,6 +8,7 @@ import { GroupDTO } from '@billsplit-wl/shared';
 import { useTranslation } from 'react-i18next';
 import { Card } from '../ui/Card';
 import { Stack } from '../ui/Stack';
+import { Typography } from '../ui/Typography';
 
 interface GroupPreviewProps {
     group: GroupDTO;
@@ -22,7 +23,7 @@ export function GroupPreview({ group, memberCount }: GroupPreviewProps) {
                 <Stack spacing='lg'>
                     {/* GroupDTO Header */}
                     <div className='text-center'>
-                        <h2 className='text-xl font-semibold text-text-primary mb-2'>{group.name}</h2>
+                        <Typography variant="heading" className="mb-2">{group.name}</Typography>
                         {group.description && <p className='text-text-muted text-sm'>{group.description}</p>}
                     </div>
 

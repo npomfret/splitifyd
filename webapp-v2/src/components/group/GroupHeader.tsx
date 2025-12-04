@@ -1,7 +1,7 @@
 import { GroupDTO, GroupMember } from '@billsplit-wl/shared';
 import { CogIcon } from '@heroicons/react/24/outline';
 import { useTranslation } from 'react-i18next';
-import { Button, Card, RelativeTime, Tooltip } from '../ui';
+import { Button, Card, RelativeTime, Tooltip, Typography } from '../ui';
 
 interface GroupHeaderProps {
     group: GroupDTO;
@@ -16,7 +16,7 @@ export function GroupHeader({ group, members, onSettings, showSettingsButton }: 
         <Card variant='glass' className='p-6 border-border-default'>
             <div className='flex justify-between items-start mb-4'>
                 <div>
-                    <h1 className='text-2xl font-bold mb-2'>{group.name}</h1>
+                    <Typography variant="pageTitle" className="mb-2">{group.name}</Typography>
                     {group.description && <p className='text-text-primary/80' data-testid='group-description'>{group.description}</p>}
                 </div>
                 <div className='flex gap-2'>

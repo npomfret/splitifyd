@@ -1,5 +1,5 @@
 import { apiClient } from '@/app/apiClient.ts';
-import { Button, LoadingSpinner, Tooltip } from '@/components/ui';
+import { Button, LoadingSpinner, Tooltip, Typography } from '@/components/ui';
 import { Clickable } from '@/components/ui/Clickable';
 import { Modal } from '@/components/ui/Modal';
 import { logError } from '@/utils/browser-logger.ts';
@@ -209,9 +209,9 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                                         d='M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z'
                                     />
                                 </svg>
-                                <h3 id='share-modal-title' class='text-lg font-semibold text-text-primary'>
+                                <Typography variant="subheading" id="share-modal-title">
                                     {t('shareGroupModal.title')}
-                                </h3>
+                                </Typography>
                             </div>
                             {normalizedGroupName && (
                                 <p class='text-sm text-text-primary/70' data-testid='share-group-name'>

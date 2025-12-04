@@ -10,6 +10,7 @@ import { Checkbox } from '../ui/Checkbox';
 import { EmptyState } from '../ui/EmptyState';
 import { SkeletonExpenseItem } from '../ui/Skeleton';
 import { Stack } from '../ui/Stack';
+import { Typography } from '../ui/Typography';
 import { ExpenseItem } from './ExpenseItem';
 
 interface ExpensesListProps {
@@ -48,7 +49,7 @@ export function ExpensesList({
     return (
         <Card variant='glass' className='p-6 border-border-default' data-testid='expenses-list-card'>
             <div className='flex justify-between items-center mb-4'>
-                <h2 className='text-lg font-semibold'>{t('expensesList.title')}</h2>
+                <Typography variant="subheading" as="h2">{t('expensesList.title')}</Typography>
                 {canToggleShowDeleted && onShowDeletedChange && (
                     <Checkbox
                         label={t('common.includeDeleted')}

@@ -4,7 +4,7 @@
  * Handles joining a group via share link invitation
  */
 
-import { Button, Card, Input, LoadingSpinner, Stack } from '@/components/ui';
+import { Button, Card, Input, LoadingSpinner, Stack, Typography } from '@/components/ui';
 import { navigationService } from '@/services/navigation.service';
 import { CheckCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { toDisplayName } from '@billsplit-wl/shared';
@@ -119,7 +119,7 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
                             <div className='text-semantic-error mb-4' role='alert' data-testid='invalid-link-warning'>
                                 <ExclamationTriangleIcon className='w-12 h-12 mx-auto' aria-hidden='true' />
                             </div>
-                            <h2 className='text-xl font-semibold text-text-primary mb-2'>{t('errors.invalidLink')}</h2>
+                            <Typography variant="heading" className="mb-2">{t('errors.invalidLink')}</Typography>
                             <p className='text-text-muted mb-6'>{t('joinGroupPage.errors.invalidLink')}</p>
                             <Button variant='secondary' onClick={() => navigationService.goToDashboard()} className='w-full'>
                                 {t('notFoundPage.goToDashboard')}
@@ -157,7 +157,7 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
                             <div className='text-semantic-error mb-4' role='alert' data-testid='unable-join-warning'>
                                 <ExclamationTriangleIcon className='w-12 h-12 mx-auto' aria-hidden='true' />
                             </div>
-                            <h2 className='text-xl font-semibold text-text-primary mb-2'>{t('joinGroupPage.errors.joinFailed')}</h2>
+                            <Typography variant="heading" className="mb-2">{t('joinGroupPage.errors.joinFailed')}</Typography>
                             <p className='text-text-muted mb-6'>{error}</p>
                             <Button variant='secondary' onClick={() => navigationService.goToDashboard()} className='w-full'>
                                 {t('notFoundPage.goToDashboard')}
@@ -179,7 +179,7 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
                             <div className='text-semantic-success mb-4'>
                                 <CheckCircleIcon className='w-12 h-12 mx-auto' aria-hidden='true' />
                             </div>
-                            <h2 className='text-xl font-semibold text-text-primary mb-2'>{t('joinGroupPage.welcome', { groupName: group.name })}</h2>
+                            <Typography variant="heading" className="mb-2">{t('joinGroupPage.welcome', { groupName: group.name })}</Typography>
                             <p className='text-text-muted mb-6'>{t('joinGroupPage.joinSuccess')}</p>
                             <Stack spacing='md'>
                                 <Button onClick={() => navigationService.goToGroup(group.id)} fullWidth className='py-3'>
@@ -203,7 +203,7 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
                 <div className='min-h-screen bg-surface-muted flex items-center justify-center p-4'>
                     <div className='w-full max-w-md'>
                         <div className='text-center mb-6'>
-                            <h1 className='text-2xl font-bold text-text-primary mb-2'>{isAlreadyMember ? group.name : t('joinGroupPage.title')}</h1>
+                            <Typography variant="pageTitle" className="mb-2">{isAlreadyMember ? group.name : t('joinGroupPage.title')}</Typography>
                         </div>
 
                         <Stack spacing='lg'>
@@ -269,9 +269,9 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
                         onClick={(e) => e.target === e.currentTarget && handleCancelNamePrompt()}
                     >
                         <div className='relative top-20 mx-auto w-full max-w-md bg-surface-base border-border-default rounded-lg shadow-xl p-6 opacity-100'>
-                            <h3 className='text-lg font-semibold text-text-primary mb-4'>
+                            <Typography variant="subheading" className="mb-4">
                                 Choose your display name
-                            </h3>
+                            </Typography>
                             <p className='text-sm text-text-muted mb-4'>
                                 This is how other members will see you in "{group.name}"
                             </p>

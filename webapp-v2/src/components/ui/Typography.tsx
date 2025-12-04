@@ -1,7 +1,7 @@
 import { cx } from '@/utils/cx.ts';
 import type { ComponentChildren, JSX } from 'preact';
 
-type TypographyVariant = 'body' | 'bodyStrong' | 'caption' | 'button' | 'eyebrow' | 'heading' | 'display';
+type TypographyVariant = 'body' | 'bodyStrong' | 'caption' | 'button' | 'eyebrow' | 'subheading' | 'heading' | 'pageTitle' | 'display';
 
 type TypographyElement = keyof JSX.IntrinsicElements;
 
@@ -24,8 +24,10 @@ const defaultElement: Record<TypographyVariant, TypographyElement> = {
     caption: 'p',
     button: 'span',
     eyebrow: 'span',
-    heading: 'h3',
-    display: 'h2',
+    subheading: 'h3',
+    heading: 'h2',
+    pageTitle: 'h1',
+    display: 'h1',
 };
 
 const variantClasses: Record<TypographyVariant, string> = {
@@ -34,7 +36,9 @@ const variantClasses: Record<TypographyVariant, string> = {
     caption: 'text-sm text-text-muted',
     button: 'text-sm uppercase tracking-wide text-text-primary',
     eyebrow: 'text-xs font-semibold uppercase tracking-[0.12em] text-text-muted',
+    subheading: 'text-lg font-semibold text-text-primary',
     heading: 'text-xl font-semibold text-text-primary',
+    pageTitle: 'text-2xl font-bold text-text-primary',
     display: 'text-3xl font-bold text-text-primary',
 };
 
