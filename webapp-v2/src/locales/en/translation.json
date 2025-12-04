@@ -1238,7 +1238,9 @@
       "loadFailed": "Failed to load group information"
     },
     "displayName": {
-      "label": "Group display name",
+      "title": "Choose your display name",
+      "description": "This is how other members will see you in \"{{groupName}}\"",
+      "label": "Display Name",
       "placeholder": "How should other members see your name?",
       "help": "Pick a unique name for this group. Other members will use it to identify you.",
       "errors": {

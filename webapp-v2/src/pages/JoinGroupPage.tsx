@@ -270,13 +270,13 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
                     >
                         <div className='relative top-20 mx-auto w-full max-w-md bg-surface-base border-border-default rounded-lg shadow-xl p-6 opacity-100'>
                             <Typography variant="subheading" className="mb-4">
-                                Choose your display name
+                                {t('joinGroupPage.displayName.title')}
                             </Typography>
                             <p className='text-sm text-text-muted mb-4'>
-                                This is how other members will see you in "{group.name}"
+                                {t('joinGroupPage.displayName.description', { groupName: group.name })}
                             </p>
                             <Input
-                                label='Display Name'
+                                label={t('joinGroupPage.displayName.label')}
                                 value={displayName}
                                 onChange={(value) => {
                                     setDisplayName(value);
@@ -292,7 +292,7 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
                                     disabled={joining}
                                     fullWidth
                                 >
-                                    {joining ? 'Joining...' : 'Join Group'}
+                                    {joining ? t('joinGroupPage.joining') : t('joinGroupPage.joinGroup')}
                                 </Button>
                                 <Button
                                     variant='secondary'
@@ -300,7 +300,7 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
                                     disabled={joining}
                                     fullWidth
                                 >
-                                    Cancel
+                                    {t('joinGroupPage.cancel')}
                                 </Button>
                             </div>
                         </div>
