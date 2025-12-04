@@ -861,6 +861,170 @@ export class FirestoreReader implements IFirestoreReader {
         });
     }
 
+    async getActivityFeedForGroup(
+        groupId: GroupId,
+        options: {
+            limit?: number;
+            cursor?: string;
+        } = {},
+    ): Promise<{ items: ActivityFeedItem[]; hasMore: boolean; nextCursor?: string; }> {
+        return measureDb('GET_ACTIVITY_FEED_FOR_GROUP', async () => {
+            const limit = Math.max(1, Math.min(options.limit ?? 10, 50));
+            // Fetch extra to account for duplicates (each event stored per-member)
+            // Worst case: all items are duplicates from N members, so fetch limit * estimated_members
+            const fetchMultiplier = 10; // Assume up to 10 members per group
+            const fetchLimit = (limit + 1) * fetchMultiplier;
+
+            // Use collection group query to find activity items across all users for this group
+            let query = this
+                .db
+                .collectionGroup('items')
+                .where('groupId', '==', groupId)
+                .orderBy('createdAt', 'desc')
+                .orderBy('__name__', 'desc')
+                .limit(fetchLimit);
+
+            if (options.cursor) {
+                // For collection group queries, cursor needs to include the full path
+                // The cursor format is: userId/items/docId
+                const cursorParts = options.cursor.split('/');
+                if (cursorParts.length === 3) {
+                    const [userId, , docId] = cursorParts;
+                    const cursorDoc = await this.db
+                        .collection(FirestoreCollections.ACTIVITY_FEED)
+                        .doc(userId!)
+                        .collection('items')
+                        .doc(docId!)
+                        .get();
+                    if (!cursorDoc.exists) {
+                        throw Errors.validationError('cursor', ErrorDetail.INVALID_CURSOR);
+                    }
+                    query = query.startAfter(cursorDoc);
+                } else {
+                    throw Errors.validationError('cursor', ErrorDetail.INVALID_CURSOR);
+                }
+            }
+
+            const snapshot = await query.get();
+            const docs = snapshot.docs;
+
+            // Deduplicate: same event is stored once per group member
+            // Create unique key from eventType + actorId + timestamp + relevant details
+            const seenEventKeys = new Set<string>();
+            const items: ActivityFeedItem[] = [];
+            let lastIncludedDocIndex = -1;
+
+            for (let i = 0; i < docs.length; i++) {
+                const doc = docs[i]!;
+                const rawData = doc.data();
+                if (!rawData) {
+                    continue;
+                }
+
+                try {
+                    const validated = ActivityFeedDocumentSchema.parse({
+                        id: doc.id,
+                        ...rawData,
+                    });
+
+                    const converted = this.convertTimestampsToISO(validated) as unknown as ActivityFeedDocument;
+
+                    // Generate unique event key for deduplication
+                    const eventKey = this.generateActivityEventKey(converted);
+                    if (seenEventKeys.has(eventKey)) {
+                        continue; // Skip duplicate
+                    }
+                    seenEventKeys.add(eventKey);
+
+                    // Stop if we have enough unique items
+                    if (items.length >= limit + 1) {
+                        break;
+                    }
+
+                    const eventType = converted.eventType as ActivityFeedEventType;
+                    const action = (converted.action as ActivityFeedAction | undefined) ?? EVENT_ACTION_MAP[eventType];
+
+                    // Convert details to use branded types
+                    const rawDetails = converted.details ?? {};
+                    const details: typeof rawDetails & {
+                        expenseId?: ExpenseId;
+                        commentId?: CommentId;
+                        settlementId?: SettlementId;
+                        previousGroupName?: GroupName;
+                    } = {
+                        ...rawDetails,
+                        ...(rawDetails.expenseId && { expenseId: toExpenseId(rawDetails.expenseId) }),
+                        ...(rawDetails.commentId && { commentId: toCommentId(rawDetails.commentId) }),
+                        ...(rawDetails.settlementId && { settlementId: toSettlementId(rawDetails.settlementId) }),
+                        ...(rawDetails.previousGroupName && { previousGroupName: toGroupName(rawDetails.previousGroupName) }),
+                    } as any;
+
+                    const item: ActivityFeedItem = {
+                        id: converted.id,
+                        userId: converted.userId,
+                        groupId: converted.groupId,
+                        groupName: converted.groupName,
+                        eventType,
+                        action,
+                        actorId: converted.actorId,
+                        actorName: converted.actorName,
+                        timestamp: converted.timestamp,
+                        details,
+                        createdAt: converted.createdAt,
+                    };
+
+                    items.push(item);
+                    lastIncludedDocIndex = i;
+                } catch (error) {
+                    logger.error('Invalid activity feed document encountered', error, {
+                        groupId,
+                        docId: doc.id,
+                    });
+                }
+            }
+
+            const hasMore = items.length > limit;
+            const limitedItems = hasMore ? items.slice(0, limit) : items;
+
+            // For collection group queries, create cursor with full path: userId/items/docId
+            let nextCursor: string | undefined;
+            if (hasMore && lastIncludedDocIndex >= 0) {
+                // Use the document at the limit position (last included item)
+                const limitDocIndex = Math.min(lastIncludedDocIndex, docs.length - 1);
+                const lastDoc = docs[limitDocIndex]!;
+                // Extract userId from document path: activity-feed/{userId}/items/{docId}
+                const pathParts = lastDoc.ref.path.split('/');
+                const userId = pathParts[1];
+                const docId = pathParts[3];
+                nextCursor = `${userId}/items/${docId}`;
+            }
+
+            return {
+                items: limitedItems,
+                hasMore,
+                nextCursor,
+            };
+        });
+    }
+
+    /**
+     * Generate a unique key for an activity event to enable deduplication.
+     * Same event is stored once per group member, differing only by userId.
+     */
+    private generateActivityEventKey(activity: ActivityFeedDocument): string {
+        const details = activity.details ?? {};
+        const keyParts = [
+            activity.eventType,
+            activity.actorId,
+            activity.timestamp,
+            details.expenseId ?? '',
+            details.settlementId ?? '',
+            details.commentId ?? '',
+            details.targetUserId ?? '',
+        ];
+        return keyParts.join('|');
+    }
+
     /**
      * ✅ FIXED: Efficient paginated group retrieval with hybrid strategy
      *

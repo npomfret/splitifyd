@@ -715,6 +715,25 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
         });
     }
 
+    async getGroupActivityFeed(groupId: GroupId, options: GetActivityFeedOptions = {}): Promise<ActivityFeedResponse> {
+        const query: Record<string, string> = {};
+
+        if (options.limit !== undefined) {
+            query.limit = options.limit.toString();
+        }
+
+        if (options.cursor) {
+            query.cursor = options.cursor;
+        }
+
+        return this.request<ActivityFeedResponse>({
+            endpoint: `/groups/${groupId}/activity-feed`,
+            method: 'GET',
+            query: Object.keys(query).length > 0 ? query : undefined,
+            schema: responseSchemas['GET /activity-feed'] as z.ZodSchema<ActivityFeedResponse>,
+        });
+    }
+
     async getGroupFullDetails(
         id: string,
         options?: GetGroupFullDetailsOptions,

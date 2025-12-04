@@ -49,7 +49,10 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
     const userHandlers = new UserHandlers(componentBuilder.buildUserService());
     const policyHandlers = new PolicyHandlers(componentBuilder.buildPolicyService());
     const policyUserHandlers = new PolicyUserHandlers(componentBuilder.buildUserPolicyService());
-    const activityFeedHandlers = new ActivityFeedHandlers(componentBuilder.buildActivityFeedService());
+    const activityFeedHandlers = new ActivityFeedHandlers(
+        componentBuilder.buildActivityFeedService(),
+        componentBuilder.buildFirestoreReader(),
+    );
     const groupSecurityHandlers = componentBuilder.buildGroupSecurityHandlers();
     const userBrowserHandlers = componentBuilder.buildUserBrowserHandlers();
     const tenantBrowserHandlers = componentBuilder.buildTenantBrowserHandlers();
@@ -448,6 +451,7 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
 
         // Activity feed
         getActivityFeed: activityFeedHandlers.getActivityFeed,
+        getGroupActivityFeed: activityFeedHandlers.getGroupActivityFeed,
 
         // User browser (admin)
         listAuthUsers: userBrowserHandlers.listAuthUsers,

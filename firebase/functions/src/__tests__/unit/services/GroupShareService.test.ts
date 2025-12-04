@@ -403,9 +403,13 @@ describe('GroupShareService', () => {
             // Join via share link
             await groupShareService.joinGroupByLink(toUserId(joiningUserId), toShareLinkToken(shareLink.shareToken), toDisplayName('Joining User'));
 
-            // Verify activity feed for owner
+            // Verify activity feed for owner contains member-joined event
             const ownerFeed = await firestoreReader.getActivityFeedForUser(ownerId);
-            expect(ownerFeed.items[0]).toMatchObject({
+            const ownerMemberJoinedEvent = ownerFeed.items.find(
+                (item) => item.eventType === ActivityFeedEventTypes.MEMBER_JOINED,
+            );
+            expect(ownerMemberJoinedEvent).toBeDefined();
+            expect(ownerMemberJoinedEvent).toMatchObject({
                 eventType: ActivityFeedEventTypes.MEMBER_JOINED,
                 action: ActivityFeedActions.JOIN,
                 actorId: joiningUserId,
@@ -415,9 +419,13 @@ describe('GroupShareService', () => {
                 }),
             });
 
-            // Verify activity feed for joining user
+            // Verify activity feed for joining user contains member-joined event
             const joiningFeed = await firestoreReader.getActivityFeedForUser(toUserId(joiningUserId));
-            expect(joiningFeed.items[0]).toMatchObject({
+            const joiningMemberJoinedEvent = joiningFeed.items.find(
+                (item) => item.eventType === ActivityFeedEventTypes.MEMBER_JOINED,
+            );
+            expect(joiningMemberJoinedEvent).toBeDefined();
+            expect(joiningMemberJoinedEvent).toMatchObject({
                 eventType: ActivityFeedEventTypes.MEMBER_JOINED,
                 action: ActivityFeedActions.JOIN,
                 actorId: joiningUserId,

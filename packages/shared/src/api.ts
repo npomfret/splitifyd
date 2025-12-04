@@ -143,6 +143,7 @@ export interface API<AuthToken> {
     updateGroupMemberDisplayName(groupId: GroupId, displayName: DisplayName, token?: AuthToken): Promise<void>;
 
     getActivityFeed(options?: GetActivityFeedOptions, token?: AuthToken): Promise<ActivityFeedResponse>;
+    getGroupActivityFeed(groupId: GroupId, options?: GetActivityFeedOptions, token?: AuthToken): Promise<ActivityFeedResponse>;
 
     updateMemberRole(groupId: GroupId, memberId: UserId, role: MemberRole, token?: AuthToken): Promise<void>;
     approveMember(groupId: GroupId, memberId: UserId, token?: AuthToken): Promise<void>;

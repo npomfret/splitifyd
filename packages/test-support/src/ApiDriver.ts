@@ -459,6 +459,14 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return await this.apiRequest(`/activity-feed${queryString ? `?${queryString}` : ''}`, 'GET', null, token);
     }
 
+    async getGroupActivityFeed(groupId: GroupId, options: GetActivityFeedOptions | undefined = undefined, token: AuthToken): Promise<ActivityFeedResponse> {
+        const queryParams = new URLSearchParams();
+        if (options?.limit) queryParams.append('limit', options.limit.toString());
+        if (options?.cursor) queryParams.append('cursor', options.cursor);
+        const queryString = queryParams.toString();
+        return await this.apiRequest(`/groups/${groupId}/activity-feed${queryString ? `?${queryString}` : ''}`, 'GET', null, token);
+    }
+
     async register(userData: UserRegistration): Promise<RegisterResponse> {
         return await this.apiRequest('/register', 'POST', userData);
     }

@@ -824,6 +824,37 @@ export async function mockActivityFeedApi(
 }
 
 /**
+ * Mock group activity feed API endpoint
+ * @param groupId - Group ID to mock the activity feed for
+ * @param items - Activity feed items to return
+ * @param delayMs - Optional delay in milliseconds before responding
+ */
+export async function mockGroupActivityFeedApi(
+    page: Page,
+    groupId: GroupId | string,
+    items: any[] = [],
+    options: { delayMs?: number; hasMore?: boolean; nextCursor?: string; } = {},
+): Promise<void> {
+    const delay = getApiDelay(options.delayMs);
+
+    await registerMswHandlers(
+        page,
+        createJsonHandler(
+            'GET',
+            `/api/groups/${groupId}/activity-feed`,
+            {
+                items,
+                hasMore: options.hasMore ?? false,
+                nextCursor: options.nextCursor,
+            },
+            {
+                delayMs: delay,
+            },
+        ),
+    );
+}
+
+/**
  * Mocks the user profile API
  * Used for testing user profile display and updates
  *

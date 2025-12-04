@@ -171,12 +171,44 @@ export class GroupDetailPage extends BasePage {
         return this.page.getByTestId('settlement-history-card');
     }
 
+    /**
+     * Activity feed section container
+     */
+    protected getActivityFeedContainer(): Locator {
+        return this.page.getByTestId('group-activity-feed');
+    }
+
+    /**
+     * Activity feed card (the collapsible sidebar card)
+     */
+    protected getActivityFeedCard(): Locator {
+        return this.page.getByTestId('activity-feed-card');
+    }
+
+    /**
+     * Activity feed items
+     */
+    protected getActivityFeedItems(): Locator {
+        return this.getActivityFeedContainer().getByTestId('group-activity-feed-item');
+    }
+
+    /**
+     * Activity feed empty state
+     */
+    protected getActivityFeedEmptyState(): Locator {
+        return this.page.getByTestId('group-activity-feed-empty');
+    }
+
     private getBalanceToggle(): Locator {
         return this.getBalanceContainer().getByTestId('toggle-balance-section');
     }
 
     private getCommentsToggle(): Locator {
         return this.page.getByTestId('toggle-comments-section');
+    }
+
+    private getActivityToggle(): Locator {
+        return this.page.getByTestId('toggle-activity-section');
     }
 
     private getSettlementsToggle(): Locator {
@@ -219,6 +251,16 @@ export class GroupDetailPage extends BasePage {
 
     async expectCommentsCollapsed(): Promise<void> {
         const toggle = this.getCommentsToggle();
+        await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    }
+
+    async ensureActivitySectionExpanded(): Promise<void> {
+        await this.ensureToggleExpanded(this.getActivityToggle());
+        await expect(this.getActivityFeedContainer()).toBeVisible({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
+    }
+
+    async expectActivityCollapsed(): Promise<void> {
+        const toggle = this.getActivityToggle();
         await expect(toggle).toHaveAttribute('aria-expanded', 'false');
     }
 
@@ -1906,5 +1948,80 @@ export class GroupDetailPage extends BasePage {
 
     getSettlementButtonForDebtLocator(payerName: string, payeeName: string): Locator {
         return this.getSettlementButtonForDebt(payerName, payeeName);
+    }
+
+    // ============================================================================
+    // ACTIVITY FEED SECTION
+    // ============================================================================
+
+    /**
+     * Verify activity feed card is visible
+     */
+    async verifyActivityFeedCardVisible(): Promise<void> {
+        await expect(this.getActivityFeedCard()).toBeVisible();
+    }
+
+    /**
+     * Verify activity feed card is not visible
+     */
+    async verifyActivityFeedCardNotVisible(): Promise<void> {
+        await expect(this.getActivityFeedCard()).not.toBeVisible();
+    }
+
+    /**
+     * Verify activity feed is visible (expanded state)
+     */
+    async verifyActivityFeedVisible(): Promise<void> {
+        await this.ensureActivitySectionExpanded();
+        await expect(this.getActivityFeedContainer()).toBeVisible();
+    }
+
+    /**
+     * Verify activity feed empty state is visible
+     */
+    async verifyActivityFeedEmpty(): Promise<void> {
+        // For empty state, we can't expand since there's no container - just check the toggle is expanded
+        // and the empty state div is visible
+        await this.ensureToggleExpanded(this.getActivityToggle());
+        await expect(this.getActivityFeedEmptyState()).toBeVisible();
+    }
+
+    /**
+     * Verify activity feed has expected number of items
+     */
+    async verifyActivityFeedItemCount(expectedCount: number): Promise<void> {
+        await this.ensureActivitySectionExpanded();
+        await expect(this.getActivityFeedItems()).toHaveCount(expectedCount);
+    }
+
+    /**
+     * Verify activity feed contains an item with the specified event type
+     */
+    async verifyActivityFeedHasEventType(eventType: string): Promise<void> {
+        await this.ensureActivitySectionExpanded();
+        const item = this.getActivityFeedContainer().locator(`[data-event-type="${eventType}"]`);
+        await expect(item.first()).toBeVisible();
+    }
+
+    /**
+     * Verify activity feed contains text
+     */
+    async verifyActivityFeedContainsText(text: string): Promise<void> {
+        await this.ensureActivitySectionExpanded();
+        await expect(this.getActivityFeedContainer()).toContainText(text);
+    }
+
+    /**
+     * Wait for activity feed to have at least one item
+     */
+    async waitForActivityFeedItems(timeout: number = 5000): Promise<void> {
+        await this.ensureActivitySectionExpanded();
+        await expect(async () => {
+            const count = await this.getActivityFeedItems().count();
+            if (count === 0) {
+                throw new Error('No activity feed items found yet');
+            }
+        })
+            .toPass({ timeout });
     }
 }

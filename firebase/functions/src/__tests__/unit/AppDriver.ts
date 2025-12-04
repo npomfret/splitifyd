@@ -1184,6 +1184,23 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return res.getJson() as ActivityFeedResponse;
     }
 
+    async getGroupActivityFeed(groupId: GroupId, options: GetActivityFeedOptions = {}, authToken: AuthToken): Promise<ActivityFeedResponse> {
+        const req = createStubRequest(authToken, {}, { groupId });
+        const query: Record<string, string> = {};
+
+        if (options.limit !== undefined) {
+            query.limit = String(options.limit);
+        }
+        if (options.cursor !== undefined) {
+            query.cursor = options.cursor;
+        }
+
+        req.query = query;
+        const res = await this.dispatchByHandler('getGroupActivityFeed', req);
+        this.throwIfError(res);
+        return res.getJson() as ActivityFeedResponse;
+    }
+
     // =============================================================================
     // Test Helper Methods
     // These methods directly access the database for test assertions and setup.

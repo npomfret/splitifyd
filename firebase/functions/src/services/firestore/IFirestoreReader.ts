@@ -204,6 +204,25 @@ export interface IFirestoreReader {
         nextCursor?: string;
     }>;
 
+    /**
+     * Get activity feed items for a specific group (across all members)
+     * Uses collection group query on the 'items' subcollection
+     * @param groupId - The group ID to filter by
+     * @param options - Pagination options
+     * @returns Paginated activity feed items for the group
+     */
+    getActivityFeedForGroup(
+        groupId: GroupId,
+        options?: {
+            limit?: number;
+            cursor?: string;
+        },
+    ): Promise<{
+        items: ActivityFeedItem[];
+        hasMore: boolean;
+        nextCursor?: string;
+    }>;
+
     // ========================================================================
     // Collection Read Operations - Expense-related
     // ========================================================================

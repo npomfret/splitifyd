@@ -354,6 +354,13 @@ const routeDefinitions: RouteDefinition[] = [
         middleware: ['authenticate'],
     },
     {
+        method: 'GET',
+        path: `/${FirestoreCollections.GROUPS}/:groupId/activity-feed`,
+        handlerName: 'getGroupActivityFeed',
+        category: 'resource',
+        middleware: ['authenticate'],
+    },
+    {
         method: 'PUT',
         path: `/${FirestoreCollections.GROUPS}/:groupId`,
         handlerName: 'updateGroup',

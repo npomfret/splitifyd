@@ -1,5 +1,6 @@
 import { CommentsSection } from '@/components/comments';
 import { BalanceSummary, ExpensesList, GroupActions, GroupHeader, GroupSettingsModal, LeaveGroupDialog, MembersListWithManagement, ShareGroupModal } from '@/components/group';
+import { GroupActivityFeed } from '@/components/group/GroupActivityFeed';
 import { SettlementForm, SettlementHistory } from '@/components/settlements';
 import { Button, Card, LoadingSpinner, Typography } from '@/components/ui';
 import { Stack } from '@/components/ui';
@@ -9,7 +10,7 @@ import { navigationService } from '@/services/navigation.service';
 import { permissionsStore } from '@/stores/permissions-store.ts';
 import type { GroupId, SettlementWithMembers, SimplifiedDebt } from '@billsplit-wl/shared';
 import { MemberRoles, MemberStatuses } from '@billsplit-wl/shared';
-import { BanknotesIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
+import { BanknotesIcon, BoltIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
 import { useComputed, useSignal } from '@preact/signals';
 import { useEffect } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
@@ -46,6 +47,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
     const showDeletedSettlements = useComputed(() => enhancedGroupDetailStore.showDeletedSettlements);
 
     const locationHash = typeof window !== 'undefined' ? window.location.hash : '';
+    const expandActivitySection = locationHash === '#activity';
     const expandSettlementSection = locationHash === '#settlements';
     const expandCommentsSection = locationHash === '#comments';
 
@@ -380,6 +382,24 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                 rightSidebar={
                     <>
                         <BalanceSummary variant='sidebar' onSettleUp={handleSettleUp} />
+
+                        {/* Activity Feed Section */}
+                        <SidebarCard
+                            id='activity'
+                            data-testid='activity-feed-card'
+                            title={
+                                <div className='flex items-center gap-2'>
+                                    <BoltIcon className='h-5 w-5 text-text-muted' aria-hidden='true' />
+                                    <span>{t('pages.groupDetailPage.activity')}</span>
+                                </div>
+                            }
+                            collapsible
+                            defaultCollapsed={!expandActivitySection}
+                            collapseToggleTestId='toggle-activity-section'
+                            collapseToggleLabel={t('pages.groupDetailPage.toggleSection', { section: t('pages.groupDetailPage.activity') })}
+                        >
+                            <GroupActivityFeed groupId={groupId!} currentUserId={currentUser.value!.uid} />
+                        </SidebarCard>
 
                         {/* Settlement History Section */}
                         <SidebarCard

@@ -203,6 +203,22 @@ export class ActivityFeedService {
         });
     }
 
+    async getActivityFeedForGroup(
+        groupId: GroupId,
+        options?: {
+            limit?: number;
+            cursor?: string;
+        },
+    ): Promise<{
+        items: ActivityFeedItem[];
+        hasMore: boolean;
+        nextCursor?: string;
+    }> {
+        return measureDb('ActivityFeedService.getActivityFeedForGroup', async () => {
+            return this.firestoreReader.getActivityFeedForGroup(groupId, options);
+        });
+    }
+
     /**
      * Async cleanup of old activity feed items (fire-and-forget)
      * Keeps the last CLEANUP_KEEP_COUNT items, deletes older ones
