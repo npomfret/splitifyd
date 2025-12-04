@@ -1497,6 +1497,7 @@
       "resetInstructionsSent": "Password reset instructions have been sent to your email",
       "emailSentSuccessfully": "Email Sent Successfully",
       "sentInstructionsTo": "We've sent password reset instructions to:",
+      "checkSpamFolder": "Can't find it? Check your spam or junk folder.",
       "whatsNext": "What's next?",
       "checkEmailInbox": "• Check your email inbox (and spam folder)",
       "clickResetLink": "• Click the reset link in the email",

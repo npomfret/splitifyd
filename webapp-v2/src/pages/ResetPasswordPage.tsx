@@ -68,6 +68,9 @@ export function ResetPasswordPage() {
                             {t('pages.resetPasswordPage.sentInstructionsTo')}
                         </Typography>
                         <Typography variant='bodyStrong'>{emailSignal.value}</Typography>
+                        <Typography variant='caption' className='text-text-muted'>
+                            {t('pages.resetPasswordPage.checkSpamFolder')}
+                        </Typography>
                     </div>
 
                     <Card padding='md' className='text-left bg-surface-warning/60 border-border-warning'>
