@@ -32,7 +32,7 @@
     "postdeploy:sync-tenant": "bash scripts/staging-operations.sh sync-tenant",
     "seed-policies:staging-1": "bash scripts/staging-operations.sh seed-policies",
     "logs": "firebase functions:log",
-    "promote-user": "tsx scripts/promote-user-to-admin.ts"
+    "promote-user": "tsx scripts/dev/promote-user-to-admin.ts"
   },
   "author": "",
   "license": "MIT",
