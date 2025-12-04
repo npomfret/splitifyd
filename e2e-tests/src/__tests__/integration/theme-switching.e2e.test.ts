@@ -31,20 +31,20 @@ test.describe('Theme switching smoke tests', () => {
         expect(auroraStyle).not.toBe(brutalistStyle);
     });
 
-    test('Different hosts serve different glassmorphism support', async ({ newEmptyBrowser }) => {
-        // Get Aurora glassmorphism value
+    test('Different hosts serve different app names', async ({ newEmptyBrowser }) => {
+        // Get Aurora app name
         const { page: auroraPage } = await newEmptyBrowser();
         const auroraTheme = new ThemePage(auroraPage);
         await auroraTheme.navigateTo(AURORA_URL);
-        const auroraGlass = await auroraTheme.getGlassmorphismValue();
+        const auroraAppName = await auroraTheme.getTenantAppName(AURORA_URL);
 
-        // Get Brutalist glassmorphism value
+        // Get Brutalist app name
         const { page: brutalistPage } = await newEmptyBrowser();
         const brutalistTheme = new ThemePage(brutalistPage);
         await brutalistTheme.navigateTo(BRUTALIST_URL);
-        const brutalistGlass = await brutalistTheme.getGlassmorphismValue();
+        const brutalistAppName = await brutalistTheme.getTenantAppName(BRUTALIST_URL);
 
         // Assert they are DIFFERENT (don't care what the values are)
-        expect(auroraGlass).not.toBe(brutalistGlass);
+        expect(auroraAppName).not.toBe(brutalistAppName);
     });
 });
