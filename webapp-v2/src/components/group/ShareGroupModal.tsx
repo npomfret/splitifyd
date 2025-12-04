@@ -196,50 +196,50 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                 size='sm'
                 labelledBy='share-modal-title'
             >
-                    {/* Modal Header */}
-                    <div class='px-5 py-3 border-b border-border-default'>
-                        <div class='flex items-center justify-between'>
-                            <div class='flex flex-col space-y-1'>
-                                <div class='flex items-center space-x-2'>
-                                    <svg class='w-5 h-5 text-interactive-primary' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
-                                        <path
-                                            stroke-linecap='round'
-                                            stroke-linejoin='round'
-                                            stroke-width='2'
-                                            d='M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z'
-                                        />
-                                    </svg>
-                                    <h3 id='share-modal-title' class='text-lg font-semibold text-text-primary'>
-                                        {t('shareGroupModal.title')}
-                                    </h3>
-                                </div>
-                                {normalizedGroupName && (
-                                    <p class='text-sm text-text-primary/70' data-testid='share-group-name'>
-                                        {normalizedGroupName}
-                                    </p>
-                                )}
+                {/* Modal Header */}
+                <div class='px-6 py-4 border-b border-border-default'>
+                    <div class='flex items-center justify-between'>
+                        <div class='flex flex-col space-y-1'>
+                            <div class='flex items-center space-x-2'>
+                                <svg class='w-5 h-5 text-interactive-primary' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
+                                    <path
+                                        stroke-linecap='round'
+                                        stroke-linejoin='round'
+                                        stroke-width='2'
+                                        d='M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z'
+                                    />
+                                </svg>
+                                <h3 id='share-modal-title' class='text-lg font-semibold text-text-primary'>
+                                    {t('shareGroupModal.title')}
+                                </h3>
                             </div>
-                            <Tooltip content={t('shareGroupModal.closeButtonAriaLabel')}>
-                                <Clickable
-                                    as='button'
-                                    type='button'
-                                    onClick={onClose}
-                                    className='text-text-muted/80 hover:text-text-muted transition-colors rounded-full p-1 hover:bg-surface-muted'
-                                    data-testid='close-share-modal-button'
-                                    aria-label={t('shareGroupModal.closeButtonAriaLabel')}
-                                    eventName='modal_close'
-                                    eventProps={{ modalName: 'share_group', method: 'x_button' }}
-                                >
-                                    <svg class='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
-                                        <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12' />
-                                    </svg>
-                                </Clickable>
-                            </Tooltip>
+                            {normalizedGroupName && (
+                                <p class='text-sm text-text-primary/70' data-testid='share-group-name'>
+                                    {normalizedGroupName}
+                                </p>
+                            )}
                         </div>
+                        <Tooltip content={t('shareGroupModal.closeButtonAriaLabel')}>
+                            <Clickable
+                                as='button'
+                                type='button'
+                                onClick={onClose}
+                                className='text-text-muted/80 hover:text-text-muted transition-colors rounded-full p-1 hover:bg-surface-muted'
+                                data-testid='close-share-modal-button'
+                                aria-label={t('shareGroupModal.closeButtonAriaLabel')}
+                                eventName='modal_close'
+                                eventProps={{ modalName: 'share_group', method: 'x_button' }}
+                            >
+                                <svg class='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
+                                    <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12' />
+                                </svg>
+                            </Clickable>
+                        </Tooltip>
                     </div>
+                </div>
 
-                    {/* Modal Content */}
-                    <div class='p-4'>
+                {/* Modal Content */}
+                <div class='max-h-[70vh] overflow-y-auto px-6 py-5'>
                         <p class='text-sm text-text-primary/70 mb-3'>{t('shareGroupModal.description')}</p>
 
                         {loading && (

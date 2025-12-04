@@ -160,37 +160,37 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
             size='sm'
             labelledBy='create-group-modal-title'
         >
-            <div class='p-5'>
-                {/* Modal Header */}
-                <div class='flex items-center justify-between mb-6'>
-                    <h3 id='create-group-modal-title' class='text-lg font-semibold text-text-primary'>
-                        {t('createGroupModal.title')}
-                    </h3>
-                    <Tooltip content={t('createGroupModal.closeButtonAriaLabel')}>
-                        <Clickable
-                            as='button'
-                            type='button'
-                            onClick={() => {
-                                emitModalDebugLog('[CreateGroupModal] Closing modal: X button clicked', {
-                                    isSubmitting,
-                                });
-                                onClose();
-                            }}
-                            className='text-text-muted hover:text-text-primary transition-colors'
-                            disabled={isSubmitting}
-                            aria-label={t('createGroupModal.closeButtonAriaLabel')}
-                            eventName='modal_close'
-                            eventProps={{ modalName: 'create_group', method: 'x_button' }}
-                        >
-                            <svg class='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
-                                <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12' />
-                            </svg>
-                        </Clickable>
-                    </Tooltip>
-                </div>
+            {/* Modal Header */}
+            <div class='flex items-center justify-between px-6 py-4 border-b border-border-default'>
+                <h3 id='create-group-modal-title' class='text-lg font-semibold text-text-primary'>
+                    {t('createGroupModal.title')}
+                </h3>
+                <Tooltip content={t('createGroupModal.closeButtonAriaLabel')}>
+                    <Clickable
+                        as='button'
+                        type='button'
+                        onClick={() => {
+                            emitModalDebugLog('[CreateGroupModal] Closing modal: X button clicked', {
+                                isSubmitting,
+                            });
+                            onClose();
+                        }}
+                        className='text-text-muted hover:text-text-primary transition-colors rounded-full p-1 hover:bg-surface-muted'
+                        disabled={isSubmitting}
+                        aria-label={t('createGroupModal.closeButtonAriaLabel')}
+                        eventName='modal_close'
+                        eventProps={{ modalName: 'create_group', method: 'x_button' }}
+                    >
+                        <svg class='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
+                            <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12' />
+                        </svg>
+                    </Clickable>
+                </Tooltip>
+            </div>
 
-                {/* Modal Content */}
-                <Form onSubmit={handleSubmit}>
+            {/* Modal Content */}
+            <Form onSubmit={handleSubmit}>
+                <div class='max-h-[70vh] overflow-y-auto px-6 py-5'>
                     <div class='space-y-4'>
                         {/* Group Name */}
                         <div>
@@ -258,7 +258,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                             <div class='bg-surface-warning border border-border-warning rounded-md p-3'>
                                 <div class='flex'>
                                     <div class='flex-shrink-0'>
-                                        <svg class='h-5 w-5 text-red-400' fill='currentColor' viewBox='0 0 20 20' aria-hidden='true' focusable='false'>
+                                        <svg class='h-5 w-5 text-semantic-error' fill='currentColor' viewBox='0 0 20 20' aria-hidden='true' focusable='false'>
                                             <path
                                                 fill-rule='evenodd'
                                                 d='M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z'
@@ -267,7 +267,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                                         </svg>
                                     </div>
                                     <div class='ml-3'>
-                                        <p class='text-sm text-red-800' role='alert' data-testid='create-group-error-message'>
+                                        <p class='text-sm text-semantic-error' role='alert' data-testid='create-group-error-message'>
                                             {enhancedGroupsStore.errorSignal.value}
                                         </p>
                                     </div>
@@ -275,28 +275,28 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                             </div>
                         )}
                     </div>
+                </div>
 
-                    {/* Modal Footer */}
-                    <div class='flex items-center justify-end space-x-3 mt-6 pt-4 border-t border-border-default'>
-                        <Button
-                            type='button'
-                            variant='secondary'
-                            onClick={() => {
-                                emitModalDebugLog('[CreateGroupModal] Closing modal: Cancel button clicked', {
-                                    isSubmitting,
-                                });
-                                onClose();
-                            }}
-                            disabled={isSubmitting}
-                        >
-                            {t('createGroupModal.cancelButton')}
-                        </Button>
-                        <Button type='submit' loading={isSubmitting} disabled={!isFormValid}>
-                            {t('createGroupModal.submitButton')}
-                        </Button>
-                    </div>
-                </Form>
-            </div>
+                {/* Modal Footer */}
+                <div class='flex items-center justify-end gap-3 px-6 py-4 border-t border-border-default'>
+                    <Button
+                        type='button'
+                        variant='secondary'
+                        onClick={() => {
+                            emitModalDebugLog('[CreateGroupModal] Closing modal: Cancel button clicked', {
+                                isSubmitting,
+                            });
+                            onClose();
+                        }}
+                        disabled={isSubmitting}
+                    >
+                        {t('createGroupModal.cancelButton')}
+                    </Button>
+                    <Button type='submit' loading={isSubmitting} disabled={!isFormValid}>
+                        {t('createGroupModal.submitButton')}
+                    </Button>
+                </div>
+            </Form>
         </Modal>
     );
 }

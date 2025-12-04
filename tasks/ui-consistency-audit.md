@@ -152,26 +152,22 @@ All empty states use `EmptyState` component with:
 
 ## 5. SPACING/LAYOUT INCONSISTENCIES
 
-### Modal Structure Issues:
+### Current Status: ✅ Standardized
 
-| Modal | Header Padding | Content Padding | Footer Padding |
-|-------|----------------|-----------------|----------------|
-| CreateGroupModal | p-5 | space-y-4 | mt-6 pt-4 |
-| GroupSettingsModal | px-6 py-4 | px-6 py-5 | px-6 py-4 |
-| ShareGroupModal | px-5 py-3 | p-4 | None |
-| ConfirmDialog | Uses Surface | padding='lg' | Uses Surface |
+All primary modals now follow the standard structure:
 
-### Issues:
-1. **No consistent modal padding** - p-5 vs px-6 py-4 vs px-5 py-3
-2. **ConfirmDialog uses Surface component** (good) but others don't
-3. **Only GroupSettingsModal has max-height** for scrollable content
-4. **Asymmetric border spacing** - some use `mt-6 pt-4`, others `pt-4` only
+| Modal | Header | Content | Footer | Status |
+|-------|--------|---------|--------|--------|
+| CreateGroupModal | `px-6 py-4 border-b` | `px-6 py-5 max-h-[70vh] overflow-y-auto` | `px-6 py-4 border-t` | ✅ Done |
+| ShareGroupModal | `px-6 py-4 border-b` | `px-6 py-5 max-h-[70vh] overflow-y-auto` | N/A (no footer needed) | ✅ Done |
+| GroupSettingsModal | `px-6 py-4 border-b` | `px-6 py-5 max-h-[70vh] overflow-y-auto` | Per-tab footers | ✅ Done |
+| ConfirmDialog | Uses Surface padding='lg' | Same | Same | ✅ OK (different pattern for dialogs) |
 
-### Recommendation:
-Standardize all modals to use:
-- Header: `px-6 py-4 border-b`
-- Content: `px-6 py-5` with `max-h-[70vh] overflow-y-auto`
-- Footer: `px-6 py-4 border-t`
+### Standard Applied:
+- Header: `px-6 py-4 border-b border-border-default`
+- Content: `max-h-[70vh] overflow-y-auto px-6 py-5`
+- Footer: `px-6 py-4 border-t border-border-default`
+- Close button: `rounded-full p-1 hover:bg-surface-muted` with `w-5 h-5` icon
 
 ---
 
@@ -221,7 +217,7 @@ The codebase has a well-designed `Typography` component with variants:
 8. ~~Empty state standardization~~ ✅ Done - All list components use EmptyState
 
 ### P2 - Medium Priority
-8. Modal padding standardization
+8. ~~Modal padding standardization~~ ✅ Done - All primary modals use standard padding
 9. Typography component adoption
 10. Hardcoded strings - use translations
 
@@ -245,28 +241,28 @@ The codebase has a well-designed `Typography` component with variants:
 | `pages/JoinGroupPage.tsx` | Emoji icon, fallback loading text |
 
 ### Medium Priority Files:
-| File | Issues |
-|------|--------|
-| `components/group/ExpensesList.tsx` | No loading skeleton |
-| `components/settlements/SettlementHistory.tsx` | No loading skeleton |
-| `components/comments/CommentsList.tsx` | No loading skeleton, no error state |
-| `components/group/MembersListWithManagement.tsx` | No loading skeleton |
-| `components/dashboard/CreateGroupModal.tsx` | Modal padding |
-| `components/group/ShareGroupModal.tsx` | Modal padding |
-| `components/group/GroupSettingsModal.tsx` | Alert usage, modal structure |
+| File | Issues | Status |
+|------|--------|--------|
+| `components/group/ExpensesList.tsx` | No loading skeleton | ✅ Done |
+| `components/settlements/SettlementHistory.tsx` | No loading skeleton | ✅ Done |
+| `components/comments/CommentsList.tsx` | No loading skeleton, no error state | ✅ Done (skeleton) |
+| `components/group/MembersListWithManagement.tsx` | No loading skeleton | ✅ Done |
+| `components/dashboard/CreateGroupModal.tsx` | Modal padding | ✅ Done |
+| `components/group/ShareGroupModal.tsx` | Modal padding | ✅ Done |
+| `components/group/GroupSettingsModal.tsx` | Alert usage, modal structure | ✅ Done (structure) |
 
 ---
 
 ## TESTING CHECKLIST
 
 After implementation:
-- [ ] Dashboard shows skeleton cards (groups) and skeleton items (activity) during load
-- [ ] Group detail page shows skeleton expenses, settlements, comments, members
-- [ ] All loading states are visually consistent
-- [ ] No hardcoded "Loading..." strings remain
+- [x] Dashboard shows skeleton cards (groups) and skeleton items (activity) during load
+- [x] Group detail page shows skeleton expenses, settlements, comments, members
+- [x] All loading states are visually consistent
+- [x] No hardcoded "Loading..." strings remain
 - [ ] No raw `<button>` elements outside admin area
 - [ ] No hardcoded colors (gray-*, indigo-*, etc.) in admin components
-- [ ] Error states use ErrorState or Alert components
-- [ ] Empty states use EmptyState component
-- [ ] Modal padding is consistent
-- [ ] Screen readers announce loading states properly (aria-busy, role="status")
+- [x] Error states use ErrorState or Alert components
+- [x] Empty states use EmptyState component
+- [x] Modal padding is consistent
+- [x] Screen readers announce loading states properly (aria-busy, role="status")
