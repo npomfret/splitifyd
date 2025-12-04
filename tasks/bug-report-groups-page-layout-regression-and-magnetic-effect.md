@@ -36,3 +36,15 @@ Additionally, the individual group containers on this page now exhibit an uninte
 
 ## Priority
 Medium - This is a UI regression and a styling inconsistency that affects the overall polish and usability of a core page. While not critical functionality-wise, it degrades the quality of the application.
+
+---
+
+## Additional Finding (2025-12-04)
+
+The security preset buttons in the Group Settings Modal ("Security & Permissions" tab) also have the magnetic effect applied inappropriately. These are larger content containers with multi-line text (label + description), not small interactive buttons.
+
+## Work Items
+
+- [ ] Remove magnetic effect from group card containers on the dashboard
+- [ ] Remove magnetic effect from security preset buttons in GroupSettingsModal
+- [ ] Review other large container elements that may have magnetic effect applied inappropriately
