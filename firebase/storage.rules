@@ -13,9 +13,18 @@ service firebase.storage {
       allow write: if false;
     }
 
-    // Tenant assets (logos, favicons, images)
+    // Tenant assets (logos, favicons)
     match /tenant-assets/{tenantId}/{file} {
       // Public read access for tenant logos and favicons
+      allow read: if true;
+
+      // Only Cloud Functions can write (via service account - implicit)
+      allow write: if false;
+    }
+
+    // Tenant image library
+    match /tenant-assets/{tenantId}/library/{imageId} {
+      // Public read access for library images
       allow read: if true;
 
       // Only Cloud Functions can write (via service account - implicit)

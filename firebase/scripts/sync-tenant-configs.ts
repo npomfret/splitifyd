@@ -54,6 +54,83 @@ function getContentTypeFromExtension(ext: string): string {
     return map[ext.toLowerCase()] || 'application/octet-stream';
 }
 
+const IMAGE_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.svg', '.ico', '.webp', '.gif'];
+
+interface LibraryUploadResult {
+    logoUrl?: string;
+    faviconUrl?: string;
+}
+
+/**
+ * Upload all image files from the tenant directory to the tenant's image library.
+ * Skips images that already exist in the library (by name) to avoid duplicates.
+ * Returns URLs for images named "logo" and "favicon" so they can be auto-assigned.
+ */
+async function uploadLibraryImagesFromDirectory(
+    apiDriver: ApiDriver,
+    tenantId: string,
+    adminToken: string,
+): Promise<LibraryUploadResult> {
+    const tenantDir = getTenantDirectory(tenantId);
+    const result: LibraryUploadResult = {};
+
+    // Get existing library images to avoid duplicates
+    const existingImages = await apiDriver.listTenantImages(tenantId, adminToken);
+    const existingByName = new Map(existingImages.images.map((img) => [img.name, img.url]));
+
+    // Check if logo/favicon already exist in library
+    if (existingByName.has('logo')) {
+        result.logoUrl = existingByName.get('logo');
+    }
+    if (existingByName.has('favicon')) {
+        result.faviconUrl = existingByName.get('favicon');
+    }
+
+    // Find all image files in tenant directory
+    const files = fs.readdirSync(tenantDir);
+    const imageFiles = files.filter((f) => IMAGE_EXTENSIONS.includes(path.extname(f).toLowerCase()));
+
+    // Also check images/ subdirectory if it exists
+    const imagesSubdir = path.join(tenantDir, 'images');
+    if (fs.existsSync(imagesSubdir) && fs.statSync(imagesSubdir).isDirectory()) {
+        const subdirFiles = fs.readdirSync(imagesSubdir);
+        imageFiles.push(
+            ...subdirFiles.filter((f) => IMAGE_EXTENSIONS.includes(path.extname(f).toLowerCase())).map((f) => `images/${f}`),
+        );
+    }
+
+    if (imageFiles.length === 0) {
+        return result;
+    }
+
+    console.log(`  📚 Syncing image library (${imageFiles.length} files)...`);
+
+    for (const file of imageFiles) {
+        const name = path.basename(file, path.extname(file));
+
+        if (existingByName.has(name)) {
+            console.log(`     ⏭️  "${name}" already in library`);
+            continue;
+        }
+
+        const filePath = path.join(tenantDir, file);
+        const buffer = fs.readFileSync(filePath);
+        const contentType = getContentTypeFromExtension(path.extname(file));
+
+        console.log(`     📤 Uploading "${name}" (${file})`);
+        const uploaded = await apiDriver.uploadTenantLibraryImage(tenantId, name, buffer, contentType, adminToken);
+
+        // Track logo/favicon URLs for auto-assignment
+        if (name === 'logo') {
+            result.logoUrl = uploaded.image.url;
+        } else if (name === 'favicon') {
+            result.faviconUrl = uploaded.image.url;
+        }
+    }
+
+    return result;
+}
+
 /**
  * Upload an image file to Storage via API if the URL starts with "file://".
  * Otherwise, return the URL as-is.
@@ -150,13 +227,18 @@ export async function syncTenantConfigs(
     for (const config of configs) {
         const domains = config.domains.map((d) => toTenantDomainName(normalizeDomain(d)));
 
-        // Upload assets if they are local files (only if configured)
-        const logoUrl = config.branding.logoUrl
+        // Upload images from tenant directory to image library first
+        // This returns URLs for "logo" and "favicon" named files
+        const libraryAssets = await uploadLibraryImagesFromDirectory(apiDriver, config.id, adminToken);
+
+        // Upload assets if they are local files (only if configured in config.json)
+        // Falls back to library assets if not explicitly configured
+        let logoUrl = config.branding.logoUrl
             ? await uploadAssetIfLocal(apiDriver, config.id, 'logo', config.branding.logoUrl, adminToken)
-            : undefined;
-        const faviconUrl = config.branding.faviconUrl
+            : libraryAssets.logoUrl;
+        let faviconUrl = config.branding.faviconUrl
             ? await uploadAssetIfLocal(apiDriver, config.id, 'favicon', config.branding.faviconUrl, adminToken)
-            : undefined;
+            : libraryAssets.faviconUrl;
 
         // Validate brandingTokens are present
         if (!config.brandingTokens) {
