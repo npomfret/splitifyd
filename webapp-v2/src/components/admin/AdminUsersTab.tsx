@@ -3,7 +3,7 @@ import { useAuth } from '@/app/hooks/useAuth';
 import { Alert, Button, Card, Input, LoadingState, Pagination } from '@/components/ui';
 import { logError, logInfo } from '@/utils/browser-logger';
 import type { AdminUserProfile, Email, SystemUserRole, UserId } from '@billsplit-wl/shared';
-import { SystemUserRoles, toEmail, toUserId } from '@billsplit-wl/shared';
+import { SystemUserRoles, toDisplayName, toEmail, toUserId } from '@billsplit-wl/shared';
 import { computed, useSignal, useSignalEffect } from '@preact/signals';
 import { useTranslation } from 'react-i18next';
 import { UserEditorModal } from './UserEditorModal';
@@ -427,7 +427,7 @@ export function AdminUsersTab() {
                     editingUser.value = null;
                     handleReset();
                 }}
-                user={editingUser.value ?? { uid: '' as UserId, email: '' as Email, displayName: null, disabled: false, role: null, metadata: null }}
+                user={editingUser.value ?? { uid: toUserId(''), email: toEmail(''), displayName: toDisplayName(''), disabled: false, role: SystemUserRoles.SYSTEM_USER, metadata: { creationTime: '' }, emailVerified: false, photoURL: null }}
                 isCurrentUser={editingUser.value?.uid === user.uid}
             />
         </div>
