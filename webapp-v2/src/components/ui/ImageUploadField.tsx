@@ -196,8 +196,8 @@ export function ImageUploadField({
             {preview && imageLoadFailed && (
                 <div className='relative inline-block w-fit'>
                     <div className='w-48 h-32 rounded-lg border border-border-warning bg-surface-warning/10 flex flex-col items-center justify-center text-text-muted text-xs p-2 gap-1'>
-                        <span className='text-2xl'>⚠️</span>
-                        <span>Image failed to load</span>
+                        <span className='text-2xl' aria-hidden='true'>⚠️</span>
+                        <span>{t('common.imageFailedToLoad')}</span>
                         <span className='text-text-muted/70 truncate max-w-full' title={preview}>
                             {preview.length > 30 ? `...${preview.slice(-30)}` : preview}
                         </span>
@@ -237,7 +237,7 @@ export function ImageUploadField({
                         disabled={disabled}
                         className='w-full sm:w-auto'
                     >
-                        {t('common.chooseFile', 'Choose File')}
+                        {t('common.chooseFile')}
                     </Button>
                     {allowLibrary && onOpenLibrary && (
                         <Button
@@ -247,7 +247,7 @@ export function ImageUploadField({
                             disabled={disabled}
                             className='w-full sm:w-auto'
                         >
-                            From Library
+                            {t('common.fromLibrary')}
                         </Button>
                     )}
                     {allowUrlInput && (
@@ -258,7 +258,7 @@ export function ImageUploadField({
                             disabled={disabled}
                             className='w-full sm:w-auto'
                         >
-                            Or enter URL
+                            {t('common.orEnterUrl')}
                         </Button>
                     )}
                 </div>
@@ -291,7 +291,7 @@ export function ImageUploadField({
                         disabled={disabled || isDownloading || !urlValue.trim()}
                         className='whitespace-nowrap'
                     >
-                        {isDownloading ? 'Downloading...' : 'Download'}
+                        {isDownloading ? t('common.downloading') : t('common.download')}
                     </Button>
                     <Button
                         type='button'
@@ -302,7 +302,7 @@ export function ImageUploadField({
                         }}
                         disabled={isDownloading}
                     >
-                        Cancel
+                        {t('common.cancel')}
                     </Button>
                 </div>
             )}
@@ -310,7 +310,7 @@ export function ImageUploadField({
             {/* File Name */}
             {fileName && (
                 <p className='text-sm text-text-secondary'>
-                    {t('common.selectedFile', 'Selected')}: {fileName}
+                    {t('common.selectedFile')}: {fileName}
                 </p>
             )}
 

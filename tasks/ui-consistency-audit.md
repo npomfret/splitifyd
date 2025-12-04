@@ -84,7 +84,7 @@ The webapp has **multiple categories of UI inconsistencies**. This audit identif
 
 1. ~~**GroupsList reimplements ErrorState**~~ ✅ Fixed - now uses ErrorState component
 2. ~~**JoinGroupPage uses hardcoded emoji**~~ ✅ Fixed - uses ExclamationTriangleIcon and CheckCircleIcon
-3. **Hardcoded error strings** in AdminTenantConfigTab, ImageUploadField
+3. ~~**Hardcoded error strings** in AdminTenantConfigTab, ImageUploadField~~ ✅ Fixed - all use translations
 4. **Toast component exists but is never used** - `components/ui/Toast.tsx`
 5. **No error display** in CommentsList - silent failures
 
@@ -93,7 +93,7 @@ The webapp has **multiple categories of UI inconsistencies**. This audit identif
 |------|-------|--------|
 | `components/dashboard/GroupsList.tsx` | Use ErrorState component instead of custom | ✅ Done |
 | `pages/JoinGroupPage.tsx` | Replace emoji with SVG icon | ✅ Done |
-| `components/admin/AdminTenantConfigTab.tsx` | Use translations | Pending |
+| `components/admin/AdminTenantConfigTab.tsx` | Use translations | ✅ Already done |
 | `components/group/GroupSettingsModal.tsx` | Use Alert component | Pending |
 
 ---
@@ -219,7 +219,7 @@ The codebase has a well-designed `Typography` component with variants:
 ### P2 - Medium Priority
 8. ~~Modal padding standardization~~ ✅ Done - All primary modals use standard padding
 9. Typography component adoption
-10. Hardcoded strings - use translations
+10. ~~Hardcoded strings - use translations~~ ✅ Done
 
 ### P3 - Low Priority (Future)
 11. Toast integration (currently unused)
