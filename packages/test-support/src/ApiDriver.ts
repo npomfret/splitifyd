@@ -78,6 +78,7 @@ import {
     type UpdatePolicyResponse,
     type UpdateSettlementRequest,
     type UpdateTenantBrandingRequest,
+    type UpdateUserProfileAdminRequest,
     type UpdateUserProfileRequest,
     type UpdateUserRoleRequest,
     type UpdateUserStatusRequest,
@@ -569,6 +570,13 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
      */
     async updateUserRole(uid: UserId, updates: UpdateUserRoleRequest, token: AuthToken): Promise<void> {
         await this.apiRequest(`/admin/users/${uid}/role`, 'PUT', updates, token);
+    }
+
+    /**
+     * Update user profile (displayName, email) - admin-only
+     */
+    async updateUserProfileAdmin(uid: UserId, updates: UpdateUserProfileAdminRequest, token: AuthToken): Promise<void> {
+        await this.apiRequest(`/admin/users/${uid}/profile`, 'PUT', updates, token);
     }
 
     private async apiRequest(

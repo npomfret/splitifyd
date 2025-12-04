@@ -72,6 +72,7 @@ import type {
     UpdateSettlementRequest,
     UpdateTenantBrandingRequest,
     UpdateUserProfileRequest,
+    UpdateUserProfileAdminRequest,
     UpdateUserRoleRequest,
     UpdateUserStatusRequest,
     UploadTenantImageResponse,
@@ -239,6 +240,12 @@ export interface AdminAPI<AuthToken> {
      * Requires: system_admin role
      */
     updateUserRole(uid: UserId, updates: UpdateUserRoleRequest, token?: AuthToken): Promise<void>;
+
+    /**
+     * Update user profile (displayName, email)
+     * Requires: system_admin role
+     */
+    updateUserProfileAdmin(uid: UserId, updates: UpdateUserProfileAdminRequest, token?: AuthToken): Promise<void>;
 
     // ===== USER/TENANT BROWSING (system_user or system_admin role) =====
 

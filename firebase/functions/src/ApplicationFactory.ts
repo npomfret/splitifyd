@@ -456,6 +456,7 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
         // User admin (system admin)
         updateUserAdmin: userAdminHandlers.updateUser,
         updateUserRoleAdmin: userAdminHandlers.updateUserRole,
+        updateUserProfileAdmin: userAdminHandlers.updateUserProfile,
         getUserAuth: userAdminHandlers.getUserAuth,
         getUserFirestore: userAdminHandlers.getUserFirestore,
 

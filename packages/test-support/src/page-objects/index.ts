@@ -1,6 +1,7 @@
 export { AdminDiagnosticsPage } from './AdminDiagnosticsPage';
 export { AdminTenantConfigPage } from './AdminTenantConfigPage';
 export { AdminTenantsPage } from './AdminTenantsPage';
+export { AdminUsersPage } from './AdminUsersPage';
 export { BasePage } from './BasePage';
 export { CreateGroupModalPage } from './CreateGroupModalPage';
 export { DashboardPage } from './DashboardPage';
@@ -22,3 +23,4 @@ export { ShareGroupModalPage } from './ShareGroupModalPage';
 export { TenantBrandingPage } from './TenantBrandingPage';
 export { TenantEditorModalPage } from './TenantEditorModalPage';
 export { ThemePage } from './ThemePage';
+export { UserEditorModalPage } from './UserEditorModalPage';

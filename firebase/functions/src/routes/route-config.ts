@@ -601,6 +601,13 @@ const routeDefinitions: RouteDefinition[] = [
         category: 'admin',
         middleware: ['authenticateAdmin'],
     },
+    {
+        method: 'PUT',
+        path: '/admin/users/:userId/profile',
+        handlerName: 'updateUserProfileAdmin',
+        category: 'admin',
+        middleware: ['authenticateAdmin'],
+    },
 
     // === Tenant Settings (Tenant Admin Only) ===
     {

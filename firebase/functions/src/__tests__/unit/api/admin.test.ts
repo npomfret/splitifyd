@@ -1,4 +1,4 @@
-import { SystemUserRoles, toTenantAccentColor, toTenantAppName, toTenantDomainName, toTenantLogoUrl, toTenantPrimaryColor, toTenantSecondaryColor, toUserId } from '@billsplit-wl/shared';
+import { SystemUserRoles, toDisplayName, toEmail, toTenantAccentColor, toTenantAppName, toTenantDomainName, toTenantLogoUrl, toTenantPrimaryColor, toTenantSecondaryColor, toUserId } from '@billsplit-wl/shared';
 import type { UserId } from '@billsplit-wl/shared';
 import { AdminTenantRequestBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -907,6 +907,92 @@ describe('Admin Tests', () => {
             it('should reject non-existent user', async () => {
                 await expect(
                     appDriver.getUserFirestore(toUserId('nonexistent-user'), adminUser),
+                )
+                    .rejects
+                    .toThrow();
+            });
+        });
+
+        describe('PUT /api/admin/users/:uid/profile - updateUserProfileAdmin', () => {
+            it('should update user displayName', async () => {
+                // Get original user data
+                const originalAuth = await appDriver.getUserAuth(regularUser, adminUser);
+                const originalDisplayName = originalAuth.displayName;
+
+                // Update displayName
+                const newDisplayName = toDisplayName('Updated Test Name');
+                await appDriver.updateUserProfileAdmin(regularUser, { displayName: newDisplayName }, adminUser);
+
+                // Verify the change
+                const updatedAuth = await appDriver.getUserAuth(regularUser, adminUser);
+                expect(updatedAuth.displayName).toBe(newDisplayName);
+                expect(updatedAuth.displayName).not.toBe(originalDisplayName);
+            });
+
+            it('should update user email', async () => {
+                // Get original user data
+                const originalAuth = await appDriver.getUserAuth(regularUser, adminUser);
+                const originalEmail = originalAuth.email;
+
+                // Update email
+                const newEmail = toEmail('updated-test-email@example.com');
+                await appDriver.updateUserProfileAdmin(regularUser, { email: newEmail }, adminUser);
+
+                // Verify the change
+                const updatedAuth = await appDriver.getUserAuth(regularUser, adminUser);
+                expect(updatedAuth.email).toBe(newEmail);
+                expect(updatedAuth.email).not.toBe(originalEmail);
+            });
+
+            it('should update both displayName and email', async () => {
+                const newDisplayName = toDisplayName('Both Updated Name');
+                const newEmail = toEmail('both-updated@example.com');
+
+                await appDriver.updateUserProfileAdmin(regularUser, {
+                    displayName: newDisplayName,
+                    email: newEmail,
+                }, adminUser);
+
+                const updatedAuth = await appDriver.getUserAuth(regularUser, adminUser);
+                expect(updatedAuth.displayName).toBe(newDisplayName);
+                expect(updatedAuth.email).toBe(newEmail);
+            });
+
+            it('should reject when no fields provided', async () => {
+                await expect(
+                    appDriver.updateUserProfileAdmin(regularUser, {}, adminUser),
+                )
+                    .rejects
+                    .toThrow();
+            });
+
+            it('should reject invalid displayName (empty string)', async () => {
+                await expect(
+                    appDriver.updateUserProfileAdmin(regularUser, { displayName: toDisplayName('') }, adminUser),
+                )
+                    .rejects
+                    .toThrow();
+            });
+
+            it('should reject invalid email (no @)', async () => {
+                await expect(
+                    appDriver.updateUserProfileAdmin(regularUser, { email: toEmail('invalid-email') }, adminUser),
+                )
+                    .rejects
+                    .toThrow();
+            });
+
+            it('should reject non-existent user', async () => {
+                await expect(
+                    appDriver.updateUserProfileAdmin(toUserId('nonexistent-user'), { displayName: toDisplayName('Test') }, adminUser),
+                )
+                    .rejects
+                    .toThrow();
+            });
+
+            it('should reject invalid UID', async () => {
+                await expect(
+                    appDriver.updateUserProfileAdmin(toUserId(''), { displayName: toDisplayName('Test') }, adminUser),
                 )
                     .rejects
                     .toThrow();

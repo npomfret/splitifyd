@@ -80,6 +80,7 @@ import {
     UpdatePolicyResponse,
     UpdateSettlementRequest,
     UpdateTenantBrandingRequest,
+    UpdateUserProfileAdminRequest,
     UpdateUserProfileRequest,
     UpdateUserRoleRequest,
     UpdateUserStatusRequest,
@@ -1033,6 +1034,12 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
     async updateUserRole(uid: UserId, updates: UpdateUserRoleRequest, token?: AuthToken): Promise<void> {
         const req = createStubRequest(token || '', updates, { userId: uid });
         const res = await this.dispatchByHandler('updateUserRoleAdmin', req);
+        this.throwIfError(res);
+    }
+
+    async updateUserProfileAdmin(uid: UserId, updates: UpdateUserProfileAdminRequest, token?: AuthToken): Promise<void> {
+        const req = createStubRequest(token || '', updates, { userId: uid });
+        const res = await this.dispatchByHandler('updateUserProfileAdmin', req);
         this.throwIfError(res);
     }
 

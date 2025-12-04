@@ -250,4 +250,79 @@ export class UserAdminHandlers {
             throw Errors.serviceError(ErrorDetail.UPDATE_FAILED);
         }
     };
+
+    /**
+     * Update user profile (displayName, email) in Firebase Auth
+     * PUT /admin/users/:userId/profile
+     */
+    updateUserProfile = async (req: Request, res: Response): Promise<void> => {
+        const userId = validateUserIdParam(req.params);
+        const { displayName, email } = req.body;
+
+        // Validate at least one field is provided
+        if (displayName === undefined && email === undefined) {
+            throw Errors.validationError('body', ErrorDetail.MISSING_FIELD);
+        }
+
+        // Prevent unwanted fields
+        const allowedFields = ['displayName', 'email'];
+        const providedFields = Object.keys(req.body);
+        const invalidFields = providedFields.filter(field => !allowedFields.includes(field));
+        if (invalidFields.length > 0) {
+            throw Errors.invalidRequest('INVALID_FIELDS');
+        }
+
+        // Validate displayName if provided
+        if (displayName !== undefined && (typeof displayName !== 'string' || displayName.trim().length === 0)) {
+            throw Errors.validationError('displayName', ErrorDetail.MISSING_FIELD);
+        }
+
+        // Validate email if provided
+        if (email !== undefined && (typeof email !== 'string' || !email.includes('@'))) {
+            throw Errors.validationError('email', ErrorDetail.INVALID_EMAIL);
+        }
+
+        const requestingUser = (req as any).user;
+
+        try {
+            // Check if user exists
+            const existingUser = await this.authService.getUser(userId);
+            if (!existingUser) {
+                throw Errors.notFound('User', ErrorDetail.USER_NOT_FOUND);
+            }
+
+            // Build update object
+            const updates: { displayName?: string; email?: string } = {};
+            if (displayName !== undefined) {
+                updates.displayName = displayName.trim();
+            }
+            if (email !== undefined) {
+                updates.email = email.trim().toLowerCase();
+            }
+
+            // Update Firebase Auth user
+            await this.authService.updateUser(userId, updates);
+
+            // Log the action for audit trail
+            logger.info('Admin updated user profile', {
+                actorUid: requestingUser?.uid,
+                targetUid: userId,
+                updatedFields: Object.keys(updates),
+            });
+
+            res.status(HTTP_STATUS.NO_CONTENT).send();
+        } catch (error) {
+            // Re-throw ApiError as-is
+            if (error instanceof ApiError) {
+                throw error;
+            }
+
+            logger.error('Failed to update user profile', error as Error, {
+                actorUid: requestingUser?.uid,
+                targetUid: userId,
+            });
+
+            throw Errors.serviceError(ErrorDetail.UPDATE_FAILED);
+        }
+    };
 }

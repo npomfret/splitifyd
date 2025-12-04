@@ -1830,3 +1830,12 @@ export interface UpdateUserStatusRequest {
 export interface UpdateUserRoleRequest {
     role: SystemUserRole | null;
 }
+
+/**
+ * Update user profile request (admin)
+ * Used for PUT /admin/users/:uid/profile endpoint (system_admin only)
+ */
+export interface UpdateUserProfileAdminRequest {
+    displayName?: DisplayName;
+    email?: Email;
+}

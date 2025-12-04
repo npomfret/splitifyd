@@ -75,6 +75,7 @@ import type {
     UpdatePolicyRequest,
     UpdatePolicyResponse,
     UpdateTenantBrandingRequest,
+    UpdateUserProfileAdminRequest,
     UpdateUserProfileRequest,
     UpdateUserRoleRequest,
     UpdateUserStatusRequest,
@@ -1044,6 +1045,19 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
     async updateUserRole(uid: UserId, updates: UpdateUserRoleRequest): Promise<void> {
         await this.request({
             endpoint: '/admin/users/:uid/role',
+            method: 'PUT',
+            params: { uid },
+            body: updates,
+        });
+    }
+
+    /**
+     * Update user profile (displayName, email)
+     * Admin-only endpoint
+     */
+    async updateUserProfileAdmin(uid: UserId, updates: UpdateUserProfileAdminRequest): Promise<void> {
+        await this.request({
+            endpoint: '/admin/users/:uid/profile',
             method: 'PUT',
             params: { uid },
             body: updates,
