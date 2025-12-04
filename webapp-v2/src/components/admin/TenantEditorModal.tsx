@@ -1,8 +1,9 @@
 import { apiClient } from '@/app/apiClient';
+import { ImagePicker } from '@/components/admin/ImagePicker';
 import { Alert, Button, ImageUploadField, Input, Modal } from '@/components/ui';
 import { logError } from '@/utils/browser-logger';
 import type { AdminUpsertTenantRequest, BrandingTokens, TenantBranding } from '@billsplit-wl/shared';
-import { useEffect, useState } from 'preact/hooks';
+import { useCallback, useEffect, useState } from 'preact/hooks';
 
 type CreationMode = 'empty' | 'copy';
 
@@ -861,6 +862,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
     const [successMessage, setSuccessMessage] = useState('');
     const [isPublishing, setIsPublishing] = useState(false);
     const [newDomain, setNewDomain] = useState('');
+    const [imagePickerOpen, setImagePickerOpen] = useState<'logo' | 'favicon' | null>(null);
 
     // For "Copy from existing tenant" functionality
     const [creationMode, setCreationMode] = useState<CreationMode>('empty');
@@ -1248,7 +1250,18 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
 
     const update = (partial: Partial<TenantData>) => setFormData({ ...formData, ...partial });
 
+    const handleLogoFromLibrary = useCallback((url: string) => {
+        setFormData((prev) => ({ ...prev, logoUrl: url }));
+        setSuccessMessage('Logo selected from library');
+    }, []);
+
+    const handleFaviconFromLibrary = useCallback((url: string) => {
+        setFormData((prev) => ({ ...prev, faviconUrl: url }));
+        setSuccessMessage('Favicon selected from library');
+    }, []);
+
     return (
+        <>
         <Modal open={open} onClose={handleCancel} size='lg' className='max-h-[90vh] flex flex-col' data-testid='tenant-editor-modal'>
             <div class='flex flex-col min-h-0 h-full'>
                 {/* Header */}
@@ -1436,6 +1449,8 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                     disabled={isSaving || !formData.tenantId}
                                     helperText={!formData.tenantId ? 'Save tenant first' : 'PNG, JPG, SVG'}
                                     allowUrlInput={true}
+                                    allowLibrary={!!formData.tenantId}
+                                    onOpenLibrary={() => setImagePickerOpen('logo')}
                                     data-testid='logo-upload-field'
                                 />
                                 <ImageUploadField
@@ -1448,6 +1463,8 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                     disabled={isSaving || !formData.tenantId}
                                     helperText={!formData.tenantId ? 'Save tenant first' : 'ICO, PNG, SVG'}
                                     allowUrlInput={true}
+                                    allowLibrary={!!formData.tenantId}
+                                    onOpenLibrary={() => setImagePickerOpen('favicon')}
                                     data-testid='favicon-upload-field'
                                 />
                             </div>
@@ -2807,5 +2824,18 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                 </div>
             </div>
         </Modal>
+
+        {/* Image Picker Modal */}
+        {formData.tenantId && (
+            <ImagePicker
+                isOpen={imagePickerOpen !== null}
+                onClose={() => setImagePickerOpen(null)}
+                onSelect={imagePickerOpen === 'logo' ? handleLogoFromLibrary : handleFaviconFromLibrary}
+                tenantId={formData.tenantId}
+                currentImageUrl={imagePickerOpen === 'logo' ? formData.logoUrl : formData.faviconUrl}
+                title={imagePickerOpen === 'logo' ? 'Select Logo from Library' : 'Select Favicon from Library'}
+            />
+        )}
+    </>
     );
 }

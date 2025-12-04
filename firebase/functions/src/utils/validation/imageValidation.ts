@@ -151,3 +151,13 @@ export function validateFaviconImage(buffer: Buffer, contentType: string | undef
         allowedTypes: ['image/x-icon', 'image/vnd.microsoft.icon', 'image/png', 'image/svg+xml'],
     });
 }
+
+/**
+ * Validates a general image for the tenant image library.
+ */
+export function validateImage(buffer: Buffer, contentType: string | undefined): void {
+    validateImageUpload(buffer, contentType, {
+        maxSizeBytes: 5 * 1024 * 1024, // 5MB
+        allowedTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/svg+xml', 'image/webp'],
+    });
+}

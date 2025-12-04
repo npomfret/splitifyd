@@ -26,6 +26,7 @@ import { CloudThemeArtifactStorage } from './storage/CloudThemeArtifactStorage';
 import { createTenantAssetStorage, type TenantAssetStorage } from './storage/TenantAssetStorage';
 import { type ThemeArtifactStorage } from './storage/ThemeArtifactStorage';
 import { TenantAdminService } from './tenant/TenantAdminService';
+import { type ITenantImageLibraryService, TenantImageLibraryService } from './tenant/TenantImageLibraryService';
 import { TenantRegistryService } from './tenant/TenantRegistryService';
 import { ThemeArtifactService } from './tenant/ThemeArtifactService';
 import { GroupTransactionManager } from './transactions/GroupTransactionManager';
@@ -58,6 +59,7 @@ export class ComponentBuilder {
     private mergeService?: MergeService;
     private mergeTaskService?: MergeTaskService;
     private mergeHandlers?: MergeHandlers;
+    private tenantImageLibraryService?: ITenantImageLibraryService;
     private readonly firestoreReader: IFirestoreReader;
     private readonly firestoreWriter: IFirestoreWriter;
 
@@ -350,6 +352,17 @@ export class ComponentBuilder {
             );
         }
         return this.mergeHandlers;
+    }
+
+    buildTenantImageLibraryService(): ITenantImageLibraryService {
+        if (!this.tenantImageLibraryService) {
+            this.tenantImageLibraryService = new TenantImageLibraryService(
+                this.buildFirestoreReader(),
+                this.buildFirestoreWriter(),
+                this.buildTenantAssetStorage(),
+            );
+        }
+        return this.tenantImageLibraryService;
     }
 }
 

@@ -156,7 +156,7 @@ const BrandingShadowsSchema = z.object({
 });
 
 const BrandingAssetsSchema = z.object({
-    logoUrl: z.string().min(1), // Required - can be absolute URL, relative path, or data URL. Used as favicon if faviconUrl not provided
+    logoUrl: z.string().min(1).optional(), // Optional - can be absolute URL, relative path, or data URL. Used as favicon if faviconUrl not provided
     wordmarkUrl: z.string().min(1).optional(),
     faviconUrl: z.string().min(1).optional(), // Optional - defaults to logoUrl if not provided
     heroIllustrationUrl: z.string().min(1).optional(),

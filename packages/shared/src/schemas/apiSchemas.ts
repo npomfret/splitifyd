@@ -69,7 +69,7 @@ const BrandingMarketingFlagsSchema = z.object({
 
 const BrandingConfigSchema = z.object({
     appName: z.string().min(1).transform(toTenantAppName),
-    logoUrl: z.string().min(1).transform(toTenantLogoUrl),
+    logoUrl: z.string().min(1).transform(toTenantLogoUrl).optional(), // Optional - uses default icon when not set
     faviconUrl: z.string().min(1).transform(toTenantFaviconUrl).optional(), // Optional - falls back to logoUrl
     primaryColor: z.string().min(1).transform(toTenantPrimaryColor),
     secondaryColor: z.string().min(1).transform(toTenantSecondaryColor),

@@ -24,6 +24,7 @@ import { PolicyHandlers } from './policies/PolicyHandlers';
 import { UserHandlers as PolicyUserHandlers } from './policies/UserHandlers';
 import { SettlementHandlers } from './settlements/SettlementHandlers';
 import { TenantAdminHandlers } from './tenant/TenantAdminHandlers';
+import { TenantImageLibraryHandlers } from './tenant/TenantImageLibraryHandlers';
 import { ThemeHandlers } from './theme/ThemeHandlers';
 import { UserHandlers } from './user/UserHandlers';
 
@@ -65,6 +66,9 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
         componentBuilder.buildTenantAdminService(),
         componentBuilder.buildTenantAssetStorage(),
         componentBuilder.buildFirestoreReader(),
+    );
+    const tenantImageLibraryHandlers = new TenantImageLibraryHandlers(
+        componentBuilder.buildTenantImageLibraryService(),
     );
     const themeHandlers = new ThemeHandlers(componentBuilder.buildFirestoreReader(), tenantRegistryService);
 
@@ -498,6 +502,12 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
         adminUpsertTenant: tenantAdminHandlers.upsertTenant,
         publishTenantTheme: tenantAdminHandlers.publishTenantTheme,
         uploadTenantImage: tenantAdminHandlers.uploadTenantImage,
+
+        // Tenant image library handlers
+        listTenantImages: tenantImageLibraryHandlers.listImages,
+        uploadTenantLibraryImage: tenantImageLibraryHandlers.uploadImage,
+        renameTenantImage: tenantImageLibraryHandlers.renameImage,
+        deleteTenantImage: tenantImageLibraryHandlers.deleteImage,
 
         // Theme delivery
         serveThemeCss: themeHandlers.serveThemeCss,

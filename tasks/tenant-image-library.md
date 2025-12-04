@@ -1,5 +1,9 @@
 # Tenant Image Library
 
+## Status: COMPLETED ✓
+
+All implementation steps have been completed. The feature is fully functional.
+
 ## Overview
 
 Add an image library feature that allows tenant admins to upload, name, and manage image assets. These images can then be selected when configuring the tenant's logo and favicon.
@@ -78,13 +82,36 @@ The existing `logo` and `favicon` asset types would continue to work, but would 
 
 ## Implementation Steps
 
-1. Add Firestore collection schema and types
-2. Create backend handlers for image library CRUD
-3. Update TenantAssetStorage for library storage paths
-4. Build TenantImageLibrary component
-5. Build ImagePicker component
-6. Update TenantEditorModal to use ImagePicker
-7. Add tests
+1. ✓ Add Firestore collection schema and types
+2. ✓ Create backend handlers for image library CRUD
+3. ✓ Update TenantAssetStorage for library storage paths
+4. ✓ Add API routes and client methods
+5. ✓ Build TenantImageLibrary component
+6. ✓ Build ImagePicker component
+7. ✓ Update TenantEditorModal to use ImagePicker
+8. ✓ Add tests for image library feature
+
+## Files Created/Modified
+
+### Backend
+- `packages/shared/src/shared-types.ts` - Added TenantImageDTO, TenantImageId, and related types
+- `firebase/functions/src/schemas/tenant.ts` - Added TenantImageDocumentSchema
+- `firebase/functions/src/services/tenant/TenantImageLibraryService.ts` - NEW: Service for image CRUD
+- `firebase/functions/src/tenant/TenantImageLibraryHandlers.ts` - NEW: HTTP handlers
+- `firebase/functions/src/routes/route-config.ts` - Added image library routes
+- `firebase/functions/src/errors/ErrorCode.ts` - Added IMAGE_NOT_FOUND and IMAGE_LIBRARY_FULL
+- `firebase/functions/src/services/storage/TenantAssetStorage.ts` - Added library storage methods
+- `packages/test-support/src/ApiDriver.ts` - Added test driver methods
+- `firebase/functions/src/__tests__/unit/AppDriver.ts` - Added unit test driver methods
+- `firebase/functions/src/__tests__/unit/api/tenant-image-library.test.ts` - NEW: API tests
+
+### Frontend
+- `webapp-v2/src/app/apiClient.ts` - Added tenant image library client methods
+- `webapp-v2/src/app/stores/tenant-image-library-store.ts` - NEW: Preact signals store
+- `webapp-v2/src/components/admin/TenantImageLibrary.tsx` - NEW: Gallery component
+- `webapp-v2/src/components/admin/ImagePicker.tsx` - NEW: Modal picker component
+- `webapp-v2/src/components/ui/ImageUploadField.tsx` - Added library support props
+- `webapp-v2/src/components/admin/TenantEditorModal.tsx` - Integrated ImagePicker
 
 ## Authorization
 

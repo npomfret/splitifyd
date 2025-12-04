@@ -271,7 +271,7 @@ export interface BrandingMarketingFlags {
  */
 export interface BrandingConfig {
     appName: TenantAppName;
-    logoUrl: TenantLogoUrl;
+    logoUrl?: TenantLogoUrl; // Optional - uses default icon when not set
     faviconUrl?: TenantFaviconUrl; // Optional - falls back to logoUrl if not provided
     primaryColor: TenantPrimaryColor;
     secondaryColor: TenantSecondaryColor;
@@ -1754,6 +1754,65 @@ export interface PublishTenantThemeResponse {
  */
 export interface PublishTenantThemeRequest {
     tenantId: string;
+}
+
+// ========================================================================
+// Tenant Image Library Types
+// ========================================================================
+
+/**
+ * Branded type for tenant image IDs
+ */
+export type TenantImageId = string & { readonly __brand: 'TenantImageId' };
+
+export function toTenantImageId(id: string): TenantImageId {
+    return id as TenantImageId;
+}
+
+/**
+ * Tenant image DTO
+ * Represents an image in a tenant's image library
+ */
+export interface TenantImageDTO {
+    id: TenantImageId;
+    name: string;
+    url: string;
+    contentType: string;
+    sizeBytes: number;
+    uploadedAt: ISOString;
+    uploadedBy: UserId;
+}
+
+/**
+ * Upload tenant library image request
+ * Used for POST /admin/tenants/:tenantId/images endpoint
+ */
+export interface UploadTenantLibraryImageRequest {
+    name: string;
+}
+
+/**
+ * Upload tenant library image response
+ * Returned by POST /admin/tenants/:tenantId/images endpoint
+ */
+export interface UploadTenantLibraryImageResponse {
+    image: TenantImageDTO;
+}
+
+/**
+ * List tenant library images response
+ * Returned by GET /admin/tenants/:tenantId/images endpoint
+ */
+export interface ListTenantImagesResponse {
+    images: TenantImageDTO[];
+}
+
+/**
+ * Rename tenant library image request
+ * Used for PATCH /admin/tenants/:tenantId/images/:imageId endpoint
+ */
+export interface RenameTenantImageRequest {
+    name: string;
 }
 
 /**

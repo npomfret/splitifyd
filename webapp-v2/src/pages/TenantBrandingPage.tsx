@@ -58,8 +58,8 @@ export function TenantBrandingPage() {
 
                 // Populate form with current values
                 setAppName(settings.config.branding.appName);
-                setLogoUrl(settings.config.branding.logoUrl);
-                setFaviconUrl(settings.config.branding.faviconUrl ?? settings.config.branding.logoUrl);
+                setLogoUrl(settings.config.branding.logoUrl ?? '');
+                setFaviconUrl(settings.config.branding.faviconUrl ?? settings.config.branding.logoUrl ?? '');
                 setPrimaryColor(settings.config.branding.primaryColor);
                 setSecondaryColor(settings.config.branding.secondaryColor);
                 setShowLandingPage(Boolean(settings.config.branding.marketingFlags?.showLandingPage ?? true));

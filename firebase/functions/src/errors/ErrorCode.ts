@@ -67,6 +67,7 @@ export const ErrorDetail = {
     SHARE_LINK_NOT_FOUND: 'SHARE_LINK_NOT_FOUND',
     BALANCE_NOT_FOUND: 'BALANCE_NOT_FOUND',
     MEMBER_NOT_FOUND: 'MEMBER_NOT_FOUND',
+    IMAGE_NOT_FOUND: 'IMAGE_NOT_FOUND',
 
     // Conflict details (for ALREADY_EXISTS)
     ALREADY_MEMBER: 'ALREADY_MEMBER',
@@ -106,6 +107,7 @@ export const ErrorDetail = {
 
     // Capacity limits
     GROUP_AT_CAPACITY: 'GROUP_AT_CAPACITY',
+    IMAGE_LIBRARY_FULL: 'IMAGE_LIBRARY_FULL',
 
     // Service error details
     DATABASE_ERROR: 'DATABASE_ERROR',

@@ -47,6 +47,7 @@ import {
     type ListGroupsOptions,
     ListGroupsResponse,
     type ListPoliciesResponse,
+    type ListTenantImagesResponse,
     type MemberRole,
     MergeJobResponse,
     PasswordChangeRequest,
@@ -60,11 +61,13 @@ import {
     type PublishTenantThemeRequest,
     type PublishTenantThemeResponse,
     RegisterResponse,
+    type RenameTenantImageRequest,
     type SettlementDTO,
     SettlementId,
     type SettlementWithMembers,
     ShareLinkResponse,
     type TenantDomainsResponse,
+    type TenantImageId,
     type TenantSettingsResponse,
     type TestAPI,
     toDisplayName,
@@ -78,6 +81,7 @@ import {
     type UpdateUserProfileRequest,
     type UpdateUserRoleRequest,
     type UpdateUserStatusRequest,
+    type UploadTenantLibraryImageResponse,
     UserPolicyStatusResponse,
     UserProfileResponse,
     UserRegistration,
@@ -818,6 +822,52 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
 
     async getEnvironmentDiagnostics(token: AuthToken): Promise<EnvironmentDiagnosticsResponse> {
         return await this.apiRequest('/env', 'GET', null, token) as EnvironmentDiagnosticsResponse;
+    }
+
+    // ===== ADMIN API: TENANT IMAGE LIBRARY =====
+
+    async listTenantImages(tenantId: string, token?: AuthToken): Promise<ListTenantImagesResponse> {
+        return await this.apiRequest(`/admin/tenants/${tenantId}/images`, 'GET', null, token) as ListTenantImagesResponse;
+    }
+
+    async uploadTenantLibraryImage(tenantId: string, name: string, file: File | Buffer, contentType: string, token?: AuthToken): Promise<UploadTenantLibraryImageResponse> {
+        const url = `${this.config.baseUrl}/admin/tenants/${tenantId}/images?name=${encodeURIComponent(name)}`;
+        const body = Buffer.isBuffer(file) ? file : Buffer.from(await file.arrayBuffer());
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': contentType,
+                Accept: 'application/json',
+                Host: 'localhost',
+                ...(token && { Authorization: `Bearer ${token}` }),
+            },
+            body: body as unknown as BodyInit,
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            let parsedError: unknown = errorText;
+            try {
+                parsedError = JSON.parse(errorText);
+            } catch {
+                // keep as text
+            }
+            const error = new Error(`API request to /admin/tenants/${tenantId}/images failed with status ${response.status}`);
+            (error as any).status = response.status;
+            (error as any).response = parsedError;
+            throw error;
+        }
+
+        return await response.json() as UploadTenantLibraryImageResponse;
+    }
+
+    async renameTenantImage(tenantId: string, imageId: TenantImageId, request: RenameTenantImageRequest, token?: AuthToken): Promise<void> {
+        await this.apiRequest(`/admin/tenants/${tenantId}/images/${imageId}`, 'PATCH', request, token);
+    }
+
+    async deleteTenantImage(tenantId: string, imageId: TenantImageId, token?: AuthToken): Promise<void> {
+        await this.apiRequest(`/admin/tenants/${tenantId}/images/${imageId}`, 'DELETE', null, token);
     }
 
     async fetchThemeCss(options?: { version?: string; }): Promise<{ status: number; css: string; headers: Headers; }> {

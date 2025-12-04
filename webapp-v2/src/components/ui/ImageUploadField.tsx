@@ -11,13 +11,16 @@ interface ImageUploadFieldProps {
     currentImageUrl?: string;
     onFileSelect: (file: File) => void;
     onClear?: () => void;
+    onUrlSelect?: (url: string) => void;
     error?: string;
     disabled?: boolean;
     required?: boolean;
     helperText?: string;
     'data-testid'?: string;
     className?: string;
-    allowUrlInput?: boolean; // NEW: Allow entering URL to download image
+    allowUrlInput?: boolean; // Allow entering URL to download image
+    allowLibrary?: boolean; // Allow picking from tenant image library
+    onOpenLibrary?: () => void; // Callback to open library picker
 }
 
 export function ImageUploadField({
@@ -27,6 +30,7 @@ export function ImageUploadField({
     currentImageUrl,
     onFileSelect,
     onClear,
+    onUrlSelect,
     error,
     disabled = false,
     required = false,
@@ -34,6 +38,8 @@ export function ImageUploadField({
     'data-testid': dataTestId,
     className = '',
     allowUrlInput = false,
+    allowLibrary = false,
+    onOpenLibrary,
 }: ImageUploadFieldProps) {
     const { t } = useTranslation();
     const inputRef = useRef<HTMLInputElement>(null);
@@ -219,7 +225,7 @@ export function ImageUploadField({
 
             {/* Upload Button or URL Input */}
             {!preview && !showUrlInput && (
-                <div className='flex gap-2'>
+                <div className='flex flex-wrap gap-2'>
                     <Button
                         type='button'
                         variant='secondary'
@@ -229,6 +235,17 @@ export function ImageUploadField({
                     >
                         {t('common.chooseFile', 'Choose File')}
                     </Button>
+                    {allowLibrary && onOpenLibrary && (
+                        <Button
+                            type='button'
+                            variant='secondary'
+                            onClick={onOpenLibrary}
+                            disabled={disabled}
+                            className='w-full sm:w-auto'
+                        >
+                            From Library
+                        </Button>
+                    )}
                     {allowUrlInput && (
                         <Button
                             type='button'

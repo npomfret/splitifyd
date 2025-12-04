@@ -13,7 +13,7 @@
  * - Real-time subscription management
  */
 
-import type { ActivityFeedItem, CommentId, ExpenseId, ISOString, MemberStatus, TenantDomainName, TenantId, UserId } from '@billsplit-wl/shared';
+import type { ActivityFeedItem, CommentId, ExpenseId, ISOString, MemberStatus, TenantDomainName, TenantId, TenantImageDTO, TenantImageId, UserId } from '@billsplit-wl/shared';
 import type { IDocumentReference, IDocumentSnapshot, IQuerySnapshot, ITransaction } from '../../firestore-wrapper';
 import type { FirestoreAuditMetadata } from '../../schemas/common';
 
@@ -478,4 +478,23 @@ export interface IFirestoreReader {
         hasMore: boolean;
         nextCursor?: string;
     }>;
+
+    // ========================================================================
+    // Tenant Image Library Operations
+    // ========================================================================
+
+    /**
+     * Get all images in a tenant's image library
+     * @param tenantId - The tenant ID
+     * @returns Array of tenant image DTOs
+     */
+    getTenantImages(tenantId: TenantId): Promise<TenantImageDTO[]>;
+
+    /**
+     * Get a specific image from a tenant's library
+     * @param tenantId - The tenant ID
+     * @param imageId - The image ID
+     * @returns TenantImageDTO or null if not found
+     */
+    getTenantImage(tenantId: TenantId, imageId: TenantImageId): Promise<TenantImageDTO | null>;
 }

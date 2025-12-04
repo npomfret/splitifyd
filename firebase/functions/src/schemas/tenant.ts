@@ -1,5 +1,6 @@
 import {
     TenantBrandingSchema,
+    toISOString,
     toShowLandingPageFlag,
     toShowMarketingContentFlag,
     toShowPricingPageFlag,
@@ -10,12 +11,14 @@ import {
     toTenantDomainName,
     toTenantFaviconUrl,
     toTenantId,
+    toTenantImageId,
     toTenantLogoUrl,
     toTenantPrimaryColor,
     toTenantSecondaryColor,
     toTenantSurfaceColor,
     toTenantTextColor,
     toTenantThemePaletteName,
+    toUserId,
 } from '@billsplit-wl/shared';
 import { z } from 'zod';
 import { AuditFieldsSchema } from './common';
@@ -40,7 +43,7 @@ const BrandingMarketingFlagsSchema = z.object({
 
 const BrandingSchema = z.object({
     appName: z.string().min(1).transform(toTenantAppName),
-    logoUrl: z.string().min(1).transform(toTenantLogoUrl),
+    logoUrl: z.string().min(1).transform(toTenantLogoUrl).optional(), // Optional - uses default icon when not set
     faviconUrl: z.string().min(1).transform(toTenantFaviconUrl).optional(), // Optional - falls back to logoUrl
     primaryColor: z.string().min(1).transform(toTenantPrimaryColor),
     secondaryColor: z.string().min(1).transform(toTenantSecondaryColor),
@@ -109,3 +112,44 @@ export const UpdateTenantBrandingRequestSchema = z
         showAppNameInHeader: z.boolean().optional(),
     })
     .strict();
+
+// ========================================================================
+// Tenant Image Library Schemas
+// ========================================================================
+
+/**
+ * Tenant image document stored in tenants/{tenantId}/images subcollection
+ */
+export const TenantImageDocumentSchema = z.object({
+    id: z.string().min(1).transform(toTenantImageId),
+    name: z.string().min(1).max(100),
+    url: z.string().url(),
+    contentType: z.string().min(1),
+    sizeBytes: z.number().int().positive(),
+    uploadedAt: z.string().datetime().transform(toISOString),
+    uploadedBy: z.string().min(1).transform(toUserId),
+});
+
+export type TenantImageDocument = z.infer<typeof TenantImageDocumentSchema>;
+
+/**
+ * Request to upload a new image to the library
+ */
+export const UploadTenantLibraryImageRequestSchema = z.object({
+    name: z.string().min(1).max(100).transform((v) => v.trim()),
+});
+
+/**
+ * Request to rename an image in the library
+ */
+export const RenameTenantImageRequestSchema = z.object({
+    name: z.string().min(1).max(100).transform((v) => v.trim()),
+});
+
+/**
+ * Params for tenant image operations
+ */
+export const TenantImageParamsSchema = z.object({
+    tenantId: z.string().min(1).transform(toTenantId),
+    imageId: z.string().min(1).transform(toTenantImageId),
+});

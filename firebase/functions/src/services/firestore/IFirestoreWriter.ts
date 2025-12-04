@@ -14,7 +14,7 @@
  * - Performance monitoring with sampling
  */
 
-import type { BrandingArtifactMetadata, CommentDTO, ISOString, ShareLinkDTO, ShareLinkToken, SystemUserRole, UserId } from '@billsplit-wl/shared';
+import type { BrandingArtifactMetadata, CommentDTO, ISOString, ShareLinkDTO, ShareLinkToken, SystemUserRole, TenantId, TenantImageDTO, TenantImageId, UserId } from '@billsplit-wl/shared';
 import { DisplayName, ExpenseId, GroupId, ShareLinkId } from '@billsplit-wl/shared';
 import type { Email } from '@billsplit-wl/shared';
 import { PolicyId } from '@billsplit-wl/shared';
@@ -441,4 +441,33 @@ export interface IFirestoreWriter {
      * @returns Write result
      */
     markUserAsMerged(userId: import('@billsplit-wl/shared').UserId, mergedIntoUserId: import('@billsplit-wl/shared').UserId): Promise<WriteResult>;
+
+    // ========================================================================
+    // Tenant Image Library Operations
+    // ========================================================================
+
+    /**
+     * Create a new tenant image document
+     * @param tenantId - The tenant ID
+     * @param imageData - The image data to write
+     * @returns Write result
+     */
+    createTenantImage(tenantId: TenantId, imageData: TenantImageDTO): Promise<WriteResult>;
+
+    /**
+     * Update a tenant image document
+     * @param tenantId - The tenant ID
+     * @param imageId - The image ID
+     * @param updates - Partial update fields
+     * @returns Write result
+     */
+    updateTenantImage(tenantId: TenantId, imageId: TenantImageId, updates: Partial<Pick<TenantImageDTO, 'name'>>): Promise<WriteResult>;
+
+    /**
+     * Delete a tenant image document
+     * @param tenantId - The tenant ID
+     * @param imageId - The image ID
+     * @returns Write result
+     */
+    deleteTenantImage(tenantId: TenantId, imageId: TenantImageId): Promise<WriteResult>;
 }

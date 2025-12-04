@@ -10,7 +10,7 @@
  * for migration guidance.
  */
 
-import type { CommentId, TenantConfig, TenantDefaultFlag, TenantDomainName, TenantFullRecord, TenantId } from '@billsplit-wl/shared';
+import type { CommentId, TenantConfig, TenantDefaultFlag, TenantDomainName, TenantFullRecord, TenantId, TenantImageDTO, TenantImageId } from '@billsplit-wl/shared';
 // Note: ParsedGroupMemberDocument no longer exported from schemas after DTO migration
 // FirestoreReader now works directly with GroupMembershipDTO from @billsplit-wl/shared
 import {
@@ -58,6 +58,7 @@ import {
     SettlementDocumentSchema,
     ShareLinkDocumentSchema,
     TenantDocumentSchema,
+    TenantImageDocumentSchema,
     TopLevelGroupMemberSchema,
     type UserDocument,
     UserDocumentSchema,
@@ -1669,4 +1670,53 @@ export class FirestoreReader implements IFirestoreReader {
         });
     }
 
+    // ========================================================================
+    // Tenant Image Library Operations
+    // ========================================================================
+
+    async getTenantImages(tenantId: TenantId): Promise<TenantImageDTO[]> {
+        return measureDb('GET_TENANT_IMAGES', async () => {
+            const snapshot = await this.db
+                .collection(FirestoreCollections.TENANTS)
+                .doc(tenantId)
+                .collection('images')
+                .orderBy('uploadedAt', 'desc')
+                .get();
+
+            const images: TenantImageDTO[] = [];
+            for (const doc of snapshot.docs) {
+                try {
+                    const rawData = { id: doc.id, ...doc.data() };
+                    const validated = TenantImageDocumentSchema.parse(rawData);
+                    images.push(validated);
+                } catch (validationError) {
+                    logger.warn('Skipping invalid tenant image document', { tenantId, docId: doc.id, validationError });
+                }
+            }
+            return images;
+        });
+    }
+
+    async getTenantImage(tenantId: TenantId, imageId: TenantImageId): Promise<TenantImageDTO | null> {
+        return measureDb('GET_TENANT_IMAGE', async () => {
+            const doc = await this.db
+                .collection(FirestoreCollections.TENANTS)
+                .doc(tenantId)
+                .collection('images')
+                .doc(imageId)
+                .get();
+
+            if (!doc.exists) {
+                return null;
+            }
+
+            try {
+                const rawData = { id: doc.id, ...doc.data() };
+                return TenantImageDocumentSchema.parse(rawData);
+            } catch (validationError) {
+                logger.warn('Invalid tenant image document', { tenantId, imageId, validationError });
+                return null;
+            }
+        });
+    }
 }

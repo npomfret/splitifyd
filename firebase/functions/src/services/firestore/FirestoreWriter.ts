@@ -10,7 +10,7 @@
  */
 
 // Import types
-import type { CommentDTO, DisplayName, Email, ShareLinkDTO, ShareLinkToken, UserId } from '@billsplit-wl/shared';
+import type { CommentDTO, DisplayName, Email, ShareLinkDTO, ShareLinkToken, TenantId, TenantImageDTO, TenantImageId, UserId } from '@billsplit-wl/shared';
 import { normalizeDisplayNameForComparison } from '@billsplit-wl/shared';
 // Import schemas for validation
 import { ExpenseId, GroupId, PolicyId, ShareLinkId } from '@billsplit-wl/shared';
@@ -1729,6 +1729,86 @@ export class FirestoreWriter implements IFirestoreWriter {
             } catch (err) {
                 logger.error('Failed to mark user as merged', err, { userId, mergedIntoUserId });
                 throw Errors.serviceError(ErrorDetail.UPDATE_FAILED);
+            }
+        });
+    }
+
+    // ========================================================================
+    // Tenant Image Library Operations
+    // ========================================================================
+
+    async createTenantImage(tenantId: TenantId, imageData: TenantImageDTO): Promise<WriteResult> {
+        return measureDb('FirestoreWriter.createTenantImage', async () => {
+            try {
+                const imageRef = this.db
+                    .collection(FirestoreCollections.TENANTS)
+                    .doc(tenantId)
+                    .collection('images')
+                    .doc(imageData.id);
+
+                await imageRef.set({
+                    name: imageData.name,
+                    url: imageData.url,
+                    contentType: imageData.contentType,
+                    sizeBytes: imageData.sizeBytes,
+                    uploadedAt: imageData.uploadedAt,
+                    uploadedBy: imageData.uploadedBy,
+                });
+
+                logger.info('create-tenant-image-complete', { tenantId, imageId: imageData.id });
+                return {
+                    id: imageData.id,
+                    success: true,
+                };
+            } catch (err) {
+                logger.error('Failed to create tenant image', err, { tenantId, imageId: imageData.id });
+                throw Errors.serviceError(ErrorDetail.CREATION_FAILED);
+            }
+        });
+    }
+
+    async updateTenantImage(tenantId: TenantId, imageId: TenantImageId, updates: Partial<Pick<TenantImageDTO, 'name'>>): Promise<WriteResult> {
+        return measureDb('FirestoreWriter.updateTenantImage', async () => {
+            try {
+                const imageRef = this.db
+                    .collection(FirestoreCollections.TENANTS)
+                    .doc(tenantId)
+                    .collection('images')
+                    .doc(imageId);
+
+                await imageRef.update(updates);
+
+                logger.info('update-tenant-image-complete', { tenantId, imageId });
+                return {
+                    id: imageId,
+                    success: true,
+                };
+            } catch (err) {
+                logger.error('Failed to update tenant image', err, { tenantId, imageId });
+                throw Errors.serviceError(ErrorDetail.UPDATE_FAILED);
+            }
+        });
+    }
+
+    async deleteTenantImage(tenantId: TenantId, imageId: TenantImageId): Promise<WriteResult> {
+        return measureDb('FirestoreWriter.deleteTenantImage', async () => {
+            try {
+                const imageRef = this.db
+                    .collection(FirestoreCollections.TENANTS)
+                    .doc(tenantId)
+                    .collection('images')
+                    .doc(imageId);
+
+                await imageRef.delete();
+
+                logger.info('delete-tenant-image-complete', { tenantId, imageId });
+                return {
+                    id: imageId,
+                    success: true,
+                };
+            } catch (err) {
+                logger.error('Failed to delete tenant image', err, { tenantId, imageId });
+                throw Errors.serviceError(ErrorDetail.DELETE_FAILED);
             }
         });
     }

@@ -44,6 +44,7 @@ import type {
     ListGroupsOptions,
     ListGroupsResponse,
     ListPoliciesResponse,
+    ListTenantImagesResponse,
     MemberRole,
     MergeJobResponse,
     PasswordChangeRequest,
@@ -55,12 +56,14 @@ import type {
     PublishTenantThemeRequest,
     PublishTenantThemeResponse,
     RegisterResponse,
+    RenameTenantImageRequest,
     SettlementDTO,
     SettlementId,
     SettlementWithMembers,
     ShareLinkResponse,
     ShareLinkToken,
     TenantDomainsResponse,
+    TenantImageId,
     TenantSettingsResponse,
     UpdateExpenseRequest,
     UpdateGroupRequest,
@@ -72,6 +75,7 @@ import type {
     UpdateUserRoleRequest,
     UpdateUserStatusRequest,
     UploadTenantImageResponse,
+    UploadTenantLibraryImageResponse,
     UserId,
     UserPolicyStatusResponse,
     UserProfileResponse,
@@ -275,6 +279,32 @@ export interface AdminAPI<AuthToken> {
      * Requires: system_admin role
      */
     uploadTenantImage(tenantId: string, assetType: 'logo' | 'favicon', file: File | Buffer, contentType: string, token?: AuthToken): Promise<UploadTenantImageResponse>;
+
+    // ===== TENANT IMAGE LIBRARY (tenant_admin or system_admin role) =====
+
+    /**
+     * List all images in tenant's image library
+     * Requires: tenant_admin or system_admin role
+     */
+    listTenantImages(tenantId: string, token?: AuthToken): Promise<ListTenantImagesResponse>;
+
+    /**
+     * Upload a new image to tenant's image library
+     * Requires: tenant_admin or system_admin role
+     */
+    uploadTenantLibraryImage(tenantId: string, name: string, file: File | Buffer, contentType: string, token?: AuthToken): Promise<UploadTenantLibraryImageResponse>;
+
+    /**
+     * Rename an image in tenant's image library
+     * Requires: tenant_admin or system_admin role
+     */
+    renameTenantImage(tenantId: string, imageId: TenantImageId, request: RenameTenantImageRequest, token?: AuthToken): Promise<void>;
+
+    /**
+     * Delete an image from tenant's image library
+     * Requires: tenant_admin or system_admin role
+     */
+    deleteTenantImage(tenantId: string, imageId: TenantImageId, token?: AuthToken): Promise<void>;
 
     // ===== TENANT SETTINGS (tenant_admin or system_admin role) =====
 

@@ -49,6 +49,7 @@ import type {
     ListGroupsOptions,
     ListGroupsResponse,
     ListPoliciesResponse,
+    ListTenantImagesResponse,
     MemberRole,
     MergeJobResponse,
     PasswordChangeRequest,
@@ -61,11 +62,13 @@ import type {
     PublishTenantThemeRequest,
     PublishTenantThemeResponse,
     RegisterResponse,
+    RenameTenantImageRequest,
     SettlementDTO,
     SettlementWithMembers,
     ShareLinkResponse,
     ShareLinkToken,
     TenantDomainsResponse,
+    TenantImageId,
     TenantSettingsResponse,
     UpdateExpenseRequest,
     UpdateGroupRequest,
@@ -75,6 +78,7 @@ import type {
     UpdateUserProfileRequest,
     UpdateUserRoleRequest,
     UpdateUserStatusRequest,
+    UploadTenantLibraryImageResponse,
     UserId,
     UserPolicyStatusResponse,
     UserProfileResponse,
@@ -1344,6 +1348,68 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
             endpoint: '/settings/tenant/domains',
             method: 'POST',
             body: request,
+        });
+    }
+
+    // ===== ADMIN API: TENANT IMAGE LIBRARY =====
+
+    async listTenantImages(tenantId: string): Promise<ListTenantImagesResponse> {
+        return this.request({
+            endpoint: '/admin/tenants/:tenantId/images',
+            method: 'GET',
+            params: { tenantId },
+        });
+    }
+
+    async uploadTenantLibraryImage(
+        tenantId: string,
+        name: string,
+        file: File,
+        contentType: string,
+    ): Promise<UploadTenantLibraryImageResponse> {
+        const url = `/api/admin/tenants/${encodeURIComponent(tenantId)}/images?name=${encodeURIComponent(name)}`;
+
+        const headers: Record<string, string> = {
+            'Content-Type': contentType,
+        };
+
+        if (this.authToken) {
+            headers['Authorization'] = `Bearer ${this.authToken}`;
+        }
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers,
+            body: file,
+        });
+
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({ code: 'UNKNOWN_ERROR', message: 'Upload failed' }));
+            throw new ApiError(error.message || 'Upload failed', error.code || 'UPLOAD_ERROR', error, {
+                url,
+                method: 'POST',
+                status: response.status,
+                statusText: response.statusText,
+            });
+        }
+
+        return response.json();
+    }
+
+    async renameTenantImage(tenantId: string, imageId: TenantImageId, request: RenameTenantImageRequest): Promise<void> {
+        await this.request({
+            endpoint: '/admin/tenants/:tenantId/images/:imageId',
+            method: 'PATCH',
+            params: { tenantId, imageId },
+            body: request,
+        });
+    }
+
+    async deleteTenantImage(tenantId: string, imageId: TenantImageId): Promise<void> {
+        await this.request({
+            endpoint: '/admin/tenants/:tenantId/images/:imageId',
+            method: 'DELETE',
+            params: { tenantId, imageId },
         });
     }
 

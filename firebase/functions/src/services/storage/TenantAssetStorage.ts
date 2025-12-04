@@ -1,3 +1,4 @@
+import type { TenantImageId } from '@billsplit-wl/shared';
 import crypto from 'crypto';
 import { getStorage } from '../../firebase';
 import { logger } from '../../logger';
@@ -7,6 +8,7 @@ export type AssetType = 'logo' | 'favicon';
 
 export interface TenantAssetStorage {
     uploadAsset(tenantId: string, assetType: AssetType, buffer: Buffer, contentType: string, oldUrl?: string): Promise<string>;
+    uploadLibraryImage(tenantId: string, imageId: TenantImageId, buffer: Buffer, contentType: string): Promise<string>;
     deleteAsset(url: string): Promise<void>;
 }
 
@@ -115,6 +117,40 @@ class CloudTenantAssetStorage implements TenantAssetStorage {
         }
 
         return url;
+    }
+
+    async uploadLibraryImage(tenantId: string, imageId: TenantImageId, buffer: Buffer, contentType: string): Promise<string> {
+        const bucket = this.storage.bucket();
+
+        const extension = this.getExtensionFromContentType(contentType);
+        const filePath = `tenant-assets/${tenantId}/library/${imageId}.${extension}`;
+
+        const file = bucket.file(filePath);
+
+        await file.save(buffer, {
+            metadata: {
+                contentType,
+                cacheControl: 'public, max-age=31536000, immutable',
+                metadata: {
+                    tenantId,
+                    imageId,
+                    uploadedAt: new Date().toISOString(),
+                },
+            },
+        });
+
+        // Make file publicly readable
+        await file.makePublic();
+
+        logger.info('Uploaded tenant library image', {
+            tenantId,
+            imageId,
+            filePath,
+            size: buffer.length,
+        });
+
+        // Generate public URL
+        return this.generatePublicUrl(bucket.name, filePath);
     }
 
     async deleteAsset(url: string): Promise<void> {

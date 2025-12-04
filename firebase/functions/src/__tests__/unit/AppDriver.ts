@@ -50,6 +50,7 @@ import {
     ListPoliciesResponse,
     ListSettlementsOptions,
     ListSettlementsResponse,
+    ListTenantImagesResponse,
     MemberRole,
     MergeJobResponse,
     PasswordChangeRequest,
@@ -62,6 +63,7 @@ import {
     PublishTenantThemeRequest,
     PublishTenantThemeResponse,
     RegisterResponse,
+    RenameTenantImageRequest,
     SettlementDTO,
     SettlementId,
     SettlementWithMembers,
@@ -69,6 +71,7 @@ import {
     ShareLinkToken,
     SystemUserRoles,
     TenantDomainsResponse,
+    TenantImageId,
     TenantSettingsResponse,
     toUserId,
     UpdateExpenseRequest,
@@ -80,6 +83,7 @@ import {
     UpdateUserProfileRequest,
     UpdateUserRoleRequest,
     UpdateUserStatusRequest,
+    UploadTenantLibraryImageResponse,
     UserId,
     UserPolicyStatusResponse,
     UserProfileResponse,
@@ -1423,6 +1427,43 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         const req = createStubRequest(token, {});
         const res = await this.dispatchByHandler('getEnv', req);
         return res.getJson() as EnvironmentDiagnosticsResponse;
+    }
+
+    // ===== ADMIN API: TENANT IMAGE LIBRARY =====
+
+    async listTenantImages(tenantId: string, token: AuthToken): Promise<ListTenantImagesResponse> {
+        const req = createStubRequest(token, {}, { tenantId });
+        const res = await this.dispatchByHandler('listTenantImages', req);
+        this.throwIfError(res);
+        return res.getJson() as ListTenantImagesResponse;
+    }
+
+    async uploadTenantLibraryImage(tenantId: string, name: string, file: Buffer, contentType: string, token: AuthToken): Promise<UploadTenantLibraryImageResponse> {
+        const req = createStubRequest(token, {}, { tenantId });
+        // Set query param for name
+        req.query = { name };
+        // Set the raw body buffer and content type
+        (req as any).body = file;
+        if (!req.headers) {
+            req.headers = {};
+        }
+        req.headers['content-type'] = contentType;
+
+        const res = await this.dispatchByHandler('uploadTenantLibraryImage', req);
+        this.throwIfError(res);
+        return res.getJson() as UploadTenantLibraryImageResponse;
+    }
+
+    async renameTenantImage(tenantId: string, imageId: TenantImageId, request: RenameTenantImageRequest, token: AuthToken): Promise<void> {
+        const req = createStubRequest(token, request, { tenantId, imageId });
+        const res = await this.dispatchByHandler('renameTenantImage', req);
+        this.throwIfError(res);
+    }
+
+    async deleteTenantImage(tenantId: string, imageId: TenantImageId, token: AuthToken): Promise<void> {
+        const req = createStubRequest(token, {}, { tenantId, imageId });
+        const res = await this.dispatchByHandler('deleteTenantImage', req);
+        this.throwIfError(res);
     }
 
     /**

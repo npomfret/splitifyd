@@ -227,6 +227,37 @@ const routeDefinitions: RouteDefinition[] = [
         skipContentTypeValidation: true,
     },
 
+    // === Tenant Image Library ===
+    {
+        method: 'GET',
+        path: '/admin/tenants/:tenantId/images',
+        handlerName: 'listTenantImages',
+        category: 'admin',
+        middleware: ['authenticateTenantAdmin'],
+    },
+    {
+        method: 'POST',
+        path: '/admin/tenants/:tenantId/images',
+        handlerName: 'uploadTenantLibraryImage',
+        category: 'admin',
+        middleware: ['authenticateTenantAdmin'],
+        skipContentTypeValidation: true,
+    },
+    {
+        method: 'PATCH',
+        path: '/admin/tenants/:tenantId/images/:imageId',
+        handlerName: 'renameTenantImage',
+        category: 'admin',
+        middleware: ['authenticateTenantAdmin'],
+    },
+    {
+        method: 'DELETE',
+        path: '/admin/tenants/:tenantId/images/:imageId',
+        handlerName: 'deleteTenantImage',
+        category: 'admin',
+        middleware: ['authenticateTenantAdmin'],
+    },
+
     // === Registration ===
     {
         method: 'POST',

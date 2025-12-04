@@ -5,10 +5,42 @@ import { logger } from '../logger';
 import { checkForDangerousPatterns } from '../utils/security';
 
 /**
+ * Routes that accept binary uploads (not JSON)
+ * These paths are matched using a simple pattern where :param matches any segment
+ */
+const BINARY_UPLOAD_ROUTES = [
+    '/admin/tenants/:tenantId/assets/:assetType',
+    '/admin/tenants/:tenantId/images',
+];
+
+/**
+ * Check if a request path matches a binary upload route pattern
+ */
+function isBinaryUploadRoute(path: string): boolean {
+    return BINARY_UPLOAD_ROUTES.some(pattern => {
+        const patternParts = pattern.split('/');
+        const pathParts = path.split('/');
+
+        if (patternParts.length !== pathParts.length) {
+            return false;
+        }
+
+        return patternParts.every((part, i) => {
+            return part.startsWith(':') || part === pathParts[i];
+        });
+    });
+}
+
+/**
  * Validate request size and structure depth
  */
 export const validateRequestStructure = (req: Request, _res: Response, next: NextFunction): void => {
     if (!req.body) {
+        return next();
+    }
+
+    // Skip validation for binary upload routes (raw buffers, not JSON)
+    if (isBinaryUploadRoute(req.path)) {
         return next();
     }
 
@@ -74,32 +106,6 @@ export const validateRequestStructure = (req: Request, _res: Response, next: Nex
 
     next();
 };
-
-/**
- * Routes that accept binary uploads (not JSON)
- * These paths are matched using a simple pattern where :param matches any segment
- */
-const BINARY_UPLOAD_ROUTES = [
-    '/admin/tenants/:tenantId/assets/:assetType',
-];
-
-/**
- * Check if a request path matches a binary upload route pattern
- */
-function isBinaryUploadRoute(path: string): boolean {
-    return BINARY_UPLOAD_ROUTES.some(pattern => {
-        const patternParts = pattern.split('/');
-        const pathParts = path.split('/');
-
-        if (patternParts.length !== pathParts.length) {
-            return false;
-        }
-
-        return patternParts.every((part, i) => {
-            return part.startsWith(':') || part === pathParts[i];
-        });
-    });
-}
 
 /**
  * Validate content type for JSON endpoints
