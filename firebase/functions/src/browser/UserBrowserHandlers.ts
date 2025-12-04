@@ -1,49 +1,26 @@
-import { AdminUserProfile, SystemUserRoles, toDisplayName, toUserId } from '@billsplit-wl/shared';
+import { AdminUserProfile, toDisplayName, toUserId } from '@billsplit-wl/shared';
 import { toEmail } from '@billsplit-wl/shared';
 import type { Request, Response } from 'express';
-import { FirestoreCollections } from '../constants';
-import { type IDocumentSnapshot, type IFirestoreDatabase, Timestamp } from '../firestore-wrapper';
 import { logger } from '../logger';
 import type { IAuthService } from '../services/auth';
 import type { IFirestoreReader } from '../services/firestore';
 import type { UserDocument } from '../schemas';
 import { validateListAuthUsersQuery, validateListFirestoreUsersQuery } from './validation';
 
-function normalizeFirestoreValue(value: unknown): unknown {
-    if (value instanceof Timestamp) {
-        return value.toDate().toISOString();
-    }
-
-    if (Array.isArray(value)) {
-        return value.map(normalizeFirestoreValue);
-    }
-
-    if (value && typeof value === 'object') {
-        const entries = Object.entries(value as Record<string, unknown>).map(([key, val]) => [key, normalizeFirestoreValue(val)]);
-        return Object.fromEntries(entries);
-    }
-
-    return value;
-}
-
-function serializeFirestoreDocument(doc: IDocumentSnapshot): Record<string, unknown> {
-    const raw = doc.data() ?? {};
-    const normalized = normalizeFirestoreValue(raw);
-    const details = normalized && typeof normalized === 'object' && !Array.isArray(normalized)
-        ? (normalized as Record<string, unknown>)
-        : { value: normalized };
-
-    // Add uid from document ID (Firestore document ID is the user's UID)
-    // Remove the legacy 'id' field if it exists in the document data
-    const { id, ...rest } = details;
-    return { uid: doc.id, ...rest };
+/**
+ * Serialize a UserDocument for browser display
+ * Converts internal document format to admin-friendly format with 'uid' as primary identifier
+ */
+function serializeUserDocument(user: UserDocument): Record<string, unknown> {
+    // Remove internal 'id' field and expose as 'uid' for consistency with Auth API
+    const { id, ...rest } = user as UserDocument & { id?: string };
+    return { uid: user.id, ...rest };
 }
 
 export class UserBrowserHandlers {
     constructor(
         private readonly authService: IAuthService,
-        private readonly db: IFirestoreDatabase,
-        private readonly firestoreReader?: IFirestoreReader,
+        private readonly firestoreReader: IFirestoreReader,
     ) {}
 
     /**
@@ -90,31 +67,10 @@ export class UserBrowserHandlers {
 
     /**
      * List Firestore users with pagination
+     * Delegates to FirestoreReader for all database access
      */
     private async listFirestoreUserDocuments(options: { limit: number; cursor?: string }): Promise<{ users: UserDocument[]; nextCursor?: string; hasMore: boolean }> {
-        if (!this.firestoreReader) {
-            throw new Error('FirestoreReader is required for listing users');
-        }
-
-        let query = this.db.collection(FirestoreCollections.USERS).orderBy('__name__').limit(options.limit + 1);
-        if (options.cursor) {
-            query = query.startAfter(options.cursor);
-        }
-
-        const snapshot = await query.get();
-        const docs = snapshot.docs.slice(0, options.limit);
-        const hasMore = snapshot.docs.length > options.limit;
-        const nextCursor = hasMore ? docs[docs.length - 1]?.id : undefined;
-
-        // Get full user documents via FirestoreReader for proper validation
-        const users = await Promise.all(
-            docs.map((doc) => this.firestoreReader!.getUser(toUserId(doc.id))),
-        );
-
-        // Filter out nulls (shouldn't happen, but be safe)
-        const validUsers = users.filter((u): u is UserDocument => u !== null);
-
-        return { users: validUsers, nextCursor, hasMore };
+        return this.firestoreReader.listUserDocuments(options);
     }
 
     listAuthUsers = async (req: Request, res: Response): Promise<void> => {
@@ -128,7 +84,7 @@ export class UserBrowserHandlers {
                     res.json({ users: [], hasMore: false });
                     return;
                 }
-                const firestoreUser = await this.firestoreReader?.getUser(toUserId(authUser.uid));
+                const firestoreUser = await this.firestoreReader.getUser(toUserId(authUser.uid));
                 if (!firestoreUser) {
                     res.json({ users: [], hasMore: false });
                     return;
@@ -140,7 +96,7 @@ export class UserBrowserHandlers {
 
             // Search by UID - look up in Firestore
             if (query.uid) {
-                const firestoreUser = await this.firestoreReader?.getUser(toUserId(query.uid));
+                const firestoreUser = await this.firestoreReader.getUser(toUserId(query.uid));
                 if (!firestoreUser) {
                     res.json({ users: [], hasMore: false });
                     return;
@@ -175,47 +131,35 @@ export class UserBrowserHandlers {
         const query = validateListFirestoreUsersQuery(req.query);
 
         try {
+            // Search by UID - look up directly
             if (query.uid) {
-                const doc = await this.db.collection(FirestoreCollections.USERS).doc(query.uid).get();
-                if (!doc.exists) {
+                const user = await this.firestoreReader.getUser(toUserId(query.uid));
+                if (!user) {
                     res.json({ users: [], hasMore: false });
                     return;
                 }
 
-                res.json({ users: [serializeFirestoreDocument(doc)], hasMore: false });
+                res.json({ users: [serializeUserDocument(user)], hasMore: false });
                 return;
             }
 
+            // Search by email or displayName - these fields are not stored in Firestore
+            // (they're in Firebase Auth only), so return empty results
             if (query.email || query.displayName) {
-                const field = query.email ? 'email' : 'displayName';
-                const value = query.email ?? query.displayName;
-                const snapshot = await this
-                    .db
-                    .collection(FirestoreCollections.USERS)
-                    .where(field, '==', value)
-                    .limit(query.limit)
-                    .get();
-
-                const users = snapshot.docs.map(serializeFirestoreDocument);
-                res.json({ users, hasMore: false });
+                res.json({ users: [], hasMore: false });
                 return;
             }
 
-            let collectionQuery = this.db.collection(FirestoreCollections.USERS).orderBy('__name__').limit(query.limit + 1);
-            if (query.cursor) {
-                collectionQuery = collectionQuery.startAfter(query.cursor);
-            }
-
-            const snapshot = await collectionQuery.get();
-            const docs = snapshot.docs.slice(0, query.limit);
-            const hasMore = snapshot.docs.length > query.limit;
-            const nextCursor = hasMore ? docs[docs.length - 1]?.id : undefined;
-            const users = docs.map(serializeFirestoreDocument);
+            // List all users with pagination
+            const result = await this.firestoreReader.listUserDocuments({
+                limit: query.limit,
+                cursor: query.cursor,
+            });
 
             res.json({
-                users,
-                hasMore,
-                nextCursor,
+                users: result.users.map(serializeUserDocument),
+                hasMore: result.hasMore,
+                nextCursor: result.nextCursor,
             });
         } catch (error) {
             logger.error('Failed to list firestore users', error as Error, {

@@ -459,4 +459,23 @@ export interface IFirestoreReader {
      * @returns Merge job document or null if not found
      */
     getMergeJob(jobId: string): Promise<import('../../merge/MergeService').MergeJobDocument | null>;
+
+    // ========================================================================
+    // Admin Browser Operations
+    // ========================================================================
+
+    /**
+     * List user documents with pagination for admin browser
+     * Returns raw user data serialized for browser display (timestamps as ISO strings)
+     * @param options - Pagination options
+     * @returns Paginated result with serialized user documents
+     */
+    listUserDocuments(options: {
+        limit: number;
+        cursor?: string;
+    }): Promise<{
+        users: UserDocument[];
+        hasMore: boolean;
+        nextCursor?: string;
+    }>;
 }

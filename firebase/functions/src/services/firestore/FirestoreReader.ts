@@ -1614,4 +1614,58 @@ export class FirestoreReader implements IFirestoreReader {
             throw error;
         }
     }
+
+    // ========================================================================
+    // Admin Browser Operations
+    // ========================================================================
+
+    async listUserDocuments(options: {
+        limit: number;
+        cursor?: string;
+    }): Promise<{
+        users: UserDocument[];
+        hasMore: boolean;
+        nextCursor?: string;
+    }> {
+        return measureDb('LIST_USER_DOCUMENTS', async () => {
+            try {
+                let query = this
+                    .db
+                    .collection(FirestoreCollections.USERS)
+                    .orderBy('__name__')
+                    .limit(options.limit + 1);
+
+                if (options.cursor) {
+                    query = query.startAfter(options.cursor);
+                }
+
+                const snapshot = await query.get();
+                const docs = snapshot.docs.slice(0, options.limit);
+                const hasMore = snapshot.docs.length > options.limit;
+                const nextCursor = hasMore ? docs[docs.length - 1]?.id : undefined;
+
+                // Validate and convert each document
+                const users: UserDocument[] = [];
+                for (const doc of docs) {
+                    try {
+                        const rawData = {
+                            id: doc.id,
+                            ...doc.data(),
+                        };
+                        const userData = UserDocumentSchema.parse(rawData);
+                        const convertedData = this.convertTimestampsToISO(userData);
+                        users.push(convertedData as unknown as UserDocument);
+                    } catch (validationError) {
+                        logger.warn('Skipping invalid user document during listUserDocuments', { docId: doc.id });
+                    }
+                }
+
+                return { users, hasMore, nextCursor };
+            } catch (error) {
+                logger.error('Failed to list user documents', error);
+                throw error;
+            }
+        });
+    }
+
 }

@@ -4,7 +4,7 @@ import type { Firestore } from 'firebase-admin/firestore';
 import type { Storage } from 'firebase-admin/storage';
 import { TenantBrowserHandlers } from '../browser/TenantBrowserHandlers';
 import { UserBrowserHandlers } from '../browser/UserBrowserHandlers';
-import { createFirestoreDatabase, IFirestoreDatabase } from '../firestore-wrapper';
+import { createFirestoreDatabase, type IFirestoreDatabase } from '../firestore-wrapper';
 import { GroupSecurityHandlers } from '../groups/GroupSecurityHandlers';
 import { MergeHandlers } from '../merge/MergeHandlers';
 import { MergeService } from '../merge/MergeService';
@@ -63,7 +63,7 @@ export class ComponentBuilder {
 
     constructor(
         private readonly authService: IAuthService,
-        private readonly db: IFirestoreDatabase,
+        readonly db: IFirestoreDatabase,
         private readonly storage: IStorage,
         private readonly cloudTasksClient: ICloudTasksClient,
         private readonly serviceConfig: ServiceConfig,
@@ -317,7 +317,6 @@ export class ComponentBuilder {
         if (!this.userBrowserHandlers) {
             this.userBrowserHandlers = new UserBrowserHandlers(
                 this.buildAuthService(),
-                this.db,
                 this.buildFirestoreReader(),
             );
         }
