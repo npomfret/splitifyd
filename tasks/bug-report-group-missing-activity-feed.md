@@ -29,3 +29,55 @@ Specifically, it might involve:
 
 ## Priority
 High - This is a significant missing feature that impacts the core functionality and user understanding of group activities. The backend support for this feature already exists, implying the frontend implementation is a critical next step.
+
+---
+
+## Analysis (Completed)
+
+### Root Cause
+The activity feed API is **user-scoped** (`GET /activity-feed`), not group-scoped. It returns activity across ALL groups the user belongs to. There is no endpoint to fetch activity for a specific group.
+
+### Current Architecture
+- Activity data stored at `activity-feed/{userId}/items/{itemId}` with `groupId` field
+- `ActivityFeedCard` exists but is dashboard-only
+- `GroupDetailPage` uses collapsible `SidebarCard` sections (Settlements, Comments) - no tabs
+
+---
+
+## Implementation Plan
+
+### Phase 1: Backend - Add Group Activity Endpoint
+
+| File | Change |
+|------|--------|
+| `firebase/functions/src/activity/ActivityHandlers.ts` | Add `getGroupActivityFeed` handler |
+| `firebase/functions/src/services/firestore/FirestoreReader.ts` | Add `getActivityFeedForGroup(groupId, options)` method |
+| `firebase/functions/src/routes/route-config.ts` | Add route: `GET /groups/:groupId/activity-feed` |
+| `packages/shared/src/api.ts` | Add to API interface: `getGroupActivityFeed()` |
+
+### Phase 2: Frontend - Store & API Client
+
+| File | Change |
+|------|--------|
+| `webapp-v2/src/app/apiClient.ts` | Add `getGroupActivityFeed(groupId, options?)` method |
+| `webapp-v2/src/app/stores/group-activity-feed-store.ts` | NEW: Group-scoped activity store with private signals |
+
+### Phase 3: Frontend - UI Component
+
+| File | Change |
+|------|--------|
+| `webapp-v2/src/components/group/GroupActivityFeed.tsx` | NEW: Display activity items with pagination |
+| `webapp-v2/src/pages/GroupDetailPage.tsx` | Add `GroupActivityFeed` as collapsible `SidebarCard` (anchor: `#activity`) |
+
+### Phase 4: Tests
+
+| File | Change |
+|------|--------|
+| `firebase/functions/src/__tests__/unit/api/activity-feed.test.ts` | Add tests for group endpoint |
+| `webapp-v2/src/__tests__/integration/playwright/group-activity-feed.test.ts` | NEW: Integration tests |
+
+---
+
+## Reference Files
+- `webapp-v2/src/components/dashboard/ActivityFeedCard.tsx` - Existing activity card (reuse patterns)
+- `webapp-v2/src/app/stores/activity-feed-store.ts` - Existing store (reference architecture)
