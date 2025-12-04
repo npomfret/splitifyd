@@ -67,14 +67,36 @@ export function AdminTenantsTab() {
     };
 
     if (error) {
-        return <Alert type='error' message={error} />;
+        return (
+            <>
+                <Alert type='error' message={error} />
+                {/* Keep modal mounted even during error state */}
+                <TenantEditorModal
+                    open={isModalOpen}
+                    onClose={handleModalClose}
+                    onSave={handleModalSave}
+                    tenant={selectedTenant || undefined}
+                    mode={modalMode}
+                />
+            </>
+        );
     }
 
-    if (isLoading) {
+    if (isLoading && tenants.length === 0) {
         return (
-            <div class='flex items-center justify-center py-12'>
-                <LoadingSpinner size='lg' testId='tenants-loading-spinner' />
-            </div>
+            <>
+                <div class='flex items-center justify-center py-12'>
+                    <LoadingSpinner size='lg' testId='tenants-loading-spinner' />
+                </div>
+                {/* Keep modal mounted during initial load */}
+                <TenantEditorModal
+                    open={isModalOpen}
+                    onClose={handleModalClose}
+                    onSave={handleModalSave}
+                    tenant={selectedTenant || undefined}
+                    mode={modalMode}
+                />
+            </>
         );
     }
 

@@ -142,7 +142,7 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
 
     return (
         <Modal open={open} onClose={onClose} size='lg' data-testid='user-editor-modal'>
-            <div class='flex flex-col max-h-[90vh]'>
+            <div class='flex flex-col max-h-[90vh] overflow-hidden'>
                 {/* Header */}
                 <div class='border-b border-border-default px-6 py-4'>
                     <h2 class='text-xl font-semibold text-text-primary'>Edit User</h2>
@@ -306,7 +306,7 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                 </div>
 
                 {/* Footer */}
-                <div class='flex items-center justify-end gap-3 border-t border-border-default bg-surface-base px-6 py-4'>
+                <div class='flex items-center justify-end gap-3 border-t border-border-default bg-surface-base px-6 py-4 rounded-b-2xl'>
                     <Button
                         onClick={onClose}
                         variant='secondary'

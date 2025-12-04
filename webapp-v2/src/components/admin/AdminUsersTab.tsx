@@ -93,8 +93,10 @@ export function AdminUsersTab() {
         await loadUsers();
     };
 
+    // Initialize only on mount, not on every signal change
     useSignalEffect(() => {
-        if (!loading.value && users.value.length === 0) {
+        // Only run once when component mounts and users haven't been loaded yet
+        if (!loading.value && users.value.length === 0 && !hasSearchApplied.value && pageHistory.value.length === 1) {
             void initialize();
         }
     });
@@ -417,19 +419,17 @@ export function AdminUsersTab() {
                 )}
             </Card>
 
-            {/* User Editor Modal */}
-            {editingUser.value && (
-                <UserEditorModal
-                    open={editingUser.value !== null}
-                    onClose={() => editingUser.value = null}
-                    onSave={() => {
-                        editingUser.value = null;
-                        handleReset();
-                    }}
-                    user={editingUser.value}
-                    isCurrentUser={editingUser.value.uid === user.uid}
-                />
-            )}
+            {/* User Editor Modal - always mounted to prevent disappearing */}
+            <UserEditorModal
+                open={editingUser.value !== null}
+                onClose={() => editingUser.value = null}
+                onSave={() => {
+                    editingUser.value = null;
+                    handleReset();
+                }}
+                user={editingUser.value ?? { uid: '' as UserId, email: '' as Email, displayName: null, disabled: false, role: null, metadata: null }}
+                isCurrentUser={editingUser.value?.uid === user.uid}
+            />
         </div>
     );
 }

@@ -57,7 +57,9 @@ export function Modal({ open, onClose, size = 'sm', labelledBy, describedBy, cla
         return null;
     }
 
-    const handleBackdropClick: JSX.MouseEventHandler<HTMLDivElement> = (event) => {
+    // Use onMouseDown instead of onClick to prevent closing when drag-selecting text
+    // that ends outside the modal content but still within the backdrop
+    const handleBackdropMouseDown: JSX.MouseEventHandler<HTMLDivElement> = (event) => {
         if (event.target === event.currentTarget) {
             onClose?.();
         }
@@ -99,7 +101,7 @@ export function Modal({ open, onClose, size = 'sm', labelledBy, describedBy, cla
                         backdropFilter: 'blur(4px)',
                     }}
                     role='presentation'
-                    onClick={handleBackdropClick}
+                    onMouseDown={handleBackdropMouseDown}
                     data-testid={dataTestId}
                     variants={backdropVariants}
                     initial='hidden'
