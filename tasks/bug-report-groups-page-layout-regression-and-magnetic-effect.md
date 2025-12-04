@@ -45,6 +45,31 @@ The security preset buttons in the Group Settings Modal ("Security & Permissions
 
 ## Work Items
 
-- [ ] Remove magnetic effect from group card containers on the dashboard
-- [ ] Remove magnetic effect from security preset buttons in GroupSettingsModal
-- [ ] Review other large container elements that may have magnetic effect applied inappropriately
+- [x] Remove magnetic effect from group card containers on the dashboard
+- [x] Remove magnetic effect from security preset buttons in GroupSettingsModal
+- [x] Review other large container elements that may have magnetic effect applied inappropriately
+
+---
+
+## Resolution (2025-12-04)
+
+### Status: MAGNETIC EFFECT ISSUES RESOLVED
+
+### Root Cause
+1. **GroupCard**: Explicitly set `magnetic={true}` on Card component, overriding the Card's default of `magnetic={false}`
+2. **Security Presets**: Button component defaults to `magnetic={true}` (line 44 of Button.tsx), so all buttons inherit magnetic effect unless explicitly disabled
+
+### Fix Applied
+1. **GroupCard.tsx** (line 106): Removed `magnetic={true}` prop - Card now uses its default `magnetic={false}`
+2. **GroupSettingsModal.tsx** (line 794): Added `magnetic={false}` to preset buttons to override Button's default
+
+### Files Changed
+- `webapp-v2/src/components/dashboard/GroupCard.tsx`
+- `webapp-v2/src/components/group/GroupSettingsModal.tsx`
+
+### Testing
+- Build passed with no errors
+- Manual verification: Hover over group cards on dashboard and preset buttons in settings - magnetic effect no longer applied
+
+### Note on Layout Regression
+The single-column layout issue mentioned in this bug report is a separate concern and was not addressed in this fix. Only the magnetic effect work items were resolved.

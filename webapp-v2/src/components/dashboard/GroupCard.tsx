@@ -103,7 +103,6 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense, isArchivedVi
             variant='glass'
             className='hover:shadow-md transition-all hover:-translate-y-0.5 cursor-pointer border-border-default h-full flex flex-col group'
             padding='md'
-            magnetic={true}
             data-testid='group-card'
         >
             <div class='flex-1 relative'>

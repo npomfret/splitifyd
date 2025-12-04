@@ -791,6 +791,7 @@ export function GroupSettingsModal({
                                 type='button'
                                 onClick={() => applyPreset(preset)}
                                 variant='ghost'
+                                magnetic={false}
                                 className={`h-full flex-col items-start border rounded-lg px-4 py-3 text-left transition ${
                                     isActive
                                         ? 'border-interactive-primary bg-interactive-primary/10 shadow-sm'
