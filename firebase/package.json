@@ -28,9 +28,9 @@
     "deploy:hosting:inner": "bash scripts/deployment/deploy-staging.sh hosting",
     "deploy:rules:inner": "bash scripts/deployment/deploy-staging.sh rules",
     "deploy:indexes:inner": "bash scripts/deployment/deploy-staging.sh indexes",
-    "download:indexes": "bash scripts/staging-operations.sh download-indexes",
-    "postdeploy:sync-tenant": "bash scripts/staging-operations.sh sync-tenant",
-    "seed-policies:staging-1": "bash scripts/staging-operations.sh seed-policies",
+    "download:indexes": "bash scripts/deployment/staging-operations.sh download-indexes",
+    "postdeploy:sync-tenant": "bash scripts/deployment/staging-operations.sh sync-tenant",
+    "seed-policies:staging-1": "bash scripts/deployment/staging-operations.sh seed-policies",
     "logs": "firebase functions:log",
     "promote-user": "tsx scripts/dev/promote-user-to-admin.ts"
   },

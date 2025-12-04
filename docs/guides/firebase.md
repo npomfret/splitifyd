@@ -89,7 +89,7 @@ npm run postdeploy:sync-tenant
 npm run seed-policies:staging-1
 
 # Promote a user to admin
-bash scripts/staging-operations.sh promote-admin user@example.com system_admin
+bash scripts/deployment/staging-operations.sh promote-admin user@example.com system_admin
 ```
 
 ## Ports, URLs, and Tests
