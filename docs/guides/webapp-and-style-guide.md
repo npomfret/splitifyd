@@ -66,9 +66,11 @@ Aurora theme: motion on. Brutalist theme: motion off. Respects `prefers-reduced-
 
 ## State Management
 
+### Stores (Shared State)
+
 **Location:** `app/stores/`
 
-Signal-based with private fields:
+Stores use **Preact Signals** with private class fields for encapsulation:
 
 ```typescript
 class StoreImpl {
@@ -83,6 +85,23 @@ export const store = new StoreImpl();
 ```
 
 **Rules:** Private signals (`#`), public readonly getters, actions are the only mutation path.
+
+### Components (Local State)
+
+Components use **`useState`** from `preact/hooks` for local/ephemeral state:
+
+```typescript
+function MyComponent() {
+    const [isOpen, setIsOpen] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    // ...
+}
+```
+
+**Why this distinction:**
+- Signals provide encapsulation benefits in stores where state is shared across components
+- `useState` is simpler and sufficient for component-local state (form inputs, loading states, modals)
+- Avoid mixing `useSignal` and `useState` in the same component
 
 ---
 
