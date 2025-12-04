@@ -14,7 +14,6 @@ vi.mock('@/app/firebase-config', () => ({
 
 vi.mock('@/utils/theme-bootstrap', () => ({
     syncThemeHash: vi.fn(),
-    registerThemeServiceWorker: vi.fn(),
 }));
 
 const getMetaThemeColor = (): HTMLMetaElement | null => document.querySelector('meta[name="theme-color"]');

@@ -66,24 +66,3 @@ export function syncThemeHash(hash?: string | null): void {
     }
 }
 
-export function registerThemeServiceWorker(): void {
-    if (typeof window === 'undefined') return;
-    if (!('serviceWorker' in navigator)) {
-        return;
-    }
-
-    const register = () => {
-        navigator
-            .serviceWorker
-            .register('/theme-sw.js', { scope: '/' })
-            .catch(() => {
-                // Ignore registration failures; theme CSS still loads via network.
-            });
-    };
-
-    if (document.readyState === 'complete') {
-        register();
-    } else {
-        window.addEventListener('load', register, { once: true });
-    }
-}
