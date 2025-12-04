@@ -15,19 +15,19 @@ export class HeaderPage extends BasePage {
      * User Menu Locators
      */
     protected getUserMenuButton(): Locator {
-        return this.page.getByRole('button', { name: /user menu/i });
+        return this.page.locator('[data-testid="user-menu-button"]');
     }
 
     protected getUserDropdownMenu(): Locator {
-        return this.page.getByRole('menu');
+        return this.page.locator('[data-testid="user-dropdown-menu"]');
     }
 
     protected getDashboardLink(): Locator {
-        return this.getUserDropdownMenu().getByRole('menuitem', { name: 'Dashboard' });
+        return this.page.locator('[data-testid="user-menu-dashboard-link"]');
     }
 
     protected getAdminLink(): Locator {
-        return this.getUserDropdownMenu().getByRole('menuitem', { name: 'Admin' });
+        return this.page.locator('[data-testid="user-menu-admin-link"]');
     }
 
     /**
@@ -87,7 +87,7 @@ export class HeaderPage extends BasePage {
         // Wait for both the dropdown to be visible AND the sign-out button to be present
         await expect(dropdownMenu).toBeVisible();
 
-        const signOutButton = dropdownMenu.getByRole('menuitem', { name: 'Sign Out' });
+        const signOutButton = dropdownMenu.locator('[data-testid="sign-out-button"]');
         await expect(signOutButton).toBeVisible();
         await expect(signOutButton).toBeEnabled();
 
@@ -145,15 +145,15 @@ export class HeaderPage extends BasePage {
     }
 
     async verifyDashboardMenuItemVisible(): Promise<void> {
-        await expect(this.getUserDropdownMenu().getByRole('menuitem', { name: 'Dashboard' })).toBeVisible();
+        await expect(this.getUserDropdownMenu().getByTestId('user-menu-dashboard-link')).toBeVisible();
     }
 
     async verifySettingsMenuItemVisible(): Promise<void> {
-        await expect(this.getUserDropdownMenu().getByRole('menuitem', { name: 'Settings' })).toBeVisible();
+        await expect(this.getUserDropdownMenu().getByTestId('user-menu-settings-link')).toBeVisible();
     }
 
     async verifySignOutMenuItemVisible(): Promise<void> {
-        await expect(this.getUserDropdownMenu().getByRole('menuitem', { name: 'Sign Out' })).toBeVisible();
+        await expect(this.getUserDropdownMenu().getByTestId('sign-out-button')).toBeVisible();
     }
 
     async verifyUserMenuButtonVisible(): Promise<void> {
