@@ -1,5 +1,5 @@
 import { apiClient } from '@/app/apiClient';
-import { Alert, Button, Card, Input, Modal } from '@/components/ui';
+import { Alert, Button, Card, Input, LoadingSpinner, Modal } from '@/components/ui';
 import { logError } from '@/utils/browser-logger';
 import type { AdminUserProfile, DisplayName, Email, SystemUserRole, UpdateUserProfileAdminRequest } from '@billsplit-wl/shared';
 import { SystemUserRoles, toDisplayName, toEmail } from '@billsplit-wl/shared';
@@ -279,30 +279,42 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                     {/* Firebase Auth Document Tab */}
                     {activeTab === 'firebase-auth' && (
                         <div>
-                            {loadingAuth ? <div class='text-center py-8 text-text-muted'>{t('admin.userEditor.loading')}</div> : firebaseAuthData
+                            {loadingAuth
                                 ? (
-                                    <Card padding='md' className='bg-surface-muted'>
-                                        <pre class='text-xs overflow-x-auto whitespace-pre-wrap break-all'>
-                                        {JSON.stringify(firebaseAuthData, null, 2)}
-                                        </pre>
-                                    </Card>
+                                    <div class='flex justify-center py-8'>
+                                        <LoadingSpinner size='md' />
+                                    </div>
                                 )
-                                : <div class='text-center py-8 text-text-muted'>{t('admin.userEditor.noDataAvailable')}</div>}
+                                : firebaseAuthData
+                                    ? (
+                                        <Card padding='md' className='bg-surface-muted'>
+                                            <pre class='text-xs overflow-x-auto whitespace-pre-wrap break-all'>
+                                            {JSON.stringify(firebaseAuthData, null, 2)}
+                                            </pre>
+                                        </Card>
+                                    )
+                                    : <div class='text-center py-8 text-text-muted'>{t('admin.userEditor.noDataAvailable')}</div>}
                         </div>
                     )}
 
                     {/* Firestore Document Tab */}
                     {activeTab === 'firestore' && (
                         <div>
-                            {loadingFirestore ? <div class='text-center py-8 text-text-muted'>{t('admin.userEditor.loading')}</div> : firestoreData
+                            {loadingFirestore
                                 ? (
-                                    <Card padding='md' className='bg-surface-muted'>
-                                        <pre class='text-xs overflow-x-auto whitespace-pre-wrap break-all'>
-                                        {JSON.stringify(firestoreData, null, 2)}
-                                        </pre>
-                                    </Card>
+                                    <div class='flex justify-center py-8'>
+                                        <LoadingSpinner size='md' />
+                                    </div>
                                 )
-                                : <div class='text-center py-8 text-text-muted'>{t('admin.userEditor.noDataAvailable')}</div>}
+                                : firestoreData
+                                    ? (
+                                        <Card padding='md' className='bg-surface-muted'>
+                                            <pre class='text-xs overflow-x-auto whitespace-pre-wrap break-all'>
+                                            {JSON.stringify(firestoreData, null, 2)}
+                                            </pre>
+                                        </Card>
+                                    )
+                                    : <div class='text-center py-8 text-text-muted'>{t('admin.userEditor.noDataAvailable')}</div>}
                         </div>
                     )}
                 </div>

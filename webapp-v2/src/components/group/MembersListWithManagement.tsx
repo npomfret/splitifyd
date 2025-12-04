@@ -1,7 +1,7 @@
 import { apiClient } from '@/app/apiClient';
 import { useAuthRequired } from '@/app/hooks/useAuthRequired';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced';
-import { Avatar, Button, Card, ConfirmDialog, LoadingSpinner, SidebarCard, Tooltip } from '@/components/ui';
+import { Avatar, Button, Card, ConfirmDialog, SidebarCard, SkeletonMemberItem, Tooltip } from '@/components/ui';
 import { navigationService } from '@/services/navigation.service';
 import { logError } from '@/utils/browser-logger';
 import { getGroupDisplayName } from '@/utils/displayName';
@@ -132,8 +132,12 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
 
     if (loading.value) {
         return (
-            <Card className='p-6'>
-                <LoadingSpinner />
+            <Card className='p-6' aria-busy='true'>
+                <div className='space-y-1'>
+                    <SkeletonMemberItem />
+                    <SkeletonMemberItem />
+                    <SkeletonMemberItem />
+                </div>
             </Card>
         );
     }

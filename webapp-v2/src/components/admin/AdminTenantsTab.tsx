@@ -189,7 +189,6 @@ export function AdminTenantsTab() {
                                         onClick={() => handleEditTenant(tenant)}
                                         variant='secondary'
                                         size='sm'
-                                        className='!bg-white !text-gray-800 !border-gray-300 hover:!bg-gray-50'
                                         data-testid={`edit-tenant-${tenant.tenant.tenantId}`}
                                     >
                                         {t('common.edit')}

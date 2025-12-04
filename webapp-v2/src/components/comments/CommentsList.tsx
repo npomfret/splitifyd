@@ -1,7 +1,7 @@
 import type { CommentDTO } from '@billsplit-wl/shared';
 import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 import { useTranslation } from 'react-i18next';
-import { LoadingSpinner } from '../ui';
+import { LoadingSpinner, SkeletonCommentItem } from '../ui';
 import { CommentItem } from './CommentItem';
 
 interface CommentsListProps {
@@ -17,11 +17,10 @@ export function CommentsList({ comments, loading = false, hasMore = false, onLoa
     const { t } = useTranslation();
     if (loading && comments.length === 0) {
         return (
-            <div className='flex items-center justify-center py-8'>
-                <div className='text-center'>
-                    <LoadingSpinner size='md' />
-                    <p className='text-sm text-text-muted dark:text-text-muted/80 mt-2'>{t('comments.commentsList.loading')}</p>
-                </div>
+            <div className='space-y-4 px-1' aria-busy='true' aria-label={t('comments.commentsList.loading')}>
+                <SkeletonCommentItem />
+                <SkeletonCommentItem />
+                <SkeletonCommentItem />
             </div>
         );
     }

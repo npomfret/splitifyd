@@ -15,32 +15,52 @@ The webapp has **multiple categories of UI inconsistencies**. This audit identif
 
 ## 1. LOADING STATES
 
-**Summary**: Only GroupsList uses skeleton loaders. Everything else uses spinners, plain text, or nothing.
+### The Rules
 
-### Available Components:
-| Component | Description | Usage |
-|-----------|-------------|-------|
-| `LoadingSpinner` | Animated SVG spinner (sm/md/lg) | Most common (~20+ places) |
-| `LoadingState` | Spinner + text, full-page variant | AddExpensePage only |
-| `Skeleton` | Animated placeholder | **Only GroupsList** |
-| `SkeletonCard` | Pre-built card skeleton | **Only GroupsList** |
+| Context | Pattern | Why |
+|---------|---------|-----|
+| **List items** (multiple items expected) | Skeleton | Maintains layout, feels faster |
+| **Full-page loads** | Spinner + text | Clear "loading" indication |
+| **Modal content loading** | Spinner | Compact, clear |
+| **Button actions** | Button `loading` prop | Built-in, accessible |
 
-### Key Issues:
+### Available Components
 
-| Component | File | Pattern | Problem |
-|-----------|------|---------|---------|
-| **ActivityFeedCard** | `components/dashboard/ActivityFeedCard.tsx` | Pulsing "Loading..." text | Next to GroupsList skeletons - jarring |
-| **UserEditorModal** | `components/admin/UserEditorModal.tsx:190,205` | Hardcoded "Loading..." | No spinner, no i18n |
-| **JoinGroupPage** | `pages/JoinGroupPage.tsx:320` | Plain `<p>Loading...</p>` | Fallback case |
-| **ExpensesList** | `components/group/ExpensesList.tsx` | None | No loading state at all |
+| Component | Description | When to Use |
+|-----------|-------------|-------------|
+| `LoadingSpinner` | Animated SVG spinner (sm/md/lg) | Full-page loads, modals, single items |
+| `LoadingState` | Spinner + text, fullPage option | Full-page initial loads |
+| `Skeleton` | Animated placeholder with variants | Building custom skeleton layouts |
+| `SkeletonCard` | Pre-built group card skeleton | GroupsList |
+| `SkeletonActivityItem` | Pre-built activity item skeleton | ActivityFeedCard |
+| `SkeletonExpenseItem` | Pre-built expense row skeleton | ExpensesList |
+| `SkeletonSettlementItem` | Pre-built settlement row skeleton | SettlementHistory |
+| `SkeletonCommentItem` | Pre-built comment skeleton | CommentsList |
+| `SkeletonMemberItem` | Pre-built member row skeleton | MembersListWithManagement |
 
-### Recommendation:
-Create skeleton components for list items:
-- `SkeletonActivityItem` - for ActivityFeedCard
-- `SkeletonExpenseItem` - for ExpensesList
-- `SkeletonSettlementItem` - for SettlementHistory
-- `SkeletonCommentItem` - for CommentsList
-- `SkeletonMemberItem` - for MembersListWithManagement
+### Current Status
+
+#### Using Skeletons (correct)
+| Component | File | Status |
+|-----------|------|--------|
+| GroupsList | `components/dashboard/GroupsList.tsx` | ✅ Done |
+| ActivityFeedCard | `components/dashboard/ActivityFeedCard.tsx` | ✅ Done |
+
+#### Need Skeletons (to fix)
+| Component | File | Current | Status |
+|-----------|------|---------|--------|
+| ExpensesList | `components/group/ExpensesList.tsx` | SkeletonExpenseItem | ✅ Done |
+| SettlementHistory | `components/settlements/SettlementHistory.tsx` | SkeletonSettlementItem | ✅ Done |
+| CommentsList | `components/comments/CommentsList.tsx` | SkeletonCommentItem | ✅ Done |
+| MembersListWithManagement | `components/group/MembersListWithManagement.tsx` | SkeletonMemberItem | ✅ Done |
+
+#### Using Spinners (correct - keep as-is)
+| Component | File | Why Spinner is Correct |
+|-----------|------|------------------------|
+| GroupDetailPage | `pages/GroupDetailPage.tsx` | Full page load |
+| JoinGroupPage | `pages/JoinGroupPage.tsx` | Single group preview |
+| PolicyAcceptanceModal | `components/policy/PolicyAcceptanceModal.tsx` | Modal content |
+| UserEditorModal | `components/admin/UserEditorModal.tsx` | Modal tabs |
 
 ---
 
@@ -188,15 +208,16 @@ The codebase has a well-designed `Typography` component with variants:
 ## PRIORITY MATRIX
 
 ### P0 - Critical (Fix First)
-1. ActivityFeedCard skeleton loaders (most visible inconsistency)
-2. Raw `<button>` elements - use Button component
-3. Hardcoded admin colors - violates theming
+1. ~~ActivityFeedCard skeleton loaders~~ ✅ Done
+2. ~~Raw `<button>` elements - use Button component~~ ✅ Done (ActivityFeedCard)
+3. ~~Hardcoded admin colors~~ ✅ Exempt (admin uses isolated theming)
 
-### P1 - High Priority
-4. GroupsList error state - use ErrorState component
-5. JoinGroupPage emoji - use SVG icon
-6. UserEditorModal "Loading..." - use LoadingSpinner
-7. Empty state standardization
+### P1 - High Priority (Current)
+4. ~~**Standardize list loading**~~ ✅ Done - All list components now use skeletons
+5. GroupsList error state - use ErrorState component
+6. JoinGroupPage emoji - use SVG icon
+7. ~~UserEditorModal "Loading..."~~ ✅ Done - uses LoadingSpinner
+8. Empty state standardization
 
 ### P2 - Medium Priority
 8. Modal padding standardization

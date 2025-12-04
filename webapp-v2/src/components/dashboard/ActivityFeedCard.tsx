@@ -1,6 +1,8 @@
 import { useStaggeredReveal } from '@/app/hooks/useScrollReveal';
 import { activityFeedStore } from '@/app/stores/activity-feed-store.ts';
+import { Button } from '@/components/ui/Button';
 import { RelativeTime } from '@/components/ui/RelativeTime.tsx';
+import { SkeletonActivityItem } from '@/components/ui/Skeleton';
 import { routes } from '@/constants/routes.ts';
 import { navigationService } from '@/services/navigation.service.ts';
 import { logError } from '@/utils/browser-logger.ts';
@@ -58,8 +60,18 @@ export function ActivityFeedCard({ userId }: ActivityFeedCardProps) {
             <div className='p-6'>
                 <div className='flex items-center justify-between mb-4'>
                     <h3 className='text-lg font-semibold text-text-primary'>{t('activityFeed.title')}</h3>
-                    {loading.value && !initialized.value ? <span className='text-xs font-medium text-interactive-primary animate-pulse'>{t('activityFeed.loading')}</span> : null}
                 </div>
+
+                {/* Loading skeleton */}
+                {loading.value && !initialized.value
+                    ? (
+                        <div className='space-y-3' aria-busy='true' aria-label={t('activityFeed.loading')}>
+                            <SkeletonActivityItem />
+                            <SkeletonActivityItem />
+                            <SkeletonActivityItem />
+                        </div>
+                    )
+                    : null}
 
                 {error.value
                     ? (
@@ -67,13 +79,13 @@ export function ActivityFeedCard({ userId }: ActivityFeedCardProps) {
                             <p className='text-sm text-semantic-error mb-3' role='alert' data-testid='activity-feed-error'>
                                 {t('activityFeed.error.loadFailed')}
                             </p>
-                            <button
-                                type='button'
-                                className='text-sm font-medium text-interactive-primary hover:text-interactive-primary'
+                            <Button
+                                variant='ghost'
+                                size='sm'
                                 onClick={handleRetry}
                             >
                                 {t('activityFeed.actions.retry')}
-                            </button>
+                            </Button>
                         </div>
                     )
                     : null}
@@ -155,14 +167,15 @@ export function ActivityFeedCard({ userId }: ActivityFeedCardProps) {
                 {hasMore.value
                     ? (
                         <div className='mt-6'>
-                            <button
-                                type='button'
-                                className='w-full text-sm font-medium text-interactive-primary border border-interactive-primary/20 rounded-md px-4 py-2 hover:bg-interactive-primary/10 transition-colors disabled:opacity-60 disabled:cursor-not-allowed'
+                            <Button
+                                variant='secondary'
+                                size='sm'
+                                fullWidth
                                 onClick={handleLoadMore}
-                                disabled={loadingMore.value}
+                                loading={loadingMore.value}
                             >
-                                {loadingMore.value ? t('activityFeed.actions.loadingMore') : t('activityFeed.actions.loadMore')}
-                            </button>
+                                {t('activityFeed.actions.loadMore')}
+                            </Button>
                         </div>
                     )
                     : null}

@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { Checkbox } from '../ui/Checkbox';
+import { SkeletonExpenseItem } from '../ui/Skeleton';
 import { Stack } from '../ui/Stack';
 import { ExpenseItem } from './ExpenseItem';
 
@@ -39,6 +40,9 @@ export function ExpensesList({
         enhancedGroupDetailStore.loadMoreExpenses();
     };
 
+    // Show skeleton during initial load (loading and no expenses yet)
+    const isInitialLoad = loading.value && expenses.value.length === 0;
+
     return (
         <Card variant='glass' className='p-6 border-border-default' data-testid='expenses-list-card'>
             <div className='flex justify-between items-center mb-4'>
@@ -52,7 +56,15 @@ export function ExpensesList({
                     />
                 )}
             </div>
-            {expenses.value.length === 0 ? <p className='text-text-muted'>{t('expensesList.noExpensesYet')}</p> : (
+
+            {/* Loading skeleton */}
+            {isInitialLoad ? (
+                <div className='space-y-3' aria-busy='true' aria-label={t('common.loading')}>
+                    <SkeletonExpenseItem />
+                    <SkeletonExpenseItem />
+                    <SkeletonExpenseItem />
+                </div>
+            ) : expenses.value.length === 0 ? <p className='text-text-muted'>{t('expensesList.noExpensesYet')}</p> : (
                 <Stack spacing='md' ref={listRef}>
                     {expenses.value.map((expense, index) => (
                         <div

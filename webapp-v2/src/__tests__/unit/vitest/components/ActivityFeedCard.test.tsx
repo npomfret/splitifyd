@@ -46,6 +46,7 @@ vi.mock('@/app/stores/activity-feed-store', async () => {
 vi.mock('@/utils/browser-logger', () => ({
     logInfo: vi.fn(),
     logError: vi.fn(),
+    logButtonClick: vi.fn(),
 }));
 
 // Import the mocked store after mocking
@@ -181,25 +182,28 @@ describe('ActivityFeedCard', () => {
     });
 
     describe('Loading States', () => {
-        it('shows loading state during initial load', () => {
+        it('shows loading skeleton during initial load', () => {
             setSignalValue(mockStore.loadingSignal, true);
             setSignalValue(mockStore.initializedSignal, false);
 
             render(<ActivityFeedCard userId={toUserId('user-1')} />);
 
-            expect(screen.getByText('Loading...')).toBeInTheDocument();
+            // Skeleton loader shows with aria-busy for accessibility
+            const skeletonContainer = screen.getByLabelText('Loading...');
+            expect(skeletonContainer).toBeInTheDocument();
+            expect(skeletonContainer).toHaveAttribute('aria-busy', 'true');
         });
 
-        it('does not show loading state after initialization', () => {
+        it('does not show loading skeleton after initialization', () => {
             setSignalValue(mockStore.loadingSignal, false);
             setSignalValue(mockStore.initializedSignal, true);
 
             render(<ActivityFeedCard userId={toUserId('user-1')} />);
 
-            expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+            expect(screen.queryByLabelText('Loading...')).not.toBeInTheDocument();
         });
 
-        it('shows loading more state on load more button', () => {
+        it('shows loading spinner on load more button when loading more', () => {
             setSignalValue(mockStore.initializedSignal, true);
             setSignalValue(mockStore.itemsSignal, [buildItem('1', ActivityFeedEventTypes.EXPENSE_CREATED)]);
             setSignalValue(mockStore.hasMoreSignal, true);
@@ -207,7 +211,10 @@ describe('ActivityFeedCard', () => {
 
             render(<ActivityFeedCard userId={toUserId('user-1')} />);
 
-            expect(screen.getByText('Loading more...')).toBeInTheDocument();
+            // Button shows loading spinner (via Button component's loading prop)
+            // The button text stays "Load More" but it's disabled and has a spinner
+            const loadMoreButton = screen.getByRole('button', { name: /Load More/i });
+            expect(loadMoreButton).toBeDisabled();
         });
     });
 
@@ -610,7 +617,8 @@ describe('ActivityFeedCard', () => {
 
             render(<ActivityFeedCard userId={toUserId('user-1')} />);
 
-            const loadMoreButton = screen.getByRole('button', { name: 'Loading more...' });
+            // Button shows loading spinner (text stays "Load More" but button is disabled)
+            const loadMoreButton = screen.getByRole('button', { name: /Load More/i });
             expect(loadMoreButton).toBeDisabled();
         });
     });
