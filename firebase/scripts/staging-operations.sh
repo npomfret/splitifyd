@@ -57,7 +57,7 @@ case "$OPERATION" in
         tsx scripts/switch-instance.ts staging-1
 
         echo "  📦 Syncing staging-tenant (splitifyd.web.app)..."
-        tsx scripts/publish-staging-themes.ts "$ADMIN_EMAIL" "$ADMIN_PASSWORD"
+        tsx scripts/publish-themes.ts https://splitifyd.web.app "$ADMIN_EMAIL" "$ADMIN_PASSWORD" --tenant-id staging-tenant
 
         echo "✅ Tenant config synced and theme published"
         ;;

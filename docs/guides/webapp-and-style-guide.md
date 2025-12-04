@@ -102,7 +102,7 @@ Pages in `pages/admin/` and `components/admin/` **can** use hardcoded colors. Th
 | Stores | `app/stores/` |
 | Global animations | `styles/global.css` |
 | Theme CSS endpoint | `/api/theme.css` |
-| Tenant config | `firebase/scripts/tenant-configs.json` |
+| Tenant configs | `firebase/docs/tenants/<tenant-id>/config.json` |
 
 ---
 

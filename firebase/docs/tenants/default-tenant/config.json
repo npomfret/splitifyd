@@ -1,0 +1,199 @@
+{
+  "id": "default-tenant",
+  "domains": ["127.0.0.1"],
+  "branding": {
+    "appName": "Splitifyd",
+    "logoUrl": "/logo.svg",
+    "faviconUrl": "/favicon.ico",
+    "primaryColor": "#737373",
+    "secondaryColor": "#525252",
+    "accentColor": "#A3A3A3",
+    "surfaceColor": "#171717",
+    "textColor": "#E5E5E5",
+    "marketingFlags": {
+      "showLandingPage": true,
+      "showMarketingContent": false,
+      "showPricingPage": false
+    }
+  },
+  "brandingTokens": {
+    "tokens": {
+      "version": 1,
+      "palette": {
+        "primary": "#737373",
+        "primaryVariant": "#525252",
+        "secondary": "#525252",
+        "secondaryVariant": "#404040",
+        "accent": "#A3A3A3",
+        "neutral": "#171717",
+        "neutralVariant": "#262626",
+        "success": "#22C55E",
+        "warning": "#F59E0B",
+        "danger": "#EF4444",
+        "info": "#737373"
+      },
+      "typography": {
+        "fontFamily": {
+          "sans": "Inter, system-ui, -apple-system, sans-serif",
+          "serif": "Georgia, serif",
+          "mono": "JetBrains Mono, monospace"
+        },
+        "sizes": {
+          "xs": "0.75rem",
+          "sm": "0.875rem",
+          "md": "1rem",
+          "lg": "1.125rem",
+          "xl": "1.25rem",
+          "2xl": "1.5rem",
+          "3xl": "1.875rem",
+          "4xl": "2.25rem",
+          "5xl": "3rem"
+        },
+        "weights": {
+          "regular": 400,
+          "medium": 500,
+          "semibold": 600,
+          "bold": 700
+        },
+        "lineHeights": {
+          "compact": "1.25rem",
+          "standard": "1.5rem",
+          "spacious": "1.75rem"
+        },
+        "letterSpacing": {
+          "tight": "-0.02rem",
+          "normal": "0rem",
+          "wide": "0.04rem"
+        },
+        "semantics": {
+          "body": "md",
+          "bodyStrong": "md",
+          "caption": "sm",
+          "button": "sm",
+          "eyebrow": "xs",
+          "heading": "2xl",
+          "display": "4xl"
+        }
+      },
+      "spacing": {
+        "2xs": "0.125rem",
+        "xs": "0.25rem",
+        "sm": "0.5rem",
+        "md": "0.75rem",
+        "lg": "1rem",
+        "xl": "1.5rem",
+        "2xl": "2rem"
+      },
+      "radii": {
+        "none": "0px",
+        "sm": "4px",
+        "md": "4px",
+        "lg": "4px",
+        "pill": "999px",
+        "full": "9999px"
+      },
+      "shadows": {
+        "sm": "0 1px 2px rgba(0, 0, 0, 0.3)",
+        "md": "0 4px 12px rgba(0, 0, 0, 0.4)",
+        "lg": "0 20px 60px rgba(0, 0, 0, 0.5)"
+      },
+      "assets": {
+        "logoUrl": "/logo.svg",
+        "faviconUrl": "/favicon.ico"
+      },
+      "legal": {
+        "companyName": "Splitifyd",
+        "supportEmail": "support@splitifyd.local",
+        "privacyPolicyUrl": "https://splitifyd.local/legal/privacy",
+        "termsOfServiceUrl": "https://splitifyd.local/legal/terms"
+      },
+      "semantics": {
+        "colors": {
+          "surface": {
+            "base": "#171717",
+            "raised": "#262626",
+            "sunken": "#0A0A0A",
+            "overlay": "#404040",
+            "warning": "#451A03",
+            "muted": "#404040",
+            "skeleton": "#262626",
+            "skeletonShimmer": "#404040"
+          },
+          "text": {
+            "primary": "#E5E5E5",
+            "secondary": "#A3A3A3",
+            "muted": "#737373",
+            "inverted": "#171717",
+            "accent": "#D4D4D4"
+          },
+          "interactive": {
+            "primary": "#737373",
+            "primaryHover": "#A3A3A3",
+            "primaryActive": "#525252",
+            "primaryForeground": "#171717",
+            "secondary": "#525252",
+            "secondaryHover": "#737373",
+            "secondaryActive": "#404040",
+            "secondaryForeground": "#E5E5E5",
+            "destructive": "#EF4444",
+            "destructiveHover": "#F87171",
+            "destructiveActive": "#DC2626",
+            "destructiveForeground": "#FFFFFF",
+            "accent": "#A3A3A3"
+          },
+          "border": {
+            "subtle": "#262626",
+            "default": "#404040",
+            "strong": "#525252",
+            "focus": "#A3A3A3",
+            "warning": "#F59E0B"
+          },
+          "status": {
+            "success": "#22C55E",
+            "warning": "#F59E0B",
+            "danger": "#EF4444",
+            "info": "#737373"
+          },
+          "gradient": {
+            "primary": ["#737373", "#525252"],
+            "accent": ["#A3A3A3", "#737373"]
+          }
+        },
+        "spacing": {
+          "pagePadding": "1.5rem",
+          "sectionGap": "2rem",
+          "cardPadding": "1rem",
+          "componentGap": "0.75rem"
+        },
+        "typography": {
+          "body": "md",
+          "bodyStrong": "md",
+          "caption": "sm",
+          "button": "sm",
+          "eyebrow": "xs",
+          "heading": "2xl",
+          "display": "4xl"
+        }
+      },
+      "motion": {
+        "duration": {
+          "instant": 0,
+          "fast": 0,
+          "base": 0,
+          "slow": 0,
+          "glacial": 0
+        },
+        "easing": {
+          "standard": "linear",
+          "decelerate": "linear",
+          "accelerate": "linear",
+          "spring": "linear"
+        },
+        "enableParallax": false,
+        "enableMagneticHover": false,
+        "enableScrollReveal": false
+      }
+    }
+  },
+  "isDefault": true
+}

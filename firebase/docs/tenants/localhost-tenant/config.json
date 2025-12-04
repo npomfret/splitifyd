@@ -1,0 +1,226 @@
+{
+  "id": "localhost-tenant",
+  "domains": ["localhost"],
+  "branding": {
+    "appName": "Splitifyd Aurora",
+    "logoUrl": "/logo.svg",
+    "faviconUrl": "/favicon.ico",
+    "primaryColor": "#8B5CF6",
+    "secondaryColor": "#06B6D4",
+    "accentColor": "#F472B6",
+    "surfaceColor": "#0F0F1A",
+    "textColor": "#F8FAFC",
+    "marketingFlags": {
+      "showLandingPage": true,
+      "showMarketingContent": true,
+      "showPricingPage": true
+    }
+  },
+  "brandingTokens": {
+    "tokens": {
+      "version": 1,
+      "palette": {
+        "primary": "#8B5CF6",
+        "primaryVariant": "#7C3AED",
+        "secondary": "#06B6D4",
+        "secondaryVariant": "#0891B2",
+        "accent": "#F472B6",
+        "neutral": "#0F0F1A",
+        "neutralVariant": "#1A1A2E",
+        "success": "#10B981",
+        "warning": "#F59E0B",
+        "danger": "#EF4444",
+        "info": "#3B82F6"
+      },
+      "typography": {
+        "fontFamily": {
+          "sans": "Space Grotesk, Inter, system-ui, -apple-system, sans-serif",
+          "serif": "Fraunces, Georgia, serif",
+          "mono": "Geist Mono, JetBrains Mono, monospace"
+        },
+        "sizes": {
+          "xs": "0.75rem",
+          "sm": "0.875rem",
+          "md": "1rem",
+          "lg": "1.125rem",
+          "xl": "1.25rem",
+          "2xl": "1.5rem",
+          "3xl": "1.875rem",
+          "4xl": "2.25rem",
+          "5xl": "3rem"
+        },
+        "weights": {
+          "regular": 400,
+          "medium": 500,
+          "semibold": 600,
+          "bold": 700
+        },
+        "lineHeights": {
+          "compact": "1.25rem",
+          "standard": "1.5rem",
+          "spacious": "1.75rem"
+        },
+        "letterSpacing": {
+          "tight": "-0.02rem",
+          "normal": "0rem",
+          "wide": "0.05rem",
+          "wider": "0.1rem",
+          "eyebrow": "0.15rem"
+        },
+        "semantics": {
+          "body": "md",
+          "bodyStrong": "lg",
+          "caption": "sm",
+          "button": "sm",
+          "eyebrow": "xs",
+          "heading": "3xl",
+          "display": "5xl"
+        },
+        "fluidScale": {
+          "xs": "clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem)",
+          "sm": "clamp(0.875rem, 0.8rem + 0.375vw, 1rem)",
+          "base": "clamp(1rem, 0.9rem + 0.5vw, 1.125rem)",
+          "lg": "clamp(1.125rem, 1rem + 0.625vw, 1.25rem)",
+          "xl": "clamp(1.25rem, 1.1rem + 0.75vw, 1.5rem)",
+          "2xl": "clamp(1.5rem, 1.3rem + 1vw, 1.875rem)",
+          "3xl": "clamp(1.875rem, 1.5rem + 1.875vw, 2.25rem)",
+          "4xl": "clamp(2.25rem, 1.75rem + 2.5vw, 3rem)",
+          "hero": "clamp(2.5rem, 2rem + 2.5vw, 4rem)"
+        }
+      },
+      "spacing": {
+        "2xs": "0.125rem",
+        "xs": "0.25rem",
+        "sm": "0.5rem",
+        "md": "0.75rem",
+        "lg": "1rem",
+        "xl": "1.5rem",
+        "2xl": "2rem"
+      },
+      "radii": {
+        "none": "0px",
+        "sm": "6px",
+        "md": "12px",
+        "lg": "20px",
+        "pill": "999px",
+        "full": "9999px"
+      },
+      "shadows": {
+        "sm": "0 2px 8px rgba(139, 92, 246, 0.15)",
+        "md": "0 8px 24px rgba(139, 92, 246, 0.25)",
+        "lg": "0 24px 64px rgba(139, 92, 246, 0.35)"
+      },
+      "assets": {
+        "logoUrl": "/logo.svg",
+        "faviconUrl": "/favicon.ico"
+      },
+      "legal": {
+        "companyName": "Splitifyd Aurora Demo",
+        "supportEmail": "support@splitifyd.local",
+        "privacyPolicyUrl": "https://splitifyd.local/legal/privacy",
+        "termsOfServiceUrl": "https://splitifyd.local/legal/terms"
+      },
+      "semantics": {
+        "colors": {
+          "surface": {
+            "base": "#0F0F1A",
+            "raised": "#1A1A2E",
+            "sunken": "#08080F",
+            "overlay": "rgba(15, 15, 26, 0.9)",
+            "warning": "#451A03",
+            "muted": "#252542",
+            "glass": "rgba(139, 92, 246, 0.08)",
+            "glassBorder": "rgba(139, 92, 246, 0.2)",
+            "aurora": "rgba(6, 182, 212, 0.05)",
+            "spotlight": "rgba(244, 114, 182, 0.1)",
+            "skeleton": "#1E293B",
+            "skeletonShimmer": "#334155"
+          },
+          "text": {
+            "primary": "#F8FAFC",
+            "secondary": "#CBD5E1",
+            "muted": "#64748B",
+            "inverted": "#0F0F1A",
+            "accent": "#F472B6",
+            "disabled": "#475569",
+            "hero": "#FFFFFF",
+            "eyebrow": "#06B6D4",
+            "code": "#A5B4FC"
+          },
+          "interactive": {
+            "primary": "#8B5CF6",
+            "primaryHover": "#A78BFA",
+            "primaryActive": "#7C3AED",
+            "primaryForeground": "#FFFFFF",
+            "secondary": "#06B6D4",
+            "secondaryHover": "#22D3EE",
+            "secondaryActive": "#0891B2",
+            "secondaryForeground": "#FFFFFF",
+            "destructive": "#EF4444",
+            "destructiveHover": "#F87171",
+            "destructiveActive": "#DC2626",
+            "destructiveForeground": "#FFFFFF",
+            "accent": "#F472B6",
+            "ghost": "rgba(139, 92, 246, 0.1)",
+            "magnetic": "#22D3EE",
+            "glow": "rgba(139, 92, 246, 0.5)"
+          },
+          "border": {
+            "subtle": "rgba(139, 92, 246, 0.1)",
+            "default": "rgba(139, 92, 246, 0.2)",
+            "strong": "rgba(139, 92, 246, 0.4)",
+            "focus": "#F472B6",
+            "warning": "#F59E0B",
+            "error": "#EF4444"
+          },
+          "status": {
+            "success": "#10B981",
+            "warning": "#F59E0B",
+            "danger": "#EF4444",
+            "info": "#3B82F6"
+          },
+          "gradient": {
+            "primary": ["#8B5CF6", "#6366F1"],
+            "accent": ["#F472B6", "#8B5CF6"],
+            "aurora": ["#8B5CF6", "#06B6D4", "#10B981", "#F472B6"],
+            "text": ["#F8FAFC", "#CBD5E1"]
+          }
+        },
+        "spacing": {
+          "pagePadding": "clamp(1rem, 5vw, 2rem)",
+          "sectionGap": "clamp(2rem, 8vw, 4rem)",
+          "cardPadding": "clamp(1rem, 3vw, 1.5rem)",
+          "componentGap": "1rem"
+        },
+        "typography": {
+          "body": "md",
+          "bodyStrong": "lg",
+          "caption": "sm",
+          "button": "sm",
+          "eyebrow": "xs",
+          "heading": "3xl",
+          "display": "5xl"
+        }
+      },
+      "motion": {
+        "duration": {
+          "instant": 50,
+          "fast": 150,
+          "base": 300,
+          "slow": 500,
+          "glacial": 1000
+        },
+        "easing": {
+          "standard": "cubic-bezier(0.22, 1, 0.36, 1)",
+          "decelerate": "cubic-bezier(0.05, 0.7, 0.1, 1)",
+          "accelerate": "cubic-bezier(0.3, 0, 0.8, 0.15)",
+          "spring": "cubic-bezier(0.34, 1.56, 0.64, 1)"
+        },
+        "enableParallax": true,
+        "enableMagneticHover": true,
+        "enableScrollReveal": true
+      }
+    }
+  },
+  "isDefault": false
+}

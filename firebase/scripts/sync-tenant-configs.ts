@@ -1,6 +1,6 @@
 #!/usr/bin/env npx tsx
 /**
- * Sync tenant configurations from tenant-configs.json to Firestore via API.
+ * Sync tenant configurations from docs/tenants/ to Firestore via API.
  *
  * Usage:
  *   ./scripts/sync-tenant-configs.ts <emulator|production> [--default-only]
@@ -12,7 +12,6 @@
  */
 import {
     type AdminUpsertTenantRequest,
-    type TenantBranding,
     toShowLandingPageFlag,
     toShowMarketingContentFlag,
     toShowPricingPageFlag,
@@ -31,28 +30,7 @@ import {
 import { ApiDriver, type ApiDriverConfig } from '@billsplit-wl/test-support';
 import * as fs from 'fs';
 import * as path from 'path';
-
-interface TenantConfig {
-    id: string;
-    domains: string[];
-    branding: {
-        appName: string;
-        logoUrl: string;
-        faviconUrl: string;
-        primaryColor: string;
-        secondaryColor: string;
-        accentColor?: string;
-        surfaceColor?: string;
-        textColor?: string;
-        marketingFlags?: {
-            showLandingPage?: boolean;
-            showMarketingContent?: boolean;
-            showPricingPage?: boolean;
-        };
-    };
-    brandingTokens: TenantBranding;
-    isDefault: boolean;
-}
+import { getTenantDirectory, loadAllTenantConfigs, loadTenantConfig, type TenantConfig } from './load-tenant-configs';
 
 interface SyncTenantOptions {
     defaultOnly?: boolean;
@@ -79,6 +57,8 @@ function getContentTypeFromExtension(ext: string): string {
 /**
  * Upload an image file to Storage via API if the URL starts with "file://".
  * Otherwise, return the URL as-is.
+ *
+ * Relative paths are resolved from the tenant's config directory.
  */
 async function uploadAssetIfLocal(
     apiDriver: ApiDriver,
@@ -89,7 +69,9 @@ async function uploadAssetIfLocal(
 ): Promise<string> {
     if (urlOrPath.startsWith('file://')) {
         const filePath = urlOrPath.slice('file://'.length);
-        const absolutePath = path.isAbsolute(filePath) ? filePath : path.join(__dirname, filePath);
+        // Resolve relative paths from the tenant's config directory
+        const tenantDir = getTenantDirectory(tenantId);
+        const absolutePath = path.isAbsolute(filePath) ? filePath : path.join(tenantDir, filePath);
 
         if (!fs.existsSync(absolutePath)) {
             throw new Error(`File not found: ${absolutePath}`);
@@ -140,22 +122,24 @@ export async function syncTenantConfigs(
     adminToken: string,
     options?: SyncTenantOptions,
 ): Promise<void> {
-    const configPath = path.join(__dirname, 'tenant-configs.json');
-    const configData = fs.readFileSync(configPath, 'utf-8');
-    let configs: TenantConfig[] = JSON.parse(configData);
+    let configs: TenantConfig[];
 
     // Filter based on options
-    if (options?.defaultOnly) {
-        configs = configs.filter((c) => c.isDefault === true);
-        console.log('🔄 Syncing default tenant only...');
-    } else if (options?.tenantId) {
-        configs = configs.filter((c) => c.id === options.tenantId);
-        if (configs.length === 0) {
-            throw new Error(`Tenant '${options.tenantId}' not found in tenant-configs.json`);
+    if (options?.tenantId) {
+        const config = loadTenantConfig(options.tenantId);
+        if (!config) {
+            throw new Error(`Tenant '${options.tenantId}' not found in docs/tenants/`);
         }
+        configs = [config];
         console.log(`🔄 Syncing tenant: ${options.tenantId}...`);
     } else {
-        console.log('🔄 Syncing all tenant configurations from JSON...');
+        configs = loadAllTenantConfigs();
+        if (options?.defaultOnly) {
+            configs = configs.filter((c) => c.isDefault === true);
+            console.log('🔄 Syncing default tenant only...');
+        } else {
+            console.log('🔄 Syncing all tenant configurations from docs/tenants/...');
+        }
     }
 
     // Normalize domains (remove port for storage)
@@ -184,7 +168,7 @@ export async function syncTenantConfigs(
 
         // Validate brandingTokens are present
         if (!config.brandingTokens) {
-            throw new Error(`Tenant '${config.id}' is missing required brandingTokens in tenant-configs.json`);
+            throw new Error(`Tenant '${config.id}' is missing required brandingTokens in docs/tenants/${config.id}/config.json`);
         }
 
         // Build request object

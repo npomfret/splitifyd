@@ -557,7 +557,7 @@ export async function createDefaultTenant(): Promise<void> {
 
     // After syncing the default tenant, publish its theme CSS
     console.log('🎨 Publishing theme CSS for default tenant...');
-    const { publishLocalThemes } = await import('./publish-local-themes');
+    const { publishLocalThemes } = await import('./publish-themes');
     await publishLocalThemes({ defaultOnly: true });
 }
 
@@ -586,7 +586,7 @@ export async function syncDemoTenants(): Promise<void> {
  */
 export async function publishDemoThemes(): Promise<void> {
     console.log('🎨 Publishing theme CSS artifacts for all tenants...');
-    const { publishLocalThemes } = await import('./publish-local-themes');
+    const { publishLocalThemes } = await import('./publish-themes');
     await publishLocalThemes();
 }
 
