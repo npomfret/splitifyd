@@ -194,6 +194,8 @@ export const PolicyIds = {
 // ========================================================================
 
 export const ActivityFeedEventTypes = {
+    GROUP_CREATED: 'group-created',
+    GROUP_UPDATED: 'group-updated',
     EXPENSE_CREATED: 'expense-created',
     EXPENSE_UPDATED: 'expense-updated',
     EXPENSE_DELETED: 'expense-deleted',
@@ -202,7 +204,6 @@ export const ActivityFeedEventTypes = {
     COMMENT_ADDED: 'comment-added',
     SETTLEMENT_CREATED: 'settlement-created',
     SETTLEMENT_UPDATED: 'settlement-updated',
-    GROUP_UPDATED: 'group-updated',
 } as const;
 
 export type ActivityFeedEventType = (typeof ActivityFeedEventTypes)[keyof typeof ActivityFeedEventTypes];

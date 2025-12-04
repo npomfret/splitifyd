@@ -305,6 +305,9 @@
       "commentOnExpense": "the expense \"{{description}}\""
     },
     "events": {
+      "group-created": "{{actor}} created {{group}}",
+      "group-updated": "{{actor}} updated the group {{group}}",
+      "group-updated-from": "{{actor}} renamed {{previous}} to {{group}}",
       "expense-created": "{{actor}} added {{expense}} in {{group}}",
       "expense-updated": "{{actor}} updated {{expense}} in {{group}}",
       "expense-deleted": "{{actor}} deleted {{expense}} from {{group}}",
@@ -315,8 +318,6 @@
       "comment-added": "{{actor}} commented on {{target}} in {{group}}",
       "settlement-created": "{{actor}} recorded {{settlement}} in {{group}}",
       "settlement-updated": "{{actor}} updated {{settlement}} in {{group}}",
-      "group-updated": "{{actor}} updated the group {{group}}",
-      "group-updated-from": "{{actor}} renamed {{previous}} to {{group}}",
       "generic": "{{actor}} made changes in {{group}}"
     }
   },

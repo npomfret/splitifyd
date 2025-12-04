@@ -204,6 +204,25 @@ export class ActivityFeedItemBuilder {
         );
     }
 
+    static groupCreated(
+        id: string,
+        userId: UserId,
+        groupId: GroupId | string,
+        groupName: GroupName | string,
+        actorName: string,
+    ): ActivityFeedItemBuilder {
+        return this.forEvent(
+            id,
+            userId,
+            groupId,
+            groupName,
+            ActivityFeedEventTypes.GROUP_CREATED,
+            ActivityFeedActions.CREATE,
+            actorName,
+            {},
+        );
+    }
+
     withId(id: string): ActivityFeedItemBuilder {
         this.item.id = id;
         this.ensureActorId();

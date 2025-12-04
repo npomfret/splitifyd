@@ -151,6 +151,21 @@ describe('notification system', () => {
         });
     });
 
+    it('should create activity feed item when group is created', async () => {
+        const group = await appDriver.createGroup(new CreateGroupRequestBuilder().withName('Test Group').build(), user1);
+
+        const feed = await appDriver.getActivityFeed({}, user1);
+
+        const groupCreatedItem = feed.items.find(
+            (item) => item.eventType === ActivityFeedEventTypes.GROUP_CREATED && item.groupId === group.id,
+        );
+
+        expect(groupCreatedItem).toBeDefined();
+        expect(groupCreatedItem?.groupName).toBe('Test Group');
+        expect(groupCreatedItem?.actorId).toBe(user1);
+        expect(groupCreatedItem?.action).toBe(ActivityFeedActions.CREATE);
+    });
+
     it('should prune activity feed entries beyond the latest 20 items via async cleanup', async () => {
         const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
         const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, user1);

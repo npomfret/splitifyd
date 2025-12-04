@@ -106,6 +106,20 @@ test.describe('Activity Feed - Event Types', () => {
         await dashboardPage.verifyActivityFeedContainsText('Alice added Bob to Test Group');
     });
 
+    test('should display group-created events correctly', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
+        const dashboardPage = new DashboardPage(page);
+
+        const group = GroupDTOBuilder.groupForUser(user.uid).withId('group-1').withName('My New Group').build();
+        const activityItems = [ActivityFeedItemBuilder.groupCreated('item-1', user.uid, 'group-1', 'My New Group', 'Alice').build()];
+
+        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
+        await mockActivityFeedApi(page, activityItems);
+        await page.goto('/dashboard');
+
+        await dashboardPage.verifyActivityFeedContainsText('Alice created My New Group');
+    });
+
     test('should display comment-added events with preview', async ({ authenticatedPage }) => {
         const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);

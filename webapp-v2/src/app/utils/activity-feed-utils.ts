@@ -2,6 +2,8 @@ import { ActivityFeedActions, ActivityFeedEventTypes } from '@billsplit-wl/share
 import type { ActivityFeedAction, ActivityFeedEventType, ActivityFeedItem } from '@billsplit-wl/shared';
 
 const EVENT_ACTION_MAP: Record<ActivityFeedEventType, ActivityFeedAction> = {
+    [ActivityFeedEventTypes.GROUP_CREATED]: ActivityFeedActions.CREATE,
+    [ActivityFeedEventTypes.GROUP_UPDATED]: ActivityFeedActions.UPDATE,
     [ActivityFeedEventTypes.EXPENSE_CREATED]: ActivityFeedActions.CREATE,
     [ActivityFeedEventTypes.EXPENSE_UPDATED]: ActivityFeedActions.UPDATE,
     [ActivityFeedEventTypes.EXPENSE_DELETED]: ActivityFeedActions.DELETE,
@@ -10,7 +12,6 @@ const EVENT_ACTION_MAP: Record<ActivityFeedEventType, ActivityFeedAction> = {
     [ActivityFeedEventTypes.MEMBER_JOINED]: ActivityFeedActions.JOIN,
     [ActivityFeedEventTypes.MEMBER_LEFT]: ActivityFeedActions.LEAVE,
     [ActivityFeedEventTypes.COMMENT_ADDED]: ActivityFeedActions.COMMENT,
-    [ActivityFeedEventTypes.GROUP_UPDATED]: ActivityFeedActions.UPDATE,
 };
 
 export function deriveActivityFeedAction(eventType: string | undefined, fallback: ActivityFeedAction = ActivityFeedActions.UPDATE): ActivityFeedAction {

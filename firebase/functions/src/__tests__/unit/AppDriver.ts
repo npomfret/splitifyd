@@ -1223,6 +1223,7 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
             [
                 'groupDetailsChangeCount',
                 [
+                    ActivityFeedEventTypes.GROUP_CREATED,
                     ActivityFeedEventTypes.GROUP_UPDATED,
                     ActivityFeedEventTypes.MEMBER_JOINED,
                     ActivityFeedEventTypes.MEMBER_LEFT,

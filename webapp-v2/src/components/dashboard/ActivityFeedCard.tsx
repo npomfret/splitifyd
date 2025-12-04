@@ -205,6 +205,8 @@ function renderEventDescription(item: ActivityFeedItem, currentUserId: string, t
                 : t('activityFeed.labels.commentOnGroup');
             return t('activityFeed.events.comment-added', { actor, target: commentTarget, group });
         }
+        case 'group-created':
+            return t('activityFeed.events.group-created', { actor, group });
         case 'group-updated': {
             const previousName = item.details?.previousGroupName;
             if (previousName && previousName !== group) {

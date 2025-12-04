@@ -19,6 +19,7 @@ import {
     smallestUnitToAmountString,
     toCurrencyISOCode,
     toGroupId,
+    toGroupName,
     toISOString,
     toUserId,
     UpdateGroupRequest,
@@ -378,6 +379,20 @@ export class GroupService {
             // which fires when the group document is created
         });
         timer.endPhase();
+
+        // Record activity feed AFTER transaction commits (fire-and-forget)
+        const activityItem = this.activityFeedService.buildGroupActivityItem({
+            groupId,
+            groupName: toGroupName(createGroupRequest.name),
+            eventType: ActivityFeedEventTypes.GROUP_CREATED,
+            action: ActivityFeedActions.CREATE,
+            actorId: userId,
+            actorName: normalizedDisplayName,
+            timestamp: nowISO,
+        });
+        await this.activityFeedService.recordActivityForUsers([userId], activityItem).catch(() => {
+            // Already logged in recordActivityForUsers, just catch to prevent unhandled rejection
+        });
 
         // Add group context to logger
         LoggerContext.setBusinessContext({ groupId: groupId });

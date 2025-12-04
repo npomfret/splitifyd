@@ -73,6 +73,9 @@ vi.mock('react-i18next', () => ({
                 'activityFeed.labels.unknownSettlement': 'a settlement',
                 'activityFeed.labels.commentOnExpense': 'on {{description}}',
                 'activityFeed.labels.commentOnGroup': 'on the group',
+                'activityFeed.events.group-created': '{{actor}} created {{group}}',
+                'activityFeed.events.group-updated': '{{actor}} updated {{group}}',
+                'activityFeed.events.group-updated-from': '{{actor}} renamed {{previous}} to {{group}}',
                 'activityFeed.events.expense-created': '{{actor}} added {{expense}} in {{group}}',
                 'activityFeed.events.expense-updated': '{{actor}} updated {{expense}} in {{group}}',
                 'activityFeed.events.expense-deleted': '{{actor}} deleted {{expense}} from {{group}}',
@@ -81,8 +84,6 @@ vi.mock('react-i18next', () => ({
                 'activityFeed.events.member-left': '{{actor}} removed {{target}} from {{group}}',
                 'activityFeed.events.member-left-self': '{{actor}} left {{group}}',
                 'activityFeed.events.comment-added': '{{actor}} commented {{target}} in {{group}}',
-                'activityFeed.events.group-updated': '{{actor}} updated {{group}}',
-                'activityFeed.events.group-updated-from': '{{actor}} renamed {{previous}} to {{group}}',
                 'activityFeed.events.settlement-created': '{{actor}} added {{settlement}} in {{group}}',
                 'activityFeed.events.settlement-updated': '{{actor}} updated {{settlement}} in {{group}}',
                 'activityFeed.events.generic': '{{actor}} made a change in {{group}}',
@@ -106,6 +107,8 @@ function setSignalValue<T>(sig: ReadonlySignal<T>, value: T): void {
 }
 
 const EVENT_ACTION_MAP: Record<ActivityFeedEventType, ActivityFeedAction> = {
+    [ActivityFeedEventTypes.GROUP_CREATED]: ActivityFeedActions.CREATE,
+    [ActivityFeedEventTypes.GROUP_UPDATED]: ActivityFeedActions.UPDATE,
     [ActivityFeedEventTypes.EXPENSE_CREATED]: ActivityFeedActions.CREATE,
     [ActivityFeedEventTypes.EXPENSE_UPDATED]: ActivityFeedActions.UPDATE,
     [ActivityFeedEventTypes.EXPENSE_DELETED]: ActivityFeedActions.DELETE,
@@ -114,7 +117,6 @@ const EVENT_ACTION_MAP: Record<ActivityFeedEventType, ActivityFeedAction> = {
     [ActivityFeedEventTypes.COMMENT_ADDED]: ActivityFeedActions.COMMENT,
     [ActivityFeedEventTypes.SETTLEMENT_CREATED]: ActivityFeedActions.CREATE,
     [ActivityFeedEventTypes.SETTLEMENT_UPDATED]: ActivityFeedActions.UPDATE,
-    [ActivityFeedEventTypes.GROUP_UPDATED]: ActivityFeedActions.UPDATE,
 };
 
 function buildItem(id: string, eventType: ActivityFeedEventType | string, overrides?: Partial<ActivityFeedItem>): ActivityFeedItem {
