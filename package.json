@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "clean": "npm run clean -ws --if-present",
-    "clean:logs": "rm -f firebase/*.log || true",
+    "clean:logs": "rm -f firebase/*.log || true; rm -rf \"${TMPDIR:-/tmp}/firebase/storage\" || true",
     "super-clean": "npm run super-clean -ws --if-present && rm -rf node_modules",
     "build:packages": "npm run build -w @billsplit-wl/shared && npm run build -w @billsplit-wl/test-support",
     "build:firebase-scripts": "tsc --project firebase/tsconfig.json --noEmit",
