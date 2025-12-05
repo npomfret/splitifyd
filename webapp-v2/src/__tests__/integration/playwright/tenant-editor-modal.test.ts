@@ -91,6 +91,8 @@ test.describe('Tenant Editor Modal', () => {
             await tenantEditorModal.clickCreateTenant();
             await tenantEditorModal.waitForModalToBeVisible();
 
+            // Typography is an Advanced-only section
+            await tenantEditorModal.switchToAdvancedMode();
             await tenantEditorModal.verifyTypographyFieldsVisible();
         });
 
@@ -104,6 +106,8 @@ test.describe('Tenant Editor Modal', () => {
             await tenantEditorModal.clickCreateTenant();
             await tenantEditorModal.waitForModalToBeVisible();
 
+            // Motion Effects is an Advanced-only section
+            await tenantEditorModal.switchToAdvancedMode();
             await tenantEditorModal.verifyMotionEffectsCheckboxesVisible();
         });
     });
@@ -227,6 +231,9 @@ test.describe('Tenant Editor Modal', () => {
             await tenantEditorModal.clickCreateTenant();
             await tenantEditorModal.waitForModalToBeVisible();
 
+            // Typography is an Advanced-only section
+            await tenantEditorModal.switchToAdvancedMode();
+
             // Set custom fonts (page object auto-expands section)
             await tenantEditorModal.setFontFamilySans('Roboto, sans-serif');
             await tenantEditorModal.setFontFamilySerif('Georgia, serif');
@@ -249,6 +256,9 @@ test.describe('Tenant Editor Modal', () => {
             await adminTenantsPage.waitForTenantsLoaded();
             await tenantEditorModal.clickCreateTenant();
             await tenantEditorModal.waitForModalToBeVisible();
+
+            // Motion Effects is an Advanced-only section
+            await tenantEditorModal.switchToAdvancedMode();
 
             // Toggle aurora animation
             await tenantEditorModal.toggleAuroraAnimation(true);

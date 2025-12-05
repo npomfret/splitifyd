@@ -146,7 +146,14 @@ export const EMPTY_TENANT_DATA: TenantData = {
 
     showAppNameInHeader: true,
 
+    gradientPrimary: [],
+    gradientAccent: [],
     auroraGradient: [],
     glassColor: '',
     glassBorderColor: '',
+
+    // Derivation options
+    derivationThemeMode: 'light',
+    derivationStyle: 'balanced',
+    derivationIntensity: 50,
 };

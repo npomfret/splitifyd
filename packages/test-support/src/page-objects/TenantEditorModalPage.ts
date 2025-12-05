@@ -98,6 +98,27 @@ export class TenantEditorModalPage extends BasePage {
         await this.expandSectionByName('Glassmorphism');
     }
 
+    // ✅ Editor mode toggle
+    async switchToBasicMode(): Promise<void> {
+        const basicButton = this.getModal().getByTestId('mode-toggle-basic');
+        await basicButton.click();
+    }
+
+    async switchToAdvancedMode(): Promise<void> {
+        const advancedButton = this.getModal().getByTestId('mode-toggle-advanced');
+        await advancedButton.click();
+    }
+
+    async verifyEditorModeIsBasic(): Promise<void> {
+        const basicButton = this.getModal().getByTestId('mode-toggle-basic');
+        await expect(basicButton).toHaveAttribute('aria-checked', 'true');
+    }
+
+    async verifyEditorModeIsAdvanced(): Promise<void> {
+        const advancedButton = this.getModal().getByTestId('mode-toggle-advanced');
+        await expect(advancedButton).toHaveAttribute('aria-checked', 'true');
+    }
+
     // ✅ Protected locators - internal use only (semantic selectors preferred over test IDs)
     protected getModal(): Locator {
         return this.page.getByRole('dialog');

@@ -139,6 +139,12 @@ export function extractFormDataFromTokens(tokens: BrandingTokens): Partial<Tenan
         enableMagneticHover: tokens.motion?.enableMagneticHover ?? false,
         enableScrollReveal: tokens.motion?.enableScrollReveal ?? false,
 
+        gradientPrimary: Array.isArray(tokens.semantics?.colors?.gradient?.primary)
+            ? tokens.semantics.colors.gradient.primary
+            : [],
+        gradientAccent: Array.isArray(tokens.semantics?.colors?.gradient?.accent)
+            ? tokens.semantics.colors.gradient.accent
+            : [],
         auroraGradient: Array.isArray(tokens.semantics?.colors?.gradient?.aurora)
             ? tokens.semantics.colors.gradient.aurora
             : [],
@@ -296,10 +302,14 @@ export function buildBrandingTokensFromForm(formData: TenantData): TenantBrandin
                     info: formData.statusInfoColor as `#${string}`,
                 },
                 gradient: {
+                    ...(formData.gradientPrimary.length === 2
+                        ? { primary: formData.gradientPrimary as `#${string}`[] }
+                        : {}),
+                    ...(formData.gradientAccent.length === 2
+                        ? { accent: formData.gradientAccent as `#${string}`[] }
+                        : {}),
                     ...(formData.enableParallax && formData.auroraGradient.length >= 2
-                        ? {
-                            aurora: formData.auroraGradient as `#${string}`[],
-                        }
+                        ? { aurora: formData.auroraGradient as `#${string}`[] }
                         : {}),
                 },
             },

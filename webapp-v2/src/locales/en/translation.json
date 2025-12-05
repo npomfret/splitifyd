@@ -1878,6 +1878,37 @@
       "titleEdit": "Edit Tenant",
       "descriptionCreate": "Configure a new tenant with branding and domains",
       "descriptionEdit": "Update tenant configuration",
+      "modeToggle": {
+        "label": "Editor mode",
+        "basic": "Basic",
+        "advanced": "Advanced"
+      },
+      "modeHint": {
+        "basic": "Showing essential settings",
+        "advanced": "Showing all settings",
+        "moreColors": "Switch to Advanced mode for full color palette control"
+      },
+      "derivation": {
+        "themeMode": {
+          "label": "Theme Mode",
+          "light": "Light",
+          "medium": "Medium",
+          "dark": "Dark"
+        },
+        "style": {
+          "label": "Style",
+          "balanced": "Balanced",
+          "bold": "Bold",
+          "soft": "Soft",
+          "vibrant": "Vibrant",
+          "elegant": "Elegant"
+        },
+        "intensity": {
+          "label": "Intensity",
+          "subtle": "Subtle",
+          "strong": "Strong"
+        }
+      },
       "sections": {
         "gettingStarted": {
           "title": "Getting Started",
@@ -1894,6 +1925,10 @@
         "paletteColors": {
           "title": "Palette Colors",
           "description": "Core brand colors"
+        },
+        "brandColors": {
+          "title": "Brand Colors",
+          "description": "Set your primary brand colors, then derive the full color system"
         },
         "surfaceColors": {
           "title": "Surface Colors",
@@ -2057,6 +2092,10 @@
         "removeDomain": "Remove",
         "chooseFromLibrary": "Choose from Library",
         "uploadNew": "Upload New"
+      },
+      "actions": {
+        "deriveColors": "Derive Colors",
+        "deriveColorsDescription": "Generate all semantic colors from your brand palette"
       }
     }
   }

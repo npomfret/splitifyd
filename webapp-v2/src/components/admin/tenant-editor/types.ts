@@ -148,9 +148,16 @@ export interface TenantData {
 
     showAppNameInHeader: boolean;
 
+    gradientPrimary: string[];
+    gradientAccent: string[];
     auroraGradient: string[];
     glassColor: string;
     glassBorderColor: string;
+
+    // Derivation options (used in Basic mode to control color generation)
+    derivationThemeMode: 'light' | 'medium' | 'dark';
+    derivationStyle: 'balanced' | 'bold' | 'soft' | 'vibrant' | 'elegant';
+    derivationIntensity: number;
 }
 
 export interface TenantConfig {

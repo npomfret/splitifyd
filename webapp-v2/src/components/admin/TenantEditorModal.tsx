@@ -1,5 +1,5 @@
 import { apiClient } from '@/app/apiClient';
-import { AdminFormSection, AdminFormToggle } from '@/components/admin/forms';
+import { AdminFormSection, AdminFormToggle, ModeToggle } from '@/components/admin/forms';
 import { ImagePicker } from '@/components/admin/ImagePicker';
 import {
     CreationMode,
@@ -38,6 +38,8 @@ import { useTranslation } from 'react-i18next';
 const Section = AdminFormSection;
 const Toggle = AdminFormToggle;
 
+type EditorMode = 'basic' | 'advanced';
+
 export type { TenantData, FullTenant, TenantEditorModalProps, CreationMode };
 
 export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: TenantEditorModalProps) {
@@ -53,6 +55,14 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
     const [existingTenants, setExistingTenants] = useState<FullTenant[]>([]);
     const [selectedSourceTenantId, setSelectedSourceTenantId] = useState<string>('');
     const [isLoadingTenants, setIsLoadingTenants] = useState(false);
+    const [editorMode, setEditorMode] = useState<EditorMode>('basic');
+
+    // Reset editor mode when modal closes
+    useEffect(() => {
+        if (!open) {
+            setEditorMode('basic');
+        }
+    }, [open]);
 
     useEffect(() => {
         if (open && mode === 'create') {
@@ -288,7 +298,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
         }
     };
 
-    const update = (partial: Partial<TenantData>) => setFormData({ ...formData, ...partial });
+    const update = (partial: Partial<TenantData>) => setFormData((prev) => ({ ...prev, ...partial }));
 
     const handleLogoFromLibrary = useCallback((url: string) => {
         setFormData((prev) => ({ ...prev, logoUrl: url }));
@@ -317,6 +327,22 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                     <button onClick={handleCancel} class='text-text-muted hover:text-text-primary' aria-label='Close'>
                         <XIcon size={24} />
                     </button>
+                </div>
+
+                {/* Mode Toggle Bar */}
+                <div class='flex-shrink-0 flex items-center justify-between border-b border-border-subtle px-6 py-3 bg-surface-raised'>
+                    <ModeToggle
+                        mode={editorMode}
+                        onChange={setEditorMode}
+                        disabled={isSaving}
+                        testId='editor-mode-toggle'
+                    />
+                    <span class='text-xs text-text-muted'>
+                        {editorMode === 'basic'
+                            ? t('admin.tenantEditor.modeHint.basic')
+                            : t('admin.tenantEditor.modeHint.advanced')
+                        }
+                    </span>
                 </div>
 
                 {/* Content */}
@@ -519,26 +545,34 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                             </div>
                         </Section>
 
-                        <PaletteColorsSection formData={formData} update={update} isSaving={isSaving} mode={mode} creationMode={creationMode} />
+                        {/* Basic Mode: Show simplified palette */}
+                        <PaletteColorsSection formData={formData} update={update} isSaving={isSaving} mode={mode} creationMode={creationMode} simplified={editorMode === 'basic'} />
 
-                        <SurfaceColorsSection formData={formData} update={update} isSaving={isSaving} mode={mode} creationMode={creationMode} />
+                        {/* Advanced Mode Only Sections */}
+                        {editorMode === 'advanced' && (
+                            <>
+                                <SurfaceColorsSection formData={formData} update={update} isSaving={isSaving} mode={mode} creationMode={creationMode} />
 
-                        <TextColorsSection formData={formData} update={update} isSaving={isSaving} mode={mode} creationMode={creationMode} />
+                                <TextColorsSection formData={formData} update={update} isSaving={isSaving} mode={mode} creationMode={creationMode} />
 
-                        <InteractiveColorsSection formData={formData} update={update} isSaving={isSaving} />
+                                <InteractiveColorsSection formData={formData} update={update} isSaving={isSaving} />
 
-                        <BorderColorsSection formData={formData} update={update} isSaving={isSaving} mode={mode} creationMode={creationMode} />
+                                <BorderColorsSection formData={formData} update={update} isSaving={isSaving} mode={mode} creationMode={creationMode} />
 
-                        <StatusColorsSection formData={formData} update={update} isSaving={isSaving} />
+                                <StatusColorsSection formData={formData} update={update} isSaving={isSaving} />
 
-                        <MotionEffectsSection formData={formData} update={update} isSaving={isSaving} />
-                        <AuroraGradientSection formData={formData} update={update} isSaving={isSaving} />
-                        <GlassmorphismSection formData={formData} update={update} isSaving={isSaving} />
+                                <MotionEffectsSection formData={formData} update={update} isSaving={isSaving} />
+                                <AuroraGradientSection formData={formData} update={update} isSaving={isSaving} />
+                                <GlassmorphismSection formData={formData} update={update} isSaving={isSaving} />
 
-                        <TypographySection formData={formData} update={update} isSaving={isSaving} />
-                        <SpacingSection formData={formData} update={update} isSaving={isSaving} />
-                        <RadiiSection formData={formData} update={update} isSaving={isSaving} />
-                        <ShadowsSection formData={formData} update={update} isSaving={isSaving} />
+                                <TypographySection formData={formData} update={update} isSaving={isSaving} />
+                                <SpacingSection formData={formData} update={update} isSaving={isSaving} />
+                                <RadiiSection formData={formData} update={update} isSaving={isSaving} />
+                                <ShadowsSection formData={formData} update={update} isSaving={isSaving} />
+                            </>
+                        )}
+
+                        {/* Basic Mode Sections: Legal and Marketing */}
                         <LegalSection formData={formData} update={update} isSaving={isSaving} />
                         <MarketingSection formData={formData} update={update} isSaving={isSaving} />
                     </div>
