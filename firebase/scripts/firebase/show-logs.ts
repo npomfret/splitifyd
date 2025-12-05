@@ -41,20 +41,30 @@ interface ParsedArgs {
     filter?: string;
     format: LogFormat;
     errorsOnly: boolean;
+    full: boolean;
 }
 
 function parseArgs(): ParsedArgs {
     const args = process.argv.slice(2);
 
     if (args.includes('--help') || args.includes('-h')) {
-        console.log('Usage: tsx scripts/show-logs.ts [function-name] [--lines <n>] [--tail] [--provider firebase|gcloud|logging] [--region <name>] [--filter <expr>] [--format text|json|yaml|pretty] [--errors]');
+        console.log('Usage: tsx scripts/show-logs.ts [function-name] [--lines <n>] [--tail] [--provider firebase|gcloud|logging] [--region <name>] [--filter <expr>] [--format text|json|yaml|pretty] [--errors] [--full]');
         console.log('');
         console.log('Examples:');
         console.log('  tsx scripts/show-logs.ts                                    # All functions, pretty format (default)');
         console.log('  tsx scripts/show-logs.ts api --lines 100                    # Specific function (100 entries)');
         console.log('  tsx scripts/show-logs.ts --errors                           # Only show errors');
+        console.log('  tsx scripts/show-logs.ts --errors --full                    # Errors with full payloads and stacks');
         console.log('  tsx scripts/show-logs.ts api --format json                  # Raw JSON output');
         console.log('  tsx scripts/show-logs.ts api --tail                         # Follow logs in real-time');
+        console.log('');
+        console.log('Options:');
+        console.log('  --full, -f      Show full payloads and stack traces (no truncation)');
+        console.log('  --errors, -e    Only show error-level logs');
+        console.log('  --lines, -l     Number of log entries to fetch (default: 50)');
+        console.log('  --tail          Follow logs in real-time');
+        console.log('  --format        Output format: text, json, yaml, pretty (default: pretty)');
+        console.log('  --provider      Log source: firebase, gcloud, logging (default: firebase)');
         console.log('');
         console.log('Available functions:');
         console.log('  - api');
@@ -73,6 +83,7 @@ function parseArgs(): ParsedArgs {
     let filter: string | undefined;
     let format: LogFormat = 'pretty';
     let errorsOnly = false;
+    let full = false;
 
     for (let i = 0; i < args.length; i += 1) {
         const arg = args[i];
@@ -135,6 +146,10 @@ function parseArgs(): ParsedArgs {
             case '-e':
                 errorsOnly = true;
                 break;
+            case '--full':
+            case '-f':
+                full = true;
+                break;
             default: {
                 if (arg.startsWith('-')) {
                     console.error(`❌ Unknown option: ${arg}`);
@@ -148,10 +163,10 @@ function parseArgs(): ParsedArgs {
         }
     }
 
-    return { functionName, lines, tail, provider, region, filter, format, errorsOnly };
+    return { functionName, lines, tail, provider, region, filter, format, errorsOnly, full };
 }
 
-const { functionName, lines, tail, provider, region, filter, format, errorsOnly } = parseArgs();
+const { functionName, lines, tail, provider, region, filter, format, errorsOnly, full } = parseArgs();
 let gcloudAuthenticated = false;
 
 /**
@@ -211,6 +226,9 @@ function formatLogEntry(line: string): string | null {
         if (err.code) {
             output.push(`  ${colors.gray}Code:${colors.reset} ${colors.red}${err.code}${colors.reset}`);
         }
+        if (err.message) {
+            output.push(`  ${colors.gray}Message:${colors.reset} ${colors.red}${err.message}${colors.reset}`);
+        }
         if (err.data?.detail) {
             output.push(`  ${colors.gray}Detail:${colors.reset} ${colors.red}${err.data.detail}${colors.reset}`);
         }
@@ -221,19 +239,64 @@ function formatLogEntry(line: string): string | null {
             }
         }
         if (err.payload) {
-            // Truncate payload for readability
-            const payload = err.payload.length > 200 ? err.payload.substring(0, 200) + '...' : err.payload;
-            output.push(`  ${colors.gray}Payload:${colors.reset} ${payload}`);
+            if (full) {
+                // Show full payload, pretty-printed if JSON
+                output.push(`  ${colors.gray}Payload:${colors.reset}`);
+                try {
+                    const payloadObj = typeof err.payload === 'string' ? JSON.parse(err.payload) : err.payload;
+                    const prettyPayload = JSON.stringify(payloadObj, null, 2);
+                    for (const line of prettyPayload.split('\n')) {
+                        output.push(`    ${line}`);
+                    }
+                } catch {
+                    output.push(`    ${err.payload}`);
+                }
+            } else {
+                const payload = err.payload.length > 200 ? err.payload.substring(0, 200) + '... (use --full to see all)' : err.payload;
+                output.push(`  ${colors.gray}Payload:${colors.reset} ${payload}`);
+            }
         }
-        if (err.stack && !err.errors) {
-            // Only show stack if no validation errors (they're more useful)
-            const stackLines = err.stack.split('\n').slice(0, 3);
-            output.push(`  ${colors.gray}Stack:${colors.reset}`);
-            for (const stackLine of stackLines) {
-                output.push(`    ${colors.gray}${stackLine}${colors.reset}`);
+        if (err.stack) {
+            if (full) {
+                // Show full stack trace
+                output.push(`  ${colors.gray}Stack:${colors.reset}`);
+                for (const stackLine of err.stack.split('\n')) {
+                    output.push(`    ${colors.gray}${stackLine}${colors.reset}`);
+                }
+            } else if (!err.errors) {
+                // Only show abbreviated stack if no validation errors
+                const stackLines = err.stack.split('\n').slice(0, 3);
+                output.push(`  ${colors.gray}Stack:${colors.reset} (use --full for complete trace)`);
+                for (const stackLine of stackLines) {
+                    output.push(`    ${colors.gray}${stackLine}${colors.reset}`);
+                }
+            }
+        }
+        // Show raw error data if --full and there's additional info
+        if (full && err.data && Object.keys(err.data).length > 0) {
+            const dataWithoutDetail = { ...err.data };
+            delete dataWithoutDetail.detail; // Already shown above
+            if (Object.keys(dataWithoutDetail).length > 0) {
+                output.push(`  ${colors.gray}Error Data:${colors.reset}`);
+                const prettyData = JSON.stringify(dataWithoutDetail, null, 2);
+                for (const line of prettyData.split('\n')) {
+                    output.push(`    ${line}`);
+                }
             }
         }
 
+        return output.join('\n');
+    }
+
+    // For errors without parsed.error structure, show raw JSON when --full
+    if (level === 'E' && full) {
+        const output: string[] = [];
+        output.push(`${colors.gray}${time}${colors.reset} ${levelColor}${levelIcon} ERROR${colors.reset} ${colors.cyan}${func}${colors.reset}`);
+        output.push(`  ${colors.gray}Raw:${colors.reset}`);
+        const prettyJson = JSON.stringify(parsed, null, 2);
+        for (const line of prettyJson.split('\n')) {
+            output.push(`    ${line}`);
+        }
         return output.join('\n');
     }
 

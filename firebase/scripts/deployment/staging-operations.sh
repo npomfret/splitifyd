@@ -44,22 +44,29 @@ case "$OPERATION" in
     sync-tenant)
         if [[ -z "${2:-}" ]] || [[ -z "${3:-}" ]]; then
             echo "❌ Error: Email and password required for sync-tenant"
-            echo "Usage: $0 sync-tenant <email> <password>"
+            echo "Usage: $0 sync-tenant <email> <password> [tenant-id]"
             echo ""
             echo "Example:"
-            echo "  GCLOUD_PROJECT=splitifyd $0 sync-tenant admin@example.com mypassword"
+            echo "  GCLOUD_PROJECT=splitifyd $0 sync-tenant admin@example.com mypassword           # Sync all tenants"
+            echo "  GCLOUD_PROJECT=splitifyd $0 sync-tenant admin@example.com mypassword staging-tenant  # Sync specific tenant"
             exit 1
         fi
         ADMIN_EMAIL="$2"
         ADMIN_PASSWORD="$3"
+        TENANT_ID="${4:-}"
 
-        echo "🔄 Syncing staging tenant to deployed Firebase..."
+        echo "🔄 Syncing tenant configs to deployed Firebase..."
         tsx scripts/switch-instance.ts staging-1
 
-        echo "  📦 Syncing staging-tenant (splitifyd.web.app)..."
-        tsx scripts/sync-tenant-configs.ts https://splitifyd.web.app "$ADMIN_EMAIL" "$ADMIN_PASSWORD" --tenant-id staging-tenant
+        if [[ -n "$TENANT_ID" ]]; then
+            echo "  📦 Syncing tenant: $TENANT_ID..."
+            tsx scripts/sync-tenant-configs.ts https://splitifyd.web.app "$ADMIN_EMAIL" "$ADMIN_PASSWORD" --tenant-id "$TENANT_ID"
+        else
+            echo "  📦 Syncing ALL tenants..."
+            tsx scripts/sync-tenant-configs.ts https://splitifyd.web.app "$ADMIN_EMAIL" "$ADMIN_PASSWORD"
+        fi
 
-        echo "✅ Tenant config synced and theme published"
+        echo "✅ Tenant config(s) synced and theme(s) published"
         ;;
 
     seed-policies)
