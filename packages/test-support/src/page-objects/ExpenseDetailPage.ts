@@ -1,7 +1,10 @@
 import { ExpenseId, GroupId } from '@billsplit-wl/shared';
 import { expect, Locator, Page } from '@playwright/test';
+import { translationEn } from '../translations/translation-en';
 import { BasePage } from './BasePage';
 import { ExpenseFormPage } from './ExpenseFormPage';
+
+const translation = translationEn;
 
 /**
  * Shared base class for Expense Detail page object.
@@ -47,21 +50,21 @@ export class ExpenseDetailPage extends BasePage {
      * Get the edit button for the expense
      */
     protected getEditButton(): Locator {
-        return this.page.getByRole('button', { name: /edit/i });
+        return this.page.getByRole('button', { name: translation.expenseComponents.expenseActions.edit });
     }
 
     /**
      * Get the copy button for the expense
      */
     protected getCopyButton(): Locator {
-        return this.page.getByRole('button', { name: /copy/i });
+        return this.page.getByRole('button', { name: translation.expenseComponents.expenseActions.copy });
     }
 
     /**
      * Get the delete button for the expense
      */
     protected getDeleteButton(): Locator {
-        return this.page.getByRole('button', { name: /delete/i });
+        return this.page.getByRole('button', { name: translation.expenseComponents.expenseActions.delete });
     }
 
     /**
@@ -75,14 +78,14 @@ export class ExpenseDetailPage extends BasePage {
      * Get the comment input textarea
      */
     protected getCommentInput(): Locator {
-        return this.getDiscussionSection().getByRole('textbox', { name: /comment text/i });
+        return this.getDiscussionSection().getByRole('textbox', { name: translation.comments.input.ariaLabel });
     }
 
     /**
      * Get the send comment button
      */
     protected getSendCommentButton(): Locator {
-        return this.getDiscussionSection().getByRole('button', { name: /send comment/i });
+        return this.getDiscussionSection().getByRole('button', { name: translation.comments.input.sendAriaLabel });
     }
 
     /**
@@ -271,7 +274,7 @@ export class ExpenseDetailPage extends BasePage {
         // Check that input exists and has correct placeholder
         const input = this.getCommentInput();
         await expect(input).toBeVisible();
-        await expect(input).toHaveAttribute('placeholder', /add a comment to this expense/i);
+        await expect(input).toHaveAttribute('placeholder', translation.comments.commentsSection.placeholderExpense);
 
         // Check that send button exists
         const sendButton = this.getSendCommentButton();

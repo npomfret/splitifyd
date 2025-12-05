@@ -86,21 +86,21 @@ export class RegisterPage extends BasePage {
      * Terms of Service checkbox within the register form
      */
     protected getTermsCheckbox(): Locator {
-        return this.getRegisterFormContainer().getByLabel(/Terms of Service/i);
+        return this.getRegisterFormContainer().getByLabel(new RegExp(translation.registerPage.termsOfService, 'i'));
     }
 
     /**
      * Cookie Policy checkbox within the register form
      */
     protected getCookiesCheckbox(): Locator {
-        return this.getRegisterFormContainer().getByLabel(/Cookie Policy/i);
+        return this.getRegisterFormContainer().getByLabel(new RegExp(translation.registerPage.cookiePolicy, 'i'));
     }
 
     /**
      * Privacy Policy checkbox within the register form
      */
     protected getPrivacyCheckbox(): Locator {
-        return this.getRegisterFormContainer().getByLabel(/Privacy Policy/i);
+        return this.getRegisterFormContainer().getByLabel(new RegExp(translation.registerPage.privacyPolicy, 'i'));
     }
 
     // ============================================================================

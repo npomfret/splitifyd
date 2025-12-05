@@ -631,14 +631,14 @@ export class GroupDetailPage extends BasePage {
      * Get the comment input textarea
      */
     protected getCommentInput(): Locator {
-        return this.getCommentsSection().getByRole('textbox', { name: /comment text/i });
+        return this.getCommentsSection().getByRole('textbox', { name: translation.comments.input.ariaLabel });
     }
 
     /**
      * Get the send comment button
      */
     protected getSendCommentButton(): Locator {
-        return this.getCommentsSection().getByRole('button', { name: /send comment/i });
+        return this.getCommentsSection().getByRole('button', { name: translation.comments.input.sendAriaLabel });
     }
 
     /**
@@ -711,7 +711,7 @@ export class GroupDetailPage extends BasePage {
 
         const input = this.getCommentInput();
         await expect(input).toBeVisible();
-        await expect(input).toHaveAttribute('placeholder', /add a comment to this group/i);
+        await expect(input).toHaveAttribute('placeholder', translation.comments.commentsSection.placeholderGroup);
 
         const sendButton = this.getSendCommentButton();
         await expect(sendButton).toBeVisible();
@@ -1144,7 +1144,7 @@ export class GroupDetailPage extends BasePage {
         await expect(balancesSection).toBeVisible({ timeout });
 
         try {
-            await expect(balancesSection.getByText('Loading balances...')).not.toBeVisible({ timeout: 2000 });
+            await expect(balancesSection.getByText(translation.balanceSummary.loadingBalances)).not.toBeVisible({ timeout: 2000 });
         } catch {
             // Loading text may not appear; ignore timeout
         }
@@ -1352,7 +1352,7 @@ export class GroupDetailPage extends BasePage {
         await expect(modal).toBeVisible({ timeout: 3000 });
 
         if (options.ensureUpdateHeading !== false) {
-            await expect(modal.getByRole('heading', { name: /Update Settlement/i })).toBeVisible();
+            await expect(modal.getByRole('heading', { name: translation.settlementForm.updateSettlement })).toBeVisible();
         }
 
         const createFormPage = options.createSettlementFormPage
@@ -1508,13 +1508,13 @@ export class GroupDetailPage extends BasePage {
         // Use semantic dialog selector - Modal component has role="dialog"
         const confirmDialog = this.page.getByRole('dialog');
         await expect(confirmDialog).toBeVisible({ timeout: 3000 });
-        await expect(confirmDialog.getByRole('heading', { name: 'Delete Payment' })).toBeVisible();
+        await expect(confirmDialog.getByRole('heading', { name: translation.settlementHistory.deletePaymentTitle })).toBeVisible();
 
         if (confirm) {
-            const confirmButton = confirmDialog.getByRole('button', { name: /delete/i });
+            const confirmButton = confirmDialog.getByRole('button', { name: translation.common.delete });
             await this.clickButton(confirmButton, { buttonName: 'Delete' });
         } else {
-            const cancelButton = confirmDialog.getByRole('button', { name: /cancel/i });
+            const cancelButton = confirmDialog.getByRole('button', { name: translation.common.cancel });
             await this.clickButton(cancelButton, { buttonName: 'Cancel' });
         }
 

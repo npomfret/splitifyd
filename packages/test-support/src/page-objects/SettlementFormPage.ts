@@ -28,11 +28,11 @@ export class SettlementFormPage extends BasePage {
     }
 
     protected getPayerSelect(): Locator {
-        return this.getModal().getByRole('combobox', { name: /who paid/i });
+        return this.getModal().getByRole('combobox', { name: translation.settlementForm.whoPaidLabel });
     }
 
     protected getPayeeSelect(): Locator {
-        return this.getModal().getByRole('combobox', { name: /who received the payment/i });
+        return this.getModal().getByRole('combobox', { name: translation.settlementForm.whoReceivedPaymentLabel });
     }
 
     protected getAmountInput(): Locator {
@@ -44,7 +44,7 @@ export class SettlementFormPage extends BasePage {
     }
 
     protected getNoteInput(): Locator {
-        return this.getModal().getByRole('textbox', { name: /note/i });
+        return this.getModal().getByRole('textbox', { name: translation.settlementForm.noteLabel });
     }
 
     protected getRecordPaymentButton(): Locator {
@@ -86,8 +86,8 @@ export class SettlementFormPage extends BasePage {
         // 2. GroupActions button by accessible name
         // 3. BalanceSummary button (pre-fills the form with specific debt)
         const groupActionsButtonByTestId = this.page.getByTestId('settle-up-button');
-        const groupActionsButtonByName = this.page.getByRole('button', { name: /settle up/i });
-        const balanceSummaryButton = this.page.getByRole('button', { name: /record settlement.*debt/i }).first();
+        const groupActionsButtonByName = this.page.getByRole('button', { name: translation.groupActions.settleUp });
+        const balanceSummaryButton = this.page.getByRole('button', { name: new RegExp(`${translation.settlementForm.recordSettlement}.*debt`, 'i') }).first();
 
         let openButton = groupActionsButtonByTestId;
 
@@ -388,7 +388,7 @@ export class SettlementFormPage extends BasePage {
 
     async verifyRecordSettlementMode(): Promise<void> {
         await expect(this.getModal()).toBeVisible();
-        await expect(this.getModal().getByRole('heading', { name: /record settlement/i })).toBeVisible();
+        await expect(this.getModal().getByRole('heading', { name: translation.settlementForm.recordSettlement })).toBeVisible();
     }
 
     async verifyUpdateMode(): Promise<void> {

@@ -104,14 +104,14 @@ export class LoginPage extends BasePage {
      * Forgot password link/button
      */
     protected getForgotPasswordButton(): Locator {
-        return this.getLoginFormContainer().getByRole('button', { name: /forgot.?password/i });
+        return this.getLoginFormContainer().getByRole('button', { name: translation.loginPage.forgotPassword });
     }
 
     /**
      * Sign up button/link to navigate to register page
      */
     protected getSignUpButton(): Locator {
-        return this.getLoginFormContainer().getByRole('button', { name: 'Sign up' });
+        return this.getLoginFormContainer().getByRole('button', { name: translation.loginPage.signUp });
     }
 
     /**

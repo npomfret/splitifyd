@@ -1,5 +1,8 @@
 import { expect, Locator, Page } from '@playwright/test';
+import { translationEn } from '../translations/translation-en';
 import { BasePage } from './BasePage';
+
+const translation = translationEn;
 
 /**
  * Shared base class for Header page object.
@@ -23,19 +26,19 @@ export class HeaderPage extends BasePage {
     }
 
     protected getDashboardLink(): Locator {
-        return this.getUserDropdownMenu().getByRole('menuitem', { name: 'Dashboard' });
+        return this.getUserDropdownMenu().getByRole('menuitem', { name: translation.userMenu.dashboard });
     }
 
     protected getAdminLink(): Locator {
-        return this.getUserDropdownMenu().getByRole('menuitem', { name: 'Admin' });
+        return this.getUserDropdownMenu().getByRole('menuitem', { name: translation.userMenu.admin });
     }
 
     protected getSettingsLink(): Locator {
-        return this.getUserDropdownMenu().getByRole('menuitem', { name: 'Settings' });
+        return this.getUserDropdownMenu().getByRole('menuitem', { name: translation.userMenu.settings });
     }
 
     protected getSignOutButton(): Locator {
-        return this.getUserDropdownMenu().getByRole('menuitem', { name: /sign out/i });
+        return this.getUserDropdownMenu().getByRole('menuitem', { name: translation.userMenu.signOut });
     }
 
     /**

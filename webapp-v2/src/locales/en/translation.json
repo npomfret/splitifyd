@@ -907,6 +907,7 @@
   },
   "userMenu": {
     "dashboard": "Dashboard",
+    "admin": "Admin",
     "settings": "Settings",
     "signOut": "Sign out",
     "signingOut": "Signing out...",
@@ -1941,6 +1942,10 @@
         "featureFlags": {
           "title": "Feature Flags",
           "description": "Enable or disable features"
+        },
+        "marketing": {
+          "title": "Marketing Features",
+          "description": "Toggle marketing pages and content"
         },
         "advanced": {
           "title": "Advanced",

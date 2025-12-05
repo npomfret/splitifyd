@@ -1,6 +1,9 @@
 import type { Locator, Page } from '@playwright/test';
 import { expect } from '@playwright/test';
+import { translationEn } from '../translations/translation-en';
 import { BasePage } from './BasePage';
+
+const translation = translationEn;
 
 export class TenantEditorModalPage extends BasePage {
     constructor(page: Page) {
@@ -37,39 +40,39 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     async expandActionsSection(): Promise<void> {
-        await this.expandSectionByName('Palette Colors');
+        await this.expandSectionByName(translation.admin.tenantEditor.sections.paletteColors.title);
     }
 
     async expandPaletteSection(): Promise<void> {
-        await this.expandSectionByName('Palette Colors');
+        await this.expandSectionByName(translation.admin.tenantEditor.sections.paletteColors.title);
     }
 
     async expandInteractiveSection(): Promise<void> {
-        await this.expandSectionByName('Interactive Colors');
+        await this.expandSectionByName(translation.admin.tenantEditor.sections.interactiveColors.title);
     }
 
     async expandSurfacesSection(): Promise<void> {
-        await this.expandSectionByName('Surface Colors');
+        await this.expandSectionByName(translation.admin.tenantEditor.sections.surfaceColors.title);
     }
 
     async expandTextSection(): Promise<void> {
-        await this.expandSectionByName('Text Colors');
+        await this.expandSectionByName(translation.admin.tenantEditor.sections.textColors.title);
     }
 
     async expandMotionEffectsSection(): Promise<void> {
-        await this.expandSectionByName('Motion & Effects');
+        await this.expandSectionByName(translation.admin.tenantEditor.sections.motion.title);
     }
 
     async expandTypographySection(): Promise<void> {
-        await this.expandSectionByName('Typography');
+        await this.expandSectionByName(translation.admin.tenantEditor.sections.typography.title);
     }
 
     async expandMarketingSection(): Promise<void> {
-        await this.expandSectionByName('Marketing');
+        await this.expandSectionByName(translation.admin.tenantEditor.sections.marketing.title);
     }
 
     async expandLogoAssetsSection(): Promise<void> {
-        await this.expandSectionByName('Logo & Assets');
+        await this.expandSectionByName(translation.admin.tenantEditor.sections.assets.title);
     }
 
     async expandHeaderDisplaySection(): Promise<void> {
@@ -77,11 +80,11 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     async expandBordersSection(): Promise<void> {
-        await this.expandSectionByName('Border Colors');
+        await this.expandSectionByName(translation.admin.tenantEditor.sections.borderColors.title);
     }
 
     async expandStatusColorsSection(): Promise<void> {
-        await this.expandSectionByName('Status Colors');
+        await this.expandSectionByName(translation.admin.tenantEditor.sections.statusColors.title);
     }
 
     async expandAuroraGradientSection(): Promise<void> {
@@ -229,7 +232,7 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     protected getAddDomainButton(): Locator {
-        return this.getModal().getByRole('button', { name: 'Add' });
+        return this.getModal().getByRole('button', { name: translation.admin.tenantEditor.buttons.addDomain });
     }
 
     protected getSaveTenantButton(): Locator {
@@ -245,7 +248,7 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     protected getPublishButton(): Locator {
-        return this.page.getByRole('button', { name: /publish theme/i });
+        return this.page.getByRole('button', { name: translation.admin.tenantEditor.buttons.publish });
     }
 
     protected getSuccessAlert(): Locator {
@@ -845,7 +848,7 @@ export class TenantEditorModalPage extends BasePage {
 
     // Spacing section
     async expandSpacingSection(): Promise<void> {
-        await this.expandSectionByName('Spacing');
+        await this.expandSectionByName(translation.admin.tenantEditor.sections.spacing.title);
     }
 
     protected getSpacing2xsInput(): Locator {
@@ -877,7 +880,7 @@ export class TenantEditorModalPage extends BasePage {
 
     // Radii section
     async expandRadiiSection(): Promise<void> {
-        await this.expandSectionByName('Border Radii');
+        await this.expandSectionByName(translation.admin.tenantEditor.sections.radii.title);
     }
 
     protected getRadiiSmInput(): Locator {
@@ -911,7 +914,7 @@ export class TenantEditorModalPage extends BasePage {
 
     // Shadows section
     async expandShadowsSection(): Promise<void> {
-        await this.expandSectionByName('Shadows');
+        await this.expandSectionByName(translation.admin.tenantEditor.sections.shadows.title);
     }
 
     protected getShadowSmInput(): Locator {
@@ -948,7 +951,7 @@ export class TenantEditorModalPage extends BasePage {
 
     // Legal section
     async expandLegalSection(): Promise<void> {
-        await this.expandSectionByName('Legal');
+        await this.expandSectionByName(translation.admin.tenantEditor.sections.legal.title);
     }
 
     protected getCompanyNameInput(): Locator {

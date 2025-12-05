@@ -82,7 +82,7 @@ export class DashboardPage extends BasePage {
      * Welcome message heading (for new users)
      */
     protected getWelcomeHeading(): Locator {
-        return this.page.getByText('No groups yet');
+        return this.page.getByText(translation.dashboard.emptyState.title);
     }
 
     /**
@@ -177,7 +177,7 @@ export class DashboardPage extends BasePage {
         const groupCard = this.getGroupCard(groupName);
         await expect(groupCard).toBeVisible({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
 
-        const quickActions = groupCard.getByRole('button', { name: /Archive Group|Unarchive Group/ });
+        const quickActions = groupCard.getByRole('button', { name: new RegExp(`${translation.groupActions.archive}|${translation.groupActions.unarchive}`) });
         await expect(async () => {
             const count = await quickActions.count();
             if (count !== 0) {
@@ -274,7 +274,7 @@ export class DashboardPage extends BasePage {
      * Empty state container when no groups exist (internal use)
      */
     private getEmptyGroupsStateInternal(): Locator {
-        return this.page.getByText('No groups yet').locator('..');
+        return this.page.getByText(translation.dashboard.emptyState.title).locator('..');
     }
 
     /**
@@ -808,7 +808,7 @@ export class DashboardPage extends BasePage {
      * Activity feed heading
      */
     private getActivityFeedHeading(): Locator {
-        return this.getActivityFeedContainer().getByRole('heading', { name: 'Recent Activity' });
+        return this.getActivityFeedContainer().getByRole('heading', { name: translation.activityFeed.title });
     }
 
     /**
@@ -838,14 +838,14 @@ export class DashboardPage extends BasePage {
      * Activity feed retry button
      */
     private getActivityFeedRetryButton(): Locator {
-        return this.getActivityFeedContainer().getByRole('button', { name: 'Retry' });
+        return this.getActivityFeedContainer().getByRole('button', { name: translation.activityFeed.actions.retry });
     }
 
     /**
      * Activity feed load more button
      */
     private getActivityFeedLoadMoreButton(): Locator {
-        return this.getActivityFeedContainer().getByRole('button', { name: 'Load More' });
+        return this.getActivityFeedContainer().getByRole('button', { name: translation.activityFeed.actions.loadMore });
     }
 
     /**
@@ -868,7 +868,7 @@ export class DashboardPage extends BasePage {
      */
     async verifyActivityFeedEmptyState(): Promise<void> {
         await expect(this.getActivityFeedEmptyState()).toBeVisible();
-        await expect(this.getActivityFeedEmptyState().getByText('No activity yet')).toBeVisible();
+        await expect(this.getActivityFeedEmptyState().getByText(translation.activityFeed.emptyState.title)).toBeVisible();
     }
 
     /**

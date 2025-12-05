@@ -3,7 +3,10 @@ import { GroupId } from '@billsplit-wl/shared';
 import { DisplayName } from '@billsplit-wl/shared';
 import { expect, Locator, Page } from '@playwright/test';
 import { TEST_TIMEOUTS } from '../test-constants';
+import { translationEn } from '../translations/translation-en';
 import { BasePage } from './BasePage';
+
+const translation = translationEn;
 
 /**
  * Expense Form Page Object Model for Playwright tests
@@ -46,7 +49,8 @@ export class ExpenseFormPage extends BasePage {
      * Page heading (Add Expense / Edit Expense / Copy Expense)
      */
     protected getPageHeading(): Locator {
-        return this.page.getByRole('heading', { name: /add expense|edit expense|copy expense/i });
+        const { addExpense, editExpense, copyExpense } = translation.expenseFormHeader;
+        return this.page.getByRole('heading', { name: new RegExp(`${addExpense}|${editExpense}|${copyExpense}`, 'i') });
     }
 
     // ============================================================================
@@ -100,7 +104,7 @@ export class ExpenseFormPage extends BasePage {
      * Amount input field (scoped to Expense Details section)
      */
     private getAmountInput(): Locator {
-        return this.getExpenseDetailsSection().getByRole('spinbutton', { name: /amount/i });
+        return this.getExpenseDetailsSection().getByRole('spinbutton', { name: translation.expenseBasicFields.amountLabel });
     }
 
     /**
@@ -192,7 +196,7 @@ export class ExpenseFormPage extends BasePage {
      * Submit button (Save/Create Expense)
      */
     protected getSubmitButton(): Locator {
-        return this.page.getByRole('button', { name: /save expense|create expense/i });
+        return this.page.getByRole('button', { name: translation.expenseForm.saveExpense });
     }
 
     /**
@@ -215,29 +219,29 @@ export class ExpenseFormPage extends BasePage {
      * Update Expense button (edit mode)
      */
     protected getUpdateExpenseButton(): Locator {
-        return this.page.getByRole('button', { name: /update expense/i });
+        return this.page.getByRole('button', { name: translation.expenseForm.updateExpense });
     }
 
     /**
      * Select all participants button.
      */
     protected getSelectAllButton(): Locator {
-        return this.page.getByRole('button', { name: /select all/i });
+        return this.page.getByRole('button', { name: translation.expenseComponents.participantSelector.selectAll });
     }
 
     /**
      * Convenience date buttons.
      */
     protected getTodayButton(): Locator {
-        return this.page.getByRole('button', { name: 'Today' });
+        return this.page.getByRole('button', { name: translation.expenseBasicFields.today });
     }
 
     protected getYesterdayButton(): Locator {
-        return this.page.getByRole('button', { name: 'Yesterday' });
+        return this.page.getByRole('button', { name: translation.expenseBasicFields.yesterday });
     }
 
     protected getLastNightButton(): Locator {
-        return this.page.getByRole('button', { name: 'Last Night' });
+        return this.page.getByRole('button', { name: translation.expenseBasicFields.lastNight });
     }
 
     /**
@@ -300,14 +304,14 @@ export class ExpenseFormPage extends BasePage {
      * Expense Details heading (used for blur actions).
      */
     private getExpenseDetailsHeading(): Locator {
-        return this.page.getByRole('heading', { name: /expense details/i });
+        return this.page.getByRole('heading', { name: translation.expenseBasicFields.title });
     }
 
     /**
      * Split Between heading.
      */
     protected getSplitBetweenHeading(): Locator {
-        return this.page.getByRole('heading', { name: /split between/i });
+        return this.page.getByRole('heading', { name: translation.expenseComponents.participantSelector.label });
     }
 
     /**
@@ -824,7 +828,7 @@ export class ExpenseFormPage extends BasePage {
     }
 
     async verifyCopyMode(): Promise<void> {
-        const headerTitle = this.page.getByRole('heading', { name: /Copy Expense/i });
+        const headerTitle = this.page.getByRole('heading', { name: translation.expenseFormHeader.copyExpense });
         await expect(headerTitle).toBeVisible({ timeout: 3000 });
     }
 

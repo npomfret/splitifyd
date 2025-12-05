@@ -1,5 +1,8 @@
 import { expect, Locator, Page } from '@playwright/test';
+import { translationEn } from '../translations/translation-en';
 import { BasePage } from './BasePage';
+
+const translation = translationEn;
 
 /**
  * Footer component page object.
@@ -20,19 +23,19 @@ export class FooterComponent extends BasePage {
     }
 
     protected getTermsLink(): Locator {
-        return this.getFooter().getByRole('button', { name: /terms of service/i });
+        return this.getFooter().getByRole('button', { name: translation.footer.termsOfService });
     }
 
     protected getPrivacyLink(): Locator {
-        return this.getFooter().getByRole('button', { name: /privacy policy/i });
+        return this.getFooter().getByRole('button', { name: translation.footer.privacyPolicy });
     }
 
     protected getCookiesLink(): Locator {
-        return this.getFooter().getByRole('button', { name: /cookie policy/i });
+        return this.getFooter().getByRole('button', { name: translation.footer.cookiePolicy });
     }
 
     protected getPricingLink(): Locator {
-        return this.getFooter().getByRole('button', { name: /pricing/i });
+        return this.getFooter().getByRole('button', { name: translation.footer.pricing });
     }
 
     // ============================================================================

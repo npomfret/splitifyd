@@ -1,6 +1,9 @@
 import type { Locator, Page } from '@playwright/test';
 import { expect } from '@playwright/test';
+import { translationEn } from '../translations/translation-en';
 import { BasePage } from './BasePage';
+
+const translation = translationEn;
 
 /**
  * Page Object for the User Editor Modal in the Admin Panel
@@ -19,27 +22,27 @@ export class UserEditorModalPage extends BasePage {
     }
 
     protected getProfileTab(): Locator {
-        return this.page.getByRole('tab', { name: 'Profile' });
+        return this.page.getByRole('tab', { name: translation.admin.userEditor.tabs.profile });
     }
 
     protected getRoleTab(): Locator {
-        return this.page.getByRole('tab', { name: 'Role' });
+        return this.page.getByRole('tab', { name: translation.admin.userEditor.tabs.role });
     }
 
     protected getDisplayNameInput(): Locator {
-        return this.page.getByLabel('Display Name');
+        return this.page.getByLabel(translation.admin.userEditor.profile.displayName);
     }
 
     protected getEmailInput(): Locator {
-        return this.page.getByLabel('Email Address');
+        return this.page.getByLabel(translation.admin.userEditor.profile.email);
     }
 
     protected getSaveProfileButton(): Locator {
-        return this.getModal().getByRole('button', { name: 'Save' });
+        return this.getModal().getByRole('button', { name: translation.common.save });
     }
 
     protected getSaveRoleButton(): Locator {
-        return this.getModal().getByRole('button', { name: 'Save' });
+        return this.getModal().getByRole('button', { name: translation.common.save });
     }
 
     protected getCancelButton(): Locator {
@@ -47,7 +50,7 @@ export class UserEditorModalPage extends BasePage {
     }
 
     protected getSuccessAlert(): Locator {
-        return this.page.getByText('Profile updated successfully');
+        return this.page.getByText(translation.admin.userEditor.success.profileUpdated);
     }
 
     protected getRoleOption(label: string): Locator {

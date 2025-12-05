@@ -65,11 +65,11 @@ export class JoinGroupPage extends BasePage {
     }
 
     protected getLoginButton(): Locator {
-        return this.page.getByRole('button', { name: /login|sign in/i });
+        return this.page.getByRole('button', { name: new RegExp(`${translation.header.login}|${translation.loginPage.submitButton}`, 'i') });
     }
 
     protected getRegisterButton(): Locator {
-        return this.page.getByRole('button', { name: /register|sign up/i });
+        return this.page.getByRole('button', { name: new RegExp(`${translation.registerPage.title}|${translation.header.signUp}`, 'i') });
     }
 
     protected getErrorMessage(): Locator {
@@ -81,7 +81,7 @@ export class JoinGroupPage extends BasePage {
     }
 
     protected getBackToDashboardButton(): Locator {
-        return this.page.getByRole('button', { name: /Go to dashboard/i });
+        return this.page.getByRole('button', { name: translation.header.goToDashboard });
     }
 
     protected getOkButton(): Locator {
@@ -89,7 +89,7 @@ export class JoinGroupPage extends BasePage {
     }
 
     private getCancelButton(): Locator {
-        return this.page.getByRole('button', { name: /cancel/i });
+        return this.page.getByRole('button', { name: translation.joinGroupPage.cancel });
     }
 
     private getInvalidLinkWarning(): Locator {
