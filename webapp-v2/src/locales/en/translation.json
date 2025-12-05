@@ -1,4 +1,7 @@
 {
+  "accessibility": {
+    "skipToContent": "Skip to main content"
+  },
   "apiErrors": {
     "AUTH_REQUIRED": "Please sign in to continue",
     "AUTH_INVALID": "Your session has expired. Please sign in again.",

@@ -15,95 +15,46 @@ The codebase has comprehensive accessibility:
 - Keyboard navigation (Escape closes modals, Enter/Space on cards)
 - `prefers-reduced-motion` support in Modal
 - All icons have `aria-hidden="true"`
+- **Focus trap in modals** (Tab/Shift+Tab cycles within modal)
+- **Focus restoration** (focus returns to trigger element when modal closes)
+- **Skip-to-content link** (keyboard users can bypass navigation)
 
-## Issues to Address
+## Completed (December 2024)
 
-### 1. Focus Trap in Modals (High Priority)
+### 1. Focus Trap in Modals ✅
 
-**Problem:** Tab key can escape modal to background content, losing user context.
+**Implementation:** Added `useFocusTrap` hook to `Modal.tsx`
+- Queries all focusable elements within modal
+- Traps Tab/Shift+Tab to cycle within modal boundaries
+- Sets initial focus to first focusable element on open
+- Re-queries elements dynamically to handle content changes
 
-**Affected files:**
-- `webapp-v2/src/components/ui/Modal.tsx`
-- `webapp-v2/src/components/ui/ConfirmDialog.tsx`
-
-**Solution:** Implement focus trapping so Tab/Shift+Tab cycles within modal only.
-
-Options:
-- Use `focus-trap-react` library
-- Implement custom trap with first/last focusable element detection
-
-```tsx
-// Example pattern
-useEffect(() => {
-    if (!isOpen) return;
-
-    const focusableElements = modalRef.current?.querySelectorAll(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    );
-    const firstElement = focusableElements?.[0] as HTMLElement;
-    const lastElement = focusableElements?.[focusableElements.length - 1] as HTMLElement;
-
-    const handleTab = (e: KeyboardEvent) => {
-        if (e.key !== 'Tab') return;
-        if (e.shiftKey && document.activeElement === firstElement) {
-            e.preventDefault();
-            lastElement?.focus();
-        } else if (!e.shiftKey && document.activeElement === lastElement) {
-            e.preventDefault();
-            firstElement?.focus();
-        }
-    };
-
-    document.addEventListener('keydown', handleTab);
-    firstElement?.focus();
-    return () => document.removeEventListener('keydown', handleTab);
-}, [isOpen]);
-```
-
-### 2. Focus Restoration After Modal Close (High Priority)
-
-**Problem:** When modal closes, focus is lost. Users must navigate back to context.
-
-**Affected files:**
+**Files modified:**
 - `webapp-v2/src/components/ui/Modal.tsx`
 
-**Solution:** Store trigger element ref and restore focus on close.
+### 2. Focus Restoration After Modal Close ✅
 
-```tsx
-// In Modal.tsx
-const triggerRef = useRef<HTMLElement | null>(null);
+**Implementation:** Added `useFocusRestoration` hook to `Modal.tsx`
+- Stores `document.activeElement` when modal opens
+- Restores focus to trigger element when modal closes
+- Checks element is still in DOM before focusing
 
-useEffect(() => {
-    if (isOpen) {
-        triggerRef.current = document.activeElement as HTMLElement;
-    } else {
-        triggerRef.current?.focus();
-    }
-}, [isOpen]);
-```
+**Files modified:**
+- `webapp-v2/src/components/ui/Modal.tsx`
 
-### 3. Skip Link (Medium Priority)
+### 3. Skip Link ✅
 
-**Problem:** Keyboard users must tab through all navigation before reaching main content.
+**Implementation:** Added skip-to-content link in `BaseLayout.tsx`
+- Visually hidden (`sr-only`) but revealed on focus
+- Targets `#main-content` on the `<main>` element
+- Uses semantic color tokens for styling
+- Added `tabIndex={-1}` to main for programmatic focus
 
-**Affected files:**
-- `webapp-v2/src/components/layout/Header.tsx`
+**Files modified:**
 - `webapp-v2/src/components/layout/BaseLayout.tsx`
+- `webapp-v2/src/locales/en/translation.json` (added `accessibility.skipToContent`)
 
-**Solution:** Add skip-to-main-content link at start of page.
-
-```tsx
-// In Header.tsx or BaseLayout.tsx
-<a
-    href="#main-content"
-    className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-surface-raised focus:text-text-primary focus:rounded-md"
->
-    {t('accessibility.skipToContent')}
-</a>
-
-// In BaseLayout.tsx
-<main id="main-content" tabIndex={-1}>
-```
+## Remaining Issues (Low Priority)
 
 ### 4. Consistent Error Announcement Pattern (Low Priority)
 
@@ -162,9 +113,9 @@ After implementation:
 
 ## Acceptance Criteria
 
-- [ ] Focus trapped within open modals
-- [ ] Focus returns to trigger element when modal closes
-- [ ] Skip link visible on focus, jumps to main content
+- [x] Focus trapped within open modals
+- [x] Focus returns to trigger element when modal closes
+- [x] Skip link visible on focus, jumps to main content
 - [ ] Keyboard navigation works in all modals and dropdowns
 - [ ] No axe-core violations
 - [ ] VoiceOver announces all form errors

@@ -57,7 +57,7 @@ export class JoinGroupPage extends BasePage {
     }
 
     protected getJoinGroupButton(): Locator {
-        return this.page.getByRole('button', { name: translation.joinGroupPage.joinGroup });
+        return this.page.locator('#main-content').getByRole('button', { name: translation.joinGroupPage.joinGroup });
     }
 
     protected getAlreadyMemberMessage(): Locator {

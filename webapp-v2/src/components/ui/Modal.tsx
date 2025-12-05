@@ -1,9 +1,64 @@
 import { cx } from '@/utils/cx.ts';
 import { signal } from '@preact/signals';
 import { AnimatePresence, motion } from 'framer-motion';
-import type { ComponentChildren, JSX } from 'preact';
+import type { ComponentChildren, JSX, RefObject } from 'preact';
 import { createPortal } from 'preact/compat';
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
+
+const FOCUSABLE_SELECTOR = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+function useFocusTrap(modalRef: RefObject<HTMLElement>, isOpen: boolean): void {
+    useEffect(() => {
+        if (!isOpen || !modalRef.current) return;
+
+        const getFocusableElements = () => {
+            return modalRef.current?.querySelectorAll(FOCUSABLE_SELECTOR) ?? [];
+        };
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key !== 'Tab') return;
+
+            const focusableElements = getFocusableElements();
+            if (focusableElements.length === 0) return;
+
+            const firstElement = focusableElements[0] as HTMLElement;
+            const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+
+            if (e.shiftKey && document.activeElement === firstElement) {
+                e.preventDefault();
+                lastElement?.focus();
+            } else if (!e.shiftKey && document.activeElement === lastElement) {
+                e.preventDefault();
+                firstElement?.focus();
+            }
+        };
+
+        // Set initial focus to first focusable element
+        const focusableElements = getFocusableElements();
+        if (focusableElements.length > 0) {
+            (focusableElements[0] as HTMLElement).focus();
+        }
+
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [isOpen, modalRef]);
+}
+
+function useFocusRestoration(isOpen: boolean): void {
+    const triggerRef = useRef<HTMLElement | null>(null);
+
+    useEffect(() => {
+        if (isOpen) {
+            triggerRef.current = document.activeElement as HTMLElement;
+        } else if (triggerRef.current) {
+            // Check element is still in DOM before focusing
+            if (document.body.contains(triggerRef.current)) {
+                triggerRef.current.focus();
+            }
+            triggerRef.current = null;
+        }
+    }, [isOpen]);
+}
 
 interface ModalProps {
     open: boolean;
@@ -23,8 +78,14 @@ const sizeClasses = {
 };
 
 export function Modal({ open, onClose, size = 'sm', labelledBy, describedBy, className = '', children, 'data-testid': dataTestId }: ModalProps) {
+    const modalRef = useRef<HTMLDivElement>(null);
+
     // Component-local signal - initialized within useState to avoid stale state across instances
     const [prefersReducedMotionSignal] = useState(() => signal(false));
+
+    // Focus management hooks
+    useFocusRestoration(open);
+    useFocusTrap(modalRef, open);
 
     useEffect(() => {
         // Check for reduced motion preference
@@ -110,6 +171,7 @@ export function Modal({ open, onClose, size = 'sm', labelledBy, describedBy, cla
                     transition={{ duration: 0.2 }}
                 >
                     <motion.div
+                        ref={modalRef}
                         role='dialog'
                         aria-modal='true'
                         aria-labelledby={labelledBy}

@@ -62,13 +62,12 @@ Built into UI components - don't reinvent.
 |---------|----------------|
 | Form errors | `aria-invalid`, `aria-describedby`, `role="alert"` - see `Input.tsx`, `FloatingInput.tsx` |
 | Loading states | `aria-busy` on buttons, `role="status"` on spinners - see `Button.tsx`, `LoadingSpinner.tsx` |
-| Modals | `aria-modal`, `aria-labelledby`, Escape to close - see `Modal.tsx` |
+| Modals | `aria-modal`, `aria-labelledby`, Escape to close, focus trap, focus restoration - see `Modal.tsx` |
 | Toasts | `aria-live="polite"`, `role="alert"` - see `ToastContainer.tsx` |
 | Focus styling | `focus-visible:ring-2` consistently on all interactive elements |
 | Reduced motion | `prefers-reduced-motion` check in `Modal.tsx` |
 | Icons | `aria-hidden="true"`, `focusable="false"` on all icons |
-
-**Known gaps:** No focus trapping in modals, no skip-to-content link. See `tasks/accessibility-improvements.md`.
+| Skip link | `sr-only` until focused, targets `#main-content` - see `BaseLayout.tsx` |
 
 ---
 
