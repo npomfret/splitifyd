@@ -1,8 +1,8 @@
 import { useStaggeredReveal } from '@/app/hooks/useScrollReveal';
 import { enhancedGroupsStore } from '@/app/stores/groups-store-enhanced.ts';
+import { ArchiveBoxIcon } from '@/components/ui/icons';
 import { navigationService } from '@/services/navigation.service';
 import { GroupId } from '@billsplit-wl/shared';
-import { ArchiveBoxIcon } from '@heroicons/react/24/outline';
 import { useTranslation } from 'react-i18next';
 import { EmptyState, ErrorState, LoadingSpinner, Pagination, SkeletonCard } from '../ui';
 import { EmptyGroupsState } from './EmptyGroupsState';
@@ -57,7 +57,7 @@ export function GroupsList({ onCreateGroup, onInvite, onAddExpense }: GroupsList
         if (showArchived) {
             return (
                 <EmptyState
-                    icon={<ArchiveBoxIcon className='w-16 h-16' aria-hidden='true' />}
+                    icon={<ArchiveBoxIcon size={64} />}
                     title={t('dashboardComponents.groupsList.noArchivedTitle')}
                     description={t('dashboardComponents.groupsList.noArchivedDescription')}
                     data-testid='archived-groups-empty-state'

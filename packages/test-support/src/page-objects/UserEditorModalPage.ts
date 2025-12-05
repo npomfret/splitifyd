@@ -73,11 +73,11 @@ export class UserEditorModalPage extends BasePage {
     }
 
     async fillDisplayName(value: string): Promise<void> {
-        await this.getDisplayNameInput().fill(value);
+        await this.fillPreactInput(this.getDisplayNameInput(), value);
     }
 
     async fillEmail(value: string): Promise<void> {
-        await this.getEmailInput().fill(value);
+        await this.fillPreactInput(this.getEmailInput(), value);
     }
 
     async clickSaveProfile(): Promise<void> {

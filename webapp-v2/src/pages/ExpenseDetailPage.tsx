@@ -1,6 +1,7 @@
 import { CommentsSection } from '@/components/comments';
 import { Avatar, Button, Card, CurrencyAmount, LoadingSpinner, Stack, Tooltip, Typography } from '@/components/ui';
 import { Clickable } from '@/components/ui/Clickable';
+import { XIcon } from '@/components/ui/icons';
 import { navigationService } from '@/services/navigation.service';
 import { formatCurrency } from '@/utils/currency';
 import { getGroupDisplayName } from '@/utils/displayName';
@@ -364,9 +365,7 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                                     eventName='receipt_modal_close'
                                     eventProps={{ expenseId }}
                                 >
-                                    <svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
-                                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
-                                    </svg>
+<XIcon size={24} />
                                 </Clickable>
                             </Tooltip>
                             <Clickable

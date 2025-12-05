@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { BadgeCheckIcon, PlusIcon, UsersIcon } from '../ui/icons';
 import { EmptyState } from '../ui';
 
 interface EmptyGroupsStateProps {
@@ -8,16 +9,7 @@ interface EmptyGroupsStateProps {
 export function EmptyGroupsState({ onCreateGroup }: EmptyGroupsStateProps) {
     const { t } = useTranslation();
 
-    const groupIcon = (
-        <svg class='w-16 h-16' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
-            <path
-                stroke-linecap='round'
-                stroke-linejoin='round'
-                stroke-width='1'
-                d='M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z'
-            />
-        </svg>
-    );
+    const groupIcon = <UsersIcon size={64} />;
 
     return (
         <EmptyState
@@ -37,14 +29,7 @@ export function EmptyGroupsState({ onCreateGroup }: EmptyGroupsStateProps) {
                 <div class='grid md:grid-cols-3 gap-4'>
                     <div class='bg-interactive-primary/10 p-4 rounded-lg'>
                         <div class='text-interactive-primary mb-2'>
-                            <svg class='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
-                                <path
-                                    stroke-linecap='round'
-                                    stroke-linejoin='round'
-                                    stroke-width='2'
-                                    d='M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z'
-                                />
-                            </svg>
+                            <UsersIcon size={24} />
                         </div>
                         <h6 class='font-medium text-text-primary mb-1'>{t('emptyGroupsState.step1Title')}</h6>
                         <p class='text-sm text-text-muted'>{t('emptyGroupsState.step1Description')}</p>
@@ -52,9 +37,7 @@ export function EmptyGroupsState({ onCreateGroup }: EmptyGroupsStateProps) {
 
                     <div class='bg-interactive-accent/10 p-4 rounded-lg'>
                         <div class='text-semantic-success mb-2'>
-                            <svg class='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
-                                <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 6v6m0 0v6m0-6h6m-6 0H6' />
-                            </svg>
+                            <PlusIcon size={24} />
                         </div>
                         <h6 class='font-medium text-text-primary mb-1'>{t('emptyGroupsState.step2Title')}</h6>
                         <p class='text-sm text-text-muted'>{t('emptyGroupsState.step2Description')}</p>
@@ -62,14 +45,7 @@ export function EmptyGroupsState({ onCreateGroup }: EmptyGroupsStateProps) {
 
                     <div class='bg-interactive-primary/10 p-4 rounded-lg'>
                         <div class='text-interactive-primary mb-2'>
-                            <svg class='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
-                                <path
-                                    stroke-linecap='round'
-                                    stroke-linejoin='round'
-                                    stroke-width='2'
-                                    d='M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z'
-                                />
-                            </svg>
+                            <BadgeCheckIcon size={24} />
                         </div>
                         <h6 class='font-medium text-text-primary mb-1'>{t('emptyGroupsState.step3Title')}</h6>
                         <p class='text-sm text-text-muted'>{t('emptyGroupsState.step3Description')}</p>

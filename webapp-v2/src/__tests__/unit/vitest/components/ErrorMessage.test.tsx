@@ -29,10 +29,12 @@ describe('ErrorMessage Component', () => {
             const errorElement = screen.getByTestId('error-message');
             expect(errorElement).toBeInTheDocument();
 
-            // Check for the SVG icon
+            // Check for the SVG icon (uses size prop, not w-4 h-4 classes)
             const icon = errorElement.querySelector('svg');
             expect(icon).toBeInTheDocument();
-            expect(icon).toHaveClass('w-4', 'h-4', 'text-semantic-error/80');
+            expect(icon).toHaveClass('text-semantic-error/80');
+            expect(icon).toHaveAttribute('width', '16');
+            expect(icon).toHaveAttribute('height', '16');
         });
 
         it('should apply proper error styling classes', () => {

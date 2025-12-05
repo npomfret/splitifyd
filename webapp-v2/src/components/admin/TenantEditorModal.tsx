@@ -1,6 +1,7 @@
 import { apiClient } from '@/app/apiClient';
 import { ImagePicker } from '@/components/admin/ImagePicker';
 import { Alert, Button, ColorInput, ImageUploadField, Input, Modal, RgbaColorInput } from '@/components/ui';
+import { ChevronDownIcon, XIcon } from '@/components/ui/icons';
 import { logError } from '@/utils/browser-logger';
 import type { AdminUpsertTenantRequest, BrandingTokens, TenantBranding } from '@billsplit-wl/shared';
 import { useCallback, useEffect, useState } from 'preact/hooks';
@@ -241,14 +242,7 @@ function Section({ title, description, defaultOpen = false, testId, children }: 
                     <h3 class='text-sm font-semibold text-text-primary'>{title}</h3>
                     {description && <p class='text-xs text-text-muted mt-0.5'>{description}</p>}
                 </div>
-                <svg
-                    class={`w-5 h-5 text-text-muted transition-transform ${isOpen ? 'rotate-180' : ''}`}
-                    fill='none'
-                    viewBox='0 0 24 24'
-                    stroke='currentColor'
-                >
-                    <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7' />
-                </svg>
+<ChevronDownIcon size={20} className={`text-text-muted transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
             {isOpen && <div class='px-4 py-4 space-y-4 border-t border-border-subtle'>{children}</div>}
         </div>
@@ -1250,9 +1244,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                         </p>
                     </div>
                     <button onClick={handleCancel} class='text-text-muted hover:text-text-primary' data-testid='close-modal-button'>
-                        <svg class='h-6 w-6' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
-                            <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12' />
-                        </svg>
+                        <XIcon size={24} />
                     </button>
                 </div>
 
@@ -1377,9 +1369,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                                     class='text-text-muted hover:text-status-danger'
                                                     data-testid={`remove-domain-${index}`}
                                                 >
-                                                    <svg class='w-4 h-4' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
-                                                        <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12' />
-                                                    </svg>
+                                                    <XIcon size={16} />
                                                 </button>
                                             </span>
                                         ))}

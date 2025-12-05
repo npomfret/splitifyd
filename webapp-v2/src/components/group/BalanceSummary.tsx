@@ -4,9 +4,9 @@ import { themeStore } from '@/app/stores/theme-store';
 import { Checkbox, CurrencyAmount, SidebarCard, Tooltip } from '@/components/ui';
 import { Avatar } from '@/components/ui/Avatar';
 import { Clickable } from '@/components/ui/Clickable';
+import { ArrowDownIcon, ArrowRightIcon, BanknotesIcon, ScaleIcon } from '@/components/ui/icons';
 import { getGroupDisplayName } from '@/utils/displayName';
 import type { SimplifiedDebt, UserId } from '@billsplit-wl/shared';
-import { BanknotesIcon, ScaleIcon } from '@heroicons/react/24/outline';
 import { useComputed, useSignal } from '@preact/signals';
 import { useMemo } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
@@ -138,9 +138,7 @@ export function BalanceSummary({ variant = 'default', onSettleUp }: BalanceSumma
                                     {/* Row 2: Down arrow only */}
                                     <div className='row-start-2 flex items-center justify-center self-stretch'>
                                         <div className='flex items-center justify-center w-6 h-full text-text-muted/80'>
-                                            <svg className='w-3 h-3 text-text-muted/80' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
-                                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth='2' d='M19 14l-7 7m0 0l-7-7m7 7V3' />
-                                            </svg>
+                                            <ArrowDownIcon size={12} className='text-text-muted/80' />
                                         </div>
                                     </div>
                                     <div className='row-start-2 col-start-2 flex items-center gap-2 w-full min-w-0'>
@@ -170,10 +168,8 @@ export function BalanceSummary({ variant = 'default', onSettleUp }: BalanceSumma
                                                         amount: debt.amount,
                                                     }}
                                                 >
-                                                    <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
-                                                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth='2' d='M13 7l5 5m0 0l-5 5m5-5H6' />
-                                                    </svg>
-                                                    <BanknotesIcon className='w-4 h-4' aria-hidden='true' />
+<ArrowRightIcon size={16} />
+                                                    <BanknotesIcon size={16} />
                                                 </Clickable>
                                             </Tooltip>
                                         )}
@@ -206,7 +202,7 @@ export function BalanceSummary({ variant = 'default', onSettleUp }: BalanceSumma
             <SidebarCard
                 title={
                     <div className='flex items-center gap-2'>
-                        <ScaleIcon className='h-5 w-5 text-text-muted' aria-hidden='true' />
+                        <ScaleIcon size={20} className='text-text-muted' />
                         <span>{t('balanceSummary.title')}</span>
                     </div>
                 }

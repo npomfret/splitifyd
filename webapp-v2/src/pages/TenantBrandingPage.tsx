@@ -1,4 +1,5 @@
 import { Alert, Button, Card, ColorInput, Form, Input, LoadingSpinner } from '@/components/ui';
+import { InfoIcon } from '@/components/ui/icons';
 import { logError } from '@/utils/browser-logger';
 import { SystemUserRoles } from '@billsplit-wl/shared';
 import type { TenantSettingsResponse, UpdateTenantBrandingRequest } from '@billsplit-wl/shared';
@@ -196,9 +197,7 @@ export function TenantBrandingPage() {
                         <Card padding='sm' className='bg-interactive-primary/10 border border-interactive-primary/30'>
                             <div class='flex items-start gap-3'>
                                 <div class='flex h-8 w-8 items-center justify-center rounded-full bg-interactive-primary/15'>
-                                    <svg class='h-5 w-5 text-interactive-primary' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
-                                        <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
-                                    </svg>
+                                    <InfoIcon size={20} className='text-interactive-primary' />
                                 </div>
                                 <div class='flex-1'>
                                     <p class='text-sm font-medium text-text-primary'>Tenant ID: {tenantSettings.tenantId}</p>

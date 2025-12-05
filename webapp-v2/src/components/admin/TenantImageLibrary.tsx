@@ -1,5 +1,6 @@
 import { tenantImageLibraryStore } from '@/app/stores/tenant-image-library-store';
 import { Button } from '@/components/ui';
+import { CheckIcon } from '@/components/ui/icons';
 import type { TenantImageDTO, TenantImageId } from '@billsplit-wl/shared';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 
@@ -259,9 +260,7 @@ export function TenantImageLibrary({ tenantId, onSelect, selectedImageUrl, picke
                                 {/* Selection Indicator */}
                                 {isSelected && (
                                     <div className='absolute top-2 right-2 w-6 h-6 rounded-full bg-interactive-primary flex items-center justify-center shadow-md'>
-                                        <svg className='w-4 h-4 text-interactive-primary-foreground' fill='none' viewBox='0 0 24 24' stroke='currentColor' strokeWidth={3}>
-                                            <path strokeLinecap='round' strokeLinejoin='round' d='M5 13l4 4L19 7' />
-                                        </svg>
+                                        <CheckIcon size={16} className='text-interactive-primary-foreground' />
                                     </div>
                                 )}
                             </div>

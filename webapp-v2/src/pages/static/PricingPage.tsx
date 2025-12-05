@@ -1,4 +1,5 @@
 import { Clickable } from '@/components/ui/Clickable';
+import { CheckCircleIcon } from '@/components/ui/icons';
 import { useNavigation } from '@/hooks/useNavigation';
 import { configStore } from '@/stores/config-store';
 import { useTranslation } from 'react-i18next';
@@ -57,13 +58,7 @@ export function PricingPage() {
                         <ul class='space-y-3 mb-8'>
                             {(t('pricing.plans.starter.features', { returnObjects: true }) as string[]).map((feature: string, index: number) => (
                                 <li key={index} class='flex items-start'>
-                                    <svg class='w-5 h-5 text-semantic-success mr-3 mt-0.5' fill='currentColor' viewBox='0 0 20 20' aria-hidden='true' focusable='false'>
-                                        <path
-                                            fill-rule='evenodd'
-                                            d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z'
-                                            clip-rule='evenodd'
-                                        />
-                                    </svg>
+                                    <CheckCircleIcon size={20} className='text-semantic-success mr-3 mt-0.5' />
                                     <span>{feature}</span>
                                 </li>
                             ))}
@@ -99,13 +94,7 @@ export function PricingPage() {
                         <ul class='space-y-3 mb-8'>
                             {(t('pricing.plans.pro.features', { returnObjects: true }) as string[]).map((feature: string, index: number) => (
                                 <li key={index} class='flex items-start'>
-                                    <svg class='w-5 h-5 text-semantic-success mr-3 mt-0.5' fill='currentColor' viewBox='0 0 20 20' aria-hidden='true' focusable='false'>
-                                        <path
-                                            fill-rule='evenodd'
-                                            d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z'
-                                            clip-rule='evenodd'
-                                        />
-                                    </svg>
+                                    <CheckCircleIcon size={20} className='text-semantic-success mr-3 mt-0.5' />
                                     <span>{feature}</span>
                                 </li>
                             ))}
@@ -138,13 +127,7 @@ export function PricingPage() {
                         <ul class='space-y-3 mb-8'>
                             {(t('pricing.plans.philanthropist.features', { returnObjects: true }) as string[]).map((feature: string, index: number) => (
                                 <li key={index} class='flex items-start'>
-                                    <svg class='w-5 h-5 text-semantic-success mr-3 mt-0.5' fill='currentColor' viewBox='0 0 20 20' aria-hidden='true' focusable='false'>
-                                        <path
-                                            fill-rule='evenodd'
-                                            d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z'
-                                            clip-rule='evenodd'
-                                        />
-                                    </svg>
+                                    <CheckCircleIcon size={20} className='text-semantic-success mr-3 mt-0.5' />
                                     <span>{feature}</span>
                                 </li>
                             ))}

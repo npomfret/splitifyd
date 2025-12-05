@@ -1,5 +1,6 @@
 import { Button, Card, Stack, Typography } from '@/components/ui';
 import { Clickable } from '@/components/ui/Clickable';
+import { EnvelopeIcon } from '@/components/ui/icons';
 import { navigationService } from '@/services/navigation.service';
 import { EmailSchema, toEmail } from '@billsplit-wl/shared';
 import { signal } from '@preact/signals';
@@ -52,14 +53,7 @@ export function ResetPasswordPage() {
             <AuthLayout title={t('pages.resetPasswordPage.checkYourEmail')} description={t('pages.resetPasswordPage.resetInstructionsSent')}>
                 <Stack spacing='lg' className='text-center'>
                     <div class='mx-auto w-16 h-16 rounded-full flex items-center justify-center bg-semantic-success/10 text-semantic-success'>
-                        <svg class='w-8 h-8' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
-                            <path
-                                stroke-linecap='round'
-                                stroke-linejoin='round'
-                                stroke-width='2'
-                                d='M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z'
-                            />
-                        </svg>
+                        <EnvelopeIcon size={32} />
                     </div>
 
                     <div class='space-y-2'>

@@ -1,4 +1,5 @@
 import { useAuthRequired } from '@/app/hooks/useAuthRequired.ts';
+import { ChevronDownIcon, HomeIcon, LogoutIcon, SettingsIcon } from '@/components/ui/icons';
 import { navigationService } from '@/services/navigation.service';
 import { logError } from '@/utils/browser-logger';
 import { type SystemUserRole, SystemUserRoles } from '@billsplit-wl/shared';
@@ -62,16 +63,10 @@ export function UserMenu({ user }: UserMenuProps) {
                     <p class='text-sm font-medium text-text-primary group-hover:text-interactive-primary transition-colors' data-testid='user-menu-display-name'>{userName}</p>
                     <p class='text-xs text-text-muted'>{user.email}</p>
                 </div>
-                <svg
-                    class={`hidden md:block w-4 h-4 text-text-muted group-hover:text-interactive-primary transition-all duration-200 ${isOpen ? 'rotate-180' : ''}`}
-                    fill='none'
-                    stroke='currentColor'
-                    viewBox='0 0 24 24'
-                    aria-hidden='true'
-                    focusable='false'
-                >
-                    <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7' />
-                </svg>
+                <ChevronDownIcon
+                    size={16}
+                    className={`hidden md:block text-text-muted group-hover:text-interactive-primary transition-all duration-200 ${isOpen ? 'rotate-180' : ''}`}
+                />
             </button>
 
             {isOpen && (
@@ -98,14 +93,7 @@ export function UserMenu({ user }: UserMenuProps) {
                             data-testid='user-menu-dashboard-link'
                             role='menuitem'
                         >
-                            <svg class='w-4 h-4 mr-3 text-text-muted' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                <path
-                                    stroke-linecap='round'
-                                    stroke-linejoin='round'
-                                    stroke-width='2'
-                                    d='M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6'
-                                />
-                            </svg>
+                            <HomeIcon size={16} className="mr-3 text-text-muted" />
                             {t('userMenu.dashboard')}
                         </button>
 
@@ -118,15 +106,7 @@ export function UserMenu({ user }: UserMenuProps) {
                             data-testid='user-menu-settings-link'
                             role='menuitem'
                         >
-                            <svg class='w-4 h-4 mr-3 text-text-muted' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                <path
-                                    stroke-linecap='round'
-                                    stroke-linejoin='round'
-                                    stroke-width='2'
-                                    d='M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z'
-                                />
-                                <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M15 12a3 3 0 11-6 0 3 3 0 016 0z' />
-                            </svg>
+                            <SettingsIcon size={16} className="mr-3 text-text-muted" />
                             {t('userMenu.settings')}
                         </button>
                     </div>
@@ -148,15 +128,7 @@ export function UserMenu({ user }: UserMenuProps) {
                                 data-testid='user-menu-admin-link'
                                 role='menuitem'
                             >
-                                <svg class='w-4 h-4 mr-3 text-text-muted' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                    <path
-                                        stroke-linecap='round'
-                                        stroke-linejoin='round'
-                                        stroke-width='2'
-                                        d='M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z'
-                                    />
-                                    <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M15 12a3 3 0 11-6 0 3 3 0 016 0z' />
-                                </svg>
+                                <SettingsIcon size={16} className="mr-3 text-text-muted" />
                                 Admin
                             </button>
                         </>
@@ -181,9 +153,7 @@ export function UserMenu({ user }: UserMenuProps) {
                         disabled={authStore.loading}
                         role='menuitem'
                     >
-                        <svg class='w-4 h-4 mr-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                            <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1' />
-                        </svg>
+                        <LogoutIcon size={16} className="mr-3" />
                         {authStore.loading ? t('userMenu.signingOut') : t('userMenu.signOut')}
                     </button>
                 </div>

@@ -1,5 +1,6 @@
 import { TenantImageLibrary } from '@/components/admin/TenantImageLibrary';
 import { Button, Modal } from '@/components/ui';
+import { XIcon } from '@/components/ui/icons';
 import type { TenantImageDTO } from '@billsplit-wl/shared';
 import { useCallback, useState } from 'preact/hooks';
 
@@ -49,9 +50,7 @@ export function ImagePicker({
                         onClick={handleClose}
                         className='p-2 rounded-lg text-text-muted hover:text-text-primary hover:bg-surface-muted transition-colors'
                     >
-                        <svg className='h-5 w-5' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
-                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
-                        </svg>
+                        <XIcon size={20} />
                     </button>
                 </div>
 

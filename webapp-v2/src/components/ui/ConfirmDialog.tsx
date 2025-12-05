@@ -1,6 +1,7 @@
 import { useEffect } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Button } from './Button';
+import { AlertTriangleIcon, ExclamationCircleIcon, InfoIcon } from './icons';
 import { Modal } from './Modal';
 import { Surface } from './Surface';
 import { Typography } from './Typography';
@@ -76,27 +77,10 @@ export function ConfirmDialog({ isOpen, title, message, confirmText, cancelText,
             <Surface padding='lg' shadow='md' border='default' className='space-y-6' data-testid='confirmation-dialog'>
                 <div className={`mx-auto flex h-12 w-12 items-center justify-center rounded-full ${styles.iconBg}`}>
                     {variant === 'danger'
-                        ? (
-                            <svg className={`h-6 w-6 ${styles.icon}`} fill='none' viewBox='0 0 24 24' stroke='currentColor' aria-hidden='true' focusable='false'>
-                                <path
-                                    strokeLinecap='round'
-                                    strokeLinejoin='round'
-                                    strokeWidth={2}
-                                    d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z'
-                                />
-                            </svg>
-                        )
+                        ? <AlertTriangleIcon size={24} className={styles.icon} />
                         : variant === 'warning'
-                        ? (
-                            <svg className={`h-6 w-6 ${styles.icon}`} fill='none' viewBox='0 0 24 24' stroke='currentColor' aria-hidden='true' focusable='false'>
-                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
-                            </svg>
-                        )
-                        : (
-                            <svg className={`h-6 w-6 ${styles.icon}`} fill='none' viewBox='0 0 24 24' stroke='currentColor' aria-hidden='true' focusable='false'>
-                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
-                            </svg>
-                        )}
+                        ? <ExclamationCircleIcon size={24} className={styles.icon} />
+                        : <InfoIcon size={24} className={styles.icon} />}
                 </div>
 
                 <div className='space-y-2 text-center'>

@@ -1,6 +1,7 @@
 import { apiClient } from '@/app/apiClient.ts';
 import { Button, LoadingSpinner, Tooltip, Typography } from '@/components/ui';
 import { Clickable } from '@/components/ui/Clickable';
+import { CheckIcon, CopyIcon, RefreshIcon, UserAddIcon, XIcon } from '@/components/ui/icons';
 import { Modal } from '@/components/ui/Modal';
 import { logError } from '@/utils/browser-logger.ts';
 import { formatDateTimeInUserTimeZone } from '@/utils/dateUtils.ts';
@@ -201,14 +202,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                     <div class='flex items-center justify-between'>
                         <div class='flex flex-col space-y-1'>
                             <div class='flex items-center space-x-2'>
-                                <svg class='w-5 h-5 text-interactive-primary' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
-                                    <path
-                                        stroke-linecap='round'
-                                        stroke-linejoin='round'
-                                        stroke-width='2'
-                                        d='M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z'
-                                    />
-                                </svg>
+                                <UserAddIcon size={20} className="text-interactive-primary" />
                                 <Typography variant="subheading" id="share-modal-title">
                                     {t('shareGroupModal.title')}
                                 </Typography>
@@ -229,9 +223,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                                 eventName='modal_close'
                                 eventProps={{ modalName: 'share_group', method: 'x_button' }}
                             >
-                                <svg class='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
-                                    <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12' />
-                                </svg>
+                                <XIcon size={20} />
                             </Clickable>
                         </Tooltip>
                     </div>
@@ -281,21 +273,8 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                                                 className='absolute right-2 top-1/2 -translate-y-1/2'
                                             >
                                                 {copied
-                                                    ? (
-                                                        <svg class='w-5 h-5 text-semantic-success' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
-                                                            <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 13l4 4L19 7' />
-                                                        </svg>
-                                                    )
-                                                    : (
-                                                        <svg class='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
-                                                            <path
-                                                                stroke-linecap='round'
-                                                                stroke-linejoin='round'
-                                                                stroke-width='2'
-                                                                d='M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z'
-                                                            />
-                                                        </svg>
-                                                    )}
+                                                    ? <CheckIcon size={20} className="text-semantic-success" />
+                                                    : <CopyIcon size={20} />}
                                             </Button>
                                         </Tooltip>
                                     </div>
@@ -317,14 +296,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                                                     ariaLabel={t('shareGroupModal.generateNew')}
                                                     className='rounded-full'
                                                 >
-                                                    <svg class='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
-                                                        <path
-                                                            stroke-linecap='round'
-                                                            stroke-linejoin='round'
-                                                            stroke-width='1.5'
-                                                            d='M16.023 9.348h4.284m0 0V5.064m0 4.284-2.913-2.913a7.5 7.5 0 10-.255 10.79'
-                                                        />
-                                                    </svg>
+                                                    <RefreshIcon size={20} />
                                                 </Button>
                                             </Tooltip>
                                         </div>
@@ -372,9 +344,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
             {showToast && (
                 <div class='fixed bottom-4 right-4 z-[60] animate-slide-up' role='status' aria-live='polite'>
                     <div class='bg-text-primary text-text-inverted px-4 py-3 rounded-lg shadow-lg flex items-center space-x-2'>
-                        <svg class='w-5 h-5 text-semantic-success' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
-                            <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 13l4 4L19 7' />
-                        </svg>
+                        <CheckIcon size={20} className="text-semantic-success" />
                         <span class='text-sm font-medium'>{t('shareGroupModal.linkCopied')}</span>
                     </div>
                 </div>

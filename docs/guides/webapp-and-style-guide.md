@@ -44,6 +44,22 @@ Defined in `tailwind.config.js`, consumed via CSS variables from tenant theme.
 3. Error states: `aria-invalid`, `aria-describedby`, `role="alert"`
 4. Forward refs for components needing hooks
 
+### Icons
+
+**Location:** `components/ui/icons/`
+
+Icons are TSX components, not external SVG files. This is required for theming - external SVGs loaded via `<img>` cannot use `currentColor` to inherit text colors.
+
+```tsx
+import { CheckIcon } from '@/components/ui/icons';
+
+<CheckIcon size={20} className="text-semantic-success" />
+```
+
+**Props:** `size` (pixels), `className` (for color via `text-*` tokens)
+
+**Adding icons:** Create a new file in `icons/`, export from `icons/index.ts`. Use `currentColor` for stroke/fill, include `aria-hidden="true"` and `focusable="false"`.
+
 ---
 
 ## Motion System
@@ -142,6 +158,7 @@ Pages under `pages/admin/` and `components/admin/` are **completely isolated fro
 |---------|----------|
 | Semantic tokens | `tailwind.config.js` |
 | UI components | `components/ui/` |
+| Icons | `components/ui/icons/` |
 | Motion hooks | `app/hooks/useThemeConfig.ts`, `useMagneticHover.ts`, `useScrollReveal.ts` |
 | Stores | `app/stores/` |
 | Global animations | `styles/global.css` |

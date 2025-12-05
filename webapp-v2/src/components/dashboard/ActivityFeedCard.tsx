@@ -2,6 +2,7 @@ import { useStaggeredReveal } from '@/app/hooks/useScrollReveal';
 import { activityFeedStore } from '@/app/stores/activity-feed-store.ts';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { ChevronRightIcon, ClockIcon } from '@/components/ui/icons';
 import { RelativeTime } from '@/components/ui/RelativeTime.tsx';
 import { SkeletonActivityItem } from '@/components/ui/Skeleton';
 import { Typography } from '@/components/ui/Typography';
@@ -9,7 +10,6 @@ import { routes } from '@/constants/routes.ts';
 import { navigationService } from '@/services/navigation.service.ts';
 import { logError } from '@/utils/browser-logger.ts';
 import type { ActivityFeedItem, UserId } from '@billsplit-wl/shared';
-import { ClockIcon } from '@heroicons/react/24/outline';
 import { useComputed } from '@preact/signals';
 import type { TFunction } from 'i18next';
 import { useEffect } from 'preact/hooks';
@@ -96,7 +96,7 @@ export function ActivityFeedCard({ userId }: ActivityFeedCardProps) {
                 {!error.value && initialized.value && items.value.length === 0
                     ? (
                         <EmptyState
-                            icon={<ClockIcon className='w-12 h-12' aria-hidden='true' />}
+                            icon={<ClockIcon size={48} />}
                             title={t('activityFeed.emptyState.title')}
                             description={t('activityFeed.emptyState.description')}
                             data-testid='activity-feed-empty'
@@ -143,15 +143,7 @@ export function ActivityFeedCard({ userId }: ActivityFeedCardProps) {
                                                     <div className='flex-1 min-w-0'>
                                                         {content}
                                                     </div>
-                                                    <svg
-                                                        className='h-4 w-4 flex-shrink-0 mt-1 text-interactive-primary opacity-0 transition-all duration-200 group-hover:opacity-100 group-hover:translate-x-0.5'
-                                                        fill='none'
-                                                        stroke='currentColor'
-                                                        viewBox='0 0 24 24'
-                                                        aria-hidden='true'
-                                                    >
-                                                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 5l7 7-7 7' />
-                                                    </svg>
+<ChevronRightIcon size={16} className='flex-shrink-0 mt-1 text-interactive-primary opacity-0 transition-all duration-200 group-hover:opacity-100 group-hover:translate-x-0.5' />
                                                 </button>
                                             )
                                             : (

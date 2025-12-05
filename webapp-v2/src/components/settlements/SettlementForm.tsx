@@ -3,6 +3,7 @@ import { useAuthRequired } from '@/app/hooks/useAuthRequired.ts';
 import { CurrencyService } from '@/app/services/currencyService.ts';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced.ts';
 import { Clickable } from '@/components/ui/Clickable';
+import { XIcon } from '@/components/ui/icons';
 import { formatCurrency } from '@/utils/currency';
 import { getAmountPrecisionError } from '@/utils/currency-validation.ts';
 import { getUTCMidnight, isDateInFuture } from '@/utils/dateUtils.ts';
@@ -440,9 +441,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                             eventName='modal_close'
                             eventProps={{ modalName: 'settlement_form', method: 'x_button' }}
                         >
-                            <svg class='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
-                                <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12' />
-                            </svg>
+                            <XIcon size={24} />
                         </Clickable>
                     </Tooltip>
                 </div>

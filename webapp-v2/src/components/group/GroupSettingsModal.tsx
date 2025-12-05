@@ -2,6 +2,7 @@ import { apiClient, ApiError } from '@/app/apiClient.ts';
 import { useAuthRequired } from '@/app/hooks/useAuthRequired.ts';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced.ts';
 import { Clickable } from '@/components/ui/Clickable';
+import { XCircleIcon, XIcon } from '@/components/ui/icons';
 import { Modal } from '@/components/ui/Modal';
 import { logError } from '@/utils/browser-logger.ts';
 import { translateApiError } from '@/utils/error-translation';
@@ -725,13 +726,7 @@ export function GroupSettingsModal({
                             <div className='bg-surface-error border border-border-error rounded-md p-3'>
                                 <div className='flex'>
                                     <div className='flex-shrink-0'>
-                                        <svg className='h-5 w-5 text-semantic-error/80' fill='currentColor' viewBox='0 0 20 20' aria-hidden='true' focusable='false'>
-                                            <path
-                                                fill-rule='evenodd'
-                                                d='M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z'
-                                                clip-rule='evenodd'
-                                            />
-                                        </svg>
+<XCircleIcon size={20} className='text-semantic-error/80' />
                                     </div>
                                     <div className='ml-3'>
                                         <p className='text-sm text-semantic-error' role='alert' data-testid='edit-group-validation-error'>
@@ -943,9 +938,7 @@ export function GroupSettingsModal({
                                 eventName='modal_close'
                                 eventProps={{ modalName: 'group_settings', method: 'x_button' }}
                             >
-                                <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
-                                    <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12' />
-                                </svg>
+<XIcon size={20} />
                             </Clickable>
                         </Tooltip>
                     </div>

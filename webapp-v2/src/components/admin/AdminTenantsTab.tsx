@@ -1,6 +1,7 @@
 import { apiClient } from '@/app/apiClient.ts';
 import { TenantEditorModal } from '@/components/admin/TenantEditorModal';
 import { Alert, Button, Card, LoadingSpinner } from '@/components/ui';
+import { BuildingIcon } from '@/components/ui/icons';
 import { configStore } from '@/stores/config-store.ts';
 import { logError } from '@/utils/browser-logger';
 import type { TenantFullRecord } from '@billsplit-wl/shared';
@@ -203,14 +204,7 @@ export function AdminTenantsTab() {
             {tenants.length === 0 && (
                 <Card className='p-12 text-center bg-white/70 backdrop-blur-sm border border-indigo-200'>
                     <div class='inline-flex items-center justify-center w-16 h-16 rounded-full bg-indigo-100 mb-4'>
-                        <svg class='w-8 h-8 text-indigo-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                            <path
-                                stroke-linecap='round'
-                                stroke-linejoin='round'
-                                stroke-width='2'
-                                d='M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4'
-                            />
-                        </svg>
+                        <BuildingIcon size={32} className='text-indigo-600' />
                     </div>
                     <p class='text-indigo-700 text-lg'>{t('admin.tenants.emptyState')}</p>
                 </Card>

@@ -6,6 +6,7 @@ import { logError } from '@/utils/browser-logger';
 import { formatCurrency } from '@/utils/currency';
 import { getGroupDisplayName } from '@/utils/displayName';
 import type { GroupId, GroupMember, SettlementWithMembers } from '@billsplit-wl/shared';
+import { ArrowDownIcon } from '@/components/ui/icons';
 import { BanknotesIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useComputed, useSignal } from '@preact/signals';
 import { useEffect, useMemo, useState } from 'preact/hooks';
@@ -198,9 +199,7 @@ export function SettlementHistory({
                                         {/* Row 2: Arrow, amount, and date */}
                                         <div class='row-start-2 flex items-center justify-center self-stretch'>
                                             <div class='flex items-center justify-center w-6 h-full text-text-muted'>
-                                                <svg class='w-3 h-3 text-text-muted' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
-                                                    <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 14l-7 7m0 0l-7-7m7 7V3' />
-                                                </svg>
+                                                <ArrowDownIcon size={12} className='text-text-muted' />
                                             </div>
                                         </div>
                                         <div class='row-start-2 col-start-2 flex items-center gap-2 w-full min-w-0'>

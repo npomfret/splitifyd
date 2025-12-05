@@ -1,6 +1,7 @@
 import { apiClient, type PolicyAcceptanceStatusDTO } from '@/app/apiClient.ts';
 import { ErrorState, LoadingSpinner, Tooltip, Typography } from '@/components/ui';
 import { Clickable } from '@/components/ui/Clickable';
+import { InfoCircleIcon, XIcon } from '@/components/ui/icons';
 import { Modal } from '@/components/ui/Modal';
 import { logError } from '@/utils/browser-logger.ts';
 import { PolicyId } from '@billsplit-wl/shared';
@@ -171,9 +172,7 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                                 eventName='modal_close'
                                 eventProps={{ modalName: 'policy_acceptance', method: 'x_button' }}
                             >
-                                <svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
-                                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
-                                </svg>
+<XIcon size={24} />
                             </Clickable>
                         </Tooltip>
                     )}
@@ -245,13 +244,7 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                                                     <div className='bg-semantic-info-subtle border border-semantic-info rounded-lg p-4' data-testid='policy-acceptance-section'>
                                                         <div className='flex items-start'>
                                                             <div className='flex-shrink-0'>
-                                                                <svg className='w-5 h-5 text-semantic-info mt-0.5' fill='currentColor' viewBox='0 0 20 20' aria-hidden='true' focusable='false'>
-                                                                    <path
-                                                                        fillRule='evenodd'
-                                                                        d='M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z'
-                                                                        clipRule='evenodd'
-                                                                    />
-                                                                </svg>
+                                                                <InfoCircleIcon size={20} className='text-semantic-info mt-0.5' />
                                                             </div>
                                                             <div className='ml-3'>
                                                                 <h4 className='text-sm font-medium text-semantic-info-emphasis'>{t('policyComponents.policyAcceptanceModal.acceptanceRequired')}</h4>

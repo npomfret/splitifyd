@@ -3,6 +3,7 @@ import type { JSX } from 'preact';
 import { useTranslation } from 'react-i18next';
 import { Card, CurrencyAmount, RelativeTime, Tooltip } from '../ui';
 import { Clickable } from '../ui/Clickable';
+import { ClockIcon, PlusIcon, UserAddIcon } from '../ui/icons';
 
 interface GroupCardProps {
     group: GroupDTO;
@@ -119,9 +120,7 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense, isArchivedVi
                                     eventName='group_card_add_expense'
                                     eventProps={{ groupId: group.id, groupName: group.name }}
                                 >
-                                    <svg class='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
-                                        <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 6v6m0 0v6m0-6h6m-6 0H6' />
-                                    </svg>
+                                    <PlusIcon size={16} />
                                 </Clickable>
                             </Tooltip>
                         )}
@@ -135,14 +134,7 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense, isArchivedVi
                                     eventName='group_card_invite'
                                     eventProps={{ groupId: group.id, groupName: group.name }}
                                 >
-                                    <svg class='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
-                                        <path
-                                            stroke-linecap='round'
-                                            stroke-linejoin='round'
-                                            stroke-width='2'
-                                            d='M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z'
-                                        />
-                                    </svg>
+                                    <UserAddIcon size={16} />
                                 </Clickable>
                             </Tooltip>
                         )}
@@ -176,9 +168,7 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense, isArchivedVi
                 {/* GroupDTO stats */}
                 <div class='space-y-2 text-sm text-text-muted'>
                     <div class='flex items-center'>
-                        <svg class='w-4 h-4 mr-2 text-text-muted/80' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
-                            <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
-                        </svg>
+                        <ClockIcon size={16} className="mr-2 text-text-muted/80" />
                         {group.updatedAt
                             ? <RelativeTime date={group.updatedAt} fallback={group.lastActivity || t('groupCard.noRecentActivity')} />
                             : (group.lastActivity || t('groupCard.noRecentActivity'))}

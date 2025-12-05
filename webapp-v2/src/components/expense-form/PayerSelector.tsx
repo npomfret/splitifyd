@@ -1,4 +1,5 @@
 import { usePayerSelector } from '@/app/hooks/usePayerSelector';
+import { CheckIcon, ChevronDownIcon } from '@/components/ui/icons';
 import { getGroupDisplayName } from '@/utils/displayName';
 import { toUserId, UserId } from '@billsplit-wl/shared';
 import { useMemo } from 'preact/hooks';
@@ -86,19 +87,10 @@ export function PayerSelector({ members, paidBy, validationErrors, updateField }
                                     <span className='text-sm text-text-muted'>{t('expenseComponents.payerSelector.selectPayer')}</span>
                                 )}
                         </div>
-                        <svg
-                            className={`h-4 w-4 text-text-muted transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
-                            aria-hidden='true'
-                            xmlns='http://www.w3.org/2000/svg'
-                            viewBox='0 0 20 20'
-                            fill='currentColor'
-                        >
-                            <path
-                                fillRule='evenodd'
-                                d='M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z'
-                                clipRule='evenodd'
-                            />
-                        </svg>
+                        <ChevronDownIcon
+                            size={16}
+                            className={`text-text-muted transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+                        />
                     </button>
 
                     {/* Dropdown */}
@@ -161,19 +153,10 @@ export function PayerSelector({ members, paidBy, validationErrors, updateField }
                                                     />
                                                     <span className='flex-1 truncate'>{getGroupDisplayName(member)}</span>
                                                     {isSelected && (
-                                                        <svg
-                                                            className={`h-4 w-4 ${isHighlighted ? 'text-interactive-primary-foreground' : 'text-interactive-primary'}`}
-                                                            xmlns='http://www.w3.org/2000/svg'
-                                                            viewBox='0 0 20 20'
-                                                            fill='currentColor'
-                                                            aria-hidden='true'
-                                                        >
-                                                            <path
-                                                                fillRule='evenodd'
-                                                                d='M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z'
-                                                                clipRule='evenodd'
-                                                            />
-                                                        </svg>
+                                                        <CheckIcon
+                                                            size={16}
+                                                            className={isHighlighted ? 'text-interactive-primary-foreground' : 'text-interactive-primary'}
+                                                        />
                                                     )}
                                                 </button>
                                             );
