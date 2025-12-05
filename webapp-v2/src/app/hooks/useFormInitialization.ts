@@ -132,6 +132,10 @@ export function useFormInitialization({ groupId, expenseId, isEditMode, isCopyMo
 
         // Set detected currency (defaults to USD if no expenses exist)
         expenseFormStore.updateField('currency', detectedCurrency);
+
+        // Default to all group members as participants
+        const allMemberUids = enhancedGroupDetailStore.members.map((m) => m.uid);
+        expenseFormStore.setParticipants(allMemberUids);
     };
 
     // Initialize form on mount
