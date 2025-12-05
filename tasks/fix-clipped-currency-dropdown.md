@@ -1,11 +1,27 @@
 # Fix clipped currency selection dropdown in expense form
 
+**Status:** COMPLETED
+
 **Problem:** The dropdown for the currency selection in the expense form gets visually clipped when it extends beyond the border of its containing element, specifically the "expense detail" container. This degrades the user experience as the full list of currencies is not visible.
 
-**Proposed Solution:** Adjust the styling of the currency selection dropdown and/or its parent containers to prevent clipping. This typically involves modifying CSS properties such as `z-index`, `overflow`, `position`, or `clip-path` to ensure the dropdown renders fully on top of other content.
+**Root Cause:**
+The `ExpenseBasicFields` component uses `<Card variant='glass'>`, which applies the `.glass-panel` CSS class. This class has `overflow: hidden` (in `webapp-v2/src/styles/global.css:70`) to contain the hover glow effect. Since the currency dropdown was positioned `absolute` inside this container, it was clipped when extending beyond the Card boundaries.
 
-**Technical Notes:**
-- Investigate the component structure around the currency selection in `webapp-v2/src/components/expense-form/` or similar paths.
-- Identify the specific component responsible for the currency dropdown (e.g., a `CurrencySelector` component or similar input).
-- Examine the CSS of the dropdown element itself and its immediate parent containers (e.g., the "expense detail" container) for properties that might restrict its visibility, such as `overflow: hidden`, `position: relative` without a sufficient `z-index`, or `clip-path`.
-- The fix might involve increasing the `z-index` of the dropdown, ensuring `position: absolute` or `fixed` if necessary, or adjusting `overflow` on parent elements.
+**Solution Implemented:**
+Used a **portal pattern** to render the dropdown outside the DOM hierarchy, escaping the `overflow: hidden` clipping context. This follows the same approach used by `Modal.tsx` and `Tooltip.tsx` in the codebase.
+
+**Changes Made:**
+- `webapp-v2/src/components/ui/CurrencyAmountInput.tsx`:
+  - Added `createPortal` import from `preact/compat`
+  - Added `useLayoutEffect` for position calculation
+  - Added `DropdownPosition` interface and state
+  - Added `triggerContainerRef` to track the input container's position
+  - Added `calculatePosition` callback that uses `getBoundingClientRect()` to compute dropdown position
+  - Added scroll/resize event listeners to recalculate position when page scrolls or resizes
+  - Changed dropdown from `absolute` to `fixed` positioning via portal
+  - Dropdown now renders via `createPortal(dropdown, document.body)` with calculated `top`, `left`, and `width` styles
+
+**Testing:**
+- Build compiles successfully
+- Unit tests pass: `CurrencyAmountInput.test.tsx` (2 tests)
+- Integration tests pass: `expense-form.test.ts` (32 tests including currency handling tests)

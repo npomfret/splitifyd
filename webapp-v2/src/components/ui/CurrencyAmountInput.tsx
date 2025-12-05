@@ -1,9 +1,16 @@
 import { useCurrencySelector } from '@/app/hooks/useCurrencySelector';
 import { type Currency, CurrencyService } from '@/app/services/currencyService';
 import { Amount, toCurrencyISOCode } from '@billsplit-wl/shared';
-import { useCallback, useMemo, useRef } from 'preact/hooks';
+import { createPortal } from 'preact/compat';
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { ChevronDownIcon } from './icons';
+
+interface DropdownPosition {
+    top: number;
+    left: number;
+    width: number;
+}
 
 interface CurrencyAmountInputProps {
     amount: Amount;
@@ -36,7 +43,9 @@ export function CurrencyAmountInput({
 }: CurrencyAmountInputProps) {
     const { t } = useTranslation();
     const inputRef = useRef<HTMLInputElement>(null);
+    const triggerContainerRef = useRef<HTMLDivElement>(null);
     const currencyService = CurrencyService.getInstance();
+    const [dropdownPosition, setDropdownPosition] = useState<DropdownPosition | null>(null);
 
     // Use the currency selector hook for all dropdown logic
     const {
@@ -62,6 +71,35 @@ export function CurrencyAmountInput({
     });
 
     const selectedCurrency = useMemo(() => (currency ? currencyService.getCurrencyByCode(currency) : undefined), [currency, currencyService]);
+
+    // Calculate dropdown position when open
+    const calculatePosition = useCallback(() => {
+        if (!triggerContainerRef.current) return;
+
+        const rect = triggerContainerRef.current.getBoundingClientRect();
+        setDropdownPosition({
+            top: rect.bottom + 4, // 4px gap (mt-1 equivalent)
+            left: rect.left,
+            width: Math.max(rect.width, 320), // Ensure minimum width for currency names
+        });
+    }, []);
+
+    useLayoutEffect(() => {
+        if (!isOpen) {
+            setDropdownPosition(null);
+            return;
+        }
+
+        calculatePosition();
+
+        window.addEventListener('scroll', calculatePosition, true);
+        window.addEventListener('resize', calculatePosition);
+
+        return () => {
+            window.removeEventListener('scroll', calculatePosition, true);
+            window.removeEventListener('resize', calculatePosition);
+        };
+    }, [isOpen, calculatePosition]);
 
     // Calculate min and step values based on currency decimal digits using service
     const { minValue, stepValue } = useMemo(() => {
@@ -133,7 +171,7 @@ export function CurrencyAmountInput({
                 </label>
             )}
 
-            <div className='relative'>
+            <div ref={triggerContainerRef} className='relative'>
                 <div className='flex'>
                     {/* Currency selector button */}
                     <button
@@ -193,75 +231,71 @@ export function CurrencyAmountInput({
                     />
                 </div>
 
-                {/* Currency dropdown */}
-                {isOpen && (
-                    <div ref={dropdownRef} role='listbox' className='absolute z-20 mt-1 w-full max-w-md bg-surface-base shadow-lg max-h-80 rounded-md overflow-hidden ring-1 ring-black ring-opacity-5'>
-                        {/* Search input */}
-                        <div className='sticky top-0 bg-surface-base border-b border-border-default p-2'>
-                            <input
-                                ref={searchInputRef}
-                                type='text'
-                                value={searchTerm}
-                                onInput={handleSearchChange}
-                                onKeyDown={handleKeyDown}
-                                placeholder={t('uiComponents.currencyAmountInput.searchPlaceholder')}
-                                className='w-full px-3 py-1.5 text-sm border border-border-default rounded-md focus:outline-none focus:ring-1 focus:ring-interactive-primary'
-                                aria-label={t('uiComponents.currencyAmountInput.searchAriaLabel')}
-                            />
-                        </div>
-
-                        {/* Currency list */}
-                        <div className='overflow-auto max-h-64'>
-                            {filteredCurrencies
-                                    .length === 0
-                                ? (
-                                    <div className='px-3 py-4 text-sm text-text-muted text-center' role='status'>
-                                        {t('uiComponents.currencyAmountInput.noCurrencies')}
-                                    </div>
-                                )
-                                : (
-                                    <>
-                                        {renderCurrencyGroup(
-                                            groupedCurrencies
-                                                    .recent
-                                                    .length > 0
-                                                ? t('uiComponents.currencyAmountInput.recent')
-                                                : '',
-                                            groupedCurrencies.recent,
-                                            0,
-                                        )}
-                                        {renderCurrencyGroup(
-                                            groupedCurrencies
-                                                    .common
-                                                    .length > 0
-                                                ? t('uiComponents.currencyAmountInput.common')
-                                                : '',
-                                            groupedCurrencies
-                                                .common,
-                                            groupedCurrencies
-                                                .recent
-                                                .length,
-                                        )}
-                                        {renderCurrencyGroup(
-                                            groupedCurrencies
-                                                    .others
-                                                    .length > 0
-                                                ? t('uiComponents.currencyAmountInput.allCurrencies')
-                                                : '',
-                                            groupedCurrencies
-                                                .others,
-                                            groupedCurrencies
-                                                .recent
-                                                .length + groupedCurrencies
-                                                .common
-                                                .length,
-                                        )}
-                                    </>
-                                )}
-                        </div>
-                    </div>
-                )}
             </div>
+
+            {/* Currency dropdown - rendered via portal to escape overflow:hidden containers */}
+            {isOpen && dropdownPosition && typeof document !== 'undefined' && createPortal(
+                <div
+                    ref={dropdownRef}
+                    role='listbox'
+                    className='fixed z-50 bg-surface-base shadow-lg max-h-80 rounded-md overflow-hidden ring-1 ring-black ring-opacity-5'
+                    style={{
+                        top: `${dropdownPosition.top}px`,
+                        left: `${dropdownPosition.left}px`,
+                        width: `${dropdownPosition.width}px`,
+                    }}
+                >
+                    {/* Search input */}
+                    <div className='sticky top-0 bg-surface-base border-b border-border-default p-2'>
+                        <input
+                            ref={searchInputRef}
+                            type='text'
+                            value={searchTerm}
+                            onInput={handleSearchChange}
+                            onKeyDown={handleKeyDown}
+                            placeholder={t('uiComponents.currencyAmountInput.searchPlaceholder')}
+                            className='w-full px-3 py-1.5 text-sm border border-border-default rounded-md focus:outline-none focus:ring-1 focus:ring-interactive-primary bg-surface-base text-text-primary'
+                            aria-label={t('uiComponents.currencyAmountInput.searchAriaLabel')}
+                        />
+                    </div>
+
+                    {/* Currency list */}
+                    <div className='overflow-auto max-h-64'>
+                        {filteredCurrencies.length === 0
+                            ? (
+                                <div className='px-3 py-4 text-sm text-text-muted text-center' role='status'>
+                                    {t('uiComponents.currencyAmountInput.noCurrencies')}
+                                </div>
+                            )
+                            : (
+                                <>
+                                    {renderCurrencyGroup(
+                                        groupedCurrencies.recent.length > 0
+                                            ? t('uiComponents.currencyAmountInput.recent')
+                                            : '',
+                                        groupedCurrencies.recent,
+                                        0,
+                                    )}
+                                    {renderCurrencyGroup(
+                                        groupedCurrencies.common.length > 0
+                                            ? t('uiComponents.currencyAmountInput.common')
+                                            : '',
+                                        groupedCurrencies.common,
+                                        groupedCurrencies.recent.length,
+                                    )}
+                                    {renderCurrencyGroup(
+                                        groupedCurrencies.others.length > 0
+                                            ? t('uiComponents.currencyAmountInput.allCurrencies')
+                                            : '',
+                                        groupedCurrencies.others,
+                                        groupedCurrencies.recent.length + groupedCurrencies.common.length,
+                                    )}
+                                </>
+                            )}
+                    </div>
+                </div>,
+                document.body,
+            )}
 
             {error && (
                 <p id={`${inputId}-error`} className='mt-2 text-sm text-semantic-error' role='alert' data-testid='currency-input-error-message'>
