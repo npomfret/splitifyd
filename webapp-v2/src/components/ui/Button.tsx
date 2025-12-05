@@ -103,8 +103,10 @@ export function Button({
             'bg-interactive-primary text-interactive-primary-foreground shadow-[var(--shadows-md)]',
             // Apply gradient as inline style via arbitrary property for better CSS variable support
             '[background-image:var(--gradient-primary,none)]',
-            !isDisabled && 'hover:shadow-[0_0_20px_rgba(var(--interactive-primary-rgb),0.3)]',
-            'focus-visible:ring-interactive-primary',
+            // magnetic-glow uses --interactive-magnetic-rgb for hover glow (falls back to primary)
+            !isDisabled && 'magnetic-glow',
+            // focus-glow uses --interactive-glow-rgb for focus ring glow (falls back to primary)
+            'focus-visible:ring-interactive-primary focus-glow',
             'transition-shadow duration-200',
         ],
         secondary: [
@@ -116,8 +118,9 @@ export function Button({
         ghost: [
             'bg-transparent',
             // Don't set default text color - inherit from parent or allow className override
-            !isDisabled && 'hover:bg-surface-muted/60',
-            'focus-visible:ring-border-default',
+            // Uses interactive-ghost token for hover background (falls back to slate-500)
+            !isDisabled && 'hover:bg-interactive-ghost/10',
+            'focus-visible:ring-interactive-ghost',
         ],
         danger: [
             'bg-semantic-error text-text-inverted shadow-md',

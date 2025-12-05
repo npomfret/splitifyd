@@ -78,7 +78,7 @@ Background colors for UI layers.
 
 ---
 
-### 3. Semantic Text Colors (9 tokens)
+### 3. Semantic Text Colors (8 tokens)
 
 | Token | CSS Variable | Tailwind Class | Default | Usage |
 |-------|--------------|----------------|---------|-------|
@@ -87,10 +87,9 @@ Background colors for UI layers.
 | `muted` | `--text-muted-rgb` | `text-text-muted` | `#94a3b8` | Placeholder, hints |
 | `inverted` | `--text-inverted-rgb` | `text-text-inverted` | `#ffffff` | Text on dark backgrounds |
 | `accent` | `--text-accent-rgb` | `text-text-accent` | `#f97316` | Highlighted text |
-| `disabled` | `--text-disabled-rgb` | — | optional | Disabled text |
-| `hero` | `--text-hero-rgb` | — | optional | Hero section text |
-| `eyebrow` | `--text-eyebrow-rgb` | — | optional | Eyebrow text |
-| `code` | `--text-code-rgb` | — | optional | Code/mono text |
+| `hero` | `--text-hero` | `.hero-heading` class | falls back to primary | Hero section headings |
+| `eyebrow` | `--text-eyebrow` | `.eyebrow` class | falls back to muted | Eyebrow labels |
+| `code` | `--text-code` | `code` elements | falls back to accent | Code snippets |
 
 **Component usage:**
 ```tsx
@@ -98,9 +97,11 @@ Background colors for UI layers.
 <Typography color="muted">...</Typography>
 ```
 
+**Note:** `hero`, `eyebrow`, and `code` are optional - they have CSS fallbacks in `global.css` when not defined.
+
 ---
 
-### 4. Interactive Colors (15 tokens)
+### 4. Interactive Colors (16 tokens)
 
 Colors for buttons, links, and interactive elements.
 
@@ -119,14 +120,27 @@ Colors for buttons, links, and interactive elements.
 | `destructiveHover` | `--interactive-destructiveHover-rgb` | — | `#dc3e3e` |
 | `destructiveActive` | `--interactive-destructiveActive-rgb` | — | `#c93838` |
 | `destructiveForeground` | `--interactive-destructiveForeground-rgb` | — | `#ffffff` |
-| `ghost` | `--interactive-ghost-rgb` | — | optional |
+| `ghost` | `--interactive-ghost-rgb` | `bg-interactive-ghost` | optional |
 | `magnetic` | `--interactive-magnetic-rgb` | — | optional |
+| `glow` | `--interactive-glow-rgb` | — | optional |
 
 **Button component applies these automatically:**
 ```tsx
-<Button variant="primary">...</Button>   // bg-interactive-primary
+<Button variant="primary">...</Button>   // bg-interactive-primary, magnetic hover glow, glow on focus
 <Button variant="secondary">...</Button> // bg-interactive-secondary
+<Button variant="ghost">...</Button>     // hover:bg-interactive-ghost/10, focus ring uses ghost
 <Button variant="danger">...</Button>    // Uses destructive colors
+```
+
+**Effect tokens (optional):**
+- `ghost` - Background tint for ghost button hover state
+- `magnetic` - Glow color for magnetic hover effect on primary buttons
+- `glow` - Outer glow color for focus states
+
+**CSS utilities for effect tokens:**
+```css
+.focus-glow:focus-visible { /* Uses --interactive-glow-rgb */ }
+.magnetic-glow:hover { /* Hover glow using --interactive-magnetic-rgb */ }
 ```
 
 ---

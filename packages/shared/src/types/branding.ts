@@ -232,8 +232,7 @@ const BrandingSemanticColorSchema = z.object({
         muted: CssColorSchema,
         inverted: CssColorSchema,
         accent: CssColorSchema,
-        disabled: CssColorSchema.optional(),
-        // New for advanced typography
+        // Optional tokens with CSS fallbacks in global.css
         hero: CssColorSchema.optional(),
         eyebrow: CssColorSchema.optional(),
         code: CssColorSchema.optional(),
@@ -252,7 +251,7 @@ const BrandingSemanticColorSchema = z.object({
         destructiveHover: CssColorSchema,
         destructiveActive: CssColorSchema,
         destructiveForeground: CssColorSchema,
-        // New for advanced interactions
+        // Optional effect tokens
         ghost: CssColorSchema.optional(),
         magnetic: CssColorSchema.optional(),
         glow: CssColorSchema.optional(),

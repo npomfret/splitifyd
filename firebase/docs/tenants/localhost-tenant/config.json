@@ -153,9 +153,9 @@
             "destructiveActive": "#DC2626",
             "destructiveForeground": "#FFFFFF",
             "accent": "#F472B6",
-            "ghost": "rgba(139, 92, 246, 0.1)",
+            "ghost": "#64748B",
             "magnetic": "#22D3EE",
-            "glow": "rgba(139, 92, 246, 0.5)"
+            "glow": "#A78BFA"
           },
           "border": {
             "subtle": "rgba(139, 92, 246, 0.1)",

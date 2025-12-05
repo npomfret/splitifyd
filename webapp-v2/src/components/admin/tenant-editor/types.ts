@@ -48,6 +48,9 @@ export interface TenantData {
     interactiveDestructiveHoverColor: string;
     interactiveDestructiveActiveColor: string;
     interactiveDestructiveForegroundColor: string;
+    interactiveGhostColor: string;
+    interactiveMagneticColor: string;
+    interactiveGlowColor: string;
 
     borderSubtleColor: string;
     borderDefaultColor: string;
@@ -145,8 +148,6 @@ export interface TenantData {
 
     showAppNameInHeader: boolean;
 
-    enableButtonGradient: boolean;
-    enableGlassmorphism: boolean;
     auroraGradient: string[];
     glassColor: string;
     glassBorderColor: string;

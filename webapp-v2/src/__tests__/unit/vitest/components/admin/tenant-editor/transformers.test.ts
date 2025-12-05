@@ -300,8 +300,6 @@ function createValidFormData(): TenantData {
         showMarketingContent: true,
         showPricingPage: false,
         showAppNameInHeader: true,
-        enableButtonGradient: false,
-        enableGlassmorphism: false,
         auroraGradient: [],
         glassColor: '',
         glassBorderColor: '',
@@ -457,9 +455,8 @@ describe('buildBrandingTokensFromForm', () => {
         expect(result.tokens.semantics?.colors?.gradient?.aurora).toBeUndefined();
     });
 
-    it('includes glass colors when glassmorphism is enabled', () => {
+    it('includes glass colors when glassColor is set', () => {
         const formData = createValidFormData();
-        formData.enableGlassmorphism = true;
         formData.glassColor = 'rgba(255,255,255,0.1)';
         formData.glassBorderColor = 'rgba(255,255,255,0.2)';
         const result = buildBrandingTokensFromForm(formData);
@@ -468,24 +465,12 @@ describe('buildBrandingTokensFromForm', () => {
         expect(result.tokens.semantics?.colors?.surface?.glassBorder).toBe('rgba(255,255,255,0.2)');
     });
 
-    it('excludes glass colors when glassmorphism is disabled', () => {
+    it('excludes glass colors when glassColor is empty', () => {
         const formData = createValidFormData();
-        formData.enableGlassmorphism = false;
-        formData.glassColor = 'rgba(255,255,255,0.1)';
+        formData.glassColor = '';
         const result = buildBrandingTokensFromForm(formData);
 
         expect(result.tokens.semantics?.colors?.surface?.glass).toBeUndefined();
-    });
-
-    it('includes button gradient when enabled', () => {
-        const formData = createValidFormData();
-        formData.enableButtonGradient = true;
-        const result = buildBrandingTokensFromForm(formData);
-
-        expect(result.tokens.semantics?.colors?.gradient?.primary).toEqual([
-            formData.interactivePrimaryColor,
-            formData.interactivePrimaryHoverColor,
-        ]);
     });
 });
 

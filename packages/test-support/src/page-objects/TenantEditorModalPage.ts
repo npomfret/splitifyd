@@ -94,9 +94,8 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     async expandGlassmorphismSection(): Promise<void> {
-        // First expand the parent motion-effects section, then glassmorphism-settings
-        await this.expandMotionEffectsSection();
-        await this.expandSectionByName('Glassmorphism Settings');
+        // Glassmorphism is now a standalone section (no longer nested under motion effects)
+        await this.expandSectionByName('Glassmorphism');
     }
 
     // ✅ Protected locators - internal use only (semantic selectors preferred over test IDs)
@@ -170,10 +169,6 @@ export class TenantEditorModalPage extends BasePage {
     // Motion & Effects
     protected getEnableAuroraAnimationCheckbox(): Locator {
         return this.page.getByLabel(/aurora background/i);
-    }
-
-    protected getEnableGlassmorphismCheckbox(): Locator {
-        return this.page.getByLabel(/glassmorphism/i);
     }
 
     protected getEnableMagneticHoverCheckbox(): Locator {
@@ -395,15 +390,6 @@ export class TenantEditorModalPage extends BasePage {
         }
     }
 
-    async toggleGlassmorphism(checked: boolean): Promise<void> {
-        await this.expandMotionEffectsSection();
-        const checkbox = this.getEnableGlassmorphismCheckbox();
-        const isCurrentlyChecked = await checkbox.isChecked();
-        if (isCurrentlyChecked !== checked) {
-            await checkbox.click();
-        }
-    }
-
     async toggleMagneticHover(checked: boolean): Promise<void> {
         await this.expandMotionEffectsSection();
         const checkbox = this.getEnableMagneticHoverCheckbox();
@@ -617,7 +603,6 @@ export class TenantEditorModalPage extends BasePage {
     async verifyMotionEffectsCheckboxesVisible(): Promise<void> {
         await this.expandMotionEffectsSection();
         await expect(this.getEnableAuroraAnimationCheckbox()).toBeVisible();
-        await expect(this.getEnableGlassmorphismCheckbox()).toBeVisible();
         await expect(this.getEnableMagneticHoverCheckbox()).toBeVisible();
         await expect(this.getEnableScrollRevealCheckbox()).toBeVisible();
     }
@@ -668,16 +653,6 @@ export class TenantEditorModalPage extends BasePage {
     async verifyAuroraAnimationChecked(expected: boolean): Promise<void> {
         await this.expandMotionEffectsSection();
         const checkbox = this.getEnableAuroraAnimationCheckbox();
-        if (expected) {
-            await expect(checkbox).toBeChecked();
-        } else {
-            await expect(checkbox).not.toBeChecked();
-        }
-    }
-
-    async verifyGlassmorphismChecked(expected: boolean): Promise<void> {
-        await this.expandMotionEffectsSection();
-        const checkbox = this.getEnableGlassmorphismCheckbox();
         if (expected) {
             await expect(checkbox).toBeChecked();
         } else {

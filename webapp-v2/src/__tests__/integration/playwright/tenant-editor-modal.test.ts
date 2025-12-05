@@ -256,11 +256,11 @@ test.describe('Tenant Editor Modal', () => {
             await tenantEditorModal.toggleAuroraAnimation(false);
             await tenantEditorModal.verifyAuroraAnimationChecked(false);
 
-            // Toggle glassmorphism
-            await tenantEditorModal.toggleGlassmorphism(true);
-            await tenantEditorModal.verifyGlassmorphismChecked(true);
-            await tenantEditorModal.toggleGlassmorphism(false);
-            await tenantEditorModal.verifyGlassmorphismChecked(false);
+            // Toggle magnetic hover
+            await tenantEditorModal.toggleMagneticHover(true);
+            await tenantEditorModal.verifyMagneticHoverChecked(true);
+            await tenantEditorModal.toggleMagneticHover(false);
+            await tenantEditorModal.verifyMagneticHoverChecked(false);
         });
     });
 

@@ -8,7 +8,6 @@ export function MotionEffectsSection({ formData, update, isSaving }: SectionProp
                 <SubsectionHeader title='Feature Flags' />
                 <div class='space-y-3'>
                     <AdminFormToggle label='Parallax / Aurora Background' description='Animated gradient background' checked={formData.enableParallax} onChange={(v) => update({ enableParallax: v })} disabled={isSaving} testId='enable-parallax-checkbox' />
-                    <AdminFormToggle label='Glassmorphism' description='Frosted glass effect' checked={formData.enableGlassmorphism} onChange={(v) => update({ enableGlassmorphism: v })} disabled={isSaving} testId='enable-glassmorphism-checkbox' />
                     <AdminFormToggle label='Magnetic Hover' description='Buttons follow cursor' checked={formData.enableMagneticHover} onChange={(v) => update({ enableMagneticHover: v })} disabled={isSaving} testId='enable-magnetic-hover-checkbox' />
                     <AdminFormToggle label='Scroll Reveal' description='Animate elements on scroll' checked={formData.enableScrollReveal} onChange={(v) => update({ enableScrollReveal: v })} disabled={isSaving} testId='enable-scroll-reveal-checkbox' />
                 </div>

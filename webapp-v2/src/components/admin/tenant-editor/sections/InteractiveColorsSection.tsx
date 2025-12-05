@@ -1,4 +1,4 @@
-import { AdminFormSection, AdminFormToggle, SubsectionHeader } from '@/components/admin/forms';
+import { AdminFormSection, SubsectionHeader } from '@/components/admin/forms';
 import { ColorInput } from '@/components/ui';
 import type { SectionProps } from './types';
 
@@ -28,7 +28,12 @@ export function InteractiveColorsSection({ formData, update, isSaving }: Section
                     <ColorInput id='interactive-destructive-active' label='Active *' value={formData.interactiveDestructiveActiveColor} onChange={(v) => update({ interactiveDestructiveActiveColor: v })} disabled={isSaving} testId='interactive-destructive-active-color-input' />
                     <ColorInput id='interactive-destructive-fg' label='Foreground *' value={formData.interactiveDestructiveForegroundColor} onChange={(v) => update({ interactiveDestructiveForegroundColor: v })} disabled={isSaving} testId='interactive-destructive-foreground-color-input' />
                 </div>
-                <AdminFormToggle label='Gradient buttons' checked={formData.enableButtonGradient} onChange={(v) => update({ enableButtonGradient: v })} disabled={isSaving} testId='enable-button-gradient-checkbox' />
+                <SubsectionHeader title='Effects (optional)' />
+                <div class='grid grid-cols-3 gap-4'>
+                    <ColorInput id='interactive-ghost' label='Ghost' value={formData.interactiveGhostColor} onChange={(v) => update({ interactiveGhostColor: v })} disabled={isSaving} testId='interactive-ghost-color-input' />
+                    <ColorInput id='interactive-magnetic' label='Magnetic' value={formData.interactiveMagneticColor} onChange={(v) => update({ interactiveMagneticColor: v })} disabled={isSaving} testId='interactive-magnetic-color-input' />
+                    <ColorInput id='interactive-glow' label='Glow' value={formData.interactiveGlowColor} onChange={(v) => update({ interactiveGlowColor: v })} disabled={isSaving} testId='interactive-glow-color-input' />
+                </div>
             </div>
         </AdminFormSection>
     );

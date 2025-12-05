@@ -50,11 +50,27 @@
         transform: translateY(-2px) scale(1.01);
     }
 
-    /* Gradient button glow effect */
+    /* Gradient button glow effect - uses magnetic color for hover glow */
     button[class*="bg-[image:var(--gradient-primary)]"]:hover:not(:disabled),
     .btn-gradient:hover:not(:disabled) {
-        box-shadow: 0 0 20px rgba(var(--interactive-primary-rgb), 0.4),
+        box-shadow: 0 0 20px rgba(var(--interactive-magnetic-rgb, var(--interactive-primary-rgb)), 0.4),
                     0 8px 16px rgba(0, 0, 0, 0.3);
+    }
+
+    /*
+     * Interactive glow utilities
+     * Uses --interactive-glow-rgb for focus state outer glow
+     * Falls back to --interactive-primary-rgb if glow not defined
+     */
+    .focus-glow:focus-visible {
+        box-shadow: 0 0 0 2px var(--surface-base, #fff),
+                    0 0 0 4px rgb(var(--interactive-glow-rgb, var(--interactive-primary-rgb))),
+                    0 0 16px rgba(var(--interactive-glow-rgb, var(--interactive-primary-rgb)), 0.5);
+    }
+
+    /* Magnetic hover glow - uses --interactive-magnetic-rgb for cursor-following effect */
+    .magnetic-glow:hover {
+        box-shadow: 0 0 24px rgba(var(--interactive-magnetic-rgb, var(--interactive-primary-rgb)), 0.35);
     }
 
     /* Respect reduced motion */

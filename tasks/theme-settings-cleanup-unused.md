@@ -1,115 +1,78 @@
-# Theme Settings Cleanup - Unused Tokens
+# Theme Settings Cleanup - Unused Tokens ✅ DONE
 
-Remove or wire up unused theme settings discovered during audit.
+Removed unused theme settings discovered during audit.
 
-## Background
+## Completed Tasks
 
-Audit of theme settings (see `docs/theme-settings-guide.md`) found several settings that are:
-- Configured in admin UI but never consumed
-- Defined in schema but have no Tailwind/component mappings
-- Used in components but missing from Tailwind config
+### 1. ✅ Removed `enableButtonGradient` flag
 
----
+Removed from:
+- `types.ts`, `defaults.ts`, `transformers.ts`
+- `InteractiveColorsSection.tsx` (toggle removed)
+- `translation.json`
+- Tests updated
 
-## Tasks
+### 2. ✅ Removed `enableGlassmorphism` flag
 
-### 1. Remove `enableButtonGradient` flag
+Removed from:
+- `types.ts`, `defaults.ts`, `transformers.ts`
+- `MotionEffectsSection.tsx` (toggle removed)
+- `GlassmorphismSection.tsx` (now shows always, empty = disabled)
+- `translation.json`
+- Tests updated
 
-**Status:** Unused - button gradient is always applied when `--gradient-primary` exists
+Glass now applies automatically when `glassColor` is set.
 
-**Files:**
-- `webapp-v2/src/components/admin/tenant-editor/types.ts` - Remove from `TenantData`
-- `webapp-v2/src/components/admin/tenant-editor/transformers.ts` - Remove extraction/building logic
-- `webapp-v2/src/components/admin/tenant-editor/sections/` - Remove UI section if exists
-- `packages/shared/src/types/branding.ts` - No change needed (gradient itself is optional)
+### 3. ✅ Added `border-subtle` to Tailwind config
 
-**Decision:** Remove flag entirely. Gradient applies automatically when gradient colors are defined.
-
----
-
-### 2. Remove `enableGlassmorphism` flag
-
-**Status:** Unused - glass panels always apply `.glass-panel` class regardless of flag
-
-**Files:**
-- `webapp-v2/src/components/admin/tenant-editor/types.ts` - Remove from `TenantData`
-- `webapp-v2/src/components/admin/tenant-editor/transformers.ts` - Remove extraction/building logic
-- `webapp-v2/src/components/admin/tenant-editor/sections/` - Remove UI section if exists
-
-**Decision:** Remove flag entirely. Glassmorphism applies automatically when `surface.glass` color is defined.
-
----
-
-### 3. Add missing `border-subtle` to Tailwind config
-
-**Status:** Used in `Header.tsx` but not defined in Tailwind
-
-**Files:**
-- `webapp-v2/tailwind.config.js` - Add `subtle` to borderColor extend
-
-**Fix:**
+Added to `tailwind.config.js`:
 ```js
-borderColor: {
-  'border-subtle': 'rgb(var(--border-subtle-rgb) / <alpha-value>)',
-  // ... existing entries
-}
+'border-subtle': 'rgb(var(--border-subtle-rgb, 241 245 249) / <alpha-value>)',
 ```
 
----
+### 4. ✅ Removed unused text color token from schema
 
-### 4. Remove unused optional text colors from schema
+Removed from `packages/shared/src/types/branding.ts`:
+- `text.disabled` (not referenced anywhere in CSS or components)
 
-**Status:** Defined but never used
+**Kept** (have CSS fallbacks in `global.css`):
+- `text.hero` - used in `.hero-heading`
+- `text.eyebrow` - used in `.eyebrow`
+- `text.code` - used in `code` elements
 
-**Tokens to evaluate:**
-- `text.disabled` - No Tailwind class, no component usage
-- `text.hero` - No Tailwind class, no component usage
-- `text.eyebrow` - No Tailwind class, no component usage
-- `text.code` - No Tailwind class, no component usage
+### 5. ✅ Wired interactive effect tokens into webapp
 
-**Decision:** Keep in schema (they're optional), but don't add Tailwind mappings until needed. Document as "reserved for future use" in the guide.
+**Added back and wired in** (per user request):
+- `interactive.ghost` - Ghost button hover background color
+- `interactive.magnetic` - Magnetic hover glow color
+- `interactive.glow` - Focus state outer glow color
 
----
+Files modified:
+- `packages/shared/src/types/branding.ts` - Added as optional CssColorSchema
+- `webapp-v2/src/components/admin/tenant-editor/types.ts` - Form fields
+- `webapp-v2/src/components/admin/tenant-editor/defaults.ts` - Empty defaults
+- `webapp-v2/src/components/admin/tenant-editor/transformers.ts` - Extract/build
+- `webapp-v2/tailwind.config.js` - Tailwind color definitions with fallbacks
+- `webapp-v2/src/components/ui/Button.tsx` - Ghost variant uses ghost token, primary uses magnetic/glow via CSS utilities
+- `webapp-v2/src/styles/global.css` - `.focus-glow`, `.magnetic-glow` utilities
+- `webapp-v2/src/components/admin/tenant-editor/sections/InteractiveColorsSection.tsx` - Color pickers
+- `firebase/docs/tenants/localhost-tenant/config.json` - Example values
 
-### 5. Remove unused optional interactive colors from schema
+### 6. Serif font - KEPT (not unused)
 
-**Status:** Defined but never used
+The `typography.fontFamily.serif` field is:
+- Optional in schema
+- Editable in TenantEditorModal (TypographySection)
+- Stored and transformed correctly
+- Not consumed by webapp (no `font-serif` class)
 
-**Tokens to evaluate:**
-- `interactive.ghost` - No Tailwind class, no component usage
-- `interactive.magnetic` - No Tailwind class, no component usage
-- `interactive.glow` - No Tailwind class, no component usage
-
-**Decision:** Keep in schema (they're optional), but don't add Tailwind mappings until needed.
-
----
-
-### 6. Remove `typography.fontFamily.serif` if unused
-
-**Status:** Defined but no component references serif fonts
-
-**Files to check:**
-- `webapp-v2/tailwind.config.js` - Is `font-serif` extended?
-- `webapp-v2/src/` - Any usage of `font-serif` class?
-
-**Decision:** Keep in schema (optional field), remove from tenant configs if not used.
-
----
-
-## Order of Operations
-
-1. Fix `border-subtle` Tailwind mapping (prevents silent failures)
-2. Remove `enableButtonGradient` flag
-3. Remove `enableGlassmorphism` flag
-4. Update `docs/theme-settings-guide.md` to note optional/reserved tokens
+**Decision:** Keep - it's correctly optional and may be used by future themes.
 
 ---
 
 ## Validation
 
-After changes:
-- `npm run build` passes
-- TenantEditorModal still works (minus removed sections)
-- Header border renders correctly
-- Glass panels still work when `surface.glass` is defined
-- Button gradients still work when `gradient.primary` is defined
+- ✅ `npm run build` passes
+- ✅ Transformer tests pass (18/18)
+- ✅ Glass panels work when `glassColor` is set
+- ✅ Header `border-border-subtle` now resolves correctly

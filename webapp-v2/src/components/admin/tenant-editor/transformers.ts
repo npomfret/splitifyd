@@ -45,6 +45,9 @@ export function extractFormDataFromTokens(tokens: BrandingTokens): Partial<Tenan
         interactiveDestructiveHoverColor: tokens.semantics?.colors?.interactive?.destructiveHover || '',
         interactiveDestructiveActiveColor: tokens.semantics?.colors?.interactive?.destructiveActive || '',
         interactiveDestructiveForegroundColor: tokens.semantics?.colors?.interactive?.destructiveForeground || '',
+        interactiveGhostColor: tokens.semantics?.colors?.interactive?.ghost || '',
+        interactiveMagneticColor: tokens.semantics?.colors?.interactive?.magnetic || '',
+        interactiveGlowColor: tokens.semantics?.colors?.interactive?.glow || '',
 
         borderSubtleColor: tokens.semantics?.colors?.border?.subtle || '',
         borderDefaultColor: tokens.semantics?.colors?.border?.default || '',
@@ -136,8 +139,6 @@ export function extractFormDataFromTokens(tokens: BrandingTokens): Partial<Tenan
         enableMagneticHover: tokens.motion?.enableMagneticHover ?? false,
         enableScrollReveal: tokens.motion?.enableScrollReveal ?? false,
 
-        enableButtonGradient: !!(tokens.semantics?.colors?.gradient?.primary),
-        enableGlassmorphism: !!(tokens.semantics?.colors?.surface?.glass),
         auroraGradient: Array.isArray(tokens.semantics?.colors?.gradient?.aurora)
             ? tokens.semantics.colors.gradient.aurora
             : [],
@@ -249,7 +250,7 @@ export function buildBrandingTokensFromForm(formData: TenantData): TenantBrandin
                     overlay: formData.surfaceOverlayColor as `rgba(${string})`,
                     warning: formData.surfaceWarningColor as `#${string}`,
                     muted: formData.surfaceMutedColor as `#${string}`,
-                    ...(formData.enableGlassmorphism && formData.glassColor
+                    ...(formData.glassColor
                         ? {
                             glass: formData.glassColor as `rgba(${string})`,
                             glassBorder: formData.glassBorderColor as `rgba(${string})`,
@@ -277,6 +278,9 @@ export function buildBrandingTokensFromForm(formData: TenantData): TenantBrandin
                     destructiveHover: formData.interactiveDestructiveHoverColor as `#${string}`,
                     destructiveActive: formData.interactiveDestructiveActiveColor as `#${string}`,
                     destructiveForeground: formData.interactiveDestructiveForegroundColor as `#${string}`,
+                    ...(formData.interactiveGhostColor ? { ghost: formData.interactiveGhostColor as `#${string}` } : {}),
+                    ...(formData.interactiveMagneticColor ? { magnetic: formData.interactiveMagneticColor as `#${string}` } : {}),
+                    ...(formData.interactiveGlowColor ? { glow: formData.interactiveGlowColor as `#${string}` } : {}),
                 },
                 border: {
                     subtle: formData.borderSubtleColor as `#${string}`,
@@ -295,11 +299,6 @@ export function buildBrandingTokensFromForm(formData: TenantData): TenantBrandin
                     ...(formData.enableParallax && formData.auroraGradient.length >= 2
                         ? {
                             aurora: formData.auroraGradient as `#${string}`[],
-                        }
-                        : {}),
-                    ...(formData.enableButtonGradient && formData.interactivePrimaryColor && formData.interactivePrimaryHoverColor
-                        ? {
-                            primary: [formData.interactivePrimaryColor, formData.interactivePrimaryHoverColor] as [`#${string}`, `#${string}`],
                         }
                         : {}),
                 },

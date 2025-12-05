@@ -2021,14 +2021,6 @@
         "enableScrollReveal": {
           "label": "Enable Scroll Reveal",
           "description": "Enable scroll-triggered animations"
-        },
-        "enableButtonGradient": {
-          "label": "Enable Button Gradient",
-          "description": "Use gradient backgrounds on buttons"
-        },
-        "enableGlassmorphism": {
-          "label": "Enable Glassmorphism",
-          "description": "Enable frosted glass effects"
         }
       },
       "loading": {

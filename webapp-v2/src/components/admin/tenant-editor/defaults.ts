@@ -46,6 +46,9 @@ export const EMPTY_TENANT_DATA: TenantData = {
     interactiveDestructiveHoverColor: '',
     interactiveDestructiveActiveColor: '',
     interactiveDestructiveForegroundColor: '',
+    interactiveGhostColor: '',
+    interactiveMagneticColor: '',
+    interactiveGlowColor: '',
 
     borderSubtleColor: '',
     borderDefaultColor: '',
@@ -143,8 +146,6 @@ export const EMPTY_TENANT_DATA: TenantData = {
 
     showAppNameInHeader: true,
 
-    enableButtonGradient: false,
-    enableGlassmorphism: false,
     auroraGradient: [],
     glassColor: '',
     glassBorderColor: '',
