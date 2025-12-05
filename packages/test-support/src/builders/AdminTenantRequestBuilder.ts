@@ -271,6 +271,16 @@ export class AdminTenantRequestBuilder {
             ...this.payload.branding,
             ...branding,
         };
+        // Sync palette colors with branding colors
+        if (branding.primaryColor) {
+            this.tokens.palette.primary = branding.primaryColor as `#${string}`;
+        }
+        if (branding.secondaryColor) {
+            this.tokens.palette.secondary = branding.secondaryColor as `#${string}`;
+        }
+        if (branding.accentColor) {
+            this.tokens.palette.accent = branding.accentColor as `#${string}`;
+        }
         return this;
     }
 
