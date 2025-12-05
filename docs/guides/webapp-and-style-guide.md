@@ -48,17 +48,27 @@ Defined in `tailwind.config.js`, consumed via CSS variables from tenant theme.
 
 **Location:** `components/ui/icons/`
 
-Icons are TSX components, not external SVG files. This is required for theming - external SVGs loaded via `<img>` cannot use `currentColor` to inherit text colors.
-
-```tsx
-import { CheckIcon } from '@/components/ui/icons';
-
-<CheckIcon size={20} className="text-semantic-success" />
-```
+TSX components using `currentColor` for theme inheritance. External SVGs via `<img>` cannot inherit colors.
 
 **Props:** `size` (pixels), `className` (for color via `text-*` tokens)
 
-**Adding icons:** Create a new file in `icons/`, export from `icons/index.ts`. Use `currentColor` for stroke/fill, include `aria-hidden="true"` and `focusable="false"`.
+**Adding icons:** New file in `icons/`, export from `index.ts`. Use `currentColor`, include `aria-hidden="true"` and `focusable="false"`.
+
+### Accessibility
+
+Built into UI components - don't reinvent.
+
+| Pattern | Implementation |
+|---------|----------------|
+| Form errors | `aria-invalid`, `aria-describedby`, `role="alert"` - see `Input.tsx`, `FloatingInput.tsx` |
+| Loading states | `aria-busy` on buttons, `role="status"` on spinners - see `Button.tsx`, `LoadingSpinner.tsx` |
+| Modals | `aria-modal`, `aria-labelledby`, Escape to close - see `Modal.tsx` |
+| Toasts | `aria-live="polite"`, `role="alert"` - see `ToastContainer.tsx` |
+| Focus styling | `focus-visible:ring-2` consistently on all interactive elements |
+| Reduced motion | `prefers-reduced-motion` check in `Modal.tsx` |
+| Icons | `aria-hidden="true"`, `focusable="false"` on all icons |
+
+**Known gaps:** No focus trapping in modals, no skip-to-content link. See `tasks/accessibility-improvements.md`.
 
 ---
 
