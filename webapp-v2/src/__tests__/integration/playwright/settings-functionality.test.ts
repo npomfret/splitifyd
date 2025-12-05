@@ -1,7 +1,7 @@
 import { SystemUserRoles } from '@billsplit-wl/shared';
-import { ClientUserBuilder, SettingsPage } from '@billsplit-wl/test-support';
+import { ClientUserBuilder, SettingsPage, UserProfileResponseBuilder } from '@billsplit-wl/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
-import { setupSuccessfulApiMocks } from '../../utils/mock-firebase-service';
+import { mockUserProfileApi, setupSuccessfulApiMocks } from '../../utils/mock-firebase-service';
 
 // TODO: Add tests for password change functionality that require complex route mocking:
 // - should successfully change password
@@ -16,25 +16,7 @@ test.describe('Settings Page - Profile Update Functionality', () => {
     test.beforeEach(async ({ authenticatedPage }) => {
         const { page, user } = authenticatedPage;
         await setupSuccessfulApiMocks(page);
-
-        // Mock user profile GET endpoint
-        await page.route('**/api/user/profile', async (route) => {
-            if (route.request().method() === 'GET') {
-                await route.fulfill({
-                    status: 200,
-                    contentType: 'application/json',
-                    body: JSON.stringify({
-                        displayName: user.displayName,
-                        email: user.email,
-                        emailVerified: user.emailVerified ?? true,
-                        photoURL: user.photoURL,
-                        role: user.role,
-                    }),
-                });
-            } else {
-                await route.continue();
-            }
-        });
+        await mockUserProfileApi(page, UserProfileResponseBuilder.fromClientUser(user).build());
     });
 
     test('should successfully update display name', async ({ authenticatedPage }) => {
@@ -57,21 +39,15 @@ test.describe('Settings Page - Profile Update Functionality', () => {
         // 5. Mock the API response for profile update (204 No Content) and re-fetch (GET with updated data)
         await page.route('**/api/user/profile', async (route) => {
             if (route.request().method() === 'PUT') {
-                await route.fulfill({
-                    status: 204,
-                });
+                await route.fulfill({ status: 204 });
             } else if (route.request().method() === 'GET') {
-                // Return updated profile data on re-fetch
+                const updatedProfile = UserProfileResponseBuilder.fromClientUser(user)
+                    .withDisplayName(newDisplayName)
+                    .build();
                 await route.fulfill({
                     status: 200,
                     contentType: 'application/json',
-                    body: JSON.stringify({
-                        displayName: newDisplayName,
-                        email: user.email,
-                        emailVerified: user.emailVerified ?? true,
-                        photoURL: user.photoURL,
-                        role: user.role,
-                    }),
+                    body: JSON.stringify(updatedProfile),
                 });
             } else {
                 await route.continue();
@@ -199,25 +175,7 @@ test.describe('Settings Page - Password Change Functionality', () => {
     test.beforeEach(async ({ authenticatedPage }) => {
         const { page, user } = authenticatedPage;
         await setupSuccessfulApiMocks(page);
-
-        // Mock user profile GET endpoint
-        await page.route('**/api/user/profile', async (route) => {
-            if (route.request().method() === 'GET') {
-                await route.fulfill({
-                    status: 200,
-                    contentType: 'application/json',
-                    body: JSON.stringify({
-                        displayName: user.displayName,
-                        email: user.email,
-                        emailVerified: user.emailVerified ?? true,
-                        photoURL: user.photoURL,
-                        role: user.role,
-                    }),
-                });
-            } else {
-                await route.continue();
-            }
-        });
+        await mockUserProfileApi(page, UserProfileResponseBuilder.fromClientUser(user).build());
     });
 
     test('should show error for incorrect current password', async ({ authenticatedPage }) => {
@@ -290,25 +248,7 @@ test.describe('Settings Page - UI Elements and Layout', () => {
     test.beforeEach(async ({ authenticatedPage }) => {
         const { page, user } = authenticatedPage;
         await setupSuccessfulApiMocks(page);
-
-        // Mock user profile GET endpoint
-        await page.route('**/api/user/profile', async (route) => {
-            if (route.request().method() === 'GET') {
-                await route.fulfill({
-                    status: 200,
-                    contentType: 'application/json',
-                    body: JSON.stringify({
-                        displayName: user.displayName,
-                        email: user.email,
-                        emailVerified: user.emailVerified ?? true,
-                        photoURL: user.photoURL,
-                        role: user.role,
-                    }),
-                });
-            } else {
-                await route.continue();
-            }
-        });
+        await mockUserProfileApi(page, UserProfileResponseBuilder.fromClientUser(user).build());
     });
 
     test('should display profile summary card with user information', async ({ authenticatedPage }) => {
@@ -364,23 +304,7 @@ test.describe('Settings Page - UI Elements and Layout', () => {
         await setupSuccessfulApiMocks(pageWithLogging);
 
         // 3. Mock user profile GET endpoint with admin role
-        await pageWithLogging.route('**/api/user/profile', async (route) => {
-            if (route.request().method() === 'GET') {
-                await route.fulfill({
-                    status: 200,
-                    contentType: 'application/json',
-                    body: JSON.stringify({
-                        displayName: adminUser.displayName,
-                        email: adminUser.email,
-                        emailVerified: adminUser.emailVerified ?? true,
-                        photoURL: adminUser.photoURL,
-                        role: adminUser.role,
-                    }),
-                });
-            } else {
-                await route.continue();
-            }
-        });
+        await mockUserProfileApi(pageWithLogging, UserProfileResponseBuilder.fromClientUser(adminUser).build());
 
         const settingsPage = new SettingsPage(pageWithLogging);
 
@@ -458,25 +382,7 @@ test.describe('Settings Page - Navigation', () => {
     test.beforeEach(async ({ authenticatedPage }) => {
         const { page, user } = authenticatedPage;
         await setupSuccessfulApiMocks(page);
-
-        // Mock user profile GET endpoint
-        await page.route('**/api/user/profile', async (route) => {
-            if (route.request().method() === 'GET') {
-                await route.fulfill({
-                    status: 200,
-                    contentType: 'application/json',
-                    body: JSON.stringify({
-                        displayName: user.displayName,
-                        email: user.email,
-                        emailVerified: user.emailVerified ?? true,
-                        photoURL: user.photoURL,
-                        role: user.role,
-                    }),
-                });
-            } else {
-                await route.continue();
-            }
-        });
+        await mockUserProfileApi(page, UserProfileResponseBuilder.fromClientUser(user).build());
     });
 
     test('should preserve authentication when navigating to settings', async ({ authenticatedPage }) => {

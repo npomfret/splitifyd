@@ -12,9 +12,8 @@ test.describe('Admin Tenant Config Tab', () => {
 
         // Navigate to tenant config tab
         await page.goto('/admin?tab=tenant-config');
-        await page.waitForLoadState('networkidle');
 
-        // Wait for the tenant overview card to be visible
+        // Wait for the tenant overview card to be visible (indicates page has loaded)
         const tenantOverviewCard = page.getByTestId('tenant-overview-card');
         await expect(tenantOverviewCard).toBeVisible();
 
@@ -24,11 +23,13 @@ test.describe('Admin Tenant Config Tab', () => {
         await expect(brandingTokensCard).toBeVisible({ timeout: 10000 });
 
         // Now verify tenant ID is loaded (not showing "unknown")
+        // Default tenant ID from TenantConfigBuilder is 'test-tenant'
         const tenantIdValue = tenantOverviewCard.locator('p:has-text("Tenant ID")').locator('..').locator('p.font-mono');
-        await expect(tenantIdValue).toHaveText('system-fallback-tenant');
+        await expect(tenantIdValue).toHaveText('test-tenant');
 
         // Verify app name shows the mocked value
+        // Default app name from TenantConfigBuilder is 'Test App'
         const appNameValue = tenantOverviewCard.locator('p:has-text("App Name")').locator('..').locator('p.font-medium').last();
-        await expect(appNameValue).toHaveText('Demo Expenses');
+        await expect(appNameValue).toHaveText('Test App');
     });
 });

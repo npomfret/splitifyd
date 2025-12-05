@@ -21,6 +21,7 @@ export class AppConfigurationBuilder {
         };
         this.config.warningBanner = "warningBanner";
         this.config.formDefaults = {};
+        this.config.tenant = new TenantConfigBuilder().build();
     }
 
     withFirebaseConfig(firebase: FirebaseConfig): this {

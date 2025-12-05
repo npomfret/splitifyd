@@ -15,7 +15,7 @@ import {
     updateExpenseHandler,
 } from '@/test/msw/handlers.ts';
 import type { SerializedBodyMatcher, SerializedMswHandler } from '@/test/msw/types.ts';
-import { type ActivityFeedItem, ApiSerializer, ClientUser, ExpenseId, GroupId, ListGroupsResponse, TenantConfigBuilder, UserId } from '@billsplit-wl/shared';
+import { type ActivityFeedItem, ApiSerializer, ClientUser, ExpenseId, GroupId, ListGroupsResponse, SystemUserRoles, TenantConfigBuilder, UserId, type UserProfileResponse } from '@billsplit-wl/shared';
 import type { Page, Response, Route } from '@playwright/test';
 
 interface AuthError {
@@ -859,12 +859,12 @@ export async function mockGroupActivityFeedApi(
  * Used for testing user profile display and updates
  *
  * @param page - Playwright page instance
- * @param user - User data to return from the API
- * @param delayMs - Optional delay in milliseconds before responding
+ * @param profile - UserProfileResponse to return from the API (use UserProfileResponseBuilder)
+ * @param options - Optional delay in milliseconds before responding
  */
 export async function mockUserProfileApi(
     page: Page,
-    user: ClientUser,
+    profile: UserProfileResponse,
     options: { delayMs?: number; } = {},
 ): Promise<void> {
     const delay = getApiDelay(options.delayMs);
@@ -874,13 +874,7 @@ export async function mockUserProfileApi(
         createJsonHandler(
             'GET',
             '/api/user/profile',
-            {
-                displayName: user.displayName,
-                email: user.email,
-                emailVerified: user.emailVerified ?? true,
-                photoURL: user.photoURL,
-                role: user.role,
-            },
+            profile,
             {
                 delayMs: delay,
             },
@@ -1016,6 +1010,11 @@ export async function setupSuccessfulApiMocks(page: Page, user?: ClientUser): Pr
 
     // Mock user profile API if user provided
     if (user) {
-        await mockUserProfileApi(page, user);
+        await mockUserProfileApi(page, {
+            displayName: user.displayName,
+            email: user.email,
+            emailVerified: user.emailVerified ?? true,
+            role: user.role ?? SystemUserRoles.SYSTEM_USER,
+        });
     }
 }

@@ -1,5 +1,5 @@
-import { ClientUser, GroupId, ListGroupsResponse, toCurrencyISOCode, TenantConfigBuilder, toVersionHash, UserPolicyStatusResponse } from '@billsplit-wl/shared';
-import { toPolicyId, toPolicyName } from '@billsplit-wl/shared';
+import { ClientUser, GroupId, ListGroupsResponse, UserPolicyStatusResponse } from '@billsplit-wl/shared';
+import { AppConfigurationBuilder, UserPolicyStatusResponseBuilder } from '@billsplit-wl/test-support';
 import type { HttpMethod, SerializedBodyMatcher, SerializedMswHandler, UrlMatchKind } from './types.ts';
 
 interface HandlerOptions {
@@ -48,29 +48,7 @@ export function policiesStatusHandler(
 }
 
 export function acceptedPoliciesHandler(options: HandlerOptions = {}): SerializedMswHandler {
-    return policiesStatusHandler(
-        {
-            needsAcceptance: false,
-            policies: [
-                {
-                    policyId: toPolicyId('terms-of-service'),
-                    currentVersionHash: toVersionHash('hash123'),
-                    userAcceptedHash: toVersionHash('hash123'),
-                    needsAcceptance: false,
-                    policyName: toPolicyName('Terms of Service'),
-                },
-                {
-                    policyId: toPolicyId('cookie-policy'),
-                    currentVersionHash: toVersionHash('hash456'),
-                    userAcceptedHash: toVersionHash('hash456'),
-                    needsAcceptance: false,
-                    policyName: toPolicyName('Cookie Policy'),
-                },
-            ],
-            totalPending: 0,
-        },
-        options,
-    );
+    return policiesStatusHandler(new UserPolicyStatusResponseBuilder().build(), options);
 }
 
 export function groupsMetadataHandler(
@@ -166,19 +144,7 @@ export function registerFailureHandler(
 }
 
 export function firebaseInitConfigHandler(options: HandlerOptions = {}): SerializedMswHandler {
-    return createJsonHandler(
-        'GET',
-        '/__/firebase/init.json',
-        {
-            apiKey: 'mock-api-key',
-            authDomain: 'mock-project.firebaseapp.com',
-            projectId: 'mock-project',
-            storageBucket: 'mock-project.appspot.com',
-            messagingSenderId: '123456789',
-            appId: '1:123456789:web:abcdef',
-        },
-        options,
-    );
+    return createJsonHandler('GET', '/__/firebase/init.json', new AppConfigurationBuilder().build().firebase, options);
 }
 
 export function expenseFullDetailsHandler(
@@ -213,37 +179,5 @@ export function updateExpenseHandler(
 }
 
 export function appConfigHandler(options: HandlerOptions = {}): SerializedMswHandler {
-    return createJsonHandler(
-        'GET',
-        '/api/config',
-        {
-            firebase: {
-                apiKey: 'mock-api-key',
-                authDomain: 'mock-project.firebaseapp.com',
-                projectId: 'mock-project',
-                storageBucket: 'mock-project.appspot.com',
-                messagingSenderId: '123456789',
-                appId: '1:123456789:web:abcdef',
-            },
-            environment: {
-                name: 'test',
-                apiUrl: 'http://localhost:5001',
-            },
-            formDefaults: {
-                currency: toCurrencyISOCode('USD'),
-                splitType: 'equal',
-            },
-            tenant: new TenantConfigBuilder('system-fallback-tenant')
-                .withAppName('Demo Expenses')
-                .withPrimaryColor('#1a73e8')
-                .withSecondaryColor('#34a853')
-                .withMarketingFlags({
-                    showLandingPage: true,
-                    showMarketingContent: true,
-                    showPricingPage: true,
-                })
-                .build(),
-        },
-        options,
-    );
+    return createJsonHandler('GET', '/api/config', new AppConfigurationBuilder().build(), options);
 }

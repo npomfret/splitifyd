@@ -72,5 +72,6 @@ export { DebtScenarios, UserBalanceBuilder } from './UserBalanceBuilder';
 export { UserDocumentBuilder } from './UserDocumentBuilder';
 export { UserPolicyStatusResponseBuilder } from './UserPolicyStatusResponseBuilder';
 export { UserProfileBuilder } from './UserProfileBuilder';
+export { UserProfileResponseBuilder } from './UserProfileResponseBuilder';
 export { UserRegistrationBuilder } from './UserRegistrationBuilder';
 export { UserUpdateBuilder } from './UserUpdateBuilder';
