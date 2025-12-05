@@ -13,9 +13,11 @@ interface UseExpenseFormOptions {
     isEditMode: boolean;
     isCopyMode?: boolean;
     sourceExpenseId?: ExpenseId | null;
+    onSuccess?: () => void;
+    onCancel?: () => void;
 }
 
-export function useExpenseForm({ groupId, expenseId, isEditMode, isCopyMode, sourceExpenseId }: UseExpenseFormOptions) {
+export function useExpenseForm({ groupId, expenseId, isEditMode, isCopyMode, sourceExpenseId, onSuccess, onCancel }: UseExpenseFormOptions) {
     // Use the focused hooks
     const formState = useFormState();
     const formInitialization = useFormInitialization({
@@ -31,6 +33,8 @@ export function useExpenseForm({ groupId, expenseId, isEditMode, isCopyMode, sou
         isEditMode,
         isCopyMode,
         isInitialized: formInitialization.isInitialized,
+        onSuccess,
+        onCancel,
     });
 
     return {

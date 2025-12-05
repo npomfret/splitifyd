@@ -452,7 +452,6 @@ test.describe('Group Activity Feed - Navigation', () => {
     test('should navigate to expense detail when clicking expense activity item', async ({ authenticatedPage }) => {
         const { page, user } = authenticatedPage;
         const groupDetailPage = new GroupDetailPage(page);
-        const expenseDetailPage = new ExpenseDetailPage(page);
 
         const groupId = 'group-nav-expense';
         const groupName = 'Navigation Group';
@@ -530,7 +529,11 @@ test.describe('Group Activity Feed - Navigation', () => {
         const activityContainer = page.getByTestId('group-activity-feed');
         await activityContainer.getByText(expectedDescription).click();
 
-        await expect(page).toHaveURL(`/groups/${groupId}/expenses/${expenseId}`);
-        await expenseDetailPage.waitForExpenseDescription(expenseDescription);
+        // Expense detail modal opens (URL stays on group page)
+        await expect(page).toHaveURL(new RegExp(`/groups/${groupId}$`));
+        const modal = page.getByTestId('expense-detail-modal');
+        await expect(modal).toBeVisible();
+        // Verify expense description shows in modal heading
+        await expect(modal.getByRole('heading', { name: expenseDescription })).toBeVisible();
     });
 });

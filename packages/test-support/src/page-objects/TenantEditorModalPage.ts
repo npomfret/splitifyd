@@ -40,11 +40,15 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     async expandActionsSection(): Promise<void> {
-        await this.expandSectionByName(translation.admin.tenantEditor.sections.paletteColors.title);
+        await this.expandSectionByName(translation.admin.tenantEditor.sections.brandColors.title);
     }
 
     async expandPaletteSection(): Promise<void> {
-        await this.expandSectionByName(translation.admin.tenantEditor.sections.paletteColors.title);
+        await this.expandSectionByName(translation.admin.tenantEditor.sections.brandColors.title);
+    }
+
+    async expandBrandColorsSection(): Promise<void> {
+        await this.expandSectionByName(translation.admin.tenantEditor.sections.brandColors.title);
     }
 
     async expandInteractiveSection(): Promise<void> {

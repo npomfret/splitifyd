@@ -48,11 +48,13 @@ export class SettlementFormPage extends BasePage {
     }
 
     protected getRecordPaymentButton(): Locator {
-        return this.getModal().getByRole('button', { name: translation.settlementForm.recordSettlement });
+        // Use test-id for reliable selection regardless of scroll position
+        return this.getModal().getByTestId('save-settlement-button');
     }
 
     protected getUpdatePaymentButton(): Locator {
-        return this.getModal().getByRole('button', { name: translation.settlementForm.updateSettlement });
+        // Same button as record, just different text - use test-id for reliability
+        return this.getModal().getByTestId('save-settlement-button');
     }
 
     protected getCancelButton(): Locator {
@@ -464,22 +466,10 @@ export class SettlementFormPage extends BasePage {
     }
 
     private async resolvePrimaryActionButton(): Promise<Locator> {
-        const recordButton = this.getRecordPaymentButton();
-        const updateButton = this.getUpdatePaymentButton();
-
-        // Check which button is visible (used inside retry loop, so keep it fast)
-        const recordVisible = await recordButton.isVisible().catch(() => false);
-        if (recordVisible) {
-            return recordButton;
-        }
-
-        const updateVisible = await updateButton.isVisible().catch(() => false);
-        if (updateVisible) {
-            return updateButton;
-        }
-
-        // Default to record button if neither is visible yet
-        return recordButton;
+        // Both getRecordPaymentButton and getUpdatePaymentButton return the same element
+        // (the save-settlement-button), just with different visible text based on mode.
+        // Using the test-id directly is more reliable than checking by accessible name.
+        return this.getRecordPaymentButton();
     }
 
     private async collectMemberOptions(select: Locator): Promise<string[]> {

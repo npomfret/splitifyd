@@ -12,13 +12,15 @@ interface UseFormSubmissionOptions {
     isEditMode: boolean;
     isCopyMode?: boolean;
     isInitialized: boolean;
+    onSuccess?: () => void;
+    onCancel?: () => void;
 }
 
 /**
  * Hook that handles form submission, navigation, and auto-save functionality
  * Focuses on the business logic around saving and navigation
  */
-export function useFormSubmission({ groupId, expenseId, isEditMode, isCopyMode, isInitialized }: UseFormSubmissionOptions) {
+export function useFormSubmission({ groupId, expenseId, isEditMode, isCopyMode, isInitialized, onSuccess, onCancel }: UseFormSubmissionOptions) {
     // Form values for auto-save dependency
     const description = useComputed(() => expenseFormStore.description);
     const amount = useComputed(() => expenseFormStore.amount);
@@ -52,12 +54,20 @@ export function useFormSubmission({ groupId, expenseId, isEditMode, isCopyMode, 
             if (isEditMode && expenseId) {
                 // updateExpense returns the NEW expense (edit history creates a new document with new ID)
                 const updatedExpense = await expenseFormStore.updateExpense(groupId, expenseId);
-                // Navigate to the NEW expense detail page (ID changed due to edit history)
-                await navigationService.goToExpenseDetail(groupId, updatedExpense.id);
+                if (onSuccess) {
+                    onSuccess();
+                } else {
+                    // Navigate to the NEW expense detail page (ID changed due to edit history)
+                    await navigationService.goToExpenseDetail(groupId, updatedExpense.id);
+                }
             } else {
                 await expenseFormStore.saveExpense(groupId);
-                // Navigate back to group detail after creating new expense (including copy mode)
-                await navigationService.goToGroup(groupId);
+                if (onSuccess) {
+                    onSuccess();
+                } else {
+                    // Navigate back to group detail after creating new expense (including copy mode)
+                    await navigationService.goToGroup(groupId);
+                }
             }
         } catch (error) {
             logError('Failed to save expense', error);
@@ -72,7 +82,9 @@ export function useFormSubmission({ groupId, expenseId, isEditMode, isCopyMode, 
             }
         }
 
-        if (isEditMode && expenseId) {
+        if (onCancel) {
+            onCancel();
+        } else if (isEditMode && expenseId) {
             // Navigate back to expense detail when canceling edit
             void navigationService.goToExpenseDetail(groupId, expenseId);
         } else {

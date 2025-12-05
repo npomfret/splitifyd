@@ -68,10 +68,10 @@ export class ExpenseDetailPage extends BasePage {
     }
 
     /**
-     * Get the discussion section (contains comments)
+     * Get the discussion section (contains comments) - scoped to the modal
      */
     protected getDiscussionSection(): Locator {
-        return this.getCommentsCard().locator('[data-testid="comments-section"]');
+        return this.page.getByTestId('expense-detail-modal').getByTestId('comments-section');
     }
 
     /**
@@ -110,17 +110,25 @@ export class ExpenseDetailPage extends BasePage {
     }
 
     /**
-     * Get the confirmation dialog - Modal component has role="dialog"
+     * Get the confirmation dialog - identified by aria-labelledby="confirm-dialog-title"
      */
     protected getConfirmationDialog(): Locator {
-        return this.page.getByRole('dialog');
+        return this.page.getByRole('dialog', { name: /delete expense/i });
     }
 
     /**
-     * Get the expense amount display element
+     * Get the expense amount display element in the modal
      */
     protected getExpenseAmountElement(): Locator {
-        return this.page.getByTestId('expense-amount-section');
+        // Scope to the modal to avoid matching expense list items
+        return this.page.getByTestId('expense-detail-modal').getByTestId('expense-amount');
+    }
+
+    /**
+     * Get the expense detail modal title element (shows description)
+     */
+    protected getExpenseDetailModalTitle(): Locator {
+        return this.page.locator('#expense-detail-modal-title');
     }
 
     protected getSplitBreakdownCard(): Locator {
@@ -146,23 +154,29 @@ export class ExpenseDetailPage extends BasePage {
     }
 
     /**
-     * Wait for the expense detail page to be fully loaded.
+     * Wait for the expense detail modal to be fully loaded.
+     * Note: Expense details are now shown in a modal, so URL stays on group page.
      */
     async waitForPageReady(): Promise<void> {
-        await expect(this.page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/expenses\/[a-zA-Z0-9]+$/);
+        // Wait for the expense detail modal to be visible
+        await expect(this.page.getByTestId('expense-detail-modal')).toBeVisible({ timeout: 5000 });
         await this.waitForDomContentLoaded();
-        // Wait for the Edit button to be visible as a reliable indicator the page is ready
+        // Wait for the Edit button to be visible as a reliable indicator the modal content is ready
         const editButton = this.getEditButton();
         await expect(editButton).toBeVisible();
     }
 
     /**
-     * Click the edit expense button and navigate to the expense form.
+     * Click the edit expense button and open the expense form modal.
+     * Note: The expense form is now a modal, so URL stays on group page.
      */
     async clickEditExpenseButton(): Promise<void> {
         const editButton = this.getEditButton();
         await this.clickButton(editButton, { buttonName: 'Edit Expense' });
-        await expect(this.page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense\?.*edit=true/);
+        // Wait for expense form modal to open (expense detail modal closes, form modal opens)
+        await expect(this.page.getByTestId('expense-form-modal')).toBeVisible({ timeout: 5000 });
+        // Wait for form content to be ready (description input should be visible in edit mode)
+        await expect(this.page.getByTestId('expense-details-section')).toBeVisible({ timeout: 5000 });
         await this.waitForDomContentLoaded();
     }
 
@@ -183,12 +197,16 @@ export class ExpenseDetailPage extends BasePage {
     }
 
     /**
-     * Click the copy expense button and navigate to the copy form.
+     * Click the copy expense button and open the expense form modal in copy mode.
+     * Note: The expense form is now a modal, so URL stays on group page.
      */
     async clickCopyExpenseButton(): Promise<void> {
         const copyButton = this.getCopyButton();
         await this.clickButton(copyButton, { buttonName: 'Copy Expense' });
-        await expect(this.page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense\?.*copy=true.*sourceId=/);
+        // Wait for expense form modal to open (expense detail modal closes, form modal opens)
+        await expect(this.page.getByTestId('expense-form-modal')).toBeVisible({ timeout: 5000 });
+        // Wait for form content to be ready (description input should be visible in copy mode)
+        await expect(this.page.getByTestId('expense-details-section')).toBeVisible({ timeout: 5000 });
         await this.waitForDomContentLoaded();
     }
 
@@ -321,23 +339,22 @@ export class ExpenseDetailPage extends BasePage {
     }
 
     /**
-     * Get the current expense description from the page
+     * Get the current expense description from the modal title
      */
     async getCurrentExpenseDescription(): Promise<string> {
-        // Description is now a <p> tag within the expense-amount-section
-        const amountSection = this.getExpenseAmountElement();
-        const descriptionElement = amountSection.locator('p.text-lg');
-        const description = await descriptionElement.textContent();
+        // Description is now in the modal title
+        const titleElement = this.getExpenseDetailModalTitle();
+        const description = await titleElement.textContent({ timeout: 1500 });
         return description?.trim() || '';
     }
 
     /**
-     * Get the current currency amount from the page
+     * Get the current currency amount from the modal
      */
     async getCurrentCurrencyAmount(): Promise<string> {
-        // Use the specific data-testid for the main expense amount display
+        // Use the specific data-testid for the expense amount display in modal
         const expenseAmountElement = this.getExpenseAmountElement();
-        const amountText = await expenseAmountElement.textContent();
+        const amountText = await expenseAmountElement.textContent({ timeout: 1500 });
         // Normalize non-breaking spaces to regular spaces for easier test matching
         return amountText?.trim().replace(/\u00A0/g, ' ') || 'expense amount not found';
     }
@@ -378,10 +395,7 @@ export class ExpenseDetailPage extends BasePage {
         // Verify banner contains warning emoji
         await expect(warningBanner).toContainText('⚠️');
 
-        // Verify banner contains main message (using translation key text)
-        await expect(warningBanner).toContainText('This expense cannot be edited');
-
-        // Verify banner contains detailed explanation
+        // Verify banner contains explanation about departed members
         await expect(warningBanner).toContainText('One or more participants have left the group');
     }
 

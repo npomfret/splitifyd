@@ -1,7 +1,7 @@
-import { ExpenseDetailPage, ExpenseDTOBuilder, ExpenseFullDetailsBuilder, GroupDTOBuilder, GroupMemberBuilder } from '@billsplit-wl/test-support';
+import { ExpenseDetailPage, ExpenseDTOBuilder, ExpenseFullDetailsBuilder, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder } from '@billsplit-wl/test-support';
 import translationEn from '../../../locales/en/translation.json' with { type: 'json' };
 import { expect, test } from '../../utils/console-logging-fixture';
-import { mockExpenseCommentsApi, mockExpenseDetailApi } from '../../utils/mock-firebase-service';
+import { mockExpenseCommentsApi, mockExpenseDetailApi, mockGroupCommentsApi, mockGroupDetailApi } from '../../utils/mock-firebase-service';
 
 test.describe('Expense Detail - Locked Expense UI', () => {
     test('should display lock warning banner when expense is locked', async ({ authenticatedPage }) => {
@@ -32,19 +32,28 @@ test.describe('Expense Detail - Locked Expense UI', () => {
                 .build(),
         ];
 
-        const fullDetails = new ExpenseFullDetailsBuilder()
+        // Mock group detail API for GroupDetailPage to load
+        const groupFullDetails = new GroupFullDetailsBuilder()
+            .withGroup(group)
+            .withMembers(members)
+            .build();
+        await mockGroupDetailApi(page, groupId, groupFullDetails);
+        await mockGroupCommentsApi(page, groupId);
+
+        // Mock expense detail API for ExpenseDetailModal to load
+        const expenseFullDetails = new ExpenseFullDetailsBuilder()
             .withExpense(expense)
             .withGroup(group)
             .withMembers(members)
             .build();
-
-        await mockExpenseDetailApi(page, expenseId, fullDetails);
+        await mockExpenseDetailApi(page, expenseId, expenseFullDetails);
         await mockExpenseCommentsApi(page, expenseId);
 
-        // Navigate to expense detail page
+        // Navigate to expense detail URL - this opens GroupDetailPage which auto-opens the modal
         await page.goto(`/groups/${groupId}/expenses/${expenseId}`, { waitUntil: 'domcontentloaded' });
 
-        // Wait for expense to load - description is now in a <p> tag, not a heading
+        // Wait for expense detail modal to open and show the expense description
+        await expect(page.getByTestId('expense-detail-modal')).toBeVisible();
         await expect(page.getByText('Locked Expense')).toBeVisible();
 
         // Verify lock warning banner is displayed using page object
@@ -78,19 +87,28 @@ test.describe('Expense Detail - Locked Expense UI', () => {
                 .build(),
         ];
 
-        const fullDetails = new ExpenseFullDetailsBuilder()
+        // Mock group detail API for GroupDetailPage to load
+        const groupFullDetails = new GroupFullDetailsBuilder()
+            .withGroup(group)
+            .withMembers(members)
+            .build();
+        await mockGroupDetailApi(page, groupId, groupFullDetails);
+        await mockGroupCommentsApi(page, groupId);
+
+        // Mock expense detail API for ExpenseDetailModal to load
+        const expenseFullDetails = new ExpenseFullDetailsBuilder()
             .withExpense(expense)
             .withGroup(group)
             .withMembers(members)
             .build();
-
-        await mockExpenseDetailApi(page, expenseId, fullDetails);
+        await mockExpenseDetailApi(page, expenseId, expenseFullDetails);
         await mockExpenseCommentsApi(page, expenseId);
 
-        // Navigate to expense detail page
+        // Navigate to expense detail URL - this opens GroupDetailPage which auto-opens the modal
         await page.goto(`/groups/${groupId}/expenses/${expenseId}`, { waitUntil: 'domcontentloaded' });
 
-        // Wait for expense to load - description is now in a <p> tag, not a heading
+        // Wait for expense detail modal to open
+        await expect(page.getByTestId('expense-detail-modal')).toBeVisible();
         await expect(page.getByText('Locked Expense')).toBeVisible();
 
         // Find the edit button
@@ -130,19 +148,28 @@ test.describe('Expense Detail - Locked Expense UI', () => {
                 .build(),
         ];
 
-        const fullDetails = new ExpenseFullDetailsBuilder()
+        // Mock group detail API for GroupDetailPage to load
+        const groupFullDetails = new GroupFullDetailsBuilder()
+            .withGroup(group)
+            .withMembers(members)
+            .build();
+        await mockGroupDetailApi(page, groupId, groupFullDetails);
+        await mockGroupCommentsApi(page, groupId);
+
+        // Mock expense detail API for ExpenseDetailModal to load
+        const expenseFullDetails = new ExpenseFullDetailsBuilder()
             .withExpense(expense)
             .withGroup(group)
             .withMembers(members)
             .build();
-
-        await mockExpenseDetailApi(page, expenseId, fullDetails);
+        await mockExpenseDetailApi(page, expenseId, expenseFullDetails);
         await mockExpenseCommentsApi(page, expenseId);
 
-        // Navigate to expense detail page
+        // Navigate to expense detail URL - this opens GroupDetailPage which auto-opens the modal
         await page.goto(`/groups/${groupId}/expenses/${expenseId}`, { waitUntil: 'domcontentloaded' });
 
-        // Wait for expense to load - description is now in a <p> tag, not a heading
+        // Wait for expense detail modal to open
+        await expect(page.getByTestId('expense-detail-modal')).toBeVisible();
         await expect(page.getByText('Normal Expense')).toBeVisible();
 
         // Verify lock warning banner is NOT displayed using page object

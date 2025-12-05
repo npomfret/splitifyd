@@ -166,6 +166,9 @@ test.describe('Tenant editor', () => {
             const tenantEditorModal = await adminTenantsPage.clickEditButtonForFirstTenant();
             await tenantEditorModal.verifyModalIsOpen();
 
+            // Typography is only available in Advanced mode
+            await tenantEditorModal.switchToAdvancedMode();
+
             // Update font families
             await tenantEditorModal.setFontFamilySans('Roboto, sans-serif');
             await tenantEditorModal.setFontFamilySerif('Merriweather, serif');
@@ -177,6 +180,9 @@ test.describe('Tenant editor', () => {
             // Verify persisted
             const tenantEditorModal2 = await adminTenantsPage.clickEditButtonForFirstTenant();
             await tenantEditorModal2.verifyModalIsOpen();
+
+            // Switch to Advanced mode to access Typography section
+            await tenantEditorModal2.switchToAdvancedMode();
 
             await tenantEditorModal2.verifyFontFamilySansValue('Roboto, sans-serif');
             await tenantEditorModal2.verifyFontFamilySerifValue('Merriweather, serif');
@@ -214,6 +220,9 @@ test.describe('Tenant editor', () => {
             // Open editor for first tenant
             const tenantEditorModal = await adminTenantsPage.clickEditButtonForFirstTenant();
             await tenantEditorModal.verifyModalIsOpen();
+
+            // Advanced controls are only visible in Advanced mode
+            await tenantEditorModal.switchToAdvancedMode();
 
             // Verify all control sections visible
             await tenantEditorModal.verifyTypographyFieldsVisible();

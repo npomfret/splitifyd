@@ -193,11 +193,9 @@ export function App() {
                 {/* Group Routes - Protected */}
                 <Route path='/groups/:id' component={GroupDetailRoute} />
 
-                {/* Add Expense Route - Protected */}
-                <Route path='/groups/:groupId/add-expense' component={AddExpenseRoute} />
-
-                {/* Expense Detail Route - Protected */}
-                <Route path='/groups/:groupId/expenses/:expenseId' component={ExpenseDetailRoute} />
+                {/* Expense Routes - Protected (handled by GroupDetailPage via modal deep linking) */}
+                <Route path='/groups/:id/add-expense' component={GroupDetailRoute} />
+                <Route path='/groups/:id/expenses/:expenseId' component={GroupDetailRoute} />
 
                 {/* Join Group Route - Protected */}
                 <Route path='/join' component={JoinGroupRoute} />

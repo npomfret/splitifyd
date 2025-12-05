@@ -1,4 +1,6 @@
 import { CommentsSection } from '@/components/comments';
+import { ExpenseDetailModal } from '@/components/expense';
+import { ExpenseFormModal } from '@/components/expense-form';
 import { BalanceSummary, ExpensesList, GroupActions, GroupHeader, GroupSettingsModal, LeaveGroupDialog, MembersListWithManagement, ShareGroupModal } from '@/components/group';
 import { GroupActivityFeed } from '@/components/group/GroupActivityFeed';
 import { SettlementForm, SettlementHistory } from '@/components/settlements';
@@ -8,8 +10,8 @@ import { SidebarCard } from '@/components/ui/SidebarCard';
 import { GROUP_DETAIL_ERROR_CODES } from '@/constants/error-codes.ts';
 import { navigationService } from '@/services/navigation.service';
 import { permissionsStore } from '@/stores/permissions-store.ts';
-import type { GroupId, SettlementWithMembers, SimplifiedDebt } from '@billsplit-wl/shared';
-import { MemberRoles, MemberStatuses } from '@billsplit-wl/shared';
+import type { ExpenseId, GroupId, SettlementWithMembers, SimplifiedDebt } from '@billsplit-wl/shared';
+import { MemberRoles, MemberStatuses, toExpenseId } from '@billsplit-wl/shared';
 import { BanknotesIcon, BoltIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
 import { useComputed, useSignal } from '@preact/signals';
 import { useEffect } from 'preact/hooks';
@@ -24,9 +26,10 @@ import { logError, logInfo, logWarning } from '../utils/browser-logger';
 
 interface GroupDetailPageProps {
     id?: GroupId;
+    expenseId?: string; // From route param for deep linking to expense detail
 }
 
-export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
+export default function GroupDetailPage({ id: groupId, expenseId: routeExpenseId }: GroupDetailPageProps) {
     const { t } = useTranslation();
     const isInitialized = useSignal(false);
     const showLeaveGroupDialog = useSignal(false);
@@ -166,6 +169,48 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
         void navigationService.goToNotFound();
     }, [shouldRedirectToNotFoundFromMissingGroup]);
 
+    // Deep link detection - auto-open modals from URL
+    useEffect(() => {
+        if (!groupId || !isInitialized.value) return;
+
+        const path = typeof window !== 'undefined' ? window.location.pathname : '';
+        const search = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+
+        // Check for expense detail: /groups/:groupId/expenses/:expenseId
+        // Use routeExpenseId from props (from router) for reactive updates on client navigation
+        if (routeExpenseId) {
+            modals.openExpenseDetail(toExpenseId(routeExpenseId));
+            history.replaceState(null, '', `/groups/${groupId}`);
+            return;
+        }
+
+        // Fallback: check URL pattern for initial page load deep links
+        const expenseDetailMatch = path.match(/\/groups\/[^/]+\/expenses\/([^/]+)/);
+        if (expenseDetailMatch) {
+            modals.openExpenseDetail(toExpenseId(expenseDetailMatch[1]));
+            history.replaceState(null, '', `/groups/${groupId}`);
+            return;
+        }
+
+        // Check for add/edit/copy expense: /groups/:groupId/add-expense
+        if (path.includes('/add-expense') && search) {
+            const id = search.get('id');
+            const isEdit = search.get('edit') === 'true';
+            const isCopy = search.get('copy') === 'true';
+            const sourceId = search.get('sourceId');
+
+            if (isEdit && id) {
+                modals.openExpenseForm('edit', toExpenseId(id));
+            } else if (isCopy && sourceId) {
+                modals.openExpenseForm('copy', toExpenseId(sourceId));
+            } else {
+                modals.openExpenseForm('add');
+            }
+            history.replaceState(null, '', `/groups/${groupId}`);
+            return;
+        }
+    }, [groupId, isInitialized.value, routeExpenseId]);
+
     // Handle loading state
     if (loading.value && !isInitialized.value) {
         return (
@@ -214,16 +259,26 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
     }
 
     // Handle click events
-    const handleExpenseClick = (expense: any) => {
-        navigationService.goToExpenseDetail(groupId!, expense.id);
+    const handleExpenseClick = (expense: { id: ExpenseId }) => {
+        modals.openExpenseDetail(expense.id);
     };
 
-    const handleExpenseCopy = (expense: any) => {
-        navigationService.goToCopyExpense(groupId!, expense.id);
+    const handleExpenseCopy = (expense: { id: ExpenseId }) => {
+        modals.openExpenseForm('copy', expense.id);
     };
 
     const handleAddExpense = () => {
-        navigationService.goToAddExpense(groupId!);
+        modals.openExpenseForm('add');
+    };
+
+    const handleEditExpenseFromDetail = (expenseId: ExpenseId) => {
+        modals.closeExpenseDetail();
+        modals.openExpenseForm('edit', expenseId);
+    };
+
+    const handleCopyExpenseFromDetail = (expenseId: ExpenseId) => {
+        modals.closeExpenseDetail();
+        modals.openExpenseForm('copy', expenseId);
     };
 
     const handleSettleUp = (preselectedDebt?: SimplifiedDebt) => {
@@ -484,6 +539,28 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                     enhancedGroupDetailStore.refreshAll();
                     modals.closeSettlementForm();
                 }}
+            />
+
+            {/* Expense Form Modal */}
+            <ExpenseFormModal
+                isOpen={modals.showExpenseForm.value}
+                onClose={() => modals.closeExpenseForm()}
+                groupId={groupId!}
+                mode={modals.expenseFormMode.value}
+                expenseId={modals.targetExpenseId.value}
+                onSuccess={() => {
+                    enhancedGroupDetailStore.refreshAll();
+                }}
+            />
+
+            {/* Expense Detail Modal */}
+            <ExpenseDetailModal
+                isOpen={modals.showExpenseDetail.value}
+                onClose={() => modals.closeExpenseDetail()}
+                groupId={groupId!}
+                expenseId={modals.targetExpenseId.value}
+                onEdit={handleEditExpenseFromDetail}
+                onCopy={handleCopyExpenseFromDetail}
             />
 
             {/* Leave Group Dialog */}

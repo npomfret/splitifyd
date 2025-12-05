@@ -1,4 +1,5 @@
 export { AdminDiagnosticsPage } from './AdminDiagnosticsPage';
+export { AdminPage } from './AdminPage';
 export { AdminTenantConfigPage } from './AdminTenantConfigPage';
 export { AdminTenantsPage } from './AdminTenantsPage';
 export { AdminUsersPage } from './AdminUsersPage';

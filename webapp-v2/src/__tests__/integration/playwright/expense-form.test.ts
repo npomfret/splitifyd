@@ -1154,7 +1154,7 @@ test.describe('Expense Form', () => {
             await expenseFormPage.verifyAmountErrorMessageContains('decimal place');
             await expenseFormPage.expectAmountValue('3.333');
             await expenseFormPage.expectFormOpen();
-            await expect(page).toHaveURL(new RegExp(`/groups/${groupId}/add-expense`));
+            await expect(page).toHaveURL(new RegExp(`/groups/${groupId}$`));
             await expectNoGlobalError(expenseFormPage);
         });
 
@@ -1167,7 +1167,7 @@ test.describe('Expense Form', () => {
             await expenseFormPage.clickExpenseDetailsHeading();
             await expenseFormPage.verifyDescriptionErrorMessageContains('Description is required');
             await expenseFormPage.expectFormOpen();
-            await expect(page).toHaveURL(new RegExp(`/groups/${groupId}/add-expense`));
+            await expect(page).toHaveURL(new RegExp(`/groups/${groupId}$`));
             await expectNoGlobalError(expenseFormPage);
         });
 
@@ -1186,7 +1186,7 @@ test.describe('Expense Form', () => {
             await expenseFormPage.verifyAmountErrorMessageContains('valid decimal number');
             await expenseFormPage.expectAmountValue('');
             await expenseFormPage.expectFormOpen();
-            await expect(page).toHaveURL(new RegExp(`/groups/${groupId}/add-expense`));
+            await expect(page).toHaveURL(new RegExp(`/groups/${groupId}$`));
             await expectNoGlobalError(expenseFormPage);
         });
 
@@ -1200,7 +1200,7 @@ test.describe('Expense Form', () => {
             await expenseFormPage.verifyAmountErrorMessageContains('Amount must be greater than zero');
             await expenseFormPage.expectAmountValue('0');
             await expenseFormPage.expectFormOpen();
-            await expect(page).toHaveURL(new RegExp(`/groups/${groupId}/add-expense`));
+            await expect(page).toHaveURL(new RegExp(`/groups/${groupId}$`));
             await expectNoGlobalError(expenseFormPage);
         });
 
@@ -1213,7 +1213,7 @@ test.describe('Expense Form', () => {
             await expenseFormPage.clickExpenseDetailsHeading();
             await expenseFormPage.verifyDateErrorMessageContains('Date cannot be in the future');
             await expenseFormPage.expectFormOpen();
-            await expect(page).toHaveURL(new RegExp(`/groups/${groupId}/add-expense`));
+            await expect(page).toHaveURL(new RegExp(`/groups/${groupId}$`));
             await expectNoGlobalError(expenseFormPage);
         });
 
@@ -1233,7 +1233,7 @@ test.describe('Expense Form', () => {
             await expenseFormPage.setExactSplitAmount(1, '60');
             await expenseFormPage.verifySplitErrorMessageContains('Split amounts must equal the total expense amount');
             await expenseFormPage.expectFormOpen();
-            await expect(page).toHaveURL(new RegExp(`/groups/${groupId}/add-expense`));
+            await expect(page).toHaveURL(new RegExp(`/groups/${groupId}$`));
             await expectNoGlobalError(expenseFormPage);
         });
 
@@ -1252,7 +1252,7 @@ test.describe('Expense Form', () => {
             await expenseFormPage.verifyAmountErrorMessageContains('Amount cannot exceed');
             await expenseFormPage.expectAmountValue('1000001');
             await expenseFormPage.expectFormOpen();
-            await expect(page).toHaveURL(new RegExp(`/groups/${groupId}/add-expense`));
+            await expect(page).toHaveURL(new RegExp(`/groups/${groupId}$`));
             await expectNoGlobalError(expenseFormPage);
         });
     });
@@ -1324,9 +1324,10 @@ test.describe('Expense Form', () => {
             await expenseFormPage.fillDescription('Updated');
             await expenseFormPage.clickUpdateExpenseButton();
 
-            // CRITICAL: Verify navigation goes to the NEW expense ID, not the old one
-            await expect(page).toHaveURL(new RegExp(`/groups/${groupId}/expenses/${newExpenseId}`));
-            await expect(page).not.toHaveURL(new RegExp(oldExpenseId));
+            // After editing via modal, user stays on group page (modal closes)
+            await expect(page).toHaveURL(new RegExp(`/groups/${groupId}$`));
+            // Expense form modal should be closed
+            await expenseFormPage.expectFormClosed();
         });
     });
 });

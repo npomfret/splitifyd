@@ -65,11 +65,13 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         await editFormPage.fillAmount('150.00');
         await editFormPage.clickUpdateExpenseButton();
 
-        await expenseDetailPage.waitForExpenseDescription(updatedDescription);
-        await expenseDetailPage.waitForCurrencyAmount('€150.00');
-
-        // Navigate back to group to verify updated balance (€75.00 each)
-        await expenseDetailPage.page.goto(`/groups/${groupId}`);
+        // After editing, the modal closes and we're back on the group detail page
+        // Re-open the expense detail to verify the updates
+        const updatedExpenseDetailPage = await groupDetailPage1.clickExpenseToView(updatedDescription);
+        await updatedExpenseDetailPage.waitForExpenseDescription(updatedDescription);
+        await updatedExpenseDetailPage.waitForCurrencyAmount('€150.00');
+        // Close the expense detail modal by navigating to group page
+        await updatedExpenseDetailPage.page.goto(`/groups/${groupId}`);
         await groupDetailPage1.waitForPage(groupId, 2);
         await groupDetailPage1.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€75.00');
         await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€75.00');
@@ -751,8 +753,8 @@ simpleTest.describe('Copy Expense Feature', () => {
         await copyExpenseFormPage.fillDescription(copiedDescription);
         await copyExpenseFormPage.fillAmount('90.00');
 
-        // Step 8: Submit the copied expense
-        await copyExpenseFormPage.clickUpdateExpenseButton();
+        // Step 8: Submit the copied expense (copy mode uses "Create Copy" button)
+        await copyExpenseFormPage.clickCreateCopyButton();
 
         // Step 9: Verify redirect to group page
         await groupDetailPage1.waitForExpense(copiedDescription);
@@ -818,7 +820,7 @@ simpleTest.describe('Copy Expense Feature', () => {
 
         // Change payer to User1
         await copyExpenseFormPage.selectPayer(user1DisplayName);
-        await copyExpenseFormPage.clickUpdateExpenseButton();
+        await copyExpenseFormPage.clickCreateCopyButton();
 
         // Verify real-time updates: all users should see both expenses
         await groupDetailPage1.waitForExpense(originalDescription);

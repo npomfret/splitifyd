@@ -223,6 +223,13 @@ export class ExpenseFormPage extends BasePage {
     }
 
     /**
+     * Create Copy button (copy mode)
+     */
+    protected getCreateCopyButton(): Locator {
+        return this.page.getByRole('button', { name: translation.expenseComponents.expenseFormModal.createCopy });
+    }
+
+    /**
      * Select all participants button.
      */
     protected getSelectAllButton(): Locator {
@@ -378,6 +385,10 @@ export class ExpenseFormPage extends BasePage {
         await expect(this.page.getByRole('form')).toBeVisible();
     }
 
+    async expectFormClosed(): Promise<void> {
+        await expect(this.page.getByTestId('expense-form-modal')).not.toBeVisible();
+    }
+
     /**
      * Select a currency
      * Note: Currency is a custom dropdown (button + listbox), not a native select
@@ -527,13 +538,14 @@ export class ExpenseFormPage extends BasePage {
     }
 
     /**
-     * Click the Save/Submit button and wait for navigation.
+     * Click the Save/Submit button and wait for form to close (modal dismisses or page navigates).
      */
     async clickSaveExpenseButton(): Promise<void> {
         const saveButton = this.getSubmitButton();
         await expect(saveButton).toBeEnabled({ timeout: 500 });
         await this.clickButton(saveButton, { buttonName: 'Save Expense' });
-        await expect(this.page).not.toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/, { timeout: 3000 });
+        // Wait for the expense form modal to close (it's no longer a page navigation)
+        await expect(this.page.getByTestId('expense-form-modal')).not.toBeVisible({ timeout: 3000 });
     }
 
     /**
@@ -557,9 +569,11 @@ export class ExpenseFormPage extends BasePage {
 
     /**
      * Complete the expense submission workflow using a data object.
+     * Works with both modal-based forms (new) and page-based forms (legacy).
      */
     async submitExpense(expense: ExpenseFormData): Promise<void> {
-        await expect(this.page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
+        // Wait for form to be visible (either modal or page-based)
+        await expect(this.getDescriptionInput()).toBeVisible({ timeout: 3000 });
 
         await this.fillDescription(expense.description);
         await this.selectCurrency(expense.currency);
@@ -601,6 +615,7 @@ export class ExpenseFormPage extends BasePage {
             }
         }
 
+        // After modal closes, verify we're on the group detail page and expense is visible
         const groupDetailPattern = /\/groups\/[a-zA-Z0-9]+$/;
 
         try {
@@ -694,6 +709,16 @@ export class ExpenseFormPage extends BasePage {
         const updateButton = this.getUpdateExpenseButton();
         await expect(updateButton).toBeVisible({ timeout: 2000 });
         await updateButton.click();
+        // Wait for the expense form modal to close after successful update
+        await expect(this.page.getByTestId('expense-form-modal')).not.toBeVisible({ timeout: 3000 });
+    }
+
+    async clickCreateCopyButton(): Promise<void> {
+        const createCopyButton = this.getCreateCopyButton();
+        await expect(createCopyButton).toBeVisible({ timeout: 2000 });
+        await createCopyButton.click();
+        // Wait for the expense form modal to close after successful copy creation
+        await expect(this.page.getByTestId('expense-form-modal')).not.toBeVisible({ timeout: 3000 });
     }
 
     async clickExpenseDetailsHeading(): Promise<void> {
@@ -921,5 +946,30 @@ export class ExpenseFormPage extends BasePage {
 
     async verifyCancelButtonVisible(): Promise<void> {
         await expect(this.getCancelButton()).toBeVisible();
+    }
+
+    /**
+     * Verify that the expense form modal is still open.
+     * Useful for checking that the form remains open after a submission error.
+     */
+    async verifyFormModalOpen(): Promise<void> {
+        await expect(this.page.getByTestId('expense-form-modal')).toBeVisible();
+    }
+
+    /**
+     * Verify that a form submission error is displayed.
+     * The ErrorState component shows "Something went wrong" by default.
+     */
+    async verifySubmissionErrorDisplayed(): Promise<void> {
+        await expect(this.page.getByTestId('error-title')).toBeVisible({ timeout: 5000 });
+    }
+
+    /**
+     * Verify that the error title contains specific text.
+     */
+    async verifyErrorTitleContains(text: string): Promise<void> {
+        const errorTitle = this.page.getByTestId('error-title');
+        await expect(errorTitle).toBeVisible({ timeout: 5000 });
+        await expect(errorTitle).toContainText(text);
     }
 }

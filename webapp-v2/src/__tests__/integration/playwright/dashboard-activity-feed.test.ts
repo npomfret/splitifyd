@@ -312,7 +312,6 @@ test.describe('Activity Feed - Navigation', () => {
     test('should navigate to expense detail when clicking expense activity item', async ({ authenticatedPage }) => {
         const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
-        const expenseDetailPage = new ExpenseDetailPage(page);
 
         const groupId = 'group-nav-expense';
         const groupName = 'Navigation Group';
@@ -350,15 +349,23 @@ test.describe('Activity Feed - Navigation', () => {
             .withParticipants([actorMember.uid, currentUserMember.uid])
             .build();
 
-        const fullDetails = new ExpenseFullDetailsBuilder()
+        const expenseFullDetails = new ExpenseFullDetailsBuilder()
             .withExpense(expense)
+            .withGroup(group)
+            .withMembers([actorMember, currentUserMember])
+            .build();
+
+        // Mock group full details for GroupDetailPage to load
+        const groupFullDetails = new GroupFullDetailsBuilder()
             .withGroup(group)
             .withMembers([actorMember, currentUserMember])
             .build();
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
         await mockActivityFeedApi(page, [activityItem]);
-        await mockExpenseDetailApi(page, expenseId, fullDetails);
+        await mockGroupDetailApi(page, groupId, groupFullDetails);
+        await mockGroupCommentsApi(page, groupId);
+        await mockExpenseDetailApi(page, expenseId, expenseFullDetails);
         await mockExpenseCommentsApi(page, expenseId, []);
 
         await page.goto('/dashboard');
@@ -373,8 +380,12 @@ test.describe('Activity Feed - Navigation', () => {
         await dashboardPage.verifyActivityFeedContainsText(expectedDescription);
         await dashboardPage.clickActivityFeedItem(expectedDescription);
 
-        await expect(page).toHaveURL(`/groups/${groupId}/expenses/${expenseId}`);
-        await expenseDetailPage.waitForExpenseDescription(expenseDescription);
+        // URL changes to group detail page (deep link auto-opens expense detail modal)
+        await expect(page).toHaveURL(new RegExp(`/groups/${groupId}$`));
+
+        // Expense detail modal opens with the expense description
+        await expect(page.getByTestId('expense-detail-modal')).toBeVisible();
+        await expect(page.getByText(expenseDescription)).toBeVisible();
     });
 
     test('should navigate to group comments when clicking comment activity without expense target', async ({ authenticatedPage }) => {

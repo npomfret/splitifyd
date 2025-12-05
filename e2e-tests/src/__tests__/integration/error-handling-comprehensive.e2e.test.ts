@@ -343,8 +343,9 @@ test.describe('Form Validation & UI Error Handling', () => {
 
         await expenseFormPage.submitForm();
 
-        await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
-        await expect(page.getByRole('heading', { name: /something went wrong/i })).toBeVisible({ timeout: 5000 });
+        // Modal stays open and displays error (no longer navigates to /add-expense URL)
+        await expenseFormPage.verifyFormModalOpen();
+        await expenseFormPage.verifyErrorTitleContains('Something went wrong');
     });
 });
 
