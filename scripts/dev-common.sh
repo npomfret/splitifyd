@@ -5,7 +5,15 @@ start_dev_instance() {
     local instance=$1
     local color_code=$2
     local color_name=$3
-    
+
+    # Get project root directory (parent of scripts/)
+    local project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+    # Isolate temp directory per instance to prevent Firebase emulator hub locator file collisions
+    # Each instance gets its own TMPDIR so hub-{projectId}.json files don't conflict
+    export TMPDIR="${project_root}/tmp/dev${instance}"
+    mkdir -p "$TMPDIR"
+
     # Set terminal title and background color for Mac Terminal using AppleScript
     printf "\033]0;DEV Instance ${instance} - ${color_name}\007"
     
