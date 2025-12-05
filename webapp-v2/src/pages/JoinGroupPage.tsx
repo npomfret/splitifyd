@@ -4,7 +4,7 @@
  * Handles joining a group via share link invitation
  */
 
-import { Button, Card, Input, LoadingSpinner, Stack, Typography } from '@/components/ui';
+import { Button, Card, Input, LoadingSpinner, Modal, Stack, Typography } from '@/components/ui';
 import { navigationService } from '@/services/navigation.service';
 import { CheckCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { toDisplayName } from '@billsplit-wl/shared';
@@ -263,49 +263,49 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
                 </div>
 
                 {/* Display Name Prompt Modal */}
-                {showNamePrompt && (
-                    <div
-                        className='fixed inset-0 bg-black/40 backdrop-blur-sm overflow-y-auto h-full w-full z-50'
-                        onClick={(e) => e.target === e.currentTarget && handleCancelNamePrompt()}
-                    >
-                        <div className='relative top-20 mx-auto w-full max-w-md bg-surface-base border-border-default rounded-lg shadow-xl p-6 opacity-100'>
-                            <Typography variant="subheading" className="mb-4">
-                                {t('joinGroupPage.displayName.title')}
-                            </Typography>
-                            <p className='text-sm text-text-muted mb-4'>
-                                {t('joinGroupPage.displayName.description', { groupName: group.name })}
-                            </p>
-                            <Input
-                                label={t('joinGroupPage.displayName.label')}
-                                value={displayName}
-                                onChange={(value) => {
-                                    setDisplayName(value);
-                                    setNameError(null);
-                                }}
-                                error={nameError || undefined}
+                <Modal
+                    open={showNamePrompt}
+                    onClose={handleCancelNamePrompt}
+                    size='sm'
+                    labelledBy='display-name-modal-title'
+                >
+                    <div className='px-6 py-5'>
+                        <Typography variant="subheading" className="mb-4" id="display-name-modal-title">
+                            {t('joinGroupPage.displayName.title')}
+                        </Typography>
+                        <p className='text-sm text-text-muted mb-4'>
+                            {t('joinGroupPage.displayName.description', { groupName: group.name })}
+                        </p>
+                        <Input
+                            label={t('joinGroupPage.displayName.label')}
+                            value={displayName}
+                            onChange={(value) => {
+                                setDisplayName(value);
+                                setNameError(null);
+                            }}
+                            error={nameError || undefined}
+                            disabled={joining}
+                            data-testid='join-display-name-input'
+                        />
+                        <div className='flex flex-col gap-2 mt-4'>
+                            <Button
+                                onClick={handleConfirmJoin}
                                 disabled={joining}
-                                data-testid='join-display-name-input'
-                            />
-                            <div className='flex flex-col gap-2 mt-4'>
-                                <Button
-                                    onClick={handleConfirmJoin}
-                                    disabled={joining}
-                                    fullWidth
-                                >
-                                    {joining ? t('joinGroupPage.joining') : t('joinGroupPage.joinGroup')}
-                                </Button>
-                                <Button
-                                    variant='secondary'
-                                    onClick={handleCancelNamePrompt}
-                                    disabled={joining}
-                                    fullWidth
-                                >
-                                    {t('joinGroupPage.cancel')}
-                                </Button>
-                            </div>
+                                fullWidth
+                            >
+                                {joining ? t('joinGroupPage.joining') : t('joinGroupPage.joinGroup')}
+                            </Button>
+                            <Button
+                                variant='secondary'
+                                onClick={handleCancelNamePrompt}
+                                disabled={joining}
+                                fullWidth
+                            >
+                                {t('joinGroupPage.cancel')}
+                            </Button>
                         </div>
                     </div>
-                )}
+                </Modal>
             </BaseLayout>
         );
     }

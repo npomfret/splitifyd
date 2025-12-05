@@ -4,6 +4,7 @@ import { CurrencyService } from '@/app/services/currencyService.ts';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced.ts';
 import { Clickable } from '@/components/ui/Clickable';
 import { XIcon } from '@/components/ui/icons';
+import { Modal } from '@/components/ui/Modal';
 import { formatCurrency } from '@/utils/currency';
 import { getAmountPrecisionError } from '@/utils/currency-validation.ts';
 import { getUTCMidnight, isDateInFuture } from '@/utils/dateUtils.ts';
@@ -57,7 +58,6 @@ interface SettlementFormProps {
 export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSuccess, editMode = false, settlementToEdit }: SettlementFormProps) {
     const { t } = useTranslation();
     const authStore = useAuthRequired();
-    const modalRef = useRef<HTMLDivElement>(null);
     const previousIsOpenRef = useRef(isOpen);
 
     // Component-local signals - initialized within useState to avoid stale state across instances
@@ -187,18 +187,6 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
         return debt?.amount || ZERO;
     };
 
-    useEffect(() => {
-        if (!isOpen) return;
-
-        const handleEscape = (e: KeyboardEvent) => {
-            if (e.key === 'Escape' && !isSubmitting) {
-                onClose();
-            }
-        };
-
-        document.addEventListener('keydown', handleEscape);
-        return () => document.removeEventListener('keydown', handleEscape);
-    }, [isOpen, onClose, isSubmitting]);
 
     useEffect(() => {
         if (amountPrecisionError) {
@@ -265,12 +253,6 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
 
         const precisionMessage = getAmountPrecisionError(amountValue, toCurrencyISOCode(currencyCode));
         amountPrecisionErrorSignal.value = precisionMessage;
-    };
-
-    const handleBackdropClick = (e: Event) => {
-        if (e.target === e.currentTarget) {
-            onClose();
-        }
     };
 
     const validateForm = (): string | null => {
@@ -380,8 +362,6 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
         }
     };
 
-    if (!isOpen) return null;
-
     // Don't render if user is not authenticated
     if (!currentUser) {
         return null;
@@ -417,17 +397,16 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
     })();
 
     return (
-        <div class='fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4' onClick={handleBackdropClick}>
-            <div
-                ref={modalRef}
-                data-testid='settlement-form-modal'
-                class='bg-surface-base border border-border-default rounded-lg max-w-md w-full p-6 shadow-xl opacity-100'
-                onClick={(e: Event) => e.stopPropagation()}
-                role='dialog'
-                aria-modal='true'
-                aria-labelledby='settlement-form-title'
-            >
-                <div class='flex justify-between items-center mb-4'>
+        <Modal
+            open={isOpen}
+            onClose={onClose}
+            size='sm'
+            labelledBy='settlement-form-title'
+            data-testid='settlement-form-modal'
+        >
+            {/* Modal Header */}
+            <div class='px-6 py-4 border-b border-border-default'>
+                <div class='flex justify-between items-center'>
                     <Typography variant="heading" id="settlement-form-title">
                         {editMode ? t('settlementForm.updateSettlement') : t('settlementForm.recordSettlement')}
                     </Typography>
@@ -445,6 +424,10 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                         </Clickable>
                     </Tooltip>
                 </div>
+            </div>
+
+            {/* Modal Content */}
+            <div class='px-6 py-5 max-h-[70vh] overflow-y-auto'>
 
                 {/* Quick Settlement Buttons - only show in create mode when not pre-filled from balances */}
                 {!editMode && !preselectedDebt && quickSettleDebts.value.length > 0 && (
@@ -663,6 +646,6 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                     </Stack>
                 </Form>
             </div>
-        </div>
+        </Modal>
     );
 }

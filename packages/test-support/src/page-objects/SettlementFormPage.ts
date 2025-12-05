@@ -165,22 +165,26 @@ export class SettlementFormPage extends BasePage {
         const currencyButton = this.getCurrencyButton();
         await this.clickButton(currencyButton, { buttonName: 'Select currency' });
 
-        const searchInput = this.getModal().getByPlaceholder(/Search by symbol, code, or country/i);
+        // Currency dropdown renders via portal to document.body, so look at page level
+        const currencyDropdown = this.page.getByRole('listbox');
+        await expect(currencyDropdown).toBeVisible({ timeout: 3000 });
+
+        const searchInput = currencyDropdown.getByPlaceholder(/Search by symbol, code, or country/i);
         const searchVisible = await searchInput.isVisible().catch(() => false);
 
         if (searchVisible) {
             await this.fillPreactInput(searchInput, currency);
 
             // Wait for the dropdown to filter and show the matching option, then click it
-            const currencyOption = this.getModal().getByRole('option', { name: new RegExp(currency, 'i') });
+            const currencyOption = currencyDropdown.getByRole('option', { name: new RegExp(currency, 'i') });
             await expect(currencyOption).toBeVisible({ timeout: 2000 });
             await currencyOption.click();
 
-            await expect(searchInput).not.toBeVisible({ timeout: 2000 });
+            await expect(currencyDropdown).not.toBeVisible({ timeout: 2000 });
             return;
         }
 
-        const currencyOption = this.getModal().getByRole('option', { name: new RegExp(currency, 'i') });
+        const currencyOption = currencyDropdown.getByRole('option', { name: new RegExp(currency, 'i') });
         await expect(currencyOption).toBeVisible({ timeout: 3000 });
         await currencyOption.click();
 

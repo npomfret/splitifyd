@@ -1,17 +1,36 @@
 # Bug: Inconsistent Modal Background Blur
 
+**Status:** COMPLETED
+
 **Problem:** When a modal opens, the background blurs, but the amount or quality of this blur appears inconsistent across different modals in the application. Specifically, the "Invite Others" modal has been identified as exhibiting this inconsistency. This leads to a visually jarring and less polished user experience.
 
-**Impact:** Inconsistent visual effects detract from the application's overall professionalism and can create a sense of instability for the user.
+**Root Cause:**
+`SettlementForm.tsx` implemented its own custom modal overlay instead of using the shared `Modal` component:
+- `Modal.tsx` uses `backdropFilter: 'blur(4px)'` (inline style)
+- `SettlementForm.tsx` used `backdrop-blur-sm` (Tailwind class) on a custom overlay
 
-**Proposed Solution:**
-Investigate the styling applied to the modal backgrounds, specifically the blur effect. Ensure that a consistent blur effect is applied to all modals throughout the application. This may involve:
-1. Identifying the CSS properties responsible for the blur effect (e.g., `backdrop-filter: blur()`).
-2. Standardizing the blur value and any other related styling across all modal implementations.
-3. Checking if different modal components or their parent containers have conflicting styles that might override or interfere with the intended blur.
+**Solution Implemented:**
+Refactored `SettlementForm.tsx` to use the `Modal` component instead of its custom overlay. This ensures all modals use the same blur implementation.
 
-**Technical Notes:**
-- Examine the `webapp-v2/src/components/ui/Modal.tsx` component, as it likely forms the base for most modals.
-- Look into any specific styling or overrides applied to the "Invite Others" modal (e.g., in `webapp-v2/src/components/group/InviteOthersModal.tsx` or its parent components).
-- Verify that `backdrop-filter` is consistently supported across target browsers or if there are fallback mechanisms in place.
-- Consider if the issue is related to the stacking context or z-index of the modal or its backdrop.
+**Changes Made:**
+- `webapp-v2/src/components/settlements/SettlementForm.tsx`:
+  - Added `Modal` import
+  - Replaced custom `<div class='fixed inset-0 bg-black/40 backdrop-blur-sm ...'>` wrapper with `<Modal>`
+  - Removed manual escape key handler (Modal handles this)
+  - Removed backdrop click handler (Modal handles this)
+  - Removed unused `modalRef`
+  - Restructured content to match Modal's header/content pattern
+
+- `webapp-v2/src/pages/JoinGroupPage.tsx`:
+  - Added `Modal` import
+  - Replaced custom display name prompt overlay with `<Modal>` component
+  - Restructured content to match Modal's pattern
+
+- `packages/test-support/src/page-objects/SettlementFormPage.ts`:
+  - Updated `selectCurrency` method to find currency dropdown at page level (since it uses portal rendering)
+
+**Testing:**
+- Build compiles successfully
+- All 15 settlement form Playwright tests pass
+
+**Note:** The "Invite Others" modal (`ShareGroupModal.tsx`) was already using the `Modal` component correctly. All modals now use consistent blur.
