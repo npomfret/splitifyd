@@ -1,8 +1,8 @@
 import { cx } from '@/utils/cx.ts';
-import { ComponentChildren } from 'preact';
+import { ComponentChildren, JSX } from 'preact';
 import { forwardRef } from 'preact/compat';
 
-interface StackProps {
+interface StackProps extends Omit<JSX.HTMLAttributes<HTMLDivElement>, 'style'> {
     direction?: 'horizontal' | 'vertical';
     spacing?: 'xs' | 'sm' | 'md' | 'lg';
     align?: 'start' | 'center' | 'end' | 'stretch';
@@ -11,7 +11,7 @@ interface StackProps {
 }
 
 export const Stack = forwardRef<HTMLDivElement, StackProps>(
-    ({ direction = 'vertical', spacing = 'md', align = 'stretch', children, className = '' }, ref) => {
+    ({ direction = 'vertical', spacing = 'md', align = 'stretch', children, className = '', ...rest }, ref) => {
         const gapValues = {
             xs: 'var(--spacing-xs, 0.25rem)',
             sm: 'var(--spacing-sm, 0.5rem)',
@@ -31,6 +31,7 @@ export const Stack = forwardRef<HTMLDivElement, StackProps>(
                 ref={ref}
                 className={cx('flex', direction === 'horizontal' ? 'flex-row' : 'flex-col', alignClasses[align], className)}
                 style={{ gap: gapValues[spacing] }}
+                {...rest}
             >
                 {children}
             </div>

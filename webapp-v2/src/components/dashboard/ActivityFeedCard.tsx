@@ -5,6 +5,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { ChevronRightIcon, ClockIcon } from '@/components/ui/icons';
 import { RelativeTime } from '@/components/ui/RelativeTime.tsx';
 import { SkeletonActivityItem } from '@/components/ui/Skeleton';
+import { Stack } from '@/components/ui/Stack';
 import { Typography } from '@/components/ui/Typography';
 import { routes } from '@/constants/routes.ts';
 import { navigationService } from '@/services/navigation.service.ts';
@@ -68,11 +69,11 @@ export function ActivityFeedCard({ userId }: ActivityFeedCardProps) {
                 {/* Loading skeleton */}
                 {loading.value && !initialized.value
                     ? (
-                        <div className='space-y-3' aria-busy='true' aria-label={t('activityFeed.loading')}>
+                        <Stack spacing='md' aria-busy='true' aria-label={t('activityFeed.loading')}>
                             <SkeletonActivityItem />
                             <SkeletonActivityItem />
                             <SkeletonActivityItem />
-                        </div>
+                        </Stack>
                     )
                     : null}
 
@@ -106,7 +107,7 @@ export function ActivityFeedCard({ userId }: ActivityFeedCardProps) {
 
                 {items.value.length > 0
                     ? (
-                        <ul className='space-y-3' ref={listRef}>
+                        <ul className='flex flex-col' style={{ gap: 'var(--spacing-md, 0.75rem)' }} ref={listRef}>
                             {items.value.map((item, index) => {
                                 const handleNavigate = getActivityNavigationHandler(item);
                                 const description = renderEventDescription(item, userId, t);

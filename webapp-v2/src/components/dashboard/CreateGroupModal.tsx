@@ -9,7 +9,7 @@ import { CreateGroupRequest, GroupId, toDisplayName, toGroupName } from '@billsp
 import { signal, useComputed } from '@preact/signals';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
-import { Button, Form, Input, Tooltip, Typography } from '../ui';
+import { Button, Form, Input, Stack, Tooltip, Typography } from '../ui';
 
 interface CreateGroupModalProps {
     isOpen: boolean;
@@ -190,7 +190,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
             {/* Modal Content */}
             <Form onSubmit={handleSubmit}>
                 <div class='max-h-[70vh] overflow-y-auto px-6 py-5'>
-                    <div class='space-y-4'>
+                    <Stack spacing='lg'>
                         {/* Group Name */}
                         <div>
                             <Input
@@ -266,7 +266,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                                 </div>
                             </div>
                         )}
-                    </div>
+                    </Stack>
                 </div>
 
                 {/* Modal Footer */}

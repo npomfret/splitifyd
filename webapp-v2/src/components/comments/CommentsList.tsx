@@ -1,7 +1,7 @@
 import type { CommentDTO } from '@billsplit-wl/shared';
 import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 import { useTranslation } from 'react-i18next';
-import { Alert, EmptyState, LoadingSpinner, SkeletonCommentItem } from '../ui';
+import { Alert, EmptyState, LoadingSpinner, SkeletonCommentItem, Stack } from '../ui';
 import { CommentItem } from './CommentItem';
 
 interface CommentsListProps {
@@ -23,11 +23,11 @@ export function CommentsList({ comments, loading = false, error, hasMore = false
 
     if (loading && comments.length === 0) {
         return (
-            <div className='space-y-4 px-1' aria-busy='true' aria-label={t('comments.commentsList.loading')}>
+            <Stack spacing='lg' className='px-1' aria-busy='true' aria-label={t('comments.commentsList.loading')}>
                 <SkeletonCommentItem />
                 <SkeletonCommentItem />
                 <SkeletonCommentItem />
-            </div>
+            </Stack>
         );
     }
 
@@ -48,10 +48,10 @@ export function CommentsList({ comments, loading = false, error, hasMore = false
             className={`overflow-y-auto overflow-x-hidden pr-1 scrollbar-thin scrollbar-thumb-border-default scrollbar-track-transparent hover:scrollbar-thumb-border-strong ${className}`}
             style={{ maxHeight }}
         >
-            <div className='space-y-4 px-1'>
+            <Stack spacing='lg' className='px-1'>
                 {comments
                     .map((comment) => <CommentItem key={comment.id} comment={comment} className='pb-4 border-b border-border-default last:border-0' />)}
-            </div>
+            </Stack>
 
             {hasMore && (
                 <div className='mt-4 flex justify-center'>

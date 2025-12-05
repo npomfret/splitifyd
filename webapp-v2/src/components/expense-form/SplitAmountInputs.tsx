@@ -2,7 +2,7 @@ import { getCurrency } from '@/utils/currency';
 import { getGroupDisplayName } from '@/utils/displayName';
 import { Amount, amountToSmallestUnit, smallestUnitToAmountString, toCurrencyISOCode, toUserId, UserId, ZERO } from '@billsplit-wl/shared';
 import { useTranslation } from 'react-i18next';
-import { Avatar, CurrencyAmount } from '../ui';
+import { Avatar, CurrencyAmount, Stack } from '../ui';
 import type { ExpenseFormMember } from './types';
 
 interface Split { // todo: should these be strongly typed?
@@ -50,7 +50,7 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
 
     if (splitType === 'exact') {
         return (
-            <div className='space-y-3'>
+            <Stack spacing='md'>
                 <p className='text-sm text-text-muted dark:text-text-muted/80'>{t('expenseComponents.splitAmountInputs.exactAmountsInstruction')}</p>
                 {participants.map((participantId) => {
                     const member = memberMap[participantId];
@@ -106,7 +106,7 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
                         </span>
                     </div>
                 </div>
-            </div>
+            </Stack>
         );
     }
 
@@ -115,7 +115,7 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
         const totalPercentageUnits = Math.round(totalPercentage * 1000);
         const percentagesValid = totalPercentageUnits === 100 * 1000;
         return (
-            <div className='space-y-3'>
+            <Stack spacing='md'>
                 <p className='text-sm text-text-muted dark:text-text-muted/80'>{t('expenseComponents.splitAmountInputs.percentageInstruction')}</p>
                 {participants.map((participantId) => {
                     const member = memberMap[participantId];
@@ -162,7 +162,7 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
                         </span>
                     </div>
                 </div>
-            </div>
+            </Stack>
         );
     }
 

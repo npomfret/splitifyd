@@ -28,7 +28,7 @@ import { signal } from '@preact/signals';
 import { useComputed } from '@preact/signals';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
-import { Button, CurrencyAmount, CurrencyAmountInput, Form, Tooltip, Typography } from '../ui';
+import { Button, CurrencyAmount, CurrencyAmountInput, Form, Stack, Tooltip, Typography } from '../ui';
 
 /**
  * Get the maximum allowed amount string for a given currency
@@ -499,7 +499,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                 )}
 
                 <Form onSubmit={handleSubmit}>
-                    <div class='space-y-4'>
+                    <Stack spacing='lg'>
                         {/* Payer Selection */}
                         <div>
                             <label for='payer' class='block text-sm font-medium text-text-primary mb-1'>
@@ -660,7 +660,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                     : t('settlementForm.recordSettlement')}
                             </Button>
                         </div>
-                    </div>
+                    </Stack>
                 </Form>
             </div>
         </div>

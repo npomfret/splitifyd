@@ -30,7 +30,7 @@ export function ExpenseBasicFields(
 
     return (
         <Card variant='glass' className='border-border-default' data-testid='expense-details-section'>
-            <Stack spacing='md'>
+            <Stack spacing='lg'>
                 <h2 className='text-lg font-semibold text-text-primary'>{t('expenseBasicFields.title')}</h2>
 
                 {/* Description */}

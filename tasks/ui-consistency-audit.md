@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-This audit identified issues in **6 major areas**. **P0, P1, and P2 priorities are now complete.**
+This audit identified issues in **6 major areas**. **All priorities (P0-P3) are now complete.**
 
 | Area | Status |
 |------|--------|
@@ -10,13 +10,13 @@ This audit identified issues in **6 major areas**. **P0, P1, and P2 priorities a
 | 2. Error States | ✅ Complete - ErrorState/Alert standardized |
 | 3. Empty States | ✅ Complete - EmptyState component adopted |
 | 4. Button/Action Patterns | ⚠️ Admin exempt (isolated theming) |
-| 5. Spacing/Layout | ✅ Complete - Modal padding standardized |
+| 5. Spacing/Layout | ✅ Complete - Modal padding + form/list spacing standardized |
 | 6. Typography | ✅ Complete - Typography component adopted |
 
 **Remaining (P3 - Low Priority):**
 - ~~Toast integration~~ Removed - existing inline feedback (tooltips, icon changes) is sufficient
-- Form spacing standardization
-- List item spacing patterns
+- ~~Form spacing standardization~~ ✅ Complete
+- ~~List item spacing patterns~~ ✅ Complete
 
 ---
 
@@ -170,11 +170,40 @@ All primary modals now follow the standard structure:
 | GroupSettingsModal | `px-6 py-4 border-b` | `px-6 py-5 max-h-[70vh] overflow-y-auto` | Per-tab footers | ✅ Done |
 | ConfirmDialog | Uses Surface padding='lg' | Same | Same | ✅ OK (different pattern for dialogs) |
 
-### Standard Applied:
+### Modal Standard Applied:
 - Header: `px-6 py-4 border-b border-border-default`
 - Content: `max-h-[70vh] overflow-y-auto px-6 py-5`
 - Footer: `px-6 py-4 border-t border-border-default`
 - Close button: `rounded-full p-1 hover:bg-surface-muted` with `w-5 h-5` icon
+
+### Form & List Spacing (P3) ✅ COMPLETE
+
+Replaced inconsistent `space-y-*` Tailwind classes with `Stack` component using CSS variable-based gaps.
+
+#### Stack Component Enhancement
+- Extended `StackProps` to include `JSX.HTMLAttributes<HTMLDivElement>` (omitting `style`)
+- Now passes through `aria-*` and other HTML attributes
+
+#### Form Spacing Standard: `Stack spacing='lg'`
+| Component | File | Status |
+|-----------|------|--------|
+| AuthForm | `components/auth/AuthForm.tsx` | ✅ Done |
+| CreateGroupModal | `components/dashboard/CreateGroupModal.tsx` | ✅ Done |
+| SettlementForm | `components/settlements/SettlementForm.tsx` | ✅ Done |
+| ExpenseBasicFields | `components/expense-form/ExpenseBasicFields.tsx` | ✅ Done |
+
+#### List Spacing Standard
+| Density | Stack spacing | Use Case | Components |
+|---------|---------------|----------|------------|
+| Compact | `sm` | Dense lists | MembersListWithManagement, SettlementHistory |
+| Standard | `md` | Activity items, split inputs | ActivityFeedCard, GroupActivityFeed, SplitAmountInputs |
+| Spacious | `lg` | Comments | CommentsList |
+
+#### Note on `<ul>` elements
+Where `Stack` cannot wrap `<ul>` elements (semantic HTML), inline CSS variable gaps are used:
+```tsx
+<ul className='flex flex-col' style={{ gap: 'var(--spacing-md, 0.75rem)' }}>
+```
 
 ---
 
@@ -227,10 +256,10 @@ The `Typography` component is now used across the codebase with standardized var
 9. ~~Typography component adoption~~ ✅ Done - Added subheading/pageTitle variants, migrated ~30 headings
 10. ~~Hardcoded strings - use translations~~ ✅ Done
 
-### P3 - Low Priority (Future)
+### P3 - Low Priority ✅ COMPLETE
 11. ~~Toast integration~~ Removed - existing inline feedback is sufficient
-12. Form spacing standardization
-13. List item spacing patterns
+12. ~~Form spacing standardization~~ ✅ Done - Stack spacing='lg' for forms
+13. ~~List item spacing patterns~~ ✅ Done - Stack spacing='sm'/'md'/'lg' for lists
 
 ---
 

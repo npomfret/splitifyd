@@ -80,7 +80,7 @@ export function GroupActivityFeed({ groupId, currentUserId }: GroupActivityFeedP
 
     return (
         <div data-testid='group-activity-feed'>
-            <ul className='space-y-2'>
+            <ul className='flex flex-col' style={{ gap: 'var(--spacing-md, 0.75rem)' }}>
                 {items.value.map((item) => {
                     const handleNavigate = getActivityNavigationHandler(item, groupId);
                     const description = renderEventDescription(item, currentUserId, t);

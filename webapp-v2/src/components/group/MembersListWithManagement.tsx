@@ -1,7 +1,7 @@
 import { apiClient } from '@/app/apiClient';
 import { useAuthRequired } from '@/app/hooks/useAuthRequired';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced';
-import { Avatar, Button, Card, ConfirmDialog, SidebarCard, SkeletonMemberItem, Tooltip, Typography } from '@/components/ui';
+import { Avatar, Button, Card, ConfirmDialog, SidebarCard, SkeletonMemberItem, Stack, Tooltip, Typography } from '@/components/ui';
 import { navigationService } from '@/services/navigation.service';
 import { logError } from '@/utils/browser-logger';
 import { getGroupDisplayName } from '@/utils/displayName';
@@ -133,19 +133,20 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
     if (loading.value) {
         return (
             <Card className='p-6' aria-busy='true'>
-                <div className='space-y-1'>
+                <Stack spacing='sm'>
                     <SkeletonMemberItem />
                     <SkeletonMemberItem />
                     <SkeletonMemberItem />
-                </div>
+                </Stack>
             </Card>
         );
     }
 
     const membersList = (
         <>
-            <div
-                className='space-y-0.5 max-h-[300px] overflow-y-auto overflow-x-hidden pr-1 scrollbar-thin scrollbar-thumb-border-default scrollbar-track-transparent hover:scrollbar-thumb-border-strong'
+            <Stack
+                spacing='sm'
+                className='max-h-[300px] overflow-y-auto overflow-x-hidden pr-1 scrollbar-thin scrollbar-thumb-border-default scrollbar-track-transparent hover:scrollbar-thumb-border-strong'
                 data-testid='members-scroll-container'
             >
                 {members.value.map((member) => {
@@ -196,7 +197,7 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
                         </div>
                     );
                 })}
-            </div>
+            </Stack>
         </>
     );
 

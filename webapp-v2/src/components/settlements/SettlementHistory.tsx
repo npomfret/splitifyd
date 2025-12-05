@@ -11,7 +11,7 @@ import { BanknotesIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outlin
 import { useComputed, useSignal } from '@preact/signals';
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
-import { Checkbox, ConfirmDialog, CurrencyAmount, EmptyState, RelativeTime, SkeletonSettlementItem, Tooltip } from '../ui';
+import { Checkbox, ConfirmDialog, CurrencyAmount, EmptyState, RelativeTime, SkeletonSettlementItem, Stack, Tooltip } from '../ui';
 import { Avatar } from '../ui/Avatar';
 
 interface SettlementHistoryProps {
@@ -104,11 +104,11 @@ export function SettlementHistory({
 
     if (isLoading.value && totalSettlements === 0) {
         return (
-            <div class='space-y-2' aria-busy='true' aria-label={t('common.loading')}>
+            <Stack spacing='sm' aria-busy='true' aria-label={t('common.loading')}>
                 <SkeletonSettlementItem />
                 <SkeletonSettlementItem />
                 <SkeletonSettlementItem />
-            </div>
+            </Stack>
         );
     }
 
@@ -126,7 +126,7 @@ export function SettlementHistory({
     }
 
     return (
-        <div class='space-y-2'>
+        <Stack spacing='sm'>
             <div class='pb-2 border-b border-border-default space-y-2'>
                 <Checkbox
                     label={t('settlementHistory.showAll')}
@@ -151,7 +151,7 @@ export function SettlementHistory({
                     </div>
                 )
                 : (
-                    <div class='space-y-2 max-h-[300px] overflow-y-auto overflow-x-hidden pr-1 scrollbar-thin scrollbar-thumb-border-default scrollbar-track-transparent hover:scrollbar-thumb-border-strong'>
+                    <Stack spacing='sm' className='max-h-[300px] overflow-y-auto overflow-x-hidden pr-1 scrollbar-thin scrollbar-thumb-border-default scrollbar-track-transparent hover:scrollbar-thumb-border-strong'>
                         {visibleSettlements.map((settlement) => {
                             const isCurrentUserPayer = settlement.payer.uid === currentUserId;
                             const isCurrentUserPayee = settlement.payee.uid === currentUserId;
@@ -297,7 +297,7 @@ export function SettlementHistory({
                                 </div>
                             );
                         })}
-                    </div>
+                    </Stack>
                 )}
 
             {hasMore.value && (
@@ -329,6 +329,6 @@ export function SettlementHistory({
                     loading={isDeleting}
                 />
             )}
-        </div>
+        </Stack>
     );
 }
