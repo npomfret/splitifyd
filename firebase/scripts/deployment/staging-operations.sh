@@ -5,12 +5,12 @@ set -euo pipefail
 # Usage: ./scripts/staging-operations.sh [download-indexes|sync-tenant|seed-policies]
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-FIREBASE_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+FIREBASE_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 cd "$FIREBASE_DIR"
 
 # Set service account credentials
-export GOOGLE_APPLICATION_CREDENTIALS="./service-account-key.json"
+export GOOGLE_APPLICATION_CREDENTIALS="${SCRIPT_DIR}/../../service-account-key.json"
 
 # Verify service account key exists
 if [[ ! -f "$GOOGLE_APPLICATION_CREDENTIALS" ]]; then
