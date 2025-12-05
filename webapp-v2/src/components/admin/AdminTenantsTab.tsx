@@ -136,7 +136,7 @@ export function AdminTenantsTab() {
                                 <div class='flex-1'>
                                     <div class='flex items-center gap-3 mb-3'>
                                         <h3 class='text-lg font-semibold text-amber-700'>
-                                            {tenant.tenant.branding.appName}
+                                            {tenant.tenant.brandingTokens.tokens.legal.appName}
                                         </h3>
                                         {isCurrentTenant && (
                                             <span class='inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-emerald-100 text-emerald-700 border border-emerald-300'>

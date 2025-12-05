@@ -20,7 +20,7 @@ const getMetaThemeColor = (): HTMLMetaElement | null => document.querySelector('
 const getFavicon = (): HTMLLinkElement | null => document.querySelector('link[rel="icon"]');
 
 describe('configStore', () => {
-    const baseConfig = (branding?: BrandingConfig): ClientAppConfiguration => ({
+    const baseConfig = (branding?: BrandingConfig, appName?: string, logoUrl?: string, faviconUrl?: string): ClientAppConfiguration => ({
         firebase: {
             apiKey: 'test',
             authDomain: 'test',
@@ -35,6 +35,17 @@ describe('configStore', () => {
             ? {
                 tenantId: toTenantId('tenant'),
                 branding,
+                brandingTokens: {
+                    tokens: {
+                        legal: {
+                            appName: appName || 'Test App',
+                        },
+                        assets: {
+                            logoUrl: logoUrl || 'https://logo.svg',
+                            faviconUrl: faviconUrl || logoUrl || 'https://favicon.ico',
+                        },
+                    },
+                } as any,
                 createdAt: toISOString('2025-01-01T00:00:00.000Z'),
                 updatedAt: toISOString('2025-01-01T00:00:00.000Z'),
             }
@@ -55,22 +66,19 @@ describe('configStore', () => {
 
     it('updates branding metadata and theme when tenant branding exists', async () => {
         const branding: BrandingConfig = new BrandingConfigBuilder()
-            .withAppName('Branded')
-            .withLogoUrl('https://logo.svg')
-            .withFaviconUrl('https://favicon.ico')
             .withPrimaryColor('#112233')
             .withSecondaryColor('#445566')
             .build();
 
-        const config = baseConfig(branding);
+        const config = baseConfig(branding, 'Branded', 'https://logo.svg', 'https://favicon.ico');
         config.theme = { hash: 'abc123' } as ClientAppConfiguration['theme'];
         vi.mocked(firebaseConfigManager.getConfig).mockResolvedValue(config);
 
         await configStore.loadConfig();
 
         expect(getMetaThemeColor()?.content).toBe(branding.primaryColor);
-        expect(getFavicon()?.getAttribute('href')).toBe(branding.faviconUrl);
-        expect(document.title).toBe(branding.appName);
+        expect(getFavicon()?.getAttribute('href')).toBe('https://favicon.ico');
+        expect(document.title).toBe('Branded');
         expect(syncThemeHash).toHaveBeenCalledWith('abc123');
     });
 

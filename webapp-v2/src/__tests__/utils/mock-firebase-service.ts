@@ -15,7 +15,7 @@ import {
     updateExpenseHandler,
 } from '@/test/msw/handlers.ts';
 import type { SerializedBodyMatcher, SerializedMswHandler } from '@/test/msw/types.ts';
-import { type ActivityFeedItem, ApiSerializer, ClientUser, ExpenseId, GroupId, ListGroupsResponse, UserId } from '@billsplit-wl/shared';
+import { type ActivityFeedItem, ApiSerializer, ClientUser, ExpenseId, GroupId, ListGroupsResponse, TenantConfigBuilder, UserId } from '@billsplit-wl/shared';
 import type { Page, Response, Route } from '@playwright/test';
 
 interface AuthError {
@@ -900,23 +900,16 @@ export async function mockAdminTenantsApi(
     page: Page,
     tenants: any[] = [
         {
-            tenant: {
-                tenantId: 'test-tenant',
-                branding: {
-                    appName: 'Test Tenant',
-                    logoUrl: '/logo.svg',
-                    faviconUrl: '/favicon.ico',
-                    primaryColor: '#3B82F6',
-                    secondaryColor: '#8B5CF6',
-                },
-                marketingFlags: {
+            tenant: new TenantConfigBuilder('test-tenant')
+                .withAppName('Test Tenant')
+                .withPrimaryColor('#3B82F6')
+                .withSecondaryColor('#8B5CF6')
+                .withMarketingFlags({
                     showLandingPage: true,
                     showMarketingContent: true,
                     showPricingPage: true,
-                },
-                createdAt: '2025-01-01T00:00:00.000Z',
-                updatedAt: '2025-01-01T00:00:00.000Z',
-            },
+                })
+                .build(),
             domains: ['localhost'],
             isDefault: true,
         },

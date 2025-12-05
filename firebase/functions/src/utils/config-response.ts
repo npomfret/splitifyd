@@ -7,6 +7,7 @@ const cloneTenantConfig = (tenant: TenantConfig): TenantConfig => {
     return {
         tenantId: tenant.tenantId,
         branding: { ...tenant.branding },
+        brandingTokens: { ...tenant.brandingTokens },
         marketingFlags: tenant.marketingFlags
             ? { ...tenant.marketingFlags }
             : {

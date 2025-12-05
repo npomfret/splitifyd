@@ -22,7 +22,7 @@ export class ThemeHandlers {
         const tenantContext = await this.tenantRegistry.resolveTenant({ host });
 
         const record = await this.firestoreReader.getTenantById(tenantContext.tenantId);
-        const artifact = record?.brandingTokens?.artifact;
+        const artifact = record?.tenant.brandingTokens?.artifact;
 
         if (!artifact) {
             logger.warn('theme-artifact-missing', { tenantId: tenantContext.tenantId });

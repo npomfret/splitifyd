@@ -1,10 +1,7 @@
 import type { BrandingTokens, PooledTestUser } from '@billsplit-wl/shared';
 import {
     toTenantAccentColor,
-    toTenantAppName,
     toTenantDomainName,
-    toTenantFaviconUrl,
-    toTenantLogoUrl,
     toTenantPrimaryColor,
     toTenantSecondaryColor,
 } from '@billsplit-wl/shared';
@@ -29,10 +26,10 @@ describe('Admin Tenant Theme Publishing', () => {
     const createTenantWithTokens = async (tenantId: string) => {
         const tenantData = AdminTenantRequestBuilder
             .forTenant(tenantId)
+            .withAppName('Test Theme Tenant')
+            .withLogoUrl('https://foo/branding/test/logo.svg')
+            .withFaviconUrl('https://foo/branding/test/favicon.png')
             .withBranding({
-                appName: toTenantAppName('Test Theme Tenant'),
-                logoUrl: toTenantLogoUrl('https://foo/branding/test/logo.svg'),
-                faviconUrl: toTenantFaviconUrl('https://foo/branding/test/favicon.png'),
                 primaryColor: toTenantPrimaryColor('#2563eb'),
                 secondaryColor: toTenantSecondaryColor('#7c3aed'),
                 accentColor: toTenantAccentColor('#f97316'),
@@ -96,10 +93,10 @@ describe('Admin Tenant Theme Publishing', () => {
 
         const updatedTenantData = AdminTenantRequestBuilder
             .forTenant(tenantId)
+            .withAppName('Updated Theme Tenant')
+            .withLogoUrl('https://foo/branding/updated/logo.svg')
+            .withFaviconUrl('https://foo/branding/updated/favicon.png')
             .withBranding({
-                appName: toTenantAppName('Updated Theme Tenant'),
-                logoUrl: toTenantLogoUrl('https://foo/branding/updated/logo.svg'),
-                faviconUrl: toTenantFaviconUrl('https://foo/branding/updated/favicon.png'),
                 primaryColor: toTenantPrimaryColor('#ff0000'),
                 secondaryColor: toTenantSecondaryColor('#00ff00'),
                 accentColor: toTenantAccentColor('#0000ff'),

@@ -1,5 +1,5 @@
 import type { PooledTestUser } from '@billsplit-wl/shared';
-import { toTenantAppName, toTenantLogoUrl, toTenantPrimaryColor, toTenantSecondaryColor } from '@billsplit-wl/shared';
+import { toTenantPrimaryColor, toTenantSecondaryColor } from '@billsplit-wl/shared';
 import { AdminTenantRequestBuilder, ApiDriver } from '@billsplit-wl/test-support';
 import { beforeAll, describe, expect, it } from 'vitest';
 
@@ -24,9 +24,8 @@ describe('Admin tenant image upload', () => {
             AdminTenantRequestBuilder
                 .forTenant(tenantId)
                 .withAppName('Upload Test Tenant')
+                .withLogoUrl('/placeholder-logo.svg')
                 .withBranding({
-                    appName: toTenantAppName('Upload Test Tenant'),
-                    logoUrl: toTenantLogoUrl('/placeholder-logo.svg'),
                     primaryColor: toTenantPrimaryColor('#1a73e8'),
                     secondaryColor: toTenantSecondaryColor('#34a853'),
                 })

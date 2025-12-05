@@ -146,7 +146,7 @@ export function AdminTenantsPage() {
                                                 <div class='flex-1'>
                                                     <div class='flex items-center gap-3 mb-2'>
                                                         <h3 class='text-lg font-semibold text-white'>
-                                                            {tenant.tenant.branding.appName}
+                                                            {tenant.tenant.brandingTokens.tokens.legal.appName}
                                                         </h3>
                                                         {isCurrentTenant && (
                                                             <span class='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-400'>

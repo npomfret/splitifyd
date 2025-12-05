@@ -76,7 +76,8 @@ export class TenantAdminHandlers {
         try {
             const tenantRecord = await this.firestoreReader.getTenantById(tenantId as any);
             if (tenantRecord) {
-                oldUrl = assetType === 'logo' ? tenantRecord.tenant.branding.logoUrl : tenantRecord.tenant.branding.faviconUrl;
+                const assets = tenantRecord.tenant.brandingTokens.tokens.assets;
+                oldUrl = assetType === 'logo' ? assets.logoUrl : assets.faviconUrl;
             }
         } catch (error) {
             // Non-fatal - continue without cleanup if tenant lookup fails

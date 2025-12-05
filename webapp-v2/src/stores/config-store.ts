@@ -1,4 +1,4 @@
-import type { ClientAppConfiguration, BrandingConfig } from '@billsplit-wl/shared';
+import type { ClientAppConfiguration, TenantConfig } from '@billsplit-wl/shared';
 import { ReadonlySignal, signal } from '@preact/signals';
 import { firebaseConfigManager } from '../app/firebase-config';
 import i18n from '../i18n';
@@ -58,24 +58,26 @@ const applyDocumentTitle = (brandName?: string | null): void => {
     document.title = brandName?.trim() || DEFAULT_APP_NAME;
 };
 
-const updateBrandingMetadata = (branding: BrandingConfig | null): void => {
+const updateBrandingMetadata = (tenant: TenantConfig | null | undefined): void => {
     if (typeof document === 'undefined') {
         return;
     }
 
+    const tokens = tenant?.brandingTokens.tokens;
+
     const metaTheme = ensureMetaThemeColor();
     if (metaTheme) {
-        metaTheme.content = branding?.primaryColor ?? DEFAULT_THEME_COLOR;
+        metaTheme.content = tenant?.branding.primaryColor ?? DEFAULT_THEME_COLOR;
     }
 
     const favicon = ensureFavicon();
     if (favicon) {
-        // Use faviconUrl if provided, otherwise fall back to logoUrl, then default
-        const faviconHref = branding?.faviconUrl ?? branding?.logoUrl ?? DEFAULT_FAVICON;
+        const faviconHref = tokens?.assets.faviconUrl ?? tokens?.assets.logoUrl ?? DEFAULT_FAVICON;
         favicon.setAttribute('href', faviconHref);
     }
 
-    applyDocumentTitle(branding?.appName ?? null);
+    const appName = tokens?.legal.appName ?? null;
+    applyDocumentTitle(appName);
 };
 
 interface ConfigStore {
@@ -115,8 +117,8 @@ class ConfigStoreImpl implements ConfigStore {
         return this.#errorSignal.value;
     }
     get appName() {
-        const brandingName = this.#configSignal.value?.tenant?.branding?.appName;
-        return brandingName?.trim() || DEFAULT_APP_NAME;
+        const appName = this.#configSignal.value?.tenant?.brandingTokens.tokens.legal.appName;
+        return appName?.trim() || DEFAULT_APP_NAME;
     }
 
     // Signal accessors for reactive components - return readonly signals
@@ -146,7 +148,7 @@ class ConfigStoreImpl implements ConfigStore {
 
             this.#configSignal.value = config;
             syncThemeHash(config.theme?.hash ?? null);
-            updateBrandingMetadata(config.tenant?.branding ?? null);
+            updateBrandingMetadata(config.tenant);
             setTranslationAppName(this.appName);
             this.#errorSignal.value = null;
             configLoaded = true;

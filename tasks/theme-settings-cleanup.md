@@ -40,16 +40,26 @@ Removed **unused** properties only (after audit confirmed they have no productio
 - All builders and tests updated
 - Tenant config JSON files updated (marketingFlags moved to top-level)
 
-### 5. Consolidate `appName`, `logoUrl`, `faviconUrl`
+### 5. ~~Remove `appName`, `logoUrl`, `faviconUrl` from BrandingConfig~~ ✅ DONE
 
-**Status:** Duplicated - exists in both `branding` and `brandingTokens`
+Completely removed legacy fields from `BrandingConfig`. Now `brandingTokens.tokens` is the single source of truth:
 
-**Current:**
-- `branding.appName` → should use `brandingTokens.legal.companyName`
-- `branding.logoUrl` → should use `brandingTokens.assets.logoUrl`
-- `branding.faviconUrl` → should use `brandingTokens.assets.faviconUrl`
+**Changes:**
+- Removed `appName`, `logoUrl`, `faviconUrl` from `BrandingConfig` interface
+- Removed branded types `TenantAppName`, `TenantLogoUrl`, `TenantFaviconUrl` and converters
+- Made `brandingTokens` required (not optional) in `TenantConfig`
+- Removed duplicate `brandingTokens` from `TenantFullRecord` (now only in `tenant.brandingTokens`)
+- Updated `FirestoreWriter.updateTenantBranding()` to route fields to brandingTokens:
+  - `appName` → `brandingTokens.tokens.legal.appName`
+  - `logoUrl` → `brandingTokens.tokens.assets.logoUrl`
+  - `faviconUrl` → `brandingTokens.tokens.assets.faviconUrl`
+- Updated `config-store.ts` to read directly from `brandingTokens.tokens.*` (no fallbacks)
+- Updated all builders, schemas, and tests
 
-**Approach:** Keep legacy fields for now but ensure all code reads from `brandingTokens`. Mark legacy fields as deprecated in types.
+**Canonical data locations:**
+- `appName`: `brandingTokens.tokens.legal.appName`
+- `logoUrl`: `brandingTokens.tokens.assets.logoUrl`
+- `faviconUrl`: `brandingTokens.tokens.assets.faviconUrl`
 
 ---
 
@@ -59,7 +69,7 @@ Removed **unused** properties only (after audit confirmed they have no productio
 2. ~~Remove `surface.spotlight` (zero impact - nothing uses it)~~ ✅
 3. ~~Move `marketingFlags` (requires coordinated update)~~ ✅
 4. ~~Remove unused legacy color properties (surfaceColor, textColor, themePalette)~~ ✅
-5. Deprecate duplicate asset/name fields (lower priority)
+5. ~~Remove duplicate asset/name fields from BrandingConfig~~ ✅
 
 ---
 

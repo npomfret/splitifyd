@@ -32,16 +32,19 @@ describe('Tenant API Response Validation', () => {
             expect(result.createdAt).toBeDefined();
             expect(result.updatedAt).toBeDefined();
 
-            // Verify required branding fields
+            // Verify required branding fields (colors only)
             const { branding } = result;
-            expect(branding.appName).toBe('Test App');
-            expect(branding.logoUrl).toBe('https://example.com/logo.svg');
-            expect(branding.faviconUrl).toBe('https://example.com/favicon.ico');
             expect(branding.primaryColor).toBe('#0066CC');
             expect(branding.secondaryColor).toBe('#FF6600');
 
             // Verify optional branding fields are preserved (not stripped)
             expect(branding.accentColor).toBe('#EC4899');
+
+            // Verify brandingTokens fields (appName, logoUrl, faviconUrl are here now)
+            const { brandingTokens } = result;
+            expect(brandingTokens.tokens.legal.appName).toBe('Test App');
+            expect(brandingTokens.tokens.assets.logoUrl).toBe('https://example.com/logo.svg');
+            expect(brandingTokens.tokens.assets.faviconUrl).toBe('https://example.com/favicon.ico');
 
             // Verify marketing flags (stored at top level, not under branding)
             expect(result.marketingFlags).toBeDefined();

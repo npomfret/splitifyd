@@ -45,12 +45,20 @@ const mockTenantSettings: TenantSettingsResponse = {
     config: {
         tenantId: 'test-tenant' as any,
         branding: {
-            appName: 'Test App' as any,
-            logoUrl: '/logo.svg' as any,
-            faviconUrl: '/favicon.ico' as any,
             primaryColor: '#1a73e8' as any,
             secondaryColor: '#34a853' as any,
         },
+        brandingTokens: {
+            tokens: {
+                legal: {
+                    appName: 'Test App' as any,
+                },
+                assets: {
+                    logoUrl: '/logo.svg' as any,
+                    faviconUrl: '/favicon.ico' as any,
+                },
+            },
+        } as any,
         marketingFlags: {
             showLandingPage: true as any,
             showMarketingContent: true as any,

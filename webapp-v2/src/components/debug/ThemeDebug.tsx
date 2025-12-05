@@ -40,7 +40,7 @@ export function ThemeDebug() {
         >
             <strong>Theme Debug</strong>
             <div>Tenant: {config.value.tenant?.tenantId}</div>
-            <div>App: {config.value.tenant?.branding.appName}</div>
+            <div>App: {config.value.tenant?.brandingTokens?.tokens?.legal?.appName}</div>
             <div>Primary: {config.value.tenant?.branding.primaryColor}</div>
             <div>Secondary: {config.value.tenant?.branding.secondaryColor}</div>
             <hr />

@@ -1,8 +1,5 @@
 import type {
     TenantAccentColor,
-    TenantAppName,
-    TenantFaviconUrl,
-    TenantLogoUrl,
     TenantPrimaryColor,
     TenantSecondaryColor,
     UpdateTenantBrandingRequest,
@@ -11,9 +8,6 @@ import {
     toShowLandingPageFlag,
     toShowPricingPageFlag,
     toTenantAccentColor,
-    toTenantAppName,
-    toTenantFaviconUrl,
-    toTenantLogoUrl,
     toTenantPrimaryColor,
     toTenantSecondaryColor,
 } from '@billsplit-wl/shared';
@@ -25,7 +19,7 @@ export class TenantBrandingUpdateBuilder {
     constructor(useDefaults: boolean = true) {
         if (useDefaults) {
             this.update = {
-                appName: toTenantAppName(`Test App ${generateShortId()}`),
+                appName: `Test App ${generateShortId()}`,
                 primaryColor: toTenantPrimaryColor('#2563eb'),
             };
         } else {
@@ -37,18 +31,18 @@ export class TenantBrandingUpdateBuilder {
         return new TenantBrandingUpdateBuilder(false);
     }
 
-    withAppName(appName: TenantAppName | string): this {
-        this.update.appName = typeof appName === 'string' ? toTenantAppName(appName) : appName;
+    withAppName(appName: string): this {
+        this.update.appName = appName;
         return this;
     }
 
-    withLogoUrl(logoUrl: TenantLogoUrl | string): this {
-        this.update.logoUrl = typeof logoUrl === 'string' ? toTenantLogoUrl(logoUrl) : logoUrl;
+    withLogoUrl(logoUrl: string): this {
+        this.update.logoUrl = logoUrl;
         return this;
     }
 
-    withFaviconUrl(faviconUrl: TenantFaviconUrl | string): this {
-        this.update.faviconUrl = typeof faviconUrl === 'string' ? toTenantFaviconUrl(faviconUrl) : faviconUrl;
+    withFaviconUrl(faviconUrl: string): this {
+        this.update.faviconUrl = faviconUrl;
         return this;
     }
 
@@ -84,7 +78,7 @@ export class TenantBrandingUpdateBuilder {
 
     /** For testing validation - sets appName to empty string */
     withInvalidAppName(value: string): this {
-        (this.update as any).appName = toTenantAppName(value);
+        this.update.appName = value;
         return this;
     }
 

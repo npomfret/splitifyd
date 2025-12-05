@@ -30,13 +30,14 @@ export class TenantAdminService {
             throw Errors.notFound('Tenant', ErrorDetail.TENANT_NOT_FOUND, tenantId);
         }
 
-        if (!record.brandingTokens?.tokens) {
+        const brandingTokens = record.tenant.brandingTokens;
+        if (!brandingTokens?.tokens) {
             throw Errors.invalidRequest('Tenant is missing branding tokens');
         }
 
-        const artifactResult = await this.themeArtifactService.generate(record.tenant.tenantId, record.brandingTokens.tokens);
+        const artifactResult = await this.themeArtifactService.generate(record.tenant.tenantId, brandingTokens.tokens);
 
-        const nextVersion = (record.brandingTokens.artifact?.version ?? 0) + 1;
+        const nextVersion = (brandingTokens.artifact?.version ?? 0) + 1;
         const metadata: BrandingArtifactMetadata = {
             hash: artifactResult.hash,
             cssUrl: artifactResult.cssUrl,

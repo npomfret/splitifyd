@@ -15,6 +15,183 @@ import {
     TenantDomainsResponseSchema,
     TenantSettingsResponseSchema,
 } from '../../index';
+import type { TenantBranding } from '../../types/branding';
+
+function createTestBrandingTokens(): TenantBranding {
+    return {
+        tokens: {
+            version: 1,
+            palette: {
+                primary: '#3B82F6',
+                primaryVariant: '#2563eb',
+                secondary: '#8B5CF6',
+                secondaryVariant: '#7c3aed',
+                accent: '#EC4899',
+                neutral: '#f8fafc',
+                neutralVariant: '#e2e8f0',
+                success: '#22c55e',
+                warning: '#eab308',
+                danger: '#ef4444',
+                info: '#38bdf8',
+            },
+            typography: {
+                fontFamily: {
+                    sans: 'Inter, system-ui, sans-serif',
+                    serif: 'Georgia, serif',
+                    mono: 'Menlo, monospace',
+                },
+                sizes: {
+                    xs: '0.75rem',
+                    sm: '0.875rem',
+                    md: '1rem',
+                    lg: '1.125rem',
+                    xl: '1.25rem',
+                    '2xl': '1.5rem',
+                    '3xl': '1.875rem',
+                    '4xl': '2.25rem',
+                    '5xl': '3rem',
+                },
+                weights: {
+                    regular: 400,
+                    medium: 500,
+                    semibold: 600,
+                    bold: 700,
+                },
+                lineHeights: {
+                    compact: '1.25rem',
+                    standard: '1.5rem',
+                    spacious: '1.75rem',
+                },
+                letterSpacing: {
+                    tight: '-0.02rem',
+                    normal: '0rem',
+                    wide: '0.04rem',
+                },
+                semantics: {
+                    body: 'md',
+                    bodyStrong: 'md',
+                    caption: 'sm',
+                    button: 'sm',
+                    eyebrow: 'xs',
+                    heading: '2xl',
+                    display: '4xl',
+                },
+            },
+            spacing: {
+                '2xs': '0.125rem',
+                xs: '0.25rem',
+                sm: '0.5rem',
+                md: '0.75rem',
+                lg: '1rem',
+                xl: '1.5rem',
+                '2xl': '2rem',
+            },
+            radii: {
+                none: '0px',
+                sm: '4px',
+                md: '8px',
+                lg: '16px',
+                pill: '999px',
+                full: '9999px',
+            },
+            shadows: {
+                sm: '0 1px 2px rgba(0, 0, 0, 0.05)',
+                md: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                lg: '0 10px 15px rgba(0, 0, 0, 0.1)',
+            },
+            assets: {
+                logoUrl: '/logo.svg',
+                faviconUrl: '/favicon.ico',
+            },
+            legal: {
+                appName: 'Test App',
+                companyName: 'Test Company',
+                supportEmail: 'support@test.com',
+                privacyPolicyUrl: 'https://test.com/privacy',
+                termsOfServiceUrl: 'https://test.com/terms',
+            },
+            semantics: {
+                colors: {
+                    surface: {
+                        base: '#ffffff',
+                        raised: '#fafafa',
+                        sunken: '#f5f5f5',
+                        overlay: '#000000',
+                        warning: '#fef3c7',
+                    },
+                    text: {
+                        primary: '#0f172a',
+                        secondary: '#475569',
+                        muted: '#94a3b8',
+                        inverted: '#ffffff',
+                        accent: '#3B82F6',
+                    },
+                    interactive: {
+                        primary: '#3B82F6',
+                        primaryHover: '#2563eb',
+                        primaryActive: '#1d4ed8',
+                        primaryForeground: '#ffffff',
+                        secondary: '#8B5CF6',
+                        secondaryHover: '#7c3aed',
+                        secondaryActive: '#6d28d9',
+                        secondaryForeground: '#ffffff',
+                        destructive: '#ef4444',
+                        destructiveHover: '#dc2626',
+                        destructiveActive: '#b91c1c',
+                        destructiveForeground: '#ffffff',
+                        accent: '#EC4899',
+                    },
+                    border: {
+                        subtle: '#e2e8f0',
+                        default: '#cbd5e1',
+                        strong: '#94a3b8',
+                        focus: '#3B82F6',
+                        warning: '#fbbf24',
+                    },
+                    status: {
+                        success: '#22c55e',
+                        warning: '#eab308',
+                        danger: '#ef4444',
+                        info: '#38bdf8',
+                    },
+                },
+                spacing: {
+                    pagePadding: '1.5rem',
+                    sectionGap: '2rem',
+                    cardPadding: '1rem',
+                    componentGap: '0.75rem',
+                },
+                typography: {
+                    body: 'md',
+                    bodyStrong: 'md',
+                    caption: 'sm',
+                    button: 'sm',
+                    eyebrow: 'xs',
+                    heading: '2xl',
+                    display: '4xl',
+                },
+            },
+            motion: {
+                duration: {
+                    instant: 50,
+                    fast: 150,
+                    base: 250,
+                    slow: 400,
+                    glacial: 800,
+                },
+                easing: {
+                    standard: 'cubic-bezier(0.22, 1, 0.36, 1)',
+                    decelerate: 'cubic-bezier(0.05, 0.7, 0.1, 1)',
+                    accelerate: 'cubic-bezier(0.3, 0, 0.8, 0.15)',
+                    spring: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+                },
+                enableParallax: false,
+                enableMagneticHover: false,
+                enableScrollReveal: false,
+            },
+        },
+    };
+}
 
 /**
  * API Schema Validation Tests
@@ -439,13 +616,11 @@ describe('API Schema Validation', () => {
                 config: {
                     tenantId: 'tenant123',
                     branding: {
-                        appName: 'Test App',
-                        logoUrl: '/logo.svg',
-                        faviconUrl: '/favicon.ico',
                         primaryColor: '#3B82F6',
                         secondaryColor: '#8B5CF6',
                         accentColor: '#EC4899',
                     },
+                    brandingTokens: createTestBrandingTokens(),
                     marketingFlags: {
                         showLandingPage: true,
                         showMarketingContent: false,
@@ -459,8 +634,8 @@ describe('API Schema Validation', () => {
 
             const result = TenantSettingsResponseSchema.parse(response);
 
-            expect(result.config.branding.appName).toBe('Test App');
-            expect(result.config.branding.logoUrl).toBe('/logo.svg');
+            expect(result.config.brandingTokens.tokens.legal.appName).toBe('Test App');
+            expect(result.config.brandingTokens.tokens.assets.logoUrl).toBe('/logo.svg');
             expect(result.config.branding.primaryColor).toBe('#3B82F6');
             expect(result.config.branding.accentColor).toBe('#EC4899');
             expect(result.domains).toHaveLength(2);
@@ -487,12 +662,10 @@ describe('API Schema Validation', () => {
                 tenant: {
                     tenantId: 'tenant1',
                     branding: {
-                        appName: 'Tenant App',
-                        logoUrl: '/logo.svg',
-                        faviconUrl: '/favicon.ico',
                         primaryColor: '#3B82F6',
                         secondaryColor: '#8B5CF6',
                     },
+                    brandingTokens: createTestBrandingTokens(),
                     createdAt: '2024-01-01T00:00:00.000Z',
                     updatedAt: '2024-01-15T10:30:00.000Z',
                 },
@@ -502,7 +675,7 @@ describe('API Schema Validation', () => {
 
             const result = AdminTenantItemSchema.parse(item);
 
-            expect(result.tenant.branding.appName).toBe('Tenant App');
+            expect(result.tenant.brandingTokens.tokens.legal.appName).toBe('Test App');
             expect(result.domains).toHaveLength(2);
             expect(result.isDefault).toBe(false);
         });
@@ -512,11 +685,10 @@ describe('API Schema Validation', () => {
                 tenant: {
                     tenantId: 'tenant1',
                     branding: {
-                        appName: 'Tenant App',
-                        logoUrl: '/logo.svg',
                         primaryColor: '#3B82F6',
                         secondaryColor: '#8B5CF6',
                     },
+                    brandingTokens: createTestBrandingTokens(),
                     createdAt: '2024-01-01T00:00:00.000Z',
                     updatedAt: '2024-01-15T10:30:00.000Z',
                 },
@@ -533,17 +705,21 @@ describe('API Schema Validation', () => {
 
     describe('AdminTenantsListResponseSchema', () => {
         it('should validate tenants list response with multiple tenants', () => {
+            const tenant1Tokens = createTestBrandingTokens();
+            tenant1Tokens.tokens.legal.appName = 'Tenant 1';
+            const tenant2Tokens = createTestBrandingTokens();
+            tenant2Tokens.tokens.legal.appName = 'Tenant 2';
+
             const response = {
                 tenants: [
                     {
                         tenant: {
                             tenantId: 'tenant1',
                             branding: {
-                                appName: 'Tenant 1',
-                                logoUrl: '/logo1.svg',
                                 primaryColor: '#3B82F6',
                                 secondaryColor: '#8B5CF6',
                             },
+                            brandingTokens: tenant1Tokens,
                             createdAt: '2024-01-01T00:00:00.000Z',
                             updatedAt: '2024-01-15T10:30:00.000Z',
                         },
@@ -554,11 +730,10 @@ describe('API Schema Validation', () => {
                         tenant: {
                             tenantId: 'tenant2',
                             branding: {
-                                appName: 'Tenant 2',
-                                logoUrl: '/logo2.svg',
                                 primaryColor: '#EC4899',
                                 secondaryColor: '#10B981',
                             },
+                            brandingTokens: tenant2Tokens,
                             createdAt: '2024-01-02T00:00:00.000Z',
                             updatedAt: '2024-01-16T10:30:00.000Z',
                         },
@@ -572,8 +747,8 @@ describe('API Schema Validation', () => {
             const result = AdminTenantsListResponseSchema.parse(response);
 
             expect(result.tenants).toHaveLength(2);
-            expect(result.tenants[0].tenant.branding.appName).toBe('Tenant 1');
-            expect(result.tenants[1].tenant.branding.appName).toBe('Tenant 2');
+            expect(result.tenants[0].tenant.brandingTokens.tokens.legal.appName).toBe('Tenant 1');
+            expect(result.tenants[1].tenant.brandingTokens.tokens.legal.appName).toBe('Tenant 2');
             expect(result.count).toBe(2);
         });
 

@@ -140,11 +140,11 @@ export function App() {
 
     // Update document title when tenant config loads
     useEffect(() => {
-        const appName = config?.tenant?.branding?.appName;
+        const appName = config?.tenant?.brandingTokens?.tokens?.legal?.appName;
         if (appName) {
             document.title = appName;
         }
-    }, [config?.tenant?.branding?.appName]);
+    }, [config?.tenant?.brandingTokens?.tokens?.legal?.appName]);
 
     const handlePolicyAcceptance = async () => {
         // Refresh policy status after acceptance to hide the modal

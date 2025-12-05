@@ -74,8 +74,8 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
     useEffect(() => {
         if (creationMode === 'copy' && selectedSourceTenantId) {
             const sourceTenant = existingTenants.find(t => t.tenant.tenantId === selectedSourceTenantId);
-            if (sourceTenant?.brandingTokens?.tokens) {
-                const tokenData = extractFormDataFromTokens(sourceTenant.brandingTokens.tokens);
+            if (sourceTenant?.tenant.brandingTokens?.tokens) {
+                const tokenData = extractFormDataFromTokens(sourceTenant.tenant.brandingTokens.tokens);
                 setFormData({
                     ...EMPTY_TENANT_DATA,
                     ...tokenData,
@@ -92,7 +92,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
 
     useEffect(() => {
         if (mode === 'edit' && tenant) {
-            const tokens = tenant.brandingTokens?.tokens;
+            const tokens = tenant.tenant.brandingTokens?.tokens;
             const branding = tenant.tenant.branding;
             if (tokens) {
                 const tokenData = extractFormDataFromTokens(tokens);
@@ -100,9 +100,6 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                     ...EMPTY_TENANT_DATA,
                     ...tokenData,
                     tenantId: tenant.tenant.tenantId,
-                    appName: branding?.appName ?? '',
-                    logoUrl: branding?.logoUrl ?? tokenData.logoUrl ?? '',
-                    faviconUrl: branding?.faviconUrl ?? tokenData.faviconUrl ?? '',
                     showLandingPage: tenant.tenant.marketingFlags?.showLandingPage ?? false,
                     showMarketingContent: tenant.tenant.marketingFlags?.showMarketingContent ?? false,
                     showPricingPage: tenant.tenant.marketingFlags?.showPricingPage ?? false,
@@ -113,9 +110,6 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                 setFormData({
                     ...EMPTY_TENANT_DATA,
                     tenantId: tenant.tenant.tenantId,
-                    appName: branding?.appName ?? '',
-                    logoUrl: branding?.logoUrl ?? '',
-                    faviconUrl: branding?.faviconUrl ?? '',
                     showLandingPage: tenant.tenant.marketingFlags?.showLandingPage ?? false,
                     showMarketingContent: tenant.tenant.marketingFlags?.showMarketingContent ?? false,
                     showPricingPage: tenant.tenant.marketingFlags?.showPricingPage ?? false,
@@ -165,9 +159,6 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
             const normalizedDomains = Array.from(new Set(formData.domains.map(d => d.trim().toLowerCase().replace(/:\d+$/, ''))));
 
             const branding: Record<string, unknown> = {
-                appName: formData.appName,
-                logoUrl: formData.logoUrl,
-                faviconUrl: formData.faviconUrl || formData.logoUrl,
                 primaryColor: formData.primaryColor,
                 secondaryColor: formData.secondaryColor,
                 accentColor: formData.accentColor,
@@ -394,7 +385,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                                         <option value=''>{t('admin.tenantEditor.placeholders.selectTenant')}</option>
                                                         {existingTenants.map((tenant) => (
                                                             <option key={tenant.tenant.tenantId} value={tenant.tenant.tenantId}>
-                                                                {tenant.tenant.tenantId} - {tenant.tenant.branding?.appName || t('common.unknown')}
+                                                                {tenant.tenant.tenantId} - {tenant.tenant.brandingTokens?.tokens?.legal?.appName || t('common.unknown')}
                                                             </option>
                                                         ))}
                                                     </select>

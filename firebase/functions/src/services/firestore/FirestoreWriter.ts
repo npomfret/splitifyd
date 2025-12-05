@@ -1273,7 +1273,18 @@ export class FirestoreWriter implements IFirestoreWriter {
 
     /**
      * Update tenant branding configuration
-     * Updates the branding fields within a tenant document
+     * Updates branding fields within a tenant document.
+     *
+     * Field routing:
+     * - appName → brandingTokens.tokens.legal.appName
+     * - logoUrl → brandingTokens.tokens.assets.logoUrl
+     * - faviconUrl → brandingTokens.tokens.assets.faviconUrl
+     * - primaryColor → branding.primaryColor AND brandingTokens.tokens.palette.primary
+     * - secondaryColor → branding.secondaryColor AND brandingTokens.tokens.palette.secondary
+     * - accentColor → branding.accentColor AND brandingTokens.tokens.palette.accent
+     * - marketingFlags.* → marketingFlags.*
+     * - Other fields → branding.*
+     *
      * @param tenantId - The tenant ID to update
      * @param brandingUpdates - Partial branding updates (pre-validated by schema)
      * @returns Write result with document ID and success status
@@ -1283,20 +1294,31 @@ export class FirestoreWriter implements IFirestoreWriter {
             try {
                 const tenantRef = this.db.collection(FirestoreCollections.TENANTS).doc(tenantId);
 
-                // Build update object with nested field updates for branding
                 const updates: Record<string, any> = {
                     updatedAt: FieldValue.serverTimestamp(),
                 };
 
-                // Map each branding field to nested Firestore path
                 for (const [key, value] of Object.entries(brandingUpdates)) {
                     if (key === 'marketingFlags' && typeof value === 'object') {
-                        // marketingFlags are stored at top-level, not under branding
                         for (const [flagKey, flagValue] of Object.entries(value)) {
                             updates[`marketingFlags.${flagKey}`] = flagValue;
                         }
+                    } else if (key === 'appName') {
+                        updates['brandingTokens.tokens.legal.appName'] = value;
+                    } else if (key === 'logoUrl') {
+                        updates['brandingTokens.tokens.assets.logoUrl'] = value;
+                    } else if (key === 'faviconUrl') {
+                        updates['brandingTokens.tokens.assets.faviconUrl'] = value;
+                    } else if (key === 'primaryColor') {
+                        updates['branding.primaryColor'] = value;
+                        updates['brandingTokens.tokens.palette.primary'] = value;
+                    } else if (key === 'secondaryColor') {
+                        updates['branding.secondaryColor'] = value;
+                        updates['brandingTokens.tokens.palette.secondary'] = value;
+                    } else if (key === 'accentColor') {
+                        updates['branding.accentColor'] = value;
+                        updates['brandingTokens.tokens.palette.accent'] = value;
                     } else {
-                        // Direct branding field update
                         updates[`branding.${key}`] = value;
                     }
                 }

@@ -93,6 +93,7 @@ export class BrandingTokensBuilder {
                 faviconUrl: '/test-assets/favicon.png',
             },
             legal: {
+                appName: 'Test App',
                 companyName: 'Test Company',
                 supportEmail: 'support@test.com',
                 privacyPolicyUrl: 'https://test.com/privacy',
@@ -277,6 +278,16 @@ export class BrandingTokensBuilder {
 
     withCompanyName(companyName: string): this {
         this.tokens.legal.companyName = companyName;
+        return this;
+    }
+
+    withAppName(appName: string): this {
+        this.tokens.legal.appName = appName;
+        return this;
+    }
+
+    withFaviconUrl(faviconUrl: string): this {
+        this.tokens.assets.faviconUrl = faviconUrl;
         return this;
     }
 

@@ -36,7 +36,7 @@ export class ThemePage extends BasePage {
         expect(response.ok()).toBeTruthy();
 
         const payload = await response.json();
-        const appName = payload?.tenant?.branding?.appName;
+        const appName = payload?.tenant?.brandingTokens?.tokens?.legal?.appName;
         expect(typeof appName === 'string' && appName.length > 0).toBeTruthy();
         return appName as string;
     }

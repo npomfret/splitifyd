@@ -89,6 +89,7 @@ function createFullBrandingTokens(): BrandingTokens {
             faviconUrl: 'https://example.com/favicon.ico',
         },
         legal: {
+            appName: 'Test App',
             companyName: 'Test Company',
             supportEmail: 'support@test.com',
             privacyPolicyUrl: 'https://test.com/privacy',

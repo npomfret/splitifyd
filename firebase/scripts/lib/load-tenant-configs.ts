@@ -12,9 +12,6 @@ export interface TenantConfig {
     id: string;
     domains: string[];
     branding: {
-        appName: string;
-        logoUrl?: string;
-        faviconUrl?: string;
         primaryColor: string;
         secondaryColor: string;
         accentColor?: string;
@@ -24,7 +21,7 @@ export interface TenantConfig {
         showMarketingContent?: boolean;
         showPricingPage?: boolean;
     };
-    brandingTokens?: TenantBranding;
+    brandingTokens: TenantBranding;
     isDefault: boolean;
 }
 

@@ -1,16 +1,26 @@
 import { Timestamp } from 'firebase-admin/firestore';
+import { BrandingTokensBuilder } from '@billsplit-wl/test-support';
 import { describe, expect, it } from 'vitest';
 import { TenantDocumentSchema, UpdateTenantBrandingRequestSchema } from '../../../schemas/tenant';
 
 describe('TenantDocumentSchema', () => {
+    const validBrandingTokens = new BrandingTokensBuilder()
+        .withPrimaryColor('#FF5733')
+        .withSecondaryColor('#33FF57')
+        .withLogoUrl('https://acme.com/logo.svg')
+        .build();
+    // Override legal.appName for test
+    validBrandingTokens.legal.appName = 'Acme App';
+    validBrandingTokens.assets.faviconUrl = 'https://acme.com/favicon.ico';
+
     const validTenantData = {
         id: 'test-tenant-123',
         branding: {
-            appName: 'Acme App',
-            logoUrl: 'https://acme.com/logo.svg',
-            faviconUrl: 'https://acme.com/favicon.ico',
             primaryColor: '#FF5733',
             secondaryColor: '#33FF57',
+        },
+        brandingTokens: {
+            tokens: validBrandingTokens,
         },
         domains: ['app.acme.com', 'acme.com', 'www.acme.com'],
         defaultTenant: false,
@@ -23,7 +33,7 @@ describe('TenantDocumentSchema', () => {
             const result = TenantDocumentSchema.parse(validTenantData);
 
             expect(result.id).toBe('test-tenant-123');
-            expect(result.branding.appName).toBe('Acme App');
+            expect(result.brandingTokens.tokens.legal.appName).toBe('Acme App');
         });
 
         it('should apply branded type transformers', () => {
@@ -72,18 +82,24 @@ describe('TenantDocumentSchema', () => {
 
     describe('optional fields', () => {
         it('should accept tenant without optional branding fields', () => {
+            const minimalBrandingTokens = new BrandingTokensBuilder()
+                .withPrimaryColor('#000000')
+                .withSecondaryColor('#FFFFFF')
+                .build();
+            minimalBrandingTokens.legal.appName = 'Minimal App';
+
             const minimalData = {
                 id: 'minimal-tenant',
                 branding: {
-                    appName: 'Minimal App',
-                    logoUrl: 'https://minimal.com/logo.svg',
-                    faviconUrl: 'https://minimal.com/favicon.ico',
                     primaryColor: '#000000',
                     secondaryColor: '#FFFFFF',
-                    // No accentColor or marketingFlags
+                    // No accentColor
+                },
+                brandingTokens: {
+                    tokens: minimalBrandingTokens,
                 },
                 domains: ['minimal.com'],
-                // No defaultTenant
+                // No defaultTenant or marketingFlags
                 createdAt: Timestamp.now(),
                 updatedAt: Timestamp.now(),
             };
@@ -182,18 +198,6 @@ describe('TenantDocumentSchema', () => {
             };
 
             expect(() => TenantDocumentSchema.parse(dataWithInvalidDomains)).toThrow();
-        });
-
-        it('should reject empty string URLs', () => {
-            const dataWithEmptyUrl = {
-                ...validTenantData,
-                branding: {
-                    ...validTenantData.branding,
-                    logoUrl: '',
-                },
-            };
-
-            expect(() => TenantDocumentSchema.parse(dataWithEmptyUrl)).toThrow();
         });
 
         it('should reject empty string colors', () => {

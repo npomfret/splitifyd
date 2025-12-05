@@ -2,7 +2,6 @@
   "id": "default-tenant",
   "domains": ["127.0.0.1"],
   "branding": {
-    "appName": "Splitifyd",
     "primaryColor": "#737373",
     "secondaryColor": "#525252",
     "accentColor": "#A3A3A3"
@@ -95,6 +94,7 @@
       },
       "assets": {},
       "legal": {
+        "appName": "Splitifyd",
         "companyName": "Splitifyd",
         "supportEmail": "support@splitifyd.local",
         "privacyPolicyUrl": "https://splitifyd.local/legal/privacy",

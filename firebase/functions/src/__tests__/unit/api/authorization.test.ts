@@ -7,10 +7,7 @@ import {
     toPolicyText,
     toShowLandingPageFlag,
     toShowPricingPageFlag,
-    toTenantAppName,
     toTenantDomainName,
-    toTenantFaviconUrl,
-    toTenantLogoUrl,
     toTenantPrimaryColor,
     toTenantSecondaryColor,
     toUserId,
@@ -300,10 +297,10 @@ describe('authorization', () => {
             // Use 'system-fallback-tenant' as that's what createStubRequest sets
             const tenantData = AdminTenantRequestBuilder
                 .forTenant('system-fallback-tenant')
+                .withAppName('Test Tenant')
+                .withLogoUrl('https://example.com/logo.svg')
+                .withFaviconUrl('https://example.com/favicon.ico')
                 .withBranding({
-                    appName: toTenantAppName('Test Tenant'),
-                    logoUrl: toTenantLogoUrl('https://example.com/logo.svg'),
-                    faviconUrl: toTenantFaviconUrl('https://example.com/favicon.ico'),
                     primaryColor: toTenantPrimaryColor('#0066CC'),
                     secondaryColor: toTenantSecondaryColor('#FF6600'),
                 })
@@ -333,13 +330,11 @@ describe('authorization', () => {
                     domains: expect.any(Array),
                 });
 
-                expect(settings.config.branding).toMatchObject({
-                    appName: expect.any(String),
-                    logoUrl: expect.any(String),
-                    faviconUrl: expect.any(String),
-                    primaryColor: expect.any(String),
-                    secondaryColor: expect.any(String),
-                });
+                expect(settings.config.brandingTokens.tokens.legal.appName).toEqual(expect.any(String));
+                expect(settings.config.brandingTokens.tokens.assets.logoUrl).toEqual(expect.any(String));
+                expect(settings.config.brandingTokens.tokens.assets.faviconUrl).toEqual(expect.any(String));
+                expect(settings.config.brandingTokens.tokens.palette.primary).toEqual(expect.any(String));
+                expect(settings.config.brandingTokens.tokens.palette.secondary).toEqual(expect.any(String));
 
                 // marketingFlags is at top-level of config, not inside branding
                 expect(settings.config.marketingFlags).toMatchObject({
@@ -387,8 +382,8 @@ describe('authorization', () => {
 
                 // Verify the update persisted
                 const settings = await appDriver.getTenantSettings(user1);
-                expect(settings.config.branding.appName).toBe('Custom Brand');
-                expect(settings.config.branding.primaryColor).toBe('#FF0000');
+                expect(settings.config.brandingTokens.tokens.legal.appName).toBe('Custom Brand');
+                expect(settings.config.brandingTokens.tokens.palette.primary.toLowerCase()).toBe('#ff0000');
             });
 
             it('should update partial branding fields', async () => {
@@ -401,7 +396,7 @@ describe('authorization', () => {
 
                 // Verify the update persisted
                 const settings = await appDriver.getTenantSettings(user1);
-                expect(settings.config.branding.logoUrl).toBe('https://custom.com/logo.svg');
+                expect(settings.config.brandingTokens.tokens.assets.logoUrl).toBe('https://custom.com/logo.svg');
             });
 
             it('should update marketing flags', async () => {
@@ -443,7 +438,7 @@ describe('authorization', () => {
 
                 // Verify the update persisted
                 const settings = await appDriver.getTenantSettings(systemAdmin);
-                expect(settings.config.branding.appName).toBe('System Admin Updated');
+                expect(settings.config.brandingTokens.tokens.legal.appName).toBe('System Admin Updated');
             });
         });
 
@@ -671,8 +666,8 @@ describe('authorization', () => {
                 const tenant1Record = allTenants.tenants.find((t) => t.tenant.tenantId === 'tenant_tokens_1');
                 const tenant2Record = allTenants.tenants.find((t) => t.tenant.tenantId === 'tenant_tokens_2');
 
-                const tokens1 = tenant1Record?.brandingTokens;
-                const tokens2 = tenant2Record?.brandingTokens;
+                const tokens1 = tenant1Record?.tenant.brandingTokens;
+                const tokens2 = tenant2Record?.tenant.brandingTokens;
 
                 // Tokens should be different because colors are different
                 expect(tokens1).toBeDefined();
@@ -699,7 +694,7 @@ describe('authorization', () => {
                 const tenant = allTenants.tenants.find((t) => t.tenant.tenantId === 'tenant_explicit_tokens');
 
                 // Should use the explicit tokens, not generate from branding colors
-                expect(tenant?.brandingTokens?.tokens?.palette?.primary).toBe('#123456');
+                expect(tenant?.tenant.brandingTokens?.tokens?.palette?.primary).toBe('#123456');
             });
 
             it('should accept reasonably long appName', async () => {
@@ -748,7 +743,7 @@ describe('authorization', () => {
                 const allTenants = await appDriver.listAllTenants(localAdminUser);
                 const tenant = allTenants.tenants.find((t) => t.tenant.tenantId === 'tenant_name_only_update');
                 expect(tenant).toBeDefined();
-                expect(tenant?.brandingTokens?.tokens?.palette?.accent).toBe('#ff0000');
+                expect(tenant?.tenant.brandingTokens?.tokens?.palette?.accent).toBe('#ff0000');
             });
         });
 
@@ -798,7 +793,7 @@ describe('authorization', () => {
                 // Verify artifact was stored via API
                 const allTenants = await appDriver.listAllTenants(systemAdmin);
                 const tenant = allTenants.tenants.find((t) => t.tenant.tenantId === tenantId);
-                expect(tenant?.brandingTokens?.artifact).toMatchObject({
+                expect(tenant?.tenant.brandingTokens?.artifact).toMatchObject({
                     version: 1,
                     hash: result.artifact.hash,
                     generatedBy: systemAdmin,
@@ -826,7 +821,7 @@ describe('authorization', () => {
                 // Verify artifact version via API
                 const allTenants = await appDriver.listAllTenants(systemAdmin);
                 const tenant = allTenants.tenants.find((t) => t.tenant.tenantId === tenantId);
-                expect(tenant?.brandingTokens?.artifact?.version).toBe(2);
+                expect(tenant?.tenant.brandingTokens?.artifact?.version).toBe(2);
             });
 
             it('should use updated branding colors when publishing theme', async () => {
@@ -990,7 +985,7 @@ describe('authorization', () => {
                 // Verify it's stored in Firestore via API
                 const allTenants = await appDriver.listAllTenants(systemAdmin);
                 const tenant = allTenants.tenants.find((t) => t.tenant.tenantId === tenantId);
-                expect(tenant?.brandingTokens?.artifact?.generatedBy).toBe(systemAdmin);
+                expect(tenant?.tenant.brandingTokens?.artifact?.generatedBy).toBe(systemAdmin);
             });
 
             it('should handle publishing same theme multiple times', async () => {

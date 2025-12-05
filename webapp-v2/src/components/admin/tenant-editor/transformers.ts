@@ -3,6 +3,7 @@ import type { TenantData } from './types';
 
 export function extractFormDataFromTokens(tokens: BrandingTokens): Partial<TenantData> {
     return {
+        appName: tokens.legal?.appName || '',
         logoUrl: tokens.assets?.logoUrl || '',
         faviconUrl: tokens.assets?.faviconUrl || '',
 
@@ -233,6 +234,7 @@ export function buildBrandingTokensFromForm(formData: TenantData): TenantBrandin
             faviconUrl: formData.faviconUrl || undefined,
         },
         legal: {
+            appName: formData.appName,
             companyName: formData.legalCompanyName,
             supportEmail: formData.legalSupportEmail,
             privacyPolicyUrl: formData.legalPrivacyPolicyUrl,

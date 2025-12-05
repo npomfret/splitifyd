@@ -179,7 +179,7 @@ export class TenantRegistryService {
             domains: record.domains,
             isDefault: record.isDefault,
             source,
-            themeArtifact: record.brandingTokens?.artifact ?? null,
+            themeArtifact: record.tenant.brandingTokens?.artifact ?? null,
         };
     }
 }

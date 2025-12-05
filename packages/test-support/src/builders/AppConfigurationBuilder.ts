@@ -52,10 +52,7 @@ export class AppConfigurationBuilder {
             branding: {
                 ...this.config.tenant.branding,
                 ...(branding && {
-                    // Only merge individual fields if branding is provided
-                    ...(branding.appName !== undefined && { appName: branding.appName }),
-                    ...(branding.logoUrl !== undefined && { logoUrl: branding.logoUrl }),
-                    ...(branding.faviconUrl !== undefined && { faviconUrl: branding.faviconUrl }),
+                    // Only merge color fields - appName/logoUrl/faviconUrl are in brandingTokens
                     ...(branding.primaryColor !== undefined && { primaryColor: branding.primaryColor }),
                     ...(branding.secondaryColor !== undefined && { secondaryColor: branding.secondaryColor }),
                     ...(branding.accentColor !== undefined && { accentColor: branding.accentColor }),

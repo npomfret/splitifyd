@@ -1,4 +1,4 @@
-import { ClientUser, GroupId, ListGroupsResponse, toCurrencyISOCode, toVersionHash, UserPolicyStatusResponse } from '@billsplit-wl/shared';
+import { ClientUser, GroupId, ListGroupsResponse, toCurrencyISOCode, TenantConfigBuilder, toVersionHash, UserPolicyStatusResponse } from '@billsplit-wl/shared';
 import { toPolicyId, toPolicyName } from '@billsplit-wl/shared';
 import type { HttpMethod, SerializedBodyMatcher, SerializedMswHandler, UrlMatchKind } from './types.ts';
 
@@ -233,24 +233,16 @@ export function appConfigHandler(options: HandlerOptions = {}): SerializedMswHan
                 currency: toCurrencyISOCode('USD'),
                 splitType: 'equal',
             },
-            tenant: {
-                tenantId: 'system-fallback-tenant',
-                branding: {
-                    appName: 'Demo Expenses',
-                    logoUrl: '/logo.svg',
-                    faviconUrl: '/favicon.ico',
-                    primaryColor: '#1a73e8',
-                    secondaryColor: '#34a853',
-                },
-                marketingFlags: {
+            tenant: new TenantConfigBuilder('system-fallback-tenant')
+                .withAppName('Demo Expenses')
+                .withPrimaryColor('#1a73e8')
+                .withSecondaryColor('#34a853')
+                .withMarketingFlags({
                     showLandingPage: true,
                     showMarketingContent: true,
                     showPricingPage: true,
-                    showBlogPage: false,
-                },
-                createdAt: '2025-01-01T00:00:00.000Z',
-                updatedAt: '2025-01-01T00:00:00.000Z',
-            },
+                })
+                .build(),
         },
         options,
     );

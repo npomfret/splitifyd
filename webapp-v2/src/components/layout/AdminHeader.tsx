@@ -25,8 +25,9 @@ export function AdminHeader() {
     const config = useConfig();
     const navigation = useNavigation();
     const branding = config?.tenant?.branding ?? null;
-    const logoUrl = branding?.logoUrl ?? null;
-    const appName = branding?.appName ?? t('header.logoAlt');
+    const brandingTokens = config?.tenant?.brandingTokens?.tokens;
+    const logoUrl = brandingTokens?.assets?.logoUrl ?? null;
+    const appName = brandingTokens?.legal?.appName ?? t('header.logoAlt');
     const showAppName = branding?.showAppNameInHeader !== false;
 
     const handleLogout = async () => {

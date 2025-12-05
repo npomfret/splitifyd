@@ -113,7 +113,7 @@ export function AdminDiagnosticsPage() {
                             </div>
                             <div>
                                 <p class='text-text-muted'>App Name</p>
-                                <p>{tenantBranding?.appName ?? 'Not configured'}</p>
+                                <p>{config?.tenant?.brandingTokens?.tokens?.legal?.appName ?? 'Not configured'}</p>
                             </div>
                             <div>
                                 <p class='text-text-muted'>Last Updated</p>

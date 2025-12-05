@@ -353,6 +353,6 @@ describe('FirestoreWriter.upsertTenant - Default Tenant Enforcement', () => {
         // Verify tenant2 is updated but still not default
         const tenant2 = await firestoreReader.getTenantById(toTenantId(tenant2Id));
         expect(tenant2?.isDefault).toBe(false);
-        expect(tenant2?.tenant.branding.appName).toBe('Updated Tenant 2');
+        expect(tenant2?.tenant.brandingTokens.tokens.legal.appName).toBe('Updated Tenant 2');
     });
 });

@@ -5,13 +5,10 @@ import {
     toShowMarketingContentFlag,
     toShowPricingPageFlag,
     toTenantAccentColor,
-    toTenantAppName,
     toTenantDefaultFlag,
     toTenantDomainName,
-    toTenantFaviconUrl,
     toTenantId,
     toTenantImageId,
-    toTenantLogoUrl,
     toTenantPrimaryColor,
     toTenantSecondaryColor,
     toUserId,
@@ -38,9 +35,6 @@ const BrandingMarketingFlagsSchema = z.object({
 });
 
 const BrandingSchema = z.object({
-    appName: z.string().min(1).transform(toTenantAppName),
-    logoUrl: z.string().min(1).transform(toTenantLogoUrl).optional(), // Optional - uses default icon when not set
-    faviconUrl: z.string().min(1).transform(toTenantFaviconUrl).optional(), // Optional - falls back to logoUrl
     primaryColor: z.string().min(1).transform(toTenantPrimaryColor),
     secondaryColor: z.string().min(1).transform(toTenantSecondaryColor),
     accentColor: z.string().min(1).transform(toTenantAccentColor).optional(),
@@ -53,7 +47,7 @@ export const TenantDocumentSchema = z
     .object({
         id: z.string().min(1).transform(toTenantId),
         branding: BrandingSchema,
-        brandingTokens: TenantBrandingSchema.optional(),
+        brandingTokens: TenantBrandingSchema, // Required - appName, logoUrl, faviconUrl are in tokens
         marketingFlags: BrandingMarketingFlagsSchema.optional(), // Feature flags (separate from branding)
         domains: DomainSchema,
         defaultTenant: z.boolean().transform(toTenantDefaultFlag).optional(),
@@ -88,12 +82,14 @@ export type UploadTenantAssetParams = z.infer<typeof UploadTenantAssetParamsSche
 /**
  * Schema for updating tenant branding (partial update)
  * Used for PUT /settings/tenant/branding endpoint
+ *
+ * appName, logoUrl, faviconUrl are written to brandingTokens.tokens.* by the handler.
  */
 export const UpdateTenantBrandingRequestSchema = z
     .object({
-        appName: z.string().min(1).transform(toTenantAppName).optional(),
-        logoUrl: z.string().min(1).transform(toTenantLogoUrl).optional(),
-        faviconUrl: z.string().min(1).transform(toTenantFaviconUrl).optional(),
+        appName: z.string().min(1).optional(),
+        logoUrl: z.string().min(1).optional(),
+        faviconUrl: z.string().min(1).optional(),
         primaryColor: z.string().min(1).transform(toTenantPrimaryColor).optional(),
         secondaryColor: z.string().min(1).transform(toTenantSecondaryColor).optional(),
         accentColor: z.string().min(1).transform(toTenantAccentColor).optional(),

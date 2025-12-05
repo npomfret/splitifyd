@@ -2,7 +2,6 @@
   "id": "localhost-tenant",
   "domains": ["localhost"],
   "branding": {
-    "appName": "Splitifyd Aurora",
     "primaryColor": "#8B5CF6",
     "secondaryColor": "#06B6D4",
     "accentColor": "#F472B6"
@@ -108,6 +107,7 @@
       },
       "assets": {},
       "legal": {
+        "appName": "Splitifyd Aurora",
         "companyName": "Splitifyd Aurora Demo",
         "supportEmail": "support@splitifyd.local",
         "privacyPolicyUrl": "https://splitifyd.local/legal/privacy",

@@ -1,4 +1,4 @@
-import { SystemUserRoles, toDisplayName, toEmail, toTenantAccentColor, toTenantAppName, toTenantDomainName, toTenantLogoUrl, toTenantPrimaryColor, toTenantSecondaryColor, toUserId } from '@billsplit-wl/shared';
+import { SystemUserRoles, toDisplayName, toEmail, toTenantAccentColor, toTenantDomainName, toTenantPrimaryColor, toTenantSecondaryColor, toUserId } from '@billsplit-wl/shared';
 import type { UserId } from '@billsplit-wl/shared';
 import { AdminTenantRequestBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -221,9 +221,9 @@ describe('Admin Tests', () => {
                 const tenantId = `test-colors-${Date.now()}`;
                 const payload = AdminTenantRequestBuilder
                     .forTenant(tenantId)
+                    .withAppName('Color Test')
+                    .withLogoUrl('/logo.svg')
                     .withBranding({
-                        appName: toTenantAppName('Color Test'),
-                        logoUrl: toTenantLogoUrl('/logo.svg'),
                         primaryColor: toTenantPrimaryColor('#1a73e8'),
                         secondaryColor: toTenantSecondaryColor('#34a853'),
                         accentColor: toTenantAccentColor('#fbbc04'),
@@ -411,14 +411,14 @@ describe('Admin Tests', () => {
                 const createdTenant = response.tenants.find(t => t.tenant.tenantId === tenantId);
 
                 expect(createdTenant).toBeDefined();
-                expect(createdTenant?.brandingTokens).toBeDefined();
-                expect(createdTenant?.brandingTokens?.tokens).toBeDefined();
-                expect(createdTenant?.brandingTokens?.tokens.motion).toBeDefined();
-                expect(createdTenant?.brandingTokens?.tokens.motion?.enableParallax).toBe(true);
-                expect(createdTenant?.brandingTokens?.tokens.motion?.enableMagneticHover).toBe(true);
-                expect(createdTenant?.brandingTokens?.tokens.motion?.enableScrollReveal).toBe(true);
-                expect(createdTenant?.brandingTokens?.tokens.semantics.colors.surface.glass).toBe('rgba(25, 30, 50, 0.45)');
-                expect(createdTenant?.brandingTokens?.tokens.semantics.colors.surface.glassBorder).toBe('rgba(255, 255, 255, 0.12)');
+                expect(createdTenant?.tenant.brandingTokens).toBeDefined();
+                expect(createdTenant?.tenant.brandingTokens?.tokens).toBeDefined();
+                expect(createdTenant?.tenant.brandingTokens?.tokens.motion).toBeDefined();
+                expect(createdTenant?.tenant.brandingTokens?.tokens.motion?.enableParallax).toBe(true);
+                expect(createdTenant?.tenant.brandingTokens?.tokens.motion?.enableMagneticHover).toBe(true);
+                expect(createdTenant?.tenant.brandingTokens?.tokens.motion?.enableScrollReveal).toBe(true);
+                expect(createdTenant?.tenant.brandingTokens?.tokens.semantics.colors.surface.glass).toBe('rgba(25, 30, 50, 0.45)');
+                expect(createdTenant?.tenant.brandingTokens?.tokens.semantics.colors.surface.glassBorder).toBe('rgba(255, 255, 255, 0.12)');
             });
 
             it('should preserve motion features when updating tenant with new brandingTokens', async () => {
@@ -448,10 +448,10 @@ describe('Admin Tests', () => {
                 const response = await appDriver.listAllTenants(localAdminUser);
                 const updatedTenant = response.tenants.find(t => t.tenant.tenantId === tenantId);
 
-                expect(updatedTenant!.brandingTokens?.tokens.motion?.enableParallax).toBe(true);
-                expect(updatedTenant!.brandingTokens?.tokens.motion?.enableMagneticHover).toBe(true);
-                expect(updatedTenant!.brandingTokens?.tokens.semantics.colors.surface.glass).toBe('rgba(25, 30, 50, 0.45)');
-                expect(updatedTenant!.brandingTokens?.tokens.palette.primary).toBe('#ff0000'); // Color changed
+                expect(updatedTenant!.tenant.brandingTokens?.tokens.motion?.enableParallax).toBe(true);
+                expect(updatedTenant!.tenant.brandingTokens?.tokens.motion?.enableMagneticHover).toBe(true);
+                expect(updatedTenant!.tenant.brandingTokens?.tokens.semantics.colors.surface.glass).toBe('rgba(25, 30, 50, 0.45)');
+                expect(updatedTenant!.tenant.brandingTokens?.tokens.palette.primary).toBe('#ff0000'); // Color changed
             });
 
             it('should disable motion features when brandingTokens provided with flags set to false', async () => {
@@ -486,8 +486,8 @@ describe('Admin Tests', () => {
                 const response = await appDriver.listAllTenants(localAdminUser);
                 const updatedTenant = response.tenants.find(t => t.tenant.tenantId === tenantId);
 
-                expect(updatedTenant!.brandingTokens?.tokens.motion?.enableParallax).toBe(false);
-                expect(updatedTenant!.brandingTokens?.tokens.motion?.enableMagneticHover).toBe(false);
+                expect(updatedTenant!.tenant.brandingTokens?.tokens.motion?.enableParallax).toBe(false);
+                expect(updatedTenant!.tenant.brandingTokens?.tokens.motion?.enableMagneticHover).toBe(false);
                 // Note: Glass properties may still exist in Firestore due to merge:true behavior.
                 // The motion flags control whether they're actually used by the UI.
             });
@@ -532,9 +532,9 @@ describe('Admin Tests', () => {
                 const response = await appDriver.listAllTenants(localAdminUser);
                 const createdTenant = response.tenants.find(t => t.tenant.tenantId === tenantId);
 
-                expect(createdTenant?.brandingTokens?.tokens.typography.fontFamily.sans).toBe(expectedSans);
-                expect(createdTenant?.brandingTokens?.tokens.typography.fontFamily.serif).toBe(expectedSerif);
-                expect(createdTenant?.brandingTokens?.tokens.typography.fontFamily.mono).toBe(expectedMono);
+                expect(createdTenant?.tenant.brandingTokens?.tokens.typography.fontFamily.sans).toBe(expectedSans);
+                expect(createdTenant?.tenant.brandingTokens?.tokens.typography.fontFamily.serif).toBe(expectedSerif);
+                expect(createdTenant?.tenant.brandingTokens?.tokens.typography.fontFamily.mono).toBe(expectedMono);
             });
 
             it('should preserve existing typography when updating other branding fields', async () => {
@@ -568,8 +568,8 @@ describe('Admin Tests', () => {
                     .build();
 
                 // Manually preserve the custom typography from existing tenant
-                if (existingTenant?.brandingTokens?.tokens.typography) {
-                    updatePayload.brandingTokens!.tokens.typography.fontFamily = existingTenant.brandingTokens.tokens.typography.fontFamily;
+                if (existingTenant?.tenant.brandingTokens?.tokens.typography) {
+                    updatePayload.brandingTokens!.tokens.typography.fontFamily = existingTenant.tenant.brandingTokens.tokens.typography.fontFamily;
                 }
 
                 const updateResult = await appDriver.adminUpsertTenant(updatePayload, localAdminUser);
@@ -579,10 +579,10 @@ describe('Admin Tests', () => {
                 const response = await appDriver.listAllTenants(localAdminUser);
                 const updatedTenant = response.tenants.find(t => t.tenant.tenantId === tenantId);
 
-                expect(updatedTenant?.brandingTokens?.tokens.typography.fontFamily.sans).toBe(expectedSans);
-                expect(updatedTenant?.brandingTokens?.tokens.typography.fontFamily.serif).toBe(expectedSerif);
-                expect(updatedTenant?.brandingTokens?.tokens.typography.fontFamily.mono).toBe(expectedMono);
-                expect(updatedTenant?.brandingTokens?.tokens.palette.primary).toBe('#00ff00');
+                expect(updatedTenant?.tenant.brandingTokens?.tokens.typography.fontFamily.sans).toBe(expectedSans);
+                expect(updatedTenant?.tenant.brandingTokens?.tokens.typography.fontFamily.serif).toBe(expectedSerif);
+                expect(updatedTenant?.tenant.brandingTokens?.tokens.typography.fontFamily.mono).toBe(expectedMono);
+                expect(updatedTenant?.tenant.brandingTokens?.tokens.palette.primary).toBe('#00ff00');
             });
 
             it('should use default typography when not explicitly provided', async () => {
@@ -599,9 +599,9 @@ describe('Admin Tests', () => {
                 const response = await appDriver.listAllTenants(localAdminUser);
                 const createdTenant = response.tenants.find(t => t.tenant.tenantId === tenantId);
 
-                expect(createdTenant?.brandingTokens?.tokens.typography.fontFamily.sans).toBe('Space Grotesk, Inter, system-ui, -apple-system, BlinkMacSystemFont');
-                expect(createdTenant?.brandingTokens?.tokens.typography.fontFamily.serif).toBe('Fraunces, Georgia, serif');
-                expect(createdTenant?.brandingTokens?.tokens.typography.fontFamily.mono).toBe('JetBrains Mono, SFMono-Regular, Menlo, monospace');
+                expect(createdTenant?.tenant.brandingTokens?.tokens.typography.fontFamily.sans).toBe('Space Grotesk, Inter, system-ui, -apple-system, BlinkMacSystemFont');
+                expect(createdTenant?.tenant.brandingTokens?.tokens.typography.fontFamily.serif).toBe('Fraunces, Georgia, serif');
+                expect(createdTenant?.tenant.brandingTokens?.tokens.typography.fontFamily.mono).toBe('JetBrains Mono, SFMono-Regular, Menlo, monospace');
             });
         });
 
@@ -623,7 +623,7 @@ describe('Admin Tests', () => {
                 const response = await appDriver.listAllTenants(localAdminUser);
                 const createdTenant = response.tenants.find(t => t.tenant.tenantId === tenantId);
 
-                expect(createdTenant?.brandingTokens?.tokens.semantics.colors.gradient?.aurora).toEqual(customGradient);
+                expect(createdTenant?.tenant.brandingTokens?.tokens.semantics.colors.gradient?.aurora).toEqual(customGradient);
             });
 
             it('should preserve existing gradient when updating other branding fields', async () => {
@@ -651,11 +651,11 @@ describe('Admin Tests', () => {
                     .build();
 
                 // Manually preserve the custom gradient from existing tenant
-                if (existingTenant?.brandingTokens?.tokens.semantics.colors.gradient) {
+                if (existingTenant?.tenant.brandingTokens?.tokens.semantics.colors.gradient) {
                     if (!updatePayload.brandingTokens!.tokens.semantics.colors.gradient) {
                         updatePayload.brandingTokens!.tokens.semantics.colors.gradient = {};
                     }
-                    updatePayload.brandingTokens!.tokens.semantics.colors.gradient.aurora = existingTenant.brandingTokens.tokens.semantics.colors.gradient.aurora;
+                    updatePayload.brandingTokens!.tokens.semantics.colors.gradient.aurora = existingTenant.tenant.brandingTokens.tokens.semantics.colors.gradient.aurora;
                 }
 
                 const updateResult = await appDriver.adminUpsertTenant(updatePayload, localAdminUser);
@@ -665,8 +665,8 @@ describe('Admin Tests', () => {
                 const response = await appDriver.listAllTenants(localAdminUser);
                 const updatedTenant = response.tenants.find(t => t.tenant.tenantId === tenantId);
 
-                expect(updatedTenant?.brandingTokens?.tokens.semantics.colors.gradient?.aurora).toEqual(customGradient);
-                expect(updatedTenant?.brandingTokens?.tokens.palette.primary).toBe('#ff00ff');
+                expect(updatedTenant?.tenant.brandingTokens?.tokens.semantics.colors.gradient?.aurora).toEqual(customGradient);
+                expect(updatedTenant?.tenant.brandingTokens?.tokens.palette.primary).toBe('#ff00ff');
             });
 
             it('should handle gradient correctly when not explicitly provided', async () => {
@@ -684,8 +684,8 @@ describe('Admin Tests', () => {
                 const createdTenant = response.tenants.find(t => t.tenant.tenantId === tenantId);
 
                 // Gradient is optional in the schema, may or may not be present
-                expect(createdTenant?.brandingTokens?.tokens).toBeDefined();
-                expect(createdTenant?.brandingTokens?.tokens.semantics.colors).toBeDefined();
+                expect(createdTenant?.tenant.brandingTokens?.tokens).toBeDefined();
+                expect(createdTenant?.tenant.brandingTokens?.tokens.semantics.colors).toBeDefined();
             });
         });
 
@@ -709,8 +709,8 @@ describe('Admin Tests', () => {
                 const response = await appDriver.listAllTenants(localAdminUser);
                 const createdTenant = response.tenants.find(t => t.tenant.tenantId === tenantId);
 
-                expect(createdTenant?.brandingTokens?.tokens.semantics.colors.surface.glass).toBe(expectedGlass);
-                expect(createdTenant?.brandingTokens?.tokens.semantics.colors.surface.glassBorder).toBe(expectedGlassBorder);
+                expect(createdTenant?.tenant.brandingTokens?.tokens.semantics.colors.surface.glass).toBe(expectedGlass);
+                expect(createdTenant?.tenant.brandingTokens?.tokens.semantics.colors.surface.glassBorder).toBe(expectedGlassBorder);
             });
 
             it('should preserve existing glassmorphism when updating other fields', async () => {
@@ -740,9 +740,9 @@ describe('Admin Tests', () => {
                     .build();
 
                 // Manually preserve glass colors
-                if (existingTenant?.brandingTokens?.tokens.semantics.colors.surface) {
-                    updatePayload.brandingTokens!.tokens.semantics.colors.surface.glass = existingTenant.brandingTokens.tokens.semantics.colors.surface.glass;
-                    updatePayload.brandingTokens!.tokens.semantics.colors.surface.glassBorder = existingTenant.brandingTokens.tokens.semantics.colors.surface.glassBorder;
+                if (existingTenant?.tenant.brandingTokens?.tokens.semantics.colors.surface) {
+                    updatePayload.brandingTokens!.tokens.semantics.colors.surface.glass = existingTenant.tenant.brandingTokens.tokens.semantics.colors.surface.glass;
+                    updatePayload.brandingTokens!.tokens.semantics.colors.surface.glassBorder = existingTenant.tenant.brandingTokens.tokens.semantics.colors.surface.glassBorder;
                 }
 
                 const updateResult = await appDriver.adminUpsertTenant(updatePayload, localAdminUser);
@@ -752,9 +752,9 @@ describe('Admin Tests', () => {
                 const response = await appDriver.listAllTenants(localAdminUser);
                 const updatedTenant = response.tenants.find(t => t.tenant.tenantId === tenantId);
 
-                expect(updatedTenant?.brandingTokens?.tokens.semantics.colors.surface.glass).toBe(expectedGlass);
-                expect(updatedTenant?.brandingTokens?.tokens.semantics.colors.surface.glassBorder).toBe(expectedGlassBorder);
-                expect(updatedTenant?.brandingTokens?.tokens.palette.primary).toBe('#aa00aa');
+                expect(updatedTenant?.tenant.brandingTokens?.tokens.semantics.colors.surface.glass).toBe(expectedGlass);
+                expect(updatedTenant?.tenant.brandingTokens?.tokens.semantics.colors.surface.glassBorder).toBe(expectedGlassBorder);
+                expect(updatedTenant?.tenant.brandingTokens?.tokens.palette.primary).toBe('#aa00aa');
             });
 
             it('should not have glassmorphism when not enabled', async () => {
@@ -771,8 +771,8 @@ describe('Admin Tests', () => {
                 const response = await appDriver.listAllTenants(localAdminUser);
                 const createdTenant = response.tenants.find(t => t.tenant.tenantId === tenantId);
 
-                expect(createdTenant?.brandingTokens?.tokens.semantics.colors.surface.glass).toBeUndefined();
-                expect(createdTenant?.brandingTokens?.tokens.semantics.colors.surface.glassBorder).toBeUndefined();
+                expect(createdTenant?.tenant.brandingTokens?.tokens.semantics.colors.surface.glass).toBeUndefined();
+                expect(createdTenant?.tenant.brandingTokens?.tokens.semantics.colors.surface.glassBorder).toBeUndefined();
             });
         });
     });

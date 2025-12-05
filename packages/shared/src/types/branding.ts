@@ -203,6 +203,7 @@ const BrandingMotionSchema = z
     .optional();
 
 const BrandingLegalSchema = z.object({
+    appName: z.string().min(1),
     companyName: z.string().min(1),
     supportEmail: z.string().email(),
     privacyPolicyUrl: z.string().url(),

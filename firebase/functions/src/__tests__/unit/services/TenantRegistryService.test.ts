@@ -49,7 +49,7 @@ describe('TenantRegistryService', () => {
             expect(result.tenantId).toBe('test-tenant');
             expect(result.source).toBe('domain');
             expect(result.config.tenantId).toBe('test-tenant');
-            expect(result.config.branding.appName).toBe('Test App');
+            expect(result.config.brandingTokens.tokens.legal.appName).toBe('Test Tenant App');
         });
 
         it('should normalize host before lookup', async () => {
@@ -88,10 +88,10 @@ describe('TenantRegistryService', () => {
             // Create a default tenant via API
             const tenantData = AdminTenantRequestBuilder
                 .forTenant('default-tenant')
+                .withAppName('Splitifyd')
+                .withLogoUrl('/logo.svg')
+                .withFaviconUrl('/favicon.ico')
                 .withBranding(new BrandingConfigBuilder()
-                    .withAppName('Splitifyd')
-                    .withLogoUrl('/logo.svg')
-                    .withFaviconUrl('/favicon.ico')
                     .withPrimaryColor('#1a73e8')
                     .withSecondaryColor('#34a853')
                     .build())
@@ -106,7 +106,7 @@ describe('TenantRegistryService', () => {
             expect(result.tenantId).toBe('default-tenant');
             expect(result.source).toBe('default');
             expect(result.config.tenantId).toBe('default-tenant');
-            expect(result.config.branding.appName).toBe('Splitifyd');
+            expect(result.config.brandingTokens.tokens.legal.appName).toBe('Splitifyd');
         });
 
         it('throws when no tenant can be resolved and no default exists', async () => {
@@ -131,10 +131,10 @@ describe('TenantRegistryService', () => {
 
             const defaultTenantData = AdminTenantRequestBuilder
                 .forTenant('default-tenant')
+                .withAppName('Default App')
+                .withLogoUrl('/logo.svg')
+                .withFaviconUrl('/favicon.ico')
                 .withBranding(new BrandingConfigBuilder()
-                    .withAppName('Default App')
-                    .withLogoUrl('/logo.svg')
-                    .withFaviconUrl('/favicon.ico')
                     .withPrimaryColor('#1a73e8')
                     .withSecondaryColor('#34a853')
                     .build())

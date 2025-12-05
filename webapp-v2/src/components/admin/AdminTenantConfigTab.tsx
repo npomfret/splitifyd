@@ -104,7 +104,7 @@ export function AdminTenantConfigTab() {
                         </div>
                         <div class='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
                             <p class='text-indigo-600 text-xs mb-1'>{t('admin.tenantConfig.overview.appName')}</p>
-                            <p class='text-gray-800 font-medium'>{tenantBranding?.appName ?? t('common.notConfigured')}</p>
+                            <p class='text-gray-800 font-medium'>{config?.tenant?.brandingTokens?.tokens?.legal?.appName ?? t('common.notConfigured')}</p>
                         </div>
                         <div class='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
                             <p class='text-indigo-600 text-xs mb-1'>{t('admin.tenantConfig.overview.lastUpdated')}</p>

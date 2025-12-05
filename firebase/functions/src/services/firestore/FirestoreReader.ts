@@ -172,6 +172,7 @@ export class FirestoreReader implements IFirestoreReader {
         const tenant: TenantConfig = {
             tenantId: parsed.id,
             branding: parsed.branding,
+            brandingTokens: parsed.brandingTokens,
             marketingFlags: parsed.marketingFlags,
             createdAt: createdAtIso,
             updatedAt: updatedAtIso,
@@ -185,7 +186,6 @@ export class FirestoreReader implements IFirestoreReader {
             tenant,
             domains,
             isDefault,
-            brandingTokens: parsed.brandingTokens,
         };
     }
 

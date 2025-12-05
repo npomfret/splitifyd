@@ -4,9 +4,6 @@ import {
     toShowMarketingContentFlag,
     toShowPricingPageFlag,
     toTenantAccentColor,
-    toTenantAppName,
-    toTenantFaviconUrl,
-    toTenantLogoUrl,
     toTenantPrimaryColor,
     toTenantSecondaryColor,
 } from '@billsplit-wl/shared';
@@ -33,10 +30,9 @@ describe('Admin tenant CRUD operations', () => {
             const payload = AdminTenantRequestBuilder
                 .forTenant(tenantId)
                 .withAppName('Test Create Tenant')
+                .withLogoUrl('/logo.svg')
+                .withFaviconUrl('/favicon.ico')
                 .withBranding({
-                    appName: toTenantAppName('Test Create Tenant'),
-                    logoUrl: toTenantLogoUrl('/logo.svg'),
-                    faviconUrl: toTenantFaviconUrl('/favicon.ico'),
                     primaryColor: toTenantPrimaryColor('#1a73e8'),
                     secondaryColor: toTenantSecondaryColor('#34a853'),
                     accentColor: toTenantAccentColor('#fbbc04'),
@@ -55,9 +51,9 @@ describe('Admin tenant CRUD operations', () => {
             const listResult = await apiDriver.listAllTenants(adminUser.token);
             const tenant = listResult.tenants.find((t: any) => t.tenant.tenantId === tenantId);
             expect(tenant).toBeDefined();
-            expect(tenant?.tenant.branding?.appName).toBe('Test Create Tenant');
-            expect(tenant?.tenant.branding?.logoUrl).toBe('/logo.svg');
-            expect(tenant?.tenant.branding?.primaryColor).toBe('#1a73e8');
+            expect(tenant?.tenant.brandingTokens?.tokens?.legal?.appName).toBe('Test Create Tenant');
+            expect(tenant?.tenant.brandingTokens?.tokens?.assets?.logoUrl).toBe('/logo.svg');
+            expect(tenant?.tenant.brandingTokens?.tokens?.palette?.primary).toBe('#1a73e8');
         });
 
         it('should reject tenant without tenant ID', async () => {
@@ -81,9 +77,9 @@ describe('Admin tenant CRUD operations', () => {
 
             const payload = AdminTenantRequestBuilder
                 .forTenant(tenantId)
+                .withAppName('')
+                .withLogoUrl('/logo.svg')
                 .withBranding({
-                    appName: toTenantAppName(''),
-                    logoUrl: toTenantLogoUrl('/logo.svg'),
                     primaryColor: toTenantPrimaryColor('#1a73e8'),
                     secondaryColor: toTenantSecondaryColor('#34a853'),
                 })
@@ -183,9 +179,8 @@ describe('Admin tenant CRUD operations', () => {
                 AdminTenantRequestBuilder
                     .forTenant(tenantId)
                     .withAppName('Original Name')
+                    .withLogoUrl('/logo-old.svg')
                     .withBranding({
-                        appName: toTenantAppName('Original Name'),
-                        logoUrl: toTenantLogoUrl('/logo-old.svg'),
                         primaryColor: toTenantPrimaryColor('#ff0000'),
                         secondaryColor: toTenantSecondaryColor('#00ff00'),
                     })
@@ -199,9 +194,8 @@ describe('Admin tenant CRUD operations', () => {
                 AdminTenantRequestBuilder
                     .forTenant(tenantId)
                     .withAppName('Updated Name')
+                    .withLogoUrl('/logo-new.svg')
                     .withBranding({
-                        appName: toTenantAppName('Updated Name'),
-                        logoUrl: toTenantLogoUrl('/logo-new.svg'),
                         primaryColor: toTenantPrimaryColor('#0000ff'),
                         secondaryColor: toTenantSecondaryColor('#ffff00'),
                     })
@@ -216,9 +210,9 @@ describe('Admin tenant CRUD operations', () => {
             const listResult = await apiDriver.listAllTenants(adminUser.token);
             const tenant = listResult.tenants.find((t: any) => t.tenant.tenantId === tenantId);
 
-            expect(tenant?.tenant.branding?.appName).toBe('Updated Name');
-            expect(tenant?.tenant.branding?.logoUrl).toBe('/logo-new.svg');
-            expect(tenant?.tenant.branding?.primaryColor).toBe('#0000ff');
+            expect(tenant?.tenant.brandingTokens?.tokens?.legal?.appName).toBe('Updated Name');
+            expect(tenant?.tenant.brandingTokens?.tokens?.assets?.logoUrl).toBe('/logo-new.svg');
+            expect(tenant?.tenant.brandingTokens?.tokens?.palette?.primary).toBe('#0000ff');
         });
 
         it('should complete load/save/load cycle with EVERY field', async () => {
@@ -230,10 +224,9 @@ describe('Admin tenant CRUD operations', () => {
                 AdminTenantRequestBuilder
                     .forTenant(tenantId)
                     .withAppName('Test Tenant')
+                    .withLogoUrl('/logo.svg')
+                    .withFaviconUrl('/favicon.ico')
                     .withBranding({
-                        appName: toTenantAppName('Test Tenant'),
-                        logoUrl: toTenantLogoUrl('/logo.svg'),
-                        faviconUrl: toTenantFaviconUrl('/favicon.ico'),
                         primaryColor: toTenantPrimaryColor('#3B82F6'),
                         secondaryColor: toTenantSecondaryColor('#8B5CF6'),
                         accentColor: toTenantAccentColor('#EC4899'),
@@ -251,17 +244,16 @@ describe('Admin tenant CRUD operations', () => {
             // Load via list API
             const listResult1 = await apiDriver.listAllTenants(adminUser.token);
             const tenant1 = listResult1.tenants.find((t: any) => t.tenant.tenantId === tenantId);
-            expect(tenant1?.tenant.branding.appName).toBe('Test Tenant');
+            expect(tenant1?.tenant.brandingTokens.tokens.legal.appName).toBe('Test Tenant');
 
             // Update tenant with EVERY field changed
             await apiDriver.adminUpsertTenant(
                 AdminTenantRequestBuilder
                     .forTenant(tenantId)
                     .withAppName('Updated Test App')
+                    .withLogoUrl('/updated-logo.svg')
+                    .withFaviconUrl('/updated-favicon.ico')
                     .withBranding({
-                        appName: toTenantAppName('Updated Test App'),
-                        logoUrl: toTenantLogoUrl('/updated-logo.svg'),
-                        faviconUrl: toTenantFaviconUrl('/updated-favicon.ico'),
                         primaryColor: toTenantPrimaryColor('#aa11bb'),
                         secondaryColor: toTenantSecondaryColor('#bb22cc'),
                         accentColor: toTenantAccentColor('#cc33dd'),
@@ -281,12 +273,12 @@ describe('Admin tenant CRUD operations', () => {
             const tenant2 = listResult2.tenants.find((t: any) => t.tenant.tenantId === tenantId);
 
             // Verify ALL branding fields
-            expect(tenant2?.tenant.branding.appName).toBe('Updated Test App');
-            expect(tenant2?.tenant.branding.logoUrl).toBe('/updated-logo.svg');
-            expect(tenant2?.tenant.branding.faviconUrl).toBe('/updated-favicon.ico');
-            expect(tenant2?.tenant.branding.primaryColor).toBe('#aa11bb');
-            expect(tenant2?.tenant.branding.secondaryColor).toBe('#bb22cc');
-            expect(tenant2?.tenant.branding.accentColor).toBe('#cc33dd');
+            expect(tenant2?.tenant.brandingTokens.tokens.legal.appName).toBe('Updated Test App');
+            expect(tenant2?.tenant.brandingTokens.tokens.assets.logoUrl).toBe('/updated-logo.svg');
+            expect(tenant2?.tenant.brandingTokens.tokens.assets.faviconUrl).toBe('/updated-favicon.ico');
+            expect(tenant2?.tenant.brandingTokens.tokens.palette.primary).toBe('#aa11bb');
+            expect(tenant2?.tenant.brandingTokens.tokens.palette.secondary).toBe('#bb22cc');
+            expect(tenant2?.tenant.brandingTokens.tokens.palette.accent).toBe('#cc33dd');
 
             // Verify ALL marketing flags (stored at top level, not under branding)
             expect(tenant2?.tenant.marketingFlags?.showLandingPage).toBe(false);
@@ -391,9 +383,9 @@ describe('Admin tenant CRUD operations', () => {
             // Test with various URL formats - all should be accepted
             const payload = AdminTenantRequestBuilder
                 .forTenant(tenantId)
+                .withAppName('Test URL Formats')
+                .withLogoUrl('/relative/path/logo.svg')
                 .withBranding({
-                    appName: toTenantAppName('Test URL Formats'),
-                    logoUrl: toTenantLogoUrl('/relative/path/logo.svg'),
                     primaryColor: toTenantPrimaryColor('#1a73e8'),
                     secondaryColor: toTenantSecondaryColor('#34a853'),
                 })

@@ -155,14 +155,12 @@ export interface TenantData {
 export interface TenantConfig {
     tenantId: string;
     branding: {
-        appName: string;
-        logoUrl?: string;
-        faviconUrl?: string;
         primaryColor?: string;
         secondaryColor?: string;
         accentColor?: string;
         showAppNameInHeader?: boolean;
     };
+    brandingTokens: TenantBranding;
     marketingFlags?: {
         showLandingPage?: boolean;
         showMarketingContent?: boolean;
@@ -176,7 +174,6 @@ export interface FullTenant {
     tenant: TenantConfig;
     domains: string[];
     isDefault: boolean;
-    brandingTokens?: TenantBranding;
 }
 
 export interface TenantEditorModalProps {

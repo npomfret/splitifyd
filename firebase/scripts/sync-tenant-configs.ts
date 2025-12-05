@@ -28,12 +28,9 @@ import {
     toShowMarketingContentFlag,
     toShowPricingPageFlag,
     toTenantAccentColor,
-    toTenantAppName,
     toTenantDefaultFlag,
     toTenantDomainName,
-    toTenantFaviconUrl,
     toTenantId,
-    toTenantLogoUrl,
     toTenantPrimaryColor,
     toTenantSecondaryColor,
 } from '@billsplit-wl/shared';
@@ -290,29 +287,35 @@ export async function syncTenantConfigs(
         // This returns URLs for "logo" and "favicon" named files
         const libraryAssets = await uploadLibraryImagesFromDirectory(apiDriver, config.id, adminToken);
 
-        // Upload assets if they are local files (only if configured in config.json)
+        // Upload assets if they are local files (only if configured in brandingTokens.tokens.assets)
         // Falls back to library assets if not explicitly configured
-        let logoUrl = config.branding.logoUrl
-            ? await uploadAssetIfLocal(apiDriver, config.id, 'logo', config.branding.logoUrl, adminToken)
+        const configuredLogoUrl = config.brandingTokens.tokens?.assets?.logoUrl;
+        const configuredFaviconUrl = config.brandingTokens.tokens?.assets?.faviconUrl;
+        let logoUrl = configuredLogoUrl
+            ? await uploadAssetIfLocal(apiDriver, config.id, 'logo', configuredLogoUrl, adminToken)
             : libraryAssets.logoUrl;
-        let faviconUrl = config.branding.faviconUrl
-            ? await uploadAssetIfLocal(apiDriver, config.id, 'favicon', config.branding.faviconUrl, adminToken)
+        let faviconUrl = configuredFaviconUrl
+            ? await uploadAssetIfLocal(apiDriver, config.id, 'favicon', configuredFaviconUrl, adminToken)
             : libraryAssets.faviconUrl;
 
-        // Validate brandingTokens are present
-        if (!config.brandingTokens) {
-            throw new Error(`Tenant '${config.id}' is missing required brandingTokens in docs/tenants/${config.id}/config.json`);
+        // Copy brandingTokens and update assets with resolved URLs
+        const brandingTokens = { ...config.brandingTokens };
+        if (brandingTokens.tokens?.assets) {
+            // Override assets with resolved URLs from library
+            if (logoUrl) {
+                brandingTokens.tokens.assets.logoUrl = logoUrl;
+            }
+            if (faviconUrl) {
+                brandingTokens.tokens.assets.faviconUrl = faviconUrl;
+            }
         }
 
         // Build request object
         const request: AdminUpsertTenantRequest = {
             tenantId: toTenantId(config.id),
             branding: {
-                appName: toTenantAppName(config.branding.appName),
                 primaryColor: toTenantPrimaryColor(config.branding.primaryColor),
                 secondaryColor: toTenantSecondaryColor(config.branding.secondaryColor),
-                ...(logoUrl && { logoUrl: toTenantLogoUrl(logoUrl) }),
-                ...(faviconUrl && { faviconUrl: toTenantFaviconUrl(faviconUrl) }),
                 ...(config.branding.accentColor && {
                     accentColor: toTenantAccentColor(config.branding.accentColor),
                 }),
@@ -322,7 +325,7 @@ export async function syncTenantConfigs(
                 showMarketingContent: toShowMarketingContentFlag(config.marketingFlags?.showMarketingContent ?? false),
                 showPricingPage: toShowPricingPageFlag(config.marketingFlags?.showPricingPage ?? false),
             },
-            brandingTokens: config.brandingTokens,
+            brandingTokens,
             domains,
             defaultTenant: toTenantDefaultFlag(config.isDefault),
         };
@@ -330,7 +333,8 @@ export async function syncTenantConfigs(
         // Upsert tenant via Admin API
         try {
             const result = await apiDriver.adminUpsertTenant(request, adminToken);
-            console.log(`  ✓ ${result.created ? 'Created' : 'Updated'} tenant: ${config.id} (${config.branding.appName})`);
+            const appName = config.brandingTokens.tokens.legal.appName;
+            console.log(`  ✓ ${result.created ? 'Created' : 'Updated'} tenant: ${config.id} (${appName})`);
         } catch (error) {
             console.error(`  ✗ Failed to sync tenant: ${config.id}`);
             throw error;

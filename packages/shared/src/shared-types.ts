@@ -70,15 +70,6 @@ export const toTenantId = (value: string): TenantId => value as TenantId;
 export type OrganizationId = Brand<string, 'OrganizationId'>;
 export const toOrganizationId = (value: string): OrganizationId => value as OrganizationId;
 
-export type TenantAppName = BrandedString<'TenantAppName'>;
-export const toTenantAppName = (value: string): TenantAppName => value as TenantAppName;
-
-export type TenantLogoUrl = BrandedString<'TenantLogoUrl'>;
-export const toTenantLogoUrl = (value: string): TenantLogoUrl => value as TenantLogoUrl;
-
-export type TenantFaviconUrl = BrandedString<'TenantFaviconUrl'>;
-export const toTenantFaviconUrl = (value: string): TenantFaviconUrl => value as TenantFaviconUrl;
-
 export type TenantPrimaryColor = BrandedString<'TenantPrimaryColor'>;
 export const toTenantPrimaryColor = (value: string): TenantPrimaryColor => value as TenantPrimaryColor;
 
@@ -255,23 +246,23 @@ export interface BrandingMarketingFlags {
 /**
  * Runtime theming configuration provided per-tenant.
  *
- * Guardrails on colours and assets are intentionally light for MVP. Accessibility
- * review happens out-of-band, so these values are represented as free-form strings.
+ * Color values are intentionally light on validation for MVP. Accessibility
+ * review happens out-of-band.
+ *
+ * Note: appName, logoUrl, faviconUrl are in brandingTokens.tokens (not here).
  */
 export interface BrandingConfig {
-    appName: TenantAppName;
-    logoUrl?: TenantLogoUrl; // Optional - uses default icon when not set
-    faviconUrl?: TenantFaviconUrl; // Optional - falls back to logoUrl if not provided
     primaryColor: TenantPrimaryColor;
     secondaryColor: TenantSecondaryColor;
     accentColor?: TenantAccentColor;
-    showAppNameInHeader?: boolean; // Show app name text next to logo (default: true)
+    showAppNameInHeader?: boolean;
 }
 
 export interface TenantConfig {
     tenantId: TenantId;
     branding: BrandingConfig;
-    marketingFlags?: BrandingMarketingFlags; // Feature flags (separate from branding/styling)
+    brandingTokens: TenantBranding;
+    marketingFlags?: BrandingMarketingFlags;
     createdAt: ISOString;
     updatedAt: ISOString;
 }
@@ -1521,14 +1512,17 @@ export interface TenantSettingsResponse {
 /**
  * Tenant branding update request
  * Used for PUT /settings/tenant/branding endpoint
+ *
+ * appName, logoUrl, faviconUrl are written to brandingTokens.tokens.* by the backend.
  */
 export interface UpdateTenantBrandingRequest {
-    appName?: TenantAppName;
-    logoUrl?: TenantLogoUrl;
-    faviconUrl?: TenantFaviconUrl;
+    appName?: string;
+    logoUrl?: string;
+    faviconUrl?: string;
     primaryColor?: TenantPrimaryColor;
     secondaryColor?: TenantSecondaryColor;
     accentColor?: TenantAccentColor;
+    showAppNameInHeader?: boolean;
     marketingFlags?: Partial<BrandingMarketingFlags>;
 }
 
@@ -1634,13 +1628,12 @@ export interface EnvironmentDiagnosticsResponse {
 /**
  * Admin upsert tenant request (create or update full tenant configuration)
  * Used for POST /api/admin/tenants endpoint (system admin only)
+ *
+ * NOTE: appName, logoUrl, faviconUrl are in brandingTokens.tokens.legal/assets
  */
 export interface AdminUpsertTenantRequest {
     tenantId: string;
     branding: {
-        appName: string;
-        logoUrl?: string;
-        faviconUrl?: string;
         primaryColor: string;
         secondaryColor: string;
         accentColor?: string;
@@ -1650,7 +1643,7 @@ export interface AdminUpsertTenantRequest {
         showMarketingContent?: boolean;
         showPricingPage?: boolean;
     };
-    brandingTokens?: TenantBranding;
+    brandingTokens: TenantBranding;
     domains: string[];
     defaultTenant?: boolean;
 }
@@ -1696,7 +1689,6 @@ export interface TenantFullRecord {
     tenant: TenantConfig;
     domains: TenantDomainName[];
     isDefault: TenantDefaultFlag;
-    brandingTokens?: TenantBranding;
 }
 
 /**

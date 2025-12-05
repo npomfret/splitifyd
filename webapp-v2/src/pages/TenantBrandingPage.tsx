@@ -57,10 +57,11 @@ export function TenantBrandingPage() {
                 const settings = await apiClient.getTenantSettings();
                 setTenantSettings(settings);
 
-                // Populate form with current values
-                setAppName(settings.config.branding.appName);
-                setLogoUrl(settings.config.branding.logoUrl ?? '');
-                setFaviconUrl(settings.config.branding.faviconUrl ?? settings.config.branding.logoUrl ?? '');
+                // Populate form with current values from brandingTokens
+                const tokens = settings.config.brandingTokens.tokens;
+                setAppName(tokens.legal.appName);
+                setLogoUrl(tokens.assets.logoUrl ?? '');
+                setFaviconUrl(tokens.assets.faviconUrl ?? tokens.assets.logoUrl ?? '');
                 setPrimaryColor(settings.config.branding.primaryColor);
                 setSecondaryColor(settings.config.branding.secondaryColor);
                 setShowLandingPage(Boolean(settings.config.marketingFlags?.showLandingPage ?? true));
@@ -97,9 +98,9 @@ export function TenantBrandingPage() {
 
         try {
             const updateData: UpdateTenantBrandingRequest = {
-                appName: appName as any,
-                logoUrl: logoUrl as any,
-                faviconUrl: faviconUrl as any,
+                appName,
+                logoUrl,
+                faviconUrl,
                 primaryColor: primaryColor as any,
                 secondaryColor: secondaryColor as any,
                 marketingFlags: {
@@ -155,9 +156,9 @@ export function TenantBrandingPage() {
     }
 
     const hasChanges = tenantSettings && (
-        appName !== tenantSettings.config.branding.appName
-        || logoUrl !== tenantSettings.config.branding.logoUrl
-        || faviconUrl !== tenantSettings.config.branding.faviconUrl
+        appName !== tenantSettings.config.brandingTokens.tokens.legal.appName
+        || logoUrl !== (tenantSettings.config.brandingTokens.tokens.assets.logoUrl ?? '')
+        || faviconUrl !== (tenantSettings.config.brandingTokens.tokens.assets.faviconUrl ?? tenantSettings.config.brandingTokens.tokens.assets.logoUrl ?? '')
         || primaryColor !== tenantSettings.config.branding.primaryColor
         || secondaryColor !== tenantSettings.config.branding.secondaryColor
         || showLandingPage !== (tenantSettings.config.marketingFlags?.showLandingPage ?? true)

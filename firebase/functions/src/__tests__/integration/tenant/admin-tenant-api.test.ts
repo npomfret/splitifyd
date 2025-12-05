@@ -51,7 +51,7 @@ describe('Admin tenant API - integration', () => {
         const listResult = await apiDriver.listAllTenants(adminUser.token);
         const tenant = listResult.tenants.find((t: any) => t.tenant.tenantId === tenantId);
         expect(tenant).toBeDefined();
-        expect(tenant?.brandingTokens).toBeDefined();
-        expect(tenant?.brandingTokens?.tokens?.palette?.primary).toBe(payload.branding.primaryColor);
+        expect(tenant?.tenant.brandingTokens).toBeDefined();
+        expect(tenant?.tenant.brandingTokens?.tokens?.palette?.primary).toBe(payload.branding.primaryColor);
     });
 });

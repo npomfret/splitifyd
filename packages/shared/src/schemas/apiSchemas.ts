@@ -21,10 +21,7 @@ import {
     toShowMarketingContentFlag,
     toShowPricingPageFlag,
     toTenantAccentColor,
-    toTenantAppName,
-    toTenantFaviconUrl,
     toTenantId,
-    toTenantLogoUrl,
     toTenantPrimaryColor,
     toTenantSecondaryColor,
     toUserId,
@@ -64,18 +61,17 @@ const BrandingMarketingFlagsSchema = z.object({
 });
 
 const BrandingConfigSchema = z.object({
-    appName: z.string().min(1).transform(toTenantAppName),
-    logoUrl: z.string().min(1).transform(toTenantLogoUrl).optional(), // Optional - uses default icon when not set
-    faviconUrl: z.string().min(1).transform(toTenantFaviconUrl).optional(), // Optional - falls back to logoUrl
     primaryColor: z.string().min(1).transform(toTenantPrimaryColor),
     secondaryColor: z.string().min(1).transform(toTenantSecondaryColor),
     accentColor: z.string().min(1).transform(toTenantAccentColor).optional(),
+    showAppNameInHeader: z.boolean().optional(),
 });
 
 export const TenantConfigSchema = z.object({
     tenantId: z.string().min(1).transform(toTenantId),
     branding: BrandingConfigSchema,
-    marketingFlags: BrandingMarketingFlagsSchema.optional(), // Feature flags (separate from branding)
+    brandingTokens: TenantBrandingSchema,
+    marketingFlags: BrandingMarketingFlagsSchema.optional(),
     createdAt: z.string().datetime().transform(toISOString),
     updatedAt: z.string().datetime().transform(toISOString),
 });
@@ -540,7 +536,6 @@ export const AdminTenantItemSchema = z.object({
     tenant: TenantConfigSchema,
     domains: z.array(z.string()),
     isDefault: z.boolean(),
-    brandingTokens: TenantBrandingSchema.optional(),
 });
 
 export const AdminTenantsListResponseSchema = z.object({

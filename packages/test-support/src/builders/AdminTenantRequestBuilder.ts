@@ -1,12 +1,9 @@
 import type { AdminUpsertTenantRequest, BrandingMarketingFlags, BrandingTokens, TenantBranding, TenantDomainName, TenantId } from '@billsplit-wl/shared';
 import {
     toTenantAccentColor,
-    toTenantAppName,
     toTenantDefaultFlag,
     toTenantDomainName,
-    toTenantFaviconUrl,
     toTenantId,
-    toTenantLogoUrl,
     toTenantPrimaryColor,
     toTenantSecondaryColor,
 } from '@billsplit-wl/shared';
@@ -22,9 +19,6 @@ export class AdminTenantRequestBuilder {
         this.payload = {
             tenantId: toTenantId(tenantId || 'test-tenant'),
             branding: {
-                appName: toTenantAppName('Test Tenant App'),
-                logoUrl: toTenantLogoUrl('/test-assets/logo.svg'),
-                faviconUrl: toTenantFaviconUrl('/test-assets/favicon.png'),
                 primaryColor: toTenantPrimaryColor('#2563eb'),
                 secondaryColor: toTenantSecondaryColor('#7c3aed'),
                 accentColor: toTenantAccentColor('#f97316'),
@@ -122,6 +116,7 @@ export class AdminTenantRequestBuilder {
                     faviconUrl: '/test-assets/favicon.png',
                 },
                 legal: {
+                    appName: 'Test Tenant App',
                     companyName: 'Test Company',
                     supportEmail: 'support@test.com',
                     privacyPolicyUrl: 'https://test.com/privacy',
@@ -231,18 +226,16 @@ export class AdminTenantRequestBuilder {
     }
 
     withAppName(appName: string): this {
-        this.payload.branding.appName = toTenantAppName(appName);
+        this.tokens.legal.appName = appName;
         return this;
     }
 
     withLogoUrl(logoUrl: string): this {
-        this.payload.branding.logoUrl = toTenantLogoUrl(logoUrl);
         this.tokens.assets.logoUrl = logoUrl;
         return this;
     }
 
     withFaviconUrl(faviconUrl: string): this {
-        this.payload.branding.faviconUrl = toTenantFaviconUrl(faviconUrl);
         this.tokens.assets.faviconUrl = faviconUrl;
         return this;
     }

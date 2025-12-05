@@ -2,7 +2,6 @@
   "id": "staging-tenant",
   "domains": ["splitifyd.web.app"],
   "branding": {
-    "appName": "Splitifyd Neon",
     "primaryColor": "#10B981",
     "secondaryColor": "#06B6D4",
     "accentColor": "#F59E0B"
@@ -108,6 +107,7 @@
       },
       "assets": {},
       "legal": {
+        "appName": "Splitifyd Neon",
         "companyName": "Splitifyd",
         "supportEmail": "support@splitifyd.app",
         "privacyPolicyUrl": "https://splitifyd.app/legal/privacy",
