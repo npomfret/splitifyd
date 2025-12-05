@@ -167,6 +167,25 @@ Pages under `pages/admin/` and `components/admin/` are **completely isolated fro
 
 ---
 
+## UI Patterns Quick Reference
+
+| Category | Correct Pattern |
+|----------|-----------------|
+| **List loading** | Use `Skeleton*Item` components (SkeletonExpenseItem, etc.) |
+| **Page loading** | `LoadingState` with fullPage option |
+| **Modal loading** | `LoadingSpinner` |
+| **Button loading** | `Button loading={true}` prop |
+| **List errors** | `ErrorState` component with retry action |
+| **Inline errors** | `Alert` component |
+| **Field errors** | `FormField` error prop |
+| **Empty lists** | `EmptyState` with Heroicon + translated title |
+| **Typography** | `Typography` component with semantic variants |
+| **List spacing** | `Stack spacing='sm'` (compact) / `'md'` (standard) / `'lg'` (spacious) |
+| **Form spacing** | `Stack spacing='lg'` between fields |
+| **Modal structure** | Header `px-6 py-4 border-b`, Content `px-6 py-5 max-h-[70vh]`, Footer `px-6 py-4 border-t` |
+
+---
+
 ## Anti-Patterns
 
 | Don't | Do |
@@ -178,6 +197,11 @@ Pages under `pages/admin/` and `components/admin/` are **completely isolated fro
 | `bg-surface-raised/50` on menus | `bg-surface-raised` (opaque) |
 | Module-level signals | Private class field signals |
 | Hardcoded strings in UI | `t('translation.key')` |
+| `"Loading..."` text | `LoadingSpinner` or `Skeleton*` |
+| Emoji icons (⚠️) | Heroicons components |
+| `space-y-*` classes | `Stack spacing='*'` or CSS var gap |
+| Custom error divs | `ErrorState` or `Alert` |
+| Raw `<button>` | `Button` or `Clickable` |
 
 ---
 
