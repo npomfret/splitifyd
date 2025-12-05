@@ -22,15 +22,11 @@ import {
     toShowPricingPageFlag,
     toTenantAccentColor,
     toTenantAppName,
-    toTenantCustomCss,
     toTenantFaviconUrl,
     toTenantId,
     toTenantLogoUrl,
     toTenantPrimaryColor,
     toTenantSecondaryColor,
-    toTenantSurfaceColor,
-    toTenantTextColor,
-    toTenantThemePaletteName,
     toUserId,
     UserId,
 } from '../shared-types';
@@ -74,16 +70,12 @@ const BrandingConfigSchema = z.object({
     primaryColor: z.string().min(1).transform(toTenantPrimaryColor),
     secondaryColor: z.string().min(1).transform(toTenantSecondaryColor),
     accentColor: z.string().min(1).transform(toTenantAccentColor).optional(),
-    surfaceColor: z.string().min(1).transform(toTenantSurfaceColor).optional(),
-    textColor: z.string().min(1).transform(toTenantTextColor).optional(),
-    themePalette: z.string().min(1).transform(toTenantThemePaletteName).optional(),
-    customCSS: z.string().transform(toTenantCustomCss).optional(),
-    marketingFlags: BrandingMarketingFlagsSchema.optional(),
 });
 
 export const TenantConfigSchema = z.object({
     tenantId: z.string().min(1).transform(toTenantId),
     branding: BrandingConfigSchema,
+    marketingFlags: BrandingMarketingFlagsSchema.optional(), // Feature flags (separate from branding)
     createdAt: z.string().datetime().transform(toISOString),
     updatedAt: z.string().datetime().transform(toISOString),
 });

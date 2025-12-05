@@ -38,10 +38,8 @@ const mockedUseConfig = vi.mocked(useConfig);
 const enableMarketing = (): ClientAppConfiguration =>
     new AppConfigurationBuilder()
         .withTenantOverrides({
-            branding: {
-                marketingFlags: {
-                    showMarketingContent: toShowMarketingContentFlag(true),
-                },
+            marketingFlags: {
+                showMarketingContent: toShowMarketingContentFlag(true),
             },
         })
         .build();
@@ -49,10 +47,8 @@ const enableMarketing = (): ClientAppConfiguration =>
 const disableMarketing = (): ClientAppConfiguration =>
     new AppConfigurationBuilder()
         .withTenantOverrides({
-            branding: {
-                marketingFlags: {
-                    showMarketingContent: toShowMarketingContentFlag(false),
-                },
+            marketingFlags: {
+                showMarketingContent: toShowMarketingContentFlag(false),
             },
         })
         .build();

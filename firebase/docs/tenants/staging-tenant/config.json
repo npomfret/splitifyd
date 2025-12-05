@@ -5,14 +5,12 @@
     "appName": "Splitifyd Neon",
     "primaryColor": "#10B981",
     "secondaryColor": "#06B6D4",
-    "accentColor": "#F59E0B",
-    "surfaceColor": "#0A0F0D",
-    "textColor": "#ECFDF5",
-    "marketingFlags": {
-      "showLandingPage": true,
-      "showMarketingContent": true,
-      "showPricingPage": true
-    }
+    "accentColor": "#F59E0B"
+  },
+  "marketingFlags": {
+    "showLandingPage": true,
+    "showMarketingContent": true,
+    "showPricingPage": true
   },
   "brandingTokens": {
     "tokens": {
@@ -127,7 +125,6 @@
             "glass": "rgba(16, 185, 129, 0.08)",
             "glassBorder": "rgba(16, 185, 129, 0.2)",
             "aurora": "rgba(6, 182, 212, 0.06)",
-            "spotlight": "rgba(245, 158, 11, 0.12)",
             "skeleton": "#1E332A",
             "skeletonShimmer": "#2D4A3D"
           },

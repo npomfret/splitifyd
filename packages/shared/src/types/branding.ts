@@ -221,7 +221,6 @@ const BrandingSemanticColorSchema = z.object({
         glass: CssColorSchema.optional(),
         glassBorder: CssColorSchema.optional(),
         aurora: CssColorSchema.optional(),
-        spotlight: CssColorSchema.optional(),
         // Skeleton loader colors (optional - falls back to muted/raised if not defined)
         skeleton: CssColorSchema.optional(),
         skeletonShimmer: CssColorSchema.optional(),

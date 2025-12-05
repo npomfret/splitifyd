@@ -5,6 +5,8 @@ import {
     toPolicyId,
     toPolicyName,
     toPolicyText,
+    toShowLandingPageFlag,
+    toShowPricingPageFlag,
     toTenantAppName,
     toTenantDomainName,
     toTenantFaviconUrl,
@@ -304,10 +306,10 @@ describe('authorization', () => {
                     faviconUrl: toTenantFaviconUrl('https://example.com/favicon.ico'),
                     primaryColor: toTenantPrimaryColor('#0066CC'),
                     secondaryColor: toTenantSecondaryColor('#FF6600'),
-                    marketingFlags: {
-                        showLandingPage: true,
-                        showPricingPage: true,
-                    },
+                })
+                .withMarketingFlags({
+                    showLandingPage: toShowLandingPageFlag(true),
+                    showPricingPage: toShowPricingPageFlag(true),
                 })
                 .withDomains([toTenantDomainName('test.example.com')])
                 .build();
@@ -337,10 +339,12 @@ describe('authorization', () => {
                     faviconUrl: expect.any(String),
                     primaryColor: expect.any(String),
                     secondaryColor: expect.any(String),
-                    marketingFlags: expect.objectContaining({
-                        showLandingPage: expect.any(Boolean),
-                        showPricingPage: expect.any(Boolean),
-                    }),
+                });
+
+                // marketingFlags is at top-level of config, not inside branding
+                expect(settings.config.marketingFlags).toMatchObject({
+                    showLandingPage: expect.any(Boolean),
+                    showPricingPage: expect.any(Boolean),
                 });
             });
 
@@ -410,8 +414,8 @@ describe('authorization', () => {
 
                 // Verify the update persisted
                 const settings = await appDriver.getTenantSettings(user1);
-                expect(settings.config.branding.marketingFlags?.showLandingPage).toBe(false);
-                expect(settings.config.branding.marketingFlags?.showPricingPage).toBe(true);
+                expect(settings.config.marketingFlags?.showLandingPage).toBe(false);
+                expect(settings.config.marketingFlags?.showPricingPage).toBe(true);
             });
 
             it('should deny regular user access to update branding', async () => {

@@ -1,14 +1,12 @@
 import {
     toTenantAccentColor,
     toTenantAppName,
-    toTenantCustomCss,
     toTenantFaviconUrl,
     toTenantLogoUrl,
     toTenantPrimaryColor,
     toTenantSecondaryColor,
-    toTenantThemePaletteName,
 } from '@billsplit-wl/shared';
-import type { BrandingConfig, BrandingMarketingFlags } from '@billsplit-wl/shared';
+import type { BrandingConfig } from '@billsplit-wl/shared';
 
 export class BrandingConfigBuilder {
     private config: Partial<BrandingConfig> = {};
@@ -48,24 +46,6 @@ export class BrandingConfigBuilder {
 
     withAccentColor(color: string): this {
         this.config.accentColor = toTenantAccentColor(color);
-        return this;
-    }
-
-    withThemePalette(palette: string): this {
-        this.config.themePalette = toTenantThemePaletteName(palette);
-        return this;
-    }
-
-    withCustomCSS(css: string): this {
-        this.config.customCSS = toTenantCustomCss(css);
-        return this;
-    }
-
-    withMarketingFlags(flags: Partial<BrandingMarketingFlags>): this {
-        this.config.marketingFlags = {
-            ...this.config.marketingFlags,
-            ...flags,
-        };
         return this;
     }
 

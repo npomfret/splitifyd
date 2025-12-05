@@ -2,7 +2,6 @@ import type { AdminUpsertTenantRequest, BrandingMarketingFlags, BrandingTokens, 
 import {
     toTenantAccentColor,
     toTenantAppName,
-    toTenantCustomCss,
     toTenantDefaultFlag,
     toTenantDomainName,
     toTenantFaviconUrl,
@@ -10,9 +9,6 @@ import {
     toTenantLogoUrl,
     toTenantPrimaryColor,
     toTenantSecondaryColor,
-    toTenantSurfaceColor,
-    toTenantTextColor,
-    toTenantThemePaletteName,
 } from '@billsplit-wl/shared';
 
 /**
@@ -32,7 +28,6 @@ export class AdminTenantRequestBuilder {
                 primaryColor: toTenantPrimaryColor('#2563eb'),
                 secondaryColor: toTenantSecondaryColor('#7c3aed'),
                 accentColor: toTenantAccentColor('#f97316'),
-                themePalette: toTenantThemePaletteName('default'),
             },
             brandingTokens: this.createBaseBrandingTokens(),
             domains: [toTenantDomainName('test.local')],
@@ -270,29 +265,9 @@ export class AdminTenantRequestBuilder {
         return this;
     }
 
-    withThemePalette(palette: string): this {
-        this.payload.branding.themePalette = toTenantThemePaletteName(palette);
-        return this;
-    }
-
-    withSurfaceColor(color: string): this {
-        this.payload.branding.surfaceColor = toTenantSurfaceColor(color);
-        return this;
-    }
-
-    withTextColor(color: string): this {
-        this.payload.branding.textColor = toTenantTextColor(color);
-        return this;
-    }
-
-    withCustomCSS(css: string): this {
-        this.payload.branding.customCSS = toTenantCustomCss(css);
-        return this;
-    }
-
     withMarketingFlags(flags: Partial<BrandingMarketingFlags>): this {
-        this.payload.branding.marketingFlags = {
-            ...this.payload.branding.marketingFlags,
+        this.payload.marketingFlags = {
+            ...this.payload.marketingFlags,
             ...flags,
         };
         return this;

@@ -134,7 +134,7 @@ export function App() {
     const config = useConfig();
 
     const user = authStore?.user;
-    const marketingFlags = config?.tenant?.branding?.marketingFlags;
+    const marketingFlags = config?.tenant?.marketingFlags;
     const showLandingPage = marketingFlags?.showLandingPage ?? true; // Default to true - show landing page unless explicitly disabled
     const showPricingPage = marketingFlags?.showPricingPage ?? false;
 

@@ -5,15 +5,11 @@ import {
     toShowPricingPageFlag,
     toTenantAccentColor,
     toTenantAppName,
-    toTenantCustomCss,
     toTenantFaviconUrl,
     toTenantId,
     toTenantLogoUrl,
     toTenantPrimaryColor,
     toTenantSecondaryColor,
-    toTenantSurfaceColor,
-    toTenantTextColor,
-    toTenantThemePaletteName,
 } from '../shared-types';
 import type { BrandingMarketingFlags, ISOString, TenantConfig, TenantId } from '../shared-types';
 
@@ -68,26 +64,6 @@ export class TenantConfigBuilder {
         return this;
     }
 
-    withSurfaceColor(color: string): this {
-        this.config.branding!.surfaceColor = toTenantSurfaceColor(color);
-        return this;
-    }
-
-    withTextColor(color: string): this {
-        this.config.branding!.textColor = toTenantTextColor(color);
-        return this;
-    }
-
-    withThemePalette(palette: string): this {
-        this.config.branding!.themePalette = toTenantThemePaletteName(palette);
-        return this;
-    }
-
-    withCustomCSS(css: string): this {
-        this.config.branding!.customCSS = toTenantCustomCss(css);
-        return this;
-    }
-
     withMarketingFlags(flags: { showLandingPage?: boolean; showMarketingContent?: boolean; showPricingPage?: boolean; }): this {
         const brandedFlags: BrandingMarketingFlags = {};
         if (flags.showLandingPage !== undefined) {
@@ -99,7 +75,7 @@ export class TenantConfigBuilder {
         if (flags.showPricingPage !== undefined) {
             brandedFlags.showPricingPage = toShowPricingPageFlag(flags.showPricingPage);
         }
-        this.config.branding!.marketingFlags = brandedFlags;
+        this.config.marketingFlags = brandedFlags;
         return this;
     }
 

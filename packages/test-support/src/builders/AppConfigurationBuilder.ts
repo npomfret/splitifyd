@@ -1,7 +1,7 @@
 import type { ClientAppConfiguration, FirebaseConfig, FormDefaults, TenantConfig, ThemeConfig } from '@billsplit-wl/shared';
 import { TenantConfigBuilder } from '@billsplit-wl/shared';
 
-export type TenantBrandingFlagsOverrides = Partial<TenantConfig['branding']['marketingFlags']>;
+export type TenantMarketingFlagsOverrides = Partial<TenantConfig['marketingFlags']>;
 export type TenantBrandingOverrides = Partial<TenantConfig['branding']>;
 export type TenantOverrides = Partial<Omit<TenantConfig, 'branding'>> & {
     branding?: TenantBrandingOverrides;
@@ -45,7 +45,7 @@ export class AppConfigurationBuilder {
         }
 
         // Deep merge the overrides
-        const { branding, ...otherOverrides } = overrides;
+        const { branding, marketingFlags, ...otherOverrides } = overrides;
         this.config.tenant = {
             ...this.config.tenant,
             ...otherOverrides,
@@ -59,14 +59,14 @@ export class AppConfigurationBuilder {
                     ...(branding.primaryColor !== undefined && { primaryColor: branding.primaryColor }),
                     ...(branding.secondaryColor !== undefined && { secondaryColor: branding.secondaryColor }),
                     ...(branding.accentColor !== undefined && { accentColor: branding.accentColor }),
-                    ...(branding.themePalette !== undefined && { themePalette: branding.themePalette }),
-                    ...(branding.customCSS !== undefined && { customCSS: branding.customCSS }),
-                    marketingFlags: {
-                        ...this.config.tenant.branding.marketingFlags,
-                        ...branding.marketingFlags,
-                    },
                 }),
             },
+            ...(marketingFlags && {
+                marketingFlags: {
+                    ...this.config.tenant.marketingFlags,
+                    ...marketingFlags,
+                },
+            }),
         };
 
         return this;

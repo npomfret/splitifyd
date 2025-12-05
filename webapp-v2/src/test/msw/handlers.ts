@@ -241,12 +241,12 @@ export function appConfigHandler(options: HandlerOptions = {}): SerializedMswHan
                     faviconUrl: '/favicon.ico',
                     primaryColor: '#1a73e8',
                     secondaryColor: '#34a853',
-                    marketingFlags: {
-                        showLandingPage: true,
-                        showMarketingContent: true,
-                        showPricingPage: true,
-                        showBlogPage: false,
-                    },
+                },
+                marketingFlags: {
+                    showLandingPage: true,
+                    showMarketingContent: true,
+                    showPricingPage: true,
+                    showBlogPage: false,
                 },
                 createdAt: '2025-01-01T00:00:00.000Z',
                 updatedAt: '2025-01-01T00:00:00.000Z',

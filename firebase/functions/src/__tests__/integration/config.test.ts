@@ -14,9 +14,9 @@ describe('Config Endpoint Integration Tests', () => {
 
             expect(config.tenant).toBeDefined();
             expect(config.tenant!.branding).toBeDefined();
-            expect(config.tenant!.branding.marketingFlags).toBeDefined();
+            expect(config.tenant!.marketingFlags).toBeDefined();
             // The default tenant (brutalist theme at 127.0.0.1) has marketing disabled
-            expect(config.tenant!.branding.marketingFlags!.showMarketingContent).toBe(false);
+            expect(config.tenant!.marketingFlags!.showMarketingContent).toBe(false);
         });
     });
 

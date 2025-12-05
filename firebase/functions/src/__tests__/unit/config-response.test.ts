@@ -34,7 +34,7 @@ describe('getEnhancedConfigResponse', () => {
         expect(forwarded).toBeDefined();
         expect(forwarded).not.toBe(sourceTenant);
         expect(forwarded?.branding).not.toBe(sourceTenant.branding);
-        expect(forwarded?.branding.marketingFlags).not.toBe(sourceTenant.branding.marketingFlags);
+        expect(forwarded?.marketingFlags).not.toBe(sourceTenant.marketingFlags);
         expect(forwarded?.tenantId).toBe(sourceTenant.tenantId);
     });
 
@@ -79,9 +79,9 @@ describe('getEnhancedConfigResponse', () => {
         const calls = vi.mocked(clientConfig.getTenantAwareAppConfig).mock.calls;
         const forwarded = calls.length > 0 ? calls[calls.length - 1]![0] : undefined;
         expect(forwarded).toBeDefined();
-        expect(forwarded?.branding.marketingFlags).toBeDefined();
-        expect(forwarded?.branding.marketingFlags?.showLandingPage).toBe(true);
-        expect(forwarded?.branding.marketingFlags?.showMarketingContent).toBe(true);
-        expect(forwarded?.branding.marketingFlags?.showPricingPage).toBe(true);
+        expect(forwarded?.marketingFlags).toBeDefined();
+        expect(forwarded?.marketingFlags?.showLandingPage).toBe(true);
+        expect(forwarded?.marketingFlags?.showMarketingContent).toBe(true);
+        expect(forwarded?.marketingFlags?.showPricingPage).toBe(true);
     });
 });

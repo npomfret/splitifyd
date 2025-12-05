@@ -9,7 +9,7 @@ import '../styles/landing.css';
 export function LandingPage() {
     const { t } = useTranslation();
     const config = useConfig();
-    const marketingFlags = config?.tenant?.branding?.marketingFlags ?? {};
+    const marketingFlags = config?.tenant?.marketingFlags ?? {};
     const showMarketingContent = marketingFlags.showMarketingContent ?? false;
 
     return (

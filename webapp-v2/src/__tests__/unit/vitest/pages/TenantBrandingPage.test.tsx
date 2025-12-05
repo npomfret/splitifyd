@@ -50,11 +50,11 @@ const mockTenantSettings: TenantSettingsResponse = {
             faviconUrl: '/favicon.ico' as any,
             primaryColor: '#1a73e8' as any,
             secondaryColor: '#34a853' as any,
-            marketingFlags: {
-                showLandingPage: true as any,
-                showMarketingContent: true as any,
-                showPricingPage: false as any,
-            },
+        },
+        marketingFlags: {
+            showLandingPage: true as any,
+            showMarketingContent: true as any,
+            showPricingPage: false as any,
         },
         createdAt: '2025-01-01T00:00:00.000Z' as any,
         updatedAt: '2025-01-01T00:00:00.000Z' as any,

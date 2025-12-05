@@ -32,10 +32,8 @@ const mockedUseConfig = vi.mocked(useConfig);
 const buildConfig = (showPricingPage: boolean): ClientAppConfiguration =>
     new AppConfigurationBuilder()
         .withTenantOverrides({
-            branding: {
-                marketingFlags: {
-                    showPricingPage: toShowPricingPageFlag(showPricingPage),
-                },
+            marketingFlags: {
+                showPricingPage: toShowPricingPageFlag(showPricingPage),
             },
         })
         .build();

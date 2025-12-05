@@ -18,13 +18,11 @@ export interface TenantConfig {
         primaryColor: string;
         secondaryColor: string;
         accentColor?: string;
-        surfaceColor?: string;
-        textColor?: string;
-        marketingFlags?: {
-            showLandingPage?: boolean;
-            showMarketingContent?: boolean;
-            showPricingPage?: boolean;
-        };
+    };
+    marketingFlags?: {
+        showLandingPage?: boolean;
+        showMarketingContent?: boolean;
+        showPricingPage?: boolean;
     };
     brandingTokens?: TenantBranding;
     isDefault: boolean;

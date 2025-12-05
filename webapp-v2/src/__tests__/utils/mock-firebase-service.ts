@@ -908,11 +908,11 @@ export async function mockAdminTenantsApi(
                     faviconUrl: '/favicon.ico',
                     primaryColor: '#3B82F6',
                     secondaryColor: '#8B5CF6',
-                    marketingFlags: {
-                        showLandingPage: true,
-                        showMarketingContent: true,
-                        showPricingPage: true,
-                    },
+                },
+                marketingFlags: {
+                    showLandingPage: true,
+                    showMarketingContent: true,
+                    showPricingPage: true,
                 },
                 createdAt: '2025-01-01T00:00:00.000Z',
                 updatedAt: '2025-01-01T00:00:00.000Z',

@@ -172,6 +172,7 @@ export class FirestoreReader implements IFirestoreReader {
         const tenant: TenantConfig = {
             tenantId: parsed.id,
             branding: parsed.branding,
+            marketingFlags: parsed.marketingFlags,
             createdAt: createdAtIso,
             updatedAt: updatedAtIso,
         };

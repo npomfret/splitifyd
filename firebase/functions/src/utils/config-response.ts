@@ -4,19 +4,16 @@ import type { TenantRequestContext } from '../types/tenant';
 import { ErrorDetail, Errors } from '../errors';
 
 const cloneTenantConfig = (tenant: TenantConfig): TenantConfig => {
-    const { marketingFlags, ...restOfBranding } = tenant.branding;
     return {
         tenantId: tenant.tenantId,
-        branding: {
-            ...restOfBranding,
-            marketingFlags: marketingFlags
-                ? { ...marketingFlags }
-                : {
-                    showLandingPage: toShowLandingPageFlag(true),
-                    showMarketingContent: toShowMarketingContentFlag(true),
-                    showPricingPage: toShowPricingPageFlag(true),
-                },
-        },
+        branding: { ...tenant.branding },
+        marketingFlags: tenant.marketingFlags
+            ? { ...tenant.marketingFlags }
+            : {
+                showLandingPage: toShowLandingPageFlag(true),
+                showMarketingContent: toShowMarketingContentFlag(true),
+                showPricingPage: toShowPricingPageFlag(true),
+            },
         createdAt: tenant.createdAt,
         updatedAt: tenant.updatedAt,
     };

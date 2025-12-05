@@ -445,15 +445,11 @@ describe('API Schema Validation', () => {
                         primaryColor: '#3B82F6',
                         secondaryColor: '#8B5CF6',
                         accentColor: '#EC4899',
-                        surfaceColor: '#ffffff',
-                        textColor: '#1F2937',
-                        themePalette: 'default',
-                        customCSS: '/* test */',
-                        marketingFlags: {
-                            showLandingPage: true,
-                            showMarketingContent: false,
-                            showPricingPage: true,
-                        },
+                    },
+                    marketingFlags: {
+                        showLandingPage: true,
+                        showMarketingContent: false,
+                        showPricingPage: true,
                     },
                     createdAt: '2024-01-01T00:00:00.000Z',
                     updatedAt: '2024-01-15T10:30:00.000Z',
@@ -466,8 +462,7 @@ describe('API Schema Validation', () => {
             expect(result.config.branding.appName).toBe('Test App');
             expect(result.config.branding.logoUrl).toBe('/logo.svg');
             expect(result.config.branding.primaryColor).toBe('#3B82F6');
-            expect(result.config.branding.surfaceColor).toBe('#ffffff');
-            expect(result.config.branding.customCSS).toBe('/* test */');
+            expect(result.config.branding.accentColor).toBe('#EC4899');
             expect(result.domains).toHaveLength(2);
         });
     });

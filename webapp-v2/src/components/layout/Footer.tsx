@@ -7,7 +7,7 @@ export function Footer() {
     const { t } = useTranslation();
     const navigation = useNavigation();
     const config = useConfig();
-    const marketingFlags = config?.tenant?.branding?.marketingFlags;
+    const marketingFlags = config?.tenant?.marketingFlags;
     const showPricingPage = marketingFlags?.showPricingPage ?? false;
     const gridColumnsClass = showPricingPage ? 'md:grid-cols-3' : 'md:grid-cols-2';
 

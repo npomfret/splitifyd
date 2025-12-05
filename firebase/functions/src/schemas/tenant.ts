@@ -6,7 +6,6 @@ import {
     toShowPricingPageFlag,
     toTenantAccentColor,
     toTenantAppName,
-    toTenantCustomCss,
     toTenantDefaultFlag,
     toTenantDomainName,
     toTenantFaviconUrl,
@@ -15,9 +14,6 @@ import {
     toTenantLogoUrl,
     toTenantPrimaryColor,
     toTenantSecondaryColor,
-    toTenantSurfaceColor,
-    toTenantTextColor,
-    toTenantThemePaletteName,
     toUserId,
 } from '@billsplit-wl/shared';
 import { z } from 'zod';
@@ -47,12 +43,7 @@ const BrandingSchema = z.object({
     faviconUrl: z.string().min(1).transform(toTenantFaviconUrl).optional(), // Optional - falls back to logoUrl
     primaryColor: z.string().min(1).transform(toTenantPrimaryColor),
     secondaryColor: z.string().min(1).transform(toTenantSecondaryColor),
-    surfaceColor: z.string().min(1).transform(toTenantSurfaceColor).optional(),
-    textColor: z.string().min(1).transform(toTenantTextColor).optional(),
     accentColor: z.string().min(1).transform(toTenantAccentColor).optional(),
-    themePalette: z.string().min(1).transform(toTenantThemePaletteName).optional(),
-    customCSS: z.string().transform(toTenantCustomCss).optional(),
-    marketingFlags: BrandingMarketingFlagsSchema.optional(),
     showAppNameInHeader: z.boolean().optional(), // Show app name text next to logo (default: true)
 });
 
@@ -63,6 +54,7 @@ export const TenantDocumentSchema = z
         id: z.string().min(1).transform(toTenantId),
         branding: BrandingSchema,
         brandingTokens: TenantBrandingSchema.optional(),
+        marketingFlags: BrandingMarketingFlagsSchema.optional(), // Feature flags (separate from branding)
         domains: DomainSchema,
         defaultTenant: z.boolean().transform(toTenantDefaultFlag).optional(),
     })
@@ -75,6 +67,7 @@ export const AdminUpsertTenantRequestSchema = z.object({
     tenantId: z.string().min(1).transform(toTenantId),
     branding: BrandingSchema,
     brandingTokens: TenantBrandingSchema, // Required - no auto-generation
+    marketingFlags: BrandingMarketingFlagsSchema.optional(), // Feature flags (separate from branding)
     domains: DomainSchema,
     defaultTenant: z.boolean().transform(toTenantDefaultFlag).optional(),
 });
@@ -103,11 +96,7 @@ export const UpdateTenantBrandingRequestSchema = z
         faviconUrl: z.string().min(1).transform(toTenantFaviconUrl).optional(),
         primaryColor: z.string().min(1).transform(toTenantPrimaryColor).optional(),
         secondaryColor: z.string().min(1).transform(toTenantSecondaryColor).optional(),
-        surfaceColor: z.string().min(1).transform(toTenantSurfaceColor).optional(),
-        textColor: z.string().min(1).transform(toTenantTextColor).optional(),
         accentColor: z.string().min(1).transform(toTenantAccentColor).optional(),
-        themePalette: z.string().min(1).transform(toTenantThemePaletteName).optional(),
-        customCSS: z.string().transform(toTenantCustomCss).optional(),
         marketingFlags: BrandingMarketingFlagsSchema.partial().optional(),
         showAppNameInHeader: z.boolean().optional(),
     })

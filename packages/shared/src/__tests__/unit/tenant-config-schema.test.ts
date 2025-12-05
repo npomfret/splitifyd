@@ -10,19 +10,12 @@ import { MarketingFlagsBuilder, TenantConfigBuilder, TenantConfigSchema } from '
  * - But the Zod schema doesn't include it
  * - So the field gets stripped during schema validation
  * - And the UI receives undefined
- *
- * This was the root cause of the tenant editor bug where surfaceColor
- * and other fields were being stripped out.
  */
 describe('Tenant API Response Validation', () => {
     describe('TenantConfigSchema', () => {
         it('should preserve ALL branding fields including optional ones after schema validation', () => {
             const tenantConfig = new TenantConfigBuilder()
                 .withAccentColor('#EC4899')
-                .withSurfaceColor('#ffffff')
-                .withTextColor('#1F2937')
-                .withThemePalette('default')
-                .withCustomCSS('/* test */')
                 .withMarketingFlags(
                     new MarketingFlagsBuilder()
                         .withShowLandingPage(true)
@@ -49,16 +42,12 @@ describe('Tenant API Response Validation', () => {
 
             // Verify optional branding fields are preserved (not stripped)
             expect(branding.accentColor).toBe('#EC4899');
-            expect(branding.surfaceColor).toBe('#ffffff');
-            expect(branding.textColor).toBe('#1F2937');
-            expect(branding.themePalette).toBe('default');
-            expect(branding.customCSS).toBe('/* test */');
 
-            // Verify marketing flags
-            expect(branding.marketingFlags).toBeDefined();
-            expect(branding.marketingFlags?.showLandingPage).toBe(true);
-            expect(branding.marketingFlags?.showMarketingContent).toBe(true);
-            expect(branding.marketingFlags?.showPricingPage).toBe(false);
+            // Verify marketing flags (stored at top level, not under branding)
+            expect(result.marketingFlags).toBeDefined();
+            expect(result.marketingFlags?.showLandingPage).toBe(true);
+            expect(result.marketingFlags?.showMarketingContent).toBe(true);
+            expect(result.marketingFlags?.showPricingPage).toBe(false);
         });
     });
 });

@@ -193,12 +193,12 @@ interface TenantConfig {
         primaryColor?: string;
         secondaryColor?: string;
         accentColor?: string;
-        marketingFlags?: {
-            showLandingPage?: boolean;
-            showMarketingContent?: boolean;
-            showPricingPage?: boolean;
-        };
         showAppNameInHeader?: boolean;
+    };
+    marketingFlags?: {
+        showLandingPage?: boolean;
+        showMarketingContent?: boolean;
+        showPricingPage?: boolean;
     };
     createdAt: string;
     updatedAt: string;
@@ -860,9 +860,9 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                     tenantId: '', // Don't copy tenant ID
                     appName: '', // Don't copy app name
                     domains: [], // Don't copy domains
-                    showLandingPage: sourceTenant.tenant.branding?.marketingFlags?.showLandingPage ?? true,
-                    showMarketingContent: sourceTenant.tenant.branding?.marketingFlags?.showMarketingContent ?? true,
-                    showPricingPage: sourceTenant.tenant.branding?.marketingFlags?.showPricingPage ?? false,
+                    showLandingPage: sourceTenant.tenant.marketingFlags?.showLandingPage ?? true,
+                    showMarketingContent: sourceTenant.tenant.marketingFlags?.showMarketingContent ?? true,
+                    showPricingPage: sourceTenant.tenant.marketingFlags?.showPricingPage ?? false,
                 });
             }
         }
@@ -882,9 +882,9 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                     // Logo/favicon from branding takes precedence over tokens.assets
                     logoUrl: branding?.logoUrl ?? tokenData.logoUrl ?? '',
                     faviconUrl: branding?.faviconUrl ?? tokenData.faviconUrl ?? '',
-                    showLandingPage: branding?.marketingFlags?.showLandingPage ?? false,
-                    showMarketingContent: branding?.marketingFlags?.showMarketingContent ?? false,
-                    showPricingPage: branding?.marketingFlags?.showPricingPage ?? false,
+                    showLandingPage: tenant.tenant.marketingFlags?.showLandingPage ?? false,
+                    showMarketingContent: tenant.tenant.marketingFlags?.showMarketingContent ?? false,
+                    showPricingPage: tenant.tenant.marketingFlags?.showPricingPage ?? false,
                     showAppNameInHeader: branding?.showAppNameInHeader ?? true,
                     domains: tenant.domains ?? [],
                 });
@@ -895,9 +895,9 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                     appName: branding?.appName ?? '',
                     logoUrl: branding?.logoUrl ?? '',
                     faviconUrl: branding?.faviconUrl ?? '',
-                    showLandingPage: branding?.marketingFlags?.showLandingPage ?? false,
-                    showMarketingContent: branding?.marketingFlags?.showMarketingContent ?? false,
-                    showPricingPage: branding?.marketingFlags?.showPricingPage ?? false,
+                    showLandingPage: tenant.tenant.marketingFlags?.showLandingPage ?? false,
+                    showMarketingContent: tenant.tenant.marketingFlags?.showMarketingContent ?? false,
+                    showPricingPage: tenant.tenant.marketingFlags?.showPricingPage ?? false,
                     showAppNameInHeader: branding?.showAppNameInHeader ?? true,
                     domains: tenant.domains ?? [],
                 });
@@ -1091,11 +1091,6 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                 primaryColor: formData.primaryColor,
                 secondaryColor: formData.secondaryColor,
                 accentColor: formData.accentColor,
-                marketingFlags: {
-                    showLandingPage: formData.showLandingPage,
-                    showMarketingContent: formData.showMarketingContent,
-                    showPricingPage: formData.showPricingPage,
-                },
                 showAppNameInHeader: formData.showAppNameInHeader,
             };
 
@@ -1104,6 +1099,11 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
             const requestData = {
                 tenantId: formData.tenantId,
                 branding,
+                marketingFlags: {
+                    showLandingPage: formData.showLandingPage,
+                    showMarketingContent: formData.showMarketingContent,
+                    showPricingPage: formData.showPricingPage,
+                },
                 brandingTokens,
                 domains: normalizedDomains,
             } as AdminUpsertTenantRequest;

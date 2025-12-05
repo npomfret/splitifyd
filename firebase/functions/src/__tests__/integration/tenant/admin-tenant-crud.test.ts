@@ -1,15 +1,14 @@
 import type { PooledTestUser } from '@billsplit-wl/shared';
 import {
+    toShowLandingPageFlag,
+    toShowMarketingContentFlag,
+    toShowPricingPageFlag,
     toTenantAccentColor,
     toTenantAppName,
-    toTenantCustomCss,
     toTenantFaviconUrl,
     toTenantLogoUrl,
     toTenantPrimaryColor,
     toTenantSecondaryColor,
-    toTenantSurfaceColor,
-    toTenantTextColor,
-    toTenantThemePaletteName,
 } from '@billsplit-wl/shared';
 import { AdminTenantRequestBuilder, ApiDriver } from '@billsplit-wl/test-support';
 import { beforeAll, describe, expect, it } from 'vitest';
@@ -238,15 +237,11 @@ describe('Admin tenant CRUD operations', () => {
                         primaryColor: toTenantPrimaryColor('#3B82F6'),
                         secondaryColor: toTenantSecondaryColor('#8B5CF6'),
                         accentColor: toTenantAccentColor('#EC4899'),
-                        surfaceColor: toTenantSurfaceColor('#ffffff'),
-                        textColor: toTenantTextColor('#1F2937'),
-                        themePalette: toTenantThemePaletteName('default'),
-                        customCSS: toTenantCustomCss('/* initial */'),
-                        marketingFlags: {
-                            showLandingPage: true,
-                            showMarketingContent: true,
-                            showPricingPage: false,
-                        },
+                    })
+                    .withMarketingFlags({
+                        showLandingPage: toShowLandingPageFlag(true),
+                        showMarketingContent: toShowMarketingContentFlag(true),
+                        showPricingPage: toShowPricingPageFlag(false),
                     })
                     .withDomains([domain])
                     .build(),
@@ -270,15 +265,11 @@ describe('Admin tenant CRUD operations', () => {
                         primaryColor: toTenantPrimaryColor('#aa11bb'),
                         secondaryColor: toTenantSecondaryColor('#bb22cc'),
                         accentColor: toTenantAccentColor('#cc33dd'),
-                        surfaceColor: toTenantSurfaceColor('#dddddd'),
-                        textColor: toTenantTextColor('#111111'),
-                        themePalette: toTenantThemePaletteName('test-palette'),
-                        customCSS: toTenantCustomCss('/* updated css */'),
-                        marketingFlags: {
-                            showLandingPage: false,
-                            showMarketingContent: false,
-                            showPricingPage: true,
-                        },
+                    })
+                    .withMarketingFlags({
+                        showLandingPage: toShowLandingPageFlag(false),
+                        showMarketingContent: toShowMarketingContentFlag(false),
+                        showPricingPage: toShowPricingPageFlag(true),
                     })
                     .withDomains([domain])
                     .build(),
@@ -296,15 +287,11 @@ describe('Admin tenant CRUD operations', () => {
             expect(tenant2?.tenant.branding.primaryColor).toBe('#aa11bb');
             expect(tenant2?.tenant.branding.secondaryColor).toBe('#bb22cc');
             expect(tenant2?.tenant.branding.accentColor).toBe('#cc33dd');
-            expect(tenant2?.tenant.branding.surfaceColor).toBe('#dddddd');
-            expect(tenant2?.tenant.branding.textColor).toBe('#111111');
-            expect(tenant2?.tenant.branding.themePalette).toBe('test-palette');
-            expect(tenant2?.tenant.branding.customCSS).toBe('/* updated css */');
 
-            // Verify ALL marketing flags
-            expect(tenant2?.tenant.branding.marketingFlags?.showLandingPage).toBe(false);
-            expect(tenant2?.tenant.branding.marketingFlags?.showMarketingContent).toBe(false);
-            expect(tenant2?.tenant.branding.marketingFlags?.showPricingPage).toBe(true);
+            // Verify ALL marketing flags (stored at top level, not under branding)
+            expect(tenant2?.tenant.marketingFlags?.showLandingPage).toBe(false);
+            expect(tenant2?.tenant.marketingFlags?.showMarketingContent).toBe(false);
+            expect(tenant2?.tenant.marketingFlags?.showPricingPage).toBe(true);
         });
 
         it('should update tenant domains', async () => {

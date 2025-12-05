@@ -80,7 +80,7 @@ describe('TenantDocumentSchema', () => {
                     faviconUrl: 'https://minimal.com/favicon.ico',
                     primaryColor: '#000000',
                     secondaryColor: '#FFFFFF',
-                    // No accentColor, themePalette, customCSS, marketingFlags
+                    // No accentColor or marketingFlags
                 },
                 domains: ['minimal.com'],
                 // No defaultTenant
@@ -91,31 +91,26 @@ describe('TenantDocumentSchema', () => {
             const result = TenantDocumentSchema.parse(minimalData);
 
             expect(result.branding.accentColor).toBeUndefined();
-            expect(result.branding.themePalette).toBeUndefined();
-            expect(result.branding.customCSS).toBeUndefined();
-            expect(result.branding.marketingFlags).toBeUndefined();
+            expect(result.marketingFlags).toBeUndefined();
             expect(result.defaultTenant).toBeUndefined();
         });
 
-        it('should accept optional marketing flags', () => {
+        it('should accept optional marketing flags at top level', () => {
             const dataWithFlags = {
                 ...validTenantData,
-                branding: {
-                    ...validTenantData.branding,
-                    marketingFlags: {
-                        showLandingPage: true,
-                        showMarketingContent: true,
-                        showPricingPage: false,
-                        showBlogPage: true,
-                    },
+                marketingFlags: {
+                    showLandingPage: true,
+                    showMarketingContent: true,
+                    showPricingPage: false,
+                    showBlogPage: true,
                 },
             };
 
             const result = TenantDocumentSchema.parse(dataWithFlags);
 
-            expect(result.branding.marketingFlags?.showLandingPage).toBe(true);
-            expect(result.branding.marketingFlags?.showMarketingContent).toBe(true);
-            expect(result.branding.marketingFlags?.showPricingPage).toBe(false);
+            expect(result.marketingFlags?.showLandingPage).toBe(true);
+            expect(result.marketingFlags?.showMarketingContent).toBe(true);
+            expect(result.marketingFlags?.showPricingPage).toBe(false);
         });
 
         it('should accept single domain', () => {
@@ -261,8 +256,6 @@ describe('UpdateTenantBrandingRequestSchema', () => {
                 primaryColor: '#112233',
                 secondaryColor: '#445566',
                 accentColor: '#778899',
-                themePalette: 'ocean',
-                customCSS: '.custom { color: red; }',
                 marketingFlags: {
                     showLandingPage: false,
                     showMarketingContent: true,
@@ -313,16 +306,6 @@ describe('UpdateTenantBrandingRequestSchema', () => {
 
             expect(result.marketingFlags?.showLandingPage).toBe(true);
             expect(result.marketingFlags?.showPricingPage).toBeUndefined();
-        });
-
-        it('should accept empty customCSS', () => {
-            const updateData = {
-                customCSS: '',
-            };
-
-            const result = UpdateTenantBrandingRequestSchema.parse(updateData);
-
-            expect(result.customCSS).toBe('');
         });
 
         it('should validate empty object (no updates)', () => {

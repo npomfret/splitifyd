@@ -1,12 +1,10 @@
 import type {
     TenantAccentColor,
     TenantAppName,
-    TenantCustomCss,
     TenantFaviconUrl,
     TenantLogoUrl,
     TenantPrimaryColor,
     TenantSecondaryColor,
-    TenantThemePaletteName,
     UpdateTenantBrandingRequest,
 } from '@billsplit-wl/shared';
 import {
@@ -14,12 +12,10 @@ import {
     toShowPricingPageFlag,
     toTenantAccentColor,
     toTenantAppName,
-    toTenantCustomCss,
     toTenantFaviconUrl,
     toTenantLogoUrl,
     toTenantPrimaryColor,
     toTenantSecondaryColor,
-    toTenantThemePaletteName,
 } from '@billsplit-wl/shared';
 import { generateShortId } from '../test-helpers';
 
@@ -69,17 +65,6 @@ export class TenantBrandingUpdateBuilder {
 
     withAccentColor(accentColor: TenantAccentColor | string): this {
         this.update.accentColor = typeof accentColor === 'string' ? toTenantAccentColor(accentColor) : accentColor;
-        return this;
-    }
-
-    withThemePalette(themePalette: TenantThemePaletteName | string): this {
-        this.update.themePalette =
-            typeof themePalette === 'string' ? toTenantThemePaletteName(themePalette) : themePalette;
-        return this;
-    }
-
-    withCustomCSS(customCSS: TenantCustomCss | string): this {
-        this.update.customCSS = typeof customCSS === 'string' ? toTenantCustomCss(customCSS) : customCSS;
         return this;
     }
 

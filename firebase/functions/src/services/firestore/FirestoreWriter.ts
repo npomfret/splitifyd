@@ -1291,9 +1291,9 @@ export class FirestoreWriter implements IFirestoreWriter {
                 // Map each branding field to nested Firestore path
                 for (const [key, value] of Object.entries(brandingUpdates)) {
                     if (key === 'marketingFlags' && typeof value === 'object') {
-                        // Handle nested marketingFlags updates
+                        // marketingFlags are stored at top-level, not under branding
                         for (const [flagKey, flagValue] of Object.entries(value)) {
-                            updates[`branding.marketingFlags.${flagKey}`] = flagValue;
+                            updates[`marketingFlags.${flagKey}`] = flagValue;
                         }
                     } else {
                         // Direct branding field update

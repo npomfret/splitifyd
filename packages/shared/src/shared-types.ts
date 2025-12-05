@@ -85,20 +85,9 @@ export const toTenantPrimaryColor = (value: string): TenantPrimaryColor => value
 export type TenantSecondaryColor = BrandedString<'TenantSecondaryColor'>;
 export const toTenantSecondaryColor = (value: string): TenantSecondaryColor => value as TenantSecondaryColor;
 
-export type TenantSurfaceColor = BrandedString<'TenantSurfaceColor'>;
-export const toTenantSurfaceColor = (value: string): TenantSurfaceColor => value as TenantSurfaceColor;
-
-export type TenantTextColor = BrandedString<'TenantTextColor'>;
-export const toTenantTextColor = (value: string): TenantTextColor => value as TenantTextColor;
-
 export type TenantAccentColor = BrandedString<'TenantAccentColor'>;
 export const toTenantAccentColor = (value: string): TenantAccentColor => value as TenantAccentColor;
 
-export type TenantThemePaletteName = BrandedString<'TenantThemePaletteName'>;
-export const toTenantThemePaletteName = (value: string): TenantThemePaletteName => value as TenantThemePaletteName;
-
-export type TenantCustomCss = BrandedString<'TenantCustomCss'>;
-export const toTenantCustomCss = (value: string): TenantCustomCss => value as TenantCustomCss;
 
 export type TenantDomainName = BrandedString<'TenantDomainName'>;
 export const toTenantDomainName = (value: string): TenantDomainName => value as TenantDomainName;
@@ -275,18 +264,14 @@ export interface BrandingConfig {
     faviconUrl?: TenantFaviconUrl; // Optional - falls back to logoUrl if not provided
     primaryColor: TenantPrimaryColor;
     secondaryColor: TenantSecondaryColor;
-    surfaceColor?: TenantSurfaceColor;
-    textColor?: TenantTextColor;
     accentColor?: TenantAccentColor;
-    themePalette?: TenantThemePaletteName;
-    customCSS?: TenantCustomCss;
-    marketingFlags?: BrandingMarketingFlags;
     showAppNameInHeader?: boolean; // Show app name text next to logo (default: true)
 }
 
 export interface TenantConfig {
     tenantId: TenantId;
     branding: BrandingConfig;
+    marketingFlags?: BrandingMarketingFlags; // Feature flags (separate from branding/styling)
     createdAt: ISOString;
     updatedAt: ISOString;
 }
@@ -1544,8 +1529,6 @@ export interface UpdateTenantBrandingRequest {
     primaryColor?: TenantPrimaryColor;
     secondaryColor?: TenantSecondaryColor;
     accentColor?: TenantAccentColor;
-    themePalette?: TenantThemePaletteName;
-    customCSS?: TenantCustomCss;
     marketingFlags?: Partial<BrandingMarketingFlags>;
 }
 
@@ -1660,16 +1643,12 @@ export interface AdminUpsertTenantRequest {
         faviconUrl?: string;
         primaryColor: string;
         secondaryColor: string;
-        surfaceColor?: string;
-        textColor?: string;
         accentColor?: string;
-        themePalette?: string;
-        customCSS?: string;
-        marketingFlags?: {
-            showLandingPage?: boolean;
-            showMarketingContent?: boolean;
-            showPricingPage?: boolean;
-        };
+    };
+    marketingFlags?: {
+        showLandingPage?: boolean;
+        showMarketingContent?: boolean;
+        showPricingPage?: boolean;
     };
     brandingTokens?: TenantBranding;
     domains: string[];

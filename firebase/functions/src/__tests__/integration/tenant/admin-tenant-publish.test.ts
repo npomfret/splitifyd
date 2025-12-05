@@ -7,7 +7,6 @@ import {
     toTenantLogoUrl,
     toTenantPrimaryColor,
     toTenantSecondaryColor,
-    toTenantThemePaletteName,
 } from '@billsplit-wl/shared';
 import { AdminTenantRequestBuilder, ApiDriver, borrowTestUsers } from '@billsplit-wl/test-support';
 import { beforeAll, describe, expect, it } from 'vitest';
@@ -37,7 +36,6 @@ describe('Admin Tenant Theme Publishing', () => {
                 primaryColor: toTenantPrimaryColor('#2563eb'),
                 secondaryColor: toTenantSecondaryColor('#7c3aed'),
                 accentColor: toTenantAccentColor('#f97316'),
-                themePalette: toTenantThemePaletteName('default'),
             })
             .withBrandingTokens({ tokens: mockTokens })
             .withDomains([toTenantDomainName(`${tenantId}.example.com`)])
@@ -105,7 +103,6 @@ describe('Admin Tenant Theme Publishing', () => {
                 primaryColor: toTenantPrimaryColor('#ff0000'),
                 secondaryColor: toTenantSecondaryColor('#00ff00'),
                 accentColor: toTenantAccentColor('#0000ff'),
-                themePalette: toTenantThemePaletteName('default'),
             })
             .withBrandingTokens({ tokens: updatedTokens })
             .withDomains([toTenantDomainName(`${tenantId}.example.com`)])

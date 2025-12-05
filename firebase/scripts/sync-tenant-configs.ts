@@ -36,8 +36,6 @@ import {
     toTenantLogoUrl,
     toTenantPrimaryColor,
     toTenantSecondaryColor,
-    toTenantSurfaceColor,
-    toTenantTextColor,
 } from '@billsplit-wl/shared';
 import { ApiDriver, type ApiDriverConfig, emulatorHostingURL } from '@billsplit-wl/test-support';
 import * as fs from 'fs';
@@ -318,17 +316,11 @@ export async function syncTenantConfigs(
                 ...(config.branding.accentColor && {
                     accentColor: toTenantAccentColor(config.branding.accentColor),
                 }),
-                ...(config.branding.surfaceColor && {
-                    surfaceColor: toTenantSurfaceColor(config.branding.surfaceColor),
-                }),
-                ...(config.branding.textColor && {
-                    textColor: toTenantTextColor(config.branding.textColor),
-                }),
-                marketingFlags: {
-                    showLandingPage: toShowLandingPageFlag(config.branding.marketingFlags?.showLandingPage ?? false),
-                    showMarketingContent: toShowMarketingContentFlag(config.branding.marketingFlags?.showMarketingContent ?? false),
-                    showPricingPage: toShowPricingPageFlag(config.branding.marketingFlags?.showPricingPage ?? false),
-                },
+            },
+            marketingFlags: {
+                showLandingPage: toShowLandingPageFlag(config.marketingFlags?.showLandingPage ?? false),
+                showMarketingContent: toShowMarketingContentFlag(config.marketingFlags?.showMarketingContent ?? false),
+                showPricingPage: toShowPricingPageFlag(config.marketingFlags?.showPricingPage ?? false),
             },
             brandingTokens: config.brandingTokens,
             domains,

@@ -13,51 +13,32 @@ Audit confirmed:
 
 ## Tasks
 
-### 1. Remove `surface.spotlight` token
+### 1. ~~Remove `surface.spotlight` token~~ ✅ DONE
 
-**Status:** Unused - CSS variable generated but never consumed
+### 2. ~~Remove `customCSS` field~~ ✅ DONE
 
-**Files:**
-- `packages/shared/src/types/branding.ts` - remove from `BrandingSemanticColorSchema`
-- `firebase/docs/tenants/*/config.json` - remove from example configs
+### 3. ~~Move `marketingFlags` out of branding~~ ✅ DONE
 
-### 2. Remove `customCSS` field
+Moved from `tenant.branding.marketingFlags` to `tenant.marketingFlags` (top-level).
 
-**Status:** Dead-end - form UI saves it, but no injection mechanism exists
+### 4. ~~Remove unused legacy `BrandingConfig` color properties~~ ✅ DONE
 
-**Files:**
-- `packages/shared/src/schemas/apiSchemas.ts` - remove from `BrandingConfigSchema`
-- `packages/shared/src/shared-types.ts` - remove from `BrandingConfig` interface
-- `firebase/functions/src/schemas/tenant.ts` - remove from schema
-- `webapp-v2/src/pages/TenantBrandingPage.tsx` - remove form field
+Removed **unused** properties only (after audit confirmed they have no production usage):
+- `surfaceColor` - not used in any production code
+- `textColor` - not used in any production code
+- `themePalette` - not used in any production code
 
-### 3. Move `marketingFlags` out of branding
+**Kept** (still actively used in admin UIs):
+- `primaryColor` - used in TenantBrandingPage.tsx, TenantEditorModal.tsx, config-store.ts
+- `secondaryColor` - used in admin UIs
+- `accentColor` - used in admin UIs
 
-**Status:** Feature flags incorrectly nested under branding config
-
-**Current location:** `tenant.branding.marketingFlags`
-**Target location:** `tenant.marketingFlags` (top-level)
-
-**Files:**
-- `packages/shared/src/schemas/apiSchemas.ts` - move schema
-- `packages/shared/src/shared-types.ts` - update types
-- `firebase/functions/src/schemas/tenant.ts` - update schema
-- `webapp-v2/src/App.tsx` - update access path
-- `webapp-v2/src/pages/LandingPage.tsx` - update access path
-- `firebase/docs/tenants/*/config.json` - migrate example configs
-
-### 4. Deprecate legacy `BrandingConfig` color properties
-
-**Status:** Superseded by `BrandingTokens.palette` and `semantics.colors`
-
-**Properties to remove:**
-- `primaryColor`, `secondaryColor`, `accentColor`, `surfaceColor`, `textColor`
-- `themePalette`
-
-**Files:**
-- `packages/shared/src/schemas/apiSchemas.ts` - remove from `BrandingConfigSchema`
-- `packages/shared/src/shared-types.ts` - remove from `BrandingConfig`
-- `webapp-v2/src/pages/TenantBrandingPage.tsx` - remove form fields (if present)
+**Files updated:**
+- `packages/shared/src/shared-types.ts` - removed types and converters
+- `packages/shared/src/schemas/apiSchemas.ts` - removed from schema
+- `firebase/functions/src/schemas/tenant.ts` - removed from schemas
+- All builders and tests updated
+- Tenant config JSON files updated (marketingFlags moved to top-level)
 
 ### 5. Consolidate `appName`, `logoUrl`, `faviconUrl`
 
@@ -74,10 +55,10 @@ Audit confirmed:
 
 ## Order of Operations
 
-1. Remove `customCSS` (zero impact - nothing uses it)
-2. Remove `surface.spotlight` (zero impact - nothing uses it)
-3. Move `marketingFlags` (requires coordinated update)
-4. Remove legacy color properties (requires audit of any remaining usage)
+1. ~~Remove `customCSS` (zero impact - nothing uses it)~~ ✅
+2. ~~Remove `surface.spotlight` (zero impact - nothing uses it)~~ ✅
+3. ~~Move `marketingFlags` (requires coordinated update)~~ ✅
+4. ~~Remove unused legacy color properties (surfaceColor, textColor, themePalette)~~ ✅
 5. Deprecate duplicate asset/name fields (lower priority)
 
 ---

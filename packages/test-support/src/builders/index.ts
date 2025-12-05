@@ -5,7 +5,7 @@ export { ActivityFeedResponseBuilder } from './ActivityFeedResponseBuilder';
 export { AddTenantDomainRequestBuilder } from './AddTenantDomainRequestBuilder';
 export { AdminTenantRequestBuilder } from './AdminTenantRequestBuilder';
 export { AdminUserProfileBuilder } from './AdminUserProfileBuilder';
-export { AppConfigurationBuilder, type TenantBrandingFlagsOverrides, type TenantBrandingOverrides, type TenantOverrides } from './AppConfigurationBuilder';
+export { AppConfigurationBuilder, type TenantMarketingFlagsOverrides, type TenantBrandingOverrides, type TenantOverrides } from './AppConfigurationBuilder';
 export { AuthUserRecordBuilder } from './AuthUserRecordBuilder';
 export { BrandingArtifactMetadataBuilder } from './BrandingArtifactMetadataBuilder';
 export { BrandingConfigBuilder } from './BrandingConfigBuilder';

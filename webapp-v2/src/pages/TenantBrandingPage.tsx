@@ -63,9 +63,9 @@ export function TenantBrandingPage() {
                 setFaviconUrl(settings.config.branding.faviconUrl ?? settings.config.branding.logoUrl ?? '');
                 setPrimaryColor(settings.config.branding.primaryColor);
                 setSecondaryColor(settings.config.branding.secondaryColor);
-                setShowLandingPage(Boolean(settings.config.branding.marketingFlags?.showLandingPage ?? true));
-                setShowMarketingContent(Boolean(settings.config.branding.marketingFlags?.showMarketingContent ?? true));
-                setShowPricingPage(Boolean(settings.config.branding.marketingFlags?.showPricingPage ?? false));
+                setShowLandingPage(Boolean(settings.config.marketingFlags?.showLandingPage ?? true));
+                setShowMarketingContent(Boolean(settings.config.marketingFlags?.showMarketingContent ?? true));
+                setShowPricingPage(Boolean(settings.config.marketingFlags?.showPricingPage ?? false));
             } catch (error: any) {
                 setErrorMessage(error.message || 'Failed to load tenant settings');
                 logError('Failed to load tenant settings', error);
@@ -160,9 +160,9 @@ export function TenantBrandingPage() {
         || faviconUrl !== tenantSettings.config.branding.faviconUrl
         || primaryColor !== tenantSettings.config.branding.primaryColor
         || secondaryColor !== tenantSettings.config.branding.secondaryColor
-        || showLandingPage !== (tenantSettings.config.branding.marketingFlags?.showLandingPage ?? true)
-        || showMarketingContent !== (tenantSettings.config.branding.marketingFlags?.showMarketingContent ?? true)
-        || showPricingPage !== (tenantSettings.config.branding.marketingFlags?.showPricingPage ?? false)
+        || showLandingPage !== (tenantSettings.config.marketingFlags?.showLandingPage ?? true)
+        || showMarketingContent !== (tenantSettings.config.marketingFlags?.showMarketingContent ?? true)
+        || showPricingPage !== (tenantSettings.config.marketingFlags?.showPricingPage ?? false)
     );
 
     return (

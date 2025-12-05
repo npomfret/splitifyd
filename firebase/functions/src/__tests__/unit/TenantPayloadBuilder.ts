@@ -9,7 +9,6 @@ import {
     toTenantLogoUrl,
     toTenantPrimaryColor,
     toTenantSecondaryColor,
-    toTenantThemePaletteName,
 } from '@billsplit-wl/shared';
 import type { AdminUpsertTenantRequest } from '../../schemas/tenant';
 import type { TenantDocumentUpsertData } from '../../services/firestore/IFirestoreWriter';
@@ -33,7 +32,6 @@ export class TenantPayloadBuilder {
                 primaryColor: toTenantPrimaryColor('#2563eb'),
                 secondaryColor: toTenantSecondaryColor('#7c3aed'),
                 accentColor: toTenantAccentColor('#f97316'),
-                themePalette: toTenantThemePaletteName('default'),
             },
             brandingTokens: {
                 tokens: {
@@ -249,11 +247,6 @@ export class TenantPayloadBuilder {
     withAccentColor(color: string): this {
         this.payload.branding.accentColor = toTenantAccentColor(color);
         this.payload.brandingTokens!.tokens.palette.accent = color as `#${string}`;
-        return this;
-    }
-
-    withThemePalette(palette: string): this {
-        this.payload.branding.themePalette = toTenantThemePaletteName(palette);
         return this;
     }
 

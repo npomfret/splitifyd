@@ -5,14 +5,12 @@
     "appName": "Splitifyd",
     "primaryColor": "#737373",
     "secondaryColor": "#525252",
-    "accentColor": "#A3A3A3",
-    "surfaceColor": "#171717",
-    "textColor": "#E5E5E5",
-    "marketingFlags": {
-      "showLandingPage": true,
-      "showMarketingContent": false,
-      "showPricingPage": false
-    }
+    "accentColor": "#A3A3A3"
+  },
+  "marketingFlags": {
+    "showLandingPage": true,
+    "showMarketingContent": false,
+    "showPricingPage": false
   },
   "brandingTokens": {
     "tokens": {
