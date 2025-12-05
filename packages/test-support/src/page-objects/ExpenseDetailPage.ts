@@ -306,7 +306,7 @@ export class ExpenseDetailPage extends BasePage {
         await expect(confirmDialog.getByText(/this action cannot be undone and will affect group balances/i)).toBeVisible();
 
         // Click the confirm button to actually delete - use semantic button name
-        const confirmButton = confirmDialog.getByRole('button', { name: /confirm/i });
+        const confirmButton = confirmDialog.getByRole('button', { name: /delete/i });
         await expect(confirmButton).toBeEnabled();
         await confirmButton.click();
 
