@@ -147,7 +147,6 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
     const copyToClipboard = async (text: string) => {
         try {
             await navigator.clipboard.writeText(text);
-            // TODO: Add toast notification for successful copy
         } catch (error) {
             logError(t('pages.expenseDetailPage.failedToCopy'), error);
             // Fallback: select text for manual copy

@@ -465,7 +465,7 @@ test.describe('Dashboard Share Group Modal', () => {
         await shareModal.verifyModalClosed();
     });
 
-    test('should copy share link to clipboard and show toast', async ({ authenticatedPage }) => {
+    test('should copy share link to clipboard and show success indicator', async ({ authenticatedPage }) => {
         const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
@@ -497,7 +497,7 @@ test.describe('Dashboard Share Group Modal', () => {
         const copiedLink = await shareModal.copyShareLinkToClipboard();
         expect(copiedLink).toContain('/join?shareToken=');
 
-        // Verify toast appears
+        // Verify copy success indicator (checkmark icon)
         await shareModal.verifyCopySuccess();
 
         // Verify clipboard contains link

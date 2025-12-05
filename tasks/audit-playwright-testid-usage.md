@@ -142,13 +142,13 @@ The following patterns of `getByTestId` misuse are the most common and should be
     - Removed `data-testid` from copy button (has aria-label)
     - Removed `data-testid` from generate button (has aria-label)
     - Removed `data-testid` from error message (has role='alert')
-    - Removed `data-testid` from toast (has role='status')
+    - ~~Removed `data-testid` from toast (has role='status')~~ Toast removed entirely; copy feedback now uses inline checkmark icon
 - **Page object changes:**
     - `getCloseButton()` → `getByRole('button', { name: closeButtonAriaLabel })`
     - `getCopyLinkButton()` → `getByRole('button', { name: copyLinkAriaLabel })`
     - `getGenerateNewLinkButton()` → `getByRole('button', { name: generateNew })`
     - `getErrorMessage()` → `getByRole('alert')`
-    - `getToastNotification()` → `getByRole('status').filter({ hasText: linkCopied })`
+    - ~~`getToastNotification()` → `getByRole('status')...`~~ Replaced with `getCopySuccessIcon()` → `getCopyLinkButton().locator('svg.text-semantic-success')`
 - **Kept as test-id (justified):**
     - `getShareLinkInput()` - Input has no label (value is the share URL)
     - `getLoadingSpinner()` - Generic spinner element

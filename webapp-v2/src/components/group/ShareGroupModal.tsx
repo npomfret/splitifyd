@@ -44,7 +44,6 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
     const [loadingSignal] = useState(() => signal(false));
     const [errorSignal] = useState(() => signal<string | null>(null));
     const [copiedSignal] = useState(() => signal(false));
-    const [showToastSignal] = useState(() => signal(false));
     const [selectedExpirationIdSignal] = useState(() => signal<ShareLinkExpirationOptionId>(DEFAULT_EXPIRATION_OPTION_ID));
     const [expiresAtSignal] = useState(() => signal<string | null>(null));
     const [refreshCounterSignal] = useState(() => signal(0));
@@ -54,14 +53,12 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
     const loading = loadingSignal.value;
     const error = errorSignal.value;
     const copied = copiedSignal.value;
-    const showToast = showToastSignal.value;
     const selectedExpirationId = selectedExpirationIdSignal.value;
     const expiresAt = expiresAtSignal.value;
     const refreshCounter = refreshCounterSignal.value;
 
     const linkInputRef = useRef<HTMLInputElement>(null);
     const copiedTimerRef = useRef<number | null>(null);
-    const toastTimerRef = useRef<number | null>(null);
     const requestIdRef = useRef(0);
     const expirationContainerClass = shareLink ? 'space-y-2 border-t border-border-default pt-4' : 'space-y-2 pt-4';
     const normalizedGroupName = groupName.trim();
@@ -71,9 +68,6 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
         return () => {
             if (copiedTimerRef.current) {
                 clearTimeout(copiedTimerRef.current);
-            }
-            if (toastTimerRef.current) {
-                clearTimeout(toastTimerRef.current);
             }
         };
     }, []);
@@ -87,16 +81,11 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
             clearTimeout(copiedTimerRef.current);
             copiedTimerRef.current = null;
         }
-        if (toastTimerRef.current) {
-            clearTimeout(toastTimerRef.current);
-            toastTimerRef.current = null;
-        }
 
         shareLinkSignal.value = '';
         expiresAtSignal.value = null;
         errorSignal.value = null;
         copiedSignal.value = false;
-        showToastSignal.value = false;
         selectedExpirationIdSignal.value = DEFAULT_EXPIRATION_OPTION_ID;
     }, [isOpen, groupId]);
 
@@ -113,7 +102,6 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
         shareLinkSignal.value = '';
         expiresAtSignal.value = null;
         copiedSignal.value = false;
-        showToastSignal.value = false;
 
         const { durationMs } = getExpirationOption(selectedExpirationId);
         const requestedExpiresAt = toISOString(new Date(Date.now() + durationMs).toISOString());
@@ -151,47 +139,30 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
         if (copiedTimerRef.current) {
             clearTimeout(copiedTimerRef.current);
         }
-        if (toastTimerRef.current) {
-            clearTimeout(toastTimerRef.current);
-        }
 
-        try {
-            await navigator.clipboard.writeText(shareLink);
+        const showCopiedFeedback = () => {
             copiedSignal.value = true;
-            showToastSignal.value = true;
 
             copiedTimerRef.current = window.setTimeout(() => {
                 copiedSignal.value = false;
                 copiedTimerRef.current = null;
             }, 2000);
+        };
 
-            toastTimerRef.current = window.setTimeout(() => {
-                showToastSignal.value = false;
-                toastTimerRef.current = null;
-            }, 3000);
+        try {
+            await navigator.clipboard.writeText(shareLink);
+            showCopiedFeedback();
         } catch (err) {
             if (linkInputRef.current) {
                 linkInputRef.current.select();
                 document.execCommand('copy');
-                copiedSignal.value = true;
-                showToastSignal.value = true;
-
-                copiedTimerRef.current = window.setTimeout(() => {
-                    copiedSignal.value = false;
-                    copiedTimerRef.current = null;
-                }, 2000);
-
-                toastTimerRef.current = window.setTimeout(() => {
-                    showToastSignal.value = false;
-                    toastTimerRef.current = null;
-                }, 3000);
+                showCopiedFeedback();
             }
         }
     };
 
     return (
-        <>
-            <Modal
+        <Modal
                 open={isOpen}
                 onClose={onClose}
                 size='sm'
@@ -338,17 +309,6 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                             </div>
                         </div>
                     </div>
-            </Modal>
-
-            {/* Toast notification */}
-            {showToast && (
-                <div class='fixed bottom-4 right-4 z-[60] animate-slide-up' role='status' aria-live='polite'>
-                    <div class='bg-text-primary text-text-inverted px-4 py-3 rounded-lg shadow-lg flex items-center space-x-2'>
-                        <CheckIcon size={20} className="text-semantic-success" />
-                        <span class='text-sm font-medium'>{t('shareGroupModal.linkCopied')}</span>
-                    </div>
-                </div>
-            )}
-        </>
+        </Modal>
     );
 }

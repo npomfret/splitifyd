@@ -58,11 +58,10 @@ export class ShareGroupModalPage extends BasePage {
     }
 
     /**
-     * Toast notification (status role for copy confirmation)
+     * Copy success indicator (checkmark icon that appears after successful copy)
      */
-    protected getToastNotification(): Locator {
-        // Toast is outside the modal, so we search the page directly
-        return this.page.getByRole('status').filter({ hasText: translation.shareGroupModal.linkCopied });
+    protected getCopySuccessIcon(): Locator {
+        return this.getCopyLinkButton().locator('svg.text-semantic-success');
     }
 
     // ============================================================================
@@ -223,8 +222,8 @@ export class ShareGroupModalPage extends BasePage {
         const linkBefore = await this.getShareLink();
         await this.clickCopyLink();
 
-        // Wait for toast to appear confirming copy
-        await expect(this.getToastNotification()).toBeVisible({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION });
+        // Wait for checkmark icon to appear confirming copy
+        await expect(this.getCopySuccessIcon()).toBeVisible({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION });
 
         return linkBefore;
     }
@@ -306,10 +305,9 @@ export class ShareGroupModalPage extends BasePage {
     }
 
     /**
-     * Verify copy success toast appears
+     * Verify copy success indicator appears (checkmark icon)
      */
     async verifyCopySuccess(): Promise<void> {
-        await expect(this.getToastNotification()).toBeVisible();
-        await expect(this.getToastNotification()).toContainText(/copied/i);
+        await expect(this.getCopySuccessIcon()).toBeVisible();
     }
 }

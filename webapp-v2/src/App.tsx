@@ -7,7 +7,7 @@ import { useAuth } from './app/hooks/useAuth';
 import { TokenRefreshIndicator } from './components/auth/TokenRefreshIndicator';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { PolicyAcceptanceModal } from './components/policy/PolicyAcceptanceModal';
-import { LoadingState, ToastContainer, WarningBanner } from './components/ui';
+import { LoadingState, WarningBanner } from './components/ui';
 import { useConfig } from './hooks/useConfig.ts';
 import { usePolicyAcceptance } from './hooks/usePolicyAcceptance';
 import { navigationService } from './services/navigation.service';
@@ -222,9 +222,6 @@ export function App() {
 
             {/* Policy Acceptance Modal - shows when user has pending policy acceptances */}
             {shouldShowPolicyModal && <PolicyAcceptanceModal policies={pendingPolicies} onAccept={handlePolicyAcceptance} />}
-
-            {/* Toast notification container */}
-            <ToastContainer />
         </ErrorBoundary>
     );
 }
