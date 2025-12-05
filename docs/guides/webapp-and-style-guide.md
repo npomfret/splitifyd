@@ -214,10 +214,3 @@ Pages under `pages/admin/` and `components/admin/` are **completely isolated fro
 | Raw `<button>` | `Button` or `Clickable` |
 
 ---
-
-## After UI Changes
-
-1. Test on `localhost` (Aurora) and `127.0.0.1` (Brutalist)
-2. Run: `cd firebase && npm run theme:publish-local`
-3. Hard refresh: Cmd+Shift+R
-4. Verify no hardcoded colors: `grep -r "bg-gray\|bg-blue\|text-white" webapp-v2/src/components`
