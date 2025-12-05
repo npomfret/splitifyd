@@ -107,10 +107,10 @@ export class ExpenseDetailPage extends BasePage {
     }
 
     /**
-     * Get the confirmation dialog
+     * Get the confirmation dialog - Modal component has role="dialog"
      */
     protected getConfirmationDialog(): Locator {
-        return this.page.getByTestId('confirmation-dialog');
+        return this.page.getByRole('dialog');
     }
 
     /**
@@ -305,8 +305,8 @@ export class ExpenseDetailPage extends BasePage {
         // Verify the dialog shows the expense deletion message - using partial text match for the key parts
         await expect(confirmDialog.getByText(/this action cannot be undone and will affect group balances/i)).toBeVisible();
 
-        // Click the confirm button to actually delete
-        const confirmButton = confirmDialog.getByTestId('confirm-button');
+        // Click the confirm button to actually delete - use semantic button name
+        const confirmButton = confirmDialog.getByRole('button', { name: /confirm/i });
         await expect(confirmButton).toBeEnabled();
         await confirmButton.click();
 

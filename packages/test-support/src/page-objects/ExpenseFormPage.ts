@@ -196,7 +196,9 @@ export class ExpenseFormPage extends BasePage {
     }
 
     /**
-     * Cancel button - uses data-testid as it's outside the form element
+     * Cancel button - uses data-testid as it's outside the form element.
+     * Test-ID is justified because there are multiple Cancel buttons on the page
+     * (header cancel and form cancel) that need to be distinguished.
      */
     protected getCancelButton(): Locator {
         return this.page.getByTestId('expense-form-cancel');

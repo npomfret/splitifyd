@@ -218,7 +218,6 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                                 label={t('createGroupModal.groupDisplayNameLabel')}
                                 type='text'
                                 name='groupDisplayName'
-                                data-testid='group-display-name-input'
                                 placeholder={t('createGroupModal.groupDisplayNamePlaceholder')}
                                 value={groupDisplayNameSignal.value}
                                 onChange={(value) => {
@@ -235,10 +234,10 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
 
                         {/* Group Description (Optional) */}
                         <div>
-                            <label class='block text-sm font-medium text-text-primary mb-2'>{t('createGroupModal.groupDescriptionLabel')}</label>
+                            <label for='group-description' class='block text-sm font-medium text-text-primary mb-2'>{t('createGroupModal.groupDescriptionLabel')}</label>
                             <textarea
+                                id='group-description'
                                 name='description'
-                                data-testid='group-description-input'
                                 class='w-full px-3 py-2 border border-border-default bg-surface-base text-text-primary rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary resize-none'
                                 rows={3}
                                 placeholder={t('createGroupModal.groupDescriptionPlaceholder')}
@@ -260,7 +259,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
 <XCircleIcon size={20} className='text-semantic-error' />
                                     </div>
                                     <div class='ml-3'>
-                                        <p class='text-sm text-semantic-error' role='alert' data-testid='create-group-error-message'>
+                                        <p class='text-sm text-semantic-error' role='alert'>
                                             {enhancedGroupsStore.errorSignal.value}
                                         </p>
                                     </div>

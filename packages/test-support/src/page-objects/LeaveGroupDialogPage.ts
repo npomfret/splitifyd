@@ -21,17 +21,18 @@ export class LeaveGroupDialogPage extends BasePage {
     // ============================================================================
 
     /**
-     * Main dialog container
+     * Main dialog container - Modal component has role="dialog"
      */
     protected getDialogContainer(): Locator {
-        return this.page.getByTestId('leave-group-dialog');
+        return this.page.getByRole('dialog');
     }
 
     /**
-     * Inner confirmation dialog
+     * Inner confirmation dialog - Surface inside the modal
+     * Using the dialog role as the scope since it's the primary container
      */
     protected getConfirmationDialog(): Locator {
-        return this.page.getByTestId('confirmation-dialog');
+        return this.getDialogContainer();
     }
 
     /**
@@ -53,10 +54,10 @@ export class LeaveGroupDialogPage extends BasePage {
     }
 
     /**
-     * Dialog message
+     * Dialog message - uses the describedBy element from Modal
      */
     protected getDialogMessage(): Locator {
-        return this.getConfirmationDialog().getByTestId('confirm-dialog-message');
+        return this.getConfirmationDialog().locator('#confirm-dialog-description');
     }
 
     /**
@@ -67,17 +68,20 @@ export class LeaveGroupDialogPage extends BasePage {
     }
 
     /**
-     * Confirm button
+     * Confirm button - uses accessible name from ConfirmDialog
+     * Button text is "Leave Group" (normal) or "Understood" (when has balance)
      */
     protected getConfirmButton(): Locator {
-        return this.getConfirmationDialog().getByTestId('confirm-button');
+        const confirmText = translation.membersList.leaveGroupDialog.confirmText;
+        const understoodText = translation.common.understood;
+        return this.getConfirmationDialog().getByRole('button', { name: new RegExp(`${confirmText}|${understoodText}`, 'i') });
     }
 
     /**
-     * Cancel button
+     * Cancel button - uses accessible name from ConfirmDialog
      */
     protected getCancelButton(): Locator {
-        return this.getConfirmationDialog().getByTestId('cancel-button');
+        return this.getConfirmationDialog().getByRole('button', { name: translation.membersList.leaveGroupDialog.cancelText });
     }
 
     /**

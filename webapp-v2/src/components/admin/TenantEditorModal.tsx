@@ -236,7 +236,7 @@ function Section({ title, description, defaultOpen = false, testId, children }: 
                 onClick={() => setIsOpen(!isOpen)}
                 class='w-full flex items-center justify-between px-4 py-3 bg-surface-raised hover:bg-surface-base transition-colors'
                 data-testid={testId}
-                data-expanded={isOpen}
+                aria-expanded={isOpen}
             >
                 <div class='text-left'>
                     <h3 class='text-sm font-semibold text-text-primary'>{title}</h3>
@@ -1243,7 +1243,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                             {mode === 'create' ? t('admin.tenantEditor.descriptionCreate') : t('admin.tenantEditor.descriptionEdit')}
                         </p>
                     </div>
-                    <button onClick={handleCancel} class='text-text-muted hover:text-text-primary' data-testid='close-modal-button'>
+                    <button onClick={handleCancel} class='text-text-muted hover:text-text-primary' aria-label='Close'>
                         <XIcon size={24} />
                     </button>
                 </div>
@@ -2072,39 +2072,39 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                 <h4 class='text-xs font-semibold text-text-muted uppercase tracking-wide'>Font Families</h4>
                                 <div class='grid grid-cols-3 gap-4'>
                                     <div>
-                                        <label class='block text-xs font-medium text-text-secondary mb-1'>Sans *</label>
+                                        <label for='font-family-sans' class='block text-xs font-medium text-text-secondary mb-1'>Sans *</label>
                                         <input
+                                            id='font-family-sans'
                                             type='text'
                                             value={formData.fontFamilySans}
                                             onInput={(e) => update({ fontFamilySans: (e.target as HTMLInputElement).value })}
                                             placeholder='Inter, system-ui'
                                             disabled={isSaving}
                                             class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm'
-                                            data-testid='font-family-sans-input'
                                         />
                                     </div>
                                     <div>
-                                        <label class='block text-xs font-medium text-text-secondary mb-1'>Serif</label>
+                                        <label for='font-family-serif' class='block text-xs font-medium text-text-secondary mb-1'>Serif</label>
                                         <input
+                                            id='font-family-serif'
                                             type='text'
                                             value={formData.fontFamilySerif}
                                             onInput={(e) => update({ fontFamilySerif: (e.target as HTMLInputElement).value })}
                                             placeholder='Georgia, serif'
                                             disabled={isSaving}
                                             class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm'
-                                            data-testid='font-family-serif-input'
                                         />
                                     </div>
                                     <div>
-                                        <label class='block text-xs font-medium text-text-secondary mb-1'>Mono *</label>
+                                        <label for='font-family-mono' class='block text-xs font-medium text-text-secondary mb-1'>Mono *</label>
                                         <input
+                                            id='font-family-mono'
                                             type='text'
                                             value={formData.fontFamilyMono}
                                             onInput={(e) => update({ fontFamilyMono: (e.target as HTMLInputElement).value })}
                                             placeholder='Monaco, monospace'
                                             disabled={isSaving}
                                             class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm'
-                                            data-testid='font-family-mono-input'
                                         />
                                     </div>
                                 </div>

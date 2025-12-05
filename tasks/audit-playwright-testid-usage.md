@@ -176,27 +176,42 @@ The following patterns of `getByTestId` misuse are the most common and should be
     - `archived-badge` - Badge element (no semantic alternative)
     - `archived-groups-empty-state` - Container for scoping
 
-### `TenantEditorModalPage.ts` (~50 violations) ⏸️ DEFERRED
-- **Status:** Deferred - requires major refactoring of admin-only functionality
-- **Analysis:** The ColorInput component has proper `<label for={id}>` associations, so most inputs COULD use `getByLabel()`. However:
-    - The modal has ~50 form fields across many collapsible sections
-    - Some inputs already use semantic selectors in the page object (checkboxes via getByLabel)
-    - Section expansion buttons use test-ids with `data-expanded` attribute for state checking
-- **Partial semantic selectors already in use:**
-    - `getModal()` → `getByRole('dialog')` ✅
-    - `getModalHeading()` → `getByRole('heading', { name: /create|edit tenant/i })` ✅
-    - `getTenantIdInput()` → `getByLabel(/tenant id/i)` ✅
-    - `getAppNameInput()` → `getByLabel(/app name/i)` ✅
-    - Most checkbox inputs use `getByLabel()` ✅
-- **Test-ids that could be converted (future work):**
-    - ColorInput fields: `primary-color-input` → `getByLabel('Primary *')`
-    - Section buttons: `section-palette` → `getByRole('button', { name: 'Palette Colors' })`
-    - Font inputs: `font-family-sans-input` → `getByLabel(/Sans.*Font/i)`
-- **Test-ids to keep (justified):**
+### `TenantEditorModalPage.ts` ~~(~50 violations)~~ ✅ COMPLETED
+- **Status:** Refactored to use semantic selectors where possible
+- **TSX changes (TenantEditorModal.tsx):**
+    - Section component: replaced `data-expanded` with `aria-expanded` for proper accessibility
+    - Close button: added `aria-label='Close'` for semantic selection
+    - Font family inputs: added `id` and `htmlFor` for label association
+    - Removed `data-testid` from font family inputs (no longer needed)
+- **Page object changes:**
+    - `getSectionButtonByName(title)` → `getByRole('button', { name: title })`
+    - Section expand methods now use button names: `'Palette Colors'`, `'Surface Colors'`, etc.
+    - `getCloseModalButton()` → `getByRole('button', { name: /close/i })`
+    - `getAddDomainButton()` → `getByRole('button', { name: 'Add' })`
+    - `getFontFamilySansInput()` → `getByLabel(/^Sans/)`
+    - `getFontFamilySerifInput()` → `getByLabel(/^Serif/)`
+    - `getFontFamilyMonoInput()` → `getByLabel(/^Mono/)`
+    - `countExpandedSections()` → uses `aria-expanded` instead of `data-expanded`
+    - `collapseAllSections()` → uses `aria-expanded` instead of `data-expanded`
+- **Already semantic (unchanged):**
+    - `getModal()` → `getByRole('dialog')`
+    - `getModalHeading()` → `getByRole('heading', { name: /create|edit tenant/i })`
+    - `getTenantIdInput()` → `getByLabel(/tenant id/i)`
+    - `getAppNameInput()` → `getByLabel(/app name/i)`
+    - All checkbox inputs → `getByLabel()`
+    - `getSaveTenantButton()` → `getByRole('button', { name: /(create tenant|update tenant|save changes)/i })`
+    - `getCancelButton()` → `getByRole('button', { name: /cancel/i })`
+    - `getPublishButton()` → `getByRole('button', { name: /publish theme/i })`
+- **Kept as test-id (justified):**
+    - Color inputs (40+) - Duplicate labels across sections (e.g., "Primary *" in Palette, Text, Interactive)
+    - Aurora gradient colors - Dynamic color inputs
+    - Glassmorphism colors - Specialized color inputs
+    - Spacing/radii/shadow inputs - Duplicate labels like "SM *", "MD *", "LG *" across sections
+    - Legal inputs - Could convert but low value for admin-only
     - `logo-upload-field`, `favicon-upload-field` - Complex ImageUploadField components
     - `remove-domain-${index}` - Dynamic per-domain buttons
     - `source-tenant-select` - Dynamic select element
-- **Note:** This is admin-only functionality. Recommend incremental refactoring as tests are modified.
+    - `section-creation-mode`, `section-basic-info` - i18n translated section titles
 
 ### `PolicyAcceptanceModalPage.ts` ~~(13 violations)~~ ✅ COMPLETED
 - **Status:** Refactored to use semantic selectors
@@ -222,6 +237,116 @@ The following patterns of `getByTestId` misuse are the most common and should be
     - `policy-content` - Content container
     - `policy-content-loading` - Loading indicator container
     - `policy-acceptance-section` - Section container for scoping
+
+### `RemoveMemberDialogPage.ts` ~~(2 violations)~~ ✅ COMPLETED
+- **Status:** Refactored to use semantic selectors
+- **Page object changes:**
+    - `this.dialog` → `getByRole('dialog')` (Modal has role="dialog")
+    - `this.confirmButton` → `getByRole('button', { name: /confirm/i })`
+
+### `LeaveGroupDialogPage.ts` ~~(6 violations)~~ ✅ COMPLETED
+- **Status:** Refactored to use semantic selectors
+- **Page object changes:**
+    - `getDialogContainer()` → `getByRole('dialog')` (Modal has role="dialog")
+    - `getConfirmationDialog()` → Uses `getDialogContainer()` as scope
+    - `getDialogMessage()` → `locator('#confirm-dialog-description')` (uses aria-describedby element)
+    - `getConfirmButton()` → `getByRole('button', { name: /confirm|understood/i })`
+    - `getCancelButton()` → `getByRole('button', { name: /cancel/i })`
+- **Kept as test-id (justified):**
+    - `balance-error-message` - Specific dynamic content type
+
+### `CreateGroupModalPage.ts` ~~(3 violations)~~ ✅ COMPLETED
+- **Status:** Refactored to use semantic selectors
+- **TSX changes (CreateGroupModal.tsx):**
+    - Added `id='group-description'` and `for='group-description'` to description textarea
+    - Removed `data-testid` from display name input and error message
+- **Page object changes:**
+    - `getGroupDisplayNameInputInternal()` → `getByLabel(/display name in this group/i)`
+    - `getGroupDescriptionInputInternal()` → `getByLabel(/description/i)`
+    - `getErrorContainer()` → `getByRole('alert')`
+    - `getErrorMessage()` → `getByRole('alert')` scoped to modal
+
+### `JoinGroupPage.ts` (3 violations) - PENDING
+- **Analysis:** Mixed - some convertible, some justified
+- **Test-ids to convert:**
+    - `join-display-name-input` → `getByLabel()` or semantic selector
+- **Test-ids to keep (justified):**
+    - `invalid-link-warning`, `unable-join-warning` - Warning grouping logic
+    - `join-group-error-message` - Evaluate for `role="alert"`
+
+### `ExpenseDetailPage.ts` ~~(11 violations)~~ ✅ PARTIALLY COMPLETED
+- **Status:** Key interactions refactored to semantic selectors
+- **Page object changes:**
+    - `getConfirmationDialog()` → `getByRole('dialog')` (Modal has role="dialog")
+    - `confirmButton` in `deleteExpense()` → `getByRole('button', { name: /confirm/i })`
+- **Kept as test-id (justified):**
+    - Section cards (`expense-summary-card`, `expense-split-card`, etc.) - Structural containers
+    - `expense-header`, `expense-lock-warning` - Custom layout elements
+    - `expense-amount-section` - Container for complex content
+    - `comments-section`, `comment-item` - List item targeting
+
+### `ExpenseFormPage.ts` (11 violations) - PENDING
+- **Analysis:** Limited convertibility due to duplicate elements
+- **Test-ids to keep (justified):**
+    - `expense-form-cancel` - Two Cancel buttons on page (header + form), test-id disambiguates
+    - Section containers (`expense-details-section`, `who-paid-section`, etc.) - Structural scoping
+    - `payer-selector-trigger`, `payer-selector-search` - Dropdown components
+    - Validation errors - Field-specific error targeting
+
+### `SettlementFormPage.ts` (7 violations) - PENDING
+- **Analysis:** 29% convertible - mostly validation errors
+- **Test-ids to convert:**
+    - `settle-up-button` → `getByRole('button', { name: /settle up/i })`
+    - `settlement-date-input` → `getByPlaceholder()` or `getByLabel()`
+- **Test-ids to keep (justified):**
+    - `settlement-warning-message` - Dynamic validation warnings
+    - `balance-summary-sidebar` - Layout container
+    - `settlement-validation-error`, `settlement-amount-error` - Field-specific errors
+
+### `GroupDetailPage.ts` ~~(18 violations)~~ ✅ PARTIALLY COMPLETED
+- **Status:** Delete settlement dialog refactored to semantic selectors
+- **Page object changes:**
+    - `deleteSettlement()` dialog → `getByRole('dialog')` (Modal has role="dialog")
+    - `deleteSettlement()` heading → `getByRole('heading', { name: 'Delete Payment' })`
+    - `deleteSettlement()` confirm button → `getByRole('button', { name: /delete/i })`
+    - `deleteSettlement()` cancel button → `getByRole('button', { name: /cancel/i })`
+- **Kept as test-id (justified):**
+    - `member-item` + `data-member-name` - Member targeting by name
+    - `expense-item` - Frequently filtered with multiple conditions
+    - `debt-item` - Complex financial relationships
+    - `participant-selector-grid` - Custom form structure
+    - Toggle buttons, checkboxes - Further refactoring possible but lower priority
+
+### `AdminDiagnosticsPage.ts` (6 violations) - PENDING (Admin)
+- **Analysis:** 33% convertible
+- **Test-ids to convert:**
+    - `copy-theme-link-button` → `getByRole('button', { name: /copy link/i })`
+    - `force-reload-theme-button` → `getByRole('button', { name: /force reload/i })`
+- **Test-ids to keep (justified):**
+    - Card containers (`tenant-overview-card`, `theme-artifact-card`, etc.) - Generic wrappers
+
+### `AdminTenantConfigPage.ts` (4 violations) - PENDING (Admin)
+- **Analysis:** Keep all - generic card containers
+- **Test-ids to keep (justified):**
+    - All card containers - No semantic role available
+
+### `AdminUsersPage.ts` (1 violation) - PENDING (Admin)
+- **Analysis:** Keep - dynamic pattern
+- **Test-ids to keep (justified):**
+    - `edit-user-${uid}` - Dynamic per-user buttons
+
+### `AdminTenantsPage.ts` (1 violation) - PENDING (Admin)
+- **Analysis:** Mostly keep
+- **Test-ids to convert:**
+    - `tenants-loading-spinner` → `getByRole('status')`
+- **Test-ids to keep (justified):**
+    - `tenant-card`, `edit-tenant-${tenantId}` - Dynamic per-tenant elements
+
+### `ThemePage.ts` (1 violation) - PENDING
+- **Analysis:** 100% convertible
+- **Test-ids to convert:**
+    - `header-logo-link` → Semantic header navigation
+    - `header-signup-link` → `getByRole('button', { name: /sign up/i })`
 
 ### Acceptable Use Cases (or cases requiring more investigation)
 Some `testid` usage might be acceptable, but should be reviewed:

@@ -8,78 +8,92 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     // ✅ Section expansion helpers
-    protected getSectionButton(testId: string): Locator {
+    // For sections with i18n-translated titles, use test-id
+    protected getSectionButtonByTestId(testId: string): Locator {
         return this.page.getByTestId(testId);
     }
 
-    protected async expandSectionIfNeeded(testId: string): Promise<void> {
-        const button = this.getSectionButton(testId);
-        const isExpanded = await button.getAttribute('data-expanded');
+    // For sections with hardcoded titles, use button name (more semantic)
+    protected getSectionButtonByName(title: string): Locator {
+        return this.getModal().getByRole('button', { name: title });
+    }
+
+    protected async expandSectionByTestId(testId: string): Promise<void> {
+        const button = this.getSectionButtonByTestId(testId);
+        const isExpanded = await button.getAttribute('aria-expanded');
         if (isExpanded !== 'true') {
             await button.click();
-            // Wait for content to be visible
+            await this.page.waitForTimeout(100);
+        }
+    }
+
+    protected async expandSectionByName(title: string): Promise<void> {
+        const button = this.getSectionButtonByName(title);
+        const isExpanded = await button.getAttribute('aria-expanded');
+        if (isExpanded !== 'true') {
+            await button.click();
             await this.page.waitForTimeout(100);
         }
     }
 
     async expandActionsSection(): Promise<void> {
-        await this.expandSectionIfNeeded('section-palette');
+        await this.expandSectionByName('Palette Colors');
     }
 
     async expandPaletteSection(): Promise<void> {
-        await this.expandSectionIfNeeded('section-palette');
+        await this.expandSectionByName('Palette Colors');
     }
 
     async expandInteractiveSection(): Promise<void> {
-        await this.expandSectionIfNeeded('section-interactive');
+        await this.expandSectionByName('Interactive Colors');
     }
 
     async expandSurfacesSection(): Promise<void> {
-        await this.expandSectionIfNeeded('section-surfaces');
+        await this.expandSectionByName('Surface Colors');
     }
 
     async expandTextSection(): Promise<void> {
-        await this.expandSectionIfNeeded('section-text');
+        await this.expandSectionByName('Text Colors');
     }
 
     async expandMotionEffectsSection(): Promise<void> {
-        await this.expandSectionIfNeeded('section-motion-effects');
+        await this.expandSectionByName('Motion & Effects');
     }
 
     async expandTypographySection(): Promise<void> {
-        await this.expandSectionIfNeeded('section-typography');
+        await this.expandSectionByName('Typography');
     }
 
     async expandMarketingSection(): Promise<void> {
-        await this.expandSectionIfNeeded('section-marketing');
+        await this.expandSectionByName('Marketing');
     }
 
     async expandLogoAssetsSection(): Promise<void> {
-        await this.expandSectionIfNeeded('section-logo-assets');
+        await this.expandSectionByName('Logo & Assets');
     }
 
     async expandHeaderDisplaySection(): Promise<void> {
-        await this.expandSectionIfNeeded('section-header-display');
+        await this.expandSectionByName('Header Display');
     }
 
     async expandBordersSection(): Promise<void> {
-        await this.expandSectionIfNeeded('section-borders');
+        await this.expandSectionByName('Border Colors');
     }
 
     async expandStatusColorsSection(): Promise<void> {
-        await this.expandSectionIfNeeded('section-status-colors');
+        await this.expandSectionByName('Status Colors');
     }
 
     async expandAuroraGradientSection(): Promise<void> {
         // First expand the parent motion-effects section, then aurora-gradient
         await this.expandMotionEffectsSection();
-        await this.expandSectionIfNeeded('section-aurora-gradient');
+        await this.expandSectionByName('Aurora Gradient');
     }
 
     async expandGlassmorphismSection(): Promise<void> {
         // First expand the parent motion-effects section, then glassmorphism-settings
         await this.expandMotionEffectsSection();
-        await this.expandSectionIfNeeded('section-glassmorphism-settings');
+        await this.expandSectionByName('Glassmorphism Settings');
     }
 
     // ✅ Protected locators - internal use only (semantic selectors preferred over test IDs)
@@ -107,6 +121,7 @@ export class TenantEditorModalPage extends BasePage {
         return this.page.getByTestId('favicon-upload-field');
     }
 
+    // Color inputs use test-ids (justified: duplicate labels across sections like "Primary *", "Secondary *")
     protected getPrimaryColorInput(): Locator {
         return this.page.getByTestId('primary-color-input');
     }
@@ -120,7 +135,7 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     protected getSurfaceColorInput(): Locator {
-        return this.page.getByTestId('surface-color-input');
+        return this.page.getByTestId('surface-base-color-input');
     }
 
     protected getTextColorInput(): Locator {
@@ -166,17 +181,17 @@ export class TenantEditorModalPage extends BasePage {
         return this.page.getByLabel(/scroll reveal/i);
     }
 
-    // Typography Controls
+    // Typography Controls - use semantic labels
     protected getFontFamilySansInput(): Locator {
-        return this.page.getByTestId('font-family-sans-input');
+        return this.getModal().getByLabel(/^Sans/);
     }
 
     protected getFontFamilySerifInput(): Locator {
-        return this.page.getByTestId('font-family-serif-input');
+        return this.getModal().getByLabel(/^Serif/);
     }
 
     protected getFontFamilyMonoInput(): Locator {
-        return this.page.getByTestId('font-family-mono-input');
+        return this.getModal().getByLabel(/^Mono/);
     }
 
     // Aurora Gradient (4 colors)
@@ -214,7 +229,7 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     protected getAddDomainButton(): Locator {
-        return this.page.getByTestId('add-domain-button');
+        return this.getModal().getByRole('button', { name: 'Add' });
     }
 
     protected getSaveTenantButton(): Locator {
@@ -226,7 +241,7 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     protected getCloseModalButton(): Locator {
-        return this.page.getByTestId('close-modal-button');
+        return this.getModal().getByRole('button', { name: /close/i });
     }
 
     protected getPublishButton(): Locator {
@@ -830,7 +845,7 @@ export class TenantEditorModalPage extends BasePage {
 
     // Spacing section
     async expandSpacingSection(): Promise<void> {
-        await this.expandSectionIfNeeded('section-spacing');
+        await this.expandSectionByName('Spacing');
     }
 
     protected getSpacing2xsInput(): Locator {
@@ -862,7 +877,7 @@ export class TenantEditorModalPage extends BasePage {
 
     // Radii section
     async expandRadiiSection(): Promise<void> {
-        await this.expandSectionIfNeeded('section-radii');
+        await this.expandSectionByName('Border Radii');
     }
 
     protected getRadiiSmInput(): Locator {
@@ -896,7 +911,7 @@ export class TenantEditorModalPage extends BasePage {
 
     // Shadows section
     async expandShadowsSection(): Promise<void> {
-        await this.expandSectionIfNeeded('section-shadows');
+        await this.expandSectionByName('Shadows');
     }
 
     protected getShadowSmInput(): Locator {
@@ -933,7 +948,7 @@ export class TenantEditorModalPage extends BasePage {
 
     // Legal section
     async expandLegalSection(): Promise<void> {
-        await this.expandSectionIfNeeded('section-legal');
+        await this.expandSectionByName('Legal');
     }
 
     protected getCompanyNameInput(): Locator {
@@ -1019,13 +1034,13 @@ export class TenantEditorModalPage extends BasePage {
 
     // Helper to count total visible sections
     async countExpandedSections(): Promise<number> {
-        const expandedButtons = await this.page.locator('[data-expanded="true"]').count();
+        const expandedButtons = await this.getModal().locator('[aria-expanded="true"]').count();
         return expandedButtons;
     }
 
     // Helper to collapse all sections
     async collapseAllSections(): Promise<void> {
-        const expandedButtons = this.page.locator('[data-expanded="true"]');
+        const expandedButtons = this.getModal().locator('[aria-expanded="true"]');
         const count = await expandedButtons.count();
         for (let i = 0; i < count; i++) {
             await expandedButtons.nth(0).click();

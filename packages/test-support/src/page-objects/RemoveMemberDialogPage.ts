@@ -1,6 +1,9 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { TEST_TIMEOUTS } from '../test-constants';
+import { translationEn } from '../translations/translation-en';
 import { BasePage } from './BasePage';
+
+const translation = translationEn;
 
 /**
  * Remove Member confirmation dialog used in group management flows.
@@ -12,8 +15,10 @@ export class RemoveMemberDialogPage extends BasePage {
 
     constructor(page: Page) {
         super(page);
-        this.dialog = this.page.getByTestId('remove-member-dialog');
-        this.confirmButton = this.dialog.getByTestId('confirm-button');
+        // Modal component has role="dialog" with aria-modal="true"
+        this.dialog = this.page.getByRole('dialog');
+        // ConfirmDialog renders confirm button with translated text
+        this.confirmButton = this.dialog.getByRole('button', { name: translation.membersList.removeMemberDialog.confirmText });
     }
 
     /**

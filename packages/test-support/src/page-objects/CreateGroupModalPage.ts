@@ -79,14 +79,16 @@ export class CreateGroupModalPage extends BasePage {
     }
 
     private getGroupDisplayNameInputInternal(): Locator {
-        return this.getModalContainer().getByTestId('group-display-name-input');
+        // Input component renders with label association, match partial label text
+        return this.getModalContainer().getByLabel(/display name in this group/i);
     }
 
     /**
      * Group description textarea field
      */
     private getGroupDescriptionInputInternal(): Locator {
-        return this.getModalContainer().getByTestId('group-description-input');
+        // Uses id/for label association on textarea
+        return this.getModalContainer().getByLabel(/description/i);
     }
 
     /**
@@ -148,9 +150,10 @@ export class CreateGroupModalPage extends BasePage {
 
     /**
      * Error message container within the modal (for API/server errors)
+     * The error message has role="alert" for accessibility
      */
     protected getErrorContainer(): Locator {
-        return this.getModalContainer().getByTestId('create-group-error-message');
+        return this.getModalContainer().getByRole('alert');
     }
 
     /**
@@ -164,21 +167,12 @@ export class CreateGroupModalPage extends BasePage {
     }
 
     /**
-     * Error locator helper that mirrors the legacy e2e implementation by
-     * scanning common alert patterns inside the modal. Useful when network
-     * failures render messages outside the standard container.
+     * Error locator helper that scans common alert patterns inside the modal.
+     * Uses semantic selectors where possible.
      */
     protected getErrorMessage(pattern?: string | RegExp): Locator {
-        const allErrors = this.page.locator(
-            [
-                '[data-testid="create-group-error-message"]',
-                '[role="alert"]',
-                '[data-testid*="error"]',
-                '.error-message',
-                '[role="dialog"] [role="alert"]',
-            ]
-                .join(', '),
-        );
+        // Focus on role="alert" which is the primary semantic indicator
+        const allErrors = this.getModalContainer().getByRole('alert');
 
         return pattern ? allErrors.filter({ hasText: pattern }) : allErrors;
     }

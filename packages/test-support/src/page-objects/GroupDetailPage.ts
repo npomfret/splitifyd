@@ -1505,15 +1505,16 @@ export class GroupDetailPage extends BasePage {
 
         await this.clickButton(deleteButton, { buttonName: 'Delete Settlement' });
 
-        const confirmDialog = this.page.locator('[data-testid="confirmation-dialog"]');
+        // Use semantic dialog selector - Modal component has role="dialog"
+        const confirmDialog = this.page.getByRole('dialog');
         await expect(confirmDialog).toBeVisible({ timeout: 3000 });
-        await expect(confirmDialog.locator('h3')).toHaveText('Delete Payment');
+        await expect(confirmDialog.getByRole('heading', { name: 'Delete Payment' })).toBeVisible();
 
         if (confirm) {
-            const confirmButton = confirmDialog.locator('[data-testid="confirm-button"]');
+            const confirmButton = confirmDialog.getByRole('button', { name: /delete/i });
             await this.clickButton(confirmButton, { buttonName: 'Delete' });
         } else {
-            const cancelButton = confirmDialog.locator('[data-testid="cancel-button"]');
+            const cancelButton = confirmDialog.getByRole('button', { name: /cancel/i });
             await this.clickButton(cancelButton, { buttonName: 'Cancel' });
         }
 
