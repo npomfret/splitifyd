@@ -1,4 +1,4 @@
-import type { CommentText, Email, GroupName, ISOString, Password, ShareLinkToken, UserId } from '@billsplit-wl/shared';
+import type { CommentText, Email, GroupName, ISOString, ShareLinkToken, UserId } from '@billsplit-wl/shared';
 import {
     AcceptMultiplePoliciesResponse,
     AcceptPolicyRequest,

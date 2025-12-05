@@ -7,7 +7,7 @@ import { Errors } from '../errors';
 import { logger } from '../logger';
 import { ActivityFeedService } from '../services/ActivityFeedService';
 import type { IFirestoreReader } from '../services/firestore';
-import { validateGroupIdParam } from '../validation/common/id-validators';
+import { validateGroupIdParam } from '../validation/common';
 import { validateActivityFeedQuery } from './validation';
 
 interface ActivityFeedResponse {

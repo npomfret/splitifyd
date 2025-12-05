@@ -18,7 +18,7 @@ import type { BrandingArtifactMetadata, CommentDTO, ISOString, ShareLinkDTO, Sha
 import { DisplayName, ExpenseId, GroupId, ShareLinkId } from '@billsplit-wl/shared';
 import type { Email } from '@billsplit-wl/shared';
 import { PolicyId } from '@billsplit-wl/shared';
-import type { IDocumentReference, ITransaction, IWriteBatch } from '../../firestore-wrapper';
+import type { IDocumentReference, ITransaction, IWriteBatch } from 'ts-firebase-simulator';
 import type { MergeJobDocument } from '../../merge/MergeService';
 import type { GroupBalanceDTO } from '../../schemas';
 import type { TenantDocument } from '../../schemas/tenant';

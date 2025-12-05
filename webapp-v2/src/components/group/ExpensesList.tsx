@@ -7,10 +7,10 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { Checkbox } from '../ui/Checkbox';
-import { EmptyState } from '../ui/EmptyState';
+import { EmptyState } from '@/components/ui';
 import { SkeletonExpenseItem } from '../ui/Skeleton';
 import { Stack } from '../ui/Stack';
-import { Typography } from '../ui/Typography';
+import { Typography } from '@/components/ui';
 import { ExpenseItem } from './ExpenseItem';
 
 interface ExpensesListProps {

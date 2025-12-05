@@ -11,7 +11,7 @@ import { useComputed, useSignal } from '@preact/signals';
 import { useMemo } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Card } from '../ui/Card';
-import { Typography } from '../ui/Typography';
+import { Typography } from '@/components/ui';
 
 interface BalanceSummaryProps {
     variant?: 'default' | 'sidebar';

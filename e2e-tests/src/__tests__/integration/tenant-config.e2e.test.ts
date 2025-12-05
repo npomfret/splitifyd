@@ -1,5 +1,5 @@
 import { AdminTenantConfigPage, ApiDriver } from '@billsplit-wl/test-support';
-import { expect, simpleTest as test } from '../../fixtures/simple-test.fixture';
+import { simpleTest as test } from '../../fixtures/simple-test.fixture';
 
 test.describe('Tenant config tab', () => {
     test('displays tenant configuration values after loading', async ({ createLoggedInBrowsers }) => {

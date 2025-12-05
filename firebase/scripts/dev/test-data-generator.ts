@@ -25,7 +25,6 @@ import {
     toDisplayName,
     toEmail,
     toISOString,
-    toPassword,
     toUserId,
     UserRegistration,
     zeroAmount,

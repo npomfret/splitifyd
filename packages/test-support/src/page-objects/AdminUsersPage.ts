@@ -1,5 +1,4 @@
 import type { Locator, Page } from '@playwright/test';
-import { expect } from '@playwright/test';
 import type { UserId } from '@billsplit-wl/shared';
 import { BasePage } from './BasePage';
 import { UserEditorModalPage } from './UserEditorModalPage';

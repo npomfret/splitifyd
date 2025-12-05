@@ -8,7 +8,7 @@ import { GroupDTO } from '@billsplit-wl/shared';
 import { useTranslation } from 'react-i18next';
 import { Card } from '../ui/Card';
 import { Stack } from '../ui/Stack';
-import { Typography } from '../ui/Typography';
+import { Typography } from '@/components/ui';
 
 interface GroupPreviewProps {
     group: GroupDTO;

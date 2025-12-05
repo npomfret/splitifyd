@@ -1,4 +1,4 @@
-import { TenantDomainName, TenantFullRecord, TenantId, toTenantDomainName, toTenantId } from '@billsplit-wl/shared';
+import { TenantDomainName, TenantFullRecord, TenantId, toTenantDomainName } from '@billsplit-wl/shared';
 import { logger } from '../../logger';
 import type { TenantRequestContext } from '../../types/tenant';
 import { Errors } from '../../errors';

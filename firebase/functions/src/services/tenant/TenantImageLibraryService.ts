@@ -1,8 +1,8 @@
 import type { TenantId, TenantImageDTO, TenantImageId, UserId } from '@billsplit-wl/shared';
 import { isoStringNow, toTenantImageId } from '@billsplit-wl/shared';
 import { ErrorDetail, Errors } from '../../errors';
-import type { IFirestoreReader } from '../firestore/IFirestoreReader';
-import type { IFirestoreWriter } from '../firestore/IFirestoreWriter';
+import type { IFirestoreReader } from '../firestore';
+import type { IFirestoreWriter } from '../firestore';
 import type { TenantAssetStorage } from '../storage/TenantAssetStorage';
 
 export interface ITenantImageLibraryService {

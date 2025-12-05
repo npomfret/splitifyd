@@ -3,7 +3,7 @@ import { amountToSmallestUnit, negateAmount, smallestUnitToAmountString, subtrac
 import { negateNormalizedAmount } from '@billsplit-wl/shared';
 import { GroupId } from '@billsplit-wl/shared';
 import type { CurrencyISOCode } from '@billsplit-wl/shared';
-import type { ITransaction } from '../../firestore-wrapper';
+import type { ITransaction } from 'ts-firebase-simulator';
 import type { GroupBalanceDTO, ParsedCurrencyBalances as CurrencyBalances } from '../../schemas';
 import type { IFirestoreWriter } from '../firestore';
 import { DebtSimplificationService } from './DebtSimplificationService';

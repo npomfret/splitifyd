@@ -5,7 +5,6 @@ import {
     COLOR_PATTERNS,
     MAX_GROUP_MEMBERS,
     MemberStatuses,
-    PermissionLevels,
     toDisplayName,
     toGroupId,
     toISOString,

@@ -1,6 +1,6 @@
 import type { GroupDTO, GroupId } from '@billsplit-wl/shared';
 import { ErrorDetail, Errors } from '../../errors';
-import type { ITransaction } from '../../firestore-wrapper';
+import type { ITransaction } from 'ts-firebase-simulator';
 import type { GroupBalanceDTO } from '../../schemas';
 import type { IFirestoreReader, IFirestoreWriter } from '../firestore';
 

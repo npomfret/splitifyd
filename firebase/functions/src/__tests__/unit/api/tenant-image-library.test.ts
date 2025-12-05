@@ -1,4 +1,4 @@
-import { SystemUserRoles, toTenantDomainName, toTenantImageId, type UserId } from '@billsplit-wl/shared';
+import { toTenantDomainName, toTenantImageId } from '@billsplit-wl/shared';
 import { AdminTenantRequestBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { AppDriver } from '../AppDriver';

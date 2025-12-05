@@ -1,7 +1,7 @@
 import { apiClient } from '@/app/apiClient';
 import { Alert, Button, Card, Input, LoadingSpinner, Modal } from '@/components/ui';
 import { logError } from '@/utils/browser-logger';
-import type { AdminUserProfile, DisplayName, Email, SystemUserRole, UpdateUserProfileAdminRequest } from '@billsplit-wl/shared';
+import type { AdminUserProfile, SystemUserRole, UpdateUserProfileAdminRequest } from '@billsplit-wl/shared';
 import { SystemUserRoles, toDisplayName, toEmail } from '@billsplit-wl/shared';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
