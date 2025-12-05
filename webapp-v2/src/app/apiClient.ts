@@ -766,42 +766,42 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
         }
 
         return this.request({
-            endpoint: '/groups/:id/full-details',
+            endpoint: '/groups/:groupId/full-details',
             method: 'GET',
-            params: { id },
+            params: { groupId: id },
             query: Object.keys(queryParams).length > 0 ? queryParams : undefined,
         });
     }
 
     async leaveGroup(groupId: GroupId): Promise<void> {
         await this.request({
-            endpoint: '/groups/:id/leave',
+            endpoint: '/groups/:groupId/leave',
             method: 'POST',
-            params: { id: groupId },
+            params: { groupId },
         });
     }
 
     async archiveGroupForUser(groupId: GroupId): Promise<void> {
         await this.request({
-            endpoint: '/groups/:id/archive',
+            endpoint: '/groups/:groupId/archive',
             method: 'POST',
-            params: { id: groupId },
+            params: { groupId },
         });
     }
 
     async unarchiveGroupForUser(groupId: GroupId): Promise<void> {
         await this.request({
-            endpoint: '/groups/:id/unarchive',
+            endpoint: '/groups/:groupId/unarchive',
             method: 'POST',
-            params: { id: groupId },
+            params: { groupId },
         });
     }
 
     async removeGroupMember(groupId: GroupId, memberId: UserId): Promise<void> {
         await this.request({
-            endpoint: '/groups/:id/members/:memberId',
+            endpoint: '/groups/:groupId/members/:memberId',
             method: 'DELETE',
-            params: { id: groupId, memberId },
+            params: { groupId, memberId },
         });
     }
 
@@ -1161,9 +1161,9 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
 
     async updateGroupMemberDisplayName(groupId: GroupId, displayName: DisplayName): Promise<void> {
         await this.request({
-            endpoint: '/groups/:id/members/display-name',
+            endpoint: '/groups/:groupId/members/display-name',
             method: 'PUT',
-            params: { id: groupId },
+            params: { groupId },
             body: { displayName },
         });
     }
