@@ -146,7 +146,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                                 validationErrors={formState.validationErrors}
                                 updateField={formState.updateField}
                                 validateOnBlur={formState.validateOnBlur}
-                                getRecentAmounts={formState.getRecentAmounts}
+                                recentAmounts={formState.recentAmounts}
                                 PREDEFINED_EXPENSE_LABELS={formState.PREDEFINED_EXPENSE_LABELS}
                             />
 

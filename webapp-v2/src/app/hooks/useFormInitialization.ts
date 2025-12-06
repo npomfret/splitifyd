@@ -32,6 +32,7 @@ export function useFormInitialization({ isOpen, groupId, expenseId, isEditMode, 
     // Computed values from stores
     const group = useComputed(() => enhancedGroupDetailStore.group);
     const members = useComputed(() => enhancedGroupDetailStore.members);
+    const expenses = useComputed(() => enhancedGroupDetailStore.expenses);
     const loading = useComputed(() => enhancedGroupDetailStore.loading);
 
     // Data readiness signal - only true when initialized, loading is false AND we have members
@@ -212,5 +213,6 @@ export function useFormInitialization({ isOpen, groupId, expenseId, isEditMode, 
         loading: loading.value,
         group: group.value,
         members: members.value,
+        expenses: expenses.value,
     };
 }

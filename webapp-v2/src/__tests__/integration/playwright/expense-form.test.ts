@@ -1584,35 +1584,69 @@ test.describe('Expense Form', () => {
     });
 
     test.describe('Recent Amounts', () => {
-        test('should not show recent amounts section when no amounts stored', async ({ authenticatedPage }) => {
+        test('should not show recent amounts section when group has no expenses', async ({ authenticatedPage }) => {
             const groupId = 'test-group-no-recent-amounts';
+            // openExpenseFormForTest creates a group with no expenses by default
             const { expenseFormPage } = await openExpenseFormForTest(authenticatedPage, groupId);
 
             await expenseFormPage.waitForExpenseFormSections();
             await expenseFormPage.verifyRecentAmountsSectionNotVisible();
         });
 
-        test('should show recent amounts and fill both currency and amount when clicked', async ({ authenticatedPage }) => {
+        test('should show recent amounts from group expenses and fill both currency and amount when clicked', async ({ authenticatedPage }) => {
             const { page, user: testUser } = authenticatedPage;
             const groupId = 'test-group-recent-amounts';
 
-            // Pre-seed localStorage with recent amounts BEFORE navigating
-            // Key format is: user_{userId}_recent-expense-amounts
-            await page.addInitScript((userId) => {
-                const storageKey = `user_${userId}_recent-expense-amounts`;
-                const recentAmounts = [
-                    { amount: '50.00', currency: 'USD' },
-                    { amount: '25.50', currency: 'EUR' },
-                    { amount: '1000', currency: 'JPY' },
-                ];
-                localStorage.setItem(storageKey, JSON.stringify(recentAmounts));
-            }, testUser.uid);
+            const group = GroupDTOBuilder
+                .groupForUser(testUser.uid)
+                .withId(groupId)
+                .build();
+            const members = [
+                new GroupMemberBuilder()
+                    .withUid(testUser.uid)
+                    .withDisplayName(testUser.displayName)
+                    .withGroupDisplayName(testUser.displayName)
+                    .build(),
+            ];
 
-            const { expenseFormPage } = await openExpenseFormForTest(authenticatedPage, groupId);
+            // Create expenses with different amounts and currencies
+            // paidBy must be a valid group member
+            const expenses = [
+                new ExpenseDTOBuilder()
+                    .withGroupId(groupId)
+                    .withAmount('50.00', 'USD')
+                    .withPaidBy(testUser.uid)
+                    .withCreatedBy(testUser.uid)
+                    .build(),
+                new ExpenseDTOBuilder()
+                    .withGroupId(groupId)
+                    .withAmount('25.50', 'EUR')
+                    .withPaidBy(testUser.uid)
+                    .withCreatedBy(testUser.uid)
+                    .build(),
+                new ExpenseDTOBuilder()
+                    .withGroupId(groupId)
+                    .withAmount('1000', 'JPY')
+                    .withPaidBy(testUser.uid)
+                    .withCreatedBy(testUser.uid)
+                    .build(),
+            ];
+
+            const fullDetails = new GroupFullDetailsBuilder()
+                .withGroup(group)
+                .withMembers(members)
+                .withExpenses(expenses)
+                .build();
+
+            await mockGroupDetailApi(page, groupId, fullDetails);
+            await mockGroupCommentsApi(page, groupId);
+
+            const expenseFormPage = new ExpenseFormPage(page);
+            await expenseFormPage.navigateToAddExpense(groupId);
 
             await expenseFormPage.waitForExpenseFormSections();
 
-            // Verify recent amounts section is visible
+            // Verify recent amounts section is visible with amounts from group expenses
             await expenseFormPage.verifyRecentAmountsSectionVisible();
             await expenseFormPage.verifyRecentAmountCount(3);
 
@@ -1623,27 +1657,67 @@ test.describe('Expense Form', () => {
             await expenseFormPage.verifyCurrencyValue('EUR');
         });
 
-        test('should display all stored recent amounts (up to storage limit)', async ({ authenticatedPage }) => {
+        test('should display unique recent amounts from group expenses (up to 3)', async ({ authenticatedPage }) => {
             const { page, user: testUser } = authenticatedPage;
             const groupId = 'test-group-recent-amounts-multiple';
 
-            // Pre-seed localStorage with exactly 3 amounts BEFORE navigating
-            // (storage limit is 3, so this represents a full recent amounts list)
-            await page.addInitScript((userId) => {
-                const storageKey = `user_${userId}_recent-expense-amounts`;
-                const recentAmounts = [
-                    { amount: '10.00', currency: 'USD' },
-                    { amount: '20.00', currency: 'GBP' },
-                    { amount: '30.00', currency: 'EUR' },
-                ];
-                localStorage.setItem(storageKey, JSON.stringify(recentAmounts));
-            }, testUser.uid);
+            const group = GroupDTOBuilder
+                .groupForUser(testUser.uid)
+                .withId(groupId)
+                .build();
+            const members = [
+                new GroupMemberBuilder()
+                    .withUid(testUser.uid)
+                    .withDisplayName(testUser.displayName)
+                    .withGroupDisplayName(testUser.displayName)
+                    .build(),
+            ];
 
-            const { expenseFormPage } = await openExpenseFormForTest(authenticatedPage, groupId);
+            // Create 4 expenses but only 3 unique amount/currency combinations
+            // The 4th expense has the same amount/currency as the 1st
+            // paidBy must be a valid group member
+            const expenses = [
+                new ExpenseDTOBuilder()
+                    .withGroupId(groupId)
+                    .withAmount('10.00', 'USD')
+                    .withPaidBy(testUser.uid)
+                    .withCreatedBy(testUser.uid)
+                    .build(),
+                new ExpenseDTOBuilder()
+                    .withGroupId(groupId)
+                    .withAmount('20.00', 'GBP')
+                    .withPaidBy(testUser.uid)
+                    .withCreatedBy(testUser.uid)
+                    .build(),
+                new ExpenseDTOBuilder()
+                    .withGroupId(groupId)
+                    .withAmount('30.00', 'EUR')
+                    .withPaidBy(testUser.uid)
+                    .withCreatedBy(testUser.uid)
+                    .build(),
+                new ExpenseDTOBuilder()
+                    .withGroupId(groupId)
+                    .withAmount('10.00', 'USD') // Duplicate - should not show twice
+                    .withPaidBy(testUser.uid)
+                    .withCreatedBy(testUser.uid)
+                    .build(),
+            ];
+
+            const fullDetails = new GroupFullDetailsBuilder()
+                .withGroup(group)
+                .withMembers(members)
+                .withExpenses(expenses)
+                .build();
+
+            await mockGroupDetailApi(page, groupId, fullDetails);
+            await mockGroupCommentsApi(page, groupId);
+
+            const expenseFormPage = new ExpenseFormPage(page);
+            await expenseFormPage.navigateToAddExpense(groupId);
 
             await expenseFormPage.waitForExpenseFormSections();
 
-            // Should show all 3 stored amounts
+            // Should show 3 unique amounts (duplicates filtered out)
             await expenseFormPage.verifyRecentAmountsSectionVisible();
             await expenseFormPage.verifyRecentAmountCount(3);
         });

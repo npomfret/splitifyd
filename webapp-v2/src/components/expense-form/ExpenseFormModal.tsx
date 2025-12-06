@@ -146,7 +146,7 @@ export function ExpenseFormModal({ isOpen, onClose, groupId, mode, expenseId, on
                                 validationErrors={formState.validationErrors}
                                 updateField={formState.updateField}
                                 validateOnBlur={formState.validateOnBlur}
-                                getRecentAmounts={formState.getRecentAmounts}
+                                recentAmounts={formState.recentAmounts}
                                 PREDEFINED_EXPENSE_LABELS={formState.PREDEFINED_EXPENSE_LABELS}
                             />
 

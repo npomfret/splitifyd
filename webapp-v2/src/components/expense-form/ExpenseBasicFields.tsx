@@ -17,15 +17,14 @@ interface ExpenseBasicFieldsProps {
     validationErrors: Record<string, string>;
     updateField: (field: string, value: any) => void;
     validateOnBlur: (field: string) => void;
-    getRecentAmounts: () => RecentAmount[];
+    recentAmounts: RecentAmount[];
     PREDEFINED_EXPENSE_LABELS: ExpenseLabel[];
 }
 
 export function ExpenseBasicFields(
-    { description, amount, currency, date, time, label, validationErrors, updateField, validateOnBlur, getRecentAmounts, PREDEFINED_EXPENSE_LABELS }: ExpenseBasicFieldsProps,
+    { description, amount, currency, date, time, label, validationErrors, updateField, validateOnBlur, recentAmounts, PREDEFINED_EXPENSE_LABELS }: ExpenseBasicFieldsProps,
 ) {
     const { t } = useTranslation();
-    const recentAmounts = getRecentAmounts();
     const currencyService = CurrencyService.getInstance();
     const recentCurrencies = currencyService.getRecentCurrencies();
 

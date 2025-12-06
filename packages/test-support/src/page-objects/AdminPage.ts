@@ -263,8 +263,11 @@ export class AdminPage extends BasePage {
     }
 
     async verifyAdminPrimaryColorIndigo(): Promise<void> {
-        const color = await this.getAdminPrimaryColor();
-        expect(color).toBe('#4f46e5');
+        // Wait for the CSS variable to be available (stylesheet might still be loading)
+        await expect(async () => {
+            const color = await this.getAdminPrimaryColor();
+            expect(color).toBe('#4f46e5');
+        }).toPass({ timeout: 5000 });
     }
 
     async verifyAdminIsolation(): Promise<void> {

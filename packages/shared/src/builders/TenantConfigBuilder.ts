@@ -93,8 +93,8 @@ const DEFAULT_BRANDING_TOKENS: TenantBranding = {
             lg: '0 10px 15px rgba(0, 0, 0, 0.1)',
         },
         assets: {
-            logoUrl: 'https://example.com/logo.svg',
-            faviconUrl: 'https://example.com/favicon.ico',
+            logoUrl: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect fill="%230066cc" width="100" height="100"/></svg>',
+            faviconUrl: 'data:image/x-icon;base64,AA==',
         },
         legal: {
             appName: 'Test App',

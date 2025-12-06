@@ -1,11 +1,42 @@
-import { PREDEFINED_EXPENSE_LABELS } from '@billsplit-wl/shared';
+import { ExpenseDTO, PREDEFINED_EXPENSE_LABELS, RecentAmount } from '@billsplit-wl/shared';
 import { GroupId } from '@billsplit-wl/shared';
 import { toGroupId } from '@billsplit-wl/shared';
 import { ExpenseId } from '@billsplit-wl/shared';
-import { getRecentAmounts } from '../stores/expense-form-store';
 import { useFormInitialization } from './useFormInitialization';
 import { useFormState } from './useFormState';
 import { useFormSubmission } from './useFormSubmission';
+
+const MAX_RECENT_AMOUNTS = 3;
+
+/**
+ * Derives recent amounts from group expenses.
+ * Returns unique amount/currency pairs from the most recent expenses.
+ */
+function deriveRecentAmountsFromExpenses(expenses: ExpenseDTO[]): RecentAmount[] {
+    if (!expenses || expenses.length === 0) {
+        return [];
+    }
+
+    // expenses are already sorted by date (most recent first) from the store
+    const seen = new Set<string>();
+    const recentAmounts: RecentAmount[] = [];
+
+    for (const expense of expenses) {
+        const key = `${expense.amount}|${expense.currency}`;
+        if (!seen.has(key)) {
+            seen.add(key);
+            recentAmounts.push({
+                amount: expense.amount,
+                currency: expense.currency,
+            });
+            if (recentAmounts.length >= MAX_RECENT_AMOUNTS) {
+                break;
+            }
+        }
+    }
+
+    return recentAmounts;
+}
 
 interface UseExpenseFormOptions {
     isOpen: boolean;
@@ -83,8 +114,8 @@ export function useExpenseForm({ isOpen, groupId, expenseId, isEditMode, isCopyM
         handleSelectAll: () => formSubmission.handleSelectAll(formInitialization.members),
         handleSelectNone: () => formSubmission.handleSelectNone(formState.paidBy),
 
-        // Helpers
-        getRecentAmounts,
+        // Helpers - recent amounts derived from group expenses
+        recentAmounts: deriveRecentAmountsFromExpenses(formInitialization.expenses),
         PREDEFINED_EXPENSE_LABELS,
     };
 }

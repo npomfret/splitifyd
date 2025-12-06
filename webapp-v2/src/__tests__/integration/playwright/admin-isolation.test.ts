@@ -43,6 +43,8 @@ test.describe('Admin Page Isolation - Theme Independence', () => {
         const adminPage = new AdminPage(page);
 
         await adminPage.navigate();
+        // Wait for the admin stylesheet to be loaded before checking CSS variables
+        await adminPage.verifyAdminStylesheetLoaded();
         await adminPage.verifyAdminPrimaryColorIndigo();
     });
 });
