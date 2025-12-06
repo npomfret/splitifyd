@@ -52,18 +52,19 @@ Raw brand colors used to derive semantic colors.
 
 ---
 
-### 2. Semantic Surface Colors (10 tokens)
+### 2. Semantic Surface Colors (11 tokens)
 
 Background colors for UI layers.
 
 | Token | CSS Variable | Tailwind Class | Default | Usage |
 |-------|--------------|----------------|---------|-------|
 | `base` | `--surface-base-rgb` | `bg-surface-base` | `#f8fafc` | Page background |
-| `raised` | `--surface-raised-rgb` | `bg-surface-raised` | `#fafbfc` | Cards, elevated surfaces |
+| `raised` | `--surface-raised-rgb` | `bg-surface-raised` | `#fafbfc` | Cards, elevated surfaces, header |
 | `sunken` | `--surface-sunken-rgb` | `bg-surface-sunken` | `#eff1f3` | Inset areas |
 | `overlay` | `--surface-overlay-rgb` | `bg-surface-overlay` | `#0f172a` | Modal backdrops |
 | `warning` | `--surface-warning-rgb` | `bg-surface-warning` | `#fef3c7` | Warning backgrounds |
 | `muted` | `--surface-muted-rgb` | `bg-surface-muted` | `#e2e8f0` | Disabled/muted areas |
+| `popover` | `--surface-popover-rgb` | `bg-surface-popover` | optional | Dropdowns, tooltips, floating menus |
 | `glass` | `--surface-glass` | `.glass-panel` | optional | Glassmorphism panels |
 | `glassBorder` | `--surface-glassBorder` | — | optional | Glass panel borders |
 | `skeleton` | `--surface-skeleton` | — | `#e2e8f0` | Loading skeleton base |

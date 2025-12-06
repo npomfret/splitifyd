@@ -110,6 +110,7 @@ export class BrandingTokensBuilder {
                         muted: '#e2e8f0',
                         skeleton: '#e2e8f0',
                         skeletonShimmer: '#f1f5f9',
+                        popover: '#f8fafc',
                     },
                     text: {
                         primary: '#0f172a',

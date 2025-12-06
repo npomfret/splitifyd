@@ -8,6 +8,7 @@ export default {
                 'surface-base': 'rgb(var(--surface-base-rgb, 255 255 255) / <alpha-value>)',
                 'surface-muted': 'rgb(var(--surface-muted-rgb, 245 247 251) / <alpha-value>)',
                 'surface-raised': 'rgb(var(--surface-raised-rgb, 250 250 255) / <alpha-value>)',
+                'surface-popover': 'rgb(var(--surface-popover-rgb, var(--surface-base-rgb, 248 250 252)) / <alpha-value>)',
                 'text-primary': 'rgb(var(--text-primary-rgb, 15 23 42) / <alpha-value>)',
                 'text-muted': 'rgb(var(--text-muted-rgb, 71 85 105) / <alpha-value>)',
                 'text-inverted': 'rgb(var(--text-inverted-rgb, 255 255 255) / <alpha-value>)',

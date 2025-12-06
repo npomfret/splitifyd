@@ -73,7 +73,7 @@ export function UserMenu({ user }: UserMenuProps) {
                 <div
                     id='user-dropdown-menu'
                     data-testid='user-dropdown-menu'
-                    class='absolute right-0 mt-2 w-72 bg-surface-raised border border-border-default rounded-xl shadow-2xl z-[9999]'
+                    class='absolute right-0 mt-2 w-72 bg-surface-popover border border-border-default rounded-xl shadow-2xl z-[9999]'
                     role='menu'
                     aria-orientation='vertical'
                     aria-labelledby='user-menu-button'

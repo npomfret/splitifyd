@@ -134,6 +134,8 @@ export class AdminTenantRequestBuilder {
                             // Skeleton loader colors (for shimmer animation)
                             skeleton: '#e2e8f0',
                             skeletonShimmer: '#f1f5f9',
+                            // Popover/dropdown surfaces
+                            popover: '#f8fafc',
                         },
                         text: {
                             primary: '#0f172a',

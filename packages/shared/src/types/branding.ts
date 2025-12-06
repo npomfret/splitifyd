@@ -225,6 +225,8 @@ const BrandingSemanticColorSchema = z.object({
         // Skeleton loader colors (optional - falls back to muted/raised if not defined)
         skeleton: CssColorSchema.optional(),
         skeletonShimmer: CssColorSchema.optional(),
+        // Popover/dropdown surfaces (optional - falls back to surface-base if not defined)
+        popover: CssColorSchema.optional(),
     }),
     text: z.object({
         primary: CssColorSchema,

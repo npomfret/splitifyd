@@ -126,7 +126,8 @@
             "glassBorder": "rgba(16, 185, 129, 0.2)",
             "aurora": "rgba(6, 182, 212, 0.06)",
             "skeleton": "#1E332A",
-            "skeletonShimmer": "#2D4A3D"
+            "skeletonShimmer": "#2D4A3D",
+            "popover": "#1C1610"
           },
           "text": {
             "primary": "#ECFDF5",

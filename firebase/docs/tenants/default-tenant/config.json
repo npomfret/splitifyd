@@ -110,7 +110,8 @@
             "warning": "#451A03",
             "muted": "#404040",
             "skeleton": "#262626",
-            "skeletonShimmer": "#404040"
+            "skeletonShimmer": "#404040",
+            "popover": "#171717"
           },
           "text": {
             "primary": "#E5E5E5",
