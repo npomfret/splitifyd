@@ -539,6 +539,46 @@ describe('groups', () => {
             expect(result.groups).toHaveLength(1);
             expect(result.groups[0].id).toBe(activeGroup.id);
         });
+
+        it('should order groups by most recent activity (expense creates activity)', async () => {
+            // Create two groups
+            const group1 = await appDriver.createGroup(
+                new CreateGroupRequestBuilder().withName('Group One').build(),
+                user1,
+            );
+            const group2 = await appDriver.createGroup(
+                new CreateGroupRequestBuilder().withName('Group Two').build(),
+                user1,
+            );
+
+            // Add an expense to group1
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group1.id)
+                    .withPaidBy(user1)
+                    .withParticipants([user1])
+                    .build(),
+                user1,
+            );
+
+            // After the expense, group1 should be first (most recent activity)
+            let result = await appDriver.listGroups({}, user1);
+            expect(result.groups[0].id).toBe(group1.id);
+
+            // Now add an expense to group2
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group2.id)
+                    .withPaidBy(user1)
+                    .withParticipants([user1])
+                    .build(),
+                user1,
+            );
+
+            // Now group2 should be first (most recent activity)
+            result = await appDriver.listGroups({}, user1);
+            expect(result.groups[0].id).toBe(group2.id);
+        });
     });
 
     describe('updateMemberRole edge cases', () => {

@@ -305,7 +305,7 @@ export class GroupMemberService {
                 }
 
                 transaction.delete(membershipRef);
-                await context.touchGroup();
+                await context.touchGroup([membershipDocId]);
             });
 
             LoggerContext.setBusinessContext({ groupId });
@@ -449,7 +449,7 @@ export class GroupMemberService {
             const membershipRef = this.firestoreWriter.getDocumentReferenceInTransaction(transaction, FirestoreCollections.GROUP_MEMBERSHIPS, membershipDocId);
             transaction.delete(membershipRef);
 
-            await context.touchGroup();
+            await context.touchGroup([membershipDocId]);
 
             // Build activity item - will be recorded AFTER transaction commits
             if (activityRecipients.length > 0) {

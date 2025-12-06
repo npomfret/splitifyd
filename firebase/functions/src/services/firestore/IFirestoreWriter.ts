@@ -82,12 +82,14 @@ export interface IFirestoreWriter {
     // ========================================================================
 
     /**
-     * Update a group's updatedAt timestamp to mark activity
+     * Update a group's updatedAt timestamp and all membership groupUpdatedAt timestamps to mark activity.
+     * This ensures groups are properly ordered by most recent activity.
      * Use this whenever any group-related operation occurs (expenses, settlements, members, comments)
      * @param groupId - The group ID
      * @param transactionOrBatch - Optional transaction or batch to perform update within
+     * @param excludeMembershipIds - Optional list of membership doc IDs to exclude (for delete operations)
      */
-    touchGroup(groupId: GroupId, transactionOrBatch?: ITransaction | IWriteBatch): Promise<void>;
+    touchGroup(groupId: GroupId, transactionOrBatch?: ITransaction | IWriteBatch, excludeMembershipIds?: string[]): Promise<void>;
 
     /**
      * Update a member's group-specific display name with uniqueness validation

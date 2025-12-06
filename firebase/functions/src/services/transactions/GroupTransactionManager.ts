@@ -46,8 +46,8 @@ export class GroupTransactionContext {
         return this.balance!;
     }
 
-    async touchGroup(): Promise<void> {
-        await this.firestoreWriter.touchGroup(this.groupId, this.transactionRef);
+    async touchGroup(excludeMembershipIds?: string[]): Promise<void> {
+        await this.firestoreWriter.touchGroup(this.groupId, this.transactionRef, excludeMembershipIds);
     }
 }
 

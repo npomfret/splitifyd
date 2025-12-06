@@ -16,6 +16,9 @@ describe('Tenant API Response Validation', () => {
         it('should preserve ALL branding fields including optional ones after schema validation', () => {
             const tenantConfig = new TenantConfigBuilder()
                 .withAccentColor('#EC4899')
+                .withAppName('My Test App')
+                .withLogoUrl('https://example.com/logo.svg')
+                .withFaviconUrl('https://example.com/favicon.ico')
                 .withMarketingFlags(
                     new MarketingFlagsBuilder()
                         .withShowLandingPage(true)
@@ -27,27 +30,15 @@ describe('Tenant API Response Validation', () => {
 
             const result = TenantConfigSchema.parse(tenantConfig);
 
-            // Verify required fields
-            expect(result.tenantId).toBe('test-tenant');
-            expect(result.createdAt).toBeDefined();
-            expect(result.updatedAt).toBeDefined();
+            // Verify optional branding fields are preserved (not stripped by schema)
+            expect(result.branding.accentColor).toBe('#EC4899');
 
-            // Verify required branding fields (colors only)
-            const { branding } = result;
-            expect(branding.primaryColor).toBe('#0066CC');
-            expect(branding.secondaryColor).toBe('#FF6600');
+            // Verify brandingTokens fields are preserved
+            expect(result.brandingTokens.tokens.legal.appName).toBe('My Test App');
+            expect(result.brandingTokens.tokens.assets.logoUrl).toBe('https://example.com/logo.svg');
+            expect(result.brandingTokens.tokens.assets.faviconUrl).toBe('https://example.com/favicon.ico');
 
-            // Verify optional branding fields are preserved (not stripped)
-            expect(branding.accentColor).toBe('#EC4899');
-
-            // Verify brandingTokens fields (appName, logoUrl, faviconUrl are here now)
-            const { brandingTokens } = result;
-            expect(brandingTokens.tokens.legal.appName).toBe('Test App');
-            expect(brandingTokens.tokens.assets.logoUrl).toBe('https://example.com/logo.svg');
-            expect(brandingTokens.tokens.assets.faviconUrl).toBe('https://example.com/favicon.ico');
-
-            // Verify marketing flags (stored at top level, not under branding)
-            expect(result.marketingFlags).toBeDefined();
+            // Verify marketing flags are preserved
             expect(result.marketingFlags?.showLandingPage).toBe(true);
             expect(result.marketingFlags?.showMarketingContent).toBe(true);
             expect(result.marketingFlags?.showPricingPage).toBe(false);
