@@ -1951,6 +1951,12 @@
           "strong": "Strong"
         }
       },
+      "derivationWand": {
+        "tooltip": "Derive colors from palette",
+        "tooltipDisabled": "Set primary, secondary, and accent colors first",
+        "popoverTitle": "Color Derivation",
+        "derive": "Apply Derivation"
+      },
       "sections": {
         "gettingStarted": {
           "title": "Getting Started",

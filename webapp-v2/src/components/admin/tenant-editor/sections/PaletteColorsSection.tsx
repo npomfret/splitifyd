@@ -1,15 +1,13 @@
 import { AdminFormSection } from '@/components/admin/forms';
 import { Button, ColorInput } from '@/components/ui';
+import { SparklesIcon } from '@/components/ui/icons';
+import { useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { deriveSemanticColorsFromFormData } from '../color-derivation';
 import type { TenantData } from '../types';
 import type { CreationModeSectionProps } from './types';
 
-interface PaletteColorsSectionProps extends CreationModeSectionProps {
-    simplified?: boolean;
-}
-
-const STYLE_OPTIONS: Array<{ value: TenantData['derivationStyle']; labelKey: string; }> = [
+const STYLE_OPTIONS: Array<{ value: TenantData['derivationStyle']; labelKey: string }> = [
     { value: 'balanced', labelKey: 'admin.tenantEditor.derivation.style.balanced' },
     { value: 'bold', labelKey: 'admin.tenantEditor.derivation.style.bold' },
     { value: 'soft', labelKey: 'admin.tenantEditor.derivation.style.soft' },
@@ -17,8 +15,17 @@ const STYLE_OPTIONS: Array<{ value: TenantData['derivationStyle']; labelKey: str
     { value: 'elegant', labelKey: 'admin.tenantEditor.derivation.style.elegant' },
 ];
 
+interface PaletteColorsSectionProps extends CreationModeSectionProps {
+    simplified?: boolean;
+}
+
 export function PaletteColorsSection({ formData, update, isSaving, mode, creationMode, simplified = false }: PaletteColorsSectionProps) {
     const { t } = useTranslation();
+    const [isDerivationOpen, setIsDerivationOpen] = useState(false);
+
+    const canDeriveColors = Boolean(
+        formData.primaryColor && formData.secondaryColor && formData.accentColor,
+    );
 
     const handleDeriveColors = () => {
         const derivedColors = deriveSemanticColorsFromFormData(formData);
@@ -26,12 +33,6 @@ export function PaletteColorsSection({ formData, update, isSaving, mode, creatio
             update(derivedColors);
         }
     };
-
-    const canDeriveColors = Boolean(
-        formData.primaryColor
-            && formData.secondaryColor
-            && formData.accentColor,
-    );
 
     if (simplified) {
         return (
@@ -41,7 +42,7 @@ export function PaletteColorsSection({ formData, update, isSaving, mode, creatio
                 defaultOpen={true}
                 testId='section-palette-basic'
             >
-                <div class='space-y-5'>
+                <div class='space-y-4'>
                     {/* Color Pickers */}
                     <div class='grid grid-cols-3 gap-4'>
                         <ColorInput id='primary-color' label='Primary *' value={formData.primaryColor} onChange={(v) => update({ primaryColor: v })} disabled={isSaving} testId='primary-color-input' />
@@ -56,130 +57,133 @@ export function PaletteColorsSection({ formData, update, isSaving, mode, creatio
                         <ColorInput id='accent-color' label='Accent *' value={formData.accentColor} onChange={(v) => update({ accentColor: v })} disabled={isSaving} testId='accent-color-input' />
                     </div>
 
-                    {/* Derivation Options */}
-                    <div class='border-t border-admin-border pt-4 space-y-4'>
-                        {/* Theme Mode Toggle */}
-                        <div>
-                            <label class='block text-sm font-medium text-admin-text-secondary mb-2'>
-                                {t('admin.tenantEditor.derivation.themeMode.label')}
-                            </label>
-                            <div class='inline-flex rounded-md border border-gray-300 overflow-hidden' role='radiogroup'>
-                                <button
-                                    type='button'
-                                    role='radio'
-                                    aria-checked={formData.derivationThemeMode === 'light'}
-                                    class={`px-4 py-2 text-sm font-medium transition-colors ${
-                                        formData.derivationThemeMode === 'light'
-                                            ? 'bg-indigo-600 text-white'
-                                            : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
-                                    }`}
-                                    onClick={() => update({ derivationThemeMode: 'light' })}
-                                    disabled={isSaving}
-                                    data-testid='theme-mode-light'
-                                >
-                                    {t('admin.tenantEditor.derivation.themeMode.light')}
-                                </button>
-                                <button
-                                    type='button'
-                                    role='radio'
-                                    aria-checked={formData.derivationThemeMode === 'medium'}
-                                    class={`px-4 py-2 text-sm font-medium transition-colors border-l border-gray-300 ${
-                                        formData.derivationThemeMode === 'medium'
-                                            ? 'bg-indigo-600 text-white'
-                                            : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
-                                    }`}
-                                    onClick={() => update({ derivationThemeMode: 'medium' })}
-                                    disabled={isSaving}
-                                    data-testid='theme-mode-medium'
-                                >
-                                    {t('admin.tenantEditor.derivation.themeMode.medium')}
-                                </button>
-                                <button
-                                    type='button'
-                                    role='radio'
-                                    aria-checked={formData.derivationThemeMode === 'dark'}
-                                    class={`px-4 py-2 text-sm font-medium transition-colors border-l border-gray-300 ${
-                                        formData.derivationThemeMode === 'dark'
-                                            ? 'bg-indigo-600 text-white'
-                                            : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
-                                    }`}
-                                    onClick={() => update({ derivationThemeMode: 'dark' })}
-                                    disabled={isSaving}
-                                    data-testid='theme-mode-dark'
-                                >
-                                    {t('admin.tenantEditor.derivation.themeMode.dark')}
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Style Presets */}
-                        <div>
-                            <label class='block text-sm font-medium text-admin-text-secondary mb-2'>
-                                {t('admin.tenantEditor.derivation.style.label')}
-                            </label>
-                            <div class='flex flex-wrap gap-2'>
-                                {STYLE_OPTIONS.map(({ value, labelKey }) => (
-                                    <button
-                                        key={value}
-                                        type='button'
-                                        class={`px-3 py-1.5 text-sm font-medium rounded-full transition-colors ${
-                                            formData.derivationStyle === value
-                                                ? 'bg-indigo-600 text-white'
-                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                        }`}
-                                        onClick={() => update({ derivationStyle: value })}
-                                        disabled={isSaving}
-                                        data-testid={`style-${value}`}
-                                    >
-                                        {t(labelKey)}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Intensity Slider */}
-                        <div>
-                            <label class='block text-sm font-medium text-admin-text-secondary mb-2'>
-                                {t('admin.tenantEditor.derivation.intensity.label')}
-                            </label>
-                            <div class='flex items-center gap-3'>
-                                <span class='text-xs text-admin-text-muted w-12'>
-                                    {t('admin.tenantEditor.derivation.intensity.subtle')}
-                                </span>
-                                <input
-                                    type='range'
-                                    min='0'
-                                    max='100'
-                                    value={formData.derivationIntensity}
-                                    onChange={(e) => update({ derivationIntensity: parseInt((e.target as HTMLInputElement).value, 10) })}
-                                    disabled={isSaving}
-                                    class='flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-admin-primary'
-                                    data-testid='intensity-slider'
-                                />
-                                <span class='text-xs text-admin-text-muted w-12 text-right'>
-                                    {t('admin.tenantEditor.derivation.intensity.strong')}
-                                </span>
-                            </div>
-                            <div class='text-center text-xs text-admin-text-muted mt-1'>
-                                {formData.derivationIntensity}%
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Footer */}
-                    <div class='flex items-center justify-between pt-2 border-t border-admin-border'>
-                        <p class='text-xs text-text-muted'>
-                            {t('admin.tenantEditor.modeHint.moreColors')}
-                        </p>
-                        <Button
-                            variant='secondary'
-                            size='sm'
-                            onClick={handleDeriveColors}
-                            disabled={isSaving || !canDeriveColors}
-                            data-testid='derive-colors-button'
+                    {/* Derivation Toggle Button */}
+                    <div class='border-t border-gray-200 pt-4'>
+                        <button
+                            type='button'
+                            onClick={() => setIsDerivationOpen(!isDerivationOpen)}
+                            disabled={!canDeriveColors || isSaving}
+                            class={`
+                                w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium
+                                transition-all duration-200
+                                ${canDeriveColors && !isSaving
+                                    ? 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                }
+                            `}
+                            data-testid='color-derivation-toggle'
                         >
-                            {t('admin.tenantEditor.actions.deriveColors')}
-                        </Button>
+                            <span class='flex items-center gap-2'>
+                                <SparklesIcon size={18} />
+                                <span>{t('admin.tenantEditor.derivationWand.popoverTitle')}</span>
+                            </span>
+                            <svg
+                                class={`w-4 h-4 transition-transform ${isDerivationOpen ? 'rotate-180' : ''}`}
+                                fill='none'
+                                viewBox='0 0 24 24'
+                                stroke='currentColor'
+                            >
+                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 9l-7 7-7-7' />
+                            </svg>
+                        </button>
+
+                        {/* Collapsible Derivation Options */}
+                        {isDerivationOpen && canDeriveColors && (
+                            <div class='mt-4 p-4 bg-gray-50 rounded-lg space-y-4'>
+                                {/* Theme Mode Toggle */}
+                                <div>
+                                    <label class='block text-xs font-medium text-gray-600 mb-2'>
+                                        {t('admin.tenantEditor.derivation.themeMode.label')}
+                                    </label>
+                                    <div class='inline-flex rounded-md border border-gray-300 overflow-hidden' role='radiogroup'>
+                                        {(['light', 'medium', 'dark'] as const).map((themeMode, index) => (
+                                            <button
+                                                key={themeMode}
+                                                type='button'
+                                                role='radio'
+                                                aria-checked={formData.derivationThemeMode === themeMode}
+                                                class={`px-3 py-1.5 text-xs font-medium transition-colors ${index > 0 ? 'border-l border-gray-300' : ''} ${
+                                                    formData.derivationThemeMode === themeMode
+                                                        ? 'bg-indigo-600 text-white'
+                                                        : 'bg-white text-gray-700 hover:bg-gray-50'
+                                                }`}
+                                                onClick={() => update({ derivationThemeMode: themeMode })}
+                                                disabled={isSaving}
+                                                data-testid={`theme-mode-${themeMode}`}
+                                            >
+                                                {t(`admin.tenantEditor.derivation.themeMode.${themeMode}`)}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Style Presets */}
+                                <div>
+                                    <label class='block text-xs font-medium text-gray-600 mb-2'>
+                                        {t('admin.tenantEditor.derivation.style.label')}
+                                    </label>
+                                    <div class='flex flex-wrap gap-1.5'>
+                                        {STYLE_OPTIONS.map(({ value, labelKey }) => (
+                                            <button
+                                                key={value}
+                                                type='button'
+                                                class={`px-2.5 py-1 text-xs font-medium rounded-full transition-colors ${
+                                                    formData.derivationStyle === value
+                                                        ? 'bg-indigo-600 text-white'
+                                                        : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                                                }`}
+                                                onClick={() => update({ derivationStyle: value })}
+                                                disabled={isSaving}
+                                                data-testid={`style-${value}`}
+                                            >
+                                                {t(labelKey)}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Intensity Slider */}
+                                <div>
+                                    <label class='block text-xs font-medium text-gray-600 mb-2'>
+                                        {t('admin.tenantEditor.derivation.intensity.label')}
+                                    </label>
+                                    <div class='flex items-center gap-2'>
+                                        <span class='text-[10px] text-gray-500 w-10'>
+                                            {t('admin.tenantEditor.derivation.intensity.subtle')}
+                                        </span>
+                                        <input
+                                            type='range'
+                                            min='0'
+                                            max='100'
+                                            value={formData.derivationIntensity}
+                                            onChange={(e) => update({ derivationIntensity: parseInt((e.target as HTMLInputElement).value, 10) })}
+                                            disabled={isSaving}
+                                            class='flex-1 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600'
+                                            data-testid='intensity-slider'
+                                        />
+                                        <span class='text-[10px] text-gray-500 w-10 text-right'>
+                                            {t('admin.tenantEditor.derivation.intensity.strong')}
+                                        </span>
+                                    </div>
+                                    <div class='text-center text-[10px] text-gray-500 mt-1'>
+                                        {formData.derivationIntensity}%
+                                    </div>
+                                </div>
+
+                                {/* Apply Button */}
+                                <Button
+                                    variant='primary'
+                                    size='sm'
+                                    onClick={handleDeriveColors}
+                                    disabled={isSaving}
+                                    className='w-full'
+                                    data-testid='derive-colors-button'
+                                >
+                                    <SparklesIcon size={16} className='mr-2' />
+                                    {t('admin.tenantEditor.derivationWand.derive')}
+                                </Button>
+                            </div>
+                        )}
                     </div>
                 </div>
             </AdminFormSection>

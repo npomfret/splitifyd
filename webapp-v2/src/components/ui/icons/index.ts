@@ -27,6 +27,7 @@ export { RefreshIcon } from './RefreshIcon';
 export { ScaleIcon } from './ScaleIcon';
 export { SettingsIcon } from './SettingsIcon';
 export { ShareIcon } from './ShareIcon';
+export { SparklesIcon } from './SparklesIcon';
 export { SpinnerIcon } from './SpinnerIcon';
 export { TrashIcon } from './TrashIcon';
 export type { IconProps } from './types';
