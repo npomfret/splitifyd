@@ -128,6 +128,15 @@ export const toVersionHash = (value: string): VersionHash => value as VersionHas
 export type CurrencyISOCode = Brand<string, 'CurrencyISOCode'>;
 export const toCurrencyISOCode = (value: string): CurrencyISOCode => value as CurrencyISOCode;
 
+/**
+ * Recent amount with its associated currency, used for localStorage caching
+ * of recently entered expense amounts in the expense form.
+ */
+export interface RecentAmount {
+    amount: Amount;
+    currency: CurrencyISOCode;
+}
+
 export type UserId = Brand<string, 'UserId'>;
 export const toUserId = (value: string): UserId => value as UserId;
 

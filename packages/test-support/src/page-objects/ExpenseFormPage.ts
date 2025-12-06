@@ -894,6 +894,21 @@ export class ExpenseFormPage extends BasePage {
         await expect(this.getTimeInput()).toBeVisible();
     }
 
+    /**
+     * Verify the time button (shown when time is set, before editing) is visible
+     * TimeInput shows a button with "at {time}" when not editing
+     */
+    async verifyTimeFieldVisible(): Promise<void> {
+        // TimeInput shows either a button (display mode) or input (edit mode)
+        // In display mode it shows "at {time}", in edit mode it shows an input
+        const timeButton = this.getTimeButton();
+        const timeInput = this.getTimeInput();
+        // Either should be visible when time field is shown
+        const buttonVisible = await timeButton.isVisible().catch(() => false);
+        const inputVisible = await timeInput.isVisible().catch(() => false);
+        expect(buttonVisible || inputVisible).toBe(true);
+    }
+
     async verifyTimeInputFocused(): Promise<void> {
         await expect(this.getTimeInput()).toBeFocused();
     }
@@ -975,5 +990,167 @@ export class ExpenseFormPage extends BasePage {
         const errorTitle = this.page.getByTestId('error-title');
         await expect(errorTitle).toBeVisible({ timeout: 5000 });
         await expect(errorTitle).toContainText(text);
+    }
+
+    // ============================================================================
+    // RECENT AMOUNTS
+    // ============================================================================
+
+    /**
+     * Get the recent amounts section
+     */
+    protected getRecentAmountsSection(): Locator {
+        return this.getExpenseDetailsSection().getByText(translation.expenseBasicFields.recentAmounts).locator('..');
+    }
+
+    /**
+     * Get a recent amount button by its displayed text (e.g., "$50.00 USD")
+     */
+    protected getRecentAmountButton(amountText: string): Locator {
+        return this.getRecentAmountsSection().getByRole('button', { name: amountText });
+    }
+
+    /**
+     * Verify recent amounts section is visible
+     */
+    async verifyRecentAmountsSectionVisible(): Promise<void> {
+        await expect(this.getRecentAmountsSection()).toBeVisible();
+    }
+
+    /**
+     * Verify recent amounts section is not visible
+     */
+    async verifyRecentAmountsSectionNotVisible(): Promise<void> {
+        await expect(this.page.getByText(translation.expenseBasicFields.recentAmounts)).not.toBeVisible();
+    }
+
+    /**
+     * Click a recent amount button
+     */
+    async clickRecentAmount(amountText: string): Promise<void> {
+        const button = this.getRecentAmountButton(amountText);
+        await expect(button).toBeVisible();
+        await button.click();
+    }
+
+    /**
+     * Verify the count of recent amount buttons
+     */
+    async verifyRecentAmountCount(expectedCount: number): Promise<void> {
+        const buttons = this.getRecentAmountsSection().getByRole('button');
+        await expect(buttons).toHaveCount(expectedCount);
+    }
+
+    // ============================================================================
+    // PERCENTAGE SPLITS
+    // ============================================================================
+
+    /**
+     * Percentage split container
+     */
+    protected getPercentageSplitContainer(): Locator {
+        return this.page.getByText(/enter percentage for each person/i).locator('..');
+    }
+
+    /**
+     * "Enter percentage for each person:" instruction text
+     */
+    protected getPercentageSplitInstructionText(): Locator {
+        return this.page.getByText(/enter percentage for each person/i);
+    }
+
+    /**
+     * All percentage input fields
+     */
+    protected getPercentageSplitInputs(): Locator {
+        return this.getPercentageSplitContainer().locator('input[type="text"][inputmode="decimal"]');
+    }
+
+    /**
+     * Verify percentage split section is visible
+     */
+    async verifyPercentageSplitDisplayed(): Promise<void> {
+        await expect(this.getPercentageSplitInstructionText()).toBeVisible();
+    }
+
+    /**
+     * Verify all percentage inputs have a specific value
+     */
+    async verifyPercentageSplitInputsHaveValue(value: string): Promise<void> {
+        const inputs = this.getPercentageSplitInputs();
+        const count = await inputs.count();
+        for (let i = 0; i < count; i++) {
+            await expect(inputs.nth(i)).toHaveValue(value);
+        }
+    }
+
+    /**
+     * Set a percentage split amount at a specific index
+     */
+    async setPercentageSplitAmount(index: number, value: string): Promise<void> {
+        const inputs = this.getPercentageSplitInputs();
+        await expect(inputs.nth(index)).toBeVisible();
+        await inputs.nth(index).fill(value);
+        await inputs.nth(index).blur();
+    }
+
+    /**
+     * Verify percentage split total display
+     */
+    async verifyPercentageSplitTotal(percentageTotal: string, amountTotal: string): Promise<void> {
+        const container = this.getPercentageSplitContainer();
+        await expect(container).toBeVisible();
+        await expect(container).toContainText(percentageTotal);
+        await expect(container).toContainText(amountTotal);
+    }
+
+    /**
+     * Verify percentage split input count
+     */
+    async verifyPercentageSplitInputCount(expectedCount: number): Promise<void> {
+        const inputs = this.getPercentageSplitInputs();
+        const count = await inputs.count();
+        expect(count).toBe(expectedCount);
+    }
+
+    // ============================================================================
+    // CONVENIENCE DATE BUTTONS
+    // ============================================================================
+
+    protected getThisMorningButton(): Locator {
+        return this.page.getByRole('button', { name: translation.expenseBasicFields.thisMorning });
+    }
+
+    async clickThisMorningButton(): Promise<void> {
+        await this.clickButton(this.getThisMorningButton(), { buttonName: 'This Morning' });
+    }
+
+    async verifyDateValue(expectedDate: string): Promise<void> {
+        await expect(this.getDateInput()).toHaveValue(expectedDate);
+    }
+
+    /**
+     * Get today's date in YYYY-MM-DD format
+     */
+    getTodayDateString(): string {
+        const today = new Date();
+        return today.toISOString().split('T')[0];
+    }
+
+    /**
+     * Get yesterday's date in YYYY-MM-DD format
+     */
+    getYesterdayDateString(): string {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        return yesterday.toISOString().split('T')[0];
+    }
+
+    /**
+     * Verify currency selector shows expected value
+     */
+    async verifyCurrencyValue(expectedCurrency: string): Promise<void> {
+        const currencyButton = this.getCurrencySelect();
+        await expect(currencyButton).toContainText(expectedCurrency);
     }
 }

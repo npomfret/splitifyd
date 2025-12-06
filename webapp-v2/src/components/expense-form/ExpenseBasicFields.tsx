@@ -1,6 +1,7 @@
 import { CurrencyService } from '@/app/services/currencyService.ts';
 import { getLastNight, getThisMorning, getToday, getYesterday } from '@/utils/dateUtils.ts';
 import { Amount, ExpenseLabel, toCurrencyISOCode } from '@billsplit-wl/shared';
+import type { RecentAmount } from '@billsplit-wl/shared';
 import { ClockIcon } from '@heroicons/react/24/outline';
 import { useTranslation } from 'react-i18next';
 import { Button, Card, CurrencyAmount, CurrencyAmountInput, LabelSuggestionInput, TimeInput, Tooltip } from '../ui';
@@ -16,7 +17,7 @@ interface ExpenseBasicFieldsProps {
     validationErrors: Record<string, string>;
     updateField: (field: string, value: any) => void;
     validateOnBlur: (field: string) => void;
-    getRecentAmounts: () => Amount[];
+    getRecentAmounts: () => RecentAmount[];
     PREDEFINED_EXPENSE_LABELS: ExpenseLabel[];
 }
 
@@ -82,20 +83,23 @@ export function ExpenseBasicFields(
                             recentCurrencies={recentCurrencies}
                         />
 
-                        {/* Recent amounts buttons */}
-                        {/* when the form first renders the currency and amount are empty */}
-                        {recentAmounts.length > 0 && amount && currency && (
+                        {/* Recent amounts buttons - show latest 3, clicking fills both currency and amount */}
+                        {recentAmounts.length > 0 && (
                             <div className='mt-2'>
                                 <p className='text-xs text-text-muted mb-1'>{t('expenseBasicFields.recentAmounts')}</p>
                                 <div className='flex flex-wrap gap-1'>
-                                    {recentAmounts.map((amt, index) => (
+                                    {recentAmounts.map((recent, index) => (
                                         <button
                                             key={index}
                                             type='button'
-                                            onClick={() => updateField('amount', amt)}
+                                            onClick={() => {
+                                                updateField('currency', recent.currency);
+                                                updateField('amount', recent.amount);
+                                                currencyService.addToRecentCurrencies(recent.currency);
+                                            }}
                                             className='px-2 py-1 text-xs bg-surface-base/50 border border-border-default/50 text-text-primary rounded hover:bg-surface-muted hover:border-interactive-primary/40 transition-all duration-200'
                                         >
-                                            <CurrencyAmount amount={amt} currency={toCurrencyISOCode(currency)} />
+                                            <CurrencyAmount amount={recent.amount} currency={recent.currency} />
                                         </button>
                                     ))}
                                 </div>

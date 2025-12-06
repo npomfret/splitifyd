@@ -14,13 +14,14 @@ import {
     CreateExpenseRequest,
     CurrencyCodeSchema,
     ExpenseDTO,
+    ExpenseId,
     ExpenseSplit,
+    GroupId,
     smallestUnitToAmountString,
     SplitTypes,
+    toCurrencyISOCode,
 } from '@billsplit-wl/shared';
-import { ExpenseId, GroupId } from '@billsplit-wl/shared';
-import type { CurrencyISOCode, UserId } from '@billsplit-wl/shared';
-import { toCurrencyISOCode } from '@billsplit-wl/shared';
+import type { CurrencyISOCode, RecentAmount, UserId } from '@billsplit-wl/shared';
 import { ReadonlySignal, signal } from '@preact/signals';
 import { z } from 'zod';
 import { apiClient } from '../apiClient';
@@ -130,7 +131,7 @@ class ExpenseStorageManager {
     private static readonly RECENT_LABELS_KEY = 'recent-expense-labels';
     private static readonly RECENT_AMOUNTS_KEY = 'recent-expense-amounts';
     private static readonly MAX_RECENT_LABELS = 3;
-    private static readonly MAX_RECENT_AMOUNTS = 5;
+    private static readonly MAX_RECENT_AMOUNTS = 3;
 
     setStorage(storage: UserScopedStorage): void {
         this.storage = storage;
@@ -164,7 +165,7 @@ class ExpenseStorageManager {
         }
     }
 
-    getRecentAmounts(): Amount[] {
+    getRecentAmounts(): RecentAmount[] {
         if (!this.storage) return [];
 
         try {
@@ -176,20 +177,30 @@ class ExpenseStorageManager {
             if (!Array.isArray(parsed)) {
                 return [];
             }
-            return parsed.filter((value: unknown): value is Amount => typeof value === 'string');
+            // Filter to only valid RecentAmount objects
+            return parsed.filter(
+                (value: unknown): value is RecentAmount =>
+                    typeof value === 'object'
+                    && value !== null
+                    && 'amount' in value
+                    && 'currency' in value
+                    && typeof (value as RecentAmount).amount === 'string'
+                    && typeof (value as RecentAmount).currency === 'string',
+            );
         } catch {
             return [];
         }
     }
 
-    addRecentAmount(amount: Amount): void {
+    addRecentAmount(amount: Amount, currency: CurrencyISOCode): void {
         if (!this.storage) return;
 
         try {
             const recent = this.getRecentAmounts();
-            const normalizedAmount = amount;
-            const filtered = recent.filter((amt) => amt !== normalizedAmount);
-            const updated = [normalizedAmount, ...filtered].slice(0, ExpenseStorageManager.MAX_RECENT_AMOUNTS);
+            // Remove any existing entry with same amount AND currency
+            const filtered = recent.filter((item) => !(item.amount === amount && item.currency === currency));
+            const newEntry: RecentAmount = { amount, currency };
+            const updated = [newEntry, ...filtered].slice(0, ExpenseStorageManager.MAX_RECENT_AMOUNTS);
             this.storage.setItem(ExpenseStorageManager.RECENT_AMOUNTS_KEY, JSON.stringify(updated));
         } catch {
             // Ignore storage errors
@@ -235,7 +246,7 @@ class ExpenseStorageManager {
 // Create singleton storage manager
 const storageManager = new ExpenseStorageManager();
 
-export function getRecentAmounts(): Amount[] {
+export function getRecentAmounts(): RecentAmount[] {
     return storageManager.getRecentAmounts();
 }
 
@@ -957,7 +968,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
 
             // Track recent label and amount
             storageManager.addRecentLabel(this.#labelSignal.value);
-            storageManager.addRecentAmount(amount);
+            storageManager.addRecentAmount(amount, toCurrencyISOCode(this.#currencySignal.value));
 
             // Clear draft and reset form immediately after successful creation
             this.clearDraft(groupId);
@@ -1010,7 +1021,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
 
             // Track recent label and amount
             storageManager.addRecentLabel(this.#labelSignal.value);
-            storageManager.addRecentAmount(amount);
+            storageManager.addRecentAmount(amount, toCurrencyISOCode(this.#currencySignal.value));
 
             // Clear draft immediately after successful update
             this.clearDraft(groupId);

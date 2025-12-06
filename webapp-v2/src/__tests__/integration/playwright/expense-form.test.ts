@@ -1331,6 +1331,324 @@ test.describe('Expense Form', () => {
         });
     });
 
+    test.describe('Percentage Split', () => {
+        test('should display percentage split with equal percentages by default', async ({ authenticatedPage }) => {
+            const { page, user: testUser } = authenticatedPage;
+            const groupId = 'test-group-percentage';
+
+            const group = GroupDTOBuilder
+                .groupForUser(testUser.uid)
+                .withId(groupId)
+                .build();
+            const members = [
+                new GroupMemberBuilder()
+                    .withUid(testUser.uid)
+                    .withDisplayName(testUser.displayName)
+                    .withGroupDisplayName(testUser.displayName)
+                    .build(),
+                new GroupMemberBuilder()
+                    .withUid('user-2')
+                    .withDisplayName('User 2')
+                    .withGroupDisplayName('User 2')
+                    .build(),
+            ];
+            const fullDetails = new GroupFullDetailsBuilder()
+                .withGroup(group)
+                .withMembers(members)
+                .build();
+
+            await mockGroupDetailApi(page, groupId, fullDetails);
+            await mockGroupCommentsApi(page, groupId);
+
+            const expenseFormPage = new ExpenseFormPage(page);
+            await expenseFormPage.navigateToAddExpense(groupId);
+
+            await expenseFormPage.fillDescription('Percentage Test');
+            await expenseFormPage.fillAmount('100');
+            await expenseFormPage.selectCurrency('USD');
+            await expenseFormPage.selectPayer(testUser.displayName);
+            await expenseFormPage.selectSplitParticipants(['User 2']);
+            await expenseFormPage.selectSplitType('Percentage');
+
+            await expenseFormPage.verifyPercentageSplitDisplayed();
+            await expenseFormPage.verifyPercentageSplitInputCount(2);
+            // 2 participants = 50% each
+            await expenseFormPage.verifyPercentageSplitInputsHaveValue('50');
+        });
+
+        test('should update calculated amounts when expense amount changes', async ({ authenticatedPage }) => {
+            const { page, user: testUser } = authenticatedPage;
+            const groupId = 'test-group-percentage-recalc';
+
+            const group = GroupDTOBuilder
+                .groupForUser(testUser.uid)
+                .withId(groupId)
+                .build();
+            const members = [
+                new GroupMemberBuilder()
+                    .withUid(testUser.uid)
+                    .withDisplayName(testUser.displayName)
+                    .withGroupDisplayName(testUser.displayName)
+                    .build(),
+                new GroupMemberBuilder()
+                    .withUid('user-2')
+                    .withDisplayName('User 2')
+                    .withGroupDisplayName('User 2')
+                    .build(),
+            ];
+            const fullDetails = new GroupFullDetailsBuilder()
+                .withGroup(group)
+                .withMembers(members)
+                .build();
+
+            await mockGroupDetailApi(page, groupId, fullDetails);
+            await mockGroupCommentsApi(page, groupId);
+
+            const expenseFormPage = new ExpenseFormPage(page);
+            await expenseFormPage.navigateToAddExpense(groupId);
+
+            await expenseFormPage.fillDescription('Percentage Recalc');
+            await expenseFormPage.fillAmount('100');
+            await expenseFormPage.selectCurrency('USD');
+            await expenseFormPage.selectPayer(testUser.displayName);
+            await expenseFormPage.selectSplitParticipants(['User 2']);
+            await expenseFormPage.selectSplitType('Percentage');
+
+            await expenseFormPage.verifyPercentageSplitDisplayed();
+            // Total shows percentage validation: "100.00% / 100%"
+            await expenseFormPage.verifyPercentageSplitTotal('100.00%', '100%');
+
+            // Change amount - percentages stay same (validated), individual amounts recalculate
+            await expenseFormPage.fillAmount('200');
+            // Percentage total still valid
+            await expenseFormPage.verifyPercentageSplitTotal('100.00%', '100%');
+        });
+
+        test('should validate percentage totals must equal 100%', async ({ authenticatedPage }) => {
+            const { page, user: testUser } = authenticatedPage;
+            const groupId = 'test-group-percentage-validation';
+
+            const group = GroupDTOBuilder
+                .groupForUser(testUser.uid)
+                .withId(groupId)
+                .build();
+            const members = [
+                new GroupMemberBuilder()
+                    .withUid(testUser.uid)
+                    .withDisplayName(testUser.displayName)
+                    .withGroupDisplayName(testUser.displayName)
+                    .build(),
+                new GroupMemberBuilder()
+                    .withUid('user-2')
+                    .withDisplayName('User 2')
+                    .withGroupDisplayName('User 2')
+                    .build(),
+            ];
+            const fullDetails = new GroupFullDetailsBuilder()
+                .withGroup(group)
+                .withMembers(members)
+                .build();
+
+            await mockGroupDetailApi(page, groupId, fullDetails);
+            await mockGroupCommentsApi(page, groupId);
+
+            const expenseFormPage = new ExpenseFormPage(page);
+            await expenseFormPage.navigateToAddExpense(groupId);
+
+            await expenseFormPage.fillDescription('Percentage Validation');
+            await expenseFormPage.fillAmount('100');
+            await expenseFormPage.selectCurrency('USD');
+            await expenseFormPage.selectPayer(testUser.displayName);
+            await expenseFormPage.selectSplitParticipants(['User 2']);
+            await expenseFormPage.selectSplitType('Percentage');
+
+            // Set invalid percentages that don't add up to 100%
+            await expenseFormPage.setPercentageSplitAmount(0, '60');
+            await expenseFormPage.setPercentageSplitAmount(1, '60');
+
+            await expenseFormPage.verifySplitErrorMessageContains('100%');
+            await expenseFormPage.expectFormOpen();
+            await expectNoGlobalError(expenseFormPage);
+        });
+
+        test('should switch from EQUAL to PERCENTAGE split type', async ({ authenticatedPage }) => {
+            const { page, user: testUser } = authenticatedPage;
+            const groupId = 'test-group-switch-equal-percentage';
+
+            const group = GroupDTOBuilder
+                .groupForUser(testUser.uid)
+                .withId(groupId)
+                .build();
+            const members = [
+                new GroupMemberBuilder()
+                    .withUid(testUser.uid)
+                    .withDisplayName(testUser.displayName)
+                    .withGroupDisplayName(testUser.displayName)
+                    .build(),
+                new GroupMemberBuilder()
+                    .withUid('user-2')
+                    .withDisplayName('User 2')
+                    .withGroupDisplayName('User 2')
+                    .build(),
+            ];
+            const fullDetails = new GroupFullDetailsBuilder()
+                .withGroup(group)
+                .withMembers(members)
+                .build();
+
+            await mockGroupDetailApi(page, groupId, fullDetails);
+            await mockGroupCommentsApi(page, groupId);
+
+            const expenseFormPage = new ExpenseFormPage(page);
+            await expenseFormPage.navigateToAddExpense(groupId);
+
+            await expenseFormPage.fillDescription('Switch to Percentage');
+            await expenseFormPage.fillAmount('100');
+            await expenseFormPage.selectCurrency('USD');
+            await expenseFormPage.selectPayer(testUser.displayName);
+            await expenseFormPage.selectSplitParticipants(['User 2']);
+
+            await expenseFormPage.verifyEqualSplitDisplayed();
+            await expenseFormPage.verifyEqualSplitsContainAmount('$50.00 USD');
+
+            await expenseFormPage.selectSplitType('Percentage');
+
+            await expenseFormPage.verifyPercentageSplitDisplayed();
+            await expenseFormPage.verifyPercentageSplitInputsHaveValue('50');
+        });
+    });
+
+    test.describe('Convenience Date Buttons', () => {
+        test('should set date to today when clicking Today button', async ({ authenticatedPage }) => {
+            const groupId = 'test-group-date-today';
+            const { expenseFormPage } = await openExpenseFormForTest(authenticatedPage, groupId);
+
+            await expenseFormPage.waitForExpenseFormSections();
+
+            // Set a different date first
+            const yesterday = expenseFormPage.getYesterdayDateString();
+            await expenseFormPage.setDate(yesterday);
+            await expenseFormPage.verifyDateValue(yesterday);
+
+            // Click Today button
+            await expenseFormPage.clickTodayButton();
+
+            const today = expenseFormPage.getTodayDateString();
+            await expenseFormPage.verifyDateValue(today);
+        });
+
+        test('should set date to yesterday when clicking Yesterday button', async ({ authenticatedPage }) => {
+            const groupId = 'test-group-date-yesterday';
+            const { expenseFormPage } = await openExpenseFormForTest(authenticatedPage, groupId);
+
+            await expenseFormPage.waitForExpenseFormSections();
+
+            // Click Yesterday button
+            await expenseFormPage.clickYesterdayButton();
+
+            const yesterday = expenseFormPage.getYesterdayDateString();
+            await expenseFormPage.verifyDateValue(yesterday);
+        });
+
+        test('should set date and time for This Morning', async ({ authenticatedPage }) => {
+            const groupId = 'test-group-date-this-morning';
+            const { expenseFormPage } = await openExpenseFormForTest(authenticatedPage, groupId);
+
+            await expenseFormPage.waitForExpenseFormSections();
+
+            // Click This Morning button
+            await expenseFormPage.clickThisMorningButton();
+
+            // Should set today's date and show the time field (since it's not noon)
+            const today = expenseFormPage.getTodayDateString();
+            await expenseFormPage.verifyDateValue(today);
+            // TimeInput shows as a button displaying "at {time}" when not editing
+            await expenseFormPage.verifyTimeFieldVisible();
+        });
+
+        test('should set date and time for Last Night', async ({ authenticatedPage }) => {
+            const groupId = 'test-group-date-last-night';
+            const { expenseFormPage } = await openExpenseFormForTest(authenticatedPage, groupId);
+
+            await expenseFormPage.waitForExpenseFormSections();
+
+            // Click Last Night button
+            await expenseFormPage.clickLastNightButton();
+
+            // Should set yesterday's date and show the time field (since it's not noon)
+            const yesterday = expenseFormPage.getYesterdayDateString();
+            await expenseFormPage.verifyDateValue(yesterday);
+            // TimeInput shows as a button displaying "at {time}" when not editing
+            await expenseFormPage.verifyTimeFieldVisible();
+        });
+    });
+
+    test.describe('Recent Amounts', () => {
+        test('should not show recent amounts section when no amounts stored', async ({ authenticatedPage }) => {
+            const groupId = 'test-group-no-recent-amounts';
+            const { expenseFormPage } = await openExpenseFormForTest(authenticatedPage, groupId);
+
+            await expenseFormPage.waitForExpenseFormSections();
+            await expenseFormPage.verifyRecentAmountsSectionNotVisible();
+        });
+
+        test('should show recent amounts and fill both currency and amount when clicked', async ({ authenticatedPage }) => {
+            const { page, user: testUser } = authenticatedPage;
+            const groupId = 'test-group-recent-amounts';
+
+            // Pre-seed localStorage with recent amounts BEFORE navigating
+            // Key format is: user_{userId}_recent-expense-amounts
+            await page.addInitScript((userId) => {
+                const storageKey = `user_${userId}_recent-expense-amounts`;
+                const recentAmounts = [
+                    { amount: '50.00', currency: 'USD' },
+                    { amount: '25.50', currency: 'EUR' },
+                    { amount: '1000', currency: 'JPY' },
+                ];
+                localStorage.setItem(storageKey, JSON.stringify(recentAmounts));
+            }, testUser.uid);
+
+            const { expenseFormPage } = await openExpenseFormForTest(authenticatedPage, groupId);
+
+            await expenseFormPage.waitForExpenseFormSections();
+
+            // Verify recent amounts section is visible
+            await expenseFormPage.verifyRecentAmountsSectionVisible();
+            await expenseFormPage.verifyRecentAmountCount(3);
+
+            // Click on the EUR amount and verify both currency and amount are filled
+            await expenseFormPage.clickRecentAmount('€25.50 EUR');
+
+            await expenseFormPage.expectAmountValue('25.50');
+            await expenseFormPage.verifyCurrencyValue('EUR');
+        });
+
+        test('should display all stored recent amounts (up to storage limit)', async ({ authenticatedPage }) => {
+            const { page, user: testUser } = authenticatedPage;
+            const groupId = 'test-group-recent-amounts-multiple';
+
+            // Pre-seed localStorage with exactly 3 amounts BEFORE navigating
+            // (storage limit is 3, so this represents a full recent amounts list)
+            await page.addInitScript((userId) => {
+                const storageKey = `user_${userId}_recent-expense-amounts`;
+                const recentAmounts = [
+                    { amount: '10.00', currency: 'USD' },
+                    { amount: '20.00', currency: 'GBP' },
+                    { amount: '30.00', currency: 'EUR' },
+                ];
+                localStorage.setItem(storageKey, JSON.stringify(recentAmounts));
+            }, testUser.uid);
+
+            const { expenseFormPage } = await openExpenseFormForTest(authenticatedPage, groupId);
+
+            await expenseFormPage.waitForExpenseFormSections();
+
+            // Should show all 3 stored amounts
+            await expenseFormPage.verifyRecentAmountsSectionVisible();
+            await expenseFormPage.verifyRecentAmountCount(3);
+        });
+    });
+
     test.describe('Modal State Reset on Reopen', () => {
         test('should reset form state when modal is closed and reopened', async ({ authenticatedPage }) => {
             const { page, user: testUser } = authenticatedPage;
