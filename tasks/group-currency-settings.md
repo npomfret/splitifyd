@@ -41,6 +41,11 @@ export interface UpdateGroupRequest {
     // ... existing fields
     currencySettings?: GroupCurrencySettings | null; // Allow unsetting
 }
+
+export interface CreateGroupRequest {
+    // ... existing fields
+    currencySettings?: GroupCurrencySettings;
+}
 ```
 
 **File:** `firebase/functions/src/schemas/group.ts`
@@ -65,10 +70,11 @@ export const GroupDocumentSchema = z.object({
 
 ### Phase 2: Backend Implementation
 
-**1. Update Group Settings API**
+**1. Update Group APIs & Permissions**
 **File:** `firebase/functions/src/groups/handlers.ts`
-- Modify the `updateGroup` handler to accept and validate the `currencySettings` object.
-- The validation middleware for the update endpoint needs to be updated to use the new schema.
+- Modify the `createGroup` and `updateGroup` handlers to accept and validate the `currencySettings` object.
+- **Add a permission check** within the `updateGroup` handler. It must verify that the requesting user has the `owner` or `admin` role within the group before allowing changes to `currencySettings`.
+- The validation middleware for both endpoints needs to be updated to use the new schemas.
 
 **2. Server-Side Expense Validation**
 **File:** `firebase/functions/src/expenses/handlers.ts`
@@ -82,7 +88,7 @@ export const GroupDocumentSchema = z.object({
 
 **File:** `webapp-v2/src/components/group/settings/GroupGeneralTabContent.tsx` (or a new tab)
 - Add a new section in the Group Settings modal for "Currency Settings".
-- This section should only be visible to group owners/admins.
+- **This section must only be visible to group members with the `owner` or `admin` role.**
 - The UI should consist of:
     - A multi-select input or checklist to choose permitted currencies from the master list of all currencies.
     - A dropdown/radio button group to select the default currency *from the list of selected permitted currencies*. This dropdown should be disabled until at least one currency is permitted.
@@ -102,13 +108,23 @@ export const GroupDocumentSchema = z.object({
        - If `currencySettings` are not defined, it should fall back to the user's last-used currency or a sensible default (current behavior).
        - When editing an expense, the form should show the expense's existing currency, regardless of the default.
 
+### Phase 5: Frontend - Group Creation Flow
+
+**File:** `webapp-v2/src/components/group/CreateGroupModal.tsx`
+- Add an "Advanced Settings" or similar collapsible section to the group creation form.
+- Inside this section, replicate the currency settings UI from the Group Settings modal.
+- The `currencySettings` object should be included in the `createGroup` API request payload.
+- This section should be optional and not required to create a group.
+
 ---
 
 ## Testing Plan
 
 ### Backend (Unit/Integration Tests)
-- **Group Settings:**
-    - Test that `updateGroup` correctly saves valid `currencySettings`.
+- **Group Creation/Settings:**
+    - Test that `createGroup` correctly saves `currencySettings` if provided.
+    - Test that `updateGroup` correctly saves valid `currencySettings` **when called by a group owner/admin**.
+    - **Test that `updateGroup` fails with a `FORBIDDEN` error when a regular member attempts to change `currencySettings`.**
     - Test that it rejects settings where the `default` is not in the `permitted` list.
     - Test that it allows `currencySettings` to be set to `null` or `undefined` to disable the feature.
 - **Expense Creation:**
@@ -117,9 +133,15 @@ export const GroupDocumentSchema = z.object({
     - Test that `createExpense` succeeds with any currency if the group has no `currencySettings`.
 
 ### Frontend (Playwright E2E Tests)
-- **Group Settings UI:**
-    - As a group owner, navigate to settings and verify the new currency section appears.
-    - Test selecting a few currencies and setting one as the default. Save and reopen to ensure settings persist.
+- **Group Creation:**
+    - Test creating a group *without* specifying currency settings.
+    - Test creating a group *with* currency settings and verify they are applied correctly by checking the expense form afterward.
+- **Group Settings UI (Permissions):**
+    - As a group `owner`, navigate to settings and verify the currency settings section is visible and editable.
+    - As a group `admin`, navigate to settings and verify the currency settings section is visible and editable.
+    - **As a group `member` or `viewer`, navigate to settings and verify the currency settings section is *not* visible.**
+- **Group Settings UI (Functionality):**
+    - As a group owner, test selecting a few currencies and setting one as the default. Save and reopen to ensure settings persist.
     - Test that the default currency dropdown is populated only with the selected permitted currencies.
     - Test unsetting the configuration.
 - **Expense Form:**
@@ -132,4 +154,3 @@ export const GroupDocumentSchema = z.object({
 
 ## Future Considerations
 - **Multi-currency Groups:** For groups that frequently use many currencies, this feature might be less useful. The ability to easily enable/disable it is key.
-- **Initial Group Setup:** Consider adding this as an option during group creation.
