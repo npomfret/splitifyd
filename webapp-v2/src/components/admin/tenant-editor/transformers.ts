@@ -25,6 +25,7 @@ export function extractFormDataFromTokens(tokens: BrandingTokens): Partial<Tenan
         surfaceOverlayColor: tokens.semantics?.colors?.surface?.overlay || '',
         surfaceWarningColor: tokens.semantics?.colors?.surface?.warning || '',
         surfaceMutedColor: tokens.semantics?.colors?.surface?.muted || '',
+        surfacePopoverColor: tokens.semantics?.colors?.surface?.popover || '',
 
         textPrimaryColor: tokens.semantics?.colors?.text?.primary || '',
         textSecondaryColor: tokens.semantics?.colors?.text?.secondary || '',
@@ -256,6 +257,9 @@ export function buildBrandingTokensFromForm(formData: TenantData): TenantBrandin
                     overlay: formData.surfaceOverlayColor as `rgba(${string})`,
                     warning: formData.surfaceWarningColor as `#${string}`,
                     muted: formData.surfaceMutedColor as `#${string}`,
+                    ...(formData.surfacePopoverColor
+                        ? { popover: formData.surfacePopoverColor as `#${string}` }
+                        : {}),
                     ...(formData.glassColor
                         ? {
                             glass: formData.glassColor as `rgba(${string})`,

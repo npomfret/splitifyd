@@ -215,6 +215,7 @@ interface DerivedColors {
     surfaceOverlayColor: string;
     surfaceWarningColor: string;
     surfaceMutedColor: string;
+    surfacePopoverColor: string;
     // Text
     textPrimaryColor: string;
     textSecondaryColor: string;
@@ -353,6 +354,15 @@ export function deriveColorsFromPalette(
         ? mixColors('#4b5563', adjustedPrimary, mutedTint)
         : mixColors('#f1f5f9', adjustedPrimary, mutedTint);
 
+    // Popover surface - slightly different from raised for floating elements
+    // Darker than raised in dark themes for depth, slightly tinted in light themes
+    const popoverTint = baseTint * 0.3;
+    const surfacePopoverColor = isDarkTheme
+        ? mixColors('#0f0f1a', adjustedPrimary, popoverTint)
+        : isMediumTheme
+            ? mixColors('#374151', adjustedPrimary, popoverTint)
+            : mixColors('#f8fafc', adjustedPrimary, popoverTint);
+
     // Text - Derive contrasting colors
     // Medium theme uses light text (like dark theme) since backgrounds are mid-gray
     const textPrimaryColor = isDarkTheme || isMediumTheme ? '#f8fafc' : '#0f172a';
@@ -393,6 +403,7 @@ export function deriveColorsFromPalette(
         surfaceOverlayColor,
         surfaceWarningColor,
         surfaceMutedColor,
+        surfacePopoverColor,
         textPrimaryColor,
         textSecondaryColor,
         textMutedColor,

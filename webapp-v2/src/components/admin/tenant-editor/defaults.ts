@@ -26,6 +26,7 @@ export const EMPTY_TENANT_DATA: TenantData = {
     surfaceOverlayColor: '',
     surfaceWarningColor: '',
     surfaceMutedColor: '',
+    surfacePopoverColor: '',
 
     textPrimaryColor: '',
     textSecondaryColor: '',
