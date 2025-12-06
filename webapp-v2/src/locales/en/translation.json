@@ -1772,6 +1772,8 @@
       }
     },
     "tenants": {
+      "pageTitle": "Tenant Management",
+      "pageDescription": "View and manage all tenant configurations",
       "summary": {
         "total": "Total tenants:"
       },
@@ -1785,6 +1787,8 @@
       },
       "details": {
         "tenantId": "Tenant ID:",
+        "primaryDomain": "Primary Domain:",
+        "allDomains": "All Domains:",
         "domains": "Domains:"
       },
       "emptyState": "No tenants found",

@@ -1,5 +1,8 @@
 import { expect, Locator, Page } from '@playwright/test';
+import { translationEn } from '../translations/translation-en';
 import { BasePage } from './BasePage';
+
+const translation = translationEn;
 
 /**
  * Page Object Model for the Admin Tenant Config page.
@@ -23,15 +26,15 @@ export class AdminTenantConfigPage extends BasePage {
     }
 
     protected getTenantIdValue(): Locator {
-        return this.getTenantOverviewCard().locator('p:has-text("Tenant ID")').locator('..').locator('p.font-mono');
+        return this.getTenantOverviewCard().locator(`p:has-text("${translation.admin.tenantConfig.overview.tenantId}")`).locator('..').locator('p.font-mono');
     }
 
     protected getAppNameValue(): Locator {
-        return this.getTenantOverviewCard().locator('p:has-text("App Name")').locator('..').locator('p.font-medium').last();
+        return this.getTenantOverviewCard().locator(`p:has-text("${translation.admin.tenantConfig.overview.appName}")`).locator('..').locator('p.font-medium').last();
     }
 
     protected getLastUpdatedValue(): Locator {
-        return this.getTenantOverviewCard().locator('p:has-text("Last Updated")').locator('..').locator('p.font-medium').last();
+        return this.getTenantOverviewCard().locator(`p:has-text("${translation.admin.tenantConfig.overview.lastUpdated}")`).locator('..').locator('p.font-medium').last();
     }
 
     // Theme Artifact Card
@@ -40,7 +43,7 @@ export class AdminTenantConfigPage extends BasePage {
     }
 
     protected getActiveHashValue(): Locator {
-        return this.getThemeArtifactCard().locator('p:has-text("Active Hash")').locator('..').locator('p.font-mono');
+        return this.getThemeArtifactCard().locator(`p:has-text("${translation.admin.tenantConfig.theme.activeHash}")`).locator('..').locator('p.font-mono');
     }
 
     // Branding Tokens Card
@@ -55,7 +58,7 @@ export class AdminTenantConfigPage extends BasePage {
 
     // Loading State
     protected getLoadingState(): Locator {
-        return this.page.locator('text=Loading tenant configuration');
+        return this.page.getByText(translation.admin.tenantConfig.loading, { exact: false });
     }
 
     // Verification Methods
@@ -77,13 +80,13 @@ export class AdminTenantConfigPage extends BasePage {
     }
 
     async verifyAppNameNotDefault(): Promise<void> {
-        await expect(this.getAppNameValue()).not.toHaveText('Not configured');
+        await expect(this.getAppNameValue()).not.toHaveText(translation.common.notConfigured);
     }
 
     async verifyActiveHashPresent(): Promise<void> {
         const hashText = await this.getActiveHashValue().textContent();
         expect(hashText).toBeTruthy();
-        expect(hashText).not.toBe('not published');
+        expect(hashText).not.toBe(translation.admin.tenantConfig.theme.notPublished);
     }
 
     async verifyBrandingTokensCardVisible(): Promise<void> {

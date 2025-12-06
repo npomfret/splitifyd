@@ -32,4 +32,5 @@ export * from './Polling';
 export * from './test-constants';
 export * from './test-helpers';
 export * from './test-pool-helpers';
+export * from './translations/translation-en';
 export * from './utils/page-state-collector';

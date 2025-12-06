@@ -206,7 +206,7 @@ export class AdminPage extends BasePage {
     }
 
     async verifyLogoutButtonText(): Promise<void> {
-        await expect(this.getLogoutButton()).toHaveText(/Logout/i);
+        await expect(this.getLogoutButton()).toHaveText(translation.navigation.userMenu.logout);
     }
 
     async verifyNoTenantLogo(): Promise<void> {

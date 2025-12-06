@@ -6,12 +6,14 @@ import { logError } from '@/utils/browser-logger';
 import type { TenantFullRecord } from '@billsplit-wl/shared';
 import { SystemUserRoles } from '@billsplit-wl/shared';
 import { useEffect, useState } from 'preact/hooks';
+import { useTranslation } from 'react-i18next';
 import { apiClient } from '../app/apiClient';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { AdminLayout } from '../components/layout/AdminLayout';
 import { configStore } from '../stores/config-store';
 
 export function AdminTenantsPage() {
+    const { t } = useTranslation();
     const authStore = useAuthRequired();
     const [tenants, setTenants] = useState<TenantFullRecord[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -52,7 +54,7 @@ export function AdminTenantsPage() {
             setTenants(response.tenants);
             return response.tenants;
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to load tenants');
+            setError(err instanceof Error ? err.message : t('admin.tenants.errors.load'));
             logError('Failed to load tenants', err);
             return [];
         } finally {
@@ -106,8 +108,8 @@ export function AdminTenantsPage() {
         <AdminLayout>
             <div class='max-w-7xl mx-auto px-4 py-8 bg-slate-900 min-h-screen'>
                 <div class='mb-6'>
-                    <h1 class='text-3xl font-bold text-white'>Tenant Management</h1>
-                    <p class='mt-2 text-slate-300'>View and manage all tenant configurations</p>
+                    <h1 class='text-3xl font-bold text-white'>{t('admin.tenants.pageTitle')}</h1>
+                    <p class='mt-2 text-slate-300'>{t('admin.tenants.pageDescription')}</p>
                 </div>
 
                 {error && <Alert type='error' message={error} />}
@@ -122,14 +124,14 @@ export function AdminTenantsPage() {
                         <>
                             <div class='mb-4 flex items-center justify-between'>
                                 <p class='text-sm text-slate-300'>
-                                    Total tenants: <span class='font-semibold text-white'>{tenants.length}</span>
+                                    {t('admin.tenants.summary.total')} <span class='font-semibold text-white'>{tenants.length}</span>
                                 </p>
                                 <div class='flex gap-2'>
                                     <Button onClick={handleCreateTenant} variant='primary' size='sm' data-testid='create-tenant-button'>
-                                        Create New Tenant
+                                        {t('admin.tenants.actions.create')}
                                     </Button>
                                     <Button onClick={loadTenants} variant='secondary' size='sm'>
-                                        Refresh
+                                        {t('common.refresh')}
                                     </Button>
                                 </div>
                             </div>
@@ -150,28 +152,28 @@ export function AdminTenantsPage() {
                                                         </h3>
                                                         {isCurrentTenant && (
                                                             <span class='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-400'>
-                                                                Current
+                                                                {t('admin.tenants.status.active')}
                                                             </span>
                                                         )}
                                                         {tenant.isDefault && (
                                                             <span class='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-400'>
-                                                                Default
+                                                                {t('admin.tenants.status.default')}
                                                             </span>
                                                         )}
                                                     </div>
 
                                                     <div class='space-y-2 text-sm'>
                                                         <div>
-                                                            <span class='text-slate-400'>Tenant ID:</span> <span class='font-mono text-slate-200'>{tenant.tenant.tenantId}</span>
+                                                            <span class='text-slate-400'>{t('admin.tenants.details.tenantId')}</span> <span class='font-mono text-slate-200'>{tenant.tenant.tenantId}</span>
                                                         </div>
 
                                                         <div>
-                                                            <span class='text-slate-400'>Primary Domain:</span> <span class='font-mono text-slate-200'>{tenant.domains[0] || 'None'}</span>
+                                                            <span class='text-slate-400'>{t('admin.tenants.details.primaryDomain')}</span> <span class='font-mono text-slate-200'>{tenant.domains[0] || t('common.none')}</span>
                                                         </div>
 
                                                         {tenant.domains.length > 0 && (
                                                             <div>
-                                                                <span class='text-slate-400'>All Domains:</span>{' '}
+                                                                <span class='text-slate-400'>{t('admin.tenants.details.allDomains')}</span>{' '}
                                                                 <span class='font-mono text-slate-200'>
                                                                     {tenant.domains.map((domain, idx) => (
                                                                         <>
@@ -179,7 +181,7 @@ export function AdminTenantsPage() {
                                                                             <Clickable
                                                                                 onClick={() => handleSwitchTenant(domain)}
                                                                                 className='text-blue-400 hover:text-blue-300 hover:underline cursor-pointer'
-                                                                                title='Click to switch to this tenant'
+                                                                                title={t('admin.tenants.actions.switchTenant')}
                                                                                 aria-label={`Switch to tenant ${domain}`}
                                                                                 eventName='admin_switch_tenant'
                                                                                 eventProps={{ domain }}
@@ -193,8 +195,8 @@ export function AdminTenantsPage() {
                                                         )}
 
                                                         <div class='pt-2 text-xs text-slate-400'>
-                                                            <div>Created: {new Date(tenant.tenant.createdAt).toLocaleDateString()}</div>
-                                                            <div>Updated: {new Date(tenant.tenant.updatedAt).toLocaleDateString()}</div>
+                                                            <div>{t('common.created')}: {new Date(tenant.tenant.createdAt).toLocaleDateString()}</div>
+                                                            <div>{t('common.updated')}: {new Date(tenant.tenant.updatedAt).toLocaleDateString()}</div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -205,7 +207,7 @@ export function AdminTenantsPage() {
                                                         size='sm'
                                                         data-testid={`edit-tenant-${tenant.tenant.tenantId}`}
                                                     >
-                                                        Edit
+                                                        {t('common.edit')}
                                                     </Button>
                                                 </div>
                                             </div>
@@ -216,7 +218,7 @@ export function AdminTenantsPage() {
 
                             {tenants.length === 0 && (
                                 <Card className='p-12 text-center bg-slate-800 border border-slate-700'>
-                                    <p class='text-slate-400'>No tenants found</p>
+                                    <p class='text-slate-400'>{t('admin.tenants.emptyState')}</p>
                                 </Card>
                             )}
                         </>

@@ -82,7 +82,7 @@ export function AdminHeader() {
                             data-testid='admin-logout-button'
                         >
                             <LogoutIcon size={16} />
-                            Logout
+                            {t('navigation.userMenu.logout')}
                         </button>
                     </div>
                 </nav>

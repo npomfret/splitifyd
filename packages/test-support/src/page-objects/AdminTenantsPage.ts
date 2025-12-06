@@ -1,6 +1,9 @@
 import { expect, Locator, Page } from '@playwright/test';
+import { translationEn } from '../translations/translation-en';
 import { BasePage } from './BasePage';
 import { TenantEditorModalPage } from './TenantEditorModalPage';
+
+const translation = translationEn;
 
 /**
  * Page Object Model for the Admin Tenants page.
@@ -37,22 +40,22 @@ export class AdminTenantsPage extends BasePage {
      * Page Header and Title
      */
     protected getPageTitle(): Locator {
-        return this.page.locator('h1:has-text("Tenant Management")');
+        return this.page.locator(`h1:has-text("${translation.admin.tenants.pageTitle}")`);
     }
 
     protected getPageDescription(): Locator {
-        return this.page.locator('text=View and manage all tenant configurations');
+        return this.page.locator(`text=${translation.admin.tenants.pageDescription}`);
     }
 
     /**
      * Tenant Count and Refresh
      */
     protected getTenantCount(): Locator {
-        return this.page.locator('text=/Total tenants:/');
+        return this.page.getByText(translation.admin.tenants.summary.total, { exact: false });
     }
 
     protected getRefreshButton(): Locator {
-        return this.page.locator('button:has-text("Refresh")');
+        return this.page.locator(`button:has-text("${translation.common.refresh}")`);
     }
 
     /**
@@ -77,7 +80,7 @@ export class AdminTenantsPage extends BasePage {
      * Empty State
      */
     protected getEmptyStateMessage(): Locator {
-        return this.page.locator('text=No tenants found');
+        return this.page.locator(`text=${translation.admin.tenants.emptyState}`);
     }
 
     /**
@@ -103,7 +106,7 @@ export class AdminTenantsPage extends BasePage {
     }
 
     protected getDefaultBadge(): Locator {
-        return this.page.locator('text=Default').first();
+        return this.page.locator(`text=${translation.admin.tenants.status.default}`).first();
     }
 
     /**
@@ -272,12 +275,13 @@ export class AdminTenantsPage extends BasePage {
             throw new Error('Could not extract card text');
         }
 
-        // Extract tenant ID
-        const tenantIdMatch = cardText.match(/Tenant ID:\s*([a-z0-9-]+)/);
+        // Extract tenant ID using the translated label
+        const tenantIdLabel = translation.admin.tenants.details.tenantId.replace(':', '');
+        const tenantIdMatch = cardText.match(new RegExp(`${tenantIdLabel}:\\s*([a-z0-9-]+)`));
         const tenantId = tenantIdMatch ? tenantIdMatch[1] : '';
 
         // Check if default badge exists
-        const defaultBadge = card.locator('text=Default');
+        const defaultBadge = card.locator(`text=${translation.admin.tenants.status.default}`);
         const isDefault = await defaultBadge.count() > 0;
 
         return {

@@ -1,5 +1,7 @@
-import { AdminTenantsPage } from '@billsplit-wl/test-support';
+import { AdminTenantsPage, translationEn } from '@billsplit-wl/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
+
+const translation = translationEn;
 
 test.describe('Admin Tenants Page - System Admin View', () => {
     test('should display page title and description', async ({ systemAdminPage }) => {
@@ -9,8 +11,8 @@ test.describe('Admin Tenants Page - System Admin View', () => {
         await adminTenantsPage.navigate();
         await adminTenantsPage.verifyPageLoaded();
 
-        await adminTenantsPage.verifyPageTitleText('Tenant Management');
-        await adminTenantsPage.verifyPageDescriptionContainsText('View and manage all tenant configurations');
+        await adminTenantsPage.verifyPageTitleText(translation.admin.tenants.pageTitle);
+        await adminTenantsPage.verifyPageDescriptionContainsText(translation.admin.tenants.pageDescription);
     });
 
     test('should display tenant count', async ({ systemAdminPage }) => {
@@ -22,7 +24,7 @@ test.describe('Admin Tenants Page - System Admin View', () => {
 
         // Should show total tenant count
         await adminTenantsPage.verifyTenantCountVisible();
-        await adminTenantsPage.verifyTenantCountContainsText('Total tenants:');
+        await adminTenantsPage.verifyTenantCountContainsText(translation.admin.tenants.summary.total);
     });
 
     test('should display refresh button', async ({ systemAdminPage }) => {
@@ -105,8 +107,8 @@ test.describe('Admin Tenants Page - System Admin View', () => {
         // Get first tenant card
         const cardText = await adminTenantsPage.getFirstTenantCardText();
 
-        // Should contain "Tenant ID:"
-        expect(cardText).toContain('Tenant ID:');
+        // Should contain tenant ID label
+        expect(cardText).toContain(translation.admin.tenants.details.tenantId);
     });
 
     test('should display primary domain when available', async ({ systemAdminPage }) => {
@@ -120,8 +122,9 @@ test.describe('Admin Tenants Page - System Admin View', () => {
         const cardText = await adminTenantsPage.getFirstTenantCardText();
 
         // If tenant has a primary domain, it should be visible
-        if (cardText?.includes('Primary Domain:')) {
-            expect(cardText).toMatch(/Primary Domain:\s*\S+/);
+        const primaryDomainLabel = translation.admin.tenants.details.primaryDomain;
+        if (cardText?.includes(primaryDomainLabel)) {
+            expect(cardText).toMatch(new RegExp(`${primaryDomainLabel}\\s*\\S+`));
         }
     });
 
@@ -136,8 +139,9 @@ test.describe('Admin Tenants Page - System Admin View', () => {
         const cardText = await adminTenantsPage.getFirstTenantCardText();
 
         // If tenant has domains, they should be visible
-        if (cardText?.includes('All Domains:')) {
-            expect(cardText).toMatch(/All Domains:\s*\S+/);
+        const allDomainsLabel = translation.admin.tenants.details.allDomains;
+        if (cardText?.includes(allDomainsLabel)) {
+            expect(cardText).toMatch(new RegExp(`${allDomainsLabel}\\s*\\S+`));
         }
     });
 
@@ -152,8 +156,8 @@ test.describe('Admin Tenants Page - System Admin View', () => {
         const cardText = await adminTenantsPage.getFirstTenantCardText();
 
         // Should show timestamps
-        expect(cardText).toContain('Created:');
-        expect(cardText).toContain('Updated:');
+        expect(cardText).toContain(`${translation.common.created}:`);
+        expect(cardText).toContain(`${translation.common.updated}:`);
     });
 
     test('should refresh tenant list when refresh button clicked', async ({ systemAdminPage }) => {
