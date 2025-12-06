@@ -1,59 +1,40 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 50" width="220" height="50">
-  <defs>
-    <!-- Modern gradient for the main brand -->
-    <linearGradient id="brandGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" style="stop-color:#6A0DAD;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#3B0764;stop-opacity:1" />
-    </linearGradient>
-    
-    <!-- Accent gradient for split lines -->
-    <linearGradient id="splitGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" style="stop-color:#FF6F61;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#E05A50;stop-opacity:1" />
-    </linearGradient>
-    
-    <!-- Circle background gradient -->
-    <radialGradient id="circleGradient" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" style="stop-color:#6A0DAD;stop-opacity:0.15" />
-      <stop offset="100%" style="stop-color:#6A0DAD;stop-opacity:0.05" />
-    </radialGradient>
-  </defs>
-  
-  <!-- Background circle for the icon -->
-  <circle cx="25" cy="25" r="20" fill="url(#circleGradient)" stroke="#6A0DAD" stroke-width="1" opacity="0.8"/>
-  
-  <!-- Split symbol - representing bill splitting -->
-  <g transform="translate(25,25)">
-    <!-- Main split lines (like dividing a bill) -->
-    <path d="M-12,-8 L12,-8 M-8,-3 L8,-3 M-10,2 L10,2 M-8,7 L8,7 M-12,12 L12,12" 
-          stroke="url(#brandGradient)" 
-          stroke-width="2" 
-          stroke-linecap="round"/>
-    
-    <!-- Central dot (focal point) -->
-    <circle cx="0" cy="2" r="2.5" fill="url(#splitGradient)"/>
-    
-    <!-- Small accent lines for visual balance -->
-    <path d="M-6,-12 L6,-12 M-6,16 L6,16" 
-          stroke="url(#splitGradient)" 
-          stroke-width="1.5" 
-          stroke-linecap="round" 
-          opacity="0.7"/>
-  </g>
-  
-  <!-- Brand name -->
-  <text x="55" y="32" 
-        font-family="Poppins, Arial, sans-serif" 
-        font-size="20" 
-        font-weight="700" 
-        fill="url(#brandGradient)" 
-        letter-spacing="-0.5px">Bill Splitter</text>
-  
-  <!-- Tagline -->
-  <text x="55" y="43" 
-        font-family="Inter, Arial, sans-serif" 
-        font-size="9" 
-        font-weight="400" 
-        fill="#666" 
-        letter-spacing="0.2px">Smart Bill Splitting</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+    <defs>
+        <linearGradient id="greenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#4ade80;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#22c55e;stop-opacity:1" />
+        </linearGradient>
+        <linearGradient id="orangeBg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#fb923c;stop-opacity:1" />
+            <stop offset="50%" style="stop-color:#f97316;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#c2410c;stop-opacity:1" />
+        </linearGradient>
+        <linearGradient id="lightGreen" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#bbf7d0;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#4ade80;stop-opacity:1" />
+        </linearGradient>
+    </defs>
+
+    <!-- Background circle with orange gradient -->
+    <circle cx="100" cy="100" r="90" fill="url(#orangeBg)"/>
+
+    <!-- Outer ring - green -->
+    <circle cx="100" cy="100" r="85" fill="none" stroke="url(#greenGrad)" stroke-width="3"/>
+
+    <!-- Split symbol - two arrows diverging -->
+    <g transform="translate(100, 100)">
+        <!-- Left arrow - green -->
+        <path d="M -5 -10 L -35 -40 L -25 -40 L -25 -55 L -15 -55 L -15 -40 L -5 -40 Z" fill="url(#lightGreen)" transform="rotate(-15)"/>
+
+        <!-- Right arrow - green -->
+        <path d="M 5 -10 L 35 -40 L 25 -40 L 25 -55 L 15 -55 L 15 -40 L 5 -40 Z" fill="url(#greenGrad)" transform="rotate(15)"/>
+
+        <!-- Center connector / base -->
+        <rect x="-8" y="-5" width="16" height="45" rx="4" fill="url(#greenGrad)"/>
+
+        <!-- Small accent dots -->
+        <circle cx="-30" cy="25" r="6" fill="#bbf7d0"/>
+        <circle cx="30" cy="25" r="6" fill="#22c55e"/>
+        <circle cx="0" cy="55" r="8" fill="url(#lightGreen)"/>
+    </g>
 </svg>
