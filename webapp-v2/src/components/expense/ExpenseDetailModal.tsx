@@ -333,12 +333,12 @@ export function ExpenseDetailModal({ isOpen, onClose, groupId, expenseId, onEdit
                     tabIndex={-1}
                 >
                     <div className='relative max-w-4xl max-h-full'>
-                        <Tooltip content='Close'>
+                        <Tooltip content='Close' className='absolute top-2 right-2 z-10'>
                             <Clickable
                                 as='button'
                                 type='button'
                                 onClick={() => setShowReceiptModal(false)}
-                                className='absolute top-2 right-2 z-10 bg-black bg-opacity-50 text-text-inverted rounded-full p-2 hover:bg-opacity-75 transition-all focus:outline-none focus:ring-2 focus:ring-text-inverted'
+                                className='bg-black bg-opacity-50 text-text-inverted rounded-full p-2 hover:bg-opacity-75 transition-all focus:outline-none focus:ring-2 focus:ring-text-inverted'
                                 aria-label='Close receipt viewer'
                                 eventName='receipt_modal_close'
                                 eventProps={{ expenseId }}

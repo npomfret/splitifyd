@@ -233,7 +233,10 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                                             data-testid='share-link-input'
                                             autoComplete='off'
                                         />
-                                        <Tooltip content={copied ? t('shareGroupModal.linkCopied') : t('shareGroupModal.copyLinkTitle')}>
+                                        <Tooltip
+                                            content={copied ? t('shareGroupModal.linkCopied') : t('shareGroupModal.copyLinkTitle')}
+                                            className='absolute right-2 top-1/2 -translate-y-1/2'
+                                        >
                                             <Button
                                                 type='button'
                                                 onClick={copyToClipboard}
@@ -241,7 +244,6 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                                                 size='sm'
                                                 magnetic={false}
                                                 ariaLabel={t('shareGroupModal.copyLinkAriaLabel')}
-                                                className='absolute right-2 top-1/2 -translate-y-1/2'
                                             >
                                                 {copied
                                                     ? <CheckIcon size={20} className="text-semantic-success" />

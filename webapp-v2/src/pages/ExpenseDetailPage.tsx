@@ -354,17 +354,17 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                         tabIndex={-1}
                     >
                         <div className='relative max-w-4xl max-h-full'>
-                            <Tooltip content={t('pages.expenseDetailPage.closeReceiptViewer')}>
+                            <Tooltip content={t('pages.expenseDetailPage.closeReceiptViewer')} className='absolute top-2 right-2 z-10'>
                                 <Clickable
                                     as='button'
                                     type='button'
                                     onClick={() => setShowReceiptModal(false)}
-                                    className='absolute top-2 right-2 z-10 bg-black bg-opacity-50 text-text-inverted rounded-full p-2 hover:bg-opacity-75 transition-all focus:outline-none focus:ring-2 focus:ring-text-inverted'
+                                    className='bg-black bg-opacity-50 text-text-inverted rounded-full p-2 hover:bg-opacity-75 transition-all focus:outline-none focus:ring-2 focus:ring-text-inverted'
                                     aria-label={t('pages.expenseDetailPage.closeReceiptViewer')}
                                     eventName='receipt_modal_close'
                                     eventProps={{ expenseId }}
                                 >
-<XIcon size={24} />
+                                    <XIcon size={24} />
                                 </Clickable>
                             </Tooltip>
                             <Clickable

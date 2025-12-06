@@ -212,5 +212,6 @@ Pages under `pages/admin/` and `components/admin/` are **completely isolated fro
 | Custom error divs | `ErrorState` or `Alert` |
 | Raw `<button>` | `Button` or `Clickable` |
 | Dropdown in `overflow:hidden` container | Portal to `document.body` (see `Modal.tsx`, `Tooltip.tsx`) |
+| `absolute` class on Tooltip child | Put `absolute` on `Tooltip className` prop instead |
 
 ---
