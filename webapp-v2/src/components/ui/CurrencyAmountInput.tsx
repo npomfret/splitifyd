@@ -180,7 +180,7 @@ export function CurrencyAmountInput({
                         onClick={handleCurrencyClickWrapper}
                         disabled={disabled}
                         className={`
-              flex items-center justify-center px-3 
+              flex shrink-0 items-center justify-center px-3
               border border-r-0 rounded-l-md
               transition-colors duration-200
               ${disabled ? 'bg-surface-muted text-text-muted/80 cursor-not-allowed' : 'bg-surface-muted hover:bg-surface-muted text-text-primary cursor-pointer'}

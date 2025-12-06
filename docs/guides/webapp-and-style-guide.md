@@ -213,5 +213,6 @@ Pages under `pages/admin/` and `components/admin/` are **completely isolated fro
 | Raw `<button>` | `Button` or `Clickable` |
 | Dropdown in `overflow:hidden` container | Portal to `document.body` (see `Modal.tsx`, `Tooltip.tsx`) |
 | `absolute` class on Tooltip child | Put `absolute` on `Tooltip className` prop instead |
+| Flex item without `shrink-0` in Safari | Add `shrink-0` to buttons/fixed-width elements in flex containers |
 
 ---
