@@ -4,7 +4,6 @@ import { enhancedGroupsStore } from '@/app/stores/groups-store-enhanced.ts';
 import { Clickable } from '@/components/ui/Clickable';
 import { XCircleIcon, XIcon } from '@/components/ui/icons';
 import { Modal } from '@/components/ui/Modal';
-import { logInfo } from '@/utils/browser-logger';
 import { CreateGroupRequest, GroupId, toDisplayName, toGroupName } from '@billsplit-wl/shared';
 import { signal, useComputed } from '@preact/signals';
 import { useEffect, useRef, useState } from 'preact/hooks';
@@ -26,9 +25,6 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [validationError, setValidationError] = useState<string | null>(null);
     const [displayNameValidationError, setDisplayNameValidationError] = useState<string | null>(null);
-    const emitModalDebugLog = (message: string, data?: Record<string, unknown>) => {
-        logInfo(message, data);
-    };
 
     // Create fresh signals for each modal instance to avoid stale state
     const [groupNameSignal] = useState(() => signal(''));
@@ -125,10 +121,6 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
             const newGroup = await enhancedGroupsStore.createGroup(groupData);
 
             // Success! Close modal and optionally callback
-            emitModalDebugLog('[CreateGroupModal] Closing modal: Group created successfully', {
-                groupId: newGroup.id,
-                groupName: groupData.name,
-            });
             if (onSuccess) {
                 onSuccess(newGroup.id);
             }
@@ -170,12 +162,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                     <Clickable
                         as='button'
                         type='button'
-                        onClick={() => {
-                            emitModalDebugLog('[CreateGroupModal] Closing modal: X button clicked', {
-                                isSubmitting,
-                            });
-                            onClose();
-                        }}
+                        onClick={onClose}
                         className='text-text-muted hover:text-text-primary transition-colors rounded-full p-1 hover:bg-surface-muted'
                         disabled={isSubmitting}
                         aria-label={t('createGroupModal.closeButtonAriaLabel')}
@@ -274,12 +261,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                     <Button
                         type='button'
                         variant='secondary'
-                        onClick={() => {
-                            emitModalDebugLog('[CreateGroupModal] Closing modal: Cancel button clicked', {
-                                isSubmitting,
-                            });
-                            onClose();
-                        }}
+                        onClick={onClose}
                         disabled={isSubmitting}
                     >
                         {t('createGroupModal.cancelButton')}

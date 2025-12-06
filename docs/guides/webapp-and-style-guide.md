@@ -69,6 +69,14 @@ Built into UI components - don't reinvent.
 | Icons | `aria-hidden="true"`, `focusable="false"` on all icons |
 | Skip link | `sr-only` until focused, targets `#main-content` - see `BaseLayout.tsx` |
 
+### Modal Focus Trap
+
+The focus trap in `Modal.tsx` **must not steal focus from active form elements**. Before moving focus, check if the user is already interacting with an INPUT/TEXTAREA/SELECT and skip if so.
+
+**Why:** If focus moves from an input to a button while typing, a space character triggers a button click - causing modals to close unexpectedly.
+
+**Anti-pattern:** Debounce hacks to ignore close events are symptoms, not fixes. Investigate focus management first.
+
 ---
 
 ## Motion System

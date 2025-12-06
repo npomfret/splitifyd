@@ -34,13 +34,29 @@ function useFocusTrap(modalRef: RefObject<HTMLElement>, isOpen: boolean): void {
         };
 
         // Set initial focus to first focusable element
-        const focusableElements = getFocusableElements();
-        if (focusableElements.length > 0) {
-            (focusableElements[0] as HTMLElement).focus();
-        }
+        // Use setTimeout with a delay to ensure any pending mouse/keyboard events
+        // from the previous modal have fully completed before focusing
+        // This prevents accidental clicks on the focused element when modals transition
+        const focusTimeoutId = setTimeout(() => {
+            // Don't steal focus if user is already interacting with an input/textarea
+            // This prevents the focus trap from interrupting form filling, which can cause
+            // accidental button clicks if a space is typed right after focus moves
+            const activeTag = document.activeElement?.tagName?.toUpperCase();
+            if (activeTag === 'INPUT' || activeTag === 'TEXTAREA' || activeTag === 'SELECT') {
+                return;
+            }
+
+            const focusableElements = getFocusableElements();
+            if (focusableElements.length > 0) {
+                (focusableElements[0] as HTMLElement).focus();
+            }
+        }, 100);
 
         document.addEventListener('keydown', handleKeyDown);
-        return () => document.removeEventListener('keydown', handleKeyDown);
+        return () => {
+            clearTimeout(focusTimeoutId);
+            document.removeEventListener('keydown', handleKeyDown);
+        };
     }, [isOpen, modalRef]);
 }
 
@@ -111,7 +127,9 @@ export function Modal({ open, onClose, size = 'sm', labelledBy, describedBy, cla
         };
 
         document.addEventListener('keydown', handleEscape);
-        return () => document.removeEventListener('keydown', handleEscape);
+        return () => {
+            document.removeEventListener('keydown', handleEscape);
+        };
     }, [open, onClose]);
 
     if (typeof document === 'undefined') {
@@ -121,8 +139,8 @@ export function Modal({ open, onClose, size = 'sm', labelledBy, describedBy, cla
     // Use onMouseDown instead of onClick to prevent closing when drag-selecting text
     // that ends outside the modal content but still within the backdrop
     const handleBackdropMouseDown: JSX.MouseEventHandler<HTMLDivElement> = (event) => {
-        if (event.target === event.currentTarget) {
-            onClose?.();
+        if (event.target === event.currentTarget && onClose) {
+            onClose();
         }
     };
 

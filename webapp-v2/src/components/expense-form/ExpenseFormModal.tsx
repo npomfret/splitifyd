@@ -35,10 +35,6 @@ export function ExpenseFormModal({ isOpen, onClose, groupId, mode, expenseId, on
         onClose();
     };
 
-    const handleCancel = () => {
-        onClose();
-    };
-
     const formState = useExpenseForm({
         isOpen,
         groupId,
@@ -47,7 +43,7 @@ export function ExpenseFormModal({ isOpen, onClose, groupId, mode, expenseId, on
         isCopyMode,
         sourceExpenseId: isCopyMode ? expenseId : null,
         onSuccess: handleSuccess,
-        onCancel: handleCancel,
+        onCancel: onClose,
     });
 
     const getModalTitle = () => {
