@@ -124,7 +124,6 @@ export const SDG = toCurrencyISOCode('SDG');
 export const SEK = toCurrencyISOCode('SEK');
 export const SGD = toCurrencyISOCode('SGD');
 export const SHP = toCurrencyISOCode('SHP');
-export const SLL = toCurrencyISOCode('SLL');
 export const SOS = toCurrencyISOCode('SOS');
 export const SRD = toCurrencyISOCode('SRD');
 export const STN = toCurrencyISOCode('STN');
@@ -970,13 +969,6 @@ export default [
         symbol: '£',
         decimal_digits: 2,
         countries: ['Saint Helena'],
-    },
-    {
-        acronym: 'SLL',
-        name: 'Sierra Leonean Leone',
-        symbol: 'Le',
-        decimal_digits: 2,
-        countries: ['Sierra Leone'],
     },
     {
         acronym: 'SOS',
