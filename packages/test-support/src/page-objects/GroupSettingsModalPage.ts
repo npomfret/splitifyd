@@ -216,6 +216,10 @@ export class GroupSettingsModalPage extends BasePage {
         return this.getModalContainer().getByTestId(`pending-reject-${memberId}`);
     }
 
+    protected getMemberRoleSelect(memberId: string): Locator {
+        return this.getModalContainer().getByTestId(`member-role-select-${memberId}`);
+    }
+
     // ============================================================================
     // ERROR MESSAGE SELECTORS
     // ============================================================================
@@ -511,6 +515,11 @@ export class GroupSettingsModalPage extends BasePage {
         await expect(this.getPendingRejectButton(memberId)).toHaveCount(0, { timeout: 5000 });
     }
 
+    async changeMemberRole(memberId: string, newRole: 'admin' | 'member' | 'viewer'): Promise<void> {
+        await this.ensureSecurityTab();
+        await this.getMemberRoleSelect(memberId).selectOption(newRole);
+    }
+
     // ============================================================================
     // VERIFICATION HELPERS
     // ============================================================================
@@ -756,5 +765,202 @@ export class GroupSettingsModalPage extends BasePage {
     async verifyNoPendingRequestsMessageVisible(): Promise<void> {
         await this.ensureSecurityTab();
         await expect(this.getModalContainer().getByText('No pending requests right now.')).toBeVisible();
+    }
+
+    // ============================================================================
+    // MEMBER ROLE VERIFICATION HELPERS
+    // ============================================================================
+
+    /**
+     * Verify member role select dropdown is disabled (for group creator)
+     */
+    async verifyMemberRoleSelectDisabled(memberId: string): Promise<void> {
+        await this.ensureSecurityTab();
+        await expect(this.getMemberRoleSelect(memberId)).toBeDisabled();
+    }
+
+    /**
+     * Verify member role select dropdown is enabled
+     */
+    async verifyMemberRoleSelectEnabled(memberId: string): Promise<void> {
+        await this.ensureSecurityTab();
+        await expect(this.getMemberRoleSelect(memberId)).toBeEnabled();
+    }
+
+    /**
+     * Verify member role select has expected value
+     */
+    async verifyMemberRoleValue(memberId: string, expectedRole: 'admin' | 'member' | 'viewer'): Promise<void> {
+        await this.ensureSecurityTab();
+        await expect(this.getMemberRoleSelect(memberId)).toHaveValue(expectedRole);
+    }
+
+    /**
+     * Get member role select locator for direct assertions
+     */
+    getMemberRoleSelectLocator(memberId: string): Locator {
+        return this.getMemberRoleSelect(memberId);
+    }
+
+    // ============================================================================
+    // DELETE DIALOG VERIFICATION HELPERS
+    // ============================================================================
+
+    /**
+     * Verify delete confirmation dialog is visible
+     */
+    async verifyDeleteDialogVisible(): Promise<void> {
+        await expect(this.getDeleteDialog()).toBeVisible();
+    }
+
+    /**
+     * Verify delete confirmation dialog is not visible
+     */
+    async verifyDeleteDialogNotVisible(): Promise<void> {
+        await expect(this.getDeleteDialog()).not.toBeVisible();
+    }
+
+    /**
+     * Verify confirm delete button is disabled
+     */
+    async verifyConfirmDeleteButtonDisabled(): Promise<void> {
+        await expect(this.getConfirmDeleteButton()).toBeDisabled();
+    }
+
+    /**
+     * Verify confirm delete button is enabled
+     */
+    async verifyConfirmDeleteButtonEnabled(): Promise<void> {
+        await expect(this.getConfirmDeleteButton()).toBeEnabled();
+    }
+
+    /**
+     * Click cancel in delete dialog to return to settings modal
+     */
+    async cancelDelete(): Promise<void> {
+        await this.getCancelDeleteButton().click();
+        await expect(this.getDeleteDialog()).not.toBeVisible({ timeout: 2000 });
+    }
+
+    /**
+     * Get validation error locator for direct assertions
+     */
+    getValidationErrorLocator(): Locator {
+        return this.getValidationError();
+    }
+
+    /**
+     * Get general success alert locator for direct assertions
+     */
+    getGeneralSuccessAlertLocator(): Locator {
+        return this.getGeneralSuccessAlert();
+    }
+
+    // ============================================================================
+    // CUSTOM PERMISSIONS VERIFICATION HELPERS
+    // ============================================================================
+
+    /**
+     * Change a specific permission in the custom permissions section
+     */
+    async changePermission(key: string, value: string): Promise<void> {
+        await this.ensureSecurityTab();
+        await this.getPermissionSelect(key).selectOption(value);
+    }
+
+    /**
+     * Verify a specific permission has the expected value
+     */
+    async verifyPermissionValue(key: string, expectedValue: string): Promise<void> {
+        await this.ensureSecurityTab();
+        await expect(this.getPermissionSelect(key)).toHaveValue(expectedValue);
+    }
+
+    /**
+     * Verify a preset button is selected (has the active styling)
+     * Selected state includes: shadow-sm and bg-interactive-primary/10 (without hover:)
+     */
+    async verifyPresetSelected(preset: string): Promise<void> {
+        await this.ensureSecurityTab();
+        // Selected preset buttons have shadow-sm class (unique to selected state)
+        await expect(this.getPresetButton(preset)).toHaveClass(/shadow-sm/);
+    }
+
+    /**
+     * Verify a preset button is not selected
+     */
+    async verifyPresetNotSelected(preset: string): Promise<void> {
+        await this.ensureSecurityTab();
+        // Not selected buttons don't have shadow-sm class
+        await expect(this.getPresetButton(preset)).not.toHaveClass(/shadow-sm/);
+    }
+
+    /**
+     * Verify no managed preset is selected (custom mode)
+     */
+    async verifyCustomPresetActive(): Promise<void> {
+        await this.ensureSecurityTab();
+        // Neither 'open' nor 'managed' should be selected when in custom mode
+        // Use shadow-sm as indicator since it's unique to selected state
+        await expect(this.getPresetButton('open')).not.toHaveClass(/shadow-sm/);
+        await expect(this.getPresetButton('managed')).not.toHaveClass(/shadow-sm/);
+    }
+
+    /**
+     * Get permission select locator for direct assertions
+     */
+    getPermissionSelectLocator(key: string): Locator {
+        return this.getPermissionSelect(key);
+    }
+
+    // ============================================================================
+    // TAB VISIBILITY VERIFICATION HELPERS
+    // ============================================================================
+
+    /**
+     * Verify a specific tab is visible
+     */
+    async verifyTabVisible(tab: GroupSettingsTab): Promise<void> {
+        await expect(this.getTabButton(tab)).toBeVisible();
+    }
+
+    /**
+     * Verify a specific tab is not visible
+     */
+    async verifyTabNotVisible(tab: GroupSettingsTab): Promise<void> {
+        await expect(this.getTabButton(tab)).not.toBeVisible();
+    }
+
+    /**
+     * Click on a specific tab
+     */
+    async clickTab(tab: GroupSettingsTab): Promise<void> {
+        await this.getTabButton(tab).click();
+    }
+
+    /**
+     * Get the list of visible tabs
+     */
+    async getVisibleTabs(): Promise<GroupSettingsTab[]> {
+        const tabs: GroupSettingsTab[] = [];
+        if (await this.hasTab('identity')) tabs.push('identity');
+        if (await this.hasTab('general')) tabs.push('general');
+        if (await this.hasTab('security')) tabs.push('security');
+        return tabs;
+    }
+
+    /**
+     * Verify the group name input is visible (general tab content)
+     */
+    async verifyGroupNameInputVisible(): Promise<void> {
+        await this.ensureGeneralTab();
+        await expect(this.getGroupNameInput()).toBeVisible();
+    }
+
+    /**
+     * Get group name input locator for direct assertions
+     */
+    getGroupNameInputLocator(): Locator {
+        return this.getGroupNameInput();
     }
 }

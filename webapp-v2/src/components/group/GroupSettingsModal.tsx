@@ -109,11 +109,16 @@ export function GroupSettingsModal({
 
     // Component-local signals
     const [activeTabSignal] = useState(() => signal<GroupSettingsTab | null>(defaultTab));
+    // Track previous isOpen state to detect open transitions
+    const [wasOpen, setWasOpen] = useState(false);
     const activeTab = activeTabSignal.value;
 
-    // Update active tab when modal opens/closes
-    if (isOpen && activeTabSignal.value !== defaultTab) {
+    // Reset to default tab only when modal transitions from closed to open
+    if (isOpen && !wasOpen) {
         activeTabSignal.value = defaultTab;
+        setWasOpen(true);
+    } else if (!isOpen && wasOpen) {
+        setWasOpen(false);
     }
 
     const renderIdentityTab = () => {
