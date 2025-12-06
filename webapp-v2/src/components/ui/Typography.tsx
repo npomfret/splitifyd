@@ -38,8 +38,8 @@ const variantClasses: Record<TypographyVariant, string> = {
     eyebrow: 'text-xs font-semibold uppercase tracking-[0.12em] text-text-muted',
     subheading: 'text-lg font-semibold text-text-primary',
     heading: 'text-xl font-semibold text-text-primary',
-    pageTitle: 'text-2xl font-bold text-text-primary',
-    display: 'text-3xl font-bold text-text-primary',
+    pageTitle: 'text-2xl font-bold bg-gradient-to-br from-[var(--semantics-colors-text-primary)] to-[var(--semantics-colors-text-accent)] bg-clip-text text-transparent',
+    display: 'text-3xl font-bold bg-gradient-to-br from-[var(--semantics-colors-text-primary)] to-[var(--semantics-colors-text-accent)] bg-clip-text text-transparent',
 };
 
 export function Typography({ as, variant = 'body', children, className = '', id, role, title, 'data-testid': dataTestId, ariaLabel, ariaDescribedBy }: TypographyProps) {

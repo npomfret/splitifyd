@@ -19,7 +19,7 @@ export function AuthLayout({ title, description, children }: AuthLayoutProps) {
                         <Typography
                             as='h1'
                             variant='display'
-                            className='text-center mb-2 bg-gradient-to-br from-[var(--semantics-colors-text-primary)] to-[var(--semantics-colors-text-accent)] bg-clip-text text-transparent'
+                            className='text-center mb-2'
                         >
                             {title}
                         </Typography>
