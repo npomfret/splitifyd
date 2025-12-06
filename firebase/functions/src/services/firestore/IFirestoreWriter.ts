@@ -82,14 +82,14 @@ export interface IFirestoreWriter {
     // ========================================================================
 
     /**
-     * Update a group's updatedAt timestamp and all membership groupUpdatedAt timestamps to mark activity.
+     * Update a group's updatedAt and preloaded membership refs' groupUpdatedAt within a transaction.
+     * Use when membership refs were preloaded at transaction start (to satisfy reads-before-writes rule).
      * This ensures groups are properly ordered by most recent activity.
-     * Use this whenever any group-related operation occurs (expenses, settlements, members, comments)
      * @param groupId - The group ID
-     * @param transactionOrBatch - Optional transaction or batch to perform update within
-     * @param excludeMembershipIds - Optional list of membership doc IDs to exclude (for delete operations)
+     * @param transaction - The transaction
+     * @param membershipRefs - Preloaded membership document refs to update
      */
-    touchGroup(groupId: GroupId, transactionOrBatch?: ITransaction | IWriteBatch, excludeMembershipIds?: string[]): Promise<void>;
+    touchGroupWithPreloadedRefs(groupId: GroupId, transaction: ITransaction, membershipRefs: IDocumentReference[]): Promise<void>;
 
     /**
      * Update a member's group-specific display name with uniqueness validation

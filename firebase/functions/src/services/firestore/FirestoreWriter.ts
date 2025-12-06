@@ -677,59 +677,20 @@ export class FirestoreWriter implements IFirestoreWriter {
         });
     }
 
-    async touchGroup(groupId: GroupId, transactionOrBatch?: ITransaction | IWriteBatch, excludeMembershipIds?: string[]): Promise<void> {
+    async touchGroupWithPreloadedRefs(
+        groupId: GroupId,
+        transaction: ITransaction,
+        membershipRefs: IDocumentReference[],
+    ): Promise<void> {
         const now = Timestamp.now();
         const groupRef = this.db.collection(FirestoreCollections.GROUPS).doc(groupId);
-        const excludeSet = new Set(excludeMembershipIds ?? []);
 
-        if (transactionOrBatch && 'get' in transactionOrBatch) {
-            // Transaction case - query within transaction to see current state
-            const transaction = transactionOrBatch as ITransaction;
-            const membershipsQuery = this.db
-                .collection(FirestoreCollections.GROUP_MEMBERSHIPS)
-                .where('groupId', '==', groupId);
-            const membershipsSnapshot = await transaction.get(membershipsQuery);
+        // Update group document
+        transaction.update(groupRef, { updatedAt: now });
 
-            // Update group document
-            transaction.update(groupRef, { updatedAt: now });
-
-            // Update all membership documents' groupUpdatedAt for proper ordering
-            // Skip any that are being deleted in this transaction
-            for (const doc of membershipsSnapshot.docs) {
-                if (!excludeSet.has(doc.id)) {
-                    transaction.update(doc.ref, { groupUpdatedAt: now });
-                }
-            }
-        } else if (transactionOrBatch) {
-            // WriteBatch case - query outside batch (batches can't read)
-            const batch = transactionOrBatch as IWriteBatch;
-            const membershipsSnapshot = await this.db
-                .collection(FirestoreCollections.GROUP_MEMBERSHIPS)
-                .where('groupId', '==', groupId)
-                .get();
-
-            batch.update(groupRef, { updatedAt: now });
-
-            for (const doc of membershipsSnapshot.docs) {
-                if (!excludeSet.has(doc.id)) {
-                    batch.update(doc.ref, { groupUpdatedAt: now });
-                }
-            }
-        } else {
-            // No transaction/batch - use our own batch for atomicity
-            const membershipsSnapshot = await this.db
-                .collection(FirestoreCollections.GROUP_MEMBERSHIPS)
-                .where('groupId', '==', groupId)
-                .get();
-
-            const batch = this.db.batch();
-            batch.update(groupRef, { updatedAt: now });
-
-            for (const doc of membershipsSnapshot.docs) {
-                batch.update(doc.ref, { groupUpdatedAt: now });
-            }
-
-            await batch.commit();
+        // Update all preloaded membership refs
+        for (const ref of membershipRefs) {
+            transaction.update(ref, { groupUpdatedAt: now });
         }
     }
 

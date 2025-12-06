@@ -1,5 +1,5 @@
 import type { GroupDTO, GroupId } from '@billsplit-wl/shared';
-import type { ITransaction } from 'ts-firebase-simulator';
+import type { IDocumentReference, ITransaction } from 'ts-firebase-simulator';
 import { ErrorDetail, Errors } from '../../errors';
 import type { GroupBalanceDTO } from '../../schemas';
 import type { IFirestoreReader, IFirestoreWriter } from '../firestore';
@@ -12,16 +12,24 @@ export interface GroupTransactionOptions {
 export class GroupTransactionContext {
     private balance?: GroupBalanceDTO;
     private balanceLoaded = false;
+    private membershipRefs: Array<{ id: string; ref: IDocumentReference }> = [];
 
     constructor(
         private readonly groupId: GroupId,
         private readonly groupSnapshot: GroupDTO | null,
         private readonly transactionRef: ITransaction,
         private readonly firestoreWriter: IFirestoreWriter,
+        private readonly firestoreReader: IFirestoreReader,
         private readonly options: GroupTransactionOptions,
     ) {}
 
     async prepare(): Promise<void> {
+        // Preload membership refs - must happen before any writes (Firestore rule)
+        this.membershipRefs = await this.firestoreReader.getMembershipRefsInTransaction(
+            this.transactionRef,
+            this.groupId,
+        );
+
         if (this.options.preloadBalance) {
             await this.getCurrentBalance();
         }
@@ -47,7 +55,13 @@ export class GroupTransactionContext {
     }
 
     async touchGroup(excludeMembershipIds?: string[]): Promise<void> {
-        await this.firestoreWriter.touchGroup(this.groupId, this.transactionRef, excludeMembershipIds);
+        const excludeSet = new Set(excludeMembershipIds ?? []);
+        const refsToUpdate = this.membershipRefs.filter((m) => !excludeSet.has(m.id));
+        await this.firestoreWriter.touchGroupWithPreloadedRefs(
+            this.groupId,
+            this.transactionRef,
+            refsToUpdate.map((m) => m.ref),
+        );
     }
 }
 
@@ -73,7 +87,7 @@ export class GroupTransactionManager {
                 }
             }
 
-            const context = new GroupTransactionContext(groupId, group, transaction, this.firestoreWriter, options);
+            const context = new GroupTransactionContext(groupId, group, transaction, this.firestoreWriter, this.firestoreReader, options);
             await context.prepare();
 
             return executor(context);

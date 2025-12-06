@@ -1603,6 +1603,17 @@ export class FirestoreReader implements IFirestoreReader {
         }
     }
 
+    async getMembershipRefsInTransaction(
+        transaction: ITransaction,
+        groupId: GroupId,
+    ): Promise<Array<{ id: string; ref: IDocumentReference }>> {
+        const membershipsQuery = this.db
+            .collection(FirestoreCollections.GROUP_MEMBERSHIPS)
+            .where('groupId', '==', groupId);
+        const snapshot = await transaction.get(membershipsQuery);
+        return snapshot.docs.map((doc) => ({ id: doc.id, ref: doc.ref }));
+    }
+
     /**
      * @deprecated Use getGroupInTransaction instead - returns DTO with ISO strings
      * Raw methods leak Firestore Timestamps into application layer

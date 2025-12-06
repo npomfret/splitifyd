@@ -438,6 +438,18 @@ export interface IFirestoreReader {
     getGroupInTransaction(transaction: ITransaction, groupId: GroupId): Promise<GroupDTO | null>;
 
     /**
+     * Get membership document refs in a transaction for later updates.
+     * Must be called before any writes in the transaction (Firestore rule).
+     * @param transaction - Firestore transaction
+     * @param groupId - The group ID
+     * @returns Array of membership document IDs and refs
+     */
+    getMembershipRefsInTransaction(
+        transaction: ITransaction,
+        groupId: GroupId,
+    ): Promise<Array<{ id: string; ref: IDocumentReference }>>;
+
+    /**
      * Get expense DTO in a transaction with Timestamp → ISO conversion
      * Use this for optimistic locking with DTOs (DTO-everywhere pattern)
      * @param transaction - Firestore transaction

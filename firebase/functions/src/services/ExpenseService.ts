@@ -212,6 +212,9 @@ export class ExpenseService {
             const currentBalance = await this.firestoreWriter.getGroupBalanceInTransaction(transaction, expenseData.groupId);
             timer.endPhase();
 
+            // Preload membership refs for touchGroup (must be read before writes)
+            const membershipRefs = await this.firestoreReader.getMembershipRefsInTransaction(transaction, expenseData.groupId);
+
             // ===== WRITE PHASE: All writes happen after reads =====
 
             timer.startPhase('transaction:createExpense');
@@ -226,7 +229,11 @@ export class ExpenseService {
 
             timer.startPhase('transaction:touchGroup');
             // Update group timestamp to track activity
-            await this.firestoreWriter.touchGroup(expenseData.groupId, transaction);
+            await this.firestoreWriter.touchGroupWithPreloadedRefs(
+                expenseData.groupId,
+                transaction,
+                membershipRefs.map((m) => m.ref),
+            );
             timer.endPhase();
 
             timer.startPhase('transaction:applyBalance');
@@ -400,6 +407,9 @@ export class ExpenseService {
             // Read current balance BEFORE any writes (Firestore transaction rule)
             const currentBalance = await this.firestoreWriter.getGroupBalanceInTransaction(transaction, oldExpense.groupId);
 
+            // Preload membership refs for touchGroup (must be read before writes)
+            const membershipRefs = await this.firestoreReader.getMembershipRefsInTransaction(transaction, oldExpense.groupId);
+
             // ===== WRITE PHASE: All writes happen after reads =====
 
             // 1. Soft-delete old expense and link to new version via supersededBy
@@ -419,7 +429,11 @@ export class ExpenseService {
             );
 
             // Update group timestamp to track activity
-            await this.firestoreWriter.touchGroup(oldExpense.groupId, transaction);
+            await this.firestoreWriter.touchGroupWithPreloadedRefs(
+                oldExpense.groupId,
+                transaction,
+                membershipRefs.map((m) => m.ref),
+            );
 
             // Apply incremental balance update with old and new expense
             const newExpenseForBalance: ExpenseDTO = { ...newExpenseData, isLocked: false };
@@ -610,6 +624,9 @@ export class ExpenseService {
                     throw Errors.conflict(ErrorDetail.CONCURRENT_UPDATE);
                 }
 
+                // Preload membership refs for touchGroup (must be read before writes)
+                const membershipRefs = await this.firestoreReader.getMembershipRefsInTransaction(transaction, expense.groupId);
+
                 // ===== WRITE PHASE: All writes happen after reads =====
 
                 // Soft delete the expense
@@ -621,7 +638,11 @@ export class ExpenseService {
                 });
 
                 // Update group timestamp to track activity
-                await this.firestoreWriter.touchGroup(expense.groupId, transaction);
+                await this.firestoreWriter.touchGroupWithPreloadedRefs(
+                    expense.groupId,
+                    transaction,
+                    membershipRefs.map((m) => m.ref),
+                );
 
                 // Apply incremental balance update to remove this expense's contribution
                 this.incrementalBalanceService.applyExpenseDeleted(transaction, expense.groupId, currentBalance, expense, memberIds);

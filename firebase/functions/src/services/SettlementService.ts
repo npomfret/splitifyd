@@ -163,6 +163,9 @@ export class SettlementService {
             const currentBalance = await this.firestoreWriter.getGroupBalanceInTransaction(transaction, settlementData.groupId);
             timer.endPhase();
 
+            // Preload membership refs for touchGroup (must be read before writes)
+            const membershipRefs = await this.firestoreReader.getMembershipRefsInTransaction(transaction, settlementData.groupId);
+
             // ===== WRITE PHASE: All writes happen after reads =====
 
             timer.startPhase('transaction:createSettlement');
@@ -172,7 +175,11 @@ export class SettlementService {
 
             timer.startPhase('transaction:touchGroup');
             // Update group timestamp to track activity
-            await this.firestoreWriter.touchGroup(settlementData.groupId, transaction);
+            await this.firestoreWriter.touchGroupWithPreloadedRefs(
+                settlementData.groupId,
+                transaction,
+                membershipRefs.map((m) => m.ref),
+            );
             timer.endPhase();
 
             timer.startPhase('transaction:applyBalance');
@@ -338,6 +345,9 @@ export class SettlementService {
             // Read current balance BEFORE any writes (Firestore transaction rule)
             const currentBalance = await this.firestoreWriter.getGroupBalanceInTransaction(transaction, oldSettlement.groupId);
 
+            // Preload membership refs for touchGroup (must be read before writes)
+            const membershipRefs = await this.firestoreReader.getMembershipRefsInTransaction(transaction, oldSettlement.groupId);
+
             // ===== WRITE PHASE: All writes happen after reads =====
 
             // 1. Soft-delete old settlement and link to new version via supersededBy
@@ -357,7 +367,11 @@ export class SettlementService {
             );
 
             // Update group timestamp to track activity
-            await this.firestoreWriter.touchGroup(oldSettlement.groupId, transaction);
+            await this.firestoreWriter.touchGroupWithPreloadedRefs(
+                oldSettlement.groupId,
+                transaction,
+                membershipRefs.map((m) => m.ref),
+            );
 
             // Apply incremental balance update with old and new settlement
             const newSettlementForBalance: SettlementDTO = { ...newSettlementData, isLocked: false };
@@ -516,6 +530,9 @@ export class SettlementService {
             // Read current balance BEFORE any writes (Firestore transaction rule)
             const currentBalance = await this.firestoreWriter.getGroupBalanceInTransaction(transaction, settlement.groupId);
 
+            // Preload membership refs for touchGroup (must be read before writes)
+            const membershipRefs = await this.firestoreReader.getMembershipRefsInTransaction(transaction, settlement.groupId);
+
             const now = new Date().toISOString();
             const documentPath = `${FirestoreCollections.SETTLEMENTS}/${settlementId}`;
 
@@ -526,7 +543,11 @@ export class SettlementService {
             });
 
             // Update group timestamp to track activity
-            await this.firestoreWriter.touchGroup(settlement.groupId, transaction);
+            await this.firestoreWriter.touchGroupWithPreloadedRefs(
+                settlement.groupId,
+                transaction,
+                membershipRefs.map((m) => m.ref),
+            );
 
             // Apply incremental balance update to remove this settlement's contribution
             this.incrementalBalanceService.applySettlementDeleted(transaction, settlement.groupId, currentBalance, settlement, memberIds);

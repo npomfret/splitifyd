@@ -565,6 +565,9 @@ describe('groups', () => {
             let result = await appDriver.listGroups({}, user1);
             expect(result.groups[0].id).toBe(group1.id);
 
+            // Small delay to ensure different timestamp
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
             // Now add an expense to group2
             await appDriver.createExpense(
                 new CreateExpenseRequestBuilder()
