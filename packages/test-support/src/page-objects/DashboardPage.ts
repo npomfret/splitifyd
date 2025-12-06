@@ -191,7 +191,7 @@ export class DashboardPage extends BasePage {
     }
 
     private getPaginationContainer(): Locator {
-        return this.page.getByRole('navigation', { name: 'Pagination' });
+        return this.page.getByRole('navigation', { name: translation.pagination.navigation });
     }
 
     private getPaginationNextButton(): Locator {

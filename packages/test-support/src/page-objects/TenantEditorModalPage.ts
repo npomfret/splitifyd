@@ -308,25 +308,25 @@ export class TenantEditorModalPage extends BasePage {
     async fillLogoUrl(value: string): Promise<void> {
         // The logo field uses ImageUploadField with URL input mode
         const logoField = this.getLogoUploadField();
-        await logoField.getByRole('button', { name: 'Or enter URL' }).click();
+        await logoField.getByRole('button', { name: translation.common.orEnterUrl }).click();
         const urlInput = this.page.getByTestId('logo-upload-field-url-input');
         await urlInput.fill(value);
         // Click Download button to set the URL
-        await logoField.getByRole('button', { name: 'Download' }).click();
+        await logoField.getByRole('button', { name: translation.common.download }).click();
         // Wait for the download button to disappear (indicates download completed or URL input closed)
-        await expect(logoField.getByRole('button', { name: 'Download' })).not.toBeVisible();
+        await expect(logoField.getByRole('button', { name: translation.common.download })).not.toBeVisible();
     }
 
     async fillFaviconUrl(value: string): Promise<void> {
         // The favicon field uses ImageUploadField with URL input mode
         const faviconField = this.getFaviconUploadField();
-        await faviconField.getByRole('button', { name: 'Or enter URL' }).click();
+        await faviconField.getByRole('button', { name: translation.common.orEnterUrl }).click();
         const urlInput = this.page.getByTestId('favicon-upload-field-url-input');
         await urlInput.fill(value);
         // Click Download button to set the URL
-        await faviconField.getByRole('button', { name: 'Download' }).click();
+        await faviconField.getByRole('button', { name: translation.common.download }).click();
         // Wait for the download button to disappear (indicates download completed or URL input closed)
-        await expect(faviconField.getByRole('button', { name: 'Download' })).not.toBeVisible();
+        await expect(faviconField.getByRole('button', { name: translation.common.download })).not.toBeVisible();
     }
 
     async addDomain(domain: string): Promise<void> {

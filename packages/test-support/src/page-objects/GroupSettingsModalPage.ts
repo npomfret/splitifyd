@@ -333,13 +333,13 @@ export class GroupSettingsModalPage extends BasePage {
     }
 
     protected getSecuritySuccessAlert(): Locator {
-        // Success status in security tab (has aria-label='success')
-        return this.getModalContainer().getByRole('status', { name: 'success' });
+        // Success status in security tab
+        return this.getModalContainer().getByRole('status', { name: translation.groupSettingsModal.securityTab.successAriaLabel });
     }
 
     protected getSecurityUnsavedBanner(): Locator {
-        // Unsaved banner in security tab (has aria-label='unsaved changes')
-        return this.getModalContainer().getByRole('status', { name: 'unsaved changes' });
+        // Unsaved banner in security tab
+        return this.getModalContainer().getByRole('status', { name: translation.groupSettingsModal.securityTab.unsavedChangesAriaLabel });
     }
 
     async submitForm(): Promise<void> {

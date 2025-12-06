@@ -33,7 +33,8 @@
   "pagination": {
     "previous": "Previous",
     "next": "Next",
-    "page": "Page"
+    "page": "Page",
+    "navigation": "Pagination"
   },
   "common": {
     "loading": "Loading...",
@@ -1132,6 +1133,10 @@
       "identity": "Display name",
       "general": "General",
       "security": "Security & Permissions"
+    },
+    "securityTab": {
+      "successAriaLabel": "success",
+      "unsavedChangesAriaLabel": "unsaved changes"
     }
   },
   "groupDisplayNameSettings": {

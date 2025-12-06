@@ -1,8 +1,11 @@
 import { DisplayName } from '@billsplit-wl/shared';
 import type { Email } from '@billsplit-wl/shared';
 import { expect, Locator, Page } from '@playwright/test';
+import { translationEn } from '../translations/translation-en';
 import { BasePage } from './BasePage';
 import { HeaderPage } from './HeaderPage';
+
+const translation = translationEn;
 
 /**
  * Shared base class for Settings page object.
@@ -11,10 +14,10 @@ import { HeaderPage } from './HeaderPage';
 export class SettingsPage extends BasePage {
     readonly url = '/settings';
 
-    // Button text constants (hardcoded to avoid translation import issues)
-    readonly changePasswordButtonText = 'Change Password';
-    readonly updatePasswordButtonText = 'Update Password';
-    readonly cancelButtonText = 'Cancel';
+    // Button text from translations for i18n resilience
+    readonly changePasswordButtonText = translation.settingsPage.changePasswordButton;
+    readonly updatePasswordButtonText = translation.settingsPage.updatePasswordButton;
+    readonly cancelButtonText = translation.settingsPage.cancelButton;
 
     // Header component for navigation
     protected _header?: HeaderPage;

@@ -69,9 +69,7 @@ async function setupGroupRoutes(page: Page, user: ClientUser, options: GroupTest
 
         const respondSuccess = async (nextDisplayName: string) => {
             memberDisplayName = nextDisplayName;
-            await fulfillWithSerialization(route, {
-                body: { message: 'Group display name updated.' },
-            });
+            await route.fulfill({ status: 204 });
         };
 
         const respondConflict = async (message: string) => {

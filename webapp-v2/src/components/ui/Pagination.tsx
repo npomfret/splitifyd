@@ -47,7 +47,7 @@ export function Pagination({ currentPage, hasMore, hasPrevious, onNext, onPrevio
                     </p>
                 </div>
                 <div>
-                    <nav class='isolate inline-flex -space-x-px rounded-md shadow-sm' aria-label='Pagination'>
+                    <nav class='isolate inline-flex -space-x-px rounded-md shadow-sm' aria-label={t('pagination.navigation')}>
                         <Button
                             onClick={onPrevious}
                             disabled={!hasPrevious || loading}

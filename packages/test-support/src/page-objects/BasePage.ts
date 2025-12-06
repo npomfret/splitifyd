@@ -1,6 +1,9 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { createErrorHandlingProxy } from '../error-proxy';
 import { TEST_TIMEOUTS } from '../test-constants';
+import { translationEn } from '../translations/translation-en';
+
+const translation = translationEn;
 
 /**
  * Base Page Object Model with shared utilities for Playwright tests
@@ -388,7 +391,7 @@ export abstract class BasePage {
      * Verify that no global error messages are displayed on the page
      */
     async expectNoGlobalErrors(): Promise<void> {
-        await expect(this._page.getByText('Something went wrong')).toHaveCount(0);
+        await expect(this._page.getByText(translation.errorBoundary.title)).toHaveCount(0);
         await expect(this._page.getByText(/ErrorBoundary caught an error/i)).toHaveCount(0);
     }
 }
