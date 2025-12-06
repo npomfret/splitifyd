@@ -4,7 +4,7 @@ import { Amount, toCurrencyISOCode } from '@billsplit-wl/shared';
 import { createPortal } from 'preact/compat';
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
-import { ChevronDownIcon } from './icons';
+import { ChevronDownIcon, CurrencyIcon } from './icons';
 
 interface DropdownPosition {
     top: number;
@@ -145,7 +145,11 @@ export function CurrencyAmountInput({
                 ${isHighlighted ? 'bg-interactive-primary text-interactive-primary-foreground' : 'hover:bg-surface-muted text-text-primary'}
               `}
                         >
-                            <span className={`font-medium text-base ${isHighlighted ? 'text-interactive-primary-foreground' : 'text-text-muted'}`}>{curr.symbol}</span>
+                            <CurrencyIcon
+                                symbol={curr.symbol}
+                                size={24}
+                                className={isHighlighted ? 'text-interactive-primary-foreground' : 'text-text-muted'}
+                            />
                             <span className={`text-sm ${isHighlighted ? 'text-interactive-primary-foreground' : 'text-text-primary'}`}>
                                 {curr.name} ({curr.acronym})
                             </span>
@@ -190,10 +194,12 @@ export function CurrencyAmountInput({
                         aria-expanded={isOpen}
                         aria-haspopup='listbox'
                     >
-                        <div className='flex items-baseline gap-2'>
-                            <span className={`font-semibold text-lg leading-none ${disabled ? 'text-text-muted/80' : 'text-text-primary'}`}>
-                                {selectedCurrency?.symbol ?? currency ?? t('uiComponents.currencyAmountInput.unknown')}
-                            </span>{' '}
+                        <div className='flex items-center gap-1'>
+                            <CurrencyIcon
+                                symbol={selectedCurrency?.symbol ?? currency ?? '?'}
+                                size={20}
+                                className={disabled ? 'text-text-muted/80' : 'text-text-primary'}
+                            />
                             <span className={`text-xs font-medium uppercase tracking-wide ${disabled ? 'text-text-muted/80' : 'text-text-muted'}`}>
                                 {selectedCurrency?.acronym ?? currency ?? ''}
                             </span>

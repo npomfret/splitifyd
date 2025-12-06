@@ -13,6 +13,7 @@ export { ChevronLeftIcon } from './ChevronLeftIcon';
 export { ChevronRightIcon } from './ChevronRightIcon';
 export { ClockIcon } from './ClockIcon';
 export { CopyIcon } from './CopyIcon';
+export { CurrencyIcon } from './CurrencyIcon';
 export { EditIcon } from './EditIcon';
 export { EnvelopeIcon } from './EnvelopeIcon';
 export { ExclamationCircleIcon } from './ExclamationCircleIcon';
