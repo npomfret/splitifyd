@@ -19,9 +19,9 @@
     "vitest": "^3.2.4"
   },
   "dependencies": {
-    "ts-firebase-simulator": "^0.2.0",
-    "@playwright/test": "^1.55.1",
     "@billsplit-wl/shared": "*",
-    "firebase-admin": "^13.5.0"
+    "@playwright/test": "^1.55.1",
+    "firebase-admin": "^13.5.0",
+    "ts-firebase-simulator": "^0.3.0"
   }
 }
