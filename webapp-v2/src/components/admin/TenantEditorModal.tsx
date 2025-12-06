@@ -501,7 +501,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                         onKeyPress={(e) => e.key === 'Enter' && handleAddDomain()}
                                         placeholder='app.example.com'
                                         disabled={isSaving}
-                                        class='flex-1 rounded-md border border-border-default bg-surface-base px-3 py-2 text-sm'
+                                        class='flex-1 min-w-0 rounded-md border border-border-default bg-surface-base px-3 py-2 text-sm'
                                         data-testid='new-domain-input'
                                     />
                                     <Button onClick={handleAddDomain} disabled={!newDomain.trim() || isSaving} variant='secondary' data-testid='add-domain-button'>Add</Button>

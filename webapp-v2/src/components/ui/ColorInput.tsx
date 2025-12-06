@@ -41,7 +41,7 @@ export function ColorInput({
                     onInput={(e) => onChange((e.target as HTMLInputElement).value)}
                     disabled={disabled}
                     placeholder={placeholder}
-                    class="flex-1 text-xs text-text-muted font-mono rounded border border-border-default bg-surface-base px-2 py-1 disabled:cursor-not-allowed disabled:opacity-50"
+                    class="flex-1 min-w-0 text-xs text-text-muted font-mono rounded border border-border-default bg-surface-base px-2 py-1 disabled:cursor-not-allowed disabled:opacity-50"
                 />
             </div>
         </div>
@@ -87,7 +87,7 @@ export function RgbaColorInput({
                     onInput={(e) => onChange((e.target as HTMLInputElement).value)}
                     disabled={disabled}
                     placeholder={placeholder}
-                    class="flex-1 text-xs text-text-muted font-mono rounded border border-border-default bg-surface-base px-2 py-1 disabled:cursor-not-allowed disabled:opacity-50"
+                    class="flex-1 min-w-0 text-xs text-text-muted font-mono rounded border border-border-default bg-surface-base px-2 py-1 disabled:cursor-not-allowed disabled:opacity-50"
                     data-testid={testId}
                 />
             </div>

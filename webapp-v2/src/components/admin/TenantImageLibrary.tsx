@@ -144,7 +144,7 @@ export function TenantImageLibrary({ tenantId, onSelect, selectedImageUrl, picke
                                 placeholder='Image name (optional)'
                                 value={uploadName}
                                 onChange={(e) => setUploadName((e.target as HTMLInputElement).value)}
-                                className='flex-1 rounded-lg border border-border-default bg-surface-base px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:border-interactive-primary focus:outline-none focus:ring-2 focus:ring-interactive-primary/20'
+                                className='flex-1 min-w-0 rounded-lg border border-border-default bg-surface-base px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:border-interactive-primary focus:outline-none focus:ring-2 focus:ring-interactive-primary/20'
                                 disabled={uploading}
                             />
                             <input
@@ -216,7 +216,7 @@ export function TenantImageLibrary({ tenantId, onSelect, selectedImageUrl, picke
                                                     if (e.key === 'Enter') handleRename(image.id);
                                                     if (e.key === 'Escape') cancelEditing();
                                                 }}
-                                                className='flex-1 rounded border border-border-default bg-surface-base px-2 py-1 text-xs text-text-primary focus:border-interactive-primary focus:outline-none'
+                                                className='flex-1 min-w-0 rounded border border-border-default bg-surface-base px-2 py-1 text-xs text-text-primary focus:border-interactive-primary focus:outline-none'
                                                 autoFocus
                                             />
                                             <Button variant='ghost' size='sm' onClick={() => handleRename(image.id)}>
