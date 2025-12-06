@@ -1,5 +1,4 @@
 import { Button, Checkbox } from '@/components/ui';
-import { STORAGE_KEYS } from '@/constants.ts';
 import { navigationService } from '@/services/navigation.service';
 import { EmailSchema, toEmail, toPassword } from '@billsplit-wl/shared';
 import { signal } from '@preact/signals';
@@ -19,16 +18,7 @@ export function LoginPage() {
     const authStore = useAuthRequired();
 
     // Component-local signals - initialized within useState to avoid stale state across instances
-    const [emailSignal] = useState(() => {
-        if (typeof window === 'undefined') {
-            return signal('');
-        }
-        try {
-            return signal(sessionStorage.getItem(STORAGE_KEYS.LOGIN_EMAIL) || '');
-        } catch {
-            return signal('');
-        }
-    });
+    const [emailSignal] = useState(() => signal(''));
     const [passwordSignal] = useState(() => signal(''));
     const [rememberMeSignal] = useState(() => signal(false));
 
@@ -36,26 +26,6 @@ export function LoginPage() {
     const email = emailSignal.value;
     const password = passwordSignal.value;
     const rememberMe = rememberMeSignal.value;
-
-    // Persist to sessionStorage on changes
-    useEffect(() => {
-        if (typeof window === 'undefined') {
-            return;
-        }
-        try {
-            sessionStorage.setItem(STORAGE_KEYS.LOGIN_EMAIL, email);
-        } catch {
-            // Ignore storage failures (private browsing, disabled storage, etc.)
-        }
-    }, [email]);
-
-    useEffect(() => {
-        try {
-            sessionStorage.removeItem(STORAGE_KEYS.LOGIN_PASSWORD);
-        } catch {
-            // Ignore storage access errors
-        }
-    }, []);
 
     // Note: Error clearing is handled by auth-store.login() which clears errors before attempting login
 

@@ -1,6 +1,5 @@
 import { Button, Checkbox } from '@/components/ui';
 import { FloatingInput } from '@/components/ui/FloatingInput';
-import { STORAGE_KEYS } from '@/constants.ts';
 import { navigationService } from '@/services/navigation.service';
 import { RegisterRequestSchema, toDisplayName, toEmail, toPassword } from '@billsplit-wl/shared';
 import { signal } from '@preact/signals';
@@ -19,55 +18,18 @@ export function RegisterPage() {
     const authStore = useAuthRequired();
 
     // Component-local signals - initialized within useState to avoid stale state across instances
-    // Initialize from sessionStorage to persist across potential remounts
-    const [nameSignal] = useState(() => {
-        try {
-            return signal(sessionStorage.getItem(STORAGE_KEYS.REGISTER_NAME) || '');
-        } catch {
-            return signal('');
-        }
-    });
-    const [emailSignal] = useState(() => {
-        try {
-            return signal(sessionStorage.getItem(STORAGE_KEYS.REGISTER_EMAIL) || '');
-        } catch {
-            return signal('');
-        }
-    });
+    const [nameSignal] = useState(() => signal(''));
+    const [emailSignal] = useState(() => signal(''));
     const [passwordSignal] = useState(() => signal(''));
     const [confirmPasswordSignal] = useState(() => signal(''));
-    const [agreeToTermsSignal] = useState(() => {
-        try {
-            return signal(sessionStorage.getItem(STORAGE_KEYS.REGISTER_AGREE_TERMS) === 'true');
-        } catch {
-            return signal(false);
-        }
-    });
-    const [agreeToCookiesSignal] = useState(() => {
-        try {
-            return signal(sessionStorage.getItem(STORAGE_KEYS.REGISTER_AGREE_COOKIES) === 'true');
-        } catch {
-            return signal(false);
-        }
-    });
-    const [agreeToPrivacySignal] = useState(() => {
-        try {
-            return signal(sessionStorage.getItem(STORAGE_KEYS.REGISTER_AGREE_PRIVACY) === 'true');
-        } catch {
-            return signal(false);
-        }
-    });
+    const [agreeToTermsSignal] = useState(() => signal(false));
+    const [agreeToCookiesSignal] = useState(() => signal(false));
+    const [agreeToPrivacySignal] = useState(() => signal(false));
     const [localErrorSignal] = useState(() => signal<string | null>(null));
 
-    // Clear any previous errors when component mounts and remove legacy password cache entries
+    // Clear any previous errors when component mounts
     useEffect(() => {
         localErrorSignal.value = null;
-        try {
-            sessionStorage.removeItem(STORAGE_KEYS.REGISTER_PASSWORD);
-            sessionStorage.removeItem(STORAGE_KEYS.REGISTER_CONFIRM_PASSWORD);
-        } catch {
-            // Ignore storage access errors
-        }
     }, []);
 
     // Redirect if already logged in
@@ -156,16 +118,6 @@ export function RegisterPage() {
 
         try {
             await authStore.register(toEmail(email.trim()), toPassword(password), toDisplayName(name.trim()), agreeToTerms, agreeToCookies, agreeToPrivacy);
-            // Clear form data from sessionStorage on successful registration
-            try {
-                sessionStorage.removeItem(STORAGE_KEYS.REGISTER_NAME);
-                sessionStorage.removeItem(STORAGE_KEYS.REGISTER_EMAIL);
-                sessionStorage.removeItem(STORAGE_KEYS.REGISTER_AGREE_TERMS);
-                sessionStorage.removeItem(STORAGE_KEYS.REGISTER_AGREE_COOKIES);
-                sessionStorage.removeItem(STORAGE_KEYS.REGISTER_AGREE_PRIVACY);
-            } catch {
-                // Ignore cleanup errors
-            }
             // Redirect will happen via useEffect when user state updates
         } catch (error) {
             logError('Registration attempt failed', error, { email: email.trim(), displayName: name.trim() });
@@ -185,11 +137,6 @@ export function RegisterPage() {
                     value={name}
                     onChange={(value) => {
                         nameSignal.value = value;
-                        try {
-                            sessionStorage.setItem(STORAGE_KEYS.REGISTER_NAME, value);
-                        } catch {
-                            // Ignore sessionStorage errors
-                        }
                     }}
                     placeholder={t('registerPage.fullNamePlaceholder')}
                     required
@@ -201,11 +148,6 @@ export function RegisterPage() {
                     value={email}
                     onInput={(value) => {
                         emailSignal.value = value;
-                        try {
-                            sessionStorage.setItem(STORAGE_KEYS.REGISTER_EMAIL, value);
-                        } catch {
-                            // Ignore sessionStorage errors
-                        }
                         // Clear email-related errors when user changes email field
                         if (authStore.error && authStore.error.toLowerCase().includes('email')) {
                             authStore.clearError();
@@ -250,11 +192,6 @@ export function RegisterPage() {
                         checked={agreeToTerms}
                         onChange={(checked) => {
                             agreeToTermsSignal.value = checked;
-                            try {
-                                sessionStorage.setItem(STORAGE_KEYS.REGISTER_AGREE_TERMS, checked.toString());
-                            } catch {
-                                // Ignore sessionStorage errors
-                            }
                         }}
                         disabled={isSubmitting}
                     />
@@ -271,11 +208,6 @@ export function RegisterPage() {
                         checked={agreeToCookies}
                         onChange={(checked) => {
                             agreeToCookiesSignal.value = checked;
-                            try {
-                                sessionStorage.setItem(STORAGE_KEYS.REGISTER_AGREE_COOKIES, checked.toString());
-                            } catch {
-                                // Ignore sessionStorage errors
-                            }
                         }}
                         disabled={isSubmitting}
                     />
@@ -292,11 +224,6 @@ export function RegisterPage() {
                         checked={agreeToPrivacy}
                         onChange={(checked) => {
                             agreeToPrivacySignal.value = checked;
-                            try {
-                                sessionStorage.setItem(STORAGE_KEYS.REGISTER_AGREE_PRIVACY, checked.toString());
-                            } catch {
-                                // Ignore sessionStorage errors
-                            }
                         }}
                         disabled={isSubmitting}
                     />

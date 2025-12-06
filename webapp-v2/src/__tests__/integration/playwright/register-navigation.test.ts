@@ -188,7 +188,6 @@ test.describe('Registration Page State Persistence', () => {
         await page.goto('/register');
 
         // Form should be empty for new registration
-        // Note: This tests sessionStorage cleanup after successful registration
     });
 
     test('should handle browser back button after registration', async ({ pageWithLogging: page, mockFirebase }) => {
