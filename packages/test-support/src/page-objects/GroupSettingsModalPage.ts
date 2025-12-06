@@ -440,12 +440,14 @@ export class GroupSettingsModalPage extends BasePage {
     protected getConfirmDeleteButton(): Locator {
         return this
             .getDeleteDialog()
-            .getByRole('button', { name: /delete/i })
+            .getByRole('button', { name: translation.editGroupModal.deleteConfirmDialog.confirmText })
             .last();
     }
 
     protected getCancelDeleteButton(): Locator {
-        return this.getDeleteDialog().getByRole('button', { name: /cancel/i });
+        return this.getDeleteDialog().getByRole('button', {
+            name: translation.editGroupModal.deleteConfirmDialog.cancelText,
+        });
     }
 
     async confirmDelete(): Promise<void> {

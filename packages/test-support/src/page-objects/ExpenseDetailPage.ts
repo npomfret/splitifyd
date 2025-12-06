@@ -326,8 +326,10 @@ export class ExpenseDetailPage extends BasePage {
         // Verify the dialog shows the expense deletion message - using partial text match for the key parts
         await expect(confirmDialog.getByText(/this action cannot be undone and will affect group balances/i)).toBeVisible();
 
-        // Click the confirm button to actually delete - use semantic button name
-        const confirmButton = confirmDialog.getByRole('button', { name: /delete/i });
+        // Click the confirm button to actually delete - use translation for exact match
+        const confirmButton = confirmDialog.getByRole('button', {
+            name: translation.expenseComponents.expenseActions.deleteButton,
+        });
         await expect(confirmButton).toBeEnabled();
         await confirmButton.click();
 

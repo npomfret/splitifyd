@@ -260,11 +260,11 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     protected getCancelButton(): Locator {
-        return this.page.getByRole('button', { name: /cancel/i });
+        return this.page.getByRole('button', { name: translation.common.cancel });
     }
 
     protected getCloseModalButton(): Locator {
-        return this.getModal().getByRole('button', { name: /close/i });
+        return this.getModal().getByRole('button', { name: translation.common.close });
     }
 
     protected getPublishButton(): Locator {
