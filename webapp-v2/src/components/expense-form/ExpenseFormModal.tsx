@@ -4,7 +4,6 @@ import { Clickable } from '@/components/ui/Clickable';
 import { XIcon } from '@/components/ui/icons';
 import { Modal } from '@/components/ui/Modal';
 import { ExpenseId, GroupId } from '@billsplit-wl/shared';
-import { useRef } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Button, Card, ErrorState, LoadingState, Stack, Tooltip, Typography } from '../ui';
 import { ExpenseBasicFields } from './ExpenseBasicFields';
@@ -26,7 +25,6 @@ interface ExpenseFormModalProps {
 
 export function ExpenseFormModal({ isOpen, onClose, groupId, mode, expenseId, onSuccess }: ExpenseFormModalProps) {
     const { t } = useTranslation();
-    const previousIsOpenRef = useRef(isOpen);
 
     const isEditMode = mode === 'edit';
     const isCopyMode = mode === 'copy';
@@ -42,6 +40,7 @@ export function ExpenseFormModal({ isOpen, onClose, groupId, mode, expenseId, on
     };
 
     const formState = useExpenseForm({
+        isOpen,
         groupId,
         expenseId: isEditMode || isCopyMode ? expenseId : null,
         isEditMode,
@@ -50,11 +49,6 @@ export function ExpenseFormModal({ isOpen, onClose, groupId, mode, expenseId, on
         onSuccess: handleSuccess,
         onCancel: handleCancel,
     });
-
-    // Track open state transitions for form reset
-    if (previousIsOpenRef.current !== isOpen) {
-        previousIsOpenRef.current = isOpen;
-    }
 
     const getModalTitle = () => {
         switch (mode) {

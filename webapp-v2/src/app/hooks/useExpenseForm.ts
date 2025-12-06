@@ -8,6 +8,7 @@ import { useFormState } from './useFormState';
 import { useFormSubmission } from './useFormSubmission';
 
 interface UseExpenseFormOptions {
+    isOpen: boolean;
     groupId: GroupId;
     expenseId?: ExpenseId | null;
     isEditMode: boolean;
@@ -17,10 +18,11 @@ interface UseExpenseFormOptions {
     onCancel?: () => void;
 }
 
-export function useExpenseForm({ groupId, expenseId, isEditMode, isCopyMode, sourceExpenseId, onSuccess, onCancel }: UseExpenseFormOptions) {
+export function useExpenseForm({ isOpen, groupId, expenseId, isEditMode, isCopyMode, sourceExpenseId, onSuccess, onCancel }: UseExpenseFormOptions) {
     // Use the focused hooks
     const formState = useFormState();
     const formInitialization = useFormInitialization({
+        isOpen,
         groupId,
         expenseId,
         isEditMode,

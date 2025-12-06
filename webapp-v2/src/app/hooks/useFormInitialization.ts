@@ -12,6 +12,7 @@ import { enhancedGroupDetailStore } from '../stores/group-detail-store-enhanced'
 import { useAuth } from './useAuth';
 
 interface UseFormInitializationOptions {
+    isOpen: boolean;
     groupId: GroupId;
     expenseId?: ExpenseId | null;
     isEditMode: boolean;
@@ -23,7 +24,7 @@ interface UseFormInitializationOptions {
  * Hook that handles form initialization for different modes (create, edit, copy)
  * Manages loading data and populating the form based on the mode
  */
-export function useFormInitialization({ groupId, expenseId, isEditMode, isCopyMode, sourceExpenseId }: UseFormInitializationOptions) {
+export function useFormInitialization({ isOpen, groupId, expenseId, isEditMode, isCopyMode, sourceExpenseId }: UseFormInitializationOptions) {
     const isInitialized = useSignal(false);
     const initError = useSignal<string | null>(null);
     const authStore = useAuth();
@@ -138,8 +139,13 @@ export function useFormInitialization({ groupId, expenseId, isEditMode, isCopyMo
         expenseFormStore.setParticipants(allMemberUids);
     };
 
-    // Initialize form on mount
+    // Initialize form when modal opens
     useEffect(() => {
+        // Don't initialize if modal is closed
+        if (!isOpen) {
+            return;
+        }
+
         if (!groupId) {
             initError.value = 'No group ID provided';
             route(ROUTES.DASHBOARD);
@@ -148,6 +154,10 @@ export function useFormInitialization({ groupId, expenseId, isEditMode, isCopyMo
 
         const initializeForm = async () => {
             try {
+                // Reset initialization state for loading indicator
+                isInitialized.value = false;
+                initError.value = null;
+
                 // Reset form to clean state
                 expenseFormStore.reset();
 
@@ -193,7 +203,7 @@ export function useFormInitialization({ groupId, expenseId, isEditMode, isCopyMo
         return () => {
             expenseFormStore.reset();
         };
-    }, [groupId, isEditMode, expenseId, isCopyMode, sourceExpenseId]);
+    }, [isOpen, groupId, isEditMode, expenseId, isCopyMode, sourceExpenseId]);
 
     return {
         isInitialized: isInitialized.value,

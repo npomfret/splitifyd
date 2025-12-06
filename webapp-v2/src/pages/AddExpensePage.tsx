@@ -48,7 +48,9 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
     }
 
     // Use the custom hook for all form logic
+    // isOpen: true because this is a page, not a modal - it's always visible when mounted
     const formState = useExpenseForm({
+        isOpen: true,
         groupId,
         expenseId: expenseId ? toExpenseId(expenseId) : null,
         isEditMode,

@@ -932,6 +932,10 @@ export class ExpenseFormPage extends BasePage {
         await expect(errorMessage).toContainText(text);
     }
 
+    async verifyDescriptionEmpty(): Promise<void> {
+        await expect(this.getDescriptionInput()).toHaveValue('');
+    }
+
     async verifyDateErrorMessageContains(text: string): Promise<void> {
         const errorMessage = this.page.getByTestId('validation-error-date');
         await expect(errorMessage).toBeVisible();

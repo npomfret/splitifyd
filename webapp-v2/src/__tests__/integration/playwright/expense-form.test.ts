@@ -2,7 +2,7 @@ import type { GroupId } from '@billsplit-wl/shared';
 import { DisplayName, toUserId } from '@billsplit-wl/shared';
 import { toDisplayName } from '@billsplit-wl/shared';
 import { toCurrencyISOCode, USD } from '@billsplit-wl/shared';
-import { ExpenseDTOBuilder, ExpenseFormPage, ExpenseFullDetailsBuilder, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder } from '@billsplit-wl/test-support';
+import { ExpenseDTOBuilder, ExpenseFormPage, ExpenseFullDetailsBuilder, GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder } from '@billsplit-wl/test-support';
 import type { Page } from '@playwright/test';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { mockExpenseCommentsApi, mockExpenseDetailApi, mockGroupCommentsApi, mockGroupDetailApi, mockUpdateExpenseApi } from '../../utils/mock-firebase-service';
@@ -1328,6 +1328,68 @@ test.describe('Expense Form', () => {
             await expect(page).toHaveURL(new RegExp(`/groups/${groupId}$`));
             // Expense form modal should be closed
             await expenseFormPage.expectFormClosed();
+        });
+    });
+
+    test.describe('Modal State Reset on Reopen', () => {
+        test('should reset form state when modal is closed and reopened', async ({ authenticatedPage }) => {
+            const { page, user: testUser } = authenticatedPage;
+            const groupId = 'test-group-modal-reopen';
+
+            const group = GroupDTOBuilder
+                .groupForUser(toUserId(testUser.uid))
+                .withId(groupId)
+                .build();
+
+            const members = [
+                new GroupMemberBuilder()
+                    .withUid(testUser.uid)
+                    .withDisplayName(testUser.displayName)
+                    .withGroupDisplayName(testUser.displayName)
+                    .build(),
+                new GroupMemberBuilder()
+                    .withUid('user-2')
+                    .withDisplayName('User 2')
+                    .withGroupDisplayName('User 2')
+                    .build(),
+            ];
+
+            const fullDetails = new GroupFullDetailsBuilder()
+                .withGroup(group)
+                .withMembers(members)
+                .build();
+
+            await mockGroupDetailApi(page, groupId, fullDetails);
+            await mockGroupCommentsApi(page, groupId);
+
+            // Navigate to group detail page
+            const groupDetailPage = new GroupDetailPage(page);
+            await groupDetailPage.navigateToGroup(groupId);
+            await groupDetailPage.verifyGroupDetailPageLoaded(group.name);
+
+            // First opening - fill in partial data
+            const expenseFormPage1 = await groupDetailPage.clickAddExpenseAndOpenForm([testUser.displayName, 'User 2']);
+            await expenseFormPage1.verifyFormModalOpen();
+            await expenseFormPage1.fillDescription('Previous expense description');
+            await expenseFormPage1.fillAmount('42.50');
+
+            // Close the modal without saving
+            await expenseFormPage1.clickCancel();
+            await expenseFormPage1.expectFormClosed();
+
+            // Second opening - should be clean state
+            const expenseFormPage2 = await groupDetailPage.clickAddExpenseAndOpenForm([testUser.displayName, 'User 2']);
+            await expenseFormPage2.verifyFormModalOpen();
+
+            // Verify form is reset - description should be empty
+            await expenseFormPage2.verifyDescriptionEmpty();
+
+            // Verify participants are all checked by default (the bug was they were unchecked)
+            await expenseFormPage2.verifySplitOptionsFirstCheckboxVisible();
+            await expenseFormPage2.verifySplitOptionsFirstCheckboxChecked();
+
+            // Verify save button is in expected state (disabled until form is filled)
+            await expenseFormPage2.verifySaveButtonDisabled();
         });
     });
 });

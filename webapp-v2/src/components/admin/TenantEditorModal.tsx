@@ -32,7 +32,7 @@ import { Alert, Button, ImageUploadField, Input, Modal } from '@/components/ui';
 import { XIcon } from '@/components/ui/icons';
 import { logError } from '@/utils/browser-logger';
 import type { AdminUpsertTenantRequest } from '@billsplit-wl/shared';
-import { useCallback, useEffect, useState } from 'preact/hooks';
+import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 
 const Section = AdminFormSection;
@@ -44,6 +44,8 @@ export type { TenantData, FullTenant, TenantEditorModalProps, CreationMode };
 
 export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: TenantEditorModalProps) {
     const { t } = useTranslation();
+    const previousOpenRef = useRef(open);
+    const previousTenantIdRef = useRef(tenant?.tenant.tenantId);
     const [formData, setFormData] = useState<TenantData>(EMPTY_TENANT_DATA);
     const [isSaving, setIsSaving] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
@@ -100,7 +102,26 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
         }
     }, [creationMode, selectedSourceTenantId, existingTenants]);
 
+    // Reset form when modal opens or tenant changes
     useEffect(() => {
+        const wasOpen = previousOpenRef.current;
+        const isNowOpen = open;
+        const prevTenantId = previousTenantIdRef.current;
+        const currentTenantId = tenant?.tenant.tenantId;
+        previousOpenRef.current = open;
+        previousTenantIdRef.current = currentTenantId;
+
+        // Reset form on:
+        // 1. Open transition (closed → open)
+        // 2. Tenant change while modal is open
+        // 3. Mode change
+        const isOpenTransition = !wasOpen && isNowOpen;
+        const isTenantChange = prevTenantId !== currentTenantId;
+
+        if (!isOpenTransition && !isTenantChange) {
+            return;
+        }
+
         if (mode === 'edit' && tenant) {
             const tokens = tenant.tenant.brandingTokens?.tokens;
             const branding = tenant.tenant.branding;
@@ -134,7 +155,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
         }
         setErrorMessage('');
         setSuccessMessage('');
-    }, [tenant, mode]);
+    }, [open, tenant, mode]);
 
     useEffect(() => {
         if (successMessage || errorMessage) {
