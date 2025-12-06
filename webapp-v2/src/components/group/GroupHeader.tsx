@@ -16,7 +16,7 @@ export function GroupHeader({ group, members, onSettings, showSettingsButton }: 
         <Card variant='glass' className='p-6 border-border-default'>
             <div className='flex justify-between items-start mb-4'>
                 <div>
-                    <Typography variant="pageTitle" className="mb-2">{group.name}</Typography>
+                    <Typography variant='pageTitle' className='mb-2'>{group.name}</Typography>
                     {group.description && <p className='text-text-primary/80' data-testid='group-description'>{group.description}</p>}
                 </div>
                 <div className='flex gap-2'>
@@ -38,9 +38,8 @@ export function GroupHeader({ group, members, onSettings, showSettingsButton }: 
             </div>
 
             <div className='text-sm text-text-muted' data-testid='group-stats'>
-                {t('groupHeader.membersCount', { count: members.length })},{' '}
-                <RelativeTime date={group.createdAt} /> {t('groupHeader.old')},{' '}
-                {t('groupHeader.lastUpdated')} <RelativeTime date={group.updatedAt} />
+                {t('groupHeader.membersCount', { count: members.length })}, <RelativeTime date={group.createdAt} /> {t('groupHeader.old')}, {t('groupHeader.lastUpdated')}{' '}
+                <RelativeTime date={group.updatedAt} />
             </div>
         </Card>
     );

@@ -120,20 +120,22 @@ export function TenantImageLibrary({ tenantId, onSelect, selectedImageUrl, picke
     return (
         <div className='space-y-4'>
             {/* Upload Section */}
-            {pickerMode ? (
-                <div className='flex items-center justify-between'>
-                    <p className='text-sm text-text-muted'>
-                        {images.length} image{images.length !== 1 ? 's' : ''} in library
-                    </p>
-                    <button
-                        type='button'
-                        onClick={() => setShowUpload(!showUpload)}
-                        className='text-sm text-interactive-primary hover:text-interactive-primary/80 transition-colors'
-                    >
-                        {showUpload ? 'Hide upload' : '+ Upload new'}
-                    </button>
-                </div>
-            ) : null}
+            {pickerMode
+                ? (
+                    <div className='flex items-center justify-between'>
+                        <p className='text-sm text-text-muted'>
+                            {images.length} image{images.length !== 1 ? 's' : ''} in library
+                        </p>
+                        <button
+                            type='button'
+                            onClick={() => setShowUpload(!showUpload)}
+                            className='text-sm text-interactive-primary hover:text-interactive-primary/80 transition-colors'
+                        >
+                            {showUpload ? 'Hide upload' : '+ Upload new'}
+                        </button>
+                    </div>
+                )
+                : null}
 
             {(showUpload || !pickerMode) && (
                 <div className='p-4 rounded-lg border border-border-default bg-surface-muted'>
@@ -174,100 +176,104 @@ export function TenantImageLibrary({ tenantId, onSelect, selectedImageUrl, picke
             {error && <div className='p-3 rounded-lg bg-semantic-error/10 text-semantic-error text-sm'>{error}</div>}
 
             {/* Image Grid */}
-            {images.length === 0 ? (
-                <div className='text-center py-12 text-text-muted'>
-                    <div className='text-4xl mb-3'>🖼️</div>
-                    <p>No images in library</p>
-                    <p className='text-sm mt-1'>Upload one to get started</p>
-                </div>
-            ) : (
-                <div className={`grid gap-4 ${pickerMode ? 'grid-cols-3 sm:grid-cols-4 lg:grid-cols-5' : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4'}`}>
-                    {images.map((image) => {
-                        const isSelected = selectedImageUrl === image.url;
-                        return (
-                            <div
-                                key={image.id}
-                                className={`group relative rounded-xl border-2 overflow-hidden transition-all cursor-pointer ${
-                                    isSelected
-                                        ? 'border-interactive-primary ring-2 ring-interactive-primary/30 shadow-lg'
-                                        : 'border-transparent hover:border-border-strong bg-surface-muted'
-                                }`}
-                                onClick={() => onSelect?.(image)}
-                            >
-                                {/* Image Preview */}
-                                <div className='aspect-square bg-surface-muted flex items-center justify-center p-3'>
-                                    <img
-                                        src={image.url}
-                                        alt={image.name}
-                                        className='max-w-full max-h-full object-contain'
-                                        loading='lazy'
-                                    />
-                                </div>
+            {images.length === 0
+                ? (
+                    <div className='text-center py-12 text-text-muted'>
+                        <div className='text-4xl mb-3'>🖼️</div>
+                        <p>No images in library</p>
+                        <p className='text-sm mt-1'>Upload one to get started</p>
+                    </div>
+                )
+                : (
+                    <div className={`grid gap-4 ${pickerMode ? 'grid-cols-3 sm:grid-cols-4 lg:grid-cols-5' : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4'}`}>
+                        {images.map((image) => {
+                            const isSelected = selectedImageUrl === image.url;
+                            return (
+                                <div
+                                    key={image.id}
+                                    className={`group relative rounded-xl border-2 overflow-hidden transition-all cursor-pointer ${
+                                        isSelected
+                                            ? 'border-interactive-primary ring-2 ring-interactive-primary/30 shadow-lg'
+                                            : 'border-transparent hover:border-border-strong bg-surface-muted'
+                                    }`}
+                                    onClick={() => onSelect?.(image)}
+                                >
+                                    {/* Image Preview */}
+                                    <div className='aspect-square bg-surface-muted flex items-center justify-center p-3'>
+                                        <img
+                                            src={image.url}
+                                            alt={image.name}
+                                            className='max-w-full max-h-full object-contain'
+                                            loading='lazy'
+                                        />
+                                    </div>
 
-                                {/* Image Info */}
-                                <div className='p-2 bg-surface-base border-t border-border-default'>
-                                    {editingId === image.id ? (
-                                        <div className='flex gap-1' onClick={(e) => e.stopPropagation()}>
-                                            <input
-                                                type='text'
-                                                value={editName}
-                                                onChange={(e) => setEditName((e.target as HTMLInputElement).value)}
-                                                onKeyDown={(e) => {
-                                                    if (e.key === 'Enter') handleRename(image.id);
-                                                    if (e.key === 'Escape') cancelEditing();
-                                                }}
-                                                className='flex-1 min-w-0 rounded border border-border-default bg-surface-base px-2 py-1 text-xs text-text-primary focus:border-interactive-primary focus:outline-none'
-                                                autoFocus
-                                            />
-                                            <Button variant='ghost' size='sm' onClick={() => handleRename(image.id)}>
-                                                ✓
-                                            </Button>
-                                            <Button variant='ghost' size='sm' onClick={cancelEditing}>
-                                                ✕
-                                            </Button>
-                                        </div>
-                                    ) : (
-                                        <div className='flex items-center justify-between min-h-[24px]'>
-                                            <span className='text-xs text-text-primary truncate font-medium' title={image.name}>
-                                                {image.name}
-                                            </span>
-                                            {!pickerMode && (
-                                                <div
-                                                    className='flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity'
-                                                    onClick={(e) => e.stopPropagation()}
-                                                >
-                                                    <button
-                                                        onClick={() => startEditing(image)}
-                                                        className='p-1 text-text-muted hover:text-text-primary text-xs'
-                                                        title='Rename'
-                                                    >
-                                                        ✏️
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDelete(image.id)}
-                                                        disabled={deletingId === image.id}
-                                                        className='p-1 text-text-muted hover:text-semantic-error text-xs disabled:opacity-50'
-                                                        title='Delete'
-                                                    >
-                                                        {deletingId === image.id ? '...' : '🗑️'}
-                                                    </button>
+                                    {/* Image Info */}
+                                    <div className='p-2 bg-surface-base border-t border-border-default'>
+                                        {editingId === image.id
+                                            ? (
+                                                <div className='flex gap-1' onClick={(e) => e.stopPropagation()}>
+                                                    <input
+                                                        type='text'
+                                                        value={editName}
+                                                        onChange={(e) => setEditName((e.target as HTMLInputElement).value)}
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === 'Enter') handleRename(image.id);
+                                                            if (e.key === 'Escape') cancelEditing();
+                                                        }}
+                                                        className='flex-1 min-w-0 rounded border border-border-default bg-surface-base px-2 py-1 text-xs text-text-primary focus:border-interactive-primary focus:outline-none'
+                                                        autoFocus
+                                                    />
+                                                    <Button variant='ghost' size='sm' onClick={() => handleRename(image.id)}>
+                                                        ✓
+                                                    </Button>
+                                                    <Button variant='ghost' size='sm' onClick={cancelEditing}>
+                                                        ✕
+                                                    </Button>
+                                                </div>
+                                            )
+                                            : (
+                                                <div className='flex items-center justify-between min-h-[24px]'>
+                                                    <span className='text-xs text-text-primary truncate font-medium' title={image.name}>
+                                                        {image.name}
+                                                    </span>
+                                                    {!pickerMode && (
+                                                        <div
+                                                            className='flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity'
+                                                            onClick={(e) => e.stopPropagation()}
+                                                        >
+                                                            <button
+                                                                onClick={() => startEditing(image)}
+                                                                className='p-1 text-text-muted hover:text-text-primary text-xs'
+                                                                title='Rename'
+                                                            >
+                                                                ✏️
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDelete(image.id)}
+                                                                disabled={deletingId === image.id}
+                                                                className='p-1 text-text-muted hover:text-semantic-error text-xs disabled:opacity-50'
+                                                                title='Delete'
+                                                            >
+                                                                {deletingId === image.id ? '...' : '🗑️'}
+                                                            </button>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             )}
+                                    </div>
+
+                                    {/* Selection Indicator */}
+                                    {isSelected && (
+                                        <div className='absolute top-2 right-2 w-6 h-6 rounded-full bg-interactive-primary flex items-center justify-center shadow-md'>
+                                            <CheckIcon size={16} className='text-interactive-primary-foreground' />
                                         </div>
                                     )}
                                 </div>
-
-                                {/* Selection Indicator */}
-                                {isSelected && (
-                                    <div className='absolute top-2 right-2 w-6 h-6 rounded-full bg-interactive-primary flex items-center justify-center shadow-md'>
-                                        <CheckIcon size={16} className='text-interactive-primary-foreground' />
-                                    </div>
-                                )}
-                            </div>
-                        );
-                    })}
-                </div>
-            )}
+                            );
+                        })}
+                    </div>
+                )}
         </div>
     );
 }

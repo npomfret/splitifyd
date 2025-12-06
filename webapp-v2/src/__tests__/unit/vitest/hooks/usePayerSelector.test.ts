@@ -40,7 +40,7 @@ describe('usePayerSelector', () => {
                 usePayerSelector({
                     members,
                     onPayerChange: mockOnPayerChange,
-                }),
+                })
             );
 
             expect(result.current.filteredMembers).toEqual(members);
@@ -55,7 +55,7 @@ describe('usePayerSelector', () => {
                 usePayerSelector({
                     members,
                     onPayerChange: mockOnPayerChange,
-                }),
+                })
             );
 
             act(() => {
@@ -75,7 +75,7 @@ describe('usePayerSelector', () => {
                 usePayerSelector({
                     members,
                     onPayerChange: mockOnPayerChange,
-                }),
+                })
             );
 
             act(() => {
@@ -95,7 +95,7 @@ describe('usePayerSelector', () => {
                 usePayerSelector({
                     members,
                     onPayerChange: mockOnPayerChange,
-                }),
+                })
             );
 
             act(() => {
@@ -114,7 +114,7 @@ describe('usePayerSelector', () => {
                 usePayerSelector({
                     members,
                     onPayerChange: mockOnPayerChange,
-                }),
+                })
             );
 
             act(() => {
@@ -136,7 +136,7 @@ describe('usePayerSelector', () => {
                 usePayerSelector({
                     members,
                     onPayerChange: mockOnPayerChange,
-                }),
+                })
             );
 
             act(() => {
@@ -155,7 +155,7 @@ describe('usePayerSelector', () => {
                 usePayerSelector({
                     members,
                     onPayerChange: mockOnPayerChange,
-                }),
+                })
             );
 
             act(() => {
@@ -177,7 +177,7 @@ describe('usePayerSelector', () => {
                 usePayerSelector({
                     members,
                     onPayerChange: mockOnPayerChange,
-                }),
+                })
             );
 
             act(() => {
@@ -202,7 +202,7 @@ describe('usePayerSelector', () => {
                 usePayerSelector({
                     members,
                     onPayerChange: mockOnPayerChange,
-                }),
+                })
             );
 
             act(() => {
@@ -227,7 +227,7 @@ describe('usePayerSelector', () => {
                 usePayerSelector({
                     members: [],
                     onPayerChange: mockOnPayerChange,
-                }),
+                })
             );
 
             expect(result.current.filteredMembers).toHaveLength(0);

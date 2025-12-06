@@ -1,12 +1,12 @@
-import { StubCloudTasksClient, StubStorage } from 'ts-firebase-simulator';
 import { toDisplayName, toGroupId, toTenantDomainName, toTenantId, toUserId } from '@billsplit-wl/shared';
 import { CreateGroupRequestBuilder, StubFirestoreDatabase, UserRegistrationBuilder } from '@billsplit-wl/test-support';
+import { StubCloudTasksClient, StubStorage } from 'ts-firebase-simulator';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ErrorCode } from '../../../errors';
+import { ApiError } from '../../../errors';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import type { IFirestoreReader, IFirestoreWriter } from '../../../services/firestore';
-import { ApiError } from '../../../errors';
 import { AppDriver } from '../AppDriver';
 import { StubAuthService } from '../mocks/StubAuthService';
 import { TenantPayloadBuilder } from '../TenantPayloadBuilder';

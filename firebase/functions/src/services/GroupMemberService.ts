@@ -13,7 +13,7 @@ import {
 } from '@billsplit-wl/shared';
 import { toISOString } from '@billsplit-wl/shared';
 import { FirestoreCollections } from '../constants';
-import { ApiError, Errors, ErrorDetail } from '../errors';
+import { ApiError, ErrorDetail, Errors } from '../errors';
 import { FieldValue } from '../firestore-wrapper';
 import { logger, LoggerContext } from '../logger';
 import * as measure from '../monitoring/measure';

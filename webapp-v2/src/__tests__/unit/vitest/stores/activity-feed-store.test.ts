@@ -307,7 +307,7 @@ describe('ActivityFeedStoreImpl', () => {
                     .withItems([])
                     .withHasMore(false)
                     .withoutNextCursor()
-                    .build()
+                    .build(),
             );
 
             await store.registerComponent('comp-1', toUserId('user-1'));
@@ -340,7 +340,7 @@ describe('ActivityFeedStoreImpl', () => {
                     .withItems(items)
                     .withHasMore(true)
                     .withNextCursor('1')
-                    .build()
+                    .build(),
             );
 
             await store.registerComponent('comp-1', toUserId('user-1'));

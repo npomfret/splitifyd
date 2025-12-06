@@ -1,4 +1,3 @@
-export type { IconProps } from './types';
 export { AlertTriangleIcon } from './AlertTriangleIcon';
 export { ArchiveBoxIcon } from './ArchiveBoxIcon';
 export { ArrowDownIcon } from './ArrowDownIcon';
@@ -30,6 +29,7 @@ export { SettingsIcon } from './SettingsIcon';
 export { ShareIcon } from './ShareIcon';
 export { SpinnerIcon } from './SpinnerIcon';
 export { TrashIcon } from './TrashIcon';
+export type { IconProps } from './types';
 export { UserAddIcon } from './UserAddIcon';
 export { UsersIcon } from './UsersIcon';
 export { WarningIcon } from './WarningIcon';

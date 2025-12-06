@@ -33,49 +33,49 @@ describe('Pagination Utilities', () => {
 
         it('should throw error for invalid base64', () => {
             expect(() => decodeCursor('invalid-base64!')).toThrowError(
-                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR })
+                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR }),
             );
         });
 
         it('should throw error for invalid JSON', () => {
             const invalidJson = Buffer.from('not-json').toString('base64');
             expect(() => decodeCursor(invalidJson)).toThrowError(
-                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR })
+                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR }),
             );
         });
 
         it('should throw error for missing updatedAt', () => {
             const invalidData = Buffer.from(JSON.stringify({ id: 'doc123' })).toString('base64');
             expect(() => decodeCursor(invalidData)).toThrowError(
-                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR })
+                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR }),
             );
         });
 
         it('should throw error for non-string updatedAt', () => {
             const invalidData = Buffer.from(JSON.stringify({ updatedAt: 123, id: 'doc123' })).toString('base64');
             expect(() => decodeCursor(invalidData)).toThrowError(
-                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR })
+                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR }),
             );
         });
 
         it('should throw error for missing id', () => {
             const invalidData = Buffer.from(JSON.stringify({ updatedAt: '2023-12-01T10:00:00.000Z' })).toString('base64');
             expect(() => decodeCursor(invalidData)).toThrowError(
-                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR })
+                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR }),
             );
         });
 
         it('should throw error for non-string id', () => {
             const invalidData = Buffer.from(JSON.stringify({ updatedAt: '2023-12-01T10:00:00.000Z', id: 123 })).toString('base64');
             expect(() => decodeCursor(invalidData)).toThrowError(
-                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR })
+                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR }),
             );
         });
 
         it('should throw error for invalid date format', () => {
             const invalidData = Buffer.from(JSON.stringify({ updatedAt: 'not-a-date', id: 'doc123' })).toString('base64');
             expect(() => decodeCursor(invalidData)).toThrowError(
-                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR })
+                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR }),
             );
         });
     });
@@ -117,7 +117,7 @@ describe('Pagination Utilities', () => {
 
         it('should handle invalid cursor', () => {
             expect(() => buildPaginatedQuery(mockQuery, 'invalid-cursor', 'desc', 10)).toThrowError(
-                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR })
+                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR }),
             );
         });
     });

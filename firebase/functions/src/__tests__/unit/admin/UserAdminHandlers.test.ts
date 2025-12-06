@@ -1,9 +1,5 @@
 import { SystemUserRoles, toUserId } from '@billsplit-wl/shared';
-import {
-    UpdateUserRoleRequestBuilder,
-    UpdateUserStatusRequestBuilder,
-    UserRegistrationBuilder,
-} from '@billsplit-wl/test-support';
+import { UpdateUserRoleRequestBuilder, UpdateUserStatusRequestBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ApiError } from '../../../errors';

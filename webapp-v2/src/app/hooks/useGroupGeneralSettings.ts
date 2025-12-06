@@ -5,8 +5,8 @@ import { logError } from '@/utils/browser-logger.ts';
 import { translateApiError } from '@/utils/error-translation';
 import { GroupDTO, toGroupName } from '@billsplit-wl/shared';
 import { ReadonlySignal, signal } from '@preact/signals';
-import { useCallback, useEffect, useState } from 'preact/hooks';
 import { TFunction } from 'i18next';
+import { useCallback, useEffect, useState } from 'preact/hooks';
 
 interface UseGroupGeneralSettingsOptions {
     group: GroupDTO;
@@ -128,8 +128,8 @@ export function useGroupGeneralSettings({
             return;
         }
 
-        const hasChanges = groupNameSignal.value !== initialNameSignal.value ||
-            groupDescriptionSignal.value !== initialDescriptionSignal.value;
+        const hasChanges = groupNameSignal.value !== initialNameSignal.value
+            || groupDescriptionSignal.value !== initialDescriptionSignal.value;
 
         if (!hasChanges) {
             return;
@@ -196,8 +196,8 @@ export function useGroupGeneralSettings({
         confirmationTextSignal.value = value;
     }, []);
 
-    const hasChanges = groupNameSignal.value !== initialNameSignal.value ||
-        groupDescriptionSignal.value !== initialDescriptionSignal.value;
+    const hasChanges = groupNameSignal.value !== initialNameSignal.value
+        || groupDescriptionSignal.value !== initialDescriptionSignal.value;
     const isFormValid = groupNameSignal.value.trim().length >= 2;
 
     return {

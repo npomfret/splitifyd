@@ -1,12 +1,5 @@
 import type { PooledTestUser } from '@billsplit-wl/shared';
-import {
-    toShowLandingPageFlag,
-    toShowMarketingContentFlag,
-    toShowPricingPageFlag,
-    toTenantAccentColor,
-    toTenantPrimaryColor,
-    toTenantSecondaryColor,
-} from '@billsplit-wl/shared';
+import { toShowLandingPageFlag, toShowMarketingContentFlag, toShowPricingPageFlag, toTenantAccentColor, toTenantPrimaryColor, toTenantSecondaryColor } from '@billsplit-wl/shared';
 import { AdminTenantRequestBuilder, ApiDriver } from '@billsplit-wl/test-support';
 import { beforeAll, describe, expect, it } from 'vitest';
 

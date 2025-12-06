@@ -3,11 +3,11 @@ import { randomUUID } from 'crypto';
 import express from 'express';
 import type { ZodSchema } from 'zod';
 import { getAppConfig } from '../app-config';
+import { Errors } from '../errors';
 import { logger, LoggerContext } from '../logger';
 import { applyCacheControl } from '../middleware/cache-control';
 import { applySecurityHeaders } from '../middleware/security-headers';
 import { validateContentType, validateRequestStructure } from '../middleware/validation';
-import { Errors } from '../errors';
 
 /**
  * Normalize an Express path to match the responseSchemas keys

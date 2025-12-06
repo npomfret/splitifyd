@@ -136,9 +136,13 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
         const memberResult = await appDriver.getGroupFullDetails(group.id, {}, member.uid);
         expect(memberResult.group.id).toBe(group.id);
 
-        await expect(appDriver.updateGroup(group.id, new GroupUpdateBuilder()
-            .withName('Intrusion Attempt')
-            .build(), member.uid))
+        await expect(appDriver.updateGroup(
+            group.id,
+            new GroupUpdateBuilder()
+                .withName('Intrusion Attempt')
+                .build(),
+            member.uid,
+        ))
             .rejects
             .toThrow();
 
@@ -457,7 +461,9 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
         it('requires authentication', async () => {
             await expect(
                 appDriver.listGroups({ limit: 1 }, ''),
-            ).rejects.toMatchObject({ code: 'AUTH_REQUIRED' });
+            )
+                .rejects
+                .toMatchObject({ code: 'AUTH_REQUIRED' });
         });
 
         it('supports includeMetadata flag', async () => {

@@ -8,7 +8,7 @@ import { toDisplayName } from '@billsplit-wl/shared';
 import { toEmail, toUserId } from '@billsplit-wl/shared';
 import { UpdateRequest, UserRecord } from 'firebase-admin/auth';
 import { validateRegisterRequest } from '../auth/validation';
-import { ApiError, Errors, ErrorDetail } from '../errors';
+import { ApiError, ErrorDetail, Errors } from '../errors';
 import { logger } from '../logger';
 import { measureDb } from '../monitoring/measure';
 import type { UserDocument } from '../schemas';

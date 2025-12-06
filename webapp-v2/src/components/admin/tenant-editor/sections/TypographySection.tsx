@@ -13,10 +13,13 @@ function SizeSelect({ label, value, onChange, disabled, options }: SizeSelectPro
     return (
         <div>
             <label class='block text-xs font-medium text-text-secondary mb-1'>{label} *</label>
-            <select value={value} onChange={(e) => onChange((e.target as HTMLSelectElement).value)} disabled={disabled} class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm'>
-                {options.map((opt) => (
-                    <option key={opt} value={opt}>{opt}</option>
-                ))}
+            <select
+                value={value}
+                onChange={(e) => onChange((e.target as HTMLSelectElement).value)}
+                disabled={disabled}
+                class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm'
+            >
+                {options.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
             </select>
         </div>
     );
@@ -32,9 +35,32 @@ export function TypographySection({ formData, update, isSaving }: SectionProps) 
             <div class='space-y-4'>
                 <SubsectionHeader title='Font Families' />
                 <div class='grid grid-cols-3 gap-4'>
-                    <AdminFormInput label='Sans' value={formData.fontFamilySans} onChange={(v) => update({ fontFamilySans: v })} placeholder='Inter, system-ui' disabled={isSaving} required id='font-family-sans' />
-                    <AdminFormInput label='Serif' value={formData.fontFamilySerif} onChange={(v) => update({ fontFamilySerif: v })} placeholder='Georgia, serif' disabled={isSaving} id='font-family-serif' />
-                    <AdminFormInput label='Mono' value={formData.fontFamilyMono} onChange={(v) => update({ fontFamilyMono: v })} placeholder='Monaco, monospace' disabled={isSaving} required id='font-family-mono' />
+                    <AdminFormInput
+                        label='Sans'
+                        value={formData.fontFamilySans}
+                        onChange={(v) => update({ fontFamilySans: v })}
+                        placeholder='Inter, system-ui'
+                        disabled={isSaving}
+                        required
+                        id='font-family-sans'
+                    />
+                    <AdminFormInput
+                        label='Serif'
+                        value={formData.fontFamilySerif}
+                        onChange={(v) => update({ fontFamilySerif: v })}
+                        placeholder='Georgia, serif'
+                        disabled={isSaving}
+                        id='font-family-serif'
+                    />
+                    <AdminFormInput
+                        label='Mono'
+                        value={formData.fontFamilyMono}
+                        onChange={(v) => update({ fontFamilyMono: v })}
+                        placeholder='Monaco, monospace'
+                        disabled={isSaving}
+                        required
+                        id='font-family-mono'
+                    />
                 </div>
 
                 <SubsectionHeader title='Sizes (rem)' />
@@ -54,37 +80,127 @@ export function TypographySection({ formData, update, isSaving }: SectionProps) 
 
                 <SubsectionHeader title='Weights' />
                 <div class='grid grid-cols-4 gap-4'>
-                    <AdminFormInput label='Regular' type='number' value={formData.fontWeightRegular} onChange={(v) => update({ fontWeightRegular: parseInt(v) || 0 })} placeholder='400' disabled={isSaving} required />
-                    <AdminFormInput label='Medium' type='number' value={formData.fontWeightMedium} onChange={(v) => update({ fontWeightMedium: parseInt(v) || 0 })} placeholder='500' disabled={isSaving} required />
-                    <AdminFormInput label='Semibold' type='number' value={formData.fontWeightSemibold} onChange={(v) => update({ fontWeightSemibold: parseInt(v) || 0 })} placeholder='600' disabled={isSaving} required />
-                    <AdminFormInput label='Bold' type='number' value={formData.fontWeightBold} onChange={(v) => update({ fontWeightBold: parseInt(v) || 0 })} placeholder='700' disabled={isSaving} required />
+                    <AdminFormInput
+                        label='Regular'
+                        type='number'
+                        value={formData.fontWeightRegular}
+                        onChange={(v) => update({ fontWeightRegular: parseInt(v) || 0 })}
+                        placeholder='400'
+                        disabled={isSaving}
+                        required
+                    />
+                    <AdminFormInput
+                        label='Medium'
+                        type='number'
+                        value={formData.fontWeightMedium}
+                        onChange={(v) => update({ fontWeightMedium: parseInt(v) || 0 })}
+                        placeholder='500'
+                        disabled={isSaving}
+                        required
+                    />
+                    <AdminFormInput
+                        label='Semibold'
+                        type='number'
+                        value={formData.fontWeightSemibold}
+                        onChange={(v) => update({ fontWeightSemibold: parseInt(v) || 0 })}
+                        placeholder='600'
+                        disabled={isSaving}
+                        required
+                    />
+                    <AdminFormInput
+                        label='Bold'
+                        type='number'
+                        value={formData.fontWeightBold}
+                        onChange={(v) => update({ fontWeightBold: parseInt(v) || 0 })}
+                        placeholder='700'
+                        disabled={isSaving}
+                        required
+                    />
                 </div>
 
                 <SubsectionHeader title='Line Heights' />
                 <div class='grid grid-cols-3 gap-4'>
-                    <AdminFormInput label='Compact' value={formData.lineHeightCompact} onChange={(v) => update({ lineHeightCompact: v })} placeholder='1.25rem' disabled={isSaving} monospace required />
-                    <AdminFormInput label='Standard' value={formData.lineHeightStandard} onChange={(v) => update({ lineHeightStandard: v })} placeholder='1.5rem' disabled={isSaving} monospace required />
-                    <AdminFormInput label='Spacious' value={formData.lineHeightSpacious} onChange={(v) => update({ lineHeightSpacious: v })} placeholder='1.75rem' disabled={isSaving} monospace required />
+                    <AdminFormInput
+                        label='Compact'
+                        value={formData.lineHeightCompact}
+                        onChange={(v) => update({ lineHeightCompact: v })}
+                        placeholder='1.25rem'
+                        disabled={isSaving}
+                        monospace
+                        required
+                    />
+                    <AdminFormInput
+                        label='Standard'
+                        value={formData.lineHeightStandard}
+                        onChange={(v) => update({ lineHeightStandard: v })}
+                        placeholder='1.5rem'
+                        disabled={isSaving}
+                        monospace
+                        required
+                    />
+                    <AdminFormInput
+                        label='Spacious'
+                        value={formData.lineHeightSpacious}
+                        onChange={(v) => update({ lineHeightSpacious: v })}
+                        placeholder='1.75rem'
+                        disabled={isSaving}
+                        monospace
+                        required
+                    />
                 </div>
 
                 <SubsectionHeader title='Letter Spacing' />
                 <div class='grid grid-cols-3 gap-4'>
-                    <AdminFormInput label='Tight' value={formData.letterSpacingTight} onChange={(v) => update({ letterSpacingTight: v })} placeholder='-0.02rem' disabled={isSaving} monospace required />
-                    <AdminFormInput label='Normal' value={formData.letterSpacingNormal} onChange={(v) => update({ letterSpacingNormal: v })} placeholder='0rem' disabled={isSaving} monospace required />
+                    <AdminFormInput
+                        label='Tight'
+                        value={formData.letterSpacingTight}
+                        onChange={(v) => update({ letterSpacingTight: v })}
+                        placeholder='-0.02rem'
+                        disabled={isSaving}
+                        monospace
+                        required
+                    />
+                    <AdminFormInput
+                        label='Normal'
+                        value={formData.letterSpacingNormal}
+                        onChange={(v) => update({ letterSpacingNormal: v })}
+                        placeholder='0rem'
+                        disabled={isSaving}
+                        monospace
+                        required
+                    />
                     <AdminFormInput label='Wide' value={formData.letterSpacingWide} onChange={(v) => update({ letterSpacingWide: v })} placeholder='0.02rem' disabled={isSaving} monospace required />
                 </div>
 
                 <SubsectionHeader title='Semantic Sizes' />
                 <div class='grid grid-cols-4 gap-4'>
                     <SizeSelect label='Body' value={formData.typographySemanticBody} onChange={(v) => update({ typographySemanticBody: v })} disabled={isSaving} options={BODY_SIZE_OPTIONS} />
-                    <SizeSelect label='Body Strong' value={formData.typographySemanticBodyStrong} onChange={(v) => update({ typographySemanticBodyStrong: v })} disabled={isSaving} options={BODY_SIZE_OPTIONS} />
+                    <SizeSelect
+                        label='Body Strong'
+                        value={formData.typographySemanticBodyStrong}
+                        onChange={(v) => update({ typographySemanticBodyStrong: v })}
+                        disabled={isSaving}
+                        options={BODY_SIZE_OPTIONS}
+                    />
                     <SizeSelect label='Caption' value={formData.typographySemanticCaption} onChange={(v) => update({ typographySemanticCaption: v })} disabled={isSaving} options={BODY_SIZE_OPTIONS} />
                     <SizeSelect label='Button' value={formData.typographySemanticButton} onChange={(v) => update({ typographySemanticButton: v })} disabled={isSaving} options={BODY_SIZE_OPTIONS} />
                 </div>
                 <div class='grid grid-cols-3 gap-4'>
                     <SizeSelect label='Eyebrow' value={formData.typographySemanticEyebrow} onChange={(v) => update({ typographySemanticEyebrow: v })} disabled={isSaving} options={BODY_SIZE_OPTIONS} />
-                    <SizeSelect label='Heading' value={formData.typographySemanticHeading} onChange={(v) => update({ typographySemanticHeading: v })} disabled={isSaving} options={HEADING_SIZE_OPTIONS} />
-                    <SizeSelect label='Display' value={formData.typographySemanticDisplay} onChange={(v) => update({ typographySemanticDisplay: v })} disabled={isSaving} options={DISPLAY_SIZE_OPTIONS} />
+                    <SizeSelect
+                        label='Heading'
+                        value={formData.typographySemanticHeading}
+                        onChange={(v) => update({ typographySemanticHeading: v })}
+                        disabled={isSaving}
+                        options={HEADING_SIZE_OPTIONS}
+                    />
+                    <SizeSelect
+                        label='Display'
+                        value={formData.typographySemanticDisplay}
+                        onChange={(v) => update({ typographySemanticDisplay: v })}
+                        disabled={isSaving}
+                        options={DISPLAY_SIZE_OPTIONS}
+                    />
                 </div>
             </div>
         </AdminFormSection>

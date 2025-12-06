@@ -1,12 +1,5 @@
 import type { BrandingTokens, TenantDomainName, TenantId } from '@billsplit-wl/shared';
-import {
-    toTenantAccentColor,
-    toTenantDefaultFlag,
-    toTenantDomainName,
-    toTenantId,
-    toTenantPrimaryColor,
-    toTenantSecondaryColor,
-} from '@billsplit-wl/shared';
+import { toTenantAccentColor, toTenantDefaultFlag, toTenantDomainName, toTenantId, toTenantPrimaryColor, toTenantSecondaryColor } from '@billsplit-wl/shared';
 import type { AdminUpsertTenantRequest } from '../../schemas/tenant';
 import type { TenantDocumentUpsertData } from '../../services/firestore/IFirestoreWriter';
 

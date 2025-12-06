@@ -56,11 +56,7 @@ export function AdminHeader() {
                             eventName='admin_header_logo_click'
                             eventProps={{ destination: 'dashboard' }}
                         >
-                            {logoUrl ? (
-                                <img src={logoUrl} alt={appName} class='h-8' />
-                            ) : (
-                                <HomeIcon size={32} className='text-gray-900' />
-                            )}
+                            {logoUrl ? <img src={logoUrl} alt={appName} class='h-8' /> : <HomeIcon size={32} className='text-gray-900' />}
                         </Clickable>
                         {showAppName && (
                             <span class='text-gray-900 font-semibold leading-6 whitespace-nowrap'>

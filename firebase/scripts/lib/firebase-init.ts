@@ -1,9 +1,9 @@
 import * as admin from 'firebase-admin';
 import * as fs from 'fs';
 import * as path from 'path';
-import {getInstanceEnvironment, loadRuntimeConfig, type ScriptEnvironment} from './scripts-config';
+import { getInstanceEnvironment, loadRuntimeConfig, type ScriptEnvironment } from './scripts-config';
 
-export {type ScriptEnvironment} from './scripts-config';
+export { type ScriptEnvironment } from './scripts-config';
 
 export function isDeployed() {
     const env = getInstanceEnvironment();

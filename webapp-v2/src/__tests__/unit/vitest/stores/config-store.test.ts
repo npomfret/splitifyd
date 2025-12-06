@@ -1,7 +1,7 @@
 import { firebaseConfigManager } from '@/app/firebase-config';
 import { configStore } from '@/stores/config-store.ts';
 import { syncThemeHash } from '@/utils/theme-bootstrap';
-import type { ClientAppConfiguration, BrandingConfig } from '@billsplit-wl/shared';
+import type { BrandingConfig, ClientAppConfiguration } from '@billsplit-wl/shared';
 import { toISOString, toTenantId } from '@billsplit-wl/shared';
 import { BrandingConfigBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -29,7 +29,7 @@ describe('configStore', () => {
             messagingSenderId: 'test',
             appId: 'test',
         },
-        warningBanner: "foo",
+        warningBanner: 'foo',
         formDefaults: {},
         tenant: branding
             ? {

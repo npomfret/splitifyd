@@ -815,9 +815,13 @@ export class DashboardPage extends BasePage {
      * Activity feed empty state (contains 'No activity yet' text)
      */
     private getActivityFeedEmptyState(): Locator {
-        return this.getActivityFeedContainer().locator('div').filter({
-            hasText: translation.activityFeed.emptyState.title,
-        }).first();
+        return this
+            .getActivityFeedContainer()
+            .locator('div')
+            .filter({
+                hasText: translation.activityFeed.emptyState.title,
+            })
+            .first();
     }
 
     /**

@@ -1,5 +1,7 @@
 import { useStaggeredReveal } from '@/app/hooks/useScrollReveal';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced';
+import { EmptyState } from '@/components/ui';
+import { Typography } from '@/components/ui';
 import type { ExpenseDTO } from '@billsplit-wl/shared';
 import { ReceiptPercentIcon } from '@heroicons/react/24/outline';
 import { useComputed } from '@preact/signals';
@@ -7,10 +9,8 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { Checkbox } from '../ui/Checkbox';
-import { EmptyState } from '@/components/ui';
 import { SkeletonExpenseItem } from '../ui/Skeleton';
 import { Stack } from '../ui/Stack';
-import { Typography } from '@/components/ui';
 import { ExpenseItem } from './ExpenseItem';
 
 interface ExpensesListProps {
@@ -49,7 +49,7 @@ export function ExpensesList({
     return (
         <Card variant='glass' className='p-6 border-border-default' data-testid='expenses-list-card'>
             <div className='flex justify-between items-center mb-4'>
-                <Typography variant="subheading" as="h2">{t('expensesList.title')}</Typography>
+                <Typography variant='subheading' as='h2'>{t('expensesList.title')}</Typography>
                 {canToggleShowDeleted && onShowDeletedChange && (
                     <Checkbox
                         label={t('common.includeDeleted')}
@@ -61,41 +61,45 @@ export function ExpensesList({
             </div>
 
             {/* Loading skeleton */}
-            {isInitialLoad ? (
-                <div className='space-y-3' aria-busy='true' aria-label={t('common.loading')}>
-                    <SkeletonExpenseItem />
-                    <SkeletonExpenseItem />
-                    <SkeletonExpenseItem />
-                </div>
-            ) : expenses.value.length === 0 ? (
-                <EmptyState
-                    icon={<ReceiptPercentIcon className='w-12 h-12' aria-hidden='true' />}
-                    title={t('expensesList.noExpensesYet')}
-                    data-testid='expenses-empty-state'
-                />
-            ) : (
-                <Stack spacing='md' ref={listRef}>
-                    {expenses.value.map((expense, index) => (
-                        <div
-                            key={expense.id}
-                            className={`fade-up ${visibleIndices.has(index) ? 'fade-up-visible' : ''}`}
-                        >
-                            <ExpenseItem
-                                expense={expense}
-                                members={members.value}
-                                onClick={onExpenseClick}
-                                onCopy={onExpenseCopy}
-                            />
-                        </div>
-                    ))}
+            {isInitialLoad
+                ? (
+                    <div className='space-y-3' aria-busy='true' aria-label={t('common.loading')}>
+                        <SkeletonExpenseItem />
+                        <SkeletonExpenseItem />
+                        <SkeletonExpenseItem />
+                    </div>
+                )
+                : expenses.value.length === 0
+                ? (
+                    <EmptyState
+                        icon={<ReceiptPercentIcon className='w-12 h-12' aria-hidden='true' />}
+                        title={t('expensesList.noExpensesYet')}
+                        data-testid='expenses-empty-state'
+                    />
+                )
+                : (
+                    <Stack spacing='md' ref={listRef}>
+                        {expenses.value.map((expense, index) => (
+                            <div
+                                key={expense.id}
+                                className={`fade-up ${visibleIndices.has(index) ? 'fade-up-visible' : ''}`}
+                            >
+                                <ExpenseItem
+                                    expense={expense}
+                                    members={members.value}
+                                    onClick={onExpenseClick}
+                                    onCopy={onExpenseCopy}
+                                />
+                            </div>
+                        ))}
 
-                    {hasMore.value && (
-                        <Button variant='ghost' onClick={handleLoadMore} disabled={loading.value} className='w-full'>
-                            {loading.value ? t('common.loading') : t('expensesList.loadMore')}
-                        </Button>
-                    )}
-                </Stack>
-            )}
+                        {hasMore.value && (
+                            <Button variant='ghost' onClick={handleLoadMore} disabled={loading.value} className='w-full'>
+                                {loading.value ? t('common.loading') : t('expensesList.loadMore')}
+                            </Button>
+                        )}
+                    </Stack>
+                )}
         </Card>
     );
 }

@@ -4,8 +4,8 @@ import { PolicyId, PolicyIds, PolicyName, toPolicyName, toPolicyText } from '@bi
 import { ApiDriver } from '@billsplit-wl/test-support';
 import * as fs from 'fs';
 import * as path from 'path';
-import { getEnvironment, initializeFirebase } from './lib/firebase-init';
 import { generateBillSplitterUser, signInExistingBillSplitter } from './dev/test-data-generator';
+import { getEnvironment, initializeFirebase } from './lib/firebase-init';
 
 /*
  * This script seeds policy files using the Admin API

@@ -71,9 +71,7 @@ export function GroupGeneralTabContent({
                         />
                     </div>
 
-                    {validationError && (
-                        <Alert type='error' message={validationError} data-testid='edit-group-validation-error' />
-                    )}
+                    {validationError && <Alert type='error' message={validationError} data-testid='edit-group-validation-error' />}
                 </div>
 
                 <div className='flex items-center justify-between mt-6 pt-4 border-t border-border-default'>

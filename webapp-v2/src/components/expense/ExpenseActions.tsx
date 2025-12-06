@@ -56,21 +56,21 @@ export function ExpenseActions({ expense, onEdit, onDelete, onShare, onCopy, dis
 
                 <Button variant='secondary' onClick={onCopy} ariaLabel={t('expenseComponents.expenseActions.copyExpense')}>
                     <>
-                        <CopyIcon size={16} className="mr-2" />
+                        <CopyIcon size={16} className='mr-2' />
                         {t('expenseComponents.expenseActions.copy')}
                     </>
                 </Button>
 
                 <Button variant='secondary' onClick={onShare}>
                     <>
-                        <ShareIcon size={16} className="mr-2" />
+                        <ShareIcon size={16} className='mr-2' />
                         {t('expenseComponents.expenseActions.share')}
                     </>
                 </Button>
 
                 <Button variant='danger' onClick={handleDeleteClick}>
                     <>
-                        <TrashIcon size={16} className="mr-2" />
+                        <TrashIcon size={16} className='mr-2' />
                         {t('expenseComponents.expenseActions.delete')}
                     </>
                 </Button>

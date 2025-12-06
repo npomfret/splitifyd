@@ -2,7 +2,6 @@ import {
     ActivityFeedItemBuilder,
     CommentBuilder,
     DashboardPage,
-    ExpenseDetailPage,
     ExpenseDTOBuilder,
     ExpenseFullDetailsBuilder,
     GroupBalancesBuilder,

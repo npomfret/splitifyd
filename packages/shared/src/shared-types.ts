@@ -79,7 +79,6 @@ export const toTenantSecondaryColor = (value: string): TenantSecondaryColor => v
 export type TenantAccentColor = BrandedString<'TenantAccentColor'>;
 export const toTenantAccentColor = (value: string): TenantAccentColor => value as TenantAccentColor;
 
-
 export type TenantDomainName = BrandedString<'TenantDomainName'>;
 export const toTenantDomainName = (value: string): TenantDomainName => value as TenantDomainName;
 
@@ -1743,7 +1742,7 @@ export interface PublishTenantThemeRequest {
 /**
  * Branded type for tenant image IDs
  */
-export type TenantImageId = string & { readonly __brand: 'TenantImageId' };
+export type TenantImageId = string & { readonly __brand: 'TenantImageId'; };
 
 export function toTenantImageId(id: string): TenantImageId {
     return id as TenantImageId;

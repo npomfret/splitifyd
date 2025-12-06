@@ -31,13 +31,17 @@ describe('authentication edge cases', () => {
             // The middleware checks if req.user exists
             await expect(
                 appDriver.createGroup(new CreateGroupRequestBuilder().build(), '' as UserId),
-            ).rejects.toMatchObject({ code: 'AUTH_REQUIRED' });
+            )
+                .rejects
+                .toMatchObject({ code: 'AUTH_REQUIRED' });
         });
 
         it('should reject group listing without authentication', async () => {
             await expect(
                 appDriver.listGroups({}, '' as UserId),
-            ).rejects.toMatchObject({ code: 'AUTH_REQUIRED' });
+            )
+                .rejects
+                .toMatchObject({ code: 'AUTH_REQUIRED' });
         });
 
         it('should reject expense creation without authentication', async () => {
@@ -60,19 +64,25 @@ describe('authentication edge cases', () => {
                         .build(),
                     '' as UserId,
                 ),
-            ).rejects.toMatchObject({ code: 'AUTH_REQUIRED' });
+            )
+                .rejects
+                .toMatchObject({ code: 'AUTH_REQUIRED' });
         });
 
         it('should reject activity feed access without authentication', async () => {
             await expect(
                 appDriver.getActivityFeed({}, '' as UserId),
-            ).rejects.toMatchObject({ code: 'AUTH_REQUIRED' });
+            )
+                .rejects
+                .toMatchObject({ code: 'AUTH_REQUIRED' });
         });
 
         it('should reject user profile access without authentication', async () => {
             await expect(
                 appDriver.getUserProfile('' as UserId),
-            ).rejects.toMatchObject({ code: 'AUTH_REQUIRED' });
+            )
+                .rejects
+                .toMatchObject({ code: 'AUTH_REQUIRED' });
         });
     });
 
@@ -87,13 +97,17 @@ describe('authentication edge cases', () => {
             // Regular user trying to access admin endpoints
             await expect(
                 appDriver.listAllTenants(user1),
-            ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+            )
+                .rejects
+                .toMatchObject({ code: 'FORBIDDEN' });
         });
 
         it('should reject user role updates from non-admin users', async () => {
             await expect(
                 appDriver.updateUserRole(user1, { role: 'system_admin' }, user1),
-            ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+            )
+                .rejects
+                .toMatchObject({ code: 'FORBIDDEN' });
         });
     });
 
@@ -102,7 +116,9 @@ describe('authentication edge cases', () => {
             // Regular system user trying to access tenant admin endpoints
             await expect(
                 appDriver.getTenantSettings(user1),
-            ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+            )
+                .rejects
+                .toMatchObject({ code: 'FORBIDDEN' });
         });
     });
 });

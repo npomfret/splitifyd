@@ -246,7 +246,7 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
         : (
             <Card data-testid='members-container'>
                 <div className={headerClasses}>
-                    <Typography variant="subheading" as="h2" className="flex items-baseline gap-2">
+                    <Typography variant='subheading' as='h2' className='flex items-baseline gap-2'>
                         <span>{t('membersList.title')}</span>
                         <span className='text-sm font-medium text-text-muted'>({memberCount.value})</span>
                     </Typography>

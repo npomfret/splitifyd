@@ -58,9 +58,7 @@ export function DeleteGroupConfirmationModal({
                         <Input type='text' placeholder={groupName} value={confirmationText} onChange={onConfirmationTextChange} className='w-full' disabled={isDeleting} />
                     </div>
 
-                    {error && (
-                        <Alert type='error' message={error} />
-                    )}
+                    {error && <Alert type='error' message={error} />}
 
                     {isDeleting && (
                         <div className='text-center text-text-muted mb-4'>

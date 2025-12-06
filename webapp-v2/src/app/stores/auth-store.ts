@@ -528,7 +528,7 @@ class AuthStoreImpl implements AuthStore {
 
         // Handle API errors from our backend (e.g., EMAIL_EXISTS)
         if (error && typeof error === 'object' && 'code' in error) {
-            const errorWithCode = error as { code: string; message?: string };
+            const errorWithCode = error as { code: string; message?: string; };
 
             if (errorWithCode.code === AuthErrors.EMAIL_EXISTS_CODE || errorWithCode.code === AuthErrors.EMAIL_EXISTS) {
                 return t('authErrors.emailInUse');

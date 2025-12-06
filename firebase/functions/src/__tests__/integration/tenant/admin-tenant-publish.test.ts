@@ -1,10 +1,5 @@
 import type { BrandingTokens, PooledTestUser } from '@billsplit-wl/shared';
-import {
-    toTenantAccentColor,
-    toTenantDomainName,
-    toTenantPrimaryColor,
-    toTenantSecondaryColor,
-} from '@billsplit-wl/shared';
+import { toTenantAccentColor, toTenantDomainName, toTenantPrimaryColor, toTenantSecondaryColor } from '@billsplit-wl/shared';
 import { AdminTenantRequestBuilder, ApiDriver, borrowTestUsers } from '@billsplit-wl/test-support';
 import { beforeAll, describe, expect, it } from 'vitest';
 
@@ -65,7 +60,7 @@ describe('Admin Tenant Theme Publishing', () => {
             const result = await apiDriver.publishTenantTheme({ tenantId }, regularUser.token);
             expect.fail(`Expected request to be rejected but it succeeded with result: ${JSON.stringify(result)}`);
         } catch (error: any) {
-            console.log(error)
+            console.log(error);
             expect(error.status).toBe(403);
             expect(error.response.error.code).toBe('FORBIDDEN');
         }

@@ -30,25 +30,25 @@ export function Alert({ type, title, message, dismissible = false, onDismiss, 'd
             bg: 'bg-interactive-primary/10',
             border: 'border-interactive-primary/30',
             text: 'text-interactive-primary',
-            icon: <InfoCircleIcon size={20} className="mr-2" />,
+            icon: <InfoCircleIcon size={20} className='mr-2' />,
         },
         success: {
             bg: 'bg-interactive-accent/10',
             border: 'border-semantic-success/40',
             text: 'text-semantic-success',
-            icon: <CheckCircleIcon size={20} className="mr-2" />,
+            icon: <CheckCircleIcon size={20} className='mr-2' />,
         },
         warning: {
             bg: 'bg-surface-warning',
             border: 'border-border-warning',
             text: 'text-semantic-warning',
-            icon: <WarningIcon size={20} className="mr-2" />,
+            icon: <WarningIcon size={20} className='mr-2' />,
         },
         error: {
             bg: 'bg-surface-error',
             border: 'border-border-error',
             text: 'text-semantic-error',
-            icon: <XCircleIcon size={20} className="mr-2" />,
+            icon: <XCircleIcon size={20} className='mr-2' />,
         },
     };
 

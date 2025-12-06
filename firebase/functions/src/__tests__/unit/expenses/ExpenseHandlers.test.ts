@@ -1,7 +1,7 @@
-import { StubCloudTasksClient, StubStorage } from 'ts-firebase-simulator';
 import type { UpdateExpenseRequest } from '@billsplit-wl/shared';
 import { toCurrencyISOCode, USD } from '@billsplit-wl/shared';
 import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, ExpenseUpdateBuilder, StubFirestoreDatabase, UserRegistrationBuilder } from '@billsplit-wl/test-support';
+import { StubCloudTasksClient, StubStorage } from 'ts-firebase-simulator';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ExpenseHandlers } from '../../../expenses/ExpenseHandlers';
@@ -254,7 +254,8 @@ describe('ExpenseHandlers - Unit Tests', () => {
 
             const expense = await appDriver.createExpense(expenseRequest, userId);
 
-            const updateRequest = ExpenseUpdateBuilder.minimal()
+            const updateRequest = ExpenseUpdateBuilder
+                .minimal()
                 .withDescription('Updated description')
                 .build();
 
@@ -284,7 +285,8 @@ describe('ExpenseHandlers - Unit Tests', () => {
 
             const expense = await appDriver.createExpense(expenseRequest, userId);
 
-            const updateRequest = ExpenseUpdateBuilder.minimal()
+            const updateRequest = ExpenseUpdateBuilder
+                .minimal()
                 .withLabel('Transport')
                 .build();
 
@@ -296,7 +298,8 @@ describe('ExpenseHandlers - Unit Tests', () => {
         });
 
         it('should reject update with invalid expense ID', async () => {
-            const updateRequest = ExpenseUpdateBuilder.minimal()
+            const updateRequest = ExpenseUpdateBuilder
+                .minimal()
                 .withAmount(150, 'USD')
                 .build();
 
@@ -320,7 +323,8 @@ describe('ExpenseHandlers - Unit Tests', () => {
         });
 
         it('should reject update with invalid amount precision when currency provided', async () => {
-            const updateRequest = ExpenseUpdateBuilder.minimal()
+            const updateRequest = ExpenseUpdateBuilder
+                .minimal()
                 .withAmount(100.50, jpy)
                 .build();
 
@@ -333,7 +337,8 @@ describe('ExpenseHandlers - Unit Tests', () => {
         });
 
         it('should reject update with empty description', async () => {
-            const updateRequest = ExpenseUpdateBuilder.minimal()
+            const updateRequest = ExpenseUpdateBuilder
+                .minimal()
                 .withInvalidDescription('')
                 .build();
 
@@ -347,7 +352,8 @@ describe('ExpenseHandlers - Unit Tests', () => {
         });
 
         it('should reject update with invalid label length', async () => {
-            const updateRequest = ExpenseUpdateBuilder.minimal()
+            const updateRequest = ExpenseUpdateBuilder
+                .minimal()
                 .withInvalidLabel('a'.repeat(51))
                 .build();
 

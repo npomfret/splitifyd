@@ -1,7 +1,7 @@
 import { CreateExpenseRequestBuilder, RegisterRequestBuilder } from '@billsplit-wl/test-support';
 import { validateRegisterRequest } from '../../auth/validation';
-import { validateCreateExpense, validateUpdateExpense } from '../../expenses/validation';
 import { ApiError } from '../../errors';
+import { validateCreateExpense, validateUpdateExpense } from '../../expenses/validation';
 
 describe('Auth Validation', () => {
     describe('validateRegisterRequest', () => {

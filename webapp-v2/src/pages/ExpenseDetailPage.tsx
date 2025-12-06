@@ -10,8 +10,8 @@ import { batch, useComputed, useSignal } from '@preact/signals';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { apiClient } from '../app/apiClient';
-import { ExpenseActions } from '../components/expense/ExpenseActions';
-import { SplitBreakdown } from '../components/expense/SplitBreakdown';
+import { ExpenseActions } from '@/components/expense';
+import { SplitBreakdown } from '@/components/expense';
 import { BaseLayout } from '../components/layout/BaseLayout';
 import { logError } from '../utils/browser-logger';
 import { formatDistanceToNow, formatExpenseDateTime, formatLocalDateTime } from '../utils/dateUtils';
@@ -175,7 +175,7 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                 <div className='min-h-screen p-4'>
                     <Card className='max-w-md mx-auto mt-8' data-testid='expense-error-card'>
                         <Stack spacing='md'>
-                            <Typography variant="heading" className="text-semantic-error" role="alert" data-testid="page-error-title">
+                            <Typography variant='heading' className='text-semantic-error' role='alert' data-testid='page-error-title'>
                                 {t('pages.expenseDetailPage.error')}
                             </Typography>
                             <p className='text-text-muted'>{error.value || t('pages.expenseDetailPage.expenseNotFound')}</p>

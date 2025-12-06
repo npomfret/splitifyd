@@ -1,19 +1,21 @@
 import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, ExpenseUpdateBuilder } from '@billsplit-wl/test-support';
 import { describe, expect, test } from 'vitest';
 import { VALIDATION_LIMITS } from '../../../constants';
+import { ApiError } from '../../../errors';
 import { validateCreateExpense, validateUpdateExpense } from '../../../expenses/validation';
 import { validateCreateGroup } from '../../../groups/validation';
-import { ApiError } from '../../../errors';
 
 describe('String Length Validation - Focused Tests', () => {
-    const createBaseExpenseBuilder = () => new CreateExpenseRequestBuilder()
-        .withAmount(1, 'USD')
-        .withGroupId('test-group-id')
-        .withDescription('Test expense');
+    const createBaseExpenseBuilder = () =>
+        new CreateExpenseRequestBuilder()
+            .withAmount(1, 'USD')
+            .withGroupId('test-group-id')
+            .withDescription('Test expense');
 
-    const createBaseGroupBuilder = () => new CreateGroupRequestBuilder()
-        .withName('Test Group')
-        .withDescription('Test group description');
+    const createBaseGroupBuilder = () =>
+        new CreateGroupRequestBuilder()
+            .withName('Test Group')
+            .withDescription('Test group description');
 
     describe('Critical Validation Boundaries', () => {
         test('should enforce expense description length limit', () => {
@@ -25,7 +27,7 @@ describe('String Length Validation - Focused Tests', () => {
                 validateCreateExpense(
                     createBaseExpenseBuilder()
                         .withDescription(tooLongDescription)
-                        .build()
+                        .build(),
                 )
             )
                 .toThrow(ApiError);
@@ -34,7 +36,7 @@ describe('String Length Validation - Focused Tests', () => {
             const result = validateCreateExpense(
                 createBaseExpenseBuilder()
                     .withDescription(maxDescription)
-                    .build()
+                    .build(),
             );
             expect(result.description).toHaveLength(200);
         });
@@ -48,7 +50,7 @@ describe('String Length Validation - Focused Tests', () => {
                 validateCreateGroup(
                     createBaseGroupBuilder()
                         .withName(tooLongName)
-                        .build()
+                        .build(),
                 )
             )
                 .toThrow(ApiError);
@@ -57,7 +59,7 @@ describe('String Length Validation - Focused Tests', () => {
             const result = validateCreateGroup(
                 createBaseGroupBuilder()
                     .withName(maxName)
-                    .build()
+                    .build(),
             );
             expect(result.name).toHaveLength(VALIDATION_LIMITS.MAX_GROUP_NAME_LENGTH);
         });
@@ -67,7 +69,7 @@ describe('String Length Validation - Focused Tests', () => {
             const expenseResult = validateCreateExpense(
                 createBaseExpenseBuilder()
                     .withDescription('  Valid description  ')
-                    .build()
+                    .build(),
             );
             expect(expenseResult.description).toBe('Valid description');
 
@@ -76,7 +78,7 @@ describe('String Length Validation - Focused Tests', () => {
                 validateCreateExpense(
                     createBaseExpenseBuilder()
                         .withDescription('   ') // Only whitespace
-                        .build()
+                        .build(),
                 )
             )
                 .toThrow(ApiError);
@@ -90,14 +92,14 @@ describe('String Length Validation - Focused Tests', () => {
             const expenseResult = validateCreateExpense(
                 createBaseExpenseBuilder()
                     .withDescription(specialText)
-                    .build()
+                    .build(),
             );
             expect(expenseResult.description).toBe(specialText);
 
             const groupResult = validateCreateGroup(
                 createBaseGroupBuilder()
                     .withName(specialText)
-                    .build()
+                    .build(),
             );
             expect(groupResult.name).toBe(specialText);
         });
@@ -110,19 +112,21 @@ describe('String Length Validation - Focused Tests', () => {
             // Should reject same as create
             expect(() =>
                 validateUpdateExpense(
-                    ExpenseUpdateBuilder.minimal()
+                    ExpenseUpdateBuilder
+                        .minimal()
                         .withDescription(tooLongDescription)
-                        .build()
+                        .build(),
                 )
             )
                 .toThrow(ApiError);
 
             // Should accept valid update
             const result = validateUpdateExpense(
-                ExpenseUpdateBuilder.minimal()
+                ExpenseUpdateBuilder
+                    .minimal()
                     .withDescription('Updated description')
                     .withLabel('Updated label')
-                    .build()
+                    .build(),
             );
             expect(result.description).toBe('Updated description');
             expect(result.label).toBe('Updated label');

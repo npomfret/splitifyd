@@ -295,7 +295,7 @@ export class FirestoreReader implements IFirestoreReader {
         }
     }
 
-    async getExpense(expenseId: ExpenseId, options?: { includeSoftDeleted?: boolean }): Promise<ExpenseDTO | null> {
+    async getExpense(expenseId: ExpenseId, options?: { includeSoftDeleted?: boolean; }): Promise<ExpenseDTO | null> {
         try {
             const expenseDoc = await this.db.collection(FirestoreCollections.EXPENSES).doc(expenseId).get();
 
@@ -891,7 +891,8 @@ export class FirestoreReader implements IFirestoreReader {
                 const cursorParts = options.cursor.split('/');
                 if (cursorParts.length === 3) {
                     const [userId, , docId] = cursorParts;
-                    const cursorDoc = await this.db
+                    const cursorDoc = await this
+                        .db
                         .collection(FirestoreCollections.ACTIVITY_FEED)
                         .doc(userId!)
                         .collection('items')
@@ -1036,7 +1037,7 @@ export class FirestoreReader implements IFirestoreReader {
      * - Reduces resource usage by 90%+ for users with many groups
      */
 
-    async getSettlement(settlementId: SettlementId, options?: { includeSoftDeleted?: boolean }): Promise<SettlementDTO | null> {
+    async getSettlement(settlementId: SettlementId, options?: { includeSoftDeleted?: boolean; }): Promise<SettlementDTO | null> {
         try {
             const settlementDoc = await this.db.collection(FirestoreCollections.SETTLEMENTS).doc(settlementId).get();
 
@@ -1841,7 +1842,8 @@ export class FirestoreReader implements IFirestoreReader {
 
     async getTenantImages(tenantId: TenantId): Promise<TenantImageDTO[]> {
         return measureDb('GET_TENANT_IMAGES', async () => {
-            const snapshot = await this.db
+            const snapshot = await this
+                .db
                 .collection(FirestoreCollections.TENANTS)
                 .doc(tenantId)
                 .collection('images')
@@ -1864,7 +1866,8 @@ export class FirestoreReader implements IFirestoreReader {
 
     async getTenantImage(tenantId: TenantId, imageId: TenantImageId): Promise<TenantImageDTO | null> {
         return measureDb('GET_TENANT_IMAGE', async () => {
-            const doc = await this.db
+            const doc = await this
+                .db
                 .collection(FirestoreCollections.TENANTS)
                 .doc(tenantId)
                 .collection('images')

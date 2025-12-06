@@ -94,7 +94,7 @@ export function DashboardPage() {
                         {/* Welcome Section - Only show for first-time users (no groups) after loading is complete */}
                         {enhancedGroupsStore.groups.length === 0 && enhancedGroupsStore.initialized && !enhancedGroupsStore.loading && (
                             <div class='mb-6'>
-                                <Typography variant="pageTitle" as="h2" className="mb-2">{t('dashboard.welcomeMessage', { name: user.displayName })}</Typography>
+                                <Typography variant='pageTitle' as='h2' className='mb-2'>{t('dashboard.welcomeMessage', { name: user.displayName })}</Typography>
                                 <p class='text-text-muted'>{t('dashboard.welcomeDescription')}</p>
                             </div>
                         )}
@@ -102,7 +102,7 @@ export function DashboardPage() {
                         {/* Groups Section */}
                         <div class='glass-panel border-border-default rounded-lg shadow-lg border p-8' data-testid='groups-container'>
                             <div class='flex flex-col gap-4 mb-8 lg:flex-row lg:items-center lg:justify-between'>
-                                <Typography variant="heading" as="h3" className="font-bold">{t('dashboard.yourGroups')}</Typography>
+                                <Typography variant='heading' as='h3' className='font-bold'>{t('dashboard.yourGroups')}</Typography>
                                 <div class='flex flex-wrap items-center gap-4 justify-between lg:justify-end'>
                                     <div
                                         class='inline-flex rounded-md border border-border-default overflow-hidden'

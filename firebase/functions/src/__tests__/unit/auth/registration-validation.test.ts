@@ -245,7 +245,8 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
         it('should require all mandatory fields', () => {
             const incompleteData = [
                 // missing email
-                UserRegistrationBuilder.empty()
+                UserRegistrationBuilder
+                    .empty()
                     .withPassword('passwordpass')
                     .withDisplayName('Test User')
                     .withTermsAccepted(true)
@@ -253,7 +254,8 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
                     .withPrivacyPolicyAccepted(true)
                     .build(),
                 // missing password
-                UserRegistrationBuilder.empty()
+                UserRegistrationBuilder
+                    .empty()
                     .withEmail('test@example.com')
                     .withDisplayName('Test User')
                     .withTermsAccepted(true)
@@ -261,7 +263,8 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
                     .withPrivacyPolicyAccepted(true)
                     .build(),
                 // missing displayName
-                UserRegistrationBuilder.empty()
+                UserRegistrationBuilder
+                    .empty()
                     .withEmail('test@example.com')
                     .withPassword('passwordpass')
                     .withTermsAccepted(true)
@@ -269,7 +272,8 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
                     .withPrivacyPolicyAccepted(true)
                     .build(),
                 // missing termsAccepted
-                UserRegistrationBuilder.empty()
+                UserRegistrationBuilder
+                    .empty()
                     .withEmail('test@example.com')
                     .withPassword('passwordpass')
                     .withDisplayName('Test User')
@@ -277,7 +281,8 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
                     .withPrivacyPolicyAccepted(true)
                     .build(),
                 // missing cookiePolicyAccepted
-                UserRegistrationBuilder.empty()
+                UserRegistrationBuilder
+                    .empty()
                     .withEmail('test@example.com')
                     .withPassword('passwordpass')
                     .withDisplayName('Test User')
@@ -285,7 +290,8 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
                     .withPrivacyPolicyAccepted(true)
                     .build(),
                 // missing privacyPolicyAccepted
-                UserRegistrationBuilder.empty()
+                UserRegistrationBuilder
+                    .empty()
                     .withEmail('test@example.com')
                     .withPassword('passwordpass')
                     .withDisplayName('Test User')
@@ -449,7 +455,8 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
 
         it('should report the first validation error when multiple errors exist', () => {
             // Data with multiple validation errors
-            const data = UserRegistrationBuilder.empty()
+            const data = UserRegistrationBuilder
+                .empty()
                 .withEmail('invalid-email') // invalid format
                 .withPassword('weak') // too weak
                 .withDisplayName('') // empty

@@ -165,7 +165,7 @@ test.describe('Join Group Page - Successful Join', () => {
         await joinGroupPage.submitDisplayNameModal();
 
         // Frontend displays translated error message
-        await joinGroupPage.verifyErrorMessageContains("You don't have permission to do this");
+        await joinGroupPage.verifyErrorMessageContains('You don\'t have permission to do this');
     });
 });
 

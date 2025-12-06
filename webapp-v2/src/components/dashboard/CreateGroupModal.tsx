@@ -155,7 +155,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
         >
             {/* Modal Header */}
             <div class='flex items-center justify-between px-6 py-4 border-b border-border-default'>
-                <Typography variant="subheading" id="create-group-modal-title">
+                <Typography variant='subheading' id='create-group-modal-title'>
                     {t('createGroupModal.title')}
                 </Typography>
                 <Tooltip content={t('createGroupModal.closeButtonAriaLabel')}>
@@ -169,7 +169,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                         eventName='modal_close'
                         eventProps={{ modalName: 'create_group', method: 'x_button' }}
                     >
-<XIcon size={20} />
+                        <XIcon size={20} />
                     </Clickable>
                 </Tooltip>
             </div>
@@ -243,7 +243,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                             <div class='bg-surface-warning border border-border-warning rounded-md p-3'>
                                 <div class='flex'>
                                     <div class='flex-shrink-0'>
-<XCircleIcon size={20} className='text-semantic-error' />
+                                        <XCircleIcon size={20} className='text-semantic-error' />
                                     </div>
                                     <div class='ml-3'>
                                         <p class='text-sm text-semantic-error' role='alert'>

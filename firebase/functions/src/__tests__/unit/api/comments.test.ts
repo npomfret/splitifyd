@@ -66,7 +66,9 @@ describe('comments', () => {
         it('should reject creating group comment for non-existent group', async () => {
             await expect(
                 appDriver.createGroupComment('non-existent-group-id', 'Test comment', user1),
-            ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+            )
+                .rejects
+                .toMatchObject({ code: 'NOT_FOUND' });
         });
 
         it('should reject creating group comment as non-member', async () => {
@@ -75,19 +77,25 @@ describe('comments', () => {
             // user2 is NOT a member
             await expect(
                 appDriver.createGroupComment(group.id, 'Test comment', user2),
-            ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+            )
+                .rejects
+                .toMatchObject({ code: 'FORBIDDEN' });
         });
 
         it('should reject creating expense comment for non-existent expense', async () => {
             await expect(
                 appDriver.createExpenseComment('non-existent-expense-id', 'Test comment', user1),
-            ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+            )
+                .rejects
+                .toMatchObject({ code: 'NOT_FOUND' });
         });
 
         it('should reject listing group comments for non-existent group', async () => {
             await expect(
                 appDriver.listGroupComments('non-existent-group-id', {}, user1),
-            ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+            )
+                .rejects
+                .toMatchObject({ code: 'NOT_FOUND' });
         });
 
         it('should reject listing group comments as non-member', async () => {
@@ -96,13 +104,17 @@ describe('comments', () => {
             // user2 is NOT a member
             await expect(
                 appDriver.listGroupComments(group.id, {}, user2),
-            ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+            )
+                .rejects
+                .toMatchObject({ code: 'FORBIDDEN' });
         });
 
         it('should reject listing expense comments for non-existent expense', async () => {
             await expect(
                 appDriver.listExpenseComments('non-existent-expense-id', {}, user1),
-            ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+            )
+                .rejects
+                .toMatchObject({ code: 'NOT_FOUND' });
         });
 
         it('should reject listing expense comments as non-member', async () => {
@@ -123,7 +135,9 @@ describe('comments', () => {
             // user2 is NOT a member
             await expect(
                 appDriver.listExpenseComments(expense.id, {}, user2),
-            ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+            )
+                .rejects
+                .toMatchObject({ code: 'FORBIDDEN' });
         });
 
         it('should reject empty comment text after sanitization', async () => {
@@ -135,7 +149,9 @@ describe('comments', () => {
             // Comment with only script tag should be sanitized to empty and rejected
             await expect(
                 appDriver.createGroupComment(groupId, '<script>alert(1)</script>', user1),
-            ).rejects.toThrow();
+            )
+                .rejects
+                .toThrow();
         });
 
         it('should support pagination for group comments', async () => {

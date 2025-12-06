@@ -5,11 +5,11 @@ import { onRequest } from 'firebase-functions/v2/https';
 import { authenticate, authenticateAdmin, authenticateCloudTask, authenticateSystemUser, authenticateTenantAdmin } from './auth/middleware';
 import { getComponentBuilder } from './ComponentBuilderSingleton';
 import { HTTP_STATUS } from './constants';
+import { ApiError } from './errors';
 import { logger } from './logger';
 import { disableETags } from './middleware/cache-control';
 import { createRouteDefinitions } from './routes/route-config';
 import { logMetrics } from './scheduled/metrics-logger';
-import { ApiError } from './errors';
 import { applyStandardMiddleware } from './utils/middleware';
 
 let app: express.Application | null = null;

@@ -106,7 +106,7 @@ class JoinGroupStore {
         } catch (error: unknown) {
             this.#loadingPreviewSignal.value = false;
             const t = i18n.t.bind(i18n);
-            const errorWithCode = error as { code?: string };
+            const errorWithCode = error as { code?: string; };
 
             if (errorWithCode.code === 'INVALID_LINK' || errorWithCode.code === 'LINK_EXPIRED') {
                 this.#errorSignal.value = t('joinGroupPage.errors.invalidLink');
@@ -164,7 +164,7 @@ class JoinGroupStore {
             return response;
         } catch (error: unknown) {
             const t = i18n.t.bind(i18n);
-            const errorWithCode = error as { code?: string; message?: string };
+            const errorWithCode = error as { code?: string; message?: string; };
             let errorMessage: string;
 
             if (errorWithCode.code === 'DISPLAY_NAME_CONFLICT') {

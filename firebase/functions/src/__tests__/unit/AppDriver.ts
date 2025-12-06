@@ -1,4 +1,3 @@
-import { StubCloudTasksClient, StubFirestoreDatabase } from 'ts-firebase-simulator';
 import {
     AcceptMultiplePoliciesResponse,
     AcceptPolicyRequest,
@@ -95,12 +94,13 @@ import { CreateGroupRequestBuilder, createStubRequest, createStubResponse, StubS
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
 import type { UserRecord } from 'firebase-admin/auth';
 import { Timestamp } from 'firebase-admin/firestore';
+import { StubCloudTasksClient, StubFirestoreDatabase } from 'ts-firebase-simulator';
 import { expect } from 'vitest';
+import { ApiError, Errors } from '../../errors';
 import { createRouteDefinitions, RouteDefinition } from '../../routes/route-config';
 import { ComponentBuilder } from '../../services/ComponentBuilder';
 import { FirestoreReader } from '../../services/firestore';
 import { RegisterUserResult } from '../../services/UserService2';
-import { ApiError, Errors } from '../../errors';
 import { createUnitTestServiceConfig } from '../test-config';
 import { StubAuthService } from './mocks/StubAuthService';
 

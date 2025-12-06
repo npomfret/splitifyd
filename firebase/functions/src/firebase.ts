@@ -1,11 +1,11 @@
-import {config as loadEnv} from 'dotenv';
+import { config as loadEnv } from 'dotenv';
 import * as admin from 'firebase-admin';
-import {existsSync, readFileSync} from 'node:fs';
-import {dirname, join} from 'node:path';
+import { existsSync, readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 
 const envPath = join(__dirname, '../.env');
 if (existsSync(envPath)) {
-    loadEnv({path: envPath});
+    loadEnv({ path: envPath });
 }
 
 /**
@@ -21,7 +21,7 @@ export function isRealFirebase(): boolean {
 
 interface FirebaseJsonConfig {
     emulators: {
-        functions: {port: number; host: string};
+        functions: { port: number; host: string; };
     };
 }
 
@@ -107,9 +107,8 @@ function getApp(): admin.app.App {
             // Try to get the default app if it exists
             app = admin.app();
         } catch (error) {
-
             if (!process.env.FIREBASE_CONFIG) {
-                throw Error("both the emulator and prod should provide env.FIREBASE_CONFIG");
+                throw Error('both the emulator and prod should provide env.FIREBASE_CONFIG');
             }
 
             // FIREBASE_CONFIG looks like: {"projectId":"splitifyd","storageBucket":"splitifyd.firebasestorage.app"}

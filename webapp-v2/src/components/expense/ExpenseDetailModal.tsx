@@ -11,8 +11,8 @@ import { ExpenseDTO, ExpenseId, GroupDTO, GroupId, GroupMember, toCurrencyISOCod
 import { batch, useSignal } from '@preact/signals';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
-import { logError } from '../../utils/browser-logger';
-import { formatDistanceToNow, formatExpenseDateTime, formatLocalDateTime } from '../../utils/dateUtils';
+import { logError } from '@/utils/browser-logger.ts';
+import { formatDistanceToNow, formatExpenseDateTime, formatLocalDateTime } from '@/utils/dateUtils.ts';
 import { ExpenseActions } from './ExpenseActions';
 import { SplitBreakdown } from './SplitBreakdown';
 
@@ -112,9 +112,7 @@ export function ExpenseDetailModal({ isOpen, onClose, groupId, expenseId, onEdit
             navigator
                 .share({
                     title: `Expense: ${expense.value.description}`,
-                    text: `Check out this expense: ${expense.value.description} - ${
-                        formatCurrency(expense.value.amount, toCurrencyISOCode(expense.value.currency))
-                    }`,
+                    text: `Check out this expense: ${expense.value.description} - ${formatCurrency(expense.value.amount, toCurrencyISOCode(expense.value.currency))}`,
                     url: url,
                 })
                 .catch(() => {

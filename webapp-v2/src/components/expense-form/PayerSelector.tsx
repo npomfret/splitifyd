@@ -83,9 +83,7 @@ export function PayerSelector({ members, paidBy, validationErrors, updateField }
                                         <span className='text-sm font-medium'>{getGroupDisplayName(selectedMember)}</span>
                                     </>
                                 )
-                                : (
-                                    <span className='text-sm text-text-muted'>{t('expenseComponents.payerSelector.selectPayer')}</span>
-                                )}
+                                : <span className='text-sm text-text-muted'>{t('expenseComponents.payerSelector.selectPayer')}</span>}
                         </div>
                         <ChevronDownIcon
                             size={16}

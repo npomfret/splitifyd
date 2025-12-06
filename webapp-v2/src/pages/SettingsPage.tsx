@@ -32,19 +32,23 @@ export function SettingsPage() {
     const [originalDisplayNameSignal] = useState(() => signal(''));
     const [isLoadingSignal] = useState(() => signal(false));
     const [showPasswordFormSignal] = useState(() => signal(false));
-    const [passwordDataSignal] = useState(() => signal<PasswordChangeData>({
-        currentPassword: '',
-        newPassword: '',
-        confirmNewPassword: '',
-    }));
+    const [passwordDataSignal] = useState(() =>
+        signal<PasswordChangeData>({
+            currentPassword: '',
+            newPassword: '',
+            confirmNewPassword: '',
+        })
+    );
     const [successMessageSignal] = useState(() => signal(''));
     const [errorMessageSignal] = useState(() => signal(''));
     const [originalEmailSignal] = useState(() => signal(''));
     const [showEmailFormSignal] = useState(() => signal(false));
-    const [emailDataSignal] = useState(() => signal<EmailChangeData>({
-        newEmail: '',
-        currentPassword: '',
-    }));
+    const [emailDataSignal] = useState(() =>
+        signal<EmailChangeData>({
+            newEmail: '',
+            currentPassword: '',
+        })
+    );
     const [isEmailLoadingSignal] = useState(() => signal(false));
 
     const user = authStore.user;
@@ -149,7 +153,7 @@ export function SettingsPage() {
                 confirmNewPassword: '',
             };
         } catch (error: unknown) {
-            const errorWithCode = error as { code?: string; message?: string };
+            const errorWithCode = error as { code?: string; message?: string; };
             if (errorWithCode.code === 'AUTH_INVALID' || errorWithCode.message?.includes('Current password is incorrect')) {
                 errorMessageSignal.value = t('settingsPage.errorMessages.currentPasswordIncorrect');
             } else {
@@ -221,7 +225,7 @@ export function SettingsPage() {
                 currentPassword: '',
             };
         } catch (error: unknown) {
-            const errorWithCode = error as { code?: string; message?: string };
+            const errorWithCode = error as { code?: string; message?: string; };
             const code = errorWithCode.code;
             const message = typeof errorWithCode.message === 'string' ? errorWithCode.message : '';
 
@@ -297,7 +301,7 @@ export function SettingsPage() {
                             {t('settingsPage.heroLabel')}
                         </span>
                         <div class='flex flex-col gap-2'>
-                            <Typography variant="display" className="font-semibold" data-testid="account-settings-header">
+                            <Typography variant='display' className='font-semibold' data-testid='account-settings-header'>
                                 {t('settingsPage.accountSettingsHeader')}
                             </Typography>
                             <p class='max-w-2xl text-sm text-text-muted sm:text-base'>{t('settingsPage.accountSettingsSubheader')}</p>
@@ -372,7 +376,7 @@ export function SettingsPage() {
                             <Card padding='lg' data-testid='profile-information-section'>
                                 <div class='space-y-6'>
                                     <div class='space-y-2'>
-                                        <Typography variant="heading">{t('settingsPage.profileInformationHeader')}</Typography>
+                                        <Typography variant='heading'>{t('settingsPage.profileInformationHeader')}</Typography>
                                         <p class='text-sm text-text-muted'>{t('settingsPage.profileInformationSubheader')}</p>
                                     </div>
 
@@ -389,7 +393,9 @@ export function SettingsPage() {
                                             <Input
                                                 label={t('settingsPage.displayNameLabel')}
                                                 value={displayName}
-                                                onChange={(value) => { displayNameSignal.value = value; }}
+                                                onChange={(value) => {
+                                                    displayNameSignal.value = value;
+                                                }}
                                                 placeholder={t('settingsPage.displayNamePlaceholder')}
                                                 disabled={authStore.isUpdatingProfile}
                                                 error={isDisplayNameEmpty
@@ -417,7 +423,7 @@ export function SettingsPage() {
                             <Card padding='lg' data-testid='email-section'>
                                 <div class='space-y-6'>
                                     <div class='space-y-2'>
-                                        <Typography variant="heading">{t('settingsPage.emailSectionTitle')}</Typography>
+                                        <Typography variant='heading'>{t('settingsPage.emailSectionTitle')}</Typography>
                                         <p class='text-sm text-text-muted'>{t('settingsPage.emailSectionDescription')}</p>
                                     </div>
 
@@ -449,7 +455,9 @@ export function SettingsPage() {
                                                     label={t('settingsPage.newEmailLabel')}
                                                     type='email'
                                                     value={emailData.newEmail}
-                                                    onChange={(value) => { emailDataSignal.value = { ...emailDataSignal.value, newEmail: value }; }}
+                                                    onChange={(value) => {
+                                                        emailDataSignal.value = { ...emailDataSignal.value, newEmail: value };
+                                                    }}
                                                     placeholder={t('settingsPage.newEmailPlaceholder')}
                                                     disabled={isEmailLoading}
                                                     error={shouldShowEmailFormatError ? t('settingsPage.errorMessages.emailInvalid') : undefined}
@@ -461,7 +469,9 @@ export function SettingsPage() {
                                                     label={t('settingsPage.emailPasswordLabel')}
                                                     type='password'
                                                     value={emailData.currentPassword}
-                                                    onChange={(value) => { emailDataSignal.value = { ...emailDataSignal.value, currentPassword: value }; }}
+                                                    onChange={(value) => {
+                                                        emailDataSignal.value = { ...emailDataSignal.value, currentPassword: value };
+                                                    }}
                                                     disabled={isEmailLoading}
                                                     id='email-password-input'
                                                     data-testid='email-password-input'
@@ -497,7 +507,7 @@ export function SettingsPage() {
                             <Card padding='lg' data-testid='password-section'>
                                 <div class='space-y-6'>
                                     <div class='space-y-2'>
-                                        <Typography variant="heading">{t('settingsPage.passwordHeader')}</Typography>
+                                        <Typography variant='heading'>{t('settingsPage.passwordHeader')}</Typography>
                                         <p class='text-sm text-text-muted'>{t('settingsPage.passwordIntro')}</p>
                                     </div>
 
@@ -521,7 +531,12 @@ export function SettingsPage() {
 
                                     {!showPasswordForm
                                         ? (
-                                            <Button onClick={() => { showPasswordFormSignal.value = true; }} data-testid='change-password-button'>
+                                            <Button
+                                                onClick={() => {
+                                                    showPasswordFormSignal.value = true;
+                                                }}
+                                                data-testid='change-password-button'
+                                            >
                                                 {t('settingsPage.changePasswordButton')}
                                             </Button>
                                         )
@@ -540,7 +555,9 @@ export function SettingsPage() {
                                                         type='password'
                                                         name='currentPassword'
                                                         value={passwordData.currentPassword}
-                                                        onChange={(value) => { passwordDataSignal.value = { ...passwordDataSignal.value, currentPassword: value }; }}
+                                                        onChange={(value) => {
+                                                            passwordDataSignal.value = { ...passwordDataSignal.value, currentPassword: value };
+                                                        }}
                                                         disabled={isLoading}
                                                         id='current-password-input'
                                                         data-testid='current-password-input'
@@ -551,7 +568,9 @@ export function SettingsPage() {
                                                         type='password'
                                                         name='newPassword'
                                                         value={passwordData.newPassword}
-                                                        onChange={(value) => { passwordDataSignal.value = { ...passwordDataSignal.value, newPassword: value }; }}
+                                                        onChange={(value) => {
+                                                            passwordDataSignal.value = { ...passwordDataSignal.value, newPassword: value };
+                                                        }}
                                                         disabled={isLoading}
                                                         id='new-password-input'
                                                         data-testid='new-password-input'
@@ -562,7 +581,9 @@ export function SettingsPage() {
                                                         type='password'
                                                         name='confirmNewPassword'
                                                         value={passwordData.confirmNewPassword}
-                                                        onChange={(value) => { passwordDataSignal.value = { ...passwordDataSignal.value, confirmNewPassword: value }; }}
+                                                        onChange={(value) => {
+                                                            passwordDataSignal.value = { ...passwordDataSignal.value, confirmNewPassword: value };
+                                                        }}
                                                         disabled={isLoading}
                                                         id='confirm-password-input'
                                                         data-testid='confirm-password-input'

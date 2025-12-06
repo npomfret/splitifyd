@@ -1,6 +1,6 @@
-import { Timestamp } from 'ts-firebase-simulator';
 import type { SystemUserRole, UserId } from '@billsplit-wl/shared';
 import { SystemUserRoles, toUserId } from '@billsplit-wl/shared';
+import { Timestamp } from 'ts-firebase-simulator';
 import { generateShortId } from '../test-helpers';
 
 interface UserDocument {

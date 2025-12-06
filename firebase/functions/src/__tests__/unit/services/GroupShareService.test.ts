@@ -15,10 +15,10 @@ import {
 import { CreateGroupRequestBuilder, GroupPermissionsBuilder, ThemeBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
-import type { IFirestoreReader } from '../../../services/firestore';
-import { GroupShareService } from '../../../services/GroupShareService';
 import { ApiError } from '../../../errors';
 import { ErrorCode } from '../../../errors';
+import type { IFirestoreReader } from '../../../services/firestore';
+import { GroupShareService } from '../../../services/GroupShareService';
 import { AppDriver } from '../AppDriver';
 
 let ownerId1: string;
@@ -345,7 +345,7 @@ describe('GroupShareService', () => {
             await app.updateGroupPermissions(
                 groupId,
                 GroupPermissionsBuilder.adminOnly().build(),
-                ownerId1
+                ownerId1,
             );
 
             // Generate share link via API
@@ -402,7 +402,7 @@ describe('GroupShareService', () => {
             // Join via share link
             await groupShareService.joinGroupByLink(toUserId(joiningUserId), toShareLinkToken(shareLink.shareToken), toDisplayName('Joining User'));
 
-// Verify activity feed for owner contains member-joined event
+            // Verify activity feed for owner contains member-joined event
             const ownerFeed = await firestoreReader.getActivityFeedForUser(ownerId);
             const ownerMemberJoinedEvent = ownerFeed.items.find(
                 (item) => item.eventType === ActivityFeedEventTypes.MEMBER_JOINED,
@@ -497,7 +497,7 @@ describe('GroupShareService', () => {
             await app.updateGroupPermissions(
                 groupId,
                 GroupPermissionsBuilder.requireAdminApproval().build(),
-                ownerUserId
+                ownerUserId,
             );
 
             // Generate share link via API
@@ -510,7 +510,7 @@ describe('GroupShareService', () => {
             await app.updateGroupPermissions(
                 groupId,
                 GroupPermissionsBuilder.automaticApproval().build(),
-                ownerUserId
+                ownerUserId,
             );
 
             // New user joins the group (will be active)

@@ -42,7 +42,8 @@ export function loadAllTenantConfigs(): TenantConfig[] {
         throw new Error(`Tenants directory not found: ${tenantsDir}`);
     }
 
-    const tenantDirs = fs.readdirSync(tenantsDir, { withFileTypes: true })
+    const tenantDirs = fs
+        .readdirSync(tenantsDir, { withFileTypes: true })
         .filter(dirent => dirent.isDirectory())
         .map(dirent => dirent.name);
 

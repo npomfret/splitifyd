@@ -1,7 +1,7 @@
 import { ClientAppConfiguration, TenantConfig, toShowLandingPageFlag, toShowMarketingContentFlag, toShowPricingPageFlag } from '@billsplit-wl/shared';
 import { getTenantAwareAppConfig } from '../app-config';
-import type { TenantRequestContext } from '../types/tenant';
 import { ErrorDetail, Errors } from '../errors';
+import type { TenantRequestContext } from '../types/tenant';
 
 const cloneTenantConfig = (tenant: TenantConfig): TenantConfig => {
     return {

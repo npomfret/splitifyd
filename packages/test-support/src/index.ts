@@ -1,3 +1,4 @@
+export { ActivityFeedEventTypes } from '@billsplit-wl/shared';
 export type {
     ICollectionReference,
     IDocumentReference,
@@ -11,16 +12,9 @@ export type {
     SetOptions,
     WhereFilterOp,
 } from 'ts-firebase-simulator';
-export {
-    type FirestoreTriggerChange,
-    type FirestoreTriggerChangeHandler,
-    type FirestoreTriggerEventType,
-    type FirestoreTriggerHandlers,
-    StubFirestoreDatabase,
-} from 'ts-firebase-simulator';
+export { type FirestoreTriggerChange, type FirestoreTriggerChangeHandler, type FirestoreTriggerEventType, type FirestoreTriggerHandlers, StubFirestoreDatabase } from 'ts-firebase-simulator';
 export type { FirestoreTriggerChangeHandler as FirestoreTriggerHandler } from 'ts-firebase-simulator';
 export { StubStorage } from 'ts-firebase-simulator';
-export { ActivityFeedEventTypes } from '@billsplit-wl/shared';
 export * from './ApiDriver';
 export * from './builders';
 export * from './error-proxy';

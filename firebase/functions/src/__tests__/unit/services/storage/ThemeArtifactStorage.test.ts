@@ -1,5 +1,5 @@
-import { StubStorage } from 'ts-firebase-simulator';
 import { ThemeArtifactPayloadBuilder } from '@billsplit-wl/test-support';
+import { StubStorage } from 'ts-firebase-simulator';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { computeSha256, createThemeArtifactStorage, resetThemeArtifactStorage } from '../../../../services/storage/ThemeArtifactStorage';
 

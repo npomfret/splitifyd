@@ -105,9 +105,7 @@ export function ExpenseFormModal({ isOpen, onClose, groupId, mode, expenseId, on
             {/* Modal Content */}
             <div class='px-6 py-5 max-h-[70vh] overflow-y-auto'>
                 {/* Loading state */}
-                {!formState.isDataReady && !formState.initError && (
-                    <LoadingState message={t('app.loadingExpenseForm')} />
-                )}
+                {!formState.isDataReady && !formState.initError && <LoadingState message={t('app.loadingExpenseForm')} />}
 
                 {/* Error state */}
                 {formState.initError && (

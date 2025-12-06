@@ -1,5 +1,5 @@
-import { Timestamp } from 'firebase-admin/firestore';
 import { BrandingTokensBuilder } from '@billsplit-wl/test-support';
+import { Timestamp } from 'firebase-admin/firestore';
 import { describe, expect, it } from 'vitest';
 import { TenantDocumentSchema, UpdateTenantBrandingRequestSchema } from '../../../schemas/tenant';
 

@@ -1,8 +1,8 @@
 import { toCurrencyISOCode, toUserId, USD } from '@billsplit-wl/shared';
 import { ExpenseSplitBuilder } from '@billsplit-wl/test-support';
 import { describe, expect, it } from 'vitest';
-import { ExactSplitStrategy } from '../../../../services/splits/ExactSplitStrategy';
 import { ErrorCode } from '../../../../errors';
+import { ExactSplitStrategy } from '../../../../services/splits/ExactSplitStrategy';
 
 describe('ExactSplitStrategy', () => {
     const strategy = new ExactSplitStrategy();
@@ -26,13 +26,13 @@ describe('ExactSplitStrategy', () => {
 
         it('should throw error if splits are not provided', () => {
             expect(() => strategy.validateSplits('100', participants, undefined as any, USD)).toThrow(
-                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR })
+                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR }),
             );
         });
 
         it('should throw error if splits array is empty', () => {
             expect(() => strategy.validateSplits('100', participants, [], USD)).toThrow(
-                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR })
+                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR }),
             );
         });
 
@@ -43,7 +43,7 @@ describe('ExactSplitStrategy', () => {
                 .withSplit(userId3, '20') // Total = 90, not 100
                 .build();
             expect(() => strategy.validateSplits('100', participants, splits, USD)).toThrow(
-                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR })
+                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR }),
             );
         });
 
@@ -54,7 +54,7 @@ describe('ExactSplitStrategy', () => {
                 .withSplit(userId3, '40') // Total = 110, not 100
                 .build();
             expect(() => strategy.validateSplits('100', participants, splits, USD)).toThrow(
-                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR })
+                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR }),
             );
         });
 
@@ -74,7 +74,7 @@ describe('ExactSplitStrategy', () => {
                 .withSplit(userId3, '33.32') // Total = 99.98 (missing remainder)
                 .build();
             expect(() => strategy.validateSplits('100', participants, splits, USD)).toThrow(
-                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR })
+                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR }),
             );
         });
 
@@ -85,7 +85,7 @@ describe('ExactSplitStrategy', () => {
                 .withSplit(userId3, '50')
                 .build();
             expect(() => strategy.validateSplits('100', participants, splits, USD)).toThrow(
-                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR })
+                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR }),
             );
         });
 
@@ -96,7 +96,7 @@ describe('ExactSplitStrategy', () => {
                 .withSplit(userId3, '50')
                 .build();
             expect(() => strategy.validateSplits('100', participants, splits, USD)).toThrow(
-                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR })
+                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR }),
             );
         });
 
@@ -134,7 +134,7 @@ describe('ExactSplitStrategy', () => {
                 // Missing user3
                 .build();
             expect(() => strategy.validateSplits('100', participants, splits, USD)).toThrow(
-                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR })
+                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR }),
             );
         });
 
@@ -146,7 +146,7 @@ describe('ExactSplitStrategy', () => {
                 .withSplit(userId4, '25') // Extra user not in participants
                 .build();
             expect(() => strategy.validateSplits('100', participants, splits, USD)).toThrow(
-                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR })
+                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR }),
             );
         });
 
@@ -157,7 +157,7 @@ describe('ExactSplitStrategy', () => {
                 .withSplit(userId2, '30')
                 .build();
             expect(() => strategy.validateSplits('100', participants, splits, USD)).toThrow(
-                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR })
+                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR }),
             );
         });
 
@@ -168,7 +168,7 @@ describe('ExactSplitStrategy', () => {
                 .withSplit(userId4, '25') // user4 not in participants
                 .build();
             expect(() => strategy.validateSplits('100', participants, splits, USD)).toThrow(
-                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR })
+                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR }),
             );
         });
 
@@ -257,7 +257,7 @@ describe('ExactSplitStrategy', () => {
                 .withSplit(userId2, '99.5')
                 .build();
             expect(() => strategy.validateSplits('200', jpyParticipants, fractionalSplits, toCurrencyISOCode('JPY'))).toThrow(
-                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR })
+                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR }),
             );
         });
 
@@ -268,7 +268,7 @@ describe('ExactSplitStrategy', () => {
                 .withSplit(userId3, '33.333') // Total = 99.999, which is 0.001 off
                 .build();
             expect(() => strategy.validateSplits('100', participants, splits, USD)).toThrow(
-                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR })
+                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR }),
             );
 
             const splitsOutsideTolerance = new ExpenseSplitBuilder()
@@ -277,7 +277,7 @@ describe('ExactSplitStrategy', () => {
                 .withSplit(userId3, '33.32') // Total = 99.96, which is 0.04 off
                 .build();
             expect(() => strategy.validateSplits('100', participants, splitsOutsideTolerance, USD)).toThrow(
-                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR })
+                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR }),
             );
         });
     });

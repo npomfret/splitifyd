@@ -30,9 +30,7 @@ export function PendingMembersSection({
                     <LoadingSpinner />
                 </div>
             )}
-            {!loadingPending && pendingMembers.length === 0 && (
-                <p className='text-sm text-text-primary/70'>{t('securitySettingsModal.pendingMembers.empty')}</p>
-            )}
+            {!loadingPending && pendingMembers.length === 0 && <p className='text-sm text-text-primary/70'>{t('securitySettingsModal.pendingMembers.empty')}</p>}
             <div className='space-y-3'>
                 {pendingMembers.map((member) => (
                     <div key={member.uid} className='flex items-center justify-between border border-border-default rounded-lg px-4 py-2'>

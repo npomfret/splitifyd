@@ -7,7 +7,7 @@
 
 import { SystemUserRoles, toUserId } from '@billsplit-wl/shared';
 import { UserRegistrationBuilder } from '@billsplit-wl/test-support';
-import { beforeEach, afterEach, describe, expect, test } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { AppDriver } from '../AppDriver';
 
 describe('FirestoreReader Admin Browser Methods', () => {

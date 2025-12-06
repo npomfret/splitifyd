@@ -167,8 +167,8 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
         { value: SystemUserRoles.SYSTEM_ADMIN, label: t('roles.systemAdmin.label'), description: t('roles.systemAdmin.description') },
     ];
 
-    const hasProfileChanges = displayName.trim() !== String(user.displayName ?? '') ||
-        email.trim().toLowerCase() !== String(user.email ?? '').toLowerCase();
+    const hasProfileChanges = displayName.trim() !== String(user.displayName ?? '')
+        || email.trim().toLowerCase() !== String(user.email ?? '').toLowerCase();
 
     return (
         <Modal open={open} onClose={onClose} size='lg' data-testid='user-editor-modal'>
@@ -320,14 +320,14 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                                     </div>
                                 )
                                 : firebaseAuthData
-                                    ? (
-                                        <Card padding='md' className='bg-surface-muted'>
-                                            <pre class='text-xs overflow-x-auto whitespace-pre-wrap break-all'>
+                                ? (
+                                    <Card padding='md' className='bg-surface-muted'>
+                                        <pre class='text-xs overflow-x-auto whitespace-pre-wrap break-all'>
                                             {JSON.stringify(firebaseAuthData, null, 2)}
-                                            </pre>
-                                        </Card>
-                                    )
-                                    : <div class='text-center py-8 text-text-muted'>{t('admin.userEditor.noDataAvailable')}</div>}
+                                        </pre>
+                                    </Card>
+                                )
+                                : <div class='text-center py-8 text-text-muted'>{t('admin.userEditor.noDataAvailable')}</div>}
                         </div>
                     )}
 
@@ -341,14 +341,14 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                                     </div>
                                 )
                                 : firestoreData
-                                    ? (
-                                        <Card padding='md' className='bg-surface-muted'>
-                                            <pre class='text-xs overflow-x-auto whitespace-pre-wrap break-all'>
+                                ? (
+                                    <Card padding='md' className='bg-surface-muted'>
+                                        <pre class='text-xs overflow-x-auto whitespace-pre-wrap break-all'>
                                             {JSON.stringify(firestoreData, null, 2)}
-                                            </pre>
-                                        </Card>
-                                    )
-                                    : <div class='text-center py-8 text-text-muted'>{t('admin.userEditor.noDataAvailable')}</div>}
+                                        </pre>
+                                    </Card>
+                                )
+                                : <div class='text-center py-8 text-text-muted'>{t('admin.userEditor.noDataAvailable')}</div>}
                         </div>
                     )}
                 </div>

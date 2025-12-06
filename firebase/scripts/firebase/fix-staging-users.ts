@@ -39,7 +39,7 @@ function deriveDisplayNameFromEmail(email: string): string {
     return localPart.charAt(0).toUpperCase() + localPart.slice(1);
 }
 
-function initializeFirebase(): { db: admin.firestore.Firestore; auth: admin.auth.Auth } {
+function initializeFirebase(): { db: admin.firestore.Firestore; auth: admin.auth.Auth; } {
     if (!fs.existsSync(SERVICE_ACCOUNT_PATH)) {
         console.error('❌ Service account key not found at firebase/service-account-key.json');
         process.exit(1);

@@ -6,13 +6,7 @@ import { HTTP_STATUS } from '../constants';
 import { Errors } from '../errors';
 import { logger } from '../logger';
 import { CommentService } from '../services/CommentService';
-import {
-    validateCreateExpenseComment,
-    validateCreateGroupComment,
-    validateExpenseId,
-    validateGroupId,
-    validateListCommentsQuery,
-} from './validation';
+import { validateCreateExpenseComment, validateCreateGroupComment, validateExpenseId, validateGroupId, validateListCommentsQuery } from './validation';
 
 export class CommentHandlers {
     constructor(private readonly commentService: CommentService) {

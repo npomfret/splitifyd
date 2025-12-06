@@ -16,14 +16,7 @@ import {
     UpdateGroupRequestSchema,
 } from '@billsplit-wl/shared';
 import { z } from 'zod';
-import {
-    createRequestValidator,
-    createZodErrorMapper,
-    sanitizeInputString,
-    validateGroupId,
-    validateGroupIdParam,
-    validateMemberId,
-} from '../validation/common';
+import { createRequestValidator, createZodErrorMapper, sanitizeInputString, validateGroupId, validateGroupIdParam, validateMemberId } from '../validation/common';
 
 // Re-export centralized ID validators for backward compatibility
 export { validateGroupId, validateGroupIdParam, validateMemberId };

@@ -1,6 +1,6 @@
-import { StubCloudTasksClient, StubFirestoreDatabase } from 'ts-firebase-simulator';
 import { toUserId } from '@billsplit-wl/shared';
 import { AuthUserRecordBuilder, StubStorage, UserDocumentBuilder } from '@billsplit-wl/test-support';
+import { StubCloudTasksClient, StubFirestoreDatabase } from 'ts-firebase-simulator';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { FirestoreCollections } from '../../../constants';
 import { ErrorCode } from '../../../errors';
@@ -58,28 +58,40 @@ describe('MergeService', () => {
                 const primaryUserId = toUserId('primary-user');
                 const secondaryUserId = toUserId('secondary-user');
 
-                db.seed(`users/${primaryUserId}`, new UserDocumentBuilder()
-                    .withId(primaryUserId)
-                    .withEmail('primary@example.com')
-                    .build());
+                db.seed(
+                    `users/${primaryUserId}`,
+                    new UserDocumentBuilder()
+                        .withId(primaryUserId)
+                        .withEmail('primary@example.com')
+                        .build(),
+                );
 
-                db.seed(`users/${secondaryUserId}`, new UserDocumentBuilder()
-                    .withId(secondaryUserId)
-                    .withEmail('secondary@example.com')
-                    .build());
+                db.seed(
+                    `users/${secondaryUserId}`,
+                    new UserDocumentBuilder()
+                        .withId(secondaryUserId)
+                        .withEmail('secondary@example.com')
+                        .build(),
+                );
 
                 // Setup Auth users with verified email for primary
-                stubAuth.setUser(primaryUserId, new AuthUserRecordBuilder()
-                    .withUid(primaryUserId)
-                    .withEmail('primary@example.com' as any)
-                    .withEmailVerified(true)
-                    .build());
+                stubAuth.setUser(
+                    primaryUserId,
+                    new AuthUserRecordBuilder()
+                        .withUid(primaryUserId)
+                        .withEmail('primary@example.com' as any)
+                        .withEmailVerified(true)
+                        .build(),
+                );
 
-                stubAuth.setUser(secondaryUserId, new AuthUserRecordBuilder()
-                    .withUid(secondaryUserId)
-                    .withEmail('secondary@example.com' as any)
-                    .withEmailVerified(false)
-                    .build());
+                stubAuth.setUser(
+                    secondaryUserId,
+                    new AuthUserRecordBuilder()
+                        .withUid(secondaryUserId)
+                        .withEmail('secondary@example.com' as any)
+                        .withEmailVerified(false)
+                        .build(),
+                );
 
                 // Act
                 const result = await mergeService.validateMergeEligibility(primaryUserId, secondaryUserId);
@@ -111,10 +123,13 @@ describe('MergeService', () => {
                 const primaryUserId = toUserId('missing-primary');
                 const secondaryUserId = toUserId('secondary-user');
 
-                db.seed(`users/${secondaryUserId}`, new UserDocumentBuilder()
-                    .withId(secondaryUserId)
-                    .withEmail('secondary@example.com')
-                    .build());
+                db.seed(
+                    `users/${secondaryUserId}`,
+                    new UserDocumentBuilder()
+                        .withId(secondaryUserId)
+                        .withEmail('secondary@example.com')
+                        .build(),
+                );
 
                 // Act
                 const result = await mergeService.validateMergeEligibility(primaryUserId, secondaryUserId);
@@ -131,10 +146,13 @@ describe('MergeService', () => {
                 const primaryUserId = toUserId('primary-user');
                 const secondaryUserId = toUserId('missing-secondary');
 
-                db.seed(`users/${primaryUserId}`, new UserDocumentBuilder()
-                    .withId(primaryUserId)
-                    .withEmail('primary@example.com')
-                    .build());
+                db.seed(
+                    `users/${primaryUserId}`,
+                    new UserDocumentBuilder()
+                        .withId(primaryUserId)
+                        .withEmail('primary@example.com')
+                        .build(),
+                );
 
                 // Act
                 const result = await mergeService.validateMergeEligibility(primaryUserId, secondaryUserId);
@@ -152,22 +170,31 @@ describe('MergeService', () => {
                 const secondaryUserId = toUserId('secondary-user');
 
                 // Create both users in Firestore
-                db.seed(`users/${primaryUserId}`, new UserDocumentBuilder()
-                    .withId(primaryUserId)
-                    .withEmail('primary@example.com')
-                    .build());
+                db.seed(
+                    `users/${primaryUserId}`,
+                    new UserDocumentBuilder()
+                        .withId(primaryUserId)
+                        .withEmail('primary@example.com')
+                        .build(),
+                );
 
-                db.seed(`users/${secondaryUserId}`, new UserDocumentBuilder()
-                    .withId(secondaryUserId)
-                    .withEmail('secondary@example.com')
-                    .build());
+                db.seed(
+                    `users/${secondaryUserId}`,
+                    new UserDocumentBuilder()
+                        .withId(secondaryUserId)
+                        .withEmail('secondary@example.com')
+                        .build(),
+                );
 
                 // Only create secondary user in auth (primary missing)
-                stubAuth.setUser(secondaryUserId, new AuthUserRecordBuilder()
-                    .withUid(secondaryUserId)
-                    .withEmail('secondary@example.com' as any)
-                    .withEmailVerified(false)
-                    .build());
+                stubAuth.setUser(
+                    secondaryUserId,
+                    new AuthUserRecordBuilder()
+                        .withUid(secondaryUserId)
+                        .withEmail('secondary@example.com' as any)
+                        .withEmailVerified(false)
+                        .build(),
+                );
 
                 // Act
                 const result = await mergeService.validateMergeEligibility(primaryUserId, secondaryUserId);
@@ -185,22 +212,31 @@ describe('MergeService', () => {
                 const secondaryUserId = toUserId('secondary-user');
 
                 // Create both users in Firestore
-                db.seed(`users/${primaryUserId}`, new UserDocumentBuilder()
-                    .withId(primaryUserId)
-                    .withEmail('primary@example.com')
-                    .build());
+                db.seed(
+                    `users/${primaryUserId}`,
+                    new UserDocumentBuilder()
+                        .withId(primaryUserId)
+                        .withEmail('primary@example.com')
+                        .build(),
+                );
 
-                db.seed(`users/${secondaryUserId}`, new UserDocumentBuilder()
-                    .withId(secondaryUserId)
-                    .withEmail('secondary@example.com')
-                    .build());
+                db.seed(
+                    `users/${secondaryUserId}`,
+                    new UserDocumentBuilder()
+                        .withId(secondaryUserId)
+                        .withEmail('secondary@example.com')
+                        .build(),
+                );
 
                 // Only create primary user in auth (secondary missing)
-                stubAuth.setUser(primaryUserId, new AuthUserRecordBuilder()
-                    .withUid(primaryUserId)
-                    .withEmail('primary@example.com' as any)
-                    .withEmailVerified(true)
-                    .build());
+                stubAuth.setUser(
+                    primaryUserId,
+                    new AuthUserRecordBuilder()
+                        .withUid(primaryUserId)
+                        .withEmail('primary@example.com' as any)
+                        .withEmailVerified(true)
+                        .build(),
+                );
 
                 // Act
                 const result = await mergeService.validateMergeEligibility(primaryUserId, secondaryUserId);
@@ -218,28 +254,40 @@ describe('MergeService', () => {
                 const secondaryUserId = toUserId('secondary-user');
 
                 // Create both users in Firestore
-                db.seed(`users/${primaryUserId}`, new UserDocumentBuilder()
-                    .withId(primaryUserId)
-                    .withEmail('primary@example.com')
-                    .build());
+                db.seed(
+                    `users/${primaryUserId}`,
+                    new UserDocumentBuilder()
+                        .withId(primaryUserId)
+                        .withEmail('primary@example.com')
+                        .build(),
+                );
 
-                db.seed(`users/${secondaryUserId}`, new UserDocumentBuilder()
-                    .withId(secondaryUserId)
-                    .withEmail('secondary@example.com')
-                    .build());
+                db.seed(
+                    `users/${secondaryUserId}`,
+                    new UserDocumentBuilder()
+                        .withId(secondaryUserId)
+                        .withEmail('secondary@example.com')
+                        .build(),
+                );
 
                 // Setup Auth users with UNVERIFIED email for primary
-                stubAuth.setUser(primaryUserId, new AuthUserRecordBuilder()
-                    .withUid(primaryUserId)
-                    .withEmail('primary@example.com' as any)
-                    .withEmailVerified(false)
-                    .build());
+                stubAuth.setUser(
+                    primaryUserId,
+                    new AuthUserRecordBuilder()
+                        .withUid(primaryUserId)
+                        .withEmail('primary@example.com' as any)
+                        .withEmailVerified(false)
+                        .build(),
+                );
 
-                stubAuth.setUser(secondaryUserId, new AuthUserRecordBuilder()
-                    .withUid(secondaryUserId)
-                    .withEmail('secondary@example.com' as any)
-                    .withEmailVerified(false)
-                    .build());
+                stubAuth.setUser(
+                    secondaryUserId,
+                    new AuthUserRecordBuilder()
+                        .withUid(secondaryUserId)
+                        .withEmail('secondary@example.com' as any)
+                        .withEmailVerified(false)
+                        .build(),
+                );
 
                 // Act
                 const result = await mergeService.validateMergeEligibility(primaryUserId, secondaryUserId);
@@ -259,27 +307,39 @@ describe('MergeService', () => {
             const primaryUserId = toUserId('primary-user');
             const secondaryUserId = toUserId('secondary-user');
 
-            db.seed(`users/${primaryUserId}`, new UserDocumentBuilder()
-                .withId(primaryUserId)
-                .withEmail('primary@example.com')
-                .build());
+            db.seed(
+                `users/${primaryUserId}`,
+                new UserDocumentBuilder()
+                    .withId(primaryUserId)
+                    .withEmail('primary@example.com')
+                    .build(),
+            );
 
-            db.seed(`users/${secondaryUserId}`, new UserDocumentBuilder()
-                .withId(secondaryUserId)
-                .withEmail('secondary@example.com')
-                .build());
+            db.seed(
+                `users/${secondaryUserId}`,
+                new UserDocumentBuilder()
+                    .withId(secondaryUserId)
+                    .withEmail('secondary@example.com')
+                    .build(),
+            );
 
-            stubAuth.setUser(primaryUserId, new AuthUserRecordBuilder()
-                .withUid(primaryUserId)
-                .withEmail('primary@example.com' as any)
-                .withEmailVerified(true)
-                .build());
+            stubAuth.setUser(
+                primaryUserId,
+                new AuthUserRecordBuilder()
+                    .withUid(primaryUserId)
+                    .withEmail('primary@example.com' as any)
+                    .withEmailVerified(true)
+                    .build(),
+            );
 
-            stubAuth.setUser(secondaryUserId, new AuthUserRecordBuilder()
-                .withUid(secondaryUserId)
-                .withEmail('secondary@example.com' as any)
-                .withEmailVerified(false)
-                .build());
+            stubAuth.setUser(
+                secondaryUserId,
+                new AuthUserRecordBuilder()
+                    .withUid(secondaryUserId)
+                    .withEmail('secondary@example.com' as any)
+                    .withEmailVerified(false)
+                    .build(),
+            );
 
             // Act
             const result = await mergeService.initiateMerge(primaryUserId, secondaryUserId);
@@ -330,27 +390,39 @@ describe('MergeService', () => {
             const primaryUserId = toUserId('primary-user');
             const secondaryUserId = toUserId('secondary-user');
 
-            db.seed(`users/${primaryUserId}`, new UserDocumentBuilder()
-                .withId(primaryUserId)
-                .withEmail('primary@example.com')
-                .build());
+            db.seed(
+                `users/${primaryUserId}`,
+                new UserDocumentBuilder()
+                    .withId(primaryUserId)
+                    .withEmail('primary@example.com')
+                    .build(),
+            );
 
-            db.seed(`users/${secondaryUserId}`, new UserDocumentBuilder()
-                .withId(secondaryUserId)
-                .withEmail('secondary@example.com')
-                .build());
+            db.seed(
+                `users/${secondaryUserId}`,
+                new UserDocumentBuilder()
+                    .withId(secondaryUserId)
+                    .withEmail('secondary@example.com')
+                    .build(),
+            );
 
-            stubAuth.setUser(primaryUserId, new AuthUserRecordBuilder()
-                .withUid(primaryUserId)
-                .withEmail('primary@example.com' as any)
-                .withEmailVerified(false)
-                .build());
+            stubAuth.setUser(
+                primaryUserId,
+                new AuthUserRecordBuilder()
+                    .withUid(primaryUserId)
+                    .withEmail('primary@example.com' as any)
+                    .withEmailVerified(false)
+                    .build(),
+            );
 
-            stubAuth.setUser(secondaryUserId, new AuthUserRecordBuilder()
-                .withUid(secondaryUserId)
-                .withEmail('secondary@example.com' as any)
-                .withEmailVerified(false)
-                .build());
+            stubAuth.setUser(
+                secondaryUserId,
+                new AuthUserRecordBuilder()
+                    .withUid(secondaryUserId)
+                    .withEmail('secondary@example.com' as any)
+                    .withEmailVerified(false)
+                    .build(),
+            );
 
             // Act & Assert
             await expect(mergeService.initiateMerge(primaryUserId, secondaryUserId)).rejects.toMatchObject({

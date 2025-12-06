@@ -216,7 +216,7 @@ describe('Settlement Management - Unit Tests', () => {
             const refetched = await appDriver.getSettlement(group.id, updatedSettlement.id, creatorUserId);
             expect(refetched.id).toBe(updatedSettlement.id);
             expect(refetched.amount).toBe('150');
-            expect(refetched.note).toBe('Updated note')
+            expect(refetched.note).toBe('Updated note');
         });
 
         it('should reject update by non-creator', async () => {

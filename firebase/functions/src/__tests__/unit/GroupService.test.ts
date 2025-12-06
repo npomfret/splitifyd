@@ -353,7 +353,8 @@ describe('GroupService - Unit Tests', () => {
                 });
 
                 it('should trim whitespace from names in updates', () => {
-                    const update = GroupUpdateBuilder.empty()
+                    const update = GroupUpdateBuilder
+                        .empty()
                         .withName('  Updated Name  ')
                         .build();
                     const result = validateUpdateGroup(update);
@@ -371,7 +372,8 @@ describe('GroupService - Unit Tests', () => {
                 });
 
                 it('should reject description updates that are too long', () => {
-                    const update = GroupUpdateBuilder.empty()
+                    const update = GroupUpdateBuilder
+                        .empty()
                         .withInvalidDescription('A'.repeat(VALIDATION_LIMITS.MAX_GROUP_DESCRIPTION_LENGTH + 1))
                         .build();
 
@@ -383,7 +385,8 @@ describe('GroupService - Unit Tests', () => {
                 });
 
                 it('should trim whitespace from descriptions in updates', () => {
-                    const update = GroupUpdateBuilder.empty()
+                    const update = GroupUpdateBuilder
+                        .empty()
                         .withDescription('  Updated description  ')
                         .build();
                     const result = validateUpdateGroup(update);

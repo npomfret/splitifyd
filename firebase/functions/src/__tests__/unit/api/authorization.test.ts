@@ -174,7 +174,8 @@ describe('authorization', () => {
         const settlementId = groupDetails.settlements.settlements[0].id;
 
         // Currency is required when updating amount
-        const updateRequest = SettlementUpdateBuilder.empty()
+        const updateRequest = SettlementUpdateBuilder
+            .empty()
             .withAmount(45.00, USD)
             .build();
         await expect(appDriver.updateSettlement(settlementId, updateRequest, user1))
@@ -249,13 +250,15 @@ describe('authorization', () => {
                         .asPublished()
                         .build(),
                     adminUser,
-                )
-            ).rejects.toMatchObject({
-                code: 'NOT_FOUND',
-                data: {
-                    detail: 'POLICY_NOT_FOUND',
-                },
-            });
+                ),
+            )
+                .rejects
+                .toMatchObject({
+                    code: 'NOT_FOUND',
+                    data: {
+                        detail: 'POLICY_NOT_FOUND',
+                    },
+                });
 
             const created = await appDriver.createPolicy(
                 new CreatePolicyRequestBuilder()
@@ -346,7 +349,9 @@ describe('authorization', () => {
             it('should deny regular user access to tenant settings', async () => {
                 await expect(
                     appDriver.getTenantSettings(user2),
-                ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+                )
+                    .rejects
+                    .toMatchObject({ code: 'FORBIDDEN' });
             });
         });
 
@@ -372,7 +377,8 @@ describe('authorization', () => {
 
         describe('PUT /settings/tenant/branding', () => {
             it('should allow tenant admin to update branding', async () => {
-                const brandingData = TenantBrandingUpdateBuilder.empty()
+                const brandingData = TenantBrandingUpdateBuilder
+                    .empty()
                     .withAppName('Custom Brand')
                     .withPrimaryColor('#FF0000')
                     .build();
@@ -387,7 +393,8 @@ describe('authorization', () => {
             });
 
             it('should update partial branding fields', async () => {
-                const brandingData = TenantBrandingUpdateBuilder.empty()
+                const brandingData = TenantBrandingUpdateBuilder
+                    .empty()
                     .withLogoUrl('https://custom.com/logo.svg')
                     .build();
 
@@ -400,7 +407,8 @@ describe('authorization', () => {
             });
 
             it('should update marketing flags', async () => {
-                const brandingData = TenantBrandingUpdateBuilder.empty()
+                const brandingData = TenantBrandingUpdateBuilder
+                    .empty()
                     .withMarketingFlags({ showLandingPage: false, showPricingPage: true })
                     .build();
 
@@ -414,7 +422,8 @@ describe('authorization', () => {
             });
 
             it('should deny regular user access to update branding', async () => {
-                const brandingData = TenantBrandingUpdateBuilder.empty()
+                const brandingData = TenantBrandingUpdateBuilder
+                    .empty()
                     .withAppName('Custom Brand')
                     .build();
 
@@ -429,7 +438,8 @@ describe('authorization', () => {
                 const systemAdmin = user3;
                 appDriver.seedAdminUser(systemAdmin); // Promote to system admin
 
-                const brandingData = TenantBrandingUpdateBuilder.empty()
+                const brandingData = TenantBrandingUpdateBuilder
+                    .empty()
                     .withAppName('System Admin Updated')
                     .build();
 
@@ -492,7 +502,8 @@ describe('authorization', () => {
     });
 
     it('should reject extra fields', async () => {
-        const invalidData = TenantBrandingUpdateBuilder.empty()
+        const invalidData = TenantBrandingUpdateBuilder
+            .empty()
             .withAppName('Valid')
             .withExtraField('unexpectedField', 'should fail')
             .build();
@@ -505,7 +516,8 @@ describe('authorization', () => {
     });
 
     it('should reject invalid branding data', async () => {
-        const invalidData = TenantBrandingUpdateBuilder.empty()
+        const invalidData = TenantBrandingUpdateBuilder
+            .empty()
             .withInvalidAppName('') // Empty string not allowed
             .build();
 
@@ -1052,7 +1064,9 @@ describe('authorization', () => {
 
             await expect(
                 appDriver.listAllTenants(regularUser),
-            ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+            )
+                .rejects
+                .toMatchObject({ code: 'FORBIDDEN' });
         });
 
         it('enriches auth users with their Firestore roles', async () => {
@@ -1153,11 +1167,13 @@ describe('authorization', () => {
                         UpdateUserStatusRequestBuilder.empty().asDisabled().build(),
                         regularUser,
                     ),
-                ).rejects.toThrow(
-                    expect.objectContaining({
-                        code: 'FORBIDDEN',
-                    }),
-                );
+                )
+                    .rejects
+                    .toThrow(
+                        expect.objectContaining({
+                            code: 'FORBIDDEN',
+                        }),
+                    );
             });
         });
 

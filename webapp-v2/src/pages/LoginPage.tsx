@@ -86,15 +86,31 @@ export function LoginPage() {
     return (
         <AuthLayout title={t('loginPage.title')} description={t('loginPage.description')}>
             <AuthForm onSubmit={handleSubmit} error={errorValue} disabled={loadingValue}>
-                <EmailInput value={email} onInput={(value) => { emailSignal.value = value; }} autoFocus disabled={loadingValue} />
+                <EmailInput
+                    value={email}
+                    onInput={(value) => {
+                        emailSignal.value = value;
+                    }}
+                    autoFocus
+                    disabled={loadingValue}
+                />
 
-                <FloatingPasswordInput value={password} onInput={(value) => { passwordSignal.value = value; }} disabled={loadingValue} autoComplete='off' />
+                <FloatingPasswordInput
+                    value={password}
+                    onInput={(value) => {
+                        passwordSignal.value = value;
+                    }}
+                    disabled={loadingValue}
+                    autoComplete='off'
+                />
 
                 <div class='flex items-center justify-between'>
                     <Checkbox
                         label={t('loginPage.rememberMe')}
                         checked={rememberMe}
-                        onChange={(checked) => { rememberMeSignal.value = checked; }}
+                        onChange={(checked) => {
+                            rememberMeSignal.value = checked;
+                        }}
                         disabled={loadingValue}
                     />
 

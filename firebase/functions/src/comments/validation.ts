@@ -1,12 +1,5 @@
 import { CommentBodySchema, type CommentText, CreateExpenseCommentRequest, CreateGroupCommentRequest, ListCommentsQuerySchema, toCommentText } from '@billsplit-wl/shared';
-import {
-    createRequestValidator,
-    createZodErrorMapper,
-    sanitizeInputString,
-    validateCommentId,
-    validateExpenseId,
-    validateGroupId,
-} from '../validation/common';
+import { createRequestValidator, createZodErrorMapper, sanitizeInputString, validateCommentId, validateExpenseId, validateGroupId } from '../validation/common';
 
 // Re-export centralized ID validators for backward compatibility
 export { validateCommentId, validateExpenseId, validateGroupId };

@@ -2,8 +2,8 @@
 
 import { ChildProcess } from 'child_process';
 import assert from 'node:assert';
-import { loadRuntimeConfig } from '../lib/scripts-config';
 import { logger } from '../lib/logger';
+import { loadRuntimeConfig } from '../lib/scripts-config';
 import { seedPolicies } from '../seed-policies';
 import { startEmulator } from './start-emulator';
 import { publishDemoThemes, syncDemoTenants } from './test-data-generator';
@@ -49,7 +49,6 @@ async function runPublishDemoThemesStep(): Promise<void> {
     logger.info('✅ Theme CSS published!');
     logger.info('🎨 Theme CSS available at /api/theme.css for localhost + loopback hosts');
 }
-
 
 // Load and validate runtime configuration
 const runtimeConfig = loadRuntimeConfig();

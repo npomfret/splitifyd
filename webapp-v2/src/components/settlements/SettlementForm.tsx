@@ -187,7 +187,6 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
         return debt?.amount || ZERO;
     };
 
-
     useEffect(() => {
         if (amountPrecisionError) {
             warningMessageSignal.value = null;
@@ -407,7 +406,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
             {/* Modal Header */}
             <div class='px-6 py-4 border-b border-border-default'>
                 <div class='flex justify-between items-center'>
-                    <Typography variant="heading" id="settlement-form-title">
+                    <Typography variant='heading' id='settlement-form-title'>
                         {editMode ? t('settlementForm.updateSettlement') : t('settlementForm.recordSettlement')}
                     </Typography>
                     <Tooltip content={t('settlementForm.closeModal')}>
@@ -428,7 +427,6 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
 
             {/* Modal Content */}
             <div class='px-6 py-5 max-h-[70vh] overflow-y-auto'>
-
                 {/* Quick Settlement Buttons - only show in create mode when not pre-filled from balances */}
                 {!editMode && !preselectedDebt && quickSettleDebts.value.length > 0 && (
                     <div class='mb-4 pb-4 border-b border-border-default'>
@@ -575,7 +573,9 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                 data-testid='settlement-date-input'
                                 type='date'
                                 value={date}
-                                onInput={(e: Event) => { dateSignal.value = (e.target as HTMLInputElement).value; }}
+                                onInput={(e: Event) => {
+                                    dateSignal.value = (e.target as HTMLInputElement).value;
+                                }}
                                 max={new Date().toISOString().split('T')[0]}
                                 disabled={isSubmitting}
                                 required
@@ -595,7 +595,9 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                 type='text'
                                 placeholder={t('settlementForm.notePlaceholder')}
                                 value={note}
-                                onInput={(e: Event) => { noteSignal.value = (e.target as HTMLInputElement).value; }}
+                                onInput={(e: Event) => {
+                                    noteSignal.value = (e.target as HTMLInputElement).value;
+                                }}
                                 disabled={isSubmitting}
                                 maxLength={500}
                                 class='w-full px-3 py-2 border border-border-default rounded-md bg-surface-raised backdrop-blur-sm text-text-primary placeholder:text-text-muted/70 focus:outline-none focus:ring-2 focus-visible:ring-interactive-primary transition-colors duration-200'

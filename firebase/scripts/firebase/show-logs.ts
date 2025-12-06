@@ -1,9 +1,9 @@
 #!/usr/bin/env npx tsx
 
-import {execSync, spawnSync} from 'child_process';
-import {existsSync, readFileSync} from 'fs';
-import {join, resolve} from 'path';
-import {logger} from '../lib/logger';
+import { execSync, spawnSync } from 'child_process';
+import { existsSync, readFileSync } from 'fs';
+import { join, resolve } from 'path';
+import { logger } from '../lib/logger';
 
 const credentialsPath = resolve(join(__dirname, '../../service-account-key.json'));
 
@@ -48,7 +48,9 @@ function parseArgs(): ParsedArgs {
     const args = process.argv.slice(2);
 
     if (args.includes('--help') || args.includes('-h')) {
-        console.log('Usage: tsx scripts/show-logs.ts [function-name] [--lines <n>] [--tail] [--provider firebase|gcloud|logging] [--region <name>] [--filter <expr>] [--format text|json|yaml|pretty] [--errors] [--full]');
+        console.log(
+            'Usage: tsx scripts/show-logs.ts [function-name] [--lines <n>] [--tail] [--provider firebase|gcloud|logging] [--region <name>] [--filter <expr>] [--format text|json|yaml|pretty] [--errors] [--full]',
+        );
         console.log('');
         console.log('Examples:');
         console.log('  tsx scripts/show-logs.ts                                    # All functions, pretty format (default)');
@@ -426,7 +428,7 @@ function ensureGcloudAuth() {
         return;
     }
 
-    const projectId = JSON.parse(readFileSync(credentialsPath, "utf-8")).project_id;
+    const projectId = JSON.parse(readFileSync(credentialsPath, 'utf-8')).project_id;
 
     try {
         execSync(`gcloud auth activate-service-account --key-file "${credentialsPath}" --project "${projectId}"`, {

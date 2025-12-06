@@ -55,9 +55,7 @@ export function GroupIdentityTabContent({
                         error={validationError || undefined}
                     />
 
-                    {serverError && (
-                        <Alert type='error' message={serverError} data-testid='group-display-name-error' />
-                    )}
+                    {serverError && <Alert type='error' message={serverError} data-testid='group-display-name-error' />}
 
                     {successMessage.value && (
                         <div

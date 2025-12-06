@@ -3,8 +3,8 @@ import { AdminTenantRequestBuilder, BrandingConfigBuilder, UserRegistrationBuild
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ErrorCode } from '../../../errors';
-import { TenantRegistryService } from '../../../services/tenant/TenantRegistryService';
 import { ApiError } from '../../../errors';
+import { TenantRegistryService } from '../../../services/tenant/TenantRegistryService';
 import { AppDriver } from '../AppDriver';
 
 describe('TenantRegistryService', () => {
@@ -91,10 +91,12 @@ describe('TenantRegistryService', () => {
                 .withAppName('Splitifyd')
                 .withLogoUrl('/logo.svg')
                 .withFaviconUrl('/favicon.ico')
-                .withBranding(new BrandingConfigBuilder()
-                    .withPrimaryColor('#1a73e8')
-                    .withSecondaryColor('#34a853')
-                    .build())
+                .withBranding(
+                    new BrandingConfigBuilder()
+                        .withPrimaryColor('#1a73e8')
+                        .withSecondaryColor('#34a853')
+                        .build(),
+                )
                 .withDomains([toTenantDomainName('app.foo.com')])
                 .asDefaultTenant()
                 .build();
@@ -134,10 +136,12 @@ describe('TenantRegistryService', () => {
                 .withAppName('Default App')
                 .withLogoUrl('/logo.svg')
                 .withFaviconUrl('/favicon.ico')
-                .withBranding(new BrandingConfigBuilder()
-                    .withPrimaryColor('#1a73e8')
-                    .withSecondaryColor('#34a853')
-                    .build())
+                .withBranding(
+                    new BrandingConfigBuilder()
+                        .withPrimaryColor('#1a73e8')
+                        .withSecondaryColor('#34a853')
+                        .build(),
+                )
                 .withDomains([toTenantDomainName('default.com')])
                 .asDefaultTenant()
                 .build();

@@ -30,7 +30,7 @@ describe('useDropdownSelector', () => {
                 useDropdownSelector({
                     items: createTestItems(),
                     onSelect: mockOnSelect,
-                }),
+                })
             );
 
             expect(result.current.isOpen).toBe(false);
@@ -44,7 +44,7 @@ describe('useDropdownSelector', () => {
                 useDropdownSelector({
                     items,
                     onSelect: mockOnSelect,
-                }),
+                })
             );
 
             expect(result.current.filteredItems).toEqual(items);
@@ -57,7 +57,7 @@ describe('useDropdownSelector', () => {
                 useDropdownSelector({
                     items: createTestItems(),
                     onSelect: mockOnSelect,
-                }),
+                })
             );
 
             act(() => {
@@ -72,7 +72,7 @@ describe('useDropdownSelector', () => {
                 useDropdownSelector({
                     items: createTestItems(),
                     onSelect: mockOnSelect,
-                }),
+                })
             );
 
             act(() => {
@@ -90,7 +90,7 @@ describe('useDropdownSelector', () => {
                 useDropdownSelector({
                     items: createTestItems(),
                     onSelect: mockOnSelect,
-                }),
+                })
             );
 
             act(() => {
@@ -110,7 +110,7 @@ describe('useDropdownSelector', () => {
                     items: createTestItems(),
                     onSelect: mockOnSelect,
                     mode: 'dropdown',
-                }),
+                })
             );
 
             act(() => {
@@ -137,7 +137,7 @@ describe('useDropdownSelector', () => {
                     items: createTestItems(),
                     onSelect: mockOnSelect,
                     filterFn,
-                }),
+                })
             );
 
             act(() => {
@@ -159,7 +159,7 @@ describe('useDropdownSelector', () => {
                     items: createTestItems(),
                     onSelect: mockOnSelect,
                     filterFn,
-                }),
+                })
             );
 
             expect(result.current.filteredItems).toHaveLength(3);
@@ -196,7 +196,7 @@ describe('useDropdownSelector', () => {
                 useDropdownSelector({
                     items,
                     onSelect: mockOnSelect,
-                }),
+                })
             );
 
             act(() => {
@@ -217,7 +217,7 @@ describe('useDropdownSelector', () => {
                 useDropdownSelector({
                     items: createTestItems(),
                     onSelect: mockOnSelect,
-                }),
+                })
             );
 
             const event = { key: 'ArrowDown', preventDefault: vi.fn() } as unknown as KeyboardEvent;
@@ -233,7 +233,7 @@ describe('useDropdownSelector', () => {
                 useDropdownSelector({
                     items: createTestItems(),
                     onSelect: mockOnSelect,
-                }),
+                })
             );
 
             act(() => {
@@ -259,7 +259,7 @@ describe('useDropdownSelector', () => {
                 useDropdownSelector({
                     items: createTestItems(),
                     onSelect: mockOnSelect,
-                }),
+                })
             );
 
             act(() => {
@@ -283,7 +283,7 @@ describe('useDropdownSelector', () => {
                     items: createTestItems(),
                     onSelect: mockOnSelect,
                     mode: 'dropdown',
-                }),
+                })
             );
 
             act(() => {
@@ -308,7 +308,7 @@ describe('useDropdownSelector', () => {
                     onSelect: mockOnSelect,
                     mode: 'combobox',
                     externalSearchTerm: '',
-                }),
+                })
             );
 
             act(() => {
@@ -332,7 +332,7 @@ describe('useDropdownSelector', () => {
                 useDropdownSelector({
                     items,
                     onSelect: mockOnSelect,
-                }),
+                })
             );
 
             act(() => {
@@ -355,7 +355,7 @@ describe('useDropdownSelector', () => {
                 useDropdownSelector({
                     items: createTestItems(),
                     onSelect: mockOnSelect,
-                }),
+                })
             );
 
             act(() => {
@@ -375,7 +375,7 @@ describe('useDropdownSelector', () => {
                 useDropdownSelector({
                     items: createTestItems(),
                     onSelect: mockOnSelect,
-                }),
+                })
             );
 
             act(() => {
@@ -395,7 +395,7 @@ describe('useDropdownSelector', () => {
                 useDropdownSelector({
                     items: createTestItems(),
                     onSelect: mockOnSelect,
-                }),
+                })
             );
 
             act(() => {
@@ -420,7 +420,7 @@ describe('useDropdownSelector', () => {
                     items: createTestItems(),
                     onSelect: mockOnSelect,
                     filterFn,
-                }),
+                })
             );
 
             act(() => {
@@ -444,7 +444,7 @@ describe('useDropdownSelector', () => {
                 useDropdownSelector({
                     items: createTestItems(),
                     onSelect: mockOnSelect,
-                }),
+                })
             );
 
             act(() => {
@@ -471,7 +471,7 @@ describe('useDropdownSelector', () => {
                     items,
                     onSelect: mockOnSelect,
                     getNavigationItems: () => reversedItems,
-                }),
+                })
             );
 
             act(() => {

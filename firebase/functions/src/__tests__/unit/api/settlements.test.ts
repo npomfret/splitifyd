@@ -238,7 +238,9 @@ describe('settlements', () => {
                         .build(),
                     user2,
                 ),
-            ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+            )
+                .rejects
+                .toMatchObject({ code: 'NOT_FOUND' });
         });
 
         it('should reject creating settlement by non-member', async () => {
@@ -255,7 +257,9 @@ describe('settlements', () => {
                         .build(),
                     user2,
                 ),
-            ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+            )
+                .rejects
+                .toMatchObject({ code: 'FORBIDDEN' });
         });
 
         it('should reject updating non-existent settlement', async () => {
@@ -265,7 +269,9 @@ describe('settlements', () => {
                     new SettlementUpdateBuilder().withAmount('100.00', USD).build(),
                     user1,
                 ),
-            ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+            )
+                .rejects
+                .toMatchObject({ code: 'NOT_FOUND' });
         });
 
         it('should reject updating settlement by non-creator', async () => {
@@ -305,13 +311,17 @@ describe('settlements', () => {
                     new SettlementUpdateBuilder().withAmount('50.00', USD).build(),
                     user1,
                 ),
-            ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+            )
+                .rejects
+                .toMatchObject({ code: 'FORBIDDEN' });
         });
 
         it('should reject deleting non-existent settlement', async () => {
             await expect(
                 appDriver.deleteSettlement('non-existent-settlement-id', user1),
-            ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+            )
+                .rejects
+                .toMatchObject({ code: 'NOT_FOUND' });
         });
 
         it('should reject deleting already-deleted settlement (returns SETTLEMENT_NOT_FOUND)', async () => {
@@ -350,7 +360,9 @@ describe('settlements', () => {
             // Try to delete again - returns NOT_FOUND because soft-deleted settlements are filtered out
             await expect(
                 appDriver.deleteSettlement(settlement.id, user1),
-            ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+            )
+                .rejects
+                .toMatchObject({ code: 'NOT_FOUND' });
         });
     });
 
@@ -359,7 +371,9 @@ describe('settlements', () => {
             // For security reasons, returns FORBIDDEN instead of NOT_FOUND to avoid leaking group existence
             await expect(
                 appDriver.listGroupSettlements('non-existent-group-id', {}, user1),
-            ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+            )
+                .rejects
+                .toMatchObject({ code: 'FORBIDDEN' });
         });
 
         it('should reject listing settlements as non-member', async () => {
@@ -368,7 +382,9 @@ describe('settlements', () => {
             // user2 is NOT a member
             await expect(
                 appDriver.listGroupSettlements(group.id, {}, user2),
-            ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+            )
+                .rejects
+                .toMatchObject({ code: 'FORBIDDEN' });
         });
 
         it('should return empty list for group with no settlements', async () => {
@@ -614,7 +630,8 @@ describe('settlements', () => {
 
             // Attempting to delete the original (superseded) settlement should fail
             await expect(appDriver.deleteSettlement(originalSettlement.id, user1))
-                .rejects.toMatchObject({ code: 'INVALID_REQUEST' });
+                .rejects
+                .toMatchObject({ code: 'INVALID_REQUEST' });
         });
     });
 });

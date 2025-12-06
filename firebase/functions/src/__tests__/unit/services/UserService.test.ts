@@ -1,11 +1,11 @@
-import { StubCloudTasksClient } from 'ts-firebase-simulator';
 import { DisplayName, toDisplayName, toGroupId, toUserId } from '@billsplit-wl/shared';
 import { ClientUserBuilder, CreateGroupRequestBuilder, PasswordChangeRequestBuilder, StubFirestoreDatabase, StubStorage, UserRegistrationBuilder, UserUpdateBuilder } from '@billsplit-wl/test-support';
+import { StubCloudTasksClient } from 'ts-firebase-simulator';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
+import { ApiError, ErrorCode } from '../../../errors';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import { UserService } from '../../../services/UserService2';
-import { ApiError, ErrorCode } from '../../../errors';
 import { createUnitTestServiceConfig } from '../../test-config';
 import { AppDriver } from '../AppDriver';
 import { StubAuthService } from '../mocks/StubAuthService';

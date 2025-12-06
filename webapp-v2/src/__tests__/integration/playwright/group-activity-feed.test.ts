@@ -1,6 +1,5 @@
 import {
     ActivityFeedItemBuilder,
-    ExpenseDetailPage,
     ExpenseDTOBuilder,
     ExpenseFullDetailsBuilder,
     GroupBalancesBuilder,
@@ -123,22 +122,30 @@ test.describe('Group Activity Feed - Display & Content', () => {
         await groupDetailPage.verifyActivityFeedItemCount(4);
 
         // Verify each distinct activity appears with correct short format
-        const expenseText = translationEn.activityFeed.events['expense-created-short']
+        const expenseText = translationEn
+            .activityFeed
+            .events['expense-created-short']
             .replace('{{actor}}', 'Alice')
             .replace('{{expense}}', '"Team Lunch"');
         await groupDetailPage.verifyActivityFeedContainsText(expenseText);
 
-        const memberJoinedText = translationEn.activityFeed.events['member-joined-short']
+        const memberJoinedText = translationEn
+            .activityFeed
+            .events['member-joined-short']
             .replace('{{actor}}', 'Bob')
             .replace('{{target}}', 'Charlie');
         await groupDetailPage.verifyActivityFeedContainsText(memberJoinedText);
 
-        const settlementText = translationEn.activityFeed.events['settlement-created-short']
+        const settlementText = translationEn
+            .activityFeed
+            .events['settlement-created-short']
             .replace('{{actor}}', 'Diana')
             .replace('{{settlement}}', '"Repaid dinner"');
         await groupDetailPage.verifyActivityFeedContainsText(settlementText);
 
-        const groupCreatedText = translationEn.activityFeed.events['group-created-short']
+        const groupCreatedText = translationEn
+            .activityFeed
+            .events['group-created-short']
             .replace('{{actor}}', 'Eve');
         await groupDetailPage.verifyActivityFeedContainsText(groupCreatedText);
 
@@ -231,14 +238,18 @@ test.describe('Group Activity Feed - Display & Content', () => {
         await groupDetailPage.waitForGroupToLoad();
 
         // Verify short format is used (without "in [group name]")
-        const shortFormat = translationEn.activityFeed.events['expense-created-short']
+        const shortFormat = translationEn
+            .activityFeed
+            .events['expense-created-short']
             .replace('{{actor}}', 'Alice')
             .replace('{{expense}}', '"Team Lunch"');
 
         await groupDetailPage.verifyActivityFeedContainsText(shortFormat);
 
         // Verify the long format with group name is NOT displayed
-        const longFormat = translationEn.activityFeed.events['expense-created']
+        const longFormat = translationEn
+            .activityFeed
+            .events['expense-created']
             .replace('{{actor}}', 'Alice')
             .replace('{{expense}}', '"Team Lunch"')
             .replace('{{group}}', groupName);
@@ -276,7 +287,8 @@ test.describe('Group Activity Feed - Display & Content', () => {
             .build();
 
         const activityItems = [
-            ActivityFeedItemBuilder.expenseCreated('item-1', user.uid, groupId, groupName, user.uid, 'My Expense')
+            ActivityFeedItemBuilder
+                .expenseCreated('item-1', user.uid, groupId, groupName, user.uid, 'My Expense')
                 .withActorId(user.uid)
                 .build(),
         ];
@@ -292,7 +304,9 @@ test.describe('Group Activity Feed - Display & Content', () => {
 
         // Should show "You" instead of user's name
         const youLabel = translationEn.activityFeed.labels.actorYou;
-        const shortFormat = translationEn.activityFeed.events['expense-created-short']
+        const shortFormat = translationEn
+            .activityFeed
+            .events['expense-created-short']
             .replace('{{actor}}', youLabel)
             .replace('{{expense}}', '"My Expense"');
 
@@ -344,7 +358,9 @@ test.describe('Group Activity Feed - Event Types', () => {
 
         await groupDetailPage.verifyActivityFeedHasEventType('expense-created');
 
-        const expectedText = translationEn.activityFeed.events['expense-created-short']
+        const expectedText = translationEn
+            .activityFeed
+            .events['expense-created-short']
             .replace('{{actor}}', 'Alice')
             .replace('{{expense}}', '"Dinner"');
         await groupDetailPage.verifyActivityFeedContainsText(expectedText);
@@ -393,7 +409,9 @@ test.describe('Group Activity Feed - Event Types', () => {
 
         await groupDetailPage.verifyActivityFeedHasEventType('group-created');
 
-        const expectedText = translationEn.activityFeed.events['group-created-short']
+        const expectedText = translationEn
+            .activityFeed
+            .events['group-created-short']
             .replace('{{actor}}', 'Bob');
         await groupDetailPage.verifyActivityFeedContainsText(expectedText);
     });
@@ -441,7 +459,9 @@ test.describe('Group Activity Feed - Event Types', () => {
 
         await groupDetailPage.verifyActivityFeedHasEventType('settlement-created');
 
-        const expectedText = translationEn.activityFeed.events['settlement-created-short']
+        const expectedText = translationEn
+            .activityFeed
+            .events['settlement-created-short']
             .replace('{{actor}}', 'Charlie')
             .replace('{{settlement}}', '"Repaid lunch"');
         await groupDetailPage.verifyActivityFeedContainsText(expectedText);
@@ -519,7 +539,9 @@ test.describe('Group Activity Feed - Navigation', () => {
         await groupDetailPage.waitForGroupToLoad();
         await groupDetailPage.ensureActivitySectionExpanded();
 
-        const expectedDescription = translationEn.activityFeed.events['expense-created-short']
+        const expectedDescription = translationEn
+            .activityFeed
+            .events['expense-created-short']
             .replace('{{actor}}', 'Alice')
             .replace('{{expense}}', `"${expenseDescription}"`);
 

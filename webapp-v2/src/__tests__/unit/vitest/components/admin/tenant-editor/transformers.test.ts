@@ -1,4 +1,4 @@
-import { buildBrandingTokensFromForm, extractFormDataFromTokens, EMPTY_TENANT_DATA } from '@/components/admin/tenant-editor';
+import { buildBrandingTokensFromForm, EMPTY_TENANT_DATA, extractFormDataFromTokens } from '@/components/admin/tenant-editor';
 import type { TenantData } from '@/components/admin/tenant-editor';
 import type { BrandingTokens } from '@billsplit-wl/shared';
 import { describe, expect, it } from 'vitest';

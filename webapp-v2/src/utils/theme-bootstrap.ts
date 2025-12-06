@@ -65,4 +65,3 @@ export function syncThemeHash(hash?: string | null): void {
         window.__tenantTheme.hash = normalizedHash;
     }
 }
-

@@ -267,7 +267,8 @@ export class AdminPage extends BasePage {
         await expect(async () => {
             const color = await this.getAdminPrimaryColor();
             expect(color).toBe('#4f46e5');
-        }).toPass({ timeout: 5000 });
+        })
+            .toPass({ timeout: 5000 });
     }
 
     async verifyAdminIsolation(): Promise<void> {

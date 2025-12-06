@@ -145,7 +145,7 @@ export function Button({
             aria-pressed={ariaPressed}
             data-testid={dataTestId}
         >
-            {loading && <SpinnerIcon size={16} className="text-current" />}
+            {loading && <SpinnerIcon size={16} className='text-current' />}
             {children}
         </button>
     );

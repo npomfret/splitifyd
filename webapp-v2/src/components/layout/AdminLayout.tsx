@@ -12,10 +12,10 @@
  * - No footer (admin-only UI)
  */
 
+import adminCssUrl from '@/styles/admin.css?url';
 import { ComponentChildren } from 'preact';
 import { useEffect } from 'preact/hooks';
 import { AdminHeader } from './AdminHeader';
-import adminCssUrl from '@/styles/admin.css?url';
 
 interface AdminLayoutProps {
     children: ComponentChildren;

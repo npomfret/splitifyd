@@ -2,7 +2,7 @@ import { TestErrorResponse, TestSuccessResponse } from '@billsplit-wl/shared';
 import type { RequestHandler } from 'express';
 import { getAppConfig, getTenantAwareAppConfig } from './app-config';
 import { buildEnvPayload, buildHealthPayload, resolveHealthStatusCode, runHealthChecks } from './endpoints/diagnostics';
-import {isRealFirebase} from './firebase';
+import { isRealFirebase } from './firebase';
 import { logger } from './logger';
 import { metrics, toAggregatedReport } from './monitoring/lightweight-metrics';
 import { UpdateTenantBrandingRequestSchema } from './schemas/tenant';
@@ -490,12 +490,14 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
         reportCspViolation,
 
         // Test endpoint handlers (only in emulator environments)
-        ...(!isRealFirebase() ? {
-            borrowTestUser,
-            returnTestUser,
-            promoteTestUserToAdmin,
-            clearUserPolicyAcceptances,
-        } : {}),
+        ...(!isRealFirebase()
+            ? {
+                borrowTestUser,
+                returnTestUser,
+                promoteTestUserToAdmin,
+                clearUserPolicyAcceptances,
+            }
+            : {}),
 
         // Tenant settings handlers
         getTenantSettings,

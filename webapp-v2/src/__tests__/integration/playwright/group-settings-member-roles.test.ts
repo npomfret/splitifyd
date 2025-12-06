@@ -1,14 +1,8 @@
 import type { ClientUser, GroupId, MemberRole } from '@billsplit-wl/shared';
 import { toGroupId, toUserId } from '@billsplit-wl/shared';
-import {
-    GroupDetailPage,
-    GroupDTOBuilder,
-    GroupFullDetailsBuilder,
-    GroupMemberBuilder,
-    ThemeBuilder,
-} from '@billsplit-wl/test-support';
+import { GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, ThemeBuilder } from '@billsplit-wl/test-support';
 import type { Page, Route } from '@playwright/test';
-import { expect, test } from '../../utils/console-logging-fixture';
+import { test } from '../../utils/console-logging-fixture';
 import { fulfillWithSerialization, mockGroupCommentsApi, mockPendingMembersApi, mockUpdateGroupPermissionsApi, setupSuccessfulApiMocks } from '../../utils/mock-firebase-service';
 
 interface RoleUpdateContext {

@@ -157,9 +157,9 @@ export interface DerivationOptions {
  * Style presets that modify derivation parameters.
  */
 interface StyleParams {
-    saturationAdjust: number;    // Adjust saturation of derived colors (-1 to 1)
-    contrastMultiplier: number;  // Multiplier for hover/active deltas
-    tintStrength: number;        // Base tint strength for surfaces (0-1)
+    saturationAdjust: number; // Adjust saturation of derived colors (-1 to 1)
+    contrastMultiplier: number; // Multiplier for hover/active deltas
+    tintStrength: number; // Base tint strength for surfaces (0-1)
 }
 
 const STYLE_PRESETS: Record<DerivationOptions['style'], StyleParams> = {
@@ -231,7 +231,7 @@ interface DerivedColors {
  */
 export function deriveColorsFromPalette(
     palette: PaletteColors,
-    options: DerivationOptions = DEFAULT_OPTIONS
+    options: DerivationOptions = DEFAULT_OPTIONS,
 ): DerivedColors {
     const { primary, secondary, accent, neutral, danger, warning, success, info } = palette;
     const { themeMode, style, intensity } = options;
@@ -320,38 +320,38 @@ export function deriveColorsFromPalette(
     const surfaceBaseColor = isDarkTheme
         ? mixColors('#0f0f1a', adjustedPrimary, baseTint)
         : isMediumTheme
-            ? mixColors('#6b7280', adjustedPrimary, baseTint)
-            : mixColors('#f8fafc', adjustedPrimary, baseTint);
+        ? mixColors('#6b7280', adjustedPrimary, baseTint)
+        : mixColors('#f8fafc', adjustedPrimary, baseTint);
 
     const surfaceRaisedColor = isDarkTheme
         ? mixColors('#1a1a2e', adjustedPrimary, raisedTint)
         : isMediumTheme
-            ? mixColors('#9ca3af', adjustedPrimary, raisedTint)
-            : mixColors('#ffffff', adjustedPrimary, raisedTint);
+        ? mixColors('#9ca3af', adjustedPrimary, raisedTint)
+        : mixColors('#ffffff', adjustedPrimary, raisedTint);
 
     const surfaceSunkenColor = isDarkTheme
         ? mixColors('#0a0a12', adjustedPrimary, sunkenTint)
         : isMediumTheme
-            ? mixColors('#4b5563', adjustedPrimary, sunkenTint)
-            : mixColors('#f1f5f9', adjustedPrimary, sunkenTint);
+        ? mixColors('#4b5563', adjustedPrimary, sunkenTint)
+        : mixColors('#f1f5f9', adjustedPrimary, sunkenTint);
 
     const surfaceOverlayColor = isDarkTheme
         ? 'rgba(0, 0, 0, 0.5)'
         : isMediumTheme
-            ? 'rgba(0, 0, 0, 0.4)'
-            : 'rgba(15, 23, 42, 0.5)';
+        ? 'rgba(0, 0, 0, 0.4)'
+        : 'rgba(15, 23, 42, 0.5)';
 
     const surfaceWarningColor = isDarkTheme
         ? mixColors('#1a1a2e', warning, 0.15)
         : isMediumTheme
-            ? mixColors('#6b7280', warning, 0.2)
-            : mixColors('#fefce8', adjustedPrimary, 0.05);
+        ? mixColors('#6b7280', warning, 0.2)
+        : mixColors('#fefce8', adjustedPrimary, 0.05);
 
     const surfaceMutedColor = isDarkTheme
         ? mixColors('#151524', adjustedPrimary, mutedTint)
         : isMediumTheme
-            ? mixColors('#4b5563', adjustedPrimary, mutedTint)
-            : mixColors('#f1f5f9', adjustedPrimary, mutedTint);
+        ? mixColors('#4b5563', adjustedPrimary, mutedTint)
+        : mixColors('#f1f5f9', adjustedPrimary, mutedTint);
 
     // Text - Derive contrasting colors
     // Medium theme uses light text (like dark theme) since backgrounds are mid-gray

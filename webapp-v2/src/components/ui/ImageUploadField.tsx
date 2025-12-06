@@ -254,7 +254,9 @@ export function ImageUploadField({
                         <Button
                             type='button'
                             variant='ghost'
-                            onClick={() => { showUrlInputSignal.value = true; }}
+                            onClick={() => {
+                                showUrlInputSignal.value = true;
+                            }}
                             disabled={disabled}
                             className='w-full sm:w-auto'
                         >
@@ -271,7 +273,9 @@ export function ImageUploadField({
                         ref={urlInputRef}
                         type='text'
                         value={urlValue}
-                        onChange={(e) => { urlValueSignal.value = (e.target as HTMLInputElement).value; }}
+                        onChange={(e) => {
+                            urlValueSignal.value = (e.target as HTMLInputElement).value;
+                        }}
                         onKeyDown={(e) => {
                             if (e.key === 'Enter') {
                                 e.preventDefault();

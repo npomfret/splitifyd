@@ -1242,7 +1242,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                 }
 
                 const doc = availableUsersSnapshot.docs[0];
-                const data = doc.data() as { email: Email; token: string; password: string; status: string };
+                const data = doc.data() as { email: Email; token: string; password: string; status: string; };
 
                 // Mark as borrowed within the transaction
                 transaction.update(doc.ref, { status: 'borrowed' });
@@ -1762,7 +1762,8 @@ export class FirestoreWriter implements IFirestoreWriter {
     async createTenantImage(tenantId: TenantId, imageData: TenantImageDTO): Promise<WriteResult> {
         return measureDb('FirestoreWriter.createTenantImage', async () => {
             try {
-                const imageRef = this.db
+                const imageRef = this
+                    .db
                     .collection(FirestoreCollections.TENANTS)
                     .doc(tenantId)
                     .collection('images')
@@ -1792,7 +1793,8 @@ export class FirestoreWriter implements IFirestoreWriter {
     async updateTenantImage(tenantId: TenantId, imageId: TenantImageId, updates: Partial<Pick<TenantImageDTO, 'name'>>): Promise<WriteResult> {
         return measureDb('FirestoreWriter.updateTenantImage', async () => {
             try {
-                const imageRef = this.db
+                const imageRef = this
+                    .db
                     .collection(FirestoreCollections.TENANTS)
                     .doc(tenantId)
                     .collection('images')
@@ -1815,7 +1817,8 @@ export class FirestoreWriter implements IFirestoreWriter {
     async deleteTenantImage(tenantId: TenantId, imageId: TenantImageId): Promise<WriteResult> {
         return measureDb('FirestoreWriter.deleteTenantImage', async () => {
             try {
-                const imageRef = this.db
+                const imageRef = this
+                    .db
                     .collection(FirestoreCollections.TENANTS)
                     .doc(tenantId)
                     .collection('images')

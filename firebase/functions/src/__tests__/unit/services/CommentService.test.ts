@@ -3,9 +3,9 @@ import { CreateExpenseCommentRequestBuilder, CreateExpenseRequestBuilder, Create
 import { beforeEach, describe, expect, it } from 'vitest';
 import { validateCommentId, validateCreateExpenseComment, validateCreateGroupComment, validateListCommentsQuery } from '../../../comments/validation';
 import { HTTP_STATUS } from '../../../constants';
-import { CommentService } from '../../../services/CommentService';
 import { ApiError } from '../../../errors';
 import { ErrorCode } from '../../../errors';
+import { CommentService } from '../../../services/CommentService';
 import { AppDriver } from '../AppDriver';
 
 describe('CommentService - Consolidated Tests', () => {
@@ -641,9 +641,13 @@ describe('CommentService - Consolidated Tests', () => {
             });
 
             it('should provide specific error codes for different validation failures', () => {
-                expect(() => validateCreateGroupComment(groupTargetId, new CreateGroupCommentRequestBuilder().withText('').build())).toThrow(expect.objectContaining({ code: 'VALIDATION_ERROR', data: expect.objectContaining({ detail: 'INVALID_COMMENT_TEXT' }) }));
+                expect(() => validateCreateGroupComment(groupTargetId, new CreateGroupCommentRequestBuilder().withText('').build())).toThrow(
+                    expect.objectContaining({ code: 'VALIDATION_ERROR', data: expect.objectContaining({ detail: 'INVALID_COMMENT_TEXT' }) }),
+                );
                 expect(() => validateCreateGroupComment('', new CreateGroupCommentRequestBuilder().withText('Valid').build())).toThrow(expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR }));
-                expect(() => validateCreateExpenseComment('', new CreateExpenseCommentRequestBuilder().withText('Valid').build())).toThrow(expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR }));
+                expect(() => validateCreateExpenseComment('', new CreateExpenseCommentRequestBuilder().withText('Valid').build())).toThrow(
+                    expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR }),
+                );
             });
         });
     });

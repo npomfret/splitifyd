@@ -149,7 +149,7 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                 {/* Header */}
                 <div className='flex items-center justify-between p-6 border-b border-border-default' data-testid='policy-modal-header'>
                     <div>
-                        <Typography variant="pageTitle" as="h2" id={titleId}>
+                        <Typography variant='pageTitle' as='h2' id={titleId}>
                             {t('policyComponents.policyAcceptanceModal.title')}
                         </Typography>
                         <p className='text-sm text-text-muted mt-1' id={subtitleId}>
@@ -172,7 +172,7 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                                 eventName='modal_close'
                                 eventProps={{ modalName: 'policy_acceptance', method: 'x_button' }}
                             >
-<XIcon size={24} />
+                                <XIcon size={24} />
                             </Clickable>
                         </Tooltip>
                     )}
@@ -208,7 +208,15 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                 <div className='flex-1 overflow-y-auto p-6'>
                     <Container>
                         <Stack spacing='md'>
-                            {error && <ErrorState title={t('policyComponents.policyAcceptanceModal.errorTitle')} error={error} onRetry={() => { errorSignal.value = null; }} />}
+                            {error && (
+                                <ErrorState
+                                    title={t('policyComponents.policyAcceptanceModal.errorTitle')}
+                                    error={error}
+                                    onRetry={() => {
+                                        errorSignal.value = null;
+                                    }}
+                                />
+                            )}
 
                             <Card data-testid='policy-card'>
                                 <Stack spacing='md'>

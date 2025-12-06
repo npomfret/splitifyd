@@ -264,19 +264,25 @@ describe('notification system', () => {
             it('should reject limit of 0', async () => {
                 await expect(
                     appDriver.getActivityFeed({ limit: 0 }, user1),
-                ).rejects.toMatchObject({ code: 'VALIDATION_ERROR', data: expect.objectContaining({ detail: 'INVALID_QUERY_PARAMS' }) });
+                )
+                    .rejects
+                    .toMatchObject({ code: 'VALIDATION_ERROR', data: expect.objectContaining({ detail: 'INVALID_QUERY_PARAMS' }) });
             });
 
             it('should reject negative limit', async () => {
                 await expect(
                     appDriver.getActivityFeed({ limit: -1 }, user1),
-                ).rejects.toMatchObject({ code: 'VALIDATION_ERROR', data: expect.objectContaining({ detail: 'INVALID_QUERY_PARAMS' }) });
+                )
+                    .rejects
+                    .toMatchObject({ code: 'VALIDATION_ERROR', data: expect.objectContaining({ detail: 'INVALID_QUERY_PARAMS' }) });
             });
 
             it('should reject limit exceeding maximum (100)', async () => {
                 await expect(
                     appDriver.getActivityFeed({ limit: 101 }, user1),
-                ).rejects.toMatchObject({ code: 'VALIDATION_ERROR', data: expect.objectContaining({ detail: 'INVALID_QUERY_PARAMS' }) });
+                )
+                    .rejects
+                    .toMatchObject({ code: 'VALIDATION_ERROR', data: expect.objectContaining({ detail: 'INVALID_QUERY_PARAMS' }) });
             });
 
             it('should handle empty activity feed gracefully', async () => {

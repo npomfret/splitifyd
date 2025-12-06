@@ -19,7 +19,7 @@ export class AppConfigurationBuilder {
             messagingSenderId: 'test',
             appId: 'test',
         };
-        this.config.warningBanner = "warningBanner";
+        this.config.warningBanner = 'warningBanner';
         this.config.formDefaults = {};
         this.config.tenant = new TenantConfigBuilder().build();
     }

@@ -1,6 +1,6 @@
-import { StubCloudTasksClient, StubStorage } from 'ts-firebase-simulator';
 import { toCurrencyISOCode, USD } from '@billsplit-wl/shared';
 import { CreateGroupRequestBuilder, CreateSettlementRequestBuilder, SettlementUpdateBuilder, StubFirestoreDatabase, UserRegistrationBuilder } from '@billsplit-wl/test-support';
+import { StubCloudTasksClient, StubStorage } from 'ts-firebase-simulator';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
@@ -669,7 +669,8 @@ describe('SettlementHandlers - Unit Tests', () => {
         });
 
         it('should reject update with invalid settlement ID', async () => {
-            const updateRequest = SettlementUpdateBuilder.empty()
+            const updateRequest = SettlementUpdateBuilder
+                .empty()
                 .withAmount(150, 'USD')
                 .build();
 
@@ -693,7 +694,8 @@ describe('SettlementHandlers - Unit Tests', () => {
         });
 
         it('should reject update with invalid amount precision when currency provided', async () => {
-            const updateRequest = SettlementUpdateBuilder.empty()
+            const updateRequest = SettlementUpdateBuilder
+                .empty()
                 .withAmount(100.50, toCurrencyISOCode('JPY'))
                 .build();
 
@@ -716,7 +718,8 @@ describe('SettlementHandlers - Unit Tests', () => {
             const userId = userResult.user.uid;
 
             // Currency is required when updating amount
-            const updateRequest = SettlementUpdateBuilder.empty()
+            const updateRequest = SettlementUpdateBuilder
+                .empty()
                 .withAmount(150, 'USD')
                 .build();
 
@@ -847,7 +850,8 @@ describe('SettlementHandlers - Unit Tests', () => {
         });
 
         it('should reject update with zero amount', async () => {
-            const updateRequest = SettlementUpdateBuilder.empty()
+            const updateRequest = SettlementUpdateBuilder
+                .empty()
                 .withInvalidAmount('0')
                 .build();
 
@@ -860,7 +864,8 @@ describe('SettlementHandlers - Unit Tests', () => {
         });
 
         it('should reject update with negative amount', async () => {
-            const updateRequest = SettlementUpdateBuilder.empty()
+            const updateRequest = SettlementUpdateBuilder
+                .empty()
                 .withInvalidAmount('-50')
                 .build();
 
@@ -874,7 +879,8 @@ describe('SettlementHandlers - Unit Tests', () => {
 
         it('should reject update with excessively long note', async () => {
             const longNote = 'a'.repeat(501);
-            const updateRequest = SettlementUpdateBuilder.empty()
+            const updateRequest = SettlementUpdateBuilder
+                .empty()
                 .withInvalidNote(longNote)
                 .build();
 

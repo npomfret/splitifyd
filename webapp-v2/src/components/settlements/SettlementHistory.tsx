@@ -2,11 +2,11 @@ import { apiClient } from '@/app/apiClient.ts';
 import { useAuthRequired } from '@/app/hooks/useAuthRequired.ts';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced.ts';
 import { themeStore } from '@/app/stores/theme-store.ts';
+import { ArrowDownIcon } from '@/components/ui/icons';
 import { logError } from '@/utils/browser-logger';
 import { formatCurrency } from '@/utils/currency';
 import { getGroupDisplayName } from '@/utils/displayName';
 import type { GroupId, GroupMember, SettlementWithMembers } from '@billsplit-wl/shared';
-import { ArrowDownIcon } from '@/components/ui/icons';
 import { BanknotesIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useComputed, useSignal } from '@preact/signals';
 import { useEffect, useMemo, useState } from 'preact/hooks';
@@ -151,7 +151,10 @@ export function SettlementHistory({
                     </div>
                 )
                 : (
-                    <Stack spacing='sm' className='max-h-[300px] overflow-y-auto overflow-x-hidden pr-1 scrollbar-thin scrollbar-thumb-border-default scrollbar-track-transparent hover:scrollbar-thumb-border-strong'>
+                    <Stack
+                        spacing='sm'
+                        className='max-h-[300px] overflow-y-auto overflow-x-hidden pr-1 scrollbar-thin scrollbar-thumb-border-default scrollbar-track-transparent hover:scrollbar-thumb-border-strong'
+                    >
                         {visibleSettlements.map((settlement) => {
                             const isCurrentUserPayer = settlement.payer.uid === currentUserId;
                             const isCurrentUserPayee = settlement.payee.uid === currentUserId;

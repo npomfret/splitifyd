@@ -24,19 +24,19 @@ export function CurrencyIcon({ symbol, size = 24, className = '' }: CurrencyIcon
             className={className}
             width={size}
             height={size}
-            viewBox="0 0 24 24"
-            fill="none"
-            aria-hidden="true"
-            focusable="false"
+            viewBox='0 0 24 24'
+            fill='none'
+            aria-hidden='true'
+            focusable='false'
         >
             <text
-                x="12"
-                y="16"
-                fontFamily="system-ui, -apple-system, sans-serif"
+                x='12'
+                y='16'
+                fontFamily='system-ui, -apple-system, sans-serif'
                 fontSize={scaledFontSize}
-                fontWeight="500"
-                fill="currentColor"
-                textAnchor="middle"
+                fontWeight='500'
+                fill='currentColor'
+                textAnchor='middle'
             >
                 {symbol}
             </text>

@@ -1,6 +1,6 @@
-import {z} from 'zod';
-import {logger} from '../logger';
-import {getEmulatorPorts, inferProjectId, isEmulator, isRealFirebase} from "../firebase";
+import { z } from 'zod';
+import { getEmulatorPorts, inferProjectId, isEmulator, isRealFirebase } from '../firebase';
+import { logger } from '../logger';
 
 /**
  * Configuration for MergeService and related cloud infrastructure
@@ -80,17 +80,17 @@ function buildServiceConfig(): ServiceConfig {
         // this is deployment
         return {
             projectId: inferProjectId(),
-            cloudTasksLocation: "foo",
-            cloudTasksServiceAccount: "foo",
-            functionsUrl: "foo",
+            cloudTasksLocation: 'foo',
+            cloudTasksServiceAccount: 'foo',
+            functionsUrl: 'foo',
             minRegistrationDurationMs: -1,
-            storageEmulatorHost: "foo",
+            storageEmulatorHost: 'foo',
         };
     } else if (isRealFirebase()) {
         const requiredVars = [
             '__CLOUD_TASKS_LOCATION',
             '__CLOUD_TASKS_SERVICE_ACCOUNT',
-            '__MIN_REGISTRATION_DURATION_MS'
+            '__MIN_REGISTRATION_DURATION_MS',
         ];
         const missing = requiredVars.filter((key) => env[key as keyof typeof env] === undefined);
 
@@ -113,7 +113,7 @@ function buildServiceConfig(): ServiceConfig {
         const requiredVars = [
             'FIREBASE_CONFIG',
             '__MIN_REGISTRATION_DURATION_MS',
-            '__CLOUD_TASKS_LOCATION'
+            '__CLOUD_TASKS_LOCATION',
         ];
         const missing = requiredVars.filter((key) => env[key as keyof typeof env] === undefined);
 
@@ -129,13 +129,13 @@ function buildServiceConfig(): ServiceConfig {
         return {
             projectId,
             cloudTasksLocation,
-            cloudTasksServiceAccount: "foo",
+            cloudTasksServiceAccount: 'foo',
             functionsUrl,
             minRegistrationDurationMs: env.__MIN_REGISTRATION_DURATION_MS,
             storageEmulatorHost: env.FIREBASE_STORAGE_EMULATOR_HOST || null,
         };
     } else {
-        throw Error("should not get here")
+        throw Error('should not get here');
     }
 }
 

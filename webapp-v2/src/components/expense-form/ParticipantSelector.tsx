@@ -22,7 +22,7 @@ export function ParticipantSelector({ members, participants, paidBy, validationE
         <Card variant='glass' className='border-border-default' data-testid='split-between-section'>
             <Stack spacing='md'>
                 <div className='flex items-center justify-between'>
-                    <Typography variant="subheading" as="h2">
+                    <Typography variant='subheading' as='h2'>
                         {t('expenseComponents.participantSelector.label')}{' '}
                         <span className='text-semantic-error' data-testid='required-indicator'>
                             {t('expenseComponents.participantSelector.requiredIndicator')}

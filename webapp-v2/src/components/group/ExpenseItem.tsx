@@ -90,7 +90,7 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
                                 eventName='expense_copy'
                                 eventProps={{ expenseId: expense.id, label: expense.label }}
                             >
-<CopyIcon size={16} />
+                                <CopyIcon size={16} />
                             </Clickable>
                         </Tooltip>
                     )}

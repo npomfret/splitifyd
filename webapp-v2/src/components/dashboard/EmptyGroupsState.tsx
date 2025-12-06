@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { BadgeCheckIcon, PlusIcon, UsersIcon } from '../ui/icons';
 import { EmptyState } from '../ui';
+import { BadgeCheckIcon, PlusIcon, UsersIcon } from '../ui/icons';
 
 interface EmptyGroupsStateProps {
     onCreateGroup: () => void;

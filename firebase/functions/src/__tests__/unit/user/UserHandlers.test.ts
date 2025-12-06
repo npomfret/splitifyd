@@ -1,6 +1,6 @@
-import { StubCloudTasksClient } from 'ts-firebase-simulator';
 import { StubFirestoreDatabase, StubStorage } from '@billsplit-wl/test-support';
 import { PasswordChangeRequestBuilder, UserRegistrationBuilder, UserUpdateBuilder } from '@billsplit-wl/test-support';
+import { StubCloudTasksClient } from 'ts-firebase-simulator';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';

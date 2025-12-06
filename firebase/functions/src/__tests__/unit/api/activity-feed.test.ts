@@ -43,7 +43,9 @@ describe('activity-feed', () => {
         it('should require authentication', async () => {
             await expect(
                 appDriver.getGroupActivityFeed('any-group-id' as any, {}, undefined as any),
-            ).rejects.toMatchObject({ code: 'AUTH_REQUIRED' });
+            )
+                .rejects
+                .toMatchObject({ code: 'AUTH_REQUIRED' });
         });
 
         it('should reject non-member access', async () => {
@@ -51,7 +53,9 @@ describe('activity-feed', () => {
 
             await expect(
                 appDriver.getGroupActivityFeed(group.id, {}, user2),
-            ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+            )
+                .rejects
+                .toMatchObject({ code: 'FORBIDDEN' });
         });
 
         it('should return activity for group members', async () => {

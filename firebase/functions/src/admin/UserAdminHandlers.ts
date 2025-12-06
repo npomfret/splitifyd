@@ -1,7 +1,7 @@
 import { AdminUserProfile, SystemUserRoles, toDisplayName, toEmail, toUserId } from '@billsplit-wl/shared';
 import type { Request, Response } from 'express';
 import { HTTP_STATUS } from '../constants';
-import { ApiError, Errors, ErrorDetail } from '../errors';
+import { ApiError, ErrorDetail, Errors } from '../errors';
 import { logger } from '../logger';
 import type { IAuthService } from '../services/auth';
 import type { IFirestoreReader, IFirestoreWriter } from '../services/firestore';
@@ -292,7 +292,7 @@ export class UserAdminHandlers {
             }
 
             // Build update object
-            const updates: { displayName?: string; email?: string } = {};
+            const updates: { displayName?: string; email?: string; } = {};
             if (displayName !== undefined) {
                 updates.displayName = displayName.trim();
             }

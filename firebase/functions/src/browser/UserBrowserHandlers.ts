@@ -2,9 +2,9 @@ import { AdminUserProfile, toDisplayName, toUserId } from '@billsplit-wl/shared'
 import { toEmail } from '@billsplit-wl/shared';
 import type { Request, Response } from 'express';
 import { logger } from '../logger';
+import type { UserDocument } from '../schemas';
 import type { IAuthService } from '../services/auth';
 import type { IFirestoreReader } from '../services/firestore';
-import type { UserDocument } from '../schemas';
 import { validateListAuthUsersQuery, validateListFirestoreUsersQuery } from './validation';
 
 /**
@@ -13,7 +13,7 @@ import { validateListAuthUsersQuery, validateListFirestoreUsersQuery } from './v
  */
 function serializeUserDocument(user: UserDocument): Record<string, unknown> {
     // Remove internal 'id' field and expose as 'uid' for consistency with Auth API
-    const { id, ...rest } = user as UserDocument & { id?: string };
+    const { id, ...rest } = user as UserDocument & { id?: string; };
     return { uid: user.id, ...rest };
 }
 
@@ -69,7 +69,7 @@ export class UserBrowserHandlers {
      * List Firestore users with pagination
      * Delegates to FirestoreReader for all database access
      */
-    private async listFirestoreUserDocuments(options: { limit: number; cursor?: string }): Promise<{ users: UserDocument[]; nextCursor?: string; hasMore: boolean }> {
+    private async listFirestoreUserDocuments(options: { limit: number; cursor?: string; }): Promise<{ users: UserDocument[]; nextCursor?: string; hasMore: boolean; }> {
         return this.firestoreReader.listUserDocuments(options);
     }
 

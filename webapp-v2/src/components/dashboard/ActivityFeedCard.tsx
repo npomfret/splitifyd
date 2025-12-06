@@ -63,7 +63,7 @@ export function ActivityFeedCard({ userId }: ActivityFeedCardProps) {
         <div className='glass-panel border-border-default rounded-lg shadow-lg border border-border-default' data-testid='activity-feed-card'>
             <div className='p-6'>
                 <div className='flex items-center justify-between mb-4'>
-                    <Typography variant="subheading">{t('activityFeed.title')}</Typography>
+                    <Typography variant='subheading'>{t('activityFeed.title')}</Typography>
                 </div>
 
                 {/* Loading skeleton */}
@@ -144,7 +144,10 @@ export function ActivityFeedCard({ userId }: ActivityFeedCardProps) {
                                                     <div className='flex-1 min-w-0'>
                                                         {content}
                                                     </div>
-<ChevronRightIcon size={16} className='flex-shrink-0 mt-1 text-interactive-primary opacity-0 transition-all duration-200 group-hover:opacity-100 group-hover:translate-x-0.5' />
+                                                    <ChevronRightIcon
+                                                        size={16}
+                                                        className='flex-shrink-0 mt-1 text-interactive-primary opacity-0 transition-all duration-200 group-hover:opacity-100 group-hover:translate-x-0.5'
+                                                    />
                                                 </button>
                                             )
                                             : (

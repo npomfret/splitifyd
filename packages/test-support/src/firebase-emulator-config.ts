@@ -4,13 +4,13 @@ import * as path from 'path';
 
 export interface FirebaseJsonConfig {
     emulators: {
-        auth: { port: number; host: string };
-        functions: { port: number; host: string };
-        firestore: { port: number; host: string };
-        hosting: { port: number; host: string };
-        storage: { port: number; host: string };
-        tasks: { port: number; host: string };
-        ui: { enabled: boolean; port: number; host: string };
+        auth: { port: number; host: string; };
+        functions: { port: number; host: string; };
+        firestore: { port: number; host: string; };
+        hosting: { port: number; host: string; };
+        storage: { port: number; host: string; };
+        tasks: { port: number; host: string; };
+        ui: { enabled: boolean; port: number; host: string; };
         singleProjectMode: boolean;
     };
 }
@@ -54,7 +54,6 @@ export function getFirestorePort(): number {
     const config = loadFirebaseConfig();
     return config.emulators.firestore.port;
 }
-
 
 /**
  * Get the Firebase Hosting emulator port

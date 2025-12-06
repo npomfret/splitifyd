@@ -237,7 +237,7 @@ export default function GroupDetailPage({ id: groupId, expenseId: routeExpenseId
             <BaseLayout>
                 <div className='container mx-auto px-4 py-8' data-testid='error-container'>
                     <Card className='p-6 text-center'>
-                        <Typography variant="heading" className="mb-2">{t('pages.groupDetailPage.errorLoadingGroup')}</Typography>
+                        <Typography variant='heading' className='mb-2'>{t('pages.groupDetailPage.errorLoadingGroup')}</Typography>
                         <p className='text-text-muted mb-4'>{errorValue}</p>
                         <Button variant='primary' onClick={() => navigationService.goToDashboard()}>
                             {t('pages.groupDetailPage.backToDashboard')}
@@ -259,11 +259,11 @@ export default function GroupDetailPage({ id: groupId, expenseId: routeExpenseId
     }
 
     // Handle click events
-    const handleExpenseClick = (expense: { id: ExpenseId }) => {
+    const handleExpenseClick = (expense: { id: ExpenseId; }) => {
         modals.openExpenseDetail(expense.id);
     };
 
-    const handleExpenseCopy = (expense: { id: ExpenseId }) => {
+    const handleExpenseCopy = (expense: { id: ExpenseId; }) => {
         modals.openExpenseForm('copy', expense.id);
     };
 

@@ -22,20 +22,17 @@ export const Errors = {
     // ============================================
 
     /** User is not authenticated */
-    authRequired: (detail?: ErrorDetail | string): ApiError =>
-        new ApiError(HTTP_STATUS.UNAUTHORIZED, ErrorCode.AUTH_REQUIRED, detail ? { detail } : undefined),
+    authRequired: (detail?: ErrorDetail | string): ApiError => new ApiError(HTTP_STATUS.UNAUTHORIZED, ErrorCode.AUTH_REQUIRED, detail ? { detail } : undefined),
 
     /** Authentication token is invalid or expired */
-    authInvalid: (detail?: ErrorDetail | string): ApiError =>
-        new ApiError(HTTP_STATUS.UNAUTHORIZED, ErrorCode.AUTH_INVALID, detail ? { detail } : undefined),
+    authInvalid: (detail?: ErrorDetail | string): ApiError => new ApiError(HTTP_STATUS.UNAUTHORIZED, ErrorCode.AUTH_INVALID, detail ? { detail } : undefined),
 
     // ============================================
     // Authorization (403)
     // ============================================
 
     /** User is authenticated but not authorized for this action */
-    forbidden: (detail?: ErrorDetail | string): ApiError =>
-        new ApiError(HTTP_STATUS.FORBIDDEN, ErrorCode.FORBIDDEN, detail ? { detail } : undefined),
+    forbidden: (detail?: ErrorDetail | string): ApiError => new ApiError(HTTP_STATUS.FORBIDDEN, ErrorCode.FORBIDDEN, detail ? { detail } : undefined),
 
     // ============================================
     // Resource Errors (404, 409)
@@ -57,8 +54,7 @@ export const Errors = {
         }),
 
     /** Concurrent modification conflict */
-    conflict: (detail?: ErrorDetail | string): ApiError =>
-        new ApiError(HTTP_STATUS.CONFLICT, ErrorCode.CONFLICT, detail ? { detail } : undefined),
+    conflict: (detail?: ErrorDetail | string): ApiError => new ApiError(HTTP_STATUS.CONFLICT, ErrorCode.CONFLICT, detail ? { detail } : undefined),
 
     // ============================================
     // Validation Errors (400)
@@ -72,16 +68,13 @@ export const Errors = {
         }),
 
     /** Multiple field validation errors */
-    validationErrors: (fields: Record<string, string>): ApiError =>
-        new ApiError(HTTP_STATUS.BAD_REQUEST, ErrorCode.VALIDATION_ERROR, { fields }),
+    validationErrors: (fields: Record<string, string>): ApiError => new ApiError(HTTP_STATUS.BAD_REQUEST, ErrorCode.VALIDATION_ERROR, { fields }),
 
     /** General validation error with custom data */
-    validation: (data: ApiErrorData): ApiError =>
-        new ApiError(HTTP_STATUS.BAD_REQUEST, ErrorCode.VALIDATION_ERROR, data),
+    validation: (data: ApiErrorData): ApiError => new ApiError(HTTP_STATUS.BAD_REQUEST, ErrorCode.VALIDATION_ERROR, data),
 
     /** Malformed request (not field-specific) */
-    invalidRequest: (detail?: ErrorDetail | string): ApiError =>
-        new ApiError(HTTP_STATUS.BAD_REQUEST, ErrorCode.INVALID_REQUEST, detail ? { detail } : undefined),
+    invalidRequest: (detail?: ErrorDetail | string): ApiError => new ApiError(HTTP_STATUS.BAD_REQUEST, ErrorCode.INVALID_REQUEST, detail ? { detail } : undefined),
 
     // ============================================
     // Rate Limiting (429)
@@ -95,10 +88,8 @@ export const Errors = {
     // ============================================
 
     /** Internal server error */
-    serviceError: (detail?: ErrorDetail | string): ApiError =>
-        new ApiError(HTTP_STATUS.INTERNAL_ERROR, ErrorCode.SERVICE_ERROR, detail ? { detail } : undefined),
+    serviceError: (detail?: ErrorDetail | string): ApiError => new ApiError(HTTP_STATUS.INTERNAL_ERROR, ErrorCode.SERVICE_ERROR, detail ? { detail } : undefined),
 
     /** Service temporarily unavailable */
-    unavailable: (detail?: ErrorDetail | string): ApiError =>
-        new ApiError(HTTP_STATUS.SERVICE_UNAVAILABLE, ErrorCode.UNAVAILABLE, detail ? { detail } : undefined),
+    unavailable: (detail?: ErrorDetail | string): ApiError => new ApiError(HTTP_STATUS.SERVICE_UNAVAILABLE, ErrorCode.UNAVAILABLE, detail ? { detail } : undefined),
 };

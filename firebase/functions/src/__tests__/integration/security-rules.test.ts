@@ -141,7 +141,8 @@ describe('Firestore Security Rules (Production)', () => {
         });
 
         it('should deny all client writes to groups', async () => {
-            const updateData = GroupUpdateBuilder.empty()
+            const updateData = GroupUpdateBuilder
+                .empty()
                 .withName('Updated Group Name')
                 .build();
 
@@ -198,7 +199,8 @@ describe('Firestore Security Rules (Production)', () => {
         });
 
         it('should deny all client writes to expenses', async () => {
-            const updateData = ExpenseUpdateBuilder.minimal()
+            const updateData = ExpenseUpdateBuilder
+                .minimal()
                 .withDescription('Updated Expense')
                 .build();
 
@@ -243,7 +245,8 @@ describe('Firestore Security Rules (Production)', () => {
         });
 
         it('should deny all client writes to settlements', async () => {
-            const updateData = SettlementUpdateBuilder.empty()
+            const updateData = SettlementUpdateBuilder
+                .empty()
                 .withAmount(75, 'USD')
                 .build();
 

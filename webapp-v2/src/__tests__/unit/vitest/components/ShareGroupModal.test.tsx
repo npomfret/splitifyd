@@ -29,8 +29,8 @@ vi.mock('@/components/ui/Modal', async () => {
 
             if (!open) return null;
             return (
-                <div role="presentation" data-testid={dataTestId} onClick={(e: any) => e.target === e.currentTarget && onClose?.()}>
-                    <div role="dialog" aria-modal="true" aria-labelledby={labelledBy}>
+                <div role='presentation' data-testid={dataTestId} onClick={(e: any) => e.target === e.currentTarget && onClose?.()}>
+                    <div role='dialog' aria-modal='true' aria-labelledby={labelledBy}>
                         {children}
                     </div>
                 </div>

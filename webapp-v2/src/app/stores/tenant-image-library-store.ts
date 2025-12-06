@@ -108,9 +108,7 @@ export class TenantImageLibraryStoreImpl implements TenantImageLibraryStore {
             await apiClient.renameTenantImage(tenantId, imageId, { name });
 
             // Update the image in the local list
-            this.#imagesSignal.value = this.#imagesSignal.value.map((img) =>
-                img.id === imageId ? { ...img, name } : img,
-            );
+            this.#imagesSignal.value = this.#imagesSignal.value.map((img) => img.id === imageId ? { ...img, name } : img);
         } catch (err: unknown) {
             logError('Failed to rename tenant image', { tenantId, imageId, name, error: err });
             this.#errorSignal.value = getErrorMessage(err);

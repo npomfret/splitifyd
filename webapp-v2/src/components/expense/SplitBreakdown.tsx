@@ -53,7 +53,7 @@ export function SplitBreakdown({ expense, members }: SplitBreakdownProps) {
     return (
         <Stack spacing='md'>
             <div className='flex items-center justify-between'>
-                <Typography variant="bodyStrong" as="h3">
+                <Typography variant='bodyStrong' as='h3'>
                     {t('expenseComponents.splitBreakdown.splitBetween')}
                     {expense.participants.length}
                     {expense.participants.length === 1 ? t('expenseComponents.splitBreakdown.person') : t('expenseComponents.splitBreakdown.people')}

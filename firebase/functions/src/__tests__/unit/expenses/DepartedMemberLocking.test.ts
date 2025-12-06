@@ -608,9 +608,11 @@ describe('Departed Member Transaction Locking - Unit Tests', () => {
                         .build(),
                     userIds[0],
                 ),
-            ).rejects.toMatchObject({
-                code: 'VALIDATION_ERROR',
-            });
+            )
+                .rejects
+                .toMatchObject({
+                    code: 'VALIDATION_ERROR',
+                });
         });
 
         test('should prevent creating settlement with departed payee', async () => {
@@ -632,9 +634,11 @@ describe('Departed Member Transaction Locking - Unit Tests', () => {
                         .build(),
                     userIds[1],
                 ),
-            ).rejects.toMatchObject({
-                code: 'VALIDATION_ERROR',
-            });
+            )
+                .rejects
+                .toMatchObject({
+                    code: 'VALIDATION_ERROR',
+                });
         });
     });
 

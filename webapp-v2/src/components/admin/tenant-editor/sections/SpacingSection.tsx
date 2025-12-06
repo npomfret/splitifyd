@@ -17,10 +17,42 @@ export function SpacingSection({ formData, update, isSaving }: SectionProps) {
                 </div>
                 <SubsectionHeader title='Semantic' />
                 <div class='grid grid-cols-4 gap-4'>
-                    <AdminFormInput label='Page Padding' value={formData.spacingPagePadding} onChange={(v) => update({ spacingPagePadding: v })} placeholder='1.5rem' disabled={isSaving} monospace required />
-                    <AdminFormInput label='Section Gap' value={formData.spacingSectionGap} onChange={(v) => update({ spacingSectionGap: v })} placeholder='2rem' disabled={isSaving} monospace required />
-                    <AdminFormInput label='Card Padding' value={formData.spacingCardPadding} onChange={(v) => update({ spacingCardPadding: v })} placeholder='1.5rem' disabled={isSaving} monospace required />
-                    <AdminFormInput label='Component Gap' value={formData.spacingComponentGap} onChange={(v) => update({ spacingComponentGap: v })} placeholder='1rem' disabled={isSaving} monospace required />
+                    <AdminFormInput
+                        label='Page Padding'
+                        value={formData.spacingPagePadding}
+                        onChange={(v) => update({ spacingPagePadding: v })}
+                        placeholder='1.5rem'
+                        disabled={isSaving}
+                        monospace
+                        required
+                    />
+                    <AdminFormInput
+                        label='Section Gap'
+                        value={formData.spacingSectionGap}
+                        onChange={(v) => update({ spacingSectionGap: v })}
+                        placeholder='2rem'
+                        disabled={isSaving}
+                        monospace
+                        required
+                    />
+                    <AdminFormInput
+                        label='Card Padding'
+                        value={formData.spacingCardPadding}
+                        onChange={(v) => update({ spacingCardPadding: v })}
+                        placeholder='1.5rem'
+                        disabled={isSaving}
+                        monospace
+                        required
+                    />
+                    <AdminFormInput
+                        label='Component Gap'
+                        value={formData.spacingComponentGap}
+                        onChange={(v) => update({ spacingComponentGap: v })}
+                        placeholder='1rem'
+                        disabled={isSaving}
+                        monospace
+                        required
+                    />
                 </div>
             </div>
         </AdminFormSection>

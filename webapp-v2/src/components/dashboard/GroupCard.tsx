@@ -168,7 +168,7 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense, isArchivedVi
                 {/* GroupDTO stats */}
                 <div class='space-y-2 text-sm text-text-muted'>
                     <div class='flex items-center'>
-                        <ClockIcon size={16} className="mr-2 text-text-muted/80" />
+                        <ClockIcon size={16} className='mr-2 text-text-muted/80' />
                         {group.updatedAt
                             ? <RelativeTime date={group.updatedAt} fallback={group.lastActivity || t('groupCard.noRecentActivity')} />
                             : (group.lastActivity || t('groupCard.noRecentActivity'))}

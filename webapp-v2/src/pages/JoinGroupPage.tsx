@@ -6,8 +6,8 @@
 
 import { Button, Card, Input, LoadingSpinner, Modal, Stack, Typography } from '@/components/ui';
 import { navigationService } from '@/services/navigation.service';
-import { CheckCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { toDisplayName } from '@billsplit-wl/shared';
+import { CheckCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { useComputed } from '@preact/signals';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
@@ -97,7 +97,7 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
                 setShowNamePrompt(false);
             }
         } catch (error: unknown) {
-            const errorWithCode = error as { code?: string };
+            const errorWithCode = error as { code?: string; };
             if (errorWithCode.code === 'DISPLAY_NAME_CONFLICT') {
                 setNameError(t('joinGroupPage.displayName.errors.taken'));
             }
@@ -119,7 +119,7 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
                             <div className='text-semantic-error mb-4' role='alert' data-testid='invalid-link-warning'>
                                 <ExclamationTriangleIcon className='w-12 h-12 mx-auto' aria-hidden='true' />
                             </div>
-                            <Typography variant="heading" className="mb-2">{t('errors.invalidLink')}</Typography>
+                            <Typography variant='heading' className='mb-2'>{t('errors.invalidLink')}</Typography>
                             <p className='text-text-muted mb-6'>{t('joinGroupPage.errors.invalidLink')}</p>
                             <Button variant='secondary' onClick={() => navigationService.goToDashboard()} className='w-full'>
                                 {t('notFoundPage.goToDashboard')}
@@ -157,7 +157,7 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
                             <div className='text-semantic-error mb-4' role='alert' data-testid='unable-join-warning'>
                                 <ExclamationTriangleIcon className='w-12 h-12 mx-auto' aria-hidden='true' />
                             </div>
-                            <Typography variant="heading" className="mb-2">{t('joinGroupPage.errors.joinFailed')}</Typography>
+                            <Typography variant='heading' className='mb-2'>{t('joinGroupPage.errors.joinFailed')}</Typography>
                             <p className='text-text-muted mb-6'>{error}</p>
                             <Button variant='secondary' onClick={() => navigationService.goToDashboard()} className='w-full'>
                                 {t('notFoundPage.goToDashboard')}
@@ -179,7 +179,7 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
                             <div className='text-semantic-success mb-4'>
                                 <CheckCircleIcon className='w-12 h-12 mx-auto' aria-hidden='true' />
                             </div>
-                            <Typography variant="heading" className="mb-2">{t('joinGroupPage.welcome', { groupName: group.name })}</Typography>
+                            <Typography variant='heading' className='mb-2'>{t('joinGroupPage.welcome', { groupName: group.name })}</Typography>
                             <p className='text-text-muted mb-6'>{t('joinGroupPage.joinSuccess')}</p>
                             <Stack spacing='md'>
                                 <Button onClick={() => navigationService.goToGroup(group.id)} fullWidth className='py-3'>
@@ -203,7 +203,7 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
                 <div className='min-h-screen bg-surface-muted flex items-center justify-center p-4'>
                     <div className='w-full max-w-md'>
                         <div className='text-center mb-6'>
-                            <Typography variant="pageTitle" className="mb-2">{isAlreadyMember ? group.name : t('joinGroupPage.title')}</Typography>
+                            <Typography variant='pageTitle' className='mb-2'>{isAlreadyMember ? group.name : t('joinGroupPage.title')}</Typography>
                         </div>
 
                         <Stack spacing='lg'>
@@ -270,7 +270,7 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
                     labelledBy='display-name-modal-title'
                 >
                     <div className='px-6 py-5'>
-                        <Typography variant="subheading" className="mb-4" id="display-name-modal-title">
+                        <Typography variant='subheading' className='mb-4' id='display-name-modal-title'>
                             {t('joinGroupPage.displayName.title')}
                         </Typography>
                         <p className='text-sm text-text-muted mb-4'>

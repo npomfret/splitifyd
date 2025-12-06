@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import {z} from 'zod';
+import { z } from 'zod';
 
 const FUNCTIONS_DIR = path.join(__dirname, '../../../');
 
@@ -88,7 +88,8 @@ function parseEnvFile(filePath: string): ParsedEnvFile {
 }
 
 function discoverEnvFiles(): ParsedEnvFile[] {
-    const files = fs.readdirSync(FUNCTIONS_DIR)
+    const files = fs
+        .readdirSync(FUNCTIONS_DIR)
         .filter(file => DEV_FILE_PATTERN.test(file) || STAGING_FILE_PATTERN.test(file))
         .map(file => parseEnvFile(path.join(FUNCTIONS_DIR, file)));
 
@@ -117,7 +118,8 @@ describe('Environment Files Integrity', () => {
                 ? ALLOWED_STAGING_VARS
                 : ALLOWED_DEV_VARS;
 
-            const extraneous = Array.from(envFile.variables.keys())
+            const extraneous = Array
+                .from(envFile.variables.keys())
                 .filter(v => !allowedVars.has(v));
             expect(extraneous).toEqual([]);
         });
@@ -168,9 +170,7 @@ describe('Environment Files Integrity', () => {
                 for (const varName of clientVars) {
                     const value = envFile.variables.get(varName);
                     if (value) {
-                        const isPlaceholder = placeholderPatterns.some(p =>
-                            value.toLowerCase().includes(p.toLowerCase())
-                        );
+                        const isPlaceholder = placeholderPatterns.some(p => value.toLowerCase().includes(p.toLowerCase()));
                         if (isPlaceholder) {
                             placeholderVars.push(`${varName}=${value}`);
                         }

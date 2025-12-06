@@ -1,9 +1,9 @@
 import { ActivityFeedActions, ActivityFeedEventTypes, MemberRoles, MemberStatuses, toGroupId, toUserId } from '@billsplit-wl/shared';
 import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it, test } from 'vitest';
+import { ErrorCode } from '../../../errors';
 import { IFirestoreReader } from '../../../services/firestore';
 import { GroupMemberService } from '../../../services/GroupMemberService';
-import { ErrorCode } from '../../../errors';
 import { AppDriver } from '../AppDriver';
 
 describe('GroupMemberService - Consolidated Unit Tests', () => {

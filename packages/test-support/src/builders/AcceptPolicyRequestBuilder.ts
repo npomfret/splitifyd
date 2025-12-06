@@ -27,7 +27,7 @@ export class AcceptPolicyRequestBuilder {
     /**
      * Set policyId and versionHash from a policy object
      */
-    forPolicy(policy: { id: PolicyId; versionHash: VersionHash }): this {
+    forPolicy(policy: { id: PolicyId; versionHash: VersionHash; }): this {
         this.request.policyId = policy.id;
         this.request.versionHash = policy.versionHash;
         return this;

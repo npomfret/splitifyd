@@ -3,8 +3,8 @@ import { useSuccessMessage } from '@/app/hooks/useSuccessMessage.ts';
 import { logError } from '@/utils/browser-logger.ts';
 import { GroupDTO, GroupMember, GroupMembershipDTO, GroupPermissions, MemberRole, PermissionLevels, SecurityPreset, UserId } from '@billsplit-wl/shared';
 import { ReadonlySignal, signal } from '@preact/signals';
-import { useCallback, useEffect, useMemo, useState } from 'preact/hooks';
 import { TFunction } from 'i18next';
+import { useCallback, useEffect, useMemo, useState } from 'preact/hooks';
 
 const PRESET_PERMISSIONS: Record<Exclude<SecurityPreset, 'custom'>, GroupPermissions> = {
     open: {
@@ -175,8 +175,8 @@ export function useGroupSecuritySettings({
     const hasRoleChanges = useMemo(() => {
         return members.some(
             (member) =>
-                memberRoleDraftsSignal.value[member.uid] !== undefined &&
-                memberRoleDraftsSignal.value[member.uid] !== initialMemberRolesSignal.value[member.uid],
+                memberRoleDraftsSignal.value[member.uid] !== undefined
+                && memberRoleDraftsSignal.value[member.uid] !== initialMemberRolesSignal.value[member.uid],
         );
     }, [members, memberRoleDraftsSignal.value, initialMemberRolesSignal.value]);
 

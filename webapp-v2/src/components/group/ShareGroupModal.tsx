@@ -163,154 +163,158 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
 
     return (
         <Modal
-                open={isOpen}
-                onClose={onClose}
-                size='sm'
-                labelledBy='share-modal-title'
-            >
-                {/* Modal Header */}
-                <div class='px-6 py-4 border-b border-border-default'>
-                    <div class='flex items-center justify-between'>
-                        <div class='flex flex-col space-y-1'>
-                            <div class='flex items-center space-x-2'>
-                                <UserAddIcon size={20} className="text-interactive-primary" />
-                                <Typography variant="subheading" id="share-modal-title">
-                                    {t('shareGroupModal.title')}
-                                </Typography>
-                            </div>
-                            {normalizedGroupName && (
-                                <p class='text-sm text-text-primary/70' data-testid='share-group-name'>
-                                    {normalizedGroupName}
-                                </p>
-                            )}
+            open={isOpen}
+            onClose={onClose}
+            size='sm'
+            labelledBy='share-modal-title'
+        >
+            {/* Modal Header */}
+            <div class='px-6 py-4 border-b border-border-default'>
+                <div class='flex items-center justify-between'>
+                    <div class='flex flex-col space-y-1'>
+                        <div class='flex items-center space-x-2'>
+                            <UserAddIcon size={20} className='text-interactive-primary' />
+                            <Typography variant='subheading' id='share-modal-title'>
+                                {t('shareGroupModal.title')}
+                            </Typography>
                         </div>
-                        <Tooltip content={t('shareGroupModal.closeButtonAriaLabel')}>
-                            <Clickable
-                                as='button'
-                                type='button'
-                                onClick={onClose}
-                                className='text-text-muted/80 hover:text-text-muted transition-colors rounded-full p-1 hover:bg-surface-muted'
-                                aria-label={t('shareGroupModal.closeButtonAriaLabel')}
-                                eventName='modal_close'
-                                eventProps={{ modalName: 'share_group', method: 'x_button' }}
-                            >
-                                <XIcon size={20} />
-                            </Clickable>
-                        </Tooltip>
+                        {normalizedGroupName && (
+                            <p class='text-sm text-text-primary/70' data-testid='share-group-name'>
+                                {normalizedGroupName}
+                            </p>
+                        )}
+                    </div>
+                    <Tooltip content={t('shareGroupModal.closeButtonAriaLabel')}>
+                        <Clickable
+                            as='button'
+                            type='button'
+                            onClick={onClose}
+                            className='text-text-muted/80 hover:text-text-muted transition-colors rounded-full p-1 hover:bg-surface-muted'
+                            aria-label={t('shareGroupModal.closeButtonAriaLabel')}
+                            eventName='modal_close'
+                            eventProps={{ modalName: 'share_group', method: 'x_button' }}
+                        >
+                            <XIcon size={20} />
+                        </Clickable>
+                    </Tooltip>
+                </div>
+            </div>
+
+            {/* Modal Content */}
+            <div class='max-h-[70vh] overflow-y-auto px-6 py-5'>
+                <p class='text-sm text-text-primary/70 mb-3'>{t('shareGroupModal.description')}</p>
+
+                {loading && (
+                    <div class='flex justify-center py-8'>
+                        <LoadingSpinner size='lg' />
+                    </div>
+                )}
+
+                {error && (
+                    <div class='bg-surface-error border border-border-error rounded-md p-3 mb-4'>
+                        <p class='text-sm text-semantic-error' role='alert'>
+                            {error}
+                        </p>
+                    </div>
+                )}
+
+                <div class='space-y-4'>
+                    {shareLink && !loading && (
+                        <>
+                            {/* Share link input with inline copy button */}
+                            <div class='relative'>
+                                <input
+                                    ref={linkInputRef}
+                                    type='text'
+                                    value={shareLink}
+                                    readOnly={true}
+                                    class='w-full pl-3 pr-12 py-3 border border-border-default rounded-lg bg-surface-raised backdrop-blur-sm text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-interactive-primary focus:border-transparent'
+                                    onClick={(e) => (e.target as HTMLInputElement).select()}
+                                    data-testid='share-link-input'
+                                    autoComplete='off'
+                                />
+                                <Tooltip
+                                    content={copied ? t('shareGroupModal.linkCopied') : t('shareGroupModal.copyLinkTitle')}
+                                    className='absolute right-2 top-1/2 -translate-y-1/2'
+                                >
+                                    <Button
+                                        type='button'
+                                        onClick={copyToClipboard}
+                                        variant='ghost'
+                                        size='sm'
+                                        magnetic={false}
+                                        ariaLabel={t('shareGroupModal.copyLinkAriaLabel')}
+                                    >
+                                        {copied
+                                            ? <CheckIcon size={20} className='text-semantic-success' />
+                                            : <CopyIcon size={20} />}
+                                    </Button>
+                                </Tooltip>
+                            </div>
+
+                            {/* QR Code section */}
+                            <div class='flex flex-col items-center py-2'>
+                                <div class='p-3 bg-white rounded-lg border border-border-default'>
+                                    <QRCodeCanvas value={shareLink} size={120} />
+                                </div>
+                                <p class='text-xs text-text-primary/70 mt-2'>{t('shareGroupModal.qrCodeDescription')}</p>
+                                <div class='w-full flex justify-end mt-2'>
+                                    <Tooltip content={t('shareGroupModal.generateNew')}>
+                                        <Button
+                                            type='button'
+                                            onClick={() => {
+                                                refreshCounterSignal.value = refreshCounterSignal.value + 1;
+                                            }}
+                                            variant='ghost'
+                                            size='sm'
+                                            disabled={loading}
+                                            ariaLabel={t('shareGroupModal.generateNew')}
+                                            className='rounded-full'
+                                        >
+                                            <RefreshIcon size={20} />
+                                        </Button>
+                                    </Tooltip>
+                                </div>
+                            </div>
+                        </>
+                    )}
+
+                    {/* Link expiration options */}
+                    <div class={expirationContainerClass}>
+                        <div class='flex flex-col gap-3'>
+                            <span class='text-sm font-medium text-text-primary/70'>
+                                {t('shareGroupModal.expirationLabel')}
+                            </span>
+                            <div class='flex flex-wrap gap-2'>
+                                {SHARE_LINK_EXPIRATION_OPTIONS.map((option) => {
+                                    const isSelected = option.id === selectedExpirationId;
+                                    return (
+                                        <Button
+                                            key={option.id}
+                                            type='button'
+                                            data-testid={`share-link-expiration-${option.id}`}
+                                            onClick={() => {
+                                                selectedExpirationIdSignal.value = option.id;
+                                            }}
+                                            aria-pressed={isSelected}
+                                            variant={isSelected ? 'primary' : 'secondary'}
+                                            size='sm'
+                                            disabled={loading && isSelected}
+                                        >
+                                            {t(option.translationKey)}
+                                        </Button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                        {expiresAt && (
+                            <p class='text-xs text-text-primary/60' data-testid='share-link-expiration-hint'>
+                                {t('shareGroupModal.expiresAt', { date: formatDateTimeInUserTimeZone(new Date(expiresAt)) })}
+                            </p>
+                        )}
                     </div>
                 </div>
-
-                {/* Modal Content */}
-                <div class='max-h-[70vh] overflow-y-auto px-6 py-5'>
-                        <p class='text-sm text-text-primary/70 mb-3'>{t('shareGroupModal.description')}</p>
-
-                        {loading && (
-                            <div class='flex justify-center py-8'>
-                                <LoadingSpinner size='lg' />
-                            </div>
-                        )}
-
-                        {error && (
-                            <div class='bg-surface-error border border-border-error rounded-md p-3 mb-4'>
-                                <p class='text-sm text-semantic-error' role='alert'>
-                                    {error}
-                                </p>
-                            </div>
-                        )}
-
-                        <div class='space-y-4'>
-                            {shareLink && !loading && (
-                                <>
-                                    {/* Share link input with inline copy button */}
-                                    <div class='relative'>
-                                        <input
-                                            ref={linkInputRef}
-                                            type='text'
-                                            value={shareLink}
-                                            readOnly={true}
-                                            class='w-full pl-3 pr-12 py-3 border border-border-default rounded-lg bg-surface-raised backdrop-blur-sm text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-interactive-primary focus:border-transparent'
-                                            onClick={(e) => (e.target as HTMLInputElement).select()}
-                                            data-testid='share-link-input'
-                                            autoComplete='off'
-                                        />
-                                        <Tooltip
-                                            content={copied ? t('shareGroupModal.linkCopied') : t('shareGroupModal.copyLinkTitle')}
-                                            className='absolute right-2 top-1/2 -translate-y-1/2'
-                                        >
-                                            <Button
-                                                type='button'
-                                                onClick={copyToClipboard}
-                                                variant='ghost'
-                                                size='sm'
-                                                magnetic={false}
-                                                ariaLabel={t('shareGroupModal.copyLinkAriaLabel')}
-                                            >
-                                                {copied
-                                                    ? <CheckIcon size={20} className="text-semantic-success" />
-                                                    : <CopyIcon size={20} />}
-                                            </Button>
-                                        </Tooltip>
-                                    </div>
-
-                                    {/* QR Code section */}
-                                    <div class='flex flex-col items-center py-2'>
-                                        <div class='p-3 bg-white rounded-lg border border-border-default'>
-                                            <QRCodeCanvas value={shareLink} size={120} />
-                                        </div>
-                                        <p class='text-xs text-text-primary/70 mt-2'>{t('shareGroupModal.qrCodeDescription')}</p>
-                                        <div class='w-full flex justify-end mt-2'>
-                                            <Tooltip content={t('shareGroupModal.generateNew')}>
-                                                <Button
-                                                    type='button'
-                                                    onClick={() => { refreshCounterSignal.value = refreshCounterSignal.value + 1; }}
-                                                    variant='ghost'
-                                                    size='sm'
-                                                    disabled={loading}
-                                                    ariaLabel={t('shareGroupModal.generateNew')}
-                                                    className='rounded-full'
-                                                >
-                                                    <RefreshIcon size={20} />
-                                                </Button>
-                                            </Tooltip>
-                                        </div>
-                                    </div>
-                                </>
-                            )}
-
-                            {/* Link expiration options */}
-                            <div class={expirationContainerClass}>
-                                <div class='flex flex-col gap-3'>
-                                    <span class='text-sm font-medium text-text-primary/70'>
-                                        {t('shareGroupModal.expirationLabel')}
-                                    </span>
-                                    <div class='flex flex-wrap gap-2'>
-                                        {SHARE_LINK_EXPIRATION_OPTIONS.map((option) => {
-                                            const isSelected = option.id === selectedExpirationId;
-                                            return (
-                                                <Button
-                                                    key={option.id}
-                                                    type='button'
-                                                    data-testid={`share-link-expiration-${option.id}`}
-                                                    onClick={() => { selectedExpirationIdSignal.value = option.id; }}
-                                                    aria-pressed={isSelected}
-                                                    variant={isSelected ? 'primary' : 'secondary'}
-                                                    size='sm'
-                                                    disabled={loading && isSelected}
-                                                >
-                                                    {t(option.translationKey)}
-                                                </Button>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                                {expiresAt && (
-                                    <p class='text-xs text-text-primary/60' data-testid='share-link-expiration-hint'>
-                                        {t('shareGroupModal.expiresAt', { date: formatDateTimeInUserTimeZone(new Date(expiresAt)) })}
-                                    </p>
-                                )}
-                            </div>
-                        </div>
-                    </div>
+            </div>
         </Modal>
     );
 }

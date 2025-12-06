@@ -547,7 +547,9 @@ describe('groups', () => {
 
             await expect(
                 appDriver.updateMemberRole(group.id, user2, MemberRoles.ADMIN, user1),
-            ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+            )
+                .rejects
+                .toMatchObject({ code: 'NOT_FOUND' });
         });
 
         it('should reject role update by non-owner', async () => {
@@ -559,7 +561,9 @@ describe('groups', () => {
             // user2 tries to promote user3 to admin
             await expect(
                 appDriver.updateMemberRole(group.id, user3, MemberRoles.ADMIN, user2),
-            ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+            )
+                .rejects
+                .toMatchObject({ code: 'FORBIDDEN' });
         });
 
         it('should allow owner to promote and demote members', async () => {
@@ -589,12 +593,14 @@ describe('groups', () => {
 
             await expect(
                 appDriver.updateMemberRole(group.id, user2, 'superadmin' as any, user1),
-            ).rejects.toMatchObject({
-                code: 'VALIDATION_ERROR',
-                data: {
-                    detail: 'INVALID_ROLE'
-                }
-            });
+            )
+                .rejects
+                .toMatchObject({
+                    code: 'VALIDATION_ERROR',
+                    data: {
+                        detail: 'INVALID_ROLE',
+                    },
+                });
         });
     });
 
@@ -607,7 +613,9 @@ describe('groups', () => {
 
             await expect(
                 appDriver.approveMember(group.id, user2, user1),
-            ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+            )
+                .rejects
+                .toMatchObject({ code: 'NOT_FOUND' });
         });
 
         it('should reject rejecting a non-existent member', async () => {
@@ -618,7 +626,9 @@ describe('groups', () => {
 
             await expect(
                 appDriver.rejectMember(group.id, user2, user1),
-            ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+            )
+                .rejects
+                .toMatchObject({ code: 'NOT_FOUND' });
         });
 
         it('should no-op when approving an already active member', async () => {
@@ -654,7 +664,9 @@ describe('groups', () => {
             // user2 (not owner) tries to approve user3
             await expect(
                 appDriver.approveMember(group.id, user3, user2),
-            ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+            )
+                .rejects
+                .toMatchObject({ code: 'FORBIDDEN' });
         });
     });
 });

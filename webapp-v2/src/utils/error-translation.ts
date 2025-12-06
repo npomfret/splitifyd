@@ -5,8 +5,8 @@
  * to localized user-facing messages using i18next.
  */
 
-import type { TFunction } from 'i18next';
 import { ApiError } from '@/app/apiClient';
+import type { TFunction } from 'i18next';
 
 /**
  * Translates an API error to a localized user-facing message.
@@ -32,8 +32,7 @@ import { ApiError } from '@/app/apiClient';
 export function translateApiError(error: unknown, t: TFunction, fallback?: string): string {
     if (error instanceof ApiError) {
         // Extract interpolation data from error details
-        const interpolationData =
-            error.details && typeof error.details === 'object' ? (error.details as Record<string, unknown>) : {};
+        const interpolationData = error.details && typeof error.details === 'object' ? (error.details as Record<string, unknown>) : {};
 
         // Try to translate using the error code
         const translated = t(`apiErrors.${error.code}`, {

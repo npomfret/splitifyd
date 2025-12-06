@@ -1,12 +1,5 @@
 import type { AdminUpsertTenantRequest, BrandingMarketingFlags, BrandingTokens, TenantBranding, TenantDomainName, TenantId } from '@billsplit-wl/shared';
-import {
-    toTenantAccentColor,
-    toTenantDefaultFlag,
-    toTenantDomainName,
-    toTenantId,
-    toTenantPrimaryColor,
-    toTenantSecondaryColor,
-} from '@billsplit-wl/shared';
+import { toTenantAccentColor, toTenantDefaultFlag, toTenantDomainName, toTenantId, toTenantPrimaryColor, toTenantSecondaryColor } from '@billsplit-wl/shared';
 
 /**
  * Builder for creating AdminUpsertTenantRequest for admin API endpoints.
@@ -304,14 +297,14 @@ export class AdminTenantRequestBuilder {
         return this;
     }
 
-    withFontFamily(fonts: { sans?: string; serif?: string; mono?: string }): this {
+    withFontFamily(fonts: { sans?: string; serif?: string; mono?: string; }): this {
         if (fonts.sans) this.tokens.typography.fontFamily.sans = fonts.sans;
         if (fonts.serif) this.tokens.typography.fontFamily.serif = fonts.serif;
         if (fonts.mono) this.tokens.typography.fontFamily.mono = fonts.mono;
         return this;
     }
 
-    withGradient(gradient: { primary?: [string, string]; accent?: [string, string]; aurora?: string[] }): this {
+    withGradient(gradient: { primary?: [string, string]; accent?: [string, string]; aurora?: string[]; }): this {
         if (!this.tokens.semantics.colors.gradient) {
             this.tokens.semantics.colors.gradient = {} as any;
         }

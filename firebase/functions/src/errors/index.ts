@@ -1,3 +1,3 @@
-export { ErrorCode, ErrorDetail } from './ErrorCode';
 export { ApiError, ApiErrorData } from './ApiError';
+export { ErrorCode, ErrorDetail } from './ErrorCode';
 export { Errors } from './Errors';

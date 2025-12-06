@@ -1,6 +1,6 @@
+import { permissionOptions, permissionOrder } from '@/app/hooks/useGroupSecuritySettings';
 import { GroupPermissions } from '@billsplit-wl/shared';
 import { useTranslation } from 'react-i18next';
-import { permissionOptions, permissionOrder } from '@/app/hooks/useGroupSecuritySettings';
 
 interface CustomPermissionsSectionProps {
     permissionDraft: GroupPermissions;
@@ -21,9 +21,7 @@ export function CustomPermissionsSection({
         <section>
             <div className='flex items-center justify-between mb-2'>
                 <h3 className='text-base font-semibold text-text-primary'>{t('securitySettingsModal.custom.heading')}</h3>
-                {selectedPreset === 'custom' && hasPermissionChanges && (
-                    <span className='text-xs text-interactive-primary font-medium'>{t('securitySettingsModal.custom.unsaved')}</span>
-                )}
+                {selectedPreset === 'custom' && hasPermissionChanges && <span className='text-xs text-interactive-primary font-medium'>{t('securitySettingsModal.custom.unsaved')}</span>}
             </div>
             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                 {permissionOrder.map((key) => (

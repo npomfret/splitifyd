@@ -164,11 +164,13 @@ export function AdminTenantsPage() {
 
                                                     <div class='space-y-2 text-sm'>
                                                         <div>
-                                                            <span class='text-slate-400'>{t('admin.tenants.details.tenantId')}</span> <span class='font-mono text-slate-200'>{tenant.tenant.tenantId}</span>
+                                                            <span class='text-slate-400'>{t('admin.tenants.details.tenantId')}</span>{' '}
+                                                            <span class='font-mono text-slate-200'>{tenant.tenant.tenantId}</span>
                                                         </div>
 
                                                         <div>
-                                                            <span class='text-slate-400'>{t('admin.tenants.details.primaryDomain')}</span> <span class='font-mono text-slate-200'>{tenant.domains[0] || t('common.none')}</span>
+                                                            <span class='text-slate-400'>{t('admin.tenants.details.primaryDomain')}</span>{' '}
+                                                            <span class='font-mono text-slate-200'>{tenant.domains[0] || t('common.none')}</span>
                                                         </div>
 
                                                         {tenant.domains.length > 0 && (

@@ -143,7 +143,7 @@ interface FirebaseSignInErrorResponse {
 }
 
 export async function signInExistingBillSplitter(): Promise<AuthenticatedFirebaseUser | null> {
-    const signInUrl  = await getFirebaseEmulatorSigninUrl();
+    const signInUrl = await getFirebaseEmulatorSigninUrl();
 
     const response = await fetch(signInUrl, {
         method: 'POST',

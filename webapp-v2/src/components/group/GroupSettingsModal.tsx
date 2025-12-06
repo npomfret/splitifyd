@@ -208,62 +208,64 @@ export function GroupSettingsModal({
                 className='max-w-3xl'
                 labelledBy='group-settings-modal-title'
             >
-                    <div className='flex items-center justify-between px-6 py-4 border-b border-border-default'>
-                        <div>
-                            <h2 id='group-settings-modal-title' className='text-lg font-semibold text-text-primary' data-testid='group-settings-modal-title'>
-                                {t('groupSettingsModal.title')}
-                            </h2>
-                        </div>
-                        <Tooltip content={t('groupHeader.groupSettingsAriaLabel')}>
-                            <Clickable
-                                as='button'
-                                type='button'
-                                onClick={onClose}
-                                className='text-text-muted/80 hover:text-text-muted rounded-full p-1 hover:bg-surface-muted'
-                                aria-label={t('groupHeader.groupSettingsAriaLabel')}
-                                data-testid='close-group-settings-button'
-                                eventName='modal_close'
-                                eventProps={{ modalName: 'group_settings', method: 'x_button' }}
-                            >
-<XIcon size={20} />
-                            </Clickable>
-                        </Tooltip>
+                <div className='flex items-center justify-between px-6 py-4 border-b border-border-default'>
+                    <div>
+                        <h2 id='group-settings-modal-title' className='text-lg font-semibold text-text-primary' data-testid='group-settings-modal-title'>
+                            {t('groupSettingsModal.title')}
+                        </h2>
                     </div>
+                    <Tooltip content={t('groupHeader.groupSettingsAriaLabel')}>
+                        <Clickable
+                            as='button'
+                            type='button'
+                            onClick={onClose}
+                            className='text-text-muted/80 hover:text-text-muted rounded-full p-1 hover:bg-surface-muted'
+                            aria-label={t('groupHeader.groupSettingsAriaLabel')}
+                            data-testid='close-group-settings-button'
+                            eventName='modal_close'
+                            eventProps={{ modalName: 'group_settings', method: 'x_button' }}
+                        >
+                            <XIcon size={20} />
+                        </Clickable>
+                    </Tooltip>
+                </div>
 
-                    {availableTabs.length > 1 && (
-                        <div className='px-6 pt-4 border-b border-border-default'>
-                            <nav className='flex gap-4' role='tablist' aria-label={t('groupSettingsModal.title')}>
-                                {availableTabs.map((tab) => {
-                                    const isActive = tab === activeTab;
-                                    return (
-                                        <Clickable
-                                            as='button'
-                                            key={tab}
-                                            type='button'
-                                            role='tab'
-                                            aria-selected={isActive}
-                                            onClick={() => { activeTabSignal.value = tab; }}
-                                            className={`pb-2 text-sm font-medium border-b-2 transition-colors ${
-                                                isActive
-                                                    ? 'border-interactive-primary text-interactive-primary'
-                                                    : 'border-transparent text-text-muted hover:text-text-primary hover:border-border-default'
-                                            }`}
-                                            eventName='modal_tab_change'
-                                            eventProps={{ modalName: 'group_settings', tab }}
-                                        >
-                                            {t(`groupSettingsModal.tabs.${tab}`)}
-                                        </Clickable>
-                                    );
-                                })}
-                            </nav>
-                        </div>
-                    )}
-
-                    <div className='max-h-[70vh] overflow-y-auto px-6 py-5'>
-                        {activeTab === 'identity' && identityTabAvailable && renderIdentityTab()}
-                        {activeTab === 'general' && generalTabAvailable && renderGeneralTab()}
-                        {activeTab === 'security' && securityTabAvailable && renderSecurityTab()}
+                {availableTabs.length > 1 && (
+                    <div className='px-6 pt-4 border-b border-border-default'>
+                        <nav className='flex gap-4' role='tablist' aria-label={t('groupSettingsModal.title')}>
+                            {availableTabs.map((tab) => {
+                                const isActive = tab === activeTab;
+                                return (
+                                    <Clickable
+                                        as='button'
+                                        key={tab}
+                                        type='button'
+                                        role='tab'
+                                        aria-selected={isActive}
+                                        onClick={() => {
+                                            activeTabSignal.value = tab;
+                                        }}
+                                        className={`pb-2 text-sm font-medium border-b-2 transition-colors ${
+                                            isActive
+                                                ? 'border-interactive-primary text-interactive-primary'
+                                                : 'border-transparent text-text-muted hover:text-text-primary hover:border-border-default'
+                                        }`}
+                                        eventName='modal_tab_change'
+                                        eventProps={{ modalName: 'group_settings', tab }}
+                                    >
+                                        {t(`groupSettingsModal.tabs.${tab}`)}
+                                    </Clickable>
+                                );
+                            })}
+                        </nav>
                     </div>
+                )}
+
+                <div className='max-h-[70vh] overflow-y-auto px-6 py-5'>
+                    {activeTab === 'identity' && identityTabAvailable && renderIdentityTab()}
+                    {activeTab === 'general' && generalTabAvailable && renderGeneralTab()}
+                    {activeTab === 'security' && securityTabAvailable && renderSecurityTab()}
+                </div>
             </Modal>
 
             <DeleteGroupConfirmationModal

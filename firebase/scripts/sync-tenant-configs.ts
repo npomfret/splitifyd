@@ -209,11 +209,11 @@ async function authenticateWithCredentials(
     });
 
     if (!signInResponse.ok) {
-        const error = (await signInResponse.json()) as { error?: { message?: string } };
+        const error = (await signInResponse.json()) as { error?: { message?: string; }; };
         throw new Error(`Authentication failed: ${error.error?.message || 'Unknown error'}`);
     }
 
-    const authData = (await signInResponse.json()) as { idToken: string };
+    const authData = (await signInResponse.json()) as { idToken: string; };
     return authData.idToken;
 }
 

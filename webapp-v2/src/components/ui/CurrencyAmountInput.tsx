@@ -204,7 +204,7 @@ export function CurrencyAmountInput({
                                 {selectedCurrency?.acronym ?? currency ?? ''}
                             </span>
                         </div>
-<ChevronDownIcon size={16} className={`ml-1 text-text-muted/80 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+                        <ChevronDownIcon size={16} className={`ml-1 text-text-muted/80 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
                     </button>
 
                     {/* Amount input */}
@@ -236,7 +236,6 @@ export function CurrencyAmountInput({
                         aria-describedby={error ? `${inputId}-error` : undefined}
                     />
                 </div>
-
             </div>
 
             {/* Currency dropdown - rendered via portal to escape overflow:hidden containers */}

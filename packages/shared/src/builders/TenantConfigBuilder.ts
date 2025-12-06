@@ -1,13 +1,4 @@
-import {
-    toISOString,
-    toShowLandingPageFlag,
-    toShowMarketingContentFlag,
-    toShowPricingPageFlag,
-    toTenantAccentColor,
-    toTenantId,
-    toTenantPrimaryColor,
-    toTenantSecondaryColor,
-} from '../shared-types';
+import { toISOString, toShowLandingPageFlag, toShowMarketingContentFlag, toShowPricingPageFlag, toTenantAccentColor, toTenantId, toTenantPrimaryColor, toTenantSecondaryColor } from '../shared-types';
 import type { BrandingMarketingFlags, ISOString, TenantConfig, TenantId } from '../shared-types';
 import type { TenantBranding } from '../types/branding';
 

@@ -21,7 +21,7 @@ describe('Tenant API Response Validation', () => {
                         .withShowLandingPage(true)
                         .withShowMarketingContent(true)
                         .withShowPricingPage(false)
-                        .build()
+                        .build(),
                 )
                 .build();
 

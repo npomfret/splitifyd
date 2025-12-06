@@ -4,8 +4,8 @@ import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanc
 import { translateApiError } from '@/utils/error-translation';
 import { GroupId, GroupMember, toDisplayName } from '@billsplit-wl/shared';
 import { ReadonlySignal, signal } from '@preact/signals';
-import { useCallback, useEffect, useState } from 'preact/hooks';
 import { TFunction } from 'i18next';
+import { useCallback, useEffect, useState } from 'preact/hooks';
 
 interface UseGroupDisplayNameOptions {
     groupId: GroupId;

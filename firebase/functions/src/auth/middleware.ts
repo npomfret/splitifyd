@@ -4,7 +4,7 @@ import { OAuth2Client } from 'google-auth-library';
 import { getAppConfig } from '../app-config';
 import { getComponentBuilder } from '../ComponentBuilderSingleton';
 import { AUTH } from '../constants';
-import { Errors, ErrorDetail } from '../errors';
+import { ErrorDetail, Errors } from '../errors';
 import { logger } from '../logger';
 import { LoggerContext } from '../logger';
 import { getServiceConfig } from '../merge/ServiceConfig';

@@ -1,5 +1,5 @@
+import { emulatorHostingURL } from '@billsplit-wl/test-support';
 import { defineConfig, devices } from '@playwright/test';
-import {emulatorHostingURL} from "@billsplit-wl/test-support";
 
 /**
  * @see https://playwright.dev/docs/test-configuration

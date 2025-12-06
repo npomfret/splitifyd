@@ -74,18 +74,24 @@ export function GroupSecurityTabContent({
     return (
         <div className='space-y-6'>
             {hasSecurityChanges && !successMessage.value && (
-                <div className='bg-interactive-primary/10 border border-interactive-primary/20 text-interactive-primary text-sm rounded-md p-3' role='status' aria-label={t('groupSettingsModal.securityTab.unsavedChangesAriaLabel')}>
+                <div
+                    className='bg-interactive-primary/10 border border-interactive-primary/20 text-interactive-primary text-sm rounded-md p-3'
+                    role='status'
+                    aria-label={t('groupSettingsModal.securityTab.unsavedChangesAriaLabel')}
+                >
                     {t('securitySettingsModal.unsavedChanges')}
                 </div>
             )}
             {successMessage.value && (
-                <div className='bg-interactive-accent/10 border border-semantic-success/40 text-semantic-success text-sm rounded-md p-3' role='status' aria-label={t('groupSettingsModal.securityTab.successAriaLabel')}>
+                <div
+                    className='bg-interactive-accent/10 border border-semantic-success/40 text-semantic-success text-sm rounded-md p-3'
+                    role='status'
+                    aria-label={t('groupSettingsModal.securityTab.successAriaLabel')}
+                >
                     {successMessage.value}
                 </div>
             )}
-            {actionError && (
-                <Alert type='error' message={actionError} />
-            )}
+            {actionError && <Alert type='error' message={actionError} />}
 
             <PermissionPresetsSection
                 selectedPreset={selectedPreset}

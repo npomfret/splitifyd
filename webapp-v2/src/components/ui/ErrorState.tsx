@@ -28,7 +28,7 @@ export function ErrorState({ error, title, onRetry, fullPage = false, className 
         <div className={`text-center ${className}`}>
             {/* Error Icon */}
             <div className='mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-surface-error'>
-<AlertTriangleIcon size={24} className='text-semantic-error' />
+                <AlertTriangleIcon size={24} className='text-semantic-error' />
             </div>
 
             {/* Error Title */}

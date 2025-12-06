@@ -93,7 +93,7 @@ export function UserMenu({ user }: UserMenuProps) {
                             data-testid='user-menu-dashboard-link'
                             role='menuitem'
                         >
-                            <HomeIcon size={16} className="mr-3 text-text-muted" />
+                            <HomeIcon size={16} className='mr-3 text-text-muted' />
                             {t('userMenu.dashboard')}
                         </button>
 
@@ -106,7 +106,7 @@ export function UserMenu({ user }: UserMenuProps) {
                             data-testid='user-menu-settings-link'
                             role='menuitem'
                         >
-                            <SettingsIcon size={16} className="mr-3 text-text-muted" />
+                            <SettingsIcon size={16} className='mr-3 text-text-muted' />
                             {t('userMenu.settings')}
                         </button>
                     </div>
@@ -128,7 +128,7 @@ export function UserMenu({ user }: UserMenuProps) {
                                 data-testid='user-menu-admin-link'
                                 role='menuitem'
                             >
-                                <SettingsIcon size={16} className="mr-3 text-text-muted" />
+                                <SettingsIcon size={16} className='mr-3 text-text-muted' />
                                 Admin
                             </button>
                         </>
@@ -153,7 +153,7 @@ export function UserMenu({ user }: UserMenuProps) {
                         disabled={authStore.loading}
                         role='menuitem'
                     >
-                        <LogoutIcon size={16} className="mr-3" />
+                        <LogoutIcon size={16} className='mr-3' />
                         {authStore.loading ? t('userMenu.signingOut') : t('userMenu.signOut')}
                     </button>
                 </div>

@@ -2,14 +2,14 @@ import { AdminFormSection } from '@/components/admin/forms';
 import { Button, ColorInput } from '@/components/ui';
 import { useTranslation } from 'react-i18next';
 import { deriveSemanticColorsFromFormData } from '../color-derivation';
-import type { CreationModeSectionProps } from './types';
 import type { TenantData } from '../types';
+import type { CreationModeSectionProps } from './types';
 
 interface PaletteColorsSectionProps extends CreationModeSectionProps {
     simplified?: boolean;
 }
 
-const STYLE_OPTIONS: Array<{ value: TenantData['derivationStyle']; labelKey: string }> = [
+const STYLE_OPTIONS: Array<{ value: TenantData['derivationStyle']; labelKey: string; }> = [
     { value: 'balanced', labelKey: 'admin.tenantEditor.derivation.style.balanced' },
     { value: 'bold', labelKey: 'admin.tenantEditor.derivation.style.bold' },
     { value: 'soft', labelKey: 'admin.tenantEditor.derivation.style.soft' },
@@ -28,9 +28,9 @@ export function PaletteColorsSection({ formData, update, isSaving, mode, creatio
     };
 
     const canDeriveColors = Boolean(
-        formData.primaryColor &&
-        formData.secondaryColor &&
-        formData.accentColor
+        formData.primaryColor
+            && formData.secondaryColor
+            && formData.accentColor,
     );
 
     if (simplified) {
@@ -45,7 +45,14 @@ export function PaletteColorsSection({ formData, update, isSaving, mode, creatio
                     {/* Color Pickers */}
                     <div class='grid grid-cols-3 gap-4'>
                         <ColorInput id='primary-color' label='Primary *' value={formData.primaryColor} onChange={(v) => update({ primaryColor: v })} disabled={isSaving} testId='primary-color-input' />
-                        <ColorInput id='secondary-color' label='Secondary *' value={formData.secondaryColor} onChange={(v) => update({ secondaryColor: v })} disabled={isSaving} testId='secondary-color-input' />
+                        <ColorInput
+                            id='secondary-color'
+                            label='Secondary *'
+                            value={formData.secondaryColor}
+                            onChange={(v) => update({ secondaryColor: v })}
+                            disabled={isSaving}
+                            testId='secondary-color-input'
+                        />
                         <ColorInput id='accent-color' label='Accent *' value={formData.accentColor} onChange={(v) => update({ accentColor: v })} disabled={isSaving} testId='accent-color-input' />
                     </div>
 
@@ -189,16 +196,44 @@ export function PaletteColorsSection({ formData, update, isSaving, mode, creatio
             <div class='space-y-4'>
                 <div class='grid grid-cols-2 gap-4'>
                     <ColorInput id='primary-color' label='Primary *' value={formData.primaryColor} onChange={(v) => update({ primaryColor: v })} disabled={isSaving} testId='primary-color-input' />
-                    <ColorInput id='primary-variant' label='Primary Variant *' value={formData.primaryVariantColor} onChange={(v) => update({ primaryVariantColor: v })} disabled={isSaving} testId='primary-variant-color-input' />
+                    <ColorInput
+                        id='primary-variant'
+                        label='Primary Variant *'
+                        value={formData.primaryVariantColor}
+                        onChange={(v) => update({ primaryVariantColor: v })}
+                        disabled={isSaving}
+                        testId='primary-variant-color-input'
+                    />
                 </div>
                 <div class='grid grid-cols-2 gap-4'>
-                    <ColorInput id='secondary-color' label='Secondary *' value={formData.secondaryColor} onChange={(v) => update({ secondaryColor: v })} disabled={isSaving} testId='secondary-color-input' />
-                    <ColorInput id='secondary-variant' label='Secondary Variant *' value={formData.secondaryVariantColor} onChange={(v) => update({ secondaryVariantColor: v })} disabled={isSaving} testId='secondary-variant-color-input' />
+                    <ColorInput
+                        id='secondary-color'
+                        label='Secondary *'
+                        value={formData.secondaryColor}
+                        onChange={(v) => update({ secondaryColor: v })}
+                        disabled={isSaving}
+                        testId='secondary-color-input'
+                    />
+                    <ColorInput
+                        id='secondary-variant'
+                        label='Secondary Variant *'
+                        value={formData.secondaryVariantColor}
+                        onChange={(v) => update({ secondaryVariantColor: v })}
+                        disabled={isSaving}
+                        testId='secondary-variant-color-input'
+                    />
                 </div>
                 <ColorInput id='accent-color' label='Accent *' value={formData.accentColor} onChange={(v) => update({ accentColor: v })} disabled={isSaving} testId='accent-color-input' />
                 <div class='grid grid-cols-2 gap-4'>
                     <ColorInput id='neutral-color' label='Neutral *' value={formData.neutralColor} onChange={(v) => update({ neutralColor: v })} disabled={isSaving} testId='neutral-color-input' />
-                    <ColorInput id='neutral-variant' label='Neutral Variant *' value={formData.neutralVariantColor} onChange={(v) => update({ neutralVariantColor: v })} disabled={isSaving} testId='neutral-variant-color-input' />
+                    <ColorInput
+                        id='neutral-variant'
+                        label='Neutral Variant *'
+                        value={formData.neutralVariantColor}
+                        onChange={(v) => update({ neutralVariantColor: v })}
+                        disabled={isSaving}
+                        testId='neutral-variant-color-input'
+                    />
                 </div>
                 <div class='grid grid-cols-2 gap-4'>
                     <ColorInput id='success-color' label='Success *' value={formData.successColor} onChange={(v) => update({ successColor: v })} disabled={isSaving} testId='success-color-input' />

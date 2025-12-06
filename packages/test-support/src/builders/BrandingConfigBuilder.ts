@@ -1,8 +1,4 @@
-import {
-    toTenantAccentColor,
-    toTenantPrimaryColor,
-    toTenantSecondaryColor,
-} from '@billsplit-wl/shared';
+import { toTenantAccentColor, toTenantPrimaryColor, toTenantSecondaryColor } from '@billsplit-wl/shared';
 import type { BrandingConfig } from '@billsplit-wl/shared';
 
 export class BrandingConfigBuilder {

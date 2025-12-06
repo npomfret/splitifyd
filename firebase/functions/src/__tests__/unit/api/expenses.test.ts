@@ -440,7 +440,9 @@ describe('expenses', () => {
                         .build(),
                     user1,
                 ),
-            ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+            )
+                .rejects
+                .toMatchObject({ code: 'NOT_FOUND' });
         });
 
         it('should reject creating expense by non-member', async () => {
@@ -460,7 +462,9 @@ describe('expenses', () => {
                         .build(),
                     user2,
                 ),
-            ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+            )
+                .rejects
+                .toMatchObject({ code: 'FORBIDDEN' });
         });
 
         it('should reject creating expense with payer not in participants', async () => {
@@ -480,7 +484,9 @@ describe('expenses', () => {
                         .build(),
                     user1,
                 ),
-            ).rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
+            )
+                .rejects
+                .toMatchObject({ code: 'VALIDATION_ERROR' });
         });
 
         it('should reject creating expense with non-member participant', async () => {
@@ -500,7 +506,9 @@ describe('expenses', () => {
                         .build(),
                     user1,
                 ),
-            ).rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
+            )
+                .rejects
+                .toMatchObject({ code: 'VALIDATION_ERROR' });
         });
 
         it('should reject updating non-existent expense', async () => {
@@ -510,19 +518,25 @@ describe('expenses', () => {
                     ExpenseUpdateBuilder.minimal().withDescription('Updated').build(),
                     user1,
                 ),
-            ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+            )
+                .rejects
+                .toMatchObject({ code: 'NOT_FOUND' });
         });
 
         it('should reject deleting non-existent expense', async () => {
             await expect(
                 appDriver.deleteExpense('non-existent-expense-id', user1),
-            ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+            )
+                .rejects
+                .toMatchObject({ code: 'NOT_FOUND' });
         });
 
         it('should reject getting details for non-existent expense', async () => {
             await expect(
                 appDriver.getExpenseFullDetails('non-existent-expense-id', user1),
-            ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+            )
+                .rejects
+                .toMatchObject({ code: 'NOT_FOUND' });
         });
 
         it('should reject getting expense details as non-member (returns NOT_FOUND for security)', async () => {
@@ -543,7 +557,9 @@ describe('expenses', () => {
             // user2 is NOT a member - returns NOT_FOUND to avoid leaking existence info
             await expect(
                 appDriver.getExpenseFullDetails(expense.id, user2),
-            ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+            )
+                .rejects
+                .toMatchObject({ code: 'NOT_FOUND' });
         });
     });
 
@@ -552,7 +568,9 @@ describe('expenses', () => {
             // For security reasons, returns FORBIDDEN instead of NOT_FOUND to avoid leaking group existence
             await expect(
                 appDriver.listGroupExpenses('non-existent-group-id', {}, user1),
-            ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+            )
+                .rejects
+                .toMatchObject({ code: 'FORBIDDEN' });
         });
 
         it('should reject listing expenses as non-member', async () => {
@@ -561,7 +579,9 @@ describe('expenses', () => {
             // user2 is NOT a member
             await expect(
                 appDriver.listGroupExpenses(group.id, {}, user2),
-            ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+            )
+                .rejects
+                .toMatchObject({ code: 'FORBIDDEN' });
         });
 
         it('should return empty list for group with no expenses', async () => {
@@ -777,7 +797,8 @@ describe('expenses', () => {
 
             // Attempting to delete the original (superseded) expense should fail
             await expect(appDriver.deleteExpense(originalExpense.id, user1))
-                .rejects.toMatchObject({ code: 'INVALID_REQUEST' });
+                .rejects
+                .toMatchObject({ code: 'INVALID_REQUEST' });
         });
 
         it('should not return superseded expense in group details', async () => {

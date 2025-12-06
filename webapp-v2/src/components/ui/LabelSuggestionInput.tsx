@@ -20,8 +20,7 @@ export function LabelSuggestionInput({ value, onChange, suggestions, className =
     const inputId = useMemo(() => `label-input-${Math.random().toString(36).substr(2, 9)}`, []);
 
     const filterFn = useCallback(
-        (suggestion: ExpenseLabel, searchTerm: string) =>
-            suggestion.displayName.toLowerCase().includes(searchTerm.toLowerCase()) || suggestion.name.toLowerCase().includes(searchTerm.toLowerCase()),
+        (suggestion: ExpenseLabel, searchTerm: string) => suggestion.displayName.toLowerCase().includes(searchTerm.toLowerCase()) || suggestion.name.toLowerCase().includes(searchTerm.toLowerCase()),
         [],
     );
 

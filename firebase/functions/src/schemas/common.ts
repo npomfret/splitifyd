@@ -1,22 +1,5 @@
-import {
-    isValidCurrency,
-    toCommentId,
-    toExpenseId,
-    toGroupId,
-    toGroupName,
-    toPolicyId,
-    toSettlementId,
-    toUserId,
-} from '@billsplit-wl/shared';
-import type {
-    CommentId,
-    ExpenseId,
-    GroupId,
-    GroupName,
-    PolicyId,
-    SettlementId,
-    UserId,
-} from '@billsplit-wl/shared';
+import { isValidCurrency, toCommentId, toExpenseId, toGroupId, toGroupName, toPolicyId, toSettlementId, toUserId } from '@billsplit-wl/shared';
+import type { CommentId, ExpenseId, GroupId, GroupName, PolicyId, SettlementId, UserId } from '@billsplit-wl/shared';
 import { z } from 'zod';
 import { FieldValue, Timestamp } from '../firestore-wrapper';
 

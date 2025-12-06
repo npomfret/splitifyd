@@ -1,21 +1,7 @@
-import type {
-    CommentId,
-    ExpenseId,
-    GroupId,
-    PolicyId,
-    SettlementId,
-    UserId,
-} from '@billsplit-wl/shared';
+import type { CommentId, ExpenseId, GroupId, PolicyId, SettlementId, UserId } from '@billsplit-wl/shared';
 import { z } from 'zod';
 import { Errors } from '../../errors';
-import {
-    CommentIdSchema,
-    ExpenseIdSchema,
-    GroupIdSchema,
-    PolicyIdSchema,
-    SettlementIdSchema,
-    UserIdSchema,
-} from '../../schemas/common';
+import { CommentIdSchema, ExpenseIdSchema, GroupIdSchema, PolicyIdSchema, SettlementIdSchema, UserIdSchema } from '../../schemas/common';
 
 /**
  * Factory function to create consistent ID validators using Zod schemas.
@@ -82,14 +68,11 @@ interface RouteParams {
     policyId?: string;
 }
 
-export const validateGroupIdParam = (params: unknown): GroupId =>
-    validateGroupId((params as RouteParams)?.groupId);
+export const validateGroupIdParam = (params: unknown): GroupId => validateGroupId((params as RouteParams)?.groupId);
 
-export const validateUserIdParam = (params: unknown): UserId =>
-    validateUserId((params as RouteParams)?.userId);
+export const validateUserIdParam = (params: unknown): UserId => validateUserId((params as RouteParams)?.userId);
 
-export const validatePolicyIdParam = (params: unknown): PolicyId =>
-    validatePolicyId((params as RouteParams)?.policyId);
+export const validatePolicyIdParam = (params: unknown): PolicyId => validatePolicyId((params as RouteParams)?.policyId);
 
 /**
  * Validate memberId - returns UserId since members are users

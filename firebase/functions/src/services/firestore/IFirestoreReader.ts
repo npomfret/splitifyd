@@ -103,7 +103,7 @@ export interface IFirestoreReader {
      * @param options - Optional flags for retrieval behavior
      * @returns Expense document or null if not found
      */
-    getExpense(expenseId: ExpenseId, options?: { includeSoftDeleted?: boolean }): Promise<ExpenseDTO | null>;
+    getExpense(expenseId: ExpenseId, options?: { includeSoftDeleted?: boolean; }): Promise<ExpenseDTO | null>;
 
     /**
      * Get a settlement document by ID
@@ -111,7 +111,7 @@ export interface IFirestoreReader {
      * @param options - Optional flags for retrieval behavior
      * @returns Settlement document or null if not found
      */
-    getSettlement(settlementId: SettlementId, options?: { includeSoftDeleted?: boolean }): Promise<SettlementDTO | null>;
+    getSettlement(settlementId: SettlementId, options?: { includeSoftDeleted?: boolean; }): Promise<SettlementDTO | null>;
 
     /**
      * Get a policy document by ID

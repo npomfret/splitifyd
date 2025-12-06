@@ -7,8 +7,7 @@ export default defineConfig({
         globals: true,
         setupFiles: ['./vitest.setup.ts'],
         silent: false,
-        env: {
-        },
+        env: {},
         include: ['src/**/*.test.ts'],
         exclude: ['node_modules', 'lib', 'dist'],
         testTimeout: 20000, // Increased for integration tests

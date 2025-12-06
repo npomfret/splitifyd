@@ -2,6 +2,7 @@ import { useAuthRequired } from '@/app/hooks/useAuthRequired';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced';
 import { themeStore } from '@/app/stores/theme-store';
 import { Checkbox, CurrencyAmount, SidebarCard, Tooltip } from '@/components/ui';
+import { Typography } from '@/components/ui';
 import { Avatar } from '@/components/ui/Avatar';
 import { Clickable } from '@/components/ui/Clickable';
 import { ArrowDownIcon, ArrowRightIcon, BanknotesIcon, ScaleIcon } from '@/components/ui/icons';
@@ -11,7 +12,6 @@ import { useComputed, useSignal } from '@preact/signals';
 import { useMemo } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Card } from '../ui/Card';
-import { Typography } from '@/components/ui';
 
 interface BalanceSummaryProps {
     variant?: 'default' | 'sidebar';
@@ -168,7 +168,7 @@ export function BalanceSummary({ variant = 'default', onSettleUp }: BalanceSumma
                                                         amount: debt.amount,
                                                     }}
                                                 >
-<ArrowRightIcon size={16} />
+                                                    <ArrowRightIcon size={16} />
                                                     <BanknotesIcon size={16} />
                                                 </Clickable>
                                             </Tooltip>
@@ -227,7 +227,7 @@ export function BalanceSummary({ variant = 'default', onSettleUp }: BalanceSumma
     return (
         <Card variant='glass' className='p-6 border-border-default' data-testid='balance-summary-main'>
             <div className='flex items-center justify-between mb-4'>
-                <Typography variant="subheading" as="h2">{t('balanceSummary.title')}</Typography>
+                <Typography variant='subheading' as='h2'>{t('balanceSummary.title')}</Typography>
                 {/* Filter toggle for non-sidebar variant */}
                 <Checkbox
                     label={t('balanceSummary.showAll')}

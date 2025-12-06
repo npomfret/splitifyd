@@ -18,7 +18,7 @@ import { toVersionHash } from '@billsplit-wl/shared';
 import * as crypto from 'crypto';
 import { z } from 'zod';
 import { ALLOWED_POLICY_IDS } from '../constants';
-import { ApiError, Errors, ErrorDetail } from '../errors';
+import { ApiError, ErrorDetail, Errors } from '../errors';
 import { logger } from '../logger';
 import { measureDb } from '../monitoring/measure';
 import { PerformanceTimer } from '../monitoring/PerformanceTimer';

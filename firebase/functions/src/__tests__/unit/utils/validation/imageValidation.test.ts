@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../../constants';
-import { validateFaviconImage, validateImageUpload, validateLogoImage } from '../../../../utils/validation/imageValidation';
 import { ErrorCode } from '../../../../errors';
+import { validateFaviconImage, validateImageUpload, validateLogoImage } from '../../../../utils/validation/imageValidation';
 
 describe('imageValidation', () => {
     describe('validateImageUpload', () => {

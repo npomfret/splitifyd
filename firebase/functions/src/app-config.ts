@@ -1,10 +1,10 @@
-import type {Email} from '@billsplit-wl/shared';
-import {ClientAppConfiguration, FirebaseConfig, TenantConfig, toEmail} from '@billsplit-wl/shared';
-import {z} from 'zod';
-import {DOCUMENT_CONFIG, VALIDATION_LIMITS} from './constants';
-import {logger} from './logger';
-import {validateAppConfiguration} from './middleware/config-validation';
-import {inferProjectId, isEmulator, isRealFirebase} from "./firebase";
+import type { Email } from '@billsplit-wl/shared';
+import { ClientAppConfiguration, FirebaseConfig, TenantConfig, toEmail } from '@billsplit-wl/shared';
+import { z } from 'zod';
+import { DOCUMENT_CONFIG, VALIDATION_LIMITS } from './constants';
+import { inferProjectId, isEmulator, isRealFirebase } from './firebase';
+import { logger } from './logger';
+import { validateAppConfiguration } from './middleware/config-validation';
 
 // Cache for lazy-loaded configurations
 let cachedConfig: AppConfig | null = null;
@@ -130,21 +130,21 @@ function buildConfig(): AppConfig {
         securityHeaders: {
             hstsEnabled: !emulator,
             cspPolicy: emulator
-                ? "default-src 'self'; "
-                    + "script-src 'self'; "
-                    + "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
-                    + "font-src 'self' https://fonts.gstatic.com; "
-                    + "img-src 'self' data: https:; "
-                    + "connect-src 'self' http://localhost:* ws://localhost:*; "
-                    + "frame-ancestors 'none';"
-                : "default-src 'self'; "
-                    + "script-src 'self' https://apis.google.com https://www.gstatic.com; "
-                    + "style-src 'self' https://fonts.googleapis.com; "
-                    + "font-src 'self' https://fonts.gstatic.com; "
-                    + "img-src 'self' data: https:; "
-                    + "connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.firebaseapp.com wss://*.firebaseio.com; "
-                    + "frame-ancestors 'none'; "
-                    + "report-uri /csp-violation-report;",
+                ? 'default-src \'self\'; '
+                    + 'script-src \'self\'; '
+                    + 'style-src \'self\' \'unsafe-inline\' https://fonts.googleapis.com; '
+                    + 'font-src \'self\' https://fonts.gstatic.com; '
+                    + 'img-src \'self\' data: https:; '
+                    + 'connect-src \'self\' http://localhost:* ws://localhost:*; '
+                    + 'frame-ancestors \'none\';'
+                : 'default-src \'self\'; '
+                    + 'script-src \'self\' https://apis.google.com https://www.gstatic.com; '
+                    + 'style-src \'self\' https://fonts.googleapis.com; '
+                    + 'font-src \'self\' https://fonts.gstatic.com; '
+                    + 'img-src \'self\' data: https:; '
+                    + 'connect-src \'self\' https://*.googleapis.com https://*.firebaseio.com https://*.firebaseapp.com wss://*.firebaseio.com; '
+                    + 'frame-ancestors \'none\'; '
+                    + 'report-uri /csp-violation-report;',
         },
         cloudTasks: {
             requireOidcAuth: !emulator,

@@ -34,7 +34,8 @@ export function AdminFormInput({
     return (
         <div>
             <label for={inputId} class='block text-xs font-medium text-text-secondary mb-1'>
-                {label}{required && ' *'}
+                {label}
+                {required && ' *'}
             </label>
             <input
                 id={inputId}

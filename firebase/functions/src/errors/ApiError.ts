@@ -57,8 +57,8 @@ export class ApiError extends Error {
      * Serialize to JSON for API response.
      * Only includes non-undefined fields.
      */
-    toJSON(): { code: ErrorCode } & ApiErrorData {
-        const result: { code: ErrorCode } & ApiErrorData = { code: this.code };
+    toJSON(): { code: ErrorCode; } & ApiErrorData {
+        const result: { code: ErrorCode; } & ApiErrorData = { code: this.code };
 
         if (this.data) {
             // Only include defined values

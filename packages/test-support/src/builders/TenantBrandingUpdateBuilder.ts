@@ -1,16 +1,5 @@
-import type {
-    TenantAccentColor,
-    TenantPrimaryColor,
-    TenantSecondaryColor,
-    UpdateTenantBrandingRequest,
-} from '@billsplit-wl/shared';
-import {
-    toShowLandingPageFlag,
-    toShowPricingPageFlag,
-    toTenantAccentColor,
-    toTenantPrimaryColor,
-    toTenantSecondaryColor,
-} from '@billsplit-wl/shared';
+import type { TenantAccentColor, TenantPrimaryColor, TenantSecondaryColor, UpdateTenantBrandingRequest } from '@billsplit-wl/shared';
+import { toShowLandingPageFlag, toShowPricingPageFlag, toTenantAccentColor, toTenantPrimaryColor, toTenantSecondaryColor } from '@billsplit-wl/shared';
 import { generateShortId } from '../test-helpers';
 
 export class TenantBrandingUpdateBuilder {
@@ -52,8 +41,7 @@ export class TenantBrandingUpdateBuilder {
     }
 
     withSecondaryColor(secondaryColor: TenantSecondaryColor | string): this {
-        this.update.secondaryColor =
-            typeof secondaryColor === 'string' ? toTenantSecondaryColor(secondaryColor) : secondaryColor;
+        this.update.secondaryColor = typeof secondaryColor === 'string' ? toTenantSecondaryColor(secondaryColor) : secondaryColor;
         return this;
     }
 
@@ -62,7 +50,7 @@ export class TenantBrandingUpdateBuilder {
         return this;
     }
 
-    withMarketingFlags(flags: { showLandingPage?: boolean; showPricingPage?: boolean }): this {
+    withMarketingFlags(flags: { showLandingPage?: boolean; showPricingPage?: boolean; }): this {
         this.update.marketingFlags = {
             ...(flags.showLandingPage !== undefined && { showLandingPage: toShowLandingPageFlag(flags.showLandingPage) }),
             ...(flags.showPricingPage !== undefined && { showPricingPage: toShowPricingPageFlag(flags.showPricingPage) }),

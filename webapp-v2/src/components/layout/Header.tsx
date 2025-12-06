@@ -86,11 +86,7 @@ export function Header({ variant = 'default', showAuth = true }: HeaderProps) {
                                 eventName='header_logo_click'
                                 eventProps={{ destination: isAuthenticated.value ? 'dashboard' : 'home' }}
                             >
-                                {logoUrl ? (
-                                    <img src={logoUrl} alt={appName} class='h-8' />
-                                ) : (
-                                    <HomeIcon size={32} className="text-text-primary" />
-                                )}
+                                {logoUrl ? <img src={logoUrl} alt={appName} class='h-8' /> : <HomeIcon size={32} className='text-text-primary' />}
                             </Clickable>
                             {showAppName && (
                                 <span class='text-text-primary font-semibold leading-6 whitespace-nowrap'>

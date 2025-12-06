@@ -12,8 +12,7 @@ interface UsePayerSelectorOptions {
  * Wraps useDropdownSelector with member-specific filtering logic.
  */
 export function usePayerSelector({ members, onPayerChange }: UsePayerSelectorOptions) {
-    const filterFn = (member: ExpenseFormMember, searchTerm: string) =>
-        member.groupDisplayName.toLowerCase().includes(searchTerm.toLowerCase());
+    const filterFn = (member: ExpenseFormMember, searchTerm: string) => member.groupDisplayName.toLowerCase().includes(searchTerm.toLowerCase());
 
     const dropdown = useDropdownSelector({
         items: members,

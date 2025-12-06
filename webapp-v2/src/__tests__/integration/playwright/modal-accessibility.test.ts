@@ -1,4 +1,4 @@
-import { CreateGroupModalPage, DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder } from '@billsplit-wl/test-support';
+import { DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder } from '@billsplit-wl/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { mockActivityFeedApi, mockGroupsApi } from '../../utils/mock-firebase-service';
 

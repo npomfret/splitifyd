@@ -1,6 +1,6 @@
 import type { ExpenseId, GroupId, UserId } from '@billsplit-wl/shared';
 import { ActivityFeedActions, ActivityFeedEventTypes, CommentDTO, CreateExpenseCommentRequest, CreateGroupCommentRequest, ListCommentsResponse, toCommentId, toISOString } from '@billsplit-wl/shared';
-import { Errors, ErrorDetail } from '../errors';
+import { ErrorDetail, Errors } from '../errors';
 import { logger } from '../logger';
 import * as measure from '../monitoring/measure';
 import { PerformanceTimer } from '../monitoring/PerformanceTimer';

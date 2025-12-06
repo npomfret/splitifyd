@@ -4,11 +4,11 @@
  * Shows group information in the join group flow
  */
 
+import { Typography } from '@/components/ui';
 import { GroupDTO } from '@billsplit-wl/shared';
 import { useTranslation } from 'react-i18next';
 import { Card } from '../ui/Card';
 import { Stack } from '../ui/Stack';
-import { Typography } from '@/components/ui';
 
 interface GroupPreviewProps {
     group: GroupDTO;
@@ -23,7 +23,7 @@ export function GroupPreview({ group, memberCount }: GroupPreviewProps) {
                 <Stack spacing='lg'>
                     {/* GroupDTO Header */}
                     <div className='text-center'>
-                        <Typography variant="heading" className="mb-2">{group.name}</Typography>
+                        <Typography variant='heading' className='mb-2'>{group.name}</Typography>
                         {group.description && <p className='text-text-muted text-sm'>{group.description}</p>}
                     </div>
 

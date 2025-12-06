@@ -41,7 +41,8 @@ test.describe('Settings Page - Profile Update Functionality', () => {
             if (route.request().method() === 'PUT') {
                 await route.fulfill({ status: 204 });
             } else if (route.request().method() === 'GET') {
-                const updatedProfile = UserProfileResponseBuilder.fromClientUser(user)
+                const updatedProfile = UserProfileResponseBuilder
+                    .fromClientUser(user)
                     .withDisplayName(newDisplayName)
                     .build();
                 await route.fulfill({

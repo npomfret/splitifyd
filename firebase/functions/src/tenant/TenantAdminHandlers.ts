@@ -1,12 +1,12 @@
 import type { RequestHandler } from 'express';
 import type { AuthenticatedRequest } from '../auth/middleware';
 import { HTTP_STATUS } from '../constants';
+import { Errors } from '../errors';
+import { ErrorDetail } from '../errors';
 import { AdminUpsertTenantRequestSchema, PublishTenantThemeRequestSchema } from '../schemas/tenant';
 import type { IFirestoreReader } from '../services/firestore';
 import type { TenantAssetStorage } from '../services/storage/TenantAssetStorage';
 import { TenantAdminService } from '../services/tenant/TenantAdminService';
-import { Errors } from '../errors';
-import { ErrorDetail } from '../errors';
 import { validateFaviconImage, validateLogoImage } from '../utils/validation/imageValidation';
 import { validateUploadTenantAssetParams } from './validation';
 

@@ -17,7 +17,7 @@ export function StaticPageLayout({ title, description, canonical, ogImage, struc
             {/* Main Content */}
             <main class='max-w-4xl mx-auto px-4 py-12'>
                 <div class='bg-surface-muted border-border-default rounded-lg shadow-sm p-8'>
-                    <Typography variant="display" className="mb-6">{title}</Typography>
+                    <Typography variant='display' className='mb-6'>{title}</Typography>
                     <div class='prose max-w-none text-text-primary prose-headings:text-text-primary prose-a:text-interactive-primary'>{children}</div>
                 </div>
             </main>

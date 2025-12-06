@@ -1,8 +1,8 @@
 import { toUserId, USD } from '@billsplit-wl/shared';
 import { ExpenseSplitBuilder } from '@billsplit-wl/test-support';
 import { describe, expect, it } from 'vitest';
-import { PercentageSplitStrategy } from '../../../../services/splits/PercentageSplitStrategy';
 import { ErrorCode } from '../../../../errors';
+import { PercentageSplitStrategy } from '../../../../services/splits/PercentageSplitStrategy';
 
 describe('PercentageSplitStrategy', () => {
     const strategy = new PercentageSplitStrategy();
@@ -26,7 +26,7 @@ describe('PercentageSplitStrategy', () => {
 
         it('should throw error if splits are not provided', () => {
             expect(() => strategy.validateSplits('100', participants, undefined as any, USD)).toThrow(
-                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR })
+                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR }),
             );
         });
 
@@ -38,7 +38,7 @@ describe('PercentageSplitStrategy', () => {
                 .withSplit(userId3, '20', 20) // Total = 90%, not 100%
                 .build();
             expect(() => strategy.validateSplits('100', participants, splits, USD)).toThrow(
-                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR })
+                expect.objectContaining({ code: ErrorCode.VALIDATION_ERROR }),
             );
         });
 

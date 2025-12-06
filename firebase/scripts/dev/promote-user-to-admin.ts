@@ -12,8 +12,8 @@
  *   npx tsx firebase/scripts/dev/promote-user-to-admin.ts user@example.com
  */
 
-import { ApiDriver, getApiDriverConfig } from '@billsplit-wl/test-support';
 import { toEmail, toUserId } from '@billsplit-wl/shared';
+import { ApiDriver, getApiDriverConfig } from '@billsplit-wl/test-support';
 
 const email = process.argv[2];
 
@@ -64,7 +64,7 @@ async function main(): Promise<void> {
             throw new Error('Default admin user not found. Make sure the emulator is running with seeded data.');
         }
 
-        const signInData = (await signInResponse.json()) as { idToken?: string };
+        const signInData = (await signInResponse.json()) as { idToken?: string; };
         if (!signInData.idToken) {
             throw new Error('Failed to get admin token');
         }
