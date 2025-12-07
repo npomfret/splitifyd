@@ -34,7 +34,7 @@ import { PermissionEngine } from '../permissions';
 import { GroupBalanceDTO } from '../schemas';
 import * as dateHelpers from '../utils/dateHelpers';
 import { newTopLevelMembershipDocId } from '../utils/idGenerator';
-import { ActivityFeedService } from './ActivityFeedService';
+import { ActivityFeedService, CreateActivityItemInput } from './ActivityFeedService';
 import { CommentService } from './CommentService';
 import { ExpenseService } from './ExpenseService';
 import type { GetGroupsForUserOptions, IFirestoreReader, IFirestoreWriter } from './firestore';
@@ -433,7 +433,7 @@ export class GroupService {
         // Update with optimistic locking and transaction retry logic
         timer.startPhase('transaction');
         let memberIds: UserId[] = [];
-        let activityItem: any = null;
+        let activityItem: CreateActivityItemInput | null = null;
         let activityRecipients: UserId[] = [];
 
         await this.groupTransactionManager.run(groupId, { preloadBalance: false }, async (context) => {

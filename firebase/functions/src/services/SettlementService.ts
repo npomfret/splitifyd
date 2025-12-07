@@ -19,7 +19,7 @@ import { logger } from '../logger';
 import * as measure from '../monitoring/measure';
 import { PerformanceTimer } from '../monitoring/PerformanceTimer';
 import { LoggerContext } from '../utils/logger-context';
-import { ActivityFeedService } from './ActivityFeedService';
+import { ActivityFeedService, CreateActivityItemInput } from './ActivityFeedService';
 import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
 import { GroupMemberService } from './GroupMemberService';
@@ -142,7 +142,7 @@ export class SettlementService {
         timer.endPhase();
 
         // Declare variables outside transaction for activity feed
-        let activityItem: any = null;
+        let activityItem: CreateActivityItemInput | null = null;
         let activityRecipients: UserId[] = [];
 
         // Create settlement and update group balance atomically
@@ -319,7 +319,7 @@ export class SettlementService {
         };
 
         // Declare variables outside transaction for activity feed
-        let activityItem: any = null;
+        let activityItem: CreateActivityItemInput | null = null;
         let activityRecipients: UserId[] = [];
 
         // Use transaction to soft-delete old settlement and create new one atomically
@@ -514,6 +514,10 @@ export class SettlementService {
         const memberIds = await this.firestoreReader.getAllGroupMemberIds(settlement.groupId);
         timer.endPhase();
 
+        // Declare variables outside transaction for activity feed
+        let activityItem: CreateActivityItemInput | null = null;
+        let activityRecipients: UserId[] = [];
+
         // Soft delete with optimistic locking and balance update
         timer.startPhase('transaction');
         await this.firestoreWriter.runTransaction(async (transaction) => {
@@ -533,7 +537,13 @@ export class SettlementService {
             // Preload membership refs for touchGroup (must be read before writes)
             const membershipRefs = await this.firestoreReader.getMembershipRefsInTransaction(transaction, settlement.groupId);
 
-            const now = new Date().toISOString();
+            // Get group for activity feed (must be read before writes)
+            const groupInTx = await this.firestoreReader.getGroupInTransaction(transaction, settlement.groupId);
+            if (!groupInTx) {
+                throw Errors.notFound('Group', ErrorDetail.GROUP_NOT_FOUND);
+            }
+
+            const now = toISOString(new Date().toISOString());
             const documentPath = `${FirestoreCollections.SETTLEMENTS}/${settlementId}`;
 
             this.firestoreWriter.updateInTransaction(transaction, documentPath, {
@@ -551,8 +561,33 @@ export class SettlementService {
 
             // Apply incremental balance update to remove this settlement's contribution
             this.incrementalBalanceService.applySettlementDeleted(transaction, settlement.groupId, currentBalance, settlement, memberIds);
+
+            // Build activity item - will be recorded AFTER transaction commits
+            activityItem = this.activityFeedService.buildGroupActivityItem({
+                groupId: settlement.groupId,
+                groupName: groupInTx.name,
+                eventType: ActivityFeedEventTypes.SETTLEMENT_DELETED,
+                action: ActivityFeedActions.DELETE,
+                actorId: userId,
+                actorName: memberData.groupDisplayName,
+                timestamp: now,
+                details: this.activityFeedService.buildDetails({
+                    settlement: {
+                        id: settlementId,
+                        description: settlement.note,
+                    },
+                }),
+            });
+            activityRecipients = memberIds;
         });
         timer.endPhase();
+
+        // Record activity feed AFTER transaction commits (fire-and-forget)
+        if (activityItem && activityRecipients.length > 0) {
+            await this.activityFeedService.recordActivityForUsers(activityRecipients, activityItem).catch(() => {
+                // Already logged in recordActivityForUsers, just catch to prevent unhandled rejection
+            });
+        }
 
         logger.info('settlement-soft-deleted', {
             settlementId,

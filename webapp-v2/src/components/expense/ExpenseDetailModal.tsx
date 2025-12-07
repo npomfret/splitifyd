@@ -1,5 +1,4 @@
 import { apiClient } from '@/app/apiClient';
-import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced';
 import { CommentsSection } from '@/components/comments';
 import { Avatar, Button, Card, CurrencyAmount, LoadingSpinner, Stack, Tooltip, Typography } from '@/components/ui';
 import { Clickable } from '@/components/ui/Clickable';
@@ -95,7 +94,7 @@ export function ExpenseDetailModal({ isOpen, onClose, groupId, expenseId, onEdit
 
         try {
             await apiClient.deleteExpense(expenseId);
-            await enhancedGroupDetailStore.refreshAll();
+            // Activity feed handles refresh automatically via SSE
             onClose();
         } catch (err) {
             logError('Failed to delete expense', err);

@@ -1,5 +1,4 @@
 import { useExpenseForm } from '@/app/hooks/useExpenseForm';
-import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced';
 import { Clickable } from '@/components/ui/Clickable';
 import { XIcon } from '@/components/ui/icons';
 import { Modal } from '@/components/ui/Modal';
@@ -30,7 +29,7 @@ export function ExpenseFormModal({ isOpen, onClose, groupId, mode, expenseId, on
     const isCopyMode = mode === 'copy';
 
     const handleSuccess = () => {
-        void enhancedGroupDetailStore.refreshAll();
+        // Activity feed handles refresh automatically via SSE
         onSuccess?.();
         onClose();
     };

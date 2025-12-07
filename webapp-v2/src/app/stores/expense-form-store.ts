@@ -25,8 +25,6 @@ import type { CurrencyISOCode, UserId } from '@billsplit-wl/shared';
 import { ReadonlySignal, signal } from '@preact/signals';
 import { z } from 'zod';
 import { apiClient } from '../apiClient';
-import { enhancedGroupDetailStore } from './group-detail-store-enhanced';
-import { enhancedGroupsStore as groupsStore } from './groups-store-enhanced';
 
 // Form-level validation schema for simple fields
 // Complex fields (splits, date, participants) use manual validation
@@ -925,12 +923,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
             this.clearDraft(groupId);
             this.reset();
 
-            // Refresh group data to show the new expense (non-blocking)
-            // Don't await this to avoid blocking navigation
-            Promise.all([enhancedGroupDetailStore.refreshAll(), groupsStore.refreshGroups()]).catch((refreshError) => {
-                // Log refresh error but don't fail the expense creation
-                logWarning('Failed to refresh data after creating expense', { error: refreshError });
-            });
+            // Activity feed handles refresh automatically via SSE
 
             return expense;
         } catch (error) {
@@ -976,12 +969,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
             // Clear draft immediately after successful update
             this.clearDraft(groupId);
 
-            // Refresh group data to show the updated expense (non-blocking)
-            // Don't await this to avoid blocking navigation
-            Promise.all([enhancedGroupDetailStore.refreshAll(), groupsStore.refreshGroups()]).catch((refreshError) => {
-                // Log refresh error but don't fail the expense update
-                logWarning('Failed to refresh data after updating expense', { error: refreshError });
-            });
+            // Activity feed handles refresh automatically via SSE
 
             return updatedExpense;
         } catch (error) {

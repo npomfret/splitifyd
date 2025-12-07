@@ -357,6 +357,7 @@
       "comment-added": "{{actor}} commented on {{target}} in {{group}}",
       "settlement-created": "{{actor}} recorded {{settlement}} in {{group}}",
       "settlement-updated": "{{actor}} updated {{settlement}} in {{group}}",
+      "settlement-deleted": "{{actor}} deleted {{settlement}} from {{group}}",
       "generic": "{{actor}} made changes in {{group}}",
       "group-created-short": "{{actor}} created the group",
       "group-updated-short": "{{actor}} updated the group",
@@ -371,6 +372,7 @@
       "comment-added-short": "{{actor}} commented on {{target}}",
       "settlement-created-short": "{{actor}} recorded {{settlement}}",
       "settlement-updated-short": "{{actor}} updated {{settlement}}",
+      "settlement-deleted-short": "{{actor}} deleted {{settlement}}",
       "generic-short": "{{actor}} made changes"
     }
   },

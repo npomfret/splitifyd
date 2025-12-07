@@ -25,7 +25,7 @@ import { PerformanceTimer } from '../monitoring/PerformanceTimer';
 import { ShareLinkDataSchema } from '../schemas';
 import { createTopLevelMembershipDocument } from '../utils/groupMembershipHelpers';
 import { generateShareToken, newTopLevelMembershipDocId } from '../utils/idGenerator';
-import { ActivityFeedService } from './ActivityFeedService';
+import { ActivityFeedService, CreateActivityItemInput } from './ActivityFeedService';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
 import type { GroupMemberService } from './GroupMemberService';
 import { GroupTransactionManager } from './transactions/GroupTransactionManager';
@@ -440,7 +440,7 @@ export class GroupShareService {
         timer.endPhase();
 
         // Declare variables outside transaction for activity feed
-        let activityItem: any = null;
+        let activityItem: CreateActivityItemInput | null = null;
         let activityRecipients: UserId[] = [];
 
         // Atomic transaction: check group exists and create member subcollection

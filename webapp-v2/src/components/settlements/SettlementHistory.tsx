@@ -89,7 +89,7 @@ export function SettlementHistory({
         setIsDeleting(true);
         try {
             await apiClient.deleteSettlement(settlementToDelete.id);
-            await enhancedGroupDetailStore.refreshAll();
+            // Activity feed handles refresh automatically via SSE
             setSettlementToDelete(null);
         } catch (error) {
             logError('Failed to delete settlement', error);

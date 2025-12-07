@@ -21,7 +21,7 @@ import { logger, LoggerContext } from '../logger';
 import * as measure from '../monitoring/measure';
 import { PerformanceTimer } from '../monitoring/PerformanceTimer';
 import { PermissionEngineAsync } from '../permissions/permission-engine-async';
-import { ActivityFeedService } from './ActivityFeedService';
+import { ActivityFeedService, CreateActivityItemInput } from './ActivityFeedService';
 import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
 import { GroupMemberService } from './GroupMemberService';
@@ -191,7 +191,7 @@ export class ExpenseService {
 
         // Use transaction to create expense atomically and update balance
         let createdExpenseRef: IDocumentReference | undefined;
-        let activityItem: any = null;
+        let activityItem: CreateActivityItemInput | null = null;
         let activityRecipients: UserId[] = [];
 
         timer.startPhase('transaction');
@@ -384,7 +384,7 @@ export class ExpenseService {
         };
 
         // Declare variables outside transaction for activity feed
-        let activityItem: any = null;
+        let activityItem: CreateActivityItemInput | null = null;
         let activityRecipients: UserId[] = [];
 
         // Use transaction to soft-delete old expense and create new one atomically
@@ -595,7 +595,7 @@ export class ExpenseService {
         }
 
         // Declare variables outside transaction for activity feed
-        let activityItem: any = null;
+        let activityItem: CreateActivityItemInput | null = null;
         let activityRecipients: UserId[] = [];
 
         try {

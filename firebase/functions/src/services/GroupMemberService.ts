@@ -20,7 +20,7 @@ import * as measure from '../monitoring/measure';
 import { PerformanceTimer } from '../monitoring/PerformanceTimer';
 import { PermissionEngineAsync } from '../permissions/permission-engine-async';
 import { newTopLevelMembershipDocId } from '../utils/idGenerator';
-import { ActivityFeedService } from './ActivityFeedService';
+import { ActivityFeedService, CreateActivityItemInput } from './ActivityFeedService';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
 import { GroupTransactionContext, GroupTransactionManager, GroupTransactionOptions } from './transactions/GroupTransactionManager';
 
@@ -215,7 +215,7 @@ export class GroupMemberService {
             const actorDisplayName = targetMembership.groupDisplayName;
             const now = toISOString(new Date().toISOString());
             let recipientIds: UserId[] = [];
-            let activityItem: any = null;
+            let activityItem: CreateActivityItemInput | null = null;
             let activityRecipients: UserId[] = [];
 
             await this.runMembershipTransaction(groupId, async (context) => {
@@ -433,7 +433,7 @@ export class GroupMemberService {
 
         const now = toISOString(new Date().toISOString());
         let activityRecipients: UserId[] = [];
-        let activityItem: any = null;
+        let activityItem: CreateActivityItemInput | null = null;
 
         // Atomically update group, delete membership, clean up notifications, and emit activity
         timer.startPhase('transaction');

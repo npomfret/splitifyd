@@ -348,8 +348,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                 await apiClient.createSettlement(settlementData);
             }
 
-            await enhancedGroupDetailStore.refreshAll();
-
+            // Activity feed handles refresh automatically via SSE
             if (onSuccess) {
                 onSuccess();
             }

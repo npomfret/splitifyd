@@ -75,6 +75,7 @@ const EVENT_ACTION_MAP: Record<ActivityFeedEventType, ActivityFeedAction> = {
     [ActivityFeedEventTypes.EXPENSE_DELETED]: ActivityFeedActions.DELETE,
     [ActivityFeedEventTypes.SETTLEMENT_CREATED]: ActivityFeedActions.CREATE,
     [ActivityFeedEventTypes.SETTLEMENT_UPDATED]: ActivityFeedActions.UPDATE,
+    [ActivityFeedEventTypes.SETTLEMENT_DELETED]: ActivityFeedActions.DELETE,
     [ActivityFeedEventTypes.MEMBER_JOINED]: ActivityFeedActions.JOIN,
     [ActivityFeedEventTypes.MEMBER_LEFT]: ActivityFeedActions.LEAVE,
     [ActivityFeedEventTypes.COMMENT_ADDED]: ActivityFeedActions.COMMENT,

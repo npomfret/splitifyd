@@ -192,6 +192,7 @@ export const ActivityFeedEventTypes = {
     COMMENT_ADDED: 'comment-added',
     SETTLEMENT_CREATED: 'settlement-created',
     SETTLEMENT_UPDATED: 'settlement-updated',
+    SETTLEMENT_DELETED: 'settlement-deleted',
 } as const;
 
 export type ActivityFeedEventType = (typeof ActivityFeedEventTypes)[keyof typeof ActivityFeedEventTypes];

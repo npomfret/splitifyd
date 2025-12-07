@@ -118,6 +118,7 @@ const EVENT_ACTION_MAP: Record<ActivityFeedEventType, ActivityFeedAction> = {
     [ActivityFeedEventTypes.COMMENT_ADDED]: ActivityFeedActions.COMMENT,
     [ActivityFeedEventTypes.SETTLEMENT_CREATED]: ActivityFeedActions.CREATE,
     [ActivityFeedEventTypes.SETTLEMENT_UPDATED]: ActivityFeedActions.UPDATE,
+    [ActivityFeedEventTypes.SETTLEMENT_DELETED]: ActivityFeedActions.DELETE,
 };
 
 function buildItem(id: string, eventType: ActivityFeedEventType | string, overrides?: Partial<ActivityFeedItem>): ActivityFeedItem {

@@ -5,7 +5,7 @@ import { logger } from '../logger';
 import * as measure from '../monitoring/measure';
 import { PerformanceTimer } from '../monitoring/PerformanceTimer';
 import * as loggerContext from '../utils/logger-context';
-import { ActivityFeedService } from './ActivityFeedService';
+import { ActivityFeedService, CreateActivityItemInput } from './ActivityFeedService';
 import { ExpenseCommentStrategy } from './comments/ExpenseCommentStrategy';
 import { GroupCommentStrategy } from './comments/GroupCommentStrategy';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
@@ -137,7 +137,7 @@ export class CommentService {
         timer.endPhase();
 
         // Declare variables outside transaction for activity feed
-        let activityItem: any = null;
+        let activityItem: CreateActivityItemInput | null = null;
         let activityRecipients: UserId[] = [];
 
         timer.startPhase('write');
@@ -231,7 +231,7 @@ export class CommentService {
         timer.endPhase();
 
         // Declare variables outside transaction for activity feed
-        let activityItem: any = null;
+        let activityItem: CreateActivityItemInput | null = null;
         let activityRecipients: UserId[] = [];
 
         timer.startPhase('write');

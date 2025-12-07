@@ -300,11 +300,9 @@ export default function GroupDetailPage({ id: groupId, expenseId: routeExpenseId
         modals.openGroupSettingsModal(defaultTab);
     };
 
-    const handleGroupUpdateSuccess = async () => {
-        // Since we don't have Firebase websockets for real-time updates yet,
-        // we need to manually refresh the group data after a successful update
-        logInfo('Group update successful - manually refreshing group data', { groupId });
-        await enhancedGroupDetailStore.refreshAll();
+    const handleGroupUpdateSuccess = () => {
+        // Activity feed handles refresh automatically via SSE
+        logInfo('Group update successful', { groupId });
     };
 
     const handleGroupDelete = () => {
@@ -359,7 +357,6 @@ export default function GroupDetailPage({ id: groupId, expenseId: routeExpenseId
                             groupId={groupId!}
                             variant='sidebar'
                             onInviteClick={handleShare}
-                            onMemberChange={() => enhancedGroupDetailStore.refreshAll()}
                             onLeaveGroupClick={handleLeaveGroup}
                         />
 
@@ -423,7 +420,6 @@ export default function GroupDetailPage({ id: groupId, expenseId: routeExpenseId
                             <MembersListWithManagement
                                 groupId={groupId!}
                                 onInviteClick={handleShare}
-                                onMemberChange={() => enhancedGroupDetailStore.refreshAll()}
                                 onLeaveGroupClick={handleLeaveGroup}
                             />
                         </div>
@@ -534,11 +530,7 @@ export default function GroupDetailPage({ id: groupId, expenseId: routeExpenseId
                 editMode={!!modals.settlementToEdit.value}
                 settlementToEdit={modals.settlementToEdit.value || undefined}
                 preselectedDebt={modals.preselectedDebt.value || undefined}
-                onSuccess={() => {
-                    // Refresh all data after successful settlement
-                    enhancedGroupDetailStore.refreshAll();
-                    modals.closeSettlementForm();
-                }}
+                onSuccess={() => modals.closeSettlementForm()}
             />
 
             {/* Expense Form Modal */}
@@ -548,9 +540,6 @@ export default function GroupDetailPage({ id: groupId, expenseId: routeExpenseId
                 groupId={groupId!}
                 mode={modals.expenseFormMode.value}
                 expenseId={modals.targetExpenseId.value}
-                onSuccess={() => {
-                    enhancedGroupDetailStore.refreshAll();
-                }}
             />
 
             {/* Expense Detail Modal */}

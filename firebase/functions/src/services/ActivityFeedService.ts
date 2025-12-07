@@ -6,7 +6,7 @@ import { measureDb } from '../monitoring/measure';
 import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore';
 
-interface CreateActivityItemInput {
+export interface CreateActivityItemInput {
     groupId: GroupId;
     groupName: GroupName;
     eventType: ActivityFeedEventType;

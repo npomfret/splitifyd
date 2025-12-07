@@ -1,6 +1,5 @@
 import { apiClient, ApiError } from '@/app/apiClient.ts';
 import { useSuccessMessage } from '@/app/hooks/useSuccessMessage.ts';
-import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced.ts';
 import { translateApiError } from '@/utils/error-translation';
 import { GroupId, GroupMember, toDisplayName } from '@billsplit-wl/shared';
 import { ReadonlySignal, signal } from '@preact/signals';
@@ -106,7 +105,7 @@ export function useGroupDisplayName({
 
         try {
             await apiClient.updateGroupMemberDisplayName(groupId, toDisplayName(trimmedName));
-            await enhancedGroupDetailStore.refreshAll();
+            // Activity feed handles refresh automatically via SSE
             await onGroupUpdated?.();
 
             initialDisplayNameSignal.value = trimmedName;
