@@ -226,10 +226,10 @@ export function CurrencyAmountInput({
                         className={`
               flex-1 min-w-0 px-3 py-2
               border rounded-r-md
-              focus:outline-none focus:ring-2 focus:ring-interactive-primary
+              focus:outline-hidden focus:ring-2 focus:ring-interactive-primary
               transition-colors duration-200
               placeholder:text-text-muted/70
-              ${disabled ? 'bg-surface-muted text-text-muted cursor-not-allowed' : 'bg-surface-raised backdrop-blur-sm text-text-primary'}
+              ${disabled ? 'bg-surface-muted text-text-muted cursor-not-allowed' : 'bg-surface-raised backdrop-blur-xs text-text-primary'}
               ${error ? 'border-border-error focus:ring-semantic-error' : 'border-border-default'}
             `}
                         aria-invalid={!!error}
@@ -259,7 +259,7 @@ export function CurrencyAmountInput({
                             onInput={handleSearchChange}
                             onKeyDown={handleKeyDown}
                             placeholder={t('uiComponents.currencyAmountInput.searchPlaceholder')}
-                            className='w-full px-3 py-1.5 text-sm border border-border-default rounded-md focus:outline-none focus:ring-1 focus:ring-interactive-primary bg-surface-base text-text-primary'
+                            className='w-full px-3 py-1.5 text-sm border border-border-default rounded-md focus:outline-hidden focus:ring-1 focus:ring-interactive-primary bg-surface-base text-text-primary'
                             aria-label={t('uiComponents.currencyAmountInput.searchAriaLabel')}
                         />
                     </div>

@@ -13,7 +13,8 @@
     "super-clean": "npm run super-clean -ws --if-present && rm -rf node_modules",
     "build:packages": "npm run build -w @billsplit-wl/shared && npm run build -w @billsplit-wl/test-support",
     "build:firebase-scripts": "tsc --project firebase/tsconfig.json --noEmit",
-    "dev:prep": "npm run clean:logs && npm run build:packages && cd firebase && npm run clean && npm run build",
+    "dev:check": "npx tsx scripts/check-firebase-tools-version.ts",
+    "dev:prep": "npm run dev:check && npm run clean:logs && npm run build:packages && cd firebase && npm run clean && npm run build",
     "dev": "npm run dev:prep && concurrently \"cd webapp-v2 && npm run watch\" \"cd firebase && npm run link-webapp && npm run start-emulators\"",
     "build": "npm run build:packages && npm run build:firebase-scripts && npm run build -ws --if-present",
     "generate:test-data": "cd firebase && npm run generate:test-data",
@@ -33,17 +34,17 @@
     "check:unused-methods": "npx tsx scripts/find-unused-methods.ts"
   },
   "devDependencies": {
-    "@types/node": "^24.0.14",
-    "@typescript-eslint/parser": "^8.46.4",
-    "concurrently": "^9.2.0",
+    "@types/node": "^24.10.1",
+    "@typescript-eslint/parser": "^8.48.1",
+    "concurrently": "^9.2.1",
     "dprint": "^0.50.2",
     "eslint": "^9.39.1",
     "eslint-plugin-no-inline-styles": "^1.0.5",
-    "knip": "^5.64.1",
-    "stylelint": "^16.25.0",
+    "knip": "^5.71.0",
+    "stylelint": "^16.26.1",
     "stylelint-config-standard": "^39.0.1",
-    "ts-morph": "^27.0.0",
-    "typescript": "^5.8.3"
+    "ts-morph": "^27.0.2",
+    "typescript": "^5.9.3"
   },
   "msw": {
     "workerDirectory": [

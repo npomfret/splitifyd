@@ -171,7 +171,7 @@ describe('ErrorMessage Component', () => {
             expect(flexContainer).toBeInTheDocument();
 
             // Should have icon container
-            const iconContainer = flexContainer?.querySelector('.flex-shrink-0');
+            const iconContainer = flexContainer?.querySelector('.shrink-0');
             expect(iconContainer).toBeInTheDocument();
 
             // Should have text container

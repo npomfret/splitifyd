@@ -45,7 +45,7 @@ export function SidebarCard({
                     aria-label={toggleAriaLabel}
                     aria-expanded={!collapsed}
                     data-testid={collapseToggleTestId}
-                    className='p-1 text-text-muted/80 hover:text-text-muted rounded-full focus:outline-none focus:ring-2 focus:ring-interactive-primary focus:ring-offset-2 transition-colors duration-200'
+                    className='p-1 text-text-muted/80 hover:text-text-muted rounded-full focus:outline-hidden focus:ring-2 focus:ring-interactive-primary focus:ring-offset-2 transition-colors duration-200'
                 >
                     <ChevronDownIcon
                         aria-hidden='true'

@@ -93,7 +93,7 @@ export function SkeletonActivityItem({ className }: { className?: string; }) {
             )}
         >
             {/* Dot indicator */}
-            <Skeleton variant='circular' width={10} height={10} className='mt-1.5 flex-shrink-0' />
+            <Skeleton variant='circular' width={10} height={10} className='mt-1.5 shrink-0' />
             {/* Content area */}
             <div className='flex-1 min-w-0 space-y-2'>
                 {/* Description line */}
@@ -124,7 +124,7 @@ export function SkeletonExpenseItem({ className }: { className?: string; }) {
             <div className='flex justify-between items-start gap-4'>
                 <div className='flex items-center gap-3 flex-1 min-w-0'>
                     {/* Avatar */}
-                    <Skeleton variant='circular' width={32} height={32} className='flex-shrink-0' />
+                    <Skeleton variant='circular' width={32} height={32} className='shrink-0' />
                     {/* Description and meta */}
                     <div className='flex-1 min-w-0 space-y-1.5'>
                         <Skeleton variant='text' width='70%' height={14} />
@@ -181,7 +181,7 @@ export function SkeletonCommentItem({ className }: { className?: string; }) {
         <div className={cx('pb-4 border-b border-border-default last:border-0', className)}>
             <div className='flex items-start gap-3'>
                 {/* Avatar */}
-                <Skeleton variant='circular' width={32} height={32} className='flex-shrink-0' />
+                <Skeleton variant='circular' width={32} height={32} className='shrink-0' />
                 {/* Content */}
                 <div className='flex-1 min-w-0 space-y-2'>
                     {/* Header: name + timestamp */}
@@ -206,7 +206,7 @@ export function SkeletonMemberItem({ className }: { className?: string; }) {
         <div className={cx('flex items-center justify-between py-1.5 px-1.5 rounded-md', className)}>
             <div className='flex items-center gap-2 min-w-0 flex-1'>
                 {/* Avatar */}
-                <Skeleton variant='circular' width={24} height={24} className='flex-shrink-0' />
+                <Skeleton variant='circular' width={24} height={24} className='shrink-0' />
                 {/* Name and role */}
                 <div className='flex flex-col min-w-0 flex-1 gap-1'>
                     <Skeleton variant='text' width='60%' height={14} />

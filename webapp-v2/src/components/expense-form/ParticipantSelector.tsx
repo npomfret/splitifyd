@@ -45,7 +45,7 @@ export function ParticipantSelector({ members, participants, paidBy, validationE
                             <label
                                 key={member.uid}
                                 className={`
-                  flex items-center space-x-3 p-3 rounded-lg border cursor-pointer transition-colors bg-surface-raised/50 backdrop-blur-sm
+                  flex items-center space-x-3 p-3 rounded-lg border cursor-pointer transition-colors bg-surface-raised/50 backdrop-blur-xs
                   ${
                                     isSelected
                                         ? 'border-interactive-primary bg-interactive-primary/5 ring-2 ring-interactive-primary/30'

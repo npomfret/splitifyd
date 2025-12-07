@@ -16,7 +16,7 @@ export function SplitTypeSelector({ splitType, updateField }: SplitTypeSelectorP
                 <div className='grid grid-cols-3 gap-3'>
                     <label
                         className={`
-            flex items-center justify-center p-3 rounded-lg border cursor-pointer transition-colors text-center bg-surface-raised/50 backdrop-blur-sm
+            flex items-center justify-center p-3 rounded-lg border cursor-pointer transition-colors text-center bg-surface-raised/50 backdrop-blur-xs
             ${
                             splitType === 'equal'
                                 ? 'border-interactive-primary bg-interactive-primary/5 ring-2 ring-interactive-primary/30'
@@ -30,7 +30,7 @@ export function SplitTypeSelector({ splitType, updateField }: SplitTypeSelectorP
 
                     <label
                         className={`
-            flex items-center justify-center p-3 rounded-lg border cursor-pointer transition-colors text-center bg-surface-raised/50 backdrop-blur-sm
+            flex items-center justify-center p-3 rounded-lg border cursor-pointer transition-colors text-center bg-surface-raised/50 backdrop-blur-xs
             ${
                             splitType === 'exact'
                                 ? 'border-interactive-primary bg-interactive-primary/5 ring-2 ring-interactive-primary/30'
@@ -44,7 +44,7 @@ export function SplitTypeSelector({ splitType, updateField }: SplitTypeSelectorP
 
                     <label
                         className={`
-            flex items-center justify-center p-3 rounded-lg border cursor-pointer transition-colors text-center bg-surface-raised/50 backdrop-blur-sm
+            flex items-center justify-center p-3 rounded-lg border cursor-pointer transition-colors text-center bg-surface-raised/50 backdrop-blur-xs
             ${
                             splitType === 'percentage'
                                 ? 'border-interactive-primary bg-interactive-primary/5 ring-2 ring-interactive-primary/30'

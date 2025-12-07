@@ -114,7 +114,7 @@ export function BalanceSummary({ variant = 'default', onSettleUp }: BalanceSumma
                             <div
                                 key={`${debt.from.uid}-${debt.to.uid}-${currency}`}
                                 data-testid='debt-item'
-                                className='group border border-border-default/50 rounded-lg px-3 py-2.5 mb-2 last:mb-0 backdrop-blur-sm transition-all duration-200 hover:border-interactive-primary/40 hover:-translate-y-0.5 hover:shadow-sm relative'
+                                className='group border border-border-default/50 rounded-lg px-3 py-2.5 mb-2 last:mb-0 backdrop-blur-xs transition-all duration-200 hover:border-interactive-primary/40 hover:-translate-y-0.5 hover:shadow-sm relative'
                                 style={{
                                     backgroundColor: isCurrentUserInvolved ? `${themeColor}12` : 'rgba(var(--surface-base-rgb), 0.3)',
                                 }}
@@ -159,7 +159,7 @@ export function BalanceSummary({ variant = 'default', onSettleUp }: BalanceSumma
                                                 <Clickable
                                                     as='button'
                                                     onClick={() => onSettleUp(debt)}
-                                                    className='p-1.5 text-interactive-primary hover:text-interactive-primary hover:bg-interactive-primary/10 rounded transition-colors flex-shrink-0 flex items-center gap-1'
+                                                    className='p-1.5 text-interactive-primary hover:text-interactive-primary hover:bg-interactive-primary/10 rounded transition-colors shrink-0 flex items-center gap-1'
                                                     aria-label={t('balanceSummary.settleUpButton')}
                                                     eventName='settle_up_click'
                                                     eventProps={{

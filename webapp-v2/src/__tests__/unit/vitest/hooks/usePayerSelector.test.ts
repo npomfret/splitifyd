@@ -1,5 +1,6 @@
 import { usePayerSelector } from '@/app/hooks/usePayerSelector';
 import type { ExpenseFormMember } from '@/components/expense-form/types';
+import { type UserId } from '@billsplit-wl/shared';
 import { ExpenseFormMemberBuilder } from '@billsplit-wl/test-support';
 import { act, renderHook } from '@testing-library/preact';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -23,7 +24,7 @@ const createTestMembers = (): ExpenseFormMember[] => [
 ];
 
 describe('usePayerSelector', () => {
-    let mockOnPayerChange: ReturnType<typeof vi.fn>;
+    let mockOnPayerChange: (payerId: UserId) => void;
 
     beforeEach(() => {
         mockOnPayerChange = vi.fn();

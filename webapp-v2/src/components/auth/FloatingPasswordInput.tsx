@@ -112,16 +112,16 @@ export function FloatingPasswordInput({
     };
 
     const inputClasses = cx(
-        'block w-full rounded-md border border-border-default bg-surface-raised backdrop-blur-sm px-3 pt-6 pb-2 pr-10 shadow-sm',
-        'text-text-primary placeholder:text-transparent transition-all duration-[var(--motion-duration-fast)] ease-[var(--motion-easing-standard)]',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-interactive-primary focus-visible:border-interactive-primary',
+        'block w-full rounded-md border border-border-default bg-surface-raised backdrop-blur-xs px-3 pt-6 pb-2 pr-10 shadow-sm',
+        'text-text-primary placeholder:text-transparent transition-all duration-(--motion-duration-fast) ease-(--motion-easing-standard)',
+        'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-interactive-primary focus-visible:border-interactive-primary',
         disabled && 'opacity-60 cursor-not-allowed bg-surface-muted text-text-muted',
         hasError && 'border-border-error text-semantic-error focus-visible:ring-semantic-error focus-visible:border-semantic-error',
     );
 
     const baseLabelClasses = [
         'absolute left-3 text-text-secondary pointer-events-none',
-        'transition-all duration-[var(--motion-duration-fast)] ease-[var(--motion-easing-standard)]',
+        'transition-all duration-(--motion-duration-fast) ease-(--motion-easing-standard)',
         'origin-left',
     ];
 

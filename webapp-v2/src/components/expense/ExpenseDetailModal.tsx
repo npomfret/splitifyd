@@ -317,7 +317,7 @@ export function ExpenseDetailModal({ isOpen, onClose, groupId, expenseId, onEdit
             {/* Receipt Full-Screen Modal */}
             {showReceiptModal && expense.value?.receiptUrl && (
                 <div
-                    className='fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[60] p-4'
+                    className='fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-60 p-4'
                     onClick={() => setShowReceiptModal(false)}
                     role='dialog'
                     aria-modal='true'
@@ -335,7 +335,7 @@ export function ExpenseDetailModal({ isOpen, onClose, groupId, expenseId, onEdit
                                 as='button'
                                 type='button'
                                 onClick={() => setShowReceiptModal(false)}
-                                className='bg-black bg-opacity-50 text-text-inverted rounded-full p-2 hover:bg-opacity-75 transition-all focus:outline-none focus:ring-2 focus:ring-text-inverted'
+                                className='bg-black bg-opacity-50 text-text-inverted rounded-full p-2 hover:bg-opacity-75 transition-all focus:outline-hidden focus:ring-2 focus:ring-text-inverted'
                                 aria-label='Close receipt viewer'
                                 eventName='receipt_modal_close'
                                 eventProps={{ expenseId }}

@@ -29,7 +29,7 @@ export function MemberRolesSection({
                             </div>
                         </div>
                         <select
-                            className='border border-border-default bg-surface-raised backdrop-blur-sm text-text-primary rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary transition-colors duration-200'
+                            className='border border-border-default bg-surface-raised backdrop-blur-xs text-text-primary rounded-md px-2 py-1 text-sm focus:outline-hidden focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary transition-colors duration-200'
                             value={memberRoleDrafts[member.uid] ?? member.memberRole}
                             onChange={(event) => onRoleChange(member.uid, event.currentTarget.value as MemberRole)}
                             disabled={member.uid === groupCreatedBy}

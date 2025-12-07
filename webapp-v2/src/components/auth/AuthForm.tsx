@@ -17,8 +17,8 @@ export function AuthForm({ onSubmit, error, disabled = false, children }: AuthFo
     };
 
     return (
-        <form onSubmit={handleSubmit} className='flex flex-col' style={{ gap: 'var(--spacing-lg, 1rem)' }}>
-            <fieldset disabled={disabled} className='flex flex-col' style={{ gap: 'var(--spacing-lg, 1rem)' }}>
+        <form onSubmit={handleSubmit} className='flex flex-col' style={{ gap: 'var(--space-lg, 1rem)' }}>
+            <fieldset disabled={disabled} className='flex flex-col' style={{ gap: 'var(--space-lg, 1rem)' }}>
                 {children}
             </fieldset>
             {error && <ErrorMessage error={error} />}

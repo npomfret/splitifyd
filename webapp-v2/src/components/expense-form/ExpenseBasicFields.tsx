@@ -46,7 +46,7 @@ export function ExpenseBasicFields(
                         name='expense-description'
                         value={description}
                         onInput={(e) => updateField('description', (e.target as HTMLInputElement).value)}
-                        className={`w-full px-3 py-2 border rounded-lg bg-surface-raised backdrop-blur-sm text-text-primary placeholder:text-text-muted/70 focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary transition-colors duration-200 ${
+                        className={`w-full px-3 py-2 border rounded-lg bg-surface-raised backdrop-blur-xs text-text-primary placeholder:text-text-muted/70 focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary transition-colors duration-200 ${
                             validationErrors.description ? 'border-semantic-error' : 'border-border-default'
                         }`}
                         placeholder={t('expenseBasicFields.descriptionPlaceholder')}
@@ -134,7 +134,7 @@ export function ExpenseBasicFields(
                             type='date'
                             value={date}
                             onInput={(e) => updateField('date', (e.target as HTMLInputElement).value)}
-                            className={`w-full px-3 py-2 border rounded-lg bg-surface-raised backdrop-blur-sm text-text-primary focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary transition-colors duration-200 ${
+                            className={`w-full px-3 py-2 border rounded-lg bg-surface-raised backdrop-blur-xs text-text-primary focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary transition-colors duration-200 ${
                                 validationErrors.date ? 'border-semantic-error' : 'border-border-default'
                             }`}
                             required

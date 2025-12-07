@@ -37,7 +37,7 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
 
     return (
         <div
-            className={`border border-border-default/50 rounded-lg px-4 py-3 cursor-pointer hover:border-interactive-primary/40 hover:bg-surface-base/30 backdrop-blur-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md relative group ${
+            className={`border border-border-default/50 rounded-lg px-4 py-3 cursor-pointer hover:border-interactive-primary/40 hover:bg-surface-base/30 backdrop-blur-xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md relative group ${
                 isDeleted ? 'opacity-60 bg-surface-muted' : 'bg-surface-base/20'
             }`}
             onClick={() => onClick?.(expense)}
@@ -72,7 +72,7 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
                     </div>
                 </div>
 
-                <div className='flex items-center gap-2 flex-shrink-0'>
+                <div className='flex items-center gap-2 shrink-0'>
                     <div className='text-right'>
                         <p className={`font-semibold text-base ${isDeleted ? 'text-text-muted' : 'text-text-primary'}`} data-testid='expense-amount'>
                             <CurrencyAmount amount={expense.amount} currency={expense.currency} />

@@ -13,10 +13,10 @@ interface StackProps extends Omit<JSX.HTMLAttributes<HTMLDivElement>, 'style'> {
 export const Stack = forwardRef<HTMLDivElement, StackProps>(
     ({ direction = 'vertical', spacing = 'md', align = 'stretch', children, className = '', ...rest }, ref) => {
         const gapValues = {
-            xs: 'var(--spacing-xs, 0.25rem)',
-            sm: 'var(--spacing-sm, 0.5rem)',
-            md: 'var(--spacing-md, 0.75rem)',
-            lg: 'var(--spacing-lg, 1rem)',
+            xs: 'var(--space-xs, 0.25rem)',
+            sm: 'var(--space-sm, 0.5rem)',
+            md: 'var(--space-md, 0.75rem)',
+            lg: 'var(--space-lg, 1rem)',
         };
 
         const alignClasses = {

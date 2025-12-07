@@ -228,7 +228,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                                     type='text'
                                     value={shareLink}
                                     readOnly={true}
-                                    class='w-full pl-3 pr-12 py-3 border border-border-default rounded-lg bg-surface-raised backdrop-blur-sm text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-interactive-primary focus:border-transparent'
+                                    class='w-full pl-3 pr-12 py-3 border border-border-default rounded-lg bg-surface-raised backdrop-blur-xs text-text-primary text-sm focus:outline-hidden focus:ring-2 focus:ring-interactive-primary focus:border-transparent'
                                     onClick={(e) => (e.target as HTMLInputElement).select()}
                                     data-testid='share-link-input'
                                     autoComplete='off'

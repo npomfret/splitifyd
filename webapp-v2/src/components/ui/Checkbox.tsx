@@ -67,7 +67,7 @@ export function Checkbox({
     const checkboxClasses = cx(
         'h-4 w-4 rounded border border-border-default',
         'text-interactive-primary',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-interactive-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-base',
+        'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-interactive-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-base',
         'transition-colors',
         disabled && 'opacity-60 cursor-not-allowed',
         error && 'border-border-error focus-visible:ring-semantic-error',

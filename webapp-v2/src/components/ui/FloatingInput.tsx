@@ -69,9 +69,9 @@ export function FloatingInput({
     const baseInputClasses = [
         'block w-full rounded-md border border-border-default px-3 pt-6 pb-2 shadow-sm',
         'text-text-primary placeholder:text-transparent',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-interactive-primary focus-visible:border-interactive-primary',
-        'sm:text-sm transition-all duration-[var(--motion-duration-fast)] ease-[var(--motion-easing-standard)]',
-        'bg-surface-raised backdrop-blur-sm',
+        'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-interactive-primary focus-visible:border-interactive-primary',
+        'sm:text-sm transition-all duration-(--motion-duration-fast) ease-(--motion-easing-standard)',
+        'bg-surface-raised backdrop-blur-xs',
     ];
 
     const stateClasses = error
@@ -83,7 +83,7 @@ export function FloatingInput({
 
     const baseLabelClasses = [
         'absolute left-3 text-text-secondary pointer-events-none',
-        'transition-all duration-[var(--motion-duration-fast)] ease-[var(--motion-easing-standard)]',
+        'transition-all duration-(--motion-duration-fast) ease-(--motion-easing-standard)',
         'origin-left',
     ];
 

@@ -46,7 +46,7 @@ export function ErrorState({ error, title, onRetry, fullPage = false, className 
                 <div className='mt-6'>
                     <button
                         onClick={onRetry}
-                        className='inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-interactive-primary-foreground bg-interactive-primary hover:bg-interactive-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-interactive-primary'
+                        className='inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-interactive-primary-foreground bg-interactive-primary hover:bg-interactive-primary/90 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-interactive-primary'
                         data-testid='error-retry-button'
                     >
                         {t('errorState.tryAgainButton')}

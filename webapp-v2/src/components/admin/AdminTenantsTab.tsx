@@ -105,7 +105,7 @@ export function AdminTenantsTab() {
 
     return (
         <>
-            <div class='mb-6 flex items-center justify-between bg-white/70 backdrop-blur-sm rounded-lg p-4 border border-indigo-200'>
+            <div class='mb-6 flex items-center justify-between bg-white/70 backdrop-blur-xs rounded-lg p-4 border border-indigo-200'>
                 <div class='flex items-center gap-3'>
                     <div class='w-2 h-2 rounded-full bg-amber-500 animate-pulse'></div>
                     <p class='text-sm text-gray-700'>
@@ -116,7 +116,7 @@ export function AdminTenantsTab() {
                     <Button onClick={handleCreateTenant} variant='primary' size='sm' data-testid='create-tenant-button'>
                         {t('admin.tenants.actions.create')}
                     </Button>
-                    <Button onClick={loadTenants} variant='secondary' size='sm' className='!bg-white !text-gray-800 !border-gray-300 hover:!bg-gray-50'>
+                    <Button onClick={loadTenants} variant='secondary' size='sm' className='bg-white! text-gray-800! border-gray-300! hover:bg-gray-50!'>
                         {t('common.refresh')}
                     </Button>
                 </div>
@@ -128,7 +128,7 @@ export function AdminTenantsTab() {
                     return (
                         <Card
                             key={tenant.tenant.tenantId}
-                            className={`p-6 bg-white/70 backdrop-blur-sm border border-indigo-200 hover:border-indigo-300 transition-all ${
+                            className={`p-6 bg-white/70 backdrop-blur-xs border border-indigo-200 hover:border-indigo-300 transition-all ${
                                 isCurrentTenant ? 'ring-2 ring-amber-400 bg-amber-50/50 border-amber-300' : ''
                             }`}
                         >
@@ -202,7 +202,7 @@ export function AdminTenantsTab() {
             </div>
 
             {tenants.length === 0 && (
-                <Card className='p-12 text-center bg-white/70 backdrop-blur-sm border border-indigo-200'>
+                <Card className='p-12 text-center bg-white/70 backdrop-blur-xs border border-indigo-200'>
                     <div class='inline-flex items-center justify-center w-16 h-16 rounded-full bg-indigo-100 mb-4'>
                         <BuildingIcon size={32} className='text-indigo-600' />
                     </div>

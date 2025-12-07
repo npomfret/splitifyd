@@ -42,7 +42,7 @@ export function PayerSelector({ members, paidBy, validationErrors, updateField }
     const hasError = !!validationErrors.paidBy;
 
     return (
-        <Card variant='glass' className='border-border-default relative z-10 !overflow-visible' data-testid='who-paid-section'>
+        <Card variant='glass' className='border-border-default relative z-10 overflow-visible!' data-testid='who-paid-section'>
             <Stack spacing='md'>
                 <label htmlFor={inputId} className='text-lg font-semibold text-text-primary'>
                     {t('expenseComponents.payerSelector.label')}{' '}
@@ -63,9 +63,9 @@ export function PayerSelector({ members, paidBy, validationErrors, updateField }
                             flex items-center justify-between w-full px-3 py-2.5
                             border rounded-md
                             transition-colors duration-200
-                            bg-surface-raised backdrop-blur-sm text-text-primary cursor-pointer
+                            bg-surface-raised backdrop-blur-xs text-text-primary cursor-pointer
                             hover:bg-surface-muted/60
-                            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-interactive-primary
+                            focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-interactive-primary
                             ${hasError ? 'border-border-error' : 'border-border-default'}
                         `}
                         aria-expanded={isOpen}
@@ -109,7 +109,7 @@ export function PayerSelector({ members, paidBy, validationErrors, updateField }
                                     onInput={handleSearchChange}
                                     onKeyDown={handleKeyDown}
                                     placeholder={t('expenseComponents.payerSelector.searchPlaceholder')}
-                                    className='w-full px-3 py-1.5 text-sm border border-border-default rounded-md bg-surface-raised focus:outline-none focus:ring-1 focus:ring-interactive-primary'
+                                    className='w-full px-3 py-1.5 text-sm border border-border-default rounded-md bg-surface-raised focus:outline-hidden focus:ring-1 focus:ring-interactive-primary'
                                     aria-label={t('expenseComponents.payerSelector.searchPlaceholder')}
                                     data-testid='payer-selector-search'
                                 />

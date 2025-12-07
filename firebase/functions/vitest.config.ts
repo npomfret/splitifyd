@@ -14,11 +14,6 @@ export default defineConfig({
         hookTimeout: 10000, // Increased for integration tests setup/teardown
         // Force sequential execution for Firebase integration tests
         pool: 'forks',
-        poolOptions: {
-            forks: {
-                singleFork: true, // Run everything in a single process
-            },
-        },
         fileParallelism: false, // No file parallelism - run test files sequentially
         maxConcurrency: 1, // Limit concurrent test cases within each file to 1
     },

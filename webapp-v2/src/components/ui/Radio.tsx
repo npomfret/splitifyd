@@ -73,7 +73,7 @@ export function Radio({
                     const radioClasses = cx(
                         'h-4 w-4 border border-border-default text-interactive-primary',
                         'focus-visible:ring-2 focus-visible:ring-interactive-primary focus-visible:ring-offset-2',
-                        'transition-colors duration-[var(--motion-duration-fast)]',
+                        'transition-colors duration-(--motion-duration-fast)',
                         isDisabled ? 'cursor-not-allowed bg-surface-muted' : 'cursor-pointer bg-surface-raised',
                     );
 

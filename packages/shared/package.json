@@ -27,15 +27,15 @@
     "test:integration": "ORIGINAL_TEST_SCRIPT=test:integration node ../../scripts/test-wrapper.js"
   },
   "devDependencies": {
-    "tsup": "^8.0.0",
-    "tsx": "^4.20.5",
-    "typescript": "^5.8.3"
+    "tsup": "^8.5.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
   },
   "publishConfig": {
     "access": "public"
   },
   "dependencies": {
-    "@types/node": "^24.0.14",
-    "zod": "^4.1.12"
+    "@types/node": "^24.10.1",
+    "zod": "^4.1.13"
   }
 }

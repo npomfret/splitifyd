@@ -54,7 +54,7 @@ export function UserMenu({ user }: UserMenuProps) {
                 aria-controls='user-dropdown-menu'
             >
                 <div class='relative'>
-                    <div class='w-9 h-9 bg-[image:var(--gradient-primary)] rounded-full flex items-center justify-center shadow-lg ring-2 ring-border-default/50 group-hover:ring-interactive-primary/40 transition-all'>
+                    <div class='w-9 h-9 bg-(image:--gradient-primary) rounded-full flex items-center justify-center shadow-lg ring-2 ring-border-default/50 group-hover:ring-interactive-primary/40 transition-all'>
                         <span class='text-sm font-bold text-interactive-primary-foreground'>{userInitial}</span>
                     </div>
                     <div class='absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-semantic-success rounded-full border-2 border-surface-base'></div>
@@ -73,7 +73,7 @@ export function UserMenu({ user }: UserMenuProps) {
                 <div
                     id='user-dropdown-menu'
                     data-testid='user-dropdown-menu'
-                    class='absolute right-0 mt-2 w-72 bg-surface-popover border border-border-default rounded-xl shadow-2xl z-[9999]'
+                    class='absolute right-0 mt-2 w-72 bg-surface-popover border border-border-default rounded-xl shadow-2xl z-9999'
                     role='menu'
                     aria-orientation='vertical'
                     aria-labelledby='user-menu-button'

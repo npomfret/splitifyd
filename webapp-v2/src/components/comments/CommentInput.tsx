@@ -108,7 +108,7 @@ export function CommentInput({ onSubmit, disabled = false, placeholder, classNam
                         resize-none overflow-hidden
                         text-sm
                         placeholder-text-muted/80
-                        focus:outline-none focus:ring-2 focus:ring-interactive-primary focus:border-transparent
+                        focus:outline-hidden focus:ring-2 focus:ring-interactive-primary focus:border-transparent
                         disabled:opacity-50 disabled:cursor-not-allowed
                         dark:bg-text-primary dark:border-border-strong dark:text-text-muted/20
                         ${isOverLimit ? 'border-semantic-error focus:ring-semantic-error' : 'border-border-default dark:border-border-strong'}

@@ -57,8 +57,8 @@ export function Select({
     const baseSelectClasses = [
         'block w-full rounded-md border border-border-default px-3 py-2 pr-10 shadow-sm',
         'text-text-primary',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-interactive-primary focus-visible:border-interactive-primary',
-        'sm:text-sm sm:leading-6 transition-colors duration-200 bg-surface-raised backdrop-blur-sm',
+        'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-interactive-primary focus-visible:border-interactive-primary',
+        'sm:text-sm sm:leading-6 transition-colors duration-200 bg-surface-raised backdrop-blur-xs',
         'appearance-none cursor-pointer',
     ];
 

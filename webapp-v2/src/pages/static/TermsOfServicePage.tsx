@@ -46,7 +46,7 @@ export function TermsOfServicePage() {
                 {error && (
                     <div class='bg-surface-error border border-border-error rounded-md p-4'>
                         <div class='flex'>
-                            <div class='flex-shrink-0'>
+                            <div class='shrink-0'>
                                 <XCircleIcon size={20} className='text-semantic-error/80' />
                             </div>
                             <div class='ml-3'>

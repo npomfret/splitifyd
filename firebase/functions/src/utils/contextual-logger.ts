@@ -1,4 +1,4 @@
-import * as functions from 'firebase-functions';
+import { logger as firebaseLogger } from 'firebase-functions/logger';
 import { LogContext, LoggerContext } from './logger-context';
 
 /**
@@ -70,7 +70,7 @@ class ContextualLoggerImpl implements ContextualLogger {
     debug(label: string, data?: Record<string, any>): void {
         const context = this.getFullContext();
         const logData = this.buildLogData(context, data);
-        functions.logger.debug(label, logData);
+        firebaseLogger.debug(label, logData);
     }
 
     /**
@@ -80,7 +80,7 @@ class ContextualLoggerImpl implements ContextualLogger {
     info(label: string, data?: Record<string, any>): void {
         const context = this.getFullContext();
         const logData = this.buildLogData(context, data);
-        functions.logger.info(label, logData);
+        firebaseLogger.info(label, logData);
     }
 
     /**
@@ -89,7 +89,7 @@ class ContextualLoggerImpl implements ContextualLogger {
     warn(label: string, data?: Record<string, any>): void {
         const context = this.getFullContext();
         const logData = this.buildLogData(context, data);
-        functions.logger.warn(label, logData);
+        firebaseLogger.warn(label, logData);
     }
 
     /**
@@ -123,7 +123,7 @@ class ContextualLoggerImpl implements ContextualLogger {
             Object.assign(logData, additionalContext);
         }
 
-        functions.logger.error(message, logData);
+        firebaseLogger.error(message, logData);
     }
 
     /**

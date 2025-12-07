@@ -66,7 +66,7 @@ export function Alert({ type, title, message, dismissible = false, onDismiss, 'd
                     <Tooltip content={t('ui.alert.dismiss')}>
                         <button
                             onClick={handleDismiss}
-                            className={`ml-4 ${styles.text} hover:opacity-70 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-current`}
+                            className={`ml-4 ${styles.text} hover:opacity-70 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-current`}
                             aria-label={t('ui.alert.dismiss')}
                         >
                             <XIcon size={20} />

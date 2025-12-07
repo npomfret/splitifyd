@@ -8,10 +8,26 @@ import { ErrorDetail, Errors } from '../errors';
 import { logger } from '../logger';
 import { LoggerContext } from '../logger';
 import { getServiceConfig } from '../merge/ServiceConfig';
+import type { IFirestoreReader } from '../services/firestore/IFirestoreReader';
+import type { IAuthService } from '../services/auth/IAuthService';
 
-const applicationBuilder = getComponentBuilder();
-const firestoreReader = applicationBuilder.buildFirestoreReader();
-const authService = applicationBuilder.buildAuthService();
+// Lazy-initialized services to avoid module-level Firebase initialization
+let _firestoreReader: IFirestoreReader | undefined;
+let _authService: IAuthService | undefined;
+
+function getFirestoreReader(): IFirestoreReader {
+    if (!_firestoreReader) {
+        _firestoreReader = getComponentBuilder().buildFirestoreReader();
+    }
+    return _firestoreReader;
+}
+
+function getAuthService(): IAuthService {
+    if (!_authService) {
+        _authService = getComponentBuilder().buildAuthService();
+    }
+    return _authService;
+}
 
 /**
  * Extended Express Request with user information.
@@ -41,10 +57,10 @@ export const authenticate = async (req: AuthenticatedRequest, res: Response, nex
 
     try {
         // Verify ID token - no fallbacks or hacks
-        const decodedToken = await authService.verifyIdToken(token);
+        const decodedToken = await getAuthService().verifyIdToken(token);
 
         // Fetch full user profile from Firebase Auth
-        const userRecord = await authService.getUser(toUserId(decodedToken.uid));
+        const userRecord = await getAuthService().getUser(toUserId(decodedToken.uid));
 
         if (!userRecord) {
             throw Errors.notFound('User', ErrorDetail.USER_NOT_FOUND);
@@ -56,7 +72,7 @@ export const authenticate = async (req: AuthenticatedRequest, res: Response, nex
 
         // Fetch user role from Firestore using centralized reader
         const userId = toUserId(userRecord.uid);
-        const userDocument = await firestoreReader.getUser(userId);
+        const userDocument = await getFirestoreReader().getUser(userId);
 
         const userRole = userDocument!.role;
 

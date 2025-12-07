@@ -29,7 +29,7 @@ export function CommentItem({ comment, showAvatar = true, className = '' }: Comm
     return (
         <div className={`flex gap-3 ${className}`} data-testid='comment-item'>
             {showAvatar && (
-                <div className='flex-shrink-0'>
+                <div className='shrink-0'>
                     {comment.authorAvatar
                         ? <img src={comment.authorAvatar} alt={comment.authorName} className='w-8 h-8 rounded-full object-cover' />
                         : (
@@ -47,7 +47,7 @@ export function CommentItem({ comment, showAvatar = true, className = '' }: Comm
                         className='text-xs text-text-muted dark:text-text-muted/80'
                     />
                 </div>
-                <p className='mt-1 text-sm text-text-primary dark:text-text-muted/60 whitespace-pre-wrap break-words'>{comment.text}</p>
+                <p className='mt-1 text-sm text-text-primary dark:text-text-muted/60 whitespace-pre-wrap wrap-break-word'>{comment.text}</p>
             </div>
         </div>
     );

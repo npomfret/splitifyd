@@ -15,7 +15,7 @@ export function AuthLayout({ title, description, children }: AuthLayoutProps) {
         <BaseLayout title={title} description={description || `${title}${t('authLayout.titleSuffix')}`} headerVariant='minimal'>
             <main class='flex-1 flex items-center justify-center px-4 py-12 relative'>
                 <div class='w-full max-w-md relative z-10'>
-                    <div class='glass-panel rounded-[var(--radii-lg)] p-8 shadow-[var(--shadows-lg)] border border-[var(--semantics-colors-surface-glassborder)]'>
+                    <div class='glass-panel rounded-(--radii-lg) p-8 shadow-(--shadows-lg) border border-(--semantics-colors-surface-glassborder)'>
                         <Typography
                             as='h1'
                             variant='display'

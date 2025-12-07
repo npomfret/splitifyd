@@ -284,7 +284,7 @@ export function ImageUploadField({
                         }}
                         placeholder='https://example.com/image.png'
                         disabled={disabled || isDownloading}
-                        className='flex-1 min-w-0 rounded-lg border border-border-default bg-surface-base px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:border-interactive-primary focus:outline-none focus:ring-2 focus:ring-interactive-primary/20'
+                        className='flex-1 min-w-0 rounded-lg border border-border-default bg-surface-base px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:border-interactive-primary focus:outline-hidden focus:ring-2 focus:ring-interactive-primary/20'
                         data-testid={`${dataTestId}-url-input`}
                         aria-label={`${label} URL`}
                     />

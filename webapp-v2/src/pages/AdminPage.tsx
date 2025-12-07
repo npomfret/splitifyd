@@ -95,14 +95,14 @@ export function AdminPage({ tab: initialTab }: AdminPageProps) {
                 <div class='relative max-w-7xl mx-auto px-4 py-8'>
                     {/* Tabs with admin styling */}
                     <div class='mb-8'>
-                        <nav class='flex space-x-2 bg-white/70 backdrop-blur-sm rounded-lg p-1.5 border border-indigo-200' aria-label={t('admin.tabs.ariaLabel')}>
+                        <nav class='flex space-x-2 bg-white/70 backdrop-blur-xs rounded-lg p-1.5 border border-indigo-200' aria-label={t('admin.tabs.ariaLabel')}>
                             {tabs.map((tab) => {
                                 const isActive = activeTab === tab.id;
                                 const isDisabled = false; // All tabs are now implemented
 
                                 const tabClassName = `flex items-center gap-2 py-3 px-4 rounded-md font-medium text-sm transition-all ${
                                     isActive
-                                        ? 'bg-gradient-to-r from-amber-50 to-orange-50 text-amber-700 shadow-lg shadow-amber-500/10 border border-amber-300'
+                                        ? 'bg-linear-to-r from-amber-50 to-orange-50 text-amber-700 shadow-lg shadow-amber-500/10 border border-amber-300'
                                         : isDisabled
                                         ? 'text-gray-400 cursor-not-allowed'
                                         : 'text-indigo-600 hover:text-amber-600 hover:bg-indigo-50'

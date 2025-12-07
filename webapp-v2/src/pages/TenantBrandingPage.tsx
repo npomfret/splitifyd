@@ -131,7 +131,7 @@ export function TenantBrandingPage() {
     if (!hasAdminAccess) {
         return (
             <BaseLayout title='Access Denied' description='Tenant Branding Settings' headerVariant='dashboard'>
-                <div class='mx-auto max-w-screen-xl px-4 py-10 sm:px-6 lg:px-8'>
+                <div class='mx-auto max-w-(--breakpoint-xl) px-4 py-10 sm:px-6 lg:px-8'>
                     <Alert type='error' message='You do not have permission to access tenant branding settings. This page requires tenant-admin or system-admin role.' />
                 </div>
             </BaseLayout>
@@ -141,7 +141,7 @@ export function TenantBrandingPage() {
     if (isLoading) {
         return (
             <BaseLayout title='Tenant Branding' description='Configure your tenant branding' headerVariant='dashboard'>
-                <div class='mx-auto max-w-screen-xl px-4 py-10 sm:px-6 lg:px-8'>
+                <div class='mx-auto max-w-(--breakpoint-xl) px-4 py-10 sm:px-6 lg:px-8'>
                     <Card padding='lg'>
                         <div class='flex items-center justify-center py-12'>
                             <div class='text-center'>
@@ -168,7 +168,7 @@ export function TenantBrandingPage() {
 
     return (
         <BaseLayout title='Tenant Branding' description='Configure your tenant branding' headerVariant='dashboard'>
-            <div class='mx-auto max-w-screen-xl px-4 py-10 sm:px-6 lg:px-8'>
+            <div class='mx-auto max-w-(--breakpoint-xl) px-4 py-10 sm:px-6 lg:px-8'>
                 <div class='space-y-8'>
                     {/* Header */}
                     <div class='flex flex-col gap-2'>
@@ -331,7 +331,7 @@ export function TenantBrandingPage() {
                                             checked={showLandingPage}
                                             onChange={(e) => setShowLandingPage((e.target as HTMLInputElement).checked)}
                                             disabled={isSaving}
-                                            class='h-4 w-4 rounded border-border-default text-interactive-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-interactive-primary'
+                                            class='h-4 w-4 rounded border-border-default text-interactive-primary focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-interactive-primary'
                                             data-testid='show-landing-page-checkbox'
                                         />
                                         <div class='flex-1'>
@@ -346,7 +346,7 @@ export function TenantBrandingPage() {
                                             checked={showMarketingContent}
                                             onChange={(e) => setShowMarketingContent((e.target as HTMLInputElement).checked)}
                                             disabled={isSaving}
-                                            class='h-4 w-4 rounded border-border-default text-interactive-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-interactive-primary'
+                                            class='h-4 w-4 rounded border-border-default text-interactive-primary focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-interactive-primary'
                                             data-testid='show-marketing-content-checkbox'
                                         />
                                         <div class='flex-1'>
@@ -361,7 +361,7 @@ export function TenantBrandingPage() {
                                             checked={showPricingPage}
                                             onChange={(e) => setShowPricingPage((e.target as HTMLInputElement).checked)}
                                             disabled={isSaving}
-                                            class='h-4 w-4 rounded border-border-default text-interactive-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-interactive-primary'
+                                            class='h-4 w-4 rounded border-border-default text-interactive-primary focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-interactive-primary'
                                             data-testid='show-pricing-page-checkbox'
                                         />
                                         <div class='flex-1'>

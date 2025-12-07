@@ -186,7 +186,7 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
                                                 disabled={memberHasOutstandingBalance(member.uid)}
                                                 data-testid='remove-member-button'
                                                 ariaLabel={removeMemberLabel}
-                                                className='flex-shrink-0'
+                                                className='shrink-0'
                                             >
                                                 <UserMinusIcon className='h-4 w-4' aria-hidden='true' />
                                             </Button>

@@ -12,7 +12,7 @@ interface ModeToggleProps {
 export function ModeToggle({ mode, onChange, disabled = false, testId }: ModeToggleProps) {
     const { t } = useTranslation();
 
-    const baseButtonClass = 'px-4 py-1.5 text-sm font-medium rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-interactive-primary';
+    const baseButtonClass = 'px-4 py-1.5 text-sm font-medium rounded-md transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-interactive-primary';
     const activeClass = 'bg-interactive-primary text-interactive-primary-foreground';
     const inactiveClass = 'text-text-secondary hover:text-text-primary';
 

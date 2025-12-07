@@ -12,7 +12,7 @@
 
 ## Semantic Tokens
 
-Defined in `tailwind.config.js`, consumed via CSS variables from tenant theme.
+Defined in `styles/global.css` using Tailwind v4's `@theme` directive. Consumed via CSS variables from tenant theme.
 
 | Category | Tokens |
 |----------|--------|
@@ -206,12 +206,11 @@ Pages under `pages/admin/` and `components/admin/` are **completely isolated fro
 
 | Purpose | Location |
 |---------|----------|
-| Semantic tokens | `tailwind.config.js` |
+| Tailwind config + semantic tokens + custom utilities | `styles/global.css` |
 | UI components | `components/ui/` |
 | Icons | `components/ui/icons/` |
 | Motion hooks | `app/hooks/useThemeConfig.ts`, `useMagneticHover.ts`, `useScrollReveal.ts` |
 | Stores | `app/stores/` |
-| Global animations | `styles/global.css` |
 | Theme CSS endpoint | `/api/theme.css` |
 | Tenant configs | `firebase/docs/tenants/<tenant-id>/config.json` |
 
@@ -257,5 +256,9 @@ Pages under `pages/admin/` and `components/admin/` are **completely isolated fro
 | `flex-1` input/element overflowing in Safari | Add `min-w-0` to allow shrinking below content width |
 | Flex item without `shrink-0` in Safari | Add `shrink-0` to buttons/fixed-width elements in flex containers |
 | Manual `refreshAll()` after mutations | Let activity feed SSE trigger refresh automatically |
+| `outline-none` | `outline-hidden` (Tailwind v4) |
+| `flex-shrink-0` | `shrink-0` (Tailwind v4 simplified) |
+| `shadow-[var(--x)]` arbitrary syntax | `shadow-(--x)` (Tailwind v4 CSS var syntax) |
+| `@layer components { .foo { ... } }` | `@utility foo { ... }` (Tailwind v4) |
 
 ---

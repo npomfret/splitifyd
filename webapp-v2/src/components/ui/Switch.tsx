@@ -37,16 +37,16 @@ export function Switch({
     const containerClasses = cx('relative flex items-start', className);
 
     const switchClasses = cx(
-        'relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent',
-        'transition-colors duration-[var(--motion-duration-fast)] ease-[var(--motion-easing-standard)]',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-interactive-primary focus-visible:ring-offset-2',
+        'relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent',
+        'transition-colors duration-(--motion-duration-fast) ease-(--motion-easing-standard)',
+        'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-interactive-primary focus-visible:ring-offset-2',
         disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer',
         checked ? 'bg-interactive-primary' : 'bg-border-default',
     );
 
     const toggleClasses = cx(
         'pointer-events-none inline-block h-5 w-5 rounded-full bg-surface-base shadow-sm ring-0',
-        'transition-transform duration-[var(--motion-duration-fast)] ease-[var(--motion-easing-standard)]',
+        'transition-transform duration-(--motion-duration-fast) ease-(--motion-easing-standard)',
         checked ? 'translate-x-5' : 'translate-x-0',
     );
 

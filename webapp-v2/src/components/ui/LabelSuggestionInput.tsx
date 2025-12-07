@@ -67,14 +67,14 @@ export function LabelSuggestionInput({ value, onChange, suggestions, className =
         'text-text-primary',
         'shadow-sm',
         'placeholder:text-text-muted/70',
-        'focus:outline-none',
+        'focus:outline-hidden',
         'focus:ring-2',
         'sm:text-sm',
         'sm:leading-6',
         'transition-colors',
         'duration-200',
         'bg-surface-raised',
-        'backdrop-blur-sm',
+        'backdrop-blur-xs',
     ];
 
     const stateClasses = error
@@ -118,7 +118,7 @@ export function LabelSuggestionInput({ value, onChange, suggestions, className =
                 {isOpen && filteredSuggestions.length > 0 && (
                     <div
                         ref={dropdownRef}
-                        className='absolute z-10 mt-1 w-full bg-surface-base shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm'
+                        className='absolute z-10 mt-1 w-full bg-surface-base shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-hidden sm:text-sm'
                         role='listbox'
                     >
                         {filteredSuggestions.map((suggestion, index) => (

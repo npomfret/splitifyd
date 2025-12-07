@@ -14,7 +14,7 @@ const createTestItems = (): TestItem[] => [
 ];
 
 describe('useDropdownSelector', () => {
-    let mockOnSelect: ReturnType<typeof vi.fn>;
+    let mockOnSelect: (item: TestItem) => void;
 
     beforeEach(() => {
         mockOnSelect = vi.fn();

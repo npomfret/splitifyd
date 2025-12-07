@@ -83,7 +83,7 @@ export function Button({
 
     const baseClasses = [
         'inline-flex items-center justify-center font-semibold rounded-md',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-base',
+        'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-base',
         // Polished hover effect (lift + scale) - uses theme CSS variables for timing
         'btn-polished',
         fullWidth ? 'w-full' : 'inline-flex',
@@ -100,7 +100,7 @@ export function Button({
     const variantClasses: Record<NonNullable<ButtonProps['variant']>, Array<string | false>> = {
         primary: [
             // bg-interactive-primary provides solid color fallback, gradient overlays on top
-            'bg-interactive-primary text-interactive-primary-foreground shadow-[var(--shadows-md)]',
+            'bg-interactive-primary text-interactive-primary-foreground shadow-(--shadows-md)',
             // Apply gradient as inline style via arbitrary property for better CSS variable support
             '[background-image:var(--gradient-primary,none)]',
             // magnetic-glow uses --interactive-magnetic-rgb for hover glow (falls back to primary)

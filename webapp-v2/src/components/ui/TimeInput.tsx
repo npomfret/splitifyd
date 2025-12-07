@@ -122,7 +122,7 @@ export function TimeInput({ value, onChange, label, required = false, error, cla
         const handleClickOutside = (e: MouseEvent) => {
             if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
                 if (isEditing.value) {
-                    handleBlur(new FocusEvent('blur'));
+                    handleBlur(new FocusEvent('blur-sm'));
                 }
             }
         };
@@ -149,7 +149,7 @@ export function TimeInput({ value, onChange, label, required = false, error, cla
                     <button
                         type='button'
                         onClick={handleLabelClick}
-                        className={`text-left px-3 py-2 border rounded-lg w-full bg-surface-raised backdrop-blur-sm text-text-primary hover:bg-surface-muted transition-colors ${
+                        className={`text-left px-3 py-2 border rounded-lg w-full bg-surface-raised backdrop-blur-xs text-text-primary hover:bg-surface-muted transition-colors ${
                             error ? 'border-semantic-error' : 'border-border-default'
                         }`}
                     >
@@ -168,7 +168,7 @@ export function TimeInput({ value, onChange, label, required = false, error, cla
                         onKeyDown={handleKeyDown}
                         placeholder={t('uiComponents.timeInput.placeholder')}
                         autoComplete='off'
-                        className={`w-full px-3 py-2 border rounded-lg bg-surface-raised backdrop-blur-sm text-text-primary placeholder:text-text-muted/70 focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary transition-colors duration-200 ${
+                        className={`w-full px-3 py-2 border rounded-lg bg-surface-raised backdrop-blur-xs text-text-primary placeholder:text-text-muted/70 focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary transition-colors duration-200 ${
                             error ? 'border-semantic-error' : 'border-border-default'
                         }`}
                     />

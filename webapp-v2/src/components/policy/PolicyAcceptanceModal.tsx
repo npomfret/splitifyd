@@ -251,7 +251,7 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                                                 {!canAcceptCurrent && (
                                                     <div className='bg-semantic-info-subtle border border-semantic-info rounded-lg p-4' data-testid='policy-acceptance-section'>
                                                         <div className='flex items-start'>
-                                                            <div className='flex-shrink-0'>
+                                                            <div className='shrink-0'>
                                                                 <InfoCircleIcon size={20} className='text-semantic-info mt-0.5' />
                                                             </div>
                                                             <div className='ml-3'>

@@ -32,7 +32,7 @@ export function AdminDiagnosticsTab() {
         <div class='space-y-6'>
             {/* Server Diagnostics */}
             {envLoading && (
-                <Card padding='lg' className='bg-white/70 backdrop-blur-sm border border-indigo-200'>
+                <Card padding='lg' className='bg-white/70 backdrop-blur-xs border border-indigo-200'>
                     <div class='text-center text-indigo-600'>{t('admin.diagnostics.loading')}</div>
                 </Card>
             )}
@@ -42,10 +42,10 @@ export function AdminDiagnosticsTab() {
             {envData && (
                 <>
                     {/* Status Overview */}
-                    <Card padding='lg' data-testid='env-status-card' className='bg-white/70 backdrop-blur-sm border border-indigo-200'>
+                    <Card padding='lg' data-testid='env-status-card' className='bg-white/70 backdrop-blur-xs border border-indigo-200'>
                         <Stack spacing='sm'>
                             <div class='flex items-center gap-2 mb-2'>
-                                <div class='w-1 h-6 bg-gradient-to-b from-green-500 to-emerald-600 rounded-full'></div>
+                                <div class='w-1 h-6 bg-linear-to-b from-green-500 to-emerald-600 rounded-full'></div>
                                 <Typography variant='heading' className='text-emerald-700'>{t('admin.diagnostics.serverStatus.title')}</Typography>
                             </div>
                             <div class='grid gap-4 md:grid-cols-4 text-sm'>
@@ -70,10 +70,10 @@ export function AdminDiagnosticsTab() {
                     </Card>
 
                     {/* Build Information */}
-                    <Card padding='lg' data-testid='env-build-card' className='bg-white/70 backdrop-blur-sm border border-indigo-200'>
+                    <Card padding='lg' data-testid='env-build-card' className='bg-white/70 backdrop-blur-xs border border-indigo-200'>
                         <Stack spacing='sm'>
                             <div class='flex items-center gap-2 mb-2'>
-                                <div class='w-1 h-6 bg-gradient-to-b from-blue-500 to-indigo-600 rounded-full'></div>
+                                <div class='w-1 h-6 bg-linear-to-b from-blue-500 to-indigo-600 rounded-full'></div>
                                 <Typography variant='heading' className='text-indigo-700'>{t('admin.diagnostics.buildInfo.title')}</Typography>
                             </div>
                             <div class='grid gap-4 md:grid-cols-3 text-sm'>
@@ -94,10 +94,10 @@ export function AdminDiagnosticsTab() {
                     </Card>
 
                     {/* Memory Summary */}
-                    <Card padding='lg' data-testid='env-memory-card' className='bg-white/70 backdrop-blur-sm border border-indigo-200'>
+                    <Card padding='lg' data-testid='env-memory-card' className='bg-white/70 backdrop-blur-xs border border-indigo-200'>
                         <Stack spacing='md'>
                             <div class='flex items-center gap-2 mb-2'>
-                                <div class='w-1 h-6 bg-gradient-to-b from-purple-500 to-pink-600 rounded-full'></div>
+                                <div class='w-1 h-6 bg-linear-to-b from-purple-500 to-pink-600 rounded-full'></div>
                                 <Typography variant='heading' className='text-purple-700'>{t('admin.diagnostics.memory.title')}</Typography>
                             </div>
                             <div class='grid gap-4 md:grid-cols-2 lg:grid-cols-4 text-sm'>
@@ -140,10 +140,10 @@ export function AdminDiagnosticsTab() {
 
                     {/* Heap Spaces */}
                     {envData.memory.heapSpaces.length > 0 && (
-                        <Card padding='lg' data-testid='env-heap-spaces-card' className='bg-white/70 backdrop-blur-sm border border-indigo-200'>
+                        <Card padding='lg' data-testid='env-heap-spaces-card' className='bg-white/70 backdrop-blur-xs border border-indigo-200'>
                             <Stack spacing='md'>
                                 <div class='flex items-center gap-2 mb-2'>
-                                    <div class='w-1 h-6 bg-gradient-to-b from-orange-500 to-red-600 rounded-full'></div>
+                                    <div class='w-1 h-6 bg-linear-to-b from-orange-500 to-red-600 rounded-full'></div>
                                     <Typography variant='heading' className='text-orange-700'>{t('admin.diagnostics.heap.title')}</Typography>
                                 </div>
                                 <div class='grid gap-3 md:grid-cols-2 text-sm'>
@@ -173,10 +173,10 @@ export function AdminDiagnosticsTab() {
 
                     {/* Environment Variables */}
                     {envData.env && Object.keys(envData.env).length > 0 && (
-                        <Card padding='lg' data-testid='env-variables-card' className='bg-white/70 backdrop-blur-sm border border-indigo-200'>
+                        <Card padding='lg' data-testid='env-variables-card' className='bg-white/70 backdrop-blur-xs border border-indigo-200'>
                             <Stack spacing='md'>
                                 <div class='flex items-center gap-2 mb-2'>
-                                    <div class='w-1 h-6 bg-gradient-to-b from-amber-500 to-yellow-600 rounded-full'></div>
+                                    <div class='w-1 h-6 bg-linear-to-b from-amber-500 to-yellow-600 rounded-full'></div>
                                     <Typography variant='heading' className='text-amber-700'>{t('admin.diagnostics.envVars.title')}</Typography>
                                 </div>
                                 <div class='max-h-96 overflow-y-auto'>
@@ -202,10 +202,10 @@ export function AdminDiagnosticsTab() {
                     )}
 
                     {/* Filesystem Information */}
-                    <Card padding='lg' data-testid='env-filesystem-card' className='bg-white/70 backdrop-blur-sm border border-indigo-200'>
+                    <Card padding='lg' data-testid='env-filesystem-card' className='bg-white/70 backdrop-blur-xs border border-indigo-200'>
                         <Stack spacing='md'>
                             <div class='flex items-center gap-2 mb-2'>
-                                <div class='w-1 h-6 bg-gradient-to-b from-teal-500 to-cyan-600 rounded-full'></div>
+                                <div class='w-1 h-6 bg-linear-to-b from-teal-500 to-cyan-600 rounded-full'></div>
                                 <Typography variant='heading' className='text-teal-700'>{t('admin.diagnostics.filesystem.title')}</Typography>
                             </div>
                             <div class='bg-indigo-50 rounded-md p-3 border border-indigo-200'>

@@ -370,7 +370,7 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                             loading={isSaving}
                             disabled={isSaving || !hasProfileChanges}
                             data-testid='save-profile-button'
-                            className='!bg-gradient-to-r !from-indigo-600 !to-purple-600 !text-white !shadow-lg hover:!shadow-indigo-500/30'
+                            className='bg-linear-to-r! from-indigo-600! to-purple-600! text-white! shadow-lg! hover:shadow-indigo-500/30!'
                         >
                             {isSaving ? t('common.saving') : t('common.save')}
                         </Button>
@@ -382,7 +382,7 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                             loading={isSaving}
                             disabled={isSaving || isCurrentUser || selectedRole === user.role}
                             data-testid='save-role-button'
-                            className='!bg-gradient-to-r !from-indigo-600 !to-purple-600 !text-white !shadow-lg hover:!shadow-indigo-500/30'
+                            className='bg-linear-to-r! from-indigo-600! to-purple-600! text-white! shadow-lg! hover:shadow-indigo-500/30!'
                         >
                             {isSaving ? t('common.saving') : t('common.save')}
                         </Button>

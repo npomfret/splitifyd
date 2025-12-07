@@ -450,7 +450,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                             noteSignal.value = '';
                                             recalculatePrecisionError(debt.amount, debt.currency);
                                         }}
-                                        class='inline-flex items-center justify-start gap-2 px-4 py-2 bg-interactive-primary/10 border border-border-default rounded-lg text-sm font-medium text-text-primary hover:bg-surface-muted hover:border-interactive-primary transition-colors focus:outline-none focus:ring-2 focus-visible:ring-interactive-primary w-full sm:w-[280px]'
+                                        class='inline-flex items-center justify-start gap-2 px-4 py-2 bg-interactive-primary/10 border border-border-default rounded-lg text-sm font-medium text-text-primary hover:bg-surface-muted hover:border-interactive-primary transition-colors focus:outline-hidden focus:ring-2 focus-visible:ring-interactive-primary w-full sm:w-[280px]'
                                         title={`${formatCurrency(debt.amount, toCurrencyISOCode(debt.currency))} → ${getGroupDisplayName(payeeMember)}`}
                                     >
                                         {/* Avatar */}
@@ -493,7 +493,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                     const value = (e.target as HTMLSelectElement).value;
                                     payerIdSignal.value = value ? toUserId(value) : '';
                                 }}
-                                class='w-full px-3 py-2 border border-border-default rounded-md bg-surface-raised backdrop-blur-sm text-text-primary focus:outline-none focus:ring-2 focus-visible:ring-interactive-primary transition-colors duration-200'
+                                class='w-full px-3 py-2 border border-border-default rounded-md bg-surface-raised backdrop-blur-xs text-text-primary focus:outline-hidden focus:ring-2 focus-visible:ring-interactive-primary transition-colors duration-200'
                                 disabled={isSubmitting}
                             >
                                 <option value=''>{t('settlementForm.selectPersonPlaceholder')}</option>
@@ -519,7 +519,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                     const value = (e.target as HTMLSelectElement).value;
                                     payeeIdSignal.value = value ? toUserId(value) : '';
                                 }}
-                                class='w-full px-3 py-2 border border-border-default rounded-md bg-surface-raised backdrop-blur-sm text-text-primary focus:outline-none focus:ring-2 focus-visible:ring-interactive-primary transition-colors duration-200'
+                                class='w-full px-3 py-2 border border-border-default rounded-md bg-surface-raised backdrop-blur-xs text-text-primary focus:outline-hidden focus:ring-2 focus-visible:ring-interactive-primary transition-colors duration-200'
                                 disabled={isSubmitting}
                             >
                                 <option value=''>{t('settlementForm.selectPersonPlaceholder')}</option>
@@ -578,7 +578,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                 max={new Date().toISOString().split('T')[0]}
                                 disabled={isSubmitting}
                                 required
-                                class='w-full px-3 py-2 border border-border-default rounded-md bg-surface-raised backdrop-blur-sm text-text-primary focus:outline-none focus:ring-2 focus-visible:ring-interactive-primary transition-colors duration-200'
+                                class='w-full px-3 py-2 border border-border-default rounded-md bg-surface-raised backdrop-blur-xs text-text-primary focus:outline-hidden focus:ring-2 focus-visible:ring-interactive-primary transition-colors duration-200'
                                 autoComplete='off'
                             />
                         </div>
@@ -599,7 +599,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                 }}
                                 disabled={isSubmitting}
                                 maxLength={500}
-                                class='w-full px-3 py-2 border border-border-default rounded-md bg-surface-raised backdrop-blur-sm text-text-primary placeholder:text-text-muted/70 focus:outline-none focus:ring-2 focus-visible:ring-interactive-primary transition-colors duration-200'
+                                class='w-full px-3 py-2 border border-border-default rounded-md bg-surface-raised backdrop-blur-xs text-text-primary placeholder:text-text-muted/70 focus:outline-hidden focus:ring-2 focus-visible:ring-interactive-primary transition-colors duration-200'
                                 autoComplete='off'
                             />
                         </div>

@@ -336,7 +336,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
             <Modal open={open} onClose={handleCancel} size='lg' className='max-h-[90vh] flex flex-col' data-testid='tenant-editor-modal'>
                 <div class='flex flex-col min-h-0 h-full'>
                     {/* Header */}
-                    <div class='flex-shrink-0 flex items-center justify-between border-b border-border-default px-6 py-4'>
+                    <div class='shrink-0 flex items-center justify-between border-b border-border-default px-6 py-4'>
                         <div>
                             <h2 class='text-xl font-semibold text-text-primary'>
                                 {mode === 'create' ? t('admin.tenantEditor.titleCreate') : t('admin.tenantEditor.titleEdit')}
@@ -351,7 +351,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                     </div>
 
                     {/* Mode Toggle Bar */}
-                    <div class='flex-shrink-0 flex items-center justify-between border-b border-border-subtle px-6 py-3 bg-surface-raised'>
+                    <div class='shrink-0 flex items-center justify-between border-b border-border-subtle px-6 py-3 bg-surface-raised'>
                         <ModeToggle
                             mode={editorMode}
                             onChange={setEditorMode}
@@ -609,7 +609,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                     </div>
 
                     {/* Footer */}
-                    <div class='flex-shrink-0 flex items-center justify-end gap-3 border-t border-border-default px-6 py-4'>
+                    <div class='shrink-0 flex items-center justify-end gap-3 border-t border-border-default px-6 py-4'>
                         <Button onClick={handleCancel} variant='secondary' disabled={isSaving || isPublishing} data-testid='cancel-button'>Cancel</Button>
                         {mode === 'edit' && (
                             <Button onClick={handlePublish} variant='primary' disabled={isSaving || isPublishing} loading={isPublishing} data-testid='publish-theme-button'>

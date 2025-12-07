@@ -91,10 +91,10 @@ export function AdminTenantConfigTab() {
         <div class='space-y-6'>
             {actionMessage && <Alert type={actionMessage.type} message={actionMessage.text} />}
 
-            <Card padding='lg' data-testid='tenant-overview-card' className='bg-white/70 backdrop-blur-sm border border-indigo-200'>
+            <Card padding='lg' data-testid='tenant-overview-card' className='bg-white/70 backdrop-blur-xs border border-indigo-200'>
                 <Stack spacing='sm'>
                     <div class='flex items-center gap-2 mb-2'>
-                        <div class='w-1 h-6 bg-gradient-to-b from-amber-500 to-orange-600 rounded-full'></div>
+                        <div class='w-1 h-6 bg-linear-to-b from-amber-500 to-orange-600 rounded-full'></div>
                         <Typography variant='heading' className='text-amber-700'>{t('admin.tenantConfig.overview.title')}</Typography>
                     </div>
                     <div class='grid gap-4 md:grid-cols-3 text-sm'>
@@ -114,12 +114,12 @@ export function AdminTenantConfigTab() {
                 </Stack>
             </Card>
 
-            <Card padding='lg' data-testid='theme-artifact-card' className='bg-white/70 backdrop-blur-sm border border-indigo-200'>
+            <Card padding='lg' data-testid='theme-artifact-card' className='bg-white/70 backdrop-blur-xs border border-indigo-200'>
                 <Stack spacing='md'>
                     <div class='flex flex-col gap-2 md:flex-row md:items-center md:justify-between'>
                         <div>
                             <div class='flex items-center gap-2 mb-1'>
-                                <div class='w-1 h-6 bg-gradient-to-b from-amber-500 to-orange-600 rounded-full'></div>
+                                <div class='w-1 h-6 bg-linear-to-b from-amber-500 to-orange-600 rounded-full'></div>
                                 <Typography variant='heading' className='text-amber-700'>{t('admin.tenantConfig.theme.title')}</Typography>
                             </div>
                             <Typography variant='caption' className='text-indigo-600 ml-3'>{t('admin.tenantConfig.theme.description')}</Typography>
@@ -156,10 +156,10 @@ export function AdminTenantConfigTab() {
             </Card>
 
             {tenantBranding && (
-                <Card padding='lg' data-testid='branding-tokens-card' className='bg-white/70 backdrop-blur-sm border border-indigo-200'>
+                <Card padding='lg' data-testid='branding-tokens-card' className='bg-white/70 backdrop-blur-xs border border-indigo-200'>
                     <Stack spacing='md'>
                         <div class='flex items-center gap-2 mb-2'>
-                            <div class='w-1 h-6 bg-gradient-to-b from-amber-500 to-orange-600 rounded-full'></div>
+                            <div class='w-1 h-6 bg-linear-to-b from-amber-500 to-orange-600 rounded-full'></div>
                             <Typography variant='heading' className='text-amber-700'>{t('admin.tenantConfig.brandingTokens.title')}</Typography>
                         </div>
                         <pre class='bg-indigo-50 rounded-md p-4 text-sm overflow-x-auto border border-indigo-200 text-gray-800'>{JSON.stringify(tenantBranding, null, 2)}</pre>
@@ -167,10 +167,10 @@ export function AdminTenantConfigTab() {
                 </Card>
             )}
 
-            <Card padding='lg' data-testid='computed-vars-card' className='bg-white/70 backdrop-blur-sm border border-indigo-200'>
+            <Card padding='lg' data-testid='computed-vars-card' className='bg-white/70 backdrop-blur-xs border border-indigo-200'>
                 <Stack spacing='md'>
                     <div class='flex items-center gap-2 mb-2'>
-                        <div class='w-1 h-6 bg-gradient-to-b from-amber-500 to-orange-600 rounded-full'></div>
+                        <div class='w-1 h-6 bg-linear-to-b from-amber-500 to-orange-600 rounded-full'></div>
                         <Typography variant='heading' className='text-amber-700'>{t('admin.tenantConfig.computedCss.title')}</Typography>
                     </div>
                     <div class='grid gap-3 md:grid-cols-2'>

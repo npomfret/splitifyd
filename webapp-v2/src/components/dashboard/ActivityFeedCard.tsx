@@ -107,7 +107,7 @@ export function ActivityFeedCard({ userId }: ActivityFeedCardProps) {
 
                 {items.value.length > 0
                     ? (
-                        <ul className='flex flex-col' style={{ gap: 'var(--spacing-md, 0.75rem)' }} ref={listRef}>
+                        <ul className='flex flex-col' style={{ gap: 'var(--space-md, 0.75rem)' }} ref={listRef}>
                             {items.value.map((item, index) => {
                                 const handleNavigate = getActivityNavigationHandler(item);
                                 const description = renderEventDescription(item, userId, t);
@@ -137,22 +137,22 @@ export function ActivityFeedCard({ userId }: ActivityFeedCardProps) {
                                                 <button
                                                     type='button'
                                                     onClick={handleNavigate}
-                                                    className='group flex w-full items-start gap-3 rounded-lg border border-border-default/50 bg-surface-base/30 backdrop-blur-sm px-4 py-3 text-left transition-all duration-200 hover:border-interactive-primary/40 hover:bg-surface-base/50 hover:shadow-md hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-interactive-primary focus-visible:ring-offset-2'
+                                                    className='group flex w-full items-start gap-3 rounded-lg border border-border-default/50 bg-surface-base/30 backdrop-blur-xs px-4 py-3 text-left transition-all duration-200 hover:border-interactive-primary/40 hover:bg-surface-base/50 hover:shadow-md hover:-translate-y-0.5 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-interactive-primary focus-visible:ring-offset-2'
                                                     aria-label={description}
                                                 >
-                                                    <div className='h-2.5 w-2.5 rounded-full mt-1.5 bg-interactive-primary flex-shrink-0 shadow-sm shadow-interactive-primary/50' aria-hidden='true' />
+                                                    <div className='h-2.5 w-2.5 rounded-full mt-1.5 bg-interactive-primary shrink-0 shadow-sm shadow-interactive-primary/50' aria-hidden='true' />
                                                     <div className='flex-1 min-w-0'>
                                                         {content}
                                                     </div>
                                                     <ChevronRightIcon
                                                         size={16}
-                                                        className='flex-shrink-0 mt-1 text-interactive-primary opacity-0 transition-all duration-200 group-hover:opacity-100 group-hover:translate-x-0.5'
+                                                        className='shrink-0 mt-1 text-interactive-primary opacity-0 transition-all duration-200 group-hover:opacity-100 group-hover:translate-x-0.5'
                                                     />
                                                 </button>
                                             )
                                             : (
-                                                <div className='flex items-start gap-3 rounded-lg border border-border-default/50 bg-surface-base/30 backdrop-blur-sm px-4 py-3'>
-                                                    <div className='h-2.5 w-2.5 rounded-full mt-1.5 bg-interactive-primary flex-shrink-0 shadow-sm shadow-interactive-primary/50' aria-hidden='true' />
+                                                <div className='flex items-start gap-3 rounded-lg border border-border-default/50 bg-surface-base/30 backdrop-blur-xs px-4 py-3'>
+                                                    <div className='h-2.5 w-2.5 rounded-full mt-1.5 bg-interactive-primary shrink-0 shadow-sm shadow-interactive-primary/50' aria-hidden='true' />
                                                     <div className='flex-1 min-w-0'>
                                                         {content}
                                                     </div>

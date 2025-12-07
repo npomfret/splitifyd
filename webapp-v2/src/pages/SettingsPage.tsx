@@ -294,7 +294,7 @@ export function SettingsPage() {
 
     return (
         <BaseLayout title={t('settingsPage.title')} description={t('settingsPage.description')} headerVariant='dashboard'>
-            <div class='mx-auto max-w-screen-xl px-4 py-10 sm:px-6 lg:px-8'>
+            <div class='mx-auto max-w-(--breakpoint-xl) px-4 py-10 sm:px-6 lg:px-8'>
                 <div class='space-y-8'>
                     <div class='flex flex-col gap-2'>
                         <span class='text-xs font-medium uppercase tracking-wide text-interactive-primary'>
@@ -315,7 +315,7 @@ export function SettingsPage() {
                         </div>
                     )}
 
-                    <div class='grid gap-6 lg:grid-cols-[320px,1fr] lg:gap-8 xl:grid-cols-[360px,1fr]'>
+                    <div class='grid gap-6 lg:grid-cols-[320px_1fr] lg:gap-8 xl:grid-cols-[360px_1fr]'>
                         <Card padding='lg' className='shadow-md lg:sticky lg:top-24'>
                             <div class='space-y-6'>
                                 <div class='flex items-start gap-4'>
@@ -330,7 +330,7 @@ export function SettingsPage() {
                                             />
                                         )
                                         : (
-                                            <div class='flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-interactive-secondary via-interactive-secondary to-semantic-error text-lg font-semibold uppercase text-text-inverted shadow-inner'>
+                                            <div class='flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br from-interactive-secondary via-interactive-secondary to-semantic-error text-lg font-semibold uppercase text-text-inverted shadow-inner'>
                                                 {profileInitials}
                                             </div>
                                         )}
@@ -353,7 +353,7 @@ export function SettingsPage() {
                                     </div>
                                     <div class='rounded-lg border border-border-default bg-surface-muted/60 px-4 py-3'>
                                         <span class='text-text-muted'>{t('settingsPage.email')}</span>
-                                        <div class='font-medium text-text-primary break-words' data-testid='profile-email'>
+                                        <div class='font-medium text-text-primary wrap-break-word' data-testid='profile-email'>
                                             {user.email}
                                         </div>
                                     </div>
@@ -434,7 +434,7 @@ export function SettingsPage() {
                                                     <p class='text-xs font-semibold uppercase text-text-muted'>
                                                         {t('settingsPage.currentEmailLabel')}
                                                     </p>
-                                                    <p class='font-medium text-text-primary break-words'>{originalEmail}</p>
+                                                    <p class='font-medium text-text-primary wrap-break-word'>{originalEmail}</p>
                                                 </div>
                                                 <Button variant='secondary' onClick={handleStartEmailChange} data-testid='change-email-button'>
                                                     {t('settingsPage.changeEmailButton')}
@@ -515,15 +515,15 @@ export function SettingsPage() {
                                         <div class='font-semibold'>{t('settingsPage.passwordRequirementsHeading')}</div>
                                         <ul class='mt-2 space-y-2'>
                                             <li class='flex gap-2'>
-                                                <span class='mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-interactive-primary' aria-hidden='true' />
+                                                <span class='mt-1 h-2 w-2 shrink-0 rounded-full bg-interactive-primary' aria-hidden='true' />
                                                 <span>{t('settingsPage.passwordRequirements.length')}</span>
                                             </li>
                                             <li class='flex gap-2'>
-                                                <span class='mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-interactive-primary' aria-hidden='true' />
+                                                <span class='mt-1 h-2 w-2 shrink-0 rounded-full bg-interactive-primary' aria-hidden='true' />
                                                 <span>{t('settingsPage.passwordRequirements.mix')}</span>
                                             </li>
                                             <li class='flex gap-2'>
-                                                <span class='mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-interactive-primary' aria-hidden='true' />
+                                                <span class='mt-1 h-2 w-2 shrink-0 rounded-full bg-interactive-primary' aria-hidden='true' />
                                                 <span>{t('settingsPage.passwordRequirements.reuse')}</span>
                                             </li>
                                         </ul>

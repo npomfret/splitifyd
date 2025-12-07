@@ -217,7 +217,7 @@ export function SettlementHistory({
                                             </div>
 
                                             {/* Action buttons */}
-                                            <div class='flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-auto'>
+                                            <div class='flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-auto'>
                                                 {onEditSettlement && (() => {
                                                     const editTooltip = settlement.isLocked ? t('settlementHistory.cannotEditTooltip') : t('settlementHistory.editPaymentTooltip');
 

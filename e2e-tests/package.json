@@ -14,15 +14,15 @@
     "install-browsers": "playwright install --with-deps"
   },
   "dependencies": {
-    "@billsplit-wl/shared": "*",
-    "@billsplit-wl/test-support": "*",
-    "preact": "^10.27.2"
+    "@billsplit-wl/shared": "^1.0.0",
+    "@billsplit-wl/test-support": "^1.0.0",
+    "preact": "^10.28.0"
   },
   "devDependencies": {
-    "@axe-core/playwright": "^4.10.2",
-    "@playwright/test": "^1.54.1",
+    "@axe-core/playwright": "^4.11.0",
+    "@playwright/test": "^1.57.0",
     "@types/node": "^20.11.5",
     "playwright": "^1.54.1",
-    "typescript": "^5.8.3"
+    "typescript": "^5.9.3"
   }
 }

@@ -28,7 +28,7 @@ export function CustomPermissionsSection({
                     <label key={key} className='flex flex-col text-sm text-text-primary gap-2 border border-border-default rounded-lg px-4 py-3'>
                         <span className='font-medium text-text-primary'>{t(`securitySettingsModal.permissions.${key}.label`)}</span>
                         <select
-                            className='border border-border-default bg-surface-raised backdrop-blur-sm text-text-primary rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary text-sm transition-colors duration-200'
+                            className='border border-border-default bg-surface-raised backdrop-blur-xs text-text-primary rounded-md px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary text-sm transition-colors duration-200'
                             value={permissionDraft[key]}
                             onChange={(event) => onPermissionChange(key, event.currentTarget.value)}
                             data-testid={`permission-select-${key}`}

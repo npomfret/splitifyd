@@ -225,7 +225,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                             <textarea
                                 id='group-description'
                                 name='description'
-                                class='w-full px-3 py-2 border border-border-default bg-surface-base text-text-primary rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary resize-none'
+                                class='w-full px-3 py-2 border border-border-default bg-surface-base text-text-primary rounded-md shadow-sm focus:outline-hidden focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary resize-none'
                                 rows={3}
                                 placeholder={t('createGroupModal.groupDescriptionPlaceholder')}
                                 value={groupDescriptionSignal.value}
@@ -242,7 +242,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                         {enhancedGroupsStore.errorSignal.value && (
                             <div class='bg-surface-warning border border-border-warning rounded-md p-3'>
                                 <div class='flex'>
-                                    <div class='flex-shrink-0'>
+                                    <div class='shrink-0'>
                                         <XCircleIcon size={20} className='text-semantic-error' />
                                     </div>
                                     <div class='ml-3'>

@@ -80,7 +80,7 @@ export function GroupActivityFeed({ groupId, currentUserId }: GroupActivityFeedP
 
     return (
         <div data-testid='group-activity-feed'>
-            <ul className='flex flex-col' style={{ gap: 'var(--spacing-md, 0.75rem)' }}>
+            <ul className='flex flex-col' style={{ gap: 'var(--space-md, 0.75rem)' }}>
                 {items.value.map((item) => {
                     const handleNavigate = getActivityNavigationHandler(item, groupId);
                     const description = renderEventDescription(item, currentUserId, t);
@@ -102,16 +102,16 @@ export function GroupActivityFeed({ groupId, currentUserId }: GroupActivityFeedP
                                     <button
                                         type='button'
                                         onClick={handleNavigate}
-                                        className='group flex w-full items-start gap-2 rounded-md px-2 py-2 text-left transition-colors hover:bg-surface-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-interactive-primary'
+                                        className='group flex w-full items-start gap-2 rounded-md px-2 py-2 text-left transition-colors hover:bg-surface-muted focus:outline-hidden focus-visible:ring-2 focus-visible:ring-interactive-primary'
                                         aria-label={description}
                                     >
-                                        <div className='h-2 w-2 rounded-full mt-1.5 bg-interactive-primary flex-shrink-0' aria-hidden='true' />
+                                        <div className='h-2 w-2 rounded-full mt-1.5 bg-interactive-primary shrink-0' aria-hidden='true' />
                                         <div className='flex-1 min-w-0'>{content}</div>
                                     </button>
                                 )
                                 : (
                                     <div className='flex items-start gap-2 px-2 py-2'>
-                                        <div className='h-2 w-2 rounded-full mt-1.5 bg-interactive-primary flex-shrink-0' aria-hidden='true' />
+                                        <div className='h-2 w-2 rounded-full mt-1.5 bg-interactive-primary shrink-0' aria-hidden='true' />
                                         <div className='flex-1 min-w-0'>{content}</div>
                                     </div>
                                 )}
