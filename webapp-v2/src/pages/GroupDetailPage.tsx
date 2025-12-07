@@ -12,7 +12,7 @@ import { navigationService } from '@/services/navigation.service';
 import { permissionsStore } from '@/stores/permissions-store.ts';
 import type { ExpenseId, GroupId, SettlementWithMembers, SimplifiedDebt } from '@billsplit-wl/shared';
 import { MemberRoles, MemberStatuses, toExpenseId } from '@billsplit-wl/shared';
-import { BanknotesIcon, BoltIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
+import { BanknotesIcon, BoltIcon, ChatBubbleLeftIcon, ReceiptPercentIcon, ScaleIcon } from '@heroicons/react/24/outline';
 import { useComputed, useSignal } from '@preact/signals';
 import { useEffect } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
@@ -406,7 +406,19 @@ export default function GroupDetailPage({ id: groupId, expenseId: routeExpenseId
 
                         {/* 3. Mobile-only balance summary */}
                         <div className='lg:hidden' data-testid='balance-summary-mobile'>
-                            <BalanceSummary onSettleUp={handleSettleUp} />
+                            <SidebarCard
+                                id='balances-mobile'
+                                title={
+                                    <div className='flex items-center gap-2'>
+                                        <ScaleIcon className='h-5 w-5 text-text-muted' aria-hidden='true' />
+                                        <span>{t('pages.groupDetailPage.balances')}</span>
+                                    </div>
+                                }
+                                collapsible
+                                defaultCollapsed={false}
+                            >
+                                <BalanceSummary onSettleUp={handleSettleUp} />
+                            </SidebarCard>
                         </div>
 
                         {/* 4. Mobile-only comments */}
@@ -428,18 +440,31 @@ export default function GroupDetailPage({ id: groupId, expenseId: routeExpenseId
                         </div>
 
                         {/* 5. Expenses (always visible) */}
-                        <ExpensesList
-                            onExpenseClick={handleExpenseClick}
-                            onExpenseCopy={handleExpenseCopy}
-                            canToggleShowDeleted={canViewDeletedTransactions.value}
-                            showDeletedExpenses={showDeletedExpenses.value}
-                            onShowDeletedChange={canViewDeletedTransactions.value
-                                ? (show) => {
-                                    enhancedGroupDetailStore.setShowDeletedExpenses(show);
-                                    enhancedGroupDetailStore.refreshAll();
-                                }
-                                : undefined}
-                        />
+                        <SidebarCard
+                            id='expenses'
+                            data-testid='expenses-card'
+                            title={
+                                <div className='flex items-center gap-2'>
+                                    <ReceiptPercentIcon className='h-5 w-5 text-text-muted' aria-hidden='true' />
+                                    <span>{t('pages.groupDetailPage.expenses')}</span>
+                                </div>
+                            }
+                            collapsible
+                            defaultCollapsed={false}
+                        >
+                            <ExpensesList
+                                onExpenseClick={handleExpenseClick}
+                                onExpenseCopy={handleExpenseCopy}
+                                canToggleShowDeleted={canViewDeletedTransactions.value}
+                                showDeletedExpenses={showDeletedExpenses.value}
+                                onShowDeletedChange={canViewDeletedTransactions.value
+                                    ? (show) => {
+                                        enhancedGroupDetailStore.setShowDeletedExpenses(show);
+                                        enhancedGroupDetailStore.refreshAll();
+                                    }
+                                    : undefined}
+                            />
+                        </SidebarCard>
 
                         {/* 6. Mobile-only settlement history */}
                         <div className='lg:hidden'>
@@ -502,7 +527,20 @@ export default function GroupDetailPage({ id: groupId, expenseId: routeExpenseId
                 rightSidebar={
                     <div className='hidden lg:block space-y-4'>
                         {/* Desktop-only: all right sidebar content (mobile versions in mainContent) */}
-                        <BalanceSummary variant='sidebar' onSettleUp={handleSettleUp} />
+                        <SidebarCard
+                            id='balances'
+                            data-testid='balance-summary-card'
+                            title={
+                                <div className='flex items-center gap-2'>
+                                    <ScaleIcon className='h-5 w-5 text-text-muted' aria-hidden='true' />
+                                    <span>{t('pages.groupDetailPage.balances')}</span>
+                                </div>
+                            }
+                            collapsible
+                            defaultCollapsed={false}
+                        >
+                            <BalanceSummary variant='sidebar' onSettleUp={handleSettleUp} />
+                        </SidebarCard>
 
                         {/* Activity Feed Section */}
                         <SidebarCard

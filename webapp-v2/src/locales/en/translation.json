@@ -1568,6 +1568,8 @@
     "groupDetailPage": {
       "errorLoadingGroup": "Error Loading Group",
       "backToDashboard": "Back to Dashboard",
+      "balances": "Balances",
+      "expenses": "Expenses",
       "comments": "Comments",
       "activity": "Activity",
       "paymentHistory": "Settlements",
