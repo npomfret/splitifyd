@@ -188,6 +188,12 @@
     "elementClick": "Element Click: ",
     "unknownElement": "Unknown Element"
   },
+  "createGroup": {
+    "validation": {
+      "displayNameTooShort": "Display name must be at least 2 characters long.",
+      "displayNameTooLong": "Display name must be 50 characters or fewer."
+    }
+  },
   "createGroupModal": {
     "title": "Create a new group",
     "groupNameLabel": "Group Name",
@@ -256,6 +262,7 @@
   },
   "auth": {
     "refreshingSession": "Refreshing your session...",
+    "initializationFailed": "Failed to initialize. Please refresh the page.",
     "emailInput": {
       "label": "Email",
       "placeholder": "Enter your email",
