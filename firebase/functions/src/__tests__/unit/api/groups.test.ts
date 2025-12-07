@@ -1,7 +1,7 @@
-import { calculateEqualSplits, MemberRoles, MemberStatuses, toAmount, toGroupName, USD } from '@billsplit-wl/shared';
+import { ActivityFeedEventTypes, calculateEqualSplits, MemberRoles, MemberStatuses, toAmount, toGroupName, USD } from '@billsplit-wl/shared';
 import type { UserId } from '@billsplit-wl/shared';
 import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, GroupUpdateBuilder } from '@billsplit-wl/test-support';
-import { afterEach, beforeEach, describe, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { AppDriver } from '../AppDriver';
 
 describe('groups', () => {
@@ -710,6 +710,147 @@ describe('groups', () => {
             )
                 .rejects
                 .toMatchObject({ code: 'FORBIDDEN' });
+        });
+    });
+
+    describe('group activity feed events', () => {
+        it('should generate activity event when group is updated', async () => {
+            const group = await appDriver.createGroup(
+                new CreateGroupRequestBuilder().withName('Original Name').build(),
+                user1,
+            );
+            const groupId = group.id;
+
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+
+            await appDriver.updateGroup(
+                groupId,
+                new GroupUpdateBuilder()
+                    .withName(toGroupName('Updated Name'))
+                    .withDescription('New description')
+                    .build(),
+                user1,
+            );
+
+            const response = await appDriver.getGroupActivityFeed(groupId, {}, user1);
+            const groupUpdatedEvent = response.items.find(
+                (item) => item.eventType === ActivityFeedEventTypes.GROUP_UPDATED,
+            );
+
+            expect(groupUpdatedEvent).toBeDefined();
+            expect(groupUpdatedEvent?.actorId).toBe(user1);
+            expect(groupUpdatedEvent?.action).toBe('update');
+        });
+
+        it('should generate activity event when member is approved', async () => {
+            // Create a group and set it to require admin approval
+            const group = await appDriver.createGroup(
+                new CreateGroupRequestBuilder().withName('Managed Group').build(),
+                user1,
+            );
+            const groupId = group.id;
+
+            await appDriver.updateGroupPermissions(
+                groupId,
+                { memberApproval: 'admin-required' },
+                user1,
+            );
+
+            // Generate share link and have user2 try to join (will be pending)
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+
+            // Approve the pending member
+            await appDriver.approveMember(groupId, user2, user1);
+
+            const response = await appDriver.getGroupActivityFeed(groupId, {}, user1);
+            const memberJoinedEvent = response.items.find(
+                (item) =>
+                    item.eventType === ActivityFeedEventTypes.MEMBER_JOINED &&
+                    item.details?.targetUserId === user2,
+            );
+
+            expect(memberJoinedEvent).toBeDefined();
+            expect(memberJoinedEvent?.actorId).toBe(user2);
+            expect(memberJoinedEvent?.action).toBe('join');
+        });
+
+        it('should generate activity event when member is removed', async () => {
+            const group = await appDriver.createGroup(
+                new CreateGroupRequestBuilder().withName('Test Group').build(),
+                user1,
+            );
+            const groupId = group.id;
+
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+
+            // Owner removes member
+            await appDriver.removeGroupMember(groupId, user2, user1);
+
+            const response = await appDriver.getGroupActivityFeed(groupId, {}, user1);
+            const memberLeftEvent = response.items.find(
+                (item) =>
+                    item.eventType === ActivityFeedEventTypes.MEMBER_LEFT &&
+                    item.details?.targetUserId === user2,
+            );
+
+            expect(memberLeftEvent).toBeDefined();
+            expect(memberLeftEvent?.actorId).toBe(user1);
+            expect(memberLeftEvent?.action).toBe('leave');
+        });
+
+        it('should generate activity event when group permissions are updated', async () => {
+            const group = await appDriver.createGroup(
+                new CreateGroupRequestBuilder().withName('Test Group').build(),
+                user1,
+            );
+            const groupId = group.id;
+
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+
+            await appDriver.updateGroupPermissions(
+                groupId,
+                { memberApproval: 'admin-required' },
+                user1,
+            );
+
+            const response = await appDriver.getGroupActivityFeed(groupId, {}, user1);
+            const permissionsUpdatedEvent = response.items.find(
+                (item) => item.eventType === ActivityFeedEventTypes.PERMISSIONS_UPDATED,
+            );
+
+            expect(permissionsUpdatedEvent).toBeDefined();
+            expect(permissionsUpdatedEvent?.actorId).toBe(user1);
+            expect(permissionsUpdatedEvent?.action).toBe('update');
+        });
+
+        it('should generate activity event when member role is changed', async () => {
+            const group = await appDriver.createGroup(
+                new CreateGroupRequestBuilder().withName('Test Group').build(),
+                user1,
+            );
+            const groupId = group.id;
+
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+
+            // Promote user2 to admin
+            await appDriver.updateMemberRole(groupId, user2, MemberRoles.ADMIN, user1);
+
+            const response = await appDriver.getGroupActivityFeed(groupId, {}, user1);
+            const roleChangedEvent = response.items.find(
+                (item) =>
+                    item.eventType === ActivityFeedEventTypes.MEMBER_ROLE_CHANGED &&
+                    item.details?.targetUserId === user2,
+            );
+
+            expect(roleChangedEvent).toBeDefined();
+            expect(roleChangedEvent?.actorId).toBe(user1);
+            expect(roleChangedEvent?.action).toBe('update');
+            expect(roleChangedEvent?.details?.newRole).toBe(MemberRoles.ADMIN);
         });
     });
 });

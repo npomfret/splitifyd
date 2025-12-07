@@ -1,5 +1,5 @@
 import { toGroupName } from '@billsplit-wl/shared';
-import type { ActivityFeedAction, ActivityFeedEventType, ActivityFeedItem, ActivityFeedItemDetails, CommentId, ExpenseId, ISOString, SettlementId } from '@billsplit-wl/shared';
+import type { ActivityFeedAction, ActivityFeedEventType, ActivityFeedItem, ActivityFeedItemDetails, CommentId, ExpenseId, ISOString, MemberRole, SettlementId } from '@billsplit-wl/shared';
 import type { GroupId, GroupName, UserId } from '@billsplit-wl/shared';
 import { logger } from '../logger';
 import { measureDb } from '../monitoring/measure';
@@ -35,6 +35,7 @@ type ActivityFeedDetailsInput = {
         name?: string | null | undefined;
     };
     previousGroupName?: GroupName | string | null | undefined;
+    newRole?: MemberRole;
 };
 
 const CLEANUP_KEEP_COUNT = 20; // Keep last 20 items; UI shows 8 at a time with pagination
@@ -86,6 +87,10 @@ export class ActivityFeedService {
             if (trimmed) {
                 details.previousGroupName = toGroupName(trimmed);
             }
+        }
+
+        if (input.newRole) {
+            details.newRole = input.newRole;
         }
 
         return details;

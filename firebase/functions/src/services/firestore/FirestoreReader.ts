@@ -19,6 +19,7 @@ import {
     type ActivityFeedEventType,
     ActivityFeedEventTypes,
     type ActivityFeedItem,
+    type ActivityFeedItemDetails,
     type CommentDTO,
     type ExpenseDTO,
     ExpenseId,
@@ -27,6 +28,7 @@ import {
     type GroupMembershipDTO,
     GroupName,
     MAX_GROUP_MEMBERS,
+    type MemberRole,
     type MemberStatus,
     MemberStatuses,
     type PolicyDTO,
@@ -70,6 +72,8 @@ import type { BatchGroupFetchOptions, FirestoreOrderField, GetGroupsForUserOptio
 const EVENT_ACTION_MAP: Record<ActivityFeedEventType, ActivityFeedAction> = {
     [ActivityFeedEventTypes.GROUP_CREATED]: ActivityFeedActions.CREATE,
     [ActivityFeedEventTypes.GROUP_UPDATED]: ActivityFeedActions.UPDATE,
+    [ActivityFeedEventTypes.PERMISSIONS_UPDATED]: ActivityFeedActions.UPDATE,
+    [ActivityFeedEventTypes.MEMBER_ROLE_CHANGED]: ActivityFeedActions.UPDATE,
     [ActivityFeedEventTypes.EXPENSE_CREATED]: ActivityFeedActions.CREATE,
     [ActivityFeedEventTypes.EXPENSE_UPDATED]: ActivityFeedActions.UPDATE,
     [ActivityFeedEventTypes.EXPENSE_DELETED]: ActivityFeedActions.DELETE,
@@ -815,21 +819,6 @@ export class FirestoreReader implements IFirestoreReader {
                     const eventType = converted.eventType as ActivityFeedEventType;
                     const action = (converted.action as ActivityFeedAction | undefined) ?? EVENT_ACTION_MAP[eventType];
 
-                    // Convert details to use branded types
-                    const rawDetails = converted.details ?? {};
-                    const details: typeof rawDetails & {
-                        expenseId?: ExpenseId;
-                        commentId?: CommentId;
-                        settlementId?: SettlementId;
-                        previousGroupName?: GroupName;
-                    } = {
-                        ...rawDetails,
-                        ...(rawDetails.expenseId && { expenseId: toExpenseId(rawDetails.expenseId) }),
-                        ...(rawDetails.commentId && { commentId: toCommentId(rawDetails.commentId) }),
-                        ...(rawDetails.settlementId && { settlementId: toSettlementId(rawDetails.settlementId) }),
-                        ...(rawDetails.previousGroupName && { previousGroupName: toGroupName(rawDetails.previousGroupName) }),
-                    } as any;
-
                     const item: ActivityFeedItem = {
                         id: converted.id,
                         userId: converted.userId,
@@ -840,7 +829,7 @@ export class FirestoreReader implements IFirestoreReader {
                         actorId: converted.actorId,
                         actorName: converted.actorName,
                         timestamp: converted.timestamp,
-                        details,
+                        details: this.convertActivityFeedDetails(converted.details),
                         createdAt: converted.createdAt,
                     };
 
@@ -947,21 +936,6 @@ export class FirestoreReader implements IFirestoreReader {
                     const eventType = converted.eventType as ActivityFeedEventType;
                     const action = (converted.action as ActivityFeedAction | undefined) ?? EVENT_ACTION_MAP[eventType];
 
-                    // Convert details to use branded types
-                    const rawDetails = converted.details ?? {};
-                    const details: typeof rawDetails & {
-                        expenseId?: ExpenseId;
-                        commentId?: CommentId;
-                        settlementId?: SettlementId;
-                        previousGroupName?: GroupName;
-                    } = {
-                        ...rawDetails,
-                        ...(rawDetails.expenseId && { expenseId: toExpenseId(rawDetails.expenseId) }),
-                        ...(rawDetails.commentId && { commentId: toCommentId(rawDetails.commentId) }),
-                        ...(rawDetails.settlementId && { settlementId: toSettlementId(rawDetails.settlementId) }),
-                        ...(rawDetails.previousGroupName && { previousGroupName: toGroupName(rawDetails.previousGroupName) }),
-                    } as any;
-
                     const item: ActivityFeedItem = {
                         id: converted.id,
                         userId: converted.userId,
@@ -972,7 +946,7 @@ export class FirestoreReader implements IFirestoreReader {
                         actorId: converted.actorId,
                         actorName: converted.actorName,
                         timestamp: converted.timestamp,
-                        details,
+                        details: this.convertActivityFeedDetails(converted.details),
                         createdAt: converted.createdAt,
                     };
 
@@ -1008,6 +982,22 @@ export class FirestoreReader implements IFirestoreReader {
                 nextCursor,
             };
         });
+    }
+
+    /**
+     * Convert raw activity feed details to use branded types.
+     * Centralizes the conversion logic for both getActivityFeed and getActivityFeedForGroup.
+     */
+    private convertActivityFeedDetails(rawDetails: ActivityFeedDocument['details']): ActivityFeedItemDetails {
+        const details = rawDetails ?? {};
+        return {
+            ...details,
+            ...(details.expenseId && { expenseId: toExpenseId(details.expenseId) }),
+            ...(details.commentId && { commentId: toCommentId(details.commentId) }),
+            ...(details.settlementId && { settlementId: toSettlementId(details.settlementId) }),
+            ...(details.previousGroupName && { previousGroupName: toGroupName(details.previousGroupName) }),
+            ...(details.newRole && { newRole: details.newRole as MemberRole }),
+        } as ActivityFeedItemDetails;
     }
 
     /**

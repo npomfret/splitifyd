@@ -542,11 +542,18 @@ export class GroupService {
             throw Errors.notFound('Group', ErrorDetail.GROUP_NOT_FOUND);
         }
 
+        // Get actor's display name for activity feed
+        const actorMember = await this.firestoreReader.getGroupMember(groupId, userId);
+        const actorDisplayName = actorMember?.groupDisplayName ?? 'Unknown';
+
         const mergedPermissions: GroupPermissions = {
             ...group.permissions,
             ...updates,
         };
-        const now = new Date().toISOString();
+        const now = toISOString(new Date().toISOString());
+
+        let activityItem: CreateActivityItemInput | null = null;
+        let activityRecipients: UserId[] = [];
 
         await this.groupTransactionManager.run(groupId, { preloadBalance: false }, async (context) => {
             const transaction = context.transaction;
@@ -561,6 +568,9 @@ export class GroupService {
 
             const membershipSnapshot = await this.firestoreReader.getGroupMembershipsInTransaction(transaction, groupId);
 
+            // Collect member IDs for activity feed
+            activityRecipients = membershipSnapshot.docs.map((doc) => (doc.data() as { uid: UserId; }).uid);
+
             this.firestoreWriter.updateInTransaction(transaction, `${FirestoreCollections.GROUPS}/${groupId}`, {
                 permissions: mergedPermissions,
                 updatedAt: now,
@@ -572,7 +582,25 @@ export class GroupService {
                     updatedAt: now,
                 });
             });
+
+            // Build activity item - will be recorded AFTER transaction commits
+            activityItem = this.activityFeedService.buildGroupActivityItem({
+                groupId,
+                groupName: group.name,
+                eventType: ActivityFeedEventTypes.PERMISSIONS_UPDATED,
+                action: ActivityFeedActions.UPDATE,
+                actorId: userId,
+                actorName: actorDisplayName,
+                timestamp: now,
+            });
         });
+
+        // Record activity feed AFTER transaction commits (fire-and-forget)
+        if (activityItem && activityRecipients.length > 0) {
+            await this.activityFeedService.recordActivityForUsers(activityRecipients, activityItem).catch(() => {
+                // Already logged in recordActivityForUsers, just catch to prevent unhandled rejection
+            });
+        }
 
         LoggerContext.setBusinessContext({ groupId });
         logger.info('group-permissions-updated', {

@@ -184,6 +184,8 @@ export const PolicyIds = {
 export const ActivityFeedEventTypes = {
     GROUP_CREATED: 'group-created',
     GROUP_UPDATED: 'group-updated',
+    PERMISSIONS_UPDATED: 'permissions-updated',
+    MEMBER_ROLE_CHANGED: 'member-role-changed',
     EXPENSE_CREATED: 'expense-created',
     EXPENSE_UPDATED: 'expense-updated',
     EXPENSE_DELETED: 'expense-deleted',
@@ -218,6 +220,7 @@ export interface ActivityFeedItemDetails {
     targetUserId?: UserId;
     targetUserName?: string;
     previousGroupName?: GroupName;
+    newRole?: MemberRole;
 }
 
 export interface ActivityFeedItem {

@@ -1,7 +1,7 @@
-import { calculateEqualSplits, calculatePercentageSplits, toAmount, toCurrencyISOCode, USD } from '@billsplit-wl/shared';
+import { ActivityFeedEventTypes, calculateEqualSplits, calculatePercentageSplits, toAmount, toCurrencyISOCode, USD } from '@billsplit-wl/shared';
 import type { UserId } from '@billsplit-wl/shared';
 import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, ExpenseSplitBuilder, ExpenseUpdateBuilder } from '@billsplit-wl/test-support';
-import { afterEach, beforeEach, describe, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { AppDriver } from '../AppDriver';
 
 describe('expenses', () => {
@@ -842,6 +842,121 @@ describe('expenses', () => {
             expect(groupDetails.expenses.expenses).toHaveLength(1);
             expect(groupDetails.expenses.expenses[0].id).toBe(updatedExpense.id);
             expect(groupDetails.expenses.expenses.find((e) => e.id === originalExpense.id)).toBeUndefined();
+        });
+    });
+
+    describe('expense activity feed events', () => {
+        it('should generate activity event when expense is updated', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            const groupId = group.id;
+
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+
+            const participants = [user1, user2];
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withDescription('Original expense')
+                    .withAmount(100, USD)
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(toAmount(100), USD, participants))
+                    .build(),
+                user1,
+            );
+
+            await appDriver.updateExpense(
+                expense.id,
+                ExpenseUpdateBuilder
+                    .minimal()
+                    .withDescription('Updated expense')
+                    .withAmount(150, USD)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(toAmount(150), USD, participants))
+                    .build(),
+                user1,
+            );
+
+            const response = await appDriver.getGroupActivityFeed(groupId, {}, user1);
+            const expenseUpdatedEvent = response.items.find(
+                (item) => item.eventType === ActivityFeedEventTypes.EXPENSE_UPDATED,
+            );
+
+            expect(expenseUpdatedEvent).toBeDefined();
+            expect(expenseUpdatedEvent?.actorId).toBe(user1);
+            expect(expenseUpdatedEvent?.action).toBe('update');
+        });
+
+        it('should generate activity event when expense is deleted', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            const groupId = group.id;
+
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+
+            const participants = [user1, user2];
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withDescription('Expense to delete')
+                    .withAmount(100, USD)
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(toAmount(100), USD, participants))
+                    .build(),
+                user1,
+            );
+
+            await appDriver.deleteExpense(expense.id, user1);
+
+            const response = await appDriver.getGroupActivityFeed(groupId, {}, user1);
+            const expenseDeletedEvent = response.items.find(
+                (item) => item.eventType === ActivityFeedEventTypes.EXPENSE_DELETED,
+            );
+
+            expect(expenseDeletedEvent).toBeDefined();
+            expect(expenseDeletedEvent?.actorId).toBe(user1);
+            expect(expenseDeletedEvent?.action).toBe('delete');
+        });
+
+        it('should generate activity event when expense comment is added', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            const groupId = group.id;
+
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+
+            const participants = [user1, user2];
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withDescription('Expense with comment')
+                    .withAmount(100, USD)
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(toAmount(100), USD, participants))
+                    .build(),
+                user1,
+            );
+
+            await appDriver.createExpenseComment(expense.id, 'This is a comment on the expense', user2);
+
+            const response = await appDriver.getGroupActivityFeed(groupId, {}, user1);
+            const commentAddedEvent = response.items.find(
+                (item) =>
+                    item.eventType === ActivityFeedEventTypes.COMMENT_ADDED &&
+                    item.details?.expenseId === expense.id,
+            );
+
+            expect(commentAddedEvent).toBeDefined();
+            expect(commentAddedEvent?.actorId).toBe(user2);
+            expect(commentAddedEvent?.action).toBe('comment');
+            expect(commentAddedEvent?.details?.commentPreview).toContain('This is a comment');
         });
     });
 });

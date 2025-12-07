@@ -146,10 +146,16 @@ export class GroupMemberService {
 
             await this.ensureActiveGroupAdmin(groupId, requestingUserId);
 
-            const [targetMembership, allMembers] = await Promise.all([
+            const [group, targetMembership, allMembers, actorMembership] = await Promise.all([
+                this.firestoreReader.getGroup(groupId),
                 this.firestoreReader.getGroupMember(groupId, targetUserId),
                 this.firestoreReader.getAllGroupMembers(groupId),
+                this.firestoreReader.getGroupMember(groupId, requestingUserId),
             ]);
+
+            if (!group) {
+                throw Errors.notFound('Group', ErrorDetail.GROUP_NOT_FOUND);
+            }
 
             if (!targetMembership) {
                 throw Errors.notFound('Group member', ErrorDetail.MEMBER_NOT_FOUND);
@@ -167,6 +173,14 @@ export class GroupMemberService {
                 }
             }
 
+            const actorDisplayName = actorMembership?.groupDisplayName ?? 'Unknown';
+            const targetDisplayName = targetMembership.groupDisplayName;
+            const now = toISOString(new Date().toISOString());
+            let activityItem: CreateActivityItemInput | null = null;
+            const activityRecipients = allMembers
+                .filter((m) => m.memberStatus === MemberStatuses.ACTIVE)
+                .map((m) => m.uid);
+
             await this.runMembershipTransaction(groupId, async (context) => {
                 const transaction = context.transaction;
                 const membershipDocId = newTopLevelMembershipDocId(targetUserId, groupId);
@@ -182,7 +196,32 @@ export class GroupMemberService {
                 });
 
                 await context.touchGroup();
+
+                // Build activity item - will be recorded AFTER transaction commits
+                activityItem = this.activityFeedService.buildGroupActivityItem({
+                    groupId,
+                    groupName: group.name,
+                    eventType: ActivityFeedEventTypes.MEMBER_ROLE_CHANGED,
+                    action: ActivityFeedActions.UPDATE,
+                    actorId: requestingUserId,
+                    actorName: actorDisplayName,
+                    timestamp: now,
+                    details: this.activityFeedService.buildDetails({
+                        targetUser: {
+                            id: targetUserId,
+                            name: targetDisplayName,
+                        },
+                        newRole,
+                    }),
+                });
             });
+
+            // Record activity feed AFTER transaction commits (fire-and-forget)
+            if (activityItem && activityRecipients.length > 0) {
+                await this.activityFeedService.recordActivityForUsers(activityRecipients, activityItem).catch(() => {
+                    // Already logged in recordActivityForUsers, just catch to prevent unhandled rejection
+                });
+            }
 
             LoggerContext.setBusinessContext({ groupId });
             logger.info('group-member-role-updated', {

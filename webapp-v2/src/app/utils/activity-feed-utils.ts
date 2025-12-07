@@ -4,6 +4,8 @@ import type { ActivityFeedAction, ActivityFeedEventType, ActivityFeedItem } from
 const EVENT_ACTION_MAP: Record<ActivityFeedEventType, ActivityFeedAction> = {
     [ActivityFeedEventTypes.GROUP_CREATED]: ActivityFeedActions.CREATE,
     [ActivityFeedEventTypes.GROUP_UPDATED]: ActivityFeedActions.UPDATE,
+    [ActivityFeedEventTypes.PERMISSIONS_UPDATED]: ActivityFeedActions.UPDATE,
+    [ActivityFeedEventTypes.MEMBER_ROLE_CHANGED]: ActivityFeedActions.UPDATE,
     [ActivityFeedEventTypes.EXPENSE_CREATED]: ActivityFeedActions.CREATE,
     [ActivityFeedEventTypes.EXPENSE_UPDATED]: ActivityFeedActions.UPDATE,
     [ActivityFeedEventTypes.EXPENSE_DELETED]: ActivityFeedActions.DELETE,

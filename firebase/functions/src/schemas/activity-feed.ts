@@ -1,4 +1,4 @@
-import { ActivityFeedActions, ActivityFeedEventTypes, toUserId } from '@billsplit-wl/shared';
+import { ActivityFeedActions, ActivityFeedEventTypes, MemberRoles, toUserId } from '@billsplit-wl/shared';
 import { z } from 'zod';
 import { AuditFieldsSchema, createDocumentSchemas, FirestoreTimestampSchema, GroupIdSchema, GroupNameSchema } from './common';
 
@@ -13,6 +13,7 @@ const ActivityFeedDetailsSchema = z
         targetUserId: z.string().min(1).transform(toUserId).optional(),
         targetUserName: z.string().min(1).optional(),
         previousGroupName: z.string().min(1).optional(),
+        newRole: z.enum(Object.values(MemberRoles) as [string, ...string[]]).optional(),
     })
     .strict()
     .partial();
