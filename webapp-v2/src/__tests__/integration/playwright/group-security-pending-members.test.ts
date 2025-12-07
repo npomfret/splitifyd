@@ -1,9 +1,9 @@
-import { ClientUser, GroupId, GroupMembershipDTO, toGroupId, toGroupName, toUserId } from '@billsplit-wl/shared';
+import { ActivityFeedActions, ActivityFeedEventTypes, ClientUser, GroupId, GroupMembershipDTO, toGroupId, toGroupName, toUserId } from '@billsplit-wl/shared';
 import { MemberStatuses, UserId } from '@billsplit-wl/shared';
 import type { GroupName } from '@billsplit-wl/shared';
 import { DisplayName } from '@billsplit-wl/shared';
 import { toDisplayName } from '@billsplit-wl/shared';
-import { GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, GroupMembershipDTOBuilder, GroupPermissionsBuilder } from '@billsplit-wl/test-support';
+import { ActivityFeedItemBuilder, GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, GroupMembershipDTOBuilder, GroupPermissionsBuilder } from '@billsplit-wl/test-support';
 import type { Page } from '@playwright/test';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { fulfillWithSerialization, mockGroupCommentsApi } from '../../utils/mock-firebase-service';
@@ -153,7 +153,7 @@ async function setupManagedGroupRoutes(page: Page, user: ClientUser): Promise<Ma
 
 test.describe('Group security pending members', () => {
     test('allows admins to approve and reject pending members', async ({ authenticatedPage }) => {
-        const { page, user } = authenticatedPage;
+        const { page, user, mockFirebase } = authenticatedPage;
         const { groupId, groupName, pendingEntries } = await setupManagedGroupRoutes(page, user);
 
         const groupDetailPage = new GroupDetailPage(page);
@@ -183,6 +183,25 @@ test.describe('Group security pending members', () => {
         await expect(settingsModal.getModalContainerLocator().getByText('No pending requests right now.')).toBeVisible();
 
         await settingsModal.clickFooterClose();
+
+        // Emit activity feed event to trigger real-time refresh (simulates what SSE does in production)
+        await mockFirebase.emitActivityFeedItems(
+            user.uid,
+            [
+                ActivityFeedItemBuilder
+                    .forEvent(
+                        `member-approved-${firstPending.uid}`,
+                        user.uid,
+                        groupId,
+                        groupName,
+                        ActivityFeedEventTypes.MEMBER_ROLE_CHANGED,
+                        ActivityFeedActions.UPDATE,
+                        user.displayName ?? 'Admin',
+                        { targetUserId: toUserId(firstPending.uid), targetUserName: firstPending.displayName },
+                    )
+                    .build(),
+            ],
+        );
 
         await groupDetailPage.waitForMemberCount(2);
         await expect(groupDetailPage.getMemberItemLocator(firstPending.displayName)).toBeVisible();

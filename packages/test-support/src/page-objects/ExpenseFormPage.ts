@@ -396,26 +396,27 @@ export class ExpenseFormPage extends BasePage {
     async selectCurrency(currencyCode: CurrencyISOCode | string): Promise<void> {
         const currencyButton = this.getCurrencySelect();
         await expect(currencyButton).toBeVisible();
-        await this.clickButton(currencyButton, { buttonName: 'Select currency' });
 
         const searchInput = this.page.getByPlaceholder(/Search by symbol, code, or country/i);
-        const searchVisible = await searchInput.isVisible().catch(() => false);
 
-        if (searchVisible) {
-            await this.fillPreactInput(searchInput, currencyCode);
+        // Click button and wait for dropdown to open (retry if needed due to focus timing)
+        await expect(async () => {
+            // Click to open the currency dropdown
+            await currencyButton.click();
+            // Verify dropdown opened
+            await expect(searchInput).toBeVisible({ timeout: 500 });
+        }).toPass({ timeout: 5000, intervals: [100, 250, 500, 1000] });
 
-            // Wait for the dropdown to filter and show the matching option, then click it
-            const currencyOption = this.page.getByRole('option', { name: new RegExp(currencyCode, 'i') });
-            await expect(currencyOption).toBeVisible({ timeout: 2000 });
-            await currencyOption.click();
+        // Type to filter currencies
+        await this.fillPreactInput(searchInput, currencyCode);
 
-            await expect(searchInput).not.toBeVisible({ timeout: 2000 });
-            return;
-        }
-
+        // Wait for the dropdown to filter and show the matching option, then click it
         const currencyOption = this.page.getByRole('option', { name: new RegExp(currencyCode, 'i') });
         await expect(currencyOption).toBeVisible({ timeout: 2000 });
         await currencyOption.click();
+
+        // Wait for dropdown to close
+        await expect(searchInput).not.toBeVisible({ timeout: 2000 });
     }
 
     /**
