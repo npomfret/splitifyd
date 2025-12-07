@@ -16,13 +16,148 @@ Currently, the expense form allows users to select any currency supported by the
 |-------|---------|
 | **Group roles** | Only `admin`, `member`, `viewer` exist. There is NO `owner` role. |
 | **Permission model** | `updateGroup` uses `ensureActiveGroupAdmin()` which requires `memberRole === MemberRoles.ADMIN` |
-| **Currency type** | `CurrencyISOCode` is a branded string type in `shared-types.ts` |
-| **Currency data** | ~160+ currencies defined in `packages/shared/src/currency-data.ts` |
+| **Currency type** | `CurrencyISOCode` is a branded string type in `shared-types.ts` (line 127) |
+| **Currency data** | 164 currencies defined in `packages/shared/src/currency-data.ts` |
 | **Expense validation** | `ExpenseService` already fetches group via `getGroupAccessContext()` before expense creation - ideal insertion point |
 | **Settings UI** | Tab-based modal with role-based visibility pattern in `GroupSettingsModal.tsx` |
 | **Currency dropdown** | Uses `CurrencyService` with `getCurrencies()`, `filterCurrencies()`, `groupCurrencies()` methods |
 | **Group creation** | Phase 5 (currency settings during creation) is **required for MVP** |
 | **UX decision** | Currency dropdown should be filtered **silently** - no explanatory message needed |
+
+---
+
+## Detailed Codebase Findings
+
+### Current Group Data Model
+
+**Location:** `packages/shared/src/shared-types.ts`
+
+```typescript
+// GroupDTO (lines 834-836)
+export interface GroupDTO extends Group, BaseDTO<GroupId> {
+    deletedAt: ISOString | null;
+}
+
+// Base Group interface (lines 808-829)
+interface Group {
+    name: GroupName;
+    description?: string;
+    createdBy: UserId;
+    permissions: GroupPermissions;
+    permissionHistory?: PermissionChangeLog[];
+    inviteLinks?: Record<string, InviteLink>;
+    balance?: { balancesByCurrency: Record<string, CurrencyBalance> };
+    lastActivity?: string;
+    // currencySettings will be added here
+}
+```
+
+### Permission Check Pattern
+
+**Location:** `firebase/functions/src/services/GroupMemberService.ts` (lines 49-65)
+
+```typescript
+async ensureActiveGroupAdmin(
+    groupId: GroupId,
+    userId: UserId | null | undefined,
+    options: AdminGuardOptions = {},
+): Promise<GroupMembershipDTO> {
+    if (!userId) {
+        throw options.unauthorizedErrorFactory?.() ?? Errors.authRequired();
+    }
+    const membership = await this.firestoreReader.getGroupMember(groupId, userId);
+    if (!membership ||
+        membership.memberRole !== MemberRoles.ADMIN ||
+        membership.memberStatus !== MemberStatuses.ACTIVE) {
+        throw options.forbiddenErrorFactory?.() ?? Errors.forbidden(ErrorDetail.INSUFFICIENT_PERMISSIONS);
+    }
+    return membership;
+}
+```
+
+### ExpenseService Validation Points
+
+**Location:** `firebase/functions/src/services/ExpenseService.ts`
+
+**`_createExpense()` method (lines 124-295):**
+```typescript
+async _createExpense(groupId, userId, requestData) {
+    const validatedExpenseData = validateCreateExpense(requestData);  // Line 128
+
+    const { group, membership } = await this.groupMemberService.getGroupAccessContext(
+        groupId, userId  // Line 136 - THIS IS WHERE WE GET GROUP DATA
+    );
+
+    await this.permissionEngine.checkPermission(...);  // Line 140
+
+    // Currency validation would go HERE (after line 143, before expense creation)
+}
+```
+
+### CurrencyAmountInput Component
+
+**Location:** `webapp-v2/src/components/ui/CurrencyAmountInput.tsx`
+
+```typescript
+interface CurrencyAmountInputProps {
+    amount: Amount;
+    currency: string;
+    onAmountChange: (amount: string) => void;
+    onCurrencyChange: (currency: string) => void;
+    onAmountBlur?: () => void;
+    label?: string;
+    error?: string;
+    required?: boolean;
+    disabled?: boolean;
+    placeholder?: string;
+    className?: string;
+    recentCurrencies?: string[];  // Already has filtering support
+    // Will add: permittedCurrencies?: CurrencyISOCode[];
+}
+```
+
+### Default Currency Logic
+
+**Location:** `webapp-v2/src/app/hooks/useFormInitialization.ts` (lines 118-141)
+
+```typescript
+const setDefaultsForCreateMode = () => {
+    const expenses = enhancedGroupDetailStore.expenses;
+    let detectedCurrency: CurrencyISOCode = toCurrencyISOCode('USD');
+
+    // Try to get currency from most recent expense
+    if (expenses && expenses.length > 0) {
+        detectedCurrency = expenses[0].currency;
+    }
+
+    expenseFormStore.updateField('currency', detectedCurrency);
+    // Will update: Check group.currencySettings.default FIRST
+};
+```
+
+### GroupSettingsModal Structure
+
+**Location:** `webapp-v2/src/components/group/GroupSettingsModal.tsx`
+
+Tab types: `'identity'`, `'general'`, `'security'`
+
+```typescript
+// Tab availability based on permissions
+const generalTabAvailable = canManageGeneralSettings;  // Admin only
+const identityTabAvailable = true;
+const securityTabAvailable = isGroupOwner || canManageMembers || canApproveMembers;
+
+// Tabs rendered conditionally
+{activeTab === 'general' && generalTabAvailable && renderGeneralTab()}
+```
+
+### Error Code System
+
+**Location:** `firebase/functions/src/errors/ErrorCode.ts`
+
+Two-tier system:
+- **ErrorCode** (12 category codes): `FORBIDDEN`, `VALIDATION_ERROR`, etc.
+- **ErrorDetail** (100+ specific codes): `NOT_GROUP_ADMIN`, `INVALID_AMOUNT`, etc.
 
 ---
 
@@ -319,3 +454,43 @@ Include `currencySettings` in the `createGroup` request payload.
 ## Future Considerations
 
 - **Multi-currency Groups:** For groups that frequently use many currencies, this feature might be less useful. The ability to easily enable/disable it is key.
+
+---
+
+## Implementation Status
+
+### Phase 1: Shared Types & Schemas
+- [x] Add `GroupCurrencySettings` interface to `shared-types.ts`
+- [x] Add `currencySettings` to `Group` interface
+- [x] Add `currencySettings` to `CreateGroupRequest`
+- [x] Add `currencySettings` to `UpdateGroupRequest` (nullable)
+- [ ] Add `GroupCurrencySettingsSchema` to `apiRequests.ts`
+- [ ] Update `CreateGroupRequestSchema` with currency settings
+- [ ] Update `UpdateGroupRequestSchema` with currency settings
+
+### Phase 2: Backend Implementation
+- [ ] Add `currencySettings` to Firestore `BaseGroupSchema`
+- [ ] Add currency settings to `groups/validation.ts`
+- [ ] Add `CURRENCY_NOT_PERMITTED` to `ErrorDetail`
+- [ ] Add currency validation to `ExpenseService._createExpense()`
+- [ ] Add currency validation to `ExpenseService._updateExpense()`
+
+### Phase 3: Frontend - Group Settings UI
+- [ ] Create `GroupCurrencySettings.tsx` component
+- [ ] Create `useGroupCurrencySettings.ts` hook
+- [ ] Add currency settings to `GroupGeneralTabContent.tsx`
+- [ ] Add translations to `translation.json`
+
+### Phase 4: Frontend - Expense Form Integration
+- [ ] Add `permittedCurrencies` prop to `CurrencyAmountInput.tsx`
+- [ ] Update `useFormInitialization.ts` for group default currency
+- [ ] Pass `permittedCurrencies` in `ExpenseFormModal.tsx`
+
+### Phase 5: Frontend - Group Creation Flow
+- [ ] Add advanced settings section to `CreateGroupModal.tsx`
+- [ ] Include `currencySettings` in create group request
+
+### Testing
+- [ ] Backend unit tests for currency settings
+- [ ] Frontend Playwright tests for currency settings UI
+- [ ] Run full build and verify no compilation errors
