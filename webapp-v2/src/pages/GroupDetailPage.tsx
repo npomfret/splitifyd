@@ -378,6 +378,7 @@ export default function GroupDetailPage({ id: groupId, expenseId: routeExpenseId
                 }
                 mainContent={
                     <Stack spacing='lg'>
+                        {/* 1. Header */}
                         <GroupHeader
                             group={group.value!}
                             members={members.value}
@@ -385,6 +386,48 @@ export default function GroupDetailPage({ id: groupId, expenseId: routeExpenseId
                             showSettingsButton={canShowSettingsButton.value}
                         />
 
+                        {/* 2. Mobile-only group actions */}
+                        <div className='lg:hidden'>
+                            <GroupActions
+                                onAddExpense={handleAddExpense}
+                                onSettleUp={handleSettleUp}
+                                onShare={handleShare}
+                                onSettings={handleSettings}
+                                onLeaveGroup={canLeaveGroup.value ? handleLeaveGroup : undefined}
+                                showSettingsButton={canShowSettingsButton.value}
+                                canLeaveGroup={canLeaveGroup.value}
+                                variant='vertical'
+                                onArchive={!isArchivedMembership.value ? handleArchiveGroup : undefined}
+                                onUnarchive={isArchivedMembership.value ? handleUnarchiveGroup : undefined}
+                                isArchived={isArchivedMembership.value}
+                                membershipActionDisabled={membershipActionInFlight.value}
+                            />
+                        </div>
+
+                        {/* 3. Mobile-only balance summary */}
+                        <div className='lg:hidden' data-testid='balance-summary-mobile'>
+                            <BalanceSummary onSettleUp={handleSettleUp} />
+                        </div>
+
+                        {/* 4. Mobile-only comments */}
+                        <div className='lg:hidden'>
+                            <SidebarCard
+                                id='comments-mobile'
+                                data-testid='comments-card-mobile'
+                                title={
+                                    <div className='flex items-center gap-2'>
+                                        <ChatBubbleLeftIcon className='h-5 w-5 text-text-muted' aria-hidden='true' />
+                                        <span>{t('pages.groupDetailPage.comments')}</span>
+                                    </div>
+                                }
+                                collapsible
+                                defaultCollapsed={!expandCommentsSection}
+                            >
+                                <CommentsSection target={{ type: 'group', groupId: groupId! }} maxHeight='300px' initialData={commentsResponse.value} />
+                            </SidebarCard>
+                        </div>
+
+                        {/* 5. Expenses (always visible) */}
                         <ExpensesList
                             onExpenseClick={handleExpenseClick}
                             onExpenseCopy={handleExpenseCopy}
@@ -398,23 +441,67 @@ export default function GroupDetailPage({ id: groupId, expenseId: routeExpenseId
                                 : undefined}
                         />
 
-                        {/* Mobile-only members list */}
+                        {/* 6. Mobile-only settlement history */}
+                        <div className='lg:hidden'>
+                            <SidebarCard
+                                id='settlements-mobile'
+                                data-testid='settlement-history-card-mobile'
+                                title={
+                                    <div className='flex items-center gap-2'>
+                                        <BanknotesIcon className='h-5 w-5 text-text-muted' aria-hidden='true' />
+                                        <span>{t('pages.groupDetailPage.paymentHistory')}</span>
+                                    </div>
+                                }
+                                collapsible
+                                defaultCollapsed={!expandSettlementSection}
+                            >
+                                <SettlementHistory
+                                    groupId={groupId!}
+                                    onEditSettlement={handleEditSettlement}
+                                    canToggleShowDeleted={canViewDeletedTransactions.value}
+                                    showDeletedSettlements={showDeletedSettlements.value}
+                                    onShowDeletedChange={canViewDeletedTransactions.value
+                                        ? (show) => {
+                                            enhancedGroupDetailStore.setShowDeletedSettlements(show);
+                                            enhancedGroupDetailStore.refreshAll();
+                                        }
+                                        : undefined}
+                                />
+                            </SidebarCard>
+                        </div>
+
+                        {/* 7. Mobile-only members list */}
                         <div className='lg:hidden'>
                             <MembersListWithManagement
                                 groupId={groupId!}
+                                variant='sidebar'
                                 onInviteClick={handleShare}
                                 onLeaveGroupClick={handleLeaveGroup}
                             />
                         </div>
 
-                        {/* Mobile-only balance summary */}
-                        <div className='lg:hidden' data-testid='balance-summary-mobile'>
-                            <BalanceSummary onSettleUp={handleSettleUp} />
+                        {/* 8. Mobile-only activity feed */}
+                        <div className='lg:hidden'>
+                            <SidebarCard
+                                id='activity-mobile'
+                                data-testid='activity-feed-card-mobile'
+                                title={
+                                    <div className='flex items-center gap-2'>
+                                        <BoltIcon className='h-5 w-5 text-text-muted' aria-hidden='true' />
+                                        <span>{t('pages.groupDetailPage.activity')}</span>
+                                    </div>
+                                }
+                                collapsible
+                                defaultCollapsed={!expandActivitySection}
+                            >
+                                <GroupActivityFeed groupId={groupId!} currentUserId={currentUser.value!.uid} />
+                            </SidebarCard>
                         </div>
                     </Stack>
                 }
                 rightSidebar={
-                    <>
+                    <div className='hidden lg:block space-y-4'>
+                        {/* Desktop-only: all right sidebar content (mobile versions in mainContent) */}
                         <BalanceSummary variant='sidebar' onSettleUp={handleSettleUp} />
 
                         {/* Activity Feed Section */}
@@ -482,7 +569,7 @@ export default function GroupDetailPage({ id: groupId, expenseId: routeExpenseId
                         >
                             <CommentsSection target={{ type: 'group', groupId: groupId! }} maxHeight='300px' initialData={commentsResponse.value} />
                         </SidebarCard>
-                    </>
+                    </div>
                 }
             />
 
