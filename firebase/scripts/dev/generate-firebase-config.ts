@@ -2,7 +2,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { getDeployConfig, resolvePortsForMode } from '../lib/instances-config';
+import { getDeployConfig, getHostingConfig, resolvePortsForMode } from '../lib/instances-config';
 import { logger } from '../lib/logger';
 import { loadRuntimeConfig } from '../lib/scripts-config';
 
@@ -23,6 +23,11 @@ const instanceName = runtimeConfig.__INSTANCE_NAME;
 const isDeployed = !instanceName.startsWith('dev');
 
 const portConfig = resolvePortsForMode(instanceName);
+const hostingConfig = getHostingConfig(instanceName);
+if (!hostingConfig) {
+    logger.error('❌ hosting config not found in instances.json', { instanceName });
+    process.exit(1);
+}
 
 // Determine functions source - 'functions' for dev, instances.json for deployed
 const deployConfig = getDeployConfig(instanceName);
@@ -51,6 +56,7 @@ const replacements: Record<string, string | number> = {
     EMULATOR_TASKS_PORT: portConfig.tasks,
     FUNCTIONS_SOURCE: functionsSource,
     FUNCTIONS_PREDEPLOY: functionsPredeploy,
+    ASSETS_CACHE_CONTROL: hostingConfig.assetsCacheControl,
 };
 
 Object.entries(replacements).forEach(([placeholder, value]) => {

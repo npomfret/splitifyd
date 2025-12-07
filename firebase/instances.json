@@ -9,6 +9,9 @@
       "hosting": 6005,
       "storage": 6006,
       "tasks": 6007
+    },
+    "hosting": {
+      "assetsCacheControl": "no-cache, no-store, must-revalidate"
     }
   },
   "dev2": {
@@ -21,6 +24,9 @@
       "hosting": 7005,
       "storage": 7006,
       "tasks": 7007
+    },
+    "hosting": {
+      "assetsCacheControl": "no-cache, no-store, must-revalidate"
     }
   },
   "dev3": {
@@ -33,6 +39,9 @@
       "hosting": 8005,
       "storage": 8006,
       "tasks": 8007
+    },
+    "hosting": {
+      "assetsCacheControl": "no-cache, no-store, must-revalidate"
     }
   },
   "dev4": {
@@ -45,6 +54,9 @@
       "hosting": 9005,
       "storage": 9006,
       "tasks": 9007
+    },
+    "hosting": {
+      "assetsCacheControl": "no-cache, no-store, must-revalidate"
     }
   },
   "staging-1": {
@@ -61,6 +73,9 @@
     "deploy": {
       "functionsSource": ".firebase/deploy/functions",
       "functionsPredeploy": "node ./scripts/deployment/prepare-functions-deploy.js"
+    },
+    "hosting": {
+      "assetsCacheControl": "public, max-age=60"
     }
   }
 }

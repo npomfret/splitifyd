@@ -16,10 +16,15 @@ export interface DeployConfig {
     functionsPredeploy: string;
 }
 
+export interface HostingConfig {
+    assetsCacheControl: string;
+}
+
 export interface InstanceConfig {
     instanceName: string;
     ports: InstancePorts;
     deploy?: DeployConfig;
+    hosting?: HostingConfig;
 }
 
 type InstancesMap = Record<string, InstanceConfig>;
@@ -73,4 +78,13 @@ export function getDeployConfig(instanceName: string): DeployConfig | null {
         return null;
     }
     return entry.deploy ?? null;
+}
+
+export function getHostingConfig(instanceName: string): HostingConfig | null {
+    const instances = loadInstancesFile();
+    const entry = Object.values(instances).find((candidate) => candidate.instanceName === instanceName);
+    if (!entry) {
+        return null;
+    }
+    return entry.hosting ?? null;
 }

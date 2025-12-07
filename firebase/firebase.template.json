@@ -40,7 +40,7 @@
         "headers": [
           {
             "key": "Cache-Control",
-            "value": "public, max-age=31536000, immutable"
+            "value": "{{ASSETS_CACHE_CONTROL}}"
           },
           {
             "key": "Content-Security-Policy",
