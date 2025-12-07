@@ -1,4 +1,4 @@
-import { GroupName, toGroupName, UpdateGroupRequest } from '@billsplit-wl/shared';
+import { CurrencyISOCode, GroupCurrencySettings, GroupName, toCurrencyISOCode, toGroupName, UpdateGroupRequest } from '@billsplit-wl/shared';
 import { generateShortId, randomChoice, randomString } from '../test-helpers';
 
 export class GroupUpdateBuilder {
@@ -29,6 +29,24 @@ export class GroupUpdateBuilder {
         return this;
     }
 
+    withCurrencySettings(permitted: string[], defaultCurrency: string): this {
+        this.update.currencySettings = {
+            permitted: permitted.map(c => toCurrencyISOCode(c)) as CurrencyISOCode[],
+            default: toCurrencyISOCode(defaultCurrency),
+        };
+        return this;
+    }
+
+    withCurrencySettingsObject(settings: GroupCurrencySettings | null): this {
+        this.update.currencySettings = settings;
+        return this;
+    }
+
+    clearCurrencySettings(): this {
+        this.update.currencySettings = null;
+        return this;
+    }
+
     withInvalidName(value: string): this {
         (this.update as any).name = value;
         return this;
@@ -43,6 +61,7 @@ export class GroupUpdateBuilder {
         return {
             ...(this.update.name !== undefined && { name: this.update.name }),
             ...(this.update.description !== undefined && { description: this.update.description }),
+            ...(this.update.currencySettings !== undefined && { currencySettings: this.update.currencySettings }),
         };
     }
 }

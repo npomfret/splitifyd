@@ -320,7 +320,7 @@ export class GroupService {
         const nowISO = toISOString(new Date().toISOString());
 
         // Create the document to write (using ISO strings - FirestoreWriter converts to Timestamps)
-        const documentToWrite = {
+        const documentToWrite: Record<string, unknown> = {
             name: createGroupRequest.name,
             description: createGroupRequest.description ?? '',
             createdBy: userId,
@@ -329,6 +329,11 @@ export class GroupService {
             deletedAt: null,
             permissions: PermissionEngine.getDefaultPermissions(SecurityPresets.OPEN),
         };
+
+        // Include currency settings if provided
+        if (createGroupRequest.currencySettings) {
+            documentToWrite.currencySettings = createGroupRequest.currencySettings;
+        }
 
         // Note: Validation happens in FirestoreWriter after ISO → Timestamp conversion
 
@@ -476,11 +481,18 @@ export class GroupService {
             // PHASE 2: ALL WRITES AFTER ALL READS
             // Update group document with ISO timestamp (FirestoreWriter converts to Timestamp)
             const documentPath = `${FirestoreCollections.GROUPS}/${groupId}`;
-            this.firestoreWriter.updateInTransaction(transaction, documentPath, {
+            const updatePayload: Record<string, unknown> = {
                 name: updatedData.name,
                 description: updatedData.description,
                 updatedAt: now,
-            });
+            };
+
+            // Handle currency settings update (explicit null clears settings)
+            if (updates.currencySettings !== undefined) {
+                updatePayload.currencySettings = updates.currencySettings;
+            }
+
+            this.firestoreWriter.updateInTransaction(transaction, documentPath, updatePayload);
 
             // Update denormalized groupUpdatedAt in all membership documents
             // Use the same ISO timestamp to keep them in sync

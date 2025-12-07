@@ -142,6 +142,13 @@ export class ExpenseService {
             throw Errors.forbidden(ErrorDetail.INSUFFICIENT_PERMISSIONS);
         }
 
+        // Check if currency is permitted by group settings
+        if (group.currencySettings?.permitted) {
+            if (!group.currencySettings.permitted.includes(validatedExpenseData.currency)) {
+                throw Errors.forbidden(ErrorDetail.CURRENCY_NOT_PERMITTED);
+            }
+        }
+
         if (!memberIds.includes(validatedExpenseData.paidBy)) {
             throw Errors.validationError('paidBy', ErrorDetail.INVALID_PAYER);
         }
@@ -328,6 +335,13 @@ export class ExpenseService {
         const canEditExpense = PermissionEngineAsync.checkPermission(actorMember, group, userId, 'expenseEditing', { expense: oldExpense });
         if (!canEditExpense) {
             throw Errors.forbidden(ErrorDetail.INSUFFICIENT_PERMISSIONS);
+        }
+
+        // Check if the new currency is permitted by group settings (if changing currency)
+        if (updateData.currency && group.currencySettings?.permitted) {
+            if (!group.currencySettings.permitted.includes(updateData.currency)) {
+                throw Errors.forbidden(ErrorDetail.CURRENCY_NOT_PERMITTED);
+            }
         }
 
         if (updateData.paidBy && !memberIds.includes(updateData.paidBy)) {

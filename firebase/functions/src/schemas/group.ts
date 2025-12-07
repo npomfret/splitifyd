@@ -7,6 +7,19 @@ import { AuditFieldsSchema, createDocumentSchemas, FirestoreTimestampSchema, Use
  * Groups contain metadata about the expense-sharing group including
  * permissions and security settings. Members are stored in subcollections.
  */
+/**
+ * Currency settings schema for group-level currency restrictions
+ */
+const GroupCurrencySettingsSchema = z
+    .object({
+        permitted: z.array(z.string().length(3)).nonempty(),
+        default: z.string().length(3),
+    })
+    .refine((data) => data.permitted.includes(data.default), {
+        message: 'Default currency must be in permitted list',
+        path: ['default'],
+    });
+
 const BaseGroupSchema = z
     .object({
         name: z.string().min(1, 'Group name is required'),
@@ -21,6 +34,7 @@ const BaseGroupSchema = z
                 settingsManagement: z.string(),
             })
             .strict(),
+        currencySettings: GroupCurrencySettingsSchema.nullable().optional(),
         deletedAt: FirestoreTimestampSchema.nullable(),
     })
     .merge(AuditFieldsSchema)

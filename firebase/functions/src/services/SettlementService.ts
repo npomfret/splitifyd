@@ -103,9 +103,17 @@ export class SettlementService {
 
         // Verify group exists first (like ExpenseService)
         const {
+            group,
             memberIds,
             actorMember,
         } = await this.groupMemberService.getGroupAccessContext(settlementData.groupId, userId);
+
+        // Validate currency is permitted by group settings
+        if (group.currencySettings?.permitted) {
+            if (!group.currencySettings.permitted.includes(settlementData.currency)) {
+                throw Errors.forbidden(ErrorDetail.CURRENCY_NOT_PERMITTED);
+            }
+        }
 
         // Verify payer and payee are still in the group (race condition protection)
         for (const uid of [settlementData.payerId, settlementData.payeeId]) {
@@ -275,13 +283,26 @@ export class SettlementService {
             throw Errors.forbidden('NOT_SETTLEMENT_CREATOR');
         }
 
-        const [member, memberIds] = await Promise.all([
+        const [group, member, memberIds] = await Promise.all([
+            this.firestoreReader.getGroup(oldSettlement.groupId),
             this.firestoreReader.getGroupMember(oldSettlement.groupId, userId),
             this.firestoreReader.getAllGroupMemberIds(oldSettlement.groupId),
         ]);
 
+        if (!group) {
+            throw Errors.notFound('Group', ErrorDetail.GROUP_NOT_FOUND);
+        }
+
         if (!member) {
             throw Errors.forbidden(ErrorDetail.NOT_GROUP_MEMBER);
+        }
+
+        // Validate currency is permitted by group settings if currency is being changed
+        const newCurrency = updateData.currency ?? oldSettlement.currency;
+        if (group.currencySettings?.permitted) {
+            if (!group.currencySettings.permitted.includes(newCurrency)) {
+                throw Errors.forbidden(ErrorDetail.CURRENCY_NOT_PERMITTED);
+            }
         }
 
         const actorDisplayName = member.groupDisplayName?.trim();

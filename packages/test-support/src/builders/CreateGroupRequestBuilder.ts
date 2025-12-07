@@ -1,5 +1,5 @@
-import type { CreateGroupRequest, DisplayName, GroupName } from '@billsplit-wl/shared';
-import { toGroupName } from '@billsplit-wl/shared';
+import type { CreateGroupRequest, CurrencyISOCode, DisplayName, GroupCurrencySettings, GroupName } from '@billsplit-wl/shared';
+import { toCurrencyISOCode, toGroupName } from '@billsplit-wl/shared';
 import { toDisplayName } from '@billsplit-wl/shared';
 import { generateShortId, randomChoice, randomString } from '../test-helpers';
 
@@ -38,6 +38,19 @@ export class CreateGroupRequestBuilder {
         return this;
     }
 
+    withCurrencySettings(permitted: string[], defaultCurrency: string): this {
+        this.group.currencySettings = {
+            permitted: permitted.map(c => toCurrencyISOCode(c)) as CurrencyISOCode[],
+            default: toCurrencyISOCode(defaultCurrency),
+        };
+        return this;
+    }
+
+    withCurrencySettingsObject(settings: GroupCurrencySettings): this {
+        this.group.currencySettings = settings;
+        return this;
+    }
+
     build(): CreateGroupRequest {
         const result: CreateGroupRequest = {
             name: this.group.name,
@@ -46,6 +59,10 @@ export class CreateGroupRequestBuilder {
 
         if (this.group.description !== undefined) {
             result.description = this.group.description;
+        }
+
+        if (this.group.currencySettings !== undefined) {
+            result.currencySettings = this.group.currencySettings;
         }
 
         return result;

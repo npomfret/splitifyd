@@ -464,16 +464,20 @@ Include `currencySettings` in the `createGroup` request payload.
 - [x] Add `currencySettings` to `Group` interface
 - [x] Add `currencySettings` to `CreateGroupRequest`
 - [x] Add `currencySettings` to `UpdateGroupRequest` (nullable)
-- [ ] Add `GroupCurrencySettingsSchema` to `apiRequests.ts`
-- [ ] Update `CreateGroupRequestSchema` with currency settings
-- [ ] Update `UpdateGroupRequestSchema` with currency settings
+- [x] Add `GroupCurrencySettingsSchema` to `apiRequests.ts`
+- [x] Update `CreateGroupRequestSchema` with currency settings
+- [x] Update `UpdateGroupRequestSchema` with currency settings
 
 ### Phase 2: Backend Implementation
-- [ ] Add `currencySettings` to Firestore `BaseGroupSchema`
-- [ ] Add currency settings to `groups/validation.ts`
-- [ ] Add `CURRENCY_NOT_PERMITTED` to `ErrorDetail`
-- [ ] Add currency validation to `ExpenseService._createExpense()`
-- [ ] Add currency validation to `ExpenseService._updateExpense()`
+- [x] Add `currencySettings` to Firestore `BaseGroupSchema`
+- [x] Add currency settings to `groups/validation.ts`
+- [x] Add `CURRENCY_NOT_PERMITTED` to `ErrorDetail`
+- [x] Add currency validation to `ExpenseService._createExpense()`
+- [x] Add currency validation to `ExpenseService._updateExpense()`
+- [x] Add currency validation to `SettlementService._createSettlement()`
+- [x] Add currency validation to `SettlementService._updateSettlement()`
+- [x] Add `currencySettings` pass-through in `GroupService.createGroup()`
+- [x] Add `currencySettings` handling in `GroupService.updateGroup()`
 
 ### Phase 3: Frontend - Group Settings UI
 - [ ] Create `GroupCurrencySettings.tsx` component
@@ -491,6 +495,47 @@ Include `currencySettings` in the `createGroup` request payload.
 - [ ] Include `currencySettings` in create group request
 
 ### Testing
-- [ ] Backend unit tests for currency settings
+- [x] Backend unit tests for currency settings (24 tests passing)
+  - Group creation/update tests (4 + 5)
+  - Expense creation/update currency restriction tests (4 + 2)
+  - Settlement creation/update currency restriction tests (3 + 2)
+  - API response verification tests (2)
+  - Existing data readable tests (1)
+  - Viewer role rejection test (1)
 - [ ] Frontend Playwright tests for currency settings UI
-- [ ] Run full build and verify no compilation errors
+- [x] Run full build and verify no compilation errors
+
+---
+
+## Progress Summary (December 2025)
+
+### Backend Complete ✅
+
+All backend work is finished. The following files were modified:
+
+| File | Changes |
+|------|---------|
+| `packages/shared/src/shared-types.ts` | Added `GroupCurrencySettings` interface, updated `Group`, `CreateGroupRequest`, `UpdateGroupRequest` |
+| `packages/shared/src/schemas/apiRequests.ts` | Added `GroupCurrencySettingsSchema` with default-in-permitted validation |
+| `firebase/functions/src/schemas/group.ts` | Added `currencySettings` to `BaseGroupSchema` (nullable for clearing) |
+| `firebase/functions/src/groups/validation.ts` | Added error mappers and transform for `currencySettings` |
+| `firebase/functions/src/errors/ErrorCode.ts` | Added `CURRENCY_NOT_PERMITTED` to `ErrorDetail` |
+| `firebase/functions/src/services/ExpenseService.ts` | Added currency validation in `_createExpense()` and `_updateExpense()` |
+| `firebase/functions/src/services/SettlementService.ts` | Added currency validation in `_createSettlement()` and `_updateSettlement()` |
+| `firebase/functions/src/services/GroupService.ts` | Added `currencySettings` handling in `createGroup()` and `updateGroup()` |
+| `packages/test-support/src/builders/CreateGroupRequestBuilder.ts` | Added `withCurrencySettings()` and `withCurrencySettingsObject()` |
+| `packages/test-support/src/builders/GroupUpdateBuilder.ts` | Added `withCurrencySettings()`, `withCurrencySettingsObject()`, `clearCurrencySettings()` |
+| `firebase/functions/src/__tests__/unit/api/group-currency-settings.test.ts` | New test file with 24 comprehensive tests |
+
+### Default Behavior
+
+- Groups are created **without currency restrictions by default**
+- When `currencySettings` is absent/undefined, **any currency is allowed**
+- Currency restrictions are opt-in via the Group Settings UI (Phase 3)
+
+### Frontend Pending
+
+Phases 3-5 (frontend implementation) are ready to begin:
+- Phase 3: Admin UI for managing currency settings
+- Phase 4: Expense form integration (filtering + default currency)
+- Phase 5: Optional settings during group creation

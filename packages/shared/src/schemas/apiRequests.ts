@@ -123,6 +123,19 @@ export const CurrencyCodeSchema = z
     .transform((value) => value.toUpperCase())
     .transform(toCurrencyISOCode);
 
+/**
+ * Schema for group currency settings - restricts which currencies can be used in a group.
+ */
+export const GroupCurrencySettingsSchema = z
+    .object({
+        permitted: z.array(CurrencyCodeSchema).nonempty('At least one currency is required'),
+        default: CurrencyCodeSchema,
+    })
+    .refine((data) => data.permitted.includes(data.default), {
+        message: 'Default currency must be in the permitted list',
+        path: ['default'],
+    });
+
 const UTC_FORMAT_REGEX = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?(Z|[+-]00:00)$/;
 
 const isUTCFormat = (isoString: string): boolean => UTC_FORMAT_REGEX.test(isoString);
@@ -648,15 +661,17 @@ export const CreateGroupRequestSchema = z.object({
     })
         .transform(toDisplayName),
     description: z.string().trim().max(500).optional(),
+    currencySettings: GroupCurrencySettingsSchema.optional(),
 });
 
 export const UpdateGroupRequestSchema = z
     .object({
         name: z.string().trim().min(1).max(100).transform(toGroupName).optional(),
         description: z.string().trim().max(500).optional(),
+        currencySettings: GroupCurrencySettingsSchema.nullable().optional(), // null to clear
     })
-    .refine((data) => data.name !== undefined || data.description !== undefined, {
-        message: 'At least one field (name or description) must be provided',
+    .refine((data) => data.name !== undefined || data.description !== undefined || data.currencySettings !== undefined, {
+        message: 'At least one field (name, description, or currencySettings) must be provided',
     });
 
 export const UpdateDisplayNameRequestSchema = z.object({

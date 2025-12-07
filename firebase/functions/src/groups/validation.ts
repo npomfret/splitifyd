@@ -47,6 +47,10 @@ const createGroupErrorMapper = createZodErrorMapper(
             code: 'INVALID_MEMBERS',
             message: (issue) => issue.message,
         },
+        currencySettings: {
+            code: 'INVALID_CURRENCY_SETTINGS',
+            message: (issue) => issue.message,
+        },
     },
     {
         defaultCode: 'VALIDATION_ERROR',
@@ -62,6 +66,10 @@ const updateGroupErrorMapper = createZodErrorMapper(
         },
         description: {
             code: 'INVALID_DESCRIPTION',
+            message: (issue) => issue.message,
+        },
+        currencySettings: {
+            code: 'INVALID_CURRENCY_SETTINGS',
             message: (issue) => issue.message,
         },
     },
@@ -140,6 +148,7 @@ export const validateCreateGroup = createRequestValidator({
         name: toGroupName(sanitizeInputString(value.name)),
         groupDisplayName: toDisplayName(sanitizeInputString(value.groupDisplayName).trim()),
         description: value.description ? sanitizeInputString(value.description) : undefined,
+        currencySettings: value.currencySettings, // Already validated by schema
     }),
     mapError: createGroupErrorMapper,
 }) as (body: unknown) => CreateGroupRequest;
@@ -159,6 +168,10 @@ export const validateUpdateGroup = createRequestValidator({
 
         if (value.description !== undefined) {
             update.description = sanitizeInputString(value.description);
+        }
+
+        if (value.currencySettings !== undefined) {
+            update.currencySettings = value.currencySettings; // null or settings object
         }
 
         return update;

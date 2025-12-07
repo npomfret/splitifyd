@@ -805,6 +805,18 @@ export interface ShareLinkDTO extends ShareLink, BaseDTO<ShareLinkId> {}
  * This type includes computed fields (balance, lastActivity) that are added by the API layer
  * and do not exist in the storage format.
  */
+
+/**
+ * Currency settings for a group - allows admins to restrict which currencies
+ * can be used for expenses and set a default currency.
+ */
+export interface GroupCurrencySettings {
+    /** Array of permitted ISO currency codes (e.g., ['USD', 'EUR']) */
+    permitted: CurrencyISOCode[];
+    /** The default currency for new expenses in this group */
+    default: CurrencyISOCode;
+}
+
 interface Group {
     // Core fields
     name: GroupName;
@@ -820,6 +832,9 @@ interface Group {
 
     // Invite link configuration
     inviteLinks?: Record<string, InviteLink>;
+
+    // Currency restrictions for this group
+    currencySettings?: GroupCurrencySettings;
 
     // Computed fields (API-only - not in storage)
     balance?: {
@@ -840,11 +855,13 @@ export interface CreateGroupRequest {
     name: GroupName;
     groupDisplayName: DisplayName;
     description?: Description;
+    currencySettings?: GroupCurrencySettings;
 }
 
 export interface UpdateGroupRequest {
     name?: GroupName;
     description?: Description;
+    currencySettings?: GroupCurrencySettings | null; // null to clear settings
 }
 
 export interface UpdateDisplayNameRequest {
