@@ -1,61 +1,96 @@
 # Roles and Authorization
 
-## Role Definitions
+Two independent role systems: **system roles** (global) and **group roles** (per-membership).
 
-Roles are defined in `packages/shared/src/shared-types.ts`:
+---
 
-| Role | Access |
-|------|--------|
-| `system_admin` | Full admin panel access, user management, tenant configuration |
-| `tenant_admin` | Tenant configuration only (branding, domains) |
-| `system_user` | Regular user, no admin access (default for new users) |
+## System Roles
 
-## How It Works
+Stored at `users/{userId}.role`. Checked by auth middleware before handlers run.
 
-1. **Storage**: Roles are stored in Firestore at `users/{userId}.role`
-2. **Authentication**: Middleware reads role from Firestore on each request
-3. **Assignment**: New users get `system_user` by default
+| Role | Purpose |
+|------|---------|
+| `system_admin` | Full admin panel access |
+| `tenant_admin` | Tenant branding/domains only |
+| `system_user` | Regular user (default) |
 
-## Middleware
+**Middleware:** `authenticateAdmin` → requires `system_admin`. `authenticateTenantAdmin` → requires `tenant_admin` or higher.
 
-| Middleware | Required Role |
-|------------|---------------|
-| `authenticate` | Any authenticated user |
-| `authenticateAdmin` | `system_admin` only |
-| `authenticateTenantAdmin` | `tenant_admin` or `system_admin` |
-| `authenticateSystemUser` | `system_user` or `system_admin` |
+---
 
-## Protected Routes
+## Group Roles
 
-### System Admin Only (`authenticateAdmin`)
-- `/admin/tenants/*` - Tenant management
-- `/admin/policies/*` - Policy management
-- `/admin/users/*` - User management
-- `/env` - Environment diagnostics
+Stored at `groups/{groupId}/members/{userId}.memberRole`. Determines what a user can do in a specific group.
 
-### Tenant Admin (`authenticateTenantAdmin`)
-- `/settings/tenant` - Get tenant settings
-- `/settings/tenant/branding` - Update branding
-- `/settings/tenant/domains` - Domain management
+| Role | Capabilities |
+|------|-------------|
+| `admin` | Full group control (settings, members, all actions) |
+| `member` | Participate based on group permission settings |
+| `viewer` | Read-only (blocked from editing, deleting, inviting) |
 
-### Any System Role (`authenticateSystemUser`)
-- `/admin/browser/users/auth` - List auth users
-- `/admin/browser/users/firestore` - List Firestore users
+**Member status** also matters: only `active` members can act. `pending` members await approval; `archived` members are hidden from their own view.
 
-## Frontend Access
+---
 
-| Page | Required Role |
-|------|---------------|
-| `/admin` | `system_admin` |
-| `/settings/tenant/branding` | `tenant_admin` or `system_admin` |
+## Group Permission Settings
+
+Each group has configurable permissions stored in `group.permissions`:
+
+| Permission | Controls |
+|------------|----------|
+| `expenseEditing` | Who can create/edit expenses |
+| `expenseDeletion` | Who can delete expenses |
+| `memberInvitation` | Who can invite new members |
+| `memberApproval` | `automatic` or `admin-required` |
+| `settingsManagement` | Who can change group settings |
+
+**Permission levels:**
+
+| Level | Who can act |
+|-------|-------------|
+| `anyone` | All members (except viewers) |
+| `owner-and-admin` | Admins + expense creator (for their own) |
+| `admin-only` | Admins only |
+
+**Presets:** `OPEN` (permissive defaults) and `MANAGED` (admin-controlled). See `permission-engine.ts`.
+
+---
+
+## Enforcement
+
+### Server (authoritative)
+
+All permission checks happen server-side. The client is never trusted.
+
+| Check | Method | Used by |
+|-------|--------|---------|
+| System role | `authenticateAdmin()` middleware | Admin routes |
+| Group admin | `GroupMemberService.ensureActiveGroupAdmin()` | Settings, role changes |
+| Action permission | `PermissionEngineAsync.checkPermission()` | Expenses, settlements, invites |
+
+**Flow:** Request → auth middleware (verify token, load system role) → handler → `getGroupAccessContext()` (load group + membership) → `checkPermission()` (evaluate action) → execute or 403.
+
+### Client (UI only)
+
+Client mirrors permission logic for UI visibility but enforces nothing.
+
+| Component | Purpose |
+|-----------|---------|
+| `ProtectedRoute` | Redirects unauthenticated users to login |
+| `ClientPermissionEngine` | Mirrors server logic for button/tab visibility |
+| `permissionsStore` | Reactive permission state via Preact Signals |
+
+The client uses server error responses (403) as the source of truth.
+
+---
 
 ## Key Files
 
 | Purpose | Location |
 |---------|----------|
-| Role definitions | `packages/shared/src/shared-types.ts` |
-| Authorization middleware | `firebase/functions/src/auth/middleware.ts` |
-| Route configuration | `firebase/functions/src/routes/route-config.ts` |
-| Role update API | `firebase/functions/src/admin/UserAdminHandlers.ts` |
-| User creation | `firebase/functions/src/services/UserService2.ts` |
-| Firestore role update | `firebase/functions/src/services/firestore/FirestoreWriter.ts` |
+| Role types | `packages/shared/src/shared-types.ts` → `SystemUserRoles`, `MemberRoles`, `PermissionLevels` |
+| Auth middleware | `firebase/functions/src/auth/middleware.ts` |
+| Group admin guard | `firebase/functions/src/services/GroupMemberService.ts` → `ensureActiveGroupAdmin()` |
+| Permission engine | `firebase/functions/src/permissions/permission-engine-async.ts` |
+| Client permission engine | `webapp-v2/src/app/stores/permissions-store.ts` |
+| Auth store | `webapp-v2/src/app/stores/auth-store.ts` |
