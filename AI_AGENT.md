@@ -21,6 +21,10 @@ Remember:
  * claude stuff will fix failing tests and after the fix you will re-run them and ensure they pass
  * you will NEVER lie and say a test has passed if you have not run it to completion
 
+## Tasks
+
+When planning and researching a task in @tasks/, write you plan / observations/ findings etc back to the original task `.md` file.  Update it with your progress as you implement the solution.
+
 ## Available Tools
 
 | Tool | What it is | Typical command(s) | Why it’s an upgrade |
