@@ -86,11 +86,6 @@ export function DashboardPage() {
             <DashboardGrid
                 mainContent={
                     <>
-                        {/* Activity Feed - Show at top on mobile, hide on large screens */}
-                        <div class='lg:hidden mb-6'>
-                            <ActivityFeedCard userId={user.uid} />
-                        </div>
-
                         {/* Welcome Section - Only show for first-time users (no groups) after loading is complete */}
                         {enhancedGroupsStore.groups.length === 0 && enhancedGroupsStore.initialized && !enhancedGroupsStore.loading && (
                             <div class='mb-6'>
@@ -147,6 +142,11 @@ export function DashboardPage() {
 
                             {/* Groups Content */}
                             <GroupsList onCreateGroup={() => setIsCreateModalOpen(true)} onInvite={handleInvite} onAddExpense={handleAddExpense} />
+                        </div>
+
+                        {/* Activity Feed - Show after groups on mobile, hide on large screens */}
+                        <div class='lg:hidden mt-6'>
+                            <ActivityFeedCard userId={user.uid} />
                         </div>
                     </>
                 }
