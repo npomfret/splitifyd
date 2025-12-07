@@ -385,23 +385,6 @@ export default function GroupDetailPage({ id: groupId, expenseId: routeExpenseId
                             showSettingsButton={canShowSettingsButton.value}
                         />
 
-                        {/* Mobile-only quick actions */}
-                        <div className='lg:hidden'>
-                            <GroupActions
-                                onAddExpense={handleAddExpense}
-                                onSettleUp={handleSettleUp}
-                                onShare={handleShare}
-                                onSettings={handleSettings}
-                                onLeaveGroup={canLeaveGroup.value ? handleLeaveGroup : undefined}
-                                showSettingsButton={canShowSettingsButton.value}
-                                canLeaveGroup={canLeaveGroup.value}
-                                onArchive={!isArchivedMembership.value ? handleArchiveGroup : undefined}
-                                onUnarchive={isArchivedMembership.value ? handleUnarchiveGroup : undefined}
-                                isArchived={isArchivedMembership.value}
-                                membershipActionDisabled={membershipActionInFlight.value}
-                            />
-                        </div>
-
                         <ExpensesList
                             onExpenseClick={handleExpenseClick}
                             onExpenseCopy={handleExpenseCopy}
