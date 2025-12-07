@@ -161,55 +161,63 @@ export class ThemePage extends BasePage {
     }
 
     /**
-     * Verify a CSS variable on :root has the expected value
+     * Verify a CSS variable on :root has the expected value (polls until condition met)
      */
     async expectRootCssVariable(variableName: string, expectedValue: string): Promise<void> {
-        const actualValue = await this.page.evaluate(
-            (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim(),
-            variableName,
-        );
-        expect(actualValue).toBe(expectedValue);
+        await expect(async () => {
+            const actualValue = await this.page.evaluate(
+                (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim(),
+                variableName,
+            );
+            expect(actualValue).toBe(expectedValue);
+        }).toPass({ timeout: 2000 });
     }
 
     /**
      * Verify an element's CSS property matches an RGB triplet (e.g., "237 68 80")
+     * Polls until condition met.
      */
     async expectElementColorMatches(selector: string, cssProperty: string, rgbTriplet: string): Promise<void> {
         const element = this.page.locator(selector).first();
         await expect(element).toBeVisible();
 
-        const actualColor = await element.evaluate(
-            (el, prop) => getComputedStyle(el).getPropertyValue(prop),
-            cssProperty,
-        );
-
-        const actualRgb = this.normalizeCssColor(actualColor);
         const expectedRgb = this.parseRgbTriplet(rgbTriplet);
 
-        expect(actualRgb).toEqual(expectedRgb);
+        await expect(async () => {
+            const actualColor = await element.evaluate(
+                (el, prop) => getComputedStyle(el).getPropertyValue(prop),
+                cssProperty,
+            );
+            const actualRgb = this.normalizeCssColor(actualColor);
+            expect(actualRgb).toEqual(expectedRgb);
+        }).toPass({ timeout: 5000 });
     }
 
     /**
-     * Verify an element's background gradient contains a specific RGB color
+     * Verify an element's background gradient contains a specific RGB color.
+     * Polls until condition met.
      */
     async expectGradientContainsColor(selector: string, rgbTriplet: string): Promise<void> {
         const element = this.page.locator(selector).first();
         await expect(element).toBeVisible();
 
-        const backgroundImage = await element.evaluate((el) => getComputedStyle(el).getPropertyValue('background-image'));
-
-        const rgbMatches = backgroundImage.match(/rgba?\(([^)]+)\)/g);
-        if (!rgbMatches || rgbMatches.length === 0) {
-            throw new Error(`No RGB colors found in background-image: ${backgroundImage}`);
-        }
-
         const expectedRgb = this.parseRgbTriplet(rgbTriplet);
-        const gradientContainsColor = rgbMatches.some((rgbMatch) => {
-            const actualRgb = this.normalizeCssColor(rgbMatch);
-            return actualRgb[0] === expectedRgb[0] && actualRgb[1] === expectedRgb[1] && actualRgb[2] === expectedRgb[2];
-        });
 
-        expect(gradientContainsColor).toBe(true);
+        await expect(async () => {
+            const backgroundImage = await element.evaluate((el) => getComputedStyle(el).getPropertyValue('background-image'));
+
+            const rgbMatches = backgroundImage.match(/rgba?\(([^)]+)\)/g);
+            if (!rgbMatches || rgbMatches.length === 0) {
+                throw new Error(`No RGB colors found in background-image: ${backgroundImage}`);
+            }
+
+            const gradientContainsColor = rgbMatches.some((rgbMatch) => {
+                const actualRgb = this.normalizeCssColor(rgbMatch);
+                return actualRgb[0] === expectedRgb[0] && actualRgb[1] === expectedRgb[1] && actualRgb[2] === expectedRgb[2];
+            });
+
+            expect(gradientContainsColor).toBe(true);
+        }).toPass({ timeout: 5000 });
     }
 
     /**

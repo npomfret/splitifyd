@@ -90,15 +90,6 @@ test.describe('Tenant theme smoke suite', () => {
             await page.goto('/', { waitUntil: 'domcontentloaded' });
             await expect(page).toHaveURL('/');
 
-            // Wait for the theme stylesheet link to load
-            await page.waitForLoadState('networkidle');
-
-            // Also wait for the stylesheet to be fully loaded
-            await page.waitForFunction(() => {
-                const link = document.getElementById('tenant-theme-stylesheet') as HTMLLinkElement;
-                return link?.sheet !== null && link?.sheet !== undefined;
-            }, { timeout: 5000 });
-
             // Verify theme CSS variables are applied correctly
             await themePage.expectRootCssVariable('--interactive-primary-rgb', fixture.cssVars.interactivePrimary);
             await themePage.expectRootCssVariable('--text-primary-rgb', fixture.cssVars.textPrimary);
