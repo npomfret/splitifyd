@@ -24,8 +24,8 @@ describe('CloudThemeArtifactStorage', () => {
 
         const files = stubStorage.getAllFiles();
         expect(files.size).toBe(2);
-        expect(result.cssUrl).toBe('https://storage.googleapis.com/test-bucket/theme-artifacts/tenant-123/abc/theme.css');
-        expect(result.tokensUrl).toBe('https://storage.googleapis.com/test-bucket/theme-artifacts/tenant-123/abc/tokens.json');
+        expect(result.cssUrl).toBe('https://firebasestorage.googleapis.com/v0/b/test-bucket/o/theme-artifacts%2Ftenant-123%2Fabc%2Ftheme.css?alt=media');
+        expect(result.tokensUrl).toBe('https://firebasestorage.googleapis.com/v0/b/test-bucket/o/theme-artifacts%2Ftenant-123%2Fabc%2Ftokens.json?alt=media');
     });
 
     it('generates emulator URLs when storageEmulatorHost is provided', async () => {

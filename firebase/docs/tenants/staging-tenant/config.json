@@ -2,9 +2,10 @@
   "id": "staging-tenant",
   "domains": ["splitifyd.web.app"],
   "branding": {
-    "primaryColor": "#10B981",
-    "secondaryColor": "#06B6D4",
-    "accentColor": "#F59E0B"
+    "primaryColor": "#3B82F6",
+    "secondaryColor": "#60A5FA",
+    "accentColor": "#F97316",
+    "showAppNameInHeader": false
   },
   "marketingFlags": {
     "showLandingPage": true,
@@ -15,23 +16,23 @@
     "tokens": {
       "version": 1,
       "palette": {
-        "primary": "#10B981",
-        "primaryVariant": "#059669",
-        "secondary": "#06B6D4",
-        "secondaryVariant": "#0891B2",
-        "accent": "#F59E0B",
-        "neutral": "#0A0F0D",
-        "neutralVariant": "#14211A",
+        "primary": "#3B82F6",
+        "primaryVariant": "#2563EB",
+        "secondary": "#60A5FA",
+        "secondaryVariant": "#3B82F6",
+        "accent": "#F97316",
+        "neutral": "#0F172A",
+        "neutralVariant": "#1E293B",
         "success": "#22C55E",
-        "warning": "#F59E0B",
+        "warning": "#F97316",
         "danger": "#EF4444",
-        "info": "#06B6D4"
+        "info": "#60A5FA"
       },
       "typography": {
         "fontFamily": {
-          "sans": "Space Grotesk, Inter, system-ui, -apple-system, sans-serif",
-          "serif": "Fraunces, Georgia, serif",
-          "mono": "Geist Mono, JetBrains Mono, monospace"
+          "sans": "Inter, system-ui, -apple-system, sans-serif",
+          "serif": "Libre Baskerville, Georgia, serif",
+          "mono": "JetBrains Mono, monospace"
         },
         "sizes": {
           "xs": "0.75rem",
@@ -95,19 +96,19 @@
       "radii": {
         "none": "0px",
         "sm": "6px",
-        "md": "12px",
-        "lg": "20px",
+        "md": "10px",
+        "lg": "16px",
         "pill": "999px",
         "full": "9999px"
       },
       "shadows": {
-        "sm": "0 2px 8px rgba(16, 185, 129, 0.15)",
-        "md": "0 8px 24px rgba(16, 185, 129, 0.25)",
-        "lg": "0 24px 64px rgba(16, 185, 129, 0.35)"
+        "sm": "0 2px 6px rgba(15, 23, 42, 0.15)",
+        "md": "0 6px 16px rgba(15, 23, 42, 0.2)",
+        "lg": "0 16px 40px rgba(15, 23, 42, 0.25)"
       },
       "assets": {},
       "legal": {
-        "appName": "Splitifyd",
+        "appName": "staging",
         "companyName": "Splitifyd",
         "supportEmail": "support@splitifyd.app",
         "privacyPolicyUrl": "https://splitifyd.app/legal/privacy",
@@ -116,68 +117,68 @@
       "semantics": {
         "colors": {
           "surface": {
-            "base": "#0A0F0D",
-            "raised": "#14211A",
-            "sunken": "#050807",
-            "overlay": "rgba(10, 15, 13, 0.92)",
-            "warning": "#451A03",
-            "muted": "#1E332A",
-            "glass": "rgba(16, 185, 129, 0.08)",
-            "glassBorder": "rgba(16, 185, 129, 0.2)",
-            "aurora": "rgba(6, 182, 212, 0.06)",
-            "skeleton": "#1E332A",
-            "skeletonShimmer": "#2D4A3D",
-            "popover": "#1C1610"
+            "base": "#0F172A",
+            "raised": "#1E293B",
+            "sunken": "#020617",
+            "overlay": "rgba(15, 23, 42, 0.95)",
+            "warning": "#431407",
+            "muted": "#334155",
+            "glass": "rgba(59, 130, 246, 0.08)",
+            "glassBorder": "rgba(59, 130, 246, 0.2)",
+            "aurora": "rgba(96, 165, 250, 0.06)",
+            "skeleton": "#334155",
+            "skeletonShimmer": "#475569",
+            "popover": "#1E293B"
           },
           "text": {
-            "primary": "#ECFDF5",
-            "secondary": "#A7F3D0",
-            "muted": "#6EE7B7",
-            "inverted": "#0A0F0D",
-            "accent": "#F59E0B",
-            "disabled": "#34D399",
+            "primary": "#F8FAFC",
+            "secondary": "#CBD5E1",
+            "muted": "#94A3B8",
+            "inverted": "#0F172A",
+            "accent": "#F97316",
+            "disabled": "#64748B",
             "hero": "#FFFFFF",
-            "eyebrow": "#06B6D4",
-            "code": "#67E8F9"
+            "eyebrow": "#60A5FA",
+            "code": "#93C5FD"
           },
           "interactive": {
-            "primary": "#10B981",
-            "primaryHover": "#34D399",
-            "primaryActive": "#059669",
-            "primaryForeground": "#0A0F0D",
-            "secondary": "#06B6D4",
-            "secondaryHover": "#22D3EE",
-            "secondaryActive": "#0891B2",
-            "secondaryForeground": "#0A0F0D",
+            "primary": "#3B82F6",
+            "primaryHover": "#60A5FA",
+            "primaryActive": "#2563EB",
+            "primaryForeground": "#FFFFFF",
+            "secondary": "#60A5FA",
+            "secondaryHover": "#93C5FD",
+            "secondaryActive": "#3B82F6",
+            "secondaryForeground": "#0F172A",
             "destructive": "#EF4444",
             "destructiveHover": "#F87171",
             "destructiveActive": "#DC2626",
             "destructiveForeground": "#FFFFFF",
-            "accent": "#F59E0B",
-            "ghost": "rgba(16, 185, 129, 0.12)",
-            "magnetic": "#34D399",
-            "glow": "rgba(16, 185, 129, 0.5)"
+            "accent": "#F97316",
+            "ghost": "rgba(59, 130, 246, 0.1)",
+            "magnetic": "#60A5FA",
+            "glow": "rgba(59, 130, 246, 0.4)"
           },
           "border": {
-            "subtle": "rgba(16, 185, 129, 0.1)",
-            "default": "rgba(16, 185, 129, 0.2)",
-            "strong": "rgba(16, 185, 129, 0.4)",
-            "focus": "#F59E0B",
-            "warning": "#F59E0B",
+            "subtle": "rgba(249, 115, 22, 0.15)",
+            "default": "rgba(249, 115, 22, 0.3)",
+            "strong": "rgba(249, 115, 22, 0.5)",
+            "focus": "#F97316",
+            "warning": "#F97316",
             "error": "#EF4444",
-            "glassBorder": "rgba(16, 185, 129, 0.15)"
+            "glassBorder": "rgba(249, 115, 22, 0.2)"
           },
           "status": {
             "success": "#22C55E",
-            "warning": "#F59E0B",
+            "warning": "#F97316",
             "danger": "#EF4444",
-            "info": "#06B6D4"
+            "info": "#60A5FA"
           },
           "gradient": {
-            "primary": ["#10B981", "#059669"],
-            "accent": ["#F59E0B", "#10B981"],
-            "aurora": ["#10B981", "#06B6D4", "#F59E0B", "#22C55E"],
-            "text": ["#ECFDF5", "#A7F3D0"]
+            "primary": ["#3B82F6", "#2563EB"],
+            "accent": ["#F97316", "#EA580C"],
+            "aurora": ["#3B82F6", "#60A5FA", "#F97316", "#22C55E"],
+            "text": ["#F8FAFC", "#CBD5E1"]
           }
         },
         "spacing": {

@@ -1,6 +1,6 @@
 {
   "id": "sidebadger-tenant",
-  "domains": ["app.sidebadger.com"],
+  "domains": ["app.sidebadger.com", "demo.sidebadger.com"],
   "branding": {
     "primaryColor": "#7ec786",
     "secondaryColor": "#5fb0c4",
@@ -115,17 +115,17 @@
         "colors": {
           "surface": {
             "base": "#0a2818",
-            "raised": "#0f3d24",
+            "raised": "#1a5035",
             "sunken": "#061810",
-            "overlay": "#0c3018",
+            "overlay": "rgba(10, 40, 24, 0.95)",
             "warning": "#451A03",
             "muted": "#14462d",
-            "glass": "#1e5a3c",
-            "glassBorder": "#2a5a3d",
-            "aurora": "#14462d",
+            "glass": "rgba(126, 199, 134, 0.1)",
+            "glassBorder": "rgba(240, 192, 92, 0.25)",
+            "aurora": "rgba(126, 199, 134, 0.08)",
             "skeleton": "#14462d",
             "skeletonShimmer": "#1e5a3c",
-            "popover": "#0f3d24"
+            "popover": "#1a5035"
           },
           "text": {
             "primary": "#f8fafc",
@@ -157,13 +157,13 @@
             "glow": "#7ec786"
           },
           "border": {
-            "subtle": "#1a3f2a",
-            "default": "#2a5a3d",
-            "strong": "#3d7a55",
+            "subtle": "rgba(240, 192, 92, 0.15)",
+            "default": "rgba(240, 192, 92, 0.3)",
+            "strong": "rgba(240, 192, 92, 0.5)",
             "focus": "#f0c05c",
             "warning": "#f0c05c",
             "error": "#EF4444",
-            "glassBorder": "#2a5a3d"
+            "glassBorder": "rgba(240, 192, 92, 0.2)"
           },
           "status": {
             "success": "#4eeab5",

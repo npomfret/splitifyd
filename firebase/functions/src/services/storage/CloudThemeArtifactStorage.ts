@@ -48,26 +48,9 @@ export class CloudThemeArtifactStorage implements ThemeArtifactStorage {
             }),
         ]);
 
-        // Make files publicly readable
-        await Promise.all([
-            cssFile.makePublic(),
-            tokensFile.makePublic(),
-        ]);
-
-        // Get public URLs - use emulator URL for test/dev environments
-        let cssUrl: string;
-        let tokensUrl: string;
-
-        if (this.storageEmulatorHost) {
-            // Emulator URL format: http://localhost:PORT/v0/b/BUCKET/o/PATH
-            const baseUrl = `http://${this.storageEmulatorHost}/v0/b/${bucket.name}/o`;
-            cssUrl = `${baseUrl}/${encodeURIComponent(cssPath)}?alt=media`;
-            tokensUrl = `${baseUrl}/${encodeURIComponent(tokensPath)}?alt=media`;
-        } else {
-            // Production URL format
-            cssUrl = `https://storage.googleapis.com/${bucket.name}/${cssPath}`;
-            tokensUrl = `https://storage.googleapis.com/${bucket.name}/${tokensPath}`;
-        }
+        // Generate public URLs using Firebase Storage format (works with security rules)
+        const cssUrl = this.generatePublicUrl(bucket.name, cssPath);
+        const tokensUrl = this.generatePublicUrl(bucket.name, tokensPath);
 
         logger.info('Saved cloud theme artifacts', {
             tenantId,
@@ -77,5 +60,16 @@ export class CloudThemeArtifactStorage implements ThemeArtifactStorage {
         });
 
         return { cssUrl, tokensUrl };
+    }
+
+    private generatePublicUrl(bucketName: string, filePath: string): string {
+        const encodedPath = encodeURIComponent(filePath);
+        if (this.storageEmulatorHost) {
+            // Emulator URL format: http://localhost:PORT/v0/b/BUCKET/o/PATH?alt=media
+            return `http://${this.storageEmulatorHost}/v0/b/${bucketName}/o/${encodedPath}?alt=media`;
+        } else {
+            // Firebase Storage URL format (works with Firebase security rules)
+            return `https://firebasestorage.googleapis.com/v0/b/${bucketName}/o/${encodedPath}?alt=media`;
+        }
     }
 }

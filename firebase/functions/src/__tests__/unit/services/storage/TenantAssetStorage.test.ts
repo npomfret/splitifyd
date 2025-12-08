@@ -120,8 +120,7 @@ describe('TenantAssetStorage', () => {
 
             const url = await assetStorage.uploadAsset('tenant-prod', 'logo', buffer, 'image/png');
 
-            expect(url).toMatch(/^https:\/\/storage\.googleapis\.com\/test-bucket\/tenant-assets\/tenant-prod\/logo-[0-9a-f]{16}\.png$/);
-            expect(url).not.toContain('?alt=media');
+            expect(url).toMatch(/^https:\/\/firebasestorage\.googleapis\.com\/v0\/b\/test-bucket\/o\/tenant-assets%2Ftenant-prod%2Flogo-[0-9a-f]{16}\.png\?alt=media$/);
         });
     });
 

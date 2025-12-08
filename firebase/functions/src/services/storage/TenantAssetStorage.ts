@@ -97,9 +97,6 @@ class CloudTenantAssetStorage implements TenantAssetStorage {
             },
         });
 
-        // Make file publicly readable
-        await file.makePublic();
-
         logger.info('Uploaded tenant asset', {
             tenantId,
             assetType,
@@ -139,9 +136,6 @@ class CloudTenantAssetStorage implements TenantAssetStorage {
             },
         });
 
-        // Make file publicly readable
-        await file.makePublic();
-
         logger.info('Uploaded tenant library image', {
             tenantId,
             imageId,
@@ -173,13 +167,13 @@ class CloudTenantAssetStorage implements TenantAssetStorage {
     }
 
     private generatePublicUrl(bucketName: string, filePath: string): string {
+        const encodedPath = encodeURIComponent(filePath);
         if (this.storageEmulatorHost) {
             // Emulator URL format: http://localhost:PORT/v0/b/BUCKET/o/PATH?alt=media
-            const baseUrl = `http://${this.storageEmulatorHost}/v0/b/${bucketName}/o`;
-            return `${baseUrl}/${encodeURIComponent(filePath)}?alt=media`;
+            return `http://${this.storageEmulatorHost}/v0/b/${bucketName}/o/${encodedPath}?alt=media`;
         } else {
-            // Production URL format
-            return `https://storage.googleapis.com/${bucketName}/${filePath}`;
+            // Firebase Storage URL format (works with Firebase security rules)
+            return `https://firebasestorage.googleapis.com/v0/b/${bucketName}/o/${encodedPath}?alt=media`;
         }
     }
 
