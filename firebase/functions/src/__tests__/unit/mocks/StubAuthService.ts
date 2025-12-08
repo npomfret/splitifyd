@@ -214,4 +214,9 @@ export class StubAuthService implements IAuthService {
 
         return storedPassword === password;
     }
+
+    async sendPasswordResetEmail(_email: Email): Promise<void> {
+        // Stub implementation - always succeeds silently (like the real implementation)
+        // In a real scenario, this would send an email, but for testing we just return
+    }
 }

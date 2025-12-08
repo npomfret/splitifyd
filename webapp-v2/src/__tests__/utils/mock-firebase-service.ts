@@ -10,6 +10,9 @@ import {
     groupPreviewHandler,
     groupsMetadataHandler,
     joinGroupHandler,
+    loginFailureHandler,
+    loginSuccessHandler,
+    passwordResetSuccessHandler,
     registerFailureHandler,
     registerSuccessHandler,
     updateExpenseHandler,
@@ -137,7 +140,6 @@ export class MockFirebase {
                 performTokenRefresh: () => Promise.resolve('mock-token'),
                 performUserRefresh: () => Promise.resolve(),
                 setPersistence: () => Promise.resolve(),
-                sendPasswordResetEmail: () => Promise.resolve(),
                 onAuthStateChanged: (callback) => {
                     // Store callback for future auth state changes
                     window.__TEST_ENV__!.firebase.authCallback = callback;
@@ -152,6 +154,9 @@ export class MockFirebase {
                 },
                 signInWithEmailAndPassword: async (email, password) => {
                     return (window as any).__testHarnessMockSignIn(email, password);
+                },
+                signInWithCustomToken: async (customToken) => {
+                    return (window as any).__testHarnessMockSignInWithCustomToken(customToken);
                 },
                 signOut: async () => {
                     return (window as any).__testHarnessMockSignOut();
@@ -203,6 +208,7 @@ export class MockFirebase {
         // Expose sign in/out functions (check if already exposed for browser reuse)
         try {
             await this.page.exposeFunction('__testHarnessMockSignIn', this.handleSignIn.bind(this));
+            await this.page.exposeFunction('__testHarnessMockSignInWithCustomToken', this.handleSignInWithCustomToken.bind(this));
             await this.page.exposeFunction('__testHarnessMockSignOut', this.handleSignOut.bind(this));
         } catch (error) {
             // Functions already exposed (browser reuse) - this is expected and safe to ignore
@@ -230,27 +236,55 @@ export class MockFirebase {
         throw new Error('Mock login not configured. Use mockLoginSuccess(), mockLoginWithDelay(), or mockLoginFailure() first.');
     }
 
+    private async handleSignInWithCustomToken(_customToken: string): Promise<void> {
+        // Custom token login uses the same success user as email/password login
+        // The token is returned by the API after successful authentication
+        if (this.state.loginBehavior === 'failure' && this.state.failureError) {
+            throw this.state.failureError;
+        }
+
+        if ((this.state.loginBehavior === 'success' || this.state.loginBehavior === 'delayed') && this.state.successUser) {
+            if (this.state.loginBehavior === 'delayed' && this.state.delayMs) {
+                await new Promise((resolve) => setTimeout(resolve, this.state.delayMs));
+            }
+
+            await this.updateAuthState(this.state.successUser);
+            return;
+        }
+
+        throw new Error('Mock login not configured. Use mockLoginSuccess(), mockLoginWithDelay(), or mockLoginFailure() first.');
+    }
+
     private async handleSignOut(): Promise<void> {
         await this.updateAuthState(null);
     }
 
-    public mockLoginSuccess(user: ClientUser): void {
+    public async mockLoginSuccess(user: ClientUser): Promise<void> {
         this.state.loginBehavior = 'success';
         this.state.successUser = user;
         this.state.failureError = null;
+
+        // Register API handler for /api/login
+        await registerMswHandlers(this.page, loginSuccessHandler('mock-custom-token', { once: true }));
     }
 
-    public mockLoginFailure(error: AuthError): void {
+    public async mockLoginFailure(error: AuthError): Promise<void> {
         this.state.loginBehavior = 'failure';
         this.state.successUser = null;
         this.state.failureError = error;
+
+        // Register API handler for /api/login failure
+        await registerMswHandlers(this.page, loginFailureHandler(error, { once: true }));
     }
 
-    public mockLoginWithDelay(user: ClientUser, delayMs: number): void {
+    public async mockLoginWithDelay(user: ClientUser, delayMs: number): Promise<void> {
         this.state.loginBehavior = 'delayed';
         this.state.successUser = user;
         this.state.failureError = null;
         this.state.delayMs = delayMs;
+
+        // Register API handler for /api/login with delay
+        await registerMswHandlers(this.page, loginSuccessHandler('mock-custom-token', { once: true, delayMs }));
     }
 
     /**
@@ -879,6 +913,67 @@ export async function mockUserProfileApi(
                 delayMs: delay,
             },
         ),
+    );
+}
+
+/**
+ * Mocks the login API endpoint
+ * Used for testing login flows
+ *
+ * @param page - Playwright page instance
+ * @param customToken - Custom token to return (default: 'mock-custom-token')
+ * @param options - Optional delay in milliseconds before responding
+ */
+export async function mockLoginApi(
+    page: Page,
+    customToken: string = 'mock-custom-token',
+    options: { delayMs?: number; } = {},
+): Promise<void> {
+    const delay = getApiDelay(options.delayMs);
+
+    await registerMswHandlers(
+        page,
+        loginSuccessHandler(customToken, { delayMs: delay }),
+    );
+}
+
+/**
+ * Mocks the login API endpoint to fail
+ * Used for testing login error handling
+ *
+ * @param page - Playwright page instance
+ * @param error - Error object with code and message
+ * @param options - Optional delay in milliseconds before responding
+ */
+export async function mockLoginApiFailure(
+    page: Page,
+    error: { code: string; message: string; },
+    options: { delayMs?: number; status?: number; } = {},
+): Promise<void> {
+    const delay = getApiDelay(options.delayMs);
+
+    await registerMswHandlers(
+        page,
+        loginFailureHandler(error, { delayMs: delay, status: options.status }),
+    );
+}
+
+/**
+ * Mocks the password reset API endpoint
+ * Used for testing password reset flows
+ *
+ * @param page - Playwright page instance
+ * @param options - Optional delay in milliseconds before responding
+ */
+export async function mockPasswordResetApi(
+    page: Page,
+    options: { delayMs?: number; } = {},
+): Promise<void> {
+    const delay = getApiDelay(options.delayMs);
+
+    await registerMswHandlers(
+        page,
+        passwordResetSuccessHandler({ delayMs: delay }),
     );
 }
 

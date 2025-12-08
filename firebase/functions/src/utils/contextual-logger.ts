@@ -1,4 +1,5 @@
-import { logger as firebaseLogger } from 'firebase-functions/logger';
+import * as functions from 'firebase-functions';
+const firebaseLogger = functions.logger;
 import { LogContext, LoggerContext } from './logger-context';
 
 /**

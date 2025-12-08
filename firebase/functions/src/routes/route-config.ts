@@ -266,6 +266,22 @@ const routeDefinitions: RouteDefinition[] = [
         category: 'auth',
     },
 
+    // === Login ===
+    {
+        method: 'POST',
+        path: '/login',
+        handlerName: 'login',
+        category: 'auth',
+    },
+
+    // === Password Reset ===
+    {
+        method: 'POST',
+        path: '/password-reset',
+        handlerName: 'sendPasswordResetEmail',
+        category: 'auth',
+    },
+
     // === Expenses ===
     {
         method: 'POST',

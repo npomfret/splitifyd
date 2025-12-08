@@ -1,5 +1,16 @@
 # Task: Refactor Auth Flow to Use API Endpoints
 
+## Status: COMPLETE
+
+Implementation is complete. All phases have been implemented and tested.
+
+**Implementation Notes:**
+- `signInWithEmailAndPassword` was intentionally kept on the gateway/FirebaseService because it's still used by `signInAfterRegistration` (post-registration auto-login)
+- `sendPasswordResetEmail` was removed from gateway/FirebaseService (replaced by `apiClient.sendPasswordResetEmail`)
+- Rate limiting test (429) was not implemented as it requires mocking the Firebase Identity Toolkit response
+
+---
+
 ## Objective
 
 To refactor the login and password reset features to use our internal API endpoints instead of directly calling the client-side Firebase Authentication SDK. This aligns the authentication flow with our existing registration process, which already uses the API.

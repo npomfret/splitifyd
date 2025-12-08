@@ -7,7 +7,7 @@ export interface AuthGateway {
     onAuthStateChanged(callback: (user: ClientUser | null, idToken: string | null) => Promise<void>): () => void;
     setPersistence(persistenceType: 'local' | 'session'): Promise<void>;
     signInWithEmailAndPassword(email: Email, password: string): Promise<void>;
-    sendPasswordResetEmail(email: Email): Promise<void>;
+    signInWithCustomToken(customToken: string): Promise<void>;
     signOut(): Promise<void>;
     performTokenRefresh(): Promise<string>;
     performUserRefresh(): Promise<void>;
@@ -32,8 +32,8 @@ class FirebaseAuthGateway implements AuthGateway {
         return this.firebaseService.signInWithEmailAndPassword(email, password);
     }
 
-    sendPasswordResetEmail(email: Email): Promise<void> {
-        return this.firebaseService.sendPasswordResetEmail(email);
+    signInWithCustomToken(customToken: string): Promise<void> {
+        return this.firebaseService.signInWithCustomToken(customToken);
     }
 
     signOut(): Promise<void> {

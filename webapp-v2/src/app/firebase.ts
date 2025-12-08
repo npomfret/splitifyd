@@ -8,8 +8,8 @@ import {
     connectAuthEmulator,
     getAuth,
     onIdTokenChanged,
-    sendPasswordResetEmail,
     setPersistence,
+    signInWithCustomToken,
     signInWithEmailAndPassword,
     signOut,
     User as FirebaseUser,
@@ -45,7 +45,7 @@ export interface FirebaseService {
     getCurrentUserId(): string | null;
     setPersistence(persistence: 'local' | 'session'): Promise<void>;
     signInWithEmailAndPassword(email: Email, password: string): Promise<void>;
-    sendPasswordResetEmail(email: Email): Promise<void>;
+    signInWithCustomToken(customToken: string): Promise<void>;
     signOut(): Promise<void>;
     onAuthStateChanged(callback: (user: ClientUser | null, idToken: string | null) => Promise<void>): () => void;
     onDocumentSnapshot(collection: string, documentId: string, onData: (data: any) => void, onError: (error: Error) => void): () => void;
@@ -123,8 +123,8 @@ class FirebaseServiceImpl implements FirebaseService {
         await signInWithEmailAndPassword(this.getAuth(), email, password);
     }
 
-    async sendPasswordResetEmail(email: Email) {
-        return sendPasswordResetEmail(this.getAuth(), email);
+    async signInWithCustomToken(customToken: string) {
+        await signInWithCustomToken(this.getAuth(), customToken);
     }
 
     async signOut() {

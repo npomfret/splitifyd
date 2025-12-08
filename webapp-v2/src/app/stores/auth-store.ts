@@ -4,7 +4,7 @@ import { logError } from '@/utils/browser-logger.ts';
 import { translateFirebaseAuthError } from '@/utils/error-translation';
 import { createUserScopedStorage } from '@/utils/userScopedStorage.ts';
 import type { ClientUser, Email, Password, UserId } from '@billsplit-wl/shared';
-import { AuthErrors } from '@billsplit-wl/shared';
+import { AuthErrors, toPassword } from '@billsplit-wl/shared';
 import { DisplayName } from '@billsplit-wl/shared';
 import { ReadonlySignal, signal } from '@preact/signals';
 import { apiClient } from '../apiClient';
@@ -249,7 +249,12 @@ class AuthStoreImpl implements AuthStore {
 
         try {
             await this.gateway.setPersistence(rememberMe ? 'local' : 'session');
-            await this.gateway.signInWithEmailAndPassword(email, password);
+
+            // Authenticate via API and get custom token
+            const response = await apiClient.login({ email, password: toPassword(password) });
+
+            // Use custom token to establish Firebase Auth session
+            await this.gateway.signInWithCustomToken(response.customToken);
             // User state will be updated by onAuthStateChanged listener
         } catch (error: any) {
             this.#errorSignal.value = this.getAuthErrorMessage(error);
@@ -337,7 +342,7 @@ class AuthStoreImpl implements AuthStore {
         this.#errorSignal.value = null;
 
         try {
-            await this.gateway.sendPasswordResetEmail(email);
+            await apiClient.sendPasswordResetEmail({ email });
         } catch (error: any) {
             this.#errorSignal.value = this.getAuthErrorMessage(error);
             throw error;

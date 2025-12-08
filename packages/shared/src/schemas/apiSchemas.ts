@@ -288,6 +288,12 @@ const RegisterResponseSchema = z.object({
     }),
 });
 
+// Login response schema
+export const LoginResponseSchema = z.object({
+    success: z.boolean(),
+    customToken: z.string().min(1),
+});
+
 // Empty response schema for 204 No Content responses
 // Used to signal that the endpoint returns no body
 export const EmptyResponseSchema = z.void();
@@ -747,6 +753,8 @@ export const responseSchemas = {
     '/groups/share': ShareableLinkResponseSchema,
     '/groups/join': JoinGroupResponseSchema,
     '/register': RegisterResponseSchema,
+    'POST /login': LoginResponseSchema,
+    'POST /password-reset': EmptyResponseSchema,
     'POST /settlements': SettlementSchema,
     'PUT /settlements/:settlementId': SettlementListItemSchema,
     'GET /settlements/:settlementId': SettlementListItemSchema,

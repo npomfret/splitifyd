@@ -48,11 +48,14 @@ import {
     ListGroupsResponse,
     ListPoliciesResponse,
     ListSettlementsOptions,
+    LoginRequest,
+    LoginResponse,
     ListSettlementsResponse,
     ListTenantImagesResponse,
     MemberRole,
     MergeJobResponse,
     PasswordChangeRequest,
+    PasswordResetRequest,
     PolicyDTO,
     PolicyId,
     PolicyVersion,
@@ -1067,6 +1070,19 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         const req = createStubRequest('', userData);
         const res = await this.dispatchByHandler('register', req);
         return res.getJson() as RegisterResponse;
+    }
+
+    async login(credentials: LoginRequest): Promise<LoginResponse> {
+        const req = createStubRequest('', credentials);
+        const res = await this.dispatchByHandler('login', req);
+        this.throwIfError(res);
+        return res.getJson() as LoginResponse;
+    }
+
+    async sendPasswordResetEmail(request: PasswordResetRequest): Promise<void> {
+        const req = createStubRequest('', request);
+        const res = await this.dispatchByHandler('sendPasswordResetEmail', req);
+        this.throwIfError(res);
     }
 
     /** @deprecated Use register() instead */

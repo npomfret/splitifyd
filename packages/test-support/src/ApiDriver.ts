@@ -48,9 +48,12 @@ import {
     ListGroupsResponse,
     type ListPoliciesResponse,
     type ListTenantImagesResponse,
+    LoginRequest,
+    LoginResponse,
     type MemberRole,
     MergeJobResponse,
     PasswordChangeRequest,
+    PasswordResetRequest,
     type PolicyDTO,
     PolicyId,
     type PolicyVersion,
@@ -469,6 +472,14 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
 
     async register(userData: UserRegistration): Promise<RegisterResponse> {
         return await this.apiRequest('/register', 'POST', userData);
+    }
+
+    async login(credentials: LoginRequest): Promise<LoginResponse> {
+        return await this.apiRequest('/login', 'POST', credentials);
+    }
+
+    async sendPasswordResetEmail(request: PasswordResetRequest): Promise<void> {
+        await this.apiRequest('/password-reset', 'POST', request);
     }
 
     async leaveGroup(groupId: GroupId | string, token: AuthToken): Promise<void> {

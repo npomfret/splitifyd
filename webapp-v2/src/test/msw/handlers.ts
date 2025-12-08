@@ -181,3 +181,72 @@ export function updateExpenseHandler(
 export function appConfigHandler(options: HandlerOptions = {}): SerializedMswHandler {
     return createJsonHandler('GET', '/api/config', new AppConfigurationBuilder().build(), options);
 }
+
+export function loginSuccessHandler(
+    customToken: string = 'mock-custom-token',
+    options: HandlerOptions = {},
+): SerializedMswHandler {
+    return createJsonHandler(
+        'POST',
+        '/api/login',
+        {
+            success: true,
+            customToken,
+        },
+        options,
+    );
+}
+
+export function loginFailureHandler(
+    error: { code: string; message: string; },
+    options: HandlerOptions = {},
+): SerializedMswHandler {
+    const { status = 401, ...rest } = options;
+    return createJsonHandler(
+        'POST',
+        '/api/login',
+        {
+            error: {
+                code: error.code,
+                message: error.message,
+            },
+        },
+        {
+            status,
+            ...rest,
+        },
+    );
+}
+
+export function passwordResetSuccessHandler(options: HandlerOptions = {}): SerializedMswHandler {
+    return createJsonHandler(
+        'POST',
+        '/api/password-reset',
+        undefined,
+        {
+            status: 204,
+            ...options,
+        },
+    );
+}
+
+export function passwordResetFailureHandler(
+    error: { code: string; message: string; },
+    options: HandlerOptions = {},
+): SerializedMswHandler {
+    const { status = 400, ...rest } = options;
+    return createJsonHandler(
+        'POST',
+        '/api/password-reset',
+        {
+            error: {
+                code: error.code,
+                message: error.message,
+            },
+        },
+        {
+            status,
+            ...rest,
+        },
+    );
+}

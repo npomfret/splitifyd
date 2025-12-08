@@ -54,7 +54,7 @@ interface ValidatedUpdateUserRequest extends UpdateRequest {
     emailVerified?: boolean;
     disabled?: boolean;
 }
-import { DisplayName, SIGN_IN_WITH_PASSWORD_ENDPOINT, UserId } from '@billsplit-wl/shared';
+import { DisplayName, SEND_OOB_CODE_ENDPOINT, SIGN_IN_WITH_PASSWORD_ENDPOINT, UserId } from '@billsplit-wl/shared';
 import type { Email } from '@billsplit-wl/shared';
 import { ApiError, ErrorDetail, Errors } from '../../errors';
 import { logger } from '../../logger';
@@ -486,6 +486,82 @@ export class FirebaseAuthService implements IAuthService {
                 }
 
                 logger.error('Password verification failed with unexpected error', {
+                    ...context,
+                    status: response.status,
+                    message: rawMessage,
+                });
+
+                throw response.status >= 500
+                    ? Errors.serviceError(ErrorDetail.AUTH_SERVICE_ERROR)
+                    : Errors.unavailable(ErrorDetail.AUTH_SERVICE_ERROR);
+            },
+            context,
+        );
+    }
+
+    async sendPasswordResetEmail(email: Email): Promise<void> {
+        const context = this.createContext('sendPasswordResetEmail', email);
+
+        LoggerContext.update({
+            operation: 'sendPasswordResetEmail',
+            email,
+        });
+
+        return this.executeWithMetrics(
+            'FirebaseAuthService.sendPasswordResetEmail',
+            async () => {
+                const config = this.resolveIdentityToolkitConfig();
+                const requestUrl = `${config.baseUrl}${SEND_OOB_CODE_ENDPOINT}?key=${config.apiKey}`;
+
+                const payload = {
+                    email,
+                    requestType: 'PASSWORD_RESET',
+                };
+
+                let response: Response;
+
+                try {
+                    response = await fetch(requestUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(payload),
+                    });
+                } catch (error) {
+                    const errorMessage = error instanceof Error ? error.message : String(error);
+                    logger.error('Password reset email request failed', { ...context, errorMessage });
+                    throw Errors.unavailable(ErrorDetail.AUTH_SERVICE_ERROR);
+                }
+
+                if (response.ok) {
+                    logger.info('Password reset email sent successfully', { ...context });
+                    return;
+                }
+
+                let errorBody: IdentityToolkitErrorResponse | undefined;
+
+                try {
+                    errorBody = await response.json();
+                } catch {
+                    // Ignore JSON parsing failures; we'll fall back to status code
+                }
+
+                const rawMessage = errorBody?.error?.message ?? `HTTP_${response.status}`;
+                const message = rawMessage.toUpperCase();
+
+                // Silently succeed for non-existent emails (prevent email enumeration)
+                if (message === 'EMAIL_NOT_FOUND') {
+                    logger.info('Password reset email silently succeeded for non-existent email', { ...context });
+                    return;
+                }
+
+                if (message === 'TOO_MANY_ATTEMPTS_TRY_LATER') {
+                    logger.warn('Password reset email rate limited', { ...context });
+                    throw Errors.rateLimited();
+                }
+
+                logger.error('Password reset email failed with unexpected error', {
                     ...context,
                     status: response.status,
                     message: rawMessage,

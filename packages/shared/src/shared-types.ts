@@ -1067,6 +1067,37 @@ export interface RegisterResponse {
     };
 }
 
+// ========================================================================
+// Login & Password Reset Types
+// ========================================================================
+
+/**
+ * Login request payload.
+ * Used for POST /api/login endpoint.
+ */
+export interface LoginRequest {
+    email: Email;
+    password: Password;
+}
+
+/**
+ * Login response payload.
+ * Contains a custom token that the client uses to sign in with Firebase Auth.
+ */
+export interface LoginResponse {
+    success: boolean;
+    customToken: string;
+}
+
+/**
+ * Password reset request payload.
+ * Used for POST /api/password-reset endpoint.
+ * Returns 204 No Content (even for non-existent emails to prevent enumeration).
+ */
+export interface PasswordResetRequest {
+    email: Email;
+}
+
 export type HealthStatus = 'healthy' | 'unhealthy';
 
 export interface HealthCheckResult {

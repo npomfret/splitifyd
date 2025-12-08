@@ -1,4 +1,11 @@
-import { RegisterRequestSchema, UserRegistration } from '@billsplit-wl/shared';
+import {
+    LoginRequest,
+    LoginRequestSchema,
+    PasswordResetRequest,
+    PasswordResetRequestSchema,
+    RegisterRequestSchema,
+    UserRegistration,
+} from '@billsplit-wl/shared';
 import { z } from 'zod';
 import { ErrorDetail, Errors } from '../errors';
 import { createRequestValidator } from '../validation/common';
@@ -90,3 +97,55 @@ export const validateRegisterRequest = createRequestValidator({
     }),
     mapError: mapRegisterError,
 }) as (body: UserRegistration) => UserRegistration;
+
+// ========================================================================
+// Login Validation
+// ========================================================================
+
+const mapLoginError = (error: z.ZodError): never => {
+    const firstError = error.issues[0];
+    const field = firstError.path[0];
+
+    switch (field) {
+        case 'email':
+            throw Errors.validationError('email', ErrorDetail.INVALID_EMAIL);
+        case 'password':
+            throw Errors.validationError('password', ErrorDetail.MISSING_FIELD);
+        default:
+            throw Errors.validationError(String(field));
+    }
+};
+
+export const validateLoginRequest = createRequestValidator({
+    schema: LoginRequestSchema,
+    preValidate: (payload: unknown) => payload ?? {},
+    transform: (value) => ({
+        email: value.email.trim().toLowerCase(),
+        password: value.password,
+    }),
+    mapError: mapLoginError,
+}) as (body: LoginRequest) => LoginRequest;
+
+// ========================================================================
+// Password Reset Validation
+// ========================================================================
+
+const mapPasswordResetError = (error: z.ZodError): never => {
+    const firstError = error.issues[0];
+    const field = firstError.path[0];
+
+    if (field === 'email') {
+        throw Errors.validationError('email', ErrorDetail.INVALID_EMAIL);
+    }
+
+    throw Errors.validationError(String(field));
+};
+
+export const validatePasswordResetRequest = createRequestValidator({
+    schema: PasswordResetRequestSchema,
+    preValidate: (payload: unknown) => payload ?? {},
+    transform: (value) => ({
+        email: value.email.trim().toLowerCase(),
+    }),
+    mapError: mapPasswordResetError,
+}) as (body: PasswordResetRequest) => PasswordResetRequest;

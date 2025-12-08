@@ -296,6 +296,15 @@ export const RegisterRequestSchema = z.object({
     }),
 });
 
+export const LoginRequestSchema = z.object({
+    email: EmailSchema,
+    password: z.string().min(1, 'Password is required'),
+});
+
+export const PasswordResetRequestSchema = z.object({
+    email: EmailSchema,
+});
+
 // ---------------------------------------------------------------------------
 // Expense requests
 // ---------------------------------------------------------------------------

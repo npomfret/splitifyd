@@ -45,9 +45,12 @@ import type {
     ListGroupsResponse,
     ListPoliciesResponse,
     ListTenantImagesResponse,
+    LoginRequest,
+    LoginResponse,
     MemberRole,
     MergeJobResponse,
     PasswordChangeRequest,
+    PasswordResetRequest,
     PolicyId,
     PolicyVersion,
     PooledTestUser,
@@ -140,6 +143,20 @@ export interface PublicAPI {
      * Convenience method that calls getCurrentPolicy('cookie-policy')
      */
     getCookiePolicy(): Promise<CurrentPolicyResponse>;
+
+    /**
+     * Authenticate a user with email and password.
+     * Returns a custom token that the client uses to sign in with Firebase Auth.
+     * Public endpoint - no authentication required
+     */
+    login(credentials: LoginRequest): Promise<LoginResponse>;
+
+    /**
+     * Send a password reset email to the specified email address.
+     * Returns 204 No Content even for non-existent emails (to prevent enumeration).
+     * Public endpoint - no authentication required
+     */
+    sendPasswordResetEmail(request: PasswordResetRequest): Promise<void>;
 }
 
 /**

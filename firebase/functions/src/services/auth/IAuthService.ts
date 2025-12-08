@@ -103,4 +103,12 @@ export interface IAuthService {
      * @throws ApiError if user not found or operation fails
      */
     verifyPassword(email: Email, password: string): Promise<boolean>;
+
+    /**
+     * Send a password reset email to a user
+     * @param email - User email address
+     * @returns Promise that resolves when email is sent (or silently succeeds for non-existent emails)
+     * @throws ApiError if operation fails (excluding non-existent emails)
+     */
+    sendPasswordResetEmail(email: Email): Promise<void>;
 }

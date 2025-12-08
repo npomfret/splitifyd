@@ -49,10 +49,13 @@ import type {
     ListGroupsOptions,
     ListGroupsResponse,
     ListPoliciesResponse,
+    LoginRequest,
+    LoginResponse,
     ListTenantImagesResponse,
     MemberRole,
     MergeJobResponse,
     PasswordChangeRequest,
+    PasswordResetRequest,
     PolicyAcceptanceStatusDTO,
     PolicyId,
     PolicyVersion,
@@ -958,6 +961,24 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
             endpoint: '/register',
             method: 'POST',
             body: userData,
+        });
+    }
+
+    async login(credentials: LoginRequest): Promise<LoginResponse> {
+        return this.request({
+            endpoint: '/login',
+            method: 'POST',
+            body: credentials,
+            skipAuth: true,
+        });
+    }
+
+    async sendPasswordResetEmail(request: PasswordResetRequest): Promise<void> {
+        await this.request({
+            endpoint: '/password-reset',
+            method: 'POST',
+            body: request,
+            skipAuth: true,
         });
     }
 

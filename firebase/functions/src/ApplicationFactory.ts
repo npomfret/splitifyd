@@ -27,6 +27,7 @@ import { TenantAdminHandlers } from './tenant/TenantAdminHandlers';
 import { TenantImageLibraryHandlers } from './tenant/TenantImageLibraryHandlers';
 import { ThemeHandlers } from './theme/ThemeHandlers';
 import { UserHandlers } from './user/UserHandlers';
+import { AuthHandlers } from './auth/handlers';
 
 /**
  * Factory function that creates all application handlers with proper dependency injection.
@@ -74,6 +75,7 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
         componentBuilder.buildTenantImageLibraryService(),
     );
     const themeHandlers = new ThemeHandlers(componentBuilder.buildFirestoreReader(), tenantRegistryService);
+    const authHandlers = new AuthHandlers(authService);
 
     // Inline diagnostic handlers
     const getMetrics: RequestHandler = (req, res) => {
@@ -467,11 +469,13 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
         // Tenant browser (system admin)
         listAllTenants: tenantBrowserHandlers.listAllTenants,
 
-        // Auth handlers (inline)
+        // Auth handlers
         register: async (req, res) => {
             const result = await userService.registerUser(req.body);
             res.status(201).json(result);
         },
+        login: authHandlers.login,
+        sendPasswordResetEmail: authHandlers.sendPasswordResetEmail,
 
         // Public policy handlers (inline)
         getCurrentPolicy: async (req, res) => {
