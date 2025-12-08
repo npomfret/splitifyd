@@ -1,6 +1,6 @@
 import { toPolicyId } from '@billsplit-wl/shared';
 import { ApiDriver } from '@billsplit-wl/test-support';
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 
 describe('Public endpoints', () => {
     let apiDriver: ApiDriver;

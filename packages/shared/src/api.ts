@@ -122,6 +122,24 @@ export interface PublicAPI {
      * Public endpoint - no authentication required
      */
     getCurrentPolicy(policyId: PolicyId): Promise<CurrentPolicyResponse>;
+
+    /**
+     * Get the Privacy Policy
+     * Convenience method that calls getCurrentPolicy('privacy-policy')
+     */
+    getPrivacyPolicy(): Promise<CurrentPolicyResponse>;
+
+    /**
+     * Get the Terms of Service
+     * Convenience method that calls getCurrentPolicy('terms-of-service')
+     */
+    getTermsOfService(): Promise<CurrentPolicyResponse>;
+
+    /**
+     * Get the Cookie Policy
+     * Convenience method that calls getCurrentPolicy('cookie-policy')
+     */
+    getCookiePolicy(): Promise<CurrentPolicyResponse>;
 }
 
 /**

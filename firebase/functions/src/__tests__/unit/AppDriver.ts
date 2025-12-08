@@ -56,6 +56,7 @@ import {
     PolicyDTO,
     PolicyId,
     PolicyVersion,
+    toPolicyId,
     PreviewGroupResponse,
     PublicAPI,
     PublishPolicyResponse,
@@ -1165,6 +1166,18 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         const req = createStubRequest('', {}, { policyId });
         const res = await this.dispatchByHandler('getCurrentPolicy', req);
         return res.getJson() as CurrentPolicyResponse;
+    }
+
+    async getPrivacyPolicy(): Promise<CurrentPolicyResponse> {
+        return this.getCurrentPolicy(toPolicyId('privacy-policy'));
+    }
+
+    async getTermsOfService(): Promise<CurrentPolicyResponse> {
+        return this.getCurrentPolicy(toPolicyId('terms-of-service'));
+    }
+
+    async getCookiePolicy(): Promise<CurrentPolicyResponse> {
+        return this.getCurrentPolicy(toPolicyId('cookie-policy'));
     }
 
     async getActivityFeed(options: GetActivityFeedOptions = {}, authToken: AuthToken): Promise<ActivityFeedResponse> {

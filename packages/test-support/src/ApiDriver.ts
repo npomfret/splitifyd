@@ -89,7 +89,7 @@ import {
     UserToken,
     type VersionHash,
 } from '@billsplit-wl/shared';
-import { toUserId } from '@billsplit-wl/shared';
+import { toPolicyId, toUserId } from '@billsplit-wl/shared';
 import { UserRegistrationBuilder } from './builders';
 import { ApiDriverConfig, getApiDriverConfig } from './firebase-emulator-config';
 import { Matcher, PollOptions, pollUntil } from './Polling';
@@ -501,6 +501,18 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
 
     async getCurrentPolicy(policyId: PolicyId): Promise<CurrentPolicyResponse> {
         return await this.apiRequest(`/policies/${policyId}/current`, 'GET', null);
+    }
+
+    async getPrivacyPolicy(): Promise<CurrentPolicyResponse> {
+        return this.getCurrentPolicy(toPolicyId('privacy-policy'));
+    }
+
+    async getTermsOfService(): Promise<CurrentPolicyResponse> {
+        return this.getCurrentPolicy(toPolicyId('terms-of-service'));
+    }
+
+    async getCookiePolicy(): Promise<CurrentPolicyResponse> {
+        return this.getCurrentPolicy(toPolicyId('cookie-policy'));
     }
 
     async acceptMultiplePolicies(acceptances: AcceptPolicyRequest[], token: AuthToken): Promise<AcceptMultiplePoliciesResponse> {

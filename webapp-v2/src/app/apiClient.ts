@@ -88,7 +88,7 @@ import type {
 } from '@billsplit-wl/shared';
 import { ApiErrorResponseSchema, responseSchemas } from '@billsplit-wl/shared';
 import type { UpdateSettlementRequest } from '@billsplit-wl/shared';
-import { ExpenseId, GroupId } from '@billsplit-wl/shared';
+import { ExpenseId, GroupId, toPolicyId } from '@billsplit-wl/shared';
 import { SettlementId } from '@billsplit-wl/shared';
 import { DisplayName } from '@billsplit-wl/shared';
 import type { CommentText } from '@billsplit-wl/shared';
@@ -1148,6 +1148,18 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
 
     async getCurrentPolicyWithAbort(policyId: PolicyId, signal?: AbortSignal): Promise<CurrentPolicyResponse> {
         return this.getCurrentPolicyInternal(policyId, signal);
+    }
+
+    async getPrivacyPolicy(): Promise<CurrentPolicyResponse> {
+        return this.getCurrentPolicy(toPolicyId('privacy-policy'));
+    }
+
+    async getTermsOfService(): Promise<CurrentPolicyResponse> {
+        return this.getCurrentPolicy(toPolicyId('terms-of-service'));
+    }
+
+    async getCookiePolicy(): Promise<CurrentPolicyResponse> {
+        return this.getCurrentPolicy(toPolicyId('cookie-policy'));
     }
 
     async getAppConfig(signal?: AbortSignal): Promise<ClientAppConfiguration> {
