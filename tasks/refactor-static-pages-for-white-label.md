@@ -1,205 +1,104 @@
-# Task: Refactor Static Pages for White-Label Model
+
+# Task: Remove All Static Pages and Implement Custom Footer Links
 
 ## Objective
-Remove built-in policy/legal pages from the application and replace them with configurable external links that tenants can manage, aligning with the white-label business model.
+Purge all static, marketing, and legal pages from the application, transforming it into a pure, embeddable white-label app. Tenants will be fully responsible for their own static content. This will be replaced by a system allowing tenants to fully customize the links in the application's footer.
 
-## Background
-- Current implementation has hardcoded Terms, Privacy, and Cookie policy pages in the app
-- As a white-label platform, each tenant should manage their own legal documentation
-- Tenants may want to link to external policy pages hosted on their own infrastructure
-- The app should not maintain or serve legal content on behalf of tenants
+## Rationale
+The project is pivoting to be a pure white-label application core. The app should not serve or be concerned with any static content (legal, marketing, etc.). This change simplifies the application's scope, reduces maintenance, and gives tenants complete control over their branding, legal compliance, and user-facing links.
 
-## Current State
-- Policy pages: `/terms`, `/privacy`, `/cookies` (components in `webapp-v2/src/pages/static/`)
-- Routes defined in `App.tsx` for these pages
-- `usePolicy` hook fetches policy content dynamically
-- Footer links to these internal routes
-- `PolicyAcceptanceModal` shows policies to users
+---
 
-## Deliverables
+## Phase 1: Deep Dive & Code Removal
 
-### 1. Tenant Configuration Schema
-- [ ] Add `externalLinks` configuration to tenant branding settings
-  ```typescript
-  {
-    tenant: {
-      branding: {
-        externalLinks?: {
-          termsOfService?: string;    // URL to tenant's terms page
-          privacyPolicy?: string;      // URL to tenant's privacy page
-          cookiePolicy?: string;       // URL to tenant's cookie page
-          // Future: support, help center, etc.
-        }
+This phase focuses on completely removing all code related to the old static page system.
+
+### `webapp-v2` (Frontend) Cleanup
+
+- [ ] **Delete Static Page Components:**
+    - [ ] Delete the entire directory: `webapp-v2/src/pages/static/`
+- [ ] **Delete Static Page Layout:**
+    - [ ] Delete the component file: `webapp-v2/src/components/StaticPageLayout.tsx`
+- [ ] **Remove Routing:**
+    - [ ] Edit `webapp-v2/src/App.tsx`:
+        - [ ] Remove the lazy-loaded imports for `PricingPage`, `TermsOfServicePage`, `PrivacyPolicyPage`, and `CookiePolicyPage`.
+        - [ ] Remove the `<Route>` components for `/pricing`, `/terms`, `/privacy`, and `/cookies`.
+- [ ] **Delete Policy Hooks:**
+    - [ ] Delete the file: `webapp-v2/src/hooks/usePolicy.ts`
+    - [ ] Delete the file: `webapp-v2/src/hooks/usePolicyAcceptance.ts`
+- [ ] **Delete Policy UI Components:**
+    - [ ] Delete the component file: `webapp-v2/src/components/policy/PolicyAcceptanceModal.tsx`
+- [ ] **Update API Client:**
+    - [ ] Edit `webapp-v2/src/app/apiClient.ts`:
+        - [ ] Remove the `getCurrentPolicy` method.
+        - [ ] Remove the `getCurrentPolicyWithAbort` method.
+
+### `packages/shared` (Shared Code) Cleanup
+
+- [ ] **Remove Shared Types:**
+    - [ ] Edit `packages/shared/src/shared-types.ts`:
+        - [ ] Delete the `PolicyIds` enum.
+        - [ ] Delete the `CurrentPolicyResponse` type interface.
+- [ ] **Remove Shared Schemas:**
+    - [ ] Edit `packages/shared/src/schemas/apiSchemas.ts`:
+        - [ ] Remove the Zod schema related to the `CurrentPolicyResponse` (likely named `currentPolicyResponseSchema` or similar).
+
+### `firebase/functions` (Backend) Cleanup
+
+- [ ] **Identify and Remove API Endpoint:**
+    - [ ] **Research:** Search the `firebase/functions/src/` directory for the string `/api/policies` or `getCurrentPolicy` to locate the route definition and handler.
+    - [ ] **Action:** Delete the identified route from the Express app (likely in `firebase/functions/src/index.ts` or a routing file).
+    - [ ] **Action:** Delete the handler function(s) and any associated service files responsible for fetching policy documents from Firestore.
+    - [ ] **Action:** Delete any Zod validation schemas in the `firebase/functions/src/validation/` directory related to the policy API.
+
+---
+
+## Phase 2: Implement Tenant-Managed Custom Footer
+
+This phase focuses on building the new, flexible footer link system.
+
+- [ ] **Update Tenant Schema (`packages/shared`):**
+    - [ ] Edit the tenant configuration type (likely in `packages/shared/src/shared-types.ts`).
+    - [ ] Add a new structure for custom footer links.
+    - **Proposed Schema:**
+      ```typescript
+      // In tenant branding configuration
+      "footer": {
+        "links": Array<{
+          "id": string; // e.g., UUID for stable key
+          "label": string;
+          "url": string;
+        }>
       }
-    }
-  }
-  ```
-- [ ] Update tenant config types in shared package
-- [ ] Add validation for URL format (must be valid HTTPS URLs)
+      ```
+- [ ] **Enhance Admin UI (`webapp-v2`):**
+    - [ ] Locate the Tenant Branding editor component in the admin section.
+    - [ ] Implement a new UI section for "Footer Links" that allows a tenant admin to:
+        - [ ] Add a new link (providing a Label and a URL).
+        - [ ] Edit an existing link's Label and URL.
+        - [ ] Reorder the links (e.g., using drag-and-drop).
+        - [ ] Delete a link.
+    - [ ] Implement robust URL validation on the input fields.
+- [ ] **Refactor Webapp Footer (`webapp-v2`):**
+    - [ ] **Locate Component:** Identify the main footer component (likely `webapp-v2/src/components/layout/Footer.tsx` or similar).
+    - [ ] **Refactor Logic:**
+        - [ ] Fetch the `footer.links` array from the tenant's configuration.
+        - [ ] Dynamically render the links based on the array content and order.
+        - [ ] Ensure links open in a new tab (`target="_blank" rel="noopener noreferrer"`).
+        - [ ] If the `links` array is empty or does not exist, the entire link section of the footer should be hidden.
 
-### 2. Remove Static Policy Pages
-- [ ] Delete `webapp-v2/src/pages/static/TermsOfServicePage.tsx`
-- [ ] Delete `webapp-v2/src/pages/static/PrivacyPolicyPage.tsx`
-- [ ] Delete `webapp-v2/src/pages/static/CookiePolicyPage.tsx`
-- [ ] Remove corresponding routes from `App.tsx`
-- [ ] Remove lazy-loaded imports for these pages
-- [ ] Keep `PricingPage` if tenants use it, or remove if not needed
+---
 
-### 3. Update Policy System
-- [ ] Modify `usePolicy` hook to handle external URLs
-  - If tenant has `externalLinks` configured, return those
-  - Otherwise, return empty/null (no policy links)
-- [ ] Update `PolicyAcceptanceModal` behavior:
-  - Option A: Remove it entirely (tenants handle acceptance externally)
-  - Option B: Show modal with links to external policies
-  - Option C: Make it configurable per tenant
-- [ ] Update policy acceptance tracking in Firestore:
-  - Continue tracking acceptance dates for audit purposes
-  - But don't enforce acceptance if no external links configured
+## Phase 3: Final Cleanup and Verification
 
-### 4. Footer Component Updates
-- [ ] Update footer to use `externalLinks` configuration
-- [ ] Links should open in new tab (`target="_blank" rel="noopener noreferrer"`)
-- [ ] If no external links configured, hide policy link section entirely
-- [ ] Example footer structure:
-  ```tsx
-  {config.tenant.branding.externalLinks && (
-    <div class="footer-links">
-      {externalLinks.termsOfService && (
-        <a href={externalLinks.termsOfService} target="_blank" rel="noopener noreferrer">
-          {t('footer.terms')}
-        </a>
-      )}
-      {externalLinks.privacyPolicy && (
-        <a href={externalLinks.privacyPolicy} target="_blank" rel="noopener noreferrer">
-          {t('footer.privacy')}
-        </a>
-      )}
-      {externalLinks.cookiePolicy && (
-        <a href={externalLinks.cookiePolicy} target="_blank" rel="noopener noreferrer">
-          {t('footer.cookies')}
-        </a>
-      )}
-    </div>
-  )}
-  ```
-
-### 5. Admin UI for Configuration
-- [ ] Add "External Links" section to Tenant Branding page
-- [ ] Input fields for each policy URL (optional)
-- [ ] URL validation (must be HTTPS, valid format)
-- [ ] Preview/test buttons to verify links work
-- [ ] Save to Firestore tenant document
-
-### 6. Database Migration
-- [ ] No migration needed (additive change)
-- [ ] Existing tenants will have no `externalLinks` → no footer links shown
-- [ ] Document how to configure links in tenant admin guide
-
-### 7. Testing
-- [ ] Test with tenant that has no external links configured (footer hidden)
-- [ ] Test with tenant that has some links configured (only those shown)
-- [ ] Test with tenant that has all links configured (all shown in footer)
-- [ ] Test URL validation (reject invalid URLs)
-- [ ] Test links open in new tab
-- [ ] Test policy acceptance modal behavior (if kept)
-- [ ] Verify removed routes return 404
-
-### 8. Documentation
-- [ ] Update tenant admin documentation:
-  - How to configure external policy links
-  - Recommended: host policies on tenant's own domain
-  - Legal disclaimer (tenant responsible for their own policies)
-- [ ] Update developer documentation:
-  - Remove references to built-in policy pages
-  - Document `externalLinks` configuration schema
-
-## Implementation Phases
-
-### Phase 1: Schema & Configuration (Backend)
-1. Update tenant config types in `@billsplit/shared`
-2. Add Firestore validation for `externalLinks` field
-3. Add admin UI in Tenant Branding page for link configuration
-
-### Phase 2: Frontend Refactoring
-4. Update `usePolicy` hook and policy-related components
-5. Update footer component to use external links
-6. Decide on `PolicyAcceptanceModal` approach and implement
-
-### Phase 3: Cleanup
-7. Remove static policy page components and routes
-8. Remove unused imports and dependencies
-9. Run tests and fix any breaks
-
-### Phase 4: Documentation & Testing
-10. Write tenant admin guide for configuring links
-11. Manual testing with various configurations
-12. Automated tests for link rendering logic
-
-## Open Questions
-
-### Policy Acceptance Modal
-**Question**: What should happen with the `PolicyAcceptanceModal`?
-
-**Options**:
-- A) **Remove entirely**: Tenants handle policy acceptance on their own sites before sending users to the app
-- B) **Keep with external links**: Show modal with "Review our policies" and links to external pages
-- C) **Configurable**: Tenant can enable/disable forced policy acceptance
-
-**Recommendation**: Option A (remove) - simplest, cleanest white-label approach. If tenant needs acceptance tracking, they can build it themselves.
-
-### Pricing Page
-**Question**: Should we keep the `/pricing` page or remove it too?
-
-**Analysis**:
-- Currently conditionally rendered based on `showPricingPage` flag
-- Also tenant-specific (per-tenant pricing)
-- Could also be externalized
-
-**Recommendation**: Keep for now (separate decision). Some tenants may want in-app pricing, others may prefer external. Can revisit later.
-
-### Default/Sample Tenant
-**Question**: Should the default tenant (for demos/testing) have sample external links?
-
-**Recommendation**: No - keep it clean. Admins can add test URLs manually if needed.
-
-## Success Criteria
-
-- [ ] No hardcoded policy page components in the webapp
-- [ ] Tenant can configure 0-3 external policy links
-- [ ] Footer shows only configured links, hides section if none
-- [ ] Links open in new tab with proper security attributes
-- [ ] Admin UI allows easy configuration with validation
-- [ ] Existing tenants continue to work (no footer links shown)
-- [ ] Documentation explains how tenants should handle policies
-- [ ] All tests pass
-
-## Security Considerations
-
-- **URL validation**: Must be HTTPS (prevent HTTP links)
-- **XSS prevention**: URLs should be validated/sanitized before rendering
-- **Open redirect**: Links use `rel="noopener noreferrer"` for security
-- **Tenant isolation**: Each tenant only sees/edits their own links
-
-## Future Enhancements
-
-- Add more link types (support, help center, contact us, etc.)
-- Allow custom link labels per tenant (i18n)
-- Track link click analytics per tenant
-- Support for footer customization (logo, social links, etc.)
-
-## Research Findings & Planning Gaps
-
-1. **External link validation & security** – We still need to specify the exact validation rules for tenant-provided URLs (HTTPS-only, no embedded credentials) and ensure the admin UI/backend sanitize and validate inputs before saving to Firestore so the app never redirects to malicious or broken sites. Document this requirement in the tenant admin guide.
-2. **Policy acceptance / compliance** – Removing the `PolicyAcceptanceModal` shifts explicit consent entirely onto tenants; if we continue recording policy acceptance dates for audit purposes, we need a clear plan for how that data is captured when the policies live off-platform (e.g., via an API call or webhook the tenant calls after their own acceptance flow).
-3. **Fallback behavior** – Decide what the UI should do when external links are absent (e.g., hide the policy section entirely, skip the modal). Without this, tenants with no links could see empty UI elements.
-4. **Admin UI hardening** – Protect the branding form with proper auth, fail-open error handling, and backend checks so a tenant can only edit their own configuration.
-5. **Documentation / communication** – Update both the tenant-facing admin guide and the developer documentation with the new schema, validation expectations, and guidance that tenants are fully responsible for hosting/syncing their policy content.
-
-## Expert Advice & Outstanding Questions
-
-*   Expert review highlighted these next questions: Should the app continue to record policy acceptance timestamps when the policies live externally, and if so how will we surface an API or webhook tenants can call after they complete their own acceptance flows?
-*   What precise validation and sanitization steps will the admin UI run against tenant-supplied URLs (besides requiring HTTPS) to avoid malicious redirects or malformed links?
-*   What should happen when a tenant leaves one or more link fields empty (hide the footer section? still display placeholders?) so we never expose broken UX?
-*   Do we need to keep a lightweight in-app acknowledgement UI or replace it entirely, and if the latter, how does that affect compliance requirements that previously relied on the `PolicyAcceptanceModal`?
-*   Have we communicated these changes in the tenant admin guide and developer docs so operators know the new expectations?
+- [ ] **Delete Obsolete Tests:**
+    - [ ] Find and delete all test files related to the removed static pages, hooks, and components.
+- [ ] **Write New Tests:**
+    - [ ] Add tests for the new Admin UI footer link editor.
+    - [ ] Add tests for the dynamic rendering of the webapp footer component (testing cases with 0, 1, and multiple links).
+- [ ] **Run Static Analysis:**
+    - [ ] Execute `npm run knip` (or equivalent) to find and remove any newly orphaned files, types, or exports.
+- [ ] **Manual Verification:**
+    - [ ] Confirm that navigating to old static page URLs (e.g., `/terms`) correctly results in a 404 page.
+    - [ ] Confirm the application functions correctly for tenants with and without custom footer links configured.
+    - [ ] Run `npm run build` and `npm run test` to ensure the entire project is in a clean, working state.
