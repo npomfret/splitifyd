@@ -3,7 +3,7 @@ import { useAuthRequired } from '@/app/hooks/useAuthRequired';
 import { CurrencyService } from '@/app/services/currencyService';
 import { enhancedGroupsStore } from '@/app/stores/groups-store-enhanced.ts';
 import { Clickable } from '@/components/ui/Clickable';
-import { XCircleIcon, XIcon } from '@/components/ui/icons';
+import { CurrencyIcon, XCircleIcon, XIcon } from '@/components/ui/icons';
 import { Modal } from '@/components/ui/Modal';
 import { CreateGroupRequest, CurrencyISOCode, GroupId, toCurrencyISOCode, toDisplayName, toGroupName } from '@billsplit-wl/shared';
 import { signal, useComputed } from '@preact/signals';
@@ -363,8 +363,8 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                                                             'bg-surface-muted text-text-primary border border-border-default',
                                                         )}
                                                     >
+                                                        {currency && <CurrencyIcon symbol={currency.symbol} size={16} className='text-text-muted' />}
                                                         <span className='font-medium'>{code}</span>
-                                                        {currency && <span className='text-text-muted'>({currency.symbol})</span>}
                                                         <button
                                                             type='button'
                                                             onClick={() => handleRemoveCurrency(code)}
@@ -440,15 +440,13 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                                                                         className={cx(
                                                                             'w-full px-3 py-2 text-left text-sm',
                                                                             'hover:bg-surface-muted transition-colors',
-                                                                            'flex items-center justify-between',
+                                                                            'flex items-center gap-2',
                                                                         )}
                                                                         data-testid={`add-currency-option-${currency.acronym}`}
                                                                     >
-                                                                        <span>
-                                                                            <span className='font-medium'>{currency.acronym}</span>
-                                                                            <span className='text-text-muted ml-2'>{currency.name}</span>
-                                                                        </span>
-                                                                        <span className='text-text-muted'>{currency.symbol}</span>
+                                                                        <CurrencyIcon symbol={currency.symbol} size={20} className='text-text-muted shrink-0' />
+                                                                        <span className='font-medium'>{currency.acronym}</span>
+                                                                        <span className='text-text-muted truncate'>{currency.name}</span>
                                                                     </button>
                                                                 ))
                                                             )}

@@ -1651,7 +1651,8 @@ test.describe('Expense Form', () => {
             await expenseFormPage.verifyRecentAmountCount(3);
 
             // Click on the EUR amount and verify both currency and amount are filled
-            await expenseFormPage.clickRecentAmount('€25.50 EUR');
+            // Note: CurrencyIcon has aria-hidden, so accessible name is just number + code
+            await expenseFormPage.clickRecentAmount('25.50 EUR');
 
             await expenseFormPage.expectAmountValue('25.50');
             await expenseFormPage.verifyCurrencyValue('EUR');

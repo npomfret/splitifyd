@@ -740,10 +740,11 @@ export class GroupDetailPage extends BasePage {
     // ============================================================================
 
     /**
-     * Get balance summary heading
+     * Get balance summary heading - looks for heading in the parent SidebarCard
+     * (the balance-summary-sidebar div doesn't contain the heading, it's in the SidebarCard wrapper)
      */
     protected getBalanceSummaryHeading(): Locator {
-        return this.getBalanceContainer().getByRole('heading');
+        return this.page.getByTestId('balance-summary-card').getByRole('heading');
     }
 
     /**

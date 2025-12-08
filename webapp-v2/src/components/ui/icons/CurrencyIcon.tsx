@@ -5,41 +5,41 @@ interface CurrencyIconProps extends IconProps {
 }
 
 export function CurrencyIcon({ symbol, size = 24, className = '' }: CurrencyIconProps) {
-    // Determine font size based on symbol length
-    let fontSize = 14;
-    if (symbol.length === 1) fontSize = 16;
-    else if (symbol.length === 2) fontSize = 14;
-    else if (symbol.length === 3) fontSize = 12;
-    else if (symbol.length >= 4) fontSize = 10;
+    // Scale font size based on symbol length
+    // Base sizes optimized for 24px icon - made larger for better readability
+    let baseFontSize: number;
+    if (symbol.length === 1) {
+        baseFontSize = 24;
+    } else if (symbol.length === 2) {
+        baseFontSize = 20;
+    } else if (symbol.length === 3) {
+        baseFontSize = 16;
+    } else {
+        baseFontSize = 12;
+    }
 
-    // Adjust for specific symbols that need more space (RTL and wide symbols)
+    // Wide/complex symbols need smaller font
     const wideSymbols = ['Bs.S', 'MOP$', 'ج.س.', 'ل.ل.', '.د.ب', 'د.إ', 'د.ج', 'د.ع'];
-    if (wideSymbols.includes(symbol)) fontSize = 8;
+    if (wideSymbols.includes(symbol)) {
+        baseFontSize = 10;
+    }
 
-    // Scale font size proportionally to icon size
-    const scaledFontSize = (fontSize * size) / 24;
+    // Scale proportionally to icon size
+    const fontSize = (baseFontSize * size) / 24;
 
     return (
-        <svg
-            className={className}
-            width={size}
-            height={size}
-            viewBox='0 0 24 24'
-            fill='none'
+        <span
+            className={`inline-flex items-center justify-center shrink-0 ${className}`}
+            style={{
+                width: size,
+                height: size,
+                fontSize: `${fontSize}px`,
+                fontWeight: 600,
+                lineHeight: 1,
+            }}
             aria-hidden='true'
-            focusable='false'
         >
-            <text
-                x='12'
-                y='16'
-                fontFamily='system-ui, -apple-system, sans-serif'
-                fontSize={scaledFontSize}
-                fontWeight='500'
-                fill='currentColor'
-                textAnchor='middle'
-            >
-                {symbol}
-            </text>
-        </svg>
+            {symbol}
+        </span>
     );
 }

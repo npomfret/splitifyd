@@ -334,7 +334,8 @@ test.describe('Settlement Form - Quick Settle Shortcuts', () => {
         await settlementFormPage.verifyQuickSettleHeadingVisible();
 
         // The name may be truncated in the UI, so match the beginning and amount
-        await settlementFormPage.verifyQuickSettleShortcutButtonVisible(/\$37\.25\s*.*→\s*Alexandra Very/);
+        // Note: CurrencyIcon has aria-hidden, so accessible name doesn't include the $ symbol
+        await settlementFormPage.verifyQuickSettleShortcutButtonVisible(/37\.25\s*.*→\s*Alexandra Very/);
     });
 
     test('hides quick settle shortcuts when modal is pre-filled from balances', async ({ authenticatedPage }) => {
