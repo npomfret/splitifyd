@@ -502,7 +502,7 @@ Include `currencySettings` in the `createGroup` request payload.
   - API response verification tests (2)
   - Existing data readable tests (1)
   - Viewer role rejection test (1)
-- [x] Frontend Playwright tests for currency settings UI (7 tests passing)
+- [x] Frontend Playwright tests for currency settings UI (12 tests passing)
 - [x] Run full build and verify no compilation errors
 
 ---

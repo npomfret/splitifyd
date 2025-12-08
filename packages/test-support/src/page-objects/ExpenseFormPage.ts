@@ -381,6 +381,72 @@ export class ExpenseFormPage extends BasePage {
         await expect(currencyButton).toContainText(currencyCode);
     }
 
+    /**
+     * Verify the currently selected currency code
+     */
+    async verifyCurrencySelected(currencyCode: string): Promise<void> {
+        const currencyButton = this.getCurrencySelect();
+        await expect(currencyButton).toContainText(currencyCode);
+    }
+
+    /**
+     * Verify a currency is available in the dropdown (can be selected)
+     */
+    async verifyCurrencyAvailable(currencyCode: string): Promise<void> {
+        const currencyButton = this.getCurrencySelect();
+        await expect(currencyButton).toBeVisible();
+
+        const searchInput = this.page.getByPlaceholder(/Search by symbol, code, or country/i);
+
+        // Open dropdown
+        await expect(async () => {
+            await currencyButton.click();
+            await expect(searchInput).toBeVisible({ timeout: 500 });
+        }).toPass({ timeout: 5000, intervals: [100, 250, 500, 1000] });
+
+        // Search for the currency
+        await this.fillPreactInput(searchInput, currencyCode);
+
+        // Verify option is visible
+        const currencyOption = this.page.getByRole('option', { name: new RegExp(currencyCode, 'i') });
+        await expect(currencyOption).toBeVisible({ timeout: 2000 });
+
+        // Close dropdown by clicking on description input (outside the dropdown)
+        // Don't use Escape as it closes the entire modal
+        const descriptionInput = this.page.getByPlaceholder(/What was this expense for/i);
+        await descriptionInput.click();
+        await expect(searchInput).not.toBeVisible({ timeout: 2000 });
+    }
+
+    /**
+     * Verify a currency is NOT available in the dropdown (restricted)
+     */
+    async verifyCurrencyNotAvailable(currencyCode: string): Promise<void> {
+        const currencyButton = this.getCurrencySelect();
+        await expect(currencyButton).toBeVisible();
+
+        const searchInput = this.page.getByPlaceholder(/Search by symbol, code, or country/i);
+
+        // Open dropdown
+        await expect(async () => {
+            await currencyButton.click();
+            await expect(searchInput).toBeVisible({ timeout: 500 });
+        }).toPass({ timeout: 5000, intervals: [100, 250, 500, 1000] });
+
+        // Search for the currency
+        await this.fillPreactInput(searchInput, currencyCode);
+
+        // Verify option is NOT visible (or shows "no results")
+        const currencyOption = this.page.getByRole('option', { name: new RegExp(currencyCode, 'i') });
+        await expect(currencyOption).not.toBeVisible({ timeout: 2000 });
+
+        // Close dropdown by clicking on description input (outside the dropdown)
+        // Don't use Escape as it closes the entire modal
+        const descriptionInput = this.page.getByPlaceholder(/What was this expense for/i);
+        await descriptionInput.click();
+        await expect(searchInput).not.toBeVisible({ timeout: 2000 });
+    }
+
     async expectFormOpen(): Promise<void> {
         await expect(this.page.getByRole('form')).toBeVisible();
     }

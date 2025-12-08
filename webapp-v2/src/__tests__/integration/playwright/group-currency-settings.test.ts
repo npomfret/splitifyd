@@ -1,15 +1,18 @@
-import type { ClientUser, CurrencyISOCode, GroupCurrencySettings, GroupId } from '@billsplit-wl/shared';
-import { toCurrencyISOCode, toGroupId } from '@billsplit-wl/shared';
-import { GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, ThemeBuilder } from '@billsplit-wl/test-support';
+import type { ClientUser, CurrencyISOCode, GroupCurrencySettings, GroupId, MemberRole } from '@billsplit-wl/shared';
+import { toCurrencyISOCode, toExpenseId, toGroupId } from '@billsplit-wl/shared';
+import { DashboardPage, ExpenseDTOBuilder, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, ListGroupsResponseBuilder, ThemeBuilder } from '@billsplit-wl/test-support';
 import type { Page, Route } from '@playwright/test';
 import { expect, test } from '../../utils/console-logging-fixture';
-import { fulfillWithSerialization, mockGroupCommentsApi, mockPendingMembersApi, setupSuccessfulApiMocks } from '../../utils/mock-firebase-service';
+import { fulfillWithSerialization, mockActivityFeedApi, mockGroupCommentsApi, mockGroupsApi, mockPendingMembersApi, setupSuccessfulApiMocks } from '../../utils/mock-firebase-service';
 import { GroupDetailPage } from '@billsplit-wl/test-support';
 
 interface GroupTestSetupOptions {
     groupId?: GroupId;
     groupName?: string;
     currencySettings?: GroupCurrencySettings;
+    memberRole?: MemberRole;
+    isOwner?: boolean;
+    expenses?: ReturnType<ExpenseDTOBuilder['build']>[];
     onGroupUpdate?: (route: Route, body: Record<string, unknown>) => Promise<boolean> | boolean;
 }
 
@@ -23,12 +26,15 @@ function createCurrencySettings(permitted: string[], defaultCurrency: string): G
 async function setupGroupRoutes(page: Page, user: ClientUser, options: GroupTestSetupOptions = {}): Promise<{ groupId: GroupId; groupName: string; }> {
     const groupId = options.groupId ?? toGroupId('group-currency-' + user.uid);
     const groupName = options.groupName ?? 'Test Group';
+    const memberRole = options.memberRole ?? 'admin';
+    const isOwner = options.isOwner !== false; // Default to true for backward compatibility
 
     const buildFullDetails = () => {
+        const creatorId = isOwner ? user.uid : 'other-user-id';
         const group = new GroupDTOBuilder()
             .withId(groupId)
             .withName(groupName)
-            .withCreatedBy(user.uid)
+            .withCreatedBy(creatorId)
             .withCurrencySettings(options.currencySettings)
             .build();
 
@@ -36,13 +42,14 @@ async function setupGroupRoutes(page: Page, user: ClientUser, options: GroupTest
             .withUid(user.uid)
             .withDisplayName(user.displayName ?? 'Test User')
             .withGroupDisplayName(user.displayName ?? 'Test User')
-            .withMemberRole('admin')
+            .withMemberRole(memberRole)
             .withTheme(ThemeBuilder.blue().build())
             .build();
 
         return new GroupFullDetailsBuilder()
             .withGroup(group)
             .withMembers([selfMember])
+            .withExpenses(options.expenses ?? [])
             .build();
     };
 
@@ -235,5 +242,251 @@ test.describe('Group Settings - Currency Settings', () => {
 
         // Verify new default
         await modal.verifyDefaultCurrencyValue('GBP');
+    });
+
+    test('non-owner member does not see general tab with currency settings', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
+        const groupDetailPage = new GroupDetailPage(page);
+        const { groupId } = await setupGroupRoutes(page, user, {
+            groupName: 'Member View Test',
+            memberRole: 'member',
+            isOwner: false, // User is NOT the group owner
+            currencySettings: createCurrencySettings(['USD', 'EUR'], 'USD'),
+        });
+
+        await setupSuccessfulApiMocks(page);
+        await groupDetailPage.navigateToGroup(groupId);
+        await groupDetailPage.waitForGroupTitle('Member View Test');
+
+        const modal = await groupDetailPage.clickEditGroupAndOpenModal('identity');
+
+        // Non-owner should not see the General tab (currency settings are in General)
+        await modal.verifyTabNotVisible('general');
+    });
+
+    test('expense form shows only permitted currencies when restrictions enabled', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
+        const groupDetailPage = new GroupDetailPage(page);
+        const { groupId } = await setupGroupRoutes(page, user, {
+            groupName: 'Expense Form Filter Test',
+            currencySettings: createCurrencySettings(['USD', 'EUR'], 'USD'),
+        });
+
+        await setupSuccessfulApiMocks(page);
+        await groupDetailPage.navigateToGroup(groupId);
+        await groupDetailPage.waitForGroupTitle('Expense Form Filter Test');
+
+        // Mock expense creation endpoint
+        await page.route(`**/api/groups/${groupId}/expenses`, async (route) => {
+            if (route.request().method() === 'POST') {
+                await route.fulfill({ status: 201, json: { id: 'new-expense-id' } });
+            } else {
+                await route.continue();
+            }
+        });
+
+        const expenseFormPage = await groupDetailPage.clickAddExpenseAndOpenForm([user.displayName ?? 'Test User']);
+        await expenseFormPage.verifyFormModalOpen();
+
+        // Verify USD is available (permitted)
+        await expenseFormPage.verifyCurrencyAvailable('USD');
+
+        // Verify EUR is available (permitted)
+        await expenseFormPage.verifyCurrencyAvailable('EUR');
+
+        // Verify GBP is not available (not permitted)
+        await expenseFormPage.verifyCurrencyNotAvailable('GBP');
+    });
+
+    test('expense form uses group default currency for new expenses', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
+        const groupDetailPage = new GroupDetailPage(page);
+        const { groupId } = await setupGroupRoutes(page, user, {
+            groupName: 'Default Currency Test',
+            currencySettings: createCurrencySettings(['USD', 'EUR', 'GBP'], 'EUR'),
+        });
+
+        await setupSuccessfulApiMocks(page);
+        await groupDetailPage.navigateToGroup(groupId);
+        await groupDetailPage.waitForGroupTitle('Default Currency Test');
+
+        // Mock expense creation endpoint
+        await page.route(`**/api/groups/${groupId}/expenses`, async (route) => {
+            if (route.request().method() === 'POST') {
+                await route.fulfill({ status: 201, json: { id: 'new-expense-id' } });
+            } else {
+                await route.continue();
+            }
+        });
+
+        const expenseFormPage = await groupDetailPage.clickAddExpenseAndOpenForm([user.displayName ?? 'Test User']);
+        await expenseFormPage.verifyFormModalOpen();
+
+        // Verify the form defaults to the group's default currency (EUR)
+        await expenseFormPage.verifyCurrencySelected('EUR');
+    });
+
+    test('editing expense shows original currency even if not in permitted list', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
+        const groupDetailPage = new GroupDetailPage(page);
+        const groupId = toGroupId('group-currency-' + user.uid);
+
+        // Create an expense with JPY currency
+        const existingExpense = new ExpenseDTOBuilder()
+            .withExpenseId(toExpenseId('existing-expense-1'))
+            .withGroupId(groupId)
+            .withDescription('Original expense in JPY')
+            .withAmount('1000', toCurrencyISOCode('JPY'))
+            .withPaidBy(user.uid)
+            .withParticipants([user.uid])
+            .build();
+
+        // Build group and member for the expense full details response
+        const group = new GroupDTOBuilder()
+            .withId(groupId)
+            .withName('Edit Expense Currency Test')
+            .withCreatedBy(user.uid)
+            .withCurrencySettings(createCurrencySettings(['USD', 'EUR'], 'USD'))
+            .build();
+
+        const selfMember = new GroupMemberBuilder()
+            .withUid(user.uid)
+            .withDisplayName(user.displayName ?? 'Test User')
+            .withGroupDisplayName(user.displayName ?? 'Test User')
+            .withMemberRole('admin')
+            .withTheme(ThemeBuilder.blue().build())
+            .build();
+
+        await setupGroupRoutes(page, user, {
+            groupId,
+            groupName: 'Edit Expense Currency Test',
+            // Currency settings that DO NOT include JPY
+            currencySettings: createCurrencySettings(['USD', 'EUR'], 'USD'),
+            expenses: [existingExpense],
+        });
+
+        await setupSuccessfulApiMocks(page);
+
+        // Mock expense full details endpoint (for viewing expense)
+        await page.route(`**/api/expenses/${existingExpense.id}/full-details**`, async (route) => {
+            await fulfillWithSerialization(route, {
+                body: {
+                    expense: existingExpense,
+                    group: group,
+                    members: { members: [selfMember] },
+                },
+            });
+        });
+
+        // Mock expense comments endpoint
+        await page.route(`**/api/expenses/${existingExpense.id}/comments**`, async (route) => {
+            await fulfillWithSerialization(route, {
+                body: { comments: [], totalCount: 0 },
+            });
+        });
+
+        // Mock expense update endpoint
+        await page.route(`**/api/groups/${groupId}/expenses/**`, async (route) => {
+            if (route.request().method() === 'PUT') {
+                await route.fulfill({ status: 204 });
+            } else {
+                await route.continue();
+            }
+        });
+
+        await groupDetailPage.navigateToGroup(groupId);
+        await groupDetailPage.waitForGroupTitle('Edit Expense Currency Test');
+
+        // Click on the expense to view it
+        const expenseDetailPage = await groupDetailPage.clickExpenseToView('Original expense in JPY');
+
+        // Click edit to open the form
+        const expenseFormPage = await expenseDetailPage.clickEditExpenseAndReturnForm([user.displayName ?? 'Test User']);
+
+        // Verify the expense still shows JPY even though it's not in the permitted list
+        // Note: The currency button shows the current value which should still be JPY
+        await expenseFormPage.verifyCurrencySelected('JPY');
+
+        // Note: Full "grandfather" feature (JPY appearing in dropdown when editing)
+        // would require additional frontend implementation. For now we just verify
+        // the expense retains its original currency when editing.
+    });
+
+    test('group creation with currency settings includes settings in request', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
+        const dashboardPage = new DashboardPage(page);
+
+        // Track the create request to verify currency settings
+        let capturedRequest: Record<string, unknown> | undefined;
+
+        // Mock list groups (empty initially)
+        await mockGroupsApi(
+            page,
+            new ListGroupsResponseBuilder().build(),
+        );
+        await mockActivityFeedApi(page, []);
+
+        // Mock create group API - capture the request and return success
+        const newGroupId = toGroupId('new-group-with-currency');
+        const createdGroup = GroupDTOBuilder
+            .groupForUser(user.uid)
+            .withId(newGroupId)
+            .withName('Currency Test Group')
+            .withCurrencySettings(createCurrencySettings(['USD', 'EUR'], 'USD'))
+            .build();
+
+        await page.route('**/api/groups', async (route) => {
+            if (route.request().method() === 'POST') {
+                capturedRequest = JSON.parse(route.request().postData() ?? '{}');
+                await fulfillWithSerialization(route, { body: createdGroup, status: 201 });
+            } else {
+                await route.continue();
+            }
+        });
+
+        // Navigate to dashboard
+        await page.goto('/dashboard');
+        await dashboardPage.waitForGroupsToLoad();
+
+        // Open create group modal
+        const createGroupModal = await dashboardPage.clickCreateGroup();
+        await createGroupModal.verifyModalOpen();
+
+        // Fill basic group info
+        await createGroupModal.fillGroupName('Currency Test Group');
+
+        // Enable currency restrictions
+        await createGroupModal.toggleCurrencyRestrictions();
+
+        // Verify the add currency button appears
+        await createGroupModal.verifyAddCurrencyButtonVisible();
+
+        // Add currencies
+        await createGroupModal.addPermittedCurrency('USD');
+        await createGroupModal.verifyPermittedCurrencyVisible('USD');
+
+        await createGroupModal.addPermittedCurrency('EUR');
+        await createGroupModal.verifyPermittedCurrencyVisible('EUR');
+
+        // Verify default currency is set (should auto-select first added currency)
+        await createGroupModal.verifyDefaultCurrencyValue('USD');
+
+        // Change default to EUR
+        await createGroupModal.setDefaultCurrency('EUR');
+        await createGroupModal.verifyDefaultCurrencyValue('EUR');
+
+        // Submit the form
+        await createGroupModal.submitForm();
+
+        // Wait for navigation away from modal (group created)
+        await expect(page).toHaveURL(/\/groups\//, { timeout: 10000 });
+
+        // Verify the request included currency settings
+        expect(capturedRequest).toBeDefined();
+        expect(capturedRequest?.currencySettings).toBeDefined();
+        const settings = capturedRequest?.currencySettings as { permitted: string[]; default: string } | undefined;
+        expect(settings?.permitted).toContain('USD');
+        expect(settings?.permitted).toContain('EUR');
+        expect(settings?.default).toBe('EUR');
     });
 });

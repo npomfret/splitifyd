@@ -496,4 +496,82 @@ export class CreateGroupModalPage extends BasePage {
         await expect(this.getGroupDisplayNameHelpText()).toBeVisible();
         await expect(this.getGroupDescriptionHelpText()).toBeVisible();
     }
+
+    // ============================================================================
+    // CURRENCY SETTINGS SELECTORS
+    // ============================================================================
+
+    protected getAddCurrencyButton(): Locator {
+        return this.getModalContainer().getByTestId('add-currency-button');
+    }
+
+    protected getRemoveCurrencyButton(code: string): Locator {
+        return this.getModalContainer().getByTestId(`remove-currency-${code}`);
+    }
+
+    protected getCurrencySearchInput(): Locator {
+        return this.getModalContainer().getByTestId('currency-search-input');
+    }
+
+    protected getAddCurrencyOption(code: string): Locator {
+        return this.getModalContainer().getByTestId(`add-currency-option-${code}`);
+    }
+
+    protected getDefaultCurrencySelect(): Locator {
+        return this.getModalContainer().getByTestId('default-currency-select');
+    }
+
+    // ============================================================================
+    // CURRENCY SETTINGS ACTIONS
+    // ============================================================================
+
+    /**
+     * Toggle currency restrictions on or off
+     */
+    async toggleCurrencyRestrictions(): Promise<void> {
+        const labelText = this.getModalContainer().getByText(translation.createGroupModal.restrictCurrencies, { exact: true });
+        await labelText.scrollIntoViewIfNeeded();
+        await labelText.click();
+    }
+
+    /**
+     * Add a currency to permitted list
+     */
+    async addPermittedCurrency(code: string): Promise<void> {
+        await this.getAddCurrencyButton().click();
+        await this.getCurrencySearchInput().fill(code);
+        await this.getAddCurrencyOption(code).click();
+    }
+
+    /**
+     * Set the default currency
+     */
+    async setDefaultCurrency(code: string): Promise<void> {
+        await this.getDefaultCurrencySelect().selectOption(code);
+    }
+
+    // ============================================================================
+    // CURRENCY SETTINGS VERIFICATION
+    // ============================================================================
+
+    /**
+     * Verify add currency button is visible (restrictions enabled)
+     */
+    async verifyAddCurrencyButtonVisible(): Promise<void> {
+        await expect(this.getAddCurrencyButton()).toBeVisible();
+    }
+
+    /**
+     * Verify a specific currency chip is visible in permitted list
+     */
+    async verifyPermittedCurrencyVisible(code: string): Promise<void> {
+        await expect(this.getRemoveCurrencyButton(code)).toBeVisible();
+    }
+
+    /**
+     * Verify default currency select has expected value
+     */
+    async verifyDefaultCurrencyValue(code: string): Promise<void> {
+        await expect(this.getDefaultCurrencySelect()).toHaveValue(code);
+    }
 }
