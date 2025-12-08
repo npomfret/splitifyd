@@ -186,16 +186,6 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
             const latency = Date.now() - startTime;
             streamingMetrics.trackRestRefresh(latency);
 
-            // Log each group ID for debugging
-            logInfo('fetchGroups: Groups received from server', {
-                groupIds: response.groups.map((g) => g.id),
-                groupCount: response.groups.length,
-                groups: response.groups.map((g) => ({ id: g.id, name: g.name })),
-                hasMore: response.hasMore,
-                cursor,
-                nextCursor: response.nextCursor,
-            });
-
             // Update pagination state
             this.#groupsSignal.value = response.groups;
             this.pagination.applyResult({
