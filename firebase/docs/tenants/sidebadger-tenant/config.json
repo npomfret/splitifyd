@@ -1,0 +1,218 @@
+{
+  "id": "sidebadger-tenant",
+  "domains": ["app.sidebadger.com"],
+  "branding": {
+    "primaryColor": "#7ec786",
+    "secondaryColor": "#5fb0c4",
+    "accentColor": "#f0c05c"
+  },
+  "marketingFlags": {
+    "showLandingPage": true,
+    "showMarketingContent": true,
+    "showPricingPage": true
+  },
+  "brandingTokens": {
+    "tokens": {
+      "version": 1,
+      "palette": {
+        "primary": "#7ec786",
+        "primaryVariant": "#68aa6f",
+        "secondary": "#5fb0c4",
+        "secondaryVariant": "#4e8a9a",
+        "accent": "#f0c05c",
+        "neutral": "#0a2818",
+        "neutralVariant": "#0f3d24",
+        "success": "#4eeab5",
+        "warning": "#f0c05c",
+        "danger": "#EF4444",
+        "info": "#5fb0c4"
+      },
+      "typography": {
+        "fontFamily": {
+          "sans": "Inter, SF Pro Display, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif",
+          "serif": "Georgia, serif",
+          "mono": "JetBrains Mono, Fira Code, monospace"
+        },
+        "sizes": {
+          "xs": "0.75rem",
+          "sm": "0.875rem",
+          "md": "1rem",
+          "lg": "1.125rem",
+          "xl": "1.25rem",
+          "2xl": "1.5rem",
+          "3xl": "1.875rem",
+          "4xl": "2.25rem",
+          "5xl": "3rem"
+        },
+        "weights": {
+          "regular": 400,
+          "medium": 500,
+          "semibold": 600,
+          "bold": 700
+        },
+        "lineHeights": {
+          "compact": "1.25rem",
+          "standard": "1.5rem",
+          "spacious": "1.75rem"
+        },
+        "letterSpacing": {
+          "tight": "-0.02rem",
+          "normal": "0rem",
+          "wide": "0.04rem"
+        },
+        "semantics": {
+          "body": "md",
+          "bodyStrong": "lg",
+          "caption": "sm",
+          "button": "sm",
+          "eyebrow": "xs",
+          "heading": "3xl",
+          "display": "5xl"
+        },
+        "fluidScale": {
+          "xs": "clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem)",
+          "sm": "clamp(0.875rem, 0.8rem + 0.35vw, 1rem)",
+          "base": "clamp(1rem, 0.9rem + 0.5vw, 1.125rem)",
+          "lg": "clamp(1.125rem, 1rem + 0.6vw, 1.25rem)",
+          "xl": "clamp(1.25rem, 1.1rem + 0.75vw, 1.5rem)",
+          "2xl": "clamp(1.5rem, 1.25rem + 1.25vw, 2rem)",
+          "3xl": "clamp(2rem, 1.5rem + 2.5vw, 3rem)",
+          "4xl": "clamp(2.5rem, 2rem + 3vw, 4rem)",
+          "hero": "clamp(3rem, 2.5rem + 4vw, 5rem)"
+        }
+      },
+      "spacing": {
+        "2xs": "0.125rem",
+        "xs": "0.25rem",
+        "sm": "0.5rem",
+        "md": "0.75rem",
+        "lg": "1rem",
+        "xl": "1.5rem",
+        "2xl": "2rem"
+      },
+      "radii": {
+        "none": "0px",
+        "sm": "8px",
+        "md": "12px",
+        "lg": "18px",
+        "pill": "999px",
+        "full": "9999px"
+      },
+      "shadows": {
+        "sm": "0 0 25px rgba(126, 199, 134, 0.25)",
+        "md": "0 8px 32px rgba(0, 0, 0, 0.4)",
+        "lg": "0 0 50px rgba(126, 199, 134, 0.35)"
+      },
+      "assets": {},
+      "legal": {
+        "appName": "Side Badger",
+        "companyName": "Side Badger",
+        "supportEmail": "support@sidebadger.com",
+        "privacyPolicyUrl": "https://sidebadger.com/legal/privacy",
+        "termsOfServiceUrl": "https://sidebadger.com/legal/terms"
+      },
+      "semantics": {
+        "colors": {
+          "surface": {
+            "base": "#0a2818",
+            "raised": "#0f3d24",
+            "sunken": "#061810",
+            "overlay": "#0c3018",
+            "warning": "#451A03",
+            "muted": "#14462d",
+            "glass": "#1e5a3c",
+            "glassBorder": "#2a5a3d",
+            "aurora": "#14462d",
+            "skeleton": "#14462d",
+            "skeletonShimmer": "#1e5a3c",
+            "popover": "#0f3d24"
+          },
+          "text": {
+            "primary": "#f8fafc",
+            "secondary": "#d4d6d8",
+            "muted": "#9a9c9e",
+            "inverted": "#0a2818",
+            "accent": "#f0c05c",
+            "disabled": "#666869",
+            "hero": "#FFFFFF",
+            "eyebrow": "#5fb0c4",
+            "code": "#7ec786"
+          },
+          "interactive": {
+            "primary": "#7ec786",
+            "primaryHover": "#9dd4a3",
+            "primaryActive": "#68aa6f",
+            "primaryForeground": "#0a2818",
+            "secondary": "#5fb0c4",
+            "secondaryHover": "#7cc5d6",
+            "secondaryActive": "#4e8a9a",
+            "secondaryForeground": "#0a2818",
+            "destructive": "#EF4444",
+            "destructiveHover": "#F87171",
+            "destructiveActive": "#DC2626",
+            "destructiveForeground": "#FFFFFF",
+            "accent": "#f0c05c",
+            "ghost": "#1a3f2a",
+            "magnetic": "#9dd4a3",
+            "glow": "#7ec786"
+          },
+          "border": {
+            "subtle": "#1a3f2a",
+            "default": "#2a5a3d",
+            "strong": "#3d7a55",
+            "focus": "#f0c05c",
+            "warning": "#f0c05c",
+            "error": "#EF4444",
+            "glassBorder": "#2a5a3d"
+          },
+          "status": {
+            "success": "#4eeab5",
+            "warning": "#f0c05c",
+            "danger": "#EF4444",
+            "info": "#5fb0c4"
+          },
+          "gradient": {
+            "primary": ["#7ec786", "#f0c05c"],
+            "accent": ["#5fb0c4", "#7ec786"],
+            "aurora": ["#68aa6f", "#4e8a9a", "#d9a94b", "#34d399"],
+            "text": ["#f8fafc", "#d4d6d8"]
+          }
+        },
+        "spacing": {
+          "pagePadding": "clamp(1rem, 5vw, 1.5rem)",
+          "sectionGap": "clamp(2rem, 8vw, 4rem)",
+          "cardPadding": "clamp(1rem, 3vw, 1.5rem)",
+          "componentGap": "1rem"
+        },
+        "typography": {
+          "body": "md",
+          "bodyStrong": "lg",
+          "caption": "sm",
+          "button": "sm",
+          "eyebrow": "xs",
+          "heading": "3xl",
+          "display": "5xl"
+        }
+      },
+      "motion": {
+        "duration": {
+          "instant": 50,
+          "fast": 150,
+          "base": 250,
+          "slow": 400,
+          "glacial": 1000
+        },
+        "easing": {
+          "standard": "cubic-bezier(0.22, 1, 0.36, 1)",
+          "decelerate": "cubic-bezier(0.05, 0.7, 0.1, 1)",
+          "accelerate": "cubic-bezier(0.3, 0, 0.8, 0.15)",
+          "spring": "cubic-bezier(0.34, 1.56, 0.64, 1)"
+        },
+        "enableParallax": true,
+        "enableMagneticHover": true,
+        "enableScrollReveal": true
+      }
+    }
+  },
+  "isDefault": false
+}
