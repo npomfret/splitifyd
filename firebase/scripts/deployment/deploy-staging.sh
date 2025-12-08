@@ -57,9 +57,9 @@ trap cleanup EXIT
 
 case "$DEPLOY_TARGET" in
     all)
-        echo "🚀 Deploying all (functions, rules, hosting) to $INSTANCE..."
+        echo "🚀 Deploying all (functions, rules, storage, hosting) to $INSTANCE..."
         node scripts/deployment/prepare-functions-deploy.js
-        firebase deploy --only functions,firestore:rules,hosting
+        firebase deploy --only functions,firestore:rules,storage,hosting
         ;;
 
     functions)
