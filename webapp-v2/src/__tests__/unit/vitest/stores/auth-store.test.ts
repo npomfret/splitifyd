@@ -6,7 +6,6 @@ import { describe, expect, it, vi } from 'vitest';
 const {
     setPersistenceMock,
     signInWithCustomTokenMock,
-    signInWithEmailAndPasswordMock,
     onAuthStateChangedMock,
     loginMock,
     sendPasswordResetEmailMock,
@@ -15,7 +14,6 @@ const {
 } = vi.hoisted(() => {
     const setPersistenceMock = vi.fn().mockResolvedValue(undefined);
     const signInWithCustomTokenMock = vi.fn().mockResolvedValue(undefined);
-    const signInWithEmailAndPasswordMock = vi.fn().mockResolvedValue(undefined);
     const onAuthStateChangedMock = vi.fn().mockReturnValue(() => {});
     const loginMock = vi.fn().mockResolvedValue({ success: true, customToken: 'mock-custom-token' });
     const sendPasswordResetEmailMock = vi.fn().mockResolvedValue(undefined);
@@ -23,7 +21,6 @@ const {
     return {
         setPersistenceMock,
         signInWithCustomTokenMock,
-        signInWithEmailAndPasswordMock,
         onAuthStateChangedMock,
         loginMock,
         sendPasswordResetEmailMock,
@@ -31,7 +28,6 @@ const {
             connect: vi.fn().mockResolvedValue(undefined),
             onAuthStateChanged: onAuthStateChangedMock,
             setPersistence: setPersistenceMock,
-            signInWithEmailAndPassword: signInWithEmailAndPasswordMock,
             signInWithCustomToken: signInWithCustomTokenMock,
             signOut: vi.fn().mockResolvedValue(undefined),
             performTokenRefresh: vi.fn().mockResolvedValue('mock-token'),
@@ -99,7 +95,6 @@ async function setupAuthStore() {
         mocks: {
             setPersistenceMock,
             signInWithCustomTokenMock,
-            signInWithEmailAndPasswordMock,
             onAuthStateChangedMock,
             loginMock,
             sendPasswordResetEmailMock,

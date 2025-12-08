@@ -5,9 +5,15 @@
 Implementation is complete. All phases have been implemented and tested.
 
 **Implementation Notes:**
-- `signInWithEmailAndPassword` was intentionally kept on the gateway/FirebaseService because it's still used by `signInAfterRegistration` (post-registration auto-login)
+- `signInWithEmailAndPassword` has been completely removed from gateway/FirebaseService
 - `sendPasswordResetEmail` was removed from gateway/FirebaseService (replaced by `apiClient.sendPasswordResetEmail`)
 - Rate limiting test (429) was not implemented as it requires mocking the Firebase Identity Toolkit response
+
+**Security Improvement:**
+- All client authentication now goes through API endpoints (`/api/login`) followed by `signInWithCustomToken`
+- The client no longer has access to `signInWithEmailAndPassword` Firebase SDK method
+- Post-registration auto-login (`signInAfterRegistration`) now uses the same API login flow
+- This reduces the Firebase Auth API surface exposed to the client
 
 ---
 

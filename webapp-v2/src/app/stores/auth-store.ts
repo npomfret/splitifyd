@@ -509,7 +509,9 @@ class AuthStoreImpl implements AuthStore {
 
     private async signInAfterRegistration(email: Email, password: string): Promise<void> {
         try {
-            await this.gateway.signInWithEmailAndPassword(email, password);
+            // Use API login instead of direct Firebase SDK call
+            const response = await apiClient.login({ email, password: toPassword(password) });
+            await this.gateway.signInWithCustomToken(response.customToken);
         } catch (error) {
             throw new PostRegistrationLoginError(error, this.buildPostRegistrationLoginErrorMessage(error));
         }

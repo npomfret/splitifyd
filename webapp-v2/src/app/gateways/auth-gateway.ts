@@ -1,4 +1,4 @@
-import type { ClientUser, Email } from '@billsplit-wl/shared';
+import type { ClientUser } from '@billsplit-wl/shared';
 import type { FirebaseService } from '../firebase';
 import { getFirebaseService } from '../firebase';
 
@@ -6,7 +6,6 @@ export interface AuthGateway {
     connect(): Promise<void>;
     onAuthStateChanged(callback: (user: ClientUser | null, idToken: string | null) => Promise<void>): () => void;
     setPersistence(persistenceType: 'local' | 'session'): Promise<void>;
-    signInWithEmailAndPassword(email: Email, password: string): Promise<void>;
     signInWithCustomToken(customToken: string): Promise<void>;
     signOut(): Promise<void>;
     performTokenRefresh(): Promise<string>;
@@ -26,10 +25,6 @@ class FirebaseAuthGateway implements AuthGateway {
 
     setPersistence(persistenceType: 'local' | 'session'): Promise<void> {
         return this.firebaseService.setPersistence(persistenceType);
-    }
-
-    signInWithEmailAndPassword(email: Email, password: string): Promise<void> {
-        return this.firebaseService.signInWithEmailAndPassword(email, password);
     }
 
     signInWithCustomToken(customToken: string): Promise<void> {

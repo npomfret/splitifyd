@@ -152,9 +152,6 @@ export class MockFirebase {
                         window.__TEST_ENV__!.firebase.authCallback = null;
                     };
                 },
-                signInWithEmailAndPassword: async (email, password) => {
-                    return (window as any).__testHarnessMockSignIn(email, password);
-                },
                 signInWithCustomToken: async (customToken) => {
                     return (window as any).__testHarnessMockSignInWithCustomToken(customToken);
                 },
@@ -207,7 +204,6 @@ export class MockFirebase {
 
         // Expose sign in/out functions (check if already exposed for browser reuse)
         try {
-            await this.page.exposeFunction('__testHarnessMockSignIn', this.handleSignIn.bind(this));
             await this.page.exposeFunction('__testHarnessMockSignInWithCustomToken', this.handleSignInWithCustomToken.bind(this));
             await this.page.exposeFunction('__testHarnessMockSignOut', this.handleSignOut.bind(this));
         } catch (error) {
@@ -216,24 +212,6 @@ export class MockFirebase {
                 throw error;
             }
         }
-    }
-
-    private async handleSignIn(_email: string, _password: string): Promise<void> {
-        if (this.state.loginBehavior === 'failure' && this.state.failureError) {
-            throw this.state.failureError;
-        }
-
-        if ((this.state.loginBehavior === 'success' || this.state.loginBehavior === 'delayed') && this.state.successUser) {
-            // Add delay if configured
-            if (this.state.loginBehavior === 'delayed' && this.state.delayMs) {
-                await new Promise((resolve) => setTimeout(resolve, this.state.delayMs));
-            }
-
-            await this.updateAuthState(this.state.successUser);
-            return;
-        }
-
-        throw new Error('Mock login not configured. Use mockLoginSuccess(), mockLoginWithDelay(), or mockLoginFailure() first.');
     }
 
     private async handleSignInWithCustomToken(_customToken: string): Promise<void> {
@@ -398,6 +376,10 @@ export class MockFirebase {
                 delayMs: options.delayMs,
             }),
         );
+
+        // Also set up /api/login handler for post-registration auto-login
+        // (signInAfterRegistration now uses apiClient.login instead of direct Firebase SDK)
+        await registerMswHandlers(this.page, loginSuccessHandler('mock-custom-token', { once: true }));
 
         const registerUrl = '/api/register';
         const listener = async (response: Response) => {

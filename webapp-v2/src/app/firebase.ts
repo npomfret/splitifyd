@@ -1,5 +1,4 @@
 import { ClientUser } from '@billsplit-wl/shared';
-import type { Email } from '@billsplit-wl/shared';
 import { FirebaseApp, initializeApp } from 'firebase/app';
 import {
     Auth,
@@ -10,7 +9,6 @@ import {
     onIdTokenChanged,
     setPersistence,
     signInWithCustomToken,
-    signInWithEmailAndPassword,
     signOut,
     User as FirebaseUser,
 } from 'firebase/auth';
@@ -44,7 +42,6 @@ export interface FirebaseService {
     performUserRefresh(): Promise<void>;
     getCurrentUserId(): string | null;
     setPersistence(persistence: 'local' | 'session'): Promise<void>;
-    signInWithEmailAndPassword(email: Email, password: string): Promise<void>;
     signInWithCustomToken(customToken: string): Promise<void>;
     signOut(): Promise<void>;
     onAuthStateChanged(callback: (user: ClientUser | null, idToken: string | null) => Promise<void>): () => void;
@@ -117,10 +114,6 @@ class FirebaseServiceImpl implements FirebaseService {
     async setPersistence(persistence: 'local' | 'session'): Promise<void> {
         const target = persistence === 'local' ? browserLocalPersistence : browserSessionPersistence;
         await setPersistence(this.getAuth(), target);
-    }
-
-    async signInWithEmailAndPassword(email: Email, password: string) {
-        await signInWithEmailAndPassword(this.getAuth(), email, password);
     }
 
     async signInWithCustomToken(customToken: string) {
