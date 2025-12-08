@@ -48,4 +48,16 @@ gcloud iam service-accounts add-iam-policy-binding \
   --project="${PROJECT_ID}"
 echo
 
+echo "➡️  Granting Service Account Token Creator (required for createCustomToken)..."
+gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
+  --member="serviceAccount:${SERVICE_ACCOUNT}" \
+  --role="roles/iam.serviceAccountTokenCreator"
+echo
+
+echo "➡️  Granting Service Account Token Creator to runtime service account..."
+gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
+  --member="serviceAccount:${COMPUTE_SA}" \
+  --role="roles/iam.serviceAccountTokenCreator"
+echo
+
 echo "✅ Completed IAM setup for ${SERVICE_ACCOUNT}"
