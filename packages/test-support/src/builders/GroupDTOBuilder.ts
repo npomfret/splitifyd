@@ -1,4 +1,4 @@
-import type { CurrencyBalance, GroupDTO, GroupId, GroupName, GroupPermissions, InviteLink, ISOString, PermissionChangeLog, UserId } from '@billsplit-wl/shared';
+import type { CurrencyBalance, GroupCurrencySettings, GroupDTO, GroupId, GroupName, GroupPermissions, InviteLink, ISOString, PermissionChangeLog, UserId } from '@billsplit-wl/shared';
 import { toGroupId, toGroupName } from '@billsplit-wl/shared';
 import { toUserId } from '@billsplit-wl/shared';
 import { convertToISOString, generateShortId, randomChoice, randomString } from '../test-helpers';
@@ -113,6 +113,18 @@ export class GroupDTOBuilder {
         return this;
     }
 
+    withCurrencySettings(settings: GroupCurrencySettings | undefined): this {
+        if (settings) {
+            this.group.currencySettings = {
+                permitted: [...settings.permitted],
+                default: settings.default,
+            };
+        } else {
+            delete this.group.currencySettings;
+        }
+        return this;
+    }
+
     withoutBalance(): this {
         delete this.group.balance;
         return this;
@@ -141,6 +153,7 @@ export class GroupDTOBuilder {
             permissionHistory,
             inviteLinks,
             permissions,
+            currencySettings,
             ...rest
         } = this.group;
 
@@ -176,6 +189,13 @@ export class GroupDTOBuilder {
                 acc[id] = { ...link };
                 return acc;
             }, {});
+        }
+
+        if (currencySettings) {
+            cloned.currencySettings = {
+                permitted: [...currencySettings.permitted],
+                default: currencySettings.default,
+            };
         }
 
         return cloned;

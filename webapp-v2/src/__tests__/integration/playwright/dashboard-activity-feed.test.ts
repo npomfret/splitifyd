@@ -2,6 +2,7 @@ import {
     ActivityFeedItemBuilder,
     CommentBuilder,
     DashboardPage,
+    ExpenseDetailPage,
     ExpenseDTOBuilder,
     ExpenseFullDetailsBuilder,
     GroupBalancesBuilder,
@@ -383,8 +384,9 @@ test.describe('Activity Feed - Navigation', () => {
         await expect(page).toHaveURL(new RegExp(`/groups/${groupId}$`));
 
         // Expense detail modal opens with the expense description
-        await expect(page.getByTestId('expense-detail-modal')).toBeVisible();
-        await expect(page.getByText(expenseDescription)).toBeVisible();
+        const expenseDetailPage = new ExpenseDetailPage(page);
+        await expenseDetailPage.waitForPageReady();
+        await expenseDetailPage.waitForExpenseDescription(expenseDescription);
     });
 
     test('should navigate to group comments when clicking comment activity without expense target', async ({ authenticatedPage }) => {
@@ -460,8 +462,7 @@ test.describe('Activity Feed - Navigation', () => {
 
         await expect(page).toHaveURL(`/groups/${groupId}#comments`);
         await groupDetailPage.waitForGroupToLoad();
-        await groupDetailPage.ensureCommentsSectionExpanded();
-        await expect(page.getByText(commentPreview)).toBeVisible();
+        await groupDetailPage.verifyCommentVisible(commentPreview);
     });
 
     test('should navigate to settlements section when clicking settlement activity item', async ({ authenticatedPage }) => {
@@ -543,6 +544,6 @@ test.describe('Activity Feed - Navigation', () => {
         await expect(page).toHaveURL(`/groups/${groupId}#settlements`);
         await groupDetailPage.waitForGroupToLoad();
         await groupDetailPage.ensureSettlementsSectionExpanded();
-        await expect(page.getByText(settlementDescription)).toBeVisible();
+        await groupDetailPage.verifySettlementVisible(settlementDescription);
     });
 });

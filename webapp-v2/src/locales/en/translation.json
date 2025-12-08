@@ -208,6 +208,8 @@
     "closeButtonAriaLabel": "Close modal",
     "cancelButton": "Cancel",
     "submitButton": "Create Group",
+    "restrictCurrencies": "Restrict currencies",
+    "restrictCurrenciesHelp": "Only selected currencies can be used for expenses in this group",
     "validation": {
       "nameRequired": "Group name is required.",
       "nameTooShort": "Group name must be at least 2 characters long.",
@@ -1146,6 +1148,24 @@
     "securityTab": {
       "successAriaLabel": "success",
       "unsavedChangesAriaLabel": "unsaved changes"
+    }
+  },
+  "groupSettings": {
+    "currencySettings": {
+      "title": "Currency Settings",
+      "description": "Restrict which currencies can be used for expenses in this group.",
+      "enableToggle": "Restrict currencies for this group",
+      "enabledDescription": "Only selected currencies can be used for expenses",
+      "permittedLabel": "Permitted currencies",
+      "defaultLabel": "Default currency for new expenses",
+      "addCurrency": "Add currency",
+      "searchPlaceholder": "Search currencies...",
+      "noCurrenciesSelected": "Select at least one currency",
+      "defaultNotInPermitted": "Default must be a permitted currency",
+      "allCurrenciesSelected": "All currencies selected",
+      "saveButton": "Save Currency Settings",
+      "saveSuccess": "Currency settings updated successfully.",
+      "saveFailed": "Failed to save currency settings. Please try again."
     }
   },
   "groupDisplayNameSettings": {

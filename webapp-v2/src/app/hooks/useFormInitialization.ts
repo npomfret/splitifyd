@@ -123,16 +123,25 @@ export function useFormInitialization({ isOpen, groupId, expenseId, isEditMode, 
             expenseFormStore.updateField('paidBy', currentUser.uid);
         }
 
-        // Detect currency from existing group expenses (same logic as settlement form)
+        // Determine default currency with priority:
+        // 1. Group's configured default currency (if currency restrictions enabled)
+        // 2. Most recent expense currency in the group
+        // 3. USD as final fallback
+        const currentGroup = enhancedGroupDetailStore.group;
         const expenses = enhancedGroupDetailStore.expenses;
-        let detectedCurrency: CurrencyISOCode = toCurrencyISOCode('USD'); // Default to USD... todo: have this as a defult for each user
+        let detectedCurrency: CurrencyISOCode;
 
-        // Try to get currency from most recent expense
-        if (expenses && expenses.length > 0) {
+        if (currentGroup?.currencySettings?.default) {
+            // Group has a configured default currency
+            detectedCurrency = toCurrencyISOCode(currentGroup.currencySettings.default);
+        } else if (expenses && expenses.length > 0) {
+            // Use most recent expense currency
             detectedCurrency = expenses[0].currency;
+        } else {
+            // Fallback to USD
+            detectedCurrency = toCurrencyISOCode('USD');
         }
 
-        // Set detected currency (defaults to USD if no expenses exist)
         expenseFormStore.updateField('currency', detectedCurrency);
 
         // Default to all group members as participants

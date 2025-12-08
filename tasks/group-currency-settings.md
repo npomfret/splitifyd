@@ -480,19 +480,19 @@ Include `currencySettings` in the `createGroup` request payload.
 - [x] Add `currencySettings` handling in `GroupService.updateGroup()`
 
 ### Phase 3: Frontend - Group Settings UI
-- [ ] Create `GroupCurrencySettings.tsx` component
-- [ ] Create `useGroupCurrencySettings.ts` hook
-- [ ] Add currency settings to `GroupGeneralTabContent.tsx`
-- [ ] Add translations to `translation.json`
+- [x] Create `GroupCurrencySettings.tsx` component
+- [x] Create `useGroupCurrencySettings.ts` hook
+- [x] Add currency settings to `GroupGeneralTabContent.tsx`
+- [x] Add translations to `translation.json`
 
 ### Phase 4: Frontend - Expense Form Integration
-- [ ] Add `permittedCurrencies` prop to `CurrencyAmountInput.tsx`
-- [ ] Update `useFormInitialization.ts` for group default currency
-- [ ] Pass `permittedCurrencies` in `ExpenseFormModal.tsx`
+- [x] Add `permittedCurrencies` prop to `CurrencyAmountInput.tsx`
+- [x] Update `useFormInitialization.ts` for group default currency
+- [x] Pass `permittedCurrencies` in `ExpenseFormModal.tsx`
 
 ### Phase 5: Frontend - Group Creation Flow
-- [ ] Add advanced settings section to `CreateGroupModal.tsx`
-- [ ] Include `currencySettings` in create group request
+- [x] Add advanced settings section to `CreateGroupModal.tsx`
+- [x] Include `currencySettings` in create group request
 
 ### Testing
 - [x] Backend unit tests for currency settings (24 tests passing)
@@ -502,7 +502,7 @@ Include `currencySettings` in the `createGroup` request payload.
   - API response verification tests (2)
   - Existing data readable tests (1)
   - Viewer role rejection test (1)
-- [ ] Frontend Playwright tests for currency settings UI
+- [x] Frontend Playwright tests for currency settings UI (7 tests passing)
 - [x] Run full build and verify no compilation errors
 
 ---
@@ -533,9 +533,27 @@ All backend work is finished. The following files were modified:
 - When `currencySettings` is absent/undefined, **any currency is allowed**
 - Currency restrictions are opt-in via the Group Settings UI (Phase 3)
 
-### Frontend Pending
+### Frontend Complete ✅
 
-Phases 3-5 (frontend implementation) are ready to begin:
+All frontend work is finished:
 - Phase 3: Admin UI for managing currency settings
 - Phase 4: Expense form integration (filtering + default currency)
 - Phase 5: Optional settings during group creation
+
+**Files modified:**
+| File | Changes |
+|------|---------|
+| `packages/shared/src/schemas/apiSchemas.ts` | Added `currencySettings` to GroupSchema |
+| `packages/test-support/src/builders/GroupDTOBuilder.ts` | Added `withCurrencySettings()` method |
+| `packages/test-support/src/page-objects/GroupSettingsModalPage.ts` | Added currency settings test helpers |
+| `webapp-v2/src/components/group/settings/GroupCurrencySettings.tsx` | New component for currency restrictions UI |
+| `webapp-v2/src/app/hooks/useGroupCurrencySettings.ts` | New hook for currency settings state management |
+| `webapp-v2/src/components/group/settings/GroupGeneralTabContent.tsx` | Integrated currency settings section |
+| `webapp-v2/src/components/group/GroupSettingsModal.tsx` | Wired up currency settings hook |
+| `webapp-v2/src/components/ui/CurrencyAmountInput.tsx` | Added `permittedCurrencies` prop |
+| `webapp-v2/src/app/hooks/useCurrencySelector.ts` | Added filtering for permitted currencies |
+| `webapp-v2/src/app/hooks/useFormInitialization.ts` | Use group default currency |
+| `webapp-v2/src/components/expense-form/ExpenseBasicFields.tsx` | Pass permitted currencies to input |
+| `webapp-v2/src/components/dashboard/CreateGroupModal.tsx` | Added currency settings during group creation |
+| `webapp-v2/src/locales/en/translation.json` | Added currency settings translations |
+| `webapp-v2/src/__tests__/integration/playwright/group-currency-settings.test.ts` | New test file with 7 comprehensive tests |

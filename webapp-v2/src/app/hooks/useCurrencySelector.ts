@@ -6,15 +6,24 @@ import { useDropdownSelector } from './useDropdownSelector';
 interface UseCurrencySelectorOptions {
     onCurrencyChange: (currency: CurrencyISOCode) => void;
     recentCurrencies?: string[];
+    permittedCurrencies?: string[]; // If provided, only show these currencies
 }
 
 /**
  * Hook that manages currency selection dropdown logic.
  * Wraps useDropdownSelector with currency-specific filtering and grouping.
  */
-export function useCurrencySelector({ onCurrencyChange, recentCurrencies = [] }: UseCurrencySelectorOptions) {
+export function useCurrencySelector({ onCurrencyChange, recentCurrencies = [], permittedCurrencies }: UseCurrencySelectorOptions) {
     const currencyService = CurrencyService.getInstance();
-    const currencies = currencyService.getCurrencies();
+    const allCurrencies = currencyService.getCurrencies();
+
+    // If permittedCurrencies is provided, filter to only those currencies
+    const currencies = useMemo(() => {
+        if (!permittedCurrencies || permittedCurrencies.length === 0) {
+            return allCurrencies;
+        }
+        return allCurrencies.filter((c) => permittedCurrencies.includes(c.acronym));
+    }, [allCurrencies, permittedCurrencies]);
 
     const filterFn = (currency: Currency, searchTerm: string) => {
         const searchLower = searchTerm.toLowerCase();

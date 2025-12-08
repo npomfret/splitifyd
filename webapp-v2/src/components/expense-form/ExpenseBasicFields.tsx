@@ -19,10 +19,11 @@ interface ExpenseBasicFieldsProps {
     validateOnBlur: (field: string) => void;
     recentAmounts: RecentAmount[];
     PREDEFINED_EXPENSE_LABELS: ExpenseLabel[];
+    permittedCurrencies?: string[];
 }
 
 export function ExpenseBasicFields(
-    { description, amount, currency, date, time, label, validationErrors, updateField, validateOnBlur, recentAmounts, PREDEFINED_EXPENSE_LABELS }: ExpenseBasicFieldsProps,
+    { description, amount, currency, date, time, label, validationErrors, updateField, validateOnBlur, recentAmounts, PREDEFINED_EXPENSE_LABELS, permittedCurrencies }: ExpenseBasicFieldsProps,
 ) {
     const { t } = useTranslation();
     const currencyService = CurrencyService.getInstance();
@@ -80,6 +81,7 @@ export function ExpenseBasicFields(
                             placeholder='0.00'
                             error={validationErrors.amount || validationErrors.currency}
                             recentCurrencies={recentCurrencies}
+                            permittedCurrencies={permittedCurrencies}
                         />
 
                         {/* Recent amounts buttons - show latest 3, clicking fills both currency and amount */}

@@ -145,6 +145,7 @@ export function ExpenseFormModal({ isOpen, onClose, groupId, mode, expenseId, on
                                 validateOnBlur={formState.validateOnBlur}
                                 recentAmounts={formState.recentAmounts}
                                 PREDEFINED_EXPENSE_LABELS={formState.PREDEFINED_EXPENSE_LABELS}
+                                permittedCurrencies={formState.group.currencySettings?.permitted}
                             />
 
                             {/* Payer selection */}

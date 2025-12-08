@@ -963,4 +963,142 @@ export class GroupSettingsModalPage extends BasePage {
     getGroupNameInputLocator(): Locator {
         return this.getGroupNameInput();
     }
+
+    // ============================================================================
+    // CURRENCY SETTINGS HELPERS
+    // ============================================================================
+
+    protected getCurrencyRestrictionsToggle(): Locator {
+        return this.getModalContainer().getByTestId('currency-restrictions-toggle');
+    }
+
+    protected getAddCurrencyButton(): Locator {
+        return this.getModalContainer().getByTestId('add-currency-button');
+    }
+
+    protected getRemoveCurrencyButton(code: string): Locator {
+        return this.getModalContainer().getByTestId(`remove-currency-${code}`);
+    }
+
+    protected getCurrencySearchInput(): Locator {
+        return this.getModalContainer().getByTestId('currency-search-input');
+    }
+
+    protected getAddCurrencyOption(code: string): Locator {
+        return this.getModalContainer().getByTestId(`add-currency-option-${code}`);
+    }
+
+    protected getDefaultCurrencySelect(): Locator {
+        return this.getModalContainer().getByTestId('default-currency-select');
+    }
+
+    protected getCurrencySettingsSaveButton(): Locator {
+        // The save button specific to currency settings section
+        return this.getModalContainer().getByRole('button', { name: translation.groupSettings.currencySettings.saveButton });
+    }
+
+    protected getCurrencySettingsSuccessAlert(): Locator {
+        return this.getModalContainer().getByText(translation.groupSettings.currencySettings.saveSuccess);
+    }
+
+    /**
+     * Toggle currency restrictions on or off
+     */
+    async toggleCurrencyRestrictions(): Promise<void> {
+        await this.ensureGeneralTab();
+        // Find and click the label text which is linked to the switch via htmlFor
+        const labelText = this.getModalContainer().getByText(translation.groupSettings.currencySettings.enableToggle, { exact: true });
+        await labelText.scrollIntoViewIfNeeded();
+        await labelText.click();
+    }
+
+    /**
+     * Add a currency to permitted list
+     */
+    async addPermittedCurrency(code: string): Promise<void> {
+        await this.ensureGeneralTab();
+        await this.getAddCurrencyButton().click();
+        await this.getCurrencySearchInput().fill(code);
+        await this.getAddCurrencyOption(code).click();
+    }
+
+    /**
+     * Remove a currency from permitted list
+     */
+    async removePermittedCurrency(code: string): Promise<void> {
+        await this.ensureGeneralTab();
+        await this.getRemoveCurrencyButton(code).click();
+    }
+
+    /**
+     * Set the default currency
+     */
+    async setDefaultCurrency(code: string): Promise<void> {
+        await this.ensureGeneralTab();
+        await this.getDefaultCurrencySelect().selectOption(code);
+    }
+
+    /**
+     * Save currency settings
+     */
+    async saveCurrencySettings(): Promise<void> {
+        await this.ensureGeneralTab();
+        const saveButton = this.getCurrencySettingsSaveButton();
+        await expect(saveButton).toBeEnabled();
+        await this.clickButton(saveButton, { buttonName: translation.groupSettings.currencySettings.saveButton });
+    }
+
+    /**
+     * Verify currency restrictions toggle is visible
+     */
+    async verifyCurrencyRestrictionsToggleVisible(): Promise<void> {
+        await this.ensureGeneralTab();
+        await expect(this.getCurrencyRestrictionsToggle()).toBeVisible();
+    }
+
+    /**
+     * Verify currency restrictions toggle is not visible (non-admin user)
+     */
+    async verifyCurrencyRestrictionsToggleNotVisible(): Promise<void> {
+        await expect(this.getCurrencyRestrictionsToggle()).not.toBeVisible();
+    }
+
+    /**
+     * Verify add currency button is visible (restrictions enabled)
+     */
+    async verifyAddCurrencyButtonVisible(): Promise<void> {
+        await this.ensureGeneralTab();
+        await expect(this.getAddCurrencyButton()).toBeVisible();
+    }
+
+    /**
+     * Verify a specific currency chip is visible in permitted list
+     */
+    async verifyPermittedCurrencyVisible(code: string): Promise<void> {
+        await this.ensureGeneralTab();
+        await expect(this.getRemoveCurrencyButton(code)).toBeVisible();
+    }
+
+    /**
+     * Verify a specific currency chip is not visible in permitted list
+     */
+    async verifyPermittedCurrencyNotVisible(code: string): Promise<void> {
+        await this.ensureGeneralTab();
+        await expect(this.getRemoveCurrencyButton(code)).not.toBeVisible();
+    }
+
+    /**
+     * Verify currency settings success message is visible
+     */
+    async verifyCurrencySettingsSuccessVisible(): Promise<void> {
+        await expect(this.getCurrencySettingsSuccessAlert()).toBeVisible();
+    }
+
+    /**
+     * Verify default currency select has expected value
+     */
+    async verifyDefaultCurrencyValue(code: string): Promise<void> {
+        await this.ensureGeneralTab();
+        await expect(this.getDefaultCurrencySelect()).toHaveValue(code);
+    }
 }

@@ -1,14 +1,16 @@
 import { ApiError } from '@/app/apiClient';
 import { useAuthRequired } from '@/app/hooks/useAuthRequired';
+import { CurrencyService } from '@/app/services/currencyService';
 import { enhancedGroupsStore } from '@/app/stores/groups-store-enhanced.ts';
 import { Clickable } from '@/components/ui/Clickable';
 import { XCircleIcon, XIcon } from '@/components/ui/icons';
 import { Modal } from '@/components/ui/Modal';
-import { CreateGroupRequest, GroupId, toDisplayName, toGroupName } from '@billsplit-wl/shared';
+import { CreateGroupRequest, CurrencyISOCode, GroupId, toCurrencyISOCode, toDisplayName, toGroupName } from '@billsplit-wl/shared';
 import { signal, useComputed } from '@preact/signals';
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
-import { Button, Form, Input, Stack, Tooltip, Typography } from '../ui';
+import { Button, Form, Input, Select, Stack, Switch, Tooltip, Typography } from '../ui';
+import { cx } from '@/utils/cx';
 
 interface CreateGroupModalProps {
     isOpen: boolean;
@@ -32,6 +34,16 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
     const [groupDisplayNameSignal] = useState(() => signal(currentUser.value?.displayName?.trim() ?? ''));
     const previousIsOpenRef = useRef(isOpen);
 
+    // Currency settings state
+    const currencyService = CurrencyService.getInstance();
+    const [currencyRestrictionsEnabled, setCurrencyRestrictionsEnabled] = useState(false);
+    const [permittedCurrencies, setPermittedCurrencies] = useState<string[]>([]);
+    const [defaultCurrency, setDefaultCurrency] = useState<string>('');
+    const [currencySearchTerm, setCurrencySearchTerm] = useState('');
+    const [isCurrencyDropdownOpen, setIsCurrencyDropdownOpen] = useState(false);
+    const currencyDropdownRef = useRef<HTMLDivElement>(null);
+    const currencySearchInputRef = useRef<HTMLInputElement>(null);
+
     // Reset form when modal opens (only on open transition, not while already open)
     useEffect(() => {
         const wasOpen = previousIsOpenRef.current;
@@ -45,6 +57,12 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
             groupDisplayNameSignal.value = currentUser.value?.displayName?.trim() ?? '';
             setValidationError(null);
             setDisplayNameValidationError(null);
+            // Reset currency settings
+            setCurrencyRestrictionsEnabled(false);
+            setPermittedCurrencies([]);
+            setDefaultCurrency('');
+            setCurrencySearchTerm('');
+            setIsCurrencyDropdownOpen(false);
             // Clear any validation errors from previous attempts
             enhancedGroupsStore.clearValidationError();
         }
@@ -90,6 +108,76 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
         return null;
     };
 
+    // Currency settings helpers
+    const allCurrencies = currencyService.getCurrencies();
+
+    const availableCurrencies = useMemo(() => {
+        const filtered = allCurrencies.filter((c) => !permittedCurrencies.includes(c.acronym));
+        if (currencySearchTerm) {
+            const searchLower = currencySearchTerm.toLowerCase();
+            return filtered.filter(
+                (c) =>
+                    c.acronym.toLowerCase().includes(searchLower) ||
+                    c.name.toLowerCase().includes(searchLower) ||
+                    c.symbol.toLowerCase().includes(searchLower),
+            );
+        }
+        return filtered;
+    }, [allCurrencies, permittedCurrencies, currencySearchTerm]);
+
+    const defaultCurrencyOptions = useMemo(
+        () =>
+            permittedCurrencies.map((code) => {
+                const currency = currencyService.getCurrencyByCode(code);
+                return {
+                    value: code,
+                    label: currency ? `${currency.acronym} - ${currency.name}` : code,
+                };
+            }),
+        [permittedCurrencies, currencyService],
+    );
+
+    const handleAddCurrency = useCallback((code: string) => {
+        setPermittedCurrencies((prev) => {
+            const updated = [...prev, code];
+            // Auto-set default to first currency if not set
+            if (!defaultCurrency) {
+                setDefaultCurrency(code);
+            }
+            return updated;
+        });
+        setIsCurrencyDropdownOpen(false);
+        setCurrencySearchTerm('');
+    }, [defaultCurrency]);
+
+    const handleRemoveCurrency = useCallback((code: string) => {
+        setPermittedCurrencies((prev) => {
+            const updated = prev.filter((c) => c !== code);
+            // If removing the default currency, set to another if available
+            if (defaultCurrency === code) {
+                setDefaultCurrency(updated.length > 0 ? updated[0] : '');
+            }
+            return updated;
+        });
+    }, [defaultCurrency]);
+
+    const handleOpenCurrencyDropdown = useCallback(() => {
+        setIsCurrencyDropdownOpen(true);
+        setTimeout(() => currencySearchInputRef.current?.focus(), 0);
+    }, []);
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (currencyDropdownRef.current && !currencyDropdownRef.current.contains(e.target as Node)) {
+                setIsCurrencyDropdownOpen(false);
+                setCurrencySearchTerm('');
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
     const handleSubmit = async (e: Event) => {
         e.preventDefault();
 
@@ -116,6 +204,12 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                 name: toGroupName(trimmedGroupName),
                 groupDisplayName: toDisplayName(trimmedDisplayName),
                 description: groupDescriptionSignal.value.trim() || undefined,
+                currencySettings: currencyRestrictionsEnabled && permittedCurrencies.length > 0
+                    ? {
+                        permitted: permittedCurrencies as CurrencyISOCode[],
+                        default: toCurrencyISOCode(defaultCurrency || permittedCurrencies[0]),
+                    }
+                    : undefined,
             };
 
             const newGroup = await enhancedGroupsStore.createGroup(groupData);
@@ -236,6 +330,148 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                                 maxLength={200}
                             />
                             <p class='mt-1 text-sm text-text-muted'>{t('createGroupModal.groupDescriptionHelpText')}</p>
+                        </div>
+
+                        {/* Currency Restrictions (Optional) */}
+                        <div className='border-t border-border-default pt-4'>
+                            <Switch
+                                label={t('createGroupModal.restrictCurrencies')}
+                                description={currencyRestrictionsEnabled ? t('createGroupModal.restrictCurrenciesHelp') : undefined}
+                                checked={currencyRestrictionsEnabled}
+                                onChange={setCurrencyRestrictionsEnabled}
+                                disabled={isSubmitting}
+                                data-testid='currency-restrictions-toggle'
+                            />
+
+                            {currencyRestrictionsEnabled && (
+                                <div className='mt-4 space-y-4 pl-4 border-l-2 border-interactive-primary/30'>
+                                    {/* Permitted currencies */}
+                                    <div>
+                                        <label className='block text-sm font-medium text-text-primary mb-2'>
+                                            {t('groupSettings.currencySettings.permittedLabel')}
+                                        </label>
+
+                                        {/* Selected currencies as chips */}
+                                        <div className='flex flex-wrap gap-2 mb-2'>
+                                            {permittedCurrencies.map((code) => {
+                                                const currency = currencyService.getCurrencyByCode(code);
+                                                return (
+                                                    <span
+                                                        key={code}
+                                                        className={cx(
+                                                            'inline-flex items-center gap-1 px-2 py-1 rounded-md text-sm',
+                                                            'bg-surface-muted text-text-primary border border-border-default',
+                                                        )}
+                                                    >
+                                                        <span className='font-medium'>{code}</span>
+                                                        {currency && <span className='text-text-muted'>({currency.symbol})</span>}
+                                                        <button
+                                                            type='button'
+                                                            onClick={() => handleRemoveCurrency(code)}
+                                                            disabled={isSubmitting || permittedCurrencies.length <= 1}
+                                                            className={cx(
+                                                                'ml-1 p-0.5 rounded hover:bg-surface-raised transition-colors',
+                                                                permittedCurrencies.length <= 1
+                                                                    ? 'opacity-30 cursor-not-allowed'
+                                                                    : 'hover:text-semantic-error',
+                                                            )}
+                                                            aria-label={`Remove ${code}`}
+                                                            data-testid={`remove-currency-${code}`}
+                                                        >
+                                                            <XIcon size={14} />
+                                                        </button>
+                                                    </span>
+                                                );
+                                            })}
+
+                                            {/* Add currency button/dropdown */}
+                                            <div className='relative' ref={currencyDropdownRef}>
+                                                <button
+                                                    type='button'
+                                                    onClick={handleOpenCurrencyDropdown}
+                                                    disabled={isSubmitting}
+                                                    className={cx(
+                                                        'inline-flex items-center gap-1 px-2 py-1 rounded-md text-sm',
+                                                        'border border-dashed border-border-default text-text-muted',
+                                                        'hover:border-interactive-primary hover:text-interactive-primary transition-colors',
+                                                        isSubmitting && 'opacity-50 cursor-not-allowed',
+                                                    )}
+                                                    data-testid='add-currency-button'
+                                                >
+                                                    + {t('groupSettings.currencySettings.addCurrency')}
+                                                </button>
+
+                                                {isCurrencyDropdownOpen && (
+                                                    <div
+                                                        className={cx(
+                                                            'absolute z-50 top-full left-0 mt-1 w-64',
+                                                            'bg-surface-raised border border-border-default rounded-md shadow-lg',
+                                                            'max-h-60 overflow-hidden',
+                                                        )}
+                                                    >
+                                                        <div className='p-2 border-b border-border-default'>
+                                                            <input
+                                                                ref={currencySearchInputRef}
+                                                                type='text'
+                                                                value={currencySearchTerm}
+                                                                onInput={(e) => setCurrencySearchTerm((e.target as HTMLInputElement).value)}
+                                                                placeholder={t('groupSettings.currencySettings.searchPlaceholder')}
+                                                                className={cx(
+                                                                    'w-full px-2 py-1 text-sm rounded border border-border-default',
+                                                                    'bg-surface-base text-text-primary placeholder:text-text-muted',
+                                                                    'focus:outline-hidden focus:ring-1 focus:ring-interactive-primary',
+                                                                )}
+                                                                data-testid='currency-search-input'
+                                                            />
+                                                        </div>
+                                                        <div className='max-h-48 overflow-y-auto'>
+                                                            {availableCurrencies.length === 0 ? (
+                                                                <div className='p-2 text-sm text-text-muted text-center'>
+                                                                    {currencySearchTerm
+                                                                        ? t('currencySelector.noResults')
+                                                                        : t('groupSettings.currencySettings.allCurrenciesSelected')}
+                                                                </div>
+                                                            ) : (
+                                                                availableCurrencies.slice(0, 50).map((currency) => (
+                                                                    <button
+                                                                        key={currency.acronym}
+                                                                        type='button'
+                                                                        onClick={() => handleAddCurrency(currency.acronym)}
+                                                                        className={cx(
+                                                                            'w-full px-3 py-2 text-left text-sm',
+                                                                            'hover:bg-surface-muted transition-colors',
+                                                                            'flex items-center justify-between',
+                                                                        )}
+                                                                        data-testid={`add-currency-option-${currency.acronym}`}
+                                                                    >
+                                                                        <span>
+                                                                            <span className='font-medium'>{currency.acronym}</span>
+                                                                            <span className='text-text-muted ml-2'>{currency.name}</span>
+                                                                        </span>
+                                                                        <span className='text-text-muted'>{currency.symbol}</span>
+                                                                    </button>
+                                                                ))
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Default currency dropdown */}
+                                    {permittedCurrencies.length > 0 && (
+                                        <Select
+                                            label={t('groupSettings.currencySettings.defaultLabel')}
+                                            value={defaultCurrency}
+                                            onChange={setDefaultCurrency}
+                                            options={defaultCurrencyOptions}
+                                            disabled={isSubmitting || permittedCurrencies.length === 0}
+                                            data-testid='default-currency-select'
+                                        />
+                                    )}
+                                </div>
+                            )}
                         </div>
 
                         {/* Error Display */}

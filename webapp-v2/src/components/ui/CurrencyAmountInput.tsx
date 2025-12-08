@@ -25,6 +25,7 @@ interface CurrencyAmountInputProps {
     placeholder?: string;
     className?: string;
     recentCurrencies?: string[];
+    permittedCurrencies?: string[]; // If provided, only show these currencies in dropdown
 }
 
 export function CurrencyAmountInput({
@@ -40,6 +41,7 @@ export function CurrencyAmountInput({
     placeholder,
     className = '',
     recentCurrencies = [],
+    permittedCurrencies,
 }: CurrencyAmountInputProps) {
     const { t } = useTranslation();
     const inputRef = useRef<HTMLInputElement>(null);
@@ -68,6 +70,7 @@ export function CurrencyAmountInput({
             inputRef.current?.focus();
         },
         recentCurrencies,
+        permittedCurrencies,
     });
 
     const selectedCurrency = useMemo(() => (currency ? currencyService.getCurrencyByCode(currency) : undefined), [currency, currencyService]);

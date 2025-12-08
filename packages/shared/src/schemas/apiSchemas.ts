@@ -135,6 +135,14 @@ const GroupSchema = z.object({
     updatedAt: z.string().optional(),
     deletedAt: z.string().nullable().optional(),
     lastExpenseTime: z.string().optional(),
+
+    // Currency restrictions
+    currencySettings: z
+        .object({
+            permitted: z.array(z.string()),
+            default: z.string(),
+        })
+        .optional(),
 });
 
 // Change metadata schema for REST responses

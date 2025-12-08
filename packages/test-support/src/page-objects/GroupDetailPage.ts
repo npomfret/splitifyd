@@ -621,10 +621,10 @@ export class GroupDetailPage extends BasePage {
     // ============================================================================
 
     /**
-     * Get the comments section container
+     * Get the comments section container (desktop card - there are separate mobile and desktop cards)
      */
     protected getCommentsSection(): Locator {
-        return this.page.getByTestId('comments-section');
+        return this.page.getByTestId('comments-card').getByTestId('comments-section');
     }
 
     /**

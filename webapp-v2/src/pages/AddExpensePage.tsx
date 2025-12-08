@@ -148,6 +148,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                                 validateOnBlur={formState.validateOnBlur}
                                 recentAmounts={formState.recentAmounts}
                                 PREDEFINED_EXPENSE_LABELS={formState.PREDEFINED_EXPENSE_LABELS}
+                                permittedCurrencies={formState.group.currencySettings?.permitted}
                             />
 
                             {/* Payer selection */}

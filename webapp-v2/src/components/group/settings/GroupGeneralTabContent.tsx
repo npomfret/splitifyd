@@ -1,6 +1,23 @@
 import { ReadonlySignal } from '@preact/signals';
 import { useTranslation } from 'react-i18next';
 import { Alert, Button, Form, Input } from '../../ui';
+import { GroupCurrencySettings } from './GroupCurrencySettings';
+
+interface CurrencySettingsState {
+    enabled: boolean;
+    permittedCurrencies: string[];
+    defaultCurrency: string;
+    isSubmitting: boolean;
+    validationError: string | null;
+    successMessage: ReadonlySignal<string | null>;
+    hasChanges: boolean;
+    isFormValid: boolean;
+    toggleEnabled: (enabled: boolean) => void;
+    addCurrency: (code: string) => void;
+    removeCurrency: (code: string) => void;
+    setDefaultCurrency: (code: string) => void;
+    handleSave: () => Promise<void>;
+}
 
 interface GroupGeneralTabContentProps {
     groupName: string;
@@ -15,6 +32,8 @@ interface GroupGeneralTabContentProps {
     onSubmit: (event: Event) => void;
     onDeleteClick: () => void;
     onClose: () => void;
+    // Currency settings (optional - only shown for admins)
+    currencySettings?: CurrencySettingsState;
 }
 
 export function GroupGeneralTabContent({
@@ -30,6 +49,7 @@ export function GroupGeneralTabContent({
     onSubmit,
     onDeleteClick,
     onClose,
+    currencySettings,
 }: GroupGeneralTabContentProps) {
     const { t } = useTranslation();
 
@@ -88,6 +108,46 @@ export function GroupGeneralTabContent({
                     </div>
                 </div>
             </Form>
+
+            {/* Currency Settings Section */}
+            {currencySettings && (
+                <div className='space-y-4'>
+                    {currencySettings.successMessage.value && (
+                        <div
+                            className='bg-interactive-accent/10 border border-semantic-success/40 rounded-md px-3 py-2 text-sm text-semantic-success'
+                            role='status'
+                        >
+                            {currencySettings.successMessage.value}
+                        </div>
+                    )}
+
+                    <GroupCurrencySettings
+                        enabled={currencySettings.enabled}
+                        permittedCurrencies={currencySettings.permittedCurrencies}
+                        defaultCurrency={currencySettings.defaultCurrency}
+                        onToggle={currencySettings.toggleEnabled}
+                        onAddCurrency={currencySettings.addCurrency}
+                        onRemoveCurrency={currencySettings.removeCurrency}
+                        onSetDefault={currencySettings.setDefaultCurrency}
+                        validationError={currencySettings.validationError}
+                        disabled={currencySettings.isSubmitting}
+                    />
+
+                    {currencySettings.hasChanges && (
+                        <div className='flex justify-end pt-4'>
+                            <Button
+                                type='button'
+                                onClick={currencySettings.handleSave}
+                                loading={currencySettings.isSubmitting}
+                                disabled={!currencySettings.isFormValid}
+                                data-testid='save-currency-settings-button'
+                            >
+                                {t('groupSettings.currencySettings.saveButton')}
+                            </Button>
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     );
 }

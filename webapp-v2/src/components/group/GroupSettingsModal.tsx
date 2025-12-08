@@ -1,4 +1,5 @@
 import { useAuthRequired } from '@/app/hooks/useAuthRequired.ts';
+import { useGroupCurrencySettings } from '@/app/hooks/useGroupCurrencySettings.ts';
 import { useGroupDisplayName } from '@/app/hooks/useGroupDisplayName.ts';
 import { useGroupGeneralSettings } from '@/app/hooks/useGroupGeneralSettings.ts';
 import { useGroupSecuritySettings } from '@/app/hooks/useGroupSecuritySettings.ts';
@@ -69,6 +70,13 @@ export function GroupSettingsModal({
         onGroupUpdated,
         onClose,
         onDelete,
+    });
+
+    const currencySettingsState = useGroupCurrencySettings({
+        group,
+        isOpen,
+        t,
+        onGroupUpdated,
     });
 
     const generalTabAvailable = canManageGeneralSettings;
@@ -166,6 +174,7 @@ export function GroupSettingsModal({
                 onSubmit={generalSettingsState.handleSubmit}
                 onDeleteClick={generalSettingsState.handleDeleteClick}
                 onClose={onClose}
+                currencySettings={currencySettingsState}
             />
         );
     };
