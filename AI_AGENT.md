@@ -25,8 +25,10 @@ Remember:
 
 - the @tasks/ dir stores `.md` files which we use to track pending and in-progress work items
 - task can contain problem descriptions, research, suggested solutions, implemtation plans etc
-- most work is tracked by a task file, but some minor tasks tdo not need one
-- after planning how to implement a task, write the plan back to the task file
+- most work is tracked by a task file, but some minor tasks do not need one
+- after reading a task file, decided if or not more research and/or verficication is needed before you make a plan 
+- after planning a task, write that plan back to the task file and update it as you go
+- it's ok for plans to change during implementation, they are often non-optimal or sometimes just wrong
 - you can create a task file on-the-fly if one does not exist for the task you are working on
 - task files are for tracking new features, bugs, pending research etc
 - task files should be kept up to date with progress, problems encountered etc - they are a living document
