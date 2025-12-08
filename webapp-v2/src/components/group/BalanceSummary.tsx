@@ -1,11 +1,11 @@
 import { useAuthRequired } from '@/app/hooks/useAuthRequired';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced';
 import { themeStore } from '@/app/stores/theme-store';
-import { Checkbox, CurrencyAmount, SidebarCard, Tooltip } from '@/components/ui';
+import { Checkbox, CurrencyAmount, Tooltip } from '@/components/ui';
 import { Typography } from '@/components/ui';
 import { Avatar } from '@/components/ui/Avatar';
 import { Clickable } from '@/components/ui/Clickable';
-import { ArrowDownIcon, ArrowRightIcon, BanknotesIcon, ScaleIcon } from '@/components/ui/icons';
+import { ArrowDownIcon, ArrowRightIcon, BanknotesIcon } from '@/components/ui/icons';
 import { getGroupDisplayName } from '@/utils/displayName';
 import type { SimplifiedDebt, UserId } from '@billsplit-wl/shared';
 import { useComputed, useSignal } from '@preact/signals';
@@ -199,18 +199,7 @@ export function BalanceSummary({ variant = 'default', onSettleUp }: BalanceSumma
 
     if (variant === 'sidebar') {
         return (
-            <SidebarCard
-                title={
-                    <div className='flex items-center gap-2'>
-                        <ScaleIcon size={20} className='text-text-muted' />
-                        <span>{t('balanceSummary.title')}</span>
-                    </div>
-                }
-                data-testid='balance-summary-sidebar'
-                collapsible
-                collapseToggleTestId='toggle-balance-section'
-                collapseToggleLabel={t('pages.groupDetailPage.toggleSection', { section: t('balanceSummary.title') })}
-            >
+            <div data-testid='balance-summary-sidebar'>
                 {/* Filter toggle */}
                 <div className='pb-2 border-b border-border-default mb-2'>
                     <Checkbox
@@ -220,7 +209,7 @@ export function BalanceSummary({ variant = 'default', onSettleUp }: BalanceSumma
                     />
                 </div>
                 {content}
-            </SidebarCard>
+            </div>
         );
     }
 

@@ -200,7 +200,7 @@ export class GroupDetailPage extends BasePage {
     }
 
     private getBalanceToggle(): Locator {
-        return this.getBalanceContainer().getByTestId('toggle-balance-section');
+        return this.page.getByTestId('toggle-balance-section');
     }
 
     private getCommentsToggle(): Locator {

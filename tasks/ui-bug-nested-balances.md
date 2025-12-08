@@ -1,46 +1,41 @@
-
 # UI Bug: Balances are nested inside collapsible containers
+
+## Status: COMPLETE
 
 ## Problem Description
 
-There is a significant UI/UX issue where the user and group balance information is rendered inside multiple, nested collapsible containers. To see who owes what, a user has to click to expand multiple UI elements.
+There was a significant UI/UX issue where the user and group balance information was rendered inside multiple, **nested** collapsible containers. To see who owes what, a user had to click to expand multiple UI elements (double-clicking to expand).
 
-This makes critical information difficult to access and creates a confusing and frustrating user experience. Balance information should be one of the most prominent and easily accessible data points on the screen.
+This made critical information difficult to access and created a confusing and frustrating user experience.
 
-## Goal
+## Root Cause
 
-Refactor the relevant UI components to elevate the balance information, removing it from the nested collapsible containers and making it a primary, at-a-glance element on the page.
+The issue was caused by double-wrapping of the balance component:
 
-## Investigation Plan
+1. **GroupDetailPage.tsx** wrapped `BalanceSummary` in a `SidebarCard` with `collapsible` prop (lines 408-422 mobile, 530-543 desktop)
+2. **BalanceSummary.tsx** (when `variant='sidebar'`) ALSO wrapped its content in another `SidebarCard` with `collapsible` prop (lines 200-224)
 
-1.  **Identify Components:**
-    *   Locate the primary page component for viewing a group's details (likely in `webapp-v2/src/pages/group/`).
-    *   Trace the component hierarchy to find where the balances are being rendered.
-    *   Identify the "collapsible container" components that are causing the nesting issue.
+This created nested collapsible containers - two layers of expandable sections when only one was needed.
 
-2.  **Analyze Layout:**
-    *   Understand why the balances were placed inside collapsible containers. Was it an attempt to save space on mobile? Is it a side-effect of another component's structure?
+## Solution Implemented
 
-## Proposed Solution
+Removed the inner collapsible wrapper from `BalanceSummary.tsx` while keeping the outer collapsible wrapper in `GroupDetailPage.tsx`. Now there's a **single** collapsible layer (as intended) rather than double nesting.
 
-1.  **Component Refactoring:**
-    *   Create a dedicated, non-collapsible `GroupBalances` or `BalanceSummary` component if one doesn't exist.
-    *   Move the logic and rendering for balances into this new or an existing higher-level component.
-    *   Remove the balance rendering from the collapsible sections.
+1. **BalanceSummary.tsx**: Changed the `variant='sidebar'` rendering to return just the content in a plain `<div>` instead of wrapping in another `SidebarCard`
+2. **GroupDetailPage.tsx**: Added proper `collapseToggleTestId` and `collapseToggleLabel` props to both mobile and desktop balance sections for proper test coverage
+3. **Removed unused imports** from `BalanceSummary.tsx` (SidebarCard, ScaleIcon no longer needed in sidebar variant)
 
-2.  **New Layout:**
-    *   Position the `BalanceSummary` component prominently on the group detail page, likely near the top, below the group title.
-    -   It should clearly display a summary of debts and credits for the current user.
-    -   It should provide an easy way to navigate to the full list of debts between all members.
+## Files Modified
 
-3.  **Cleanup:**
-    *   Remove any now-unused collapsible container components if they are no longer needed.
-    *   Ensure the new layout is clean, responsive, and works well on both desktop and mobile views.
+| File | Changes |
+|------|---------|
+| `webapp-v2/src/components/group/BalanceSummary.tsx` | Simplified sidebar variant to render plain div instead of nested SidebarCard; removed unused imports |
+| `webapp-v2/src/pages/GroupDetailPage.tsx` | Added `collapseToggleTestId` and `collapseToggleLabel` props to balance SidebarCards |
 
-## Task Breakdown
+## Result
 
-- [ ] **Investigation:** Identify the specific page and components in `webapp-v2/src` causing the issue.
-- [ ] **Refactoring:** Pull the balance rendering logic out of the nested containers.
-- [ ] **UI Implementation:** Create and style a new layout where balances are clearly visible.
-- [ ] **Testing:** Manually verify the new UI on different screen sizes and with different group data (e.g., groups with many members, groups with no debts).
-- [ ] **Review:** Get feedback on the new design to ensure it meets usability goals.
+- Balance section is now **single-layer collapsible** (one click to expand/collapse)
+- No double-nesting - the page provides the SidebarCard wrapper, BalanceSummary just provides content
+- "Show All" toggle still available within the balance section
+- Works on both mobile and desktop views
+- Tests continue to work with the existing page object methods
