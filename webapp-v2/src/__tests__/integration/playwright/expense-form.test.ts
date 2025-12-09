@@ -1785,4 +1785,142 @@ test.describe('Expense Form', () => {
             await expenseFormPage2.verifySaveButtonDisabled();
         });
     });
+
+    test.describe('Multi-Label Input', () => {
+        test('should allow adding a label by typing and pressing Enter', async ({ authenticatedPage }) => {
+            const groupId = 'test-group-labels-typing';
+            const { expenseFormPage } = await openExpenseFormForTest(authenticatedPage, groupId);
+
+            await expenseFormPage.waitForExpenseFormSections();
+
+            // Initially no labels should be selected
+            await expenseFormPage.verifyNoLabelsSelected();
+
+            // Add a custom label by typing
+            await expenseFormPage.addLabelByTyping('My Custom Label');
+
+            // Verify the label is now selected
+            await expenseFormPage.verifyLabelSelected('My Custom Label');
+            await expenseFormPage.verifySelectedLabelsCount(1);
+        });
+
+        test('should allow adding a label from suggestions dropdown', async ({ authenticatedPage }) => {
+            const groupId = 'test-group-labels-suggestion';
+            const { expenseFormPage } = await openExpenseFormForTest(authenticatedPage, groupId);
+
+            await expenseFormPage.waitForExpenseFormSections();
+
+            // Focus the labels input to open dropdown (focusLabelsInput waits for dropdown)
+            await expenseFormPage.focusLabelsInput();
+
+            // Add a suggested label (Groceries is in the suggestedLabels translation array)
+            await expenseFormPage.addLabelFromSuggestions('Groceries');
+
+            // Verify the label is selected
+            await expenseFormPage.verifyLabelSelected('Groceries');
+            await expenseFormPage.verifySelectedLabelsCount(1);
+        });
+
+        test('should allow adding up to 3 labels', async ({ authenticatedPage }) => {
+            const groupId = 'test-group-labels-max';
+            const { expenseFormPage } = await openExpenseFormForTest(authenticatedPage, groupId);
+
+            await expenseFormPage.waitForExpenseFormSections();
+
+            // Add first label
+            await expenseFormPage.addLabelByTyping('Label One');
+            await expenseFormPage.verifySelectedLabelsCount(1);
+            await expenseFormPage.verifyLabelsInputVisible();
+
+            // Add second label
+            await expenseFormPage.addLabelByTyping('Label Two');
+            await expenseFormPage.verifySelectedLabelsCount(2);
+            await expenseFormPage.verifyLabelsInputVisible();
+
+            // Add third label
+            await expenseFormPage.addLabelByTyping('Label Three');
+            await expenseFormPage.verifySelectedLabelsCount(3);
+
+            // Input should now be hidden and max indicator visible
+            await expenseFormPage.verifyLabelsInputNotVisible();
+            await expenseFormPage.verifyMaxLabelsIndicatorVisible();
+        });
+
+        test('should allow removing labels by clicking X button', async ({ authenticatedPage }) => {
+            const groupId = 'test-group-labels-remove';
+            const { expenseFormPage } = await openExpenseFormForTest(authenticatedPage, groupId);
+
+            await expenseFormPage.waitForExpenseFormSections();
+
+            // Add two labels
+            await expenseFormPage.addLabelByTyping('First Label');
+            await expenseFormPage.addLabelByTyping('Second Label');
+            await expenseFormPage.verifySelectedLabelsCount(2);
+
+            // Remove the first label
+            await expenseFormPage.removeLabel('First Label');
+
+            // Verify only second label remains
+            await expenseFormPage.verifyLabelNotSelected('First Label');
+            await expenseFormPage.verifyLabelSelected('Second Label');
+            await expenseFormPage.verifySelectedLabelsCount(1);
+        });
+
+        test('should filter suggestions based on typed text', async ({ authenticatedPage }) => {
+            const groupId = 'test-group-labels-filter';
+            const { expenseFormPage } = await openExpenseFormForTest(authenticatedPage, groupId);
+
+            await expenseFormPage.waitForExpenseFormSections();
+
+            // Focus input and type partial text
+            await expenseFormPage.focusLabelsInput();
+            await expenseFormPage.typeLabelText('Groc');
+
+            // Groceries should be visible (matches filter)
+            await expenseFormPage.verifyLabelSuggestionVisible('Groceries');
+        });
+
+        test('should not show already selected labels in suggestions', async ({ authenticatedPage }) => {
+            const groupId = 'test-group-labels-no-dupe';
+            const { expenseFormPage } = await openExpenseFormForTest(authenticatedPage, groupId);
+
+            await expenseFormPage.waitForExpenseFormSections();
+
+            // Add a label from suggestions
+            await expenseFormPage.focusLabelsInput();
+            await expenseFormPage.addLabelFromSuggestions('Groceries');
+
+            // Re-focus the input to open the dropdown again
+            await expenseFormPage.focusLabelsInput();
+
+            // Groceries should no longer be in suggestions (already selected)
+            await expenseFormPage.verifyLabelSuggestionNotVisible('Groceries');
+
+            // But other suggestions should still be visible
+            await expenseFormPage.verifyLabelSuggestionVisible('Takeout');
+        });
+
+        test('should restore input when max labels removed', async ({ authenticatedPage }) => {
+            const groupId = 'test-group-labels-restore';
+            const { expenseFormPage } = await openExpenseFormForTest(authenticatedPage, groupId);
+
+            await expenseFormPage.waitForExpenseFormSections();
+
+            // Add 3 labels to reach max
+            await expenseFormPage.addLabelByTyping('One');
+            await expenseFormPage.addLabelByTyping('Two');
+            await expenseFormPage.addLabelByTyping('Three');
+
+            // Verify at max
+            await expenseFormPage.verifyLabelsInputNotVisible();
+            await expenseFormPage.verifyMaxLabelsIndicatorVisible();
+
+            // Remove one label
+            await expenseFormPage.removeLabel('Two');
+
+            // Input should reappear
+            await expenseFormPage.verifyLabelsInputVisible();
+            await expenseFormPage.verifySelectedLabelsCount(2);
+        });
+    });
 });

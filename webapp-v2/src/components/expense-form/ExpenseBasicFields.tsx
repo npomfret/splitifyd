@@ -1,10 +1,10 @@
 import { CurrencyService } from '@/app/services/currencyService.ts';
 import { getLastNight, getThisMorning, getToday, getYesterday } from '@/utils/dateUtils.ts';
-import { Amount, ExpenseLabel, toCurrencyISOCode } from '@billsplit-wl/shared';
+import { Amount, ExpenseLabel, ISOString, toCurrencyISOCode } from '@billsplit-wl/shared';
 import type { RecentAmount } from '@billsplit-wl/shared';
 import { ClockIcon } from '@heroicons/react/24/outline';
 import { useTranslation } from 'react-i18next';
-import { Button, Card, CurrencyAmount, CurrencyAmountInput, LabelSuggestionInput, TimeInput, Tooltip } from '../ui';
+import { Button, Card, CurrencyAmount, CurrencyAmountInput, MultiLabelInput, TimeInput, Tooltip } from '../ui';
 import { Stack } from '../ui/Stack';
 
 interface ExpenseBasicFieldsProps {
@@ -13,17 +13,17 @@ interface ExpenseBasicFieldsProps {
     currency: string;
     date: string;
     time: string;
-    label: string;
+    labels: ExpenseLabel[];
     validationErrors: Record<string, string>;
     updateField: (field: string, value: any) => void;
     validateOnBlur: (field: string) => void;
     recentAmounts: RecentAmount[];
-    PREDEFINED_EXPENSE_LABELS: ExpenseLabel[];
+    recentlyUsedLabels?: Record<ExpenseLabel, ISOString>;
     permittedCurrencies?: string[];
 }
 
 export function ExpenseBasicFields(
-    { description, amount, currency, date, time, label, validationErrors, updateField, validateOnBlur, recentAmounts, PREDEFINED_EXPENSE_LABELS, permittedCurrencies }: ExpenseBasicFieldsProps,
+    { description, amount, currency, date, time, labels, validationErrors, updateField, validateOnBlur, recentAmounts, recentlyUsedLabels, permittedCurrencies }: ExpenseBasicFieldsProps,
 ) {
     const { t } = useTranslation();
     const currencyService = CurrencyService.getInstance();
@@ -108,16 +108,17 @@ export function ExpenseBasicFields(
                         )}
                     </div>
 
-                    {/* Label */}
+                    {/* Labels */}
                     <div>
-                        <LabelSuggestionInput
-                            value={label}
-                            onChange={(value) => updateField('label', value)}
-                            suggestions={PREDEFINED_EXPENSE_LABELS}
-                            label={t('expenseBasicFields.labelLabel')}
-                            placeholder={t('expenseBasicFields.labelPlaceholder')}
-                            required
-                            error={validationErrors.label}
+                        <MultiLabelInput
+                            values={labels}
+                            onChange={(values) => updateField('labels', values)}
+                            recentlyUsedLabels={recentlyUsedLabels}
+                            suggestedLabels={t('suggestedLabels', { returnObjects: true }) as string[]}
+                            label={t('expenseBasicFields.labelsLabel')}
+                            placeholder={t('expenseBasicFields.labelsPlaceholder')}
+                            error={validationErrors.labels}
+                            maxLabels={3}
                         />
                     </div>
                 </div>

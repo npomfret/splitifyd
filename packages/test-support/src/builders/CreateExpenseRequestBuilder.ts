@@ -1,13 +1,13 @@
 import { calculateEqualSplits, calculateExactSplits, calculatePercentageSplits, CreateExpenseRequest } from '@billsplit-wl/shared';
 import { Amount } from '@billsplit-wl/shared';
 import { GroupId } from '@billsplit-wl/shared';
-import type { CurrencyISOCode, UserId } from '@billsplit-wl/shared';
+import type { CurrencyISOCode, ExpenseLabel, UserId } from '@billsplit-wl/shared';
 import { toGroupId } from '@billsplit-wl/shared';
 import type { ISOString } from '@billsplit-wl/shared';
-import { toCurrencyISOCode } from '@billsplit-wl/shared';
+import { toCurrencyISOCode, toExpenseLabel } from '@billsplit-wl/shared';
 import { toUserId } from '@billsplit-wl/shared';
 import { ExpenseSplit } from '@billsplit-wl/shared';
-import { convertToISOString, generateShortId, randomChoice, randomDate, randomLabel, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
+import { convertToISOString, generateShortId, randomChoice, randomDate, randomLabels, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
 
 export class CreateExpenseRequestBuilder {
     private expense: CreateExpenseRequest;
@@ -39,7 +39,7 @@ export class CreateExpenseRequestBuilder {
             participants,
             splits,
             date: convertToISOString(randomDate()),
-            label: randomLabel(),
+            labels: randomLabels(),
         };
     }
 
@@ -85,8 +85,13 @@ export class CreateExpenseRequestBuilder {
         return this;
     }
 
+    withLabels(labels: ExpenseLabel[] | string[]): this {
+        this.expense.labels = labels.map(l => typeof l === 'string' ? toExpenseLabel(l) : l);
+        return this;
+    }
+
     withLabel(label: string): this {
-        this.expense.label = label;
+        this.expense.labels = [toExpenseLabel(label)];
         return this;
     }
 
@@ -120,8 +125,8 @@ export class CreateExpenseRequestBuilder {
         return this;
     }
 
-    withInvalidLabel(value: string): this {
-        (this.expense as any).label = value;
+    withInvalidLabels(value: unknown): this {
+        (this.expense as any).labels = value;
         return this;
     }
 
@@ -185,7 +190,7 @@ export class CreateExpenseRequestBuilder {
             participants: [...this.expense.participants],
             splits: [...splits],
             date: this.expense.date,
-            label: this.expense.label,
+            labels: this.expense.labels,
             ...(this.expense.receiptUrl && { receiptUrl: this.expense.receiptUrl }),
         };
     }

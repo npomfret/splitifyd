@@ -358,7 +358,7 @@ describe('expenses', () => {
         const recordedMetadataExpense = groupDetails.expenses.expenses.find((expense) => expense.id === metadataExpense.id);
         expect(recordedMetadataExpense).toBeDefined();
         expect(recordedMetadataExpense!.description).toBe('Hotel booking with receipt');
-        expect(recordedMetadataExpense!.label).toBe('Travel');
+        expect(recordedMetadataExpense!.labels).toContain('Travel');
         expect(recordedMetadataExpense!.date).toBe('2024-06-15T12:30:00.000Z');
         expect(recordedMetadataExpense!.receiptUrl).toBe('https://example.com/receipts/hotel.jpg');
         expect(recordedMetadataExpense!.splits).toEqual(metadataSplits);

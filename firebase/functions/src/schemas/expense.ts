@@ -1,4 +1,4 @@
-import { PositiveAmountStringSchema, SplitTypes } from '@billsplit-wl/shared';
+import { PositiveAmountStringSchema, SplitTypes, toExpenseLabel } from '@billsplit-wl/shared';
 import { z } from 'zod';
 import { AuditFieldsSchema, createDocumentSchemas, CurrencyCodeSchema, FirestoreTimestampSchema, GroupIdSchema, SoftDeletionFieldsSchema, UserIdSchema } from './common';
 
@@ -16,7 +16,7 @@ const BaseExpenseSchema = z
         amount: PositiveAmountStringSchema,
         currency: CurrencyCodeSchema,
         description: z.string().min(1).max(200, 'Description must be 1-200 characters'),
-        label: z.string().min(1).max(50, 'Label must be 1-50 characters'),
+        labels: z.array(z.string().min(1).max(50, 'Label must be 1-50 characters').transform(toExpenseLabel)).max(3).default([]),
         date: FirestoreTimestampSchema,
         splitType: z.enum([SplitTypes.EQUAL, SplitTypes.EXACT, SplitTypes.PERCENTAGE]),
         participants: z.array(UserIdSchema).min(1, 'At least one participant required'),

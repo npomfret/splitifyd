@@ -129,7 +129,7 @@ describe('String Length Validation - Focused Tests', () => {
                     .build(),
             );
             expect(result.description).toBe('Updated description');
-            expect(result.label).toBe('Updated label');
+            expect(result.labels).toContain('Updated label');
         });
     });
 });

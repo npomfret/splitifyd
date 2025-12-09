@@ -210,6 +210,12 @@ export class FirestoreWriter implements IFirestoreWriter {
             'assignedAt', // For theme.assignedAt
         ]);
 
+        // Fields where ALL values in the record should be converted to Timestamps
+        // (e.g., recentlyUsedLabels: Record<string, ISOString> where all values are timestamps)
+        const timestampRecordFields = new Set([
+            'recentlyUsedLabels',
+        ]);
+
         if (Array.isArray(result)) {
             // Process arrays
             return result.map((item) => (item && typeof item === 'object' && !(item instanceof Timestamp) ? this.convertISOToTimestamps(item) : item)) as T;
@@ -220,6 +226,17 @@ export class FirestoreWriter implements IFirestoreWriter {
             if (dateFields.has(key) && value !== null && value !== undefined) {
                 // Convert known date fields
                 result[key] = this.isoToTimestamp(value);
+            } else if (timestampRecordFields.has(key) && value && typeof value === 'object' && !Array.isArray(value)) {
+                // Convert all values in timestamp record fields (e.g., recentlyUsedLabels)
+                const convertedRecord: Record<string, any> = {};
+                for (const [recordKey, recordValue] of Object.entries(value)) {
+                    if (recordValue !== null && recordValue !== undefined) {
+                        convertedRecord[recordKey] = this.isoToTimestamp(recordValue);
+                    } else {
+                        convertedRecord[recordKey] = recordValue;
+                    }
+                }
+                result[key] = convertedRecord;
             } else if (value && typeof value === 'object' && !Array.isArray(value) && !(value instanceof Timestamp)) {
                 // Recursively process nested objects (e.g., theme object)
                 result[key] = this.convertISOToTimestamps(value);

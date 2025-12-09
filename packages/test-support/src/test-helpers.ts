@@ -1,5 +1,5 @@
 // Import currency utilities from shared package
-import { CurrencyISOCode, Email, toAmount, toCurrencyISOCode, toEmail, toPassword } from '@billsplit-wl/shared';
+import { CurrencyISOCode, Email, ExpenseLabel, toAmount, toCurrencyISOCode, toEmail, toExpenseLabel, toPassword } from '@billsplit-wl/shared';
 import { Amount, getCurrencyDecimals, roundToCurrencyPrecision } from '@billsplit-wl/shared';
 import { ISOString, toISOString } from '@billsplit-wl/shared';
 import { toDisplayName } from '@billsplit-wl/shared';
@@ -123,8 +123,17 @@ export function randomValidCurrencyAmountPair(min: number = 5, max: number = 500
     return { currency, amount };
 }
 
-export function randomLabel(): string {
-    return randomChoice(['food', 'transport', 'entertainment', 'utilities', 'shopping', 'other']);
+const RANDOM_LABELS = ['food', 'transport', 'entertainment', 'utilities', 'shopping', 'groceries', 'rent', 'travel'];
+
+export function randomLabel(): ExpenseLabel {
+    return toExpenseLabel(randomChoice(RANDOM_LABELS));
+}
+
+export function randomLabels(): ExpenseLabel[] {
+    const count = Math.floor(Math.random() * 3);
+    if (count === 0) return [];
+    const shuffled = [...RANDOM_LABELS].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, count).map(toExpenseLabel);
 }
 
 export function convertToISOString(createdAt: ISOString | Date | string) {

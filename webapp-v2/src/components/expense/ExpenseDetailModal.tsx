@@ -232,11 +232,22 @@ export function ExpenseDetailModal({ isOpen, onClose, groupId, expenseId, onEdit
                                 </p>
                             </div>
 
-                            {/* Label */}
-                            <div>
-                                <p className='text-sm text-text-primary/60'>{t('expenseComponents.expenseDetailModal.label')}</p>
-                                <p className='font-medium text-text-primary'>{expense.value.label}</p>
-                            </div>
+                            {/* Labels */}
+                            {expense.value.labels.length > 0 && (
+                                <div>
+                                    <p className='text-sm text-text-primary/60'>{t('expenseComponents.expenseDetailModal.labels')}</p>
+                                    <div className='flex flex-wrap gap-1.5 mt-1'>
+                                        {expense.value.labels.map((label) => (
+                                            <span
+                                                key={label}
+                                                className='inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-interactive-primary/10 text-interactive-primary border border-interactive-primary/20'
+                                            >
+                                                {label}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Paid By */}
                             <div>

@@ -61,7 +61,7 @@ export function useFormInitialization({ isOpen, groupId, expenseId, isEditMode, 
         expenseFormStore.updateField('date', expense.date.split('T')[0]);
         expenseFormStore.updateField('time', extractTimeFromISO(expense.date));
         expenseFormStore.updateField('paidBy', expense.paidBy);
-        expenseFormStore.updateField('label', expense.label);
+        expenseFormStore.updateField('labels', expense.labels);
         expenseFormStore.updateField('splitType', expense.splitType);
 
         // Set participants from expense splits
@@ -95,7 +95,7 @@ export function useFormInitialization({ isOpen, groupId, expenseId, isEditMode, 
         expenseFormStore.updateField('amount', sourceExpense.amount);
         expenseFormStore.updateField('currency', sourceExpense.currency);
         expenseFormStore.updateField('paidBy', sourceExpense.paidBy);
-        expenseFormStore.updateField('label', sourceExpense.label);
+        expenseFormStore.updateField('labels', sourceExpense.labels);
         expenseFormStore.updateField('splitType', sourceExpense.splitType);
 
         // Set participants from expense splits

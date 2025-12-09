@@ -373,8 +373,8 @@ describe('Input Validation Unit Tests', () => {
         });
     });
 
-    describe('Label Validation', () => {
-        it('should accept valid label', () => {
+    describe('Labels Validation', () => {
+        it('should accept valid labels', () => {
             const expenseData = new CreateExpenseRequestBuilder()
                 .withAmount(100, 'USD')
                 .withLabel('food')
@@ -382,7 +382,7 @@ describe('Input Validation Unit Tests', () => {
 
             const result = validateCreateExpense(expenseData);
             expect(result.groupId).toBeDefined();
-            expect(result.label).toBe('food');
+            expect(result.labels).toContain('food');
         });
     });
 });

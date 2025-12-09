@@ -301,10 +301,67 @@ export class ExpenseFormPage extends BasePage {
     }
 
     /**
-     * Label input field (combobox).
+     * Labels input field (combobox for MultiLabelInput).
+     */
+    protected getLabelsInput(): Locator {
+        return this.getExpenseDetailsSection().locator('input[role="combobox"]').first();
+    }
+
+    /**
+     * Get all selected label chips in the MultiLabelInput
+     */
+    protected getSelectedLabelChips(): Locator {
+        return this.getExpenseDetailsSection().locator('[class*="rounded-full"][class*="text-xs"]').filter({ hasText: /.+/ });
+    }
+
+    /**
+     * Get a specific label chip by its text
+     */
+    protected getLabelChip(labelText: string): Locator {
+        return this.getExpenseDetailsSection().locator('[class*="rounded-full"][class*="text-xs"]').filter({ hasText: labelText });
+    }
+
+    /**
+     * Get the remove button for a specific label chip
+     */
+    protected getLabelChipRemoveButton(labelText: string): Locator {
+        return this.getLabelChip(labelText).getByRole('button', { name: new RegExp(`Remove ${labelText}`, 'i') });
+    }
+
+    /**
+     * Get the labels dropdown suggestions
+     */
+    protected getLabelsDropdown(): Locator {
+        return this.getExpenseDetailsSection().locator('[role="listbox"]');
+    }
+
+    /**
+     * Get a suggestion option in the labels dropdown
+     */
+    protected getLabelSuggestion(labelText: string): Locator {
+        return this.getLabelsDropdown().getByRole('option', { name: labelText });
+    }
+
+    /**
+     * Get the "max labels reached" indicator
+     */
+    protected getMaxLabelsIndicator(): Locator {
+        return this.getExpenseDetailsSection().getByText(/Max \d+ labels/);
+    }
+
+    /**
+     * Get the labels hint text (e.g., "0/3 labels")
+     */
+    protected getLabelsHintText(): Locator {
+        return this.getExpenseDetailsSection().getByText(/\d+\/\d+ labels/);
+    }
+
+    /**
+     * Legacy alias for getLabelInput (for backward compatibility in tests)
+     * @deprecated Use getLabelsInput() instead
      */
     protected getLabelInput(): Locator {
-        return this.getExpenseDetailsSection().locator('input[aria-haspopup="listbox"]').first();
+        return this.getLabelsInput();
     }
 
     /**
@@ -725,8 +782,63 @@ export class ExpenseFormPage extends BasePage {
     }
 
     async typeLabelText(text: string): Promise<void> {
-        const labelInput = this.getLabelInput();
+        const labelInput = this.getLabelsInput();
         await this.fillPreactInput(labelInput, text);
+    }
+
+    /**
+     * Add a label by typing it and pressing Enter
+     */
+    async addLabelByTyping(labelText: string): Promise<void> {
+        const input = this.getLabelsInput();
+        await input.click();
+        await input.fill(labelText);
+        await input.press('Enter');
+        // Wait for chip to appear
+        await expect(this.getLabelChip(labelText)).toBeVisible({ timeout: 2000 });
+    }
+
+    /**
+     * Add a label by selecting it from the suggestions dropdown
+     */
+    async addLabelFromSuggestions(labelText: string): Promise<void> {
+        const input = this.getLabelsInput();
+        await input.click();
+        // Wait for dropdown to open
+        await expect(this.getLabelsDropdown()).toBeVisible({ timeout: 2000 });
+        // Click the suggestion
+        await this.getLabelSuggestion(labelText).click();
+        // Wait for chip to appear
+        await expect(this.getLabelChip(labelText)).toBeVisible({ timeout: 2000 });
+    }
+
+    /**
+     * Remove a label by clicking its X button
+     */
+    async removeLabel(labelText: string): Promise<void> {
+        await this.getLabelChipRemoveButton(labelText).click();
+        // Wait for chip to disappear
+        await expect(this.getLabelChip(labelText)).not.toBeVisible({ timeout: 2000 });
+    }
+
+    /**
+     * Focus the labels input to open the dropdown.
+     * Blurs then focuses to ensure onFocus is triggered.
+     */
+    async focusLabelsInput(): Promise<void> {
+        const input = this.getLabelsInput();
+        // Blur first to ensure focus event fires when we click
+        await input.blur();
+        await input.click();
+        // Wait for dropdown to open
+        await expect(this.getLabelsDropdown()).toBeVisible({ timeout: 2000 });
+    }
+
+    /**
+     * Get the count of selected labels
+     */
+    async getSelectedLabelsCount(): Promise<number> {
+        return this.getSelectedLabelChips().count();
     }
 
     async isUserInSplitOptions(userName: string): Promise<boolean> {
@@ -924,7 +1036,7 @@ export class ExpenseFormPage extends BasePage {
         await expect(headerTitle).toBeVisible({ timeout: 3000 });
     }
 
-    async verifyPreFilledValues(expectedValues: { description?: string; amount?: string; label?: string; }): Promise<void> {
+    async verifyPreFilledValues(expectedValues: { description?: string; amount?: string; labels?: string[]; }): Promise<void> {
         if (expectedValues.description) {
             await expect(this.getDescriptionInput()).toHaveValue(expectedValues.description);
         }
@@ -933,9 +1045,109 @@ export class ExpenseFormPage extends BasePage {
             await expect(this.getAmountInput()).toHaveValue(expectedValues.amount);
         }
 
-        if (expectedValues.label) {
-            await expect(this.getLabelInput()).toHaveValue(expectedValues.label);
+        if (expectedValues.labels && expectedValues.labels.length > 0) {
+            for (const label of expectedValues.labels) {
+                await expect(this.getLabelChip(label)).toBeVisible();
+            }
         }
+    }
+
+    // ============================================================================
+    // LABEL VERIFICATION METHODS
+    // ============================================================================
+
+    /**
+     * Verify a specific label is selected (chip is visible)
+     */
+    async verifyLabelSelected(labelText: string): Promise<void> {
+        await expect(this.getLabelChip(labelText)).toBeVisible();
+    }
+
+    /**
+     * Verify a specific label is NOT selected
+     */
+    async verifyLabelNotSelected(labelText: string): Promise<void> {
+        await expect(this.getLabelChip(labelText)).not.toBeVisible();
+    }
+
+    /**
+     * Verify the count of selected labels
+     */
+    async verifySelectedLabelsCount(expectedCount: number): Promise<void> {
+        const chips = this.getSelectedLabelChips();
+        await expect(chips).toHaveCount(expectedCount);
+    }
+
+    /**
+     * Verify no labels are selected (empty state)
+     */
+    async verifyNoLabelsSelected(): Promise<void> {
+        await this.verifySelectedLabelsCount(0);
+    }
+
+    /**
+     * Verify the labels dropdown is visible
+     */
+    async verifyLabelsDropdownVisible(): Promise<void> {
+        await expect(this.getLabelsDropdown()).toBeVisible();
+    }
+
+    /**
+     * Verify the labels dropdown is not visible
+     */
+    async verifyLabelsDropdownNotVisible(): Promise<void> {
+        await expect(this.getLabelsDropdown()).not.toBeVisible();
+    }
+
+    /**
+     * Verify a suggestion is visible in the labels dropdown
+     */
+    async verifyLabelSuggestionVisible(labelText: string): Promise<void> {
+        await expect(this.getLabelSuggestion(labelText)).toBeVisible();
+    }
+
+    /**
+     * Verify a suggestion is NOT visible in the labels dropdown (filtered out or already selected)
+     */
+    async verifyLabelSuggestionNotVisible(labelText: string): Promise<void> {
+        await expect(this.getLabelSuggestion(labelText)).not.toBeVisible();
+    }
+
+    /**
+     * Verify the "max labels reached" indicator is visible
+     */
+    async verifyMaxLabelsIndicatorVisible(): Promise<void> {
+        await expect(this.getMaxLabelsIndicator()).toBeVisible();
+    }
+
+    /**
+     * Verify the labels input is visible (can add more labels)
+     */
+    async verifyLabelsInputVisible(): Promise<void> {
+        await expect(this.getLabelsInput()).toBeVisible();
+    }
+
+    /**
+     * Verify the labels input is NOT visible (max labels reached)
+     */
+    async verifyLabelsInputNotVisible(): Promise<void> {
+        await expect(this.getLabelsInput()).not.toBeVisible();
+    }
+
+    /**
+     * Verify the hint text shows expected count (e.g., "2/3 labels")
+     */
+    async verifyLabelsHintText(expectedText: string): Promise<void> {
+        await expect(this.getLabelsHintText()).toContainText(expectedText);
+    }
+
+    /**
+     * Verify labels error message is displayed
+     */
+    async verifyLabelsErrorMessageContains(text: string): Promise<void> {
+        const errorMessage = this.page.getByTestId('label-input-error-message');
+        await expect(errorMessage).toBeVisible();
+        await expect(errorMessage).toContainText(text);
     }
 
     async verifyDateIsToday(): Promise<void> {

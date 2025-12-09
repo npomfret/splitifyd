@@ -1,5 +1,5 @@
-import type { ExpenseDTO, UserId } from '@billsplit-wl/shared';
-import { Amount } from '@billsplit-wl/shared';
+import type { ExpenseDTO, ExpenseLabel, UserId } from '@billsplit-wl/shared';
+import { Amount, toExpenseLabel } from '@billsplit-wl/shared';
 import { GroupId } from '@billsplit-wl/shared';
 import type { CurrencyISOCode } from '@billsplit-wl/shared';
 import { toGroupId } from '@billsplit-wl/shared';
@@ -8,7 +8,7 @@ import type { ISOString } from '@billsplit-wl/shared';
 import { toCurrencyISOCode } from '@billsplit-wl/shared';
 import { toUserId } from '@billsplit-wl/shared';
 import { ExpenseSplit } from '@billsplit-wl/shared';
-import { convertToISOString, generateShortId, randomChoice, randomDate, randomLabel, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
+import { convertToISOString, generateShortId, randomChoice, randomDate, randomLabels, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
 
 /**
  * Builder for creating ExpenseDTO objects for tests
@@ -38,7 +38,7 @@ export class ExpenseDTOBuilder {
             participants: [userId],
             splits: [{ uid: userId, amount }],
             date: convertToISOString(randomDate()),
-            label: randomLabel(),
+            labels: randomLabels(),
             deletedAt: null,
             deletedBy: null,
             supersededBy: null,
@@ -149,8 +149,13 @@ export class ExpenseDTOBuilder {
         return this;
     }
 
+    withLabels(labels: ExpenseLabel[] | string[]): this {
+        this.expense.labels = labels.map(l => typeof l === 'string' ? toExpenseLabel(l) : l);
+        return this;
+    }
+
     withLabel(label: string): this {
-        this.expense.label = label;
+        this.expense.labels = [toExpenseLabel(label)];
         return this;
     }
 

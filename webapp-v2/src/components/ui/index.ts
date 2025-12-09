@@ -16,7 +16,7 @@ export { FormField } from './FormField';
 export { GradientText } from './GradientText';
 export { ImageUploadField } from './ImageUploadField';
 export { Input } from './Input';
-export { LabelSuggestionInput } from './LabelSuggestionInput';
+export { MultiLabelInput } from './MultiLabelInput';
 export { LoadingSpinner } from './LoadingSpinner';
 export { LoadingState } from './LoadingState';
 export { Modal } from './Modal';

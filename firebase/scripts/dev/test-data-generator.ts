@@ -13,17 +13,18 @@ import type {
 import {
     AuthenticatedFirebaseUser,
     compareAmounts,
+    ExpenseLabel,
     isZeroAmount,
     MemberRoles,
     minAmount,
     normalizeAmount,
     PermissionLevels,
-    PREDEFINED_EXPENSE_LABELS,
     subtractAmounts,
     toAmount,
     toCurrencyISOCode,
     toDisplayName,
     toEmail,
+    toExpenseLabel,
     toISOString,
     toUserId,
     UserRegistration,
@@ -211,7 +212,7 @@ export async function signInExistingBillSplitter(): Promise<AuthenticatedFirebas
 interface TestExpenseTemplate {
     description: string;
     amount: Amount;
-    label: string;
+    labels: ExpenseLabel[];
 }
 
 // Group with invite link for test setup
@@ -356,8 +357,17 @@ export async function generateBillSplitterUser(): Promise<AuthenticatedFirebaseU
     return user;
 }
 
-// Extract label names from the real predefined labels
-const EXPENSE_LABELS = PREDEFINED_EXPENSE_LABELS.map((label) => label.name);
+// Common expense labels
+const EXPENSE_LABELS: ExpenseLabel[] = [
+    toExpenseLabel('food'),
+    toExpenseLabel('transport'),
+    toExpenseLabel('entertainment'),
+    toExpenseLabel('utilities'),
+    toExpenseLabel('shopping'),
+    toExpenseLabel('groceries'),
+    toExpenseLabel('rent'),
+    toExpenseLabel('travel'),
+];
 // Diverse expense descriptions that work with various labels
 const EXPENSE_DESCRIPTIONS = [
     'Dinner at restaurant',
@@ -517,7 +527,10 @@ const EXPENSE_DESCRIPTIONS = [
 
 const generateRandomExpense = (): TestExpenseTemplate => {
     const description = EXPENSE_DESCRIPTIONS[Math.floor(Math.random() * EXPENSE_DESCRIPTIONS.length)];
-    const label = EXPENSE_LABELS[Math.floor(Math.random() * EXPENSE_LABELS.length)];
+    // Generate 0-3 random labels
+    const labelCount = Math.floor(Math.random() * 3);
+    const shuffledLabels = [...EXPENSE_LABELS].sort(() => Math.random() - 0.5);
+    const labels = shuffledLabels.slice(0, labelCount);
     // More varied amounts with realistic distribution
     const amountTypes = [
         () => Math.round((Math.random() * 15 + 3) * 100) / 100, // Micro: $3-$18 (30%)
@@ -538,7 +551,7 @@ const generateRandomExpense = (): TestExpenseTemplate => {
         }
     }
     const amount = amountTypes[selectedIndex]().toFixed(2) as Amount;
-    return { description, amount, label };
+    return { description, amount, labels };
 };
 
 export async function createDefaultTenant(): Promise<void> {
@@ -902,7 +915,7 @@ async function createTestExpenseTemplate(groupId: GroupId, expense: TestExpenseT
         .withGroupId(groupId)
         .withAmount(normalizedAmount, currency)
         .withDescription(expense.description)
-        .withLabel(expense.label)
+        .withLabels(expense.labels)
         .withDate(new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString())
         .withSplitType('equal')
         .withParticipants(participantIds)
@@ -984,14 +997,14 @@ async function createBalancedExpensesForSettledGroup(groups: GroupWithInvite[], 
 
     // Create various expenses in both currencies
     const expenseScenarios = [
-        { description: 'Restaurant dinner', amount: '120', currency: GBP, label: 'food' },
-        { description: 'Hotel booking', amount: '350', currency: EUR, label: 'accommodation' },
-        { description: 'Concert tickets', amount: '180', currency: GBP, label: 'entertainment' },
-        { description: 'Car rental', amount: '240', currency: EUR, label: 'transport' },
-        { description: 'Grocery shopping', amount: '85', currency: GBP, label: 'food' },
-        { description: 'Train tickets', amount: '150', currency: EUR, label: 'transport' },
-        { description: 'Museum passes', amount: '60', currency: GBP, label: 'entertainment' },
-        { description: 'Wine tasting tour', amount: '180', currency: EUR, label: 'entertainment' },
+        { description: 'Restaurant dinner', amount: '120', currency: GBP, labels: [toExpenseLabel('food')] },
+        { description: 'Hotel booking', amount: '350', currency: EUR, labels: [toExpenseLabel('travel')] },
+        { description: 'Concert tickets', amount: '180', currency: GBP, labels: [toExpenseLabel('entertainment')] },
+        { description: 'Car rental', amount: '240', currency: EUR, labels: [toExpenseLabel('transport')] },
+        { description: 'Grocery shopping', amount: '85', currency: GBP, labels: [toExpenseLabel('groceries'), toExpenseLabel('food')] },
+        { description: 'Train tickets', amount: '150', currency: EUR, labels: [toExpenseLabel('transport')] },
+        { description: 'Museum passes', amount: '60', currency: GBP, labels: [toExpenseLabel('entertainment')] },
+        { description: 'Wine tasting tour', amount: '180', currency: EUR, labels: [toExpenseLabel('entertainment'), toExpenseLabel('food')] },
     ];
 
     // Create expenses with different payers and participants
@@ -1022,7 +1035,7 @@ async function createBalancedExpensesForSettledGroup(groups: GroupWithInvite[], 
             .withGroupId(settledGroup.id)
             .withAmount(normalizedScenarioAmount, scenario.currency)
             .withDescription(scenario.description)
-            .withLabel(scenario.label)
+            .withLabels(scenario.labels)
             .withDate(new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString())
             .withSplitType('equal')
             .withParticipants(participantIds)
@@ -1284,7 +1297,7 @@ async function finalizeLargeGroupAdvancedData(groups: GroupWithInvite[], groupMe
         const expenseToUpdate = expensesList.find((expense) => !expense.isLocked) ?? expensesList[0];
         const expenseUpdate: UpdateExpenseRequest = {
             description: `${expenseToUpdate.description} (updated)`,
-            label: 'shopping',
+            labels: [toExpenseLabel('shopping')],
         };
         // updateExpense returns the new expense (with new ID since updates create new versions)
         const updatedExpense = await runQueued(async () => (await getDriver()).updateExpense(expenseToUpdate.id, expenseUpdate, adminUser.token));

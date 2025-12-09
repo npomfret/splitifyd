@@ -1,10 +1,10 @@
-import type { UpdateExpenseRequest, UserId } from '@billsplit-wl/shared';
-import { Amount, toCurrencyISOCode } from '@billsplit-wl/shared';
+import type { ExpenseLabel, UpdateExpenseRequest, UserId } from '@billsplit-wl/shared';
+import { Amount, toCurrencyISOCode, toExpenseLabel } from '@billsplit-wl/shared';
 import type { CurrencyISOCode } from '@billsplit-wl/shared';
 import type { ISOString } from '@billsplit-wl/shared';
 import { ExpenseSplit } from '@billsplit-wl/shared';
 import { toUserId } from '@billsplit-wl/shared';
-import { convertToISOString, randomChoice, randomDate, randomLabel, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
+import { convertToISOString, randomChoice, randomDate, randomLabels, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
 
 export class ExpenseUpdateBuilder {
     private update: Partial<UpdateExpenseRequest>;
@@ -17,7 +17,7 @@ export class ExpenseUpdateBuilder {
                 description: `Updated ${randomChoice(['Dinner', 'Lunch', 'Coffee', 'Gas', 'Movie', 'Grocery'])} ${randomString(4)}`,
                 amount,
                 currency,
-                label: randomLabel(),
+                labels: randomLabels(),
                 date: convertToISOString(randomDate()),
             };
         } else {
@@ -54,8 +54,13 @@ export class ExpenseUpdateBuilder {
         return this;
     }
 
+    withLabels(labels: ExpenseLabel[] | string[]): this {
+        this.update.labels = labels.map(l => typeof l === 'string' ? toExpenseLabel(l) : l);
+        return this;
+    }
+
     withLabel(label: string): this {
-        this.update.label = label;
+        this.update.labels = [toExpenseLabel(label)];
         return this;
     }
 
@@ -89,8 +94,8 @@ export class ExpenseUpdateBuilder {
         return this;
     }
 
-    withInvalidLabel(value: string): this {
-        (this.update as any).label = value;
+    withInvalidLabels(value: unknown): this {
+        (this.update as any).labels = value;
         return this;
     }
 
@@ -105,7 +110,7 @@ export class ExpenseUpdateBuilder {
             ...(this.update.currency !== undefined && { currency: this.update.currency }),
             ...(this.update.paidBy !== undefined && { paidBy: this.update.paidBy }),
             ...(this.update.description !== undefined && { description: this.update.description }),
-            ...(this.update.label !== undefined && { label: this.update.label }),
+            ...(this.update.labels !== undefined && { labels: [...this.update.labels] }),
             ...(this.update.date !== undefined && { date: this.update.date }),
             ...(this.update.participants !== undefined && { participants: [...this.update.participants] }),
             ...(this.update.splitType !== undefined && { splitType: this.update.splitType }),

@@ -21,7 +21,7 @@ export function useFormState() {
     const date = useComputed(() => expenseFormStore.date);
     const time = useComputed(() => expenseFormStore.time);
     const paidBy = useComputed(() => expenseFormStore.paidBy);
-    const label = useComputed(() => expenseFormStore.label);
+    const labels = useComputed(() => expenseFormStore.labels);
     const splitType = useComputed(() => expenseFormStore.splitType);
     const participants = useComputed(() => expenseFormStore.participants);
     const splits = useComputed(() => expenseFormStore.splits);
@@ -58,7 +58,7 @@ export function useFormState() {
         date: date.value,
         time: time.value,
         paidBy: paidBy.value,
-        label: label.value,
+        labels: labels.value,
         splitType: splitType.value,
         participants: participants.value,
         splits: splits.value,

@@ -6,8 +6,10 @@ import {
     ExpenseDTO,
     ExpenseFullDetailsDTO,
     ExpenseId,
+    ExpenseLabel,
     GroupDTO,
     GroupId,
+    ISOString,
     toExpenseId,
     toISOString,
     UpdateExpenseRequest,
@@ -79,6 +81,38 @@ export class ExpenseService {
     private async isExpenseLocked(expense: ExpenseDTO): Promise<boolean> {
         const currentMemberIds = await this.firestoreReader.getAllGroupMemberIds(expense.groupId);
         return expense.participants.some(uid => !currentMemberIds.includes(uid));
+    }
+
+    /**
+     * Build updated recentlyUsedLabels map with new labels and 50-entry pruning
+     * @param existingLabels - Current recentlyUsedLabels from the group (may be undefined)
+     * @param newLabels - Labels from the expense being created/updated
+     * @param timestamp - ISO timestamp to set for each new label
+     * @returns Updated recentlyUsedLabels map, limited to 50 most recent entries
+     */
+    private buildUpdatedRecentlyUsedLabels(
+        existingLabels: Record<ExpenseLabel, ISOString> | undefined,
+        newLabels: ExpenseLabel[],
+        timestamp: ISOString,
+    ): Record<ExpenseLabel, ISOString> {
+        if (newLabels.length === 0) {
+            return existingLabels ?? ({} as Record<ExpenseLabel, ISOString>);
+        }
+
+        const merged: Record<ExpenseLabel, ISOString> = { ...(existingLabels ?? {}) } as Record<ExpenseLabel, ISOString>;
+
+        for (const label of newLabels) {
+            merged[label] = timestamp;
+        }
+
+        const entries = Object.entries(merged) as [ExpenseLabel, ISOString][];
+        if (entries.length <= 50) {
+            return merged;
+        }
+
+        entries.sort((a, b) => b[1].localeCompare(a[1]));
+        const pruned = entries.slice(0, 50);
+        return Object.fromEntries(pruned) as Record<ExpenseLabel, ISOString>;
     }
 
     /**
@@ -179,7 +213,7 @@ export class ExpenseService {
             amount: validatedExpenseData.amount,
             currency: validatedExpenseData.currency,
             description: validatedExpenseData.description,
-            label: validatedExpenseData.label,
+            labels: validatedExpenseData.labels,
             date: validatedExpenseData.date, // Already ISO string from request
             splitType: validatedExpenseData.splitType,
             participants: validatedExpenseData.participants,
@@ -233,6 +267,22 @@ export class ExpenseService {
                 expenseData,
             );
             timer.endPhase();
+
+            // Update group's recentlyUsedLabels if expense has labels
+            if (expenseData.labels.length > 0) {
+                timer.startPhase('transaction:updateLabels');
+                const updatedLabels = this.buildUpdatedRecentlyUsedLabels(
+                    groupInTx.recentlyUsedLabels,
+                    expenseData.labels,
+                    now,
+                );
+                this.firestoreWriter.updateInTransaction(
+                    transaction,
+                    `${FirestoreCollections.GROUPS}/${expenseData.groupId}`,
+                    { recentlyUsedLabels: updatedLabels },
+                );
+                timer.endPhase();
+            }
 
             timer.startPhase('transaction:touchGroup');
             // Update group timestamp to track activity
@@ -384,7 +434,7 @@ export class ExpenseService {
             amount: updateData.amount ?? oldExpense.amount,
             currency: updateData.currency ?? oldExpense.currency,
             description: updateData.description ?? oldExpense.description,
-            label: updateData.label ?? oldExpense.label,
+            labels: updateData.labels ?? oldExpense.labels,
             date: updateData.date ?? oldExpense.date,
             splitType,
             participants: updateData.participants ?? oldExpense.participants,
@@ -424,6 +474,12 @@ export class ExpenseService {
             // Preload membership refs for touchGroup (must be read before writes)
             const membershipRefs = await this.firestoreReader.getMembershipRefsInTransaction(transaction, oldExpense.groupId);
 
+            // Read group to get recentlyUsedLabels for update
+            const groupInTx = await this.firestoreReader.getGroupInTransaction(transaction, oldExpense.groupId);
+            if (!groupInTx) {
+                throw Errors.notFound('Group', ErrorDetail.GROUP_NOT_FOUND);
+            }
+
             // ===== WRITE PHASE: All writes happen after reads =====
 
             // 1. Soft-delete old expense and link to new version via supersededBy
@@ -441,6 +497,20 @@ export class ExpenseService {
                 newExpenseId,
                 newExpenseData,
             );
+
+            // 3. Update group's recentlyUsedLabels if expense has labels
+            if (newExpenseData.labels.length > 0) {
+                const updatedLabels = this.buildUpdatedRecentlyUsedLabels(
+                    groupInTx.recentlyUsedLabels,
+                    newExpenseData.labels,
+                    now,
+                );
+                this.firestoreWriter.updateInTransaction(
+                    transaction,
+                    `${FirestoreCollections.GROUPS}/${oldExpense.groupId}`,
+                    { recentlyUsedLabels: updatedLabels },
+                );
+            }
 
             // Update group timestamp to track activity
             await this.firestoreWriter.touchGroupWithPreloadedRefs(

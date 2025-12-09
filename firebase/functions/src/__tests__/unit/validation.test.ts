@@ -134,7 +134,7 @@ describe('Expense Validation', () => {
             const result = validateCreateExpense(validExpenseData);
 
             expect(result.description).toBe('Dinner at restaurant');
-            expect(result.label).toBe('food');
+            expect(result.labels).toContain('food');
             expect(result.receiptUrl).toBe('https://example.com/receipt.jpg');
             expect(result.amount).toBe('100.5');
             expect(result.splitType).toBe('equal');

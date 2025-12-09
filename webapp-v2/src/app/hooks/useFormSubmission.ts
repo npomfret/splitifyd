@@ -27,7 +27,7 @@ export function useFormSubmission({ groupId, expenseId, isEditMode, isCopyMode, 
     const date = useComputed(() => expenseFormStore.date);
     const time = useComputed(() => expenseFormStore.time);
     const paidBy = useComputed(() => expenseFormStore.paidBy);
-    const label = useComputed(() => expenseFormStore.label);
+    const labels = useComputed(() => expenseFormStore.labels);
     const splitType = useComputed(() => expenseFormStore.splitType);
     const participants = useComputed(() => expenseFormStore.participants);
     const splits = useComputed(() => expenseFormStore.splits);
@@ -43,7 +43,7 @@ export function useFormSubmission({ groupId, expenseId, isEditMode, isCopyMode, 
 
             return () => clearTimeout(timer);
         }
-    }, [description.value, amount.value, date.value, time.value, paidBy.value, label.value, splitType.value, participants.value, splits.value, isEditMode, isCopyMode, isInitialized]);
+    }, [description.value, amount.value, date.value, time.value, paidBy.value, labels.value, splitType.value, participants.value, splits.value, isEditMode, isCopyMode, isInitialized]);
 
     const handleSubmit = async (e: Event) => {
         e.preventDefault();

@@ -62,7 +62,7 @@ interface UseDropdownSelectorReturn<T> {
  * - 'dropdown': Button trigger with separate search input (currency/payer selectors)
  * - 'combobox': Text input IS the trigger and search field (label suggestion input)
  *
- * Used by: useCurrencySelector, usePayerSelector, LabelSuggestionInput
+ * Used by: useCurrencySelector, usePayerSelector, MultiLabelInput
  */
 export function useDropdownSelector<T>({
     items,

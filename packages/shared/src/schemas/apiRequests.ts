@@ -10,7 +10,7 @@
 
 import { z } from 'zod';
 import { getCurrency } from '../currencies';
-import { type Amount, CurrencyISOCode, SplitTypes, toCurrencyISOCode, toDisplayName, toGroupName } from '../shared-types';
+import { type Amount, CurrencyISOCode, SplitTypes, toCurrencyISOCode, toDisplayName, toExpenseLabel, toGroupName } from '../shared-types';
 import { parseMonetaryAmount } from '../split-utils';
 import { createDisplayNameSchema, DisplayNameSchema, type DisplayNameSchemaOptions } from './primitives';
 
@@ -348,11 +348,12 @@ export const CreateExpenseRequestSchema = z.object({
         .trim()
         .min(1, 'Description is required')
         .max(200, 'Description cannot exceed 200 characters'),
-    label: z
-        .string()
-        .trim()
-        .min(1, 'Label is required')
-        .max(50, 'Label must be between 1 and 50 characters'),
+    labels: z
+        .array(
+            z.string().trim().min(1, 'Label cannot be empty').max(50, 'Label must be 50 characters or less').transform(toExpenseLabel),
+        )
+        .max(3, 'Maximum 3 labels allowed')
+        .default([]),
     date: createUtcDateSchema(),
     splitType: z.enum([SplitTypes.EQUAL, SplitTypes.EXACT, SplitTypes.PERCENTAGE]),
     participants: z
@@ -382,11 +383,11 @@ export const UpdateExpenseRequestSchema = z
             .min(1, 'Description cannot be empty')
             .max(200, 'Description cannot exceed 200 characters')
             .optional(),
-        label: z
-            .string()
-            .trim()
-            .min(1, 'Label must be between 1 and 50 characters')
-            .max(50, 'Label must be between 1 and 50 characters')
+        labels: z
+            .array(
+                z.string().trim().min(1, 'Label cannot be empty').max(50, 'Label must be 50 characters or less').transform(toExpenseLabel),
+            )
+            .max(3, 'Maximum 3 labels allowed')
             .optional(),
         date: createUtcDateSchema().optional(),
         paidBy: z.string().trim().min(1, 'Payer is required').optional(),
@@ -408,7 +409,7 @@ export const UpdateExpenseRequestSchema = z
             value.amount === undefined
             && value.currency === undefined
             && value.description === undefined
-            && value.label === undefined
+            && value.labels === undefined
             && value.date === undefined
             && value.paidBy === undefined
             && value.splitType === undefined

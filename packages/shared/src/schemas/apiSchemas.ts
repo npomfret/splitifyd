@@ -14,6 +14,7 @@ import {
     SystemUserRoles,
     toDisplayName,
     toEmail,
+    toExpenseLabel,
     toGroupId,
     toGroupName,
     toISOString,
@@ -143,6 +144,9 @@ const GroupSchema = z.object({
             default: z.string(),
         })
         .optional(),
+
+    // Recently used expense labels (label -> last used ISO timestamp)
+    recentlyUsedLabels: z.record(z.string(), z.string()).optional(),
 });
 
 // Change metadata schema for REST responses
@@ -180,7 +184,7 @@ const ExpenseDataSchema = z.object({
     currency: z.string().length(3),
     paidBy: z.string().min(1),
     paidByName: z.string().min(1).optional(),
-    label: z.string().min(1),
+    labels: z.array(z.string().transform(toExpenseLabel)).max(3), // 0-3 freeform labels
     date: z.string(),
     splitType: z.enum([SplitTypes.EQUAL, SplitTypes.EXACT, SplitTypes.PERCENTAGE]),
     participants: z.array(z.string().min(1)),

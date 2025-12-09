@@ -15,6 +15,7 @@ import {
     CurrencyCodeSchema,
     ExpenseDTO,
     ExpenseId,
+    ExpenseLabel,
     ExpenseSplit,
     GroupId,
     smallestUnitToAmountString,
@@ -35,7 +36,8 @@ const ExpenseFormFieldsSchema = z.object({
         .max(200, 'Description must be less than 200 characters'),
     amount: createAmountSchema(),
     currency: CurrencyCodeSchema,
-    label: z.string().min(1, 'Label is required').max(50, 'Label must be less than 50 characters'),
+    // Labels are optional (0-3 items), each 1-50 chars
+    labels: z.array(z.string().min(1).max(50)).max(3).default([]),
     paidBy: z.string().min(1, 'Please select who paid'),
 });
 
@@ -47,7 +49,7 @@ interface ExpenseFormStore {
     date: string;
     time: string; // Time in HH:mm format (24-hour)
     paidBy: UserId | '';
-    label: string;
+    labels: ExpenseLabel[];
     splitType: typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE;
     participants: UserId[];
     splits: ExpenseSplit[];
@@ -65,7 +67,7 @@ interface ExpenseFormStore {
     readonly dateSignal: ReadonlySignal<string>;
     readonly timeSignal: ReadonlySignal<string>;
     readonly paidBySignal: ReadonlySignal<string>;
-    readonly labelSignal: ReadonlySignal<string>;
+    readonly labelsSignal: ReadonlySignal<ExpenseLabel[]>;
     readonly splitTypeSignal: ReadonlySignal<typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE>;
     readonly participantsSignal: ReadonlySignal<string[]>;
     readonly splitsSignal: ReadonlySignal<ExpenseSplit[]>;
@@ -106,7 +108,7 @@ interface ExpenseFormData {
     date: string;
     time: string; // Time in HH:mm format (24-hour)
     paidBy: UserId | '';
-    label: string;
+    labels: ExpenseLabel[];
     splitType: typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE;
 }
 
@@ -208,7 +210,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     readonly #dateSignal = signal<string>(getTodayDate());
     readonly #timeSignal = signal<string>('12:00'); // Default to noon (12:00 PM)
     readonly #paidBySignal = signal<UserId | ''>('');
-    readonly #labelSignal = signal<string>('food');
+    readonly #labelsSignal = signal<ExpenseLabel[]>([]);
     readonly #splitTypeSignal = signal<typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE>(SplitTypes.EQUAL);
     readonly #participantsSignal = signal<UserId[]>([]);
     readonly #splitsSignal = signal<ExpenseSplit[]>([]);
@@ -227,7 +229,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         date: string;
         time: string;
         paidBy: string;
-        label: string;
+        labels: ExpenseLabel[];
         splitType: typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE;
         participants: string[];
         splits: ExpenseSplit[];
@@ -246,8 +248,8 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
                 return this.#amountSignal.value;
             case 'currency':
                 return this.#currencySignal.value;
-            case 'label':
-                return this.#labelSignal.value;
+            case 'labels':
+                return this.#labelsSignal.value;
             case 'paidBy':
                 return this.#paidBySignal.value;
             default:
@@ -305,8 +307,8 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     get paidBy() {
         return this.#paidBySignal.value;
     }
-    get label() {
-        return this.#labelSignal.value;
+    get labels() {
+        return this.#labelsSignal.value;
     }
     get splitType() {
         return this.#splitTypeSignal.value;
@@ -349,8 +351,8 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     get paidBySignal(): ReadonlySignal<string> {
         return this.#paidBySignal;
     }
-    get labelSignal(): ReadonlySignal<string> {
-        return this.#labelSignal;
+    get labelsSignal(): ReadonlySignal<ExpenseLabel[]> {
+        return this.#labelsSignal;
     }
     get splitTypeSignal(): ReadonlySignal<typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE> {
         return this.#splitTypeSignal;
@@ -541,8 +543,8 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
                 }
                 break;
             }
-            case 'label':
-                this.#labelSignal.value = value as string;
+            case 'labels':
+                this.#labelsSignal.value = value as ExpenseLabel[];
                 break;
             case 'splitType':
                 this.#splitTypeSignal.value = value as typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE;
@@ -762,7 +764,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
 
     private validateField(field: string, value?: any): string | null {
         // Schema-validated fields
-        const schemaFields = ['description', 'amount', 'currency', 'label', 'paidBy'] as const;
+        const schemaFields = ['description', 'amount', 'currency', 'labels', 'paidBy'] as const;
 
         if (schemaFields.includes(field as typeof schemaFields[number])) {
             const fieldValue = value ?? this.getFieldValue(field);
@@ -856,8 +858,8 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         const dateError = this.validateField('date');
         if (dateError) errors.date = dateError;
 
-        const labelError = this.validateField('label');
-        if (labelError) errors.label = labelError;
+        const labelsError = this.validateField('labels');
+        if (labelsError) errors.labels = labelsError;
 
         const payerError = this.validateField('paidBy');
         if (payerError) errors.paidBy = payerError;
@@ -907,7 +909,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
                 amount: amount,
                 currency: toCurrencyISOCode(this.#currencySignal.value),
                 paidBy,
-                label: this.#labelSignal.value,
+                labels: this.#labelsSignal.value,
                 date: utcDateTime,
                 splitType: this.#splitTypeSignal.value,
                 participants: this.#participantsSignal.value,
@@ -916,8 +918,10 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
 
             const expense = await apiClient.createExpense(request);
 
-            // Track recent label
-            storageManager.addRecentLabel(this.#labelSignal.value);
+            // Track recent labels
+            for (const label of this.#labelsSignal.value) {
+                storageManager.addRecentLabel(label);
+            }
 
             // Clear draft and reset form immediately after successful creation
             this.clearDraft(groupId);
@@ -953,7 +957,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
                 description: this.#descriptionSignal.value.trim(),
                 amount: amount,
                 currency: this.#currencySignal.value,
-                label: this.#labelSignal.value,
+                labels: this.#labelsSignal.value,
                 date: utcDateTime,
                 splitType: this.#splitTypeSignal.value,
                 participants: this.#participantsSignal.value,
@@ -963,8 +967,10 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
             // updateExpense returns the NEW expense (edit history creates a new document with new ID)
             const updatedExpense = await apiClient.updateExpense(expenseId, updateRequest as CreateExpenseRequest);
 
-            // Track recent label
-            storageManager.addRecentLabel(this.#labelSignal.value);
+            // Track recent labels
+            for (const label of this.#labelsSignal.value) {
+                storageManager.addRecentLabel(label);
+            }
 
             // Clear draft immediately after successful update
             this.clearDraft(groupId);
@@ -991,7 +997,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         this.#dateSignal.value = getTodayDate();
         this.#timeSignal.value = '12:00'; // Default to noon
         this.#paidBySignal.value = '';
-        this.#labelSignal.value = 'food';
+        this.#labelsSignal.value = [];
         this.#splitTypeSignal.value = SplitTypes.EQUAL;
         this.#participantsSignal.value = [];
         this.#splitsSignal.value = [];
@@ -1010,7 +1016,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
             date: this.#dateSignal.value,
             time: this.#timeSignal.value,
             paidBy: this.#paidBySignal.value,
-            label: this.#labelSignal.value,
+            labels: [...this.#labelsSignal.value],
             splitType: this.#splitTypeSignal.value,
             participants: [...this.#participantsSignal.value],
             splits: [...this.#splitsSignal.value],
@@ -1027,7 +1033,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
                 || this.#currencySignal.value !== ''
                 || this.#dateSignal.value !== getTodayDate()
                 || this.#paidBySignal.value !== ''
-                || this.#labelSignal.value !== 'food'
+                || this.#labelsSignal.value.length > 0
                 || this.#splitTypeSignal.value !== SplitTypes.EQUAL
                 || this.#participantsSignal.value.length > 0
                 || this.#splitsSignal.value.length > 0
@@ -1042,7 +1048,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
             || this.#dateSignal.value !== this.#initialState.date
             || this.#timeSignal.value !== this.#initialState.time
             || this.#paidBySignal.value !== this.#initialState.paidBy
-            || this.#labelSignal.value !== this.#initialState.label
+            || JSON.stringify(this.#labelsSignal.value) !== JSON.stringify(this.#initialState.labels)
             || this.#splitTypeSignal.value !== this.#initialState.splitType
             || JSON.stringify(this.#participantsSignal.value) !== JSON.stringify(this.#initialState.participants)
             || JSON.stringify(this.#splitsSignal.value) !== JSON.stringify(this.#initialState.splits)
@@ -1065,7 +1071,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
             date: this.#dateSignal.value,
             time: this.#timeSignal.value,
             paidBy: this.#paidBySignal.value,
-            label: this.#labelSignal.value,
+            labels: this.#labelsSignal.value,
             splitType: this.#splitTypeSignal.value,
             participants: this.#participantsSignal.value,
             splits: this.#splitsSignal.value,
@@ -1097,7 +1103,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
             this.#dateSignal.value = draftData.date || getTodayDate();
             this.#timeSignal.value = draftData.time || '12:00'; // Default to noon
             this.#paidBySignal.value = draftData.paidBy || '';
-            this.#labelSignal.value = draftData.label || 'food';
+            this.#labelsSignal.value = draftData.labels || [];
             this.#splitTypeSignal.value = draftData.splitType || SplitTypes.EQUAL;
             this.#participantsSignal.value = draftData.participants || [];
             this.#splitsSignal.value = draftData.splits || [];

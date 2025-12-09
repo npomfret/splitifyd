@@ -77,7 +77,7 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
                         <p className={`font-semibold text-base ${isDeleted ? 'text-text-muted' : 'text-text-primary'}`} data-testid='expense-amount'>
                             <CurrencyAmount amount={expense.amount} currency={expense.currency} />
                         </p>
-                        <p className='text-xs text-text-muted/70'>{expense.label}</p>
+                        {expense.labels.length > 0 && <p className='text-xs text-text-muted/70'>{expense.labels.join(', ')}</p>}
                     </div>
 
                     {/* Copy button - only show if not deleted and onCopy is provided */}
@@ -88,7 +88,7 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
                                 className='opacity-0 group-hover:opacity-100 transition-all duration-200 p-1.5 hover:bg-interactive-primary/10 rounded text-text-muted hover:text-interactive-primary'
                                 aria-label={t('expenseItem.copyExpense')}
                                 eventName='expense_copy'
-                                eventProps={{ expenseId: expense.id, label: expense.label }}
+                                eventProps={{ expenseId: expense.id, labels: expense.labels }}
                             >
                                 <CopyIcon size={16} />
                             </Clickable>

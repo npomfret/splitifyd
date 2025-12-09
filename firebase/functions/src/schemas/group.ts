@@ -1,3 +1,4 @@
+import { toExpenseLabel } from '@billsplit-wl/shared';
 import { z } from 'zod';
 import { AuditFieldsSchema, createDocumentSchemas, FirestoreTimestampSchema, UserIdSchema } from './common';
 
@@ -20,6 +21,15 @@ const GroupCurrencySettingsSchema = z
         path: ['default'],
     });
 
+/**
+ * Schema for recently used labels map (label -> Firestore Timestamp)
+ * Keys are ExpenseLabel branded strings, values are Firestore Timestamps
+ */
+const RecentlyUsedLabelsSchema = z.record(
+    z.string().transform(toExpenseLabel),
+    FirestoreTimestampSchema,
+);
+
 const BaseGroupSchema = z
     .object({
         name: z.string().min(1, 'Group name is required'),
@@ -35,6 +45,7 @@ const BaseGroupSchema = z
             })
             .strict(),
         currencySettings: GroupCurrencySettingsSchema.nullable().optional(),
+        recentlyUsedLabels: RecentlyUsedLabelsSchema.optional(),
         deletedAt: FirestoreTimestampSchema.nullable(),
     })
     .merge(AuditFieldsSchema)

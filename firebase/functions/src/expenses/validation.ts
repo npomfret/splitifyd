@@ -1,4 +1,4 @@
-import { CreateExpenseRequest, CreateExpenseRequestSchema, ListExpensesQuerySchema, SplitTypes, toGroupId, toISOString, UpdateExpenseRequest, UpdateExpenseRequestSchema } from '@billsplit-wl/shared';
+import { CreateExpenseRequest, CreateExpenseRequestSchema, ListExpensesQuerySchema, SplitTypes, toExpenseLabel, toGroupId, toISOString, UpdateExpenseRequest, UpdateExpenseRequestSchema } from '@billsplit-wl/shared';
 import { toUserId } from '@billsplit-wl/shared';
 import { z } from 'zod';
 import { ErrorDetail, Errors } from '../errors';
@@ -32,9 +32,9 @@ const createExpenseErrorMapper = createZodErrorMapper(
                 return issue.message;
             },
         },
-        label: {
-            code: 'INVALID_LABEL',
-            message: () => 'Label must be between 1 and 50 characters',
+        labels: {
+            code: 'INVALID_LABELS',
+            message: () => 'Labels must be 0-3 items, each 1-50 characters',
         },
         date: {
             code: 'VALIDATION_ERROR',
@@ -75,7 +75,7 @@ const baseCreateExpenseValidator = createRequestValidator({
             amount: value.amount,
             currency: value.currency,
             description: sanitizeInputString(value.description),
-            label: sanitizeInputString(value.label),
+            labels: value.labels.map((label) => toExpenseLabel(sanitizeInputString(label))),
             date: toISOString(value.date),
             splitType: value.splitType,
             participants: value.participants.map((participant) => toUserId(participant)),
@@ -105,9 +105,9 @@ const updateExpenseErrorMapperBase = createZodErrorMapper(
                 return issue.message;
             },
         },
-        label: {
-            code: 'INVALID_LABEL',
-            message: () => 'Label must be between 1 and 50 characters',
+        labels: {
+            code: 'INVALID_LABELS',
+            message: () => 'Labels must be 0-3 items, each 1-50 characters',
         },
         date: {
             code: 'VALIDATION_ERROR',
@@ -162,8 +162,8 @@ const baseUpdateExpenseValidator = createRequestValidator({
             update.description = sanitizeInputString(value.description);
         }
 
-        if (value.label !== undefined) {
-            update.label = sanitizeInputString(value.label);
+        if (value.labels !== undefined) {
+            update.labels = value.labels.map((label) => toExpenseLabel(sanitizeInputString(label)));
         }
 
         if (value.date !== undefined) {

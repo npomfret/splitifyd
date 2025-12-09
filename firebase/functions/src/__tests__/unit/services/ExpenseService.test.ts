@@ -1,4 +1,4 @@
-import { toExpenseId, toGroupId, USD } from '@billsplit-wl/shared';
+import { toExpenseId, toExpenseLabel, toGroupId, USD } from '@billsplit-wl/shared';
 import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, ExpenseSplitBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
@@ -65,7 +65,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 amount: '100.5',
                 currency: USD,
                 description: 'Test expense',
-                label: 'Food',
+                labels: ['Food'],
                 date: expect.any(String), // ISO string
                 splitType: 'equal',
                 participants: [userId, otherUserId],
@@ -336,7 +336,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const result = await expenseService.getExpense(expenseId, userId);
 
             // Assert
-            expect(result.label).toBe('Food & Dining');
+            expect(result.labels).toContain('Food & Dining');
         });
 
         it('should preserve receipt URLs correctly', async () => {
@@ -491,7 +491,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 amount: '100.5',
                 currency: USD,
                 description: 'Test expense',
-                label: 'Food',
+                labels: ['Food'],
                 date: expect.any(String), // ISO string
                 splitType: 'equal',
                 participants: [userId],
@@ -529,6 +529,167 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
 
             // Assert
             expect(result.receiptUrl).toBeUndefined();
+        });
+    });
+
+    describe('recentlyUsedLabels Transactional Updates', () => {
+        it('should update group recentlyUsedLabels when creating expense with labels', async () => {
+            // Arrange
+            const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const userId = user.user.uid;
+
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
+            const groupId = toGroupId(group.id);
+
+            // Act - create expense with labels
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPaidBy(userId)
+                    .withParticipants([userId])
+                    .withLabels(['Groceries', 'Food'])
+                    .build(),
+                userId,
+            );
+
+            // Assert - group should have recentlyUsedLabels updated
+            const updatedGroup = await appDriver.getGroup(groupId, userId);
+            expect(updatedGroup.recentlyUsedLabels).toBeDefined();
+            expect(updatedGroup.recentlyUsedLabels![toExpenseLabel('Groceries')]).toBeDefined();
+            expect(updatedGroup.recentlyUsedLabels![toExpenseLabel('Food')]).toBeDefined();
+        });
+
+        it('should update group recentlyUsedLabels when updating expense with new labels', async () => {
+            // Arrange
+            const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const userId = user.user.uid;
+
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
+            const groupId = toGroupId(group.id);
+
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPaidBy(userId)
+                    .withParticipants([userId])
+                    .withLabels(['OldLabel'])
+                    .build(),
+                userId,
+            );
+
+            // Act - update expense with different labels
+            await appDriver.updateExpense(
+                toExpenseId(expense.id),
+                { labels: ['NewLabel', 'AnotherLabel'] } as any,
+                userId,
+            );
+
+            // Assert - group should have all labels in recentlyUsedLabels
+            const updatedGroup = await appDriver.getGroup(groupId, userId);
+            expect(updatedGroup.recentlyUsedLabels).toBeDefined();
+            expect(updatedGroup.recentlyUsedLabels![toExpenseLabel('OldLabel')]).toBeDefined();
+            expect(updatedGroup.recentlyUsedLabels![toExpenseLabel('NewLabel')]).toBeDefined();
+            expect(updatedGroup.recentlyUsedLabels![toExpenseLabel('AnotherLabel')]).toBeDefined();
+        });
+
+        it('should not update recentlyUsedLabels when expense has no labels', async () => {
+            // Arrange
+            const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const userId = user.user.uid;
+
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
+            const groupId = toGroupId(group.id);
+
+            // Act - create expense with empty labels
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPaidBy(userId)
+                    .withParticipants([userId])
+                    .withLabels([])
+                    .build(),
+                userId,
+            );
+
+            // Assert - group should not have recentlyUsedLabels or it should be empty
+            const updatedGroup = await appDriver.getGroup(groupId, userId);
+            const labelCount = updatedGroup.recentlyUsedLabels
+                ? Object.keys(updatedGroup.recentlyUsedLabels).length
+                : 0;
+            expect(labelCount).toBe(0);
+        });
+
+        it('should update timestamp for existing label when reused', async () => {
+            // Arrange
+            const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const userId = user.user.uid;
+
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
+            const groupId = toGroupId(group.id);
+
+            // Create first expense with label
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPaidBy(userId)
+                    .withParticipants([userId])
+                    .withLabels(['ReusedLabel'])
+                    .build(),
+                userId,
+            );
+
+            const groupAfterFirst = await appDriver.getGroup(groupId, userId);
+            const firstTimestamp = groupAfterFirst.recentlyUsedLabels![toExpenseLabel('ReusedLabel')];
+
+            // Small delay to ensure timestamp difference
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            // Act - create second expense with same label
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPaidBy(userId)
+                    .withParticipants([userId])
+                    .withLabels(['ReusedLabel'])
+                    .build(),
+                userId,
+            );
+
+            // Assert - timestamp should be updated (more recent)
+            const groupAfterSecond = await appDriver.getGroup(groupId, userId);
+            const secondTimestamp = groupAfterSecond.recentlyUsedLabels![toExpenseLabel('ReusedLabel')];
+            expect(secondTimestamp >= firstTimestamp).toBe(true);
+        });
+
+        it('should prune recentlyUsedLabels to 50 entries when limit exceeded', async () => {
+            // Arrange
+            const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const userId = user.user.uid;
+
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
+            const groupId = toGroupId(group.id);
+
+            // Create expenses with unique labels to fill up the map
+            // Each expense can have up to 3 labels, so we need ~17 expenses to exceed 50
+            for (let i = 0; i < 18; i++) {
+                await appDriver.createExpense(
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(groupId)
+                        .withPaidBy(userId)
+                        .withParticipants([userId])
+                        .withLabels([`Label${i * 3}`, `Label${i * 3 + 1}`, `Label${i * 3 + 2}`])
+                        .build(),
+                    userId,
+                );
+            }
+
+            // Assert - should have at most 50 labels
+            const updatedGroup = await appDriver.getGroup(groupId, userId);
+            const labelCount = updatedGroup.recentlyUsedLabels
+                ? Object.keys(updatedGroup.recentlyUsedLabels).length
+                : 0;
+            expect(labelCount).toBeLessThanOrEqual(50);
+            expect(labelCount).toBeGreaterThan(0);
         });
     });
 });

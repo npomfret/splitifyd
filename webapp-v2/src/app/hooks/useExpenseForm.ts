@@ -1,4 +1,4 @@
-import { ExpenseDTO, PREDEFINED_EXPENSE_LABELS, RecentAmount } from '@billsplit-wl/shared';
+import type { ExpenseDTO, RecentAmount } from '@billsplit-wl/shared';
 import { GroupId } from '@billsplit-wl/shared';
 import { toGroupId } from '@billsplit-wl/shared';
 import { ExpenseId } from '@billsplit-wl/shared';
@@ -91,7 +91,7 @@ export function useExpenseForm({ isOpen, groupId, expenseId, isEditMode, isCopyM
         date: formState.date,
         time: formState.time,
         paidBy: formState.paidBy,
-        label: formState.label,
+        labels: formState.labels,
         splitType: formState.splitType,
         participants: formState.participants,
         splits: formState.splits,
@@ -116,6 +116,8 @@ export function useExpenseForm({ isOpen, groupId, expenseId, isEditMode, isCopyM
 
         // Helpers - recent amounts derived from group expenses
         recentAmounts: deriveRecentAmountsFromExpenses(formInitialization.expenses),
-        PREDEFINED_EXPENSE_LABELS,
+
+        // Recently used labels from group (for autocomplete suggestions)
+        recentlyUsedLabels: formInitialization.group?.recentlyUsedLabels,
     };
 }

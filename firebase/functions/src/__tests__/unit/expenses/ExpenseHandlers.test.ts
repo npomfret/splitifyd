@@ -1,5 +1,5 @@
 import type { UpdateExpenseRequest } from '@billsplit-wl/shared';
-import { toCurrencyISOCode, USD } from '@billsplit-wl/shared';
+import { toCurrencyISOCode, toExpenseLabel, USD } from '@billsplit-wl/shared';
 import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, ExpenseUpdateBuilder, StubFirestoreDatabase, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { StubCloudTasksClient, StubStorage } from 'ts-firebase-simulator';
 import { beforeEach, describe, expect, it } from 'vitest';
@@ -155,17 +155,17 @@ describe('ExpenseHandlers - Unit Tests', () => {
             );
         });
 
-        it('should reject expense with invalid label', async () => {
+        it('should reject expense with invalid labels', async () => {
             const userId = 'test-user';
             const expenseRequest = new CreateExpenseRequestBuilder()
-                .withInvalidLabel('a'.repeat(51))
+                .withInvalidLabels(['a'.repeat(51)])
                 .build();
 
             await expect(appDriver.createExpense(expenseRequest, userId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'VALIDATION_ERROR',
-                    data: expect.objectContaining({ detail: 'INVALID_LABEL' }),
+                    data: expect.objectContaining({ detail: 'INVALID_LABELS' }),
                 }),
             );
         });
@@ -294,7 +294,7 @@ describe('ExpenseHandlers - Unit Tests', () => {
 
             // Update creates a new expense with a new ID (edit history via soft deletes)
             const updatedExpense = await appDriver.getExpense(newExpense.id, userId);
-            expect(updatedExpense.label).toBe('Transport');
+            expect(updatedExpense.labels).toContain('Transport');
         });
 
         it('should reject update with invalid expense ID', async () => {
@@ -351,17 +351,17 @@ describe('ExpenseHandlers - Unit Tests', () => {
             );
         });
 
-        it('should reject update with invalid label length', async () => {
+        it('should reject update with invalid labels length', async () => {
             const updateRequest = ExpenseUpdateBuilder
                 .minimal()
-                .withInvalidLabel('a'.repeat(51))
+                .withInvalidLabels(['a'.repeat(51)])
                 .build();
 
             await expect(appDriver.updateExpense('test-expense', updateRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'VALIDATION_ERROR',
-                    data: expect.objectContaining({ detail: 'INVALID_LABEL' }),
+                    data: expect.objectContaining({ detail: 'INVALID_LABELS' }),
                 }),
             );
         });
@@ -662,7 +662,7 @@ describe('ExpenseHandlers - Unit Tests', () => {
                 description: 'Updated Test Expense',
                 amount: '150.50',
                 currency: usd,
-                label: 'food',
+                labels: [toExpenseLabel('food')],
                 participants: [user1, user2],
                 splitType: 'equal' as const,
                 splits: [
@@ -680,7 +680,7 @@ describe('ExpenseHandlers - Unit Tests', () => {
             const updated = await appDriver.getExpense(newExpense.id, user1);
             expect(updated.description).toBe('Updated Test Expense');
             expect(updated.amount).toBe('150.50');
-            expect(updated.label).toBe('food');
+            expect(updated.labels).toContain('food');
             expect(updated.updatedAt).toBeDefined();
             // New expense has createdAt = updatedAt (it's a new document)
             expect(new Date(updated.updatedAt!).getTime()).toBeGreaterThanOrEqual(new Date(updated.createdAt).getTime());

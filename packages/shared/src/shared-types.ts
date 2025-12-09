@@ -145,7 +145,8 @@ export const toEmail = (value: string): Email => value as Email;
 export type Description = string;
 export type ActivityFeedItemId = string;
 
-// todo: add a type for label
+export type ExpenseLabel = Brand<string, 'ExpenseLabel'>;
+export const toExpenseLabel = (value: string): ExpenseLabel => value as ExpenseLabel;
 
 /**
  * Zod schema for expense splits
@@ -391,53 +392,6 @@ export interface InviteLink {
     usedCount: number;
 }
 
-// ========================================================================
-// Expense Label Types and Constants
-// ========================================================================
-
-export interface ExpenseLabel {
-    name: string;
-    displayName: DisplayName;
-    icon: string;
-}
-
-export const PREDEFINED_EXPENSE_LABELS: ExpenseLabel[] = [
-    { name: 'food', displayName: toDisplayName('Food & Dining'), icon: '🍽️' },
-    { name: 'transport', displayName: toDisplayName('Transportation'), icon: '🚗' },
-    { name: 'utilities', displayName: toDisplayName('Bills & Utilities'), icon: '⚡' },
-    { name: 'entertainment', displayName: toDisplayName('Entertainment'), icon: '🎬' },
-    { name: 'shopping', displayName: toDisplayName('Shopping'), icon: '🛍️' },
-    { name: 'accommodation', displayName: toDisplayName('Travel & Accommodation'), icon: '✈️' },
-    { name: 'healthcare', displayName: toDisplayName('Healthcare'), icon: '🏥' },
-    { name: 'education', displayName: toDisplayName('Education'), icon: '📚' },
-    { name: 'Just the tip', displayName: toDisplayName('Just the tip'), icon: '😮' },
-    { name: 'bedroom_supplies', displayName: toDisplayName('Bedroom Supplies'), icon: '🍆' },
-    { name: 'pets', displayName: toDisplayName('Pets & Animals'), icon: '🐾' },
-    { name: 'alcohol', displayName: toDisplayName('Drinks & Nightlife'), icon: '🍺' },
-    { name: 'coffee', displayName: toDisplayName('Coffee Addiction'), icon: '☕' },
-    { name: 'tech', displayName: toDisplayName('Gadgets & Electronics'), icon: '💻' },
-    { name: 'gaming', displayName: toDisplayName('Gaming'), icon: '🎮' },
-    { name: 'home', displayName: toDisplayName('Home & Garden'), icon: '🏡' },
-    { name: 'subscriptions', displayName: toDisplayName('Streaming & Subscriptions'), icon: '📺' },
-    { name: 'gifts', displayName: toDisplayName('Gifts & Generosity'), icon: '🎁' },
-    { name: 'charity', displayName: toDisplayName('Charity & Donations'), icon: '🤝' },
-    { name: 'hobbies', displayName: toDisplayName('Hobbies & Crafts'), icon: '🎨' },
-    { name: 'sports', displayName: toDisplayName('Sports & Fitness'), icon: '🏋️' },
-    { name: 'beauty', displayName: toDisplayName('Beauty & Personal Care'), icon: '💅' },
-    { name: 'dating', displayName: toDisplayName('Dating & Romance'), icon: '💘' },
-    { name: 'therapy', displayName: toDisplayName('Therapy & Self Care'), icon: '🛋️' },
-    { name: 'kids', displayName: toDisplayName('Children & Babysitting'), icon: '🍼' },
-    { name: 'clubbing', displayName: toDisplayName('Clubbing & Bad Decisions'), icon: '💃' },
-    { name: 'lottery', displayName: toDisplayName('Lottery Tickets & Regret'), icon: '🎰' },
-    { name: 'junk_food', displayName: toDisplayName('Midnight Snacks'), icon: '🌭' },
-    { name: 'hangover', displayName: toDisplayName('Hangover Recovery Supplies'), icon: '🥤' },
-    { name: 'impulse', displayName: toDisplayName('Impulse Purchases'), icon: '🤷' },
-    { name: 'side_hustle', displayName: toDisplayName('Side Hustle Expenses'), icon: '💼' },
-    { name: 'bribery', displayName: toDisplayName('Bribes (Totally Legal)'), icon: '🤑' },
-    { name: 'lawsuits', displayName: toDisplayName('Legal Trouble'), icon: '⚖️' },
-    { name: 'weird_stuff', displayName: toDisplayName('Weird Stuff Off the Internet'), icon: '🦄' },
-    { name: 'other', displayName: toDisplayName('Other'), icon: '❓' },
-];
 
 // ========================================================================
 // Configuration Types - Used by webapp for API client
@@ -836,6 +790,9 @@ interface Group {
     // Currency restrictions for this group
     currencySettings?: GroupCurrencySettings;
 
+    // Recently used expense labels for autocomplete (label -> last used timestamp)
+    recentlyUsedLabels?: Record<ExpenseLabel, ISOString>;
+
     // Computed fields (API-only - not in storage)
     balance?: {
         balancesByCurrency: Record<string, CurrencyBalance>;
@@ -915,7 +872,7 @@ interface Expense extends SoftDeletable {
     amount: Amount;
     currency: CurrencyISOCode;
     description: Description;
-    label: string;
+    labels: ExpenseLabel[]; // 0-3 freeform labels
     date: ISOString;
     splitType: typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE;
     participants: UserId[];
@@ -941,7 +898,7 @@ export interface CreateExpenseRequest {
     amount: Amount;
     currency: CurrencyISOCode;
     paidBy: UserId;
-    label: string;
+    labels: ExpenseLabel[]; // 0-3 freeform labels
     date: ISOString;
     splitType: typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE;
     participants: UserId[];
@@ -1421,7 +1378,7 @@ export interface ExpenseDraft {
     date: string; // YYYY-MM-DD format
     time: string; // HH:MM format
     paidBy: UserId;
-    label: string;
+    labels: ExpenseLabel[]; // 0-3 freeform labels
     splitType: string;
     participants: UserId[];
     splits: Array<{ userId: UserId; amount: Amount; percentage?: number; }>;

@@ -1,5 +1,14 @@
 # Rework Expense Labels to be Freeform and Multi-select
 
+## Status: ✅ COMPLETED
+
+All phases implemented:
+- Phase 1: Backend and Shared Types ✅
+- Phase 2: Frontend ✅
+- Phase 3: Testing ✅
+  - Backend unit tests for `recentlyUsedLabels` transactional updates (5 tests in ExpenseService.test.ts)
+  - Playwright integration tests for MultiLabelInput UI (7 tests in expense-form.test.ts)
+
 ## Problem Description
 The current expense label system is based on a predefined, static list of `ExpenseLabel` objects (name, displayName, icon). This is restrictive and doesn't allow users to create their own custom labels tailored to their group's specific spending habits. Furthermore, an expense can only have a single label, which limits categorization.
 

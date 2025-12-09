@@ -1,9 +1,9 @@
-import type { ExpenseDraft, UserId } from '@billsplit-wl/shared';
-import { SplitTypes } from '@billsplit-wl/shared';
+import type { ExpenseDraft, ExpenseLabel, UserId } from '@billsplit-wl/shared';
+import { SplitTypes, toExpenseLabel } from '@billsplit-wl/shared';
 import { Amount } from '@billsplit-wl/shared';
 import type { CurrencyISOCode } from '@billsplit-wl/shared';
 import { toUserId } from '@billsplit-wl/shared';
-import { generateShortId, randomChoice, randomLabel, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
+import { generateShortId, randomChoice, randomLabels, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
 
 export class ExpenseDraftBuilder {
     private draft: ExpenseDraft;
@@ -20,7 +20,7 @@ export class ExpenseDraftBuilder {
             date: new Date(now).toISOString().split('T')[0], // YYYY-MM-DD format
             time: new Date(now).toTimeString().slice(0, 5), // HH:MM format
             paidBy: userId,
-            label: randomLabel(),
+            labels: randomLabels(),
             splitType: randomChoice([SplitTypes.EQUAL, SplitTypes.EXACT, SplitTypes.PERCENTAGE]),
             participants: [userId],
             splits: [{ userId, amount }],
@@ -58,8 +58,13 @@ export class ExpenseDraftBuilder {
         return this;
     }
 
+    withLabels(labels: ExpenseLabel[] | string[]): this {
+        this.draft.labels = labels.map(l => typeof l === 'string' ? toExpenseLabel(l) : l);
+        return this;
+    }
+
     withLabel(label: string): this {
-        this.draft.label = label;
+        this.draft.labels = [toExpenseLabel(label)];
         return this;
     }
 
@@ -91,7 +96,7 @@ export class ExpenseDraftBuilder {
             date: this.draft.date,
             time: this.draft.time,
             paidBy: this.draft.paidBy,
-            label: this.draft.label,
+            labels: this.draft.labels,
             splitType: this.draft.splitType,
             participants: [...this.draft.participants],
             splits: [...this.draft.splits],
