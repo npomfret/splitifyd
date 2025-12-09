@@ -147,7 +147,7 @@ interface PaletteColors {
 /**
  * Derivation options that control how colors are generated from the palette.
  */
-export interface DerivationOptions {
+interface DerivationOptions {
     themeMode: 'light' | 'medium' | 'dark';
     style: 'balanced' | 'bold' | 'soft' | 'vibrant' | 'elegant';
     intensity: number; // 0-100

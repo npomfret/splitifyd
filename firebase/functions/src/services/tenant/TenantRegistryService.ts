@@ -5,7 +5,7 @@ import { logger } from '../../logger';
 import type { TenantRequestContext } from '../../types/tenant';
 import type { IFirestoreReader } from '../firestore';
 
-export interface TenantResolutionOptions {
+interface TenantResolutionOptions {
     host?: string | null;
 }
 

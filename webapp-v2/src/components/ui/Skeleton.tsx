@@ -32,7 +32,7 @@ interface SkeletonProps {
  * // Avatar placeholder
  * <Skeleton variant="circular" width={48} height={48} />
  */
-export function Skeleton({
+function Skeleton({
     width,
     height,
     className,

@@ -313,7 +313,7 @@ const listExpensesQueryErrorMapper = createZodErrorMapper(
     },
 );
 
-export interface ListExpensesQueryResult {
+interface ListExpensesQueryResult {
     limit: number;
     cursor?: string;
     includeDeleted: boolean;

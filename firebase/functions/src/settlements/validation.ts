@@ -185,7 +185,7 @@ const listSettlementsQueryErrorMapper = createZodErrorMapper(
     },
 );
 
-export interface ListSettlementsQueryResult {
+interface ListSettlementsQueryResult {
     limit: number;
     cursor?: string;
     includeDeleted: boolean;

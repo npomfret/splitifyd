@@ -1,4 +1,4 @@
-export interface ColorInputProps {
+interface ColorInputProps {
     id: string;
     label: string;
     value: string;
@@ -48,7 +48,7 @@ export function ColorInput({
     );
 }
 
-export interface RgbaColorInputProps {
+interface RgbaColorInputProps {
     id: string;
     label: string;
     value: string;

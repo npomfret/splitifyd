@@ -1,7 +1,7 @@
 import type { ExpenseId, SettlementWithMembers, SimplifiedDebt } from '@billsplit-wl/shared';
 import { useSignal } from '@preact/signals';
 
-export type ExpenseFormMode = 'add' | 'edit' | 'copy';
+type ExpenseFormMode = 'add' | 'edit' | 'copy';
 
 /**
  * Custom hook to manage all modals used in the Group Detail page

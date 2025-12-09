@@ -12,5 +12,4 @@ export { SpacingSection } from './SpacingSection';
 export { StatusColorsSection } from './StatusColorsSection';
 export { SurfaceColorsSection } from './SurfaceColorsSection';
 export { TextColorsSection } from './TextColorsSection';
-export type { CreationModeSectionProps, SectionProps } from './types';
 export { TypographySection } from './TypographySection';

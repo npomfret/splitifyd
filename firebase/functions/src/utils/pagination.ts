@@ -1,7 +1,7 @@
 import { ErrorDetail, Errors } from '../errors';
 import type { IQuery } from '../firestore-wrapper';
 
-export interface CursorData {
+interface CursorData {
     updatedAt: string;
     id: string;
 }

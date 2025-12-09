@@ -21,7 +21,7 @@ export interface ThemeArtifactStorage {
 
 let _instance: ThemeArtifactStorage | undefined;
 
-export interface ThemeArtifactStorageConfig {
+interface ThemeArtifactStorageConfig {
     storage?: IStorage;
     storageEmulatorHost?: string | null;
 }

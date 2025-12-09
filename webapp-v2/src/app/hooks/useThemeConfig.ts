@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'preact/hooks';
 
-export interface ThemeMotionConfig {
+interface ThemeMotionConfig {
     enableParallax: boolean;
     enableMagneticHover: boolean;
     enableScrollReveal: boolean;
 }
 
-export interface ThemeConfig {
+interface ThemeConfig {
     motion: ThemeMotionConfig;
 }
 

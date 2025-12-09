@@ -12,7 +12,7 @@ import { ServiceConfig } from './ServiceConfig';
 /**
  * Result of merge eligibility validation
  */
-export interface MergeEligibilityResult {
+interface MergeEligibilityResult {
     eligible: boolean;
     reason?: string;
 }
@@ -39,7 +39,7 @@ export interface MergeJobDocument {
 /**
  * Result of initiating a merge
  */
-export interface InitiateMergeResult {
+interface InitiateMergeResult {
     jobId: string;
     status: MergeJobStatus;
 }

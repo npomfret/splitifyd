@@ -75,7 +75,7 @@ export const UploadTenantAssetParamsSchema = z.object({
     assetType: z.enum(['logo', 'favicon']),
 });
 
-export type UploadTenantAssetParams = z.infer<typeof UploadTenantAssetParamsSchema>;
+type UploadTenantAssetParams = z.infer<typeof UploadTenantAssetParamsSchema>;
 
 /**
  * Schema for updating tenant branding (partial update)
@@ -113,7 +113,7 @@ export const TenantImageDocumentSchema = z.object({
     uploadedBy: z.string().min(1).transform(toUserId),
 });
 
-export type TenantImageDocument = z.infer<typeof TenantImageDocumentSchema>;
+type TenantImageDocument = z.infer<typeof TenantImageDocumentSchema>;
 
 /**
  * Request to upload a new image to the library

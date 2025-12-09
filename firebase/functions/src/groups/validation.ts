@@ -262,7 +262,7 @@ const listGroupsQueryErrorMapper = createZodErrorMapper(
     },
 );
 
-export interface ListGroupsQueryResult {
+interface ListGroupsQueryResult {
     limit: number;
     cursor: string | undefined;
     order: 'asc' | 'desc';
@@ -332,7 +332,7 @@ const groupFullDetailsQueryErrorMapper = createZodErrorMapper(
     },
 );
 
-export interface GroupFullDetailsQueryResult {
+interface GroupFullDetailsQueryResult {
     expenseLimit: number;
     expenseCursor?: string;
     settlementLimit: number;

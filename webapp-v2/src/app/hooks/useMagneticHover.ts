@@ -2,7 +2,7 @@ import type { Ref } from 'preact';
 import { useEffect, useRef } from 'preact/hooks';
 import { useThemeConfig } from './useThemeConfig';
 
-export interface UseMagneticHoverOptions {
+interface UseMagneticHoverOptions {
     /**
      * Strength of the magnetic effect (how far the element moves toward cursor).
      * Range: 0.0 to 1.0

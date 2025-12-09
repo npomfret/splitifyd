@@ -51,14 +51,14 @@ const listFirestoreUsersQueryErrorMapper = createZodErrorMapper(
 // Query Result Types
 // ========================================================================
 
-export interface ListAuthUsersQueryResult {
+interface ListAuthUsersQueryResult {
     limit: number;
     pageToken?: string;
     email?: Email;
     uid?: UserId;
 }
 
-export interface ListFirestoreUsersQueryResult {
+interface ListFirestoreUsersQueryResult {
     limit: number;
     cursor: string | undefined;
     email: Email | undefined;

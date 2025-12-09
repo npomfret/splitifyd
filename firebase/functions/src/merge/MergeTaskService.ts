@@ -10,7 +10,7 @@ import type { MergeJobDocument } from './MergeService';
 /**
  * Summary of the entire merge operation
  */
-export interface MergeExecutionSummary {
+interface MergeExecutionSummary {
     jobId: string;
     primaryUserId: UserId;
     secondaryUserId: UserId;

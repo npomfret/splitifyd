@@ -11,7 +11,7 @@ import { PayerSelector } from './PayerSelector';
 import { SplitAmountInputs } from './SplitAmountInputs';
 import { SplitTypeSelector } from './SplitTypeSelector';
 
-export type ExpenseFormMode = 'add' | 'edit' | 'copy';
+type ExpenseFormMode = 'add' | 'edit' | 'copy';
 
 interface ExpenseFormModalProps {
     isOpen: boolean;

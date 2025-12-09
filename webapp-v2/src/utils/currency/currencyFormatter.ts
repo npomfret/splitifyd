@@ -6,7 +6,7 @@ export interface FormatOptions {
     includeCurrencyCode?: boolean;
 }
 
-export interface CurrencyParts {
+interface CurrencyParts {
     sign: string;
     symbol: string;
     formattedNumber: string;

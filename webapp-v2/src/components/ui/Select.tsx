@@ -4,7 +4,7 @@ import { useCallback } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { ChevronDownIcon } from './icons';
 
-export interface SelectOption {
+interface SelectOption {
     value: string;
     label: string;
     disabled?: boolean;

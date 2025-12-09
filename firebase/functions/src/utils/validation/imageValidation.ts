@@ -1,6 +1,6 @@
 import { ErrorDetail, Errors } from '../../errors';
 
-export interface ImageValidationOptions {
+interface ImageValidationOptions {
     maxSizeBytes?: number;
     allowedTypes?: string[];
 }

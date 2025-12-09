@@ -6,5 +6,5 @@
  * and in-memory stubs without touching firebase-admin types directly.
  */
 
-export type { IStorage, IStorageBucket, IStorageFile, StorageFileMetadata, StorageSaveOptions } from 'ts-firebase-simulator';
+export type { IStorage } from 'ts-firebase-simulator';
 export { createStorage } from 'ts-firebase-simulator';

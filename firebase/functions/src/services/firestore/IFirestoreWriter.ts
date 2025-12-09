@@ -29,7 +29,7 @@ export interface WriteResult {
     error?: string;
 }
 
-export interface BatchWriteResult {
+interface BatchWriteResult {
     successCount: number;
     failureCount: number;
     results: WriteResult[];

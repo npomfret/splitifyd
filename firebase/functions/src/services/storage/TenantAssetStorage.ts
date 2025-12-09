@@ -4,7 +4,7 @@ import { getStorage } from '../../firebase';
 import { logger } from '../../logger';
 import { createStorage, type IStorage } from '../../storage-wrapper';
 
-export type AssetType = 'logo' | 'favicon';
+type AssetType = 'logo' | 'favicon';
 
 export interface TenantAssetStorage {
     uploadAsset(tenantId: string, assetType: AssetType, buffer: Buffer, contentType: string, oldUrl?: string): Promise<string>;
@@ -14,7 +14,7 @@ export interface TenantAssetStorage {
 
 let _instance: TenantAssetStorage | undefined;
 
-export interface TenantAssetStorageConfig {
+interface TenantAssetStorageConfig {
     storage?: IStorage;
     storageEmulatorHost?: string | null;
 }

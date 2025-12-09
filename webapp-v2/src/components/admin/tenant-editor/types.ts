@@ -158,7 +158,7 @@ export interface TenantData {
     derivationIntensity: number;
 }
 
-export interface TenantConfig {
+interface TenantConfig {
     tenantId: string;
     branding: {
         primaryColor?: string;

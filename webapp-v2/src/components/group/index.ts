@@ -1,5 +1,3 @@
-export { BalanceSummary } from './BalanceSummary';
-export { ExpensesList } from './ExpensesList';
 export { GroupActions } from './GroupActions';
 export { GroupHeader } from './GroupHeader';
 export { GroupSettingsModal } from './GroupSettingsModal';

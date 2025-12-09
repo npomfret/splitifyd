@@ -40,7 +40,6 @@ const Toggle = AdminFormToggle;
 
 type EditorMode = 'basic' | 'advanced';
 
-export type { CreationMode, FullTenant, TenantData, TenantEditorModalProps };
 
 export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: TenantEditorModalProps) {
     const { t } = useTranslation();
