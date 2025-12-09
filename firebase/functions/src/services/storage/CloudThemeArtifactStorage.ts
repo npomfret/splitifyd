@@ -48,6 +48,12 @@ export class CloudThemeArtifactStorage implements ThemeArtifactStorage {
             }),
         ]);
 
+        // Make files publicly accessible
+        await Promise.all([
+            cssFile.makePublic(),
+            tokensFile.makePublic(),
+        ]);
+
         // Generate public URLs using Firebase Storage format (works with security rules)
         const cssUrl = this.generatePublicUrl(bucket.name, cssPath);
         const tokensUrl = this.generatePublicUrl(bucket.name, tokensPath);
