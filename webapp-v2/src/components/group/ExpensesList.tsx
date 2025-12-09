@@ -46,16 +46,6 @@ export function ExpensesList({
 
     return (
         <div>
-            {canToggleShowDeleted && onShowDeletedChange && (
-                <div className='flex justify-end mb-4'>
-                    <Checkbox
-                        label={t('common.includeDeleted')}
-                        checked={showDeletedExpenses}
-                        onChange={onShowDeletedChange}
-                    />
-                </div>
-            )}
-
             {/* Loading skeleton */}
             {isInitialLoad
                 ? (
@@ -95,6 +85,17 @@ export function ExpensesList({
                         )}
                     </Stack>
                 )}
+
+            {/* Include deleted checkbox - shown at bottom for admins/authorized users */}
+            {canToggleShowDeleted && onShowDeletedChange && (
+                <div className='flex justify-end mt-4'>
+                    <Checkbox
+                        label={t('common.includeDeleted')}
+                        checked={showDeletedExpenses}
+                        onChange={onShowDeletedChange}
+                    />
+                </div>
+            )}
         </div>
     );
 }
