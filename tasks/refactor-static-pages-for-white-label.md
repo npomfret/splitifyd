@@ -1,104 +1,204 @@
-
-# Task: Remove All Static Pages and Implement Custom Footer Links
+# Task: Remove Static Pages and Implement Tenant-Managed Footer Links
 
 ## Objective
-Purge all static, marketing, and legal pages from the application, transforming it into a pure, embeddable white-label app. Tenants will be fully responsible for their own static content. This will be replaced by a system allowing tenants to fully customize the links in the application's footer.
 
-## Rationale
-The project is pivoting to be a pure white-label application core. The app should not serve or be concerned with any static content (legal, marketing, etc.). This change simplifies the application's scope, reduces maintenance, and gives tenants complete control over their branding, legal compliance, and user-facing links.
+Remove all static content pages (Terms, Privacy, Cookies, Pricing) from the application. Tenants will host their own static content externally. The footer will be updated to render tenant-configured external links instead of internal routes.
 
----
+## Scope Clarification
 
-## Phase 1: Deep Dive & Code Removal
-
-This phase focuses on completely removing all code related to the old static page system.
-
-### `webapp-v2` (Frontend) Cleanup
-
-- [ ] **Delete Static Page Components:**
-    - [ ] Delete the entire directory: `webapp-v2/src/pages/static/`
-- [ ] **Delete Static Page Layout:**
-    - [ ] Delete the component file: `webapp-v2/src/components/StaticPageLayout.tsx`
-- [ ] **Remove Routing:**
-    - [ ] Edit `webapp-v2/src/App.tsx`:
-        - [ ] Remove the lazy-loaded imports for `PricingPage`, `TermsOfServicePage`, `PrivacyPolicyPage`, and `CookiePolicyPage`.
-        - [ ] Remove the `<Route>` components for `/pricing`, `/terms`, `/privacy`, and `/cookies`.
-- [ ] **Delete Policy Hooks:**
-    - [ ] Delete the file: `webapp-v2/src/hooks/usePolicy.ts`
-    - [ ] Delete the file: `webapp-v2/src/hooks/usePolicyAcceptance.ts`
-- [ ] **Delete Policy UI Components:**
-    - [ ] Delete the component file: `webapp-v2/src/components/policy/PolicyAcceptanceModal.tsx`
-- [ ] **Update API Client:**
-    - [ ] Edit `webapp-v2/src/app/apiClient.ts`:
-        - [ ] Remove the `getCurrentPolicy` method.
-        - [ ] Remove the `getCurrentPolicyWithAbort` method.
-
-### `packages/shared` (Shared Code) Cleanup
-
-- [ ] **Remove Shared Types:**
-    - [ ] Edit `packages/shared/src/shared-types.ts`:
-        - [ ] Delete the `PolicyIds` enum.
-        - [ ] Delete the `CurrentPolicyResponse` type interface.
-- [ ] **Remove Shared Schemas:**
-    - [ ] Edit `packages/shared/src/schemas/apiSchemas.ts`:
-        - [ ] Remove the Zod schema related to the `CurrentPolicyResponse` (likely named `currentPolicyResponseSchema` or similar).
-
-### `firebase/functions` (Backend) Cleanup
-
-- [ ] **Identify and Remove API Endpoint:**
-    - [ ] **Research:** Search the `firebase/functions/src/` directory for the string `/api/policies` or `getCurrentPolicy` to locate the route definition and handler.
-    - [ ] **Action:** Delete the identified route from the Express app (likely in `firebase/functions/src/index.ts` or a routing file).
-    - [ ] **Action:** Delete the handler function(s) and any associated service files responsible for fetching policy documents from Firestore.
-    - [ ] **Action:** Delete any Zod validation schemas in the `firebase/functions/src/validation/` directory related to the policy API.
+- **KEEP**: Policy acceptance system (modal, hooks, API endpoints) - policies are core app functionality
+- **REMOVE**: Static pages that render policy content - tenants host their own
+- **REMOVE**: `legal.privacyPolicyUrl` and `legal.termsOfServiceUrl` from branding schema
+- **ADD**: `footer.links` array for tenant-configurable external links
+- **OUT OF SCOPE**: Admin UI for managing footer links (future task - will support multiple columns)
 
 ---
 
-## Phase 2: Implement Tenant-Managed Custom Footer
+## Phase 1: Delete Static Pages (webapp-v2)
 
-This phase focuses on building the new, flexible footer link system.
+### Files to DELETE:
+- [ ] `webapp-v2/src/pages/static/PricingPage.tsx`
+- [ ] `webapp-v2/src/pages/static/TermsOfServicePage.tsx`
+- [ ] `webapp-v2/src/pages/static/PrivacyPolicyPage.tsx`
+- [ ] `webapp-v2/src/pages/static/CookiePolicyPage.tsx`
+- [ ] `webapp-v2/src/pages/static/` (entire directory)
+- [ ] `webapp-v2/src/components/StaticPageLayout.tsx`
+- [ ] `webapp-v2/src/components/policy/PolicyRenderer.tsx`
+- [ ] `webapp-v2/src/hooks/usePolicy.ts`
 
-- [ ] **Update Tenant Schema (`packages/shared`):**
-    - [ ] Edit the tenant configuration type (likely in `packages/shared/src/shared-types.ts`).
-    - [ ] Add a new structure for custom footer links.
-    - **Proposed Schema:**
-      ```typescript
-      // In tenant branding configuration
-      "footer": {
-        "links": Array<{
-          "id": string; // e.g., UUID for stable key
-          "label": string;
-          "url": string;
-        }>
-      }
-      ```
-- [ ] **Enhance Admin UI (`webapp-v2`):**
-    - [ ] Locate the Tenant Branding editor component in the admin section.
-    - [ ] Implement a new UI section for "Footer Links" that allows a tenant admin to:
-        - [ ] Add a new link (providing a Label and a URL).
-        - [ ] Edit an existing link's Label and URL.
-        - [ ] Reorder the links (e.g., using drag-and-drop).
-        - [ ] Delete a link.
-    - [ ] Implement robust URL validation on the input fields.
-- [ ] **Refactor Webapp Footer (`webapp-v2`):**
-    - [ ] **Locate Component:** Identify the main footer component (likely `webapp-v2/src/components/layout/Footer.tsx` or similar).
-    - [ ] **Refactor Logic:**
-        - [ ] Fetch the `footer.links` array from the tenant's configuration.
-        - [ ] Dynamically render the links based on the array content and order.
-        - [ ] Ensure links open in a new tab (`target="_blank" rel="noopener noreferrer"`).
-        - [ ] If the `links` array is empty or does not exist, the entire link section of the footer should be hidden.
+### Files to MODIFY:
+
+- [ ] **`webapp-v2/src/App.tsx`:**
+  - Remove lazy imports for `PricingPage`, `TermsOfServicePage`, `PrivacyPolicyPage`, `CookiePolicyPage`
+  - Remove route wrappers: `PricingRoute`, `TermsRoute`, `PrivacyRoute`, `CookieRoute`
+  - Remove routes: `/pricing`, `/terms-of-service`, `/terms`, `/privacy-policy`, `/privacy`, `/cookies-policy`, `/cookies`
+  - KEEP: `usePolicyAcceptance` hook and `PolicyAcceptanceModal` component
+
+- [ ] **`webapp-v2/src/services/navigation.service.ts`:**
+  - Remove: `goToPricing()`, `goToTerms()`, `goToPrivacyPolicy()`, `goToCookiePolicy()` methods
+
+- [ ] **`webapp-v2/src/constants/routes.ts`:**
+  - Remove: `PRICING`, `TERMS_OF_SERVICE`, `PRIVACY_POLICY`, `COOKIE_POLICY` route constants
+
+- [ ] **`webapp-v2/src/app/apiClient.ts`:**
+  - Remove: `getCurrentPolicy()`, `getCurrentPolicyWithAbort()`, `getPrivacyPolicy()`, `getTermsOfService()`, `getCookiePolicy()` methods
+  - Remove: `getCurrentPolicyInternal()` helper
+  - KEEP: All user policy status/acceptance methods
 
 ---
 
-## Phase 3: Final Cleanup and Verification
+## Phase 2: Update Branding Schema (packages/shared)
 
-- [ ] **Delete Obsolete Tests:**
-    - [ ] Find and delete all test files related to the removed static pages, hooks, and components.
-- [ ] **Write New Tests:**
-    - [ ] Add tests for the new Admin UI footer link editor.
-    - [ ] Add tests for the dynamic rendering of the webapp footer component (testing cases with 0, 1, and multiple links).
-- [ ] **Run Static Analysis:**
-    - [ ] Execute `npm run knip` (or equivalent) to find and remove any newly orphaned files, types, or exports.
-- [ ] **Manual Verification:**
-    - [ ] Confirm that navigating to old static page URLs (e.g., `/terms`) correctly results in a 404 page.
-    - [ ] Confirm the application functions correctly for tenants with and without custom footer links configured.
-    - [ ] Run `npm run build` and `npm run test` to ensure the entire project is in a clean, working state.
+- [ ] **`packages/shared/src/types/branding.ts`:**
+
+  Update `BrandingLegalSchema` - remove URL fields:
+  ```typescript
+  const BrandingLegalSchema = z.object({
+      appName: z.string().min(1),
+      companyName: z.string().min(1),
+      supportEmail: z.string().email(),
+      // REMOVED: privacyPolicyUrl, termsOfServiceUrl
+  });
+  ```
+
+  Add new footer schema:
+  ```typescript
+  const FooterLinkSchema = z.object({
+      id: z.string().min(1),
+      label: z.string().min(1),
+      url: z.string().url(),
+  });
+
+  const BrandingFooterSchema = z.object({
+      links: z.array(FooterLinkSchema).default([]),
+  }).optional();
+  ```
+
+  Add `footer` to `BrandingTokensSchema`
+
+- [ ] **`packages/shared/src/schemas/apiSchemas.ts`:**
+  - Remove: `CurrentPolicyResponseSchema` definition
+  - Remove: `'GET /policies/:policyId/current'` from `responseSchemas` map
+
+- [ ] **`packages/shared/src/shared-types.ts`:**
+  - Remove: `CurrentPolicyResponse` interface
+  - KEEP: All other policy types (used by acceptance system)
+
+---
+
+## Phase 3: Update Backend (firebase/functions)
+
+- [ ] **`firebase/functions/src/routes/route-config.ts`:**
+  - Remove: `GET /policies/:policyId/current` route (public endpoint)
+  - KEEP: All other policy routes (admin management, user acceptance)
+
+- [ ] **`firebase/functions/src/policies/PolicyHandlers.ts`:**
+  - Remove: `getCurrentPolicy` handler method
+  - KEEP: All admin policy handlers
+
+- [ ] **`packages/shared/src/api.ts`:**
+  - Remove from `PublicAPI`: `getCurrentPolicy()`, `getPrivacyPolicy()`, `getTermsOfService()`, `getCookiePolicy()`
+  - KEEP: All `AdminAPI` and `API` policy methods
+
+---
+
+## Phase 4: Refactor Footer Component (webapp-v2)
+
+- [ ] **`webapp-v2/src/components/layout/Footer.tsx`:**
+  - Read `footer.links` from tenant config
+  - Render links as external `<a>` tags with `target="_blank" rel="noopener noreferrer"`
+  - Hide links section if `footer.links` is empty
+  - Remove: `useNavigation` import and internal route calls
+  - Remove: `Clickable` component usage (use `<a>` for external links)
+
+---
+
+## Phase 5: Update Tenant Config Files
+
+- [ ] All tenant configs in `firebase/docs/tenants/*/config.json`:
+  - Remove: `legal.privacyPolicyUrl`, `legal.termsOfServiceUrl`
+  - Add: `footer.links` array
+
+Example:
+```json
+"legal": {
+    "appName": "BillSplit",
+    "companyName": "BillSplit Ltd",
+    "supportEmail": "support@example.com"
+},
+"footer": {
+    "links": [
+        { "id": "terms", "label": "Terms of Service", "url": "https://example.com/terms" },
+        { "id": "privacy", "label": "Privacy Policy", "url": "https://example.com/privacy" }
+    ]
+}
+```
+
+---
+
+## Phase 6: Update Tests
+
+### Files to DELETE:
+- [ ] `webapp-v2/src/__tests__/unit/vitest/components/PolicyRenderer.test.tsx`
+- [ ] `firebase/functions/src/__tests__/unit/api/public-policies.test.ts`
+
+### Files to MODIFY:
+- [ ] `webapp-v2/src/__tests__/unit/vitest/components/Footer.test.tsx` - Update for dynamic footer
+- [ ] `packages/test-support/src/ApiDriver.ts` - Remove `getCurrentPolicy` methods
+- [ ] `firebase/functions/src/__tests__/unit/AppDriver.ts` - Remove `getCurrentPolicy` methods
+
+### Files to KEEP:
+- `webapp-v2/src/__tests__/integration/playwright/policy-acceptance-modal.test.ts` (modal still exists)
+
+---
+
+## Phase 7: Update Translations
+
+- [ ] **`webapp-v2/src/locales/en/translation.json`:**
+  - Remove: `staticPages.*` keys
+  - Add: `footer.linksSection` key
+  - KEEP: `policyComponents.*` keys (modal uses these)
+
+---
+
+## Phase 8: Final Verification
+
+- [ ] Run `npm run build` - verify compilation
+- [ ] Run `npm run knip` - find orphaned code
+- [ ] Run tests
+- [ ] Manual checks:
+  - Navigate to `/terms`, `/privacy`, `/cookies` → should 404
+  - Footer renders tenant-configured external links
+  - Policy acceptance modal still works for authenticated users
+
+---
+
+## Files Summary
+
+### DELETE (9 files):
+1. `webapp-v2/src/pages/static/PricingPage.tsx`
+2. `webapp-v2/src/pages/static/TermsOfServicePage.tsx`
+3. `webapp-v2/src/pages/static/PrivacyPolicyPage.tsx`
+4. `webapp-v2/src/pages/static/CookiePolicyPage.tsx`
+5. `webapp-v2/src/components/StaticPageLayout.tsx`
+6. `webapp-v2/src/components/policy/PolicyRenderer.tsx`
+7. `webapp-v2/src/hooks/usePolicy.ts`
+8. `webapp-v2/src/__tests__/unit/vitest/components/PolicyRenderer.test.tsx`
+9. `firebase/functions/src/__tests__/unit/api/public-policies.test.ts`
+
+### MODIFY (15+ files):
+1. `webapp-v2/src/App.tsx`
+2. `webapp-v2/src/services/navigation.service.ts`
+3. `webapp-v2/src/constants/routes.ts`
+4. `webapp-v2/src/app/apiClient.ts`
+5. `webapp-v2/src/components/layout/Footer.tsx`
+6. `webapp-v2/src/locales/en/translation.json`
+7. `packages/shared/src/types/branding.ts`
+8. `packages/shared/src/schemas/apiSchemas.ts`
+9. `packages/shared/src/shared-types.ts`
+10. `packages/shared/src/api.ts`
+11. `firebase/functions/src/routes/route-config.ts`
+12. `firebase/functions/src/policies/PolicyHandlers.ts`
+13. `packages/test-support/src/ApiDriver.ts`
+14. `firebase/functions/src/__tests__/unit/AppDriver.ts`
+15. `firebase/docs/tenants/*/config.json`
