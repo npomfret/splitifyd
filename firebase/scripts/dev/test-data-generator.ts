@@ -610,9 +610,7 @@ async function createGroupWithInvite(name: string, creator: AuthenticatedFirebas
     // Generate shareable link
     const shareLink = await runQueued(async () => (await getDriver()).generateShareableLink(group.id, undefined, creator.token));
 
-    // FIXME: API returns 'linkId' but type definition says 'shareToken'
-    // Using 'linkId' as that's what the actual API returns
-    const linkId = (shareLink as any).linkId || shareLink.shareToken;
+    const linkId = shareLink.shareToken;
 
     return {
         ...group,

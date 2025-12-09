@@ -12,7 +12,7 @@
 
 ## Semantic Tokens
 
-Defined in `styles/global.css` using Tailwind v4's `@theme` directive. Consumed via CSS variables from tenant theme.
+Defined in `webapp-v2/src/styles/global.css` using Tailwind v4's `@theme` directive. Consumed via CSS variables from tenant theme.
 
 | Category | Tokens |
 |----------|--------|
@@ -206,7 +206,7 @@ Pages under `pages/admin/` and `components/admin/` are **completely isolated fro
 
 | Purpose | Location |
 |---------|----------|
-| Tailwind config + semantic tokens + custom utilities | `styles/global.css` |
+| Tailwind config + semantic tokens + custom utilities | `webapp-v2/src/styles/global.css` |
 | UI components | `components/ui/` |
 | Icons | `components/ui/icons/` |
 | Motion hooks | `app/hooks/useThemeConfig.ts`, `useMagneticHover.ts`, `useScrollReveal.ts` |

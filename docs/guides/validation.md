@@ -12,8 +12,8 @@
 
 ```
 @billsplit-wl/shared/src/schemas/
-├── apiRequests.ts    # Request schemas (pagination, comments, activity feed)
-├── apiSchemas.ts     # Response schemas for API contract validation
+├── schemas/apiRequests.ts    # Request schemas (pagination, comments, activity feed)
+├── schemas/apiSchemas.ts     # Response schemas for API contract validation
 
 firebase/functions/src/
 ├── validation/common/
