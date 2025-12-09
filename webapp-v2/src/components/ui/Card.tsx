@@ -20,9 +20,15 @@ interface CardProps {
      * Default: false
      */
     magnetic?: boolean;
+    /**
+     * Accessible label for the card section.
+     * When provided, renders as a <section> element with aria-label for semantic identification.
+     * Use this to enable `getByRole('region', { name: '...' })` in tests.
+     */
+    ariaLabel?: string;
 }
 
-export function Card({ title, subtitle, children, onClick, className = '', padding = 'md', variant = 'base', 'data-testid': dataTestId, magnetic = false }: CardProps) {
+export function Card({ title, subtitle, children, onClick, className = '', padding = 'md', variant = 'base', 'data-testid': dataTestId, magnetic = false, ariaLabel }: CardProps) {
     // Apply magnetic hover effect if enabled (automatically disabled on Brutalist theme)
     const magneticRef = useMagneticHover<HTMLDivElement>({
         strength: 0.25, // Slightly subtler than buttons
@@ -54,6 +60,9 @@ export function Card({ title, subtitle, children, onClick, className = '', paddi
         }
     };
 
+    // Use semantic role when ariaLabel is provided
+    const semanticRole = onClick ? 'button' : ariaLabel ? 'region' : undefined;
+
     return (
         <Surface
             ref={cardRef}
@@ -64,7 +73,8 @@ export function Card({ title, subtitle, children, onClick, className = '', paddi
             interactive={!!onClick}
             className={cx('space-y-4', className)}
             onClick={onClick}
-            role={onClick ? 'button' : undefined}
+            role={semanticRole}
+            aria-label={ariaLabel}
             tabIndex={onClick ? 0 : undefined}
             onKeyDown={handleKeyDown}
             data-testid={dataTestId}

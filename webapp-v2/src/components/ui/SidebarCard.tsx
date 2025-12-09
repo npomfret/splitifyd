@@ -12,6 +12,12 @@ interface SidebarCardProps extends Omit<JSX.HTMLAttributes<HTMLDivElement>, 'chi
     collapseToggleTestId?: string;
     collapseToggleLabel?: string;
     headerActions?: ComponentChildren;
+    /**
+     * Accessible label for the sidebar card section.
+     * When provided, renders with role="region" and aria-label for semantic identification.
+     * Use this to enable `getByRole('region', { name: '...' })` in tests.
+     */
+    ariaLabel?: string;
 }
 
 export function SidebarCard({
@@ -23,6 +29,7 @@ export function SidebarCard({
     collapseToggleTestId,
     collapseToggleLabel,
     headerActions,
+    ariaLabel,
     ...divProps
 }: SidebarCardProps) {
     const [collapsed, setCollapsed] = useState(collapsible && defaultCollapsed);
@@ -59,7 +66,7 @@ export function SidebarCard({
     const hasHeaderControls = renderedToggle || headerActions;
 
     return (
-        <div {...divProps} className={rootClassName}>
+        <div {...divProps} className={rootClassName} role={ariaLabel ? 'region' : undefined} aria-label={ariaLabel}>
             {title && (
                 <div className={headerClasses}>
                     <h3 className='text-base font-semibold text-text-primary flex-1'>{title}</h3>

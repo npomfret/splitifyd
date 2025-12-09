@@ -62,7 +62,7 @@ export class AdminTenantsPage extends BasePage {
      * Loading and Error States
      */
     protected getLoadingSpinner(): Locator {
-        return this.page.getByTestId('tenants-loading-spinner');
+        return this.page.getByRole('status');
     }
 
     protected getErrorAlert(): Locator {

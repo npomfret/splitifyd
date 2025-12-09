@@ -52,7 +52,7 @@ export class AdminPage extends BasePage {
     // ============================================================================
 
     protected getLogoutButton(): Locator {
-        return this.page.getByTestId('admin-logout-button');
+        return this.page.getByRole('button', { name: translation.navigation.userMenu.logout });
     }
 
     protected getFirstButton(): Locator {

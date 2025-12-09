@@ -84,27 +84,21 @@ export class SettlementFormPage extends BasePage {
         await this.page.waitForLoadState('networkidle').catch(() => {});
 
         // Try multiple strategies to find the Settle Up button:
-        // 1. GroupActions button by test-id (most reliable, doesn't pre-fill)
-        // 2. GroupActions button by accessible name
-        // 3. BalanceSummary button (pre-fills the form with specific debt)
-        const groupActionsButtonByTestId = this.page.getByTestId('settle-up-button');
+        // 1. GroupActions button by accessible name (primary, semantic approach)
+        // 2. BalanceSummary button (pre-fills the form with specific debt)
         const groupActionsButtonByName = this.page.getByRole('button', { name: translation.groupActions.settleUp });
         const balanceSummaryButton = this.page.getByRole('button', { name: new RegExp(`${translation.settlementForm.recordSettlement}.*debt`, 'i') }).first();
 
-        let openButton = groupActionsButtonByTestId;
+        let openButton = groupActionsButtonByName;
 
-        // Wait for group detail to load by checking for a member count or balance indicator
+        // Wait for group detail to load by checking for balance summary
         await this.page.getByTestId('balance-summary').waitFor({ state: 'visible', timeout: 3000 }).catch(() => {});
 
-        // Check each button with a short timeout
-        const testIdVisible = await groupActionsButtonByTestId.isVisible({ timeout: 1000 }).catch(() => false);
+        // Check if primary button is visible, fall back to balance summary button
+        const nameVisible = await groupActionsButtonByName.isVisible({ timeout: 1000 }).catch(() => false);
 
-        if (!testIdVisible) {
-            if (await groupActionsButtonByName.isVisible({ timeout: 1000 }).catch(() => false)) {
-                openButton = groupActionsButtonByName;
-            } else {
-                openButton = balanceSummaryButton;
-            }
+        if (!nameVisible) {
+            openButton = balanceSummaryButton;
         }
 
         await expect(openButton).toBeVisible({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });

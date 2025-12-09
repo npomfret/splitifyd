@@ -402,9 +402,10 @@ export default function GroupDetailPage({ id: groupId, expenseId: routeExpenseId
                         </div>
 
                         {/* 3. Mobile-only balance summary */}
-                        <div className='lg:hidden' data-testid='balance-summary-mobile'>
+                        <div className='lg:hidden'>
                             <SidebarCard
                                 id='balances-mobile'
+                                ariaLabel={t('pages.groupDetailPage.balances')}
                                 title={
                                     <div className='flex items-center gap-2'>
                                         <ScaleIcon className='h-5 w-5 text-text-muted' aria-hidden='true' />
@@ -413,7 +414,6 @@ export default function GroupDetailPage({ id: groupId, expenseId: routeExpenseId
                                 }
                                 collapsible
                                 defaultCollapsed={false}
-                                collapseToggleTestId='toggle-balance-section-mobile'
                                 collapseToggleLabel={t('pages.groupDetailPage.toggleSection', { section: t('pages.groupDetailPage.balances') })}
                             >
                                 <BalanceSummary onSettleUp={handleSettleUp} />
@@ -424,7 +424,7 @@ export default function GroupDetailPage({ id: groupId, expenseId: routeExpenseId
                         <div className='lg:hidden'>
                             <SidebarCard
                                 id='comments-mobile'
-                                data-testid='comments-card-mobile'
+                                ariaLabel={t('pages.groupDetailPage.comments')}
                                 title={
                                     <div className='flex items-center gap-2'>
                                         <ChatBubbleLeftIcon className='h-5 w-5 text-text-muted' aria-hidden='true' />
@@ -441,6 +441,7 @@ export default function GroupDetailPage({ id: groupId, expenseId: routeExpenseId
                         {/* 5. Expenses (always visible) */}
                         <SidebarCard
                             id='expenses'
+                            ariaLabel={t('pages.groupDetailPage.expenses')}
                             title={
                                 <div className='flex items-center gap-2'>
                                     <ReceiptPercentIcon className='h-5 w-5 text-text-muted' aria-hidden='true' />
@@ -468,7 +469,7 @@ export default function GroupDetailPage({ id: groupId, expenseId: routeExpenseId
                         <div className='lg:hidden'>
                             <SidebarCard
                                 id='settlements-mobile'
-                                data-testid='settlement-history-card-mobile'
+                                ariaLabel={t('pages.groupDetailPage.paymentHistory')}
                                 title={
                                     <div className='flex items-center gap-2'>
                                         <BanknotesIcon className='h-5 w-5 text-text-muted' aria-hidden='true' />
@@ -507,7 +508,7 @@ export default function GroupDetailPage({ id: groupId, expenseId: routeExpenseId
                         <div className='lg:hidden'>
                             <SidebarCard
                                 id='activity-mobile'
-                                data-testid='activity-feed-card-mobile'
+                                ariaLabel={t('pages.groupDetailPage.activity')}
                                 title={
                                     <div className='flex items-center gap-2'>
                                         <BoltIcon className='h-5 w-5 text-text-muted' aria-hidden='true' />
@@ -527,7 +528,7 @@ export default function GroupDetailPage({ id: groupId, expenseId: routeExpenseId
                         {/* Desktop-only: all right sidebar content (mobile versions in mainContent) */}
                         <SidebarCard
                             id='balances'
-                            data-testid='balance-summary-card'
+                            ariaLabel={t('pages.groupDetailPage.balances')}
                             title={
                                 <div className='flex items-center gap-2'>
                                     <ScaleIcon className='h-5 w-5 text-text-muted' aria-hidden='true' />
@@ -536,7 +537,6 @@ export default function GroupDetailPage({ id: groupId, expenseId: routeExpenseId
                             }
                             collapsible
                             defaultCollapsed={false}
-                            collapseToggleTestId='toggle-balance-section'
                             collapseToggleLabel={t('pages.groupDetailPage.toggleSection', { section: t('pages.groupDetailPage.balances') })}
                         >
                             <BalanceSummary onSettleUp={handleSettleUp} />
@@ -545,7 +545,7 @@ export default function GroupDetailPage({ id: groupId, expenseId: routeExpenseId
                         {/* Activity Feed Section */}
                         <SidebarCard
                             id='activity'
-                            data-testid='activity-feed-card'
+                            ariaLabel={t('pages.groupDetailPage.activity')}
                             title={
                                 <div className='flex items-center gap-2'>
                                     <BoltIcon className='h-5 w-5 text-text-muted' aria-hidden='true' />
@@ -554,7 +554,6 @@ export default function GroupDetailPage({ id: groupId, expenseId: routeExpenseId
                             }
                             collapsible
                             defaultCollapsed={!expandActivitySection}
-                            collapseToggleTestId='toggle-activity-section'
                             collapseToggleLabel={t('pages.groupDetailPage.toggleSection', { section: t('pages.groupDetailPage.activity') })}
                         >
                             <GroupActivityFeed groupId={groupId!} currentUserId={currentUser.value!.uid} />
@@ -563,7 +562,7 @@ export default function GroupDetailPage({ id: groupId, expenseId: routeExpenseId
                         {/* Settlement History Section */}
                         <SidebarCard
                             id='settlements'
-                            data-testid='settlement-history-card'
+                            ariaLabel={t('pages.groupDetailPage.paymentHistory')}
                             title={
                                 <div className='flex items-center gap-2'>
                                     <BanknotesIcon className='h-5 w-5 text-text-muted' aria-hidden='true' />
@@ -572,7 +571,6 @@ export default function GroupDetailPage({ id: groupId, expenseId: routeExpenseId
                             }
                             collapsible
                             defaultCollapsed={!expandSettlementSection}
-                            collapseToggleTestId='toggle-settlements-section'
                             collapseToggleLabel={t('pages.groupDetailPage.toggleSection', { section: t('pages.groupDetailPage.paymentHistory') })}
                         >
                             <SettlementHistory
@@ -592,7 +590,7 @@ export default function GroupDetailPage({ id: groupId, expenseId: routeExpenseId
                         {/* Comments Section */}
                         <SidebarCard
                             id='comments'
-                            data-testid='comments-card'
+                            ariaLabel={t('pages.groupDetailPage.comments')}
                             title={
                                 <div className='flex items-center gap-2'>
                                     <ChatBubbleLeftIcon className='h-5 w-5 text-text-muted' aria-hidden='true' />
@@ -602,7 +600,6 @@ export default function GroupDetailPage({ id: groupId, expenseId: routeExpenseId
                             className='flex-1'
                             collapsible
                             defaultCollapsed={!expandCommentsSection}
-                            collapseToggleTestId='toggle-comments-section'
                             collapseToggleLabel={t('pages.groupDetailPage.toggleSection', { section: t('pages.groupDetailPage.comments') })}
                         >
                             <CommentsSection target={{ type: 'group', groupId: groupId! }} maxHeight='300px' initialData={commentsResponse.value} />

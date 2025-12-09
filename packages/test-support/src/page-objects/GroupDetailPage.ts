@@ -148,81 +148,79 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * Expenses section container - found by section containing "Expenses" heading
+     * Expenses section container - found by "Expenses" region with aria-label
      */
     protected getExpensesContainer(): Locator {
-        return this.page.locator('section, [id="expenses"]').filter({
-            has: this.page.getByRole('heading', { name: translation.pages.groupDetailPage.expenses }),
-        });
+        return this.page.getByRole('region', { name: translation.pages.groupDetailPage.expenses });
     }
 
     /**
-     * Balance/Debts section container - finds the VISIBLE balance summary.
+     * Balance/Debts section container - found by "Balances" region with aria-label.
      * Works for both sidebar (desktop) and main (mobile) balance summary displays.
-     * Uses same selector pattern as e2e tests for consistency.
-     * IMPORTANT: Filters to only visible ones to avoid hidden mobile/desktop versions.
+     * IMPORTANT: Uses first() to get the visible one on the current viewport.
      */
     protected getBalanceContainer(): Locator {
-        return this.page.getByTestId('balance-summary').locator('visible=true');
+        return this.page.getByRole('region', { name: translation.pages.groupDetailPage.balances }).first();
     }
 
     /**
-     * Settlement section container - found by "Settlements" heading
+     * Settlement section container - found by "Settlements" region with aria-label
      */
     protected getSettlementContainer(): Locator {
-        return this.page.getByTestId('settlement-history-card');
+        return this.page.getByRole('region', { name: translation.pages.groupDetailPage.paymentHistory }).first();
     }
 
     /**
-     * Activity feed section container
+     * Activity feed section container - found by "Activity" region with aria-label
      */
     protected getActivityFeedContainer(): Locator {
-        return this.page.getByTestId('group-activity-feed');
+        return this.page.getByRole('region', { name: translation.pages.groupDetailPage.activity }).first();
     }
 
     /**
-     * Activity feed card (the collapsible sidebar card)
+     * Activity feed card (alias for activity feed container)
      */
     protected getActivityFeedCard(): Locator {
-        return this.page.getByTestId('activity-feed-card');
+        return this.getActivityFeedContainer();
     }
 
     /**
-     * Activity feed items
+     * Activity feed items - found by list items within the activity feed
      */
     protected getActivityFeedItems(): Locator {
-        return this.getActivityFeedContainer().getByTestId('group-activity-feed-item');
+        return this.getActivityFeedContainer().getByRole('listitem');
     }
 
     /**
-     * Activity feed empty state
+     * Activity feed empty state - found by the empty state text
      */
     protected getActivityFeedEmptyState(): Locator {
-        return this.page.getByTestId('group-activity-feed-empty');
+        return this.getActivityFeedContainer().getByText(translation.activityFeed.emptyState.title);
     }
 
     private getBalanceToggle(): Locator {
-        return this.page.getByTestId('toggle-balance-section');
+        // SidebarCard toggles have aria-label="Toggle {section} section" pattern
+        return this.page.getByRole('button', { name: /toggle.*balance.*section/i });
     }
 
     private getCommentsToggle(): Locator {
-        return this.page.getByTestId('toggle-comments-section');
+        return this.page.getByRole('button', { name: /toggle.*comment.*section/i });
     }
 
     private getActivityToggle(): Locator {
-        return this.page.getByTestId('toggle-activity-section');
+        return this.page.getByRole('button', { name: /toggle.*activity.*section/i });
     }
 
     private getSettlementsToggle(): Locator {
-        return this.getSettlementContainer().getByTestId('toggle-settlements-section');
+        return this.getSettlementContainer().getByRole('button', { name: /toggle.*settlement.*section/i });
     }
 
     private getMembersToggle(): Locator {
-        return this.page.locator('[data-testid="toggle-members-section"]:visible').first();
+        return this.page.getByRole('button', { name: /toggle.*member.*section/i }).first();
     }
 
     private getShowAllSettlementsCheckbox(): Locator {
-        return this.getSettlementContainer().getByTestId('show-all-settlements-checkbox');
+        return this.getSettlementContainer().getByLabel(translation.settlementHistory.showAll);
     }
 
     private async ensureToggleExpanded(toggle: Locator): Promise<void> {
@@ -302,11 +300,13 @@ export class GroupDetailPage extends BasePage {
     }
 
     protected getSettlementEditButton(note: string | RegExp): Locator {
-        return this.getSettlementItem(note).getByTestId('edit-settlement-button');
+        // Edit button has different aria-label when locked vs unlocked
+        // Use regex to match either "Edit payment" or "Cannot edit..."
+        return this.getSettlementItem(note).getByRole('button', { name: /edit|cannot edit/i });
     }
 
     protected getSettlementDeleteButton(note: string | RegExp): Locator {
-        return this.getSettlementItem(note).getByTestId('delete-settlement-button');
+        return this.getSettlementItem(note).getByRole('button', { name: translation.settlementHistory.deletePaymentTooltip });
     }
 
     /**
@@ -595,7 +595,7 @@ export class GroupDetailPage extends BasePage {
      * Get specific expense by description - searches within expenses container
      */
     protected getExpenseByDescription(description: string): Locator {
-        return this.getExpensesContainer().getByText(description);
+        return this.getExpensesContainer().getByText(description, { exact: true });
     }
 
     /**
@@ -612,7 +612,7 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * Empty expenses state - found by the empty state title text
+     * Empty expenses state - found by the empty state heading
      */
     protected getEmptyExpensesState(): Locator {
         return this.getExpensesContainer().getByRole('heading', { name: translation.expensesList.noExpensesYet });
@@ -623,10 +623,11 @@ export class GroupDetailPage extends BasePage {
     // ============================================================================
 
     /**
-     * Get the comments section container (desktop card - there are separate mobile and desktop cards)
+     * Get the comments section container - found by "Comments" region with aria-label
+     * (there are separate mobile and desktop cards, first() gets the visible one)
      */
     protected getCommentsSection(): Locator {
-        return this.page.getByTestId('comments-card').getByTestId('comments-section');
+        return this.page.getByRole('region', { name: translation.pages.groupDetailPage.comments }).first();
     }
 
     /**
@@ -742,11 +743,10 @@ export class GroupDetailPage extends BasePage {
     // ============================================================================
 
     /**
-     * Get balance summary heading - looks for heading in the parent SidebarCard
-     * (the balance-summary div doesn't contain the heading, it's in the SidebarCard wrapper)
+     * Get balance summary heading - found by "Balances" region and its heading
      */
     protected getBalanceSummaryHeading(): Locator {
-        return this.page.getByTestId('balance-summary-card').getByRole('heading');
+        return this.getBalanceContainer().getByRole('heading');
     }
 
     /**

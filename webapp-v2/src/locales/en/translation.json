@@ -653,6 +653,7 @@
       "cookies": "Cookie Policy"
     },
     "userMenu": {
+      "openUserMenu": "Open user menu",
       "profile": "Profile",
       "settings": "Settings",
       "logout": "Logout",

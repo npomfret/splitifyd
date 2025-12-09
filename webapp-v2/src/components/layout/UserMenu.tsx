@@ -49,6 +49,7 @@ export function UserMenu({ user }: UserMenuProps) {
                     setIsOpen(!isOpen);
                 }}
                 class='flex items-center gap-3 px-3 py-2 rounded-lg bg-surface-base border border-border-default/60 hover:border-interactive-primary/50 hover:bg-surface-raised transition-all duration-200 group shadow-md'
+                aria-label={t('navigation.userMenu.openUserMenu')}
                 aria-expanded={isOpen}
                 aria-haspopup='true'
                 aria-controls='user-dropdown-menu'

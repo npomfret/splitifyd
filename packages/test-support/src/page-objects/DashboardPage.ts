@@ -329,10 +329,10 @@ export class DashboardPage extends BasePage {
 
     /**
      * User menu button (profile/settings access)
-     * Button displays user's display name
+     * Uses aria-label for semantic selection
      */
     protected getUserMenuButton(): Locator {
-        return this.page.getByTestId('user-menu-button');
+        return this.page.getByRole('button', { name: translation.navigation.userMenu.openUserMenu });
     }
 
     /**
