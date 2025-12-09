@@ -157,13 +157,13 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * Balance/Debts section container - finds the VISIBLE white container with "Balances" heading
+     * Balance/Debts section container - finds the VISIBLE balance summary.
      * Works for both sidebar (desktop) and main (mobile) balance summary displays.
      * Uses same selector pattern as e2e tests for consistency.
-     * IMPORTANT: Finds ALL containers first, then filters to only visible ones to avoid hidden mobile versions.
+     * IMPORTANT: Filters to only visible ones to avoid hidden mobile/desktop versions.
      */
     protected getBalanceContainer(): Locator {
-        return this.page.getByTestId('balance-summary-sidebar');
+        return this.page.getByTestId('balance-summary').locator('visible=true');
     }
 
     /**
@@ -743,7 +743,7 @@ export class GroupDetailPage extends BasePage {
 
     /**
      * Get balance summary heading - looks for heading in the parent SidebarCard
-     * (the balance-summary-sidebar div doesn't contain the heading, it's in the SidebarCard wrapper)
+     * (the balance-summary div doesn't contain the heading, it's in the SidebarCard wrapper)
      */
     protected getBalanceSummaryHeading(): Locator {
         return this.page.getByTestId('balance-summary-card').getByRole('heading');

@@ -841,7 +841,6 @@
     "deletedBy": "Deleted by"
   },
   "balanceSummary": {
-    "title": "Balances",
     "loadingBalances": "Loading balances...",
     "allSettledUp": "All settled up!",
     "debtArrow": " → ",

@@ -94,7 +94,7 @@ export class SettlementFormPage extends BasePage {
         let openButton = groupActionsButtonByTestId;
 
         // Wait for group detail to load by checking for a member count or balance indicator
-        await this.page.getByTestId('balance-summary-sidebar').waitFor({ state: 'visible', timeout: 3000 }).catch(() => {});
+        await this.page.getByTestId('balance-summary').waitFor({ state: 'visible', timeout: 3000 }).catch(() => {});
 
         // Check each button with a short timeout
         const testIdVisible = await groupActionsButtonByTestId.isVisible({ timeout: 1000 }).catch(() => false);

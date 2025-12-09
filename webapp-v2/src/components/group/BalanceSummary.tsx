@@ -2,7 +2,6 @@ import { useAuthRequired } from '@/app/hooks/useAuthRequired';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced';
 import { themeStore } from '@/app/stores/theme-store';
 import { Checkbox, CurrencyAmount, Tooltip } from '@/components/ui';
-import { Typography } from '@/components/ui';
 import { Avatar } from '@/components/ui/Avatar';
 import { Clickable } from '@/components/ui/Clickable';
 import { ArrowDownIcon, ArrowRightIcon, BanknotesIcon } from '@/components/ui/icons';
@@ -11,14 +10,12 @@ import type { SimplifiedDebt, UserId } from '@billsplit-wl/shared';
 import { useComputed, useSignal } from '@preact/signals';
 import { useMemo } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
-import { Card } from '../ui/Card';
 
 interface BalanceSummaryProps {
-    variant?: 'default' | 'sidebar';
     onSettleUp?: (debt: SimplifiedDebt) => void;
 }
 
-export function BalanceSummary({ variant = 'default', onSettleUp }: BalanceSummaryProps) {
+export function BalanceSummary({ onSettleUp }: BalanceSummaryProps) {
     const { t } = useTranslation();
     const authStore = useAuthRequired();
     const currentUser = authStore.user;
@@ -83,16 +80,14 @@ export function BalanceSummary({ variant = 'default', onSettleUp }: BalanceSumma
         }));
     }, [balances.value?.simplifiedDebts, showAllBalances.value, currentUser]);
 
-    const testIdPrefix = variant === 'sidebar' ? 'sidebar-' : '';
-
     const content = !balances.value
-        ? <p className='text-text-muted text-sm' data-testid={`${testIdPrefix}balance-loading`}>{t('balanceSummary.loadingBalances')}</p>
+        ? <p className='text-text-muted text-sm' data-testid='balance-loading'>{t('balanceSummary.loadingBalances')}</p>
         : groupedDebts.length === 0 || groupedDebts.every(g => g.debts.length === 0)
-        ? <p className='text-text-muted text-sm' data-testid={`${testIdPrefix}balance-settled-up`}>{t('balanceSummary.allSettledUp')}</p>
+        ? <p className='text-text-muted text-sm' data-testid='balance-settled-up'>{t('balanceSummary.allSettledUp')}</p>
         : (
             <div
                 className='space-y-2 max-h-[300px] overflow-y-auto overflow-x-hidden pr-1 scrollbar-thin scrollbar-thumb-border-default scrollbar-track-transparent hover:scrollbar-thumb-border-strong'
-                data-testid={`${testIdPrefix}balance-debts-list`}
+                data-testid='balance-debts-list'
             >
                 {groupedDebts.map(({ currency, debts }) => (
                     debts.map((debt) => {
@@ -197,27 +192,10 @@ export function BalanceSummary({ variant = 'default', onSettleUp }: BalanceSumma
             </div>
         );
 
-    if (variant === 'sidebar') {
-        return (
-            <div data-testid='balance-summary-sidebar'>
-                {/* Filter toggle */}
-                <div className='pb-2 border-b border-border-default mb-2'>
-                    <Checkbox
-                        label={t('balanceSummary.showAll')}
-                        checked={showAllBalances.value}
-                        onChange={(checked) => showAllBalances.value = checked}
-                    />
-                </div>
-                {content}
-            </div>
-        );
-    }
-
     return (
-        <Card variant='glass' className='p-6 border-border-default' data-testid='balance-summary-main'>
-            <div className='flex items-center justify-between mb-4'>
-                <Typography variant='subheading' as='h2'>{t('balanceSummary.title')}</Typography>
-                {/* Filter toggle for non-sidebar variant */}
+        <div data-testid='balance-summary'>
+            {/* Filter toggle */}
+            <div className='pb-2 border-b border-border-default mb-2'>
                 <Checkbox
                     label={t('balanceSummary.showAll')}
                     checked={showAllBalances.value}
@@ -225,6 +203,6 @@ export function BalanceSummary({ variant = 'default', onSettleUp }: BalanceSumma
                 />
             </div>
             {content}
-        </Card>
+        </div>
     );
 }
