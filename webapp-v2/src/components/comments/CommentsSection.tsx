@@ -50,7 +50,7 @@ export function CommentsSection({ target, maxHeight = '400px', className = '', i
     };
 
     return (
-        <div className={`flex flex-col gap-4 ${className}`} data-testid='comments-section'>
+        <div className={`flex flex-col gap-4 ${className}`}>
             {/* Error message */}
             {error.value && (
                 <div className='bg-surface-error dark:bg-semantic-error/20 border border-border-error dark:border-semantic-error/60 rounded-lg p-3'>

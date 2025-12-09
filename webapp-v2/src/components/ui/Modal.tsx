@@ -81,6 +81,7 @@ interface ModalProps {
     onClose?: () => void;
     size?: 'sm' | 'md' | 'lg';
     labelledBy?: string;
+    ariaLabel?: string;
     describedBy?: string;
     className?: string;
     children: ComponentChildren;
@@ -93,7 +94,7 @@ const sizeClasses = {
     lg: 'max-w-2xl',
 };
 
-export function Modal({ open, onClose, size = 'sm', labelledBy, describedBy, className = '', children, 'data-testid': dataTestId }: ModalProps) {
+export function Modal({ open, onClose, size = 'sm', labelledBy, ariaLabel, describedBy, className = '', children, 'data-testid': dataTestId }: ModalProps) {
     const modalRef = useRef<HTMLDivElement>(null);
 
     // Component-local signal - initialized within useState to avoid stale state across instances
@@ -192,6 +193,7 @@ export function Modal({ open, onClose, size = 'sm', labelledBy, describedBy, cla
                         ref={modalRef}
                         role='dialog'
                         aria-modal='true'
+                        aria-label={ariaLabel}
                         aria-labelledby={labelledBy}
                         aria-describedby={describedBy}
                         className={cx(

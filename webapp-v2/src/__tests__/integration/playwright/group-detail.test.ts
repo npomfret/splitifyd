@@ -264,7 +264,7 @@ test.describe('Group Detail - Security Settings', () => {
         await settingsModal.verifySecurityUnsavedBannerNotVisible();
 
         await settingsModal.clickFooterClose();
-        await expect(page.getByTestId('group-settings-modal-title')).toBeHidden();
+        await settingsModal.verifyModalNotVisible();
     });
 });
 

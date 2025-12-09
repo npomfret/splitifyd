@@ -66,7 +66,7 @@ export class SettlementFormPage extends BasePage {
     }
 
     protected getWarningMessage(): Locator {
-        return this.page.getByTestId('settlement-warning-message');
+        return this.getModal().getByRole('status');
     }
 
     protected getQuickSettleHeading(): Locator {
@@ -91,8 +91,8 @@ export class SettlementFormPage extends BasePage {
 
         let openButton = groupActionsButtonByName;
 
-        // Wait for group detail to load by checking for balance summary
-        await this.page.getByTestId('balance-summary').waitFor({ state: 'visible', timeout: 3000 }).catch(() => {});
+        // Wait for group detail to load by checking for balance summary region
+        await this.page.getByRole('region', { name: translation.pages.groupDetailPage.balances }).first().waitFor({ state: 'visible', timeout: 3000 }).catch(() => {});
 
         // Check if primary button is visible, fall back to balance summary button
         const nameVisible = await groupActionsButtonByName.isVisible({ timeout: 1000 }).catch(() => false);
@@ -335,7 +335,7 @@ export class SettlementFormPage extends BasePage {
 
     async setDate(value: string): Promise<void> {
         await this.waitForReady();
-        const dateInput = this.getModal().getByTestId('settlement-date-input');
+        const dateInput = this.getModal().getByLabel(translation.settlementForm.dateLabel);
         await dateInput.fill(value);
         await dateInput.blur();
         await expect(dateInput).toHaveValue(value);
@@ -350,7 +350,7 @@ export class SettlementFormPage extends BasePage {
     }
 
     async expectValidationErrorContains(text: string): Promise<void> {
-        const error = this.page.getByTestId('settlement-validation-error');
+        const error = this.getModal().getByRole('alert');
         await expect(error).toBeVisible();
         await expect(error).toContainText(text);
     }
@@ -452,11 +452,12 @@ export class SettlementFormPage extends BasePage {
     }
 
     getAmountErrorMessage(): Locator {
-        return this.getModal().getByTestId('settlement-amount-error');
+        // Amount precision error is the first alert in the form (appears below amount input)
+        return this.getModal().getByRole('alert').first();
     }
 
     getSettlementWarningMessage(): Locator {
-        return this.getModal().getByTestId('settlement-warning-message');
+        return this.getModal().getByRole('status');
     }
 
     private async resolvePrimaryActionButton(): Promise<Locator> {

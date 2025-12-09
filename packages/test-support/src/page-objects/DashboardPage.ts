@@ -169,7 +169,7 @@ export class DashboardPage extends BasePage {
     }
 
     async verifyGroupHasArchivedBadge(groupName: GroupName | string): Promise<void> {
-        const badge = this.getGroupCard(groupName).getByTestId('archived-badge');
+        const badge = this.getGroupCard(groupName).getByText(translation.dashboard.groupCard.archivedBadge);
         await expect(badge).toBeVisible();
     }
 
@@ -205,13 +205,13 @@ export class DashboardPage extends BasePage {
     }
 
     private getPaginationNextButtonMobile(): Locator {
-        // Mobile pagination next button - uses test ID container for scoping
-        return this.page.getByTestId('pagination-mobile').getByRole('button', { name: translation.pagination.next });
+        // Mobile pagination next button - first navigation element is mobile, second is desktop
+        return this.page.getByRole('navigation', { name: translation.pagination.navigation }).first().getByRole('button', { name: translation.pagination.next });
     }
 
     private getPaginationPreviousButtonMobile(): Locator {
-        // Mobile pagination previous button - uses test ID container for scoping
-        return this.page.getByTestId('pagination-mobile').getByRole('button', { name: translation.pagination.previous });
+        // Mobile pagination previous button - first navigation element is mobile, second is desktop
+        return this.page.getByRole('navigation', { name: translation.pagination.navigation }).first().getByRole('button', { name: translation.pagination.previous });
     }
 
     async verifyPaginationHidden(): Promise<void> {
@@ -285,7 +285,7 @@ export class DashboardPage extends BasePage {
     }
 
     protected getArchivedEmptyState(): Locator {
-        return this.getGroupsContainer().getByTestId('archived-groups-empty-state');
+        return this.getGroupsContainer().getByText(translation.dashboardComponents.groupsList.noArchivedTitle);
     }
 
     /**

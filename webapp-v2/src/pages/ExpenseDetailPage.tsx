@@ -223,7 +223,7 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                         )}
 
                         {/* Consolidated Top Card - Main Info, Paid By, Actions, and Metadata */}
-                        <Card variant='glass' className='border-border-default' data-testid='expense-summary-card'>
+                        <Card variant='glass' className='border-border-default' ariaLabel={t('pages.expenseDetailPage.summarySection')}>
                             <Stack spacing='lg'>
                                 {/* Back Button */}
                                 <div className='flex items-center'>
@@ -288,12 +288,12 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                         </Card>
 
                         {/* Split Information - Kept Separate */}
-                        <Card variant='glass' className='border-border-default' data-testid='expense-split-card'>
+                        <Card variant='glass' className='border-border-default' ariaLabel={t('pages.expenseDetailPage.splitSection')}>
                             <SplitBreakdown expense={expense.value} members={members.value} />
                         </Card>
 
                         {/* Comments Section */}
-                        <Card variant='glass' className='border-border-default' data-testid='expense-comments-card'>
+                        <Card variant='glass' className='border-border-default' ariaLabel={t('pages.expenseDetailPage.discussion')}>
                             <Stack spacing='md'>
                                 <h3 className='font-semibold text-text-primary'>{t('pages.expenseDetailPage.discussion')}</h3>
                                 <CommentsSection target={{ type: 'expense', expenseId: expenseId! }} maxHeight='300px' />
@@ -302,7 +302,7 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
 
                         {/* Receipt - Kept Separate */}
                         {expense.value.receiptUrl && (
-                            <Card variant='glass' className='border-border-default' data-testid='expense-receipt-card'>
+                            <Card variant='glass' className='border-border-default' ariaLabel={t('pages.expenseDetailPage.receipt')}>
                                 <Stack spacing='md'>
                                     <h3 className='font-semibold text-text-primary'>{t('pages.expenseDetailPage.receipt')}</h3>
                                     <div className='text-center'>
@@ -326,7 +326,7 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                         )}
 
                         {/* Metadata - Moved to Bottom */}
-                        <Card variant='glass' className='border-border-default' data-testid='expense-metadata-card'>
+                        <Card variant='glass' className='border-border-default' ariaLabel={t('pages.expenseDetailPage.metadataSection')}>
                             <div className='text-sm text-text-primary/60'>
                                 <div className='flex items-center justify-between'>
                                     <span>

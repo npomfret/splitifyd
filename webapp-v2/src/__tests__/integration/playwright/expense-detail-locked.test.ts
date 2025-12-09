@@ -53,7 +53,7 @@ test.describe('Expense Detail - Locked Expense UI', () => {
         await page.goto(`/groups/${groupId}/expenses/${expenseId}`, { waitUntil: 'domcontentloaded' });
 
         // Wait for expense detail modal to open and show the expense description
-        await expect(page.getByTestId('expense-detail-modal')).toBeVisible();
+        await expect(page.getByRole('dialog')).toBeVisible();
         await expect(page.getByText('Locked Expense')).toBeVisible();
 
         // Verify lock warning banner is displayed using page object
@@ -108,7 +108,7 @@ test.describe('Expense Detail - Locked Expense UI', () => {
         await page.goto(`/groups/${groupId}/expenses/${expenseId}`, { waitUntil: 'domcontentloaded' });
 
         // Wait for expense detail modal to open
-        await expect(page.getByTestId('expense-detail-modal')).toBeVisible();
+        await expect(page.getByRole('dialog')).toBeVisible();
         await expect(page.getByText('Locked Expense')).toBeVisible();
 
         // Find the edit button
@@ -169,7 +169,7 @@ test.describe('Expense Detail - Locked Expense UI', () => {
         await page.goto(`/groups/${groupId}/expenses/${expenseId}`, { waitUntil: 'domcontentloaded' });
 
         // Wait for expense detail modal to open
-        await expect(page.getByTestId('expense-detail-modal')).toBeVisible();
+        await expect(page.getByRole('dialog')).toBeVisible();
         await expect(page.getByText('Normal Expense')).toBeVisible();
 
         // Verify lock warning banner is NOT displayed using page object

@@ -171,7 +171,6 @@ export function GroupCurrencySettings({
                                         'hover:border-interactive-primary hover:text-interactive-primary transition-colors',
                                         disabled && 'opacity-50 cursor-not-allowed',
                                     )}
-                                    data-testid='add-currency-button'
                                 >
                                     + {t('groupSettings.currencySettings.addCurrency')}
                                 </button>

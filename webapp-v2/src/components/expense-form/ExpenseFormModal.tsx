@@ -76,7 +76,6 @@ export function ExpenseFormModal({ isOpen, onClose, groupId, mode, expenseId, on
             onClose={formState.saving ? undefined : onClose}
             size='lg'
             labelledBy='expense-form-modal-title'
-            data-testid='expense-form-modal'
         >
             {/* Modal Header */}
             <div class='px-6 py-4 border-b border-border-default'>

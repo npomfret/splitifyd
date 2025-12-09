@@ -19,7 +19,7 @@ export function ParticipantSelector({ members, participants, paidBy, validationE
     const { t } = useTranslation();
 
     return (
-        <Card variant='glass' className='border-border-default' data-testid='split-between-section'>
+        <Card variant='glass' className='border-border-default' ariaLabel={t('expenseComponents.participantSelector.label')}>
             <Stack spacing='md'>
                 <div className='flex items-center justify-between'>
                     <Typography variant='subheading' as='h2'>

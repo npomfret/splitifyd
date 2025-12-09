@@ -17,23 +17,23 @@ export class ExpenseDetailPage extends BasePage {
     }
 
     private getSummaryCard(): Locator {
-        return this.page.getByTestId('expense-summary-card');
+        return this.page.getByRole('region', { name: translation.pages.expenseDetailPage.summarySection });
     }
 
     private getSplitCard(): Locator {
-        return this.page.getByTestId('expense-split-card');
+        return this.page.getByRole('region', { name: translation.pages.expenseDetailPage.splitSection });
     }
 
     private getCommentsCard(): Locator {
-        return this.page.getByTestId('expense-comments-card');
+        return this.page.getByRole('region', { name: translation.pages.expenseDetailPage.discussion });
     }
 
     private getReceiptCard(): Locator {
-        return this.page.getByTestId('expense-receipt-card');
+        return this.page.getByRole('region', { name: translation.pages.expenseDetailPage.receipt });
     }
 
     private getMetadataCard(): Locator {
-        return this.page.getByTestId('expense-metadata-card');
+        return this.page.getByRole('region', { name: translation.pages.expenseDetailPage.metadataSection });
     }
 
     protected getErrorCard(): Locator {
@@ -71,7 +71,7 @@ export class ExpenseDetailPage extends BasePage {
      * Get the discussion section (contains comments) - scoped to the modal
      */
     protected getDiscussionSection(): Locator {
-        return this.page.getByTestId('expense-detail-modal').getByTestId('comments-section');
+        return this.page.getByRole('dialog').getByRole('region', { name: translation.pages.expenseDetailPage.discussion });
     }
 
     /**
@@ -121,7 +121,7 @@ export class ExpenseDetailPage extends BasePage {
      */
     protected getExpenseAmountElement(): Locator {
         // Scope to the modal to avoid matching expense list items
-        return this.page.getByTestId('expense-detail-modal').getByTestId('expense-amount');
+        return this.page.getByRole('dialog').getByTestId('expense-amount');
     }
 
     /**
@@ -159,7 +159,7 @@ export class ExpenseDetailPage extends BasePage {
      */
     async waitForPageReady(): Promise<void> {
         // Wait for the expense detail modal to be visible
-        await expect(this.page.getByTestId('expense-detail-modal')).toBeVisible({ timeout: 5000 });
+        await expect(this.page.getByRole('dialog')).toBeVisible({ timeout: 5000 });
         await this.waitForDomContentLoaded();
         // Wait for the Edit button to be visible as a reliable indicator the modal content is ready
         const editButton = this.getEditButton();
@@ -173,10 +173,13 @@ export class ExpenseDetailPage extends BasePage {
     async clickEditExpenseButton(): Promise<void> {
         const editButton = this.getEditButton();
         await this.clickButton(editButton, { buttonName: 'Edit Expense' });
-        // Wait for expense form modal to open (expense detail modal closes, form modal opens)
-        await expect(this.page.getByTestId('expense-form-modal')).toBeVisible({ timeout: 5000 });
-        // Wait for form content to be ready (description input should be visible in edit mode)
-        await expect(this.page.getByTestId('expense-details-section')).toBeVisible({ timeout: 5000 });
+        // Wait for expense form modal to open with specific title (not just any dialog)
+        // This avoids race conditions during modal transition from expense detail to expense form
+        await expect(
+            this.page.getByRole('dialog', { name: translation.expenseComponents.expenseFormModal.editExpense }),
+        ).toBeVisible({ timeout: 5000 });
+        // Wait for form content to be ready (expense details section should be visible in edit mode)
+        await expect(this.page.getByRole('region', { name: translation.expenseBasicFields.title })).toBeVisible({ timeout: 5000 });
         await this.waitForDomContentLoaded();
     }
 
@@ -203,10 +206,13 @@ export class ExpenseDetailPage extends BasePage {
     async clickCopyExpenseButton(): Promise<void> {
         const copyButton = this.getCopyButton();
         await this.clickButton(copyButton, { buttonName: 'Copy Expense' });
-        // Wait for expense form modal to open (expense detail modal closes, form modal opens)
-        await expect(this.page.getByTestId('expense-form-modal')).toBeVisible({ timeout: 5000 });
-        // Wait for form content to be ready (description input should be visible in copy mode)
-        await expect(this.page.getByTestId('expense-details-section')).toBeVisible({ timeout: 5000 });
+        // Wait for expense form modal to open with specific title (not just any dialog)
+        // This avoids race conditions during modal transition from expense detail to expense form
+        await expect(
+            this.page.getByRole('dialog', { name: translation.expenseComponents.expenseFormModal.copyExpense }),
+        ).toBeVisible({ timeout: 5000 });
+        // Wait for form content to be ready (expense details section should be visible in copy mode)
+        await expect(this.page.getByRole('region', { name: translation.expenseBasicFields.title })).toBeVisible({ timeout: 5000 });
         await this.waitForDomContentLoaded();
     }
 

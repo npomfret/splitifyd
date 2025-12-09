@@ -400,7 +400,6 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
             onClose={onClose}
             size='sm'
             labelledBy='settlement-form-title'
-            data-testid='settlement-form-modal'
         >
             {/* Modal Header */}
             <div class='px-6 py-4 border-b border-border-default'>
@@ -487,7 +486,6 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                             </label>
                             <select
                                 id='payer'
-                                data-testid='settlement-payer-select'
                                 value={payerId}
                                 onChange={(e) => {
                                     const value = (e.target as HTMLSelectElement).value;
@@ -513,7 +511,6 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                             </label>
                             <select
                                 id='payee'
-                                data-testid='settlement-payee-select'
                                 value={payeeId}
                                 onChange={(e) => {
                                     const value = (e.target as HTMLSelectElement).value;
@@ -553,10 +550,9 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                 disabled={isSubmitting}
                                 placeholder={t('settlementForm.amountPlaceholder')}
                                 recentCurrencies={CurrencyService.getInstance().getRecentCurrencies()}
-                                data-testid='settlement-amount-input'
                             />
                             {amountPrecisionError && (
-                                <p class='mt-2 text-sm text-semantic-error' role='alert' data-testid='settlement-amount-error'>
+                                <p class='mt-2 text-sm text-semantic-error' role='alert'>
                                     {amountPrecisionError}
                                 </p>
                             )}
@@ -569,7 +565,6 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                             </label>
                             <input
                                 id='date'
-                                data-testid='settlement-date-input'
                                 type='date'
                                 value={date}
                                 onInput={(e: Event) => {
@@ -590,7 +585,6 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                             </label>
                             <input
                                 id='note'
-                                data-testid='settlement-note-input'
                                 type='text'
                                 placeholder={t('settlementForm.notePlaceholder')}
                                 value={note}
@@ -607,7 +601,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                         {/* Warning Message */}
                         {warningMessage && (
                             <div class='p-3 bg-surface-warning border border-border-warning rounded-md'>
-                                <p class='text-sm text-semantic-warning' role='status' data-testid='settlement-warning-message'>
+                                <p class='text-sm text-semantic-warning' role='status'>
                                     ⚠️ {warningMessage}
                                 </p>
                             </div>
@@ -616,7 +610,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                         {/* Error Message */}
                         {validationError && (
                             <div class='p-3 bg-surface-error border border-border-error rounded-md'>
-                                <p class='text-sm text-semantic-error' role='alert' data-testid='settlement-validation-error'>
+                                <p class='text-sm text-semantic-error' role='alert'>
                                     {validationError}
                                 </p>
                             </div>
@@ -624,7 +618,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
 
                         {/* Action Buttons */}
                         <div class='flex gap-3 pt-2'>
-                            <Button type='button' variant='secondary' onClick={onClose} disabled={isSubmitting} className='flex-1' data-testid='cancel-settlement-button'>
+                            <Button type='button' variant='secondary' onClick={onClose} disabled={isSubmitting} className='flex-1'>
                                 {t('settlementForm.cancelButton')}
                             </Button>
                             <Button
@@ -633,7 +627,6 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                 disabled={!isFormValid || isSubmitting || (editMode && settlementToEdit?.isLocked)}
                                 loading={isSubmitting}
                                 className='flex-1'
-                                data-testid='save-settlement-button'
                             >
                                 {isSubmitting
                                     ? editMode

@@ -54,39 +54,39 @@ export class ExpenseFormPage extends BasePage {
     }
 
     // ============================================================================
-    // CONTAINER SELECTORS - Find sections by their semantic test IDs
+    // CONTAINER SELECTORS - Find sections by their ARIA labels (semantic regions)
     // ============================================================================
 
     /**
      * Expense Details section - contains description, amount, currency, date, time, label
-     * Uses semantic test ID for reliable targeting
+     * Uses semantic region with aria-label
      */
     private getExpenseDetailsSection(): Locator {
-        return this.page.getByTestId('expense-details-section');
+        return this.page.getByRole('region', { name: translation.expenseBasicFields.title });
     }
 
     /**
      * Who Paid section - contains payer radio buttons
-     * Uses semantic test ID for reliable targeting
+     * Uses semantic region with aria-label
      */
     private getWhoPaidSection(): Locator {
-        return this.page.getByTestId('who-paid-section');
+        return this.page.getByRole('region', { name: translation.expenseComponents.payerSelector.label });
     }
 
     /**
      * Split Between section - contains participant checkboxes
-     * Uses semantic test ID for reliable targeting
+     * Uses semantic region with aria-label
      */
     private getSplitBetweenSection(): Locator {
-        return this.page.getByTestId('split-between-section');
+        return this.page.getByRole('region', { name: translation.expenseComponents.participantSelector.label });
     }
 
     /**
      * How to Split section - contains split type radios
-     * Uses semantic test ID for reliable targeting
+     * Uses semantic region with aria-label
      */
     private getHowToSplitSection(): Locator {
-        return this.page.getByTestId('how-to-split-section');
+        return this.page.getByRole('region', { name: translation.expenseComponents.splitTypeSelector.label });
     }
 
     // ============================================================================
@@ -200,12 +200,11 @@ export class ExpenseFormPage extends BasePage {
     }
 
     /**
-     * Cancel button - uses data-testid as it's outside the form element.
-     * Test-ID is justified because there are multiple Cancel buttons on the page
-     * (header cancel and form cancel) that need to be distinguished.
+     * Cancel button - scoped to the dialog to get the footer cancel button.
+     * Uses semantic role selector within the expense form dialog.
      */
     protected getCancelButton(): Locator {
-        return this.page.getByTestId('expense-form-cancel');
+        return this.page.getByRole('dialog').getByRole('button', { name: translation.expenseComponents.expenseFormModal.cancel });
     }
 
     /**
@@ -499,7 +498,7 @@ export class ExpenseFormPage extends BasePage {
     }
 
     async expectFormClosed(): Promise<void> {
-        await expect(this.page.getByTestId('expense-form-modal')).not.toBeVisible();
+        await expect(this.page.getByRole('dialog')).not.toBeVisible();
     }
 
     /**
@@ -659,7 +658,7 @@ export class ExpenseFormPage extends BasePage {
         await expect(saveButton).toBeEnabled({ timeout: 500 });
         await this.clickButton(saveButton, { buttonName: 'Save Expense' });
         // Wait for the expense form modal to close (it's no longer a page navigation)
-        await expect(this.page.getByTestId('expense-form-modal')).not.toBeVisible({ timeout: 3000 });
+        await expect(this.page.getByRole('dialog')).not.toBeVisible({ timeout: 3000 });
     }
 
     /**
@@ -879,7 +878,7 @@ export class ExpenseFormPage extends BasePage {
         await expect(updateButton).toBeVisible({ timeout: 2000 });
         await updateButton.click();
         // Wait for the expense form modal to close after successful update
-        await expect(this.page.getByTestId('expense-form-modal')).not.toBeVisible({ timeout: 3000 });
+        await expect(this.page.getByRole('dialog')).not.toBeVisible({ timeout: 3000 });
     }
 
     async clickCreateCopyButton(): Promise<void> {
@@ -887,7 +886,7 @@ export class ExpenseFormPage extends BasePage {
         await expect(createCopyButton).toBeVisible({ timeout: 2000 });
         await createCopyButton.click();
         // Wait for the expense form modal to close after successful copy creation
-        await expect(this.page.getByTestId('expense-form-modal')).not.toBeVisible({ timeout: 3000 });
+        await expect(this.page.getByRole('dialog')).not.toBeVisible({ timeout: 3000 });
     }
 
     async clickExpenseDetailsHeading(): Promise<void> {
@@ -1241,7 +1240,7 @@ export class ExpenseFormPage extends BasePage {
      * Useful for checking that the form remains open after a submission error.
      */
     async verifyFormModalOpen(): Promise<void> {
-        await expect(this.page.getByTestId('expense-form-modal')).toBeVisible();
+        await expect(this.page.getByRole('dialog')).toBeVisible();
     }
 
     /**

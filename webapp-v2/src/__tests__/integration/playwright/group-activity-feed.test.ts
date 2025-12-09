@@ -553,7 +553,7 @@ test.describe('Group Activity Feed - Navigation', () => {
 
         // Expense detail modal opens (URL stays on group page)
         await expect(page).toHaveURL(new RegExp(`/groups/${groupId}$`));
-        const modal = page.getByTestId('expense-detail-modal');
+        const modal = page.getByRole('dialog');
         await expect(modal).toBeVisible();
         // Verify expense description shows in modal heading
         await expect(modal.getByRole('heading', { name: expenseDescription })).toBeVisible();

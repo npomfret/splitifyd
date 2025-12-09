@@ -146,7 +146,7 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense, isArchivedVi
                     <div class='flex items-start justify-between gap-2 pr-12'>
                         <h4 class='font-semibold text-text-primary text-lg mb-1'>{group.name}</h4>
                         {isArchivedView && (
-                            <span class='inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-surface-warning text-semantic-warning' data-testid='archived-badge'>
+                            <span class='inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-surface-warning text-semantic-warning'>
                                 {t('dashboard.groupCard.archivedBadge')}
                             </span>
                         )}

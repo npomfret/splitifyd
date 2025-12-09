@@ -30,7 +30,7 @@ export function ExpenseBasicFields(
     const recentCurrencies = currencyService.getRecentCurrencies();
 
     return (
-        <Card variant='glass' className='border-border-default' data-testid='expense-details-section'>
+        <Card variant='glass' className='border-border-default' ariaLabel={t('expenseBasicFields.title')}>
             <Stack spacing='lg'>
                 <h2 className='text-lg font-semibold text-text-primary'>{t('expenseBasicFields.title')}</h2>
 

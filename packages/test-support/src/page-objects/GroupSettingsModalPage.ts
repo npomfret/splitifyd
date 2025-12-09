@@ -23,13 +23,11 @@ export class GroupSettingsModalPage extends BasePage {
     // ============================================================================
 
     protected getModalContainer(): Locator {
-        return this.page.locator('[role="dialog"]').filter({
-            has: this.page.getByTestId('group-settings-modal-title'),
-        });
+        return this.page.getByRole('dialog', { name: translation.groupSettingsModal.title });
     }
 
     protected getDeleteDialog(): Locator {
-        return this.page.getByTestId('delete-group-dialog');
+        return this.page.getByRole('dialog', { name: translation.editGroupModal.deleteConfirmDialog.title });
     }
 
     protected getModalBackdrop(): Locator {
@@ -973,7 +971,7 @@ export class GroupSettingsModalPage extends BasePage {
     }
 
     protected getAddCurrencyButton(): Locator {
-        return this.getModalContainer().getByTestId('add-currency-button');
+        return this.getModalContainer().getByRole('button', { name: translation.groupSettings.currencySettings.addCurrency });
     }
 
     protected getRemoveCurrencyButton(code: string): Locator {

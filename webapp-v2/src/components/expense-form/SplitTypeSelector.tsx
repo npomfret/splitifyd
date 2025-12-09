@@ -10,7 +10,7 @@ interface SplitTypeSelectorProps {
 export function SplitTypeSelector({ splitType, updateField }: SplitTypeSelectorProps) {
     const { t } = useTranslation();
     return (
-        <Card variant='glass' className='border-border-default' data-testid='how-to-split-section'>
+        <Card variant='glass' className='border-border-default' ariaLabel={t('expenseComponents.splitTypeSelector.label')}>
             <Stack spacing='md'>
                 <Typography variant='subheading' as='h2'>{t('expenseComponents.splitTypeSelector.label')}</Typography>
                 <div className='grid grid-cols-3 gap-3'>

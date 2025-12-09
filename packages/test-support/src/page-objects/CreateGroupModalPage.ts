@@ -502,7 +502,7 @@ export class CreateGroupModalPage extends BasePage {
     // ============================================================================
 
     protected getAddCurrencyButton(): Locator {
-        return this.getModalContainer().getByTestId('add-currency-button');
+        return this.getModalContainer().getByRole('button', { name: translation.groupSettings.currencySettings.addCurrency });
     }
 
     protected getRemoveCurrencyButton(code: string): Locator {

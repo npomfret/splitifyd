@@ -396,7 +396,6 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                                                         'hover:border-interactive-primary hover:text-interactive-primary transition-colors',
                                                         isSubmitting && 'opacity-50 cursor-not-allowed',
                                                     )}
-                                                    data-testid='add-currency-button'
                                                 >
                                                     + {t('groupSettings.currencySettings.addCurrency')}
                                                 </button>

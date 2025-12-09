@@ -152,7 +152,6 @@ export function ExpenseDetailModal({ isOpen, onClose, groupId, expenseId, onEdit
             onClose={onClose}
             size='lg'
             labelledBy='expense-detail-modal-title'
-            data-testid='expense-detail-modal'
         >
             {/* Modal Header */}
             <div class='px-6 py-4 border-b border-border-default'>
@@ -277,7 +276,7 @@ export function ExpenseDetailModal({ isOpen, onClose, groupId, expenseId, onEdit
                         </Card>
 
                         {/* Comments */}
-                        <Card variant='glass' className='border-border-default'>
+                        <Card variant='glass' className='border-border-default' ariaLabel={t('pages.expenseDetailPage.discussion')}>
                             <Stack spacing='md'>
                                 <h3 className='font-semibold text-text-primary'>{t('expenseComponents.expenseDetailModal.comments')}</h3>
                                 <CommentsSection target={{ type: 'expense', expenseId: expenseId! }} maxHeight='200px' />

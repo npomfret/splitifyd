@@ -60,7 +60,6 @@ export function GroupsList({ onCreateGroup, onInvite, onAddExpense }: GroupsList
                     icon={<ArchiveBoxIcon size={64} />}
                     title={t('dashboardComponents.groupsList.noArchivedTitle')}
                     description={t('dashboardComponents.groupsList.noArchivedDescription')}
-                    data-testid='archived-groups-empty-state'
                 />
             );
         }

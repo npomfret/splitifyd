@@ -193,7 +193,7 @@ export function BalanceSummary({ onSettleUp }: BalanceSummaryProps) {
         );
 
     return (
-        <div data-testid='balance-summary'>
+        <div>
             {/* Filter toggle */}
             <div className='pb-2 border-b border-border-default mb-2'>
                 <Checkbox

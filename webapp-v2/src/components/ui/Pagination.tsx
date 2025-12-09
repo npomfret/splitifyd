@@ -21,7 +21,7 @@ export function Pagination({ currentPage, hasMore, hasPrevious, onNext, onPrevio
 
     return (
         <div class='flex items-center justify-between border-t border-border-default px-4 py-3 sm:px-6 mt-4'>
-            <div class='flex flex-1 justify-between sm:hidden' data-testid='pagination-mobile'>
+            <nav class='flex flex-1 justify-between sm:hidden' aria-label={t('pagination.navigation')}>
                 <Button
                     onClick={onPrevious}
                     disabled={!hasPrevious || loading}
@@ -39,7 +39,7 @@ export function Pagination({ currentPage, hasMore, hasPrevious, onNext, onPrevio
                 >
                     {t('pagination.next')}
                 </Button>
-            </div>
+            </nav>
             <div class='hidden sm:flex sm:flex-1 sm:items-center sm:justify-between'>
                 <div>
                     <p class='text-sm text-text-primary'>

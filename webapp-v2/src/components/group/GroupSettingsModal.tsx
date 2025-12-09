@@ -218,7 +218,7 @@ export function GroupSettingsModal({
             >
                 <div className='flex items-center justify-between px-6 py-4 border-b border-border-default'>
                     <div>
-                        <h2 id='group-settings-modal-title' className='text-lg font-semibold text-text-primary' data-testid='group-settings-modal-title'>
+                        <h2 id='group-settings-modal-title' className='text-lg font-semibold text-text-primary'>
                             {t('groupSettingsModal.title')}
                         </h2>
                     </div>

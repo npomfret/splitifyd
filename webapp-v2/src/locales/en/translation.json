@@ -1718,7 +1718,10 @@
       "lastUpdated": "Last updated ",
       "receiptViewer": "Receipt viewer",
       "closeReceiptViewer": "Close receipt viewer",
-      "receiptFullSize": "Receipt - Full Size"
+      "receiptFullSize": "Receipt - Full Size",
+      "summarySection": "Expense Summary",
+      "splitSection": "Split Details",
+      "metadataSection": "Expense Metadata"
     },
     "groupDetailPage": {
       "errorLoadingGroup": "Error Loading Group",

@@ -31,8 +31,9 @@ export function DeleteGroupConfirmationModal({
             onClose={isDeleting ? undefined : onCancel}
             size='sm'
             className='max-w-md'
+            ariaLabel={t('editGroupModal.deleteConfirmDialog.title')}
         >
-            <div data-testid='delete-group-dialog'>
+            <div>
                 <div className='px-6 py-4 border-b border-border-default'>
                     <h3 className='text-lg font-semibold text-semantic-error flex items-center'>
                         <span className='mr-2'>⚠️</span>

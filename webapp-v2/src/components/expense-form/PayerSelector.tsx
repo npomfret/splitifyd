@@ -42,7 +42,7 @@ export function PayerSelector({ members, paidBy, validationErrors, updateField }
     const hasError = !!validationErrors.paidBy;
 
     return (
-        <Card variant='glass' className='border-border-default relative z-10 overflow-visible!' data-testid='who-paid-section'>
+        <Card variant='glass' className='border-border-default relative z-10 overflow-visible!' ariaLabel={t('expenseComponents.payerSelector.label')}>
             <Stack spacing='md'>
                 <label htmlFor={inputId} className='text-lg font-semibold text-text-primary'>
                     {t('expenseComponents.payerSelector.label')}{' '}
