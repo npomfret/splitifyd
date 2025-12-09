@@ -444,7 +444,6 @@ export default function GroupDetailPage({ id: groupId, expenseId: routeExpenseId
                         {/* 5. Expenses (always visible) */}
                         <SidebarCard
                             id='expenses'
-                            data-testid='expenses-card'
                             title={
                                 <div className='flex items-center gap-2'>
                                     <ReceiptPercentIcon className='h-5 w-5 text-text-muted' aria-hidden='true' />

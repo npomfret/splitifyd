@@ -148,10 +148,12 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * Expenses section container - found by "Expenses" or "Recent Expenses" heading
+     * Expenses section container - found by section containing "Expenses" heading
      */
     protected getExpensesContainer(): Locator {
-        return this.page.getByTestId('expenses-list-card');
+        return this.page.locator('section, [id="expenses"]').filter({
+            has: this.page.getByRole('heading', { name: translation.pages.groupDetailPage.expenses }),
+        });
     }
 
     /**
@@ -586,7 +588,7 @@ export class GroupDetailPage extends BasePage {
     }
 
     protected getIncludeDeletedExpensesCheckbox(): Locator {
-        return this.getExpensesContainer().locator('[data-testid="include-deleted-expenses-checkbox"]');
+        return this.getExpensesContainer().getByLabel(translation.common.includeDeleted);
     }
 
     /**
@@ -610,10 +612,10 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * Empty expenses state - uses EmptyState component with data-testid
+     * Empty expenses state - found by the empty state title text
      */
     protected getEmptyExpensesState(): Locator {
-        return this.getExpensesContainer().getByTestId('expenses-empty-state');
+        return this.getExpensesContainer().getByRole('heading', { name: translation.expensesList.noExpensesYet });
     }
 
     // ============================================================================

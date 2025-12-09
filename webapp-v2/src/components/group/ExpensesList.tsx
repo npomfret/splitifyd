@@ -1,13 +1,11 @@
 import { useStaggeredReveal } from '@/app/hooks/useScrollReveal';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced';
 import { EmptyState } from '@/components/ui';
-import { Typography } from '@/components/ui';
 import type { ExpenseDTO } from '@billsplit-wl/shared';
 import { ReceiptPercentIcon } from '@heroicons/react/24/outline';
 import { useComputed } from '@preact/signals';
 import { useTranslation } from 'react-i18next';
 import { Button } from '../ui/Button';
-import { Card } from '../ui/Card';
 import { Checkbox } from '../ui/Checkbox';
 import { SkeletonExpenseItem } from '../ui/Skeleton';
 import { Stack } from '../ui/Stack';
@@ -47,18 +45,16 @@ export function ExpensesList({
     const isInitialLoad = loading.value && expenses.value.length === 0;
 
     return (
-        <Card variant='glass' className='p-6 border-border-default' data-testid='expenses-list-card'>
-            <div className='flex justify-between items-center mb-4'>
-                <Typography variant='subheading' as='h2'>{t('expensesList.title')}</Typography>
-                {canToggleShowDeleted && onShowDeletedChange && (
+        <div>
+            {canToggleShowDeleted && onShowDeletedChange && (
+                <div className='flex justify-end mb-4'>
                     <Checkbox
                         label={t('common.includeDeleted')}
                         checked={showDeletedExpenses}
                         onChange={onShowDeletedChange}
-                        data-testid='include-deleted-expenses-checkbox'
                     />
-                )}
-            </div>
+                </div>
+            )}
 
             {/* Loading skeleton */}
             {isInitialLoad
@@ -74,7 +70,6 @@ export function ExpensesList({
                     <EmptyState
                         icon={<ReceiptPercentIcon className='w-12 h-12' aria-hidden='true' />}
                         title={t('expensesList.noExpensesYet')}
-                        data-testid='expenses-empty-state'
                     />
                 )
                 : (
@@ -100,6 +95,6 @@ export function ExpensesList({
                         )}
                     </Stack>
                 )}
-        </Card>
+        </div>
     );
 }
