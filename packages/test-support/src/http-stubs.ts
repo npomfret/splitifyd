@@ -41,6 +41,8 @@ export function createUnauthenticatedStubRequest(body: any = {}, params: any = {
 export function createStubResponse(): any {
     let statusCode: number;
     let jsonData: any;
+    let bodyData: any;
+    let contentType: string | undefined;
 
     const res = {
         status: (code: number) => {
@@ -54,11 +56,18 @@ export function createStubResponse(): any {
         send: (data?: any) => {
             if (data !== undefined) {
                 jsonData = data;
+                bodyData = data;
             }
+            return res;
+        },
+        type: (type: string) => {
+            contentType = type;
             return res;
         },
         getStatus: () => statusCode,
         getJson: () => jsonData,
+        getBody: () => bodyData,
+        getContentType: () => contentType,
     };
 
     return res;

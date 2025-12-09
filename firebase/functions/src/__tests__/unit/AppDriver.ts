@@ -1184,16 +1184,25 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return res.getJson() as CurrentPolicyResponse;
     }
 
-    async getPrivacyPolicy(): Promise<CurrentPolicyResponse> {
-        return this.getCurrentPolicy(toPolicyId('privacy-policy'));
+    async getPrivacyPolicy(): Promise<string> {
+        const req = createStubRequest('', {});
+        const res = await this.dispatchByHandler('getPrivacyPolicyText', req);
+        this.throwIfError(res);
+        return res.getBody() as string;
     }
 
-    async getTermsOfService(): Promise<CurrentPolicyResponse> {
-        return this.getCurrentPolicy(toPolicyId('terms-of-service'));
+    async getTermsOfService(): Promise<string> {
+        const req = createStubRequest('', {});
+        const res = await this.dispatchByHandler('getTermsOfServiceText', req);
+        this.throwIfError(res);
+        return res.getBody() as string;
     }
 
-    async getCookiePolicy(): Promise<CurrentPolicyResponse> {
-        return this.getCurrentPolicy(toPolicyId('cookie-policy'));
+    async getCookiePolicy(): Promise<string> {
+        const req = createStubRequest('', {});
+        const res = await this.dispatchByHandler('getCookiePolicyText', req);
+        this.throwIfError(res);
+        return res.getBody() as string;
     }
 
     async getActivityFeed(options: GetActivityFeedOptions = {}, authToken: AuthToken): Promise<ActivityFeedResponse> {

@@ -484,6 +484,22 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
             res.json(result);
         },
 
+        // Policy text endpoints - return text/plain for tenant embedding
+        getPrivacyPolicyText: async (_req, res) => {
+            const result = await policyService.getCurrentPolicy(toPolicyId('privacy-policy'));
+            res.type('text/plain').send(result.text);
+        },
+
+        getTermsOfServiceText: async (_req, res) => {
+            const result = await policyService.getCurrentPolicy(toPolicyId('terms-of-service'));
+            res.type('text/plain').send(result.text);
+        },
+
+        getCookiePolicyText: async (_req, res) => {
+            const result = await policyService.getCurrentPolicy(toPolicyId('cookie-policy'));
+            res.type('text/plain').send(result.text);
+        },
+
         // Diagnostic handlers
         getMetrics,
         getHealth,

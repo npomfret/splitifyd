@@ -1,16 +1,14 @@
 import type { UserId } from '@billsplit-wl/shared';
 import { CreatePolicyRequestBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { ErrorCode } from '../../../errors';
 import { AppDriver } from '../AppDriver';
 
 /**
- * Tests for the public policy convenience methods.
+ * Tests for the public policy text endpoints.
  *
- * These methods wrap getCurrentPolicy with specific policy IDs
- * for common policy types (privacy, terms, cookies).
+ * These endpoints return plain text policy content for tenant embedding.
  */
-describe('public policy convenience methods', () => {
+describe('public policy text endpoints', () => {
     let appDriver: AppDriver;
     let adminToken: UserId;
 
@@ -34,7 +32,7 @@ describe('public policy convenience methods', () => {
     });
 
     describe('getPrivacyPolicy', () => {
-        it('should return privacy policy', async () => {
+        it('should return privacy policy text as plain text', async () => {
             await appDriver.createPolicy(
                 new CreatePolicyRequestBuilder()
                     .withPolicyName('Privacy Policy')
@@ -45,19 +43,17 @@ describe('public policy convenience methods', () => {
 
             const result = await appDriver.getPrivacyPolicy();
 
-            expect(result.id).toBe('privacy-policy');
-            expect(result.policyName).toBe('Privacy Policy');
-            expect(result.text).toBe('Privacy policy content.');
+            expect(typeof result).toBe('string');
+            expect(result).toBe('Privacy policy content.');
         });
 
-        it('should return NOT_FOUND when policy does not exist', async () => {
-            const result = await appDriver.getPrivacyPolicy() as any;
-            expect(result.error?.code).toBe(ErrorCode.NOT_FOUND);
+        it('should throw when policy does not exist', async () => {
+            await expect(appDriver.getPrivacyPolicy()).rejects.toThrow();
         });
     });
 
     describe('getTermsOfService', () => {
-        it('should return terms of service', async () => {
+        it('should return terms of service text as plain text', async () => {
             await appDriver.createPolicy(
                 new CreatePolicyRequestBuilder()
                     .withPolicyName('Terms Of Service')
@@ -68,19 +64,17 @@ describe('public policy convenience methods', () => {
 
             const result = await appDriver.getTermsOfService();
 
-            expect(result.id).toBe('terms-of-service');
-            expect(result.policyName).toBe('Terms Of Service');
-            expect(result.text).toBe('Terms of service content.');
+            expect(typeof result).toBe('string');
+            expect(result).toBe('Terms of service content.');
         });
 
-        it('should return NOT_FOUND when policy does not exist', async () => {
-            const result = await appDriver.getTermsOfService() as any;
-            expect(result.error?.code).toBe(ErrorCode.NOT_FOUND);
+        it('should throw when policy does not exist', async () => {
+            await expect(appDriver.getTermsOfService()).rejects.toThrow();
         });
     });
 
     describe('getCookiePolicy', () => {
-        it('should return cookie policy', async () => {
+        it('should return cookie policy text as plain text', async () => {
             await appDriver.createPolicy(
                 new CreatePolicyRequestBuilder()
                     .withPolicyName('Cookie Policy')
@@ -91,14 +85,12 @@ describe('public policy convenience methods', () => {
 
             const result = await appDriver.getCookiePolicy();
 
-            expect(result.id).toBe('cookie-policy');
-            expect(result.policyName).toBe('Cookie Policy');
-            expect(result.text).toBe('Cookie policy content.');
+            expect(typeof result).toBe('string');
+            expect(result).toBe('Cookie policy content.');
         });
 
-        it('should return NOT_FOUND when policy does not exist', async () => {
-            const result = await appDriver.getCookiePolicy() as any;
-            expect(result.error?.code).toBe(ErrorCode.NOT_FOUND);
+        it('should throw when policy does not exist', async () => {
+            await expect(appDriver.getCookiePolicy()).rejects.toThrow();
         });
     });
 });

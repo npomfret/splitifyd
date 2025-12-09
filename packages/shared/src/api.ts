@@ -127,22 +127,22 @@ export interface PublicAPI {
     getCurrentPolicy(policyId: PolicyId): Promise<CurrentPolicyResponse>;
 
     /**
-     * Get the Privacy Policy
-     * Convenience method that calls getCurrentPolicy('privacy-policy')
+     * Get the Privacy Policy content as plain text
+     * Returns text/plain response for tenant embedding
      */
-    getPrivacyPolicy(): Promise<CurrentPolicyResponse>;
+    getPrivacyPolicy(): Promise<string>;
 
     /**
-     * Get the Terms of Service
-     * Convenience method that calls getCurrentPolicy('terms-of-service')
+     * Get the Terms of Service content as plain text
+     * Returns text/plain response for tenant embedding
      */
-    getTermsOfService(): Promise<CurrentPolicyResponse>;
+    getTermsOfService(): Promise<string>;
 
     /**
-     * Get the Cookie Policy
-     * Convenience method that calls getCurrentPolicy('cookie-policy')
+     * Get the Cookie Policy content as plain text
+     * Returns text/plain response for tenant embedding
      */
-    getCookiePolicy(): Promise<CurrentPolicyResponse>;
+    getCookiePolicy(): Promise<string>;
 
     /**
      * Authenticate a user with email and password.

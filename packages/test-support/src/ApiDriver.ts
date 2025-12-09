@@ -514,16 +514,36 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return await this.apiRequest(`/policies/${policyId}/current`, 'GET', null);
     }
 
-    async getPrivacyPolicy(): Promise<CurrentPolicyResponse> {
-        return this.getCurrentPolicy(toPolicyId('privacy-policy'));
+    async getPrivacyPolicy(): Promise<string> {
+        return this.fetchPolicyText('/policies/privacy-policy/text');
     }
 
-    async getTermsOfService(): Promise<CurrentPolicyResponse> {
-        return this.getCurrentPolicy(toPolicyId('terms-of-service'));
+    async getTermsOfService(): Promise<string> {
+        return this.fetchPolicyText('/policies/terms-of-service/text');
     }
 
-    async getCookiePolicy(): Promise<CurrentPolicyResponse> {
-        return this.getCurrentPolicy(toPolicyId('cookie-policy'));
+    async getCookiePolicy(): Promise<string> {
+        return this.fetchPolicyText('/policies/cookie-policy/text');
+    }
+
+    private async fetchPolicyText(endpoint: string): Promise<string> {
+        const url = `${this.config.baseUrl}${endpoint}`;
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                Accept: 'text/plain',
+                Host: 'localhost',
+            },
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            const error = new Error(`API request to ${endpoint} failed with status ${response.status}: ${errorText}`);
+            (error as any).status = response.status;
+            throw error;
+        }
+
+        return response.text();
     }
 
     async acceptMultiplePolicies(acceptances: AcceptPolicyRequest[], token: AuthToken): Promise<AcceptMultiplePoliciesResponse> {

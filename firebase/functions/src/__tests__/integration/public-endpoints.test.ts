@@ -46,4 +46,40 @@ describe('Public endpoints', () => {
             expect(error.status).toBe(404);
         }
     });
+
+    it('GET /policies/privacy-policy/text returns plain text', async () => {
+        // Tests that the privacy policy text endpoint returns text content
+        try {
+            const text = await apiDriver.getPrivacyPolicy();
+            expect(typeof text).toBe('string');
+            expect(text.length).toBeGreaterThan(0);
+        } catch (error: any) {
+            // 404 is acceptable if policy isn't seeded
+            expect(error.status).toBe(404);
+        }
+    });
+
+    it('GET /policies/terms-of-service/text returns plain text', async () => {
+        // Tests that the terms of service text endpoint returns text content
+        try {
+            const text = await apiDriver.getTermsOfService();
+            expect(typeof text).toBe('string');
+            expect(text.length).toBeGreaterThan(0);
+        } catch (error: any) {
+            // 404 is acceptable if policy isn't seeded
+            expect(error.status).toBe(404);
+        }
+    });
+
+    it('GET /policies/cookie-policy/text returns plain text', async () => {
+        // Tests that the cookie policy text endpoint returns text content
+        try {
+            const text = await apiDriver.getCookiePolicy();
+            expect(typeof text).toBe('string');
+            expect(text.length).toBeGreaterThan(0);
+        } catch (error: any) {
+            // 404 is acceptable if policy isn't seeded
+            expect(error.status).toBe(404);
+        }
+    });
 });

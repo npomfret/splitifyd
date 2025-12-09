@@ -109,6 +109,24 @@ const routeDefinitions: RouteDefinition[] = [
         handlerName: 'getCurrentPolicy',
         category: 'public',
     },
+    {
+        method: 'GET',
+        path: '/policies/privacy-policy/text',
+        handlerName: 'getPrivacyPolicyText',
+        category: 'public',
+    },
+    {
+        method: 'GET',
+        path: '/policies/terms-of-service/text',
+        handlerName: 'getTermsOfServiceText',
+        category: 'public',
+    },
+    {
+        method: 'GET',
+        path: '/policies/cookie-policy/text',
+        handlerName: 'getCookiePolicyText',
+        category: 'public',
+    },
 
     // === Test Endpoints (emulator only - handlers not registered in production) ===
     {

@@ -1171,16 +1171,42 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
         return this.getCurrentPolicyInternal(policyId, signal);
     }
 
-    async getPrivacyPolicy(): Promise<CurrentPolicyResponse> {
-        return this.getCurrentPolicy(toPolicyId('privacy-policy'));
+    async getPrivacyPolicy(): Promise<string> {
+        return this.fetchPolicyText('/policies/privacy-policy/text');
     }
 
-    async getTermsOfService(): Promise<CurrentPolicyResponse> {
-        return this.getCurrentPolicy(toPolicyId('terms-of-service'));
+    async getTermsOfService(): Promise<string> {
+        return this.fetchPolicyText('/policies/terms-of-service/text');
     }
 
-    async getCookiePolicy(): Promise<CurrentPolicyResponse> {
-        return this.getCurrentPolicy(toPolicyId('cookie-policy'));
+    async getCookiePolicy(): Promise<string> {
+        return this.fetchPolicyText('/policies/cookie-policy/text');
+    }
+
+    /**
+     * Fetches policy text as plain text from the specified endpoint.
+     * Server controls caching via Cache-Control headers in cache-control middleware.
+     */
+    private async fetchPolicyText(endpoint: string): Promise<string> {
+        const url = `/api${endpoint}`;
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Accept': 'text/plain',
+            },
+            credentials: 'omit',
+        });
+
+        if (!response.ok) {
+            throw new ApiError(`Request failed with status ${response.status}`, 'POLICY_FETCH_ERROR', undefined, {
+                url,
+                method: 'GET',
+                status: response.status,
+                statusText: response.statusText,
+            });
+        }
+
+        return response.text();
     }
 
     async getAppConfig(signal?: AbortSignal): Promise<ClientAppConfiguration> {
