@@ -964,7 +964,8 @@ export class FirestoreWriter implements IFirestoreWriter {
         const docRef = documentId ? collectionRef.doc(documentId) : collectionRef.doc();
         batch.set(docRef, {
             ...data,
-            timestamp: FieldValue.serverTimestamp(),
+            // Preserve passed-in timestamp for deduplication consistency across batch writes
+            timestamp: data.timestamp ? this.isoToTimestamp(data.timestamp) : FieldValue.serverTimestamp(),
             createdAt: FieldValue.serverTimestamp(),
             updatedAt: FieldValue.serverTimestamp(),
         });

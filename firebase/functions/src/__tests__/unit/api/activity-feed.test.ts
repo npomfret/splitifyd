@@ -158,7 +158,7 @@ describe('activity-feed', () => {
                 (item) => item.eventType === 'expense-created' && item.details?.expenseDescription === 'Shared Dinner',
             );
 
-            // BUG: Currently returns 2 (one per member), should return 1
+            // Each event should appear only once (deduplication working correctly)
             expect(expenseCreatedEvents.length).toBe(1);
 
             // Also verify no duplicate member-joined events
