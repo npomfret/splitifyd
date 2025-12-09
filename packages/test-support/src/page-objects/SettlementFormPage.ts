@@ -48,13 +48,13 @@ export class SettlementFormPage extends BasePage {
     }
 
     protected getRecordPaymentButton(): Locator {
-        // Use test-id for reliable selection regardless of scroll position
-        return this.getModal().getByTestId('save-settlement-button');
+        // Submit button in the settlement form - semantic selector using button type
+        return this.getModal().locator('button[type="submit"]');
     }
 
     protected getUpdatePaymentButton(): Locator {
-        // Same button as record, just different text - use test-id for reliability
-        return this.getModal().getByTestId('save-settlement-button');
+        // Same button as record - submit button in the form
+        return this.getModal().locator('button[type="submit"]');
     }
 
     protected getCancelButton(): Locator {
@@ -62,7 +62,7 @@ export class SettlementFormPage extends BasePage {
     }
 
     protected getCloseButton(): Locator {
-        return this.getModal().locator('button[aria-label]').first();
+        return this.getModal().getByRole('button', { name: translation.settlementForm.closeModal });
     }
 
     protected getWarningMessage(): Locator {

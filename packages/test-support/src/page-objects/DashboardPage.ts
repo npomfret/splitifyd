@@ -61,10 +61,10 @@ export class DashboardPage extends BasePage {
     }
 
     /**
-     * Error message container within the dashboard (uses ErrorState component)
+     * Error message container within the dashboard (uses ErrorState component with role='alert')
      */
     protected getErrorContainer(): Locator {
-        return this.getGroupsContainer().getByTestId('error-message');
+        return this.getGroupsContainer().getByRole('alert');
     }
 
     // ============================================================================
@@ -89,7 +89,7 @@ export class DashboardPage extends BasePage {
      * Error state heading (uses ErrorState component)
      */
     protected getErrorHeading(): Locator {
-        return this.getGroupsContainer().getByTestId('error-title');
+        return this.getGroupsContainer().getByRole('alert').getByRole('heading');
     }
 
     // ============================================================================
@@ -205,13 +205,13 @@ export class DashboardPage extends BasePage {
     }
 
     private getPaginationNextButtonMobile(): Locator {
-        // Mobile pagination next button (shows text content)
-        return this.page.locator('.sm\\:hidden').getByRole('button', { name: translation.pagination.next });
+        // Mobile pagination next button - uses test ID container for scoping
+        return this.page.getByTestId('pagination-mobile').getByRole('button', { name: translation.pagination.next });
     }
 
     private getPaginationPreviousButtonMobile(): Locator {
-        // Mobile pagination previous button (shows text content)
-        return this.page.locator('.sm\\:hidden').getByRole('button', { name: translation.pagination.previous });
+        // Mobile pagination previous button - uses test ID container for scoping
+        return this.page.getByTestId('pagination-mobile').getByRole('button', { name: translation.pagination.previous });
     }
 
     async verifyPaginationHidden(): Promise<void> {

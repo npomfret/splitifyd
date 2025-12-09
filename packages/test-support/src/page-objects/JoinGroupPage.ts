@@ -72,12 +72,39 @@ export class JoinGroupPage extends BasePage {
         return this.page.getByRole('button', { name: new RegExp(`${translation.registerPage.title}|${translation.header.signUp}`, 'i') });
     }
 
-    protected getErrorMessage(): Locator {
-        return this.page.locator('[data-testid="invalid-link-warning"], [data-testid="unable-join-warning"]');
+    /**
+     * Check if any error warning is visible.
+     * Used internally to detect error state - not for assertions.
+     * For assertions, use verifyInvalidLinkWarningVisible() or verifyUnableToJoinWarningVisible().
+     */
+    private async isAnyErrorWarningVisible(): Promise<boolean> {
+        const invalidLinkVisible = await this.getInvalidLinkWarning().isVisible().catch(() => false);
+        if (invalidLinkVisible) return true;
+        const unableToJoinVisible = await this.getUnableToJoinWarning().isVisible().catch(() => false);
+        return unableToJoinVisible;
     }
 
+    /**
+     * Get the text content of whichever error warning is visible.
+     * Returns empty string if neither is visible.
+     */
+    private async getVisibleErrorText(): Promise<string> {
+        const invalidLinkVisible = await this.getInvalidLinkWarning().isVisible().catch(() => false);
+        if (invalidLinkVisible) {
+            return (await this.getInvalidLinkWarning().textContent()) || '';
+        }
+        const unableToJoinVisible = await this.getUnableToJoinWarning().isVisible().catch(() => false);
+        if (unableToJoinVisible) {
+            return (await this.getUnableToJoinWarning().textContent()) || '';
+        }
+        return '';
+    }
+
+    /**
+     * Pending approval alert - uses role='alert' with aria-label
+     */
     protected getPendingApprovalAlert(): Locator {
-        return this.page.getByTestId('pending-approval-alert');
+        return this.page.getByRole('alert', { name: translation.joinGroupPage.pendingApprovalTitle });
     }
 
     protected getBackToDashboardButton(): Locator {
@@ -92,16 +119,25 @@ export class JoinGroupPage extends BasePage {
         return this.page.getByRole('button', { name: translation.joinGroupPage.cancel });
     }
 
+    /**
+     * Invalid link warning - identified by role='alert' with aria-label containing error title
+     */
     private getInvalidLinkWarning(): Locator {
-        return this.page.locator('[data-testid="invalid-link-warning"]');
+        return this.page.getByRole('alert', { name: translation.errors.invalidLink });
     }
 
+    /**
+     * Unable to join warning - identified by role='alert' with aria-label containing error title
+     */
     private getUnableToJoinWarning(): Locator {
-        return this.page.locator('[data-testid="unable-join-warning"]');
+        return this.page.getByRole('alert', { name: translation.joinGroupPage.errors.joinFailed });
     }
 
+    /**
+     * Join success container - identified by role='status' with aria-label containing "Welcome to"
+     */
     private getJoinSuccessContainer(): Locator {
-        return this.page.locator('[data-join-success="true"]');
+        return this.page.getByRole('status', { name: /Welcome to/ });
     }
 
     private getSuccessIcon(): Locator {
@@ -128,11 +164,7 @@ export class JoinGroupPage extends BasePage {
     }
 
     async isErrorPage(): Promise<boolean> {
-        try {
-            return await this.getErrorMessage().isVisible({ timeout: 2000 });
-        } catch {
-            return false;
-        }
+        return await this.isAnyErrorWarningVisible();
     }
 
     // ============================================================================
@@ -227,7 +259,7 @@ export class JoinGroupPage extends BasePage {
         await expect(async () => {
             const currentUrl = this.page.url();
             const isOnGroupPage = currentUrl.match(JoinGroupPage.groupDetailUrlPattern());
-            const hasError = await this.getErrorMessage().isVisible().catch(() => false);
+            const hasError = await this.isAnyErrorWarningVisible();
             const hasSuccessScreen = await this.getJoinSuccessContainer().isVisible().catch(() => false);
 
             if (isOnGroupPage) {
@@ -235,7 +267,7 @@ export class JoinGroupPage extends BasePage {
             }
 
             if (hasError) {
-                const errorText = await this.getErrorMessage().textContent();
+                const errorText = await this.getVisibleErrorText();
                 throw new Error(`Join failed: ${errorText}`);
             }
 
@@ -337,16 +369,19 @@ export class JoinGroupPage extends BasePage {
         return await this.getJoinGroupButton().isVisible().catch(() => false);
     }
 
+    /**
+     * Verify error message - uses role='alert' which is present on error messages
+     */
     async verifyErrorMessageContains(expectedText: string): Promise<void> {
-        const inlineError = this.page.getByTestId('join-group-error-message');
+        const alertElement = this.page.getByRole('alert');
         const headingError = this.page.getByRole('heading', { name: expectedText });
 
         await expect(async () => {
-            const inlineVisible = await inlineError.isVisible().catch(() => false);
+            const alertVisible = await alertElement.isVisible().catch(() => false);
             const headingVisible = await headingError.isVisible().catch(() => false);
 
-            if (inlineVisible) {
-                await expect(inlineError).toContainText(expectedText);
+            if (alertVisible) {
+                await expect(alertElement).toContainText(expectedText);
                 return;
             }
 
@@ -355,7 +390,7 @@ export class JoinGroupPage extends BasePage {
                 return;
             }
 
-            throw new Error(`Expected error message "${expectedText}" not found in inline error or heading`);
+            throw new Error(`Expected error message "${expectedText}" not found in alert or heading`);
         })
             .toPass({ timeout: TEST_TIMEOUTS.ERROR_DISPLAY });
     }
@@ -388,16 +423,26 @@ export class JoinGroupPage extends BasePage {
         await this.clickButton(cancelButton, { buttonName: 'Cancel Join Group' });
     }
 
+    /**
+     * Display name modal dialog - identified by its title
+     */
+    private getDisplayNameModal(): Locator {
+        return this.page.getByRole('dialog', { name: translation.joinGroupPage.displayName.title });
+    }
+
+    /**
+     * Display name input - identified by label text within the modal dialog
+     */
     private getDisplayNameInput(): Locator {
-        return this.page.getByTestId('join-display-name-input');
+        return this.getDisplayNameModal().getByLabel(translation.joinGroupPage.displayName.label);
     }
 
     private getModalJoinButton(): Locator {
-        return this.page.locator('button:has-text("Join Group")').last();
+        return this.getDisplayNameModal().getByRole('button', { name: translation.joinGroupPage.joinGroup });
     }
 
     private getModalCancelButton(): Locator {
-        return this.page.locator('button:has-text("Cancel")').last();
+        return this.getDisplayNameModal().getByRole('button', { name: translation.joinGroupPage.cancel });
     }
 
     async waitForDisplayNameModal(timeout: number = TEST_TIMEOUTS.MODAL_TRANSITION): Promise<void> {

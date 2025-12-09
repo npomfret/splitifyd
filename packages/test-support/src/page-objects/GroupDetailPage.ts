@@ -308,10 +308,10 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * Loading spinner
+     * Loading spinner - uses role='status' for semantic selection
      */
     protected getLoadingSpinner(): Locator {
-        return this.page.getByTestId('loading-spinner');
+        return this.page.getByRole('status', { name: translation.uiComponents.loadingSpinner.loading });
     }
 
     /**

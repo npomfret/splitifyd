@@ -601,7 +601,7 @@ export class GroupSettingsModalPage extends BasePage {
             await dashboardGuards.verifyDashboardPageLoaded();
         }
 
-        const spinner = this.page.getByTestId('loading-spinner');
+        const spinner = this.page.getByRole('status', { name: translation.uiComponents.loadingSpinner.loading });
         await expect(spinner).not.toBeVisible({ timeout: 5000 });
 
         return dashboardPage;

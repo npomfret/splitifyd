@@ -1,6 +1,8 @@
 import { expect, Page } from '@playwright/test';
+import { translationEn } from '../translations/translation-en';
 import { BasePage } from './BasePage';
 
+const translation = translationEn;
 const MIN_CONTRAST_RATIO = 4.5;
 
 /**
@@ -45,7 +47,9 @@ export class ThemePage extends BasePage {
      * Verify header displays expected app name
      */
     async expectHeaderAppName(expectedAppName: string): Promise<void> {
-        const logoText = await this.page.locator('[data-testid="header-logo-link"] span').innerText();
+        // Find the logo button by its aria-label, then get the text inside
+        const logoButton = this.page.getByRole('button', { name: translation.header.goToHome });
+        const logoText = await logoButton.locator('span').innerText();
         expect(logoText.trim()).toBe(expectedAppName);
     }
 
@@ -53,7 +57,8 @@ export class ThemePage extends BasePage {
      * Get sign up button's computed background colors (for comparison between themes)
      */
     async getSignUpButtonColors(): Promise<{ backgroundColor: string; backgroundImage: string; }> {
-        const signUpButton = this.page.getByTestId('header-signup-link');
+        // Use exact match to differentiate header "Sign Up" from login form "Sign up"
+        const signUpButton = this.page.getByRole('button', { name: translation.header.signUp, exact: true });
         await expect(signUpButton).toBeVisible();
 
         const [backgroundColor, backgroundImage] = await signUpButton.evaluate((element) => {

@@ -21,7 +21,7 @@ export function Pagination({ currentPage, hasMore, hasPrevious, onNext, onPrevio
 
     return (
         <div class='flex items-center justify-between border-t border-border-default px-4 py-3 sm:px-6 mt-4'>
-            <div class='flex flex-1 justify-between sm:hidden'>
+            <div class='flex flex-1 justify-between sm:hidden' data-testid='pagination-mobile'>
                 <Button
                     onClick={onPrevious}
                     disabled={!hasPrevious || loading}

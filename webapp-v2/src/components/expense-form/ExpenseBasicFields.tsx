@@ -127,13 +127,14 @@ export function ExpenseBasicFields(
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                     {/* Date */}
                     <div>
-                        <label className='block text-sm font-medium text-text-primary mb-1'>
+                        <label htmlFor='expense-date-input' className='block text-sm font-medium text-text-primary mb-1'>
                             {t('expenseBasicFields.dateLabel')}{' '}
                             <span className='text-semantic-error' data-testid='required-indicator'>
                                 *
                             </span>
                         </label>
                         <input
+                            id='expense-date-input'
                             type='date'
                             value={date}
                             onInput={(e) => updateField('date', (e.target as HTMLInputElement).value)}

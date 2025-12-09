@@ -30,16 +30,15 @@ export class RegisterPage extends BasePage {
     protected getRegisterFormContainer(): Locator {
         // Find the form that contains registration-specific elements
         return this.page.locator('form').filter({
-            has: this.page.locator('input#fullname-input'),
+            has: this.page.getByLabel(translation.registerPage.fullNameLabel),
         });
     }
 
     /**
      * Register page heading container - helps identify we're on the right page
-     * The heading is in the Card parent, which is two levels up from the form
      */
     protected getPageHeading(): Locator {
-        return this.getRegisterFormContainer().locator('../..').getByRole('heading', { name: translation.registerPage.title });
+        return this.page.getByRole('heading', { name: translation.registerPage.title });
     }
 
     /**
@@ -58,28 +57,28 @@ export class RegisterPage extends BasePage {
      * Full name input field within the register form
      */
     protected getNameInput(): Locator {
-        return this.getRegisterFormContainer().locator('input#fullname-input');
+        return this.getRegisterFormContainer().getByLabel(translation.registerPage.fullNameLabel);
     }
 
     /**
      * Email input field within the register form
      */
     protected getEmailInput(): Locator {
-        return this.getRegisterFormContainer().locator('input[type="email"]');
+        return this.getRegisterFormContainer().getByLabel(translation.auth.emailInput.label);
     }
 
     /**
      * Password input field within the register form
      */
     protected getPasswordInput(): Locator {
-        return this.getRegisterFormContainer().locator('input#password-input');
+        return this.getRegisterFormContainer().getByLabel(translation.registerPage.passwordLabel, { exact: true });
     }
 
     /**
      * Confirm password input field within the register form
      */
     protected getConfirmPasswordInput(): Locator {
-        return this.getRegisterFormContainer().locator('input#confirm-password-input');
+        return this.getRegisterFormContainer().getByLabel(translation.registerPage.confirmPasswordLabel);
     }
 
     /**

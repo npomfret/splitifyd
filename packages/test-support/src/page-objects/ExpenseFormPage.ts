@@ -147,10 +147,10 @@ export class ExpenseFormPage extends BasePage {
     // ============================================================================
 
     /**
-     * Equal split container - find by the visible instruction text, then get parent
+     * Equal split container - uses test ID for reliable targeting
      */
     protected getEqualSplitContainer(): Locator {
-        return this.page.getByText(/each person pays/i).locator('..');
+        return this.page.getByTestId('equal-split-container');
     }
 
     /**
@@ -161,10 +161,10 @@ export class ExpenseFormPage extends BasePage {
     }
 
     /**
-     * Exact split container - find by the visible instruction text, then get parent
+     * Exact split container - uses test ID for reliable targeting
      */
     protected getExactSplitContainer(): Locator {
-        return this.page.getByText(/enter exact amounts for each person/i).locator('..');
+        return this.page.getByTestId('exact-split-container');
     }
 
     /**
@@ -178,7 +178,7 @@ export class ExpenseFormPage extends BasePage {
      * All split amount inputs for EXACT split type (scoped to exact split container)
      */
     protected getExactSplitInputs(): Locator {
-        return this.getExactSplitContainer().locator('input[type="text"][inputmode="decimal"]');
+        return this.getExactSplitContainer().getByRole('textbox');
     }
 
     /**
@@ -252,32 +252,17 @@ export class ExpenseFormPage extends BasePage {
     }
 
     /**
-     * Date input field.
+     * Date input field - uses label for semantic selection
      */
     protected getDateInput(): Locator {
-        return this.getExpenseDetailsSection().locator('input[type="date"]').first();
+        return this.getExpenseDetailsSection().getByLabel(translation.expenseBasicFields.dateLabel);
     }
 
     /**
-     * Clock icon button to open time picker.
+     * Clock icon button to open time picker - uses aria-label for semantic selection
      */
     protected getClockIcon(): Locator {
-        return this
-            .page
-            .locator(
-                [
-                    'button[aria-label*="time" i]',
-                    'button[aria-label*="clock" i]',
-                    'button:has(svg[data-icon="clock"])',
-                    'button:has(svg.clock-icon)',
-                    'button:has([data-testid*="clock" i])',
-                    '[role="button"]:has(svg)',
-                    'button.time-selector-trigger',
-                    '[data-testid="time-selector"]',
-                ]
-                    .join(', '),
-            )
-            .first();
+        return this.page.getByRole('button', { name: translation.expenseBasicFields.addSpecificTime });
     }
 
     /**
@@ -304,35 +289,41 @@ export class ExpenseFormPage extends BasePage {
      * Labels input field (combobox for MultiLabelInput).
      */
     protected getLabelsInput(): Locator {
-        return this.getExpenseDetailsSection().locator('input[role="combobox"]').first();
+        return this.getExpenseDetailsSection().getByRole('combobox').first();
     }
 
     /**
-     * Get all selected label chips in the MultiLabelInput
+     * Get all selected label chips - identified by their remove buttons
+     * Each chip has a "Remove {label}" button, so we can count/find chips by their buttons
      */
     protected getSelectedLabelChips(): Locator {
-        return this.getExpenseDetailsSection().locator('[class*="rounded-full"][class*="text-xs"]').filter({ hasText: /.+/ });
+        // Find all remove buttons (which identify chips) within the expense details section
+        return this.getExpenseDetailsSection().getByRole('button', { name: /^Remove /i });
     }
 
     /**
      * Get a specific label chip by its text
+     * The chip contains the label text and has a remove button as a child
      */
     protected getLabelChip(labelText: string): Locator {
-        return this.getExpenseDetailsSection().locator('[class*="rounded-full"][class*="text-xs"]').filter({ hasText: labelText });
+        // Find element containing the label text that also has a remove button (distinguishes from dropdown options)
+        return this.getExpenseDetailsSection().getByText(labelText, { exact: true }).filter({
+            has: this.page.getByRole('button', { name: `Remove ${labelText}` }),
+        });
     }
 
     /**
      * Get the remove button for a specific label chip
      */
     protected getLabelChipRemoveButton(labelText: string): Locator {
-        return this.getLabelChip(labelText).getByRole('button', { name: new RegExp(`Remove ${labelText}`, 'i') });
+        return this.getExpenseDetailsSection().getByRole('button', { name: `Remove ${labelText}` });
     }
 
     /**
      * Get the labels dropdown suggestions
      */
     protected getLabelsDropdown(): Locator {
-        return this.getExpenseDetailsSection().locator('[role="listbox"]');
+        return this.getExpenseDetailsSection().getByRole('listbox');
     }
 
     /**
@@ -357,7 +348,7 @@ export class ExpenseFormPage extends BasePage {
     }
 
     /**
-     * Legacy alias for getLabelInput (for backward compatibility in tests)
+     * Legacy alias for getLabelsInput (for backward compatibility in tests)
      * @deprecated Use getLabelsInput() instead
      */
     protected getLabelInput(): Locator {
@@ -379,15 +370,14 @@ export class ExpenseFormPage extends BasePage {
     }
 
     /**
-     * Split options container/card.
+     * Split options container/card - uses test ID for reliability
      */
     protected getSplitOptionsCard(): Locator {
-        const splitHeading = this.getSplitBetweenHeading();
-        return splitHeading.locator('..').locator('..');
+        return this.getSplitBetweenSection();
     }
 
     protected getSplitOptionsFirstCheckbox(): Locator {
-        return this.getSplitOptionsCard().locator('input[type="checkbox"]').first();
+        return this.getSplitOptionsCard().getByRole('checkbox').first();
     }
 
     // ============================================================================
@@ -1256,19 +1246,19 @@ export class ExpenseFormPage extends BasePage {
 
     /**
      * Verify that a form submission error is displayed.
-     * The ErrorState component shows "Something went wrong" by default.
+     * The ErrorState component shows "Something went wrong" by default with role='alert'.
      */
     async verifySubmissionErrorDisplayed(): Promise<void> {
-        await expect(this.page.getByTestId('error-title')).toBeVisible({ timeout: 5000 });
+        await expect(this.page.getByRole('alert')).toBeVisible({ timeout: 5000 });
     }
 
     /**
      * Verify that the error title contains specific text.
      */
     async verifyErrorTitleContains(text: string): Promise<void> {
-        const errorTitle = this.page.getByTestId('error-title');
-        await expect(errorTitle).toBeVisible({ timeout: 5000 });
-        await expect(errorTitle).toContainText(text);
+        const errorAlert = this.page.getByRole('alert');
+        await expect(errorAlert).toBeVisible({ timeout: 5000 });
+        await expect(errorAlert).toContainText(text);
     }
 
     // ============================================================================

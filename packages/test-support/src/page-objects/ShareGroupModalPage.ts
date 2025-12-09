@@ -104,10 +104,10 @@ export class ShareGroupModalPage extends BasePage {
     }
 
     /**
-     * Loading spinner
+     * Loading spinner - uses role='status' for semantic selection
      */
     protected getLoadingSpinner(): Locator {
-        return this.getModalContainer().getByTestId('loading-spinner');
+        return this.getModalContainer().getByRole('status', { name: translation.uiComponents.loadingSpinner.loading });
     }
 
     /**

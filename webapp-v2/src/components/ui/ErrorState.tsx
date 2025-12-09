@@ -25,7 +25,7 @@ export function ErrorState({ error, title, onRetry, fullPage = false, className 
     const errorMessage = getErrorMessage(error);
 
     const content = (
-        <div className={`text-center ${className}`}>
+        <div className={`text-center ${className}`} role='alert' aria-live='assertive'>
             {/* Error Icon */}
             <div className='mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-surface-error'>
                 <AlertTriangleIcon size={24} className='text-semantic-error' />

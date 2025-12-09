@@ -142,6 +142,7 @@ export function AdminTenantsPage() {
                                     return (
                                         <Card
                                             key={tenant.tenant.tenantId}
+                                            data-testid='tenant-card'
                                             className={`p-6 bg-slate-800 border border-slate-700 ${isCurrentTenant ? 'ring-2 ring-blue-500 bg-blue-900/20' : ''}`}
                                         >
                                             <div class='flex items-start justify-between'>

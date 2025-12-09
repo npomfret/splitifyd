@@ -37,9 +37,10 @@ export class LoginPage extends BasePage {
 
     /**
      * Header logo link - navigates to home page for unauthenticated users
+     * Uses aria-label for semantic selection
      */
     protected getHeaderLogoLink(): Locator {
-        return this.page.getByTestId('header-logo-link');
+        return this.page.getByRole('button', { name: translation.header.goToHome });
     }
 
     // ============================================================================
@@ -50,9 +51,9 @@ export class LoginPage extends BasePage {
      * Main login form container - identified by the form element within the login layout
      */
     protected getLoginFormContainer(): Locator {
-        // Find the form that contains login-specific elements
+        // Find the form that contains login-specific elements using semantic selector
         return this.page.locator('form').filter({
-            has: this.page.locator('input[type="email"]'),
+            has: this.page.getByLabel(translation.auth.emailInput.label),
         });
     }
 
@@ -69,17 +70,17 @@ export class LoginPage extends BasePage {
     // ============================================================================
 
     /**
-     * Email input field within the login form
+     * Email input field within the login form - uses label for semantic selection
      */
     protected getEmailInput(): Locator {
-        return this.getLoginFormContainer().locator('input[type="email"]');
+        return this.getLoginFormContainer().getByLabel(translation.auth.emailInput.label);
     }
 
     /**
-     * Password input field within the login form
+     * Password input field within the login form - uses label for semantic selection
      */
     protected getPasswordInput(): Locator {
-        return this.getLoginFormContainer().locator('input[type="password"]');
+        return this.getLoginFormContainer().getByLabel(translation.auth.passwordInput.label, { exact: true });
     }
 
     /**

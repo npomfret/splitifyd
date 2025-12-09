@@ -115,8 +115,8 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
             <BaseLayout title={`${t('joinGroupPage.title')}${t('common.titleSuffix')}`} headerVariant='dashboard'>
                 <div className='min-h-screen bg-surface-muted flex items-center justify-center p-4'>
                     <Card className='w-full max-w-md'>
-                        <div className='text-center py-8'>
-                            <div className='text-semantic-error mb-4' role='alert' data-testid='invalid-link-warning'>
+                        <div className='text-center py-8' role='alert' aria-label={t('errors.invalidLink')}>
+                            <div className='text-semantic-error mb-4'>
                                 <ExclamationTriangleIcon className='w-12 h-12 mx-auto' aria-hidden='true' />
                             </div>
                             <Typography variant='heading' className='mb-2'>{t('errors.invalidLink')}</Typography>
@@ -153,8 +153,8 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
             <BaseLayout title={`${t('joinGroupPage.title')}${t('common.titleSuffix')}`} headerVariant='dashboard'>
                 <div className='min-h-screen bg-surface-muted flex items-center justify-center p-4'>
                     <Card className='w-full max-w-md'>
-                        <div className='text-center py-8'>
-                            <div className='text-semantic-error mb-4' role='alert' data-testid='unable-join-warning'>
+                        <div className='text-center py-8' role='alert' aria-label={t('joinGroupPage.errors.joinFailed')}>
+                            <div className='text-semantic-error mb-4'>
                                 <ExclamationTriangleIcon className='w-12 h-12 mx-auto' aria-hidden='true' />
                             </div>
                             <Typography variant='heading' className='mb-2'>{t('joinGroupPage.errors.joinFailed')}</Typography>
@@ -173,9 +173,9 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
     if (joinSuccess && group) {
         return (
             <BaseLayout title={t('joinGroupPage.joinedTitle', { groupName: group.name })} headerVariant='dashboard'>
-                <div className='min-h-screen bg-surface-muted flex items-center justify-center p-4' data-join-success='true'>
+                <div className='min-h-screen bg-surface-muted flex items-center justify-center p-4'>
                     <Card className='w-full max-w-md'>
-                        <div className='text-center py-8'>
+                        <div className='text-center py-8' role='status' aria-label={t('joinGroupPage.welcome', { groupName: group.name })}>
                             <div className='text-semantic-success mb-4'>
                                 <CheckCircleIcon className='w-12 h-12 mx-auto' aria-hidden='true' />
                             </div>
@@ -222,7 +222,7 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
                             )}
 
                             {pendingApproval && (
-                                <div className='bg-surface-warning border border-border-warning rounded-lg p-4' data-testid='pending-approval-alert'>
+                                <div className='bg-surface-warning border border-border-warning rounded-lg p-4' role='alert' aria-label={t('joinGroupPage.pendingApprovalTitle')}>
                                     <p className='text-semantic-warning font-semibold mb-2'>{t('joinGroupPage.pendingApprovalTitle')}</p>
                                     <p className='text-semantic-warning text-sm mb-3'>{t('joinGroupPage.pendingApprovalMessage', { groupName: group.name })}</p>
                                     <p className='text-semantic-warning text-xs mb-4'>{t('joinGroupPage.pendingApprovalHelp')}</p>

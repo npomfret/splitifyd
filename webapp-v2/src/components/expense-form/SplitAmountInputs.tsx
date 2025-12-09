@@ -50,7 +50,7 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
 
     if (splitType === 'exact') {
         return (
-            <Stack spacing='md'>
+            <Stack spacing='md' data-testid='exact-split-container'>
                 <p className='text-sm text-text-muted dark:text-text-muted/80'>{t('expenseComponents.splitAmountInputs.exactAmountsInstruction')}</p>
                 {participants.map((participantId) => {
                     const member = memberMap[participantId];
@@ -115,7 +115,7 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
         const totalPercentageUnits = Math.round(totalPercentage * 1000);
         const percentagesValid = totalPercentageUnits === 100 * 1000;
         return (
-            <Stack spacing='md'>
+            <Stack spacing='md' data-testid='percentage-split-container'>
                 <p className='text-sm text-text-muted dark:text-text-muted/80'>{t('expenseComponents.splitAmountInputs.percentageInstruction')}</p>
                 {participants.map((participantId) => {
                     const member = memberMap[participantId];
@@ -168,7 +168,7 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
 
     if (splitType === 'equal') {
         return (
-            <div className='mt-4 p-4 bg-surface-muted dark:bg-text-primary/50 rounded-lg'>
+            <div className='mt-4 p-4 bg-surface-muted dark:bg-text-primary/50 rounded-lg' data-testid='equal-split-container'>
                 <p className='text-sm font-medium text-text-primary dark:text-text-muted/60 mb-2'>{t('expenseComponents.splitAmountInputs.equalInstruction')}</p>
                 <div className='space-y-1'>
                     {splits.map((split) => {

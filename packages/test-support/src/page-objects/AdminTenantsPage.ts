@@ -40,11 +40,11 @@ export class AdminTenantsPage extends BasePage {
      * Page Header and Title
      */
     protected getPageTitle(): Locator {
-        return this.page.locator(`h1:has-text("${translation.admin.tenants.pageTitle}")`);
+        return this.page.getByRole('heading', { name: translation.admin.tenants.pageTitle, level: 1 });
     }
 
     protected getPageDescription(): Locator {
-        return this.page.locator(`text=${translation.admin.tenants.pageDescription}`);
+        return this.page.getByText(translation.admin.tenants.pageDescription);
     }
 
     /**
@@ -55,7 +55,7 @@ export class AdminTenantsPage extends BasePage {
     }
 
     protected getRefreshButton(): Locator {
-        return this.page.locator(`button:has-text("${translation.common.refresh}")`);
+        return this.page.getByRole('button', { name: translation.common.refresh });
     }
 
     /**
@@ -73,51 +73,74 @@ export class AdminTenantsPage extends BasePage {
      * Access Denied Message
      */
     protected getAccessDeniedMessage(): Locator {
-        return this.page.locator('text=/you do not have permission/i');
+        return this.page.getByText(/you do not have permission/i);
     }
 
     /**
      * Empty State
      */
     protected getEmptyStateMessage(): Locator {
-        return this.page.locator(`text=${translation.admin.tenants.emptyState}`);
+        return this.page.getByText(translation.admin.tenants.emptyState);
     }
 
     /**
-     * Tenant Cards
+     * Get tenant card headings - used for counting cards and verifying app names
+     * Each card has exactly one h3 with the tenant's app name
      */
-    protected getTenantCards(): Locator {
-        return this.page.locator('[data-testid="tenant-card"], .space-y-4 > div.p-6');
+    protected getTenantCardHeadings(): Locator {
+        return this.page.getByRole('heading', { level: 3 });
     }
 
+    /**
+     * Tenant Cards - for counting purposes, we count h3 headings
+     */
+    protected getTenantCards(): Locator {
+        return this.getTenantCardHeadings();
+    }
+
+    /**
+     * Get a tenant card heading by app name
+     */
     protected getTenantCardByName(appName: string): Locator {
-        return this.page.locator(`text=${appName}`).locator('..').locator('..');
+        return this.page.getByRole('heading', { name: appName, level: 3 });
+    }
+
+    /**
+     * Get the full card container for a tenant by app name
+     * Uses testId since there's no semantic way to identify a container
+     * This is needed for methods that need to extract full card content
+     */
+    protected getTenantCardContainerByName(appName: string): Locator {
+        return this.page.getByTestId('tenant-card').filter({
+            has: this.page.getByRole('heading', { name: appName, level: 3 }),
+        });
     }
 
     protected getTenantCardByTenantId(tenantId: string): Locator {
-        return this.page.locator(`text=${tenantId}`).locator('..').locator('..');
+        return this.page.getByText(`Tenant ID: ${tenantId}`);
     }
 
     /**
      * Tenant Card Elements - Generic selectors for first card
      */
     protected getFirstTenantAppName(): Locator {
-        return this.getTenantCards().first().locator('h3');
+        // getTenantCards() returns h3 headings directly
+        return this.getTenantCards().first();
     }
 
     protected getDefaultBadge(): Locator {
-        return this.page.locator(`text=${translation.admin.tenants.status.default}`).first();
+        return this.page.getByText(translation.admin.tenants.status.default).first();
     }
 
     /**
      * Tenant Details Getters
      */
     protected getTenantIdText(tenantId: string): Locator {
-        return this.page.locator(`text=${tenantId}`);
+        return this.page.getByText(tenantId);
     }
 
     protected getPrimaryDomainText(domain: string): Locator {
-        return this.page.locator(`text=${domain}`);
+        return this.page.getByText(domain);
     }
 
     /**
@@ -239,10 +262,17 @@ export class AdminTenantsPage extends BasePage {
     }
 
     /**
+     * Get first tenant card container (for full text extraction)
+     */
+    protected getFirstTenantCardContainer(): Locator {
+        return this.page.getByTestId('tenant-card').first();
+    }
+
+    /**
      * Get first tenant card text content
      */
     async getFirstTenantCardText(): Promise<string | null> {
-        return await this.getTenantCards().first().textContent();
+        return await this.getFirstTenantCardContainer().textContent();
     }
 
     /**
@@ -267,10 +297,11 @@ export class AdminTenantsPage extends BasePage {
         tenantId: string;
         isDefault: boolean;
     }> {
-        const card = this.getTenantCardByName(appName);
-        await expect(card).toBeVisible();
+        // Use the container method to get full card content
+        const cardContainer = this.getTenantCardContainerByName(appName);
+        await expect(cardContainer).toBeVisible();
 
-        const cardText = await card.textContent();
+        const cardText = await cardContainer.textContent();
         if (!cardText) {
             throw new Error('Could not extract card text');
         }
@@ -280,8 +311,8 @@ export class AdminTenantsPage extends BasePage {
         const tenantIdMatch = cardText.match(new RegExp(`${tenantIdLabel}:\\s*([a-z0-9-]+)`));
         const tenantId = tenantIdMatch ? tenantIdMatch[1] : '';
 
-        // Check if default badge exists
-        const defaultBadge = card.locator(`text=${translation.admin.tenants.status.default}`);
+        // Check if default badge exists within this card container
+        const defaultBadge = cardContainer.getByText(translation.admin.tenants.status.default);
         const isDefault = await defaultBadge.count() > 0;
 
         return {
