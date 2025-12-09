@@ -1,18 +1,13 @@
-import { CommentsSection } from '@/components/comments';
 import { ExpenseDetailModal } from '@/components/expense';
 import { ExpenseFormModal } from '@/components/expense-form';
-import { BalanceSummary, ExpensesList, GroupActions, GroupHeader, GroupSettingsModal, LeaveGroupDialog, MembersListWithManagement, ShareGroupModal } from '@/components/group';
-import { GroupActivityFeed } from '@/components/group/GroupActivityFeed';
-import { SettlementForm, SettlementHistory } from '@/components/settlements';
-import { Button, Card, LoadingSpinner, Typography } from '@/components/ui';
-import { Stack } from '@/components/ui';
-import { SidebarCard } from '@/components/ui/SidebarCard';
+import { ActivitySection, BalancesSection, ExpensesSection, GroupActions, GroupCommentsSection, GroupHeader, GroupSettingsModal, LeaveGroupDialog, MembersListWithManagement, SettlementsSection, ShareGroupModal } from '@/components/group';
+import { SettlementForm } from '@/components/settlements';
+import { Button, Card, LoadingSpinner, Stack, Typography } from '@/components/ui';
 import { GROUP_DETAIL_ERROR_CODES } from '@/constants/error-codes.ts';
 import { navigationService } from '@/services/navigation.service';
 import { permissionsStore } from '@/stores/permissions-store.ts';
 import type { ExpenseId, GroupId, SettlementWithMembers, SimplifiedDebt } from '@billsplit-wl/shared';
 import { MemberRoles, MemberStatuses, toExpenseId } from '@billsplit-wl/shared';
-import { BanknotesIcon, BoltIcon, ChatBubbleLeftIcon, ReceiptPercentIcon, ScaleIcon } from '@heroicons/react/24/outline';
 import { useComputed, useSignal } from '@preact/signals';
 import { useEffect } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
@@ -403,95 +398,49 @@ export default function GroupDetailPage({ id: groupId, expenseId: routeExpenseId
 
                         {/* 3. Mobile-only balance summary */}
                         <div className='lg:hidden'>
-                            <SidebarCard
-                                id='balances-mobile'
-                                ariaLabel={t('pages.groupDetailPage.balances')}
-                                title={
-                                    <div className='flex items-center gap-2'>
-                                        <ScaleIcon className='h-5 w-5 text-text-muted' aria-hidden='true' />
-                                        <span>{t('pages.groupDetailPage.balances')}</span>
-                                    </div>
-                                }
-                                collapsible
-                                defaultCollapsed={false}
-                                collapseToggleLabel={t('pages.groupDetailPage.toggleSection', { section: t('pages.groupDetailPage.balances') })}
-                            >
-                                <BalanceSummary onSettleUp={handleSettleUp} />
-                            </SidebarCard>
+                            <BalancesSection onSettleUp={handleSettleUp} idSuffix='mobile' />
                         </div>
 
                         {/* 4. Mobile-only comments */}
                         <div className='lg:hidden'>
-                            <SidebarCard
-                                id='comments-mobile'
-                                ariaLabel={t('pages.groupDetailPage.comments')}
-                                title={
-                                    <div className='flex items-center gap-2'>
-                                        <ChatBubbleLeftIcon className='h-5 w-5 text-text-muted' aria-hidden='true' />
-                                        <span>{t('pages.groupDetailPage.comments')}</span>
-                                    </div>
-                                }
-                                collapsible
+                            <GroupCommentsSection
+                                groupId={groupId!}
+                                initialData={commentsResponse.value}
                                 defaultCollapsed={!expandCommentsSection}
-                            >
-                                <CommentsSection target={{ type: 'group', groupId: groupId! }} maxHeight='300px' initialData={commentsResponse.value} />
-                            </SidebarCard>
+                                idSuffix='mobile'
+                            />
                         </div>
 
                         {/* 5. Expenses (always visible) */}
-                        <SidebarCard
-                            id='expenses'
-                            ariaLabel={t('pages.groupDetailPage.expenses')}
-                            title={
-                                <div className='flex items-center gap-2'>
-                                    <ReceiptPercentIcon className='h-5 w-5 text-text-muted' aria-hidden='true' />
-                                    <span>{t('pages.groupDetailPage.expenses')}</span>
-                                </div>
-                            }
-                            collapsible
-                            defaultCollapsed={false}
-                        >
-                            <ExpensesList
-                                onExpenseClick={handleExpenseClick}
-                                onExpenseCopy={handleExpenseCopy}
-                                canToggleShowDeleted={canViewDeletedTransactions.value}
-                                showDeletedExpenses={showDeletedExpenses.value}
-                                onShowDeletedChange={canViewDeletedTransactions.value
-                                    ? (show) => {
-                                        enhancedGroupDetailStore.setShowDeletedExpenses(show);
-                                        enhancedGroupDetailStore.refreshAll();
-                                    }
-                                    : undefined}
-                            />
-                        </SidebarCard>
+                        <ExpensesSection
+                            onExpenseClick={handleExpenseClick}
+                            onExpenseCopy={handleExpenseCopy}
+                            canToggleShowDeleted={canViewDeletedTransactions.value}
+                            showDeletedExpenses={showDeletedExpenses.value}
+                            onShowDeletedChange={canViewDeletedTransactions.value
+                                ? (show) => {
+                                    enhancedGroupDetailStore.setShowDeletedExpenses(show);
+                                    enhancedGroupDetailStore.refreshAll();
+                                }
+                                : undefined}
+                        />
 
                         {/* 6. Mobile-only settlement history */}
                         <div className='lg:hidden'>
-                            <SidebarCard
-                                id='settlements-mobile'
-                                ariaLabel={t('pages.groupDetailPage.paymentHistory')}
-                                title={
-                                    <div className='flex items-center gap-2'>
-                                        <BanknotesIcon className='h-5 w-5 text-text-muted' aria-hidden='true' />
-                                        <span>{t('pages.groupDetailPage.paymentHistory')}</span>
-                                    </div>
-                                }
-                                collapsible
+                            <SettlementsSection
+                                groupId={groupId!}
+                                onEditSettlement={handleEditSettlement}
+                                canToggleShowDeleted={canViewDeletedTransactions.value}
+                                showDeletedSettlements={showDeletedSettlements.value}
+                                onShowDeletedChange={canViewDeletedTransactions.value
+                                    ? (show) => {
+                                        enhancedGroupDetailStore.setShowDeletedSettlements(show);
+                                        enhancedGroupDetailStore.refreshAll();
+                                    }
+                                    : undefined}
                                 defaultCollapsed={!expandSettlementSection}
-                            >
-                                <SettlementHistory
-                                    groupId={groupId!}
-                                    onEditSettlement={handleEditSettlement}
-                                    canToggleShowDeleted={canViewDeletedTransactions.value}
-                                    showDeletedSettlements={showDeletedSettlements.value}
-                                    onShowDeletedChange={canViewDeletedTransactions.value
-                                        ? (show) => {
-                                            enhancedGroupDetailStore.setShowDeletedSettlements(show);
-                                            enhancedGroupDetailStore.refreshAll();
-                                        }
-                                        : undefined}
-                                />
-                            </SidebarCard>
+                                idSuffix='mobile'
+                            />
                         </div>
 
                         {/* 7. Mobile-only members list */}
@@ -506,104 +455,45 @@ export default function GroupDetailPage({ id: groupId, expenseId: routeExpenseId
 
                         {/* 8. Mobile-only activity feed */}
                         <div className='lg:hidden'>
-                            <SidebarCard
-                                id='activity-mobile'
-                                ariaLabel={t('pages.groupDetailPage.activity')}
-                                title={
-                                    <div className='flex items-center gap-2'>
-                                        <BoltIcon className='h-5 w-5 text-text-muted' aria-hidden='true' />
-                                        <span>{t('pages.groupDetailPage.activity')}</span>
-                                    </div>
-                                }
-                                collapsible
+                            <ActivitySection
+                                groupId={groupId!}
+                                currentUserId={currentUser.value!.uid}
                                 defaultCollapsed={!expandActivitySection}
-                            >
-                                <GroupActivityFeed groupId={groupId!} currentUserId={currentUser.value!.uid} />
-                            </SidebarCard>
+                                idSuffix='mobile'
+                            />
                         </div>
                     </Stack>
                 }
                 rightSidebar={
                     <div className='hidden lg:block space-y-4'>
                         {/* Desktop-only: all right sidebar content (mobile versions in mainContent) */}
-                        <SidebarCard
-                            id='balances'
-                            ariaLabel={t('pages.groupDetailPage.balances')}
-                            title={
-                                <div className='flex items-center gap-2'>
-                                    <ScaleIcon className='h-5 w-5 text-text-muted' aria-hidden='true' />
-                                    <span>{t('pages.groupDetailPage.balances')}</span>
-                                </div>
-                            }
-                            collapsible
-                            defaultCollapsed={false}
-                            collapseToggleLabel={t('pages.groupDetailPage.toggleSection', { section: t('pages.groupDetailPage.balances') })}
-                        >
-                            <BalanceSummary onSettleUp={handleSettleUp} />
-                        </SidebarCard>
+                        <BalancesSection onSettleUp={handleSettleUp} />
 
-                        {/* Activity Feed Section */}
-                        <SidebarCard
-                            id='activity'
-                            ariaLabel={t('pages.groupDetailPage.activity')}
-                            title={
-                                <div className='flex items-center gap-2'>
-                                    <BoltIcon className='h-5 w-5 text-text-muted' aria-hidden='true' />
-                                    <span>{t('pages.groupDetailPage.activity')}</span>
-                                </div>
-                            }
-                            collapsible
+                        <ActivitySection
+                            groupId={groupId!}
+                            currentUserId={currentUser.value!.uid}
                             defaultCollapsed={!expandActivitySection}
-                            collapseToggleLabel={t('pages.groupDetailPage.toggleSection', { section: t('pages.groupDetailPage.activity') })}
-                        >
-                            <GroupActivityFeed groupId={groupId!} currentUserId={currentUser.value!.uid} />
-                        </SidebarCard>
+                        />
 
-                        {/* Settlement History Section */}
-                        <SidebarCard
-                            id='settlements'
-                            ariaLabel={t('pages.groupDetailPage.paymentHistory')}
-                            title={
-                                <div className='flex items-center gap-2'>
-                                    <BanknotesIcon className='h-5 w-5 text-text-muted' aria-hidden='true' />
-                                    <span>{t('pages.groupDetailPage.paymentHistory')}</span>
-                                </div>
-                            }
-                            collapsible
+                        <SettlementsSection
+                            groupId={groupId!}
+                            onEditSettlement={handleEditSettlement}
+                            canToggleShowDeleted={canViewDeletedTransactions.value}
+                            showDeletedSettlements={showDeletedSettlements.value}
+                            onShowDeletedChange={canViewDeletedTransactions.value
+                                ? (show) => {
+                                    enhancedGroupDetailStore.setShowDeletedSettlements(show);
+                                    enhancedGroupDetailStore.refreshAll();
+                                }
+                                : undefined}
                             defaultCollapsed={!expandSettlementSection}
-                            collapseToggleLabel={t('pages.groupDetailPage.toggleSection', { section: t('pages.groupDetailPage.paymentHistory') })}
-                        >
-                            <SettlementHistory
-                                groupId={groupId!}
-                                onEditSettlement={handleEditSettlement}
-                                canToggleShowDeleted={canViewDeletedTransactions.value}
-                                showDeletedSettlements={showDeletedSettlements.value}
-                                onShowDeletedChange={canViewDeletedTransactions.value
-                                    ? (show) => {
-                                        enhancedGroupDetailStore.setShowDeletedSettlements(show);
-                                        enhancedGroupDetailStore.refreshAll();
-                                    }
-                                    : undefined}
-                            />
-                        </SidebarCard>
+                        />
 
-                        {/* Comments Section */}
-                        <SidebarCard
-                            id='comments'
-                            ariaLabel={t('pages.groupDetailPage.comments')}
-                            title={
-                                <div className='flex items-center gap-2'>
-                                    <ChatBubbleLeftIcon className='h-5 w-5 text-text-muted' aria-hidden='true' />
-                                    <span>{t('pages.groupDetailPage.comments')}</span>
-                                </div>
-                            }
-                            className='flex-1'
-                            collapsible
+                        <GroupCommentsSection
+                            groupId={groupId!}
+                            initialData={commentsResponse.value}
                             defaultCollapsed={!expandCommentsSection}
-                            collapseToggleLabel={t('pages.groupDetailPage.toggleSection', { section: t('pages.groupDetailPage.comments') })}
-                        >
-                            <CommentsSection target={{ type: 'group', groupId: groupId! }} maxHeight='300px' initialData={commentsResponse.value} />
-                        </SidebarCard>
+                        />
                     </div>
                 }
             />
