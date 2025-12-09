@@ -1,6 +1,7 @@
 import type { UserId } from '@billsplit-wl/shared';
 import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder } from '@billsplit-wl/test-support';
-import { afterEach, beforeEach, describe, it } from 'vitest';
+import { FieldValue, Timestamp } from 'firebase-admin/firestore';
+import { afterEach, beforeEach, describe, it, vi } from 'vitest';
 import { AppDriver } from '../AppDriver';
 
 describe('activity-feed', () => {
@@ -134,37 +135,51 @@ describe('activity-feed', () => {
         });
 
         it('should not return duplicate activity items when group has multiple members', async () => {
-            // Setup: Create group with 2 members
-            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().withName('Dedup Test').build(), user1);
-            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, user1);
-            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+            // Mock FieldValue.serverTimestamp to return incrementing timestamps.
+            // This simulates real Firestore behavior where batch writes can get
+            // slightly different server timestamps per document.
+            let timestampCounter = Date.now();
+            const serverTimestampSpy = vi.spyOn(FieldValue, 'serverTimestamp').mockImplementation(() => {
+                timestampCounter += 1; // Each call gets a different timestamp
+                return Timestamp.fromMillis(timestampCounter) as unknown as FieldValue;
+            });
 
-            // Create an expense - this records activity for BOTH members
-            await appDriver.createExpense(
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(group.id)
-                    .withDescription('Shared Dinner')
-                    .withPaidBy(user1)
-                    .withParticipants([user1, user2])
-                    .build(),
-                user1,
-            );
+            try {
+                // Setup: Create group with 2 members
+                const group = await appDriver.createGroup(new CreateGroupRequestBuilder().withName('Dedup Test').build(), user1);
+                const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, user1);
+                await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
-            // Get the group activity feed
-            const response = await appDriver.getGroupActivityFeed(group.id, {}, user1);
+                // Create an expense - this records activity for BOTH members
+                await appDriver.createExpense(
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(group.id)
+                        .withDescription('Shared Dinner')
+                        .withPaidBy(user1)
+                        .withParticipants([user1, user2])
+                        .build(),
+                    user1,
+                );
 
-            // Count expense-created events for 'Shared Dinner'
-            const expenseCreatedEvents = response.items.filter(
-                (item) => item.eventType === 'expense-created' && item.details?.expenseDescription === 'Shared Dinner',
-            );
+                // Get the group activity feed
+                const response = await appDriver.getGroupActivityFeed(group.id, {}, user1);
 
-            // Each event should appear only once (deduplication working correctly)
-            expect(expenseCreatedEvents.length).toBe(1);
+                // Count expense-created events for 'Shared Dinner'
+                const expenseCreatedEvents = response.items.filter(
+                    (item) => item.eventType === 'expense-created' && item.details?.expenseDescription === 'Shared Dinner',
+                );
 
-            // Also verify no duplicate member-joined events
-            const memberJoinedEvents = response.items.filter((item) => item.eventType === 'member-joined');
-            const uniqueMemberJoins = new Set(memberJoinedEvents.map((e) => e.details?.targetUserId));
-            expect(memberJoinedEvents.length).toBe(uniqueMemberJoins.size);
+                // Each event should appear only once (deduplication working correctly)
+                // Without the fix, this would return 2 (one per member with different timestamps)
+                expect(expenseCreatedEvents.length).toBe(1);
+
+                // Also verify no duplicate member-joined events
+                const memberJoinedEvents = response.items.filter((item) => item.eventType === 'member-joined');
+                const uniqueMemberJoins = new Set(memberJoinedEvents.map((e) => e.details?.targetUserId));
+                expect(memberJoinedEvents.length).toBe(uniqueMemberJoins.size);
+            } finally {
+                serverTimestampSpy.mockRestore();
+            }
         });
     });
 });
