@@ -123,6 +123,7 @@ export interface PublicAPI {
     /**
      * Get the current published version of a policy
      * Public endpoint - no authentication required
+     * Used by the policy acceptance modal to display policy content
      */
     getCurrentPolicy(policyId: PolicyId): Promise<CurrentPolicyResponse>;
 
