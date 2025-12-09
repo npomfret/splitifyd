@@ -42,8 +42,8 @@ export class GroupPermissionsBuilder {
      */
     static adminOnly(): GroupPermissionsBuilder {
         return new GroupPermissionsBuilder()
-            .withExpenseEditing(PermissionLevels.OWNER_AND_ADMIN)
-            .withExpenseDeletion(PermissionLevels.OWNER_AND_ADMIN)
+            .withExpenseEditing(PermissionLevels.CREATOR_AND_ADMIN)
+            .withExpenseDeletion(PermissionLevels.CREATOR_AND_ADMIN)
             .withMemberInvitation(PermissionLevels.ADMIN_ONLY)
             .withMemberApproval('admin-required')
             .withSettingsManagement(PermissionLevels.ADMIN_ONLY);

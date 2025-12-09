@@ -11,12 +11,11 @@ const buildGroupResponse = () => {
         .withId('group-123')
         .withName('Weekend Adventurers')
         .withDescription('Sample group used for schema validation tests')
-        .withCreatedBy('user-123')
         .withCreatedAt('2024-01-01T00:00:00.000Z')
         .withUpdatedAt('2024-01-02T00:00:00.000Z')
         .withPermissions({
             expenseEditing: 'anyone',
-            expenseDeletion: 'owner-and-admin',
+            expenseDeletion: 'creator-and-admin',
             memberInvitation: 'anyone',
             memberApproval: 'automatic',
             settingsManagement: 'admin-only',
@@ -43,7 +42,6 @@ const buildGroupResponse = () => {
             date: '2024-01-03T00:00:00.000Z',
         },
         permissions: group.permissions,
-        createdBy: group.createdBy,
         createdAt: group.createdAt,
         updatedAt: group.updatedAt,
     };

@@ -254,8 +254,8 @@ test.describe('Group Detail - Security Settings', () => {
 
         const permissionRequest = await permissionsRequestPromise;
         expect(permissionRequest.postDataJSON()).toEqual({
-            expenseEditing: 'owner-and-admin',
-            expenseDeletion: 'owner-and-admin',
+            expenseEditing: 'creator-and-admin',
+            expenseDeletion: 'creator-and-admin',
             memberInvitation: 'admin-only',
             memberApproval: 'admin-required',
             settingsManagement: 'admin-only',
@@ -665,7 +665,7 @@ test.describe('Group Detail - Permission Checks', () => {
             .groupForUser(testUser.uid)
             .withId(groupId)
             .withName('Owner Group')
-            .withCreatedBy(testUser.uid)
+            
             .build();
 
         const members = [
@@ -715,7 +715,6 @@ test.describe('Group Detail - Permission Checks', () => {
             .groupForUser(toUserId('other-user-id'))
             .withId(groupId)
             .withName('Member Group')
-            .withCreatedBy(toUserId('other-user-id'))
             .withPermissions({
                 memberApproval: 'admin-required',
             })
@@ -768,7 +767,6 @@ test.describe('Group Detail - Permission Checks', () => {
             .groupForUser(toUserId('other-user-id'))
             .withId(groupId)
             .withName('Last Member Group')
-            .withCreatedBy(toUserId('other-user-id'))
             .build();
 
         const members = [
@@ -867,7 +865,7 @@ test.describe('Group Detail - Modal Interactions', () => {
             .groupForUser(testUser.uid)
             .withId(groupId)
             .withName('Edit Modal Group')
-            .withCreatedBy(testUser.uid)
+            
             .build();
 
         const members = [
@@ -875,6 +873,7 @@ test.describe('Group Detail - Modal Interactions', () => {
                 .withUid(testUser.uid)
                 .withDisplayName(testUser.displayName)
                 .withGroupDisplayName(testUser.displayName)
+                .withMemberRole('admin')
                 .withTheme(
                     ThemeBuilder
                         .blue()
@@ -894,7 +893,7 @@ test.describe('Group Detail - Modal Interactions', () => {
         await groupDetailPage.navigateToGroup(groupId);
         await groupDetailPage.waitForGroupToLoad();
 
-        // Click edit button and verify modal opens
+        // Click edit button and verify modal opens (user is admin, so can access all tabs)
         const editModal = await groupDetailPage.clickEditGroupAndOpenModal();
 
         // Verify modal is open

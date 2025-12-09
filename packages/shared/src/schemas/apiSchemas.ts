@@ -120,8 +120,8 @@ const GroupSchema = z.object({
 
     permissions: z
         .object({
-            expenseEditing: z.enum(['anyone', 'owner-and-admin', 'admin-only']).optional(),
-            expenseDeletion: z.enum(['anyone', 'owner-and-admin', 'admin-only']).optional(),
+            expenseEditing: z.enum(['anyone', 'creator-and-admin', 'admin-only']).optional(),
+            expenseDeletion: z.enum(['anyone', 'creator-and-admin', 'admin-only']).optional(),
             memberInvitation: z.enum(['anyone', 'admin-only']).optional(),
             memberApproval: z.enum(['automatic', 'admin-required']).optional(),
             settingsManagement: z.enum(['anyone', 'admin-only']).optional(),
@@ -129,7 +129,6 @@ const GroupSchema = z.object({
         .optional(),
 
     // Optional fields for detail view
-    createdBy: z.string().optional(),
     createdAt: z.string().optional(),
     updatedAt: z.string().optional(),
     deletedAt: z.string().nullable().optional(),
@@ -476,8 +475,8 @@ const MinimalGroupSchema = z.object({
     updatedAt: z.string().optional(),
     permissions: z
         .object({
-            expenseEditing: z.enum(['anyone', 'owner-and-admin', 'admin-only']).optional(),
-            expenseDeletion: z.enum(['anyone', 'owner-and-admin', 'admin-only']).optional(),
+            expenseEditing: z.enum(['anyone', 'creator-and-admin', 'admin-only']).optional(),
+            expenseDeletion: z.enum(['anyone', 'creator-and-admin', 'admin-only']).optional(),
             memberInvitation: z.enum(['anyone', 'admin-only']).optional(),
             memberApproval: z.enum(['automatic', 'admin-required']).optional(),
             settingsManagement: z.enum(['anyone', 'admin-only']).optional(),

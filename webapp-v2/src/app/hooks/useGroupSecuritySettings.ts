@@ -15,8 +15,8 @@ const PRESET_PERMISSIONS: Record<Exclude<SecurityPreset, 'custom'>, GroupPermiss
         settingsManagement: PermissionLevels.ANYONE,
     },
     managed: {
-        expenseEditing: PermissionLevels.OWNER_AND_ADMIN,
-        expenseDeletion: PermissionLevels.OWNER_AND_ADMIN,
+        expenseEditing: PermissionLevels.CREATOR_AND_ADMIN,
+        expenseDeletion: PermissionLevels.CREATOR_AND_ADMIN,
         memberInvitation: PermissionLevels.ADMIN_ONLY,
         memberApproval: 'admin-required',
         settingsManagement: PermissionLevels.ADMIN_ONLY,
@@ -34,8 +34,8 @@ export const permissionOrder: Array<keyof GroupPermissions> = [
 ];
 
 export const permissionOptions: Record<keyof GroupPermissions, string[]> = {
-    expenseEditing: [PermissionLevels.ANYONE, PermissionLevels.OWNER_AND_ADMIN, PermissionLevels.ADMIN_ONLY],
-    expenseDeletion: [PermissionLevels.ANYONE, PermissionLevels.OWNER_AND_ADMIN, PermissionLevels.ADMIN_ONLY],
+    expenseEditing: [PermissionLevels.ANYONE, PermissionLevels.CREATOR_AND_ADMIN, PermissionLevels.ADMIN_ONLY],
+    expenseDeletion: [PermissionLevels.ANYONE, PermissionLevels.CREATOR_AND_ADMIN, PermissionLevels.ADMIN_ONLY],
     memberInvitation: [PermissionLevels.ANYONE, PermissionLevels.ADMIN_ONLY],
     memberApproval: ['automatic', 'admin-required'],
     settingsManagement: [PermissionLevels.ANYONE, PermissionLevels.ADMIN_ONLY],

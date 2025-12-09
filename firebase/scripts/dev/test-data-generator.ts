@@ -603,12 +603,12 @@ async function createTestPoolUsers(): Promise<void> {
     console.log('✅ Test pool users ready');
 }
 
-async function createGroupWithInvite(name: string, createdBy: AuthenticatedFirebaseUser): Promise<GroupWithInvite> {
+async function createGroupWithInvite(name: string, creator: AuthenticatedFirebaseUser): Promise<GroupWithInvite> {
     // Create group with just the creator initially
-    const group = await runQueued(async () => (await getDriver()).createGroupWithMembers(name, [createdBy], createdBy.token));
+    const group = await runQueued(async () => (await getDriver()).createGroupWithMembers(name, [creator], creator.token));
 
     // Generate shareable link
-    const shareLink = await runQueued(async () => (await getDriver()).generateShareableLink(group.id, undefined, createdBy.token));
+    const shareLink = await runQueued(async () => (await getDriver()).generateShareableLink(group.id, undefined, creator.token));
 
     // FIXME: API returns 'linkId' but type definition says 'shareToken'
     // Using 'linkId' as that's what the actual API returns
@@ -618,7 +618,7 @@ async function createGroupWithInvite(name: string, createdBy: AuthenticatedFireb
         ...group,
         inviteLink: linkId,
         memberDetails: undefined,
-    } as GroupWithInvite;
+    };
 }
 
 async function createGroups(creators: AuthenticatedFirebaseUser[], config: TestDataConfig): Promise<GroupWithInvite[]> {
@@ -680,12 +680,10 @@ async function joinGroupsRandomly(users: AuthenticatedFirebaseUser[], groups: Gr
     // Track which users are in which groups
     const groupMemberships = new Map<string, AuthenticatedFirebaseUser[]>();
 
-    // Initialize with the actual group creator in all groups
-    const userByUid = new Map(users.map((user) => [user.uid, user] as const));
-    const fallbackCreator = users[0];
+    // Initialize with the first user (test1@test.com) who creates all groups
+    const groupCreator = users[0];
     for (const group of groups) {
-        const creatorUser = userByUid.get(group.createdBy) ?? fallbackCreator;
-        groupMemberships.set(group.id, [creatorUser]);
+        groupMemberships.set(group.id, [groupCreator]);
     }
 
     // Each user (except test1 who created all groups) joins groups
@@ -789,7 +787,8 @@ async function configureLargeGroupAdvancedScenarios(
         return;
     }
 
-    const adminUser = trackedMembers.find((member) => member.uid === largeGroup.createdBy) ?? trackedMembers[0];
+    // First tracked member is always the group creator/admin
+    const adminUser = trackedMembers[0];
 
     console.log('Configuring permissions, roles, and pending membership flows for "Large Group"...');
 
@@ -800,7 +799,7 @@ async function configureLargeGroupAdvancedScenarios(
     );
 
     const customPermissions: Partial<GroupPermissions> = {
-        expenseEditing: PermissionLevels.OWNER_AND_ADMIN,
+        expenseEditing: PermissionLevels.CREATOR_AND_ADMIN,
         expenseDeletion: PermissionLevels.ADMIN_ONLY,
         memberInvitation: PermissionLevels.ADMIN_ONLY,
         memberApproval: 'admin-required',
@@ -1285,7 +1284,8 @@ async function finalizeLargeGroupAdvancedData(groups: GroupWithInvite[], groupMe
         return;
     }
 
-    const adminUser = trackedMembers.find((member) => member.uid === largeGroup.createdBy) ?? trackedMembers[0];
+    // First tracked member is always the group creator/admin
+    const adminUser = trackedMembers[0];
 
     console.log('Applying updates, deletions, and membership departures for "Large Group"...');
 
@@ -1477,9 +1477,9 @@ async function deleteSomeExpensesFromGroups(groups: GroupWithInvite[], groupMemb
     let totalDeleted = 0;
 
     for (const group of groupsWithExpenses) {
-        // Get actual members of this group from tracked memberships and pick one to perform deletion
+        // Get actual members of this group from tracked memberships - first member is always the admin
         const groupMembers = groupMemberships.get(group.id) || [];
-        const deleter = groupMembers.find((u) => u.uid === group.createdBy) || groupMembers[0];
+        const deleter = groupMembers[0];
         if (!deleter) {
             console.warn(`No valid user found to delete expenses from group: ${group.name}`);
             continue;

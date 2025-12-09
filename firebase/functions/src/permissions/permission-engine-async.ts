@@ -42,7 +42,7 @@ export class PermissionEngineAsync {
             case PermissionLevels.ANYONE:
                 return member.memberRole !== MemberRoles.VIEWER;
 
-            case PermissionLevels.OWNER_AND_ADMIN:
+            case PermissionLevels.CREATOR_AND_ADMIN:
                 if (member.memberRole === MemberRoles.ADMIN) {
                     return true;
                 }

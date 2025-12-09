@@ -1,6 +1,6 @@
 import { toExpenseLabel } from '@billsplit-wl/shared';
 import { z } from 'zod';
-import { AuditFieldsSchema, createDocumentSchemas, FirestoreTimestampSchema, UserIdSchema } from './common';
+import { AuditFieldsSchema, createDocumentSchemas, FirestoreTimestampSchema } from './common';
 
 /**
  * Base Group schema without document ID
@@ -34,7 +34,6 @@ const BaseGroupSchema = z
     .object({
         name: z.string().min(1, 'Group name is required'),
         description: z.string().optional(),
-        createdBy: UserIdSchema,
         permissions: z
             .object({
                 expenseEditing: z.string(),

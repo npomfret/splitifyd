@@ -6,10 +6,7 @@
 
 import i18n from '@/i18n';
 import { translateApiError } from '@/utils/error-translation';
-import { GroupDTO, JoinGroupResponse, MemberStatus } from '@billsplit-wl/shared';
-import { DisplayName } from '@billsplit-wl/shared';
-import { toISOString } from '@billsplit-wl/shared';
-import { toUserId } from '@billsplit-wl/shared';
+import { DisplayName, GroupDTO, JoinGroupResponse, MemberStatus, toISOString } from '@billsplit-wl/shared';
 import { ReadonlySignal, signal } from '@preact/signals';
 import { apiClient } from '../apiClient';
 
@@ -79,7 +76,6 @@ class JoinGroupStore {
                 id: preview.groupId,
                 name: preview.groupName,
                 description: preview.groupDescription,
-                createdBy: toUserId(''), // Will be populated from server
                 createdAt: toISOString(new Date().toISOString()),
                 updatedAt: toISOString(new Date().toISOString()),
                 permissions: {
@@ -142,7 +138,6 @@ class JoinGroupStore {
                     id: response.groupId,
                     name: response.groupName,
                     description: '',
-                    createdBy: toUserId(''),
                     createdAt: toISOString(new Date().toISOString()),
                     updatedAt: toISOString(new Date().toISOString()),
                     permissions: {

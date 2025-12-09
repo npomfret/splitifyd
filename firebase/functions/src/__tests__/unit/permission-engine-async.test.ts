@@ -13,7 +13,7 @@ describe('PermissionEngineAsync', () => {
             .withId(testGroupId)
             .withPermissions({
                 expenseEditing: PermissionLevels.ANYONE,
-                expenseDeletion: PermissionLevels.OWNER_AND_ADMIN,
+                expenseDeletion: PermissionLevels.CREATOR_AND_ADMIN,
                 memberInvitation: PermissionLevels.ADMIN_ONLY,
                 memberApproval: 'automatic',
                 settingsManagement: PermissionLevels.ADMIN_ONLY,
@@ -111,7 +111,7 @@ describe('PermissionEngineAsync', () => {
             expect(result).toBe(false);
         });
 
-        test('should allow admin with OWNER_AND_ADMIN permission', () => {
+        test('should allow admin with CREATOR_AND_ADMIN permission', () => {
             const member = new GroupMemberDocumentBuilder()
                 .withUserId(testUserId)
                 .withGroupId(testGroupId)
@@ -124,7 +124,7 @@ describe('PermissionEngineAsync', () => {
             expect(result).toBe(true);
         });
 
-        test('should allow expense owner with OWNER_AND_ADMIN permission', () => {
+        test('should allow expense owner with CREATOR_AND_ADMIN permission', () => {
             const member = new GroupMemberDocumentBuilder()
                 .withUserId(testUserId)
                 .withGroupId(testGroupId)

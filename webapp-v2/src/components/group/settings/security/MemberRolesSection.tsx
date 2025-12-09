@@ -4,14 +4,12 @@ import { useTranslation } from 'react-i18next';
 interface MemberRolesSectionProps {
     members: GroupMember[];
     memberRoleDrafts: Record<string, MemberRole>;
-    groupCreatedBy: string;
     onRoleChange: (memberId: string, newRole: MemberRole) => void;
 }
 
 export function MemberRolesSection({
     members,
     memberRoleDrafts,
-    groupCreatedBy,
     onRoleChange,
 }: MemberRolesSectionProps) {
     const { t } = useTranslation();
@@ -32,7 +30,6 @@ export function MemberRolesSection({
                             className='border border-border-default bg-surface-raised backdrop-blur-xs text-text-primary rounded-md px-2 py-1 text-sm focus:outline-hidden focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary transition-colors duration-200'
                             value={memberRoleDrafts[member.uid] ?? member.memberRole}
                             onChange={(event) => onRoleChange(member.uid, event.currentTarget.value as MemberRole)}
-                            disabled={member.uid === groupCreatedBy}
                             data-testid={`member-role-select-${member.uid}`}
                         >
                             {(['admin', 'member', 'viewer'] as MemberRole[]).map((role) => (

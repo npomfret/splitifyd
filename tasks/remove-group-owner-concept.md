@@ -130,14 +130,18 @@ The codebase has a legacy "group owner" concept based on `group.createdBy` that 
 
 ---
 
+## Status: COMPLETED
+
+All changes implemented and tested. Build passes.
+
 ## Acceptance Criteria
 
-- [ ] Last admin cannot leave the group (server enforced)
-- [ ] Last admin cannot be removed (server enforced)
-- [ ] Last admin cannot be downgraded to member/viewer (server enforced)
-- [ ] Any admin (not just creator) can access general settings if they have `canManageSettings`
-- [ ] Any admin can leave if other admins exist
-- [ ] `createdBy` field no longer written to new groups
-- [ ] No UI references to "owner" concept for groups
-- [ ] All existing tests pass or are updated
-- [ ] Permission level renamed from `owner-and-admin` to `creator-and-admin`
+- [x] Last admin cannot leave the group (server enforced)
+- [x] Last admin cannot be removed (server enforced)
+- [x] Last admin cannot be downgraded to member/viewer (server enforced)
+- [x] Any admin (not just creator) can access general settings if they have `canManageSettings`
+- [x] Any admin can leave if other admins exist
+- [x] `createdBy` field no longer written to new groups
+- [x] No UI references to "owner" concept for groups
+- [x] All existing tests pass or are updated
+- [x] Permission level renamed from `owner-and-admin` to `creator-and-admin`

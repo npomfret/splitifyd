@@ -345,7 +345,7 @@ test.describe('Activity Feed - Navigation', () => {
             .withDescription(expenseDescription)
             .withAmount(48.75, 'USD')
             .withPaidBy(actorMember.uid)
-            .withCreatedBy(actorMember.uid)
+            
             .withParticipants([actorMember.uid, currentUserMember.uid])
             .build();
 

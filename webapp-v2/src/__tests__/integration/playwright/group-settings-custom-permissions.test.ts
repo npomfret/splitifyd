@@ -39,7 +39,7 @@ async function setupGroupWithPermissions(page: Page, user: ClientUser, options: 
         const group = new GroupDTOBuilder()
             .withId(groupId)
             .withName(groupName)
-            .withCreatedBy(user.uid)
+            
             .withPermissions(currentPermissions)
             .build();
 
@@ -127,10 +127,10 @@ test.describe('Group Settings - Security Tab - Custom Permissions', () => {
         await modal.verifyPermissionValue('expenseEditing', 'anyone');
 
         // Change the permission
-        await modal.changePermission('expenseEditing', 'owner-and-admin');
+        await modal.changePermission('expenseEditing', 'creator-and-admin');
 
         // Verify the change was applied
-        await modal.verifyPermissionValue('expenseEditing', 'owner-and-admin');
+        await modal.verifyPermissionValue('expenseEditing', 'creator-and-admin');
 
         // Verify unsaved changes banner appears
         await modal.verifySecurityUnsavedBannerVisible();
@@ -189,7 +189,7 @@ test.describe('Group Settings - Security Tab - Custom Permissions', () => {
         await modal.waitForSecurityTab();
 
         // Change multiple permissions
-        await modal.changePermission('expenseEditing', 'owner-and-admin');
+        await modal.changePermission('expenseEditing', 'creator-and-admin');
         await modal.changePermission('memberInvitation', 'admin-only');
 
         // Save the changes
@@ -200,7 +200,7 @@ test.describe('Group Settings - Security Tab - Custom Permissions', () => {
 
         // Verify the saved permissions include our changes
         expect(savedPermissions).not.toBeNull();
-        expect(savedPermissions!.expenseEditing).toBe('owner-and-admin');
+        expect(savedPermissions!.expenseEditing).toBe('creator-and-admin');
         expect(savedPermissions!.memberInvitation).toBe('admin-only');
         // Other permissions should remain unchanged
         expect(savedPermissions!.expenseDeletion).toBe('anyone');

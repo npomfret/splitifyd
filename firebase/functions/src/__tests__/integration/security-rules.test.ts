@@ -93,7 +93,6 @@ describe('Firestore Security Rules (Production)', () => {
                     const group = new GroupDTOBuilder()
                         .withName('Test Group')
                         .withDescription('A test group')
-                        .withCreatedBy(userId1)
                         .build();
 
                     await setDoc(doc(db, 'groups', groupId), group);

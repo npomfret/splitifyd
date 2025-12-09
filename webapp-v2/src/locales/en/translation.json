@@ -1123,7 +1123,7 @@
       },
       "options": {
         "anyone": "Any member",
-        "owner-and-admin": "Creators & admins",
+        "creator-and-admin": "Creators & admins",
         "admin-only": "Admins only",
         "automatic": "Automatic",
         "admin-required": "Admin approval required"

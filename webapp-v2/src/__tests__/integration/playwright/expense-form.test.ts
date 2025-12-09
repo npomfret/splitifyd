@@ -1616,19 +1616,19 @@ test.describe('Expense Form', () => {
                     .withGroupId(groupId)
                     .withAmount('50.00', 'USD')
                     .withPaidBy(testUser.uid)
-                    .withCreatedBy(testUser.uid)
+                    
                     .build(),
                 new ExpenseDTOBuilder()
                     .withGroupId(groupId)
                     .withAmount('25.50', 'EUR')
                     .withPaidBy(testUser.uid)
-                    .withCreatedBy(testUser.uid)
+                    
                     .build(),
                 new ExpenseDTOBuilder()
                     .withGroupId(groupId)
                     .withAmount('1000', 'JPY')
                     .withPaidBy(testUser.uid)
-                    .withCreatedBy(testUser.uid)
+                    
                     .build(),
             ];
 
@@ -1682,25 +1682,25 @@ test.describe('Expense Form', () => {
                     .withGroupId(groupId)
                     .withAmount('10.00', 'USD')
                     .withPaidBy(testUser.uid)
-                    .withCreatedBy(testUser.uid)
+                    
                     .build(),
                 new ExpenseDTOBuilder()
                     .withGroupId(groupId)
                     .withAmount('20.00', 'GBP')
                     .withPaidBy(testUser.uid)
-                    .withCreatedBy(testUser.uid)
+                    
                     .build(),
                 new ExpenseDTOBuilder()
                     .withGroupId(groupId)
                     .withAmount('30.00', 'EUR')
                     .withPaidBy(testUser.uid)
-                    .withCreatedBy(testUser.uid)
+                    
                     .build(),
                 new ExpenseDTOBuilder()
                     .withGroupId(groupId)
                     .withAmount('10.00', 'USD') // Duplicate - should not show twice
                     .withPaidBy(testUser.uid)
-                    .withCreatedBy(testUser.uid)
+                    
                     .build(),
             ];
 

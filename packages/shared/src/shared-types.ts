@@ -339,7 +339,7 @@ export type MemberRole = (typeof MemberRoles)[keyof typeof MemberRoles];
 
 export const PermissionLevels = {
     ANYONE: 'anyone',
-    OWNER_AND_ADMIN: 'owner-and-admin',
+    CREATOR_AND_ADMIN: 'creator-and-admin',
     ADMIN_ONLY: 'admin-only',
 } as const;
 
@@ -771,8 +771,6 @@ interface Group {
     // Core fields
     name: GroupName;
     description?: string;
-
-    createdBy: UserId;
 
     // Individual permission settings (customizable after preset selection)
     permissions: GroupPermissions;

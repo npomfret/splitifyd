@@ -60,7 +60,6 @@ describe('Groups Management - CRUD and Access Control Unit Tests', () => {
             expect(group.id).toBeDefined();
             expect(group.name).toBe(groupData.name);
             expect(group.description).toBe(groupData.description);
-            expect(group.createdBy).toBe(userIds[0]);
 
             // Test immediate balance access
             const balances = await appDriver.getGroupBalances(group.id, userIds[0]);

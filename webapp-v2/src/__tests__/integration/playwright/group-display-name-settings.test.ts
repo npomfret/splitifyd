@@ -30,7 +30,7 @@ async function setupGroupRoutes(page: Page, user: ClientUser, options: GroupTest
     const group = new GroupDTOBuilder()
         .withId(groupId)
         .withName('Display Name Test Group')
-        .withCreatedBy(ownerId)
+        
         .build();
 
     const ownerMember = new GroupMemberBuilder()

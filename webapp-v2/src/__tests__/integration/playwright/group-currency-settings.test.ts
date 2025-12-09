@@ -34,7 +34,7 @@ async function setupGroupRoutes(page: Page, user: ClientUser, options: GroupTest
         const group = new GroupDTOBuilder()
             .withId(groupId)
             .withName(groupName)
-            .withCreatedBy(creatorId)
+            
             .withCurrencySettings(options.currencySettings)
             .build();
 
@@ -345,7 +345,7 @@ test.describe('Group Settings - Currency Settings', () => {
         const group = new GroupDTOBuilder()
             .withId(groupId)
             .withName('Edit Expense Currency Test')
-            .withCreatedBy(user.uid)
+            
             .withCurrencySettings(createCurrencySettings(['USD', 'EUR'], 'USD'))
             .build();
 

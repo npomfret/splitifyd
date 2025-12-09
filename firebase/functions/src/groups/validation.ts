@@ -197,7 +197,7 @@ export const validateUpdateDisplayName = createRequestValidator({
 
 const ExpensePermissionSchema = z.enum([
     PermissionLevels.ANYONE,
-    PermissionLevels.OWNER_AND_ADMIN,
+    PermissionLevels.CREATOR_AND_ADMIN,
     PermissionLevels.ADMIN_ONLY,
 ]);
 const MemberInvitationPermissionSchema = z.enum([PermissionLevels.ANYONE, PermissionLevels.ADMIN_ONLY]);

@@ -20,8 +20,8 @@ export class PermissionEngine {
 
             case SecurityPresets.MANAGED:
                 return {
-                    expenseEditing: PermissionLevels.OWNER_AND_ADMIN,
-                    expenseDeletion: PermissionLevels.OWNER_AND_ADMIN,
+                    expenseEditing: PermissionLevels.CREATOR_AND_ADMIN,
+                    expenseDeletion: PermissionLevels.CREATOR_AND_ADMIN,
                     memberInvitation: PermissionLevels.ADMIN_ONLY,
                     memberApproval: 'admin-required',
                     settingsManagement: PermissionLevels.ADMIN_ONLY,

@@ -807,7 +807,6 @@ export class ExpenseService {
             id: groupData.id,
             name: groupData.name,
             description: groupData.description,
-            createdBy: groupData.createdBy,
             createdAt: groupData.createdAt,
             updatedAt: groupData.updatedAt,
             permissions: groupData.permissions,

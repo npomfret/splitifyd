@@ -71,7 +71,7 @@ class ClientPermissionEngine {
             case 'anyone':
                 return userRole !== 'viewer';
 
-            case 'owner-and-admin':
+            case 'creator-and-admin':
                 if (userRole === 'admin') return true;
                 if (options.expense && options.expense.createdBy === userId) return true;
                 return false;

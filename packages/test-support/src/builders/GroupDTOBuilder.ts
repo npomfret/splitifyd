@@ -1,6 +1,5 @@
-import type { CurrencyBalance, GroupCurrencySettings, GroupDTO, GroupId, GroupName, GroupPermissions, InviteLink, ISOString, PermissionChangeLog, UserId } from '@billsplit-wl/shared';
+import type { CurrencyBalance, GroupCurrencySettings, GroupDTO, GroupId, GroupName, GroupPermissions, InviteLink, ISOString, PermissionChangeLog } from '@billsplit-wl/shared';
 import { toGroupId, toGroupName } from '@billsplit-wl/shared';
-import { toUserId } from '@billsplit-wl/shared';
 import { convertToISOString, generateShortId, randomChoice, randomString } from '../test-helpers';
 
 /**
@@ -11,13 +10,10 @@ export class GroupDTOBuilder {
     private group: GroupDTO;
 
     constructor() {
-        const defaultOwner = toUserId(`user-${generateShortId()}`);
-
         this.group = {
             id: toGroupId(`group-${generateShortId()}`),
             name: toGroupName(`${randomChoice(['Team', 'Group', 'Squad', 'Club', 'Circle'])} ${randomString(4)}`),
             description: `A test group for ${randomString(6)}`,
-            createdBy: defaultOwner,
             permissions: {
                 expenseEditing: 'anyone',
                 expenseDeletion: 'anyone',
@@ -47,11 +43,6 @@ export class GroupDTOBuilder {
 
     withDescription(description: string | undefined): this {
         this.group.description = description;
-        return this;
-    }
-
-    withCreatedBy(userId: UserId | string): this {
-        this.group.createdBy = typeof userId === 'string' ? toUserId(userId) : userId;
         return this;
     }
 
@@ -201,9 +192,8 @@ export class GroupDTOBuilder {
         return cloned;
     }
 
-    static groupForUser(userId: UserId | string): GroupDTOBuilder {
+    static groupForUser(userId: string): GroupDTOBuilder {
         return new GroupDTOBuilder()
-            .withCreatedBy(userId)
             .withName(`${userId}'s Group`);
     }
 }

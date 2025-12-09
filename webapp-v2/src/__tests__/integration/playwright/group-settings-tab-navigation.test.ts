@@ -8,39 +8,23 @@ import { fulfillWithSerialization, mockGroupCommentsApi, mockPendingMembersApi, 
 interface GroupTestSetupOptions {
     groupId?: GroupId;
     groupName?: string;
-    groupOwnerId?: string;
     currentUserRole: MemberRole;
     permissions: GroupPermissions;
+    additionalMembers?: Array<{ uid: string; displayName: string; role: MemberRole; }>;
 }
 
 async function setupGroupWithRole(page: Page, user: ClientUser, options: GroupTestSetupOptions): Promise<{ groupId: GroupId; }> {
     const groupId = options.groupId ?? toGroupId('group-tabs-' + user.uid);
     const groupName = options.groupName ?? 'Tab Navigation Test Group';
-    const ownerId = options.groupOwnerId ?? toUserId('owner-' + user.uid);
 
     const buildFullDetails = () => {
         const group = new GroupDTOBuilder()
             .withId(groupId)
             .withName(groupName)
-            .withCreatedBy(ownerId)
             .withPermissions(options.permissions)
             .build();
 
         const members: ReturnType<GroupMemberBuilder['build']>[] = [];
-
-        // Add owner if different from current user
-        if (ownerId !== user.uid) {
-            members.push(
-                new GroupMemberBuilder()
-                    .withUid(ownerId)
-                    .withDisplayName('Group Owner')
-                    .withGroupDisplayName('Group Owner')
-                    .withMemberRole('admin')
-                    .withMemberStatus('active')
-                    .withTheme(ThemeBuilder.blue().build())
-                    .build(),
-            );
-        }
 
         // Add current user with specified role
         members.push(
@@ -53,6 +37,20 @@ async function setupGroupWithRole(page: Page, user: ClientUser, options: GroupTe
                 .withTheme(ThemeBuilder.red().build())
                 .build(),
         );
+
+        // Add any additional members
+        for (const additionalMember of options.additionalMembers ?? []) {
+            members.push(
+                new GroupMemberBuilder()
+                    .withUid(additionalMember.uid)
+                    .withDisplayName(additionalMember.displayName)
+                    .withGroupDisplayName(additionalMember.displayName)
+                    .withMemberRole(additionalMember.role)
+                    .withMemberStatus('active')
+                    .withTheme(ThemeBuilder.blue().build())
+                    .build(),
+            );
+        }
 
         return new GroupFullDetailsBuilder()
             .withGroup(group)
@@ -72,7 +70,7 @@ async function setupGroupWithRole(page: Page, user: ClientUser, options: GroupTe
 }
 
 const ADMIN_ONLY_PERMISSIONS: GroupPermissions = {
-    expenseEditing: 'owner-and-admin',
+    expenseEditing: 'creator-and-admin',
     expenseDeletion: 'admin-only',
     memberInvitation: 'admin-only',
     memberApproval: 'admin-required',
@@ -88,15 +86,13 @@ const OPEN_PERMISSIONS: GroupPermissions = {
 };
 
 test.describe('Group Settings - Tab Navigation', () => {
-    test('allows switching from identity to general tab (owner)', async ({ authenticatedPage }) => {
+    test('allows switching from identity to general tab', async ({ authenticatedPage }) => {
         const { page, user } = authenticatedPage;
         const groupDetailPage = new GroupDetailPage(page);
 
         await setupSuccessfulApiMocks(page);
 
-        // User is the owner (groupOwnerId not specified, defaults to not-owner, so set explicitly)
         const { groupId } = await setupGroupWithRole(page, user, {
-            groupOwnerId: user.uid, // Make user the owner
             currentUserRole: 'admin',
             permissions: OPEN_PERMISSIONS,
         });
@@ -104,7 +100,7 @@ test.describe('Group Settings - Tab Navigation', () => {
         await groupDetailPage.navigateToGroup(groupId);
         await groupDetailPage.waitForGroupToLoad();
 
-        // Open modal - owner defaults to general tab
+        // Open modal on identity tab
         const modal = await groupDetailPage.clickEditGroupAndOpenModal('identity');
 
         // Verify identity tab content is visible
@@ -118,14 +114,13 @@ test.describe('Group Settings - Tab Navigation', () => {
         await modal.verifyGroupNameInputVisible();
     });
 
-    test('allows switching from general to security tab (owner)', async ({ authenticatedPage }) => {
+    test('allows switching from general to security tab', async ({ authenticatedPage }) => {
         const { page, user } = authenticatedPage;
         const groupDetailPage = new GroupDetailPage(page);
 
         await setupSuccessfulApiMocks(page);
 
         const { groupId } = await setupGroupWithRole(page, user, {
-            groupOwnerId: user.uid,
             currentUserRole: 'admin',
             permissions: OPEN_PERMISSIONS,
         });
@@ -147,17 +142,19 @@ test.describe('Group Settings - Tab Navigation', () => {
         await modal.verifyPresetSelected('open');
     });
 
-    test('non-owner sees identity tab only when permissions are restricted', async ({ authenticatedPage }) => {
+    test('non-admin sees identity tab only when permissions are restricted', async ({ authenticatedPage }) => {
         const { page, user } = authenticatedPage;
         const groupDetailPage = new GroupDetailPage(page);
 
         await setupSuccessfulApiMocks(page);
 
-        // User is a regular member (not owner), with admin-only permissions
+        // User is a regular member (not admin), with admin-only permissions
         const { groupId } = await setupGroupWithRole(page, user, {
-            groupOwnerId: toUserId('different-owner'),
             currentUserRole: 'member', // Regular member, not admin
             permissions: ADMIN_ONLY_PERMISSIONS,
+            additionalMembers: [
+                { uid: toUserId('another-admin'), displayName: 'Another Admin', role: 'admin' },
+            ],
         });
 
         await groupDetailPage.navigateToGroup(groupId);
@@ -177,16 +174,15 @@ test.describe('Group Settings - Tab Navigation', () => {
         await modal.verifyDisplayNameInputVisible();
     });
 
-    test('admin sees identity and security tabs but not general', async ({ authenticatedPage }) => {
+    test('admin sees all three tabs', async ({ authenticatedPage }) => {
         const { page, user } = authenticatedPage;
         const groupDetailPage = new GroupDetailPage(page);
 
         await setupSuccessfulApiMocks(page);
 
-        // User is an admin (not owner), with admin-only permissions
+        // User is an admin - should see all tabs
         const { groupId } = await setupGroupWithRole(page, user, {
-            groupOwnerId: toUserId('different-owner'),
-            currentUserRole: 'admin', // Admin role
+            currentUserRole: 'admin',
             permissions: ADMIN_ONLY_PERMISSIONS,
         });
 
@@ -197,35 +193,7 @@ test.describe('Group Settings - Tab Navigation', () => {
         const modal = await groupDetailPage.clickEditGroupAndOpenModal('identity');
         await modal.waitForModalToOpen({ tab: 'identity' });
 
-        // Verify visible tabs
-        const visibleTabs = await modal.getVisibleTabs();
-
-        // Admin should see identity and security tabs, but not general (only owner sees general)
-        expect(visibleTabs).toContain('identity');
-        expect(visibleTabs).not.toContain('general');
-        expect(visibleTabs).toContain('security');
-    });
-
-    test('owner sees all three tabs', async ({ authenticatedPage }) => {
-        const { page, user } = authenticatedPage;
-        const groupDetailPage = new GroupDetailPage(page);
-
-        await setupSuccessfulApiMocks(page);
-
-        const { groupId } = await setupGroupWithRole(page, user, {
-            groupOwnerId: user.uid, // User is the owner
-            currentUserRole: 'admin',
-            permissions: ADMIN_ONLY_PERMISSIONS,
-        });
-
-        await groupDetailPage.navigateToGroup(groupId);
-        await groupDetailPage.waitForGroupToLoad();
-
-        // Open modal
-        const modal = await groupDetailPage.clickEditGroupAndOpenModal('general');
-        await modal.waitForModalToOpen({ tab: 'general' });
-
-        // Verify all tabs are visible
+        // Verify all tabs are visible - admins see all tabs (no owner-only restrictions)
         const visibleTabs = await modal.getVisibleTabs();
 
         expect(visibleTabs).toContain('identity');

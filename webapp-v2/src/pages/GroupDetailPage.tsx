@@ -60,18 +60,15 @@ export default function GroupDetailPage({ id: groupId, expenseId: routeExpenseId
     const currentMembership = useComputed(() => members.value.find((member) => member.uid === currentUser.value?.uid) ?? null);
     const membershipStatus = useComputed(() => currentMembership.value?.memberStatus ?? MemberStatuses.ACTIVE);
     const isArchivedMembership = useComputed(() => membershipStatus.value === MemberStatuses.ARCHIVED);
-    const isGroupOwner = useComputed(() => currentUser.value && group.value && group.value.createdBy === currentUser.value.uid);
+    const isGroupAdmin = useComputed(() => currentMembership.value?.memberRole === MemberRoles.ADMIN);
     const userPermissions = useComputed(() => permissionsStore.permissions.value || {});
-    const canManageSecurity = useComputed(() => Boolean(userPermissions.value.canManageSettings));
+    const canManageSettings = useComputed(() => Boolean(userPermissions.value.canManageSettings));
     const canApproveMembers = useComputed(() => Boolean(userPermissions.value.canApproveMembers));
     const isGroupMember = useComputed(() => members.value.some((member) => member.uid === currentUser.value?.uid));
-    const canShowSettingsButton = useComputed(() => Boolean(isGroupOwner.value || canManageSecurity.value || canApproveMembers.value || isGroupMember.value));
+    const canShowSettingsButton = useComputed(() => Boolean(canManageSettings.value || canApproveMembers.value || isGroupMember.value));
     const canViewDeletedTransactions = useComputed(() => {
         if (!currentUser.value || !group.value) {
             return false;
-        }
-        if (group.value.createdBy === currentUser.value.uid) {
-            return true;
         }
 
         const role = currentMembership.value?.memberRole;
@@ -106,8 +103,8 @@ export default function GroupDetailPage({ id: groupId, expenseId: routeExpenseId
         // Check if current user appears in any debt relationship
         return balances.value.simplifiedDebts.some((debt) => debt.from.uid === currentUser.value?.uid || debt.to.uid === currentUser.value?.uid);
     });
-    // Users can leave if they're not the owner and not the only member left
-    const canLeaveGroup = useComputed(() => !isGroupOwner.value && !isLastMember.value);
+    // Users can leave if they're not the only member (server enforces last admin protection)
+    const canLeaveGroup = useComputed(() => !isLastMember.value);
 
     // Component should only render if user is authenticated (handled by ProtectedRoute)
     if (!currentUser.value) {
@@ -296,7 +293,7 @@ export default function GroupDetailPage({ id: groupId, expenseId: routeExpenseId
     };
 
     const handleSettings = () => {
-        const defaultTab = isGroupOwner.value ? 'general' : 'identity';
+        const defaultTab = canManageSettings.value ? 'general' : 'identity';
         modals.openGroupSettingsModal(defaultTab);
     };
 
@@ -624,9 +621,9 @@ export default function GroupDetailPage({ id: groupId, expenseId: routeExpenseId
                     onClose={() => modals.closeGroupSettingsModal()}
                     group={group.value!}
                     members={members.value}
-                    canManageMembers={canManageSecurity.value ?? false}
+                    canManageMembers={canManageSettings.value ?? false}
                     canApproveMembers={canApproveMembers.value ?? false}
-                    isGroupOwner={Boolean(isGroupOwner.value)}
+                    canManageSettings={canManageSettings.value ?? false}
                     onGroupUpdated={handleGroupUpdateSuccess}
                     onDelete={handleGroupDelete}
                     initialTab={modals.groupSettingsInitialTab.value}

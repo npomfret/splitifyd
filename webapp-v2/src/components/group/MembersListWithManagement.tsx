@@ -39,8 +39,8 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
     const isCollapsed = useSignal(true);
 
     const currentUserId = currentUser.value?.uid || '';
-    const createdBy = group.value?.createdBy || '';
-    const isOwner = currentUserId === createdBy;
+    const currentMembership = members.value.find((m) => m.uid === currentUserId);
+    const isAdmin = currentMembership?.memberRole === 'admin';
 
     // Note: Balance display removed - balances are properly handled by BalanceSummary component
     // which respects currency separation. Cross-currency arithmetic is not performed.
@@ -169,8 +169,8 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
                                     {getMemberRole(member) && <span className='text-xs text-text-muted leading-tight'>{getMemberRole(member)}</span>}
                                 </div>
                             </div>
-                            {/* Show actions only if current user is owner */}
-                            {isOwner && member.uid !== currentUserId
+                            {/* Show actions only if current user is admin */}
+                            {isAdmin && member.uid !== currentUserId
                                 ? (() => {
                                     const removeMemberLabel = t('membersList.removeMemberAriaLabel', { name: getGroupDisplayName(member) });
 

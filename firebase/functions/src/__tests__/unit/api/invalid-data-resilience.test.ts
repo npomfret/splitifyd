@@ -78,7 +78,6 @@ describe('Invalid Data Resilience - API should not break with bad data', () => {
                 const validGroup = new GroupDTOBuilder()
                     .withName(`Invalid Permissions Group - ${name}`)
                     .withDescription('Group with invalid permissions configuration')
-                    .withCreatedBy(testUser)
                     .build();
 
                 const now = Timestamp.now();
@@ -86,7 +85,6 @@ describe('Invalid Data Resilience - API should not break with bad data', () => {
                 const corruptedGroup = {
                     name: validGroup.name,
                     description: validGroup.description,
-                    createdBy: validGroup.createdBy,
                     permissions: mutate(validGroup.permissions),
                     id: groupId,
                     createdAt: now,
@@ -147,12 +145,11 @@ describe('Invalid Data Resilience - API should not break with bad data', () => {
             // Build valid group, then corrupt critical fields
             const validGroup = new GroupDTOBuilder()
                 .withName('Corrupted Test Group')
-                .withCreatedBy(testUser)
                 .build();
 
             const corruptedGroup = {
                 ...validGroup,
-                createdBy: null, // Corrupt required field
+                name: null, // Corrupt required field
                 members: 'not-an-object', // Wrong type
                 id: corruptedGroupId,
             };

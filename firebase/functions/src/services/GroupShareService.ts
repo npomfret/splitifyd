@@ -395,9 +395,6 @@ export class GroupShareService {
         if (existingMember) {
             throw Errors.alreadyExists('Group membership', ErrorDetail.ALREADY_MEMBER);
         }
-        if (await this.groupMemberService.isGroupOwnerAsync(preCheckGroup.id, userId)) {
-            throw Errors.alreadyExists('Group membership', ErrorDetail.ALREADY_MEMBER);
-        }
 
         // Pre-compute member data outside transaction for speed
         const joinedAt = toISOString(new Date().toISOString());

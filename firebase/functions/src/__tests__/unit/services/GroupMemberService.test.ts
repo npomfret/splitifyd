@@ -263,18 +263,42 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
     // ================================
 
     describe('Leave Group Validation', () => {
-        test('should prevent group creator from leaving', async () => {
-            // Arrange
-            const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const creatorId = creator.user.uid;
+        test('should prevent last admin from leaving', async () => {
+            // Arrange - single admin in group (the creator becomes the first admin)
+            const admin = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const adminId = admin.user.uid;
 
-            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), adminId);
             const groupId = toGroupId(group.id);
 
-            // Act & Assert
-            await expect(appDriver.leaveGroup(groupId, creatorId)).rejects.toMatchObject({
+            // Act & Assert - last admin cannot leave
+            await expect(appDriver.leaveGroup(groupId, adminId)).rejects.toMatchObject({
                 code: ErrorCode.INVALID_REQUEST,
             });
+        });
+
+        test('should allow admin to leave if other admins exist', async () => {
+            // Arrange - create group with first admin
+            const firstAdmin = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const firstAdminId = firstAdmin.user.uid;
+
+            const secondAdmin = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const secondAdminId = secondAdmin.user.uid;
+
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), firstAdminId);
+            const groupId = toGroupId(group.id);
+
+            // Add second user and promote to admin
+            await appDriver.addMembersToGroup(groupId, firstAdminId, [secondAdminId]);
+            await appDriver.updateMemberRole(groupId, secondAdminId, MemberRoles.ADMIN, firstAdminId);
+
+            // Act - first admin can now leave since there's another admin
+            await appDriver.leaveGroup(groupId, firstAdminId);
+
+            // Assert - first admin is no longer a member
+            const remainingMembers = await firestoreReader.getAllGroupMembers(groupId);
+            expect(remainingMembers).toHaveLength(1);
+            expect(remainingMembers[0].uid).toBe(secondAdminId);
         });
 
         test('should prevent leaving with outstanding balance', async () => {
@@ -393,10 +417,10 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
     });
 
     describe('Remove Member Validation', () => {
-        test('should prevent non-creator from removing members', async () => {
+        test('should prevent non-admin from removing members', async () => {
             // Arrange
-            const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const creatorId = creator.user.uid;
+            const admin = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const adminId = admin.user.uid;
 
             const member = await appDriver.registerUser(new UserRegistrationBuilder().build());
             const memberId = member.user.uid;
@@ -404,28 +428,28 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             const target = await appDriver.registerUser(new UserRegistrationBuilder().build());
             const targetId = target.user.uid;
 
-            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), adminId);
             const groupId = toGroupId(group.id);
 
             // Add members to group
-            await appDriver.addMembersToGroup(groupId, creatorId, [memberId, targetId]);
+            await appDriver.addMembersToGroup(groupId, adminId, [memberId, targetId]);
 
-            // Act & Assert - Non-creator (memberId) trying to remove targetId
+            // Act & Assert - Non-admin (memberId) trying to remove targetId
             await expect(appDriver.removeGroupMember(groupId, targetId, memberId)).rejects.toMatchObject({
                 code: ErrorCode.FORBIDDEN,
             });
         });
 
-        test('should prevent removing the group creator', async () => {
-            // Arrange
-            const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const creatorId = creator.user.uid;
+        test('should prevent removing the last admin', async () => {
+            // Arrange - single admin in group
+            const admin = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const adminId = admin.user.uid;
 
-            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), adminId);
             const groupId = toGroupId(group.id);
 
-            // Act & Assert - creator trying to remove themselves
-            await expect(appDriver.removeGroupMember(groupId, creatorId, creatorId)).rejects.toMatchObject({
+            // Act & Assert - last admin cannot be removed
+            await expect(appDriver.removeGroupMember(groupId, adminId, adminId)).rejects.toMatchObject({
                 code: ErrorCode.INVALID_REQUEST,
             });
         });

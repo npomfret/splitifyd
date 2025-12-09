@@ -146,10 +146,9 @@ export class GroupMemberService {
 
             await this.ensureActiveGroupAdmin(groupId, requestingUserId);
 
-            const [group, targetMembership, allMembers, actorMembership] = await Promise.all([
+            const [group, targetMembership, actorMembership] = await Promise.all([
                 this.firestoreReader.getGroup(groupId),
                 this.firestoreReader.getGroupMember(groupId, targetUserId),
-                this.firestoreReader.getAllGroupMembers(groupId),
                 this.firestoreReader.getGroupMember(groupId, requestingUserId),
             ]);
 
@@ -166,20 +165,11 @@ export class GroupMemberService {
                 return;
             }
 
-            if (targetMembership.memberRole === MemberRoles.ADMIN && newRole !== MemberRoles.ADMIN) {
-                const activeAdminCount = allMembers.filter((member) => member.memberRole === MemberRoles.ADMIN && member.memberStatus === MemberStatuses.ACTIVE).length;
-                if (activeAdminCount <= 1) {
-                    throw Errors.invalidRequest('Cannot remove the last active admin from the group');
-                }
-            }
-
             const actorDisplayName = actorMembership?.groupDisplayName ?? 'Unknown';
             const targetDisplayName = targetMembership.groupDisplayName;
             const now = toISOString(new Date().toISOString());
             let activityItem: CreateActivityItemInput | null = null;
-            const activityRecipients = allMembers
-                .filter((m) => m.memberStatus === MemberStatuses.ACTIVE)
-                .map((m) => m.uid);
+            let activityRecipients: UserId[] = [];
 
             await this.runMembershipTransaction(groupId, async (context) => {
                 const transaction = context.transaction;
@@ -189,6 +179,25 @@ export class GroupMemberService {
                 if (!membershipSnap.exists) {
                     throw Errors.notFound('Group member', ErrorDetail.MEMBER_NOT_FOUND);
                 }
+
+                // CRITICAL: Read all members INSIDE transaction to prevent TOCTOU race condition
+                // This ensures the admin count check uses transactionally consistent data
+                const membershipsSnapshot = await this.firestoreReader.getGroupMembershipsInTransaction(transaction, groupId);
+                const allMembersInTx = membershipsSnapshot.docs.map((doc) => doc.data() as { uid: UserId; memberRole: MemberRole; memberStatus: string; });
+
+                // Check if demoting the last admin (must happen INSIDE transaction)
+                if (targetMembership.memberRole === MemberRoles.ADMIN && newRole !== MemberRoles.ADMIN) {
+                    const activeAdminCount = allMembersInTx.filter(
+                        (m) => m.memberRole === MemberRoles.ADMIN && m.memberStatus === MemberStatuses.ACTIVE
+                    ).length;
+                    if (activeAdminCount <= 1) {
+                        throw Errors.invalidRequest(ErrorDetail.LAST_ADMIN_PROTECTED);
+                    }
+                }
+
+                activityRecipients = allMembersInTx
+                    .filter((m) => m.memberStatus === MemberStatuses.ACTIVE)
+                    .map((m) => m.uid);
 
                 transaction.update(membershipRef, {
                     memberRole: newRole,
@@ -401,27 +410,14 @@ export class GroupMemberService {
             throw Errors.invalidRequest(message);
         }
 
-        // Authorization and validation logic
-        if (isLeaving) {
-            // User leaving themselves
-            if (group.createdBy === targetUserId) {
-                throw Errors.invalidRequest('Group creator cannot leave the group');
-            }
-
-            const memberIds = await this.firestoreReader.getAllGroupMemberIds(groupId);
-            if (memberIds.length === 1) {
-                throw Errors.invalidRequest('Cannot leave group - you are the only member');
-            }
-        } else {
-            // Admin removing someone else
-            if (group.createdBy !== requestingUserId) {
-                throw Errors.forbidden(ErrorDetail.NOT_OWNER);
-            }
-
-            if (targetUserId === group.createdBy) {
-                throw Errors.invalidRequest('Group creator cannot be removed');
-            }
+        // Authorization check (non-transactional is safe - just verifies requester is admin)
+        if (!isLeaving) {
+            // Admin removing someone else - must be an admin to remove
+            await this.ensureActiveGroupAdmin(groupId, requestingUserId);
         }
+
+        // Track target admin status for transactional validation
+        const targetIsAdmin = memberDoc.memberRole === MemberRoles.ADMIN && memberDoc.memberStatus === MemberStatuses.ACTIVE;
 
         // Balance validation (same logic for both scenarios)
         // Use pre-computed balance from Firestore (O(1) read)
@@ -478,9 +474,31 @@ export class GroupMemberService {
         timer.startPhase('transaction');
         await this.runMembershipTransaction(groupId, async (context) => {
             const transaction = context.transaction;
+
+            // CRITICAL: Read all members INSIDE transaction to prevent TOCTOU race condition
+            // This ensures the admin count and member count checks use transactionally consistent data
             const membershipsSnapshot = await this.firestoreReader.getGroupMembershipsInTransaction(transaction, groupId);
-            const memberIdsInTransaction = membershipsSnapshot.docs.map((doc) => (doc.data() as { uid: UserId; }).uid);
+            const allMembersInTx = membershipsSnapshot.docs.map((doc) => doc.data() as { uid: UserId; memberRole: MemberRole; memberStatus: string; });
+            const memberIdsInTransaction = allMembersInTx.map((m) => m.uid);
             const remainingMemberIds = memberIdsInTransaction.filter((uid) => uid !== targetUserId);
+
+            // Transactional validation: check if this would leave the group orphaned
+            if (isLeaving) {
+                // User leaving themselves - check member count
+                if (allMembersInTx.length === 1) {
+                    throw Errors.invalidRequest('Cannot leave group - you are the only member');
+                }
+            }
+
+            // Check if removing/leaving the last admin (applies to both scenarios)
+            if (targetIsAdmin) {
+                const activeAdminCount = allMembersInTx.filter(
+                    (m) => m.memberRole === MemberRoles.ADMIN && m.memberStatus === MemberStatuses.ACTIVE
+                ).length;
+                if (activeAdminCount <= 1) {
+                    throw Errors.invalidRequest(ErrorDetail.LAST_ADMIN_PROTECTED);
+                }
+            }
 
             activityRecipients = Array.from(new Set<UserId>([...remainingMemberIds, targetUserId]));
 
@@ -530,11 +548,6 @@ export class GroupMemberService {
     async isGroupMemberAsync(groupId: GroupId, userId: UserId): Promise<boolean> {
         const member = await this.firestoreReader.getGroupMember(groupId, userId);
         return member !== null;
-    }
-
-    async isGroupOwnerAsync(groupId: GroupId, userId: UserId): Promise<boolean> {
-        const member = await this.firestoreReader.getGroupMember(groupId, userId);
-        return Boolean(member && member.memberRole === MemberRoles.ADMIN && member.memberStatus === MemberStatuses.ACTIVE);
     }
 
     /**

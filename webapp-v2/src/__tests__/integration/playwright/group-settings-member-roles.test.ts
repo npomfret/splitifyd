@@ -32,10 +32,10 @@ async function setupGroupWithMembers(page: Page, user: ClientUser, options: Grou
         const group = new GroupDTOBuilder()
             .withId(groupId)
             .withName(groupName)
-            .withCreatedBy(user.uid)
+            
             .withPermissions({
                 expenseEditing: 'anyone',
-                expenseDeletion: 'owner-and-admin',
+                expenseDeletion: 'creator-and-admin',
                 memberInvitation: 'anyone',
                 memberApproval: 'automatic',
                 settingsManagement: 'admin-only',
@@ -178,32 +178,6 @@ test.describe('Group Settings - Security Tab - Member Roles', () => {
 
         // Verify unsaved changes banner appears
         await modal.verifySecurityUnsavedBannerVisible();
-    });
-
-    test('owner role dropdown is disabled', async ({ authenticatedPage }) => {
-        const { page, user } = authenticatedPage;
-        const groupDetailPage = new GroupDetailPage(page);
-
-        // Setup API mocks first
-        await setupSuccessfulApiMocks(page);
-
-        const { groupId } = await setupGroupWithMembers(page, user, {
-            additionalMembers: [
-                { uid: toUserId('member-other'), displayName: 'Other Member', role: 'member' },
-            ],
-        });
-
-        await groupDetailPage.navigateToGroup(groupId);
-        await groupDetailPage.waitForGroupToLoad();
-
-        const modal = await groupDetailPage.clickEditGroupAndOpenModal('security');
-        await modal.waitForSecurityTab();
-
-        // Owner's (current user's) role dropdown should be disabled
-        await modal.verifyMemberRoleSelectDisabled(user.uid);
-
-        // Other member's role dropdown should be enabled
-        await modal.verifyMemberRoleSelectEnabled(toUserId('member-other'));
     });
 
     test('shows unsaved changes banner when role is changed', async ({ authenticatedPage }) => {

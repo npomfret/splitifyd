@@ -49,7 +49,7 @@ Each group has configurable permissions stored in `group.permissions`:
 | Level | Who can act |
 |-------|-------------|
 | `anyone` | All members (except viewers) |
-| `owner-and-admin` | Admins + expense creator (for their own) |
+| `creator-and-admin` | Admins + expense/settlement creator (for their own) |
 | `admin-only` | Admins only |
 
 **Presets:** `OPEN` (permissive defaults) and `MANAGED` (admin-controlled). See `permission-engine.ts`.

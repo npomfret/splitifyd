@@ -23,7 +23,6 @@ interface GroupSecurityTabContentProps {
     // Member roles
     members: GroupMember[];
     memberRoleDrafts: Record<string, MemberRole>;
-    groupCreatedBy: string;
     canManageMembers: boolean;
 
     // Pending members
@@ -54,7 +53,6 @@ export function GroupSecurityTabContent({
     presetKeys,
     members,
     memberRoleDrafts,
-    groupCreatedBy,
     canManageMembers,
     pendingMembers,
     loadingPending,
@@ -110,7 +108,6 @@ export function GroupSecurityTabContent({
                 <MemberRolesSection
                     members={members}
                     memberRoleDrafts={memberRoleDrafts}
-                    groupCreatedBy={groupCreatedBy}
                     onRoleChange={onRoleChange}
                 />
             )}

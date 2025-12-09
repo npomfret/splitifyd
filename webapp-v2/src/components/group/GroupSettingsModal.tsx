@@ -26,7 +26,7 @@ interface GroupSettingsModalProps {
     members: GroupMember[];
     canManageMembers: boolean;
     canApproveMembers: boolean;
-    isGroupOwner: boolean;
+    canManageSettings: boolean;
     onClose: () => void;
     onGroupUpdated?: () => Promise<void> | void;
     onDelete?: () => void;
@@ -39,7 +39,7 @@ export function GroupSettingsModal({
     members,
     canManageMembers,
     canApproveMembers,
-    isGroupOwner,
+    canManageSettings,
     onClose,
     onGroupUpdated,
     onDelete,
@@ -60,7 +60,7 @@ export function GroupSettingsModal({
         onGroupUpdated,
     });
 
-    const canManageGeneralSettings = isGroupOwner;
+    const canManageGeneralSettings = canManageSettings;
 
     const generalSettingsState = useGroupGeneralSettings({
         group,
@@ -81,7 +81,7 @@ export function GroupSettingsModal({
 
     const generalTabAvailable = canManageGeneralSettings;
     const identityTabAvailable = true;
-    const securityTabAvailable = isGroupOwner || canManageMembers || canApproveMembers;
+    const securityTabAvailable = canManageSettings || canManageMembers || canApproveMembers;
 
     const securitySettingsState = useGroupSecuritySettings({
         group,
@@ -191,7 +191,6 @@ export function GroupSettingsModal({
             presetKeys={securitySettingsState.presetKeys}
             members={members}
             memberRoleDrafts={securitySettingsState.memberRoleDrafts}
-            groupCreatedBy={group.createdBy}
             canManageMembers={canManageMembers}
             pendingMembers={securitySettingsState.pendingMembers}
             loadingPending={securitySettingsState.loadingPending}

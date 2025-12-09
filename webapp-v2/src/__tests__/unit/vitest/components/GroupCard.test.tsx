@@ -38,7 +38,7 @@ const buildBaseGroup = (): GroupDTO =>
         .withId('group-1')
         .withName('Housemates')
         .withDescription('Monthly expenses')
-        .withCreatedBy('user-1')
+        
         .withCreatedAt('2024-01-01T00:00:00.000Z')
         .withUpdatedAt('2024-01-01T00:00:00.000Z')
         .withPermissions({

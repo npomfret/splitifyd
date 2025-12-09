@@ -39,7 +39,6 @@ describe('GroupHandlers - Unit Tests', () => {
                 id: expect.any(String),
                 name: 'My Test Group',
                 description: 'A test group description',
-                createdBy: userId,
             });
         });
 
