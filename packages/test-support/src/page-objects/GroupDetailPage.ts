@@ -328,10 +328,10 @@ export class GroupDetailPage extends BasePage {
     // ============================================================================
 
     /**
-     * Group name heading - the main H1 at top of page
+     * Group name heading - in the group header section (targets the span containing just the name)
      */
     protected getGroupName(): Locator {
-        return this.page.getByRole('heading', { level: 1 });
+        return this.page.locator('#group-header').getByRole('heading').locator('span');
     }
 
     /**
