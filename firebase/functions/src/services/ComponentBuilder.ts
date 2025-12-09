@@ -365,5 +365,3 @@ export class ComponentBuilder {
         return this.tenantImageLibraryService;
     }
 }
-
-export { ServiceConfig } from '../merge/ServiceConfig';

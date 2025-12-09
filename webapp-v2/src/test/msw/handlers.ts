@@ -147,22 +147,6 @@ export function firebaseInitConfigHandler(options: HandlerOptions = {}): Seriali
     return createJsonHandler('GET', '/__/firebase/init.json', new AppConfigurationBuilder().build().firebase, options);
 }
 
-export function expenseFullDetailsHandler(
-    expenseId: string,
-    response: unknown,
-    options: HandlerOptions = {},
-): SerializedMswHandler {
-    return createJsonHandler('GET', `/api/expenses/${expenseId}/full-details`, response, options);
-}
-
-export function expenseCommentsHandler(
-    expenseId: string,
-    response: unknown,
-    options: HandlerOptions = {},
-): SerializedMswHandler {
-    return createJsonHandler('GET', `/api/expenses/${expenseId}/comments`, response, options);
-}
-
 export function updateExpenseHandler(
     expenseId: string,
     response: unknown,
@@ -230,23 +214,3 @@ export function passwordResetSuccessHandler(options: HandlerOptions = {}): Seria
     );
 }
 
-export function passwordResetFailureHandler(
-    error: { code: string; message: string; },
-    options: HandlerOptions = {},
-): SerializedMswHandler {
-    const { status = 400, ...rest } = options;
-    return createJsonHandler(
-        'POST',
-        '/api/password-reset',
-        {
-            error: {
-                code: error.code,
-                message: error.message,
-            },
-        },
-        {
-            status,
-            ...rest,
-        },
-    );
-}

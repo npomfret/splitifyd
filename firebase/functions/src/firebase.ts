@@ -75,17 +75,10 @@ export function getEmulatorPorts(): EmulatorPorts {
     return cachedEmulatorPorts;
 }
 
-/**
- * Check if deployed to Firebase (not emulator)
- */
-export function isDeployed() {
-    return !isEmulator();
-}
-
 // Lazy-initialized app instance - DO NOT initialize at module level
 let app: admin.app.App | undefined;
 
-export function getFirebaseConfigFromEnvVar() {
+function getFirebaseConfigFromEnvVar() {
     return JSON.parse(process.env.FIREBASE_CONFIG!);
 }
 

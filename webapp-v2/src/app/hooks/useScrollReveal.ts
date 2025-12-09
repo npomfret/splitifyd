@@ -2,7 +2,7 @@ import type { Ref } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useThemeConfig } from './useThemeConfig';
 
-export interface UseScrollRevealOptions extends IntersectionObserverInit {
+interface UseScrollRevealOptions extends IntersectionObserverInit {
     /**
      * Delay in milliseconds before revealing the element after it enters viewport.
      * Default: 0
@@ -10,7 +10,7 @@ export interface UseScrollRevealOptions extends IntersectionObserverInit {
     delay?: number;
 }
 
-export interface UseScrollRevealReturn {
+interface UseScrollRevealReturn {
     /**
      * Ref to attach to the element you want to reveal on scroll.
      */
@@ -44,7 +44,7 @@ export interface UseScrollRevealReturn {
  * }
  * ```
  */
-export function useScrollReveal(options?: UseScrollRevealOptions): UseScrollRevealReturn {
+function useScrollReveal(options?: UseScrollRevealOptions): UseScrollRevealReturn {
     const ref = useRef<any>(null);
     const [isVisible, setIsVisible] = useState(false);
     const { motion } = useThemeConfig();

@@ -24,7 +24,6 @@ export { InfoIcon } from './InfoIcon';
 export { LogoutIcon } from './LogoutIcon';
 export { PlusIcon } from './PlusIcon';
 export { RefreshIcon } from './RefreshIcon';
-export { ScaleIcon } from './ScaleIcon';
 export { SettingsIcon } from './SettingsIcon';
 export { ShareIcon } from './ShareIcon';
 export { SparklesIcon } from './SparklesIcon';

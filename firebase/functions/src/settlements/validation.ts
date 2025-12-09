@@ -11,10 +11,10 @@ import { toUserId } from '@billsplit-wl/shared';
 import { z } from 'zod';
 import { ErrorDetail, Errors } from '../errors';
 import { validateAmountPrecision } from '../utils/amount-validation';
-import { createRequestValidator, createZodErrorMapper, sanitizeInputString, validateGroupIdParam, validateSettlementId } from '../validation/common';
+import { createRequestValidator, createZodErrorMapper, sanitizeInputString, validateSettlementId } from '../validation/common';
 
 // Re-export centralized ID validators for backward compatibility
-export { validateGroupIdParam, validateSettlementId };
+export { validateSettlementId };
 
 const createSettlementErrorMapper = createZodErrorMapper(
     {

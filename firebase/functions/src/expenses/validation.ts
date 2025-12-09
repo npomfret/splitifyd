@@ -4,10 +4,10 @@ import { z } from 'zod';
 import { ErrorDetail, Errors } from '../errors';
 import { SplitStrategyFactory } from '../services/splits/SplitStrategyFactory';
 import { validateAmountPrecision } from '../utils/amount-validation';
-import { createRequestValidator, createZodErrorMapper, sanitizeInputString, validateExpenseId, validateGroupIdParam } from '../validation/common';
+import { createRequestValidator, createZodErrorMapper, sanitizeInputString, validateExpenseId } from '../validation/common';
 
 // Re-export centralized ID validators for backward compatibility
-export { validateExpenseId, validateGroupIdParam };
+export { validateExpenseId };
 
 const createExpenseErrorMapper = createZodErrorMapper(
     {

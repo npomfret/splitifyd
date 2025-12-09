@@ -30,7 +30,7 @@ interface TenantImageLibraryStore {
     reset(): void;
 }
 
-export class TenantImageLibraryStoreImpl implements TenantImageLibraryStore {
+class TenantImageLibraryStoreImpl implements TenantImageLibraryStore {
     readonly #imagesSignal = signal<TenantImageDTO[]>([]);
     readonly #loadingSignal = signal<boolean>(false);
     readonly #errorSignal = signal<string | null>(null);

@@ -53,7 +53,7 @@ export const validateUserId = createIdValidator<UserId>(
     'userId',
 );
 
-export const validatePolicyId = createIdValidator<PolicyId>(
+const validatePolicyId = createIdValidator<PolicyId>(
     PolicyIdSchema,
     'policyId',
 );

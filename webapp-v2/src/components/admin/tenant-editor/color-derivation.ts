@@ -230,7 +230,7 @@ interface DerivedColors {
  * This creates a complete, harmonious color system from just the core palette.
  * Options control theme mode (light/dark), style preset, and intensity.
  */
-export function deriveColorsFromPalette(
+function deriveColorsFromPalette(
     palette: PaletteColors,
     options: DerivationOptions = DEFAULT_OPTIONS,
 ): DerivedColors {
