@@ -8,8 +8,8 @@ import { ErrorDetail, Errors } from '../errors';
 import { logger } from '../logger';
 import { LoggerContext } from '../logger';
 import { getServiceConfig } from '../merge/ServiceConfig';
-import type { IFirestoreReader } from '../services/firestore/IFirestoreReader';
-import type { IAuthService } from '../services/auth/IAuthService';
+import type { IFirestoreReader } from '../services/firestore';
+import type { IAuthService } from '../services/auth';
 
 // Lazy-initialized services to avoid module-level Firebase initialization
 let _firestoreReader: IFirestoreReader | undefined;

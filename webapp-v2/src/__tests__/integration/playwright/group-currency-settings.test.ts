@@ -1,4 +1,4 @@
-import type { ClientUser, CurrencyISOCode, GroupCurrencySettings, GroupId, MemberRole } from '@billsplit-wl/shared';
+import type { ClientUser, GroupCurrencySettings, GroupId, MemberRole } from '@billsplit-wl/shared';
 import { toCurrencyISOCode, toExpenseId, toGroupId } from '@billsplit-wl/shared';
 import { DashboardPage, ExpenseDTOBuilder, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, ListGroupsResponseBuilder, ThemeBuilder } from '@billsplit-wl/test-support';
 import type { Page, Route } from '@playwright/test';

@@ -26,7 +26,6 @@ import {
     type GroupDTO,
     GroupId,
     type GroupMembershipDTO,
-    GroupName,
     MAX_GROUP_MEMBERS,
     type MemberRole,
     type MemberStatus,

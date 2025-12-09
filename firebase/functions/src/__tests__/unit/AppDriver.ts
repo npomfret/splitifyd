@@ -59,7 +59,6 @@ import {
     PolicyDTO,
     PolicyId,
     PolicyVersion,
-    toPolicyId,
     PreviewGroupResponse,
     PublicAPI,
     PublishPolicyResponse,

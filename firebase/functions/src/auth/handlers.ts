@@ -3,7 +3,7 @@ import type { LoginRequest, LoginResponse, PasswordResetRequest } from '@billspl
 import { toEmail } from '@billsplit-wl/shared';
 import { HTTP_STATUS } from '../constants';
 import { Errors } from '../errors';
-import type { IAuthService } from '../services/auth/IAuthService';
+import type { IAuthService } from '../services/auth';
 import { validateLoginRequest, validatePasswordResetRequest } from './validation';
 
 export class AuthHandlers {

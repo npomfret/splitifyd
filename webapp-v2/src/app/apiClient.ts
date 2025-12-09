@@ -91,7 +91,7 @@ import type {
 } from '@billsplit-wl/shared';
 import { ApiErrorResponseSchema, responseSchemas } from '@billsplit-wl/shared';
 import type { UpdateSettlementRequest } from '@billsplit-wl/shared';
-import { ExpenseId, GroupId, toPolicyId } from '@billsplit-wl/shared';
+import { ExpenseId, GroupId } from '@billsplit-wl/shared';
 import { SettlementId } from '@billsplit-wl/shared';
 import { DisplayName } from '@billsplit-wl/shared';
 import type { CommentText } from '@billsplit-wl/shared';
