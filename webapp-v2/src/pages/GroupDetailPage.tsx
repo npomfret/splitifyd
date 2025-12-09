@@ -419,7 +419,7 @@ export default function GroupDetailPage({ id: groupId, expenseId: routeExpenseId
                                 collapseToggleTestId='toggle-balance-section-mobile'
                                 collapseToggleLabel={t('pages.groupDetailPage.toggleSection', { section: t('pages.groupDetailPage.balances') })}
                             >
-                                <BalanceSummary onSettleUp={handleSettleUp} />
+                                <BalanceSummary variant='sidebar' onSettleUp={handleSettleUp} />
                             </SidebarCard>
                         </div>
 
