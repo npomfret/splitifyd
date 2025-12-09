@@ -24,7 +24,6 @@ import {
     type AdminUpsertTenantRequest,
     type ClientAppConfiguration,
     SIGN_IN_WITH_PASSWORD_ENDPOINT,
-    toShowLandingPageFlag,
     toShowMarketingContentFlag,
     toShowPricingPageFlag,
     toTenantAccentColor,
@@ -321,7 +320,6 @@ export async function syncTenantConfigs(
                 }),
             },
             marketingFlags: {
-                showLandingPage: toShowLandingPageFlag(config.marketingFlags?.showLandingPage ?? false),
                 showMarketingContent: toShowMarketingContentFlag(config.marketingFlags?.showMarketingContent ?? false),
                 showPricingPage: toShowPricingPageFlag(config.marketingFlags?.showPricingPage ?? false),
             },

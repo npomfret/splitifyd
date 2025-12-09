@@ -36,7 +36,6 @@ export function TenantBrandingPage() {
     const [faviconUrl, setFaviconUrl] = useState('');
     const [primaryColor, setPrimaryColor] = useState('#1a73e8');
     const [secondaryColor, setSecondaryColor] = useState('#34a853');
-    const [showLandingPage, setShowLandingPage] = useState(true);
     const [showMarketingContent, setShowMarketingContent] = useState(true);
     const [showPricingPage, setShowPricingPage] = useState(false);
 
@@ -64,7 +63,6 @@ export function TenantBrandingPage() {
                 setFaviconUrl(tokens.assets.faviconUrl ?? tokens.assets.logoUrl ?? '');
                 setPrimaryColor(settings.config.branding.primaryColor);
                 setSecondaryColor(settings.config.branding.secondaryColor);
-                setShowLandingPage(Boolean(settings.config.marketingFlags?.showLandingPage ?? true));
                 setShowMarketingContent(Boolean(settings.config.marketingFlags?.showMarketingContent ?? true));
                 setShowPricingPage(Boolean(settings.config.marketingFlags?.showPricingPage ?? false));
             } catch (error: any) {
@@ -104,7 +102,6 @@ export function TenantBrandingPage() {
                 primaryColor: primaryColor as any,
                 secondaryColor: secondaryColor as any,
                 marketingFlags: {
-                    showLandingPage: showLandingPage as any,
                     showMarketingContent: showMarketingContent as any,
                     showPricingPage: showPricingPage as any,
                 },
@@ -161,7 +158,6 @@ export function TenantBrandingPage() {
         || faviconUrl !== (tenantSettings.config.brandingTokens.tokens.assets.faviconUrl ?? tenantSettings.config.brandingTokens.tokens.assets.logoUrl ?? '')
         || primaryColor !== tenantSettings.config.branding.primaryColor
         || secondaryColor !== tenantSettings.config.branding.secondaryColor
-        || showLandingPage !== (tenantSettings.config.marketingFlags?.showLandingPage ?? true)
         || showMarketingContent !== (tenantSettings.config.marketingFlags?.showMarketingContent ?? true)
         || showPricingPage !== (tenantSettings.config.marketingFlags?.showPricingPage ?? false)
     );
@@ -324,22 +320,7 @@ export function TenantBrandingPage() {
                                     <p class='text-sm text-text-muted'>Control which marketing pages are visible</p>
                                 </div>
 
-                                <div class='grid gap-4 sm:grid-cols-3'>
-                                    <label class='flex items-center gap-3 rounded-lg border border-border-default bg-surface-base px-4 py-3 cursor-pointer hover:bg-surface-muted transition-colors'>
-                                        <input
-                                            type='checkbox'
-                                            checked={showLandingPage}
-                                            onChange={(e) => setShowLandingPage((e.target as HTMLInputElement).checked)}
-                                            disabled={isSaving}
-                                            class='h-4 w-4 rounded border-border-default text-interactive-primary focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-interactive-primary'
-                                            data-testid='show-landing-page-checkbox'
-                                        />
-                                        <div class='flex-1'>
-                                            <p class='text-sm font-medium text-text-primary'>Landing Page</p>
-                                            <p class='text-xs text-text-muted'>Show marketing homepage</p>
-                                        </div>
-                                    </label>
-
+                                <div class='grid gap-4 sm:grid-cols-2'>
                                     <label class='flex items-center gap-3 rounded-lg border border-border-default bg-surface-base px-4 py-3 cursor-pointer hover:bg-surface-muted transition-colors'>
                                         <input
                                             type='checkbox'

@@ -1,7 +1,6 @@
 import {
     TenantBrandingSchema,
     toISOString,
-    toShowLandingPageFlag,
     toShowMarketingContentFlag,
     toShowPricingPageFlag,
     toTenantAccentColor,
@@ -29,7 +28,6 @@ const DomainStringSchema = z
     .transform((value) => toTenantDomainName(normalizeDomain(value)));
 
 const BrandingMarketingFlagsSchema = z.object({
-    showLandingPage: z.boolean().transform(toShowLandingPageFlag).optional(),
     showMarketingContent: z.boolean().transform(toShowMarketingContentFlag).optional(),
     showPricingPage: z.boolean().transform(toShowPricingPageFlag).optional(),
 });

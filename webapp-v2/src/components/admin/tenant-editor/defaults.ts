@@ -123,8 +123,6 @@ export const EMPTY_TENANT_DATA: TenantData = {
 
     legalCompanyName: '',
     legalSupportEmail: '',
-    legalPrivacyPolicyUrl: '',
-    legalTermsOfServiceUrl: '',
 
     motionDurationInstant: 0,
     motionDurationFast: 0,
@@ -141,7 +139,6 @@ export const EMPTY_TENANT_DATA: TenantData = {
     enableMagneticHover: false,
     enableScrollReveal: false,
 
-    showLandingPage: true,
     showMarketingContent: true,
     showPricingPage: false,
 

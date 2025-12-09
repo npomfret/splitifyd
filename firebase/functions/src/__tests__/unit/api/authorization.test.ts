@@ -5,7 +5,6 @@ import {
     toPolicyId,
     toPolicyName,
     toPolicyText,
-    toShowLandingPageFlag,
     toShowPricingPageFlag,
     toTenantDomainName,
     toTenantPrimaryColor,
@@ -308,7 +307,6 @@ describe('authorization', () => {
                     secondaryColor: toTenantSecondaryColor('#FF6600'),
                 })
                 .withMarketingFlags({
-                    showLandingPage: toShowLandingPageFlag(true),
                     showPricingPage: toShowPricingPageFlag(true),
                 })
                 .withDomains([toTenantDomainName('test.example.com')])
@@ -341,7 +339,6 @@ describe('authorization', () => {
 
                 // marketingFlags is at top-level of config, not inside branding
                 expect(settings.config.marketingFlags).toMatchObject({
-                    showLandingPage: expect.any(Boolean),
                     showPricingPage: expect.any(Boolean),
                 });
             });
@@ -409,7 +406,7 @@ describe('authorization', () => {
             it('should update marketing flags', async () => {
                 const brandingData = TenantBrandingUpdateBuilder
                     .empty()
-                    .withMarketingFlags({ showLandingPage: false, showPricingPage: true })
+                    .withMarketingFlags({ showPricingPage: true })
                     .build();
 
                 // Returns 204 No Content on success
@@ -417,7 +414,6 @@ describe('authorization', () => {
 
                 // Verify the update persisted
                 const settings = await appDriver.getTenantSettings(user1);
-                expect(settings.config.marketingFlags?.showLandingPage).toBe(false);
                 expect(settings.config.marketingFlags?.showPricingPage).toBe(true);
             });
 
@@ -818,9 +814,10 @@ describe('authorization', () => {
                 const cssFile = appDriver.storageStub.getFile(bucketName, cssPath);
                 const tokensFile = appDriver.storageStub.getFile(bucketName, tokensPath);
 
-                expect(cssFile?.public).toBe(true);
+                // Files use Firebase Storage URLs with security rules (no longer made public individually)
+                expect(cssFile).toBeDefined();
                 expect(cssFile?.metadata?.metadata?.tenantId).toBe(tenantId);
-                expect(tokensFile?.public).toBe(true);
+                expect(tokensFile).toBeDefined();
                 expect(tokensFile?.content.toString('utf8')).toContain('"palette"');
             });
 
@@ -972,8 +969,9 @@ describe('authorization', () => {
                 const cssFile = appDriver.storageStub.getFile(bucketName, cssPath);
                 const tokensFile = appDriver.storageStub.getFile(bucketName, tokensPath);
 
-                expect(cssFile?.public).toBe(true);
-                expect(tokensFile?.public).toBe(true);
+                // Files use Firebase Storage URLs with security rules (no longer made public individually)
+                expect(cssFile).toBeDefined();
+                expect(tokensFile).toBeDefined();
             });
 
             it('should record correct metadata in published files', async () => {
@@ -986,7 +984,6 @@ describe('authorization', () => {
 
                 expect(cssFile?.metadata?.metadata?.tenantId).toBe(tenantId);
                 expect(cssFile?.metadata?.contentType).toContain('text/css');
-                expect(cssFile?.public).toBe(true);
             });
 
             it('should include operator ID in artifact metadata', async () => {

@@ -8,14 +8,6 @@ export function MarketingSection({ formData, update, isSaving }: SectionProps) {
         <AdminFormSection title={t('admin.tenantEditor.sections.marketing.title')} description={t('admin.tenantEditor.sections.marketing.description')} testId='section-marketing'>
             <div class='space-y-3'>
                 <AdminFormToggle
-                    label='Landing Page'
-                    description='Show the public landing page'
-                    checked={formData.showLandingPage}
-                    onChange={(v) => update({ showLandingPage: v })}
-                    disabled={isSaving}
-                    testId='show-landing-page-checkbox'
-                />
-                <AdminFormToggle
                     label='Marketing Content'
                     description='Display marketing sections'
                     checked={formData.showMarketingContent}

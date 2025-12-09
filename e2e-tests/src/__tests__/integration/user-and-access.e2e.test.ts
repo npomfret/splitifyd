@@ -2,7 +2,6 @@ import {
     ApiDriver,
     DashboardPage,
     DEFAULT_PASSWORD,
-    FooterComponent,
     generateTestEmail,
     generateTestUserName,
     GroupDetailPage,
@@ -249,40 +248,6 @@ simpleTest.describe('User Registration & Account Management', () => {
 });
 
 simpleTest.describe('Policy Acceptance', () => {
-    simpleTest.describe('Policy Page Navigation', () => {
-        simpleTest('should load and navigate between policy pages without errors', async ({ newEmptyBrowser }) => {
-            const { page, loginPage } = await newEmptyBrowser();
-            const footer = new FooterComponent(page);
-
-            // Test navigation to Terms page via footer link
-            await footer.clickTermsLink();
-            await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
-            await page.locator('h1').filter({ hasText: /Terms of Service|Terms and Conditions/ }).first().waitFor();
-            await expect(page.getByTestId('loading-spinner')).toBeHidden({ timeout: 5000 });
-
-            // Navigate to Privacy page via footer link
-            await footer.clickPrivacyLink();
-            await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
-            await page.locator('h1').filter({ hasText: /Privacy Policy|Privacy/ }).first().waitFor();
-            await expect(page.getByTestId('loading-spinner')).toBeHidden({ timeout: 5000 });
-
-            // Navigate to Cookies page via footer link
-            await footer.clickCookiesLink();
-            await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
-            await page.locator('h1').filter({ hasText: /Cookie Policy|Cookie/ }).first().waitFor();
-            await expect(page.getByTestId('loading-spinner')).toBeHidden({ timeout: 5000 });
-
-            // Test footer navigation from login page back to policy pages
-            await loginPage.navigate();
-            await loginPage.footer.clickTermsLink();
-            await expect(page).toHaveURL(/\/terms/);
-
-            await loginPage.navigate();
-            await loginPage.footer.clickPrivacyLink();
-            await expect(page).toHaveURL(/\/privacy/);
-        });
-    });
-
     simpleTest.describe('Registration Policy Acceptance', () => {
         simpleTest('should require all policy checkboxes for registration', async ({ newEmptyBrowser }) => {
             const { page } = await newEmptyBrowser();

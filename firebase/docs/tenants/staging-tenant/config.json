@@ -8,7 +8,6 @@
     "showAppNameInHeader": false
   },
   "marketingFlags": {
-    "showLandingPage": true,
     "showMarketingContent": true,
     "showPricingPage": true
   },
@@ -110,9 +109,13 @@
       "legal": {
         "appName": "staging",
         "companyName": "Splitifyd",
-        "supportEmail": "support@splitifyd.app",
-        "privacyPolicyUrl": "https://splitifyd.app/legal/privacy",
-        "termsOfServiceUrl": "https://splitifyd.app/legal/terms"
+        "supportEmail": "support@splitifyd.app"
+      },
+      "footer": {
+        "links": [
+          { "id": "terms", "label": "Terms of Service", "url": "https://splitifyd.app/legal/terms" },
+          { "id": "privacy", "label": "Privacy Policy", "url": "https://splitifyd.app/legal/privacy" }
+        ]
       },
       "semantics": {
         "colors": {

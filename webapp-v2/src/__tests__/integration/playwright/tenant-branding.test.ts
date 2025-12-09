@@ -188,7 +188,6 @@ test.describe('Tenant Branding Page - Form Interactions', () => {
         await brandingPage.waitForPageReady();
 
         // Verify initial state
-        await brandingPage.verifyShowLandingPageChecked(true);
         await brandingPage.verifyShowMarketingContentChecked(true);
         await brandingPage.verifyShowPricingPageChecked(false);
 
@@ -323,13 +322,11 @@ test.describe('Tenant Branding Page - Marketing Flags', () => {
         await brandingPage.navigate();
         await brandingPage.waitForPageReady();
 
-        // Verify all three marketing flags are visible
-        await expect(brandingPage.getShowLandingPageCheckboxLocator()).toBeVisible();
+        // Verify marketing flags are visible
         await expect(brandingPage.getShowMarketingContentCheckboxLocator()).toBeVisible();
         await expect(brandingPage.getShowPricingPageCheckboxLocator()).toBeVisible();
 
         // Verify their initial states match the mock data
-        await brandingPage.verifyShowLandingPageChecked(true);
         await brandingPage.verifyShowMarketingContentChecked(true);
         await brandingPage.verifyShowPricingPageChecked(false);
     });

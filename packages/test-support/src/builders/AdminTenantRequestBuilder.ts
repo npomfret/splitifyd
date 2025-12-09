@@ -112,8 +112,6 @@ export class AdminTenantRequestBuilder {
                     appName: 'Test Tenant App',
                     companyName: 'Test Company',
                     supportEmail: 'support@test.com',
-                    privacyPolicyUrl: 'https://test.com/privacy',
-                    termsOfServiceUrl: 'https://test.com/terms',
                 },
                 semantics: {
                     colors: {

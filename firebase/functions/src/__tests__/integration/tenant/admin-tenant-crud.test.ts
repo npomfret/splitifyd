@@ -1,5 +1,5 @@
 import type { PooledTestUser } from '@billsplit-wl/shared';
-import { toShowLandingPageFlag, toShowMarketingContentFlag, toShowPricingPageFlag, toTenantAccentColor, toTenantPrimaryColor, toTenantSecondaryColor } from '@billsplit-wl/shared';
+import { toShowMarketingContentFlag, toShowPricingPageFlag, toTenantAccentColor, toTenantPrimaryColor, toTenantSecondaryColor } from '@billsplit-wl/shared';
 import { AdminTenantRequestBuilder, ApiDriver } from '@billsplit-wl/test-support';
 import { beforeAll, describe, expect, it } from 'vitest';
 
@@ -225,7 +225,6 @@ describe('Admin tenant CRUD operations', () => {
                         accentColor: toTenantAccentColor('#EC4899'),
                     })
                     .withMarketingFlags({
-                        showLandingPage: toShowLandingPageFlag(true),
                         showMarketingContent: toShowMarketingContentFlag(true),
                         showPricingPage: toShowPricingPageFlag(false),
                     })
@@ -252,7 +251,6 @@ describe('Admin tenant CRUD operations', () => {
                         accentColor: toTenantAccentColor('#cc33dd'),
                     })
                     .withMarketingFlags({
-                        showLandingPage: toShowLandingPageFlag(false),
                         showMarketingContent: toShowMarketingContentFlag(false),
                         showPricingPage: toShowPricingPageFlag(true),
                     })
@@ -274,7 +272,6 @@ describe('Admin tenant CRUD operations', () => {
             expect(tenant2?.tenant.brandingTokens.tokens.palette.accent).toBe('#cc33dd');
 
             // Verify ALL marketing flags (stored at top level, not under branding)
-            expect(tenant2?.tenant.marketingFlags?.showLandingPage).toBe(false);
             expect(tenant2?.tenant.marketingFlags?.showMarketingContent).toBe(false);
             expect(tenant2?.tenant.marketingFlags?.showPricingPage).toBe(true);
         });

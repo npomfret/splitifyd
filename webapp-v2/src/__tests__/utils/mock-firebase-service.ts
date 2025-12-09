@@ -976,7 +976,6 @@ export async function mockAdminTenantsApi(
                 .withPrimaryColor('#3B82F6')
                 .withSecondaryColor('#8B5CF6')
                 .withMarketingFlags({
-                    showLandingPage: true,
                     showMarketingContent: true,
                     showPricingPage: true,
                 })

@@ -96,8 +96,7 @@ describe('Response Validation', () => {
             expect(normalizePath('/merge/job123')).toBe('/merge/:jobId');
         });
 
-        it('normalizes policy parameters', () => {
-            expect(normalizePath('/policies/pol123/current')).toBe('/policies/:policyId/current');
+        it('normalizes admin policy parameters', () => {
             expect(normalizePath('/admin/policies/pol123')).toBe('/admin/policies/:policyId');
             expect(normalizePath('/admin/policies/pol123/publish')).toBe('/admin/policies/:policyId/publish');
         });

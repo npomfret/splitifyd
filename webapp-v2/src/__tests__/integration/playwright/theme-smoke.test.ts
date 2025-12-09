@@ -86,9 +86,9 @@ test.describe('Tenant theme smoke suite', () => {
                 });
             }
 
-            // Finally navigate
-            await page.goto('/', { waitUntil: 'domcontentloaded' });
-            await expect(page).toHaveURL('/');
+            // Navigate to login page (landing page no longer exists, unauthenticated users see login)
+            await page.goto('/login', { waitUntil: 'domcontentloaded' });
+            await expect(page).toHaveURL(/\/login/);
 
             // Verify theme CSS variables are applied correctly
             await themePage.expectRootCssVariable('--interactive-primary-rgb', fixture.cssVars.interactivePrimary);
@@ -96,26 +96,19 @@ test.describe('Tenant theme smoke suite', () => {
             await themePage.expectRootCssVariable('--surface-base-rgb', fixture.cssVars.surfaceBase);
             await themePage.expectRootCssVariable('--border-default-rgb', fixture.cssVars.borderDefault);
 
-            // Verify theme colors are applied to visible UI elements
-            // Check the "Sign Up" button in the header (always visible and styled with theme color)
-            const headerSignUpButton = page.getByRole('button', { name: 'Sign Up' }).first();
-            await expect(headerSignUpButton).toBeVisible();
+            // Verify theme colors are applied to visible UI elements on the login page
+            // Check the "Sign In" button (primary button styled with theme color)
+            const signInButton = page.getByRole('button', { name: /sign.*in/i }).first();
+            await expect(signInButton).toBeVisible();
 
             // Primary buttons use gradient background-image, so check background-image contains the color
             await themePage.expectGradientContainsColor(
-                'button:has-text("Sign Up")',
+                'button:has-text("Sign In")',
                 fixture.cssVars.interactivePrimary,
             );
 
-            // Navigate to login page to check more theme applications
-            const loginButton = page.getByText('Login').first();
-            await expect(loginButton).toBeVisible();
-            // Wait for any theme-related transitions to complete before clicking
-            await loginButton.click({ timeout: 3000 });
-            await page.waitForURL('/login');
-
             // Check the "Sign up" link text color on the login page
-            // The sign-up link is within the login form, use .text-interactive-primary to target it
+            // The sign-up link uses .text-interactive-primary styling
             await themePage.expectElementColorMatches(
                 'button.text-interactive-primary:has-text("Sign up")',
                 'color',

@@ -21,7 +21,6 @@ describe('Tenant API Response Validation', () => {
                 .withFaviconUrl('https://example.com/favicon.ico')
                 .withMarketingFlags(
                     new MarketingFlagsBuilder()
-                        .withShowLandingPage(true)
                         .withShowMarketingContent(true)
                         .withShowPricingPage(false)
                         .build(),
@@ -39,7 +38,6 @@ describe('Tenant API Response Validation', () => {
             expect(result.brandingTokens.tokens.assets.faviconUrl).toBe('https://example.com/favicon.ico');
 
             // Verify marketing flags are preserved
-            expect(result.marketingFlags?.showLandingPage).toBe(true);
             expect(result.marketingFlags?.showMarketingContent).toBe(true);
             expect(result.marketingFlags?.showPricingPage).toBe(false);
         });

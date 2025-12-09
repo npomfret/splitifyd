@@ -78,7 +78,6 @@ test.describe('Tenant editor', () => {
             const updatedName = `Updated ${tenantId.slice(-6)}`;
             await tenantEditorModal.fillAppName(updatedName);
             await tenantEditorModal.setPrimaryColor('#2563eb');
-            await tenantEditorModal.toggleShowLandingPage(false);
 
             // Save
             await tenantEditorModal.clickSave();
@@ -94,7 +93,6 @@ test.describe('Tenant editor', () => {
             // Verify values persisted
             await tenantEditorModal2.verifyAppNameValue(updatedName);
             await tenantEditorModal2.verifyPrimaryColorValue('#2563eb');
-            await tenantEditorModal2.verifyShowLandingPageChecked(false);
 
             await tenantEditorModal2.clickClose();
         });
@@ -259,7 +257,6 @@ test.describe('Tenant editor', () => {
             await tenantEditorModal.verifyModalIsOpen();
 
             // Toggle all marketing flags off
-            await tenantEditorModal.toggleShowLandingPage(false);
             await tenantEditorModal.toggleShowMarketingContent(false);
             await tenantEditorModal.toggleShowPricingPage(false);
 
@@ -270,12 +267,10 @@ test.describe('Tenant editor', () => {
             const tenantEditorModal2 = await adminTenantsPage.clickEditButtonForFirstTenant();
             await tenantEditorModal2.verifyModalIsOpen();
 
-            await tenantEditorModal2.verifyShowLandingPageChecked(false);
             await tenantEditorModal2.verifyShowMarketingContentChecked(false);
             await tenantEditorModal2.verifyShowPricingPageChecked(false);
 
             // Toggle them back on
-            await tenantEditorModal2.toggleShowLandingPage(true);
             await tenantEditorModal2.toggleShowMarketingContent(true);
             await tenantEditorModal2.toggleShowPricingPage(true);
 
@@ -286,7 +281,6 @@ test.describe('Tenant editor', () => {
             const tenantEditorModal3 = await adminTenantsPage.clickEditButtonForFirstTenant();
             await tenantEditorModal3.verifyModalIsOpen();
 
-            await tenantEditorModal3.verifyShowLandingPageChecked(true);
             await tenantEditorModal3.verifyShowMarketingContentChecked(true);
             await tenantEditorModal3.verifyShowPricingPageChecked(true);
 

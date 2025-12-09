@@ -92,8 +92,6 @@ function createFullBrandingTokens(): BrandingTokens {
             appName: 'Test App',
             companyName: 'Test Company',
             supportEmail: 'support@test.com',
-            privacyPolicyUrl: 'https://test.com/privacy',
-            termsOfServiceUrl: 'https://test.com/terms',
         },
         semantics: {
             colors: {
@@ -282,8 +280,6 @@ function createValidFormData(): TenantData {
         shadowLg: '0 10px 15px rgba(0,0,0,0.1)',
         legalCompanyName: 'Test Company',
         legalSupportEmail: 'support@test.com',
-        legalPrivacyPolicyUrl: 'https://test.com/privacy',
-        legalTermsOfServiceUrl: 'https://test.com/terms',
         motionDurationInstant: 50,
         motionDurationFast: 100,
         motionDurationBase: 200,
@@ -296,7 +292,6 @@ function createValidFormData(): TenantData {
         enableParallax: true,
         enableMagneticHover: true,
         enableScrollReveal: false,
-        showLandingPage: true,
         showMarketingContent: true,
         showPricingPage: false,
         showAppNameInHeader: true,

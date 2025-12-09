@@ -111,8 +111,6 @@ const REQUIRED_STRING_FIELDS: FieldValidation[] = [
 
     { path: 'legalCompanyName', label: 'Company name', type: 'string' },
     { path: 'legalSupportEmail', label: 'Support email', type: 'string' },
-    { path: 'legalPrivacyPolicyUrl', label: 'Privacy policy URL', type: 'string' },
-    { path: 'legalTermsOfServiceUrl', label: 'Terms of service URL', type: 'string' },
 
     { path: 'motionEasingStandard', label: 'Motion easing standard', type: 'string' },
     { path: 'motionEasingDecelerate', label: 'Motion easing decelerate', type: 'string' },

@@ -1,16 +1,11 @@
 import type { BrandingMarketingFlags } from '../shared-types';
-import { toShowLandingPageFlag, toShowMarketingContentFlag, toShowPricingPageFlag } from '../shared-types';
+import { toShowMarketingContentFlag, toShowPricingPageFlag } from '../shared-types';
 
 /**
  * Builder for BrandingMarketingFlags objects used in tenant config tests.
  */
 export class MarketingFlagsBuilder {
     private flags: Partial<BrandingMarketingFlags> = {};
-
-    withShowLandingPage(show: boolean): this {
-        this.flags.showLandingPage = toShowLandingPageFlag(show);
-        return this;
-    }
 
     withShowMarketingContent(show: boolean): this {
         this.flags.showMarketingContent = toShowMarketingContentFlag(show);
@@ -24,7 +19,6 @@ export class MarketingFlagsBuilder {
 
     /** Enable all marketing features */
     allEnabled(): this {
-        this.flags.showLandingPage = toShowLandingPageFlag(true);
         this.flags.showMarketingContent = toShowMarketingContentFlag(true);
         this.flags.showPricingPage = toShowPricingPageFlag(true);
         return this;
@@ -32,7 +26,6 @@ export class MarketingFlagsBuilder {
 
     /** Disable all marketing features */
     allDisabled(): this {
-        this.flags.showLandingPage = toShowLandingPageFlag(false);
         this.flags.showMarketingContent = toShowMarketingContentFlag(false);
         this.flags.showPricingPage = toShowPricingPageFlag(false);
         return this;

@@ -18,7 +18,7 @@ describe('getEnhancedConfigResponse', () => {
 
     it('forwards provided tenant config without mutating input references', () => {
         const sourceTenant = new TenantConfigBuilder('provided-tenant')
-            .withMarketingFlags({ showLandingPage: true })
+            .withMarketingFlags({ showMarketingContent: true })
             .build();
 
         const context = new TenantRequestContextBuilder()
@@ -44,7 +44,7 @@ describe('getEnhancedConfigResponse', () => {
 
     it('augments config with theme hash when artifact is present', () => {
         const tenant = new TenantConfigBuilder('tenant-with-theme')
-            .withMarketingFlags({ showLandingPage: false })
+            .withMarketingFlags({ showMarketingContent: false })
             .build();
 
         const themeArtifact = new BrandingArtifactMetadataBuilder()
@@ -80,7 +80,6 @@ describe('getEnhancedConfigResponse', () => {
         const forwarded = calls.length > 0 ? calls[calls.length - 1]![0] : undefined;
         expect(forwarded).toBeDefined();
         expect(forwarded?.marketingFlags).toBeDefined();
-        expect(forwarded?.marketingFlags?.showLandingPage).toBe(true);
         expect(forwarded?.marketingFlags?.showMarketingContent).toBe(true);
         expect(forwarded?.marketingFlags?.showPricingPage).toBe(true);
     });

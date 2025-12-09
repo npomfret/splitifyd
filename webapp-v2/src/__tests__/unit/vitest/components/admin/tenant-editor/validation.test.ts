@@ -120,8 +120,6 @@ function createValidTenantData(): TenantData {
         shadowLg: '0 10px 15px rgba(0,0,0,0.1)',
         legalCompanyName: 'Test Company',
         legalSupportEmail: 'support@test.com',
-        legalPrivacyPolicyUrl: 'https://test.com/privacy',
-        legalTermsOfServiceUrl: 'https://test.com/terms',
         motionDurationInstant: 50,
         motionDurationFast: 100,
         motionDurationBase: 200,

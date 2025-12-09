@@ -60,7 +60,6 @@ const mockTenantSettings: TenantSettingsResponse = {
             },
         } as any,
         marketingFlags: {
-            showLandingPage: true as any,
             showMarketingContent: true as any,
             showPricingPage: false as any,
         },
@@ -204,12 +203,9 @@ describe('TenantBrandingPage', () => {
             render(<TenantBrandingPage />);
 
             await waitFor(() => {
-                const showLandingPageCheckbox = screen.getByTestId('show-landing-page-checkbox') as HTMLInputElement;
-                expect(showLandingPageCheckbox.checked).toBe(true);
+                const showMarketingContentCheckbox = screen.getByTestId('show-marketing-content-checkbox') as HTMLInputElement;
+                expect(showMarketingContentCheckbox.checked).toBe(true);
             });
-
-            const showMarketingContentCheckbox = screen.getByTestId('show-marketing-content-checkbox') as HTMLInputElement;
-            expect(showMarketingContentCheckbox.checked).toBe(true);
 
             const showPricingPageCheckbox = screen.getByTestId('show-pricing-page-checkbox') as HTMLInputElement;
             expect(showPricingPageCheckbox.checked).toBe(false);

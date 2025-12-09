@@ -446,6 +446,7 @@ export class PolicyService {
 
     /**
      * Get current version of a specific policy (public endpoint)
+     * Used by the policy acceptance modal to display policy content
      */
     async getCurrentPolicy(id: PolicyId): Promise<CurrentPolicyResponse> {
         try {

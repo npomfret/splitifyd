@@ -7,7 +7,6 @@
     "accentColor": "#F472B6"
   },
   "marketingFlags": {
-    "showLandingPage": true,
     "showMarketingContent": true,
     "showPricingPage": true
   },
@@ -109,9 +108,13 @@
       "legal": {
         "appName": "Splitifyd Aurora",
         "companyName": "Splitifyd Aurora Demo",
-        "supportEmail": "support@splitifyd.local",
-        "privacyPolicyUrl": "https://splitifyd.local/legal/privacy",
-        "termsOfServiceUrl": "https://splitifyd.local/legal/terms"
+        "supportEmail": "support@splitifyd.local"
+      },
+      "footer": {
+        "links": [
+          { "id": "terms", "label": "Terms of Service", "url": "https://splitifyd.local/legal/terms" },
+          { "id": "privacy", "label": "Privacy Policy", "url": "https://splitifyd.local/legal/privacy" }
+        ]
       },
       "semantics": {
         "colors": {

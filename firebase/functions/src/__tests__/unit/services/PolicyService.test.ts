@@ -325,39 +325,6 @@ describe('PolicyService - Consolidated Unit Tests', () => {
         });
     });
 
-    describe('getCurrentPolicy', () => {
-        it('should return current version details', async () => {
-            // Arrange - Create policy via API
-            const policyName = toPolicyName('Terms Of Service');
-            const policyText = toPolicyText('Current policy content');
-            await app.createPolicy({ policyName, text: policyText }, adminToken);
-            const policyId = toPolicyId('terms-of-service');
-
-            // Act
-            const result = await policyService.getCurrentPolicy(policyId);
-
-            // Assert
-            expect(result.id).toBe(policyId);
-            expect(result.policyName).toBe(policyName);
-            expect(result.currentVersionHash).toBeDefined();
-            expect(result.text).toBe(policyText);
-            expect(result.createdAt).toBeDefined();
-        });
-
-        it('should throw NOT_FOUND when policy does not exist', async () => {
-            // Arrange
-            const policyId = toPolicyId('non-existent-policy');
-
-            // Act & Assert
-            await expect(policyService.getCurrentPolicy(policyId)).rejects.toThrow(
-                expect.objectContaining({
-                    statusCode: HTTP_STATUS.NOT_FOUND,
-                    code: ErrorCode.NOT_FOUND,
-                }),
-            );
-        });
-    });
-
     describe('getPolicyVersion', () => {
         it('should return specific version when it exists', async () => {
             // Arrange - Create policy via API
@@ -616,9 +583,9 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             await expect(policyService.deletePolicyVersion(policyId, initialVersionHash)).resolves.not.toThrow();
 
             // Verify current version is still accessible
-            const currentPolicy = await policyService.getCurrentPolicy(policyId);
+            const currentPolicy = await policyService.getPolicy(policyId);
             expect(currentPolicy.currentVersionHash).toBe(updateResult.versionHash);
-            expect(currentPolicy.text).toBe(updatedContent);
+            expect(currentPolicy.versions[currentPolicy.currentVersionHash].text).toBe(updatedContent);
         });
     });
 
@@ -683,16 +650,11 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             const finalPolicy = await policyService.getPolicy(expectedId);
             expect(finalPolicy.currentVersionHash).toBe(updatedHash);
 
-            // Step 7: Get current policy version
-            const currentVersion = await policyService.getCurrentPolicy(expectedId);
-
-            expect(currentVersion).toEqual({
-                id: expectedId,
-                policyName,
-                currentVersionHash: updatedHash,
-                text: updatedText,
-                createdAt: expect.anything(),
-            });
+            // Step 7: Verify current policy version content
+            expect(finalPolicy.id).toBe(expectedId);
+            expect(finalPolicy.policyName).toBe(policyName);
+            expect(finalPolicy.versions[updatedHash]).toBeDefined();
+            expect(finalPolicy.versions[updatedHash].text).toBe(updatedText);
         });
 
         it('should handle policy version management correctly', async () => {

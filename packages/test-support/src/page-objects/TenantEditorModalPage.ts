@@ -174,10 +174,6 @@ export class TenantEditorModalPage extends BasePage {
         return this.page.locator('[data-testid="custom-css-input"]');
     }
 
-    protected getShowLandingPageCheckbox(): Locator {
-        return this.page.getByLabel(/landing page/i);
-    }
-
     protected getShowMarketingContentCheckbox(): Locator {
         return this.page.getByLabel(/marketing content/i);
     }
@@ -368,15 +364,6 @@ export class TenantEditorModalPage extends BasePage {
         await input.click();
         await input.clear();
         await input.pressSequentially(css, { delay: 10 });
-    }
-
-    async toggleShowLandingPage(checked: boolean): Promise<void> {
-        await this.expandMarketingSection();
-        const checkbox = this.getShowLandingPageCheckbox();
-        const isCurrentlyChecked = await checkbox.isChecked();
-        if (isCurrentlyChecked !== checked) {
-            await checkbox.click();
-        }
     }
 
     async toggleShowMarketingContent(checked: boolean): Promise<void> {
@@ -648,16 +635,6 @@ export class TenantEditorModalPage extends BasePage {
 
     async verifyPublishButtonVisible(): Promise<void> {
         await expect(this.getPublishButton()).toBeVisible();
-    }
-
-    async verifyShowLandingPageChecked(expected: boolean): Promise<void> {
-        await this.expandMarketingSection();
-        const checkbox = this.getShowLandingPageCheckbox();
-        if (expected) {
-            await expect(checkbox).toBeChecked();
-        } else {
-            await expect(checkbox).not.toBeChecked();
-        }
     }
 
     async verifyFontFamilySansValue(expectedValue: string): Promise<void> {

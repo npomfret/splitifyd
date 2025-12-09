@@ -7,7 +7,6 @@
     "accentColor": "#A3A3A3"
   },
   "marketingFlags": {
-    "showLandingPage": true,
     "showMarketingContent": false,
     "showPricingPage": false
   },
@@ -96,9 +95,13 @@
       "legal": {
         "appName": "Splitifyd",
         "companyName": "Splitifyd",
-        "supportEmail": "support@splitifyd.local",
-        "privacyPolicyUrl": "https://splitifyd.local/legal/privacy",
-        "termsOfServiceUrl": "https://splitifyd.local/legal/terms"
+        "supportEmail": "support@splitifyd.local"
+      },
+      "footer": {
+        "links": [
+          { "id": "terms", "label": "Terms of Service", "url": "https://splitifyd.local/legal/terms" },
+          { "id": "privacy", "label": "Privacy Policy", "url": "https://splitifyd.local/legal/privacy" }
+        ]
       },
       "semantics": {
         "colors": {

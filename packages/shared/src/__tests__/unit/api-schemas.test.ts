@@ -107,8 +107,6 @@ function createTestBrandingTokens(): TenantBranding {
                 appName: 'Test App',
                 companyName: 'Test Company',
                 supportEmail: 'support@test.com',
-                privacyPolicyUrl: 'https://test.com/privacy',
-                termsOfServiceUrl: 'https://test.com/terms',
             },
             semantics: {
                 colors: {
@@ -622,7 +620,6 @@ describe('API Schema Validation', () => {
                     },
                     brandingTokens: createTestBrandingTokens(),
                     marketingFlags: {
-                        showLandingPage: true,
                         showMarketingContent: false,
                         showPricingPage: true,
                     },

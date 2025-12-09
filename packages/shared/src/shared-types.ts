@@ -85,9 +85,6 @@ export const toTenantDomainName = (value: string): TenantDomainName => value as 
 export type TenantDefaultFlag = BrandedBoolean<'TenantDefaultFlag'>;
 export const toTenantDefaultFlag = (value: boolean): TenantDefaultFlag => value as TenantDefaultFlag;
 
-export type ShowLandingPageFlag = BrandedBoolean<'ShowLandingPageFlag'>;
-export const toShowLandingPageFlag = (value: boolean): ShowLandingPageFlag => value as ShowLandingPageFlag;
-
 export type ShowPricingPageFlag = BrandedBoolean<'ShowPricingPageFlag'>;
 export const toShowPricingPageFlag = (value: boolean): ShowPricingPageFlag => value as ShowPricingPageFlag;
 
@@ -251,7 +248,6 @@ export const DELETED_AT_FIELD = 'deletedAt';
 // ========================================================================
 
 export interface BrandingMarketingFlags {
-    showLandingPage?: ShowLandingPageFlag;
     showMarketingContent?: ShowMarketingContentFlag;
     showPricingPage?: ShowPricingPageFlag;
 }
@@ -1089,14 +1085,6 @@ export interface HealthResponse {
     };
 }
 
-export interface CurrentPolicyResponse {
-    id: PolicyId;
-    policyName: PolicyName;
-    currentVersionHash: VersionHash;
-    text: PolicyText;
-    createdAt: ISOString;
-}
-
 export interface UserProfileResponse {
     displayName: DisplayName;
     role: SystemUserRole;
@@ -1129,6 +1117,18 @@ export interface UserPolicyStatusResponse {
 export interface AcceptPolicyRequest {
     policyId: PolicyId;
     versionHash: VersionHash;
+}
+
+/**
+ * Response from getCurrentPolicy - returns the current published version of a policy
+ * Used by the policy acceptance modal to display policy content to users
+ */
+export interface CurrentPolicyResponse {
+    id: PolicyId;
+    policyName: PolicyName;
+    currentVersionHash: VersionHash;
+    text: PolicyText;
+    createdAt: ISOString;
 }
 
 // ========================================================================
@@ -1656,7 +1656,6 @@ export interface AdminUpsertTenantRequest {
         accentColor?: string;
     };
     marketingFlags?: {
-        showLandingPage?: boolean;
         showMarketingContent?: boolean;
         showPricingPage?: boolean;
     };

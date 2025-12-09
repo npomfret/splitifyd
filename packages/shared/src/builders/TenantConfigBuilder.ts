@@ -1,4 +1,4 @@
-import { toISOString, toShowLandingPageFlag, toShowMarketingContentFlag, toShowPricingPageFlag, toTenantAccentColor, toTenantId, toTenantPrimaryColor, toTenantSecondaryColor } from '../shared-types';
+import { toISOString, toShowMarketingContentFlag, toShowPricingPageFlag, toTenantAccentColor, toTenantId, toTenantPrimaryColor, toTenantSecondaryColor } from '../shared-types';
 import type { BrandingMarketingFlags, ISOString, TenantConfig, TenantId } from '../shared-types';
 import type { TenantBranding } from '../types/branding';
 
@@ -91,8 +91,6 @@ const DEFAULT_BRANDING_TOKENS: TenantBranding = {
             appName: 'Test App',
             companyName: 'Test Company',
             supportEmail: 'support@example.com',
-            privacyPolicyUrl: 'https://example.com/privacy',
-            termsOfServiceUrl: 'https://example.com/terms',
         },
         semantics: {
             colors: {
@@ -225,11 +223,8 @@ export class TenantConfigBuilder {
         return this;
     }
 
-    withMarketingFlags(flags: { showLandingPage?: boolean; showMarketingContent?: boolean; showPricingPage?: boolean; }): this {
+    withMarketingFlags(flags: { showMarketingContent?: boolean; showPricingPage?: boolean; }): this {
         const brandedFlags: BrandingMarketingFlags = {};
-        if (flags.showLandingPage !== undefined) {
-            brandedFlags.showLandingPage = toShowLandingPageFlag(flags.showLandingPage);
-        }
         if (flags.showMarketingContent !== undefined) {
             brandedFlags.showMarketingContent = toShowMarketingContentFlag(flags.showMarketingContent);
         }

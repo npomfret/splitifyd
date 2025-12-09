@@ -24,7 +24,6 @@ type LazyRouteProps<T extends ComponentType<any>> = ComponentOwnProps<T> & Route
 type ProtectedRouteProps<T extends ComponentType<any>> = ComponentOwnProps<T> & RouterInjectedProps & { component: T; };
 
 // Lazy-loaded page components for code splitting
-const LandingPage = lazy(() => import('./pages/LandingPage').then((m) => ({ default: m.LandingPage })));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })));
 const LoginPage = lazy(() => import('./pages/LoginPage').then((m) => ({ default: m.LoginPage })));
 const RegisterPage = lazy(() => import('./pages/RegisterPage').then((m) => ({ default: m.RegisterPage })));
@@ -33,10 +32,6 @@ const DashboardPage = lazy(() => import('./pages/DashboardPage').then((m) => ({ 
 const GroupDetailPage = lazy(() => import('./pages/GroupDetailPage'));
 const AddExpensePage = lazy(() => import('./pages/AddExpensePage'));
 const ExpenseDetailPage = lazy(() => import('./pages/ExpenseDetailPage'));
-const PricingPage = lazy(() => import('./pages/static/PricingPage').then((m) => ({ default: m.PricingPage })));
-const TermsOfServicePage = lazy(() => import('./pages/static/TermsOfServicePage').then((m) => ({ default: m.TermsOfServicePage })));
-const PrivacyPolicyPage = lazy(() => import('./pages/static/PrivacyPolicyPage').then((m) => ({ default: m.PrivacyPolicyPage })));
-const CookiePolicyPage = lazy(() => import('./pages/static/CookiePolicyPage').then((m) => ({ default: m.CookiePolicyPage })));
 const JoinGroupPage = lazy(() => import('./pages/JoinGroupPage').then((m) => ({ default: m.JoinGroupPage })));
 const SettingsPage = lazy(() => import('./pages/SettingsPage').then((m) => ({ default: m.SettingsPage })));
 const AdminPage = lazy(() => import('./pages/AdminPage').then((m) => ({ default: m.AdminPage })));
@@ -108,7 +103,6 @@ function createProtectedRoute<T extends ComponentType<any>>(Component: T): Funct
     return WrappedComponent;
 }
 
-const LandingRoute = createLazyRoute(LandingPage);
 const NotFoundRoute = createLazyRoute(NotFoundPage);
 const LoginRoute = createLazyRoute(LoginPage);
 const RegisterRoute = createLazyRoute(RegisterPage);
@@ -117,10 +111,6 @@ const DashboardRoute = createProtectedRoute(DashboardPage);
 const GroupDetailRoute = createProtectedRoute(GroupDetailPage);
 const AddExpenseRoute = createProtectedRoute(AddExpensePage);
 const ExpenseDetailRoute = createProtectedRoute(ExpenseDetailPage);
-const PricingRoute = createLazyRoute(PricingPage);
-const TermsRoute = createLazyRoute(TermsOfServicePage);
-const PrivacyRoute = createLazyRoute(PrivacyPolicyPage);
-const CookieRoute = createLazyRoute(CookiePolicyPage);
 const JoinGroupRoute = createProtectedRoute(JoinGroupPage);
 const SettingsRoute = createProtectedRoute(SettingsPage);
 const AdminRoute = createProtectedRoute(AdminPage);
@@ -128,15 +118,19 @@ const AdminTenantsRoute = createProtectedRoute(AdminTenantsPage); // @deprecated
 const AdminDiagnosticsRoute = createProtectedRoute(AdminDiagnosticsPage); // @deprecated
 const TenantBrandingRoute = createProtectedRoute(TenantBrandingPage);
 
+function RootRedirect(): VNode | null {
+    useEffect(() => {
+        void navigationService.goToDashboard();
+    }, []);
+    return null;
+}
+
 export function App() {
     const authStore = useAuth();
     const { needsAcceptance, pendingPolicies, refreshPolicyStatus } = usePolicyAcceptance();
     const config = useConfig();
 
     const user = authStore?.user;
-    const marketingFlags = config?.tenant?.marketingFlags;
-    const showLandingPage = marketingFlags?.showLandingPage ?? true; // Default to true - show landing page unless explicitly disabled
-    const showPricingPage = marketingFlags?.showPricingPage ?? false;
 
     // Update document title when tenant config loads
     useEffect(() => {
@@ -154,22 +148,13 @@ export function App() {
     // Only show policy modal for authenticated users who need acceptance
     const shouldShowPolicyModal = user && needsAcceptance && pendingPolicies.length > 0;
 
-    // Determine root route component based on tenant marketing flags and auth state
-    // If landing page is enabled, show it to everyone
-    // Otherwise, redirect authenticated users to dashboard or unauthenticated users to login
-    const getRootRouteComponent = () => {
-        if (showLandingPage) {
-            return LandingRoute;
-        }
-        return user ? DashboardRoute : LoginRoute;
-    };
-
     return (
         <ErrorBoundary>
             <WarningBanner />
             <TokenRefreshIndicator />
             <Router>
-                <Route path='/' component={getRootRouteComponent()} />
+                {/* Root redirects to dashboard (which redirects to login if needed) */}
+                <Route path='/' component={RootRedirect} />
 
                 {/* Auth Routes */}
                 <Route path='/login' component={LoginRoute} />
@@ -199,18 +184,6 @@ export function App() {
 
                 {/* Join Group Route - Protected */}
                 <Route path='/join' component={JoinGroupRoute} />
-
-                {/* Marketing Pages - Conditionally rendered based on tenant branding flags */}
-                {showPricingPage && <Route path='/pricing' component={PricingRoute} />}
-                {/* showBlogPage flag exists but no BlogPage component implemented yet */}
-
-                {/* Legal Pages - Always available */}
-                <Route path='/terms-of-service' component={TermsRoute} />
-                <Route path='/terms' component={TermsRoute} />
-                <Route path='/privacy-policy' component={PrivacyRoute} />
-                <Route path='/privacy' component={PrivacyRoute} />
-                <Route path='/cookies-policy' component={CookieRoute} />
-                <Route path='/cookies' component={CookieRoute} />
 
                 {/* Explicit 404 route */}
                 <Route path='/404' component={NotFoundRoute} />

@@ -183,16 +183,16 @@ test.describe('Tenant Editor Modal', () => {
             await tenantEditorModal.clickCreateTenant();
             await tenantEditorModal.waitForModalToBeVisible();
 
-            // Check initial state (should be checked by default)
-            await tenantEditorModal.verifyShowLandingPageChecked(true);
+            // Check initial state (showPricingPage should be unchecked by default)
+            await tenantEditorModal.verifyShowPricingPageChecked(false);
 
-            // Toggle off
-            await tenantEditorModal.toggleShowLandingPage(false);
-            await tenantEditorModal.verifyShowLandingPageChecked(false);
+            // Toggle on
+            await tenantEditorModal.toggleShowPricingPage(true);
+            await tenantEditorModal.verifyShowPricingPageChecked(true);
 
-            // Toggle back on
-            await tenantEditorModal.toggleShowLandingPage(true);
-            await tenantEditorModal.verifyShowLandingPageChecked(true);
+            // Toggle back off
+            await tenantEditorModal.toggleShowPricingPage(false);
+            await tenantEditorModal.verifyShowPricingPageChecked(false);
         });
     });
 

@@ -15,22 +15,6 @@ export function LegalSection({ formData, update, isSaving }: SectionProps) {
                     disabled={isSaving}
                     required
                 />
-                <AdminFormInput
-                    label='Privacy Policy URL'
-                    type='url'
-                    value={formData.legalPrivacyPolicyUrl}
-                    onChange={(v) => update({ legalPrivacyPolicyUrl: v })}
-                    placeholder='https://...'
-                    disabled={isSaving}
-                />
-                <AdminFormInput
-                    label='Terms of Service URL'
-                    type='url'
-                    value={formData.legalTermsOfServiceUrl}
-                    onChange={(v) => update({ legalTermsOfServiceUrl: v })}
-                    placeholder='https://...'
-                    disabled={isSaving}
-                />
             </div>
         </AdminFormSection>
     );

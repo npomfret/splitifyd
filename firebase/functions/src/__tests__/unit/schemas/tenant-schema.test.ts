@@ -115,16 +115,13 @@ describe('TenantDocumentSchema', () => {
             const dataWithFlags = {
                 ...validTenantData,
                 marketingFlags: {
-                    showLandingPage: true,
                     showMarketingContent: true,
                     showPricingPage: false,
-                    showBlogPage: true,
                 },
             };
 
             const result = TenantDocumentSchema.parse(dataWithFlags);
 
-            expect(result.marketingFlags?.showLandingPage).toBe(true);
             expect(result.marketingFlags?.showMarketingContent).toBe(true);
             expect(result.marketingFlags?.showPricingPage).toBe(false);
         });
@@ -261,7 +258,6 @@ describe('UpdateTenantBrandingRequestSchema', () => {
                 secondaryColor: '#445566',
                 accentColor: '#778899',
                 marketingFlags: {
-                    showLandingPage: false,
                     showMarketingContent: true,
                     showPricingPage: false,
                 },
@@ -271,7 +267,7 @@ describe('UpdateTenantBrandingRequestSchema', () => {
 
             expect(result.appName).toBe('Updated App');
             expect(result.primaryColor).toBe('#112233');
-            expect(result.marketingFlags?.showLandingPage).toBe(false);
+            expect(result.marketingFlags?.showMarketingContent).toBe(true);
         });
 
         it('should validate partial branding update with single field', () => {
@@ -302,14 +298,14 @@ describe('UpdateTenantBrandingRequestSchema', () => {
         it('should validate partial marketing flags update', () => {
             const updateData = {
                 marketingFlags: {
-                    showLandingPage: true,
+                    showPricingPage: true,
                 },
             };
 
             const result = UpdateTenantBrandingRequestSchema.parse(updateData);
 
-            expect(result.marketingFlags?.showLandingPage).toBe(true);
-            expect(result.marketingFlags?.showPricingPage).toBeUndefined();
+            expect(result.marketingFlags?.showPricingPage).toBe(true);
+            expect(result.marketingFlags?.showMarketingContent).toBeUndefined();
         });
 
         it('should validate empty object (no updates)', () => {
@@ -349,7 +345,7 @@ describe('UpdateTenantBrandingRequestSchema', () => {
         it('should reject non-boolean marketing flags', () => {
             const updateData = {
                 marketingFlags: {
-                    showLandingPage: 'yes',
+                    showPricingPage: 'yes',
                 },
             };
 
@@ -370,13 +366,13 @@ describe('UpdateTenantBrandingRequestSchema', () => {
             // This is intentional to allow incremental updates
             const updateData = {
                 marketingFlags: {
-                    showLandingPage: true,
+                    showPricingPage: true,
                     // Other flags can be omitted
                 },
             };
 
             const result = UpdateTenantBrandingRequestSchema.parse(updateData);
-            expect(result.marketingFlags?.showLandingPage).toBe(true);
+            expect(result.marketingFlags?.showPricingPage).toBe(true);
         });
     });
 

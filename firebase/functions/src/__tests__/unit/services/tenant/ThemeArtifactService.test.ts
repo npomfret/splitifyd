@@ -148,14 +148,13 @@ describe('ThemeArtifactService', () => {
             expect(result.cssContent).toContain('--typography-sizes-2xl:');
         });
 
-        it('should skip null and undefined values', async () => {
-            const tokensWithNulls = new BrandingTokensBuilder()
-                .withWordmarkUrl(undefined)
-                .build();
+        it('should skip undefined optional values', async () => {
+            const tokens = new BrandingTokensBuilder().build();
+            const result = await service.generate('test-tenant', tokens);
 
-            const result = await service.generate('test-tenant', tokensWithNulls);
-
-            expect(result.cssContent).not.toContain('wordmark');
+            // CSS should not contain undefined/null string values
+            expect(result.cssContent).not.toContain('undefined');
+            expect(result.cssContent).not.toContain('null');
         });
 
         it('should record byte sizes', async () => {

@@ -18,7 +18,6 @@ import {
     toGroupId,
     toGroupName,
     toISOString,
-    toShowLandingPageFlag,
     toShowMarketingContentFlag,
     toShowPricingPageFlag,
     toTenantAccentColor,
@@ -56,7 +55,6 @@ const FormDefaultsSchema = z.object({
 });
 
 const BrandingMarketingFlagsSchema = z.object({
-    showLandingPage: z.boolean().transform(toShowLandingPageFlag).optional(),
     showMarketingContent: z.boolean().transform(toShowMarketingContentFlag).optional(),
     showPricingPage: z.boolean().transform(toShowPricingPageFlag).optional(),
 });
@@ -426,14 +424,6 @@ export const ListAuthUsersResponseSchema = z.object({
 });
 
 // Policy schemas
-const CurrentPolicyResponseSchema = z.object({
-    id: z.string().min(1),
-    policyName: z.string().min(1),
-    currentVersionHash: z.string().min(1),
-    text: z.string().min(1),
-    createdAt: z.string().datetime().transform(toISOString),
-});
-
 const PolicyAcceptanceStatusSchema = z.object({
     policyId: z.string().min(1),
     currentVersionHash: z.string().min(1),
@@ -687,6 +677,15 @@ const PolicyVersionResponseSchema = PolicyVersionSchema.extend({
 
 const DeletePolicyVersionResponseSchema = z.object({});
 
+// Public policy response (for policy acceptance modal)
+const CurrentPolicyResponseSchema = z.object({
+    id: z.string().min(1),
+    policyName: z.string().min(1),
+    currentVersionHash: z.string().min(1),
+    text: z.string().min(1),
+    createdAt: z.string().datetime().transform(toISOString),
+});
+
 // ========================================================================
 // Admin User Schemas
 // ========================================================================
@@ -799,9 +798,10 @@ export const responseSchemas = {
     // Group preview endpoint
     'POST /groups/preview': GroupPreviewResponseSchema,
     // Policy endpoints
-    'GET /policies/:policyId/current': CurrentPolicyResponseSchema,
     'GET /user/policies/status': UserPolicyStatusResponseSchema,
     'POST /user/policies/accept-multiple': AcceptMultiplePoliciesResponseSchema,
+    // Public policy endpoint (for policy acceptance modal)
+    'GET /policies/:policyId/current': CurrentPolicyResponseSchema,
     // Tenant settings endpoints
     'GET /settings/tenant': TenantSettingsResponseSchema,
     'GET /settings/tenant/domains': TenantDomainsResponseSchema,

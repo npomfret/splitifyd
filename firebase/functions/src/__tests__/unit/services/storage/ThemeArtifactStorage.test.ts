@@ -31,8 +31,11 @@ describe('ThemeArtifactStorage factory', () => {
 
         const result = await storage.save(payload);
 
-        expect(result.cssUrl).toContain(`theme-artifacts%2F${payload.tenantId}%2F${payload.hash}%2Ftheme.css`);
-        expect(result.tokensUrl).toContain(`theme-artifacts%2F${payload.tenantId}%2F${payload.hash}%2Ftokens.json`);
+        // URLs are URL-encoded Firebase Storage format
+        const expectedCssPath = encodeURIComponent(`theme-artifacts/${payload.tenantId}/${payload.hash}/theme.css`);
+        const expectedTokensPath = encodeURIComponent(`theme-artifacts/${payload.tenantId}/${payload.hash}/tokens.json`);
+        expect(result.cssUrl).toContain(expectedCssPath);
+        expect(result.tokensUrl).toContain(expectedTokensPath);
 
         const bucketName = stubStorage.bucket().name;
         const cssSnapshot = stubStorage.getFile(bucketName, `theme-artifacts/${payload.tenantId}/${payload.hash}/theme.css`);

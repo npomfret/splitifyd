@@ -96,8 +96,6 @@ export class BrandingTokensBuilder {
                 appName: 'Test App',
                 companyName: 'Test Company',
                 supportEmail: 'support@test.com',
-                privacyPolicyUrl: 'https://test.com/privacy',
-                termsOfServiceUrl: 'https://test.com/terms',
             },
             semantics: {
                 colors: {
@@ -241,11 +239,6 @@ export class BrandingTokensBuilder {
 
     withLogoUrl(logoUrl: string): this {
         this.tokens.assets.logoUrl = logoUrl;
-        return this;
-    }
-
-    withWordmarkUrl(wordmarkUrl: string | undefined): this {
-        this.tokens.assets.wordmarkUrl = wordmarkUrl;
         return this;
     }
 

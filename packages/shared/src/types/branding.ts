@@ -157,11 +157,8 @@ const BrandingShadowsSchema = z.object({
 
 const BrandingAssetsSchema = z.object({
     logoUrl: z.string().min(1).optional(), // Optional - can be absolute URL, relative path, or data URL. Used as favicon if faviconUrl not provided
-    wordmarkUrl: z.string().min(1).optional(),
     faviconUrl: z.string().min(1).optional(), // Optional - defaults to logoUrl if not provided
-    heroIllustrationUrl: z.string().min(1).optional(),
-    backgroundTextureUrl: z.string().min(1).optional(),
-    // New for self-hosted fonts
+    // For self-hosted fonts
     fonts: z
         .object({
             headingUrl: z.string().min(1).optional(), // Space Grotesk, etc.
@@ -206,9 +203,19 @@ const BrandingLegalSchema = z.object({
     appName: z.string().min(1),
     companyName: z.string().min(1),
     supportEmail: z.string().email(),
-    privacyPolicyUrl: z.string().url(),
-    termsOfServiceUrl: z.string().url(),
 });
+
+const FooterLinkSchema = z.object({
+    id: z.string().min(1),
+    label: z.string().min(1),
+    url: z.string().url(),
+});
+
+const BrandingFooterSchema = z
+    .object({
+        links: z.array(FooterLinkSchema).default([]),
+    })
+    .optional();
 
 const BrandingSemanticColorSchema = z.object({
     surface: z.object({
@@ -218,10 +225,9 @@ const BrandingSemanticColorSchema = z.object({
         overlay: CssColorSchema,
         warning: CssColorSchema,
         muted: CssColorSchema.optional(),
-        // New for glassmorphism
+        // For glassmorphism
         glass: CssColorSchema.optional(),
         glassBorder: CssColorSchema.optional(),
-        aurora: CssColorSchema.optional(),
         // Skeleton loader colors (optional - falls back to muted/raised if not defined)
         skeleton: CssColorSchema.optional(),
         skeletonShimmer: CssColorSchema.optional(),
@@ -272,13 +278,12 @@ const BrandingSemanticColorSchema = z.object({
         danger: CssColorSchema,
         info: CssColorSchema,
     }),
-    // New gradient system
+    // Gradient system
     gradient: z
         .object({
             primary: z.array(CssColorSchema).length(2).optional(),
             accent: z.array(CssColorSchema).length(2).optional(),
             aurora: z.array(CssColorSchema).min(2).max(4).optional(),
-            text: z.array(CssColorSchema).length(2).optional(),
         })
         .optional(),
 });
@@ -298,8 +303,8 @@ export const BrandingTokensSchema = z.object({
     shadows: BrandingShadowsSchema,
     assets: BrandingAssetsSchema,
     legal: BrandingLegalSchema,
+    footer: BrandingFooterSchema,
     semantics: BrandingSemanticSchema,
-    // New: Motion system
     motion: BrandingMotionSchema,
 });
 
@@ -324,6 +329,8 @@ export type BrandingRadii = z.infer<typeof BrandingRadiiSchema>;
 export type BrandingShadows = z.infer<typeof BrandingShadowsSchema>;
 export type BrandingAssets = z.infer<typeof BrandingAssetsSchema>;
 export type BrandingLegal = z.infer<typeof BrandingLegalSchema>;
+export type FooterLink = z.infer<typeof FooterLinkSchema>;
+export type BrandingFooter = z.infer<typeof BrandingFooterSchema>;
 export type BrandingSemanticColors = z.infer<typeof BrandingSemanticColorSchema>;
 export type BrandingSemantics = z.infer<typeof BrandingSemanticSchema>;
 export type BrandingMotion = z.infer<typeof BrandingMotionSchema>;

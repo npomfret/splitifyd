@@ -122,8 +122,6 @@ export function extractFormDataFromTokens(tokens: BrandingTokens): Partial<Tenan
 
         legalCompanyName: tokens.legal?.companyName || '',
         legalSupportEmail: tokens.legal?.supportEmail || '',
-        legalPrivacyPolicyUrl: tokens.legal?.privacyPolicyUrl || '',
-        legalTermsOfServiceUrl: tokens.legal?.termsOfServiceUrl || '',
 
         motionDurationInstant: tokens.motion?.duration?.instant || 0,
         motionDurationFast: tokens.motion?.duration?.fast || 0,
@@ -245,8 +243,6 @@ export function buildBrandingTokensFromForm(formData: TenantData): TenantBrandin
             appName: formData.appName,
             companyName: formData.legalCompanyName,
             supportEmail: formData.legalSupportEmail,
-            privacyPolicyUrl: formData.legalPrivacyPolicyUrl,
-            termsOfServiceUrl: formData.legalTermsOfServiceUrl,
         },
         semantics: {
             colors: {

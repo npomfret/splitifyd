@@ -17,7 +17,6 @@ export interface TenantConfig {
         accentColor?: string;
     };
     marketingFlags?: {
-        showLandingPage?: boolean;
         showMarketingContent?: boolean;
         showPricingPage?: boolean;
     };

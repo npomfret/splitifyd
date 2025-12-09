@@ -160,12 +160,14 @@ export class LoginPage extends BasePage {
     }
 
     /**
-     * Navigate to the home/landing page by clicking the header logo.
-     * For unauthenticated users, this navigates to the home page.
+     * Click the header logo.
+     * For unauthenticated users, this redirects through dashboard back to login.
+     * (The root route redirects to /dashboard which requires auth)
      */
-    async navigateToHome(): Promise<void> {
+    async clickHeaderLogo(): Promise<void> {
         await this.getHeaderLogoLink().click();
-        await expect(this.page).toHaveURL(/^[^?]*\/(\?.*)?$/);
+        // Unauthenticated users get redirected: / -> /dashboard -> /login
+        await expect(this.page).toHaveURL(/\/login/);
     }
 
     /**

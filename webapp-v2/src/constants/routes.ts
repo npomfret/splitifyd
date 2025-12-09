@@ -25,15 +25,6 @@ export const ROUTES = {
     ADMIN: '/admin',
     ADMIN_TENANTS: '/admin/tenants', // @deprecated Use ADMIN with ?tab=tenants
     USERS_BROWSER: '/browser/users',
-
-    // Static Pages
-    PRICING: '/pricing',
-    TERMS_OF_SERVICE: '/terms-of-service',
-    TERMS_OF_SERVICE_SHORT: '/terms',
-    PRIVACY_POLICY: '/privacy-policy',
-    PRIVACY_POLICY_SHORT: '/privacy',
-    COOKIE_POLICY: '/cookies-policy',
-    COOKIE_POLICY_SHORT: '/cookies',
 } as const;
 
 // Helper functions for dynamic routes

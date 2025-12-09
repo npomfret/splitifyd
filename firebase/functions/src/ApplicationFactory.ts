@@ -477,7 +477,7 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
         login: authHandlers.login,
         sendPasswordResetEmail: authHandlers.sendPasswordResetEmail,
 
-        // Public policy handlers (inline)
+        // Public policy handlers (for policy acceptance modal)
         getCurrentPolicy: async (req, res) => {
             const { policyId } = req.params;
             const result = await policyService.getCurrentPolicy(toPolicyId(policyId));

@@ -6,7 +6,7 @@ const translation = translationEn;
 
 /**
  * Footer component page object.
- * Provides access to footer navigation links for Terms, Privacy, Cookies, and Pricing.
+ * Footer links are now configurable per tenant via brandingTokens.tokens.footer.links.
  * Used as a component on pages that include the footer via `this.footer`.
  */
 export class FooterComponent extends BasePage {
@@ -22,61 +22,24 @@ export class FooterComponent extends BasePage {
         return this.page.locator('footer');
     }
 
-    protected getTermsLink(): Locator {
-        return this.getFooter().getByRole('button', { name: translation.footer.termsOfService });
+    protected getCompanyName(): Locator {
+        return this.getFooter().getByRole('heading').first();
     }
 
-    protected getPrivacyLink(): Locator {
-        return this.getFooter().getByRole('button', { name: translation.footer.privacyPolicy });
+    protected getLinksSection(): Locator {
+        return this.getFooter().getByRole('heading', { name: translation.footer.linksSection });
     }
 
-    protected getCookiesLink(): Locator {
-        return this.getFooter().getByRole('button', { name: translation.footer.cookiePolicy });
-    }
-
-    protected getPricingLink(): Locator {
-        return this.getFooter().getByRole('button', { name: translation.footer.pricing });
-    }
-
-    // ============================================================================
-    // NAVIGATION ACTIONS
-    // ============================================================================
-
-    /**
-     * Click the Terms of Service link in the footer.
-     * Navigates to /terms page.
-     */
-    async clickTermsLink(): Promise<void> {
-        await this.getTermsLink().click();
-        await expect(this.page).toHaveURL(/\/terms/);
+    protected getCopyright(): Locator {
+        return this.getFooter().locator('p').last();
     }
 
     /**
-     * Click the Privacy Policy link in the footer.
-     * Navigates to /privacy page.
+     * Get a footer link by its label text.
+     * Footer links are external links (open in new tab).
      */
-    async clickPrivacyLink(): Promise<void> {
-        await this.getPrivacyLink().click();
-        await expect(this.page).toHaveURL(/\/privacy/);
-    }
-
-    /**
-     * Click the Cookie Policy link in the footer.
-     * Navigates to /cookies page.
-     */
-    async clickCookiesLink(): Promise<void> {
-        await this.getCookiesLink().click();
-        await expect(this.page).toHaveURL(/\/cookies/);
-    }
-
-    /**
-     * Click the Pricing link in the footer.
-     * Navigates to /pricing page.
-     * Note: This link is only visible when showPricingPage marketing flag is enabled.
-     */
-    async clickPricingLink(): Promise<void> {
-        await this.getPricingLink().click();
-        await expect(this.page).toHaveURL(/\/pricing/);
+    protected getFooterLinkByLabel(label: string): Locator {
+        return this.getFooter().getByRole('link', { name: label });
     }
 
     // ============================================================================
@@ -87,31 +50,36 @@ export class FooterComponent extends BasePage {
         await expect(this.getFooter()).toBeVisible();
     }
 
-    async verifyTermsLinkVisible(): Promise<void> {
-        await expect(this.getTermsLink()).toBeVisible();
+    async verifyCompanyNameVisible(): Promise<void> {
+        await expect(this.getCompanyName()).toBeVisible();
     }
 
-    async verifyPrivacyLinkVisible(): Promise<void> {
-        await expect(this.getPrivacyLink()).toBeVisible();
+    async verifyLinksSectionVisible(): Promise<void> {
+        await expect(this.getLinksSection()).toBeVisible();
     }
 
-    async verifyCookiesLinkVisible(): Promise<void> {
-        await expect(this.getCookiesLink()).toBeVisible();
-    }
-
-    async verifyPricingLinkVisible(): Promise<void> {
-        await expect(this.getPricingLink()).toBeVisible();
-    }
-
-    async verifyPricingLinkNotVisible(): Promise<void> {
-        await expect(this.getPricingLink()).not.toBeVisible();
+    async verifyCopyrightVisible(): Promise<void> {
+        await expect(this.getCopyright()).toBeVisible();
     }
 
     /**
-     * Check if the pricing link is visible (without failing if not).
-     * Useful for conditional test logic based on marketing flags.
+     * Verify a specific footer link is visible by its label.
      */
-    async isPricingLinkVisible(): Promise<boolean> {
-        return await this.getPricingLink().isVisible();
+    async verifyFooterLinkVisible(label: string): Promise<void> {
+        await expect(this.getFooterLinkByLabel(label)).toBeVisible();
+    }
+
+    /**
+     * Verify a specific footer link is not visible by its label.
+     */
+    async verifyFooterLinkNotVisible(label: string): Promise<void> {
+        await expect(this.getFooterLinkByLabel(label)).not.toBeVisible();
+    }
+
+    /**
+     * Check if a footer link is visible by its label (without failing if not).
+     */
+    async isFooterLinkVisible(label: string): Promise<boolean> {
+        return await this.getFooterLinkByLabel(label).isVisible();
     }
 }

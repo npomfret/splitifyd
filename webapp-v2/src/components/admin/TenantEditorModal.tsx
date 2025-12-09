@@ -94,7 +94,6 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                     tenantId: '',
                     appName: '',
                     domains: [],
-                    showLandingPage: sourceTenant.tenant.marketingFlags?.showLandingPage ?? true,
                     showMarketingContent: sourceTenant.tenant.marketingFlags?.showMarketingContent ?? true,
                     showPricingPage: sourceTenant.tenant.marketingFlags?.showPricingPage ?? false,
                 });
@@ -131,7 +130,6 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                     ...EMPTY_TENANT_DATA,
                     ...tokenData,
                     tenantId: tenant.tenant.tenantId,
-                    showLandingPage: tenant.tenant.marketingFlags?.showLandingPage ?? false,
                     showMarketingContent: tenant.tenant.marketingFlags?.showMarketingContent ?? false,
                     showPricingPage: tenant.tenant.marketingFlags?.showPricingPage ?? false,
                     showAppNameInHeader: branding?.showAppNameInHeader ?? true,
@@ -141,7 +139,6 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                 setFormData({
                     ...EMPTY_TENANT_DATA,
                     tenantId: tenant.tenant.tenantId,
-                    showLandingPage: tenant.tenant.marketingFlags?.showLandingPage ?? false,
                     showMarketingContent: tenant.tenant.marketingFlags?.showMarketingContent ?? false,
                     showPricingPage: tenant.tenant.marketingFlags?.showPricingPage ?? false,
                     showAppNameInHeader: branding?.showAppNameInHeader ?? true,
@@ -202,7 +199,6 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                 tenantId: formData.tenantId,
                 branding,
                 marketingFlags: {
-                    showLandingPage: formData.showLandingPage,
                     showMarketingContent: formData.showMarketingContent,
                     showPricingPage: formData.showPricingPage,
                 },

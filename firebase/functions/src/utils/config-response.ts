@@ -1,4 +1,4 @@
-import { ClientAppConfiguration, TenantConfig, toShowLandingPageFlag, toShowMarketingContentFlag, toShowPricingPageFlag } from '@billsplit-wl/shared';
+import { ClientAppConfiguration, TenantConfig, toShowMarketingContentFlag, toShowPricingPageFlag } from '@billsplit-wl/shared';
 import { getTenantAwareAppConfig } from '../app-config';
 import { ErrorDetail, Errors } from '../errors';
 import type { TenantRequestContext } from '../types/tenant';
@@ -11,7 +11,6 @@ const cloneTenantConfig = (tenant: TenantConfig): TenantConfig => {
         marketingFlags: tenant.marketingFlags
             ? { ...tenant.marketingFlags }
             : {
-                showLandingPage: toShowLandingPageFlag(true),
                 showMarketingContent: toShowMarketingContentFlag(true),
                 showPricingPage: toShowPricingPageFlag(true),
             },

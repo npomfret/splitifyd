@@ -236,14 +236,6 @@ export class ThemeArtifactService {
             ]);
         }
 
-        // Text gradient (2 colors) - for webkit-background-clip
-        if (gradients.text && gradients.text.length === 2) {
-            entries.push([
-                'gradient-text',
-                `linear-gradient(120deg, ${gradients.text[0]}, ${gradients.text[1]})`,
-            ]);
-        }
-
         // Aurora gradient (2-4 colors) - layered radial gradients for background
         if (gradients.aurora && gradients.aurora.length >= 2) {
             const [color1, color2, color3, color4] = gradients.aurora;

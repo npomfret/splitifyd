@@ -1128,6 +1128,25 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
         });
     }
 
+    // Public policy endpoint (no auth required) - used by policy acceptance modal
+    private getCurrentPolicyInternal(policyId: PolicyId, signal?: AbortSignal): Promise<CurrentPolicyResponse> {
+        return this.request({
+            endpoint: '/policies/:policyId/current',
+            method: 'GET',
+            params: { policyId },
+            skipAuth: true,
+            signal,
+        });
+    }
+
+    async getCurrentPolicy(policyId: PolicyId): Promise<CurrentPolicyResponse> {
+        return this.getCurrentPolicyInternal(policyId);
+    }
+
+    async getCurrentPolicyWithAbort(policyId: PolicyId, signal?: AbortSignal): Promise<CurrentPolicyResponse> {
+        return this.getCurrentPolicyInternal(policyId, signal);
+    }
+
     // User policy acceptance methods
     async acceptMultiplePolicies(acceptances: AcceptPolicyRequest[]): Promise<AcceptMultiplePoliciesResponse> {
         return this.request({
@@ -1151,24 +1170,6 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
 
     async getUserPolicyStatusWithAbort(signal?: AbortSignal): Promise<UserPolicyStatusResponse> {
         return this.getUserPolicyStatusInternal(signal);
-    }
-
-    private getCurrentPolicyInternal(policyId: PolicyId, signal?: AbortSignal): Promise<CurrentPolicyResponse> {
-        return this.request({
-            endpoint: '/policies/:id/current',
-            method: 'GET',
-            params: { id: policyId },
-            skipAuth: true, // Public endpoint
-            signal,
-        });
-    }
-
-    async getCurrentPolicy(policyId: PolicyId): Promise<CurrentPolicyResponse> {
-        return this.getCurrentPolicyInternal(policyId);
-    }
-
-    async getCurrentPolicyWithAbort(policyId: PolicyId, signal?: AbortSignal): Promise<CurrentPolicyResponse> {
-        return this.getCurrentPolicyInternal(policyId, signal);
     }
 
     async getPrivacyPolicy(): Promise<string> {

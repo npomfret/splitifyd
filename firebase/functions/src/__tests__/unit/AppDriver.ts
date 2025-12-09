@@ -1146,6 +1146,13 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return res.getJson() as DeletePolicyVersionResponse;
     }
 
+    async getCurrentPolicy(policyId: PolicyId): Promise<CurrentPolicyResponse> {
+        const req = createStubRequest('', {}, { policyId });
+        const res = await this.dispatchByHandler('getCurrentPolicy', req);
+        this.throwIfError(res);
+        return res.getJson() as CurrentPolicyResponse;
+    }
+
     async acceptMultiplePolicies(acceptances: AcceptPolicyRequest[], authToken: AuthToken): Promise<AcceptMultiplePoliciesResponse> {
         const req = createStubRequest(authToken, { acceptances });
         const res = await this.dispatchByHandler('acceptMultiplePolicies', req);
@@ -1176,12 +1183,6 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         const req = createStubRequest('', {});
         const res = await this.dispatchByHandler('getHealth', req);
         return res.getJson() as HealthResponse;
-    }
-
-    async getCurrentPolicy(policyId: PolicyId): Promise<CurrentPolicyResponse> {
-        const req = createStubRequest('', {}, { policyId });
-        const res = await this.dispatchByHandler('getCurrentPolicy', req);
-        return res.getJson() as CurrentPolicyResponse;
     }
 
     async getPrivacyPolicy(): Promise<string> {

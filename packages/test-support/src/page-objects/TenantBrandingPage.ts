@@ -55,10 +55,6 @@ export class TenantBrandingPage extends BasePage {
         return this.page.locator('[data-testid="secondary-color-input"]');
     }
 
-    protected getShowLandingPageCheckbox(): Locator {
-        return this.page.locator('[data-testid="show-landing-page-checkbox"]');
-    }
-
     protected getShowMarketingContentCheckbox(): Locator {
         return this.page.locator('[data-testid="show-marketing-content-checkbox"]');
     }
@@ -110,10 +106,6 @@ export class TenantBrandingPage extends BasePage {
 
     async fillSecondaryColor(color: string): Promise<void> {
         await this.getSecondaryColorInput().fill(color);
-    }
-
-    async toggleShowLandingPage(): Promise<void> {
-        await this.getShowLandingPageCheckbox().click();
     }
 
     async toggleShowMarketingContent(): Promise<void> {
@@ -171,14 +163,6 @@ export class TenantBrandingPage extends BasePage {
         await expect(this.getNotImplementedMessage()).toBeVisible();
     }
 
-    async verifyShowLandingPageChecked(checked: boolean): Promise<void> {
-        if (checked) {
-            await expect(this.getShowLandingPageCheckbox()).toBeChecked();
-        } else {
-            await expect(this.getShowLandingPageCheckbox()).not.toBeChecked();
-        }
-    }
-
     async verifyShowMarketingContentChecked(checked: boolean): Promise<void> {
         if (checked) {
             await expect(this.getShowMarketingContentCheckbox()).toBeChecked();
@@ -204,10 +188,6 @@ export class TenantBrandingPage extends BasePage {
     }
 
     // Public locator accessors for tests
-    getShowLandingPageCheckboxLocator(): Locator {
-        return this.getShowLandingPageCheckbox();
-    }
-
     getShowMarketingContentCheckboxLocator(): Locator {
         return this.getShowMarketingContentCheckbox();
     }

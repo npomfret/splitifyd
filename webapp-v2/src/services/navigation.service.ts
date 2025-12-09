@@ -204,25 +204,6 @@ class NavigationService {
     }
 
     /**
-     * Navigate to static pages
-     */
-    goToPricing(): Promise<void> {
-        return this.navigateTo(ROUTES.PRICING);
-    }
-
-    goToTerms(): Promise<void> {
-        return this.navigateTo(ROUTES.TERMS_OF_SERVICE);
-    }
-
-    goToPrivacyPolicy(): Promise<void> {
-        return this.navigateTo(ROUTES.PRIVACY_POLICY);
-    }
-
-    goToCookiePolicy(): Promise<void> {
-        return this.navigateTo(ROUTES.COOKIE_POLICY);
-    }
-
-    /**
      * Navigate to 404 page
      */
     goToNotFound(): Promise<void> {

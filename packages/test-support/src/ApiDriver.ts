@@ -18,7 +18,7 @@ import {
     type CreatePolicyRequest,
     type CreatePolicyResponse,
     type CreateSettlementRequest,
-    CurrentPolicyResponse,
+    type CurrentPolicyResponse,
     type DeletePolicyVersionResponse,
     DisplayName,
     type EnvironmentDiagnosticsResponse,
@@ -57,6 +57,7 @@ import {
     type PolicyDTO,
     PolicyId,
     type PolicyVersion,
+    toPolicyId,
     PooledTestUser,
     type PreviewGroupResponse,
     type PublicAPI,
@@ -92,7 +93,7 @@ import {
     UserToken,
     type VersionHash,
 } from '@billsplit-wl/shared';
-import { toPolicyId, toUserId } from '@billsplit-wl/shared';
+import { toUserId } from '@billsplit-wl/shared';
 import { UserRegistrationBuilder } from './builders';
 import { ApiDriverConfig, getApiDriverConfig } from './firebase-emulator-config';
 import { Matcher, PollOptions, pollUntil } from './Polling';

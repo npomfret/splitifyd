@@ -1064,12 +1064,7 @@
   "footer": {
     "companyName": "{{appName}}",
     "companyDescription": "Split bills easily with friends and family.",
-    "productSection": "Product",
-    "pricing": "Pricing",
-    "legalSection": "Legal",
-    "termsOfService": "Terms of Service",
-    "privacyPolicy": "Privacy Policy",
-    "cookiePolicy": "Cookie Policy",
+    "linksSection": "Links",
     "copyright": "© 2025 Pomo Corp ltd. All rights reserved."
   },
   "groupHeader": {
@@ -2241,10 +2236,6 @@
         "colorFormat": "#RRGGBB"
       },
       "toggles": {
-        "showLandingPage": {
-          "label": "Show Landing Page",
-          "description": "Display a public landing page for this tenant"
-        },
         "showMarketingContent": {
           "label": "Show Marketing Content",
           "description": "Display marketing content on public pages"

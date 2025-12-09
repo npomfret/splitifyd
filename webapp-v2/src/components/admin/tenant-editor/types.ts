@@ -125,8 +125,6 @@ export interface TenantData {
 
     legalCompanyName: string;
     legalSupportEmail: string;
-    legalPrivacyPolicyUrl: string;
-    legalTermsOfServiceUrl: string;
 
     motionDurationInstant: number;
     motionDurationFast: number;
@@ -143,7 +141,6 @@ export interface TenantData {
     enableMagneticHover: boolean;
     enableScrollReveal: boolean;
 
-    showLandingPage: boolean;
     showMarketingContent: boolean;
     showPricingPage: boolean;
 
@@ -171,7 +168,6 @@ export interface TenantConfig {
     };
     brandingTokens: TenantBranding;
     marketingFlags?: {
-        showLandingPage?: boolean;
         showMarketingContent?: boolean;
         showPricingPage?: boolean;
     };
