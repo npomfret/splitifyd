@@ -1,6 +1,6 @@
 import { Button, SidebarCard } from '@/components/ui';
 import { Stack } from '@/components/ui';
-import { ArchiveBoxArrowDownIcon, ArrowLeftStartOnRectangleIcon, ArrowPathIcon, BanknotesIcon, CogIcon, PlusIcon, UserPlusIcon } from '@heroicons/react/24/outline';
+import { ArchiveBoxArrowDownIcon, ArrowLeftStartOnRectangleIcon, ArrowPathIcon, BanknotesIcon, CogIcon, PlayIcon, PlusIcon, UserPlusIcon } from '@heroicons/react/24/outline';
 import { useTranslation } from 'react-i18next';
 
 interface GroupActionsProps {
@@ -139,7 +139,17 @@ export function GroupActions({
 
     if (variant === 'vertical') {
         return (
-            <SidebarCard title={t('groupActions.title')}>
+            <SidebarCard
+                id='group-actions'
+                title={
+                    <div className='flex items-center gap-2'>
+                        <PlayIcon className='h-5 w-5 text-text-muted' aria-hidden='true' />
+                        <span>{t('groupActions.title')}</span>
+                    </div>
+                }
+                collapsible
+                defaultCollapsed={false}
+            >
                 <Stack spacing='sm'>
                     {commonButtons}
                     {settingsButton}
