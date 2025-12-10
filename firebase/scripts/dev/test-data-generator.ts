@@ -336,19 +336,19 @@ async function simulateGroupActivity(ctx: GroupContext): Promise<void> {
 
                     // Pick two different members from the group
                     const shuffledMembers = shuffled(ctx.members);
-                    const fromMember = shuffledMembers[0];
-                    const toMember = shuffledMembers[1];
+                    const payer = shuffledMembers[0];
+                    const payee = shuffledMembers[1];
 
                     const settlementData: CreateSettlementRequest = {
                         groupId: ctx.group.id,
-                        fromUserId: fromMember.uid,
-                        toUserId: toMember.uid,
+                        payerId: payer.uid,
+                        payeeId: payee.uid,
                         amount: toAmount(`${randomInt(5, 50)}.00`),
                         currency: toCurrencyISOCode('USD'),
                     };
 
                     await driver.createSettlement(settlementData, actor.token);
-                    console.log(`      💸 ${actor.displayName} recorded settlement: ${fromMember.displayName} → ${toMember.displayName}`);
+                    console.log(`      💸 ${actor.displayName} recorded settlement: ${payer.displayName} → ${payee.displayName}`);
                     break;
                 }
 
@@ -413,4 +413,29 @@ export async function generateFullTestData(): Promise<void> {
 
     const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
     console.log(`\n✅ Test data generation complete in ${elapsed}s`);
+}
+
+// ============================================================================
+// Tenant & Theme Utilities (used by start-with-data.ts)
+// ============================================================================
+
+/**
+ * Sync all demo tenant configurations from JSON files to Firestore.
+ * Skips theme publishing (call publishDemoThemes separately).
+ */
+export async function syncDemoTenants(): Promise<void> {
+    console.log('🏢 Syncing all demo tenants from JSON configuration...');
+
+    const { syncLocalTenantConfigs } = await import('../sync-tenant-configs');
+    await syncLocalTenantConfigs({ skipThemePublish: true });
+}
+
+/**
+ * Publish theme CSS artifacts for all demo tenants.
+ * This requires the storage bucket to be set up first.
+ */
+export async function publishDemoThemes(): Promise<void> {
+    console.log('🎨 Publishing theme CSS artifacts for all tenants...');
+    const { syncLocalTenantConfigs } = await import('../sync-tenant-configs');
+    await syncLocalTenantConfigs();
 }
