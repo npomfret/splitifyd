@@ -105,19 +105,19 @@ function readPolicyFile(filename: string): string {
 }
 
 /**
- * Check if a policy already exists
+ * Get existing policy if it exists, null otherwise
  */
-async function policyExists(apiDriver: ApiDriver, policyId: PolicyId): Promise<boolean> {
+async function getExistingPolicy(apiDriver: ApiDriver, policyId: PolicyId): Promise<{ currentVersionHash: string; text: string; } | null> {
     try {
-        await apiDriver.getCurrentPolicy(policyId);
-        return true;
+        const policy = await apiDriver.getCurrentPolicy(policyId);
+        return { currentVersionHash: policy.currentVersionHash, text: policy.text };
     } catch {
-        return false;
+        return null;
     }
 }
 
 /**
- * Seed a single policy using Admin API
+ * Seed a single policy using Admin API (creates or updates)
  */
 async function seedPolicy(
     apiDriver: ApiDriver,
@@ -126,31 +126,37 @@ async function seedPolicy(
     filename: string,
     adminToken: string,
 ): Promise<void> {
-    // Check if policy already exists
-    if (await policyExists(apiDriver, policyId)) {
-        console.log(`  ⏭️  Policy already exists: ${policyName}`);
-        return;
-    }
-
-    console.log(`  📄 Creating policy: ${policyName}`);
-
-    // Read policy text
     const text = toPolicyText(readPolicyFile(filename));
+    const existing = await getExistingPolicy(apiDriver, policyId);
 
-    // Create policy via Admin API
-    const createResponse = await apiDriver.createPolicy(
-        { policyName: toPolicyName(policyName), text },
-        adminToken,
-    );
-    console.log(`     ✓ Created policy: ${createResponse.id}`);
+    if (existing) {
+        if (existing.text === text) {
+            console.log(`  ✓ Policy up to date: ${policyName}`);
+            return;
+        }
 
-    // Publish the policy
-    const publishResponse = await apiDriver.publishPolicy(
-        createResponse.id,
-        createResponse.versionHash,
-        adminToken,
-    );
-    console.log(`     ✓ Published policy (hash: ${publishResponse.currentVersionHash})`);
+        console.log(`  📝 Updating policy: ${policyName}`);
+        const updateResponse = await apiDriver.updatePolicy(
+            policyId,
+            { text, publish: true },
+            adminToken,
+        );
+        console.log(`     ✓ Updated and published (hash: ${updateResponse.currentVersionHash})`);
+    } else {
+        console.log(`  📄 Creating policy: ${policyName}`);
+        const createResponse = await apiDriver.createPolicy(
+            { policyName: toPolicyName(policyName), text },
+            adminToken,
+        );
+        console.log(`     ✓ Created policy: ${createResponse.id}`);
+
+        const publishResponse = await apiDriver.publishPolicy(
+            createResponse.id,
+            createResponse.versionHash,
+            adminToken,
+        );
+        console.log(`     ✓ Published policy (hash: ${publishResponse.currentVersionHash})`);
+    }
 }
 
 /**
