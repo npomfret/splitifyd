@@ -1,6 +1,4 @@
-# Privacy Policy for {{appName}}
-
-**Last Updated: 08 August 2025**
+# Privacy Policy
 
 ## 1. Acceptance and Modification
 

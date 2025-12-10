@@ -1,6 +1,4 @@
-# Terms and Conditions for {{appName}}
-
-**Last Updated: 08 August 2025**
+# Terms and Conditions
 
 ## 1. BINDING AGREEMENT AND ACCEPTANCE
 

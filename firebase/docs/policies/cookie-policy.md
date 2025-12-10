@@ -1,6 +1,4 @@
-# Cookie Policy for {{appName}}
-
-**Last Updated: 08 August 2025**
+# Cookie Policy
 
 ## 1. BINDING ACCEPTANCE AND CONSENT
 
