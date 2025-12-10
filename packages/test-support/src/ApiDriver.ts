@@ -1008,14 +1008,17 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         }
 
         const message = error.message ?? '';
-        if (message.includes('EMAIL_EXISTS') || message.includes('AUTH_EMAIL_ALREADY_EXISTS')) {
+        if (message.includes('EMAIL_EXISTS') || message.includes('EMAIL_ALREADY_EXISTS')) {
             return true;
         }
 
         const response = (error as { response?: unknown; }).response;
         if (response && typeof response === 'object') {
-            const code = (response as { error?: { code?: string; }; }).error?.code;
-            if (code === 'REGISTRATION_FAILED') {
+            const errorObj = (response as { error?: { code?: string; detail?: string; }; }).error;
+            if (errorObj?.code === 'REGISTRATION_FAILED' || errorObj?.code === 'ALREADY_EXISTS') {
+                return true;
+            }
+            if (errorObj?.detail === 'EMAIL_ALREADY_EXISTS') {
                 return true;
             }
         }
