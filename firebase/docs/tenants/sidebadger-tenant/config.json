@@ -1,8 +1,11 @@
 {
   "id": "sidebadger-tenant",
-  "domains": ["app.sidebadger.com", "demo.sidebadger.com"],
+  "domains": [
+    "demo.sidebadger.com",
+    "demo.sidebadger.me"
+  ],
   "branding": {
-    "primaryColor": "#7ec786",
+    "primaryColor": "#9dd4a3",
     "secondaryColor": "#5fb0c4",
     "accentColor": "#f0c05c"
   },
@@ -14,8 +17,8 @@
     "tokens": {
       "version": 1,
       "palette": {
-        "primary": "#7ec786",
-        "primaryVariant": "#68aa6f",
+        "primary": "#9dd4a3",
+        "primaryVariant": "#7ec786",
         "secondary": "#5fb0c4",
         "secondaryVariant": "#4e8a9a",
         "accent": "#f0c05c",
@@ -23,7 +26,7 @@
         "neutralVariant": "#0f3d24",
         "success": "#4eeab5",
         "warning": "#f0c05c",
-        "danger": "#EF4444",
+        "danger": "#FCA5A5",
         "info": "#5fb0c4"
       },
       "typography": {
@@ -98,9 +101,9 @@
         "full": "9999px"
       },
       "shadows": {
-        "sm": "0 0 25px rgba(126, 199, 134, 0.25)",
+        "sm": "0 0 25px rgba(157, 212, 163, 0.25)",
         "md": "0 8px 32px rgba(0, 0, 0, 0.4)",
-        "lg": "0 0 50px rgba(126, 199, 134, 0.35)"
+        "lg": "0 0 50px rgba(157, 212, 163, 0.35)"
       },
       "assets": {},
       "legal": {
@@ -124,9 +127,9 @@
             "overlay": "rgba(10, 40, 24, 0.95)",
             "warning": "#451A03",
             "muted": "#14462d",
-            "glass": "rgba(126, 199, 134, 0.1)",
+            "glass": "rgba(157, 212, 163, 0.1)",
             "glassBorder": "rgba(240, 192, 92, 0.25)",
-            "aurora": "rgba(126, 199, 134, 0.08)",
+            "aurora": "rgba(157, 212, 163, 0.08)",
             "skeleton": "#14462d",
             "skeletonShimmer": "#1e5a3c",
             "popover": "#1a5035"
@@ -140,25 +143,26 @@
             "disabled": "#666869",
             "hero": "#FFFFFF",
             "eyebrow": "#5fb0c4",
-            "code": "#7ec786"
+            "code": "#7ec786",
+            "owed": "#FCA5A5"
           },
           "interactive": {
-            "primary": "#7ec786",
-            "primaryHover": "#9dd4a3",
-            "primaryActive": "#68aa6f",
+            "primary": "#9dd4a3",
+            "primaryHover": "#b8e2bc",
+            "primaryActive": "#7ec786",
             "primaryForeground": "#0a2818",
             "secondary": "#5fb0c4",
             "secondaryHover": "#7cc5d6",
             "secondaryActive": "#4e8a9a",
             "secondaryForeground": "#0a2818",
-            "destructive": "#EF4444",
-            "destructiveHover": "#F87171",
-            "destructiveActive": "#DC2626",
+            "destructive": "#FCA5A5",
+            "destructiveHover": "#FECACA",
+            "destructiveActive": "#F87171",
             "destructiveForeground": "#FFFFFF",
             "accent": "#f0c05c",
             "ghost": "#1a3f2a",
-            "magnetic": "#9dd4a3",
-            "glow": "#7ec786"
+            "magnetic": "#b8e2bc",
+            "glow": "#9dd4a3"
           },
           "border": {
             "subtle": "rgba(240, 192, 92, 0.15)",
@@ -166,19 +170,19 @@
             "strong": "rgba(240, 192, 92, 0.5)",
             "focus": "#f0c05c",
             "warning": "#f0c05c",
-            "error": "#EF4444",
+            "error": "#FCA5A5",
             "glassBorder": "rgba(240, 192, 92, 0.2)"
           },
           "status": {
             "success": "#4eeab5",
             "warning": "#f0c05c",
-            "danger": "#EF4444",
+            "danger": "#FCA5A5",
             "info": "#5fb0c4"
           },
           "gradient": {
-            "primary": ["#7ec786", "#f0c05c"],
-            "accent": ["#5fb0c4", "#7ec786"],
-            "aurora": ["#68aa6f", "#4e8a9a", "#d9a94b", "#34d399"],
+            "primary": ["#9dd4a3", "#f0c05c"],
+            "accent": ["#5fb0c4", "#9dd4a3"],
+            "aurora": ["#7ec786", "#4e8a9a", "#d9a94b", "#34d399"],
             "text": ["#f8fafc", "#d4d6d8"]
           }
         },

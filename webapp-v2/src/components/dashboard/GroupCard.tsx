@@ -81,7 +81,7 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense, isArchivedVi
         const negativeDisplays = negatives.map(({ balance }) => ({
             key: `owe-${balance.currency}`,
             content: renderBalanceMessage('youOwe', absAmount(balance.netBalance, balance.currency), balance.currency),
-            color: 'text-semantic-error',
+            color: 'text-text-owed',
             icon: '↓',
         }));
 

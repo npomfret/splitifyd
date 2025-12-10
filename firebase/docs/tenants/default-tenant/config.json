@@ -122,7 +122,8 @@
             "secondary": "#A3A3A3",
             "muted": "#737373",
             "inverted": "#171717",
-            "accent": "#D4D4D4"
+            "accent": "#D4D4D4",
+            "owed": "#F59E0B"
           },
           "interactive": {
             "primary": "#737373",

@@ -141,7 +141,8 @@
             "disabled": "#475569",
             "hero": "#FFFFFF",
             "eyebrow": "#06B6D4",
-            "code": "#A5B4FC"
+            "code": "#A5B4FC",
+            "owed": "#F472B6"
           },
           "interactive": {
             "primary": "#8B5CF6",

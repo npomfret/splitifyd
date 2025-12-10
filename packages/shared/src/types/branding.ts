@@ -244,6 +244,8 @@ const BrandingSemanticColorSchema = z.object({
         hero: CssColorSchema.optional(),
         eyebrow: CssColorSchema.optional(),
         code: CssColorSchema.optional(),
+        // Color for "you owe" amounts (negative balances) - distinct from error states
+        owed: CssColorSchema.optional(),
     }),
     interactive: z.object({
         primary: CssColorSchema,

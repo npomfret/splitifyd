@@ -157,6 +157,11 @@ export class ThemeArtifactService {
         // Use surface.muted if available, otherwise fall back to surface.raised
         entries.push(['surface-muted', this.hexToRgb(colors.surface.muted || colors.surface.raised)]);
 
+        // Text-owed for negative balance amounts
+        if (colors.text.owed) {
+            entries.push(['text-owed', this.hexToRgb(colors.text.owed)]);
+        }
+
         // Add palette RGB variants for use in rgba() glow effects
         const { palette } = tokens;
         entries.push(['palette-primary', this.hexToRgb(palette.primary)]);

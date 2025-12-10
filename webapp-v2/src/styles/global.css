@@ -29,6 +29,8 @@
   --color-semantic-success: rgb(var(--semantic-success-rgb, 22 163 74));
   --color-semantic-warning: rgb(var(--semantic-warning-rgb, 234 179 8));
   --color-semantic-error: rgb(var(--semantic-error-rgb, 220 38 38));
+  /* Text color for "you owe" amounts - distinct from error states */
+  --color-text-owed: rgb(var(--text-owed-rgb, 234 179 8));
   --color-surface-warning: rgb(var(--surface-warning-rgb, 254 252 232));
   --color-surface-error: rgb(var(--surface-error-rgb, 254 226 226));
   --color-border-subtle: rgb(var(--border-subtle-rgb, 241 245 249));
