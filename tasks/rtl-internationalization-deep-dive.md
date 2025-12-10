@@ -4,11 +4,62 @@
 To perform a comprehensive audit of the `webapp-v2` codebase and create a detailed plan to flawlessly implement Right-to-Left (RTL) language support. This is not an afterthought; the goal is a first-class, maintainable, and robust RTL user experience.
 
 ## Executive Summary
-The `webapp-v2` codebase is in a good position to adopt RTL support thanks to its modern stack (Preact, Tailwind CSS, i18next). However, a significant portion of the styling relies on physical, directional CSS properties (e.g., `margin-left`) rather than modern logical properties (e.g., `margin-inline-start`).
+The `webapp-v2` codebase is in a good position to adopt RTL support thanks to its modern stack (Preact, Tailwind CSS v4, i18next).
 
-The core of this effort will be a systematic, codebase-wide migration from physical to logical properties. This will be paired with infrastructure changes to dynamically load RTL languages and adjust the UI's direction based on the selected language. While extensive, this migration is highly achievable and will result in a cleaner, more maintainable stylesheet for all languages.
+**Key insight (December 2024 review):** This project uses **Tailwind CSS v4**, which uses CSS logical properties by default for horizontal spacing utilities. This significantly reduces the migration scope compared to Tailwind v3.x projects.
 
-This plan overlaps with and expands upon the infrastructure work outlined in `tasks/i18n-multi-language-support.md`.
+The remaining work focuses on:
+1. Infrastructure: Dynamic `dir` attribute switching based on language
+2. Targeted migrations: Absolute positioning (`left-*`/`right-*` → `start-*`/`end-*`), text alignment (`text-left`/`text-right` → `text-start`/`text-end`)
+3. Icon flipping for directional icons
+4. Prerequisite work from `tasks/i18n-multi-language-support.md` (dynamic language loading, locale-aware formatters)
+
+---
+
+## Critical: Tailwind v4 Logical Properties
+
+**This section was added after research review (December 2024)**
+
+Tailwind CSS v4 changed how horizontal spacing utilities work. Utilities like `ml-*`, `mr-*`, `pl-*`, `pr-*`, `mx-*`, `px-*` now generate **CSS logical properties** by default:
+
+```css
+/* Tailwind v4 output for ml-4 */
+.ml-4 {
+  margin-inline-start: 1rem; /* NOT margin-left */
+}
+```
+
+### What This Means
+
+| Utility Category | Tailwind v3 Output | Tailwind v4 Output | Migration Needed? |
+|-----------------|-------------------|-------------------|-------------------|
+| `ml-*`, `mr-*` | `margin-left/right` | `margin-inline-start/end` | **No** |
+| `pl-*`, `pr-*` | `padding-left/right` | `padding-inline-start/end` | **No** |
+| `mx-*`, `px-*` | `margin/padding-left + right` | `margin/padding-inline` | **No** |
+| `left-*`, `right-*` | `left/right` | `left/right` (physical) | **Yes** → `start-*`/`end-*` |
+| `text-left`, `text-right` | `text-align: left/right` | `text-align: left/right` (physical) | **Yes** → `text-start`/`text-end` |
+| `border-l-*`, `border-r-*` | `border-left/right` | Logical in v4 | **Verify** |
+
+### Reduced Migration Scope
+
+The original plan estimated ~41 occurrences of physical properties needing migration. With Tailwind v4:
+- **Margin/padding classes (`ml-*`, `mr-*`, `pl-*`, `pr-*`):** No longer need migration
+- **Still need migration:** `left-*`/`right-*` positioning, `text-left`/`text-right` alignment
+
+**Recommendation:** Run audit commands to identify only the utilities that still use physical properties in v4.
+
+---
+
+## Prerequisite: i18n Infrastructure
+
+The following work from `tasks/i18n-multi-language-support.md` must be completed first or in parallel:
+
+1. Dynamic language loading in `webapp-v2/src/i18n.ts`
+2. Language detection (user profile → localStorage → navigator.language → 'en')
+3. Locale-aware formatters (`dateUtils.ts`, `currencyFormatter.ts`)
+4. Language switcher UI
+
+This RTL task extends that work by adding the `dir` attribute handling.
 
 ## Core Strategy: Logical Properties & The `dir` Attribute
 Our entire approach will hinge on two modern web standards:
@@ -45,20 +96,29 @@ Our entire approach will hinge on two modern web standards:
     }, [i18n, i18n.language]);
     ```
 
-### 2. Styling & CSS (The Core Task)
-This is the most labor-intensive part of the migration. We must audit the entire codebase for physical properties and replace them.
+### 2. Styling & CSS (Reduced Scope with Tailwind v4)
 
+**Updated December 2024:** With Tailwind v4, the migration scope is significantly reduced.
+
+#### What NO LONGER Needs Migration (v4 handles automatically)
+-   `ml-*`, `mr-*` → Already use `margin-inline-start/end`
+-   `pl-*`, `pr-*` → Already use `padding-inline-start/end`
+-   `space-x-*` → Uses logical properties in v4
+-   `divide-x-*` → Uses logical properties in v4
+
+#### What STILL Needs Migration
 -   **Files:** All `.tsx` files in `webapp-v2/src/` and `webapp-v2/src/styles/global.css`.
--   **Action:** Systematically replace all instances of directional Tailwind classes with their logical equivalents.
-    -   `ml-*` → `ms-*`
-    -   `mr-*` → `me-*`
-    -   `pl-*` → `ps-*`
-    -   `pr-*` → `pe-*`
-    -   `space-x-*` → This utility is based on margins. It should be used with caution. For simple cases, it will reverse correctly. For complex layouts, replacing it with `flex` and `gap` is more robust.
-    -   `divide-x-*` → Same as `space-x-*`.
+-   **Actions:**
     -   `text-left` → `text-start`
-    -   `left-*` / `right-*` (for absolute positioning) → `start-*` / `end-*`
--   **Special Cases:** Look for any `transform` properties. `translateX` may need to be inverted in RTL.
+    -   `text-right` → `text-end`
+    -   `left-*` (absolute positioning) → `start-*`
+    -   `right-*` (absolute positioning) → `end-*`
+    -   `float-left` → `float-start`
+    -   `float-right` → `float-end`
+
+#### Special Cases
+-   **`transform` properties:** `translateX` may need to be inverted in RTL using `rtl:-translate-x-*` or conditional logic.
+-   **`global.css` custom utilities:** Review any custom utilities defined with `@utility` for physical properties.
 
 ### 3. UI Component Library (`components/ui`)
 Every component must be audited.
@@ -98,37 +158,63 @@ This work is outlined in `tasks/i18n-multi-language-support.md` and is a prerequ
 -   **Action:** Audit any third-party UI components (e.g., date pickers, charting libraries, sliders). Check their documentation for RTL support. If a library does not support it, we may need to find a replacement or apply manual CSS overrides. (A quick scan does not reveal any obvious problematic libraries, but this must be checked).
 
 ## Audit Commands
+
+**Updated December 2024:** With Tailwind v4, focus on utilities that still use physical properties.
+
 Use these `ripgrep` commands in the `webapp-v2` directory to find potential issues:
 
 ```bash
-# Find physical margin/padding classes
-rg 'p(l|r)-|m(l|r)-' --glob '*.tsx'
+# STILL RELEVANT - Find physical positioning (absolute/fixed positioning)
+rg '\b(left|right)-\d' --glob '*.tsx'
 
-# Find space-x/divide-x utilities
-rg '(space|divide)-x-' --glob '*.tsx'
+# STILL RELEVANT - Find physical text alignment
+rg 'text-(left|right)\b' --glob '*.tsx'
 
-# Find physical positioning/alignment
-rg '(left|right)-|text-(left|right)' --glob '*.tsx'
+# STILL RELEVANT - Find float utilities
+rg 'float-(left|right)' --glob '*.tsx'
 
-# Find raw inline styles (might contain directional properties)
+# STILL RELEVANT - Find raw inline styles (might contain directional properties)
 rg 'style=\{\{' --glob '*.tsx'
+
+# NO LONGER RELEVANT with Tailwind v4 (margin/padding already use logical properties)
+# rg 'p(l|r)-|m(l|r)-' --glob '*.tsx'
+# rg '(space|divide)-x-' --glob '*.tsx'
 ```
+
+### Current Audit Results (December 2024)
+
+Focused scan for items still needing migration:
+- `text-left`/`text-right`: Found in several components
+- `left-*`/`right-*` positioning: Found in Modal close buttons, dropdowns
+- Inline styles: Minimal usage, needs review
 
 ## Proposed Phased Implementation
 
-1.  **Phase 1: Infrastructure.**
-    *   Implement the dynamic language loading and `dir` attribute switching as described in `i18n-multi-language-support.md` and this document.
-    *   Fix all hardcoded locales in utility functions.
-    *   Add a temporary language switcher UI for developers.
-2.  **Phase 2: Global Styles & Common Components.**
-    *   Audit and refactor `global.css` for logical properties.
-    *   Refactor the most common UI components in `components/ui/` (Button, Card, Input, Modal).
-3.  **Phase 3: Full Codebase Sweep.**
-    *   Go through every page and component, using the audit commands to find and replace all remaining physical properties with logical ones.
-    *   Identify and handle all directional icons.
-4.  **Phase 4: QA & Testing.**
-    *   Perform a full manual QA pass of the entire application in an RTL language.
-    *   Implement visual regression tests as described below.
+**Updated December 2024:** Phases revised to reflect reduced scope with Tailwind v4.
+
+### Phase 1: Infrastructure (Complete prerequisite work)
+*   Complete `tasks/i18n-multi-language-support.md` first:
+    *   Dynamic language loading in `i18n.ts`
+    *   Language detection logic
+    *   Fix hardcoded locales in `dateUtils.ts` and `currencyFormatter.ts`
+*   Add `dir` attribute switching in `App.tsx` using `i18n.dir()`
+*   Add temporary language switcher UI for developers (e.g., `?lang=ar` query param)
+
+### Phase 2: Targeted CSS Migrations (Smaller scope with v4)
+*   Migrate `text-left`/`text-right` → `text-start`/`text-end`
+*   Migrate `left-*`/`right-*` → `start-*`/`end-*` (absolute positioning)
+*   Review `global.css` custom `@utility` definitions for physical properties
+*   Focus on high-impact UI components: Modal close buttons, dropdowns, tooltips
+
+### Phase 3: Icon Flipping
+*   Inventory directional icons in `components/ui/icons/`
+*   Add `rtl:-scale-x-100` to: ArrowLeft, ArrowRight, ChevronLeft, ChevronRight, etc.
+*   Consider creating a wrapper component or utility for consistent flipping
+
+### Phase 4: QA & Testing
+*   Perform full manual QA pass in RTL language (Arabic recommended for testing)
+*   Implement visual regression tests as described below
+*   Test in multiple browsers (Safari has historically had weaker logical property support)
 
 ## Testing Strategy
 -   **Manual Testing:** Add a language selector to the development environment that is easily accessible. Testers must go through every user flow in both an LTR and an RTL language.
@@ -151,3 +237,19 @@ rg 'style=\{\{' --glob '*.tsx'
       await expect(page).toHaveScreenshot('dashboard-ar.png');
     });
     ```
+
+---
+
+## Research References (December 2024)
+
+- [Tailwind CSS v4.0 release notes](https://tailwindcss.com/blog/tailwindcss-v4) - Documents logical property changes
+- [RTL Styling 101](https://rtlstyling.com/posts/rtl-styling/) - Comprehensive RTL guide
+- [CSS Logical Properties - Smashing Magazine](https://www.smashingmagazine.com/2022/12/deploying-css-logical-properties-on-web-apps/) - Deployment strategies
+- [i18next API - dir() method](https://www.i18next.com/overview/api) - Direction detection
+- [Tailwind RTL Discussion #1492](https://github.com/tailwindlabs/tailwindcss/discussions/1492) - Community discussion on RTL support
+
+## Open Questions
+
+1. **Target RTL language:** Arabic (ar) is recommended for testing as it's widely used and well-supported. Hebrew (he) or Persian (fa) are alternatives.
+2. **Sequencing with Ukrainian:** Should RTL work happen before, after, or in parallel with Ukrainian language support? Ukrainian is LTR, so the infrastructure work overlaps but RTL-specific work doesn't block it.
+3. **Browser support baseline:** CSS logical properties are well-supported in modern browsers but Safari < 15 has gaps. What's our browser support target?
