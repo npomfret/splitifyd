@@ -110,8 +110,9 @@
       },
       "footer": {
         "links": [
-          { "id": "terms", "label": "Terms of Service", "url": "https://sidebadger.com/legal/terms" },
-          { "id": "privacy", "label": "Privacy Policy", "url": "https://sidebadger.com/legal/privacy" }
+          { "id": "terms", "label": "Terms of Service", "url": "https://sidebadger.com/terms/" },
+          { "id": "privacy", "label": "Privacy Policy", "url": "https://sidebadger.com/cookies/" },
+          { "id": "cookies", "label": "Cookie Policy", "url": "https://sidebadger.com/cookies/" }
         ]
       },
       "semantics": {
