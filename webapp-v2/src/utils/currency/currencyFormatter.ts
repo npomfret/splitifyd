@@ -1,5 +1,11 @@
 import { Amount, amountToSmallestUnit, CurrencyISOCode, normalizeAmount } from '@billsplit-wl/shared';
+import i18n from '../../i18n';
+import { getIntlLocale } from '../languageDetection';
 import { getCurrency } from './currencyList';
+
+const getDefaultLocale = (): string => {
+    return getIntlLocale(i18n.language || 'en');
+};
 
 export interface FormatOptions {
     locale?: string;
@@ -15,7 +21,7 @@ interface CurrencyParts {
 
 export const formatCurrency = (amount: Amount, currencyCode: CurrencyISOCode, options: FormatOptions = {}): string => {
     const {
-        locale = 'en-US',
+        locale = getDefaultLocale(),
         includeCurrencyCode = true,
     } = options;
 
@@ -63,7 +69,7 @@ export const formatCurrency = (amount: Amount, currencyCode: CurrencyISOCode, op
 };
 
 export const formatCurrencyParts = (amount: Amount, currencyCode: CurrencyISOCode, options: FormatOptions = {}): CurrencyParts => {
-    const { locale = 'en-US' } = options;
+    const { locale = getDefaultLocale() } = options;
 
     if (!currencyCode || currencyCode.trim() === '') {
         throw Error('you must supply a currencyCode AND amount');

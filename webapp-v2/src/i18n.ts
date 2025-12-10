@@ -2,20 +2,28 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import en from './locales/en/translation.json' with { type: 'json' };
 import { logError } from './utils/browser-logger';
+import {
+    detectBrowserLanguage,
+    SUPPORTED_LANGUAGES,
+} from './utils/languageDetection';
 
-// the translations
+// Initial resources - English is always bundled
 const resources = {
     en: {
         translation: en,
     },
 };
 
+// Detect initial language from browser/localStorage
+const detectedLanguage = detectBrowserLanguage();
+
 i18n
     .use(initReactI18next) // passes i18n down to react-i18next
     .init({
         resources,
-        lng: 'en', // language to use,
+        lng: detectedLanguage,
         fallbackLng: 'en',
+        supportedLngs: SUPPORTED_LANGUAGES as unknown as string[],
 
         interpolation: {
             escapeValue: false, // react already safes from xss
@@ -38,5 +46,10 @@ i18n
             });
         },
     });
+
+// Phase 2 will add:
+// - loadLanguageBundle() for dynamic language loading
+// - changeLanguage() for switching languages
+// - applyUserLanguagePreference() for auth-store integration
 
 export default i18n;

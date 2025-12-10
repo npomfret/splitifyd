@@ -1,8 +1,14 @@
 import { ISOString, toISOString } from '@billsplit-wl/shared';
+import i18n from '../i18n';
+import { getIntlLocale } from './languageDetection';
+
+const getLocale = (): string => {
+    return getIntlLocale(i18n.language || 'en');
+};
 
 export const formatLocalDateTime = (utcString: string): string => {
     const date = new Date(utcString);
-    return date.toLocaleString();
+    return date.toLocaleString(getLocale());
 };
 
 const getUserTimeZone = (): string | undefined => {
@@ -29,6 +35,8 @@ export const formatDateTimeInUserTimeZone = (date: Date): string => {
     const timeZone = detectedTimeZone || 'UTC';
 
     try {
+        // Use 'en-CA' format (YYYY-MM-DD) for consistent ISO-like output regardless of locale
+        // This function produces machine-readable timestamps, not user-facing text
         const dateFormatter = new Intl.DateTimeFormat('en-CA', {
             timeZone,
             year: 'numeric',
@@ -36,6 +44,7 @@ export const formatDateTimeInUserTimeZone = (date: Date): string => {
             day: '2-digit',
         });
 
+        // Use 'en-GB' format for 24-hour time, consistent across locales
         const timeFormatter = new Intl.DateTimeFormat('en-GB', {
             timeZone,
             hour: '2-digit',
@@ -98,20 +107,24 @@ const isNoonTime = (isoString: string): boolean => {
 export const formatExpenseDateTime = (isoString: string): string => {
     const date = new Date(isoString);
     const isNoon = isNoonTime(isoString);
-
-    const year = date.getFullYear();
-    const month = date.toLocaleString('en-US', { month: 'short' });
-    const day = date.getDate();
+    const locale = getLocale();
 
     if (isNoon) {
-        return `${month} ${day}, ${year}`;
+        // Date only - use locale-aware formatting
+        return new Intl.DateTimeFormat(locale, {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+        }).format(date);
     } else {
-        const hours = date.getHours();
-        const minutes = date.getMinutes().toString().padStart(2, '0');
-        const ampm = hours >= 12 ? 'PM' : 'AM';
-        const displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
-
-        return `${month} ${day}, ${year} at ${displayHours}:${minutes} ${ampm}`;
+        // Date with time - use locale-aware formatting
+        return new Intl.DateTimeFormat(locale, {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+        }).format(date);
     }
 };
 
@@ -138,31 +151,31 @@ export function formatDistanceToNow(date: Date): string {
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
     if (diffInSeconds < 60) {
-        return 'just now';
+        return i18n.t('relativeTime.justNow');
     }
 
     const diffInMinutes = Math.floor(diffInSeconds / 60);
     if (diffInMinutes < 60) {
-        return `${diffInMinutes} minute${diffInMinutes !== 1 ? 's' : ''} ago`;
+        return i18n.t('relativeTime.minuteAgo', { count: diffInMinutes });
     }
 
     const diffInHours = Math.floor(diffInMinutes / 60);
     if (diffInHours < 24) {
-        return `${diffInHours} hour${diffInHours !== 1 ? 's' : ''} ago`;
+        return i18n.t('relativeTime.hourAgo', { count: diffInHours });
     }
 
     const diffInDays = Math.floor(diffInHours / 24);
     if (diffInDays < 30) {
-        return `${diffInDays} day${diffInDays !== 1 ? 's' : ''} ago`;
+        return i18n.t('relativeTime.dayAgo', { count: diffInDays });
     }
 
     const diffInMonths = Math.floor(diffInDays / 30);
     if (diffInMonths < 12) {
-        return `${diffInMonths} month${diffInMonths !== 1 ? 's' : ''} ago`;
+        return i18n.t('relativeTime.monthAgo', { count: diffInMonths });
     }
 
     const diffInYears = Math.floor(diffInMonths / 12);
-    return `${diffInYears} year${diffInYears !== 1 ? 's' : ''} ago`;
+    return i18n.t('relativeTime.yearAgo', { count: diffInYears });
 }
 
 export const getToday = (): Date => {

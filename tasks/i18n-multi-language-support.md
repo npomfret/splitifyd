@@ -49,33 +49,40 @@ Prepare the codebase for adding Ukrainian (uk) as the first non-English language
 
 ## Implementation Plan
 
-### Phase 1: Infrastructure Prep
+### Phase 1: Infrastructure Prep - COMPLETED
 
-**Task 1.1: Fix date/time formatting**
+**Task 1.1: Fix date/time formatting** ✅
 - File: `webapp-v2/src/utils/dateUtils.ts`
-- Add locale parameter to formatting functions
-- Use `Intl.DateTimeFormat` with dynamic locale for month names
-- Add translation keys for relative time strings
+- Added `getLocale()` helper that reads from i18n
+- Updated `formatLocalDateTime()` to use dynamic locale
+- Updated `formatExpenseDateTime()` to use `Intl.DateTimeFormat` with locale
+- Updated `formatDistanceToNow()` to use i18n translation keys
 
-**Task 1.2: Fix currency formatting**
+**Task 1.2: Fix currency formatting** ✅
 - File: `webapp-v2/src/utils/currency/currencyFormatter.ts`
-- Add locale parameter (default from i18n)
+- Added `getDefaultLocale()` helper
+- Updated both `formatCurrency()` and `formatCurrencyParts()` to use dynamic default
 
-**Task 1.3: Standardize pluralization**
+**Task 1.3: Standardize pluralization** ✅
 - File: `webapp-v2/src/locales/en/translation.json`
-- Convert `_plural` keys to `_one` / `_other` format
+- Converted `members_plural` → `members_one` / `members_other`
+- Converted `expenses_plural` → `expenses_one` / `expenses_other`
 
-**Task 1.4: Add relative time translation keys**
+**Task 1.4: Add relative time translation keys** ✅
 - File: `webapp-v2/src/locales/en/translation.json`
-- Add `relativeTime.minuteAgo_one`, `_other`, etc.
+- Added `relativeTime` section with `justNow`, `minuteAgo_one/_other`, etc.
 
-**Task 1.5: Create language detection**
+**Task 1.5: Create language detection** ✅
 - New file: `webapp-v2/src/utils/languageDetection.ts`
-- Priority: user profile > localStorage > navigator.language > 'en'
+- Exports: `detectBrowserLanguage()`, `persistLanguageChoice()`, `getIntlLocale()`
+- Exports: `SUPPORTED_LANGUAGES`, `SupportedLanguage` type
+- Additional exports deferred to Phase 2: `LANGUAGE_NAMES`, `getPersistedLanguage()`, `clearPersistedLanguage()`
 
-**Task 1.6: Add dynamic language loading**
+**Task 1.6: Configure i18n for language detection** ✅
 - File: `webapp-v2/src/i18n.ts`
-- Lazy load additional language bundles
+- Uses detected language on initialization
+- Configured `supportedLngs` array
+- Dynamic loading and switching functions deferred to Phase 2
 
 ### Phase 2: Language Switching UI
 
@@ -83,6 +90,28 @@ Prepare the codebase for adding Ukrainian (uk) as the first non-English language
 - Integrate with user profile `preferredLanguage`
 - localStorage persistence for anonymous users
 - Apply detected language on app load
+
+### Phase 2.5: Tenant Language Pass-through
+
+Tenants embedding our app may already have language support on their site. We should accept a language hint from them.
+
+**Options to explore:**
+1. **URL parameter** - `?lang=uk` or `?locale=uk-UA` on initial load
+2. **Embed config** - If we have an embed/widget mode, accept language in config
+3. **PostMessage API** - Parent frame can send language preference
+4. **Cookie** - Read a tenant-set cookie (e.g., `preferred_language`)
+
+**Detection priority (updated):**
+1. User's `preferredLanguage` from profile (authenticated)
+2. localStorage (returning visitor)
+3. **Tenant-provided language hint** (URL param, embed config, etc.)
+4. `navigator.language` / `navigator.languages` (browser preference)
+5. `'en'` fallback
+
+**Implementation notes:**
+- URL param should be read once on initial load, not on every navigation
+- Should validate against `SUPPORTED_LANGUAGES` before applying
+- Consider persisting tenant hint to localStorage so it survives page refreshes
 
 ### Phase 3: Add Ukrainian
 
@@ -96,13 +125,22 @@ Prepare the codebase for adding Ukrainian (uk) as the first non-English language
 
 ## Key Files
 
+### Phase 1 (Complete)
+
 | File | Change |
 |------|--------|
-| `webapp-v2/src/i18n.ts` | Dynamic language loading |
+| `webapp-v2/src/i18n.ts` | Use detected language on init, configure supportedLngs |
 | `webapp-v2/src/utils/dateUtils.ts` | Locale parameter, i18n for relative time |
 | `webapp-v2/src/utils/currency/currencyFormatter.ts` | Locale parameter |
 | `webapp-v2/src/locales/en/translation.json` | Add `relativeTime` keys, fix plurals |
-| `webapp-v2/src/utils/languageDetection.ts` | New - detection logic |
+| `webapp-v2/src/utils/languageDetection.ts` | New - browser detection, locale mapping |
+
+### Phase 2 (Pending)
+
+| File | Change |
+|------|--------|
+| `webapp-v2/src/i18n.ts` | Add `changeLanguage()`, `applyUserLanguagePreference()`, dynamic bundle loading |
+| `webapp-v2/src/utils/languageDetection.ts` | Export `LANGUAGE_NAMES`, `getPersistedLanguage()`, `clearPersistedLanguage()` |
 | `webapp-v2/src/components/settings/LanguageSelector.tsx` | New - UI component |
 
 ## Language Detection Strategy

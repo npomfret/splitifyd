@@ -130,6 +130,19 @@
       "selectPerson": "Select person"
     }
   },
+  "relativeTime": {
+    "justNow": "just now",
+    "minuteAgo_one": "{{count}} minute ago",
+    "minuteAgo_other": "{{count}} minutes ago",
+    "hourAgo_one": "{{count}} hour ago",
+    "hourAgo_other": "{{count}} hours ago",
+    "dayAgo_one": "{{count}} day ago",
+    "dayAgo_other": "{{count}} days ago",
+    "monthAgo_one": "{{count}} month ago",
+    "monthAgo_other": "{{count}} months ago",
+    "yearAgo_one": "{{count}} year ago",
+    "yearAgo_other": "{{count}} years ago"
+  },
   "landing": {
     "hero": {
       "title": "Effortless Bill Splitting, Simplified & Smart.",
@@ -387,10 +400,10 @@
   },
   "group": {
     "header": {
-      "members": "{{count}} member",
-      "members_plural": "{{count}} members",
-      "expenses": "{{count}} expense",
-      "expenses_plural": "{{count}} expenses"
+      "members_one": "{{count}} member",
+      "members_other": "{{count}} members",
+      "expenses_one": "{{count}} expense",
+      "expenses_other": "{{count}} expenses"
     },
     "actions": {
       "addExpense": "Add Expense",

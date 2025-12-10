@@ -1,6 +1,13 @@
-import { formatCurrency, type FormatOptions } from '@/utils/currency/currencyFormatter.ts';
+import { formatCurrency, formatCurrencyParts, type FormatOptions } from '@/utils/currency/currencyFormatter.ts';
 import { EUR, GBP, toCurrencyISOCode, USD } from '@billsplit-wl/shared';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
+
+// Mock i18n module for locale tests
+vi.mock('@/i18n', () => ({
+    default: {
+        language: 'en',
+    },
+}));
 
 const JPY = toCurrencyISOCode('JPY');
 const BHD = toCurrencyISOCode('BHD');
@@ -135,5 +142,55 @@ describe('formatCurrency', () => {
             const result = formatCurrency('100', AED);
             expect(result).toBe(`${LRM}د.إ${LRM} 100.00 AED`);
         });
+    });
+
+    describe('locale-aware formatting', () => {
+        it('should use Ukrainian locale formatting when specified', () => {
+            const options: FormatOptions = { locale: 'uk-UA' };
+            const result = formatCurrency('1234.56', EUR, options);
+            // Ukrainian uses non-breaking space as thousands separator and comma for decimal
+            // Normalize spaces for comparison (different Unicode space chars)
+            const normalized = result.replace(/\s/g, ' ');
+            expect(normalized).toBe(`${LRM}€${LRM} 1 234,56 EUR`);
+        });
+
+        it('should use French locale formatting when specified', () => {
+            const options: FormatOptions = { locale: 'fr-FR' };
+            const result = formatCurrency('1234.56', EUR, options);
+            // French uses narrow non-breaking space as thousands separator and comma for decimal
+            expect(result).toContain('1');
+            expect(result).toContain('234');
+            expect(result).toContain('56');
+            expect(result).toContain('EUR');
+        });
+    });
+});
+
+describe('formatCurrencyParts', () => {
+    it('should return currency parts with default locale', () => {
+        const result = formatCurrencyParts('1234.56', USD);
+        expect(result.sign).toBe('');
+        expect(result.symbol).toBe('$');
+        expect(result.formattedNumber).toBe('1,234.56');
+        expect(result.currencyCode).toBe('USD');
+    });
+
+    it('should return negative sign separately', () => {
+        const result = formatCurrencyParts('-50.00', USD);
+        expect(result.sign).toBe('-');
+        expect(result.formattedNumber).toBe('50.00');
+    });
+
+    it('should use specified locale for number formatting', () => {
+        const result = formatCurrencyParts('1234.56', EUR, { locale: 'de-DE' });
+        expect(result.formattedNumber).toBe('1.234,56');
+    });
+
+    it('should use Ukrainian locale when specified', () => {
+        const result = formatCurrencyParts('1234.56', EUR, { locale: 'uk-UA' });
+        // Ukrainian uses non-breaking space as thousands separator
+        // Normalize spaces for comparison (different Unicode space chars)
+        const normalized = result.formattedNumber.replace(/\s/g, ' ');
+        expect(normalized).toBe('1 234,56');
     });
 });
