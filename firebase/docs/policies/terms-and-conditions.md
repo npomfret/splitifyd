@@ -1,502 +1,325 @@
-# Terms and Conditions
+# Terms and Conditions for BillSplit
 
-## 1. BINDING AGREEMENT AND ACCEPTANCE
+**Effective Date:** December 10, 2025
 
-THESE TERMS AND CONDITIONS (HEREINAFTER "TERMS," "AGREEMENT," "CONTRACT," OR "BINDING COVENANT") CONSTITUTE A LEGALLY BINDING, ENFORCEABLE, AND IRREVOCABLE AGREEMENT BETWEEN YOU (HEREINAFTER "USER," "YOU," "YOUR," "LICENSEE," OR "PARTY OF THE SECOND PART") AND BILLSPLIT, ITS OWNERS, OPERATORS, AFFILIATES, SUBSIDIARIES, PARENT COMPANIES, ASSIGNS, SUCCESSORS, AGENTS, REPRESENTATIVES, AND ANY RELATED ENTITIES (COLLECTIVELY AND SEVERALLY "WE," "US," "OUR," "COMPANY," "SERVICE PROVIDER," OR "PARTY OF THE FIRST PART").
+Welcome to BillSplit! These Terms and Conditions ("Terms") govern your use of the BillSplit application, website, and services (collectively, the "Service"). Please read them carefully.
 
-BY ACCESSING, DOWNLOADING, INSTALLING, VIEWING, USING, OR OTHERWISE INTERACTING WITH THE BILLSPLIT APPLICATION, WEBSITE, SERVICES, OR ANY RELATED MATERIALS (COLLECTIVELY THE "SERVICE"), YOU IRREVOCABLY AND UNCONDITIONALLY AGREE TO BE BOUND BY THESE TERMS. IF YOU DO NOT AGREE, YOU MUST IMMEDIATELY CEASE ALL USE AND DESTROY ANY DOWNLOADED MATERIALS.
+**By using our Service, you agree to be bound by these Terms. If you do not agree to these Terms, do not use the Service.**
 
-Your use constitutes:
+---
 
-- Acceptance of all current and future terms
-- Waiver of any right to claim non-acceptance
-- Acknowledgment of consideration received
-- Consent to electronic contracting
-- Agreement to digital signatures as binding
-- Waiver of any cooling-off period
-- Acceptance of unilateral modification rights
+## 1. About the Service
 
-## 2. FREE SERVICE AND FUTURE CHANGES
+BillSplit is a convenience tool designed to help you and others track shared bills and expenses. The Service helps you record, calculate, and organize expense information—it does not process payments, transfer money, or hold funds on your behalf.
 
-The Service is currently provided free of charge without advertisements. However, we explicitly reserve the unlimited right to:
+**The Service is currently provided free of charge.** We reserve the right to introduce fees, subscriptions, or different service models in the future. If we do, we will provide you with reasonable notice of any changes.
 
-- Introduce advertising at any time without notice
-- Implement any form of monetization
-- Convert to a paid service model
-- Add premium features or subscriptions
-- Display sponsored content
-- Collect and monetize user data
-- Partner with third-party advertisers
-- Use affiliate marketing
-- Require payment for continued access
+---
 
-Your continued use after any such changes constitutes acceptance of the new terms.
+## 2. Eligibility
 
-## 3. CAPACITY, AGE, AND ELIGIBILITY REQUIREMENTS
+You must be at least 18 years old to use the Service. By using the Service, you represent and warrant that you are at least 18 years of age and have the legal capacity to enter into these Terms.
 
-You represent, warrant, covenant, and guarantee that:
+---
 
-- You are at least 18 years of age (or 21 where locally required)
-- You possess full legal capacity and authority to enter binding contracts
-- You are not prohibited by law from using the Service
-- You are not located in any embargoed or sanctioned territory
-- You have not been previously banned from the Service
-- You are using the Service in your personal capacity unless explicitly authorized as a corporate representative
-- You will not permit minors to access the Service through your account
-- You accept personal liability for any unauthorized use
+## 3. Important Disclaimers — Please Read Carefully
 
-Misrepresentation of eligibility constitutes fraud and subjects you to criminal and civil penalties.
+### 3.1. Use at Your Own Risk
 
-## 4. INTELLECTUAL PROPERTY AND LICENSE GRANTS
+**THE SERVICE IS PROVIDED FOR INFORMATIONAL AND CONVENIENCE PURPOSES ONLY. YOU USE THE SERVICE ENTIRELY AT YOUR OWN RISK.**
 
-### 4.1 Our Intellectual Property
+### 3.2. Not Financial, Legal, or Professional Advice
 
-All elements of the Service, including but not limited to software code, algorithms, methods, techniques, processes, designs, text, graphics, images, sounds, music, videos, interactive features, databases, compilations, and all other content (collectively "Our IP"), are our exclusive property or licensed to us. Our IP is protected by copyright, trademark, patent, trade secret, and other intellectual property laws worldwide.
+The Service is not intended to provide, and should not be construed as providing, financial, legal, tax, accounting, or any other professional advice. You should consult appropriate professionals before making financial decisions.
 
-### 4.2 Limited License to You
+### 3.3. No Guarantee of Accuracy
 
-Subject to your complete compliance with these Terms, we grant you a LIMITED, NON-EXCLUSIVE, NON-TRANSFERABLE, NON-SUBLICENSABLE, REVOCABLE, PERSONAL LICENSE to access and use the Service solely for personal, non-commercial purposes. This license:
+**All calculations, balances, suggested payments, and other data displayed by the Service may contain errors.** While we strive for accuracy, you expressly acknowledge and agree that:
 
-- May be revoked at any time without notice
-- Does not constitute a sale or transfer of any rights
-- Is subject to usage limitations we may impose
-- Does not include any right to derivative works
-- Terminates automatically upon any breach
+*   The Service may contain bugs, errors, or inaccuracies in its calculations.
+*   Currency conversions, rounding, and mathematical operations may produce incorrect results.
+*   Data entry errors by you or other users may cause incorrect information to be displayed.
+*   Synchronization issues or system failures may result in data loss or corruption.
+*   **We make no representations or warranties regarding the accuracy, completeness, or reliability of any calculations or data.**
 
-### 4.3 Your Content License to Us
+### 3.4. Independent Verification Required
 
-By submitting, posting, uploading, or transmitting any content, data, information, or materials to or through the Service ("Your Content"), you hereby grant us an IRREVOCABLE, PERPETUAL, WORLDWIDE, ROYALTY-FREE, FULLY PAID-UP, NON-EXCLUSIVE, UNLIMITED, UNRESTRICTED, SUBLICENSABLE (through multiple tiers), TRANSFERABLE, AND ASSIGNABLE LICENSE to:
+**You are solely responsible for independently verifying all amounts, calculations, and information before making any payments or financial decisions.** Do not rely on the Service as your sole record of financial obligations. The Service does not replace proper financial record-keeping.
 
-- Use, reproduce, modify, adapt, publish, translate, distribute, perform, and display Your Content
-- Create derivative works from Your Content
-- Incorporate Your Content into other works
-- Exploit all proprietary rights in Your Content
-- Use Your Content for machine learning and AI training
-- Commercialize and monetize Your Content
-- Use Your name, likeness, and biographical information
-- Sublicense these rights to any third party
-- Take any action with respect to Your Content that we deem appropriate
+### 3.5. We Do Not Handle Money
 
-This license survives termination of these Terms and your use of the Service.
+**BillSplit does not process payments, transfer funds, hold money, or act as a payment intermediary.** Any actual payments between users occur outside of the Service and are solely between those users. We have no involvement in, responsibility for, or liability arising from any payment or non-payment between users.
 
-## 5. PROHIBITED ACTIVITIES AND USES
+---
 
-You SHALL NOT, and shall not attempt to:
+## 4. User Disputes — We Are Not Involved
 
-### 5.1 Technical Prohibitions
+### 4.1. Disputes Are Between Users
 
-- Reverse engineer, decompile, disassemble, or derive source code
-- Circumvent, disable, or interfere with security features
-- Use automated systems, bots, scrapers, or similar tools
-- Probe, scan, or test vulnerabilities
-- Access non-public areas of the Service
-- Interfere with or disrupt the Service or servers
-- Impose unreasonable load on infrastructure
-- Use the Service to develop competing products
-- Frame, mirror, or embed the Service
-- Deep link to the Service without permission
-- Access, use, or attempt to use any application programming interface (API), whether documented or undocumented, except through the official user interface
-- Make any programmatic, automated, or machine-to-machine requests to the Service
-- Develop, distribute, or use any third-party applications, plugins, extensions, or integrations that interact with the Service
+**BillSplit is not a party to any dispute between you and other users.** Any disagreement about expenses, amounts owed, who paid what, or any other matter is solely between the users involved.
 
-### 5.2 Content Prohibitions
+### 4.2. No Mediation or Arbitration by BillSplit
 
-- Upload viruses, malware, or malicious code
-- Transmit unlawful, harmful, or objectionable content
-- Infringe any intellectual property rights
-- Violate privacy or publicity rights
-- Provide false or misleading information
-- Impersonate any person or entity
-- Manipulate identifiers to disguise content origin
-- Post spam, chain letters, or pyramid schemes
-- Harvest or collect user information
-- Post content we deem inappropriate
+We do not mediate, arbitrate, or otherwise involve ourselves in disputes between users. We have no obligation to investigate claims, determine fault, or enforce any resolution.
 
-### 5.3 Commercial Prohibitions
+### 4.3. Release of Claims
 
-- Use the Service for any commercial purpose without our written consent
-- Sell, rent, lease, or sub-license the Service
-- Use the Service for benchmarking or competitive analysis
-- Advertise or offer to sell goods or services
-- Use the Service for any revenue-generating endeavor
+**You hereby release BillSplit, its affiliates, officers, directors, employees, and agents from any and all claims, demands, damages, losses, and causes of action arising out of or relating to disputes with other users**, including but not limited to disputes about:
 
-Violation of any prohibition results in immediate termination and potential legal action.
+*   Amounts owed or paid
+*   Accuracy of expense records
+*   Fairness of expense splits
+*   Non-payment by other users
+*   Any financial loss resulting from reliance on Service data
+*   Any other disagreement between users
 
-## 6. USER ACCOUNTS AND SECURITY
+### 4.4. Your Responsibility
 
-### 6.1 Account Creation
+You are solely responsible for resolving any disputes with other users. We recommend maintaining your own records and communicating directly with other group members about expenses.
 
-You may be required to create an account. You agree to:
+---
 
-- Provide accurate, current, and complete information
-- Maintain and update information
-- Accept responsibility for all account activity
-- Maintain confidentiality of credentials
-- Notify us immediately of unauthorized use
-- Not share, sell, or transfer your account
-- Not create multiple accounts
-- Accept liability for all account usage
+## 5. Your Account
 
-### 6.2 Account Suspension and Termination
+### 5.1. Account Security
 
-We may suspend or terminate your account:
+You may need to create an account to use the Service. You are responsible for:
 
-- At any time for any reason or no reason
-- Without prior notice
-- Without liability to you
-- With or without cause
-- In our sole and absolute discretion
+*   Maintaining the confidentiality of your login credentials
+*   All activity that occurs under your account
+*   Notifying us immediately if you suspect unauthorized access
 
-We may temporarily suspend your access to the Service at any time, for any duration, without notice or explanation. Temporary suspensions may be applied for reasons including but not limited to: suspected abuse, unusual activity patterns, violation of these Terms, or any other reason we deem appropriate. We are under no obligation to disclose the reason for any suspension, and you waive any right to demand an explanation.
+### 5.2. Accurate Information
 
-Upon termination, all licenses terminate immediately, but all other provisions survive.
+You agree to provide accurate, current, and complete information when creating your account and to update such information as necessary.
 
-### 6.3 Fair Use Policy
+### 5.3. One Account Per Person
 
-Your use of the Service is subject to a fair use policy. The specific terms of the fair use policy are not published and remain at our sole discretion. We reserve the right to determine what constitutes fair use, to modify fair use limits at any time without notice, and to suspend or terminate accounts that we determine, in our sole discretion, to be in violation of fair use. You have no right to receive notice of, or challenge, any fair use determination.
+You may only maintain one account. Creating multiple accounts may result in termination of all your accounts.
 
-## 7. PAYMENT TERMS AND FUTURE MONETIZATION
+---
 
-### 7.1 Current Free Service
+## 6. Your Content
 
-The Service is currently provided free of charge. However, we explicitly reserve the right to:
+### 6.1. Ownership
 
-- Introduce fees, subscriptions, or paid features at any time without notice
-- Convert the entire Service to a paid model
-- Implement tiered pricing or freemium models
-- Charge for features that are currently free
-- Add advertisements, sponsorships, or affiliate programs
-- Monetize user data and usage patterns
-- Require payment for continued access to existing features
+When you use the Service, you provide us with content such as expense details, group names, descriptions, and comments ("Your Content"). You retain ownership of Your Content.
 
-### 7.2 Future Billing Terms (When Applicable)
+### 6.2. License to Us
 
-If/when we introduce payments:
+To operate the Service, you grant us a worldwide, royalty-free, non-exclusive, sublicensable license to use, host, store, reproduce, modify, create derivative works from, communicate, publish, and distribute Your Content. This license is for the limited purposes of:
 
-- All fees will be non-refundable
-- We may change fees at any time without notice
-- You will be responsible for all applicable taxes
-- Late payments will accrue interest at 18% annually
-- You will pay all collection costs including attorneys' fees
-- Failed payments may result in immediate termination
-- Currency exchange rates will be at our discretion
-- By continuing to use the Service after pricing is introduced, you accept all charges
+*   Operating, developing, and improving the Service
+*   Providing the Service to you and other users
+*   Creating aggregated, anonymized data for Service improvement
 
-## 8. INFORMATIONAL PURPOSES AND FINANCIAL DISCLAIMER
+This license continues even if you stop using the Service, to the extent Your Content has been shared with other users or incorporated into the Service.
 
-### 8.1 Not Financial, Legal, or Professional Advice
+### 6.3. Your Responsibilities
 
-THE SERVICE IS PROVIDED FOR INFORMATIONAL AND CONVENIENCE PURPOSES ONLY. THE SERVICE IS NOT INTENDED TO PROVIDE, AND SHALL NOT BE CONSTRUED AS PROVIDING, FINANCIAL, LEGAL, TAX, ACCOUNTING, OR ANY OTHER PROFESSIONAL ADVICE.
+You are solely responsible for Your Content. You represent that you have all necessary rights to provide Your Content and that it does not violate any laws or third-party rights.
 
-### 8.2 No Reliance on Calculations
+---
 
-ALL CALCULATIONS, AMOUNTS, BALANCES, SPLITS, SUGGESTED PAYMENTS, AND OTHER NUMERICAL DATA DISPLAYED BY THE SERVICE ARE PROVIDED FOR INFORMATIONAL REFERENCE ONLY. YOU EXPRESSLY ACKNOWLEDGE AND AGREE THAT:
+## 7. Acceptable Use
 
-- The Service may contain errors, bugs, or inaccuracies in its calculations
-- Currency conversions, rounding, and mathematical operations may produce incorrect results
-- Data entry errors, synchronization issues, or system failures may cause incorrect information to be displayed
-- We make no representations or warranties regarding the accuracy, completeness, or reliability of any calculations or data
-- You must independently verify all amounts before making any financial decisions or transactions
-- You shall not rely on the Service as the sole basis for any financial decision, payment, or transaction
-- Any financial decisions you make based on information from the Service are made entirely at your own risk
-- We are not liable for any financial loss, overpayment, underpayment, or dispute arising from your reliance on the Service
+You agree not to misuse the Service. You must not:
 
-### 8.3 Independent Verification Required
+*   Use the Service for any illegal or unauthorized purpose
+*   Violate any applicable laws or regulations
+*   Infringe the intellectual property or other rights of others
+*   Upload viruses, malware, or other malicious content
+*   Attempt to gain unauthorized access to the Service or its systems
+*   Interfere with or disrupt the Service or servers
+*   Use bots, scrapers, or other automated means to access the Service
+*   Attempt to reverse engineer, decompile, or disassemble the Service
+*   Use the Service to harass, abuse, or harm others
+*   Provide false or misleading information
+*   Impersonate any person or entity
 
-Before making any payment, settling any debt, or taking any financial action, you are solely responsible for independently verifying all amounts, calculations, and information through your own records and with all relevant parties. The Service is a convenience tool and does not replace proper financial record-keeping, accounting practices, or professional advice.
+---
 
-## 9. DISCLAIMERS AND WARRANTIES
+## 8. Intellectual Property
 
-### 9.1 No Guarantees Whatsoever
+### 8.1. Our Ownership
 
-WE MAKE ABSOLUTELY NO GUARANTEES OF ANY KIND. THE SERVICE IS PROVIDED ON A STRICTLY "USE AT YOUR OWN RISK" BASIS. WE DO NOT GUARANTEE THAT THE SERVICE WILL WORK, WILL BE AVAILABLE, WILL BE ACCURATE, WILL BE SUITABLE FOR ANY PURPOSE, OR WILL MEET ANY EXPECTATIONS. YOU EXPRESSLY ACKNOWLEDGE THAT YOU USE THE SERVICE ENTIRELY AT YOUR OWN RISK AND THAT WE HAVE MADE NO PROMISES, REPRESENTATIONS, OR ASSURANCES REGARDING THE SERVICE'S PERFORMANCE, RELIABILITY, AVAILABILITY, OR SUITABILITY.
+The Service, including its design, features, functionality, and content (excluding Your Content), is owned by BillSplit and protected by intellectual property laws. You receive no ownership interest in the Service.
 
-### 9.2 Comprehensive Disclaimer
+### 8.2. Limited License to You
 
-THE SERVICE IS PROVIDED "AS IS," "AS AVAILABLE," "WITH ALL FAULTS," AND "WITH ALL DEFECTS." TO THE MAXIMUM EXTENT PERMITTED BY LAW, WE DISCLAIM ALL WARRANTIES, EXPRESS, IMPLIED, STATUTORY, OR OTHERWISE, INCLUDING BUT NOT LIMITED TO:
+Subject to these Terms, we grant you a limited, non-exclusive, non-transferable, revocable license to use the Service for your personal, non-commercial purposes. This license does not include the right to:
 
-- MERCHANTABILITY
-- FITNESS FOR A PARTICULAR PURPOSE
-- TITLE AND NON-INFRINGEMENT
-- QUIET ENJOYMENT
-- ACCURACY OF DATA
-- SYSTEM INTEGRATION
-- WORKMANLIKE EFFORT
-- LACK OF VIRUSES
-- LACK OF NEGLIGENCE
-- CONTINUOUS OR ERROR-FREE OPERATION
-- COMPATIBILITY WITH YOUR SYSTEMS
-- MEETING YOUR REQUIREMENTS
+*   Modify, copy, or create derivative works of the Service
+*   Sublicense, sell, or transfer your rights
+*   Use the Service for commercial purposes without our consent
 
-### 9.3 Specific Non-Warranties
+### 8.3. Feedback
 
-WE DO NOT WARRANT THAT:
+If you provide us with feedback, suggestions, or ideas about the Service, you grant us the right to use such feedback without restriction or compensation to you.
 
-- The Service will meet your expectations
-- The Service will be uninterrupted or error-free
-- Defects will be corrected
-- The Service is free of harmful components
-- Your data will be secure or not lost
-- Third-party services will function properly
-- Content is accurate or reliable
-- Calculations will be correct or complete
-- The Service will be available when you need it
-- Any functionality will work as intended
-- Updates or improvements will be provided
-- Support will be available
+---
 
-### 9.4 Assumption of Risk
+## 9. Account Suspension and Termination
 
-YOU ASSUME ALL RISK OF USE. WE ARE NOT RESPONSIBLE FOR ANY DAMAGE TO YOUR COMPUTER SYSTEM, LOSS OF DATA, FINANCIAL LOSS, RELATIONSHIP DAMAGE, OR ANY OTHER HARM RESULTING FROM YOUR USE OF THE SERVICE. IF YOU ARE DISSATISFIED WITH THE SERVICE, YOUR SOLE AND EXCLUSIVE REMEDY IS TO DISCONTINUE USING THE SERVICE.
+### 9.1. Termination by You
 
-## 10. LIMITATION OF LIABILITY
+You may stop using the Service at any time. You may request deletion of your account by contacting us.
 
-### 10.1 Exclusion of Damages
+### 9.2. Termination by Us
 
-TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL WE BE LIABLE FOR:
+We may suspend or terminate your access to the Service at any time, with or without cause, with or without notice. Reasons for termination may include, but are not limited to:
 
-- DIRECT DAMAGES
-- INDIRECT DAMAGES
-- INCIDENTAL DAMAGES
-- SPECIAL DAMAGES
-- CONSEQUENTIAL DAMAGES
-- PUNITIVE DAMAGES
-- EXEMPLARY DAMAGES
-- LOST PROFITS
-- LOST REVENUE
-- LOST SAVINGS
-- LOST DATA
-- LOSS OF USE
-- LOSS OF GOODWILL
-- BUSINESS INTERRUPTION
-- REPUTATIONAL HARM
-- PERSONAL INJURY
-- PROPERTY DAMAGE
-- EMOTIONAL DISTRESS
-- PAIN AND SUFFERING
-- LOSS OF CONSORTIUM
-- ANY OTHER PECUNIARY OR NON-PECUNIARY LOSS
+*   Violation of these Terms
+*   Conduct that we believe is harmful to other users or the Service
+*   Extended periods of inactivity
+*   Requests by law enforcement or government agencies
+*   Discontinuation of the Service
 
-### 10.2 Cap on Liability
+### 9.3. Effect of Termination
 
-IF, DESPITE THE ABOVE, WE ARE FOUND LIABLE, OUR TOTAL AGGREGATE LIABILITY FOR ALL CLAIMS SHALL NOT EXCEED £1 (ONE BRITISH POUND). THIS LIMITATION APPLIES:
+Upon termination:
 
-- Regardless of the theory of liability
-- Whether in contract, tort, negligence, strict liability, or otherwise
-- Even if we have been advised of the possibility of damages
-- Even if remedies fail of their essential purpose
-- To the maximum extent permitted by law
+*   Your license to use the Service ends immediately
+*   We may delete your account and Your Content
+*   Provisions that by their nature should survive (including disclaimers, limitations of liability, and indemnification) will survive
 
-### 10.3 Time Limitation
+---
 
-Any claim must be brought within 30 days of the event giving rise to the claim, or be forever barred.
+## 10. Disclaimers and No Warranties
 
-## 11. INDEMNIFICATION
+**THE SERVICE IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED.**
 
-You agree to defend, indemnify, and hold harmless us and our officers, directors, employees, agents, licensors, suppliers, successors, and assigns from and against any claims, actions, demands, liabilities, damages, judgments, awards, losses, costs, expenses, or fees (including reasonable attorneys' fees) arising out of or relating to:
+TO THE FULLEST EXTENT PERMITTED BY LAW, WE DISCLAIM ALL WARRANTIES, INCLUDING BUT NOT LIMITED TO:
 
-- Your use of the Service
-- Your violation of these Terms
-- Your violation of any law or regulation
-- Your violation of any third-party right
-- Your Content
-- Your negligence or willful misconduct
-- Any claim that Your Content caused damage
-- Your unauthorized access to or use of the Service
-- Any activity through your account
-- Your disputes with other users
-- Your breach of any representation or warranty
-- Any claim related to your use of the Service
+*   IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT
+*   WARRANTIES THAT THE SERVICE WILL BE UNINTERRUPTED, ERROR-FREE, SECURE, OR FREE OF VIRUSES OR OTHER HARMFUL COMPONENTS
+*   WARRANTIES REGARDING THE ACCURACY, RELIABILITY, OR COMPLETENESS OF ANY CONTENT OR CALCULATIONS
+*   WARRANTIES THAT THE SERVICE WILL MEET YOUR REQUIREMENTS OR EXPECTATIONS
 
-This indemnification survives termination and includes the right to select counsel and control defense.
+**YOU ASSUME ALL RISK FOR YOUR USE OF THE SERVICE.**
 
-## 12. DISPUTE RESOLUTION AND ARBITRATION
+---
 
-### 12.1 Mandatory Arbitration
+## 11. Limitation of Liability
 
-ANY DISPUTE SHALL BE RESOLVED EXCLUSIVELY THROUGH BINDING INDIVIDUAL ARBITRATION, EXCEPT THAT WE MAY SEEK INJUNCTIVE RELIEF IN COURT. You waive all rights to:
+### 11.1. Exclusion of Damages
 
-- Jury trial
-- Court trial (except small claims)
-- Class actions
-- Representative actions
-- Private attorney general actions
-- Consolidated actions
-- Public injunctive relief
+**TO THE FULLEST EXTENT PERMITTED BY LAW, IN NO EVENT SHALL BILLSPLIT, ITS AFFILIATES, DIRECTORS, EMPLOYEES, OR AGENTS BE LIABLE FOR:**
 
-### 12.2 Arbitration Process
+*   ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES
+*   ANY LOSS OF PROFITS, REVENUES, DATA, USE, GOODWILL, OR OTHER INTANGIBLE LOSSES
+*   ANY DAMAGES ARISING FROM YOUR USE OF OR INABILITY TO USE THE SERVICE
+*   ANY DAMAGES ARISING FROM USER DISPUTES OR INTERACTIONS
+*   ANY DAMAGES ARISING FROM ERRORS, INACCURACIES, OR OMISSIONS IN THE SERVICE
+*   ANY DAMAGES ARISING FROM UNAUTHORIZED ACCESS TO YOUR ACCOUNT OR DATA
+*   ANY DAMAGES ARISING FROM THIRD-PARTY CONDUCT OR CONTENT
 
-- Arbitration shall be in London, England
-- English law applies without regard to conflicts
-- LCIA rules apply
-- One arbitrator selected by us
-- Proceedings are confidential
-- You pay all costs regardless of outcome
-- Award is final and non-appealable
-- Limited discovery at arbitrator's discretion
-- No punitive damages may be awarded
+### 11.2. Cap on Liability
 
-### 12.3 Class Action Waiver
+**OUR TOTAL AGGREGATE LIABILITY FOR ALL CLAIMS RELATING TO THE SERVICE SHALL NOT EXCEED THE GREATER OF:**
 
-YOU WAIVE ANY RIGHT TO PARTICIPATE IN CLASS ACTIONS. CLAIMS MAY ONLY BE BROUGHT INDIVIDUALLY. If this waiver is unenforceable, the entire arbitration provision is void.
+*   ONE HUNDRED BRITISH POUNDS (£100), OR
+*   THE TOTAL AMOUNT YOU HAVE PAID US FOR THE SERVICE IN THE 12 MONTHS PRECEDING THE CLAIM
 
-## 13. MODIFICATIONS TO TERMS
+### 11.3. Basis of the Bargain
 
-We reserve the absolute right to modify these Terms at any time without notice. Modifications are effective immediately upon posting. Your continued use constitutes acceptance. We may also:
+THE LIMITATIONS IN THIS SECTION REFLECT A REASONABLE ALLOCATION OF RISK AND ARE A FUNDAMENTAL BASIS OF THE AGREEMENT BETWEEN US. THE SERVICE WOULD NOT BE PROVIDED WITHOUT THESE LIMITATIONS.
 
-- Change the Service without notice
-- Discontinue the Service without liability
-- Impose new restrictions or requirements
-- Remove features or functionality
-- Change eligibility requirements
+### 11.4. Jurisdictional Limitations
 
-You are responsible for reviewing Terms regularly. We have no obligation to notify you of changes.
+SOME JURISDICTIONS DO NOT ALLOW THE EXCLUSION OF CERTAIN WARRANTIES OR LIMITATION OF LIABILITY FOR CERTAIN DAMAGES. IN SUCH JURISDICTIONS, OUR LIABILITY SHALL BE LIMITED TO THE MAXIMUM EXTENT PERMITTED BY LAW.
 
-## 14. TERMINATION
+---
 
-### 14.1 Termination by Us
+## 12. Indemnification
 
-We may terminate your access immediately, without notice, for any reason, including but not limited to:
+**You agree to defend, indemnify, and hold harmless BillSplit, its affiliates, officers, directors, employees, and agents from and against any claims, liabilities, damages, losses, costs, and expenses (including reasonable legal fees) arising out of or relating to:**
 
-- Breach of these Terms
-- Our belief that termination is necessary
-- Discontinuation of the Service
-- Our convenience
-- Non-payment
-- Inactivity
-- Legal requirements
-- Protecting other users
-- Our sole discretion
+*   Your use of the Service
+*   Your Content
+*   Your violation of these Terms
+*   Your violation of any law or third-party rights
+*   Your disputes with other users
+*   Any claim that Your Content caused damage to a third party
 
-### 14.2 Termination by You
+---
 
-You may terminate only by ceasing all use and deleting all copies of the Service. There are no refunds upon termination.
+## 13. Dispute Resolution
 
-### 14.3 Survival
+### 13.1. Informal Resolution
 
-The following sections survive termination indefinitely: Intellectual Property, Indemnification, Disclaimers, Limitation of Liability, Dispute Resolution, and any other provisions that by their nature should survive.
+We want to address your concerns without a formal legal case. Before filing a claim, you agree to try to resolve the dispute informally by contacting us. We will try to resolve the dispute informally by contacting you via email.
 
-## 15. GENERAL PROVISIONS
+### 13.2. Arbitration Agreement
 
-### 15.1 Entire Agreement
+**If we cannot resolve a dispute informally, you and BillSplit agree to resolve any disputes through binding arbitration rather than in court**, except that either party may bring claims in small claims court if eligible.
 
-These Terms, together with our Privacy Policy and Cookie Policy, constitute the entire agreement and supersede all prior agreements.
+### 13.3. Arbitration Procedures
 
-### 15.2 Governing Law
+*   Arbitration will be conducted by a single arbitrator under the rules of the London Court of International Arbitration (LCIA) or another mutually agreed arbitration body.
+*   The arbitration will take place in London, England, unless otherwise agreed.
+*   The arbitrator's decision will be final and binding.
 
-These Terms are governed by English law without regard to conflict of law principles. You consent to exclusive jurisdiction in England.
+### 13.4. Class Action Waiver
 
-### 15.3 Severability
+**YOU AND BILLSPLIT AGREE THAT EACH MAY BRING CLAIMS AGAINST THE OTHER ONLY IN YOUR OR ITS INDIVIDUAL CAPACITY AND NOT AS A PLAINTIFF OR CLASS MEMBER IN ANY CLASS OR REPRESENTATIVE ACTION.** Unless both parties agree otherwise, the arbitrator may not consolidate more than one person's claims.
 
-If any provision is unenforceable, we may replace it with a similar enforceable provision that achieves the same economic effect.
+### 13.5. Exceptions
 
-### 15.4 No Waiver
+This arbitration agreement does not preclude you from bringing issues to the attention of government agencies or from seeking injunctive relief in court for intellectual property infringement.
 
-Our failure to enforce any provision is not a waiver. Waivers must be in writing and signed by us.
+---
 
-### 15.5 Assignment
+## 14. Governing Law
 
-We may freely assign these Terms and your information. You may not assign without our written consent.
+These Terms are governed by the laws of England and Wales, without regard to conflict of law principles. Any legal action not subject to arbitration shall be brought exclusively in the courts of England and Wales, and you consent to the jurisdiction of such courts.
 
-### 15.6 Force Majeure
+---
 
-We are not liable for any failure or delay due to circumstances beyond our reasonable control.
+## 15. Changes to These Terms
 
-### 15.7 Interpretation
+We may modify these Terms at any time. When we make changes, we will update the "Effective Date" at the top of these Terms. **Your continued use of the Service after changes become effective constitutes your acceptance of the revised Terms.** If you do not agree to the revised Terms, you must stop using the Service.
 
-- Ambiguities are resolved in our favor
-- "Including" means "including without limitation"
-- "Or" is inclusive
-- Headings are for convenience only
-- These Terms are not construed against the drafter
+We encourage you to review these Terms periodically.
 
-### 15.8 Electronic Communications
+---
 
-You consent to electronic communications and agree they satisfy any legal requirement for writing.
+## 16. General Provisions
 
-### 15.9 Export Controls
+### 16.1. Entire Agreement
 
-You comply with all export laws and regulations. You represent that you are not prohibited from receiving exports.
+These Terms, together with our Privacy Policy and Cookie Policy, constitute the entire agreement between you and BillSplit regarding the Service and supersede any prior agreements.
 
-### 15.10 No Third-Party Beneficiaries
+### 16.2. Severability
 
-These Terms are solely between you and us. No third party has any rights under these Terms.
+If any provision of these Terms is found to be unenforceable, that provision will be limited or eliminated to the minimum extent necessary, and the remaining provisions will remain in full force and effect.
 
-### 15.11 Relationship
+### 16.3. No Waiver
 
-Nothing creates a partnership, joint venture, agency, or employment relationship. You have no authority to bind us.
+Our failure to enforce any provision of these Terms is not a waiver of our right to enforce that provision or any other provision in the future.
 
-### 15.12 Notice
+### 16.4. Assignment
 
-Legal notices to us must be sent by certified mail to our registered address. We may notify you electronically.
+We may assign or transfer these Terms and our rights hereunder without restriction. You may not assign or transfer these Terms without our prior written consent.
 
-### 15.13 Equitable Relief
+### 16.5. No Third-Party Beneficiaries
 
-You acknowledge that breach may cause irreparable harm for which monetary damages are inadequate, and we are entitled to injunctive relief.
+These Terms do not create any third-party beneficiary rights.
 
-## 16. SPECIFIC SERVICE TERMS
+### 16.6. Force Majeure
 
-### 16.1 Beta Features
+We are not liable for any failure or delay in performance due to circumstances beyond our reasonable control.
 
-Beta features are provided AS-IS without any warranty. We may discontinue beta features at any time.
+### 16.7. Electronic Communications
 
-### 16.2 Third-Party Services
+By using the Service, you consent to receiving electronic communications from us. You agree that all agreements, notices, and other communications provided electronically satisfy any legal requirement that such communications be in writing.
 
-We are not responsible for third-party services. Your use of third-party services is at your own risk.
+---
 
-### 16.3 Updates
+## 17. Contact Us
 
-We may automatically download and install updates. You consent to automatic updates.
+If you have any questions about these Terms, please contact us using the contact information provided on our website.
 
-### 16.4 Data Processing
+---
 
-By using the Service, you appoint us as your data processor and agent for any data processing activities.
-
-### 16.5 Feedback
-
-Any feedback you provide becomes our property. We may use feedback without compensation or attribution.
-
-## 17. ADDITIONAL ACKNOWLEDGMENTS
-
-BY USING THE SERVICE, YOU ACKNOWLEDGE AND AGREE THAT:
-
-- You have read and understood these Terms in their entirety
-- You have had the opportunity to seek independent legal advice
-- You enter these Terms freely and voluntarily
-- You waive any claim of unconscionability, adhesion, or unfairness
-- These Terms are reasonable and necessary for our protection
-- You will not claim these Terms are unenforceable
-- You accept all risk associated with the Service
-- You will not hold us liable for any losses
-- Your sole remedy for dissatisfaction is to stop using the Service
-- These Terms may be more restrictive than typical
-- We owe you no fiduciary or special duties
-- You are sophisticated enough to understand these Terms
-- Language barriers are not an excuse for non-compliance
-- You will not assist others in violating these Terms
-
-## 18. FINAL PROVISIONS
-
-### 18.1 Reservation of Rights
-
-All rights not expressly granted are reserved. We may exercise any remedy available at law or equity.
-
-### 18.2 Cumulative Remedies
-
-Our rights and remedies are cumulative and not exclusive. We may pursue multiple remedies simultaneously.
-
-### 18.3 Cost Shifting
-
-In any dispute, the losing party pays all costs and attorneys' fees of the prevailing party.
-
-### 18.4 Statute of Limitations
-
-You waive any statute of limitations to the maximum extent permitted. Claims must be brought within 30 days.
-
-### 18.5 Publicity
-
-We may use your name and likeness for marketing without compensation.
-
-**BY USING THE SERVICE, YOU AGREE TO BE BOUND BY THESE TERMS WITHOUT RESERVATION, EXCEPTION, OR CONDITION.**
-
-**LAST CHANCE: IF YOU DO NOT AGREE TO THESE TERMS, STOP USING THE SERVICE IMMEDIATELY.**
+**BY USING THE SERVICE, YOU ACKNOWLEDGE THAT YOU HAVE READ, UNDERSTOOD, AND AGREE TO BE BOUND BY THESE TERMS AND CONDITIONS.**

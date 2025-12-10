@@ -1,296 +1,232 @@
-# Privacy Policy
+# Privacy Policy for BillSplit
 
-## 1. Acceptance and Modification
+**Effective Date:** December 10, 2025
 
-By accessing, using, or continuing to use {{appName}} ("Service"), you unconditionally accept this Privacy Policy and grant us an irrevocable, perpetual, worldwide license to collect, use, modify, display, reproduce, and distribute any data or content you provide. We may modify this Policy at any time without notice, and such modifications are effective immediately upon posting. Your continued use constitutes binding acceptance of all changes. You waive any right to receive specific notice of changes.
+---
 
-## 2. Age Restriction and Capacity
+## Summary
 
-The Service is strictly for users aged 18 and above. By using the Service, you warrant that you are at least 18 years old and have full legal capacity to consent to this Policy. If you are under 18, you are prohibited from using the Service. We assume no responsibility for verifying user age and bear no liability for minors' unauthorized access.
+Welcome to BillSplit! We are committed to protecting your privacy. This policy explains what information we collect, how we use it, and what your rights are.
 
-## 3. Informational Purposes and No Reliance
+*   **What we collect:** We collect the information you provide (like your name, email, and expense details) and basic operational data needed for the app to work securely and reliably.
+*   **How we use it:** We use your data to provide and improve the BillSplit service, process your calculations, and keep your account secure. **We do not sell your personal data.**
+*   **Your Rights:** You have rights over your data, including the right to access, correct, or delete it.
 
-THE SERVICE IS PROVIDED FOR INFORMATIONAL AND CONVENIENCE PURPOSES ONLY. You acknowledge that:
+This is just a summary. Please read the full policy below for complete details.
 
-- All calculations, amounts, balances, and financial data displayed may contain errors
-- You must independently verify all information before making any financial decisions
-- We make no representations regarding the accuracy of any data
-- You shall not rely on the Service for financial, legal, tax, or professional advice
-- Any decisions you make based on Service data are entirely at your own risk
+---
 
-## 4. Comprehensive Data Collection
+## 1. Introduction
 
-While the Service is currently provided free of charge without advertising or active tracking, we reserve the absolute right to collect ANY AND ALL information in the future. Currently, we may collect minimal operational data. However, we explicitly reserve the right to collect, without further notice:
+This Privacy Policy applies to the BillSplit application, website, and services (collectively, the "Service"), operated by BillSplit ("we," "us," or "our").
 
-### Information We Automatically Collect:
+We are committed to being transparent about our data practices. This policy describes how we collect, use, disclose, and protect your information when you use our Service. **By using BillSplit, you agree to the collection and use of information in accordance with this policy.**
 
-- Complete device information (device ID, operating system, hardware specifications, unique device identifiers, mobile network information)
-- All network activity (IP addresses, browser type, ISP, referring/exit pages, clickstream data)
-- Precise geolocation data (GPS, WiFi, cellular tower information)
-- Behavioral data (mouse movements, clicks, scrolls, typing patterns, time spent on features)
-- Biometric identifiers if available through device APIs
-- All metadata associated with any interaction with the Service
-- Device sensor data (accelerometer, gyroscope, ambient light, proximity)
-- Clipboard contents when interacting with the Service
-- Installed applications and running processes
-- Contact lists and social graphs
-- Calendar entries and reminders
-- Photos, videos, and media files accessed through the Service
+---
 
-### Information You Provide:
+## 2. Information We Collect
 
-- All form inputs, whether submitted or abandoned
-- All content created, uploaded, or transmitted
-- Communications with us or other users
-- Payment and financial information
-- Government identification if provided
-- Any other information you voluntarily provide
+We collect information in several ways to provide and improve our Service.
 
-### Information from Third Parties:
+### 2.1. Information You Provide to Us
 
-- Data from social media platforms
-- Information from our business partners
-- Data brokers and aggregators
-- Public databases and records
-- Credit reporting agencies
-- Marketing partners
-- Any other available sources
+*   **Account Information:** When you register for an account, we collect information such as your name, email address, and password (stored in hashed form).
+*   **Profile Information:** You may choose to provide additional information such as a profile photo or display name.
+*   **User Content:** We collect the information you create while using the Service, including group names, expense descriptions and amounts, comments, settlements, and any other content you submit.
+*   **Communications:** If you contact us for support or other inquiries, we collect the contents of those communications.
 
-### No Programmatic Data Access
+### 2.2. Information We Automatically Collect
 
-You have no right to access your data through any application programming interface (API), data export functionality, or other programmatic means. We provide no data portability tools, export features, or developer access to user data. Any attempt to programmatically access, scrape, or extract data from the Service is strictly prohibited and may result in immediate account termination and legal action.
+*   **Operational & Security Data:** When you use the Service, we automatically collect data essential for its operation, security, and performance. This includes:
+    *   Session information (to keep you logged in)
+    *   Server logs (including timestamps and request information)
+    *   IP addresses (for security monitoring and fraud prevention)
+    *   Error logs (for debugging and improving the Service)
+*   **Device Information:** We may collect basic information about the device and browser you are using, such as device type, operating system, and browser type, to help us diagnose technical problems and optimize the Service.
 
-## 5. Unlimited Use of Your Information
+### 2.3. Information from Third Parties
 
-We have absolute, unrestricted rights to use collected information for ANY purpose, including:
+Currently, we do not collect information about you from third parties. If this changes in the future, we will update this policy.
 
-- Operating, improving, and modifying the Service at our sole discretion
-- Creating user profiles for any purpose including sale to third parties
-- Training artificial intelligence, machine learning models, and algorithms (including models that may be commercialized, sold, licensed, or made publicly available)
-- Using your expense data, group names, comments, descriptions, and all behavioral patterns to develop AI products and services
-- Behavioral analysis and predictive modeling
-- Targeted advertising (first-party and third-party)
-- Sale, rental, or lease of data to any party
-- Research and development (commercial or otherwise)
-- Creating derivative works and aggregated datasets
-- Complying with legal requests (or refusing to comply at our discretion)
-- Any other purpose we determine, whether or not disclosed
+### 2.4. Analytics and Tracking
 
-You grant us an irrevocable, perpetual, worldwide, royalty-free, sublicensable, transferable license to use all your data and content for any purpose.
+**Currently, we do not use third-party analytics services (such as Google Analytics) or advertising trackers.** If we introduce such services in the future, we will update this policy and, where required by law, obtain your consent.
 
-### Derived Data and Insights
+---
 
-All insights, analytics, profiles, predictions, patterns, trends, aggregations, and any other information derived from your data belong exclusively to us. You have no ownership interest, intellectual property rights, or other claims to any derived data. We may commercialize, sell, license, or otherwise exploit derived data without compensation or attribution to you.
+## 3. How We Use Your Information
 
-## 6. Data Sharing and Disclosure
+We use the information we collect for the following purposes:
 
-We may share your information with any party at our sole discretion, including:
+| Purpose | Legal Basis (GDPR) |
+|---------|-------------------|
+| **To Provide the Service:** To create your account, process your bill-splitting calculations, enable collaboration with others, and deliver the core functionality of the Service. | Performance of a contract with you |
+| **To Secure the Service:** To protect your account, prevent fraud, detect and investigate security incidents, and monitor for unauthorized or malicious activity. | Legitimate interest; Legal obligation |
+| **To Communicate With You:** To send you important service-related notifications, such as security alerts, changes to our terms, or responses to your inquiries. We do not send marketing emails without your explicit consent. | Performance of a contract; Legitimate interest |
+| **To Improve the Service:** To understand how users interact with the app, identify bugs, develop new features, and improve overall user experience. We use aggregated and anonymized data where possible. | Legitimate interest |
+| **To Comply with Legal Obligations:** To respond to legal requests, comply with applicable laws, and protect our legal rights. | Legal obligation; Legitimate interest |
 
-- Any current or future corporate affiliates, parents, or subsidiaries
-- Any purchaser of our business or assets (including in bankruptcy)
-- Law enforcement, government agencies, or courts (with or without legal process)
-- Third-party service providers (with or without confidentiality agreements)
-- Advertising networks and data brokers
-- Research institutions and academic organizations
-- Any party we deem appropriate
-- Public disclosure if we choose
+---
 
-We are not responsible for any third party's use of your information once shared.
+## 4. How We Share Your Information
 
-## 7. Data Retention
+**We do not sell, rent, or trade your personal data to third parties for their marketing purposes.**
 
-We retain all collected information indefinitely, including after account termination. We may maintain backups forever. Deletion requests may be ignored at our discretion. Even if we appear to delete data, we may retain copies for legal, technical, or business purposes.
+We may share your information in the following limited circumstances:
 
-### Backup and Anonymized Data Persistence
+### 4.1. With Other Users
 
-Even after account deletion or data removal requests:
+Your name and the content you post within a group (such as expenses, comments, and settlements) are visible to other members of that group. **Be mindful of what you share in groups, as other members can see this information.**
 
-- Backup copies may persist indefinitely in our systems and third-party backup services
-- Anonymized, pseudonymized, hashed, or aggregated versions of your data may be retained permanently
-- Data that has been shared with third parties cannot be recalled or deleted
-- Data used to train AI models becomes permanently embedded and cannot be extracted
-- Cached or archived copies may exist beyond our direct control
-- We have no obligation to purge data from all systems or notify you of retained copies
+### 4.2. With Service Providers
 
-## 8. International Transfer
+We use third-party service providers to help us operate the Service. These providers have access to your information only to perform services on our behalf and are contractually obligated to protect your data. Our current service providers include:
 
-Your data may be transferred to, stored, and processed in any country where we or our partners operate. You consent to transfer to countries without adequate data protection laws. We assume no liability for data handling in other jurisdictions.
+*   **Google Firebase:** Cloud hosting, authentication, and database services (data may be stored and processed in the United States and other countries where Google operates)
 
-## 9. Security Disclaimer
+### 4.3. For Legal Reasons
 
-While we may implement security measures, we make NO guarantee of security. You acknowledge that:
+We may disclose your information if required to do so by law, or if we believe in good faith that such disclosure is necessary to:
 
-- Data transmission over the internet is inherently insecure
-- Breaches may occur despite any measures taken
-- We are NOT liable for any data breach, loss, or unauthorized access
-- You assume ALL risk of providing information to us
-- We have no obligation to notify you of breaches
-- You waive any claims related to data security incidents
+*   Comply with a legal obligation, court order, or legal process
+*   Protect and defend our rights or property
+*   Prevent or investigate possible wrongdoing in connection with the Service
+*   Protect the personal safety of users or the public
+*   Protect against legal liability
 
-## 10. Your Rights (Limitations)
+### 4.4. Business Transfers
 
-You acknowledge and agree that:
+If BillSplit is involved in a merger, acquisition, sale of assets, or bankruptcy, your information may be transferred as part of that transaction. We will notify you of any such change and any choices you may have regarding your information.
 
-- You have NO right to access, correct, or delete your data unless required by law
-- Where law requires us to provide rights, we may charge fees and require extensive verification
-- We may deny any request at our discretion
-- You have NO right to data portability
-- You have NO right to object to processing
-- You have NO right to withdraw consent (consent is irrevocable)
-- You waive any rights not explicitly required by applicable law
-- Legal rights may be exercised only through arbitration (see Terms)
+### 4.5. With Your Consent
 
-## 11. Children's Information
+We may share your information for other purposes with your explicit consent.
 
-If we discover users under 18, we may retain their data for legal compliance. Parents have no guaranteed right to access or delete children's information. We assume no special obligations regarding minors' data.
+---
 
-## 12. Do Not Track
+## 5. Data Retention
 
-We do not respond to "Do Not Track" signals. We track all users regardless of browser settings.
+We retain your personal data for as long as your account is active or as needed to provide you with the Service. After you close your account or request deletion:
 
-## 13. California/GDPR/Privacy Law Disclosures
+*   We will delete or anonymize your personal data within a reasonable period (typically 30-90 days), except as described below.
+*   We may retain certain information for longer periods as necessary to:
+    *   Comply with legal obligations (e.g., tax, accounting, or legal hold requirements)
+    *   Resolve disputes and enforce our agreements
+    *   Prevent fraud and abuse
+    *   Maintain security and integrity of the Service
+*   Aggregated, anonymized data that cannot identify you may be retained indefinitely for analytics and Service improvement.
+*   Content you shared with other users in groups may persist in their records even after your account is deleted.
 
-Where legally required, users may have certain rights. However:
+---
 
-- We may claim exemptions to the maximum extent allowed
-- We are not a "business" or "controller" for purposes of limiting laws
-- You must prove residency and rights eligibility
-- We may take the full legal timeframe to respond
-- We may charge permissible fees
+## 6. Data Security
 
-## 14. Automated Decision Making
+We take the security of your data seriously and implement reasonable administrative, technical, and physical safeguards to protect it, including:
 
-We use automated systems for all decisions about you, including:
+*   Encryption of data in transit (HTTPS/TLS)
+*   Secure, hashed storage of passwords
+*   Access controls and authentication requirements
+*   Regular security assessments
 
-- Service access and features
-- Pricing and offers
-- Content display
-- Account actions
+**However, no method of transmission over the internet or electronic storage is 100% secure.** We cannot guarantee absolute security, and you use the Service at your own risk. You are responsible for maintaining the security of your account credentials.
 
-You have no right to human review of automated decisions.
+### 6.1. Security Breach Notification
 
-## 15. Marketing and Communications
+In the event of a data breach that affects your personal information, we will notify you and any applicable regulatory authorities as required by law.
 
-By using the Service, you consent to receive marketing communications through any medium. Opt-out requests may be honored at our discretion. Transactional messages cannot be opted out of.
+---
 
-## 16. Cookies, Tracking, and Future Advertising
+## 7. International Data Transfers
 
-While the Service currently operates without third-party advertising, we reserve the absolute right to implement comprehensive advertising and tracking at any time. We may use all available tracking technologies including:
+Our Service is global, which means your information may be stored and processed in countries outside of your own, including the United States and other countries where our service providers operate.
 
-- Cookies (persistent and session)
-- Web beacons and pixel tags
-- Browser fingerprinting
-- Device fingerprinting
-- Cross-device tracking
-- Supercookies and permacookies
-- Canvas fingerprinting
-- WebRTC tracking
-- Service worker tracking
-- Push notification identifiers and tracking
-- Offline data collection (transmitted when connection resumes)
-- Background sync and periodic background sync
-- Any future tracking technology
+These countries may have data protection laws that are different from those in your country. When we transfer your data internationally, we take steps to ensure that your data is treated securely and in accordance with this Privacy Policy, including:
 
-### Future Advertising Implementation
+*   Using service providers that participate in approved data transfer mechanisms
+*   Implementing appropriate contractual safeguards
 
-We may at any time, without notice:
+By using the Service, you consent to the transfer of your information to countries outside your country of residence.
 
-- Implement first-party and third-party advertising
-- Share your data with advertising networks and demand-side platforms
-- Use your behavioral data for targeted advertising across the internet
-- Participate in real-time bidding for advertising inventory
-- Create advertising profiles that follow you across services
-- Monetize your attention, engagement, and behavioral patterns
-- Display personalized advertisements based on your expense data and groups
-- Integrate with major advertising platforms (Google, Meta, Amazon, etc.)
+---
 
-By continuing to use the Service after any such implementation, you consent to all advertising and associated data collection.
+## 8. Your Privacy Rights
 
-You consent to all current and future tracking by using the Service.
+Depending on your location, you may have certain rights regarding your personal information.
 
-## 17. Third-Party Links and Services
+### 8.1. Rights for All Users
 
-We are not responsible for third-party privacy practices. Third parties may track you without our knowledge. We share no liability for external sites or services.
+Regardless of your location, you can:
 
-## 18. Indemnification
+*   **Access** your personal data through your account settings
+*   **Update or correct** your information through your account settings
+*   **Delete your account** by contacting us
+*   **Export your data** by contacting us
 
-You indemnify and hold us harmless from any claims related to:
+### 8.2. Rights for Users in the European Economic Area (EEA), UK, and Switzerland
 
-- Our collection, use, or disclosure of your information
-- Your violation of any law or rights
-- Your use of the Service
-- Any dispute regarding privacy
+If you are a resident of the EEA, UK, or Switzerland, you have the following rights under the GDPR:
 
-## 19. No Warranty
+*   **Right of Access:** You can request a copy of the personal data we hold about you.
+*   **Right to Rectification:** You can request that we correct any inaccurate or incomplete data.
+*   **Right to Erasure:** You can request that we delete your personal data in certain circumstances (the "right to be forgotten").
+*   **Right to Restrict Processing:** You can request that we limit how we use your data in certain circumstances.
+*   **Right to Data Portability:** You can request that we transfer your data to another organization, or to you, in a structured, machine-readable format.
+*   **Right to Object:** You can object to our processing of your data based on legitimate interests.
+*   **Right to Withdraw Consent:** Where we rely on consent, you can withdraw it at any time.
+*   **Right to Lodge a Complaint:** You have the right to lodge a complaint with a supervisory authority.
 
-This Policy is provided "AS IS" without warranty. We make no guarantees about:
+### 8.3. Rights for Users in California
 
-- Accuracy of this Policy
-- Our compliance with this Policy
-- Legal sufficiency of this Policy
-- Your understanding of this Policy
+If you are a California resident, you have rights under the California Consumer Privacy Act (CCPA) and California Privacy Rights Act (CPRA), including:
 
-## 20. Limitation of Liability
+*   **Right to Know:** You can request information about what personal information we collect, use, and disclose.
+*   **Right to Delete:** You can request deletion of your personal information.
+*   **Right to Correct:** You can request correction of inaccurate personal information.
+*   **Right to Opt-Out:** You can opt out of the "sale" or "sharing" of your personal information. **We do not currently "sell" or "share" your personal information as defined by the CCPA/CPRA.**
+*   **Right to Non-Discrimination:** We will not discriminate against you for exercising your privacy rights.
 
-OUR TOTAL LIABILITY FOR ANY PRIVACY-RELATED CLAIM IS LIMITED TO £1. YOU WAIVE ALL RIGHTS TO DAMAGES INCLUDING:
+### 8.4. Exercising Your Rights
 
-- Actual damages
-- Consequential damages
-- Punitive damages
-- Statutory damages
-- Injunctive relief
-- Class action participation
+To exercise any of these rights, please contact us at the email address below. We may need to verify your identity before processing your request. We will respond to your request within the timeframe required by applicable law.
 
-## 21. Governing Law and Disputes
+---
 
-This Policy is governed by the laws of England and Wales. Any disputes must be resolved through binding individual arbitration in London, England. You waive all rights to:
+## 9. Children's Privacy
 
-- Jury trial
-- Class actions
-- Government agency complaints (where waivable)
-- Public injunctive relief
+**Our Service is not intended for use by anyone under the age of 18.** We do not knowingly collect personal information from children under 18. If you are a parent or guardian and believe that your child has provided us with personal information, please contact us immediately. If we become aware that we have collected personal information from a child under 18 without verification of parental consent, we will take steps to delete that information.
 
-The arbitrator's decision is final and non-appealable. You pay all arbitration costs regardless of outcome.
+---
 
-## 22. Severability and Integration
+## 10. Third-Party Links and Services
 
-If any provision is unenforceable, we may replace it with similar enforceable terms. This Policy, combined with our Terms and Conditions, constitutes the entire agreement. Any rights not explicitly granted to you are reserved by us.
+The Service may contain links to third-party websites or services that are not operated by us. We have no control over, and assume no responsibility for, the content, privacy policies, or practices of any third-party sites or services. We encourage you to review the privacy policies of any third-party sites you visit.
 
-## 23. Contact
+---
 
-Questions may be submitted through the Service but we guarantee no response. We may use any communications for any purpose.
+## 11. Do Not Track Signals
 
-## 24. Special Provisions
+Some browsers offer a "Do Not Track" (DNT) feature. Because there is no common understanding of how to interpret DNT signals, the Service does not currently respond to DNT browser signals. However, as noted above, we do not currently use third-party tracking or analytics services.
 
-### Force Majeure
+---
 
-We bear no liability for privacy issues arising from any cause beyond our control.
+## 12. Changes to This Privacy Policy
 
-### Survival
+We may update this Privacy Policy from time to time to reflect changes in our practices, technology, legal requirements, or other factors. When we make changes:
 
-All limitations of liability, indemnifications, and waivers survive termination indefinitely.
+*   We will update the "Effective Date" at the top of this policy.
+*   For significant changes, we will provide more prominent notice (such as an in-app notification or email).
+*   Your continued use of the Service after changes become effective constitutes your acceptance of the revised policy.
 
-### No Waiver
+We encourage you to review this policy periodically.
 
-Our failure to enforce any provision is not a waiver of that provision.
+---
 
-### Assignment
+## 13. Contact Us
 
-We may assign this Policy and your information to any party. You may not assign your rights.
+If you have any questions about this Privacy Policy, wish to exercise your privacy rights, or have concerns about our data practices, please contact us using the contact information provided on our website.
 
-### Interpretation
+For GDPR-related inquiries, please include "GDPR Request" in the subject line of your message.
 
-All ambiguities are interpreted in our favor. Headers are for convenience only.
+---
 
-## 25. FINAL ACKNOWLEDGMENT
-
-BY USING THE SERVICE, YOU ACKNOWLEDGE THAT:
-
-- YOU HAVE READ AND UNDERSTOOD THIS POLICY
-- YOU CONSENT TO ALL DATA PRACTICES DESCRIBED
-- YOU WAIVE ALL PRIVACY RIGHTS NOT MANDATED BY LAW
-- THIS CONSENT IS IRREVOCABLE
-- YOU ACCEPT ALL RISK OF DATA EXPOSURE
-- YOU WILL NOT HOLD US LIABLE FOR ANY PRIVACY ISSUE
-
-**YOUR USE OF THE SERVICE IS ACCEPTANCE OF THESE TERMS.**
+**By using the Service, you acknowledge that you have read and understood this Privacy Policy.**
