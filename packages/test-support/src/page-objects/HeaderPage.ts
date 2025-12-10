@@ -195,4 +195,36 @@ export class HeaderPage extends BasePage {
         await this.openUserMenu();
         await this.verifyAdminLinkVisible();
     }
+
+    /**
+     * Header branding locators
+     */
+    protected getHeader(): Locator {
+        return this.page.locator('header');
+    }
+
+    protected getAppNameText(appName: string): Locator {
+        return this.getHeader().locator('span', { hasText: appName });
+    }
+
+    /**
+     * Verify header is visible on the page
+     */
+    async verifyHeaderVisible(): Promise<void> {
+        await expect(this.getHeader()).toBeVisible();
+    }
+
+    /**
+     * Verify app name is displayed in the header
+     */
+    async verifyAppNameVisible(appName: string): Promise<void> {
+        await expect(this.getAppNameText(appName)).toBeVisible();
+    }
+
+    /**
+     * Verify app name is NOT displayed in the header
+     */
+    async verifyAppNameNotVisible(appName: string): Promise<void> {
+        await expect(this.getAppNameText(appName)).toHaveCount(0);
+    }
 }

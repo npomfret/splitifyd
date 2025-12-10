@@ -1,4 +1,4 @@
-import { ClientUser, GroupId, ListGroupsResponse, UserPolicyStatusResponse } from '@billsplit-wl/shared';
+import type { ClientAppConfiguration, ClientUser, GroupId, ListGroupsResponse, UserPolicyStatusResponse } from '@billsplit-wl/shared';
 import { AppConfigurationBuilder, UserPolicyStatusResponseBuilder } from '@billsplit-wl/test-support';
 import type { HttpMethod, SerializedBodyMatcher, SerializedMswHandler, UrlMatchKind } from './types.ts';
 
@@ -164,6 +164,10 @@ export function updateExpenseHandler(
 
 export function appConfigHandler(options: HandlerOptions = {}): SerializedMswHandler {
     return createJsonHandler('GET', '/api/config', new AppConfigurationBuilder().build(), options);
+}
+
+export function customAppConfigHandler(config: ClientAppConfiguration, options: HandlerOptions = {}): SerializedMswHandler {
+    return createJsonHandler('GET', '/api/config', config, options);
 }
 
 export function loginSuccessHandler(

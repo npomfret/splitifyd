@@ -1,6 +1,6 @@
 import { toISOString, toShowMarketingContentFlag, toShowPricingPageFlag, toTenantAccentColor, toTenantId, toTenantPrimaryColor, toTenantSecondaryColor } from '../shared-types';
 import type { BrandingMarketingFlags, ISOString, TenantConfig, TenantId } from '../shared-types';
-import type { TenantBranding } from '../types/branding';
+import type { FooterLink, TenantBranding } from '../types/branding';
 
 const DEFAULT_BRANDING_TOKENS: TenantBranding = {
     tokens: {
@@ -237,6 +237,16 @@ export class TenantConfigBuilder {
 
     withBrandingTokens(tokens: TenantBranding): this {
         this.config.brandingTokens = tokens;
+        return this;
+    }
+
+    withFooterLinks(links: FooterLink[]): this {
+        this.config.brandingTokens!.tokens.footer = { links };
+        return this;
+    }
+
+    withShowAppNameInHeader(show: boolean): this {
+        this.config.branding!.showAppNameInHeader = show;
         return this;
     }
 
