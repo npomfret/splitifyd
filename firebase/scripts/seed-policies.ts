@@ -1,40 +1,94 @@
 #!/usr/bin/env npx tsx
-
-import { PolicyId, PolicyIds, PolicyName, toPolicyName, toPolicyText } from '@billsplit-wl/shared';
-import { ApiDriver } from '@billsplit-wl/test-support';
-import * as fs from 'fs';
-import * as path from 'path';
-import { generateBillSplitterUser, signInExistingBillSplitter } from './dev/test-data-generator';
-import { getEnvironment, initializeFirebase } from './lib/firebase-init';
-
-/*
- * This script seeds policy files using the Admin API
+/**
+ * Seed policy documents using the Admin API.
  *
  * Usage:
- *   tsx seed-policies.ts emulator
- *   tsx seed-policies.ts production
+ *   npx tsx scripts/seed-policies.ts <base-url> <email> <password>
+ *
+ * Examples:
+ *   # Local emulator
+ *   npx tsx scripts/seed-policies.ts http://localhost:6005 test1@test.com passwordpass
+ *
+ *   # Staging/production
+ *   npx tsx scripts/seed-policies.ts https://splitifyd.web.app admin@example.com yourpassword
  */
+import {
+    type ClientAppConfiguration,
+    type PolicyId,
+    PolicyIds,
+    SIGN_IN_WITH_PASSWORD_ENDPOINT,
+    toPolicyId,
+    toPolicyName,
+    toPolicyText,
+} from '@billsplit-wl/shared';
+import { ApiDriver, type ApiDriverConfig } from '@billsplit-wl/test-support';
+import * as fs from 'fs';
+import * as path from 'path';
 
-// Parse environment - handle both direct calls and module calls
-const env = getEnvironment();
-console.log(`🎯 Running policy seeding for ${env.environment}`);
-
-// API driver for all policy operations (lazily initialized)
-let _apiDriver: ApiDriver | null = null;
-async function getApiDriver(): Promise<ApiDriver> {
-    if (!_apiDriver) {
-        _apiDriver = await ApiDriver.create();
+/**
+ * Fetch Firebase API key from the bootstrap-config endpoint
+ */
+async function fetchApiKey(baseUrl: string): Promise<string> {
+    const apiUrl = baseUrl.endsWith('/') ? `${baseUrl}api` : `${baseUrl}/api`;
+    const response = await fetch(`${apiUrl}/bootstrap-config`);
+    if (!response.ok) {
+        throw new Error(`Failed to fetch bootstrap config from ${apiUrl}/bootstrap-config: ${response.status}`);
     }
-    return _apiDriver;
+    const config: ClientAppConfiguration = await response.json();
+    return config.firebase.apiKey;
 }
 
 /**
- * Initialize Firebase and set up emulator environment variables.
- * Must be called before any Firebase operations.
+ * Authenticate with email/password and return ID token
  */
-async function initialize(): Promise<void> {
-    // Initialize Firebase (this fetches config from running app for emulator mode)
-    await initializeFirebase(env);
+async function authenticateWithCredentials(config: ApiDriverConfig, email: string, password: string): Promise<string> {
+    const signInResponse = await fetch(`${config.authBaseUrl}${SIGN_IN_WITH_PASSWORD_ENDPOINT}?key=${config.firebaseApiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            email,
+            password,
+            returnSecureToken: true,
+        }),
+    });
+
+    if (!signInResponse.ok) {
+        const error = (await signInResponse.json()) as { error?: { message?: string; }; };
+        throw new Error(`Authentication failed: ${error.error?.message || 'Unknown error'}`);
+    }
+
+    const authData = (await signInResponse.json()) as { idToken: string; };
+    return authData.idToken;
+}
+
+/**
+ * Create ApiDriver from base URL by fetching config from bootstrap-config endpoint.
+ */
+async function createApiDriverFromUrl(baseUrl: string): Promise<{ apiDriver: ApiDriver; config: ApiDriverConfig; }> {
+    const apiKey = await fetchApiKey(baseUrl);
+    const apiUrl = baseUrl.endsWith('/') ? `${baseUrl}api` : `${baseUrl}/api`;
+
+    // Determine auth base URL - use emulator auth if localhost, otherwise production
+    const isLocalhost = baseUrl.includes('localhost') || baseUrl.includes('127.0.0.1');
+
+    // For localhost, we need to fetch the full config to get the auth emulator URL
+    let authBaseUrl = 'https://identitytoolkit.googleapis.com';
+    if (isLocalhost) {
+        const configResponse = await fetch(`${apiUrl}/bootstrap-config`);
+        if (configResponse.ok) {
+            const appConfig: ClientAppConfiguration = await configResponse.json();
+            if (appConfig.firebaseAuthUrl) {
+                authBaseUrl = `${appConfig.firebaseAuthUrl}/identitytoolkit.googleapis.com`;
+            }
+        }
+    }
+
+    const driverConfig: ApiDriverConfig = {
+        baseUrl: apiUrl,
+        firebaseApiKey: apiKey,
+        authBaseUrl,
+    };
+    return { apiDriver: new ApiDriver(driverConfig), config: driverConfig };
 }
 
 /**
@@ -51,138 +105,204 @@ function readPolicyFile(filename: string): string {
 }
 
 /**
- * Get or create admin user for API operations.
- * This can be called before policies exist - registration now allows empty acceptedPolicies.
+ * Check if a policy already exists
  */
-async function ensureAdminUser(): Promise<string> {
-    // Try to sign in existing Bill Splitter admin
-    const existingUser = await signInExistingBillSplitter();
-    if (existingUser) {
-        console.log('✅ Using existing Bill Splitter admin');
-        return existingUser.token;
+async function policyExists(apiDriver: ApiDriver, policyId: PolicyId): Promise<boolean> {
+    try {
+        await apiDriver.getCurrentPolicy(policyId);
+        return true;
+    } catch {
+        return false;
     }
-
-    // Create the admin user (registration allows empty acceptedPolicies for bootstrap)
-    console.log('🆕 Creating Bill Splitter admin...');
-    const newUser = await generateBillSplitterUser();
-    console.log('✅ Bill Splitter admin created');
-    return newUser.token;
 }
 
 /**
- * Seed policy using Admin API
+ * Seed a single policy using Admin API
  */
 async function seedPolicy(
+    apiDriver: ApiDriver,
     policyId: PolicyId,
-    policyName: PolicyName,
+    policyName: string,
     filename: string,
     adminToken: string,
 ): Promise<void> {
-    console.log(`📄 Creating policy: ${policyName}`);
+    // Check if policy already exists
+    if (await policyExists(apiDriver, policyId)) {
+        console.log(`  ⏭️  Policy already exists: ${policyName}`);
+        return;
+    }
+
+    console.log(`  📄 Creating policy: ${policyName}`);
 
     // Read policy text
     const text = toPolicyText(readPolicyFile(filename));
 
     // Create policy via Admin API
-    const createResponse = await (await getApiDriver()).createPolicy(
-        { policyName, text },
+    const createResponse = await apiDriver.createPolicy(
+        { policyName: toPolicyName(policyName), text },
         adminToken,
     );
-    console.log(`✅ Created policy: ${createResponse.id}`);
+    console.log(`     ✓ Created policy: ${createResponse.id}`);
 
     // Publish the policy
-    const publishResponse = await (await getApiDriver()).publishPolicy(
+    const publishResponse = await apiDriver.publishPolicy(
         createResponse.id,
         createResponse.versionHash,
         adminToken,
     );
-    console.log(`✅ Published policy ${policyId} (hash: ${publishResponse.currentVersionHash})`);
-}
-
-/**
- * Accept policies for the admin user who was created before policies existed
- */
-async function acceptPoliciesForAdmin(adminToken: string): Promise<void> {
-    console.log('\n📝 Accepting policies for admin user...');
-    await (await getApiDriver()).acceptCurrentPublishedPolicies(adminToken);
-    console.log('✅ Admin accepted all current policies');
+    console.log(`     ✓ Published policy (hash: ${publishResponse.currentVersionHash})`);
 }
 
 /**
  * Verify policies are accessible via public API
  */
-async function verifyPolicies(): Promise<void> {
+async function verifyPolicies(apiDriver: ApiDriver): Promise<void> {
     console.log('\n🔍 Verifying policies via public API...');
 
     const policyIds = [PolicyIds.TERMS_OF_SERVICE, PolicyIds.COOKIE_POLICY, PolicyIds.PRIVACY_POLICY];
 
     for (const policyId of policyIds) {
-        const policy = await (await getApiDriver()).getCurrentPolicy(policyId);
-        console.log(`✅ ${policy.policyName}: ${policy.text.length} chars`);
+        const policy = await apiDriver.getCurrentPolicy(policyId);
+        console.log(`   ✓ ${policy.policyName}: ${policy.text.length} chars`);
     }
-
-    console.log('✅ All policies verified!');
 }
 
-/**
- * Seed initial policies.
- *
- * Bootstrap order:
- * 1. Initialize Firebase
- * 2. Create admin user (registration allows empty acceptedPolicies for bootstrap)
- * 3. Seed policies via Admin API
- * 4. Accept policies for the admin user
- * 5. Verify policies via public API
- */
-export async function seedPolicies() {
-    // Initialize Firebase before any operations
-    await initialize();
+interface CliOptions {
+    baseUrl: string;
+    email: string;
+    password: string;
+}
 
-    console.log(`📚 Seeding policies for ${env.environment}...`);
+function parseArgs(): CliOptions {
+    const args = process.argv.slice(2);
+    const [baseUrl, email, password] = args;
+
+    if (!baseUrl || !email || !password) {
+        console.error('Usage: npx tsx scripts/seed-policies.ts <base-url> <email> <password>');
+        console.error('');
+        console.error('Examples:');
+        console.error('  npx tsx scripts/seed-policies.ts http://localhost:6005 test1@test.com passwordpass');
+        console.error('  npx tsx scripts/seed-policies.ts https://splitifyd.web.app admin@example.com yourpassword');
+        process.exit(1);
+    }
+
+    return { baseUrl, email, password };
+}
+
+async function main(): Promise<void> {
+    const { baseUrl, email, password } = parseArgs();
+
+    console.log(`🎯 Seeding policies to ${baseUrl}`);
 
     // Verify all policy files exist first
+    console.log('\n📂 Checking policy files...');
     try {
         readPolicyFile('terms-and-conditions.md');
         readPolicyFile('cookie-policy.md');
         readPolicyFile('privacy-policy.md');
-        console.log('✅ Successfully read all policy documents');
+        console.log('   ✓ All policy documents found');
     } catch (error) {
         throw new Error(`Failed to read policy documents: ${error instanceof Error ? error.message : error}`);
     }
 
-    try {
-        // Step 1: Create/get admin user (can be created before policies exist)
-        const adminToken = await ensureAdminUser();
+    // Create ApiDriver from base URL
+    const { apiDriver, config } = await createApiDriverFromUrl(baseUrl);
 
-        // Step 2: Seed all policies via Admin API
-        await seedPolicy(
-            PolicyIds.TERMS_OF_SERVICE,
-            toPolicyName('Terms of Service'),
-            'terms-and-conditions.md',
-            adminToken,
-        );
-        await seedPolicy(
-            PolicyIds.COOKIE_POLICY,
-            toPolicyName('Cookie Policy'),
-            'cookie-policy.md',
-            adminToken,
-        );
-        await seedPolicy(
-            PolicyIds.PRIVACY_POLICY,
-            toPolicyName('Privacy Policy'),
-            'privacy-policy.md',
-            adminToken,
-        );
+    // Authenticate with provided credentials
+    console.log(`\n🔑 Authenticating as ${email}...`);
+    const token = await authenticateWithCredentials(config, email, password);
+    console.log('   ✓ Authenticated');
 
-        // Step 3: Accept policies for the admin user (who was created before policies existed)
-        await acceptPoliciesForAdmin(adminToken);
+    // Seed all policies
+    console.log('\n📚 Seeding policies...');
+    await seedPolicy(
+        apiDriver,
+        toPolicyId(PolicyIds.TERMS_OF_SERVICE),
+        'Terms of Service',
+        'terms-and-conditions.md',
+        token,
+    );
+    await seedPolicy(
+        apiDriver,
+        toPolicyId(PolicyIds.COOKIE_POLICY),
+        'Cookie Policy',
+        'cookie-policy.md',
+        token,
+    );
+    await seedPolicy(
+        apiDriver,
+        toPolicyId(PolicyIds.PRIVACY_POLICY),
+        'Privacy Policy',
+        'privacy-policy.md',
+        token,
+    );
 
-        // Step 4: Verify all policies are accessible via public API
-        await verifyPolicies();
+    // Verify all policies are accessible
+    await verifyPolicies(apiDriver);
 
-        console.log(`\n🎉 ${env.environment} POLICY SEEDING COMPLETED SUCCESSFULLY!`);
-    } catch (error) {
-        console.error(`❌ Failed to seed policies to ${env.environment}:`, error);
-        throw error;
-    }
+    console.log('\n🎉 Policy seeding completed successfully!');
+}
+
+/**
+ * Seed policies for local emulator using default admin credentials.
+ * Used by start-with-data.ts for local development.
+ */
+export async function seedPolicies(): Promise<void> {
+    const { emulatorHostingURL } = await import('@billsplit-wl/test-support');
+    const { ApiDriver } = await import('@billsplit-wl/test-support');
+
+    const baseUrl = emulatorHostingURL();
+    console.log(`🎯 Seeding policies to local emulator at ${baseUrl}`);
+
+    // Verify all policy files exist first
+    console.log('\n📂 Checking policy files...');
+    readPolicyFile('terms-and-conditions.md');
+    readPolicyFile('cookie-policy.md');
+    readPolicyFile('privacy-policy.md');
+    console.log('   ✓ All policy documents found');
+
+    // Create ApiDriver for emulator
+    const apiDriver = await ApiDriver.create();
+
+    // Get default admin user token
+    console.log('\n🔑 Authenticating default admin...');
+    const admin = await apiDriver.getDefaultAdminUser();
+    console.log(`   ✓ Authenticated as ${admin.email}`);
+
+    // Seed all policies
+    console.log('\n📚 Seeding policies...');
+    await seedPolicy(
+        apiDriver,
+        toPolicyId(PolicyIds.TERMS_OF_SERVICE),
+        'Terms of Service',
+        'terms-and-conditions.md',
+        admin.token,
+    );
+    await seedPolicy(
+        apiDriver,
+        toPolicyId(PolicyIds.COOKIE_POLICY),
+        'Cookie Policy',
+        'cookie-policy.md',
+        admin.token,
+    );
+    await seedPolicy(
+        apiDriver,
+        toPolicyId(PolicyIds.PRIVACY_POLICY),
+        'Privacy Policy',
+        'privacy-policy.md',
+        admin.token,
+    );
+
+    // Verify all policies are accessible
+    await verifyPolicies(apiDriver);
+
+    console.log('\n🎉 Policy seeding completed successfully!');
+}
+
+// Run CLI if executed directly
+if (require.main === module) {
+    main().catch((error) => {
+        console.error('❌ Policy seeding failed:', error);
+        process.exit(1);
+    });
 }

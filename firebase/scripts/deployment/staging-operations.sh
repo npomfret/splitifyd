@@ -70,9 +70,19 @@ case "$OPERATION" in
         ;;
 
     seed-policies)
+        if [[ -z "${2:-}" ]] || [[ -z "${3:-}" ]]; then
+            echo "❌ Error: Email and password required for seed-policies"
+            echo "Usage: $0 seed-policies <email> <password>"
+            echo ""
+            echo "Example:"
+            echo "  $0 seed-policies admin@example.com mypassword"
+            exit 1
+        fi
+        ADMIN_EMAIL="$2"
+        ADMIN_PASSWORD="$3"
+
         echo "🌱 Seeding policy documents to staging..."
-        tsx scripts/switch-instance.ts staging-1
-        tsx scripts/seed-policies.ts staging
+        tsx scripts/seed-policies.ts https://splitifyd.web.app "$ADMIN_EMAIL" "$ADMIN_PASSWORD"
         echo "✅ Policies seeded"
         ;;
 
