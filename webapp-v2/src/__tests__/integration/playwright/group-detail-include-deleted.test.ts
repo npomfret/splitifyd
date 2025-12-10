@@ -20,7 +20,6 @@ test.describe('Group Detail - Include Deleted Controls', () => {
 
         const group = new GroupDTOBuilder()
             .withId(groupId)
-            
             .withName('Hidden Include Deleted Group')
             .withPermissions({
                 expenseEditing: 'admin-only',
@@ -59,7 +58,6 @@ test.describe('Group Detail - Include Deleted Controls', () => {
             .withDescription('Board Games Night')
             .withAmount(45, 'USD')
             .withPaidBy(ownerMember.uid)
-            
             .withParticipants([memberSelf.uid, ownerMember.uid])
             .build();
 
@@ -153,7 +151,6 @@ test.describe('Group Detail - Include Deleted Controls', () => {
             .withDescription('Museum Tickets')
             .withAmount(30, 'USD')
             .withPaidBy(adminMember.uid)
-            
             .withParticipants([adminMember.uid, regularMember.uid])
             .build();
 
@@ -163,7 +160,6 @@ test.describe('Group Detail - Include Deleted Controls', () => {
             .withDescription('Canceled Tour Deposit')
             .withAmount(120, 'USD')
             .withPaidBy(adminMember.uid)
-            
             .withParticipants([adminMember.uid, regularMember.uid])
             .withDeletedAt(new Date())
             .withDeletedBy(adminMember.uid)

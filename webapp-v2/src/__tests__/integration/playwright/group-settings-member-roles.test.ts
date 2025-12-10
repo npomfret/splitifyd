@@ -32,7 +32,6 @@ async function setupGroupWithMembers(page: Page, user: ClientUser, options: Grou
         const group = new GroupDTOBuilder()
             .withId(groupId)
             .withName(groupName)
-            
             .withPermissions({
                 expenseEditing: 'anyone',
                 expenseDeletion: 'creator-and-admin',

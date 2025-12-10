@@ -177,7 +177,8 @@ export class ExpenseDetailPage extends BasePage {
         // This avoids race conditions during modal transition from expense detail to expense form
         await expect(
             this.page.getByRole('dialog', { name: translation.expenseComponents.expenseFormModal.editExpense }),
-        ).toBeVisible({ timeout: 5000 });
+        )
+            .toBeVisible({ timeout: 5000 });
         // Wait for form content to be ready (expense details section should be visible in edit mode)
         await expect(this.page.getByRole('region', { name: translation.expenseBasicFields.title })).toBeVisible({ timeout: 5000 });
         await this.waitForDomContentLoaded();
@@ -210,7 +211,8 @@ export class ExpenseDetailPage extends BasePage {
         // This avoids race conditions during modal transition from expense detail to expense form
         await expect(
             this.page.getByRole('dialog', { name: translation.expenseComponents.expenseFormModal.copyExpense }),
-        ).toBeVisible({ timeout: 5000 });
+        )
+            .toBeVisible({ timeout: 5000 });
         // Wait for form content to be ready (expense details section should be visible in copy mode)
         await expect(this.page.getByRole('region', { name: translation.expenseBasicFields.title })).toBeVisible({ timeout: 5000 });
         await this.waitForDomContentLoaded();

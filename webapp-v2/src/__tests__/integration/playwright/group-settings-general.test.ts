@@ -33,7 +33,6 @@ async function setupGroupRoutes(page: Page, user: ClientUser, options: GroupTest
             .withId(groupId)
             .withName(groupName)
             .withDescription(groupDescription)
-            
             .build();
 
         const selfMember = new GroupMemberBuilder()

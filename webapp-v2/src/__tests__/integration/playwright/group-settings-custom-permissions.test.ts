@@ -39,7 +39,6 @@ async function setupGroupWithPermissions(page: Page, user: ClientUser, options: 
         const group = new GroupDTOBuilder()
             .withId(groupId)
             .withName(groupName)
-            
             .withPermissions(currentPermissions)
             .build();
 

@@ -509,7 +509,6 @@ test.describe('Group Activity Feed - Navigation', () => {
             .withDescription(expenseDescription)
             .withAmount(48.75, 'USD')
             .withPaidBy(aliceMember.uid)
-            
             .withParticipants([aliceMember.uid, currentUserMember.uid])
             .build();
 

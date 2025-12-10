@@ -7,7 +7,7 @@ import { deriveSemanticColorsFromFormData } from '../color-derivation';
 import type { TenantData } from '../types';
 import type { CreationModeSectionProps } from './types';
 
-const STYLE_OPTIONS: Array<{ value: TenantData['derivationStyle']; labelKey: string }> = [
+const STYLE_OPTIONS: Array<{ value: TenantData['derivationStyle']; labelKey: string; }> = [
     { value: 'balanced', labelKey: 'admin.tenantEditor.derivation.style.balanced' },
     { value: 'bold', labelKey: 'admin.tenantEditor.derivation.style.bold' },
     { value: 'soft', labelKey: 'admin.tenantEditor.derivation.style.soft' },
@@ -66,10 +66,11 @@ export function PaletteColorsSection({ formData, update, isSaving, mode, creatio
                             class={`
                                 w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium
                                 transition-all duration-200
-                                ${canDeriveColors && !isSaving
+                                ${
+                                canDeriveColors && !isSaving
                                     ? 'bg-gray-50 text-gray-700 hover:bg-gray-100'
                                     : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                }
+                            }
                             `}
                             data-testid='color-derivation-toggle'
                         >

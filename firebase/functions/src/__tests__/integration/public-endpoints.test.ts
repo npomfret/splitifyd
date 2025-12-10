@@ -35,7 +35,6 @@ describe('Public endpoints', () => {
         expect(config.tenant).toHaveProperty('tenantId', 'default-tenant');
     });
 
-
     it('GET /policies/:id/current is accessible without authentication', async () => {
         // This tests that the policy endpoint is publicly accessible
         // It may return 200 (if policy exists) or 404 (if not seeded)

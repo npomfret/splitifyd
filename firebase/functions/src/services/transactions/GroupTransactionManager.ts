@@ -12,7 +12,7 @@ export interface GroupTransactionOptions {
 export class GroupTransactionContext {
     private balance?: GroupBalanceDTO;
     private balanceLoaded = false;
-    private membershipRefs: Array<{ id: string; ref: IDocumentReference }> = [];
+    private membershipRefs: Array<{ id: string; ref: IDocumentReference; }> = [];
 
     constructor(
         private readonly groupId: GroupId,

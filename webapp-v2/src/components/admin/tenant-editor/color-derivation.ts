@@ -360,8 +360,8 @@ function deriveColorsFromPalette(
     const surfacePopoverColor = isDarkTheme
         ? mixColors('#0f0f1a', adjustedPrimary, popoverTint)
         : isMediumTheme
-            ? mixColors('#374151', adjustedPrimary, popoverTint)
-            : mixColors('#f8fafc', adjustedPrimary, popoverTint);
+        ? mixColors('#374151', adjustedPrimary, popoverTint)
+        : mixColors('#f8fafc', adjustedPrimary, popoverTint);
 
     // Text - Derive contrasting colors
     // Medium theme uses light text (like dark theme) since backgrounds are mid-gray

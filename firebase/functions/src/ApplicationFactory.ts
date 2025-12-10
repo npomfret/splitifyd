@@ -15,6 +15,7 @@ import { getEnhancedConfigResponse } from './utils/config-response';
 import { toPolicyId, toTenantId, toUserId } from '@billsplit-wl/shared';
 import { ActivityFeedHandlers } from './activity/ActivityHandlers';
 import { UserAdminHandlers } from './admin/UserAdminHandlers';
+import { AuthHandlers } from './auth/handlers';
 import { CommentHandlers } from './comments/CommentHandlers';
 import { ExpenseHandlers } from './expenses/ExpenseHandlers';
 import { GroupHandlers } from './groups/GroupHandlers';
@@ -27,7 +28,6 @@ import { TenantAdminHandlers } from './tenant/TenantAdminHandlers';
 import { TenantImageLibraryHandlers } from './tenant/TenantImageLibraryHandlers';
 import { ThemeHandlers } from './theme/ThemeHandlers';
 import { UserHandlers } from './user/UserHandlers';
-import { AuthHandlers } from './auth/handlers';
 
 /**
  * Factory function that creates all application handlers with proper dependency injection.

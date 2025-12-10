@@ -1,7 +1,7 @@
+import { CurrencyService } from '@/app/services/currencyService';
 import { cx } from '@/utils/cx.ts';
 import { useCallback, useMemo, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
-import { CurrencyService } from '@/app/services/currencyService';
 import { Alert, Select, Switch } from '../../ui';
 import { CurrencyIcon, XIcon } from '../../ui/icons';
 
@@ -53,9 +53,9 @@ export function GroupCurrencySettings({
             const searchLower = searchTerm.toLowerCase();
             return filtered.filter(
                 (c) =>
-                    c.acronym.toLowerCase().includes(searchLower) ||
-                    c.name.toLowerCase().includes(searchLower) ||
-                    c.symbol.toLowerCase().includes(searchLower),
+                    c.acronym.toLowerCase().includes(searchLower)
+                    || c.name.toLowerCase().includes(searchLower)
+                    || c.symbol.toLowerCase().includes(searchLower),
             );
         }
         return filtered;
@@ -199,31 +199,33 @@ export function GroupCurrencySettings({
                                             />
                                         </div>
                                         <div className='max-h-48 overflow-y-auto'>
-                                            {availableCurrencies.length === 0 ? (
-                                                <div className='p-2 text-sm text-text-muted text-center'>
-                                                    {searchTerm
-                                                        ? t('currencySelector.noResults')
-                                                        : t('groupSettings.currencySettings.allCurrenciesSelected')}
-                                                </div>
-                                            ) : (
-                                                availableCurrencies.slice(0, 50).map((currency) => (
-                                                    <button
-                                                        key={currency.acronym}
-                                                        type='button'
-                                                        onClick={() => handleAddCurrency(currency.acronym)}
-                                                        className={cx(
-                                                            'w-full px-3 py-2 text-left text-sm',
-                                                            'hover:bg-surface-muted transition-colors',
-                                                            'flex items-center gap-2',
-                                                        )}
-                                                        data-testid={`add-currency-option-${currency.acronym}`}
-                                                    >
-                                                        <CurrencyIcon symbol={currency.symbol} size={20} className='text-text-muted shrink-0' />
-                                                        <span className='font-medium'>{currency.acronym}</span>
-                                                        <span className='text-text-muted truncate'>{currency.name}</span>
-                                                    </button>
-                                                ))
-                                            )}
+                                            {availableCurrencies.length === 0
+                                                ? (
+                                                    <div className='p-2 text-sm text-text-muted text-center'>
+                                                        {searchTerm
+                                                            ? t('currencySelector.noResults')
+                                                            : t('groupSettings.currencySettings.allCurrenciesSelected')}
+                                                    </div>
+                                                )
+                                                : (
+                                                    availableCurrencies.slice(0, 50).map((currency) => (
+                                                        <button
+                                                            key={currency.acronym}
+                                                            type='button'
+                                                            onClick={() => handleAddCurrency(currency.acronym)}
+                                                            className={cx(
+                                                                'w-full px-3 py-2 text-left text-sm',
+                                                                'hover:bg-surface-muted transition-colors',
+                                                                'flex items-center gap-2',
+                                                            )}
+                                                            data-testid={`add-currency-option-${currency.acronym}`}
+                                                        >
+                                                            <CurrencyIcon symbol={currency.symbol} size={20} className='text-text-muted shrink-0' />
+                                                            <span className='font-medium'>{currency.acronym}</span>
+                                                            <span className='text-text-muted truncate'>{currency.name}</span>
+                                                        </button>
+                                                    ))
+                                                )}
                                         </div>
                                     </div>
                                 )}
@@ -241,9 +243,7 @@ export function GroupCurrencySettings({
                         data-testid='default-currency-select'
                     />
 
-                    {validationError && (
-                        <Alert type='error' message={validationError} data-testid='currency-settings-error' />
-                    )}
+                    {validationError && <Alert type='error' message={validationError} data-testid='currency-settings-error' />}
                 </div>
             )}
         </div>

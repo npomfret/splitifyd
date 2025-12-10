@@ -197,8 +197,8 @@ describe('Translation Keys Validation', () => {
 
         if (missingKeys.length > 0) {
             throw new Error(
-                `Found ${missingKeys.length} missing translation keys (used in code but not defined):\n\n` +
-                    missingKeys.sort().map((k) => `  - ${k}`).join('\n')
+                `Found ${missingKeys.length} missing translation keys (used in code but not defined):\n\n`
+                    + missingKeys.sort().map((k) => `  - ${k}`).join('\n'),
             );
         }
     });
@@ -389,9 +389,9 @@ describe('Translation Keys Validation', () => {
 
         if (redundantKeys.length > 0) {
             throw new Error(
-                `Found ${redundantKeys.length} redundant translation keys (defined but never used):\n\n` +
-                    redundantKeys.sort().map((k) => `  - ${k}`).join('\n') +
-                    '\n\nIf these keys are used dynamically, add the pattern to dynamicKeyPatterns in the test.'
+                `Found ${redundantKeys.length} redundant translation keys (defined but never used):\n\n`
+                    + redundantKeys.sort().map((k) => `  - ${k}`).join('\n')
+                    + '\n\nIf these keys are used dynamically, add the pattern to dynamicKeyPatterns in the test.',
             );
         }
     });

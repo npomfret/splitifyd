@@ -1596,8 +1596,9 @@ export class FirestoreReader implements IFirestoreReader {
     async getMembershipRefsInTransaction(
         transaction: ITransaction,
         groupId: GroupId,
-    ): Promise<Array<{ id: string; ref: IDocumentReference }>> {
-        const membershipsQuery = this.db
+    ): Promise<Array<{ id: string; ref: IDocumentReference; }>> {
+        const membershipsQuery = this
+            .db
             .collection(FirestoreCollections.GROUP_MEMBERSHIPS)
             .where('groupId', '==', groupId);
         const snapshot = await transaction.get(membershipsQuery);

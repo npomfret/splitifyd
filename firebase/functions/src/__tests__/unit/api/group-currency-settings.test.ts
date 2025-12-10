@@ -61,7 +61,9 @@ describe('group currency settings', () => {
                         .build(),
                     adminUser,
                 ),
-            ).rejects.toThrow();
+            )
+                .rejects
+                .toThrow();
         });
 
         it('should reject creation with empty permitted list', async () => {
@@ -76,7 +78,9 @@ describe('group currency settings', () => {
                         .build(),
                     adminUser,
                 ),
-            ).rejects.toThrow();
+            )
+                .rejects
+                .toThrow();
         });
     });
 
@@ -91,7 +95,8 @@ describe('group currency settings', () => {
 
             await appDriver.updateGroup(
                 group.id,
-                GroupUpdateBuilder.empty()
+                GroupUpdateBuilder
+                    .empty()
                     .withCurrencySettings(['USD', 'EUR'], 'USD')
                     .build(),
                 adminUser,
@@ -137,7 +142,8 @@ describe('group currency settings', () => {
             await expect(
                 appDriver.updateGroup(
                     group.id,
-                    GroupUpdateBuilder.empty()
+                    GroupUpdateBuilder
+                        .empty()
                         .withCurrencySettingsObject({
                             permitted: [toCurrencyISOCode('USD')],
                             default: toCurrencyISOCode('EUR'), // Not in permitted
@@ -145,7 +151,9 @@ describe('group currency settings', () => {
                         .build(),
                     adminUser,
                 ),
-            ).rejects.toThrow();
+            )
+                .rejects
+                .toThrow();
         });
 
         it('should reject update by non-admin member', async () => {
@@ -162,12 +170,15 @@ describe('group currency settings', () => {
             await expect(
                 appDriver.updateGroup(
                     group.id,
-                    GroupUpdateBuilder.empty()
+                    GroupUpdateBuilder
+                        .empty()
                         .withCurrencySettings(['USD'], 'USD')
                         .build(),
                     memberUser,
                 ),
-            ).rejects.toThrow(/FORBIDDEN|INSUFFICIENT_PERMISSIONS/);
+            )
+                .rejects
+                .toThrow(/FORBIDDEN|INSUFFICIENT_PERMISSIONS/);
         });
     });
 
@@ -225,7 +236,9 @@ describe('group currency settings', () => {
                         .build(),
                     adminUser,
                 ),
-            ).rejects.toThrow(/CURRENCY_NOT_PERMITTED|FORBIDDEN/);
+            )
+                .rejects
+                .toThrow(/CURRENCY_NOT_PERMITTED|FORBIDDEN/);
         });
 
         it('should allow any currency when no settings defined', async () => {
@@ -315,7 +328,8 @@ describe('group currency settings', () => {
 
             const updatedExpense = await appDriver.updateExpense(
                 expense.id,
-                ExpenseUpdateBuilder.minimal()
+                ExpenseUpdateBuilder
+                    .minimal()
                     .withAmount(45, EUR)
                     .withParticipants(participants)
                     .withSplits(eurSplits)
@@ -356,14 +370,17 @@ describe('group currency settings', () => {
             await expect(
                 appDriver.updateExpense(
                     expense.id,
-                    ExpenseUpdateBuilder.minimal()
+                    ExpenseUpdateBuilder
+                        .minimal()
                         .withAmount(45, EUR) // EUR is not permitted
                         .withParticipants(participants)
                         .withSplits(eurSplits)
                         .build(),
                     adminUser,
                 ),
-            ).rejects.toThrow(/CURRENCY_NOT_PERMITTED|FORBIDDEN/);
+            )
+                .rejects
+                .toThrow(/CURRENCY_NOT_PERMITTED|FORBIDDEN/);
         });
     });
 
@@ -458,7 +475,9 @@ describe('group currency settings', () => {
                         .build(),
                     adminUser,
                 ),
-            ).rejects.toThrow(/CURRENCY_NOT_PERMITTED|FORBIDDEN/);
+            )
+                .rejects
+                .toThrow(/CURRENCY_NOT_PERMITTED|FORBIDDEN/);
         });
 
         it('should allow any currency for settlement when no settings defined', async () => {
@@ -515,7 +534,8 @@ describe('group currency settings', () => {
 
             const updatedSettlement = await appDriver.updateSettlement(
                 settlement.id,
-                SettlementUpdateBuilder.empty()
+                SettlementUpdateBuilder
+                    .empty()
                     .withAmount(45, EUR)
                     .build(),
                 adminUser,
@@ -551,12 +571,15 @@ describe('group currency settings', () => {
             await expect(
                 appDriver.updateSettlement(
                     settlement.id,
-                    SettlementUpdateBuilder.empty()
+                    SettlementUpdateBuilder
+                        .empty()
                         .withAmount(45, EUR) // EUR is not permitted
                         .build(),
                     adminUser,
                 ),
-            ).rejects.toThrow(/CURRENCY_NOT_PERMITTED|FORBIDDEN/);
+            )
+                .rejects
+                .toThrow(/CURRENCY_NOT_PERMITTED|FORBIDDEN/);
         });
     });
 
@@ -633,7 +656,8 @@ describe('group currency settings', () => {
             // Now restrict to USD only
             await appDriver.updateGroup(
                 group.id,
-                GroupUpdateBuilder.empty()
+                GroupUpdateBuilder
+                    .empty()
                     .withCurrencySettings(['USD'], 'USD')
                     .build(),
                 adminUser,
@@ -668,12 +692,15 @@ describe('group currency settings', () => {
             await expect(
                 appDriver.updateGroup(
                     group.id,
-                    GroupUpdateBuilder.empty()
+                    GroupUpdateBuilder
+                        .empty()
                         .withCurrencySettings(['USD'], 'USD')
                         .build(),
                     memberUser,
                 ),
-            ).rejects.toThrow(/FORBIDDEN|INSUFFICIENT_PERMISSIONS/);
+            )
+                .rejects
+                .toThrow(/FORBIDDEN|INSUFFICIENT_PERMISSIONS/);
         });
     });
 });

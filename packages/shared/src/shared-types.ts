@@ -388,7 +388,6 @@ export interface InviteLink {
     usedCount: number;
 }
 
-
 // ========================================================================
 // Configuration Types - Used by webapp for API client
 // ========================================================================

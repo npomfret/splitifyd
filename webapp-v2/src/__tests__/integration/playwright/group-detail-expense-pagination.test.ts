@@ -44,7 +44,6 @@ test.describe('Group Detail - Expense Pagination', () => {
             .withDescription('Coffee Run Page 1')
             .withAmount(12.5, 'USD')
             .withPaidBy(memberSelf.uid)
-            
             .withParticipants([memberSelf.uid, memberTwo.uid])
             .build();
 
@@ -54,7 +53,6 @@ test.describe('Group Detail - Expense Pagination', () => {
             .withDescription('Lunch Split Page 1')
             .withAmount(28, 'USD')
             .withPaidBy(memberTwo.uid)
-            
             .withParticipants([memberSelf.uid, memberTwo.uid])
             .build();
 
@@ -64,7 +62,6 @@ test.describe('Group Detail - Expense Pagination', () => {
             .withDescription('Taxi Ride Page 2')
             .withAmount(18, 'USD')
             .withPaidBy(memberSelf.uid)
-            
             .withParticipants([memberSelf.uid, memberTwo.uid])
             .build();
 
@@ -74,7 +71,6 @@ test.describe('Group Detail - Expense Pagination', () => {
             .withDescription('Dinner Split Page 2')
             .withAmount(42, 'USD')
             .withPaidBy(memberTwo.uid)
-            
             .withParticipants([memberSelf.uid, memberTwo.uid])
             .build();
 
@@ -181,7 +177,6 @@ test.describe('Group Detail - Expense Pagination', () => {
                 .withDescription(description)
                 .withAmount(10 + index, 'USD')
                 .withPaidBy(payer.uid)
-                
                 .withParticipants(members.map((member) => member.uid))
                 .build();
         });

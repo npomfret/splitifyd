@@ -48,7 +48,9 @@ describe('auth endpoints', () => {
                     email: toEmail('user1@example.com'),
                     password: toPassword('WrongPassword123!'),
                 }),
-            ).rejects.toThrow();
+            )
+                .rejects
+                .toThrow();
         });
 
         it('should return 401 for non-existent email', async () => {
@@ -59,7 +61,9 @@ describe('auth endpoints', () => {
                     email,
                     password: toPassword('password12345'),
                 }),
-            ).rejects.toThrow();
+            )
+                .rejects
+                .toThrow();
         });
 
         it('should return 400 for missing email', async () => {
@@ -68,7 +72,9 @@ describe('auth endpoints', () => {
                     email: '' as any,
                     password: toPassword('password12345'),
                 }),
-            ).rejects.toThrow();
+            )
+                .rejects
+                .toThrow();
         });
 
         it('should return 400 for missing password', async () => {
@@ -79,7 +85,9 @@ describe('auth endpoints', () => {
                     email,
                     password: '' as any,
                 }),
-            ).rejects.toThrow();
+            )
+                .rejects
+                .toThrow();
         });
     });
 
@@ -94,7 +102,9 @@ describe('auth endpoints', () => {
             // Request password reset - should not throw
             await expect(
                 appDriver.sendPasswordResetEmail({ email: toEmail('user1@example.com') }),
-            ).resolves.toBeUndefined();
+            )
+                .resolves
+                .toBeUndefined();
         });
 
         it('should return 204 even for non-existent email (prevents enumeration)', async () => {
@@ -103,13 +113,17 @@ describe('auth endpoints', () => {
             // Should silently succeed (no enumeration attack possible)
             await expect(
                 appDriver.sendPasswordResetEmail({ email }),
-            ).resolves.toBeUndefined();
+            )
+                .resolves
+                .toBeUndefined();
         });
 
         it('should return 400 for invalid email format', async () => {
             await expect(
                 appDriver.sendPasswordResetEmail({ email: 'invalid-email' as any }),
-            ).rejects.toThrow();
+            )
+                .rejects
+                .toThrow();
         });
     });
 });

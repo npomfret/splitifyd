@@ -192,10 +192,9 @@ export function useGroupCurrencySettings({
     }, [group.id, t, onGroupUpdated, successMessage, validate]);
 
     // Calculate hasChanges
-    const hasChanges =
-        enabledSignal.value !== initialEnabledSignal.value ||
-        (enabledSignal.value && !arraysEqual(permittedSignal.value, initialPermittedSignal.value)) ||
-        (enabledSignal.value && defaultCurrencySignal.value !== initialDefaultSignal.value);
+    const hasChanges = enabledSignal.value !== initialEnabledSignal.value
+        || (enabledSignal.value && !arraysEqual(permittedSignal.value, initialPermittedSignal.value))
+        || (enabledSignal.value && defaultCurrencySignal.value !== initialDefaultSignal.value);
 
     // Calculate isFormValid
     const isFormValid = !enabledSignal.value || (permittedSignal.value.length > 0 && !!defaultCurrencySignal.value);

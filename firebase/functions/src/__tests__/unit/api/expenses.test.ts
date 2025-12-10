@@ -949,8 +949,8 @@ describe('expenses', () => {
             const response = await appDriver.getGroupActivityFeed(groupId, {}, user1);
             const commentAddedEvent = response.items.find(
                 (item) =>
-                    item.eventType === ActivityFeedEventTypes.COMMENT_ADDED &&
-                    item.details?.expenseId === expense.id,
+                    item.eventType === ActivityFeedEventTypes.COMMENT_ADDED
+                    && item.details?.expenseId === expense.id,
             );
 
             expect(commentAddedEvent).toBeDefined();

@@ -1,10 +1,10 @@
 import type { ClientUser, GroupCurrencySettings, GroupId, MemberRole } from '@billsplit-wl/shared';
 import { toCurrencyISOCode, toExpenseId, toGroupId } from '@billsplit-wl/shared';
 import { DashboardPage, ExpenseDTOBuilder, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, ListGroupsResponseBuilder, ThemeBuilder } from '@billsplit-wl/test-support';
+import { GroupDetailPage } from '@billsplit-wl/test-support';
 import type { Page, Route } from '@playwright/test';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { fulfillWithSerialization, mockActivityFeedApi, mockGroupCommentsApi, mockGroupsApi, mockPendingMembersApi, setupSuccessfulApiMocks } from '../../utils/mock-firebase-service';
-import { GroupDetailPage } from '@billsplit-wl/test-support';
 
 interface GroupTestSetupOptions {
     groupId?: GroupId;
@@ -34,7 +34,6 @@ async function setupGroupRoutes(page: Page, user: ClientUser, options: GroupTest
         const group = new GroupDTOBuilder()
             .withId(groupId)
             .withName(groupName)
-            
             .withCurrencySettings(options.currencySettings)
             .build();
 
@@ -345,7 +344,6 @@ test.describe('Group Settings - Currency Settings', () => {
         const group = new GroupDTOBuilder()
             .withId(groupId)
             .withName('Edit Expense Currency Test')
-            
             .withCurrencySettings(createCurrencySettings(['USD', 'EUR'], 'USD'))
             .build();
 
@@ -484,7 +482,7 @@ test.describe('Group Settings - Currency Settings', () => {
         // Verify the request included currency settings
         expect(capturedRequest).toBeDefined();
         expect(capturedRequest?.currencySettings).toBeDefined();
-        const settings = capturedRequest?.currencySettings as { permitted: string[]; default: string } | undefined;
+        const settings = capturedRequest?.currencySettings as { permitted: string[]; default: string; } | undefined;
         expect(settings?.permitted).toContain('USD');
         expect(settings?.permitted).toContain('EUR');
         expect(settings?.default).toBe('EUR');

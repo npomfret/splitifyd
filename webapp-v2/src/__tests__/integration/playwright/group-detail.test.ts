@@ -665,7 +665,6 @@ test.describe('Group Detail - Permission Checks', () => {
             .groupForUser(testUser.uid)
             .withId(groupId)
             .withName('Owner Group')
-            
             .build();
 
         const members = [
@@ -865,7 +864,6 @@ test.describe('Group Detail - Modal Interactions', () => {
             .groupForUser(testUser.uid)
             .withId(groupId)
             .withName('Edit Modal Group')
-            
             .build();
 
         const members = [

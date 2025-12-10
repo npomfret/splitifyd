@@ -447,7 +447,7 @@ export interface IFirestoreReader {
     getMembershipRefsInTransaction(
         transaction: ITransaction,
         groupId: GroupId,
-    ): Promise<Array<{ id: string; ref: IDocumentReference }>>;
+    ): Promise<Array<{ id: string; ref: IDocumentReference; }>>;
 
     /**
      * Get expense DTO in a transaction with Timestamp → ISO conversion

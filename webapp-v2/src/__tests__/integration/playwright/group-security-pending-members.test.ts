@@ -57,7 +57,6 @@ async function setupManagedGroupRoutes(page: Page, user: ClientUser): Promise<Ma
     const group = new GroupDTOBuilder()
         .withId(groupId)
         .withName(groupName)
-        
         .withPermissions(GroupPermissionsBuilder.adminOnly().build())
         .build();
 

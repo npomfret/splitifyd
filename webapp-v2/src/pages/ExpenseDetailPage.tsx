@@ -1,4 +1,6 @@
 import { CommentsSection } from '@/components/comments';
+import { ExpenseActions } from '@/components/expense';
+import { SplitBreakdown } from '@/components/expense';
 import { Avatar, Button, Card, CurrencyAmount, LoadingSpinner, Stack, Tooltip, Typography } from '@/components/ui';
 import { Clickable } from '@/components/ui/Clickable';
 import { XIcon } from '@/components/ui/icons';
@@ -10,8 +12,6 @@ import { batch, useComputed, useSignal } from '@preact/signals';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { apiClient } from '../app/apiClient';
-import { ExpenseActions } from '@/components/expense';
-import { SplitBreakdown } from '@/components/expense';
 import { BaseLayout } from '../components/layout/BaseLayout';
 import { logError } from '../utils/browser-logger';
 import { formatDistanceToNow, formatExpenseDateTime, formatLocalDateTime } from '../utils/dateUtils';

@@ -1,11 +1,4 @@
-import {
-    LoginRequest,
-    LoginRequestSchema,
-    PasswordResetRequest,
-    PasswordResetRequestSchema,
-    RegisterRequestSchema,
-    UserRegistration,
-} from '@billsplit-wl/shared';
+import { LoginRequest, LoginRequestSchema, PasswordResetRequest, PasswordResetRequestSchema, RegisterRequestSchema, UserRegistration } from '@billsplit-wl/shared';
 import { z } from 'zod';
 import { ErrorDetail, Errors } from '../errors';
 import { createRequestValidator } from '../validation/common';

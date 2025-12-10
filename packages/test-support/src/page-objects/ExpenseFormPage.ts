@@ -448,7 +448,8 @@ export class ExpenseFormPage extends BasePage {
         await expect(async () => {
             await currencyButton.click();
             await expect(searchInput).toBeVisible({ timeout: 500 });
-        }).toPass({ timeout: 5000, intervals: [100, 250, 500, 1000] });
+        })
+            .toPass({ timeout: 5000, intervals: [100, 250, 500, 1000] });
 
         // Search for the currency
         await this.fillPreactInput(searchInput, currencyCode);
@@ -477,7 +478,8 @@ export class ExpenseFormPage extends BasePage {
         await expect(async () => {
             await currencyButton.click();
             await expect(searchInput).toBeVisible({ timeout: 500 });
-        }).toPass({ timeout: 5000, intervals: [100, 250, 500, 1000] });
+        })
+            .toPass({ timeout: 5000, intervals: [100, 250, 500, 1000] });
 
         // Search for the currency
         await this.fillPreactInput(searchInput, currencyCode);
@@ -517,7 +519,8 @@ export class ExpenseFormPage extends BasePage {
             await currencyButton.click();
             // Verify dropdown opened
             await expect(searchInput).toBeVisible({ timeout: 500 });
-        }).toPass({ timeout: 5000, intervals: [100, 250, 500, 1000] });
+        })
+            .toPass({ timeout: 5000, intervals: [100, 250, 500, 1000] });
 
         // Type to filter currencies
         await this.fillPreactInput(searchInput, currencyCode);

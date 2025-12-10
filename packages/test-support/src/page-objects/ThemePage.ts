@@ -175,7 +175,8 @@ export class ThemePage extends BasePage {
                 variableName,
             );
             expect(actualValue).toBe(expectedValue);
-        }).toPass({ timeout: 2000 });
+        })
+            .toPass({ timeout: 2000 });
     }
 
     /**
@@ -195,7 +196,8 @@ export class ThemePage extends BasePage {
             );
             const actualRgb = this.normalizeCssColor(actualColor);
             expect(actualRgb).toEqual(expectedRgb);
-        }).toPass({ timeout: 5000 });
+        })
+            .toPass({ timeout: 5000 });
     }
 
     /**
@@ -222,7 +224,8 @@ export class ThemePage extends BasePage {
             });
 
             expect(gradientContainsColor).toBe(true);
-        }).toPass({ timeout: 5000 });
+        })
+            .toPass({ timeout: 5000 });
     }
 
     /**

@@ -1,6 +1,6 @@
-import type { Request, Response } from 'express';
 import type { LoginRequest, LoginResponse, PasswordResetRequest } from '@billsplit-wl/shared';
 import { toEmail } from '@billsplit-wl/shared';
+import type { Request, Response } from 'express';
 import { HTTP_STATUS } from '../constants';
 import { Errors } from '../errors';
 import type { IAuthService } from '../services/auth';

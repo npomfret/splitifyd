@@ -5,12 +5,12 @@ import { enhancedGroupsStore } from '@/app/stores/groups-store-enhanced.ts';
 import { Clickable } from '@/components/ui/Clickable';
 import { CurrencyIcon, XCircleIcon, XIcon } from '@/components/ui/icons';
 import { Modal } from '@/components/ui/Modal';
+import { cx } from '@/utils/cx';
 import { CreateGroupRequest, CurrencyISOCode, GroupId, toCurrencyISOCode, toDisplayName, toGroupName } from '@billsplit-wl/shared';
 import { signal, useComputed } from '@preact/signals';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Button, Form, Input, Select, Stack, Switch, Tooltip, Typography } from '../ui';
-import { cx } from '@/utils/cx';
 
 interface CreateGroupModalProps {
     isOpen: boolean;
@@ -117,9 +117,9 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
             const searchLower = currencySearchTerm.toLowerCase();
             return filtered.filter(
                 (c) =>
-                    c.acronym.toLowerCase().includes(searchLower) ||
-                    c.name.toLowerCase().includes(searchLower) ||
-                    c.symbol.toLowerCase().includes(searchLower),
+                    c.acronym.toLowerCase().includes(searchLower)
+                    || c.name.toLowerCase().includes(searchLower)
+                    || c.symbol.toLowerCase().includes(searchLower),
             );
         }
         return filtered;
@@ -424,31 +424,33 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                                                             />
                                                         </div>
                                                         <div className='max-h-48 overflow-y-auto'>
-                                                            {availableCurrencies.length === 0 ? (
-                                                                <div className='p-2 text-sm text-text-muted text-center'>
-                                                                    {currencySearchTerm
-                                                                        ? t('currencySelector.noResults')
-                                                                        : t('groupSettings.currencySettings.allCurrenciesSelected')}
-                                                                </div>
-                                                            ) : (
-                                                                availableCurrencies.slice(0, 50).map((currency) => (
-                                                                    <button
-                                                                        key={currency.acronym}
-                                                                        type='button'
-                                                                        onClick={() => handleAddCurrency(currency.acronym)}
-                                                                        className={cx(
-                                                                            'w-full px-3 py-2 text-left text-sm',
-                                                                            'hover:bg-surface-muted transition-colors',
-                                                                            'flex items-center gap-2',
-                                                                        )}
-                                                                        data-testid={`add-currency-option-${currency.acronym}`}
-                                                                    >
-                                                                        <CurrencyIcon symbol={currency.symbol} size={20} className='text-text-muted shrink-0' />
-                                                                        <span className='font-medium'>{currency.acronym}</span>
-                                                                        <span className='text-text-muted truncate'>{currency.name}</span>
-                                                                    </button>
-                                                                ))
-                                                            )}
+                                                            {availableCurrencies.length === 0
+                                                                ? (
+                                                                    <div className='p-2 text-sm text-text-muted text-center'>
+                                                                        {currencySearchTerm
+                                                                            ? t('currencySelector.noResults')
+                                                                            : t('groupSettings.currencySettings.allCurrenciesSelected')}
+                                                                    </div>
+                                                                )
+                                                                : (
+                                                                    availableCurrencies.slice(0, 50).map((currency) => (
+                                                                        <button
+                                                                            key={currency.acronym}
+                                                                            type='button'
+                                                                            onClick={() => handleAddCurrency(currency.acronym)}
+                                                                            className={cx(
+                                                                                'w-full px-3 py-2 text-left text-sm',
+                                                                                'hover:bg-surface-muted transition-colors',
+                                                                                'flex items-center gap-2',
+                                                                            )}
+                                                                            data-testid={`add-currency-option-${currency.acronym}`}
+                                                                        >
+                                                                            <CurrencyIcon symbol={currency.symbol} size={20} className='text-text-muted shrink-0' />
+                                                                            <span className='font-medium'>{currency.acronym}</span>
+                                                                            <span className='text-text-muted truncate'>{currency.name}</span>
+                                                                        </button>
+                                                                    ))
+                                                                )}
                                                         </div>
                                                     </div>
                                                 )}

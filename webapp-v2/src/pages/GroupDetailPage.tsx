@@ -1,6 +1,18 @@
 import { ExpenseDetailModal } from '@/components/expense';
 import { ExpenseFormModal } from '@/components/expense-form';
-import { ActivitySection, BalancesSection, ExpensesSection, GroupActions, GroupCommentsSection, GroupHeader, GroupSettingsModal, LeaveGroupDialog, MembersListWithManagement, SettlementsSection, ShareGroupModal } from '@/components/group';
+import {
+    ActivitySection,
+    BalancesSection,
+    ExpensesSection,
+    GroupActions,
+    GroupCommentsSection,
+    GroupHeader,
+    GroupSettingsModal,
+    LeaveGroupDialog,
+    MembersListWithManagement,
+    SettlementsSection,
+    ShareGroupModal,
+} from '@/components/group';
 import { SettlementForm } from '@/components/settlements';
 import { Button, Card, LoadingSpinner, Stack, Typography } from '@/components/ui';
 import { GROUP_DETAIL_ERROR_CODES } from '@/constants/error-codes.ts';

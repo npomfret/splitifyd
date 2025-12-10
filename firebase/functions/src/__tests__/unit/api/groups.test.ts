@@ -767,8 +767,8 @@ describe('groups', () => {
             const response = await appDriver.getGroupActivityFeed(groupId, {}, user1);
             const memberJoinedEvent = response.items.find(
                 (item) =>
-                    item.eventType === ActivityFeedEventTypes.MEMBER_JOINED &&
-                    item.details?.targetUserId === user2,
+                    item.eventType === ActivityFeedEventTypes.MEMBER_JOINED
+                    && item.details?.targetUserId === user2,
             );
 
             expect(memberJoinedEvent).toBeDefined();
@@ -792,8 +792,8 @@ describe('groups', () => {
             const response = await appDriver.getGroupActivityFeed(groupId, {}, user1);
             const memberLeftEvent = response.items.find(
                 (item) =>
-                    item.eventType === ActivityFeedEventTypes.MEMBER_LEFT &&
-                    item.details?.targetUserId === user2,
+                    item.eventType === ActivityFeedEventTypes.MEMBER_LEFT
+                    && item.details?.targetUserId === user2,
             );
 
             expect(memberLeftEvent).toBeDefined();
@@ -843,8 +843,8 @@ describe('groups', () => {
             const response = await appDriver.getGroupActivityFeed(groupId, {}, user1);
             const roleChangedEvent = response.items.find(
                 (item) =>
-                    item.eventType === ActivityFeedEventTypes.MEMBER_ROLE_CHANGED &&
-                    item.details?.targetUserId === user2,
+                    item.eventType === ActivityFeedEventTypes.MEMBER_ROLE_CHANGED
+                    && item.details?.targetUserId === user2,
             );
 
             expect(roleChangedEvent).toBeDefined();

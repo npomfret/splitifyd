@@ -213,4 +213,3 @@ export function passwordResetSuccessHandler(options: HandlerOptions = {}): Seria
         },
     );
 }
-

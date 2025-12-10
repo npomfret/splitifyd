@@ -187,9 +187,11 @@ export class GroupMemberService {
 
                 // Check if demoting the last admin (must happen INSIDE transaction)
                 if (targetMembership.memberRole === MemberRoles.ADMIN && newRole !== MemberRoles.ADMIN) {
-                    const activeAdminCount = allMembersInTx.filter(
-                        (m) => m.memberRole === MemberRoles.ADMIN && m.memberStatus === MemberStatuses.ACTIVE
-                    ).length;
+                    const activeAdminCount = allMembersInTx
+                        .filter(
+                            (m) => m.memberRole === MemberRoles.ADMIN && m.memberStatus === MemberStatuses.ACTIVE,
+                        )
+                        .length;
                     if (activeAdminCount <= 1) {
                         throw Errors.invalidRequest(ErrorDetail.LAST_ADMIN_PROTECTED);
                     }
@@ -492,9 +494,11 @@ export class GroupMemberService {
 
             // Check if removing/leaving the last admin (applies to both scenarios)
             if (targetIsAdmin) {
-                const activeAdminCount = allMembersInTx.filter(
-                    (m) => m.memberRole === MemberRoles.ADMIN && m.memberStatus === MemberStatuses.ACTIVE
-                ).length;
+                const activeAdminCount = allMembersInTx
+                    .filter(
+                        (m) => m.memberRole === MemberRoles.ADMIN && m.memberStatus === MemberStatuses.ACTIVE,
+                    )
+                    .length;
                 if (activeAdminCount <= 1) {
                     throw Errors.invalidRequest(ErrorDetail.LAST_ADMIN_PROTECTED);
                 }
