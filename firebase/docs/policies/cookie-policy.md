@@ -442,7 +442,7 @@ Our legal basis includes:
 
 ## 14. INTERNATIONAL USERS
 
-If you access the Service from outside our primary jurisdiction:
+If you access the Service from outside England and Wales:
 
 - You consent to all tracking
 - Local laws don't limit our rights
@@ -526,7 +526,8 @@ We self-certify compliance without external verification.
 
 All disputes regarding this Policy:
 
-- Must be resolved through binding arbitration
+- Must be resolved through binding arbitration in London, England
+- Are governed by the laws of England and Wales
 - Are subject to our Terms and Conditions
 - Must be brought individually
 - Are limited to £1 damages
