@@ -221,14 +221,6 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
 
             this.sideEffects.syncMemberThemes(fullDetails.members.members);
             this.sideEffects.updatePermissionsSnapshot(fullDetails.group, fullDetails.members.members);
-            logInfo('GroupDetailStore.loadGroup.success', {
-                groupId,
-                memberCount: fullDetails.members.members.length,
-                memberNamesSample: fullDetails.members.members.slice(0, 5).map((member) => member.groupDisplayName),
-                expenseCount: fullDetails.expenses.expenses.length,
-                settlementCount: fullDetails.settlements.settlements.length,
-                simplifiedDebtCount: fullDetails.balances.simplifiedDebts?.length ?? 0,
-            });
         } catch (error: any) {
             logError('GroupDetailStore.loadGroup.failed', error, { groupId });
             this.#errorSignal.value = error instanceof Error ? error.message : 'Failed to load group';
@@ -247,18 +239,9 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         }
 
         const targetGroupId = this.currentGroupId;
-        logInfo('GroupDetailStore.refreshAll.start', {
-            groupId: targetGroupId,
-            reason,
-        });
 
         try {
             await this.loadGroup(targetGroupId);
-            logInfo('GroupDetailStore.refreshAll.success', {
-                groupId: targetGroupId,
-                reason,
-            });
-            // Data refresh successful (routine operation)
         } catch (error: any) {
             const isGroupDeleted = error?.status === 404 || (error?.message && error.message.includes('404')) || error?.code === 'NOT_FOUND';
             const isAccessDenied = error?.status === 403 || error?.code === 'FORBIDDEN';

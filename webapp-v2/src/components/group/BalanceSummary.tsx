@@ -92,27 +92,18 @@ export function BalanceSummary({ onSettleUp }: BalanceSummaryProps) {
                 {groupedDebts.map(({ currency, debts }) => (
                     debts.map((debt) => {
                         const isCurrentUserFrom = currentUser && debt.from.uid === currentUser.uid;
-                        const isCurrentUserTo = currentUser && debt.to.uid === currentUser.uid;
-                        const isCurrentUserInvolved = isCurrentUserFrom || isCurrentUserTo;
 
-                        // Get members for theme colors
+                        // Get members for avatar theme colors
                         const fromMember = members.value.find((m) => m.uid === debt.from.uid);
                         const toMember = members.value.find((m) => m.uid === debt.to.uid);
-
-                        // Get theme color for the payer (from person)
                         const payerTheme = fromMember?.themeColor || themeStore.getThemeForUser(debt.from.uid);
                         const payeeTheme = toMember?.themeColor || themeStore.getThemeForUser(debt.to.uid);
-                        const isDark = themeStore.isDarkMode;
-                        const themeColor = payerTheme ? (isDark ? payerTheme.dark : payerTheme.light) : '#6B7280';
 
                         return (
                             <div
                                 key={`${debt.from.uid}-${debt.to.uid}-${currency}`}
                                 data-testid='debt-item'
-                                className='group border border-border-default/50 rounded-lg px-3 py-2.5 mb-2 last:mb-0 backdrop-blur-xs transition-all duration-200 hover:border-interactive-primary/40 hover:-translate-y-0.5 hover:shadow-sm relative'
-                                style={{
-                                    backgroundColor: isCurrentUserInvolved ? `${themeColor}12` : 'rgba(var(--surface-base-rgb), 0.3)',
-                                }}
+                                className='group border border-border-default/50 rounded-lg px-3 py-2.5 mb-2 last:mb-0 backdrop-blur-xs transition-all duration-200 hover:border-interactive-primary/40 hover:-translate-y-0.5 hover:shadow-sm relative bg-surface-base/30'
                             >
                                 <div className='grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1 items-start'>
                                     {/* Row 1: From person avatar and name */}
@@ -194,15 +185,15 @@ export function BalanceSummary({ onSettleUp }: BalanceSummaryProps) {
 
     return (
         <div>
-            {/* Filter toggle */}
-            <div className='pb-2 border-b border-border-default mb-2'>
+            {content}
+            {/* Show all balances toggle - at bottom, right aligned */}
+            <div className='flex justify-end mt-4'>
                 <Checkbox
                     label={t('balanceSummary.showAll')}
                     checked={showAllBalances.value}
                     onChange={(checked) => showAllBalances.value = checked}
                 />
             </div>
-            {content}
         </div>
     );
 }
