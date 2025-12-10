@@ -13,6 +13,7 @@ import {
     ChangeEmailRequest,
     type ClientAppConfiguration,
     CommentDTO,
+    type CreateAdminUserRequest,
     type CreateExpenseRequest,
     type CreateGroupRequest,
     type CreatePolicyRequest,
@@ -761,6 +762,25 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
     async promoteUserToAdmin(uid: UserId): Promise<void> {
         // Promote user to system_admin role (test/emulator only)
         await this.apiRequest('/test-pool/promote-to-admin', 'POST', { uid });
+    }
+
+    async createAdminUser(request: CreateAdminUserRequest): Promise<PooledTestUser> {
+        // Create an admin user directly, bypassing policy checks (test/emulator only)
+        // Used during bootstrap to create initial admin before policies exist
+        const result = await this.apiRequest('/test/create-admin', 'POST', request) as PooledTestUser;
+
+        // Exchange custom token for ID token so the returned token is usable
+        const credentials = await this.firebaseSignIn({
+            email: result.email,
+            password: result.password,
+            token: result.token,
+        });
+
+        return {
+            ...result,
+            uid: credentials.uid,
+            token: credentials.token,
+        };
     }
 
     // ===== ADMIN API: POLICY MANAGEMENT =====

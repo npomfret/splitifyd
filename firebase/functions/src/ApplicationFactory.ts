@@ -1,4 +1,4 @@
-import { TestErrorResponse, TestSuccessResponse } from '@billsplit-wl/shared';
+import { CreateAdminUserRequest, SystemUserRoles, TestErrorResponse, TestSuccessResponse, toDisplayName, toEmail, toISOString } from '@billsplit-wl/shared';
 import type { RequestHandler } from 'express';
 import { getAppConfig, getTenantAwareAppConfig } from './app-config';
 import { buildEnvPayload, buildHealthPayload, resolveHealthStatusCode, runHealthChecks } from './endpoints/diagnostics';
@@ -193,6 +193,56 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
                 error: {
                     code: 'INTERNAL_ERROR',
                     message: 'Failed to promote user to admin',
+                    details: error.message,
+                },
+            });
+        }
+    };
+
+    const createAdminUser: RequestHandler = async (req, res) => {
+        const { email, password, displayName } = req.body as CreateAdminUserRequest;
+
+        if (!email || !password || !displayName) {
+            res.status(400).json({
+                error: { code: 'BAD_REQUEST', message: 'email, password, and displayName are required' },
+            });
+            return;
+        }
+
+        try {
+            // Create user in Firebase Auth (bypassing normal registration flow)
+            const userRecord = await authService.createUser({
+                email,
+                password,
+                displayName,
+            });
+
+            const userId = toUserId(userRecord.uid);
+
+            // Create user document in Firestore with admin role (no policy acceptance needed)
+            const now = toISOString(new Date().toISOString());
+            await firestoreWriter.createUser(userId, {
+                role: SystemUserRoles.SYSTEM_ADMIN,
+                createdAt: now,
+                updatedAt: now,
+                acceptedPolicies: {}, // Empty - policies don't exist yet during bootstrap
+            });
+
+            // Create custom token for authentication
+            const token = await authService.createCustomToken(userId);
+
+            res.json({
+                uid: userId,
+                email: toEmail(email),
+                password,
+                token,
+            });
+        } catch (error: any) {
+            logger.error('Failed to create admin user', error);
+            res.status(500).json({
+                error: {
+                    code: 'INTERNAL_ERROR',
+                    message: 'Failed to create admin user',
                     details: error.message,
                 },
             });
@@ -506,6 +556,7 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
                 borrowTestUser,
                 returnTestUser,
                 promoteTestUserToAdmin,
+                createAdminUser,
                 clearUserPolicyAcceptances,
             }
             : {}),

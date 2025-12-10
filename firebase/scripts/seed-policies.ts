@@ -246,6 +246,9 @@ async function main(): Promise<void> {
 /**
  * Seed policies for local emulator using default admin credentials.
  * Used by start-with-data.ts for local development.
+ *
+ * IMPORTANT: The admin user must already exist before calling this function.
+ * Use ensureAdminUser() from start-with-data.ts to create the admin first.
  */
 export async function seedPolicies(): Promise<void> {
     const { emulatorHostingURL } = await import('@billsplit-wl/test-support');
@@ -264,8 +267,8 @@ export async function seedPolicies(): Promise<void> {
     // Create ApiDriver for emulator
     const apiDriver = await ApiDriver.create();
 
-    // Get default admin user token
-    console.log('\n🔑 Authenticating default admin...');
+    // Get admin user (must already exist - created by ensureAdminUser in start-with-data.ts)
+    console.log('\n🔑 Authenticating admin user...');
     const admin = await apiDriver.getDefaultAdminUser();
     console.log(`   ✓ Authenticated as ${admin.email}`);
 

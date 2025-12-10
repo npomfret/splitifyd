@@ -1,5 +1,7 @@
 #!/usr/bin/env npx tsx
 
+import { toDisplayName, toEmail } from '@billsplit-wl/shared';
+import { ApiDriver, DEFAULT_ADMIN_EMAIL, DEFAULT_PASSWORD } from '@billsplit-wl/test-support';
 import { ChildProcess } from 'child_process';
 import assert from 'node:assert';
 import { logger } from '../lib/logger';
@@ -8,10 +10,39 @@ import { seedPolicies } from '../seed-policies';
 import { startEmulator } from './start-emulator';
 import { publishDemoThemes, syncDemoTenants } from './test-data-generator';
 
+/**
+ * Ensure the default admin user exists.
+ * Creates the admin using the test API if it doesn't exist (bypasses policy checks).
+ */
+async function ensureAdminUser(): Promise<void> {
+    logger.info('');
+    logger.info('═══════════════════════════════════════════════════════');
+    logger.info('👤 ENSURING ADMIN USER EXISTS...');
+    logger.info('═══════════════════════════════════════════════════════');
+    logger.info('');
+
+    const apiDriver = await ApiDriver.create();
+
+    try {
+        // Try to sign in existing admin
+        const admin = await apiDriver.getDefaultAdminUser();
+        logger.info(`✅ Admin user already exists: ${admin.email}`);
+    } catch {
+        // Admin doesn't exist - create it using the test API (bypasses policy checks)
+        logger.info('→ Admin not found, creating...');
+        const admin = await apiDriver.createAdminUser({
+            email: toEmail(DEFAULT_ADMIN_EMAIL),
+            password: DEFAULT_PASSWORD,
+            displayName: toDisplayName('Bill Splitter Admin'),
+        });
+        logger.info(`✅ Created admin user: ${admin.email}`);
+    }
+}
+
 async function runSeedPoliciesStep(): Promise<void> {
     logger.info('');
     logger.info('═══════════════════════════════════════════════════════');
-    logger.info(`📊 SEEDING POLICIES & ADMIN USER ...`);
+    logger.info('📊 SEEDING POLICIES...');
     logger.info('═══════════════════════════════════════════════════════');
     logger.info('');
 
@@ -20,7 +51,6 @@ async function runSeedPoliciesStep(): Promise<void> {
     logger.info('');
     logger.info('✅ Policy seeding completed successfully!');
     logger.info('📋 Privacy policy, terms, and cookie policy are now available');
-    logger.info('🔑 Sign in with test1@test.com to access the emulator');
 }
 
 async function runSyncDemoTenantsStep(): Promise<void> {
@@ -63,14 +93,16 @@ const main = async () => {
 
         logger.info('🚀 You can now use the webapp and all endpoints are available');
 
-        // Step 2: Seed policies and ensure Bill Splitter admin exists
-        // (admin user must be created first - subsequent steps need admin authentication)
+        // Step 2: Ensure admin user exists (must happen before policy seeding)
+        await ensureAdminUser();
+
+        // Step 3: Seed policies (requires admin user)
         await runSeedPoliciesStep();
 
-        // Step 3: Sync demo tenants to Firestore (requires admin user for API calls)
+        // Step 4: Sync demo tenants to Firestore (requires admin user for API calls)
         await runSyncDemoTenantsStep();
 
-        // Step 4: Publish demo themes (bucket auto-created on first write in emulator)
+        // Step 5: Publish demo themes (bucket auto-created on first write in emulator)
         await runPublishDemoThemesStep();
 
         logger.info('');

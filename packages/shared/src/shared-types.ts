@@ -477,6 +477,16 @@ export interface PooledTestUser extends UserToken {
     email: Email;
 }
 
+/**
+ * Request to create an admin user (test/emulator only).
+ * Used during bootstrap to create the initial admin before policies exist.
+ */
+export interface CreateAdminUserRequest {
+    email: Email;
+    password: string;
+    displayName: DisplayName;
+}
+
 export interface UserToken {
     uid: UserId;
     token: string;

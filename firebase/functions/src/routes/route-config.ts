@@ -149,6 +149,12 @@ const routeDefinitions: RouteDefinition[] = [
     },
     {
         method: 'POST',
+        path: '/test/create-admin',
+        handlerName: 'createAdminUser',
+        category: 'test',
+    },
+    {
+        method: 'POST',
         path: '/user/clear-policy-acceptances',
         handlerName: 'clearUserPolicyAcceptances',
         category: 'test',

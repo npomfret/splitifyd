@@ -54,6 +54,7 @@ import type {
     PolicyId,
     PolicyVersion,
     PooledTestUser,
+    CreateAdminUserRequest,
     PreviewGroupResponse,
     PublishPolicyResponse,
     PublishTenantThemeRequest,
@@ -433,4 +434,15 @@ export interface TestAPI {
      * @param token - Authentication token of the user whose policy acceptances should be cleared
      */
     clearUserPolicyAcceptances(token: AuthToken): Promise<void>;
+
+    /**
+     * Create an admin user directly, bypassing policy checks.
+     * Used during emulator bootstrap to create the initial admin before policies are seeded.
+     *
+     * Test environments only - endpoint returns 403 in production
+     *
+     * @param request - User details (email, password, displayName)
+     * @returns PooledTestUser with uid, email, password, and authentication token
+     */
+    createAdminUser(request: CreateAdminUserRequest): Promise<PooledTestUser>;
 }
