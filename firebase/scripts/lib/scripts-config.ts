@@ -44,13 +44,21 @@ export function isDevInstanceName(name: InstanceName): name is DevInstanceName {
 }
 
 /**
+ * Get the firebase directory path.
+ * Scripts are expected to run from the firebase directory (via npm scripts).
+ */
+function getFirebaseDir(): string {
+    return process.cwd();
+}
+
+/**
  * Read instance name from .current-instance file if it exists.
  * This serves as a fallback when INSTANCE_NAME is not in the environment.
  *
  * @returns The instance name from the file, or undefined if file doesn't exist
  */
 function readCurrentInstanceFile(): string | undefined {
-    const currentInstancePath = path.join(__dirname, '../../.current-instance');
+    const currentInstancePath = path.join(getFirebaseDir(), '.current-instance');
     try {
         if (fs.existsSync(currentInstancePath)) {
             const content = fs.readFileSync(currentInstancePath, 'utf8').trim();
@@ -127,7 +135,7 @@ export interface ScriptEnvironment {
  * @returns true if .env was loaded, false if not found
  */
 export function loadEnvFile(envPath?: string): boolean {
-    const defaultPath = path.join(__dirname, '../../functions/.env');
+    const defaultPath = path.join(getFirebaseDir(), 'functions/.env');
     const targetPath = envPath ?? defaultPath;
 
     if (fs.existsSync(targetPath)) {
