@@ -162,8 +162,11 @@ function deploy(mode: DeployMode, instance: string): void {
         console.log(`✅ Deployment to ${instance} completed from fresh checkout`);
         console.log('');
         console.log('📋 Next steps:');
-        console.log('  1. Sync tenants to deployed Firebase:');
-        console.log('     GCLOUD_PROJECT=splitifyd npm run postdeploy:sync-tenant -- test@test.com passwordpass');
+        console.log('  1. Seed policy documents (if not already done):');
+        console.log('     npm run seed-policies:staging-1 -- admin@example.com yourpassword');
+        console.log('');
+        console.log('  2. Sync tenants to deployed Firebase:');
+        console.log('     GCLOUD_PROJECT=splitifyd npm run postdeploy:sync-tenant -- admin@example.com yourpassword');
         console.log('');
     } catch (error) {
         removeSecrets(cloneFirebaseDir, instance);
