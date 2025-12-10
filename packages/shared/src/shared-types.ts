@@ -1661,6 +1661,7 @@ export interface AdminUpsertTenantRequest {
         primaryColor: string;
         secondaryColor: string;
         accentColor?: string;
+        showAppNameInHeader?: boolean;
     };
     marketingFlags?: {
         showMarketingContent?: boolean;

@@ -75,6 +75,32 @@ export const TenantConfigSchema = z.object({
     updatedAt: z.string().datetime().transform(toISOString),
 }).passthrough();
 
+/**
+ * Schema for tenant config JSON files stored in docs/tenants/{tenant-id}/config.json.
+ * This differs from TenantConfigSchema (the API response format) in that:
+ * - Uses `id` instead of `tenantId`
+ * - Includes `domains` array and `isDefault` flag
+ * - No createdAt/updatedAt (added by Firestore)
+ */
+export const TenantConfigFileSchema = z.object({
+    id: z.string().min(1),
+    domains: z.array(z.string().min(1)).min(1),
+    branding: z.object({
+        primaryColor: z.string().min(1),
+        secondaryColor: z.string().min(1),
+        accentColor: z.string().min(1).optional(),
+        showAppNameInHeader: z.boolean().optional(),
+    }),
+    marketingFlags: z.object({
+        showMarketingContent: z.boolean().optional(),
+        showPricingPage: z.boolean().optional(),
+    }).optional(),
+    brandingTokens: TenantBrandingSchema,
+    isDefault: z.boolean().optional(),
+});
+
+export type TenantConfigFile = z.infer<typeof TenantConfigFileSchema>;
+
 const ThemeConfigSchema = z.object({
     hash: z.string().min(1),
     generatedAtEpochMs: z.number().optional(),

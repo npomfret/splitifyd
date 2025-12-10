@@ -36,7 +36,7 @@ import {
 import { ApiDriver, type ApiDriverConfig, emulatorHostingURL } from '@billsplit-wl/test-support';
 import * as fs from 'fs';
 import * as path from 'path';
-import { getTenantDirectory, loadAllTenantConfigs, loadTenantConfig, type TenantConfig } from './lib/load-tenant-configs';
+import { getTenantDirectory, loadAllTenantConfigs, loadTenantConfig, type TenantConfigFile } from './lib/load-tenant-configs';
 
 interface SyncTenantOptions {
     defaultOnly?: boolean;
@@ -254,7 +254,7 @@ export async function syncTenantConfigs(
     adminToken: string,
     options?: SyncTenantOptions,
 ): Promise<void> {
-    let configs: TenantConfig[];
+    let configs: TenantConfigFile[];
 
     // Filter based on options
     if (options?.tenantId) {
@@ -318,6 +318,9 @@ export async function syncTenantConfigs(
                 ...(config.branding.accentColor && {
                     accentColor: toTenantAccentColor(config.branding.accentColor),
                 }),
+                ...(config.branding.showAppNameInHeader !== undefined && {
+                    showAppNameInHeader: config.branding.showAppNameInHeader,
+                }),
             },
             marketingFlags: {
                 showMarketingContent: toShowMarketingContentFlag(config.marketingFlags?.showMarketingContent ?? false),
@@ -325,7 +328,7 @@ export async function syncTenantConfigs(
             },
             brandingTokens,
             domains,
-            defaultTenant: toTenantDefaultFlag(config.isDefault),
+            defaultTenant: toTenantDefaultFlag(config.isDefault ?? false),
         };
 
         // Upsert tenant via Admin API

@@ -4,25 +4,12 @@
  * Each tenant is stored in its own directory with a config.json file:
  *   docs/tenants/<tenant-id>/config.json
  */
-import type { TenantBranding } from '@billsplit-wl/shared';
+import { TenantConfigFile, TenantConfigFileSchema } from '@billsplit-wl/shared';
 import * as fs from 'fs';
 import * as path from 'path';
 
-export interface TenantConfig {
-    id: string;
-    domains: string[];
-    branding: {
-        primaryColor: string;
-        secondaryColor: string;
-        accentColor?: string;
-    };
-    marketingFlags?: {
-        showMarketingContent?: boolean;
-        showPricingPage?: boolean;
-    };
-    brandingTokens: TenantBranding;
-    isDefault: boolean;
-}
+// Re-export the type for consumers
+export type { TenantConfigFile };
 
 /**
  * Get the path to the tenants directory
@@ -34,7 +21,7 @@ export function getTenantsDirectory(): string {
 /**
  * Load all tenant configurations from the docs/tenants directory
  */
-export function loadAllTenantConfigs(): TenantConfig[] {
+export function loadAllTenantConfigs(): TenantConfigFile[] {
     const tenantsDir = getTenantsDirectory();
 
     if (!fs.existsSync(tenantsDir)) {
@@ -46,13 +33,14 @@ export function loadAllTenantConfigs(): TenantConfig[] {
         .filter(dirent => dirent.isDirectory())
         .map(dirent => dirent.name);
 
-    const configs: TenantConfig[] = [];
+    const configs: TenantConfigFile[] = [];
 
     for (const tenantId of tenantDirs) {
         const configPath = path.join(tenantsDir, tenantId, 'config.json');
         if (fs.existsSync(configPath)) {
             const configData = fs.readFileSync(configPath, 'utf-8');
-            const config: TenantConfig = JSON.parse(configData);
+            const parsed = JSON.parse(configData);
+            const config = TenantConfigFileSchema.parse(parsed);
             configs.push(config);
         }
     }
@@ -63,7 +51,7 @@ export function loadAllTenantConfigs(): TenantConfig[] {
 /**
  * Load a specific tenant configuration by ID
  */
-export function loadTenantConfig(tenantId: string): TenantConfig | null {
+export function loadTenantConfig(tenantId: string): TenantConfigFile | null {
     const tenantsDir = getTenantsDirectory();
     const configPath = path.join(tenantsDir, tenantId, 'config.json');
 
@@ -72,7 +60,8 @@ export function loadTenantConfig(tenantId: string): TenantConfig | null {
     }
 
     const configData = fs.readFileSync(configPath, 'utf-8');
-    return JSON.parse(configData);
+    const parsed = JSON.parse(configData);
+    return TenantConfigFileSchema.parse(parsed);
 }
 
 /**
