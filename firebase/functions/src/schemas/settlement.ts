@@ -20,7 +20,7 @@ const BaseSettlementSchema = z
 /**
  * Create Document and Data schemas using common pattern
  */
-const { DocumentSchema: SettlementDocumentSchema } = createDocumentSchemas(BaseSettlementSchema);
+const { DocumentSchema: SettlementDocumentSchema, ReadDocumentSchema: SettlementReadDocumentSchema } = createDocumentSchemas(BaseSettlementSchema);
 
 /**
  * Zod schema for Settlement document validation
@@ -28,7 +28,11 @@ const { DocumentSchema: SettlementDocumentSchema } = createDocumentSchemas(BaseS
  *
  * Usage:
  * ```typescript
+ * // For writing (strict validation):
  * const settlement = SettlementDocumentSchema.parse(doc.data());
+ *
+ * // For reading (tolerates extra fields for schema evolution):
+ * const settlement = SettlementReadDocumentSchema.parse(doc.data());
  * ```
  */
-export { SettlementDocumentSchema };
+export { SettlementDocumentSchema, SettlementReadDocumentSchema };

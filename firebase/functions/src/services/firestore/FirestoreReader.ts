@@ -50,7 +50,7 @@ import {
     type ActivityFeedDocument,
     ActivityFeedDocumentSchema,
     CommentDocumentSchema,
-    ExpenseDocumentSchema,
+    ExpenseReadDocumentSchema,
     GroupBalanceDocumentSchema,
     type GroupBalanceDTO,
     GroupReadDocumentSchema,
@@ -312,7 +312,7 @@ export class FirestoreReader implements IFirestoreReader {
                 id: expenseDoc.id,
                 ...expenseDoc.data(),
             };
-            const expenseData = ExpenseDocumentSchema.parse(rawData);
+            const expenseData = ExpenseReadDocumentSchema.parse(rawData);
 
             // Convert Timestamps to ISO strings for DTO
             const convertedData = this.convertTimestampsToISO(expenseData);
@@ -1463,7 +1463,7 @@ export class FirestoreReader implements IFirestoreReader {
                 // Validate with Document schema then convert to DTO
                 const expenses = docs.map((doc) => {
                     const rawData = { id: doc.id, ...doc.data() };
-                    const expenseData = ExpenseDocumentSchema.parse(rawData);
+                    const expenseData = ExpenseReadDocumentSchema.parse(rawData);
                     const convertedData = this.convertTimestampsToISO(expenseData);
                     return convertedData as unknown as ExpenseDTO;
                 });
@@ -1599,7 +1599,7 @@ export class FirestoreReader implements IFirestoreReader {
                 id: doc.id,
                 ...doc.data(),
             };
-            const expenseData = ExpenseDocumentSchema.parse(rawData);
+            const expenseData = ExpenseReadDocumentSchema.parse(rawData);
 
             // Convert Timestamps to ISO strings for DTO
             const convertedData = this.convertTimestampsToISO(expenseData);

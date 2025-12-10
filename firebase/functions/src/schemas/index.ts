@@ -38,7 +38,7 @@ export { CommentDataSchema, CommentDocumentSchema } from './comment';
 export { type ActivityFeedDocument, ActivityFeedDocumentSchema } from './activity-feed';
 
 // Expense schemas
-export { ExpenseDocumentSchema } from './expense';
+export { ExpenseDocumentSchema, ExpenseReadDocumentSchema } from './expense';
 
 // Settlement schemas
 export { SettlementDocumentSchema } from './settlement';

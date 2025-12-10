@@ -28,7 +28,7 @@ const BaseExpenseSchema = z
     .merge(AuditFieldsSchema)
     .merge(SoftDeletionFieldsSchema);
 
-const { DocumentSchema: ExpenseDocumentSchema } = createDocumentSchemas(BaseExpenseSchema);
+const { DocumentSchema: ExpenseDocumentSchema, ReadDocumentSchema: ExpenseReadDocumentSchema } = createDocumentSchemas(BaseExpenseSchema);
 
 /**
  * Zod schemas for expense document validation
@@ -36,7 +36,11 @@ const { DocumentSchema: ExpenseDocumentSchema } = createDocumentSchemas(BaseExpe
  *
  * Usage:
  * ```typescript
+ * // For writing (strict validation):
  * const expense = ExpenseDocumentSchema.parse(doc.data());
+ *
+ * // For reading (tolerates extra fields for schema evolution):
+ * const expense = ExpenseReadDocumentSchema.parse(doc.data());
  * ```
  */
-export { ExpenseDocumentSchema };
+export { ExpenseDocumentSchema, ExpenseReadDocumentSchema };
