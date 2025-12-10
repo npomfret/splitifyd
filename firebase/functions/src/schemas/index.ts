@@ -53,7 +53,7 @@ export { type UserDocument, UserDocumentSchema } from './user';
 export { PolicyDocumentSchema } from './policy';
 
 // Group schemas
-export { GroupDocumentSchema } from './group';
+export { GroupDocumentSchema, GroupReadDocumentSchema } from './group';
 
 // Group membership schemas
 export { TopLevelGroupMemberSchema } from './group-membership';

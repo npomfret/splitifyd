@@ -53,15 +53,18 @@ const BaseGroupSchema = z
 /**
  * Create Document and Data schemas using common pattern
  */
-const { DocumentSchema: GroupDocumentSchema } = createDocumentSchemas(BaseGroupSchema);
+const { DocumentSchema: GroupDocumentSchema, ReadDocumentSchema: GroupReadDocumentSchema } = createDocumentSchemas(BaseGroupSchema);
 
 /**
  * Zod schemas for group document validation
  *
  * Usage:
  * ```typescript
- * // For reading groups with flat structure
- * const group = GroupDocumentSchema.parse({...doc.data(), id: doc.id});
+ * // For reading groups (tolerates extra fields from schema evolution)
+ * const group = GroupReadDocumentSchema.parse({...doc.data(), id: doc.id});
+ *
+ * // For writing groups (strict validation)
+ * const group = GroupDocumentSchema.parse(data);
  * ```
  */
-export { GroupDocumentSchema };
+export { GroupDocumentSchema, GroupReadDocumentSchema };

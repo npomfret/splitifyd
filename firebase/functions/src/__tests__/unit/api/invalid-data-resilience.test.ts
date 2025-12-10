@@ -10,7 +10,7 @@
 
 import type { UserId } from '@billsplit-wl/shared';
 import { toGroupId } from '@billsplit-wl/shared';
-import { convertToISOString, CreateGroupRequestBuilder, GroupDTOBuilder, GroupMemberDocumentBuilder } from '@billsplit-wl/test-support';
+import { convertToISOString, CreateGroupRequestBuilder, GroupDocumentBuilder, GroupDTOBuilder, GroupMemberDocumentBuilder } from '@billsplit-wl/test-support';
 import { Timestamp } from 'firebase-admin/firestore';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { FirestoreCollections } from '../../../constants';
@@ -258,6 +258,44 @@ describe('Invalid Data Resilience - API should not break with bad data', () => {
 
             expect(response.groups).toBeDefined();
             expect(Array.isArray(response.groups)).toBe(true);
+        });
+
+        it('should handle groups with extra/unrecognized fields (schema evolution)', async () => {
+            const db = appDriver.firestoreStub;
+            const extraFieldGroupId = `extra-field-group-${Date.now()}`;
+
+            // Build valid Firestore document with an extra legacy field
+            const groupWithExtraFields = new GroupDocumentBuilder()
+                .withId(extraFieldGroupId)
+                .withName('Extra Fields Group')
+                .withDescription('Group with legacy createdBy field')
+                .withExtraField('createdBy', testUser) // Legacy field removed from schema - should be tolerated
+                .build();
+
+            db.seed(`${FirestoreCollections.GROUPS}/${extraFieldGroupId}`, groupWithExtraFields);
+
+            // Create membership so user can see this group
+            const memberDoc = new GroupMemberDocumentBuilder()
+                .withUserId(testUser)
+                .withGroupId(extraFieldGroupId)
+                .asAdmin()
+                .asActive()
+                .build();
+
+            const topLevelMemberDoc = createTopLevelMembershipDocument(memberDoc, convertToISOString(new Date()));
+            const topLevelDocId = newTopLevelMembershipDocId(testUser, toGroupId(extraFieldGroupId));
+            db.seed(`${FirestoreCollections.GROUP_MEMBERSHIPS}/${topLevelDocId}`, topLevelMemberDoc);
+
+            // API should successfully return the group despite extra fields
+            const response = await appDriver.listGroups({}, testUser);
+
+            expect(response.groups).toBeDefined();
+            expect(Array.isArray(response.groups)).toBe(true);
+
+            // The group with extra fields should be returned successfully
+            const extraFieldGroup = response.groups.find((g) => g.id === extraFieldGroupId);
+            expect(extraFieldGroup).toBeDefined();
+            expect(extraFieldGroup?.name).toBe('Extra Fields Group');
         });
     });
 });

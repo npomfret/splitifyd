@@ -53,7 +53,7 @@ import {
     ExpenseDocumentSchema,
     GroupBalanceDocumentSchema,
     type GroupBalanceDTO,
-    GroupDocumentSchema,
+    GroupReadDocumentSchema,
     type ParsedShareLink,
     PolicyDocumentSchema,
     SettlementDocumentSchema,
@@ -257,7 +257,7 @@ export class FirestoreReader implements IFirestoreReader {
             const sanitizedData = this.sanitizeGroupData(rawData);
 
             // Validate with Document schema (expects Timestamps)
-            const groupData = GroupDocumentSchema.parse(sanitizedData);
+            const groupData = GroupReadDocumentSchema.parse(sanitizedData);
 
             // Convert Timestamps to ISO strings for DTO
             const convertedData = this.convertTimestampsToISO(groupData);
@@ -471,7 +471,7 @@ export class FirestoreReader implements IFirestoreReader {
                     const sanitizedData = this.sanitizeGroupData(rawData);
 
                     // Validate with Document schema (expects Timestamps)
-                    const groupData = GroupDocumentSchema.parse(sanitizedData);
+                    const groupData = GroupReadDocumentSchema.parse(sanitizedData);
 
                     // Convert Timestamps to ISO strings for DTO
                     const convertedData = this.convertTimestampsToISO(groupData);
@@ -1536,7 +1536,7 @@ export class FirestoreReader implements IFirestoreReader {
                 id: doc.id,
                 ...doc.data(),
             };
-            const groupData = GroupDocumentSchema.parse(rawData);
+            const groupData = GroupReadDocumentSchema.parse(rawData);
 
             // Convert Timestamps to ISO strings for DTO
             const convertedData = this.convertTimestampsToISO(groupData);

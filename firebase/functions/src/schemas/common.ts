@@ -11,16 +11,20 @@ import { FieldValue, Timestamp } from '../firestore-wrapper';
  * Helper to create Document + Data schema pairs consistently
  *
  * @param baseSchema - The base schema without the id field
- * @returns Object with DocumentSchema (includes id) and DataSchema (excludes id)
+ * @returns Object with:
+ *   - DocumentSchema: Strict schema for writing (rejects extra fields)
+ *   - ReadDocumentSchema: Passthrough schema for reading (tolerates extra fields for schema evolution)
  *
- * Note: Schemas are strict by default (no .passthrough()) to enforce type safety.
- * All fields must be explicitly defined in the schema.
+ * Note: Write schemas are strict to enforce type safety and catch mistakes.
+ * Read schemas use passthrough to tolerate legacy fields during schema evolution.
  */
 export function createDocumentSchemas<T extends z.ZodRawShape>(baseSchema: z.ZodObject<T>) {
     const DocumentSchema = baseSchema.merge(DocumentIdSchema).strict();
+    const ReadDocumentSchema = baseSchema.merge(DocumentIdSchema).passthrough();
 
     return {
         DocumentSchema,
+        ReadDocumentSchema,
     };
 }
 
