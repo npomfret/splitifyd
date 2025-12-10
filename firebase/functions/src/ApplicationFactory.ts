@@ -22,6 +22,7 @@ import { GroupHandlers } from './groups/GroupHandlers';
 import { GroupMemberHandlers } from './groups/GroupMemberHandlers';
 import { GroupShareHandlers } from './groups/GroupShareHandlers';
 import { PolicyHandlers } from './policies/PolicyHandlers';
+import { PolicyTextHandlers } from './policies/PolicyTextHandlers';
 import { UserHandlers as PolicyUserHandlers } from './policies/UserHandlers';
 import { SettlementHandlers } from './settlements/SettlementHandlers';
 import { TenantAdminHandlers } from './tenant/TenantAdminHandlers';
@@ -75,6 +76,7 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
         componentBuilder.buildTenantImageLibraryService(),
     );
     const themeHandlers = new ThemeHandlers(componentBuilder.buildFirestoreReader(), tenantRegistryService);
+    const policyTextHandlers = new PolicyTextHandlers(policyService, tenantRegistryService);
     const authHandlers = new AuthHandlers(authService);
 
     // Inline diagnostic handlers
@@ -484,21 +486,10 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
             res.json(result);
         },
 
-        // Policy text endpoints - return text/plain for tenant embedding
-        getPrivacyPolicyText: async (_req, res) => {
-            const result = await policyService.getCurrentPolicy(toPolicyId('privacy-policy'));
-            res.type('text/plain').send(result.text);
-        },
-
-        getTermsOfServiceText: async (_req, res) => {
-            const result = await policyService.getCurrentPolicy(toPolicyId('terms-of-service'));
-            res.type('text/plain').send(result.text);
-        },
-
-        getCookiePolicyText: async (_req, res) => {
-            const result = await policyService.getCurrentPolicy(toPolicyId('cookie-policy'));
-            res.type('text/plain').send(result.text);
-        },
+        // Policy text endpoints - return text/plain with tenant-specific substitutions
+        getPrivacyPolicyText: policyTextHandlers.getPrivacyPolicyText,
+        getTermsOfServiceText: policyTextHandlers.getTermsOfServiceText,
+        getCookiePolicyText: policyTextHandlers.getCookiePolicyText,
 
         // Diagnostic handlers
         getMetrics,

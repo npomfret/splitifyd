@@ -1184,22 +1184,31 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return res.getJson() as HealthResponse;
     }
 
-    async getPrivacyPolicy(): Promise<string> {
-        const req = createStubRequest('', {});
+    async getPrivacyPolicy(options: { host?: string } = {}): Promise<string> {
+        const req = createStubRequest('', {}, {}, {
+            headers: options.host ? { host: options.host } : {},
+            hostname: options.host ?? 'localhost',
+        });
         const res = await this.dispatchByHandler('getPrivacyPolicyText', req);
         this.throwIfError(res);
         return res.getBody() as string;
     }
 
-    async getTermsOfService(): Promise<string> {
-        const req = createStubRequest('', {});
+    async getTermsOfService(options: { host?: string } = {}): Promise<string> {
+        const req = createStubRequest('', {}, {}, {
+            headers: options.host ? { host: options.host } : {},
+            hostname: options.host ?? 'localhost',
+        });
         const res = await this.dispatchByHandler('getTermsOfServiceText', req);
         this.throwIfError(res);
         return res.getBody() as string;
     }
 
-    async getCookiePolicy(): Promise<string> {
-        const req = createStubRequest('', {});
+    async getCookiePolicy(options: { host?: string } = {}): Promise<string> {
+        const req = createStubRequest('', {}, {}, {
+            headers: options.host ? { host: options.host } : {},
+            hostname: options.host ?? 'localhost',
+        });
         const res = await this.dispatchByHandler('getCookiePolicyText', req);
         this.throwIfError(res);
         return res.getBody() as string;

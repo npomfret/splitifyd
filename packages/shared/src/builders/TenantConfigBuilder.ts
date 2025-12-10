@@ -198,6 +198,16 @@ export class TenantConfigBuilder {
         return this;
     }
 
+    withCompanyName(companyName: string): this {
+        this.config.brandingTokens!.tokens.legal.companyName = companyName;
+        return this;
+    }
+
+    withSupportEmail(supportEmail: string): this {
+        this.config.brandingTokens!.tokens.legal.supportEmail = supportEmail;
+        return this;
+    }
+
     withLogoUrl(url: string): this {
         this.config.brandingTokens!.tokens.assets.logoUrl = url;
         return this;

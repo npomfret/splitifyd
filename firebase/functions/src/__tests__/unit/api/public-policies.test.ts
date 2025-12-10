@@ -1,5 +1,5 @@
-import type { UserId } from '@billsplit-wl/shared';
-import { CreatePolicyRequestBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
+import { toTenantDomainName, type UserId } from '@billsplit-wl/shared';
+import { AdminTenantRequestBuilder, BrandingConfigBuilder, CreatePolicyRequestBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { AppDriver } from '../AppDriver';
 
@@ -91,6 +91,140 @@ describe('public policy text endpoints', () => {
 
         it('should throw when policy does not exist', async () => {
             await expect(appDriver.getCookiePolicy()).rejects.toThrow();
+        });
+    });
+
+    describe('template substitution', () => {
+        it('should substitute {{appName}} with tenant-specific value', async () => {
+            // Create tenant with custom app name
+            const tenantData = AdminTenantRequestBuilder
+                .forTenant('custom-tenant')
+                .withAppName('My Custom App')
+                .withBranding(new BrandingConfigBuilder().build())
+                .withDomains([toTenantDomainName('custom.example.com')])
+                .build();
+            await appDriver.adminUpsertTenant(tenantData, adminToken);
+
+            // Create policy with placeholder
+            await appDriver.createPolicy(
+                new CreatePolicyRequestBuilder()
+                    .withPolicyName('Privacy Policy')
+                    .withText('Welcome to {{appName}}. We value your privacy.')
+                    .build(),
+                adminToken,
+            );
+
+            // Request with tenant host
+            const result = await appDriver.getPrivacyPolicy({ host: 'custom.example.com' });
+
+            expect(result).toBe('Welcome to My Custom App. We value your privacy.');
+        });
+
+        it('should substitute {{companyName}} with tenant-specific value', async () => {
+            const tenantData = AdminTenantRequestBuilder
+                .forTenant('custom-tenant')
+                .withCompanyName('Acme Corporation')
+                .withBranding(new BrandingConfigBuilder().build())
+                .withDomains([toTenantDomainName('acme.example.com')])
+                .build();
+            await appDriver.adminUpsertTenant(tenantData, adminToken);
+
+            await appDriver.createPolicy(
+                new CreatePolicyRequestBuilder()
+                    .withPolicyName('Terms Of Service')
+                    .withText('{{companyName}} operates this service.')
+                    .build(),
+                adminToken,
+            );
+
+            const result = await appDriver.getTermsOfService({ host: 'acme.example.com' });
+
+            expect(result).toBe('Acme Corporation operates this service.');
+        });
+
+        it('should substitute {{supportEmail}} with tenant-specific value', async () => {
+            const tenantData = AdminTenantRequestBuilder
+                .forTenant('custom-tenant')
+                .withSupportEmail('help@custom.example.com')
+                .withBranding(new BrandingConfigBuilder().build())
+                .withDomains([toTenantDomainName('support.example.com')])
+                .build();
+            await appDriver.adminUpsertTenant(tenantData, adminToken);
+
+            await appDriver.createPolicy(
+                new CreatePolicyRequestBuilder()
+                    .withPolicyName('Cookie Policy')
+                    .withText('Contact us at {{supportEmail}} for questions.')
+                    .build(),
+                adminToken,
+            );
+
+            const result = await appDriver.getCookiePolicy({ host: 'support.example.com' });
+
+            expect(result).toBe('Contact us at help@custom.example.com for questions.');
+        });
+
+        it('should substitute multiple placeholders in same text', async () => {
+            const tenantData = AdminTenantRequestBuilder
+                .forTenant('multi-tenant')
+                .withAppName('SuperApp')
+                .withCompanyName('Super Inc')
+                .withSupportEmail('support@super.com')
+                .withBranding(new BrandingConfigBuilder().build())
+                .withDomains([toTenantDomainName('multi.example.com')])
+                .build();
+            await appDriver.adminUpsertTenant(tenantData, adminToken);
+
+            await appDriver.createPolicy(
+                new CreatePolicyRequestBuilder()
+                    .withPolicyName('Privacy Policy')
+                    .withText('{{appName}} by {{companyName}}. Email: {{supportEmail}}')
+                    .build(),
+                adminToken,
+            );
+
+            const result = await appDriver.getPrivacyPolicy({ host: 'multi.example.com' });
+
+            expect(result).toBe('SuperApp by Super Inc. Email: support@super.com');
+        });
+
+        it('should use default values when tenant resolution fails', async () => {
+            // Create policy with placeholder but no tenant for the host
+            await appDriver.createPolicy(
+                new CreatePolicyRequestBuilder()
+                    .withPolicyName('Privacy Policy')
+                    .withText('Welcome to {{appName}}.')
+                    .build(),
+                adminToken,
+            );
+
+            // Request with unknown host - should fall back to defaults
+            const result = await appDriver.getPrivacyPolicy({ host: 'unknown.example.com' });
+
+            // Default app name is 'BillSplit' (from DEFAULT_POLICY_TOKENS)
+            expect(result).toBe('Welcome to BillSplit.');
+        });
+
+        it('should leave text unchanged when no placeholders present', async () => {
+            const tenantData = AdminTenantRequestBuilder
+                .forTenant('plain-tenant')
+                .withAppName('Changed App Name')
+                .withBranding(new BrandingConfigBuilder().build())
+                .withDomains([toTenantDomainName('plain.example.com')])
+                .build();
+            await appDriver.adminUpsertTenant(tenantData, adminToken);
+
+            await appDriver.createPolicy(
+                new CreatePolicyRequestBuilder()
+                    .withPolicyName('Privacy Policy')
+                    .withText('No placeholders here.')
+                    .build(),
+                adminToken,
+            );
+
+            const result = await appDriver.getPrivacyPolicy({ host: 'plain.example.com' });
+
+            expect(result).toBe('No placeholders here.');
         });
     });
 });

@@ -1,9 +1,16 @@
+export interface StubRequestOptions {
+    body?: any;
+    params?: any;
+    headers?: Record<string, string>;
+    hostname?: string;
+}
+
 /**
  * Creates a stub request for testing.
  * Returns any to allow compatibility with different AuthenticatedRequest implementations
  * (e.g., middleware's Express-based version vs shared minimal interface).
  */
-export function createStubRequest(userId: string, body: any = {}, params: any = {}): any {
+export function createStubRequest(userId: string, body: any = {}, params: any = {}, options: Partial<StubRequestOptions> = {}): any {
     return {
         // these tests skip the auth middlewhere (firebase/functions/src/auth/middleware.ts) which adds a `user` object to the request
         user: {
@@ -15,6 +22,8 @@ export function createStubRequest(userId: string, body: any = {}, params: any = 
         },
         body,
         params,
+        headers: options.headers ?? {},
+        hostname: options.hostname ?? 'localhost',
         // Tenant ID set by tenant identification middleware in production
         // For tests, use the default fallback tenant
         tenantId: 'system-fallback-tenant',
@@ -25,11 +34,13 @@ export function createStubRequest(userId: string, body: any = {}, params: any = 
  * Creates an unauthenticated stub request for testing auth edge cases.
  * The request has no user object, simulating a request without valid authentication.
  */
-export function createUnauthenticatedStubRequest(body: any = {}, params: any = {}): any {
+export function createUnauthenticatedStubRequest(body: any = {}, params: any = {}, options: Partial<StubRequestOptions> = {}): any {
     return {
         // No user object - simulates unauthenticated request
         body,
         params,
+        headers: options.headers ?? {},
+        hostname: options.hostname ?? 'localhost',
         tenantId: 'system-fallback-tenant',
     };
 }

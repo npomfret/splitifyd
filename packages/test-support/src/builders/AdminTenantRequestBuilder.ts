@@ -223,6 +223,16 @@ export class AdminTenantRequestBuilder {
         return this;
     }
 
+    withCompanyName(companyName: string): this {
+        this.tokens.legal.companyName = companyName;
+        return this;
+    }
+
+    withSupportEmail(supportEmail: string): this {
+        this.tokens.legal.supportEmail = supportEmail;
+        return this;
+    }
+
     withLogoUrl(logoUrl: string): this {
         this.tokens.assets.logoUrl = logoUrl;
         return this;
