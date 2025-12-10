@@ -4,7 +4,8 @@
   "branding": {
     "primaryColor": "#737373",
     "secondaryColor": "#525252",
-    "accentColor": "#A3A3A3"
+    "accentColor": "#A3A3A3",
+    "showAppNameInHeader": false
   },
   "marketingFlags": {
     "showMarketingContent": false,
