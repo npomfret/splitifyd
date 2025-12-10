@@ -14,7 +14,7 @@
  */
 
 import type { Auth } from 'firebase-admin/auth';
-import type { CreateRequest, DecodedIdToken, ListUsersResult, UpdateRequest, UserRecord } from 'firebase-admin/auth';
+import type { CreateRequest, DecodedIdToken, UpdateRequest, UserRecord } from 'firebase-admin/auth';
 
 import { IAuthService } from './IAuthService';
 
@@ -61,7 +61,7 @@ import { logger } from '../../logger';
 import { measureDb } from '../../monitoring/measure';
 import { LoggerContext } from '../../utils/logger-context';
 import { AuthErrorCode, FIREBASE_AUTH_ERROR_MAP } from './auth-types';
-import { validateCreateUser, validateCustomClaims, validateEmailAddress, validateIdToken, validateListUsersOptions, validateUpdateUser, validateUserId } from './auth-validation';
+import { validateCreateUser, validateCustomClaims, validateEmailAddress, validateIdToken, validateUpdateUser, validateUserId } from './auth-validation';
 
 export interface IdentityToolkitConfig {
     apiKey: string;
@@ -277,28 +277,6 @@ export class FirebaseAuthService implements IAuthService {
                     }
                     throw error;
                 }
-            },
-            context,
-        );
-    }
-
-    async listUsers(options: { limit?: number; pageToken?: string; } = {}): Promise<ListUsersResult> {
-        const context = this.createContext('listUsers');
-
-        const validatedOptions = this.enableValidation ? validateListUsersOptions(options) : options;
-        const limit = validatedOptions.limit ?? 50;
-        const pageToken = validatedOptions.pageToken;
-
-        LoggerContext.update({
-            operation: 'listUsers',
-            limit,
-            pageToken,
-        });
-
-        return this.executeWithMetrics(
-            'FirebaseAuthService.listUsers',
-            async () => {
-                return this.auth.listUsers(limit, pageToken);
             },
             context,
         );

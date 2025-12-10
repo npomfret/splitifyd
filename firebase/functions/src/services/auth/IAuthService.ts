@@ -14,7 +14,7 @@
  */
 
 import type { Email, UserId } from '@billsplit-wl/shared';
-import type { CreateRequest, DecodedIdToken, ListUsersResult, UpdateRequest, UserRecord } from 'firebase-admin/auth';
+import type { CreateRequest, DecodedIdToken, UpdateRequest, UserRecord } from 'firebase-admin/auth';
 
 export interface IAuthService {
     // ========================================================================
@@ -44,14 +44,6 @@ export interface IAuthService {
      * @throws ApiError if operation fails
      */
     getUserByEmail(email: Email): Promise<UserRecord | null>;
-
-    /**
-     * List users with pagination
-     * @param options.limit - Maximum number of users to return (1 - 1000)
-     * @param options.pageToken - Page token returned by a previous call
-     * @returns ListUsersResult from Firebase Auth
-     */
-    listUsers(options: { limit?: number; pageToken?: string; }): Promise<ListUsersResult>;
 
     /**
      * Update user profile in Firebase Auth

@@ -41,13 +41,6 @@ const idTokenSchema = z.string().min(1, 'ID token must not be empty');
 
 const customClaimsSchema = z.record(z.string(), z.any()).optional();
 
-const listUsersOptionsSchema = z
-    .object({
-        limit: z.number().int('Limit must be an integer').min(1, 'Limit must be at least 1').max(1000, 'Limit must be at most 1000').optional(),
-        pageToken: z.string().min(1, 'Page token must not be empty').optional(),
-    })
-    .partial();
-
 const mapAuthValidationError = (error: z.ZodError, defaultDetail: ErrorDetail): never => {
     const firstError = error.issues[0];
     const field = firstError.path[0];
@@ -138,16 +131,6 @@ export function validateEmailAddress(email: unknown): string {
 
     if (!result.success) {
         throw Errors.validationError('email', ErrorDetail.INVALID_EMAIL);
-    }
-
-    return result.data;
-}
-
-export function validateListUsersOptions(options: unknown): { limit?: number; pageToken?: string; } {
-    const result = listUsersOptionsSchema.safeParse(options ?? {});
-
-    if (!result.success) {
-        throw Errors.invalidRequest();
     }
 
     return result.data;

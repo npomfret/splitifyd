@@ -365,23 +365,6 @@ export interface IFirestoreReader {
     getExpenseComment(expenseId: ExpenseId, commentId: CommentId): Promise<CommentDTO | null>;
 
     // ========================================================================
-    // Group Related Collections Operations
-    // ========================================================================
-
-    /**
-     * Get all related data for a group deletion operation
-     * @param groupId - The group ID
-     * @returns Object containing all related collections data
-     */
-    getGroupDeletionData(groupId: GroupId): Promise<{
-        expenses: IQuerySnapshot;
-        settlements: IQuerySnapshot;
-        shareLinks: IQuerySnapshot;
-        groupComments: IQuerySnapshot;
-        expenseComments: IQuerySnapshot[];
-    }>;
-
-    // ========================================================================
     // Settlement Query Operations
     // ========================================================================
 

@@ -1399,45 +1399,6 @@ export class FirestoreReader implements IFirestoreReader {
     // System Metrics Operations
     // ========================================================================
 
-    // ========================================================================
-    // New Methods for Centralizing Firestore Access
-    // ========================================================================
-
-    async getGroupDeletionData(groupId: GroupId): Promise<{
-        expenses: IQuerySnapshot;
-        settlements: IQuerySnapshot;
-        shareLinks: IQuerySnapshot;
-        groupComments: IQuerySnapshot;
-        expenseComments: IQuerySnapshot[];
-    }> {
-        return measureDb('FirestoreReader.getGroupDeletionData', async () => {
-            try {
-                const [expensesSnapshot, settlementsSnapshot, shareLinksSnapshot, groupCommentsSnapshot] = await Promise.all([
-                    this.db.collection(FirestoreCollections.EXPENSES).where('groupId', '==', groupId).get(),
-                    this.db.collection(FirestoreCollections.SETTLEMENTS).where('groupId', '==', groupId).get(),
-                    this.db.collection(FirestoreCollections.GROUPS).doc(groupId).collection('shareLinks').get(),
-                    this.db.collection(FirestoreCollections.GROUPS).doc(groupId).collection(FirestoreCollections.COMMENTS).get(),
-                ]);
-
-                // Get comment subcollections for each expense
-                const expenseComments = await Promise.all(
-                    expensesSnapshot.docs.map((expense) => this.db.collection(FirestoreCollections.EXPENSES).doc(expense.id).collection(FirestoreCollections.COMMENTS).get()),
-                );
-
-                return {
-                    expenses: expensesSnapshot,
-                    settlements: settlementsSnapshot,
-                    shareLinks: shareLinksSnapshot,
-                    groupComments: groupCommentsSnapshot,
-                    expenseComments,
-                };
-            } catch (error) {
-                logger.error('Failed to get group deletion data', error);
-                throw error;
-            }
-        });
-    }
-
     async getExpensesForGroupPaginated(
         groupId: GroupId,
         options?: {

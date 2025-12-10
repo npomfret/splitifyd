@@ -916,29 +916,6 @@ export class FirestoreWriter implements IFirestoreWriter {
         transaction.update(docRef, finalUpdates);
     }
 
-    createActivityFeedItemInTransaction(transaction: ITransaction, userId: UserId, documentId: string | null, data: Record<string, any>) {
-        const collectionRef = this.db.collection(FirestoreCollections.ACTIVITY_FEED).doc(userId).collection('items');
-        const docRef = documentId ? collectionRef.doc(documentId) : collectionRef.doc();
-
-        const cleanedData = this.removeUndefinedValues(data);
-        const convertedData = this.convertISOToTimestamps(cleanedData);
-
-        const finalData = {
-            ...convertedData,
-            createdAt: FieldValue.serverTimestamp(),
-            updatedAt: FieldValue.serverTimestamp(),
-        };
-
-        ActivityFeedDocumentSchema.parse({
-            ...finalData,
-            id: docRef.id,
-        });
-
-        transaction.set(docRef, finalData);
-
-        return docRef;
-    }
-
     /**
      * Get activity feed items for a user (non-transaction version for async cleanup)
      */

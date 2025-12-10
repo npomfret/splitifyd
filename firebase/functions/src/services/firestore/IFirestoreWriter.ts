@@ -202,11 +202,6 @@ export interface IFirestoreWriter {
     updateInTransaction(transaction: ITransaction, documentPath: string, updates: any): void;
 
     /**
-     * Create an activity feed document within a user-scoped subcollection during a transaction.
-     */
-    createActivityFeedItemInTransaction(transaction: ITransaction, userId: UserId, documentId: string | null, data: Record<string, any>): IDocumentReference;
-
-    /**
      * Get activity feed items for a user (non-transaction version for async cleanup)
      */
     getActivityFeedItemsForUser(userId: UserId, limit: number): Promise<Array<{ id: string; }>>;
