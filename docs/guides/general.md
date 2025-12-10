@@ -12,7 +12,6 @@ Unless you have been instructed to do so...
 
 - Do no write documentation
 - Do not comment code unless it explains something broken, weird or non-obvious
-- Never write migration stripts or any "backward compatible" code unless explicitely told to do so - this is a NEW project, there is no existing data or users
 
 IF IN DOUBT: ASK!!!
 
@@ -32,10 +31,9 @@ When running the app, the code paths used MUST be identical to when it's running
 
 **note** We have multiple instances configured to run on a dev workstation - hard coding ports will NEVER work.
 
-## Backward Compatibility
+## Schema Changes
 
-- No backward-compatible code, ever (**unless explicitly requested**)
-- Never write migration scripts or multi-format handlers; If formats change, we’ll handle migrations separately
+Always ask if backward compatibility is needed. If yes, use the **Expand/Contract** pattern. See `docs/guides/schema-migrations.md`.
 
 ## Keep It Working
 
