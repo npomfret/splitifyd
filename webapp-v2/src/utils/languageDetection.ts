@@ -2,10 +2,11 @@
  * Language detection and persistence utility.
  *
  * Detection priority:
- * 1. User's preferredLanguage from profile (if authenticated)
+ * 1. User's preferredLanguage from profile (if authenticated) - handled by auth-store
  * 2. localStorage (returning visitor who chose a language)
- * 3. navigator.language / navigator.languages (browser preference)
- * 4. 'en' fallback
+ * 3. URL parameter ?lang=uk (tenant pass-through - persisted to localStorage on first read)
+ * 4. navigator.language / navigator.languages (browser preference)
+ * 5. 'en' fallback
  */
 
 const LANGUAGE_STORAGE_KEY = 'language';
@@ -55,7 +56,18 @@ export const detectBrowserLanguage = (): SupportedLanguage => {
         }
     }
 
-    // 2. Check browser preference (primary language)
+    // 2. Check URL parameter (tenant pass-through via ?lang=uk)
+    if (typeof window !== 'undefined') {
+        const urlParams = new URLSearchParams(window.location.search);
+        const langParam = urlParams.get('lang');
+        if (langParam && isSupportedLanguage(langParam)) {
+            // Persist to localStorage so it survives navigation
+            persistLanguageChoice(langParam);
+            return langParam;
+        }
+    }
+
+    // 3. Check browser preference (primary language)
     if (typeof navigator !== 'undefined' && navigator.language) {
         const browserLang = navigator.language.split('-')[0];
         if (isSupportedLanguage(browserLang)) {
@@ -63,7 +75,7 @@ export const detectBrowserLanguage = (): SupportedLanguage => {
         }
     }
 
-    // 3. Check navigator.languages array for fallback matches
+    // 4. Check navigator.languages array for fallback matches
     if (typeof navigator !== 'undefined' && navigator.languages) {
         for (const lang of navigator.languages) {
             const code = lang.split('-')[0];
@@ -73,7 +85,7 @@ export const detectBrowserLanguage = (): SupportedLanguage => {
         }
     }
 
-    // 4. Default to English
+    // 5. Default to English
     return 'en';
 };
 

@@ -125,27 +125,25 @@ Prepare the codebase for adding Ukrainian (uk) as the first non-English language
 - Updated `_getProfile()` to return `preferredLanguage`
 - LanguageSwitcher full variant saves to user profile via API
 
-### Phase 2.5: Tenant Language Pass-through
+### Phase 2.5: Tenant Language Pass-through - COMPLETED
 
-Tenants embedding our app may already have language support on their site. We should accept a language hint from them.
+**Task 2.5.1: Add URL parameter detection** ✅
+- File: `webapp-v2/src/utils/languageDetection.ts`
+- Added `?lang=uk` URL parameter check in `detectBrowserLanguage()`
+- Validates against `SUPPORTED_LANGUAGES`
+- Persists to localStorage on first read (survives navigation)
 
-**Options to explore:**
-1. **URL parameter** - `?lang=uk` or `?locale=uk-UA` on initial load
-2. **Embed config** - If we have an embed/widget mode, accept language in config
-3. **PostMessage API** - Parent frame can send language preference
-4. **Cookie** - Read a tenant-set cookie (e.g., `preferred_language`)
-
-**Detection priority (updated):**
-1. User's `preferredLanguage` from profile (authenticated)
-2. localStorage (returning visitor)
-3. **Tenant-provided language hint** (URL param, embed config, etc.)
+**Detection priority (final):**
+1. User's `preferredLanguage` from profile (authenticated) - handled by auth-store
+2. localStorage (returning visitor or previously applied URL param)
+3. URL parameter `?lang=uk` (tenant pass-through)
 4. `navigator.language` / `navigator.languages` (browser preference)
 5. `'en'` fallback
 
-**Implementation notes:**
-- URL param should be read once on initial load, not on every navigation
-- Should validate against `SUPPORTED_LANGUAGES` before applying
-- Consider persisting tenant hint to localStorage so it survives page refreshes
+**Future options (not implemented):**
+- PostMessage API for iframe embeds
+- Cookie-based detection
+- Embed config for widget mode
 
 ### Phase 3: Add Ukrainian
 
