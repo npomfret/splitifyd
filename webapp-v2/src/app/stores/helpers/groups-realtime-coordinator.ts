@@ -77,8 +77,6 @@ export class GroupsRealtimeCoordinator {
                 this.pendingRefresh = true;
                 this.options.isRefreshingSignal.value = true;
 
-                logInfo('refreshGroups: Starting debounced refresh');
-
                 try {
                     await this.options.onRefresh();
                     resolve();
@@ -163,11 +161,6 @@ export class GroupsRealtimeCoordinator {
         if (!groupId || !userId) {
             return;
         }
-
-        logInfo('Activity feed event received for groups store', {
-            eventType,
-            groupId,
-        });
 
         if (eventType === 'member-left' && details?.targetUserId === userId) {
             this.options.onGroupRemoval(groupId, details?.targetUserName ?? event.groupName);
