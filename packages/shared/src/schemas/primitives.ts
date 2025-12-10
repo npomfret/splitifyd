@@ -9,9 +9,10 @@ import { z } from 'zod';
 // Display Name Schema
 // ---------------------------------------------------------------------------
 
-// Display names can contain letters, numbers, spaces, and common punctuation
+// Display names can contain Unicode letters, numbers, spaces, and common punctuation
+// Uses Unicode property escapes for international character support
 // Confusable characters (0/O, I/l) are allowed but normalized during conflict checking
-const DISPLAY_NAME_PATTERN = /^[a-zA-Z0-9\s\-_.]+$/;
+const DISPLAY_NAME_PATTERN = /^[\p{Letter}\p{Number}\s\-_.]+$/u;
 const DEFAULT_DISPLAY_NAME_MIN = 2;
 const DEFAULT_DISPLAY_NAME_MAX = 50;
 
