@@ -2,6 +2,7 @@ import { useAuth } from '@/app/hooks/useAuth.ts';
 import { Button } from '@/components/ui/Button';
 import { Clickable } from '@/components/ui/Clickable';
 import { HomeIcon } from '@/components/ui/icons';
+import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { useConfig } from '@/hooks/useConfig.ts';
 import { useNavigation } from '@/hooks/useNavigation';
 import { useComputed } from '@preact/signals';
@@ -53,6 +54,7 @@ export function Header({ variant = 'default', showAuth = true }: HeaderProps) {
 
         return (
             <div class='flex items-center gap-4'>
+                <LanguageSwitcher variant='compact' />
                 <Button
                     onClick={() => navigation.goToLogin()}
                     variant='ghost'

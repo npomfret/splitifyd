@@ -4,7 +4,9 @@ import en from './locales/en/translation.json' with { type: 'json' };
 import { logError } from './utils/browser-logger';
 import {
     detectBrowserLanguage,
+    persistLanguageChoice,
     SUPPORTED_LANGUAGES,
+    type SupportedLanguage,
 } from './utils/languageDetection';
 
 // Initial resources - English is always bundled
@@ -47,9 +49,36 @@ i18n
         },
     });
 
-// Phase 2 will add:
-// - loadLanguageBundle() for dynamic language loading
-// - changeLanguage() for switching languages
-// - applyUserLanguagePreference() for auth-store integration
+/**
+ * Dynamically loads a language bundle if not already loaded.
+ */
+export const loadLanguageBundle = async (lng: SupportedLanguage): Promise<void> => {
+    if (i18n.hasResourceBundle(lng, 'translation')) {
+        return;
+    }
+
+    const resources = await import(`./locales/${lng}/translation.json`);
+    i18n.addResourceBundle(lng, 'translation', resources.default);
+};
+
+/**
+ * Changes the application language.
+ * Loads the bundle if needed, switches i18n, and persists the choice.
+ */
+export const changeLanguage = async (lng: SupportedLanguage): Promise<void> => {
+    await loadLanguageBundle(lng);
+    await i18n.changeLanguage(lng);
+    persistLanguageChoice(lng);
+};
+
+/**
+ * Applies the user's preferred language from their profile.
+ * Call this after authentication when user data is available.
+ */
+export const applyUserLanguagePreference = async (preferredLanguage?: string): Promise<void> => {
+    if (preferredLanguage && SUPPORTED_LANGUAGES.includes(preferredLanguage as SupportedLanguage)) {
+        await changeLanguage(preferredLanguage as SupportedLanguage);
+    }
+};
 
 export default i18n;

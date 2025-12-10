@@ -1097,6 +1097,7 @@ export interface UserProfileResponse {
     role: SystemUserRole;
     email: Email;
     emailVerified: boolean;
+    preferredLanguage?: string;
 }
 
 export interface AcceptMultiplePoliciesResponse {
@@ -1521,6 +1522,7 @@ export interface ChangeEmailRequest {
  */
 export interface UpdateUserProfileRequest {
     displayName?: string;
+    preferredLanguage?: string;
 }
 
 /**

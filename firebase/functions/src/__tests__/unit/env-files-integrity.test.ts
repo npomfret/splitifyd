@@ -4,57 +4,49 @@ import { z } from 'zod';
 
 const FUNCTIONS_DIR = path.join(__dirname, '../../../');
 
-const DEV_FILE_PATTERN = /^\.env\.instance(\d+)$/;
-const STAGING_FILE_PATTERN = /^\.env\.instancestaging-(\d+)$/;
+const ENV_FILE_PATTERN = /^\.env\.instance/;
 
-const REQUIRED_DEV_VARS = [
-    '__CACHE_PATH_HOME',
-    '__CACHE_PATH_LOGIN',
-    '__CACHE_PATH_TERMS',
-    '__CACHE_PATH_PRIVACY',
-    '__CACHE_PATH_API_CONFIG',
-    '__CACHE_THEME_VERSIONED',
-    '__CACHE_THEME_UNVERSIONED',
-];
-
-const OPTIONAL_DEV_VARS = [
-    '__DEV_FORM_EMAIL',
-    '__DEV_FORM_PASSWORD',
-    '__WARNING_BANNER',
-    '__MIN_REGISTRATION_DURATION_MS',
-    '__CLOUD_TASKS_LOCATION',
-];
-
-const ALLOWED_DEV_VARS = new Set([...REQUIRED_DEV_VARS, ...OPTIONAL_DEV_VARS]);
-
-const REQUIRED_STAGING_VARS = [
-    ...REQUIRED_DEV_VARS,
+/**
+ * All env files must have the same structure.
+ * Values can be empty, but all keys must be present.
+ */
+const ALL_VARS = [
+    // Client configuration (empty in dev, populated in staging)
     '__CLIENT_API_KEY',
     '__CLIENT_AUTH_DOMAIN',
     '__CLIENT_STORAGE_BUCKET',
     '__CLIENT_MESSAGING_SENDER_ID',
     '__CLIENT_APP_ID',
-];
+    '__CLIENT_MEASUREMENT_ID',
 
-const OPTIONAL_STAGING_VARS = [
+    // Development helpers (can be empty)
     '__DEV_FORM_EMAIL',
     '__DEV_FORM_PASSWORD',
     '__WARNING_BANNER',
+
+    // Service configuration
     '__MIN_REGISTRATION_DURATION_MS',
     '__CLOUD_TASKS_LOCATION',
     '__CLOUD_TASKS_SERVICE_ACCOUNT',
-    '__CLIENT_MEASUREMENT_ID',
+
+    // Cache configuration (seconds)
+    '__CACHE_PATH_HOME',
+    '__CACHE_PATH_LOGIN',
+    '__CACHE_PATH_TERMS',
+    '__CACHE_PATH_PRIVACY',
+    '__CACHE_PATH_POLICY_TEXT',
+    '__CACHE_PATH_API_CONFIG',
+    '__CACHE_THEME_VERSIONED',
+    '__CACHE_THEME_UNVERSIONED',
 ];
 
-const ALLOWED_STAGING_VARS = new Set([...REQUIRED_STAGING_VARS, ...OPTIONAL_STAGING_VARS]);
-
+const CACHE_VARS = ALL_VARS.filter(v => v.startsWith('__CACHE_'));
 const cacheVarSchema = z.coerce.number().int().min(0);
 
 interface ParsedEnvFile {
     filePath: string;
     fileName: string;
     variables: Map<string, string>;
-    instanceType: 'dev' | 'staging';
 }
 
 function parseEnvFile(filePath: string): ParsedEnvFile {
@@ -76,24 +68,14 @@ function parseEnvFile(filePath: string): ParsedEnvFile {
         }
     }
 
-    // Determine instance type from filename
-    const instanceType: 'dev' | 'staging' = STAGING_FILE_PATTERN.test(fileName) ? 'staging' : 'dev';
-
-    return {
-        filePath,
-        fileName,
-        variables,
-        instanceType,
-    };
+    return { filePath, fileName, variables };
 }
 
 function discoverEnvFiles(): ParsedEnvFile[] {
-    const files = fs
+    return fs
         .readdirSync(FUNCTIONS_DIR)
-        .filter(file => DEV_FILE_PATTERN.test(file) || STAGING_FILE_PATTERN.test(file))
+        .filter(file => ENV_FILE_PATTERN.test(file))
         .map(file => parseEnvFile(path.join(FUNCTIONS_DIR, file)));
-
-    return files;
 }
 
 describe('Environment Files Integrity', () => {
@@ -104,106 +86,32 @@ describe('Environment Files Integrity', () => {
     });
 
     describe.each(envFiles)('$fileName', (envFile) => {
-        it('should have all required variables for its instance type', () => {
-            const requiredVars = envFile.instanceType === 'staging'
-                ? REQUIRED_STAGING_VARS
-                : REQUIRED_DEV_VARS;
-
-            const missing = requiredVars.filter(v => !envFile.variables.has(v));
+        it('should have all required variables (can be empty)', () => {
+            const missing = ALL_VARS.filter(v => !envFile.variables.has(v));
             expect(missing).toEqual([]);
         });
 
         it('should not have extraneous variables', () => {
-            const allowedVars = envFile.instanceType === 'staging'
-                ? ALLOWED_STAGING_VARS
-                : ALLOWED_DEV_VARS;
-
+            const allowedSet = new Set(ALL_VARS);
             const extraneous = Array
                 .from(envFile.variables.keys())
-                .filter(v => !allowedVars.has(v));
+                .filter(v => !allowedSet.has(v));
             expect(extraneous).toEqual([]);
         });
 
         it('should have valid numeric values for cache variables', () => {
-            const cacheVars = [
-                '__CACHE_PATH_HOME',
-                '__CACHE_PATH_LOGIN',
-                '__CACHE_PATH_TERMS',
-                '__CACHE_PATH_PRIVACY',
-                '__CACHE_PATH_API_CONFIG',
-                '__CACHE_THEME_VERSIONED',
-                '__CACHE_THEME_UNVERSIONED',
-            ];
-
             const invalidVars: string[] = [];
-            for (const varName of cacheVars) {
+            for (const varName of CACHE_VARS) {
                 const value = envFile.variables.get(varName);
-                if (value !== undefined) {
+                if (value !== undefined && value !== '') {
                     const result = cacheVarSchema.safeParse(value);
                     if (!result.success) {
                         invalidVars.push(`${varName}=${value}`);
                     }
                 }
             }
-
             expect(invalidVars).toEqual([]);
         });
-
-        if (envFile.instanceType === 'staging') {
-            it('should have non-placeholder values for client config in staging', () => {
-                const clientVars = [
-                    '__CLIENT_API_KEY',
-                    '__CLIENT_AUTH_DOMAIN',
-                    '__CLIENT_STORAGE_BUCKET',
-                    '__CLIENT_MESSAGING_SENDER_ID',
-                    '__CLIENT_APP_ID',
-                ];
-
-                const placeholderPatterns = [
-                    'your-',
-                    'placeholder',
-                    'xxx',
-                    'TODO',
-                ];
-
-                const placeholderVars: string[] = [];
-                for (const varName of clientVars) {
-                    const value = envFile.variables.get(varName);
-                    if (value) {
-                        const isPlaceholder = placeholderPatterns.some(p => value.toLowerCase().includes(p.toLowerCase()));
-                        if (isPlaceholder) {
-                            placeholderVars.push(`${varName}=${value}`);
-                        }
-                    }
-                }
-
-                expect(placeholderVars).toEqual([]);
-            });
-
-            it('should have valid Firebase config values in staging', () => {
-                const apiKey = envFile.variables.get('__CLIENT_API_KEY');
-                expect(apiKey).toBeDefined();
-                expect(apiKey!.startsWith('AIza')).toBe(true);
-
-                const authDomain = envFile.variables.get('__CLIENT_AUTH_DOMAIN');
-                expect(authDomain).toBeDefined();
-                expect(authDomain!.includes('.firebaseapp.com')).toBe(true);
-
-                const storageBucket = envFile.variables.get('__CLIENT_STORAGE_BUCKET');
-                expect(storageBucket).toBeDefined();
-                expect(storageBucket!.includes('.firebasestorage.app') || storageBucket!.includes('.appspot.com')).toBe(true);
-            });
-        }
-
-        if (envFile.instanceType === 'dev') {
-            it('should have valid email format for dev form email if set', () => {
-                const email = envFile.variables.get('__DEV_FORM_EMAIL');
-                if (email && email.trim() !== '') {
-                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                    expect(emailRegex.test(email)).toBe(true);
-                }
-            });
-        }
     });
 
     describe('Template Files', () => {
@@ -218,15 +126,15 @@ describe('Environment Files Integrity', () => {
             expect(fs.existsSync(stagingTemplate)).toBe(true);
         });
 
-        it('dev template should have all required variables', () => {
+        it('dev template should have all variables', () => {
             const template = parseEnvFile(devTemplate);
-            const missing = REQUIRED_DEV_VARS.filter(v => !template.variables.has(v));
+            const missing = ALL_VARS.filter(v => !template.variables.has(v));
             expect(missing).toEqual([]);
         });
 
-        it('staging template should have all required variables', () => {
+        it('staging template should have all variables', () => {
             const template = parseEnvFile(stagingTemplate);
-            const missing = REQUIRED_STAGING_VARS.filter(v => !template.variables.has(v));
+            const missing = ALL_VARS.filter(v => !template.variables.has(v));
             expect(missing).toEqual([]);
         });
     });

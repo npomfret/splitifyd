@@ -1074,6 +1074,10 @@
     "browser": "Browser",
     "browserUsers": "Users Browser"
   },
+  "languageSelector": {
+    "label": "Language",
+    "description": "Choose your preferred language"
+  },
   "footer": {
     "companyName": "{{appName}}",
     "companyDescription": "Split bills easily with friends and family.",

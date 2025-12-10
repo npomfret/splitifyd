@@ -1,5 +1,5 @@
 import { USER_ID_KEY } from '@/constants.ts';
-import i18n from '@/i18n';
+import i18n, { applyUserLanguagePreference } from '@/i18n';
 import { logError } from '@/utils/browser-logger.ts';
 import { translateFirebaseAuthError } from '@/utils/error-translation';
 import { createUserScopedStorage } from '@/utils/userScopedStorage.ts';
@@ -238,6 +238,11 @@ class AuthStoreImpl implements AuthStore {
                 displayName: profile.displayName ?? currentUser.displayName,
                 role: profile.role,
             };
+
+            // Apply user's language preference if set in their profile
+            if (profile.preferredLanguage) {
+                await applyUserLanguagePreference(profile.preferredLanguage);
+            }
         } catch (error) {
             logError('Failed to load user profile', error, { userId });
         }

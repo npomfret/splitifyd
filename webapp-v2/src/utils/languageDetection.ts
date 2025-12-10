@@ -13,8 +13,7 @@ const LANGUAGE_STORAGE_KEY = 'language';
 export const SUPPORTED_LANGUAGES = ['en', 'uk'] as const;
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
 
-// LANGUAGE_NAMES will be exported in Phase 2 when LanguageSelector UI is added
-const LANGUAGE_NAMES: Record<SupportedLanguage, string> = {
+export const LANGUAGE_NAMES: Record<SupportedLanguage, string> = {
     en: 'English',
     uk: 'Українська',
 };
@@ -88,5 +87,25 @@ export const persistLanguageChoice = (language: SupportedLanguage): void => {
     }
 };
 
-// getPersistedLanguage and clearPersistedLanguage will be exported in Phase 2
-// when LanguageSelector UI needs them
+/**
+ * Gets the persisted language choice from localStorage.
+ * Returns null if no language has been explicitly chosen.
+ */
+export const getPersistedLanguage = (): SupportedLanguage | null => {
+    if (typeof localStorage !== 'undefined') {
+        const stored = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+        if (stored && isSupportedLanguage(stored)) {
+            return stored;
+        }
+    }
+    return null;
+};
+
+/**
+ * Clears the persisted language choice from localStorage.
+ */
+export const clearPersistedLanguage = (): void => {
+    if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem(LANGUAGE_STORAGE_KEY);
+    }
+};

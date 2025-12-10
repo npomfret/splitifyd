@@ -1,5 +1,6 @@
 import { themeStore } from '@/app/stores/theme-store.ts';
 import { Alert, Avatar, Button, Card, Form, Input, Typography } from '@/components/ui';
+import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { logError } from '@/utils/browser-logger';
 import { SystemUserRoles, toEmail, toPassword } from '@billsplit-wl/shared';
 import { toDisplayName } from '@billsplit-wl/shared';
@@ -600,6 +601,17 @@ export function SettingsPage() {
                                                 </Form>
                                             </div>
                                         )}
+                                </div>
+                            </Card>
+
+                            <Card padding='lg' data-testid='language-section'>
+                                <div class='space-y-6'>
+                                    <div class='space-y-2'>
+                                        <Typography variant='heading'>{t('languageSelector.label')}</Typography>
+                                        <p class='text-sm text-text-muted'>{t('languageSelector.description')}</p>
+                                    </div>
+
+                                    <LanguageSwitcher variant='full' />
                                 </div>
                             </Card>
                         </div>

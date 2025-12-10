@@ -321,6 +321,7 @@ export class UserService {
             role: registeredUser.role ?? SystemUserRoles.SYSTEM_USER,
             email: registeredUser.email,
             emailVerified: registeredUser.emailVerified,
+            preferredLanguage: registeredUser.preferredLanguage,
         };
     }
 

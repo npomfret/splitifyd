@@ -614,8 +614,8 @@ export const UpdateUserProfileRequestSchema = z
         preferredLanguage: z
             .string()
             .trim()
-            .refine((value) => value === 'en', {
-                message: 'Language must be one of: en',
+            .refine((value) => ['en', 'uk'].includes(value), {
+                message: 'Language must be one of: en, uk',
             })
             .optional(),
     })
