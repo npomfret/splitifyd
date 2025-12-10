@@ -72,6 +72,46 @@ const buildMember = () => {
 };
 
 describe('Shared schema validation', () => {
+    describe('response schema leniency (passthrough)', () => {
+        it('accepts extra fields in group response (schema evolution)', () => {
+            const payload = {
+                ...buildGroupResponse(),
+                createdBy: 'user-123', // field not in schema
+                legacyField: 'some-old-value', // stale field from migration
+                futureFeature: { enabled: true }, // field added before schema updated
+            };
+            expect(() => groupDetailSchema.parse(payload)).not.toThrow();
+        });
+
+        it('accepts extra fields in group list response', () => {
+            const group = {
+                ...buildGroupResponse(),
+                unknownField: 'should-be-allowed',
+            };
+            const listResponse = {
+                groups: [group],
+                count: 1,
+                hasMore: false,
+                pagination: { limit: 10, order: 'desc' },
+                extraMetadata: { version: 2 }, // extra field at root level
+            };
+            expect(() => groupListSchema.parse(listResponse)).not.toThrow();
+        });
+
+        it('accepts extra fields in nested member objects', () => {
+            const member = {
+                ...buildMember(),
+                legacyAvatar: 'https://example.com/old-avatar.png',
+                newPermissions: ['can_edit', 'can_delete'],
+            };
+            const membersPayload = {
+                members: [member],
+                hasMore: false,
+            };
+            expect(() => groupMembersSchema.parse(membersPayload)).not.toThrow();
+        });
+    });
+
     it('accepts a valid group detail payload', () => {
         const validPayload = buildGroupResponse();
         expect(() => groupDetailSchema.parse(validPayload)).not.toThrow();
