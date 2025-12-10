@@ -86,10 +86,41 @@ Prepare the codebase for adding Ukrainian (uk) as the first non-English language
 
 ### Phase 2: Language Switching UI
 
-- Add language selector to settings page
-- Integrate with user profile `preferredLanguage`
-- localStorage persistence for anonymous users
-- Apply detected language on app load
+**Task 2.1: Export Phase 2 utilities from languageDetection.ts**
+- Export `LANGUAGE_NAMES`, `getPersistedLanguage()`, `clearPersistedLanguage()`
+
+**Task 2.2: Add language switching to i18n.ts**
+- `loadLanguageBundle()` - dynamic import of translation files
+- `changeLanguage()` - load bundle + switch + persist
+- `applyUserLanguagePreference()` - apply user's profile preference after auth
+
+**Task 2.3: Create LanguageSwitcher component**
+- New file: `webapp-v2/src/components/ui/LanguageSwitcher.tsx`
+- Two variants: `compact` (header) and `full` (settings page)
+- Compact: shows language code, dropdown on click
+- Full: uses existing Select component with label
+
+**Task 2.4: Add LanguageSwitcher to Header**
+- File: `webapp-v2/src/components/layout/Header.tsx`
+- Add to auth section (right side, before Login/Sign Up)
+- Shows on: Login, Register, Reset Password pages
+
+**Task 2.5: Add Language section to Settings page**
+- File: `webapp-v2/src/pages/SettingsPage.tsx`
+- New Card section after Password section
+- On change: call `changeLanguage()` + update user profile via API
+
+**Task 2.6: Integrate with auth-store**
+- File: `webapp-v2/src/app/stores/auth-store.ts`
+- On login success: apply user's `preferredLanguage` if set
+
+**Task 2.7: Add translation keys**
+- Add `languageSelector` section to translation.json
+
+**Task 2.8: Extend UpdateUserProfileRequest**
+- File: `packages/shared/src/shared-types.ts`
+- Add `preferredLanguage?: string` to `UpdateUserProfileRequest`
+- Ensure backend handler saves the field
 
 ### Phase 2.5: Tenant Language Pass-through
 
@@ -139,9 +170,15 @@ Tenants embedding our app may already have language support on their site. We sh
 
 | File | Change |
 |------|--------|
-| `webapp-v2/src/i18n.ts` | Add `changeLanguage()`, `applyUserLanguagePreference()`, dynamic bundle loading |
 | `webapp-v2/src/utils/languageDetection.ts` | Export `LANGUAGE_NAMES`, `getPersistedLanguage()`, `clearPersistedLanguage()` |
-| `webapp-v2/src/components/settings/LanguageSelector.tsx` | New - UI component |
+| `webapp-v2/src/i18n.ts` | Add `loadLanguageBundle()`, `changeLanguage()`, `applyUserLanguagePreference()` |
+| `webapp-v2/src/components/ui/LanguageSwitcher.tsx` | **New** - compact (header) + full (settings) variants |
+| `webapp-v2/src/components/layout/Header.tsx` | Add LanguageSwitcher to auth section |
+| `webapp-v2/src/pages/SettingsPage.tsx` | Add Language preferences section |
+| `webapp-v2/src/app/stores/auth-store.ts` | Apply user preference on login |
+| `webapp-v2/src/locales/en/translation.json` | Add `languageSelector` keys |
+| `packages/shared/src/shared-types.ts` | Add `preferredLanguage` to `UpdateUserProfileRequest` |
+| `firebase/functions/src/users/handlers.ts` | Handle `preferredLanguage` in updateProfile |
 
 ## Language Detection Strategy
 
