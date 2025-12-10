@@ -32,6 +32,7 @@ const envSchema = z.object({
     __CACHE_PATH_TERMS: z.coerce.number(),
     __CACHE_PATH_PRIVACY: z.coerce.number(),
     __CACHE_PATH_API_CONFIG: z.coerce.number(),
+    __CACHE_PATH_POLICY_TEXT: z.coerce.number(),
     __CACHE_THEME_VERSIONED: z.coerce.number(),
     __CACHE_THEME_UNVERSIONED: z.coerce.number(),
 });
@@ -123,6 +124,9 @@ function buildConfig(): AppConfig {
                 '/terms': env.__CACHE_PATH_TERMS,
                 '/privacy': env.__CACHE_PATH_PRIVACY,
                 '/api/config': env.__CACHE_PATH_API_CONFIG,
+                '/api/policies/privacy-policy/text': env.__CACHE_PATH_POLICY_TEXT,
+                '/api/policies/terms-of-service/text': env.__CACHE_PATH_POLICY_TEXT,
+                '/api/policies/cookie-policy/text': env.__CACHE_PATH_POLICY_TEXT,
             },
             themeVersioned: env.__CACHE_THEME_VERSIONED,
             themeUnversioned: env.__CACHE_THEME_UNVERSIONED,
