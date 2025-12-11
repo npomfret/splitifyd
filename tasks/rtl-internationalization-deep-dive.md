@@ -253,3 +253,172 @@ Focused scan for items still needing migration:
 1. **Target RTL language:** Arabic (ar) is recommended for testing as it's widely used and well-supported. Hebrew (he) or Persian (fa) are alternatives.
 2. **Sequencing with Ukrainian:** Should RTL work happen before, after, or in parallel with Ukrainian language support? Ukrainian is LTR, so the infrastructure work overlaps but RTL-specific work doesn't block it.
 3. **Browser support baseline:** CSS logical properties are well-supported in modern browsers but Safari < 15 has gaps. What's our browser support target?
+
+---
+
+## Implementation Plan (December 2024 Audit)
+
+### Audit Results Summary
+
+| Category | Status | Details |
+|----------|--------|---------|
+| **i18n Prerequisites** | ✅ COMPLETE | Dynamic language loading, locale-aware formatters already work |
+| **`dir` attribute switching** | ❌ NOT DONE | Critical missing piece |
+| **RTL language config** | ❌ NOT DONE | No RTL language in supported list |
+| **Text alignment migration** | ❌ NOT DONE | 40 occurrences across 21 files |
+| **Position class migration** | ❌ NOT DONE | 20 occurrences |
+| **Icon flipping** | ❌ NOT DONE | 3 directional icons need `rtl:-scale-x-100` |
+| **global.css** | ✅ SAFE | No physical properties found |
+
+### Phase 1: Infrastructure (Effort: Low)
+
+#### 1.1 Add `dir` attribute switching in App.tsx
+
+**File:** `webapp-v2/src/App.tsx`
+
+Add a `useEffect` hook to set `document.documentElement.dir` based on language:
+
+```typescript
+useEffect(() => {
+    document.documentElement.dir = i18n.dir();
+}, [i18n.language]);
+```
+
+#### 1.2 Add Arabic language support
+
+**File:** `webapp-v2/src/i18n.ts`
+
+- Add `'ar'` to the supported languages array
+- Ensure `loadLanguageBundle()` can load Arabic translations
+
+**File:** `webapp-v2/src/utils/languageDetection.ts`
+
+- Add Arabic locale mapping: `ar: 'ar-SA'` (or `ar-EG`)
+
+**File:** `webapp-v2/public/locales/ar/translation.json`
+
+- Create Arabic translation file (can start with English copy for testing layout)
+
+### Phase 2: CSS Migrations (Effort: Medium)
+
+#### 2.1 Text Alignment Classes (40 occurrences)
+
+**Migration:** `text-left` → `text-start`, `text-right` → `text-end`
+
+| File | Occurrences |
+|------|-------------|
+| `AdminDiagnosticsTab.tsx` | Multiple |
+| `AdminUsersTab.tsx` | Multiple |
+| `AdminFormSection.tsx` | 1 |
+| `PaletteColorsSection.tsx` | 1 |
+| `ActivityFeedCard.tsx` | 1 |
+| `CreateGroupModal.tsx` | 1 |
+| `EmptyGroupsState.tsx` | 1 |
+| `PayerSelector.tsx` | Multiple |
+| `SplitAmountInputs.tsx` | 1 |
+| `SplitBreakdown.tsx` | 1 |
+| `ExpenseItem.tsx` | 1 |
+| `GroupCurrencySettings.tsx` | Multiple |
+| `CustomPermissionsSection.tsx` | 1 |
+| `PermissionPresetsSection.tsx` | 1 |
+| `LanguageSwitcher.tsx` | 1 |
+| `UserMenu.tsx` | 1 |
+| `CurrencyAmountInput.tsx` | 1 |
+| `Skeleton.tsx` | 1 |
+| `TimeInput.tsx` | 1 |
+| `GroupActivityFeed.tsx` | 1 |
+| `ResetPasswordPage.tsx` | 1 |
+
+#### 2.2 Position Classes (20 occurrences)
+
+**Migration:** `left-*` → `start-*`, `right-*` → `end-*`
+
+| File | Current | Change To |
+|------|---------|-----------|
+| `ImageUploadField.tsx` | `right-2` (×2) | `end-2` |
+| `Select.tsx` | `right-0` | `end-0` |
+| `LanguageSwitcher.tsx` | `right-0` | `end-0` |
+| `CommentInput.tsx` | `right-2` | `end-2` |
+| `ExpenseDetailModal.tsx` | `right-2` | `end-2` |
+| `SplitBreakdown.tsx` | `-right-1` | `-end-1` |
+| `FloatingPasswordInput.tsx` | `right-0` | `end-0` |
+| `GroupCurrencySettings.tsx` | `left-0` | `start-0` |
+| `ShareGroupModal.tsx` | `right-2` | `end-2` |
+
+**Note:** Modal close buttons (`top-2 right-2`) should become `top-2 end-2`.
+
+### Phase 3: Icon Flipping (Effort: Low)
+
+**Files to modify:** `webapp-v2/src/components/ui/icons/`
+
+| Icon | Action |
+|------|--------|
+| `ChevronLeftIcon.tsx` | Add `rtl:-scale-x-100` to default className |
+| `ChevronRightIcon.tsx` | Add `rtl:-scale-x-100` to default className |
+| `ArrowRightIcon.tsx` | Add `rtl:-scale-x-100` to default className |
+
+**Implementation approach:** Modify the icon components to include RTL flip by default, or create a wrapper utility.
+
+```typescript
+// Option A: Add to each icon component
+export function ChevronRightIcon({ className = '', ...props }) {
+    return (
+        <svg className={`rtl:-scale-x-100 ${className}`} ...>
+            ...
+        </svg>
+    );
+}
+
+// Option B: Create a DirectionalIcon wrapper (if many icons need this)
+```
+
+### Phase 4: Testing (Effort: Medium)
+
+#### 4.1 Manual Testing Checklist
+
+With Arabic language enabled, verify:
+- [ ] Login/Registration pages
+- [ ] Dashboard layout
+- [ ] Group detail page
+- [ ] Expense creation modal
+- [ ] Settlement flow
+- [ ] Settings pages
+- [ ] Dropdown menus align correctly
+- [ ] Modal close buttons in correct corner
+- [ ] Icons point in correct direction
+
+#### 4.2 Playwright Visual Regression Tests
+
+Create RTL-specific tests in `webapp-v2/src/__tests__/integration/`:
+
+```typescript
+test.describe('RTL Layout', () => {
+    test.beforeEach(async ({ page }) => {
+        await page.evaluate(() => localStorage.setItem('language', 'ar'));
+    });
+
+    test('Dashboard renders correctly in RTL', async ({ page }) => {
+        await page.goto('/dashboard');
+        await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
+        await expect(page).toHaveScreenshot('dashboard-rtl.png');
+    });
+
+    test('Group detail page renders correctly in RTL', async ({ page }) => {
+        // Navigate to a group
+        await expect(page).toHaveScreenshot('group-detail-rtl.png');
+    });
+});
+```
+
+---
+
+## Execution Order
+
+1. **Phase 1.1** - Add `dir` attribute switching (required for anything else to work)
+2. **Phase 1.2** - Add Arabic language support (needed for testing)
+3. **Phase 2.1** - Migrate text alignment classes (bulk find-replace)
+4. **Phase 2.2** - Migrate position classes (careful review needed)
+5. **Phase 3** - Add icon flipping
+6. **Phase 4** - Testing and QA
+
+**Estimated total changes:** ~65 class modifications across ~25 files, plus 3-4 new/modified infrastructure files.
