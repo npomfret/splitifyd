@@ -16,14 +16,12 @@
  *   npx tsx scripts/sync-tenant-configs.ts http://localhost:6005 test1@test.com passwordpass --tenant-id staging-tenant
  *
  * Options:
- *   --default-only: Only sync the default tenant (isDefault: true)
- *   --tenant-id <id>: Only sync specific tenant by ID
- *   --skip-theme-publish: Skip theme publishing step
+ *   --default-only         Only sync the default tenant (isDefault: true)
+ *   --tenant-id <id>       Only sync specific tenant by ID
+ *   --skip-theme-publish   Skip theme publishing step
  */
 import {
     type AdminUpsertTenantRequest,
-    type ClientAppConfiguration,
-    SIGN_IN_WITH_PASSWORD_ENDPOINT,
     toShowMarketingContentFlag,
     toShowPricingPageFlag,
     toTenantAccentColor,
@@ -33,9 +31,10 @@ import {
     toTenantPrimaryColor,
     toTenantSecondaryColor,
 } from '@billsplit-wl/shared';
-import { ApiDriver, type ApiDriverConfig, emulatorHostingURL } from '@billsplit-wl/test-support';
+import { ApiDriver, emulatorHostingURL } from '@billsplit-wl/test-support';
 import * as fs from 'fs';
 import * as path from 'path';
+import { createAdminContext, parseBaseCliArgs, showUsageAndExit } from './lib/admin-cli';
 import { getTenantDirectory, loadAllTenantConfigs, loadTenantConfig, type TenantConfigFile } from './lib/load-tenant-configs';
 
 interface SyncTenantOptions {
@@ -170,80 +169,6 @@ async function uploadAssetIfLocal(
     }
 
     return urlOrPath;
-}
-
-/**
- * Fetch Firebase API key from the app's bootstrap-config endpoint.
- */
-async function fetchApiKey(baseUrl: string): Promise<string> {
-    const apiUrl = baseUrl.endsWith('/') ? `${baseUrl}api` : `${baseUrl}/api`;
-    console.log(`🔑 Fetching API key from ${apiUrl}/bootstrap-config...`);
-
-    const configResponse = await fetch(`${apiUrl}/bootstrap-config`);
-    if (!configResponse.ok) {
-        throw new Error(`Failed to fetch config from ${apiUrl}/bootstrap-config: ${configResponse.status} ${configResponse.statusText}`);
-    }
-
-    const appConfig: ClientAppConfiguration = await configResponse.json();
-    return appConfig.firebase.apiKey;
-}
-
-/**
- * Authenticate with email/password via Firebase REST API.
- */
-async function authenticateWithCredentials(
-    apiDriver: ApiDriver,
-    email: string,
-    password: string,
-): Promise<string> {
-    const config = (apiDriver as any).config as ApiDriverConfig;
-    const signInResponse = await fetch(`${config.authBaseUrl}${SIGN_IN_WITH_PASSWORD_ENDPOINT}?key=${config.firebaseApiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            email,
-            password,
-            returnSecureToken: true,
-        }),
-    });
-
-    if (!signInResponse.ok) {
-        const error = (await signInResponse.json()) as { error?: { message?: string; }; };
-        throw new Error(`Authentication failed: ${error.error?.message || 'Unknown error'}`);
-    }
-
-    const authData = (await signInResponse.json()) as { idToken: string; };
-    return authData.idToken;
-}
-
-/**
- * Create ApiDriver from base URL by fetching config from bootstrap-config endpoint.
- */
-async function createApiDriverFromUrl(baseUrl: string): Promise<ApiDriver> {
-    const apiKey = await fetchApiKey(baseUrl);
-    const apiUrl = baseUrl.endsWith('/') ? `${baseUrl}api` : `${baseUrl}/api`;
-
-    // Determine auth base URL - use emulator auth if localhost, otherwise production
-    const isLocalhost = baseUrl.includes('localhost') || baseUrl.includes('127.0.0.1');
-
-    // For localhost, we need to fetch the full config to get the auth emulator URL
-    let authBaseUrl = 'https://identitytoolkit.googleapis.com';
-    if (isLocalhost) {
-        const configResponse = await fetch(`${apiUrl}/bootstrap-config`);
-        if (configResponse.ok) {
-            const appConfig: ClientAppConfiguration = await configResponse.json();
-            if (appConfig.firebaseAuthUrl) {
-                authBaseUrl = `${appConfig.firebaseAuthUrl}/identitytoolkit.googleapis.com`;
-            }
-        }
-    }
-
-    const driverConfig: ApiDriverConfig = {
-        baseUrl: apiUrl,
-        firebaseApiKey: apiKey,
-        authBaseUrl,
-    };
-    return new ApiDriver(driverConfig);
 }
 
 /**
@@ -384,61 +309,46 @@ interface CliOptions {
 }
 
 function parseArgs(): CliOptions {
-    const args = process.argv.slice(2);
+    const parsed = parseBaseCliArgs(process.argv.slice(2));
 
-    // Parse flags
-    let tenantId: string | undefined;
-    let defaultOnly = false;
-    let skipThemePublish = false;
-    const positionalArgs: string[] = [];
-
-    for (let i = 0; i < args.length; i++) {
-        if (args[i] === '--tenant-id' && i + 1 < args.length) {
-            tenantId = args[++i];
-        } else if (args[i] === '--default-only') {
-            defaultOnly = true;
-        } else if (args[i] === '--skip-theme-publish') {
-            skipThemePublish = true;
-        } else if (!args[i].startsWith('--')) {
-            positionalArgs.push(args[i]);
-        }
+    if (!parsed) {
+        showUsageAndExit(
+            'sync-tenant-configs.ts',
+            'Sync tenant configurations from docs/tenants/ to Firestore via API.',
+            [
+                'npx tsx scripts/sync-tenant-configs.ts http://localhost:6005 test1@test.com passwordpass',
+                'npx tsx scripts/sync-tenant-configs.ts https://splitifyd.web.app admin@example.com yourpassword',
+                'npx tsx scripts/sync-tenant-configs.ts http://localhost:6005 test1@test.com passwordpass --tenant-id staging-tenant',
+            ],
+            [
+                { flag: '--default-only', desc: 'Only sync the default tenant' },
+                { flag: '--tenant-id <id>', desc: 'Only sync specific tenant by ID' },
+                { flag: '--skip-theme-publish', desc: 'Skip theme publishing step' },
+            ],
+        );
     }
 
-    const [baseUrl, email, password] = positionalArgs;
+    const tenantId = parsed.flags.get('tenant-id');
 
-    if (!baseUrl || !email || !password) {
-        console.error('Usage: npx tsx scripts/sync-tenant-configs.ts <base-url> <email> <password> [options]');
-        console.error('');
-        console.error('Examples:');
-        console.error('  npx tsx scripts/sync-tenant-configs.ts http://localhost:6005 test1@test.com passwordpass');
-        console.error('  npx tsx scripts/sync-tenant-configs.ts https://splitifyd.web.app admin@example.com yourpassword');
-        console.error('  npx tsx scripts/sync-tenant-configs.ts http://localhost:6005 test1@test.com passwordpass --tenant-id staging-tenant');
-        console.error('');
-        console.error('Options:');
-        console.error('  --default-only         Only sync the default tenant');
-        console.error('  --tenant-id <id>       Only sync specific tenant by ID');
-        console.error('  --skip-theme-publish   Skip theme publishing step');
-        process.exit(1);
-    }
-
-    return { baseUrl, email, password, tenantId, defaultOnly, skipThemePublish };
+    return {
+        ...parsed.config,
+        tenantId: typeof tenantId === 'string' ? tenantId : undefined,
+        defaultOnly: parsed.flags.has('default-only'),
+        skipThemePublish: parsed.flags.has('skip-theme-publish'),
+    };
 }
 
 async function main(): Promise<void> {
-    const options = parseArgs();
-    const { baseUrl, email, password, tenantId, defaultOnly, skipThemePublish } = options;
+    const { baseUrl, email, password, tenantId, defaultOnly, skipThemePublish } = parseArgs();
 
     console.log(`🎯 Syncing tenant configs to ${baseUrl}`);
 
-    // Create ApiDriver from base URL
-    const apiDriver = await createApiDriverFromUrl(baseUrl);
-
-    // Authenticate with provided credentials
+    // Create authenticated context
     console.log(`🔑 Authenticating as ${email}...`);
-    const token = await authenticateWithCredentials(apiDriver, email, password);
+    const { apiDriver, adminToken } = await createAdminContext({ baseUrl, email, password });
     console.log('   ✓ Authenticated');
 
-    await syncTenantConfigs(apiDriver, token, { defaultOnly, tenantId, skipThemePublish });
+    await syncTenantConfigs(apiDriver, adminToken, { defaultOnly, tenantId, skipThemePublish });
 
     console.log('✅ Tenant sync complete');
 }

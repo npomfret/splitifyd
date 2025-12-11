@@ -72,17 +72,27 @@ case "$OPERATION" in
     seed-policies)
         if [[ -z "${2:-}" ]] || [[ -z "${3:-}" ]]; then
             echo "❌ Error: Email and password required for seed-policies"
-            echo "Usage: $0 seed-policies <email> <password>"
+            echo "Usage: $0 seed-policies <email> <password> [policy-id]"
             echo ""
             echo "Example:"
-            echo "  $0 seed-policies admin@example.com mypassword"
+            echo "  $0 seed-policies admin@example.com mypassword                    # Seed all policies"
+            echo "  $0 seed-policies admin@example.com mypassword terms-of-service   # Seed specific policy"
+            echo ""
+            echo "Valid policy IDs: terms-of-service, cookie-policy, privacy-policy"
             exit 1
         fi
         ADMIN_EMAIL="$2"
         ADMIN_PASSWORD="$3"
+        POLICY_ID="${4:-}"
 
         echo "🌱 Seeding policy documents to staging..."
-        tsx scripts/seed-policies.ts https://splitifyd.web.app "$ADMIN_EMAIL" "$ADMIN_PASSWORD"
+        if [[ -n "$POLICY_ID" ]]; then
+            echo "  📄 Seeding policy: $POLICY_ID..."
+            tsx scripts/seed-policies.ts https://splitifyd.web.app "$ADMIN_EMAIL" "$ADMIN_PASSWORD" --policy-id "$POLICY_ID"
+        else
+            echo "  📄 Seeding ALL policies..."
+            tsx scripts/seed-policies.ts https://splitifyd.web.app "$ADMIN_EMAIL" "$ADMIN_PASSWORD"
+        fi
         echo "✅ Policies seeded"
         ;;
 
