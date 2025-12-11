@@ -541,6 +541,18 @@ export class TenantEditorModalPage extends BasePage {
         await expect(this.getModalHeading()).toBeVisible();
     }
 
+    /**
+     * Waits for the modal to open AND for the form to be populated with the specified tenant's data.
+     * Use this instead of verifyModalIsOpen() when you need to verify form values afterward,
+     * as the form data loads asynchronously after the modal becomes visible.
+     */
+    async verifyModalIsOpenWithTenant(expectedAppName: string): Promise<void> {
+        await expect(this.getModal()).toBeVisible();
+        await expect(this.getModalHeading()).toBeVisible();
+        // Wait for the form to be populated with the tenant's data
+        await expect(this.getAppNameInput()).toHaveValue(expectedAppName);
+    }
+
     async verifyModalIsClosed(): Promise<void> {
         // Modal closes after 1.5s delay to show success message
         await this.waitForModalToBeHidden();

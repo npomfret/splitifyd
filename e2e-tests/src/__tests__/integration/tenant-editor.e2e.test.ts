@@ -88,10 +88,9 @@ test.describe('Tenant editor', () => {
             await adminTenantsPage.verifyTenantCardVisible(updatedName);
 
             const tenantEditorModal2 = await adminTenantsPage.clickEditButtonForFirstTenant();
-            await tenantEditorModal2.verifyModalIsOpen();
+            await tenantEditorModal2.verifyModalIsOpenWithTenant(updatedName);
 
             // Verify values persisted
-            await tenantEditorModal2.verifyAppNameValue(updatedName);
             await tenantEditorModal2.verifyPrimaryColorValue('#2563eb');
 
             await tenantEditorModal2.clickClose();
@@ -130,7 +129,8 @@ test.describe('Tenant editor', () => {
 
             // Verify all persisted
             const tenantEditorModal2 = await adminTenantsPage.clickEditButtonForFirstTenant();
-            await tenantEditorModal2.verifyModalIsOpen();
+            const expectedAppName = `MultiColor ${tenantId.slice(-6)}`;
+            await tenantEditorModal2.verifyModalIsOpenWithTenant(expectedAppName);
 
             await tenantEditorModal2.verifyPrimaryColorValue('#1a2b3c');
             await tenantEditorModal2.verifySecondaryColorValue('#4d5e6f');
@@ -177,7 +177,8 @@ test.describe('Tenant editor', () => {
 
             // Verify persisted
             const tenantEditorModal2 = await adminTenantsPage.clickEditButtonForFirstTenant();
-            await tenantEditorModal2.verifyModalIsOpen();
+            const expectedAppName = `Fonts ${tenantId.slice(-6)}`;
+            await tenantEditorModal2.verifyModalIsOpenWithTenant(expectedAppName);
 
             // Switch to Advanced mode to access Typography section
             await tenantEditorModal2.switchToAdvancedMode();
@@ -264,8 +265,9 @@ test.describe('Tenant editor', () => {
             await tenantEditorModal.verifyModalIsClosed();
 
             // Verify persisted
+            const expectedAppName = `Marketing ${tenantId.slice(-6)}`;
             const tenantEditorModal2 = await adminTenantsPage.clickEditButtonForFirstTenant();
-            await tenantEditorModal2.verifyModalIsOpen();
+            await tenantEditorModal2.verifyModalIsOpenWithTenant(expectedAppName);
 
             await tenantEditorModal2.verifyShowMarketingContentChecked(false);
             await tenantEditorModal2.verifyShowPricingPageChecked(false);
@@ -279,7 +281,7 @@ test.describe('Tenant editor', () => {
 
             // Verify again
             const tenantEditorModal3 = await adminTenantsPage.clickEditButtonForFirstTenant();
-            await tenantEditorModal3.verifyModalIsOpen();
+            await tenantEditorModal3.verifyModalIsOpenWithTenant(expectedAppName);
 
             await tenantEditorModal3.verifyShowMarketingContentChecked(true);
             await tenantEditorModal3.verifyShowPricingPageChecked(true);
