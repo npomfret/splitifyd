@@ -140,7 +140,7 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
             open={true}
             onClose={onClose}
             size='lg'
-            className='max-w-4xl max-h-[90vh] flex flex-col'
+            className='max-w-4xl max-h-[calc(100vh-4rem)] flex flex-col'
             labelledBy={titleId}
             describedBy={subtitleId}
             data-testid='policy-modal-overlay'
