@@ -53,7 +53,7 @@ test.describe('Dashboard Groups Grid Layout and Interactions', () => {
         await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard');
-        await dashboardPage.waitForGroupsToLoad();
+        await dashboardPage.waitForGroupToAppear('Test Group 1');
 
         // Verify grid layout
         await dashboardPage.verifyGroupsGridVisible();
@@ -102,9 +102,7 @@ test.describe('Dashboard Groups Grid Layout and Interactions', () => {
         await mockGroupCommentsApi(page, 'interactive-group');
 
         await page.goto('/dashboard');
-        await dashboardPage.waitForGroupsToLoad();
-
-        await dashboardPage.verifyGroupDisplayed('Interactive Group');
+        await dashboardPage.waitForGroupToAppear('Interactive Group');
         await dashboardPage.hoverGroupCard('Interactive Group');
 
         // Test click interaction and verify navigation using fluent method
@@ -141,12 +139,8 @@ test.describe('Dashboard Group Removal and Deletion', () => {
         await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard');
-        await dashboardPage.waitForGroupsToLoad();
-
-        // Verify both groups are displayed
-        await dashboardPage.verifyGroupsDisplayed(2);
-        await dashboardPage.verifyGroupDisplayed('Will Be Removed');
-        await dashboardPage.verifyGroupDisplayed('Will Stay');
+        await dashboardPage.waitForGroupToAppear('Will Be Removed');
+        await dashboardPage.waitForGroupToAppear('Will Stay');
 
         // Setup new response without the removed group
         await page.unroute('/api/groups?includeMetadata=true');
@@ -178,7 +172,7 @@ test.describe('Dashboard Group Removal and Deletion', () => {
 
         // Verify removed group disappears
         await dashboardPage.waitForGroupToDisappear('Will Be Removed');
-        await dashboardPage.verifyGroupDisplayed('Will Stay');
+        await dashboardPage.waitForGroupToAppear('Will Stay');
         await dashboardPage.verifyGroupsDisplayed(1);
     });
 
@@ -208,12 +202,8 @@ test.describe('Dashboard Group Removal and Deletion', () => {
         await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard');
-        await dashboardPage.waitForGroupsToLoad();
-
-        // Verify both groups are displayed
-        await dashboardPage.verifyGroupsDisplayed(2);
-        await dashboardPage.verifyGroupDisplayed('Will Be Deleted');
-        await dashboardPage.verifyGroupDisplayed('Will Survive');
+        await dashboardPage.waitForGroupToAppear('Will Be Deleted');
+        await dashboardPage.waitForGroupToAppear('Will Survive');
 
         // Setup new response without the deleted group
         await page.unroute('/api/groups?includeMetadata=true');
@@ -245,7 +235,7 @@ test.describe('Dashboard Group Removal and Deletion', () => {
 
         // Verify deleted group disappears
         await dashboardPage.waitForGroupToDisappear('Will Be Deleted');
-        await dashboardPage.verifyGroupDisplayed('Will Survive');
+        await dashboardPage.waitForGroupToAppear('Will Survive');
         await dashboardPage.verifyGroupsDisplayed(1);
     });
 
@@ -269,11 +259,7 @@ test.describe('Dashboard Group Removal and Deletion', () => {
         await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard');
-        await dashboardPage.waitForGroupsToLoad();
-
-        // Verify group is displayed
-        await dashboardPage.verifyGroupsDisplayed(1);
-        await dashboardPage.verifyGroupDisplayed('Only Group');
+        await dashboardPage.waitForGroupToAppear('Only Group');
 
         // Setup empty groups response
         await page.unroute('/api/groups?includeMetadata=true');
@@ -341,10 +327,9 @@ test.describe('Dashboard Group Removal and Deletion', () => {
         await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard');
-        await dashboardPage.waitForGroupsToLoad();
-
-        // Verify all groups are displayed
-        await dashboardPage.verifyGroupsDisplayed(3);
+        await dashboardPage.waitForGroupToAppear('Group One');
+        await dashboardPage.waitForGroupToAppear('Group Two');
+        await dashboardPage.waitForGroupToAppear('Group Three');
 
         // Setup response with only one group remaining
         await page.unroute('/api/groups?includeMetadata=true');
@@ -388,7 +373,7 @@ test.describe('Dashboard Group Removal and Deletion', () => {
         // Verify removed groups disappear
         await dashboardPage.waitForGroupToDisappear('Group One');
         await dashboardPage.waitForGroupToDisappear('Group Two');
-        await dashboardPage.verifyGroupDisplayed('Group Three');
+        await dashboardPage.waitForGroupToAppear('Group Three');
         await dashboardPage.verifyGroupsDisplayed(1);
     });
 });

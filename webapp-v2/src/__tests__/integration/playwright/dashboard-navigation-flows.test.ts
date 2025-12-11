@@ -22,7 +22,7 @@ test.describe('Dashboard Navigation Flows', () => {
         await mockActivityFeedApi(page, []);
 
         await dashboardPage.navigate();
-        await dashboardPage.waitForGroupsToLoad();
+        await dashboardPage.waitForGroupToAppear('Test Group');
 
         // Click group card
         await dashboardPage.clickGroupCard('Test Group');
@@ -50,7 +50,7 @@ test.describe('Dashboard Navigation Flows', () => {
         await mockActivityFeedApi(page, []);
 
         await dashboardPage.navigate();
-        await dashboardPage.waitForGroupsToLoad();
+        await dashboardPage.waitForGroupToAppear('Test Group');
 
         // Navigate to group detail
         await dashboardPage.clickGroupCard('Test Group');
@@ -90,7 +90,8 @@ test.describe('Dashboard Navigation Flows', () => {
         await mockGenerateShareLinkApi(page, 'group-1');
 
         await dashboardPage.navigate();
-        await dashboardPage.waitForGroupsToLoad();
+        await dashboardPage.waitForGroupToAppear('Group 1');
+        await dashboardPage.waitForGroupToAppear('Group 2');
 
         // Open and close share modal
         const shareModal = await dashboardPage.clickGroupCardInviteButton('Group 1');
@@ -99,8 +100,8 @@ test.describe('Dashboard Navigation Flows', () => {
 
         // Verify dashboard still shows all groups
         await dashboardPage.verifyGroupsDisplayed(2);
-        await dashboardPage.verifyGroupDisplayed('Group 1');
-        await dashboardPage.verifyGroupDisplayed('Group 2');
+        await dashboardPage.waitForGroupToAppear('Group 1');
+        await dashboardPage.waitForGroupToAppear('Group 2');
     });
 
     test('should update URL correctly when navigating', async ({ authenticatedPage }) => {

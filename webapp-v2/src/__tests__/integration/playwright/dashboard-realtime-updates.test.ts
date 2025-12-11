@@ -32,8 +32,7 @@ test.describe('Dashboard Real-time Notifications', () => {
         );
         await mockActivityFeedApi(page, []);
         await page.goto('/dashboard');
-        await dashboardPage.waitForGroupsToLoad();
-        await dashboardPage.verifyGroupDisplayed('Test Group');
+        await dashboardPage.waitForGroupToAppear('Test Group');
 
         // Setup updated response
         await page.unroute((routeUrl) => {
@@ -95,7 +94,8 @@ test.describe('Dashboard Real-time Notifications', () => {
         );
         await mockActivityFeedApi(page, []);
         await page.goto('/dashboard');
-        await dashboardPage.waitForGroupsToLoad();
+        await dashboardPage.waitForGroupToAppear('Group One');
+        await dashboardPage.waitForGroupToAppear('Group Two');
 
         // Send multiple rapid notifications
         await page.unroute((routeUrl) => {
@@ -164,7 +164,7 @@ test.describe('Dashboard Real-time Notifications', () => {
         );
         await mockActivityFeedApi(page, []);
         await page.goto('/dashboard');
-        await dashboardPage.waitForGroupsToLoad();
+        await dashboardPage.waitForGroupToAppear('Valid Group');
 
         // Send initial activity to ensure subscription is active
         await mockFirebase.emitActivityFeedItems(
@@ -217,6 +217,6 @@ test.describe('Dashboard Real-time Notifications', () => {
         );
 
         // Verify dashboard remains stable despite malformed/invalid notifications
-        await dashboardPage.verifyGroupDisplayed('Valid Group');
+        await dashboardPage.waitForGroupToAppear('Valid Group');
     });
 });

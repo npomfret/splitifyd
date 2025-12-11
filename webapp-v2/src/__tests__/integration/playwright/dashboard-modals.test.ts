@@ -24,7 +24,7 @@ test.describe('Dashboard Create Group Functionality', () => {
         await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard');
-        await dashboardPage.waitForGroupsToLoad();
+        await dashboardPage.waitForGroupToAppear('Existing Group');
 
         // Click create group button - fluent interface returns modal
         const createGroupModal = await dashboardPage.clickCreateGroup();
@@ -65,7 +65,7 @@ test.describe('Dashboard Create Group Functionality', () => {
             await mockActivityFeedApi(page, []);
 
             await page.goto('/dashboard');
-            await dashboardPage.waitForGroupsToLoad();
+            await dashboardPage.waitForGroupToAppear('Existing Group');
 
             const createGroupModal = await dashboardPage.clickCreateGroup();
             await createGroupModal.fillGroupName(testCase.input);
@@ -89,7 +89,7 @@ test.describe('Dashboard Create Group Functionality', () => {
         await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard');
-        await dashboardPage.waitForGroupsToLoad();
+        await dashboardPage.waitForGroupToAppear('Existing Group');
 
         const createGroupModal = await dashboardPage.clickCreateGroup();
 
@@ -128,7 +128,7 @@ test.describe('Dashboard Create Group Functionality', () => {
             await mockActivityFeedApi(page, []);
 
             await page.goto('/dashboard');
-            await dashboardPage.waitForGroupsToLoad();
+            await dashboardPage.waitForGroupToAppear('Existing Group');
 
             const createGroupModal = await dashboardPage.clickCreateGroup();
             await createGroupModal.verifyModalOpen();
@@ -158,7 +158,7 @@ test.describe('Dashboard Create Group Functionality', () => {
         await mockActivityFeedApi(page, []);
 
         await dashboardPage.navigate();
-        await dashboardPage.waitForGroupsToLoad();
+        await dashboardPage.waitForGroupToAppear('Existing Group');
 
         // First opening
         const createGroupModal1 = await dashboardPage.clickCreateGroup();
@@ -189,7 +189,6 @@ test.describe('Dashboard Create Group Functionality', () => {
         await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard');
-        await dashboardPage.waitForGroupsToLoad();
         await dashboardPage.verifyEmptyGroupsState();
 
         // The empty state should have a create group button
@@ -218,7 +217,7 @@ test.describe('Dashboard Create Group Functionality', () => {
         await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard');
-        await dashboardPage.waitForGroupsToLoad();
+        await dashboardPage.waitForGroupToAppear('Existing Group');
 
         const createGroupModal = await dashboardPage.clickCreateGroup();
 
@@ -249,7 +248,7 @@ test.describe('Dashboard Create Group Functionality', () => {
         await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard');
-        await dashboardPage.waitForGroupsToLoad();
+        await dashboardPage.waitForGroupToAppear('Existing Group');
 
         const createGroupModal = await dashboardPage.clickCreateGroup();
 
@@ -283,7 +282,7 @@ test.describe('Dashboard Create Group Functionality', () => {
         await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard');
-        await dashboardPage.waitForGroupsToLoad();
+        await dashboardPage.waitForGroupToAppear('Existing Group');
 
         const createGroupModal = await dashboardPage.clickCreateGroup();
 
@@ -329,7 +328,7 @@ test.describe('Dashboard Share Group Modal', () => {
         await mockGenerateShareLinkApi(page, 'group-123');
 
         await dashboardPage.navigate();
-        await dashboardPage.waitForGroupsToLoad();
+        await dashboardPage.waitForGroupToAppear('Test Group');
 
         // Click invite button on group card - fluent method returns modal page
         const shareModal = await dashboardPage.clickGroupCardInviteButton('Test Group');
@@ -358,7 +357,7 @@ test.describe('Dashboard Share Group Modal', () => {
         await mockGenerateShareLinkApi(page, 'group-123', 'test-token-abc');
 
         await dashboardPage.navigate();
-        await dashboardPage.waitForGroupsToLoad();
+        await dashboardPage.waitForGroupToAppear('Test Group');
 
         const shareModal = await dashboardPage.clickGroupCardInviteButton('Test Group');
 
@@ -390,7 +389,7 @@ test.describe('Dashboard Share Group Modal', () => {
         await mockGenerateShareLinkApi(page, 'group-123');
 
         await dashboardPage.navigate();
-        await dashboardPage.waitForGroupsToLoad();
+        await dashboardPage.waitForGroupToAppear('Test Group');
 
         const shareModal = await dashboardPage.clickGroupCardInviteButton('Test Group');
         await shareModal.verifyModalOpen();
@@ -422,7 +421,7 @@ test.describe('Dashboard Share Group Modal', () => {
         await mockGenerateShareLinkApi(page, 'group-123');
 
         await dashboardPage.navigate();
-        await dashboardPage.waitForGroupsToLoad();
+        await dashboardPage.waitForGroupToAppear('Test Group');
 
         const shareModal = await dashboardPage.clickGroupCardInviteButton('Test Group');
 
@@ -453,7 +452,7 @@ test.describe('Dashboard Share Group Modal', () => {
         await mockGenerateShareLinkApi(page, 'group-123');
 
         await dashboardPage.navigate();
-        await dashboardPage.waitForGroupsToLoad();
+        await dashboardPage.waitForGroupToAppear('Test Group');
 
         const shareModal = await dashboardPage.clickGroupCardInviteButton('Test Group');
         await shareModal.verifyModalOpen();
@@ -488,7 +487,7 @@ test.describe('Dashboard Share Group Modal', () => {
         await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
 
         await dashboardPage.navigate();
-        await dashboardPage.waitForGroupsToLoad();
+        await dashboardPage.waitForGroupToAppear('Test Group');
 
         const shareModal = await dashboardPage.clickGroupCardInviteButton('Test Group');
         await shareModal.verifyShareLinkDisplayed();
@@ -525,7 +524,7 @@ test.describe('Dashboard Share Group Modal', () => {
         await mockGenerateShareLinkApi(page, 'group-123', 'first-token');
 
         await dashboardPage.navigate();
-        await dashboardPage.waitForGroupsToLoad();
+        await dashboardPage.waitForGroupToAppear('Test Group');
 
         const shareModal = await dashboardPage.clickGroupCardInviteButton('Test Group');
         await shareModal.verifyShareLinkDisplayed();
@@ -564,7 +563,7 @@ test.describe('Dashboard Share Group Modal', () => {
         await mockApiFailure(page, `/api/groups/group-123/share-link`, 500, { error: { code: 'SHARE_LINK_FAILED', message: 'Failed to generate share link' } });
 
         await dashboardPage.navigate();
-        await dashboardPage.waitForGroupsToLoad();
+        await dashboardPage.waitForGroupToAppear('Test Group');
 
         // Use NoWait version since we expect API failure, not successful share link generation
         const shareModal = await dashboardPage.clickGroupCardInviteButtonNoWait('Test Group');
@@ -595,7 +594,7 @@ test.describe('Dashboard Share Group Modal', () => {
         await mockGenerateShareLinkApi(page, 'group-123', 'delayed-token', { delayMs: 100 });
 
         await dashboardPage.navigate();
-        await dashboardPage.waitForGroupsToLoad();
+        await dashboardPage.waitForGroupToAppear('Test Group');
 
         // Use NoWait version to catch the loading state before it completes
         const shareModal = await dashboardPage.clickGroupCardInviteButtonNoWait('Test Group');

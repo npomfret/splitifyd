@@ -444,7 +444,7 @@ test.describe('Group Settings - Currency Settings', () => {
 
         // Navigate to dashboard
         await page.goto('/dashboard');
-        await dashboardPage.waitForGroupsToLoad();
+        await dashboardPage.verifyEmptyGroupsState();
 
         // Open create group modal
         const createGroupModal = await dashboardPage.clickCreateGroup();

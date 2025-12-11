@@ -24,7 +24,7 @@ test.describe('Dashboard Groups Pagination', () => {
         await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard');
-        await dashboardPage.waitForGroupsToLoad();
+        await dashboardPage.waitForGroupToAppear('Group 1');
 
         await dashboardPage.verifyGroupsDisplayed(5);
         await dashboardPage.verifyPaginationHidden();
@@ -52,7 +52,7 @@ test.describe('Dashboard Groups Pagination', () => {
         await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard');
-        await dashboardPage.waitForGroupsToLoad();
+        await dashboardPage.waitForGroupToAppear('Group 1');
 
         await dashboardPage.verifyGroupsDisplayed(8);
         await dashboardPage.verifyPaginationVisible();
@@ -82,7 +82,7 @@ test.describe('Dashboard Groups Pagination', () => {
         await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard');
-        await dashboardPage.waitForGroupsToLoad();
+        await dashboardPage.waitForGroupToAppear('Page 1 Group 1');
         await dashboardPage.verifyGroupsDisplayed(8);
 
         const page2Groups = Array.from({ length: 8 }, (_, i) =>
@@ -104,7 +104,7 @@ test.describe('Dashboard Groups Pagination', () => {
 
         await dashboardPage.clickPaginationNext();
 
-        await dashboardPage.verifyGroupDisplayed('Page 2 Group 1');
+        await dashboardPage.waitForGroupToAppear('Page 2 Group 1');
         await dashboardPage.verifyGroupsDisplayed(8);
 
         await dashboardPage.verifyPaginationPreviousEnabled();
@@ -134,7 +134,7 @@ test.describe('Dashboard Groups Pagination', () => {
         await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard');
-        await dashboardPage.waitForGroupsToLoad();
+        await dashboardPage.waitForGroupToAppear('Page 1 Group 1');
 
         const page2Groups = Array.from({ length: 5 }, (_, i) =>
             GroupDTOBuilder
@@ -155,7 +155,7 @@ test.describe('Dashboard Groups Pagination', () => {
 
         await dashboardPage.clickPaginationNext();
 
-        await dashboardPage.verifyGroupDisplayed('Page 2 Group 1');
+        await dashboardPage.waitForGroupToAppear('Page 2 Group 1');
         await dashboardPage.verifyGroupsDisplayed(5);
 
         // Setup new handler for going back to page 1
@@ -171,7 +171,7 @@ test.describe('Dashboard Groups Pagination', () => {
 
         await dashboardPage.clickPaginationPrevious();
 
-        await dashboardPage.verifyGroupDisplayed('Page 1 Group 1');
+        await dashboardPage.waitForGroupToAppear('Page 1 Group 1');
         await dashboardPage.verifyGroupsDisplayed(8);
 
         await dashboardPage.verifyPaginationPreviousDisabled();
@@ -200,7 +200,7 @@ test.describe('Dashboard Groups Pagination', () => {
         await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard');
-        await dashboardPage.waitForGroupsToLoad();
+        await dashboardPage.waitForGroupToAppear('Last Page Group 1');
 
         await dashboardPage.verifyGroupsDisplayed(3);
         await dashboardPage.verifyPaginationHidden();
@@ -228,7 +228,7 @@ test.describe('Dashboard Groups Pagination', () => {
         await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard');
-        await dashboardPage.waitForGroupsToLoad();
+        await dashboardPage.waitForGroupToAppear('Page 1 Group 1');
 
         const page2Groups = Array.from({ length: 8 }, (_, i) =>
             GroupDTOBuilder
@@ -258,7 +258,7 @@ test.describe('Dashboard Groups Pagination', () => {
         await clickPromise;
 
         // After loading, verify we're on page 2
-        await dashboardPage.verifyGroupDisplayed('Page 2 Group 1');
+        await dashboardPage.waitForGroupToAppear('Page 2 Group 1');
     });
 
     test('should reset to page 1 after creating new group', async ({ authenticatedPage }) => {
@@ -283,7 +283,7 @@ test.describe('Dashboard Groups Pagination', () => {
         await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard');
-        await dashboardPage.waitForGroupsToLoad();
+        await dashboardPage.waitForGroupToAppear('Page 1 Group 1');
 
         const page2Groups = Array.from({ length: 5 }, (_, i) =>
             GroupDTOBuilder
@@ -303,7 +303,7 @@ test.describe('Dashboard Groups Pagination', () => {
         await mockActivityFeedApi(page, []);
 
         await dashboardPage.clickPaginationNext();
-        await dashboardPage.verifyGroupDisplayed('Page 2 Group 1');
+        await dashboardPage.waitForGroupToAppear('Page 2 Group 1');
 
         const newGroup = GroupDTOBuilder
             .groupForUser(user.uid)
@@ -334,7 +334,7 @@ test.describe('Dashboard Groups Pagination', () => {
         await page.waitForURL(/\/groups\/new-group/);
         await page.goBack();
 
-        await dashboardPage.verifyGroupDisplayed('New Group');
+        await dashboardPage.waitForGroupToAppear('New Group');
         await dashboardPage.verifyPaginationIndicatorEquals('Page 1');
     });
 
@@ -384,7 +384,7 @@ test.describe('Dashboard Pagination Mobile View', () => {
         await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard');
-        await dashboardPage.waitForGroupsToLoad();
+        await dashboardPage.waitForGroupToAppear('Group 1');
 
         await dashboardPage.verifyPaginationNextMobileEnabled();
         await dashboardPage.verifyPaginationPreviousMobileDisabled();

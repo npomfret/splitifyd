@@ -76,8 +76,8 @@ test.describe('Dashboard Groups Display and Loading States', () => {
         // Verify loading state appears while API is delayed
         await dashboardPage.verifyGroupsLoading();
 
-        // Wait for groups to finish loading
-        await dashboardPage.waitForGroupsToLoad();
+        // Wait for empty state to appear (since no groups were mocked)
+        await dashboardPage.verifyEmptyGroupsState();
     });
 
     test('should display multiple groups correctly', async ({ authenticatedPage }) => {
@@ -115,9 +115,9 @@ test.describe('Dashboard Groups Display and Loading States', () => {
 
         // Verify all groups are displayed
         await dashboardPage.verifyGroupsDisplayed(3);
-        await dashboardPage.verifyGroupDisplayed('House Expenses');
-        await dashboardPage.verifyGroupDisplayed('Trip to Italy');
-        await dashboardPage.verifyGroupDisplayed('Weekly Dinners');
+        await dashboardPage.waitForGroupToAppear('House Expenses');
+        await dashboardPage.waitForGroupToAppear('Trip to Italy');
+        await dashboardPage.waitForGroupToAppear('Weekly Dinners');
     });
 
     test('should show empty state for new users with no groups', async ({ authenticatedPage }) => {
@@ -135,8 +135,7 @@ test.describe('Dashboard Groups Display and Loading States', () => {
 
         await page.goto('/dashboard');
 
-        // Wait for groups to load and verify empty state
-        await dashboardPage.waitForGroupsToLoad();
+        // Verify empty state directly (no need for separate load wait)
         await dashboardPage.verifyEmptyGroupsState();
         await dashboardPage.waitForWelcomeMessage();
     });
@@ -159,9 +158,8 @@ test.describe('Dashboard Groups Display and Loading States', () => {
         await mockActivityFeedApi(page, []);
         await page.goto('/dashboard');
 
-        // Wait for groups to load
-        await dashboardPage.waitForGroupsToLoad();
-        await dashboardPage.verifyGroupDisplayed('Test Group');
+        // Wait for specific group to appear
+        await dashboardPage.waitForGroupToAppear('Test Group');
 
         // Click on group card
         await dashboardPage.clickGroupCard('Test Group');
@@ -211,8 +209,8 @@ test.describe('Dashboard Error Handling', () => {
         // Click try again
         await dashboardPage.clickTryAgain();
 
-        // Verify successful recovery
-        await dashboardPage.waitForGroupsToLoad();
+        // Verify successful recovery - empty state shows since no groups mocked
+        await dashboardPage.verifyEmptyGroupsState();
         await dashboardPage.verifyErrorStateNotVisible();
     });
 

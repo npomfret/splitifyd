@@ -72,8 +72,7 @@ test.describe('Dashboard group archiving', () => {
         await mockGroupDetailApi(page, group.id, fullDetailsActive, { once: false });
 
         await page.goto('/dashboard');
-        await dashboardPage.waitForGroupsToLoad();
-        await dashboardPage.verifyGroupDisplayed('Archive Demo Group');
+        await dashboardPage.waitForGroupToAppear('Archive Demo Group');
         await expect(page).toHaveURL(/\/dashboard$/);
 
         // Baseline handlers for subsequent refreshes
@@ -114,7 +113,6 @@ test.describe('Dashboard group archiving', () => {
 
         // Return to dashboard and verify archived/active filters reflect new state
         await page.goBack();
-        await dashboardPage.waitForGroupsToLoad();
         await expect(page).toHaveURL(/\/dashboard$/);
 
         // Maintain fallbacks reflecting archived state
@@ -122,20 +120,17 @@ test.describe('Dashboard group archiving', () => {
         await queueArchived(activeResponse, { once: false });
 
         await dashboardPage.showArchivedGroups();
-        await dashboardPage.waitForGroupsToLoad();
-        await dashboardPage.verifyGroupDisplayed('Archive Demo Group');
+        await dashboardPage.waitForGroupToAppear('Archive Demo Group');
         await dashboardPage.verifyGroupHasArchivedBadge('Archive Demo Group');
         await dashboardPage.verifyGroupHasNoArchiveQuickActions('Archive Demo Group');
 
         await dashboardPage.showActiveGroups();
-        await dashboardPage.waitForGroupsToLoad();
         await dashboardPage.waitForGroupToDisappear('Archive Demo Group', 10_000);
 
         // Switch back to archived tab to open the archived group
         await queueArchived(activeResponse);
         await mockGroupDetailApi(page, group.id, fullDetailsArchived, { once: false });
         await dashboardPage.showArchivedGroups();
-        await dashboardPage.waitForGroupsToLoad();
 
         // Unarchive from group detail and confirm archived list clears
         const archivedDetailPage = await dashboardPage.clickGroupCardAndNavigateToDetail('Archive Demo Group');
@@ -175,10 +170,9 @@ test.describe('Dashboard group archiving', () => {
 
         // Refresh dashboard views
         await page.goBack();
-        await dashboardPage.waitForGroupsToLoad();
         await expect(page).toHaveURL(/\/dashboard$/);
         await dashboardPage.showActiveGroups();
-        await dashboardPage.verifyGroupDisplayed('Archive Demo Group');
+        await dashboardPage.waitForGroupToAppear('Archive Demo Group');
         await dashboardPage.showArchivedGroups();
         await dashboardPage.waitForArchivedGroupsEmptyState(10_000);
     });

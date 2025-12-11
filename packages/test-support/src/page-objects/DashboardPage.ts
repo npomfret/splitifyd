@@ -159,13 +159,13 @@ export class DashboardPage extends BasePage {
     async showActiveGroups(): Promise<void> {
         const button = this.getGroupsFilterButton('active');
         await this.clickButton(button, { buttonName: translation.dashboard.groupsFilter.active });
-        await this.waitForGroupsToLoad();
+        // Caller should wait for expected state (e.g., waitForGroupToAppear, verifyEmptyGroupsState)
     }
 
     async showArchivedGroups(): Promise<void> {
         const button = this.getGroupsFilterButton('archived');
         await this.clickButton(button, { buttonName: translation.dashboard.groupsFilter.archived });
-        await this.waitForGroupsToLoad();
+        // Caller should wait for expected state (e.g., waitForGroupToAppear, waitForArchivedGroupsEmptyState)
     }
 
     async verifyGroupHasArchivedBadge(groupName: GroupName | string): Promise<void> {
@@ -621,27 +621,6 @@ export class DashboardPage extends BasePage {
     }
 
     /**
-     * Wait for groups to finish loading
-     * Expects either groups to be displayed OR empty state to be visible
-     * Tests calling this method should KNOW which state to expect
-     */
-    async waitForGroupsToLoad(timeout = TEST_TIMEOUTS.LOADING_COMPLETE): Promise<void> {
-        try {
-            await expect(this.getGroupsLoadingSpinner()).not.toBeVisible({ timeout });
-            await expect(this.getGroupCards().first().or(this.getEmptyGroupsStateInternal()).or(this.getArchivedEmptyState())).toBeVisible({ timeout });
-        } catch (error) {
-            const spinnerVisible = await this.getGroupsLoadingSpinner().isVisible();
-            const groupsVisible = await this.getGroupCards().first().isVisible();
-            const emptyStateVisible = await this.getEmptyGroupsStateInternal().isVisible();
-            const archivedEmptyStateVisible = await this.getArchivedEmptyState().isVisible();
-            throw new Error(
-                `Groups failed to load within ${timeout}ms. `
-                    + `Spinner visible: ${spinnerVisible}, Groups visible: ${groupsVisible}, Empty state visible: ${emptyStateVisible}, Archived empty state visible: ${archivedEmptyStateVisible}`,
-            );
-        }
-    }
-
-    /**
      * Wait for a specific group to appear (useful for real-time updates)
      */
     async waitForGroupToAppear(groupName: GroupName | string, timeout: number = TEST_TIMEOUTS.ELEMENT_VISIBLE): Promise<void> {
@@ -730,13 +709,6 @@ export class DashboardPage extends BasePage {
         if (expectedUserName) {
             await expect(userMenu).toContainText(expectedUserName);
         }
-    }
-
-    /**
-     * Verify specific group is displayed
-     */
-    async verifyGroupDisplayed(groupName: GroupName | string): Promise<void> {
-        await expect(this.getGroupCard(groupName)).toBeVisible();
     }
 
     /**

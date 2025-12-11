@@ -20,7 +20,7 @@ test.describe('Modal Focus Management', () => {
         await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard');
-        await dashboardPage.waitForGroupsToLoad();
+        await dashboardPage.waitForGroupToAppear('Existing Group');
 
         const createGroupModal = await dashboardPage.clickCreateGroup();
         await createGroupModal.verifyModalOpen();
@@ -69,7 +69,7 @@ test.describe('Modal Focus Management', () => {
         await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard');
-        await dashboardPage.waitForGroupsToLoad();
+        await dashboardPage.waitForGroupToAppear('Existing Group');
 
         const createGroupModal = await dashboardPage.clickCreateGroup();
         await createGroupModal.verifyModalOpen();
@@ -107,7 +107,7 @@ test.describe('Modal Focus Management', () => {
         await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard');
-        await dashboardPage.waitForGroupsToLoad();
+        await dashboardPage.waitForGroupToAppear('Existing Group');
 
         // Get the create group button before clicking
         const createButton = page.getByRole('button', { name: /create.*group/i });
@@ -142,7 +142,7 @@ test.describe('Modal Focus Management', () => {
         await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard');
-        await dashboardPage.waitForGroupsToLoad();
+        await dashboardPage.waitForGroupToAppear('Existing Group');
 
         const createButton = page.getByRole('button', { name: /create.*group/i });
 
@@ -174,7 +174,7 @@ test.describe('Modal Focus Management', () => {
         await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard');
-        await dashboardPage.waitForGroupsToLoad();
+        await dashboardPage.waitForGroupToAppear('Existing Group');
 
         const createButton = page.getByRole('button', { name: /create.*group/i });
 
@@ -207,7 +207,7 @@ test.describe('Modal Focus Management', () => {
         await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard');
-        await dashboardPage.waitForGroupsToLoad();
+        await dashboardPage.waitForGroupToAppear('Existing Group');
 
         await dashboardPage.clickCreateGroup();
 
