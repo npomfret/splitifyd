@@ -106,7 +106,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
             debounceDelay,
             getCurrentGroupId: () => this.currentGroupId,
             onActivityRefresh: ({ groupId, eventType, eventId }) => this.handleActivityDrivenRefresh(groupId, eventType, eventId),
-            onSelfRemoval: ({ groupId, eventId }) => this.handleSelfRemoval(groupId, eventId),
+            onSelfRemoval: ({ groupId, eventId }) => this.handleSelfRemoval(groupId),
         });
     }
 
@@ -335,7 +335,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         );
     }
 
-    private handleSelfRemoval(groupId: GroupId, eventId: string): void {
+    private handleSelfRemoval(groupId: GroupId): void {
         this.#clearGroupData();
         this.sideEffects.deregisterPermissions(groupId);
         this.#errorSignal.value = GROUP_DETAIL_ERROR_CODES.USER_REMOVED_FROM_GROUP;

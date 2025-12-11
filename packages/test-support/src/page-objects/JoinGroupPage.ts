@@ -2,7 +2,6 @@ import { expect, Locator, Page } from '@playwright/test';
 import { TEST_TIMEOUTS } from '../test-constants';
 import { translationEn } from '../translations/translation-en';
 import { BasePage } from './BasePage';
-import { HeaderPage } from './HeaderPage';
 
 const translation = translationEn;
 
@@ -12,8 +11,6 @@ const translation = translationEn;
  * Reusable across unit tests and e2e tests.
  */
 export class JoinGroupPage extends BasePage {
-    private _header?: HeaderPage;
-
     constructor(page: Page) {
         super(page);
     }

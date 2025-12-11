@@ -327,23 +327,6 @@ export class MockFirebase {
         await this.emitActivityFeedSnapshot(userId, docs);
     }
 
-    public async emitFirestoreSnapshot(collection: string, documentId: string, data: any): Promise<void> {
-        await this.page.evaluate(
-            ({ collection, documentId, data }) => {
-                const path = `${collection}/${documentId}`;
-                const listener = window.__TEST_ENV__!.firebase.firestoreListeners.get(path);
-                if (listener) {
-                    const mockSnapshot = {
-                        exists: () => data !== null,
-                        data: () => data,
-                    };
-                    listener(mockSnapshot);
-                }
-            },
-            { collection, documentId, data },
-        );
-    }
-
     private async emitActivityFeedSnapshot(userId: UserId, items: Array<{ id: string; data: Record<string, unknown>; }>): Promise<void> {
         await this.page.evaluate(
             ({ userId, items }) => {
@@ -603,25 +586,6 @@ export async function mockCreateGroupApi(
             delayMs: delay,
             status: options.status ?? 200,
             once: options.once ?? true,
-        }),
-    );
-}
-
-export async function mockUpdateGroupDisplayNameApi(
-    page: Page,
-    groupId: GroupId | string,
-    response: any,
-    options: { delayMs?: number; status?: number; once?: boolean; bodyMatcher?: SerializedBodyMatcher; } = {},
-): Promise<void> {
-    const delay = getApiDelay(options.delayMs);
-
-    await registerMswHandlers(
-        page,
-        createJsonHandler('PUT', `/api/groups/${groupId}/members/display-name`, response, {
-            delayMs: delay,
-            status: options.status ?? 200,
-            once: options.once,
-            bodyMatcher: options.bodyMatcher,
         }),
     );
 }
@@ -895,67 +859,6 @@ export async function mockUserProfileApi(
                 delayMs: delay,
             },
         ),
-    );
-}
-
-/**
- * Mocks the login API endpoint
- * Used for testing login flows
- *
- * @param page - Playwright page instance
- * @param customToken - Custom token to return (default: 'mock-custom-token')
- * @param options - Optional delay in milliseconds before responding
- */
-export async function mockLoginApi(
-    page: Page,
-    customToken: string = 'mock-custom-token',
-    options: { delayMs?: number; } = {},
-): Promise<void> {
-    const delay = getApiDelay(options.delayMs);
-
-    await registerMswHandlers(
-        page,
-        loginSuccessHandler(customToken, { delayMs: delay }),
-    );
-}
-
-/**
- * Mocks the login API endpoint to fail
- * Used for testing login error handling
- *
- * @param page - Playwright page instance
- * @param error - Error object with code and message
- * @param options - Optional delay in milliseconds before responding
- */
-export async function mockLoginApiFailure(
-    page: Page,
-    error: { code: string; message: string; },
-    options: { delayMs?: number; status?: number; } = {},
-): Promise<void> {
-    const delay = getApiDelay(options.delayMs);
-
-    await registerMswHandlers(
-        page,
-        loginFailureHandler(error, { delayMs: delay, status: options.status }),
-    );
-}
-
-/**
- * Mocks the password reset API endpoint
- * Used for testing password reset flows
- *
- * @param page - Playwright page instance
- * @param options - Optional delay in milliseconds before responding
- */
-export async function mockPasswordResetApi(
-    page: Page,
-    options: { delayMs?: number; } = {},
-): Promise<void> {
-    const delay = getApiDelay(options.delayMs);
-
-    await registerMswHandlers(
-        page,
-        passwordResetSuccessHandler({ delayMs: delay }),
     );
 }
 

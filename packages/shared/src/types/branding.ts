@@ -324,19 +324,8 @@ export const TenantBrandingSchema = z.object({
     artifact: BrandingArtifactMetadataSchema.optional(),
 });
 
-export type BrandingPalette = z.infer<typeof BrandingPaletteSchema>;
-export type BrandingTypography = z.infer<typeof BrandingTypographySchema>;
-export type BrandingSpacingScale = z.infer<typeof BrandingSpacingScaleSchema>;
-export type BrandingRadii = z.infer<typeof BrandingRadiiSchema>;
-export type BrandingShadows = z.infer<typeof BrandingShadowsSchema>;
-export type BrandingAssets = z.infer<typeof BrandingAssetsSchema>;
 export type BrandingLegal = z.infer<typeof BrandingLegalSchema>;
 export type FooterLink = z.infer<typeof FooterLinkSchema>;
-export type BrandingFooter = z.infer<typeof BrandingFooterSchema>;
-export type BrandingSemanticColors = z.infer<typeof BrandingSemanticColorSchema>;
-export type BrandingSemantics = z.infer<typeof BrandingSemanticSchema>;
-export type BrandingMotion = z.infer<typeof BrandingMotionSchema>;
-export type FluidTypographyScale = z.infer<typeof FluidTypographyScaleSchema>;
 export type BrandingTokens = z.infer<typeof BrandingTokensSchema>;
 export type BrandingArtifactMetadata = z.infer<typeof BrandingArtifactMetadataSchema>;
 export type TenantBranding = z.infer<typeof TenantBrandingSchema>;

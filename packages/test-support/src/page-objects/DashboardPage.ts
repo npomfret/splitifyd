@@ -561,7 +561,6 @@ export class DashboardPage extends BasePage {
         const groupName = `g-${++multiUserGroupCounter} ${randomString(4)} ${randomString(6)} ${randomString(8)}`;
         const expectedMemberCount = dashboardPages.length + 1;
         const groupDescription = `descr for ${groupName} which should have ${expectedMemberCount} users`;
-        const creatorDisplayName = await this.header.getCurrentUserDisplayName();
 
         const ownerGroupDetailPage = await this.createGroupAndNavigate(groupName, groupDescription);
         const groupId = ownerGroupDetailPage.inferGroupId();
@@ -916,27 +915,4 @@ export class DashboardPage extends BasePage {
         await expect(this.getActivityFeedLoadMoreButton()).not.toBeVisible();
     }
 
-    /**
-     * Navigate to admin tenants page via user menu
-     */
-    async navigateToAdminTenantsPage(): Promise<import('./AdminTenantsPage').AdminTenantsPage> {
-        const { AdminTenantsPage } = await import('./AdminTenantsPage');
-
-        // Open user menu and click admin link
-        await this.header.openUserMenuAndVerifyAdminLinkVisible();
-
-        // Wait for navigation response
-        await Promise.all([
-            this.page.waitForResponse(response =>
-                response.url().includes('/user/profile')
-                && response.status() === 200
-            ),
-            this.page.goto('/admin/tenants', { waitUntil: 'load' }),
-        ]);
-
-        const adminTenantsPage = new AdminTenantsPage(this.page);
-        await adminTenantsPage.verifyPageLoaded();
-
-        return adminTenantsPage;
-    }
 }

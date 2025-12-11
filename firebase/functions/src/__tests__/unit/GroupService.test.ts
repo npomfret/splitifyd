@@ -35,7 +35,7 @@ describe('GroupService - Unit Tests', () => {
             const groupId = toGroupId(group.id);
 
             // Create active expense
-            const activeExpense = await appDriver.createExpense(
+            await appDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
                     .withPaidBy(userId)

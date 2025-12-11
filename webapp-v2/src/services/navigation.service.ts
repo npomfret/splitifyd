@@ -155,20 +155,6 @@ class NavigationService {
     }
 
     /**
-     * @deprecated Use goToAdmin('tenants') instead
-     */
-    goToAdminTenants(): Promise<void> {
-        return this.goToAdmin('tenants');
-    }
-
-    /**
-     * @deprecated Use goToAdmin('diagnostics') instead
-     */
-    goToAdminDiagnostics(): Promise<void> {
-        return this.goToAdmin('diagnostics');
-    }
-
-    /**
      * Navigate to group detail page
      */
     goToGroup(groupId: GroupId): Promise<void> {

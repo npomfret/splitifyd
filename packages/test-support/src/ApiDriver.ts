@@ -375,11 +375,6 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return (await this.apiRequest('/groups', 'POST', groupData, token)) as GroupDTO;
     }
 
-    async getGroup(groupId: GroupId | string, token: AuthToken): Promise<GroupDTO> {
-        const res = await this.getGroupFullDetails(groupId, undefined, token);
-        return res.group;
-    }
-
     async getGroupFullDetails(groupId: GroupId | string, options: GetGroupFullDetailsOptions | undefined = undefined, token: AuthToken): Promise<GroupFullDetailsDTO> {
         let url = `/groups/${groupId}/full-details`;
         const queryParams: string[] = [];
@@ -703,39 +698,6 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return res.expenses;
     }
 
-    async getSettlement(groupId: GroupId | string, settlementId: SettlementId | string, token: AuthToken) {
-        let res;
-
-        try {
-            res = await this.getGroupFullDetails(groupId, undefined, token);
-        } catch (error: any) {
-            // If getGroupFullDetails fails, it means the user can't access the group
-            // This should be treated as NOT_GROUP_MEMBER regardless of the specific error code
-            if (error.status === 403 || error.status === 404 || (error.message && (error.message.includes('Group not found') || error.message.includes('403')))) {
-                const groupError = new Error(`Group access denied`);
-                (groupError as any).status = 403;
-                (groupError as any).message = 'status 403: NOT_GROUP_MEMBER';
-                throw groupError;
-            }
-
-            // Re-throw other errors as-is
-            throw error;
-        }
-
-        // At this point, we have group access, so check if settlement exists
-        const settlement = res.settlements.settlements.find((s: any) => s.id === settlementId);
-
-        if (!settlement) {
-            // Create an error object with status and message properties to match expected test behavior
-            const error = new Error(`Settlement not found`);
-            (error as any).status = 404;
-            (error as any).message = 'status 404: SETTLEMENT_NOT_FOUND';
-            throw error;
-        }
-
-        return settlement;
-    }
-
     async acceptCurrentPublishedPolicies(token: AuthToken): Promise<void> {
         // Get user's policy status which includes all existing policies
         const policyStatus = await this.apiRequest('/user/policies/status', 'GET', null, token);
@@ -947,37 +909,6 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
 
     async deleteTenantImage(tenantId: string, imageId: TenantImageId, token?: AuthToken): Promise<void> {
         await this.apiRequest(`/admin/tenants/${tenantId}/images/${imageId}`, 'DELETE', null, token);
-    }
-
-    async fetchThemeCss(options?: { version?: string; }): Promise<{ status: number; css: string; headers: Headers; }> {
-        const searchParams = new URLSearchParams();
-        if (options?.version) {
-            searchParams.set('v', options.version);
-        }
-
-        const url = `${this.config.baseUrl}/theme.css${searchParams.size ? `?${searchParams.toString()}` : ''}`;
-
-        const response = await fetch(url, {
-            method: 'GET',
-            headers: {
-                Accept: 'text/css',
-            },
-        });
-
-        const css = await response.text();
-
-        if (!response.ok) {
-            const error = new Error(`Theme CSS request failed with status ${response.status}`);
-            (error as any).status = response.status;
-            (error as any).body = css;
-            throw error;
-        }
-
-        return {
-            status: response.status,
-            css,
-            headers: response.headers,
-        };
     }
 
     async getDefaultAdminUser(): Promise<PooledTestUser> {

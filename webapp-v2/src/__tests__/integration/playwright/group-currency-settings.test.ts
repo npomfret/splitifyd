@@ -27,7 +27,6 @@ async function setupGroupRoutes(page: Page, user: ClientUser, options: GroupTest
     const groupId = options.groupId ?? toGroupId('group-currency-' + user.uid);
     const groupName = options.groupName ?? 'Test Group';
     const memberRole = options.memberRole ?? 'admin';
-    const isOwner = options.isOwner !== false; // Default to true for backward compatibility
 
     const buildFullDetails = () => {
         const group = new GroupDTOBuilder()

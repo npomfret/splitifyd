@@ -494,18 +494,6 @@ export interface UserToken {
 
 export interface AuthenticatedFirebaseUser extends FirebaseUser, UserToken {}
 
-/**
- * Base user profile with common fields shared across all user profile types.
- * Establishes the core identity and authentication properties.
- */
-export interface BaseUserProfile extends FirebaseUser {
-    displayName: DisplayName;
-    email: Email;
-    role: SystemUserRole;
-    emailVerified: boolean;
-    createdAt?: ISOString;
-}
-
 // ========================================================================
 // Focused User Types
 // ========================================================================
@@ -1778,14 +1766,6 @@ export interface TenantImageDTO {
     sizeBytes: number;
     uploadedAt: ISOString;
     uploadedBy: UserId;
-}
-
-/**
- * Upload tenant library image request
- * Used for POST /admin/tenants/:tenantId/images endpoint
- */
-export interface UploadTenantLibraryImageRequest {
-    name: string;
 }
 
 /**

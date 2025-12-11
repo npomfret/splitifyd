@@ -130,22 +130,6 @@ export class CurrencyService {
     }
 
     /**
-     * Filter currencies based on search term
-     */
-    filterCurrencies(currencies: Currency[], searchTerm: string): Currency[] {
-        if (!searchTerm.trim()) return currencies;
-
-        const searchLower = searchTerm.toLowerCase();
-        return currencies.filter(
-            (curr) =>
-                curr.symbol.toLowerCase().includes(searchLower)
-                || curr.acronym.toLowerCase().includes(searchLower)
-                || curr.name.toLowerCase().includes(searchLower)
-                || curr.countries.some((country) => country.toLowerCase().includes(searchLower)),
-        );
-    }
-
-    /**
      * Group currencies into recent, common, and others
      */
     groupCurrencies(currencies: Currency[], recentCurrencies: string[] = []): GroupedCurrencies {

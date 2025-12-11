@@ -1143,10 +1143,6 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
         return this.getCurrentPolicyInternal(policyId);
     }
 
-    async getCurrentPolicyWithAbort(policyId: PolicyId, signal?: AbortSignal): Promise<CurrentPolicyResponse> {
-        return this.getCurrentPolicyInternal(policyId, signal);
-    }
-
     // User policy acceptance methods
     async acceptMultiplePolicies(acceptances: AcceptPolicyRequest[]): Promise<AcceptMultiplePoliciesResponse> {
         return this.request({
@@ -1239,10 +1235,6 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
 
     async getUserProfile(): Promise<UserProfileResponse> {
         return this.getUserProfileInternal();
-    }
-
-    async getUserProfileWithAbort(signal?: AbortSignal): Promise<UserProfileResponse> {
-        return this.getUserProfileInternal(signal);
     }
 
     async updateUserProfile(data: UpdateUserProfileRequest): Promise<void> {

@@ -125,10 +125,6 @@ export function randomValidCurrencyAmountPair(min: number = 5, max: number = 500
 
 const RANDOM_LABELS = ['food', 'transport', 'entertainment', 'utilities', 'shopping', 'groceries', 'rent', 'travel'];
 
-export function randomLabel(): ExpenseLabel {
-    return toExpenseLabel(randomChoice(RANDOM_LABELS));
-}
-
 export function randomLabels(): ExpenseLabel[] {
     const count = Math.floor(Math.random() * 3);
     if (count === 0) return [];

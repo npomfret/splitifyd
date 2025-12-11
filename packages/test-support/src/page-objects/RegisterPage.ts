@@ -559,27 +559,6 @@ export class RegisterPage extends BasePage {
     }
 
     /**
-     * Wait for registration response with specific status code
-     */
-    async waitForRegistrationResponse(expectedStatusCode?: number): Promise<void> {
-        await this.page.waitForResponse(
-            (response) => {
-                const url = response.url();
-                if (!url.includes('/register')) {
-                    return false;
-                }
-
-                if (expectedStatusCode !== undefined) {
-                    return response.status() === expectedStatusCode;
-                }
-
-                return response.status() >= 400;
-            },
-            { timeout: TEST_TIMEOUTS.API_RESPONSE },
-        );
-    }
-
-    /**
      * Expect current URL to match pattern
      */
     async expectUrl(pattern: RegExp): Promise<void> {

@@ -31,21 +31,6 @@ export function createStubRequest(userId: string, body: any = {}, params: any = 
 }
 
 /**
- * Creates an unauthenticated stub request for testing auth edge cases.
- * The request has no user object, simulating a request without valid authentication.
- */
-export function createUnauthenticatedStubRequest(body: any = {}, params: any = {}, options: Partial<StubRequestOptions> = {}): any {
-    return {
-        // No user object - simulates unauthenticated request
-        body,
-        params,
-        headers: options.headers ?? {},
-        hostname: options.hostname ?? 'localhost',
-        tenantId: 'system-fallback-tenant',
-    };
-}
-
-/**
  * Creates a stub response for testing.
  * Returns any to allow compatibility with Express Response while adding test helper methods.
  */

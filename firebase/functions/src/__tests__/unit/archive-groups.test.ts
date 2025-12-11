@@ -54,8 +54,7 @@ describe('Archive Groups - Status Filtering', () => {
         const userId = user.user.uid;
 
         // Create two groups
-        const group1 = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
-        const groupId1 = toGroupId(group1.id);
+        await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 
         const group2 = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
         const groupId2 = toGroupId(group2.id);

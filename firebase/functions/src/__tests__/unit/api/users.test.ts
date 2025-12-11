@@ -559,7 +559,7 @@ describe('user, policy and notification tests', () => {
                     adminUser,
                 );
 
-                const policy2 = await appDriver.createPolicy(
+                await appDriver.createPolicy(
                     new CreatePolicyRequestBuilder()
                         .withPolicyName('Privacy Policy')
                         .withText('Privacy Policy v1')
@@ -567,7 +567,7 @@ describe('user, policy and notification tests', () => {
                     adminUser,
                 );
 
-                const policy3 = await appDriver.createPolicy(
+                await appDriver.createPolicy(
                     new CreatePolicyRequestBuilder()
                         .withPolicyName('Cookie Policy')
                         .withText('Cookie Policy v1')

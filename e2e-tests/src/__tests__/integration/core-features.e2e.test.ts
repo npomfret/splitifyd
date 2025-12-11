@@ -240,7 +240,7 @@ simpleTest.describe('Member Management - Real-time Updates', () => {
         // Get display names
         const member1DisplayName = await member1DashboardPage.header.getCurrentUserDisplayName();
 
-        const [groupDetailPage, member1GroupDetailPage, member2GroupDetailPage] = await ownerDashboardPage.createMultiUserGroup(
+        const [groupDetailPage, _, member2GroupDetailPage] = await ownerDashboardPage.createMultiUserGroup(
             member1DashboardPage,
             member2DashboardPage,
         );

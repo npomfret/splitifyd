@@ -433,16 +433,6 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         }
     }
 
-    seedUser(userId: UserId | string, userData: SeedUserData = {}) {
-        const user = this._seedUser(userId, userData);
-
-        this.authService.setUser(userId, {
-            uid: userId,
-            email: user.email,
-            displayName: user.displayName,
-        });
-    }
-
     /**
      * Marks a user's email as verified in Firebase Auth
      */
