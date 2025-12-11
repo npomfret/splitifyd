@@ -19,7 +19,6 @@ import { withMinimumDuration } from '../utils/timing';
 import type { IAuthService } from './auth';
 import type { FirestoreUserCreateData, IFirestoreReader, IFirestoreWriter } from './firestore';
 
-const REGISTRATION_FAILURE_ERROR_CODE = 'REGISTRATION_FAILED';
 const REGISTRATION_FAILURE_MESSAGE = 'Unable to create account. If you already registered, try signing in.';
 
 /**

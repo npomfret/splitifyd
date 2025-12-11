@@ -276,9 +276,6 @@ export class ExpenseFormPage extends BasePage {
     }
 
     protected getTimeSuggestion(time: string): Locator {
-        // Find the time input first, then locate the suggestion button near it
-        // This ensures we're clicking suggestions from the correct dropdown
-        const timeInput = this.getTimeInput();
         // The suggestions are siblings of the input within the same parent container
         // Use page-level search but this helps us ensure we're in the right context
         return this.page.getByRole('button', { name: time, exact: true });

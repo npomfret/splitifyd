@@ -2,7 +2,7 @@ import { apiClient } from '@/app/apiClient';
 import { useAuth } from '@/app/hooks/useAuth';
 import { Alert, Button, Card, Input, LoadingState, Pagination } from '@/components/ui';
 import { EditIcon } from '@/components/ui/icons';
-import { logError, logInfo } from '@/utils/browser-logger';
+import { logError } from '@/utils/browser-logger';
 import type { AdminUserProfile, Email, SystemUserRole, UserId } from '@billsplit-wl/shared';
 import { SystemUserRoles, toDisplayName, toEmail, toUserId } from '@billsplit-wl/shared';
 import { computed, useSignal, useSignalEffect } from '@preact/signals';
@@ -160,8 +160,6 @@ export function AdminUsersTab() {
         operationInProgress.value = `${action}-${uid}`;
         try {
             await apiClient.updateUser(uid, { disabled: !currentlyDisabled });
-
-            logInfo(`User account ${action}d`, { uid, disabled: !currentlyDisabled });
             window.alert(t('admin.users.success.userToggled', { action }));
 
             // Reload the user list
@@ -169,61 +167,6 @@ export function AdminUsersTab() {
         } catch (err) {
             logError(`Failed to ${action} user`, err);
             window.alert(t('admin.users.errors.disableUser', { action }));
-        } finally {
-            operationInProgress.value = null;
-        }
-    };
-
-    const handleUpdateRole = async (uid: UserId, currentRole: string | null) => {
-        // Prevent self-role change
-        if (uid === user.uid) {
-            window.alert(t('admin.users.errors.selfRoleChange'));
-            return;
-        }
-
-        // Get new role from user
-        const roleOptions = [
-            { value: '', label: t('admin.users.rolePrompt.regularUser') },
-            { value: SystemUserRoles.TENANT_ADMIN, label: t('roles.tenantAdmin.label') },
-            { value: SystemUserRoles.SYSTEM_ADMIN, label: t('roles.systemAdmin.label') },
-        ];
-
-        const currentRoleLabel = currentRole === SystemUserRoles.TENANT_ADMIN
-            ? t('roles.tenantAdmin.label')
-            : currentRole === SystemUserRoles.SYSTEM_ADMIN
-            ? t('roles.systemAdmin.label')
-            : t('roles.regular.label');
-
-        const message = t('admin.users.rolePrompt.title', { currentRole: currentRoleLabel }) + '\n' + roleOptions.map((opt, i) => `${i + 1}. ${opt.label}`).join('\n');
-        const choice = window.prompt(message, '1');
-
-        if (!choice) return;
-
-        const selectedIndex = parseInt(choice, 10) - 1;
-        if (selectedIndex < 0 || selectedIndex >= roleOptions.length) {
-            window.alert(t('admin.users.errors.invalidSelection'));
-            return;
-        }
-
-        const newRole = (roleOptions[selectedIndex].value || null) as SystemUserRole | null;
-
-        if (newRole === currentRole) {
-            window.alert(t('admin.users.success.roleUnchanged'));
-            return;
-        }
-
-        operationInProgress.value = `role-${uid}`;
-        try {
-            await apiClient.updateUserRole(uid, { role: newRole });
-
-            logInfo('User role updated', { uid, oldRole: currentRole, newRole });
-            window.alert(t('admin.users.success.roleUpdated', { role: roleOptions[selectedIndex].label }));
-
-            // Reload the user list
-            await loadUsers(hasSearchApplied.value ? undefined : pageHistory.value[pageHistory.value.length - 1]);
-        } catch (err) {
-            logError('Failed to update user role', err);
-            window.alert(t('admin.users.errors.roleUpdate'));
         } finally {
             operationInProgress.value = null;
         }

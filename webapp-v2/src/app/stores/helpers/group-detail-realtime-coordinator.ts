@@ -1,10 +1,11 @@
-import { logError, logInfo, logWarning } from '@/utils/browser-logger';
+import { logError, logWarning } from '@/utils/browser-logger';
 import type { ActivityFeedItem, GroupId, UserId } from '@billsplit-wl/shared';
 import type { ActivityFeedRealtimePayload, ActivityFeedRealtimeService } from '../../services/activity-feed-realtime-service';
 
 interface GroupDetailRealtimeCoordinatorOptions {
     activityFeed: ActivityFeedRealtimeService;
     listenerId: string;
+    debounceDelay: number;
     getCurrentGroupId: () => GroupId | null;
     onActivityRefresh: (context: { groupId: GroupId; eventType: string; eventId: string; }) => Promise<void> | void;
     onSelfRemoval: (context: { groupId: GroupId; eventId: string; }) => void;
@@ -19,6 +20,9 @@ export class GroupDetailRealtimeCoordinator {
     private readonly subscriberCounts = new Map<GroupId, number>();
     private activityListenerRegistered = false;
     private currentUserId: string | null = null;
+    private refreshDebounceTimer: NodeJS.Timeout | null = null;
+    private pendingRefresh = false;
+    private pendingRefreshContext: { groupId: GroupId; eventType: string; eventId: string; } | null = null;
 
     constructor(private readonly options: GroupDetailRealtimeCoordinatorOptions) {}
 
@@ -29,14 +33,6 @@ export class GroupDetailRealtimeCoordinator {
     async registerComponent(groupId: GroupId, userId: UserId): Promise<void> {
         const count = this.getSubscriberCount(groupId);
         this.subscriberCounts.set(groupId, count + 1);
-
-        logInfo('GroupDetailRealtimeCoordinator.register', {
-            groupId,
-            userId,
-            subscriberCount: count + 1,
-            listenerRegistered: this.activityListenerRegistered,
-            currentUserId: this.currentUserId,
-        });
 
         const shouldRegisterListener = !this.activityListenerRegistered || this.currentUserId !== userId;
 
@@ -58,11 +54,6 @@ export class GroupDetailRealtimeCoordinator {
                 },
             });
             this.activityListenerRegistered = true;
-
-            logInfo('GroupDetailRealtimeCoordinator.listener-registered', {
-                groupId,
-                userId,
-            });
         } catch (error) {
             logError('GroupDetailRealtimeCoordinator.registerConsumer.failed', {
                 error: error instanceof Error ? error.message : String(error),
@@ -83,12 +74,6 @@ export class GroupDetailRealtimeCoordinator {
 
         const remaining = this.getSubscriberCount(groupId);
 
-        logInfo('GroupDetailRealtimeCoordinator.deregister', {
-            groupId,
-            subscriberCount: remaining,
-            listenerRegistered: this.activityListenerRegistered,
-        });
-
         if (this.totalSubscribers() === 0) {
             this.disposeSubscription();
         }
@@ -97,6 +82,7 @@ export class GroupDetailRealtimeCoordinator {
     }
 
     dispose(): void {
+        this.clearRefreshState();
         this.subscriberCounts.clear();
         this.disposeSubscription();
     }
@@ -105,6 +91,15 @@ export class GroupDetailRealtimeCoordinator {
         if (this.totalSubscribers() === 0) {
             this.disposeSubscription();
         }
+    }
+
+    clearRefreshState(): void {
+        if (this.refreshDebounceTimer) {
+            clearTimeout(this.refreshDebounceTimer);
+            this.refreshDebounceTimer = null;
+        }
+        this.pendingRefresh = false;
+        this.pendingRefreshContext = null;
     }
 
     private totalSubscribers(): number {
@@ -118,9 +113,6 @@ export class GroupDetailRealtimeCoordinator {
     private disposeSubscription(): void {
         if (this.activityListenerRegistered) {
             this.options.activityFeed.deregisterConsumer(this.options.listenerId);
-            logInfo('GroupDetailRealtimeCoordinator.listener-deregistered', {
-                currentUserId: this.currentUserId,
-            });
             this.activityListenerRegistered = false;
             this.currentUserId = null;
         }
@@ -137,55 +129,57 @@ export class GroupDetailRealtimeCoordinator {
         const activeGroupId = this.options.getCurrentGroupId();
         const subscriberCount = groupId ? this.getSubscriberCount(groupId) : 0;
 
-        logInfo('GroupDetailRealtimeCoordinator.activity-event', {
-            eventId: event.id,
-            eventType,
-            groupId,
-            activeGroupId,
-            subscriberCount,
-            listenerRegistered: this.activityListenerRegistered,
-        });
-
         if (!groupId || subscriberCount === 0) {
-            logInfo('GroupDetailRealtimeCoordinator.activity-event.ignored', {
-                eventId: event.id,
-                reason: 'no-subscribers',
-            });
             return;
         }
 
         if (!activeGroupId || activeGroupId !== groupId) {
-            logInfo('GroupDetailRealtimeCoordinator.activity-event.ignored', {
-                eventId: event.id,
-                reason: 'not-active-group',
-            });
             return;
         }
 
         if (eventType === 'member-left' && event.details?.targetUserId && event.details.targetUserId === this.currentUserId) {
-            logInfo('GroupDetailRealtimeCoordinator.activity-event.self-removal', {
-                groupId,
-                eventId: event.id,
-            });
             this.options.onSelfRemoval({ groupId, eventId: event.id });
             return;
         }
 
-        Promise
-            .resolve(
-                this.options.onActivityRefresh({
-                    groupId,
-                    eventType,
-                    eventId: event.id,
-                }),
-            )
-            .catch((error) => {
-                logWarning('GroupDetailRealtimeCoordinator.activity-event.refresh-failed', {
-                    error: error instanceof Error ? error.message : String(error),
-                    groupId,
-                    eventType,
-                    eventId: event.id,
+        this.scheduleRefresh({ groupId, eventType, eventId: event.id });
+    }
+
+    private scheduleRefresh(context: { groupId: GroupId; eventType: string; eventId: string; }): void {
+        if (this.pendingRefresh) {
+            return;
+        }
+
+        if (this.refreshDebounceTimer) {
+            clearTimeout(this.refreshDebounceTimer);
+        }
+
+        this.pendingRefreshContext = context;
+
+        this.refreshDebounceTimer = setTimeout(() => {
+            this.pendingRefresh = true;
+            const refreshContext = this.pendingRefreshContext;
+
+            if (!refreshContext) {
+                this.pendingRefresh = false;
+                return;
+            }
+
+            Promise
+                .resolve(this.options.onActivityRefresh(refreshContext))
+                .catch((error) => {
+                    logWarning('GroupDetailRealtimeCoordinator.activity-event.refresh-failed', {
+                        error: error instanceof Error ? error.message : String(error),
+                        groupId: refreshContext.groupId,
+                        eventType: refreshContext.eventType,
+                        eventId: refreshContext.eventId,
+                    });
+                })
+                .finally(() => {
+                    this.pendingRefresh = false;
+                    this.pendingRefreshContext = null;
+                    this.refreshDebounceTimer = null;
                 });
-            });
+        }, this.options.debounceDelay);
     }
 }

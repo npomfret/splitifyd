@@ -1,5 +1,5 @@
 import { ROUTES } from '@/constants/routes';
-import { logError, logInfo } from '@/utils/browser-logger.ts';
+import { logError } from '@/utils/browser-logger.ts';
 import { extractTimeFromISO } from '@/utils/dateUtils.ts';
 import { amountToSmallestUnit, CurrencyISOCode, toCurrencyISOCode } from '@billsplit-wl/shared';
 import { ExpenseId, GroupId } from '@billsplit-wl/shared';
@@ -181,7 +181,6 @@ export function useFormInitialization({ isOpen, groupId, expenseId, isEditMode, 
                     } catch (error: any) {
                         // Handle 404 errors gracefully - group might have been deleted
                         if (error?.status === 404 || (error?.message && error.message.includes('404'))) {
-                            logInfo('Group not found during form initialization - likely deleted', { groupId });
                             initError.value = 'Group no longer exists';
                             return;
                         }

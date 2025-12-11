@@ -31,7 +31,6 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
 
     // Fetch data directly from stores
     const members = useComputed(() => enhancedGroupDetailStore.members);
-    const group = useComputed(() => enhancedGroupDetailStore.group);
     const balances = useComputed(() => enhancedGroupDetailStore.balances);
     const loading = useComputed(() => enhancedGroupDetailStore.loadingMembers);
     const currentUser = useComputed(() => authStore.user);

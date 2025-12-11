@@ -27,8 +27,6 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
 
     // Get theme colors for the payer
     const paidByTheme = paidByUser?.themeColor || themeStore.getThemeForUser(expense.paidBy);
-    const isDark = themeStore.isDarkMode;
-    const themeColor = paidByTheme ? (isDark ? paidByTheme.dark : paidByTheme.light) : '#6B7280';
 
     const handleCopyClick = (e: Event) => {
         e.stopPropagation(); // Prevent expense detail navigation

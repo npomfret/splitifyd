@@ -18,13 +18,6 @@ export class JoinGroupPage extends BasePage {
         super(page);
     }
 
-    private get header(): HeaderPage {
-        if (!this._header) {
-            this._header = new HeaderPage(this.page);
-        }
-        return this._header;
-    }
-
     // ============================================================================
     // STATIC UTILITY METHODS
     // ============================================================================
@@ -439,10 +432,6 @@ export class JoinGroupPage extends BasePage {
 
     private getModalJoinButton(): Locator {
         return this.getDisplayNameModal().getByRole('button', { name: translation.joinGroupPage.joinGroup });
-    }
-
-    private getModalCancelButton(): Locator {
-        return this.getDisplayNameModal().getByRole('button', { name: translation.joinGroupPage.cancel });
     }
 
     async waitForDisplayNameModal(timeout: number = TEST_TIMEOUTS.MODAL_TRANSITION): Promise<void> {

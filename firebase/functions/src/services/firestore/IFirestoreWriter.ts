@@ -29,12 +29,6 @@ export interface WriteResult {
     error?: string;
 }
 
-interface BatchWriteResult {
-    successCount: number;
-    failureCount: number;
-    results: WriteResult[];
-}
-
 interface FirestoreUserDocumentFields {
     role?: SystemUserRole;
     preferredLanguage?: string;

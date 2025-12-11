@@ -30,7 +30,6 @@ async function setupGroupRoutes(page: Page, user: ClientUser, options: GroupTest
     const isOwner = options.isOwner !== false; // Default to true for backward compatibility
 
     const buildFullDetails = () => {
-        const creatorId = isOwner ? user.uid : 'other-user-id';
         const group = new GroupDTOBuilder()
             .withId(groupId)
             .withName(groupName)

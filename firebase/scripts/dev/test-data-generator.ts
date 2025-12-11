@@ -1,4 +1,4 @@
-import type { Amount, CreateSettlementRequest, ExpenseDTO, GroupDTO, GroupId } from '@billsplit-wl/shared';
+import type { Amount, CreateSettlementRequest, ExpenseDTO, GroupDTO } from '@billsplit-wl/shared';
 import {
     AuthenticatedFirebaseUser,
     ExpenseLabel,

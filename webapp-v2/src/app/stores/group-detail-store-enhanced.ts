@@ -1,5 +1,5 @@
 import { GROUP_DETAIL_ERROR_CODES } from '@/constants/error-codes.ts';
-import { logError, logInfo, logWarning } from '@/utils/browser-logger';
+import { logError, logWarning } from '@/utils/browser-logger';
 import { ExpenseDTO, GroupBalances, GroupDTO, GroupId, GroupMember, ListCommentsResponse, SettlementWithMembers, UserId } from '@billsplit-wl/shared';
 import { batch, signal } from '@preact/signals';
 import { apiClient } from '../apiClient';
@@ -89,7 +89,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
 
     private currentGroupId: GroupId | null = null;
 
-    constructor(activityFeed: ActivityFeedRealtimeService = activityFeedRealtimeService) {
+    constructor(activityFeed: ActivityFeedRealtimeService = activityFeedRealtimeService, debounceDelay: number = 300) {
         this.expensesCollection = new GroupDetailCollectionManager(
             this.#expensesSignal,
             this.#hasMoreExpensesSignal,
@@ -103,6 +103,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         this.realtime = new GroupDetailRealtimeCoordinator({
             activityFeed,
             listenerId: this.activityListenerId,
+            debounceDelay,
             getCurrentGroupId: () => this.currentGroupId,
             onActivityRefresh: ({ groupId, eventType, eventId }) => this.handleActivityDrivenRefresh(groupId, eventType, eventId),
             onSelfRemoval: ({ groupId, eventId }) => this.handleSelfRemoval(groupId, eventId),
@@ -184,12 +185,6 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     }
 
     async loadGroup(groupId: GroupId): Promise<void> {
-        logInfo('GroupDetailStore.loadGroup.start', {
-            groupId,
-            showDeletedExpenses: this.#showDeletedExpensesSignal.value,
-            showDeletedSettlements: this.#showDeletedSettlementsSignal.value,
-        });
-
         this.#loadingSignal.value = true;
         this.#errorSignal.value = null;
         this.currentGroupId = groupId;
@@ -247,8 +242,6 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
             const isAccessDenied = error?.status === 403 || error?.code === 'FORBIDDEN';
 
             if (isGroupDeleted) {
-                logInfo('GroupDTO deleted, clearing state', { groupId: this.currentGroupId });
-
                 this.#clearGroupData();
                 this.#errorSignal.value = GROUP_DETAIL_ERROR_CODES.USER_REMOVED_FROM_GROUP;
                 this.#loadingSignal.value = false;
@@ -257,9 +250,6 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
             }
 
             if (isAccessDenied) {
-                // User has been removed from the group - handle gracefully without error
-                logInfo('User removed from group, clearing state', { groupId: this.currentGroupId });
-
                 this.#clearGroupData();
                 this.#errorSignal.value = GROUP_DETAIL_ERROR_CODES.GROUP_DELETED;
                 this.#loadingSignal.value = false;
@@ -267,7 +257,6 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
                 return;
             }
 
-            logError('RefreshAll: Failed to refresh all data', { error, groupId: this.currentGroupId });
             logError('GroupDetailStore.refreshAll.failed', error, {
                 groupId: targetGroupId,
                 reason,
@@ -317,20 +306,9 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
 
     // Reference-counted registration - single detector approach
     async registerComponent(groupId: GroupId, userId: UserId): Promise<void> {
-        logInfo('GroupDetailStore.registerComponent', {
-            groupId,
-            userId,
-        });
-
         await this.loadGroup(groupId);
 
         await this.realtime.registerComponent(groupId, userId);
-
-        logInfo('GroupDetailStore.registerComponent.state', {
-            groupId,
-            userId,
-            subscriberCount: this.realtime.getSubscriberCount(groupId),
-        });
 
         this.sideEffects.registerPermissions(groupId, userId);
     }
@@ -347,12 +325,6 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     }
 
     private handleActivityDrivenRefresh(groupId: GroupId, eventType: string, eventId: string): void {
-        logInfo('GroupDetailStore.activityEvent.trigger-refresh', {
-            groupId,
-            eventType,
-            eventId,
-        });
-
         this.refreshAll('activity-event').catch((error) =>
             logError('Failed to refresh group detail after activity event', {
                 error: error instanceof Error ? error.message : String(error),
@@ -364,11 +336,6 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     }
 
     private handleSelfRemoval(groupId: GroupId, eventId: string): void {
-        logInfo('Current user removed from group via activity feed', {
-            groupId,
-            eventId,
-        });
-
         this.#clearGroupData();
         this.sideEffects.deregisterPermissions(groupId);
         this.#errorSignal.value = GROUP_DETAIL_ERROR_CODES.USER_REMOVED_FROM_GROUP;
@@ -483,4 +450,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     }
 }
 
-export const enhancedGroupDetailStore = new EnhancedGroupDetailStoreImpl();
+// Export singleton instance with environment-aware debounce delay
+// Use 10ms in test environments for fast unit tests, 300ms in production
+const debounceDelay = import.meta.env.MODE === 'test' ? 10 : 300;
+export const enhancedGroupDetailStore = new EnhancedGroupDetailStoreImpl(activityFeedRealtimeService, debounceDelay);

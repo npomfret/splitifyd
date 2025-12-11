@@ -1,4 +1,4 @@
-import { logInfo, logWarning } from '@/utils/browser-logger.ts';
+import { logWarning } from '@/utils/browser-logger.ts';
 import type { ActivityFeedItem, GroupId, UserId } from '@billsplit-wl/shared';
 import type { Signal } from '@preact/signals';
 import type { ActivityFeedRealtimePayload, ActivityFeedRealtimeService } from '../../services/activity-feed-realtime-service';
@@ -64,7 +64,6 @@ export class GroupsRealtimeCoordinator {
 
     refresh(): Promise<void> | void {
         if (this.pendingRefresh) {
-            logInfo('refreshGroups: Refresh already pending, skipping duplicate request');
             return;
         }
 

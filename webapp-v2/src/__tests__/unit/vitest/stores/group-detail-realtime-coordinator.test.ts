@@ -3,7 +3,7 @@ import { GroupDetailRealtimeCoordinator } from '@/app/stores/helpers/group-detai
 import type { GroupId } from '@billsplit-wl/shared';
 import { toGroupId, toGroupName, toUserId } from '@billsplit-wl/shared';
 import { ActivityFeedItemBuilder, ActivityFeedRealtimePayloadBuilder } from '@billsplit-wl/test-support';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 interface TestContext {
     coordinator: GroupDetailRealtimeCoordinator;
@@ -32,6 +32,7 @@ const createContext = (): TestContext => {
             deregisterConsumer,
         } as any,
         listenerId: 'group-detail',
+        debounceDelay: 10,
         getCurrentGroupId: () => currentGroupId,
         onActivityRefresh,
         onSelfRemoval,
@@ -51,6 +52,14 @@ const createContext = (): TestContext => {
 };
 
 describe('GroupDetailRealtimeCoordinator', () => {
+    beforeEach(() => {
+        vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+        vi.useRealTimers();
+    });
+
     it('registers the activity feed consumer for the first component', async () => {
         const ctx = createContext();
         const groupId = toGroupId('group-1');
@@ -129,6 +138,9 @@ describe('GroupDetailRealtimeCoordinator', () => {
 
         consumer?.onUpdate(payload);
 
+        // Advance timers past the debounce delay
+        await vi.advanceTimersByTimeAsync(20);
+
         expect(ctx.onActivityRefresh).toHaveBeenCalledWith({
             groupId,
             eventType: 'expense-created',
@@ -160,6 +172,41 @@ describe('GroupDetailRealtimeCoordinator', () => {
 
         consumer?.onUpdate(payload);
 
+        // Advance timers to ensure debounce would have fired if scheduled
+        await vi.advanceTimersByTimeAsync(20);
+
         expect(ctx.onActivityRefresh).not.toHaveBeenCalled();
+    });
+
+    it('debounces multiple rapid events into a single refresh', async () => {
+        const ctx = createContext();
+        const groupId = toGroupId('group-1');
+
+        await ctx.coordinator.registerComponent(groupId, toUserId('user-1'));
+        ctx.setActiveGroup(groupId);
+
+        const consumer = ctx.getConsumer();
+
+        // Fire multiple events in rapid succession
+        for (let i = 0; i < 5; i++) {
+            const event = ActivityFeedItemBuilder
+                .expenseCreated(`event-${i}`, toUserId('user-1'), groupId, toGroupName('Test Group'), 'Test User', `Expense ${i}`)
+                .build();
+
+            const payload = new ActivityFeedRealtimePayloadBuilder()
+                .withItems([])
+                .withNewItems([event])
+                .withHasMore(false)
+                .withNullCursor()
+                .build();
+
+            consumer?.onUpdate(payload);
+        }
+
+        // Advance timers past the debounce delay
+        await vi.advanceTimersByTimeAsync(20);
+
+        // Should only have been called once despite 5 events
+        expect(ctx.onActivityRefresh).toHaveBeenCalledTimes(1);
     });
 });

@@ -1,4 +1,3 @@
-import { logInfo } from '@/utils/browser-logger.ts';
 import { streamingMetrics } from '@/utils/streaming-metrics';
 import { CreateGroupRequest, GroupDTO, MemberStatus, MemberStatuses } from '@billsplit-wl/shared';
 import type { GroupId, GroupName, UserId } from '@billsplit-wl/shared';
@@ -197,7 +196,6 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
         } catch (error: any) {
             // Handle 404 or empty response gracefully - this might mean all groups were deleted
             if (error?.status === 404 || error?.message?.includes('404')) {
-                logInfo('fetchGroups: No groups found (404), clearing list', { error: error?.message });
                 this.#groupsSignal.value = [];
                 this.pagination.applyResult({
                     hasMore: false,
@@ -216,13 +214,11 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
 
     async loadNextPage(): Promise<void> {
         if (!this.pagination.canLoadNext()) {
-            logInfo('loadNextPage: No more pages available');
             return;
         }
 
         const cursor = this.pagination.prepareNextPageCursor();
         if (!cursor) {
-            logInfo('loadNextPage: Next page cursor missing');
             return;
         }
 
@@ -231,7 +227,6 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
 
     async loadPreviousPage(): Promise<void> {
         if (!this.pagination.canLoadPrevious()) {
-            logInfo('loadPreviousPage: Already on first page');
             return;
         }
 
@@ -349,17 +344,8 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
         this.realtime.deregisterComponent(componentId);
     }
 
-    private handleGroupRemoval = (groupId: GroupId, groupNameHint?: string): void => {
+    private handleGroupRemoval = (groupId: GroupId): void => {
         const currentGroups = this.#groupsSignal.value;
-        const removedGroup = currentGroups.find((group) => group.id === groupId);
-        const groupName = groupNameHint || removedGroup?.name || 'Unknown Group';
-
-        logInfo('Group removed - removing from list without refresh', {
-            groupId,
-            groupName,
-            currentGroupCount: currentGroups.length,
-        });
-
         const filteredGroups = currentGroups.filter((group) => group.id !== groupId);
 
         if (filteredGroups.length === currentGroups.length) {
@@ -367,25 +353,6 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
         }
 
         this.#groupsSignal.value = filteredGroups;
-
-        console.info(`📨 You've been removed from "${groupName}"`);
-        console.info('🔄 Signal value updated after group removal', {
-            groupId,
-            groupName,
-            oldCount: currentGroups.length,
-            newCount: filteredGroups.length,
-            oldGroupIds: currentGroups.map((g) => g.id),
-            newGroupIds: filteredGroups.map((g) => g.id),
-            signalValueLength: this.#groupsSignal.value.length,
-            signalPeek: this.#groupsSignal.peek().length,
-        });
-
-        logInfo('Group removed from dashboard', {
-            groupId,
-            groupName,
-            oldCount: currentGroups.length,
-            newCount: filteredGroups.length,
-        });
     };
 
     /**

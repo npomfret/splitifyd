@@ -16,16 +16,8 @@ export class ExpenseDetailPage extends BasePage {
         super(page);
     }
 
-    private getSummaryCard(): Locator {
-        return this.page.getByRole('region', { name: translation.pages.expenseDetailPage.summarySection });
-    }
-
     private getSplitCard(): Locator {
         return this.page.getByRole('region', { name: translation.pages.expenseDetailPage.splitSection });
-    }
-
-    private getCommentsCard(): Locator {
-        return this.page.getByRole('region', { name: translation.pages.expenseDetailPage.discussion });
     }
 
     private getReceiptCard(): Locator {

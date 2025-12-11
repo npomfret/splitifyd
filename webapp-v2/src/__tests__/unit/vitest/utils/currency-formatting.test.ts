@@ -1,6 +1,6 @@
 import { formatCurrency, formatCurrencyParts, type FormatOptions } from '@/utils/currency/currencyFormatter.ts';
 import { EUR, GBP, toCurrencyISOCode, USD } from '@billsplit-wl/shared';
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 // Mock i18n module for locale tests
 vi.mock('@/i18n', () => ({

@@ -96,10 +96,10 @@ export class TenantRegistryService {
         if (cached) {
             return Promise.resolve(cached);
         }
-        return this.loadTenantByDomain(cacheKey, domain);
+        return this.loadTenantByDomain(domain);
     }
 
-    private async loadTenantByDomain(cacheKey: string, domain: TenantDomainName): Promise<TenantFullRecord | null> {
+    private async loadTenantByDomain(domain: TenantDomainName): Promise<TenantFullRecord | null> {
         try {
             logger.info('Loading tenant by domain from Firestore', { domain });
             const record = await this.firestoreReader.getTenantByDomain(domain);

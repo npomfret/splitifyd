@@ -1,4 +1,4 @@
-import { CreateAdminUserRequest, SystemUserRoles, TestErrorResponse, TestSuccessResponse, toDisplayName, toEmail, toISOString } from '@billsplit-wl/shared';
+import { CreateAdminUserRequest, SystemUserRoles, TestErrorResponse, TestSuccessResponse, toEmail, toISOString } from '@billsplit-wl/shared';
 import type { RequestHandler } from 'express';
 import { getAppConfig, getTenantAwareAppConfig } from './app-config';
 import { buildEnvPayload, buildHealthPayload, resolveHealthStatusCode, runHealthChecks } from './endpoints/diagnostics';

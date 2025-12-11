@@ -29,7 +29,7 @@ import { enhancedGroupDetailStore } from '../app/stores/group-detail-store-enhan
 import { enhancedGroupsStore } from '../app/stores/groups-store-enhanced';
 import { BaseLayout } from '../components/layout/BaseLayout';
 import { GroupDetailGrid } from '../components/layout/GroupDetailGrid';
-import { logError, logInfo, logWarning } from '../utils/browser-logger';
+import { logError, logWarning } from '../utils/browser-logger';
 
 interface GroupDetailPageProps {
     id?: GroupId;
@@ -51,7 +51,6 @@ export default function GroupDetailPage({ id: groupId, expenseId: routeExpenseId
     const error = useComputed(() => enhancedGroupDetailStore.error);
     const members = useComputed(() => enhancedGroupDetailStore.members);
     const balances = useComputed(() => enhancedGroupDetailStore.balances);
-    const expenses = useComputed(() => enhancedGroupDetailStore.expenses);
     const commentsResponse = useComputed(() => enhancedGroupDetailStore.commentsResponse);
     const showDeletedExpenses = useComputed(() => enhancedGroupDetailStore.showDeletedExpenses);
     const showDeletedSettlements = useComputed(() => enhancedGroupDetailStore.showDeletedSettlements);
@@ -67,7 +66,6 @@ export default function GroupDetailPage({ id: groupId, expenseId: routeExpenseId
     const currentMembership = useComputed(() => members.value.find((member) => member.uid === currentUser.value?.uid) ?? null);
     const membershipStatus = useComputed(() => currentMembership.value?.memberStatus ?? MemberStatuses.ACTIVE);
     const isArchivedMembership = useComputed(() => membershipStatus.value === MemberStatuses.ARCHIVED);
-    const isGroupAdmin = useComputed(() => currentMembership.value?.memberRole === MemberRoles.ADMIN);
     const userPermissions = useComputed(() => permissionsStore.permissions.value || {});
     const canManageSettings = useComputed(() => Boolean(userPermissions.value.canManageSettings));
     const canApproveMembers = useComputed(() => Boolean(userPermissions.value.canApproveMembers));
@@ -306,7 +304,6 @@ export default function GroupDetailPage({ id: groupId, expenseId: routeExpenseId
 
     const handleGroupUpdateSuccess = () => {
         // Activity feed handles refresh automatically via SSE
-        logInfo('Group update successful', { groupId });
     };
 
     const handleGroupDelete = () => {

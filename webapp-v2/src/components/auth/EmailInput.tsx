@@ -28,19 +28,11 @@ export function EmailInput({ value, onInput, error, placeholder, required = true
         return null;
     };
 
-    const handleInput = (e: Event) => {
-        const target = e.target as HTMLInputElement;
-        const newValue = target.value;
-        onInput(newValue);
-        localError.value = validateEmail(newValue);
-    };
-
     const handleBlur = () => {
         localError.value = validateEmail(value);
     };
 
     const displayError = error || localError.value;
-    const hasError = !!displayError;
 
     return (
         <FloatingInput

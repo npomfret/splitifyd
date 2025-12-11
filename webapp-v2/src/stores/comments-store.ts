@@ -4,7 +4,7 @@ import { apiClient } from '../app/apiClient';
 import type { ActivityFeedRealtimePayload, ActivityFeedRealtimeService } from '../app/services/activity-feed-realtime-service';
 import { activityFeedRealtimeService } from '../app/services/activity-feed-realtime-service';
 import { getAuthStore } from '../app/stores/auth-store';
-import { logError, logInfo } from '../utils/browser-logger';
+import { logError } from '../utils/browser-logger';
 
 type GroupTarget = { type: 'group'; groupId: GroupId; };
 type ExpenseTarget = { type: 'expense'; expenseId: ExpenseId; };
@@ -29,14 +29,6 @@ const targetsEqual = (a: CommentsStoreTarget, b: CommentsStoreTarget): boolean =
     return isGroupTarget(a)
         ? a.groupId === (b as GroupTarget).groupId
         : a.expenseId === (b as ExpenseTarget).expenseId;
-};
-
-const targetDetails = (target: CommentsStoreTarget): Record<string, string> => {
-    if (isGroupTarget(target)) {
-        return { groupId: target.groupId };
-    }
-
-    return { expenseId: target.expenseId };
 };
 
 interface CommentsStore {
@@ -184,13 +176,6 @@ export class CommentsStoreImpl implements CommentsStore {
         this.#apiCursor = initialData.nextCursor ?? null;
         this.#commentsSignal.value = initialData.comments;
         this.#hasMoreSignal.value = this.#apiHasMore;
-
-        logInfo('Comments initialized from preloaded data', {
-            targetType: target.type,
-            ...targetDetails(target),
-            count: initialData.comments.length,
-            hasMore: initialData.hasMore,
-        });
     }
 
     async #ensureActivityListener() {
@@ -243,12 +228,6 @@ export class CommentsStoreImpl implements CommentsStore {
         if (currentTarget.type === 'expense' && event.details?.expenseId !== currentTarget.expenseId) {
             return;
         }
-
-        logInfo('Activity feed comment event matched current target, refreshing comments', {
-            targetType: currentTarget.type,
-            ...targetDetails(currentTarget),
-            eventId: event.id,
-        });
 
         void this.#refreshComments();
     };
@@ -321,14 +300,6 @@ export class CommentsStoreImpl implements CommentsStore {
             }
 
             this.#hasMoreSignal.value = this.#apiHasMore;
-
-            logInfo('Comments fetched via API', {
-                targetType: target.type,
-                ...targetDetails(target),
-                count: response.comments.length,
-                hasMore: response.hasMore,
-                isRefresh,
-            });
         } catch (error) {
             logError('Failed to fetch comments via API', error);
             this.#errorSignal.value = 'Failed to load comments';
@@ -403,13 +374,6 @@ export class CommentsStoreImpl implements CommentsStore {
             this.#apiCursor = response.nextCursor || null;
             this.#hasMoreSignal.value = this.#apiHasMore;
             this.#commentsSignal.value = [...this.#commentsSignal.value, ...response.comments];
-
-            logInfo('More comments loaded via API', {
-                targetType: target.type,
-                ...targetDetails(target),
-                count: response.comments.length,
-                hasMore: response.hasMore,
-            });
         } catch (error) {
             logError('Failed to load more comments via API', error);
             this.#errorSignal.value = 'Failed to load more comments';
