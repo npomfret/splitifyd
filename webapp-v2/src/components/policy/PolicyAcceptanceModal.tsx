@@ -145,9 +145,9 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
             describedBy={subtitleId}
             data-testid='policy-modal-overlay'
         >
-            <div data-testid='policy-modal-card' className='flex flex-col h-full'>
+            <div data-testid='policy-modal-card' className='flex flex-col h-full min-h-0 overflow-hidden'>
                 {/* Header */}
-                <div className='flex items-center justify-between p-6 border-b border-border-default' data-testid='policy-modal-header'>
+                <div className='shrink-0 flex items-center justify-between p-6 border-b border-border-default' data-testid='policy-modal-header'>
                     <div>
                         <Typography variant='pageTitle' as='h2' id={titleId}>
                             {t('policyComponents.policyAcceptanceModal.title')}
@@ -179,7 +179,7 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                 </div>
 
                 {/* Progress bar */}
-                <div className='px-6 py-3 border-b border-border-default' data-testid='policy-progress'>
+                <div className='shrink-0 px-6 py-3 border-b border-border-default' data-testid='policy-progress'>
                     <div className='flex items-center justify-between text-sm text-text-muted mb-2' data-testid='policy-progress-summary'>
                         <span>{t('policyComponents.policyAcceptanceModal.progress')}</span>
                         <span>
@@ -205,7 +205,7 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                 </div>
 
                 {/* Policy content */}
-                <div className='flex-1 overflow-y-auto p-6'>
+                <div className='flex-1 min-h-0 overflow-y-auto p-6'>
                     <Container>
                         <Stack spacing='md'>
                             {error && (
@@ -292,7 +292,7 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                 </div>
 
                 {/* Footer with navigation */}
-                <div className='flex items-center justify-between p-6 border-t border-border-default' data-testid='policy-modal-footer'>
+                <div className='shrink-0 flex items-center justify-between p-6 border-t border-border-default' data-testid='policy-modal-footer'>
                     <div className='flex items-center gap-2'>
                         <Button variant='secondary' onClick={handlePrevious} disabled={currentPolicyIndex === 0 || loading}>
                             {t('policyComponents.policyAcceptanceModal.previous')}
