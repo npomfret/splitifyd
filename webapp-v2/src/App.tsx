@@ -30,8 +30,6 @@ const RegisterPage = lazy(() => import('./pages/RegisterPage').then((m) => ({ de
 const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage').then((m) => ({ default: m.ResetPasswordPage })));
 const DashboardPage = lazy(() => import('./pages/DashboardPage').then((m) => ({ default: m.DashboardPage })));
 const GroupDetailPage = lazy(() => import('./pages/GroupDetailPage'));
-const AddExpensePage = lazy(() => import('./pages/AddExpensePage'));
-const ExpenseDetailPage = lazy(() => import('./pages/ExpenseDetailPage'));
 const JoinGroupPage = lazy(() => import('./pages/JoinGroupPage').then((m) => ({ default: m.JoinGroupPage })));
 const SettingsPage = lazy(() => import('./pages/SettingsPage').then((m) => ({ default: m.SettingsPage })));
 const AdminPage = lazy(() => import('./pages/AdminPage').then((m) => ({ default: m.AdminPage })));
