@@ -81,7 +81,6 @@ const describeWorkspace = () => {
 export const buildEnvPayload = () => {
     const uptimeSeconds = process.uptime();
     const memUsage = process.memoryUsage();
-    const config = getAppConfig();
     const heapStats = v8.getHeapStatistics();
     const heapSpaces = v8.getHeapSpaceStatistics();
 

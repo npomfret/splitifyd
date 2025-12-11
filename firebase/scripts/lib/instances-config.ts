@@ -49,10 +49,6 @@ function loadInstancesFile(): InstancesMap {
     return config;
 }
 
-export function getInstancesConfig(): InstancesMap {
-    return loadInstancesFile();
-}
-
 export function requireInstanceConfig(instanceKey: string): InstanceConfig {
     const instances = loadInstancesFile();
     const entry = instances[instanceKey];

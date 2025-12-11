@@ -49,13 +49,6 @@ export function createStubResponse(): any {
             jsonData = data;
             return res;
         },
-        send: (data?: any) => {
-            if (data !== undefined) {
-                jsonData = data;
-                bodyData = data;
-            }
-            return res;
-        },
         type: (type: string) => {
             contentType = type;
             return res;

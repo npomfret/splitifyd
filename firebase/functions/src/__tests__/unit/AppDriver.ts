@@ -129,31 +129,6 @@ interface AuthenticatedRequest extends Request {
 
 export type AuthToken = string;
 
-/**
- * Thin façade around the public HTTP handlers.
- * - Uses the same handler classes the Express app wires up.
- * - Seeds data into an in-memory Firestore stub (no emulator required).
- * - Feeds handlers authenticated requests via the stub auth service.
- * - Now includes route-aware dispatch with middleware execution for better test coverage.
- *
- * Tests call into this driver to hit the actual validation/permission logic
- * without needing to spin up the Firebase runtime.
- *
- * DO NOT use for load / concurrency testing - it will not accurately simulate firestore behaviour under load
- *
- * This class implements the operations defined in IApiClient with a UserId-based authentication model.
- * It follows the pattern: method(userId, data) where userId is used for direct database access in tests.
- *
- * @see IApiClient for the complete list of supported operations
- */
-type SeedUserData = Omit<Partial<UserRecord>, 'metadata'> & {
-    role?: typeof SystemUserRoles[keyof typeof SystemUserRoles];
-    metadata?: {
-        creationTime: string;
-        lastSignInTime?: string;
-    };
-};
-
 export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken> {
     private db = new StubFirestoreDatabase();
     private storage = new StubStorage({ defaultBucketName: 'app-driver-test-bucket' });

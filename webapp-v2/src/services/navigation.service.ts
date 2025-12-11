@@ -169,20 +169,6 @@ class NavigationService {
     }
 
     /**
-     * Navigate to edit expense page
-     */
-    goToEditExpense(groupId: GroupId, expenseId: ExpenseId): Promise<void> {
-        return this.navigateTo(routes.editExpense(groupId, expenseId));
-    }
-
-    /**
-     * Navigate to copy expense page
-     */
-    goToCopyExpense(groupId: GroupId, sourceId: string): Promise<void> {
-        return this.navigateTo(routes.copyExpense(groupId, sourceId));
-    }
-
-    /**
      * Navigate to expense detail page
      */
     goToExpenseDetail(groupId: GroupId, expenseId: ExpenseId): Promise<void> {
