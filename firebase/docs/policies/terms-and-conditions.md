@@ -1,8 +1,4 @@
-# Terms and Conditions for BillSplit
-
-**Effective Date:** December 10, 2025
-
-Welcome to BillSplit! These Terms and Conditions ("Terms") govern your use of the BillSplit application, website, and services (collectively, the "Service"). Please read them carefully.
+These Terms and Conditions ("Terms") govern your use of the application, website, and services (collectively, the "Service"). Please read them carefully.
 
 **By using our Service, you agree to be bound by these Terms. If you do not agree to these Terms, do not use the Service.**
 
@@ -10,7 +6,7 @@ Welcome to BillSplit! These Terms and Conditions ("Terms") govern your use of th
 
 ## 1. About the Service
 
-BillSplit is a convenience tool designed to help you and others track shared bills and expenses. The Service helps you record, calculate, and organize expense information—it does not process payments, transfer money, or hold funds on your behalf.
+The Service is a convenience tool designed to help you and others track shared bills and expenses. The Service helps you record, calculate, and organize expense information—it does not process payments, transfer money, or hold funds on your behalf.
 
 **The Service is currently provided free of charge.** We reserve the right to introduce fees, subscriptions, or different service models in the future. If we do, we will provide you with reasonable notice of any changes.
 
@@ -48,7 +44,7 @@ The Service is not intended to provide, and should not be construed as providing
 
 ### 3.5. We Do Not Handle Money
 
-**BillSplit does not process payments, transfer funds, hold money, or act as a payment intermediary.** Any actual payments between users occur outside of the Service and are solely between those users. We have no involvement in, responsibility for, or liability arising from any payment or non-payment between users.
+**The Service does not process payments, transfer funds, hold money, or act as a payment intermediary.** Any actual payments between users occur outside of the Service and are solely between those users. We have no involvement in, responsibility for, or liability arising from any payment or non-payment between users.
 
 ---
 
@@ -56,15 +52,15 @@ The Service is not intended to provide, and should not be construed as providing
 
 ### 4.1. Disputes Are Between Users
 
-**BillSplit is not a party to any dispute between you and other users.** Any disagreement about expenses, amounts owed, who paid what, or any other matter is solely between the users involved.
+**We are not a party to any dispute between you and other users.** Any disagreement about expenses, amounts owed, who paid what, or any other matter is solely between the users involved.
 
-### 4.2. No Mediation or Arbitration by BillSplit
+### 4.2. No Mediation or Arbitration by Us
 
 We do not mediate, arbitrate, or otherwise involve ourselves in disputes between users. We have no obligation to investigate claims, determine fault, or enforce any resolution.
 
 ### 4.3. Release of Claims
 
-**You hereby release BillSplit, its affiliates, officers, directors, employees, and agents from any and all claims, demands, damages, losses, and causes of action arising out of or relating to disputes with other users**, including but not limited to disputes about:
+**You hereby release us, our affiliates, officers, directors, employees, and agents from any and all claims, demands, damages, losses, and causes of action arising out of or relating to disputes with other users**, including but not limited to disputes about:
 
 *   Amounts owed or paid
 *   Accuracy of expense records
@@ -143,7 +139,7 @@ You agree not to misuse the Service. You must not:
 
 ### 8.1. Our Ownership
 
-The Service, including its design, features, functionality, and content (excluding Your Content), is owned by BillSplit and protected by intellectual property laws. You receive no ownership interest in the Service.
+The Service, including its design, features, functionality, and content (excluding Your Content), is owned by us and protected by intellectual property laws. You receive no ownership interest in the Service.
 
 ### 8.2. Limited License to You
 
@@ -204,7 +200,7 @@ TO THE FULLEST EXTENT PERMITTED BY LAW, WE DISCLAIM ALL WARRANTIES, INCLUDING BU
 
 ### 11.1. Exclusion of Damages
 
-**TO THE FULLEST EXTENT PERMITTED BY LAW, IN NO EVENT SHALL BILLSPLIT, ITS AFFILIATES, DIRECTORS, EMPLOYEES, OR AGENTS BE LIABLE FOR:**
+**TO THE FULLEST EXTENT PERMITTED BY LAW, IN NO EVENT SHALL WE, OUR AFFILIATES, DIRECTORS, EMPLOYEES, OR AGENTS BE LIABLE FOR:**
 
 *   ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES
 *   ANY LOSS OF PROFITS, REVENUES, DATA, USE, GOODWILL, OR OTHER INTANGIBLE LOSSES
@@ -233,7 +229,7 @@ SOME JURISDICTIONS DO NOT ALLOW THE EXCLUSION OF CERTAIN WARRANTIES OR LIMITATIO
 
 ## 12. Indemnification
 
-**You agree to defend, indemnify, and hold harmless BillSplit, its affiliates, officers, directors, employees, and agents from and against any claims, liabilities, damages, losses, costs, and expenses (including reasonable legal fees) arising out of or relating to:**
+**You agree to defend, indemnify, and hold harmless us, our affiliates, officers, directors, employees, and agents from and against any claims, liabilities, damages, losses, costs, and expenses (including reasonable legal fees) arising out of or relating to:**
 
 *   Your use of the Service
 *   Your Content
@@ -252,7 +248,7 @@ We want to address your concerns without a formal legal case. Before filing a cl
 
 ### 13.2. Arbitration Agreement
 
-**If we cannot resolve a dispute informally, you and BillSplit agree to resolve any disputes through binding arbitration rather than in court**, except that either party may bring claims in small claims court if eligible.
+**If we cannot resolve a dispute informally, you and us agree to resolve any disputes through binding arbitration rather than in court**, except that either party may bring claims in small claims court if eligible.
 
 ### 13.3. Arbitration Procedures
 
@@ -262,7 +258,7 @@ We want to address your concerns without a formal legal case. Before filing a cl
 
 ### 13.4. Class Action Waiver
 
-**YOU AND BILLSPLIT AGREE THAT EACH MAY BRING CLAIMS AGAINST THE OTHER ONLY IN YOUR OR ITS INDIVIDUAL CAPACITY AND NOT AS A PLAINTIFF OR CLASS MEMBER IN ANY CLASS OR REPRESENTATIVE ACTION.** Unless both parties agree otherwise, the arbitrator may not consolidate more than one person's claims.
+**YOU AND WE AGREE THAT EACH MAY BRING CLAIMS AGAINST THE OTHER ONLY IN YOUR OR ITS INDIVIDUAL CAPACITY AND NOT AS A PLAINTIFF OR CLASS MEMBER IN ANY CLASS OR REPRESENTATIVE ACTION.** Unless both parties agree otherwise, the arbitrator may not consolidate more than one person's claims.
 
 ### 13.5. Exceptions
 
@@ -288,7 +284,7 @@ We encourage you to review these Terms periodically.
 
 ### 16.1. Entire Agreement
 
-These Terms, together with our Privacy Policy and Cookie Policy, constitute the entire agreement between you and BillSplit regarding the Service and supersede any prior agreements.
+These Terms, together with our Privacy Policy and Cookie Policy, constitute the entire agreement between you and us regarding the Service and supersede any prior agreements.
 
 ### 16.2. Severability
 

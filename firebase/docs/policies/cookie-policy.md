@@ -1,12 +1,6 @@
-# Cookie Policy for BillSplit
-
-**Effective Date:** December 10, 2025
-
----
-
 ## Summary
 
-This policy explains how BillSplit ("we," "us," "our") uses cookies and similar technologies.
+This policy explains how our service ("we," "us," "our") uses cookies and similar technologies.
 
 *   **What we use:** We only use cookies that are essential for the Service to work correctly and securely. For example, we use cookies to keep you logged in.
 *   **What we DON'T use:** We **do not** currently use cookies for analytics, advertising, or other non-essential tracking.
@@ -48,7 +42,7 @@ We use Google Firebase for authentication, which sets cookies to manage your log
 
 ## 3. What We Do NOT Use
 
-BillSplit **does not** currently use cookies or other tracking technologies for:
+Our service **does not** currently use cookies or other tracking technologies for:
 
 *   **Analytics:** We do not use Google Analytics, Mixpanel, or similar services to track your behavior
 *   **Advertising:** We do not use advertising cookies, remarketing pixels, or ad networks
@@ -76,7 +70,7 @@ You can control and manage cookies through your browser settings. Most browsers 
 *   Block all cookies
 *   Delete all cookies when you close your browser
 
-Please note that if you block or delete strictly necessary cookies, the Service may not function correctly—you may not be able to log in or access certain features.
+Please note that if you block or delete strictly necessary cookies, the Service may not function correctly—you may not be to log in or access certain features.
 
 ### 4.2. How to Manage Cookies in Common Browsers
 

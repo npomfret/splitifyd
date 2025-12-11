@@ -1,15 +1,9 @@
-# Privacy Policy for BillSplit
-
-**Effective Date:** December 10, 2025
-
----
-
 ## Summary
 
-Welcome to BillSplit! We are committed to protecting your privacy. This policy explains what information we collect, how we use it, and what your rights are.
+We are committed to protecting your privacy. This policy explains what information we collect, how we use it, and what your rights are.
 
 *   **What we collect:** We collect the information you provide (like your name, email, and expense details) and basic operational data needed for the app to work securely and reliably.
-*   **How we use it:** We use your data to provide and improve the BillSplit service, process your calculations, and keep your account secure. **We do not sell your personal data.**
+*   **How we use it:** We use your data to provide and improve the service, process your calculations, and keep your account secure. **We do not sell your personal data.**
 *   **Your Rights:** You have rights over your data, including the right to access, correct, or delete it.
 
 This is just a summary. Please read the full policy below for complete details.
@@ -18,9 +12,9 @@ This is just a summary. Please read the full policy below for complete details.
 
 ## 1. Introduction
 
-This Privacy Policy applies to the BillSplit application, website, and services (collectively, the "Service"), operated by BillSplit ("we," "us," or "our").
+This Privacy Policy applies to the application, website, and services (collectively, the "Service"), operated by us ("we," "us," or "our").
 
-We are committed to being transparent about our data practices. This policy describes how we collect, use, disclose, and protect your information when you use our Service. **By using BillSplit, you agree to the collection and use of information in accordance with this policy.**
+We are committed to being transparent about our data practices. This policy describes how we collect, use, disclose, and protect your information when you use our Service. **By using the Service, you agree to the collection and use of information in accordance with this policy.**
 
 ---
 
@@ -96,7 +90,7 @@ We may disclose your information if required to do so by law, or if we believe i
 
 ### 4.4. Business Transfers
 
-If BillSplit is involved in a merger, acquisition, sale of assets, or bankruptcy, your information may be transferred as part of that transaction. We will notify you of any such change and any choices you may have regarding your information.
+If our company is involved in a merger, acquisition, sale of assets, or bankruptcy, your information may be transferred as part of that transaction. We will notify you of any such change and any choices you may have regarding your information.
 
 ### 4.5. With Your Consent
 
