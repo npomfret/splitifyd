@@ -1,5 +1,7 @@
+import { getAuthStore } from '@/app/stores/auth-store';
 import type { CommentDTO } from '@billsplit-wl/shared';
 import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
+import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Alert, EmptyState, LoadingSpinner, SkeletonCommentItem, Stack } from '../ui';
 import { CommentItem } from './CommentItem';
@@ -16,6 +18,13 @@ interface CommentsListProps {
 
 export function CommentsList({ comments, loading = false, error, hasMore = false, onLoadMore, maxHeight = '400px', className = '' }: CommentsListProps) {
     const { t } = useTranslation();
+    const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+    useEffect(() => {
+        getAuthStore().then((store) => {
+            setCurrentUserId(store.user?.uid ?? null);
+        });
+    }, []);
 
     if (error) {
         return <Alert type='error' message={error} data-testid='comments-error' />;
@@ -48,9 +57,15 @@ export function CommentsList({ comments, loading = false, error, hasMore = false
             className={`overflow-y-auto overflow-x-hidden pr-1 scrollbar-thin scrollbar-thumb-border-default scrollbar-track-transparent hover:scrollbar-thumb-border-strong ${className}`}
             style={{ maxHeight }}
         >
-            <Stack spacing='lg' className='px-1'>
+            <Stack spacing='md' className='px-1'>
                 {comments
-                    .map((comment) => <CommentItem key={comment.id} comment={comment} className='pb-4 border-b border-border-default last:border-0' />)}
+                    .map((comment) => (
+                        <CommentItem
+                            key={comment.id}
+                            comment={comment}
+                            isCurrentUser={currentUserId === comment.authorId}
+                        />
+                    ))}
             </Stack>
 
             {hasMore && (

@@ -103,15 +103,15 @@ export function CommentInput({ onSubmit, disabled = false, placeholder, classNam
                     placeholder={placeholder || t('comments.commentInput.placeholder')}
                     disabled={(disabled && !isEditing.value) || isSubmitting}
                     className={`
-                        w-full px-3 py-2 pr-10
-                        border rounded-lg
+                        w-full px-4 py-3 pr-12
+                        border rounded-full
                         resize-none overflow-hidden
-                        text-sm
-                        placeholder-text-muted/80
+                        text-sm text-text-primary
+                        bg-surface-raised
+                        placeholder-text-muted/70
                         focus:outline-hidden focus:ring-2 focus:ring-interactive-primary focus:border-transparent
                         disabled:opacity-50 disabled:cursor-not-allowed
-                        dark:bg-text-primary dark:border-border-strong dark:text-text-muted/20
-                        ${isOverLimit ? 'border-semantic-error focus:ring-semantic-error' : 'border-border-default dark:border-border-strong'}
+                        ${isOverLimit ? 'border-semantic-error focus:ring-semantic-error' : 'border-border-default'}
                     `}
                     rows={1}
                     style={{ minHeight: '38px', maxHeight: '120px' }}
@@ -133,19 +133,19 @@ export function CommentInput({ onSubmit, disabled = false, placeholder, classNam
             </div>
 
             <div className='flex items-center justify-between text-xs'>
-                <div className='text-text-muted dark:text-text-muted/80'>
+                <div className='text-text-muted'>
                     {error
                         ? (
-                            <span className='text-semantic-error dark:text-semantic-error/80' role='alert' data-testid='comment-error-message'>
+                            <span className='text-semantic-error' role='alert' data-testid='comment-error-message'>
                                 {error}
                             </span>
                         )
-                        : <span className='text-xs text-text-muted/80 dark:text-text-muted'>{t('comments.commentInput.helpText')}</span>}
+                        : <span className='text-xs text-text-muted'>{t('comments.commentInput.helpText')}</span>}
                 </div>
                 {text.value.length > 0 && (
                     <span
                         className={`
-                        ${isOverLimit ? 'text-semantic-error font-medium' : 'text-text-muted dark:text-text-muted/80'}
+                        ${isOverLimit ? 'text-semantic-error font-medium' : 'text-text-muted'}
                     `}
                         data-testid={isOverLimit ? 'character-limit-exceeded' : 'character-count'}
                     >

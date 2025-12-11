@@ -53,8 +53,8 @@ export function CommentsSection({ target, maxHeight = '400px', className = '', i
         <div className={`flex flex-col gap-4 ${className}`}>
             {/* Error message */}
             {error.value && (
-                <div className='bg-surface-error dark:bg-semantic-error/20 border border-border-error dark:border-semantic-error/60 rounded-lg p-3'>
-                    <p className='text-sm text-semantic-error dark:text-semantic-error/80' role='alert' data-testid='comments-error-message'>
+                <div className='bg-surface-warning border border-border-error rounded-lg p-3'>
+                    <p className='text-sm text-semantic-error' role='alert' data-testid='comments-error-message'>
                         {error.value}
                     </p>
                 </div>
@@ -64,7 +64,7 @@ export function CommentsSection({ target, maxHeight = '400px', className = '', i
             <CommentsList comments={comments.value} loading={loading.value} hasMore={hasMore.value} onLoadMore={handleLoadMore} maxHeight={maxHeight} />
 
             {/* Comment input */}
-            <div className='border-t pt-4 dark:border-border-strong'>
+            <div className='border-t border-border-default pt-4'>
                 <CommentInput
                     onSubmit={handleSubmit}
                     disabled={submitting.value}

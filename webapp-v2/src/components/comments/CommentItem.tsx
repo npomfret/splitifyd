@@ -1,53 +1,49 @@
-import { getInitials } from '@/utils/avatar.ts';
 import type { CommentDTO } from '@billsplit-wl/shared';
 import { toDisplayName } from '@billsplit-wl/shared';
-import { RelativeTime } from '../ui';
+import { Avatar, RelativeTime } from '../ui';
 
 interface CommentItemProps {
     comment: CommentDTO;
+    isCurrentUser?: boolean;
     showAvatar?: boolean;
     className?: string;
 }
 
-export function CommentItem({ comment, showAvatar = true, className = '' }: CommentItemProps) {
-    const getAvatarColor = (authorId: string): string => {
-        // Generate a consistent color based on the user ID
-        const colors = [
-            'bg-interactive-secondary',
-            'bg-semantic-error',
-            'bg-interactive-secondary/80',
-            'bg-semantic-error/80',
-            'bg-interactive-secondary/60',
-            'bg-semantic-error/60',
-            'bg-interactive-secondary',
-            'bg-semantic-error',
-        ];
-        const index = authorId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % colors.length;
-        return colors[index];
-    };
-
+export function CommentItem({ comment, isCurrentUser = false, showAvatar = true, className = '' }: CommentItemProps) {
     return (
-        <div className={`flex gap-3 ${className}`} data-testid='comment-item'>
+        <div
+            className={`flex gap-3 ${isCurrentUser ? 'flex-row-reverse' : ''} ${className}`}
+            data-testid='comment-item'
+        >
             {showAvatar && (
                 <div className='shrink-0'>
-                    {comment.authorAvatar
-                        ? <img src={comment.authorAvatar} alt={comment.authorName} className='w-8 h-8 rounded-full object-cover' />
-                        : (
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-text-inverted text-sm font-medium ${getAvatarColor(comment.authorId)}`}>
-                                {getInitials(toDisplayName(comment.authorName))}
-                            </div>
-                        )}
-                </div>
-            )}
-            <div className='flex-1 min-w-0'>
-                <div className='flex items-baseline gap-2 flex-wrap'>
-                    <span className='font-medium text-sm text-text-primary dark:text-text-muted/20'>{comment.authorName}</span>
-                    <RelativeTime
-                        date={comment.createdAt}
-                        className='text-xs text-text-muted dark:text-text-muted/80'
+                    <Avatar
+                        displayName={toDisplayName(comment.authorName)}
+                        userId={comment.authorId}
+                        size='sm'
+                        photoURL={comment.authorAvatar}
                     />
                 </div>
-                <p className='mt-1 text-sm text-text-primary dark:text-text-muted/60 whitespace-pre-wrap wrap-break-word'>{comment.text}</p>
+            )}
+            <div className={`flex-1 min-w-0 max-w-[80%] ${isCurrentUser ? 'text-right' : ''}`}>
+                <span className='font-medium text-xs text-text-secondary'>{comment.authorName}</span>
+                <div
+                    className={`
+                        mt-1 px-3 py-2 rounded-2xl inline-block text-left
+                        ${isCurrentUser
+                            ? 'bg-interactive-primary text-interactive-primary-foreground rounded-tr-sm'
+                            : 'bg-surface-raised text-text-primary rounded-tl-sm'
+                        }
+                    `}
+                >
+                    <p className='text-sm whitespace-pre-wrap wrap-break-word'>{comment.text}</p>
+                </div>
+                <div className={`mt-1 ${isCurrentUser ? 'text-right' : 'text-left'}`}>
+                    <RelativeTime
+                        date={comment.createdAt}
+                        className='text-xs text-text-secondary'
+                    />
+                </div>
             </div>
         </div>
     );

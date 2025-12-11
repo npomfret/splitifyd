@@ -138,12 +138,12 @@
             "popover": "#F7FEF8"
           },
           "text": {
-            "primary": "#14532D",
-            "secondary": "#166534",
-            "muted": "#4ADE80",
+            "primary": "#1F2937",
+            "secondary": "#4B5563",
+            "muted": "#6B7280",
             "inverted": "#FFFFFF",
             "accent": "#16A34A",
-            "disabled": "#86EFAC",
+            "disabled": "#9CA3AF",
             "hero": "#14532D",
             "eyebrow": "#16A34A",
             "code": "#15803D",

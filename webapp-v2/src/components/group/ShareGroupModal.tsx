@@ -254,7 +254,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
 
                             {/* QR Code section */}
                             <div class='flex flex-col items-center py-2'>
-                                <div class='p-3 bg-white rounded-lg border border-border-default'>
+                                <div class='p-3 bg-surface-raised rounded-lg border border-border-default'>
                                     <QRCodeCanvas value={shareLink} size={120} />
                                 </div>
                                 <p class='text-xs text-text-primary/70 mt-2'>{t('shareGroupModal.qrCodeDescription')}</p>
