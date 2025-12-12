@@ -44,6 +44,10 @@ Defined in `webapp-v2/src/styles/global.css` using Tailwind v4's `@theme` direct
 - `Clickable` - Wraps non-button interactive elements for analytics
 - `Input`, `FloatingInput` - Form inputs with error states
 - `Typography` - Text with variants: `body`, `caption`, `heading`, `display`
+- `Badge` - Status/label indicators with variants: `primary`, `success`, `warning`, `error`
+- `FieldError` - Form validation error messages
+- `HelpText` - Help/description text (or use `help-text` utility class)
+- `ModalHeader`, `ModalContent`, `ModalFooter` - Modal section wrappers
 
 ### Rules
 1. All interactive elements use `Button` or `Clickable` - no naked `onClick`
@@ -233,12 +237,15 @@ Pages under `pages/admin/` and `components/admin/` are **completely isolated fro
 | **Button loading** | `Button loading={true}` prop |
 | **List errors** | `ErrorState` component with retry action |
 | **Inline errors** | `Alert` component |
-| **Field errors** | `FormField` error prop |
+| **Field errors** | `FieldError` component or `FormField` error prop |
+| **Help text** | `help-text` class or `HelpText` component |
+| **Small help text** | `help-text-xs` class |
+| **Badges/chips** | `Badge` component with variant, or `badge` utility class |
 | **Empty lists** | `EmptyState` with Heroicon + translated title |
 | **Typography** | `Typography` component with semantic variants |
 | **List spacing** | `Stack spacing='sm'` (compact) / `'md'` (standard) / `'lg'` (spacious) |
 | **Form spacing** | `Stack spacing='lg'` between fields |
-| **Modal structure** | Header `px-6 py-4 border-b`, Content `px-6 py-5 max-h-[70vh]`, Footer `px-6 py-4 border-t` |
+| **Modal structure** | `ModalHeader`, `ModalContent`, `ModalFooter` components |
 
 ---
 
@@ -246,6 +253,7 @@ Pages under `pages/admin/` and `components/admin/` are **completely isolated fro
 
 | Don't | Do |
 |-------|-----|
+| `class='...'` in TSX | `className='...'` (JSX syntax) |
 | `bg-gray-600` | `bg-surface-raised` |
 | `style={{ color: '#fff' }}` | `className="text-text-inverted"` |
 | `:root { --color: #fff }` in CSS | Let theme system set variables |
@@ -257,6 +265,11 @@ Pages under `pages/admin/` and `components/admin/` are **completely isolated fro
 | Emoji icons (⚠️) | Heroicons components |
 | `space-y-*` classes | `Stack spacing='*'` or CSS var gap |
 | Custom error divs | `ErrorState` or `Alert` |
+| Inline error `<p>` styling | `FieldError` component |
+| `text-sm text-text-muted` | `help-text` utility class |
+| `text-xs text-text-muted` | `help-text-xs` utility class |
+| Inline badge/chip styling | `Badge` component or `badge` utility |
+| Inline modal header/content/footer | `ModalHeader`, `ModalContent`, `ModalFooter` |
 | Raw `<button>` | `Button` or `Clickable` |
 | Dropdown in `overflow:hidden` container | Portal to `document.body` (see `Modal.tsx`, `Tooltip.tsx`) |
 | `absolute` class on Tooltip child | Put `absolute` on `Tooltip className` prop instead |
