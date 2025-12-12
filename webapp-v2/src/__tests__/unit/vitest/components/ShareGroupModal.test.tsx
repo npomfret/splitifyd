@@ -36,6 +36,9 @@ vi.mock('@/components/ui/Modal', async () => {
                 </div>
             );
         },
+        ModalHeader: ({ children, className }: any) => <div className={className}>{children}</div>,
+        ModalContent: ({ children, className }: any) => <div className={className}>{children}</div>,
+        ModalFooter: ({ children, className }: any) => <div className={className}>{children}</div>,
     };
 });
 

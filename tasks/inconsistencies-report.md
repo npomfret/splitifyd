@@ -59,22 +59,23 @@ New CSS utilities and components have been created to eliminate class duplicatio
 
 ---
 
-### Priority 1: Modal Structure (7 files)
+### Priority 1: Modal Structure (7 files) - **COMPLETED**
 
-Files using manual modal header/content/footer classes that should use `ModalHeader`, `ModalContent`, `ModalFooter`:
+**All modal files have been migrated to use `ModalHeader`, `ModalContent`, `ModalFooter` components:**
 
-| File | Changes Needed |
-|------|----------------|
-| `components/settlements/SettlementForm.tsx` | Replace header (L405), content (L427), footer divs |
-| `components/expense-form/ExpenseFormModal.tsx` | Replace header (L81), content (L104), footer divs |
-| `components/group/ShareGroupModal.tsx` | Replace header (L172), content, footer divs |
-| `components/group/DeleteGroupConfirmationModal.tsx` | Replace header (L37), content, footer divs |
-| `components/dashboard/CreateGroupModal.tsx` | Replace header, content, footer divs |
-| `components/policy/PolicyAcceptanceModal.tsx` | Replace header, content, footer divs |
-| `components/admin/UserEditorModal.tsx` | Replace header, content, footer divs |
-
-**Already done:**
 - ✅ `components/expense/ExpenseDetailModal.tsx`
+- ✅ `components/settlements/SettlementForm.tsx` - ModalHeader + ModalContent
+- ✅ `components/expense-form/ExpenseFormModal.tsx` - ModalHeader + ModalContent
+- ✅ `components/group/ShareGroupModal.tsx` - ModalHeader + ModalContent
+- ✅ `components/group/DeleteGroupConfirmationModal.tsx` - ModalHeader + ModalContent + ModalFooter + replaced ⚠️ emoji with ExclamationTriangleIcon
+- ✅ `components/dashboard/CreateGroupModal.tsx` - ModalHeader + ModalContent + ModalFooter
+- ✅ `components/admin/UserEditorModal.tsx` - ModalHeader + ModalFooter (content kept custom due to tabs section) + fixed `class=` → `className=` for dynamic template literals
+
+**Skipped (too custom):**
+- `components/policy/PolicyAcceptanceModal.tsx` - Has complex flex layout with progress bar section between header and content, custom `flex-1` sizing, and `justify-between` footer. Would require significant restructuring.
+
+**Test updates:**
+- ✅ `__tests__/unit/vitest/components/ShareGroupModal.test.tsx` - Updated Modal mock to include `ModalHeader`, `ModalContent`, `ModalFooter` exports
 
 ---
 
@@ -227,12 +228,12 @@ import { Badge } from '@/components/ui';
 
 ## Summary
 
-| Category | Files to Update | Priority |
-|----------|-----------------|----------|
-| Modal structure | 7 | High |
-| Form errors | 6 | High |
-| Help text | 30 | Medium |
-| Badges | 5 | Medium |
-| **Total** | **48** | |
+| Category | Files to Update | Priority | Status |
+|----------|-----------------|----------|--------|
+| Modal structure | 7 | High | ✅ **DONE** (6 migrated, 1 skipped, tests updated) |
+| Form errors | 6 | High | Pending |
+| Help text | 30 | Medium | Pending |
+| Badges | 5 | Medium | Pending |
+| **Total** | **48** | | |
 
-The migration can be done incrementally. Start with Priority 1 (modals) as they have the highest impact and clearest patterns.
+Priority 1 (Modal Structure) is complete. All unit tests pass. Next priorities are Form Errors (Priority 2) and Help Text (Priority 3).

@@ -4,7 +4,7 @@ import { CurrencyService } from '@/app/services/currencyService.ts';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced.ts';
 import { Clickable } from '@/components/ui/Clickable';
 import { XIcon } from '@/components/ui/icons';
-import { Modal } from '@/components/ui/Modal';
+import { Modal, ModalContent, ModalHeader } from '@/components/ui/Modal';
 import { formatCurrency } from '@/utils/currency';
 import { getAmountPrecisionError } from '@/utils/currency-validation.ts';
 import { getUTCMidnight, isDateInFuture } from '@/utils/dateUtils.ts';
@@ -401,8 +401,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
             size='sm'
             labelledBy='settlement-form-title'
         >
-            {/* Modal Header */}
-            <div className='px-6 py-4 border-b border-border-default'>
+            <ModalHeader>
                 <div className='flex justify-between items-center'>
                     <Typography variant='heading' id='settlement-form-title'>
                         {editMode ? t('settlementForm.updateSettlement') : t('settlementForm.recordSettlement')}
@@ -421,10 +420,9 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                         </Clickable>
                     </Tooltip>
                 </div>
-            </div>
+            </ModalHeader>
 
-            {/* Modal Content */}
-            <div className='px-6 py-5 max-h-[70vh] overflow-y-auto'>
+            <ModalContent>
                 {/* Quick Settlement Buttons - only show in create mode when not pre-filled from balances */}
                 {!editMode && !preselectedDebt && quickSettleDebts.value.length > 0 && (
                     <div className='mb-4 pb-4 border-b border-border-default'>
@@ -639,7 +637,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                         </div>
                     </Stack>
                 </Form>
-            </div>
+            </ModalContent>
         </Modal>
     );
 }

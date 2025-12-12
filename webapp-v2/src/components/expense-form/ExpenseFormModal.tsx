@@ -1,7 +1,7 @@
 import { useExpenseForm } from '@/app/hooks/useExpenseForm';
 import { Clickable } from '@/components/ui/Clickable';
 import { XIcon } from '@/components/ui/icons';
-import { Modal } from '@/components/ui/Modal';
+import { Modal, ModalContent, ModalHeader } from '@/components/ui/Modal';
 import { ExpenseId, GroupId } from '@billsplit-wl/shared';
 import { useTranslation } from 'react-i18next';
 import { Button, Card, ErrorState, LoadingState, Stack, Tooltip, Typography } from '../ui';
@@ -77,8 +77,7 @@ export function ExpenseFormModal({ isOpen, onClose, groupId, mode, expenseId, on
             size='lg'
             labelledBy='expense-form-modal-title'
         >
-            {/* Modal Header */}
-            <div className='px-6 py-4 border-b border-border-default'>
+            <ModalHeader>
                 <div className='flex justify-between items-center'>
                     <Typography variant='heading' id='expense-form-modal-title'>
                         {getModalTitle()}
@@ -98,10 +97,9 @@ export function ExpenseFormModal({ isOpen, onClose, groupId, mode, expenseId, on
                         </Clickable>
                     </Tooltip>
                 </div>
-            </div>
+            </ModalHeader>
 
-            {/* Modal Content */}
-            <div className='px-6 py-5 max-h-[70vh] overflow-y-auto'>
+            <ModalContent>
                 {/* Loading state */}
                 {!formState.isDataReady && !formState.initError && <LoadingState message={t('app.loadingExpenseForm')} />}
 
@@ -218,7 +216,7 @@ export function ExpenseFormModal({ isOpen, onClose, groupId, mode, expenseId, on
                         </Stack>
                     </form>
                 )}
-            </div>
+            </ModalContent>
         </Modal>
     );
 }

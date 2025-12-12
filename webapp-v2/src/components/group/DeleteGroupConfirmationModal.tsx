@@ -1,5 +1,6 @@
 import { Alert, Button, Input, LoadingSpinner } from '@/components/ui';
-import { Modal } from '@/components/ui/Modal';
+import { Modal, ModalContent, ModalFooter, ModalHeader } from '@/components/ui/Modal';
+import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { useTranslation } from 'react-i18next';
 
 interface DeleteGroupConfirmationModalProps {
@@ -34,14 +35,14 @@ export function DeleteGroupConfirmationModal({
             ariaLabel={t('editGroupModal.deleteConfirmDialog.title')}
         >
             <div>
-                <div className='px-6 py-4 border-b border-border-default'>
+                <ModalHeader>
                     <h3 className='text-lg font-semibold text-semantic-error flex items-center'>
-                        <span className='mr-2'>⚠️</span>
+                        <ExclamationTriangleIcon className='w-5 h-5 mr-2' aria-hidden='true' />
                         {t('editGroupModal.deleteConfirmDialog.title')}
                     </h3>
-                </div>
+                </ModalHeader>
 
-                <div className='px-6 py-4'>
+                <ModalContent>
                     <div className='bg-surface-error border border-border-error rounded-md p-4 mb-4'>
                         <h4 className='text-semantic-error font-semibold mb-2'>{t('editGroupModal.deleteConfirmDialog.warningTitle')}</h4>
                         <p className='text-semantic-error text-sm mb-3'>{t('editGroupModal.deleteConfirmDialog.warningMessage')}</p>
@@ -69,16 +70,16 @@ export function DeleteGroupConfirmationModal({
                             <p className='text-sm'>{t('editGroupModal.deleteConfirmDialog.deletingMessage')}</p>
                         </div>
                     )}
-                </div>
+                </ModalContent>
 
-                <div className='px-6 py-4 border-t border-border-default flex justify-end space-x-3'>
+                <ModalFooter className='space-x-3'>
                     <Button type='button' variant='secondary' onClick={onCancel} disabled={isDeleting}>
                         {t('editGroupModal.deleteConfirmDialog.cancelText')}
                     </Button>
                     <Button type='button' variant='danger' onClick={onConfirm} disabled={isDeleting || confirmationText !== groupName} loading={isDeleting}>
                         {isDeleting ? t('editGroupModal.deleteConfirmDialog.deletingText') : t('editGroupModal.deleteConfirmDialog.confirmText')}
                     </Button>
-                </div>
+                </ModalFooter>
             </div>
         </Modal>
     );

@@ -2,7 +2,7 @@ import { apiClient } from '@/app/apiClient.ts';
 import { Button, LoadingSpinner, Tooltip, Typography } from '@/components/ui';
 import { Clickable } from '@/components/ui/Clickable';
 import { CheckIcon, CopyIcon, RefreshIcon, UserAddIcon, XIcon } from '@/components/ui/icons';
-import { Modal } from '@/components/ui/Modal';
+import { Modal, ModalContent, ModalHeader } from '@/components/ui/Modal';
 import { logError } from '@/utils/browser-logger.ts';
 import { formatDateTimeInUserTimeZone } from '@/utils/dateUtils.ts';
 import { GroupId } from '@billsplit-wl/shared';
@@ -168,8 +168,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
             size='sm'
             labelledBy='share-modal-title'
         >
-            {/* Modal Header */}
-            <div className='px-6 py-4 border-b border-border-default'>
+            <ModalHeader>
                 <div className='flex items-center justify-between'>
                     <div className='flex flex-col space-y-1'>
                         <div className='flex items-center space-x-2'>
@@ -198,10 +197,9 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                         </Clickable>
                     </Tooltip>
                 </div>
-            </div>
+            </ModalHeader>
 
-            {/* Modal Content */}
-            <div className='max-h-[70vh] overflow-y-auto px-6 py-5'>
+            <ModalContent>
                 <p className='text-sm text-text-primary/70 mb-3'>{t('shareGroupModal.description')}</p>
 
                 {loading && (
@@ -314,7 +312,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                         )}
                     </div>
                 </div>
-            </div>
+            </ModalContent>
         </Modal>
     );
 }

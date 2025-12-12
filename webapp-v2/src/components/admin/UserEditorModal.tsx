@@ -1,5 +1,6 @@
 import { apiClient } from '@/app/apiClient';
-import { Alert, Button, Card, Input, LoadingSpinner, Modal } from '@/components/ui';
+import { Alert, Button, Card, Input, LoadingSpinner } from '@/components/ui';
+import { Modal, ModalFooter, ModalHeader } from '@/components/ui/Modal';
 import { logError } from '@/utils/browser-logger';
 import type { AdminUserProfile, SystemUserRole, UpdateUserProfileAdminRequest } from '@billsplit-wl/shared';
 import { SystemUserRoles, toDisplayName, toEmail } from '@billsplit-wl/shared';
@@ -173,18 +174,17 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
     return (
         <Modal open={open} onClose={onClose} size='lg' data-testid='user-editor-modal'>
             <div className='flex flex-col max-h-[90vh] overflow-hidden'>
-                {/* Header */}
-                <div className='border-b border-border-default px-6 py-4'>
+                <ModalHeader>
                     <h2 className='text-xl font-semibold text-text-primary'>{t('admin.userEditor.title')}</h2>
                     <p className='text-sm text-text-muted mt-1'>{user.email}</p>
-                </div>
+                </ModalHeader>
 
                 {/* Tabs */}
                 <div className='border-b border-border-default px-6'>
                     <nav className='flex space-x-4' role='tablist' aria-label={t('admin.userEditor.tabs.ariaLabel')}>
                         <button
                             onClick={() => handleTabChange('profile')}
-                            class={`py-3 px-2 text-sm font-medium border-b-2 transition-colors ${
+                            className={`py-3 px-2 text-sm font-medium border-b-2 transition-colors ${
                                 activeTab === 'profile'
                                     ? 'border-interactive-primary text-interactive-primary'
                                     : 'border-transparent text-text-muted hover:text-text-primary'
@@ -196,7 +196,7 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                         </button>
                         <button
                             onClick={() => handleTabChange('role')}
-                            class={`py-3 px-2 text-sm font-medium border-b-2 transition-colors ${
+                            className={`py-3 px-2 text-sm font-medium border-b-2 transition-colors ${
                                 activeTab === 'role'
                                     ? 'border-interactive-primary text-interactive-primary'
                                     : 'border-transparent text-text-muted hover:text-text-primary'
@@ -208,7 +208,7 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                         </button>
                         <button
                             onClick={() => handleTabChange('firebase-auth')}
-                            class={`py-3 px-2 text-sm font-medium border-b-2 transition-colors ${
+                            className={`py-3 px-2 text-sm font-medium border-b-2 transition-colors ${
                                 activeTab === 'firebase-auth'
                                     ? 'border-interactive-primary text-interactive-primary'
                                     : 'border-transparent text-text-muted hover:text-text-primary'
@@ -220,7 +220,7 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                         </button>
                         <button
                             onClick={() => handleTabChange('firestore')}
-                            class={`py-3 px-2 text-sm font-medium border-b-2 transition-colors ${
+                            className={`py-3 px-2 text-sm font-medium border-b-2 transition-colors ${
                                 activeTab === 'firestore'
                                     ? 'border-interactive-primary text-interactive-primary'
                                     : 'border-transparent text-text-muted hover:text-text-primary'
@@ -285,7 +285,7 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                                 {roleOptions.map((option) => (
                                     <label
                                         key={String(option.value)}
-                                        class={`flex items-start p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                                        className={`flex items-start p-4 border-2 rounded-lg cursor-pointer transition-all ${
                                             selectedRole === option.value
                                                 ? 'border-interactive-primary bg-surface-raised'
                                                 : 'border-border-default hover:border-border-strong'
@@ -353,8 +353,7 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                     )}
                 </div>
 
-                {/* Footer */}
-                <div className='flex items-center justify-end gap-3 border-t border-border-default bg-surface-base px-6 py-4 rounded-b-2xl'>
+                <ModalFooter className='bg-surface-base rounded-b-2xl'>
                     <Button
                         onClick={onClose}
                         variant='secondary'
@@ -387,7 +386,7 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                             {isSaving ? t('common.saving') : t('common.save')}
                         </Button>
                     )}
-                </div>
+                </ModalFooter>
             </div>
         </Modal>
     );

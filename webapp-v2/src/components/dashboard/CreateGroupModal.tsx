@@ -4,7 +4,7 @@ import { CurrencyService } from '@/app/services/currencyService';
 import { enhancedGroupsStore } from '@/app/stores/groups-store-enhanced.ts';
 import { Clickable } from '@/components/ui/Clickable';
 import { CurrencyIcon, XCircleIcon, XIcon } from '@/components/ui/icons';
-import { Modal } from '@/components/ui/Modal';
+import { Modal, ModalContent, ModalFooter, ModalHeader } from '@/components/ui/Modal';
 import { cx } from '@/utils/cx';
 import { CreateGroupRequest, CurrencyISOCode, GroupId, toCurrencyISOCode, toDisplayName, toGroupName } from '@billsplit-wl/shared';
 import { signal, useComputed } from '@preact/signals';
@@ -247,30 +247,30 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
             size='sm'
             labelledBy='create-group-modal-title'
         >
-            {/* Modal Header */}
-            <div className='flex items-center justify-between px-6 py-4 border-b border-border-default'>
-                <Typography variant='subheading' id='create-group-modal-title'>
-                    {t('createGroupModal.title')}
-                </Typography>
-                <Tooltip content={t('createGroupModal.closeButtonAriaLabel')}>
-                    <Clickable
-                        as='button'
-                        type='button'
-                        onClick={onClose}
-                        className='text-text-muted hover:text-text-primary transition-colors rounded-full p-1 hover:bg-surface-muted'
-                        disabled={isSubmitting}
-                        aria-label={t('createGroupModal.closeButtonAriaLabel')}
-                        eventName='modal_close'
-                        eventProps={{ modalName: 'create_group', method: 'x_button' }}
-                    >
-                        <XIcon size={20} />
-                    </Clickable>
-                </Tooltip>
-            </div>
+            <ModalHeader>
+                <div className='flex items-center justify-between'>
+                    <Typography variant='subheading' id='create-group-modal-title'>
+                        {t('createGroupModal.title')}
+                    </Typography>
+                    <Tooltip content={t('createGroupModal.closeButtonAriaLabel')}>
+                        <Clickable
+                            as='button'
+                            type='button'
+                            onClick={onClose}
+                            className='text-text-muted hover:text-text-primary transition-colors rounded-full p-1 hover:bg-surface-muted'
+                            disabled={isSubmitting}
+                            aria-label={t('createGroupModal.closeButtonAriaLabel')}
+                            eventName='modal_close'
+                            eventProps={{ modalName: 'create_group', method: 'x_button' }}
+                        >
+                            <XIcon size={20} />
+                        </Clickable>
+                    </Tooltip>
+                </div>
+            </ModalHeader>
 
-            {/* Modal Content */}
             <Form onSubmit={handleSubmit}>
-                <div className='max-h-[70vh] overflow-y-auto px-6 py-5'>
+                <ModalContent>
                     <Stack spacing='lg'>
                         {/* Group Name */}
                         <div>
@@ -489,10 +489,9 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                             </div>
                         )}
                     </Stack>
-                </div>
+                </ModalContent>
 
-                {/* Modal Footer */}
-                <div className='flex items-center justify-end gap-3 px-6 py-4 border-t border-border-default'>
+                <ModalFooter>
                     <Button
                         type='button'
                         variant='secondary'
@@ -504,7 +503,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                     <Button type='submit' loading={isSubmitting} disabled={!isFormValid}>
                         {t('createGroupModal.submitButton')}
                     </Button>
-                </div>
+                </ModalFooter>
             </Form>
         </Modal>
     );
