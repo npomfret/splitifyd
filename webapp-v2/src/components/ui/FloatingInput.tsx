@@ -19,7 +19,7 @@ interface FloatingInputProps {
     autoFocus?: boolean;
     className?: string;
     autoComplete?: string;
-    'data-testid'?: string;
+    dataTestId?: string;
     inputRef?: Ref<HTMLInputElement>;
 }
 
@@ -38,7 +38,7 @@ export function FloatingInput({
     autoFocus = false,
     className = '',
     autoComplete = 'off',
-    'data-testid': dataTestId,
+    dataTestId,
     inputRef,
 }: FloatingInputProps) {
     const { t } = useTranslation();
@@ -129,7 +129,7 @@ export function FloatingInput({
                 </label>
             </div>
             {error && (
-                <FieldError id={`${inputId}-error`} data-testid='input-error-message'>
+                <FieldError id={`${inputId}-error`} dataTestId='input-error-message'>
                     {error}
                 </FieldError>
             )}

@@ -289,8 +289,8 @@ describe('Input Component', () => {
             expect(input).toHaveAttribute('autocomplete', 'off');
         });
 
-        it('should render with custom data-testid', () => {
-            render(<Input data-testid='custom-input' />);
+        it('should render with custom dataTestId', () => {
+            render(<Input dataTestId='custom-input' />);
 
             const input = screen.getByTestId('custom-input');
             expect(input).toBeInTheDocument();

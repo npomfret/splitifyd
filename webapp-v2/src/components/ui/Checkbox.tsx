@@ -19,7 +19,7 @@ interface CheckboxProps {
     /** Additional CSS classes */
     className?: string;
     /** Test ID */
-    'data-testid'?: string;
+    dataTestId?: string;
     /** Ref for the input element */
     inputRef?: Ref<HTMLInputElement>;
 }
@@ -54,7 +54,7 @@ export function Checkbox({
     name,
     id,
     className = '',
-    'data-testid': dataTestId,
+    dataTestId,
     inputRef,
 }: CheckboxProps) {
     const checkboxId = id || name || `checkbox-${Math.random().toString(36).substr(2, 9)}`;

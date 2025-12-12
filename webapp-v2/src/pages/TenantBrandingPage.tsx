@@ -224,7 +224,7 @@ export function TenantBrandingPage() {
                                         placeholder={t('tenantBranding.fields.appNamePlaceholder')}
                                         disabled={isSaving}
                                         required
-                                        data-testid='app-name-input'
+                                        dataTestId='app-name-input'
                                     />
 
                                     <Input
@@ -234,7 +234,7 @@ export function TenantBrandingPage() {
                                         placeholder={t('tenantBranding.fields.logoUrlPlaceholder')}
                                         disabled={isSaving}
                                         required
-                                        data-testid='logo-url-input'
+                                        dataTestId='logo-url-input'
                                     />
 
                                     <Input
@@ -244,7 +244,7 @@ export function TenantBrandingPage() {
                                         placeholder={t('tenantBranding.fields.faviconUrlPlaceholder')}
                                         disabled={isSaving}
                                         required
-                                        data-testid='favicon-url-input'
+                                        dataTestId='favicon-url-input'
                                     />
 
                                     <div className='grid grid-cols-2 gap-4'>
@@ -361,7 +361,7 @@ export function TenantBrandingPage() {
                             onClick={handleSave}
                             disabled={!hasChanges || isSaving}
                             loading={isSaving}
-                            data-testid='save-branding-button'
+                            dataTestId='save-branding-button'
                         >
                             {isSaving ? t('tenantBranding.actions.saving') : t('tenantBranding.actions.saveChanges')}
                         </Button>

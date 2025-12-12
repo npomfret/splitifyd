@@ -62,9 +62,9 @@ describe('Clickable', () => {
             expect(container.querySelector('#test-id')).toBeInTheDocument();
         });
 
-        it('should apply data-testid prop', () => {
+        it('should apply dataTestId prop', () => {
             const { getByTestId } = render(
-                <Clickable onClick={() => {}} data-testid='clickable-element'>
+                <Clickable onClick={() => {}} dataTestId='clickable-element'>
                     Content
                 </Clickable>,
             );

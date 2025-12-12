@@ -44,7 +44,7 @@ export function PendingMembersSection({
                                 size='sm'
                                 onClick={() => onApprove(member.uid)}
                                 disabled={pendingActionMember === member.uid}
-                                data-testid={`pending-approve-${member.uid}`}
+                                dataTestId={`pending-approve-${member.uid}`}
                             >
                                 {t('securitySettingsModal.pendingMembers.approve')}
                             </Button>
@@ -53,7 +53,7 @@ export function PendingMembersSection({
                                 size='sm'
                                 onClick={() => onReject(member.uid)}
                                 disabled={pendingActionMember === member.uid}
-                                data-testid={`pending-reject-${member.uid}`}
+                                dataTestId={`pending-reject-${member.uid}`}
                             >
                                 {t('securitySettingsModal.pendingMembers.reject')}
                             </Button>

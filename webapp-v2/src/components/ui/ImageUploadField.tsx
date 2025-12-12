@@ -16,7 +16,7 @@ interface ImageUploadFieldProps {
     disabled?: boolean;
     required?: boolean;
     helperText?: string;
-    'data-testid'?: string;
+    dataTestId?: string;
     className?: string;
     allowUrlInput?: boolean; // Allow entering URL to download image
     allowLibrary?: boolean; // Allow picking from tenant image library
@@ -35,7 +35,7 @@ export function ImageUploadField({
     disabled = false,
     required = false,
     helperText,
-    'data-testid': dataTestId,
+    dataTestId,
     className = '',
     allowUrlInput = false,
     allowLibrary = false,

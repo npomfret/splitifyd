@@ -183,7 +183,7 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
                                                     showRemoveConfirm.value = true;
                                                 }}
                                                 disabled={memberHasOutstandingBalance(member.uid)}
-                                                data-testid='remove-member-button'
+                                                dataTestId='remove-member-button'
                                                 ariaLabel={removeMemberLabel}
                                                 className='shrink-0'
                                             >
@@ -217,7 +217,7 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
                     type='button'
                     onClick={onInviteClick}
                     ariaLabel={inviteAriaLabel}
-                    data-testid='invite-members-button'
+                    dataTestId='invite-members-button'
                     variant='ghost'
                     size='sm'
                     className='rounded-full'
@@ -243,7 +243,7 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
             </SidebarCard>
         )
         : (
-            <Card data-testid='members-container'>
+            <Card dataTestId='members-container'>
                 <div className={headerClasses}>
                     <Typography variant='subheading' as='h2' className='flex items-baseline gap-2'>
                         <span>{t('membersList.title')}</span>
@@ -257,7 +257,7 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
                                 onClick={() => (isCollapsed.value = !isCollapsed.value)}
                                 ariaLabel={toggleLabel}
                                 aria-expanded={!isCollapsed.value}
-                                data-testid='toggle-members-section'
+                                dataTestId='toggle-members-section'
                                 variant='ghost'
                                 size='sm'
                                 className='rounded-full'
@@ -290,7 +290,7 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
                     cancelText={t('membersList.leaveGroupDialog.cancelText')}
                     variant={hasOutstandingBalance.value ? 'info' : 'warning'}
                     loading={isProcessing.value}
-                    data-testid='leave-group-dialog'
+                    dataTestId='leave-group-dialog'
                 />
             )}
 
@@ -312,7 +312,7 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
                 cancelText={t('membersList.leaveGroupDialog.cancelText')}
                 variant={memberToRemove.value && memberHasOutstandingBalance(memberToRemove.value.uid) ? 'info' : 'warning'}
                 loading={isProcessing.value}
-                data-testid='remove-member-dialog'
+                dataTestId='remove-member-dialog'
             />
         </>
     );

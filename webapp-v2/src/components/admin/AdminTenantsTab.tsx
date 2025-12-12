@@ -113,7 +113,7 @@ export function AdminTenantsTab() {
                     </p>
                 </div>
                 <div className='flex gap-2'>
-                    <Button onClick={handleCreateTenant} variant='primary' size='sm' data-testid='create-tenant-button'>
+                    <Button onClick={handleCreateTenant} variant='primary' size='sm' dataTestId='create-tenant-button'>
                         {t('admin.tenants.actions.create')}
                     </Button>
                     <Button onClick={loadTenants} variant='secondary' size='sm' className='bg-white! text-gray-800! border-gray-300! hover:bg-gray-50!'>
@@ -128,7 +128,7 @@ export function AdminTenantsTab() {
                     return (
                         <Card
                             key={tenant.tenant.tenantId}
-                            data-testid='tenant-card'
+                            dataTestId='tenant-card'
                             className={`p-6 bg-white/70 backdrop-blur-xs border border-indigo-200 hover:border-indigo-300 transition-all ${
                                 isCurrentTenant ? 'ring-2 ring-amber-400 bg-amber-50/50 border-amber-300' : ''
                             }`}
@@ -191,7 +191,7 @@ export function AdminTenantsTab() {
                                         onClick={() => handleEditTenant(tenant)}
                                         variant='secondary'
                                         size='sm'
-                                        data-testid={`edit-tenant-${tenant.tenant.tenantId}`}
+                                        dataTestId={`edit-tenant-${tenant.tenant.tenantId}`}
                                     >
                                         {t('common.edit')}
                                     </Button>

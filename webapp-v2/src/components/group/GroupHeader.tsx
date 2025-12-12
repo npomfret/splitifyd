@@ -22,7 +22,7 @@ export function GroupHeader({ group, members, onSettings, showSettingsButton }: 
                     onClick={onSettings}
                     className='p-2'
                     ariaLabel={t('groupHeader.groupSettingsAriaLabel')}
-                    data-testid='group-settings-button'
+                    dataTestId='group-settings-button'
                 >
                     <CogIcon className='h-5 w-5' aria-hidden='true' />
                 </Button>

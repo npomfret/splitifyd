@@ -42,7 +42,7 @@ export function AdminDiagnosticsTab() {
             {envData && (
                 <>
                     {/* Status Overview */}
-                    <Card padding='lg' data-testid='env-status-card' className='bg-white/70 backdrop-blur-xs border border-indigo-200'>
+                    <Card padding='lg' dataTestId='env-status-card' className='bg-white/70 backdrop-blur-xs border border-indigo-200'>
                         <Stack spacing='sm'>
                             <div className='flex items-center gap-2 mb-2'>
                                 <div className='w-1 h-6 bg-linear-to-b from-green-500 to-emerald-600 rounded-full'></div>
@@ -70,7 +70,7 @@ export function AdminDiagnosticsTab() {
                     </Card>
 
                     {/* Build Information */}
-                    <Card padding='lg' data-testid='env-build-card' className='bg-white/70 backdrop-blur-xs border border-indigo-200'>
+                    <Card padding='lg' dataTestId='env-build-card' className='bg-white/70 backdrop-blur-xs border border-indigo-200'>
                         <Stack spacing='sm'>
                             <div className='flex items-center gap-2 mb-2'>
                                 <div className='w-1 h-6 bg-linear-to-b from-blue-500 to-indigo-600 rounded-full'></div>
@@ -94,7 +94,7 @@ export function AdminDiagnosticsTab() {
                     </Card>
 
                     {/* Memory Summary */}
-                    <Card padding='lg' data-testid='env-memory-card' className='bg-white/70 backdrop-blur-xs border border-indigo-200'>
+                    <Card padding='lg' dataTestId='env-memory-card' className='bg-white/70 backdrop-blur-xs border border-indigo-200'>
                         <Stack spacing='md'>
                             <div className='flex items-center gap-2 mb-2'>
                                 <div className='w-1 h-6 bg-linear-to-b from-purple-500 to-pink-600 rounded-full'></div>
@@ -140,7 +140,7 @@ export function AdminDiagnosticsTab() {
 
                     {/* Heap Spaces */}
                     {envData.memory.heapSpaces.length > 0 && (
-                        <Card padding='lg' data-testid='env-heap-spaces-card' className='bg-white/70 backdrop-blur-xs border border-indigo-200'>
+                        <Card padding='lg' dataTestId='env-heap-spaces-card' className='bg-white/70 backdrop-blur-xs border border-indigo-200'>
                             <Stack spacing='md'>
                                 <div className='flex items-center gap-2 mb-2'>
                                     <div className='w-1 h-6 bg-linear-to-b from-orange-500 to-red-600 rounded-full'></div>
@@ -173,7 +173,7 @@ export function AdminDiagnosticsTab() {
 
                     {/* Environment Variables */}
                     {envData.env && Object.keys(envData.env).length > 0 && (
-                        <Card padding='lg' data-testid='env-variables-card' className='bg-white/70 backdrop-blur-xs border border-indigo-200'>
+                        <Card padding='lg' dataTestId='env-variables-card' className='bg-white/70 backdrop-blur-xs border border-indigo-200'>
                             <Stack spacing='md'>
                                 <div className='flex items-center gap-2 mb-2'>
                                     <div className='w-1 h-6 bg-linear-to-b from-amber-500 to-yellow-600 rounded-full'></div>
@@ -202,7 +202,7 @@ export function AdminDiagnosticsTab() {
                     )}
 
                     {/* Filesystem Information */}
-                    <Card padding='lg' data-testid='env-filesystem-card' className='bg-white/70 backdrop-blur-xs border border-indigo-200'>
+                    <Card padding='lg' dataTestId='env-filesystem-card' className='bg-white/70 backdrop-blur-xs border border-indigo-200'>
                         <Stack spacing='md'>
                             <div className='flex items-center gap-2 mb-2'>
                                 <div className='w-1 h-6 bg-linear-to-b from-teal-500 to-cyan-600 rounded-full'></div>

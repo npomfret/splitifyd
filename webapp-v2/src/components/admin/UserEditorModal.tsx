@@ -172,7 +172,7 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
         || email.trim().toLowerCase() !== String(user.email ?? '').toLowerCase();
 
     return (
-        <Modal open={open} onClose={onClose} size='lg' data-testid='user-editor-modal'>
+        <Modal open={open} onClose={onClose} size='lg' dataTestId='user-editor-modal'>
             <div className='flex flex-col max-h-[90vh] overflow-hidden'>
                 <ModalHeader>
                     <h2 className='text-xl font-semibold text-text-primary'>{t('admin.userEditor.title')}</h2>
@@ -358,7 +358,7 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                         onClick={onClose}
                         variant='secondary'
                         disabled={isSaving}
-                        data-testid='cancel-button'
+                        dataTestId='cancel-button'
                     >
                         {activeTab === 'profile' || activeTab === 'role' ? t('common.cancel') : t('common.close')}
                     </Button>
@@ -368,7 +368,7 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                             variant='primary'
                             loading={isSaving}
                             disabled={isSaving || !hasProfileChanges}
-                            data-testid='save-profile-button'
+                            dataTestId='save-profile-button'
                             className='bg-linear-to-r! from-indigo-600! to-purple-600! text-white! shadow-lg! hover:shadow-indigo-500/30!'
                         >
                             {isSaving ? t('common.saving') : t('common.save')}
@@ -380,7 +380,7 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                             variant='primary'
                             loading={isSaving}
                             disabled={isSaving || isCurrentUser || selectedRole === user.role}
-                            data-testid='save-role-button'
+                            dataTestId='save-role-button'
                             className='bg-linear-to-r! from-indigo-600! to-purple-600! text-white! shadow-lg! hover:shadow-indigo-500/30!'
                         >
                             {isSaving ? t('common.saving') : t('common.save')}

@@ -49,7 +49,7 @@ export function DefaultLoginButton({ onFillForm, onLogin, disabled }: DefaultLog
     }
 
     return (
-        <Button type='button' variant='secondary' size='sm' onClick={handleDefaultLogin} disabled={disabled || loading} loading={loading} className='w-full' data-testid='default-login-button'>
+        <Button type='button' variant='secondary' size='sm' onClick={handleDefaultLogin} disabled={disabled || loading} loading={loading} className='w-full' dataTestId='default-login-button'>
             Quick Login
         </Button>
     );

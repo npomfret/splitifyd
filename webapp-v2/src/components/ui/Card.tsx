@@ -13,7 +13,7 @@ interface CardProps {
     className?: string;
     padding?: 'none' | 'sm' | 'md' | 'lg';
     variant?: 'base' | 'muted' | 'inverted' | 'glass';
-    'data-testid'?: string;
+    dataTestId?: string;
     /**
      * Enable magnetic hover effect (follows cursor).
      * Only works on Aurora theme (disabled on Brutalist).
@@ -28,7 +28,7 @@ interface CardProps {
     ariaLabel?: string;
 }
 
-export function Card({ title, subtitle, children, onClick, className = '', padding = 'md', variant = 'base', 'data-testid': dataTestId, magnetic = false, ariaLabel }: CardProps) {
+export function Card({ title, subtitle, children, onClick, className = '', padding = 'md', variant = 'base', dataTestId, magnetic = false, ariaLabel }: CardProps) {
     // Apply magnetic hover effect if enabled (automatically disabled on Brutalist theme)
     const magneticRef = useMagneticHover<HTMLDivElement>({
         strength: 0.25, // Slightly subtler than buttons

@@ -50,7 +50,7 @@ export function AdminHeader() {
                         <Clickable
                             onClick={() => navigation.goToDashboard()}
                             className='cursor-pointer'
-                            data-testid='header-logo-link'
+                            dataTestId='header-logo-link'
                             aria-label={t('header.goToDashboard')}
                             title={t('header.goToDashboard')}
                             eventName='admin_header_logo_click'

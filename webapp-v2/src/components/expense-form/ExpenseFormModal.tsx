@@ -198,7 +198,7 @@ export function ExpenseFormModal({ isOpen, onClose, groupId, mode, expenseId, on
                                     onClick={onClose}
                                     disabled={formState.saving}
                                     className='flex-1'
-                                    data-testid='expense-form-cancel'
+                                    dataTestId='expense-form-cancel'
                                 >
                                     {t('expenseComponents.expenseFormModal.cancel')}
                                 </Button>
@@ -208,7 +208,7 @@ export function ExpenseFormModal({ isOpen, onClose, groupId, mode, expenseId, on
                                     disabled={formState.participants.length === 0 || !formState.hasRequiredFields || formState.saving}
                                     loading={formState.saving}
                                     className='flex-1'
-                                    data-testid='save-expense-button'
+                                    dataTestId='save-expense-button'
                                 >
                                     {getSubmitButtonText()}
                                 </Button>

@@ -114,7 +114,7 @@ export function GroupCurrencySettings({
                     checked={enabled}
                     onChange={onToggle}
                     disabled={disabled}
-                    data-testid='currency-restrictions-toggle'
+                    dataTestId='currency-restrictions-toggle'
                 />
             </div>
 
@@ -240,10 +240,10 @@ export function GroupCurrencySettings({
                         onChange={onSetDefault}
                         options={defaultCurrencyOptions}
                         disabled={disabled || permittedCurrencies.length === 0}
-                        data-testid='default-currency-select'
+                        dataTestId='default-currency-select'
                     />
 
-                    {validationError && <Alert type='error' message={validationError} data-testid='currency-settings-error' />}
+                    {validationError && <Alert type='error' message={validationError} dataTestId='currency-settings-error' />}
                 </div>
             )}
         </div>

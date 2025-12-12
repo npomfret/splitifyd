@@ -100,7 +100,7 @@ export function ActivityFeedCard({ userId }: ActivityFeedCardProps) {
                             icon={<ClockIcon size={48} />}
                             title={t('activityFeed.emptyState.title')}
                             description={t('activityFeed.emptyState.description')}
-                            data-testid='activity-feed-empty'
+                            dataTestId='activity-feed-empty'
                         />
                     )
                     : null}

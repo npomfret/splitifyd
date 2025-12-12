@@ -19,7 +19,7 @@ interface InputProps {
     autoFocus?: boolean;
     className?: string;
     autoComplete?: string;
-    'data-testid'?: string;
+    dataTestId?: string;
     inputRef?: Ref<HTMLInputElement>;
 }
 
@@ -38,7 +38,7 @@ export function Input({
     autoFocus = false,
     className = '',
     autoComplete = 'off',
-    'data-testid': dataTestId,
+    dataTestId,
     inputRef,
 }: InputProps) {
     const { t } = useTranslation();
@@ -97,7 +97,7 @@ export function Input({
                 />
             </div>
             {error && (
-                <FieldError id={`${inputId}-error`} data-testid='input-error-message'>
+                <FieldError id={`${inputId}-error`} dataTestId='input-error-message'>
                     {error}
                 </FieldError>
             )}

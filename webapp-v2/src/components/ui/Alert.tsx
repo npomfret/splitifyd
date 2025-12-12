@@ -10,10 +10,10 @@ interface AlertProps {
     message: string;
     dismissible?: boolean;
     onDismiss?: () => void;
-    'data-testid'?: string;
+    dataTestId?: string;
 }
 
-export function Alert({ type, title, message, dismissible = false, onDismiss, 'data-testid': testId }: AlertProps) {
+export function Alert({ type, title, message, dismissible = false, onDismiss, dataTestId }: AlertProps) {
     const { t } = useTranslation();
     // Component-local signal - initialized within useState to avoid stale state across instances
     const [isVisibleSignal] = useState(() => signal(true));
@@ -55,7 +55,7 @@ export function Alert({ type, title, message, dismissible = false, onDismiss, 'd
     const styles = typeStyles[type];
 
     return (
-        <div className={`${styles.bg} ${styles.border} ${styles.text} border rounded-lg p-4`} role='alert' data-testid={testId}>
+        <div className={`${styles.bg} ${styles.border} ${styles.text} border rounded-lg p-4`} role='alert' data-testid={dataTestId}>
             <div className='flex items-start'>
                 {styles.icon}
                 <div className='flex-1'>

@@ -24,7 +24,7 @@ interface SelectProps {
     name?: string;
     id?: string;
     className?: string;
-    'data-testid'?: string;
+    dataTestId?: string;
     selectRef?: Ref<HTMLSelectElement>;
 }
 
@@ -41,7 +41,7 @@ export function Select({
     name,
     id,
     className = '',
-    'data-testid': dataTestId,
+    dataTestId,
     selectRef,
 }: SelectProps) {
     const { t } = useTranslation();
@@ -114,7 +114,7 @@ export function Select({
                 </div>
             </div>
             {error && (
-                <FieldError id={`${selectId}-error`} data-testid='select-error-message'>
+                <FieldError id={`${selectId}-error`} dataTestId='select-error-message'>
                     {error}
                 </FieldError>
             )}

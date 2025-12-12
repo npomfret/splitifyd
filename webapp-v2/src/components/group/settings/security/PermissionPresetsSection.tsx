@@ -33,7 +33,7 @@ export function PermissionPresetsSection({
                                     ? 'border-interactive-primary bg-interactive-primary/10 shadow-sm'
                                     : 'border-border-default hover:border-interactive-primary/40 hover:bg-interactive-primary/10/40'
                             }`}
-                            data-testid={`preset-button-${preset}`}
+                            dataTestId={`preset-button-${preset}`}
                         >
                             <span className='font-medium text-text-primary'>{t(`securitySettingsModal.presets.${preset}.label`)}</span>
                             <p className='text-sm text-text-primary/70 mt-1'>{t(`securitySettingsModal.presets.${preset}.description`)}</p>

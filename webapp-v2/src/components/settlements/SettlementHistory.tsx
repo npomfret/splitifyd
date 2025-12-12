@@ -119,7 +119,7 @@ export function SettlementHistory({
             <EmptyState
                 icon={<BanknotesIcon className='w-12 h-12' aria-hidden='true' />}
                 title={t('settlementHistory.noPaymentsYet')}
-                data-testid='settlements-empty-state'
+                dataTestId='settlements-empty-state'
                 className='py-8'
             />
         );
@@ -132,14 +132,14 @@ export function SettlementHistory({
                     label={t('settlementHistory.showAll')}
                     checked={showAllSettlements}
                     onChange={(checked) => setShowAllSettlements(checked)}
-                    data-testid='show-all-settlements-checkbox'
+                    dataTestId='show-all-settlements-checkbox'
                 />
                 {canToggleShowDeleted && onShowDeletedChange && (
                     <Checkbox
                         label={t('common.includeDeleted')}
                         checked={showDeletedSettlements}
                         onChange={onShowDeletedChange}
-                        data-testid='include-deleted-settlements-checkbox'
+                        dataTestId='include-deleted-settlements-checkbox'
                     />
                 )}
             </div>

@@ -58,14 +58,14 @@ export function Header({ variant = 'default', showAuth = true }: HeaderProps) {
                 <Button
                     onClick={() => navigation.goToLogin()}
                     variant='ghost'
-                    data-testid='header-login-link'
+                    dataTestId='header-login-link'
                 >
                     {t('header.login')}
                 </Button>
                 <Button
                     onClick={() => navigation.goToRegister()}
                     variant='primary'
-                    data-testid='header-signup-link'
+                    dataTestId='header-signup-link'
                 >
                     {t('header.signUp')}
                 </Button>
@@ -82,7 +82,7 @@ export function Header({ variant = 'default', showAuth = true }: HeaderProps) {
                             <Clickable
                                 onClick={() => (isAuthenticated.value ? navigation.goToDashboard() : navigation.goHome())}
                                 className='cursor-pointer'
-                                data-testid='header-logo-link'
+                                dataTestId='header-logo-link'
                                 aria-label={t('header.goToHome')}
                                 title={t('header.goToHome')}
                                 eventName='header_logo_click'

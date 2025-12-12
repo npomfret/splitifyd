@@ -218,7 +218,7 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                                 />
                             )}
 
-                            <Card data-testid='policy-card'>
+                            <Card dataTestId='policy-card'>
                                 <Stack spacing='md'>
                                     <div className='flex items-center justify-between'>
                                         <h3 className='text-lg font-semibold text-text-primary'>

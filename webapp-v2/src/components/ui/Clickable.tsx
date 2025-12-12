@@ -51,7 +51,7 @@ interface ClickableProps {
     /**
      * Test ID for testing
      */
-    'data-testid'?: string;
+    dataTestId?: string;
 
     /**
      * Title attribute
@@ -100,7 +100,7 @@ export const Clickable = forwardRef<HTMLElement, ClickableProps>(
             className,
             id,
             'aria-label': ariaLabel,
-            'data-testid': dataTestId,
+            dataTestId,
             ...rest
         },
         ref,

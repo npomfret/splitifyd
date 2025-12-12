@@ -327,7 +327,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
 
     return (
         <>
-            <Modal open={open} onClose={handleCancel} size='lg' className='max-h-[90vh] flex flex-col' data-testid='tenant-editor-modal'>
+            <Modal open={open} onClose={handleCancel} size='lg' className='max-h-[90vh] flex flex-col' dataTestId='tenant-editor-modal'>
                 <div className='flex flex-col min-h-0 h-full'>
                     {/* Header */}
                     <div className='shrink-0 flex items-center justify-between border-b border-border-default px-6 py-4'>
@@ -362,7 +362,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                     {/* Content */}
                     <div className='flex-1 min-h-0 overflow-y-auto px-6 py-4'>
                         <div className='space-y-4'>
-                            {successMessage && <Alert type='success' message={successMessage} data-testid='tenant-editor-success-message' />}
+                            {successMessage && <Alert type='success' message={successMessage} dataTestId='tenant-editor-success-message' />}
                             {errorMessage && <Alert type='error' message={errorMessage} />}
 
                             {/* Creation Mode Selection - Create Mode Only */}
@@ -507,7 +507,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                             className='flex-1 min-w-0 rounded-md border border-border-default bg-surface-base px-3 py-2 text-sm'
                                             data-testid='new-domain-input'
                                         />
-                                        <Button onClick={handleAddDomain} disabled={!newDomain.trim() || isSaving} variant='secondary' data-testid='add-domain-button'>Add</Button>
+                                        <Button onClick={handleAddDomain} disabled={!newDomain.trim() || isSaving} variant='secondary' dataTestId='add-domain-button'>Add</Button>
                                     </div>
                                 </div>
                             </Section>
@@ -536,7 +536,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                         allowUrlInput={true}
                                         allowLibrary={!!formData.tenantId}
                                         onOpenLibrary={() => setImagePickerOpen('logo')}
-                                        data-testid='logo-upload-field'
+                                        dataTestId='logo-upload-field'
                                     />
                                     <ImageUploadField
                                         label='Favicon'
@@ -550,7 +550,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                         allowUrlInput={true}
                                         allowLibrary={!!formData.tenantId}
                                         onOpenLibrary={() => setImagePickerOpen('favicon')}
-                                        data-testid='favicon-upload-field'
+                                        dataTestId='favicon-upload-field'
                                     />
                                 </div>
                             </Section>
@@ -604,13 +604,13 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
 
                     {/* Footer */}
                     <div className='shrink-0 flex items-center justify-end gap-3 border-t border-border-default px-6 py-4'>
-                        <Button onClick={handleCancel} variant='secondary' disabled={isSaving || isPublishing} data-testid='cancel-button'>Cancel</Button>
+                        <Button onClick={handleCancel} variant='secondary' disabled={isSaving || isPublishing} dataTestId='cancel-button'>Cancel</Button>
                         {mode === 'edit' && (
-                            <Button onClick={handlePublish} variant='primary' disabled={isSaving || isPublishing} loading={isPublishing} data-testid='publish-theme-button'>
+                            <Button onClick={handlePublish} variant='primary' disabled={isSaving || isPublishing} loading={isPublishing} dataTestId='publish-theme-button'>
                                 {isPublishing ? 'Publishing...' : 'Publish Theme'}
                             </Button>
                         )}
-                        <Button onClick={handleSave} variant='primary' loading={isSaving} disabled={isSaving} data-testid='save-tenant-button'>
+                        <Button onClick={handleSave} variant='primary' loading={isSaving} disabled={isSaving} dataTestId='save-tenant-button'>
                             {isSaving ? 'Saving...' : (mode === 'create' ? 'Create Tenant' : 'Save Changes')}
                         </Button>
                     </div>

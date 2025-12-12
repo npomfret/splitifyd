@@ -124,10 +124,10 @@ export function GroupSecurityTabContent({
             )}
 
             <div className='border-t border-border-default pt-4 flex justify-end gap-3'>
-                <Button variant='secondary' onClick={onClose} data-testid='group-settings-close-button'>
+                <Button variant='secondary' onClick={onClose} dataTestId='group-settings-close-button'>
                     {t('common.close')}
                 </Button>
-                <Button variant='primary' onClick={onSave} disabled={!hasSecurityChanges || isSaving} loading={isSaving} data-testid='save-security-button'>
+                <Button variant='primary' onClick={onSave} disabled={!hasSecurityChanges || isSaving} loading={isSaving} dataTestId='save-security-button'>
                     {t('common.save')}
                 </Button>
             </div>

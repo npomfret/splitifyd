@@ -290,7 +290,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                                         <Button
                                             key={option.id}
                                             type='button'
-                                            data-testid={`share-link-expiration-${option.id}`}
+                                            dataTestId={`share-link-expiration-${option.id}`}
                                             onClick={() => {
                                                 selectedExpirationIdSignal.value = option.id;
                                             }}

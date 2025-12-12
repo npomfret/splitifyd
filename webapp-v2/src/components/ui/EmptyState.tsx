@@ -25,7 +25,7 @@ interface EmptyStateProps {
     /** Custom CSS classes */
     className?: string;
     /** Test ID for testing */
-    'data-testid'?: string;
+    dataTestId?: string;
 }
 
 /**
@@ -72,7 +72,7 @@ export function EmptyState({
     secondaryAction,
     children,
     className = '',
-    'data-testid': dataTestId,
+    dataTestId,
 }: EmptyStateProps) {
     return (
         <div
@@ -106,7 +106,7 @@ export function EmptyState({
                         variant={action.variant || 'primary'}
                         size='lg'
                         disabled={action.disabled}
-                        data-testid='empty-state-action-button'
+                        dataTestId='empty-state-action-button'
                     >
                         {action.label}
                     </Button>
@@ -117,7 +117,7 @@ export function EmptyState({
                             onClick={secondaryAction.onClick}
                             variant='ghost'
                             size='lg'
-                            data-testid='empty-state-secondary-action-button'
+                            dataTestId='empty-state-secondary-action-button'
                         >
                             {secondaryAction.label}
                         </Button>

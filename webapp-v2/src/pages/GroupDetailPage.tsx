@@ -36,7 +36,7 @@ interface GroupDetailPageProps {
     expenseId?: string; // From route param for deep linking to expense detail
 }
 
-export default function GroupDetailPage({ id: groupId, expenseId: routeExpenseId }: GroupDetailPageProps) {
+export function GroupDetailPage({ id: groupId, expenseId: routeExpenseId }: GroupDetailPageProps) {
     const { t } = useTranslation();
     const isInitialized = useSignal(false);
     const showLeaveGroupDialog = useSignal(false);

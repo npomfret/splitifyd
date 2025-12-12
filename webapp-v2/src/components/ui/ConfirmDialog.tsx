@@ -16,10 +16,10 @@ interface ConfirmDialogProps {
     onCancel: () => void;
     variant?: 'danger' | 'warning' | 'info';
     loading?: boolean;
-    'data-testid'?: string;
+    dataTestId?: string;
 }
 
-export function ConfirmDialog({ isOpen, title, message, confirmText, cancelText, onConfirm, onCancel, variant = 'info', loading = false, 'data-testid': dataTestId }: ConfirmDialogProps) {
+export function ConfirmDialog({ isOpen, title, message, confirmText, cancelText, onConfirm, onCancel, variant = 'info', loading = false, dataTestId }: ConfirmDialogProps) {
     const { t } = useTranslation();
 
     // Handle escape key to close modal
@@ -72,7 +72,7 @@ export function ConfirmDialog({ isOpen, title, message, confirmText, cancelText,
             onClose={loading ? undefined : onCancel}
             labelledBy='confirm-dialog-title'
             describedBy='confirm-dialog-description'
-            data-testid={dataTestId}
+            dataTestId={dataTestId}
         >
             <Surface padding='lg' shadow='md' border='default' className='space-y-6' data-testid='confirmation-dialog'>
                 <div className={`mx-auto flex h-12 w-12 items-center justify-center rounded-full ${styles.iconBg}`}>
@@ -87,16 +87,16 @@ export function ConfirmDialog({ isOpen, title, message, confirmText, cancelText,
                     <Typography as='h3' variant='heading' id='confirm-dialog-title'>
                         {title}
                     </Typography>
-                    <Typography variant='caption' id='confirm-dialog-description' data-testid={messageTestId}>
+                    <Typography variant='caption' id='confirm-dialog-description' dataTestId={messageTestId}>
                         {message}
                     </Typography>
                 </div>
 
                 <div className='flex items-center justify-end gap-3'>
-                    <Button variant='secondary' onClick={onCancel} disabled={loading} data-testid='cancel-button'>
+                    <Button variant='secondary' onClick={onCancel} disabled={loading} dataTestId='cancel-button'>
                         {cancelText || t('ui.confirmDialog.cancel')}
                     </Button>
-                    <Button variant={styles.button} onClick={onConfirm} loading={loading} data-testid='confirm-button'>
+                    <Button variant={styles.button} onClick={onConfirm} loading={loading} dataTestId='confirm-button'>
                         {confirmText || t('ui.confirmDialog.confirm')}
                     </Button>
                 </div>

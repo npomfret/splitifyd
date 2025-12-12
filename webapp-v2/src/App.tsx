@@ -29,7 +29,7 @@ const LoginPage = lazy(() => import('./pages/LoginPage').then((m) => ({ default:
 const RegisterPage = lazy(() => import('./pages/RegisterPage').then((m) => ({ default: m.RegisterPage })));
 const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage').then((m) => ({ default: m.ResetPasswordPage })));
 const DashboardPage = lazy(() => import('./pages/DashboardPage').then((m) => ({ default: m.DashboardPage })));
-const GroupDetailPage = lazy(() => import('./pages/GroupDetailPage'));
+const GroupDetailPage = lazy(() => import('./pages/GroupDetailPage').then((m) => ({ default: m.GroupDetailPage })));
 const JoinGroupPage = lazy(() => import('./pages/JoinGroupPage').then((m) => ({ default: m.JoinGroupPage })));
 const SettingsPage = lazy(() => import('./pages/SettingsPage').then((m) => ({ default: m.SettingsPage })));
 const AdminPage = lazy(() => import('./pages/AdminPage').then((m) => ({ default: m.AdminPage })));

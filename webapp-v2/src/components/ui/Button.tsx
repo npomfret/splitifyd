@@ -16,7 +16,7 @@ interface ButtonProps {
     className?: string;
     id?: string;
     ariaLabel?: string;
-    'data-testid'?: string;
+    dataTestId?: string;
     'aria-describedby'?: string;
     'aria-pressed'?: boolean | 'true' | 'false';
     /**
@@ -39,7 +39,7 @@ export function Button({
     className = '',
     id,
     ariaLabel,
-    'data-testid': dataTestId,
+    dataTestId,
     'aria-describedby': ariaDescribedBy,
     'aria-pressed': ariaPressed,
     magnetic = true, // All buttons magnetic by default (auto-disabled on Brutalist theme)

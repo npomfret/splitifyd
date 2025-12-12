@@ -466,7 +466,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                                             onChange={setDefaultCurrency}
                                             options={defaultCurrencyOptions}
                                             disabled={isSubmitting || permittedCurrencies.length === 0}
-                                            data-testid='default-currency-select'
+                                            dataTestId='default-currency-select'
                                         />
                                     )}
                                 </div>

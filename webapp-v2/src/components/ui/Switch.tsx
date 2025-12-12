@@ -10,7 +10,7 @@ interface SwitchProps {
     name?: string;
     id?: string;
     className?: string;
-    'data-testid'?: string;
+    dataTestId?: string;
 }
 
 export function Switch({
@@ -22,7 +22,7 @@ export function Switch({
     name,
     id,
     className = '',
-    'data-testid': dataTestId,
+    dataTestId,
 }: SwitchProps) {
     const switchId = id || name || `switch-${Math.random().toString(36).substr(2, 9)}`;
 

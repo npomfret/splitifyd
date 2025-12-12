@@ -255,7 +255,7 @@ export function MultiLabelInput({
             )}
 
             {error && (
-                <FieldError id={`${inputId}-error`} data-testid='label-input-error-message'>
+                <FieldError id={`${inputId}-error`} dataTestId='label-input-error-message'>
                     {error}
                 </FieldError>
             )}

@@ -140,7 +140,7 @@ interface ModalProps {
     describedBy?: string;
     className?: string;
     children: ComponentChildren;
-    'data-testid'?: string;
+    dataTestId?: string;
 }
 
 const sizeClasses = {
@@ -149,7 +149,7 @@ const sizeClasses = {
     lg: 'max-w-2xl',
 };
 
-export function Modal({ open, onClose, size = 'sm', labelledBy, ariaLabel, describedBy, className = '', children, 'data-testid': dataTestId }: ModalProps) {
+export function Modal({ open, onClose, size = 'sm', labelledBy, ariaLabel, describedBy, className = '', children, dataTestId }: ModalProps) {
     const modalRef = useRef<HTMLDivElement>(null);
 
     // Component-local signal - initialized within useState to avoid stale state across instances

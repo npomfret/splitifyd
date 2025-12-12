@@ -104,7 +104,7 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense, isArchivedVi
             variant='glass'
             className='hover:shadow-md transition-all hover:-translate-y-0.5 cursor-pointer border-border-default h-full flex flex-col group'
             padding='md'
-            data-testid='group-card'
+            dataTestId='group-card'
         >
             <div className='flex-1 relative'>
                 {/* Action buttons - positioned absolutely in top right */}

@@ -13,7 +13,7 @@ interface TypographyProps {
     id?: string;
     role?: JSX.AriaRole;
     title?: string;
-    'data-testid'?: string;
+    dataTestId?: string;
     ariaLabel?: string;
     ariaDescribedBy?: string;
 }
@@ -42,7 +42,7 @@ const variantClasses: Record<TypographyVariant, string> = {
     display: 'text-3xl font-bold bg-linear-to-br from-(--semantics-colors-text-primary) to-(--semantics-colors-text-accent) bg-clip-text text-transparent',
 };
 
-export function Typography({ as, variant = 'body', children, className = '', id, role, title, 'data-testid': dataTestId, ariaLabel, ariaDescribedBy }: TypographyProps) {
+export function Typography({ as, variant = 'body', children, className = '', id, role, title, dataTestId, ariaLabel, ariaDescribedBy }: TypographyProps) {
     const Component = (as || defaultElement[variant]) as TypographyElement;
 
     return (

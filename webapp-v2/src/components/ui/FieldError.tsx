@@ -5,7 +5,7 @@ interface FieldErrorProps {
     children: ComponentChildren;
     className?: string;
     id?: string;
-    'data-testid'?: string;
+    dataTestId?: string;
 }
 
 /**
@@ -13,7 +13,7 @@ interface FieldErrorProps {
  * Uses the `field-error` utility class for consistent styling.
  * Includes proper ARIA attributes for accessibility.
  */
-export function FieldError({ children, className, id, 'data-testid': dataTestId }: FieldErrorProps): VNode | null {
+export function FieldError({ children, className, id, dataTestId }: FieldErrorProps): VNode | null {
     if (!children) return null;
 
     return (
