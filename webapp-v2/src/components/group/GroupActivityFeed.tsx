@@ -47,7 +47,7 @@ export function GroupActivityFeed({ groupId, currentUserId }: GroupActivityFeedP
     if (loading.value && items.value.length === 0) {
         return (
             <div className='py-4 text-center'>
-                <span className='text-sm text-text-muted animate-pulse'>{t('activityFeed.loading')}</span>
+                <span className='help-text animate-pulse'>{t('activityFeed.loading')}</span>
             </div>
         );
     }
@@ -71,7 +71,7 @@ export function GroupActivityFeed({ groupId, currentUserId }: GroupActivityFeedP
 
     if (items.value.length === 0) {
         return (
-            <div className='py-4 text-sm text-text-muted' data-testid='group-activity-feed-empty'>
+            <div className='py-4 help-text' data-testid='group-activity-feed-empty'>
                 <p className='font-medium text-text-primary mb-1'>{t('activityFeed.emptyState.title')}</p>
                 <p>{t('activityFeed.emptyState.groupDescription')}</p>
             </div>
@@ -89,9 +89,9 @@ export function GroupActivityFeed({ groupId, currentUserId }: GroupActivityFeedP
                         <>
                             <p className='text-sm text-text-primary leading-snug'>{description}</p>
                             {item.details?.commentPreview
-                                ? <p className='text-xs text-text-muted mt-1 italic line-clamp-2'>{item.details.commentPreview}</p>
+                                ? <p className='help-text-xs mt-1 italic line-clamp-2'>{item.details.commentPreview}</p>
                                 : null}
-                            <RelativeTime date={item.timestamp} className='text-xs text-text-muted/70 mt-1 block' />
+                            <RelativeTime date={item.timestamp} className='help-text-xs/70 mt-1 block' />
                         </>
                     );
 

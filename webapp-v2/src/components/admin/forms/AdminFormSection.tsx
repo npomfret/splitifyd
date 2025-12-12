@@ -23,7 +23,7 @@ export function AdminFormSection({ title, description, defaultOpen = false, test
             >
                 <div className='text-left'>
                     <h3 className='text-sm font-semibold text-text-primary'>{title}</h3>
-                    {description && <p className='text-xs text-text-muted mt-0.5'>{description}</p>}
+                    {description && <p className='help-text-xs mt-0.5'>{description}</p>}
                 </div>
                 <ChevronDownIcon size={20} className={`text-text-muted transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>

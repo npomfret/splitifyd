@@ -123,7 +123,7 @@ export function TenantImageLibrary({ tenantId, onSelect, selectedImageUrl, picke
             {pickerMode
                 ? (
                     <div className='flex items-center justify-between'>
-                        <p className='text-sm text-text-muted'>
+                        <p className='help-text'>
                             {images.length} image{images.length !== 1 ? 's' : ''} in library
                         </p>
                         <button
@@ -167,7 +167,7 @@ export function TenantImageLibrary({ tenantId, onSelect, selectedImageUrl, picke
                             </Button>
                         </div>
                         {uploadError && <p className='text-sm text-semantic-error'>{uploadError}</p>}
-                        <p className='text-xs text-text-muted'>Supported: JPEG, PNG, GIF, SVG, WebP (max 5MB)</p>
+                        <p className='help-text-xs'>Supported: JPEG, PNG, GIF, SVG, WebP (max 5MB)</p>
                     </div>
                 </div>
             )}

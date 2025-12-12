@@ -319,7 +319,7 @@ export function ImageUploadField({
             )}
 
             {/* Helper Text */}
-            {helperText && !error && <p className='text-sm text-text-muted'>{helperText}</p>}
+            {helperText && !error && <p className='help-text'>{helperText}</p>}
 
             {/* Error */}
             {error && (

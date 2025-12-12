@@ -20,7 +20,7 @@ export function AdminFormToggle({ label, description, checked, onChange, disable
             />
             <div>
                 <span className='text-sm font-medium text-text-primary'>{label}</span>
-                {description && <p className='text-xs text-text-muted'>{description}</p>}
+                {description && <p className='help-text-xs'>{description}</p>}
             </div>
         </label>
     );

@@ -234,7 +234,7 @@ export function RegisterPage() {
                 </SubmitButton>
 
                 <div className='text-center'>
-                    <p className='text-sm text-text-muted'>
+                    <p className='help-text'>
                         {t('registerPage.hasAccount')}{' '}
                         <Button
                             type='button'

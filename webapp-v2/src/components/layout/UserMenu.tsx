@@ -62,7 +62,7 @@ export function UserMenu({ user }: UserMenuProps) {
                 </div>
                 <div className='hidden md:block text-left'>
                     <p className='text-sm font-medium text-text-primary group-hover:text-interactive-primary transition-colors' data-testid='user-menu-display-name'>{userName}</p>
-                    <p className='text-xs text-text-muted'>{user.email}</p>
+                    <p className='help-text-xs'>{user.email}</p>
                 </div>
                 <ChevronDownIcon
                     size={16}
@@ -81,7 +81,7 @@ export function UserMenu({ user }: UserMenuProps) {
                 >
                     <div className='px-4 py-3 border-b border-border-default'>
                         <p className='text-sm font-semibold text-text-primary'>{userName}</p>
-                        <p className='text-xs text-text-muted mt-0.5'>{user.email}</p>
+                        <p className='help-text-xs mt-0.5'>{user.email}</p>
                     </div>
 
                     <div className='py-2'>

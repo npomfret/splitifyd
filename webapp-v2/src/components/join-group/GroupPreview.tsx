@@ -32,11 +32,11 @@ export function GroupPreview({ group, memberCount }: GroupPreviewProps) {
                         <div className='grid grid-cols-2 gap-4 text-center'>
                             <div>
                                 <div className='text-2xl font-semibold text-interactive-primary'>{memberCount}</div>
-                                <div className='text-sm text-text-muted'>{memberCount === 1 ? t('common.member') : t('common.members')}</div>
+                                <div className='help-text'>{memberCount === 1 ? t('common.member') : t('common.members')}</div>
                             </div>
                             <div>
                                 <div className='text-2xl font-semibold text-interactive-primary'>{t('common.active')}</div>
-                                <div className='text-sm text-text-muted'>{t('common.group')}</div>
+                                <div className='help-text'>{t('common.group')}</div>
                             </div>
                         </div>
                     </div>

@@ -290,7 +290,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                                 disabled={isSubmitting}
                                 error={validationError || undefined}
                             />
-                            <p className='mt-1 text-sm text-text-muted'>{t('createGroupModal.groupNameHelpText')}</p>
+                            <p className='mt-1 help-text'>{t('createGroupModal.groupNameHelpText')}</p>
                         </div>
 
                         {/* Group Display Name */}
@@ -310,7 +310,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                                 disabled={isSubmitting}
                                 error={displayNameValidationError || undefined}
                             />
-                            <p className='mt-1 text-sm text-text-muted'>{t('createGroupModal.groupDisplayNameHelpText')}</p>
+                            <p className='mt-1 help-text'>{t('createGroupModal.groupDisplayNameHelpText')}</p>
                         </div>
 
                         {/* Group Description (Optional) */}
@@ -329,7 +329,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                                 disabled={isSubmitting}
                                 maxLength={200}
                             />
-                            <p className='mt-1 text-sm text-text-muted'>{t('createGroupModal.groupDescriptionHelpText')}</p>
+                            <p className='mt-1 help-text'>{t('createGroupModal.groupDescriptionHelpText')}</p>
                         </div>
 
                         {/* Currency Restrictions (Optional) */}
@@ -426,7 +426,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                                                         <div className='max-h-48 overflow-y-auto'>
                                                             {availableCurrencies.length === 0
                                                                 ? (
-                                                                    <div className='p-2 text-sm text-text-muted text-center'>
+                                                                    <div className='p-2 help-text text-center'>
                                                                         {currencySearchTerm
                                                                             ? t('currencySelector.noResults')
                                                                             : t('groupSettings.currencySettings.allCurrenciesSelected')}

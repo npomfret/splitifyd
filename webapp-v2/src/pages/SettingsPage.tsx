@@ -305,7 +305,7 @@ export function SettingsPage() {
                             <Typography variant='display' className='font-semibold' data-testid='account-settings-header'>
                                 {t('settingsPage.accountSettingsHeader')}
                             </Typography>
-                            <p className='max-w-2xl text-sm text-text-muted sm:text-base'>{t('settingsPage.accountSettingsSubheader')}</p>
+                            <p className='max-w-2xl help-text sm:text-base'>{t('settingsPage.accountSettingsSubheader')}</p>
                         </div>
                     </div>
 
@@ -343,7 +343,7 @@ export function SettingsPage() {
                                         <div className='text-2xl font-semibold text-text-primary' data-testid='profile-display-name'>
                                             {resolvedDisplayName}
                                         </div>
-                                        <p className='text-sm text-text-muted'>{t('settingsPage.profileSummaryDescription')}</p>
+                                        <p className='help-text'>{t('settingsPage.profileSummaryDescription')}</p>
                                     </div>
                                 </div>
 
@@ -378,7 +378,7 @@ export function SettingsPage() {
                                 <div className='space-y-6'>
                                     <div className='space-y-2'>
                                         <Typography variant='heading'>{t('settingsPage.profileInformationHeader')}</Typography>
-                                        <p className='text-sm text-text-muted'>{t('settingsPage.profileInformationSubheader')}</p>
+                                        <p className='help-text'>{t('settingsPage.profileInformationSubheader')}</p>
                                     </div>
 
                                     <Form
@@ -406,7 +406,7 @@ export function SettingsPage() {
                                                     : undefined}
                                                 data-testid='display-name-input'
                                             />
-                                            <p className='text-xs text-text-muted'>{t('settingsPage.displayNameHelper')}</p>
+                                            <p className='help-text-xs'>{t('settingsPage.displayNameHelper')}</p>
                                         </div>
 
                                         <Button
@@ -425,7 +425,7 @@ export function SettingsPage() {
                                 <div className='space-y-6'>
                                     <div className='space-y-2'>
                                         <Typography variant='heading'>{t('settingsPage.emailSectionTitle')}</Typography>
-                                        <p className='text-sm text-text-muted'>{t('settingsPage.emailSectionDescription')}</p>
+                                        <p className='help-text'>{t('settingsPage.emailSectionDescription')}</p>
                                     </div>
 
                                     {!showEmailForm
@@ -509,7 +509,7 @@ export function SettingsPage() {
                                 <div className='space-y-6'>
                                     <div className='space-y-2'>
                                         <Typography variant='heading'>{t('settingsPage.passwordHeader')}</Typography>
-                                        <p className='text-sm text-text-muted'>{t('settingsPage.passwordIntro')}</p>
+                                        <p className='help-text'>{t('settingsPage.passwordIntro')}</p>
                                     </div>
 
                                     <div className='rounded-xl border border-interactive-primary/20 bg-interactive-primary/10 px-4 py-4 text-sm text-interactive-primary'>
@@ -608,7 +608,7 @@ export function SettingsPage() {
                                 <div className='space-y-6'>
                                     <div className='space-y-2'>
                                         <Typography variant='heading'>{t('languageSelector.label')}</Typography>
-                                        <p className='text-sm text-text-muted'>{t('languageSelector.description')}</p>
+                                        <p className='help-text'>{t('languageSelector.description')}</p>
                                     </div>
 
                                     <LanguageSwitcher variant='full' />

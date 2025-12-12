@@ -132,7 +132,7 @@ export function LoginPage() {
                 <DefaultLoginButton onFillForm={handleFillForm} onLogin={handleQuickLogin} disabled={loadingValue} />
 
                 <div className='text-center'>
-                    <p className='text-sm text-text-muted'>
+                    <p className='help-text'>
                         {t('loginPage.noAccount')}{' '}
                         <Button
                             type='button'

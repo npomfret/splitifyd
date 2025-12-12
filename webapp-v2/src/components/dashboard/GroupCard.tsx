@@ -166,7 +166,7 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense, isArchivedVi
                 </div>
 
                 {/* GroupDTO stats */}
-                <div className='space-y-2 text-sm text-text-muted'>
+                <div className='space-y-2 help-text'>
                     <div className='flex items-center'>
                         <ClockIcon size={16} className='mr-2 text-text-muted/80' />
                         {group.updatedAt

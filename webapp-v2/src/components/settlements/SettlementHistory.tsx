@@ -146,7 +146,7 @@ export function SettlementHistory({
 
             {visibleSettlements.length === 0
                 ? (
-                    <div className='text-center py-6 text-sm text-text-muted'>
+                    <div className='text-center py-6 help-text'>
                         {t('settlementHistory.noPaymentsForYou')}
                     </div>
                 )
@@ -213,7 +213,7 @@ export function SettlementHistory({
                                                 >
                                                     <CurrencyAmount amount={settlement.amount} currency={settlement.currency} displayOptions={{ includeCurrencyCode: false }} />
                                                 </span>
-                                                <RelativeTime date={settlement.date} className='text-xs text-text-muted' tooltipPlacement='bottom' />
+                                                <RelativeTime date={settlement.date} className='help-text-xs' tooltipPlacement='bottom' />
                                             </div>
 
                                             {/* Action buttons */}
@@ -273,7 +273,7 @@ export function SettlementHistory({
 
                                         {/* Row 4: Note if present (spans full width) */}
                                         {settlement.note && (
-                                            <div className='row-start-4 col-span-2 text-xs text-text-muted mt-0.5 truncate'>
+                                            <div className='row-start-4 col-span-2 help-text-xs mt-0.5 truncate'>
                                                 {settlement.note}
                                             </div>
                                         )}

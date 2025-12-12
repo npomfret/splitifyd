@@ -176,7 +176,7 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
             <div className='flex flex-col max-h-[90vh] overflow-hidden'>
                 <ModalHeader>
                     <h2 className='text-xl font-semibold text-text-primary'>{t('admin.userEditor.title')}</h2>
-                    <p className='text-sm text-text-muted mt-1'>{user.email}</p>
+                    <p className='help-text mt-1'>{user.email}</p>
                 </ModalHeader>
 
                 {/* Tabs */}
@@ -243,7 +243,7 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                     {/* Profile Tab */}
                     {activeTab === 'profile' && (
                         <div className='space-y-6'>
-                            <p className='text-sm text-text-muted'>{t('admin.userEditor.profile.description')}</p>
+                            <p className='help-text'>{t('admin.userEditor.profile.description')}</p>
 
                             <div className='space-y-4'>
                                 <div>
@@ -277,7 +277,7 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                     {/* Role Tab */}
                     {activeTab === 'role' && (
                         <div className='space-y-4'>
-                            <p className='text-sm text-text-muted'>{t('admin.userEditor.role.description')}</p>
+                            <p className='help-text'>{t('admin.userEditor.role.description')}</p>
 
                             {isCurrentUser && <Alert type='warning' message={t('admin.userEditor.errors.selfRoleChangeWarning')} />}
 
@@ -302,7 +302,7 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                                         />
                                         <div>
                                             <div className='font-medium text-text-primary'>{option.label}</div>
-                                            <div className='text-sm text-text-muted mt-1'>{option.description}</div>
+                                            <div className='help-text mt-1'>{option.description}</div>
                                         </div>
                                     </label>
                                 ))}

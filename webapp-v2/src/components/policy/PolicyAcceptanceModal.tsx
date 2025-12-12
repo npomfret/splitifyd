@@ -152,7 +152,7 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                         <Typography variant='pageTitle' as='h2' id={titleId}>
                             {t('policyComponents.policyAcceptanceModal.title')}
                         </Typography>
-                        <p className='text-sm text-text-muted mt-1' id={subtitleId}>
+                        <p className='help-text mt-1' id={subtitleId}>
                             {t('policyComponents.policyAcceptanceModal.policyLabel')}
                             {currentPolicyIndex + 1}
                             {t('policyComponents.policyAcceptanceModal.of')}
@@ -180,7 +180,7 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
 
                 {/* Progress bar */}
                 <div className='shrink-0 px-6 py-3 border-b border-border-default' data-testid='policy-progress'>
-                    <div className='flex items-center justify-between text-sm text-text-muted mb-2' data-testid='policy-progress-summary'>
+                    <div className='flex items-center justify-between help-text mb-2' data-testid='policy-progress-summary'>
                         <span>{t('policyComponents.policyAcceptanceModal.progress')}</span>
                         <span>
                             {acceptedPolicies.size}
@@ -304,7 +304,7 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
 
                     <div className='flex items-center gap-2'>
                         {policies.length > 1 && (
-                            <span className='text-sm text-text-muted' data-testid='policy-acceptance-count'>
+                            <span className='help-text' data-testid='policy-acceptance-count'>
                                 {acceptedPolicies.size}
                                 {t('policyComponents.policyAcceptanceModal.of')}
                                 {policies.length}
@@ -314,7 +314,7 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                         {loading && (
                             <div className='flex items-center gap-2' data-testid='policy-acceptance-loading'>
                                 <LoadingSpinner size='sm' />
-                                <span className='text-sm text-text-muted'>{t('policyComponents.policyAcceptanceModal.accepting')}</span>
+                                <span className='help-text'>{t('policyComponents.policyAcceptanceModal.accepting')}</span>
                             </div>
                         )}
                     </div>

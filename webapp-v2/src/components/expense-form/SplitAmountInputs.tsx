@@ -51,7 +51,7 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
     if (splitType === 'exact') {
         return (
             <Stack spacing='md' data-testid='exact-split-container'>
-                <p className='text-sm text-text-muted'>{t('expenseComponents.splitAmountInputs.exactAmountsInstruction')}</p>
+                <p className='help-text'>{t('expenseComponents.splitAmountInputs.exactAmountsInstruction')}</p>
                 {participants.map((participantId) => {
                     const member = memberMap[participantId];
                     if (!member) {
@@ -116,7 +116,7 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
         const percentagesValid = totalPercentageUnits === 100 * 1000;
         return (
             <Stack spacing='md' data-testid='percentage-split-container'>
-                <p className='text-sm text-text-muted'>{t('expenseComponents.splitAmountInputs.percentageInstruction')}</p>
+                <p className='help-text'>{t('expenseComponents.splitAmountInputs.percentageInstruction')}</p>
                 {participants.map((participantId) => {
                     const member = memberMap[participantId];
                     if (!member) {
@@ -144,7 +144,7 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
                                     autoComplete='off'
                                 />
                                 <span className='text-text-muted'>{t('expenseComponents.splitAmountInputs.percentSign')}</span>
-                                <span className='text-xs text-text-muted w-16 text-right'>
+                                <span className='help-text-xs w-16 text-right'>
                                     <CurrencyAmount amount={split?.amount ?? ZERO} currency={toCurrencyISOCode(currency)} />
                                 </span>
                             </div>
@@ -181,7 +181,7 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
                             <div key={split.uid} className='flex items-center justify-between gap-2'>
                                 <div className='flex items-center gap-2'>
                                     <Avatar displayName={memberName} userId={toUserId(split.uid)} size='sm' />
-                                    <span className='text-sm text-text-muted'>{memberName}</span>
+                                    <span className='help-text'>{memberName}</span>
                                 </div>
                                 <span className='text-sm font-medium text-text-primary'>
                                     <CurrencyAmount amount={split.amount} currency={toCurrencyISOCode(currency)} />

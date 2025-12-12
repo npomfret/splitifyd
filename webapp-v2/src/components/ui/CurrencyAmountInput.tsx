@@ -272,7 +272,7 @@ export function CurrencyAmountInput({
                     <div className='overflow-auto max-h-64'>
                         {filteredCurrencies.length === 0
                             ? (
-                                <div className='px-3 py-4 text-sm text-text-muted text-center' role='status'>
+                                <div className='px-3 py-4 help-text text-center' role='status'>
                                     {t('uiComponents.currencyAmountInput.noCurrencies')}
                                 </div>
                             )

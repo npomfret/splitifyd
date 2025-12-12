@@ -175,7 +175,7 @@ export function FloatingPasswordInput({
             {showStrength && value && strength && (
                 <div className='space-y-2'>
                     <div className='flex items-center justify-between'>
-                        <span className='text-xs text-text-muted'>{t('auth.passwordInput.strength')}</span>
+                        <span className='help-text-xs'>{t('auth.passwordInput.strength')}</span>
                         <span
                             class={`text-xs font-medium ${strength === 'weak' ? 'text-semantic-error' : strength === 'medium' ? 'text-semantic-warning' : 'text-semantic-success'}`}
                             data-testid={`password-strength-${strength}`}

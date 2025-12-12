@@ -83,7 +83,7 @@ export function Switch({
                         </label>
                     )}
                     {description && (
-                        <p id={`${switchId}-description`} className='text-sm text-text-muted'>
+                        <p id={`${switchId}-description`} className='help-text'>
                             {description}
                         </p>
                     )}

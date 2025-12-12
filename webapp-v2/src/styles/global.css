@@ -327,6 +327,9 @@
 @utility help-text {
   @apply text-sm text-text-muted;
 }
+@utility help-text-xs {
+  @apply text-xs text-text-muted;
+}
 @utility field-error {
   @apply mt-2 text-sm text-semantic-error;
 }

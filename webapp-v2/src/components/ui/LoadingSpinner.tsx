@@ -27,7 +27,7 @@ export function LoadingSpinner({ size = 'md', color = 'text-interactive-primary'
             <div className='fixed inset-0 z-50 flex items-center justify-center bg-surface-base bg-opacity-75'>
                 <div className='text-center'>
                     {spinner}
-                    <p className='mt-2 text-sm text-text-muted'>{t('uiComponents.loadingSpinner.loading')}</p>
+                    <p className='mt-2 help-text'>{t('uiComponents.loadingSpinner.loading')}</p>
                 </div>
             </div>
         );

@@ -91,7 +91,7 @@ export function ResetPasswordPage() {
         <AuthLayout title={t('pages.resetPasswordPage.resetPassword')} description={t('pages.resetPasswordPage.enterEmailForReset')}>
             <AuthForm onSubmit={handleSubmit} error={errorSignal.value} disabled={isLoadingSignal.value}>
                 <div className='space-y-4'>
-                    <p className='text-sm text-text-muted'>{t('pages.resetPasswordPage.enterEmailDescription')}</p>
+                    <p className='help-text'>{t('pages.resetPasswordPage.enterEmailDescription')}</p>
 
                     <EmailInput
                         value={emailSignal.value}
@@ -111,7 +111,7 @@ export function ResetPasswordPage() {
                         as='button'
                         type='button'
                         onClick={() => navigationService.goToLogin()}
-                        className='text-sm text-text-muted hover:text-text-primary transition-colors'
+                        className='help-text hover:text-text-primary transition-colors'
                         aria-label='Back to sign in'
                         eventName='reset_password_back_to_login'
                     >

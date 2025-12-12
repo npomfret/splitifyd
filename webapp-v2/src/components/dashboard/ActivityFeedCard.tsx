@@ -116,7 +116,7 @@ export function ActivityFeedCard({ userId }: ActivityFeedCardProps) {
                                 const content = (
                                     <>
                                         <p className='text-sm font-medium text-text-primary leading-snug'>{description}</p>
-                                        {item.details?.commentPreview ? <p className='text-xs text-text-muted mt-1.5 italic line-clamp-2'>{item.details.commentPreview}</p> : null}
+                                        {item.details?.commentPreview ? <p className='help-text-xs mt-1.5 italic line-clamp-2'>{item.details.commentPreview}</p> : null}
                                         <div className='mt-2 flex items-center gap-2 text-xs'>
                                             <span className='font-semibold text-text-primary/80'>{groupLabel}</span>
                                             <span className='text-text-muted/50' aria-hidden='true'>•</span>

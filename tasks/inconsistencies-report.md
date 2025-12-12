@@ -48,6 +48,7 @@ New CSS utilities and components have been created to eliminate class duplicatio
 | `modal-content` | `global.css` | Modal content: `px-6 py-5 max-h-[70vh] overflow-y-auto` |
 | `modal-footer` | `global.css` | Modal footer: `flex justify-end gap-3 px-6 py-4 border-t` |
 | `help-text` | `global.css` | Help text: `text-sm text-text-muted` |
+| `help-text-xs` | `global.css` | Smaller help text: `text-xs text-text-muted` |
 | `field-error` | `global.css` | Error text: `mt-2 text-sm text-semantic-error` |
 | `badge` / `badge-*` | `global.css` | Badge styling with variants |
 | `ModalHeader` | `Modal.tsx` | Component wrapper for modal headers |
@@ -92,43 +93,76 @@ New CSS utilities and components have been created to eliminate class duplicatio
 
 ---
 
-### Priority 3: Help Text (30 files)
+### Priority 3: Help Text (30 files) - **COMPLETED**
 
-Files with `text-sm text-text-muted` that could use `HelpText` component or `help-text` utility:
+**All files have been migrated to use the `help-text` utility class:**
 
-**High-frequency files (3+ occurrences):**
-- `pages/SettingsPage.tsx` - 4 occurrences
-- `pages/TenantBrandingPage.tsx` - 3 occurrences
-- `components/dashboard/EmptyGroupsState.tsx` - 3 occurrences
+**Pages:**
+- ✅ `pages/SettingsPage.tsx` - 6 occurrences
+- ✅ `pages/TenantBrandingPage.tsx` - 5 occurrences
+- ✅ `pages/NotFoundPage.tsx`
+- ✅ `pages/JoinGroupPage.tsx`
+- ✅ `pages/ResetPasswordPage.tsx`
+- ✅ `pages/LoginPage.tsx`
+- ✅ `pages/RegisterPage.tsx`
 
-**Other files:**
-- `pages/NotFoundPage.tsx`
-- `pages/JoinGroupPage.tsx`
-- `pages/ResetPasswordPage.tsx`
-- `pages/LoginPage.tsx`
-- `pages/RegisterPage.tsx`
-- `components/policy/PolicyAcceptanceModal.tsx`
-- `components/dashboard/GroupCard.tsx`
-- `components/dashboard/CreateGroupModal.tsx`
-- `components/admin/TenantImageLibrary.tsx`
-- `components/admin/UserEditorModal.tsx`
-- `components/admin/TenantEditorModal.tsx`
-- `components/layout/Footer.tsx`
-- `components/expense-form/PayerSelector.tsx`
-- `components/expense-form/SplitAmountInputs.tsx`
-- `components/group/GroupActivityFeed.tsx`
-- `components/group/GroupHeader.tsx`
-- `components/group/settings/GroupCurrencySettings.tsx`
-- `components/join-group/GroupPreview.tsx`
-- `components/ui/LoadingState.tsx`
-- `components/ui/CurrencyAmountInput.tsx`
-- `components/ui/LoadingSpinner.tsx`
-- `components/ui/ImageUploadField.tsx`
-- `components/ui/Switch.tsx`
-- `components/ui/Typography.tsx`
-- `components/ui/ErrorState.tsx`
-- `components/settlements/SettlementHistory.tsx`
-- `components/comments/CommentsSection.tsx`
+**Components:**
+- ✅ `components/dashboard/EmptyGroupsState.tsx`
+- ✅ `components/policy/PolicyAcceptanceModal.tsx`
+- ✅ `components/dashboard/GroupCard.tsx`
+- ✅ `components/dashboard/CreateGroupModal.tsx`
+- ✅ `components/admin/TenantImageLibrary.tsx`
+- ✅ `components/admin/UserEditorModal.tsx`
+- ✅ `components/admin/TenantEditorModal.tsx`
+- ✅ `components/layout/Footer.tsx`
+- ✅ `components/expense-form/PayerSelector.tsx`
+- ✅ `components/expense-form/SplitAmountInputs.tsx`
+- ✅ `components/group/GroupActivityFeed.tsx`
+- ✅ `components/group/GroupHeader.tsx`
+- ✅ `components/group/settings/GroupCurrencySettings.tsx`
+- ✅ `components/join-group/GroupPreview.tsx`
+- ✅ `components/settlements/SettlementHistory.tsx`
+
+**UI Components:**
+- ✅ `components/ui/LoadingState.tsx`
+- ✅ `components/ui/CurrencyAmountInput.tsx`
+- ✅ `components/ui/LoadingSpinner.tsx`
+- ✅ `components/ui/ImageUploadField.tsx`
+- ✅ `components/ui/Switch.tsx`
+- ✅ `components/ui/ErrorState.tsx`
+
+**Not migrated (by design):**
+- `components/ui/Typography.tsx` - Uses `text-sm text-text-muted` in `caption` variant definition (this IS the abstraction)
+- `components/comments/CommentsSection.tsx` - No instances found
+
+---
+
+### Priority 3b: Help Text XS (additional consistency migration)
+
+For consistency, also migrated `text-xs text-text-muted` pattern to use `help-text-xs` utility class:
+
+- ✅ `pages/TenantBrandingPage.tsx` - 3 occurrences
+- ✅ `pages/SettingsPage.tsx` - 1 occurrence
+- ✅ `components/auth/FloatingPasswordInput.tsx`
+- ✅ `components/expense/SplitBreakdown.tsx` - 2 occurrences
+- ✅ `components/dashboard/ActivityFeedCard.tsx`
+- ✅ `components/comments/CommentInput.tsx`
+- ✅ `components/expense-form/ExpenseBasicFields.tsx`
+- ✅ `components/group/BalanceSummary.tsx` - 2 occurrences
+- ✅ `components/ui/MultiLabelInput.tsx` - 2 occurrences
+- ✅ `components/group/ExpenseItem.tsx` - with opacity override
+- ✅ `components/admin/forms/AdminFormSection.tsx`
+- ✅ `components/admin/forms/AdminFormToggle.tsx`
+- ✅ `components/group/MembersListWithManagement.tsx`
+- ✅ `components/layout/UserMenu.tsx` - 2 occurrences
+- ✅ `components/admin/TenantEditorModal.tsx`
+- ✅ `components/admin/TenantImageLibrary.tsx`
+- ✅ `components/group/GroupActivityFeed.tsx`
+- ✅ `components/expense-form/SplitAmountInputs.tsx`
+- ✅ `components/settlements/SettlementHistory.tsx`
+
+**Not migrated (by design):**
+- `components/ui/ColorInput.tsx` - Uses `text-xs text-text-muted font-mono` for input field styling (monospace for hex/rgba values)
 
 ---
 
@@ -207,6 +241,12 @@ import { HelpText } from '@/components/ui';
 
 // After (utility class)
 <p className='help-text'>Helper text</p>
+
+// For smaller help text (text-xs)
+<p className='help-text-xs'>Smaller helper text</p>
+
+// With opacity override
+<p className='help-text-xs text-text-muted/70'>De-emphasized text</p>
 ```
 
 ### How to migrate badges:
@@ -230,8 +270,9 @@ import { Badge } from '@/components/ui';
 |----------|-----------------|----------|--------|
 | Modal structure | 7 | High | ✅ **DONE** (6 migrated, 1 skipped, tests updated) |
 | Form errors | 6 | High | ✅ **DONE** (6 migrated) |
-| Help text | 30 | Medium | Pending |
+| Help text | 30 | Medium | ✅ **DONE** (28 migrated, 2 not applicable) |
+| Help text XS | 19 | Medium | ✅ **DONE** (19 migrated, 1 not applicable) |
 | Badges | 5 | Medium | Pending |
-| **Total** | **48** | | |
+| **Total** | **67** | | |
 
-Priority 1 (Modal Structure) and Priority 2 (Form Errors) are complete. All builds pass. Next priorities are Help Text (Priority 3) and Badges (Priority 4).
+Priorities 1-3 (including 3b) complete. All builds pass. Next priority is Badges (Priority 4).

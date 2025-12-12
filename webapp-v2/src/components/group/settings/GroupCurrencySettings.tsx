@@ -106,7 +106,7 @@ export function GroupCurrencySettings({
                 <h3 className='text-base font-medium text-text-primary mb-2'>
                     {t('groupSettings.currencySettings.title')}
                 </h3>
-                <p className='text-sm text-text-muted mb-4'>{t('groupSettings.currencySettings.description')}</p>
+                <p className='help-text mb-4'>{t('groupSettings.currencySettings.description')}</p>
 
                 <Switch
                     label={t('groupSettings.currencySettings.enableToggle')}
@@ -201,7 +201,7 @@ export function GroupCurrencySettings({
                                         <div className='max-h-48 overflow-y-auto'>
                                             {availableCurrencies.length === 0
                                                 ? (
-                                                    <div className='p-2 text-sm text-text-muted text-center'>
+                                                    <div className='p-2 help-text text-center'>
                                                         {searchTerm
                                                             ? t('currencySelector.noResults')
                                                             : t('groupSettings.currencySettings.allCurrenciesSelected')}

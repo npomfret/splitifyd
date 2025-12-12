@@ -83,7 +83,7 @@ export function PayerSelector({ members, paidBy, validationErrors, updateField }
                                         <span className='text-sm font-medium'>{getGroupDisplayName(selectedMember)}</span>
                                     </>
                                 )
-                                : <span className='text-sm text-text-muted'>{t('expenseComponents.payerSelector.selectPayer')}</span>}
+                                : <span className='help-text'>{t('expenseComponents.payerSelector.selectPayer')}</span>}
                         </div>
                         <ChevronDownIcon
                             size={16}
@@ -119,7 +119,7 @@ export function PayerSelector({ members, paidBy, validationErrors, updateField }
                             <div className='overflow-auto max-h-52'>
                                 {filteredMembers.length === 0
                                     ? (
-                                        <div className='px-3 py-4 text-sm text-text-muted text-center' role='status'>
+                                        <div className='px-3 py-4 help-text text-center' role='status'>
                                             {t('expenseComponents.payerSelector.noResults')}
                                         </div>
                                     )

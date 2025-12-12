@@ -335,7 +335,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                             <h2 className='text-xl font-semibold text-text-primary'>
                                 {mode === 'create' ? t('admin.tenantEditor.titleCreate') : t('admin.tenantEditor.titleEdit')}
                             </h2>
-                            <p className='mt-1 text-sm text-text-muted'>
+                            <p className='mt-1 help-text'>
                                 {mode === 'create' ? t('admin.tenantEditor.descriptionCreate') : t('admin.tenantEditor.descriptionEdit')}
                             </p>
                         </div>
@@ -352,7 +352,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                             disabled={isSaving}
                             testId='editor-mode-toggle'
                         />
-                        <span className='text-xs text-text-muted'>
+                        <span className='help-text-xs'>
                             {editorMode === 'basic'
                                 ? t('admin.tenantEditor.modeHint.basic')
                                 : t('admin.tenantEditor.modeHint.advanced')}
@@ -417,9 +417,9 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                         {creationMode === 'copy' && (
                                             <div className='space-y-3'>
                                                 {isLoadingTenants
-                                                    ? <p className='text-sm text-text-muted'>{t('admin.tenantEditor.loading.tenants')}</p>
+                                                    ? <p className='help-text'>{t('admin.tenantEditor.loading.tenants')}</p>
                                                     : existingTenants.length === 0
-                                                    ? <p className='text-sm text-text-muted'>{t('admin.tenantEditor.empty.noTenants')}</p>
+                                                    ? <p className='help-text'>{t('admin.tenantEditor.empty.noTenants')}</p>
                                                     : (
                                                         <select
                                                             value={selectedSourceTenantId}
@@ -464,7 +464,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                     required
                                     data-testid='tenant-id-input'
                                 />
-                                {mode === 'edit' && <p className='text-xs text-text-muted -mt-2'>{t('admin.tenantEditor.hints.tenantIdReadonly')}</p>}
+                                {mode === 'edit' && <p className='help-text-xs -mt-2'>{t('admin.tenantEditor.hints.tenantIdReadonly')}</p>}
 
                                 <Input
                                     label={t('admin.tenantEditor.fields.appName')}

@@ -37,7 +37,7 @@ export function ErrorState({ error, title, onRetry, fullPage = false, className 
             </h3>
 
             {/* Error Message */}
-            <p className='mt-2 text-sm text-text-muted' data-testid='error-message'>
+            <p className='mt-2 help-text' data-testid='error-message'>
                 {errorMessage}
             </p>
 

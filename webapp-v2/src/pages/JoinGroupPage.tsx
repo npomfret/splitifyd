@@ -273,7 +273,7 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
                         <Typography variant='subheading' className='mb-4' id='display-name-modal-title'>
                             {t('joinGroupPage.displayName.title')}
                         </Typography>
-                        <p className='text-sm text-text-muted mb-4'>
+                        <p className='help-text mb-4'>
                             {t('joinGroupPage.displayName.description', { groupName: group.name })}
                         </p>
                         <Input

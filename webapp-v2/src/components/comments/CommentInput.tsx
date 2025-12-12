@@ -139,7 +139,7 @@ export function CommentInput({ onSubmit, disabled = false, placeholder, classNam
                                 {error}
                             </span>
                         )
-                        : <span className='text-xs text-text-muted'>{t('comments.commentInput.helpText')}</span>}
+                        : <span className='help-text-xs'>{t('comments.commentInput.helpText')}</span>}
                 </div>
                 {text.length > 0 && (
                     <span

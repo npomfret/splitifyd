@@ -165,7 +165,7 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
                                         {getGroupDisplayName(member)}
                                         {member.uid === currentUserId && <span className='text-text-muted ml-1'>({t('common.you')})</span>}
                                     </span>
-                                    {getMemberRole(member) && <span className='text-xs text-text-muted leading-tight'>{getMemberRole(member)}</span>}
+                                    {getMemberRole(member) && <span className='help-text-xs leading-tight'>{getMemberRole(member)}</span>}
                                 </div>
                             </div>
                             {/* Show actions only if current user is admin */}

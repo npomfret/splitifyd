@@ -98,7 +98,7 @@ export function SplitBreakdown({ expense, members }: SplitBreakdownProps) {
                                     >
                                         <CurrencyAmount amount={split.amount} currency={expense.currency} />
                                     </p>
-                                    <p className='text-xs text-text-muted'>{percentage.toFixed(1)}%</p>
+                                    <p className='help-text-xs'>{percentage.toFixed(1)}%</p>
                                 </div>
                             </div>
 
@@ -110,7 +110,7 @@ export function SplitBreakdown({ expense, members }: SplitBreakdownProps) {
                                     />
                                 </div>
                                 {isOwing && memberMap[expense.paidBy] && (
-                                    <p className='text-xs text-text-muted mt-1'>
+                                    <p className='help-text-xs mt-1'>
                                         {t('expenseComponents.splitBreakdown.owes')}
                                         {getGroupDisplayName(memberMap[expense.paidBy])}
                                     </p>

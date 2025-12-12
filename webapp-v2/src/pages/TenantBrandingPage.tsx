@@ -143,7 +143,7 @@ export function TenantBrandingPage() {
                         <div className='flex items-center justify-center py-12'>
                             <div className='text-center'>
                                 <LoadingSpinner size='lg' />
-                                <p className='mt-4 text-sm text-text-muted'>Loading tenant settings...</p>
+                                <p className='mt-4 help-text'>Loading tenant settings...</p>
                             </div>
                         </div>
                     </Card>
@@ -175,7 +175,7 @@ export function TenantBrandingPage() {
                             <h1 className='text-3xl font-semibold text-text-primary'>
                                 Branding Configuration
                             </h1>
-                            <p className='max-w-2xl text-sm text-text-muted sm:text-base'>
+                            <p className='max-w-2xl help-text sm:text-base'>
                                 Customize your tenant's appearance and marketing features
                             </p>
                         </div>
@@ -213,7 +213,7 @@ export function TenantBrandingPage() {
                             <div className='space-y-6'>
                                 <div className='space-y-2'>
                                     <h2 className='text-xl font-semibold text-text-primary'>Branding Assets</h2>
-                                    <p className='text-sm text-text-muted'>Configure your brand identity</p>
+                                    <p className='help-text'>Configure your brand identity</p>
                                 </div>
 
                                 <Form onSubmit={handleSave} className='space-y-5'>
@@ -275,7 +275,7 @@ export function TenantBrandingPage() {
                             <div className='space-y-6'>
                                 <div className='space-y-2'>
                                     <h2 className='text-xl font-semibold text-text-primary'>Live Preview</h2>
-                                    <p className='text-sm text-text-muted'>See how your branding will look</p>
+                                    <p className='help-text'>See how your branding will look</p>
                                 </div>
 
                                 <div className='space-y-4 rounded-lg border border-border-default bg-interactive-primary/5 p-6'>
@@ -288,7 +288,7 @@ export function TenantBrandingPage() {
                                         </div>
                                         <div>
                                             <p className='font-semibold text-text-primary'>{appName || 'App Name'}</p>
-                                            <p className='text-xs text-text-muted'>Your tenant branding</p>
+                                            <p className='help-text-xs'>Your tenant branding</p>
                                         </div>
                                     </div>
 
@@ -317,7 +317,7 @@ export function TenantBrandingPage() {
                             <div className='space-y-6'>
                                 <div className='space-y-2'>
                                     <h2 className='text-xl font-semibold text-text-primary'>Marketing Features</h2>
-                                    <p className='text-sm text-text-muted'>Control which marketing pages are visible</p>
+                                    <p className='help-text'>Control which marketing pages are visible</p>
                                 </div>
 
                                 <div className='grid gap-4 sm:grid-cols-2'>
@@ -332,7 +332,7 @@ export function TenantBrandingPage() {
                                         />
                                         <div className='flex-1'>
                                             <p className='text-sm font-medium text-text-primary'>Marketing Content</p>
-                                            <p className='text-xs text-text-muted'>Show features/CTA sections</p>
+                                            <p className='help-text-xs'>Show features/CTA sections</p>
                                         </div>
                                     </label>
 
@@ -347,7 +347,7 @@ export function TenantBrandingPage() {
                                         />
                                         <div className='flex-1'>
                                             <p className='text-sm font-medium text-text-primary'>Pricing Page</p>
-                                            <p className='text-xs text-text-muted'>Show /pricing route</p>
+                                            <p className='help-text-xs'>Show /pricing route</p>
                                         </div>
                                     </label>
                                 </div>

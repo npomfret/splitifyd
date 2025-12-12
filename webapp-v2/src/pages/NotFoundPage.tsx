@@ -25,7 +25,7 @@ export function NotFoundPage({ path }: NotFoundPageProps) {
                 <p className='text-xl text-text-muted mb-4' data-testid='not-found-subtitle'>
                     {isGroupPath ? t('notFoundPage.groupNotFound') : t('notFoundPage.pageNotFound')}
                 </p>
-                <p className='text-sm text-text-muted mb-8' data-testid='not-found-description'>
+                <p className='help-text mb-8' data-testid='not-found-description'>
                     {isGroupPath ? t('notFoundPage.groupNotFoundDescription') : t('notFoundPage.pageNotFoundDescription')}
                 </p>
                 <div className='space-x-4'>

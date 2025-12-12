@@ -32,7 +32,7 @@ export function EmptyGroupsState({ onCreateGroup }: EmptyGroupsStateProps) {
                             <UsersIcon size={24} />
                         </div>
                         <h6 className='font-medium text-text-primary mb-1'>{t('emptyGroupsState.step1Title')}</h6>
-                        <p className='text-sm text-text-muted'>{t('emptyGroupsState.step1Description')}</p>
+                        <p className='help-text'>{t('emptyGroupsState.step1Description')}</p>
                     </div>
 
                     <div className='bg-interactive-accent/10 p-4 rounded-lg'>
@@ -40,7 +40,7 @@ export function EmptyGroupsState({ onCreateGroup }: EmptyGroupsStateProps) {
                             <PlusIcon size={24} />
                         </div>
                         <h6 className='font-medium text-text-primary mb-1'>{t('emptyGroupsState.step2Title')}</h6>
-                        <p className='text-sm text-text-muted'>{t('emptyGroupsState.step2Description')}</p>
+                        <p className='help-text'>{t('emptyGroupsState.step2Description')}</p>
                     </div>
 
                     <div className='bg-interactive-primary/10 p-4 rounded-lg'>
@@ -48,7 +48,7 @@ export function EmptyGroupsState({ onCreateGroup }: EmptyGroupsStateProps) {
                             <BadgeCheckIcon size={24} />
                         </div>
                         <h6 className='font-medium text-text-primary mb-1'>{t('emptyGroupsState.step3Title')}</h6>
-                        <p className='text-sm text-text-muted'>{t('emptyGroupsState.step3Description')}</p>
+                        <p className='help-text'>{t('emptyGroupsState.step3Description')}</p>
                     </div>
                 </div>
             </div>

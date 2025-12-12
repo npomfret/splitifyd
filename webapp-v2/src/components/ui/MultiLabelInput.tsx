@@ -222,7 +222,7 @@ export function MultiLabelInput({
                 )}
 
                 {/* Show max reached indicator */}
-                {!canAddMore && <span className='text-xs text-text-muted italic'>{t('uiComponents.multiLabelInput.maxReached', { max: maxLabels })}</span>}
+                {!canAddMore && <span className='help-text-xs italic'>{t('uiComponents.multiLabelInput.maxReached', { max: maxLabels })}</span>}
             </div>
 
             {/* Suggestions dropdown */}
@@ -261,7 +261,7 @@ export function MultiLabelInput({
             )}
 
             {/* Helper text */}
-            <p className='mt-1 text-xs text-text-muted'>
+            <p className='mt-1 help-text-xs'>
                 {t('uiComponents.multiLabelInput.hint', { count: values.length, max: maxLabels })}
             </p>
         </div>

@@ -87,7 +87,7 @@ export function ExpenseBasicFields(
                         {/* Recent amounts buttons - show latest 3, clicking fills both currency and amount */}
                         {recentAmounts.length > 0 && (
                             <div className='mt-2'>
-                                <p className='text-xs text-text-muted mb-1'>{t('expenseBasicFields.recentAmounts')}</p>
+                                <p className='help-text-xs mb-1'>{t('expenseBasicFields.recentAmounts')}</p>
                                 <div className='flex flex-wrap gap-1'>
                                     {recentAmounts.map((recent, index) => (
                                         <button
