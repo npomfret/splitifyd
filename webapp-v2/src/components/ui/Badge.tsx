@@ -1,9 +1,10 @@
 import { cx } from '@/utils/cx.ts';
 import type { ComponentChildren, VNode } from 'preact';
+import type { JSX } from 'preact';
 
 type BadgeVariant = 'primary' | 'success' | 'warning' | 'error';
 
-interface BadgeProps {
+interface BadgeProps extends Omit<JSX.HTMLAttributes<HTMLSpanElement>, 'className'> {
     children: ComponentChildren;
     variant?: BadgeVariant;
     className?: string;
@@ -26,9 +27,9 @@ const variantClasses: Record<BadgeVariant, string> = {
  * <Badge variant="warning">Pending</Badge>
  * <Badge variant="error">Failed</Badge>
  */
-export function Badge({ children, variant = 'primary', className }: BadgeProps): VNode {
+export function Badge({ children, variant = 'primary', className, ...rest }: BadgeProps): VNode {
     return (
-        <span className={cx('badge', variantClasses[variant], className)}>
+        <span className={cx('badge', variantClasses[variant], className)} {...rest}>
             {children}
         </span>
     );

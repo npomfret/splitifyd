@@ -166,20 +166,18 @@ For consistency, also migrated `text-xs text-text-muted` pattern to use `help-te
 
 ---
 
-### Priority 4: Badge/Chip Styling (5 files)
+### Priority 4: Badge/Chip Styling (5 files) - **COMPLETED**
 
-Files with inline badge/chip styling that should use `Badge` component:
+**All applicable files have been migrated to use `Badge` component or `badge` utility classes:**
 
-| File | Current Pattern |
-|------|-----------------|
-| `pages/AdminTenantsPage.tsx` | Status badges with `rounded-full text-xs font-medium` |
-| `components/policy/PolicyAcceptanceModal.tsx` | Policy type badge |
-| `components/dashboard/GroupCard.tsx` | Group status/role badges |
-| `components/expense/SplitBreakdown.tsx` | Split type indicators |
-| `components/ui/MultiLabelInput.tsx` | Label tags |
+- ✅ `components/policy/PolicyAcceptanceModal.tsx` - Now uses `<Badge variant='success'>`
+- ✅ `components/dashboard/GroupCard.tsx` - Archived badge now uses `<Badge variant='warning'>`
+- ✅ `components/expense/SplitBreakdown.tsx` - Split type badge now uses `badge` utility class
+- ✅ `components/ui/MultiLabelInput.tsx` - Label chips now use `badge badge-primary` utilities
+- ✅ `components/expense/ExpenseDetailModal.tsx` - Labels already use `<Badge>`
 
-**Already done:**
-- ✅ `components/expense/ExpenseDetailModal.tsx` - Labels now use `<Badge>`
+**Skipped (by design):**
+- `pages/AdminTenantsPage.tsx` - Admin pages are exempt from theming per style guide
 
 ---
 
@@ -272,7 +270,7 @@ import { Badge } from '@/components/ui';
 | Form errors | 6 | High | ✅ **DONE** (6 migrated) |
 | Help text | 30 | Medium | ✅ **DONE** (28 migrated, 2 not applicable) |
 | Help text XS | 19 | Medium | ✅ **DONE** (19 migrated, 1 not applicable) |
-| Badges | 5 | Medium | Pending |
+| Badges | 5 | Medium | ✅ **DONE** (4 migrated, 1 admin-exempt) |
 | **Total** | **67** | | |
 
-Priorities 1-3 (including 3b) complete. All builds pass. Next priority is Badges (Priority 4).
+**All CSS class duplication priorities complete.** All builds pass.

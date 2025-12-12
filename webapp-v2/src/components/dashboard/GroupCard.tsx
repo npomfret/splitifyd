@@ -1,7 +1,7 @@
 import { absAmount, type Amount, amountToSmallestUnit, GroupDTO, GroupId } from '@billsplit-wl/shared';
 import type { JSX } from 'preact';
 import { useTranslation } from 'react-i18next';
-import { Card, CurrencyAmount, RelativeTime, Tooltip } from '../ui';
+import { Badge, Card, CurrencyAmount, RelativeTime, Tooltip } from '../ui';
 import { Clickable } from '../ui/Clickable';
 import { ClockIcon, PlusIcon, UserAddIcon } from '../ui/icons';
 
@@ -146,9 +146,9 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense, isArchivedVi
                     <div className='flex items-start justify-between gap-2 pr-12'>
                         <h4 className='font-semibold text-text-primary text-lg mb-1'>{group.name}</h4>
                         {isArchivedView && (
-                            <span className='inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-surface-warning text-semantic-warning'>
+                            <Badge variant='warning'>
                                 {t('dashboard.groupCard.archivedBadge')}
-                            </span>
+                            </Badge>
                         )}
                     </div>
                     <div className='flex flex-col gap-1.5 mt-2'>

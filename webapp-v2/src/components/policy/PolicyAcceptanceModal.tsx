@@ -1,5 +1,5 @@
 import { apiClient, type PolicyAcceptanceStatusDTO } from '@/app/apiClient.ts';
-import { ErrorState, LoadingSpinner, Tooltip, Typography } from '@/components/ui';
+import { Badge, ErrorState, LoadingSpinner, Tooltip, Typography } from '@/components/ui';
 import { Clickable } from '@/components/ui/Clickable';
 import { InfoCircleIcon, XIcon } from '@/components/ui/icons';
 import { Modal } from '@/components/ui/Modal';
@@ -225,13 +225,13 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                                             {currentPolicy.policyName}
                                         </h3>
                                         {canAcceptCurrent && (
-                                            <span
-                                                className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-semantic-success-subtle text-semantic-success-emphasis'
+                                            <Badge
+                                                variant='success'
                                                 role='status'
                                                 aria-label={t('policyComponents.policyAcceptanceModal.acceptedAriaLabel') || 'Accepted'}
                                             >
                                                 {t('policyComponents.policyAcceptanceModal.acceptedIcon')}
-                                            </span>
+                                            </Badge>
                                         )}
                                     </div>
 

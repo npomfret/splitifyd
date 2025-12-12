@@ -58,7 +58,7 @@ export function SplitBreakdown({ expense, members }: SplitBreakdownProps) {
                     {expense.participants.length}
                     {expense.participants.length === 1 ? t('expenseComponents.splitBreakdown.person') : t('expenseComponents.splitBreakdown.people')}
                 </Typography>
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getSplitTypeBadgeColor(expense.splitType)}`}>{getSplitTypeLabel(expense.splitType)}</span>
+                <span className={`badge ${getSplitTypeBadgeColor(expense.splitType)}`}>{getSplitTypeLabel(expense.splitType)}</span>
             </div>
 
             <div className='space-y-3'>
