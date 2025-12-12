@@ -29,7 +29,7 @@ import { signal } from '@preact/signals';
 import { useComputed } from '@preact/signals';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
-import { Button, CurrencyAmount, CurrencyAmountInput, Form, Stack, Tooltip, Typography } from '../ui';
+import { Button, CurrencyAmount, CurrencyAmountInput, FieldError, Form, Stack, Tooltip, Typography } from '../ui';
 
 /**
  * Get the maximum allowed amount string for a given currency
@@ -550,9 +550,9 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                 recentCurrencies={CurrencyService.getInstance().getRecentCurrencies()}
                             />
                             {amountPrecisionError && (
-                                <p className='mt-2 text-sm text-semantic-error' role='alert'>
+                                <FieldError>
                                     {amountPrecisionError}
-                                </p>
+                                </FieldError>
                             )}
                         </div>
 

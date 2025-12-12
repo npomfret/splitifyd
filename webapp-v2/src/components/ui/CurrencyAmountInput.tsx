@@ -4,6 +4,7 @@ import { Amount, toCurrencyISOCode } from '@billsplit-wl/shared';
 import { createPortal } from 'preact/compat';
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
+import { FieldError } from './FieldError';
 import { ChevronDownIcon, CurrencyIcon } from './icons';
 
 interface DropdownPosition {
@@ -306,9 +307,9 @@ export function CurrencyAmountInput({
             )}
 
             {error && (
-                <p id={`${inputId}-error`} className='mt-2 text-sm text-semantic-error' role='alert' data-testid='currency-input-error-message'>
+                <FieldError id={`${inputId}-error`} data-testid='currency-input-error-message'>
                     {error}
-                </p>
+                </FieldError>
             )}
         </div>
     );

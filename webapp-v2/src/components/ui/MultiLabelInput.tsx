@@ -4,6 +4,7 @@ import { toExpenseLabel } from '@billsplit-wl/shared';
 import { XMarkIcon } from '@heroicons/react/20/solid';
 import { useCallback, useMemo, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
+import { FieldError } from './FieldError';
 
 interface MultiLabelInputProps {
     values: ExpenseLabel[];
@@ -254,9 +255,9 @@ export function MultiLabelInput({
             )}
 
             {error && (
-                <p id={`${inputId}-error`} className='mt-2 text-sm text-semantic-error' role='alert' data-testid='label-input-error-message'>
+                <FieldError id={`${inputId}-error`} data-testid='label-input-error-message'>
                     {error}
-                </p>
+                </FieldError>
             )}
 
             {/* Helper text */}

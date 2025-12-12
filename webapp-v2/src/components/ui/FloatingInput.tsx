@@ -2,6 +2,7 @@ import { cx } from '@/utils/cx.ts';
 import type { Ref } from 'preact';
 import { useCallback, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
+import { FieldError } from './FieldError';
 
 interface FloatingInputProps {
     type?: 'text' | 'email' | 'password' | 'number';
@@ -128,14 +129,9 @@ export function FloatingInput({
                 </label>
             </div>
             {error && (
-                <p
-                    id={`${inputId}-error`}
-                    className='mt-2 text-sm text-semantic-error'
-                    role='alert'
-                    data-testid='input-error-message'
-                >
+                <FieldError id={`${inputId}-error`} data-testid='input-error-message'>
                     {error}
-                </p>
+                </FieldError>
             )}
         </div>
     );

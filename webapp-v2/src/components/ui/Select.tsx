@@ -2,6 +2,7 @@ import { cx } from '@/utils/cx.ts';
 import type { Ref } from 'preact';
 import { useCallback } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
+import { FieldError } from './FieldError';
 import { ChevronDownIcon } from './icons';
 
 interface SelectOption {
@@ -113,14 +114,9 @@ export function Select({
                 </div>
             </div>
             {error && (
-                <p
-                    id={`${selectId}-error`}
-                    className='mt-2 text-sm text-semantic-error'
-                    role='alert'
-                    data-testid='select-error-message'
-                >
+                <FieldError id={`${selectId}-error`} data-testid='select-error-message'>
                     {error}
-                </p>
+                </FieldError>
             )}
         </div>
     );

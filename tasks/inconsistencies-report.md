@@ -79,18 +79,16 @@ New CSS utilities and components have been created to eliminate class duplicatio
 
 ---
 
-### Priority 2: Form Error Messages (6 files)
+### Priority 2: Form Error Messages (6 files) - **COMPLETED**
 
-Files with inline error styling that should use `FieldError` component:
+**All files have been migrated to use the `FieldError` component:**
 
-| File | Line | Current Pattern |
-|------|------|-----------------|
-| `components/ui/Input.tsx` | 99 | `<p className='mt-2 text-sm text-semantic-error'>` |
-| `components/ui/FloatingInput.tsx` | 133 | `<p className='mt-2 text-sm text-semantic-error'>` |
-| `components/ui/Select.tsx` | 118 | `<p className='mt-2 text-sm text-semantic-error'>` |
-| `components/ui/CurrencyAmountInput.tsx` | 309 | `<p className='mt-2 text-sm text-semantic-error'>` |
-| `components/ui/MultiLabelInput.tsx` | 257 | `<p className='mt-2 text-sm text-semantic-error'>` |
-| `components/settlements/SettlementForm.tsx` | 555 | `<p className='mt-2 text-sm text-semantic-error'>` |
+- ✅ `components/ui/Input.tsx` - Replaced inline error `<p>` with `<FieldError>`
+- ✅ `components/ui/FloatingInput.tsx` - Replaced inline error `<p>` with `<FieldError>`
+- ✅ `components/ui/Select.tsx` - Replaced inline error `<p>` with `<FieldError>`
+- ✅ `components/ui/CurrencyAmountInput.tsx` - Replaced inline error `<p>` with `<FieldError>`
+- ✅ `components/ui/MultiLabelInput.tsx` - Replaced inline error `<p>` with `<FieldError>`
+- ✅ `components/settlements/SettlementForm.tsx` - Replaced inline error `<p>` with `<FieldError>`
 
 ---
 
@@ -231,9 +229,9 @@ import { Badge } from '@/components/ui';
 | Category | Files to Update | Priority | Status |
 |----------|-----------------|----------|--------|
 | Modal structure | 7 | High | ✅ **DONE** (6 migrated, 1 skipped, tests updated) |
-| Form errors | 6 | High | Pending |
+| Form errors | 6 | High | ✅ **DONE** (6 migrated) |
 | Help text | 30 | Medium | Pending |
 | Badges | 5 | Medium | Pending |
 | **Total** | **48** | | |
 
-Priority 1 (Modal Structure) is complete. All unit tests pass. Next priorities are Form Errors (Priority 2) and Help Text (Priority 3).
+Priority 1 (Modal Structure) and Priority 2 (Form Errors) are complete. All builds pass. Next priorities are Help Text (Priority 3) and Badges (Priority 4).

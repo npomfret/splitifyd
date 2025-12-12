@@ -135,7 +135,7 @@ describe('Input Component', () => {
             const errorMessage = screen.getByTestId('input-error-message');
             expect(errorMessage).toBeInTheDocument();
             expect(errorMessage).toHaveTextContent('Username is required');
-            expect(errorMessage).toHaveClass('text-semantic-error');
+            expect(errorMessage).toHaveClass('field-error');
             expect(errorMessage).toHaveAttribute('role', 'alert');
         });
 
@@ -313,8 +313,8 @@ describe('Input Component', () => {
             // Should have role="alert" for error detection
             expect(errorMessage).toHaveAttribute('role', 'alert');
 
-            // Should have proper styling
-            expect(errorMessage).toHaveClass('text-semantic-error');
+            // Should have proper styling (uses field-error utility class)
+            expect(errorMessage).toHaveClass('field-error');
 
             // Should not have financial-amount attributes
             expect(errorMessage).not.toHaveAttribute('data-financial-amount');
