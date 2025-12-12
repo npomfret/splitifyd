@@ -295,31 +295,31 @@ export function SettingsPage() {
 
     return (
         <BaseLayout title={t('settingsPage.title')} description={t('settingsPage.description')} headerVariant='dashboard'>
-            <div class='mx-auto max-w-(--breakpoint-xl) px-4 py-10 sm:px-6 lg:px-8'>
-                <div class='space-y-8'>
-                    <div class='flex flex-col gap-2'>
-                        <span class='text-xs font-medium uppercase tracking-wide text-interactive-primary'>
+            <div className='mx-auto max-w-(--breakpoint-xl) px-4 py-10 sm:px-6 lg:px-8'>
+                <div className='space-y-8'>
+                    <div className='flex flex-col gap-2'>
+                        <span className='text-xs font-medium uppercase tracking-wide text-interactive-primary'>
                             {t('settingsPage.heroLabel')}
                         </span>
-                        <div class='flex flex-col gap-2'>
+                        <div className='flex flex-col gap-2'>
                             <Typography variant='display' className='font-semibold' data-testid='account-settings-header'>
                                 {t('settingsPage.accountSettingsHeader')}
                             </Typography>
-                            <p class='max-w-2xl text-sm text-text-muted sm:text-base'>{t('settingsPage.accountSettingsSubheader')}</p>
+                            <p className='max-w-2xl text-sm text-text-muted sm:text-base'>{t('settingsPage.accountSettingsSubheader')}</p>
                         </div>
                     </div>
 
                     {(successMessage || errorMessage) && (
-                        <div class='space-y-3'>
+                        <div className='space-y-3'>
                             {successMessage && <Alert type='success' message={successMessage} />}
                             {errorMessage && <Alert type='error' message={errorMessage} />}
                         </div>
                     )}
 
-                    <div class='grid gap-6 lg:grid-cols-[320px_1fr] lg:gap-8 xl:grid-cols-[360px_1fr]'>
+                    <div className='grid gap-6 lg:grid-cols-[320px_1fr] lg:gap-8 xl:grid-cols-[360px_1fr]'>
                         <Card padding='lg' className='shadow-md lg:sticky lg:top-24'>
-                            <div class='space-y-6'>
-                                <div class='flex items-start gap-4'>
+                            <div className='space-y-6'>
+                                <div className='flex items-start gap-4'>
                                     {user && shouldShowAvatar
                                         ? (
                                             <Avatar
@@ -331,38 +331,38 @@ export function SettingsPage() {
                                             />
                                         )
                                         : (
-                                            <div class='flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br from-interactive-secondary via-interactive-secondary to-semantic-error text-lg font-semibold uppercase text-text-inverted shadow-inner'>
+                                            <div className='flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br from-interactive-secondary via-interactive-secondary to-semantic-error text-lg font-semibold uppercase text-text-inverted shadow-inner'>
                                                 {profileInitials}
                                             </div>
                                         )}
 
-                                    <div class='space-y-1'>
-                                        <p class='text-sm font-semibold uppercase tracking-wide text-text-muted'>
+                                    <div className='space-y-1'>
+                                        <p className='text-sm font-semibold uppercase tracking-wide text-text-muted'>
                                             {t('settingsPage.profileSummaryTitle')}
                                         </p>
-                                        <div class='text-2xl font-semibold text-text-primary' data-testid='profile-display-name'>
+                                        <div className='text-2xl font-semibold text-text-primary' data-testid='profile-display-name'>
                                             {resolvedDisplayName}
                                         </div>
-                                        <p class='text-sm text-text-muted'>{t('settingsPage.profileSummaryDescription')}</p>
+                                        <p className='text-sm text-text-muted'>{t('settingsPage.profileSummaryDescription')}</p>
                                     </div>
                                 </div>
 
-                                <div class='space-y-3 text-sm'>
-                                    <div class='rounded-lg border border-border-default bg-surface-muted/60 px-4 py-3'>
-                                        <span class='text-text-muted'>{t('settingsPage.currentDisplayName')}</span>
-                                        <div class='font-medium text-text-primary'>{resolvedDisplayName}</div>
+                                <div className='space-y-3 text-sm'>
+                                    <div className='rounded-lg border border-border-default bg-surface-muted/60 px-4 py-3'>
+                                        <span className='text-text-muted'>{t('settingsPage.currentDisplayName')}</span>
+                                        <div className='font-medium text-text-primary'>{resolvedDisplayName}</div>
                                     </div>
-                                    <div class='rounded-lg border border-border-default bg-surface-muted/60 px-4 py-3'>
-                                        <span class='text-text-muted'>{t('settingsPage.email')}</span>
-                                        <div class='font-medium text-text-primary wrap-break-word' data-testid='profile-email'>
+                                    <div className='rounded-lg border border-border-default bg-surface-muted/60 px-4 py-3'>
+                                        <span className='text-text-muted'>{t('settingsPage.email')}</span>
+                                        <div className='font-medium text-text-primary wrap-break-word' data-testid='profile-email'>
                                             {user.email}
                                         </div>
                                     </div>
                                     {/* Only show account role to system admins - it's not meaningful to regular users */}
                                     {user.role === SystemUserRoles.SYSTEM_ADMIN && (
-                                        <div class='rounded-lg border border-border-default bg-surface-muted/60 px-4 py-3'>
-                                            <span class='text-text-muted'>{t('settingsPage.profileSummaryRoleLabel')}</span>
-                                            <div class='font-medium text-text-primary'>
+                                        <div className='rounded-lg border border-border-default bg-surface-muted/60 px-4 py-3'>
+                                            <span className='text-text-muted'>{t('settingsPage.profileSummaryRoleLabel')}</span>
+                                            <div className='font-medium text-text-primary'>
                                                 {user.role
                                                     ? t(`settingsPage.profileSummaryRole.${user.role}`, { defaultValue: t('settingsPage.profileSummaryRoleFallback') })
                                                     : t('settingsPage.profileSummaryRoleFallback')}
@@ -373,12 +373,12 @@ export function SettingsPage() {
                             </div>
                         </Card>
 
-                        <div class='space-y-6'>
+                        <div className='space-y-6'>
                             <Card padding='lg' data-testid='profile-information-section'>
-                                <div class='space-y-6'>
-                                    <div class='space-y-2'>
+                                <div className='space-y-6'>
+                                    <div className='space-y-2'>
                                         <Typography variant='heading'>{t('settingsPage.profileInformationHeader')}</Typography>
-                                        <p class='text-sm text-text-muted'>{t('settingsPage.profileInformationSubheader')}</p>
+                                        <p className='text-sm text-text-muted'>{t('settingsPage.profileInformationSubheader')}</p>
                                     </div>
 
                                     <Form
@@ -390,7 +390,7 @@ export function SettingsPage() {
                                         }}
                                         className='space-y-5'
                                     >
-                                        <div class='space-y-2'>
+                                        <div className='space-y-2'>
                                             <Input
                                                 label={t('settingsPage.displayNameLabel')}
                                                 value={displayName}
@@ -406,7 +406,7 @@ export function SettingsPage() {
                                                     : undefined}
                                                 data-testid='display-name-input'
                                             />
-                                            <p class='text-xs text-text-muted'>{t('settingsPage.displayNameHelper')}</p>
+                                            <p className='text-xs text-text-muted'>{t('settingsPage.displayNameHelper')}</p>
                                         </div>
 
                                         <Button
@@ -422,20 +422,20 @@ export function SettingsPage() {
                             </Card>
 
                             <Card padding='lg' data-testid='email-section'>
-                                <div class='space-y-6'>
-                                    <div class='space-y-2'>
+                                <div className='space-y-6'>
+                                    <div className='space-y-2'>
                                         <Typography variant='heading'>{t('settingsPage.emailSectionTitle')}</Typography>
-                                        <p class='text-sm text-text-muted'>{t('settingsPage.emailSectionDescription')}</p>
+                                        <p className='text-sm text-text-muted'>{t('settingsPage.emailSectionDescription')}</p>
                                     </div>
 
                                     {!showEmailForm
                                         ? (
-                                            <div class='flex flex-col gap-3 rounded-lg border border-border-default bg-surface-muted px-4 py-4 sm:flex-row sm:items-center sm:justify-between'>
+                                            <div className='flex flex-col gap-3 rounded-lg border border-border-default bg-surface-muted px-4 py-4 sm:flex-row sm:items-center sm:justify-between'>
                                                 <div>
-                                                    <p class='text-xs font-semibold uppercase text-text-muted'>
+                                                    <p className='text-xs font-semibold uppercase text-text-muted'>
                                                         {t('settingsPage.currentEmailLabel')}
                                                     </p>
-                                                    <p class='font-medium text-text-primary wrap-break-word'>{originalEmail}</p>
+                                                    <p className='font-medium text-text-primary wrap-break-word'>{originalEmail}</p>
                                                 </div>
                                                 <Button variant='secondary' onClick={handleStartEmailChange} data-testid='change-email-button'>
                                                     {t('settingsPage.changeEmailButton')}
@@ -478,7 +478,7 @@ export function SettingsPage() {
                                                     data-testid='email-password-input'
                                                 />
 
-                                                <div class='flex flex-col gap-3 sm:flex-row'>
+                                                <div className='flex flex-col gap-3 sm:flex-row'>
                                                     <Button
                                                         type='submit'
                                                         disabled={isEmailLoading
@@ -506,25 +506,25 @@ export function SettingsPage() {
                             </Card>
 
                             <Card padding='lg' data-testid='password-section'>
-                                <div class='space-y-6'>
-                                    <div class='space-y-2'>
+                                <div className='space-y-6'>
+                                    <div className='space-y-2'>
                                         <Typography variant='heading'>{t('settingsPage.passwordHeader')}</Typography>
-                                        <p class='text-sm text-text-muted'>{t('settingsPage.passwordIntro')}</p>
+                                        <p className='text-sm text-text-muted'>{t('settingsPage.passwordIntro')}</p>
                                     </div>
 
-                                    <div class='rounded-xl border border-interactive-primary/20 bg-interactive-primary/10 px-4 py-4 text-sm text-interactive-primary'>
-                                        <div class='font-semibold'>{t('settingsPage.passwordRequirementsHeading')}</div>
-                                        <ul class='mt-2 space-y-2'>
-                                            <li class='flex gap-2'>
-                                                <span class='mt-1 h-2 w-2 shrink-0 rounded-full bg-interactive-primary' aria-hidden='true' />
+                                    <div className='rounded-xl border border-interactive-primary/20 bg-interactive-primary/10 px-4 py-4 text-sm text-interactive-primary'>
+                                        <div className='font-semibold'>{t('settingsPage.passwordRequirementsHeading')}</div>
+                                        <ul className='mt-2 space-y-2'>
+                                            <li className='flex gap-2'>
+                                                <span className='mt-1 h-2 w-2 shrink-0 rounded-full bg-interactive-primary' aria-hidden='true' />
                                                 <span>{t('settingsPage.passwordRequirements.length')}</span>
                                             </li>
-                                            <li class='flex gap-2'>
-                                                <span class='mt-1 h-2 w-2 shrink-0 rounded-full bg-interactive-primary' aria-hidden='true' />
+                                            <li className='flex gap-2'>
+                                                <span className='mt-1 h-2 w-2 shrink-0 rounded-full bg-interactive-primary' aria-hidden='true' />
                                                 <span>{t('settingsPage.passwordRequirements.mix')}</span>
                                             </li>
-                                            <li class='flex gap-2'>
-                                                <span class='mt-1 h-2 w-2 shrink-0 rounded-full bg-interactive-primary' aria-hidden='true' />
+                                            <li className='flex gap-2'>
+                                                <span className='mt-1 h-2 w-2 shrink-0 rounded-full bg-interactive-primary' aria-hidden='true' />
                                                 <span>{t('settingsPage.passwordRequirements.reuse')}</span>
                                             </li>
                                         </ul>
@@ -590,7 +590,7 @@ export function SettingsPage() {
                                                         data-testid='confirm-password-input'
                                                     />
 
-                                                    <div class='flex flex-col gap-3 sm:flex-row'>
+                                                    <div className='flex flex-col gap-3 sm:flex-row'>
                                                         <Button type='submit' disabled={isLoading} loading={isLoading} data-testid='update-password-button'>
                                                             {t('settingsPage.updatePasswordButton')}
                                                         </Button>
@@ -605,10 +605,10 @@ export function SettingsPage() {
                             </Card>
 
                             <Card padding='lg' data-testid='language-section'>
-                                <div class='space-y-6'>
-                                    <div class='space-y-2'>
+                                <div className='space-y-6'>
+                                    <div className='space-y-2'>
                                         <Typography variant='heading'>{t('languageSelector.label')}</Typography>
-                                        <p class='text-sm text-text-muted'>{t('languageSelector.description')}</p>
+                                        <p className='text-sm text-text-muted'>{t('languageSelector.description')}</p>
                                     </div>
 
                                     <LanguageSwitcher variant='full' />

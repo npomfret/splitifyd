@@ -24,31 +24,31 @@ export function EmptyGroupsState({ onCreateGroup }: EmptyGroupsStateProps) {
             data-testid='empty-groups-state'
         >
             {/* Additional getting started tips */}
-            <div class='text-left max-w-2xl mx-auto'>
-                <h5 class='text-sm font-medium text-text-primary mb-3'>{t('emptyGroupsState.gettingStartedTitle')}</h5>
-                <div class='grid md:grid-cols-3 gap-4'>
-                    <div class='bg-interactive-primary/10 p-4 rounded-lg'>
-                        <div class='text-interactive-primary mb-2'>
+            <div className='text-left max-w-2xl mx-auto'>
+                <h5 className='text-sm font-medium text-text-primary mb-3'>{t('emptyGroupsState.gettingStartedTitle')}</h5>
+                <div className='grid md:grid-cols-3 gap-4'>
+                    <div className='bg-interactive-primary/10 p-4 rounded-lg'>
+                        <div className='text-interactive-primary mb-2'>
                             <UsersIcon size={24} />
                         </div>
-                        <h6 class='font-medium text-text-primary mb-1'>{t('emptyGroupsState.step1Title')}</h6>
-                        <p class='text-sm text-text-muted'>{t('emptyGroupsState.step1Description')}</p>
+                        <h6 className='font-medium text-text-primary mb-1'>{t('emptyGroupsState.step1Title')}</h6>
+                        <p className='text-sm text-text-muted'>{t('emptyGroupsState.step1Description')}</p>
                     </div>
 
-                    <div class='bg-interactive-accent/10 p-4 rounded-lg'>
-                        <div class='text-semantic-success mb-2'>
+                    <div className='bg-interactive-accent/10 p-4 rounded-lg'>
+                        <div className='text-semantic-success mb-2'>
                             <PlusIcon size={24} />
                         </div>
-                        <h6 class='font-medium text-text-primary mb-1'>{t('emptyGroupsState.step2Title')}</h6>
-                        <p class='text-sm text-text-muted'>{t('emptyGroupsState.step2Description')}</p>
+                        <h6 className='font-medium text-text-primary mb-1'>{t('emptyGroupsState.step2Title')}</h6>
+                        <p className='text-sm text-text-muted'>{t('emptyGroupsState.step2Description')}</p>
                     </div>
 
-                    <div class='bg-interactive-primary/10 p-4 rounded-lg'>
-                        <div class='text-interactive-primary mb-2'>
+                    <div className='bg-interactive-primary/10 p-4 rounded-lg'>
+                        <div className='text-interactive-primary mb-2'>
                             <BadgeCheckIcon size={24} />
                         </div>
-                        <h6 class='font-medium text-text-primary mb-1'>{t('emptyGroupsState.step3Title')}</h6>
-                        <p class='text-sm text-text-muted'>{t('emptyGroupsState.step3Description')}</p>
+                        <h6 className='font-medium text-text-primary mb-1'>{t('emptyGroupsState.step3Title')}</h6>
+                        <p className='text-sm text-text-muted'>{t('emptyGroupsState.step3Description')}</p>
                     </div>
                 </div>
             </div>

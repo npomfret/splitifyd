@@ -203,9 +203,9 @@ export function AdminUsersTab() {
     }
 
     return (
-        <div class='space-y-6'>
-            <div class='flex items-center justify-between'>
-                <p class='text-sm text-gray-700'>
+        <div className='space-y-6'>
+            <div className='flex items-center justify-between'>
+                <p className='text-sm text-gray-700'>
                     {t('admin.users.description')}
                 </p>
                 <Button variant='secondary' size='sm' onClick={handleReset}>
@@ -214,16 +214,16 @@ export function AdminUsersTab() {
             </div>
 
             <Card className='p-6 space-y-6 bg-white/70 border border-indigo-200'>
-                <form class='flex gap-4' onSubmit={handleSearch}>
-                    <label class='flex flex-col text-sm text-gray-800 flex-1'>
-                        <span class='mb-1'>{t('admin.users.search.label')}</span>
+                <form className='flex gap-4' onSubmit={handleSearch}>
+                    <label className='flex flex-col text-sm text-gray-800 flex-1'>
+                        <span className='mb-1'>{t('admin.users.search.label')}</span>
                         <Input
                             value={searchValue.value}
                             onChange={(value) => (searchValue.value = value)}
                             placeholder={t('admin.users.search.placeholder')}
                         />
                     </label>
-                    <div class='flex gap-2 items-end'>
+                    <div className='flex gap-2 items-end'>
                         <Button type='submit' variant='primary'>{t('common.search')}</Button>
                         <Button type='button' variant='secondary' onClick={handleReset}>
                             {t('common.reset')}
@@ -232,7 +232,7 @@ export function AdminUsersTab() {
                 </form>
 
                 {loading.value && (
-                    <div class='flex justify-center py-6'>
+                    <div className='flex justify-center py-6'>
                         <LoadingState message={t('admin.users.loading')} />
                     </div>
                 )}
@@ -242,34 +242,34 @@ export function AdminUsersTab() {
                 {!loading.value && users.value.length === 0 && !error.value && <Alert type='info' message={t('admin.users.emptyState')} />}
 
                 {users.value.length > 0 && (
-                    <div class='overflow-x-auto border border-indigo-200 rounded-lg'>
-                        <table class='min-w-full divide-y divide-indigo-200'>
-                            <thead class='bg-indigo-50'>
+                    <div className='overflow-x-auto border border-indigo-200 rounded-lg'>
+                        <table className='min-w-full divide-y divide-indigo-200'>
+                            <thead className='bg-indigo-50'>
                                 <tr>
-                                    <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider'>
+                                    <th scope='col' className='px-4 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider'>
                                         {t('admin.users.table.email')}
                                     </th>
-                                    <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider'>
+                                    <th scope='col' className='px-4 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider'>
                                         {t('admin.users.table.displayName')}
                                     </th>
-                                    <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider'>
+                                    <th scope='col' className='px-4 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider'>
                                         {t('admin.users.table.role')}
                                     </th>
-                                    <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider'>
+                                    <th scope='col' className='px-4 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider'>
                                         {t('admin.users.table.status')}
                                     </th>
-                                    <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider'>
+                                    <th scope='col' className='px-4 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider'>
                                         {t('admin.users.table.created')}
                                     </th>
-                                    <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider'>
+                                    <th scope='col' className='px-4 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider'>
                                         {t('admin.users.table.lastSignIn')}
                                     </th>
-                                    <th scope='col' class='px-4 py-3 text-right text-xs font-medium text-indigo-700 uppercase tracking-wider'>
+                                    <th scope='col' className='px-4 py-3 text-right text-xs font-medium text-indigo-700 uppercase tracking-wider'>
                                         {t('admin.users.table.actions')}
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody class='bg-white divide-y divide-indigo-200'>
+                            <tbody className='bg-white divide-y divide-indigo-200'>
                                 {users.value.map((authUser) => {
                                     const metadata = authUser.metadata;
                                     const uid = authUser.uid;
@@ -278,23 +278,23 @@ export function AdminUsersTab() {
 
                                     return (
                                         <tr key={uid} class={isCurrentUser ? 'bg-blue-50' : ''}>
-                                            <td class='px-4 py-3 text-sm text-gray-900 break-all'>
+                                            <td className='px-4 py-3 text-sm text-gray-900 break-all'>
                                                 {String(authUser.email ?? '')}
                                                 {isCurrentUser && (
-                                                    <span class='ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700'>
+                                                    <span className='ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700'>
                                                         {t('common.you')}
                                                     </span>
                                                 )}
                                             </td>
-                                            <td class='px-4 py-3 text-sm text-gray-700 break-all'>
+                                            <td className='px-4 py-3 text-sm text-gray-700 break-all'>
                                                 {String(authUser.displayName ?? '-')}
                                             </td>
-                                            <td class='px-4 py-3 text-sm'>
+                                            <td className='px-4 py-3 text-sm'>
                                                 <span class={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${getRoleBadgeClass(role, false)}`}>
                                                     {formatRole(role)}
                                                 </span>
                                             </td>
-                                            <td class='px-4 py-3 text-sm'>
+                                            <td className='px-4 py-3 text-sm'>
                                                 <span
                                                     class={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
                                                         authUser.disabled
@@ -305,18 +305,18 @@ export function AdminUsersTab() {
                                                     {authUser.disabled ? t('common.disabled') : t('common.active')}
                                                 </span>
                                             </td>
-                                            <td class='px-4 py-3 text-sm text-gray-700'>
+                                            <td className='px-4 py-3 text-sm text-gray-700'>
                                                 {getMetadataField(metadata, 'creationTime')}
                                             </td>
-                                            <td class='px-4 py-3 text-sm text-gray-700'>
+                                            <td className='px-4 py-3 text-sm text-gray-700'>
                                                 {getMetadataField(metadata, 'lastSignInTime')}
                                             </td>
-                                            <td class='px-4 py-3 text-right text-sm'>
-                                                <div class='flex items-center justify-end gap-2'>
+                                            <td className='px-4 py-3 text-right text-sm'>
+                                                <div className='flex items-center justify-end gap-2'>
                                                     <button
                                                         onClick={() => editingUser.value = authUser}
                                                         disabled={operationInProgress.value === `role-${uid}`}
-                                                        class='p-2 text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+                                                        className='p-2 text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
                                                         title={t('admin.users.actions.editUser')}
                                                         data-testid={`edit-user-${uid}`}
                                                     >

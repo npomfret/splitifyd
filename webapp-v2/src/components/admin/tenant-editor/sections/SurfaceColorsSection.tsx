@@ -10,7 +10,7 @@ export function SurfaceColorsSection({ formData, update, isSaving, mode, creatio
             defaultOpen={mode === 'create' && creationMode === 'empty'}
             testId='section-surfaces'
         >
-            <div class='grid grid-cols-2 gap-4'>
+            <div className='grid grid-cols-2 gap-4'>
                 <ColorInput
                     id='surface-base'
                     label='Base *'
@@ -36,7 +36,7 @@ export function SurfaceColorsSection({ formData, update, isSaving, mode, creatio
                     testId='surface-sunken-color-input'
                 />
             </div>
-            <div class='grid grid-cols-2 gap-4 mt-4'>
+            <div className='grid grid-cols-2 gap-4 mt-4'>
                 <RgbaColorInput
                     id='surface-overlay'
                     label='Overlay * (rgba)'

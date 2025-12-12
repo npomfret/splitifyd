@@ -5,7 +5,7 @@ import type { SectionProps } from './types';
 export function GlassmorphismSection({ formData, update, isSaving }: SectionProps) {
     return (
         <AdminFormSection title='Glassmorphism' description='Glass effect colors (RGBA) - leave empty to disable' testId='section-glassmorphism-settings'>
-            <div class='grid grid-cols-2 gap-4'>
+            <div className='grid grid-cols-2 gap-4'>
                 <RgbaColorInput
                     id='glass-color'
                     label='Glass Color'

@@ -88,27 +88,27 @@ export function AdminTenantConfigTab() {
     const tenantBranding = config?.tenant?.branding;
 
     return (
-        <div class='space-y-6'>
+        <div className='space-y-6'>
             {actionMessage && <Alert type={actionMessage.type} message={actionMessage.text} />}
 
             <Card padding='lg' data-testid='tenant-overview-card' className='bg-white/70 backdrop-blur-xs border border-indigo-200'>
                 <Stack spacing='sm'>
-                    <div class='flex items-center gap-2 mb-2'>
-                        <div class='w-1 h-6 bg-linear-to-b from-amber-500 to-orange-600 rounded-full'></div>
+                    <div className='flex items-center gap-2 mb-2'>
+                        <div className='w-1 h-6 bg-linear-to-b from-amber-500 to-orange-600 rounded-full'></div>
                         <Typography variant='heading' className='text-amber-700'>{t('admin.tenantConfig.overview.title')}</Typography>
                     </div>
-                    <div class='grid gap-4 md:grid-cols-3 text-sm'>
-                        <div class='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
-                            <p class='text-indigo-600 text-xs mb-1'>{t('admin.tenantConfig.overview.tenantId')}</p>
-                            <p class='font-mono text-amber-700 font-medium'>{config?.tenant?.tenantId ?? t('common.unknown')}</p>
+                    <div className='grid gap-4 md:grid-cols-3 text-sm'>
+                        <div className='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
+                            <p className='text-indigo-600 text-xs mb-1'>{t('admin.tenantConfig.overview.tenantId')}</p>
+                            <p className='font-mono text-amber-700 font-medium'>{config?.tenant?.tenantId ?? t('common.unknown')}</p>
                         </div>
-                        <div class='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
-                            <p class='text-indigo-600 text-xs mb-1'>{t('admin.tenantConfig.overview.appName')}</p>
-                            <p class='text-gray-800 font-medium'>{config?.tenant?.brandingTokens?.tokens?.legal?.appName ?? t('common.notConfigured')}</p>
+                        <div className='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
+                            <p className='text-indigo-600 text-xs mb-1'>{t('admin.tenantConfig.overview.appName')}</p>
+                            <p className='text-gray-800 font-medium'>{config?.tenant?.brandingTokens?.tokens?.legal?.appName ?? t('common.notConfigured')}</p>
                         </div>
-                        <div class='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
-                            <p class='text-indigo-600 text-xs mb-1'>{t('admin.tenantConfig.overview.lastUpdated')}</p>
-                            <p class='text-gray-800 font-medium'>{config?.tenant?.updatedAt ?? '—'}</p>
+                        <div className='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
+                            <p className='text-indigo-600 text-xs mb-1'>{t('admin.tenantConfig.overview.lastUpdated')}</p>
+                            <p className='text-gray-800 font-medium'>{config?.tenant?.updatedAt ?? '—'}</p>
                         </div>
                     </div>
                 </Stack>
@@ -116,15 +116,15 @@ export function AdminTenantConfigTab() {
 
             <Card padding='lg' data-testid='theme-artifact-card' className='bg-white/70 backdrop-blur-xs border border-indigo-200'>
                 <Stack spacing='md'>
-                    <div class='flex flex-col gap-2 md:flex-row md:items-center md:justify-between'>
+                    <div className='flex flex-col gap-2 md:flex-row md:items-center md:justify-between'>
                         <div>
-                            <div class='flex items-center gap-2 mb-1'>
-                                <div class='w-1 h-6 bg-linear-to-b from-amber-500 to-orange-600 rounded-full'></div>
+                            <div className='flex items-center gap-2 mb-1'>
+                                <div className='w-1 h-6 bg-linear-to-b from-amber-500 to-orange-600 rounded-full'></div>
                                 <Typography variant='heading' className='text-amber-700'>{t('admin.tenantConfig.theme.title')}</Typography>
                             </div>
                             <Typography variant='caption' className='text-indigo-600 ml-3'>{t('admin.tenantConfig.theme.description')}</Typography>
                         </div>
-                        <div class='flex flex-wrap gap-3'>
+                        <div className='flex flex-wrap gap-3'>
                             <Button
                                 variant='secondary'
                                 size='sm'
@@ -138,18 +138,18 @@ export function AdminTenantConfigTab() {
                             </Button>
                         </div>
                     </div>
-                    <div class='grid gap-4 text-sm md:grid-cols-3'>
-                        <div class='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
-                            <p class='text-indigo-600 text-xs mb-1'>{t('admin.tenantConfig.theme.activeHash')}</p>
-                            <p class='font-mono text-amber-700 font-medium'>{config?.theme?.hash ?? t('admin.tenantConfig.theme.notPublished')}</p>
+                    <div className='grid gap-4 text-sm md:grid-cols-3'>
+                        <div className='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
+                            <p className='text-indigo-600 text-xs mb-1'>{t('admin.tenantConfig.theme.activeHash')}</p>
+                            <p className='font-mono text-amber-700 font-medium'>{config?.theme?.hash ?? t('admin.tenantConfig.theme.notPublished')}</p>
                         </div>
-                        <div class='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
-                            <p class='text-indigo-600 text-xs mb-1'>{t('admin.tenantConfig.theme.generatedAt')}</p>
-                            <p class='text-gray-800 text-xs'>{config?.theme?.generatedAtEpochMs ? new Date(config.theme.generatedAtEpochMs).toISOString() : '—'}</p>
+                        <div className='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
+                            <p className='text-indigo-600 text-xs mb-1'>{t('admin.tenantConfig.theme.generatedAt')}</p>
+                            <p className='text-gray-800 text-xs'>{config?.theme?.generatedAtEpochMs ? new Date(config.theme.generatedAtEpochMs).toISOString() : '—'}</p>
                         </div>
-                        <div class='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
-                            <p class='text-indigo-600 text-xs mb-1'>{t('common.link')}</p>
-                            <p class='font-mono text-amber-700 text-xs break-all'>{themeLink}</p>
+                        <div className='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
+                            <p className='text-indigo-600 text-xs mb-1'>{t('common.link')}</p>
+                            <p className='font-mono text-amber-700 text-xs break-all'>{themeLink}</p>
                         </div>
                     </div>
                 </Stack>
@@ -158,26 +158,26 @@ export function AdminTenantConfigTab() {
             {tenantBranding && (
                 <Card padding='lg' data-testid='branding-tokens-card' className='bg-white/70 backdrop-blur-xs border border-indigo-200'>
                     <Stack spacing='md'>
-                        <div class='flex items-center gap-2 mb-2'>
-                            <div class='w-1 h-6 bg-linear-to-b from-amber-500 to-orange-600 rounded-full'></div>
+                        <div className='flex items-center gap-2 mb-2'>
+                            <div className='w-1 h-6 bg-linear-to-b from-amber-500 to-orange-600 rounded-full'></div>
                             <Typography variant='heading' className='text-amber-700'>{t('admin.tenantConfig.brandingTokens.title')}</Typography>
                         </div>
-                        <pre class='bg-indigo-50 rounded-md p-4 text-sm overflow-x-auto border border-indigo-200 text-gray-800'>{JSON.stringify(tenantBranding, null, 2)}</pre>
+                        <pre className='bg-indigo-50 rounded-md p-4 text-sm overflow-x-auto border border-indigo-200 text-gray-800'>{JSON.stringify(tenantBranding, null, 2)}</pre>
                     </Stack>
                 </Card>
             )}
 
             <Card padding='lg' data-testid='computed-vars-card' className='bg-white/70 backdrop-blur-xs border border-indigo-200'>
                 <Stack spacing='md'>
-                    <div class='flex items-center gap-2 mb-2'>
-                        <div class='w-1 h-6 bg-linear-to-b from-amber-500 to-orange-600 rounded-full'></div>
+                    <div className='flex items-center gap-2 mb-2'>
+                        <div className='w-1 h-6 bg-linear-to-b from-amber-500 to-orange-600 rounded-full'></div>
                         <Typography variant='heading' className='text-amber-700'>{t('admin.tenantConfig.computedCss.title')}</Typography>
                     </div>
-                    <div class='grid gap-3 md:grid-cols-2'>
+                    <div className='grid gap-3 md:grid-cols-2'>
                         {Object.entries(computedVars).map(([variable, value]) => (
-                            <div key={variable} class='rounded-md border border-indigo-200 bg-indigo-50 px-4 py-3'>
-                                <p class='text-xs uppercase text-indigo-600 mb-1'>{variable}</p>
-                                <p class='font-mono text-sm text-amber-700'>{value || t('common.notSet')}</p>
+                            <div key={variable} className='rounded-md border border-indigo-200 bg-indigo-50 px-4 py-3'>
+                                <p className='text-xs uppercase text-indigo-600 mb-1'>{variable}</p>
+                                <p className='font-mono text-sm text-amber-700'>{value || t('common.notSet')}</p>
                             </div>
                         ))}
                     </div>

@@ -312,6 +312,42 @@
     }
 }
 
+/* Modal structure utilities - standardized modal layout */
+@utility modal-header {
+  @apply px-6 py-4 border-b border-border-default;
+}
+@utility modal-content {
+  @apply px-6 py-5 max-h-[70vh] overflow-y-auto;
+}
+@utility modal-footer {
+  @apply flex items-center justify-end gap-3 px-6 py-4 border-t border-border-default;
+}
+
+/* Typography utilities */
+@utility help-text {
+  @apply text-sm text-text-muted;
+}
+@utility field-error {
+  @apply mt-2 text-sm text-semantic-error;
+}
+
+/* Badge/chip utilities */
+@utility badge {
+  @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium;
+}
+@utility badge-primary {
+  @apply bg-interactive-primary/10 text-interactive-primary border border-interactive-primary/20;
+}
+@utility badge-success {
+  @apply bg-semantic-success/10 text-semantic-success border border-semantic-success/20;
+}
+@utility badge-warning {
+  @apply bg-semantic-warning/10 text-semantic-warning border border-semantic-warning/20;
+}
+@utility badge-error {
+  @apply bg-semantic-error/10 text-semantic-error border border-semantic-error/20;
+}
+
 /* Button hover effects per Modern UI/UX guide section 4.2 */
 @layer components {
 

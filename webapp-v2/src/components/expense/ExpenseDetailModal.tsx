@@ -1,15 +1,15 @@
 import { apiClient } from '@/app/apiClient';
 import { CommentsSection } from '@/components/comments';
-import { Avatar, Button, Card, CurrencyAmount, LoadingSpinner, Stack, Tooltip, Typography } from '@/components/ui';
+import { Avatar, Badge, Button, Card, CurrencyAmount, LoadingSpinner, Stack, Tooltip, Typography } from '@/components/ui';
 import { Clickable } from '@/components/ui/Clickable';
 import { XIcon } from '@/components/ui/icons';
-import { Modal } from '@/components/ui/Modal';
+import { Modal, ModalContent, ModalHeader } from '@/components/ui/Modal';
+import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { logError } from '@/utils/browser-logger.ts';
 import { formatCurrency } from '@/utils/currency';
 import { formatDistanceToNow, formatExpenseDateTime, formatLocalDateTime } from '@/utils/dateUtils.ts';
 import { getGroupDisplayName } from '@/utils/displayName';
 import { ExpenseDTO, ExpenseId, GroupDTO, GroupId, GroupMember, toCurrencyISOCode, toDisplayName } from '@billsplit-wl/shared';
-import { batch, useSignal } from '@preact/signals';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { ExpenseActions } from './ExpenseActions';
@@ -28,11 +28,11 @@ export function ExpenseDetailModal({ isOpen, onClose, groupId, expenseId, onEdit
     const { t } = useTranslation();
     const previousIsOpenRef = useRef(isOpen);
 
-    const expense = useSignal<ExpenseDTO | null>(null);
-    const loading = useSignal(true);
-    const error = useSignal<string | null>(null);
-    const group = useSignal<GroupDTO | null>(null);
-    const members = useSignal<GroupMember[]>([]);
+    const [expense, setExpense] = useState<ExpenseDTO | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [group, setGroup] = useState<GroupDTO | null>(null);
+    const [members, setMembers] = useState<GroupMember[]>([]);
     const [showReceiptModal, setShowReceiptModal] = useState(false);
 
     // Track open state transitions for data loading
@@ -48,32 +48,30 @@ export function ExpenseDetailModal({ isOpen, onClose, groupId, expenseId, onEdit
 
         // Reset state when closing
         if (wasOpen && !isNowOpen) {
-            expense.value = null;
-            error.value = null;
-            loading.value = true;
-            group.value = null;
-            members.value = [];
+            setExpense(null);
+            setError(null);
+            setLoading(true);
+            setGroup(null);
+            setMembers([]);
             setShowReceiptModal(false);
         }
     }, [isOpen, expenseId]);
 
     const loadExpense = async (id: ExpenseId) => {
         try {
-            loading.value = true;
-            error.value = null;
+            setLoading(true);
+            setError(null);
 
             const fullDetails = await apiClient.getExpenseFullDetails(id);
 
-            batch(() => {
-                expense.value = fullDetails.expense;
-                group.value = fullDetails.group;
-                members.value = fullDetails.members.members;
-            });
+            setExpense(fullDetails.expense);
+            setGroup(fullDetails.group);
+            setMembers(fullDetails.members.members);
         } catch (err) {
             logError(t('expenseComponents.expenseDetailModal.failedToLoad'), err);
-            error.value = err instanceof Error ? err.message : t('expenseComponents.expenseDetailModal.failedToLoad');
+            setError(err instanceof Error ? err.message : t('expenseComponents.expenseDetailModal.failedToLoad'));
         } finally {
-            loading.value = false;
+            setLoading(false);
         }
     };
 
@@ -103,15 +101,18 @@ export function ExpenseDetailModal({ isOpen, onClose, groupId, expenseId, onEdit
     };
 
     const handleShare = () => {
-        if (!expenseId || !groupId || !expense.value) return;
+        if (!expenseId || !groupId || !expense) return;
 
         const url = `${window.location.origin}/groups/${groupId}/expenses/${expenseId}`;
 
         if (navigator.share) {
             navigator
                 .share({
-                    title: `Expense: ${expense.value.description}`,
-                    text: `Check out this expense: ${expense.value.description} - ${formatCurrency(expense.value.amount, toCurrencyISOCode(expense.value.currency))}`,
+                    title: t('expenseComponents.expenseDetailModal.shareTitle', { description: expense.description }),
+                    text: t('expenseComponents.expenseDetailModal.shareText', {
+                        description: expense.description,
+                        amount: formatCurrency(expense.amount, toCurrencyISOCode(expense.currency)),
+                    }),
                     url: url,
                 })
                 .catch(() => {
@@ -135,7 +136,7 @@ export function ExpenseDetailModal({ isOpen, onClose, groupId, expenseId, onEdit
         }
     };
 
-    const memberMap = members.value.reduce(
+    const memberMap = members.reduce(
         (acc, member) => {
             acc[member.uid] = member;
             return acc;
@@ -143,7 +144,7 @@ export function ExpenseDetailModal({ isOpen, onClose, groupId, expenseId, onEdit
         {} as Record<string, GroupMember>,
     );
 
-    const payer = expense.value ? memberMap[expense.value.paidBy] : null;
+    const payer = expense ? memberMap[expense.paidBy] : null;
     const payerName = payer ? getGroupDisplayName(payer) : toDisplayName('');
 
     return (
@@ -153,11 +154,10 @@ export function ExpenseDetailModal({ isOpen, onClose, groupId, expenseId, onEdit
             size='lg'
             labelledBy='expense-detail-modal-title'
         >
-            {/* Modal Header */}
-            <div class='px-6 py-4 border-b border-border-default'>
-                <div class='flex justify-between items-center'>
+            <ModalHeader>
+                <div className='flex justify-between items-center'>
                     <Typography variant='heading' id='expense-detail-modal-title'>
-                        {expense.value?.description || t('expenseComponents.expenseDetailModal.title')}
+                        {expense?.description || t('expenseComponents.expenseDetailModal.title')}
                     </Typography>
                     <Tooltip content={t('expenseComponents.expenseDetailModal.closeModal')}>
                         <Clickable
@@ -173,23 +173,22 @@ export function ExpenseDetailModal({ isOpen, onClose, groupId, expenseId, onEdit
                         </Clickable>
                     </Tooltip>
                 </div>
-            </div>
+            </ModalHeader>
 
-            {/* Modal Content */}
-            <div class='px-6 py-5 max-h-[70vh] overflow-y-auto'>
+            <ModalContent>
                 {/* Loading state */}
-                {loading.value && (
+                {loading && (
                     <div className='flex items-center justify-center py-8'>
                         <LoadingSpinner size='lg' />
                     </div>
                 )}
 
                 {/* Error state */}
-                {!loading.value && (error.value || !expense.value) && (
+                {!loading && (error || !expense) && (
                     <Stack spacing='md'>
                         <div className='text-center py-4'>
                             <Typography variant='body' className='text-semantic-error'>
-                                {error.value || t('expenseComponents.expenseDetailModal.expenseNotFound')}
+                                {error || t('expenseComponents.expenseDetailModal.expenseNotFound')}
                             </Typography>
                         </div>
                         <Button variant='secondary' onClick={onClose}>
@@ -199,13 +198,13 @@ export function ExpenseDetailModal({ isOpen, onClose, groupId, expenseId, onEdit
                 )}
 
                 {/* Content */}
-                {!loading.value && expense.value && payer && (
+                {!loading && expense && payer && (
                     <Stack spacing='md'>
                         {/* Lock Warning */}
-                        {expense.value.isLocked && (
+                        {expense.isLocked && (
                             <div className='bg-surface-warning border border-border-warning rounded-lg p-3' data-testid='expense-lock-warning'>
                                 <div className='flex items-start gap-2'>
-                                    <span className='text-lg'>⚠️</span>
+                                    <ExclamationTriangleIcon className='w-5 h-5 text-semantic-warning shrink-0' aria-hidden='true' />
                                     <p className='text-sm text-text-primary'>
                                         {t('pages.expenseDetailPage.containsDepartedMembers')}
                                     </p>
@@ -216,7 +215,7 @@ export function ExpenseDetailModal({ isOpen, onClose, groupId, expenseId, onEdit
                         {/* Amount */}
                         <div className='text-center pb-4 border-b border-border-default'>
                             <h2 className='text-2xl font-bold text-text-primary' data-testid='expense-amount'>
-                                <CurrencyAmount amount={expense.value.amount} currency={expense.value.currency} />
+                                <CurrencyAmount amount={expense.amount} currency={expense.currency} />
                             </h2>
                         </div>
 
@@ -225,24 +224,21 @@ export function ExpenseDetailModal({ isOpen, onClose, groupId, expenseId, onEdit
                             {/* Date */}
                             <div>
                                 <p className='text-sm text-text-primary/60'>{t('expenseComponents.expenseDetailModal.date')}</p>
-                                <p className='font-medium text-text-primary'>{formatExpenseDateTime(expense.value.date)}</p>
+                                <p className='font-medium text-text-primary'>{formatExpenseDateTime(expense.date)}</p>
                                 <p className='text-xs text-text-primary/60'>
-                                    ({formatDistanceToNow(new Date(expense.value.date))})
+                                    ({formatDistanceToNow(new Date(expense.date))})
                                 </p>
                             </div>
 
                             {/* Labels */}
-                            {expense.value.labels.length > 0 && (
+                            {expense.labels.length > 0 && (
                                 <div>
                                     <p className='text-sm text-text-primary/60'>{t('expenseComponents.expenseDetailModal.labels')}</p>
                                     <div className='flex flex-wrap gap-1.5 mt-1'>
-                                        {expense.value.labels.map((label) => (
-                                            <span
-                                                key={label}
-                                                className='inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-interactive-primary/10 text-interactive-primary border border-interactive-primary/20'
-                                            >
+                                        {expense.labels.map((label) => (
+                                            <Badge key={label} variant='primary'>
                                                 {label}
-                                            </span>
+                                            </Badge>
                                         ))}
                                     </div>
                                 </div>
@@ -252,7 +248,7 @@ export function ExpenseDetailModal({ isOpen, onClose, groupId, expenseId, onEdit
                             <div>
                                 <p className='text-sm text-text-primary/60 mb-1'>{t('expenseComponents.expenseDetailModal.paidBy')}</p>
                                 <div className='flex items-center gap-2'>
-                                    <Avatar displayName={payerName} userId={expense.value.paidBy} size='sm' />
+                                    <Avatar displayName={payerName} userId={expense.paidBy} size='sm' />
                                     <p className='font-medium text-text-primary text-sm'>{payerName}</p>
                                 </div>
                             </div>
@@ -261,18 +257,18 @@ export function ExpenseDetailModal({ isOpen, onClose, groupId, expenseId, onEdit
                         {/* Actions */}
                         <div className='pt-4 border-t border-border-default'>
                             <ExpenseActions
-                                expense={expense.value}
+                                expense={expense}
                                 onEdit={handleEdit}
                                 onDelete={handleDelete}
                                 onShare={handleShare}
                                 onCopy={handleCopy}
-                                disabled={expense.value.isLocked}
+                                disabled={expense.isLocked}
                             />
                         </div>
 
                         {/* Split Breakdown */}
                         <Card variant='glass' className='border-border-default'>
-                            <SplitBreakdown expense={expense.value} members={members.value} />
+                            <SplitBreakdown expense={expense} members={members} />
                         </Card>
 
                         {/* Comments */}
@@ -284,7 +280,7 @@ export function ExpenseDetailModal({ isOpen, onClose, groupId, expenseId, onEdit
                         </Card>
 
                         {/* Receipt */}
-                        {expense.value.receiptUrl && (
+                        {expense.receiptUrl && (
                             <Card variant='glass' className='border-border-default'>
                                 <Stack spacing='md'>
                                     <h3 className='font-semibold text-text-primary'>{t('expenseComponents.expenseDetailModal.receipt')}</h3>
@@ -296,7 +292,7 @@ export function ExpenseDetailModal({ isOpen, onClose, groupId, expenseId, onEdit
                                             eventProps={{ expenseId }}
                                         >
                                             <img
-                                                src={expense.value.receiptUrl}
+                                                src={expense.receiptUrl}
                                                 alt='Receipt'
                                                 className='max-w-full h-auto rounded-lg shadow-md mx-auto max-h-48 object-contain cursor-pointer hover:opacity-90 transition-opacity'
                                                 loading='lazy'
@@ -310,22 +306,22 @@ export function ExpenseDetailModal({ isOpen, onClose, groupId, expenseId, onEdit
                         {/* Metadata */}
                         <div className='text-xs text-text-primary/50 pt-2'>
                             <div className='flex items-center justify-between'>
-                                <span>Added {formatDistanceToNow(new Date(expense.value.createdAt))}</span>
-                                <span>{formatLocalDateTime(expense.value.createdAt)}</span>
+                                <span>Added {formatDistanceToNow(new Date(expense.createdAt))}</span>
+                                <span>{formatLocalDateTime(expense.createdAt)}</span>
                             </div>
-                            {expense.value.updatedAt !== expense.value.createdAt && (
+                            {expense.updatedAt !== expense.createdAt && (
                                 <div className='flex items-center justify-between mt-1'>
-                                    <span>Updated {formatDistanceToNow(new Date(expense.value.updatedAt))}</span>
-                                    <span>{formatLocalDateTime(expense.value.updatedAt)}</span>
+                                    <span>Updated {formatDistanceToNow(new Date(expense.updatedAt))}</span>
+                                    <span>{formatLocalDateTime(expense.updatedAt)}</span>
                                 </div>
                             )}
                         </div>
                     </Stack>
                 )}
-            </div>
+            </ModalContent>
 
             {/* Receipt Full-Screen Modal */}
-            {showReceiptModal && expense.value?.receiptUrl && (
+            {showReceiptModal && expense?.receiptUrl && (
                 <div
                     className='fixed inset-0 flex items-center justify-center z-60 p-4'
                     style={{ backgroundColor: 'var(--lightbox-overlay, rgba(0, 0, 0, 0.85))' }}
@@ -361,7 +357,7 @@ export function ExpenseDetailModal({ isOpen, onClose, groupId, expenseId, onEdit
                             eventProps={{ expenseId }}
                         >
                             <img
-                                src={expense.value.receiptUrl}
+                                src={expense.receiptUrl}
                                 alt='Receipt full size'
                                 className='max-w-full max-h-full object-contain rounded-lg'
                             />

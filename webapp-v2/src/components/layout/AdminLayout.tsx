@@ -58,10 +58,10 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     }, []);
 
     return (
-        <div class='admin-layout min-h-screen flex flex-col'>
+        <div className='admin-layout min-h-screen flex flex-col'>
             <AdminHeader />
 
-            <main class='flex-1'>
+            <main className='flex-1'>
                 {children}
             </main>
 

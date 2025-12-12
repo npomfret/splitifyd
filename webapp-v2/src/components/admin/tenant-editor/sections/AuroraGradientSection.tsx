@@ -9,7 +9,7 @@ export function AuroraGradientSection({ formData, update, isSaving }: SectionPro
 
     return (
         <AdminFormSection title='Aurora Gradient' description='2-4 colors for the aurora animation' testId='section-aurora-gradient' defaultOpen={true}>
-            <div class='grid grid-cols-2 gap-4'>
+            <div className='grid grid-cols-2 gap-4'>
                 {[0, 1, 2, 3].map((i) => (
                     <ColorInput
                         key={i}

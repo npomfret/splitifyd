@@ -88,19 +88,19 @@ export function DashboardPage() {
                     <>
                         {/* Welcome Section - Only show for first-time users (no groups) after loading is complete */}
                         {enhancedGroupsStore.groups.length === 0 && enhancedGroupsStore.initialized && !enhancedGroupsStore.loading && (
-                            <div class='mb-6'>
+                            <div className='mb-6'>
                                 <Typography variant='pageTitle' as='h2' className='mb-2'>{t('dashboard.welcomeMessage', { name: user.displayName })}</Typography>
-                                <p class='text-text-muted'>{t('dashboard.welcomeDescription')}</p>
+                                <p className='text-text-muted'>{t('dashboard.welcomeDescription')}</p>
                             </div>
                         )}
 
                         {/* Groups Section */}
-                        <div class='glass-panel border-border-default rounded-lg shadow-lg border p-8' data-testid='groups-container'>
-                            <div class='flex flex-col gap-4 mb-8 lg:flex-row lg:items-center lg:justify-between'>
+                        <div className='glass-panel border-border-default rounded-lg shadow-lg border p-8' data-testid='groups-container'>
+                            <div className='flex flex-col gap-4 mb-8 lg:flex-row lg:items-center lg:justify-between'>
                                 <Typography variant='heading' as='h3' className='font-bold'>{t('dashboard.yourGroups')}</Typography>
-                                <div class='flex flex-wrap items-center gap-4 justify-between lg:justify-end'>
+                                <div className='flex flex-wrap items-center gap-4 justify-between lg:justify-end'>
                                     <div
-                                        class='inline-flex rounded-md border border-border-default overflow-hidden'
+                                        className='inline-flex rounded-md border border-border-default overflow-hidden'
                                         role='group'
                                         aria-label={t('dashboard.groupsFilter.label')}
                                     >
@@ -145,15 +145,15 @@ export function DashboardPage() {
                         </div>
 
                         {/* Activity Feed - Show after groups on mobile, hide on large screens */}
-                        <div class='lg:hidden mt-6'>
+                        <div className='lg:hidden mt-6'>
                             <ActivityFeedCard userId={user.uid} />
                         </div>
                     </>
                 }
                 sidebarContent={
-                    <div class='space-y-4'>
+                    <div className='space-y-4'>
                         {/* Activity Feed - Sidebar on large screens */}
-                        <div class='hidden lg:block'>
+                        <div className='hidden lg:block'>
                             <ActivityFeedCard userId={user.uid} />
                         </div>
                     </div>

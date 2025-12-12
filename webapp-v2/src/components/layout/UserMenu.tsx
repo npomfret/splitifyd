@@ -41,28 +41,28 @@ export function UserMenu({ user }: UserMenuProps) {
     const isSystemAdmin = user.role === SystemUserRoles.SYSTEM_ADMIN;
 
     return (
-        <div class='relative z-50' ref={menuRef}>
+        <div className='relative z-50' ref={menuRef}>
             <button
                 data-testid='user-menu-button'
                 onClick={(e) => {
                     e.stopPropagation();
                     setIsOpen(!isOpen);
                 }}
-                class='flex items-center gap-3 px-3 py-2 rounded-lg bg-surface-base border border-border-default/60 hover:border-interactive-primary/50 hover:bg-surface-raised transition-all duration-200 group shadow-md'
+                className='flex items-center gap-3 px-3 py-2 rounded-lg bg-surface-base border border-border-default/60 hover:border-interactive-primary/50 hover:bg-surface-raised transition-all duration-200 group shadow-md'
                 aria-label={t('navigation.userMenu.openUserMenu')}
                 aria-expanded={isOpen}
                 aria-haspopup='true'
                 aria-controls='user-dropdown-menu'
             >
-                <div class='relative'>
-                    <div class='w-9 h-9 bg-(image:--gradient-primary) rounded-full flex items-center justify-center shadow-lg ring-2 ring-border-default/50 group-hover:ring-interactive-primary/40 transition-all'>
-                        <span class='text-sm font-bold text-interactive-primary-foreground'>{userInitial}</span>
+                <div className='relative'>
+                    <div className='w-9 h-9 bg-(image:--gradient-primary) rounded-full flex items-center justify-center shadow-lg ring-2 ring-border-default/50 group-hover:ring-interactive-primary/40 transition-all'>
+                        <span className='text-sm font-bold text-interactive-primary-foreground'>{userInitial}</span>
                     </div>
-                    <div class='absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-semantic-success rounded-full border-2 border-surface-base'></div>
+                    <div className='absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-semantic-success rounded-full border-2 border-surface-base'></div>
                 </div>
-                <div class='hidden md:block text-left'>
-                    <p class='text-sm font-medium text-text-primary group-hover:text-interactive-primary transition-colors' data-testid='user-menu-display-name'>{userName}</p>
-                    <p class='text-xs text-text-muted'>{user.email}</p>
+                <div className='hidden md:block text-left'>
+                    <p className='text-sm font-medium text-text-primary group-hover:text-interactive-primary transition-colors' data-testid='user-menu-display-name'>{userName}</p>
+                    <p className='text-xs text-text-muted'>{user.email}</p>
                 </div>
                 <ChevronDownIcon
                     size={16}
@@ -74,23 +74,23 @@ export function UserMenu({ user }: UserMenuProps) {
                 <div
                     id='user-dropdown-menu'
                     data-testid='user-dropdown-menu'
-                    class='absolute right-0 mt-2 w-72 bg-surface-popover border border-border-default rounded-xl shadow-2xl z-9999'
+                    className='absolute right-0 mt-2 w-72 bg-surface-popover border border-border-default rounded-xl shadow-2xl z-9999'
                     role='menu'
                     aria-orientation='vertical'
                     aria-labelledby='user-menu-button'
                 >
-                    <div class='px-4 py-3 border-b border-border-default'>
-                        <p class='text-sm font-semibold text-text-primary'>{userName}</p>
-                        <p class='text-xs text-text-muted mt-0.5'>{user.email}</p>
+                    <div className='px-4 py-3 border-b border-border-default'>
+                        <p className='text-sm font-semibold text-text-primary'>{userName}</p>
+                        <p className='text-xs text-text-muted mt-0.5'>{user.email}</p>
                     </div>
 
-                    <div class='py-2'>
+                    <div className='py-2'>
                         <button
                             onClick={() => {
                                 setIsOpen(false);
                                 navigationService.goToDashboard();
                             }}
-                            class='flex items-center w-full text-left px-4 py-2.5 text-sm text-text-primary hover:bg-interactive-primary/10 hover:text-interactive-primary transition-colors'
+                            className='flex items-center w-full text-left px-4 py-2.5 text-sm text-text-primary hover:bg-interactive-primary/10 hover:text-interactive-primary transition-colors'
                             data-testid='user-menu-dashboard-link'
                             role='menuitem'
                         >
@@ -103,7 +103,7 @@ export function UserMenu({ user }: UserMenuProps) {
                                 setIsOpen(false);
                                 navigationService.goToSettings();
                             }}
-                            class='flex items-center w-full text-left px-4 py-2.5 text-sm text-text-primary hover:bg-interactive-primary/10 hover:text-interactive-primary transition-colors'
+                            className='flex items-center w-full text-left px-4 py-2.5 text-sm text-text-primary hover:bg-interactive-primary/10 hover:text-interactive-primary transition-colors'
                             data-testid='user-menu-settings-link'
                             role='menuitem'
                         >
@@ -114,10 +114,10 @@ export function UserMenu({ user }: UserMenuProps) {
 
                     {isSystemAdmin && (
                         <>
-                            <hr class='my-1 border-border-default' />
+                            <hr className='my-1 border-border-default' />
 
-                            <div class='px-4 py-2'>
-                                <p class='text-xs font-bold text-interactive-primary uppercase tracking-wider'>System Admin</p>
+                            <div className='px-4 py-2'>
+                                <p className='text-xs font-bold text-interactive-primary uppercase tracking-wider'>System Admin</p>
                             </div>
 
                             <button
@@ -125,7 +125,7 @@ export function UserMenu({ user }: UserMenuProps) {
                                     setIsOpen(false);
                                     navigationService.goToAdmin();
                                 }}
-                                class='flex items-center w-full text-left px-4 py-2.5 text-sm text-text-primary hover:bg-interactive-primary/10 hover:text-interactive-primary transition-colors'
+                                className='flex items-center w-full text-left px-4 py-2.5 text-sm text-text-primary hover:bg-interactive-primary/10 hover:text-interactive-primary transition-colors'
                                 data-testid='user-menu-admin-link'
                                 role='menuitem'
                             >
@@ -135,7 +135,7 @@ export function UserMenu({ user }: UserMenuProps) {
                         </>
                     )}
 
-                    <hr class='my-1 border-border-default' />
+                    <hr className='my-1 border-border-default' />
 
                     <button
                         data-testid='sign-out-button'
@@ -150,7 +150,7 @@ export function UserMenu({ user }: UserMenuProps) {
                                 logError('userMenu.logoutFailed', error, { userId: user.uid });
                             }
                         }}
-                        class='flex items-center w-full text-left px-4 py-2.5 text-sm text-semantic-error hover:bg-semantic-error/10 transition-colors rounded-b-xl'
+                        className='flex items-center w-full text-left px-4 py-2.5 text-sm text-semantic-error hover:bg-semantic-error/10 transition-colors rounded-b-xl'
                         disabled={authStore.loading}
                         role='menuitem'
                     >

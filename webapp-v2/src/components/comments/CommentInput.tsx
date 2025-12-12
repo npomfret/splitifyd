@@ -1,5 +1,4 @@
 import { PaperAirplaneIcon } from '@heroicons/react/24/outline';
-import { useSignal } from '@preact/signals';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Button, Tooltip } from '../ui';
@@ -15,12 +14,12 @@ export function CommentInput({ onSubmit, disabled = false, placeholder, classNam
     const { t } = useTranslation();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const isEditing = useSignal(false);
-    const text = useSignal('');
+    const [isEditing, setIsEditing] = useState(false);
+    const [text, setText] = useState('');
 
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-    const remainingChars = 500 - text.value.length;
+    const remainingChars = 500 - text.length;
     const isOverLimit = remainingChars < 0;
 
     // Auto-resize textarea based on content
@@ -30,12 +29,12 @@ export function CommentInput({ onSubmit, disabled = false, placeholder, classNam
             textarea.style.height = 'auto';
             textarea.style.height = `${Math.min(textarea.scrollHeight, 120)}px`;
         }
-    }, [text.value]);
+    }, [text]);
 
     const handleSubmit = async (e?: Event) => {
         e?.preventDefault();
 
-        const trimmedText = text.value.trim();
+        const trimmedText = text.trim();
 
         if (!trimmedText) {
             return;
@@ -51,7 +50,7 @@ export function CommentInput({ onSubmit, disabled = false, placeholder, classNam
 
         try {
             await onSubmit(trimmedText);
-            text.value = '';
+            setText('');
             setError(null);
 
             // Reset textarea height
@@ -61,7 +60,7 @@ export function CommentInput({ onSubmit, disabled = false, placeholder, classNam
 
             // Clear editing state after successful submission
             // Note: This will respect the parent's disabled prop if still true
-            isEditing.value = false;
+            setIsEditing(false);
         } catch (err) {
             setError(err instanceof Error ? err.message : t('comments.commentInput.addFailed'));
             // Keep editing state on error so user can retry
@@ -83,25 +82,25 @@ export function CommentInput({ onSubmit, disabled = false, placeholder, classNam
             <div className='relative'>
                 <textarea
                     ref={textareaRef}
-                    value={text.value}
+                    value={text}
                     onFocus={() => {
-                        isEditing.value = true;
+                        setIsEditing(true);
                     }}
                     onBlur={() => {
                         // Only clear editing state if the textarea is empty
                         // This prevents clearing during submit which causes a blur event
-                        if (!text.value.trim()) {
-                            isEditing.value = false;
+                        if (!text.trim()) {
+                            setIsEditing(false);
                         }
                     }}
                     onInput={(e) => {
                         const newValue = (e.target as HTMLTextAreaElement).value;
-                        isEditing.value = true; // Mark as editing when user types
-                        text.value = newValue;
+                        setIsEditing(true); // Mark as editing when user types
+                        setText(newValue);
                     }}
                     onKeyDown={handleKeyDown}
                     placeholder={placeholder || t('comments.commentInput.placeholder')}
-                    disabled={(disabled && !isEditing.value) || isSubmitting}
+                    disabled={(disabled && !isEditing) || isSubmitting}
                     className={`
                         w-full px-4 py-3 pr-12
                         border rounded-full
@@ -121,7 +120,7 @@ export function CommentInput({ onSubmit, disabled = false, placeholder, classNam
                 <Tooltip content={t('comments.input.sendAriaLabel')} className='absolute right-2 bottom-2'>
                     <Button
                         type='submit'
-                        disabled={!text.value.trim() || isOverLimit || (disabled && !isEditing.value) || isSubmitting}
+                        disabled={!text.trim() || isOverLimit || (disabled && !isEditing) || isSubmitting}
                         loading={isSubmitting}
                         variant='ghost'
                         size='sm'
@@ -142,7 +141,7 @@ export function CommentInput({ onSubmit, disabled = false, placeholder, classNam
                         )
                         : <span className='text-xs text-text-muted'>{t('comments.commentInput.helpText')}</span>}
                 </div>
-                {text.value.length > 0 && (
+                {text.length > 0 && (
                     <span
                         className={`
                         ${isOverLimit ? 'text-semantic-error font-medium' : 'text-text-muted'}

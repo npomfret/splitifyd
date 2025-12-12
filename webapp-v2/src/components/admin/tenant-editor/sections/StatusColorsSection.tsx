@@ -5,7 +5,7 @@ import type { SectionProps } from './types';
 export function StatusColorsSection({ formData, update, isSaving }: SectionProps) {
     return (
         <AdminFormSection title='Status Colors' description='Semantic status colors (4 required)' testId='section-status-colors'>
-            <div class='grid grid-cols-2 gap-4'>
+            <div className='grid grid-cols-2 gap-4'>
                 <ColorInput
                     id='status-success'
                     label='Success *'

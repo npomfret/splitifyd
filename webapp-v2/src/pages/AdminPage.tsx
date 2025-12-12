@@ -87,15 +87,15 @@ export function AdminPage({ tab: initialTab }: AdminPageProps) {
     return (
         <AdminLayout>
             {/* Admin-specific background with grid pattern */}
-            <div class='relative min-h-screen admin-gradient-mixed'>
+            <div className='relative min-h-screen admin-gradient-mixed'>
                 {/* Decorative grid overlay */}
-                <div class='absolute inset-0 admin-grid-pattern'></div>
+                <div className='absolute inset-0 admin-grid-pattern'></div>
 
                 {/* Content */}
-                <div class='relative max-w-7xl mx-auto px-4 py-8'>
+                <div className='relative max-w-7xl mx-auto px-4 py-8'>
                     {/* Tabs with admin styling */}
-                    <div class='mb-8'>
-                        <nav class='flex space-x-2 bg-white/70 backdrop-blur-xs rounded-lg p-1.5 border border-indigo-200' aria-label={t('admin.tabs.ariaLabel')}>
+                    <div className='mb-8'>
+                        <nav className='flex space-x-2 bg-white/70 backdrop-blur-xs rounded-lg p-1.5 border border-indigo-200' aria-label={t('admin.tabs.ariaLabel')}>
                             {tabs.map((tab) => {
                                 const isActive = activeTab === tab.id;
                                 const isDisabled = false; // All tabs are now implemented
@@ -117,7 +117,7 @@ export function AdminPage({ tab: initialTab }: AdminPageProps) {
                                         data-testid={`admin-tab-${tab.id}`}
                                     >
                                         <svg
-                                            class='w-5 h-5'
+                                            className='w-5 h-5'
                                             fill='none'
                                             stroke='currentColor'
                                             viewBox='0 0 24 24'
@@ -138,7 +138,7 @@ export function AdminPage({ tab: initialTab }: AdminPageProps) {
                     </div>
 
                     {/* Tab Content */}
-                    <div class='mt-6'>
+                    <div className='mt-6'>
                         {activeTab === 'tenants' && <AdminTenantsTab />}
                         {activeTab === 'diagnostics' && <AdminDiagnosticsTab />}
                         {activeTab === 'tenant-config' && <AdminTenantConfigTab />}

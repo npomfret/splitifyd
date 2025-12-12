@@ -13,9 +13,9 @@ export function AuthLayout({ title, description, children }: AuthLayoutProps) {
     const { t } = useTranslation();
     return (
         <BaseLayout title={title} description={description || `${title}${t('authLayout.titleSuffix')}`} headerVariant='minimal'>
-            <main class='flex-1 flex items-center justify-center px-4 py-12 relative'>
-                <div class='w-full max-w-md relative z-10'>
-                    <div class='glass-panel rounded-(--radii-lg) p-8 shadow-(--shadows-lg) border border-(--semantics-colors-surface-glassborder)'>
+            <main className='flex-1 flex items-center justify-center px-4 py-12 relative'>
+                <div className='w-full max-w-md relative z-10'>
+                    <div className='glass-panel rounded-(--radii-lg) p-8 shadow-(--shadows-lg) border border-(--semantics-colors-surface-glassborder)'>
                         <Typography
                             as='h1'
                             variant='display'

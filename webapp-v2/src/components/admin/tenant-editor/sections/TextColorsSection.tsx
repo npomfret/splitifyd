@@ -10,7 +10,7 @@ export function TextColorsSection({ formData, update, isSaving, mode, creationMo
             defaultOpen={mode === 'create' && creationMode === 'empty'}
             testId='section-text'
         >
-            <div class='grid grid-cols-2 gap-4'>
+            <div className='grid grid-cols-2 gap-4'>
                 <ColorInput
                     id='text-primary'
                     label='Primary *'

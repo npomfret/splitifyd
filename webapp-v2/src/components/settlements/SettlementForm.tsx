@@ -402,8 +402,8 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
             labelledBy='settlement-form-title'
         >
             {/* Modal Header */}
-            <div class='px-6 py-4 border-b border-border-default'>
-                <div class='flex justify-between items-center'>
+            <div className='px-6 py-4 border-b border-border-default'>
+                <div className='flex justify-between items-center'>
                     <Typography variant='heading' id='settlement-form-title'>
                         {editMode ? t('settlementForm.updateSettlement') : t('settlementForm.recordSettlement')}
                     </Typography>
@@ -424,14 +424,14 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
             </div>
 
             {/* Modal Content */}
-            <div class='px-6 py-5 max-h-[70vh] overflow-y-auto'>
+            <div className='px-6 py-5 max-h-[70vh] overflow-y-auto'>
                 {/* Quick Settlement Buttons - only show in create mode when not pre-filled from balances */}
                 {!editMode && !preselectedDebt && quickSettleDebts.value.length > 0 && (
-                    <div class='mb-4 pb-4 border-b border-border-default'>
-                        <label class='block text-sm font-medium text-text-primary mb-2 text-center'>
+                    <div className='mb-4 pb-4 border-b border-border-default'>
+                        <label className='block text-sm font-medium text-text-primary mb-2 text-center'>
                             Quick settle:
                         </label>
-                        <div class='flex flex-wrap gap-2 justify-center'>
+                        <div className='flex flex-wrap gap-2 justify-center'>
                             {quickSettleDebts.value.map((debt: SimplifiedDebt) => {
                                 const payeeMember = members.find((m: GroupMember) => m.uid === debt.to.uid);
                                 if (!payeeMember) return null;
@@ -449,12 +449,12 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                             noteSignal.value = '';
                                             recalculatePrecisionError(debt.amount, debt.currency);
                                         }}
-                                        class='inline-flex items-center justify-start gap-2 px-4 py-2 bg-interactive-primary/10 border border-border-default rounded-lg text-sm font-medium text-text-primary hover:bg-surface-muted hover:border-interactive-primary transition-colors focus:outline-hidden focus:ring-2 focus-visible:ring-interactive-primary w-full sm:w-[280px]'
+                                        className='inline-flex items-center justify-start gap-2 px-4 py-2 bg-interactive-primary/10 border border-border-default rounded-lg text-sm font-medium text-text-primary hover:bg-surface-muted hover:border-interactive-primary transition-colors focus:outline-hidden focus:ring-2 focus-visible:ring-interactive-primary w-full sm:w-[280px]'
                                         title={`${formatCurrency(debt.amount, toCurrencyISOCode(debt.currency))} → ${getGroupDisplayName(payeeMember)}`}
                                     >
                                         {/* Avatar */}
                                         <div
-                                            class='w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold text-text-inverted'
+                                            className='w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold text-text-inverted'
                                             style={{ backgroundColor: payeeMember.themeColor?.light || '#6366f1' }}
                                         >
                                             {getGroupDisplayName(payeeMember).charAt(0).toUpperCase()}
@@ -466,8 +466,8 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                             displayOptions={{ includeCurrencyCode: false }}
                                             className='font-semibold text-text-primary whitespace-nowrap'
                                         />
-                                        <span class='text-text-muted'>→</span>
-                                        <span class='text-text-primary truncate max-w-[120px] whitespace-nowrap'>
+                                        <span className='text-text-muted'>→</span>
+                                        <span className='text-text-primary truncate max-w-[120px] whitespace-nowrap'>
                                             {getGroupDisplayName(payeeMember)}
                                         </span>
                                     </button>
@@ -481,7 +481,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                     <Stack spacing='lg'>
                         {/* Payer Selection */}
                         <div>
-                            <label for='payer' class='block text-sm font-medium text-text-primary mb-1'>
+                            <label for='payer' className='block text-sm font-medium text-text-primary mb-1'>
                                 {t('settlementForm.whoPaidLabel')}
                             </label>
                             <select
@@ -491,7 +491,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                     const value = (e.target as HTMLSelectElement).value;
                                     payerIdSignal.value = value ? toUserId(value) : '';
                                 }}
-                                class='w-full px-3 py-2 border border-border-default rounded-md bg-surface-raised backdrop-blur-xs text-text-primary focus:outline-hidden focus:ring-2 focus-visible:ring-interactive-primary transition-colors duration-200'
+                                className='w-full px-3 py-2 border border-border-default rounded-md bg-surface-raised backdrop-blur-xs text-text-primary focus:outline-hidden focus:ring-2 focus-visible:ring-interactive-primary transition-colors duration-200'
                                 disabled={isSubmitting}
                             >
                                 <option value=''>{t('settlementForm.selectPersonPlaceholder')}</option>
@@ -506,7 +506,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
 
                         {/* Payee Selection */}
                         <div>
-                            <label for='payee' class='block text-sm font-medium text-text-primary mb-1'>
+                            <label for='payee' className='block text-sm font-medium text-text-primary mb-1'>
                                 {t('settlementForm.whoReceivedPaymentLabel')}
                             </label>
                             <select
@@ -516,7 +516,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                     const value = (e.target as HTMLSelectElement).value;
                                     payeeIdSignal.value = value ? toUserId(value) : '';
                                 }}
-                                class='w-full px-3 py-2 border border-border-default rounded-md bg-surface-raised backdrop-blur-xs text-text-primary focus:outline-hidden focus:ring-2 focus-visible:ring-interactive-primary transition-colors duration-200'
+                                className='w-full px-3 py-2 border border-border-default rounded-md bg-surface-raised backdrop-blur-xs text-text-primary focus:outline-hidden focus:ring-2 focus-visible:ring-interactive-primary transition-colors duration-200'
                                 disabled={isSubmitting}
                             >
                                 <option value=''>{t('settlementForm.selectPersonPlaceholder')}</option>
@@ -552,7 +552,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                 recentCurrencies={CurrencyService.getInstance().getRecentCurrencies()}
                             />
                             {amountPrecisionError && (
-                                <p class='mt-2 text-sm text-semantic-error' role='alert'>
+                                <p className='mt-2 text-sm text-semantic-error' role='alert'>
                                     {amountPrecisionError}
                                 </p>
                             )}
@@ -560,7 +560,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
 
                         {/* Date */}
                         <div>
-                            <label for='date' class='block text-sm font-medium text-text-primary mb-1'>
+                            <label for='date' className='block text-sm font-medium text-text-primary mb-1'>
                                 {t('settlementForm.dateLabel')}
                             </label>
                             <input
@@ -573,14 +573,14 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                 max={new Date().toISOString().split('T')[0]}
                                 disabled={isSubmitting}
                                 required
-                                class='w-full px-3 py-2 border border-border-default rounded-md bg-surface-raised backdrop-blur-xs text-text-primary focus:outline-hidden focus:ring-2 focus-visible:ring-interactive-primary transition-colors duration-200'
+                                className='w-full px-3 py-2 border border-border-default rounded-md bg-surface-raised backdrop-blur-xs text-text-primary focus:outline-hidden focus:ring-2 focus-visible:ring-interactive-primary transition-colors duration-200'
                                 autoComplete='off'
                             />
                         </div>
 
                         {/* Note (optional) */}
                         <div>
-                            <label for='note' class='block text-sm font-medium text-text-primary mb-1'>
+                            <label for='note' className='block text-sm font-medium text-text-primary mb-1'>
                                 {t('settlementForm.noteLabel')}
                             </label>
                             <input
@@ -593,15 +593,15 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                 }}
                                 disabled={isSubmitting}
                                 maxLength={500}
-                                class='w-full px-3 py-2 border border-border-default rounded-md bg-surface-raised backdrop-blur-xs text-text-primary placeholder:text-text-muted/70 focus:outline-hidden focus:ring-2 focus-visible:ring-interactive-primary transition-colors duration-200'
+                                className='w-full px-3 py-2 border border-border-default rounded-md bg-surface-raised backdrop-blur-xs text-text-primary placeholder:text-text-muted/70 focus:outline-hidden focus:ring-2 focus-visible:ring-interactive-primary transition-colors duration-200'
                                 autoComplete='off'
                             />
                         </div>
 
                         {/* Warning Message */}
                         {warningMessage && (
-                            <div class='p-3 bg-surface-warning border border-border-warning rounded-md'>
-                                <p class='text-sm text-semantic-warning' role='status'>
+                            <div className='p-3 bg-surface-warning border border-border-warning rounded-md'>
+                                <p className='text-sm text-semantic-warning' role='status'>
                                     ⚠️ {warningMessage}
                                 </p>
                             </div>
@@ -609,15 +609,15 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
 
                         {/* Error Message */}
                         {validationError && (
-                            <div class='p-3 bg-surface-error border border-border-error rounded-md'>
-                                <p class='text-sm text-semantic-error' role='alert'>
+                            <div className='p-3 bg-surface-error border border-border-error rounded-md'>
+                                <p className='text-sm text-semantic-error' role='alert'>
                                     {validationError}
                                 </p>
                             </div>
                         )}
 
                         {/* Action Buttons */}
-                        <div class='flex gap-3 pt-2'>
+                        <div className='flex gap-3 pt-2'>
                             <Button type='button' variant='secondary' onClick={onClose} disabled={isSubmitting} className='flex-1'>
                                 {t('settlementForm.cancelButton')}
                             </Button>

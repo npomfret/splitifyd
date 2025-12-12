@@ -78,8 +78,8 @@ export function ExpenseFormModal({ isOpen, onClose, groupId, mode, expenseId, on
             labelledBy='expense-form-modal-title'
         >
             {/* Modal Header */}
-            <div class='px-6 py-4 border-b border-border-default'>
-                <div class='flex justify-between items-center'>
+            <div className='px-6 py-4 border-b border-border-default'>
+                <div className='flex justify-between items-center'>
                     <Typography variant='heading' id='expense-form-modal-title'>
                         {getModalTitle()}
                     </Typography>
@@ -101,7 +101,7 @@ export function ExpenseFormModal({ isOpen, onClose, groupId, mode, expenseId, on
             </div>
 
             {/* Modal Content */}
-            <div class='px-6 py-5 max-h-[70vh] overflow-y-auto'>
+            <div className='px-6 py-5 max-h-[70vh] overflow-y-auto'>
                 {/* Loading state */}
                 {!formState.isDataReady && !formState.initError && <LoadingState message={t('app.loadingExpenseForm')} />}
 
@@ -193,7 +193,7 @@ export function ExpenseFormModal({ isOpen, onClose, groupId, mode, expenseId, on
                             )}
 
                             {/* Form actions */}
-                            <div class='flex gap-3 pt-2'>
+                            <div className='flex gap-3 pt-2'>
                                 <Button
                                     type='button'
                                     variant='secondary'

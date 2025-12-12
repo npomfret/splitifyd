@@ -328,31 +328,31 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
     return (
         <>
             <Modal open={open} onClose={handleCancel} size='lg' className='max-h-[90vh] flex flex-col' data-testid='tenant-editor-modal'>
-                <div class='flex flex-col min-h-0 h-full'>
+                <div className='flex flex-col min-h-0 h-full'>
                     {/* Header */}
-                    <div class='shrink-0 flex items-center justify-between border-b border-border-default px-6 py-4'>
+                    <div className='shrink-0 flex items-center justify-between border-b border-border-default px-6 py-4'>
                         <div>
-                            <h2 class='text-xl font-semibold text-text-primary'>
+                            <h2 className='text-xl font-semibold text-text-primary'>
                                 {mode === 'create' ? t('admin.tenantEditor.titleCreate') : t('admin.tenantEditor.titleEdit')}
                             </h2>
-                            <p class='mt-1 text-sm text-text-muted'>
+                            <p className='mt-1 text-sm text-text-muted'>
                                 {mode === 'create' ? t('admin.tenantEditor.descriptionCreate') : t('admin.tenantEditor.descriptionEdit')}
                             </p>
                         </div>
-                        <button onClick={handleCancel} class='text-text-muted hover:text-text-primary' aria-label='Close'>
+                        <button onClick={handleCancel} className='text-text-muted hover:text-text-primary' aria-label='Close'>
                             <XIcon size={24} />
                         </button>
                     </div>
 
                     {/* Mode Toggle Bar */}
-                    <div class='shrink-0 flex items-center justify-between border-b border-border-subtle px-6 py-3 bg-surface-raised'>
+                    <div className='shrink-0 flex items-center justify-between border-b border-border-subtle px-6 py-3 bg-surface-raised'>
                         <ModeToggle
                             mode={editorMode}
                             onChange={setEditorMode}
                             disabled={isSaving}
                             testId='editor-mode-toggle'
                         />
-                        <span class='text-xs text-text-muted'>
+                        <span className='text-xs text-text-muted'>
                             {editorMode === 'basic'
                                 ? t('admin.tenantEditor.modeHint.basic')
                                 : t('admin.tenantEditor.modeHint.advanced')}
@@ -360,8 +360,8 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                     </div>
 
                     {/* Content */}
-                    <div class='flex-1 min-h-0 overflow-y-auto px-6 py-4'>
-                        <div class='space-y-4'>
+                    <div className='flex-1 min-h-0 overflow-y-auto px-6 py-4'>
+                        <div className='space-y-4'>
                             {successMessage && <Alert type='success' message={successMessage} data-testid='tenant-editor-success-message' />}
                             {errorMessage && <Alert type='error' message={errorMessage} />}
 
@@ -373,9 +373,9 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                     defaultOpen={true}
                                     testId='section-creation-mode'
                                 >
-                                    <div class='space-y-4'>
-                                        <div class='flex gap-4'>
-                                            <label class='flex items-center gap-2 cursor-pointer'>
+                                    <div className='space-y-4'>
+                                        <div className='flex gap-4'>
+                                            <label className='flex items-center gap-2 cursor-pointer'>
                                                 <input
                                                     type='radio'
                                                     name='creationMode'
@@ -386,12 +386,12 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                                         setSelectedSourceTenantId('');
                                                         setFormData({ ...EMPTY_TENANT_DATA });
                                                     }}
-                                                    class='h-4 w-4'
+                                                    className='h-4 w-4'
                                                     data-testid='creation-mode-empty'
                                                 />
-                                                <span class='text-sm font-medium text-text-primary'>{t('admin.tenantEditor.creationMode.empty')}</span>
+                                                <span className='text-sm font-medium text-text-primary'>{t('admin.tenantEditor.creationMode.empty')}</span>
                                             </label>
-                                            <label class='flex items-center gap-2 cursor-pointer'>
+                                            <label className='flex items-center gap-2 cursor-pointer'>
                                                 <input
                                                     type='radio'
                                                     name='creationMode'
@@ -399,32 +399,32 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                                     checked={creationMode === 'copy'}
                                                     onChange={() => setCreationMode('copy')}
                                                     disabled={existingTenants.length === 0}
-                                                    class='h-4 w-4'
+                                                    className='h-4 w-4'
                                                     data-testid='creation-mode-copy'
                                                 />
-                                                <span class='text-sm font-medium text-text-primary'>{t('admin.tenantEditor.creationMode.copy')}</span>
+                                                <span className='text-sm font-medium text-text-primary'>{t('admin.tenantEditor.creationMode.copy')}</span>
                                             </label>
                                         </div>
 
                                         {creationMode === 'empty' && (
-                                            <div class='bg-surface-raised border border-border-subtle rounded-lg p-4'>
-                                                <p class='text-sm text-text-secondary'>
+                                            <div className='bg-surface-raised border border-border-subtle rounded-lg p-4'>
+                                                <p className='text-sm text-text-secondary'>
                                                     {t('admin.tenantEditor.creationMode.emptyDescription')}
                                                 </p>
                                             </div>
                                         )}
 
                                         {creationMode === 'copy' && (
-                                            <div class='space-y-3'>
+                                            <div className='space-y-3'>
                                                 {isLoadingTenants
-                                                    ? <p class='text-sm text-text-muted'>{t('admin.tenantEditor.loading.tenants')}</p>
+                                                    ? <p className='text-sm text-text-muted'>{t('admin.tenantEditor.loading.tenants')}</p>
                                                     : existingTenants.length === 0
-                                                    ? <p class='text-sm text-text-muted'>{t('admin.tenantEditor.empty.noTenants')}</p>
+                                                    ? <p className='text-sm text-text-muted'>{t('admin.tenantEditor.empty.noTenants')}</p>
                                                     : (
                                                         <select
                                                             value={selectedSourceTenantId}
                                                             onChange={(e) => setSelectedSourceTenantId((e.target as HTMLSelectElement).value)}
-                                                            class='w-full rounded-md border border-border-default bg-surface-base px-3 py-2 text-sm'
+                                                            className='w-full rounded-md border border-border-default bg-surface-base px-3 py-2 text-sm'
                                                             data-testid='source-tenant-select'
                                                         >
                                                             <option value=''>{t('admin.tenantEditor.placeholders.selectTenant')}</option>
@@ -436,8 +436,8 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                                         </select>
                                                     )}
                                                 {selectedSourceTenantId && (
-                                                    <div class='bg-surface-raised border border-border-subtle rounded-lg p-4'>
-                                                        <p class='text-sm text-text-secondary'>
+                                                    <div className='bg-surface-raised border border-border-subtle rounded-lg p-4'>
+                                                        <p className='text-sm text-text-secondary'>
                                                             {t('admin.tenantEditor.creationMode.copyDescription', { tenant: selectedSourceTenantId })}
                                                         </p>
                                                     </div>
@@ -464,7 +464,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                     required
                                     data-testid='tenant-id-input'
                                 />
-                                {mode === 'edit' && <p class='text-xs text-text-muted -mt-2'>{t('admin.tenantEditor.hints.tenantIdReadonly')}</p>}
+                                {mode === 'edit' && <p className='text-xs text-text-muted -mt-2'>{t('admin.tenantEditor.hints.tenantIdReadonly')}</p>}
 
                                 <Input
                                     label={t('admin.tenantEditor.fields.appName')}
@@ -477,17 +477,17 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                 />
 
                                 {/* Domains */}
-                                <div class='space-y-2'>
-                                    <label class='block text-sm font-medium text-text-primary'>Domains</label>
+                                <div className='space-y-2'>
+                                    <label className='block text-sm font-medium text-text-primary'>Domains</label>
                                     {formData.domains.length > 0 && (
-                                        <div class='flex flex-wrap gap-2'>
+                                        <div className='flex flex-wrap gap-2'>
                                             {formData.domains.map((domain, index) => (
-                                                <span key={index} class='inline-flex items-center gap-1 px-2 py-1 bg-surface-raised border border-border-default rounded text-sm font-mono'>
+                                                <span key={index} className='inline-flex items-center gap-1 px-2 py-1 bg-surface-raised border border-border-default rounded text-sm font-mono'>
                                                     {domain}
                                                     <button
                                                         onClick={() =>
                                                             handleRemoveDomain(index)}
-                                                        class='text-text-muted hover:text-status-danger'
+                                                        className='text-text-muted hover:text-status-danger'
                                                         data-testid={`remove-domain-${index}`}
                                                     >
                                                         <XIcon size={16} />
@@ -496,7 +496,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                             ))}
                                         </div>
                                     )}
-                                    <div class='flex gap-2'>
+                                    <div className='flex gap-2'>
                                         <input
                                             type='text'
                                             value={newDomain}
@@ -504,7 +504,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                             onKeyPress={(e) => e.key === 'Enter' && handleAddDomain()}
                                             placeholder='app.example.com'
                                             disabled={isSaving}
-                                            class='flex-1 min-w-0 rounded-md border border-border-default bg-surface-base px-3 py-2 text-sm'
+                                            className='flex-1 min-w-0 rounded-md border border-border-default bg-surface-base px-3 py-2 text-sm'
                                             data-testid='new-domain-input'
                                         />
                                         <Button onClick={handleAddDomain} disabled={!newDomain.trim() || isSaving} variant='secondary' data-testid='add-domain-button'>Add</Button>
@@ -514,8 +514,8 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
 
                             {/* Required Fields Notice for Empty Slate */}
                             {mode === 'create' && creationMode === 'empty' && (
-                                <div class='bg-semantic-warning-subtle border border-semantic-warning rounded-lg p-4'>
-                                    <p class='text-sm text-semantic-warning-emphasis'>
+                                <div className='bg-semantic-warning-subtle border border-semantic-warning rounded-lg p-4'>
+                                    <p className='text-sm text-semantic-warning-emphasis'>
                                         <strong>Required:</strong> You must fill in ALL fields below before saving. There are no defaults.
                                     </p>
                                 </div>
@@ -523,7 +523,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
 
                             {/* Logo & Branding */}
                             <Section title='Logo & Assets' description='Logo and favicon images' testId='section-logo-assets'>
-                                <div class='grid grid-cols-2 gap-4'>
+                                <div className='grid grid-cols-2 gap-4'>
                                     <ImageUploadField
                                         label='Logo'
                                         accept='image/*'
@@ -557,7 +557,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
 
                             {/* Header Display */}
                             <Section title='Header Display' description='Logo and app name visibility' testId='section-header-display'>
-                                <div class='space-y-3'>
+                                <div className='space-y-3'>
                                     <Toggle
                                         label='Show App Name in Header'
                                         description='Display app name text next to logo (disable if logo contains the name)'
@@ -603,7 +603,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                     </div>
 
                     {/* Footer */}
-                    <div class='shrink-0 flex items-center justify-end gap-3 border-t border-border-default px-6 py-4'>
+                    <div className='shrink-0 flex items-center justify-end gap-3 border-t border-border-default px-6 py-4'>
                         <Button onClick={handleCancel} variant='secondary' disabled={isSaving || isPublishing} data-testid='cancel-button'>Cancel</Button>
                         {mode === 'edit' && (
                             <Button onClick={handlePublish} variant='primary' disabled={isSaving || isPublishing} loading={isPublishing} data-testid='publish-theme-button'>

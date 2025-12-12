@@ -128,7 +128,7 @@ export function TenantBrandingPage() {
     if (!hasAdminAccess) {
         return (
             <BaseLayout title='Access Denied' description='Tenant Branding Settings' headerVariant='dashboard'>
-                <div class='mx-auto max-w-(--breakpoint-xl) px-4 py-10 sm:px-6 lg:px-8'>
+                <div className='mx-auto max-w-(--breakpoint-xl) px-4 py-10 sm:px-6 lg:px-8'>
                     <Alert type='error' message='You do not have permission to access tenant branding settings. This page requires tenant-admin or system-admin role.' />
                 </div>
             </BaseLayout>
@@ -138,12 +138,12 @@ export function TenantBrandingPage() {
     if (isLoading) {
         return (
             <BaseLayout title='Tenant Branding' description='Configure your tenant branding' headerVariant='dashboard'>
-                <div class='mx-auto max-w-(--breakpoint-xl) px-4 py-10 sm:px-6 lg:px-8'>
+                <div className='mx-auto max-w-(--breakpoint-xl) px-4 py-10 sm:px-6 lg:px-8'>
                     <Card padding='lg'>
-                        <div class='flex items-center justify-center py-12'>
-                            <div class='text-center'>
+                        <div className='flex items-center justify-center py-12'>
+                            <div className='text-center'>
                                 <LoadingSpinner size='lg' />
-                                <p class='mt-4 text-sm text-text-muted'>Loading tenant settings...</p>
+                                <p className='mt-4 text-sm text-text-muted'>Loading tenant settings...</p>
                             </div>
                         </div>
                     </Card>
@@ -164,18 +164,18 @@ export function TenantBrandingPage() {
 
     return (
         <BaseLayout title='Tenant Branding' description='Configure your tenant branding' headerVariant='dashboard'>
-            <div class='mx-auto max-w-(--breakpoint-xl) px-4 py-10 sm:px-6 lg:px-8'>
-                <div class='space-y-8'>
+            <div className='mx-auto max-w-(--breakpoint-xl) px-4 py-10 sm:px-6 lg:px-8'>
+                <div className='space-y-8'>
                     {/* Header */}
-                    <div class='flex flex-col gap-2'>
-                        <span class='text-xs font-medium uppercase tracking-wide text-interactive-primary'>
+                    <div className='flex flex-col gap-2'>
+                        <span className='text-xs font-medium uppercase tracking-wide text-interactive-primary'>
                             Tenant Settings
                         </span>
-                        <div class='flex flex-col gap-2'>
-                            <h1 class='text-3xl font-semibold text-text-primary'>
+                        <div className='flex flex-col gap-2'>
+                            <h1 className='text-3xl font-semibold text-text-primary'>
                                 Branding Configuration
                             </h1>
-                            <p class='max-w-2xl text-sm text-text-muted sm:text-base'>
+                            <p className='max-w-2xl text-sm text-text-muted sm:text-base'>
                                 Customize your tenant's appearance and marketing features
                             </p>
                         </div>
@@ -183,7 +183,7 @@ export function TenantBrandingPage() {
 
                     {/* Messages */}
                     {(successMessage || errorMessage) && (
-                        <div class='space-y-3'>
+                        <div className='space-y-3'>
                             {successMessage && <Alert type='success' message={successMessage} />}
                             {errorMessage && <Alert type='error' message={errorMessage} />}
                         </div>
@@ -192,13 +192,13 @@ export function TenantBrandingPage() {
                     {/* Info Card */}
                     {tenantSettings && (
                         <Card padding='sm' className='bg-interactive-primary/10 border border-interactive-primary/30'>
-                            <div class='flex items-start gap-3'>
-                                <div class='flex h-8 w-8 items-center justify-center rounded-full bg-interactive-primary/15'>
+                            <div className='flex items-start gap-3'>
+                                <div className='flex h-8 w-8 items-center justify-center rounded-full bg-interactive-primary/15'>
                                     <InfoIcon size={20} className='text-interactive-primary' />
                                 </div>
-                                <div class='flex-1'>
-                                    <p class='text-sm font-medium text-text-primary'>Tenant ID: {tenantSettings.tenantId}</p>
-                                    <p class='mt-1 text-xs text-interactive-primary'>
+                                <div className='flex-1'>
+                                    <p className='text-sm font-medium text-text-primary'>Tenant ID: {tenantSettings.tenantId}</p>
+                                    <p className='mt-1 text-xs text-interactive-primary'>
                                         Changes will affect all users accessing this tenant's domain
                                     </p>
                                 </div>
@@ -207,13 +207,13 @@ export function TenantBrandingPage() {
                     )}
 
                     {/* Form */}
-                    <div class='grid gap-6 lg:grid-cols-2'>
+                    <div className='grid gap-6 lg:grid-cols-2'>
                         {/* Branding Section */}
                         <Card padding='lg'>
-                            <div class='space-y-6'>
-                                <div class='space-y-2'>
-                                    <h2 class='text-xl font-semibold text-text-primary'>Branding Assets</h2>
-                                    <p class='text-sm text-text-muted'>Configure your brand identity</p>
+                            <div className='space-y-6'>
+                                <div className='space-y-2'>
+                                    <h2 className='text-xl font-semibold text-text-primary'>Branding Assets</h2>
+                                    <p className='text-sm text-text-muted'>Configure your brand identity</p>
                                 </div>
 
                                 <Form onSubmit={handleSave} className='space-y-5'>
@@ -247,7 +247,7 @@ export function TenantBrandingPage() {
                                         data-testid='favicon-url-input'
                                     />
 
-                                    <div class='grid grid-cols-2 gap-4'>
+                                    <div className='grid grid-cols-2 gap-4'>
                                         <ColorInput
                                             id='primary-color'
                                             label='Primary Color'
@@ -272,37 +272,37 @@ export function TenantBrandingPage() {
 
                         {/* Preview Section */}
                         <Card padding='lg' className='bg-surface-muted'>
-                            <div class='space-y-6'>
-                                <div class='space-y-2'>
-                                    <h2 class='text-xl font-semibold text-text-primary'>Live Preview</h2>
-                                    <p class='text-sm text-text-muted'>See how your branding will look</p>
+                            <div className='space-y-6'>
+                                <div className='space-y-2'>
+                                    <h2 className='text-xl font-semibold text-text-primary'>Live Preview</h2>
+                                    <p className='text-sm text-text-muted'>See how your branding will look</p>
                                 </div>
 
-                                <div class='space-y-4 rounded-lg border border-border-default bg-interactive-primary/5 p-6'>
-                                    <div class='flex items-center gap-3'>
+                                <div className='space-y-4 rounded-lg border border-border-default bg-interactive-primary/5 p-6'>
+                                    <div className='flex items-center gap-3'>
                                         <div
-                                            class='h-12 w-12 rounded-lg flex items-center justify-center text-white font-bold text-lg'
+                                            className='h-12 w-12 rounded-lg flex items-center justify-center text-white font-bold text-lg'
                                             style={{ backgroundColor: primaryColor }}
                                         >
                                             {appName.charAt(0).toUpperCase()}
                                         </div>
                                         <div>
-                                            <p class='font-semibold text-text-primary'>{appName || 'App Name'}</p>
-                                            <p class='text-xs text-text-muted'>Your tenant branding</p>
+                                            <p className='font-semibold text-text-primary'>{appName || 'App Name'}</p>
+                                            <p className='text-xs text-text-muted'>Your tenant branding</p>
                                         </div>
                                     </div>
 
-                                    <div class='space-y-2'>
+                                    <div className='space-y-2'>
                                         <button
                                             type='button'
-                                            class='w-full rounded-md px-4 py-2 text-sm font-medium text-white transition-colors'
+                                            className='w-full rounded-md px-4 py-2 text-sm font-medium text-white transition-colors'
                                             style={{ backgroundColor: primaryColor }}
                                         >
                                             Primary Button
                                         </button>
                                         <button
                                             type='button'
-                                            class='w-full rounded-md px-4 py-2 text-sm font-medium text-white transition-colors'
+                                            className='w-full rounded-md px-4 py-2 text-sm font-medium text-white transition-colors'
                                             style={{ backgroundColor: secondaryColor }}
                                         >
                                             Secondary Button
@@ -314,40 +314,40 @@ export function TenantBrandingPage() {
 
                         {/* Marketing Flags Section */}
                         <Card padding='lg' className='lg:col-span-2'>
-                            <div class='space-y-6'>
-                                <div class='space-y-2'>
-                                    <h2 class='text-xl font-semibold text-text-primary'>Marketing Features</h2>
-                                    <p class='text-sm text-text-muted'>Control which marketing pages are visible</p>
+                            <div className='space-y-6'>
+                                <div className='space-y-2'>
+                                    <h2 className='text-xl font-semibold text-text-primary'>Marketing Features</h2>
+                                    <p className='text-sm text-text-muted'>Control which marketing pages are visible</p>
                                 </div>
 
-                                <div class='grid gap-4 sm:grid-cols-2'>
-                                    <label class='flex items-center gap-3 rounded-lg border border-border-default bg-surface-base px-4 py-3 cursor-pointer hover:bg-surface-muted transition-colors'>
+                                <div className='grid gap-4 sm:grid-cols-2'>
+                                    <label className='flex items-center gap-3 rounded-lg border border-border-default bg-surface-base px-4 py-3 cursor-pointer hover:bg-surface-muted transition-colors'>
                                         <input
                                             type='checkbox'
                                             checked={showMarketingContent}
                                             onChange={(e) => setShowMarketingContent((e.target as HTMLInputElement).checked)}
                                             disabled={isSaving}
-                                            class='h-4 w-4 rounded border-border-default text-interactive-primary focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-interactive-primary'
+                                            className='h-4 w-4 rounded border-border-default text-interactive-primary focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-interactive-primary'
                                             data-testid='show-marketing-content-checkbox'
                                         />
-                                        <div class='flex-1'>
-                                            <p class='text-sm font-medium text-text-primary'>Marketing Content</p>
-                                            <p class='text-xs text-text-muted'>Show features/CTA sections</p>
+                                        <div className='flex-1'>
+                                            <p className='text-sm font-medium text-text-primary'>Marketing Content</p>
+                                            <p className='text-xs text-text-muted'>Show features/CTA sections</p>
                                         </div>
                                     </label>
 
-                                    <label class='flex items-center gap-3 rounded-lg border border-border-default bg-surface-base px-4 py-3 cursor-pointer hover:bg-surface-muted transition-colors'>
+                                    <label className='flex items-center gap-3 rounded-lg border border-border-default bg-surface-base px-4 py-3 cursor-pointer hover:bg-surface-muted transition-colors'>
                                         <input
                                             type='checkbox'
                                             checked={showPricingPage}
                                             onChange={(e) => setShowPricingPage((e.target as HTMLInputElement).checked)}
                                             disabled={isSaving}
-                                            class='h-4 w-4 rounded border-border-default text-interactive-primary focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-interactive-primary'
+                                            className='h-4 w-4 rounded border-border-default text-interactive-primary focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-interactive-primary'
                                             data-testid='show-pricing-page-checkbox'
                                         />
-                                        <div class='flex-1'>
-                                            <p class='text-sm font-medium text-text-primary'>Pricing Page</p>
-                                            <p class='text-xs text-text-muted'>Show /pricing route</p>
+                                        <div className='flex-1'>
+                                            <p className='text-sm font-medium text-text-primary'>Pricing Page</p>
+                                            <p className='text-xs text-text-muted'>Show /pricing route</p>
                                         </div>
                                     </label>
                                 </div>
@@ -356,7 +356,7 @@ export function TenantBrandingPage() {
                     </div>
 
                     {/* Save Button */}
-                    <div class='flex justify-end'>
+                    <div className='flex justify-end'>
                         <Button
                             onClick={handleSave}
                             disabled={!hasChanges || isSaving}

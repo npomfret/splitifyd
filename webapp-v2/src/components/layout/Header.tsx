@@ -44,7 +44,7 @@ export function Header({ variant = 'default', showAuth = true }: HeaderProps) {
 
         if (isAuthenticated.value && user.value) {
             return (
-                <div class='flex items-center gap-4'>
+                <div className='flex items-center gap-4'>
                     <Suspense fallback={<div>...</div>}>
                         <UserMenu user={user.value} />
                     </Suspense>
@@ -53,7 +53,7 @@ export function Header({ variant = 'default', showAuth = true }: HeaderProps) {
         }
 
         return (
-            <div class='flex items-center gap-4'>
+            <div className='flex items-center gap-4'>
                 <LanguageSwitcher variant='compact' />
                 <Button
                     onClick={() => navigation.goToLogin()}
@@ -74,11 +74,11 @@ export function Header({ variant = 'default', showAuth = true }: HeaderProps) {
     };
 
     return (
-        <header class='border-b border-border-subtle sticky top-0 z-50 bg-surface-raised'>
-            <div class='max-w-7xl mx-auto px-4'>
-                <nav class='flex items-center justify-between h-16 relative'>
-                    <div class='flex items-center space-x-8'>
-                        <div class='flex items-center gap-3'>
+        <header className='border-b border-border-subtle sticky top-0 z-50 bg-surface-raised'>
+            <div className='max-w-7xl mx-auto px-4'>
+                <nav className='flex items-center justify-between h-16 relative'>
+                    <div className='flex items-center space-x-8'>
+                        <div className='flex items-center gap-3'>
                             <Clickable
                                 onClick={() => (isAuthenticated.value ? navigation.goToDashboard() : navigation.goHome())}
                                 className='cursor-pointer'
@@ -88,10 +88,10 @@ export function Header({ variant = 'default', showAuth = true }: HeaderProps) {
                                 eventName='header_logo_click'
                                 eventProps={{ destination: isAuthenticated.value ? 'dashboard' : 'home' }}
                             >
-                                {logoUrl ? <img src={logoUrl} alt={appName} class='h-8' /> : <HomeIcon size={32} className='text-text-primary' />}
+                                {logoUrl ? <img src={logoUrl} alt={appName} className='h-8' /> : <HomeIcon size={32} className='text-text-primary' />}
                             </Clickable>
                             {showAppName && (
-                                <span class='text-text-primary font-semibold leading-6 whitespace-nowrap'>
+                                <span className='text-text-primary font-semibold leading-6 whitespace-nowrap'>
                                     {appName}
                                 </span>
                             )}

@@ -42,11 +42,11 @@ export function AdminHeader() {
     };
 
     return (
-        <header class='admin-header'>
-            <div class='max-w-7xl mx-auto px-4'>
-                <nav class='flex items-center justify-between h-16'>
+        <header className='admin-header'>
+            <div className='max-w-7xl mx-auto px-4'>
+                <nav className='flex items-center justify-between h-16'>
                     {/* Left Section - Logo link to Dashboard + App Name */}
-                    <div class='flex items-center gap-3'>
+                    <div className='flex items-center gap-3'>
                         <Clickable
                             onClick={() => navigation.goToDashboard()}
                             className='cursor-pointer'
@@ -56,25 +56,25 @@ export function AdminHeader() {
                             eventName='admin_header_logo_click'
                             eventProps={{ destination: 'dashboard' }}
                         >
-                            {logoUrl ? <img src={logoUrl} alt={appName} class='h-8' /> : <HomeIcon size={32} className='text-gray-900' />}
+                            {logoUrl ? <img src={logoUrl} alt={appName} className='h-8' /> : <HomeIcon size={32} className='text-gray-900' />}
                         </Clickable>
                         {showAppName && (
-                            <span class='text-gray-900 font-semibold leading-6 whitespace-nowrap'>
+                            <span className='text-gray-900 font-semibold leading-6 whitespace-nowrap'>
                                 {appName}
                             </span>
                         )}
                     </div>
 
                     {/* Right Section - User Info and Logout Button */}
-                    <div class='flex items-center gap-4'>
+                    <div className='flex items-center gap-4'>
                         {authStore?.user && (
-                            <span class='text-sm text-gray-600'>
+                            <span className='text-sm text-gray-600'>
                                 {authStore.user.displayName || authStore.user.email}
                             </span>
                         )}
                         <button
                             onClick={handleLogout}
-                            class='flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors'
+                            className='flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors'
                             data-testid='admin-logout-button'
                         >
                             <LogoutIcon size={16} />

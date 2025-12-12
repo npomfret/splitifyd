@@ -104,7 +104,7 @@ export function LoginPage() {
                     autoComplete='off'
                 />
 
-                <div class='flex items-center justify-between'>
+                <div className='flex items-center justify-between'>
                     <Checkbox
                         label={t('loginPage.rememberMe')}
                         checked={rememberMe}
@@ -131,8 +131,8 @@ export function LoginPage() {
 
                 <DefaultLoginButton onFillForm={handleFillForm} onLogin={handleQuickLogin} disabled={loadingValue} />
 
-                <div class='text-center'>
-                    <p class='text-sm text-text-muted'>
+                <div className='text-center'>
+                    <p className='text-sm text-text-muted'>
                         {t('loginPage.noAccount')}{' '}
                         <Button
                             type='button'

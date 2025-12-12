@@ -169,17 +169,17 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
             labelledBy='share-modal-title'
         >
             {/* Modal Header */}
-            <div class='px-6 py-4 border-b border-border-default'>
-                <div class='flex items-center justify-between'>
-                    <div class='flex flex-col space-y-1'>
-                        <div class='flex items-center space-x-2'>
+            <div className='px-6 py-4 border-b border-border-default'>
+                <div className='flex items-center justify-between'>
+                    <div className='flex flex-col space-y-1'>
+                        <div className='flex items-center space-x-2'>
                             <UserAddIcon size={20} className='text-interactive-primary' />
                             <Typography variant='subheading' id='share-modal-title'>
                                 {t('shareGroupModal.title')}
                             </Typography>
                         </div>
                         {normalizedGroupName && (
-                            <p class='text-sm text-text-primary/70' data-testid='share-group-name'>
+                            <p className='text-sm text-text-primary/70' data-testid='share-group-name'>
                                 {normalizedGroupName}
                             </p>
                         )}
@@ -201,34 +201,34 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
             </div>
 
             {/* Modal Content */}
-            <div class='max-h-[70vh] overflow-y-auto px-6 py-5'>
-                <p class='text-sm text-text-primary/70 mb-3'>{t('shareGroupModal.description')}</p>
+            <div className='max-h-[70vh] overflow-y-auto px-6 py-5'>
+                <p className='text-sm text-text-primary/70 mb-3'>{t('shareGroupModal.description')}</p>
 
                 {loading && (
-                    <div class='flex justify-center py-8'>
+                    <div className='flex justify-center py-8'>
                         <LoadingSpinner size='lg' />
                     </div>
                 )}
 
                 {error && (
-                    <div class='bg-surface-error border border-border-error rounded-md p-3 mb-4'>
-                        <p class='text-sm text-semantic-error' role='alert'>
+                    <div className='bg-surface-error border border-border-error rounded-md p-3 mb-4'>
+                        <p className='text-sm text-semantic-error' role='alert'>
                             {error}
                         </p>
                     </div>
                 )}
 
-                <div class='space-y-4'>
+                <div className='space-y-4'>
                     {shareLink && !loading && (
                         <>
                             {/* Share link input with inline copy button */}
-                            <div class='relative'>
+                            <div className='relative'>
                                 <input
                                     ref={linkInputRef}
                                     type='text'
                                     value={shareLink}
                                     readOnly={true}
-                                    class='w-full pl-3 pr-12 py-3 border border-border-default rounded-lg bg-surface-raised backdrop-blur-xs text-text-primary text-sm focus:outline-hidden focus:ring-2 focus:ring-interactive-primary focus:border-transparent'
+                                    className='w-full pl-3 pr-12 py-3 border border-border-default rounded-lg bg-surface-raised backdrop-blur-xs text-text-primary text-sm focus:outline-hidden focus:ring-2 focus:ring-interactive-primary focus:border-transparent'
                                     onClick={(e) => (e.target as HTMLInputElement).select()}
                                     data-testid='share-link-input'
                                     autoComplete='off'
@@ -253,12 +253,12 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                             </div>
 
                             {/* QR Code section */}
-                            <div class='flex flex-col items-center py-2'>
-                                <div class='p-3 bg-surface-raised rounded-lg border border-border-default'>
+                            <div className='flex flex-col items-center py-2'>
+                                <div className='p-3 bg-surface-raised rounded-lg border border-border-default'>
                                     <QRCodeCanvas value={shareLink} size={120} />
                                 </div>
-                                <p class='text-xs text-text-primary/70 mt-2'>{t('shareGroupModal.qrCodeDescription')}</p>
-                                <div class='w-full flex justify-end mt-2'>
+                                <p className='text-xs text-text-primary/70 mt-2'>{t('shareGroupModal.qrCodeDescription')}</p>
+                                <div className='w-full flex justify-end mt-2'>
                                     <Tooltip content={t('shareGroupModal.generateNew')}>
                                         <Button
                                             type='button'
@@ -281,11 +281,11 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
 
                     {/* Link expiration options */}
                     <div class={expirationContainerClass}>
-                        <div class='flex flex-col gap-3'>
-                            <span class='text-sm font-medium text-text-primary/70'>
+                        <div className='flex flex-col gap-3'>
+                            <span className='text-sm font-medium text-text-primary/70'>
                                 {t('shareGroupModal.expirationLabel')}
                             </span>
-                            <div class='flex flex-wrap gap-2'>
+                            <div className='flex flex-wrap gap-2'>
                                 {SHARE_LINK_EXPIRATION_OPTIONS.map((option) => {
                                     const isSelected = option.id === selectedExpirationId;
                                     return (
@@ -308,7 +308,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                             </div>
                         </div>
                         {expiresAt && (
-                            <p class='text-xs text-text-primary/60' data-testid='share-link-expiration-hint'>
+                            <p className='text-xs text-text-primary/60' data-testid='share-link-expiration-hint'>
                                 {t('shareGroupModal.expiresAt', { date: formatDateTimeInUserTimeZone(new Date(expiresAt)) })}
                             </p>
                         )}

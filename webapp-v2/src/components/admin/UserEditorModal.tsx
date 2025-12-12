@@ -172,16 +172,16 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
 
     return (
         <Modal open={open} onClose={onClose} size='lg' data-testid='user-editor-modal'>
-            <div class='flex flex-col max-h-[90vh] overflow-hidden'>
+            <div className='flex flex-col max-h-[90vh] overflow-hidden'>
                 {/* Header */}
-                <div class='border-b border-border-default px-6 py-4'>
-                    <h2 class='text-xl font-semibold text-text-primary'>{t('admin.userEditor.title')}</h2>
-                    <p class='text-sm text-text-muted mt-1'>{user.email}</p>
+                <div className='border-b border-border-default px-6 py-4'>
+                    <h2 className='text-xl font-semibold text-text-primary'>{t('admin.userEditor.title')}</h2>
+                    <p className='text-sm text-text-muted mt-1'>{user.email}</p>
                 </div>
 
                 {/* Tabs */}
-                <div class='border-b border-border-default px-6'>
-                    <nav class='flex space-x-4' role='tablist' aria-label={t('admin.userEditor.tabs.ariaLabel')}>
+                <div className='border-b border-border-default px-6'>
+                    <nav className='flex space-x-4' role='tablist' aria-label={t('admin.userEditor.tabs.ariaLabel')}>
                         <button
                             onClick={() => handleTabChange('profile')}
                             class={`py-3 px-2 text-sm font-medium border-b-2 transition-colors ${
@@ -234,20 +234,20 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                 </div>
 
                 {/* Content */}
-                <div class='flex-1 overflow-y-auto px-6 py-6'>
-                    <div class='mb-4'>
+                <div className='flex-1 overflow-y-auto px-6 py-6'>
+                    <div className='mb-4'>
                         {errorMessage && <Alert type='error' message={errorMessage} />}
                         {successMessage && <Alert type='success' message={successMessage} />}
                     </div>
 
                     {/* Profile Tab */}
                     {activeTab === 'profile' && (
-                        <div class='space-y-6'>
-                            <p class='text-sm text-text-muted'>{t('admin.userEditor.profile.description')}</p>
+                        <div className='space-y-6'>
+                            <p className='text-sm text-text-muted'>{t('admin.userEditor.profile.description')}</p>
 
-                            <div class='space-y-4'>
+                            <div className='space-y-4'>
                                 <div>
-                                    <label htmlFor='user-editor-display-name' class='block text-sm font-medium text-text-primary mb-2'>
+                                    <label htmlFor='user-editor-display-name' className='block text-sm font-medium text-text-primary mb-2'>
                                         {t('admin.userEditor.profile.displayName')}
                                     </label>
                                     <Input
@@ -259,7 +259,7 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                                 </div>
 
                                 <div>
-                                    <label htmlFor='user-editor-email' class='block text-sm font-medium text-text-primary mb-2'>
+                                    <label htmlFor='user-editor-email' className='block text-sm font-medium text-text-primary mb-2'>
                                         {t('admin.userEditor.profile.email')}
                                     </label>
                                     <Input
@@ -276,12 +276,12 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
 
                     {/* Role Tab */}
                     {activeTab === 'role' && (
-                        <div class='space-y-4'>
-                            <p class='text-sm text-text-muted'>{t('admin.userEditor.role.description')}</p>
+                        <div className='space-y-4'>
+                            <p className='text-sm text-text-muted'>{t('admin.userEditor.role.description')}</p>
 
                             {isCurrentUser && <Alert type='warning' message={t('admin.userEditor.errors.selfRoleChangeWarning')} />}
 
-                            <div class='space-y-3'>
+                            <div className='space-y-3'>
                                 {roleOptions.map((option) => (
                                     <label
                                         key={String(option.value)}
@@ -298,11 +298,11 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                                             checked={selectedRole === option.value}
                                             onChange={() => !isCurrentUser && setSelectedRole(option.value)}
                                             disabled={isCurrentUser}
-                                            class='mt-1 mr-3'
+                                            className='mt-1 mr-3'
                                         />
                                         <div>
-                                            <div class='font-medium text-text-primary'>{option.label}</div>
-                                            <div class='text-sm text-text-muted mt-1'>{option.description}</div>
+                                            <div className='font-medium text-text-primary'>{option.label}</div>
+                                            <div className='text-sm text-text-muted mt-1'>{option.description}</div>
                                         </div>
                                     </label>
                                 ))}
@@ -315,19 +315,19 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                         <div>
                             {loadingAuth
                                 ? (
-                                    <div class='flex justify-center py-8'>
+                                    <div className='flex justify-center py-8'>
                                         <LoadingSpinner size='md' />
                                     </div>
                                 )
                                 : firebaseAuthData
                                 ? (
                                     <Card padding='md' className='bg-surface-muted'>
-                                        <pre class='text-xs overflow-x-auto whitespace-pre-wrap break-all'>
+                                        <pre className='text-xs overflow-x-auto whitespace-pre-wrap break-all'>
                                             {JSON.stringify(firebaseAuthData, null, 2)}
                                         </pre>
                                     </Card>
                                 )
-                                : <div class='text-center py-8 text-text-muted'>{t('admin.userEditor.noDataAvailable')}</div>}
+                                : <div className='text-center py-8 text-text-muted'>{t('admin.userEditor.noDataAvailable')}</div>}
                         </div>
                     )}
 
@@ -336,25 +336,25 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                         <div>
                             {loadingFirestore
                                 ? (
-                                    <div class='flex justify-center py-8'>
+                                    <div className='flex justify-center py-8'>
                                         <LoadingSpinner size='md' />
                                     </div>
                                 )
                                 : firestoreData
                                 ? (
                                     <Card padding='md' className='bg-surface-muted'>
-                                        <pre class='text-xs overflow-x-auto whitespace-pre-wrap break-all'>
+                                        <pre className='text-xs overflow-x-auto whitespace-pre-wrap break-all'>
                                             {JSON.stringify(firestoreData, null, 2)}
                                         </pre>
                                     </Card>
                                 )
-                                : <div class='text-center py-8 text-text-muted'>{t('admin.userEditor.noDataAvailable')}</div>}
+                                : <div className='text-center py-8 text-text-muted'>{t('admin.userEditor.noDataAvailable')}</div>}
                         </div>
                     )}
                 </div>
 
                 {/* Footer */}
-                <div class='flex items-center justify-end gap-3 border-t border-border-default bg-surface-base px-6 py-4 rounded-b-2xl'>
+                <div className='flex items-center justify-end gap-3 border-t border-border-default bg-surface-base px-6 py-4 rounded-b-2xl'>
                     <Button
                         onClick={onClose}
                         variant='secondary'

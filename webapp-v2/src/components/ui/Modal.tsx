@@ -1,9 +1,64 @@
 import { cx } from '@/utils/cx.ts';
 import { signal } from '@preact/signals';
 import { AnimatePresence, motion } from 'framer-motion';
-import type { ComponentChildren, JSX, RefObject } from 'preact';
+import type { ComponentChildren, JSX, RefObject, VNode } from 'preact';
 import { createPortal } from 'preact/compat';
 import { useEffect, useRef, useState } from 'preact/hooks';
+
+// ============================================================================
+// Modal Sub-components - Use these for consistent modal structure
+// ============================================================================
+
+interface ModalHeaderProps {
+    children: ComponentChildren;
+    className?: string;
+}
+
+/**
+ * Modal header with standard padding and bottom border.
+ * Use this for modal titles and close buttons.
+ */
+export function ModalHeader({ children, className }: ModalHeaderProps): VNode {
+    return (
+        <div className={cx('modal-header', className)}>
+            {children}
+        </div>
+    );
+}
+
+interface ModalContentProps {
+    children: ComponentChildren;
+    className?: string;
+}
+
+/**
+ * Modal content area with scrollable overflow.
+ * Use this for the main modal body.
+ */
+export function ModalContent({ children, className }: ModalContentProps): VNode {
+    return (
+        <div className={cx('modal-content', className)}>
+            {children}
+        </div>
+    );
+}
+
+interface ModalFooterProps {
+    children: ComponentChildren;
+    className?: string;
+}
+
+/**
+ * Modal footer with standard padding and top border.
+ * Use this for action buttons (Cancel, Submit, etc.)
+ */
+export function ModalFooter({ children, className }: ModalFooterProps): VNode {
+    return (
+        <div className={cx('modal-footer', className)}>
+            {children}
+        </div>
+    );
+}
 
 const FOCUSABLE_SELECTOR = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 

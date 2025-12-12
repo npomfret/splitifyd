@@ -13,21 +13,21 @@ export function AdminFormSection({ title, description, defaultOpen = false, test
     const [isOpen, setIsOpen] = useState(defaultOpen);
 
     return (
-        <div class='border border-border-default rounded-lg overflow-hidden'>
+        <div className='border border-border-default rounded-lg overflow-hidden'>
             <button
                 type='button'
                 onClick={() => setIsOpen(!isOpen)}
-                class='w-full flex items-center justify-between px-4 py-3 bg-surface-raised hover:bg-surface-base transition-colors'
+                className='w-full flex items-center justify-between px-4 py-3 bg-surface-raised hover:bg-surface-base transition-colors'
                 data-testid={testId}
                 aria-expanded={isOpen}
             >
-                <div class='text-left'>
-                    <h3 class='text-sm font-semibold text-text-primary'>{title}</h3>
-                    {description && <p class='text-xs text-text-muted mt-0.5'>{description}</p>}
+                <div className='text-left'>
+                    <h3 className='text-sm font-semibold text-text-primary'>{title}</h3>
+                    {description && <p className='text-xs text-text-muted mt-0.5'>{description}</p>}
                 </div>
                 <ChevronDownIcon size={20} className={`text-text-muted transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
-            {isOpen && <div class='px-4 py-4 space-y-4 border-t border-border-subtle'>{children}</div>}
+            {isOpen && <div className='px-4 py-4 space-y-4 border-t border-border-subtle'>{children}</div>}
         </div>
     );
 }

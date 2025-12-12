@@ -106,10 +106,10 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense, isArchivedVi
             padding='md'
             data-testid='group-card'
         >
-            <div class='flex-1 relative'>
+            <div className='flex-1 relative'>
                 {/* Action buttons - positioned absolutely in top right */}
                 {showQuickActions && (
-                    <div class='absolute top-0 right-0 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200'>
+                    <div className='absolute top-0 right-0 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200'>
                         {onAddExpense && (
                             <Tooltip content={t('groupCard.addExpenseTooltip', { groupName: group.name })}>
                                 <Clickable
@@ -142,32 +142,32 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense, isArchivedVi
                 )}
 
                 {/* GroupDTO header */}
-                <div class='mb-3'>
-                    <div class='flex items-start justify-between gap-2 pr-12'>
-                        <h4 class='font-semibold text-text-primary text-lg mb-1'>{group.name}</h4>
+                <div className='mb-3'>
+                    <div className='flex items-start justify-between gap-2 pr-12'>
+                        <h4 className='font-semibold text-text-primary text-lg mb-1'>{group.name}</h4>
                         {isArchivedView && (
-                            <span class='inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-surface-warning text-semantic-warning'>
+                            <span className='inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-surface-warning text-semantic-warning'>
                                 {t('dashboard.groupCard.archivedBadge')}
                             </span>
                         )}
                     </div>
-                    <div class='flex flex-col gap-1.5 mt-2'>
+                    <div className='flex flex-col gap-1.5 mt-2'>
                         {balanceDisplays.map((display) => (
                             <div
                                 key={display.key}
                                 class={`flex items-center gap-1.5 text-sm font-medium ${display.color}`}
                                 data-financial-amount='balance'
                             >
-                                <span class='text-base leading-none opacity-70'>{display.icon}</span>
-                                <span class='leading-tight'>{display.content}</span>
+                                <span className='text-base leading-none opacity-70'>{display.icon}</span>
+                                <span className='leading-tight'>{display.content}</span>
                             </div>
                         ))}
                     </div>
                 </div>
 
                 {/* GroupDTO stats */}
-                <div class='space-y-2 text-sm text-text-muted'>
-                    <div class='flex items-center'>
+                <div className='space-y-2 text-sm text-text-muted'>
+                    <div className='flex items-center'>
                         <ClockIcon size={16} className='mr-2 text-text-muted/80' />
                         {group.updatedAt
                             ? <RelativeTime date={group.updatedAt} fallback={group.lastActivity || t('groupCard.noRecentActivity')} />

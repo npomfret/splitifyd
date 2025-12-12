@@ -5,9 +5,9 @@ import type { SectionProps } from './types';
 export function InteractiveColorsSection({ formData, update, isSaving }: SectionProps) {
     return (
         <AdminFormSection title='Interactive Colors' description='Button and link states (13 required)' testId='section-interactive'>
-            <div class='space-y-4'>
+            <div className='space-y-4'>
                 <SubsectionHeader title='Primary' />
-                <div class='grid grid-cols-2 gap-4'>
+                <div className='grid grid-cols-2 gap-4'>
                     <ColorInput
                         id='interactive-primary'
                         label='Default *'
@@ -42,7 +42,7 @@ export function InteractiveColorsSection({ formData, update, isSaving }: Section
                     />
                 </div>
                 <SubsectionHeader title='Secondary' />
-                <div class='grid grid-cols-2 gap-4'>
+                <div className='grid grid-cols-2 gap-4'>
                     <ColorInput
                         id='interactive-secondary'
                         label='Default *'
@@ -85,7 +85,7 @@ export function InteractiveColorsSection({ formData, update, isSaving }: Section
                     testId='interactive-accent-color-input'
                 />
                 <SubsectionHeader title='Destructive' />
-                <div class='grid grid-cols-2 gap-4'>
+                <div className='grid grid-cols-2 gap-4'>
                     <ColorInput
                         id='interactive-destructive'
                         label='Default *'
@@ -120,7 +120,7 @@ export function InteractiveColorsSection({ formData, update, isSaving }: Section
                     />
                 </div>
                 <SubsectionHeader title='Effects (optional)' />
-                <div class='grid grid-cols-3 gap-4'>
+                <div className='grid grid-cols-3 gap-4'>
                     <ColorInput
                         id='interactive-ghost'
                         label='Ghost'

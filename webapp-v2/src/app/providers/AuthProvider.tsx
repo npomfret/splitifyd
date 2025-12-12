@@ -57,12 +57,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     if (initError) {
         return (
-            <div class='min-h-screen flex items-center justify-center'>
-                <div class='text-center'>
-                    <h2 class='text-2xl font-bold text-semantic-error mb-2' role='alert' data-testid='auth-error-heading'>
+            <div className='min-h-screen flex items-center justify-center'>
+                <div className='text-center'>
+                    <h2 className='text-2xl font-bold text-semantic-error mb-2' role='alert' data-testid='auth-error-heading'>
                         {t('authProvider.authenticationError')}
                     </h2>
-                    <p class='text-text-muted mb-4'>{initError}</p>
+                    <p className='text-text-muted mb-4'>{initError}</p>
                     <Clickable
                         as='button'
                         type='button'
@@ -82,7 +82,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // Show loading until auth is initialized
     if (!authStore) {
         return (
-            <div class='min-h-screen flex items-center justify-center'>
+            <div className='min-h-screen flex items-center justify-center'>
                 <LoadingSpinner size='lg' />
             </div>
         );

@@ -4,7 +4,7 @@ import type { SectionProps } from './types';
 export function RadiiSection({ formData, update, isSaving }: SectionProps) {
     return (
         <AdminFormSection title='Border Radii' description='Corner rounding values' testId='section-border-radii'>
-            <div class='grid grid-cols-6 gap-4'>
+            <div className='grid grid-cols-6 gap-4'>
                 <AdminFormInput label='None' value={formData.radiiNone} onChange={(v) => update({ radiiNone: v })} placeholder='0' disabled={isSaving} monospace required />
                 <AdminFormInput label='SM' value={formData.radiiSm} onChange={(v) => update({ radiiSm: v })} placeholder='0.25rem' disabled={isSaving} monospace required />
                 <AdminFormInput label='MD' value={formData.radiiMd} onChange={(v) => update({ radiiMd: v })} placeholder='0.5rem' disabled={isSaving} monospace required />

@@ -18,7 +18,7 @@ export function ModeToggle({ mode, onChange, disabled = false, testId }: ModeTog
 
     return (
         <div
-            class='inline-flex rounded-lg bg-surface-muted p-1'
+            className='inline-flex rounded-lg bg-surface-muted p-1'
             role='radiogroup'
             aria-label={t('admin.tenantEditor.modeToggle.label')}
             data-testid={testId}

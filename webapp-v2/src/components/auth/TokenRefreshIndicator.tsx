@@ -30,13 +30,13 @@ export function TokenRefreshIndicator() {
 
     return (
         <div
-            class='fixed bottom-6 right-6 z-50 flex items-center space-x-3 rounded-md px-4 py-3 shadow-lg backdrop-blur-xs'
+            className='fixed bottom-6 right-6 z-50 flex items-center space-x-3 rounded-md px-4 py-3 shadow-lg backdrop-blur-xs'
             style={{ backgroundColor: 'var(--surface-toast, rgba(var(--text-primary-rgb), 0.9))', color: 'var(--text-inverted)' }}
             role='status'
             aria-live='polite'
         >
             <LoadingSpinner size='sm' color='var(--text-inverted)' />
-            <span class='text-sm font-medium'>{t('auth.refreshingSession')}</span>
+            <span className='text-sm font-medium'>{t('auth.refreshingSession')}</span>
         </div>
     );
 }

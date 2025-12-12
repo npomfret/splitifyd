@@ -88,7 +88,7 @@ export function AdminTenantsTab() {
     if (isLoading && tenants.length === 0) {
         return (
             <>
-                <div class='flex items-center justify-center py-12'>
+                <div className='flex items-center justify-center py-12'>
                     <LoadingSpinner size='lg' testId='tenants-loading-spinner' />
                 </div>
                 {/* Keep modal mounted during initial load */}
@@ -105,14 +105,14 @@ export function AdminTenantsTab() {
 
     return (
         <>
-            <div class='mb-6 flex items-center justify-between bg-white/70 backdrop-blur-xs rounded-lg p-4 border border-indigo-200'>
-                <div class='flex items-center gap-3'>
-                    <div class='w-2 h-2 rounded-full bg-amber-500 animate-pulse'></div>
-                    <p class='text-sm text-gray-700'>
-                        {t('admin.tenants.summary.total')} <span class='font-bold text-amber-700'>{tenants.length}</span>
+            <div className='mb-6 flex items-center justify-between bg-white/70 backdrop-blur-xs rounded-lg p-4 border border-indigo-200'>
+                <div className='flex items-center gap-3'>
+                    <div className='w-2 h-2 rounded-full bg-amber-500 animate-pulse'></div>
+                    <p className='text-sm text-gray-700'>
+                        {t('admin.tenants.summary.total')} <span className='font-bold text-amber-700'>{tenants.length}</span>
                     </p>
                 </div>
-                <div class='flex gap-2'>
+                <div className='flex gap-2'>
                     <Button onClick={handleCreateTenant} variant='primary' size='sm' data-testid='create-tenant-button'>
                         {t('admin.tenants.actions.create')}
                     </Button>
@@ -122,7 +122,7 @@ export function AdminTenantsTab() {
                 </div>
             </div>
 
-            <div class='space-y-4'>
+            <div className='space-y-4'>
                 {tenants.map((tenant) => {
                     const isCurrentTenant = tenant.tenant.tenantId === currentTenantId;
                     return (
@@ -133,39 +133,39 @@ export function AdminTenantsTab() {
                                 isCurrentTenant ? 'ring-2 ring-amber-400 bg-amber-50/50 border-amber-300' : ''
                             }`}
                         >
-                            <div class='flex items-start justify-between'>
-                                <div class='flex-1'>
-                                    <div class='flex items-center gap-3 mb-3'>
-                                        <h3 class='text-lg font-semibold text-amber-700'>
+                            <div className='flex items-start justify-between'>
+                                <div className='flex-1'>
+                                    <div className='flex items-center gap-3 mb-3'>
+                                        <h3 className='text-lg font-semibold text-amber-700'>
                                             {tenant.tenant.brandingTokens.tokens.legal.appName}
                                         </h3>
                                         {isCurrentTenant && (
-                                            <span class='inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-emerald-100 text-emerald-700 border border-emerald-300'>
+                                            <span className='inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-emerald-100 text-emerald-700 border border-emerald-300'>
                                                 {t('admin.tenants.status.active')}
                                             </span>
                                         )}
                                         {tenant.isDefault && (
-                                            <span class='inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-amber-100 text-amber-700 border border-amber-300'>
+                                            <span className='inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-amber-100 text-amber-700 border border-amber-300'>
                                                 {t('admin.tenants.status.default')}
                                             </span>
                                         )}
                                     </div>
 
-                                    <div class='space-y-2 text-sm'>
+                                    <div className='space-y-2 text-sm'>
                                         <div>
-                                            <span class='text-indigo-600'>{t('admin.tenants.details.tenantId')}</span> <span class='font-mono text-gray-800'>{tenant.tenant.tenantId}</span>
+                                            <span className='text-indigo-600'>{t('admin.tenants.details.tenantId')}</span> <span className='font-mono text-gray-800'>{tenant.tenant.tenantId}</span>
                                         </div>
 
                                         {tenant.domains.length > 0 && (
                                             <div>
-                                                <span class='text-indigo-600'>{t('admin.tenants.details.domains')}</span>{' '}
-                                                <span class='font-mono text-gray-800'>
+                                                <span className='text-indigo-600'>{t('admin.tenants.details.domains')}</span>{' '}
+                                                <span className='font-mono text-gray-800'>
                                                     {tenant.domains.map((domain, idx) => (
                                                         <>
                                                             {idx > 0 && ', '}
                                                             <button
                                                                 onClick={() => handleSwitchTenant(domain)}
-                                                                class='text-amber-700 hover:text-amber-600 hover:underline cursor-pointer transition-colors'
+                                                                className='text-amber-700 hover:text-amber-600 hover:underline cursor-pointer transition-colors'
                                                                 title={t('admin.tenants.actions.switchTenant')}
                                                             >
                                                                 {domain}
@@ -176,17 +176,17 @@ export function AdminTenantsTab() {
                                             </div>
                                         )}
 
-                                        <div class='pt-3 text-xs text-indigo-600 flex gap-4'>
+                                        <div className='pt-3 text-xs text-indigo-600 flex gap-4'>
                                             <div>
-                                                {t('common.created')}: <span class='text-gray-700'>{new Date(tenant.tenant.createdAt).toLocaleDateString()}</span>
+                                                {t('common.created')}: <span className='text-gray-700'>{new Date(tenant.tenant.createdAt).toLocaleDateString()}</span>
                                             </div>
                                             <div>
-                                                {t('common.updated')}: <span class='text-gray-700'>{new Date(tenant.tenant.updatedAt).toLocaleDateString()}</span>
+                                                {t('common.updated')}: <span className='text-gray-700'>{new Date(tenant.tenant.updatedAt).toLocaleDateString()}</span>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class='ml-4'>
+                                <div className='ml-4'>
                                     <Button
                                         onClick={() => handleEditTenant(tenant)}
                                         variant='secondary'
@@ -204,10 +204,10 @@ export function AdminTenantsTab() {
 
             {tenants.length === 0 && (
                 <Card className='p-12 text-center bg-white/70 backdrop-blur-xs border border-indigo-200'>
-                    <div class='inline-flex items-center justify-center w-16 h-16 rounded-full bg-indigo-100 mb-4'>
+                    <div className='inline-flex items-center justify-center w-16 h-16 rounded-full bg-indigo-100 mb-4'>
                         <BuildingIcon size={32} className='text-indigo-600' />
                     </div>
-                    <p class='text-indigo-700 text-lg'>{t('admin.tenants.emptyState')}</p>
+                    <p className='text-indigo-700 text-lg'>{t('admin.tenants.emptyState')}</p>
                 </Card>
             )}
 

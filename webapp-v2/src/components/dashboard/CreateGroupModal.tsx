@@ -248,7 +248,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
             labelledBy='create-group-modal-title'
         >
             {/* Modal Header */}
-            <div class='flex items-center justify-between px-6 py-4 border-b border-border-default'>
+            <div className='flex items-center justify-between px-6 py-4 border-b border-border-default'>
                 <Typography variant='subheading' id='create-group-modal-title'>
                     {t('createGroupModal.title')}
                 </Typography>
@@ -270,7 +270,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
 
             {/* Modal Content */}
             <Form onSubmit={handleSubmit}>
-                <div class='max-h-[70vh] overflow-y-auto px-6 py-5'>
+                <div className='max-h-[70vh] overflow-y-auto px-6 py-5'>
                     <Stack spacing='lg'>
                         {/* Group Name */}
                         <div>
@@ -290,7 +290,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                                 disabled={isSubmitting}
                                 error={validationError || undefined}
                             />
-                            <p class='mt-1 text-sm text-text-muted'>{t('createGroupModal.groupNameHelpText')}</p>
+                            <p className='mt-1 text-sm text-text-muted'>{t('createGroupModal.groupNameHelpText')}</p>
                         </div>
 
                         {/* Group Display Name */}
@@ -310,16 +310,16 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                                 disabled={isSubmitting}
                                 error={displayNameValidationError || undefined}
                             />
-                            <p class='mt-1 text-sm text-text-muted'>{t('createGroupModal.groupDisplayNameHelpText')}</p>
+                            <p className='mt-1 text-sm text-text-muted'>{t('createGroupModal.groupDisplayNameHelpText')}</p>
                         </div>
 
                         {/* Group Description (Optional) */}
                         <div>
-                            <label for='group-description' class='block text-sm font-medium text-text-primary mb-2'>{t('createGroupModal.groupDescriptionLabel')}</label>
+                            <label for='group-description' className='block text-sm font-medium text-text-primary mb-2'>{t('createGroupModal.groupDescriptionLabel')}</label>
                             <textarea
                                 id='group-description'
                                 name='description'
-                                class='w-full px-3 py-2 border border-border-default bg-surface-base text-text-primary rounded-md shadow-sm focus:outline-hidden focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary resize-none'
+                                className='w-full px-3 py-2 border border-border-default bg-surface-base text-text-primary rounded-md shadow-sm focus:outline-hidden focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary resize-none'
                                 rows={3}
                                 placeholder={t('createGroupModal.groupDescriptionPlaceholder')}
                                 value={groupDescriptionSignal.value}
@@ -329,7 +329,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                                 disabled={isSubmitting}
                                 maxLength={200}
                             />
-                            <p class='mt-1 text-sm text-text-muted'>{t('createGroupModal.groupDescriptionHelpText')}</p>
+                            <p className='mt-1 text-sm text-text-muted'>{t('createGroupModal.groupDescriptionHelpText')}</p>
                         </div>
 
                         {/* Currency Restrictions (Optional) */}
@@ -475,13 +475,13 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
 
                         {/* Error Display */}
                         {enhancedGroupsStore.errorSignal.value && (
-                            <div class='bg-surface-warning border border-border-warning rounded-md p-3'>
-                                <div class='flex'>
-                                    <div class='shrink-0'>
+                            <div className='bg-surface-warning border border-border-warning rounded-md p-3'>
+                                <div className='flex'>
+                                    <div className='shrink-0'>
                                         <XCircleIcon size={20} className='text-semantic-error' />
                                     </div>
-                                    <div class='ml-3'>
-                                        <p class='text-sm text-semantic-error' role='alert'>
+                                    <div className='ml-3'>
+                                        <p className='text-sm text-semantic-error' role='alert'>
                                             {enhancedGroupsStore.errorSignal.value}
                                         </p>
                                     </div>
@@ -492,7 +492,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                 </div>
 
                 {/* Modal Footer */}
-                <div class='flex items-center justify-end gap-3 px-6 py-4 border-t border-border-default'>
+                <div className='flex items-center justify-end gap-3 px-6 py-4 border-t border-border-default'>
                     <Button
                         type='button'
                         variant='secondary'

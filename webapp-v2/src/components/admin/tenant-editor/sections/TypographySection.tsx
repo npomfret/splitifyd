@@ -12,12 +12,12 @@ interface SizeSelectProps {
 function SizeSelect({ label, value, onChange, disabled, options }: SizeSelectProps) {
     return (
         <div>
-            <label class='block text-xs font-medium text-text-secondary mb-1'>{label} *</label>
+            <label className='block text-xs font-medium text-text-secondary mb-1'>{label} *</label>
             <select
                 value={value}
                 onChange={(e) => onChange((e.target as HTMLSelectElement).value)}
                 disabled={disabled}
-                class='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm'
+                className='w-full rounded border border-border-default bg-surface-base px-3 py-2 text-sm'
             >
                 {options.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
             </select>
@@ -32,9 +32,9 @@ const DISPLAY_SIZE_OPTIONS = ['2xl', '3xl', '4xl', '5xl'];
 export function TypographySection({ formData, update, isSaving }: SectionProps) {
     return (
         <AdminFormSection title='Typography' description='Font families, sizes, weights, and more' testId='section-typography'>
-            <div class='space-y-4'>
+            <div className='space-y-4'>
                 <SubsectionHeader title='Font Families' />
-                <div class='grid grid-cols-3 gap-4'>
+                <div className='grid grid-cols-3 gap-4'>
                     <AdminFormInput
                         label='Sans'
                         value={formData.fontFamilySans}
@@ -64,14 +64,14 @@ export function TypographySection({ formData, update, isSaving }: SectionProps) 
                 </div>
 
                 <SubsectionHeader title='Sizes (rem)' />
-                <div class='grid grid-cols-5 gap-4'>
+                <div className='grid grid-cols-5 gap-4'>
                     <AdminFormInput label='XS' value={formData.typographySizeXs} onChange={(v) => update({ typographySizeXs: v })} placeholder='0.75rem' disabled={isSaving} monospace required />
                     <AdminFormInput label='SM' value={formData.typographySizeSm} onChange={(v) => update({ typographySizeSm: v })} placeholder='0.875rem' disabled={isSaving} monospace required />
                     <AdminFormInput label='MD' value={formData.typographySizeMd} onChange={(v) => update({ typographySizeMd: v })} placeholder='1rem' disabled={isSaving} monospace required />
                     <AdminFormInput label='LG' value={formData.typographySizeLg} onChange={(v) => update({ typographySizeLg: v })} placeholder='1.125rem' disabled={isSaving} monospace required />
                     <AdminFormInput label='XL' value={formData.typographySizeXl} onChange={(v) => update({ typographySizeXl: v })} placeholder='1.25rem' disabled={isSaving} monospace required />
                 </div>
-                <div class='grid grid-cols-4 gap-4'>
+                <div className='grid grid-cols-4 gap-4'>
                     <AdminFormInput label='2XL' value={formData.typographySize2xl} onChange={(v) => update({ typographySize2xl: v })} placeholder='1.5rem' disabled={isSaving} monospace required />
                     <AdminFormInput label='3XL' value={formData.typographySize3xl} onChange={(v) => update({ typographySize3xl: v })} placeholder='1.875rem' disabled={isSaving} monospace required />
                     <AdminFormInput label='4XL' value={formData.typographySize4xl} onChange={(v) => update({ typographySize4xl: v })} placeholder='2.25rem' disabled={isSaving} monospace required />
@@ -79,7 +79,7 @@ export function TypographySection({ formData, update, isSaving }: SectionProps) 
                 </div>
 
                 <SubsectionHeader title='Weights' />
-                <div class='grid grid-cols-4 gap-4'>
+                <div className='grid grid-cols-4 gap-4'>
                     <AdminFormInput
                         label='Regular'
                         type='number'
@@ -119,7 +119,7 @@ export function TypographySection({ formData, update, isSaving }: SectionProps) 
                 </div>
 
                 <SubsectionHeader title='Line Heights' />
-                <div class='grid grid-cols-3 gap-4'>
+                <div className='grid grid-cols-3 gap-4'>
                     <AdminFormInput
                         label='Compact'
                         value={formData.lineHeightCompact}
@@ -150,7 +150,7 @@ export function TypographySection({ formData, update, isSaving }: SectionProps) 
                 </div>
 
                 <SubsectionHeader title='Letter Spacing' />
-                <div class='grid grid-cols-3 gap-4'>
+                <div className='grid grid-cols-3 gap-4'>
                     <AdminFormInput
                         label='Tight'
                         value={formData.letterSpacingTight}
@@ -173,7 +173,7 @@ export function TypographySection({ formData, update, isSaving }: SectionProps) 
                 </div>
 
                 <SubsectionHeader title='Semantic Sizes' />
-                <div class='grid grid-cols-4 gap-4'>
+                <div className='grid grid-cols-4 gap-4'>
                     <SizeSelect label='Body' value={formData.typographySemanticBody} onChange={(v) => update({ typographySemanticBody: v })} disabled={isSaving} options={BODY_SIZE_OPTIONS} />
                     <SizeSelect
                         label='Body Strong'
@@ -185,7 +185,7 @@ export function TypographySection({ formData, update, isSaving }: SectionProps) 
                     <SizeSelect label='Caption' value={formData.typographySemanticCaption} onChange={(v) => update({ typographySemanticCaption: v })} disabled={isSaving} options={BODY_SIZE_OPTIONS} />
                     <SizeSelect label='Button' value={formData.typographySemanticButton} onChange={(v) => update({ typographySemanticButton: v })} disabled={isSaving} options={BODY_SIZE_OPTIONS} />
                 </div>
-                <div class='grid grid-cols-3 gap-4'>
+                <div className='grid grid-cols-3 gap-4'>
                     <SizeSelect label='Eyebrow' value={formData.typographySemanticEyebrow} onChange={(v) => update({ typographySemanticEyebrow: v })} disabled={isSaving} options={BODY_SIZE_OPTIONS} />
                     <SizeSelect
                         label='Heading'

@@ -179,12 +179,12 @@ export function RegisterPage() {
                     disabled={isSubmitting}
                 />
 
-                <div class='space-y-3'>
+                <div className='space-y-3'>
                     <Checkbox
                         label={
-                            <span class='text-sm text-text-primary'>
+                            <span className='text-sm text-text-primary'>
                                 {t('registerPage.acceptTerms')}{' '}
-                                <a href='/terms' target='_blank' class='font-semibold text-interactive-primary hover:opacity-80 transition-opacity'>
+                                <a href='/terms' target='_blank' className='font-semibold text-interactive-primary hover:opacity-80 transition-opacity'>
                                     {t('registerPage.termsOfService')}
                                 </a>
                             </span>
@@ -198,9 +198,9 @@ export function RegisterPage() {
 
                     <Checkbox
                         label={
-                            <span class='text-sm text-text-primary'>
+                            <span className='text-sm text-text-primary'>
                                 {t('registerPage.acceptTerms')}{' '}
-                                <a href='/cookies' target='_blank' class='font-semibold text-interactive-primary hover:opacity-80 transition-opacity'>
+                                <a href='/cookies' target='_blank' className='font-semibold text-interactive-primary hover:opacity-80 transition-opacity'>
                                     {t('registerPage.cookiePolicy')}
                                 </a>
                             </span>
@@ -214,9 +214,9 @@ export function RegisterPage() {
 
                     <Checkbox
                         label={
-                            <span class='text-sm text-text-primary'>
+                            <span className='text-sm text-text-primary'>
                                 {t('registerPage.acceptTerms')}{' '}
-                                <a href='/privacy-policy' target='_blank' class='font-semibold text-interactive-primary hover:opacity-80 transition-opacity'>
+                                <a href='/privacy-policy' target='_blank' className='font-semibold text-interactive-primary hover:opacity-80 transition-opacity'>
                                     {t('registerPage.privacyPolicy')}
                                 </a>
                             </span>
@@ -233,8 +233,8 @@ export function RegisterPage() {
                     {t('registerPage.submitButton')}
                 </SubmitButton>
 
-                <div class='text-center'>
-                    <p class='text-sm text-text-muted'>
+                <div className='text-center'>
+                    <p className='text-sm text-text-muted'>
                         {t('registerPage.hasAccount')}{' '}
                         <Button
                             type='button'

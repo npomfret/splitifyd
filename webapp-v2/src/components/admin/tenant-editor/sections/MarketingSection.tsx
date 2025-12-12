@@ -6,7 +6,7 @@ export function MarketingSection({ formData, update, isSaving }: SectionProps) {
     const { t } = useTranslation();
     return (
         <AdminFormSection title={t('admin.tenantEditor.sections.marketing.title')} description={t('admin.tenantEditor.sections.marketing.description')} testId='section-marketing'>
-            <div class='space-y-3'>
+            <div className='space-y-3'>
                 <AdminFormToggle
                     label='Marketing Content'
                     description='Display marketing sections'

@@ -52,11 +52,11 @@ export function ResetPasswordPage() {
         return (
             <AuthLayout title={t('pages.resetPasswordPage.checkYourEmail')} description={t('pages.resetPasswordPage.resetInstructionsSent')}>
                 <Stack spacing='lg' className='text-center'>
-                    <div class='mx-auto w-16 h-16 rounded-full flex items-center justify-center bg-semantic-success/10 text-semantic-success'>
+                    <div className='mx-auto w-16 h-16 rounded-full flex items-center justify-center bg-semantic-success/10 text-semantic-success'>
                         <EnvelopeIcon size={32} />
                     </div>
 
-                    <div class='space-y-2'>
+                    <div className='space-y-2'>
                         <Typography variant='heading'>{t('pages.resetPasswordPage.emailSentSuccessfully')}</Typography>
                         <Typography variant='body' className='text-text-muted'>
                             {t('pages.resetPasswordPage.sentInstructionsTo')}
@@ -71,7 +71,7 @@ export function ResetPasswordPage() {
                         <Typography variant='caption' className='uppercase tracking-wide text-semantic-warning'>
                             {t('pages.resetPasswordPage.whatsNext')}
                         </Typography>
-                        <ul class='mt-3 text-sm text-text-primary space-y-1 list-disc list-inside'>
+                        <ul className='mt-3 text-sm text-text-primary space-y-1 list-disc list-inside'>
                             <li>{t('pages.resetPasswordPage.checkEmailInbox')}</li>
                             <li>{t('pages.resetPasswordPage.clickResetLink')}</li>
                             <li>{t('pages.resetPasswordPage.createNewPassword')}</li>
@@ -90,8 +90,8 @@ export function ResetPasswordPage() {
     return (
         <AuthLayout title={t('pages.resetPasswordPage.resetPassword')} description={t('pages.resetPasswordPage.enterEmailForReset')}>
             <AuthForm onSubmit={handleSubmit} error={errorSignal.value} disabled={isLoadingSignal.value}>
-                <div class='space-y-4'>
-                    <p class='text-sm text-text-muted'>{t('pages.resetPasswordPage.enterEmailDescription')}</p>
+                <div className='space-y-4'>
+                    <p className='text-sm text-text-muted'>{t('pages.resetPasswordPage.enterEmailDescription')}</p>
 
                     <EmailInput
                         value={emailSignal.value}
@@ -106,7 +106,7 @@ export function ResetPasswordPage() {
                     {t('pages.resetPasswordPage.sendResetInstructions')}
                 </SubmitButton>
 
-                <div class='text-center'>
+                <div className='text-center'>
                     <Clickable
                         as='button'
                         type='button'

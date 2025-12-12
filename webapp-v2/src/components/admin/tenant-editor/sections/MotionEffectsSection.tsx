@@ -4,9 +4,9 @@ import type { SectionProps } from './types';
 export function MotionEffectsSection({ formData, update, isSaving }: SectionProps) {
     return (
         <AdminFormSection title='Motion & Effects' description='Animation settings and feature flags' testId='section-motion-effects'>
-            <div class='space-y-4'>
+            <div className='space-y-4'>
                 <SubsectionHeader title='Feature Flags' />
-                <div class='space-y-3'>
+                <div className='space-y-3'>
                     <AdminFormToggle
                         label='Parallax / Aurora Background'
                         description='Animated gradient background'
@@ -33,7 +33,7 @@ export function MotionEffectsSection({ formData, update, isSaving }: SectionProp
                     />
                 </div>
                 <SubsectionHeader title='Durations (ms)' />
-                <div class='grid grid-cols-5 gap-4'>
+                <div className='grid grid-cols-5 gap-4'>
                     <AdminFormInput
                         label='Instant'
                         type='number'
@@ -76,7 +76,7 @@ export function MotionEffectsSection({ formData, update, isSaving }: SectionProp
                     />
                 </div>
                 <SubsectionHeader title='Easing Curves' />
-                <div class='grid grid-cols-2 gap-4'>
+                <div className='grid grid-cols-2 gap-4'>
                     <AdminFormInput
                         label='Standard'
                         value={formData.motionEasingStandard}

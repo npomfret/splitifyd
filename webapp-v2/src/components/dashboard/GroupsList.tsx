@@ -31,7 +31,7 @@ export function GroupsList({ onCreateGroup, onInvite, onAddExpense }: GroupsList
 
     if (enhancedGroupsStore.loading && !enhancedGroupsStore.initialized) {
         return (
-            <div class='grid-auto-fit grid-auto-fit-md' aria-busy='true' aria-label={t('dashboardComponents.groupsList.loading')}>
+            <div className='grid-auto-fit grid-auto-fit-md' aria-busy='true' aria-label={t('dashboardComponents.groupsList.loading')}>
                 <SkeletonCard />
                 <SkeletonCard />
                 <SkeletonCard />
@@ -68,11 +68,11 @@ export function GroupsList({ onCreateGroup, onInvite, onAddExpense }: GroupsList
 
     return (
         <>
-            <div class='grid-auto-fit grid-auto-fit-md' data-testid='groups-grid' ref={gridRef}>
+            <div className='grid-auto-fit grid-auto-fit-md' data-testid='groups-grid' ref={gridRef}>
                 {enhancedGroupsStore.isCreatingGroup && (
-                    <div class='border-2 border-dashed border-border-default rounded-lg p-8 flex items-center justify-center transition-all duration-200'>
+                    <div className='border-2 border-dashed border-border-default rounded-lg p-8 flex items-center justify-center transition-all duration-200'>
                         <LoadingSpinner />
-                        <span class='ml-3 text-text-muted'>{t('dashboardComponents.groupsList.creating')}</span>
+                        <span className='ml-3 text-text-muted'>{t('dashboardComponents.groupsList.creating')}</span>
                     </div>
                 )}
                 {enhancedGroupsStore.groups.map((group, index) => (
@@ -81,7 +81,7 @@ export function GroupsList({ onCreateGroup, onInvite, onAddExpense }: GroupsList
                         class={`relative fade-up ${visibleIndices.has(index) ? 'fade-up-visible' : ''}`}
                     >
                         {enhancedGroupsStore.updatingGroupIds.has(group.id) && (
-                            <div class='absolute inset-0 bg-interactive-primary/10 bg-opacity-75 rounded-lg flex items-center justify-center z-10'>
+                            <div className='absolute inset-0 bg-interactive-primary/10 bg-opacity-75 rounded-lg flex items-center justify-center z-10'>
                                 <LoadingSpinner />
                             </div>
                         )}

@@ -4,7 +4,7 @@ import type { SectionProps } from './types';
 export function LegalSection({ formData, update, isSaving }: SectionProps) {
     return (
         <AdminFormSection title='Legal' description='Company and legal information' testId='section-legal'>
-            <div class='grid grid-cols-2 gap-4'>
+            <div className='grid grid-cols-2 gap-4'>
                 <AdminFormInput label='Company Name' value={formData.legalCompanyName} onChange={(v) => update({ legalCompanyName: v })} placeholder='Acme Corp' disabled={isSaving} required />
                 <AdminFormInput
                     label='Support Email'

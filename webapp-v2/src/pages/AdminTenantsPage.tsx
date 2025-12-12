@@ -106,27 +106,27 @@ export function AdminTenantsPage() {
 
     return (
         <AdminLayout>
-            <div class='max-w-7xl mx-auto px-4 py-8 bg-slate-900 min-h-screen'>
-                <div class='mb-6'>
-                    <h1 class='text-3xl font-bold text-white'>{t('admin.tenants.pageTitle')}</h1>
-                    <p class='mt-2 text-slate-300'>{t('admin.tenants.pageDescription')}</p>
+            <div className='max-w-7xl mx-auto px-4 py-8 bg-slate-900 min-h-screen'>
+                <div className='mb-6'>
+                    <h1 className='text-3xl font-bold text-white'>{t('admin.tenants.pageTitle')}</h1>
+                    <p className='mt-2 text-slate-300'>{t('admin.tenants.pageDescription')}</p>
                 </div>
 
                 {error && <Alert type='error' message={error} />}
 
                 {isLoading
                     ? (
-                        <div class='flex items-center justify-center py-12'>
+                        <div className='flex items-center justify-center py-12'>
                             <LoadingSpinner size='lg' testId='tenants-loading-spinner' />
                         </div>
                     )
                     : (
                         <>
-                            <div class='mb-4 flex items-center justify-between'>
-                                <p class='text-sm text-slate-300'>
-                                    {t('admin.tenants.summary.total')} <span class='font-semibold text-white'>{tenants.length}</span>
+                            <div className='mb-4 flex items-center justify-between'>
+                                <p className='text-sm text-slate-300'>
+                                    {t('admin.tenants.summary.total')} <span className='font-semibold text-white'>{tenants.length}</span>
                                 </p>
-                                <div class='flex gap-2'>
+                                <div className='flex gap-2'>
                                     <Button onClick={handleCreateTenant} variant='primary' size='sm' data-testid='create-tenant-button'>
                                         {t('admin.tenants.actions.create')}
                                     </Button>
@@ -136,7 +136,7 @@ export function AdminTenantsPage() {
                                 </div>
                             </div>
 
-                            <div class='space-y-4'>
+                            <div className='space-y-4'>
                                 {tenants.map((tenant) => {
                                     const isCurrentTenant = tenant.tenant.tenantId === currentTenantId;
                                     return (
@@ -145,39 +145,39 @@ export function AdminTenantsPage() {
                                             data-testid='tenant-card'
                                             className={`p-6 bg-slate-800 border border-slate-700 ${isCurrentTenant ? 'ring-2 ring-blue-500 bg-blue-900/20' : ''}`}
                                         >
-                                            <div class='flex items-start justify-between'>
-                                                <div class='flex-1'>
-                                                    <div class='flex items-center gap-3 mb-2'>
-                                                        <h3 class='text-lg font-semibold text-white'>
+                                            <div className='flex items-start justify-between'>
+                                                <div className='flex-1'>
+                                                    <div className='flex items-center gap-3 mb-2'>
+                                                        <h3 className='text-lg font-semibold text-white'>
                                                             {tenant.tenant.brandingTokens.tokens.legal.appName}
                                                         </h3>
                                                         {isCurrentTenant && (
-                                                            <span class='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-400'>
+                                                            <span className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-400'>
                                                                 {t('admin.tenants.status.active')}
                                                             </span>
                                                         )}
                                                         {tenant.isDefault && (
-                                                            <span class='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-400'>
+                                                            <span className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-400'>
                                                                 {t('admin.tenants.status.default')}
                                                             </span>
                                                         )}
                                                     </div>
 
-                                                    <div class='space-y-2 text-sm'>
+                                                    <div className='space-y-2 text-sm'>
                                                         <div>
-                                                            <span class='text-slate-400'>{t('admin.tenants.details.tenantId')}</span>{' '}
-                                                            <span class='font-mono text-slate-200'>{tenant.tenant.tenantId}</span>
+                                                            <span className='text-slate-400'>{t('admin.tenants.details.tenantId')}</span>{' '}
+                                                            <span className='font-mono text-slate-200'>{tenant.tenant.tenantId}</span>
                                                         </div>
 
                                                         <div>
-                                                            <span class='text-slate-400'>{t('admin.tenants.details.primaryDomain')}</span>{' '}
-                                                            <span class='font-mono text-slate-200'>{tenant.domains[0] || t('common.none')}</span>
+                                                            <span className='text-slate-400'>{t('admin.tenants.details.primaryDomain')}</span>{' '}
+                                                            <span className='font-mono text-slate-200'>{tenant.domains[0] || t('common.none')}</span>
                                                         </div>
 
                                                         {tenant.domains.length > 0 && (
                                                             <div>
-                                                                <span class='text-slate-400'>{t('admin.tenants.details.allDomains')}</span>{' '}
-                                                                <span class='font-mono text-slate-200'>
+                                                                <span className='text-slate-400'>{t('admin.tenants.details.allDomains')}</span>{' '}
+                                                                <span className='font-mono text-slate-200'>
                                                                     {tenant.domains.map((domain, idx) => (
                                                                         <>
                                                                             {idx > 0 && ', '}
@@ -197,13 +197,13 @@ export function AdminTenantsPage() {
                                                             </div>
                                                         )}
 
-                                                        <div class='pt-2 text-xs text-slate-400'>
+                                                        <div className='pt-2 text-xs text-slate-400'>
                                                             <div>{t('common.created')}: {new Date(tenant.tenant.createdAt).toLocaleDateString()}</div>
                                                             <div>{t('common.updated')}: {new Date(tenant.tenant.updatedAt).toLocaleDateString()}</div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div class='ml-4'>
+                                                <div className='ml-4'>
                                                     <Button
                                                         onClick={() => handleEditTenant(tenant)}
                                                         variant='secondary'
@@ -221,7 +221,7 @@ export function AdminTenantsPage() {
 
                             {tenants.length === 0 && (
                                 <Card className='p-12 text-center bg-slate-800 border border-slate-700'>
-                                    <p class='text-slate-400'>{t('admin.tenants.emptyState')}</p>
+                                    <p className='text-slate-400'>{t('admin.tenants.emptyState')}</p>
                                 </Card>
                             )}
                         </>

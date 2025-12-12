@@ -42,9 +42,9 @@ export function PaletteColorsSection({ formData, update, isSaving, mode, creatio
                 defaultOpen={true}
                 testId='section-palette-basic'
             >
-                <div class='space-y-4'>
+                <div className='space-y-4'>
                     {/* Color Pickers */}
-                    <div class='grid grid-cols-3 gap-4'>
+                    <div className='grid grid-cols-3 gap-4'>
                         <ColorInput id='primary-color' label='Primary *' value={formData.primaryColor} onChange={(v) => update({ primaryColor: v })} disabled={isSaving} testId='primary-color-input' />
                         <ColorInput
                             id='secondary-color'
@@ -58,7 +58,7 @@ export function PaletteColorsSection({ formData, update, isSaving, mode, creatio
                     </div>
 
                     {/* Derivation Toggle Button */}
-                    <div class='border-t border-gray-200 pt-4'>
+                    <div className='border-t border-gray-200 pt-4'>
                         <button
                             type='button'
                             onClick={() => setIsDerivationOpen(!isDerivationOpen)}
@@ -74,7 +74,7 @@ export function PaletteColorsSection({ formData, update, isSaving, mode, creatio
                             `}
                             data-testid='color-derivation-toggle'
                         >
-                            <span class='flex items-center gap-2'>
+                            <span className='flex items-center gap-2'>
                                 <SparklesIcon size={18} />
                                 <span>{t('admin.tenantEditor.derivationWand.popoverTitle')}</span>
                             </span>
@@ -90,13 +90,13 @@ export function PaletteColorsSection({ formData, update, isSaving, mode, creatio
 
                         {/* Collapsible Derivation Options */}
                         {isDerivationOpen && canDeriveColors && (
-                            <div class='mt-4 p-4 bg-gray-50 rounded-lg space-y-4'>
+                            <div className='mt-4 p-4 bg-gray-50 rounded-lg space-y-4'>
                                 {/* Theme Mode Toggle */}
                                 <div>
-                                    <label class='block text-xs font-medium text-gray-600 mb-2'>
+                                    <label className='block text-xs font-medium text-gray-600 mb-2'>
                                         {t('admin.tenantEditor.derivation.themeMode.label')}
                                     </label>
-                                    <div class='inline-flex rounded-md border border-gray-300 overflow-hidden' role='radiogroup'>
+                                    <div className='inline-flex rounded-md border border-gray-300 overflow-hidden' role='radiogroup'>
                                         {(['light', 'medium', 'dark'] as const).map((themeMode, index) => (
                                             <button
                                                 key={themeMode}
@@ -120,10 +120,10 @@ export function PaletteColorsSection({ formData, update, isSaving, mode, creatio
 
                                 {/* Style Presets */}
                                 <div>
-                                    <label class='block text-xs font-medium text-gray-600 mb-2'>
+                                    <label className='block text-xs font-medium text-gray-600 mb-2'>
                                         {t('admin.tenantEditor.derivation.style.label')}
                                     </label>
-                                    <div class='flex flex-wrap gap-1.5'>
+                                    <div className='flex flex-wrap gap-1.5'>
                                         {STYLE_OPTIONS.map(({ value, labelKey }) => (
                                             <button
                                                 key={value}
@@ -145,11 +145,11 @@ export function PaletteColorsSection({ formData, update, isSaving, mode, creatio
 
                                 {/* Intensity Slider */}
                                 <div>
-                                    <label class='block text-xs font-medium text-gray-600 mb-2'>
+                                    <label className='block text-xs font-medium text-gray-600 mb-2'>
                                         {t('admin.tenantEditor.derivation.intensity.label')}
                                     </label>
-                                    <div class='flex items-center gap-2'>
-                                        <span class='text-[10px] text-gray-500 w-10'>
+                                    <div className='flex items-center gap-2'>
+                                        <span className='text-[10px] text-gray-500 w-10'>
                                             {t('admin.tenantEditor.derivation.intensity.subtle')}
                                         </span>
                                         <input
@@ -159,14 +159,14 @@ export function PaletteColorsSection({ formData, update, isSaving, mode, creatio
                                             value={formData.derivationIntensity}
                                             onChange={(e) => update({ derivationIntensity: parseInt((e.target as HTMLInputElement).value, 10) })}
                                             disabled={isSaving}
-                                            class='flex-1 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600'
+                                            className='flex-1 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600'
                                             data-testid='intensity-slider'
                                         />
-                                        <span class='text-[10px] text-gray-500 w-10 text-right'>
+                                        <span className='text-[10px] text-gray-500 w-10 text-right'>
                                             {t('admin.tenantEditor.derivation.intensity.strong')}
                                         </span>
                                     </div>
-                                    <div class='text-center text-[10px] text-gray-500 mt-1'>
+                                    <div className='text-center text-[10px] text-gray-500 mt-1'>
                                         {formData.derivationIntensity}%
                                     </div>
                                 </div>
@@ -198,8 +198,8 @@ export function PaletteColorsSection({ formData, update, isSaving, mode, creatio
             defaultOpen={mode === 'create' && creationMode === 'empty'}
             testId='section-palette'
         >
-            <div class='space-y-4'>
-                <div class='grid grid-cols-2 gap-4'>
+            <div className='space-y-4'>
+                <div className='grid grid-cols-2 gap-4'>
                     <ColorInput id='primary-color' label='Primary *' value={formData.primaryColor} onChange={(v) => update({ primaryColor: v })} disabled={isSaving} testId='primary-color-input' />
                     <ColorInput
                         id='primary-variant'
@@ -210,7 +210,7 @@ export function PaletteColorsSection({ formData, update, isSaving, mode, creatio
                         testId='primary-variant-color-input'
                     />
                 </div>
-                <div class='grid grid-cols-2 gap-4'>
+                <div className='grid grid-cols-2 gap-4'>
                     <ColorInput
                         id='secondary-color'
                         label='Secondary *'
@@ -229,7 +229,7 @@ export function PaletteColorsSection({ formData, update, isSaving, mode, creatio
                     />
                 </div>
                 <ColorInput id='accent-color' label='Accent *' value={formData.accentColor} onChange={(v) => update({ accentColor: v })} disabled={isSaving} testId='accent-color-input' />
-                <div class='grid grid-cols-2 gap-4'>
+                <div className='grid grid-cols-2 gap-4'>
                     <ColorInput id='neutral-color' label='Neutral *' value={formData.neutralColor} onChange={(v) => update({ neutralColor: v })} disabled={isSaving} testId='neutral-color-input' />
                     <ColorInput
                         id='neutral-variant'
@@ -240,7 +240,7 @@ export function PaletteColorsSection({ formData, update, isSaving, mode, creatio
                         testId='neutral-variant-color-input'
                     />
                 </div>
-                <div class='grid grid-cols-2 gap-4'>
+                <div className='grid grid-cols-2 gap-4'>
                     <ColorInput id='success-color' label='Success *' value={formData.successColor} onChange={(v) => update({ successColor: v })} disabled={isSaving} testId='success-color-input' />
                     <ColorInput id='warning-color' label='Warning *' value={formData.warningColor} onChange={(v) => update({ warningColor: v })} disabled={isSaving} testId='warning-color-input' />
                     <ColorInput id='danger-color' label='Danger *' value={formData.dangerColor} onChange={(v) => update({ dangerColor: v })} disabled={isSaving} testId='danger-color-input' />

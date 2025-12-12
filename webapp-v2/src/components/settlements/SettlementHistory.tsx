@@ -8,7 +8,7 @@ import { formatCurrency } from '@/utils/currency';
 import { getGroupDisplayName } from '@/utils/displayName';
 import type { GroupId, GroupMember, SettlementWithMembers } from '@billsplit-wl/shared';
 import { BanknotesIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
-import { useComputed, useSignal } from '@preact/signals';
+import { useComputed } from '@preact/signals';
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Checkbox, ConfirmDialog, CurrencyAmount, EmptyState, RelativeTime, SkeletonSettlementItem, Stack, Tooltip } from '../ui';
@@ -35,7 +35,7 @@ export function SettlementHistory({
     const authStore = useAuthRequired();
     const currentUser = authStore.user;
     const currentUserId = currentUser?.uid;
-    const showAllSettlements = useSignal(false);
+    const [showAllSettlements, setShowAllSettlements] = useState(false);
     const [settlementToDelete, setSettlementToDelete] = useState<SettlementWithMembers | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
 
@@ -52,7 +52,7 @@ export function SettlementHistory({
         return (
             <>
                 {displayName}
-                {isCurrentUser && <span class='text-text-muted ml-1'>({t('common.you')})</span>}
+                {isCurrentUser && <span className='text-text-muted ml-1'>({t('common.you')})</span>}
             </>
         );
     };
@@ -60,14 +60,14 @@ export function SettlementHistory({
     const visibleSettlements = useMemo(() => {
         const settlementList = settlements.value ?? [];
 
-        if (showAllSettlements.value || !currentUserId) {
+        if (showAllSettlements || !currentUserId) {
             return settlementList;
         }
 
         return settlementList.filter(
             (settlement) => settlement.payer.uid === currentUserId || settlement.payee.uid === currentUserId,
         );
-    }, [settlements.value, showAllSettlements.value, currentUserId]);
+    }, [settlements.value, showAllSettlements, currentUserId]);
 
     const totalSettlements = settlements.value.length;
 
@@ -127,11 +127,11 @@ export function SettlementHistory({
 
     return (
         <Stack spacing='sm'>
-            <div class='pb-2 border-b border-border-default space-y-2'>
+            <div className='pb-2 border-b border-border-default space-y-2'>
                 <Checkbox
                     label={t('settlementHistory.showAll')}
-                    checked={showAllSettlements.value}
-                    onChange={(checked) => (showAllSettlements.value = checked)}
+                    checked={showAllSettlements}
+                    onChange={(checked) => setShowAllSettlements(checked)}
                     data-testid='show-all-settlements-checkbox'
                 />
                 {canToggleShowDeleted && onShowDeletedChange && (
@@ -146,7 +146,7 @@ export function SettlementHistory({
 
             {visibleSettlements.length === 0
                 ? (
-                    <div class='text-center py-6 text-sm text-text-muted'>
+                    <div className='text-center py-6 text-sm text-text-muted'>
                         {t('settlementHistory.noPaymentsForYou')}
                     </div>
                 )
@@ -183,9 +183,9 @@ export function SettlementHistory({
                                     }}
                                     data-testid='settlement-item'
                                 >
-                                    <div class='grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1 items-start'>
+                                    <div className='grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1 items-start'>
                                         {/* Row 1: Payer avatar and name */}
-                                        <div class='row-start-1 flex items-center'>
+                                        <div className='row-start-1 flex items-center'>
                                             <Avatar
                                                 displayName={getGroupDisplayName(settlement.payer)}
                                                 userId={settlement.payer.uid}
@@ -193,20 +193,20 @@ export function SettlementHistory({
                                                 themeColor={payerTheme}
                                             />
                                         </div>
-                                        <div class='row-start-1 col-start-2 flex items-center gap-2 min-w-0'>
-                                            <span class='text-sm font-semibold text-text-primary truncate'>
+                                        <div className='row-start-1 col-start-2 flex items-center gap-2 min-w-0'>
+                                            <span className='text-sm font-semibold text-text-primary truncate'>
                                                 {renderMemberName(settlement.payer)}
                                             </span>
                                         </div>
 
                                         {/* Row 2: Arrow, amount, and date */}
-                                        <div class='row-start-2 flex items-center justify-center self-stretch'>
-                                            <div class='flex items-center justify-center w-6 h-full text-text-muted'>
+                                        <div className='row-start-2 flex items-center justify-center self-stretch'>
+                                            <div className='flex items-center justify-center w-6 h-full text-text-muted'>
                                                 <ArrowDownIcon size={12} className='text-text-muted' />
                                             </div>
                                         </div>
-                                        <div class='row-start-2 col-start-2 flex items-center gap-2 w-full min-w-0'>
-                                            <div class='flex items-center gap-2'>
+                                        <div className='row-start-2 col-start-2 flex items-center gap-2 w-full min-w-0'>
+                                            <div className='flex items-center gap-2'>
                                                 <span
                                                     class={`text-base font-bold tabular-nums ${isDeleted ? 'text-text-muted' : 'text-text-primary'}`}
                                                     data-financial-amount='settlement'
@@ -217,7 +217,7 @@ export function SettlementHistory({
                                             </div>
 
                                             {/* Action buttons */}
-                                            <div class='flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-auto'>
+                                            <div className='flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-auto'>
                                                 {onEditSettlement && (() => {
                                                     const editTooltip = settlement.isLocked ? t('settlementHistory.cannotEditTooltip') : t('settlementHistory.editPaymentTooltip');
 
@@ -227,11 +227,11 @@ export function SettlementHistory({
                                                                 type='button'
                                                                 onClick={() => !settlement.isLocked && onEditSettlement(settlement)}
                                                                 disabled={settlement.isLocked}
-                                                                class='p-1 text-text-muted hover:text-interactive-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-text-muted'
+                                                                className='p-1 text-text-muted hover:text-interactive-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-text-muted'
                                                                 aria-label={editTooltip}
                                                                 data-testid='edit-settlement-button'
                                                             >
-                                                                <PencilIcon class='h-4 w-4' aria-hidden='true' />
+                                                                <PencilIcon className='h-4 w-4' aria-hidden='true' />
                                                             </button>
                                                         </Tooltip>
                                                     );
@@ -244,11 +244,11 @@ export function SettlementHistory({
                                                             <button
                                                                 type='button'
                                                                 onClick={() => handleDeleteClick(settlement)}
-                                                                class='p-1 text-text-muted hover:text-semantic-error transition-colors'
+                                                                className='p-1 text-text-muted hover:text-semantic-error transition-colors'
                                                                 aria-label={deleteTooltip}
                                                                 data-testid='delete-settlement-button'
                                                             >
-                                                                <TrashIcon class='h-4 w-4' aria-hidden='true' />
+                                                                <TrashIcon className='h-4 w-4' aria-hidden='true' />
                                                             </button>
                                                         </Tooltip>
                                                     );
@@ -257,7 +257,7 @@ export function SettlementHistory({
                                         </div>
 
                                         {/* Row 3: Payee avatar and name */}
-                                        <div class='row-start-3 flex items-center'>
+                                        <div className='row-start-3 flex items-center'>
                                             <Avatar
                                                 displayName={getGroupDisplayName(settlement.payee)}
                                                 userId={settlement.payee.uid}
@@ -265,15 +265,15 @@ export function SettlementHistory({
                                                 themeColor={settlement.payee.themeColor || themeStore.getThemeForUser(settlement.payee.uid)}
                                             />
                                         </div>
-                                        <div class='row-start-3 col-start-2 flex items-center gap-2 min-w-0'>
-                                            <span class='text-sm font-semibold text-text-primary truncate'>
+                                        <div className='row-start-3 col-start-2 flex items-center gap-2 min-w-0'>
+                                            <span className='text-sm font-semibold text-text-primary truncate'>
                                                 {renderMemberName(settlement.payee)}
                                             </span>
                                         </div>
 
                                         {/* Row 4: Note if present (spans full width) */}
                                         {settlement.note && (
-                                            <div class='row-start-4 col-span-2 text-xs text-text-muted mt-0.5 truncate'>
+                                            <div className='row-start-4 col-span-2 text-xs text-text-muted mt-0.5 truncate'>
                                                 {settlement.note}
                                             </div>
                                         )}
@@ -304,12 +304,12 @@ export function SettlementHistory({
                 )}
 
             {hasMore.value && (
-                <div class='text-center pt-4'>
+                <div className='text-center pt-4'>
                     <button
                         onClick={() => enhancedGroupDetailStore.loadMoreSettlements()}
                         disabled={isLoading.value}
                         data-testid='load-more-settlements-button'
-                        class='px-4 py-2 text-sm text-interactive-primary hover:text-interactive-primary font-medium disabled:opacity-50'
+                        className='px-4 py-2 text-sm text-interactive-primary hover:text-interactive-primary font-medium disabled:opacity-50'
                     >
                         {isLoading.value ? t('common.loading') : t('settlementHistory.loadMorePayments')}
                     </button>

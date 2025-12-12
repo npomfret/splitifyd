@@ -1522,7 +1522,9 @@
       "comments": "Comments",
       "loadingExpense": "Loading expense details...",
       "expenseNotFound": "Expense not found",
-      "failedToLoad": "Failed to load expense details"
+      "failedToLoad": "Failed to load expense details",
+      "shareTitle": "Expense: {{description}}",
+      "shareText": "Check out this expense: {{description}} - {{amount}}"
     },
     "splitBreakdown": {
       "splitBetween": "Split between ",

@@ -20,8 +20,8 @@ export function Pagination({ currentPage, hasMore, hasPrevious, onNext, onPrevio
     }
 
     return (
-        <div class='flex items-center justify-between border-t border-border-default px-4 py-3 sm:px-6 mt-4'>
-            <nav class='flex flex-1 justify-between sm:hidden' aria-label={t('pagination.navigation')}>
+        <div className='flex items-center justify-between border-t border-border-default px-4 py-3 sm:px-6 mt-4'>
+            <nav className='flex flex-1 justify-between sm:hidden' aria-label={t('pagination.navigation')}>
                 <Button
                     onClick={onPrevious}
                     disabled={!hasPrevious || loading}
@@ -40,14 +40,14 @@ export function Pagination({ currentPage, hasMore, hasPrevious, onNext, onPrevio
                     {t('pagination.next')}
                 </Button>
             </nav>
-            <div class='hidden sm:flex sm:flex-1 sm:items-center sm:justify-between'>
+            <div className='hidden sm:flex sm:flex-1 sm:items-center sm:justify-between'>
                 <div>
-                    <p class='text-sm text-text-primary'>
-                        {t('pagination.page')} <span class='font-medium'>{currentPage}</span>
+                    <p className='text-sm text-text-primary'>
+                        {t('pagination.page')} <span className='font-medium'>{currentPage}</span>
                     </p>
                 </div>
                 <div>
-                    <nav class='isolate inline-flex -space-x-px rounded-md shadow-sm' aria-label={t('pagination.navigation')}>
+                    <nav className='isolate inline-flex -space-x-px rounded-md shadow-sm' aria-label={t('pagination.navigation')}>
                         <Button
                             onClick={onPrevious}
                             disabled={!hasPrevious || loading}

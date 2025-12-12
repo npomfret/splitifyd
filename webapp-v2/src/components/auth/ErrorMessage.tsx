@@ -10,11 +10,11 @@ export function ErrorMessage({ error, className = '' }: ErrorMessageProps) {
 
     return (
         <div role='alert' class={`text-semantic-error text-sm bg-surface-error border border-border-error rounded-md p-3 ${className}`} data-testid='error-message'>
-            <div class='flex'>
-                <div class='shrink-0'>
+            <div className='flex'>
+                <div className='shrink-0'>
                     <XCircleIcon size={16} className='text-semantic-error/80' />
                 </div>
-                <div class='ml-2'>
+                <div className='ml-2'>
                     <p>{error}</p>
                 </div>
             </div>

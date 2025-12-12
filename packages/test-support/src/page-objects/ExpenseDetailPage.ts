@@ -394,9 +394,6 @@ export class ExpenseDetailPage extends BasePage {
         const warningBanner = this.getLockWarningBanner();
         await expect(warningBanner).toBeVisible();
 
-        // Verify banner contains warning emoji
-        await expect(warningBanner).toContainText('⚠️');
-
         // Verify banner contains explanation about departed members
         await expect(warningBanner).toContainText('One or more participants have left the group');
     }

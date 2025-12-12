@@ -133,8 +133,8 @@ export function FloatingPasswordInput({
     const labelClasses = cx(...baseLabelClasses, labelPositionClasses, labelFocusClasses, labelErrorClasses);
 
     return (
-        <div class='space-y-1'>
-            <div class='relative'>
+        <div className='space-y-1'>
+            <div className='relative'>
                 <input
                     id={id}
                     type={showPassword ? 'text' : 'password'}
@@ -164,7 +164,7 @@ export function FloatingPasswordInput({
                     onClick={togglePasswordVisibility}
                     disabled={disabled}
                     aria-label={showPassword ? t('auth.passwordInput.hidePassword') : t('auth.passwordInput.showPassword')}
-                    class='absolute inset-y-0 right-0 pr-3 flex items-center text-text-muted hover:text-text-primary disabled:opacity-50 z-10'
+                    className='absolute inset-y-0 right-0 pr-3 flex items-center text-text-muted hover:text-text-primary disabled:opacity-50 z-10'
                 >
                     <Tooltip content={showPassword ? t('auth.passwordInput.hidePassword') : t('auth.passwordInput.showPassword')}>
                         {showPassword ? <EyeOffIcon size={20} /> : <EyeIcon size={20} />}
@@ -173,9 +173,9 @@ export function FloatingPasswordInput({
             </div>
 
             {showStrength && value && strength && (
-                <div class='space-y-2'>
-                    <div class='flex items-center justify-between'>
-                        <span class='text-xs text-text-muted'>{t('auth.passwordInput.strength')}</span>
+                <div className='space-y-2'>
+                    <div className='flex items-center justify-between'>
+                        <span className='text-xs text-text-muted'>{t('auth.passwordInput.strength')}</span>
                         <span
                             class={`text-xs font-medium ${strength === 'weak' ? 'text-semantic-error' : strength === 'medium' ? 'text-semantic-warning' : 'text-semantic-success'}`}
                             data-testid={`password-strength-${strength}`}
@@ -183,7 +183,7 @@ export function FloatingPasswordInput({
                             {getStrengthText(strength)}
                         </span>
                     </div>
-                    <div class='w-full bg-border-default/60 rounded-full h-2'>
+                    <div className='w-full bg-border-default/60 rounded-full h-2'>
                         <div
                             class={`h-2 rounded-full transition-all duration-300 ${getStrengthColor(strength)}`}
                             style={{
@@ -195,7 +195,7 @@ export function FloatingPasswordInput({
             )}
 
             {displayError && (
-                <p id={`${id}-error`} class='text-sm text-semantic-error' role='alert'>
+                <p id={`${id}-error`} className='text-sm text-semantic-error' role='alert'>
                     {displayError}
                 </p>
             )}
