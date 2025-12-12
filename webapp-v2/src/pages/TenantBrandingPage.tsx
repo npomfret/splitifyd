@@ -66,7 +66,7 @@ export function TenantBrandingPage() {
                 setShowMarketingContent(Boolean(settings.config.marketingFlags?.showMarketingContent ?? true));
                 setShowPricingPage(Boolean(settings.config.marketingFlags?.showPricingPage ?? false));
             } catch (error: any) {
-                setErrorMessage(error.message || 'Failed to load tenant settings');
+                setErrorMessage(error.message || t('tenantBranding.errors.loadFailed'));
                 logError('Failed to load tenant settings', error);
             } finally {
                 setIsLoading(false);
@@ -108,12 +108,12 @@ export function TenantBrandingPage() {
             };
 
             await apiClient.updateTenantBranding(updateData);
-            setSuccessMessage('Branding settings updated successfully');
+            setSuccessMessage(t('tenantBranding.success.updated'));
         } catch (error: any) {
             if (error.code === 'NOT_IMPLEMENTED') {
-                setErrorMessage('Branding update not yet implemented on the backend');
+                setErrorMessage(t('tenantBranding.errors.notImplemented'));
             } else {
-                setErrorMessage(error.message || 'Failed to update branding settings');
+                setErrorMessage(error.message || t('tenantBranding.errors.updateFailed'));
             }
             logError('Failed to update branding', error);
         } finally {
@@ -127,9 +127,9 @@ export function TenantBrandingPage() {
 
     if (!hasAdminAccess) {
         return (
-            <BaseLayout title='Access Denied' description='Tenant Branding Settings' headerVariant='dashboard'>
+            <BaseLayout title={t('common.error')} description={t('tenantBranding.title')} headerVariant='dashboard'>
                 <div className='mx-auto max-w-(--breakpoint-xl) px-4 py-10 sm:px-6 lg:px-8'>
-                    <Alert type='error' message='You do not have permission to access tenant branding settings. This page requires tenant-admin or system-admin role.' />
+                    <Alert type='error' message={t('tenantBranding.accessDenied')} />
                 </div>
             </BaseLayout>
         );
@@ -137,13 +137,13 @@ export function TenantBrandingPage() {
 
     if (isLoading) {
         return (
-            <BaseLayout title='Tenant Branding' description='Configure your tenant branding' headerVariant='dashboard'>
+            <BaseLayout title={t('tenantBranding.title')} description={t('tenantBranding.description')} headerVariant='dashboard'>
                 <div className='mx-auto max-w-(--breakpoint-xl) px-4 py-10 sm:px-6 lg:px-8'>
                     <Card padding='lg'>
                         <div className='flex items-center justify-center py-12'>
                             <div className='text-center'>
                                 <LoadingSpinner size='lg' />
-                                <p className='mt-4 help-text'>Loading tenant settings...</p>
+                                <p className='mt-4 help-text'>{t('tenantBranding.loading')}</p>
                             </div>
                         </div>
                     </Card>
@@ -163,20 +163,20 @@ export function TenantBrandingPage() {
     );
 
     return (
-        <BaseLayout title='Tenant Branding' description='Configure your tenant branding' headerVariant='dashboard'>
+        <BaseLayout title={t('tenantBranding.title')} description={t('tenantBranding.description')} headerVariant='dashboard'>
             <div className='mx-auto max-w-(--breakpoint-xl) px-4 py-10 sm:px-6 lg:px-8'>
                 <div className='space-y-8'>
                     {/* Header */}
                     <div className='flex flex-col gap-2'>
                         <span className='text-xs font-medium uppercase tracking-wide text-interactive-primary'>
-                            Tenant Settings
+                            {t('tenantBranding.subtitle')}
                         </span>
                         <div className='flex flex-col gap-2'>
                             <h1 className='text-3xl font-semibold text-text-primary'>
-                                Branding Configuration
+                                {t('tenantBranding.title')}
                             </h1>
                             <p className='max-w-2xl help-text sm:text-base'>
-                                Customize your tenant's appearance and marketing features
+                                {t('tenantBranding.description')}
                             </p>
                         </div>
                     </div>
@@ -197,9 +197,9 @@ export function TenantBrandingPage() {
                                     <InfoIcon size={20} className='text-interactive-primary' />
                                 </div>
                                 <div className='flex-1'>
-                                    <p className='text-sm font-medium text-text-primary'>Tenant ID: {tenantSettings.tenantId}</p>
+                                    <p className='text-sm font-medium text-text-primary'>{t('tenantBranding.tenantIdLabel')}: {tenantSettings.tenantId}</p>
                                     <p className='mt-1 text-xs text-interactive-primary'>
-                                        Changes will affect all users accessing this tenant's domain
+                                        {t('tenantBranding.domainWarning')}
                                     </p>
                                 </div>
                             </div>
@@ -212,36 +212,36 @@ export function TenantBrandingPage() {
                         <Card padding='lg'>
                             <div className='space-y-6'>
                                 <div className='space-y-2'>
-                                    <h2 className='text-xl font-semibold text-text-primary'>Branding Assets</h2>
-                                    <p className='help-text'>Configure your brand identity</p>
+                                    <h2 className='text-xl font-semibold text-text-primary'>{t('tenantBranding.brandingAssets.title')}</h2>
+                                    <p className='help-text'>{t('tenantBranding.brandingAssets.description')}</p>
                                 </div>
 
                                 <Form onSubmit={handleSave} className='space-y-5'>
                                     <Input
-                                        label='App Name'
+                                        label={t('tenantBranding.fields.appName')}
                                         value={appName}
                                         onChange={setAppName}
-                                        placeholder='My Expense App'
+                                        placeholder={t('tenantBranding.fields.appNamePlaceholder')}
                                         disabled={isSaving}
                                         required
                                         data-testid='app-name-input'
                                     />
 
                                     <Input
-                                        label='Logo URL'
+                                        label={t('tenantBranding.fields.logoUrl')}
                                         value={logoUrl}
                                         onChange={setLogoUrl}
-                                        placeholder='/logo.svg'
+                                        placeholder={t('tenantBranding.fields.logoUrlPlaceholder')}
                                         disabled={isSaving}
                                         required
                                         data-testid='logo-url-input'
                                     />
 
                                     <Input
-                                        label='Favicon URL'
+                                        label={t('tenantBranding.fields.faviconUrl')}
                                         value={faviconUrl}
                                         onChange={setFaviconUrl}
-                                        placeholder='/favicon.ico'
+                                        placeholder={t('tenantBranding.fields.faviconUrlPlaceholder')}
                                         disabled={isSaving}
                                         required
                                         data-testid='favicon-url-input'
@@ -250,7 +250,7 @@ export function TenantBrandingPage() {
                                     <div className='grid grid-cols-2 gap-4'>
                                         <ColorInput
                                             id='primary-color'
-                                            label='Primary Color'
+                                            label={t('tenantBranding.fields.primaryColor')}
                                             value={primaryColor}
                                             onChange={setPrimaryColor}
                                             disabled={isSaving}
@@ -259,7 +259,7 @@ export function TenantBrandingPage() {
 
                                         <ColorInput
                                             id='secondary-color'
-                                            label='Secondary Color'
+                                            label={t('tenantBranding.fields.secondaryColor')}
                                             value={secondaryColor}
                                             onChange={setSecondaryColor}
                                             disabled={isSaving}
@@ -274,8 +274,8 @@ export function TenantBrandingPage() {
                         <Card padding='lg' className='bg-surface-muted'>
                             <div className='space-y-6'>
                                 <div className='space-y-2'>
-                                    <h2 className='text-xl font-semibold text-text-primary'>Live Preview</h2>
-                                    <p className='help-text'>See how your branding will look</p>
+                                    <h2 className='text-xl font-semibold text-text-primary'>{t('tenantBranding.preview.title')}</h2>
+                                    <p className='help-text'>{t('tenantBranding.preview.description')}</p>
                                 </div>
 
                                 <div className='space-y-4 rounded-lg border border-border-default bg-interactive-primary/5 p-6'>
@@ -287,8 +287,8 @@ export function TenantBrandingPage() {
                                             {appName.charAt(0).toUpperCase()}
                                         </div>
                                         <div>
-                                            <p className='font-semibold text-text-primary'>{appName || 'App Name'}</p>
-                                            <p className='help-text-xs'>Your tenant branding</p>
+                                            <p className='font-semibold text-text-primary'>{appName || t('tenantBranding.fields.appName')}</p>
+                                            <p className='help-text-xs'>{t('tenantBranding.preview.brandingLabel')}</p>
                                         </div>
                                     </div>
 
@@ -298,14 +298,14 @@ export function TenantBrandingPage() {
                                             className='w-full rounded-md px-4 py-2 text-sm font-medium text-white transition-colors'
                                             style={{ backgroundColor: primaryColor }}
                                         >
-                                            Primary Button
+                                            {t('tenantBranding.preview.primaryButton')}
                                         </button>
                                         <button
                                             type='button'
                                             className='w-full rounded-md px-4 py-2 text-sm font-medium text-white transition-colors'
                                             style={{ backgroundColor: secondaryColor }}
                                         >
-                                            Secondary Button
+                                            {t('tenantBranding.preview.secondaryButton')}
                                         </button>
                                     </div>
                                 </div>
@@ -316,8 +316,8 @@ export function TenantBrandingPage() {
                         <Card padding='lg' className='lg:col-span-2'>
                             <div className='space-y-6'>
                                 <div className='space-y-2'>
-                                    <h2 className='text-xl font-semibold text-text-primary'>Marketing Features</h2>
-                                    <p className='help-text'>Control which marketing pages are visible</p>
+                                    <h2 className='text-xl font-semibold text-text-primary'>{t('tenantBranding.marketing.title')}</h2>
+                                    <p className='help-text'>{t('tenantBranding.marketing.description')}</p>
                                 </div>
 
                                 <div className='grid gap-4 sm:grid-cols-2'>
@@ -331,8 +331,8 @@ export function TenantBrandingPage() {
                                             data-testid='show-marketing-content-checkbox'
                                         />
                                         <div className='flex-1'>
-                                            <p className='text-sm font-medium text-text-primary'>Marketing Content</p>
-                                            <p className='help-text-xs'>Show features/CTA sections</p>
+                                            <p className='text-sm font-medium text-text-primary'>{t('tenantBranding.marketing.contentLabel')}</p>
+                                            <p className='help-text-xs'>{t('tenantBranding.marketing.contentDescription')}</p>
                                         </div>
                                     </label>
 
@@ -346,8 +346,8 @@ export function TenantBrandingPage() {
                                             data-testid='show-pricing-page-checkbox'
                                         />
                                         <div className='flex-1'>
-                                            <p className='text-sm font-medium text-text-primary'>Pricing Page</p>
-                                            <p className='help-text-xs'>Show /pricing route</p>
+                                            <p className='text-sm font-medium text-text-primary'>{t('tenantBranding.marketing.pricingLabel')}</p>
+                                            <p className='help-text-xs'>{t('tenantBranding.marketing.pricingDescription')}</p>
                                         </div>
                                     </label>
                                 </div>
@@ -363,7 +363,7 @@ export function TenantBrandingPage() {
                             loading={isSaving}
                             data-testid='save-branding-button'
                         >
-                            {isSaving ? 'Saving...' : 'Save Changes'}
+                            {isSaving ? t('tenantBranding.actions.saving') : t('tenantBranding.actions.saveChanges')}
                         </Button>
                     </div>
                 </div>

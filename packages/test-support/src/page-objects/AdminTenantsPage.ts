@@ -10,7 +10,7 @@ const translation = translationEn;
  * Provides methods for viewing and managing all tenant configurations (system admin only).
  */
 export class AdminTenantsPage extends BasePage {
-    readonly url = '/admin/tenants';
+    readonly url = '/admin?tab=tenants';
 
     constructor(page: Page) {
         super(page);
@@ -24,11 +24,11 @@ export class AdminTenantsPage extends BasePage {
 
         // Check if we successfully navigated
         try {
-            await expect(this.page).toHaveURL(/\/admin\/tenants/);
+            await expect(this.page).toHaveURL(/\/admin(\?tab=tenants)?/);
         } catch (error) {
             // May have been denied access or redirected
             const url = this.page.url();
-            if (url.includes('/admin/tenants')) {
+            if (url.includes('/admin')) {
                 // We're on the page but might show access denied
                 return;
             }
@@ -37,14 +37,12 @@ export class AdminTenantsPage extends BasePage {
     }
 
     /**
-     * Page Header and Title
+     * Page Header Elements
+     * Note: The tenants tab is now part of the AdminPage tabbed interface,
+     * so there's no dedicated page title. We use the Create button as a characteristic element.
      */
-    protected getPageTitle(): Locator {
-        return this.page.getByRole('heading', { name: translation.admin.tenants.pageTitle, level: 1 });
-    }
-
-    protected getPageDescription(): Locator {
-        return this.page.getByText(translation.admin.tenants.pageDescription);
+    protected getCreateTenantButton(): Locator {
+        return this.page.getByRole('button', { name: translation.admin.tenants.actions.create });
     }
 
     /**
@@ -184,8 +182,9 @@ export class AdminTenantsPage extends BasePage {
      * Verification Methods
      */
     async verifyPageLoaded(): Promise<void> {
-        await expect(this.getPageTitle()).toBeVisible();
-        await expect(this.getPageDescription()).toBeVisible();
+        // The tenants tab is loaded when we see the create button and tenant count
+        await expect(this.getCreateTenantButton()).toBeVisible();
+        await expect(this.getTenantCount()).toBeVisible();
     }
 
     async verifyAccessDenied(): Promise<void> {
@@ -233,12 +232,16 @@ export class AdminTenantsPage extends BasePage {
         }
     }
 
-    async verifyPageTitleText(expectedText: string): Promise<void> {
-        await expect(this.getPageTitle()).toHaveText(expectedText);
+    async verifyPageTitleText(_expectedText: string): Promise<void> {
+        // Deprecated: The tabbed interface no longer has a dedicated page title.
+        // Instead verify the tenants tab is active
+        await expect(this.page.getByTestId('admin-tab-tenants')).toBeVisible();
     }
 
-    async verifyPageDescriptionContainsText(text: string): Promise<void> {
-        await expect(this.getPageDescription()).toContainText(text);
+    async verifyPageDescriptionContainsText(_text: string): Promise<void> {
+        // Deprecated: The tabbed interface no longer has a page description.
+        // Instead verify the tenant count is visible as it indicates the tab content is loaded
+        await expect(this.getTenantCount()).toBeVisible();
     }
 
     async verifyTenantCountVisible(): Promise<void> {
@@ -334,7 +337,8 @@ export class AdminTenantsPage extends BasePage {
      */
     async waitForPageReady(): Promise<void> {
         await this.page.waitForLoadState('networkidle');
-        await expect(this.getPageTitle()).toBeVisible();
+        // Wait for characteristic elements of the tenants tab to be visible
+        await expect(this.getCreateTenantButton()).toBeVisible();
     }
 
     /**

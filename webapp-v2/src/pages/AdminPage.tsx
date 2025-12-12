@@ -113,7 +113,7 @@ export function AdminPage({ tab: initialTab }: AdminPageProps) {
                                         key={tab.id}
                                         onClick={() => !isDisabled && handleTabChange(tab.id)}
                                         disabled={isDisabled}
-                                        class={tabClassName}
+                                        className={tabClassName}
                                         data-testid={`admin-tab-${tab.id}`}
                                     >
                                         <svg
@@ -124,9 +124,9 @@ export function AdminPage({ tab: initialTab }: AdminPageProps) {
                                             aria-hidden='true'
                                         >
                                             <path
-                                                stroke-linecap='round'
-                                                stroke-linejoin='round'
-                                                stroke-width='2'
+                                                strokeLinecap='round'
+                                                strokeLinejoin='round'
+                                                strokeWidth='2'
                                                 d={tab.icon}
                                             />
                                         </svg>

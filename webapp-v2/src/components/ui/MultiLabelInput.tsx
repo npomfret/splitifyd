@@ -1,7 +1,7 @@
 import { useDropdownSelector } from '@/app/hooks/useDropdownSelector';
 import type { ExpenseLabel, ISOString } from '@billsplit-wl/shared';
 import { toExpenseLabel } from '@billsplit-wl/shared';
-import { XMarkIcon } from '@heroicons/react/20/solid';
+import { XIcon } from '@/components/ui/icons';
 import { useCallback, useMemo, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { FieldError } from './FieldError';
@@ -195,7 +195,7 @@ export function MultiLabelInput({
                             className='hover:bg-interactive-primary/20 rounded-full p-0.5 transition-colors'
                             aria-label={t('uiComponents.multiLabelInput.removeLabel', { label: labelVal })}
                         >
-                            <XMarkIcon className='h-3 w-3' aria-hidden='true' />
+                            <XIcon size={12} />
                         </button>
                     </span>
                 ))}

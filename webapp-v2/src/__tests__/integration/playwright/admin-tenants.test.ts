@@ -228,8 +228,8 @@ test.describe('Admin Tenants Page - System Admin View', () => {
 
         await adminTenantsPage.navigate();
 
-        // Should be on admin tenants page
-        await expect(page).toHaveURL(/\/admin\/tenants/);
+        // Should be on admin page with tenants tab
+        await expect(page).toHaveURL(/\/admin(\?tab=tenants)?/);
     });
 });
 
@@ -238,7 +238,7 @@ test.describe('Admin Tenants Page - Access Control', () => {
         const { page } = systemAdminPage;
         const adminTenantsPage = new AdminTenantsPage(page);
 
-        expect(adminTenantsPage.url).toBe('/admin/tenants');
+        expect(adminTenantsPage.url).toBe('/admin?tab=tenants');
     });
 
     test('should navigate using page object navigate method', async ({ systemAdminPage }) => {
@@ -248,7 +248,7 @@ test.describe('Admin Tenants Page - Access Control', () => {
         await adminTenantsPage.navigate();
 
         // Verify navigation succeeded
-        await expect(page).toHaveURL(/\/admin\/tenants/);
+        await expect(page).toHaveURL(/\/admin(\?tab=tenants)?/);
         await adminTenantsPage.verifyPageLoaded();
     });
 });

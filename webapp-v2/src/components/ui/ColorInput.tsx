@@ -19,7 +19,7 @@ export function ColorInput({
 }: ColorInputProps) {
     return (
         <div>
-            <label for={id} className='block text-xs font-medium text-text-secondary mb-1'>
+            <label htmlFor={id} className='block text-xs font-medium text-text-secondary mb-1'>
                 {label}
             </label>
             <div className='flex items-center gap-2'>
@@ -69,7 +69,7 @@ export function RgbaColorInput({
 }: RgbaColorInputProps) {
     return (
         <div>
-            <label for={id} className='block text-xs font-medium text-text-secondary mb-1'>
+            <label htmlFor={id} className='block text-xs font-medium text-text-secondary mb-1'>
                 {label}
             </label>
             <div className='flex items-center gap-2'>

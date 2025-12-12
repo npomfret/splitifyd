@@ -6,7 +6,7 @@ import { BasePage } from './BasePage';
  * Gives tests stable access to the white-label diagnostics tooling.
  */
 export class AdminDiagnosticsPage extends BasePage {
-    readonly url = '/admin/diagnostics';
+    readonly url = '/admin?tab=diagnostics';
 
     constructor(page: Page) {
         super(page);
@@ -14,7 +14,7 @@ export class AdminDiagnosticsPage extends BasePage {
 
     async navigate(): Promise<void> {
         await this.page.goto(this.url, { waitUntil: 'domcontentloaded' });
-        await expect(this.page).toHaveURL(/\/admin\/diagnostics/);
+        await expect(this.page).toHaveURL(/\/admin\?tab=diagnostics/);
     }
 
     protected getTenantOverviewCard(): Locator {

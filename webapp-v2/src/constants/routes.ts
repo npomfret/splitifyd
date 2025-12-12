@@ -23,7 +23,6 @@ export const ROUTES = {
 
     // Admin Pages (System Admin only)
     ADMIN: '/admin',
-    ADMIN_TENANTS: '/admin/tenants', // @deprecated Use ADMIN with ?tab=tenants
     USERS_BROWSER: '/browser/users',
 } as const;
 

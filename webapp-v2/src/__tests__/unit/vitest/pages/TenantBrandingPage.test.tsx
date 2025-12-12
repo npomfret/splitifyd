@@ -98,7 +98,7 @@ describe('TenantBrandingPage', () => {
             render(<TenantBrandingPage />);
 
             await waitFor(() => {
-                expect(screen.getByText(/you do not have permission/i)).toBeInTheDocument();
+                expect(screen.getByText('tenantBranding.accessDenied')).toBeInTheDocument();
             });
 
             expect(mockedApiClient.getTenantSettings).not.toHaveBeenCalled();
@@ -115,7 +115,7 @@ describe('TenantBrandingPage', () => {
             render(<TenantBrandingPage />);
 
             await waitFor(() => {
-                expect(screen.getByText('Branding Configuration')).toBeInTheDocument();
+                expect(screen.getByText('tenantBranding.title')).toBeInTheDocument();
             });
 
             expect(mockedApiClient.getTenantSettings).toHaveBeenCalledOnce();
@@ -132,7 +132,7 @@ describe('TenantBrandingPage', () => {
             render(<TenantBrandingPage />);
 
             await waitFor(() => {
-                expect(screen.getByText('Branding Configuration')).toBeInTheDocument();
+                expect(screen.getByText('tenantBranding.title')).toBeInTheDocument();
             });
 
             expect(mockedApiClient.getTenantSettings).toHaveBeenCalledOnce();
@@ -152,10 +152,10 @@ describe('TenantBrandingPage', () => {
 
             render(<TenantBrandingPage />);
 
-            expect(screen.getByText(/loading tenant settings/i)).toBeInTheDocument();
+            expect(screen.getByText('tenantBranding.loading')).toBeInTheDocument();
 
             await waitFor(() => {
-                expect(screen.getByText('Branding Configuration')).toBeInTheDocument();
+                expect(screen.getByText('tenantBranding.title')).toBeInTheDocument();
             });
         });
 
@@ -215,7 +215,7 @@ describe('TenantBrandingPage', () => {
             render(<TenantBrandingPage />);
 
             await waitFor(() => {
-                expect(screen.getByText(/tenant id: test-tenant/i)).toBeInTheDocument();
+                expect(screen.getByText(/tenantBranding\.tenantIdLabel.*test-tenant/)).toBeInTheDocument();
             });
         });
     });
@@ -325,7 +325,7 @@ describe('TenantBrandingPage', () => {
             fireEvent.click(saveButton);
 
             await waitFor(() => {
-                expect(screen.getByText(/branding settings updated successfully/i)).toBeInTheDocument();
+                expect(screen.getByText('tenantBranding.success.updated')).toBeInTheDocument();
             });
         });
 
@@ -347,7 +347,7 @@ describe('TenantBrandingPage', () => {
             fireEvent.click(saveButton);
 
             await waitFor(() => {
-                expect(screen.getByText(/branding update not yet implemented/i)).toBeInTheDocument();
+                expect(screen.getByText('tenantBranding.errors.notImplemented')).toBeInTheDocument();
             });
         });
 

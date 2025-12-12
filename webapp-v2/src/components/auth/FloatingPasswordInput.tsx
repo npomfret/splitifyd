@@ -150,9 +150,9 @@ export function FloatingPasswordInput({
                     aria-required={required}
                     aria-invalid={hasError}
                     aria-describedby={hasError ? `${id}-error` : undefined}
-                    class={inputClasses}
+                    className={inputClasses}
                 />
-                <label for={id} class={labelClasses}>
+                <label htmlFor={id} className={labelClasses}>
                     {label || t('auth.passwordInput.label')} {required && (
                         <span data-testid='required-indicator'>
                             *
@@ -177,7 +177,7 @@ export function FloatingPasswordInput({
                     <div className='flex items-center justify-between'>
                         <span className='help-text-xs'>{t('auth.passwordInput.strength')}</span>
                         <span
-                            class={`text-xs font-medium ${strength === 'weak' ? 'text-semantic-error' : strength === 'medium' ? 'text-semantic-warning' : 'text-semantic-success'}`}
+                            className={`text-xs font-medium ${strength === 'weak' ? 'text-semantic-error' : strength === 'medium' ? 'text-semantic-warning' : 'text-semantic-success'}`}
                             data-testid={`password-strength-${strength}`}
                         >
                             {getStrengthText(strength)}
@@ -185,7 +185,7 @@ export function FloatingPasswordInput({
                     </div>
                     <div className='w-full bg-border-default/60 rounded-full h-2'>
                         <div
-                            class={`h-2 rounded-full transition-all duration-300 ${getStrengthColor(strength)}`}
+                            className={`h-2 rounded-full transition-all duration-300 ${getStrengthColor(strength)}`}
                             style={{
                                 width: strength === 'weak' ? '33%' : strength === 'medium' ? '66%' : '100%',
                             }}

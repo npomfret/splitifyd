@@ -2323,5 +2323,55 @@
         "deriveColorsDescription": "Generate all semantic colors from your brand palette"
       }
     }
+  },
+  "tenantBranding": {
+    "title": "Branding Configuration",
+    "subtitle": "Tenant Settings",
+    "description": "Customize your tenant's appearance and marketing features",
+    "loading": "Loading tenant settings...",
+    "accessDenied": "You do not have permission to access tenant branding settings. This page requires tenant-admin or system-admin role.",
+    "tenantIdLabel": "Tenant ID",
+    "domainWarning": "Changes will affect all users accessing this tenant's domain",
+    "brandingAssets": {
+      "title": "Branding Assets",
+      "description": "Configure your brand identity"
+    },
+    "fields": {
+      "appName": "App Name",
+      "appNamePlaceholder": "My Expense App",
+      "logoUrl": "Logo URL",
+      "logoUrlPlaceholder": "/logo.svg",
+      "faviconUrl": "Favicon URL",
+      "faviconUrlPlaceholder": "/favicon.ico",
+      "primaryColor": "Primary Color",
+      "secondaryColor": "Secondary Color"
+    },
+    "preview": {
+      "title": "Live Preview",
+      "description": "See how your branding will look",
+      "primaryButton": "Primary Button",
+      "secondaryButton": "Secondary Button",
+      "brandingLabel": "Your tenant branding"
+    },
+    "marketing": {
+      "title": "Marketing Features",
+      "description": "Control which marketing pages are visible",
+      "contentLabel": "Marketing Content",
+      "contentDescription": "Show features/CTA sections",
+      "pricingLabel": "Pricing Page",
+      "pricingDescription": "Show /pricing route"
+    },
+    "actions": {
+      "saving": "Saving...",
+      "saveChanges": "Save Changes"
+    },
+    "errors": {
+      "loadFailed": "Failed to load tenant settings",
+      "updateFailed": "Failed to update branding settings",
+      "notImplemented": "Branding update not yet implemented on the backend"
+    },
+    "success": {
+      "updated": "Branding settings updated successfully"
+    }
   }
 }

@@ -73,12 +73,12 @@ export class AdminPage extends BasePage {
     }
 
     async navigateToTenants(): Promise<void> {
-        await this.page.goto('/admin/tenants', { waitUntil: 'domcontentloaded' });
+        await this.page.goto('/admin?tab=tenants', { waitUntil: 'domcontentloaded' });
         await this.waitForPageReady();
     }
 
     async navigateToDiagnostics(): Promise<void> {
-        await this.page.goto('/admin/diagnostics', { waitUntil: 'domcontentloaded' });
+        await this.page.goto('/admin?tab=diagnostics', { waitUntil: 'domcontentloaded' });
         await this.waitForPageReady();
     }
 

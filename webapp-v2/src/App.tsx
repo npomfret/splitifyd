@@ -33,8 +33,6 @@ const GroupDetailPage = lazy(() => import('./pages/GroupDetailPage'));
 const JoinGroupPage = lazy(() => import('./pages/JoinGroupPage').then((m) => ({ default: m.JoinGroupPage })));
 const SettingsPage = lazy(() => import('./pages/SettingsPage').then((m) => ({ default: m.SettingsPage })));
 const AdminPage = lazy(() => import('./pages/AdminPage').then((m) => ({ default: m.AdminPage })));
-const AdminTenantsPage = lazy(() => import('./pages/AdminTenantsPage').then((m) => ({ default: m.AdminTenantsPage }))); // @deprecated
-const AdminDiagnosticsPage = lazy(() => import('./pages/AdminDiagnosticsPage').then((m) => ({ default: m.AdminDiagnosticsPage }))); // @deprecated
 const TenantBrandingPage = lazy(() => import('./pages/TenantBrandingPage').then((m) => ({ default: m.TenantBrandingPage })));
 
 // Wrapper component to handle Suspense for lazy-loaded components
@@ -110,8 +108,6 @@ const GroupDetailRoute = createProtectedRoute(GroupDetailPage);
 const JoinGroupRoute = createProtectedRoute(JoinGroupPage);
 const SettingsRoute = createProtectedRoute(SettingsPage);
 const AdminRoute = createProtectedRoute(AdminPage);
-const AdminTenantsRoute = createProtectedRoute(AdminTenantsPage); // @deprecated
-const AdminDiagnosticsRoute = createProtectedRoute(AdminDiagnosticsPage); // @deprecated
 const TenantBrandingRoute = createProtectedRoute(TenantBrandingPage);
 
 function RootRedirect(): VNode | null {
@@ -166,10 +162,6 @@ export function App() {
 
                 {/* Admin Routes - Protected (System Admin only) */}
                 <Route path='/admin' component={AdminRoute} />
-                {/* @deprecated - Use /admin?tab=tenants instead */}
-                <Route path='/admin/tenants' component={AdminTenantsRoute} />
-                {/* @deprecated - Use /admin?tab=diagnostics instead */}
-                <Route path='/admin/diagnostics' component={AdminDiagnosticsRoute} />
 
                 {/* Group Routes - Protected */}
                 <Route path='/groups/:id' component={GroupDetailRoute} />
