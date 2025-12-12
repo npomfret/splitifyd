@@ -10,6 +10,13 @@
 
 ---
 
+## Content Security Policy
+
+- Never use inline handlers (e.g., `onclick=…`).
+- Attach all event listeners via `addEventListener()` in JS
+
+--- 
+
 ## Semantic Tokens
 
 Defined in `webapp-v2/src/styles/global.css` using Tailwind v4's `@theme` directive. Consumed via CSS variables from tenant theme.

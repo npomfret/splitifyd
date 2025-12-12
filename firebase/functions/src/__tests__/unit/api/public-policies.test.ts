@@ -12,6 +12,15 @@ describe('public policy text endpoints', () => {
     let appDriver: AppDriver;
     let adminToken: UserId;
 
+    const setupDefaultTenant = async () => {
+        // Create localhost tenant with required legal branding (default tokens include legal config)
+        const tenantData = AdminTenantRequestBuilder
+            .forTenant('localhost-tenant')
+            .withDomains([toTenantDomainName('localhost')])
+            .build();
+        await appDriver.adminUpsertTenant(tenantData, adminToken);
+    };
+
     beforeEach(async () => {
         appDriver = new AppDriver();
 
@@ -33,6 +42,7 @@ describe('public policy text endpoints', () => {
 
     describe('getPrivacyPolicy', () => {
         it('should return privacy policy text as plain text', async () => {
+            await setupDefaultTenant();
             await appDriver.createPolicy(
                 new CreatePolicyRequestBuilder()
                     .withPolicyName('Privacy Policy')
@@ -48,12 +58,14 @@ describe('public policy text endpoints', () => {
         });
 
         it('should throw when policy does not exist', async () => {
+            await setupDefaultTenant();
             await expect(appDriver.getPrivacyPolicy()).rejects.toThrow();
         });
     });
 
     describe('getTermsOfService', () => {
         it('should return terms of service text as plain text', async () => {
+            await setupDefaultTenant();
             await appDriver.createPolicy(
                 new CreatePolicyRequestBuilder()
                     .withPolicyName('Terms Of Service')
@@ -69,12 +81,14 @@ describe('public policy text endpoints', () => {
         });
 
         it('should throw when policy does not exist', async () => {
+            await setupDefaultTenant();
             await expect(appDriver.getTermsOfService()).rejects.toThrow();
         });
     });
 
     describe('getCookiePolicy', () => {
         it('should return cookie policy text as plain text', async () => {
+            await setupDefaultTenant();
             await appDriver.createPolicy(
                 new CreatePolicyRequestBuilder()
                     .withPolicyName('Cookie Policy')
@@ -90,6 +104,7 @@ describe('public policy text endpoints', () => {
         });
 
         it('should throw when policy does not exist', async () => {
+            await setupDefaultTenant();
             await expect(appDriver.getCookiePolicy()).rejects.toThrow();
         });
     });
@@ -188,7 +203,7 @@ describe('public policy text endpoints', () => {
             expect(result).toBe('SuperApp by Super Inc. Email: support@super.com');
         });
 
-        it('should use default values when tenant resolution fails', async () => {
+        it('should throw when tenant resolution fails for unknown host', async () => {
             // Create policy with placeholder but no tenant for the host
             await appDriver.createPolicy(
                 new CreatePolicyRequestBuilder()
@@ -198,11 +213,8 @@ describe('public policy text endpoints', () => {
                 adminToken,
             );
 
-            // Request with unknown host - should fall back to defaults
-            const result = await appDriver.getPrivacyPolicy({ host: 'unknown.example.com' });
-
-            // Default app name is 'BillSplit' (from DEFAULT_POLICY_TOKENS)
-            expect(result).toBe('Welcome to BillSplit.');
+            // Request with unknown host - should throw (no default fallback)
+            await expect(appDriver.getPrivacyPolicy({ host: 'unknown.example.com' })).rejects.toThrow();
         });
 
         it('should leave text unchanged when no placeholders present', async () => {

@@ -53,6 +53,10 @@ export function createStubResponse(): any {
             contentType = type;
             return res;
         },
+        send: (data: any) => {
+            bodyData = data;
+            return res;
+        },
         getStatus: () => statusCode,
         getJson: () => jsonData,
         getBody: () => bodyData,

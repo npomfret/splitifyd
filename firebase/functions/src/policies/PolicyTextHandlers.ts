@@ -1,11 +1,11 @@
 import { toPolicyId } from '@billsplit-wl/shared';
 import type { Request, RequestHandler } from 'express';
-import { logger } from '../logger';
+import { ErrorDetail } from '../errors/ErrorCode';
+import { Errors } from '../errors/Errors';
 import type { PolicyService } from '../services/PolicyService';
 import type { TenantRegistryService } from '../services/tenant/TenantRegistryService';
 import {
     brandingLegalToTokens,
-    DEFAULT_POLICY_TOKENS,
     type PolicyTemplateTokens,
     substitutePolicyTokens,
 } from '../utils/template-substitution';
@@ -22,14 +22,12 @@ export class PolicyTextHandlers {
             ?? req.hostname
             ?? null;
 
-        try {
-            const tenantContext = await this.tenantRegistry.resolveTenant({ host });
-            const legal = tenantContext.config?.brandingTokens?.tokens?.legal;
-            return brandingLegalToTokens(legal);
-        } catch (error) {
-            logger.warn('policy-text-tenant-resolution-failed', { host, error });
-            return DEFAULT_POLICY_TOKENS;
+        const tenantContext = await this.tenantRegistry.resolveTenant({ host });
+        const legal = tenantContext.config?.brandingTokens?.tokens?.legal;
+        if (!legal) {
+            throw Errors.serviceError(ErrorDetail.TENANT_MISSING_CONFIG);
         }
+        return brandingLegalToTokens(legal);
     }
 
     getPrivacyPolicyText: RequestHandler = async (req, res) => {

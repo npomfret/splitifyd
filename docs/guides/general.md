@@ -6,21 +6,18 @@ This document defines the rules, standards, and best practices.
 
 ## General
 
-Only do EXACTLY what you were asked to do. No more, no less...
-
-Unless you have been instructed to do so...
-
-- Do no write documentation
+- Only do EXACTLY what you were asked to do. No more, no less
+- If in doubt, stop and ask the user
+- Never make assumptions, always check with the user
+- Never create default data or values without checking
+- Never write documentation unless told to do so
 - Do not comment code unless it explains something broken, weird or non-obvious
-
-IF IN DOUBT: ASK!!!
-
-Also...
-
 - If you have ideas, suggest them BUT DO NOT IMPLEMENT THEM
-- Strive for elegance, not simplicity.
+- Strive for elegance over simplicity
 - Always run `pwd` before running any shell commands to confirm your working directory
-- NEVER ever take over the system default browser. Always use chromium.
+- Never take over the system default browser (always use chromium)
+- Always trust internal data (e.g. data we get from our own server)
+- Never trust data from external sources (e.g. data we get from our users)
 
 ## No "test code" mixed in with prod code
 
@@ -41,65 +38,17 @@ The app must run reliably in the firebase emulator AND in a deployed firebase en
 
 Run `npm run build` every time you are done making changes.
 
-**note** Always account for config differences between environments, especially CSP and CORS rules.
-
 ## No Hacks or Fallbacks
 
 - No bodges: don’t add quick fixes just to make it work in the name of _"simplicity"_
 - No silent fallbacks in case _"in case config isn't present"_ or _"in case the data might not be what we expect"_ - NO! the app must (and will) run perfectly every time
 - In almost every situation: just errors bubble up and **avoid** adding any `try/catch` blocks - we **need** to know when things are broken
-- Always reference the latest API docs (use mcp servers)
+- Always reference the latest API docs (use websearch often)
 
 ## Type Safety
 
 - Embrace the type system **everywhere**
 - After changes, run the build and test tests and fix all errors immediately
-
-## Testing
-
-- Write enough tests—**under-testing** is worse than over-testing
-- Remove redundant tests
-- Merge tests the test the same thing
-- Keep tests simpler than the code they validate
-
-- Always trust internal data (e.g. data we get from our own server)
-- Never trust data from external sources (e.g. data we get from our users)
-
-### Critical Test Suites
-
-We have two high-value test suites that mock/stub Firebase but exercise the vast majority of application code. These are our primary defense against bugs and should be used exhaustively.
-
-**`webapp-v2/src/__tests__/integration/playwright`** — Client-side integration tests
-- Uses MSW (Mock Service Worker) to intercept API calls
-- Runs real browser via Playwright against the actual webapp
-- Exercises the full UI: routing, state management, form validation, API integration
-- **Use for:** Exhaustively testing all user flows, edge cases, and error handling in the client
-- Fast feedback loop (no emulator needed), ideal for TDD on frontend features
-- Tests use builders to provide correctly structured firebase responses
-- Tests can be slow to run, be accuracy is far more important than speed
-
-**`firebase/functions/src/__tests__/unit/api`** — Server-side API tests
-- Uses Firebase Simulator for in-memory Firestore (no emulator process)
-- Calls handlers directly (bypasses HTTP layer)
-- Exercises services, validation, business logic, and (simulated) database operations
-- **Use for:** Exhaustively testing all API endpoints, authorization, and data transformations
-- Extremely fast execution, should cover every API behavior including edge cases
-- Can and must be used for very fine grained testing
-
-### Emulator-Based Tests (Coarse-Grained)
-
-These suites run against the full Firebase Emulator and are suited for end-to-end validation:
-
-**`firebase/functions/src/__tests__/integration`** — Backend integration tests
-- Requires running emulator
-- Tests real HTTP requests against the API
-- Use for verifying emulator behavior, Cloud Functions triggers, and cross-service interactions
-
-**`e2e-tests/src/__tests__/integration`** — Full end-to-end tests
-- Multi-browser tests with real users against the emulator
-- Tests complete user journeys across client and server
-- Use for smoke testing, multi-user scenarios, and validating the full stack works together
-- Slower to run; rely on the playwright/API tests above for comprehensive coverage
 
 ## Cleanliness
 
@@ -108,11 +57,6 @@ These suites run against the full Firebase Emulator and are suited for end-to-en
 - Keep build artifacts separate from source files
 - Never add files containing _sensitive_ data to git
 - Never `import` (or require) inside a method
-
-## Content Security Policy
-
-- Never use inline handlers (e.g., `onclick=…`).
-- Attach all event listeners via `addEventListener()` in JS
 
 ## Dependencies
 
