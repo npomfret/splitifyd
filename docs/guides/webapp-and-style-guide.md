@@ -254,6 +254,9 @@ Pages under `pages/admin/` and `components/admin/` are **completely isolated fro
 | Don't | Do |
 |-------|-----|
 | `class='...'` in TSX | `className='...'` (JSX syntax) |
+| `for='...'` on labels | `htmlFor='...'` (JSX syntax) |
+| `stroke-linecap`, `stroke-linejoin`, `stroke-width` in SVG | `strokeLinecap`, `strokeLinejoin`, `strokeWidth` (camelCase) |
+| `import { Icon } from '@heroicons/react/*'` | `import { Icon } from '@/components/ui/icons'` |
 | `bg-gray-600` | `bg-surface-raised` |
 | `style={{ color: '#fff' }}` | `className="text-text-inverted"` |
 | `:root { --color: #fff }` in CSS | Let theme system set variables |
