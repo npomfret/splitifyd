@@ -54,7 +54,7 @@ function getTestCommand(scriptType, packageName) {
         },
         '@billsplit-wl/test-support': {
             test: 'npm run test:unit && npm run test:integration',
-            'test:unit': 'echo \'No unit tests for shared package\'',
+            'test:unit': 'vitest run src/__tests__/unit/',
             'test:integration': 'echo \'No integration tests for test-support package\'',
         },
         'ts-firebase-simulator': {
