@@ -6,6 +6,10 @@ import { fileURLToPath } from 'url';
 import { describe, expect, it } from 'vitest';
 import { translationEn } from '../../translations/translation-en';
 
+// =============================================================================
+// Types
+// =============================================================================
+
 interface TranslationFile {
     code: string;
     name: string;
@@ -18,72 +22,65 @@ interface FlattenedEntry {
     value: string;
 }
 
+interface TranslationAccess {
+    key: string;
+    file: string;
+    source: 'code' | 'test';
+}
+
+// =============================================================================
+// Constants
+// =============================================================================
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 // Unicode ranges for detecting script types
 const ARABIC_RANGE = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/;
 
 // Strings that are legitimately in English/Latin across all translations
 const ALLOWED_ENGLISH_PATTERNS = [
-    // Format strings and placeholders
-    /^\{\{.*\}\}$/,
-    /^{{.*}}$/,
-    // Single words that are universal (brands, technical terms)
+    /^\{\{.*\}\}$/,           // Format strings
+    /^{{.*}}$/,               // Template placeholders
     /^(Airbnb|Firestore|Google|Firebase|PayPal|Venmo|Zelle|Array Buffers?)$/i,
-    // Technical formats
-    /^#[A-Fa-f0-9]{6}$/,
-    /^#RRGGBB$/,
-    // Very short strings (1-3 chars) - likely symbols or abbreviations
-    /^.{1,3}$/,
-    // URLs and email patterns
-    /^https?:\/\//,
-    /^mailto:/,
-    // File paths
-    /^\/[a-zA-Z0-9._/-]+$/,
-    // Template literals with only placeholders and separators
-    /^[\s\-–—:,./()|\u2192]*$/,
+    /^#[A-Fa-f0-9]{6}$/,      // Hex colors
+    /^#RRGGBB$/,              // Color format
+    /^.{1,3}$/,               // Very short strings
+    /^https?:\/\//,           // URLs
+    /^mailto:/,               // Email links
+    /^\/[a-zA-Z0-9._/-]+$/,   // File paths
+    /^[\s\-–—:,./()|\u2192]*$/,  // Separators only
     /^[\s\-–—|]*\{\{[^}]+\}\}[\s\-–—|]*$/,
-    // Currency codes
-    /^[A-Z]{3}$/,
-    // Number formats (like "0.00")
-    /^\d+([.,]\d+)?$/,
-    // Arrow symbols
-    /^[\s]*[→←↑↓][\s]*$/,
+    /^[A-Z]{3}$/,             // Currency codes
+    /^\d+([.,]\d+)?$/,        // Numbers
+    /^[\s]*[→←↑↓][\s]*$/,    // Arrows
 ];
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 // JavaScript/TypeScript string methods that might appear after translation key access
 const STRING_METHODS = new Set([
-    'replace',
-    'replaceAll',
-    'split',
-    'slice',
-    'substring',
-    'substr',
-    'trim',
-    'trimStart',
-    'trimEnd',
-    'toLowerCase',
-    'toUpperCase',
-    'charAt',
-    'charCodeAt',
-    'concat',
-    'includes',
-    'indexOf',
-    'lastIndexOf',
-    'match',
-    'padStart',
-    'padEnd',
-    'repeat',
-    'search',
-    'startsWith',
-    'endsWith',
-    'normalize',
-    'localeCompare',
-    'toString',
-    'valueOf',
-    'length',
+    'replace', 'replaceAll', 'split', 'slice', 'substring', 'substr',
+    'trim', 'trimStart', 'trimEnd', 'toLowerCase', 'toUpperCase',
+    'charAt', 'charCodeAt', 'concat', 'includes', 'indexOf', 'lastIndexOf',
+    'match', 'padStart', 'padEnd', 'repeat', 'search', 'startsWith', 'endsWith',
+    'normalize', 'localeCompare', 'toString', 'valueOf', 'length',
 ]);
+
+// i18next pluralization suffixes
+const PLURAL_SUFFIXES = ['_zero', '_one', '_two', '_few', '_many', '_other'];
+
+// Keys that are dynamically constructed at runtime and can't be statically detected
+const DYNAMIC_KEY_PATTERNS = [
+    /_plural$/, /_one$/, /_other$/,
+    /^apiErrors\./, /^authErrors\./,
+    /^roles\./, /^activityFeed\.events\./,
+    /^securitySettingsModal\.permissionOptions\./,
+    /^admin\.tenants\.types\./, /^admin\.users\.roles\./,
+    /^validation\./,
+];
+
+// =============================================================================
+// Utility Functions
+// =============================================================================
 
 function flattenKeys(obj: Record<string, unknown>, prefix = ''): string[] {
     const keys: string[] = [];
@@ -117,6 +114,14 @@ function flattenWithValues(obj: Record<string, unknown>, prefix = ''): Flattened
     return entries;
 }
 
+function cleanKeyPath(rawPath: string): string {
+    const parts = rawPath.split('.');
+    while (parts.length > 0 && STRING_METHODS.has(parts[parts.length - 1])) {
+        parts.pop();
+    }
+    return parts.join('.');
+}
+
 function loadAllTranslationFiles(projectRoot: string): TranslationFile[] {
     const localesDir = path.join(projectRoot, 'webapp-v2/src/locales');
     const files: TranslationFile[] = [];
@@ -130,12 +135,7 @@ function loadAllTranslationFiles(projectRoot: string): TranslationFile[] {
         const translationPath = path.join(localesDir, langCode, 'translation.json');
         if (fs.existsSync(translationPath)) {
             const data = JSON.parse(fs.readFileSync(translationPath, 'utf8'));
-            files.push({
-                code: langCode,
-                name: langCode.toUpperCase(),
-                path: translationPath,
-                data,
-            });
+            files.push({ code: langCode, name: langCode.toUpperCase(), path: translationPath, data });
         }
     }
 
@@ -150,51 +150,47 @@ function containsTargetScript(value: string, langCode: string): boolean {
     if (langCode === 'ar') {
         return ARABIC_RANGE.test(value);
     }
-    // For other languages (like Ukrainian), they use Latin-compatible scripts
-    // so we can't easily detect untranslated strings
     return true;
 }
 
 function isLikelyUntranslatedEnglish(value: string, langCode: string): boolean {
-    // Skip if it matches allowed patterns
-    if (isAllowedEnglishString(value)) {
-        return false;
-    }
-
-    // For Arabic, check if the string contains any Arabic characters
-    // If it's all Latin and longer than 2 chars, it's likely untranslated
+    if (isAllowedEnglishString(value)) return false;
     if (langCode === 'ar') {
         return !containsTargetScript(value, langCode) && value.length > 2;
     }
-
-    // For other languages, we can't easily detect (they may use Latin script)
     return false;
 }
 
-function extractTranslationKeysFromCode(projectRoot: string): Set<string> {
-    const webappSrcPath = path.join(projectRoot, 'webapp-v2/src');
-    const usedKeys = new Set<string>();
+function getGitFiles(dir: string, cwd: string): string[] {
+    try {
+        return execSync(`git ls-files -- "${dir}"`, { cwd, encoding: 'utf8' })
+            .trim()
+            .split('\n')
+            .filter(Boolean)
+            .filter((file) => file.endsWith('.ts') || file.endsWith('.tsx'));
+    } catch {
+        return [];
+    }
+}
 
-    // Patterns to match translation key usage:
-    // - t('key.path') or t("key.path")
-    // - t('key.path', { ... })
-    // - t(`key.prefix.${dynamic}`) - captures the static prefix
+// =============================================================================
+// Translation Key Extraction
+// =============================================================================
+
+/**
+ * Extracts translation keys from production code using t() function calls.
+ * Example: t('dashboard.title') -> 'dashboard.title'
+ */
+function extractKeysFromProductionCode(projectRoot: string): TranslationAccess[] {
+    const webappSrcPath = path.join(projectRoot, 'webapp-v2/src');
+    const accesses: TranslationAccess[] = [];
     const tFunctionPattern = /\bt\(\s*['"`]([^'"`$]+)/g;
 
-    const gitFiles = execSync('git ls-files', {
-        cwd: webappSrcPath,
-        encoding: 'utf8',
-    })
-        .trim()
-        .split('\n')
-        .filter(Boolean)
-        .filter((file) => file.endsWith('.ts') || file.endsWith('.tsx'));
+    const gitFiles = getGitFiles('.', webappSrcPath);
 
     for (const file of gitFiles) {
         const filePath = path.join(webappSrcPath, file);
-        if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) {
-            continue;
-        }
+        if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) continue;
 
         try {
             const content = fs.readFileSync(filePath, 'utf8');
@@ -202,234 +198,222 @@ function extractTranslationKeysFromCode(projectRoot: string): Set<string> {
             while ((match = tFunctionPattern.exec(content)) !== null) {
                 const key = match[1].trim();
                 if (key) {
-                    usedKeys.add(key);
+                    accesses.push({ key, file, source: 'code' });
                 }
             }
         } catch {
-            // Skip files that can't be read
+            // Skip unreadable files
         }
     }
 
-    return usedKeys;
+    return accesses;
 }
 
-function extractTranslationKeysFromTestFiles(projectRoot: string): Set<string> {
-    const usedKeys = new Set<string>();
+/**
+ * Parses a file to find all translation object aliases and their prefixes.
+ *
+ * Supports patterns like:
+ * - const translation = translationEn                    -> prefix: ''
+ * - const translation = translationEn.admin              -> prefix: 'admin'
+ * - const translation = translationEn.admin.users        -> prefix: 'admin.users'
+ * - const { admin } = translationEn                      -> alias 'admin' with prefix 'admin'
+ * - const t = translationEn.securitySettingsModal        -> alias 't' with prefix 'securitySettingsModal'
+ */
+function parseTranslationAliases(content: string): Map<string, string> {
+    const aliases = new Map<string, string>();
 
-    // Check test files that access translations via:
-    // - translationEn.key.path (direct access)
-    // - translation.key.path (aliased access - most page objects use `const translation = translationEn`)
+    // Pattern 1: const <name> = translationEn[.path.to.object]
+    const assignmentPattern = /const\s+(\w+)\s*=\s*translationEn(?:\.([a-zA-Z0-9_.]+))?(?:\s*;|\s*$)/gm;
+    let match;
+    while ((match = assignmentPattern.exec(content)) !== null) {
+        const aliasName = match[1];
+        const prefix = match[2] || '';
+        aliases.set(aliasName, prefix);
+    }
+
+    // Pattern 2: const { <name> } = translationEn (destructuring)
+    const destructurePattern = /const\s*\{\s*([^}]+)\s*\}\s*=\s*translationEn/gm;
+    while ((match = destructurePattern.exec(content)) !== null) {
+        const destructuredNames = match[1].split(',').map((s) => s.trim());
+        for (const name of destructuredNames) {
+            // Handle renaming: { foo: bar } means bar is an alias for translationEn.foo
+            const renameMatch = name.match(/^(\w+)\s*:\s*(\w+)$/);
+            if (renameMatch) {
+                aliases.set(renameMatch[2], renameMatch[1]);
+            } else if (/^\w+$/.test(name)) {
+                aliases.set(name, name);
+            }
+        }
+    }
+
+    return aliases;
+}
+
+/**
+ * Extracts translation keys from test files that access translations directly.
+ *
+ * Handles:
+ * - translationEn.path.to.key (direct access)
+ * - translation.path.to.key (aliased access with prefix resolution)
+ * - t.path.to.key (short alias)
+ * - admin.users.actions.edit (destructured access)
+ */
+function extractKeysFromTestFiles(projectRoot: string): TranslationAccess[] {
+    const accesses: TranslationAccess[] = [];
+
     const testDirs = [
-        path.join(projectRoot, 'webapp-v2/src/__tests__'),
-        path.join(projectRoot, 'e2e-tests/src'),
-        path.join(projectRoot, 'packages/test-support/src'),
+        'webapp-v2/src/__tests__',
+        'e2e-tests/src',
+        'packages/test-support/src',
     ];
 
-    // Match both direct and aliased access patterns
-    const directAccessPattern = /translationEn\.([a-zA-Z0-9_.]+)/g;
-    const aliasedAccessPattern = /\btranslation\.([a-zA-Z0-9_.]+)/g;
-
     for (const testDir of testDirs) {
-        if (!fs.existsSync(testDir)) continue;
+        const fullPath = path.join(projectRoot, testDir);
+        if (!fs.existsSync(fullPath)) continue;
 
-        try {
-            const gitFiles = execSync(`git ls-files -- "${testDir}"`, {
-                cwd: projectRoot,
-                encoding: 'utf8',
-            })
-                .trim()
-                .split('\n')
-                .filter(Boolean)
-                .filter((file) => file.endsWith('.ts') || file.endsWith('.tsx'))
-                // Exclude this test file itself to avoid false positives from comments
-                .filter((file) => !file.includes('translation-keys.test.ts'));
+        const gitFiles = getGitFiles(testDir, projectRoot)
+            .filter((file) => !file.includes('translation-keys.test.ts'));
 
-            for (const file of gitFiles) {
-                const filePath = path.join(projectRoot, file);
-                if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) {
-                    continue;
+        for (const file of gitFiles) {
+            const filePath = path.join(projectRoot, file);
+            if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) continue;
+
+            try {
+                const content = fs.readFileSync(filePath, 'utf8');
+                const aliases = parseTranslationAliases(content);
+
+                // Always check for direct translationEn access
+                const directPattern = /translationEn\.([a-zA-Z0-9_.]+)/g;
+                let match;
+                while ((match = directPattern.exec(content)) !== null) {
+                    const keyPath = cleanKeyPath(match[1]);
+                    if (keyPath) {
+                        accesses.push({ key: keyPath, file, source: 'test' });
+                    }
                 }
 
-                try {
-                    const content = fs.readFileSync(filePath, 'utf8');
+                // Check for each alias used in the file
+                for (const [aliasName, prefix] of aliases) {
+                    // Skip 'translationEn' itself since we already handled it
+                    if (aliasName === 'translationEn') continue;
 
-                    // Check if file uses the translation alias pattern
-                    const usesAlias = /const translation\s*=\s*translationEn/.test(content);
+                    // Build pattern for this alias: aliasName.key.path
+                    // Use word boundary to avoid matching substrings
+                    const aliasPattern = new RegExp(`\\b${aliasName}\\.([a-zA-Z0-9_.]+)`, 'g');
 
-                    // Extract keys from direct translationEn access
-                    let match;
-                    while ((match = directAccessPattern.exec(content)) !== null) {
+                    while ((match = aliasPattern.exec(content)) !== null) {
                         const keyPath = cleanKeyPath(match[1]);
                         if (keyPath) {
-                            usedKeys.add(keyPath);
+                            // Prepend the prefix from the alias declaration
+                            const fullKey = prefix ? `${prefix}.${keyPath}` : keyPath;
+                            accesses.push({ key: fullKey, file, source: 'test' });
                         }
                     }
-
-                    // Extract keys from aliased translation access (only if alias is defined)
-                    if (usesAlias) {
-                        while ((match = aliasedAccessPattern.exec(content)) !== null) {
-                            const keyPath = cleanKeyPath(match[1]);
-                            if (keyPath) {
-                                usedKeys.add(keyPath);
-                            }
-                        }
-                    }
-                } catch {
-                    // Skip files that can't be read
                 }
+            } catch {
+                // Skip unreadable files
             }
-        } catch {
-            // Skip directories that don't exist in git
         }
     }
 
-    return usedKeys;
+    return accesses;
 }
 
-function cleanKeyPath(rawPath: string): string {
-    // Remove trailing string methods (e.g., ".replace" from "key.path.replace")
-    const parts = rawPath.split('.');
-    while (parts.length > 0 && STRING_METHODS.has(parts[parts.length - 1])) {
-        parts.pop();
-    }
-    return parts.join('.');
-}
+// =============================================================================
+// Test Suite: Translation Keys Validation
+// =============================================================================
 
 describe('Translation Keys Validation', () => {
     const projectRoot = path.join(__dirname, '../../../../..');
     const allTranslationKeys = new Set(flattenKeys(translationEn as Record<string, unknown>));
 
-    // i18next pluralization suffixes - a key like 'foo' can be satisfied by 'foo_one', 'foo_other', etc.
-    const PLURAL_SUFFIXES = ['_zero', '_one', '_two', '_few', '_many', '_other'];
-
     function hasPluralizedKey(baseKey: string): boolean {
         return PLURAL_SUFFIXES.some((suffix) => allTranslationKeys.has(baseKey + suffix));
     }
 
+    function isValidKeyOrPrefix(key: string): boolean {
+        // Exact match
+        if (allTranslationKeys.has(key)) return true;
+        // Is a valid prefix (parent object access)
+        if ([...allTranslationKeys].some((tk) => tk.startsWith(key + '.'))) return true;
+        // Has pluralized versions
+        if (hasPluralizedKey(key)) return true;
+        return false;
+    }
+
     it('should not have missing translation keys (used in code but not in translation file)', () => {
-        const usedInCode = extractTranslationKeysFromCode(projectRoot);
-        const usedInTests = extractTranslationKeysFromTestFiles(projectRoot);
+        const codeAccesses = extractKeysFromProductionCode(projectRoot);
+        const testAccesses = extractKeysFromTestFiles(projectRoot);
 
         const missingKeys: string[] = [];
 
-        for (const key of usedInCode) {
-            // Skip keys that are dynamic prefixes (end with .) - these are template string patterns
-            if (key.endsWith('.')) {
-                continue;
-            }
+        // Check production code keys
+        for (const access of codeAccesses) {
+            const key = access.key;
+            // Skip dynamic prefixes (end with .)
+            if (key.endsWith('.')) continue;
 
-            if (!allTranslationKeys.has(key)) {
-                // Check if this is a prefix for existing keys (dynamic key usage)
-                const isPrefix = [...allTranslationKeys].some((tk) => tk.startsWith(key + '.'));
-                // Check if pluralized versions exist (i18next uses _one, _other, etc.)
-                const hasPluralForm = hasPluralizedKey(key);
-                if (!isPrefix && !hasPluralForm) {
-                    missingKeys.push(key);
-                }
+            if (!isValidKeyOrPrefix(key)) {
+                missingKeys.push(key);
             }
         }
 
-        // Also check test file keys but only report them if they're actual translation paths
-        // (ignoring partial paths like just "createGroupModal" which might be object access)
-        for (const key of usedInTests) {
-            if (key.includes('.') && !allTranslationKeys.has(key)) {
-                // Verify it's not a partial path by checking if any key starts with it
-                const isPartialPath = [...allTranslationKeys].some((tk) => tk.startsWith(key + '.'));
-                if (!isPartialPath) {
-                    missingKeys.push(`[test] ${key}`);
-                }
+        // Check test file keys (only full paths with dots)
+        for (const access of testAccesses) {
+            const key = access.key;
+            if (key.includes('.') && !isValidKeyOrPrefix(key)) {
+                missingKeys.push(`[test] ${key}`);
             }
         }
 
         if (missingKeys.length > 0) {
             throw new Error(
                 `Found ${missingKeys.length} missing translation keys (used in code but not defined):\n\n`
-                    + missingKeys.sort().map((k) => `  - ${k}`).join('\n'),
+                    + [...new Set(missingKeys)].sort().map((k) => `  - ${k}`).join('\n'),
             );
         }
     });
 
     it('should not have redundant translation keys (defined but never used)', () => {
-        const usedInCode = extractTranslationKeysFromCode(projectRoot);
-        const usedInTests = extractTranslationKeysFromTestFiles(projectRoot);
+        const codeAccesses = extractKeysFromProductionCode(projectRoot);
+        const testAccesses = extractKeysFromTestFiles(projectRoot);
 
-        // Collect prefixes from dynamic key patterns (keys ending with .)
+        // Collect all used keys and prefixes
+        const usedKeys = new Set<string>();
         const dynamicPrefixes = new Set<string>();
-        for (const key of usedInCode) {
+
+        for (const access of codeAccesses) {
+            const key = access.key;
             if (key.endsWith('.')) {
-                dynamicPrefixes.add(key.slice(0, -1)); // Remove trailing dot
+                dynamicPrefixes.add(key.slice(0, -1));
+            } else {
+                usedKeys.add(key);
             }
         }
 
-        // Combine used keys and also consider partial paths from test files
-        const allUsedKeys = new Set<string>();
-        for (const key of usedInCode) {
-            if (!key.endsWith('.')) {
-                allUsedKeys.add(key);
-            }
-        }
-        for (const key of usedInTests) {
-            allUsedKeys.add(key);
-            // Also add all parent paths for test file access patterns
-            const parts = key.split('.');
+        for (const access of testAccesses) {
+            usedKeys.add(access.key);
+            // Also mark all parent paths as used (object access)
+            const parts = access.key.split('.');
             for (let i = 1; i <= parts.length; i++) {
-                allUsedKeys.add(parts.slice(0, i).join('.'));
+                usedKeys.add(parts.slice(0, i).join('.'));
             }
         }
-
-        // Keys that are TRULY used dynamically and cannot be statically detected.
-        // Static analysis cannot detect keys used via:
-        // - Template strings: t(`prefix.${variable}`)
-        // - Object lookups: t(translations[key])
-        // - Dynamic construction: t(errorCode)
-        //
-        // IMPORTANT: Only add patterns here for keys that are genuinely constructed
-        // at runtime. Do NOT add entire namespaces just because the test fails -
-        // that defeats the purpose of detecting unused keys.
-        const dynamicKeyPatterns = [
-            // Pluralization keys (used with count interpolation)
-            /_plural$/,
-            /_one$/,
-            /_other$/,
-            // API error codes - looked up dynamically via error code strings
-            /^apiErrors\./,
-            /^authErrors\./,
-            // Role labels/descriptions - looked up via role string
-            /^roles\./,
-            // Activity feed event types - looked up via event type string
-            /^activityFeed\.events\./,
-            // Permission options - looked up via permission level string
-            /^securitySettingsModal\.permissionOptions\./,
-            // Admin tenant/user type lookups
-            /^admin\.tenants\.types\./,
-            /^admin\.users\.roles\./,
-            // Validation messages - field names interpolated
-            /^validation\./,
-        ];
 
         const redundantKeys: string[] = [];
 
         for (const key of allTranslationKeys) {
-            // Check if key matches any dynamic pattern
-            const isDynamicKey = dynamicKeyPatterns.some((pattern) => pattern.test(key));
-            if (isDynamicKey) {
-                continue;
-            }
-
-            // Check if key starts with any dynamic prefix (from template string patterns)
-            const matchesDynamicPrefix = [...dynamicPrefixes].some((prefix) => key.startsWith(prefix + '.'));
-            if (matchesDynamicPrefix) {
-                continue;
-            }
+            // Skip dynamic keys
+            if (DYNAMIC_KEY_PATTERNS.some((pattern) => pattern.test(key))) continue;
+            // Skip keys under dynamic prefixes
+            if ([...dynamicPrefixes].some((prefix) => key.startsWith(prefix + '.'))) continue;
 
             // Check if key or any parent is used
-            let isUsed = allUsedKeys.has(key);
+            let isUsed = usedKeys.has(key);
             if (!isUsed) {
-                // Check if any parent path is used (for object access patterns)
                 const parts = key.split('.');
                 for (let i = 1; i < parts.length && !isUsed; i++) {
-                    const parentPath = parts.slice(0, i).join('.');
-                    if (allUsedKeys.has(parentPath)) {
+                    if (usedKeys.has(parts.slice(0, i).join('.'))) {
                         isUsed = true;
                     }
                 }
@@ -441,7 +425,6 @@ describe('Translation Keys Validation', () => {
         }
 
         if (redundantKeys.length > 0) {
-            // Group by top-level namespace for summary
             const byNamespace = new Map<string, number>();
             for (const key of redundantKeys) {
                 const namespace = key.split('.')[0];
@@ -460,8 +443,7 @@ describe('Translation Keys Validation', () => {
                     + '\n\n'
                     + 'To fix:\n'
                     + '  1. Remove unused keys from webapp-v2/src/locales/*/translation.json\n'
-                    + '  2. If keys ARE used dynamically (via template strings or runtime lookups),\n'
-                    + '     add the pattern to dynamicKeyPatterns in this test file.',
+                    + '  2. If keys ARE used dynamically, add the pattern to DYNAMIC_KEY_PATTERNS.',
             );
         }
     });
@@ -470,6 +452,10 @@ describe('Translation Keys Validation', () => {
         expect(allTranslationKeys.size).toBeGreaterThan(100);
     });
 });
+
+// =============================================================================
+// Test Suite: Multi-Language Translation Validation
+// =============================================================================
 
 describe('Multi-Language Translation Validation', () => {
     const projectRoot = path.join(__dirname, '../../../../..');
@@ -493,21 +479,8 @@ describe('Multi-Language Translation Validation', () => {
         for (const file of nonEnglishFiles) {
             const fileKeys = new Set(flattenKeys(file.data as Record<string, unknown>));
 
-            // Find keys missing from this translation
-            const missingKeys: string[] = [];
-            for (const key of englishKeys) {
-                if (!fileKeys.has(key)) {
-                    missingKeys.push(key);
-                }
-            }
-
-            // Find extra keys in this translation
-            const extraKeys: string[] = [];
-            for (const key of fileKeys) {
-                if (!englishKeys.has(key)) {
-                    extraKeys.push(key);
-                }
-            }
+            const missingKeys = [...englishKeys].filter((k) => !fileKeys.has(k));
+            const extraKeys = [...fileKeys].filter((k) => !englishKeys.has(k));
 
             if (missingKeys.length > 0) {
                 errors.push(
@@ -527,9 +500,7 @@ describe('Multi-Language Translation Validation', () => {
         }
 
         if (errors.length > 0) {
-            throw new Error(
-                `Translation key mismatches found:\n\n${errors.join('\n\n')}`,
-            );
+            throw new Error(`Translation key mismatches found:\n\n${errors.join('\n\n')}`);
         }
     });
 
@@ -538,13 +509,7 @@ describe('Multi-Language Translation Validation', () => {
 
         for (const file of nonEnglishFiles) {
             const entries = flattenWithValues(file.data as Record<string, unknown>);
-            const untranslated: Array<{ key: string; value: string }> = [];
-
-            for (const entry of entries) {
-                if (isLikelyUntranslatedEnglish(entry.value, file.code)) {
-                    untranslated.push(entry);
-                }
-            }
+            const untranslated = entries.filter((e) => isLikelyUntranslatedEnglish(e.value, file.code));
 
             if (untranslated.length > 0) {
                 errors.push(
@@ -558,8 +523,7 @@ describe('Multi-Language Translation Validation', () => {
         if (errors.length > 0) {
             throw new Error(
                 `Untranslated strings found:\n\n${errors.join('\n\n')}\n\n`
-                    + 'If these strings are intentionally in English (brand names, technical terms), '
-                    + 'add them to ALLOWED_ENGLISH_PATTERNS in the test.',
+                    + 'If intentionally in English, add to ALLOWED_ENGLISH_PATTERNS.',
             );
         }
     });
