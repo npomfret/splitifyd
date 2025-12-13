@@ -383,4 +383,40 @@ export class SettingsPage extends BasePage {
             await expect(targetButton).toBeEnabled();
         }
     }
+
+    /**
+     * Language Preferences Locators
+     */
+    protected getLanguageSelect(): Locator {
+        return this.page.locator('select[name="language"]');
+    }
+
+    protected getLanguageSectionHeading(): Locator {
+        return this.page.getByRole('heading', { name: translation.languageSelector.label });
+    }
+
+    /**
+     * Language Preferences Actions
+     */
+    async selectLanguage(languageCode: 'en' | 'uk' | 'ar'): Promise<void> {
+        const select = this.getLanguageSelect();
+        await select.selectOption(languageCode);
+    }
+
+    /**
+     * Language Preferences Verification Methods
+     */
+    async verifyLanguageSectionVisible(): Promise<void> {
+        await expect(this.getLanguageSectionHeading()).toBeVisible();
+        await expect(this.getLanguageSelect()).toBeVisible();
+    }
+
+    async verifyLanguageSelected(languageCode: 'en' | 'uk' | 'ar'): Promise<void> {
+        await expect(this.getLanguageSelect()).toHaveValue(languageCode);
+    }
+
+    async verifyLanguageSectionHeadingText(expectedText: string): Promise<void> {
+        // After language change, verify the section heading reflects the new language
+        await expect(this.page.getByRole('heading', { name: expectedText })).toBeVisible();
+    }
 }

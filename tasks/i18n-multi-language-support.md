@@ -162,9 +162,25 @@ Prepare the codebase for adding Ukrainian (uk) as the first non-English language
   - Position classes migrated (`start-*`/`end-*`)
   - Directional icons flip with `rtl:-scale-x-100`
 
-### Phase 4: Test Infrastructure
+### Phase 4: Test Infrastructure - COMPLETED
 
-- Extend `packages/test-support/src/translations/` for multi-language
+**Task 4.1: Add language switching methods to SettingsPage page object** ✅
+- File: `packages/test-support/src/page-objects/SettingsPage.ts`
+- Added `getLanguageSelect()` protected locator
+- Added `selectLanguage(languageCode)` action method
+- Added `verifyLanguageSectionVisible()` verification
+- Added `verifyLanguageSelected(languageCode)` verification
+- Added `verifyLanguageSectionHeadingText(text)` for i18n UI verification
+
+**Task 4.2: Add language switching UI tests** ✅
+- File: `webapp-v2/src/__tests__/integration/playwright/language-switching.test.ts`
+- Test: Language section visible on settings page
+- Test: Switch from English to Arabic, verify UI text and RTL direction
+- Test: Switch back from Arabic to English, verify UI text and LTR direction
+
+### Known Issue: Missing Ukrainian Translation File
+
+**Note:** Phase 3 documentation states Ukrainian (uk) was created, but the translation file `webapp-v2/src/locales/uk/translation.json` does not exist. The system supports `uk` as a language code but attempting to switch to Ukrainian will fail. Only `en` and `ar` translations are currently available.
 
 ## Key Files
 
