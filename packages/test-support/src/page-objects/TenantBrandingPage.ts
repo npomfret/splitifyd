@@ -1,5 +1,8 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './BasePage';
+import { translationEn } from '../translations/translation-en';
+
+const translation = translationEn;
 
 /**
  * Page Object Model for the Tenant Branding Configuration page.
@@ -36,7 +39,7 @@ export class TenantBrandingPage extends BasePage {
      * Form Input Locators
      */
     protected getAppNameInput(): Locator {
-        return this.page.locator('[data-testid="app-name-input"]');
+        return this.page.getByLabel(translation.tenantBranding.fields.appName);
     }
 
     protected getLogoUrlInput(): Locator {

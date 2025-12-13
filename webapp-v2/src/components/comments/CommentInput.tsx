@@ -135,7 +135,7 @@ export function CommentInput({ onSubmit, disabled = false, placeholder, classNam
                 <div className='text-text-muted'>
                     {error
                         ? (
-                            <span className='text-semantic-error' role='alert' data-testid='comment-error-message'>
+                            <span className='text-semantic-error' role='alert'>
                                 {error}
                             </span>
                         )

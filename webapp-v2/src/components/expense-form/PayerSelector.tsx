@@ -163,7 +163,7 @@ export function PayerSelector({ members, paidBy, validationErrors, updateField }
                 </div>
 
                 {validationErrors.paidBy && (
-                    <p id={`${inputId}-error`} className='text-sm text-semantic-error' role='alert' data-testid='validation-error-paidBy'>
+                    <p id={`${inputId}-error`} className='text-sm text-semantic-error' role='alert'>
                         {validationErrors.paidBy}
                     </p>
                 )}

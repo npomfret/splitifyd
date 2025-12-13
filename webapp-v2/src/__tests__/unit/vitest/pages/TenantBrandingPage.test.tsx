@@ -237,7 +237,7 @@ describe('TenantBrandingPage', () => {
                 expect(screen.getByTestId('save-branding-button')).toBeDisabled();
             });
 
-            const appNameInput = screen.getByTestId('app-name-input');
+            const appNameInput = screen.getByLabelText('tenantBranding.fields.appName', { exact: false });
             fireEvent.input(appNameInput, { target: { value: 'Updated App Name' } });
 
             await waitFor(() => {
@@ -293,7 +293,7 @@ describe('TenantBrandingPage', () => {
             });
 
             // Make a change
-            const appNameInput = screen.getByTestId('app-name-input');
+            const appNameInput = screen.getByLabelText('tenantBranding.fields.appName', { exact: false });
             fireEvent.input(appNameInput, { target: { value: 'New App Name' } });
 
             // Click save
@@ -315,10 +315,10 @@ describe('TenantBrandingPage', () => {
             render(<TenantBrandingPage />);
 
             await waitFor(() => {
-                expect(screen.getByTestId('app-name-input')).toBeInTheDocument();
+                expect(screen.getByLabelText('tenantBranding.fields.appName', { exact: false })).toBeInTheDocument();
             });
 
-            const appNameInput = screen.getByTestId('app-name-input');
+            const appNameInput = screen.getByLabelText('tenantBranding.fields.appName', { exact: false });
             fireEvent.input(appNameInput, { target: { value: 'New Name' } });
 
             const saveButton = screen.getByTestId('save-branding-button');
@@ -337,10 +337,10 @@ describe('TenantBrandingPage', () => {
             render(<TenantBrandingPage />);
 
             await waitFor(() => {
-                expect(screen.getByTestId('app-name-input')).toBeInTheDocument();
+                expect(screen.getByLabelText('tenantBranding.fields.appName', { exact: false })).toBeInTheDocument();
             });
 
-            const appNameInput = screen.getByTestId('app-name-input');
+            const appNameInput = screen.getByLabelText('tenantBranding.fields.appName', { exact: false });
             fireEvent.input(appNameInput, { target: { value: 'New Name' } });
 
             const saveButton = screen.getByTestId('save-branding-button');
@@ -357,10 +357,10 @@ describe('TenantBrandingPage', () => {
             render(<TenantBrandingPage />);
 
             await waitFor(() => {
-                expect(screen.getByTestId('app-name-input')).toBeInTheDocument();
+                expect(screen.getByLabelText('tenantBranding.fields.appName', { exact: false })).toBeInTheDocument();
             });
 
-            const appNameInput = screen.getByTestId('app-name-input');
+            const appNameInput = screen.getByLabelText('tenantBranding.fields.appName', { exact: false });
             fireEvent.input(appNameInput, { target: { value: 'New Name' } });
 
             const saveButton = screen.getByTestId('save-branding-button');
@@ -377,10 +377,10 @@ describe('TenantBrandingPage', () => {
             render(<TenantBrandingPage />);
 
             await waitFor(() => {
-                expect(screen.getByTestId('app-name-input')).toBeInTheDocument();
+                expect(screen.getByLabelText('tenantBranding.fields.appName', { exact: false })).toBeInTheDocument();
             });
 
-            const appNameInput = screen.getByTestId('app-name-input');
+            const appNameInput = screen.getByLabelText('tenantBranding.fields.appName', { exact: false });
             fireEvent.input(appNameInput, { target: { value: 'New Name' } });
 
             const saveButton = screen.getByTestId('save-branding-button');
@@ -418,10 +418,10 @@ describe('TenantBrandingPage', () => {
             render(<TenantBrandingPage />);
 
             await waitFor(() => {
-                expect(screen.getByTestId('app-name-input')).toBeInTheDocument();
+                expect(screen.getByLabelText('tenantBranding.fields.appName', { exact: false })).toBeInTheDocument();
             });
 
-            const appNameInput = screen.getByTestId('app-name-input');
+            const appNameInput = screen.getByLabelText('tenantBranding.fields.appName', { exact: false });
             fireEvent.input(appNameInput, { target: { value: 'Updated Name' } });
 
             await waitFor(() => {

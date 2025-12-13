@@ -72,7 +72,8 @@ export class ShareGroupModalPage extends BasePage {
      * Share link input field
      */
     protected getShareLinkInput(): Locator {
-        return this.getModalContainer().getByTestId('share-link-input');
+        // Readonly text input containing the share URL
+        return this.getModalContainer().getByRole('textbox');
     }
 
     /**

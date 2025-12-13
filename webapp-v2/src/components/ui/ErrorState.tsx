@@ -32,12 +32,12 @@ export function ErrorState({ error, title, onRetry, fullPage = false, className 
             </div>
 
             {/* Error Title */}
-            <h3 className='mt-4 text-lg font-medium text-text-primary' data-testid='error-title'>
+            <h3 className='mt-4 text-lg font-medium text-text-primary'>
                 {defaultTitle}
             </h3>
 
             {/* Error Message */}
-            <p className='mt-2 help-text' data-testid='error-message'>
+            <p className='mt-2 help-text'>
                 {errorMessage}
             </p>
 
@@ -47,7 +47,6 @@ export function ErrorState({ error, title, onRetry, fullPage = false, className 
                     <button
                         onClick={onRetry}
                         className='inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-interactive-primary-foreground bg-interactive-primary hover:bg-interactive-primary/90 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-interactive-primary'
-                        data-testid='error-retry-button'
                     >
                         {t('errorState.tryAgainButton')}
                     </button>

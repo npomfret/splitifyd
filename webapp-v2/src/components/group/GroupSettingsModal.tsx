@@ -229,7 +229,6 @@ export function GroupSettingsModal({
                             onClick={onClose}
                             className='text-text-muted/80 hover:text-text-muted rounded-full p-1 hover:bg-surface-muted'
                             aria-label={t('groupHeader.groupSettingsAriaLabel')}
-                            data-testid='close-group-settings-button'
                             eventName='modal_close'
                             eventProps={{ modalName: 'group_settings', method: 'x_button' }}
                         >

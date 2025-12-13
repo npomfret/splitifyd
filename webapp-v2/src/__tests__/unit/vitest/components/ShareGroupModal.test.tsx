@@ -117,7 +117,7 @@ describe('ShareGroupModal', () => {
         expect(actualExpiryMs).toBeLessThan(expectedExpiryMs + 5000); // Allow 5s drift
         expect(actualExpiryMs).toBeGreaterThan(expectedExpiryMs - 5000);
 
-        const linkInput = await screen.findByTestId('share-link-input');
+        const linkInput = await screen.findByRole('textbox');
         const origin = window.location.origin;
         await waitFor(() => expect(linkInput).toHaveValue(`${origin}/share/group-1`));
         expect(screen.getByTestId('share-group-name')).toHaveTextContent('Design Guild');
@@ -139,7 +139,7 @@ describe('ShareGroupModal', () => {
             />,
         );
 
-        const linkInput = await screen.findByTestId('share-link-input');
+        const linkInput = await screen.findByRole('textbox');
         const origin = window.location.origin;
         await waitFor(() => expect(linkInput).toHaveValue(`${origin}/share/group-1`));
 
@@ -158,7 +158,7 @@ describe('ShareGroupModal', () => {
             expect(lastCall?.[0]).toBe('group-2');
             expect(new Date(lastCall?.[1] as string).getTime()).toBeGreaterThan(Date.now());
         });
-        const updatedInput = await screen.findByTestId('share-link-input');
+        const updatedInput = await screen.findByRole('textbox');
         await waitFor(() => expect(updatedInput).toHaveValue(`${origin}/share/group-2`));
         expect(screen.getByTestId('share-group-name')).toHaveTextContent('Product Crew');
         expect(updatedInput).not.toHaveValue(`${origin}/share/group-1`);
@@ -183,7 +183,7 @@ describe('ShareGroupModal', () => {
         );
 
         // Wait for first link to be generated
-        await screen.findByTestId('share-link-input');
+        await screen.findByRole('textbox');
         const firstCallCount = mockedApiClient.generateShareableLink.mock.calls.length;
 
         // Verify expiration buttons are rendered with expected defaults
@@ -231,10 +231,10 @@ describe('ShareGroupModal', () => {
 
         // Loading spinner should be visible
         const modal = screen.getByRole('dialog', { name: /share/i });
-        expect(within(modal).getByTestId('loading-spinner')).toBeInTheDocument();
+        expect(within(modal).getByRole('status')).toBeInTheDocument();
 
         // Link input should not be visible yet
-        expect(screen.queryByTestId('share-link-input')).not.toBeInTheDocument();
+        expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
 
         // Resolve the promise
         resolvePromise!({
@@ -244,9 +244,9 @@ describe('ShareGroupModal', () => {
 
         // Loading should disappear and link should appear
         await waitFor(() => {
-            expect(within(modal).queryByTestId('loading-spinner')).not.toBeInTheDocument();
+            expect(within(modal).queryByRole('status')).not.toBeInTheDocument();
         });
-        await screen.findByTestId('share-link-input');
+        await screen.findByRole('textbox');
     });
 
     it('displays error message when link generation fails', async () => {
@@ -266,7 +266,7 @@ describe('ShareGroupModal', () => {
         expect(errorElement).toHaveTextContent('shareGroupModal.errors.generateLinkFailed');
 
         // Link input should not be visible on error
-        expect(screen.queryByTestId('share-link-input')).not.toBeInTheDocument();
+        expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
     });
 
     it('copies link to clipboard when copy button is clicked', async () => {
@@ -318,7 +318,7 @@ describe('ShareGroupModal', () => {
             />,
         );
 
-        await screen.findByTestId('share-link-input');
+        await screen.findByRole('textbox');
 
         fireEvent.keyDown(window, { key: 'Escape' });
 
@@ -385,7 +385,7 @@ describe('ShareGroupModal', () => {
 
         // QR code and link input should not be visible during loading
         expect(screen.queryByTestId('qr-code')).not.toBeInTheDocument();
-        expect(screen.queryByTestId('share-link-input')).not.toBeInTheDocument();
+        expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
 
         resolvePromise!({
             shareablePath: '/share/group-1',
@@ -394,7 +394,7 @@ describe('ShareGroupModal', () => {
 
         // Now they should appear
         await screen.findByTestId('qr-code');
-        await screen.findByTestId('share-link-input');
+        await screen.findByRole('textbox');
     });
 
     it('resets state when modal is closed and reopened', async () => {
@@ -412,7 +412,7 @@ describe('ShareGroupModal', () => {
             />,
         );
 
-        await screen.findByTestId('share-link-input');
+        await screen.findByRole('textbox');
         expect(mockedApiClient.generateShareableLink).toHaveBeenCalledTimes(1);
 
         // Close the modal
@@ -426,7 +426,7 @@ describe('ShareGroupModal', () => {
         );
 
         // Modal should not be in DOM when closed
-        expect(screen.queryByTestId('share-link-input')).not.toBeInTheDocument();
+        expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
 
         // Reopen the modal
         rerender(

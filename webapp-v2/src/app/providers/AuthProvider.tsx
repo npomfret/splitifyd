@@ -59,7 +59,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return (
             <div className='min-h-screen flex items-center justify-center'>
                 <div className='text-center'>
-                    <h2 className='text-2xl font-bold text-semantic-error mb-2' role='alert' data-testid='auth-error-heading'>
+                    <h2 className='text-2xl font-bold text-semantic-error mb-2' role='alert'>
                         {t('authProvider.authenticationError')}
                     </h2>
                     <p className='text-text-muted mb-4'>{initError}</p>

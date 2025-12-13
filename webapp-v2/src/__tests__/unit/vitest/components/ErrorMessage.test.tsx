@@ -7,7 +7,7 @@ describe('ErrorMessage Component', () => {
         it('should render error message when error is provided', () => {
             render(<ErrorMessage error='Something went wrong' />);
 
-            const errorElement = screen.getByTestId('error-message');
+            const errorElement = screen.getByRole('alert');
             expect(errorElement).toBeInTheDocument();
             expect(errorElement).toHaveTextContent('Something went wrong');
         });
@@ -15,7 +15,7 @@ describe('ErrorMessage Component', () => {
         it('should have proper semantic attributes for accessibility', () => {
             render(<ErrorMessage error='Validation failed' />);
 
-            const errorElement = screen.getByTestId('error-message');
+            const errorElement = screen.getByRole('alert');
             expect(errorElement).toBeInTheDocument();
             expect(errorElement).toHaveTextContent('Validation failed');
 
@@ -26,7 +26,7 @@ describe('ErrorMessage Component', () => {
         it('should include error icon in the display', () => {
             render(<ErrorMessage error='Network error occurred' />);
 
-            const errorElement = screen.getByTestId('error-message');
+            const errorElement = screen.getByRole('alert');
             expect(errorElement).toBeInTheDocument();
 
             // Check for the SVG icon (uses size prop, not w-4 h-4 classes)
@@ -40,7 +40,7 @@ describe('ErrorMessage Component', () => {
         it('should apply proper error styling classes', () => {
             render(<ErrorMessage error='Form validation error' />);
 
-            const errorElement = screen.getByTestId('error-message');
+            const errorElement = screen.getByRole('alert');
             expect(errorElement).toHaveClass('text-semantic-error');
             expect(errorElement).toHaveClass('text-sm');
             expect(errorElement).toHaveClass('bg-surface-error');
@@ -62,7 +62,7 @@ describe('ErrorMessage Component', () => {
             errorTypes.forEach((errorMessage) => {
                 const { unmount } = render(<ErrorMessage error={errorMessage} />);
 
-                const errorElement = screen.getByTestId('error-message');
+                const errorElement = screen.getByRole('alert');
                 expect(errorElement).toBeInTheDocument();
                 expect(errorElement).toHaveTextContent(errorMessage);
 
@@ -76,7 +76,7 @@ describe('ErrorMessage Component', () => {
 
             render(<ErrorMessage error={longError} />);
 
-            const errorElement = screen.getByTestId('error-message');
+            const errorElement = screen.getByRole('alert');
             expect(errorElement).toBeInTheDocument();
             expect(errorElement).toHaveTextContent(longError);
         });
@@ -86,7 +86,7 @@ describe('ErrorMessage Component', () => {
 
             render(<ErrorMessage error={specialCharError} />);
 
-            const errorElement = screen.getByTestId('error-message');
+            const errorElement = screen.getByRole('alert');
             expect(errorElement).toBeInTheDocument();
             expect(errorElement).toHaveTextContent(specialCharError);
         });
@@ -96,28 +96,28 @@ describe('ErrorMessage Component', () => {
         it('should not render when error is null', () => {
             render(<ErrorMessage error={null} />);
 
-            const errorElement = screen.queryByTestId('error-message');
+            const errorElement = screen.queryByRole('alert');
             expect(errorElement).not.toBeInTheDocument();
         });
 
         it('should not render when error is undefined', () => {
             render(<ErrorMessage error={undefined as any} />);
 
-            const errorElement = screen.queryByTestId('error-message');
+            const errorElement = screen.queryByRole('alert');
             expect(errorElement).not.toBeInTheDocument();
         });
 
         it('should not render when error is empty string', () => {
             render(<ErrorMessage error='' />);
 
-            const errorElement = screen.queryByTestId('error-message');
+            const errorElement = screen.queryByRole('alert');
             expect(errorElement).not.toBeInTheDocument();
         });
 
         it('should render when error is whitespace-only (considered truthy)', () => {
             render(<ErrorMessage error='   ' />);
 
-            const errorElement = screen.getByTestId('error-message');
+            const errorElement = screen.getByRole('alert');
             expect(errorElement).toBeInTheDocument();
             // The browser/DOM will normalize whitespace, so we just check it renders
             const paragraph = errorElement.querySelector('p');
@@ -129,7 +129,7 @@ describe('ErrorMessage Component', () => {
         it('should apply default className when none provided', () => {
             render(<ErrorMessage error='Test error' />);
 
-            const errorElement = screen.getByTestId('error-message');
+            const errorElement = screen.getByRole('alert');
             expect(errorElement).toBeInTheDocument();
 
             // Should have the base classes but no additional custom classes
@@ -139,7 +139,7 @@ describe('ErrorMessage Component', () => {
         it('should append custom className to default classes', () => {
             render(<ErrorMessage error='Test error' className='mt-4 font-bold' />);
 
-            const errorElement = screen.getByTestId('error-message');
+            const errorElement = screen.getByRole('alert');
             expect(errorElement).toBeInTheDocument();
 
             // Should have both default and custom classes
@@ -150,7 +150,7 @@ describe('ErrorMessage Component', () => {
         it('should handle empty custom className', () => {
             render(<ErrorMessage error='Test error' className='' />);
 
-            const errorElement = screen.getByTestId('error-message');
+            const errorElement = screen.getByRole('alert');
             expect(errorElement).toBeInTheDocument();
             expect(errorElement).toHaveClass('text-semantic-error', 'text-sm', 'bg-surface-error');
         });
@@ -160,7 +160,7 @@ describe('ErrorMessage Component', () => {
         it('should have proper HTML structure', () => {
             render(<ErrorMessage error='Structural test error' />);
 
-            const errorElement = screen.getByTestId('error-message');
+            const errorElement = screen.getByRole('alert');
             expect(errorElement).toBeInTheDocument();
 
             // Should be a div container
@@ -187,7 +187,7 @@ describe('ErrorMessage Component', () => {
         it('should have accessible text content structure', () => {
             render(<ErrorMessage error='Accessibility test error' />);
 
-            const errorElement = screen.getByTestId('error-message');
+            const errorElement = screen.getByRole('alert');
             const paragraph = errorElement.querySelector('p');
 
             expect(paragraph).toBeInTheDocument();
@@ -200,10 +200,10 @@ describe('ErrorMessage Component', () => {
             // Based on webapp-and-style-guide.md requirements
             render(<ErrorMessage error='Form validation error' />);
 
-            const errorElement = screen.getByTestId('error-message');
+            const errorElement = screen.getByRole('alert');
 
-            // Should have data-testid for error detection
-            expect(errorElement).toHaveAttribute('data-testid', 'error-message');
+            // Should have role='alert' for accessibility
+            expect(errorElement).toHaveAttribute('role', 'alert');
 
             // Should have proper styling to distinguish from financial displays
             expect(errorElement).toHaveClass('text-semantic-error');
@@ -219,14 +219,13 @@ describe('ErrorMessage Component', () => {
         it('should be detectable by E2E error collection systems', () => {
             render(<ErrorMessage error='API connection failed' />);
 
-            const errorElement = screen.getByTestId('error-message');
+            const errorElement = screen.getByRole('alert');
 
             // Should be visible for E2E detection
             expect(errorElement).toBeVisible();
 
-            // Should have testid that contains "error" for E2E selector matching
-            expect(errorElement).toHaveAttribute('data-testid');
-            expect(errorElement.getAttribute('data-testid')).toContain('error');
+            // Should have role='alert' for semantic detection
+            expect(errorElement).toHaveAttribute('role', 'alert');
 
             // Should have red text styling for visual error identification
             expect(errorElement).toHaveClass('text-semantic-error');

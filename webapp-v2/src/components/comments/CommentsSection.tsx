@@ -54,7 +54,7 @@ export function CommentsSection({ target, maxHeight = '400px', className = '', i
             {/* Error message */}
             {error.value && (
                 <div className='bg-surface-warning border border-border-error rounded-lg p-3'>
-                    <p className='text-sm text-semantic-error' role='alert' data-testid='comments-error-message'>
+                    <p className='text-sm text-semantic-error' role='alert'>
                         {error.value}
                     </p>
                 </div>

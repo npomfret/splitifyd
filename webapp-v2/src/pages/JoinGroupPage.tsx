@@ -235,7 +235,7 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
                             {/* Error message if any */}
                             {error && !isAlreadyMember && (
                                 <div className='bg-surface-error border border-border-error rounded-lg p-3'>
-                                    <p className='text-semantic-error text-sm' role='alert' data-testid='join-group-error-message'>
+                                    <p className='text-semantic-error text-sm' role='alert'>
                                         {error}
                                     </p>
                                     <Button variant='ghost' size='sm' onClick={joinGroupStore.clearError} className='mt-2 text-semantic-error hover:text-semantic-error'>
@@ -285,7 +285,6 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
                             }}
                             error={nameError || undefined}
                             disabled={joining}
-                            data-testid='join-display-name-input'
                         />
                         <div className='flex flex-col gap-2 mt-4'>
                             <Button

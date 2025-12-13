@@ -308,7 +308,6 @@ export function SettlementHistory({
                     <button
                         onClick={() => enhancedGroupDetailStore.loadMoreSettlements()}
                         disabled={isLoading.value}
-                        data-testid='load-more-settlements-button'
                         className='px-4 py-2 text-sm text-interactive-primary hover:text-interactive-primary font-medium disabled:opacity-50'
                     >
                         {isLoading.value ? t('common.loading') : t('settlementHistory.loadMorePayments')}

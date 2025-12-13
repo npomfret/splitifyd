@@ -510,7 +510,7 @@ export class CreateGroupModalPage extends BasePage {
     }
 
     protected getCurrencySearchInput(): Locator {
-        return this.getModalContainer().getByTestId('currency-search-input');
+        return this.getModalContainer().getByPlaceholder(translation.groupSettings.currencySettings.searchPlaceholder);
     }
 
     protected getAddCurrencyOption(code: string): Locator {

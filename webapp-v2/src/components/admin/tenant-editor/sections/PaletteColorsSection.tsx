@@ -178,7 +178,6 @@ export function PaletteColorsSection({ formData, update, isSaving, mode, creatio
                                     onClick={handleDeriveColors}
                                     disabled={isSaving}
                                     className='w-full'
-                                    data-testid='derive-colors-button'
                                 >
                                     <SparklesIcon size={16} className='mr-2' />
                                     {t('admin.tenantEditor.derivationWand.derive')}

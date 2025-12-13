@@ -224,7 +224,6 @@ export function TenantBrandingPage() {
                                         placeholder={t('tenantBranding.fields.appNamePlaceholder')}
                                         disabled={isSaving}
                                         required
-                                        dataTestId='app-name-input'
                                     />
 
                                     <Input

@@ -111,7 +111,7 @@ test.describe('Group Detail - Settlement Pagination', () => {
         await expect(page.getByTestId('settlement-item').first()).toContainText('$50.00');
         await expect(page.getByTestId('settlement-item').nth(1)).toContainText('$35.00');
 
-        const loadMoreButton = page.getByTestId('load-more-settlements-button');
+        const loadMoreButton = page.getByRole('button', { name: /load more/i });
         await expect(loadMoreButton).toBeVisible();
 
         await loadMoreButton.click();

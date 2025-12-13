@@ -461,7 +461,6 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                     placeholder={t('admin.tenantEditor.placeholders.tenantId')}
                                     disabled={mode === 'edit' || isSaving}
                                     required
-                                    data-testid='tenant-id-input'
                                 />
                                 {mode === 'edit' && <p className='help-text-xs -mt-2'>{t('admin.tenantEditor.hints.tenantIdReadonly')}</p>}
 
@@ -472,7 +471,6 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                     placeholder='My Expense App'
                                     disabled={isSaving}
                                     required
-                                    data-testid='app-name-input'
                                 />
 
                                 {/* Domains */}
@@ -504,7 +502,6 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                             placeholder='app.example.com'
                                             disabled={isSaving}
                                             className='flex-1 min-w-0 rounded-md border border-border-default bg-surface-base px-3 py-2 text-sm'
-                                            data-testid='new-domain-input'
                                         />
                                         <Button onClick={handleAddDomain} disabled={!newDomain.trim() || isSaving} variant='secondary' dataTestId='add-domain-button'>Add</Button>
                                     </div>

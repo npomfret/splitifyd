@@ -194,7 +194,7 @@ export function TimeInput({ value, onChange, label, required = false, error, cla
             )}
 
             {error && (
-                <p className='text-sm text-semantic-error mt-1' role='alert' data-testid='time-input-error-message'>
+                <p className='text-sm text-semantic-error mt-1' role='alert'>
                     {error}
                 </p>
             )}

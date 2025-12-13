@@ -107,7 +107,6 @@ export function Checkbox({
                     id={`${checkboxId}-error`}
                     className='mt-1 text-sm text-semantic-error'
                     role='alert'
-                    data-testid='checkbox-error-message'
                 >
                     {error}
                 </p>

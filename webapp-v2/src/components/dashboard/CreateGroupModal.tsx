@@ -420,7 +420,6 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                                                                     'bg-surface-base text-text-primary placeholder:text-text-muted',
                                                                     'focus:outline-hidden focus:ring-1 focus:ring-interactive-primary',
                                                                 )}
-                                                                data-testid='currency-search-input'
                                                             />
                                                         </div>
                                                         <div className='max-h-48 overflow-y-auto'>

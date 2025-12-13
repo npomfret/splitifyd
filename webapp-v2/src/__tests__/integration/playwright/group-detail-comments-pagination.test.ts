@@ -122,7 +122,7 @@ test.describe('Group Detail - Comment Pagination', () => {
         await expect(page.getByText('First page reminder comment')).toBeVisible();
         await groupDetailPage.verifyCommentItemsCount(2);
 
-        const loadMoreButton = page.getByTestId('load-more-comments-button');
+        const loadMoreButton = page.getByRole('button', { name: /load more comments/i });
         await expect(loadMoreButton).toBeVisible();
 
         await loadMoreButton.click();
@@ -227,18 +227,19 @@ test.describe('Group Detail - Comment Pagination Button', () => {
         await groupDetailPage.expectCommentsCollapsed();
         await groupDetailPage.ensureCommentsSectionExpanded();
 
-        const loadMoreButton = page.getByTestId('load-more-comments-button');
+        const loadMoreButton = page.getByRole('button', { name: /load more comments/i });
         await expect(loadMoreButton).toBeVisible();
-        await expect(loadMoreButton).toHaveText(/Load more comments/i);
 
         await Promise.all([
             page.waitForRequest((request) => request.method() === 'GET' && request.url().includes(`/api/groups/${groupId}/comments?cursor=cursor-comments-page-button`)),
             loadMoreButton.click(),
         ]);
 
-        await expect(loadMoreButton).toBeDisabled();
+        // During loading, the button text changes to "Loading..." and should be disabled
+        const loadingButton = page.getByRole('button', { name: /loading/i });
+        await expect(loadingButton).toBeDisabled();
 
         await expect(page.getByText('Next page button comment')).toBeVisible({ timeout: 5000 });
-        await expect(page.getByTestId('load-more-comments-button')).toHaveCount(0);
+        await expect(page.getByRole('button', { name: /load more comments/i })).toHaveCount(0);
     });
 });

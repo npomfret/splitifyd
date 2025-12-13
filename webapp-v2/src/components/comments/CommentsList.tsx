@@ -73,7 +73,6 @@ export function CommentsList({ comments, loading = false, error, hasMore = false
                     <button
                         onClick={onLoadMore}
                         disabled={loading}
-                        data-testid='load-more-comments-button'
                         className='px-4 py-2 text-sm text-interactive-primary hover:text-interactive-primary font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
                     >
                         {loading
