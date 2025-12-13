@@ -1,0 +1,1926 @@
+{
+  "accessibility": {
+    "skipToContent": "Hopp til hovedinnhold"
+  },
+  "apiErrors": {
+    "AUTH_REQUIRED": "Vennligst logg inn for å fortsette",
+    "AUTH_INVALID": "Økten din har utløpt. Vennligst logg inn igjen.",
+    "FORBIDDEN": "Du har ikke tillatelse til å gjøre dette",
+    "NOT_FOUND": "{{resource}} ikke funnet",
+    "ALREADY_EXISTS": "{{resource}} eksisterer allerede",
+    "CONFLICT": "Noen andre har gjort endringer. Vennligst oppdater og prøv igjen.",
+    "VALIDATION_ERROR": "Vennligst sjekk inndata og prøv igjen",
+    "INVALID_REQUEST": "Noe gikk galt med forespørselen din",
+    "RATE_LIMITED": "For mange forespørsler. Vennligst vent litt.",
+    "SERVICE_ERROR": "Noe gikk galt. Vennligst prøv igjen.",
+    "UNAVAILABLE": "Tjenesten er midlertidig utilgjengelig. Vennligst prøv igjen senere."
+  },
+  "authErrors": {
+    "userNotFound": "Ingen konto funnet med denne e-postadressen",
+    "wrongPassword": "Feil passord",
+    "weakPassword": "Passordet er for svakt. Vennligst bruk minst 6 tegn.",
+    "invalidEmail": "Vennligst oppgi en gyldig e-postadresse",
+    "tooManyRequests": "For mange forsøk. Vennligst prøv igjen senere.",
+    "networkError": "Nettverksfeil. Vennligst sjekk tilkoblingen din.",
+    "emailInUse": "Denne e-postadressen er allerede registrert",
+    "invalidCredential": "Ugyldig e-post eller passord",
+    "userDisabled": "Denne kontoen er deaktivert",
+    "requiresRecentLogin": "Vennligst logg inn igjen for å fortsette",
+    "generic": "Autentisering mislyktes. Vennligst prøv igjen.",
+    "postRegistrationBase": "Kontoen din ble opprettet, men vi kunne ikke logge deg inn automatisk.",
+    "postRegistrationFallback": "Kontoen din ble opprettet, men vi kunne ikke logge deg inn automatisk. Vennligst logg inn manuelt."
+  },
+  "pagination": {
+    "previous": "Forrige",
+    "next": "Neste",
+    "page": "Side",
+    "navigation": "Paginering"
+  },
+  "common": {
+    "loading": "Laster...",
+    "unknownError": "Noe gikk galt. Vennligst prøv igjen.",
+    "cancel": "Avbryt",
+    "save": "Lagre",
+    "saving": "Lagrer...",
+    "delete": "Slett",
+    "edit": "Rediger",
+    "close": "Lukk",
+    "confirm": "Bekreft",
+    "back": "Tilbake",
+    "next": "Neste",
+    "previous": "Forrige",
+    "submit": "Send inn",
+    "search": "Søk",
+    "select": "Velg",
+    "selectAll": "Velg alle",
+    "none": "Ingen",
+    "all": "Alle",
+    "yes": "Ja",
+    "no": "Nei",
+    "ok": "OK",
+    "error": "Feil",
+    "success": "Suksess",
+    "warning": "Advarsel",
+    "info": "Info",
+    "unknown": "Ukjent",
+    "unknownUser": "Ukjent bruker",
+    "includeDeleted": "Inkluder slettede",
+    "you": "Du",
+    "youSuffix": " (Du)",
+    "required": "*",
+    "optional": "(valgfritt)",
+    "or": "eller",
+    "and": "og",
+    "copy": "Kopier",
+    "share": "Del",
+    "dismiss": "Avvis",
+    "dismissAlert": "Avvis varsel",
+    "justNow": "akkurat nå",
+    "chooseFile": "Velg fil",
+    "active": "Aktiv",
+    "inactive": "Inaktiv",
+    "disabled": "Deaktivert",
+    "total": "Totalt",
+    "member": "Medlem",
+    "members": "Medlemmer",
+    "user": "Bruker",
+    "group": "Gruppe",
+    "groups": "Grupper",
+    "recent": "Nylig",
+    "settings": "Innstillinger",
+    "understood": "Forstått",
+    "titleSuffix": " - {{appName}}",
+    "refresh": "Oppdater",
+    "reset": "Tilbakestill",
+    "add": "Legg til",
+    "create": "Opprett",
+    "processing": "Behandler...",
+    "download": "Last ned",
+    "downloading": "Laster ned...",
+    "fromLibrary": "Fra bibliotek",
+    "orEnterUrl": "Eller skriv inn URL",
+    "imageFailedToLoad": "Bildet kunne ikke lastes",
+    "selectedFile": "Valgt",
+    "enable": "Aktiver",
+    "disable": "Deaktiver",
+    "created": "Opprettet",
+    "updated": "Oppdatert",
+    "modified": "Endret",
+    "name": "Navn",
+    "type": "Type",
+    "size": "Størrelse",
+    "link": "Lenke",
+    "value": "Verdi",
+    "notConfigured": "Ikke konfigurert",
+    "notSet": "ikke satt",
+    "empty": "(tom)",
+    "noData": "Ingen data tilgjengelig",
+    "default": "Standard",
+    "actions": "Handlinger",
+    "status": "Status",
+    "email": "E-post",
+    "displayName": "Visningsnavn",
+    "role": "Rolle",
+    "lastSignIn": "Siste innlogging",
+    "placeholder": {
+      "amount": "0,00",
+      "search": "Søk...",
+      "searchCurrencies": "Søk valutaer...",
+      "selectCurrency": "Velg valuta...",
+      "selectPerson": "Velg person"
+    }
+  },
+  "currencySelector": {
+    "noResults": "Ingen valutaer funnet"
+  },
+  "relativeTime": {
+    "justNow": "akkurat nå",
+    "minuteAgo_one": "{{count}} minutt siden",
+    "minuteAgo_other": "{{count}} minutter siden",
+    "hourAgo_one": "{{count}} time siden",
+    "hourAgo_other": "{{count}} timer siden",
+    "dayAgo_one": "{{count}} dag siden",
+    "dayAgo_other": "{{count}} dager siden",
+    "monthAgo_one": "{{count}} måned siden",
+    "monthAgo_other": "{{count}} måneder siden",
+    "yearAgo_one": "{{count}} år siden",
+    "yearAgo_other": "{{count}} år siden"
+  },
+  "app": {
+    "loading": "Laster...",
+    "loadingPage": "Laster side...",
+    "loadingExpenseForm": "Laster utgiftsskjema..."
+  },
+  "createGroup": {
+    "validation": {
+      "displayNameTooShort": "Visningsnavn må være minst 2 tegn.",
+      "displayNameTooLong": "Visningsnavn kan være maks 50 tegn."
+    }
+  },
+  "createGroupModal": {
+    "title": "Opprett en ny gruppe",
+    "groupNameLabel": "Gruppenavn",
+    "groupNamePlaceholder": "f.eks. Leilighetsutgifter, Tur til Paris",
+    "groupNameHelpText": "Velg et navn som beskriver hva du skal dele utgifter for.",
+    "groupDisplayNameLabel": "Ditt visningsnavn i denne gruppen",
+    "groupDisplayNamePlaceholder": "Hvordan skal andre medlemmer se navnet ditt?",
+    "groupDisplayNameHelpText": "Dette navnet vises over dine utgifter, kommentarer og aktivitet i denne gruppen.",
+    "groupDescriptionLabel": "Beskrivelse (valgfritt)",
+    "groupDescriptionPlaceholder": "Legg til detaljer om denne gruppen...",
+    "groupDescriptionHelpText": "Valgfri beskrivelse for å hjelpe medlemmer å forstå gruppens formål.",
+    "closeButtonAriaLabel": "Lukk dialog",
+    "cancelButton": "Avbryt",
+    "submitButton": "Opprett gruppe",
+    "restrictCurrencies": "Begrens valutaer",
+    "restrictCurrenciesHelp": "Kun valgte valutaer kan brukes for utgifter i denne gruppen",
+    "validation": {
+      "nameRequired": "Gruppenavn er påkrevd.",
+      "nameTooShort": "Gruppenavn må være minst 2 tegn.",
+      "nameTooLong": "Gruppenavn må være mindre enn 50 tegn.",
+      "displayNameRequired": "Oppgi et visningsnavn.",
+      "displayNameTooShort": "Visningsnavn må være minst 2 tegn.",
+      "displayNameTooLong": "Visningsnavn kan være maks 50 tegn.",
+      "displayNameInvalid": "Visningsnavn kan bare inneholde bokstaver, tall, mellomrom, bindestreker, understreker og punktum.",
+      "displayNameTaken": "Det visningsnavnet er allerede i bruk i denne gruppen."
+    }
+  },
+  "loginPage": {
+    "title": "Logg inn",
+    "description": "Logg inn på kontoen din for å administrere dine delte utgifter",
+    "rememberMe": "Husk meg",
+    "forgotPassword": "Glemt passord?",
+    "submitButton": "Logg inn",
+    "noAccount": "Har du ikke en konto?",
+    "signUp": "Registrer deg",
+    "validation": {
+      "emailRequired": "E-post er påkrevd",
+      "passwordRequired": "Passord er påkrevd"
+    }
+  },
+  "registerPage": {
+    "title": "Opprett konto",
+    "description": "Opprett din {{appName}}-konto for å begynne å administrere delte utgifter",
+    "fullNameLabel": "Fullt navn",
+    "fullNamePlaceholder": "Skriv inn ditt fulle navn",
+    "passwordLabel": "Passord",
+    "passwordPlaceholder": "Lag et sterkt passord",
+    "confirmPasswordLabel": "Bekreft passord",
+    "confirmPasswordPlaceholder": "Bekreft passordet ditt",
+    "acceptTerms": "Jeg aksepterer",
+    "termsOfService": "Tjenestevilkårene",
+    "cookiePolicy": "Informasjonskapselpolicy",
+    "privacyPolicy": "Personvernerklæring",
+    "submitButton": "Opprett konto",
+    "hasAccount": "Har du allerede en konto?",
+    "signIn": "Logg inn",
+    "requiredIndicator": "*",
+    "validation": {
+      "nameRequired": "Navn er påkrevd",
+      "emailRequired": "E-post er påkrevd",
+      "passwordRequired": "Passord er påkrevd",
+      "passwordTooShort": "Passord må være minst 12 tegn",
+      "passwordsNoMatch": "Passordene stemmer ikke",
+      "termsRequired": "Du må akseptere tjenestevilkårene",
+      "cookiesRequired": "Du må akseptere informasjonskapselpolicyen",
+      "privacyRequired": "Du må akseptere personvernerklæringen"
+    }
+  },
+  "auth": {
+    "refreshingSession": "Oppdaterer økten din...",
+    "initializationFailed": "Initialisering mislyktes. Vennligst oppdater siden.",
+    "emailInput": {
+      "label": "E-post",
+      "placeholder": "Skriv inn e-postadressen din",
+      "requiredIndicator": "*",
+      "validation": {
+        "required": "E-post er påkrevd",
+        "invalid": "Vennligst oppgi en gyldig e-postadresse"
+      }
+    },
+    "passwordInput": {
+      "label": "Passord",
+      "placeholder": "Skriv inn passordet ditt",
+      "requiredIndicator": "*",
+      "showPassword": "Vis passord",
+      "hidePassword": "Skjul passord",
+      "strength": "Passordstyrke",
+      "strengthWeak": "Svakt",
+      "strengthMedium": "Middels",
+      "strengthStrong": "Sterkt",
+      "validation": {
+        "required": "Passord er påkrevd",
+        "tooShort": "Passord må være minst 12 tegn"
+      }
+    }
+  },
+  "dashboard": {
+    "title": "Oversikt - {{appName}}",
+    "description": "Administrer dine grupper og utgifter med {{appName}}",
+    "welcomeMessage": "Velkommen til {{appName}}, {{name}}!",
+    "welcomeDescription": "Kom i gang ved å opprette din første gruppe for å spore og dele utgifter med venner.",
+    "yourGroups": "Dine grupper",
+    "createGroup": "Opprett gruppe",
+    "groupsFilter": {
+      "label": "Filtrer grupper",
+      "active": "Aktive",
+      "archived": "Arkiverte"
+    },
+    "groupCard": {
+      "settledUp": "Alt er gjort opp!",
+      "youOwe": "Du skylder {{amount}}",
+      "youAreOwed": "Du har til gode {{amount}}",
+      "addExpenseTooltip": "Legg til utgift i {{groupName}}",
+      "inviteTooltip": "Inviter medlemmer til {{groupName}}",
+      "noRecentActivity": "Ingen nylig aktivitet",
+      "archivedBadge": "Arkivert"
+    },
+    "emptyState": {
+      "title": "Ingen grupper ennå",
+      "subtitle": "Opprett din første gruppe for å begynne å spore delte utgifter",
+      "createButton": "Opprett gruppe"
+    },
+    "stats": {
+      "totalGroups": "Totalt antall grupper",
+      "totalExpenses": "Totale utgifter",
+      "totalBalance": "Total saldo"
+    },
+    "quickActions": {
+      "title": "Hurtighandlinger",
+      "createGroup": "Opprett gruppe",
+      "addExpense": "Legg til utgift"
+    }
+  },
+  "activityFeed": {
+    "title": "Nylig aktivitet",
+    "loading": "Laster...",
+    "emptyState": {
+      "title": "Ingen aktivitet ennå",
+      "description": "Aktivitet fra gruppene dine vil vises her etter hvert som den skjer.",
+      "groupDescription": "Aktivitet i denne gruppen vil vises her."
+    },
+    "error": {
+      "loadFailed": "Vi kunne ikke laste din nylige aktivitet akkurat nå. Vennligst prøv igjen."
+    },
+    "actions": {
+      "retry": "Prøv igjen",
+      "loadMore": "Last mer",
+      "loadingMore": "Laster..."
+    },
+    "labels": {
+      "actorYou": "Du",
+      "unknownUser": "Noen",
+      "unknownGroup": "en gruppe",
+      "unknownExpense": "en utgift",
+      "unknownSettlement": "et oppgjør",
+      "commentOnGroup": "gruppediskusjonen",
+      "commentOnExpense": "utgiften «{{description}}»"
+    },
+    "events": {
+      "group-created": "{{actor}} opprettet {{group}}",
+      "group-updated": "{{actor}} oppdaterte gruppen {{group}}",
+      "group-updated-from": "{{actor}} endret navn fra {{previous}} til {{group}}",
+      "expense-created": "{{actor}} la til {{expense}} i {{group}}",
+      "expense-updated": "{{actor}} oppdaterte {{expense}} i {{group}}",
+      "expense-deleted": "{{actor}} slettet {{expense}} fra {{group}}",
+      "member-joined": "{{actor}} la til {{target}} i {{group}}",
+      "member-joined-self": "{{actor}} ble med i {{group}}",
+      "member-left": "{{actor}} fjernet {{target}} fra {{group}}",
+      "member-left-self": "{{actor}} forlot {{group}}",
+      "comment-added": "{{actor}} kommenterte på {{target}} i {{group}}",
+      "settlement-created": "{{actor}} registrerte {{settlement}} i {{group}}",
+      "settlement-updated": "{{actor}} oppdaterte {{settlement}} i {{group}}",
+      "settlement-deleted": "{{actor}} slettet {{settlement}} fra {{group}}",
+      "generic": "{{actor}} gjorde endringer i {{group}}",
+      "group-created-short": "{{actor}} opprettet gruppen",
+      "group-updated-short": "{{actor}} oppdaterte gruppen",
+      "group-updated-from-short": "{{actor}} endret gruppenavnet fra {{previous}}",
+      "expense-created-short": "{{actor}} la til {{expense}}",
+      "expense-updated-short": "{{actor}} oppdaterte {{expense}}",
+      "expense-deleted-short": "{{actor}} slettet {{expense}}",
+      "member-joined-short": "{{actor}} la til {{target}}",
+      "member-joined-self-short": "{{actor}} ble med",
+      "member-left-short": "{{actor}} fjernet {{target}}",
+      "member-left-self-short": "{{actor}} forlot",
+      "comment-added-short": "{{actor}} kommenterte på {{target}}",
+      "settlement-created-short": "{{actor}} registrerte {{settlement}}",
+      "settlement-updated-short": "{{actor}} oppdaterte {{settlement}}",
+      "settlement-deleted-short": "{{actor}} slettet {{settlement}}",
+      "generic-short": "{{actor}} gjorde endringer"
+    }
+  },
+  "group": {
+    "header": {
+      "members_one": "{{count}} medlem",
+      "members_other": "{{count}} medlemmer",
+      "expenses_one": "{{count}} utgift",
+      "expenses_other": "{{count}} utgifter"
+    },
+    "actions": {
+      "addExpense": "Legg til utgift",
+      "viewExpenses": "Se utgifter",
+      "settleUp": "Gjør opp",
+      "shareGroup": "Del gruppe",
+      "editGroup": "Rediger gruppe",
+      "leaveGroup": "Forlat gruppe"
+    },
+    "share": {
+      "title": "Del gruppe",
+      "subtitle": "Inviter andre til å bli med i denne gruppen",
+      "copyLink": "Kopier lenke",
+      "linkCopied": "Lenke kopiert til utklippstavlen!"
+    },
+    "edit": {
+      "title": "Rediger gruppe",
+      "warningIcon": "⚠️"
+    },
+    "leave": {
+      "title": "Forlat gruppe",
+      "message": "Er du sikker på at du vil forlate denne gruppen?",
+      "confirmButton": "Forlat gruppe",
+      "cancelButton": "Avbryt"
+    },
+    "members": {
+      "title": "Medlemmer",
+      "addMember": "Legg til medlem",
+      "removeMember": "Fjern medlem",
+      "unknownUser": "Ukjent bruker",
+      "user": "Bruker"
+    },
+    "expenses": {
+      "title": "Utgifter",
+      "noExpenses": "Ingen utgifter ennå",
+      "addFirstExpense": "Legg til din første utgift",
+      "unknown": "Ukjent"
+    },
+    "balance": {
+      "title": "Saldooversikt",
+      "settledUp": "Alt er gjort opp!",
+      "unknown": "Ukjent"
+    }
+  },
+  "comments": {
+    "section": {
+      "title": "Kommentarer",
+      "noComments": "Ingen kommentarer ennå"
+    },
+    "input": {
+      "placeholder": "Legg til en kommentar...",
+      "ariaLabel": "Kommentartekst",
+      "sendButton": "Send",
+      "sendAriaLabel": "Send kommentar"
+    },
+    "item": {
+      "justNow": "akkurat nå",
+      "deleteButton": "Slett kommentar"
+    },
+    "list": {
+      "loading": "Laster kommentarer...",
+      "error": "Kunne ikke laste kommentarer"
+    },
+    "commentInput": {
+      "placeholder": "Legg til en kommentar...",
+      "tooLong": "Kommentaren er for lang",
+      "addFailed": "Kunne ikke legge til kommentar",
+      "helpText": "Trykk Enter for å sende, Shift+Enter for ny linje"
+    },
+    "commentItem": {
+      "recently": "nylig"
+    },
+    "commentsList": {
+      "loading": "Laster kommentarer...",
+      "empty": "Ingen kommentarer ennå",
+      "emptySubtext": "Vær den første til å kommentere!",
+      "loadingMore": "Laster...",
+      "loadMore": "Last flere kommentarer"
+    },
+    "commentsSection": {
+      "placeholderGroup": "Legg til en kommentar i denne gruppen...",
+      "placeholderExpense": "Legg til en kommentar til denne utgiften..."
+    }
+  },
+  "ui": {
+    "alert": {
+      "dismiss": "Avvis varsel"
+    },
+    "confirmDialog": {
+      "confirm": "Bekreft",
+      "cancel": "Avbryt"
+    }
+  },
+  "navigation": {
+    "header": {
+      "fallback": "...",
+      "dashboard": "Oversikt",
+      "groups": "Grupper",
+      "settings": "Innstillinger"
+    },
+    "footer": {
+      "copyright": "© {{year}} {{appName}}. Alle rettigheter forbeholdt.",
+      "privacy": "Personvernerklæring",
+      "terms": "Tjenestevilkår",
+      "cookies": "Informasjonskapselpolicy"
+    },
+    "userMenu": {
+      "openUserMenu": "Åpne brukermeny",
+      "profile": "Profil",
+      "settings": "Innstillinger",
+      "logout": "Logg ut",
+      "help": "Hjelp"
+    }
+  },
+  "errors": {
+    "generic": "Det oppstod en feil",
+    "network": "Nettverksfeil oppstod",
+    "invalidLink": "Ugyldig lenke",
+    "notFound": {
+      "page": "Side ikke funnet",
+      "group": "Gruppe ikke funnet",
+      "expense": "Utgift ikke funnet"
+    },
+    "loading": {
+      "cookiePolicy": "Feil ved lasting av informasjonskapselpolicy",
+      "privacyPolicy": "Feil ved lasting av personvernerklæring",
+      "terms": "Feil ved lasting av vilkår"
+    },
+    "validation": {
+      "displayNameEmpty": "Visningsnavn kan ikke være tomt",
+      "displayNameTooLong": "Visningsnavn må være 100 tegn eller mindre",
+      "passwordTooShort": "Nytt passord må være minst 12 tegn",
+      "passwordsNoMatch": "Passordene stemmer ikke",
+      "passwordSameAsCurrent": "Nytt passord må være forskjellig fra nåværende passord",
+      "passwordAndNewRequired": "Nåværende passord og nytt passord er påkrevd"
+    }
+  },
+  "seo": {
+    "titleSuffix": " | {{appName}}",
+    "siteName": "{{appName}}"
+  },
+  "expenseForm": {
+    "description": "Beskrivelse",
+    "amount": "Beløp*",
+    "whoPaid": "Hvem betalte?",
+    "splitBetween": "Fordel mellom",
+    "exactAmounts": "Eksakte beløp",
+    "percentage": "Prosent",
+    "equal": "Likt",
+    "exactAmountsInstruction": "Skriv inn eksakte beløp for hver person:",
+    "percentageInstruction": "Skriv inn prosentandel for hver person:",
+    "selectAll": "Velg alle",
+    "saveExpense": "Lagre utgift",
+    "updateExpense": "Oppdater utgift",
+    "cancel": "Avbryt",
+    "errors": {
+      "expenseLocked": "Denne utgiften kan ikke redigeres fordi en eller flere deltakere har forlatt gruppen."
+    }
+  },
+  "settlementForm": {
+    "updatePayment": "Oppdater betaling",
+    "recordPayment": "Registrer betaling",
+    "updateSettlement": "Oppdater oppgjør",
+    "recordSettlement": "Registrer oppgjør",
+    "closeModal": "Lukk dialog",
+    "whoPaidLabel": "Hvem betalte?",
+    "whoReceivedPaymentLabel": "Hvem mottok betalingen?",
+    "amountLabel": "Beløp",
+    "dateLabel": "Dato",
+    "noteLabel": "Notat (valgfritt)",
+    "selectPersonPlaceholder": "Velg person",
+    "amountPlaceholder": "0,00",
+    "notePlaceholder": "f.eks. Vipps, kontant, bankoverføring",
+    "youSuffix": " (Du)",
+    "cancelButton": "Avbryt",
+    "updatingButton": "Oppdaterer...",
+    "recordingButton": "Registrerer...",
+    "paymentSummary": "{{payer}} betalte {{payee}} {{amount}}",
+    "validation": {
+      "selectPayer": "Vennligst velg hvem som betalte",
+      "selectPayee": "Vennligst velg hvem som mottok betalingen",
+      "samePersonError": "Betaler og mottaker kan ikke være samme person",
+      "validAmountRequired": "Vennligst oppgi et gyldig beløp større enn 0",
+      "amountTooLarge": "Beløpet kan ikke overstige 999 999,99",
+      "validCurrencyRequired": "Vennligst velg en gyldig valuta",
+      "dateRequired": "Vennligst velg en dato",
+      "dateInFuture": "Dato kan ikke være i fremtiden",
+      "recordPaymentFailed": "Kunne ikke registrere betaling"
+    },
+    "errors": {
+      "settlementLocked": "Dette oppgjøret kan ikke redigeres fordi en deltaker har forlatt gruppen."
+    },
+    "warnings": {
+      "noDebt": "{{payer}} skylder ikke {{payee}} penger i {{currency}}. Dette oppgjøret vil skape en gjeld i motsatt retning.",
+      "overpayment": "{{payer}} skylder bare {{payee}} {{debt}}, men du gjør opp {{amount}}. Dette vil skape en gjeld i motsatt retning.",
+      "underpayment": "Du registrerer {{amount}}, men {{payer}} vil fortsatt skylde {{payee}} {{remaining}} etterpå. Vi holder den gjenværende saldoen oppdatert."
+    }
+  },
+  "settlementHistory": {
+    "noPaymentsYet": "Ingen betalinger registrert ennå",
+    "today": "I dag",
+    "yesterday": "I går",
+    "editPaymentTooltip": "Rediger betaling",
+    "cannotEditTooltip": "Kan ikke redigere - medlem har forlatt gruppen",
+    "deletePaymentTooltip": "Slett betaling",
+    "loadMore": "Last mer",
+    "loadMorePayments": "Last flere",
+    "deletePaymentTitle": "Slett betaling",
+    "deletePaymentMessage": "Er du sikker på at du vil slette denne betalingen på {{amount}} fra {{payer}} til {{payee}}? Denne handlingen kan ikke angres.",
+    "deleteButton": "Slett",
+    "cancelButton": "Avbryt",
+    "showAll": "Vis alle",
+    "noPaymentsForYou": "Ingen betalinger som involverer deg ennå",
+    "deletedBy": "Slettet av"
+  },
+  "balanceSummary": {
+    "loadingBalances": "Laster saldoer...",
+    "allSettledUp": "Alt er gjort opp!",
+    "debtArrow": " → ",
+    "showOnlyMyBalances": "Vis bare mine saldoer",
+    "showAll": "Vis alle",
+    "settleUp": "Gjør opp",
+    "settleUpButton": "Registrer oppgjør for denne gjelden"
+  },
+  "emptyGroupsState": {
+    "title": "Ingen grupper ennå",
+    "description": "Opprett din første gruppe for å begynne å dele utgifter med venner, familie eller romkamerater.",
+    "createFirstGroup": "Opprett din første gruppe",
+    "gettingStartedTitle": "Kom i gang med {{appName}}:",
+    "step1Title": "1. Opprett en gruppe",
+    "step1Description": "Legg til venner, romkamerater eller reisefølge",
+    "step2Title": "2. Legg til utgifter",
+    "step2Description": "Spor hvem som betalte og hvordan kostnader skal deles",
+    "step3Title": "3. Gjør opp",
+    "step3Description": "Se hvem som skylder hva og gjør opp saldoer"
+  },
+  "groupCard": {
+    "settledUp": "Gjort opp",
+    "addExpenseTooltip": "Legg til utgift i {{groupName}}",
+    "inviteTooltip": "Inviter til {{groupName}}",
+    "noRecentActivity": "Ingen nylig aktivitet"
+  },
+  "expenseFormHeader": {
+    "addExpense": "Legg til utgift",
+    "editExpense": "Rediger utgift",
+    "copyExpense": "Kopier utgift",
+    "cancel": "Avbryt"
+  },
+  "expenseBasicFields": {
+    "title": "Utgiftsdetaljer",
+    "descriptionLabel": "Beskrivelse",
+    "descriptionPlaceholder": "Hva var denne utgiften for?",
+    "amountLabel": "Beløp",
+    "labelsLabel": "Etiketter",
+    "labelsPlaceholder": "Legg til en etikett...",
+    "dateLabel": "Dato",
+    "timeLabel": "Tid",
+    "recentAmounts": "Nylige beløp:",
+    "today": "I dag",
+    "yesterday": "I går",
+    "thisMorning": "I morges",
+    "lastNight": "I går kveld",
+    "addSpecificTime": "Legg til spesifikk tid"
+  },
+  "suggestedLabels": [
+    "Dagligvarer",
+    "Takeaway",
+    "Restaurant",
+    "Kaffe",
+    "Drikke",
+    "Bar",
+    "Snacks",
+    "Frokost",
+    "Lunsj",
+    "Middag",
+    "Hurtigmat",
+    "Levering",
+    "Brunsj",
+    "Bensin",
+    "Parkering",
+    "Bompenger",
+    "Delebil",
+    "Taxi",
+    "Buss",
+    "Tog",
+    "T-bane",
+    "Bilutleie",
+    "Drivstoff",
+    "Fly",
+    "Overnatting",
+    "Hotell",
+    "Vandrerhjem",
+    "Resort",
+    "Ferie",
+    "Biltur",
+    "Camping",
+    "Husleie",
+    "Strøm",
+    "Elektrisitet",
+    "Vann",
+    "Internett",
+    "Telefon",
+    "Forsikring",
+    "Boliglån",
+    "Fellesutgifter",
+    "Reparasjoner",
+    "Vedlikehold",
+    "Rengjøring",
+    "Møbler",
+    "Hvitevarer",
+    "Dekor",
+    "Hage",
+    "Kino",
+    "Konsert",
+    "Show",
+    "Festival",
+    "Sport",
+    "Spill",
+    "Strømming",
+    "Billetter",
+    "Museum",
+    "Fornøyelsespark",
+    "Bowling",
+    "Minigolf",
+    "Karaoke",
+    "Spillehall",
+    "Escape Room",
+    "Shopping",
+    "Klær",
+    "Sko",
+    "Elektronikk",
+    "Gaver",
+    "Bøker",
+    "Leker",
+    "Skjønnhet",
+    "Hudpleie",
+    "Frisør",
+    "Spa",
+    "Treningssenter",
+    "Trening",
+    "Sportsutstyr",
+    "Friluftsutstyr",
+    "Dyrefôr",
+    "Dyrepass",
+    "Veterinær",
+    "Stell",
+    "Medisin",
+    "Apotek",
+    "Lege",
+    "Tannlege",
+    "Syn",
+    "Terapi",
+    "Medisinsk",
+    "Barnepass",
+    "Barnevakt",
+    "Skolepenger",
+    "Skole",
+    "Rekvisita",
+    "Fest",
+    "Bursdag",
+    "Bryllup",
+    "Høytid",
+    "Jubileum",
+    "Feiring",
+    "Dekorasjoner",
+    "Catering",
+    "Lokale",
+    "Grilling",
+    "Piknik",
+    "Felles middag",
+    "Spillkveld",
+    "Innflyttingsfest",
+    "Jobb",
+    "Kontor",
+    "Forsyninger",
+    "Utstyr",
+    "Programvare",
+    "Abonnement",
+    "Medlemskap",
+    "Gebyrer",
+    "Tips",
+    "Veldedighet",
+    "Donasjon",
+    "Minibank",
+    "Kontanter",
+    "Diverse",
+    "Annet",
+    "Delt",
+    "Fordelt",
+    "Refusjon",
+    "Depositum",
+    "Sikkerhetsdepositum"
+  ],
+  "expensesList": {
+    "title": "Utgifter",
+    "noExpensesYet": "Ingen utgifter ennå. Legg til en for å komme i gang!",
+    "loadMore": "Last flere"
+  },
+  "expenseItem": {
+    "paidBy": "Betalt av",
+    "deleted": "Slettet",
+    "deletedBy": "Slettet av",
+    "copyExpense": "Kopier utgift"
+  },
+  "header": {
+    "logoAlt": "{{appName}}",
+    "login": "Logg inn",
+    "signUp": "Registrer deg",
+    "goToHome": "Gå til hjem",
+    "goToDashboard": "Gå til oversikt"
+  },
+  "userMenu": {
+    "dashboard": "Oversikt",
+    "admin": "Admin",
+    "settings": "Innstillinger",
+    "signOut": "Logg ut",
+    "signingOut": "Logger ut...",
+    "systemUserBadge": "Systembruker",
+    "systemUserTooltip": "Denne kontoen brukes til automatiserte eller systemdrevne operasjoner.",
+    "environmentLink": "env",
+    "diagnosticsLoading": "Laster diagnostikk...",
+    "diagnosticsError": "Kunne ikke laste diagnostikk:",
+    "browser": "Nettleser",
+    "browserUsers": "Brukerleser"
+  },
+  "languageSelector": {
+    "label": "Språk",
+    "description": "Velg ditt foretrukne språk"
+  },
+  "footer": {
+    "companyName": "{{appName}}",
+    "companyDescription": "Del regninger enkelt med venner og familie.",
+    "linksSection": "Lenker",
+    "copyright": "© 2025 Pomo Corp ltd. Alle rettigheter forbeholdt."
+  },
+  "groupHeader": {
+    "membersCount": "{{count}} medlemmer",
+    "membersCount_one": "{{count}} medlem",
+    "membersCount_other": "{{count}} medlemmer",
+    "old": "gammel",
+    "lastUpdated": "sist oppdatert",
+    "groupSettingsAriaLabel": "Gruppeinnstillinger",
+    "groupSecurityAriaLabel": "Sikkerhet og tillatelser"
+  },
+  "securitySettingsModal": {
+    "unsavedChanges": "Du har ulagrede endringer. Se over alt, og trykk deretter Lagre for å bruke dem.",
+    "presets": {
+      "activeBadge": "Aktiv",
+      "open": {
+        "label": "Forhåndsinnstilling: Åpent samarbeid",
+        "description": "Alle kan invitere medlemmer og administrere utgifter uten begrensninger."
+      },
+      "managed": {
+        "label": "Forhåndsinnstilling: Administrert gruppe",
+        "description": "Administratorer godkjenner invitasjoner og kontrollerer hvem som kan redigere eller slette utgifter."
+      }
+    },
+    "custom": {
+      "heading": "Tilpassede tillatelser",
+      "unsaved": "Tilpassede tillatelser endret.",
+      "saveHelper": "Endringer står i kø til du trykker Lagre."
+    },
+    "success": {
+      "updated": "Sikkerhetsinnstillinger oppdatert."
+    },
+    "permissions": {
+      "expenseEditing": {
+        "label": "Hvem kan redigere utgifter",
+        "description": "Velg hvem som kan oppdatere alle utgifter i gruppen."
+      },
+      "expenseDeletion": {
+        "label": "Hvem kan slette utgifter",
+        "description": "Begrens muligheten til å fjerne utgifter."
+      },
+      "memberInvitation": {
+        "label": "Hvem kan invitere medlemmer",
+        "description": "Bestem hvem som kan generere invitasjonslenker."
+      },
+      "memberApproval": {
+        "label": "Godkjenning av nye medlemmer",
+        "description": "Krev en administratorgjennomgang før noen blir med via en invitasjon."
+      },
+      "settingsManagement": {
+        "label": "Hvem kan endre innstillinger",
+        "description": "Kontroller tilgang til administrative innstillinger."
+      },
+      "options": {
+        "anyone": "Alle medlemmer",
+        "creator-and-admin": "Opprettere og administratorer",
+        "admin-only": "Kun administratorer",
+        "automatic": "Automatisk",
+        "admin-required": "Administratorgodkjenning påkrevd"
+      }
+    },
+    "memberRoles": {
+      "heading": "Medlemsroller",
+      "admin": "Administrator",
+      "member": "Medlem",
+      "viewer": "Seer"
+    },
+    "pendingMembers": {
+      "heading": "Ventende medlemmer",
+      "requested": "Venter på godkjenning",
+      "empty": "Ingen ventende forespørsler akkurat nå.",
+      "approve": "Godkjenn",
+      "reject": "Avslå"
+    },
+    "errors": {
+      "loadPending": "Kunne ikke laste ventende medlemmer. Vennligst prøv igjen.",
+      "updatePermissions": "Vi kunne ikke oppdatere sikkerhetsinnstillingene. Vennligst prøv igjen.",
+      "pendingAction": "Vi kunne ikke behandle den forespørselen. Vennligst prøv igjen."
+    }
+  },
+  "settingsPage": {
+    "title": "Innstillinger - {{appName}}",
+    "description": "Administrer kontoinnstillingene dine",
+    "heroLabel": "Konto",
+    "accountSettingsHeader": "Kontoinnstillinger",
+    "accountSettingsSubheader": "Administrer profilinformasjon og passord",
+    "profileSummaryTitle": "Profiloversikt",
+    "profileSummaryDescription": "Denne informasjonen hjelper andre medlemmer å gjenkjenne deg.",
+    "profileInformationHeader": "Profilinformasjon",
+    "profileInformationSubheader": "Oppdater detaljene andre medlemmer ser på tvers av {{appName}}.",
+    "emailSectionTitle": "E-postadresse",
+    "emailSectionDescription": "Oppdater e-posten du bruker for å logge inn og motta varsler.",
+    "currentDisplayName": "Nåværende visningsnavn:",
+    "email": "E-post:",
+    "currentEmailLabel": "Nåværende e-post",
+    "displayNameLabel": "Visningsnavn",
+    "displayNamePlaceholder": "Skriv inn visningsnavnet ditt",
+    "displayNameHelper": "Bruk ditt fulle navn eller et kallenavn som lagkamerater vil gjenkjenne.",
+    "saveChangesButton": "Lagre endringer",
+    "passwordHeader": "Passord",
+    "passwordIntro": "Sett et sterkt passord for å holde {{appName}}-kontoen din sikker.",
+    "changePasswordButton": "Endre passord",
+    "changeEmailButton": "Endre e-post",
+    "newEmailLabel": "Ny e-post",
+    "newEmailPlaceholder": "Skriv inn din nye e-postadresse",
+    "emailPasswordLabel": "Bekreft med passord",
+    "updateEmailButton": "Oppdater e-post",
+    "currentPasswordLabel": "Nåværende passord",
+    "newPasswordLabel": "Nytt passord",
+    "confirmNewPasswordLabel": "Bekreft nytt passord",
+    "updatePasswordButton": "Oppdater passord",
+    "cancelButton": "Avbryt",
+    "passwordRequirementsHeading": "Sjekkliste for sterkt passord",
+    "passwordRequirements": {
+      "length": "Bruk minst 12 tegn.",
+      "mix": "Bland store og små bokstaver, tall og symboler.",
+      "reuse": "Unngå passord du har brukt andre steder."
+    },
+    "profileSummaryRoleLabel": "Kontorolle",
+    "profileSummaryRoleFallback": "Medlem",
+    "profileSummaryRole": {
+      "system_admin": "Administrator",
+      "system_user": "Medlem"
+    },
+    "successMessages": {
+      "profileUpdated": "Profil oppdatert",
+      "passwordChanged": "Passord endret",
+      "emailChanged": "E-post oppdatert. Vennligst bekreft den nye adressen."
+    },
+    "errorMessages": {
+      "profileUpdateFailed": "Kunne ikke oppdatere profil. Vennligst prøv igjen.",
+      "passwordAndNewRequired": "Nåværende passord og nytt passord er påkrevd",
+      "passwordTooShort": "Nytt passord må være minst 12 tegn",
+      "passwordsNoMatch": "Passordene stemmer ikke",
+      "passwordSameAsCurrent": "Nytt passord må være forskjellig fra nåværende passord",
+      "currentPasswordIncorrect": "Nåværende passord er feil",
+      "passwordChangeFailed": "Kunne ikke endre passord. Vennligst prøv igjen.",
+      "displayNameEmpty": "Visningsnavn kan ikke være tomt",
+      "displayNameTooLong": "Visningsnavn må være 100 tegn eller mindre",
+      "emailRequired": "Ny e-post er påkrevd",
+      "emailInvalid": "Oppgi en gyldig e-postadresse",
+      "emailSameAsCurrent": "Ny e-post må være forskjellig fra nåværende e-post",
+      "emailPasswordRequired": "Skriv inn nåværende passord for å bekrefte denne endringen",
+      "emailInUse": "Den e-posten er allerede knyttet til en annen {{appName}}-konto",
+      "emailChangeFailed": "Kunne ikke endre e-post. Vennligst prøv igjen."
+    }
+  },
+  "editGroupModal": {
+    "title": "Rediger gruppe",
+    "groupNameLabel": "Gruppenavn",
+    "groupNamePlaceholder": "f.eks. Leilighetsutgifter, Tur til Paris",
+    "descriptionLabel": "Beskrivelse (valgfritt)",
+    "descriptionPlaceholder": "Legg til detaljer om denne gruppen...",
+    "cancelButton": "Avbryt",
+    "saveChangesButton": "Lagre endringer",
+    "deleteGroupButton": "Slett gruppe",
+    "validation": {
+      "nameRequired": "Gruppenavn er påkrevd.",
+      "nameTooShort": "Gruppenavn må være minst 2 tegn.",
+      "nameTooLong": "Gruppenavn må være mindre enn 50 tegn.",
+      "updateFailed": "Kunne ikke oppdatere gruppe"
+    },
+    "success": {
+      "updated": "Gruppedetaljer oppdatert."
+    },
+    "deleteConfirmDialog": {
+      "title": "Slett gruppe permanent",
+      "warningTitle": "⚠️ Advarsel om permanent sletting",
+      "warningMessage": "Dette vil permanent slette gruppen og ALLE tilhørende data:",
+      "warningList": {
+        "expenses": "Alle utgifter og deres kommentarer",
+        "settlements": "Alle oppgjør og betalingshistorikk",
+        "members": "Alle gruppemedlemmer og tillatelser",
+        "history": "All endringshistorikk og aktivitet"
+      },
+      "cannotUndo": "Denne handlingen kan ikke angres.",
+      "typeToConfirm": "For å bekrefte, skriv gruppenavnet «{{groupName}}» nedenfor:",
+      "deletingMessage": "Sletter gruppe og alle tilhørende data...",
+      "deletingText": "Sletter...",
+      "confirmText": "Slett gruppe permanent",
+      "cancelText": "Avbryt",
+      "deleteFailed": "Kunne ikke slette gruppe"
+    }
+  },
+  "groupActions": {
+    "title": "Gruppehandlinger",
+    "addExpense": "Legg til utgift",
+    "settleUp": "Gjør opp",
+    "inviteOthers": "Inviter andre",
+    "settings": "Innstillinger",
+    "leaveGroup": "Forlat gruppe",
+    "archive": "Arkiver gruppe",
+    "unarchive": "Gjenopprett gruppe"
+  },
+  "groupSettingsModal": {
+    "title": "Gruppeinnstillinger",
+    "tabs": {
+      "identity": "Visningsnavn",
+      "general": "Generelt",
+      "security": "Sikkerhet og tillatelser"
+    },
+    "securityTab": {
+      "successAriaLabel": "suksess",
+      "unsavedChangesAriaLabel": "ulagrede endringer"
+    }
+  },
+  "groupSettings": {
+    "currencySettings": {
+      "title": "Valutainnstillinger",
+      "description": "Begrens hvilke valutaer som kan brukes for utgifter i denne gruppen.",
+      "enableToggle": "Begrens valutaer for denne gruppen",
+      "enabledDescription": "Kun valgte valutaer kan brukes for utgifter",
+      "permittedLabel": "Tillatte valutaer",
+      "defaultLabel": "Standardvaluta for nye utgifter",
+      "addCurrency": "Legg til valuta",
+      "searchPlaceholder": "Søk valutaer...",
+      "noCurrenciesSelected": "Velg minst én valuta",
+      "defaultNotInPermitted": "Standard må være en tillatt valuta",
+      "allCurrenciesSelected": "Alle valutaer valgt",
+      "saveButton": "Lagre valutainnstillinger",
+      "saveSuccess": "Valutainnstillinger oppdatert.",
+      "saveFailed": "Kunne ikke lagre valutainnstillinger. Vennligst prøv igjen."
+    }
+  },
+  "groupDisplayNameSettings": {
+    "title": "Gruppevisningsnavn",
+    "description": "Velg hvordan andre medlemmer ser deg i denne gruppen.",
+    "inputLabel": "Ditt visningsnavn i denne gruppen",
+    "inputPlaceholder": "Skriv inn et unikt visningsnavn",
+    "save": "Lagre visningsnavn",
+    "saving": "Lagrer...",
+    "success": "Gruppevisningsnavn oppdatert.",
+    "errors": {
+      "required": "Oppgi et visningsnavn.",
+      "tooLong": "Visningsnavn kan være maks 50 tegn.",
+      "notChanged": "Oppgi et annet visningsnavn før du lagrer.",
+      "taken": "Det navnet er allerede i bruk i denne gruppen.",
+      "unknown": "Kunne ikke oppdatere visningsnavn. Prøv igjen."
+    }
+  },
+  "membersList": {
+    "title": "Medlemmer",
+    "admin": "Administrator",
+    "member": "Medlem",
+    "viewer": "Seer",
+    "thisMember": "Dette medlemmet",
+    "leaveGroup": "Forlat gruppe",
+    "inviteOthers": "Inviter andre",
+    "inviteOthersAriaLabel": "Inviter andre",
+    "leaveGroupAriaLabel": "Forlat gruppe",
+    "removeMemberAriaLabel": "Fjern {{name}}",
+    "leaveGroupDialog": {
+      "title": "Forlate gruppen?",
+      "messageWithBalance": "Du har en utestående saldo i denne gruppen. Vennligst gjør opp før du forlater.",
+      "messageConfirm": "Er du sikker på at du vil forlate denne gruppen? Du trenger en invitasjon for å bli med igjen.",
+      "confirmText": "Forlat gruppe",
+      "cancelText": "Avbryt"
+    },
+    "removeMemberDialog": {
+      "title": "Fjerne medlem?",
+      "messageWithBalance": "{{name}} har en utestående saldo i denne gruppen. Vennligst gjør opp før du fjerner.",
+      "messageConfirm": "Er du sikker på at du vil fjerne {{name}} fra gruppen?",
+      "confirmText": "Fjern",
+      "cancelText": "Avbryt"
+    }
+  },
+  "shareGroupModal": {
+    "title": "Inviter andre",
+    "description": "Del denne lenken med alle du vil ha med i denne gruppen.",
+    "closeButtonAriaLabel": "Lukk dialog",
+    "copyLinkTitle": "Kopier lenke",
+    "copyLinkAriaLabel": "Kopier gruppeinvitasjonslenke",
+    "qrCodeDescription": "Eller skann denne koden",
+    "expirationLabel": "Invitasjonslenken utløper om...",
+    "expirationOptions": {
+      "15m": "15 minutter",
+      "1h": "1 time",
+      "1d": "1 dag",
+      "5d": "5 dager"
+    },
+    "expiresAt": "Utløper {{date}}",
+    "generateNew": "Generer ny",
+    "linkCopied": "Lenke kopiert til utklippstavlen",
+    "errors": {
+      "generateLinkFailed": "Kunne ikke generere delingslenke. Vennligst prøv igjen."
+    }
+  },
+  "errorState": {
+    "defaultTitle": "Noe gikk galt",
+    "unexpectedError": "Det oppstod en uventet feil",
+    "tryAgainButton": "Prøv igjen"
+  },
+  "errorBoundary": {
+    "title": "Noe gikk galt",
+    "unexpectedError": "Det oppstod en uventet feil"
+  },
+  "notFoundPage": {
+    "title": "404",
+    "pageNotFound": "Side ikke funnet",
+    "pageNotFoundDescription": "Siden du leter etter eksisterer ikke.",
+    "groupNotFound": "Gruppe ikke funnet eller du har ikke tilgang",
+    "groupNotFoundDescription": "Gruppen du leter etter eksisterer ikke, eller du må bli invitert for å få tilgang.",
+    "goToDashboard": "Gå til oversikt",
+    "goHome": "Gå hjem"
+  },
+  "loadingState": {
+    "defaultMessage": "Laster..."
+  },
+  "joinGroupPage": {
+    "title": "Bli med i gruppe",
+    "loadingGroup": "Laster gruppeinformasjon...",
+    "alreadyMember": "Du er allerede medlem av denne gruppen",
+    "alreadyMemberDescription": "Du kan gå direkte til gruppen for å se utgifter og saldoer.",
+    "joinGroup": "Bli med i gruppe",
+    "goToGroup": "Gå til gruppe",
+    "joining": "Blir med...",
+    "cancel": "Avbryt",
+    "welcome": "Velkommen til {{groupName}}!",
+    "joinSuccess": "Du har blitt med i gruppen. Omdirigerer til gruppesiden...",
+    "joinedTitle": "Ble med i {{groupName}} - {{appName}}",
+    "backToDashboard": "Tilbake til oversikt",
+    "pendingApprovalTitle": "Venter på godkjenning",
+    "pendingApprovalMessage": "Din forespørsel om å bli med i {{groupName}} er sendt til gruppeadministratorene.",
+    "pendingApprovalHelp": "Vi varsler deg når du er godkjent. Du kan gå tilbake til oversikten i mellomtiden.",
+    "errors": {
+      "invalidLink": "Denne invitasjonslenken er ugyldig eller har utløpt",
+      "groupNotFound": "Denne gruppen eksisterer ikke lenger",
+      "alreadyMember": "Du er allerede medlem av denne gruppen",
+      "joinFailed": "Kunne ikke bli med i gruppen",
+      "loadFailed": "Kunne ikke laste gruppeinformasjon"
+    },
+    "displayName": {
+      "title": "Velg visningsnavnet ditt",
+      "description": "Dette er hvordan andre medlemmer vil se deg i «{{groupName}}»",
+      "label": "Visningsnavn",
+      "placeholder": "Hvordan skal andre medlemmer se navnet ditt?",
+      "help": "Velg et unikt navn for denne gruppen. Andre medlemmer vil bruke det til å identifisere deg.",
+      "errors": {
+        "required": "Oppgi et visningsnavn.",
+        "taken": "Det visningsnavnet er allerede i bruk i denne gruppen.",
+        "invalid": "Visningsnavn kan bare inneholde bokstaver, tall, mellomrom, bindestreker, understreker og punktum."
+      }
+    }
+  },
+  "dashboardComponents": {
+    "groupsList": {
+      "loading": "Laster gruppene dine...",
+      "loadFailed": "Kunne ikke laste grupper",
+      "tryAgain": "Prøv igjen",
+      "creating": "Oppretter gruppe...",
+      "noArchivedTitle": "Ingen arkiverte grupper",
+      "noArchivedDescription": "Grupper du arkiverer vil vises her. Arkiver en gruppe fra Aktiv-fanen for å skjule den fra oversikten.",
+      "groupsListAriaLabel": "Dine grupper"
+    }
+  },
+  "expenseComponents": {
+    "expenseFormActions": {
+      "cancel": "Avbryt",
+      "updating": "Oppdaterer...",
+      "saving": "Lagrer...",
+      "update": "Oppdater utgift",
+      "save": "Lagre utgift"
+    },
+    "participantSelector": {
+      "label": "Fordel mellom",
+      "requiredIndicator": "*",
+      "selectAll": "Velg alle",
+      "selectNone": "Velg ingen",
+      "payerSuffix": "(Betaler)"
+    },
+    "payerSelector": {
+      "label": "Hvem betalte?",
+      "requiredIndicator": "*",
+      "selectPayer": "Velg hvem som betalte",
+      "searchPlaceholder": "Søk medlemmer...",
+      "membersList": "Gruppemedlemmer",
+      "noResults": "Ingen medlemmer matcher søket ditt"
+    },
+    "splitAmountInputs": {
+      "exactAmountsInstruction": "Skriv inn eksakte beløp for hver person:",
+      "unknown": "Ukjent",
+      "dollarSign": "kr",
+      "total": "Totalt:",
+      "percentageInstruction": "Skriv inn prosentandel for hver person:",
+      "percentSign": "%",
+      "equalInstruction": "Hver person betaler:"
+    },
+    "splitTypeSelector": {
+      "label": "Hvordan fordele",
+      "equal": "Likt",
+      "exactAmounts": "Eksakte beløp",
+      "percentage": "Prosent"
+    },
+    "expenseActions": {
+      "edit": "Rediger",
+      "copyExpense": "Kopier utgift",
+      "copy": "Kopier",
+      "share": "Del",
+      "delete": "Slett",
+      "deleteTitle": "Slett utgift",
+      "deleteConfirm": "Er du sikker på at du vil slette «{{expenseName}}»? Denne handlingen kan ikke angres og vil påvirke gruppesaldoer.",
+      "deleteButton": "Slett",
+      "cancel": "Avbryt",
+      "deleteFailed": "Kunne ikke slette utgift",
+      "cannotEditTooltip": "Kan ikke redigere - deltaker har forlatt gruppen"
+    },
+    "expenseFormModal": {
+      "addExpense": "Legg til utgift",
+      "editExpense": "Rediger utgift",
+      "copyExpense": "Kopier utgift",
+      "closeModal": "Lukk dialog",
+      "cancel": "Avbryt",
+      "saveExpense": "Lagre utgift",
+      "updateExpense": "Oppdater utgift",
+      "createCopy": "Opprett kopi",
+      "saving": "Lagrer...",
+      "updating": "Oppdaterer...",
+      "close": "Lukk"
+    },
+    "expenseDetailModal": {
+      "title": "Utgiftsdetaljer",
+      "closeModal": "Lukk dialog",
+      "close": "Lukk",
+      "edit": "Rediger",
+      "copy": "Kopier",
+      "share": "Del",
+      "delete": "Slett",
+      "paidBy": "Betalt av",
+      "date": "Dato",
+      "labels": "Etiketter",
+      "receipt": "Kvittering",
+      "viewReceipt": "Se kvittering",
+      "noReceipt": "Ingen kvittering",
+      "splitDetails": "Fordelingsdetaljer",
+      "comments": "Kommentarer",
+      "loadingExpense": "Laster utgiftsdetaljer...",
+      "expenseNotFound": "Utgift ikke funnet",
+      "failedToLoad": "Kunne ikke laste utgiftsdetaljer",
+      "shareTitle": "Utgift: {{description}}",
+      "shareText": "Se denne utgiften: {{description}} - {{amount}}"
+    },
+    "splitBreakdown": {
+      "splitBetween": "Fordelt mellom ",
+      "person": " person",
+      "people": " personer",
+      "splitEqually": "Fordelt likt",
+      "exactAmounts": "Eksakte beløp",
+      "byPercentage": "Etter prosent",
+      "customSplit": "Tilpasset fordeling",
+      "unknown": "Ukjent",
+      "paid": "Betalt",
+      "owes": "Skylder ",
+      "total": "Totalt: "
+    }
+  },
+  "joinGroupComponents": {
+    "groupPreview": {
+      "invitationMessage": "Du har blitt invitert til å bli med i denne gruppen"
+    },
+    "joinButton": {
+      "joining": "Blir med...",
+      "joinGroup": "Bli med i gruppe"
+    },
+    "membersPreview": {
+      "groupSize": "Gruppestørrelse"
+    }
+  },
+  "policyComponents": {
+    "policyAcceptanceModal": {
+      "title": "Godkjenn oppdaterte retningslinjer",
+      "policyLabel": "Retningslinje ",
+      "of": " av ",
+      "colon": ": ",
+      "close": "Lukk",
+      "progress": "Fremgang",
+      "accepted": " godkjent",
+      "acceptedIcon": "✓ Godkjent",
+      "acceptedAriaLabel": "Godkjent",
+      "loadingContent": "Laster retningslinjeinnhold...",
+      "acceptanceRequired": "Godkjenning av retningslinjer påkrevd",
+      "acceptanceInstructions": "Vennligst les retningslinjen ovenfor og klikk «Godkjenn» for å fortsette å bruke {{appName}}.",
+      "acceptCheckbox": "Jeg har lest og aksepterer denne ",
+      "previous": "Forrige",
+      "next": "Neste",
+      "policiesAccepted": " retningslinjer godkjent",
+      "accepting": "Godkjenner...",
+      "acceptAll": "Godkjenn alle og fortsett",
+      "closeAriaLabel": "Lukk",
+      "errorTitle": "Feil"
+    },
+    "policyRenderer": {
+      "bulletPoint": "• "
+    }
+  },
+  "uiComponents": {
+    "alert": {
+      "dismiss": "Avvis varsel"
+    },
+    "avatar": {
+      "unknown": "Ukjent"
+    },
+    "button": {
+      "default": "Knapp"
+    },
+    "multiLabelInput": {
+      "placeholder": "Legg til en etikett...",
+      "removeLabel": "Fjern {{label}}",
+      "maxReached": "Maks {{max}} etiketter",
+      "recent": "Nylige",
+      "hint": "{{count}}/{{max}} etiketter"
+    },
+    "confirmDialog": {
+      "confirm": "Bekreft",
+      "cancel": "Avbryt"
+    },
+    "currencyAmountInput": {
+      "selectCurrency": "Velg valuta",
+      "searchPlaceholder": "Søk etter symbol, kode eller land...",
+      "searchAriaLabel": "Søk valutaer",
+      "loading": "Laster valutaer...",
+      "noCurrencies": "Ingen valutaer funnet",
+      "recent": "Nylige",
+      "common": "Vanlige",
+      "allCurrencies": "Alle valutaer",
+      "placeholder": "0,00",
+      "requiredIndicator": "*"
+    },
+    "currencySelector": {
+      "placeholder": "Velg valuta...",
+      "searchPlaceholder": "Søk valutaer",
+      "loading": "Laster valutaer...",
+      "noCurrencies": "Ingen valutaer funnet",
+      "recent": "Nylige",
+      "common": "Vanlige",
+      "allCurrencies": "Alle valutaer"
+    },
+    "input": {
+      "requiredIndicator": "*"
+    },
+    "loadingSpinner": {
+      "loading": "Laster..."
+    },
+    "timeInput": {
+      "at": "kl. ",
+      "placeholder": "Skriv inn tid (f.eks. 14:30)",
+      "requiredIndicator": "*"
+    },
+    "form": {
+      "submissionError": "Feil ved innsending av skjema"
+    }
+  },
+  "pages": {
+    "addExpensePage": {
+      "errorTitle": "Feil - {{appName}}",
+      "error": "Feil",
+      "noGroupMessage": "Ingen gruppe spesifisert. Kan ikke legge til utgift uten en gruppe.",
+      "backToDashboard": "Tilbake til oversikt",
+      "loadingTitle": "Laster... - {{appName}}",
+      "groupNotFound": "Gruppe ikke funnet",
+      "groupNotFoundMessage": "Gruppen du prøver å legge til en utgift i eksisterer ikke, eller du har ikke tilgang.",
+      "backToGroup": "Tilbake til gruppe",
+      "copyExpenseTitle": "Kopier utgift",
+      "editExpenseTitle": "Rediger utgift",
+      "addExpenseTitle": "Legg til utgift",
+      "copyExpenseAction": "Kopier utgift",
+      "editExpenseAction": "Rediger utgift",
+      "addExpenseAction": "Legg til en ny utgift",
+      "titleSuffix": " - {{appName}}",
+      "titleIn": " i "
+    },
+    "expenseDetailPage": {
+      "missingGroupId": "Mangler gruppe-ID",
+      "missingExpenseId": "Mangler utgifts-ID",
+      "failedToLoad": "Kunne ikke laste utgift",
+      "cannotEdit": "Denne utgiften kan ikke redigeres",
+      "containsDepartedMembers": "En eller flere deltakere har forlatt gruppen. Historiske poster er bevart som skrivebeskyttet.",
+      "expenseLabel": "Utgift: ",
+      "checkOutExpense": "Se denne utgiften: ",
+      "shareApiFailed": "Delings-API mislyktes, faller tilbake til utklippstavlen",
+      "failedToCopy": "Kunne ikke kopiere til utklippstavlen",
+      "error": "Feil",
+      "expenseNotFound": "Utgift ikke funnet",
+      "backToGroup": "Tilbake til gruppe",
+      "titleSeparator": " - ",
+      "expenseFor": "Utgift for ",
+      "backButton": "← Tilbake",
+      "date": "Dato",
+      "ago": " siden",
+      "labels": "Etiketter",
+      "paidBy": "Betalt av",
+      "unknown": "Ukjent",
+      "discussion": "Diskusjon",
+      "receipt": "Kvittering",
+      "clickToViewFullSize": "Klikk for å se i full størrelse",
+      "added": "Lagt til ",
+      "lastUpdated": "Sist oppdatert ",
+      "receiptViewer": "Kvitteringsvisning",
+      "closeReceiptViewer": "Lukk kvitteringsvisning",
+      "receiptFullSize": "Kvittering - Full størrelse",
+      "summarySection": "Utgiftssammendrag",
+      "splitSection": "Fordelingsdetaljer",
+      "metadataSection": "Utgiftsmetadata"
+    },
+    "groupDetailPage": {
+      "errorLoadingGroup": "Feil ved lasting av gruppe",
+      "backToDashboard": "Tilbake til oversikt",
+      "balances": "Saldoer",
+      "expenses": "Utgifter",
+      "comments": "Kommentarer",
+      "activity": "Aktivitet",
+      "paymentHistory": "Oppgjør",
+      "toggleSection": "Vis/skjul {{section}}-seksjon",
+      "titleSuffix": " - {{appName}}",
+      "manageExpensesFor": "Administrer utgifter for "
+    },
+    "landingPage": {
+      "title": "Enkel regningsdeling - {{appName}}",
+      "description": "Si farvel til pinlige IOUer og kompliserte beregninger. Appen vår gjør det enkelt, rettferdig og transparent å dele utgifter med venner, familie og romkamerater. Den er 100% gratis, uten reklame og uten begrensninger.",
+      "disclaimer": "Dette er et verktøy for å spore utgifter, ikke for å gjøre betalinger.",
+      "accountNote": " For å lagre og administrere utgiftene dine trenger du en gratis konto.",
+      "privacyNote": "Vi vil aldri be om sensitive økonomiske detaljer.",
+      "transparencyNotice": {
+        "bold": "Dette er et verktøy for å spore utgifter, ikke for å gjøre betalinger.",
+        "text": "For å lagre og administrere utgiftene dine trenger du en gratis konto. Vi vil aldri be om sensitive økonomiske detaljer."
+      }
+    },
+    "registerPage": {
+      "requiredIndicator": "*"
+    },
+    "resetPasswordPage": {
+      "failedToSendReset": "Kunne ikke sende tilbakestillings-e-post",
+      "checkYourEmail": "Sjekk e-posten din",
+      "resetInstructionsSent": "Instruksjoner for tilbakestilling av passord er sendt til e-posten din",
+      "emailSentSuccessfully": "E-post sendt",
+      "sentInstructionsTo": "Vi har sendt instruksjoner for tilbakestilling av passord til:",
+      "checkSpamFolder": "Finner du den ikke? Sjekk spam- eller søppelmappen.",
+      "whatsNext": "Hva skjer nå?",
+      "checkEmailInbox": "• Sjekk e-postinnboksen din (og spammappen)",
+      "clickResetLink": "• Klikk på tilbakestillingslenken i e-posten",
+      "createNewPassword": "• Lag et nytt passord",
+      "signInWithNewPassword": "• Logg inn med det nye passordet",
+      "sendToDifferentEmail": "Send til annen e-post",
+      "backToSignIn": "← Tilbake til innlogging",
+      "resetPassword": "Tilbakestill passord",
+      "enterEmailForReset": "Skriv inn e-postadressen din for å motta instruksjoner for tilbakestilling av passord",
+      "enterEmailDescription": "Skriv inn e-postadressen knyttet til kontoen din, så sender vi deg en lenke for å tilbakestille passordet.",
+      "emailPlaceholder": "Skriv inn e-postadressen din",
+      "sendResetInstructions": "Send tilbakestillingsinstruksjoner"
+    }
+  },
+  "authLayout": {
+    "titleSuffix": " - {{appName}}"
+  },
+  "authProvider": {
+    "authenticationError": "Autentiseringsfeil",
+    "retry": "Prøv igjen"
+  },
+  "usersBrowser": {
+    "errors": {
+      "auth": "Kunne ikke laste Firebase Auth-brukere"
+    }
+  },
+  "validation": {
+    "required": "{{field}} er påkrevd"
+  },
+  "roles": {
+    "systemAdmin": {
+      "label": "Systemadministrator",
+      "description": "Full systemtilgang og kontroll"
+    },
+    "tenantAdmin": {
+      "label": "Tenant-administrator",
+      "description": "Kan administrere tenant-innstillinger og konfigurasjon"
+    },
+    "regular": {
+      "label": "Vanlig bruker",
+      "description": "Standardbruker uten administratorrettigheter"
+    }
+  },
+  "admin": {
+    "loading": "Laster admin...",
+    "tabs": {
+      "tenants": "Tenants",
+      "diagnostics": "Diagnostikk",
+      "tenantConfig": "Tenant-konfigurasjon",
+      "users": "Brukere",
+      "ariaLabel": "Admin-faner"
+    },
+    "tenantConfig": {
+      "loading": "Laster tenant-konfigurasjon...",
+      "overview": {
+        "title": "Tenant-oversikt",
+        "tenantId": "Tenant-ID",
+        "appName": "Appnavn",
+        "lastUpdated": "Sist oppdatert"
+      },
+      "theme": {
+        "title": "Tema-artefakt",
+        "description": "Hash + CSS-leveringshjelpere",
+        "copyLink": "Kopier tema-lenke",
+        "forceReload": "Tving omlasting av tema",
+        "activeHash": "Aktiv hash",
+        "notPublished": "ikke publisert",
+        "generatedAt": "Generert",
+        "copySuccess": "Tema-lenke kopiert til utklippstavlen.",
+        "copyError": "Kunne ikke kopiere tema-lenke. Vennligst kopier manuelt."
+      },
+      "brandingTokens": {
+        "title": "Merkevare-tokens"
+      },
+      "computedCss": {
+        "title": "Beregnede CSS-variabler"
+      }
+    },
+    "tenants": {
+      "pageTitle": "Tenant-administrasjon",
+      "pageDescription": "Se og administrer alle tenant-konfigurasjoner",
+      "summary": {
+        "total": "Totalt antall tenants:"
+      },
+      "actions": {
+        "create": "Opprett ny tenant",
+        "switchTenant": "Klikk for å bytte til denne tenanten"
+      },
+      "status": {
+        "active": "Aktiv",
+        "default": "Standard"
+      },
+      "details": {
+        "tenantId": "Tenant-ID:",
+        "primaryDomain": "Primært domene:",
+        "allDomains": "Alle domener:",
+        "domains": "Domener:"
+      },
+      "emptyState": "Ingen tenants funnet",
+      "errors": {
+        "load": "Kunne ikke laste tenants"
+      }
+    },
+    "diagnostics": {
+      "loading": "Laster miljødiagnostikk...",
+      "errors": {
+        "fetch": "Kunne ikke hente miljødata",
+        "unknown": "Ukjent feil oppstod"
+      },
+      "serverStatus": {
+        "title": "Serverstatus",
+        "environment": "Miljø",
+        "nodeVersion": "Node-versjon",
+        "uptime": "Oppetid",
+        "startedAt": "Startet"
+      },
+      "buildInfo": {
+        "title": "Byggeinformasjon",
+        "version": "Versjon",
+        "buildDate": "Byggedato",
+        "buildTimestamp": "Byggetidsstempel"
+      },
+      "memory": {
+        "title": "Minnebruk",
+        "rss": "RSS (Resident Set Size)",
+        "heapUsed": "Heap brukt",
+        "heapTotal": "Heap totalt",
+        "heapAvailable": "Heap tilgjengelig",
+        "external": "Eksternt minne",
+        "arrayBuffers": "Array-buffere",
+        "heapLimit": "Heap-grense"
+      },
+      "heap": {
+        "title": "V8 Heap-områder",
+        "size": "Størrelse:",
+        "used": "Brukt:",
+        "available": "Tilgjengelig:"
+      },
+      "envVars": {
+        "title": "Miljøvariabler",
+        "variable": "Variabel",
+        "value": "Verdi"
+      },
+      "filesystem": {
+        "title": "Filsystem",
+        "cwd": "Arbeidsmappe"
+      }
+    },
+    "users": {
+      "description": "Administrer brukerkontoer, roller og tillatelser",
+      "loading": "Laster brukere...",
+      "emptyState": "Ingen brukere funnet",
+      "search": {
+        "label": "Søk etter e-post eller UID",
+        "placeholder": "Skriv inn e-post eller UID..."
+      },
+      "table": {
+        "email": "E-post",
+        "displayName": "Visningsnavn",
+        "role": "Rolle",
+        "status": "Status",
+        "created": "Opprettet",
+        "lastSignIn": "Siste innlogging",
+        "actions": "Handlinger"
+      },
+      "actions": {
+        "editUser": "Rediger bruker"
+      },
+      "confirmations": {
+        "disableUser": "Er du sikker på at du vil {{action}} denne brukerkontoen?"
+      },
+      "success": {
+        "userToggled": "Brukerkonto {{action}}t",
+        "roleUpdated": "Brukerrolle oppdatert til {{role}}",
+        "roleUnchanged": "Rolle uendret"
+      },
+      "errors": {
+        "selfDisable": "Du kan ikke deaktivere din egen konto",
+        "selfRoleChange": "Du kan ikke endre din egen rolle",
+        "disableUser": "Kunne ikke {{action}} brukerkonto",
+        "roleUpdate": "Kunne ikke oppdatere brukerrolle",
+        "invalidSelection": "Ugyldig valg"
+      },
+      "rolePrompt": {
+        "title": "Nåværende rolle: {{currentRole}}\n\nVelg ny rolle:",
+        "regularUser": "Vanlig bruker (ingen rolle)"
+      }
+    },
+    "userEditor": {
+      "title": "Rediger bruker",
+      "tabs": {
+        "ariaLabel": "Brukerredigerings-faner",
+        "profile": "Profil",
+        "role": "Rolle",
+        "firebaseAuth": "Firebase Auth",
+        "firestore": "Firestore"
+      },
+      "profile": {
+        "description": "Rediger brukerens visningsnavn og e-postadresse",
+        "displayName": "Visningsnavn",
+        "displayNamePlaceholder": "Skriv inn visningsnavn",
+        "email": "E-postadresse",
+        "emailPlaceholder": "Skriv inn e-postadresse"
+      },
+      "role": {
+        "description": "Velg en rolle for denne brukeren"
+      },
+      "loading": "Laster...",
+      "noDataAvailable": "Ingen data tilgjengelig",
+      "errors": {
+        "noChanges": "Ingen endringer å lagre",
+        "selfRoleChange": "Kan ikke endre din egen rolle",
+        "selfRoleChangeWarning": "Du kan ikke endre din egen rolle",
+        "profileUpdate": "Kunne ikke oppdatere profil",
+        "roleUpdate": "Kunne ikke oppdatere rolle",
+        "loadData": "Kunne ikke laste data"
+      },
+      "success": {
+        "profileUpdated": "Profil oppdatert",
+        "roleUpdated": "Rolle oppdatert"
+      }
+    },
+    "tenantEditor": {
+      "titleCreate": "Opprett ny tenant",
+      "titleEdit": "Rediger tenant",
+      "descriptionCreate": "Konfigurer en ny tenant med merkevare og domener",
+      "descriptionEdit": "Oppdater tenant-konfigurasjon",
+      "modeToggle": {
+        "label": "Redigeringsmodus",
+        "basic": "Grunnleggende",
+        "advanced": "Avansert"
+      },
+      "modeHint": {
+        "basic": "Viser grunnleggende innstillinger",
+        "advanced": "Viser alle innstillinger",
+        "moreColors": "Bytt til Avansert modus for full fargepalettekontroll"
+      },
+      "derivation": {
+        "themeMode": {
+          "label": "Temamodus",
+          "light": "Lys",
+          "medium": "Medium",
+          "dark": "Mørk"
+        },
+        "style": {
+          "label": "Stil",
+          "balanced": "Balansert",
+          "bold": "Fet",
+          "soft": "Myk",
+          "vibrant": "Livlig",
+          "elegant": "Elegant"
+        },
+        "intensity": {
+          "label": "Intensitet",
+          "subtle": "Subtil",
+          "strong": "Sterk"
+        }
+      },
+      "derivationWand": {
+        "tooltip": "Utled farger fra palett",
+        "tooltipDisabled": "Sett primær-, sekundær- og aksentfarger først",
+        "popoverTitle": "Fargeutledning",
+        "derive": "Bruk utledning"
+      },
+      "sections": {
+        "gettingStarted": {
+          "title": "Kom i gang",
+          "description": "Velg hvordan du vil initialisere tenanten din"
+        },
+        "basicInfo": {
+          "title": "Grunnleggende info",
+          "description": "Tenant-ID, navn og domener"
+        },
+        "assets": {
+          "title": "Ressurser",
+          "description": "Logo og favicon-bilder"
+        },
+        "paletteColors": {
+          "title": "Palettfarger",
+          "description": "Kjerne merkevarefarger"
+        },
+        "brandColors": {
+          "title": "Merkevarefarger",
+          "description": "Sett dine primære merkevarefarger, og utled deretter hele fargesystemet"
+        },
+        "surfaceColors": {
+          "title": "Overflatefarger",
+          "description": "Bakgrunns- og beholderfarger"
+        },
+        "textColors": {
+          "title": "Tekstfarger",
+          "description": "Typografifarger"
+        },
+        "interactiveColors": {
+          "title": "Interaktive farger",
+          "description": "Knapp- og lenkefarger"
+        },
+        "borderColors": {
+          "title": "Kantfarger",
+          "description": "Kant- og skillelinjefarger"
+        },
+        "statusColors": {
+          "title": "Statusfarger",
+          "description": "Tilbakemeldings- og varselfarger"
+        },
+        "typography": {
+          "title": "Typografi",
+          "description": "Skriftfamilier, størrelser og vekter"
+        },
+        "spacing": {
+          "title": "Mellomrom",
+          "description": "Mellomromsskala og semantisk mellomrom"
+        },
+        "radii": {
+          "title": "Kantradius",
+          "description": "Hjørneavrundingsverdier"
+        },
+        "shadows": {
+          "title": "Skygger",
+          "description": "Bokseskygge-definisjoner"
+        },
+        "legal": {
+          "title": "Juridisk",
+          "description": "Bedriftsinfo og juridiske lenker"
+        },
+        "motion": {
+          "title": "Bevegelse",
+          "description": "Animasjonsvarigheter og easings"
+        },
+        "featureFlags": {
+          "title": "Funksjonsflagg",
+          "description": "Aktiver eller deaktiver funksjoner"
+        },
+        "marketing": {
+          "title": "Markedsføringsfunksjoner",
+          "description": "Vis/skjul markedsføringssider og innhold"
+        },
+        "advanced": {
+          "title": "Avansert",
+          "description": "Valgfrie visuelle effekter"
+        }
+      },
+      "fields": {
+        "tenantId": "Tenant-ID",
+        "appName": "Appnavn",
+        "domains": "Domener",
+        "logoUrl": "Logo-URL",
+        "faviconUrl": "Favicon-URL",
+        "primaryColor": "Primærfarge",
+        "primaryVariantColor": "Primærvariant",
+        "secondaryColor": "Sekundærfarge",
+        "secondaryVariantColor": "Sekundærvariant",
+        "accentColor": "Aksentfarge",
+        "neutralColor": "Nøytralfarge",
+        "neutralVariantColor": "Nøytralvariant",
+        "successColor": "Suksessfarge",
+        "warningColor": "Advarselsfarge",
+        "dangerColor": "Farefarge",
+        "infoColor": "Infofarge"
+      },
+      "placeholders": {
+        "tenantId": "min-tenant-id",
+        "appName": "Min utgiftsapp",
+        "domain": "Legg til nytt domene...",
+        "selectTenant": "Velg en tenant å kopiere..."
+      },
+      "creationMode": {
+        "empty": "Start fra tom",
+        "copy": "Kopier fra eksisterende tenant",
+        "emptyDescription": "Du må fylle ut alle påkrevde felt. Farger skal være i #RRGGBB-format.",
+        "copyDescription": "Alle temainnstillinger vil bli kopiert fra {{tenant}}. Du må fortsatt sette en unik Tenant-ID, Appnavn og domener."
+      },
+      "validation": {
+        "tenantIdFormat": "Ugyldig Tenant-ID: må bare inneholde små bokstaver, tall og bindestreker",
+        "domainRequired": "Minst ett domene er påkrevd",
+        "invalidDomain": "Ugyldig domene: {{domain}}",
+        "saveTenantFirst": "Vennligst lagre tenanten først før du laster opp bilder",
+        "tenantIdRequiredForPublish": "Tenant-ID er påkrevd for publisering"
+      },
+      "hints": {
+        "tenantIdReadonly": "Tenant-ID kan ikke endres",
+        "colorFormat": "#RRGGBB"
+      },
+      "toggles": {
+        "showMarketingContent": {
+          "label": "Vis markedsføringsinnhold",
+          "description": "Vis markedsføringsinnhold på offentlige sider"
+        },
+        "showPricingPage": {
+          "label": "Vis prisside",
+          "description": "Vis prisinformasjon"
+        },
+        "showAppNameInHeader": {
+          "label": "Vis appnavn i header",
+          "description": "Vis appnavnet ved siden av logoen"
+        },
+        "enableParallax": {
+          "label": "Aktiver parallakse",
+          "description": "Aktiver parallakse-rulleeffekter"
+        },
+        "enableMagneticHover": {
+          "label": "Aktiver magnetisk hover",
+          "description": "Aktiver magnetiske hover-effekter på knapper"
+        },
+        "enableScrollReveal": {
+          "label": "Aktiver scroll-avsløring",
+          "description": "Aktiver scroll-utløste animasjoner"
+        }
+      },
+      "loading": {
+        "tenants": "Laster tenants..."
+      },
+      "empty": {
+        "noTenants": "Ingen eksisterende tenants å kopiere fra."
+      },
+      "errors": {
+        "invalidPayload": "Ugyldige tenant-data. Vennligst sjekk alle felt og prøv igjen.",
+        "permissionDenied": "Du har ikke tillatelse til å endre tenant-innstillinger.",
+        "duplicateDomain": "Ett eller flere domener er allerede tilordnet en annen tenant.",
+        "saveFailed": "Kunne ikke lagre tenant. Vennligst prøv igjen.",
+        "tenantNotFound": "Tenant eksisterer ikke. Lagre den før publisering.",
+        "tokensMissing": "Tenant mangler merkevare-tokens. Vennligst konfigurer merkevare og lagre først.",
+        "publishFailed": "Kunne ikke publisere tema. Vennligst prøv igjen.",
+        "uploadFailed": "Kunne ikke laste opp {{type}}"
+      },
+      "success": {
+        "createdAndPublished": "Tenant opprettet og tema publisert!",
+        "updatedAndPublished": "Tenant oppdatert og tema publisert!",
+        "createdPublishFailed": "Tenant opprettet, men temapublisering mislyktes. Klikk «Publiser tema» manuelt.",
+        "updatedPublishFailed": "Tenant oppdatert, men temapublisering mislyktes. Klikk «Publiser tema» manuelt.",
+        "themePublished": "Tema publisert!",
+        "logoUploaded": "Logo lastet opp!",
+        "faviconUploaded": "Favicon lastet opp!",
+        "logoSelected": "Logo valgt fra bibliotek",
+        "faviconSelected": "Favicon valgt fra bibliotek"
+      },
+      "buttons": {
+        "save": "Lagre tenant",
+        "publish": "Publiser tema",
+        "addDomain": "Legg til",
+        "removeDomain": "Fjern",
+        "chooseFromLibrary": "Velg fra bibliotek",
+        "uploadNew": "Last opp ny"
+      },
+      "actions": {
+        "deriveColors": "Utled farger",
+        "deriveColorsDescription": "Generer alle semantiske farger fra merkevarepaletten din"
+      }
+    }
+  },
+  "tenantBranding": {
+    "title": "Merkevarekonfigurasjon",
+    "subtitle": "Tenant-innstillinger",
+    "description": "Tilpass tenantens utseende og markedsføringsfunksjoner",
+    "loading": "Laster tenant-innstillinger...",
+    "accessDenied": "Du har ikke tillatelse til å få tilgang til tenant-merkevareinnstillinger. Denne siden krever tenant-admin eller system-admin-rolle.",
+    "tenantIdLabel": "Tenant-ID",
+    "domainWarning": "Endringer vil påvirke alle brukere som har tilgang til denne tenantens domene",
+    "brandingAssets": {
+      "title": "Merkevareressurser",
+      "description": "Konfigurer merkevareidentiteten din"
+    },
+    "fields": {
+      "appName": "Appnavn",
+      "appNamePlaceholder": "Min utgiftsapp",
+      "logoUrl": "Logo-URL",
+      "logoUrlPlaceholder": "/logo.svg",
+      "faviconUrl": "Favicon-URL",
+      "faviconUrlPlaceholder": "/favicon.ico",
+      "primaryColor": "Primærfarge",
+      "secondaryColor": "Sekundærfarge"
+    },
+    "preview": {
+      "title": "Direkte forhåndsvisning",
+      "description": "Se hvordan merkevaren din vil se ut",
+      "primaryButton": "Primærknapp",
+      "secondaryButton": "Sekundærknapp",
+      "brandingLabel": "Din tenant-merkevare"
+    },
+    "marketing": {
+      "title": "Markedsføringsfunksjoner",
+      "description": "Kontroller hvilke markedsføringssider som er synlige",
+      "contentLabel": "Markedsføringsinnhold",
+      "contentDescription": "Vis funksjoner/CTA-seksjoner",
+      "pricingLabel": "Prisside",
+      "pricingDescription": "Vis /pricing-rute"
+    },
+    "actions": {
+      "saving": "Lagrer...",
+      "saveChanges": "Lagre endringer"
+    },
+    "errors": {
+      "loadFailed": "Kunne ikke laste tenant-innstillinger",
+      "updateFailed": "Kunne ikke oppdatere merkevareinnstillinger",
+      "notImplemented": "Merkevareoppdatering er ikke implementert i backend ennå"
+    },
+    "success": {
+      "updated": "Merkevareinnstillinger oppdatert"
+    }
+  }
+}

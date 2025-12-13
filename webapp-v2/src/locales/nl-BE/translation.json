@@ -1,0 +1,1927 @@
+{
+  "accessibility": {
+    "skipToContent": "Ga naar de hoofdinhoud"
+  },
+  "apiErrors": {
+    "AUTH_REQUIRED": "Gelieve in te loggen om verder te gaan",
+    "AUTH_INVALID": "Uw sessie is verlopen. Gelieve opnieuw in te loggen.",
+    "FORBIDDEN": "U heeft geen toestemming om dit te doen",
+    "NOT_FOUND": "{{resource}} niet gevonden",
+    "ALREADY_EXISTS": "{{resource}} bestaat al",
+    "CONFLICT": "Iemand anders heeft wijzigingen aangebracht. Gelieve te vernieuwen en opnieuw te proberen.",
+    "VALIDATION_ERROR": "Controleer uw invoer en probeer opnieuw",
+    "INVALID_REQUEST": "Er is iets misgegaan met uw verzoek",
+    "RATE_LIMITED": "Te veel verzoeken. Wacht een moment.",
+    "SERVICE_ERROR": "Er is iets misgegaan. Probeer het opnieuw.",
+    "UNAVAILABLE": "Service tijdelijk niet beschikbaar. Probeer het later opnieuw."
+  },
+  "authErrors": {
+    "userNotFound": "Geen account gevonden met dit e-mailadres",
+    "wrongPassword": "Onjuist wachtwoord",
+    "weakPassword": "Wachtwoord is te zwak. Gebruik minimaal 6 tekens.",
+    "invalidEmail": "Voer een geldig e-mailadres in",
+    "tooManyRequests": "Te veel pogingen. Probeer het later opnieuw.",
+    "networkError": "Netwerkfout. Controleer uw verbinding.",
+    "emailInUse": "Dit e-mailadres is al geregistreerd",
+    "invalidCredential": "Ongeldig e-mailadres of wachtwoord",
+    "userDisabled": "Dit account is uitgeschakeld",
+    "requiresRecentLogin": "Gelieve opnieuw in te loggen om verder te gaan",
+    "generic": "Authenticatie mislukt. Probeer het opnieuw.",
+    "postRegistrationBase": "Uw account is aangemaakt, but we konden u niet automatisch inloggen.",
+    "postRegistrationFallback": "Uw account is aangemaakt, but we konden u niet automatisch inloggen. Gelieve handmatig in te loggen."
+  },
+  "pagination": {
+    "previous": "Vorige",
+    "next": "Volgende",
+    "page": "Pagina",
+    "navigation": "Paginering"
+  },
+  "common": {
+    "loading": "Laden...",
+    "unknownError": "Er is iets misgegaan. Probeer het opnieuw.",
+    "cancel": "Annuleren",
+    "save": "Opslaan",
+    "saving": "Opslaan...",
+    "delete": "Verwijderen",
+    "edit": "Bewerken",
+    "close": "Sluiten",
+    "confirm": "Bevestigen",
+    "back": "Terug",
+    "next": "Volgende",
+    "previous": "Vorige",
+    "submit": "Indienen",
+    "search": "Zoeken",
+    "select": "Selecteren",
+    "selectAll": "Alles selecteren",
+    "none": "Geen",
+    "all": "Alle",
+    "yes": "Ja",
+    "no": "Nee",
+    "ok": "OK",
+    "error": "Fout",
+    "success": "Gelukt",
+    "warning": "Waarschuwing",
+    "info": "Info",
+    "unknown": "Onbekend",
+    "unknownUser": "Onbekende gebruiker",
+    "includeDeleted": "Inclusief verwijderde",
+    "you": "Jij",
+    "youSuffix": " (Jij)",
+    "required": "*",
+    "optional": "(optioneel)",
+    "or": "of",
+    "and": "en",
+    "copy": "Kopiëren",
+    "share": "Delen",
+    "dismiss": "Negeren",
+    "dismissAlert": "Waarschuwing negeren",
+    "justNow": "zonet",
+    "chooseFile": "Kies bestand",
+    "active": "Actief",
+    "inactive": "Inactief",
+    "disabled": "Uitgeschakeld",
+    "total": "Totaal",
+    "member": "Lid",
+    "members": "Leden",
+    "user": "Gebruiker",
+    "group": "Groep",
+    "groups": "Groepen",
+    "recent": "Recent",
+    "settings": "Instellingen",
+    "understood": "Begrepen",
+    "titleSuffix": " - {{appName}}",
+    "refresh": "Vernieuwen",
+    "reset": "Resetten",
+    "add": "Toevoegen",
+    "create": "Aanmaken",
+    "processing": "Verwerken...",
+    "download": "Downloaden",
+    "downloading": "Downloaden...",
+    "fromLibrary": "Uit bibliotheek",
+    "orEnterUrl": "Of voer URL in",
+    "imageFailedToLoad": "Afbeelding kon niet worden geladen",
+    "selectedFile": "Geselecteerd",
+    "enable": "Inschakelen",
+    "disable": "Uitschakelen",
+    "created": "Aangemaakt",
+    "updated": "Bijgewerkt",
+    "modified": "Gewijzigd",
+    "name": "Naam",
+    "type": "Type",
+    "size": "Grootte",
+    "link": "Link",
+    "value": "Waarde",
+    "notConfigured": "Niet geconfigureerd",
+    "notSet": "niet ingesteld",
+    "empty": "(leeg)",
+    "noData": "Geen gegevens beschikbaar",
+    "default": "Standaard",
+    "actions": "Acties",
+    "status": "Status",
+    "email": "E-mail",
+    "displayName": "Weergavenaam",
+    "role": "Rol",
+    "lastSignIn": "Laatste aanmelding",
+    "placeholder": {
+      "amount": "0,00",
+      "search": "Zoeken...",
+      "searchCurrencies": "Valuta's zoeken...",
+      "selectCurrency": "Valuta selecteren...",
+      "selectPerson": "Persoon selecteren"
+    }
+  },
+  "currencySelector": {
+    "noResults": "Geen valuta's gevonden"
+  },
+  "relativeTime": {
+    "justNow": "zonet",
+    "minuteAgo_one": "{{count}} minuut geleden",
+    "minuteAgo_other": "{{count}} minuten geleden",
+    "hourAgo_one": "{{count}} uur geleden",
+    "hourAgo_other": "{{count}} uren geleden",
+    "dayAgo_one": "{{count}} dag geleden",
+    "dayAgo_other": "{{count}} dagen geleden",
+    "monthAgo_one": "{{count}} maand geleden",
+    "monthAgo_other": "{{count}} maanden geleden",
+    "yearAgo_one": "{{count}} jaar geleden",
+    "yearAgo_other": "{{count}} jaren geleden"
+  },
+  "app": {
+    "loading": "Laden...",
+    "loadingPage": "Pagina laden...",
+    "loadingExpenseForm": "Uitgavenformulier laden..."
+  },
+  "createGroup": {
+    "validation": {
+      "displayNameTooShort": "Weergavenaam moet minstens 2 tekens lang zijn.",
+      "displayNameTooLong": "Weergavenaam mag maximaal 50 tekens lang zijn."
+    }
+  },
+  "createGroupModal": {
+    "title": "Een nieuwe groep aanmaken",
+    "groupNameLabel": "Groepsnaam",
+    "groupNamePlaceholder": "bv. Appartementskosten, Reis naar Parijs",
+    "groupNameHelpText": "Kies een naam die beschrijft waarvoor u de uitgaven zult verdelen.",
+    "groupDisplayNameLabel": "Uw weergavenaam in deze groep",
+    "groupDisplayNamePlaceholder": "Hoe moeten andere leden uw naam zien?",
+    "groupDisplayNameHelpText": "Deze naam verschijnt boven uw uitgaven, opmerkingen en activiteit in deze groep.",
+    "groupDescriptionLabel": "Beschrijving (optioneel)",
+    "groupDescriptionPlaceholder": "Voeg details toe over deze groep...",
+    "groupDescriptionHelpText": "Optionele beschrijving om leden te helpen het doel van de groep te begrijpen.",
+    "closeButtonAriaLabel": "Modal sluiten",
+    "cancelButton": "Annuleren",
+    "submitButton": "Groep aanmaken",
+    "restrictCurrencies": "Valuta's beperken",
+    "restrictCurrenciesHelp": "Alleen geselecteerde valuta's kunnen worden gebruikt voor uitgaven in deze groep",
+    "validation": {
+      "nameRequired": "Groepsnaam is verplicht.",
+      "nameTooShort": "Groepsnaam moet minstens 2 tekens lang zijn.",
+      "nameTooLong": "Groepsnaam mag maximaal 50 tekens lang zijn.",
+      "displayNameRequired": "Voer een weergavenaam in.",
+      "displayNameTooShort": "Weergavenaam moet minstens 2 tekens lang zijn.",
+      "displayNameTooLong": "Weergavenaam mag maximaal 50 tekens lang zijn.",
+      "displayNameInvalid": "Weergavenaam kan alleen letters, cijfers, spaties, koppeltekens, underscores en punten bevatten.",
+      "displayNameTaken": "Die weergavenaam is al in gebruik in deze groep."
+    }
+  },
+  "loginPage": {
+    "title": "Aanmelden",
+    "description": "Meld u aan bij uw account om uw gedeelde uitgaven te beheren",
+    "rememberMe": "Onthoud mij",
+    "forgotPassword": "Wachtwoord vergeten?",
+    "submitButton": "Aanmelden",
+    "noAccount": "Heeft u geen account?",
+    "signUp": "Registreren",
+    "validation": {
+      "emailRequired": "E-mail is verplicht",
+      "passwordRequired": "Wachtwoord is verplicht"
+    }
+  },
+  "registerPage": {
+    "title": "Account aanmaken",
+    "description": "Maak uw {{appName}}-account aan om gedeelde uitgaven te beheren",
+    "fullNameLabel": "Volledige naam",
+    "fullNamePlaceholder": "Voer uw volledige naam in",
+    "passwordLabel": "Wachtwoord",
+    "passwordPlaceholder": "Maak een sterk wachtwoord aan",
+    "confirmPasswordLabel": "Bevestig wachtwoord",
+    "confirmPasswordPlaceholder": "Bevestig uw wachtwoord",
+    "acceptTerms": "Ik aanvaard de",
+    "termsOfService": "Servicevoorwaarden",
+    "cookiePolicy": "Cookiebeleid",
+    "privacyPolicy": "Privacybeleid",
+    "submitButton": "Account aanmaken",
+    "hasAccount": "Heeft u al een account?",
+    "signIn": "Aanmelden",
+    "requiredIndicator": "*",
+    "validation": {
+      "nameRequired": "Naam is verplicht",
+      "emailRequired": "E-mail is verplicht",
+      "passwordRequired": "Wachtwoord is verplicht",
+      "passwordTooShort": "Wachtwoord moet minstens 12 tekens lang zijn",
+      "passwordsNoMatch": "Wachtwoorden komen niet overeen",
+      "termsRequired": "U moet de Servicevoorwaarden aanvaarden",
+      "cookiesRequired": "U moet het Cookiebeleid aanvaarden",
+      "privacyRequired": "U moet het Privacybeleid aanvaarden"
+    }
+  },
+  "auth": {
+    "refreshingSession": "Uw sessie wordt vernieuwd...",
+    "initializationFailed": "Initialisatie mislukt. Vernieuw de pagina.",
+    "emailInput": {
+      "label": "E-mail",
+      "placeholder": "Voer uw e-mailadres in",
+      "requiredIndicator": "*",
+      "validation": {
+        "required": "E-mail is verplicht",
+        "invalid": "Voer een geldig e-mailadres in"
+      }
+    },
+    "passwordInput": {
+      "label": "Wachtwoord",
+      "placeholder": "Voer uw wachtwoord in",
+      "requiredIndicator": "*",
+      "showPassword": "Wachtwoord tonen",
+      "hidePassword": "Wachtwoord verbergen",
+      "strength": "Wachtwoordsterkte",
+      "strengthWeak": "Zwak",
+      "strengthMedium": "Gemiddeld",
+      "strengthStrong": "Sterk",
+      "validation": {
+        "required": "Wachtwoord is verplicht",
+        "tooShort": "Wachtwoord moet minstens 12 tekens lang zijn"
+      }
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard - {{appName}}",
+    "description": "Beheer uw groepen en uitgaven met {{appName}}",
+    "welcomeMessage": "Welkom bij {{appName}}, {{name}}!",
+    "welcomeDescription": "Begin met het aanmaken van uw eerste groep om uitgaven met vrienden bij te houden en te verdelen.",
+    "yourGroups": "Uw groepen",
+    "createGroup": "Groep aanmaken",
+    "groupsFilter": {
+      "label": "Groepen filteren",
+      "active": "Actief",
+      "archived": "Gearchiveerd"
+    },
+    "groupCard": {
+      "settledUp": "Alles is vereffend!",
+      "youOwe": "U bent {{amount}} verschuldigd",
+      "youAreOwed": "U krijgt {{amount}}",
+      "addExpenseTooltip": "Uitgave toevoegen aan {{groupName}}",
+      "inviteTooltip": "Leden uitnodigen voor {{groupName}}",
+      "noRecentActivity": "Geen recente activiteit",
+      "archivedBadge": "Gearchiveerd"
+    },
+    "emptyState": {
+      "title": "Nog geen groepen",
+      "subtitle": "Maak uw eerste groep aan om gedeelde uitgaven bij te houden",
+      "createButton": "Groep aanmaken"
+    },
+    "stats": {
+      "totalGroups": "Totaal aantal groepen",
+      "totalExpenses": "Totaal aantal uitgaven",
+      "totalBalance": "Totaal saldo"
+    },
+    "quickActions": {
+      "title": "Snelle acties",
+      "createGroup": "Groep aanmaken",
+      "addExpense": "Uitgave toevoegen"
+    }
+  },
+  "activityFeed": {
+    "title": "Recente activiteit",
+    "loading": "Laden...",
+    "emptyState": {
+      "title": "Nog geen activiteit",
+      "description": "Activiteit van uw groepen verschijnt hier zodra het gebeurt.",
+      "groupDescription": "Activiteit in deze groep verschijnt hier."
+    },
+    "error": {
+      "loadFailed": "We konden uw recente activiteit op dit moment niet laden. Probeer het opnieuw."
+    },
+    "actions": {
+      "retry": "Opnieuw proberen",
+      "loadMore": "Meer laden",
+      "loadingMore": "Laden..."
+    },
+    "labels": {
+      "actorYou": "U",
+      "unknownUser": "Iemand",
+      "unknownGroup": "een groep",
+      "unknownExpense": "een uitgave",
+      "unknownSettlement": "een vereffening",
+      "commentOnGroup": "de groepsdiscussie",
+      "commentOnExpense": "de uitgave \"{{description}}\""
+    },
+    "events": {
+      "group-created": "{{actor}} heeft {{group}} aangemaakt",
+      "group-updated": "{{actor}} heeft de groep {{group}} bijgewerkt",
+      "group-updated-from": "{{actor}} heeft {{previous}} hernoemd naar {{group}}",
+      "expense-created": "{{actor}} heeft {{expense}} toegevoegd in {{group}}",
+      "expense-updated": "{{actor}} heeft {{expense}} bijgewerkt in {{group}}",
+      "expense-deleted": "{{actor}} heeft {{expense}} verwijderd uit {{group}}",
+      "member-joined": "{{actor}} heeft {{target}} toegevoegd aan {{group}}",
+      "member-joined-self": "{{actor}} is lid geworden van {{group}}",
+      "member-left": "{{actor}} heeft {{target}} verwijderd uit {{group}}",
+      "member-left-self": "{{actor}} heeft {{group}} verlaten",
+      "comment-added": "{{actor}} heeft gereageerd op {{target}} in {{group}}",
+      "settlement-created": "{{actor}} heeft {{settlement}} geregistreerd in {{group}}",
+      "settlement-updated": "{{actor}} heeft {{settlement}} bijgewerkt in {{group}}",
+      "settlement-deleted": "{{actor}} heeft {{settlement}} verwijderd uit {{group}}",
+      "generic": "{{actor}} heeft wijzigingen aangebracht in {{group}}",
+      "group-created-short": "{{actor}} heeft de groep aangemaakt",
+      "group-updated-short": "{{actor}} heeft de groep bijgewerkt",
+      "group-updated-from-short": "{{actor}} heeft de groep hernoemd van {{previous}}",
+      "expense-created-short": "{{actor}} heeft {{expense}} toegevoegd",
+      "expense-updated-short": "{{actor}} heeft {{expense}} bijgewerkt",
+      "expense-deleted-short": "{{actor}} heeft {{expense}} verwijderd",
+      "member-joined-short": "{{actor}} heeft {{target}} toegevoegd",
+      "member-joined-self-short": "{{actor}} is lid geworden",
+      "member-left-short": "{{actor}} heeft {{target}} verwijderd",
+      "member-left-self-short": "{{actor}} is vertrokken",
+      "comment-added-short": "{{actor}} heeft gereageerd op {{target}}",
+      "settlement-created-short": "{{actor}} heeft {{settlement}} geregistreerd",
+      "settlement-updated-short": "{{actor}} heeft {{settlement}} bijgewerkt",
+      "settlement-deleted-short": "{{actor}} heeft {{settlement}} verwijderd",
+      "generic-short": "{{actor}} heeft wijzigingen aangebracht"
+    }
+  },
+  "group": {
+    "header": {
+      "members_one": "{{count}} lid",
+      "members_other": "{{count}} leden",
+      "expenses_one": "{{count}} uitgave",
+      "expenses_other": "{{count}} uitgaven"
+    },
+    "actions": {
+      "addExpense": "Uitgave toevoegen",
+      "viewExpenses": "Uitgaven bekijken",
+      "settleUp": "Vereffenen",
+      "shareGroup": "Groep delen",
+      "editGroup": "Groep bewerken",
+      "leaveGroup": "Groep verlaten"
+    },
+    "share": {
+      "title": "Groep delen",
+      "subtitle": "Nodig anderen uit om lid te worden van deze groep",
+      "copyLink": "Link kopiëren",
+      "linkCopied": "Link gekopieerd naar klembord!"
+    },
+    "edit": {
+      "title": "Groep bewerken",
+      "warningIcon": "⚠️"
+    },
+    "leave": {
+      "title": "Groep verlaten",
+      "message": "Weet u zeker dat u deze groep wilt verlaten?",
+      "confirmButton": "Groep verlaten",
+      "cancelButton": "Annuleren"
+    },
+    "members": {
+      "title": "Leden",
+      "addMember": "Lid toevoegen",
+      "removeMember": "Lid verwijderen",
+      "unknownUser": "Onbekende gebruiker",
+      "user": "Gebruiker"
+    },
+    "expenses": {
+      "title": "Uitgaven",
+      "noExpenses": "Nog geen uitgaven",
+      "addFirstExpense": "Voeg uw eerste uitgave toe",
+      "unknown": "Onbekend"
+    },
+    "balance": {
+      "title": "Saldo-overzicht",
+      "settledUp": "Alles is vereffend!",
+      "unknown": "Onbekend"
+    }
+  },
+  "comments": {
+    "section": {
+      "title": "Opmerkingen",
+      "noComments": "Nog geen opmerkingen"
+    },
+    "input": {
+      "placeholder": "Een opmerking toevoegen...",
+      "ariaLabel": "Tekst van de opmerking",
+      "sendButton": "Verzenden",
+      "sendAriaLabel": "Opmerking verzenden"
+    },
+    "item": {
+      "justNow": "zonet",
+      "deleteButton": "Opmerking verwijderen"
+    },
+    "list": {
+      "loading": "Opmerkingen laden...",
+      "error": "Laden van opmerkingen mislukt"
+    },
+    "commentInput": {
+      "placeholder": "Een opmerking toevoegen...",
+      "tooLong": "Opmerking is te lang",
+      "addFailed": "Toevoegen van opmerking mislukt",
+      "helpText": "Druk op Enter om te verzenden, Shift+Enter voor een nieuwe regel"
+    },
+    "commentItem": {
+      "recently": "onlangs"
+    },
+    "commentsList": {
+      "loading": "Opmerkingen laden...",
+      "empty": "Nog geen opmerkingen",
+      "emptySubtext": "Wees de eerste om te reageren!",
+      "loadingMore": "Laden...",
+      "loadMore": "Meer opmerkingen laden"
+    },
+    "commentsSection": {
+      "placeholderGroup": "Een opmerking toevoegen aan deze groep...",
+      "placeholderExpense": "Een opmerking toevoegen aan deze uitgave..."
+    }
+  },
+  "ui": {
+    "alert": {
+      "dismiss": "Waarschuwing negeren"
+    },
+    "confirmDialog": {
+      "confirm": "Bevestigen",
+      "cancel": "Annuleren"
+    }
+  },
+  "navigation": {
+    "header": {
+      "fallback": "...",
+      "dashboard": "Dashboard",
+      "groups": "Groepen",
+      "settings": "Instellingen"
+    },
+    "footer": {
+      "copyright": "© {{year}} {{appName}}. Alle rechten voorbehouden.",
+      "privacy": "Privacybeleid",
+      "terms": "Servicevoorwaarden",
+      "cookies": "Cookiebeleid"
+    },
+    "userMenu": {
+      "openUserMenu": "Gebruikersmenu openen",
+      "profile": "Profiel",
+      "settings": "Instellingen",
+      "logout": "Afmelden",
+      "help": "Hulp"
+    }
+  },
+  "errors": {
+    "generic": "Er is een fout opgetreden",
+    "network": "Er is een netwerkfout opgetreden",
+    "invalidLink": "Ongeldige link",
+    "notFound": {
+      "page": "Pagina niet gevonden",
+      "group": "Groep niet gevonden",
+      "expense": "Uitgave niet gevonden"
+    },
+    "loading": {
+      "cookiePolicy": "Fout bij het laden van het cookiebeleid",
+      "privacyPolicy": "Fout bij het laden van het privacybeleid",
+      "terms": "Fout bij het laden van de voorwaarden"
+    },
+    "validation": {
+      "displayNameEmpty": "Weergavenaam mag niet leeg zijn",
+      "displayNameTooLong": "Weergavenaam mag maximaal 100 tekens lang zijn",
+      "passwordTooShort": "Nieuw wachtwoord moet minstens 12 tekens lang zijn",
+      "passwordsNoMatch": "Wachtwoorden komen niet overeen",
+      "passwordSameAsCurrent": "Nieuw wachtwoord moet verschillen van het huidige wachtwoord",
+      "passwordAndNewRequired": "Huidig wachtwoord en nieuw wachtwoord zijn verplicht"
+    }
+  },
+  "seo": {
+    "titleSuffix": " | {{appName}}",
+    "siteName": "{{appName}}"
+  },
+  "expenseForm": {
+    "description": "Beschrijving",
+    "amount": "Bedrag*",
+    "whoPaid": "Wie heeft betaald?",
+    "splitBetween": "Verdelen tussen",
+    "exactAmounts": "Exacte bedragen",
+    "percentage": "Percentage",
+    "equal": "Gelijk",
+    "exactAmountsInstruction": "Voer exacte bedragen in voor elke persoon:",
+    "percentageInstruction": "Voer een percentage in voor elke persoon:",
+    "selectAll": "Alles selecteren",
+    "saveExpense": "Uitgave opslaan",
+    "updateExpense": "Uitgave bijwerken",
+    "cancel": "Annuleren",
+    "errors": {
+      "expenseLocked": "Deze uitgave kan niet worden bewerkt omdat een of meer deelnemers de groep hebben verlaten."
+    }
+  },
+  "settlementForm": {
+    "updatePayment": "Betaling bijwerken",
+    "recordPayment": "Betaling registreren",
+    "updateSettlement": "Vereffening bijwerken",
+    "recordSettlement": "Vereffening registreren",
+    "closeModal": "Modal sluiten",
+    "whoPaidLabel": "Wie heeft betaald?",
+    "whoReceivedPaymentLabel": "Wie heeft de betaling ontvangen?",
+    "amountLabel": "Bedrag",
+    "dateLabel": "Datum",
+    "noteLabel": "Notitie (optioneel)",
+    "selectPersonPlaceholder": "Persoon selecteren",
+    "amountPlaceholder": "0,00",
+    "notePlaceholder": "bv. Payconiq, contant, bankoverschrijving",
+    "youSuffix": " (Jij)",
+    "cancelButton": "Annuleren",
+    "updatingButton": "Bijwerken...",
+    "recordingButton": "Registreren...",
+    "paymentSummary": "{{payer}} heeft {{amount}} betaald aan {{payee}}",
+    "validation": {
+      "selectPayer": "Selecteer wie heeft betaald",
+      "selectPayee": "Selecteer wie de betaling heeft ontvangen",
+      "samePersonError": "Betaler en ontvanger kunnen niet dezelfde persoon zijn",
+      "validAmountRequired": "Voer een geldig bedrag in groter dan 0",
+      "amountTooLarge": "Bedrag mag niet groter zijn dan 999.999,99",
+      "validCurrencyRequired": "Selecteer een geldige valuta",
+      "dateRequired": "Selecteer een datum",
+      "dateInFuture": "Datum kan niet in de toekomst zijn",
+      "recordPaymentFailed": "Registreren van betaling mislukt"
+    },
+    "errors": {
+      "settlementLocked": "Deze vereffening kan niet worden bewerkt omdat een deelnemer de groep heeft verlaten."
+    },
+    "warnings": {
+      "noDebt": "{{payer}} is {{payee}} geen geld verschuldigd in {{currency}}. Deze vereffening zal een schuld in de tegenovergestelde richting creëren.",
+      "overpayment": "{{payer}} is {{payee}} slechts {{debt}} verschuldigd, maar u vereffent {{amount}}. Dit zal een schuld in de tegenovergestelde richting creëren.",
+      "underpayment": "U registreert {{amount}}, maar {{payer}} zal daarna nog steeds {{remaining}} verschuldigd zijn aan {{payee}}. We houden het resterende saldo bij."
+    }
+  },
+  "settlementHistory": {
+    "noPaymentsYet": "Nog geen betalingen geregistreerd",
+    "today": "Vandaag",
+    "yesterday": "Gisteren",
+    "editPaymentTooltip": "Betaling bewerken",
+    "cannotEditTooltip": "Kan niet bewerken - lid heeft de groep verlaten",
+    "deletePaymentTooltip": "Betaling verwijderen",
+    "loadMore": "Meer laden",
+    "loadMorePayments": "Meer betalingen laden",
+    "deletePaymentTitle": "Betaling verwijderen",
+    "deletePaymentMessage": "Weet u zeker dat u deze betaling van {{amount}} van {{payer}} aan {{payee}} wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
+    "deleteButton": "Verwijderen",
+    "cancelButton": "Annuleren",
+    "showAll": "Alles tonen",
+    "noPaymentsForYou": "Nog geen betalingen waarbij u betrokken bent",
+    "deletedBy": "Verwijderd door"
+  },
+  "balanceSummary": {
+    "loadingBalances": "Saldi laden...",
+    "allSettledUp": "Alles is vereffend!",
+    "debtArrow": " → ",
+    "showOnlyMyBalances": "Alleen mijn saldi tonen",
+    "showAll": "Alles tonen",
+    "settleUp": "Vereffenen",
+    "settleUpButton": "Vereffening registreren voor deze schuld"
+  },
+  "emptyGroupsState": {
+    "title": "Nog geen groepen",
+    "description": "Maak uw eerste groep aan om uitgaven te delen met vrienden, familie of huisgenoten.",
+    "createFirstGroup": "Maak uw eerste groep aan",
+    "gettingStartedTitle": "Aan de slag met {{appName}}:",
+    "step1Title": "1. Maak een groep aan",
+    "step1Description": "Voeg vrienden, huisgenoten of reisgenoten toe",
+    "step2Title": "2. Voeg uitgaven toe",
+    "step2Description": "Houd bij wie heeft betaald en hoe de kosten moeten worden verdeeld",
+    "step3Title": "3. Vereffenen",
+    "step3Description": "Kijk wie wat verschuldigd is en vereffen de saldi"
+  },
+  "groupCard": {
+    "settledUp": "Vereffend",
+    "addExpenseTooltip": "Uitgave toevoegen aan {{groupName}}",
+    "inviteTooltip": "Uitnodigen voor {{groupName}}",
+    "noRecentActivity": "Geen recente activiteit"
+  },
+  "expenseFormHeader": {
+    "addExpense": "Uitgave toevoegen",
+    "editExpense": "Uitgave bewerken",
+    "copyExpense": "Uitgave kopiëren",
+    "cancel": "Annuleren"
+  },
+  "expenseBasicFields": {
+    "title": "Uitgavedetails",
+    "descriptionLabel": "Beschrijving",
+    "descriptionPlaceholder": "Waarvoor was deze uitgave?",
+    "amountLabel": "Bedrag",
+    "labelsLabel": "Labels",
+    "labelsPlaceholder": "Een label toevoegen...",
+    "dateLabel": "Datum",
+    "timeLabel": "Tijd",
+    "recentAmounts": "Recente bedragen:",
+    "today": "Vandaag",
+    "yesterday": "Gisteren",
+    "thisMorning": "Vanochtend",
+    "lastNight": "Gisteravond",
+    "addSpecificTime": "Specifieke tijd toevoegen"
+  },
+  "suggestedLabels": [
+    "Boodschappen",
+    "Afhaalmaaltijden",
+    "Restaurant",
+    "Koffie",
+    "Drankjes",
+    "Bar",
+    "Snacks",
+    "Ontbijt",
+    "Lunch",
+    "Diner",
+    "Fastfood",
+    "Bezorging",
+    "Brunch",
+    "Benzine",
+    "Parkeren",
+    "Tol",
+    "Uber",
+    "Lyft",
+    "Taxi",
+    "Bus",
+    "Trein",
+    "Metro",
+    "Huurauto",
+    "Brandstof",
+    "Vlucht",
+    "Airbnb",
+    "Hotel",
+    "Hostel",
+    "Resort",
+    "Vakantie",
+    "Roadtrip",
+    "Kamperen",
+    "Huur",
+    "Nutsvoorzieningen",
+    "Elektriciteit",
+    "Water",
+    "Internet",
+    "Telefoon",
+    "Verzekering",
+    "Hypotheek",
+    "VvE",
+    "Reparaties",
+    "Onderhoud",
+    "Schoonmaak",
+    "Meubels",
+    "Apparaten",
+    "Decoratie",
+    "Tuin",
+    "Films",
+    "Concert",
+    "Show",
+    "Festival",
+    "Sport",
+    "Spellen",
+    "Streaming",
+    "Tickets",
+    "Museum",
+    "Pretpark",
+    "Bowlen",
+    "Minigolf",
+    "Karaoke",
+    "Speelhal",
+    "Escaperoom",
+    "Winkelen",
+    "Kleding",
+    "Schoenen",
+    "Elektronica",
+    "Cadeaus",
+    "Boeken",
+    "Speelgoed",
+    "Schoonheid",
+    "Huidverzorging",
+    "Kapper",
+    "Spa",
+    "Sportschool",
+    "Fitness",
+    "Sportartikelen",
+    "Buitensportartikelen",
+    "Dierenvoeding",
+    "Dierenverzorging",
+    "Dierenarts",
+    "Verzorging",
+    "Geneesmiddel",
+    "Apotheek",
+    "Dokter",
+    "Tandarts",
+    "Zicht",
+    "Therapie",
+    "Medisch",
+    "Kinderopvang",
+    "Oppas",
+    "Collegegeld",
+    "School",
+    "Benodigdheden",
+    "Feest",
+    "Verjaardag",
+    "Bruiloft",
+    "Vakantie",
+    "Jubileum",
+    "Viering",
+    "Decoraties",
+    "Catering",
+    "Locatie",
+    "BBQ",
+    "Picknick",
+    "Potluck",
+    "Spelletjesavond",
+    "Housewarming",
+    "Werk",
+    "Kantoor",
+    "Benodigdheden",
+    "Apparatuur",
+    "Software",
+    "Abonnement",
+    "Lidmaatschap",
+    "Kosten",
+    "Fooien",
+    "Liefdadigheid",
+    "Donatie",
+    "Geldautomaat",
+    "Contant geld",
+    "Diversen",
+    "Overig",
+    "Gedeeld",
+    "Verdeeld",
+    "Terugbetaling",
+    "Borg",
+    "Waarborg"
+  ],
+  "expensesList": {
+    "title": "Uitgaven",
+    "noExpensesYet": "Nog geen uitgaven. Voeg er een toe om te beginnen!",
+    "loadMore": "Meer laden"
+  },
+  "expenseItem": {
+    "paidBy": "Betaald door",
+    "deleted": "Verwijderd",
+    "deletedBy": "Verwijderd door",
+    "copyExpense": "Uitgave kopiëren"
+  },
+  "header": {
+    "logoAlt": "{{appName}}",
+    "login": "Aanmelden",
+    "signUp": "Registreren",
+    "goToHome": "Ga naar home",
+    "goToDashboard": "Ga naar dashboard"
+  },
+  "userMenu": {
+    "dashboard": "Dashboard",
+    "admin": "Admin",
+    "settings": "Instellingen",
+    "signOut": "Afmelden",
+    "signingOut": "Afmelden...",
+    "systemUserBadge": "Systeemgebruiker",
+    "systemUserTooltip": "Dit account wordt gebruikt voor geautomatiseerde of systeemgestuurde bewerkingen.",
+    "environmentLink": "omgeving",
+    "diagnosticsLoading": "Diagnostiek laden...",
+    "diagnosticsError": "Kan diagnostiek niet laden:",
+    "browser": "Browser",
+    "browserUsers": "Gebruikersbrowser"
+  },
+  "languageSelector": {
+    "label": "Taal",
+    "description": "Kies uw voorkeurstaal"
+  },
+  "footer": {
+    "companyName": "{{appName}}",
+    "companyDescription": "Deel rekeningen gemakkelijk met vrienden en familie.",
+    "linksSection": "Links",
+    "copyright": "© 2025 Pomo Corp ltd. Alle rechten voorbehouden."
+  },
+  "groupHeader": {
+    "membersCount": "{{count}} leden",
+    "membersCount_one": "{{count}} lid",
+    "membersCount_other": "{{count}} leden",
+    "old": "oud",
+    "lastUpdated": "laatst bijgewerkt",
+    "groupSettingsAriaLabel": "Groepsinstellingen",
+    "groupSecurityAriaLabel": "Beveiliging en machtigingen"
+  },
+  "securitySettingsModal": {
+    "unsavedChanges": "U heeft niet-opgeslagen wijzigingen. Controleer alles en druk vervolgens op Opslaan om ze toe te passen.",
+    "presets": {
+      "activeBadge": "Actief",
+      "open": {
+        "label": "Voorinstelling: Open samenwerking",
+        "description": "Iedereen kan leden uitnodigen en uitgaven beheren zonder beperkingen."
+      },
+      "managed": {
+        "label": "Voorinstelling: Beheerde groep",
+        "description": "Beheerders keuren uitnodigingen goed en bepalen wie uitgaven kan bewerken of verwijderen."
+      }
+    },
+    "custom": {
+      "heading": "Aangepaste machtigingen",
+      "unsaved": "Aangepaste machtigingen gewijzigd.",
+      "saveHelper": "Wijzigingen worden in de wachtrij geplaatst totdat u op Opslaan drukt."
+    },
+    "success": {
+      "updated": "Beveiligingsinstellingen bijgewerkt."
+    },
+    "permissions": {
+      "expenseEditing": {
+        "label": "Wie kan uitgaven bewerken",
+        "description": "Kies wie elke uitgave in de groep kan bijwerken."
+      },
+      "expenseDeletion": {
+        "label": "Wie kan uitgaven verwijderen",
+        "description": "Beperk de mogelijkheid om uitgaven te verwijderen."
+      },
+      "memberInvitation": {
+        "label": "Wie kan leden uitnodigen",
+        "description": "Bepaal wie uitnodigingslinks kan genereren."
+      },
+      "memberApproval": {
+        "label": "Goedkeuring nieuw lid",
+        "description": "Vereis een beoordeling door een beheerder voordat iemand via een uitnodiging lid wordt."
+      },
+      "settingsManagement": {
+        "label": "Wie kan instellingen wijzigen",
+        "description": "Beheer de toegang tot administratieve instellingen."
+      },
+      "options": {
+        "anyone": "Elk lid",
+        "creator-and-admin": "Makers en beheerders",
+        "admin-only": "Alleen beheerders",
+        "automatic": "Automatisch",
+        "admin-required": "Goedkeuring door beheerder vereist"
+      }
+    },
+    "memberRoles": {
+      "heading": "Ledenrollen",
+      "admin": "Admin",
+      "member": "Lid",
+      "viewer": "Kijker"
+    },
+    "pendingMembers": {
+      "heading": "Wachtende leden",
+      "requested": "Wacht op goedkeuring",
+      "empty": "Momenteel geen wachtende verzoeken.",
+      "approve": "Goedkeuren",
+      "reject": "Afwijzen"
+    },
+    "errors": {
+      "loadPending": "Kan wachtende leden niet laden. Probeer het opnieuw.",
+      "updatePermissions": "We konden de beveiligingsinstellingen niet bijwerken. Probeer het opnieuw.",
+      "pendingAction": "We konden dat verzoek niet verwerken. Probeer het opnieuw."
+    }
+  },
+  "settingsPage": {
+    "title": "Instellingen - {{appName}}",
+    "description": "Beheer uw accountinstellingen",
+    "heroLabel": "Account",
+    "accountSettingsHeader": "Accountinstellingen",
+    "accountSettingsSubheader": "Beheer uw profielinformatie en wachtwoord",
+    "profileSummaryTitle": "Profieloverzicht",
+    "profileSummaryDescription": "Deze informatie helpt andere leden u te herkennen.",
+    "profileInformationHeader": "Profielinformatie",
+    "profileInformationSubheader": "Werk de details bij die andere leden zien in {{appName}}.",
+    "emailSectionTitle": "E-mailadres",
+    "emailSectionDescription": "Werk het e-mailadres bij dat u gebruikt om aan te melden en meldingen te ontvangen.",
+    "currentDisplayName": "Huidige weergavenaam:",
+    "email": "E-mail:",
+    "currentEmailLabel": "Huidig e-mailadres",
+    "displayNameLabel": "Weergavenaam",
+    "displayNamePlaceholder": "Voer uw weergavenaam in",
+    "displayNameHelper": "Gebruik uw volledige naam of een bijnaam die teamgenoten zullen herkennen.",
+    "saveChangesButton": "Wijzigingen opslaan",
+    "passwordHeader": "Wachtwoord",
+    "passwordIntro": "Stel een sterk wachtwoord in om uw {{appName}}-account veilig te houden.",
+    "changePasswordButton": "Wachtwoord wijzigen",
+    "changeEmailButton": "E-mailadres wijzigen",
+    "newEmailLabel": "Nieuw e-mailadres",
+    "newEmailPlaceholder": "Voer uw nieuwe e-mailadres in",
+    "emailPasswordLabel": "Bevestigen met wachtwoord",
+    "updateEmailButton": "E-mailadres bijwerken",
+    "currentPasswordLabel": "Huidig wachtwoord",
+    "newPasswordLabel": "Nieuw wachtwoord",
+    "confirmNewPasswordLabel": "Bevestig nieuw wachtwoord",
+    "updatePasswordButton": "Wachtwoord bijwerken",
+    "cancelButton": "Annuleren",
+    "passwordRequirementsHeading": "Checklist voor een sterk wachtwoord",
+    "passwordRequirements": {
+      "length": "Gebruik minstens 12 tekens.",
+      "mix": "Meng hoofdletters en kleine letters, cijfers en symbolen.",
+      "reuse": "Vermijd wachtwoorden die u elders heeft gebruikt."
+    },
+    "profileSummaryRoleLabel": "Accountrol",
+    "profileSummaryRoleFallback": "Lid",
+    "profileSummaryRole": {
+      "system_admin": "Beheerder",
+      "system_user": "Lid"
+    },
+    "successMessages": {
+      "profileUpdated": "Profiel succesvol bijgewerkt",
+      "passwordChanged": "Wachtwoord succesvol gewijzigd",
+      "emailChanged": "E-mailadres succesvol bijgewerkt. Verifieer het nieuwe adres."
+    },
+    "errorMessages": {
+      "profileUpdateFailed": "Profiel bijwerken mislukt. Probeer het opnieuw.",
+      "passwordAndNewRequired": "Huidig wachtwoord en nieuw wachtwoord zijn verplicht",
+      "passwordTooShort": "Nieuw wachtwoord moet minstens 12 tekens lang zijn",
+      "passwordsNoMatch": "Wachtwoorden komen niet overeen",
+      "passwordSameAsCurrent": "Nieuw wachtwoord moet verschillen van het huidige wachtwoord",
+      "currentPasswordIncorrect": "Huidig wachtwoord is onjuist",
+      "passwordChangeFailed": "Wachtwoord wijzigen mislukt. Probeer het opnieuw.",
+      "displayNameEmpty": "Weergavenaam mag niet leeg zijn",
+      "displayNameTooLong": "Weergavenaam mag maximaal 100 tekens lang zijn",
+      "emailRequired": "Nieuw e-mailadres is verplicht",
+      "emailInvalid": "Voer een geldig e-mailadres in",
+      "emailSameAsCurrent": "Nieuw e-mailadres moet verschillen van het huidige e-mailadres",
+      "emailPasswordRequired": "Voer uw huidige wachtwoord in om deze wijziging te bevestigen",
+      "emailInUse": "Dat e-mailadres is al gekoppeld aan een ander {{appName}}-account",
+      "emailChangeFailed": "E-mailadres wijzigen mislukt. Probeer het opnieuw."
+    }
+  },
+  "editGroupModal": {
+    "title": "Groep bewerken",
+    "groupNameLabel": "Groepsnaam",
+    "groupNamePlaceholder": "bv. Appartementskosten, Reis naar Parijs",
+    "descriptionLabel": "Beschrijving (optioneel)",
+    "descriptionPlaceholder": "Voeg details toe over deze groep...",
+    "cancelButton": "Annuleren",
+    "saveChangesButton": "Wijzigingen opslaan",
+    "deleteGroupButton": "Groep verwijderen",
+    "validation": {
+      "nameRequired": "Groepsnaam is verplicht.",
+      "nameTooShort": "Groepsnaam moet minstens 2 tekens lang zijn.",
+      "nameTooLong": "Groepsnaam mag maximaal 50 tekens lang zijn.",
+      "updateFailed": "Groep bijwerken mislukt"
+    },
+    "success": {
+      "updated": "Groepsdetails bijgewerkt."
+    },
+    "deleteConfirmDialog": {
+      "title": "Groep permanent verwijderen",
+      "warningTitle": "⚠️ Waarschuwing permanente verwijdering",
+      "warningMessage": "Dit zal de groep en ALLE bijbehorende gegevens permanent verwijderen:",
+      "warningList": {
+        "expenses": "Alle uitgaven en hun opmerkingen",
+        "settlements": "Alle vereffeningen en betalingsgeschiedenis",
+        "members": "Alle groepsleden en machtigingen",
+        "history": "Alle wijzigingsgeschiedenis en activiteit"
+      },
+      "cannotUndo": "Deze actie kan niet ongedaan worden gemaakt.",
+      "typeToConfirm": "Typ de groepsnaam \"{{groupName}}\" hieronder om te bevestigen:",
+      "deletingMessage": "Groep en alle bijbehorende gegevens verwijderen...",
+      "deletingText": "Verwijderen...",
+      "confirmText": "Groep permanent verwijderen",
+      "cancelText": "Annuleren",
+      "deleteFailed": "Groep verwijderen mislukt"
+    }
+  },
+  "groupActions": {
+    "title": "Groepsacties",
+    "addExpense": "Uitgave toevoegen",
+    "settleUp": "Vereffenen",
+    "inviteOthers": "Anderen uitnodigen",
+    "settings": "Instellingen",
+    "leaveGroup": "Groep verlaten",
+    "archive": "Groep archiveren",
+    "unarchive": "Groep dearchiveren"
+  },
+  "groupSettingsModal": {
+    "title": "Groepsinstellingen",
+    "tabs": {
+      "identity": "Weergavenaam",
+      "general": "Algemeen",
+      "security": "Beveiliging en machtigingen"
+    },
+    "securityTab": {
+      "successAriaLabel": "gelukt",
+      "unsavedChangesAriaLabel": "niet-opgeslagen wijzigingen"
+    }
+  },
+  "groupSettings": {
+    "currencySettings": {
+      "title": "Valuta-instellingen",
+      "description": "Beperk welke valuta's kunnen worden gebruikt voor uitgaven in deze groep.",
+      "enableToggle": "Valuta's beperken voor deze groep",
+      "enabledDescription": "Alleen geselecteerde valuta's kunnen worden gebruikt voor uitgaven",
+      "permittedLabel": "Toegestane valuta's",
+      "defaultLabel": "Standaardvaluta voor nieuwe uitgaven",
+      "addCurrency": "Valuta toevoegen",
+      "searchPlaceholder": "Valuta's zoeken...",
+      "noCurrenciesSelected": "Selecteer minstens één valuta",
+      "defaultNotInPermitted": "Standaardvaluta moet een toegestane valuta zijn",
+      "allCurrenciesSelected": "Alle valuta's geselecteerd",
+      "saveButton": "Valuta-instellingen opslaan",
+      "saveSuccess": "Valuta-instellingen succesvol bijgewerkt.",
+      "saveFailed": "Valuta-instellingen opslaan mislukt. Probeer het opnieuw."
+    }
+  },
+  "groupDisplayNameSettings": {
+    "title": "Weergavenaam groep",
+    "description": "Kies hoe andere leden u zien in deze groep.",
+    "inputLabel": "Uw weergavenaam in deze groep",
+    "inputPlaceholder": "Voer een unieke weergavenaam in",
+    "save": "Weergavenaam opslaan",
+    "saving": "Opslaan...",
+    "success": "Weergavenaam groep bijgewerkt.",
+    "errors": {
+      "required": "Voer een weergavenaam in.",
+      "tooLong": "Weergavenaam mag maximaal 50 tekens lang zijn.",
+      "notChanged": "Voer een andere weergavenaam in voordat u opslaat.",
+      "taken": "Die naam is al in gebruik in deze groep.",
+      "unknown": "Weergavenaam bijwerken mislukt. Probeer opnieuw."
+    }
+  },
+  "membersList": {
+    "title": "Leden",
+    "admin": "Admin",
+    "member": "Lid",
+    "viewer": "Kijker",
+    "thisMember": "Dit lid",
+    "leaveGroup": "Groep verlaten",
+    "inviteOthers": "Anderen uitnodigen",
+    "inviteOthersAriaLabel": "Anderen uitnodigen",
+    "leaveGroupAriaLabel": "Groep verlaten",
+    "removeMemberAriaLabel": "{{name}} verwijderen",
+    "leaveGroupDialog": {
+      "title": "Groep verlaten?",
+      "messageWithBalance": "U heeft een openstaand saldo in deze groep. Gelieve dit te vereffenen voordat u vertrekt.",
+      "messageConfirm": "Weet u zeker dat u deze groep wilt verlaten? U heeft een uitnodiging nodig om opnieuw lid te worden.",
+      "confirmText": "Groep verlaten",
+      "cancelText": "Annuleren"
+    },
+    "removeMemberDialog": {
+      "title": "Lid verwijderen?",
+      "messageWithBalance": "{{name}} heeft een openstaand saldo in deze groep. Gelieve dit te vereffenen voordat u hem/haar verwijdert.",
+      "messageConfirm": "Weet u zeker dat u {{name}} uit de groep wilt verwijderen?",
+      "confirmText": "Verwijderen",
+      "cancelText": "Annuleren"
+    }
+  },
+  "shareGroupModal": {
+    "title": "Anderen uitnodigen",
+    "description": "Deel deze link met iedereen die u wilt laten deelnemen aan deze groep.",
+    "closeButtonAriaLabel": "Modal sluiten",
+    "copyLinkTitle": "Link kopiëren",
+    "copyLinkAriaLabel": "Groepsuitnodigingslink kopiëren",
+    "qrCodeDescription": "Of scan deze code",
+    "expirationLabel": "Uitnodigingslink vervalt over...",
+    "expirationOptions": {
+      "15m": "15 minuten",
+      "1h": "1 uur",
+      "1d": "1 dag",
+      "5d": "5 dagen"
+    },
+    "expiresAt": "Vervalt op {{date}}",
+    "generateNew": "Nieuwe genereren",
+    "linkCopied": "Link gekopieerd naar klembord",
+    "errors": {
+      "generateLinkFailed": "Genereren van deellink mislukt. Probeer het opnieuw."
+    }
+  },
+  "errorState": {
+    "defaultTitle": "Er is iets misgegaan",
+    "unexpectedError": "Er is een onverwachte fout opgetreden",
+    "tryAgainButton": "Opnieuw proberen"
+  },
+  "errorBoundary": {
+    "title": "Er is iets misgegaan",
+    "unexpectedError": "Er is een onverwachte fout opgetreden"
+  },
+  "notFoundPage": {
+    "title": "404",
+    "pageNotFound": "Pagina niet gevonden",
+    "pageNotFoundDescription": "De pagina die u zoekt, bestaat niet.",
+    "groupNotFound": "Groep niet gevonden of u heeft geen toegang",
+    "groupNotFoundDescription": "De groep die u zoekt, bestaat niet of u moet worden uitgenodigd om er toegang toe te krijgen.",
+    "goToDashboard": "Ga naar Dashboard",
+    "goHome": "Ga naar Home"
+  },
+  "loadingState": {
+    "defaultMessage": "Laden..."
+  },
+  "joinGroupPage": {
+    "title": "Lid worden van groep",
+    "loadingGroup": "Groepsinformatie laden...",
+    "alreadyMember": "U bent al lid van deze groep",
+    "alreadyMemberDescription": "U kunt direct naar de groep gaan om uitgaven en saldi te bekijken.",
+    "joinGroup": "Lid worden van groep",
+    "goToGroup": "Ga naar groep",
+    "joining": "Lid worden...",
+    "cancel": "Annuleren",
+    "welcome": "Welkom bij {{groupName}}!",
+    "joinSuccess": "U bent succesvol lid geworden van de groep. Wordt doorgestuurd naar de groepspagina...",
+    "joinedTitle": "Lid geworden van {{groupName}} - {{appName}}",
+    "backToDashboard": "Terug naar Dashboard",
+    "pendingApprovalTitle": "Wacht op goedkeuring",
+    "pendingApprovalMessage": "Uw verzoek om lid te worden van {{groupName}} is verzonden naar de groepsbeheerders.",
+    "pendingApprovalHelp": "We zullen u op de hoogte stellen zodra u bent goedgekeurd. U kunt nu terug naar uw dashboard.",
+    "errors": {
+      "invalidLink": "Deze uitnodigingslink is ongeldig of verlopen",
+      "groupNotFound": "Deze groep bestaat niet meer",
+      "alreadyMember": "U bent al lid van deze groep",
+      "joinFailed": "Lid worden van groep mislukt",
+      "loadFailed": "Laden van groepsinformatie mislukt"
+    },
+    "displayName": {
+      "title": "Kies uw weergenaam",
+      "description": "Zo zien andere leden u in \"{{groupName}}\"",
+      "label": "Weergavenaam",
+      "placeholder": "Hoe moeten andere leden uw naam zien?",
+      "help": "Kies een unieke naam voor deze groep. Andere leden zullen deze gebruiken om u te identificeren.",
+      "errors": {
+        "required": "Voer een weergavenaam in.",
+        "taken": "Die weergavenaam is al in gebruik in deze groep.",
+        "invalid": "Weergavenaam kan alleen letters, cijfers, spaties, koppeltekens, underscores en punten bevatten."
+      }
+    }
+  },
+  "dashboardComponents": {
+    "groupsList": {
+      "loading": "Uw groepen laden...",
+      "loadFailed": "Laden van groepen mislukt",
+      "tryAgain": "Opnieuw proberen",
+      "creating": "Groep aanmaken...",
+      "noArchivedTitle": "Geen gearchiveerde groepen",
+      "noArchivedDescription": "Groepen die u archiveert, verschijnen hier. Archiveer een groep via het tabblad Actief om deze van uw dashboard te verbergen.",
+      "groupsListAriaLabel": "Uw groepen"
+    }
+  },
+  "expenseComponents": {
+    "expenseFormActions": {
+      "cancel": "Annuleren",
+      "updating": "Bijwerken...",
+      "saving": "Opslaan...",
+      "update": "Uitgave bijwerken",
+      "save": "Uitgave opslaan"
+    },
+    "participantSelector": {
+      "label": "Verdelen tussen",
+      "requiredIndicator": "*",
+      "selectAll": "Alles selecteren",
+      "selectNone": "Niemand selecteren",
+      "payerSuffix": "(Betaler)"
+    },
+    "payerSelector": {
+      "label": "Wie heeft betaald?",
+      "requiredIndicator": "*",
+      "selectPayer": "Selecteer wie heeft betaald",
+      "searchPlaceholder": "Leden zoeken...",
+      "membersList": "Groepsleden",
+      "noResults": "Geen leden gevonden die overeenkomen met uw zoekopdracht"
+    },
+    "splitAmountInputs": {
+      "exactAmountsInstruction": "Voer exacte bedragen in voor elke persoon:",
+      "unknown": "Onbekend",
+      "dollarSign": "€",
+      "total": "Totaal: ",
+      "percentageInstruction": "Voer een percentage in voor elke persoon:",
+      "percentSign": "%",
+      "equalInstruction": "Elke persoon betaalt:"
+    },
+    "splitTypeSelector": {
+      "label": "Hoe te verdelen",
+      "equal": "Gelijk",
+      "exactAmounts": "Exacte bedragen",
+      "percentage": "Percentage"
+    },
+    "expenseActions": {
+      "edit": "Bewerken",
+      "copyExpense": "Uitgave kopiëren",
+      "copy": "Kopiëren",
+      "share": "Delen",
+      "delete": "Verwijderen",
+      "deleteTitle": "Uitgave verwijderen",
+      "deleteConfirm": "Weet u zeker dat u \"{{expenseName}}\" wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt en heeft invloed op de groepssaldi.",
+      "deleteButton": "Verwijderen",
+      "cancel": "Annuleren",
+      "deleteFailed": "Uitgave verwijderen mislukt",
+      "cannotEditTooltip": "Kan niet bewerken - deelnemer heeft de groep verlaten"
+    },
+    "expenseFormModal": {
+      "addExpense": "Uitgave toevoegen",
+      "editExpense": "Uitgave bewerken",
+      "copyExpense": "Uitgave kopiëren",
+      "closeModal": "Modal sluiten",
+      "cancel": "Annuleren",
+      "saveExpense": "Uitgave opslaan",
+      "updateExpense": "Uitgave bijwerken",
+      "createCopy": "Kopie aanmaken",
+      "saving": "Opslaan...",
+      "updating": "Bijwerken...",
+      "close": "Sluiten"
+    },
+    "expenseDetailModal": {
+      "title": "Uitgavedetails",
+      "closeModal": "Modal sluiten",
+      "close": "Sluiten",
+      "edit": "Bewerken",
+      "copy": "Kopiëren",
+      "share": "Delen",
+      "delete": "Verwijderen",
+      "paidBy": "Betaald door",
+      "date": "Datum",
+      "labels": "Labels",
+      "receipt": "Bon",
+      "viewReceipt": "Bon bekijken",
+      "noReceipt": "Geen bon",
+      "splitDetails": "Verdelingsdetails",
+      "comments": "Opmerkingen",
+      "loadingExpense": "Uitgavedetails laden...",
+      "expenseNotFound": "Uitgave niet gevonden",
+      "failedToLoad": "Laden van uitgavedetails mislukt",
+      "shareTitle": "Uitgave: {{description}}",
+      "shareText": "Bekijk deze uitgave: {{description}} - {{amount}}"
+    },
+    "splitBreakdown": {
+      "splitBetween": "Verdeeld tussen ",
+      "person": " persoon",
+      "people": " personen",
+      "splitEqually": "Gelijk verdeeld",
+      "exactAmounts": "Exacte bedragen",
+      "byPercentage": "Per percentage",
+      "customSplit": "Aangepaste verdeling",
+      "unknown": "Onbekend",
+      "paid": "Betaald",
+      "owes": "Verschuldigd ",
+      "total": "Totaal: "
+    }
+  },
+  "joinGroupComponents": {
+    "groupPreview": {
+      "invitationMessage": "U bent uitgenodigd om lid te worden van deze groep"
+    },
+    "joinButton": {
+      "joining": "Lid worden...",
+      "joinGroup": "Lid worden van groep"
+    },
+    "membersPreview": {
+      "groupSize": "Groepsgrootte"
+    }
+  },
+  "policyComponents": {
+    "policyAcceptanceModal": {
+      "title": "Bijgewerkte beleidsregels accepteren",
+      "policyLabel": "Beleid ",
+      "of": " van ",
+      "colon": ": ",
+      "close": "Sluiten",
+      "progress": "Voortgang",
+      "accepted": " geaccepteerd",
+      "acceptedIcon": "✓ Geaccepteerd",
+      "acceptedAriaLabel": "Geaccepteerd",
+      "loadingContent": "Beleidsinhoud laden...",
+      "acceptanceRequired": "Acceptatie van beleid vereist",
+      "acceptanceInstructions": "Lees het bovenstaande beleid en klik op \"Accepteren\" om {{appName}} te blijven gebruiken.",
+      "acceptCheckbox": "Ik heb dit gelezen en accepteer het ",
+      "previous": "Vorige",
+      "next": "Volgende",
+      "policiesAccepted": " beleidsregels geaccepteerd",
+      "accepting": "Accepteren...",
+      "acceptAll": "Alles accepteren en doorgaan",
+      "closeAriaLabel": "Sluiten",
+      "errorTitle": "Fout"
+    },
+    "policyRenderer": {
+      "bulletPoint": "• "
+    }
+  },
+  "uiComponents": {
+    "alert": {
+      "dismiss": "Waarschuwing negeren"
+    },
+    "avatar": {
+      "unknown": "Onbekend"
+    },
+    "button": {
+      "default": "Knop"
+    },
+    "multiLabelInput": {
+      "placeholder": "Een label toevoegen...",
+      "removeLabel": "{{label}} verwijderen",
+      "maxReached": "Max. {{max}} labels",
+      "recent": "Recent",
+      "hint": "{{count}}/{{max}} labels"
+    },
+    "confirmDialog": {
+      "confirm": "Bevestigen",
+      "cancel": "Annuleren"
+    },
+    "currencyAmountInput": {
+      "selectCurrency": "Valuta selecteren",
+      "searchPlaceholder": "Zoeken op symbool, code of land...",
+      "searchAriaLabel": "Valuta's zoeken",
+      "loading": "Valuta's laden...",
+      "noCurrencies": "Geen valuta's gevonden",
+      "recent": "Recent",
+      "common": "Algemeen",
+      "allCurrencies": "Alle valuta's",
+      "placeholder": "0,00",
+      "requiredIndicator": "*"
+    },
+    "currencySelector": {
+      "placeholder": "Valuta selecteren...",
+      "searchPlaceholder": "Valuta's zoeken",
+      "loading": "Valuta's laden...",
+      "noCurrencies": "Geen valuta's gevonden",
+      "recent": "Recent",
+      "common": "Algemeen",
+      "allCurrencies": "Alle valuta's"
+    },
+    "input": {
+      "requiredIndicator": "*"
+    },
+    "loadingSpinner": {
+      "loading": "Laden..."
+    },
+    "timeInput": {
+      "at": "om ",
+      "placeholder": "Voer tijd in (bv. 14:30)",
+      "requiredIndicator": "*"
+    },
+    "form": {
+      "submissionError": "Fout bij het indienen van het formulier"
+    }
+  },
+  "pages": {
+    "addExpensePage": {
+      "errorTitle": "Fout - {{appName}}",
+      "error": "Fout",
+      "noGroupMessage": "Geen groep opgegeven. Kan geen uitgave toevoegen zonder groep.",
+      "backToDashboard": "Terug naar Dashboard",
+      "loadingTitle": "Laden... - {{appName}}",
+      "groupNotFound": "Groep niet gevonden",
+      "groupNotFoundMessage": "De groep waaraan u een uitgave probeert toe te voegen, bestaat niet of u heeft er geen toegang toe.",
+      "backToGroup": "Terug naar Groep",
+      "copyExpenseTitle": "Uitgave kopiëren",
+      "editExpenseTitle": "Uitgave bewerken",
+      "addExpenseTitle": "Uitgave toevoegen",
+      "copyExpenseAction": "Uitgave kopiëren",
+      "editExpenseAction": "Uitgave bewerken",
+      "addExpenseAction": "Een nieuwe uitgave toevoegen",
+      "titleSuffix": " - {{appName}}",
+      "titleIn": " in "
+    },
+    "expenseDetailPage": {
+      "missingGroupId": "Groeps-ID ontbreekt",
+      "missingExpenseId": "Uitgaven-ID ontbreekt",
+      "failedToLoad": "Laden van uitgave mislukt",
+      "cannotEdit": "Deze uitgave kan niet worden bewerkt",
+      "containsDepartedMembers": "Een of meer deelnemers hebben de groep verlaten. Historische gegevens worden als alleen-lezen bewaard.",
+      "expenseLabel": "Uitgave: ",
+      "checkOutExpense": "Bekijk deze uitgave: ",
+      "shareApiFailed": "Delen-API mislukt, terugvallen op klembord",
+      "failedToCopy": "Kopiëren naar klembord mislukt",
+      "error": "Fout",
+      "expenseNotFound": "Uitgave niet gevonden",
+      "backToGroup": "Terug naar Groep",
+      "titleSeparator": " - ",
+      "expenseFor": "Uitgave voor ",
+      "backButton": "← Terug",
+      "date": "Datum",
+      "ago": " geleden",
+      "labels": "Labels",
+      "paidBy": "Betaald door",
+      "unknown": "Onbekend",
+      "discussion": "Discussie",
+      "receipt": "Bon",
+      "clickToViewFullSize": "Klik om op volledige grootte te bekijken",
+      "added": "Toegevoegd ",
+      "lastUpdated": "Laatst bijgewerkt ",
+      "receiptViewer": "Bon-viewer",
+      "closeReceiptViewer": "Bon-viewer sluiten",
+      "receiptFullSize": "Bon - Volledige grootte",
+      "summarySection": "Uitgavenoverzicht",
+      "splitSection": "Verdelingsdetails",
+      "metadataSection": "Uitgavenmetadata"
+    },
+    "groupDetailPage": {
+      "errorLoadingGroup": "Fout bij het laden van de groep",
+      "backToDashboard": "Terug naar Dashboard",
+      "balances": "Saldi",
+      "expenses": "Uitgaven",
+      "comments": "Opmerkingen",
+      "activity": "Activiteit",
+      "paymentHistory": "Vereffeningen",
+      "toggleSection": "{{section}}-sectie wisselen",
+      "titleSuffix": " - {{appName}}",
+      "manageExpensesFor": "Uitgaven beheren voor "
+    },
+    "landingPage": {
+      "title": "Moeiteloos rekeningen delen - {{appName}}",
+      "description": "Zeg vaarwel tegen ongemakkelijke schulden en complexe berekeningen. Onze app maakt het delen van uitgaven met vrienden, familie en huisgenoten gemakkelijk, eerlijk en transparant. Het is 100% gratis, zonder advertenties en zonder limieten.",
+      "disclaimer": "Dit is een hulpmiddel om uitgaven bij te houden, niet om betalingen te doen.",
+      "accountNote": " Om uw uitgaven op te slaan en te beheren, heeft u een gratis account nodig.",
+      "privacyNote": "We zullen nooit om gevoelige financiële gegevens vragen.",
+      "transparencyNotice": {
+        "bold": "Dit is een hulpmiddel om uitgaven bij te houden, niet om betalingen te doen.",
+        "text": "Om uw uitgaven op te slaan en te beheren, heeft u een gratis account nodig. We zullen nooit om gevoelige financiële gegevens vragen."
+      }
+    },
+    "registerPage": {
+      "requiredIndicator": "*"
+    },
+    "resetPasswordPage": {
+      "failedToSendReset": "Verzenden van reset-e-mail mislukt",
+      "checkYourEmail": "Controleer uw e-mail",
+      "resetInstructionsSent": "Instructies voor het opnieuw instellen van het wachtwoord zijn naar uw e-mailadres verzonden",
+      "emailSentSuccessfully": "E-mail succesvol verzonden",
+      "sentInstructionsTo": "We hebben instructies voor het opnieuw instellen van het wachtwoord verzonden naar:",
+      "checkSpamFolder": "Kunt u het niet vinden? Controleer uw spam- of ongewenste e-mailmap.",
+      "whatsNext": "Wat nu?",
+      "checkEmailInbox": "• Controleer uw e-mailinbox (en spammap)",
+      "clickResetLink": "• Klik op de resetlink in de e-mail",
+      "createNewPassword": "• Maak een nieuw wachtwoord aan",
+      "signInWithNewPassword": "• Meld u aan met uw nieuwe wachtwoord",
+      "sendToDifferentEmail": "Verzenden naar een ander e-mailadres",
+      "backToSignIn": "← Terug naar Aanmelden",
+      "resetPassword": "Wachtwoord opnieuw instellen",
+      "enterEmailForReset": "Voer uw e-mailadres in om instructies voor het opnieuw instellen van het wachtwoord te ontvangen",
+      "enterEmailDescription": "Voer het e-mailadres in dat aan uw account is gekoppeld en we sturen u een link om uw wachtwoord opnieuw in te stellen.",
+      "emailPlaceholder": "Voer uw e-mailadres in",
+      "sendResetInstructions": "Verzend resetinstructies"
+    }
+  },
+  "authLayout": {
+    "titleSuffix": " - {{appName}}"
+  },
+  "authProvider": {
+    "authenticationError": "Authenticatiefout",
+    "retry": "Opnieuw proberen"
+  },
+  "usersBrowser": {
+    "errors": {
+      "auth": "Laden van Firebase Auth-gebruikers mislukt"
+    }
+  },
+  "validation": {
+    "required": "{{field}} is verplicht"
+  },
+  "roles": {
+    "systemAdmin": {
+      "label": "Systeembeheerder",
+      "description": "Volledige systeemtoegang en controle"
+    },
+    "tenantAdmin": {
+      "label": "Tenantbeheerder",
+      "description": "Kan tenantinstellingen en configuratie beheren"
+    },
+    "regular": {
+      "label": "Gewone gebruiker",
+      "description": "Standaardgebruiker zonder beheerdersrechten"
+    }
+  },
+  "admin": {
+    "loading": "Admin laden...",
+    "tabs": {
+      "tenants": "Tenants",
+      "diagnostics": "Diagnostiek",
+      "tenantConfig": "Tenantconfiguratie",
+      "users": "Gebruikers",
+      "ariaLabel": "Admin-tabbladen"
+    },
+    "tenantConfig": {
+      "loading": "Tenantconfiguratie laden...",
+      "overview": {
+        "title": "Tenantoverzicht",
+        "tenantId": "Tenant-ID",
+        "appName": "App-naam",
+        "lastUpdated": "Laatst bijgewerkt"
+      },
+      "theme": {
+        "title": "Thema-artefact",
+        "description": "Hash + CSS-leveringshelpers",
+        "copyLink": "Themalink kopiëren",
+        "forceReload": "Thema geforceerd opnieuw laden",
+        "activeHash": "Actieve hash",
+        "notPublished": "niet gepubliceerd",
+        "generatedAt": "Gegenereerd op",
+        "copySuccess": "Themalink gekopieerd naar klembord.",
+        "copyError": "Kan themalink niet kopiëren. Kopieer handmatig."
+      },
+      "brandingTokens": {
+        "title": "Merk-tokens"
+      },
+      "computedCss": {
+        "title": "Berekende CSS-variabelen"
+      }
+    },
+    "tenants": {
+      "pageTitle": "Tenantbeheer",
+      "pageDescription": "Bekijk en beheer alle tenantconfiguraties",
+      "summary": {
+        "total": "Totaal aantal tenants:"
+      },
+      "actions": {
+        "create": "Nieuwe tenant aanmaken",
+        "switchTenant": "Klik om naar deze tenant te schakelen"
+      },
+      "status": {
+        "active": "Actief",
+        "default": "Standaard"
+      },
+      "details": {
+        "tenantId": "Tenant-ID:",
+        "primaryDomain": "Primair domein:",
+        "allDomains": "Alle domeinen:",
+        "domains": "Domeinen:"
+      },
+      "emptyState": "Geen tenants gevonden",
+      "errors": {
+        "load": "Laden van tenants mislukt"
+      }
+    },
+    "diagnostics": {
+      "loading": "Omgevingsdiagnostiek laden...",
+      "errors": {
+        "fetch": "Ophalen van omgevingsgegevens mislukt",
+        "unknown": "Er is een onbekende fout opgetreden"
+      },
+      "serverStatus": {
+        "title": "Serverstatus",
+        "environment": "Omgeving",
+        "nodeVersion": "Node-versie",
+        "uptime": "Uptime",
+        "startedAt": "Gestart op"
+      },
+      "buildInfo": {
+        "title": "Build-informatie",
+        "version": "Versie",
+        "buildDate": "Build-datum",
+        "buildTimestamp": "Build-tijdstempel"
+      },
+      "memory": {
+        "title": "Geheugengebruik",
+        "rss": "RSS (Resident Set Size)",
+        "heapUsed": "Gebruikte heap",
+        "heapTotal": "Totale heap",
+        "heapAvailable": "Beschikbare heap",
+        "external": "Extern geheugen",
+        "arrayBuffers": "Array-buffers",
+        "heapLimit": "Heap-limiet"
+      },
+      "heap": {
+        "title": "V8 Heap-ruimtes",
+        "size": "Grootte:",
+        "used": "Gebruikt:",
+        "available": "Beschikbaar:"
+      },
+      "envVars": {
+        "title": "Omgevingsvariabelen",
+        "variable": "Variabele",
+        "value": "Waarde"
+      },
+      "filesystem": {
+        "title": "Bestandssysteem",
+        "cwd": "Huidige werkdirectory"
+      }
+    },
+    "users": {
+      "description": "Beheer gebruikersaccounts, rollen en machtigingen",
+      "loading": "Gebruikers laden...",
+      "emptyState": "Geen gebruikers gevonden",
+      "search": {
+        "label": "Zoeken op e-mail of UID",
+        "placeholder": "Voer e-mail of UID in..."
+      },
+      "table": {
+        "email": "E-mail",
+        "displayName": "Weergavenaam",
+        "role": "Rol",
+        "status": "Status",
+        "created": "Aangemaakt",
+        "lastSignIn": "Laatste aanmelding",
+        "actions": "Acties"
+      },
+      "actions": {
+        "editUser": "Gebruiker bewerken"
+      },
+      "confirmations": {
+        "disableUser": "Weet u zeker dat u dit gebruikersaccount wilt {{action}}?"
+      },
+      "success": {
+        "userToggled": "Gebruikersaccount succesvol {{action}}",
+        "roleUpdated": "Gebruikersrol bijgewerkt naar {{role}}",
+        "roleUnchanged": "Rol ongewijzigd"
+      },
+      "errors": {
+        "selfDisable": "U kunt uw eigen account niet uitschakelen",
+        "selfRoleChange": "U kunt uw eigen rol niet wijzigen",
+        "disableUser": "Gebruikersaccount {{action}} mislukt",
+        "roleUpdate": "Gebruikersrol bijwerken mislukt",
+        "invalidSelection": "Ongeldige selectie"
+      },
+      "rolePrompt": {
+        "title": "Huidige rol: {{currentRole}}\n\nSelecteer nieuwe rol:",
+        "regularUser": "Gewone gebruiker (geen rol)"
+      }
+    },
+    "userEditor": {
+      "title": "Gebruiker bewerken",
+      "tabs": {
+        "ariaLabel": "Tabbladen gebruiker-editor",
+        "profile": "Profiel",
+        "role": "Rol",
+        "firebaseAuth": "Firebase Auth",
+        "firestore": "Firestore"
+      },
+      "profile": {
+        "description": "Bewerk de weergavenaam en het e-mailadres van de gebruiker",
+        "displayName": "Weergavenaam",
+        "displayNamePlaceholder": "Voer weergavenaam in",
+        "email": "E-mailadres",
+        "emailPlaceholder": "Voer e-mailadres in"
+      },
+      "role": {
+        "description": "Selecteer een rol voor deze gebruiker"
+      },
+      "loading": "Laden...",
+      "noDataAvailable": "Geen gegevens beschikbaar",
+      "errors": {
+        "noChanges": "Geen wijzigingen om op te slaan",
+        "selfRoleChange": "Kan uw eigen rol niet wijzigen",
+        "selfRoleChangeWarning": "U kunt uw eigen rol niet wijzigen",
+        "profileUpdate": "Profiel bijwerken mislukt",
+        "roleUpdate": "Rol bijwerken mislukt",
+        "loadData": "Gegevens laden mislukt"
+      },
+      "success": {
+        "profileUpdated": "Profiel succesvol bijgewerkt",
+        "roleUpdated": "Rol succesvol bijgewerkt"
+      }
+    },
+    "tenantEditor": {
+      "titleCreate": "Nieuwe tenant aanmaken",
+      "titleEdit": "Tenant bewerken",
+      "descriptionCreate": "Configureer een nieuwe tenant met merk en domeinen",
+      "descriptionEdit": "Tenantconfiguratie bijwerken",
+      "modeToggle": {
+        "label": "Editor-modus",
+        "basic": "Basis",
+        "advanced": "Geavanceerd"
+      },
+      "modeHint": {
+        "basic": "Essentiële instellingen tonen",
+        "advanced": "Alle instellingen tonen",
+        "moreColors": "Schakel over naar de geavanceerde modus voor volledige controle over het kleurenpalet"
+      },
+      "derivation": {
+        "themeMode": {
+          "label": "Themamodus",
+          "light": "Licht",
+          "medium": "Medium",
+          "dark": "Donker"
+        },
+        "style": {
+          "label": "Stijl",
+          "balanced": "Gebalanceerd",
+          "bold": "Vet",
+          "soft": "Zacht",
+          "vibrant": "Levendig",
+          "elegant": "Elegant"
+        },
+        "intensity": {
+          "label": "Intensiteit",
+          "subtle": "Subtiel",
+          "strong": "Sterk"
+        }
+      },
+      "derivationWand": {
+        "tooltip": "Kleuren afleiden uit palet",
+        "tooltipDisabled": "Stel eerst primaire, secundaire en accentkleuren in",
+        "popoverTitle": "Kleurafleiding",
+        "derive": "Afleiding toepassen"
+      },
+      "sections": {
+        "gettingStarted": {
+          "title": "Aan de slag",
+          "description": "Kies hoe u uw tenant wilt initialiseren"
+        },
+        "basicInfo": {
+          "title": "Basisinformatie",
+          "description": "Tenant-ID, naam en domeinen"
+        },
+        "assets": {
+          "title": "Activa",
+          "description": "Logo- en favicon-afbeeldingen"
+        },
+        "paletteColors": {
+          "title": "Paletkleuren",
+          "description": "Kernmerkkleuren"
+        },
+        "brandColors": {
+          "title": "Merkkleuren",
+          "description": "Stel uw primaire merkkleuren in en leid vervolgens het volledige kleursysteem af"
+        },
+        "surfaceColors": {
+          "title": "Oppervlaktekleuren",
+          "description": "Achtergrond- en containerkleuren"
+        },
+        "textColors": {
+          "title": "Tekstkleuren",
+          "description": "Typografiekleuren"
+        },
+        "interactiveColors": {
+          "title": "Interactieve kleuren",
+          "description": "Knop- en linkkleuren"
+        },
+        "borderColors": {
+          "title": "Randkleuren",
+          "description": "Rand- en scheidingskleuren"
+        },
+        "statusColors": {
+          "title": "Statuskleuren",
+          "description": "Feedback- en waarschuwingskleuren"
+        },
+        "typography": {
+          "title": "Typografie",
+          "description": "Lettertypefamilies, -groottes en -gewichten"
+        },
+        "spacing": {
+          "title": "Afstand",
+          "description": "Afstandschaal en semantische afstand"
+        },
+        "radii": {
+          "title": "Randradii",
+          "description": "Hoekrondingswaarden"
+        },
+        "shadows": {
+          "title": "Schaduwen",
+          "description": "Box-shadow-definities"
+        },
+        "legal": {
+          "title": "Juridisch",
+          "description": "Bedrijfsinformatie en juridische links"
+        },
+        "motion": {
+          "title": "Beweging",
+          "description": "Animatieduur en -versoepelingen"
+        },
+        "featureFlags": {
+          "title": "Functievlaggen",
+          "description": "Functies in- of uitschakelen"
+        },
+        "marketing": {
+          "title": "Marketingfuncties",
+          "description": "Marketingpagina's en -inhoud wisselen"
+        },
+        "advanced": {
+          "title": "Geavanceerd",
+          "description": "Optionele visuele effecten"
+        }
+      },
+      "fields": {
+        "tenantId": "Tenant-ID",
+        "appName": "App-naam",
+        "domains": "Domeinen",
+        "logoUrl": "Logo-URL",
+        "faviconUrl": "Favicon-URL",
+        "primaryColor": "Primaire kleur",
+        "primaryVariantColor": "Primaire variant",
+        "secondaryColor": "Secundaire kleur",
+        "secondaryVariantColor": "Secundaire variant",
+        "accentColor": "Accentkleur",
+        "neutralColor": "Neutrale kleur",
+        "neutralVariantColor": "Neutrale variant",
+        "successColor": "Succeskleur",
+        "warningColor": "Waarschuwingskleur",
+        "dangerColor": "Gevaarkleur",
+        "infoColor": "Infokleur"
+      },
+      "placeholders": {
+        "tenantId": "mijn-tenant-id",
+        "appName": "Mijn Uitgaven App",
+        "domain": "Nieuw domein toevoegen...",
+        "selectTenant": "Selecteer een tenant om te kopiëren..."
+      },
+      "creationMode": {
+        "empty": "Begin vanaf nul",
+        "copy": "Kopiëren van bestaande tenant",
+        "emptyDescription": "U moet alle verplichte velden invullen. Kleuren moeten in #RRGGBB-formaat zijn.",
+        "copyDescription": "Alle thema-instellingen worden gekopieerd van {{tenant}}. U moet nog steeds een unieke tenant-ID, app-naam en domeinen instellen."
+      },
+      "validation": {
+        "tenantIdFormat": "Ongeldige tenant-ID: moet alleen kleine letters, cijfers en koppeltekens bevatten",
+        "domainRequired": "Minstens één domein is vereist",
+        "invalidDomain": "Ongeldig domein: {{domain}}",
+        "saveTenantFirst": "Sla de tenant eerst op voordat u afbeeldingen uploadt",
+        "tenantIdRequiredForPublish": "Tenant-ID is vereist voor publicatie"
+      },
+      "hints": {
+        "tenantIdReadonly": "Tenant-ID kan niet worden gewijzigd",
+        "colorFormat": "#RRGGBB"
+      },
+      "toggles": {
+        "showMarketingContent": {
+          "label": "Marketinginhoud tonen",
+          "description": "Functie-/CTA-secties tonen op openbare pagina's"
+        },
+        "showPricingPage": {
+          "label": "Prijzenpagina tonen",
+          "description": "Route /pricing tonen"
+        },
+        "showAppNameInHeader": {
+          "label": "App-naam in header tonen",
+          "description": "App-naam naast het logo tonen"
+        },
+        "enableParallax": {
+          "label": "Parallax inschakelen",
+          "description": "Parallax-scrolleffecten inschakelen"
+        },
+        "enableMagneticHover": {
+          "label": "Magnetische hover inschakelen",
+          "description": "Magnetische hover-effecten op knoppen inschakelen"
+        },
+        "enableScrollReveal": {
+          "label": "Scroll-onthulling inschakelen",
+          "description": "Door scrollen geactiveerde animaties inschakelen"
+        }
+      },
+      "loading": {
+        "tenants": "Tenants laden..."
+      },
+      "empty": {
+        "noTenants": "Geen bestaande tenants om van te kopiëren."
+      },
+      "errors": {
+        "invalidPayload": "Ongeldige tenantgegevens. Controleer alle velden en probeer opnieuw.",
+        "permissionDenied": "U heeft geen toestemming om tenantinstellingen te wijzigen.",
+        "duplicateDomain": "Een of meer domeinen zijn al toegewezen aan een andere tenant.",
+        "saveFailed": "Tenant opslaan mislukt. Probeer het opnieuw.",
+        "tenantNotFound": "Tenant bestaat niet. Sla deze op voordat u publiceert.",
+        "tokensMissing": "Tenant mist merk-tokens. Configureer het merk en sla eerst op.",
+        "publishFailed": "Thema publiceren mislukt. Probeer het opnieuw.",
+        "uploadFailed": "{{type}} uploaden mislukt"
+      },
+      "success": {
+        "createdAndPublished": "Tenant aangemaakt en thema succesvol gepubliceerd!",
+        "updatedAndPublished": "Tenant bijgewerkt en thema succesvol gepubliceerd!",
+        "createdPublishFailed": "Tenant succesvol aangemaakt, maar publicatie van thema mislukt. Klik handmatig op \"Thema publiceren\".",
+        "updatedPublishFailed": "Tenant succesvol bijgewerkt, maar publicatie van thema mislukt. Klik handmatig op \"Thema publiceren\".",
+        "themePublished": "Thema succesvol gepubliceerd!",
+        "logoUploaded": "Logo succesvol geüpload!",
+        "faviconUploaded": "Favicon succesvol geüpload!",
+        "logoSelected": "Logo geselecteerd uit bibliotheek",
+        "faviconSelected": "Favicon geselecteerd uit bibliotheek"
+      },
+      "buttons": {
+        "save": "Tenant opslaan",
+        "publish": "Thema publiceren",
+        "addDomain": "Toevoegen",
+        "removeDomain": "Verwijderen",
+        "chooseFromLibrary": "Kiezen uit bibliotheek",
+        "uploadNew": "Nieuwe uploaden"
+      },
+      "actions": {
+        "deriveColors": "Kleuren afleiden",
+        "deriveColorsDescription": "Genereer alle semantische kleuren uit uw merkpalet"
+      }
+    }
+  },
+  "tenantBranding": {
+    "title": "Merkconfiguratie",
+    "subtitle": "Tenantinstellingen",
+    "description": "Pas het uiterlijk en de marketingfuncties van uw tenant aan",
+    "loading": "Tenantinstellingen laden...",
+    "accessDenied": "U heeft geen toestemming om de merkinstellingen van de tenant te openen. Deze pagina vereist de rol van tenant-admin of systeem-admin.",
+    "tenantIdLabel": "Tenant-ID",
+    "domainWarning": "Wijzigingen zijn van invloed op alle gebruikers die toegang hebben tot het domein van deze tenant",
+    "brandingAssets": {
+      "title": "Merkactiva",
+      "description": "Configureer uw merkidentiteit"
+    },
+    "fields": {
+      "appName": "App-naam",
+      "appNamePlaceholder": "Mijn Uitgaven App",
+      "logoUrl": "Logo-URL",
+      "logoUrlPlaceholder": "/logo.svg",
+      "faviconUrl": "Favicon-URL",
+      "faviconUrlPlaceholder": "/favicon.ico",
+      "primaryColor": "Primaire kleur",
+      "secondaryColor": "Secundaire kleur"
+    },
+    "preview": {
+      "title": "Live voorbeeld",
+      "description": "Kijk hoe uw merk eruit zal zien",
+      "primaryButton": "Primaire knop",
+      "secondaryButton": "Secundaire knop",
+      "brandingLabel": "Uw tenantmerk"
+    },
+    "marketing": {
+      "title": "Marketingfuncties",
+      "description": "Bepaal welke marketingpagina's zichtbaar zijn",
+      "contentLabel": "Marketinginhoud",
+      "contentDescription": "Functie-/CTA-secties tonen",
+      "pricingLabel": "Prijzenpagina",
+      "pricingDescription": "Route /pricing tonen"
+    },
+    "actions": {
+      "saving": "Opslaan...",
+      "saveChanges": "Wijzigingen opslaan"
+    },
+    "errors": {
+      "loadFailed": "Laden van tenantinstellingen mislukt",
+      "updateFailed": "Bijwerken van merkinstellingen mislukt",
+      "notImplemented": "Merkupdate is nog niet geïmplementeerd in de backend"
+    },
+    "success": {
+      "updated": "Merkinstellingen succesvol bijgewerkt"
+    }
+  }
+}

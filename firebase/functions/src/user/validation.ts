@@ -25,7 +25,7 @@ const mapUpdateProfileError = createZodErrorMapper(
         },
         preferredLanguage: {
             code: 'VALIDATION_ERROR',
-            details: () => 'Language must be one of: en, uk, ar, de, es, it, ja, ko, lv, ph, sv',
+            details: () => 'Language must be one of: en, uk, ar, de, es, it, ja, ko, lv, nl-BE, no, ph, sv',
         },
     },
     {

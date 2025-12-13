@@ -11,21 +11,23 @@
 
 const LANGUAGE_STORAGE_KEY = 'language';
 
-export const SUPPORTED_LANGUAGES = ['en', 'uk', 'ar', 'de', 'es', 'it', 'ja', 'ko', 'lv', 'ph', 'sv'] as const;
+export const SUPPORTED_LANGUAGES = ['en', 'uk', 'ar', 'de', 'es', 'it', 'ja', 'ko', 'lv', 'nl-BE', 'no', 'ph', 'sv'] as const;
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
 
 export const LANGUAGE_NAMES: Record<SupportedLanguage, string> = {
-    en: 'English',
-    uk: 'Українська',
-    ar: 'العربية',
-    de: 'Deutsch',
-    es: 'Español',
-    it: 'Italiano',
-    ja: '日本語',
-    ko: '한국어',
-    lv: 'Latviešu',
-    ph: 'Filipino',
-    sv: 'Svenska',
+    'en': 'English',
+    'uk': 'Українська',
+    'ar': 'العربية',
+    'de': 'Deutsch',
+    'es': 'Español',
+    'it': 'Italiano',
+    'ja': '日本語',
+    'ko': '한국어',
+    'lv': 'Latviešu',
+    'nl-BE': 'Nederlands (België)',
+    'no': 'Norsk',
+    'ph': 'Filipino',
+    'sv': 'Svenska',
 };
 
 /**
@@ -33,17 +35,19 @@ export const LANGUAGE_NAMES: Record<SupportedLanguage, string> = {
  * e.g., 'en' -> 'en-US', 'uk' -> 'uk-UA', 'ar' -> 'ar-SA'
  */
 const LOCALE_MAP: Record<SupportedLanguage, string> = {
-    en: 'en-US',
-    uk: 'uk-UA',
-    ar: 'ar-SA',
-    de: 'de-DE',
-    es: 'es-ES',
-    it: 'it-IT',
-    ja: 'ja-JP',
-    ko: 'ko-KR',
-    lv: 'lv-LV',
-    ph: 'fil-PH',
-    sv: 'sv-SE',
+    'en': 'en-US',
+    'uk': 'uk-UA',
+    'ar': 'ar-SA',
+    'de': 'de-DE',
+    'es': 'es-ES',
+    'it': 'it-IT',
+    'ja': 'ja-JP',
+    'ko': 'ko-KR',
+    'lv': 'lv-LV',
+    'nl-BE': 'nl-BE',
+    'no': 'nb-NO',
+    'ph': 'fil-PH',
+    'sv': 'sv-SE',
 };
 
 /**

@@ -181,6 +181,14 @@ describe('languageDetection', () => {
             expect(getIntlLocale('lv')).toBe('lv-LV');
         });
 
+        it('maps nl-BE to nl-BE', () => {
+            expect(getIntlLocale('nl-BE')).toBe('nl-BE');
+        });
+
+        it('maps no to nb-NO', () => {
+            expect(getIntlLocale('no')).toBe('nb-NO');
+        });
+
         it('maps ph to fil-PH', () => {
             expect(getIntlLocale('ph')).toBe('fil-PH');
         });
@@ -205,9 +213,11 @@ describe('languageDetection', () => {
             expect(SUPPORTED_LANGUAGES).toContain('ja');
             expect(SUPPORTED_LANGUAGES).toContain('ko');
             expect(SUPPORTED_LANGUAGES).toContain('lv');
+            expect(SUPPORTED_LANGUAGES).toContain('nl-BE');
+            expect(SUPPORTED_LANGUAGES).toContain('no');
             expect(SUPPORTED_LANGUAGES).toContain('ph');
             expect(SUPPORTED_LANGUAGES).toContain('sv');
-            expect(SUPPORTED_LANGUAGES).toHaveLength(11);
+            expect(SUPPORTED_LANGUAGES).toHaveLength(13);
         });
 
         it('LANGUAGE_NAMES has entries for all supported languages', () => {
@@ -220,6 +230,8 @@ describe('languageDetection', () => {
             expect(LANGUAGE_NAMES.ja).toBe('日本語');
             expect(LANGUAGE_NAMES.ko).toBe('한국어');
             expect(LANGUAGE_NAMES.lv).toBe('Latviešu');
+            expect(LANGUAGE_NAMES['nl-BE']).toBe('Nederlands (België)');
+            expect(LANGUAGE_NAMES.no).toBe('Norsk');
             expect(LANGUAGE_NAMES.ph).toBe('Filipino');
             expect(LANGUAGE_NAMES.sv).toBe('Svenska');
         });
