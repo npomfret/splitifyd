@@ -4,12 +4,12 @@ import { Avatar, Badge, Button, Card, CurrencyAmount, LoadingSpinner, Stack, Too
 import { Clickable } from '@/components/ui/Clickable';
 import { XIcon } from '@/components/ui/icons';
 import { Modal, ModalContent, ModalHeader } from '@/components/ui/Modal';
-import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { logError } from '@/utils/browser-logger.ts';
 import { formatCurrency } from '@/utils/currency';
 import { formatDistanceToNow, formatExpenseDateTime, formatLocalDateTime } from '@/utils/dateUtils.ts';
 import { getGroupDisplayName } from '@/utils/displayName';
 import { ExpenseDTO, ExpenseId, GroupDTO, GroupId, GroupMember, toCurrencyISOCode, toDisplayName } from '@billsplit-wl/shared';
+import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { ExpenseActions } from './ExpenseActions';

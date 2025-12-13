@@ -616,7 +616,7 @@ export const UpdateUserProfileRequestSchema = z
             .string()
             .trim()
             .refine((value) => SUPPORTED_LANGUAGES.includes(value), {
-                message: `Language must be one of: ${SUPPORTED_LANGUAGES.join(", ")}`,
+                message: `Language must be one of: ${SUPPORTED_LANGUAGES.join(', ')}`,
             })
             .optional(),
     })

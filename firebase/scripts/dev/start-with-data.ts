@@ -1,6 +1,6 @@
 #!/usr/bin/env npx tsx
 
-import { toDisplayName, toEmail, PooledTestUser } from '@billsplit-wl/shared';
+import { PooledTestUser, toDisplayName, toEmail } from '@billsplit-wl/shared';
 import { ApiDriver, DEFAULT_ADMIN_EMAIL, DEFAULT_PASSWORD } from '@billsplit-wl/test-support';
 import { ChildProcess } from 'child_process';
 import assert from 'node:assert';
@@ -60,7 +60,8 @@ async function acceptPoliciesForAdmin(apiDriver: ApiDriver, adminToken: string):
     }
 
     // Build acceptances for all policies that need acceptance
-    const acceptances = policyStatus.policies
+    const acceptances = policyStatus
+        .policies
         .filter(p => p.needsAcceptance)
         .map(p => ({
             policyId: p.policyId,

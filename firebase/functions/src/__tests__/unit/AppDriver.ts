@@ -95,7 +95,6 @@ import {
 } from '@billsplit-wl/shared';
 import { CreateGroupRequestBuilder, createStubRequest, createStubResponse, StubStorage, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
-import type { UserRecord } from 'firebase-admin/auth';
 import { Timestamp } from 'firebase-admin/firestore';
 import { StubCloudTasksClient, StubFirestoreDatabase } from 'ts-firebase-simulator';
 import { expect } from 'vitest';
@@ -1149,7 +1148,7 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return res.getJson() as HealthResponse;
     }
 
-    async getPrivacyPolicy(options: { host?: string } = {}): Promise<string> {
+    async getPrivacyPolicy(options: { host?: string; } = {}): Promise<string> {
         const req = createStubRequest('', {}, {}, {
             headers: options.host ? { host: options.host } : {},
             hostname: options.host ?? 'localhost',
@@ -1159,7 +1158,7 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return res.getBody() as string;
     }
 
-    async getTermsOfService(options: { host?: string } = {}): Promise<string> {
+    async getTermsOfService(options: { host?: string; } = {}): Promise<string> {
         const req = createStubRequest('', {}, {}, {
             headers: options.host ? { host: options.host } : {},
             hostname: options.host ?? 'localhost',
@@ -1169,7 +1168,7 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return res.getBody() as string;
     }
 
-    async getCookiePolicy(options: { host?: string } = {}): Promise<string> {
+    async getCookiePolicy(options: { host?: string; } = {}): Promise<string> {
         const req = createStubRequest('', {}, {}, {
             headers: options.host ? { host: options.host } : {},
             hostname: options.host ?? 'localhost',

@@ -1,12 +1,8 @@
 import { apiClient } from '@/app/apiClient';
 import { changeLanguage } from '@/i18n';
-import { cx } from '@/utils/cx';
 import { logError } from '@/utils/browser-logger';
-import {
-    LANGUAGE_NAMES,
-    SUPPORTED_LANGUAGES,
-    type SupportedLanguage,
-} from '@/utils/languageDetection';
+import { cx } from '@/utils/cx';
+import { LANGUAGE_NAMES, SUPPORTED_LANGUAGES, type SupportedLanguage } from '@/utils/languageDetection';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { ChevronDownIcon } from './icons';
@@ -104,9 +100,7 @@ function LanguageSwitcherCompact({ currentLanguage, className }: LanguageSwitche
                             aria-selected={lng === currentLanguage}
                         >
                             <span>{LANGUAGE_NAMES[lng]}</span>
-                            {lng === currentLanguage && (
-                                <span className='text-interactive-primary'>✓</span>
-                            )}
+                            {lng === currentLanguage && <span className='text-interactive-primary'>✓</span>}
                         </button>
                     ))}
                 </div>

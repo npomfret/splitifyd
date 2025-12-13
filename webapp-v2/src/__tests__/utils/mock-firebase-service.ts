@@ -12,12 +12,11 @@ import {
     joinGroupHandler,
     loginFailureHandler,
     loginSuccessHandler,
-    passwordResetSuccessHandler,
     registerFailureHandler,
     registerSuccessHandler,
     updateExpenseHandler,
 } from '@/test/msw/handlers.ts';
-import type { SerializedBodyMatcher, SerializedMswHandler } from '@/test/msw/types.ts';
+import type { SerializedMswHandler } from '@/test/msw/types.ts';
 import { type ActivityFeedItem, ApiSerializer, ClientUser, ExpenseId, GroupId, ListGroupsResponse, SystemUserRoles, TenantConfigBuilder, UserId, type UserProfileResponse } from '@billsplit-wl/shared';
 import type { Page, Response, Route } from '@playwright/test';
 

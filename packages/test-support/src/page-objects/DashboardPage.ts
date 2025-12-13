@@ -913,5 +913,4 @@ export class DashboardPage extends BasePage {
     async verifyActivityFeedLoadMoreHidden(): Promise<void> {
         await expect(this.getActivityFeedLoadMoreButton()).not.toBeVisible();
     }
-
 }

@@ -2,12 +2,7 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import en from './locales/en/translation.json' with { type: 'json' };
 import { logError } from './utils/browser-logger';
-import {
-    detectBrowserLanguage,
-    persistLanguageChoice,
-    SUPPORTED_LANGUAGES,
-    type SupportedLanguage,
-} from './utils/languageDetection';
+import { detectBrowserLanguage, persistLanguageChoice, SUPPORTED_LANGUAGES, type SupportedLanguage } from './utils/languageDetection';
 
 // Initial resources - English is always bundled
 const resources = {

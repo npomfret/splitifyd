@@ -18,7 +18,7 @@ export { ImageUploadField } from './ImageUploadField';
 export { Input } from './Input';
 export { LoadingSpinner } from './LoadingSpinner';
 export { LoadingState } from './LoadingState';
-export { Modal, ModalHeader, ModalContent, ModalFooter } from './Modal';
+export { Modal, ModalContent, ModalFooter, ModalHeader } from './Modal';
 export { MultiLabelInput } from './MultiLabelInput';
 export { Pagination } from './Pagination';
 export { RelativeTime } from './RelativeTime';

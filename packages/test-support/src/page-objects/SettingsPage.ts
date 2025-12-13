@@ -60,17 +60,26 @@ export class SettingsPage extends BasePage {
     protected getProfileDisplayName(): Locator {
         // Profile display name is in a box with label "Current display name:"
         // Find the container with the label, then get the value element
-        return this.page.locator('.rounded-lg').filter({
-            hasText: translation.settingsPage.currentDisplayName,
-        }).locator('.font-medium.text-text-primary');
+        return this
+            .page
+            .locator('.rounded-lg')
+            .filter({
+                hasText: translation.settingsPage.currentDisplayName,
+            })
+            .locator('.font-medium.text-text-primary');
     }
 
     protected getProfileEmail(): Locator {
         // Profile email is in a box with label "Email:"
         // Find the container with the label, then get the value element
-        return this.page.locator('.rounded-lg').filter({
-            hasText: translation.settingsPage.email,
-        }).locator('.font-medium.text-text-primary').first();
+        return this
+            .page
+            .locator('.rounded-lg')
+            .filter({
+                hasText: translation.settingsPage.email,
+            })
+            .locator('.font-medium.text-text-primary')
+            .first();
     }
 
     protected getDisplayNameInput(): Locator {

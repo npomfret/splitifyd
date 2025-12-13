@@ -1,14 +1,10 @@
 import { toPolicyId } from '@billsplit-wl/shared';
 import type { Request, RequestHandler } from 'express';
-import { ErrorDetail } from '../errors/ErrorCode';
-import { Errors } from '../errors/Errors';
+import { ErrorDetail } from '../errors';
+import { Errors } from '../errors';
 import type { PolicyService } from '../services/PolicyService';
 import type { TenantRegistryService } from '../services/tenant/TenantRegistryService';
-import {
-    brandingLegalToTokens,
-    type PolicyTemplateTokens,
-    substitutePolicyTokens,
-} from '../utils/template-substitution';
+import { brandingLegalToTokens, type PolicyTemplateTokens, substitutePolicyTokens } from '../utils/template-substitution';
 
 export class PolicyTextHandlers {
     constructor(

@@ -60,7 +60,7 @@ export async function fetchApiKey(baseUrl: string): Promise<string> {
 /**
  * Create ApiDriver from base URL by fetching config from bootstrap-config endpoint.
  */
-export async function createApiDriverFromUrl(baseUrl: string): Promise<{ apiDriver: ApiDriver; config: ApiDriverConfig }> {
+export async function createApiDriverFromUrl(baseUrl: string): Promise<{ apiDriver: ApiDriver; config: ApiDriverConfig; }> {
     const apiKey = await fetchApiKey(baseUrl);
     const apiUrl = normalizeApiUrl(baseUrl);
 
@@ -105,11 +105,11 @@ export async function authenticateWithCredentials(
     });
 
     if (!signInResponse.ok) {
-        const error = (await signInResponse.json()) as { error?: { message?: string } };
+        const error = (await signInResponse.json()) as { error?: { message?: string; }; };
         throw new Error(`Authentication failed: ${error.error?.message || 'Unknown error'}`);
     }
 
-    const authData = (await signInResponse.json()) as { idToken: string };
+    const authData = (await signInResponse.json()) as { idToken: string; };
     return authData.idToken;
 }
 
@@ -183,7 +183,7 @@ export function showUsageAndExit(
  * Parse base CLI args (base-url, email, password) from command line.
  * Returns null if required args are missing (caller should show usage).
  */
-export function parseBaseCliArgs(args: string[]): { config: AdminCliConfig; flags: Map<string, string | true> } | null {
+export function parseBaseCliArgs(args: string[]): { config: AdminCliConfig; flags: Map<string, string | true>; } | null {
     const parsed = parseCliArgs(args);
     const [baseUrl, email, password] = parsed.positional;
 

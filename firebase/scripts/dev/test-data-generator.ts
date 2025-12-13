@@ -1,24 +1,6 @@
 import type { Amount, CreateSettlementRequest, ExpenseDTO, GroupDTO } from '@billsplit-wl/shared';
-import {
-    AuthenticatedFirebaseUser,
-    ExpenseLabel,
-    toAmount,
-    toCurrencyISOCode,
-    toDisplayName,
-    toEmail,
-    toExpenseLabel,
-    toGroupName,
-    toUserId,
-    UserRegistration,
-} from '@billsplit-wl/shared';
-import {
-    ApiDriver,
-    CreateExpenseRequestBuilder,
-    DEFAULT_ADMIN_DISPLAY_NAME,
-    DEFAULT_ADMIN_EMAIL,
-    DEFAULT_PASSWORD,
-    getFirebaseEmulatorSigninUrl,
-} from '@billsplit-wl/test-support';
+import { AuthenticatedFirebaseUser, ExpenseLabel, toAmount, toCurrencyISOCode, toDisplayName, toEmail, toExpenseLabel, toGroupName, toUserId, UserRegistration } from '@billsplit-wl/shared';
+import { ApiDriver, CreateExpenseRequestBuilder, DEFAULT_ADMIN_DISPLAY_NAME, DEFAULT_ADMIN_EMAIL, DEFAULT_PASSWORD, getFirebaseEmulatorSigninUrl } from '@billsplit-wl/test-support';
 
 // ============================================================================
 // Configuration
@@ -40,45 +22,117 @@ const CONFIG = {
 
 // Named test users - sci-fi characters
 const TEST_USERS: UserRegistration[] = [
-    { email: toEmail('luke.skywalker@example.com'), displayName: toDisplayName('Luke Skywalker'), password: DEFAULT_PASSWORD, termsAccepted: true, cookiePolicyAccepted: true, privacyPolicyAccepted: true },
+    {
+        email: toEmail('luke.skywalker@example.com'),
+        displayName: toDisplayName('Luke Skywalker'),
+        password: DEFAULT_PASSWORD,
+        termsAccepted: true,
+        cookiePolicyAccepted: true,
+        privacyPolicyAccepted: true,
+    },
     { email: toEmail('leia.organa@example.com'), displayName: toDisplayName('Leia Organa'), password: DEFAULT_PASSWORD, termsAccepted: true, cookiePolicyAccepted: true, privacyPolicyAccepted: true },
     { email: toEmail('han.solo@example.com'), displayName: toDisplayName('Han Solo'), password: DEFAULT_PASSWORD, termsAccepted: true, cookiePolicyAccepted: true, privacyPolicyAccepted: true },
-    { email: toEmail('rey.skywalker@example.com'), displayName: toDisplayName('Rey Skywalker'), password: DEFAULT_PASSWORD, termsAccepted: true, cookiePolicyAccepted: true, privacyPolicyAccepted: true },
+    {
+        email: toEmail('rey.skywalker@example.com'),
+        displayName: toDisplayName('Rey Skywalker'),
+        password: DEFAULT_PASSWORD,
+        termsAccepted: true,
+        cookiePolicyAccepted: true,
+        privacyPolicyAccepted: true,
+    },
     { email: toEmail('finn@example.com'), displayName: toDisplayName('Finn'), password: DEFAULT_PASSWORD, termsAccepted: true, cookiePolicyAccepted: true, privacyPolicyAccepted: true },
     { email: toEmail('poe.dameron@example.com'), displayName: toDisplayName('Poe Dameron'), password: DEFAULT_PASSWORD, termsAccepted: true, cookiePolicyAccepted: true, privacyPolicyAccepted: true },
-    { email: toEmail('obiwan.kenobi@example.com'), displayName: toDisplayName('Obi-Wan Kenobi'), password: DEFAULT_PASSWORD, termsAccepted: true, cookiePolicyAccepted: true, privacyPolicyAccepted: true },
-    { email: toEmail('padme.amidala@example.com'), displayName: toDisplayName('Padmé Amidala'), password: DEFAULT_PASSWORD, termsAccepted: true, cookiePolicyAccepted: true, privacyPolicyAccepted: true },
+    {
+        email: toEmail('obiwan.kenobi@example.com'),
+        displayName: toDisplayName('Obi-Wan Kenobi'),
+        password: DEFAULT_PASSWORD,
+        termsAccepted: true,
+        cookiePolicyAccepted: true,
+        privacyPolicyAccepted: true,
+    },
+    {
+        email: toEmail('padme.amidala@example.com'),
+        displayName: toDisplayName('Padmé Amidala'),
+        password: DEFAULT_PASSWORD,
+        termsAccepted: true,
+        cookiePolicyAccepted: true,
+        privacyPolicyAccepted: true,
+    },
 ];
 
 const GROUP_NAMES = [
-    'Weekend Trip', 'Roommates', 'Lunch Crew', 'Game Night', 'Beach House',
-    'Ski Trip', 'Birthday Party', 'Road Trip', 'Concert Tickets', 'Dinner Club',
-    'Movie Night', 'Camping Trip', 'Holiday Cabin', 'City Break', 'BBQ Squad',
+    'Weekend Trip',
+    'Roommates',
+    'Lunch Crew',
+    'Game Night',
+    'Beach House',
+    'Ski Trip',
+    'Birthday Party',
+    'Road Trip',
+    'Concert Tickets',
+    'Dinner Club',
+    'Movie Night',
+    'Camping Trip',
+    'Holiday Cabin',
+    'City Break',
+    'BBQ Squad',
 ];
 
 const EXPENSE_LABELS: ExpenseLabel[] = [
-    'food', 'transport', 'entertainment', 'utilities', 'shopping',
-    'groceries', 'rent', 'travel', 'drinks', 'tickets',
-].map(toExpenseLabel);
+    'food',
+    'transport',
+    'entertainment',
+    'utilities',
+    'shopping',
+    'groceries',
+    'rent',
+    'travel',
+    'drinks',
+    'tickets',
+]
+    .map(toExpenseLabel);
 
 const EXPENSE_DESCRIPTIONS = [
-    'Groceries', 'Uber ride', 'Pizza', 'Gas', 'Movie tickets', 'Coffee',
-    'Lunch', 'Dinner', 'Snacks', 'Parking', 'Bus fare', 'Train tickets',
-    'Beer', 'Wine', 'Dessert', 'Breakfast', 'Ice cream', 'Supplies',
+    'Groceries',
+    'Uber ride',
+    'Pizza',
+    'Gas',
+    'Movie tickets',
+    'Coffee',
+    'Lunch',
+    'Dinner',
+    'Snacks',
+    'Parking',
+    'Bus fare',
+    'Train tickets',
+    'Beer',
+    'Wine',
+    'Dessert',
+    'Breakfast',
+    'Ice cream',
+    'Supplies',
 ];
 
 const COMMENT_TEXTS = [
-    'Thanks!', 'Got it', '👍', 'Will pay soon', 'Can we split this differently?',
-    'Oops, forgot my wallet', 'Added the tip', 'This was expensive!',
-    'Great meal', 'Fun night!', 'Worth it', 'Next time I pay',
+    'Thanks!',
+    'Got it',
+    '👍',
+    'Will pay soon',
+    'Can we split this differently?',
+    'Oops, forgot my wallet',
+    'Added the tip',
+    'This was expensive!',
+    'Great meal',
+    'Fun night!',
+    'Worth it',
+    'Next time I pay',
 ];
 
 // ============================================================================
 // Utilities
 // ============================================================================
 
-const randomInt = (min: number, max: number): number =>
-    Math.floor(Math.random() * (max - min + 1)) + min;
+const randomInt = (min: number, max: number): number => Math.floor(Math.random() * (max - min + 1)) + min;
 
 const randomChoice = <T>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
 
@@ -123,7 +177,7 @@ async function signInExistingUser(email: string, password: string): Promise<Auth
 
     if (!response.ok) {
         const errorPayload = await response.json().catch(() => ({}));
-        const errorMessage = (errorPayload as { error?: { message?: string } }).error?.message ?? '';
+        const errorMessage = (errorPayload as { error?: { message?: string; }; }).error?.message ?? '';
         if (errorMessage.includes('EMAIL_NOT_FOUND')) {
             return null;
         }
@@ -133,7 +187,7 @@ async function signInExistingUser(email: string, password: string): Promise<Auth
         throw new Error(`Failed to sign in ${email}: ${errorMessage}`);
     }
 
-    const signInData = (await response.json()) as { idToken?: string };
+    const signInData = (await response.json()) as { idToken?: string; };
     const idToken = signInData.idToken;
     if (!idToken) {
         throw new Error('Sign-in response was missing an ID token');
@@ -243,10 +297,10 @@ async function createGroup(
 
 function isAlreadyMemberError(error: unknown): boolean {
     if (!(error instanceof Error)) return false;
-    const response = (error as { response?: { error?: { code?: string; detail?: string } } }).response;
+    const response = (error as { response?: { error?: { code?: string; detail?: string; }; }; }).response;
     return (
-        (response?.error?.code === 'ALREADY_EXISTS' && response?.error?.detail === 'ALREADY_MEMBER') ||
-        error.message.includes('ALREADY_MEMBER')
+        (response?.error?.code === 'ALREADY_EXISTS' && response?.error?.detail === 'ALREADY_MEMBER')
+        || error.message.includes('ALREADY_MEMBER')
     );
 }
 

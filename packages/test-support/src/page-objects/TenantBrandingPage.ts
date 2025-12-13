@@ -1,6 +1,6 @@
 import { expect, Locator, Page } from '@playwright/test';
-import { BasePage } from './BasePage';
 import { translationEn } from '../translations/translation-en';
+import { BasePage } from './BasePage';
 
 const translation = translationEn;
 

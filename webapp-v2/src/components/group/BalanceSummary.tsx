@@ -85,9 +85,7 @@ export function BalanceSummary({ onSettleUp }: BalanceSummaryProps) {
         : groupedDebts.length === 0 || groupedDebts.every(g => g.debts.length === 0)
         ? <p className='text-text-muted text-sm'>{t('balanceSummary.allSettledUp')}</p>
         : (
-            <div
-                className='space-y-2 max-h-[300px] overflow-y-auto overflow-x-hidden pr-1 scrollbar-thin scrollbar-thumb-border-default scrollbar-track-transparent hover:scrollbar-thumb-border-strong'
-            >
+            <div className='space-y-2 max-h-[300px] overflow-y-auto overflow-x-hidden pr-1 scrollbar-thin scrollbar-thumb-border-default scrollbar-track-transparent hover:scrollbar-thumb-border-strong'>
                 {groupedDebts.map(({ currency, debts }) => (
                     debts.map((debt) => {
                         const isCurrentUserFrom = currentUser && debt.from.uid === currentUser.uid;

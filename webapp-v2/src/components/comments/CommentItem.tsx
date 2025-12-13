@@ -30,10 +30,11 @@ export function CommentItem({ comment, isCurrentUser = false, showAvatar = true,
                 <div
                     className={`
                         mt-1 px-3 py-2 rounded-2xl inline-block text-start
-                        ${isCurrentUser
+                        ${
+                        isCurrentUser
                             ? 'bg-interactive-primary text-interactive-primary-foreground rounded-tr-sm'
                             : 'bg-surface-raised text-text-primary rounded-tl-sm'
-                        }
+                    }
                     `}
                 >
                     <p className='text-sm whitespace-pre-wrap wrap-break-word'>{comment.text}</p>

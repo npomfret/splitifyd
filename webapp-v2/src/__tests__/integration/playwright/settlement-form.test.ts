@@ -120,7 +120,7 @@ test.describe('Settlement Form Validation', () => {
     // but cannot be reached through normal UI interaction.
 
     test('should show validation error when amount is zero', async ({ authenticatedPage }) => {
-        const { settlementFormPage, } = await openSettlementFormForTest(authenticatedPage, toGroupId('test-group-zero-amount'));
+        const { settlementFormPage } = await openSettlementFormForTest(authenticatedPage, toGroupId('test-group-zero-amount'));
 
         await settlementFormPage.selectCurrency('USD');
         await settlementFormPage.selectPayee('User 2');
@@ -131,7 +131,7 @@ test.describe('Settlement Form Validation', () => {
     });
 
     test('should show validation error when amount exceeds maximum', async ({ authenticatedPage }) => {
-        const { settlementFormPage, } = await openSettlementFormForTest(authenticatedPage, toGroupId('test-group-amount-too-large'));
+        const { settlementFormPage } = await openSettlementFormForTest(authenticatedPage, toGroupId('test-group-amount-too-large'));
 
         await settlementFormPage.selectCurrency('USD');
         await settlementFormPage.selectPayee('User 2');
@@ -142,7 +142,7 @@ test.describe('Settlement Form Validation', () => {
     });
 
     test('should show validation error when date is in the future', async ({ authenticatedPage }) => {
-        const { settlementFormPage, } = await openSettlementFormForTest(authenticatedPage, toGroupId('test-group-future-date'));
+        const { settlementFormPage } = await openSettlementFormForTest(authenticatedPage, toGroupId('test-group-future-date'));
 
         await settlementFormPage.selectCurrency('USD');
         await settlementFormPage.selectPayee('User 2');
@@ -155,7 +155,7 @@ test.describe('Settlement Form Validation', () => {
     });
 
     test('should keep submit button disabled when amount precision exceeds currency limit', async ({ authenticatedPage }) => {
-        const { settlementFormPage, } = await openSettlementFormForTest(authenticatedPage, toGroupId('test-group-precision'));
+        const { settlementFormPage } = await openSettlementFormForTest(authenticatedPage, toGroupId('test-group-precision'));
 
         await settlementFormPage.selectCurrency('USD');
         await settlementFormPage.selectPayee('User 2');

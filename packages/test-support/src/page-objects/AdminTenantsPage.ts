@@ -110,8 +110,11 @@ export class AdminTenantsPage extends BasePage {
     protected getTenantCardContainerByName(appName: string): Locator {
         // Find the Card container by locating the heading and going up to its parent card
         // Cards use the .rounded-xl class from the Card component
-        return this.page.getByRole('heading', { name: appName, level: 3 })
-            .locator('xpath=ancestor::div[contains(@class, "rounded-xl")]').first();
+        return this
+            .page
+            .getByRole('heading', { name: appName, level: 3 })
+            .locator('xpath=ancestor::div[contains(@class, "rounded-xl")]')
+            .first();
     }
 
     protected getTenantCardByTenantId(tenantId: string): Locator {
@@ -262,8 +265,11 @@ export class AdminTenantsPage extends BasePage {
      */
     protected getFirstTenantCardContainer(): Locator {
         // Get the first tenant card by finding the first h3 and going up to its parent card
-        return this.getTenantCards().first()
-            .locator('xpath=ancestor::div[contains(@class, "rounded-xl")]').first();
+        return this
+            .getTenantCards()
+            .first()
+            .locator('xpath=ancestor::div[contains(@class, "rounded-xl")]')
+            .first();
     }
 
     /**

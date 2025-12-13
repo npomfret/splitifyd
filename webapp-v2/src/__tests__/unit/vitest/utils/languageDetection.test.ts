@@ -1,13 +1,5 @@
+import { clearPersistedLanguage, detectBrowserLanguage, getIntlLocale, getPersistedLanguage, LANGUAGE_NAMES, persistLanguageChoice, SUPPORTED_LANGUAGES } from '@/utils/languageDetection';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-    detectBrowserLanguage,
-    getIntlLocale,
-    getPersistedLanguage,
-    persistLanguageChoice,
-    clearPersistedLanguage,
-    SUPPORTED_LANGUAGES,
-    LANGUAGE_NAMES,
-} from '@/utils/languageDetection';
 
 describe('languageDetection', () => {
     beforeEach(() => {

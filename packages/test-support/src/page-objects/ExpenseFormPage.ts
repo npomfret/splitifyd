@@ -153,8 +153,11 @@ export class ExpenseFormPage extends BasePage {
      */
     protected getEqualSplitContainer(): Locator {
         // Find the instruction text and go up to its parent container
-        return this.page.getByText(/each person pays/i)
-            .locator('xpath=ancestor::div[contains(@class, "bg-surface-muted")]').first();
+        return this
+            .page
+            .getByText(/each person pays/i)
+            .locator('xpath=ancestor::div[contains(@class, "bg-surface-muted")]')
+            .first();
     }
 
     /**

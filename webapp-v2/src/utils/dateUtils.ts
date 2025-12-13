@@ -115,7 +115,8 @@ export const formatExpenseDateTime = (isoString: string): string => {
             year: 'numeric',
             month: 'short',
             day: 'numeric',
-        }).format(date);
+        })
+            .format(date);
     } else {
         // Date with time - use locale-aware formatting
         return new Intl.DateTimeFormat(locale, {
@@ -124,7 +125,8 @@ export const formatExpenseDateTime = (isoString: string): string => {
             day: 'numeric',
             hour: 'numeric',
             minute: '2-digit',
-        }).format(date);
+        })
+            .format(date);
     }
 };
 

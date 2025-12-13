@@ -11,13 +11,14 @@
 
 const LANGUAGE_STORAGE_KEY = 'language';
 
-export const SUPPORTED_LANGUAGES = ['en', 'uk', 'ar'] as const;
+export const SUPPORTED_LANGUAGES = ['en', 'uk', 'ar', 'de'] as const;
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
 
 export const LANGUAGE_NAMES: Record<SupportedLanguage, string> = {
     en: 'English',
     uk: 'Українська',
     ar: 'العربية',
+    de: 'Deutsch',
 };
 
 /**
@@ -28,6 +29,7 @@ const LOCALE_MAP: Record<SupportedLanguage, string> = {
     en: 'en-US',
     uk: 'uk-UA',
     ar: 'ar-SA',
+    de: 'de-DE',
 };
 
 /**

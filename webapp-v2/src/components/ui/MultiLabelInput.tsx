@@ -1,7 +1,7 @@
 import { useDropdownSelector } from '@/app/hooks/useDropdownSelector';
+import { XIcon } from '@/components/ui/icons';
 import type { ExpenseLabel, ISOString } from '@billsplit-wl/shared';
 import { toExpenseLabel } from '@billsplit-wl/shared';
-import { XIcon } from '@/components/ui/icons';
 import { useCallback, useMemo, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { FieldError } from './FieldError';

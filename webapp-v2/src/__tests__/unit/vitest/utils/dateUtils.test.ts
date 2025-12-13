@@ -1,20 +1,11 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
-import {
-    formatLocalDateTime,
-    formatExpenseDateTime,
-    formatDistanceToNow,
-    formatDateTimeInUserTimeZone,
-    getUTCMidnight,
-    getUTCDateTime,
-    extractTimeFromISO,
-    isDateInFuture,
-} from '@/utils/dateUtils';
+import { extractTimeFromISO, formatDateTimeInUserTimeZone, formatDistanceToNow, formatExpenseDateTime, formatLocalDateTime, getUTCDateTime, getUTCMidnight, isDateInFuture } from '@/utils/dateUtils';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock i18n module
 vi.mock('@/i18n', () => ({
     default: {
         language: 'en',
-        t: (key: string, options?: { count?: number }) => {
+        t: (key: string, options?: { count?: number; }) => {
             const translations: Record<string, string> = {
                 'relativeTime.justNow': 'just now',
                 'relativeTime.minuteAgo': options?.count === 1 ? '1 minute ago' : `${options?.count} minutes ago`,

@@ -230,7 +230,8 @@ export class GroupSettingsModalPage extends BasePage {
         }
 
         // Find the label element by its text content, then get the select inside it
-        return this.getModalContainer()
+        return this
+            .getModalContainer()
             .locator('label')
             .filter({ hasText: labelText })
             .locator('select');

@@ -1,8 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-    brandingLegalToTokens,
-    substitutePolicyTokens,
-} from '../../../utils/template-substitution';
+import { brandingLegalToTokens, substitutePolicyTokens } from '../../../utils/template-substitution';
 
 describe('template-substitution', () => {
     const validTokens = {

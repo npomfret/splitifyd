@@ -18,13 +18,7 @@
  * Options:
  *   --policy-id <id>   Only sync specific policy (terms-of-service, cookie-policy, privacy-policy)
  */
-import {
-    type PolicyId,
-    PolicyIds,
-    toPolicyId,
-    toPolicyName,
-    toPolicyText,
-} from '@billsplit-wl/shared';
+import { type PolicyId, PolicyIds, toPolicyId, toPolicyName, toPolicyText } from '@billsplit-wl/shared';
 import { ApiDriver } from '@billsplit-wl/test-support';
 import * as fs from 'fs';
 import * as path from 'path';
