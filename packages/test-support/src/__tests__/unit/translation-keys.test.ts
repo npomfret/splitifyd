@@ -22,6 +22,12 @@ interface FlattenedEntry {
     value: string;
 }
 
+interface FlattenedEntryWithType {
+    key: string;
+    value: unknown;
+    type: 'string' | 'array' | 'object' | 'null' | 'other';
+}
+
 interface TranslationAccess {
     key: string;
     file: string;
@@ -36,7 +42,19 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // Unicode ranges for detecting script types
-const ARABIC_RANGE = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/;
+const SCRIPT_RANGES: Record<string, RegExp> = {
+    ar: /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/,  // Arabic
+    uk: /[\u0400-\u04FF]/,                             // Cyrillic (Ukrainian)
+    he: /[\u0590-\u05FF]/,                             // Hebrew
+    zh: /[\u4E00-\u9FFF]/,                             // Chinese
+    ja: /[\u3040-\u309F\u30A0-\u30FF]/,               // Japanese (Hiragana + Katakana)
+    ko: /[\uAC00-\uD7AF]/,                             // Korean
+    th: /[\u0E00-\u0E7F]/,                             // Thai
+    hi: /[\u0900-\u097F]/,                             // Hindi (Devanagari)
+};
+
+// Languages that use Latin script (no untranslated detection possible)
+const LATIN_SCRIPT_LANGUAGES = new Set(['en', 'es', 'fr', 'de', 'it', 'pt', 'nl', 'pl', 'ro', 'vi']);
 
 // Strings that are legitimately in English/Latin across all translations
 const ALLOWED_ENGLISH_PATTERNS = [
@@ -78,6 +96,12 @@ const DYNAMIC_KEY_PATTERNS = [
     /^validation\./,
 ];
 
+// Regex to extract placeholders like {{name}}, {{count}}, etc.
+const PLACEHOLDER_PATTERN = /\{\{([^}]+)\}\}/g;
+
+// Regex to extract HTML tags like <strong>, <em>, <br/>, etc.
+const HTML_TAG_PATTERN = /<\/?([a-zA-Z][a-zA-Z0-9]*)[^>]*\/?>/g;
+
 // =============================================================================
 // Utility Functions
 // =============================================================================
@@ -109,6 +133,25 @@ function flattenWithValues(obj: Record<string, unknown>, prefix = ''): Flattened
             });
         } else if (typeof value === 'string') {
             entries.push({ key: fullKey, value });
+        }
+    }
+    return entries;
+}
+
+function flattenWithTypes(obj: Record<string, unknown>, prefix = ''): FlattenedEntryWithType[] {
+    const entries: FlattenedEntryWithType[] = [];
+    for (const [key, value] of Object.entries(obj)) {
+        const fullKey = prefix ? `${prefix}.${key}` : key;
+        if (value === null) {
+            entries.push({ key: fullKey, value, type: 'null' });
+        } else if (Array.isArray(value)) {
+            entries.push({ key: fullKey, value, type: 'array' });
+        } else if (typeof value === 'object') {
+            entries.push(...flattenWithTypes(value as Record<string, unknown>, fullKey));
+        } else if (typeof value === 'string') {
+            entries.push({ key: fullKey, value, type: 'string' });
+        } else {
+            entries.push({ key: fullKey, value, type: 'other' });
         }
     }
     return entries;
@@ -147,18 +190,51 @@ function isAllowedEnglishString(value: string): boolean {
 }
 
 function containsTargetScript(value: string, langCode: string): boolean {
-    if (langCode === 'ar') {
-        return ARABIC_RANGE.test(value);
+    const scriptRange = SCRIPT_RANGES[langCode];
+    if (scriptRange) {
+        return scriptRange.test(value);
     }
+    // For languages without a defined script range, assume OK
     return true;
 }
 
 function isLikelyUntranslatedEnglish(value: string, langCode: string): boolean {
+    // Skip if it matches allowed patterns
     if (isAllowedEnglishString(value)) return false;
-    if (langCode === 'ar') {
-        return !containsTargetScript(value, langCode) && value.length > 2;
+
+    // Skip Latin-script languages (can't detect untranslated)
+    if (LATIN_SCRIPT_LANGUAGES.has(langCode)) return false;
+
+    // For languages with distinct scripts, check if the value contains any of that script
+    const scriptRange = SCRIPT_RANGES[langCode];
+    if (scriptRange) {
+        // If the string is long enough and contains NO target script characters, likely untranslated
+        return value.length > 3 && !scriptRange.test(value);
     }
+
     return false;
+}
+
+function extractPlaceholders(value: string): Set<string> {
+    const placeholders = new Set<string>();
+    let match;
+    while ((match = PLACEHOLDER_PATTERN.exec(value)) !== null) {
+        placeholders.add(match[1]);
+    }
+    // Reset regex lastIndex for reuse
+    PLACEHOLDER_PATTERN.lastIndex = 0;
+    return placeholders;
+}
+
+function extractHtmlTags(value: string): Set<string> {
+    const tags = new Set<string>();
+    let match;
+    while ((match = HTML_TAG_PATTERN.exec(value)) !== null) {
+        tags.add(match[1].toLowerCase());
+    }
+    // Reset regex lastIndex for reuse
+    HTML_TAG_PATTERN.lastIndex = 0;
+    return tags;
 }
 
 function getGitFiles(dir: string, cwd: string): string[] {
@@ -211,13 +287,6 @@ function extractKeysFromProductionCode(projectRoot: string): TranslationAccess[]
 
 /**
  * Parses a file to find all translation object aliases and their prefixes.
- *
- * Supports patterns like:
- * - const translation = translationEn                    -> prefix: ''
- * - const translation = translationEn.admin              -> prefix: 'admin'
- * - const translation = translationEn.admin.users        -> prefix: 'admin.users'
- * - const { admin } = translationEn                      -> alias 'admin' with prefix 'admin'
- * - const t = translationEn.securitySettingsModal        -> alias 't' with prefix 'securitySettingsModal'
  */
 function parseTranslationAliases(content: string): Map<string, string> {
     const aliases = new Map<string, string>();
@@ -236,7 +305,6 @@ function parseTranslationAliases(content: string): Map<string, string> {
     while ((match = destructurePattern.exec(content)) !== null) {
         const destructuredNames = match[1].split(',').map((s) => s.trim());
         for (const name of destructuredNames) {
-            // Handle renaming: { foo: bar } means bar is an alias for translationEn.foo
             const renameMatch = name.match(/^(\w+)\s*:\s*(\w+)$/);
             if (renameMatch) {
                 aliases.set(renameMatch[2], renameMatch[1]);
@@ -251,12 +319,6 @@ function parseTranslationAliases(content: string): Map<string, string> {
 
 /**
  * Extracts translation keys from test files that access translations directly.
- *
- * Handles:
- * - translationEn.path.to.key (direct access)
- * - translation.path.to.key (aliased access with prefix resolution)
- * - t.path.to.key (short alias)
- * - admin.users.actions.edit (destructured access)
  */
 function extractKeysFromTestFiles(projectRoot: string): TranslationAccess[] {
     const accesses: TranslationAccess[] = [];
@@ -294,17 +356,13 @@ function extractKeysFromTestFiles(projectRoot: string): TranslationAccess[] {
 
                 // Check for each alias used in the file
                 for (const [aliasName, prefix] of aliases) {
-                    // Skip 'translationEn' itself since we already handled it
                     if (aliasName === 'translationEn') continue;
 
-                    // Build pattern for this alias: aliasName.key.path
-                    // Use word boundary to avoid matching substrings
                     const aliasPattern = new RegExp(`\\b${aliasName}\\.([a-zA-Z0-9_.]+)`, 'g');
 
                     while ((match = aliasPattern.exec(content)) !== null) {
                         const keyPath = cleanKeyPath(match[1]);
                         if (keyPath) {
-                            // Prepend the prefix from the alias declaration
                             const fullKey = prefix ? `${prefix}.${keyPath}` : keyPath;
                             accesses.push({ key: fullKey, file, source: 'test' });
                         }
@@ -332,11 +390,8 @@ describe('Translation Keys Validation', () => {
     }
 
     function isValidKeyOrPrefix(key: string): boolean {
-        // Exact match
         if (allTranslationKeys.has(key)) return true;
-        // Is a valid prefix (parent object access)
         if ([...allTranslationKeys].some((tk) => tk.startsWith(key + '.'))) return true;
-        // Has pluralized versions
         if (hasPluralizedKey(key)) return true;
         return false;
     }
@@ -347,10 +402,8 @@ describe('Translation Keys Validation', () => {
 
         const missingKeys: string[] = [];
 
-        // Check production code keys
         for (const access of codeAccesses) {
             const key = access.key;
-            // Skip dynamic prefixes (end with .)
             if (key.endsWith('.')) continue;
 
             if (!isValidKeyOrPrefix(key)) {
@@ -358,7 +411,6 @@ describe('Translation Keys Validation', () => {
             }
         }
 
-        // Check test file keys (only full paths with dots)
         for (const access of testAccesses) {
             const key = access.key;
             if (key.includes('.') && !isValidKeyOrPrefix(key)) {
@@ -378,7 +430,6 @@ describe('Translation Keys Validation', () => {
         const codeAccesses = extractKeysFromProductionCode(projectRoot);
         const testAccesses = extractKeysFromTestFiles(projectRoot);
 
-        // Collect all used keys and prefixes
         const usedKeys = new Set<string>();
         const dynamicPrefixes = new Set<string>();
 
@@ -393,7 +444,6 @@ describe('Translation Keys Validation', () => {
 
         for (const access of testAccesses) {
             usedKeys.add(access.key);
-            // Also mark all parent paths as used (object access)
             const parts = access.key.split('.');
             for (let i = 1; i <= parts.length; i++) {
                 usedKeys.add(parts.slice(0, i).join('.'));
@@ -403,12 +453,9 @@ describe('Translation Keys Validation', () => {
         const redundantKeys: string[] = [];
 
         for (const key of allTranslationKeys) {
-            // Skip dynamic keys
             if (DYNAMIC_KEY_PATTERNS.some((pattern) => pattern.test(key))) continue;
-            // Skip keys under dynamic prefixes
             if ([...dynamicPrefixes].some((prefix) => key.startsWith(prefix + '.'))) continue;
 
-            // Check if key or any parent is used
             let isUsed = usedKeys.has(key);
             if (!isUsed) {
                 const parts = key.split('.');
@@ -467,6 +514,8 @@ describe('Multi-Language Translation Validation', () => {
     }
 
     const englishKeys = new Set(flattenKeys(englishFile.data as Record<string, unknown>));
+    const englishEntries = flattenWithValues(englishFile.data as Record<string, unknown>);
+    const englishEntriesMap = new Map(englishEntries.map((e) => [e.key, e.value]));
     const nonEnglishFiles = translationFiles.filter((f) => f.code !== 'en');
 
     it('should have at least one non-English translation file', () => {
@@ -501,6 +550,143 @@ describe('Multi-Language Translation Validation', () => {
 
         if (errors.length > 0) {
             throw new Error(`Translation key mismatches found:\n\n${errors.join('\n\n')}`);
+        }
+    });
+
+    it('should not have empty translation values', () => {
+        const errors: string[] = [];
+
+        for (const file of translationFiles) {
+            const entries = flattenWithValues(file.data as Record<string, unknown>);
+            const emptyEntries = entries.filter((e) => e.value === '');
+
+            if (emptyEntries.length > 0) {
+                errors.push(
+                    `${file.name} has ${emptyEntries.length} empty values:\n`
+                        + emptyEntries.slice(0, 20).map((e) => `    - ${e.key}`).join('\n')
+                        + (emptyEntries.length > 20 ? `\n    ... and ${emptyEntries.length - 20} more` : ''),
+                );
+            }
+        }
+
+        if (errors.length > 0) {
+            throw new Error(`Empty translation values found:\n\n${errors.join('\n\n')}`);
+        }
+    });
+
+    it('should have consistent placeholders across all languages', () => {
+        const errors: string[] = [];
+
+        for (const file of nonEnglishFiles) {
+            const entries = flattenWithValues(file.data as Record<string, unknown>);
+            const inconsistencies: string[] = [];
+
+            for (const entry of entries) {
+                const englishValue = englishEntriesMap.get(entry.key);
+                if (!englishValue) continue;
+
+                const englishPlaceholders = extractPlaceholders(englishValue);
+                const translatedPlaceholders = extractPlaceholders(entry.value);
+
+                // Check for missing placeholders
+                const missing = [...englishPlaceholders].filter((p) => !translatedPlaceholders.has(p));
+                const extra = [...translatedPlaceholders].filter((p) => !englishPlaceholders.has(p));
+
+                if (missing.length > 0 || extra.length > 0) {
+                    let msg = `    - ${entry.key}:`;
+                    if (missing.length > 0) msg += ` missing {{${missing.join('}}, {{')}}}`;
+                    if (extra.length > 0) msg += ` extra {{${extra.join('}}, {{')}}}`;
+                    inconsistencies.push(msg);
+                }
+            }
+
+            if (inconsistencies.length > 0) {
+                errors.push(
+                    `${file.name} has ${inconsistencies.length} placeholder inconsistencies:\n`
+                        + inconsistencies.slice(0, 20).join('\n')
+                        + (inconsistencies.length > 20 ? `\n    ... and ${inconsistencies.length - 20} more` : ''),
+                );
+            }
+        }
+
+        if (errors.length > 0) {
+            throw new Error(`Placeholder inconsistencies found:\n\n${errors.join('\n\n')}`);
+        }
+    });
+
+    it('should have consistent HTML tags across all languages', () => {
+        const errors: string[] = [];
+
+        for (const file of nonEnglishFiles) {
+            const entries = flattenWithValues(file.data as Record<string, unknown>);
+            const inconsistencies: string[] = [];
+
+            for (const entry of entries) {
+                const englishValue = englishEntriesMap.get(entry.key);
+                if (!englishValue) continue;
+
+                const englishTags = extractHtmlTags(englishValue);
+                const translatedTags = extractHtmlTags(entry.value);
+
+                // Only check if English has HTML tags
+                if (englishTags.size === 0) continue;
+
+                const missing = [...englishTags].filter((t) => !translatedTags.has(t));
+                const extra = [...translatedTags].filter((t) => !englishTags.has(t));
+
+                if (missing.length > 0 || extra.length > 0) {
+                    let msg = `    - ${entry.key}:`;
+                    if (missing.length > 0) msg += ` missing <${missing.join('>, <')}>`;
+                    if (extra.length > 0) msg += ` extra <${extra.join('>, <')}>`;
+                    inconsistencies.push(msg);
+                }
+            }
+
+            if (inconsistencies.length > 0) {
+                errors.push(
+                    `${file.name} has ${inconsistencies.length} HTML tag inconsistencies:\n`
+                        + inconsistencies.slice(0, 20).join('\n')
+                        + (inconsistencies.length > 20 ? `\n    ... and ${inconsistencies.length - 20} more` : ''),
+                );
+            }
+        }
+
+        if (errors.length > 0) {
+            throw new Error(`HTML tag inconsistencies found:\n\n${errors.join('\n\n')}`);
+        }
+    });
+
+    it('should have consistent value types across all languages', () => {
+        const errors: string[] = [];
+        const englishTyped = flattenWithTypes(englishFile.data as Record<string, unknown>);
+        const englishTypesMap = new Map(englishTyped.map((e) => [e.key, e.type]));
+
+        for (const file of nonEnglishFiles) {
+            const fileTyped = flattenWithTypes(file.data as Record<string, unknown>);
+            const inconsistencies: string[] = [];
+
+            for (const entry of fileTyped) {
+                const englishType = englishTypesMap.get(entry.key);
+                if (!englishType) continue;
+
+                if (entry.type !== englishType) {
+                    inconsistencies.push(
+                        `    - ${entry.key}: expected ${englishType}, got ${entry.type}`,
+                    );
+                }
+            }
+
+            if (inconsistencies.length > 0) {
+                errors.push(
+                    `${file.name} has ${inconsistencies.length} type mismatches:\n`
+                        + inconsistencies.slice(0, 20).join('\n')
+                        + (inconsistencies.length > 20 ? `\n    ... and ${inconsistencies.length - 20} more` : ''),
+                );
+            }
+        }
+
+        if (errors.length > 0) {
+            throw new Error(`Value type inconsistencies found:\n\n${errors.join('\n\n')}`);
         }
     });
 
