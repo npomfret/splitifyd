@@ -130,6 +130,9 @@
       "selectPerson": "اختر شخص"
     }
   },
+  "currencySelector": {
+    "noResults": "لم يتم العثور على عملات"
+  },
   "relativeTime": {
     "justNow": "الآن",
     "minuteAgo_one": "منذ دقيقة واحدة",

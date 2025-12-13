@@ -130,6 +130,9 @@
       "selectPerson": "Select person"
     }
   },
+  "currencySelector": {
+    "noResults": "No currencies found"
+  },
   "relativeTime": {
     "justNow": "just now",
     "minuteAgo_one": "{{count}} minute ago",

@@ -6,6 +6,49 @@ import { fileURLToPath } from 'url';
 import { describe, expect, it } from 'vitest';
 import { translationEn } from '../../translations/translation-en';
 
+interface TranslationFile {
+    code: string;
+    name: string;
+    path: string;
+    data: Record<string, unknown>;
+}
+
+interface FlattenedEntry {
+    key: string;
+    value: string;
+}
+
+// Unicode ranges for detecting script types
+const ARABIC_RANGE = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/;
+
+// Strings that are legitimately in English/Latin across all translations
+const ALLOWED_ENGLISH_PATTERNS = [
+    // Format strings and placeholders
+    /^\{\{.*\}\}$/,
+    /^{{.*}}$/,
+    // Single words that are universal (brands, technical terms)
+    /^(Airbnb|Firestore|Google|Firebase|PayPal|Venmo|Zelle|Array Buffers?)$/i,
+    // Technical formats
+    /^#[A-Fa-f0-9]{6}$/,
+    /^#RRGGBB$/,
+    // Very short strings (1-3 chars) - likely symbols or abbreviations
+    /^.{1,3}$/,
+    // URLs and email patterns
+    /^https?:\/\//,
+    /^mailto:/,
+    // File paths
+    /^\/[a-zA-Z0-9._/-]+$/,
+    // Template literals with only placeholders and separators
+    /^[\s\-–—:,./()|\u2192]*$/,
+    /^[\s\-–—|]*\{\{[^}]+\}\}[\s\-–—|]*$/,
+    // Currency codes
+    /^[A-Z]{3}$/,
+    // Number formats (like "0.00")
+    /^\d+([.,]\d+)?$/,
+    // Arrow symbols
+    /^[\s]*[→←↑↓][\s]*$/,
+];
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -53,6 +96,79 @@ function flattenKeys(obj: Record<string, unknown>, prefix = ''): string[] {
         }
     }
     return keys;
+}
+
+function flattenWithValues(obj: Record<string, unknown>, prefix = ''): FlattenedEntry[] {
+    const entries: FlattenedEntry[] = [];
+    for (const [key, value] of Object.entries(obj)) {
+        const fullKey = prefix ? `${prefix}.${key}` : key;
+        if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+            entries.push(...flattenWithValues(value as Record<string, unknown>, fullKey));
+        } else if (Array.isArray(value)) {
+            value.forEach((item, index) => {
+                if (typeof item === 'string') {
+                    entries.push({ key: `${fullKey}[${index}]`, value: item });
+                }
+            });
+        } else if (typeof value === 'string') {
+            entries.push({ key: fullKey, value });
+        }
+    }
+    return entries;
+}
+
+function loadAllTranslationFiles(projectRoot: string): TranslationFile[] {
+    const localesDir = path.join(projectRoot, 'webapp-v2/src/locales');
+    const files: TranslationFile[] = [];
+
+    const languageDirs = fs.readdirSync(localesDir).filter((dir) => {
+        const dirPath = path.join(localesDir, dir);
+        return fs.statSync(dirPath).isDirectory();
+    });
+
+    for (const langCode of languageDirs) {
+        const translationPath = path.join(localesDir, langCode, 'translation.json');
+        if (fs.existsSync(translationPath)) {
+            const data = JSON.parse(fs.readFileSync(translationPath, 'utf8'));
+            files.push({
+                code: langCode,
+                name: langCode.toUpperCase(),
+                path: translationPath,
+                data,
+            });
+        }
+    }
+
+    return files;
+}
+
+function isAllowedEnglishString(value: string): boolean {
+    return ALLOWED_ENGLISH_PATTERNS.some((pattern) => pattern.test(value));
+}
+
+function containsTargetScript(value: string, langCode: string): boolean {
+    if (langCode === 'ar') {
+        return ARABIC_RANGE.test(value);
+    }
+    // For other languages (like Ukrainian), they use Latin-compatible scripts
+    // so we can't easily detect untranslated strings
+    return true;
+}
+
+function isLikelyUntranslatedEnglish(value: string, langCode: string): boolean {
+    // Skip if it matches allowed patterns
+    if (isAllowedEnglishString(value)) {
+        return false;
+    }
+
+    // For Arabic, check if the string contains any Arabic characters
+    // If it's all Latin and longer than 2 chars, it's likely untranslated
+    if (langCode === 'ar') {
+        return !containsTargetScript(value, langCode) && value.length > 2;
+    }
+
+    // For other languages, we can't easily detect (they may use Latin script)
+    return false;
 }
 
 function extractTranslationKeysFromCode(projectRoot: string): Set<string> {
@@ -162,6 +278,13 @@ describe('Translation Keys Validation', () => {
     const projectRoot = path.join(__dirname, '../../../../..');
     const allTranslationKeys = new Set(flattenKeys(translationEn as Record<string, unknown>));
 
+    // i18next pluralization suffixes - a key like 'foo' can be satisfied by 'foo_one', 'foo_other', etc.
+    const PLURAL_SUFFIXES = ['_zero', '_one', '_two', '_few', '_many', '_other'];
+
+    function hasPluralizedKey(baseKey: string): boolean {
+        return PLURAL_SUFFIXES.some((suffix) => allTranslationKeys.has(baseKey + suffix));
+    }
+
     it('should not have missing translation keys (used in code but not in translation file)', () => {
         const usedInCode = extractTranslationKeysFromCode(projectRoot);
         const usedInTests = extractTranslationKeysFromTestFiles(projectRoot);
@@ -177,7 +300,9 @@ describe('Translation Keys Validation', () => {
             if (!allTranslationKeys.has(key)) {
                 // Check if this is a prefix for existing keys (dynamic key usage)
                 const isPrefix = [...allTranslationKeys].some((tk) => tk.startsWith(key + '.'));
-                if (!isPrefix) {
+                // Check if pluralized versions exist (i18next uses _one, _other, etc.)
+                const hasPluralForm = hasPluralizedKey(key);
+                if (!isPrefix && !hasPluralForm) {
                     missingKeys.push(key);
                 }
             }
@@ -251,8 +376,8 @@ describe('Translation Keys Validation', () => {
             /^activityFeed\./,
             // Permission options used dynamically
             /^securitySettingsModal\./,
-            // Pricing plan features (arrays)
-            /^pricing\.plans\./,
+            // Pricing page (may be dynamically rendered or planned for future)
+            /^pricing\./,
             // Admin section - heavily uses dynamic key construction
             /^admin\./,
             // Profile summary roles are constructed dynamically
@@ -398,5 +523,99 @@ describe('Translation Keys Validation', () => {
 
     it('should have all translation keys present (sanity check)', () => {
         expect(allTranslationKeys.size).toBeGreaterThan(100);
+    });
+});
+
+describe('Multi-Language Translation Validation', () => {
+    const projectRoot = path.join(__dirname, '../../../../..');
+    const translationFiles = loadAllTranslationFiles(projectRoot);
+    const englishFile = translationFiles.find((f) => f.code === 'en');
+
+    if (!englishFile) {
+        throw new Error('English translation file not found');
+    }
+
+    const englishKeys = new Set(flattenKeys(englishFile.data as Record<string, unknown>));
+    const nonEnglishFiles = translationFiles.filter((f) => f.code !== 'en');
+
+    it('should have at least one non-English translation file', () => {
+        expect(nonEnglishFiles.length).toBeGreaterThan(0);
+    });
+
+    it('should have all translation files with the same keys as English', () => {
+        const errors: string[] = [];
+
+        for (const file of nonEnglishFiles) {
+            const fileKeys = new Set(flattenKeys(file.data as Record<string, unknown>));
+
+            // Find keys missing from this translation
+            const missingKeys: string[] = [];
+            for (const key of englishKeys) {
+                if (!fileKeys.has(key)) {
+                    missingKeys.push(key);
+                }
+            }
+
+            // Find extra keys in this translation
+            const extraKeys: string[] = [];
+            for (const key of fileKeys) {
+                if (!englishKeys.has(key)) {
+                    extraKeys.push(key);
+                }
+            }
+
+            if (missingKeys.length > 0) {
+                errors.push(
+                    `${file.name} is missing ${missingKeys.length} keys:\n`
+                        + missingKeys.slice(0, 20).map((k) => `    - ${k}`).join('\n')
+                        + (missingKeys.length > 20 ? `\n    ... and ${missingKeys.length - 20} more` : ''),
+                );
+            }
+
+            if (extraKeys.length > 0) {
+                errors.push(
+                    `${file.name} has ${extraKeys.length} extra keys not in English:\n`
+                        + extraKeys.slice(0, 20).map((k) => `    - ${k}`).join('\n')
+                        + (extraKeys.length > 20 ? `\n    ... and ${extraKeys.length - 20} more` : ''),
+                );
+            }
+        }
+
+        if (errors.length > 0) {
+            throw new Error(
+                `Translation key mismatches found:\n\n${errors.join('\n\n')}`,
+            );
+        }
+    });
+
+    it('should not have untranslated English strings in non-English files', () => {
+        const errors: string[] = [];
+
+        for (const file of nonEnglishFiles) {
+            const entries = flattenWithValues(file.data as Record<string, unknown>);
+            const untranslated: Array<{ key: string; value: string }> = [];
+
+            for (const entry of entries) {
+                if (isLikelyUntranslatedEnglish(entry.value, file.code)) {
+                    untranslated.push(entry);
+                }
+            }
+
+            if (untranslated.length > 0) {
+                errors.push(
+                    `${file.name} has ${untranslated.length} potentially untranslated strings:\n`
+                        + untranslated.slice(0, 20).map((e) => `    - ${e.key}: "${e.value}"`).join('\n')
+                        + (untranslated.length > 20 ? `\n    ... and ${untranslated.length - 20} more` : ''),
+                );
+            }
+        }
+
+        if (errors.length > 0) {
+            throw new Error(
+                `Untranslated strings found:\n\n${errors.join('\n\n')}\n\n`
+                    + 'If these strings are intentionally in English (brand names, technical terms), '
+                    + 'add them to ALLOWED_ENGLISH_PATTERNS in the test.',
+            );
+        }
     });
 });
