@@ -43,69 +43,32 @@ const __dirname = dirname(__filename);
 
 // Unicode ranges for detecting script types
 const SCRIPT_RANGES: Record<string, RegExp> = {
-    ar: /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/,  // Arabic
-    uk: /[\u0400-\u04FF]/,                             // Cyrillic (Ukrainian)
-    he: /[\u0590-\u05FF]/,                             // Hebrew
-    zh: /[\u4E00-\u9FFF]/,                             // Chinese
-    ja: /[\u3040-\u309F\u30A0-\u30FF]/,               // Japanese (Hiragana + Katakana)
-    ko: /[\uAC00-\uD7AF]/,                             // Korean
-    th: /[\u0E00-\u0E7F]/,                             // Thai
-    hi: /[\u0900-\u097F]/,                             // Hindi (Devanagari)
+    ar: /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/, // Arabic
+    uk: /[\u0400-\u04FF]/, // Cyrillic (Ukrainian)
+    he: /[\u0590-\u05FF]/, // Hebrew
+    zh: /[\u4E00-\u9FFF]/, // Chinese
+    ja: /[\u3040-\u309F\u30A0-\u30FF]/, // Japanese (Hiragana + Katakana)
+    ko: /[\uAC00-\uD7AF]/, // Korean
+    th: /[\u0E00-\u0E7F]/, // Thai
+    hi: /[\u0900-\u097F]/, // Hindi (Devanagari)
 };
 
 // Languages that use Latin script (no untranslated detection possible)
 const LATIN_SCRIPT_LANGUAGES = new Set(['en', 'es', 'fr', 'de', 'it', 'pt', 'nl', 'pl', 'ro', 'vi']);
 
-// Strings that are legitimately in English/Latin across all translations
-const ALLOWED_ENGLISH_PATTERNS = [
-    /^\{\{.*\}\}$/, // Format strings
-    /^{{.*}}$/, // Template placeholders
-    /^(Airbnb|Firestore|Google|Firebase|PayPal|Venmo|Zelle|Array Buffers?)$/i,
-    /^#[A-Fa-f0-9]{6}$/, // Hex colors
-    /^#RRGGBB$/, // Color format
-    /^.{1,3}$/, // Very short strings
-    /^https?:\/\//, // URLs
-    /^mailto:/, // Email links
-    /^\/[a-zA-Z0-9._/-]+$/, // File paths
-    /^[\s\-–—:,./()|\u2192]*$/, // Separators only
-    /^[\s\-–—|]*\{\{[^}]+\}\}[\s\-–—|]*$/,
-    /^[A-Z]{3}$/, // Currency codes
-    /^\d+([.,]\d+)?$/, // Numbers
-    /^[\s]*[→←↑↓][\s]*$/, // Arrows
+// Universal notation that doesn't need translation (not brand names or text)
+const UNIVERSAL_PATTERNS = [
+    /^\s*[-–—|]\s*\{\{[^}]+\}\}\s*$/, // Separator + placeholder: " - {{appName}}"
+    /^\{\{[^}]+\}\}$/, // Pure placeholder: "{{appName}}"
+    /^\d+([.,]\d+)?$/, // Numbers: "0.00"
+    /^#[A-Fa-f0-9]{6}$/, // Hex colors: "#FF0000"
+    /^#RRGGBB$/, // Color format hint
+    /^\/[\w.-]+$/, // File paths: "/logo.svg"
 ];
 
-// JavaScript/TypeScript string methods that might appear after translation key access
-const STRING_METHODS = new Set([
-    'replace',
-    'replaceAll',
-    'split',
-    'slice',
-    'substring',
-    'substr',
-    'trim',
-    'trimStart',
-    'trimEnd',
-    'toLowerCase',
-    'toUpperCase',
-    'charAt',
-    'charCodeAt',
-    'concat',
-    'includes',
-    'indexOf',
-    'lastIndexOf',
-    'match',
-    'padStart',
-    'padEnd',
-    'repeat',
-    'search',
-    'startsWith',
-    'endsWith',
-    'normalize',
-    'localeCompare',
-    'toString',
-    'valueOf',
-    'length',
-]);
+function isUniversalNotation(value: string): boolean {
+    return UNIVERSAL_PATTERNS.some((pattern) => pattern.test(value));
+}
 
 // i18next pluralization suffixes
 const PLURAL_SUFFIXES = ['_zero', '_one', '_two', '_few', '_many', '_other'];
@@ -186,14 +149,6 @@ function flattenWithTypes(obj: Record<string, unknown>, prefix = ''): FlattenedE
     return entries;
 }
 
-function cleanKeyPath(rawPath: string): string {
-    const parts = rawPath.split('.');
-    while (parts.length > 0 && STRING_METHODS.has(parts[parts.length - 1])) {
-        parts.pop();
-    }
-    return parts.join('.');
-}
-
 function loadAllTranslationFiles(projectRoot: string): TranslationFile[] {
     const localesDir = path.join(projectRoot, 'webapp-v2/src/locales');
     const files: TranslationFile[] = [];
@@ -214,10 +169,6 @@ function loadAllTranslationFiles(projectRoot: string): TranslationFile[] {
     return files;
 }
 
-function isAllowedEnglishString(value: string): boolean {
-    return ALLOWED_ENGLISH_PATTERNS.some((pattern) => pattern.test(value));
-}
-
 function containsTargetScript(value: string, langCode: string): boolean {
     const scriptRange = SCRIPT_RANGES[langCode];
     if (scriptRange) {
@@ -228,8 +179,8 @@ function containsTargetScript(value: string, langCode: string): boolean {
 }
 
 function isLikelyUntranslatedEnglish(value: string, langCode: string): boolean {
-    // Skip if it matches allowed patterns
-    if (isAllowedEnglishString(value)) return false;
+    // Skip universal notation (numbers, hex colors, file paths, placeholders)
+    if (isUniversalNotation(value)) return false;
 
     // Skip Latin-script languages (can't detect untranslated)
     if (LATIN_SCRIPT_LANGUAGES.has(langCode)) return false;
@@ -373,11 +324,21 @@ function extractKeysFromTestFiles(projectRoot: string): TranslationAccess[] {
                 const content = fs.readFileSync(filePath, 'utf8');
                 const aliases = parseTranslationAliases(content);
 
+                // Strip trailing method calls (e.g., .replace() -> strip "replace")
+                const stripMethodCall = (keyPath: string, matchEnd: number): string => {
+                    if (content[matchEnd] === '(') {
+                        const parts = keyPath.split('.');
+                        parts.pop();
+                        return parts.join('.');
+                    }
+                    return keyPath;
+                };
+
                 // Always check for direct translationEn access
                 const directPattern = /translationEn\.([a-zA-Z0-9_.]+)/g;
                 let match;
                 while ((match = directPattern.exec(content)) !== null) {
-                    const keyPath = cleanKeyPath(match[1]);
+                    const keyPath = stripMethodCall(match[1], match.index + match[0].length);
                     if (keyPath) {
                         accesses.push({ key: keyPath, file, source: 'test' });
                     }
@@ -390,7 +351,7 @@ function extractKeysFromTestFiles(projectRoot: string): TranslationAccess[] {
                     const aliasPattern = new RegExp(`\\b${aliasName}\\.([a-zA-Z0-9_.]+)`, 'g');
 
                     while ((match = aliasPattern.exec(content)) !== null) {
-                        const keyPath = cleanKeyPath(match[1]);
+                        const keyPath = stripMethodCall(match[1], match.index + match[0].length);
                         if (keyPath) {
                             const fullKey = prefix ? `${prefix}.${keyPath}` : keyPath;
                             accesses.push({ key: fullKey, file, source: 'test' });
@@ -736,10 +697,7 @@ describe('Multi-Language Translation Validation', () => {
         }
 
         if (errors.length > 0) {
-            throw new Error(
-                `Untranslated strings found:\n\n${errors.join('\n\n')}\n\n`
-                    + 'If intentionally in English, add to ALLOWED_ENGLISH_PATTERNS.',
-            );
+            throw new Error(`Untranslated strings found:\n\n${errors.join('\n\n')}`);
         }
     });
 });

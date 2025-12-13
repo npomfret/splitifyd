@@ -635,8 +635,7 @@
     "Бензин",
     "Парковка",
     "Платні дороги",
-    "Uber",
-    "Lyft",
+    "Спільні поїздки",
     "Таксі",
     "Автобус",
     "Поїзд",
@@ -644,7 +643,7 @@
     "Оренда авто",
     "Паливо",
     "Переліт",
-    "Airbnb",
+    "Житло",
     "Готель",
     "Хостел",
     "Курорт",
@@ -1038,7 +1037,7 @@
     "inviteOthers": "Запросити інших",
     "inviteOthersAriaLabel": "Запросити інших",
     "leaveGroupAriaLabel": "Покинути групу",
-    "removeMemberAriaLabel": "Видалити учасника",
+    "removeMemberAriaLabel": "Видалити {{name}}",
     "leaveGroupDialog": {
       "title": "Покинути групу?",
       "messageWithBalance": "У вас є несплачений баланс у цій групі. Будь ласка, розрахуйтеся перед виходом.",
@@ -1623,8 +1622,8 @@
         "ariaLabel": "Вкладки редактора користувача",
         "profile": "Профіль",
         "role": "Роль",
-        "firebaseAuth": "Firebase Auth",
-        "firestore": "Firestore"
+        "firebaseAuth": "Автентифікація Firebase",
+        "firestore": "Файрстор"
       },
       "profile": {
         "description": "Редагуйте відображуване ім'я та електронну адресу користувача",
@@ -1776,7 +1775,7 @@
         "appName": "Назва програми",
         "domains": "Домени",
         "logoUrl": "URL логотипу",
-        "faviconUrl": "URL favicon",
+        "faviconUrl": "URL фавікону",
         "primaryColor": "Основний колір",
         "primaryVariantColor": "Варіант основного",
         "secondaryColor": "Вторинний колір",
@@ -1790,8 +1789,8 @@
         "infoColor": "Колір інформації"
       },
       "placeholders": {
-        "tenantId": "my-tenant-id",
-        "appName": "My Expense App",
+        "tenantId": "мій-орендар",
+        "appName": "Мій додаток витрат",
         "domain": "Додати новий домен...",
         "selectTenant": "Вибрати орендаря для копіювання..."
       },
@@ -1893,10 +1892,10 @@
     },
     "fields": {
       "appName": "Назва програми",
-      "appNamePlaceholder": "My Expense App",
+      "appNamePlaceholder": "Мій додаток витрат",
       "logoUrl": "URL логотипу",
       "logoUrlPlaceholder": "/logo.svg",
-      "faviconUrl": "URL favicon",
+      "faviconUrl": "URL фавікону",
       "faviconUrlPlaceholder": "/favicon.ico",
       "primaryColor": "Основний колір",
       "secondaryColor": "Вторинний колір"

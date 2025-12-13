@@ -100,7 +100,7 @@ describe('languageDetection', () => {
 
         it('returns en as final fallback', () => {
             vi.spyOn(navigator, 'language', 'get').mockReturnValue('fr-FR');
-            vi.spyOn(navigator, 'languages', 'get').mockReturnValue(['fr-FR', 'de-DE']);
+            vi.spyOn(navigator, 'languages', 'get').mockReturnValue(['fr-FR', 'es-ES']);
 
             const result = detectBrowserLanguage();
 
@@ -157,6 +157,10 @@ describe('languageDetection', () => {
             expect(getIntlLocale('ar')).toBe('ar-SA');
         });
 
+        it('maps de to de-DE', () => {
+            expect(getIntlLocale('de')).toBe('de-DE');
+        });
+
         it('returns unknown language code as-is', () => {
             expect(getIntlLocale('fr')).toBe('fr');
         });
@@ -167,13 +171,15 @@ describe('languageDetection', () => {
             expect(SUPPORTED_LANGUAGES).toContain('en');
             expect(SUPPORTED_LANGUAGES).toContain('uk');
             expect(SUPPORTED_LANGUAGES).toContain('ar');
-            expect(SUPPORTED_LANGUAGES).toHaveLength(3);
+            expect(SUPPORTED_LANGUAGES).toContain('de');
+            expect(SUPPORTED_LANGUAGES).toHaveLength(4);
         });
 
         it('LANGUAGE_NAMES has entries for all supported languages', () => {
             expect(LANGUAGE_NAMES.en).toBe('English');
             expect(LANGUAGE_NAMES.uk).toBe('Українська');
             expect(LANGUAGE_NAMES.ar).toBe('العربية');
+            expect(LANGUAGE_NAMES.de).toBe('Deutsch');
         });
     });
 });

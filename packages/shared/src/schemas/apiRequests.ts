@@ -594,7 +594,7 @@ export const PublishPolicyRequestSchema = z.object({
 // User profile requests
 // ---------------------------------------------------------------------------
 
-const SUPPORTED_LANGUAGES = ['en', 'uk', 'ar'];
+const SUPPORTED_LANGUAGES = ['en', 'uk', 'ar', 'de'];
 export const UpdateUserProfileRequestSchema = z
     .object({
         displayName: createDisplayNameSchema({

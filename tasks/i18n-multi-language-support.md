@@ -145,7 +145,7 @@ Prepare the codebase for adding Ukrainian (uk) as the first non-English language
 - Cookie-based detection
 - Embed config for widget mode
 
-### Phase 3: Add Ukrainian and Arabic - COMPLETED
+### Phase 3: Add Ukrainian, Arabic, and German - COMPLETED
 
 **Ukrainian (uk):** ✅
 - Created `webapp-v2/src/locales/uk/translation.json`
@@ -162,6 +162,11 @@ Prepare the codebase for adding Ukrainian (uk) as the first non-English language
   - Position classes migrated (`start-*`/`end-*`)
   - Directional icons flip with `rtl:-scale-x-100`
 
+**German (de):** ✅
+- Created `webapp-v2/src/locales/de/translation.json` (~1,930 lines)
+- Registered 'de' as supported language with locale mapping `de-DE`
+- LTR language - no special infrastructure needed
+
 ### Phase 4: Test Infrastructure - COMPLETED
 
 **Task 4.1: Add language switching methods to SettingsPage page object** ✅
@@ -177,10 +182,6 @@ Prepare the codebase for adding Ukrainian (uk) as the first non-English language
 - Test: Language section visible on settings page
 - Test: Switch from English to Arabic, verify UI text and RTL direction
 - Test: Switch back from Arabic to English, verify UI text and LTR direction
-
-### Known Issue: Missing Ukrainian Translation File
-
-**Note:** Phase 3 documentation states Ukrainian (uk) was created, but the translation file `webapp-v2/src/locales/uk/translation.json` does not exist. The system supports `uk` as a language code but attempting to switch to Ukrainian will fail. Only `en` and `ar` translations are currently available.
 
 ## Key Files
 

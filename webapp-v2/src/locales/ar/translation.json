@@ -135,15 +135,15 @@
   },
   "relativeTime": {
     "justNow": "الآن",
-    "minuteAgo_one": "منذ دقيقة واحدة",
+    "minuteAgo_one": "منذ {{count}} دقيقة",
     "minuteAgo_other": "منذ {{count}} دقائق",
-    "hourAgo_one": "منذ ساعة واحدة",
+    "hourAgo_one": "منذ {{count}} ساعة",
     "hourAgo_other": "منذ {{count}} ساعات",
-    "dayAgo_one": "منذ يوم واحد",
+    "dayAgo_one": "منذ {{count}} يوم",
     "dayAgo_other": "منذ {{count}} أيام",
-    "monthAgo_one": "منذ شهر واحد",
+    "monthAgo_one": "منذ {{count}} شهر",
     "monthAgo_other": "منذ {{count}} أشهر",
-    "yearAgo_one": "منذ عام واحد",
+    "yearAgo_one": "منذ {{count}} عام",
     "yearAgo_other": "منذ {{count}} أعوام"
   },
   "app": {
@@ -350,9 +350,9 @@
   },
   "group": {
     "header": {
-      "members_one": "عضو واحد",
+      "members_one": "{{count}} عضو",
       "members_other": "{{count}} أعضاء",
-      "expenses_one": "مصروف واحد",
+      "expenses_one": "{{count}} مصروف",
       "expenses_other": "{{count}} مصروفات"
     },
     "actions": {
@@ -635,8 +635,7 @@
     "بنزين",
     "موقف سيارات",
     "رسوم مرور",
-    "أوبر",
-    "ليفت",
+    "مشاركة الركوب",
     "تاكسي",
     "حافلة",
     "قطار",
@@ -644,7 +643,7 @@
     "تأجير سيارات",
     "وقود",
     "رحلة طيران",
-    "Airbnb",
+    "إقامة",
     "فندق",
     "نزل",
     "منتجع",
@@ -792,7 +791,7 @@
   },
   "groupHeader": {
     "membersCount": "{{count}} أعضاء",
-    "membersCount_one": "عضو واحد",
+    "membersCount_one": "{{count}} عضو",
     "membersCount_other": "{{count}} أعضاء",
     "old": "قديم",
     "lastUpdated": "آخر تحديث",
@@ -1558,7 +1557,7 @@
         "heapTotal": "إجمالي Heap",
         "heapAvailable": "Heap المتاحة",
         "external": "الذاكرة الخارجية",
-        "arrayBuffers": "Array Buffers",
+        "arrayBuffers": "مخازن المصفوفات",
         "heapLimit": "حد Heap"
       },
       "heap": {
@@ -1624,7 +1623,7 @@
         "profile": "الملف الشخصي",
         "role": "الدور",
         "firebaseAuth": "مصادقة Firebase",
-        "firestore": "Firestore"
+        "firestore": "فايرستور"
       },
       "profile": {
         "description": "تعديل اسم العرض والبريد الإلكتروني للمستخدم",

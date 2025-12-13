@@ -129,5 +129,1803 @@
       "selectCurrency": "Währung auswählen...",
       "selectPerson": "Person auswählen"
     }
+  },
+  "currencySelector": {
+    "noResults": "Keine Währungen gefunden"
+  },
+  "relativeTime": {
+    "justNow": "gerade eben",
+    "minuteAgo_one": "vor {{count}} Minute",
+    "minuteAgo_other": "vor {{count}} Minuten",
+    "hourAgo_one": "vor {{count}} Stunde",
+    "hourAgo_other": "vor {{count}} Stunden",
+    "dayAgo_one": "vor {{count}} Tag",
+    "dayAgo_other": "vor {{count}} Tagen",
+    "monthAgo_one": "vor {{count}} Monat",
+    "monthAgo_other": "vor {{count}} Monaten",
+    "yearAgo_one": "vor {{count}} Jahr",
+    "yearAgo_other": "vor {{count}} Jahren"
+  },
+  "app": {
+    "loading": "Wird geladen...",
+    "loadingPage": "Seite wird geladen...",
+    "loadingExpenseForm": "Ausgabenformular wird geladen..."
+  },
+  "createGroup": {
+    "validation": {
+      "displayNameTooShort": "Der Anzeigename muss mindestens 2 Zeichen lang sein.",
+      "displayNameTooLong": "Der Anzeigename darf maximal 50 Zeichen lang sein."
+    }
+  },
+  "createGroupModal": {
+    "title": "Neue Gruppe erstellen",
+    "groupNameLabel": "Gruppenname",
+    "groupNamePlaceholder": "z.B. Wohnungsausgaben, Reise nach Paris",
+    "groupNameHelpText": "Wählen Sie einen Namen, der beschreibt, wofür Sie die Ausgaben aufteilen werden.",
+    "groupDisplayNameLabel": "Ihr Anzeigename in dieser Gruppe",
+    "groupDisplayNamePlaceholder": "Wie sollen andere Mitglieder Ihren Namen sehen?",
+    "groupDisplayNameHelpText": "Dieser Name erscheint über Ihren Ausgaben, Kommentaren und Aktivitäten in dieser Gruppe.",
+    "groupDescriptionLabel": "Beschreibung (optional)",
+    "groupDescriptionPlaceholder": "Fügen Sie Details zu dieser Gruppe hinzu...",
+    "groupDescriptionHelpText": "Optionale Beschreibung, um Mitgliedern den Zweck der Gruppe zu verdeutlichen.",
+    "closeButtonAriaLabel": "Modal schließen",
+    "cancelButton": "Abbrechen",
+    "submitButton": "Gruppe erstellen",
+    "restrictCurrencies": "Währungen einschränken",
+    "restrictCurrenciesHelp": "Nur ausgewählte Währungen können für Ausgaben in dieser Gruppe verwendet werden",
+    "validation": {
+      "nameRequired": "Gruppenname ist erforderlich.",
+      "nameTooShort": "Gruppenname muss mindestens 2 Zeichen lang sein.",
+      "nameTooLong": "Gruppenname darf maximal 50 Zeichen lang sein.",
+      "displayNameRequired": "Geben Sie einen Anzeigenamen ein.",
+      "displayNameTooShort": "Der Anzeigename muss mindestens 2 Zeichen lang sein.",
+      "displayNameTooLong": "Der Anzeigename darf maximal 50 Zeichen lang sein.",
+      "displayNameInvalid": "Der Anzeigename darf nur Buchstaben, Zahlen, Leerzeichen, Bindestriche, Unterstriche und Punkte enthalten.",
+      "displayNameTaken": "Dieser Anzeigename wird in dieser Gruppe bereits verwendet."
+    }
+  },
+  "loginPage": {
+    "title": "Anmelden",
+    "description": "Melden Sie sich an, um Ihre gemeinsamen Ausgaben zu verwalten",
+    "rememberMe": "Angemeldet bleiben",
+    "forgotPassword": "Passwort vergessen?",
+    "submitButton": "Anmelden",
+    "noAccount": "Sie haben noch kein Konto?",
+    "signUp": "Registrieren",
+    "validation": {
+      "emailRequired": "E-Mail ist erforderlich",
+      "passwordRequired": "Passwort ist erforderlich"
+    }
+  },
+  "registerPage": {
+    "title": "Konto erstellen",
+    "description": "Erstellen Sie Ihr {{appName}}-Konto, um gemeinsame Ausgaben zu verwalten",
+    "fullNameLabel": "Vollständiger Name",
+    "fullNamePlaceholder": "Geben Sie Ihren vollständigen Namen ein",
+    "passwordLabel": "Passwort",
+    "passwordPlaceholder": "Erstellen Sie ein sicheres Passwort",
+    "confirmPasswordLabel": "Passwort bestätigen",
+    "confirmPasswordPlaceholder": "Bestätigen Sie Ihr Passwort",
+    "acceptTerms": "Ich akzeptiere die",
+    "termsOfService": "Nutzungsbedingungen",
+    "cookiePolicy": "Cookie-Richtlinie",
+    "privacyPolicy": "Datenschutzrichtlinie",
+    "submitButton": "Konto erstellen",
+    "hasAccount": "Sie haben bereits ein Konto?",
+    "signIn": "Anmelden",
+    "requiredIndicator": "*",
+    "validation": {
+      "nameRequired": "Name ist erforderlich",
+      "emailRequired": "E-Mail ist erforderlich",
+      "passwordRequired": "Passwort ist erforderlich",
+      "passwordTooShort": "Das Passwort muss mindestens 12 Zeichen lang sein",
+      "passwordsNoMatch": "Passwörter stimmen nicht überein",
+      "termsRequired": "Sie müssen die Nutzungsbedingungen akzeptieren",
+      "cookiesRequired": "Sie müssen die Cookie-Richtlinie akzeptieren",
+      "privacyRequired": "Sie müssen die Datenschutzrichtlinie akzeptieren"
+    }
+  },
+  "auth": {
+    "refreshingSession": "Sitzung wird aktualisiert...",
+    "initializationFailed": "Initialisierung fehlgeschlagen. Bitte aktualisieren Sie die Seite.",
+    "emailInput": {
+      "label": "E-Mail",
+      "placeholder": "Geben Sie Ihre E-Mail-Adresse ein",
+      "requiredIndicator": "*",
+      "validation": {
+        "required": "E-Mail ist erforderlich",
+        "invalid": "Bitte geben Sie eine gültige E-Mail-Adresse ein"
+      }
+    },
+    "passwordInput": {
+      "label": "Passwort",
+      "placeholder": "Geben Sie Ihr Passwort ein",
+      "requiredIndicator": "*",
+      "showPassword": "Passwort anzeigen",
+      "hidePassword": "Passwort verbergen",
+      "strength": "Passwortstärke",
+      "strengthWeak": "Schwach",
+      "strengthMedium": "Mittel",
+      "strengthStrong": "Stark",
+      "validation": {
+        "required": "Passwort ist erforderlich",
+        "tooShort": "Das Passwort muss mindestens 12 Zeichen lang sein"
+      }
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard - {{appName}}",
+    "description": "Verwalten Sie Ihre Gruppen und Ausgaben mit {{appName}}",
+    "welcomeMessage": "Willkommen bei {{appName}}, {{name}}!",
+    "welcomeDescription": "Beginnen Sie, indem Sie Ihre erste Gruppe erstellen, um Ausgaben mit Freunden zu verfolgen und aufzuteilen.",
+    "yourGroups": "Ihre Gruppen",
+    "createGroup": "Gruppe erstellen",
+    "groupsFilter": {
+      "label": "Gruppen filtern",
+      "active": "Aktiv",
+      "archived": "Archiviert"
+    },
+    "groupCard": {
+      "settledUp": "Alles ausgeglichen!",
+      "youOwe": "Sie schulden {{amount}}",
+      "youAreOwed": "Ihnen werden {{amount}} geschuldet",
+      "addExpenseTooltip": "Ausgabe zu {{groupName}} hinzufügen",
+      "inviteTooltip": "Mitglieder zu {{groupName}} einladen",
+      "noRecentActivity": "Keine aktuellen Aktivitäten",
+      "archivedBadge": "Archiviert"
+    },
+    "emptyState": {
+      "title": "Noch keine Gruppen",
+      "subtitle": "Erstellen Sie Ihre erste Gruppe, um gemeinsame Ausgaben zu verfolgen",
+      "createButton": "Gruppe erstellen"
+    },
+    "stats": {
+      "totalGroups": "Gesamtgruppen",
+      "totalExpenses": "Gesamtausgaben",
+      "totalBalance": "Gesamtsaldo"
+    },
+    "quickActions": {
+      "title": "Schnellaktionen",
+      "createGroup": "Gruppe erstellen",
+      "addExpense": "Ausgabe hinzufügen"
+    }
+  },
+  "activityFeed": {
+    "title": "Aktuelle Aktivitäten",
+    "loading": "Wird geladen...",
+    "emptyState": {
+      "title": "Noch keine Aktivitäten",
+      "description": "Aktivitäten aus Ihren Gruppen werden hier angezeigt, sobald sie geschehen.",
+      "groupDescription": "Aktivitäten in dieser Gruppe werden hier angezeigt."
+    },
+    "error": {
+      "loadFailed": "Wir konnten Ihre aktuellen Aktivitäten derzeit nicht laden. Bitte versuchen Sie es erneut."
+    },
+    "actions": {
+      "retry": "Wiederholen",
+      "loadMore": "Mehr laden",
+      "loadingMore": "Wird geladen..."
+    },
+    "labels": {
+      "actorYou": "Sie",
+      "unknownUser": "Jemand",
+      "unknownGroup": "eine Gruppe",
+      "unknownExpense": "eine Ausgabe",
+      "unknownSettlement": "eine Abrechnung",
+      "commentOnGroup": "die Gruppendiskussion",
+      "commentOnExpense": "die Ausgabe „{{description}}“"
+    },
+    "events": {
+      "group-created": "{{actor}} hat {{group}} erstellt",
+      "group-updated": "{{actor}} hat die Gruppe {{group}} aktualisiert",
+      "group-updated-from": "{{actor}} hat {{previous}} in {{group}} umbenannt",
+      "expense-created": "{{actor}} hat {{expense}} in {{group}} hinzugefügt",
+      "expense-updated": "{{actor}} hat {{expense}} in {{group}} aktualisiert",
+      "expense-deleted": "{{actor}} hat {{expense}} aus {{group}} gelöscht",
+      "member-joined": "{{actor}} hat {{target}} zu {{group}} hinzugefügt",
+      "member-joined-self": "{{actor}} ist {{group}} beigetreten",
+      "member-left": "{{actor}} hat {{target}} aus {{group}} entfernt",
+      "member-left-self": "{{actor}} hat {{group}} verlassen",
+      "comment-added": "{{actor}} hat {{target}} in {{group}} kommentiert",
+      "settlement-created": "{{actor}} hat {{settlement}} in {{group}} erfasst",
+      "settlement-updated": "{{actor}} hat {{settlement}} in {{group}} aktualisiert",
+      "settlement-deleted": "{{actor}} hat {{settlement}} aus {{group}} gelöscht",
+      "generic": "{{actor}} hat Änderungen in {{group}} vorgenommen",
+      "group-created-short": "{{actor}} hat die Gruppe erstellt",
+      "group-updated-short": "{{actor}} hat die Gruppe aktualisiert",
+      "group-updated-from-short": "{{actor}} hat die Gruppe von {{previous}} umbenannt",
+      "expense-created-short": "{{actor}} hat {{expense}} hinzugefügt",
+      "expense-updated-short": "{{actor}} hat {{expense}} aktualisiert",
+      "expense-deleted-short": "{{actor}} hat {{expense}} gelöscht",
+      "member-joined-short": "{{actor}} hat {{target}} hinzugefügt",
+      "member-joined-self-short": "{{actor}} ist beigetreten",
+      "member-left-short": "{{actor}} hat {{target}} entfernt",
+      "member-left-self-short": "{{actor}} ist gegangen",
+      "comment-added-short": "{{actor}} hat {{target}} kommentiert",
+      "settlement-created-short": "{{actor}} hat {{settlement}} erfasst",
+      "settlement-updated-short": "{{actor}} hat {{settlement}} aktualisiert",
+      "settlement-deleted-short": "{{actor}} hat {{settlement}} gelöscht",
+      "generic-short": "{{actor}} hat Änderungen vorgenommen"
+    }
+  },
+  "group": {
+    "header": {
+      "members_one": "{{count}} Mitglied",
+      "members_other": "{{count}} Mitglieder",
+      "expenses_one": "{{count}} Ausgabe",
+      "expenses_other": "{{count}} Ausgaben"
+    },
+    "actions": {
+      "addExpense": "Ausgabe hinzufügen",
+      "viewExpenses": "Ausgaben anzeigen",
+      "settleUp": "Abrechnen",
+      "shareGroup": "Gruppe teilen",
+      "editGroup": "Gruppe bearbeiten",
+      "leaveGroup": "Gruppe verlassen"
+    },
+    "share": {
+      "title": "Gruppe teilen",
+      "subtitle": "Laden Sie andere ein, dieser Gruppe beizutreten",
+      "copyLink": "Link kopieren",
+      "linkCopied": "Link in Zwischenablage kopiert!"
+    },
+    "edit": {
+      "title": "Gruppe bearbeiten",
+      "warningIcon": "⚠️"
+    },
+    "leave": {
+      "title": "Gruppe verlassen",
+      "message": "Sind Sie sicher, dass Sie diese Gruppe verlassen möchten?",
+      "confirmButton": "Gruppe verlassen",
+      "cancelButton": "Abbrechen"
+    },
+    "members": {
+      "title": "Mitglieder",
+      "addMember": "Mitglied hinzufügen",
+      "removeMember": "Mitglied entfernen",
+      "unknownUser": "Unbekannter Benutzer",
+      "user": "Benutzer"
+    },
+    "expenses": {
+      "title": "Ausgaben",
+      "noExpenses": "Noch keine Ausgaben",
+      "addFirstExpense": "Fügen Sie Ihre erste Ausgabe hinzu",
+      "unknown": "Unbekannt"
+    },
+    "balance": {
+      "title": "Saldübersicht",
+      "settledUp": "Alles ausgeglichen!",
+      "unknown": "Unbekannt"
+    }
+  },
+  "comments": {
+    "section": {
+      "title": "Kommentare",
+      "noComments": "Noch keine Kommentare"
+    },
+    "input": {
+      "placeholder": "Kommentar hinzufügen...",
+      "ariaLabel": "Kommentartext",
+      "sendButton": "Senden",
+      "sendAriaLabel": "Kommentar senden"
+    },
+    "item": {
+      "justNow": "gerade eben",
+      "deleteButton": "Kommentar löschen"
+    },
+    "list": {
+      "loading": "Kommentare werden geladen...",
+      "error": "Kommentare konnten nicht geladen werden"
+    },
+    "commentInput": {
+      "placeholder": "Kommentar hinzufügen...",
+      "tooLong": "Kommentar ist zu lang",
+      "addFailed": "Kommentar konnte nicht hinzugefügt werden",
+      "helpText": "Enter drücken zum Senden, Shift+Enter für neue Zeile"
+    },
+    "commentItem": {
+      "recently": "kürzlich"
+    },
+    "commentsList": {
+      "loading": "Kommentare werden geladen...",
+      "empty": "Noch keine Kommentare",
+      "emptySubtext": "Seien Sie der Erste, der kommentiert!",
+      "loadingMore": "Wird geladen...",
+      "loadMore": "Mehr Kommentare laden"
+    },
+    "commentsSection": {
+      "placeholderGroup": "Kommentar zu dieser Gruppe hinzufügen...",
+      "placeholderExpense": "Kommentar zu dieser Ausgabe hinzufügen..."
+    }
+  },
+  "ui": {
+    "alert": {
+      "dismiss": "Warnung schließen"
+    },
+    "confirmDialog": {
+      "confirm": "Bestätigen",
+      "cancel": "Abbrechen"
+    }
+  },
+  "navigation": {
+    "header": {
+      "fallback": "...",
+      "dashboard": "Dashboard",
+      "groups": "Gruppen",
+      "settings": "Einstellungen"
+    },
+    "footer": {
+      "copyright": "© {{year}} {{appName}}. Alle Rechte vorbehalten.",
+      "privacy": "Datenschutzrichtlinie",
+      "terms": "Nutzungsbedingungen",
+      "cookies": "Cookie-Richtlinie"
+    },
+    "userMenu": {
+      "openUserMenu": "Benutzermenü öffnen",
+      "profile": "Profil",
+      "settings": "Einstellungen",
+      "logout": "Abmelden",
+      "help": "Hilfe"
+    }
+  },
+  "errors": {
+    "generic": "Ein Fehler ist aufgetreten",
+    "network": "Netzwerkfehler aufgetreten",
+    "invalidLink": "Ungültiger Link",
+    "notFound": {
+      "page": "Seite nicht gefunden",
+      "group": "Gruppe nicht gefunden",
+      "expense": "Ausgabe nicht gefunden"
+    },
+    "loading": {
+      "cookiePolicy": "Fehler beim Laden der Cookie-Richtlinie",
+      "privacyPolicy": "Fehler beim Laden der Datenschutzrichtlinie",
+      "terms": "Fehler beim Laden der Nutzungsbedingungen"
+    },
+    "validation": {
+      "displayNameEmpty": "Anzeigename darf nicht leer sein",
+      "displayNameTooLong": "Anzeigename muss 100 Zeichen oder weniger enthalten",
+      "passwordTooShort": "Neues Passwort muss mindestens 12 Zeichen lang sein",
+      "passwordsNoMatch": "Passwörter stimmen nicht überein",
+      "passwordSameAsCurrent": "Neues Passwort muss sich vom aktuellen Passwort unterscheiden",
+      "passwordAndNewRequired": "Aktuelles Passwort und neues Passwort sind erforderlich"
+    }
+  },
+  "seo": {
+    "titleSuffix": " | {{appName}}",
+    "siteName": "{{appName}}"
+  },
+  "expenseForm": {
+    "description": "Beschreibung",
+    "amount": "Betrag*",
+    "whoPaid": "Wer hat bezahlt?",
+    "splitBetween": "Aufteilen zwischen",
+    "exactAmounts": "Genaue Beträge",
+    "percentage": "Prozentsatz",
+    "equal": "Gleichmäßig",
+    "exactAmountsInstruction": "Geben Sie die genauen Beträge für jede Person ein:",
+    "percentageInstruction": "Geben Sie den Prozentsatz für jede Person ein:",
+    "selectAll": "Alle auswählen",
+    "saveExpense": "Ausgabe speichern",
+    "updateExpense": "Ausgabe aktualisieren",
+    "cancel": "Abbrechen",
+    "errors": {
+      "expenseLocked": "Diese Ausgabe kann nicht bearbeitet werden, da ein oder mehrere Teilnehmer die Gruppe verlassen haben."
+    }
+  },
+  "settlementForm": {
+    "updatePayment": "Zahlung aktualisieren",
+    "recordPayment": "Zahlung erfassen",
+    "updateSettlement": "Abrechnung aktualisieren",
+    "recordSettlement": "Abrechnung erfassen",
+    "closeModal": "Modal schließen",
+    "whoPaidLabel": "Wer hat bezahlt?",
+    "whoReceivedPaymentLabel": "Wer hat die Zahlung erhalten?",
+    "amountLabel": "Betrag",
+    "dateLabel": "Datum",
+    "noteLabel": "Notiz (optional)",
+    "selectPersonPlaceholder": "Person auswählen",
+    "amountPlaceholder": "0.00",
+    "notePlaceholder": "z.B. Venmo, Bargeld, Banküberweisung",
+    "youSuffix": " (Sie)",
+    "cancelButton": "Abbrechen",
+    "updatingButton": "Wird aktualisiert...",
+    "recordingButton": "Wird erfasst...",
+    "paymentSummary": "{{payer}} hat {{payee}} {{amount}} bezahlt",
+    "validation": {
+      "selectPayer": "Bitte wählen Sie aus, wer bezahlt hat",
+      "selectPayee": "Bitte wählen Sie aus, wer die Zahlung erhalten hat",
+      "samePersonError": "Zahler und Empfänger können nicht dieselbe Person sein",
+      "validAmountRequired": "Bitte geben Sie einen gültigen Betrag größer als 0 ein",
+      "amountTooLarge": "Betrag darf 999.999,99 nicht überschreiten",
+      "validCurrencyRequired": "Bitte wählen Sie eine gültige Währung",
+      "dateRequired": "Bitte wählen Sie ein Datum",
+      "dateInFuture": "Datum darf nicht in der Zukunft liegen",
+      "recordPaymentFailed": "Zahlung konnte nicht erfasst werden"
+    },
+    "errors": {
+      "settlementLocked": "Diese Abrechnung kann nicht bearbeitet werden, da ein Teilnehmer die Gruppe verlassen hat."
+    },
+    "warnings": {
+      "noDebt": "{{payer}} schuldet {{payee}} kein Geld in {{currency}}. Diese Abrechnung erstellt eine Schuld in die entgegengesetzte Richtung.",
+      "overpayment": "{{payer}} schuldet {{payee}} nur {{debt}}, aber Sie zahlen {{amount}}. Dies erstellt eine Schuld in die entgegengesetzte Richtung.",
+      "underpayment": "Sie erfassen {{amount}}, aber {{payer}} schuldet {{payee}} danach immer noch {{remaining}}. Wir werden den verbleibenden Saldo aktualisieren."
+    }
+  },
+  "settlementHistory": {
+    "noPaymentsYet": "Noch keine Zahlungen erfasst",
+    "today": "Heute",
+    "yesterday": "Gestern",
+    "editPaymentTooltip": "Zahlung bearbeiten",
+    "cannotEditTooltip": "Kann nicht bearbeitet werden - Mitglied hat die Gruppe verlassen",
+    "deletePaymentTooltip": "Zahlung löschen",
+    "loadMore": "Mehr laden",
+    "loadMorePayments": "Mehr Zahlungen laden",
+    "deletePaymentTitle": "Zahlung löschen",
+    "deletePaymentMessage": "Sind Sie sicher, dass Sie diese Zahlung von {{amount}} von {{payer}} an {{payee}} löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
+    "deleteButton": "Löschen",
+    "cancelButton": "Abbrechen",
+    "showAll": "Alle anzeigen",
+    "noPaymentsForYou": "Noch keine Zahlungen mit Ihrer Beteiligung",
+    "deletedBy": "Gelöscht von"
+  },
+  "balanceSummary": {
+    "loadingBalances": "Salden werden geladen...",
+    "allSettledUp": "Alles ausgeglichen!",
+    "debtArrow": " → ",
+    "showOnlyMyBalances": "Nur meine Salden anzeigen",
+    "showAll": "Alle anzeigen",
+    "settleUp": "Abrechnen",
+    "settleUpButton": "Abrechnung für diese Schuld erfassen"
+  },
+  "emptyGroupsState": {
+    "title": "Noch keine Gruppen",
+    "description": "Erstellen Sie Ihre erste Gruppe, um Ausgaben mit Freunden, Familie oder Mitbewohnern aufzuteilen.",
+    "createFirstGroup": "Erstellen Sie Ihre erste Gruppe",
+    "gettingStartedTitle": "Erste Schritte mit {{appName}}:",
+    "step1Title": "1. Gruppe erstellen",
+    "step1Description": "Freunde, Mitbewohner oder Reisebegleiter hinzufügen",
+    "step2Title": "2. Ausgaben hinzufügen",
+    "step2Description": "Verfolgen, wer bezahlt hat und wie die Kosten aufgeteilt werden",
+    "step3Title": "3. Abrechnen",
+    "step3Description": "Sehen, wer wem was schuldet und Salden ausgleichen"
+  },
+  "groupCard": {
+    "settledUp": "Ausgeglichen",
+    "addExpenseTooltip": "Ausgabe zu {{groupName}} hinzufügen",
+    "inviteTooltip": "Zu {{groupName}} einladen",
+    "noRecentActivity": "Keine aktuellen Aktivitäten"
+  },
+  "expenseFormHeader": {
+    "addExpense": "Ausgabe hinzufügen",
+    "editExpense": "Ausgabe bearbeiten",
+    "copyExpense": "Ausgabe kopieren",
+    "cancel": "Abbrechen"
+  },
+  "expenseBasicFields": {
+    "title": "Ausgabendetails",
+    "descriptionLabel": "Beschreibung",
+    "descriptionPlaceholder": "Wofür war diese Ausgabe?",
+    "amountLabel": "Betrag",
+    "labelsLabel": "Etiketten",
+    "labelsPlaceholder": "Etikett hinzufügen...",
+    "dateLabel": "Datum",
+    "timeLabel": "Uhrzeit",
+    "recentAmounts": "Kürzliche Beträge:",
+    "today": "Heute",
+    "yesterday": "Gestern",
+    "thisMorning": "Heute Morgen",
+    "lastNight": "Letzte Nacht",
+    "addSpecificTime": "Spezifische Uhrzeit hinzufügen"
+  },
+  "suggestedLabels": [
+    "Lebensmittel",
+    "Essen zum Mitnehmen",
+    "Restaurant",
+    "Kaffee",
+    "Getränke",
+    "Bar",
+    "Snacks",
+    "Frühstück",
+    "Mittagessen",
+    "Abendessen",
+    "Fast Food",
+    "Lieferung",
+    "Brunch",
+    "Benzin",
+    "Parken",
+    "Maut",
+    "Mitfahrdienst",
+    "Taxi",
+    "Bus",
+    "Zug",
+    "U-Bahn",
+    "Mietwagen",
+    "Kraftstoff",
+    "Flug",
+    "Unterkunft",
+    "Hotel",
+    "Hostel",
+    "Resort",
+    "Urlaub",
+    "Roadtrip",
+    "Camping",
+    "Miete",
+    "Nebenkosten",
+    "Strom",
+    "Wasser",
+    "Internet",
+    "Telefon",
+    "Versicherung",
+    "Hypothek",
+    "WEG-Gebühren",
+    "Reparaturen",
+    "Wartung",
+    "Reinigung",
+    "Möbel",
+    "Geräte",
+    "Dekor",
+    "Garten",
+    "Filme",
+    "Konzert",
+    "Show",
+    "Festival",
+    "Sport",
+    "Spiele",
+    "Streaming",
+    "Tickets",
+    "Museum",
+    "Freizeitpark",
+    "Bowling",
+    "Minigolf",
+    "Karaoke",
+    "Arkade",
+    "Escape Room",
+    "Shopping",
+    "Kleidung",
+    "Schuhe",
+    "Elektronik",
+    "Geschenke",
+    "Bücher",
+    "Spielzeug",
+    "Schönheit",
+    "Hautpflege",
+    "Haarschnitt",
+    "Spa",
+    "Fitnessstudio",
+    "Fitness",
+    "Sportausrüstung",
+    "Outdoor-Ausrüstung",
+    "Tierfutter",
+    "Tierpflege",
+    "Tierarzt",
+    "Fellpflege",
+    "Medizin",
+    "Apotheke",
+    "Arzt",
+    "Zahnarzt",
+    "Sehvermögen",
+    "Therapie",
+    "Medizinisch",
+    "Kinderbetreuung",
+    "Babysitter",
+    "Studiengebühren",
+    "Schule",
+    "Bedarf",
+    "Party",
+    "Geburtstag",
+    "Hochzeit",
+    "Feiertag",
+    "Jahrestag",
+    "Feier",
+    "Dekorationen",
+    "Catering",
+    "Veranstaltungsort",
+    "BBQ",
+    "Picknick",
+    "Potluck",
+    "Spieleabend",
+    "Einweihungsparty",
+    "Arbeit",
+    "Büro",
+    "Bedarf",
+    "Ausrüstung",
+    "Software",
+    "Abonnement",
+    "Mitgliedschaft",
+    "Gebühren",
+    "Trinkgelder",
+    "Wohltätigkeit",
+    "Spende",
+    "Geldautomat",
+    "Bargeld",
+    "Sonstiges",
+    "Andere",
+    "Geteilt",
+    "Aufgeteilt",
+    "Erstattung",
+    "Anzahlung",
+    "Kaution"
+  ],
+  "expensesList": {
+    "title": "Ausgaben",
+    "noExpensesYet": "Noch keine Ausgaben. Fügen Sie eine hinzu, um zu beginnen!",
+    "loadMore": "Mehr laden"
+  },
+  "expenseItem": {
+    "paidBy": "Bezahlt von",
+    "deleted": "Gelöscht",
+    "deletedBy": "Gelöscht von",
+    "copyExpense": "Ausgabe kopieren"
+  },
+  "header": {
+    "logoAlt": "{{appName}}",
+    "login": "Anmelden",
+    "signUp": "Registrieren",
+    "goToHome": "Zur Startseite",
+    "goToDashboard": "Zum Dashboard"
+  },
+  "userMenu": {
+    "dashboard": "Dashboard",
+    "admin": "Admin",
+    "settings": "Einstellungen",
+    "signOut": "Abmelden",
+    "signingOut": "Wird abgemeldet...",
+    "systemUserBadge": "Systembenutzer",
+    "systemUserTooltip": "Dieses Konto wird für automatisierte oder systemgesteuerte Vorgänge verwendet.",
+    "environmentLink": "Umgebung",
+    "diagnosticsLoading": "Diagnose wird geladen...",
+    "diagnosticsError": "Diagnose konnte nicht geladen werden:",
+    "browser": "Browser",
+    "browserUsers": "Benutzer-Browser"
+  },
+  "languageSelector": {
+    "label": "Sprache",
+    "description": "Wählen Sie Ihre bevorzugte Sprache"
+  },
+  "footer": {
+    "companyName": "{{appName}}",
+    "companyDescription": "Teilen Sie Rechnungen einfach mit Freunden und Familie.",
+    "linksSection": "Links",
+    "copyright": "© 2025 Pomo Corp Ltd. Alle Rechte vorbehalten."
+  },
+  "groupHeader": {
+    "membersCount": "{{count}} Mitglieder",
+    "membersCount_one": "{{count}} Mitglied",
+    "membersCount_other": "{{count}} Mitglieder",
+    "old": "alt",
+    "lastUpdated": "zuletzt aktualisiert",
+    "groupSettingsAriaLabel": "Gruppeneinstellungen",
+    "groupSecurityAriaLabel": "Sicherheit und Berechtigungen"
+  },
+  "securitySettingsModal": {
+    "unsavedChanges": "Sie haben ungespeicherte Änderungen. Überprüfen Sie alles und klicken Sie dann auf Speichern, um sie anzuwenden.",
+    "presets": {
+      "activeBadge": "Aktiv",
+      "open": {
+        "label": "Voreinstellung: Offene Zusammenarbeit",
+        "description": "Jeder kann Mitglieder einladen und Ausgaben ohne Einschränkungen verwalten."
+      },
+      "managed": {
+        "label": "Voreinstellung: Verwaltete Gruppe",
+        "description": "Administratoren genehmigen Einladungen und kontrollieren, wer Ausgaben bearbeiten oder löschen kann."
+      }
+    },
+    "custom": {
+      "heading": "Benutzerdefinierte Berechtigungen",
+      "unsaved": "Benutzerdefinierte Berechtigungen geändert.",
+      "saveHelper": "Änderungen werden in die Warteschlange gestellt, bis Sie auf Speichern klicken."
+    },
+    "success": {
+      "updated": "Sicherheitseinstellungen aktualisiert."
+    },
+    "permissions": {
+      "expenseEditing": {
+        "label": "Wer kann Ausgaben bearbeiten",
+        "description": "Wählen Sie, wer Ausgaben in der Gruppe aktualisieren kann."
+      },
+      "expenseDeletion": {
+        "label": "Wer kann Ausgaben löschen",
+        "description": "Beschränken Sie die Möglichkeit, Ausgaben zu entfernen."
+      },
+      "memberInvitation": {
+        "label": "Wer kann Mitglieder einladen",
+        "description": "Legen Sie fest, wer Einladungslinks generieren kann."
+      },
+      "memberApproval": {
+        "label": "Genehmigung neuer Mitglieder",
+        "description": "Verlangen Sie eine Administratorprüfung, bevor jemand über eine Einladung beitritt."
+      },
+      "settingsManagement": {
+        "label": "Wer kann Einstellungen ändern",
+        "description": "Kontrollieren Sie den Zugriff auf administrative Einstellungen."
+      },
+      "options": {
+        "anyone": "Jedes Mitglied",
+        "creator-and-admin": "Ersteller & Administratoren",
+        "admin-only": "Nur Administratoren",
+        "automatic": "Automatisch",
+        "admin-required": "Administratorgenehmigung erforderlich"
+      }
+    },
+    "memberRoles": {
+      "heading": "Mitgliederrollen",
+      "admin": "Admin",
+      "member": "Mitglied",
+      "viewer": "Betrachter"
+    },
+    "pendingMembers": {
+      "heading": "Ausstehende Mitglieder",
+      "requested": "Wartet auf Genehmigung",
+      "empty": "Derzeit keine ausstehenden Anfragen.",
+      "approve": "Genehmigen",
+      "reject": "Ablehnen"
+    },
+    "errors": {
+      "loadPending": "Ausstehende Mitglieder konnten nicht geladen werden. Bitte versuchen Sie es erneut.",
+      "updatePermissions": "Wir konnten die Sicherheitseinstellungen nicht aktualisieren. Bitte versuchen Sie es erneut.",
+      "pendingAction": "Wir konnten diese Anfrage nicht verarbeiten. Bitte versuchen Sie es erneut."
+    }
+  },
+  "settingsPage": {
+    "title": "Einstellungen - {{appName}}",
+    "description": "Verwalten Sie Ihre Kontoeinstellungen",
+    "heroLabel": "Konto",
+    "accountSettingsHeader": "Kontoeinstellungen",
+    "accountSettingsSubheader": "Verwalten Sie Ihre Profilinformationen und Ihr Passwort",
+    "profileSummaryTitle": "Profilübersicht",
+    "profileSummaryDescription": "Diese Informationen helfen anderen Mitgliedern, Sie zu erkennen.",
+    "profileInformationHeader": "Profilinformationen",
+    "profileInformationSubheader": "Aktualisieren Sie die Details, die andere Mitglieder in {{appName}} sehen.",
+    "emailSectionTitle": "E-Mail-Adresse",
+    "emailSectionDescription": "Aktualisieren Sie die E-Mail-Adresse, die Sie zur Anmeldung und zum Empfang von Benachrichtigungen verwenden.",
+    "currentDisplayName": "Aktueller Anzeigename:",
+    "email": "E-Mail:",
+    "currentEmailLabel": "Aktuelle E-Mail",
+    "displayNameLabel": "Anzeigename",
+    "displayNamePlaceholder": "Geben Sie Ihren Anzeigenamen ein",
+    "displayNameHelper": "Verwenden Sie Ihren vollständigen Namen oder einen Spitznamen, den Teammitglieder erkennen werden.",
+    "saveChangesButton": "Änderungen speichern",
+    "passwordHeader": "Passwort",
+    "passwordIntro": "Legen Sie ein sicheres Passwort fest, um Ihr {{appName}}-Konto zu schützen.",
+    "changePasswordButton": "Passwort ändern",
+    "changeEmailButton": "E-Mail ändern",
+    "newEmailLabel": "Neue E-Mail",
+    "newEmailPlaceholder": "Geben Sie Ihre neue E-Mail-Adresse ein",
+    "emailPasswordLabel": "Mit Passwort bestätigen",
+    "updateEmailButton": "E-Mail aktualisieren",
+    "currentPasswordLabel": "Aktuelles Passwort",
+    "newPasswordLabel": "Neues Passwort",
+    "confirmNewPasswordLabel": "Neues Passwort bestätigen",
+    "updatePasswordButton": "Passwort aktualisieren",
+    "cancelButton": "Abbrechen",
+    "passwordRequirementsHeading": "Checkliste für ein sicheres Passwort",
+    "passwordRequirements": {
+      "length": "Verwenden Sie mindestens 12 Zeichen.",
+      "mix": "Kombinieren Sie Groß- und Kleinbuchstaben, Zahlen und Symbole.",
+      "reuse": "Vermeiden Sie Passwörter, die Sie an anderer Stelle verwendet haben."
+    },
+    "profileSummaryRoleLabel": "Kontorolle",
+    "profileSummaryRoleFallback": "Mitglied",
+    "profileSummaryRole": {
+      "system_admin": "Administrator",
+      "system_user": "Mitglied"
+    },
+    "successMessages": {
+      "profileUpdated": "Profil erfolgreich aktualisiert",
+      "passwordChanged": "Passwort erfolgreich geändert",
+      "emailChanged": "E-Mail erfolgreich aktualisiert. Bitte überprüfen Sie die neue Adresse."
+    },
+    "errorMessages": {
+      "profileUpdateFailed": "Profil konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut.",
+      "passwordAndNewRequired": "Aktuelles Passwort und neues Passwort sind erforderlich",
+      "passwordTooShort": "Neues Passwort muss mindestens 12 Zeichen lang sein",
+      "passwordsNoMatch": "Passwörter stimmen nicht überein",
+      "passwordSameAsCurrent": "Neues Passwort muss sich vom aktuellen Passwort unterscheiden",
+      "currentPasswordIncorrect": "Aktuelles Passwort ist falsch",
+      "passwordChangeFailed": "Passwort konnte nicht geändert werden. Bitte versuchen Sie es erneut.",
+      "displayNameEmpty": "Anzeigename darf nicht leer sein",
+      "displayNameTooLong": "Anzeigename muss 100 Zeichen oder weniger enthalten",
+      "emailRequired": "Neue E-Mail ist erforderlich",
+      "emailInvalid": "Geben Sie eine gültige E-Mail-Adresse ein",
+      "emailSameAsCurrent": "Neue E-Mail muss sich von der aktuellen E-Mail unterscheiden",
+      "emailPasswordRequired": "Geben Sie Ihr aktuelles Passwort ein, um diese Änderung zu bestätigen",
+      "emailInUse": "Diese E-Mail ist bereits mit einem anderen {{appName}}-Konto verknüpft",
+      "emailChangeFailed": "E-Mail konnte nicht geändert werden. Bitte versuchen Sie es erneut."
+    }
+  },
+  "editGroupModal": {
+    "title": "Gruppe bearbeiten",
+    "groupNameLabel": "Gruppenname",
+    "groupNamePlaceholder": "z.B. Wohnungsausgaben, Reise nach Paris",
+    "descriptionLabel": "Beschreibung (optional)",
+    "descriptionPlaceholder": "Fügen Sie Details zu dieser Gruppe hinzu...",
+    "cancelButton": "Abbrechen",
+    "saveChangesButton": "Änderungen speichern",
+    "deleteGroupButton": "Gruppe löschen",
+    "validation": {
+      "nameRequired": "Gruppenname ist erforderlich.",
+      "nameTooShort": "Gruppenname muss mindestens 2 Zeichen lang sein.",
+      "nameTooLong": "Gruppenname darf maximal 50 Zeichen lang sein.",
+      "updateFailed": "Gruppe konnte nicht aktualisiert werden"
+    },
+    "success": {
+      "updated": "Gruppendetails aktualisiert."
+    },
+    "deleteConfirmDialog": {
+      "title": "Gruppe endgültig löschen",
+      "warningTitle": "⚠️ Warnung: Endgültiges Löschen",
+      "warningMessage": "Dies löscht die Gruppe und ALLE zugehörigen Daten endgültig:",
+      "warningList": {
+        "expenses": "Alle Ausgaben und ihre Kommentare",
+        "settlements": "Alle Abrechnungen und Zahlungshistorie",
+        "members": "Alle Gruppenmitglieder und Berechtigungen",
+        "history": "Alle Änderungsverläufe und Aktivitäten"
+      },
+      "cannotUndo": "Diese Aktion kann nicht rückgängig gemacht werden.",
+      "typeToConfirm": "Um zu bestätigen, geben Sie den Gruppennamen „{{groupName}}“ unten ein:",
+      "deletingMessage": "Gruppe und alle zugehörigen Daten werden gelöscht...",
+      "deletingText": "Wird gelöscht...",
+      "confirmText": "Gruppe endgültig löschen",
+      "cancelText": "Abbrechen",
+      "deleteFailed": "Gruppe konnte nicht gelöscht werden"
+    }
+  },
+  "groupActions": {
+    "title": "Gruppenaktionen",
+    "addExpense": "Ausgabe hinzufügen",
+    "settleUp": "Abrechnen",
+    "inviteOthers": "Andere einladen",
+    "settings": "Einstellungen",
+    "leaveGroup": "Gruppe verlassen",
+    "archive": "Gruppe archivieren",
+    "unarchive": "Gruppe dearchivieren"
+  },
+  "groupSettingsModal": {
+    "title": "Gruppeneinstellungen",
+    "tabs": {
+      "identity": "Anzeigename",
+      "general": "Allgemein",
+      "security": "Sicherheit & Berechtigungen"
+    },
+    "securityTab": {
+      "successAriaLabel": "Erfolg",
+      "unsavedChangesAriaLabel": "ungespeicherte Änderungen"
+    }
+  },
+  "groupSettings": {
+    "currencySettings": {
+      "title": "Währungseinstellungen",
+      "description": "Beschränken Sie, welche Währungen für Ausgaben in dieser Gruppe verwendet werden können.",
+      "enableToggle": "Währungen für diese Gruppe einschränken",
+      "enabledDescription": "Nur ausgewählte Währungen können für Ausgaben verwendet werden",
+      "permittedLabel": "Erlaubte Währungen",
+      "defaultLabel": "Standardwährung für neue Ausgaben",
+      "addCurrency": "Währung hinzufügen",
+      "searchPlaceholder": "Währungen suchen...",
+      "noCurrenciesSelected": "Wählen Sie mindestens eine Währung aus",
+      "defaultNotInPermitted": "Standard muss eine erlaubte Währung sein",
+      "allCurrenciesSelected": "Alle Währungen ausgewählt",
+      "saveButton": "Währungseinstellungen speichern",
+      "saveSuccess": "Währungseinstellungen erfolgreich aktualisiert.",
+      "saveFailed": "Währungseinstellungen konnten nicht gespeichert werden. Bitte versuchen Sie es erneut."
+    }
+  },
+  "groupDisplayNameSettings": {
+    "title": "Gruppen-Anzeigename",
+    "description": "Wählen Sie, wie andere Mitglieder Sie in dieser Gruppe sehen.",
+    "inputLabel": "Ihr Anzeigename in dieser Gruppe",
+    "inputPlaceholder": "Geben Sie einen eindeutigen Anzeigenamen ein",
+    "save": "Anzeigenamen speichern",
+    "saving": "Wird gespeichert...",
+    "success": "Gruppen-Anzeigename aktualisiert.",
+    "errors": {
+      "required": "Geben Sie einen Anzeigenamen ein.",
+      "tooLong": "Anzeigename darf maximal 50 Zeichen lang sein.",
+      "notChanged": "Geben Sie einen anderen Anzeigenamen ein, bevor Sie speichern.",
+      "taken": "Dieser Name wird in dieser Gruppe bereits verwendet.",
+      "unknown": "Anzeigename konnte nicht aktualisiert werden. Versuchen Sie es erneut."
+    }
+  },
+  "membersList": {
+    "title": "Mitglieder",
+    "admin": "Admin",
+    "member": "Mitglied",
+    "viewer": "Betrachter",
+    "thisMember": "Dieses Mitglied",
+    "leaveGroup": "Gruppe verlassen",
+    "inviteOthers": "Andere einladen",
+    "inviteOthersAriaLabel": "Andere einladen",
+    "leaveGroupAriaLabel": "Gruppe verlassen",
+    "removeMemberAriaLabel": "{{name}} entfernen",
+    "leaveGroupDialog": {
+      "title": "Gruppe verlassen?",
+      "messageWithBalance": "Sie haben einen offenen Saldo in dieser Gruppe. Bitte begleichen Sie diesen, bevor Sie gehen.",
+      "messageConfirm": "Sind Sie sicher, dass Sie diese Gruppe verlassen möchten? Sie benötigen eine Einladung, um wieder beizutreten.",
+      "confirmText": "Gruppe verlassen",
+      "cancelText": "Abbrechen"
+    },
+    "removeMemberDialog": {
+      "title": "Mitglied entfernen?",
+      "messageWithBalance": "{{name}} hat einen offenen Saldo in dieser Gruppe. Bitte begleichen Sie diesen, bevor Sie {{name}} entfernen.",
+      "messageConfirm": "Sind Sie sicher, dass Sie {{name}} aus der Gruppe entfernen möchten?",
+      "confirmText": "Entfernen",
+      "cancelText": "Abbrechen"
+    }
+  },
+  "shareGroupModal": {
+    "title": "Andere einladen",
+    "description": "Teilen Sie diesen Link mit jedem, den Sie in diese Gruppe einladen möchten.",
+    "closeButtonAriaLabel": "Modal schließen",
+    "copyLinkTitle": "Link kopieren",
+    "copyLinkAriaLabel": "Gruppen-Einladungslink kopieren",
+    "qrCodeDescription": "Oder scannen Sie diesen Code",
+    "expirationLabel": "Einladungslink läuft ab in…",
+    "expirationOptions": {
+      "15m": "15 Minuten",
+      "1h": "1 Stunde",
+      "1d": "1 Tag",
+      "5d": "5 Tage"
+    },
+    "expiresAt": "Läuft ab am {{date}}",
+    "generateNew": "Neuen generieren",
+    "linkCopied": "Link in Zwischenablage kopiert",
+    "errors": {
+      "generateLinkFailed": "Freigabelink konnte nicht generiert werden. Bitte versuchen Sie es erneut."
+    }
+  },
+  "errorState": {
+    "defaultTitle": "Etwas ist schief gelaufen",
+    "unexpectedError": "Ein unerwarteter Fehler ist aufgetreten",
+    "tryAgainButton": "Erneut versuchen"
+  },
+  "errorBoundary": {
+    "title": "Etwas ist schief gelaufen",
+    "unexpectedError": "Ein unerwarteter Fehler ist aufgetreten"
+  },
+  "notFoundPage": {
+    "title": "404",
+    "pageNotFound": "Seite nicht gefunden",
+    "pageNotFoundDescription": "Die gesuchte Seite existiert nicht.",
+    "groupNotFound": "Gruppe nicht gefunden oder Sie haben keinen Zugriff",
+    "groupNotFoundDescription": "Die gesuchte Gruppe existiert nicht oder Sie müssen eingeladen werden, um darauf zugreifen zu können.",
+    "goToDashboard": "Zum Dashboard",
+    "goHome": "Zur Startseite"
+  },
+  "loadingState": {
+    "defaultMessage": "Wird geladen..."
+  },
+  "joinGroupPage": {
+    "title": "Gruppe beitreten",
+    "loadingGroup": "Gruppeninformationen werden geladen...",
+    "alreadyMember": "Sie sind bereits Mitglied dieser Gruppe",
+    "alreadyMemberDescription": "Sie können direkt zur Gruppe gehen, um Ausgaben und Salden anzuzeigen.",
+    "joinGroup": "Gruppe beitreten",
+    "goToGroup": "Zur Gruppe gehen",
+    "joining": "Wird beigetreten...",
+    "cancel": "Abbrechen",
+    "welcome": "Willkommen bei {{groupName}}!",
+    "joinSuccess": "Sie sind der Gruppe erfolgreich beigetreten. Weiterleitung zur Gruppenseite...",
+    "joinedTitle": "Beigetreten {{groupName}} - {{appName}}",
+    "backToDashboard": "Zurück zum Dashboard",
+    "pendingApprovalTitle": "Wartet auf Genehmigung",
+    "pendingApprovalMessage": "Ihre Anfrage zum Beitritt zu {{groupName}} wurde an die Gruppenadministratoren gesendet.",
+    "pendingApprovalHelp": "Wir benachrichtigen Sie, sobald Sie genehmigt wurden. Sie können jetzt zu Ihrem Dashboard zurückkehren.",
+    "errors": {
+      "invalidLink": "Dieser Einladungslink ist ungültig oder abgelaufen",
+      "groupNotFound": "Diese Gruppe existiert nicht mehr",
+      "alreadyMember": "Sie sind bereits Mitglied dieser Gruppe",
+      "joinFailed": "Beitritt zur Gruppe fehlgeschlagen",
+      "loadFailed": "Gruppeninformationen konnten nicht geladen werden"
+    },
+    "displayName": {
+      "title": "Wählen Sie Ihren Anzeigenamen",
+      "description": "So sehen andere Mitglieder Sie in „{{groupName}}“",
+      "label": "Anzeigename",
+      "placeholder": "Wie sollen andere Mitglieder Ihren Namen sehen?",
+      "help": "Wählen Sie einen eindeutigen Namen für diese Gruppe. Andere Mitglieder werden ihn verwenden, um Sie zu identifizieren.",
+      "errors": {
+        "required": "Geben Sie einen Anzeigenamen ein.",
+        "taken": "Dieser Anzeigename wird in dieser Gruppe bereits verwendet.",
+        "invalid": "Der Anzeigename darf nur Buchstaben, Zahlen, Leerzeichen, Bindestriche, Unterstriche und Punkte enthalten."
+      }
+    }
+  },
+  "dashboardComponents": {
+    "groupsList": {
+      "loading": "Ihre Gruppen werden geladen...",
+      "loadFailed": "Gruppen konnten nicht geladen werden",
+      "tryAgain": "Erneut versuchen",
+      "creating": "Gruppe wird erstellt...",
+      "noArchivedTitle": "Keine archivierten Gruppen",
+      "noArchivedDescription": "Hier werden archivierte Gruppen angezeigt. Archivieren Sie eine Gruppe über die Registerkarte „Aktiv“, um sie aus Ihrem Dashboard auszublenden.",
+      "groupsListAriaLabel": "Ihre Gruppen"
+    }
+  },
+  "expenseComponents": {
+    "expenseFormActions": {
+      "cancel": "Abbrechen",
+      "updating": "Wird aktualisiert...",
+      "saving": "Wird gespeichert...",
+      "update": "Ausgabe aktualisieren",
+      "save": "Ausgabe speichern"
+    },
+    "participantSelector": {
+      "label": "Aufteilen zwischen",
+      "requiredIndicator": "*",
+      "selectAll": "Alle auswählen",
+      "selectNone": "Keine auswählen",
+      "payerSuffix": "(Zahler)"
+    },
+    "payerSelector": {
+      "label": "Wer hat bezahlt?",
+      "requiredIndicator": "*",
+      "selectPayer": "Wählen Sie aus, wer bezahlt hat",
+      "searchPlaceholder": "Mitglieder suchen...",
+      "membersList": "Gruppenmitglieder",
+      "noResults": "Keine Mitglieder entsprechen Ihrer Suche"
+    },
+    "splitAmountInputs": {
+      "exactAmountsInstruction": "Geben Sie die genauen Beträge für jede Person ein:",
+      "unknown": "Unbekannt",
+      "dollarSign": "$",
+      "total": "Gesamt: ",
+      "percentageInstruction": "Geben Sie den Prozentsatz für jede Person ein:",
+      "percentSign": "%",
+      "equalInstruction": "Jede Person zahlt:"
+    },
+    "splitTypeSelector": {
+      "label": "Wie aufteilen",
+      "equal": "Gleichmäßig",
+      "exactAmounts": "Genaue Beträge",
+      "percentage": "Prozentsatz"
+    },
+    "expenseActions": {
+      "edit": "Bearbeiten",
+      "copyExpense": "Ausgabe kopieren",
+      "copy": "Kopieren",
+      "share": "Teilen",
+      "delete": "Löschen",
+      "deleteTitle": "Ausgabe löschen",
+      "deleteConfirm": "Sind Sie sicher, dass Sie „{{expenseName}}“ löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden und beeinflusst die Gruppensalden.",
+      "deleteButton": "Löschen",
+      "cancel": "Abbrechen",
+      "deleteFailed": "Ausgabe konnte nicht gelöscht werden",
+      "cannotEditTooltip": "Kann nicht bearbeitet werden - Teilnehmer hat die Gruppe verlassen"
+    },
+    "expenseFormModal": {
+      "addExpense": "Ausgabe hinzufügen",
+      "editExpense": "Ausgabe bearbeiten",
+      "copyExpense": "Ausgabe kopieren",
+      "closeModal": "Modal schließen",
+      "cancel": "Abbrechen",
+      "saveExpense": "Ausgabe speichern",
+      "updateExpense": "Ausgabe aktualisieren",
+      "createCopy": "Kopie erstellen",
+      "saving": "Wird gespeichert...",
+      "updating": "Wird aktualisiert...",
+      "close": "Schließen"
+    },
+    "expenseDetailModal": {
+      "title": "Ausgabendetails",
+      "closeModal": "Modal schließen",
+      "close": "Schließen",
+      "edit": "Bearbeiten",
+      "copy": "Kopieren",
+      "share": "Teilen",
+      "delete": "Löschen",
+      "paidBy": "Bezahlt von",
+      "date": "Datum",
+      "labels": "Etiketten",
+      "receipt": "Beleg",
+      "viewReceipt": "Beleg ansehen",
+      "noReceipt": "Kein Beleg",
+      "splitDetails": "Aufteilungsdetails",
+      "comments": "Kommentare",
+      "loadingExpense": "Ausgabendetails werden geladen...",
+      "expenseNotFound": "Ausgabe nicht gefunden",
+      "failedToLoad": "Ausgabendetails konnten nicht geladen werden",
+      "shareTitle": "Ausgabe: {{description}}",
+      "shareText": "Sehen Sie sich diese Ausgabe an: {{description}} - {{amount}}"
+    },
+    "splitBreakdown": {
+      "splitBetween": "Aufgeteilt zwischen ",
+      "person": " Person",
+      "people": " Personen",
+      "splitEqually": "Gleichmäßig aufteilen",
+      "exactAmounts": "Genaue Beträge",
+      "byPercentage": "Nach Prozentsatz",
+      "customSplit": "Benutzerdefinierte Aufteilung",
+      "unknown": "Unbekannt",
+      "paid": "Bezahlt",
+      "owes": "Schuldet ",
+      "total": "Gesamt: "
+    }
+  },
+  "joinGroupComponents": {
+    "groupPreview": {
+      "invitationMessage": "Sie wurden eingeladen, dieser Gruppe beizutreten"
+    },
+    "joinButton": {
+      "joining": "Wird beigetreten...",
+      "joinGroup": "Gruppe beitreten"
+    },
+    "membersPreview": {
+      "groupSize": "Gruppengröße"
+    }
+  },
+  "policyComponents": {
+    "policyAcceptanceModal": {
+      "title": "Aktualisierte Richtlinien akzeptieren",
+      "policyLabel": "Richtlinie ",
+      "of": " von ",
+      "colon": ": ",
+      "close": "Schließen",
+      "progress": "Fortschritt",
+      "accepted": " akzeptiert",
+      "acceptedIcon": "✓ Akzeptiert",
+      "acceptedAriaLabel": "Akzeptiert",
+      "loadingContent": "Richtlinieninhalt wird geladen...",
+      "acceptanceRequired": "Richtlinienakzeptanz erforderlich",
+      "acceptanceInstructions": "Bitte lesen Sie die oben stehende Richtlinie und klicken Sie auf „Akzeptieren“, um {{appName}} weiterhin zu nutzen.",
+      "acceptCheckbox": "Ich habe diese gelesen und akzeptiere diese ",
+      "previous": "Zurück",
+      "next": "Weiter",
+      "policiesAccepted": " Richtlinien akzeptiert",
+      "accepting": "Wird akzeptiert...",
+      "acceptAll": "Alle akzeptieren & fortfahren",
+      "closeAriaLabel": "Schließen",
+      "errorTitle": "Fehler"
+    },
+    "policyRenderer": {
+      "bulletPoint": "• "
+    }
+  },
+  "uiComponents": {
+    "alert": {
+      "dismiss": "Warnung schließen"
+    },
+    "avatar": {
+      "unknown": "Unbekannt"
+    },
+    "button": {
+      "default": "Schaltfläche"
+    },
+    "multiLabelInput": {
+      "placeholder": "Etikett hinzufügen...",
+      "removeLabel": "{{label}} entfernen",
+      "maxReached": "Maximal {{max}} Etiketten erreicht",
+      "recent": "Kürzlich",
+      "hint": "{{count}}/{{max}} Etiketten"
+    },
+    "confirmDialog": {
+      "confirm": "Bestätigen",
+      "cancel": "Abbrechen"
+    },
+    "currencyAmountInput": {
+      "selectCurrency": "Währung auswählen",
+      "searchPlaceholder": "Nach Symbol, Code oder Land suchen...",
+      "searchAriaLabel": "Währungen suchen",
+      "loading": "Währungen werden geladen...",
+      "noCurrencies": "Keine Währungen gefunden",
+      "recent": "Kürzlich",
+      "common": "Allgemein",
+      "allCurrencies": "Alle Währungen",
+      "placeholder": "0.00",
+      "requiredIndicator": "*"
+    },
+    "currencySelector": {
+      "placeholder": "Währung auswählen...",
+      "searchPlaceholder": "Währungen suchen",
+      "loading": "Währungen werden geladen...",
+      "noCurrencies": "Keine Währungen gefunden",
+      "recent": "Kürzlich",
+      "common": "Allgemein",
+      "allCurrencies": "Alle Währungen"
+    },
+    "input": {
+      "requiredIndicator": "*"
+    },
+    "loadingSpinner": {
+      "loading": "Wird geladen..."
+    },
+    "timeInput": {
+      "at": "um ",
+      "placeholder": "Uhrzeit eingeben (z.B. 14:30 Uhr)",
+      "requiredIndicator": "*"
+    },
+    "form": {
+      "submissionError": "Fehler bei der Formularübermittlung"
+    }
+  },
+  "pages": {
+    "addExpensePage": {
+      "errorTitle": "Fehler - {{appName}}",
+      "error": "Fehler",
+      "noGroupMessage": "Keine Gruppe angegeben. Ausgabe kann ohne Gruppe nicht hinzugefügt werden.",
+      "backToDashboard": "Zurück zum Dashboard",
+      "loadingTitle": "Wird geladen... - {{appName}}",
+      "groupNotFound": "Gruppe nicht gefunden",
+      "groupNotFoundMessage": "Die Gruppe, der Sie eine Ausgabe hinzufügen möchten, existiert nicht oder Sie haben keinen Zugriff darauf.",
+      "backToGroup": "Zurück zur Gruppe",
+      "copyExpenseTitle": "Ausgabe kopieren",
+      "editExpenseTitle": "Ausgabe bearbeiten",
+      "addExpenseTitle": "Ausgabe hinzufügen",
+      "copyExpenseAction": "Ausgabe kopieren",
+      "editExpenseAction": "Ausgabe bearbeiten",
+      "addExpenseAction": "Neue Ausgabe hinzufügen",
+      "titleSuffix": " - {{appName}}",
+      "titleIn": " in "
+    },
+    "expenseDetailPage": {
+      "missingGroupId": "Gruppen-ID fehlt",
+      "missingExpenseId": "Ausgaben-ID fehlt",
+      "failedToLoad": "Ausgabe konnte nicht geladen werden",
+      "cannotEdit": "Diese Ausgabe kann nicht bearbeitet werden",
+      "containsDepartedMembers": "Ein oder mehrere Teilnehmer haben die Gruppe verlassen. Historische Aufzeichnungen werden schreibgeschützt aufbewahrt.",
+      "expenseLabel": "Ausgabe: ",
+      "checkOutExpense": "Sehen Sie sich diese Ausgabe an: ",
+      "shareApiFailed": "Share-API fehlgeschlagen, Rückgriff auf Zwischenablage",
+      "failedToCopy": "Kopieren in Zwischenablage fehlgeschlagen",
+      "error": "Fehler",
+      "expenseNotFound": "Ausgabe nicht gefunden",
+      "backToGroup": "Zurück zur Gruppe",
+      "titleSeparator": " - ",
+      "expenseFor": "Ausgabe für ",
+      "backButton": "← Zurück",
+      "date": "Datum",
+      "ago": " vor",
+      "labels": "Etiketten",
+      "paidBy": "Bezahlt von",
+      "unknown": "Unbekannt",
+      "discussion": "Diskussion",
+      "receipt": "Beleg",
+      "clickToViewFullSize": "Klicken, um die volle Größe anzuzeigen",
+      "added": "Hinzugefügt ",
+      "lastUpdated": "Zuletzt aktualisiert ",
+      "receiptViewer": "Beleg-Viewer",
+      "closeReceiptViewer": "Beleg-Viewer schließen",
+      "receiptFullSize": "Beleg - Volle Größe",
+      "summarySection": "Ausgabenübersicht",
+      "splitSection": "Aufteilungsdetails",
+      "metadataSection": "Ausgaben-Metadaten"
+    },
+    "groupDetailPage": {
+      "errorLoadingGroup": "Fehler beim Laden der Gruppe",
+      "backToDashboard": "Zurück zum Dashboard",
+      "balances": "Salden",
+      "expenses": "Ausgaben",
+      "comments": "Kommentare",
+      "activity": "Aktivität",
+      "paymentHistory": "Abrechnungen",
+      "toggleSection": "{{section}}-Bereich umschalten",
+      "titleSuffix": " - {{appName}}",
+      "manageExpensesFor": "Ausgaben verwalten für "
+    },
+    "landingPage": {
+      "title": "Müheloses Rechnungsaufteilen - {{appName}}",
+      "description": "Verabschieden Sie sich von peinlichen Schuldscheinen und komplexen Berechnungen. Unsere App macht das Teilen von Ausgaben mit Freunden, Familie und Mitbewohnern einfach, fair und transparent. Sie ist 100 % kostenlos, ohne Werbung und ohne Einschränkungen.",
+      "disclaimer": "Dies ist ein Tool zur Verfolgung von Ausgaben, nicht zur Durchführung von Zahlungen.",
+      "accountNote": " Um Ihre Ausgaben zu speichern und zu verwalten, benötigen Sie ein kostenloses Konto.",
+      "privacyNote": "Wir werden niemals sensible Finanzdaten anfragen.",
+      "transparencyNotice": {
+        "bold": "Dies ist ein Tool zur Verfolgung von Ausgaben, nicht zur Durchführung von Zahlungen.",
+        "text": "Um Ihre Ausgaben zu speichern und zu verwalten, benötigen Sie ein kostenloses Konto. Wir werden niemals sensible Finanzdaten anfragen."
+      }
+    },
+    "registerPage": {
+      "requiredIndicator": "*"
+    },
+    "resetPasswordPage": {
+      "failedToSendReset": "E-Mail zum Zurücksetzen konnte nicht gesendet werden",
+      "checkYourEmail": "Überprüfen Sie Ihre E-Mails",
+      "resetInstructionsSent": "Anweisungen zum Zurücksetzen des Passworts wurden an Ihre E-Mail gesendet",
+      "emailSentSuccessfully": "E-Mail erfolgreich gesendet",
+      "sentInstructionsTo": "Wir haben Anweisungen zum Zurücksetzen des Passworts gesendet an:",
+      "checkSpamFolder": "Können Sie sie nicht finden? Überprüfen Sie Ihren Spam- oder Junk-Ordner.",
+      "whatsNext": "Was kommt als Nächstes?",
+      "checkEmailInbox": "• Überprüfen Sie Ihren E-Mail-Posteingang (und Spam-Ordner)",
+      "clickResetLink": "• Klicken Sie auf den Link zum Zurücksetzen in der E-Mail",
+      "createNewPassword": "• Erstellen Sie ein neues Passwort",
+      "signInWithNewPassword": "• Melden Sie sich mit Ihrem neuen Passwort an",
+      "sendToDifferentEmail": "An andere E-Mail senden",
+      "backToSignIn": "← Zurück zur Anmeldung",
+      "resetPassword": "Passwort zurücksetzen",
+      "enterEmailForReset": "Geben Sie Ihre E-Mail-Adresse ein, um Anweisungen zum Zurücksetzen des Passworts zu erhalten",
+      "enterEmailDescription": "Geben Sie die mit Ihrem Konto verknüpfte E-Mail-Adresse ein, und wir senden Ihnen einen Link zum Zurücksetzen Ihres Passworts.",
+      "emailPlaceholder": "Geben Sie Ihre E-Mail-Adresse ein",
+      "sendResetInstructions": "Anweisungen zum Zurücksetzen senden"
+    }
+  },
+  "authLayout": {
+    "titleSuffix": " - {{appName}}"
+  },
+  "authProvider": {
+    "authenticationError": "Authentifizierungsfehler",
+    "retry": "Wiederholen"
+  },
+  "usersBrowser": {
+    "errors": {
+      "auth": "Firebase Auth-Benutzer konnten nicht geladen werden"
+    }
+  },
+  "validation": {
+    "required": "{{field}} ist erforderlich",
+    "invalidColorFormat": "{{field}} muss im Format #RRGGBB sein",
+    "invalidUrl": "{{field}} muss eine gültige URL sein",
+    "invalidEmail": "{{field}} muss eine gültige E-Mail-Adresse sein",
+    "tooShort": "{{field}} muss mindestens {{min}} Zeichen lang sein",
+    "tooLong": "{{field}} muss {{max}} Zeichen oder weniger enthalten"
+  },
+  "roles": {
+    "systemAdmin": {
+      "label": "Systemadministrator",
+      "description": "Voller Systemzugriff und Kontrolle"
+    },
+    "tenantAdmin": {
+      "label": "Mandantenadministrator",
+      "description": "Kann Mandanteneinstellungen und -konfiguration verwalten"
+    },
+    "regular": {
+      "label": "Regulärer Benutzer",
+      "description": "Standardbenutzer ohne administrative Berechtigungen"
+    }
+  },
+  "admin": {
+    "loading": "Admin wird geladen...",
+    "tabs": {
+      "tenants": "Mandanten",
+      "diagnostics": "Diagnose",
+      "tenantConfig": "Mandantenkonfiguration",
+      "users": "Benutzer",
+      "ariaLabel": "Admin-Tabs"
+    },
+    "tenantConfig": {
+      "loading": "Mandantenkonfiguration wird geladen...",
+      "overview": {
+        "title": "Mandantenübersicht",
+        "tenantId": "Mandanten-ID",
+        "appName": "App-Name",
+        "lastUpdated": "Zuletzt aktualisiert"
+      },
+      "theme": {
+        "title": "Thema-Artefakt",
+        "description": "Hash + CSS-Lieferhelfer",
+        "copyLink": "Theme-Link kopieren",
+        "forceReload": "Theme neu laden erzwingen",
+        "activeHash": "Aktiver Hash",
+        "notPublished": "nicht veröffentlicht",
+        "generatedAt": "Generiert am",
+        "copySuccess": "Theme-Link in Zwischenablage kopiert.",
+        "copyError": "Theme-Link konnte nicht kopiert werden. Bitte manuell kopieren."
+      },
+      "brandingTokens": {
+        "title": "Branding-Token"
+      },
+      "computedCss": {
+        "title": "Berechnete CSS-Variablen"
+      }
+    },
+    "tenants": {
+      "pageTitle": "Mandantenverwaltung",
+      "pageDescription": "Alle Mandantenkonfigurationen anzeigen und verwalten",
+      "summary": {
+        "total": "Gesamtzahl der Mandanten:"
+      },
+      "actions": {
+        "create": "Neuen Mandanten erstellen",
+        "switchTenant": "Klicken, um zu diesem Mandanten zu wechseln"
+      },
+      "status": {
+        "active": "Aktiv",
+        "default": "Standard"
+      },
+      "details": {
+        "tenantId": "Mandanten-ID:",
+        "primaryDomain": "Primäre Domain:",
+        "allDomains": "Alle Domains:",
+        "domains": "Domains:"
+      },
+      "emptyState": "Keine Mandanten gefunden",
+      "errors": {
+        "load": "Mandanten konnten nicht geladen werden"
+      }
+    },
+    "diagnostics": {
+      "loading": "Umgebungsdiagnose wird geladen...",
+      "errors": {
+        "fetch": "Umgebungsdaten konnten nicht abgerufen werden",
+        "unknown": "Unbekannter Fehler aufgetreten"
+      },
+      "serverStatus": {
+        "title": "Serverstatus",
+        "environment": "Umgebung",
+        "nodeVersion": "Node-Version",
+        "uptime": "Betriebszeit",
+        "startedAt": "Gestartet am"
+      },
+      "buildInfo": {
+        "title": "Build-Informationen",
+        "version": "Version",
+        "buildDate": "Build-Datum",
+        "buildTimestamp": "Build-Zeitstempel"
+      },
+      "memory": {
+        "title": "Speichernutzung",
+        "rss": "RSS (Resident Set Size)",
+        "heapUsed": "Heap verwendet",
+        "heapTotal": "Heap insgesamt",
+        "heapAvailable": "Heap verfügbar",
+        "external": "Externer Speicher",
+        "arrayBuffers": "Array-Puffer",
+        "heapLimit": "Heap-Limit"
+      },
+      "heap": {
+        "title": "V8 Heap-Bereiche",
+        "size": "Größe:",
+        "used": "Verwendet:",
+        "available": "Verfügbar:"
+      },
+      "envVars": {
+        "title": "Umgebungsvariablen",
+        "variable": "Variable",
+        "value": "Wert"
+      },
+      "filesystem": {
+        "title": "Dateisystem",
+        "cwd": "Arbeitsverzeichnis"
+      }
+    },
+    "users": {
+      "description": "Benutzerkonten, Rollen und Berechtigungen verwalten",
+      "loading": "Benutzer werden geladen...",
+      "emptyState": "Keine Benutzer gefunden",
+      "search": {
+        "label": "Nach E-Mail oder UID suchen",
+        "placeholder": "Geben Sie E-Mail oder UID ein..."
+      },
+      "table": {
+        "email": "E-Mail",
+        "displayName": "Anzeigename",
+        "role": "Rolle",
+        "status": "Status",
+        "created": "Erstellt",
+        "lastSignIn": "Letzte Anmeldung",
+        "actions": "Aktionen"
+      },
+      "actions": {
+        "editUser": "Benutzer bearbeiten"
+      },
+      "confirmations": {
+        "disableUser": "Sind Sie sicher, dass Sie dieses Benutzerkonto {{action}} möchten?"
+      },
+      "success": {
+        "userToggled": "Benutzerkonto erfolgreich {{action}}",
+        "roleUpdated": "Benutzerrolle auf {{role}} aktualisiert",
+        "roleUnchanged": "Rolle unverändert"
+      },
+      "errors": {
+        "selfDisable": "Sie können Ihr eigenes Konto nicht deaktivieren",
+        "selfRoleChange": "Sie können Ihre eigene Rolle nicht ändern",
+        "disableUser": "Benutzerkonto konnte nicht {{action}} werden",
+        "roleUpdate": "Benutzerrolle konnte nicht aktualisiert werden",
+        "invalidSelection": "Ungültige Auswahl"
+      },
+      "rolePrompt": {
+        "title": "Aktuelle Rolle: {{currentRole}}\n\nNeue Rolle auswählen:",
+        "regularUser": "Regulärer Benutzer (keine Rolle)"
+      }
+    },
+    "userEditor": {
+      "title": "Benutzer bearbeiten",
+      "tabs": {
+        "ariaLabel": "Benutzer-Editor-Tabs",
+        "profile": "Profil",
+        "role": "Rolle",
+        "firebaseAuth": "Firebase Auth",
+        "firestore": "Firestore"
+      },
+      "profile": {
+        "description": "Anzeigenamen und E-Mail-Adresse des Benutzers bearbeiten",
+        "displayName": "Anzeigename",
+        "displayNamePlaceholder": "Anzeigenamen eingeben",
+        "email": "E-Mail-Adresse",
+        "emailPlaceholder": "E-Mail-Adresse eingeben"
+      },
+      "role": {
+        "description": "Rolle für diesen Benutzer auswählen"
+      },
+      "loading": "Wird geladen...",
+      "noDataAvailable": "Keine Daten verfügbar",
+      "errors": {
+        "noChanges": "Keine Änderungen zu speichern",
+        "selfRoleChange": "Sie können Ihre eigene Rolle nicht ändern",
+        "selfRoleChangeWarning": "Sie können Ihre eigene Rolle nicht ändern",
+        "profileUpdate": "Profil konnte nicht aktualisiert werden",
+        "roleUpdate": "Rolle konnte nicht aktualisiert werden",
+        "loadData": "Daten konnten nicht geladen werden"
+      },
+      "success": {
+        "profileUpdated": "Profil erfolgreich aktualisiert",
+        "roleUpdated": "Rolle erfolgreich aktualisiert"
+      }
+    },
+    "tenantEditor": {
+      "titleCreate": "Neuen Mandanten erstellen",
+      "titleEdit": "Mandanten bearbeiten",
+      "descriptionCreate": "Einen neuen Mandanten mit Branding und Domains konfigurieren",
+      "descriptionEdit": "Mandantenkonfiguration aktualisieren",
+      "modeToggle": {
+        "label": "Editor-Modus",
+        "basic": "Basic",
+        "advanced": "Erweitert"
+      },
+      "modeHint": {
+        "basic": "Wesentliche Einstellungen anzeigen",
+        "advanced": "Alle Einstellungen anzeigen",
+        "moreColors": "Wechseln Sie in den erweiterten Modus für volle Farbpalettenkontrolle"
+      },
+      "derivation": {
+        "themeMode": {
+          "label": "Thema-Modus",
+          "light": "Hell",
+          "medium": "Mittel",
+          "dark": "Dunkel"
+        },
+        "style": {
+          "label": "Stil",
+          "balanced": "Ausgewogen",
+          "bold": "Fett",
+          "soft": "Sanft",
+          "vibrant": "Lebendig",
+          "elegant": "Elegant"
+        },
+        "intensity": {
+          "label": "Intensität",
+          "subtle": "Subtil",
+          "strong": "Stark"
+        }
+      },
+      "derivationWand": {
+        "tooltip": "Farben aus Palette ableiten",
+        "tooltipDisabled": "Zuerst primäre, sekundäre und Akzentfarben festlegen",
+        "popoverTitle": "Farbableitung",
+        "derive": "Ableitung anwenden"
+      },
+      "sections": {
+        "gettingStarted": {
+          "title": "Erste Schritte",
+          "description": "Wählen Sie, wie Sie Ihren Mandanten initialisieren möchten"
+        },
+        "basicInfo": {
+          "title": "Grundlegende Informationen",
+          "description": "Mandanten-ID, Name und Domains"
+        },
+        "assets": {
+          "title": "Assets",
+          "description": "Logo- und Favicon-Bilder"
+        },
+        "paletteColors": {
+          "title": "Palettenfarben",
+          "description": "Kernmarkenfarben"
+        },
+        "brandColors": {
+          "title": "Markenfarben",
+          "description": "Legen Sie Ihre primären Markenfarben fest und leiten Sie dann das vollständige Farbsystem ab"
+        },
+        "surfaceColors": {
+          "title": "Oberflächenfarben",
+          "description": "Hintergrund- und Containerfarben"
+        },
+        "textColors": {
+          "title": "Textfarben",
+          "description": "Typografie-Farben"
+        },
+        "interactiveColors": {
+          "title": "Interaktive Farben",
+          "description": "Schaltflächen- und Linkfarben"
+        },
+        "borderColors": {
+          "title": "Rahmenfarben",
+          "description": "Rahmen- und Trennlinienfarben"
+        },
+        "statusColors": {
+          "title": "Statusfarben",
+          "description": "Feedback- und Warnfarben"
+        },
+        "typography": {
+          "title": "Typografie",
+          "description": "Schriftfamilien, -größen und -stärken"
+        },
+        "spacing": {
+          "title": "Abstand",
+          "description": "Abstandsskala und semantische Abstände"
+        },
+        "radii": {
+          "title": "Randradien",
+          "description": "Werte für die Eckrundung"
+        },
+        "shadows": {
+          "title": "Schatten",
+          "description": "Box-Schatten-Definitionen"
+        },
+        "legal": {
+          "title": "Rechtliches",
+          "description": "Unternehmensinformationen und rechtliche Links"
+        },
+        "motion": {
+          "title": "Bewegung",
+          "description": "Animationsdauern und -kurven"
+        },
+        "featureFlags": {
+          "title": "Feature-Flags",
+          "description": "Funktionen aktivieren oder deaktivieren"
+        },
+        "marketing": {
+          "title": "Marketingfunktionen",
+          "description": "Marketingseiten und -inhalte umschalten"
+        },
+        "advanced": {
+          "title": "Erweitert",
+          "description": "Optionale visuelle Effekte"
+        }
+      },
+      "fields": {
+        "tenantId": "Mandanten-ID",
+        "appName": "App-Name",
+        "domains": "Domains",
+        "logoUrl": "Logo-URL",
+        "faviconUrl": "Favicon-URL",
+        "primaryColor": "Primärfarbe",
+        "primaryVariantColor": "Primärfarbvariante",
+        "secondaryColor": "Sekundärfarbe",
+        "secondaryVariantColor": "Sekundärfarbvariante",
+        "accentColor": "Akzentfarbe",
+        "neutralColor": "Neutrale Farbe",
+        "neutralVariantColor": "Neutrale Farbvariante",
+        "successColor": "Erfolgsfarbe",
+        "warningColor": "Warnfarbe",
+        "dangerColor": "Gefahrenfarbe",
+        "infoColor": "Info-Farbe"
+      },
+      "placeholders": {
+        "tenantId": "my-tenant-id",
+        "appName": "Meine Ausgaben-App",
+        "domain": "Neue Domain hinzufügen...",
+        "selectTenant": "Mandanten zum Kopieren auswählen..."
+      },
+      "creationMode": {
+        "empty": "Von Grund auf neu starten",
+        "copy": "Von bestehendem Mandanten kopieren",
+        "emptyDescription": "Sie müssen alle erforderlichen Felder ausfüllen. Farben sollten im #RRGGBB-Format sein.",
+        "copyDescription": "Alle Themeneinstellungen werden von {{tenant}} kopiert. Sie müssen weiterhin eine eindeutige Mandanten-ID, einen App-Namen und Domains festlegen."
+      },
+      "validation": {
+        "tenantIdFormat": "Ungültige Mandanten-ID: muss nur Kleinbuchstaben, Zahlen und Bindestriche enthalten",
+        "domainRequired": "Mindestens eine Domain ist erforderlich",
+        "invalidDomain": "Ungültige Domain: {{domain}}",
+        "saveTenantFirst": "Bitte speichern Sie den Mandanten zuerst, bevor Sie Bilder hochladen",
+        "tenantIdRequiredForPublish": "Mandanten-ID ist für die Veröffentlichung erforderlich"
+      },
+      "hints": {
+        "tenantIdReadonly": "Mandanten-ID kann nicht geändert werden",
+        "colorFormat": "#RRGGBB"
+      },
+      "toggles": {
+        "showMarketingContent": {
+          "label": "Marketing-Inhalte anzeigen",
+          "description": "Marketing-Inhalte auf öffentlichen Seiten anzeigen"
+        },
+        "showPricingPage": {
+          "label": "Preisseite anzeigen",
+          "description": "Preisinformationen anzeigen"
+        },
+        "showAppNameInHeader": {
+          "label": "App-Namen im Header anzeigen",
+          "description": "App-Namen neben dem Logo anzeigen"
+        },
+        "enableParallax": {
+          "label": "Parallax aktivieren",
+          "description": "Parallax-Scrolling-Effekte aktivieren"
+        },
+        "enableMagneticHover": {
+          "label": "Magnetischen Hover aktivieren",
+          "description": "Magnetische Hover-Effekte auf Schaltflächen aktivieren"
+        },
+        "enableScrollReveal": {
+          "label": "Scroll-Reveal aktivieren",
+          "description": "Scroll-gesteuerte Animationen aktivieren"
+        }
+      },
+      "loading": {
+        "tenants": "Mandanten werden geladen..."
+      },
+      "empty": {
+        "noTenants": "Keine vorhandenen Mandanten zum Kopieren."
+      },
+      "errors": {
+        "invalidPayload": "Ungültige Mandantendaten. Bitte überprüfen Sie alle Felder und versuchen Sie es erneut.",
+        "permissionDenied": "Sie haben keine Berechtigung, Mandanteneinstellungen zu ändern.",
+        "duplicateDomain": "Eine oder mehrere Domains sind bereits einem anderen Mandanten zugewiesen.",
+        "saveFailed": "Mandant konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.",
+        "tenantNotFound": "Mandant existiert nicht. Speichern Sie ihn vor der Veröffentlichung.",
+        "tokensMissing": "Mandant fehlen Branding-Token. Bitte konfigurieren Sie das Branding und speichern Sie es zuerst.",
+        "publishFailed": "Theme konnte nicht veröffentlicht werden. Bitte versuchen Sie es erneut.",
+        "uploadFailed": "{{type}} konnte nicht hochgeladen werden"
+      },
+      "success": {
+        "createdAndPublished": "Mandant erstellt und Theme erfolgreich veröffentlicht!",
+        "updatedAndPublished": "Mandant aktualisiert und Theme erfolgreich veröffentlicht!",
+        "createdPublishFailed": "Mandant erfolgreich erstellt, aber Theme-Veröffentlichung fehlgeschlagen. Klicken Sie manuell auf „Theme veröffentlichen“.",
+        "updatedPublishFailed": "Mandant erfolgreich aktualisiert, aber Theme-Veröffentlichung fehlgeschlagen. Klicken Sie manuell auf „Theme veröffentlichen“.",
+        "themePublished": "Theme erfolgreich veröffentlicht!",
+        "logoUploaded": "Logo erfolgreich hochgeladen!",
+        "faviconUploaded": "Favicon erfolgreich hochgeladen!",
+        "logoSelected": "Logo aus Bibliothek ausgewählt",
+        "faviconSelected": "Favicon aus Bibliothek ausgewählt"
+      },
+      "buttons": {
+        "save": "Mandanten speichern",
+        "publish": "Theme veröffentlichen",
+        "addDomain": "Hinzufügen",
+        "removeDomain": "Entfernen",
+        "chooseFromLibrary": "Aus Bibliothek auswählen",
+        "uploadNew": "Neu hochladen"
+      },
+      "actions": {
+        "deriveColors": "Farben ableiten",
+        "deriveColorsDescription": "Alle semantischen Farben aus Ihrer Markenpalette generieren"
+      }
+    }
+  },
+  "tenantBranding": {
+    "title": "Branding-Konfiguration",
+    "subtitle": "Mandanteneinstellungen",
+    "description": "Passen Sie das Erscheinungsbild und die Marketingfunktionen Ihres Mandanten an",
+    "loading": "Mandanteneinstellungen werden geladen...",
+    "accessDenied": "Sie haben keine Berechtigung, auf die Branding-Einstellungen des Mandanten zuzugreifen. Diese Seite erfordert die Rolle Mandanten- oder Systemadministrator.",
+    "tenantIdLabel": "Mandanten-ID",
+    "domainWarning": "Änderungen wirken sich auf alle Benutzer aus, die über die Domain dieses Mandanten zugreifen",
+    "brandingAssets": {
+      "title": "Branding-Assets",
+      "description": "Konfigurieren Sie Ihre Markenidentität"
+    },
+    "fields": {
+      "appName": "App-Name",
+      "appNamePlaceholder": "Meine Ausgaben-App",
+      "logoUrl": "Logo-URL",
+      "logoUrlPlaceholder": "/logo.svg",
+      "faviconUrl": "Favicon-URL",
+      "faviconUrlPlaceholder": "/favicon.ico",
+      "primaryColor": "Primärfarbe",
+      "secondaryColor": "Sekundärfarbe"
+    },
+    "preview": {
+      "title": "Live-Vorschau",
+      "description": "Sehen Sie, wie Ihr Branding aussehen wird",
+      "primaryButton": "Primäre Schaltfläche",
+      "secondaryButton": "Sekundäre Schaltfläche",
+      "brandingLabel": "Ihr Mandanten-Branding"
+    },
+    "marketing": {
+      "title": "Marketingfunktionen",
+      "description": "Steuern Sie, welche Marketingseiten sichtbar sind",
+      "contentLabel": "Marketing-Inhalte",
+      "contentDescription": "Funktions-/CTA-Bereiche anzeigen",
+      "pricingLabel": "Preisseite",
+      "pricingDescription": "Route /pricing anzeigen"
+    },
+    "actions": {
+      "saving": "Wird gespeichert...",
+      "saveChanges": "Änderungen speichern"
+    },
+    "errors": {
+      "loadFailed": "Mandanteneinstellungen konnten nicht geladen werden",
+      "updateFailed": "Branding-Einstellungen konnten nicht aktualisiert werden",
+      "notImplemented": "Branding-Update noch nicht im Backend implementiert"
+    },
+    "success": {
+      "updated": "Branding-Einstellungen erfolgreich aktualisiert"
+    }
   }
 }
