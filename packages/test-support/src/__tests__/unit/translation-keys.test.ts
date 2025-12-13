@@ -58,29 +58,53 @@ const LATIN_SCRIPT_LANGUAGES = new Set(['en', 'es', 'fr', 'de', 'it', 'pt', 'nl'
 
 // Strings that are legitimately in English/Latin across all translations
 const ALLOWED_ENGLISH_PATTERNS = [
-    /^\{\{.*\}\}$/,           // Format strings
-    /^{{.*}}$/,               // Template placeholders
+    /^\{\{.*\}\}$/, // Format strings
+    /^{{.*}}$/, // Template placeholders
     /^(Airbnb|Firestore|Google|Firebase|PayPal|Venmo|Zelle|Array Buffers?)$/i,
-    /^#[A-Fa-f0-9]{6}$/,      // Hex colors
-    /^#RRGGBB$/,              // Color format
-    /^.{1,3}$/,               // Very short strings
-    /^https?:\/\//,           // URLs
-    /^mailto:/,               // Email links
-    /^\/[a-zA-Z0-9._/-]+$/,   // File paths
-    /^[\s\-–—:,./()|\u2192]*$/,  // Separators only
+    /^#[A-Fa-f0-9]{6}$/, // Hex colors
+    /^#RRGGBB$/, // Color format
+    /^.{1,3}$/, // Very short strings
+    /^https?:\/\//, // URLs
+    /^mailto:/, // Email links
+    /^\/[a-zA-Z0-9._/-]+$/, // File paths
+    /^[\s\-–—:,./()|\u2192]*$/, // Separators only
     /^[\s\-–—|]*\{\{[^}]+\}\}[\s\-–—|]*$/,
-    /^[A-Z]{3}$/,             // Currency codes
-    /^\d+([.,]\d+)?$/,        // Numbers
-    /^[\s]*[→←↑↓][\s]*$/,    // Arrows
+    /^[A-Z]{3}$/, // Currency codes
+    /^\d+([.,]\d+)?$/, // Numbers
+    /^[\s]*[→←↑↓][\s]*$/, // Arrows
 ];
 
 // JavaScript/TypeScript string methods that might appear after translation key access
 const STRING_METHODS = new Set([
-    'replace', 'replaceAll', 'split', 'slice', 'substring', 'substr',
-    'trim', 'trimStart', 'trimEnd', 'toLowerCase', 'toUpperCase',
-    'charAt', 'charCodeAt', 'concat', 'includes', 'indexOf', 'lastIndexOf',
-    'match', 'padStart', 'padEnd', 'repeat', 'search', 'startsWith', 'endsWith',
-    'normalize', 'localeCompare', 'toString', 'valueOf', 'length',
+    'replace',
+    'replaceAll',
+    'split',
+    'slice',
+    'substring',
+    'substr',
+    'trim',
+    'trimStart',
+    'trimEnd',
+    'toLowerCase',
+    'toUpperCase',
+    'charAt',
+    'charCodeAt',
+    'concat',
+    'includes',
+    'indexOf',
+    'lastIndexOf',
+    'match',
+    'padStart',
+    'padEnd',
+    'repeat',
+    'search',
+    'startsWith',
+    'endsWith',
+    'normalize',
+    'localeCompare',
+    'toString',
+    'valueOf',
+    'length',
 ]);
 
 // i18next pluralization suffixes
@@ -88,11 +112,16 @@ const PLURAL_SUFFIXES = ['_zero', '_one', '_two', '_few', '_many', '_other'];
 
 // Keys that are dynamically constructed at runtime and can't be statically detected
 const DYNAMIC_KEY_PATTERNS = [
-    /_plural$/, /_one$/, /_other$/,
-    /^apiErrors\./, /^authErrors\./,
-    /^roles\./, /^activityFeed\.events\./,
+    /_plural$/,
+    /_one$/,
+    /_other$/,
+    /^apiErrors\./,
+    /^authErrors\./,
+    /^roles\./,
+    /^activityFeed\.events\./,
     /^securitySettingsModal\.permissionOptions\./,
-    /^admin\.tenants\.types\./, /^admin\.users\.roles\./,
+    /^admin\.tenants\.types\./,
+    /^admin\.users\.roles\./,
     /^validation\./,
 ];
 
