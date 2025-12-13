@@ -22,9 +22,24 @@ describe('Hardcoded Values Validation', () => {
             'firebase/package.json',
             'firebase/service-account-key.json',
             'firebase/functions/vitest.config.ts', // todo
+            // Deployment scripts contain example commands with real URLs
+            'firebase/scripts/deployment/deploy-from-fresh-checkout.ts',
+            'firebase/scripts/deployment/staging-operations.sh',
+            'firebase/scripts/seed-policies.ts',
+            'firebase/scripts/sync-tenant-configs.ts',
+            'scripts/theme-storage/setup.sh',
+            // Firebase init contains comments showing env var format
+            'firebase/functions/src/firebase.ts',
         ];
 
-        const excludeDirectories = ['docs/', '.idea/', 'tasks'];
+        // Directories to exclude from checking
+        const excludeDirectories = [
+            'docs/',
+            '.idea/',
+            'tasks',
+            // Tenant configs are example/template configs with placeholder domains
+            'firebase/docs/tenants/',
+        ];
 
         // Get all git tracked files
         const gitFiles = execSync('git ls-files', {
