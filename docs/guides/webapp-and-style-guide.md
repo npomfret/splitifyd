@@ -283,5 +283,6 @@ Pages under `pages/admin/` and `components/admin/` are **completely isolated fro
 | `flex-shrink-0` | `shrink-0` (Tailwind v4 simplified) |
 | `shadow-[var(--x)]` arbitrary syntax | `shadow-(--x)` (Tailwind v4 CSS var syntax) |
 | `@layer components { .foo { ... } }` | `@utility foo { ... }` (Tailwind v4) |
+| `data-testid` on elements with semantic meaning | Only add when no role, label, or visible text exists |
 
 ---

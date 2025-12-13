@@ -307,6 +307,17 @@ within the SAME test, you may create a `private` helper that returns the locator
 4. **Placeholders** - `getByPlaceholder('Enter amount')`
 5. **Test IDs (last resort)** - `getByTestId('user-menu')` - only when semantic options don't exist
 
+**When `data-testid` is appropriate:**
+- Container elements without visible text (wrappers, grids)
+- List items needing unique identification
+- Dynamic IDs in loops
+- Structural elements without semantic meaning
+
+**When `data-testid` is NOT needed:**
+- Elements with visible text (buttons, links, headings)
+- Elements with ARIA roles (`role="alert"`, `role="menu"`, etc.)
+- Form inputs with labels or placeholders
+
 **Prohibited:**
 - CSS classes: `.text-sm.font-medium`
 - CSS selectors: `div > ul > li:nth-child(2)`
