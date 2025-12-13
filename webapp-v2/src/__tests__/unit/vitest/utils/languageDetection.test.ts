@@ -100,7 +100,7 @@ describe('languageDetection', () => {
 
         it('returns en as final fallback', () => {
             vi.spyOn(navigator, 'language', 'get').mockReturnValue('fr-FR');
-            vi.spyOn(navigator, 'languages', 'get').mockReturnValue(['fr-FR', 'es-ES']);
+            vi.spyOn(navigator, 'languages', 'get').mockReturnValue(['fr-FR', 'zh-CN']);
 
             const result = detectBrowserLanguage();
 
@@ -161,6 +161,34 @@ describe('languageDetection', () => {
             expect(getIntlLocale('de')).toBe('de-DE');
         });
 
+        it('maps es to es-ES', () => {
+            expect(getIntlLocale('es')).toBe('es-ES');
+        });
+
+        it('maps it to it-IT', () => {
+            expect(getIntlLocale('it')).toBe('it-IT');
+        });
+
+        it('maps ja to ja-JP', () => {
+            expect(getIntlLocale('ja')).toBe('ja-JP');
+        });
+
+        it('maps ko to ko-KR', () => {
+            expect(getIntlLocale('ko')).toBe('ko-KR');
+        });
+
+        it('maps lv to lv-LV', () => {
+            expect(getIntlLocale('lv')).toBe('lv-LV');
+        });
+
+        it('maps ph to fil-PH', () => {
+            expect(getIntlLocale('ph')).toBe('fil-PH');
+        });
+
+        it('maps sv to sv-SE', () => {
+            expect(getIntlLocale('sv')).toBe('sv-SE');
+        });
+
         it('returns unknown language code as-is', () => {
             expect(getIntlLocale('fr')).toBe('fr');
         });
@@ -172,7 +200,14 @@ describe('languageDetection', () => {
             expect(SUPPORTED_LANGUAGES).toContain('uk');
             expect(SUPPORTED_LANGUAGES).toContain('ar');
             expect(SUPPORTED_LANGUAGES).toContain('de');
-            expect(SUPPORTED_LANGUAGES).toHaveLength(4);
+            expect(SUPPORTED_LANGUAGES).toContain('es');
+            expect(SUPPORTED_LANGUAGES).toContain('it');
+            expect(SUPPORTED_LANGUAGES).toContain('ja');
+            expect(SUPPORTED_LANGUAGES).toContain('ko');
+            expect(SUPPORTED_LANGUAGES).toContain('lv');
+            expect(SUPPORTED_LANGUAGES).toContain('ph');
+            expect(SUPPORTED_LANGUAGES).toContain('sv');
+            expect(SUPPORTED_LANGUAGES).toHaveLength(11);
         });
 
         it('LANGUAGE_NAMES has entries for all supported languages', () => {
@@ -180,6 +215,13 @@ describe('languageDetection', () => {
             expect(LANGUAGE_NAMES.uk).toBe('Українська');
             expect(LANGUAGE_NAMES.ar).toBe('العربية');
             expect(LANGUAGE_NAMES.de).toBe('Deutsch');
+            expect(LANGUAGE_NAMES.es).toBe('Español');
+            expect(LANGUAGE_NAMES.it).toBe('Italiano');
+            expect(LANGUAGE_NAMES.ja).toBe('日本語');
+            expect(LANGUAGE_NAMES.ko).toBe('한국어');
+            expect(LANGUAGE_NAMES.lv).toBe('Latviešu');
+            expect(LANGUAGE_NAMES.ph).toBe('Filipino');
+            expect(LANGUAGE_NAMES.sv).toBe('Svenska');
         });
     });
 });

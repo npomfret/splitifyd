@@ -1,0 +1,1927 @@
+{
+  "accessibility": {
+    "skipToContent": "Saltar al contenido principal"
+  },
+  "apiErrors": {
+    "AUTH_REQUIRED": "Por favor, inicie sesión para continuar",
+    "AUTH_INVALID": "Su sesión ha expirado. Por favor, inicie sesión de nuevo.",
+    "FORBIDDEN": "No tiene permiso para hacer esto",
+    "NOT_FOUND": "{{resource}} no encontrado",
+    "ALREADY_EXISTS": "{{resource}} ya existe",
+    "CONFLICT": "Alguien más realizó cambios. Por favor, actualice y vuelva a intentarlo.",
+    "VALIDATION_ERROR": "Por favor, revise su entrada y vuelva a intentarlo",
+    "INVALID_REQUEST": "Algo salió mal con su solicitud",
+    "RATE_LIMITED": "Demasiadas solicitudes. Por favor, espere un momento.",
+    "SERVICE_ERROR": "Algo salió mal. Por favor, vuelva a intentarlo.",
+    "UNAVAILABLE": "Servicio temporalmente no disponible. Por favor, inténtelo de nuevo más tarde."
+  },
+  "authErrors": {
+    "userNotFound": "No se encontró ninguna cuenta con este correo electrónico",
+    "wrongPassword": "Contraseña incorrecta",
+    "weakPassword": "La contraseña es demasiado débil. Por favor, use al menos 6 caracteres.",
+    "invalidEmail": "Por favor, introduzca una dirección de correo electrónico válida",
+    "tooManyRequests": "Demasiados intentos. Por favor, inténtelo de nuevo más tarde.",
+    "networkError": "Error de red. Por favor, compruebe su conexión.",
+    "emailInUse": "Este correo electrónico ya está registrado",
+    "invalidCredential": "Correo electrónico o contraseña no válidos",
+    "userDisabled": "Esta cuenta ha sido deshabilitada",
+    "requiresRecentLogin": "Por favor, inicie sesión de nuevo para continuar",
+    "generic": "Autenticación fallida. Por favor, inténtelo de nuevo.",
+    "postRegistrationBase": "Su cuenta fue creada, pero no pudimos iniciar sesión automáticamente.",
+    "postRegistrationFallback": "Su cuenta fue creada, pero no pudimos iniciar sesión automáticamente. Por favor, inicie sesión manualmente."
+  },
+  "pagination": {
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "page": "Página",
+    "navigation": "Paginación"
+  },
+  "common": {
+    "loading": "Cargando...",
+    "unknownError": "Algo salió mal. Por favor, vuelva a intentarlo.",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "saving": "Guardando...",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "close": "Cerrar",
+    "confirm": "Confirmar",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "previous": "Anterior",
+    "submit": "Enviar",
+    "search": "Buscar",
+    "select": "Seleccionar",
+    "selectAll": "Seleccionar todo",
+    "none": "Ninguno",
+    "all": "Todos",
+    "yes": "Sí",
+    "no": "No",
+    "ok": "OK",
+    "error": "Error",
+    "success": "Éxito",
+    "warning": "Advertencia",
+    "info": "Información",
+    "unknown": "Desconocido",
+    "unknownUser": "Usuario desconocido",
+    "includeDeleted": "Incluir eliminados",
+    "you": "Tú",
+    "youSuffix": " (Tú)",
+    "required": "*",
+    "optional": "(opcional)",
+    "or": "o",
+    "and": "y",
+    "copy": "Copiar",
+    "share": "Compartir",
+    "dismiss": "Descartar",
+    "dismissAlert": "Descartar alerta",
+    "justNow": "justo ahora",
+    "chooseFile": "Elegir archivo",
+    "active": "Activo",
+    "inactive": "Inactivo",
+    "disabled": "Deshabilitado",
+    "total": "Total",
+    "member": "Miembro",
+    "members": "Miembros",
+    "user": "Usuario",
+    "group": "Grupo",
+    "groups": "Grupos",
+    "recent": "Reciente",
+    "settings": "Configuración",
+    "understood": "Entendido",
+    "titleSuffix": " - {{appName}}",
+    "refresh": "Actualizar",
+    "reset": "Restablecer",
+    "add": "Añadir",
+    "create": "Crear",
+    "processing": "Procesando...",
+    "download": "Descargar",
+    "downloading": "Descargando...",
+    "fromLibrary": "De la biblioteca",
+    "orEnterUrl": "O introduzca la URL",
+    "imageFailedToLoad": "No se pudo cargar la imagen",
+    "selectedFile": "Seleccionado",
+    "enable": "Habilitar",
+    "disable": "Deshabilitar",
+    "created": "Creado",
+    "updated": "Actualizado",
+    "modified": "Modificado",
+    "name": "Nombre",
+    "type": "Tipo",
+    "size": "Tamaño",
+    "link": "Enlace",
+    "value": "Valor",
+    "notConfigured": "No configurado",
+    "notSet": "no establecido",
+    "empty": "(vacío)",
+    "noData": "No hay datos disponibles",
+    "default": "Predeterminado",
+    "actions": "Acciones",
+    "status": "Estado",
+    "email": "Correo electrónico",
+    "displayName": "Nombre visible",
+    "role": "Rol",
+    "lastSignIn": "Último inicio de sesión",
+    "placeholder": {
+      "amount": "0.00",
+      "search": "Buscar...",
+      "searchCurrencies": "Buscar monedas...",
+      "selectCurrency": "Seleccionar moneda...",
+      "selectPerson": "Seleccionar persona"
+    }
+  },
+  "currencySelector": {
+    "noResults": "No se encontraron monedas"
+  },
+  "relativeTime": {
+    "justNow": "justo ahora",
+    "minuteAgo_one": "hace {{count}} minuto",
+    "minuteAgo_other": "hace {{count}} minutos",
+    "hourAgo_one": "hace {{count}} hora",
+    "hourAgo_other": "hace {{count}} horas",
+    "dayAgo_one": "hace {{count}} día",
+    "dayAgo_other": "hace {{count}} días",
+    "monthAgo_one": "hace {{count}} mes",
+    "monthAgo_other": "hace {{count}} meses",
+    "yearAgo_one": "hace {{count}} año",
+    "yearAgo_other": "hace {{count}} años"
+  },
+  "app": {
+    "loading": "Cargando...",
+    "loadingPage": "Cargando página...",
+    "loadingExpenseForm": "Cargando formulario de gastos..."
+  },
+  "createGroup": {
+    "validation": {
+      "displayNameTooShort": "El nombre visible debe tener al menos 2 caracteres.",
+      "displayNameTooLong": "El nombre visible debe tener 50 caracteres o menos."
+    }
+  },
+  "createGroupModal": {
+    "title": "Crear un nuevo grupo",
+    "groupNameLabel": "Nombre del grupo",
+    "groupNamePlaceholder": "ej., Gastos de apartamento, Viaje a París",
+    "groupNameHelpText": "Elija un nombre que describa para qué dividirá los gastos.",
+    "groupDisplayNameLabel": "Su nombre visible en este grupo",
+    "groupDisplayNamePlaceholder": "¿Cómo deberían verle otros miembros?",
+    "groupDisplayNameHelpText": "Este nombre aparece encima de sus gastos, comentarios y actividad en este grupo.",
+    "groupDescriptionLabel": "Descripción (opcional)",
+    "groupDescriptionPlaceholder": "Añada cualquier detalle sobre este grupo...",
+    "groupDescriptionHelpText": "Descripción opcional para ayudar a los miembros a entender el propósito del grupo.",
+    "closeButtonAriaLabel": "Cerrar modal",
+    "cancelButton": "Cancelar",
+    "submitButton": "Crear grupo",
+    "restrictCurrencies": "Restringir monedas",
+    "restrictCurrenciesHelp": "Solo las monedas seleccionadas se pueden usar para gastos en este grupo",
+    "validation": {
+      "nameRequired": "El nombre del grupo es obligatorio.",
+      "nameTooShort": "El nombre del grupo debe tener al menos 2 caracteres.",
+      "nameTooLong": "El nombre del grupo debe tener menos de 50 caracteres.",
+      "displayNameRequired": "Introduzca un nombre visible.",
+      "displayNameTooShort": "El nombre visible debe tener al menos 2 caracteres.",
+      "displayNameTooLong": "El nombre visible debe tener 50 caracteres o menos.",
+      "displayNameInvalid": "El nombre visible solo puede usar letras, números, espacios, guiones, guiones bajos y puntos.",
+      "displayNameTaken": "Ese nombre visible ya está en uso en este grupo."
+    }
+  },
+  "loginPage": {
+    "title": "Iniciar sesión",
+    "description": "Inicie sesión en su cuenta para administrar sus gastos compartidos",
+    "rememberMe": "Recordarme",
+    "forgotPassword": "¿Olvidó su contraseña?",
+    "submitButton": "Iniciar sesión",
+    "noAccount": "¿No tiene una cuenta?",
+    "signUp": "Registrarse",
+    "validation": {
+      "emailRequired": "El correo electrónico es obligatorio",
+      "passwordRequired": "La contraseña es obligatoria"
+    }
+  },
+  "registerPage": {
+    "title": "Crear cuenta",
+    "description": "Cree su cuenta {{appName}} para empezar a administrar los gastos compartidos",
+    "fullNameLabel": "Nombre completo",
+    "fullNamePlaceholder": "Introduzca su nombre completo",
+    "passwordLabel": "Contraseña",
+    "passwordPlaceholder": "Cree una contraseña segura",
+    "confirmPasswordLabel": "Confirmar contraseña",
+    "confirmPasswordPlaceholder": "Confirme su contraseña",
+    "acceptTerms": "Acepto los",
+    "termsOfService": "Términos de servicio",
+    "cookiePolicy": "Política de cookies",
+    "privacyPolicy": "Política de privacidad",
+    "submitButton": "Crear cuenta",
+    "hasAccount": "¿Ya tiene una cuenta?",
+    "signIn": "Iniciar sesión",
+    "requiredIndicator": "*",
+    "validation": {
+      "nameRequired": "El nombre es obligatorio",
+      "emailRequired": "El correo electrónico es obligatorio",
+      "passwordRequired": "La contraseña es obligatoria",
+      "passwordTooShort": "La contraseña debe tener al menos 12 caracteres",
+      "passwordsNoMatch": "Las contraseñas no coinciden",
+      "termsRequired": "Debe aceptar los Términos de servicio",
+      "cookiesRequired": "Debe aceptar la Política de cookies",
+      "privacyRequired": "Debe aceptar la Política de privacidad"
+    }
+  },
+  "auth": {
+    "refreshingSession": "Actualizando su sesión...",
+    "initializationFailed": "Fallo al inicializar. Por favor, actualice la página.",
+    "emailInput": {
+      "label": "Correo electrónico",
+      "placeholder": "Introduzca su correo electrónico",
+      "requiredIndicator": "*",
+      "validation": {
+        "required": "El correo electrónico es obligatorio",
+        "invalid": "Por favor, introduzca una dirección de correo electrónico válida"
+      }
+    },
+    "passwordInput": {
+      "label": "Contraseña",
+      "placeholder": "Introduzca su contraseña",
+      "requiredIndicator": "*",
+      "showPassword": "Mostrar contraseña",
+      "hidePassword": "Ocultar contraseña",
+      "strength": "Seguridad de la contraseña",
+      "strengthWeak": "Débil",
+      "strengthMedium": "Media",
+      "strengthStrong": "Fuerte",
+      "validation": {
+        "required": "La contraseña es obligatoria",
+        "tooShort": "La contraseña debe tener al menos 12 caracteres"
+      }
+    }
+  },
+  "dashboard": {
+    "title": "Panel de control - {{appName}}",
+    "description": "Administre sus grupos y gastos con {{appName}}",
+    "welcomeMessage": "¡Bienvenido a {{appName}}, {{name}}!",
+    "welcomeDescription": "Empiece creando su primer grupo para rastrear y dividir gastos con amigos.",
+    "yourGroups": "Sus grupos",
+    "createGroup": "Crear grupo",
+    "groupsFilter": {
+      "label": "Filtrar grupos",
+      "active": "Activo",
+      "archived": "Archivado"
+    },
+    "groupCard": {
+      "settledUp": "¡Todo liquidado!",
+      "youOwe": "Usted debe {{amount}}",
+      "youAreOwed": "Se le deben {{amount}}",
+      "addExpenseTooltip": "Añadir gasto a {{groupName}}",
+      "inviteTooltip": "Invitar miembros a {{groupName}}",
+      "noRecentActivity": "No hay actividad reciente",
+      "archivedBadge": "Archivado"
+    },
+    "emptyState": {
+      "title": "Todavía no hay grupos",
+      "subtitle": "Cree su primer grupo para empezar a rastrear gastos compartidos",
+      "createButton": "Crear grupo"
+    },
+    "stats": {
+      "totalGroups": "Total de grupos",
+      "totalExpenses": "Total de gastos",
+      "totalBalance": "Saldo total"
+    },
+    "quickActions": {
+      "title": "Acciones rápidas",
+      "createGroup": "Crear grupo",
+      "addExpense": "Añadir gasto"
+    }
+  },
+  "activityFeed": {
+    "title": "Actividad reciente",
+    "loading": "Cargando...",
+    "emptyState": {
+      "title": "Todavía no hay actividad",
+      "description": "La actividad de sus grupos aparecerá aquí a medida que ocurra.",
+      "groupDescription": "La actividad en este grupo aparecerá aquí."
+    },
+    "error": {
+      "loadFailed": "No pudimos cargar su actividad reciente en este momento. Por favor, inténtelo de nuevo."
+    },
+    "actions": {
+      "retry": "Reintentar",
+      "loadMore": "Cargar más",
+      "loadingMore": "Cargando..."
+    },
+    "labels": {
+      "actorYou": "Usted",
+      "unknownUser": "Alguien",
+      "unknownGroup": "un grupo",
+      "unknownExpense": "un gasto",
+      "unknownSettlement": "un acuerdo",
+      "commentOnGroup": "la discusión del grupo",
+      "commentOnExpense": "el gasto \"{{description}}\""
+    },
+    "events": {
+      "group-created": "{{actor}} creó {{group}}",
+      "group-updated": "{{actor}} actualizó el grupo {{group}}",
+      "group-updated-from": "{{actor}} renombró {{previous}} a {{group}}",
+      "expense-created": "{{actor}} añadió {{expense}} en {{group}}",
+      "expense-updated": "{{actor}} actualizó {{expense}} en {{group}}",
+      "expense-deleted": "{{actor}} eliminó {{expense}} de {{group}}",
+      "member-joined": "{{actor}} añadió a {{target}} a {{group}}",
+      "member-joined-self": "{{actor}} se unió a {{group}}",
+      "member-left": "{{actor}} eliminó a {{target}} de {{group}}",
+      "member-left-self": "{{actor}} abandonó {{group}}",
+      "comment-added": "{{actor}} comentó en {{target}} en {{group}}",
+      "settlement-created": "{{actor}} registró {{settlement}} en {{group}}",
+      "settlement-updated": "{{actor}} actualizó {{settlement}} en {{group}}",
+      "settlement-deleted": "{{actor}} eliminó {{settlement}} de {{group}}",
+      "generic": "{{actor}} realizó cambios en {{group}}",
+      "group-created-short": "{{actor}} creó el grupo",
+      "group-updated-short": "{{actor}} actualizó el grupo",
+      "group-updated-from-short": "{{actor}} renombró el grupo de {{previous}}",
+      "expense-created-short": "{{actor}} añadió {{expense}}",
+      "expense-updated-short": "{{actor}} actualizó {{expense}}",
+      "expense-deleted-short": "{{actor}} eliminó {{expense}}",
+      "member-joined-short": "{{actor}} añadió a {{target}}",
+      "member-joined-self-short": "{{actor}} se unió",
+      "member-left-short": "{{actor}} eliminó a {{target}}",
+      "member-left-self-short": "{{actor}} abandonó",
+      "comment-added-short": "{{actor}} comentó en {{target}}",
+      "settlement-created-short": "{{actor}} registró {{settlement}}",
+      "settlement-updated-short": "{{actor}} actualizó {{settlement}}",
+      "settlement-deleted-short": "{{actor}} eliminó {{settlement}}",
+      "generic-short": "{{actor}} realizó cambios"
+    }
+  },
+  "group": {
+    "header": {
+      "members_one": "{{count}} miembro",
+      "members_other": "{{count}} miembros",
+      "expenses_one": "{{count}} gasto",
+      "expenses_other": "{{count}} gastos"
+    },
+    "actions": {
+      "addExpense": "Añadir gasto",
+      "viewExpenses": "Ver gastos",
+      "settleUp": "Liquidar",
+      "shareGroup": "Compartir grupo",
+      "editGroup": "Editar grupo",
+      "leaveGroup": "Abandonar grupo"
+    },
+    "share": {
+      "title": "Compartir grupo",
+      "subtitle": "Invite a otros a unirse a este grupo",
+      "copyLink": "Copiar enlace",
+      "linkCopied": "¡Enlace copiado al portapapeles!"
+    },
+    "edit": {
+      "title": "Editar grupo",
+      "warningIcon": "⚠️"
+    },
+    "leave": {
+      "title": "Abandonar grupo",
+      "message": "¿Está seguro de que quiere abandonar este grupo?",
+      "confirmButton": "Abandonar grupo",
+      "cancelButton": "Cancelar"
+    },
+    "members": {
+      "title": "Miembros",
+      "addMember": "Añadir miembro",
+      "removeMember": "Eliminar miembro",
+      "unknownUser": "Usuario desconocido",
+      "user": "Usuario"
+    },
+    "expenses": {
+      "title": "Gastos",
+      "noExpenses": "Todavía no hay gastos",
+      "addFirstExpense": "Añada su primer gasto",
+      "unknown": "Desconocido"
+    },
+    "balance": {
+      "title": "Resumen de saldos",
+      "settledUp": "¡Todo liquidado!",
+      "unknown": "Desconocido"
+    }
+  },
+  "comments": {
+    "section": {
+      "title": "Comentarios",
+      "noComments": "Todavía no hay comentarios"
+    },
+    "input": {
+      "placeholder": "Añadir un comentario...",
+      "ariaLabel": "Texto del comentario",
+      "sendButton": "Enviar",
+      "sendAriaLabel": "Enviar comentario"
+    },
+    "item": {
+      "justNow": "justo ahora",
+      "deleteButton": "Eliminar comentario"
+    },
+    "list": {
+      "loading": "Cargando comentarios...",
+      "error": "Fallo al cargar comentarios"
+    },
+    "commentInput": {
+      "placeholder": "Añadir un comentario...",
+      "tooLong": "El comentario es demasiado largo",
+      "addFailed": "Fallo al añadir comentario",
+      "helpText": "Pulse Enter para enviar, Shift+Enter para nueva línea"
+    },
+    "commentItem": {
+      "recently": "recientemente"
+    },
+    "commentsList": {
+      "loading": "Cargando comentarios...",
+      "empty": "Todavía no hay comentarios",
+      "emptySubtext": "¡Sea el primero en comentar!",
+      "loadingMore": "Cargando...",
+      "loadMore": "Cargar más comentarios"
+    },
+    "commentsSection": {
+      "placeholderGroup": "Añadir un comentario a este grupo...",
+      "placeholderExpense": "Añadir un comentario a este gasto..."
+    }
+  },
+  "ui": {
+    "alert": {
+      "dismiss": "Descartar alerta"
+    },
+    "confirmDialog": {
+      "confirm": "Confirmar",
+      "cancel": "Cancelar"
+    }
+  },
+  "navigation": {
+    "header": {
+      "fallback": "...",
+      "dashboard": "Panel de control",
+      "groups": "Grupos",
+      "settings": "Configuración"
+    },
+    "footer": {
+      "copyright": "© {{year}} {{appName}}. Todos los derechos reservados.",
+      "privacy": "Política de privacidad",
+      "terms": "Términos de servicio",
+      "cookies": "Política de cookies"
+    },
+    "userMenu": {
+      "openUserMenu": "Abrir menú de usuario",
+      "profile": "Perfil",
+      "settings": "Configuración",
+      "logout": "Cerrar sesión",
+      "help": "Ayuda"
+    }
+  },
+  "errors": {
+    "generic": "Se produjo un error",
+    "network": "Se produjo un error de red",
+    "invalidLink": "Enlace no válido",
+    "notFound": {
+      "page": "Página no encontrada",
+      "group": "Grupo no encontrado",
+      "expense": "Gasto no encontrado"
+    },
+    "loading": {
+      "cookiePolicy": "Error al cargar la política de cookies",
+      "privacyPolicy": "Error al cargar la política de privacidad",
+      "terms": "Error al cargar los términos"
+    },
+    "validation": {
+      "displayNameEmpty": "El nombre visible no puede estar vacío",
+      "displayNameTooLong": "El nombre visible debe tener 100 caracteres o menos",
+      "passwordTooShort": "La nueva contraseña debe tener al menos 12 caracteres",
+      "passwordsNoMatch": "Las contraseñas no coinciden",
+      "passwordSameAsCurrent": "La nueva contraseña debe ser diferente de la actual",
+      "passwordAndNewRequired": "La contraseña actual y la nueva contraseña son obligatorias"
+    }
+  },
+  "seo": {
+    "titleSuffix": " | {{appName}}",
+    "siteName": "{{appName}}"
+  },
+  "expenseForm": {
+    "description": "Descripción",
+    "amount": "Importe*",
+    "whoPaid": "¿Quién pagó?",
+    "splitBetween": "Dividir entre",
+    "exactAmounts": "Cantidades exactas",
+    "percentage": "Porcentaje",
+    "equal": "Igual",
+    "exactAmountsInstruction": "Introduzca las cantidades exactas para cada persona:",
+    "percentageInstruction": "Introduzca el porcentaje para cada persona:",
+    "selectAll": "Seleccionar todo",
+    "saveExpense": "Guardar gasto",
+    "updateExpense": "Actualizar gasto",
+    "cancel": "Cancelar",
+    "errors": {
+      "expenseLocked": "Este gasto no se puede editar porque uno o más participantes han abandonado el grupo."
+    }
+  },
+  "settlementForm": {
+    "updatePayment": "Actualizar pago",
+    "recordPayment": "Registrar pago",
+    "updateSettlement": "Actualizar liquidación",
+    "recordSettlement": "Registrar liquidación",
+    "closeModal": "Cerrar modal",
+    "whoPaidLabel": "¿Quién pagó?",
+    "whoReceivedPaymentLabel": "¿Quién recibió el pago?",
+    "amountLabel": "Importe",
+    "dateLabel": "Fecha",
+    "noteLabel": "Nota (opcional)",
+    "selectPersonPlaceholder": "Seleccionar persona",
+    "amountPlaceholder": "0.00",
+    "notePlaceholder": "ej., Venmo, efectivo, transferencia bancaria",
+    "youSuffix": " (Tú)",
+    "cancelButton": "Cancelar",
+    "updatingButton": "Actualizando...",
+    "recordingButton": "Registrando...",
+    "paymentSummary": "{{payer}} pagó {{amount}} a {{payee}}",
+    "validation": {
+      "selectPayer": "Por favor, seleccione quién pagó",
+      "selectPayee": "Por favor, seleccione quién recibió el pago",
+      "samePersonError": "El pagador y el receptor no pueden ser la misma persona",
+      "validAmountRequired": "Por favor, introduzca una cantidad válida mayor que 0",
+      "amountTooLarge": "La cantidad no puede exceder 999,999.99",
+      "validCurrencyRequired": "Por favor, seleccione una moneda válida",
+      "dateRequired": "Por favor, seleccione una fecha",
+      "dateInFuture": "La fecha no puede ser en el futuro",
+      "recordPaymentFailed": "Fallo al registrar el pago"
+    },
+    "errors": {
+      "settlementLocked": "Este acuerdo no se puede editar porque un participante ha abandonado el grupo."
+    },
+    "warnings": {
+      "noDebt": "{{payer}} no debe a {{payee}} ningún dinero en {{currency}}. Este acuerdo creará una deuda en la dirección opuesta.",
+      "overpayment": "{{payer}} solo debe a {{payee}} {{debt}}, pero está liquidando {{amount}}. Esto creará una deuda en la dirección opuesta.",
+      "underpayment": "Está registrando {{amount}}, pero {{payer}} seguirá debiendo a {{payee}} {{remaining}} después. Mantendremos el saldo restante actualizado."
+    }
+  },
+  "settlementHistory": {
+    "noPaymentsYet": "Todavía no hay pagos registrados",
+    "today": "Hoy",
+    "yesterday": "Ayer",
+    "editPaymentTooltip": "Editar pago",
+    "cannotEditTooltip": "No se puede editar: el miembro ha abandonado el grupo",
+    "deletePaymentTooltip": "Eliminar pago",
+    "loadMore": "Cargar más",
+    "loadMorePayments": "Cargar más pagos",
+    "deletePaymentTitle": "Eliminar pago",
+    "deletePaymentMessage": "¿Está seguro de que desea eliminar este pago de {{amount}} de {{payer}} a {{payee}}? Esta acción no se puede deshacer.",
+    "deleteButton": "Eliminar",
+    "cancelButton": "Cancelar",
+    "showAll": "Mostrar todo",
+    "noPaymentsForYou": "Todavía no hay pagos que le involucren",
+    "deletedBy": "Eliminado por"
+  },
+  "balanceSummary": {
+    "loadingBalances": "Cargando saldos...",
+    "allSettledUp": "¡Todo liquidado!",
+    "debtArrow": " → ",
+    "showOnlyMyBalances": "Mostrar solo mis saldos",
+    "showAll": "Mostrar todo",
+    "settleUp": "Liquidar",
+    "settleUpButton": "Registrar liquidación para esta deuda"
+  },
+  "emptyGroupsState": {
+    "title": "Todavía no hay grupos",
+    "description": "Cree su primer grupo para empezar a dividir gastos con amigos, familiares o compañeros de piso.",
+    "createFirstGroup": "Cree su primer grupo",
+    "gettingStartedTitle": "Empezando con {{appName}}:",
+    "step1Title": "1. Crear un grupo",
+    "step1Description": "Añadir amigos, compañeros de piso o de viaje",
+    "step2Title": "2. Añadir gastos",
+    "step2Description": "Rastree quién pagó y cómo dividir los costos",
+    "step3Title": "3. Liquidar",
+    "step3Description": "Vea quién debe qué y liquide los saldos"
+  },
+  "groupCard": {
+    "settledUp": "Liquidado",
+    "addExpenseTooltip": "Añadir gasto a {{groupName}}",
+    "inviteTooltip": "Invitar a {{groupName}}",
+    "noRecentActivity": "No hay actividad reciente"
+  },
+  "expenseFormHeader": {
+    "addExpense": "Añadir gasto",
+    "editExpense": "Editar gasto",
+    "copyExpense": "Copiar gasto",
+    "cancel": "Cancelar"
+  },
+  "expenseBasicFields": {
+    "title": "Detalles del gasto",
+    "descriptionLabel": "Descripción",
+    "descriptionPlaceholder": "¿Para qué fue este gasto?",
+    "amountLabel": "Importe",
+    "labelsLabel": "Etiquetas",
+    "labelsPlaceholder": "Añadir una etiqueta...",
+    "dateLabel": "Fecha",
+    "timeLabel": "Hora",
+    "recentAmounts": "Cantidades recientes:",
+    "today": "Hoy",
+    "yesterday": "Ayer",
+    "thisMorning": "Esta mañana",
+    "lastNight": "Anoche",
+    "addSpecificTime": "Añadir hora específica"
+  },
+  "suggestedLabels": [
+    "Comestibles",
+    "Comida para llevar",
+    "Restaurante",
+    "Café",
+    "Bebidas",
+    "Bar",
+    "Snacks",
+    "Desayuno",
+    "Almuerzo",
+    "Cena",
+    "Comida rápida",
+    "A domicilio",
+    "Brunch",
+    "Gasolina",
+    "Aparcamiento",
+    "Peajes",
+    "Uber",
+    "Lyft",
+    "Taxi",
+    "Autobús",
+    "Tren",
+    "Metro",
+    "Alquiler de coche",
+    "Combustible",
+    "Vuelo",
+    "Airbnb",
+    "Hotel",
+    "Hostal",
+    "Resort",
+    "Vacaciones",
+    "Viaje por carretera",
+    "Camping",
+    "Alquiler",
+    "Suministros",
+    "Electricidad",
+    "Agua",
+    "Internet",
+    "Teléfono",
+    "Seguro",
+    "Hipoteca",
+    "HOA",
+    "Reparaciones",
+    "Mantenimiento",
+    "Limpieza",
+    "Muebles",
+    "Electrodomésticos",
+    "Decoración",
+    "Jardín",
+    "Películas",
+    "Concierto",
+    "Espectáculo",
+    "Festival",
+    "Deportes",
+    "Juegos",
+    "Streaming",
+    "Entradas",
+    "Museo",
+    "Parque temático",
+    "Bolos",
+    "Mini golf",
+    "Karaoke",
+    "Recreativos",
+    "Escape Room",
+    "Compras",
+    "Ropa",
+    "Zapatos",
+    "Electrónica",
+    "Regalos",
+    "Libros",
+    "Juguetes",
+    "Belleza",
+    "Cuidado de la piel",
+    "Corte de pelo",
+    "Spa",
+    "Gimnasio",
+    "Fitness",
+    "Material deportivo",
+    "Material para exteriores",
+    "Comida para mascotas",
+    "Cuidado de mascotas",
+    "Veterinario",
+    "Peluquería",
+    "Medicina",
+    "Farmacia",
+    "Médico",
+    "Dentista",
+    "Visión",
+    "Terapia",
+    "Médico",
+    "Cuidado de niños",
+    "Niñera",
+    "Matrícula",
+    "Escuela",
+    "Suministros",
+    "Fiesta",
+    "Cumpleaños",
+    "Boda",
+    "Vacaciones",
+    "Aniversario",
+    "Celebración",
+    "Decoraciones",
+    "Catering",
+    "Lugar",
+    "Barbacoa",
+    "Picnic",
+    "Comida compartida",
+    "Noche de juegos",
+    "Inauguración de la casa",
+    "Trabajo",
+    "Oficina",
+    "Suministros",
+    "Equipo",
+    "Software",
+    "Suscripción",
+    "Membresía",
+    "Tarifas",
+    "Propinas",
+    "Caridad",
+    "Donación",
+    "Cajero automático",
+    "Efectivo",
+    "Varios",
+    "Otro",
+    "Compartido",
+    "Dividido",
+    "Reembolso",
+    "Depósito",
+    "Depósito de seguridad"
+  ],
+  "expensesList": {
+    "title": "Gastos",
+    "noExpensesYet": "Todavía no hay gastos. ¡Añada uno para empezar!",
+    "loadMore": "Cargar más"
+  },
+  "expenseItem": {
+    "paidBy": "Pagado por",
+    "deleted": "Eliminado",
+    "deletedBy": "Eliminado por",
+    "copyExpense": "Copiar gasto"
+  },
+  "header": {
+    "logoAlt": "{{appName}}",
+    "login": "Iniciar sesión",
+    "signUp": "Registrarse",
+    "goToHome": "Ir a inicio",
+    "goToDashboard": "Ir al panel de control"
+  },
+  "userMenu": {
+    "dashboard": "Panel de control",
+    "admin": "Administrador",
+    "settings": "Configuración",
+    "signOut": "Cerrar sesión",
+    "signingOut": "Cerrando sesión...",
+    "systemUserBadge": "Usuario del sistema",
+    "systemUserTooltip": "Esta cuenta se utiliza para operaciones automatizadas o impulsadas por el sistema.",
+    "environmentLink": "entorno",
+    "diagnosticsLoading": "Cargando diagnósticos...",
+    "diagnosticsError": "No se pudieron cargar los diagnósticos:",
+    "browser": "Navegador",
+    "browserUsers": "Navegador de usuarios"
+  },
+  "languageSelector": {
+    "label": "Idioma",
+    "description": "Elija su idioma preferido"
+  },
+  "footer": {
+    "companyName": "{{appName}}",
+    "companyDescription": "Divida facturas fácilmente con amigos y familiares.",
+    "linksSection": "Enlaces",
+    "copyright": "© 2025 Pomo Corp ltd. Todos los derechos reservados."
+  },
+  "groupHeader": {
+    "membersCount": "{{count}} miembros",
+    "membersCount_one": "{{count}} miembro",
+    "membersCount_other": "{{count}} miembros",
+    "old": "antiguo",
+    "lastUpdated": "última actualización",
+    "groupSettingsAriaLabel": "Configuración del grupo",
+    "groupSecurityAriaLabel": "Seguridad y permisos"
+  },
+  "securitySettingsModal": {
+    "unsavedChanges": "Tiene cambios sin guardar. Revise todo y luego presione Guardar para aplicarlos.",
+    "presets": {
+      "activeBadge": "Activo",
+      "open": {
+        "label": "Preajuste: Colaboración abierta",
+        "description": "Todos pueden invitar miembros y administrar gastos sin restricciones."
+      },
+      "managed": {
+        "label": "Preajuste: Grupo administrado",
+        "description": "Los administradores aprueban invitaciones y controlan quién puede editar o eliminar gastos."
+      }
+    },
+    "custom": {
+      "heading": "Permisos personalizados",
+      "unsaved": "Permisos personalizados cambiados.",
+      "saveHelper": "Los cambios se ponen en cola hasta que presione Guardar."
+    },
+    "success": {
+      "updated": "Configuración de seguridad actualizada."
+    },
+    "permissions": {
+      "expenseEditing": {
+        "label": "Quién puede editar gastos",
+        "description": "Elija quién puede actualizar cualquier gasto en el grupo."
+      },
+      "expenseDeletion": {
+        "label": "Quién puede eliminar gastos",
+        "description": "Restringe la capacidad de eliminar gastos."
+      },
+      "memberInvitation": {
+        "label": "Quién puede invitar miembros",
+        "description": "Determine quién puede generar enlaces de invitación."
+      },
+      "memberApproval": {
+        "label": "Aprobación de nuevos miembros",
+        "description": "Requiere una revisión de un administrador antes de que alguien se una a través de una invitación."
+      },
+      "settingsManagement": {
+        "label": "Quién puede cambiar la configuración",
+        "description": "Controle el acceso a la configuración administrativa."
+      },
+      "options": {
+        "anyone": "Cualquier miembro",
+        "creator-and-admin": "Creadores y administradores",
+        "admin-only": "Solo administradores",
+        "automatic": "Automático",
+        "admin-required": "Aprobación del administrador requerida"
+      }
+    },
+    "memberRoles": {
+      "heading": "Roles de los miembros",
+      "admin": "Administrador",
+      "member": "Miembro",
+      "viewer": "Espectador"
+    },
+    "pendingMembers": {
+      "heading": "Miembros pendientes",
+      "requested": "Pendiente de aprobación",
+      "empty": "No hay solicitudes pendientes en este momento.",
+      "approve": "Aprobar",
+      "reject": "Rechazar"
+    },
+    "errors": {
+      "loadPending": "No se pudieron cargar los miembros pendientes. Por favor, inténtelo de nuevo.",
+      "updatePermissions": "No pudimos actualizar la configuración de seguridad. Por favor, inténtelo de nuevo.",
+      "pendingAction": "No pudimos procesar esa solicitud. Por favor, inténtelo de nuevo."
+    }
+  },
+  "settingsPage": {
+    "title": "Configuración - {{appName}}",
+    "description": "Administre la configuración de su cuenta",
+    "heroLabel": "Cuenta",
+    "accountSettingsHeader": "Configuración de la cuenta",
+    "accountSettingsSubheader": "Administre su información de perfil y contraseña",
+    "profileSummaryTitle": "Resumen del perfil",
+    "profileSummaryDescription": "Esta información ayuda a otros miembros a reconocerle.",
+    "profileInformationHeader": "Información del perfil",
+    "profileInformationSubheader": "Actualice los detalles que otros miembros ven en {{appName}}.",
+    "emailSectionTitle": "Dirección de correo electrónico",
+    "emailSectionDescription": "Actualice el correo electrónico que utiliza para iniciar sesión y recibir notificaciones.",
+    "currentDisplayName": "Nombre visible actual:",
+    "email": "Correo electrónico:",
+    "currentEmailLabel": "Correo electrónico actual",
+    "displayNameLabel": "Nombre visible",
+    "displayNamePlaceholder": "Introduzca su nombre visible",
+    "displayNameHelper": "Utilice su nombre completo o un apodo que sus compañeros reconocerán.",
+    "saveChangesButton": "Guardar cambios",
+    "passwordHeader": "Contraseña",
+    "passwordIntro": "Establezca una contraseña segura para mantener su cuenta {{appName}} protegida.",
+    "changePasswordButton": "Cambiar contraseña",
+    "changeEmailButton": "Cambiar correo electrónico",
+    "newEmailLabel": "Nuevo correo electrónico",
+    "newEmailPlaceholder": "Introduzca su nueva dirección de correo electrónico",
+    "emailPasswordLabel": "Confirmar con contraseña",
+    "updateEmailButton": "Actualizar correo electrónico",
+    "currentPasswordLabel": "Contraseña actual",
+    "newPasswordLabel": "Nueva contraseña",
+    "confirmNewPasswordLabel": "Confirmar nueva contraseña",
+    "updatePasswordButton": "Actualizar contraseña",
+    "cancelButton": "Cancelar",
+    "passwordRequirementsHeading": "Lista de verificación de contraseña segura",
+    "passwordRequirements": {
+      "length": "Utilice al menos 12 caracteres.",
+      "mix": "Combine letras mayúsculas y minúsculas, números y símbolos.",
+      "reuse": "Evite las contraseñas que haya usado en otros lugares."
+    },
+    "profileSummaryRoleLabel": "Rol de la cuenta",
+    "profileSummaryRoleFallback": "Miembro",
+    "profileSummaryRole": {
+      "system_admin": "Administrador",
+      "system_user": "Miembro"
+    },
+    "successMessages": {
+      "profileUpdated": "Perfil actualizado correctamente",
+      "passwordChanged": "Contraseña cambiada correctamente",
+      "emailChanged": "Correo electrónico actualizado correctamente. Por favor, verifique la nueva dirección."
+    },
+    "errorMessages": {
+      "profileUpdateFailed": "Fallo al actualizar el perfil. Por favor, inténtelo de nuevo.",
+      "passwordAndNewRequired": "La contraseña actual y la nueva contraseña son obligatorias",
+      "passwordTooShort": "La nueva contraseña debe tener al menos 12 caracteres",
+      "passwordsNoMatch": "Las contraseñas no coinciden",
+      "passwordSameAsCurrent": "La nueva contraseña debe ser diferente de la actual",
+      "currentPasswordIncorrect": "La contraseña actual es incorrecta",
+      "passwordChangeFailed": "Fallo al cambiar la contraseña. Por favor, inténtelo de nuevo.",
+      "displayNameEmpty": "El nombre visible no puede estar vacío",
+      "displayNameTooLong": "El nombre visible debe tener 100 caracteres o menos",
+      "emailRequired": "El nuevo correo electrónico es obligatorio",
+      "emailInvalid": "Introduzca una dirección de correo electrónico válida",
+      "emailSameAsCurrent": "El nuevo correo electrónico debe ser diferente del actual",
+      "emailPasswordRequired": "Introduzca su contraseña actual para confirmar este cambio",
+      "emailInUse": "Ese correo electrónico ya está vinculado a otra cuenta de {{appName}}",
+      "emailChangeFailed": "Fallo al cambiar el correo electrónico. Por favor, inténtelo de nuevo."
+    }
+  },
+  "editGroupModal": {
+    "title": "Editar grupo",
+    "groupNameLabel": "Nombre del grupo",
+    "groupNamePlaceholder": "ej., Gastos de apartamento, Viaje a París",
+    "descriptionLabel": "Descripción (opcional)",
+    "descriptionPlaceholder": "Añada cualquier detalle sobre este grupo...",
+    "cancelButton": "Cancelar",
+    "saveChangesButton": "Guardar cambios",
+    "deleteGroupButton": "Eliminar grupo",
+    "validation": {
+      "nameRequired": "El nombre del grupo es obligatorio.",
+      "nameTooShort": "El nombre del grupo debe tener al menos 2 caracteres.",
+      "nameTooLong": "El nombre del grupo debe tener menos de 50 caracteres.",
+      "updateFailed": "Fallo al actualizar el grupo"
+    },
+    "success": {
+      "updated": "Detalles del grupo actualizados."
+    },
+    "deleteConfirmDialog": {
+      "title": "Eliminar grupo permanentemente",
+      "warningTitle": "⚠️ Advertencia de eliminación permanente",
+      "warningMessage": "Esto eliminará permanentemente el grupo y TODOS los datos asociados:",
+      "warningList": {
+        "expenses": "Todos los gastos y sus comentarios",
+        "settlements": "Todos los acuerdos y el historial de pagos",
+        "members": "Todos los miembros del grupo y los permisos",
+        "history": "Todo el historial de cambios y actividad"
+      },
+      "cannotUndo": "Esta acción no se puede deshacer.",
+      "typeToConfirm": "Para confirmar, escriba el nombre del grupo \"{{groupName}}\" a continuación:",
+      "deletingMessage": "Eliminando grupo y todos los datos asociados...",
+      "deletingText": "Eliminando...",
+      "confirmText": "Eliminar grupo permanentemente",
+      "cancelText": "Cancelar",
+      "deleteFailed": "Fallo al eliminar el grupo"
+    }
+  },
+  "groupActions": {
+    "title": "Acciones del grupo",
+    "addExpense": "Añadir gasto",
+    "settleUp": "Liquidar",
+    "inviteOthers": "Invitar a otros",
+    "settings": "Configuración",
+    "leaveGroup": "Abandonar grupo",
+    "archive": "Archivar grupo",
+    "unarchive": "Desarchivar grupo"
+  },
+  "groupSettingsModal": {
+    "title": "Configuración del grupo",
+    "tabs": {
+      "identity": "Nombre visible",
+      "general": "General",
+      "security": "Seguridad y permisos"
+    },
+    "securityTab": {
+      "successAriaLabel": "éxito",
+      "unsavedChangesAriaLabel": "cambios sin guardar"
+    }
+  },
+  "groupSettings": {
+    "currencySettings": {
+      "title": "Configuración de moneda",
+      "description": "Restrinja las monedas que se pueden usar para gastos en este grupo.",
+      "enableToggle": "Restringir monedas para este grupo",
+      "enabledDescription": "Solo las monedas seleccionadas se pueden usar para gastos",
+      "permittedLabel": "Monedas permitidas",
+      "defaultLabel": "Moneda predeterminada para nuevos gastos",
+      "addCurrency": "Añadir moneda",
+      "searchPlaceholder": "Buscar monedas...",
+      "noCurrenciesSelected": "Seleccione al menos una moneda",
+      "defaultNotInPermitted": "La moneda predeterminada debe ser una moneda permitida",
+      "allCurrenciesSelected": "Todas las monedas seleccionadas",
+      "saveButton": "Guardar configuración de moneda",
+      "saveSuccess": "Configuración de moneda actualizada correctamente.",
+      "saveFailed": "Fallo al guardar la configuración de moneda. Por favor, inténtelo de nuevo."
+    }
+  },
+  "groupDisplayNameSettings": {
+    "title": "Nombre visible del grupo",
+    "description": "Elija cómo le ven otros miembros en este grupo.",
+    "inputLabel": "Su nombre visible en este grupo",
+    "inputPlaceholder": "Introduzca un nombre visible único",
+    "save": "Guardar nombre visible",
+    "saving": "Guardando...",
+    "success": "Nombre visible del grupo actualizado.",
+    "errors": {
+      "required": "Introduzca un nombre visible.",
+      "tooLong": "El nombre visible debe tener 50 caracteres o menos.",
+      "notChanged": "Introduzca un nombre visible diferente antes de guardar.",
+      "taken": "Ese nombre ya está en uso en este grupo.",
+      "unknown": "Fallo al actualizar el nombre visible. Vuelva a intentarlo."
+    }
+  },
+  "membersList": {
+    "title": "Miembros",
+    "admin": "Administrador",
+    "member": "Miembro",
+    "viewer": "Espectador",
+    "thisMember": "Este miembro",
+    "leaveGroup": "Abandonar grupo",
+    "inviteOthers": "Invitar a otros",
+    "inviteOthersAriaLabel": "Invitar a otros",
+    "leaveGroupAriaLabel": "Abandonar grupo",
+    "removeMemberAriaLabel": "Eliminar a {{name}}",
+    "leaveGroupDialog": {
+      "title": "¿Abandonar grupo?",
+      "messageWithBalance": "Tiene un saldo pendiente en este grupo. Por favor, liquide antes de abandonar.",
+      "messageConfirm": "¿Está seguro de que quiere abandonar este grupo? Necesitará una invitación para volver a unirse.",
+      "confirmText": "Abandonar grupo",
+      "cancelText": "Cancelar"
+    },
+    "removeMemberDialog": {
+      "title": "¿Eliminar miembro?",
+      "messageWithBalance": "{{name}} tiene un saldo pendiente en este grupo. Por favor, liquide antes de eliminar.",
+      "messageConfirm": "¿Está seguro de que desea eliminar a {{name}} del grupo?",
+      "confirmText": "Eliminar",
+      "cancelText": "Cancelar"
+    }
+  },
+  "shareGroupModal": {
+    "title": "Invitar a otros",
+    "description": "Comparta este enlace con cualquiera que quiera unirse a este grupo.",
+    "closeButtonAriaLabel": "Cerrar modal",
+    "copyLinkTitle": "Copiar enlace",
+    "copyLinkAriaLabel": "Copiar enlace de invitación al grupo",
+    "qrCodeDescription": "O escanee este código",
+    "expirationLabel": "El enlace de invitación expira en…",
+    "expirationOptions": {
+      "15m": "15 minutos",
+      "1h": "1 hora",
+      "1d": "1 día",
+      "5d": "5 días"
+    },
+    "expiresAt": "Expira el {{date}}",
+    "generateNew": "Generar nuevo",
+    "linkCopied": "Enlace copiado al portapapeles",
+    "errors": {
+      "generateLinkFailed": "Fallo al generar el enlace para compartir. Por favor, inténtelo de nuevo."
+    }
+  },
+  "errorState": {
+    "defaultTitle": "Algo salió mal",
+    "unexpectedError": "Se produjo un error inesperado",
+    "tryAgainButton": "Reintentar"
+  },
+  "errorBoundary": {
+    "title": "Algo salió mal",
+    "unexpectedError": "Se produjo un error inesperado"
+  },
+  "notFoundPage": {
+    "title": "404",
+    "pageNotFound": "Página no encontrada",
+    "pageNotFoundDescription": "La página que busca no existe.",
+    "groupNotFound": "Grupo no encontrado o no tiene acceso",
+    "groupNotFoundDescription": "El grupo que busca no existe o necesita ser invitado para acceder a él.",
+    "goToDashboard": "Ir al panel de control",
+    "goHome": "Ir a inicio"
+  },
+  "loadingState": {
+    "defaultMessage": "Cargando..."
+  },
+  "joinGroupPage": {
+    "title": "Unirse al grupo",
+    "loadingGroup": "Cargando información del grupo...",
+    "alreadyMember": "Ya es miembro de este grupo",
+    "alreadyMemberDescription": "Puede ir directamente al grupo para ver los gastos y saldos.",
+    "joinGroup": "Unirse al grupo",
+    "goToGroup": "Ir al grupo",
+    "joining": "Uniéndose...",
+    "cancel": "Cancelar",
+    "welcome": "¡Bienvenido a {{groupName}}!",
+    "joinSuccess": "Se ha unido correctamente al grupo. Redirigiendo a la página del grupo...",
+    "joinedTitle": "Unido a {{groupName}} - {{appName}}",
+    "backToDashboard": "Volver al panel de control",
+    "pendingApprovalTitle": "Pendiente de aprobación",
+    "pendingApprovalMessage": "Su solicitud para unirse a {{groupName}} ha sido enviada a los administradores del grupo.",
+    "pendingApprovalHelp": "Le notificaremos una vez que sea aprobado. Por ahora puede volver a su panel de control.",
+    "errors": {
+      "invalidLink": "Este enlace de invitación no es válido o ha expirado",
+      "groupNotFound": "Este grupo ya no existe",
+      "alreadyMember": "Ya es miembro de este grupo",
+      "joinFailed": "Fallo al unirse al grupo",
+      "loadFailed": "Fallo al cargar la información del grupo"
+    },
+    "displayName": {
+      "title": "Elija su nombre visible",
+      "description": "Así es como otros miembros le verán en \"{{groupName}}\"",
+      "label": "Nombre visible",
+      "placeholder": "¿Cómo deberían verle otros miembros?",
+      "help": "Elija un nombre único para este grupo. Otros miembros lo usarán para identificarle.",
+      "errors": {
+        "required": "Introduzca un nombre visible.",
+        "taken": "Ese nombre visible ya está en uso en este grupo.",
+        "invalid": "El nombre visible solo puede usar letras, números, espacios, guiones, guiones bajos y puntos."
+      }
+    }
+  },
+  "dashboardComponents": {
+    "groupsList": {
+      "loading": "Cargando sus grupos...",
+      "loadFailed": "Fallo al cargar los grupos",
+      "tryAgain": "Volver a intentar",
+      "creating": "Creando grupo...",
+      "noArchivedTitle": "No hay grupos archivados",
+      "noArchivedDescription": "Los grupos que archive aparecerán aquí. Archive un grupo de la pestaña Activos para ocultarlo de su panel de control.",
+      "groupsListAriaLabel": "Sus grupos"
+    }
+  },
+  "expenseComponents": {
+    "expenseFormActions": {
+      "cancel": "Cancelar",
+      "updating": "Actualizando...",
+      "saving": "Guardando...",
+      "update": "Actualizar gasto",
+      "save": "Guardar gasto"
+    },
+    "participantSelector": {
+      "label": "Dividir entre",
+      "requiredIndicator": "*",
+      "selectAll": "Seleccionar todo",
+      "selectNone": "Deseleccionar todo",
+      "payerSuffix": "(Pagador)"
+    },
+    "payerSelector": {
+      "label": "¿Quién pagó?",
+      "requiredIndicator": "*",
+      "selectPayer": "Seleccionar quién pagó",
+      "searchPlaceholder": "Buscar miembros...",
+      "membersList": "Miembros del grupo",
+      "noResults": "Ningún miembro coincide con su búsqueda"
+    },
+    "splitAmountInputs": {
+      "exactAmountsInstruction": "Introduzca las cantidades exactas para cada persona:",
+      "unknown": "Desconocido",
+      "dollarSign": "$",
+      "total": "Total: ",
+      "percentageInstruction": "Introduzca el porcentaje para cada persona:",
+      "percentSign": "%",
+      "equalInstruction": "Cada persona paga:"
+    },
+    "splitTypeSelector": {
+      "label": "Cómo dividir",
+      "equal": "Igual",
+      "exactAmounts": "Cantidades exactas",
+      "percentage": "Porcentaje"
+    },
+    "expenseActions": {
+      "edit": "Editar",
+      "copyExpense": "Copiar gasto",
+      "copy": "Copiar",
+      "share": "Compartir",
+      "delete": "Eliminar",
+      "deleteTitle": "Eliminar gasto",
+      "deleteConfirm": "¿Está seguro de que desea eliminar \"{{expenseName}}\"? Esta acción no se puede deshacer y afectará a los saldos del grupo.",
+      "deleteButton": "Eliminar",
+      "cancel": "Cancelar",
+      "deleteFailed": "Fallo al eliminar el gasto",
+      "cannotEditTooltip": "No se puede editar: un participante ha abandonado el grupo"
+    },
+    "expenseFormModal": {
+      "addExpense": "Añadir gasto",
+      "editExpense": "Editar gasto",
+      "copyExpense": "Copiar gasto",
+      "closeModal": "Cerrar modal",
+      "cancel": "Cancelar",
+      "saveExpense": "Guardar gasto",
+      "updateExpense": "Actualizar gasto",
+      "createCopy": "Crear copia",
+      "saving": "Guardando...",
+      "updating": "Actualizando...",
+      "close": "Cerrar"
+    },
+    "expenseDetailModal": {
+      "title": "Detalles del gasto",
+      "closeModal": "Cerrar modal",
+      "close": "Cerrar",
+      "edit": "Editar",
+      "copy": "Copiar",
+      "share": "Compartir",
+      "delete": "Eliminar",
+      "paidBy": "Pagado por",
+      "date": "Fecha",
+      "labels": "Etiquetas",
+      "receipt": "Recibo",
+      "viewReceipt": "Ver recibo",
+      "noReceipt": "Sin recibo",
+      "splitDetails": "Detalles de la división",
+      "comments": "Comentarios",
+      "loadingExpense": "Cargando detalles del gasto...",
+      "expenseNotFound": "Gasto no encontrado",
+      "failedToLoad": "Fallo al cargar los detalles del gasto",
+      "shareTitle": "Gasto: {{description}}",
+      "shareText": "Vea este gasto: {{description}} - {{amount}}"
+    },
+    "splitBreakdown": {
+      "splitBetween": "Dividir entre ",
+      "person": " persona",
+      "people": " personas",
+      "splitEqually": "Dividir a partes iguales",
+      "exactAmounts": "Cantidades exactas",
+      "byPercentage": "Por porcentaje",
+      "customSplit": "División personalizada",
+      "unknown": "Desconocido",
+      "paid": "Pagado",
+      "owes": "Debe ",
+      "total": "Total: "
+    }
+  },
+  "joinGroupComponents": {
+    "groupPreview": {
+      "invitationMessage": "Le han invitado a unirse a este grupo"
+    },
+    "joinButton": {
+      "joining": "Uniéndose...",
+      "joinGroup": "Unirse al grupo"
+    },
+    "membersPreview": {
+      "groupSize": "Tamaño del grupo"
+    }
+  },
+  "policyComponents": {
+    "policyAcceptanceModal": {
+      "title": "Aceptar políticas actualizadas",
+      "policyLabel": "Política ",
+      "of": " de ",
+      "colon": ": ",
+      "close": "Cerrar",
+      "progress": "Progreso",
+      "accepted": " aceptado",
+      "acceptedIcon": "✓ Aceptado",
+      "acceptedAriaLabel": "Aceptado",
+      "loadingContent": "Cargando contenido de la política...",
+      "acceptanceRequired": "Se requiere la aceptación de la política",
+      "acceptanceInstructions": "Por favor, lea la política anterior y haga clic en \"Aceptar\" para seguir usando {{appName}}.",
+      "acceptCheckbox": "He leído y acepto este ",
+      "previous": "Anterior",
+      "next": "Siguiente",
+      "policiesAccepted": " políticas aceptadas",
+      "accepting": "Aceptando...",
+      "acceptAll": "Aceptar todo y continuar",
+      "closeAriaLabel": "Cerrar",
+      "errorTitle": "Error"
+    },
+    "policyRenderer": {
+      "bulletPoint": "• "
+    }
+  },
+  "uiComponents": {
+    "alert": {
+      "dismiss": "Descartar alerta"
+    },
+    "avatar": {
+      "unknown": "Desconocido"
+    },
+    "button": {
+      "default": "Botón"
+    },
+    "multiLabelInput": {
+      "placeholder": "Añadir una etiqueta...",
+      "removeLabel": "Eliminar {{label}}",
+      "maxReached": "Máximo {{max}} etiquetas",
+      "recent": "Reciente",
+      "hint": "{{count}}/{{max}} etiquetas"
+    },
+    "confirmDialog": {
+      "confirm": "Confirmar",
+      "cancel": "Cancelar"
+    },
+    "currencyAmountInput": {
+      "selectCurrency": "Seleccionar moneda",
+      "searchPlaceholder": "Buscar por símbolo, código o país...",
+      "searchAriaLabel": "Buscar monedas",
+      "loading": "Cargando monedas...",
+      "noCurrencies": "No se encontraron monedas",
+      "recent": "Reciente",
+      "common": "Común",
+      "allCurrencies": "Todas las monedas",
+      "placeholder": "0.00",
+      "requiredIndicator": "*"
+    },
+    "currencySelector": {
+      "placeholder": "Seleccionar moneda...",
+      "searchPlaceholder": "Buscar monedas",
+      "loading": "Cargando monedas...",
+      "noCurrencies": "No se encontraron monedas",
+      "recent": "Reciente",
+      "common": "Común",
+      "allCurrencies": "Todas las monedas"
+    },
+    "input": {
+      "requiredIndicator": "*"
+    },
+    "loadingSpinner": {
+      "loading": "Cargando..."
+    },
+    "timeInput": {
+      "at": "a las ",
+      "placeholder": "Introduzca la hora (ej., 2:30pm)",
+      "requiredIndicator": "*"
+    },
+    "form": {
+      "submissionError": "Error al enviar el formulario"
+    }
+  },
+  "pages": {
+    "addExpensePage": {
+      "errorTitle": "Error - {{appName}}",
+      "error": "Error",
+      "noGroupMessage": "No se especificó ningún grupo. No se puede añadir un gasto sin un grupo.",
+      "backToDashboard": "Volver al panel de control",
+      "loadingTitle": "Cargando... - {{appName}}",
+      "groupNotFound": "Grupo no encontrado",
+      "groupNotFoundMessage": "El grupo al que intenta añadir un gasto no existe o no tiene acceso a él.",
+      "backToGroup": "Volver al grupo",
+      "copyExpenseTitle": "Copiar gasto",
+      "editExpenseTitle": "Editar gasto",
+      "addExpenseTitle": "Añadir gasto",
+      "copyExpenseAction": "Copiar gasto",
+      "editExpenseAction": "Editar gasto",
+      "addExpenseAction": "Añadir un nuevo gasto",
+      "titleSuffix": " - {{appName}}",
+      "titleIn": " en "
+    },
+    "expenseDetailPage": {
+      "missingGroupId": "Falta el ID del grupo",
+      "missingExpenseId": "Falta el ID del gasto",
+      "failedToLoad": "Fallo al cargar el gasto",
+      "cannotEdit": "Este gasto no se puede editar",
+      "containsDepartedMembers": "Uno o más participantes han abandonado el grupo. Los registros históricos se conservan como solo lectura.",
+      "expenseLabel": "Gasto: ",
+      "checkOutExpense": "Vea este gasto: ",
+      "shareApiFailed": "Fallo la API de compartir, volviendo al portapapeles",
+      "failedToCopy": "Fallo al copiar al portapapeles",
+      "error": "Error",
+      "expenseNotFound": "Gasto no encontrado",
+      "backToGroup": "Volver al grupo",
+      "titleSeparator": " - ",
+      "expenseFor": "Gasto para ",
+      "backButton": "←Atrás",
+      "date": "Fecha",
+      "ago": " hace",
+      "labels": "Etiquetas",
+      "paidBy": "Pagado por",
+      "unknown": "Desconocido",
+      "discussion": "Discusión",
+      "receipt": "Recibo",
+      "clickToViewFullSize": "Haga clic para ver a tamaño completo",
+      "added": "Añadido ",
+      "lastUpdated": "Última actualización ",
+      "receiptViewer": "Visor de recibos",
+      "closeReceiptViewer": "Cerrar visor de recibos",
+      "receiptFullSize": "Recibo - Tamaño completo",
+      "summarySection": "Resumen del gasto",
+      "splitSection": "Detalles de la división",
+      "metadataSection": "Metadatos del gasto"
+    },
+    "groupDetailPage": {
+      "errorLoadingGroup": "Error al cargar el grupo",
+      "backToDashboard": "Volver al panel de control",
+      "balances": "Saldos",
+      "expenses": "Gastos",
+      "comments": "Comentarios",
+      "activity": "Actividad",
+      "paymentHistory": "Liquidaciones",
+      "toggleSection": "Alternar sección de {{section}}",
+      "titleSuffix": " - {{appName}}",
+      "manageExpensesFor": "Administrar gastos para "
+    },
+    "landingPage": {
+      "title": "División de facturas sin esfuerzo - {{appName}}",
+      "description": "Diga adiós a los incómodos deberes y a los cálculos complejos. Nuestra aplicación hace que compartir gastos con amigos, familiares y compañeros de piso sea fácil, justo y transparente. Es 100% gratuita, sin anuncios ni límites.",
+      "disclaimer": "Esta es una herramienta para rastrear gastos, no para realizar pagos.",
+      "accountNote": " Para guardar y administrar sus gastos, necesitará una cuenta gratuita.",
+      "privacyNote": "Nunca le pediremos detalles financieros sensibles.",
+      "transparencyNotice": {
+        "bold": "Esta es una herramienta para rastrear gastos, no para realizar pagos.",
+        "text": "Para guardar y administrar sus gastos, necesitará una cuenta gratuita. Nunca le pediremos detalles financieros sensibles."
+      }
+    },
+    "registerPage": {
+      "requiredIndicator": "*"
+    },
+    "resetPasswordPage": {
+      "failedToSendReset": "Fallo al enviar el correo electrónico de restablecimiento",
+      "checkYourEmail": "Revise su correo electrónico",
+      "resetInstructionsSent": "Se han enviado instrucciones para restablecer la contraseña a su correo electrónico",
+      "emailSentSuccessfully": "Correo electrónico enviado correctamente",
+      "sentInstructionsTo": "Hemos enviado instrucciones para restablecer la contraseña a:",
+      "checkSpamFolder": "¿No lo encuentra? Revise su carpeta de spam o correo no deseado.",
+      "whatsNext": "¿Qué sigue?",
+      "checkEmailInbox": "• Revise su bandeja de entrada (y la carpeta de spam)",
+      "clickResetLink": "• Haga clic en el enlace de restablecimiento del correo electrónico",
+      "createNewPassword": "• Cree una nueva contraseña",
+      "signInWithNewPassword": "• Inicie sesión con su nueva contraseña",
+      "sendToDifferentEmail": "Enviar a otro correo electrónico",
+      "backToSignIn": "← Volver a iniciar sesión",
+      "resetPassword": "Restablecer contraseña",
+      "enterEmailForReset": "Introduzca su dirección de correo electrónico para recibir instrucciones para restablecer la contraseña",
+      "enterEmailDescription": "Introduzca la dirección de correo electrónico asociada a su cuenta y le enviaremos un enlace para restablecer su contraseña.",
+      "emailPlaceholder": "Introduzca su dirección de correo electrónico",
+      "sendResetInstructions": "Enviar instrucciones de restablecimiento"
+    }
+  },
+  "authLayout": {
+    "titleSuffix": " - {{appName}}"
+  },
+  "authProvider": {
+    "authenticationError": "Error de autenticación",
+    "retry": "Reintentar"
+  },
+  "usersBrowser": {
+    "errors": {
+      "auth": "Fallo al cargar los usuarios de Firebase Auth"
+    }
+  },
+  "validation": {
+    "required": "{{field}} es obligatorio"
+  },
+  "roles": {
+    "systemAdmin": {
+      "label": "Administrador del sistema",
+      "description": "Acceso y control total del sistema"
+    },
+    "tenantAdmin": {
+      "label": "Administrador del inquilino",
+      "description": "Puede administrar la configuración y la configuración del inquilino"
+    },
+    "regular": {
+      "label": "Usuario normal",
+      "description": "Usuario estándar sin privilegios administrativos"
+    }
+  },
+  "admin": {
+    "loading": "Cargando administrador...",
+    "tabs": {
+      "tenants": "Inquilinos",
+      "diagnostics": "Diagnósticos",
+      "tenantConfig": "Configuración del inquilino",
+      "users": "Usuarios",
+      "ariaLabel": "Pestañas de administrador"
+    },
+    "tenantConfig": {
+      "loading": "Cargando configuración del inquilino...",
+      "overview": {
+        "title": "Resumen del inquilino",
+        "tenantId": "ID del inquilino",
+        "appName": "Nombre de la aplicación",
+        "lastUpdated": "Última actualización"
+      },
+      "theme": {
+        "title": "Artefacto del tema",
+        "description": "Ayudas de hash + entrega de CSS",
+        "copyLink": "Copiar enlace del tema",
+        "forceReload": "Forzar recarga del tema",
+        "activeHash": "Hash activo",
+        "notPublished": "no publicado",
+        "generatedAt": "Generado el",
+        "copySuccess": "Enlace del tema copiado al portapapeles.",
+        "copyError": "No se pudo copiar el enlace del tema. Por favor, cópielo manualmente."
+      },
+      "brandingTokens": {
+        "title": "Tokens de marca"
+      },
+      "computedCss": {
+        "title": "Variables CSS calculadas"
+      }
+    },
+    "tenants": {
+      "pageTitle": "Gestión de inquilinos",
+      "pageDescription": "Ver y administrar todas las configuraciones de inquilinos",
+      "summary": {
+        "total": "Total de inquilinos:"
+      },
+      "actions": {
+        "create": "Crear nuevo inquilino",
+        "switchTenant": "Haga clic para cambiar a este inquilino"
+      },
+      "status": {
+        "active": "Activo",
+        "default": "Predeterminado"
+      },
+      "details": {
+        "tenantId": "ID del inquilino:",
+        "primaryDomain": "Dominio principal:",
+        "allDomains": "Todos los dominios:",
+        "domains": "Dominios:"
+      },
+      "emptyState": "No se encontraron inquilinos",
+      "errors": {
+        "load": "Fallo al cargar inquilinos"
+      }
+    },
+    "diagnostics": {
+      "loading": "Cargando diagnósticos del entorno...",
+      "errors": {
+        "fetch": "Fallo al obtener datos del entorno",
+        "unknown": "Se produjo un error desconocido"
+      },
+      "serverStatus": {
+        "title": "Estado del servidor",
+        "environment": "Entorno",
+        "nodeVersion": "Versión de Node",
+        "uptime": "Tiempo de actividad",
+        "startedAt": "Iniciado el"
+      },
+      "buildInfo": {
+        "title": "Información de la compilación",
+        "version": "Versión",
+        "buildDate": "Fecha de compilación",
+        "buildTimestamp": "Marca de tiempo de compilación"
+      },
+      "memory": {
+        "title": "Uso de memoria",
+        "rss": "RSS (Tamaño del conjunto residente)",
+        "heapUsed": "Heap usado",
+        "heapTotal": "Heap total",
+        "heapAvailable": "Heap disponible",
+        "external": "Memoria externa",
+        "arrayBuffers": "Array Buffers",
+        "heapLimit": "Límite de heap"
+      },
+      "heap": {
+        "title": "Espacios de heap de V8",
+        "size": "Tamaño:",
+        "used": "Usado:",
+        "available": "Disponible:"
+      },
+      "envVars": {
+        "title": "Variables de entorno",
+        "variable": "Variable",
+        "value": "Valor"
+      },
+      "filesystem": {
+        "title": "Sistema de archivos",
+        "cwd": "Directorio de trabajo"
+      }
+    },
+    "users": {
+      "description": "Administrar cuentas de usuario, roles y permisos",
+      "loading": "Cargando usuarios...",
+      "emptyState": "No se encontraron usuarios",
+      "search": {
+        "label": "Buscar por correo electrónico o UID",
+        "placeholder": "Introducir correo electrónico o UID..."
+      },
+      "table": {
+        "email": "Correo electrónico",
+        "displayName": "Nombre visible",
+        "role": "Rol",
+        "status": "Estado",
+        "created": "Creado",
+        "lastSignIn": "Último inicio de sesión",
+        "actions": "Acciones"
+      },
+      "actions": {
+        "editUser": "Editar usuario"
+      },
+      "confirmations": {
+        "disableUser": "¿Está seguro de que desea {{action}} esta cuenta de usuario?"
+      },
+      "success": {
+        "userToggled": "Cuenta de usuario {{action}} correctamente",
+        "roleUpdated": "Rol de usuario actualizado a {{role}}",
+        "roleUnchanged": "Rol sin cambios"
+      },
+      "errors": {
+        "selfDisable": "No puede deshabilitar su propia cuenta",
+        "selfRoleChange": "No puede cambiar su propio rol",
+        "disableUser": "Fallo al {{action}} la cuenta de usuario",
+        "roleUpdate": "Fallo al actualizar el rol de usuario",
+        "invalidSelection": "Selección no válida"
+      },
+      "rolePrompt": {
+        "title": "Rol actual: {{currentRole}}\n\nSeleccionar nuevo rol:",
+        "regularUser": "Usuario normal (sin rol)"
+      }
+    },
+    "userEditor": {
+      "title": "Editar usuario",
+      "tabs": {
+        "ariaLabel": "Pestañas del editor de usuario",
+        "profile": "Perfil",
+        "role": "Rol",
+        "firebaseAuth": "Firebase Auth",
+        "firestore": "Firestore"
+      },
+      "profile": {
+        "description": "Editar el nombre visible y la dirección de correo electrónico del usuario",
+        "displayName": "Nombre visible",
+        "displayNamePlaceholder": "Introducir nombre visible",
+        "email": "Dirección de correo electrónico",
+        "emailPlaceholder": "Introducir dirección de correo electrónico"
+      },
+      "role": {
+        "description": "Seleccionar un rol para este usuario"
+      },
+      "loading": "Cargando...",
+      "noDataAvailable": "No hay datos disponibles",
+      "errors": {
+        "noChanges": "No hay cambios para guardar",
+        "selfRoleChange": "No se puede cambiar su propio rol",
+        "selfRoleChangeWarning": "No se puede cambiar su propio rol",
+        "profileUpdate": "Fallo al actualizar el perfil",
+        "roleUpdate": "Fallo al actualizar el rol",
+        "loadData": "Fallo al cargar los datos"
+      },
+      "success": {
+        "profileUpdated": "Perfil actualizado correctamente",
+        "roleUpdated": "Rol actualizado correctamente"
+      }
+    },
+    "tenantEditor": {
+      "titleCreate": "Crear nuevo inquilino",
+      "titleEdit": "Editar inquilino",
+      "descriptionCreate": "Configurar un nuevo inquilino con marca y dominios",
+      "descriptionEdit": "Actualizar la configuración del inquilino",
+      "modeToggle": {
+        "label": "Modo editor",
+        "basic": "Básico",
+        "advanced": "Avanzado"
+      },
+      "modeHint": {
+        "basic": "Mostrando configuraciones esenciales",
+        "advanced": "Mostrando todas las configuraciones",
+        "moreColors": "Cambiar al modo Avanzado para un control total de la paleta de colores"
+      },
+      "derivation": {
+        "themeMode": {
+          "label": "Modo de tema",
+          "light": "Claro",
+          "medium": "Medio",
+          "dark": "Oscuro"
+        },
+        "style": {
+          "label": "Estilo",
+          "balanced": "Equilibrado",
+          "bold": "Negrita",
+          "soft": "Suave",
+          "vibrant": "Vibrante",
+          "elegant": "Elegante"
+        },
+        "intensity": {
+          "label": "Intensidad",
+          "subtle": "Sutil",
+          "strong": "Fuerte"
+        }
+      },
+      "derivationWand": {
+        "tooltip": "Derivar colores de la paleta",
+        "tooltipDisabled": "Configure primero los colores primario, secundario y de acento",
+        "popoverTitle": "Derivación de color",
+        "derive": "Aplicar derivación"
+      },
+      "sections": {
+        "gettingStarted": {
+          "title": "Primeros pasos",
+          "description": "Elija cómo inicializar su inquilino"
+        },
+        "basicInfo": {
+          "title": "Información básica",
+          "description": "ID del inquilino, nombre y dominios"
+        },
+        "assets": {
+          "title": "Activos",
+          "description": "Imágenes de logotipo y favicon"
+        },
+        "paletteColors": {
+          "title": "Colores de paleta",
+          "description": "Colores principales de la marca"
+        },
+        "brandColors": {
+          "title": "Colores de marca",
+          "description": "Establezca sus colores de marca principales, luego derive el sistema de color completo"
+        },
+        "surfaceColors": {
+          "title": "Colores de superficie",
+          "description": "Colores de fondo y contenedores"
+        },
+        "textColors": {
+          "title": "Colores de texto",
+          "description": "Colores de tipografía"
+        },
+        "interactiveColors": {
+          "title": "Colores interactivos",
+          "description": "Colores de botones y enlaces"
+        },
+        "borderColors": {
+          "title": "Colores de borde",
+          "description": "Colores de borde y divisor"
+        },
+        "statusColors": {
+          "title": "Colores de estado",
+          "description": "Colores de comentarios y alertas"
+        },
+        "typography": {
+          "title": "Tipografía",
+          "description": "Familias de fuentes, tamaños y pesos"
+        },
+        "spacing": {
+          "title": "Espaciado",
+          "description": "Escala de espaciado y espaciado semántico"
+        },
+        "radii": {
+          "title": "Radios de borde",
+          "description": "Valores de redondeo de esquinas"
+        },
+        "shadows": {
+          "title": "Sombras",
+          "description": "Definiciones de sombras de cuadro"
+        },
+        "legal": {
+          "title": "Legal",
+          "description": "Información de la empresa y enlaces legales"
+        },
+        "motion": {
+          "title": "Movimiento",
+          "description": "Duraciones y suavizados de animaciones"
+        },
+        "featureFlags": {
+          "title": "Banderas de características",
+          "description": "Habilitar o deshabilitar características"
+        },
+        "marketing": {
+          "title": "Características de marketing",
+          "description": "Alternar páginas y contenido de marketing"
+        },
+        "advanced": {
+          "title": "Avanzado",
+          "description": "Efectos visuales opcionales"
+        }
+      },
+      "fields": {
+        "tenantId": "ID del inquilino",
+        "appName": "Nombre de la aplicación",
+        "domains": "Dominios",
+        "logoUrl": "URL del logotipo",
+        "faviconUrl": "URL del favicon",
+        "primaryColor": "Color principal",
+        "primaryVariantColor": "Variante principal",
+        "secondaryColor": "Color secundario",
+        "secondaryVariantColor": "Variante secundaria",
+        "accentColor": "Color de acento",
+        "neutralColor": "Color neutro",
+        "neutralVariantColor": "Variante neutra",
+        "successColor": "Color de éxito",
+        "warningColor": "Color de advertencia",
+        "dangerColor": "Color de peligro",
+        "infoColor": "Color de información"
+      },
+      "placeholders": {
+        "tenantId": "mi-id-de-inquilino",
+        "appName": "Mi aplicación de gastos",
+        "domain": "Añadir nuevo dominio...",
+        "selectTenant": "Seleccionar un inquilino para copiar..."
+      },
+      "creationMode": {
+        "empty": "Empezar desde cero",
+        "copy": "Copiar de un inquilino existente",
+        "emptyDescription": "Deberá rellenar todos los campos obligatorios. Los colores deben estar en formato #RRGGBB.",
+        "copyDescription": "Toda la configuración del tema se copiará de {{tenant}}. Aún deberá establecer un ID de inquilino, nombre de aplicación y dominios únicos."
+      },
+      "validation": {
+        "tenantIdFormat": "ID de inquilino no válido: solo debe contener letras minúsculas, números y guiones",
+        "domainRequired": "Se requiere al menos un dominio",
+        "invalidDomain": "Dominio no válido: {{domain}}",
+        "saveTenantFirst": "Guarde el inquilino primero antes de cargar imágenes",
+        "tenantIdRequiredForPublish": "Se requiere el ID del inquilino para publicar"
+      },
+      "hints": {
+        "tenantIdReadonly": "El ID del inquilino no se puede cambiar",
+        "colorFormat": "#RRGGBB"
+      },
+      "toggles": {
+        "showMarketingContent": {
+          "label": "Mostrar contenido de marketing",
+          "description": "Mostrar secciones de características/CTA en páginas públicas"
+        },
+        "showPricingPage": {
+          "label": "Mostrar página de precios",
+          "description": "Mostrar ruta /pricing"
+        },
+        "showAppNameInHeader": {
+          "label": "Mostrar nombre de la aplicación en el encabezado",
+          "description": "Mostrar el nombre de la aplicación junto al logotipo"
+        },
+        "enableParallax": {
+          "label": "Habilitar paralaje",
+          "description": "Habilitar efectos de desplazamiento paralaje"
+        },
+        "enableMagneticHover": {
+          "label": "Habilitar efecto magnético al pasar el ratón",
+          "description": "Habilitar efectos magnéticos al pasar el ratón sobre los botones"
+        },
+        "enableScrollReveal": {
+          "label": "Habilitar revelación al desplazarse",
+          "description": "Habilitar animaciones activadas por desplazamiento"
+        }
+      },
+      "loading": {
+        "tenants": "Cargando inquilinos..."
+      },
+      "empty": {
+        "noTenants": "No hay inquilinos existentes para copiar."
+      },
+      "errors": {
+        "invalidPayload": "Datos de inquilino no válidos. Por favor, revise todos los campos y vuelva a intentarlo.",
+        "permissionDenied": "No tiene permiso para modificar la configuración del inquilino.",
+        "duplicateDomain": "Uno o más dominios ya están asignados a otro inquilino.",
+        "saveFailed": "Fallo al guardar el inquilino. Por favor, inténtelo de nuevo.",
+        "tenantNotFound": "El inquilino no existe. Guárdelo antes de publicar.",
+        "tokensMissing": "Al inquilino le faltan tokens de marca. Por favor, configure la marca y guarde primero.",
+        "publishFailed": "Fallo al publicar el tema. Por favor, inténtelo de nuevo.",
+        "uploadFailed": "Fallo al cargar {{type}}"
+      },
+      "success": {
+        "createdAndPublished": "¡Inquilino creado y tema publicado correctamente!",
+        "updatedAndPublished": "¡Inquilino actualizado y tema publicado correctamente!",
+        "createdPublishFailed": "Inquilino creado correctamente, pero la publicación del tema falló. Haga clic en \"Publicar tema\" manualmente.",
+        "updatedPublishFailed": "Inquilino actualizado correctamente, pero la publicación del tema falló. Haga clic en \"Publicar tema\" manualmente.",
+        "themePublished": "¡Tema publicado correctamente!",
+        "logoUploaded": "¡Logotipo cargado correctamente!",
+        "faviconUploaded": "¡Favicon cargado correctamente!",
+        "logoSelected": "Logotipo seleccionado de la biblioteca",
+        "faviconSelected": "Favicon seleccionado de la biblioteca"
+      },
+      "buttons": {
+        "save": "Guardar inquilino",
+        "publish": "Publicar tema",
+        "addDomain": "Añadir",
+        "removeDomain": "Eliminar",
+        "chooseFromLibrary": "Elegir de la biblioteca",
+        "uploadNew": "Cargar nuevo"
+      },
+      "actions": {
+        "deriveColors": "Derivar colores",
+        "deriveColorsDescription": "Generar todos los colores semánticos de su paleta de marca"
+      }
+    }
+  },
+  "tenantBranding": {
+    "title": "Configuración de marca",
+    "subtitle": "Configuración del inquilino",
+    "description": "Personalice la apariencia y las características de marketing de su inquilino",
+    "loading": "Cargando configuración del inquilino...",
+    "accessDenied": "No tiene permiso para acceder a la configuración de marca del inquilino. Esta página requiere el rol de administrador de inquilino o de administrador del sistema.",
+    "tenantIdLabel": "ID del inquilino",
+    "domainWarning": "Los cambios afectarán a todos los usuarios que accedan al dominio de este inquilino",
+    "brandingAssets": {
+      "title": "Activos de marca",
+      "description": "Configure su identidad de marca"
+    },
+    "fields": {
+      "appName": "Nombre de la aplicación",
+      "appNamePlaceholder": "Mi aplicación de gastos",
+      "logoUrl": "URL del logotipo",
+      "logoUrlPlaceholder": "/logo.svg",
+      "faviconUrl": "URL del favicon",
+      "faviconUrlPlaceholder": "/favicon.ico",
+      "primaryColor": "Color principal",
+      "secondaryColor": "Color secundario"
+    },
+    "preview": {
+      "title": "Vista previa en vivo",
+      "description": "Vea cómo se verá su marca",
+      "primaryButton": "Botón principal",
+      "secondaryButton": "Botón secundario",
+      "brandingLabel": "Su marca de inquilino"
+    },
+    "marketing": {
+      "title": "Características de marketing",
+      "description": "Controlar qué páginas de marketing son visibles",
+      "contentLabel": "Contenido de marketing",
+      "contentDescription": "Mostrar secciones de características/CTA",
+      "pricingLabel": "Página de precios",
+      "pricingDescription": "Mostrar ruta /pricing"
+    },
+    "actions": {
+      "saving": "Guardando...",
+      "saveChanges": "Guardar cambios"
+    },
+    "errors": {
+      "loadFailed": "Fallo al cargar la configuración del inquilino",
+      "updateFailed": "Fallo al actualizar la configuración de marca",
+      "notImplemented": "La actualización de la marca aún no está implementada en el backend"
+    },
+    "success": {
+      "updated": "Configuración de marca actualizada correctamente"
+    }
+  }
+}

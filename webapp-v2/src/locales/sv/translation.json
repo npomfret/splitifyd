@@ -1,0 +1,1927 @@
+{
+  "accessibility": {
+    "skipToContent": "Hoppa till huvudinnehåll"
+  },
+  "apiErrors": {
+    "AUTH_REQUIRED": "Vänligen logga in för att fortsätta",
+    "AUTH_INVALID": "Din session har gått ut. Vänligen logga in igen.",
+    "FORBIDDEN": "Du har inte behörighet att göra detta",
+    "NOT_FOUND": "{{resource}} hittades inte",
+    "ALREADY_EXISTS": "{{resource}} finns redan",
+    "CONFLICT": "Någon annan har gjort ändringar. Vänligen uppdatera och försök igen.",
+    "VALIDATION_ERROR": "Kontrollera din inmatning och försök igen",
+    "INVALID_REQUEST": "Något gick fel med din begäran",
+    "RATE_LIMITED": "För många förfrågningar. Vänta en stund.",
+    "SERVICE_ERROR": "Något gick fel. Försök igen.",
+    "UNAVAILABLE": "Tjänsten är tillfälligt otillgänglig. Försök igen senare."
+  },
+  "authErrors": {
+    "userNotFound": "Inget konto hittades med denna e-postadress",
+    "wrongPassword": "Felaktigt lösenord",
+    "weakPassword": "Lösenordet är för svagt. Använd minst 6 tecken.",
+    "invalidEmail": "Ange en giltig e-postadress",
+    "tooManyRequests": "För många försök. Försök igen senare.",
+    "networkError": "Nätverksfel. Kontrollera din anslutning.",
+    "emailInUse": "Denna e-postadress är redan registrerad",
+    "invalidCredential": "Ogiltig e-postadress eller lösenord",
+    "userDisabled": "Detta konto har inaktiverats",
+    "requiresRecentLogin": "Vänligen logga in igen för att fortsätta",
+    "generic": "Autentisering misslyckades. Försök igen.",
+    "postRegistrationBase": "Ditt konto skapades, men vi kunde inte logga in dig automatiskt.",
+    "postRegistrationFallback": "Ditt konto skapades, men vi kunde inte logga in dig automatiskt. Vänligen logga in manuellt."
+  },
+  "pagination": {
+    "previous": "Föregående",
+    "next": "Nästa",
+    "page": "Sida",
+    "navigation": "Paginering"
+  },
+  "common": {
+    "loading": "Laddar...",
+    "unknownError": "Något gick fel. Försök igen.",
+    "cancel": "Avbryt",
+    "save": "Spara",
+    "saving": "Sparar...",
+    "delete": "Radera",
+    "edit": "Redigera",
+    "close": "Stäng",
+    "confirm": "Bekräfta",
+    "back": "Tillbaka",
+    "next": "Nästa",
+    "previous": "Föregående",
+    "submit": "Skicka",
+    "search": "Sök",
+    "select": "Välj",
+    "selectAll": "Välj alla",
+    "none": "Ingen",
+    "all": "Alla",
+    "yes": "Ja",
+    "no": "Nej",
+    "ok": "OK",
+    "error": "Fel",
+    "success": "Lyckades",
+    "warning": "Varning",
+    "info": "Info",
+    "unknown": "Okänd",
+    "unknownUser": "Okänd användare",
+    "includeDeleted": "Inkludera raderade",
+    "you": "Du",
+    "youSuffix": " (Du)",
+    "required": "*",
+    "optional": "(valfritt)",
+    "or": "eller",
+    "and": "och",
+    "copy": "Kopiera",
+    "share": "Dela",
+    "dismiss": "Avfärda",
+    "dismissAlert": "Avfärda varning",
+    "justNow": "just nu",
+    "chooseFile": "Välj fil",
+    "active": "Aktiv",
+    "inactive": "Inaktiv",
+    "disabled": "Inaktiverad",
+    "total": "Totalt",
+    "member": "Medlem",
+    "members": "Medlemmar",
+    "user": "Användare",
+    "group": "Grupp",
+    "groups": "Grupper",
+    "recent": "Senaste",
+    "settings": "Inställningar",
+    "understood": "Förstått",
+    "titleSuffix": " - {{appName}}",
+    "refresh": "Uppdatera",
+    "reset": "Återställ",
+    "add": "Lägg till",
+    "create": "Skapa",
+    "processing": "Bearbetar...",
+    "download": "Ladda ner",
+    "downloading": "Laddar ner...",
+    "fromLibrary": "Från bibliotek",
+    "orEnterUrl": "Eller ange URL",
+    "imageFailedToLoad": "Bilden kunde inte laddas",
+    "selectedFile": "Vald",
+    "enable": "Aktivera",
+    "disable": "Inaktivera",
+    "created": "Skapad",
+    "updated": "Uppdaterad",
+    "modified": "Ändrad",
+    "name": "Namn",
+    "type": "Typ",
+    "size": "Storlek",
+    "link": "Länk",
+    "value": "Värde",
+    "notConfigured": "Ej konfigurerad",
+    "notSet": "ej angivet",
+    "empty": "(tom)",
+    "noData": "Inga data tillgängliga",
+    "default": "Standard",
+    "actions": "Åtgärder",
+    "status": "Status",
+    "email": "E-post",
+    "displayName": "Visningsnamn",
+    "role": "Roll",
+    "lastSignIn": "Senaste inloggning",
+    "placeholder": {
+      "amount": "0.00",
+      "search": "Sök...",
+      "searchCurrencies": "Sök valutor...",
+      "selectCurrency": "Välj valuta...",
+      "selectPerson": "Välj person"
+    }
+  },
+  "currencySelector": {
+    "noResults": "Inga valutor hittades"
+  },
+  "relativeTime": {
+    "justNow": "just nu",
+    "minuteAgo_one": "för {{count}} minut sedan",
+    "minuteAgo_other": "för {{count}} minuter sedan",
+    "hourAgo_one": "för {{count}} timme sedan",
+    "hourAgo_other": "för {{count}} timmar sedan",
+    "dayAgo_one": "för {{count}} dag sedan",
+    "dayAgo_other": "för {{count}} dagar sedan",
+    "monthAgo_one": "för {{count}} månad sedan",
+    "monthAgo_other": "för {{count}} månader sedan",
+    "yearAgo_one": "för {{count}} år sedan",
+    "yearAgo_other": "för {{count}} år sedan"
+  },
+  "app": {
+    "loading": "Laddar...",
+    "loadingPage": "Laddar sida...",
+    "loadingExpenseForm": "Laddar utgiftsformulär..."
+  },
+  "createGroup": {
+    "validation": {
+      "displayNameTooShort": "Visningsnamnet måste vara minst 2 tecken långt.",
+      "displayNameTooLong": "Visningsnamnet får vara högst 50 tecken långt."
+    }
+  },
+  "createGroupModal": {
+    "title": "Skapa en ny grupp",
+    "groupNameLabel": "Gruppnamn",
+    "groupNamePlaceholder": "t.ex. Lägenhetskostnader, Resa till Paris",
+    "groupNameHelpText": "Välj ett namn som beskriver vad ni kommer att dela på för utgifter.",
+    "groupDisplayNameLabel": "Ditt visningsnamn i den här gruppen",
+    "groupDisplayNamePlaceholder": "Hur ska andra medlemmar se ditt namn?",
+    "groupDisplayNameHelpText": "Detta namn visas ovanför dina utgifter, kommentarer och aktivitet i den här gruppen.",
+    "groupDescriptionLabel": "Beskrivning (valfritt)",
+    "groupDescriptionPlaceholder": "Lägg till eventuella detaljer om den här gruppen...",
+    "groupDescriptionHelpText": "Valfri beskrivning för att hjälpa medlemmar att förstå gruppens syfte.",
+    "closeButtonAriaLabel": "Stäng modal",
+    "cancelButton": "Avbryt",
+    "submitButton": "Skapa grupp",
+    "restrictCurrencies": "Begränsa valutor",
+    "restrictCurrenciesHelp": "Endast valda valutor kan användas för utgifter i den här gruppen",
+    "validation": {
+      "nameRequired": "Gruppnamn är obligatoriskt.",
+      "nameTooShort": "Gruppnamnet måste vara minst 2 tecken långt.",
+      "nameTooLong": "Gruppnamnet får vara högst 50 tecken långt.",
+      "displayNameRequired": "Ange ett visningsnamn.",
+      "displayNameTooShort": "Visningsnamnet måste vara minst 2 tecken långt.",
+      "displayNameTooLong": "Visningsnamnet får vara högst 50 tecken långt.",
+      "displayNameInvalid": "Visningsnamnet kan endast innehålla bokstäver, siffror, mellanslag, bindestreck, understreck och punkter.",
+      "displayNameTaken": "Det visningsnamnet används redan i den här gruppen."
+    }
+  },
+  "loginPage": {
+    "title": "Logga in",
+    "description": "Logga in på ditt konto för att hantera dina delade utgifter",
+    "rememberMe": "Kom ihåg mig",
+    "forgotPassword": "Glömt lösenord?",
+    "submitButton": "Logga in",
+    "noAccount": "Har du inget konto?",
+    "signUp": "Registrera dig",
+    "validation": {
+      "emailRequired": "E-post är obligatoriskt",
+      "passwordRequired": "Lösenord är obligatoriskt"
+    }
+  },
+  "registerPage": {
+    "title": "Skapa konto",
+    "description": "Skapa ditt {{appName}}-konto för att börja hantera delade utgifter",
+    "fullNameLabel": "Fullständigt namn",
+    "fullNamePlaceholder": "Ange ditt fullständiga namn",
+    "passwordLabel": "Lösenord",
+    "passwordPlaceholder": "Skapa ett starkt lösenord",
+    "confirmPasswordLabel": "Bekräfta lösenord",
+    "confirmPasswordPlaceholder": "Bekräfta ditt lösenord",
+    "acceptTerms": "Jag accepterar",
+    "termsOfService": "Användarvillkoren",
+    "cookiePolicy": "Cookiepolicyn",
+    "privacyPolicy": "Integritetspolicyn",
+    "submitButton": "Skapa konto",
+    "hasAccount": "Har du redan ett konto?",
+    "signIn": "Logga in",
+    "requiredIndicator": "*",
+    "validation": {
+      "nameRequired": "Namn är obligatoriskt",
+      "emailRequired": "E-post är obligatoriskt",
+      "passwordRequired": "Lösenord är obligatoriskt",
+      "passwordTooShort": "Lösenordet måste vara minst 12 tecken långt",
+      "passwordsNoMatch": "Lösenorden stämmer inte överens",
+      "termsRequired": "Du måste acceptera användarvillkoren",
+      "cookiesRequired": "Du måste acceptera cookiepolicyn",
+      "privacyRequired": "Du måste acceptera integritetspolicyn"
+    }
+  },
+  "auth": {
+    "refreshingSession": "Uppdaterar din session...",
+    "initializationFailed": "Initiering misslyckades. Uppdatera sidan.",
+    "emailInput": {
+      "label": "E-post",
+      "placeholder": "Ange din e-postadress",
+      "requiredIndicator": "*",
+      "validation": {
+        "required": "E-post är obligatoriskt",
+        "invalid": "Ange en giltig e-postadress"
+      }
+    },
+    "passwordInput": {
+      "label": "Lösenord",
+      "placeholder": "Ange ditt lösenord",
+      "requiredIndicator": "*",
+      "showPassword": "Visa lösenord",
+      "hidePassword": "Dölj lösenord",
+      "strength": "Lösenordsstyrka",
+      "strengthWeak": "Svagt",
+      "strengthMedium": "Medel",
+      "strengthStrong": "Starkt",
+      "validation": {
+        "required": "Lösenord är obligatoriskt",
+        "tooShort": "Lösenordet måste vara minst 12 tecken långt"
+      }
+    }
+  },
+  "dashboard": {
+    "title": "Instrumentpanel - {{appName}}",
+    "description": "Hantera dina grupper och utgifter med {{appName}}",
+    "welcomeMessage": "Välkommen till {{appName}}, {{name}}!",
+    "welcomeDescription": "Kom igång genom att skapa din första grupp för att spåra och dela utgifter med vänner.",
+    "yourGroups": "Dina grupper",
+    "createGroup": "Skapa grupp",
+    "groupsFilter": {
+      "label": "Filtrera grupper",
+      "active": "Aktiv",
+      "archived": "Arkiverad"
+    },
+    "groupCard": {
+      "settledUp": "Allt är reglerat!",
+      "youOwe": "Du är skyldig {{amount}}",
+      "youAreOwed": "Du ska ha {{amount}}",
+      "addExpenseTooltip": "Lägg till utgift i {{groupName}}",
+      "inviteTooltip": "Bjud in medlemmar till {{groupName}}",
+      "noRecentActivity": "Ingen ny aktivitet",
+      "archivedBadge": "Arkiverad"
+    },
+    "emptyState": {
+      "title": "Inga grupper än",
+      "subtitle": "Skapa din första grupp för att börja spåra delade utgifter",
+      "createButton": "Skapa grupp"
+    },
+    "stats": {
+      "totalGroups": "Totalt antal grupper",
+      "totalExpenses": "Totala utgifter",
+      "totalBalance": "Total balans"
+    },
+    "quickActions": {
+      "title": "Snabba åtgärder",
+      "createGroup": "Skapa grupp",
+      "addExpense": "Lägg till utgift"
+    }
+  },
+  "activityFeed": {
+    "title": "Senaste aktivitet",
+    "loading": "Laddar...",
+    "emptyState": {
+      "title": "Ingen aktivitet än",
+      "description": "Aktivitet från dina grupper kommer att visas här när det händer.",
+      "groupDescription": "Aktivitet i den här gruppen kommer att visas här."
+    },
+    "error": {
+      "loadFailed": "Vi kunde inte ladda din senaste aktivitet just nu. Försök igen."
+    },
+    "actions": {
+      "retry": "Försök igen",
+      "loadMore": "Ladda mer",
+      "loadingMore": "Laddar..."
+    },
+    "labels": {
+      "actorYou": "Du",
+      "unknownUser": "Någon",
+      "unknownGroup": "en grupp",
+      "unknownExpense": "en utgift",
+      "unknownSettlement": "en reglering",
+      "commentOnGroup": "gruppdiskussionen",
+      "commentOnExpense": "utgiften \"{{description}}\""
+    },
+    "events": {
+      "group-created": "{{actor}} skapade {{group}}",
+      "group-updated": "{{actor}} uppdaterade gruppen {{group}}",
+      "group-updated-from": "{{actor}} döpte om {{previous}} till {{group}}",
+      "expense-created": "{{actor}} lade till {{expense}} i {{group}}",
+      "expense-updated": "{{actor}} uppdaterade {{expense}} i {{group}}",
+      "expense-deleted": "{{actor}} raderade {{expense}} från {{group}}",
+      "member-joined": "{{actor}} lade till {{target}} i {{group}}",
+      "member-joined-self": "{{actor}} gick med i {{group}}",
+      "member-left": "{{actor}} tog bort {{target}} från {{group}}",
+      "member-left-self": "{{actor}} lämnade {{group}}",
+      "comment-added": "{{actor}} kommenterade på {{target}} i {{group}}",
+      "settlement-created": "{{actor}} registrerade {{settlement}} i {{group}}",
+      "settlement-updated": "{{actor}} uppdaterade {{settlement}} i {{group}}",
+      "settlement-deleted": "{{actor}} raderade {{settlement}} från {{group}}",
+      "generic": "{{actor}} gjorde ändringar i {{group}}",
+      "group-created-short": "{{actor}} skapade gruppen",
+      "group-updated-short": "{{actor}} uppdaterade gruppen",
+      "group-updated-from-short": "{{actor}} döpte om gruppen från {{previous}}",
+      "expense-created-short": "{{actor}} lade till {{expense}}",
+      "expense-updated-short": "{{actor}} uppdaterade {{expense}}",
+      "expense-deleted-short": "{{actor}} raderade {{expense}}",
+      "member-joined-short": "{{actor}} lade till {{target}}",
+      "member-joined-self-short": "{{actor}} gick med",
+      "member-left-short": "{{actor}} tog bort {{target}}",
+      "member-left-self-short": "{{actor}} lämnade",
+      "comment-added-short": "{{actor}} kommenterade på {{target}}",
+      "settlement-created-short": "{{actor}} registrerade {{settlement}}",
+      "settlement-updated-short": "{{actor}} uppdaterade {{settlement}}",
+      "settlement-deleted-short": "{{actor}} raderade {{settlement}}",
+      "generic-short": "{{actor}} gjorde ändringar"
+    }
+  },
+  "group": {
+    "header": {
+      "members_one": "{{count}} medlem",
+      "members_other": "{{count}} medlemmar",
+      "expenses_one": "{{count}} utgift",
+      "expenses_other": "{{count}} utgifter"
+    },
+    "actions": {
+      "addExpense": "Lägg till utgift",
+      "viewExpenses": "Visa utgifter",
+      "settleUp": "Reglera",
+      "shareGroup": "Dela grupp",
+      "editGroup": "Redigera grupp",
+      "leaveGroup": "Lämna grupp"
+    },
+    "share": {
+      "title": "Dela grupp",
+      "subtitle": "Bjud in andra att gå med i den här gruppen",
+      "copyLink": "Kopiera länk",
+      "linkCopied": "Länk kopierad till urklipp!"
+    },
+    "edit": {
+      "title": "Redigera grupp",
+      "warningIcon": "⚠️"
+    },
+    "leave": {
+      "title": "Lämna grupp",
+      "message": "Är du säker på att du vill lämna den här gruppen?",
+      "confirmButton": "Lämna grupp",
+      "cancelButton": "Avbryt"
+    },
+    "members": {
+      "title": "Medlemmar",
+      "addMember": "Lägg till medlem",
+      "removeMember": "Ta bort medlem",
+      "unknownUser": "Okänd användare",
+      "user": "Användare"
+    },
+    "expenses": {
+      "title": "Utgifter",
+      "noExpenses": "Inga utgifter än",
+      "addFirstExpense": "Lägg till din första utgift",
+      "unknown": "Okänd"
+    },
+    "balance": {
+      "title": "Saldosammanfattning",
+      "settledUp": "Allt är reglerat!",
+      "unknown": "Okänd"
+    }
+  },
+  "comments": {
+    "section": {
+      "title": "Kommentarer",
+      "noComments": "Inga kommentarer än"
+    },
+    "input": {
+      "placeholder": "Lägg till en kommentar...",
+      "ariaLabel": "Kommentarstext",
+      "sendButton": "Skicka",
+      "sendAriaLabel": "Skicka kommentar"
+    },
+    "item": {
+      "justNow": "just nu",
+      "deleteButton": "Radera kommentar"
+    },
+    "list": {
+      "loading": "Laddar kommentarer...",
+      "error": "Kunde inte ladda kommentarer"
+    },
+    "commentInput": {
+      "placeholder": "Lägg till en kommentar...",
+      "tooLong": "Kommentaren är för lång",
+      "addFailed": "Kunde inte lägga till kommentar",
+      "helpText": "Tryck på Enter för att skicka, Shift+Enter för ny rad"
+    },
+    "commentItem": {
+      "recently": "nyligen"
+    },
+    "commentsList": {
+      "loading": "Laddar kommentarer...",
+      "empty": "Inga kommentarer än",
+      "emptySubtext": "Bli den första att kommentera!",
+      "loadingMore": "Laddar...",
+      "loadMore": "Ladda fler kommentarer"
+    },
+    "commentsSection": {
+      "placeholderGroup": "Lägg till en kommentar till den här gruppen...",
+      "placeholderExpense": "Lägg till en kommentar till den här utgiften..."
+    }
+  },
+  "ui": {
+    "alert": {
+      "dismiss": "Avfärda varning"
+    },
+    "confirmDialog": {
+      "confirm": "Bekräfta",
+      "cancel": "Avbryt"
+    }
+  },
+  "navigation": {
+    "header": {
+      "fallback": "...",
+      "dashboard": "Instrumentpanel",
+      "groups": "Grupper",
+      "settings": "Inställningar"
+    },
+    "footer": {
+      "copyright": "© {{year}} {{appName}}. Alla rättigheter förbehållna.",
+      "privacy": "Integritetspolicy",
+      "terms": "Användarvillkor",
+      "cookies": "Cookiepolicy"
+    },
+    "userMenu": {
+      "openUserMenu": "Öppna användarmeny",
+      "profile": "Profil",
+      "settings": "Inställningar",
+      "logout": "Logga ut",
+      "help": "Hjälp"
+    }
+  },
+  "errors": {
+    "generic": "Ett fel uppstod",
+    "network": "Ett nätverksfel uppstod",
+    "invalidLink": "Ogiltig länk",
+    "notFound": {
+      "page": "Sidan hittades inte",
+      "group": "Gruppen hittades inte",
+      "expense": "Utgiften hittades inte"
+    },
+    "loading": {
+      "cookiePolicy": "Fel vid laddning av cookiepolicy",
+      "privacyPolicy": "Fel vid laddning av integritetspolicy",
+      "terms": "Fel vid laddning av villkor"
+    },
+    "validation": {
+      "displayNameEmpty": "Visningsnamn kan inte vara tomt",
+      "displayNameTooLong": "Visningsnamnet får vara högst 100 tecken långt",
+      "passwordTooShort": "Nytt lösenord måste vara minst 12 tecken långt",
+      "passwordsNoMatch": "Lösenorden stämmer inte överens",
+      "passwordSameAsCurrent": "Nytt lösenord måste skilja sig från det nuvarande lösenordet",
+      "passwordAndNewRequired": "Nuvarande lösenord och nytt lösenord krävs"
+    }
+  },
+  "seo": {
+    "titleSuffix": " | {{appName}}",
+    "siteName": "{{appName}}"
+  },
+  "expenseForm": {
+    "description": "Beskrivning",
+    "amount": "Belopp*",
+    "whoPaid": "Vem betalade?",
+    "splitBetween": "Dela mellan",
+    "exactAmounts": "Exakta belopp",
+    "percentage": "Procentandel",
+    "equal": "Lika",
+    "exactAmountsInstruction": "Ange exakta belopp för varje person:",
+    "percentageInstruction": "Ange procentandel för varje person:",
+    "selectAll": "Välj alla",
+    "saveExpense": "Spara utgift",
+    "updateExpense": "Uppdatera utgift",
+    "cancel": "Avbryt",
+    "errors": {
+      "expenseLocked": "Denna utgift kan inte redigeras eftersom en eller flera deltagare har lämnat gruppen."
+    }
+  },
+  "settlementForm": {
+    "updatePayment": "Uppdatera betalning",
+    "recordPayment": "Registrera betalning",
+    "updateSettlement": "Uppdatera reglering",
+    "recordSettlement": "Registrera reglering",
+    "closeModal": "Stäng modal",
+    "whoPaidLabel": "Vem betalade?",
+    "whoReceivedPaymentLabel": "Vem tog emot betalningen?",
+    "amountLabel": "Belopp",
+    "dateLabel": "Datum",
+    "noteLabel": "Notering (valfritt)",
+    "selectPersonPlaceholder": "Välj person",
+    "amountPlaceholder": "0.00",
+    "notePlaceholder": "t.ex. Swish, kontanter, banköverföring",
+    "youSuffix": " (Du)",
+    "cancelButton": "Avbryt",
+    "updatingButton": "Uppdaterar...",
+    "recordingButton": "Registrerar...",
+    "paymentSummary": "{{payer}} betalade {{amount}} till {{payee}}",
+    "validation": {
+      "selectPayer": "Välj vem som betalade",
+      "selectPayee": "Välj vem som tog emot betalningen",
+      "samePersonError": "Betalare och mottagare kan inte vara samma person",
+      "validAmountRequired": "Ange ett giltigt belopp större än 0",
+      "amountTooLarge": "Beloppet får inte överstiga 999 999,99",
+      "validCurrencyRequired": "Välj en giltig valuta",
+      "dateRequired": "Välj ett datum",
+      "dateInFuture": "Datum kan inte vara i framtiden",
+      "recordPaymentFailed": "Kunde inte registrera betalning"
+    },
+    "errors": {
+      "settlementLocked": "Denna reglering kan inte redigeras eftersom en deltagare har lämnat gruppen."
+    },
+    "warnings": {
+      "noDebt": "{{payer}} är inte skyldig {{payee}} några pengar i {{currency}}. Denna reglering kommer att skapa en skuld i motsatt riktning.",
+      "overpayment": "{{payer}} är bara skyldig {{payee}} {{debt}}, men du reglerar {{amount}}. Detta kommer att skapa en skuld i motsatt riktning.",
+      "underpayment": "Du registrerar {{amount}}, men {{payer}} kommer fortfarande att vara skyldig {{payee}} {{remaining}} efteråt. Vi kommer att hålla den återstående balansen uppdaterad."
+    }
+  },
+  "settlementHistory": {
+    "noPaymentsYet": "Inga betalningar registrerade än",
+    "today": "Idag",
+    "yesterday": "Igår",
+    "editPaymentTooltip": "Redigera betalning",
+    "cannotEditTooltip": "Kan inte redigera - medlem har lämnat gruppen",
+    "deletePaymentTooltip": "Radera betalning",
+    "loadMore": "Ladda mer",
+    "loadMorePayments": "Ladda mer betalningar",
+    "deletePaymentTitle": "Radera betalning",
+    "deletePaymentMessage": "Är du säker på att du vill radera denna betalning på {{amount}} från {{payer}} till {{payee}}? Denna åtgärd kan inte ångras.",
+    "deleteButton": "Radera",
+    "cancelButton": "Avbryt",
+    "showAll": "Visa alla",
+    "noPaymentsForYou": "Inga betalningar som involverar dig än",
+    "deletedBy": "Raderad av"
+  },
+  "balanceSummary": {
+    "loadingBalances": "Laddar saldon...",
+    "allSettledUp": "Allt är reglerat!",
+    "debtArrow": " → ",
+    "showOnlyMyBalances": "Visa bara mina saldon",
+    "showAll": "Visa alla",
+    "settleUp": "Reglera",
+    "settleUpButton": "Registrera reglering för denna skuld"
+  },
+  "emptyGroupsState": {
+    "title": "Inga grupper än",
+    "description": "Skapa din första grupp för att börja dela utgifter med vänner, familj eller rumskamrater.",
+    "createFirstGroup": "Skapa din första grupp",
+    "gettingStartedTitle": "Kom igång med {{appName}}:",
+    "step1Title": "1. Skapa en grupp",
+    "step1Description": "Lägg till vänner, rumskamrater eller reskamrater",
+    "step2Title": "2. Lägg till utgifter",
+    "step2Description": "Håll koll på vem som betalade och hur kostnaderna ska delas",
+    "step3Title": "3. Reglera",
+    "step3Description": "Se vem som är skyldig vad och reglera saldon"
+  },
+  "groupCard": {
+    "settledUp": "Reglerat",
+    "addExpenseTooltip": "Lägg till utgift i {{groupName}}",
+    "inviteTooltip": "Bjud in till {{groupName}}",
+    "noRecentActivity": "Ingen ny aktivitet"
+  },
+  "expenseFormHeader": {
+    "addExpense": "Lägg till utgift",
+    "editExpense": "Redigera utgift",
+    "copyExpense": "Kopiera utgift",
+    "cancel": "Avbryt"
+  },
+  "expenseBasicFields": {
+    "title": "Utgiftsinformation",
+    "descriptionLabel": "Beskrivning",
+    "descriptionPlaceholder": "Vad gällde denna utgift?",
+    "amountLabel": "Belopp",
+    "labelsLabel": "Etiketter",
+    "labelsPlaceholder": "Lägg till en etikett...",
+    "dateLabel": "Datum",
+    "timeLabel": "Tid",
+    "recentAmounts": "Senaste belopp:",
+    "today": "Idag",
+    "yesterday": "Igår",
+    "thisMorning": "I morse",
+    "lastNight": "Igår kväll",
+    "addSpecificTime": "Lägg till specifik tid"
+  },
+  "suggestedLabels": [
+    "Livsmedel",
+    "Hämtmat",
+    "Restaurang",
+    "Kaffe",
+    "Drycker",
+    "Bar",
+    "Snacks",
+    "Frukost",
+    "Lunch",
+    "Middag",
+    "Snabbmat",
+    "Leverans",
+    "Brunch",
+    "Bensin",
+    "Parkering",
+    "Vägtullar",
+    "Uber",
+    "Lyft",
+    "Taxi",
+    "Buss",
+    "Tåg",
+    "Tunnelbana",
+    "Hyrbil",
+    "Bränsle",
+    "Flyg",
+    "Airbnb",
+    "Hotell",
+    "Vandrarhem",
+    "Resort",
+    "Semester",
+    "Roadtrip",
+    "Camping",
+    "Hyra",
+    "Räkningar",
+    "El",
+    "Vatten",
+    "Internet",
+    "Telefon",
+    "Försäkring",
+    "Bolån",
+    "Samfällighetsavgift",
+    "Reparationer",
+    "Underhåll",
+    "Städning",
+    "Möbler",
+    "Vitvaror",
+    "Inredning",
+    "Trädgård",
+    "Bio",
+    "Konsert",
+    "Föreställning",
+    "Festival",
+    "Sport",
+    "Spel",
+    "Streaming",
+    "Biljetter",
+    "Museum",
+    "Nöjespark",
+    "Bowling",
+    "Minigolf",
+    "Karaoke",
+    "Spelhall",
+    "Escape Room",
+    "Shopping",
+    "Kläder",
+    "Skor",
+    "Elektronik",
+    "Presenter",
+    "Böcker",
+    "Leksaker",
+    "Skönhet",
+    "Hudvård",
+    "Frisör",
+    "Spa",
+    "Gym",
+    "Fitness",
+    "Sportutrustning",
+    "Friluftsutrustning",
+    "Djurmat",
+    "Djurvård",
+    "Veterinär",
+    "Pälsvård",
+    "Medicin",
+    "Apotek",
+    "Läkare",
+    "Tandläkare",
+    "Synvård",
+    "Terapi",
+    "Sjukvård",
+    "Barnomsorg",
+    "Barnvakt",
+    "Kursavgift",
+    "Skola",
+    "Material",
+    "Fest",
+    "Födelsedag",
+    "Bröllop",
+    "Högtid",
+    "Årsdag",
+    "Firande",
+    "Dekorationer",
+    "Catering",
+    "Lokal",
+    "Grillfest",
+    "Picknick",
+    "Knytkalas",
+    "Spelkväll",
+    "Inflyttningsfest",
+    "Arbete",
+    "Kontor",
+    "Material",
+    "Utrustning",
+    "Mjukvara",
+    "Prenumeration",
+    "Medlemskap",
+    "Avgifter",
+    "Dricks",
+    "Välgörenhet",
+    "Donation",
+    "Bankomat",
+    "Kontanter",
+    "Övrigt",
+    "Annat",
+    "Delat",
+    "Uppdelat",
+    "Ersättning",
+    "Deposition",
+    "Säkerhetsdeposition"
+  ],
+  "expensesList": {
+    "title": "Utgifter",
+    "noExpensesYet": "Inga utgifter än. Lägg till en för att komma igång!",
+    "loadMore": "Ladda mer"
+  },
+  "expenseItem": {
+    "paidBy": "Betalades av",
+    "deleted": "Raderad",
+    "deletedBy": "Raderad av",
+    "copyExpense": "Kopiera utgift"
+  },
+  "header": {
+    "logoAlt": "{{appName}}",
+    "login": "Logga in",
+    "signUp": "Registrera dig",
+    "goToHome": "Gå till startsidan",
+    "goToDashboard": "Gå till instrumentpanelen"
+  },
+  "userMenu": {
+    "dashboard": "Instrumentpanel",
+    "admin": "Admin",
+    "settings": "Inställningar",
+    "signOut": "Logga ut",
+    "signingOut": "Loggar ut...",
+    "systemUserBadge": "Systemanvändare",
+    "systemUserTooltip": "Detta konto används för automatiserade eller systemdrivna operationer.",
+    "environmentLink": "miljö",
+    "diagnosticsLoading": "Laddar diagnostik...",
+    "diagnosticsError": "Kunde inte ladda diagnostik:",
+    "browser": "Webbläsare",
+    "browserUsers": "Användarwebbläsare"
+  },
+  "languageSelector": {
+    "label": "Språk",
+    "description": "Välj ditt föredragna språk"
+  },
+  "footer": {
+    "companyName": "{{appName}}",
+    "companyDescription": "Dela räkningar enkelt med vänner och familj.",
+    "linksSection": "Länkar",
+    "copyright": "© 2025 Pomo Corp ltd. Alla rättigheter förbehållna."
+  },
+  "groupHeader": {
+    "membersCount": "{{count}} medlemmar",
+    "membersCount_one": "{{count}} medlem",
+    "membersCount_other": "{{count}} medlemmar",
+    "old": "gammal",
+    "lastUpdated": "senast uppdaterad",
+    "groupSettingsAriaLabel": "Gruppinställningar",
+    "groupSecurityAriaLabel": "Säkerhet och behörigheter"
+  },
+  "securitySettingsModal": {
+    "unsavedChanges": "Du har osparade ändringar. Granska allt och tryck sedan på Spara för att tillämpa dem.",
+    "presets": {
+      "activeBadge": "Aktiv",
+      "open": {
+        "label": "Förinställning: Öppet samarbete",
+        "description": "Alla kan bjuda in medlemmar och hantera utgifter utan begränsningar."
+      },
+      "managed": {
+        "label": "Förinställning: Hanterad grupp",
+        "description": "Administratörer godkänner inbjudningar och kontrollerar vem som kan redigera eller radera utgifter."
+      }
+    },
+    "custom": {
+      "heading": "Anpassade behörigheter",
+      "unsaved": "Anpassade behörigheter ändrade.",
+      "saveHelper": "Ändringar köas tills du trycker på Spara."
+    },
+    "success": {
+      "updated": "Säkerhetsinställningar uppdaterade."
+    },
+    "permissions": {
+      "expenseEditing": {
+        "label": "Vem kan redigera utgifter",
+        "description": "Välj vem som kan uppdatera valfri utgift i gruppen."
+      },
+      "expenseDeletion": {
+        "label": "Vem kan radera utgifter",
+        "description": "Begränsa möjligheten att ta bort utgifter."
+      },
+      "memberInvitation": {
+        "label": "Vem kan bjuda in medlemmar",
+        "description": "Bestäm vem som kan generera inbjudningslänkar."
+      },
+      "memberApproval": {
+        "label": "Godkännande av ny medlem",
+        "description": "Kräv en administratörsgranskning innan någon går med via en inbjudan."
+      },
+      "settingsManagement": {
+        "label": "Vem kan ändra inställningar",
+        "description": "Kontrollera åtkomst till administrativa inställningar."
+      },
+      "options": {
+        "anyone": "Alla medlemmar",
+        "creator-and-admin": "Skapare och administratörer",
+        "admin-only": "Endast administratörer",
+        "automatic": "Automatisk",
+        "admin-required": "Administratörsgodkännande krävs"
+      }
+    },
+    "memberRoles": {
+      "heading": "Medlemsroller",
+      "admin": "Admin",
+      "member": "Medlem",
+      "viewer": "Tittare"
+    },
+    "pendingMembers": {
+      "heading": "Väntande medlemmar",
+      "requested": "Väntar på godkännande",
+      "empty": "Inga väntande förfrågningar just nu.",
+      "approve": "Godkänn",
+      "reject": "Avvisa"
+    },
+    "errors": {
+      "loadPending": "Kunde inte ladda väntande medlemmar. Försök igen.",
+      "updatePermissions": "Vi kunde inte uppdatera säkerhetsinställningarna. Försök igen.",
+      "pendingAction": "Vi kunde inte bearbeta den begäran. Försök igen."
+    }
+  },
+  "settingsPage": {
+    "title": "Inställningar - {{appName}}",
+    "description": "Hantera dina kontoinställningar",
+    "heroLabel": "Konto",
+    "accountSettingsHeader": "Kontoinställningar",
+    "accountSettingsSubheader": "Hantera din profilinformation och lösenord",
+    "profileSummaryTitle": "Profilöversikt",
+    "profileSummaryDescription": "Denna information hjälper andra medlemmar att känna igen dig.",
+    "profileInformationHeader": "Profilinformation",
+    "profileInformationSubheader": "Uppdatera de detaljer som andra medlemmar ser i {{appName}}.",
+    "emailSectionTitle": "E-postadress",
+    "emailSectionDescription": "Uppdatera den e-postadress du använder för att logga in och ta emot aviseringar.",
+    "currentDisplayName": "Nuvarande visningsnamn:",
+    "email": "E-post:",
+    "currentEmailLabel": "Nuvarande e-post",
+    "displayNameLabel": "Visningsnamn",
+    "displayNamePlaceholder": "Ange ditt visningsnamn",
+    "displayNameHelper": "Använd ditt fullständiga namn eller ett smeknamn som dina lagkamrater kommer att känna igen.",
+    "saveChangesButton": "Spara ändringar",
+    "passwordHeader": "Lösenord",
+    "passwordIntro": "Ange ett starkt lösenord för att hålla ditt {{appName}}-konto säkert.",
+    "changePasswordButton": "Ändra lösenord",
+    "changeEmailButton": "Ändra e-post",
+    "newEmailLabel": "Ny e-post",
+    "newEmailPlaceholder": "Ange din nya e-postadress",
+    "emailPasswordLabel": "Bekräfta med lösenord",
+    "updateEmailButton": "Uppdatera e-post",
+    "currentPasswordLabel": "Nuvarande lösenord",
+    "newPasswordLabel": "Nytt lösenord",
+    "confirmNewPasswordLabel": "Bekräfta nytt lösenord",
+    "updatePasswordButton": "Uppdatera lösenord",
+    "cancelButton": "Avbryt",
+    "passwordRequirementsHeading": "Checklista för starkt lösenord",
+    "passwordRequirements": {
+      "length": "Använd minst 12 tecken.",
+      "mix": "Blanda versaler och gemener, siffror och symboler.",
+      "reuse": "Undvik lösenord du har använt någon annanstans."
+    },
+    "profileSummaryRoleLabel": "Kontoroll",
+    "profileSummaryRoleFallback": "Medlem",
+    "profileSummaryRole": {
+      "system_admin": "Administratör",
+      "system_user": "Medlem"
+    },
+    "successMessages": {
+      "profileUpdated": "Profilen uppdaterades.",
+      "passwordChanged": "Lösenordet ändrades.",
+      "emailChanged": "E-posten uppdaterades. Verifiera den nya adressen."
+    },
+    "errorMessages": {
+      "profileUpdateFailed": "Kunde inte uppdatera profilen. Försök igen.",
+      "passwordAndNewRequired": "Nuvarande lösenord och nytt lösenord krävs",
+      "passwordTooShort": "Nytt lösenord måste vara minst 12 tecken långt",
+      "passwordsNoMatch": "Lösenorden stämmer inte överens",
+      "passwordSameAsCurrent": "Nytt lösenord måste skilja sig från det nuvarande lösenordet",
+      "currentPasswordIncorrect": "Nuvarande lösenord är felaktigt",
+      "passwordChangeFailed": "Kunde inte ändra lösenordet. Försök igen.",
+      "displayNameEmpty": "Visningsnamn kan inte vara tomt",
+      "displayNameTooLong": "Visningsnamnet får vara högst 100 tecken långt",
+      "emailRequired": "Ny e-postadress krävs",
+      "emailInvalid": "Ange en giltig e-postadress",
+      "emailSameAsCurrent": "Ny e-postadress måste skilja sig från den nuvarande e-postadressen",
+      "emailPasswordRequired": "Ange ditt nuvarande lösenord för att bekräfta denna ändring",
+      "emailInUse": "Den e-postadressen är redan kopplad till ett annat {{appName}}-konto",
+      "emailChangeFailed": "Kunde inte ändra e-postadressen. Försök igen."
+    }
+  },
+  "editGroupModal": {
+    "title": "Redigera grupp",
+    "groupNameLabel": "Gruppnamn",
+    "groupNamePlaceholder": "t.ex. Lägenhetskostnader, Resa till Paris",
+    "descriptionLabel": "Beskrivning (valfritt)",
+    "descriptionPlaceholder": "Lägg till eventuella detaljer om den här gruppen...",
+    "cancelButton": "Avbryt",
+    "saveChangesButton": "Spara ändringar",
+    "deleteGroupButton": "Radera grupp",
+    "validation": {
+      "nameRequired": "Gruppnamn är obligatoriskt.",
+      "nameTooShort": "Gruppnamnet måste vara minst 2 tecken långt.",
+      "nameTooLong": "Gruppnamnet får vara högst 50 tecken långt.",
+      "updateFailed": "Kunde inte uppdatera gruppen"
+    },
+    "success": {
+      "updated": "Gruppinformationen uppdaterades."
+    },
+    "deleteConfirmDialog": {
+      "title": "Radera grupp permanent",
+      "warningTitle": "⚠️ Varning för permanent radering",
+      "warningMessage": "Detta kommer att permanent radera gruppen och ALLA associerade data:",
+      "warningList": {
+        "expenses": "Alla utgifter och deras kommentarer",
+        "settlements": "Alla regleringar och betalningshistorik",
+        "members": "Alla gruppmedlemmar och behörigheter",
+        "history": "All ändringshistorik och aktivitet"
+      },
+      "cannotUndo": "Denna åtgärd kan inte ångras.",
+      "typeToConfirm": "För att bekräfta, skriv in gruppnamnet \"{{groupName}}\" nedan:",
+      "deletingMessage": "Raderar grupp och alla associerade data...",
+      "deletingText": "Raderar...",
+      "confirmText": "Radera grupp permanent",
+      "cancelText": "Avbryt",
+      "deleteFailed": "Kunde inte radera gruppen"
+    }
+  },
+  "groupActions": {
+    "title": "Gruppåtgärder",
+    "addExpense": "Lägg till utgift",
+    "settleUp": "Reglera",
+    "inviteOthers": "Bjud in andra",
+    "settings": "Inställningar",
+    "leaveGroup": "Lämna grupp",
+    "archive": "Arkivera grupp",
+    "unarchive": "Avarkivera grupp"
+  },
+  "groupSettingsModal": {
+    "title": "Gruppinställningar",
+    "tabs": {
+      "identity": "Visningsnamn",
+      "general": "Allmänt",
+      "security": "Säkerhet och behörigheter"
+    },
+    "securityTab": {
+      "successAriaLabel": "lyckades",
+      "unsavedChangesAriaLabel": "osparade ändringar"
+    }
+  },
+  "groupSettings": {
+    "currencySettings": {
+      "title": "Valutainställningar",
+      "description": "Begränsa vilka valutor som kan användas för utgifter i den här gruppen.",
+      "enableToggle": "Begränsa valutor för den här gruppen",
+      "enabledDescription": "Endast valda valutor kan användas för utgifter",
+      "permittedLabel": "Tillåtna valutor",
+      "defaultLabel": "Standardvaluta för nya utgifter",
+      "addCurrency": "Lägg till valuta",
+      "searchPlaceholder": "Sök valutor...",
+      "noCurrenciesSelected": "Välj minst en valuta",
+      "defaultNotInPermitted": "Standardvalutan måste vara en tillåten valuta",
+      "allCurrenciesSelected": "Alla valutor valda",
+      "saveButton": "Spara valutainställningar",
+      "saveSuccess": "Valutainställningarna uppdaterades.",
+      "saveFailed": "Kunde inte spara valutainställningarna. Försök igen."
+    }
+  },
+  "groupDisplayNameSettings": {
+    "title": "Gruppens visningsnamn",
+    "description": "Välj hur andra medlemmar ser dig i den här gruppen.",
+    "inputLabel": "Ditt visningsnamn i den här gruppen",
+    "inputPlaceholder": "Ange ett unikt visningsnamn",
+    "save": "Spara visningsnamn",
+    "saving": "Sparar...",
+    "success": "Gruppens visningsnamn uppdaterat.",
+    "errors": {
+      "required": "Ange ett visningsnamn.",
+      "tooLong": "Visningsnamnet får vara högst 50 tecken långt.",
+      "notChanged": "Ange ett annat visningsnamn innan du sparar.",
+      "taken": "Det namnet används redan i den här gruppen.",
+      "unknown": "Kunde inte uppdatera visningsnamnet. Försök igen."
+    }
+  },
+  "membersList": {
+    "title": "Medlemmar",
+    "admin": "Admin",
+    "member": "Medlem",
+    "viewer": "Tittare",
+    "thisMember": "Denna medlem",
+    "leaveGroup": "Lämna grupp",
+    "inviteOthers": "Bjud in andra",
+    "inviteOthersAriaLabel": "Bjud in andra",
+    "leaveGroupAriaLabel": "Lämna grupp",
+    "removeMemberAriaLabel": "Ta bort {{name}}",
+    "leaveGroupDialog": {
+      "title": "Lämna grupp?",
+      "messageWithBalance": "Du har ett utestående saldo i den här gruppen. Vänligen reglera innan du lämnar.",
+      "messageConfirm": "Är du säker på att du vill lämna den här gruppen? Du behöver en inbjudan för att gå med igen.",
+      "confirmText": "Lämna grupp",
+      "cancelText": "Avbryt"
+    },
+    "removeMemberDialog": {
+      "title": "Ta bort medlem?",
+      "messageWithBalance": "{{name}} har ett utestående saldo i den här gruppen. Vänligen reglera innan du tar bort.",
+      "messageConfirm": "Är du säker på att du vill ta bort {{name}} från gruppen?",
+      "confirmText": "Ta bort",
+      "cancelText": "Avbryt"
+    }
+  },
+  "shareGroupModal": {
+    "title": "Bjud in andra",
+    "description": "Dela denna länk med alla du vill ska gå med i den här gruppen.",
+    "closeButtonAriaLabel": "Stäng modal",
+    "copyLinkTitle": "Kopiera länk",
+    "copyLinkAriaLabel": "Kopiera gruppinbjudningslänk",
+    "qrCodeDescription": "Eller skanna den här koden",
+    "expirationLabel": "Inbjudningslänken går ut om...",
+    "expirationOptions": {
+      "15m": "15 minuter",
+      "1h": "1 timme",
+      "1d": "1 dag",
+      "5d": "5 dagar"
+    },
+    "expiresAt": "Går ut {{date}}",
+    "generateNew": "Generera ny",
+    "linkCopied": "Länk kopierad till urklipp",
+    "errors": {
+      "generateLinkFailed": "Kunde inte generera delningslänk. Försök igen."
+    }
+  },
+  "errorState": {
+    "defaultTitle": "Något gick fel",
+    "unexpectedError": "Ett oväntat fel uppstod",
+    "tryAgainButton": "Försök igen"
+  },
+  "errorBoundary": {
+    "title": "Något gick fel",
+    "unexpectedError": "Ett oväntat fel uppstod"
+  },
+  "notFoundPage": {
+    "title": "404",
+    "pageNotFound": "Sidan hittades inte",
+    "pageNotFoundDescription": "Sidan du letar efter finns inte.",
+    "groupNotFound": "Gruppen hittades inte eller du har inte åtkomst",
+    "groupNotFoundDescription": "Gruppen du letar efter finns inte eller du måste bjudas in för att få åtkomst till den.",
+    "goToDashboard": "Gå till instrumentpanelen",
+    "goHome": "Gå till startsidan"
+  },
+  "loadingState": {
+    "defaultMessage": "Laddar..."
+  },
+  "joinGroupPage": {
+    "title": "Gå med i grupp",
+    "loadingGroup": "Laddar gruppinformation...",
+    "alreadyMember": "Du är redan medlem i den här gruppen",
+    "alreadyMemberDescription": "Du kan gå direkt till gruppen för att se utgifter och saldon.",
+    "joinGroup": "Gå med i grupp",
+    "goToGroup": "Gå till grupp",
+    "joining": "Går med...",
+    "cancel": "Avbryt",
+    "welcome": "Välkommen till {{groupName}}!",
+    "joinSuccess": "Du har gått med i gruppen. Omdirigerar till gruppsidan...",
+    "joinedTitle": "Gick med i {{groupName}} - {{appName}}",
+    "backToDashboard": "Tillbaka till instrumentpanelen",
+    "pendingApprovalTitle": "Väntar på godkännande",
+    "pendingApprovalMessage": "Din begäran om att gå med i {{groupName}} har skickats till gruppadministratörerna.",
+    "pendingApprovalHelp": "Vi meddelar dig när du har blivit godkänd. Du kan gå tillbaka till din instrumentpanel så länge.",
+    "errors": {
+      "invalidLink": "Denna inbjudningslänk är ogiltig eller har gått ut",
+      "groupNotFound": "Denna grupp finns inte längre",
+      "alreadyMember": "Du är redan medlem i den här gruppen",
+      "joinFailed": "Kunde inte gå med i gruppen",
+      "loadFailed": "Kunde inte ladda gruppinformation"
+    },
+    "displayName": {
+      "title": "Välj ditt visningsnamn",
+      "description": "Så här kommer andra medlemmar att se dig i \"{{groupName}}\"",
+      "label": "Visningsnamn",
+      "placeholder": "Hur ska andra medlemmar se ditt namn?",
+      "help": "Välj ett unikt namn for den här gruppen. Andra medlemmar kommer att använda det för att identifiera dig.",
+      "errors": {
+        "required": "Ange ett visningsnamn.",
+        "taken": "Det visningsnamnet används redan i den här gruppen.",
+        "invalid": "Visningsnamnet kan endast innehålla bokstäver, siffror, mellanslag, bindestreck, understreck och punkter."
+      }
+    }
+  },
+  "dashboardComponents": {
+    "groupsList": {
+      "loading": "Laddar dina grupper...",
+      "loadFailed": "Kunde inte ladda grupper",
+      "tryAgain": "Försök igen",
+      "creating": "Skapar grupp...",
+      "noArchivedTitle": "Inga arkiverade grupper",
+      "noArchivedDescription": "Grupper du arkiverar kommer att visas här. Arkivera en grupp från fliken Aktiva för att dölja den från din instrumentpanel.",
+      "groupsListAriaLabel": "Dina grupper"
+    }
+  },
+  "expenseComponents": {
+    "expenseFormActions": {
+      "cancel": "Avbryt",
+      "updating": "Uppdaterar...",
+      "saving": "Sparar...",
+      "update": "Uppdatera utgift",
+      "save": "Spara utgift"
+    },
+    "participantSelector": {
+      "label": "Dela mellan",
+      "requiredIndicator": "*",
+      "selectAll": "Välj alla",
+      "selectNone": "Välj ingen",
+      "payerSuffix": "(Betalare)"
+    },
+    "payerSelector": {
+      "label": "Vem betalade?",
+      "requiredIndicator": "*",
+      "selectPayer": "Välj vem som betalade",
+      "searchPlaceholder": "Sök medlemmar...",
+      "membersList": "Gruppmedlemmar",
+      "noResults": "Inga medlemmar matchar din sökning"
+    },
+    "splitAmountInputs": {
+      "exactAmountsInstruction": "Ange exakta belopp för varje person:",
+      "unknown": "Okänd",
+      "dollarSign": "kr",
+      "total": "Totalt: ",
+      "percentageInstruction": "Ange procentandel for varje person:",
+      "percentSign": "%",
+      "equalInstruction": "Varje person betalar:"
+    },
+    "splitTypeSelector": {
+      "label": "Hur ska det delas?",
+      "equal": "Lika",
+      "exactAmounts": "Exakta belopp",
+      "percentage": "Procentandel"
+    },
+    "expenseActions": {
+      "edit": "Redigera",
+      "copyExpense": "Kopiera utgift",
+      "copy": "Kopiera",
+      "share": "Dela",
+      "delete": "Radera",
+      "deleteTitle": "Radera utgift",
+      "deleteConfirm": "Är du säker på att du vill radera \"{{expenseName}}\"? Denna åtgärd kan inte ångras och kommer att påverka gruppens saldon.",
+      "deleteButton": "Radera",
+      "cancel": "Avbryt",
+      "deleteFailed": "Kunde inte radera utgiften",
+      "cannotEditTooltip": "Kan inte redigera - deltagare har lämnat gruppen"
+    },
+    "expenseFormModal": {
+      "addExpense": "Lägg till utgift",
+      "editExpense": "Redigera utgift",
+      "copyExpense": "Kopiera utgift",
+      "closeModal": "Stäng modal",
+      "cancel": "Avbryt",
+      "saveExpense": "Spara utgift",
+      "updateExpense": "Uppdatera utgift",
+      "createCopy": "Skapa kopia",
+      "saving": "Sparar...",
+      "updating": "Uppdaterar...",
+      "close": "Stäng"
+    },
+    "expenseDetailModal": {
+      "title": "Utgiftsinformation",
+      "closeModal": "Stäng modal",
+      "close": "Stäng",
+      "edit": "Redigera",
+      "copy": "Kopiera",
+      "share": "Dela",
+      "delete": "Radera",
+      "paidBy": "Betalades av",
+      "date": "Datum",
+      "labels": "Etiketter",
+      "receipt": "Kvitto",
+      "viewReceipt": "Visa kvitto",
+      "noReceipt": "Inget kvitto",
+      "splitDetails": "Uppdelningsdetaljer",
+      "comments": "Kommentarer",
+      "loadingExpense": "Laddar utgiftsinformation...",
+      "expenseNotFound": "Utgiften hittades inte",
+      "failedToLoad": "Kunde inte ladda utgiftsinformation",
+      "shareTitle": "Utgift: {{description}}",
+      "shareText": "Kolla in den här utgiften: {{description}} - {{amount}}"
+    },
+    "splitBreakdown": {
+      "splitBetween": "Delas mellan ",
+      "person": " person",
+      "people": " personer",
+      "splitEqually": "Delas lika",
+      "exactAmounts": "Exakta belopp",
+      "byPercentage": "Efter procentandel",
+      "customSplit": "Anpassad uppdelning",
+      "unknown": "Okänd",
+      "paid": "Betalat",
+      "owes": "Skyldig ",
+      "total": "Totalt: "
+    }
+  },
+  "joinGroupComponents": {
+    "groupPreview": {
+      "invitationMessage": "Du har blivit inbjuden att gå med i den här gruppen"
+    },
+    "joinButton": {
+      "joining": "Går med...",
+      "joinGroup": "Gå med i grupp"
+    },
+    "membersPreview": {
+      "groupSize": "Gruppstorlek"
+    }
+  },
+  "policyComponents": {
+    "policyAcceptanceModal": {
+      "title": "Acceptera uppdaterade policyer",
+      "policyLabel": "Policy ",
+      "of": " av ",
+      "colon": ": ",
+      "close": "Stäng",
+      "progress": "Framsteg",
+      "accepted": " accepterad",
+      "acceptedIcon": "✓ Accepterad",
+      "acceptedAriaLabel": "Accepterad",
+      "loadingContent": "Laddar policyinnehåll...",
+      "acceptanceRequired": "Policyacceptans krävs",
+      "acceptanceInstructions": "Läs policyn ovan och klicka på \"Acceptera\" för att fortsätta använda {{appName}}.",
+      "acceptCheckbox": "Jag har läst och accepterar denna ",
+      "previous": "Föregående",
+      "next": "Nästa",
+      "policiesAccepted": " policyer accepterade",
+      "accepting": "Accepterar...",
+      "acceptAll": "Acceptera alla och fortsätt",
+      "closeAriaLabel": "Stäng",
+      "errorTitle": "Fel"
+    },
+    "policyRenderer": {
+      "bulletPoint": "• "
+    }
+  },
+  "uiComponents": {
+    "alert": {
+      "dismiss": "Avfärda varning"
+    },
+    "avatar": {
+      "unknown": "Okänd"
+    },
+    "button": {
+      "default": "Knapp"
+    },
+    "multiLabelInput": {
+      "placeholder": "Lägg till en etikett...",
+      "removeLabel": "Ta bort {{label}}",
+      "maxReached": "Max {{max}} etiketter",
+      "recent": "Senaste",
+      "hint": "{{count}}/{{max}} etiketter"
+    },
+    "confirmDialog": {
+      "confirm": "Bekräfta",
+      "cancel": "Avbryt"
+    },
+    "currencyAmountInput": {
+      "selectCurrency": "Välj valuta",
+      "searchPlaceholder": "Sök efter symbol, kod eller land...",
+      "searchAriaLabel": "Sök valutor",
+      "loading": "Laddar valutor...",
+      "noCurrencies": "Inga valutor hittades",
+      "recent": "Senaste",
+      "common": "Vanliga",
+      "allCurrencies": "Alla valutor",
+      "placeholder": "0.00",
+      "requiredIndicator": "*"
+    },
+    "currencySelector": {
+      "placeholder": "Välj valuta...",
+      "searchPlaceholder": "Sök valutor",
+      "loading": "Laddar valutor...",
+      "noCurrencies": "Inga valutor hittades",
+      "recent": "Senaste",
+      "common": "Vanliga",
+      "allCurrencies": "Alla valutor"
+    },
+    "input": {
+      "requiredIndicator": "*"
+    },
+    "loadingSpinner": {
+      "loading": "Laddar..."
+    },
+    "timeInput": {
+      "at": "kl. ",
+      "placeholder": "Ange tid (t.ex. 14:30)",
+      "requiredIndicator": "*"
+    },
+    "form": {
+      "submissionError": "Formulärsändningsfel"
+    }
+  },
+  "pages": {
+    "addExpensePage": {
+      "errorTitle": "Fel - {{appName}}",
+      "error": "Fel",
+      "noGroupMessage": "Ingen grupp specificerad. Kan inte lägga till utgift utan en grupp.",
+      "backToDashboard": "Tillbaka till instrumentpanelen",
+      "loadingTitle": "Laddar... - {{appName}}",
+      "groupNotFound": "Gruppen hittades inte",
+      "groupNotFoundMessage": "Gruppen du försöker lägga till en utgift i finns inte eller så har du inte åtkomst till den.",
+      "backToGroup": "Tillbaka till gruppen",
+      "copyExpenseTitle": "Kopiera utgift",
+      "editExpenseTitle": "Redigera utgift",
+      "addExpenseTitle": "Lägg till utgift",
+      "copyExpenseAction": "Kopiera utgift",
+      "editExpenseAction": "Redigera utgift",
+      "addExpenseAction": "Lägg till en ny utgift",
+      "titleSuffix": " - {{appName}}",
+      "titleIn": " i "
+    },
+    "expenseDetailPage": {
+      "missingGroupId": "Grupp-ID saknas",
+      "missingExpenseId": "Utgifts-ID saknas",
+      "failedToLoad": "Kunde inte ladda utgiften",
+      "cannotEdit": "Denna utgift kan inte redigeras",
+      "containsDepartedMembers": "En eller flera deltagare har lämnat gruppen. Historiska poster bevaras som skrivskyddade.",
+      "expenseLabel": "Utgift: ",
+      "checkOutExpense": "Kolla in den här utgiften: ",
+      "shareApiFailed": "Delnings-API misslyckades, återgår till urklipp",
+      "failedToCopy": "Kunde inte kopiera till urklipp",
+      "error": "Fel",
+      "expenseNotFound": "Utgiften hittades inte",
+      "backToGroup": "Tillbaka till gruppen",
+      "titleSeparator": " - ",
+      "expenseFor": "Utgift för ",
+      "backButton": "← Tillbaka",
+      "date": "Datum",
+      "ago": " sedan",
+      "labels": "Etiketter",
+      "paidBy": "Betalades av",
+      "unknown": "Okänd",
+      "discussion": "Diskussion",
+      "receipt": "Kvitto",
+      "clickToViewFullSize": "Klicka för att se i full storlek",
+      "added": "Tillagd ",
+      "lastUpdated": "Senast uppdaterad ",
+      "receiptViewer": "Kvitto-visare",
+      "closeReceiptViewer": "Stäng kvitto-visare",
+      "receiptFullSize": "Kvitto - Full storlek",
+      "summarySection": "Utgiftssammanfattning",
+      "splitSection": "Uppdelningsdetaljer",
+      "metadataSection": "Utgiftsmetadata"
+    },
+    "groupDetailPage": {
+      "errorLoadingGroup": "Fel vid laddning av grupp",
+      "backToDashboard": "Tillbaka till instrumentpanelen",
+      "balances": "Saldon",
+      "expenses": "Utgifter",
+      "comments": "Kommentarer",
+      "activity": "Aktivitet",
+      "paymentHistory": "Regleringar",
+      "toggleSection": "Växla {{section}}-sektion",
+      "titleSuffix": " - {{appName}}",
+      "manageExpensesFor": "Hantera utgifter för "
+    },
+    "landingPage": {
+      "title": "Enkel räkningsdelning - {{appName}}",
+      "description": "Säg hejdå till pinsamma skulder och komplexa beräkningar. Vår app gör det enkelt, rättvist och transparent att dela utgifter med vänner, familj och rumskamrater. Den är 100 % gratis, utan annonser och utan gränser.",
+      "disclaimer": "Detta är ett verktyg för att spåra utgifter, inte för att göra betalningar.",
+      "accountNote": " För att spara och hantera dina utgifter behöver du ett gratis konto.",
+      "privacyNote": "Vi kommer aldrig att be om känsliga finansiella uppgifter.",
+      "transparencyNotice": {
+        "bold": "Detta är ett verktyg för att spåra utgifter, inte för att göra betalningar.",
+        "text": "För att spara och hantera dina utgifter behöver du ett gratis konto. Vi kommer aldrig att be om känsliga finansiella uppgifter."
+      }
+    },
+    "registerPage": {
+      "requiredIndicator": "*"
+    },
+    "resetPasswordPage": {
+      "failedToSendReset": "Kunde inte skicka återställningsmejl",
+      "checkYourEmail": "Kontrollera din e-post",
+      "resetInstructionsSent": "Instruktioner för lösenordsåterställning har skickats till din e-post",
+      "emailSentSuccessfully": "E-post skickat",
+      "sentInstructionsTo": "Vi har skickat instruktioner för lösenordsåterställning till:",
+      "checkSpamFolder": "Hittar du det inte? Kontrollera din skräppostmapp.",
+      "whatsNext": "Vad händer nu?",
+      "checkEmailInbox": "• Kontrollera din inkorg (och skräppostmapp)",
+      "clickResetLink": "• Klicka på återställningslänken i e-postmeddelandet",
+      "createNewPassword": "• Skapa ett nytt lösenord",
+      "signInWithNewPassword": "• Logga in med ditt nya lösenord",
+      "sendToDifferentEmail": "Skicka till en annan e-postadress",
+      "backToSignIn": "← Tillbaka till inloggning",
+      "resetPassword": "Återställ lösenord",
+      "enterEmailForReset": "Ange din e-postadress för att få instruktioner för lösenordsåterställning",
+      "enterEmailDescription": "Ange den e-postadress som är kopplad till ditt konto så skickar vi dig en länk för att återställa ditt lösenord.",
+      "emailPlaceholder": "Ange din e-postadress",
+      "sendResetInstructions": "Skicka återställningsinstruktioner"
+    }
+  },
+  "authLayout": {
+    "titleSuffix": " - {{appName}}"
+  },
+  "authProvider": {
+    "authenticationError": "Autentiseringsfel",
+    "retry": "Försök igen"
+  },
+  "usersBrowser": {
+    "errors": {
+      "auth": "Kunde inte ladda Firebase Auth-användare"
+    }
+  },
+  "validation": {
+    "required": "{{field}} är obligatoriskt"
+  },
+  "roles": {
+    "systemAdmin": {
+      "label": "Systemadministratör",
+      "description": "Fullständig systemåtkomst och kontroll"
+    },
+    "tenantAdmin": {
+      "label": "Hyresgästadministratör",
+      "description": "Kan hantera hyresgästinställningar och konfiguration"
+    },
+    "regular": {
+      "label": "Vanlig användare",
+      "description": "Standardanvändare utan administrativa rättigheter"
+    }
+  },
+  "admin": {
+    "loading": "Laddar admin...",
+    "tabs": {
+      "tenants": "Hyresgäster",
+      "diagnostics": "Diagnostik",
+      "tenantConfig": "Hyresgästkonfiguration",
+      "users": "Användare",
+      "ariaLabel": "Admin-flikar"
+    },
+    "tenantConfig": {
+      "loading": "Laddar hyresgästkonfiguration...",
+      "overview": {
+        "title": "Hyresgästöversikt",
+        "tenantId": "Hyresgäst-ID",
+        "appName": "Appnamn",
+        "lastUpdated": "Senast uppdaterad"
+      },
+      "theme": {
+        "title": "Temaartefakt",
+        "description": "Hash + CSS-leveranshjälpare",
+        "copyLink": "Kopiera temalänk",
+        "forceReload": "Tvinga omladdning av tema",
+        "activeHash": "Aktiv hash",
+        "notPublished": "ej publicerad",
+        "generatedAt": "Genererad den",
+        "copySuccess": "Temalänk kopierad till urklipp.",
+        "copyError": "Kunde inte kopiera temalänk. Kopiera manuellt."
+      },
+      "brandingTokens": {
+        "title": "Varumärkestoken"
+      },
+      "computedCss": {
+        "title": "Beräknade CSS-variabler"
+      }
+    },
+    "tenants": {
+      "pageTitle": "Hyresgästhantering",
+      "pageDescription": "Visa och hantera alla hyresgästkonfigurationer",
+      "summary": {
+        "total": "Totalt antal hyresgäster:"
+      },
+      "actions": {
+        "create": "Skapa ny hyresgäst",
+        "switchTenant": "Klicka för att byta till denna hyresgäst"
+      },
+      "status": {
+        "active": "Aktiv",
+        "default": "Standard"
+      },
+      "details": {
+        "tenantId": "Hyresgäst-ID:",
+        "primaryDomain": "Primär domän:",
+        "allDomains": "Alla domäner:",
+        "domains": "Domäner:"
+      },
+      "emptyState": "Inga hyresgäster hittades",
+      "errors": {
+        "load": "Kunde inte ladda hyresgäster"
+      }
+    },
+    "diagnostics": {
+      "loading": "Laddar miljödiagnostik...",
+      "errors": {
+        "fetch": "Kunde inte hämta miljödata",
+        "unknown": "Ett okänt fel uppstod"
+      },
+      "serverStatus": {
+        "title": "Serverstatus",
+        "environment": "Miljö",
+        "nodeVersion": "Node-version",
+        "uptime": "Drifttid",
+        "startedAt": "Startad den"
+      },
+      "buildInfo": {
+        "title": "Bygginformation",
+        "version": "Version",
+        "buildDate": "Byggdatum",
+        "buildTimestamp": "Byggtidsstämpel"
+      },
+      "memory": {
+        "title": "Minnesanvändning",
+        "rss": "RSS (Resident Set Size)",
+        "heapUsed": "Använd heap",
+        "heapTotal": "Total heap",
+        "heapAvailable": "Tillgänglig heap",
+        "external": "Externt minne",
+        "arrayBuffers": "Arraybuffertar",
+        "heapLimit": "Heap-gräns"
+      },
+      "heap": {
+        "title": "V8 Heap-utrymmen",
+        "size": "Storlek:",
+        "used": "Använd:",
+        "available": "Tillgänglig:"
+      },
+      "envVars": {
+        "title": "Miljövariabler",
+        "variable": "Variabel",
+        "value": "Värde"
+      },
+      "filesystem": {
+        "title": "Filsystem",
+        "cwd": "Arbetskatalog"
+      }
+    },
+    "users": {
+      "description": "Hantera användarkonton, roller och behörigheter",
+      "loading": "Laddar användare...",
+      "emptyState": "Inga användare hittades",
+      "search": {
+        "label": "Sök efter e-post eller UID",
+        "placeholder": "Ange e-post eller UID..."
+      },
+      "table": {
+        "email": "E-post",
+        "displayName": "Visningsnamn",
+        "role": "Roll",
+        "status": "Status",
+        "created": "Skapad",
+        "lastSignIn": "Senaste inloggning",
+        "actions": "Åtgärder"
+      },
+      "actions": {
+        "editUser": "Redigera användare"
+      },
+      "confirmations": {
+        "disableUser": "Är du säker på att du vill {{action}} detta användarkonto?"
+      },
+      "success": {
+        "userToggled": "Användarkontot har {{action}}.",
+        "roleUpdated": "Användarrollen har uppdaterats till {{role}}",
+        "roleUnchanged": "Rollen oförändrad"
+      },
+      "errors": {
+        "selfDisable": "Du kan inte inaktivera ditt eget konto",
+        "selfRoleChange": "Du kan inte ändra din egen roll",
+        "disableUser": "Kunde inte {{action}} användarkontot",
+        "roleUpdate": "Kunde inte uppdatera användarrollen",
+        "invalidSelection": "Ogiltigt val"
+      },
+      "rolePrompt": {
+        "title": "Nuvarande roll: {{currentRole}}\n\n Välj ny roll:",
+        "regularUser": "Vanlig användare (ingen roll)"
+      }
+    },
+    "userEditor": {
+      "title": "Redigera användare",
+      "tabs": {
+        "ariaLabel": "Flikar för användarredigerare",
+        "profile": "Profil",
+        "role": "Roll",
+        "firebaseAuth": "Firebase Auth",
+        "firestore": "Firestore"
+      },
+      "profile": {
+        "description": "Redigera användarens visningsnamn och e-postadress",
+        "displayName": "Visningsnamn",
+        "displayNamePlaceholder": "Ange visningsnamn",
+        "email": "E-postadress",
+        "emailPlaceholder": "Ange e-postadress"
+      },
+      "role": {
+        "description": "Välj en roll for den här användaren"
+      },
+      "loading": "Laddar...",
+      "noDataAvailable": "Inga data tillgängliga",
+      "errors": {
+        "noChanges": "Inga ändringar att spara",
+        "selfRoleChange": "Kan inte ändra din egen roll",
+        "selfRoleChangeWarning": "Du kan inte ändra din egen roll",
+        "profileUpdate": "Kunde inte uppdatera profilen",
+        "roleUpdate": "Kunde inte uppdatera rollen",
+        "loadData": "Kunde inte ladda data"
+      },
+      "success": {
+        "profileUpdated": "Profilen uppdaterades.",
+        "roleUpdated": "Rollen uppdaterades."
+      }
+    },
+    "tenantEditor": {
+      "titleCreate": "Skapa ny hyresgäst",
+      "titleEdit": "Redigera hyresgäst",
+      "descriptionCreate": "Konfigurera en ny hyresgäst med varumärke och domäner",
+      "descriptionEdit": "Uppdatera hyresgästkonfiguration",
+      "modeToggle": {
+        "label": "Redigerarläge",
+        "basic": "Grundläggande",
+        "advanced": "Avancerat"
+      },
+      "modeHint": {
+        "basic": "Visar väsentliga inställningar",
+        "advanced": "Visar alla inställningar",
+        "moreColors": "Växla till avancerat läge for full kontroll över färgpaletten"
+      },
+      "derivation": {
+        "themeMode": {
+          "label": "Temaläge",
+          "light": "Ljust",
+          "medium": "Medium",
+          "dark": "Mörkt"
+        },
+        "style": {
+          "label": "Stil",
+          "balanced": "Balanserad",
+          "bold": "Fet",
+          "soft": "Mjuk",
+          "vibrant": "Levande",
+          "elegant": "Elegant"
+        },
+        "intensity": {
+          "label": "Intensitet",
+          "subtle": "Subtil",
+          "strong": "Stark"
+        }
+      },
+      "derivationWand": {
+        "tooltip": "Härled färger från paletten",
+        "tooltipDisabled": "Ange primär-, sekundär- och accentfärger först",
+        "popoverTitle": "Färrhärledning",
+        "derive": "Tillämpa härledning"
+      },
+      "sections": {
+        "gettingStarted": {
+          "title": "Komma igång",
+          "description": "Välj hur du vill initiera din hyresgäst"
+        },
+        "basicInfo": {
+          "title": "Grundläggande information",
+          "description": "Hyresgäst-ID, namn och domäner"
+        },
+        "assets": {
+          "title": "Tillgångar",
+          "description": "Logotyp- och favicon-bilder"
+        },
+        "paletteColors": {
+          "title": "Palettfärger",
+          "description": "Kärnvarumärkesfärger"
+        },
+        "brandColors": {
+          "title": "Varumärkesfärger",
+          "description": "Ange dina primära varumärkesfärger och härled sedan hela färgsystemet"
+        },
+        "surfaceColors": {
+          "title": "Ytfärger",
+          "description": "Bakgrunds- och behållarfärger"
+        },
+        "textColors": {
+          "title": "Textfärger",
+          "description": "Typografifärger"
+        },
+        "interactiveColors": {
+          "title": "Interaktiva färger",
+          "description": "Knapp- och länkfärger"
+        },
+        "borderColors": {
+          "title": "Kantlinjefärger",
+          "description": "Kantlinje- och avdelarfärger"
+        },
+        "statusColors": {
+          "title": "Statusfärger",
+          "description": "Feedback- och varningsfärger"
+        },
+        "typography": {
+          "title": "Typografi",
+          "description": "Teckensnittsfamiljer, storlekar och vikter"
+        },
+        "spacing": {
+          "title": "Avstånd",
+          "description": "Avståndsskala och semantiskt avstånd"
+        },
+        "radii": {
+          "title": "Kantradier",
+          "description": "Hörnrundningsvärden"
+        },
+        "shadows": {
+          "title": "Skuggor",
+          "description": "Definitioner för box-shadow"
+        },
+        "legal": {
+          "title": "Juridiskt",
+          "description": "Företagsinformation och juridiska länkar"
+        },
+        "motion": {
+          "title": "Rörelse",
+          "description": "Animationslängder och -mjukningar"
+        },
+        "featureFlags": {
+          "title": "Funktionsflaggor",
+          "description": "Aktivera eller inaktivera funktioner"
+        },
+        "marketing": {
+          "title": "Marknadsföringsfunktioner",
+          "description": "Växla marknadsföringssidor och innehåll"
+        },
+        "advanced": {
+          "title": "Avancerat",
+          "description": "Valfria visuella effekter"
+        }
+      },
+      "fields": {
+        "tenantId": "Hyresgäst-ID",
+        "appName": "Appnamn",
+        "domains": "Domäner",
+        "logoUrl": "Logotyp-URL",
+        "faviconUrl": "Favicon-URL",
+        "primaryColor": "Primärfärg",
+        "primaryVariantColor": "Primärvariant",
+        "secondaryColor": "Sekundärfärg",
+        "secondaryVariantColor": "Sekundärvariant",
+        "accentColor": "Accentfärg",
+        "neutralColor": "Neutral färg",
+        "neutralVariantColor": "Neutral variant",
+        "successColor": "Framgångsfärg",
+        "warningColor": "Varningsfärg",
+        "dangerColor": "Färfärg",
+        "infoColor": "Informationsfärg"
+      },
+      "placeholders": {
+        "tenantId": "mitt-hyresgäst-id",
+        "appName": "Min utgiftsapp",
+        "domain": "Lägg till ny domän...",
+        "selectTenant": "Välj en hyresgäst att kopiera..."
+      },
+      "creationMode": {
+        "empty": "Börja från början",
+        "copy": "Kopiera från befintlig hyresgäst",
+        "emptyDescription": "Du måste fylla i alla obligatoriska fält. Färger ska vara i #RRGGBB-format.",
+        "copyDescription": "Alla temainställningar kommer att kopieras från {{tenant}}. Du måste fortfarande ange ett unikt hyresgäst-ID, appnamn och domäner."
+      },
+      "validation": {
+        "tenantIdFormat": "Ogiltigt hyresgäst-ID: måste endast innehålla gemener, siffror och bindestreck",
+        "domainRequired": "Minst en domän krävs",
+        "invalidDomain": "Ogiltig domän: {{domain}}",
+        "saveTenantFirst": "Spara hyresgästen först innan du laddar upp bilder",
+        "tenantIdRequiredForPublish": "Hyresgäst-ID krävs för publicering"
+      },
+      "hints": {
+        "tenantIdReadonly": "Hyresgäst-ID kan inte ändras",
+        "colorFormat": "#RRGGBB"
+      },
+      "toggles": {
+        "showMarketingContent": {
+          "label": "Visa marknadsföringsinnehåll",
+          "description": "Visa funktioner/CTA-sektioner på offentliga sidor"
+        },
+        "showPricingPage": {
+          "label": "Visa prissida",
+          "description": "Visa /pricing-rutt"
+        },
+        "showAppNameInHeader": {
+          "label": "Visa appnamn i sidhuvudet",
+          "description": "Visa appnamnet bredvid logotypen"
+        },
+        "enableParallax": {
+          "label": "Aktivera parallax",
+          "description": "Aktivera parallax-rullningseffekter"
+        },
+        "enableMagneticHover": {
+          "label": "Aktivera magnetisk hover",
+          "description": "Aktivera magnetiska hover-effekter på knappar"
+        },
+        "enableScrollReveal": {
+          "label": "Aktivera rullningsavslöjande",
+          "description": "Aktivera rullningsutlösta animationer"
+        }
+      },
+      "loading": {
+        "tenants": "Laddar hyresgäster..."
+      },
+      "empty": {
+        "noTenants": "Inga befintliga hyresgäster att kopiera från."
+      },
+      "errors": {
+        "invalidPayload": "Ogiltiga hyresgästdata. Kontrollera alla fält och försök igen.",
+        "permissionDenied": "Du har inte behörighet att ändra hyresgästinställningar.",
+        "duplicateDomain": "En eller flera domäner är redan tilldelade en annan hyresgäst.",
+        "saveFailed": "Kunde inte spara hyresgästen. Försök igen.",
+        "tenantNotFound": "Hyresgästen finns inte. Spara den innan du publicerar.",
+        "tokensMissing": "Hyresgästen saknar varumärkestoken. Konfigurera varumärket och spara först.",
+        "publishFailed": "Kunde inte publicera temat. Försök igen.",
+        "uploadFailed": "Kunde inte ladda upp {{type}}"
+      },
+      "success": {
+        "createdAndPublished": "Hyresgästen skapades och temat publicerades.",
+        "updatedAndPublished": "Hyresgästen uppdaterades och temat publicerades.",
+        "createdPublishFailed": "Hyresgästen skapades, men publiceringen av temat misslyckades. Klicka på \"Publicera tema\" manuellt.",
+        "updatedPublishFailed": "Hyresgästen uppdaterades, men publiceringen av temat misslyckades. Klicka på \"Publicera tema\" manuellt.",
+        "themePublished": "Temat publicerades.",
+        "logoUploaded": "Logotypen laddades upp.",
+        "faviconUploaded": "Favicon laddades upp.",
+        "logoSelected": "Logotyp vald från biblioteket",
+        "faviconSelected": "Favicon vald från biblioteket"
+      },
+      "buttons": {
+        "save": "Spara hyresgäst",
+        "publish": "Publicera tema",
+        "addDomain": "Lägg till",
+        "removeDomain": "Ta bort",
+        "chooseFromLibrary": "Välj från biblioteket",
+        "uploadNew": "Ladda upp ny"
+      },
+      "actions": {
+        "deriveColors": "Härled färger",
+        "deriveColorsDescription": "Generera alla semantiska färger från din varumärkespalett"
+      }
+    }
+  },
+  "tenantBranding": {
+    "title": "Varumärkeskonfiguration",
+    "subtitle": "Hyresgästinställningar",
+    "description": "Anpassa din hyresgästs utseende och marknadsföringsfunktioner",
+    "loading": "Laddar hyresgästinställningar...",
+    "accessDenied": "Du har inte behörighet att komma åt hyresgästens varumärkesinställningar. Denna sida kräver rollen hyresgäst-admin eller system-admin.",
+    "tenantIdLabel": "Hyresgäst-ID",
+    "domainWarning": "Ändringar kommer att påverka alla användare som kommer åt denna hyresgästs domän",
+    "brandingAssets": {
+      "title": "Varumärkestillgångar",
+      "description": "Konfigurera din varumärkesidentitet"
+    },
+    "fields": {
+      "appName": "Appnamn",
+      "appNamePlaceholder": "Min utgiftsapp",
+      "logoUrl": "Logotyp-URL",
+      "logoUrlPlaceholder": "/logo.svg",
+      "faviconUrl": "Favicon-URL",
+      "faviconUrlPlaceholder": "/favicon.ico",
+      "primaryColor": "Primärfärg",
+      "secondaryColor": "Sekundärfärg"
+    },
+    "preview": {
+      "title": "Live-förhandsgranskning",
+      "description": "Se hur ditt varumärke kommer att se ut",
+      "primaryButton": "Primär knapp",
+      "secondaryButton": "Sekundär knapp",
+      "brandingLabel": "Ditt hyresgästvarumärke"
+    },
+    "marketing": {
+      "title": "Marknadsföringsfunktioner",
+      "description": "Kontrollera vilka marknadsföringssidor som är synliga",
+      "contentLabel": "Marknadsföringsinnehåll",
+      "contentDescription": "Visa funktioner/CTA-sektioner",
+      "pricingLabel": "Prissida",
+      "pricingDescription": "Visa /pricing-rutt"
+    },
+    "actions": {
+      "saving": "Sparar...",
+      "saveChanges": "Spara ändringar"
+    },
+    "errors": {
+      "loadFailed": "Kunde inte ladda hyresgästinställningar",
+      "updateFailed": "Kunde inte uppdatera varumärkesinställningar",
+      "notImplemented": "Varumärkesuppdatering är ännu inte implementerad i backend"
+    },
+    "success": {
+      "updated": "Varumärkesinställningarna uppdaterades."
+    }
+  }
+}

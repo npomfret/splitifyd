@@ -1,0 +1,1927 @@
+{
+  "accessibility": {
+    "skipToContent": "주요 콘텐츠로 건너뛰기"
+  },
+  "apiErrors": {
+    "AUTH_REQUIRED": "계속하려면 로그인하세요",
+    "AUTH_INVALID": "세션이 만료되었습니다. 다시 로그인하세요.",
+    "FORBIDDEN": "이 작업을 수행할 권한이 없습니다",
+    "NOT_FOUND": "{{resource}}을(를) 찾을 수 없습니다",
+    "ALREADY_EXISTS": "{{resource}}이(가) 이미 존재합니다",
+    "CONFLICT": "다른 사람이 변경했습니다. 새로고침 후 다시 시도하세요.",
+    "VALIDATION_ERROR": "입력을 확인하고 다시 시도하세요",
+    "INVALID_REQUEST": "요청에 문제가 발생했습니다",
+    "RATE_LIMITED": "요청이 너무 많습니다. 잠시 후 다시 시도하세요.",
+    "SERVICE_ERROR": "문제가 발생했습니다. 다시 시도하세요.",
+    "UNAVAILABLE": "서비스를 일시적으로 사용할 수 없습니다. 나중에 다시 시도하세요."
+  },
+  "authErrors": {
+    "userNotFound": "이 이메일로 된 계정을 찾을 수 없습니다",
+    "wrongPassword": "비밀번호가 잘못되었습니다",
+    "weakPassword": "비밀번호가 너무 약합니다. 6자 이상 사용하세요.",
+    "invalidEmail": "유효한 이메일 주소를 입력하세요",
+    "tooManyRequests": "시도가 너무 많습니다. 나중에 다시 시도하세요.",
+    "networkError": "네트워크 오류. 연결을 확인하세요.",
+    "emailInUse": "이 이메일은 이미 등록되었습니다",
+    "invalidCredential": "잘못된 이메일 또는 비밀번호",
+    "userDisabled": "이 계정은 비활성화되었습니다",
+    "requiresRecentLogin": "계속하려면 다시 로그인하세요",
+    "generic": "인증에 실패했습니다. 다시 시도하세요.",
+    "postRegistrationBase": "계정이 생성되었지만 자동으로 로그인할 수 없습니다.",
+    "postRegistrationFallback": "계정이 생성되었지만 자동으로 로그인할 수 없습니다. 수동으로 로그인하세요."
+  },
+  "pagination": {
+    "previous": "이전",
+    "next": "다음",
+    "page": "페이지",
+    "navigation": "페이지 매김"
+  },
+  "common": {
+    "loading": "로드 중...",
+    "unknownError": "문제가 발생했습니다. 다시 시도하세요.",
+    "cancel": "취소",
+    "save": "저장",
+    "saving": "저장 중...",
+    "delete": "삭제",
+    "edit": "편집",
+    "close": "닫기",
+    "confirm": "확인",
+    "back": "뒤로",
+    "next": "다음",
+    "previous": "이전",
+    "submit": "제출",
+    "search": "검색",
+    "select": "선택",
+    "selectAll": "모두 선택",
+    "none": "없음",
+    "all": "모두",
+    "yes": "예",
+    "no": "아니요",
+    "ok": "확인",
+    "error": "오류",
+    "success": "성공",
+    "warning": "경고",
+    "info": "정보",
+    "unknown": "알 수 없음",
+    "unknownUser": "알 수 없는 사용자",
+    "includeDeleted": "삭제된 항목 포함",
+    "you": "나",
+    "youSuffix": " (나)",
+    "required": "*",
+    "optional": "(선택 사항)",
+    "or": "또는",
+    "and": "그리고",
+    "copy": "복사",
+    "share": "공유",
+    "dismiss": "해제",
+    "dismissAlert": "경고 해제",
+    "justNow": "방금",
+    "chooseFile": "파일 선택",
+    "active": "활성",
+    "inactive": "비활성",
+    "disabled": "비활성화됨",
+    "total": "합계",
+    "member": "멤버",
+    "members": "멤버",
+    "user": "사용자",
+    "group": "그룹",
+    "groups": "그룹",
+    "recent": "최근",
+    "settings": "설정",
+    "understood": "이해했습니다",
+    "titleSuffix": " - {{appName}}",
+    "refresh": "새로고침",
+    "reset": "초기화",
+    "add": "추가",
+    "create": "만들기",
+    "processing": "처리 중...",
+    "download": "다운로드",
+    "downloading": "다운로드 중...",
+    "fromLibrary": "라이브러리에서",
+    "orEnterUrl": "또는 URL 입력",
+    "imageFailedToLoad": "이미지 로드 실패",
+    "selectedFile": "선택됨",
+    "enable": "활성화",
+    "disable": "비활성화",
+    "created": "생성됨",
+    "updated": "업데이트됨",
+    "modified": "수정됨",
+    "name": "이름",
+    "type": "유형",
+    "size": "크기",
+    "link": "링크",
+    "value": "값",
+    "notConfigured": "구성되지 않음",
+    "notSet": "설정되지 않음",
+    "empty": "(비어 있음)",
+    "noData": "데이터 없음",
+    "default": "기본값",
+    "actions": "작업",
+    "status": "상태",
+    "email": "이메일",
+    "displayName": "표시 이름",
+    "role": "역할",
+    "lastSignIn": "마지막 로그인",
+    "placeholder": {
+      "amount": "0.00",
+      "search": "검색...",
+      "searchCurrencies": "통화 검색...",
+      "selectCurrency": "통화 선택...",
+      "selectPerson": "사람 선택"
+    }
+  },
+  "currencySelector": {
+    "noResults": "통화를 찾을 수 없습니다"
+  },
+  "relativeTime": {
+    "justNow": "방금",
+    "minuteAgo_one": "{{count}}분 전",
+    "minuteAgo_other": "{{count}}분 전",
+    "hourAgo_one": "{{count}}시간 전",
+    "hourAgo_other": "{{count}}시간 전",
+    "dayAgo_one": "{{count}}일 전",
+    "dayAgo_other": "{{count}}일 전",
+    "monthAgo_one": "{{count}}개월 전",
+    "monthAgo_other": "{{count}}개월 전",
+    "yearAgo_one": "{{count}}년 전",
+    "yearAgo_other": "{{count}}년 전"
+  },
+  "app": {
+    "loading": "로드 중...",
+    "loadingPage": "페이지 로드 중...",
+    "loadingExpenseForm": "비용 양식 로드 중..."
+  },
+  "createGroup": {
+    "validation": {
+      "displayNameTooShort": "표시 이름은 2자 이상이어야 합니다.",
+      "displayNameTooLong": "표시 이름은 50자 이하여야 합니다."
+    }
+  },
+  "createGroupModal": {
+    "title": "새 그룹 만들기",
+    "groupNameLabel": "그룹 이름",
+    "groupNamePlaceholder": "예: 아파트 비용, 파리 여행",
+    "groupNameHelpText": "비용을 분할할 내용을 설명하는 이름을 선택하세요.",
+    "groupDisplayNameLabel": "이 그룹의 표시 이름",
+    "groupDisplayNamePlaceholder": "다른 멤버에게 이름을 어떻게 표시할까요?",
+    "groupDisplayNameHelpText": "이 이름은 이 그룹의 비용, 댓글 및 활동 위에 표시됩니다.",
+    "groupDescriptionLabel": "설명(선택 사항)",
+    "groupDescriptionPlaceholder": "이 그룹에 대한 세부 정보 추가...",
+    "groupDescriptionHelpText": "멤버가 그룹의 목적을 이해하는 데 도움이 되는 선택적 설명입니다.",
+    "closeButtonAriaLabel": "모달 닫기",
+    "cancelButton": "취소",
+    "submitButton": "그룹 만들기",
+    "restrictCurrencies": "통화 제한",
+    "restrictCurrenciesHelp": "이 그룹의 비용에는 선택한 통화만 사용할 수 있습니다.",
+    "validation": {
+      "nameRequired": "그룹 이름은 필수입니다.",
+      "nameTooShort": "그룹 이름은 2자 이상이어야 합니다.",
+      "nameTooLong": "그룹 이름은 50자 미만이어야 합니다.",
+      "displayNameRequired": "표시 이름을 입력하세요.",
+      "displayNameTooShort": "표시 이름은 2자 이상이어야 합니다.",
+      "displayNameTooLong": "표시 이름은 50자 이하여야 합니다.",
+      "displayNameInvalid": "표시 이름은 문자, 숫자, 공백, 하이픈, 밑줄 및 마침표만 사용할 수 있습니다.",
+      "displayNameTaken": "해당 표시 이름은 이 그룹에서 이미 사용 중입니다."
+    }
+  },
+  "loginPage": {
+    "title": "로그인",
+    "description": "공유 비용을 관리하려면 계정에 로그인하세요.",
+    "rememberMe": "로그인 상태 유지",
+    "forgotPassword": "비밀번호를 잊으셨나요?",
+    "submitButton": "로그인",
+    "noAccount": "계정이 없으신가요?",
+    "signUp": "가입하기",
+    "validation": {
+      "emailRequired": "이메일은 필수입니다",
+      "passwordRequired": "비밀번호는 필수입니다"
+    }
+  },
+  "registerPage": {
+    "title": "계정 만들기",
+    "description": "{{appName}} 계정을 만들어 공유 비용 관리를 시작하세요.",
+    "fullNameLabel": "성명",
+    "fullNamePlaceholder": "성명을 입력하세요",
+    "passwordLabel": "비밀번호",
+    "passwordPlaceholder": "강력한 비밀번호를 만드세요",
+    "confirmPasswordLabel": "비밀번호 확인",
+    "confirmPasswordPlaceholder": "비밀번호를 확인하세요",
+    "acceptTerms": "다음에 동의합니다",
+    "termsOfService": "서비스 약관",
+    "cookiePolicy": "쿠키 정책",
+    "privacyPolicy": "개인정보 보호정책",
+    "submitButton": "계정 만들기",
+    "hasAccount": "이미 계정이 있으신가요?",
+    "signIn": "로그인",
+    "requiredIndicator": "*",
+    "validation": {
+      "nameRequired": "이름은 필수입니다",
+      "emailRequired": "이메일은 필수입니다",
+      "passwordRequired": "비밀번호는 필수입니다",
+      "passwordTooShort": "비밀번호는 12자 이상이어야 합니다.",
+      "passwordsNoMatch": "비밀번호가 일치하지 않습니다",
+      "termsRequired": "서비스 약관에 동의해야 합니다.",
+      "cookiesRequired": "쿠키 정책에 동의해야 합니다.",
+      "privacyRequired": "개인정보 보호정책에 동의해야 합니다."
+    }
+  },
+  "auth": {
+    "refreshingSession": "세션 새로고침 중...",
+    "initializationFailed": "초기화에 실패했습니다. 페이지를 새로고침하세요.",
+    "emailInput": {
+      "label": "이메일",
+      "placeholder": "이메일을 입력하세요",
+      "requiredIndicator": "*",
+      "validation": {
+        "required": "이메일은 필수입니다",
+        "invalid": "유효한 이메일 주소를 입력하세요"
+      }
+    },
+    "passwordInput": {
+      "label": "비밀번호",
+      "placeholder": "비밀번호를 입력하세요",
+      "requiredIndicator": "*",
+      "showPassword": "비밀번호 표시",
+      "hidePassword": "비밀번호 숨기기",
+      "strength": "비밀번호 강도",
+      "strengthWeak": "약함",
+      "strengthMedium": "중간",
+      "strengthStrong": "강함",
+      "validation": {
+        "required": "비밀번호는 필수입니다",
+        "tooShort": "비밀번호는 12자 이상이어야 합니다."
+      }
+    }
+  },
+  "dashboard": {
+    "title": "대시보드 - {{appName}}",
+    "description": "{{appName}}으로 그룹과 비용을 관리하세요.",
+    "welcomeMessage": "{{appName}}에 오신 것을 환영합니다, {{name}}님!",
+    "welcomeDescription": "친구와 비용을 추적하고 분할하려면 첫 번째 그룹을 만드세요.",
+    "yourGroups": "내 그룹",
+    "createGroup": "그룹 만들기",
+    "groupsFilter": {
+      "label": "그룹 필터링",
+      "active": "활성",
+      "archived": "보관됨"
+    },
+    "groupCard": {
+      "settledUp": "모두 정산되었습니다!",
+      "youOwe": "{{amount}}을(를) 빚지고 있습니다.",
+      "youAreOwed": "{{amount}}을(를) 받아야 합니다.",
+      "addExpenseTooltip": "{{groupName}}에 비용 추가",
+      "inviteTooltip": "{{groupName}}에 멤버 초대",
+      "noRecentActivity": "최근 활동 없음",
+      "archivedBadge": "보관됨"
+    },
+    "emptyState": {
+      "title": "아직 그룹이 없습니다",
+      "subtitle": "첫 번째 그룹을 만들어 공유 비용 추적을 시작하세요.",
+      "createButton": "그룹 만들기"
+    },
+    "stats": {
+      "totalGroups": "총 그룹 수",
+      "totalExpenses": "총 비용",
+      "totalBalance": "총 잔액"
+    },
+    "quickActions": {
+      "title": "빠른 작업",
+      "createGroup": "그룹 만들기",
+      "addExpense": "비용 추가"
+    }
+  },
+  "activityFeed": {
+    "title": "최근 활동",
+    "loading": "로드 중...",
+    "emptyState": {
+      "title": "아직 활동 없음",
+      "description": "그룹의 활동이 여기에 표시됩니다.",
+      "groupDescription": "이 그룹의 활동이 여기에 표시됩니다."
+    },
+    "error": {
+      "loadFailed": "지금은 최근 활동을 로드할 수 없습니다. 다시 시도하세요."
+    },
+    "actions": {
+      "retry": "다시 시도",
+      "loadMore": "더 보기",
+      "loadingMore": "로드 중..."
+    },
+    "labels": {
+      "actorYou": "나",
+      "unknownUser": "누군가",
+      "unknownGroup": "그룹",
+      "unknownExpense": "비용",
+      "unknownSettlement": "정산",
+      "commentOnGroup": "그룹 토론",
+      "commentOnExpense": "비용 \"{{description}}\""
+    },
+    "events": {
+      "group-created": "{{actor}}이(가) {{group}}을(를) 만들었습니다.",
+      "group-updated": "{{actor}}이(가) 그룹 {{group}}을(를) 업데이트했습니다.",
+      "group-updated-from": "{{actor}}이(가) {{previous}}을(를) {{group}}(으)로 이름을 바꿨습니다.",
+      "expense-created": "{{actor}}이(가) {{group}}에 {{expense}}을(를) 추가했습니다.",
+      "expense-updated": "{{actor}}이(가) {{group}}에서 {{expense}}을(를) 업데이트했습니다.",
+      "expense-deleted": "{{actor}}이(가) {{group}}에서 {{expense}}을(를) 삭제했습니다.",
+      "member-joined": "{{actor}}이(가) {{target}}을(를) {{group}}에 추가했습니다.",
+      "member-joined-self": "{{actor}}이(가) {{group}}에 가입했습니다.",
+      "member-left": "{{actor}}이(가) {{target}}을(를) {{group}}에서 제거했습니다.",
+      "member-left-self": "{{actor}}이(가) {{group}}을(를) 떠났습니다.",
+      "comment-added": "{{actor}}이(가) {{group}}의 {{target}}에 댓글을 달았습니다.",
+      "settlement-created": "{{actor}}이(가) {{group}}에 {{settlement}}을(를) 기록했습니다.",
+      "settlement-updated": "{{actor}}이(가) {{group}}에서 {{settlement}}을(를) 업데이트했습니다.",
+      "settlement-deleted": "{{actor}}이(가) {{group}}에서 {{settlement}}을(를) 삭제했습니다.",
+      "generic": "{{actor}}이(가) {{group}}에서 변경했습니다.",
+      "group-created-short": "{{actor}}이(가) 그룹을 만들었습니다.",
+      "group-updated-short": "{{actor}}이(가) 그룹을 업데이트했습니다.",
+      "group-updated-from-short": "{{actor}}이(가) 그룹 이름을 {{previous}}(으)로부터 변경했습니다.",
+      "expense-created-short": "{{actor}}이(가) {{expense}}을(를) 추가했습니다.",
+      "expense-updated-short": "{{actor}}이(가) {{expense}}을(를) 업데이트했습니다.",
+      "expense-deleted-short": "{{actor}}이(가) {{expense}}을(를) 삭제했습니다.",
+      "member-joined-short": "{{actor}}이(가) {{target}}을(를) 추가했습니다.",
+      "member-joined-self-short": "{{actor}}이(가) 가입했습니다.",
+      "member-left-short": "{{actor}}이(가) {{target}}을(를) 제거했습니다.",
+      "member-left-self-short": "{{actor}}이(가) 떠났습니다.",
+      "comment-added-short": "{{actor}}이(가) {{target}}에 댓글을 달았습니다.",
+      "settlement-created-short": "{{actor}}이(가) {{settlement}}을(를) 기록했습니다.",
+      "settlement-updated-short": "{{actor}}이(가) {{settlement}}을(를) 업데이트했습니다.",
+      "settlement-deleted-short": "{{actor}}이(가) {{settlement}}을(를) 삭제했습니다.",
+      "generic-short": "{{actor}}이(가) 변경했습니다."
+    }
+  },
+  "group": {
+    "header": {
+      "members_one": "멤버 {{count}}명",
+      "members_other": "멤버 {{count}}명",
+      "expenses_one": "비용 {{count}}건",
+      "expenses_other": "비용 {{count}}건"
+    },
+    "actions": {
+      "addExpense": "비용 추가",
+      "viewExpenses": "비용 보기",
+      "settleUp": "정산하기",
+      "shareGroup": "그룹 공유",
+      "editGroup": "그룹 편집",
+      "leaveGroup": "그룹 나가기"
+    },
+    "share": {
+      "title": "그룹 공유",
+      "subtitle": "이 그룹에 다른 사람을 초대하세요.",
+      "copyLink": "링크 복사",
+      "linkCopied": "링크가 클립보드에 복사되었습니다!"
+    },
+    "edit": {
+      "title": "그룹 편집",
+      "warningIcon": "⚠️"
+    },
+    "leave": {
+      "title": "그룹 나가기",
+      "message": "이 그룹을 정말로 나가시겠습니까?",
+      "confirmButton": "그룹 나가기",
+      "cancelButton": "취소"
+    },
+    "members": {
+      "title": "멤버",
+      "addMember": "멤버 추가",
+      "removeMember": "멤버 제거",
+      "unknownUser": "알 수 없는 사용자",
+      "user": "사용자"
+    },
+    "expenses": {
+      "title": "비용",
+      "noExpenses": "아직 비용 없음",
+      "addFirstExpense": "첫 비용 추가",
+      "unknown": "알 수 없음"
+    },
+    "balance": {
+      "title": "잔액 요약",
+      "settledUp": "모두 정산되었습니다!",
+      "unknown": "알 수 없음"
+    }
+  },
+  "comments": {
+    "section": {
+      "title": "댓글",
+      "noComments": "아직 댓글 없음"
+    },
+    "input": {
+      "placeholder": "댓글 추가...",
+      "ariaLabel": "댓글 텍스트",
+      "sendButton": "보내기",
+      "sendAriaLabel": "댓글 보내기"
+    },
+    "item": {
+      "justNow": "방금",
+      "deleteButton": "댓글 삭제"
+    },
+    "list": {
+      "loading": "댓글 로드 중...",
+      "error": "댓글 로드 실패"
+    },
+    "commentInput": {
+      "placeholder": "댓글 추가...",
+      "tooLong": "댓글이 너무 깁니다.",
+      "addFailed": "댓글 추가 실패",
+      "helpText": "Enter를 눌러 보내고 Shift+Enter를 눌러 줄바꿈합니다."
+    },
+    "commentItem": {
+      "recently": "최근"
+    },
+    "commentsList": {
+      "loading": "댓글 로드 중...",
+      "empty": "아직 댓글 없음",
+      "emptySubtext": "첫 댓글을 달아보세요!",
+      "loadingMore": "로드 중...",
+      "loadMore": "댓글 더 보기"
+    },
+    "commentsSection": {
+      "placeholderGroup": "이 그룹에 댓글 추가...",
+      "placeholderExpense": "이 비용에 댓글 추가..."
+    }
+  },
+  "ui": {
+    "alert": {
+      "dismiss": "경고 해제"
+    },
+    "confirmDialog": {
+      "confirm": "확인",
+      "cancel": "취소"
+    }
+  },
+  "navigation": {
+    "header": {
+      "fallback": "...",
+      "dashboard": "대시보드",
+      "groups": "그룹",
+      "settings": "설정"
+    },
+    "footer": {
+      "copyright": "© {{year}} {{appName}}. All rights reserved.",
+      "privacy": "개인정보 보호정책",
+      "terms": "서비스 약관",
+      "cookies": "쿠키 정책"
+    },
+    "userMenu": {
+      "openUserMenu": "사용자 메뉴 열기",
+      "profile": "프로필",
+      "settings": "설정",
+      "logout": "로그아웃",
+      "help": "도움말"
+    }
+  },
+  "errors": {
+    "generic": "오류가 발생했습니다.",
+    "network": "네트워크 오류가 발생했습니다.",
+    "invalidLink": "잘못된 링크",
+    "notFound": {
+      "page": "페이지를 찾을 수 없습니다",
+      "group": "그룹을 찾을 수 없습니다",
+      "expense": "비용을 찾을 수 없습니다"
+    },
+    "loading": {
+      "cookiePolicy": "쿠키 정책 로드 중 오류",
+      "privacyPolicy": "개인정보 보호정책 로드 중 오류",
+      "terms": "약관 로드 중 오류"
+    },
+    "validation": {
+      "displayNameEmpty": "표시 이름은 비워둘 수 없습니다.",
+      "displayNameTooLong": "표시 이름은 100자 이하여야 합니다.",
+      "passwordTooShort": "새 비밀번호는 12자 이상이어야 합니다.",
+      "passwordsNoMatch": "비밀번호가 일치하지 않습니다",
+      "passwordSameAsCurrent": "새 비밀번호는 현재 비밀번호와 달라야 합니다.",
+      "passwordAndNewRequired": "현재 비밀번호와 새 비밀번호는 필수입니다."
+    }
+  },
+  "seo": {
+    "titleSuffix": " | {{appName}}",
+    "siteName": "{{appName}}"
+  },
+  "expenseForm": {
+    "description": "설명",
+    "amount": "금액*",
+    "whoPaid": "누가 지불했나요?",
+    "splitBetween": "분할 대상",
+    "exactAmounts": "정확한 금액",
+    "percentage": "백분율",
+    "equal": "균등",
+    "exactAmountsInstruction": "각 사람의 정확한 금액을 입력하세요:",
+    "percentageInstruction": "각 사람의 백분율을 입력하세요:",
+    "selectAll": "모두 선택",
+    "saveExpense": "비용 저장",
+    "updateExpense": "비용 업데이트",
+    "cancel": "취소",
+    "errors": {
+      "expenseLocked": "한 명 이상의 참가자가 그룹을 떠났기 때문에 이 비용을 편집할 수 없습니다."
+    }
+  },
+  "settlementForm": {
+    "updatePayment": "결제 업데이트",
+    "recordPayment": "결제 기록",
+    "updateSettlement": "정산 업데이트",
+    "recordSettlement": "정산 기록",
+    "closeModal": "모달 닫기",
+    "whoPaidLabel": "누가 지불했나요?",
+    "whoReceivedPaymentLabel": "누가 결제를 받았나요?",
+    "amountLabel": "금액",
+    "dateLabel": "날짜",
+    "noteLabel": "메모(선택 사항)",
+    "selectPersonPlaceholder": "사람 선택",
+    "amountPlaceholder": "0.00",
+    "notePlaceholder": "예: Venmo, 현금, 은행 송금",
+    "youSuffix": " (나)",
+    "cancelButton": "취소",
+    "updatingButton": "업데이트 중...",
+    "recordingButton": "기록 중...",
+    "paymentSummary": "{{payer}}이(가) {{payee}}에게 {{amount}}을(를) 지불했습니다.",
+    "validation": {
+      "selectPayer": "지불한 사람을 선택하세요.",
+      "selectPayee": "결제를 받은 사람을 선택하세요.",
+      "samePersonError": "지불인과 수취인은 동일할 수 없습니다.",
+      "validAmountRequired": "0보다 큰 유효한 금액을 입력하세요.",
+      "amountTooLarge": "금액은 999,999.99를 초과할 수 없습니다.",
+      "validCurrencyRequired": "유효한 통화를 선택하세요.",
+      "dateRequired": "날짜를 선택하세요.",
+      "dateInFuture": "날짜는 미래일 수 없습니다.",
+      "recordPaymentFailed": "결제 기록 실패"
+    },
+    "errors": {
+      "settlementLocked": "참가자가 그룹을 떠났기 때문에 이 정산을 편집할 수 없습니다."
+    },
+    "warnings": {
+      "noDebt": "{{payer}}은(는) {{payee}}에게 {{currency}}으로 돈을 빚지지 않았습니다. 이 정산은 반대 방향으로 빚을 만듭니다.",
+      "overpayment": "{{payer}}은(는) {{payee}}에게 {{debt}}만 빚졌지만, {{amount}}을(를) 정산하고 있습니다. 이는 반대 방향으로 빚을 만듭니다.",
+      "underpayment": "{{amount}}을(를) 기록하고 있지만, {{payer}}은(는) 그 후에도 {{payee}}에게 {{remaining}}을(를) 빚게 됩니다. 남은 잔액은 계속 업데이트됩니다."
+    }
+  },
+  "settlementHistory": {
+    "noPaymentsYet": "아직 기록된 결제 없음",
+    "today": "오늘",
+    "yesterday": "어제",
+    "editPaymentTooltip": "결제 편집",
+    "cannotEditTooltip": "편집할 수 없음 - 멤버가 그룹을 떠났습니다.",
+    "deletePaymentTooltip": "결제 삭제",
+    "loadMore": "더 보기",
+    "loadMorePayments": "더 보기",
+    "deletePaymentTitle": "결제 삭제",
+    "deletePaymentMessage": "{{payer}}에서 {{payee}}으로의 {{amount}} 결제를 정말 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
+    "deleteButton": "삭제",
+    "cancelButton": "취소",
+    "showAll": "모두 보기",
+    "noPaymentsForYou": "아직 당신과 관련된 결제 없음",
+    "deletedBy": "삭제한 사람"
+  },
+  "balanceSummary": {
+    "loadingBalances": "잔액 로드 중...",
+    "allSettledUp": "모두 정산되었습니다!",
+    "debtArrow": " → ",
+    "showOnlyMyBalances": "내 잔액만 보기",
+    "showAll": "모두 보기",
+    "settleUp": "정산",
+    "settleUpButton": "이 빚에 대한 정산 기록"
+  },
+  "emptyGroupsState": {
+    "title": "아직 그룹이 없습니다",
+    "description": "친구, 가족 또는 룸메이트와 비용을 분할하려면 첫 번째 그룹을 만드세요.",
+    "createFirstGroup": "첫 그룹 만들기",
+    "gettingStartedTitle": "{{appName}} 시작하기:",
+    "step1Title": "1. 그룹 만들기",
+    "step1Description": "친구, 룸메이트 또는 여행 동반자 추가",
+    "step2Title": "2. 비용 추가",
+    "step2Description": "누가 지불했는지, 비용을 어떻게 분할할지 추적",
+    "step3Title": "3. 정산하기",
+    "step3Description": "누가 누구에게 얼마를 빚졌는지 확인하고 잔액 정산"
+  },
+  "groupCard": {
+    "settledUp": "정산됨",
+    "addExpenseTooltip": "{{groupName}}에 비용 추가",
+    "inviteTooltip": "{{groupName}}에 초대",
+    "noRecentActivity": "최근 활동 없음"
+  },
+  "expenseFormHeader": {
+    "addExpense": "비용 추가",
+    "editExpense": "비용 편집",
+    "copyExpense": "비용 복사",
+    "cancel": "취소"
+  },
+  "expenseBasicFields": {
+    "title": "비용 세부 정보",
+    "descriptionLabel": "설명",
+    "descriptionPlaceholder": "이 비용은 무엇을 위한 것이었나요?",
+    "amountLabel": "금액",
+    "labelsLabel": "라벨",
+    "labelsPlaceholder": "라벨 추가...",
+    "dateLabel": "날짜",
+    "timeLabel": "시간",
+    "recentAmounts": "최근 금액:",
+    "today": "오늘",
+    "yesterday": "어제",
+    "thisMorning": "오늘 아침",
+    "lastNight": "어젯밤",
+    "addSpecificTime": "특정 시간 추가"
+  },
+  "suggestedLabels": [
+    "식료품",
+    "테이크아웃",
+    "레스토랑",
+    "커피",
+    "음료",
+    "바",
+    "간식",
+    "아침",
+    "점심",
+    "저녁",
+    "패스트푸드",
+    "배달",
+    "브런치",
+    "주유",
+    "주차",
+    "통행료",
+    "Uber",
+    "Lyft",
+    "택시",
+    "버스",
+    "기차",
+    "지하철",
+    "렌터카",
+    "연료",
+    "항공편",
+    "Airbnb",
+    "호텔",
+    "호스텔",
+    "리조트",
+    "휴가",
+    "자동차 여행",
+    "캠핑",
+    "임대료",
+    "공과금",
+    "전기",
+    "수도",
+    "인터넷",
+    "전화",
+    "보험",
+    "모기지",
+    "HOA",
+    "수리",
+    "유지보수",
+    "청소",
+    "가구",
+    "가전제품",
+    "장식",
+    "정원",
+    "영화",
+    "콘서트",
+    "공연",
+    "축제",
+    "스포츠",
+    "게임",
+    "스트리밍",
+    "티켓",
+    "박물관",
+    "테마파크",
+    "볼링",
+    "미니 골프",
+    "노래방",
+    "오락실",
+    "방탈출",
+    "쇼핑",
+    "옷",
+    "신발",
+    "전자제품",
+    "선물",
+    "책",
+    "장난감",
+    "미용",
+    "스킨케어",
+    "미용실",
+    "스파",
+    "헬스장",
+    "피트니스",
+    "스포츠 장비",
+    "야외 장비",
+    "애완동물 사료",
+    "애완동물 관리",
+    "수의사",
+    "미용",
+    "약",
+    "약국",
+    "의사",
+    "치과 의사",
+    "안과",
+    "치료",
+    "의료",
+    "보육",
+    "베이비시터",
+    "수업료",
+    "학교",
+    "용품",
+    "파티",
+    "생일",
+    "결혼식",
+    "휴일",
+    "기념일",
+    "축하",
+    "장식",
+    "케이터링",
+    "장소",
+    "바베큐",
+    "소풍",
+    "포틀럭",
+    "게임 나이트",
+    "집들이",
+    "업무",
+    "사무실",
+    "용품",
+    "장비",
+    "소프트웨어",
+    "구독",
+    "회원권",
+    "수수료",
+    "팁",
+    "자선",
+    "기부",
+    "ATM",
+    "현금",
+    "기타",
+    "기타",
+    "공유",
+    "분할",
+    "상환",
+    "보증금",
+    "보증금"
+  ],
+  "expensesList": {
+    "title": "비용",
+    "noExpensesYet": "아직 비용이 없습니다. 시작하려면 하나 추가하세요!",
+    "loadMore": "더 보기"
+  },
+  "expenseItem": {
+    "paidBy": "지불한 사람",
+    "deleted": "삭제됨",
+    "deletedBy": "삭제한 사람",
+    "copyExpense": "비용 복사"
+  },
+  "header": {
+    "logoAlt": "{{appName}}",
+    "login": "로그인",
+    "signUp": "가입하기",
+    "goToHome": "홈으로 이동",
+    "goToDashboard": "대시보드로 이동"
+  },
+  "userMenu": {
+    "dashboard": "대시보드",
+    "admin": "관리자",
+    "settings": "설정",
+    "signOut": "로그아웃",
+    "signingOut": "로그아웃 중...",
+    "systemUserBadge": "시스템 사용자",
+    "systemUserTooltip": "이 계정은 자동화되거나 시스템 중심의 작업에 사용됩니다.",
+    "environmentLink": "환경",
+    "diagnosticsLoading": "진단 로드 중...",
+    "diagnosticsError": "진단을 로드할 수 없습니다:",
+    "browser": "브라우저",
+    "browserUsers": "사용자 브라우저"
+  },
+  "languageSelector": {
+    "label": "언어",
+    "description": "선호하는 언어를 선택하세요."
+  },
+  "footer": {
+    "companyName": "{{appName}}",
+    "companyDescription": "친구 및 가족과 쉽게 청구서를 분할하세요.",
+    "linksSection": "링크",
+    "copyright": "© 2025 Pomo Corp ltd. All rights reserved."
+  },
+  "groupHeader": {
+    "membersCount": "멤버 {{count}}명",
+    "membersCount_one": "멤버 {{count}}명",
+    "membersCount_other": "멤버 {{count}}명",
+    "old": "오래됨",
+    "lastUpdated": "마지막 업데이트",
+    "groupSettingsAriaLabel": "그룹 설정",
+    "groupSecurityAriaLabel": "보안 및 권한"
+  },
+  "securitySettingsModal": {
+    "unsavedChanges": "저장되지 않은 변경 사항이 있습니다. 모든 것을 검토한 다음 저장을 눌러 적용하세요.",
+    "presets": {
+      "activeBadge": "활성",
+      "open": {
+        "label": "사전 설정: 공개 협업",
+        "description": "모든 사람이 제한 없이 멤버를 초대하고 비용을 관리할 수 있습니다."
+      },
+      "managed": {
+        "label": "사전 설정: 관리 그룹",
+        "description": "관리자는 초대를 승인하고 비용을 편집하거나 삭제할 수 있는 사람을 제어합니다."
+      }
+    },
+    "custom": {
+      "heading": "사용자 지정 권한",
+      "unsaved": "사용자 지정 권한이 변경되었습니다.",
+      "saveHelper": "변경 사항은 저장을 누를 때까지 대기열에 있습니다."
+    },
+    "success": {
+      "updated": "보안 설정이 업데이트되었습니다."
+    },
+    "permissions": {
+      "expenseEditing": {
+        "label": "비용을 편집할 수 있는 사람",
+        "description": "그룹의 모든 비용을 업데이트할 수 있는 사람을 선택하세요."
+      },
+      "expenseDeletion": {
+        "label": "비용을 삭제할 수 있는 사람",
+        "description": "비용 삭제 기능을 제한합니다."
+      },
+      "memberInvitation": {
+        "label": "멤버를 초대할 수 있는 사람",
+        "description": "초대 링크를 생성할 수 있는 사람을 결정합니다."
+      },
+      "memberApproval": {
+        "label": "새 멤버 승인",
+        "description": "초대를 통해 누군가가 가입하기 전에 관리자 검토를 요구합니다."
+      },
+      "settingsManagement": {
+        "label": "설정을 변경할 수 있는 사람",
+        "description": "관리 설정에 대한 액세스를 제어합니다."
+      },
+      "options": {
+        "anyone": "모든 멤버",
+        "creator-and-admin": "생성자 및 관리자",
+        "admin-only": "관리자만",
+        "automatic": "자동",
+        "admin-required": "관리자 승인 필요"
+      }
+    },
+    "memberRoles": {
+      "heading": "멤버 역할",
+      "admin": "관리자",
+      "member": "멤버",
+      "viewer": "뷰어"
+    },
+    "pendingMembers": {
+      "heading": "대기 중인 멤버",
+      "requested": "승인 대기 중",
+      "empty": "현재 대기 중인 요청이 없습니다.",
+      "approve": "승인",
+      "reject": "거절"
+    },
+    "errors": {
+      "loadPending": "대기 중인 멤버를 로드할 수 없습니다. 다시 시도하세요.",
+      "updatePermissions": "보안 설정을 업데이트할 수 없습니다. 다시 시도하세요.",
+      "pendingAction": "해당 요청을 처리할 수 없습니다. 다시 시도하세요."
+    }
+  },
+  "settingsPage": {
+    "title": "설정 - {{appName}}",
+    "description": "계정 설정을 관리하세요.",
+    "heroLabel": "계정",
+    "accountSettingsHeader": "계정 설정",
+    "accountSettingsSubheader": "프로필 정보 및 비밀번호를 관리하세요.",
+    "profileSummaryTitle": "프로필 개요",
+    "profileSummaryDescription": "이 정보는 다른 멤버가 당신을 알아보는 데 도움이 됩니다.",
+    "profileInformationHeader": "프로필 정보",
+    "profileInformationSubheader": "{{appName}} 전체에서 다른 멤버가 보는 세부 정보를 업데이트하세요.",
+    "emailSectionTitle": "이메일 주소",
+    "emailSectionDescription": "로그인하고 알림을 받는 데 사용하는 이메일을 업데이트하세요.",
+    "currentDisplayName": "현재 표시 이름:",
+    "email": "이메일:",
+    "currentEmailLabel": "현재 이메일",
+    "displayNameLabel": "표시 이름",
+    "displayNamePlaceholder": "표시 이름을 입력하세요",
+    "saveChangesButton": "변경 사항 저장",
+    "passwordHeader": "비밀번호",
+    "passwordIntro": "{{appName}} 계정을 안전하게 유지하려면 강력한 비밀번호를 설정하세요.",
+    "changePasswordButton": "비밀번호 변경",
+    "changeEmailButton": "이메일 변경",
+    "newEmailLabel": "새 이메일",
+    "newEmailPlaceholder": "새 이메일 주소를 입력하세요",
+    "emailPasswordLabel": "비밀번호로 확인",
+    "updateEmailButton": "이메일 업데이트",
+    "currentPasswordLabel": "현재 비밀번호",
+    "newPasswordLabel": "새 비밀번호",
+    "confirmNewPasswordLabel": "새 비밀번호 확인",
+    "updatePasswordButton": "비밀번호 업데이트",
+    "cancelButton": "취소",
+    "passwordRequirementsHeading": "강력한 비밀번호 체크리스트",
+    "passwordRequirements": {
+      "length": "12자 이상 사용하세요.",
+      "mix": "대문자와 소문자, 숫자, 기호를 혼합하세요.",
+      "reuse": "다른 곳에서 사용한 비밀번호는 피하세요."
+    },
+    "profileSummaryRoleLabel": "계정 역할",
+    "profileSummaryRoleFallback": "멤버",
+    "profileSummaryRole": {
+      "system_admin": "관리자",
+      "system_user": "멤버"
+    },
+    "successMessages": {
+      "profileUpdated": "프로필이 성공적으로 업데이트되었습니다.",
+      "passwordChanged": "비밀번호가 성공적으로 변경되었습니다.",
+      "emailChanged": "이메일이 성공적으로 업데이트되었습니다. 새 주소를 확인하세요."
+    },
+    "errorMessages": {
+      "profileUpdateFailed": "프로필 업데이트에 실패했습니다. 다시 시도하세요.",
+      "passwordAndNewRequired": "현재 비밀번호와 새 비밀번호는 필수입니다.",
+      "passwordTooShort": "새 비밀번호는 12자 이상이어야 합니다.",
+      "passwordsNoMatch": "비밀번호가 일치하지 않습니다.",
+      "passwordSameAsCurrent": "새 비밀번호는 현재 비밀번호와 달라야 합니다.",
+      "currentPasswordIncorrect": "현재 비밀번호가 잘못되었습니다.",
+      "passwordChangeFailed": "비밀번호 변경에 실패했습니다. 다시 시도하세요.",
+      "displayNameEmpty": "표시 이름은 비워둘 수 없습니다.",
+      "displayNameTooLong": "표시 이름은 100자 이하여야 합니다.",
+      "emailRequired": "새 이메일은 필수입니다.",
+      "emailInvalid": "유효한 이메일 주소를 입력하세요.",
+      "emailSameAsCurrent": "새 이메일은 현재 이메일과 달라야 합니다.",
+      "emailPasswordRequired": "이 변경을 확인하려면 현재 비밀번호를 입력하세요.",
+      "emailInUse": "해당 이메일은 이미 다른 {{appName}} 계정에 연결되어 있습니다.",
+      "emailChangeFailed": "이메일 변경에 실패했습니다. 다시 시도하세요."
+    },
+    "displayNameHelper": "팀원들이 알아볼 수 있는 실명 또는 닉네임을 사용하세요."
+  },
+  "editGroupModal": {
+    "title": "그룹 편집",
+    "groupNameLabel": "그룹 이름",
+    "groupNamePlaceholder": "예: 아파트 비용, 파리 여행",
+    "descriptionLabel": "설명(선택 사항)",
+    "descriptionPlaceholder": "이 그룹에 대한 세부 정보 추가...",
+    "cancelButton": "취소",
+    "saveChangesButton": "변경 사항 저장",
+    "deleteGroupButton": "그룹 삭제",
+    "validation": {
+      "nameRequired": "그룹 이름은 필수입니다.",
+      "nameTooShort": "그룹 이름은 2자 이상이어야 합니다.",
+      "nameTooLong": "그룹 이름은 50자 미만이어야 합니다.",
+      "updateFailed": "그룹 업데이트 실패"
+    },
+    "success": {
+      "updated": "그룹 세부 정보가 업데이트되었습니다."
+    },
+    "deleteConfirmDialog": {
+      "title": "그룹 영구 삭제",
+      "warningTitle": "⚠️ 영구 삭제 경고",
+      "warningMessage": "그러면 그룹과 관련된 모든 데이터가 영구적으로 삭제됩니다:",
+      "warningList": {
+        "expenses": "모든 비용 및 댓글",
+        "settlements": "모든 정산 및 결제 내역",
+        "members": "모든 그룹 멤버 및 권한",
+        "history": "모든 변경 내역 및 활동"
+      },
+      "cannotUndo": "이 작업은 되돌릴 수 없습니다.",
+      "typeToConfirm": "확인하려면 아래에 그룹 이름 \"{{groupName}}\"을 입력하세요:",
+      "deletingMessage": "그룹 및 모든 관련 데이터 삭제 중...",
+      "deletingText": "삭제 중...",
+      "confirmText": "그룹 영구 삭제",
+      "cancelText": "취소",
+      "deleteFailed": "그룹 삭제 실패"
+    }
+  },
+  "groupActions": {
+    "title": "그룹 작업",
+    "addExpense": "비용 추가",
+    "settleUp": "정산하기",
+    "inviteOthers": "다른 사람 초대",
+    "settings": "설정",
+    "leaveGroup": "그룹 나가기",
+    "archive": "그룹 보관",
+    "unarchive": "그룹 보관 취소"
+  },
+  "groupSettingsModal": {
+    "title": "그룹 설정",
+    "tabs": {
+      "identity": "표시 이름",
+      "general": "일반",
+      "security": "보안 및 권한"
+    },
+    "securityTab": {
+      "successAriaLabel": "성공",
+      "unsavedChangesAriaLabel": "저장되지 않은 변경 사항"
+    }
+  },
+  "groupSettings": {
+    "currencySettings": {
+      "title": "통화 설정",
+      "description": "이 그룹의 비용에 사용할 수 있는 통화를 제한합니다.",
+      "enableToggle": "이 그룹의 통화 제한",
+      "enabledDescription": "비용에는 선택한 통화만 사용할 수 있습니다.",
+      "permittedLabel": "허용된 통화",
+      "defaultLabel": "새 비용의 기본 통화",
+      "addCurrency": "통화 추가",
+      "searchPlaceholder": "통화 검색...",
+      "noCurrenciesSelected": "하나 이상의 통화를 선택하세요.",
+      "defaultNotInPermitted": "기본값은 허용된 통화여야 합니다.",
+      "allCurrenciesSelected": "모든 통화 선택됨",
+      "saveButton": "통화 설정 저장",
+      "saveSuccess": "통화 설정이 성공적으로 업데이트되었습니다.",
+      "saveFailed": "통화 설정 저장에 실패했습니다. 다시 시도하세요."
+    }
+  },
+  "groupDisplayNameSettings": {
+    "title": "그룹 표시 이름",
+    "description": "이 그룹에서 다른 멤버에게 어떻게 보일지 선택하세요.",
+    "inputLabel": "이 그룹의 표시 이름",
+    "inputPlaceholder": "고유한 표시 이름을 입력하세요.",
+    "save": "표시 이름 저장",
+    "saving": "저장 중...",
+    "success": "그룹 표시 이름이 업데이트되었습니다.",
+    "errors": {
+      "required": "표시 이름을 입력하세요.",
+      "tooLong": "표시 이름은 50자 이하여야 합니다.",
+      "notChanged": "저장하기 전에 다른 표시 이름을 입력하세요.",
+      "taken": "해당 이름은 이 그룹에서 이미 사용 중입니다.",
+      "unknown": "표시 이름 업데이트에 실패했습니다. 다시 시도하세요."
+    }
+  },
+  "membersList": {
+    "title": "멤버",
+    "admin": "관리자",
+    "member": "멤버",
+    "viewer": "뷰어",
+    "thisMember": "이 멤버",
+    "leaveGroup": "그룹 나가기",
+    "inviteOthers": "다른 사람 초대",
+    "inviteOthersAriaLabel": "다른 사람 초대",
+    "leaveGroupAriaLabel": "그룹 나가기",
+    "removeMemberAriaLabel": "{{name}} 제거",
+    "leaveGroupDialog": {
+      "title": "그룹을 나가시겠습니까?",
+      "messageWithBalance": "이 그룹에 미결제 잔액이 있습니다. 나가기 전에 정산하세요.",
+      "messageConfirm": "이 그룹을 정말로 나가시겠습니까? 다시 가입하려면 초대가 필요합니다.",
+      "confirmText": "그룹 나가기",
+      "cancelText": "취소"
+    },
+    "removeMemberDialog": {
+      "title": "멤버를 제거하시겠습니까?",
+      "messageWithBalance": "{{name}}에게 이 그룹에 미결제 잔액이 있습니다. 제거하기 전에 정산하세요.",
+      "messageConfirm": "정말로 {{name}}을(를) 그룹에서 제거하시겠습니까?",
+      "confirmText": "제거",
+      "cancelText": "취소"
+    }
+  },
+  "shareGroupModal": {
+    "title": "다른 사람 초대",
+    "description": "이 그룹에 가입하려는 사람과 이 링크를 공유하세요.",
+    "closeButtonAriaLabel": "모달 닫기",
+    "copyLinkTitle": "링크 복사",
+    "copyLinkAriaLabel": "그룹 초대 링크 복사",
+    "qrCodeDescription": "또는 이 코드를 스캔하세요.",
+    "expirationLabel": "초대 링크 만료 시간...",
+    "expirationOptions": {
+      "15m": "15분",
+      "1h": "1시간",
+      "1d": "1일",
+      "5d": "5일"
+    },
+    "expiresAt": "{{date}}에 만료됨",
+    "generateNew": "새로 생성",
+    "linkCopied": "링크가 클립보드에 복사되었습니다.",
+    "errors": {
+      "generateLinkFailed": "공유 링크 생성에 실패했습니다. 다시 시도하세요."
+    }
+  },
+  "errorState": {
+    "defaultTitle": "문제가 발생했습니다.",
+    "unexpectedError": "예상치 못한 오류가 발생했습니다.",
+    "tryAgainButton": "다시 시도"
+  },
+  "errorBoundary": {
+    "title": "문제가 발생했습니다.",
+    "unexpectedError": "예상치 못한 오류가 발생했습니다."
+  },
+  "notFoundPage": {
+    "title": "404",
+    "pageNotFound": "페이지를 찾을 수 없습니다",
+    "pageNotFoundDescription": "찾고 있는 페이지가 존재하지 않습니다.",
+    "groupNotFound": "그룹을 찾을 수 없거나 액세스 권한이 없습니다.",
+    "groupNotFoundDescription": "찾고 있는 그룹이 없거나 액세스하려면 초대를 받아야 합니다.",
+    "goToDashboard": "대시보드로 이동",
+    "goHome": "홈으로 이동"
+  },
+  "loadingState": {
+    "defaultMessage": "로드 중..."
+  },
+  "joinGroupPage": {
+    "title": "그룹 가입",
+    "loadingGroup": "그룹 정보 로드 중...",
+    "alreadyMember": "이미 이 그룹의 멤버입니다.",
+    "alreadyMemberDescription": "그룹으로 바로 이동하여 비용 및 잔액을 볼 수 있습니다.",
+    "joinGroup": "그룹 가입",
+    "goToGroup": "그룹으로 이동",
+    "joining": "가입 중...",
+    "cancel": "취소",
+    "welcome": "{{groupName}}에 오신 것을 환영합니다!",
+    "joinSuccess": "그룹에 성공적으로 가입했습니다. 그룹 페이지로 리디렉션됩니다...",
+    "joinedTitle": "{{groupName}}에 가입함 - {{appName}}",
+    "backToDashboard": "대시보드로 돌아가기",
+    "pendingApprovalTitle": "승인 대기 중",
+    "pendingApprovalMessage": "{{groupName}} 가입 요청이 그룹 관리자에게 전송되었습니다.",
+    "pendingApprovalHelp": "승인되면 알려드리겠습니다. 지금은 대시보드로 돌아갈 수 있습니다.",
+    "errors": {
+      "invalidLink": "이 초대 링크가 잘못되었거나 만료되었습니다.",
+      "groupNotFound": "이 그룹은 더 이상 존재하지 않습니다.",
+      "alreadyMember": "이미 이 그룹의 멤버입니다.",
+      "joinFailed": "그룹 가입 실패",
+      "loadFailed": "그룹 정보 로드 실패"
+    },
+    "displayName": {
+      "title": "표시 이름 선택",
+      "description": "\"{{groupName}}\"에서 다른 멤버에게 표시되는 방식입니다.",
+      "label": "표시 이름",
+      "placeholder": "다른 멤버에게 이름을 어떻게 표시할까요?",
+      "help": "이 그룹의 고유한 이름을 선택하세요. 다른 멤버가 당신을 식별하는 데 사용합니다.",
+      "errors": {
+        "required": "표시 이름을 입력하세요.",
+        "taken": "해당 표시 이름은 이 그룹에서 이미 사용 중입니다.",
+        "invalid": "표시 이름은 문자, 숫자, 공백, 하이픈, 밑줄 및 마침표만 사용할 수 있습니다."
+      }
+    }
+  },
+  "dashboardComponents": {
+    "groupsList": {
+      "loading": "그룹 로드 중...",
+      "loadFailed": "그룹 로드 실패",
+      "tryAgain": "다시 시도",
+      "creating": "그룹 생성 중...",
+      "noArchivedTitle": "보관된 그룹 없음",
+      "noArchivedDescription": "보관한 그룹이 여기에 표시됩니다. 대시보드에서 숨기려면 활성 탭에서 그룹을 보관하세요.",
+      "groupsListAriaLabel": "내 그룹"
+    }
+  },
+  "expenseComponents": {
+    "expenseFormActions": {
+      "cancel": "취소",
+      "updating": "업데이트 중...",
+      "saving": "저장 중...",
+      "update": "비용 업데이트",
+      "save": "비용 저장"
+    },
+    "participantSelector": {
+      "label": "분할 대상",
+      "requiredIndicator": "*",
+      "selectAll": "모두 선택",
+      "selectNone": "선택 안 함",
+      "payerSuffix": "(지불인)"
+    },
+    "payerSelector": {
+      "label": "누가 지불했나요?",
+      "requiredIndicator": "*",
+      "selectPayer": "지불한 사람 선택",
+      "searchPlaceholder": "멤버 검색...",
+      "membersList": "그룹 멤버",
+      "noResults": "검색과 일치하는 멤버 없음"
+    },
+    "splitAmountInputs": {
+      "exactAmountsInstruction": "각 사람의 정확한 금액을 입력하세요:",
+      "unknown": "알 수 없음",
+      "dollarSign": "₩",
+      "total": "합계: ",
+      "percentageInstruction": "각 사람의 백분율을 입력하세요:",
+      "percentSign": "%",
+      "equalInstruction": "각 사람이 지불하는 금액:"
+    },
+    "splitTypeSelector": {
+      "label": "분할 방법",
+      "equal": "균등",
+      "exactAmounts": "정확한 금액",
+      "percentage": "백분율"
+    },
+    "expenseActions": {
+      "edit": "편집",
+      "copyExpense": "비용 복사",
+      "copy": "복사",
+      "share": "공유",
+      "delete": "삭제",
+      "deleteTitle": "비용 삭제",
+      "deleteConfirm": "\"{{expenseName}}\"을(를) 정말 삭제하시겠습니까? 이 작업은 되돌릴 수 없으며 그룹 잔액에 영향을 미칩니다.",
+      "deleteButton": "삭제",
+      "cancel": "취소",
+      "deleteFailed": "비용 삭제 실패",
+      "cannotEditTooltip": "편집할 수 없음 - 참가자가 그룹을 떠났습니다."
+    },
+    "expenseFormModal": {
+      "addExpense": "비용 추가",
+      "editExpense": "비용 편집",
+      "copyExpense": "비용 복사",
+      "closeModal": "모달 닫기",
+      "cancel": "취소",
+      "saveExpense": "비용 저장",
+      "updateExpense": "비용 업데이트",
+      "createCopy": "복사본 만들기",
+      "saving": "저장 중...",
+      "updating": "업데이트 중...",
+      "close": "닫기"
+    },
+    "expenseDetailModal": {
+      "title": "비용 세부 정보",
+      "closeModal": "모달 닫기",
+      "close": "닫기",
+      "edit": "편집",
+      "copy": "복사",
+      "share": "공유",
+      "delete": "삭제",
+      "paidBy": "지불한 사람",
+      "date": "날짜",
+      "labels": "라벨",
+      "receipt": "영수증",
+      "viewReceipt": "영수증 보기",
+      "noReceipt": "영수증 없음",
+      "splitDetails": "분할 세부 정보",
+      "comments": "댓글",
+      "loadingExpense": "비용 세부 정보 로드 중...",
+      "expenseNotFound": "비용을 찾을 수 없음",
+      "failedToLoad": "비용 세부 정보 로드 실패",
+      "shareTitle": "비용: {{description}}",
+      "shareText": "이 비용 확인: {{description}} - {{amount}}"
+    },
+    "splitBreakdown": {
+      "splitBetween": "분할 대상 ",
+      "person": " 명",
+      "people": " 명",
+      "splitEqually": "균등 분할",
+      "exactAmounts": "정확한 금액",
+      "byPercentage": "백분율 기준",
+      "customSplit": "사용자 지정 분할",
+      "unknown": "알 수 없음",
+      "paid": "지불함",
+      "owes": "빚짐 ",
+      "total": "합계: "
+    }
+  },
+  "joinGroupComponents": {
+    "groupPreview": {
+      "invitationMessage": "이 그룹에 초대되었습니다."
+    },
+    "joinButton": {
+      "joining": "가입 중...",
+      "joinGroup": "그룹 가입"
+    },
+    "membersPreview": {
+      "groupSize": "그룹 크기"
+    }
+  },
+  "policyComponents": {
+    "policyAcceptanceModal": {
+      "title": "업데이트된 정책 수락",
+      "policyLabel": "정책 ",
+      "of": " / ",
+      "colon": ": ",
+      "close": "닫기",
+      "progress": "진행률",
+      "accepted": " 수락됨",
+      "acceptedIcon": "✓ 수락됨",
+      "acceptedAriaLabel": "수락됨",
+      "loadingContent": "정책 콘텐츠 로드 중...",
+      "acceptanceRequired": "정책 수락 필요",
+      "acceptanceInstructions": "{{appName}}을(를) 계속 사용하려면 위의 정책을 읽고 \"수락\"을 클릭하세요.",
+      "acceptCheckbox": "이 ",
+      "previous": "이전",
+      "next": "다음",
+      "policiesAccepted": " 개의 정책이 수락되었습니다.",
+      "accepting": "수락 중...",
+      "acceptAll": "모두 수락하고 계속",
+      "closeAriaLabel": "닫기",
+      "errorTitle": "오류"
+    },
+    "policyRenderer": {
+      "bulletPoint": "• "
+    }
+  },
+  "uiComponents": {
+    "alert": {
+      "dismiss": "경고 해제"
+    },
+    "avatar": {
+      "unknown": "알 수 없음"
+    },
+    "button": {
+      "default": "버튼"
+    },
+    "multiLabelInput": {
+      "placeholder": "라벨 추가...",
+      "removeLabel": "{{label}} 제거",
+      "maxReached": "최대 {{max}}개 라벨",
+      "recent": "최근",
+      "hint": "{{count}}/{{max}} 라벨"
+    },
+    "confirmDialog": {
+      "confirm": "확인",
+      "cancel": "취소"
+    },
+    "currencyAmountInput": {
+      "selectCurrency": "통화 선택",
+      "searchPlaceholder": "기호, 코드 또는 국가로 검색...",
+      "searchAriaLabel": "통화 검색",
+      "loading": "통화 로드 중...",
+      "noCurrencies": "통화를 찾을 수 없음",
+      "recent": "최근",
+      "common": "일반",
+      "allCurrencies": "모든 통화",
+      "placeholder": "0.00",
+      "requiredIndicator": "*"
+    },
+    "currencySelector": {
+      "placeholder": "통화 선택...",
+      "searchPlaceholder": "통화 검색",
+      "loading": "통화 로드 중...",
+      "noCurrencies": "통화를 찾을 수 없음",
+      "recent": "최근",
+      "common": "일반",
+      "allCurrencies": "모든 통화"
+    },
+    "input": {
+      "requiredIndicator": "*"
+    },
+    "loadingSpinner": {
+      "loading": "로드 중..."
+    },
+    "timeInput": {
+      "at": " ",
+      "placeholder": "시간 입력(예: 오후 2:30)",
+      "requiredIndicator": "*"
+    },
+    "form": {
+      "submissionError": "양식 제출 오류"
+    }
+  },
+  "pages": {
+    "addExpensePage": {
+      "errorTitle": "오류 - {{appName}}",
+      "error": "오류",
+      "noGroupMessage": "그룹이 지정되지 않았습니다. 그룹 없이 비용을 추가할 수 없습니다.",
+      "backToDashboard": "대시보드로 돌아가기",
+      "loadingTitle": "로드 중... - {{appName}}",
+      "groupNotFound": "그룹을 찾을 수 없음",
+      "groupNotFoundMessage": "비용을 추가하려는 그룹이 없거나 액세스할 수 없습니다.",
+      "backToGroup": "그룹으로 돌아가기",
+      "copyExpenseTitle": "비용 복사",
+      "editExpenseTitle": "비용 편집",
+      "addExpenseTitle": "비용 추가",
+      "copyExpenseAction": "비용 복사",
+      "editExpenseAction": "비용 편집",
+      "addExpenseAction": "새 비용 추가",
+      "titleSuffix": " - {{appName}}",
+      "titleIn": " "
+    },
+    "expenseDetailPage": {
+      "missingGroupId": "그룹 ID가 없습니다.",
+      "missingExpenseId": "비용 ID가 없습니다.",
+      "failedToLoad": "비용 로드 실패",
+      "cannotEdit": "이 비용은 편집할 수 없습니다.",
+      "containsDepartedMembers": "한 명 이상의 참가자가 그룹을 떠났습니다. 기록은 읽기 전용으로 보존됩니다.",
+      "expenseLabel": "비용: ",
+      "checkOutExpense": "이 비용 확인: ",
+      "shareApiFailed": "공유 API 실패, 클립보드로 대체",
+      "failedToCopy": "클립보드에 복사 실패",
+      "error": "오류",
+      "expenseNotFound": "비용을 찾을 수 없음",
+      "backToGroup": "그룹으로 돌아가기",
+      "titleSeparator": " - ",
+      "expenseFor": " ",
+      "backButton": "← 뒤로",
+      "date": "날짜",
+      "ago": " 전",
+      "labels": "라벨",
+      "paidBy": "지불한 사람",
+      "unknown": "알 수 없음",
+      "discussion": "토론",
+      "receipt": "영수증",
+      "clickToViewFullSize": "클릭하여 전체 크기로 보기",
+      "added": "추가됨 ",
+      "lastUpdated": "마지막 업데이트 ",
+      "receiptViewer": "영수증 뷰어",
+      "closeReceiptViewer": "영수증 뷰어 닫기",
+      "receiptFullSize": "영수증 - 전체 크기",
+      "summarySection": "비용 요약",
+      "splitSection": "분할 세부 정보",
+      "metadataSection": "비용 메타데이터"
+    },
+    "groupDetailPage": {
+      "errorLoadingGroup": "그룹 로드 중 오류",
+      "backToDashboard": "대시보드로 돌아가기",
+      "balances": "잔액",
+      "expenses": "비용",
+      "comments": "댓글",
+      "activity": "활동",
+      "paymentHistory": "정산",
+      "toggleSection": "{{section}} 섹션 전환",
+      "titleSuffix": " - {{appName}}",
+      "manageExpensesFor": " "
+    },
+    "landingPage": {
+      "title": "간편한 청구서 분할 - {{appName}}",
+      "description": "어색한 IOU와 복잡한 계산에 작별을 고하세요. 저희 앱은 친구, 가족, 룸메이트와 비용을 쉽고 공정하며 투명하게 공유할 수 있게 해줍니다. 광고나 제한 없이 100% 무료입니다.",
+      "disclaimer": "이것은 비용 추적 도구이며 결제 도구가 아닙니다.",
+      "accountNote": " 비용을 저장하고 관리하려면 무료 계정이 필요합니다.",
+      "privacyNote": "민감한 금융 정보는 절대 묻지 않습니다.",
+      "transparencyNotice": {
+        "bold": "이것은 비용 추적 도구이며 결제 도구가 아닙니다.",
+        "text": "비용을 저장하고 관리하려면 무료 계정이 필요합니다. 민감한 금융 정보는 절대 묻지 않습니다."
+      }
+    },
+    "registerPage": {
+      "requiredIndicator": "*"
+    },
+    "resetPasswordPage": {
+      "failedToSendReset": "초기화 이메일 전송 실패",
+      "checkYourEmail": "이메일을 확인하세요",
+      "resetInstructionsSent": "비밀번호 초기화 지침이 이메일로 전송되었습니다.",
+      "emailSentSuccessfully": "이메일이 성공적으로 전송되었습니다.",
+      "sentInstructionsTo": "비밀번호 초기화 지침을 다음 주소로 보냈습니다:",
+      "checkSpamFolder": "찾을 수 없나요? 스팸 또는 정크 폴더를 확인하세요.",
+      "whatsNext": "다음 단계는?",
+      "checkEmailInbox": "• 이메일 받은편지함(및 스팸 폴더) 확인",
+      "clickResetLink": "• 이메일의 초기화 링크 클릭",
+      "createNewPassword": "• 새 비밀번호 만들기",
+      "signInWithNewPassword": "• 새 비밀번호로 로그인",
+      "sendToDifferentEmail": "다른 이메일로 보내기",
+      "backToSignIn": "← 로그인으로 돌아가기",
+      "resetPassword": "비밀번호 초기화",
+      "enterEmailForReset": "비밀번호 초기화 지침을 받으려면 이메일 주소를 입력하세요.",
+      "enterEmailDescription": "계정과 연결된 이메일 주소를 입력하면 비밀번호를 초기화할 수 있는 링크를 보내드립니다.",
+      "emailPlaceholder": "이메일 주소를 입력하세요",
+      "sendResetInstructions": "초기화 지침 보내기"
+    }
+  },
+  "authLayout": {
+    "titleSuffix": " - {{appName}}"
+  },
+  "authProvider": {
+    "authenticationError": "인증 오류",
+    "retry": "다시 시도"
+  },
+  "usersBrowser": {
+    "errors": {
+      "auth": "Firebase Auth 사용자 로드 실패"
+    }
+  },
+  "validation": {
+    "required": "{{field}}은(는) 필수입니다."
+  },
+  "roles": {
+    "systemAdmin": {
+      "label": "시스템 관리자",
+      "description": "전체 시스템 액세스 및 제어"
+    },
+    "tenantAdmin": {
+      "label": "테넌트 관리자",
+      "description": "테넌트 설정 및 구성을 관리할 수 있습니다."
+    },
+    "regular": {
+      "label": "일반 사용자",
+      "description": "관리 권한이 없는 표준 사용자"
+    }
+  },
+  "admin": {
+    "loading": "관리자 로드 중...",
+    "tabs": {
+      "tenants": "테넌트",
+      "diagnostics": "진단",
+      "tenantConfig": "테넌트 구성",
+      "users": "사용자",
+      "ariaLabel": "관리자 탭"
+    },
+    "tenantConfig": {
+      "loading": "테넌트 구성 로드 중...",
+      "overview": {
+        "title": "테넌트 개요",
+        "tenantId": "테넌트 ID",
+        "appName": "앱 이름",
+        "lastUpdated": "마지막 업데이트"
+      },
+      "theme": {
+        "title": "테마 아티팩트",
+        "description": "해시 + CSS 제공 도우미",
+        "copyLink": "테마 링크 복사",
+        "forceReload": "테마 강제 새로고침",
+        "activeHash": "활성 해시",
+        "notPublished": "게시되지 않음",
+        "generatedAt": "생성 시점",
+        "copySuccess": "테마 링크가 클립보드에 복사되었습니다.",
+        "copyError": "테마 링크를 복사할 수 없습니다. 수동으로 복사하세요."
+      },
+      "brandingTokens": {
+        "title": "브랜딩 토큰"
+      },
+      "computedCss": {
+        "title": "계산된 CSS 변수"
+      }
+    },
+    "tenants": {
+      "pageTitle": "테넌트 관리",
+      "pageDescription": "모든 테넌트 구성 보기 및 관리",
+      "summary": {
+        "total": "총 테넌트:"
+      },
+      "actions": {
+        "create": "새 테넌트 만들기",
+        "switchTenant": "클릭하여 이 테넌트로 전환"
+      },
+      "status": {
+        "active": "활성",
+        "default": "기본값"
+      },
+      "details": {
+        "tenantId": "테넌트 ID:",
+        "primaryDomain": "기본 도메인:",
+        "allDomains": "모든 도메인:",
+        "domains": "도메인:"
+      },
+      "emptyState": "테넌트를 찾을 수 없음",
+      "errors": {
+        "load": "테넌트 로드 실패"
+      }
+    },
+    "diagnostics": {
+      "loading": "환경 진단 로드 중...",
+      "errors": {
+        "fetch": "환경 데이터 가져오기 실패",
+        "unknown": "알 수 없는 오류 발생"
+      },
+      "serverStatus": {
+        "title": "서버 상태",
+        "environment": "환경",
+        "nodeVersion": "노드 버전",
+        "uptime": "가동 시간",
+        "startedAt": "시작 시점"
+      },
+      "buildInfo": {
+        "title": "빌드 정보",
+        "version": "버전",
+        "buildDate": "빌드 날짜",
+        "buildTimestamp": "빌드 타임스탬프"
+      },
+      "memory": {
+        "title": "메모리 사용량",
+        "rss": "RSS (상주 집합 크기)",
+        "heapUsed": "사용된 힙",
+        "heapTotal": "총 힙",
+        "heapAvailable": "사용 가능한 힙",
+        "external": "외부 메모리",
+        "arrayBuffers": "배열 버퍼",
+        "heapLimit": "힙 제한"
+      },
+      "heap": {
+        "title": "V8 힙 공간",
+        "size": "크기:",
+        "used": "사용됨:",
+        "available": "사용 가능:"
+      },
+      "envVars": {
+        "title": "환경 변수",
+        "variable": "변수",
+        "value": "값"
+      },
+      "filesystem": {
+        "title": "파일 시스템",
+        "cwd": "작업 디렉토리"
+      }
+    },
+    "users": {
+      "description": "사용자 계정, 역할 및 권한 관리",
+      "loading": "사용자 로드 중...",
+      "emptyState": "사용자를 찾을 수 없음",
+      "search": {
+        "label": "이메일 또는 UID로 검색",
+        "placeholder": "이메일 또는 UID 입력..."
+      },
+      "table": {
+        "email": "이메일",
+        "displayName": "표시 이름",
+        "role": "역할",
+        "status": "상태",
+        "created": "생성됨",
+        "lastSignIn": "마지막 로그인",
+        "actions": "작업"
+      },
+      "actions": {
+        "editUser": "사용자 편집"
+      },
+      "confirmations": {
+        "disableUser": "이 사용자 계정을 정말로 {{action}}하시겠습니까?"
+      },
+      "success": {
+        "userToggled": "사용자 계정이 성공적으로 {{action}}되었습니다.",
+        "roleUpdated": "사용자 역할이 {{role}}(으)로 업데이트되었습니다.",
+        "roleUnchanged": "역할 변경 없음"
+      },
+      "errors": {
+        "selfDisable": "자신의 계정을 비활성화할 수 없습니다.",
+        "selfRoleChange": "자신의 역할을 변경할 수 없습니다.",
+        "disableUser": "사용자 계정 {{action}} 실패",
+        "roleUpdate": "사용자 역할 업데이트 실패",
+        "invalidSelection": "잘못된 선택"
+      },
+      "rolePrompt": {
+        "title": "현재 역할: {{currentRole}}\n\n새 역할 선택:",
+        "regularUser": "일반 사용자 (역할 없음)"
+      }
+    },
+    "userEditor": {
+      "title": "사용자 편집",
+      "tabs": {
+        "ariaLabel": "사용자 편집기 탭",
+        "profile": "프로필",
+        "role": "역할",
+        "firebaseAuth": "Firebase Auth",
+        "firestore": "Firestore"
+      },
+      "profile": {
+        "description": "사용자의 표시 이름 및 이메일 주소 편집",
+        "displayName": "표시 이름",
+        "displayNamePlaceholder": "표시 이름 입력",
+        "email": "이메일 주소",
+        "emailPlaceholder": "이메일 주소 입력"
+      },
+      "role": {
+        "description": "이 사용자의 역할 선택"
+      },
+      "loading": "로드 중...",
+      "noDataAvailable": "데이터 없음",
+      "errors": {
+        "noChanges": "저장할 변경 사항 없음",
+        "selfRoleChange": "자신의 역할을 변경할 수 없음",
+        "selfRoleChangeWarning": "자신의 역할을 변경할 수 없음",
+        "profileUpdate": "프로필 업데이트 실패",
+        "roleUpdate": "역할 업데이트 실패",
+        "loadData": "데이터 로드 실패"
+      },
+      "success": {
+        "profileUpdated": "프로필이 성공적으로 업데이트되었습니다.",
+        "roleUpdated": "역할이 성공적으로 업데이트되었습니다."
+      }
+    },
+    "tenantEditor": {
+      "titleCreate": "새 테넌트 만들기",
+      "titleEdit": "테넌트 편집",
+      "descriptionCreate": "브랜딩 및 도메인으로 새 테넌트 구성",
+      "descriptionEdit": "테넌트 구성 업데이트",
+      "modeToggle": {
+        "label": "편집기 모드",
+        "basic": "기본",
+        "advanced": "고급"
+      },
+      "modeHint": {
+        "basic": "필수 설정 표시",
+        "advanced": "모든 설정 표시",
+        "moreColors": "전체 색상 팔레트 제어를 위해 고급 모드로 전환"
+      },
+      "derivation": {
+        "themeMode": {
+          "label": "테마 모드",
+          "light": "밝게",
+          "medium": "중간",
+          "dark": "어둡게"
+        },
+        "style": {
+          "label": "스타일",
+          "balanced": "균형",
+          "bold": "굵게",
+          "soft": "부드럽게",
+          "vibrant": "생생하게",
+          "elegant": "우아하게"
+        },
+        "intensity": {
+          "label": "강도",
+          "subtle": "미묘하게",
+          "strong": "강하게"
+        }
+      },
+      "derivationWand": {
+        "tooltip": "팔레트에서 색상 파생",
+        "tooltipDisabled": "먼저 기본, 보조 및 강조 색상을 설정하세요.",
+        "popoverTitle": "색상 파생",
+        "derive": "파생 적용"
+      },
+      "sections": {
+        "gettingStarted": {
+          "title": "시작하기",
+          "description": "테넌트 초기화 방법 선택"
+        },
+        "basicInfo": {
+          "title": "기본 정보",
+          "description": "테넌트 ID, 이름 및 도메인"
+        },
+        "assets": {
+          "title": "자산",
+          "description": "로고 및 파비콘 이미지"
+        },
+        "paletteColors": {
+          "title": "팔레트 색상",
+          "description": "핵심 브랜드 색상"
+        },
+        "brandColors": {
+          "title": "브랜드 색상",
+          "description": "기본 브랜드 색상을 설정한 다음 전체 색상 시스템을 파생시킵니다."
+        },
+        "surfaceColors": {
+          "title": "표면 색상",
+          "description": "배경 및 컨테이너 색상"
+        },
+        "textColors": {
+          "title": "텍스트 색상",
+          "description": "타이포그래피 색상"
+        },
+        "interactiveColors": {
+          "title": "대화형 색상",
+          "description": "버튼 및 링크 색상"
+        },
+        "borderColors": {
+          "title": "테두리 색상",
+          "description": "테두리 및 구분선 색상"
+        },
+        "statusColors": {
+          "title": "상태 색상",
+          "description": "피드백 및 경고 색상"
+        },
+        "typography": {
+          "title": "타이포그래피",
+          "description": "글꼴 모음, 크기 및 두께"
+        },
+        "spacing": {
+          "title": "간격",
+          "description": "간격 배율 및 의미 체계 간격"
+        },
+        "radii": {
+          "title": "테두리 반경",
+          "description": "모서리 둥글림 값"
+        },
+        "shadows": {
+          "title": "그림자",
+          "description": "상자 그림자 정의"
+        },
+        "legal": {
+          "title": "법률",
+          "description": "회사 정보 및 법적 링크"
+        },
+        "motion": {
+          "title": "모션",
+          "description": "애니메이션 지속 시간 및 완화"
+        },
+        "featureFlags": {
+          "title": "기능 플래그",
+          "description": "기능 활성화 또는 비활성화"
+        },
+        "marketing": {
+          "title": "마케팅 기능",
+          "description": "마케팅 페이지 및 콘텐츠 전환"
+        },
+        "advanced": {
+          "title": "고급",
+          "description": "선택적 시각 효과"
+        }
+      },
+      "fields": {
+        "tenantId": "테넌트 ID",
+        "appName": "앱 이름",
+        "domains": "도메인",
+        "logoUrl": "로고 URL",
+        "faviconUrl": "파비콘 URL",
+        "primaryColor": "기본 색상",
+        "primaryVariantColor": "기본 변형",
+        "secondaryColor": "보조 색상",
+        "secondaryVariantColor": "보조 변형",
+        "accentColor": "강조 색상",
+        "neutralColor": "중립 색상",
+        "neutralVariantColor": "중립 변형",
+        "successColor": "성공 색상",
+        "warningColor": "경고 색상",
+        "dangerColor": "위험 색상",
+        "infoColor": "정보 색상"
+      },
+      "placeholders": {
+        "tenantId": "my-tenant-id",
+        "appName": "내 비용 앱",
+        "domain": "새 도메인 추가...",
+        "selectTenant": "복사할 테넌트 선택..."
+      },
+      "creationMode": {
+        "empty": "빈 상태에서 시작",
+        "copy": "기존 테넌트에서 복사",
+        "emptyDescription": "모든 필수 필드를 채워야 합니다. 색상은 #RRGGBB 형식이어야 합니다.",
+        "copyDescription": "모든 테마 설정이 {{tenant}}에서 복사됩니다. 고유한 테넌트 ID, 앱 이름 및 도메인을 설정해야 합니다."
+      },
+      "validation": {
+        "tenantIdFormat": "잘못된 테넌트 ID: 소문자, 숫자 및 하이픈만 포함해야 합니다.",
+        "domainRequired": "하나 이상의 도메인이 필요합니다.",
+        "invalidDomain": "잘못된 도메인: {{domain}}",
+        "saveTenantFirst": "이미지를 업로드하기 전에 먼저 테넌트를 저장하세요.",
+        "tenantIdRequiredForPublish": "게시하려면 테넌트 ID가 필요합니다."
+      },
+      "hints": {
+        "tenantIdReadonly": "테넌트 ID는 변경할 수 없습니다.",
+        "colorFormat": "#RRGGBB"
+      },
+      "toggles": {
+        "showMarketingContent": {
+          "label": "마케팅 콘텐츠 표시",
+          "description": "공개 페이지에 마케팅 콘텐츠 표시"
+        },
+        "showPricingPage": {
+          "label": "가격 페이지 표시",
+          "description": "가격 정보 표시"
+        },
+        "showAppNameInHeader": {
+          "label": "헤더에 앱 이름 표시",
+          "description": "로고 옆에 앱 이름 표시"
+        },
+        "enableParallax": {
+          "label": "시차 활성화",
+          "description": "시차 스크롤 효과 활성화"
+        },
+        "enableMagneticHover": {
+          "label": "자기 호버 활성화",
+          "description": "버튼에 자기 호버 효과 활성화"
+        },
+        "enableScrollReveal": {
+          "label": "스크롤 표시 활성화",
+          "description": "스크롤 트리거 애니메이션 활성화"
+        }
+      },
+      "loading": {
+        "tenants": "테넌트 로드 중..."
+      },
+      "empty": {
+        "noTenants": "복사할 기존 테넌트가 없습니다."
+      },
+      "errors": {
+        "invalidPayload": "잘못된 테넌트 데이터. 모든 필드를 확인하고 다시 시도하세요.",
+        "permissionDenied": "테넌트 설정을 수정할 권한이 없습니다.",
+        "duplicateDomain": "하나 이상의 도메인이 이미 다른 테넌트에 할당되었습니다.",
+        "saveFailed": "테넌트 저장에 실패했습니다. 다시 시도하세요.",
+        "tenantNotFound": "테넌트가 없습니다. 게시하기 전에 저장하세요.",
+        "tokensMissing": "테넌트에 브랜딩 토큰이 없습니다. 브랜딩을 구성하고 먼저 저장하세요.",
+        "publishFailed": "테마 게시에 실패했습니다. 다시 시도하세요.",
+        "uploadFailed": "{{type}} 업로드 실패"
+      },
+      "success": {
+        "createdAndPublished": "테넌트가 생성되고 테마가 성공적으로 게시되었습니다!",
+        "updatedAndPublished": "테넌트가 업데이트되고 테마가 성공적으로 게시되었습니다!",
+        "createdPublishFailed": "테넌트가 성공적으로 생성되었지만 테마 게시에 실패했습니다. \"테마 게시\"를 수동으로 클릭하세요.",
+        "updatedPublishFailed": "테넌트가 성공적으로 업데이트되었지만 테마 게시에 실패했습니다. \"테마 게시\"를 수동으로 클릭하세요.",
+        "themePublished": "테마가 성공적으로 게시되었습니다!",
+        "logoUploaded": "로고가 성공적으로 업로드되었습니다!",
+        "faviconUploaded": "파비콘이 성공적으로 업로드되었습니다!",
+        "logoSelected": "라이브러리에서 로고 선택됨",
+        "faviconSelected": "라이브러리에서 파비콘 선택됨"
+      },
+      "buttons": {
+        "save": "테넌트 저장",
+        "publish": "테마 게시",
+        "addDomain": "추가",
+        "removeDomain": "제거",
+        "chooseFromLibrary": "라이브러리에서 선택",
+        "uploadNew": "새로 업로드"
+      },
+      "actions": {
+        "deriveColors": "색상 파생",
+        "deriveColorsDescription": "브랜드 팔레트에서 모든 의미 체계 색상 생성"
+      }
+    }
+  },
+  "tenantBranding": {
+    "title": "브랜딩 구성",
+    "subtitle": "테넌트 설정",
+    "description": "테넌트의 모양과 마케팅 기능을 사용자 지정합니다.",
+    "loading": "테넌트 설정 로드 중...",
+    "accessDenied": "테넌트 브랜딩 설정에 액세스할 권한이 없습니다. 이 페이지에는 테넌트 관리자 또는 시스템 관리자 역할이 필요합니다.",
+    "tenantIdLabel": "테넌트 ID",
+    "domainWarning": "변경 사항은 이 테넌트의 도메인에 액세스하는 모든 사용자에게 영향을 미칩니다.",
+    "brandingAssets": {
+      "title": "브랜딩 자산",
+      "description": "브랜드 아이덴티티 구성"
+    },
+    "fields": {
+      "appName": "앱 이름",
+      "appNamePlaceholder": "내 비용 앱",
+      "logoUrl": "로고 URL",
+      "logoUrlPlaceholder": "/logo.svg",
+      "faviconUrl": "파비콘 URL",
+      "faviconUrlPlaceholder": "/favicon.ico",
+      "primaryColor": "기본 색상",
+      "secondaryColor": "보조 색상"
+    },
+    "preview": {
+      "title": "실시간 미리보기",
+      "description": "브랜딩이 어떻게 보일지 확인하세요.",
+      "primaryButton": "기본 버튼",
+      "secondaryButton": "보조 버튼",
+      "brandingLabel": "테넌트 브랜딩"
+    },
+    "marketing": {
+      "title": "마케팅 기능",
+      "description": "표시되는 마케팅 페이지 제어",
+      "contentLabel": "마케팅 콘텐츠",
+      "contentDescription": "기능/CTA 섹션 표시",
+      "pricingLabel": "가격 페이지",
+      "pricingDescription": "/pricing 경로 표시"
+    },
+    "actions": {
+      "saving": "저장 중...",
+      "saveChanges": "변경 사항 저장"
+    },
+    "errors": {
+      "loadFailed": "테넌트 설정 로드 실패",
+      "updateFailed": "브랜딩 설정 업데이트 실패",
+      "notImplemented": "브랜딩 업데이트가 아직 백엔드에 구현되지 않았습니다."
+    },
+    "success": {
+      "updated": "브랜딩 설정이 성공적으로 업데이트되었습니다."
+    }
+  }
+}

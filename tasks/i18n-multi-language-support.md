@@ -167,6 +167,36 @@ Prepare the codebase for adding Ukrainian (uk) as the first non-English language
 - Registered 'de' as supported language with locale mapping `de-DE`
 - LTR language - no special infrastructure needed
 
+### Phase 3b: Additional Languages - COMPLETED
+
+**Spanish (es):** ✅
+- Created `webapp-v2/src/locales/es/translation.json`
+- Registered 'es' as supported language with locale mapping `es-ES`
+
+**Italian (it):** ✅
+- Created `webapp-v2/src/locales/it/translation.json`
+- Registered 'it' as supported language with locale mapping `it-IT`
+
+**Japanese (ja):** ✅
+- Created `webapp-v2/src/locales/ja/translation.json`
+- Registered 'ja' as supported language with locale mapping `ja-JP`
+
+**Korean (ko):** ✅
+- Created `webapp-v2/src/locales/ko/translation.json`
+- Registered 'ko' as supported language with locale mapping `ko-KR`
+
+**Latvian (lv):** ✅
+- Created `webapp-v2/src/locales/lv/translation.json`
+- Registered 'lv' as supported language with locale mapping `lv-LV`
+
+**Filipino (ph):** ✅
+- Created `webapp-v2/src/locales/ph/translation.json`
+- Registered 'ph' as supported language with locale mapping `fil-PH`
+
+**Swedish (sv):** ✅
+- Created `webapp-v2/src/locales/sv/translation.json`
+- Registered 'sv' as supported language with locale mapping `sv-SE`
+
 ### Phase 4: Test Infrastructure - COMPLETED
 
 **Task 4.1: Add language switching methods to SettingsPage page object** ✅

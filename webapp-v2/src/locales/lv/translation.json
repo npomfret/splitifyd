@@ -1,0 +1,1927 @@
+{
+  "accessibility": {
+    "skipToContent": "Pāriet uz galveno saturu"
+  },
+  "apiErrors": {
+    "AUTH_REQUIRED": "Lūdzu, piesakieties, lai turpinātu",
+    "AUTH_INVALID": "Jūsu sesija ir beigusies. Lūdzu, piesakieties vēlreiz.",
+    "FORBIDDEN": "Jums nav atļaujas to darīt",
+    "NOT_FOUND": "{{resource}} nav atrasts",
+    "ALREADY_EXISTS": "{{resource}} jau pastāv",
+    "CONFLICT": "Kāds cits ir veicis izmaiņas. Lūdzu, atsvaidziniet un mēģiniet vēlreiz.",
+    "VALIDATION_ERROR": "Lūdzu, pārbaudiet ievadītos datus un mēģiniet vēlreiz",
+    "INVALID_REQUEST": "Radās problēma ar jūsu pieprasījumu",
+    "RATE_LIMITED": "Pārāk daudz pieprasījumu. Lūdzu, uzgaidiet brīdi.",
+    "SERVICE_ERROR": "Radās kļūda. Lūdzu, mēģiniet vēlreiz.",
+    "UNAVAILABLE": "Pakalpojums īslaicīgi nav pieejams. Lūdzu, mēģiniet vēlreiz vēlāk."
+  },
+  "authErrors": {
+    "userNotFound": "Ar šo e-pastu nav atrasts neviens konts",
+    "wrongPassword": "Nepareiza parole",
+    "weakPassword": "Parole ir pārāk vāja. Lūdzu, izmantojiet vismaz 6 rakstzīmes.",
+    "invalidEmail": "Lūdzu, ievadiet derīgu e-pasta adresi",
+    "tooManyRequests": "Pārāk daudz mēģinājumu. Lūdzu, mēģiniet vēlreiz vēlāk.",
+    "networkError": "Tīkla kļūda. Lūdzu, pārbaudiet savienojumu.",
+    "emailInUse": "Šis e-pasts jau ir reģistrēts",
+    "invalidCredential": "Nederīgs e-pasts vai parole",
+    "userDisabled": "Šis konts ir atspējots",
+    "requiresRecentLogin": "Lūdzu, piesakieties vēlreiz, lai turpinātu",
+    "generic": "Autentifikācija neizdevās. Lūdzu, mēģiniet vēlreiz.",
+    "postRegistrationBase": "Jūsu konts tika izveidots, bet mēs nevarējām jūs automātiski pierakstīt.",
+    "postRegistrationFallback": "Jūsu konts tika izveidots, bet mēs nevarējām jūs automātiski pierakstīt. Lūdzu, piesakieties manuāli."
+  },
+  "pagination": {
+    "previous": "Iepriekšējais",
+    "next": "Nākamais",
+    "page": "Lapa",
+    "navigation": "Navigācija"
+  },
+  "common": {
+    "loading": "Notiek ielāde...",
+    "unknownError": "Radās kļūda. Lūdzu, mēģiniet vēlreiz.",
+    "cancel": "Atcelt",
+    "save": "Saglabāt",
+    "saving": "Notiek saglabāšana...",
+    "delete": "Dzēst",
+    "edit": "Rediģēt",
+    "close": "Aizvērt",
+    "confirm": "Apstiprināt",
+    "back": "Atpakaļ",
+    "next": "Tālāk",
+    "previous": "Iepriekšējais",
+    "submit": "Iesniegt",
+    "search": "Meklēt",
+    "select": "Atlasīt",
+    "selectAll": "Atlasīt visu",
+    "none": "Neviens",
+    "all": "Visi",
+    "yes": "Jā",
+    "no": "Nē",
+    "ok": "Labi",
+    "error": "Kļūda",
+    "success": "Veiksmīgi",
+    "warning": "Brīdinājums",
+    "info": "Informācija",
+    "unknown": "Nezināms",
+    "unknownUser": "Nezināms lietotājs",
+    "includeDeleted": "Iekļaut dzēstos",
+    "you": "Jūs",
+    "youSuffix": " (Jūs)",
+    "required": "*",
+    "optional": "(neobligāti)",
+    "or": "vai",
+    "and": "un",
+    "copy": "Kopēt",
+    "share": "Dalīties",
+    "dismiss": "Noraidīt",
+    "dismissAlert": "Noraidīt brīdinājumu",
+    "justNow": "tikko",
+    "chooseFile": "Izvēlēties failu",
+    "active": "Aktīvs",
+    "inactive": "Neaktīvs",
+    "disabled": "Atspējots",
+    "total": "Kopā",
+    "member": "Biedrs",
+    "members": "Biedri",
+    "user": "Lietotājs",
+    "group": "Grupa",
+    "groups": "Grupas",
+    "recent": "Nesen",
+    "settings": "Iestatījumi",
+    "understood": "Sapratu",
+    "titleSuffix": " - {{appName}}",
+    "refresh": "Atsvaidzināt",
+    "reset": "Atiestatīt",
+    "add": "Pievienot",
+    "create": "Izveidot",
+    "processing": "Apstrāde...",
+    "download": "Lejupielādēt",
+    "downloading": "Notiek lejupielāde...",
+    "fromLibrary": "No bibliotēkas",
+    "orEnterUrl": "Vai ievadiet URL",
+    "imageFailedToLoad": "Attēlu neizdevās ielādēt",
+    "selectedFile": "Atlasīts",
+    "enable": "Iespējot",
+    "disable": "Atspējot",
+    "created": "Izveidots",
+    "updated": "Atjaunināts",
+    "modified": "Modificēts",
+    "name": "Vārds",
+    "type": "Tips",
+    "size": "Izmērs",
+    "link": "Saite",
+    "value": "Vērtība",
+    "notConfigured": "Nav konfigurēts",
+    "notSet": "nav iestatīts",
+    "empty": "(tukšs)",
+    "noData": "Nav pieejami dati",
+    "default": "Noklusējums",
+    "actions": "Darbības",
+    "status": "Statuss",
+    "email": "E-pasts",
+    "displayName": "Parādāmais vārds",
+    "role": "Loma",
+    "lastSignIn": "Pēdējā pieteikšanās",
+    "placeholder": {
+      "amount": "0,00",
+      "search": "Meklēt...",
+      "searchCurrencies": "Meklēt valūtas...",
+      "selectCurrency": "Atlasīt valūtu...",
+      "selectPerson": "Atlasīt personu"
+    }
+  },
+  "currencySelector": {
+    "noResults": "Valūtas nav atrastas"
+  },
+  "relativeTime": {
+    "justNow": "tikko",
+    "minuteAgo_one": "pirms {{count}} minūtes",
+    "minuteAgo_other": "pirms {{count}} minūtēm",
+    "hourAgo_one": "pirms {{count}} stundas",
+    "hourAgo_other": "pirms {{count}} stundām",
+    "dayAgo_one": "pirms {{count}} dienas",
+    "dayAgo_other": "pirms {{count}} dienām",
+    "monthAgo_one": "pirms {{count}} mēneša",
+    "monthAgo_other": "pirms {{count}} mēnešiem",
+    "yearAgo_one": "pirms {{count}} gada",
+    "yearAgo_other": "pirms {{count}} gadiem"
+  },
+  "app": {
+    "loading": "Notiek ielāde...",
+    "loadingPage": "Notiek lapas ielāde...",
+    "loadingExpenseForm": "Notiek izdevumu veidlapas ielāde..."
+  },
+  "createGroup": {
+    "validation": {
+      "displayNameTooShort": "Parādāmajam vārdam jābūt vismaz 2 rakstzīmes garam.",
+      "displayNameTooLong": "Parādāmajam vārdam jābūt 50 rakstzīmes garam vai īsākam."
+    }
+  },
+  "createGroupModal": {
+    "title": "Izveidot jaunu grupu",
+    "groupNameLabel": "Grupas nosaukums",
+    "groupNamePlaceholder": "piem., Dzīvokļa izdevumi, Ceļojums uz Parīzi",
+    "groupNameHelpText": "Izvēlieties nosaukumu, kas raksturo, par ko jūs sadalīsit izdevumus.",
+    "groupDisplayNameLabel": "Jūsu parādāmais vārds šajā grupā",
+    "groupDisplayNamePlaceholder": "Kā citiem dalībniekiem vajadzētu redzēt jūsu vārdu?",
+    "groupDisplayNameHelpText": "Šis vārds parādās virs jūsu izdevumiem, komentāriem un aktivitātes šajā grupā.",
+    "groupDescriptionLabel": "Apraksts (neobligāti)",
+    "groupDescriptionPlaceholder": "Pievienojiet jebkuru informāciju par šo grupu...",
+    "groupDescriptionHelpText": "Neobligāts apraksts, lai palīdzētu dalībniekiem saprast grupas mērķi.",
+    "closeButtonAriaLabel": "Aizvērt modālo logu",
+    "cancelButton": "Atcelt",
+    "submitButton": "Izveidot grupu",
+    "restrictCurrencies": "Ierobežot valūtas",
+    "restrictCurrenciesHelp": "Šajā grupā izdevumiem var izmantot tikai atlasītās valūtas",
+    "validation": {
+      "nameRequired": "Grupas nosaukums ir obligāts.",
+      "nameTooShort": "Grupas nosaukumam jābūt vismaz 2 rakstzīmes garam.",
+      "nameTooLong": "Grupas nosaukumam jābūt īsākam par 50 rakstzīmēm.",
+      "displayNameRequired": "Ievadiet parādāmo vārdu.",
+      "displayNameTooShort": "Parādāmajam vārdam jābūt vismaz 2 rakstzīmes garam.",
+      "displayNameTooLong": "Parādāmajam vārdam jābūt 50 rakstzīmes garam vai īsākam.",
+      "displayNameInvalid": "Parādāmais vārds var saturēt tikai burtus, ciparus, atstarpes, domuzīmes, pasvītras un punktus.",
+      "displayNameTaken": "Šis parādāmais vārds jau tiek izmantots šajā grupā."
+    }
+  },
+  "loginPage": {
+    "title": "Pierakstīties",
+    "description": "Pierakstieties savā kontā, lai pārvaldītu kopīgos izdevumus",
+    "rememberMe": "Atcerēties mani",
+    "forgotPassword": "Aizmirsāt paroli?",
+    "submitButton": "Pierakstīties",
+    "noAccount": "Vai jums nav konta?",
+    "signUp": "Reģistrēties",
+    "validation": {
+      "emailRequired": "E-pasts ir obligāts",
+      "passwordRequired": "Parole ir obligāta"
+    }
+  },
+  "registerPage": {
+    "title": "Izveidot kontu",
+    "description": "Izveidojiet savu {{appName}} kontu, lai sāktu pārvaldīt kopīgos izdevumus",
+    "fullNameLabel": "Pilns vārds",
+    "fullNamePlaceholder": "Ievadiet savu pilno vārdu",
+    "passwordLabel": "Parole",
+    "passwordPlaceholder": "Izveidojiet stipru paroli",
+    "confirmPasswordLabel": "Apstiprināt paroli",
+    "confirmPasswordPlaceholder": "Apstipriniet savu paroli",
+    "acceptTerms": "Es piekrītu",
+    "termsOfService": "Lietošanas noteikumiem",
+    "cookiePolicy": "Sīkdatņu politikai",
+    "privacyPolicy": "Privātuma politikai",
+    "submitButton": "Izveidot kontu",
+    "hasAccount": "Vai jums jau ir konts?",
+    "signIn": "Pierakstīties",
+    "requiredIndicator": "*",
+    "validation": {
+      "nameRequired": "Vārds ir obligāts",
+      "emailRequired": "E-pasts ir obligāts",
+      "passwordRequired": "Parole ir obligāta",
+      "passwordTooShort": "Parolei jābūt vismaz 12 rakstzīmes garai",
+      "passwordsNoMatch": "Paroles nesakrīt",
+      "termsRequired": "Jums ir jāpiekrīt Lietošanas noteikumiem",
+      "cookiesRequired": "Jums ir jāpiekrīt Sīkdatņu politikai",
+      "privacyRequired": "Jums ir jāpiekrīt Privātuma politikai"
+    }
+  },
+  "auth": {
+    "refreshingSession": "Notiek sesijas atsvaidzināšana...",
+    "initializationFailed": "Inicializācija neizdevās. Lūdzu, atsvaidziniet lapu.",
+    "emailInput": {
+      "label": "E-pasts",
+      "placeholder": "Ievadiet savu e-pastu",
+      "requiredIndicator": "*",
+      "validation": {
+        "required": "E-pasts ir obligāts",
+        "invalid": "Lūdzu, ievadiet derīgu e-pasta adresi"
+      }
+    },
+    "passwordInput": {
+      "label": "Parole",
+      "placeholder": "Ievadiet savu paroli",
+      "requiredIndicator": "*",
+      "showPassword": "Rādīt paroli",
+      "hidePassword": "Slēpt paroli",
+      "strength": "Paroles stiprums",
+      "strengthWeak": "Vājš",
+      "strengthMedium": "Vidējs",
+      "strengthStrong": "Stiprs",
+      "validation": {
+        "required": "Parole ir obligāta",
+        "tooShort": "Parolei jābūt vismaz 12 rakstzīmes garai"
+      }
+    }
+  },
+  "dashboard": {
+    "title": "Informācijas panelis - {{appName}}",
+    "description": "Pārvaldiet savas grupas un izdevumus ar {{appName}}",
+    "welcomeMessage": "Laipni lūdzam {{appName}}, {{name}}!",
+    "welcomeDescription": "Sāciet, izveidojot savu pirmo grupu, lai izsekotu un sadalītu izdevumus ar draugiem.",
+    "yourGroups": "Jūsu grupas",
+    "createGroup": "Izveidot grupu",
+    "groupsFilter": {
+      "label": "Filtrēt grupas",
+      "active": "Aktīvs",
+      "archived": "Arhivēts"
+    },
+    "groupCard": {
+      "settledUp": "Viss ir nokārtots!",
+      "youOwe": "Jūs esat parādā {{amount}}",
+      "youAreOwed": "Jums ir parādā {{amount}}",
+      "addExpenseTooltip": "Pievienot izdevumus {{groupName}}",
+      "inviteTooltip": "Uzaicināt dalībniekus uz {{groupName}}",
+      "noRecentActivity": "Nav nesenu aktivitāšu",
+      "archivedBadge": "Arhivēts"
+    },
+    "emptyState": {
+      "title": "Vēl nav grupu",
+      "subtitle": "Izveidojiet savu pirmo grupu, lai sāktu izsekot kopīgos izdevumus",
+      "createButton": "Izveidot grupu"
+    },
+    "stats": {
+      "totalGroups": "Kopējais grupu skaits",
+      "totalExpenses": "Kopējie izdevumi",
+      "totalBalance": "Kopējais atlikums"
+    },
+    "quickActions": {
+      "title": "Ātrās darbības",
+      "createGroup": "Izveidot grupu",
+      "addExpense": "Pievienot izdevumus"
+    }
+  },
+  "activityFeed": {
+    "title": "Nesenās aktivitātes",
+    "loading": "Notiek ielāde...",
+    "emptyState": {
+      "title": "Vēl nav aktivitāšu",
+      "description": "Jūsu grupu aktivitātes parādīsies šeit, kad tās notiks.",
+      "groupDescription": "Šīs grupas aktivitātes parādīsies šeit."
+    },
+    "error": {
+      "loadFailed": "Šobrīd nevarējām ielādēt jūsu nesenās aktivitātes. Lūdzu, mēģiniet vēlreiz."
+    },
+    "actions": {
+      "retry": "Mēģināt vēlreiz",
+      "loadMore": "Ielādēt vairāk",
+      "loadingMore": "Notiek ielāde..."
+    },
+    "labels": {
+      "actorYou": "Jūs",
+      "unknownUser": "Kāds",
+      "unknownGroup": "grupa",
+      "unknownExpense": "izdevums",
+      "unknownSettlement": "norēķins",
+      "commentOnGroup": "grupas diskusija",
+      "commentOnExpense": "izdevums \"{{description}}\""
+    },
+    "events": {
+      "group-created": "{{actor}} izveidoja {{group}}",
+      "group-updated": "{{actor}} atjaunināja grupu {{group}}",
+      "group-updated-from": "{{actor}} pārdēvēja {{previous}} par {{group}}",
+      "expense-created": "{{actor}} pievienoja {{expense}} grupā {{group}}",
+      "expense-updated": "{{actor}} atjaunināja {{expense}} grupā {{group}}",
+      "expense-deleted": "{{actor}} izdzēsa {{expense}} no grupas {{group}}",
+      "member-joined": "{{actor}} pievienoja {{target}} grupai {{group}}",
+      "member-joined-self": "{{actor}} pievienojās grupai {{group}}",
+      "member-left": "{{actor}} noņēma {{target}} no grupas {{group}}",
+      "member-left-self": "{{actor}} pameta grupu {{group}}",
+      "comment-added": "{{actor}} komentēja {{target}} grupā {{group}}",
+      "settlement-created": "{{actor}} reģistrēja {{settlement}} grupā {{group}}",
+      "settlement-updated": "{{actor}} atjaunināja {{settlement}} grupā {{group}}",
+      "settlement-deleted": "{{actor}} izdzēsa {{settlement}} no grupas {{group}}",
+      "generic": "{{actor}} veica izmaiņas grupā {{group}}",
+      "group-created-short": "{{actor}} izveidoja grupu",
+      "group-updated-short": "{{actor}} atjaunināja grupu",
+      "group-updated-from-short": "{{actor}} pārdēvēja grupu no {{previous}}",
+      "expense-created-short": "{{actor}} pievienoja {{expense}}",
+      "expense-updated-short": "{{actor}} atjaunināja {{expense}}",
+      "expense-deleted-short": "{{actor}} izdzēsa {{expense}}",
+      "member-joined-short": "{{actor}} pievienoja {{target}}",
+      "member-joined-self-short": "{{actor}} pievienojās",
+      "member-left-short": "{{actor}} noņēma {{target}}",
+      "member-left-self-short": "{{actor}} pameta",
+      "comment-added-short": "{{actor}} komentēja {{target}}",
+      "settlement-created-short": "{{actor}} reģistrēja {{settlement}}",
+      "settlement-updated-short": "{{actor}} atjaunināja {{settlement}}",
+      "settlement-deleted-short": "{{actor}} izdzēsa {{settlement}}",
+      "generic-short": "{{actor}} veica izmaiņas"
+    }
+  },
+  "group": {
+    "header": {
+      "members_one": "{{count}} dalībnieks",
+      "members_other": "{{count}} dalībnieki",
+      "expenses_one": "{{count}} izdevums",
+      "expenses_other": "{{count}} izdevumi"
+    },
+    "actions": {
+      "addExpense": "Pievienot izdevumus",
+      "viewExpenses": "Skatīt izdevumus",
+      "settleUp": "Norēķināties",
+      "shareGroup": "Dalīties ar grupu",
+      "editGroup": "Rediģēt grupu",
+      "leaveGroup": "Pamest grupu"
+    },
+    "share": {
+      "title": "Dalīties ar grupu",
+      "subtitle": "Uzaiciniet citus pievienoties šai grupai",
+      "copyLink": "Kopēt saiti",
+      "linkCopied": "Saite nokopēta starpliktuvē!"
+    },
+    "edit": {
+      "title": "Rediģēt grupu",
+      "warningIcon": "⚠️"
+    },
+    "leave": {
+      "title": "Pamest grupu",
+      "message": "Vai esat pārliecināts, ka vēlaties pamest šo grupu?",
+      "confirmButton": "Pamest grupu",
+      "cancelButton": "Atcelt"
+    },
+    "members": {
+      "title": "Biedri",
+      "addMember": "Pievienot dalībnieku",
+      "removeMember": "Noņemt dalībnieku",
+      "unknownUser": "Nezināms lietotājs",
+      "user": "Lietotājs"
+    },
+    "expenses": {
+      "title": "Izdevumi",
+      "noExpenses": "Vēl nav izdevumu",
+      "addFirstExpense": "Pievienojiet savu pirmo izdevumu",
+      "unknown": "Nezināms"
+    },
+    "balance": {
+      "title": "Bilances kopsavilkums",
+      "settledUp": "Viss ir nokārtots!",
+      "unknown": "Nezināms"
+    }
+  },
+  "comments": {
+    "section": {
+      "title": "Komentāri",
+      "noComments": "Vēl nav komentāru"
+    },
+    "input": {
+      "placeholder": "Pievienot komentāru...",
+      "ariaLabel": "Komentāra teksts",
+      "sendButton": "Sūtīt",
+      "sendAriaLabel": "Sūtīt komentāru"
+    },
+    "item": {
+      "justNow": "tikko",
+      "deleteButton": "Dzēst komentāru"
+    },
+    "list": {
+      "loading": "Notiek komentāru ielāde...",
+      "error": "Neizdevās ielādēt komentārus"
+    },
+    "commentInput": {
+      "placeholder": "Pievienot komentāru...",
+      "tooLong": "Komentārs ir pārāk garš",
+      "addFailed": "Neizdevās pievienot komentāru",
+      "helpText": "Nospiediet Enter, lai nosūtītu, Shift+Enter, lai izveidotu jaunu rindu"
+    },
+    "commentItem": {
+      "recently": "nesen"
+    },
+    "commentsList": {
+      "loading": "Notiek komentāru ielāde...",
+      "empty": "Vēl nav komentāru",
+      "emptySubtext": "Esiet pirmais, kas komentē!",
+      "loadingMore": "Notiek ielāde...",
+      "loadMore": "Ielādēt vairāk komentāru"
+    },
+    "commentsSection": {
+      "placeholderGroup": "Pievienojiet komentāru šai grupai...",
+      "placeholderExpense": "Pievienojiet komentāru šim izdevumam..."
+    }
+  },
+  "ui": {
+    "alert": {
+      "dismiss": "Noraidīt brīdinājumu"
+    },
+    "confirmDialog": {
+      "confirm": "Apstiprināt",
+      "cancel": "Atcelt"
+    }
+  },
+  "navigation": {
+    "header": {
+      "fallback": "...",
+      "dashboard": "Informācijas panelis",
+      "groups": "Grupas",
+      "settings": "Iestatījumi"
+    },
+    "footer": {
+      "copyright": "© {{year}} {{appName}}. Visas tiesības aizsargātas.",
+      "privacy": "Privātuma politika",
+      "terms": "Lietošanas noteikumi",
+      "cookies": "Sīkdatņu politika"
+    },
+    "userMenu": {
+      "openUserMenu": "Atvērt lietotāja izvēlni",
+      "profile": "Profils",
+      "settings": "Iestatījumi",
+      "logout": "Izrakstīties",
+      "help": "Palīdzība"
+    }
+  },
+  "errors": {
+    "generic": "Radās kļūda",
+    "network": "Radās tīkla kļūda",
+    "invalidLink": "Nederīga saite",
+    "notFound": {
+      "page": "Lapa nav atrasta",
+      "group": "Grupa nav atrasta",
+      "expense": "Izdevumi nav atrasti"
+    },
+    "loading": {
+      "cookiePolicy": "Kļūda, ielādējot sīkdatņu politiku",
+      "privacyPolicy": "Kļūda, ielādējot privātuma politiku",
+      "terms": "Kļūda, ielādējot noteikumus"
+    },
+    "validation": {
+      "displayNameEmpty": "Parādāmais vārds nevar būt tukšs",
+      "displayNameTooLong": "Parādāmajam vārdam jābūt 100 rakstzīmes garam vai īsākam",
+      "passwordTooShort": "Jaunajai parolei jābūt vismaz 12 rakstzīmes garai",
+      "passwordsNoMatch": "Paroles nesakrīt",
+      "passwordSameAsCurrent": "Jaunajai parolei jāatšķiras no pašreizējās paroles",
+      "passwordAndNewRequired": "Pašreizējā parole un jaunā parole ir obligātas"
+    }
+  },
+  "seo": {
+    "titleSuffix": " | {{appName}}",
+    "siteName": "{{appName}}"
+  },
+  "expenseForm": {
+    "description": "Apraksts",
+    "amount": "Summa*",
+    "whoPaid": "Kas samaksāja?",
+    "splitBetween": "Sadalīt starp",
+    "exactAmounts": "Precīzas summas",
+    "percentage": "Procenti",
+    "equal": "Vienādi",
+    "exactAmountsInstruction": "Ievadiet precīzas summas katrai personai:",
+    "percentageInstruction": "Ievadiet procentus katrai personai:",
+    "selectAll": "Atlasīt visu",
+    "saveExpense": "Saglabāt izdevumus",
+    "updateExpense": "Atjaunināt izdevumus",
+    "cancel": "Atcelt",
+    "errors": {
+      "expenseLocked": "Šo izdevumu nevar rediģēt, jo viens vai vairāki dalībnieki ir pametuši grupu."
+    }
+  },
+  "settlementForm": {
+    "updatePayment": "Atjaunināt maksājumu",
+    "recordPayment": "Ierakstīt maksājumu",
+    "updateSettlement": "Atjaunināt norēķinu",
+    "recordSettlement": "Ierakstīt norēķinu",
+    "closeModal": "Aizvērt modālo logu",
+    "whoPaidLabel": "Kas samaksāja?",
+    "whoReceivedPaymentLabel": "Kas saņēma maksājumu?",
+    "amountLabel": "Summa",
+    "dateLabel": "Datums",
+    "noteLabel": "Piezīme (neobligāti)",
+    "selectPersonPlaceholder": "Atlasīt personu",
+    "amountPlaceholder": "0,00",
+    "notePlaceholder": "piem., Venmo, skaidra nauda, bankas pārskaitījums",
+    "youSuffix": " (Jūs)",
+    "cancelButton": "Atcelt",
+    "updatingButton": "Notiek atjaunināšana...",
+    "recordingButton": "Notiek ierakstīšana...",
+    "paymentSummary": "{{payer}} samaksāja {{amount}} {{payee}}",
+    "validation": {
+      "selectPayer": "Lūdzu, atlasiet, kas samaksāja",
+      "selectPayee": "Lūdzu, atlasiet, kas saņēma maksājumu",
+      "samePersonError": "Maksātājs un saņēmējs nevar būt viena un tā pati persona",
+      "validAmountRequired": "Lūdzu, ievadiet derīgu summu, kas lielāka par 0",
+      "amountTooLarge": "Summa nevar pārsniegt 999 999,99",
+      "validCurrencyRequired": "Lūdzu, atlasiet derīgu valūtu",
+      "dateRequired": "Lūdzu, atlasiet datumu",
+      "dateInFuture": "Datums nevar būt nākotnē",
+      "recordPaymentFailed": "Neizdevās reģistrēt maksājumu"
+    },
+    "errors": {
+      "settlementLocked": "Šo norēķinu nevar rediģēt, jo dalībnieks ir pametis grupu."
+    },
+    "warnings": {
+      "noDebt": "{{payer}} nav parādā {{payee}} naudu valūtā {{currency}}. Šis norēķins radīs parādu pretējā virzienā.",
+      "overpayment": "{{payer}} ir parādā {{payee}} tikai {{debt}}, bet jūs norēķināties par {{amount}}. Tas radīs parādu pretējā virzienā.",
+      "underpayment": "Jūs reģistrējat {{amount}}, bet {{payer}} pēc tam joprojām būs parādā {{payee}} {{remaining}}. Mēs saglabāsim atlikušo atlikumu atjauninātu."
+    }
+  },
+  "settlementHistory": {
+    "noPaymentsYet": "Vēl nav reģistrēti maksājumi",
+    "today": "Šodien",
+    "yesterday": "Vakar",
+    "editPaymentTooltip": "Rediģēt maksājumu",
+    "cannotEditTooltip": "Nevar rediģēt - dalībnieks ir pametis grupu",
+    "deletePaymentTooltip": "Dzēst maksājumu",
+    "loadMore": "Ielādēt vairāk",
+    "loadMorePayments": "Ielādēt vairāk maksājumu",
+    "deletePaymentTitle": "Dzēst maksājumu",
+    "deletePaymentMessage": "Vai esat pārliecināts, ka vēlaties dzēst šo maksājumu {{amount}} no {{payer}} uz {{payee}}? Šo darbību nevar atsaukt.",
+    "deleteButton": "Dzēst",
+    "cancelButton": "Atcelt",
+    "showAll": "Rādīt visu",
+    "noPaymentsForYou": "Vēl nav maksājumu, kas saistīti ar jums",
+    "deletedBy": "Dzēsa"
+  },
+  "balanceSummary": {
+    "loadingBalances": "Notiek bilances ielāde...",
+    "allSettledUp": "Viss ir nokārtots!",
+    "debtArrow": " → ",
+    "showOnlyMyBalances": "Rādīt tikai manas bilances",
+    "showAll": "Rādīt visu",
+    "settleUp": "Norēķināties",
+    "settleUpButton": "Reģistrēt norēķinu par šo parādu"
+  },
+  "emptyGroupsState": {
+    "title": "Vēl nav grupu",
+    "description": "Izveidojiet savu pirmo grupu, lai sāktu dalīt izdevumus ar draugiem, ģimeni vai istabas biedriem.",
+    "createFirstGroup": "Izveidot savu pirmo grupu",
+    "gettingStartedTitle": "Darba sākšana ar {{appName}}:",
+    "step1Title": "1. Izveidojiet grupu",
+    "step1Description": "Pievienojiet draugus, istabas biedrus vai ceļabiedrus",
+    "step2Title": "2. Pievienojiet izdevumus",
+    "step2Description": "Izsekojiet, kurš samaksāja un kā sadalīt izmaksas",
+    "step3Title": "3. Norēķinieties",
+    "step3Description": "Skatiet, kurš kam ir parādā, un nokārtojiet bilances"
+  },
+  "groupCard": {
+    "settledUp": "Nokārtots",
+    "addExpenseTooltip": "Pievienot izdevumus {{groupName}}",
+    "inviteTooltip": "Uzaicināt uz {{groupName}}",
+    "noRecentActivity": "Nav nesenu aktivitāšu"
+  },
+  "expenseFormHeader": {
+    "addExpense": "Pievienot izdevumus",
+    "editExpense": "Rediģēt izdevumus",
+    "copyExpense": "Kopēt izdevumus",
+    "cancel": "Atcelt"
+  },
+  "expenseBasicFields": {
+    "title": "Izdevumu dati",
+    "descriptionLabel": "Apraksts",
+    "descriptionPlaceholder": "Kam bija šie izdevumi?",
+    "amountLabel": "Summa",
+    "labelsLabel": "Etiķetes",
+    "labelsPlaceholder": "Pievienot etiķeti...",
+    "dateLabel": "Datums",
+    "timeLabel": "Laiks",
+    "recentAmounts": "Nesenās summas:",
+    "today": "Šodien",
+    "yesterday": "Vakar",
+    "thisMorning": "Šorīt",
+    "lastNight": "Vakar vakarā",
+    "addSpecificTime": "Pievienot konkrētu laiku"
+  },
+  "suggestedLabels": [
+    "Pārtikas preces",
+    "Līdzņemšanai",
+    "Restorāns",
+    "Kafija",
+    "Dzērieni",
+    "Bārs",
+    "Uzkodas",
+    "Brokastis",
+    "Pusdienas",
+    "Vakariņas",
+    "Ātrā ēdināšana",
+    "Piegāde",
+    "Vēlās brokastis",
+    "Benzīns",
+    "Autostāvvieta",
+    "Ceļa nodevas",
+    "Uber",
+    "Lyft",
+    "Taksometrs",
+    "Autobuss",
+    "Vilciens",
+    "Metro",
+    "Automašīnas noma",
+    "Degviela",
+    "Lidojums",
+    "Airbnb",
+    "Viesnīca",
+    "Hostelis",
+    "Kūrorts",
+    "Atvaļinājums",
+    "Ceļojums ar automašīnu",
+    "Kempings",
+    "Īre",
+    "Komunālie maksājumi",
+    "Elektrība",
+    "Ūdens",
+    "Internets",
+    "Telefons",
+    "Apdrošināšana",
+    "Hipotēka",
+    "Mājokļa īpašnieku apvienība",
+    "Remonts",
+    "Apkope",
+    "Tīrīšana",
+    "Mēbeles",
+    "Sadzīves tehnika",
+    "Dekors",
+    "Dārzs",
+    "Kino",
+    "Koncerts",
+    "Izrāde",
+    "Festivāls",
+    "Sports",
+    "Spēles",
+    "Straumēšana",
+    "Biļetes",
+    "Muzejs",
+    "Atrakciju parks",
+    "Boulings",
+    "Minigolfs",
+    "Karaoke",
+    "Spēļu zāle",
+    "Izkļūšanas istaba",
+    "Iepirkšanās",
+    "Apģērbs",
+    "Apavi",
+    "Elektronika",
+    "Dāvanas",
+    "Grāmatas",
+    "Rotaļlietas",
+    "Skaistumkopšana",
+    "Ādas kopšana",
+    "Frizūra",
+    "Spa",
+    "Sporta zāle",
+    "Fitness",
+    "Sporta aprīkojums",
+    "Āra aprīkojums",
+    "Mājdzīvnieku barība",
+    "Mājdzīvnieku aprūpe",
+    "Veterinārārsts",
+    "Kopšana",
+    "Zāles",
+    "Aptieka",
+    "Ārsts",
+    "Zobārsts",
+    "Redze",
+    "Terapija",
+    "Medicīna",
+    "Bērnu aprūpe",
+    "Aukle",
+    "Mācību maksa",
+    "Skola",
+    "Piederumi",
+    "Ballīte",
+    "Dzimšanas diena",
+    "Kāzas",
+    "Svētki",
+    "Jubileja",
+    "Svinības",
+    "Dekorācijas",
+    "Ēdināšana",
+    "Norises vieta",
+    "Bārbekjū",
+    "Pikniks",
+    "Grozāmais",
+    "Spēļu vakars",
+    "Sālsmaize",
+    "Darbs",
+    "Birojs",
+    "Piederumi",
+    "Aprīkojums",
+    "Programmatūra",
+    "Abonements",
+    "Dalība",
+    "Maksas",
+    "Dzeramnauda",
+    "Labdarība",
+    "Ziedojums",
+    "Bankomāts",
+    "Skaidra nauda",
+    "Dažādi",
+    "Cits",
+    "Kopīgs",
+    "Sadalīts",
+    "Atmaksāšana",
+    "Depozīts",
+    "Drošības nauda"
+  ],
+  "expensesList": {
+    "title": "Izdevumi",
+    "noExpensesYet": "Vēl nav izdevumu. Pievienojiet vienu, lai sāktu!",
+    "loadMore": "Ielādēt vairāk"
+  },
+  "expenseItem": {
+    "paidBy": "Samaksāja",
+    "deleted": "Dzēsts",
+    "deletedBy": "Dzēsa",
+    "copyExpense": "Kopēt izdevumus"
+  },
+  "header": {
+    "logoAlt": "{{appName}}",
+    "login": "Pieteikties",
+    "signUp": "Reģistrēties",
+    "goToHome": "Doties uz sākumu",
+    "goToDashboard": "Doties uz informācijas paneli"
+  },
+  "userMenu": {
+    "dashboard": "Informācijas panelis",
+    "admin": "Administrators",
+    "settings": "Iestatījumi",
+    "signOut": "Izrakstīties",
+    "signingOut": "Notiek izrakstīšanās...",
+    "systemUserBadge": "Sistēmas lietotājs",
+    "systemUserTooltip": "Šis konts tiek izmantots automatizētām vai sistēmas vadītām darbībām.",
+    "environmentLink": "vide",
+    "diagnosticsLoading": "Notiek diagnostikas ielāde...",
+    "diagnosticsError": "Nevar ielādēt diagnostiku:",
+    "browser": "Pārlūks",
+    "browserUsers": "Lietotāju pārlūks"
+  },
+  "languageSelector": {
+    "label": "Valoda",
+    "description": "Izvēlieties vēlamo valodu"
+  },
+  "footer": {
+    "companyName": "{{appName}}",
+    "companyDescription": "Viegli dalieties rēķinos ar draugiem un ģimeni.",
+    "linksSection": "Saites",
+    "copyright": "© 2025 Pomo Corp ltd. Visas tiesības aizsargātas."
+  },
+  "groupHeader": {
+    "membersCount": "{{count}} dalībnieki",
+    "membersCount_one": "{{count}} dalībnieks",
+    "membersCount_other": "{{count}} dalībnieki",
+    "old": "vecs",
+    "lastUpdated": "pēdējo reizi atjaunināts",
+    "groupSettingsAriaLabel": "Grupas iestatījumi",
+    "groupSecurityAriaLabel": "Drošība un atļaujas"
+  },
+  "securitySettingsModal": {
+    "unsavedChanges": "Jums ir nesaglabātas izmaiņas. Pārskatiet visu un pēc tam nospiediet Saglabāt, lai tās lietotu.",
+    "presets": {
+      "activeBadge": "Aktīvs",
+      "open": {
+        "label": "Iepriekš iestatīts: Atvērta sadarbība",
+        "description": "Visi var uzaicināt dalībniekus un pārvaldīt izdevumus bez ierobežojumiem."
+      },
+      "managed": {
+        "label": "Iepriekš iestatīts: Pārvaldīta grupa",
+        "description": "Administratori apstiprina uzaicinājumus un kontrolē, kurš var rediģēt vai dzēst izdevumus."
+      }
+    },
+    "custom": {
+      "heading": "Pielāgotas atļaujas",
+      "unsaved": "Pielāgotas atļaujas mainītas.",
+      "saveHelper": "Izmaiņas tiek rindotas, līdz nospiežat Saglabāt."
+    },
+    "success": {
+      "updated": "Drošības iestatījumi atjaunināti."
+    },
+    "permissions": {
+      "expenseEditing": {
+        "label": "Kas var rediģēt izdevumus",
+        "description": "Izvēlieties, kurš var atjaunināt jebkurus izdevumus grupā."
+      },
+      "expenseDeletion": {
+        "label": "Kas var dzēst izdevumus",
+        "description": "Ierobežot iespēju noņemt izdevumus."
+      },
+      "memberInvitation": {
+        "label": "Kas var uzaicināt dalībniekus",
+        "description": "Nosakiet, kurš var ģenerēt uzaicinājuma saites."
+      },
+      "memberApproval": {
+        "label": "Jauna dalībnieka apstiprinājums",
+        "description": "Pieprasīt administratora pārskatīšanu, pirms kāds pievienojas, izmantojot uzaicinājumu."
+      },
+      "settingsManagement": {
+        "label": "Kas var mainīt iestatījumus",
+        "description": "Kontrolēt piekļuvi administratīvajiem iestatījumiem."
+      },
+      "options": {
+        "anyone": "Jebkurš dalībnieks",
+        "creator-and-admin": "Radītāji un administratori",
+        "admin-only": "Tikai administratori",
+        "automatic": "Automātiski",
+        "admin-required": "Nepieciešams administratora apstiprinājums"
+      }
+    },
+    "memberRoles": {
+      "heading": "Dalībnieku lomas",
+      "admin": "Administrators",
+      "member": "Biedrs",
+      "viewer": "Skatītājs"
+    },
+    "pendingMembers": {
+      "heading": "Gaida dalībniekus",
+      "requested": "Gaida apstiprinājumu",
+      "empty": "Šobrīd nav gaidīšanas pieprasījumu.",
+      "approve": "Apstiprināt",
+      "reject": "Noraidīt"
+    },
+    "errors": {
+      "loadPending": "Nevar ielādēt gaidošos dalībniekus. Lūdzu, mēģiniet vēlreiz.",
+      "updatePermissions": "Nevarējām atjaunināt drošības iestatījumus. Lūdzu, mēģiniet vēlreiz.",
+      "pendingAction": "Nevarējām apstrādāt šo pieprasījumu. Lūdzu, mēģiniet vēlreiz."
+    }
+  },
+  "settingsPage": {
+    "title": "Iestatījumi - {{appName}}",
+    "description": "Pārvaldiet sava konta iestatījumus",
+    "heroLabel": "Konta",
+    "accountSettingsHeader": "Konta iestatījumi",
+    "accountSettingsSubheader": "Pārvaldiet sava profila informāciju un paroli",
+    "profileSummaryTitle": "Profila pārskats",
+    "profileSummaryDescription": "Šī informācija palīdz citiem dalībniekiem jūs atpazīt.",
+    "profileInformationHeader": "Profila informācija",
+    "profileInformationSubheader": "Atjauniniet informāciju, ko citi dalībnieki redz {{appName}}.",
+    "emailSectionTitle": "E-pasta adrese",
+    "emailSectionDescription": "Atjauniniet e-pastu, ko izmantojat, lai pierakstītos un saņemtu paziņojumus.",
+    "currentDisplayName": "Pašreizējais parādāmais vārds:",
+    "email": "E-pasts:",
+    "currentEmailLabel": "Pašreizējais e-pasts",
+    "displayNameLabel": "Parādāmais vārds",
+    "displayNamePlaceholder": "Ievadiet savu parādāmo vārdu",
+    "displayNameHelper": "Izmantojiet savu pilno vārdu vai segvārdu, ko komandas biedri atpazīs.",
+    "saveChangesButton": "Saglabāt izmaiņas",
+    "passwordHeader": "Parole",
+    "passwordIntro": "Iestatiet stipru paroli, lai nodrošinātu sava {{appName}} konta drošību.",
+    "changePasswordButton": "Mainīt paroli",
+    "changeEmailButton": "Mainīt e-pastu",
+    "newEmailLabel": "Jauns e-pasts",
+    "newEmailPlaceholder": "Ievadiet savu jauno e-pasta adresi",
+    "emailPasswordLabel": "Apstiprināt ar paroli",
+    "updateEmailButton": "Atjaunināt e-pastu",
+    "currentPasswordLabel": "Pašreizējā parole",
+    "newPasswordLabel": "Jaunā parole",
+    "confirmNewPasswordLabel": "Apstiprināt jauno paroli",
+    "updatePasswordButton": "Atjaunināt paroli",
+    "cancelButton": "Atcelt",
+    "passwordRequirementsHeading": "Stipras paroles kontrolsaraksts",
+    "passwordRequirements": {
+      "length": "Izmantojiet vismaz 12 rakstzīmes.",
+      "mix": "Sajauciet lielos un mazos burtus, ciparus un simbolus.",
+      "reuse": "Izvairieties no parolēm, ko esat izmantojis citur."
+    },
+    "profileSummaryRoleLabel": "Konta loma",
+    "profileSummaryRoleFallback": "Biedrs",
+    "profileSummaryRole": {
+      "system_admin": "Administrators",
+      "system_user": "Biedrs"
+    },
+    "successMessages": {
+      "profileUpdated": "Profils veiksmīgi atjaunināts",
+      "passwordChanged": "Parole veiksmīgi mainīta",
+      "emailChanged": "E-pasts veiksmīgi atjaunināts. Lūdzu, pārbaudiet jauno adresi."
+    },
+    "errorMessages": {
+      "profileUpdateFailed": "Neizdevās atjaunināt profilu. Lūdzu, mēģiniet vēlreiz.",
+      "passwordAndNewRequired": "Pašreizējā parole un jaunā parole ir obligātas",
+      "passwordTooShort": "Jaunajai parolei jābūt vismaz 12 rakstzīmes garai",
+      "passwordsNoMatch": "Paroles nesakrīt",
+      "passwordSameAsCurrent": "Jaunajai parolei jāatšķiras no pašreizējās paroles",
+      "currentPasswordIncorrect": "Pašreizējā parole ir nepareiza",
+      "passwordChangeFailed": "Neizdevās mainīt paroli. Lūdzu, mēģiniet vēlreiz.",
+      "displayNameEmpty": "Parādāmais vārds nevar būt tukšs",
+      "displayNameTooLong": "Parādāmajam vārdam jābūt 100 rakstzīmes garam vai īsākam",
+      "emailRequired": "Jauns e-pasts ir obligāts",
+      "emailInvalid": "Ievadiet derīgu e-pasta adresi",
+      "emailSameAsCurrent": "Jaunajam e-pastam jāatšķiras no pašreizējā e-pasta",
+      "emailPasswordRequired": "Ievadiet savu pašreizējo paroli, lai apstiprinātu šo izmaiņu",
+      "emailInUse": "Šis e-pasts jau ir saistīts ar citu {{appName}} kontu",
+      "emailChangeFailed": "Neizdevās mainīt e-pastu. Lūdzu, mēģiniet vēlreiz."
+    }
+  },
+  "editGroupModal": {
+    "title": "Rediģēt grupu",
+    "groupNameLabel": "Grupas nosaukums",
+    "groupNamePlaceholder": "piem., Dzīvokļa izdevumi, Ceļojums uz Parīzi",
+    "descriptionLabel": "Apraksts (neobligāti)",
+    "descriptionPlaceholder": "Pievienojiet jebkuru informāciju par šo grupu...",
+    "cancelButton": "Atcelt",
+    "saveChangesButton": "Saglabāt izmaiņas",
+    "deleteGroupButton": "Dzēst grupu",
+    "validation": {
+      "nameRequired": "Grupas nosaukums ir obligāts.",
+      "nameTooShort": "Grupas nosaukumam jābūt vismaz 2 rakstzīmes garam.",
+      "nameTooLong": "Grupas nosaukumam jābūt īsākam par 50 rakstzīmēm.",
+      "updateFailed": "Neizdevās atjaunināt grupu"
+    },
+    "success": {
+      "updated": "Grupas dati atjaunināti."
+    },
+    "deleteConfirmDialog": {
+      "title": "Neatgriezeniski dzēst grupu",
+      "warningTitle": "⚠️ Brīdinājums par neatgriezenisku dzēšanu",
+      "warningMessage": "Tas neatgriezeniski dzēsīs grupu un VISUS saistītos datus:",
+      "warningList": {
+        "expenses": "Visi izdevumi un to komentāri",
+        "settlements": "Visi norēķini un maksājumu vēsture",
+        "members": "Visi grupas dalībnieki un atļaujas",
+        "history": "Visa izmaiņu vēsture un aktivitātes"
+      },
+      "cannotUndo": "Šo darbību nevar atsaukt.",
+      "typeToConfirm": "Lai apstiprinātu, ierakstiet grupas nosaukumu \"{{groupName}}\" zemāk:",
+      "deletingMessage": "Notiek grupas un visu saistīto datu dzēšana...",
+      "deletingText": "Notiek dzēšana...",
+      "confirmText": "Neatgriezeniski dzēst grupu",
+      "cancelText": "Atcelt",
+      "deleteFailed": "Neizdevās dzēst grupu"
+    }
+  },
+  "groupActions": {
+    "title": "Grupas darbības",
+    "addExpense": "Pievienot izdevumus",
+    "settleUp": "Norēķināties",
+    "inviteOthers": "Uzaicināt citus",
+    "settings": "Iestatījumi",
+    "leaveGroup": "Pamest grupu",
+    "archive": "Arhivēt grupu",
+    "unarchive": "Atarhivēt grupu"
+  },
+  "groupSettingsModal": {
+    "title": "Grupas iestatījumi",
+    "tabs": {
+      "identity": "Parādāmais vārds",
+      "general": "Vispārīgi",
+      "security": "Drošība un atļaujas"
+    },
+    "securityTab": {
+      "successAriaLabel": "veiksmīgi",
+      "unsavedChangesAriaLabel": "nesaglabātas izmaiņas"
+    }
+  },
+  "groupSettings": {
+    "currencySettings": {
+      "title": "Valūtas iestatījumi",
+      "description": "Ierobežojiet, kuras valūtas var izmantot izdevumiem šajā grupā.",
+      "enableToggle": "Ierobežot valūtas šai grupai",
+      "enabledDescription": "Izdevumiem var izmantot tikai atlasītās valūtas",
+      "permittedLabel": "Atļautās valūtas",
+      "defaultLabel": "Noklusējuma valūta jauniem izdevumiem",
+      "addCurrency": "Pievienot valūtu",
+      "searchPlaceholder": "Meklēt valūtas...",
+      "noCurrenciesSelected": "Atlasiet vismaz vienu valūtu",
+      "defaultNotInPermitted": "Noklusējuma valūtai jābūt atļautai valūtai",
+      "allCurrenciesSelected": "Visas valūtas atlasītas",
+      "saveButton": "Saglabāt valūtas iestatījumus",
+      "saveSuccess": "Valūtas iestatījumi veiksmīgi atjaunināti.",
+      "saveFailed": "Neizdevās saglabāt valūtas iestatījumus. Lūdzu, mēģiniet vēlreiz."
+    }
+  },
+  "groupDisplayNameSettings": {
+    "title": "Grupas parādāmais vārds",
+    "description": "Izvēlieties, kā citi dalībnieki jūs redz šajā grupā.",
+    "inputLabel": "Jūsu parādāmais vārds šajā grupā",
+    "inputPlaceholder": "Ievadiet unikālu parādāmo vārdu",
+    "save": "Saglabāt parādāmo vārdu",
+    "saving": "Notiek saglabāšana...",
+    "success": "Grupas parādāmais vārds atjaunināts.",
+    "errors": {
+      "required": "Ievadiet parādāmo vārdu.",
+      "tooLong": "Parādāmajam vārdam jābūt 50 rakstzīmes garam vai īsākam.",
+      "notChanged": "Pirms saglabāšanas ievadiet citu parādāmo vārdu.",
+      "taken": "Šis vārds jau tiek izmantots šajā grupā.",
+      "unknown": "Neizdevās atjaunināt parādāmo vārdu. Mēģiniet vēlreiz."
+    }
+  },
+  "membersList": {
+    "title": "Biedri",
+    "admin": "Administrators",
+    "member": "Biedrs",
+    "viewer": "Skatītājs",
+    "thisMember": "Šis dalībnieks",
+    "leaveGroup": "Pamest grupu",
+    "inviteOthers": "Uzaicināt citus",
+    "inviteOthersAriaLabel": "Uzaicināt citus",
+    "leaveGroupAriaLabel": "Pamest grupu",
+    "removeMemberAriaLabel": "Noņemt {{name}}",
+    "leaveGroupDialog": {
+      "title": "Pamest grupu?",
+      "messageWithBalance": "Jums ir neatmaksāts atlikums šajā grupā. Lūdzu, norēķinieties pirms aiziešanas.",
+      "messageConfirm": "Vai esat pārliecināts, ka vēlaties pamest šo grupu? Lai pievienotos no jauna, jums būs nepieciešams uzaicinājums.",
+      "confirmText": "Pamest grupu",
+      "cancelText": "Atcelt"
+    },
+    "removeMemberDialog": {
+      "title": "Noņemt dalībnieku?",
+      "messageWithBalance": "{{name}} ir neatmaksāts atlikums šajā grupā. Lūdzu, norēķinieties pirms noņemšanas.",
+      "messageConfirm": "Vai esat pārliecināts, ka vēlaties noņemt {{name}} no grupas?",
+      "confirmText": "Noņemt",
+      "cancelText": "Atcelt"
+    }
+  },
+  "shareGroupModal": {
+    "title": "Uzaicināt citus",
+    "description": "Dalieties ar šo saiti ar visiem, kurus vēlaties pievienoties šai grupai.",
+    "closeButtonAriaLabel": "Aizvērt modālo logu",
+    "copyLinkTitle": "Kopēt saiti",
+    "copyLinkAriaLabel": "Kopēt grupas uzaicinājuma saiti",
+    "qrCodeDescription": "Vai skenējiet šo kodu",
+    "expirationLabel": "Uzaicinājuma saite beidzas pēc...",
+    "expirationOptions": {
+      "15m": "15 minūtēm",
+      "1h": "1 stundas",
+      "1d": "1 dienas",
+      "5d": "5 dienām"
+    },
+    "expiresAt": "Beidzas {{date}}",
+    "generateNew": "Ģenerēt jaunu",
+    "linkCopied": "Saite nokopēta starpliktuvē",
+    "errors": {
+      "generateLinkFailed": "Neizdevās ģenerēt koplietošanas saiti. Lūdzu, mēģiniet vēlreiz."
+    }
+  },
+  "errorState": {
+    "defaultTitle": "Radās kļūda",
+    "unexpectedError": "Radās neparedzēta kļūda",
+    "tryAgainButton": "Mēģināt vēlreiz"
+  },
+  "errorBoundary": {
+    "title": "Radās kļūda",
+    "unexpectedError": "Radās neparedzēta kļūda"
+  },
+  "notFoundPage": {
+    "title": "404",
+    "pageNotFound": "Lapa nav atrasta",
+    "pageNotFoundDescription": "Jūsu meklētā lapa nepastāv.",
+    "groupNotFound": "Grupa nav atrasta vai jums nav piekļuves",
+    "groupNotFoundDescription": "Jūsu meklētā grupa nepastāv vai jums ir jābūt uzaicinātam, lai tai piekļūtu.",
+    "goToDashboard": "Doties uz informācijas paneli",
+    "goHome": "Doties uz sākumu"
+  },
+  "loadingState": {
+    "defaultMessage": "Notiek ielāde..."
+  },
+  "joinGroupPage": {
+    "title": "Pievienoties grupai",
+    "loadingGroup": "Notiek grupas informācijas ielāde...",
+    "alreadyMember": "Jūs jau esat šīs grupas dalībnieks",
+    "alreadyMemberDescription": "Jūs varat doties tieši uz grupu, lai skatītu izdevumus un bilances.",
+    "joinGroup": "Pievienoties grupai",
+    "goToGroup": "Doties uz grupu",
+    "joining": "Notiek pievienošanās...",
+    "cancel": "Atcelt",
+    "welcome": "Laipni lūdzam {{groupName}}!",
+    "joinSuccess": "Jūs veiksmīgi pievienojāties grupai. Notiek pāradresācija uz grupas lapu...",
+    "joinedTitle": "Pievienojās {{groupName}} - {{appName}}",
+    "backToDashboard": "Atpakaļ uz informācijas paneli",
+    "pendingApprovalTitle": "Gaida apstiprinājumu",
+    "pendingApprovalMessage": "Jūsu pieprasījums pievienoties {{groupName}} ir nosūtīts grupas administratoriem.",
+    "pendingApprovalHelp": "Mēs jums paziņosim, kad jūs tiksiet apstiprināts. Pagaidām varat atgriezties savā informācijas panelī.",
+    "errors": {
+      "invalidLink": "Šī uzaicinājuma saite ir nederīga vai beigusies",
+      "groupNotFound": "Šī grupa vairs nepastāv",
+      "alreadyMember": "Jūs jau esat šīs grupas dalībnieks",
+      "joinFailed": "Neizdevās pievienoties grupai",
+      "loadFailed": "Neizdevās ielādēt grupas informāciju"
+    },
+    "displayName": {
+      "title": "Izvēlieties savu parādāmo vārdu",
+      "description": "Tā citi dalībnieki jūs redzēs \"{{groupName}}\"",
+      "label": "Parādāmais vārds",
+      "placeholder": "Kā citiem dalībniekiem vajadzētu redzēt jūsu vārdu?",
+      "help": "Izvēlieties unikālu vārdu šai grupai. Citi dalībnieki to izmantos, lai jūs identificētu.",
+      "errors": {
+        "required": "Ievadiet parādāmo vārdu.",
+        "taken": "Šis parādāmais vārds jau tiek izmantots šajā grupā.",
+        "invalid": "Parādāmais vārds var saturēt tikai burtus, ciparus, atstarpes, domuzīmes, pasvītras un punktus."
+      }
+    }
+  },
+  "dashboardComponents": {
+    "groupsList": {
+      "loading": "Notiek jūsu grupu ielāde...",
+      "loadFailed": "Neizdevās ielādēt grupas",
+      "tryAgain": "Mēģināt vēlreiz",
+      "creating": "Notiek grupas izveide...",
+      "noArchivedTitle": "Nav arhivētu grupu",
+      "noArchivedDescription": "Šeit parādīsies jūsu arhivētās grupas. Arhivējiet grupu no cilnes Aktīvās, lai to paslēptu no sava informācijas paneļa.",
+      "groupsListAriaLabel": "Jūsu grupas"
+    }
+  },
+  "expenseComponents": {
+    "expenseFormActions": {
+      "cancel": "Atcelt",
+      "updating": "Notiek atjaunināšana...",
+      "saving": "Notiek saglabāšana...",
+      "update": "Atjaunināt izdevumus",
+      "save": "Saglabāt izdevumus"
+    },
+    "participantSelector": {
+      "label": "Sadalīt starp",
+      "requiredIndicator": "*",
+      "selectAll": "Atlasīt visu",
+      "selectNone": "Atlasīt nevienu",
+      "payerSuffix": "(Maksātājs)"
+    },
+    "payerSelector": {
+      "label": "Kas samaksāja?",
+      "requiredIndicator": "*",
+      "selectPayer": "Atlasīt, kurš samaksāja",
+      "searchPlaceholder": "Meklēt dalībniekus...",
+      "membersList": "Grupas dalībnieki",
+      "noResults": "Neviens dalībnieks neatbilst jūsu meklēšanai"
+    },
+    "splitAmountInputs": {
+      "exactAmountsInstruction": "Ievadiet precīzas summas katrai personai:",
+      "unknown": "Nezināms",
+      "dollarSign": "€",
+      "total": "Kopā:",
+      "percentageInstruction": "Ievadiet procentus katrai personai:",
+      "percentSign": "%",
+      "equalInstruction": "Katra persona maksā:"
+    },
+    "splitTypeSelector": {
+      "label": "Kā sadalīt",
+      "equal": "Vienādi",
+      "exactAmounts": "Precīzas summas",
+      "percentage": "Procenti"
+    },
+    "expenseActions": {
+      "edit": "Rediģēt",
+      "copyExpense": "Kopēt izdevumus",
+      "copy": "Kopēt",
+      "share": "Dalīties",
+      "delete": "Dzēst",
+      "deleteTitle": "Dzēst izdevumus",
+      "deleteConfirm": "Vai esat pārliecināts, ka vēlaties dzēst \"{{expenseName}}\"? Šo darbību nevar atsaukt, un tā ietekmēs grupas bilances.",
+      "deleteButton": "Dzēst",
+      "cancel": "Atcelt",
+      "deleteFailed": "Neizdevās dzēst izdevumus",
+      "cannotEditTooltip": "Nevar rediģēt - dalībnieks ir pametis grupu"
+    },
+    "expenseFormModal": {
+      "addExpense": "Pievienot izdevumus",
+      "editExpense": "Rediģēt izdevumus",
+      "copyExpense": "Kopēt izdevumus",
+      "closeModal": "Aizvērt modālo logu",
+      "cancel": "Atcelt",
+      "saveExpense": "Saglabāt izdevumus",
+      "updateExpense": "Atjaunināt izdevumus",
+      "createCopy": "Izveidot kopiju",
+      "saving": "Notiek saglabāšana...",
+      "updating": "Notiek atjaunināšana...",
+      "close": "Aizvērt"
+    },
+    "expenseDetailModal": {
+      "title": "Izdevumu dati",
+      "closeModal": "Aizvērt modālo logu",
+      "close": "Aizvērt",
+      "edit": "Rediģēt",
+      "copy": "Kopēt",
+      "share": "Dalīties",
+      "delete": "Dzēst",
+      "paidBy": "Samaksāja",
+      "date": "Datums",
+      "labels": "Etiķetes",
+      "receipt": "Čeks",
+      "viewReceipt": "Skatīt čeku",
+      "noReceipt": "Nav čeka",
+      "splitDetails": "Sadalījuma dati",
+      "comments": "Komentāri",
+      "loadingExpense": "Notiek izdevumu datu ielāde...",
+      "expenseNotFound": "Izdevumi nav atrasti",
+      "failedToLoad": "Neizdevās ielādēt izdevumu datus",
+      "shareTitle": "Izdevumi: {{description}}",
+      "shareText": "Apskatiet šos izdevumus: {{description}} - {{amount}}"
+    },
+    "splitBreakdown": {
+      "splitBetween": "Sadalīts starp ",
+      "person": " personu",
+      "people": " personām",
+      "splitEqually": "Sadalīts vienādi",
+      "exactAmounts": "Precīzas summas",
+      "byPercentage": "Pēc procentiem",
+      "customSplit": "Pielāgots sadalījums",
+      "unknown": "Nezināms",
+      "paid": "Samaksāts",
+      "owes": "Parādā ",
+      "total": "Kopā: "
+    }
+  },
+  "joinGroupComponents": {
+    "groupPreview": {
+      "invitationMessage": "Jūs esat uzaicināts pievienoties šai grupai"
+    },
+    "joinButton": {
+      "joining": "Notiek pievienošanās...",
+      "joinGroup": "Pievienoties grupai"
+    },
+    "membersPreview": {
+      "groupSize": "Grupas lielums"
+    }
+  },
+  "policyComponents": {
+    "policyAcceptanceModal": {
+      "title": "Pieņemt atjauninātās politikas",
+      "policyLabel": "Politika ",
+      "of": " no ",
+      "colon": ": ",
+      "close": "Aizvērt",
+      "progress": "Progress",
+      "accepted": " pieņemts",
+      "acceptedIcon": "✓ Pieņemts",
+      "acceptedAriaLabel": "Pieņemts",
+      "loadingContent": "Notiek politikas satura ielāde...",
+      "acceptanceRequired": "Nepieciešama politikas pieņemšana",
+      "acceptanceInstructions": "Lūdzu, izlasiet iepriekšējo politiku un noklikšķiniet uz \"Pieņemt\", lai turpinātu lietot {{appName}}.",
+      "acceptCheckbox": "Esmu izlasījis un piekrītu šai ",
+      "previous": "Iepriekšējais",
+      "next": "Nākamais",
+      "policiesAccepted": " politikas pieņemtas",
+      "accepting": "Notiek pieņemšana...",
+      "acceptAll": "Pieņemt visu un turpināt",
+      "closeAriaLabel": "Aizvērt",
+      "errorTitle": "Kļūda"
+    },
+    "policyRenderer": {
+      "bulletPoint": "• "
+    }
+  },
+  "uiComponents": {
+    "alert": {
+      "dismiss": "Noraidīt brīdinājumu"
+    },
+    "avatar": {
+      "unknown": "Nezināms"
+    },
+    "button": {
+      "default": "Poga"
+    },
+    "multiLabelInput": {
+      "placeholder": "Pievienot etiķeti...",
+      "removeLabel": "Noņemt {{label}}",
+      "maxReached": "Maks. {{max}} etiķetes",
+      "recent": "Nesen",
+      "hint": "{{count}}/{{max}} etiķetes"
+    },
+    "confirmDialog": {
+      "confirm": "Apstiprināt",
+      "cancel": "Atcelt"
+    },
+    "currencyAmountInput": {
+      "selectCurrency": "Atlasīt valūtu",
+      "searchPlaceholder": "Meklēt pēc simbola, koda vai valsts...",
+      "searchAriaLabel": "Meklēt valūtas",
+      "loading": "Notiek valūtu ielāde...",
+      "noCurrencies": "Valūtas nav atrastas",
+      "recent": "Nesen",
+      "common": "Bieži",
+      "allCurrencies": "Visas valūtas",
+      "placeholder": "0,00",
+      "requiredIndicator": "*"
+    },
+    "currencySelector": {
+      "placeholder": "Atlasīt valūtu...",
+      "searchPlaceholder": "Meklēt valūtas",
+      "loading": "Notiek valūtu ielāde...",
+      "noCurrencies": "Valūtas nav atrastas",
+      "recent": "Nesen",
+      "common": "Bieži",
+      "allCurrencies": "Visas valūtas"
+    },
+    "input": {
+      "requiredIndicator": "*"
+    },
+    "loadingSpinner": {
+      "loading": "Notiek ielāde..."
+    },
+    "timeInput": {
+      "at": "plkst. ",
+      "placeholder": "Ievadiet laiku (piem., 14:30)",
+      "requiredIndicator": "*"
+    },
+    "form": {
+      "submissionError": "Veidlapas iesniegšanas kļūda"
+    }
+  },
+  "pages": {
+    "addExpensePage": {
+      "errorTitle": "Kļūda - {{appName}}",
+      "error": "Kļūda",
+      "noGroupMessage": "Nav norādīta grupa. Nevar pievienot izdevumus bez grupas.",
+      "backToDashboard": "Atpakaļ uz informācijas paneli",
+      "loadingTitle": "Notiek ielāde... - {{appName}}",
+      "groupNotFound": "Grupa nav atrasta",
+      "groupNotFoundMessage": "Grupa, kurai mēģināt pievienot izdevumus, nepastāv vai jums nav piekļuves tai.",
+      "backToGroup": "Atpakaļ uz grupu",
+      "copyExpenseTitle": "Kopēt izdevumus",
+      "editExpenseTitle": "Rediģēt izdevumus",
+      "addExpenseTitle": "Pievienot izdevumus",
+      "copyExpenseAction": "Kopēt izdevumus",
+      "editExpenseAction": "Rediģēt izdevumus",
+      "addExpenseAction": "Pievienot jaunus izdevumus",
+      "titleSuffix": " - {{appName}}",
+      "titleIn": " "
+    },
+    "expenseDetailPage": {
+      "missingGroupId": "Trūkst grupas ID",
+      "missingExpenseId": "Trūkst izdevumu ID",
+      "failedToLoad": "Neizdevās ielādēt izdevumus",
+      "cannotEdit": "Šos izdevumus nevar rediģēt",
+      "containsDepartedMembers": "Viens vai vairāki dalībnieki ir pametuši grupu. Vēsturiskie ieraksti tiek saglabāti kā tikai lasāmi.",
+      "expenseLabel": "Izdevumi: ",
+      "checkOutExpense": "Apskatiet šos izdevumus: ",
+      "shareApiFailed": "Koplietošanas API neizdevās, tiek atgriezts starpliktuvē",
+      "failedToCopy": "Neizdevās nokopēt starpliktuvē",
+      "error": "Kļūda",
+      "expenseNotFound": "Izdevumi nav atrasti",
+      "backToGroup": "Atpakaļ uz grupu",
+      "titleSeparator": " - ",
+      "expenseFor": "Izdevumi ",
+      "backButton": "← Atpakaļ",
+      "date": "Datums",
+      "ago": " pirms",
+      "labels": "Etiķetes",
+      "paidBy": "Samaksāja",
+      "unknown": "Nezināms",
+      "discussion": "Diskusija",
+      "receipt": "Čeks",
+      "summarySection": "Izdevumu kopsavilkums",
+      "splitSection": "Sadalījuma dati",
+      "metadataSection": "Izdevumu metadati",
+      "clickToViewFullSize": "Noklikšķiniet, lai skatītu pilnā izmērā",
+      "added": "Pievienots ",
+      "lastUpdated": "Pēdējoreiz atjaunināts ",
+      "receiptViewer": "Čeka skatītājs",
+      "closeReceiptViewer": "Aizvērt čeka skatītāju",
+      "receiptFullSize": "Čeks - Pilns izmērs"
+    },
+    "groupDetailPage": {
+      "errorLoadingGroup": "Kļūda, ielādējot grupu",
+      "backToDashboard": "Atpakaļ uz informācijas paneli",
+      "balances": "Bilances",
+      "expenses": "Izdevumi",
+      "comments": "Komentāri",
+      "activity": "Aktivitāte",
+      "paymentHistory": "Norēķini",
+      "toggleSection": "Pārslēgt sadaļu {{section}}",
+      "titleSuffix": " - {{appName}}",
+      "manageExpensesFor": "Pārvaldīt izdevumus "
+    },
+    "landingPage": {
+      "title": "Viegla rēķinu sadalīšana - {{appName}}",
+      "description": "Atvadieties no neveikliem parādiem un sarežģītiem aprēķiniem. Mūsu lietotne padara izdevumu dalīšanu ar draugiem, ģimeni un istabas biedriem vieglu, godīgu un pārredzamu. Tā ir 100% bezmaksas, bez reklāmām un bez ierobežojumiem.",
+      "disclaimer": "Šis ir rīks izdevumu izsekošanai, nevis maksājumu veikšanai.",
+      "accountNote": " Lai saglabātu un pārvaldītu savus izdevumus, jums būs nepieciešams bezmaksas konts.",
+      "privacyNote": "Mēs nekad neprasīsim sensitīvus finanšu datus.",
+      "transparencyNotice": {
+        "bold": "Šis ir rīks izdevumu izsekošanai, nevis maksājumu veikšanai.",
+        "text": "Lai saglabātu un pārvaldītu savus izdevumus, jums būs nepieciešams bezmaksas konts. Mēs nekad neprasīsim sensitīvus finanšu datus."
+      }
+    },
+    "registerPage": {
+      "requiredIndicator": "*"
+    },
+    "resetPasswordPage": {
+      "failedToSendReset": "Neizdevās nosūtīt atiestatīšanas e-pastu",
+      "checkYourEmail": "Pārbaudiet savu e-pastu",
+      "resetInstructionsSent": "Paroles atiestatīšanas instrukcijas ir nosūtītas uz jūsu e-pastu",
+      "emailSentSuccessfully": "E-pasts veiksmīgi nosūtīts",
+      "sentInstructionsTo": "Mēs nosūtījām paroles atiestatīšanas instrukcijas uz:",
+      "checkSpamFolder": "Nevarat to atrast? Pārbaudiet savu surogātpasta vai nevēlamo e-pastu mapi.",
+      "whatsNext": "Kas tālāk?",
+      "checkEmailInbox": "• Pārbaudiet savu e-pasta iesūtni (un surogātpasta mapi)",
+      "clickResetLink": "• Noklikšķiniet uz atiestatīšanas saites e-pastā",
+      "createNewPassword": "• Izveidojiet jaunu paroli",
+      "signInWithNewPassword": "• Piesakieties ar savu jauno paroli",
+      "sendToDifferentEmail": "Sūtīt uz citu e-pastu",
+      "backToSignIn": "← Atpakaļ uz pierakstīšanos",
+      "resetPassword": "Atiestatīt paroli",
+      "enterEmailForReset": "Ievadiet savu e-pasta adresi, lai saņemtu paroles atiestatīšanas instrukcijas",
+      "enterEmailDescription": "Ievadiet ar savu kontu saistīto e-pasta adresi, un mēs jums nosūtīsim saiti, lai atiestatītu paroli.",
+      "emailPlaceholder": "Ievadiet savu e-pasta adresi",
+      "sendResetInstructions": "Sūtīt atiestatīšanas instrukcijas"
+    }
+  },
+  "authLayout": {
+    "titleSuffix": " - {{appName}}"
+  },
+  "authProvider": {
+    "authenticationError": "Autentifikācijas kļūda",
+    "retry": "Mēģināt vēlreiz"
+  },
+  "usersBrowser": {
+    "errors": {
+      "auth": "Neizdevās ielādēt Firebase Auth lietotājus"
+    }
+  },
+  "validation": {
+    "required": "{{field}} ir obligāts"
+  },
+  "roles": {
+    "systemAdmin": {
+      "label": "Sistēmas administrators",
+      "description": "Pilna sistēmas piekļuve un kontrole"
+    },
+    "tenantAdmin": {
+      "label": "Īrnieka administrators",
+      "description": "Var pārvaldīt īrnieka iestatījumus un konfigurāciju"
+    },
+    "regular": {
+      "label": "Parasts lietotājs",
+      "description": "Standarta lietotājs bez administratīvām privilēģijām"
+    }
+  },
+  "admin": {
+    "loading": "Notiek administratora ielāde...",
+    "tabs": {
+      "tenants": "Īrnieki",
+      "diagnostics": "Diagnostika",
+      "tenantConfig": "Īrnieka konfigurācija",
+      "users": "Lietotāji",
+      "ariaLabel": "Administratora cilnes"
+    },
+    "tenantConfig": {
+      "loading": "Notiek īrnieka konfigurācijas ielāde...",
+      "overview": {
+        "title": "Īrnieka pārskats",
+        "tenantId": "Īrnieka ID",
+        "appName": "Lietotnes nosaukums",
+        "lastUpdated": "Pēdējo reizi atjaunināts"
+      },
+      "theme": {
+        "title": "Tēmas artefakts",
+        "description": "Jaucējkods + CSS piegādes palīgi",
+        "copyLink": "Kopēt tēmas saiti",
+        "forceReload": "Piespiedu kārtā pārlādēt tēmu",
+        "activeHash": "Aktīvais jaucējkods",
+        "notPublished": "nav publicēts",
+        "generatedAt": "Ģenerēts",
+        "copySuccess": "Tēmas saite nokopēta starpliktuvē.",
+        "copyError": "Nevar nokopēt tēmas saiti. Lūdzu, nokopējiet manuāli."
+      },
+      "brandingTokens": {
+        "title": "Zīmola marķieri"
+      },
+      "computedCss": {
+        "title": "Aprēķinātie CSS mainīgie"
+      }
+    },
+    "tenants": {
+      "pageTitle": "Īrnieku pārvaldība",
+      "pageDescription": "Skatīt un pārvaldīt visas īrnieku konfigurācijas",
+      "summary": {
+        "total": "Kopējais īrnieku skaits:"
+      },
+      "actions": {
+        "create": "Izveidot jaunu īrnieku",
+        "switchTenant": "Noklikšķiniet, lai pārslēgtos uz šo īrnieku"
+      },
+      "status": {
+        "active": "Aktīvs",
+        "default": "Noklusējums"
+      },
+      "details": {
+        "tenantId": "Īrnieka ID:",
+        "primaryDomain": "Primārais domēns:",
+        "allDomains": "Visi domēni:",
+        "domains": "Domēni:"
+      },
+      "emptyState": "Nav atrasts neviens īrnieks",
+      "errors": {
+        "load": "Neizdevās ielādēt īrniekus"
+      }
+    },
+    "diagnostics": {
+      "loading": "Notiek vides diagnostikas ielāde...",
+      "errors": {
+        "fetch": "Neizdevās iegūt vides datus",
+        "unknown": "Radās nezināma kļūda"
+      },
+      "serverStatus": {
+        "title": "Servera statuss",
+        "environment": "Vide",
+        "nodeVersion": "Node versija",
+        "uptime": "Darbības laiks",
+        "startedAt": "Sākts"
+      },
+      "buildInfo": {
+        "title": "Būvējuma informācija",
+        "version": "Versija",
+        "buildDate": "Būvējuma datums",
+        "buildTimestamp": "Būvējuma laika zīmogs"
+      },
+      "memory": {
+        "title": "Atmiņas lietojums",
+        "rss": "RSS (rezidentās kopas lielums)",
+        "heapUsed": "Izmantotā kaudze",
+        "heapTotal": "Kopējā kaudze",
+        "heapAvailable": "Pieejamā kaudze",
+        "external": "Ārējā atmiņa",
+        "arrayBuffers": "Masīvu buferi",
+        "heapLimit": "Kaudzes ierobežojums"
+      },
+      "heap": {
+        "title": "V8 kaudzes vietas",
+        "size": "Izmērs:",
+        "used": "Izmantots:",
+        "available": "Pieejams:"
+      },
+      "envVars": {
+        "title": "Vides mainīgie",
+        "variable": "Mainīgais",
+        "value": "Vērtība"
+      },
+      "filesystem": {
+        "title": "Failu sistēma",
+        "cwd": "Darba direktorija"
+      }
+    },
+    "users": {
+      "description": "Pārvaldīt lietotāju kontus, lomas un atļaujas",
+      "loading": "Notiek lietotāju ielāde...",
+      "emptyState": "Nav atrasts neviens lietotājs",
+      "search": {
+        "label": "Meklēt pēc e-pasta vai UID",
+        "placeholder": "Ievadiet e-pastu vai UID..."
+      },
+      "table": {
+        "email": "E-pasts",
+        "displayName": "Parādāmais vārds",
+        "role": "Loma",
+        "status": "Statuss",
+        "created": "Izveidots",
+        "lastSignIn": "Pēdējā pieteikšanās",
+        "actions": "Darbības"
+      },
+      "actions": {
+        "editUser": "Rediģēt lietotāju"
+      },
+      "confirmations": {
+        "disableUser": "Vai esat pārliecināts, ka vēlaties {{action}} šo lietotāja kontu?"
+      },
+      "success": {
+        "userToggled": "Lietotāja konts veiksmīgi {{action}}",
+        "roleUpdated": "Lietotāja loma atjaunināta uz {{role}}",
+        "roleUnchanged": "Loma nemainīta"
+      },
+      "errors": {
+        "selfDisable": "Jūs nevarat atspējot savu kontu",
+        "selfRoleChange": "Jūs nevarat mainīt savu lomu",
+        "disableUser": "Neizdevās {{action}} lietotāja kontu",
+        "roleUpdate": "Neizdevās atjaunināt lietotāja lomu",
+        "invalidSelection": "Nederīga atlase"
+      },
+      "rolePrompt": {
+        "title": "Pašreizējā loma: {{currentRole}}\n\nAtlasiet jaunu lomu:",
+        "regularUser": "Parasts lietotājs (bez lomas)"
+      }
+    },
+    "userEditor": {
+      "title": "Rediģēt lietotāju",
+      "tabs": {
+        "ariaLabel": "Lietotāja redaktora cilnes",
+        "profile": "Profils",
+        "role": "Loma",
+        "firebaseAuth": "Firebase Auth",
+        "firestore": "Firestore"
+      },
+      "profile": {
+        "description": "Rediģēt lietotāja parādāmo vārdu un e-pasta adresi",
+        "displayName": "Parādāmais vārds",
+        "displayNamePlaceholder": "Ievadiet parādāmo vārdu",
+        "email": "E-pasta adrese",
+        "emailPlaceholder": "Ievadiet e-pasta adresi"
+      },
+      "role": {
+        "description": "Atlasiet lomu šim lietotājam"
+      },
+      "loading": "Notiek ielāde...",
+      "noDataAvailable": "Nav pieejami dati",
+      "errors": {
+        "noChanges": "Nav saglabājamu izmaiņu",
+        "selfRoleChange": "Nevar mainīt savu lomu",
+        "selfRoleChangeWarning": "Jūs nevarat mainīt savu lomu",
+        "profileUpdate": "Neizdevās atjaunināt profilu",
+        "roleUpdate": "Neizdevās atjaunināt lomu",
+        "loadData": "Neizdevās ielādēt datus"
+      },
+      "success": {
+        "profileUpdated": "Profils veiksmīgi atjaunināts",
+        "roleUpdated": "Loma veiksmīgi atjaunināta"
+      }
+    },
+    "tenantEditor": {
+      "titleCreate": "Izveidot jaunu īrnieku",
+      "titleEdit": "Rediģēt īrnieku",
+      "descriptionCreate": "Konfigurējiet jaunu īrnieku ar zīmolu un domēniem",
+      "descriptionEdit": "Atjaunināt īrnieka konfigurāciju",
+      "modeToggle": {
+        "label": "Redaktora režīms",
+        "basic": "Pamata",
+        "advanced": "Papildu"
+      },
+      "modeHint": {
+        "basic": "Tiek rādīti būtiski iestatījumi",
+        "advanced": "Tiek rādīti visi iestatījumi",
+        "moreColors": "Pārslēdzieties uz papildu režīmu, lai pilnībā kontrolētu krāsu paleti"
+      },
+      "derivation": {
+        "themeMode": {
+          "label": "Tēmas režīms",
+          "light": "Gaišs",
+          "medium": "Vidējs",
+          "dark": "Tumšs"
+        },
+        "style": {
+          "label": "Stils",
+          "balanced": "Līdzsvarots",
+          "bold": "Treknraksts",
+          "soft": "Mīksts",
+          "vibrant": "Spilgts",
+          "elegant": "Elegants"
+        },
+        "intensity": {
+          "label": "Intensitāte",
+          "subtle": "Smalks",
+          "strong": "Stiprs"
+        }
+      },
+      "derivationWand": {
+        "tooltip": "Atvasināt krāsas no paletes",
+        "tooltipDisabled": "Vispirms iestatiet primārās, sekundārās un akcenta krāsas",
+        "popoverTitle": "Krāsu atvasināšana",
+        "derive": "Lietot atvasināšanu"
+      },
+      "sections": {
+        "gettingStarted": {
+          "title": "Darba sākšana",
+          "description": "Izvēlieties, kā inicializēt savu īrnieku"
+        },
+        "basicInfo": {
+          "title": "Pamatinformācija",
+          "description": "Īrnieka ID, nosaukums un domēni"
+        },
+        "assets": {
+          "title": "Aktīvi",
+          "description": "Logotipa un favicon attēli"
+        },
+        "paletteColors": {
+          "title": "Paletes krāsas",
+          "description": "Galvenās zīmola krāsas"
+        },
+        "brandColors": {
+          "title": "Zīmola krāsas",
+          "description": "Iestatiet savas primārās zīmola krāsas, pēc tam atvasiniet visu krāsu sistēmu"
+        },
+        "surfaceColors": {
+          "title": "Virsmas krāsas",
+          "description": "Fona un konteineru krāsas"
+        },
+        "textColors": {
+          "title": "Teksta krāsas",
+          "description": "Tipogrāfijas krāsas"
+        },
+        "interactiveColors": {
+          "title": "Interaktīvās krāsas",
+          "description": "Pogu un saišu krāsas"
+        },
+        "borderColors": {
+          "title": "Apmales krāsas",
+          "description": "Apmales un sadalītāju krāsas"
+        },
+        "statusColors": {
+          "title": "Statusa krāsas",
+          "description": "Atsauksmju un brīdinājumu krāsas"
+        },
+        "typography": {
+          "title": "Tipogrāfija",
+          "description": "Fontu saimes, izmēri un biezumi"
+        },
+        "spacing": {
+          "title": "Atstarpes",
+          "description": "Atstarpju skala un semantiskās atstarpes"
+        },
+        "radii": {
+          "title": "Apmales rādiusi",
+          "description": "Stūru noapaļošanas vērtības"
+        },
+        "shadows": {
+          "title": "Ēnas",
+          "description": "Lodziņa ēnu definīcijas"
+        },
+        "legal": {
+          "title": "Juridisks",
+          "description": "Uzņēmuma informācija un juridiskās saites"
+        },
+        "motion": {
+          "title": "Kustība",
+          "description": "Animācijas ilgumi un palēninājumi"
+        },
+        "featureFlags": {
+          "title": "Funkciju karodziņi",
+          "description": "Iespējot vai atspējot funkcijas"
+        },
+        "marketing": {
+          "title": "Mārketinga funkcijas",
+          "description": "Pārslēgt mārketinga lapas un saturu"
+        },
+        "advanced": {
+          "title": "Papildu",
+          "description": "Neobligāti vizuālie efekti"
+        }
+      },
+      "fields": {
+        "tenantId": "Īrnieka ID",
+        "appName": "Lietotnes nosaukums",
+        "domains": "Domēni",
+        "logoUrl": "Logotipa URL",
+        "faviconUrl": "Favicon URL",
+        "primaryColor": "Primārā krāsa",
+        "primaryVariantColor": "Primārais variants",
+        "secondaryColor": "Sekundārā krāsa",
+        "secondaryVariantColor": "Sekundārais variants",
+        "accentColor": "Akcenta krāsa",
+        "neutralColor": "Neitrāla krāsa",
+        "neutralVariantColor": "Neitrāls variants",
+        "successColor": "Veiksmīga krāsa",
+        "warningColor": "Brīdinājuma krāsa",
+        "dangerColor": "Bīstamības krāsa",
+        "infoColor": "Informācijas krāsa"
+      },
+      "placeholders": {
+        "tenantId": "mans-irnieka-id",
+        "appName": "Mana izdevumu lietotne",
+        "domain": "Pievienot jaunu domēnu...",
+        "selectTenant": "Atlasīt īrnieku, no kura kopēt..."
+      },
+      "creationMode": {
+        "empty": "Sākt no tukša",
+        "copy": "Kopēt no esoša īrnieka",
+        "emptyDescription": "Jums būs jāaizpilda visi obligātie lauki. Krāsām jābūt #RRGGBB formātā.",
+        "copyDescription": "Visi tēmas iestatījumi tiks kopēti no {{tenant}}. Jums joprojām būs jāiestata unikāls īrnieka ID, lietotnes nosaukums un domēni."
+      },
+      "validation": {
+        "tenantIdFormat": "Nederīgs īrnieka ID: jā satur tikai mazos burtus, ciparus un domuzīmes",
+        "domainRequired": "Nepieciešams vismaz viens domēns",
+        "invalidDomain": "Nederīgs domēns: {{domain}}",
+        "saveTenantFirst": "Lūdzu, vispirms saglabājiet īrnieku, pirms augšupielādējat attēlus",
+        "tenantIdRequiredForPublish": "Publicēšanai ir nepieciešams īrnieka ID"
+      },
+      "hints": {
+        "tenantIdReadonly": "Īrnieka ID nevar mainīt",
+        "colorFormat": "#RRGGBB"
+      },
+      "toggles": {
+        "showMarketingContent": {
+          "label": "Rādīt mārketinga saturu",
+          "description": "Rādīt funkciju/CTA sadaļas publiskajās lapās"
+        },
+        "showPricingPage": {
+          "label": "Rādīt cenu lapu",
+          "description": "Rādīt /pricing maršrutu"
+        },
+        "showAppNameInHeader": {
+          "label": "Rādīt lietotnes nosaukumu galvenē",
+          "description": "Rādīt lietotnes nosaukumu blakus logotipam"
+        },
+        "enableParallax": {
+          "label": "Iespējot paralaksi",
+          "description": "Iespējot paralakses ritināšanas efektus"
+        },
+        "enableMagneticHover": {
+          "label": "Iespējot magnētisko kursoru",
+          "description": "Iespējot magnētiskos kursora efektus pogām"
+        },
+        "enableScrollReveal": {
+          "label": "Iespējot ritināšanas atklāšanu",
+          "description": "Iespējot ritināšanas izraisītas animācijas"
+        }
+      },
+      "loading": {
+        "tenants": "Notiek īrnieku ielāde..."
+      },
+      "empty": {
+        "noTenants": "Nav neviena esoša īrnieka, no kura kopēt."
+      },
+      "errors": {
+        "invalidPayload": "Nederīgi īrnieka dati. Lūdzu, pārbaudiet visus laukus un mēģiniet vēlreiz.",
+        "permissionDenied": "Jums nav atļaujas modificēt īrnieka iestatījumus.",
+        "duplicateDomain": "Viens vai vairāki domēni jau ir piešķirti citam īrniekam.",
+        "saveFailed": "Neizdevās saglabāt īrnieku. Lūdzu, mēģiniet vēlreiz.",
+        "tenantNotFound": "Īrnieks nepastāv. Saglabājiet to pirms publicēšanas.",
+        "tokensMissing": "Īrniekam trūkst zīmola marķieru. Lūdzu, vispirms konfigurējiet zīmolu un saglabājiet.",
+        "publishFailed": "Neizdevās publicēt tēmu. Lūdzu, mēģiniet vēlreiz.",
+        "uploadFailed": "Neizdevās augšupielādēt {{type}}"
+      },
+      "success": {
+        "createdAndPublished": "Īrnieks izveidots un tēma veiksmīgi publicēta!",
+        "updatedAndPublished": "Īrnieks atjaunināts un tēma veiksmīgi publicēta!",
+        "createdPublishFailed": "Īrnieks veiksmīgi izveidots, bet tēmas publicēšana neizdevās. Noklikšķiniet uz \"Publicēt tēmu\" manuāli.",
+        "updatedPublishFailed": "Īrnieks veiksmīgi atjaunināts, bet tēmas publicēšana neizdevās. Noklikšķiniet uz \"Publicēt tēmu\" manuāli.",
+        "themePublished": "Tēma veiksmīgi publicēta!",
+        "logoUploaded": "Logotips veiksmīgi augšupielādēts!",
+        "faviconUploaded": "Favicon veiksmīgi augšupielādēts!",
+        "logoSelected": "Logotips atlasīts no bibliotēkas",
+        "faviconSelected": "Favicon atlasīts no bibliotēkas"
+      },
+      "buttons": {
+        "save": "Saglabāt īrnieku",
+        "publish": "Publicēt tēmu",
+        "addDomain": "Pievienot",
+        "removeDomain": "Noņemt",
+        "chooseFromLibrary": "Izvēlēties no bibliotēkas",
+        "uploadNew": "Augšupielādēt jaunu"
+      },
+      "actions": {
+        "deriveColors": "Atvasināt krāsas",
+        "deriveColorsDescription": "Ģenerēt visas semantiskās krāsas no sava zīmola paletes"
+      }
+    }
+  },
+  "tenantBranding": {
+    "title": "Zīmola konfigurācija",
+    "subtitle": "Īrnieka iestatījumi",
+    "description": "Pielāgojiet sava īrnieka izskatu un mārketinga funkcijas",
+    "loading": "Notiek īrnieka iestatījumu ielāde...",
+    "accessDenied": "Jums nav atļaujas piekļūt īrnieka zīmola iestatījumiem. Šai lapai ir nepieciešama īrnieka administratora vai sistēmas administratora loma.",
+    "tenantIdLabel": "Īrnieka ID",
+    "domainWarning": "Izmaiņas ietekmēs visus lietotājus, kas piekļūst šī īrnieka domēnam",
+    "brandingAssets": {
+      "title": "Zīmola aktīvi",
+      "description": "Konfigurējiet savu zīmola identitāti"
+    },
+    "fields": {
+      "appName": "Lietotnes nosaukums",
+      "appNamePlaceholder": "Mana izdevumu lietotne",
+      "logoUrl": "Logotipa URL",
+      "logoUrlPlaceholder": "/logo.svg",
+      "faviconUrl": "Favicon URL",
+      "faviconUrlPlaceholder": "/favicon.ico",
+      "primaryColor": "Primārā krāsa",
+      "secondaryColor": "Sekundārā krāsa"
+    },
+    "preview": {
+      "title": "Tiešraides priekšskatījums",
+      "description": "Skatiet, kā izskatīsies jūsu zīmols",
+      "primaryButton": "Primārā poga",
+      "secondaryButton": "Sekundārā poga",
+      "brandingLabel": "Jūsu īrnieka zīmols"
+    },
+    "marketing": {
+      "title": "Mārketinga funkcijas",
+      "description": "Kontrolējiet, kuras mārketinga lapas ir redzamas",
+      "contentLabel": "Mārketinga saturs",
+      "contentDescription": "Rādīt funkciju/CTA sadaļas",
+      "pricingLabel": "Cenu lapa",
+      "pricingDescription": "Rādīt /pricing maršrutu"
+    },
+    "actions": {
+      "saving": "Notiek saglabāšana...",
+      "saveChanges": "Saglabāt izmaiņas"
+    },
+    "errors": {
+      "loadFailed": "Neizdevās ielādēt īrnieka iestatījumus",
+      "updateFailed": "Neizdevās atjaunināt zīmola iestatījumus",
+      "notImplemented": "Zīmola atjaunināšana vēl nav ieviesta aizmugursistēmā"
+    },
+    "success": {
+      "updated": "Zīmola iestatījumi veiksmīgi atjaunināti"
+    }
+  }
+}

@@ -1,0 +1,1927 @@
+{
+  "accessibility": {
+    "skipToContent": "メインコンテンツにスキップ"
+  },
+  "apiErrors": {
+    "AUTH_REQUIRED": "続行するにはサインインしてください",
+    "AUTH_INVALID": "セッションの有効期限が切れました。もう一度サインインしてください。",
+    "FORBIDDEN": "これを実行する権限がありません",
+    "NOT_FOUND": "{{resource}}が見つかりません",
+    "ALREADY_EXISTS": "{{resource}}は既に存在します",
+    "CONFLICT": "他の誰かが変更を加えました。更新してからもう一度お試しください。",
+    "VALIDATION_ERROR": "入力を確認してからもう一度お試しください",
+    "INVALID_REQUEST": "リクエストに問題が発生しました",
+    "RATE_LIMITED": "リクエストが多すぎます。しばらくお待ちください。",
+    "SERVICE_ERROR": "問題が発生しました。もう一度お試しください。",
+    "UNAVAILABLE": "サービスは一時的に利用できません。後でもう一度お試しください。"
+  },
+  "authErrors": {
+    "userNotFound": "このメールアドレスのアカウントが見つかりません",
+    "wrongPassword": "パスワードが正しくありません",
+    "weakPassword": "パスワードが弱すぎます。6文字以上で入力してください。",
+    "invalidEmail": "有効なメールアドレスを入力してください",
+    "tooManyRequests": "試行回数が多すぎます。後でもう一度お試しください。",
+    "networkError": "ネットワークエラーです。接続を確認してください。",
+    "emailInUse": "このメールアドレスは既に登録されています",
+    "invalidCredential": "メールアドレスまたはパスワードが無効です",
+    "userDisabled": "このアカウントは無効になっています",
+    "requiresRecentLogin": "続行するにはもう一度サインインしてください",
+    "generic": "認証に失敗しました。もう一度お試しください。",
+    "postRegistrationBase": "アカウントは作成されましたが、自動的にサインインできませんでした。",
+    "postRegistrationFallback": "アカウントは作成されましたが、自動的にサインインできませんでした。手動でサインインしてください。"
+  },
+  "pagination": {
+    "previous": "前へ",
+    "next": "次へ",
+    "page": "ページ",
+    "navigation": "ページネーション"
+  },
+  "common": {
+    "loading": "読み込み中...",
+    "unknownError": "問題が発生しました。もう一度お試しください。",
+    "cancel": "キャンセル",
+    "save": "保存",
+    "saving": "保存中...",
+    "delete": "削除",
+    "edit": "編集",
+    "close": "閉じる",
+    "confirm": "確認",
+    "back": "戻る",
+    "next": "次へ",
+    "previous": "前へ",
+    "submit": "送信",
+    "search": "検索",
+    "select": "選択",
+    "selectAll": "すべて選択",
+    "none": "なし",
+    "all": "すべて",
+    "yes": "はい",
+    "no": "いいえ",
+    "ok": "OK",
+    "error": "エラー",
+    "success": "成功",
+    "warning": "警告",
+    "info": "情報",
+    "unknown": "不明",
+    "unknownUser": "不明なユーザー",
+    "includeDeleted": "削除済みを含める",
+    "you": "あなた",
+    "youSuffix": " (あなた)",
+    "required": "*",
+    "optional": "(任意)",
+    "or": "または",
+    "and": "そして",
+    "copy": "コピー",
+    "share": "共有",
+    "dismiss": "閉じる",
+    "dismissAlert": "アラートを閉じる",
+    "justNow": "たった今",
+    "chooseFile": "ファイルを選択",
+    "active": "アクティブ",
+    "inactive": "非アクティブ",
+    "disabled": "無効",
+    "total": "合計",
+    "member": "メンバー",
+    "members": "メンバー",
+    "user": "ユーザー",
+    "group": "グループ",
+    "groups": "グループ",
+    "recent": "最近",
+    "settings": "設定",
+    "understood": "了解",
+    "titleSuffix": " - {{appName}}",
+    "refresh": "更新",
+    "reset": "リセット",
+    "add": "追加",
+    "create": "作成",
+    "processing": "処理中...",
+    "download": "ダウンロード",
+    "downloading": "ダウンロード中...",
+    "fromLibrary": "ライブラリから",
+    "orEnterUrl": "またはURLを入力",
+    "imageFailedToLoad": "画像の読み込みに失敗しました",
+    "selectedFile": "選択済み",
+    "enable": "有効にする",
+    "disable": "無効にする",
+    "created": "作成日時",
+    "updated": "更新日時",
+    "modified": "変更日時",
+    "name": "名前",
+    "type": "タイプ",
+    "size": "サイズ",
+    "link": "リンク",
+    "value": "値",
+    "notConfigured": "未設定",
+    "notSet": "未設定",
+    "empty": "(空)",
+    "noData": "データがありません",
+    "default": "デフォルト",
+    "actions": "アクション",
+    "status": "ステータス",
+    "email": "メールアドレス",
+    "displayName": "表示名",
+    "role": "役割",
+    "lastSignIn": "最終サインイン",
+    "placeholder": {
+      "amount": "0.00",
+      "search": "検索...",
+      "searchCurrencies": "通貨を検索...",
+      "selectCurrency": "通貨を選択...",
+      "selectPerson": "人物を選択"
+    }
+  },
+  "currencySelector": {
+    "noResults": "通貨が見つかりません"
+  },
+  "relativeTime": {
+    "justNow": "たった今",
+    "minuteAgo_one": "{{count}}分前",
+    "minuteAgo_other": "{{count}}分前",
+    "hourAgo_one": "{{count}}時間前",
+    "hourAgo_other": "{{count}}時間前",
+    "dayAgo_one": "{{count}}日前",
+    "dayAgo_other": "{{count}}日前",
+    "monthAgo_one": "{{count}}か月前",
+    "monthAgo_other": "{{count}}か月前",
+    "yearAgo_one": "{{count}}年前",
+    "yearAgo_other": "{{count}}年前"
+  },
+  "app": {
+    "loading": "読み込み中...",
+    "loadingPage": "ページを読み込み中...",
+    "loadingExpenseForm": "経費フォームを読み込み中..."
+  },
+  "createGroup": {
+    "validation": {
+      "displayNameTooShort": "表示名は2文字以上で入力してください。",
+      "displayNameTooLong": "表示名は50文字以内で入力してください。"
+    }
+  },
+  "createGroupModal": {
+    "title": "新しいグループを作成",
+    "groupNameLabel": "グループ名",
+    "groupNamePlaceholder": "例: アパートの経費、パリへの旅行",
+    "groupNameHelpText": "経費を割り勘する内容を表す名前を選択してください。",
+    "groupDisplayNameLabel": "このグループでのあなたの表示名",
+    "groupDisplayNamePlaceholder": "他のメンバーにあなたの名前をどのように表示しますか？",
+    "groupDisplayNameHelpText": "この名前は、このグループの経費、コメント、アクティビティの上に表示されます。",
+    "groupDescriptionLabel": "説明(任意)",
+    "groupDescriptionPlaceholder": "このグループに関する詳細を追加...",
+    "groupDescriptionHelpText": "メンバーがグループの目的を理解するのに役立つ任意の説明。",
+    "closeButtonAriaLabel": "モーダルを閉じる",
+    "cancelButton": "キャンセル",
+    "submitButton": "グループを作成",
+    "restrictCurrencies": "通貨を制限する",
+    "restrictCurrenciesHelp": "このグループの経費には、選択した通貨のみ使用できます",
+    "validation": {
+      "nameRequired": "グループ名は必須です。",
+      "nameTooShort": "グループ名は2文字以上で入力してください。",
+      "nameTooLong": "グループ名は50文字未満で入力してください。",
+      "displayNameRequired": "表示名を入力してください。",
+      "displayNameTooShort": "表示名は2文字以上で入力してください。",
+      "displayNameTooLong": "表示名は50文字以内で入力してください。",
+      "displayNameInvalid": "表示名には、文字、数字、スペース、ハイフン、アンダースコア、ピリオドのみ使用できます。",
+      "displayNameTaken": "その表示名はこのグループで既に使用されています。"
+    }
+  },
+  "loginPage": {
+    "title": "サインイン",
+    "description": "共有経費を管理するためにアカウントにサインインしてください",
+    "rememberMe": "サインインしたままにする",
+    "forgotPassword": "パスワードをお忘れですか？",
+    "submitButton": "サインイン",
+    "noAccount": "アカウントをお持ちではありませんか？",
+    "signUp": "サインアップ",
+    "validation": {
+      "emailRequired": "メールアドレスは必須です",
+      "passwordRequired": "パスワードは必須です"
+    }
+  },
+  "registerPage": {
+    "title": "アカウントを作成",
+    "description": "{{appName}}アカウントを作成して、共有経費の管理を始めましょう",
+    "fullNameLabel": "氏名",
+    "fullNamePlaceholder": "氏名を入力してください",
+    "passwordLabel": "パスワード",
+    "passwordPlaceholder": "強力なパスワードを作成してください",
+    "confirmPasswordLabel": "パスワードの確認",
+    "confirmPasswordPlaceholder": "パスワードを確認してください",
+    "acceptTerms": "私は下記に同意します",
+    "termsOfService": "利用規約",
+    "cookiePolicy": "クッキーポリシー",
+    "privacyPolicy": "プライバシーポリシー",
+    "submitButton": "アカウントを作成",
+    "hasAccount": "既にアカウントをお持ちですか？",
+    "signIn": "サインイン",
+    "requiredIndicator": "*",
+    "validation": {
+      "nameRequired": "名前は必須です",
+      "emailRequired": "メールアドレスは必須です",
+      "passwordRequired": "パスワードは必須です",
+      "passwordTooShort": "パスワードは12文字以上で入力してください",
+      "passwordsNoMatch": "パスワードが一致しません",
+      "termsRequired": "利用規約に同意する必要があります",
+      "cookiesRequired": "クッキーポリシーに同意する必要があります",
+      "privacyRequired": "プライバシーポリシーに同意する必要があります"
+    }
+  },
+  "auth": {
+    "refreshingSession": "セッションを更新しています...",
+    "initializationFailed": "初期化に失敗しました。ページを更新してください。",
+    "emailInput": {
+      "label": "メールアドレス",
+      "placeholder": "メールアドレスを入力してください",
+      "requiredIndicator": "*",
+      "validation": {
+        "required": "メールアドレスは必須です",
+        "invalid": "有効なメールアドレスを入力してください"
+      }
+    },
+    "passwordInput": {
+      "label": "パスワード",
+      "placeholder": "パスワードを入力してください",
+      "requiredIndicator": "*",
+      "showPassword": "パスワードを表示",
+      "hidePassword": "パスワードを非表示",
+      "strength": "パスワードの強度",
+      "strengthWeak": "弱い",
+      "strengthMedium": "中",
+      "strengthStrong": "強い",
+      "validation": {
+        "required": "パスワードは必須です",
+        "tooShort": "パスワードは12文字以上で入力してください"
+      }
+    }
+  },
+  "dashboard": {
+    "title": "ダッシュボード - {{appName}}",
+    "description": "{{appName}}でグループと経費を管理します",
+    "welcomeMessage": "{{appName}}へようこそ、{{name}}さん！",
+    "welcomeDescription": "最初のグループを作成して、友達と経費を追跡・割り勘しましょう。",
+    "yourGroups": "あなたのグループ",
+    "createGroup": "グループを作成",
+    "groupsFilter": {
+      "label": "グループをフィルタリング",
+      "active": "アクティブ",
+      "archived": "アーカイブ済み"
+    },
+    "groupCard": {
+      "settledUp": "すべて精算済みです！",
+      "youOwe": "{{amount}}を支払う必要があります",
+      "youAreOwed": "{{amount}}を受け取る必要があります",
+      "addExpenseTooltip": "{{groupName}}に経費を追加",
+      "inviteTooltip": "{{groupName}}にメンバーを招待",
+      "noRecentActivity": "最近のアクティビティはありません",
+      "archivedBadge": "アーカイブ済み"
+    },
+    "emptyState": {
+      "title": "まだグループがありません",
+      "subtitle": "最初のグループを作成して、共有経費の追跡を始めましょう",
+      "createButton": "グループを作成"
+    },
+    "stats": {
+      "totalGroups": "合計グループ数",
+      "totalExpenses": "合計経費",
+      "totalBalance": "合計残高"
+    },
+    "quickActions": {
+      "title": "クイックアクション",
+      "createGroup": "グループを作成",
+      "addExpense": "経費を追加"
+    }
+  },
+  "activityFeed": {
+    "title": "最近のアクティビティ",
+    "loading": "読み込み中...",
+    "emptyState": {
+      "title": "まだアクティビティがありません",
+      "description": "グループのアクティビティは、発生するとここに表示されます。",
+      "groupDescription": "このグループのアクティビティはここに表示されます。"
+    },
+    "error": {
+      "loadFailed": "現在、最近のアクティビティを読み込めませんでした。もう一度お試しください。"
+    },
+    "actions": {
+      "retry": "再試行",
+      "loadMore": "さらに読み込む",
+      "loadingMore": "読み込み中..."
+    },
+    "labels": {
+      "actorYou": "あなた",
+      "unknownUser": "誰か",
+      "unknownGroup": "あるグループ",
+      "unknownExpense": "ある経費",
+      "unknownSettlement": "ある精算",
+      "commentOnGroup": "グループのディスカッション",
+      "commentOnExpense": "経費「{{description}}」"
+    },
+    "events": {
+      "group-created": "{{actor}}が{{group}}を作成しました",
+      "group-updated": "{{actor}}がグループ{{group}}を更新しました",
+      "group-updated-from": "{{actor}}が{{previous}}を{{group}}に改名しました",
+      "expense-created": "{{actor}}が{{group}}に{{expense}}を追加しました",
+      "expense-updated": "{{actor}}が{{group}}で{{expense}}を更新しました",
+      "expense-deleted": "{{actor}}が{{group}}から{{expense}}を削除しました",
+      "member-joined": "{{actor}}が{{target}}を{{group}}に追加しました",
+      "member-joined-self": "{{actor}}が{{group}}に参加しました",
+      "member-left": "{{actor}}が{{target}}を{{group}}から削除しました",
+      "member-left-self": "{{actor}}が{{group}}を脱退しました",
+      "comment-added": "{{actor}}が{{group}}の{{target}}にコメントしました",
+      "settlement-created": "{{actor}}が{{group}}で{{settlement}}を記録しました",
+      "settlement-updated": "{{actor}}が{{group}}で{{settlement}}を更新しました",
+      "settlement-deleted": "{{actor}}が{{group}}から{{settlement}}を削除しました",
+      "generic": "{{actor}}が{{group}}で変更を加えました",
+      "group-created-short": "{{actor}}がグループを作成しました",
+      "group-updated-short": "{{actor}}がグループを更新しました",
+      "group-updated-from-short": "{{actor}}がグループ名を{{previous}}から改名しました",
+      "expense-created-short": "{{actor}}が{{expense}}を追加しました",
+      "expense-updated-short": "{{actor}}が{{expense}}を更新しました",
+      "expense-deleted-short": "{{actor}}が{{expense}}を削除しました",
+      "member-joined-short": "{{actor}}が{{target}}を追加しました",
+      "member-joined-self-short": "{{actor}}が参加しました",
+      "member-left-short": "{{actor}}が{{target}}を削除しました",
+      "member-left-self-short": "{{actor}}が脱退しました",
+      "comment-added-short": "{{actor}}が{{target}}にコメントしました",
+      "settlement-created-short": "{{actor}}が{{settlement}}を記録しました",
+      "settlement-updated-short": "{{actor}}が{{settlement}}を更新しました",
+      "settlement-deleted-short": "{{actor}}が{{settlement}}を削除しました",
+      "generic-short": "{{actor}}が変更を加えました"
+    }
+  },
+  "group": {
+    "header": {
+      "members_one": "メンバー{{count}}人",
+      "members_other": "メンバー{{count}}人",
+      "expenses_one": "経費{{count}}件",
+      "expenses_other": "経費{{count}}件"
+    },
+    "actions": {
+      "addExpense": "経費を追加",
+      "viewExpenses": "経費を表示",
+      "settleUp": "精算する",
+      "shareGroup": "グループを共有",
+      "editGroup": "グループを編集",
+      "leaveGroup": "グループを脱退"
+    },
+    "share": {
+      "title": "グループを共有",
+      "subtitle": "このグループに参加するように他の人を招待します",
+      "copyLink": "リンクをコピー",
+      "linkCopied": "リンクがクリップボードにコピーされました！"
+    },
+    "edit": {
+      "title": "グループを編集",
+      "warningIcon": "⚠️"
+    },
+    "leave": {
+      "title": "グループを脱退",
+      "message": "本当にこのグループを脱退しますか？",
+      "confirmButton": "グループを脱退",
+      "cancelButton": "キャンセル"
+    },
+    "members": {
+      "title": "メンバー",
+      "addMember": "メンバーを追加",
+      "removeMember": "メンバーを削除",
+      "unknownUser": "不明なユーザー",
+      "user": "ユーザー"
+    },
+    "expenses": {
+      "title": "経費",
+      "noExpenses": "まだ経費がありません",
+      "addFirstExpense": "最初の経費を追加してください",
+      "unknown": "不明"
+    },
+    "balance": {
+      "title": "残高サマリー",
+      "settledUp": "すべて精算済みです！",
+      "unknown": "不明"
+    }
+  },
+  "comments": {
+    "section": {
+      "title": "コメント",
+      "noComments": "まだコメントがありません"
+    },
+    "input": {
+      "placeholder": "コメントを追加...",
+      "ariaLabel": "コメントテキスト",
+      "sendButton": "送信",
+      "sendAriaLabel": "コメントを送信"
+    },
+    "item": {
+      "justNow": "たった今",
+      "deleteButton": "コメントを削除"
+    },
+    "list": {
+      "loading": "コメントを読み込み中...",
+      "error": "コメントの読み込みに失敗しました"
+    },
+    "commentInput": {
+      "placeholder": "コメントを追加...",
+      "tooLong": "コメントが長すぎます",
+      "addFailed": "コメントの追加に失敗しました",
+      "helpText": "Enterで送信、Shift+Enterで改行"
+    },
+    "commentItem": {
+      "recently": "最近"
+    },
+    "commentsList": {
+      "loading": "コメントを読み込み中...",
+      "empty": "まだコメントがありません",
+      "emptySubtext": "最初のコメントを投稿しましょう！",
+      "loadingMore": "読み込み中...",
+      "loadMore": "さらにコメントを読み込む"
+    },
+    "commentsSection": {
+      "placeholderGroup": "このグループにコメントを追加...",
+      "placeholderExpense": "この経費にコメントを追加..."
+    }
+  },
+  "ui": {
+    "alert": {
+      "dismiss": "アラートを閉じる"
+    },
+    "confirmDialog": {
+      "confirm": "確認",
+      "cancel": "キャンセル"
+    }
+  },
+  "navigation": {
+    "header": {
+      "fallback": "...",
+      "dashboard": "ダッシュボード",
+      "groups": "グループ",
+      "settings": "設定"
+    },
+    "footer": {
+      "copyright": "© {{year}} {{appName}}. All rights reserved.",
+      "privacy": "プライバシーポリシー",
+      "terms": "利用規約",
+      "cookies": "クッキーポリシー"
+    },
+    "userMenu": {
+      "openUserMenu": "ユーザーメニューを開く",
+      "profile": "プロフィール",
+      "settings": "設定",
+      "logout": "ログアウト",
+      "help": "ヘルプ"
+    }
+  },
+  "errors": {
+    "generic": "エラーが発生しました",
+    "network": "ネットワークエラーが発生しました",
+    "invalidLink": "無効なリンク",
+    "notFound": {
+      "page": "ページが見つかりません",
+      "group": "グループが見つかりません",
+      "expense": "経費が見つかりません"
+    },
+    "loading": {
+      "cookiePolicy": "クッキーポリシーの読み込み中にエラーが発生しました",
+      "privacyPolicy": "プライバシーポリシーの読み込み中にエラーが発生しました",
+      "terms": "利用規約の読み込み中にエラーが発生しました"
+    },
+    "validation": {
+      "displayNameEmpty": "表示名は空にできません",
+      "displayNameTooLong": "表示名は100文字以内で入力してください",
+      "passwordTooShort": "新しいパスワードは12文字以上で入力してください",
+      "passwordsNoMatch": "パスワードが一致しません",
+      "passwordSameAsCurrent": "新しいパスワードは現在のパスワードと異なる必要があります",
+      "passwordAndNewRequired": "現在のパスワードと新しいパスワードは必須です"
+    }
+  },
+  "seo": {
+    "titleSuffix": " | {{appName}}",
+    "siteName": "{{appName}}"
+  },
+  "expenseForm": {
+    "description": "説明",
+    "amount": "金額*",
+    "whoPaid": "誰が支払いましたか？",
+    "splitBetween": "割り勘相手",
+    "exactAmounts": "正確な金額",
+    "percentage": "パーセンテージ",
+    "equal": "均等",
+    "exactAmountsInstruction": "各人の正確な金額を入力してください:",
+    "percentageInstruction": "各人のパーセンテージを入力してください:",
+    "selectAll": "すべて選択",
+    "saveExpense": "経費を保存",
+    "updateExpense": "経費を更新",
+    "cancel": "キャンセル",
+    "errors": {
+      "expenseLocked": "この経費は、1人以上の参加者がグループを脱退したため編集できません。"
+    }
+  },
+  "settlementForm": {
+    "updatePayment": "支払いを更新",
+    "recordPayment": "支払いを記録",
+    "updateSettlement": "精算を更新",
+    "recordSettlement": "精算を記録",
+    "closeModal": "モーダルを閉じる",
+    "whoPaidLabel": "誰が支払いましたか？",
+    "whoReceivedPaymentLabel": "誰が支払いを受け取りましたか？",
+    "amountLabel": "金額",
+    "dateLabel": "日付",
+    "noteLabel": "メモ(任意)",
+    "selectPersonPlaceholder": "人物を選択",
+    "amountPlaceholder": "0.00",
+    "notePlaceholder": "例: Venmo、現金、銀行振込",
+    "youSuffix": " (あなた)",
+    "cancelButton": "キャンセル",
+    "updatingButton": "更新中...",
+    "recordingButton": "記録中...",
+    "paymentSummary": "{{payer}}が{{payee}}に{{amount}}を支払いました",
+    "validation": {
+      "selectPayer": "支払者を選択してください",
+      "selectPayee": "支払いを受けた人を選択してください",
+      "samePersonError": "支払者と受取人は同じ人物にできません",
+      "validAmountRequired": "0より大きい有効な金額を入力してください",
+      "amountTooLarge": "金額は999,999.99を超えることはできません",
+      "validCurrencyRequired": "有効な通貨を選択してください",
+      "dateRequired": "日付を選択してください",
+      "dateInFuture": "日付は未来日にできません",
+      "recordPaymentFailed": "支払いの記録に失敗しました"
+    },
+    "errors": {
+      "settlementLocked": "この精算は、参加者がグループを脱退したため編集できません。"
+    },
+    "warnings": {
+      "noDebt": "{{payer}}は{{payee}}に{{currency}}で借金がありません。この精算は逆方向の借金を作成します。",
+      "overpayment": "{{payer}}は{{payee}}に{{debt}}しか借りていませんが、{{amount}}を精算しています。これにより逆方向の借金が作成されます。",
+      "underpayment": "{{amount}}を記録していますが、{{payer}}はその後も{{payee}}に{{remaining}}を借り続けることになります。残高は更新され続けます。"
+    }
+  },
+  "settlementHistory": {
+    "noPaymentsYet": "まだ支払いが記録されていません",
+    "today": "今日",
+    "yesterday": "昨日",
+    "editPaymentTooltip": "支払いを編集",
+    "cannotEditTooltip": "編集できません - メンバーがグループを脱退しました",
+    "deletePaymentTooltip": "支払いを削除",
+    "loadMore": "さらに読み込む",
+    "loadMorePayments": "さらに読み込む",
+    "deletePaymentTitle": "支払いを削除",
+    "deletePaymentMessage": "{{payer}}から{{payee}}への{{amount}}の支払いを本当に削除しますか？この操作は元に戻せません。",
+    "deleteButton": "削除",
+    "cancelButton": "キャンセル",
+    "showAll": "すべて表示",
+    "noPaymentsForYou": "まだあなたに関する支払いはありません",
+    "deletedBy": "削除者"
+  },
+  "balanceSummary": {
+    "loadingBalances": "残高を読み込み中...",
+    "allSettledUp": "すべて精算済みです！",
+    "debtArrow": " → ",
+    "showOnlyMyBalances": "自分の残高のみ表示",
+    "showAll": "すべて表示",
+    "settleUp": "精算",
+    "settleUpButton": "この借金を精算する"
+  },
+  "emptyGroupsState": {
+    "title": "まだグループがありません",
+    "description": "友達、家族、ルームメイトと経費を割り勘するために、最初のグループを作成しましょう。",
+    "createFirstGroup": "最初のグループを作成",
+    "gettingStartedTitle": "{{appName}}を始める:",
+    "step1Title": "1. グループを作成",
+    "step1Description": "友達、ルームメイト、旅行仲間を追加",
+    "step2Title": "2. 経費を追加",
+    "step2Description": "誰が支払ったか、費用をどう分けるかを追跡",
+    "step3Title": "3. 精算する",
+    "step3Description": "誰が誰にいくら借りているかを確認し、残高を精算"
+  },
+  "groupCard": {
+    "settledUp": "精算済み",
+    "addExpenseTooltip": "{{groupName}}に経費を追加",
+    "inviteTooltip": "{{groupName}}に招待",
+    "noRecentActivity": "最近のアクティビティはありません"
+  },
+  "expenseFormHeader": {
+    "addExpense": "経費を追加",
+    "editExpense": "経費を編集",
+    "copyExpense": "経費をコピー",
+    "cancel": "キャンセル"
+  },
+  "expenseBasicFields": {
+    "title": "経費の詳細",
+    "descriptionLabel": "説明",
+    "descriptionPlaceholder": "この経費は何のためでしたか？",
+    "amountLabel": "金額",
+    "labelsLabel": "ラベル",
+    "labelsPlaceholder": "ラベルを追加...",
+    "dateLabel": "日付",
+    "timeLabel": "時間",
+    "recentAmounts": "最近の金額:",
+    "today": "今日",
+    "yesterday": "昨日",
+    "thisMorning": "今朝",
+    "lastNight": "昨夜",
+    "addSpecificTime": "特定の時間を追加"
+  },
+  "suggestedLabels": [
+    "食料品",
+    "テイクアウト",
+    "レストラン",
+    "コーヒー",
+    "飲み物",
+    "バー",
+    "スナック",
+    "朝食",
+    "昼食",
+    "夕食",
+    "ファーストフード",
+    "デリバリー",
+    "ブランチ",
+    "ガソリン",
+    "駐車場",
+    "有料道路",
+    "Uber",
+    "Lyft",
+    "タクシー",
+    "バス",
+    "電車",
+    "地下鉄",
+    "レンタカー",
+    "燃料",
+    "フライト",
+    "Airbnb",
+    "ホテル",
+    "ホステル",
+    "リゾート",
+    "休暇",
+    "ロードトリップ",
+    "キャンプ",
+    "家賃",
+    "光熱費",
+    "電気",
+    "水道",
+    "インターネット",
+    "電話",
+    "保険",
+    "住宅ローン",
+    "HOA",
+    "修理",
+    "メンテナンス",
+    "清掃",
+    "家具",
+    "家電",
+    "装飾",
+    "庭",
+    "映画",
+    "コンサート",
+    "ショー",
+    "フェスティバル",
+    "スポーツ",
+    "ゲーム",
+    "ストリーミング",
+    "チケット",
+    "博物館",
+    "テーマパーク",
+    "ボウリング",
+    "ミニゴルフ",
+    "カラオケ",
+    "アーケード",
+    "脱出ゲーム",
+    "ショッピング",
+    "服",
+    "靴",
+    "電化製品",
+    "ギフト",
+    "本",
+    "おもちゃ",
+    "美容",
+    "スキンケア",
+    "ヘアカット",
+    "スパ",
+    "ジム",
+    "フィットネス",
+    "スポーツ用品",
+    "アウトドア用品",
+    "ペットフード",
+    "ペットケア",
+    "獣医",
+    "グルーミング",
+    "薬",
+    "薬局",
+    "医者",
+    "歯医者",
+    "眼科",
+    "セラピー",
+    "医療",
+    "育児",
+    "ベビーシッター",
+    "授業料",
+    "学校",
+    "消耗品",
+    "パーティー",
+    "誕生日",
+    "結婚式",
+    "休日",
+    "記念日",
+    "お祝い",
+    "装飾",
+    "ケータリング",
+    "会場",
+    "BBQ",
+    "ピクニック",
+    "持ち寄り",
+    "ゲームナイト",
+    "新築祝い",
+    "仕事",
+    "オフィス",
+    "消耗品",
+    "備品",
+    "ソフトウェア",
+    "サブスクリプション",
+    "会員",
+    "料金",
+    "チップ",
+    "慈善",
+    "寄付",
+    "ATM",
+    "現金",
+    "その他",
+    "その他",
+    "共有",
+    "割り勘",
+    "払い戻し",
+    "デポジット",
+    "保証金"
+  ],
+  "expensesList": {
+    "title": "経費",
+    "noExpensesYet": "まだ経費がありません。追加して始めましょう！",
+    "loadMore": "さらに読み込む"
+  },
+  "expenseItem": {
+    "paidBy": "支払者",
+    "deleted": "削除済み",
+    "deletedBy": "削除者",
+    "copyExpense": "経費をコピー"
+  },
+  "header": {
+    "logoAlt": "{{appName}}",
+    "login": "ログイン",
+    "signUp": "サインアップ",
+    "goToHome": "ホームへ移動",
+    "goToDashboard": "ダッシュボードへ移動"
+  },
+  "userMenu": {
+    "dashboard": "ダッシュボード",
+    "admin": "管理者",
+    "settings": "設定",
+    "signOut": "サインアウト",
+    "signingOut": "サインアウト中...",
+    "systemUserBadge": "システムユーザー",
+    "systemUserTooltip": "このアカウントは、自動化またはシステム駆動の操作に使用されます。",
+    "environmentLink": "環境",
+    "diagnosticsLoading": "診断情報を読み込み中...",
+    "diagnosticsError": "診断情報を読み込めません:",
+    "browser": "ブラウザ",
+    "browserUsers": "ユーザーブラウザ"
+  },
+  "languageSelector": {
+    "label": "言語",
+    "description": "希望の言語を選択してください"
+  },
+  "footer": {
+    "companyName": "{{appName}}",
+    "companyDescription": "友達や家族と簡単に請求書を割り勘。",
+    "linksSection": "リンク",
+    "copyright": "© 2025 Pomo Corp ltd. All rights reserved."
+  },
+  "groupHeader": {
+    "membersCount": "メンバー{{count}}人",
+    "membersCount_one": "メンバー{{count}}人",
+    "membersCount_other": "メンバー{{count}}人",
+    "old": "古い",
+    "lastUpdated": "最終更新",
+    "groupSettingsAriaLabel": "グループ設定",
+    "groupSecurityAriaLabel": "セキュリティと権限"
+  },
+  "securitySettingsModal": {
+    "unsavedChanges": "未保存の変更があります。すべてを確認してから、[保存]を押して適用してください。",
+    "presets": {
+      "activeBadge": "アクティブ",
+      "open": {
+        "label": "プリセット: オープンコラボレーション",
+        "description": "誰でもメンバーを招待し、制限なく経費を管理できます。"
+      },
+      "managed": {
+        "label": "プリセット: 管理グループ",
+        "description": "管理者が招待を承認し、経費の編集または削除ができるユーザーを制御します。"
+      }
+    },
+    "custom": {
+      "heading": "カスタム権限",
+      "unsaved": "カスタム権限が変更されました。",
+      "saveHelper": "変更は、[保存]を押すまでキューに入れられます。"
+    },
+    "success": {
+      "updated": "セキュリティ設定が更新されました。"
+    },
+    "permissions": {
+      "expenseEditing": {
+        "label": "経費を編集できるユーザー",
+        "description": "グループ内の任意の経費を更新できるユーザーを選択します。"
+      },
+      "expenseDeletion": {
+        "label": "経費を削除できるユーザー",
+        "description": "経費を削除する機能を制限します。"
+      },
+      "memberInvitation": {
+        "label": "メンバーを招待できるユーザー",
+        "description": "招待リンクを生成できるユーザーを決定します。"
+      },
+      "memberApproval": {
+        "label": "新しいメンバーの承認",
+        "description": "招待経由で誰かが参加する前に、管理者のレビューを要求します。"
+      },
+      "settingsManagement": {
+        "label": "設定を変更できるユーザー",
+        "description": "管理設定へのアクセスを制御します。"
+      },
+      "options": {
+        "anyone": "すべてのメンバー",
+        "creator-and-admin": "作成者と管理者",
+        "admin-only": "管理者のみ",
+        "automatic": "自動",
+        "admin-required": "管理者の承認が必要"
+      }
+    },
+    "memberRoles": {
+      "heading": "メンバーの役割",
+      "admin": "管理者",
+      "member": "メンバー",
+      "viewer": "閲覧者"
+    },
+    "pendingMembers": {
+      "heading": "保留中のメンバー",
+      "requested": "承認待ち",
+      "empty": "現在、保留中のリクエストはありません。",
+      "approve": "承認",
+      "reject": "拒否"
+    },
+    "errors": {
+      "loadPending": "保留中のメンバーを読み込めませんでした。もう一度お試しください。",
+      "updatePermissions": "セキュリティ設定を更新できませんでした。もう一度お試しください。",
+      "pendingAction": "そのリクエストを処理できませんでした。もう一度お試しください。"
+    }
+  },
+  "settingsPage": {
+    "title": "設定 - {{appName}}",
+    "description": "アカウント設定を管理します",
+    "heroLabel": "アカウント",
+    "accountSettingsHeader": "アカウント設定",
+    "accountSettingsSubheader": "プロフィール情報とパスワードを管理します",
+    "profileSummaryTitle": "プロフィール概要",
+    "profileSummaryDescription": "この情報は、他のメンバーがあなたを認識するのに役立ちます。",
+    "profileInformationHeader": "プロフィール情報",
+    "profileInformationSubheader": "{{appName}}全体で他のメンバーに表示される詳細を更新します。",
+    "emailSectionTitle": "メールアドレス",
+    "emailSectionDescription": "サインインや通知の受信に使用するメールアドレスを更新します。",
+    "currentDisplayName": "現在の表示名:",
+    "email": "メールアドレス:",
+    "currentEmailLabel": "現在のメールアドレス",
+    "displayNameLabel": "表示名",
+    "displayNamePlaceholder": "表示名を入力してください",
+    "displayNameHelper": "チームメイトが認識できる氏名またはニックネームを使用してください。",
+    "saveChangesButton": "変更を保存",
+    "passwordHeader": "パスワード",
+    "passwordIntro": "{{appName}}アカウントを安全に保つために、強力なパスワードを設定してください。",
+    "changePasswordButton": "パスワードを変更",
+    "changeEmailButton": "メールアドレスを変更",
+    "newEmailLabel": "新しいメールアドレス",
+    "newEmailPlaceholder": "新しいメールアドレスを入力してください",
+    "emailPasswordLabel": "パスワードで確認",
+    "updateEmailButton": "メールアドレスを更新",
+    "currentPasswordLabel": "現在のパスワード",
+    "newPasswordLabel": "新しいパスワード",
+    "confirmNewPasswordLabel": "新しいパスワードの確認",
+    "updatePasswordButton": "パスワードを更新",
+    "cancelButton": "キャンセル",
+    "passwordRequirementsHeading": "強力なパスワードのチェックリスト",
+    "passwordRequirements": {
+      "length": "12文字以上使用してください。",
+      "mix": "大文字と小文字、数字、記号を組み合わせてください。",
+      "reuse": "他で使用したパスワードは避けてください。"
+    },
+    "profileSummaryRoleLabel": "アカウントの役割",
+    "profileSummaryRoleFallback": "メンバー",
+    "profileSummaryRole": {
+      "system_admin": "管理者",
+      "system_user": "メンバー"
+    },
+    "successMessages": {
+      "profileUpdated": "プロフィールが正常に更新されました",
+      "passwordChanged": "パスワードが正常に変更されました",
+      "emailChanged": "メールアドレスが正常に更新されました。新しいアドレスを確認してください。"
+    },
+    "errorMessages": {
+      "profileUpdateFailed": "プロフィールの更新に失敗しました。もう一度お試しください。",
+      "passwordAndNewRequired": "現在のパスワードと新しいパスワードは必須です",
+      "passwordTooShort": "新しいパスワードは12文字以上で入力してください",
+      "passwordsNoMatch": "パスワードが一致しません",
+      "passwordSameAsCurrent": "新しいパスワードは現在のパスワードと異なる必要があります",
+      "currentPasswordIncorrect": "現在のパスワードが正しくありません",
+      "passwordChangeFailed": "パスワードの変更に失敗しました。もう一度お試しください。",
+      "displayNameEmpty": "表示名は空にできません",
+      "displayNameTooLong": "表示名は100文字以内で入力してください",
+      "emailRequired": "新しいメールアドレスは必須です",
+      "emailInvalid": "有効なメールアドレスを入力してください",
+      "emailSameAsCurrent": "新しいメールアドレスは現在のメールアドレスと異なる必要があります",
+      "emailPasswordRequired": "この変更を確認するには、現在のパスワードを入力してください",
+      "emailInUse": "そのメールアドレスは既に別の{{appName}}アカウントにリンクされています",
+      "emailChangeFailed": "メールアドレスの変更に失敗しました。もう一度お試しください。"
+    }
+  },
+  "editGroupModal": {
+    "title": "グループを編集",
+    "groupNameLabel": "グループ名",
+    "groupNamePlaceholder": "例: アパートの経費、パリへの旅行",
+    "descriptionLabel": "説明(任意)",
+    "descriptionPlaceholder": "このグループに関する詳細を追加...",
+    "cancelButton": "キャンセル",
+    "saveChangesButton": "変更を保存",
+    "deleteGroupButton": "グループを削除",
+    "validation": {
+      "nameRequired": "グループ名は必須です。",
+      "nameTooShort": "グループ名は2文字以上で入力してください。",
+      "nameTooLong": "グループ名は50文字未満で入力してください。",
+      "updateFailed": "グループの更新に失敗しました"
+    },
+    "success": {
+      "updated": "グループの詳細が更新されました。"
+    },
+    "deleteConfirmDialog": {
+      "title": "グループを完全に削除",
+      "warningTitle": "⚠️ 完全削除の警告",
+      "warningMessage": "これにより、グループと関連するすべてのデータが完全に削除されます:",
+      "warningList": {
+        "expenses": "すべての経費とそのコメント",
+        "settlements": "すべての精算と支払い履歴",
+        "members": "すべてのグループメンバーと権限",
+        "history": "すべての変更履歴とアクティビティ"
+      },
+      "cannotUndo": "この操作は元に戻せません。",
+      "typeToConfirm": "確認するには、グループ名「{{groupName}}」を以下に入力してください:",
+      "deletingMessage": "グループと関連するすべてのデータを削除中...",
+      "deletingText": "削除中...",
+      "confirmText": "グループを完全に削除",
+      "cancelText": "キャンセル",
+      "deleteFailed": "グループの削除に失敗しました"
+    }
+  },
+  "groupActions": {
+    "title": "グループアクション",
+    "addExpense": "経費を追加",
+    "settleUp": "精算する",
+    "inviteOthers": "他の人を招待",
+    "settings": "設定",
+    "leaveGroup": "グループを脱退",
+    "archive": "グループをアーカイブ",
+    "unarchive": "グループのアーカイブを解除"
+  },
+  "groupSettingsModal": {
+    "title": "グループ設定",
+    "tabs": {
+      "identity": "表示名",
+      "general": "一般",
+      "security": "セキュリティと権限"
+    },
+    "securityTab": {
+      "successAriaLabel": "成功",
+      "unsavedChangesAriaLabel": "未保存の変更"
+    }
+  },
+  "groupSettings": {
+    "currencySettings": {
+      "title": "通貨設定",
+      "description": "このグループの経費に使用できる通貨を制限します。",
+      "enableToggle": "このグループの通貨を制限する",
+      "enabledDescription": "経費には選択した通貨のみ使用できます",
+      "permittedLabel": "許可された通貨",
+      "defaultLabel": "新しい経費のデフォルト通貨",
+      "addCurrency": "通貨を追加",
+      "searchPlaceholder": "通貨を検索...",
+      "noCurrenciesSelected": "少なくとも1つの通貨を選択してください",
+      "defaultNotInPermitted": "デフォルトは許可された通貨である必要があります",
+      "allCurrenciesSelected": "すべての通貨が選択されています",
+      "saveButton": "通貨設定を保存",
+      "saveSuccess": "通貨設定が正常に更新されました。",
+      "saveFailed": "通貨設定の保存に失敗しました。もう一度お試しください。"
+    }
+  },
+  "groupDisplayNameSettings": {
+    "title": "グループ表示名",
+    "description": "このグループで他のメンバーにどのように表示されるかを選択します。",
+    "inputLabel": "このグループでのあなたの表示名",
+    "inputPlaceholder": "一意の表示名を入力してください",
+    "save": "表示名を保存",
+    "saving": "保存中...",
+    "success": "グループ表示名が更新されました。",
+    "errors": {
+      "required": "表示名を入力してください。",
+      "tooLong": "表示名は50文字以内で入力してください。",
+      "notChanged": "保存する前に別の表示名を入力してください。",
+      "taken": "その表示名はこのグループで既に使用されています。",
+      "unknown": "表示名の更新に失敗しました。もう一度お試しください。"
+    }
+  },
+  "membersList": {
+    "title": "メンバー",
+    "admin": "管理者",
+    "member": "メンバー",
+    "viewer": "閲覧者",
+    "thisMember": "このメンバー",
+    "leaveGroup": "グループを脱退",
+    "inviteOthers": "他の人を招待",
+    "inviteOthersAriaLabel": "他の人を招待",
+    "leaveGroupAriaLabel": "グループを脱退",
+    "removeMemberAriaLabel": "{{name}}を削除",
+    "leaveGroupDialog": {
+      "title": "グループを脱退しますか？",
+      "messageWithBalance": "このグループには未払いの残高があります。脱退する前に精算してください。",
+      "messageConfirm": "本当にこのグループを脱退しますか？再参加するには招待が必要です。",
+      "confirmText": "グループを脱退",
+      "cancelText": "キャンセル"
+    },
+    "removeMemberDialog": {
+      "title": "メンバーを削除しますか？",
+      "messageWithBalance": "{{name}}にはこのグループに未払いの残高があります。削除する前に精算してください。",
+      "messageConfirm": "本当に{{name}}をグループから削除しますか？",
+      "confirmText": "削除",
+      "cancelText": "キャンセル"
+    }
+  },
+  "shareGroupModal": {
+    "title": "他の人を招待",
+    "description": "このグループに参加させたい人にこのリンクを共有してください。",
+    "closeButtonAriaLabel": "モーダルを閉じる",
+    "copyLinkTitle": "リンクをコピー",
+    "copyLinkAriaLabel": "グループ招待リンクをコピー",
+    "qrCodeDescription": "またはこのコードをスキャン",
+    "expirationLabel": "招待リンクの有効期限は...",
+    "expirationOptions": {
+      "15m": "15分",
+      "1h": "1時間",
+      "1d": "1日",
+      "5d": "5日"
+    },
+    "expiresAt": "有効期限: {{date}}",
+    "generateNew": "新規生成",
+    "linkCopied": "リンクがクリップボードにコピーされました",
+    "errors": {
+      "generateLinkFailed": "共有リンクの生成に失敗しました。もう一度お試しください。"
+    }
+  },
+  "errorState": {
+    "defaultTitle": "問題が発生しました",
+    "unexpectedError": "予期しないエラーが発生しました",
+    "tryAgainButton": "再試行"
+  },
+  "errorBoundary": {
+    "title": "問題が発生しました",
+    "unexpectedError": "予期しないエラーが発生しました"
+  },
+  "notFoundPage": {
+    "title": "404",
+    "pageNotFound": "ページが見つかりません",
+    "pageNotFoundDescription": "お探しのページは存在しません。",
+    "groupNotFound": "グループが見つからないか、アクセス権がありません",
+    "groupNotFoundDescription": "お探しのグループは存在しないか、アクセスするには招待される必要があります。",
+    "goToDashboard": "ダッシュボードへ移動",
+    "goHome": "ホームへ移動"
+  },
+  "loadingState": {
+    "defaultMessage": "読み込み中..."
+  },
+  "joinGroupPage": {
+    "title": "グループに参加",
+    "loadingGroup": "グループ情報を読み込み中...",
+    "alreadyMember": "あなたはこのグループのメンバーです",
+    "alreadyMemberDescription": "経費や残高を表示するために、直接グループに移動できます。",
+    "joinGroup": "グループに参加",
+    "goToGroup": "グループへ移動",
+    "joining": "参加中...",
+    "cancel": "キャンセル",
+    "welcome": "{{groupName}}へようこそ！",
+    "joinSuccess": "グループに正常に参加しました。グループページにリダイレクトしています...",
+    "joinedTitle": "{{groupName}}に参加しました - {{appName}}",
+    "backToDashboard": "ダッシュボードに戻る",
+    "pendingApprovalTitle": "承認待ち",
+    "pendingApprovalMessage": "{{groupName}}への参加リクエストがグループ管理者に送信されました。",
+    "pendingApprovalHelp": "承認されると通知されます。それまではダッシュボードに戻ることができます。",
+    "errors": {
+      "invalidLink": "この招待リンクは無効か、期限切れです",
+      "groupNotFound": "このグループはもう存在しません",
+      "alreadyMember": "あなたはこのグループのメンバーです",
+      "joinFailed": "グループへの参加に失敗しました",
+      "loadFailed": "グループ情報の読み込みに失敗しました"
+    },
+    "displayName": {
+      "title": "表示名を選択",
+      "description": "これは「{{groupName}}」で他のメンバーに表示される方法です",
+      "label": "表示名",
+      "placeholder": "他のメンバーにあなたの名前をどのように表示しますか？",
+      "help": "このグループの一意の名前を選択してください。他のメンバーはそれを使用してあなたを識別します。",
+      "errors": {
+        "required": "表示名を入力してください。",
+        "taken": "その表示名はこのグループで既に使用されています。",
+        "invalid": "表示名には、文字、数字、スペース、ハイフン、アンダースコア、ピリオドのみ使用できます。"
+      }
+    }
+  },
+  "dashboardComponents": {
+    "groupsList": {
+      "loading": "グループを読み込み中...",
+      "loadFailed": "グループの読み込みに失敗しました",
+      "tryAgain": "再試行",
+      "creating": "グループを作成中...",
+      "noArchivedTitle": "アーカイブ済みのグループはありません",
+      "noArchivedDescription": "アーカイブしたグループはここに表示されます。ダッシュボードから非表示にするには、[アクティブ]タブからグループをアーカイブします。",
+      "groupsListAriaLabel": "あなたのグループ"
+    }
+  },
+  "expenseComponents": {
+    "expenseFormActions": {
+      "cancel": "キャンセル",
+      "updating": "更新中...",
+      "saving": "保存中...",
+      "update": "経費を更新",
+      "save": "経費を保存"
+    },
+    "participantSelector": {
+      "label": "割り勘相手",
+      "requiredIndicator": "*",
+      "selectAll": "すべて選択",
+      "selectNone": "選択解除",
+      "payerSuffix": "(支払者)"
+    },
+    "payerSelector": {
+      "label": "誰が支払いましたか？",
+      "requiredIndicator": "*",
+      "selectPayer": "支払者を選択",
+      "searchPlaceholder": "メンバーを検索...",
+      "membersList": "グループメンバー",
+      "noResults": "検索に一致するメンバーがいません"
+    },
+    "splitAmountInputs": {
+      "exactAmountsInstruction": "各人の正確な金額を入力してください:",
+      "unknown": "不明",
+      "dollarSign": "¥",
+      "total": "合計: ",
+      "percentageInstruction": "各人のパーセンテージを入力してください:",
+      "percentSign": "%",
+      "equalInstruction": "各人が支払う金額:"
+    },
+    "splitTypeSelector": {
+      "label": "割り勘方法",
+      "equal": "均等",
+      "exactAmounts": "正確な金額",
+      "percentage": "パーセンテージ"
+    },
+    "expenseActions": {
+      "edit": "編集",
+      "copyExpense": "経費をコピー",
+      "copy": "コピー",
+      "share": "共有",
+      "delete": "削除",
+      "deleteTitle": "経費を削除",
+      "deleteConfirm": "本当に「{{expenseName}}」を削除しますか？この操作は元に戻せず、グループの残高に影響します。",
+      "deleteButton": "削除",
+      "cancel": "キャンセル",
+      "deleteFailed": "経費の削除に失敗しました",
+      "cannotEditTooltip": "編集できません - 参加者がグループを脱退しました"
+    },
+    "expenseFormModal": {
+      "addExpense": "経費を追加",
+      "editExpense": "経費を編集",
+      "copyExpense": "経費をコピー",
+      "closeModal": "モーダルを閉じる",
+      "cancel": "キャンセル",
+      "saveExpense": "経費を保存",
+      "updateExpense": "経費を更新",
+      "createCopy": "コピーを作成",
+      "saving": "保存中...",
+      "updating": "更新中...",
+      "close": "閉じる"
+    },
+    "expenseDetailModal": {
+      "title": "経費の詳細",
+      "closeModal": "モーダルを閉じる",
+      "close": "閉じる",
+      "edit": "編集",
+      "copy": "コピー",
+      "share": "共有",
+      "delete": "削除",
+      "paidBy": "支払者",
+      "date": "日付",
+      "labels": "ラベル",
+      "receipt": "領収書",
+      "viewReceipt": "領収書を表示",
+      "noReceipt": "領収書なし",
+      "splitDetails": "割り勘の詳細",
+      "comments": "コメント",
+      "loadingExpense": "経費の詳細を読み込み中...",
+      "expenseNotFound": "経費が見つかりません",
+      "failedToLoad": "経費の詳細の読み込みに失敗しました",
+      "shareTitle": "経費: {{description}}",
+      "shareText": "この経費を確認してください: {{description}} - {{amount}}"
+    },
+    "splitBreakdown": {
+      "splitBetween": "割り勘相手 ",
+      "person": " 人",
+      "people": " 人",
+      "splitEqually": "均等割り",
+      "exactAmounts": "正確な金額",
+      "byPercentage": "パーセンテージ別",
+      "customSplit": "カスタム割り勘",
+      "unknown": "不明",
+      "paid": "支払済み",
+      "owes": "借りている ",
+      "total": "合計: "
+    }
+  },
+  "joinGroupComponents": {
+    "groupPreview": {
+      "invitationMessage": "このグループへの招待が届いています"
+    },
+    "joinButton": {
+      "joining": "参加中...",
+      "joinGroup": "グループに参加"
+    },
+    "membersPreview": {
+      "groupSize": "グループサイズ"
+    }
+  },
+  "policyComponents": {
+    "policyAcceptanceModal": {
+      "title": "更新されたポリシーに同意する",
+      "policyLabel": "ポリシー ",
+      "of": " / ",
+      "colon": ": ",
+      "close": "閉じる",
+      "progress": "進捗",
+      "accepted": " 同意済み",
+      "acceptedIcon": "✓ 同意済み",
+      "acceptedAriaLabel": "同意済み",
+      "loadingContent": "ポリシーコンテンツを読み込み中...",
+      "acceptanceRequired": "ポリシーへの同意が必要です",
+      "acceptanceInstructions": "{{appName}}を引き続き使用するには、上記のポリシーを読み、「同意する」をクリックしてください。",
+      "acceptCheckbox": "私はこの ",
+      "previous": "前へ",
+      "next": "次へ",
+      "policiesAccepted": " 件のポリシーに同意済み",
+      "accepting": "同意中...",
+      "acceptAll": "すべてに同意して続行",
+      "closeAriaLabel": "閉じる",
+      "errorTitle": "エラー"
+    },
+    "policyRenderer": {
+      "bulletPoint": "• "
+    }
+  },
+  "uiComponents": {
+    "alert": {
+      "dismiss": "アラートを閉じる"
+    },
+    "avatar": {
+      "unknown": "不明"
+    },
+    "button": {
+      "default": "ボタン"
+    },
+    "multiLabelInput": {
+      "placeholder": "ラベルを追加...",
+      "removeLabel": "{{label}}を削除",
+      "maxReached": "最大{{max}}ラベル",
+      "recent": "最近",
+      "hint": "{{count}}/{{max}}ラベル"
+    },
+    "confirmDialog": {
+      "confirm": "確認",
+      "cancel": "キャンセル"
+    },
+    "currencyAmountInput": {
+      "selectCurrency": "通貨を選択",
+      "searchPlaceholder": "記号、コード、または国で検索...",
+      "searchAriaLabel": "通貨を検索",
+      "loading": "通貨を読み込み中...",
+      "noCurrencies": "通貨が見つかりません",
+      "recent": "最近",
+      "common": "共通",
+      "allCurrencies": "すべての通貨",
+      "placeholder": "0.00",
+      "requiredIndicator": "*"
+    },
+    "currencySelector": {
+      "placeholder": "通貨を選択...",
+      "searchPlaceholder": "通貨を検索",
+      "loading": "通貨を読み込み中...",
+      "noCurrencies": "通貨が見つかりません",
+      "recent": "最近",
+      "common": "共通",
+      "allCurrencies": "すべての通貨"
+    },
+    "input": {
+      "requiredIndicator": "*"
+    },
+    "loadingSpinner": {
+      "loading": "読み込み中..."
+    },
+    "timeInput": {
+      "at": " ",
+      "placeholder": "時間(例: 14:30)を入力",
+      "requiredIndicator": "*"
+    },
+    "form": {
+      "submissionError": "フォーム送信エラー"
+    }
+  },
+  "pages": {
+    "addExpensePage": {
+      "errorTitle": "エラー - {{appName}}",
+      "error": "エラー",
+      "noGroupMessage": "グループが指定されていません。グループなしでは経費を追加できません。",
+      "backToDashboard": "ダッシュボードに戻る",
+      "loadingTitle": "読み込み中... - {{appName}}",
+      "groupNotFound": "グループが見つかりません",
+      "groupNotFoundMessage": "経費を追加しようとしているグループが存在しないか、アクセス権がありません。",
+      "backToGroup": "グループに戻る",
+      "copyExpenseTitle": "経費をコピー",
+      "editExpenseTitle": "経費を編集",
+      "addExpenseTitle": "経費を追加",
+      "copyExpenseAction": "経費をコピー",
+      "editExpenseAction": "経費を編集",
+      "addExpenseAction": "新しい経費を追加",
+      "titleSuffix": " - {{appName}}",
+      "titleIn": " in "
+    },
+    "expenseDetailPage": {
+      "missingGroupId": "グループIDがありません",
+      "missingExpenseId": "経費IDがありません",
+      "failedToLoad": "経費の読み込みに失敗しました",
+      "cannotEdit": "この経費は編集できません",
+      "containsDepartedMembers": "1人以上の参加者がグループを脱退しました。履歴記録は読み取り専用として保存されます。",
+      "expenseLabel": "経費: ",
+      "checkOutExpense": "この経費を確認してください: ",
+      "shareApiFailed": "共有APIが失敗しました。クリップボードにフォールバックしています",
+      "failedToCopy": "クリップボードへのコピーに失敗しました",
+      "error": "エラー",
+      "expenseNotFound": "経費が見つかりません",
+      "backToGroup": "グループに戻る",
+      "titleSeparator": " - ",
+      "expenseFor": " の経費",
+      "backButton": "← 戻る",
+      "date": "日付",
+      "ago": " 前",
+      "labels": "ラベル",
+      "paidBy": "支払者",
+      "unknown": "不明",
+      "discussion": "ディスカッション",
+      "receipt": "領収書",
+      "clickToViewFullSize": "クリックしてフルサイズで表示",
+      "added": "追加 ",
+      "lastUpdated": "最終更新 ",
+      "receiptViewer": "領収書ビューア",
+      "closeReceiptViewer": "領収書ビューアを閉じる",
+      "receiptFullSize": "領収書 - フルサイズ",
+      "summarySection": "経費サマリー",
+      "splitSection": "割り勘の詳細",
+      "metadataSection": "経費メタデータ"
+    },
+    "groupDetailPage": {
+      "errorLoadingGroup": "グループの読み込み中にエラーが発生しました",
+      "backToDashboard": "ダッシュボードに戻る",
+      "balances": "残高",
+      "expenses": "経費",
+      "comments": "コメント",
+      "activity": "アクティビティ",
+      "paymentHistory": "精算",
+      "toggleSection": "{{section}}セクションを切り替え",
+      "titleSuffix": " - {{appName}}",
+      "manageExpensesFor": "の経費を管理 "
+    },
+    "landingPage": {
+      "title": "簡単な割り勘 - {{appName}}",
+      "description": "気まずい立て替えや複雑な計算にさようなら。私たちのアプリは、友人、家族、ルームメイトとの経費共有を簡単、公正、透明にします。広告も制限もなく、100%無料です。",
+      "disclaimer": "これは経費を追跡するためのツールであり、支払いを行うためのものではありません。",
+      "accountNote": " 経費を保存・管理するには、無料のアカウントが必要です。",
+      "privacyNote": "機密性の高い財務情報の提供を求めることは決してありません。",
+      "transparencyNotice": {
+        "bold": "これは経費を追跡するためのツールであり、支払いを行うためのものではありません。",
+        "text": "経費を保存・管理するには、無料のアカウントが必要です。機密性の高い財務情報の提供を求めることは決してありません。"
+      }
+    },
+    "registerPage": {
+      "requiredIndicator": "*"
+    },
+    "resetPasswordPage": {
+      "failedToSendReset": "リセットメールの送信に失敗しました",
+      "checkYourEmail": "メールを確認してください",
+      "resetInstructionsSent": "パスワードリセットの手順がメールに送信されました",
+      "emailSentSuccessfully": "メールが正常に送信されました",
+      "sentInstructionsTo": "パスワードリセットの手順を下記に送信しました:",
+      "checkSpamFolder": "見つからない場合は、迷惑メールまたはジャンクフォルダを確認してください。",
+      "whatsNext": "次は？",
+      "checkEmailInbox": "• メールの受信トレイ(および迷惑メールフォルダ)を確認",
+      "clickResetLink": "• メール内のリセットリンクをクリック",
+      "createNewPassword": "• 新しいパスワードを作成",
+      "signInWithNewPassword": "• 新しいパスワードでサインイン",
+      "sendToDifferentEmail": "別のメールアドレスに送信",
+      "backToSignIn": "← サインインに戻る",
+      "resetPassword": "パスワードをリセット",
+      "enterEmailForReset": "パスワードリセットの手順を受け取るには、メールアドレスを入力してください",
+      "enterEmailDescription": "アカウントに関連付けられているメールアドレスを入力すると、パスワードをリセットするためのリンクが送信されます。",
+      "emailPlaceholder": "メールアドレスを入力してください",
+      "sendResetInstructions": "リセット手順を送信"
+    }
+  },
+  "authLayout": {
+    "titleSuffix": " - {{appName}}"
+  },
+  "authProvider": {
+    "authenticationError": "認証エラー",
+    "retry": "再試行"
+  },
+  "usersBrowser": {
+    "errors": {
+      "auth": "Firebase Authユーザーの読み込みに失敗しました"
+    }
+  },
+  "validation": {
+    "required": "{{field}}は必須です"
+  },
+  "roles": {
+    "systemAdmin": {
+      "label": "システム管理者",
+      "description": "完全なシステムアクセスと制御"
+    },
+    "tenantAdmin": {
+      "label": "テナント管理者",
+      "description": "テナントの設定と構成を管理できます"
+    },
+    "regular": {
+      "label": "通常ユーザー",
+      "description": "管理権限のない標準ユーザー"
+    }
+  },
+  "admin": {
+    "loading": "管理者を読み込み中...",
+    "tabs": {
+      "tenants": "テナント",
+      "diagnostics": "診断",
+      "tenantConfig": "テナント構成",
+      "users": "ユーザー",
+      "ariaLabel": "管理者タブ"
+    },
+    "tenantConfig": {
+      "loading": "テナント構成を読み込み中...",
+      "overview": {
+        "title": "テナント概要",
+        "tenantId": "テナントID",
+        "appName": "アプリ名",
+        "lastUpdated": "最終更新"
+      },
+      "theme": {
+        "title": "テーマアーティファクト",
+        "description": "ハッシュ + CSS配信ヘルパー",
+        "copyLink": "テーマリンクをコピー",
+        "forceReload": "テーマを強制的に再読み込み",
+        "activeHash": "アクティブハッシュ",
+        "notPublished": "公開されていません",
+        "generatedAt": "生成日時",
+        "copySuccess": "テーマリンクがクリップボードにコピーされました。",
+        "copyError": "テーマリンクをコピーできません。手動でコピーしてください。"
+      },
+      "brandingTokens": {
+        "title": "ブランディングトークン"
+      },
+      "computedCss": {
+        "title": "計算済みCSS変数"
+      }
+    },
+    "tenants": {
+      "pageTitle": "テナント管理",
+      "pageDescription": "すべてのテナント構成を表示および管理します",
+      "summary": {
+        "total": "合計テナント数:"
+      },
+      "actions": {
+        "create": "新規テナントを作成",
+        "switchTenant": "クリックしてこのテナントに切り替えます"
+      },
+      "status": {
+        "active": "アクティブ",
+        "default": "デフォルト"
+      },
+      "details": {
+        "tenantId": "テナントID:",
+        "primaryDomain": "プライマリドメイン:",
+        "allDomains": "すべてのドメイン:",
+        "domains": "ドメイン:"
+      },
+      "emptyState": "テナントが見つかりません",
+      "errors": {
+        "load": "テナントの読み込みに失敗しました"
+      }
+    },
+    "diagnostics": {
+      "loading": "環境診断を読み込み中...",
+      "errors": {
+        "fetch": "環境データの取得に失敗しました",
+        "unknown": "不明なエラーが発生しました"
+      },
+      "serverStatus": {
+        "title": "サーバーの状態",
+        "environment": "環境",
+        "nodeVersion": "Nodeバージョン",
+        "uptime": "稼働時間",
+        "startedAt": "開始日時"
+      },
+      "buildInfo": {
+        "title": "ビルド情報",
+        "version": "バージョン",
+        "buildDate": "ビルド日",
+        "buildTimestamp": "ビルドタイムスタンプ"
+      },
+      "memory": {
+        "title": "メモリ使用量",
+        "rss": "RSS(常駐セットサイズ)",
+        "heapUsed": "使用済みヒープ",
+        "heapTotal": "合計ヒープ",
+        "heapAvailable": "利用可能なヒープ",
+        "external": "外部メモリ",
+        "arrayBuffers": "配列バッファ",
+        "heapLimit": "ヒープ制限"
+      },
+      "heap": {
+        "title": "V8ヒープスペース",
+        "size": "サイズ:",
+        "used": "使用済み:",
+        "available": "利用可能:"
+      },
+      "envVars": {
+        "title": "環境変数",
+        "variable": "変数",
+        "value": "値"
+      },
+      "filesystem": {
+        "title": "ファイルシステム",
+        "cwd": "作業ディレクトリ"
+      }
+    },
+    "users": {
+      "description": "ユーザーアカウント、役割、権限を管理します",
+      "loading": "ユーザーを読み込み中...",
+      "emptyState": "ユーザーが見つかりません",
+      "search": {
+        "label": "メールまたはUIDで検索",
+        "placeholder": "メールまたはUIDを入力..."
+      },
+      "table": {
+        "email": "メールアドレス",
+        "displayName": "表示名",
+        "role": "役割",
+        "status": "ステータス",
+        "created": "作成日時",
+        "lastSignIn": "最終サインイン",
+        "actions": "アクション"
+      },
+      "actions": {
+        "editUser": "ユーザーを編集"
+      },
+      "confirmations": {
+        "disableUser": "本当にこのユーザーアカウントを{{action}}しますか？"
+      },
+      "success": {
+        "userToggled": "ユーザーアカウントが正常に{{action}}されました",
+        "roleUpdated": "ユーザーの役割が{{role}}に更新されました",
+        "roleUnchanged": "役割は変更されませんでした"
+      },
+      "errors": {
+        "selfDisable": "自分のアカウントを無効にすることはできません",
+        "selfRoleChange": "自分の役割を変更することはできません",
+        "disableUser": "ユーザーアカウントの{{action}}に失敗しました",
+        "roleUpdate": "ユーザーの役割の更新に失敗しました",
+        "invalidSelection": "無効な選択"
+      },
+      "rolePrompt": {
+        "title": "現在の役割: {{currentRole}}\n\n新しい役割を選択:",
+        "regularUser": "通常ユーザー(役割なし)"
+      }
+    },
+    "userEditor": {
+      "title": "ユーザーを編集",
+      "tabs": {
+        "ariaLabel": "ユーザーエディタタブ",
+        "profile": "プロフィール",
+        "role": "役割",
+        "firebaseAuth": "Firebase Auth",
+        "firestore": "Firestore"
+      },
+      "profile": {
+        "description": "ユーザーの表示名とメールアドレスを編集します",
+        "displayName": "表示名",
+        "displayNamePlaceholder": "表示名を入力",
+        "email": "メールアドレス",
+        "emailPlaceholder": "メールアドレスを入力"
+      },
+      "role": {
+        "description": "このユーザーの役割を選択します"
+      },
+      "loading": "読み込み中...",
+      "noDataAvailable": "データがありません",
+      "errors": {
+        "noChanges": "保存する変更はありません",
+        "selfRoleChange": "自分の役割は変更できません",
+        "selfRoleChangeWarning": "自分の役割は変更できません",
+        "profileUpdate": "プロフィールの更新に失敗しました",
+        "roleUpdate": "役割の更新に失敗しました",
+        "loadData": "データの読み込みに失敗しました"
+      },
+      "success": {
+        "profileUpdated": "プロフィールが正常に更新されました",
+        "roleUpdated": "役割が正常に更新されました"
+      }
+    },
+    "tenantEditor": {
+      "titleCreate": "新規テナントを作成",
+      "titleEdit": "テナントを編集",
+      "descriptionCreate": "ブランディングとドメインを持つ新しいテナントを構成します",
+      "descriptionEdit": "テナント構成を更新します",
+      "modeToggle": {
+        "label": "エディタモード",
+        "basic": "基本",
+        "advanced": "詳細"
+      },
+      "modeHint": {
+        "basic": "必須の設定を表示しています",
+        "advanced": "すべての設定を表示しています",
+        "moreColors": "完全なカラーパレット制御については、詳細モードに切り替えてください"
+      },
+      "derivation": {
+        "themeMode": {
+          "label": "テーマモード",
+          "light": "ライト",
+          "medium": "ミディアム",
+          "dark": "ダーク"
+        },
+        "style": {
+          "label": "スタイル",
+          "balanced": "バランス",
+          "bold": "太字",
+          "soft": "ソフト",
+          "vibrant": "鮮やか",
+          "elegant": "エレガント"
+        },
+        "intensity": {
+          "label": "強度",
+          "subtle": "微妙",
+          "strong": "強い"
+        }
+      },
+      "derivationWand": {
+        "tooltip": "パレットから色を派生",
+        "tooltipDisabled": "最初にプライマリ、セカンダリ、アクセントカラーを設定してください",
+        "popoverTitle": "色の派生",
+        "derive": "派生を適用"
+      },
+      "sections": {
+        "gettingStarted": {
+          "title": "はじめに",
+          "description": "テナントの初期化方法を選択します"
+        },
+        "basicInfo": {
+          "title": "基本情報",
+          "description": "テナントID、名前、ドメイン"
+        },
+        "assets": {
+          "title": "アセット",
+          "description": "ロゴとファビコン画像"
+        },
+        "paletteColors": {
+          "title": "パレットカラー",
+          "description": "コアブランドカラー"
+        },
+        "brandColors": {
+          "title": "ブランドカラー",
+          "description": "プライマリブランドカラーを設定し、完全なカラーシステムを派生させます"
+        },
+        "surfaceColors": {
+          "title": "サーフェスカラー",
+          "description": "背景とコンテナの色"
+        },
+        "textColors": {
+          "title": "テキストカラー",
+          "description": "タイポグラフィの色"
+        },
+        "interactiveColors": {
+          "title": "インタラクティブカラー",
+          "description": "ボタンとリンクの色"
+        },
+        "borderColors": {
+          "title": "ボーダーカラー",
+          "description": "境界線と区切り線の色"
+        },
+        "statusColors": {
+          "title": "ステータスカラー",
+          "description": "フィードバックとアラートの色"
+        },
+        "typography": {
+          "title": "タイポグラフィ",
+          "description": "フォントファミリー、サイズ、太さ"
+        },
+        "spacing": {
+          "title": "間隔",
+          "description": "間隔スケールとセマンティック間隔"
+        },
+        "radii": {
+          "title": "角丸",
+          "description": "角の丸み"
+        },
+        "shadows": {
+          "title": "影",
+          "description": "ボックスシャドウの定義"
+        },
+        "legal": {
+          "title": "法的",
+          "description": "会社情報と法的リンク"
+        },
+        "motion": {
+          "title": "モーション",
+          "description": "アニメーションの持続時間とイージング"
+        },
+        "featureFlags": {
+          "title": "機能フラグ",
+          "description": "機能を有効または無効にします"
+        },
+        "marketing": {
+          "title": "マーケティング機能",
+          "description": "マーケティングページとコンテンツを切り替えます"
+        },
+        "advanced": {
+          "title": "詳細",
+          "description": "オプションの視覚効果"
+        }
+      },
+      "fields": {
+        "tenantId": "テナントID",
+        "appName": "アプリ名",
+        "domains": "ドメイン",
+        "logoUrl": "ロゴURL",
+        "faviconUrl": "ファビコンURL",
+        "primaryColor": "プライマリカラー",
+        "primaryVariantColor": "プライマリバリアント",
+        "secondaryColor": "セカンダリカラー",
+        "secondaryVariantColor": "セカンダリバリアント",
+        "accentColor": "アクセントカラー",
+        "neutralColor": "ニュートラルカラー",
+        "neutralVariantColor": "ニュートラルバリアント",
+        "successColor": "成功色",
+        "warningColor": "警告色",
+        "dangerColor": "危険色",
+        "infoColor": "情報色"
+      },
+      "placeholders": {
+        "tenantId": "my-tenant-id",
+        "appName": "マイ経費アプリ",
+        "domain": "新しいドメインを追加...",
+        "selectTenant": "コピーするテナントを選択..."
+      },
+      "creationMode": {
+        "empty": "空から開始",
+        "copy": "既存のテナントからコピー",
+        "emptyDescription": "すべての必須フィールドを入力する必要があります。色は#RRGGBB形式である必要があります。",
+        "copyDescription": "すべてのテーマ設定は{{tenant}}からコピーされます。一意のテナントID、アプリ名、ドメインをまだ設定する必要があります。"
+      },
+      "validation": {
+        "tenantIdFormat": "無効なテナントID: 小文字、数字、ハイフンのみを含める必要があります",
+        "domainRequired": "少なくとも1つのドメインが必要です",
+        "invalidDomain": "無効なドメイン: {{domain}}",
+        "saveTenantFirst": "画像をアップロードする前に、まずテナントを保存してください",
+        "tenantIdRequiredForPublish": "公開するにはテナントIDが必要です"
+      },
+      "hints": {
+        "tenantIdReadonly": "テナントIDは変更できません",
+        "colorFormat": "#RRGGBB"
+      },
+      "toggles": {
+        "showMarketingContent": {
+          "label": "マーケティングコンテンツを表示",
+          "description": "公開ページにマーケティングコンテンツを表示します"
+        },
+        "showPricingPage": {
+          "label": "価格ページを表示",
+          "description": "価格情報を表示します"
+        },
+        "showAppNameInHeader": {
+          "label": "ヘッダーにアプリ名を表示",
+          "description": "ロゴの横にアプリ名を表示します"
+        },
+        "enableParallax": {
+          "label": "パララックスを有効にする",
+          "description": "パララックススクロール効果を有効にします"
+        },
+        "enableMagneticHover": {
+          "label": "マグネティックホバーを有効にする",
+          "description": "ボタンのマグネティックホバー効果を有効にします"
+        },
+        "enableScrollReveal": {
+          "label": "スクロール表示を有効にする",
+          "description": "スクロールによってトリガーされるアニメーションを有効にします"
+        }
+      },
+      "loading": {
+        "tenants": "テナントを読み込み中..."
+      },
+      "empty": {
+        "noTenants": "コピー元の既存のテナントはありません。"
+      },
+      "errors": {
+        "invalidPayload": "無効なテナントデータ。すべてのフィールドを確認して、もう一度お試しください。",
+        "permissionDenied": "テナント設定を変更する権限がありません。",
+        "duplicateDomain": "1つ以上のドメインが既に別のテナントに割り当てられています。",
+        "saveFailed": "テナントの保存に失敗しました。もう一度お試しください。",
+        "tenantNotFound": "テナントが存在しません。公開する前に保存してください。",
+        "tokensMissing": "テナントにブランディングトークンがありません。ブランディングを設定して、最初に保存してください。",
+        "publishFailed": "テーマの公開に失敗しました。もう一度お試しください。",
+        "uploadFailed": "{{type}}のアップロードに失敗しました"
+      },
+      "success": {
+        "createdAndPublished": "テナントが作成され、テーマが正常に公開されました！",
+        "updatedAndPublished": "テナントが更新され、テーマが正常に公開されました！",
+        "createdPublishFailed": "テナントは正常に作成されましたが、テーマの公開に失敗しました。「テーマを公開」を手動でクリックしてください。",
+        "updatedPublishFailed": "テナントは正常に更新されましたが、テーマの公開に失敗しました。「テーマを公開」を手動でクリックしてください。",
+        "themePublished": "テーマが正常に公開されました！",
+        "logoUploaded": "ロゴが正常にアップロードされました！",
+        "faviconUploaded": "ファビコンが正常にアップロードされました！",
+        "logoSelected": "ライブラリからロゴが選択されました",
+        "faviconSelected": "ライブラリからファビコンが選択されました"
+      },
+      "buttons": {
+        "save": "テナントを保存",
+        "publish": "テーマを公開",
+        "addDomain": "追加",
+        "removeDomain": "削除",
+        "chooseFromLibrary": "ライブラリから選択",
+        "uploadNew": "新規アップロード"
+      },
+      "actions": {
+        "deriveColors": "色を派生",
+        "deriveColorsDescription": "ブランドパレットからすべてのセマンティックカラーを生成します"
+      }
+    }
+  },
+  "tenantBranding": {
+    "title": "ブランディング構成",
+    "subtitle": "テナント設定",
+    "description": "テナントの外観とマーケティング機能をカスタマイズします",
+    "loading": "テナント設定を読み込み中...",
+    "accessDenied": "テナントブランディング設定にアクセスする権限がありません。このページには、テナント管理者またはシステム管理者の役割が必要です。",
+    "tenantIdLabel": "テナントID",
+    "domainWarning": "変更は、このテナントのドメインにアクセスするすべてのユーザーに影響します",
+    "brandingAssets": {
+      "title": "ブランディングアセット",
+      "description": "ブランドアイデンティティを構成します"
+    },
+    "fields": {
+      "appName": "アプリ名",
+      "appNamePlaceholder": "マイ経費アプリ",
+      "logoUrl": "ロゴURL",
+      "logoUrlPlaceholder": "/logo.svg",
+      "faviconUrl": "ファビコンURL",
+      "faviconUrlPlaceholder": "/favicon.ico",
+      "primaryColor": "プライマリカラー",
+      "secondaryColor": "セカンダリカラー"
+    },
+    "preview": {
+      "title": "ライブプレビュー",
+      "description": "ブランディングがどのように表示されるかを確認します",
+      "primaryButton": "プライマリボタン",
+      "secondaryButton": "セカンダリボタン",
+      "brandingLabel": "あなたのテナントブランディング"
+    },
+    "marketing": {
+      "title": "マーケティング機能",
+      "description": "表示されるマーケティングページを制御します",
+      "contentLabel": "マーケティングコンテンツ",
+      "contentDescription": "機能/CTAセクションを表示",
+      "pricingLabel": "価格ページ",
+      "pricingDescription": "/pricingルートを表示"
+    },
+    "actions": {
+      "saving": "保存中...",
+      "saveChanges": "変更を保存"
+    },
+    "errors": {
+      "loadFailed": "テナント設定の読み込みに失敗しました",
+      "updateFailed": "ブランディング設定の更新に失敗しました",
+      "notImplemented": "ブランディングの更新はバックエンドでまだ実装されていません"
+    },
+    "success": {
+      "updated": "ブランディング設定が正常に更新されました"
+    }
+  }
+}
