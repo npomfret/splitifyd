@@ -1937,7 +1937,7 @@
       },
       "theme": {
         "title": "عنصر المظهر",
-        "description": "تجزيء + مساعدات تسليم CSS",
+        "description": "تجزئة + مساعدات تسليم CSS",
         "copyLink": "نسخ رابط المظهر",
         "forceReload": "فرض إعادة تحميل المظهر",
         "activeHash": "التجزئة النشطة",
