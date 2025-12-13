@@ -411,12 +411,19 @@ async submitForm(): Promise<void> {
 }
 ```
 
-### i18n Resilience
+### i18n Resilience (MANDATORY)
 
-**Import translation files instead of hardcoding text:**
+**Import translation files instead of hardcoding text in selectors:**
 
 ```typescript
-// In page objects
+// ❌ PROHIBITED - hardcoded strings break when translations change
+export class CreateGroupModalPage extends BasePage {
+    async isOpen(): Promise<boolean> {
+        return await this.page.getByRole('heading', { name: 'Create Group' }).isVisible();
+    }
+}
+
+// ✅ REQUIRED - use translation imports
 import { translationEn } from '../translations/translation-en';
 
 export class CreateGroupModalPage extends BasePage {
@@ -428,11 +435,16 @@ export class CreateGroupModalPage extends BasePage {
 }
 ```
 
+**Why this is mandatory:**
+- Hardcoded strings silently break when translations are updated
+- Tests become false negatives (fail for wrong reason) or false positives (pass when they shouldn't)
+- Maintaining duplicate strings is error-prone and creates drift
+
 **Benefits:**
-- Single source of truth
-- Automatic test updates when translations change
-- i18n compatible
-- No maintenance for text changes
+- Single source of truth for all user-facing text
+- Tests automatically adapt when translations change
+- Multi-language testing becomes trivial
+- No maintenance burden for text changes
 
 ### Prohibited Practices
 
@@ -441,6 +453,7 @@ export class CreateGroupModalPage extends BasePage {
 - ❌ `page.setContent()` - always navigate to real pages
 - ❌ Raw selectors in tests - use Page Objects
 - ❌ **Public locator getters in Page Objects** - use protected/private + verification methods
+- ❌ **Hardcoded strings in selectors** - import from translation files
 - ❌ Conditional logic in tests (`if/else`, `try/catch` for control flow)
 - ❌ Skipped tests (`test.skip()`)
 - ❌ Console errors (except tests specifically asserting them)
@@ -470,12 +483,14 @@ export class CreateGroupModalPage extends BasePage {
 - Use semantic selectors
 - **Make Page Object locator methods protected/private**
 - **Use verification methods (verify*) instead of exposing locators**
+- **Import translation files for selector text** (e.g., `translationEn.button.submit`)
 
 **DON'T:**
 - Create test data manually
 - Use `waitForTimeout()` or `sleep()`
 - Use raw selectors in tests
 - **Expose public locator getters in Page Objects**
+- **Hardcode user-facing strings in selectors** (e.g., `{ name: 'Submit' }`)
 - Write conditional test logic
 - Skip or comment out tests
 - Test non-existent features
