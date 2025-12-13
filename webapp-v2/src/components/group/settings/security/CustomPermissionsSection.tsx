@@ -31,7 +31,6 @@ export function CustomPermissionsSection({
                             className='border border-border-default bg-surface-raised backdrop-blur-xs text-text-primary rounded-md px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary text-sm transition-colors duration-200'
                             value={permissionDraft[key]}
                             onChange={(event) => onPermissionChange(key, event.currentTarget.value)}
-                            data-testid={`permission-select-${key}`}
                         >
                             {permissionOptions[key].map((option) => (
                                 <option key={option} value={option}>

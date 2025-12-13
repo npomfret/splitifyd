@@ -150,7 +150,6 @@ export function GroupCurrencySettings({
                                                     : 'hover:text-semantic-error',
                                             )}
                                             aria-label={`Remove ${code}`}
-                                            data-testid={`remove-currency-${code}`}
                                         >
                                             <XIcon size={14} />
                                         </button>
@@ -216,7 +215,6 @@ export function GroupCurrencySettings({
                                                                 'hover:bg-surface-muted transition-colors',
                                                                 'flex items-center gap-2',
                                                             )}
-                                                            data-testid={`add-currency-option-${currency.acronym}`}
                                                         >
                                                             <CurrencyIcon symbol={currency.symbol} size={20} className='text-text-muted shrink-0' />
                                                             <span className='font-medium'>{currency.acronym}</span>
@@ -238,10 +236,9 @@ export function GroupCurrencySettings({
                         onChange={onSetDefault}
                         options={defaultCurrencyOptions}
                         disabled={disabled || permittedCurrencies.length === 0}
-                        dataTestId='default-currency-select'
                     />
 
-                    {validationError && <Alert type='error' message={validationError} dataTestId='currency-settings-error' />}
+                    {validationError && <Alert type='error' message={validationError} />}
                 </div>
             )}
         </div>

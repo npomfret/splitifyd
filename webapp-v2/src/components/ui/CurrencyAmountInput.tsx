@@ -307,7 +307,7 @@ export function CurrencyAmountInput({
             )}
 
             {error && (
-                <FieldError id={`${inputId}-error`} dataTestId='currency-input-error-message'>
+                <FieldError id={`${inputId}-error`}>
                     {error}
                 </FieldError>
             )}

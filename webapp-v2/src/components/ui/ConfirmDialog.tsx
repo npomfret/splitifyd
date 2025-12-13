@@ -64,8 +64,6 @@ export function ConfirmDialog({ isOpen, title, message, confirmText, cancelText,
 
     const styles = getVariantStyles();
 
-    const messageTestId = message.includes('outstanding balance') ? 'balance-error-message' : 'confirm-dialog-message';
-
     return (
         <Modal
             open={isOpen}
@@ -87,16 +85,16 @@ export function ConfirmDialog({ isOpen, title, message, confirmText, cancelText,
                     <Typography as='h3' variant='heading' id='confirm-dialog-title'>
                         {title}
                     </Typography>
-                    <Typography variant='caption' id='confirm-dialog-description' dataTestId={messageTestId}>
+                    <Typography variant='caption' id='confirm-dialog-description'>
                         {message}
                     </Typography>
                 </div>
 
                 <div className='flex items-center justify-end gap-3'>
-                    <Button variant='secondary' onClick={onCancel} disabled={loading} dataTestId='cancel-button'>
+                    <Button variant='secondary' onClick={onCancel} disabled={loading}>
                         {cancelText || t('ui.confirmDialog.cancel')}
                     </Button>
-                    <Button variant={styles.button} onClick={onConfirm} loading={loading} dataTestId='confirm-button'>
+                    <Button variant={styles.button} onClick={onConfirm} loading={loading}>
                         {confirmText || t('ui.confirmDialog.confirm')}
                     </Button>
                 </div>

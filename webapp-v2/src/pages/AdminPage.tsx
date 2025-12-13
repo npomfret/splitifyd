@@ -114,7 +114,6 @@ export function AdminPage({ tab: initialTab }: AdminPageProps) {
                                         onClick={() => !isDisabled && handleTabChange(tab.id)}
                                         disabled={isDisabled}
                                         className={tabClassName}
-                                        data-testid={`admin-tab-${tab.id}`}
                                     >
                                         <svg
                                             className='w-5 h-5'

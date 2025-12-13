@@ -141,10 +141,10 @@ export class GroupDetailPage extends BasePage {
     // ============================================================================
 
     /**
-     * Members section container - found by "Members" heading
+     * Members section container - found by "Members" region with aria-label
      */
     protected getMembersContainer(): Locator {
-        return this.page.locator('[data-testid="members-container"]:visible').first();
+        return this.page.getByRole('region', { name: translation.membersList.title }).first();
     }
 
     /**
@@ -290,7 +290,7 @@ export class GroupDetailPage extends BasePage {
     }
 
     protected getIncludeDeletedSettlementsCheckbox(): Locator {
-        return this.getSettlementContainer().locator('[data-testid="include-deleted-settlements-checkbox"]');
+        return this.getSettlementContainer().getByRole('checkbox', { name: translation.common.includeDeleted });
     }
 
     private getSettlementItem(note: string | RegExp): Locator {
@@ -574,9 +574,11 @@ export class GroupDetailPage extends BasePage {
 
     /**
      * Get the remove member button for a given member.
+     * The button has aria-label="Remove {memberName}"
      */
     protected getRemoveMemberButton(memberName: string): Locator {
-        return this.getMemberItem(memberName).locator('[data-testid="remove-member-button"]');
+        // Use aria-label which contains the member name
+        return this.getMemberItem(memberName).getByRole('button', { name: new RegExp(`Remove.*${memberName}`, 'i') });
     }
 
     // ============================================================================
@@ -732,6 +734,17 @@ export class GroupDetailPage extends BasePage {
         await this.ensureCommentsSectionExpanded();
 
         await expect(this.getCommentByText(text)).toBeVisible();
+    }
+
+    /**
+     * Verify no comment error is displayed in the comments section
+     */
+    async verifyNoCommentError(): Promise<void> {
+        await this.ensureCommentsSectionExpanded();
+
+        // Comment errors use role='alert' within the comments section
+        const commentError = this.getCommentsSection().getByRole('alert');
+        await expect(commentError).toHaveCount(0);
     }
 
     /**

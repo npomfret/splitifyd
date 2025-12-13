@@ -91,18 +91,18 @@ export function GroupGeneralTabContent({
                         />
                     </div>
 
-                    {validationError && <Alert type='error' message={validationError} dataTestId='edit-group-validation-error' />}
+                    {validationError && <Alert type='error' message={validationError} />}
                 </div>
 
                 <div className='flex items-center justify-between mt-6 pt-4 border-t border-border-default'>
-                    <Button type='button' variant='danger' onClick={onDeleteClick} disabled={isSubmitting} dataTestId='delete-group-button'>
+                    <Button type='button' variant='danger' onClick={onDeleteClick} disabled={isSubmitting}>
                         {t('editGroupModal.deleteGroupButton')}
                     </Button>
                     <div className='flex items-center space-x-3'>
-                        <Button type='button' variant='secondary' onClick={onClose} disabled={isSubmitting} dataTestId='cancel-edit-group-button'>
+                        <Button type='button' variant='secondary' onClick={onClose} disabled={isSubmitting}>
                             {t('editGroupModal.cancelButton')}
                         </Button>
-                        <Button type='submit' loading={isSubmitting} disabled={!isFormValid || !hasChanges} dataTestId='save-changes-button'>
+                        <Button type='submit' loading={isSubmitting} disabled={!isFormValid || !hasChanges}>
                             {t('common.save')}
                         </Button>
                     </div>
@@ -140,7 +140,6 @@ export function GroupGeneralTabContent({
                                 onClick={currencySettings.handleSave}
                                 loading={currencySettings.isSubmitting}
                                 disabled={!currencySettings.isFormValid}
-                                dataTestId='save-currency-settings-button'
                             >
                                 {t('groupSettings.currencySettings.saveButton')}
                             </Button>

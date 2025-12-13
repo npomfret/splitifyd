@@ -429,9 +429,13 @@ simpleTest.describe('Group Settings & Management', () => {
     simpleTest('admins can approve and reject pending members from the security settings modal', async ({ createLoggedInBrowsers }) => {
         const [
             { dashboardPage: ownerDashboardPage },
-            { dashboardPage: approverDashboardPage, user: approverUser },
-            { dashboardPage: rejectDashboardPage, user: rejectUser },
+            { dashboardPage: approverDashboardPage },
+            { dashboardPage: rejectDashboardPage },
         ] = await createLoggedInBrowsers(3);
+
+        // Get display names from headers before users join the group
+        const approverDisplayName = await approverDashboardPage.header.getCurrentUserDisplayName();
+        const rejectDisplayName = await rejectDashboardPage.header.getCurrentUserDisplayName();
 
         const ownerGroupDetailPage = await ownerDashboardPage.createGroupAndNavigate();
         const groupName = await ownerGroupDetailPage.getGroupNameText();
@@ -465,8 +469,8 @@ simpleTest.describe('Group Settings & Management', () => {
 
         // Owner reviews pending list and approves the user
         settingsModal = await ownerGroupDetailPage.clickEditGroupAndOpenModal('security');
-        await settingsModal.waitForPendingMember(approverUser.uid);
-        await settingsModal.approveMember(approverUser.uid); // This waits for button to disappear
+        await settingsModal.waitForPendingMember(approverDisplayName);
+        await settingsModal.approveMember(approverDisplayName); // This waits for button to disappear
         await settingsModal.verifyNoPendingRequestsMessageVisible();
         await settingsModal.clickFooterClose();
 
@@ -487,8 +491,8 @@ simpleTest.describe('Group Settings & Management', () => {
         await rejectJoinPage.verifyJoinButtonDisabled();
 
         settingsModal = await ownerGroupDetailPage.clickEditGroupAndOpenModal('security');
-        await settingsModal.waitForPendingMember(rejectUser.uid);
-        await settingsModal.rejectMember(rejectUser.uid); // This waits for button to disappear
+        await settingsModal.waitForPendingMember(rejectDisplayName);
+        await settingsModal.rejectMember(rejectDisplayName); // This waits for button to disappear
         await settingsModal.verifyNoPendingRequestsMessageVisible();
         await settingsModal.clickFooterClose();
 
@@ -499,7 +503,7 @@ simpleTest.describe('Group Settings & Management', () => {
         // Owner confirms approved user is listed as admin and group remains accessible
         const refreshedSettingsModal = await ownerGroupDetailPage.clickEditGroupAndOpenModal('security');
         await refreshedSettingsModal.waitForSecurityTab();
-        await refreshedSettingsModal.verifyPendingApproveButtonNotVisible(approverUser.uid);
+        await refreshedSettingsModal.verifyPendingApproveButtonNotVisible(approverDisplayName);
         await refreshedSettingsModal.clickFooterClose();
 
         await approverDashboardPage.navigate();

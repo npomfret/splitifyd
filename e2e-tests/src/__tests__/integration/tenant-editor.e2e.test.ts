@@ -116,8 +116,11 @@ test.describe('Tenant editor', () => {
             await adminTenantsPage.navigate();
             await adminTenantsPage.verifyPageLoaded();
 
+            const expectedAppName = `MultiColor ${tenantId.slice(-6)}`;
+
             const tenantEditorModal = await adminTenantsPage.clickEditButtonForFirstTenant();
-            await tenantEditorModal.verifyModalIsOpen();
+            // Use verifyModalIsOpenWithTenant to ensure form data is loaded before setting colors
+            await tenantEditorModal.verifyModalIsOpenWithTenant(expectedAppName);
 
             // Update multiple colors
             await tenantEditorModal.setPrimaryColor('#1a2b3c');
@@ -129,7 +132,6 @@ test.describe('Tenant editor', () => {
 
             // Verify all persisted
             const tenantEditorModal2 = await adminTenantsPage.clickEditButtonForFirstTenant();
-            const expectedAppName = `MultiColor ${tenantId.slice(-6)}`;
             await tenantEditorModal2.verifyModalIsOpenWithTenant(expectedAppName);
 
             await tenantEditorModal2.verifyPrimaryColorValue('#1a2b3c');

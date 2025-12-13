@@ -91,7 +91,7 @@ export function AdminTenantConfigTab() {
         <div className='space-y-6'>
             {actionMessage && <Alert type={actionMessage.type} message={actionMessage.text} />}
 
-            <Card padding='lg' dataTestId='tenant-overview-card' className='bg-white/70 backdrop-blur-xs border border-indigo-200'>
+            <Card padding='lg' className='bg-white/70 backdrop-blur-xs border border-indigo-200'>
                 <Stack spacing='sm'>
                     <div className='flex items-center gap-2 mb-2'>
                         <div className='w-1 h-6 bg-linear-to-b from-amber-500 to-orange-600 rounded-full'></div>
@@ -114,7 +114,7 @@ export function AdminTenantConfigTab() {
                 </Stack>
             </Card>
 
-            <Card padding='lg' dataTestId='theme-artifact-card' className='bg-white/70 backdrop-blur-xs border border-indigo-200'>
+            <Card padding='lg' className='bg-white/70 backdrop-blur-xs border border-indigo-200'>
                 <Stack spacing='md'>
                     <div className='flex flex-col gap-2 md:flex-row md:items-center md:justify-between'>
                         <div>
@@ -129,11 +129,10 @@ export function AdminTenantConfigTab() {
                                 variant='secondary'
                                 size='sm'
                                 onClick={handleCopyThemeLink}
-                                dataTestId='copy-theme-link-button'
                             >
                                 {t('admin.tenantConfig.theme.copyLink')}
                             </Button>
-                            <Button variant='ghost' size='sm' onClick={handleForceReload} dataTestId='force-reload-theme-button'>
+                            <Button variant='ghost' size='sm' onClick={handleForceReload}>
                                 {t('admin.tenantConfig.theme.forceReload')}
                             </Button>
                         </div>
@@ -156,7 +155,7 @@ export function AdminTenantConfigTab() {
             </Card>
 
             {tenantBranding && (
-                <Card padding='lg' dataTestId='branding-tokens-card' className='bg-white/70 backdrop-blur-xs border border-indigo-200'>
+                <Card padding='lg' className='bg-white/70 backdrop-blur-xs border border-indigo-200'>
                     <Stack spacing='md'>
                         <div className='flex items-center gap-2 mb-2'>
                             <div className='w-1 h-6 bg-linear-to-b from-amber-500 to-orange-600 rounded-full'></div>
@@ -167,7 +166,7 @@ export function AdminTenantConfigTab() {
                 </Card>
             )}
 
-            <Card padding='lg' dataTestId='computed-vars-card' className='bg-white/70 backdrop-blur-xs border border-indigo-200'>
+            <Card padding='lg' className='bg-white/70 backdrop-blur-xs border border-indigo-200'>
                 <Stack spacing='md'>
                     <div className='flex items-center gap-2 mb-2'>
                         <div className='w-1 h-6 bg-linear-to-b from-amber-500 to-orange-600 rounded-full'></div>

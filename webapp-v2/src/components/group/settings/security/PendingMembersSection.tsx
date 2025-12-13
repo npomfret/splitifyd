@@ -44,7 +44,7 @@ export function PendingMembersSection({
                                 size='sm'
                                 onClick={() => onApprove(member.uid)}
                                 disabled={pendingActionMember === member.uid}
-                                dataTestId={`pending-approve-${member.uid}`}
+                                ariaLabel={`${t('securitySettingsModal.pendingMembers.approve')} ${member.groupDisplayName}`}
                             >
                                 {t('securitySettingsModal.pendingMembers.approve')}
                             </Button>
@@ -53,7 +53,7 @@ export function PendingMembersSection({
                                 size='sm'
                                 onClick={() => onReject(member.uid)}
                                 disabled={pendingActionMember === member.uid}
-                                dataTestId={`pending-reject-${member.uid}`}
+                                ariaLabel={`${t('securitySettingsModal.pendingMembers.reject')} ${member.groupDisplayName}`}
                             >
                                 {t('securitySettingsModal.pendingMembers.reject')}
                             </Button>

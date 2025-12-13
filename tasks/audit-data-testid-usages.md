@@ -4,7 +4,7 @@
 
 ## Summary
 
-Audited `data-testid` attributes in webapp-v2 and converted ~96 unnecessary test-ids to semantic selectors across 6 phases. Updated documentation to prevent future misuse.
+Audited `data-testid` attributes in webapp-v2 and converted ~163 unnecessary test-ids to semantic selectors across 11 phases. Reduced production code test-ids from ~56 to ~12. Updated documentation to prevent future misuse.
 
 ## What Was Done
 
@@ -148,16 +148,57 @@ Audited `data-testid` attributes in webapp-v2 and converted ~96 unnecessary test
 **Translation added:**
 - `dashboardComponents.groupsList.groupsListAriaLabel`: "Your groups"
 
+### Phase 7: Dynamic Loop IDs Conversion (8 test-ids)
+
+Converted dynamic loop IDs to semantic selectors using aria-labels and visible text.
+
+**Category 1: Buttons with aria-labels (6 items)**
+- `edit-user-${uid}` - AdminUsersTab.tsx → `aria-label={t('admin.users.actions.editUser')}`, target by row content + button name
+- `pending-approve-${member.uid}` - PendingMembersSection.tsx → `aria-label` includes member display name
+- `pending-reject-${member.uid}` - PendingMembersSection.tsx → `aria-label` includes member display name
+- `remove-domain-${index}` - TenantEditorModal.tsx → `aria-label={`Remove ${domain}`}`, target by domain name
+- `remove-currency-${code}` - CreateGroupModal.tsx, GroupCurrencySettings.tsx → already had `aria-label`
+- `add-currency-option-${currency.acronym}` - CreateGroupModal.tsx, GroupCurrencySettings.tsx → visible text (currency code)
+
+**Category 2: Selects with aria-labels (2 items)**
+- `member-role-select-${member.uid}` - MemberRolesSection.tsx → `aria-label` includes member display name
+- `permission-select-${key}` - CustomPermissionsSection.tsx → select inside label with translated text
+
+**Category 3: Buttons with visible text (2 items)**
+- `preset-button-${preset}` - PermissionPresetsSection.tsx → button has visible label text
+- `admin-tab-${tab.id}` - AdminPage.tsx → button has visible tab name
+
+**Documentation Added:**
+- `webapp-and-style-guide.md`: New "Test Selectors" section with patterns for icon-only buttons, list items, and selects inside labels
+
+### Phase 8: Container & Indicator Cleanup (5 test-ids)
+
+Converted remaining form containers and unused indicator test-ids.
+
+**Category 1: Form containers to semantic regions/scoping (4 items)**
+- `exact-split-container` - SplitAmountInputs.tsx → visible text scoping ("Enter exact amounts")
+- `percentage-split-container` - SplitAmountInputs.tsx → visible text scoping ("Enter percentages")
+- `equal-split-container` - SplitAmountInputs.tsx → visible text scoping ("each person pays")
+- `members-container` - MembersListWithManagement.tsx → `role="region"` with `aria-label="Members"`
+
+**Category 2: Unused test-ids removed (1 item)**
+- `character-count` / `character-limit-exceeded` - CommentInput.tsx → removed (visible text is sufficient)
+
+**Page Objects Updated:**
+- `ExpenseFormPage.ts` - Updated split container selectors to use visible text scoping
+- `GroupDetailPage.ts` - Updated members container to use `getByRole('region', { name: 'Members' })`
+
 ### Page Objects Updated
 
-- `TenantEditorModalPage.ts`
+- `TenantEditorModalPage.ts` (Phase 7: removeDomain now uses aria-label)
 - `AdminTenantsPage.ts`
+- `AdminUsersPage.ts` (Phase 7: row-based targeting by email)
 - `ExpenseFormPage.ts`
 - `HeaderPage.ts`
 - `error-proxy.ts`
 - `TenantBrandingPage.ts`
 - `CreateGroupModalPage.ts`
-- `GroupSettingsModalPage.ts`
+- `GroupSettingsModalPage.ts` (Phase 7: permission selects, pending member buttons, role selects, preset buttons)
 - `ShareGroupModalPage.ts`
 - `ExpenseDetailPage.ts`
 - `PolicyAcceptanceModalPage.ts` (major refactor - all selectors now semantic)
@@ -175,51 +216,174 @@ Audited `data-testid` attributes in webapp-v2 and converted ~96 unnecessary test
 
 ## Remaining Test-ids
 
-50 `data-testid=` occurrences remain across 38 files. Breakdown:
+**Updated:** December 2024 (Phase 11)
 
-### UI Component Pass-through Props (~17 components)
+**Current count:** ~12 `dataTestId` occurrences in production code. Most are UI component pass-through props that are optionally used by consumers.
 
-These accept an optional `dataTestId`/`testId` prop and render it:
-- `Input.tsx`, `FloatingInput.tsx`, `Button.tsx`, `Card.tsx`, `Select.tsx`, `Switch.tsx`
-- `Checkbox.tsx`, `Modal.tsx`, `Alert.tsx`, `Typography.tsx`, `FieldError.tsx`, `Clickable.tsx`
-- `EmptyState.tsx`, `LoadingSpinner.tsx`, `ColorInput.tsx`, `ImageUploadField.tsx`, `SidebarCard.tsx`
-- Admin forms: `AdminFormInput.tsx`, `AdminFormSection.tsx`, `AdminFormToggle.tsx`
+---
 
-### Dynamic Loop IDs (~9 patterns)
+### Category 1: Production Code Test-ids (12 occurrences)
 
-IDs generated in loops requiring unique identifiers:
-- `admin-tab-${tab.id}` - AdminPage.tsx
-- `remove-currency-${code}` - CreateGroupModal.tsx, GroupCurrencySettings.tsx
-- `add-currency-option-${currency.acronym}` - CreateGroupModal.tsx, GroupCurrencySettings.tsx
-- `edit-user-${uid}` - AdminUsersTab.tsx
-- `remove-domain-${index}` - TenantEditorModal.tsx
-- `permission-select-${key}` - CustomPermissionsSection.tsx
-- `member-role-select-${member.uid}` - MemberRolesSection.tsx
-- `password-strength-${strength}` - FloatingPasswordInput.tsx
+| File | Test-ids | Purpose | Notes |
+|------|----------|---------|-------|
+| `TenantBrandingPage.tsx` | 3 | Color inputs + checkbox | Used by vitest unit tests |
+| `TenantEditorModal.tsx` | 2 | `logo-upload-field`, `favicon-upload-field` | Used by TenantEditorModalPage.ts |
+| `ActivityFeedCard.tsx` | 1 | Activity feed section | Used by vitest unit test |
+| `Input.tsx` | 1 | FieldError test-id | Standard pattern |
+| `Select.tsx` | 1 | FieldError test-id | Standard pattern |
+| `FloatingInput.tsx` | 1 | FieldError test-id | Standard pattern |
+| `ConfirmDialog.tsx` | 1 | Pass-through prop | Consumer-optional |
+| Unit test files | 2 | Testing dataTestId prop | Test infrastructure |
 
-### Static Test-ids (~16 occurrences)
+### Category 2: UI Component Pass-through Props (not counted above)
 
-| Test-id | Files | Notes |
-|---------|-------|-------|
-| `required-indicator` | Input, FloatingInput, Select, CurrencyAmountInput, TimeInput, FloatingPasswordInput, PayerSelector, ExpenseBasicFields, ParticipantSelector | Asterisk for required fields (~10 occurrences) |
-| `members-container` | MembersListWithManagement.tsx | Container div |
-| `exact-split-container` | SplitAmountInputs.tsx | Split mode container |
-| `percentage-split-container` | SplitAmountInputs.tsx | Split mode container |
-| `equal-split-container` | SplitAmountInputs.tsx | Split mode container |
-| `character-count` / `character-limit-exceeded` | CommentInput.tsx | Dynamic based on state |
+These components accept an optional `dataTestId` prop but are not actively using it in production. The prop exists for consumers who need test targeting:
 
-### Test File Mocks (~3 occurrences)
+| Component | Notes |
+|-----------|-------|
+| `Button.tsx` | Optional prop for button element |
+| `Card.tsx` | Optional prop for container div |
+| `Switch.tsx` | Optional prop for switch input |
+| `Checkbox.tsx` | Optional prop for checkbox input |
+| `Modal.tsx` | Optional prop for modal container |
+| `Alert.tsx` | Optional prop for alert container |
+| `Typography.tsx` | Optional prop for text element |
+| `Clickable.tsx` | Optional prop for clickable element |
+| `LoadingSpinner.tsx` | Optional prop for spinner span |
+| `ColorInput.tsx` | Optional prop for color inputs |
+| `ImageUploadField.tsx` | Optional prop for upload fields |
+| `AdminFormInput.tsx` | Optional prop for input wrapper |
+| `AdminFormSection.tsx` | Optional prop for section wrapper |
+| `AdminFormToggle.tsx` | Optional prop for toggle wrapper |
 
-- `base-layout` - TenantBrandingPage.test.tsx (mock)
-- Modal presentation div - ShareGroupModal.test.tsx (mock)
-- `qr-code` - ShareGroupModal.test.tsx (mock)
+---
 
 ### Assessment
 
-These are legitimate because they either:
-1. **UI component props** - Allow optional test targeting without mandating it
-2. **Dynamic IDs** - Loop-generated requiring unique identifiers
-3. **Test mocks** - Only exist in test files
-4. **Low-value conversions** - `required-indicator` and split containers provide minimal benefit to convert
+**Remaining test-ids are intentional:**
+1. **Vitest unit tests** - TenantBrandingPage, ActivityFeedCard tests use test-ids
+2. **Page object targeting** - TenantEditorModalPage needs upload field test-ids
+3. **FieldError pattern** - Standard pattern for form validation error targeting
+4. **Pass-through props** - UI components optionally support test-ids for consumers
 
-Future conversions can be done incrementally when touching those components.
+**To fully eliminate remaining test-ids**, the corresponding vitest unit tests would need to be updated to use semantic selectors like `getByRole('alert')` instead of `getByTestId()`.
+
+---
+
+### Phase 9: Page Object Selector Conversions (21 selectors)
+
+Converted all remaining page object selectors to semantic alternatives.
+
+**SettingsPage.ts (10 selectors)**
+- `display-name-input` → `getByLabel(translation.settingsPage.displayNameLabel)`
+- `save-changes-button` → `getByRole('button', { name: translation.settingsPage.saveChangesButton })` scoped to profile section
+- `change-password-button` → `getByRole('button', { name: translation.settingsPage.changePasswordButton })`
+- `current-password-input` → `getByLabel(translation.settingsPage.currentPasswordLabel)`
+- `new-password-input` → `getByLabel(translation.settingsPage.newPasswordLabel)`
+- `confirm-password-input` → `getByLabel(translation.settingsPage.confirmNewPasswordLabel)`
+- `update-password-button` → `getByRole('button', { name: translation.settingsPage.updatePasswordButton })`
+- `cancel-password-button` → `getByRole('button', { name: translation.settingsPage.cancelButton })` scoped to password section
+- `profile-information-section` → Section scoping by heading: `locator('section, div').filter({ has: getByRole('heading', { name: profileInformationHeader }) })`
+- `password-section` → Section scoping by heading: `locator('section, div').filter({ has: getByRole('heading', { name: passwordHeader }) })`
+
+**TenantBrandingPage.ts (5 selectors)**
+- `logo-url-input` → `getByLabel(translation.tenantBranding.fields.logoUrl)`
+- `favicon-url-input` → `getByLabel(translation.tenantBranding.fields.faviconUrl)`
+- `primary-color-input` → `getByLabel(translation.tenantBranding.fields.primaryColor)`
+- `secondary-color-input` → `getByLabel(translation.tenantBranding.fields.secondaryColor)`
+- `save-branding-button` → `getByRole('button', { name: translation.tenantBranding.actions.saveChanges })`
+
+**AdminTenantsPage.ts (3 selectors)**
+- `edit-tenant-*` → Added `aria-label` to Edit button in AdminTenantsTab.tsx: `aria-label={Edit ${appName}}`
+- `clickEditButtonForFirstTenant` → `getByRole('button', { name: /^Edit\s/ }).first()`
+- `clickEditButtonForTenant(appName)` → `getByRole('button', { name: Edit ${appName} })`
+- Removed unused `clickEditButtonForTenantById` method
+
+**GroupDetailPage.ts (2 selectors)**
+- `include-deleted-settlements-checkbox` → `getByRole('checkbox', { name: translation.common.includeDeleted })`
+- `remove-member-button` → Added interpolation to translation `removeMemberAriaLabel`: "Remove {{name}}", then `getByRole('button', { name: /Remove.*${memberName}/i })`
+
+**DashboardPage.ts (1 selector)**
+- `group-card` → Added `role='listitem'` to wrapper in GroupsList.tsx, then `getByRole('listitem')`
+
+**Other (3 selectors)**
+- `AdminPage.ts` `button[data-testid*="admin"]` → `getByRole('navigation', { name: ... }).getByRole('button').first()`
+- `RegisterPage.ts` `loading-spinner` → `locator('button[type="submit"]').getByRole('status')`
+- `TenantEditorModalPage.ts` `custom-css-input` → Deprecated (feature removed), left as-is
+
+**Component/Translation Updates:**
+- `AdminTenantsTab.tsx` - Added aria-label to Edit button
+- `GroupsList.tsx` - Added `role='listitem'` to group card wrapper
+- `SettingsPage.tsx` - Removed `dataTestId='profile-information-section'` and `dataTestId='password-section'` (scoping now by heading)
+- `translation.json` (en, ar) - Updated `removeMemberAriaLabel` to include `{{name}}` interpolation
+
+---
+
+### Historical Conversions (Phases 1-8)
+
+Converted ~111 test-ids to semantic selectors. Key patterns converted:
+
+- **Buttons with visible text** → `getByRole('button', { name })`
+- **Elements with role='alert'** → `getByRole('alert')`
+- **Form inputs with labels** → `getByLabel()` or `getByPlaceholder()`
+- **Checkboxes/switches** → `getByRole('checkbox/switch', { name })`
+- **Dynamic loop IDs** → `aria-label` with entity name
+- **Form containers** → visible text scoping or `role="region"`
+- **List items** → `<article>`, `<li>` with `data-member-name` etc.
+- **Sections** → `aria-labelledby` with heading id
+
+---
+
+### Phase 10: Final Page Object & Component Cleanup (13 conversions)
+
+Converted remaining page object selectors and removed corresponding test-ids from components.
+
+**Page Object Conversions:**
+
+| Page Object | Selectors Converted | Now Uses |
+|-------------|---------------------|----------|
+| `ExpenseDetailPage.ts` | `expense-error-card`, `expense-header` | `getByRole('dialog').locator('.text-semantic-error')`, `locator('#expense-detail-modal-title').locator('..')` |
+| `ExpenseFormPage.ts` | `label-input-error-message`, `currency-input-error-message` | `getByRole('alert').filter({ hasText })` |
+| `ShareGroupModalPage.ts` | `share-link-expiration-${value}` | `getByRole('button', { name: translatedLabel })` |
+| `AdminDiagnosticsPage.ts` | `tenant-overview-card`, `theme-artifact-card`, `branding-tokens-card`, `computed-vars-card`, `copy-theme-link-button`, `force-reload-theme-button` | Heading-based scoping + `getByRole('button', { name })` |
+| `AdminTenantsPage.ts` | `tenant-card` | Heading-based scoping by h3 |
+
+**Component Test-ids Removed:**
+
+| Component | Test-ids Removed |
+|-----------|------------------|
+| `ShareGroupModal.tsx` | `share-link-expiration-${option.id}` |
+| `AdminTenantsTab.tsx` | `tenant-card`, `create-tenant-button` |
+| `CurrencyAmountInput.tsx` | `currency-input-error-message` |
+| `MultiLabelInput.tsx` | `label-input-error-message` |
+| `AdminDiagnosticsTab.tsx` | `env-status-card`, `env-build-card`, `env-memory-card`, `env-heap-spaces-card`, `env-variables-card`, `env-filesystem-card` (unused) |
+
+**Test File Updated:**
+
+- `admin-tenant-config.test.ts` - Updated to use heading-based scoping instead of non-existent test-ids
+
+---
+
+### Phase 11: Component dataTestId Prop Cleanup (~29 test-ids)
+
+Removed dataTestId props and usages from components where semantic selectors are sufficient.
+
+**Components Updated:**
+
+| Component | Test-ids Removed | Now Uses |
+|-----------|------------------|----------|
+| `MembersListWithManagement.tsx` | `remove-member-button`, `invite-members-button`, `toggle-members-section`, `remove-member-dialog` | `aria-label` on buttons, `ConfirmDialog` with title |
+| `SidebarCard.tsx` | `collapseToggleTestId` prop removed | `aria-label={collapseToggleLabel}` |
+| `SettlementHistory.tsx` | `settlements-empty-state`, `show-all-settlements-checkbox`, `include-deleted-settlements-checkbox` | `EmptyState` title, `getByRole('checkbox', { name })` |
+| `CommentsList.tsx` | `comments-error`, `comments-empty-state` | `role='alert'`, `EmptyState` title |
+| `GroupCurrencySettings.tsx` | `default-currency-select`, `currency-settings-error` | `getByLabel()`, `getByRole('alert')` |
+| `ExpenseFormModal.tsx` | `expense-form-cancel`, `save-expense-button` | `getByRole('button', { name })` with translated text |
+| `ExpenseFormHeader.tsx` | `expense-form-cancel` | `getByRole('button', { name })` with translated text |
+| `UserEditorModal.tsx` | `user-editor-modal`, `cancel-button`, `save-profile-button`, `save-role-button` | `labelledBy='user-editor-modal-title'` + `id` on h2, button names |
+| `TenantEditorModal.tsx` | 6 button test-ids | `getByRole('button', { name })` (kept 2 for page objects: `logo-upload-field`, `favicon-upload-field`) |
+| `GroupCard.tsx` | `group-card` | Already has `role='listitem'` wrapper |
+| `EmptyState.tsx` | `empty-state-action-button`, `empty-state-secondary-action-button` | `getByRole('button', { name: action.label })` |
+
+**Test File Fixed:**
+
+- `ShareGroupModal.test.tsx` - Updated to use `getByRole('button', { name })` instead of removed `share-link-expiration-${id}` test-ids

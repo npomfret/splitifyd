@@ -188,8 +188,18 @@ export class ShareGroupModalPage extends BasePage {
         await this.clickButton(button, { buttonName: translation.shareGroupModal.generateNew });
     }
 
+    /**
+     * Get expiration option button by its value
+     * Uses translated button text instead of test-id
+     */
     protected getExpirationOption(optionValue: '15m' | '1h' | '1d' | '5d'): Locator {
-        return this.getModalContainer().getByTestId(`share-link-expiration-${optionValue}`);
+        const labelMap: Record<string, string> = {
+            '15m': translation.shareGroupModal.expirationOptions['15m'],
+            '1h': translation.shareGroupModal.expirationOptions['1h'],
+            '1d': translation.shareGroupModal.expirationOptions['1d'],
+            '5d': translation.shareGroupModal.expirationOptions['5d'],
+        };
+        return this.getModalContainer().getByRole('button', { name: labelMap[optionValue] });
     }
 
     /**

@@ -146,7 +146,6 @@ export function CommentInput({ onSubmit, disabled = false, placeholder, classNam
                         className={`
                         ${isOverLimit ? 'text-semantic-error font-medium' : 'text-text-muted'}
                     `}
-                        data-testid={isOverLimit ? 'character-limit-exceeded' : 'character-count'}
                     >
                         {remainingChars}
                     </span>

@@ -330,8 +330,9 @@ export class TenantEditorModalPage extends BasePage {
         await this.getAddDomainButton().click();
     }
 
-    async removeDomain(index: number): Promise<void> {
-        await this.page.getByTestId(`remove-domain-${index}`).click();
+    async removeDomain(domain: string): Promise<void> {
+        // Button has aria-label "Remove {domain}"
+        await this.getModal().getByRole('button', { name: `Remove ${domain}` }).click();
     }
 
     async setPrimaryColor(color: string): Promise<void> {

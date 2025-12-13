@@ -37,7 +37,7 @@ test.describe('Admin User Profile Editor', () => {
         const adminUsersPage = new AdminUsersPage(page);
         await adminUsersPage.navigate();
 
-        const userEditorModal = await adminUsersPage.clickEditUserAndOpenModal(targetUser.uid);
+        const userEditorModal = await adminUsersPage.clickEditUserAndOpenModal(targetUser.email);
 
         await userEditorModal.verifyProfileTabIsActive();
         await userEditorModal.verifyDisplayNameInputVisible();
@@ -71,7 +71,7 @@ test.describe('Admin User Profile Editor', () => {
         const adminUsersPage = new AdminUsersPage(page);
         await adminUsersPage.navigate();
 
-        const userEditorModal = await adminUsersPage.clickEditUserAndOpenModal(targetUser.uid);
+        const userEditorModal = await adminUsersPage.clickEditUserAndOpenModal(targetUser.email);
 
         // Save button should be disabled initially (no changes)
         await userEditorModal.verifySaveProfileButtonDisabled();
@@ -118,7 +118,7 @@ test.describe('Admin User Profile Editor', () => {
         const adminUsersPage = new AdminUsersPage(page);
         await adminUsersPage.navigate();
 
-        const userEditorModal = await adminUsersPage.clickEditUserAndOpenModal(targetUser.uid);
+        const userEditorModal = await adminUsersPage.clickEditUserAndOpenModal(targetUser.email);
 
         // Update both fields
         await userEditorModal.fillDisplayName('New Display Name');
@@ -156,7 +156,7 @@ test.describe('Admin User Profile Editor', () => {
         const adminUsersPage = new AdminUsersPage(page);
         await adminUsersPage.navigate();
 
-        const userEditorModal = await adminUsersPage.clickEditUserAndOpenModal(targetUser.uid);
+        const userEditorModal = await adminUsersPage.clickEditUserAndOpenModal(targetUser.email);
 
         // Profile tab should be active initially
         await userEditorModal.verifyDisplayNameInputVisible();
@@ -203,7 +203,7 @@ test.describe('Admin User Profile Editor', () => {
         const adminUsersPage = new AdminUsersPage(page);
         await adminUsersPage.navigate();
 
-        const userEditorModal = await adminUsersPage.clickEditUserAndOpenModal(targetUser.uid);
+        const userEditorModal = await adminUsersPage.clickEditUserAndOpenModal(targetUser.email);
         await userEditorModal.verifyModalIsOpen();
 
         // Click cancel button

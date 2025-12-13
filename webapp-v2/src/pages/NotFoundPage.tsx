@@ -35,7 +35,6 @@ export function NotFoundPage({ path }: NotFoundPageProps) {
                                 as='button'
                                 onClick={() => navigationService.goToDashboard()}
                                 className='px-6 py-3 bg-interactive-primary text-interactive-primary-foreground rounded-lg hover:bg-interactive-primary/90 transition-colors inline-block'
-                                dataTestId='go-to-dashboard-link'
                                 aria-label='Go to dashboard'
                                 eventName='not_found_navigate'
                                 eventProps={{ destination: 'dashboard' }}
@@ -48,7 +47,6 @@ export function NotFoundPage({ path }: NotFoundPageProps) {
                                 as='button'
                                 onClick={() => navigationService.goHome()}
                                 className='px-6 py-3 bg-interactive-primary text-interactive-primary-foreground rounded-lg hover:bg-interactive-primary/90 transition-colors inline-block'
-                                dataTestId='go-home-link'
                                 aria-label='Go to home page'
                                 eventName='not_found_navigate'
                                 eventProps={{ destination: 'home' }}

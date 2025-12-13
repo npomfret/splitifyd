@@ -1038,7 +1038,7 @@
     "inviteOthers": "Invite Others",
     "inviteOthersAriaLabel": "Invite Others",
     "leaveGroupAriaLabel": "Leave Group",
-    "removeMemberAriaLabel": "Remove member",
+    "removeMemberAriaLabel": "Remove {{name}}",
     "leaveGroupDialog": {
       "title": "Leave Group?",
       "messageWithBalance": "You have an outstanding balance in this group. Please settle up before leaving.",

@@ -43,19 +43,19 @@ export class TenantBrandingPage extends BasePage {
     }
 
     protected getLogoUrlInput(): Locator {
-        return this.page.locator('[data-testid="logo-url-input"]');
+        return this.page.getByLabel(translation.tenantBranding.fields.logoUrl);
     }
 
     protected getFaviconUrlInput(): Locator {
-        return this.page.locator('[data-testid="favicon-url-input"]');
+        return this.page.getByLabel(translation.tenantBranding.fields.faviconUrl);
     }
 
     protected getPrimaryColorInput(): Locator {
-        return this.page.locator('[data-testid="primary-color-input"]');
+        return this.page.getByLabel(translation.tenantBranding.fields.primaryColor);
     }
 
     protected getSecondaryColorInput(): Locator {
-        return this.page.locator('[data-testid="secondary-color-input"]');
+        return this.page.getByLabel(translation.tenantBranding.fields.secondaryColor);
     }
 
     protected getShowMarketingContentCheckbox(): Locator {
@@ -67,7 +67,7 @@ export class TenantBrandingPage extends BasePage {
     }
 
     protected getSaveButton(): Locator {
-        return this.page.locator('[data-testid="save-branding-button"]');
+        return this.page.getByRole('button', { name: translation.tenantBranding.actions.saveChanges });
     }
 
     /**

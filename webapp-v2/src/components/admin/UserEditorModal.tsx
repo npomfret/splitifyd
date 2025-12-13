@@ -172,10 +172,10 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
         || email.trim().toLowerCase() !== String(user.email ?? '').toLowerCase();
 
     return (
-        <Modal open={open} onClose={onClose} size='lg' dataTestId='user-editor-modal'>
+        <Modal open={open} onClose={onClose} size='lg' labelledBy='user-editor-modal-title'>
             <div className='flex flex-col max-h-[90vh] overflow-hidden'>
                 <ModalHeader>
-                    <h2 className='text-xl font-semibold text-text-primary'>{t('admin.userEditor.title')}</h2>
+                    <h2 id='user-editor-modal-title' className='text-xl font-semibold text-text-primary'>{t('admin.userEditor.title')}</h2>
                     <p className='help-text mt-1'>{user.email}</p>
                 </ModalHeader>
 
@@ -358,7 +358,6 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                         onClick={onClose}
                         variant='secondary'
                         disabled={isSaving}
-                        dataTestId='cancel-button'
                     >
                         {activeTab === 'profile' || activeTab === 'role' ? t('common.cancel') : t('common.close')}
                     </Button>
@@ -368,7 +367,6 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                             variant='primary'
                             loading={isSaving}
                             disabled={isSaving || !hasProfileChanges}
-                            dataTestId='save-profile-button'
                             className='bg-linear-to-r! from-indigo-600! to-purple-600! text-white! shadow-lg! hover:shadow-indigo-500/30!'
                         >
                             {isSaving ? t('common.saving') : t('common.save')}
@@ -380,7 +378,6 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                             variant='primary'
                             loading={isSaving}
                             disabled={isSaving || isCurrentUser || selectedRole === user.role}
-                            dataTestId='save-role-button'
                             className='bg-linear-to-r! from-indigo-600! to-purple-600! text-white! shadow-lg! hover:shadow-indigo-500/30!'
                         >
                             {isSaving ? t('common.saving') : t('common.save')}

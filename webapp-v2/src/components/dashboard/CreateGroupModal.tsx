@@ -375,7 +375,6 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                                                                     : 'hover:text-semantic-error',
                                                             )}
                                                             aria-label={`Remove ${code}`}
-                                                            data-testid={`remove-currency-${code}`}
                                                         >
                                                             <XIcon size={14} />
                                                         </button>
@@ -441,7 +440,6 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                                                                                 'hover:bg-surface-muted transition-colors',
                                                                                 'flex items-center gap-2',
                                                                             )}
-                                                                            data-testid={`add-currency-option-${currency.acronym}`}
                                                                         >
                                                                             <CurrencyIcon symbol={currency.symbol} size={20} className='text-text-muted shrink-0' />
                                                                             <span className='font-medium'>{currency.acronym}</span>
@@ -464,7 +462,6 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                                             onChange={setDefaultCurrency}
                                             options={defaultCurrencyOptions}
                                             disabled={isSubmitting || permittedCurrencies.length === 0}
-                                            dataTestId='default-currency-select'
                                         />
                                     )}
                                 </div>

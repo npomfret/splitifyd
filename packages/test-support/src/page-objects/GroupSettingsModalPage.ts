@@ -193,7 +193,19 @@ export class GroupSettingsModalPage extends BasePage {
     // ============================================================================
 
     protected getPresetButton(preset: string): Locator {
-        return this.getModalContainer().getByTestId(`preset-button-${preset}`);
+        // Look up the label text for the preset
+        const presetLabels: Record<string, string> = {
+            open: translation.securitySettingsModal.presets.open.label,
+            managed: translation.securitySettingsModal.presets.managed.label,
+        };
+
+        const labelText = presetLabels[preset];
+        if (!labelText) {
+            throw new Error(`Unknown preset: ${preset}`);
+        }
+
+        // Button's accessible name starts with the label text
+        return this.getModalContainer().getByRole('button', { name: new RegExp(`^${labelText}`) });
     }
 
     protected getSecuritySaveButton(): Locator {
@@ -203,19 +215,46 @@ export class GroupSettingsModalPage extends BasePage {
     }
 
     protected getPermissionSelect(key: string): Locator {
-        return this.getModalContainer().getByTestId(`permission-select-${key}`);
+        // Look up the label text for the permission key
+        const permissionLabels: Record<string, string> = {
+            expenseEditing: translation.securitySettingsModal.permissions.expenseEditing.label,
+            expenseDeletion: translation.securitySettingsModal.permissions.expenseDeletion.label,
+            memberInvitation: translation.securitySettingsModal.permissions.memberInvitation.label,
+            memberApproval: translation.securitySettingsModal.permissions.memberApproval.label,
+            settingsManagement: translation.securitySettingsModal.permissions.settingsManagement.label,
+        };
+
+        const labelText = permissionLabels[key];
+        if (!labelText) {
+            throw new Error(`Unknown permission key: ${key}`);
+        }
+
+        // Find the label element by its text content, then get the select inside it
+        return this.getModalContainer()
+            .locator('label')
+            .filter({ hasText: labelText })
+            .locator('select');
     }
 
-    protected getPendingApproveButton(memberId: string): Locator {
-        return this.getModalContainer().getByTestId(`pending-approve-${memberId}`);
+    protected getPendingApproveButton(memberIdentifier: string): Locator {
+        // Button has aria-label like "Approve {displayName}" where displayName can be the name or uid
+        return this.getModalContainer().getByRole('button', {
+            name: new RegExp(`^${translation.securitySettingsModal.pendingMembers.approve}\\s+.*${memberIdentifier}`, 'i'),
+        });
     }
 
-    protected getPendingRejectButton(memberId: string): Locator {
-        return this.getModalContainer().getByTestId(`pending-reject-${memberId}`);
+    protected getPendingRejectButton(memberIdentifier: string): Locator {
+        // Button has aria-label like "Reject {displayName}" where displayName can be the name or uid
+        return this.getModalContainer().getByRole('button', {
+            name: new RegExp(`^${translation.securitySettingsModal.pendingMembers.reject}\\s+.*${memberIdentifier}`, 'i'),
+        });
     }
 
-    protected getMemberRoleSelect(memberId: string): Locator {
-        return this.getModalContainer().getByTestId(`member-role-select-${memberId}`);
+    protected getMemberRoleSelect(memberIdentifier: string): Locator {
+        // Select has aria-label like "Member roles {displayName}" where displayName can be the name or uid
+        return this.getModalContainer().getByRole('combobox', {
+            name: new RegExp(`${translation.securitySettingsModal.memberRoles.heading}\\s+.*${memberIdentifier}`, 'i'),
+        });
     }
 
     // ============================================================================
@@ -975,7 +1014,8 @@ export class GroupSettingsModalPage extends BasePage {
     }
 
     protected getRemoveCurrencyButton(code: string): Locator {
-        return this.getModalContainer().getByTestId(`remove-currency-${code}`);
+        // Remove button has aria-label "Remove {code}"
+        return this.getModalContainer().getByRole('button', { name: `Remove ${code}` });
     }
 
     protected getCurrencySearchInput(): Locator {
@@ -983,11 +1023,13 @@ export class GroupSettingsModalPage extends BasePage {
     }
 
     protected getAddCurrencyOption(code: string): Locator {
-        return this.getModalContainer().getByTestId(`add-currency-option-${code}`);
+        // Currency option button shows the currency acronym as visible text
+        return this.getModalContainer().getByRole('button', { name: new RegExp(`^${code}\\b`) });
     }
 
     protected getDefaultCurrencySelect(): Locator {
-        return this.getModalContainer().getByTestId('default-currency-select');
+        // Select has label "Default currency for new expenses"
+        return this.getModalContainer().getByLabel(translation.groupSettings.currencySettings.defaultLabel);
     }
 
     protected getCurrencySettingsSaveButton(): Locator {

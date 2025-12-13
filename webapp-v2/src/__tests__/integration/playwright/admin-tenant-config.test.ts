@@ -13,17 +13,18 @@ test.describe('Admin Tenant Config Tab', () => {
         // Navigate to tenant config tab
         await page.goto('/admin?tab=tenant-config');
 
-        // Wait for the tenant overview card to be visible (indicates page has loaded)
-        const tenantOverviewCard = page.getByTestId('tenant-overview-card');
-        await expect(tenantOverviewCard).toBeVisible();
+        // Wait for the tenant overview heading to be visible (indicates page has loaded)
+        const tenantOverviewHeading = page.getByRole('heading', { name: 'Tenant Overview' });
+        await expect(tenantOverviewHeading).toBeVisible();
 
-        // Wait for branding tokens card - this only appears when config.tenant.branding is loaded
-        // This is the definitive test that config has been loaded and rendered
-        const brandingTokensCard = page.getByTestId('branding-tokens-card');
-        await expect(brandingTokensCard).toBeVisible({ timeout: 10000 });
+        // Wait for branding tokens heading - this only appears when config.tenant.branding is loaded
+        const brandingTokensHeading = page.getByRole('heading', { name: 'Branding Tokens' });
+        await expect(brandingTokensHeading).toBeVisible({ timeout: 10000 });
 
         // Now verify tenant ID is loaded (not showing "unknown")
         // Default tenant ID from TenantConfigBuilder is 'test-tenant'
+        // Scope to the card by finding heading's parent card (the .rounded-xl card)
+        const tenantOverviewCard = tenantOverviewHeading.locator('xpath=ancestor::div[contains(@class, "rounded-xl")]').first();
         const tenantIdValue = tenantOverviewCard.locator('p:has-text("Tenant ID")').locator('..').locator('p.font-mono');
         await expect(tenantIdValue).toHaveText('test-tenant');
 

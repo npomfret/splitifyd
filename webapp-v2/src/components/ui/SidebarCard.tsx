@@ -9,7 +9,6 @@ interface SidebarCardProps extends Omit<JSX.HTMLAttributes<HTMLDivElement>, 'chi
     className?: string;
     collapsible?: boolean;
     defaultCollapsed?: boolean;
-    collapseToggleTestId?: string;
     collapseToggleLabel?: string;
     headerActions?: ComponentChildren;
     /**
@@ -26,7 +25,6 @@ export function SidebarCard({
     className = '',
     collapsible = false,
     defaultCollapsed = false,
-    collapseToggleTestId,
     collapseToggleLabel,
     headerActions,
     ariaLabel,
@@ -51,7 +49,6 @@ export function SidebarCard({
                     onClick={handleToggle}
                     aria-label={toggleAriaLabel}
                     aria-expanded={!collapsed}
-                    data-testid={collapseToggleTestId}
                     className='p-1 text-text-muted/80 hover:text-text-muted rounded-full focus:outline-hidden focus:ring-2 focus:ring-interactive-primary focus:ring-offset-2 transition-colors duration-200'
                 >
                     <ChevronDownIcon

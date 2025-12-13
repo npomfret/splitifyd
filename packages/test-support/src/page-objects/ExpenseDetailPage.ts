@@ -28,12 +28,18 @@ export class ExpenseDetailPage extends BasePage {
         return this.page.getByRole('region', { name: translation.pages.expenseDetailPage.metadataSection });
     }
 
+    /**
+     * Get error state container - the modal shows error in center with semantic-error text
+     */
     protected getErrorCard(): Locator {
-        return this.page.getByTestId('expense-error-card');
+        return this.page.getByRole('dialog').locator('.text-semantic-error');
     }
 
+    /**
+     * Get the modal header container - identified by the modal title ID
+     */
     protected getHeader(): Locator {
-        return this.page.getByTestId('expense-header');
+        return this.page.locator('#expense-detail-modal-title').locator('..');
     }
 
     // Basic element selectors

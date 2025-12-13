@@ -187,9 +187,15 @@ describe('ShareGroupModal', () => {
         const firstCallCount = mockedApiClient.generateShareableLink.mock.calls.length;
 
         // Verify expiration buttons are rendered with expected defaults
-        const buttons = ['15m', '1h', '1d', '5d'].map((id) => screen.getByTestId(`share-link-expiration-${id}`));
+        const buttonTexts = [
+            'shareGroupModal.expirationOptions.15m',
+            'shareGroupModal.expirationOptions.1h',
+            'shareGroupModal.expirationOptions.1d',
+            'shareGroupModal.expirationOptions.5d',
+        ];
+        const buttons = buttonTexts.map((text) => screen.getByRole('button', { name: text }));
         expect(buttons).toHaveLength(4);
-        expect(screen.getByTestId('share-link-expiration-1d')).toHaveAttribute('aria-pressed', 'true');
+        expect(screen.getByRole('button', { name: 'shareGroupModal.expirationOptions.1d' })).toHaveAttribute('aria-pressed', 'true');
 
         // Verify first call requested ~1 day expiration (default)
         const firstCall = mockedApiClient.generateShareableLink.mock.calls[0];
@@ -199,7 +205,7 @@ describe('ShareGroupModal', () => {
         expect(firstCallExpiryMs).toBeLessThan(expectedFirstMs + 5000);
 
         // Change the selection to 1 hour and ensure a new link is requested
-        const oneHourButton = screen.getByTestId('share-link-expiration-1h');
+        const oneHourButton = screen.getByRole('button', { name: 'shareGroupModal.expirationOptions.1h' });
         await act(() => {
             fireEvent.click(oneHourButton);
         });

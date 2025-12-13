@@ -20,9 +20,10 @@ export class AdminTenantConfigPage extends BasePage {
         await expect(this.page).toHaveURL(/\/admin.*tab=tenant-config/);
     }
 
-    // Tenant Overview Card
+    // Tenant Overview Card - find heading and go up to parent Card
     protected getTenantOverviewCard(): Locator {
-        return this.page.getByTestId('tenant-overview-card');
+        return this.page.getByRole('heading', { name: translation.admin.tenantConfig.overview.title })
+            .locator('xpath=ancestor::div[contains(@class, "rounded-xl")]').first();
     }
 
     protected getTenantIdValue(): Locator {
@@ -37,23 +38,26 @@ export class AdminTenantConfigPage extends BasePage {
         return this.getTenantOverviewCard().locator(`p:has-text("${translation.admin.tenantConfig.overview.lastUpdated}")`).locator('..').locator('p.font-medium').last();
     }
 
-    // Theme Artifact Card
+    // Theme Artifact Card - find heading and go up to parent Card
     protected getThemeArtifactCard(): Locator {
-        return this.page.getByTestId('theme-artifact-card');
+        return this.page.getByRole('heading', { name: translation.admin.tenantConfig.theme.title })
+            .locator('xpath=ancestor::div[contains(@class, "rounded-xl")]').first();
     }
 
     protected getActiveHashValue(): Locator {
         return this.getThemeArtifactCard().locator(`p:has-text("${translation.admin.tenantConfig.theme.activeHash}")`).locator('..').locator('p.font-mono');
     }
 
-    // Branding Tokens Card
+    // Branding Tokens Card - find heading and go up to parent Card
     protected getBrandingTokensCard(): Locator {
-        return this.page.getByTestId('branding-tokens-card');
+        return this.page.getByRole('heading', { name: translation.admin.tenantConfig.brandingTokens.title })
+            .locator('xpath=ancestor::div[contains(@class, "rounded-xl")]').first();
     }
 
-    // Computed CSS Variables Card
+    // Computed CSS Variables Card - find heading and go up to parent Card
     protected getComputedVarsCard(): Locator {
-        return this.page.getByTestId('computed-vars-card');
+        return this.page.getByRole('heading', { name: translation.admin.tenantConfig.computedCss.title })
+            .locator('xpath=ancestor::div[contains(@class, "rounded-xl")]').first();
     }
 
     // Loading State

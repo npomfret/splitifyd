@@ -302,7 +302,7 @@ export function SettingsPage() {
                             {t('settingsPage.heroLabel')}
                         </span>
                         <div className='flex flex-col gap-2'>
-                            <Typography variant='display' className='font-semibold' dataTestId='account-settings-header'>
+                            <Typography variant='display' className='font-semibold'>
                                 {t('settingsPage.accountSettingsHeader')}
                             </Typography>
                             <p className='max-w-2xl help-text sm:text-base'>{t('settingsPage.accountSettingsSubheader')}</p>
@@ -374,7 +374,7 @@ export function SettingsPage() {
                         </Card>
 
                         <div className='space-y-6'>
-                            <Card padding='lg' dataTestId='profile-information-section'>
+                            <Card padding='lg'>
                                 <div className='space-y-6'>
                                     <div className='space-y-2'>
                                         <Typography variant='heading'>{t('settingsPage.profileInformationHeader')}</Typography>
@@ -404,7 +404,6 @@ export function SettingsPage() {
                                                     : isDisplayNameTooLong
                                                     ? t('settingsPage.errorMessages.displayNameTooLong')
                                                     : undefined}
-                                                dataTestId='display-name-input'
                                             />
                                             <p className='help-text-xs'>{t('settingsPage.displayNameHelper')}</p>
                                         </div>
@@ -413,7 +412,6 @@ export function SettingsPage() {
                                             type='submit'
                                             disabled={!hasDisplayNameChanged || authStore.isUpdatingProfile || isDisplayNameEmpty || isDisplayNameTooLong}
                                             loading={authStore.isUpdatingProfile}
-                                            dataTestId='save-changes-button'
                                         >
                                             {t('settingsPage.saveChangesButton')}
                                         </Button>
@@ -421,7 +419,7 @@ export function SettingsPage() {
                                 </div>
                             </Card>
 
-                            <Card padding='lg' dataTestId='email-section'>
+                            <Card padding='lg'>
                                 <div className='space-y-6'>
                                     <div className='space-y-2'>
                                         <Typography variant='heading'>{t('settingsPage.emailSectionTitle')}</Typography>
@@ -437,7 +435,7 @@ export function SettingsPage() {
                                                     </p>
                                                     <p className='font-medium text-text-primary wrap-break-word'>{originalEmail}</p>
                                                 </div>
-                                                <Button variant='secondary' onClick={handleStartEmailChange} dataTestId='change-email-button'>
+                                                <Button variant='secondary' onClick={handleStartEmailChange}>
                                                     {t('settingsPage.changeEmailButton')}
                                                 </Button>
                                             </div>
@@ -462,7 +460,6 @@ export function SettingsPage() {
                                                     disabled={isEmailLoading}
                                                     error={shouldShowEmailFormatError ? t('settingsPage.errorMessages.emailInvalid') : undefined}
                                                     id='new-email-input'
-                                                    dataTestId='new-email-input'
                                                 />
 
                                                 <Input
@@ -474,7 +471,6 @@ export function SettingsPage() {
                                                     }}
                                                     disabled={isEmailLoading}
                                                     id='email-password-input'
-                                                    dataTestId='email-password-input'
                                                 />
 
                                                 <div className='flex flex-col gap-3 sm:flex-row'>
@@ -485,7 +481,6 @@ export function SettingsPage() {
                                                             || shouldShowEmailFormatError
                                                             || emailData.currentPassword.trim().length === 0}
                                                         loading={isEmailLoading}
-                                                        dataTestId='update-email-button'
                                                     >
                                                         {t('settingsPage.updateEmailButton')}
                                                     </Button>
@@ -494,7 +489,6 @@ export function SettingsPage() {
                                                         variant='secondary'
                                                         onClick={handleCancelEmailChange}
                                                         disabled={isEmailLoading}
-                                                        dataTestId='cancel-email-button'
                                                     >
                                                         {t('settingsPage.cancelButton')}
                                                     </Button>
@@ -504,7 +498,7 @@ export function SettingsPage() {
                                 </div>
                             </Card>
 
-                            <Card padding='lg' dataTestId='password-section'>
+                            <Card padding='lg'>
                                 <div className='space-y-6'>
                                     <div className='space-y-2'>
                                         <Typography variant='heading'>{t('settingsPage.passwordHeader')}</Typography>
@@ -535,7 +529,6 @@ export function SettingsPage() {
                                                 onClick={() => {
                                                     showPasswordFormSignal.value = true;
                                                 }}
-                                                dataTestId='change-password-button'
                                             >
                                                 {t('settingsPage.changePasswordButton')}
                                             </Button>
@@ -560,7 +553,6 @@ export function SettingsPage() {
                                                         }}
                                                         disabled={isLoading}
                                                         id='current-password-input'
-                                                        dataTestId='current-password-input'
                                                     />
 
                                                     <Input
@@ -573,7 +565,6 @@ export function SettingsPage() {
                                                         }}
                                                         disabled={isLoading}
                                                         id='new-password-input'
-                                                        dataTestId='new-password-input'
                                                     />
 
                                                     <Input
@@ -586,14 +577,13 @@ export function SettingsPage() {
                                                         }}
                                                         disabled={isLoading}
                                                         id='confirm-password-input'
-                                                        dataTestId='confirm-password-input'
                                                     />
 
                                                     <div className='flex flex-col gap-3 sm:flex-row'>
-                                                        <Button type='submit' disabled={isLoading} loading={isLoading} dataTestId='update-password-button'>
+                                                        <Button type='submit' disabled={isLoading} loading={isLoading}>
                                                             {t('settingsPage.updatePasswordButton')}
                                                         </Button>
-                                                        <Button type='button' variant='secondary' onClick={handleCancelPasswordChange} disabled={isLoading} dataTestId='cancel-password-button'>
+                                                        <Button type='button' variant='secondary' onClick={handleCancelPasswordChange} disabled={isLoading}>
                                                             {t('settingsPage.cancelButton')}
                                                         </Button>
                                                     </div>
@@ -603,7 +593,7 @@ export function SettingsPage() {
                                 </div>
                             </Card>
 
-                            <Card padding='lg' dataTestId='language-section'>
+                            <Card padding='lg'>
                                 <div className='space-y-6'>
                                     <div className='space-y-2'>
                                         <Typography variant='heading'>{t('languageSelector.label')}</Typography>

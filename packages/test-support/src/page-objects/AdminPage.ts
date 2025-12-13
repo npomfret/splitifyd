@@ -60,7 +60,8 @@ export class AdminPage extends BasePage {
     }
 
     protected getAdminButton(): Locator {
-        return this.page.locator('button[data-testid*="admin"]').first();
+        // Get the first tab button in the admin tabs nav
+        return this.page.getByRole('navigation', { name: translation.admin.tabs.ariaLabel }).getByRole('button').first();
     }
 
     // ============================================================================

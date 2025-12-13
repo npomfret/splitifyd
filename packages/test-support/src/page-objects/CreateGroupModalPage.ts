@@ -506,7 +506,8 @@ export class CreateGroupModalPage extends BasePage {
     }
 
     protected getRemoveCurrencyButton(code: string): Locator {
-        return this.getModalContainer().getByTestId(`remove-currency-${code}`);
+        // Remove button has aria-label "Remove {code}"
+        return this.getModalContainer().getByRole('button', { name: `Remove ${code}` });
     }
 
     protected getCurrencySearchInput(): Locator {
@@ -514,11 +515,13 @@ export class CreateGroupModalPage extends BasePage {
     }
 
     protected getAddCurrencyOption(code: string): Locator {
-        return this.getModalContainer().getByTestId(`add-currency-option-${code}`);
+        // Currency option button shows the currency acronym as visible text
+        return this.getModalContainer().getByRole('button', { name: new RegExp(`^${code}\\b`) });
     }
 
     protected getDefaultCurrencySelect(): Locator {
-        return this.getModalContainer().getByTestId('default-currency-select');
+        // Select has label "Default currency for new expenses"
+        return this.getModalContainer().getByLabel(translation.groupSettings.currencySettings.defaultLabel);
     }
 
     // ============================================================================

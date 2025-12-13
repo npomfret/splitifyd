@@ -61,10 +61,10 @@ export class LeaveGroupDialogPage extends BasePage {
     }
 
     /**
-     * Outstanding balance warning message
+     * Outstanding balance warning message - identified by text content
      */
     protected getBalanceWarningMessage(): Locator {
-        return this.getConfirmationDialog().getByTestId('balance-error-message');
+        return this.getConfirmationDialog().locator('#confirm-dialog-description').filter({ hasText: /outstanding balance/i });
     }
 
     /**

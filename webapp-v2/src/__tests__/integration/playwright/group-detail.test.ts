@@ -370,7 +370,7 @@ test.describe('Group Detail - Comments', () => {
         const commentRequest = await commentRequestPromise;
         expect(commentRequest.postDataJSON()).toEqual({ text: newCommentText });
 
-        await expect(page.locator('[data-testid="comment-error-message"]')).toHaveCount(0);
+        await groupDetailPage.verifyNoCommentError();
     });
 });
 

@@ -144,32 +144,38 @@ export class ExpenseFormPage extends BasePage {
     }
 
     // ============================================================================
-    // SPLIT DISPLAY SELECTORS - Based on visible text users see
+    // SPLIT DISPLAY SELECTORS - Scoped by visible instruction text
     // ============================================================================
 
     /**
-     * Equal split container - uses test ID for reliable targeting
+     * Equal split container - scoped by "Each person pays:" instruction
+     * Uses the instruction text to find its parent container (div with bg-surface-muted)
      */
     protected getEqualSplitContainer(): Locator {
-        return this.page.getByTestId('equal-split-container');
+        // Find the instruction text and go up to its parent container
+        return this.page.getByText(/each person pays/i)
+            .locator('xpath=ancestor::div[contains(@class, "bg-surface-muted")]').first();
     }
 
     /**
-     * "Each person pays" instruction text for equal splits
+     * "Each person pays:" instruction text
      */
     protected getEqualSplitInstructionText(): Locator {
         return this.page.getByText(/each person pays/i);
     }
 
     /**
-     * Exact split container - uses test ID for reliable targeting
+     * Exact split container - scoped by "Enter exact amounts" instruction
+     * Uses the instruction text to find its nearest parent Stack component
      */
     protected getExactSplitContainer(): Locator {
-        return this.page.getByTestId('exact-split-container');
+        // Find the instruction text and go up to its parent (the Stack component)
+        // The instruction is wrapped in a <p> inside the Stack, so go up one level
+        return this.page.getByText(/enter exact amounts for each person/i).locator('..');
     }
 
     /**
-     * "Enter exact amounts for each person:" instruction text for exact splits
+     * "Enter exact amounts for each person:" instruction text
      */
     protected getExactSplitInstructionText(): Locator {
         return this.page.getByText(/enter exact amounts for each person/i);
@@ -177,9 +183,10 @@ export class ExpenseFormPage extends BasePage {
 
     /**
      * All split amount inputs for EXACT split type (scoped to exact split container)
+     * Uses inputMode='decimal' to target only the amount inputs, not date or other text inputs
      */
     protected getExactSplitInputs(): Locator {
-        return this.getExactSplitContainer().getByRole('textbox');
+        return this.getExactSplitContainer().locator('input[inputmode="decimal"]');
     }
 
     /**
@@ -1135,9 +1142,9 @@ export class ExpenseFormPage extends BasePage {
      * Verify labels error message is displayed
      */
     async verifyLabelsErrorMessageContains(text: string): Promise<void> {
-        const errorMessage = this.page.getByTestId('label-input-error-message');
+        // FieldError renders with role='alert' - filter by expected text
+        const errorMessage = this.getExpenseDetailsSection().getByRole('alert').filter({ hasText: text });
         await expect(errorMessage).toBeVisible();
-        await expect(errorMessage).toContainText(text);
     }
 
     async verifyDateIsToday(): Promise<void> {
@@ -1205,9 +1212,9 @@ export class ExpenseFormPage extends BasePage {
     }
 
     async verifyAmountErrorMessageContains(text: string): Promise<void> {
-        const errorMessage = this.page.getByTestId('currency-input-error-message');
+        // FieldError renders with role='alert' - filter by expected text
+        const errorMessage = this.getExpenseDetailsSection().getByRole('alert').filter({ hasText: text });
         await expect(errorMessage).toBeVisible();
-        await expect(errorMessage).toContainText(text);
     }
 
     async verifyDescriptionErrorMessageContains(text: string): Promise<void> {

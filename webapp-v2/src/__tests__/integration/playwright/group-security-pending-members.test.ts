@@ -164,20 +164,22 @@ test.describe('Group security pending members', () => {
         const pendingList = pendingEntries.map((entry) => entry);
 
         for (const entry of pendingList) {
-            await expect(settingsModal.getPendingApproveButtonLocator(entry.uid)).toBeVisible();
-            await expect(settingsModal.getPendingRejectButtonLocator(entry.uid)).toBeVisible();
+            // Button aria-labels use displayName, not uid
+            await expect(settingsModal.getPendingApproveButtonLocator(entry.displayName)).toBeVisible();
+            await expect(settingsModal.getPendingRejectButtonLocator(entry.displayName)).toBeVisible();
             await expect(settingsModal.getModalContainerLocator().getByText(entry.displayName)).toBeVisible();
         }
 
         const [firstPending, secondPending] = pendingList;
 
-        await settingsModal.approveMember(firstPending.uid);
-        await expect(settingsModal.getPendingApproveButtonLocator(firstPending.uid)).toHaveCount(0);
-        await expect(settingsModal.getPendingRejectButtonLocator(firstPending.uid)).toHaveCount(0);
-        await expect(settingsModal.getPendingApproveButtonLocator(secondPending.uid)).toBeVisible();
+        // approveMember/rejectMember methods use displayName to find the button
+        await settingsModal.approveMember(firstPending.displayName);
+        await expect(settingsModal.getPendingApproveButtonLocator(firstPending.displayName)).toHaveCount(0);
+        await expect(settingsModal.getPendingRejectButtonLocator(firstPending.displayName)).toHaveCount(0);
+        await expect(settingsModal.getPendingApproveButtonLocator(secondPending.displayName)).toBeVisible();
 
-        await settingsModal.rejectMember(secondPending.uid);
-        await expect(settingsModal.getPendingRejectButtonLocator(secondPending.uid)).toHaveCount(0);
+        await settingsModal.rejectMember(secondPending.displayName);
+        await expect(settingsModal.getPendingRejectButtonLocator(secondPending.displayName)).toHaveCount(0);
         await expect(settingsModal.getModalContainerLocator().getByText(secondPending.displayName)).toHaveCount(0);
         await expect(settingsModal.getModalContainerLocator().getByText('No pending requests right now.')).toBeVisible();
 

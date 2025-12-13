@@ -106,7 +106,6 @@ export function EmptyState({
                         variant={action.variant || 'primary'}
                         size='lg'
                         disabled={action.disabled}
-                        dataTestId='empty-state-action-button'
                     >
                         {action.label}
                     </Button>
@@ -117,7 +116,6 @@ export function EmptyState({
                             onClick={secondaryAction.onClick}
                             variant='ghost'
                             size='lg'
-                            dataTestId='empty-state-secondary-action-button'
                         >
                             {secondaryAction.label}
                         </Button>

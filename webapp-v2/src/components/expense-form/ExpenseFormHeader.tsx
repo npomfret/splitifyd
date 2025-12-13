@@ -19,7 +19,7 @@ export function ExpenseFormHeader({ isEditMode, isCopyMode, groupName, onCancel 
                     </Typography>
                     <p className='text-sm text-text-primary/80 mt-1'>{groupName}</p>
                 </div>
-                <Button variant='ghost' onClick={onCancel} dataTestId='expense-form-cancel'>
+                <Button variant='ghost' onClick={onCancel}>
                     {t('expenseFormHeader.cancel')}
                 </Button>
             </div>

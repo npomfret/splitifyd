@@ -277,6 +277,113 @@ Pages under `pages/admin/` and `components/admin/` are **completely isolated fro
 
 ---
 
+## Test Selectors
+
+When adding attributes to elements for testing, **prefer what the user can see** over internal identifiers. The goal is to make tests resilient to refactoring while staying tied to user-visible behavior.
+
+### The Golden Rule
+
+**Scope first, then select.** Use a container's heading or landmark to narrow scope, then find the element within. Never use `.first()`, `.nth()`, or ambiguous selectors that could match multiple elements.
+
+```typescript
+// ✅ Scoped by section heading - unambiguous
+const section = page.locator('section').filter({ has: page.getByRole('heading', { name: 'Currency Settings' }) });
+const toggle = section.getByRole('switch');
+
+// ❌ Ambiguous - which switch? Fragile if page changes
+const toggle = page.getByRole('switch').first();
+```
+
+### Selector Priority (Best → Worst)
+
+1. **Scoped by heading/landmark** - Find container by heading, then element within
+2. **ARIA roles with visible name** - `getByRole('button', { name: 'Submit' })`
+3. **Form labels** - `getByLabel('Email address')`
+4. **Placeholders** - `getByPlaceholder('Enter amount')`
+5. **aria-label** - For icon-only buttons: `<button aria-label="Remove USD">`
+6. **Test IDs (last resort)** - Only when semantic options don't exist
+
+### When `data-testid` is Appropriate
+
+- Container elements without visible text (wrappers, grids)
+- Elements with duplicate labels across sections (e.g., multiple "Primary" color inputs)
+- Complex composite components where role-based selection is ambiguous
+
+### When `data-testid` is NOT Needed
+
+- Buttons with visible text → use `getByRole('button', { name: '...' })`
+- Inputs with labels → use `getByLabel('...')`
+- Links with visible text → use `getByRole('link', { name: '...' })`
+- Headings → use `getByRole('heading', { name: '...' })`
+
+### Pattern: Icon-Only Buttons
+
+For buttons with only an icon and no visible text, add `aria-label`:
+
+```tsx
+// ✅ Component
+<button onClick={onRemove} aria-label={`Remove ${currency}`}>
+    <XIcon size={16} />
+</button>
+
+// ✅ Test selector
+getByRole('button', { name: `Remove ${currency}` })
+```
+
+### Pattern: Items in Lists/Loops
+
+For buttons or elements inside mapped lists, include identifying context in the aria-label:
+
+```tsx
+// ✅ Component - button shows visible text, aria-label adds context
+<Button
+    onClick={() => onApprove(member.uid)}
+    aria-label={`${t('approve')} ${member.groupDisplayName}`}
+>
+    {t('approve')}
+</Button>
+
+// ✅ Test selector - find by aria-label pattern
+getByRole('button', { name: /^Approve\s+.*JohnDoe/i })
+```
+
+### Pattern: Selects Inside Labels
+
+For `<select>` elements wrapped in `<label>`, use the label text:
+
+```tsx
+// ✅ Component
+<label>
+    <span>{t('permissions.expenseEditing.label')}</span>
+    <select value={value} onChange={handleChange}>
+        <option>...</option>
+    </select>
+</label>
+
+// ✅ Test selector - find label by text, then select inside
+locator('label').filter({ hasText: labelText }).locator('select')
+```
+
+### Anti-Patterns
+
+| Don't | Do |
+|-------|-----|
+| `.first()`, `.nth(0)`, `.last()` | Scope by heading/section first |
+| `data-testid={`item-${id}`}` on buttons with text | `aria-label` or just use visible text |
+| `data-testid="submit-button"` | `getByRole('button', { name: 'Submit' })` |
+| `data-testid="email-input"` | `getByLabel('Email')` |
+| Index-based IDs (`remove-${index}`) | Content-based IDs (`aria-label={`Remove ${item}`}`) |
+
+### Summary
+
+```
+Container (heading/landmark) → Role/Label → Visible text → aria-label → test-id
+```
+
+Every selector should be **unambiguous**. If multiple elements could match, scope by container first.
+
+---
+
 ## Anti-Patterns
 
 | Don't | Do |

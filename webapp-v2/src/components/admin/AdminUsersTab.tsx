@@ -318,9 +318,9 @@ export function AdminUsersTab() {
                                                         disabled={operationInProgress.value === `role-${uid}`}
                                                         className='p-2 text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
                                                         title={t('admin.users.actions.editUser')}
-                                                        data-testid={`edit-user-${uid}`}
+                                                        aria-label={t('admin.users.actions.editUser')}
                                                     >
-                                                        <EditIcon size={20} />
+                                                        <EditIcon size={20} aria-hidden='true' />
                                                     </button>
                                                     <Button
                                                         variant={authUser.disabled ? 'secondary' : 'danger'}

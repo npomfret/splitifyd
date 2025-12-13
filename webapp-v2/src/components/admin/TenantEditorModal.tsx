@@ -327,12 +327,12 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
 
     return (
         <>
-            <Modal open={open} onClose={handleCancel} size='lg' className='max-h-[90vh] flex flex-col' dataTestId='tenant-editor-modal'>
+            <Modal open={open} onClose={handleCancel} size='lg' className='max-h-[90vh] flex flex-col' labelledBy='tenant-editor-modal-title'>
                 <div className='flex flex-col min-h-0 h-full'>
                     {/* Header */}
                     <div className='shrink-0 flex items-center justify-between border-b border-border-default px-6 py-4'>
                         <div>
-                            <h2 className='text-xl font-semibold text-text-primary'>
+                            <h2 id='tenant-editor-modal-title' className='text-xl font-semibold text-text-primary'>
                                 {mode === 'create' ? t('admin.tenantEditor.titleCreate') : t('admin.tenantEditor.titleEdit')}
                             </h2>
                             <p className='mt-1 help-text'>
@@ -361,7 +361,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                     {/* Content */}
                     <div className='flex-1 min-h-0 overflow-y-auto px-6 py-4'>
                         <div className='space-y-4'>
-                            {successMessage && <Alert type='success' message={successMessage} dataTestId='tenant-editor-success-message' />}
+                            {successMessage && <Alert type='success' message={successMessage} />}
                             {errorMessage && <Alert type='error' message={errorMessage} />}
 
                             {/* Creation Mode Selection - Create Mode Only */}
@@ -483,7 +483,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                                         onClick={() =>
                                                             handleRemoveDomain(index)}
                                                         className='text-text-muted hover:text-status-danger'
-                                                        data-testid={`remove-domain-${index}`}
+                                                        aria-label={`Remove ${domain}`}
                                                     >
                                                         <XIcon size={16} />
                                                     </button>
@@ -501,7 +501,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                             disabled={isSaving}
                                             className='flex-1 min-w-0 rounded-md border border-border-default bg-surface-base px-3 py-2 text-sm'
                                         />
-                                        <Button onClick={handleAddDomain} disabled={!newDomain.trim() || isSaving} variant='secondary' dataTestId='add-domain-button'>Add</Button>
+                                        <Button onClick={handleAddDomain} disabled={!newDomain.trim() || isSaving} variant='secondary'>Add</Button>
                                     </div>
                                 </div>
                             </Section>
@@ -598,13 +598,13 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
 
                     {/* Footer */}
                     <div className='shrink-0 flex items-center justify-end gap-3 border-t border-border-default px-6 py-4'>
-                        <Button onClick={handleCancel} variant='secondary' disabled={isSaving || isPublishing} dataTestId='cancel-button'>Cancel</Button>
+                        <Button onClick={handleCancel} variant='secondary' disabled={isSaving || isPublishing}>Cancel</Button>
                         {mode === 'edit' && (
-                            <Button onClick={handlePublish} variant='primary' disabled={isSaving || isPublishing} loading={isPublishing} dataTestId='publish-theme-button'>
+                            <Button onClick={handlePublish} variant='primary' disabled={isSaving || isPublishing} loading={isPublishing}>
                                 {isPublishing ? 'Publishing...' : 'Publish Theme'}
                             </Button>
                         )}
-                        <Button onClick={handleSave} variant='primary' loading={isSaving} disabled={isSaving} dataTestId='save-tenant-button'>
+                        <Button onClick={handleSave} variant='primary' loading={isSaving} disabled={isSaving}>
                             {isSaving ? 'Saving...' : (mode === 'create' ? 'Create Tenant' : 'Save Changes')}
                         </Button>
                     </div>

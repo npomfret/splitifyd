@@ -1038,7 +1038,7 @@
     "inviteOthers": "دعوة الآخرين",
     "inviteOthersAriaLabel": "دعوة الآخرين",
     "leaveGroupAriaLabel": "مغادرة المجموعة",
-    "removeMemberAriaLabel": "إزالة العضو",
+    "removeMemberAriaLabel": "إزالة {{name}}",
     "leaveGroupDialog": {
       "title": "مغادرة المجموعة؟",
       "messageWithBalance": "لديك رصيد مستحق في هذه المجموعة. يرجى تسوية الحساب قبل المغادرة.",

@@ -1,7 +1,10 @@
-import type { UserId } from '@billsplit-wl/shared';
+import type { Email, UserId } from '@billsplit-wl/shared';
 import type { Locator, Page } from '@playwright/test';
+import { translationEn } from '../translations/translation-en';
 import { BasePage } from './BasePage';
 import { UserEditorModalPage } from './UserEditorModalPage';
+
+const translation = translationEn.admin.users;
 
 /**
  * Page Object for the Admin Users Tab
@@ -16,8 +19,28 @@ export class AdminUsersPage extends BasePage {
     }
 
     // ✅ Protected locators - internal use only
-    protected getEditUserButton(uid: UserId): Locator {
-        return this.page.getByTestId(`edit-user-${uid}`);
+
+    /**
+     * Get the table row containing a user by their email
+     */
+    protected getUserRow(email: Email | string): Locator {
+        return this.page.getByRole('row').filter({ hasText: email });
+    }
+
+    /**
+     * Get the edit button for a user by finding their row first
+     */
+    protected getEditUserButton(email: Email | string): Locator {
+        return this.getUserRow(email).getByRole('button', { name: translation.actions.editUser });
+    }
+
+    /**
+     * @deprecated Use getEditUserButton(email) instead - uses visible email to locate user
+     */
+    protected getEditUserButtonByUid(uid: UserId): Locator {
+        return this.page.locator(`button[aria-label="${translation.actions.editUser}"]`).filter({
+            has: this.page.locator(`[data-uid="${uid}"]`),
+        });
     }
 
     // ✅ Navigation
@@ -31,12 +54,19 @@ export class AdminUsersPage extends BasePage {
     }
 
     // ✅ Action methods
-    async clickEditUser(uid: UserId): Promise<void> {
-        await this.clickButtonNoWait(this.getEditUserButton(uid), { buttonName: `Edit user ${uid}` });
+
+    /**
+     * Click the edit button for a user identified by their email
+     */
+    async clickEditUser(email: Email | string): Promise<void> {
+        await this.clickButtonNoWait(this.getEditUserButton(email), { buttonName: `Edit user ${email}` });
     }
 
-    async clickEditUserAndOpenModal(uid: UserId): Promise<UserEditorModalPage> {
-        await this.clickEditUser(uid);
+    /**
+     * Click edit and wait for the modal to open
+     */
+    async clickEditUserAndOpenModal(email: Email | string): Promise<UserEditorModalPage> {
+        await this.clickEditUser(email);
         const modal = new UserEditorModalPage(this.page);
         await modal.waitForModalToBeVisible();
         return modal;

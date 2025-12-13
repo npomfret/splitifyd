@@ -40,7 +40,6 @@ export function GroupActions({
                 variant='primary'
                 size='md'
                 fullWidth={variant === 'vertical'}
-                dataTestId='add-expense-button'
                 className='flex items-center justify-center'
             >
                 <PlusIcon className='h-4 w-4 mr-2' aria-hidden='true' />
@@ -51,7 +50,6 @@ export function GroupActions({
                 variant='primary'
                 size='md'
                 fullWidth={variant === 'vertical'}
-                dataTestId='settle-up-button'
                 className='flex items-center justify-center'
             >
                 <BanknotesIcon className='h-4 w-4 mr-2' aria-hidden='true' />
@@ -62,7 +60,6 @@ export function GroupActions({
                 variant='primary'
                 size='md'
                 fullWidth={variant === 'vertical'}
-                dataTestId='invite-others-button'
                 className='flex items-center justify-center'
             >
                 <UserPlusIcon className='h-4 w-4 mr-2' aria-hidden='true' />
@@ -78,7 +75,6 @@ export function GroupActions({
                 variant='secondary'
                 size='md'
                 fullWidth={variant === 'vertical'}
-                dataTestId='group-settings-button'
                 className='flex items-center justify-center'
             >
                 <CogIcon className='h-4 w-4 mr-2' aria-hidden='true' />
@@ -95,7 +91,6 @@ export function GroupActions({
                 variant='secondary'
                 size='md'
                 fullWidth={variant === 'vertical'}
-                dataTestId='archive-group-button'
                 className='flex items-center justify-center'
             >
                 <ArchiveBoxArrowDownIcon className='h-4 w-4 mr-2' aria-hidden='true' />
@@ -112,7 +107,6 @@ export function GroupActions({
                 variant='secondary'
                 size='md'
                 fullWidth={variant === 'vertical'}
-                dataTestId='unarchive-group-button'
                 className='flex items-center justify-center'
             >
                 <ArrowPathIcon className='h-4 w-4 mr-2' aria-hidden='true' />
@@ -128,7 +122,6 @@ export function GroupActions({
                 variant='secondary'
                 size='md'
                 fullWidth={variant === 'vertical'}
-                dataTestId='leave-group-button'
                 className='flex items-center justify-center'
             >
                 <ArrowLeftStartOnRectangleIcon className='h-4 w-4 mr-2' aria-hidden='true' />

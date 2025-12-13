@@ -78,6 +78,7 @@ export function GroupsList({ onCreateGroup, onInvite, onAddExpense }: GroupsList
                 {enhancedGroupsStore.groups.map((group, index) => (
                     <div
                         key={group.id}
+                        role='listitem'
                         class={`relative fade-up ${visibleIndices.has(index) ? 'fade-up-visible' : ''}`}
                     >
                         {enhancedGroupsStore.updatingGroupIds.has(group.id) && (

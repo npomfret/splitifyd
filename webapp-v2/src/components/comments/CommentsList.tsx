@@ -27,7 +27,7 @@ export function CommentsList({ comments, loading = false, error, hasMore = false
     }, []);
 
     if (error) {
-        return <Alert type='error' message={error} dataTestId='comments-error' />;
+        return <Alert type='error' message={error} />;
     }
 
     if (loading && comments.length === 0) {
@@ -46,7 +46,6 @@ export function CommentsList({ comments, loading = false, error, hasMore = false
                 icon={<ChatBubbleLeftRightIcon className='w-12 h-12' aria-hidden='true' />}
                 title={t('comments.commentsList.empty')}
                 description={t('comments.commentsList.emptySubtext')}
-                dataTestId='comments-empty-state'
                 className='py-8'
             />
         );

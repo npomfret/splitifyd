@@ -123,13 +123,14 @@ test.describe('Group Settings - Security Tab - Member Roles', () => {
         const { page, user } = authenticatedPage;
         const groupDetailPage = new GroupDetailPage(page);
         const memberId = toUserId('member-alice');
+        const displayName = 'Alice';
 
         // Setup API mocks first
         await setupSuccessfulApiMocks(page);
 
         const { groupId } = await setupGroupWithMembers(page, user, {
             additionalMembers: [
-                { uid: memberId, displayName: 'Alice', role: 'admin' },
+                { uid: memberId, displayName, role: 'admin' },
             ],
         });
 
@@ -139,11 +140,11 @@ test.describe('Group Settings - Security Tab - Member Roles', () => {
         const modal = await groupDetailPage.clickEditGroupAndOpenModal('security');
         await modal.waitForSecurityTab();
 
-        // Verify initial role
-        await modal.verifyMemberRoleValue(memberId, 'admin');
+        // Verify initial role (use displayName - combobox is labeled by name)
+        await modal.verifyMemberRoleValue(displayName, 'admin');
 
         // Change role
-        await modal.changeMemberRole(memberId, 'member');
+        await modal.changeMemberRole(displayName, 'member');
 
         // Verify unsaved changes banner appears
         await modal.verifySecurityUnsavedBannerVisible();
@@ -153,13 +154,14 @@ test.describe('Group Settings - Security Tab - Member Roles', () => {
         const { page, user } = authenticatedPage;
         const groupDetailPage = new GroupDetailPage(page);
         const memberId = toUserId('member-bob');
+        const displayName = 'Bob';
 
         // Setup API mocks first
         await setupSuccessfulApiMocks(page);
 
         const { groupId } = await setupGroupWithMembers(page, user, {
             additionalMembers: [
-                { uid: memberId, displayName: 'Bob', role: 'member' },
+                { uid: memberId, displayName, role: 'member' },
             ],
         });
 
@@ -169,11 +171,11 @@ test.describe('Group Settings - Security Tab - Member Roles', () => {
         const modal = await groupDetailPage.clickEditGroupAndOpenModal('security');
         await modal.waitForSecurityTab();
 
-        // Verify initial role
-        await modal.verifyMemberRoleValue(memberId, 'member');
+        // Verify initial role (use displayName - combobox is labeled by name)
+        await modal.verifyMemberRoleValue(displayName, 'member');
 
         // Change role
-        await modal.changeMemberRole(memberId, 'viewer');
+        await modal.changeMemberRole(displayName, 'viewer');
 
         // Verify unsaved changes banner appears
         await modal.verifySecurityUnsavedBannerVisible();
@@ -183,13 +185,14 @@ test.describe('Group Settings - Security Tab - Member Roles', () => {
         const { page, user } = authenticatedPage;
         const groupDetailPage = new GroupDetailPage(page);
         const memberId = toUserId('member-charlie');
+        const displayName = 'Charlie';
 
         // Setup API mocks first
         await setupSuccessfulApiMocks(page);
 
         const { groupId } = await setupGroupWithMembers(page, user, {
             additionalMembers: [
-                { uid: memberId, displayName: 'Charlie', role: 'member' },
+                { uid: memberId, displayName, role: 'member' },
             ],
         });
 
@@ -202,8 +205,8 @@ test.describe('Group Settings - Security Tab - Member Roles', () => {
         // Initially no unsaved banner
         await modal.verifySecurityUnsavedBannerNotVisible();
 
-        // Change role
-        await modal.changeMemberRole(memberId, 'viewer');
+        // Change role (use displayName - combobox is labeled by name)
+        await modal.changeMemberRole(displayName, 'viewer');
 
         // Unsaved banner should appear
         await modal.verifySecurityUnsavedBannerVisible();
@@ -213,13 +216,14 @@ test.describe('Group Settings - Security Tab - Member Roles', () => {
         const { page, user } = authenticatedPage;
         const groupDetailPage = new GroupDetailPage(page);
         const memberId = toUserId('member-diana');
+        const displayName = 'Diana';
 
         // Setup API mocks first
         await setupSuccessfulApiMocks(page);
 
         const { groupId } = await setupGroupWithMembers(page, user, {
             additionalMembers: [
-                { uid: memberId, displayName: 'Diana', role: 'admin' },
+                { uid: memberId, displayName, role: 'admin' },
             ],
         });
 
@@ -229,8 +233,8 @@ test.describe('Group Settings - Security Tab - Member Roles', () => {
         const modal = await groupDetailPage.clickEditGroupAndOpenModal('security');
         await modal.waitForSecurityTab();
 
-        // Change role and save
-        await modal.changeMemberRole(memberId, 'member');
+        // Change role and save (use displayName - combobox is labeled by name)
+        await modal.changeMemberRole(displayName, 'member');
         await modal.verifySecurityUnsavedBannerVisible();
 
         // Save security settings

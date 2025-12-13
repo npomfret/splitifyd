@@ -107,8 +107,8 @@ export class DashboardPage extends BasePage {
      * Individual group cards
      */
     protected getGroupCards(): Locator {
-        // GroupCards are wrapped in a relative div, so we need to go one level deeper
-        return this.getGroupsGrid().locator('[data-testid="group-card"]');
+        // GroupCards are wrapped in listitem elements within the list
+        return this.getGroupsGrid().getByRole('listitem');
     }
 
     /**

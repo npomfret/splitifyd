@@ -74,38 +74,56 @@ export class SettingsPage extends BasePage {
     }
 
     protected getDisplayNameInput(): Locator {
-        return this.page.locator('[data-testid="display-name-input"]');
+        return this.page.getByLabel(translation.settingsPage.displayNameLabel);
     }
 
     protected getSaveChangesButton(): Locator {
-        return this.page.locator('[data-testid="save-changes-button"]');
+        // Scope to profile section to avoid matching the email section's Save Changes button
+        return this.getProfileSection().getByRole('button', { name: translation.settingsPage.saveChangesButton });
+    }
+
+    /**
+     * Section locators for scoping - use heading text to scope to the correct Card
+     */
+    protected getProfileSection(): Locator {
+        return this.page.locator('section, div').filter({
+            has: this.page.getByRole('heading', { name: translation.settingsPage.profileInformationHeader }),
+        });
+    }
+
+    protected getPasswordSection(): Locator {
+        return this.page.locator('section, div').filter({
+            has: this.page.getByRole('heading', { name: translation.settingsPage.passwordHeader }),
+        });
     }
 
     /**
      * Password Change Locators
      */
     protected getChangePasswordButton(): Locator {
-        return this.page.locator('[data-testid="change-password-button"]');
+        return this.page.getByRole('button', { name: translation.settingsPage.changePasswordButton });
     }
 
     protected getCurrentPasswordInput(): Locator {
-        return this.page.locator('[data-testid="current-password-input"]');
+        return this.page.getByLabel(translation.settingsPage.currentPasswordLabel);
     }
 
     protected getNewPasswordInput(): Locator {
-        return this.page.locator('[data-testid="new-password-input"]');
+        // Use exact: true because "Confirm New Password" contains "New Password" as substring
+        return this.page.getByLabel(translation.settingsPage.newPasswordLabel, { exact: true });
     }
 
     protected getConfirmPasswordInput(): Locator {
-        return this.page.locator('[data-testid="confirm-password-input"]');
+        return this.page.getByLabel(translation.settingsPage.confirmNewPasswordLabel, { exact: true });
     }
 
     protected getUpdatePasswordButton(): Locator {
-        return this.page.locator('[data-testid="update-password-button"]');
+        return this.page.getByRole('button', { name: translation.settingsPage.updatePasswordButton });
     }
 
     protected getCancelButton(): Locator {
-        return this.page.locator('[data-testid="cancel-password-button"]');
+        // Scope to password section to avoid matching the email section's Cancel button
+        return this.getPasswordSection().getByRole('button', { name: translation.settingsPage.cancelButton });
     }
 
     /**

@@ -105,13 +105,13 @@ export class AdminTenantsPage extends BasePage {
 
     /**
      * Get the full card container for a tenant by app name
-     * Uses testId since there's no semantic way to identify a container
-     * This is needed for methods that need to extract full card content
+     * Uses heading-based scoping - cards have an h3 with the app name
      */
     protected getTenantCardContainerByName(appName: string): Locator {
-        return this.page.getByTestId('tenant-card').filter({
-            has: this.page.getByRole('heading', { name: appName, level: 3 }),
-        });
+        // Find the Card container by locating the heading and going up to its parent card
+        // Cards use the .rounded-xl class from the Card component
+        return this.page.getByRole('heading', { name: appName, level: 3 })
+            .locator('xpath=ancestor::div[contains(@class, "rounded-xl")]').first();
     }
 
     protected getTenantCardByTenantId(tenantId: string): Locator {
@@ -151,7 +151,9 @@ export class AdminTenantsPage extends BasePage {
     async clickEditButtonForFirstTenant<T = TenantEditorModalPage>(
         pageFactory?: (page: Page) => T,
     ): Promise<T> {
-        const firstEditButton = this.page.locator('[data-testid^="edit-tenant-"]').first();
+        // Edit buttons have aria-label="Edit {appName}" or just text "Edit" if aria-label not set
+        // Match any button that starts with "Edit" (case insensitive)
+        const firstEditButton = this.page.getByRole('button', { name: new RegExp(`^${translation.common.edit}`, 'i') }).first();
         await firstEditButton.click();
         const modal = pageFactory ? pageFactory(this.page) : (new TenantEditorModalPage(this.page) as unknown as T);
         return modal;
@@ -161,18 +163,8 @@ export class AdminTenantsPage extends BasePage {
         appName: string,
         pageFactory?: (page: Page) => T,
     ): Promise<T> {
-        const tenantCard = this.getTenantCardByName(appName);
-        const editButton = tenantCard.locator('[data-testid^="edit-tenant-"]');
-        await editButton.click();
-        const modal = pageFactory ? pageFactory(this.page) : (new TenantEditorModalPage(this.page) as unknown as T);
-        return modal;
-    }
-
-    async clickEditButtonForTenantById<T = TenantEditorModalPage>(
-        tenantId: string,
-        pageFactory?: (page: Page) => T,
-    ): Promise<T> {
-        const editButton = this.page.locator(`[data-testid="edit-tenant-${tenantId}"]`);
+        // Edit button has aria-label="Edit {appName}"
+        const editButton = this.page.getByRole('button', { name: `${translation.common.edit} ${appName}` });
         await editButton.click();
         const modal = pageFactory ? pageFactory(this.page) : (new TenantEditorModalPage(this.page) as unknown as T);
         return modal;
@@ -266,9 +258,12 @@ export class AdminTenantsPage extends BasePage {
 
     /**
      * Get first tenant card container (for full text extraction)
+     * Uses the first h3 heading (tenant app name) to scope to its parent card
      */
     protected getFirstTenantCardContainer(): Locator {
-        return this.page.getByTestId('tenant-card').first();
+        // Get the first tenant card by finding the first h3 and going up to its parent card
+        return this.getTenantCards().first()
+            .locator('xpath=ancestor::div[contains(@class, "rounded-xl")]').first();
     }
 
     /**
@@ -345,8 +340,8 @@ export class AdminTenantsPage extends BasePage {
      * Wait for tenants to load
      */
     async waitForTenantsLoaded(): Promise<void> {
-        // Wait for loading spinner to disappear
-        await this.page.waitForLoadState('networkidle');
+        // Wait for loading spinner to disappear (don't use networkidle as SSE may keep connection open)
+        await expect(this.getLoadingSpinner()).not.toBeVisible({ timeout: 5000 });
 
         // Either we have tenant cards or an empty state
         await Promise.race([

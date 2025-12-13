@@ -167,7 +167,7 @@ test.describe('Tenant Editor Modal', () => {
             await tenantEditorModal.verifyDomainVisible('domain1.example.com');
 
             // Remove the domain
-            await tenantEditorModal.removeDomain(0);
+            await tenantEditorModal.removeDomain('domain1.example.com');
             await tenantEditorModal.verifyDomainNotVisible('domain1.example.com');
         });
     });
