@@ -15,14 +15,14 @@ export class HeaderPage extends BasePage {
     }
 
     /**
-     * User Menu Locators
+     * User Menu Locators - using semantic selectors (aria-label, role)
      */
     protected getUserMenuButton(): Locator {
-        return this.page.locator('[data-testid="user-menu-button"]');
+        return this.page.getByRole('button', { name: translation.navigation.userMenu.openUserMenu });
     }
 
     protected getUserDropdownMenu(): Locator {
-        return this.page.locator('[data-testid="user-dropdown-menu"]');
+        return this.page.getByRole('menu');
     }
 
     protected getDashboardLink(): Locator {
@@ -118,7 +118,9 @@ export class HeaderPage extends BasePage {
      * modified by other tests (e.g., user profile management tests).
      */
     async getCurrentUserDisplayName(): Promise<string> {
-        const nameElement = this.page.locator('[data-testid="user-menu-display-name"]');
+        // Get the display name text from within the user menu button
+        // The name is in a paragraph element with text-sm font-medium styling
+        const nameElement = this.getUserMenuButton().locator('.text-sm.font-medium').first();
         await expect(nameElement).toBeVisible();
 
         const textContent = await nameElement.textContent();

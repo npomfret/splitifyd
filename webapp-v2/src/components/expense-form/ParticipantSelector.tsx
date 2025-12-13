@@ -37,7 +37,7 @@ export function ParticipantSelector({ members, participants, paidBy, validationE
                         </Button>
                     </div>
                 </div>
-                <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3' data-testid='participant-selector-grid'>
+                <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3'>
                     {members.map((member) => {
                         const isSelected = participants.includes(member.uid);
                         const isPayer = paidBy === member.uid;
@@ -72,7 +72,7 @@ export function ParticipantSelector({ members, participants, paidBy, validationE
                     })}
                 </div>
                 {validationErrors.participants && (
-                    <p className='text-sm text-semantic-error' role='alert' data-testid='validation-error-participants'>
+                    <p className='text-sm text-semantic-error' role='alert'>
                         {validationErrors.participants}
                     </p>
                 )}

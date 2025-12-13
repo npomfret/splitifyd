@@ -182,7 +182,7 @@ export function ExpenseFormModal({ isOpen, onClose, groupId, mode, expenseId, on
                                         />
 
                                         {formState.validationErrors.splits && (
-                                            <p className='text-sm text-semantic-error mt-2' role='alert' data-testid='validation-error-splits'>
+                                            <p className='text-sm text-semantic-error mt-2' role='alert'>
                                                 {formState.validationErrors.splits}
                                             </p>
                                         )}

@@ -55,7 +55,7 @@ export function ExpenseBasicFields(
                         autoComplete='off'
                     />
                     {validationErrors.description && (
-                        <p className='text-sm text-semantic-error mt-1' role='alert' data-testid='validation-error-description'>
+                        <p className='text-sm text-semantic-error mt-1' role='alert'>
                             {validationErrors.description}
                         </p>
                     )}
@@ -145,7 +145,7 @@ export function ExpenseBasicFields(
                             autoComplete='off'
                         />
                         {validationErrors.date && (
-                            <p className='text-sm text-semantic-error mt-1' role='alert' data-testid='validation-error-date'>
+                            <p className='text-sm text-semantic-error mt-1' role='alert'>
                                 {validationErrors.date}
                             </p>
                         )}

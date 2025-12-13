@@ -234,8 +234,8 @@ export class AdminTenantsPage extends BasePage {
 
     async verifyPageTitleText(_expectedText: string): Promise<void> {
         // Deprecated: The tabbed interface no longer has a dedicated page title.
-        // Instead verify the tenants tab is active
-        await expect(this.page.getByTestId('admin-tab-tenants')).toBeVisible();
+        // Instead verify the tenants tab is active (using semantic selector)
+        await expect(this.page.getByRole('button', { name: translation.admin.tabs.tenants })).toBeVisible();
     }
 
     async verifyPageDescriptionContainsText(_text: string): Promise<void> {

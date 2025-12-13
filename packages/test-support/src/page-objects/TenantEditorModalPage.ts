@@ -102,24 +102,24 @@ export class TenantEditorModalPage extends BasePage {
         await this.expandSectionByName('Glassmorphism');
     }
 
-    // ✅ Editor mode toggle
+    // ✅ Editor mode toggle (using semantic selectors)
     async switchToBasicMode(): Promise<void> {
-        const basicButton = this.getModal().getByTestId('mode-toggle-basic');
+        const basicButton = this.getModal().getByRole('radio', { name: translation.admin.tenantEditor.modeToggle.basic });
         await basicButton.click();
     }
 
     async switchToAdvancedMode(): Promise<void> {
-        const advancedButton = this.getModal().getByTestId('mode-toggle-advanced');
+        const advancedButton = this.getModal().getByRole('radio', { name: translation.admin.tenantEditor.modeToggle.advanced });
         await advancedButton.click();
     }
 
     async verifyEditorModeIsBasic(): Promise<void> {
-        const basicButton = this.getModal().getByTestId('mode-toggle-basic');
+        const basicButton = this.getModal().getByRole('radio', { name: translation.admin.tenantEditor.modeToggle.basic });
         await expect(basicButton).toHaveAttribute('aria-checked', 'true');
     }
 
     async verifyEditorModeIsAdvanced(): Promise<void> {
-        const advancedButton = this.getModal().getByTestId('mode-toggle-advanced');
+        const advancedButton = this.getModal().getByRole('radio', { name: translation.admin.tenantEditor.modeToggle.advanced });
         await expect(advancedButton).toHaveAttribute('aria-checked', 'true');
     }
 

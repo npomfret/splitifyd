@@ -115,17 +115,18 @@ export class ExpenseFormPage extends BasePage {
     }
 
     /**
-     * Get payer dropdown trigger button (scoped to Who Paid section)
+     * Get payer dropdown trigger button (using label association)
      */
     private getPayerTrigger(): Locator {
-        return this.getWhoPaidSection().getByTestId('payer-selector-trigger');
+        // Button gets its accessible name from the associated label via htmlFor/id
+        return this.getWhoPaidSection().getByRole('button', { name: translation.expenseComponents.payerSelector.label });
     }
 
     /**
-     * Get payer search input (scoped to Who Paid section)
+     * Get payer search input (scoped to Who Paid section, uses placeholder)
      */
     private getPayerSearchInput(): Locator {
-        return this.getWhoPaidSection().getByTestId('payer-selector-search');
+        return this.getWhoPaidSection().getByPlaceholder(translation.expenseComponents.payerSelector.searchPlaceholder);
     }
 
     /**
@@ -601,7 +602,7 @@ export class ExpenseFormPage extends BasePage {
      * Select a specific set of participants, toggling checkboxes as needed.
      */
     async selectSpecificParticipants(participantNames: string[]): Promise<void> {
-        const allLabels = this.page.locator('[data-testid="participant-selector-grid"]').locator('label');
+        const allLabels = this.getSplitBetweenSection().locator('label');
         await allLabels.first().waitFor({ state: 'visible' });
 
         const count = await allLabels.count();
@@ -1210,9 +1211,9 @@ export class ExpenseFormPage extends BasePage {
     }
 
     async verifyDescriptionErrorMessageContains(text: string): Promise<void> {
-        const errorMessage = this.page.getByTestId('validation-error-description');
+        // Use semantic selector - filter by expected text to handle multiple alerts
+        const errorMessage = this.page.getByRole('alert').filter({ hasText: text });
         await expect(errorMessage).toBeVisible();
-        await expect(errorMessage).toContainText(text);
     }
 
     async verifyDescriptionEmpty(): Promise<void> {
@@ -1220,15 +1221,15 @@ export class ExpenseFormPage extends BasePage {
     }
 
     async verifyDateErrorMessageContains(text: string): Promise<void> {
-        const errorMessage = this.page.getByTestId('validation-error-date');
+        // Use semantic selector - filter by expected text to handle multiple alerts
+        const errorMessage = this.page.getByRole('alert').filter({ hasText: text });
         await expect(errorMessage).toBeVisible();
-        await expect(errorMessage).toContainText(text);
     }
 
     async verifySplitErrorMessageContains(text: string): Promise<void> {
-        const errorMessage = this.page.getByTestId('validation-error-splits');
+        // Use semantic selector - filter by expected text to handle multiple alerts
+        const errorMessage = this.page.getByRole('alert').filter({ hasText: text });
         await expect(errorMessage).toBeVisible();
-        await expect(errorMessage).toContainText(text);
     }
 
     async verifyCancelButtonVisible(): Promise<void> {

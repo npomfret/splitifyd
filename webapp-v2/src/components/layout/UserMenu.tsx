@@ -43,7 +43,6 @@ export function UserMenu({ user }: UserMenuProps) {
     return (
         <div className='relative z-50' ref={menuRef}>
             <button
-                data-testid='user-menu-button'
                 onClick={(e) => {
                     e.stopPropagation();
                     setIsOpen(!isOpen);
@@ -61,7 +60,7 @@ export function UserMenu({ user }: UserMenuProps) {
                     <div className='absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-semantic-success rounded-full border-2 border-surface-base'></div>
                 </div>
                 <div className='hidden md:block text-left'>
-                    <p className='text-sm font-medium text-text-primary group-hover:text-interactive-primary transition-colors' data-testid='user-menu-display-name'>{userName}</p>
+                    <p className='text-sm font-medium text-text-primary group-hover:text-interactive-primary transition-colors'>{userName}</p>
                     <p className='help-text-xs'>{user.email}</p>
                 </div>
                 <ChevronDownIcon
@@ -73,7 +72,6 @@ export function UserMenu({ user }: UserMenuProps) {
             {isOpen && (
                 <div
                     id='user-dropdown-menu'
-                    data-testid='user-dropdown-menu'
                     className='absolute right-0 mt-2 w-72 bg-surface-popover border border-border-default rounded-xl shadow-2xl z-9999'
                     role='menu'
                     aria-orientation='vertical'
@@ -91,7 +89,6 @@ export function UserMenu({ user }: UserMenuProps) {
                                 navigationService.goToDashboard();
                             }}
                             className='flex items-center w-full text-left px-4 py-2.5 text-sm text-text-primary hover:bg-interactive-primary/10 hover:text-interactive-primary transition-colors'
-                            data-testid='user-menu-dashboard-link'
                             role='menuitem'
                         >
                             <HomeIcon size={16} className='mr-3 text-text-muted' />
@@ -104,7 +101,6 @@ export function UserMenu({ user }: UserMenuProps) {
                                 navigationService.goToSettings();
                             }}
                             className='flex items-center w-full text-left px-4 py-2.5 text-sm text-text-primary hover:bg-interactive-primary/10 hover:text-interactive-primary transition-colors'
-                            data-testid='user-menu-settings-link'
                             role='menuitem'
                         >
                             <SettingsIcon size={16} className='mr-3 text-text-muted' />
@@ -126,7 +122,6 @@ export function UserMenu({ user }: UserMenuProps) {
                                     navigationService.goToAdmin();
                                 }}
                                 className='flex items-center w-full text-left px-4 py-2.5 text-sm text-text-primary hover:bg-interactive-primary/10 hover:text-interactive-primary transition-colors'
-                                data-testid='user-menu-admin-link'
                                 role='menuitem'
                             >
                                 <SettingsIcon size={16} className='mr-3 text-text-muted' />
@@ -138,7 +133,6 @@ export function UserMenu({ user }: UserMenuProps) {
                     <hr className='my-1 border-border-default' />
 
                     <button
-                        data-testid='sign-out-button'
                         onClick={async (e) => {
                             e.stopPropagation();
                             try {

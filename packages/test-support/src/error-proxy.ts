@@ -5,7 +5,10 @@
 
 import { Page } from '@playwright/test';
 import { ProxiedMethodError } from './errors/test-errors';
+import { translationEn } from './translations/translation-en';
 import { collectPageState } from './utils/page-state-collector';
+
+const translation = translationEn;
 
 /**
  * Configuration for the error handling proxy
@@ -72,8 +75,8 @@ async function getUserContextFromPage(page: Page): Promise<UserContext> {
     try {
         // Try to extract display name from user menu button
         // This selector matches HeaderPage.getUserMenuButton() structure
-        const userMenuButton = page.locator('[data-testid="user-menu-button"]');
-        const nameElement = userMenuButton.locator('.text-sm.font-medium.text-gray-700').first();
+        const userMenuButton = page.getByRole('button', { name: translation.navigation.userMenu.openUserMenu });
+        const nameElement = userMenuButton.locator('.text-sm.font-medium').first();
 
         // Use a short timeout - if user menu isn't immediately visible, skip it
         const textContent = await nameElement.textContent({ timeout: 500 });

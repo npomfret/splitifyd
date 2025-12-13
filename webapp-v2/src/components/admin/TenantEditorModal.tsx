@@ -350,7 +350,6 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                             mode={editorMode}
                             onChange={setEditorMode}
                             disabled={isSaving}
-                            testId='editor-mode-toggle'
                         />
                         <span className='help-text-xs'>
                             {editorMode === 'basic'

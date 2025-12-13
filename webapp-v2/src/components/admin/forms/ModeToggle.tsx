@@ -6,10 +6,9 @@ interface ModeToggleProps {
     mode: EditorMode;
     onChange: (mode: EditorMode) => void;
     disabled?: boolean;
-    testId?: string;
 }
 
-export function ModeToggle({ mode, onChange, disabled = false, testId }: ModeToggleProps) {
+export function ModeToggle({ mode, onChange, disabled = false }: ModeToggleProps) {
     const { t } = useTranslation();
 
     const baseButtonClass = 'px-4 py-1.5 text-sm font-medium rounded-md transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-interactive-primary';
@@ -21,7 +20,6 @@ export function ModeToggle({ mode, onChange, disabled = false, testId }: ModeTog
             className='inline-flex rounded-lg bg-surface-muted p-1'
             role='radiogroup'
             aria-label={t('admin.tenantEditor.modeToggle.label')}
-            data-testid={testId}
         >
             <button
                 type='button'
@@ -30,7 +28,6 @@ export function ModeToggle({ mode, onChange, disabled = false, testId }: ModeTog
                 onClick={() => onChange('basic')}
                 disabled={disabled}
                 class={`${baseButtonClass} ${mode === 'basic' ? activeClass : inactiveClass}`}
-                data-testid='mode-toggle-basic'
             >
                 {t('admin.tenantEditor.modeToggle.basic')}
             </button>
@@ -41,7 +38,6 @@ export function ModeToggle({ mode, onChange, disabled = false, testId }: ModeTog
                 onClick={() => onChange('advanced')}
                 disabled={disabled}
                 class={`${baseButtonClass} ${mode === 'advanced' ? activeClass : inactiveClass}`}
-                data-testid='mode-toggle-advanced'
             >
                 {t('admin.tenantEditor.modeToggle.advanced')}
             </button>

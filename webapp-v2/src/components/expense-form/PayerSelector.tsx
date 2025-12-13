@@ -73,7 +73,6 @@ export function PayerSelector({ members, paidBy, validationErrors, updateField }
                         aria-controls={`${inputId}-listbox`}
                         aria-invalid={hasError}
                         aria-describedby={hasError ? `${inputId}-error` : undefined}
-                        data-testid='payer-selector-trigger'
                     >
                         <div className='flex items-center gap-3'>
                             {selectedMember
@@ -111,7 +110,6 @@ export function PayerSelector({ members, paidBy, validationErrors, updateField }
                                     placeholder={t('expenseComponents.payerSelector.searchPlaceholder')}
                                     className='w-full px-3 py-1.5 text-sm border border-border-default rounded-md bg-surface-raised focus:outline-hidden focus:ring-1 focus:ring-interactive-primary'
                                     aria-label={t('expenseComponents.payerSelector.searchPlaceholder')}
-                                    data-testid='payer-selector-search'
                                 />
                             </div>
 
@@ -142,7 +140,6 @@ export function PayerSelector({ members, paidBy, validationErrors, updateField }
                                                         transition-colors duration-100
                                                         ${isHighlighted ? 'bg-interactive-primary text-interactive-primary-foreground' : 'hover:bg-surface-muted text-text-primary'}
                                                     `}
-                                                    data-testid={`payer-option-${member.uid}`}
                                                 >
                                                     <Avatar
                                                         displayName={getGroupDisplayName(member)}
