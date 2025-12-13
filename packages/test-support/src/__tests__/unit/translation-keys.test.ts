@@ -41,20 +41,14 @@ interface TranslationAccess {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Unicode ranges for detecting script types
+// Unicode ranges for detecting non-Latin scripts (only for supported languages)
 const SCRIPT_RANGES: Record<string, RegExp> = {
     ar: /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/, // Arabic
     uk: /[\u0400-\u04FF]/, // Cyrillic (Ukrainian)
-    he: /[\u0590-\u05FF]/, // Hebrew
-    zh: /[\u4E00-\u9FFF]/, // Chinese
-    ja: /[\u3040-\u309F\u30A0-\u30FF]/, // Japanese (Hiragana + Katakana)
-    ko: /[\uAC00-\uD7AF]/, // Korean
-    th: /[\u0E00-\u0E7F]/, // Thai
-    hi: /[\u0900-\u097F]/, // Hindi (Devanagari)
 };
 
-// Languages that use Latin script (no untranslated detection possible)
-const LATIN_SCRIPT_LANGUAGES = new Set(['en', 'es', 'fr', 'de', 'it', 'pt', 'nl', 'pl', 'ro', 'vi']);
+// Supported languages that use Latin script (no untranslated detection possible)
+const LATIN_SCRIPT_LANGUAGES = new Set(['en', 'de']);
 
 // Universal notation that doesn't need translation (not brand names or text)
 const UNIVERSAL_PATTERNS = [
@@ -73,19 +67,17 @@ function isUniversalNotation(value: string): boolean {
 // i18next pluralization suffixes
 const PLURAL_SUFFIXES = ['_zero', '_one', '_two', '_few', '_many', '_other'];
 
-// Keys that are dynamically constructed at runtime and can't be statically detected
+// Keys that are legitimately constructed at runtime and can't be statically detected
 const DYNAMIC_KEY_PATTERNS = [
-    /_plural$/,
+    // i18next pluralization suffixes (selected at runtime based on count)
+    /_zero$/,
     /_one$/,
+    /_two$/,
+    /_few$/,
+    /_many$/,
     /_other$/,
-    /^apiErrors\./,
+    // Firebase auth error codes mapped dynamically in error-translation.ts
     /^authErrors\./,
-    /^roles\./,
-    /^activityFeed\.events\./,
-    /^securitySettingsModal\.permissionOptions\./,
-    /^admin\.tenants\.types\./,
-    /^admin\.users\.roles\./,
-    /^validation\./,
 ];
 
 // Regex to extract placeholders like {{name}}, {{count}}, etc.
@@ -169,15 +161,6 @@ function loadAllTranslationFiles(projectRoot: string): TranslationFile[] {
     return files;
 }
 
-function containsTargetScript(value: string, langCode: string): boolean {
-    const scriptRange = SCRIPT_RANGES[langCode];
-    if (scriptRange) {
-        return scriptRange.test(value);
-    }
-    // For languages without a defined script range, assume OK
-    return true;
-}
-
 function isLikelyUntranslatedEnglish(value: string, langCode: string): boolean {
     // Skip universal notation (numbers, hex colors, file paths, placeholders)
     if (isUniversalNotation(value)) return false;
@@ -218,15 +201,11 @@ function extractHtmlTags(value: string): Set<string> {
 }
 
 function getGitFiles(dir: string, cwd: string): string[] {
-    try {
-        return execSync(`git ls-files -- "${dir}"`, { cwd, encoding: 'utf8' })
-            .trim()
-            .split('\n')
-            .filter(Boolean)
-            .filter((file) => file.endsWith('.ts') || file.endsWith('.tsx'));
-    } catch {
-        return [];
-    }
+    return execSync(`git ls-files -- "${dir}"`, { cwd, encoding: 'utf8' })
+        .trim()
+        .split('\n')
+        .filter(Boolean)
+        .filter((file) => file.endsWith('.ts') || file.endsWith('.tsx'));
 }
 
 // =============================================================================
@@ -257,8 +236,8 @@ function extractKeysFromProductionCode(projectRoot: string): TranslationAccess[]
                     accesses.push({ key, file, source: 'code' });
                 }
             }
-        } catch {
-            // Skip unreadable files
+        } catch (error) {
+            console.warn(`Failed to read file ${filePath}:`, error);
         }
     }
 
@@ -358,8 +337,8 @@ function extractKeysFromTestFiles(projectRoot: string): TranslationAccess[] {
                         }
                     }
                 }
-            } catch {
-                // Skip unreadable files
+            } catch (error) {
+                console.warn(`Failed to read file ${filePath}:`, error);
             }
         }
     }
@@ -443,6 +422,7 @@ describe('Translation Keys Validation', () => {
         const redundantKeys: string[] = [];
 
         for (const key of allTranslationKeys) {
+            // Skip keys that are legitimately constructed at runtime
             if (DYNAMIC_KEY_PATTERNS.some((pattern) => pattern.test(key))) continue;
             if ([...dynamicPrefixes].some((prefix) => key.startsWith(prefix + '.'))) continue;
 
@@ -478,9 +458,7 @@ describe('Translation Keys Validation', () => {
                     + `All redundant keys:\n`
                     + redundantKeys.sort().map((k) => `  - ${k}`).join('\n')
                     + '\n\n'
-                    + 'To fix:\n'
-                    + '  1. Remove unused keys from webapp-v2/src/locales/*/translation.json\n'
-                    + '  2. If keys ARE used dynamically, add the pattern to DYNAMIC_KEY_PATTERNS.',
+                    + 'To fix: Remove unused keys from webapp-v2/src/locales/*/translation.json',
             );
         }
     });

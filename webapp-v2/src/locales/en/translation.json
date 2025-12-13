@@ -1450,12 +1450,7 @@
     }
   },
   "validation": {
-    "required": "{{field}} is required",
-    "invalidColorFormat": "{{field}} must be in #RRGGBB format",
-    "invalidUrl": "{{field}} must be a valid URL",
-    "invalidEmail": "{{field}} must be a valid email address",
-    "tooShort": "{{field}} must be at least {{min}} characters",
-    "tooLong": "{{field}} must be {{max}} characters or fewer"
+    "required": "{{field}} is required"
   },
   "roles": {
     "systemAdmin": {

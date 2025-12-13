@@ -1450,12 +1450,7 @@
     }
   },
   "validation": {
-    "required": "{{field}} обов'язково",
-    "invalidColorFormat": "{{field}} має бути у форматі #RRGGBB",
-    "invalidUrl": "{{field}} має бути дійсною URL-адресою",
-    "invalidEmail": "{{field}} має бути дійсною електронною адресою",
-    "tooShort": "{{field}} має містити принаймні {{min}} символів",
-    "tooLong": "{{field}} має містити {{max}} символів або менше"
+    "required": "{{field}} обов'язково"
   },
   "roles": {
     "systemAdmin": {

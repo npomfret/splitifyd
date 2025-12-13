@@ -1450,12 +1450,7 @@
     }
   },
   "validation": {
-    "required": "{{field}} مطلوب",
-    "invalidColorFormat": "يجب أن يكون {{field}} بتنسيق #RRGGBB",
-    "invalidUrl": "يجب أن يكون {{field}} عنوان URL صالحًا",
-    "invalidEmail": "يجب أن يكون {{field}} عنوان بريد إلكتروني صالحًا",
-    "tooShort": "يجب أن لا يقل {{field}} عن {{min}} حرفًا",
-    "tooLong": "يجب أن لا يتجاوز {{field}} {{max}} حرفًا"
+    "required": "{{field}} مطلوب"
   },
   "roles": {
     "systemAdmin": {
