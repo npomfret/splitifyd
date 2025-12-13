@@ -132,7 +132,10 @@ export const store = new StoreImpl();
 
 ### Components (Local State)
 
-Components use **`useState`** from `preact/hooks` for local/ephemeral state:
+Local state management in components uses a mix of Preact's `useState` hook and Signals, depending on the component's needs. The codebase follows three main patterns.
+
+#### 1. `useState` for Simple, Ephemeral State
+For simple component-local state that doesn't need to be shared (e.g., form inputs, loading flags, modal visibility), the standard `useState` hook is used. This is the simplest and most direct way to handle local state.
 
 ```typescript
 function MyComponent() {
@@ -142,10 +145,35 @@ function MyComponent() {
 }
 ```
 
-**Why this distinction:**
-- Signals provide encapsulation benefits in stores where state is shared across components
-- `useState` is simpler and sufficient for component-local state (form inputs, loading states, modals)
-- Avoid mixing `useSignal` and `useState` in the same component
+#### 2. `useSignal` for Reactive Local State
+When a component's local state needs to be reactive and shared between multiple functions or child components within that component's tree, the `useSignal` hook is used.
+
+```typescript
+function GroupDetailPage() {
+    const isInitialized = useSignal(false);
+    const showLeaveGroupDialog = useSignal(false);
+    // ...
+}
+```
+
+#### 3. `useState` with `signal` for Component-Local Signals
+In many components, you will find a pattern that combines `useState` and `signal` to create a component-local signal:
+
+```typescript
+function LoginPage() {
+    // Component-local signals - initialized within useState to avoid stale state across instances
+    const [emailSignal] = useState(() => signal(''));
+    const [passwordSignal] = useState(() => signal(''));
+    // ...
+}
+```
+
+This pattern uses `useState`'s initializer function to create a signal only on the first render. The comment found throughout the codebase, "initialized within useState to avoid stale state across instances," suggests this is a deliberate pattern to ensure that each component instance gets a fresh signal, possibly to address issues with component reuse or Hot Module Replacement (HMR).
+
+**Guidance:**
+-   Use `useState` for simple, non-shared local state.
+-   Use `useSignal` for reactive local state that needs to be shared within a component's subtree.
+-   The `useState(() => signal(...))` pattern is prevalent in the codebase for creating component-local signals. While `useSignal` should be preferred for new components, be aware of this pattern and its intended purpose of avoiding stale state.
 
 ### Real-Time Data Refresh via Activity Feed
 
@@ -285,4 +313,3 @@ Pages under `pages/admin/` and `components/admin/` are **completely isolated fro
 | `@layer components { .foo { ... } }` | `@utility foo { ... }` (Tailwind v4) |
 | `data-testid` on elements with semantic meaning | Only add when no role, label, or visible text exists |
 
----
