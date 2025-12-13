@@ -594,6 +594,7 @@ export const PublishPolicyRequestSchema = z.object({
 // User profile requests
 // ---------------------------------------------------------------------------
 
+const SUPPORTED_LANGUAGES = ['en', 'uk', 'ar'];
 export const UpdateUserProfileRequestSchema = z
     .object({
         displayName: createDisplayNameSchema({
@@ -614,8 +615,8 @@ export const UpdateUserProfileRequestSchema = z
         preferredLanguage: z
             .string()
             .trim()
-            .refine((value) => ['en', 'uk'].includes(value), {
-                message: 'Language must be one of: en, uk',
+            .refine((value) => SUPPORTED_LANGUAGES.includes(value), {
+                message: `Language must be one of: ${SUPPORTED_LANGUAGES.join(", ")}`,
             })
             .optional(),
     })

@@ -216,15 +216,18 @@ function extractTranslationKeysFromCode(projectRoot: string): Set<string> {
 function extractTranslationKeysFromTestFiles(projectRoot: string): Set<string> {
     const usedKeys = new Set<string>();
 
-    // Also check test files that might access translationEn directly
-    // Pattern: translationEn.key.path or translationEn['key']['path']
+    // Check test files that access translations via:
+    // - translationEn.key.path (direct access)
+    // - translation.key.path (aliased access - most page objects use `const translation = translationEn`)
     const testDirs = [
         path.join(projectRoot, 'webapp-v2/src/__tests__'),
         path.join(projectRoot, 'e2e-tests/src'),
         path.join(projectRoot, 'packages/test-support/src'),
     ];
 
-    const dotAccessPattern = /translationEn\.([a-zA-Z0-9_.]+)/g;
+    // Match both direct and aliased access patterns
+    const directAccessPattern = /translationEn\.([a-zA-Z0-9_.]+)/g;
+    const aliasedAccessPattern = /\btranslation\.([a-zA-Z0-9_.]+)/g;
 
     for (const testDir of testDirs) {
         if (!fs.existsSync(testDir)) continue;
@@ -249,17 +252,26 @@ function extractTranslationKeysFromTestFiles(projectRoot: string): Set<string> {
 
                 try {
                     const content = fs.readFileSync(filePath, 'utf8');
+
+                    // Check if file uses the translation alias pattern
+                    const usesAlias = /const translation\s*=\s*translationEn/.test(content);
+
+                    // Extract keys from direct translationEn access
                     let match;
-                    while ((match = dotAccessPattern.exec(content)) !== null) {
-                        let keyPath = match[1];
-                        // Remove trailing string methods (e.g., ".replace" from "key.path.replace")
-                        const parts = keyPath.split('.');
-                        while (parts.length > 0 && STRING_METHODS.has(parts[parts.length - 1])) {
-                            parts.pop();
-                        }
-                        keyPath = parts.join('.');
+                    while ((match = directAccessPattern.exec(content)) !== null) {
+                        const keyPath = cleanKeyPath(match[1]);
                         if (keyPath) {
                             usedKeys.add(keyPath);
+                        }
+                    }
+
+                    // Extract keys from aliased translation access (only if alias is defined)
+                    if (usesAlias) {
+                        while ((match = aliasedAccessPattern.exec(content)) !== null) {
+                            const keyPath = cleanKeyPath(match[1]);
+                            if (keyPath) {
+                                usedKeys.add(keyPath);
+                            }
                         }
                     }
                 } catch {
@@ -272,6 +284,15 @@ function extractTranslationKeysFromTestFiles(projectRoot: string): Set<string> {
     }
 
     return usedKeys;
+}
+
+function cleanKeyPath(rawPath: string): string {
+    // Remove trailing string methods (e.g., ".replace" from "key.path.replace")
+    const parts = rawPath.split('.');
+    while (parts.length > 0 && STRING_METHODS.has(parts[parts.length - 1])) {
+        parts.pop();
+    }
+    return parts.join('.');
 }
 
 describe('Translation Keys Validation', () => {
@@ -356,127 +377,34 @@ describe('Translation Keys Validation', () => {
             }
         }
 
-        // Keys that are commonly used dynamically or through interpolation
-        // These are legitimate even if we can't statically detect their usage
+        // Keys that are TRULY used dynamically and cannot be statically detected.
         // Static analysis cannot detect keys used via:
         // - Template strings: t(`prefix.${variable}`)
         // - Object lookups: t(translations[key])
         // - Dynamic construction: t(errorCode)
+        //
+        // IMPORTANT: Only add patterns here for keys that are genuinely constructed
+        // at runtime. Do NOT add entire namespaces just because the test fails -
+        // that defeats the purpose of detecting unused keys.
         const dynamicKeyPatterns = [
             // Pluralization keys (used with count interpolation)
             /_plural$/,
             /_one$/,
             /_other$/,
-            // API error codes that are looked up dynamically
+            // API error codes - looked up dynamically via error code strings
             /^apiErrors\./,
             /^authErrors\./,
-            // Role labels/descriptions used dynamically
+            // Role labels/descriptions - looked up via role string
             /^roles\./,
-            // Activity feed events and labels
-            /^activityFeed\./,
-            // Permission options used dynamically
-            /^securitySettingsModal\./,
-            // Pricing page (may be dynamically rendered or planned for future)
-            /^pricing\./,
-            // Admin section - heavily uses dynamic key construction
-            /^admin\./,
-            // Profile summary roles are constructed dynamically
-            /^settingsPage\.profileSummaryRole\./,
-            // Share group modal
-            /^shareGroupModal\./,
-            // Validation messages with field interpolation
+            // Activity feed event types - looked up via event type string
+            /^activityFeed\.events\./,
+            // Permission options - looked up via permission level string
+            /^securitySettingsModal\.permissionOptions\./,
+            // Admin tenant/user type lookups
+            /^admin\.tenants\.types\./,
+            /^admin\.users\.roles\./,
+            // Validation messages - field names interpolated
             /^validation\./,
-            // UI components - often accessed dynamically
-            /^ui\./,
-            /^uiComponents\./,
-            // User menu, indicator
-            /^userMenu\./,
-            /^userIndicator\./,
-            /^usersBrowser\./,
-            // Settlement forms and history
-            /^settlement\./,
-            /^settlementForm\./,
-            /^settlementHistory\./,
-            // Balance summary
-            /^balanceSummary\./,
-            // Group components
-            /^group\./,
-            /^groupActions\./,
-            /^groupCard\./,
-            /^groupComponents\./,
-            /^groupDisplayNameSettings\./,
-            /^groupHeader\./,
-            /^groupSettingsModal\./,
-            // Expense components
-            /^expense\./,
-            /^expenseForm\./,
-            /^expenseComponents\./,
-            /^expenseItem\./,
-            /^expensesList\./,
-            /^expenseBasicFields\./,
-            /^expenseFormHeader\./,
-            // Comments
-            /^comments\./,
-            // Join group
-            /^joinGroup\./,
-            /^joinGroupPage\./,
-            /^joinGroupComponents\./,
-            // Landing page
-            /^landing\./,
-            /^landingComponents\./,
-            // Policy
-            /^policy\./,
-            /^policyComponents\./,
-            // Dashboard
-            /^dashboard\./,
-            /^dashboardComponents\./,
-            // Navigation
-            /^navigation\./,
-            /^header\./,
-            /^footer\./,
-            // Pages
-            /^pages\./,
-            // Static pages
-            /^staticPages\./,
-            // Settings
-            /^settings\./,
-            /^settingsPage\./,
-            // Auth
-            /^auth\./,
-            /^authLayout\./,
-            /^authProvider\./,
-            // Create/edit group modals
-            /^createGroupModal\./,
-            /^editGroupModal\./,
-            // Members list
-            /^membersList\./,
-            // Quick actions
-            /^quickActions\./,
-            // Empty states
-            /^emptyGroupsState\./,
-            // Error handling
-            /^errors\./,
-            /^errorState\./,
-            /^errorBoundary\./,
-            // Loading states
-            /^loadingState\./,
-            // Not found page
-            /^notFoundPage\./,
-            // Register/login pages
-            /^registerPage\./,
-            /^loginPage\./,
-            // SEO
-            /^seo\./,
-            // App
-            /^app\./,
-            // Main
-            /^main\./,
-            // Common
-            /^common\./,
-            // Pagination
-            /^pagination\./,
-            // Accessibility
-            /^accessibility\./,
         ];
 
         const redundantKeys: string[] = [];
@@ -513,10 +441,27 @@ describe('Translation Keys Validation', () => {
         }
 
         if (redundantKeys.length > 0) {
+            // Group by top-level namespace for summary
+            const byNamespace = new Map<string, number>();
+            for (const key of redundantKeys) {
+                const namespace = key.split('.')[0];
+                byNamespace.set(namespace, (byNamespace.get(namespace) || 0) + 1);
+            }
+            const namespaceSummary = [...byNamespace.entries()]
+                .sort((a, b) => b[1] - a[1])
+                .map(([ns, count]) => `  ${ns}: ${count}`)
+                .join('\n');
+
             throw new Error(
-                `Found ${redundantKeys.length} redundant translation keys (defined but never used):\n\n`
+                `Found ${redundantKeys.length} redundant translation keys (defined but never used).\n\n`
+                    + `Summary by namespace:\n${namespaceSummary}\n\n`
+                    + `All redundant keys:\n`
                     + redundantKeys.sort().map((k) => `  - ${k}`).join('\n')
-                    + '\n\nIf these keys are used dynamically, add the pattern to dynamicKeyPatterns in the test.',
+                    + '\n\n'
+                    + 'To fix:\n'
+                    + '  1. Remove unused keys from webapp-v2/src/locales/*/translation.json\n'
+                    + '  2. If keys ARE used dynamically (via template strings or runtime lookups),\n'
+                    + '     add the pattern to dynamicKeyPatterns in this test file.',
             );
         }
     });

@@ -146,63 +146,10 @@
     "yearAgo_one": "{{count}} year ago",
     "yearAgo_other": "{{count}} years ago"
   },
-  "landing": {
-    "hero": {
-      "title": "Effortless Bill Splitting, Simplified & Smart.",
-      "subtitle": "Say goodbye to awkward IOUs and complex calculations. Our app makes sharing expenses with friends, family, and roommates easy, fair, and transparent.",
-      "highlight": "It's 100% free, with no ads and no limits.",
-      "focusMessage": "Focus on what matters, not on the math.",
-      "appScreenshotAlt": "{{appName}} App Screenshot"
-    },
-    "features": {
-      "sectionTitle": "Everything You Need, Nothing You Don't",
-      "smartGroupManagement": {
-        "title": "Smart Group Management",
-        "description": "Create groups for any occasion. Easily add members and track shared expenses in one place, keeping everyone on the same page."
-      },
-      "flexibleSplitting": {
-        "title": "Flexible Splitting",
-        "description": "Split bills equally, by exact amounts, or by percentages. We handle all the complex math, so you don't have to."
-      },
-      "debtSimplification": {
-        "title": "Debt Simplification",
-        "description": "Our algorithm minimizes transactions, showing you the simplest way to settle up, saving everyone time and hassle."
-      },
-      "freeToUse": {
-        "title": "100% Free to Use",
-        "description": "Our service is and always will be free. No hidden fees or premium tiers—just a powerful, accessible tool for everyone."
-      },
-      "unlimitedUse": {
-        "title": "Unlimited Use",
-        "description": "Create as many groups, add as many friends, and track as many expenses as you need. No restrictions, no limits."
-      },
-      "noAds": {
-        "title": "Zero Ads, Ever",
-        "description": "Enjoy a clean, focused experience. We will never sell your data or clutter your screen with ads. Your privacy is our priority."
-      }
-    },
-    "cta": {
-      "title": "Ready to Simplify Your Shared Expenses?",
-      "subtitle": "Join thousands who are already making group payments stress-free and transparent. Get started today!",
-      "signUpButton": "Sign Up for Free"
-    },
-    "disclaimer": "This is a tool for tracking expenses, not for making payments. To save and manage your expenses, you'll need a free account. We will never ask for sensitive financial details.",
-    "globe": {
-      "loadError": "Unable to load 3D globe"
-    }
-  },
   "app": {
     "loading": "Loading...",
     "loadingPage": "Loading page...",
-    "loadingExpenseForm": "Loading expense form...",
-    "checkingAuth": "Checking authentication..."
-  },
-  "main": {
-    "unknownButton": "Unknown Button",
-    "linkClick": "Link Click: ",
-    "unknownLink": "Unknown Link",
-    "elementClick": "Element Click: ",
-    "unknownElement": "Unknown Element"
+    "loadingExpenseForm": "Loading expense form..."
   },
   "createGroup": {
     "validation": {
@@ -451,94 +398,6 @@
       "unknown": "Unknown"
     }
   },
-  "expense": {
-    "form": {
-      "header": {
-        "add": "Add Expense",
-        "edit": "Edit Expense"
-      },
-      "description": "Description",
-      "amount": "Amount*",
-      "whoPaid": "Who paid?",
-      "whoPaidRequired": "*",
-      "splitBetween": "Split between",
-      "splitType": {
-        "label": "How to split",
-        "equal": "Equal",
-        "exactAmounts": "Exact amounts",
-        "percentage": "Percentage"
-      },
-      "splitInstructions": {
-        "exactAmounts": "Enter exact amounts for each person:",
-        "percentage": "Enter percentage for each person:",
-        "equal": "Each person pays:"
-      },
-      "selectAll": "Select all",
-      "saveExpense": "Save Expense",
-      "updateExpense": "Update Expense",
-      "cancel": "Cancel",
-      "percentageSymbol": "%",
-      "total": "Total:",
-      "unknown": "Unknown"
-    },
-    "actions": {
-      "edit": "Edit",
-      "copy": "Copy",
-      "copyExpense": "Copy expense",
-      "share": "Share",
-      "delete": "Delete",
-      "deleteError": "Failed to delete expense"
-    },
-    "splits": {
-      "splitEqually": "Split Equally",
-      "exactAmounts": "Exact Amounts",
-      "byPercentage": "By Percentage",
-      "customSplit": "Custom Split",
-      "splitBetween": "Split between {{count}} {{people}}",
-      "person": "person",
-      "people": "people",
-      "unknown": "Unknown",
-      "paid": "Paid",
-      "owes": "Owes {{payer}}",
-      "totalPercentage": "Total: {{percentage}}%"
-    }
-  },
-  "settlement": {
-    "form": {
-      "title": "Record Payment",
-      "updateTitle": "Update Payment",
-      "closeModal": "Close modal",
-      "whoPaidLabel": "Who paid?",
-      "whoReceivedLabel": "Who received the payment?",
-      "amountLabel": "Amount",
-      "dateLabel": "Date",
-      "noteLabel": "Note (optional)",
-      "selectPersonPlaceholder": "Select person",
-      "amountPlaceholder": "0.00",
-      "notePlaceholder": "e.g., Venmo, cash, bank transfer",
-      "youSuffix": " (You)",
-      "cancelButton": "Cancel",
-      "updatingButton": "Updating...",
-      "recordingButton": "Recording...",
-      "summary": "{{payer}} paid {{payee}} {{amount}}",
-      "validation": {
-        "selectPayer": "Please select who paid",
-        "selectPayee": "Please select who received the payment",
-        "samePersonError": "Payer and recipient cannot be the same person",
-        "validAmountRequired": "Please enter a valid amount greater than 0",
-        "amountTooLarge": "Amount cannot exceed 999,999.99",
-        "validCurrencyRequired": "Please select a valid currency",
-        "dateRequired": "Please select a date",
-        "dateInFuture": "Date cannot be in the future",
-        "recordPaymentFailed": "Failed to record payment"
-      },
-      "unknownUser": "Unknown User"
-    },
-    "history": {
-      "title": "Settlement History",
-      "noSettlements": "No settlements yet"
-    }
-  },
   "comments": {
     "section": {
       "title": "Comments",
@@ -579,24 +438,6 @@
       "placeholderExpense": "Add a comment to this expense..."
     }
   },
-  "joinGroup": {
-    "page": {
-      "title": "Join Group",
-      "loading": "Loading..."
-    },
-    "preview": {
-      "invited": "You've been invited to join this group",
-      "member": "Member",
-      "members": "Members",
-      "active": "Active",
-      "group": "Group",
-      "groupSize": "Group Size"
-    },
-    "button": {
-      "join": "Join Group",
-      "joining": "Joining..."
-    }
-  },
   "ui": {
     "alert": {
       "dismiss": "Dismiss alert"
@@ -604,55 +445,6 @@
     "confirmDialog": {
       "confirm": "Confirm",
       "cancel": "Cancel"
-    },
-    "currencySelector": {
-      "label": "Currency",
-      "placeholder": "Select currency...",
-      "required": "*",
-      "searchPlaceholder": "Search currencies...",
-      "noResults": "No currencies found",
-      "recent": "Recent",
-      "common": "Common",
-      "allCurrencies": "All Currencies"
-    },
-    "currencyAmountInput": {
-      "unknown": "?",
-      "searchCurrencies": "Search currencies"
-    },
-    "input": {
-      "required": "*"
-    },
-    "timeInput": {
-      "label": "Time",
-      "placeholder": "Select time"
-    },
-    "labelSuggestionInput": {
-      "placeholder": "Label (optional)"
-    },
-    "button": {
-      "default": "Button"
-    },
-    "loadingSpinner": {
-      "loading": "Loading..."
-    },
-    "loadingState": {
-      "loading": "Loading...",
-      "pleaseWait": "Please wait..."
-    },
-    "errorState": {
-      "error": "An error occurred",
-      "tryAgain": "Try again",
-      "goBack": "Go back"
-    },
-    "avatar": {
-      "userAvatar": "User avatar"
-    },
-    "warningBanner": {
-      "warning": "Warning"
-    },
-    "userIndicator": {
-      "online": "Online",
-      "offline": "Offline"
     }
   },
   "navigation": {
@@ -675,86 +467,6 @@
       "logout": "Logout",
       "help": "Help"
     }
-  },
-  "settings": {
-    "title": "Settings",
-    "description": "Manage your account settings",
-    "accountSettingsHeader": "Account Settings",
-    "accountSettingsSubheader": "Update your profile information and preferences",
-    "successMessages": {
-      "profileUpdated": "Profile updated successfully",
-      "passwordChanged": "Password changed successfully"
-    },
-    "errorMessages": {
-      "profileUpdateFailed": "Failed to update profile",
-      "passwordAndNewRequired": "Current password and new password are required",
-      "passwordTooShort": "Password must be at least 12 characters",
-      "passwordsNoMatch": "Passwords do not match",
-      "passwordSameAsCurrent": "New password must be different from current password",
-      "currentPasswordIncorrect": "Current password is incorrect",
-      "passwordChangeFailed": "Failed to change password"
-    }
-  },
-  "policy": {
-    "acceptance": {
-      "title": "Accept Updated Policies",
-      "subtitle": "Policy {{current}} of {{total}}: {{name}}",
-      "progress": "Progress",
-      "progressText": "{{accepted}} of {{total}} accepted",
-      "accepted": "✓ Accepted",
-      "loading": "Loading policy content...",
-      "required": "Policy Acceptance Required",
-      "instruction": "Please read the policy above and click \"Accept\" to continue using {{appName}}.",
-      "checkbox": "I have read and accept this {{policy}}",
-      "previousButton": "Previous",
-      "nextButton": "Next",
-      "acceptingButton": "Accepting...",
-      "acceptAllButton": "Accept All & Continue",
-      "loadError": "Failed to load policy content: {{error}}",
-      "acceptError": "Failed to accept policies: {{error}}"
-    }
-  },
-  "pricing": {
-    "title": "Pricing (It's Free, Seriously)",
-    "description": "Simple, transparent pricing for {{appName}}. Split bills with friends for free.",
-    "subtitle": "Choose Your Adventure",
-    "plans": {
-      "starter": {
-        "title": "The \"Just Getting Started\" Plan",
-        "features": [
-          "Unlimited expense tracking",
-          "Unlimited groups",
-          "Unlimited friends (if you have that many)",
-          "Basic debt simplification",
-          "Access to our highly sarcastic FAQ section"
-        ],
-        "button": "Sign Up (It's Still Free)"
-      },
-      "pro": {
-        "title": "The \"I'm Basically a Pro\" Plan",
-        "badge": "MOST POPULAR",
-        "features": [
-          "Everything in \"Just Getting Started\"",
-          "Advanced debt simplification (it's the same, but sounds cooler)",
-          "Priority access to our \"we'll get to it when we get to it\" support",
-          "The warm fuzzy feeling of not paying for anything",
-          "Bragging rights to your friends about your free app"
-        ],
-        "button": "Join Now (Seriously, No Catch)"
-      },
-      "philanthropist": {
-        "title": "The \"I'm a Philanthropist\" Plan",
-        "features": [
-          "Everything in \"I'm Basically a Pro\"",
-          "The ability to tell people you're on the \"Philanthropist\" plan",
-          "A deep sense of satisfaction from using a free app",
-          "We'll send you good vibes (results may vary)",
-          "Your name will be whispered in the halls of free software fame"
-        ],
-        "button": "Get Started (It's a Gift!)"
-      }
-    },
-    "disclaimer": "Disclaimer: All plans are, and always will be, absolutely free. We just like making fancy tables. No hidden fees, no premium features, no secret handshake required. Just pure, unadulterated free expense splitting. You're welcome."
   },
   "errors": {
     "generic": "An error occurred",
@@ -880,18 +592,9 @@
   },
   "groupCard": {
     "settledUp": "Settled up",
-    "youreOwed": "You're owed {{amount}}",
-    "youOwe": "You owe {{amount}}",
     "addExpenseTooltip": "Add expense to {{groupName}}",
     "inviteTooltip": "Invite to {{groupName}}",
-    "member": "member",
-    "members": "members",
     "noRecentActivity": "No recent activity"
-  },
-  "quickActions": {
-    "title": "Quick Actions",
-    "createNewGroup": "Create New Group",
-    "viewAllExpenses": "View All Expenses"
   },
   "expenseFormHeader": {
     "addExpense": "Add Expense",
@@ -1097,8 +800,6 @@
     "groupSecurityAriaLabel": "Security and permissions"
   },
   "securitySettingsModal": {
-    "title": "Security & Permissions",
-    "description": "Configure presets, manage permissions, and control member access for this group.",
     "unsavedChanges": "You have unsaved changes. Review everything, then press Save to apply them.",
     "presets": {
       "activeBadge": "Active",
@@ -1117,8 +818,7 @@
       "saveHelper": "Changes are queued until you press Save."
     },
     "success": {
-      "updated": "Security settings updated.",
-      "presetApplied": "Applied the {{preset}} preset."
+      "updated": "Security settings updated."
     },
     "permissions": {
       "expenseEditing": {
@@ -1165,7 +865,6 @@
     "errors": {
       "loadPending": "Unable to load pending members. Please try again.",
       "updatePermissions": "We couldn't update the security settings. Please try again.",
-      "updateRole": "Updating the member's role failed.",
       "pendingAction": "We couldn't process that request. Please try again."
     }
   },
@@ -1544,28 +1243,8 @@
       "total": "Total: "
     }
   },
-  "groupComponents": {
-    "editGroupModal": {
-      "warningIcon": "⚠️"
-    },
-    "groupHeader": {
-      "ago": "ago"
-    },
-    "membersListWithManagement": {
-      "user": "User"
-    },
-    "shareGroupModal": {
-      "close": "Close",
-      "checkmark": "✓",
-      "ellipsis": "..."
-    }
-  },
   "joinGroupComponents": {
     "groupPreview": {
-      "member": "Member",
-      "members": "Members",
-      "active": "Active",
-      "group": "Group",
       "invitationMessage": "You've been invited to join this group"
     },
     "joinButton": {
@@ -1573,41 +1252,7 @@
       "joinGroup": "Join Group"
     },
     "membersPreview": {
-      "groupSize": "Group Size",
-      "member": "member",
-      "members": "members"
-    }
-  },
-  "landingComponents": {
-    "ctaSection": {
-      "title": "Ready to Simplify Your Shared Expenses?",
-      "subtitle": "Join thousands who are already making group payments stress-free and transparent. Get started today!",
-      "signUpButton": "Sign Up for Free"
-    },
-    "featuresGrid": {
-      "smartGroupManagement": "Smart Group Management",
-      "smartGroupDescription": "Create groups for any occasion. Easily add members and track shared expenses in one place, keeping everyone on the same page.",
-      "flexibleSplitting": "Flexible Splitting",
-      "flexibleSplittingDescription": "Split bills equally, by exact amounts, or by percentages. We handle all the complex math, so you don't have to.",
-      "debtSimplification": "Debt Simplification",
-      "debtSimplificationDescription": "Our algorithm minimizes transactions, showing you the simplest way to settle up, saving everyone time and hassle.",
-      "freeToUse": "100% Free to Use",
-      "freeToUseDescription": "Our service is and always will be free. No hidden fees or premium tiers—just a powerful, accessible tool for everyone.",
-      "unlimitedUse": "Unlimited Use",
-      "unlimitedUseDescription": "Create as many groups, add as many friends, and track as many expenses as you need. No restrictions, no limits.",
-      "zeroAds": "Zero Ads, Ever",
-      "zeroAdsDescription": "Enjoy a clean, focused experience. We will never sell your data or clutter your screen with ads. Your privacy is our priority.",
-      "subtitle": "Everything You Need, Nothing You Don't"
-    },
-    "globe": {
-      "loadError": "Unable to load 3D globe"
-    },
-    "heroSection": {
-      "title": "Effortless Bill Splitting,",
-      "subtitle": "Simplified & Smart.",
-      "description": "Say goodbye to awkward IOUs and complex calculations. Our app makes sharing expenses with friends, family, and roommates easy, fair, and transparent.",
-      "subDescription": "It's 100% free, with no ads and no limits.",
-      "focus": "Focus on what matters, not on the math."
+      "groupSize": "Group Size"
     }
   },
   "policyComponents": {
@@ -1801,102 +1446,8 @@
     "retry": "Retry"
   },
   "usersBrowser": {
-    "title": "Users Browser",
-    "authTab": "Firebase Auth Users",
-    "firestoreTab": "Firestore Users",
-    "searchLabel": "Search",
-    "searchPlaceholder": "Search by email, display name, or user ID",
-    "searchPlaceholderSmart": "Enter email, UID, or display name",
-    "searchButton": "Search",
-    "resetButton": "Reset",
-    "noResults": "No users found",
-    "authLimitNote": "Firebase Auth returns up to {count} users per page.",
-    "firestoreLimitNote": "Firestore returns up to {count} documents per page.",
-    "jsonViewTitle": "User JSON",
-    "closeJsonViewer": "Close viewer",
-    "copyJson": "Copy JSON",
-    "copiedJson": "JSON copied",
-    "authDisplayNameNotSupported": "Display name search is not supported for Firebase Auth. Try an email or UID instead.",
-    "unauthorized": "You do not have permission to view the data browser.",
-    "viewJson": "View JSON",
-    "statusDisabled": "Disabled",
-    "statusEnabled": "Active",
-    "table": {
-      "auth": {
-        "uid": "UID",
-        "email": "Email",
-        "displayName": "Display Name",
-        "status": "Status",
-        "createdAt": "Created",
-        "lastSignInAt": "Last Sign-In"
-      },
-      "firestore": {
-        "id": "Document ID",
-        "role": "Role",
-        "updatedAt": "Updated",
-        "schema": "Schema Validation"
-      }
-    },
-    "loaders": {
-      "loadingAuth": "Loading Firebase Auth users…",
-      "loadingFirestore": "Loading Firestore users…"
-    },
-    "loadingUserData": "Loading user data…",
     "errors": {
-      "auth": "Failed to load Firebase Auth users",
-      "firestore": "Failed to load Firestore users"
-    },
-    "searchFieldOptions": {
-      "email": "Email",
-      "uid": "User ID",
-      "displayName": "Display name"
-    },
-    "schema": {
-      "ok": "Schema matches expectations",
-      "missing": "Missing: {{field}}",
-      "unexpected": "Unexpected: {{field}}"
-    },
-    "jsonAuthTitle": "Firebase Auth user",
-    "jsonFirestoreTitle": "Firestore user document",
-    "jsonAuthMissing": "No Firebase Auth record was found for this user.",
-    "jsonFirestoreMissing": "No Firestore document was found for this user.",
-    "copyJsonAuth": "Copy Auth JSON",
-    "copyJsonFirestore": "Copy Firestore JSON",
-    "copiedJsonAuth": "Auth JSON copied",
-    "copiedJsonFirestore": "Firestore JSON copied",
-    "disableUser": "Disable",
-    "enableUser": "Enable",
-    "disableUserConfirm": "Are you sure you want to disable this account? The user will be immediately signed out and unable to sign in until re-enabled.",
-    "enableUserConfirm": "Are you sure you want to enable this account? The user will be able to sign in again.",
-    "disableSuccess": "User disabled successfully",
-    "enableSuccess": "User enabled successfully",
-    "cannotDisableSelf": "You cannot disable your own account",
-    "disableError": "Failed to disable user",
-    "enableError": "Failed to enable user"
-  },
-  "userIndicator": {
-    "unknown": "Unknown",
-    "plus": "+",
-    "moreUsers": " more users"
-  },
-  "staticPages": {
-    "common": {
-      "lastUpdated": "Last updated:"
-    },
-    "cookiePolicy": {
-      "title": "Cookie Policy",
-      "description": "Cookie Policy for {{appName}} - Learn about how we use cookies and similar technologies.",
-      "loadError": "Error loading cookie policy"
-    },
-    "privacyPolicy": {
-      "title": "Privacy Policy",
-      "description": "Privacy Policy for {{appName}} - Learn about how we collect, use, and protect your information.",
-      "loadError": "Error loading privacy policy"
-    },
-    "termsOfService": {
-      "title": "Terms of Service",
-      "description": "Terms of Service for {{appName}} - Read about our policies and user agreements.",
-      "loadError": "Error loading terms"
+      "auth": "Failed to load Firebase Auth users"
     }
   },
   "validation": {

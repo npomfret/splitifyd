@@ -146,63 +146,10 @@
     "yearAgo_one": "منذ عام واحد",
     "yearAgo_other": "منذ {{count}} أعوام"
   },
-  "landing": {
-    "hero": {
-      "title": "تقسيم الفواتير بسهولة وذكاء.",
-      "subtitle": "وداعًا للإحراج من الديون المعلقة والحسابات المعقدة. تطبيقنا يجعل مشاركة النفقات مع الأصدقاء والعائلة وزملاء السكن سهلة وعادلة وشفافة.",
-      "highlight": "إنه مجاني 100٪ ، بدون إعلانات وبدون حدود.",
-      "focusMessage": "ركز على ما يهم ، وليس على الرياضيات.",
-      "appScreenshotAlt": "لقطة شاشة لتطبيق {{appName}}"
-    },
-    "features": {
-      "sectionTitle": "كل ما تحتاجه ، لا شيء لا تحتاجه",
-      "smartGroupManagement": {
-        "title": "إدارة المجموعات الذكية",
-        "description": "أنشئ مجموعات لأي مناسبة. أضف أعضاء بسهولة وتتبع النفقات المشتركة في مكان واحد ، مع إبقاء الجميع على اطلاع دائم."
-      },
-      "flexibleSplitting": {
-        "title": "تقسيم مرن",
-        "description": "قسّم الفواتير بالتساوي أو بالمبالغ الدقيقة أو بالنسب المئوية. نحن نتعامل مع جميع العمليات الحسابية المعقدة ، لذلك لا يتعين عليك ذلك."
-      },
-      "debtSimplification": {
-        "title": "تبسيط الديون",
-        "description": "تقلل الخوارزمية الخاصة بنا من المعاملات ، وتوضح لك أبسط طريقة للتسوية ، مما يوفر للجميع الوقت والمتاعب."
-      },
-      "freeToUse": {
-        "title": "مجاني 100٪ للاستخدام",
-        "description": "خدمتنا مجانية وستظل كذلك دائمًا. لا توجد رسوم خفية أو مستويات متميزة - فقط أداة قوية وسهلة الوصول للجميع."
-      },
-      "unlimitedUse": {
-        "title": "استخدام غير محدود",
-        "description": "أنشئ العديد من المجموعات ، وأضف العديد من الأصدقاء ، وتتبع العديد من النفقات التي تحتاجها. لا قيود ، لا حدود."
-      },
-      "noAds": {
-        "title": "صفر إعلانات ، على الإطلاق",
-        "description": "استمتع بتجربة نظيفة ومركزة. لن نبيع بياناتك أبدًا أو نزحم شاشتك بالإعلانات. خصوصيتك هي أولويتنا."
-      }
-    },
-    "cta": {
-      "title": "هل أنت مستعد لتبسيط نفقاتك المشتركة؟",
-      "subtitle": "انضم إلى الآلاف الذين يجعلون بالفعل مدفوعات المجموعة خالية من الإجهاد وشفافة. ابدأ اليوم!",
-      "signUpButton": "سجل مجانا"
-    },
-    "disclaimer": "هذه أداة لتتبع النفقات ، وليس لإجراء المدفوعات. لحفظ وإدارة نفقاتك ، ستحتاج إلى حساب مجاني. لن نطلب أبدًا تفاصيل مالية حساسة.",
-    "globe": {
-      "loadError": "غير قادر على تحميل الكرة الأرضية ثلاثية الأبعاد"
-    }
-  },
   "app": {
     "loading": "جار التحميل...",
     "loadingPage": "جار تحميل الصفحة...",
-    "loadingExpenseForm": "جار تحميل نموذج المصروفات...",
-    "checkingAuth": "جار التحقق من المصادقة..."
-  },
-  "main": {
-    "unknownButton": "زر غير معروف",
-    "linkClick": "النقر على الرابط: ",
-    "unknownLink": "رابط غير معروف",
-    "elementClick": "النقر على العنصر: ",
-    "unknownElement": "عنصر غير معروف"
+    "loadingExpenseForm": "جار تحميل نموذج المصروفات..."
   },
   "createGroup": {
     "validation": {
@@ -451,94 +398,6 @@
       "unknown": "غير معروف"
     }
   },
-  "expense": {
-    "form": {
-      "header": {
-        "add": "إضافة مصروف",
-        "edit": "تعديل المصروف"
-      },
-      "description": "الوصف",
-      "amount": "المبلغ*",
-      "whoPaid": "من دفع؟",
-      "whoPaidRequired": "*",
-      "splitBetween": "تقسيم بين",
-      "splitType": {
-        "label": "كيفية التقسيم",
-        "equal": "بالتساوي",
-        "exactAmounts": "مبالغ دقيقة",
-        "percentage": "نسبة مئوية"
-      },
-      "splitInstructions": {
-        "exactAmounts": "أدخل المبالغ الدقيقة لكل شخص:",
-        "percentage": "أدخل النسبة المئوية لكل شخص:",
-        "equal": "يدفع كل شخص:"
-      },
-      "selectAll": "تحديد الكل",
-      "saveExpense": "حفظ المصروف",
-      "updateExpense": "تحديث المصروف",
-      "cancel": "إلغاء",
-      "percentageSymbol": "%",
-      "total": "المجموع:",
-      "unknown": "غير معروف"
-    },
-    "actions": {
-      "edit": "تعديل",
-      "copy": "نسخ",
-      "copyExpense": "نسخ المصروف",
-      "share": "مشاركة",
-      "delete": "حذف",
-      "deleteError": "فشل حذف المصروف"
-    },
-    "splits": {
-      "splitEqually": "تقسيم بالتساوي",
-      "exactAmounts": "مبالغ دقيقة",
-      "byPercentage": "حسب النسبة المئوية",
-      "customSplit": "تقسيم مخصص",
-      "splitBetween": "تقسيم بين {{count}} {{people}}",
-      "person": "شخص",
-      "people": "أشخاص",
-      "unknown": "غير معروف",
-      "paid": "مدفوع",
-      "owes": "مدين لـ {{payer}}",
-      "totalPercentage": "المجموع: {{percentage}}%"
-    }
-  },
-  "settlement": {
-    "form": {
-      "title": "تسجيل دفعة",
-      "updateTitle": "تحديث الدفعة",
-      "closeModal": "إغلاق النموذج",
-      "whoPaidLabel": "من دفع؟",
-      "whoReceivedLabel": "من استلم الدفعة؟",
-      "amountLabel": "المبلغ",
-      "dateLabel": "التاريخ",
-      "noteLabel": "ملاحظة (اختياري)",
-      "selectPersonPlaceholder": "اختر شخص",
-      "amountPlaceholder": "0.00",
-      "notePlaceholder": "على سبيل المثال ، Venmo ، نقدًا ، تحويل بنكي",
-      "youSuffix": " (أنت)",
-      "cancelButton": "إلغاء",
-      "updatingButton": "جار التحديث...",
-      "recordingButton": "جار التسجيل...",
-      "summary": "{{payer}} دفع {{payee}} {{amount}}",
-      "validation": {
-        "selectPayer": "يرجى تحديد من دفع",
-        "selectPayee": "يرجى تحديد من استلم الدفعة",
-        "samePersonError": "لا يمكن أن يكون الدافع والمستلم نفس الشخص",
-        "validAmountRequired": "يرجى إدخال مبلغ صالح أكبر من 0",
-        "amountTooLarge": "لا يمكن أن يتجاوز المبلغ 999،999.99",
-        "validCurrencyRequired": "يرجى تحديد عملة صالحة",
-        "dateRequired": "يرجى تحديد تاريخ",
-        "dateInFuture": "لا يمكن أن يكون التاريخ في المستقبل",
-        "recordPaymentFailed": "فشل تسجيل الدفعة"
-      },
-      "unknownUser": "مستخدم غير معروف"
-    },
-    "history": {
-      "title": "سجل التسويات",
-      "noSettlements": "لا توجد تسويات حتى الآن"
-    }
-  },
   "comments": {
     "section": {
       "title": "التعليقات",
@@ -579,24 +438,6 @@
       "placeholderExpense": "أضف تعليقًا على هذا المصروف..."
     }
   },
-  "joinGroup": {
-    "page": {
-      "title": "الانضمام إلى المجموعة",
-      "loading": "جار التحميل..."
-    },
-    "preview": {
-      "invited": "لقد تمت دعوتك للانضمام إلى هذه المجموعة",
-      "member": "عضو",
-      "members": "أعضاء",
-      "active": "نشط",
-      "group": "مجموعة",
-      "groupSize": "حجم المجموعة"
-    },
-    "button": {
-      "join": "الانضمام إلى المجموعة",
-      "joining": "جار الانضمام..."
-    }
-  },
   "ui": {
     "alert": {
       "dismiss": "تجاهل التنبيه"
@@ -604,55 +445,6 @@
     "confirmDialog": {
       "confirm": "تأكيد",
       "cancel": "إلغاء"
-    },
-    "currencySelector": {
-      "label": "العملة",
-      "placeholder": "اختر العملة...",
-      "required": "*",
-      "searchPlaceholder": "بحث عن عملات...",
-      "noResults": "لم يتم العثور على عملات",
-      "recent": "حديث",
-      "common": "شائع",
-      "allCurrencies": "جميع العملات"
-    },
-    "currencyAmountInput": {
-      "unknown": "؟",
-      "searchCurrencies": "بحث عن عملات"
-    },
-    "input": {
-      "required": "*"
-    },
-    "timeInput": {
-      "label": "الوقت",
-      "placeholder": "اختر الوقت"
-    },
-    "labelSuggestionInput": {
-      "placeholder": "ملصق (اختياري)"
-    },
-    "button": {
-      "default": "زر"
-    },
-    "loadingSpinner": {
-      "loading": "جار التحميل..."
-    },
-    "loadingState": {
-      "loading": "جار التحميل...",
-      "pleaseWait": "يرجى الانتظار..."
-    },
-    "errorState": {
-      "error": "حدث خطأ",
-      "tryAgain": "حاول مرة أخرى",
-      "goBack": "رجوع"
-    },
-    "avatar": {
-      "userAvatar": "الصورة الرمزية للمستخدم"
-    },
-    "warningBanner": {
-      "warning": "تحذير"
-    },
-    "userIndicator": {
-      "online": "متصل",
-      "offline": "غير متصل"
     }
   },
   "navigation": {
@@ -675,86 +467,6 @@
       "logout": "تسجيل الخروج",
       "help": "مساعدة"
     }
-  },
-  "settings": {
-    "title": "الإعدادات",
-    "description": "إدارة إعدادات حسابك",
-    "accountSettingsHeader": "إعدادات الحساب",
-    "accountSettingsSubheader": "تحديث معلومات ملفك الشخصي وتفضيلاتك",
-    "successMessages": {
-      "profileUpdated": "تم تحديث الملف الشخصي بنجاح",
-      "passwordChanged": "تم تغيير كلمة المرور بنجاح"
-    },
-    "errorMessages": {
-      "profileUpdateFailed": "فشل تحديث الملف الشخصي",
-      "passwordAndNewRequired": "كلمة المرور الحالية وكلمة المرور الجديدة مطلوبتان",
-      "passwordTooShort": "يجب أن لا تقل كلمة المرور عن 12 حرفًا",
-      "passwordsNoMatch": "كلمات المرور غير متطابقة",
-      "passwordSameAsCurrent": "يجب أن تكون كلمة المرور الجديدة مختلفة عن كلمة المرور الحالية",
-      "currentPasswordIncorrect": "كلمة المرور الحالية غير صحيحة",
-      "passwordChangeFailed": "فشل تغيير كلمة المرور"
-    }
-  },
-  "policy": {
-    "acceptance": {
-      "title": "قبول السياسات المحدثة",
-      "subtitle": "السياسة {{current}} من {{total}}: {{name}}",
-      "progress": "التقدم",
-      "progressText": "{{accepted}} من {{total}} تم قبولها",
-      "accepted": "✓ مقبول",
-      "loading": "جار تحميل محتوى السياسة...",
-      "required": "قبول السياسة مطلوب",
-      "instruction": "يرجى قراءة السياسة أعلاه والنقر فوق \"قبول\" لمتابعة استخدام {{appName}}.",
-      "checkbox": "لقد قرأت وأوافق على {{policy}} هذه",
-      "previousButton": "السابق",
-      "nextButton": "التالي",
-      "acceptingButton": "جار القبول...",
-      "acceptAllButton": "قبول الكل والمتابعة",
-      "loadError": "فشل تحميل محتوى السياسة: {{error}}",
-      "acceptError": "فشل قبول السياسات: {{error}}"
-    }
-  },
-  "pricing": {
-    "title": "الأسعار (إنه مجاني ، على محمل الجد)",
-    "description": "تسعير بسيط وشفاف لـ {{appName}}. قسّم الفواتير مع الأصدقاء مجانًا.",
-    "subtitle": "اختر مغامرتك",
-    "plans": {
-      "starter": {
-        "title": "خطة \"البداية فقط\"",
-        "features": [
-          "تتبع غير محدود للنفقات",
-          "مجموعات غير محدودة",
-          "أصدقاء غير محدودين (إذا كان لديك هذا العدد الكبير)",
-          "تبسيط أساسي للديون",
-          "الوصول إلى قسم الأسئلة الشائعة الساخر للغاية"
-        ],
-        "button": "سجل (لا يزال مجانيًا)"
-      },
-      "pro": {
-        "title": "خطة \"أنا محترف بشكل أساسي\"",
-        "badge": "الأكثر شيوعًا",
-        "features": [
-          "كل شيء في \"البداية فقط\"",
-          "تبسيط متقدم للديون (إنه نفس الشيء ، لكنه يبدو أروع)",
-          "أولوية الوصول إلى دعمنا \"سنصل إليه عندما نصل إليه\"",
-          "الشعور الدافئ الغامض بعدم الدفع مقابل أي شيء",
-          "حقوق المفاخرة لأصدقائك حول تطبيقك المجاني"
-        ],
-        "button": "انضم الآن (بجدية ، لا يوجد صيد)"
-      },
-      "philanthropist": {
-        "title": "خطة \"أنا فاعل خير\"",
-        "features": [
-          "كل شيء في \"أنا محترف بشكل أساسي\"",
-          "القدرة على إخبار الناس أنك في خطة \"فاعل الخير\"",
-          "شعور عميق بالرضا من استخدام تطبيق مجاني",
-          "سنرسل لك مشاعر جيدة (قد تختلف النتائج)",
-          "سيتم همس اسمك في قاعات شهرة البرامج المجانية"
-        ],
-        "button": "ابدأ (إنها هدية!)"
-      }
-    },
-    "disclaimer": "إخلاء المسؤولية: جميع الخطط مجانية تمامًا ، وستظل كذلك دائمًا. نحن فقط نحب عمل طاولات فاخرة. لا توجد رسوم خفية ، ولا ميزات متميزة ، ولا مصافحة سرية مطلوبة. فقط تقسيم نفقات مجاني خالص وغير مغشوش. على الرحب والسعة."
   },
   "errors": {
     "generic": "حدث خطأ",
@@ -779,7 +491,7 @@
       "passwordAndNewRequired": "كلمة المرور الحالية وكلمة المرور الجديدة مطلوبتان"
     }
   },
-"seo": {
+  "seo": {
     "titleSuffix": " | {{appName}}",
     "siteName": "{{appName}}"
   },
@@ -880,18 +592,9 @@
   },
   "groupCard": {
     "settledUp": "تمت التسوية",
-    "youreOwed": "أنت دائن بـ {{amount}}",
-    "youOwe": "أنت مدين بـ {{amount}}",
     "addExpenseTooltip": "إضافة مصروف إلى {{groupName}}",
     "inviteTooltip": "دعوة إلى {{groupName}}",
-    "member": "عضو",
-    "members": "أعضاء",
     "noRecentActivity": "لا يوجد نشاط حديث"
-  },
-  "quickActions": {
-    "title": "إجراءات سريعة",
-    "createNewGroup": "إنشاء مجموعة جديدة",
-    "viewAllExpenses": "عرض جميع المصروفات"
   },
   "expenseFormHeader": {
     "addExpense": "إضافة مصروف",
@@ -1097,8 +800,6 @@
     "groupSecurityAriaLabel": "الأمان والأذونات"
   },
   "securitySettingsModal": {
-    "title": "الأمان والأذونات",
-    "description": "تكوين الإعدادات المسبقة وإدارة الأذونات والتحكم في وصول الأعضاء لهذه المجموعة.",
     "unsavedChanges": "لديك تغييرات غير محفوظة. راجع كل شيء ، ثم اضغط على حفظ لتطبيقها.",
     "presets": {
       "activeBadge": "نشط",
@@ -1117,8 +818,7 @@
       "saveHelper": "يتم وضع التغييرات في قائمة الانتظار حتى تضغط على حفظ."
     },
     "success": {
-      "updated": "تم تحديث إعدادات الأمان.",
-      "presetApplied": "تم تطبيق الإعداد المسبق {{preset}}."
+      "updated": "تم تحديث إعدادات الأمان."
     },
     "permissions": {
       "expenseEditing": {
@@ -1165,7 +865,6 @@
     "errors": {
       "loadPending": "غير قادر على تحميل الأعضاء المعلقين. يرجى المحاولة مرة أخرى.",
       "updatePermissions": "لم نتمكن من تحديث إعدادات الأمان. يرجى المحاولة مرة أخرى.",
-      "updateRole": "فشل تحديث دور العضو.",
       "pendingAction": "لم نتمكن من معالجة هذا الطلب. يرجى المحاولة مرة أخرى."
     }
   },
@@ -1544,28 +1243,8 @@
       "total": "المجموع: "
     }
   },
-  "groupComponents": {
-    "editGroupModal": {
-      "warningIcon": "⚠️"
-    },
-    "groupHeader": {
-      "ago": "منذ"
-    },
-    "membersListWithManagement": {
-      "user": "مستخدم"
-    },
-    "shareGroupModal": {
-      "close": "إغلاق",
-      "checkmark": "✓",
-      "ellipsis": "..."
-    }
-  },
   "joinGroupComponents": {
     "groupPreview": {
-      "member": "عضو",
-      "members": "أعضاء",
-      "active": "نشط",
-      "group": "مجموعة",
       "invitationMessage": "لقد تمت دعوتك للانضمام إلى هذه المجموعة"
     },
     "joinButton": {
@@ -1573,41 +1252,7 @@
       "joinGroup": "الانضمام إلى المجموعة"
     },
     "membersPreview": {
-      "groupSize": "حجم المجموعة",
-      "member": "عضو",
-      "members": "أعضاء"
-    }
-  },
-  "landingComponents": {
-    "ctaSection": {
-      "title": "هل أنت مستعد لتبسيط نفقاتك المشتركة؟",
-      "subtitle": "انضم إلى الآلاف الذين يجعلون بالفعل مدفوعات المجموعة خالية من الإجهاد وشفافة. ابدأ اليوم!",
-      "signUpButton": "سجل مجانا"
-    },
-    "featuresGrid": {
-      "smartGroupManagement": "إدارة المجموعات الذكية",
-      "smartGroupDescription": "أنشئ مجموعات لأي مناسبة. أضف أعضاء بسهولة وتتبع النفقات المشتركة في مكان واحد ، مع إبقاء الجميع على اطلاع دائم.",
-      "flexibleSplitting": "تقسيم مرن",
-      "flexibleSplittingDescription": "قسّم الفواتير بالتساوي أو بالمبالغ الدقيقة أو بالنسب المئوية. نحن نتعامل مع جميع العمليات الحسابية المعقدة ، لذلك لا يتعين عليك ذلك.",
-      "debtSimplification": "تبسيط الديون",
-      "debtSimplificationDescription": "تقلل الخوارزمية الخاصة بنا من المعاملات ، وتوضح لك أبسط طريقة للتسوية ، مما يوفر للجميع الوقت والمتاعب.",
-      "freeToUse": "مجاني 100٪ للاستخدام",
-      "freeToUseDescription": "خدمتنا مجانية وستظل كذلك دائمًا. لا توجد رسوم خفية أو مستويات متميزة - فقط أداة قوية وسهلة الوصول للجميع.",
-      "unlimitedUse": "استخدام غير محدود",
-      "unlimitedUseDescription": "أنشئ العديد من المجموعات ، وأضف العديد من الأصدقاء ، وتتبع العديد من النفقات التي تحتاجها. لا قيود ، لا حدود.",
-      "zeroAds": "صفر إعلانات ، على الإطلاق",
-      "zeroAdsDescription": "استمتع بتجربة نظيفة ومركزة. لن نبيع بياناتك أبدًا أو نزحم شاشتك بالإعلانات. خصوصيتك هي أولويتنا.",
-      "subtitle": "كل ما تحتاجه ، لا شيء لا تحتاجه"
-    },
-    "globe": {
-      "loadError": "غير قادر على تحميل الكرة الأرضية ثلاثية الأبعاد"
-    },
-    "heroSection": {
-      "title": "تقسيم الفواتير بسهولة ،",
-      "subtitle": "مبسط وذكي.",
-      "description": "وداعًا للإحراج من الديون المعلقة والحسابات المعقدة. تطبيقنا يجعل مشاركة النفقات مع الأصدقاء والعائلة وزملاء السكن سهلة وعادلة وشفافة.",
-      "subDescription": "إنه مجاني 100٪ ، بدون إعلانات وبدون حدود.",
-      "focus": "ركز على ما يهم ، وليس على الرياضيات."
+      "groupSize": "حجم المجموعة"
     }
   },
   "policyComponents": {
@@ -1801,102 +1446,8 @@
     "retry": "إعادة المحاولة"
   },
   "usersBrowser": {
-    "title": "متصفح المستخدمين",
-    "authTab": "مستخدمو مصادقة Firebase",
-    "firestoreTab": "مستخدمو Firestore",
-    "searchLabel": "بحث",
-    "searchPlaceholder": "بحث بالبريد الإلكتروني أو اسم العرض أو معرف المستخدم",
-    "searchPlaceholderSmart": "أدخل البريد الإلكتروني أو UID أو اسم العرض",
-    "searchButton": "بحث",
-    "resetButton": "إعادة تعيين",
-    "noResults": "لم يتم العثور على مستخدمين",
-    "authLimitNote": "تعيد مصادقة Firebase ما يصل إلى {count} مستخدمًا لكل صفحة.",
-    "firestoreLimitNote": "يعيد Firestore ما يصل إلى {count} مستندًا لكل صفحة.",
-    "jsonViewTitle": "JSON المستخدم",
-    "closeJsonViewer": "إغلاق عارض JSON",
-    "copyJson": "نسخ JSON",
-    "copiedJson": "تم نسخ JSON",
-    "authDisplayNameNotSupported": "بحث اسم العرض غير مدعوم لمصادقة Firebase. حاول استخدام بريد إلكتروني أو UID بدلاً من ذلك.",
-    "unauthorized": "ليس لديك إذن لعرض متصفح البيانات.",
-    "viewJson": "عرض JSON",
-    "statusDisabled": "معطل",
-    "statusEnabled": "نشط",
-    "table": {
-      "auth": {
-        "uid": "UID",
-        "email": "البريد الإلكتروني",
-        "displayName": "اسم العرض",
-        "status": "الحالة",
-        "createdAt": "تم الإنشاء",
-        "lastSignInAt": "آخر تسجيل دخول"
-      },
-      "firestore": {
-        "id": "معرف المستند",
-        "role": "الدور",
-        "updatedAt": "تم التحديث",
-        "schema": "التحقق من صحة المخطط"
-      }
-    },
-    "loaders": {
-      "loadingAuth": "جار تحميل مستخدمي مصادقة Firebase...",
-      "loadingFirestore": "جار تحميل مستخدمي Firestore..."
-    },
-    "loadingUserData": "جار تحميل بيانات المستخدم...",
     "errors": {
-      "auth": "فشل تحميل مستخدمي مصادقة Firebase",
-      "firestore": "فشل تحميل مستخدمي Firestore"
-    },
-    "searchFieldOptions": {
-      "email": "البريد الإلكتروني",
-      "uid": "معرف المستخدم",
-      "displayName": "اسم العرض"
-    },
-    "schema": {
-      "ok": "يتطابق المخطط مع التوقعات",
-      "missing": "مفقود: {{field}}",
-      "unexpected": "غير متوقع: {{field}}"
-    },
-    "jsonAuthTitle": "مستخدم مصادقة Firebase",
-    "jsonFirestoreTitle": "مستند مستخدم Firestore",
-    "jsonAuthMissing": "لم يتم العثور على سجل مصادقة Firebase لهذا المستخدم.",
-    "jsonFirestoreMissing": "لم يتم العثور على مستند Firestore لهذا المستخدم.",
-    "copyJsonAuth": "نسخ JSON المصادقة",
-    "copyJsonFirestore": "نسخ JSON Firestore",
-    "copiedJsonAuth": "تم نسخ JSON المصادقة",
-    "copiedJsonFirestore": "تم نسخ JSON Firestore",
-    "disableUser": "تعطيل",
-    "enableUser": "تمكين",
-    "disableUserConfirm": "هل أنت متأكد أنك تريد تعطيل هذا الحساب؟ سيتم تسجيل خروج المستخدم على الفور ولن يتمكن من تسجيل الدخول حتى يتم إعادة تمكينه.",
-    "enableUserConfirm": "هل أنت متأكد أنك تريد تمكين هذا الحساب؟ سيتمكن المستخدم من تسجيل الدخول مرة أخرى.",
-    "disableSuccess": "تم تعطيل المستخدم بنجاح",
-    "enableSuccess": "تم تمكين المستخدم بنجاح",
-    "cannotDisableSelf": "لا يمكنك تعطيل حسابك الخاص",
-    "disableError": "فشل تعطيل المستخدم",
-    "enableError": "فشل تمكين المستخدم"
-  },
-  "userIndicator": {
-    "unknown": "غير معروف",
-    "plus": "+",
-    "moreUsers": " المزيد من المستخدمين"
-  },
-  "staticPages": {
-    "common": {
-      "lastUpdated": "آخر تحديث:"
-    },
-    "cookiePolicy": {
-      "title": "سياسة ملفات تعريف الارتباط",
-      "description": "سياسة ملفات تعريف الارتباط لـ {{appName}} - تعرف على كيفية استخدامنا لملفات تعريف الارتباط والتقنيات المماثلة.",
-      "loadError": "خطأ في تحميل سياسة ملفات تعريف الارتباط"
-    },
-    "privacyPolicy": {
-      "title": "سياسة الخصوصية",
-      "description": "سياسة الخصوصية لـ {{appName}} - تعرف على كيفية جمعنا واستخدامنا وحمايتنا لمعلوماتك.",
-      "loadError": "خطأ في تحميل سياسة الخصوصية"
-    },
-    "termsOfService": {
-      "title": "شروط الخدمة",
-      "description": "شروط الخدمة لـ {{appName}} - اقرأ عن سياساتنا واتفاقيات المستخدم.",
-      "loadError": "خطأ في تحميل الشروط"
+      "auth": "فشل تحميل مستخدمي مصادقة Firebase"
     }
   },
   "validation": {
