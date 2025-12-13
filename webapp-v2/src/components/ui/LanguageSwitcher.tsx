@@ -85,7 +85,7 @@ function LanguageSwitcherCompact({ currentLanguage, className }: LanguageSwitche
 
             {isOpen && (
                 <div
-                    className='absolute right-0 mt-2 w-40 bg-surface-popover border border-border-default rounded-lg shadow-xl z-50'
+                    className='absolute end-0 mt-2 w-40 bg-surface-popover border border-border-default rounded-lg shadow-xl z-50'
                     role='listbox'
                     aria-label={t('languageSelector.label')}
                 >
@@ -95,7 +95,7 @@ function LanguageSwitcherCompact({ currentLanguage, className }: LanguageSwitche
                             type='button'
                             onClick={() => handleLanguageChange(lng)}
                             className={cx(
-                                'flex items-center justify-between w-full px-4 py-2.5 text-sm text-left transition-colors first:rounded-t-lg last:rounded-b-lg',
+                                'flex items-center justify-between w-full px-4 py-2.5 text-sm text-start transition-colors first:rounded-t-lg last:rounded-b-lg',
                                 lng === currentLanguage
                                     ? 'bg-interactive-primary/10 text-interactive-primary font-medium'
                                     : 'text-text-primary hover:bg-interactive-primary/5 hover:text-interactive-primary',

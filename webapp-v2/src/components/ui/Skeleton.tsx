@@ -132,7 +132,7 @@ export function SkeletonExpenseItem({ className }: { className?: string; }) {
                     </div>
                 </div>
                 {/* Amount */}
-                <div className='text-right space-y-1'>
+                <div className='text-end space-y-1'>
                     <Skeleton variant='text' width={60} height={16} />
                     <Skeleton variant='text' width={40} height={12} />
                 </div>

@@ -80,7 +80,7 @@ export function SplitBreakdown({ expense, members }: SplitBreakdownProps) {
                                     <div className='relative'>
                                         <Avatar displayName={memberName} userId={split.uid} size='md' />
                                         {isPayer && (
-                                            <div className='absolute -bottom-1 -right-1 bg-interactive-accent text-text-inverted rounded-full p-0.5'>
+                                            <div className='absolute -bottom-1 -end-1 bg-interactive-accent text-text-inverted rounded-full p-0.5'>
                                                 <CheckCircleIcon size={12} />
                                             </div>
                                         )}
@@ -90,7 +90,7 @@ export function SplitBreakdown({ expense, members }: SplitBreakdownProps) {
                                         {isPayer && <p className='text-xs text-semantic-success'>{t('expenseComponents.splitBreakdown.paid')}</p>}
                                     </div>
                                 </div>
-                                <div className='text-right'>
+                                <div className='text-end'>
                                     <p
                                         className={`font-semibold ${isOwing ? 'text-semantic-error' : 'text-text-primary'}`}
                                         data-financial-amount='split'

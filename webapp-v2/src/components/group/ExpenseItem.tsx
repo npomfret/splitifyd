@@ -71,7 +71,7 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
                 </div>
 
                 <div className='flex items-center gap-2 shrink-0'>
-                    <div className='text-right'>
+                    <div className='text-end'>
                         <p className={`font-semibold text-base ${isDeleted ? 'text-text-muted' : 'text-text-primary'}`}>
                             <CurrencyAmount amount={expense.amount} currency={expense.currency} />
                         </p>

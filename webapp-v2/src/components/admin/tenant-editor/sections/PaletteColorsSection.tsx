@@ -159,7 +159,7 @@ export function PaletteColorsSection({ formData, update, isSaving, mode, creatio
                                             className='flex-1 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600'
                                             aria-label={t('admin.tenantEditor.derivation.intensity.label')}
                                         />
-                                        <span className='text-[10px] text-gray-500 w-10 text-right'>
+                                        <span className='text-[10px] text-gray-500 w-10 text-end'>
                                             {t('admin.tenantEditor.derivation.intensity.strong')}
                                         </span>
                                     </div>

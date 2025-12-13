@@ -21,7 +21,7 @@ export function AdminFormSection({ title, description, defaultOpen = false, test
                 data-testid={testId}
                 aria-expanded={isOpen}
             >
-                <div className='text-left'>
+                <div className='text-start'>
                     <h3 className='text-sm font-semibold text-text-primary'>{title}</h3>
                     {description && <p className='help-text-xs mt-0.5'>{description}</p>}
                 </div>

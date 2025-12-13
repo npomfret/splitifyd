@@ -1,0 +1,2377 @@
+{
+  "accessibility": {
+    "skipToContent": "Skip to main content"
+  },
+  "apiErrors": {
+    "AUTH_REQUIRED": "يرجى تسجيل الدخول للمتابعة",
+    "AUTH_INVALID": "انتهت صلاحية جلستك. يرجى تسجيل الدخول مرة أخرى.",
+    "FORBIDDEN": "ليس لديك إذن للقيام بذلك",
+    "NOT_FOUND": "{{resource}} غير موجود",
+    "ALREADY_EXISTS": "{{resource}} موجود بالفعل",
+    "CONFLICT": "قام شخص آخر بإجراء تغييرات. يرجى التحديث والمحاولة مرة أخرى.",
+    "VALIDATION_ERROR": "يرجى التحقق من إدخالك والمحاولة مرة أخرى",
+    "INVALID_REQUEST": "حدث خطأ ما في طلبك",
+    "RATE_LIMITED": "طلبات كثيرة جدا. يرجى الانتظار لحظة.",
+    "SERVICE_ERROR": "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
+    "UNAVAILABLE": "الخدمة غير متوفرة مؤقتًا. يرجى المحاولة مرة أخرى في وقت لاحق."
+  },
+  "authErrors": {
+    "userNotFound": "لم يتم العثور على حساب بهذا البريد الإلكتروني",
+    "wrongPassword": "كلمة المرور غير صحيحة",
+    "weakPassword": "كلمة المرور ضعيفة جدًا. يرجى استخدام 6 أحرف على الأقل.",
+    "invalidEmail": "يرجى إدخال عنوان بريد إلكتروني صالح",
+    "tooManyRequests": "محاولات كثيرة جدا. يرجى المحاولة مرة أخرى في وقت لاحق.",
+    "networkError": "خطأ في الشبكة. يرجى التحقق من اتصالك.",
+    "emailInUse": "هذا البريد الإلكتروني مسجل بالفعل",
+    "invalidCredential": "بريد إلكتروني أو كلمة مرور غير صالحة",
+    "userDisabled": "تم تعطيل هذا الحساب",
+    "requiresRecentLogin": "يرجى تسجيل الدخول مرة أخرى للمتابعة",
+    "generic": "فشل المصادقة. يرجى المحاولة مرة أخرى.",
+    "postRegistrationBase": "تم إنشاء حسابك ، لكن لم نتمكن من تسجيل دخولك تلقائيًا.",
+    "postRegistrationFallback": "تم إنشاء حسابك ، لكن لم نتمكن من تسجيل دخولك تلقائيًا. يرجى تسجيل الدخول يدويًا."
+  },
+  "pagination": {
+    "previous": "السابق",
+    "next": "التالي",
+    "page": "صفحة",
+    "navigation": "ترقيم الصفحات"
+  },
+  "common": {
+    "loading": "جار التحميل...",
+    "unknownError": "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
+    "cancel": "إلغاء",
+    "save": "حفظ",
+    "saving": "جار الحفظ...",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "close": "إغلاق",
+    "confirm": "تأكيد",
+    "back": "رجوع",
+    "next": "التالي",
+    "previous": "السابق",
+    "submit": "إرسال",
+    "search": "بحث",
+    "select": "تحديد",
+    "selectAll": "تحديد الكل",
+    "none": "لا شيء",
+    "all": "الكل",
+    "yes": "نعم",
+    "no": "لا",
+    "ok": "موافق",
+    "error": "خطأ",
+    "success": "نجاح",
+    "warning": "تحذير",
+    "info": "معلومات",
+    "unknown": "غير معروف",
+    "unknownUser": "مستخدم غير معروف",
+    "includeDeleted": "تضمين المحذوف",
+    "you": "أنت",
+    "youSuffix": " (أنت)",
+    "required": "*",
+    "optional": "(اختياري)",
+    "or": "أو",
+    "and": "و",
+    "copy": "نسخ",
+    "share": "مشاركة",
+    "dismiss": "تجاهل",
+    "dismissAlert": "تجاهل التنبيه",
+    "justNow": "الآن",
+    "chooseFile": "اختر ملف",
+    "active": "نشط",
+    "inactive": "غير نشط",
+    "disabled": "معطل",
+    "total": "المجموع",
+    "member": "عضو",
+    "members": "أعضاء",
+    "user": "مستخدم",
+    "group": "مجموعة",
+    "groups": "مجموعات",
+    "recent": "حديث",
+    "settings": "الإعدادات",
+    "understood": "مفهوم",
+    "titleSuffix": " - {{appName}}",
+    "refresh": "تحديث",
+    "reset": "إعادة تعيين",
+    "add": "إضافة",
+    "create": "إنشاء",
+    "processing": "قيد المعالجة...",
+    "download": "تنزيل",
+    "downloading": "جار التنزيل...",
+    "fromLibrary": "من المكتبة",
+    "orEnterUrl": "أو أدخل عنوان URL",
+    "imageFailedToLoad": "فشل تحميل الصورة",
+    "selectedFile": "محدد",
+    "enable": "تمكين",
+    "disable": "تعطيل",
+    "created": "تم الإنشاء",
+    "updated": "تم التحديث",
+    "modified": "تم التعديل",
+    "name": "الاسم",
+    "type": "النوع",
+    "size": "الحجم",
+    "link": "رابط",
+    "value": "القيمة",
+    "notConfigured": "غير مهيأ",
+    "notSet": "غير معين",
+    "empty": "(فارغ)",
+    "noData": "لا توجد بيانات متاحة",
+    "default": "افتراضي",
+    "actions": "الإجراءات",
+    "status": "الحالة",
+    "email": "البريد الإلكتروني",
+    "displayName": "اسم العرض",
+    "role": "الدور",
+    "lastSignIn": "آخر تسجيل دخول",
+    "placeholder": {
+      "amount": "0.00",
+      "search": "بحث...",
+      "searchCurrencies": "بحث عن عملات...",
+      "selectCurrency": "اختر العملة...",
+      "selectPerson": "اختر شخص"
+    }
+  },
+  "relativeTime": {
+    "justNow": "الآن",
+    "minuteAgo_one": "منذ دقيقة واحدة",
+    "minuteAgo_other": "منذ {{count}} دقائق",
+    "hourAgo_one": "منذ ساعة واحدة",
+    "hourAgo_other": "منذ {{count}} ساعات",
+    "dayAgo_one": "منذ يوم واحد",
+    "dayAgo_other": "منذ {{count}} أيام",
+    "monthAgo_one": "منذ شهر واحد",
+    "monthAgo_other": "منذ {{count}} أشهر",
+    "yearAgo_one": "منذ عام واحد",
+    "yearAgo_other": "منذ {{count}} أعوام"
+  },
+  "landing": {
+    "hero": {
+      "title": "تقسيم الفواتير بسهولة وذكاء.",
+      "subtitle": "وداعًا للإحراج من الديون المعلقة والحسابات المعقدة. تطبيقنا يجعل مشاركة النفقات مع الأصدقاء والعائلة وزملاء السكن سهلة وعادلة وشفافة.",
+      "highlight": "إنه مجاني 100٪ ، بدون إعلانات وبدون حدود.",
+      "focusMessage": "ركز على ما يهم ، وليس على الرياضيات.",
+      "appScreenshotAlt": "لقطة شاشة لتطبيق {{appName}}"
+    },
+    "features": {
+      "sectionTitle": "كل ما تحتاجه ، لا شيء لا تحتاجه",
+      "smartGroupManagement": {
+        "title": "إدارة المجموعات الذكية",
+        "description": "أنشئ مجموعات لأي مناسبة. أضف أعضاء بسهولة وتتبع النفقات المشتركة في مكان واحد ، مع إبقاء الجميع على اطلاع دائم."
+      },
+      "flexibleSplitting": {
+        "title": "تقسيم مرن",
+        "description": "قسّم الفواتير بالتساوي أو بالمبالغ الدقيقة أو بالنسب المئوية. نحن نتعامل مع جميع العمليات الحسابية المعقدة ، لذلك لا يتعين عليك ذلك."
+      },
+      "debtSimplification": {
+        "title": "تبسيط الديون",
+        "description": "تقلل الخوارزمية الخاصة بنا من المعاملات ، وتوضح لك أبسط طريقة للتسوية ، مما يوفر للجميع الوقت والمتاعب."
+      },
+      "freeToUse": {
+        "title": "مجاني 100٪ للاستخدام",
+        "description": "خدمتنا مجانية وستظل كذلك دائمًا. لا توجد رسوم خفية أو مستويات متميزة - فقط أداة قوية وسهلة الوصول للجميع."
+      },
+      "unlimitedUse": {
+        "title": "استخدام غير محدود",
+        "description": "أنشئ العديد من المجموعات ، وأضف العديد من الأصدقاء ، وتتبع العديد من النفقات التي تحتاجها. لا قيود ، لا حدود."
+      },
+      "noAds": {
+        "title": "صفر إعلانات ، على الإطلاق",
+        "description": "استمتع بتجربة نظيفة ومركزة. لن نبيع بياناتك أبدًا أو نزحم شاشتك بالإعلانات. خصوصيتك هي أولويتنا."
+      }
+    },
+    "cta": {
+      "title": "هل أنت مستعد لتبسيط نفقاتك المشتركة؟",
+      "subtitle": "انضم إلى الآلاف الذين يجعلون بالفعل مدفوعات المجموعة خالية من الإجهاد وشفافة. ابدأ اليوم!",
+      "signUpButton": "سجل مجانا"
+    },
+    "disclaimer": "هذه أداة لتتبع النفقات ، وليس لإجراء المدفوعات. لحفظ وإدارة نفقاتك ، ستحتاج إلى حساب مجاني. لن نطلب أبدًا تفاصيل مالية حساسة.",
+    "globe": {
+      "loadError": "غير قادر على تحميل الكرة الأرضية ثلاثية الأبعاد"
+    }
+  },
+  "app": {
+    "loading": "جار التحميل...",
+    "loadingPage": "جار تحميل الصفحة...",
+    "loadingExpenseForm": "جار تحميل نموذج المصروفات...",
+    "checkingAuth": "جار التحقق من المصادقة..."
+  },
+  "main": {
+    "unknownButton": "زر غير معروف",
+    "linkClick": "النقر على الرابط: ",
+    "unknownLink": "رابط غير معروف",
+    "elementClick": "النقر على العنصر: ",
+    "unknownElement": "عنصر غير معروف"
+  },
+  "createGroup": {
+    "validation": {
+      "displayNameTooShort": "يجب أن يتكون اسم العرض من حرفين على الأقل.",
+      "displayNameTooLong": "يجب أن يكون اسم العرض 50 حرفًا أو أقل."
+    }
+  },
+  "createGroupModal": {
+    "title": "إنشاء مجموعة جديدة",
+    "groupNameLabel": "اسم المجموعة",
+    "groupNamePlaceholder": "على سبيل المثال ، نفقات الشقة ، رحلة إلى باريس",
+    "groupNameHelpText": "اختر اسمًا يصف ما ستقوم بتقسيم النفقات من أجله.",
+    "groupDisplayNameLabel": "اسم العرض الخاص بك في هذه المجموعة",
+    "groupDisplayNamePlaceholder": "كيف يجب أن يرى الأعضاء الآخرون اسمك؟",
+    "groupDisplayNameHelpText": "يظهر هذا الاسم فوق نفقاتك وتعليقاتك ونشاطك في هذه المجموعة.",
+    "groupDescriptionLabel": "الوصف (اختياري)",
+    "groupDescriptionPlaceholder": "أضف أي تفاصيل حول هذه المجموعة...",
+    "groupDescriptionHelpText": "وصف اختياري لمساعدة الأعضاء على فهم الغرض من المجموعة.",
+    "closeButtonAriaLabel": "إغلاق النموذج",
+    "cancelButton": "إلغاء",
+    "submitButton": "إنشاء مجموعة",
+    "restrictCurrencies": "تقييد العملات",
+    "restrictCurrenciesHelp": "يمكن استخدام العملات المحددة فقط للنفقات في هذه المجموعة",
+    "validation": {
+      "nameRequired": "اسم المجموعة مطلوب.",
+      "nameTooShort": "يجب أن يتكون اسم المجموعة من حرفين على الأقل.",
+      "nameTooLong": "يجب أن يكون اسم المجموعة أقل من 50 حرفًا.",
+      "displayNameRequired": "أدخل اسم عرض.",
+      "displayNameTooShort": "يجب أن يتكون اسم العرض من حرفين على الأقل.",
+      "displayNameTooLong": "يجب أن يكون اسم العرض 50 حرفًا أو أقل.",
+      "displayNameInvalid": "يمكن أن يستخدم اسم العرض الأحرف والأرقام والمسافات والواصلات والشرطات السفلية والنقاط فقط.",
+      "displayNameTaken": "اسم العرض هذا مستخدم بالفعل في هذه المجموعة."
+    }
+  },
+  "loginPage": {
+    "title": "تسجيل الدخول",
+    "description": "سجل الدخول إلى حسابك لإدارة نفقاتك المشتركة",
+    "rememberMe": "تذكرني",
+    "forgotPassword": "هل نسيت كلمة المرور؟",
+    "submitButton": "تسجيل الدخول",
+    "noAccount": "ليس لديك حساب؟",
+    "signUp": "سجل",
+    "validation": {
+      "emailRequired": "البريد الإلكتروني مطلوب",
+      "passwordRequired": "كلمة المرور مطلوبة"
+    }
+  },
+  "registerPage": {
+    "title": "إنشاء حساب",
+    "description": "أنشئ حساب {{appName}} الخاص بك لبدء إدارة النفقات المشتركة",
+    "fullNameLabel": "الاسم الكامل",
+    "fullNamePlaceholder": "أدخل اسمك الكامل",
+    "passwordLabel": "كلمة المرور",
+    "passwordPlaceholder": "أنشئ كلمة مرور قوية",
+    "confirmPasswordLabel": "تأكيد كلمة المرور",
+    "confirmPasswordPlaceholder": "تأكيد كلمة المرور الخاصة بك",
+    "acceptTerms": "أوافق على",
+    "termsOfService": "شروط الخدمة",
+    "cookiePolicy": "سياسة ملفات تعريف الارتباط",
+    "privacyPolicy": "سياسة الخصوصية",
+    "submitButton": "إنشاء حساب",
+    "hasAccount": "هل لديك حساب بالفعل؟",
+    "signIn": "تسجيل الدخول",
+    "requiredIndicator": "*",
+    "validation": {
+      "nameRequired": "الاسم مطلوب",
+      "emailRequired": "البريد الإلكتروني مطلوب",
+      "passwordRequired": "كلمة المرور مطلوبة",
+      "passwordTooShort": "يجب أن لا تقل كلمة المرور عن 12 حرفًا",
+      "passwordsNoMatch": "كلمات المرور غير متطابقة",
+      "termsRequired": "يجب أن توافق على شروط الخدمة",
+      "cookiesRequired": "يجب أن توافق على سياسة ملفات تعريف الارتباط",
+      "privacyRequired": "يجب أن توافق على سياسة الخصوصية"
+    }
+  },
+  "auth": {
+    "refreshingSession": "جاري تحديث جلستك...",
+    "initializationFailed": "فشل التهيئة. يرجى تحديث الصفحة.",
+    "emailInput": {
+      "label": "البريد الإلكتروني",
+      "placeholder": "أدخل بريدك الإلكتروني",
+      "requiredIndicator": "*",
+      "validation": {
+        "required": "البريد الإلكتروني مطلوب",
+        "invalid": "يرجى إدخال عنوان بريد إلكتروني صالح"
+      }
+    },
+    "passwordInput": {
+      "label": "كلمة المرور",
+      "placeholder": "أدخل كلمة المرور الخاصة بك",
+      "requiredIndicator": "*",
+      "showPassword": "إظهار كلمة المرور",
+      "hidePassword": "إخفاء كلمة المرور",
+      "strength": "قوة كلمة المرور",
+      "strengthWeak": "ضعيفة",
+      "strengthMedium": "متوسطة",
+      "strengthStrong": "قوية",
+      "validation": {
+        "required": "كلمة المرور مطلوبة",
+        "tooShort": "يجب أن لا تقل كلمة المرور عن 12 حرفًا"
+      }
+    }
+  },
+  "dashboard": {
+    "title": "لوحة التحكم - {{appName}}",
+    "description": "إدارة مجموعاتك ونفقاتك مع {{appName}}",
+    "welcomeMessage": "مرحبًا بك في {{appName}} ، {{name}}!",
+    "welcomeDescription": "ابدأ بإنشاء مجموعتك الأولى لتتبع وتقسيم النفقات مع الأصدقاء.",
+    "yourGroups": "مجموعاتك",
+    "createGroup": "إنشاء مجموعة",
+    "groupsFilter": {
+      "label": "تصفية المجموعات",
+      "active": "نشطة",
+      "archived": "مؤرشفة"
+    },
+    "groupCard": {
+      "settledUp": "كل شيء مسدد!",
+      "youOwe": "أنت مدين بـ {{amount}}",
+      "youAreOwed": "أنت دائن بـ {{amount}}",
+      "addExpenseTooltip": "إضافة مصروف إلى {{groupName}}",
+      "inviteTooltip": "دعوة أعضاء إلى {{groupName}}",
+      "noRecentActivity": "لا يوجد نشاط حديث",
+      "archivedBadge": "مؤرشف"
+    },
+    "emptyState": {
+      "title": "لا توجد مجموعات حتى الآن",
+      "subtitle": "أنشئ مجموعتك الأولى لبدء تتبع النفقات المشتركة",
+      "createButton": "إنشاء مجموعة"
+    },
+    "stats": {
+      "totalGroups": "إجمالي المجموعات",
+      "totalExpenses": "إجمالي النفقات",
+      "totalBalance": "الرصيد الإجمالي"
+    },
+    "quickActions": {
+      "title": "إجراءات سريعة",
+      "createGroup": "إنشاء مجموعة",
+      "addExpense": "إضافة مصروف"
+    }
+  },
+  "activityFeed": {
+    "title": "النشاط الأخير",
+    "loading": "جار التحميل...",
+    "emptyState": {
+      "title": "لا يوجد نشاط حتى الآن",
+      "description": "سيظهر النشاط من مجموعاتك هنا فور حدوثه.",
+      "groupDescription": "سيظهر النشاط في هذه المجموعة هنا."
+    },
+    "error": {
+      "loadFailed": "لم نتمكن من تحميل نشاطك الأخير الآن. يرجى المحاولة مرة أخرى."
+    },
+    "actions": {
+      "retry": "إعادة المحاولة",
+      "loadMore": "تحميل المزيد",
+      "loadingMore": "جار التحميل..."
+    },
+    "labels": {
+      "actorYou": "أنت",
+      "unknownUser": "شخص ما",
+      "unknownGroup": "مجموعة",
+      "unknownExpense": "مصروف",
+      "unknownSettlement": "تسوية",
+      "commentOnGroup": "مناقشة المجموعة",
+      "commentOnExpense": "المصروف \"{{description}}\""
+    },
+    "events": {
+      "group-created": "أنشأ {{actor}} {{group}}",
+      "group-updated": "قام {{actor}} بتحديث المجموعة {{group}}",
+      "group-updated-from": "أعاد {{actor}} تسمية {{previous}} إلى {{group}}",
+      "expense-created": "أضاف {{actor}} {{expense}} في {{group}}",
+      "expense-updated": "قام {{actor}} بتحديث {{expense}} في {{group}}",
+      "expense-deleted": "حذف {{actor}} {{expense}} من {{group}}",
+      "member-joined": "أضاف {{actor}} {{target}} إلى {{group}}",
+      "member-joined-self": "انضم {{actor}} إلى {{group}}",
+      "member-left": "أزال {{actor}} {{target}} من {{group}}",
+      "member-left-self": "غادر {{actor}} {{group}}",
+      "comment-added": "علّق {{actor}} على {{target}} في {{group}}",
+      "settlement-created": "سجل {{actor}} {{settlement}} في {{group}}",
+      "settlement-updated": "قام {{actor}} بتحديث {{settlement}} في {{group}}",
+      "settlement-deleted": "حذف {{actor}} {{settlement}} من {{group}}",
+      "generic": "أجرى {{actor}} تغييرات في {{group}}",
+      "group-created-short": "أنشأ {{actor}} المجموعة",
+      "group-updated-short": "قام {{actor}} بتحديث المجموعة",
+      "group-updated-from-short": "أعاد {{actor}} تسمية المجموعة من {{previous}}",
+      "expense-created-short": "أضاف {{actor}} {{expense}}",
+      "expense-updated-short": "قام {{actor}} بتحديث {{expense}}",
+      "expense-deleted-short": "حذف {{actor}} {{expense}}",
+      "member-joined-short": "أضاف {{actor}} {{target}}",
+      "member-joined-self-short": "انضم {{actor}}",
+      "member-left-short": "أزال {{actor}} {{target}}",
+      "member-left-self-short": "غادر {{actor}}",
+      "comment-added-short": "علّق {{actor}} على {{target}}",
+      "settlement-created-short": "سجل {{actor}} {{settlement}}",
+      "settlement-updated-short": "قام {{actor}} بتحديث {{settlement}}",
+      "settlement-deleted-short": "حذف {{actor}} {{settlement}}",
+      "generic-short": "أجرى {{actor}} تغييرات"
+    }
+  },
+  "group": {
+    "header": {
+      "members_one": "عضو واحد",
+      "members_other": "{{count}} أعضاء",
+      "expenses_one": "مصروف واحد",
+      "expenses_other": "{{count}} مصروفات"
+    },
+    "actions": {
+      "addExpense": "إضافة مصروف",
+      "viewExpenses": "عرض المصروفات",
+      "settleUp": "تسوية",
+      "shareGroup": "مشاركة المجموعة",
+      "editGroup": "تعديل المجموعة",
+      "leaveGroup": "مغادرة المجموعة"
+    },
+    "share": {
+      "title": "مشاركة المجموعة",
+      "subtitle": "دعوة الآخرين للانضمام إلى هذه المجموعة",
+      "copyLink": "نسخ الرابط",
+      "linkCopied": "تم نسخ الرابط إلى الحافظة!"
+    },
+    "edit": {
+      "title": "تعديل المجموعة",
+      "warningIcon": "⚠️"
+    },
+    "leave": {
+      "title": "مغادرة المجموعة",
+      "message": "هل أنت متأكد أنك تريد مغادرة هذه المجموعة؟",
+      "confirmButton": "مغادرة المجموعة",
+      "cancelButton": "إلغاء"
+    },
+    "members": {
+      "title": "الأعضاء",
+      "addMember": "إضافة عضو",
+      "removeMember": "إزالة عضو",
+      "unknownUser": "مستخدم غير معروف",
+      "user": "مستخدم"
+    },
+    "expenses": {
+      "title": "المصروفات",
+      "noExpenses": "لا توجد مصروفات حتى الآن",
+      "addFirstExpense": "إضافة أول مصروف لك",
+      "unknown": "غير معروف"
+    },
+    "balance": {
+      "title": "ملخص الرصيد",
+      "settledUp": "كل شيء مسدد!",
+      "unknown": "غير معروف"
+    }
+  },
+  "expense": {
+    "form": {
+      "header": {
+        "add": "إضافة مصروف",
+        "edit": "تعديل المصروف"
+      },
+      "description": "الوصف",
+      "amount": "المبلغ*",
+      "whoPaid": "من دفع؟",
+      "whoPaidRequired": "*",
+      "splitBetween": "تقسيم بين",
+      "splitType": {
+        "label": "كيفية التقسيم",
+        "equal": "بالتساوي",
+        "exactAmounts": "مبالغ دقيقة",
+        "percentage": "نسبة مئوية"
+      },
+      "splitInstructions": {
+        "exactAmounts": "أدخل المبالغ الدقيقة لكل شخص:",
+        "percentage": "أدخل النسبة المئوية لكل شخص:",
+        "equal": "يدفع كل شخص:"
+      },
+      "selectAll": "تحديد الكل",
+      "saveExpense": "حفظ المصروف",
+      "updateExpense": "تحديث المصروف",
+      "cancel": "إلغاء",
+      "percentageSymbol": "%",
+      "total": "المجموع:",
+      "unknown": "غير معروف"
+    },
+    "actions": {
+      "edit": "تعديل",
+      "copy": "نسخ",
+      "copyExpense": "نسخ المصروف",
+      "share": "مشاركة",
+      "delete": "حذف",
+      "deleteError": "فشل حذف المصروف"
+    },
+    "splits": {
+      "splitEqually": "تقسيم بالتساوي",
+      "exactAmounts": "مبالغ دقيقة",
+      "byPercentage": "حسب النسبة المئوية",
+      "customSplit": "تقسيم مخصص",
+      "splitBetween": "تقسيم بين {{count}} {{people}}",
+      "person": "شخص",
+      "people": "أشخاص",
+      "unknown": "غير معروف",
+      "paid": "مدفوع",
+      "owes": "مدين لـ {{payer}}",
+      "totalPercentage": "المجموع: {{percentage}}%"
+    }
+  },
+  "settlement": {
+    "form": {
+      "title": "تسجيل دفعة",
+      "updateTitle": "تحديث الدفعة",
+      "closeModal": "إغلاق النموذج",
+      "whoPaidLabel": "من دفع؟",
+      "whoReceivedLabel": "من استلم الدفعة؟",
+      "amountLabel": "المبلغ",
+      "dateLabel": "التاريخ",
+      "noteLabel": "ملاحظة (اختياري)",
+      "selectPersonPlaceholder": "اختر شخص",
+      "amountPlaceholder": "0.00",
+      "notePlaceholder": "على سبيل المثال ، Venmo ، نقدًا ، تحويل بنكي",
+      "youSuffix": " (أنت)",
+      "cancelButton": "إلغاء",
+      "updatingButton": "جار التحديث...",
+      "recordingButton": "جار التسجيل...",
+      "summary": "{{payer}} دفع {{payee}} {{amount}}",
+      "validation": {
+        "selectPayer": "يرجى تحديد من دفع",
+        "selectPayee": "يرجى تحديد من استلم الدفعة",
+        "samePersonError": "لا يمكن أن يكون الدافع والمستلم نفس الشخص",
+        "validAmountRequired": "يرجى إدخال مبلغ صالح أكبر من 0",
+        "amountTooLarge": "لا يمكن أن يتجاوز المبلغ 999،999.99",
+        "validCurrencyRequired": "يرجى تحديد عملة صالحة",
+        "dateRequired": "يرجى تحديد تاريخ",
+        "dateInFuture": "لا يمكن أن يكون التاريخ في المستقبل",
+        "recordPaymentFailed": "فشل تسجيل الدفعة"
+      },
+      "unknownUser": "مستخدم غير معروف"
+    },
+    "history": {
+      "title": "سجل التسويات",
+      "noSettlements": "لا توجد تسويات حتى الآن"
+    }
+  },
+  "comments": {
+    "section": {
+      "title": "التعليقات",
+      "noComments": "لا توجد تعليقات حتى الآن"
+    },
+    "input": {
+      "placeholder": "إضافة تعليق...",
+      "ariaLabel": "نص التعليق",
+      "sendButton": "إرسال",
+      "sendAriaLabel": "إرسال تعليق"
+    },
+    "item": {
+      "justNow": "الآن",
+      "deleteButton": "حذف التعليق"
+    },
+    "list": {
+      "loading": "جار تحميل التعليقات...",
+      "error": "فشل تحميل التعليقات"
+    },
+    "commentInput": {
+      "placeholder": "إضافة تعليق...",
+      "tooLong": "التعليق طويل جدًا",
+      "addFailed": "فشل إضافة التعليق",
+      "helpText": "اضغط على Enter للإرسال ، و Shift + Enter لسطر جديد"
+    },
+    "commentItem": {
+      "recently": "مؤخرًا"
+    },
+    "commentsList": {
+      "loading": "جار تحميل التعليقات...",
+      "empty": "لا توجد تعليقات حتى الآن",
+      "emptySubtext": "كن أول من يعلق!",
+      "loadingMore": "جار التحميل...",
+      "loadMore": "تحميل المزيد من التعليقات"
+    },
+    "commentsSection": {
+      "placeholderGroup": "أضف تعليقًا على هذه المجموعة...",
+      "placeholderExpense": "أضف تعليقًا على هذا المصروف..."
+    }
+  },
+  "joinGroup": {
+    "page": {
+      "title": "الانضمام إلى المجموعة",
+      "loading": "جار التحميل..."
+    },
+    "preview": {
+      "invited": "لقد تمت دعوتك للانضمام إلى هذه المجموعة",
+      "member": "عضو",
+      "members": "أعضاء",
+      "active": "نشط",
+      "group": "مجموعة",
+      "groupSize": "حجم المجموعة"
+    },
+    "button": {
+      "join": "الانضمام إلى المجموعة",
+      "joining": "جار الانضمام..."
+    }
+  },
+  "ui": {
+    "alert": {
+      "dismiss": "تجاهل التنبيه"
+    },
+    "confirmDialog": {
+      "confirm": "تأكيد",
+      "cancel": "إلغاء"
+    },
+    "currencySelector": {
+      "label": "العملة",
+      "placeholder": "اختر العملة...",
+      "required": "*",
+      "searchPlaceholder": "بحث عن عملات...",
+      "noResults": "لم يتم العثور على عملات",
+      "recent": "حديث",
+      "common": "شائع",
+      "allCurrencies": "جميع العملات"
+    },
+    "currencyAmountInput": {
+      "unknown": "؟",
+      "searchCurrencies": "بحث عن عملات"
+    },
+    "input": {
+      "required": "*"
+    },
+    "timeInput": {
+      "label": "الوقت",
+      "placeholder": "اختر الوقت"
+    },
+    "labelSuggestionInput": {
+      "placeholder": "ملصق (اختياري)"
+    },
+    "button": {
+      "default": "زر"
+    },
+    "loadingSpinner": {
+      "loading": "جار التحميل..."
+    },
+    "loadingState": {
+      "loading": "جار التحميل...",
+      "pleaseWait": "يرجى الانتظار..."
+    },
+    "errorState": {
+      "error": "حدث خطأ",
+      "tryAgain": "حاول مرة أخرى",
+      "goBack": "رجوع"
+    },
+    "avatar": {
+      "userAvatar": "الصورة الرمزية للمستخدم"
+    },
+    "warningBanner": {
+      "warning": "تحذير"
+    },
+    "userIndicator": {
+      "online": "متصل",
+      "offline": "غير متصل"
+    }
+  },
+  "navigation": {
+    "header": {
+      "fallback": "...",
+      "dashboard": "لوحة التحكم",
+      "groups": "المجموعات",
+      "settings": "الإعدادات"
+    },
+    "footer": {
+      "copyright": "© {{year}} {{appName}}. جميع الحقوق محفوظة.",
+      "privacy": "سياسة الخصوصية",
+      "terms": "شروط الخدمة",
+      "cookies": "سياسة ملفات تعريف الارتباط"
+    },
+    "userMenu": {
+      "openUserMenu": "فتح قائمة المستخدم",
+      "profile": "الملف الشخصي",
+      "settings": "الإعدادات",
+      "logout": "تسجيل الخروج",
+      "help": "مساعدة"
+    }
+  },
+  "settings": {
+    "title": "الإعدادات",
+    "description": "إدارة إعدادات حسابك",
+    "accountSettingsHeader": "إعدادات الحساب",
+    "accountSettingsSubheader": "تحديث معلومات ملفك الشخصي وتفضيلاتك",
+    "successMessages": {
+      "profileUpdated": "تم تحديث الملف الشخصي بنجاح",
+      "passwordChanged": "تم تغيير كلمة المرور بنجاح"
+    },
+    "errorMessages": {
+      "profileUpdateFailed": "فشل تحديث الملف الشخصي",
+      "passwordAndNewRequired": "كلمة المرور الحالية وكلمة المرور الجديدة مطلوبتان",
+      "passwordTooShort": "يجب أن لا تقل كلمة المرور عن 12 حرفًا",
+      "passwordsNoMatch": "كلمات المرور غير متطابقة",
+      "passwordSameAsCurrent": "يجب أن تكون كلمة المرور الجديدة مختلفة عن كلمة المرور الحالية",
+      "currentPasswordIncorrect": "كلمة المرور الحالية غير صحيحة",
+      "passwordChangeFailed": "فشل تغيير كلمة المرور"
+    }
+  },
+  "policy": {
+    "acceptance": {
+      "title": "قبول السياسات المحدثة",
+      "subtitle": "السياسة {{current}} من {{total}}: {{name}}",
+      "progress": "التقدم",
+      "progressText": "{{accepted}} من {{total}} تم قبولها",
+      "accepted": "✓ مقبول",
+      "loading": "جار تحميل محتوى السياسة...",
+      "required": "قبول السياسة مطلوب",
+      "instruction": "يرجى قراءة السياسة أعلاه والنقر فوق \"قبول\" لمتابعة استخدام {{appName}}.",
+      "checkbox": "لقد قرأت وأوافق على {{policy}} هذه",
+      "previousButton": "السابق",
+      "nextButton": "التالي",
+      "acceptingButton": "جار القبول...",
+      "acceptAllButton": "قبول الكل والمتابعة",
+      "loadError": "فشل تحميل محتوى السياسة: {{error}}",
+      "acceptError": "فشل قبول السياسات: {{error}}"
+    }
+  },
+  "pricing": {
+    "title": "الأسعار (إنه مجاني ، على محمل الجد)",
+    "description": "تسعير بسيط وشفاف لـ {{appName}}. قسّم الفواتير مع الأصدقاء مجانًا.",
+    "subtitle": "اختر مغامرتك",
+    "plans": {
+      "starter": {
+        "title": "خطة \"البداية فقط\"",
+        "features": [
+          "تتبع غير محدود للنفقات",
+          "مجموعات غير محدودة",
+          "أصدقاء غير محدودين (إذا كان لديك هذا العدد الكبير)",
+          "تبسيط أساسي للديون",
+          "الوصول إلى قسم الأسئلة الشائعة الساخر للغاية"
+        ],
+        "button": "سجل (لا يزال مجانيًا)"
+      },
+      "pro": {
+        "title": "خطة \"أنا محترف بشكل أساسي\"",
+        "badge": "الأكثر شيوعًا",
+        "features": [
+          "كل شيء في \"البداية فقط\"",
+          "تبسيط متقدم للديون (إنه نفس الشيء ، لكنه يبدو أروع)",
+          "أولوية الوصول إلى دعمنا \"سنصل إليه عندما نصل إليه\"",
+          "الشعور الدافئ الغامض بعدم الدفع مقابل أي شيء",
+          "حقوق المفاخرة لأصدقائك حول تطبيقك المجاني"
+        ],
+        "button": "انضم الآن (بجدية ، لا يوجد صيد)"
+      },
+      "philanthropist": {
+        "title": "خطة \"أنا فاعل خير\"",
+        "features": [
+          "كل شيء في \"أنا محترف بشكل أساسي\"",
+          "القدرة على إخبار الناس أنك في خطة \"فاعل الخير\"",
+          "شعور عميق بالرضا من استخدام تطبيق مجاني",
+          "سنرسل لك مشاعر جيدة (قد تختلف النتائج)",
+          "سيتم همس اسمك في قاعات شهرة البرامج المجانية"
+        ],
+        "button": "ابدأ (إنها هدية!)"
+      }
+    },
+    "disclaimer": "إخلاء المسؤولية: جميع الخطط مجانية تمامًا ، وستظل كذلك دائمًا. نحن فقط نحب عمل طاولات فاخرة. لا توجد رسوم خفية ، ولا ميزات متميزة ، ولا مصافحة سرية مطلوبة. فقط تقسيم نفقات مجاني خالص وغير مغشوش. على الرحب والسعة."
+  },
+  "errors": {
+    "generic": "حدث خطأ",
+    "network": "حدث خطأ في الشبكة",
+    "invalidLink": "رابط غير صالح",
+    "notFound": {
+      "page": "الصفحة غير موجودة",
+      "group": "المجموعة غير موجودة",
+      "expense": "المصروف غير موجود"
+    },
+    "loading": {
+      "cookiePolicy": "خطأ في تحميل سياسة ملفات تعريف الارتباط",
+      "privacyPolicy": "خطأ في تحميل سياسة الخصوصية",
+      "terms": "خطأ في تحميل الشروط"
+    },
+    "validation": {
+      "displayNameEmpty": "لا يمكن أن يكون اسم العرض فارغًا",
+      "displayNameTooLong": "يجب أن يكون اسم العرض 100 حرف أو أقل",
+      "passwordTooShort": "يجب أن لا تقل كلمة المرور الجديدة عن 12 حرفًا",
+      "passwordsNoMatch": "كلمات المرور غير متطابقة",
+      "passwordSameAsCurrent": "يجب أن تكون كلمة المرور الجديدة مختلفة عن كلمة المرور الحالية",
+      "passwordAndNewRequired": "كلمة المرور الحالية وكلمة المرور الجديدة مطلوبتان"
+    }
+  },
+"seo": {
+    "titleSuffix": " | {{appName}}",
+    "siteName": "{{appName}}"
+  },
+  "expenseForm": {
+    "description": "الوصف",
+    "amount": "المبلغ*",
+    "whoPaid": "من دفع؟",
+    "splitBetween": "تقسيم بين",
+    "exactAmounts": "مبالغ دقيقة",
+    "percentage": "نسبة مئوية",
+    "equal": "بالتساوي",
+    "exactAmountsInstruction": "أدخل المبالغ الدقيقة لكل شخص:",
+    "percentageInstruction": "أدخل النسبة المئوية لكل شخص:",
+    "selectAll": "تحديد الكل",
+    "saveExpense": "حفظ المصروف",
+    "updateExpense": "تحديث المصروف",
+    "cancel": "إلغاء",
+    "errors": {
+      "expenseLocked": "لا يمكن تعديل هذا المصروف لأن واحدًا أو أكثر من المشاركين قد غادروا المجموعة."
+    }
+  },
+  "settlementForm": {
+    "updatePayment": "تحديث الدفعة",
+    "recordPayment": "تسجيل دفعة",
+    "updateSettlement": "تحديث التسوية",
+    "recordSettlement": "تسجيل تسوية",
+    "closeModal": "إغلاق النموذج",
+    "whoPaidLabel": "من دفع؟",
+    "whoReceivedPaymentLabel": "من استلم الدفعة؟",
+    "amountLabel": "المبلغ",
+    "dateLabel": "التاريخ",
+    "noteLabel": "ملاحظة (اختياري)",
+    "selectPersonPlaceholder": "اختر شخص",
+    "amountPlaceholder": "0.00",
+    "notePlaceholder": "على سبيل المثال ، Venmo ، نقدًا ، تحويل بنكي",
+    "youSuffix": " (أنت)",
+    "cancelButton": "إلغاء",
+    "updatingButton": "جار التحديث...",
+    "recordingButton": "جار التسجيل...",
+    "paymentSummary": "{{payer}} دفع {{payee}} {{amount}}",
+    "validation": {
+      "selectPayer": "يرجى تحديد من دفع",
+      "selectPayee": "يرجى تحديد من استلم الدفعة",
+      "samePersonError": "لا يمكن أن يكون الدافع والمستلم نفس الشخص",
+      "validAmountRequired": "يرجى إدخال مبلغ صالح أكبر من 0",
+      "amountTooLarge": "لا يمكن أن يتجاوز المبلغ 999،999.99",
+      "validCurrencyRequired": "يرجى تحديد عملة صالحة",
+      "dateRequired": "يرجى تحديد تاريخ",
+      "dateInFuture": "لا يمكن أن يكون التاريخ في المستقبل",
+      "recordPaymentFailed": "فشل تسجيل الدفعة"
+    },
+    "errors": {
+      "settlementLocked": "لا يمكن تعديل هذه التسوية لأن أحد المشاركين قد غادر المجموعة."
+    },
+    "warnings": {
+      "noDebt": "{{payer}} لا يدين لـ {{payee}} بأي أموال في {{currency}}. ستنشئ هذه التسوية دينًا في الاتجاه المعاكس.",
+      "overpayment": "{{payer}} مدين فقط لـ {{payee}} بـ {{debt}} ، لكنك تقوم بتسوية {{amount}}. سيؤدي هذا إلى إنشاء دين في الاتجاه المعاكس.",
+      "underpayment": "أنت تسجل {{amount}} ، لكن {{payer}} سيظل مدينًا لـ {{payee}} بـ {{remaining}} بعد ذلك. سنبقي الرصيد المتبقي محدثًا."
+    }
+  },
+  "settlementHistory": {
+    "noPaymentsYet": "لم يتم تسجيل أي مدفوعات حتى الآن",
+    "today": "اليوم",
+    "yesterday": "أمس",
+    "editPaymentTooltip": "تعديل الدفعة",
+    "cannotEditTooltip": "لا يمكن التعديل - لقد غادر العضو المجموعة",
+    "deletePaymentTooltip": "حذف الدفعة",
+    "loadMore": "تحميل المزيد",
+    "loadMorePayments": "تحميل المزيد",
+    "deletePaymentTitle": "حذف الدفعة",
+    "deletePaymentMessage": "هل أنت متأكد أنك تريد حذف هذه الدفعة البالغة {{amount}} من {{payer}} إلى {{payee}}؟ لا يمكن التراجع عن هذا الإجراء.",
+    "deleteButton": "حذف",
+    "cancelButton": "إلغاء",
+    "showAll": "إظهار الكل",
+    "noPaymentsForYou": "لا توجد مدفوعات تشملك حتى الآن",
+    "deletedBy": "تم الحذف بواسطة"
+  },
+  "balanceSummary": {
+    "loadingBalances": "جار تحميل الأرصدة...",
+    "allSettledUp": "كل شيء مسدد!",
+    "debtArrow": " → ",
+    "showOnlyMyBalances": "إظهار أرصدتي فقط",
+    "showAll": "إظهار الكل",
+    "settleUp": "تسوية",
+    "settleUpButton": "تسجيل تسوية لهذا الدين"
+  },
+  "emptyGroupsState": {
+    "title": "لا توجد مجموعات حتى الآن",
+    "description": "أنشئ مجموعتك الأولى لبدء تقسيم النفقات مع الأصدقاء أو العائلة أو زملاء السكن.",
+    "createFirstGroup": "إنشاء مجموعتك الأولى",
+    "gettingStartedTitle": "البدء مع {{appName}}:",
+    "step1Title": "1. إنشاء مجموعة",
+    "step1Description": "أضف الأصدقاء أو زملاء السكن أو رفاق السفر",
+    "step2Title": "2. إضافة المصروفات",
+    "step2Description": "تتبع من دفع وكيفية تقسيم التكاليف",
+    "step3Title": "3. تسوية الحسابات",
+    "step3Description": "انظر من مدين بماذا وقم بتسوية الأرصدة"
+  },
+  "groupCard": {
+    "settledUp": "تمت التسوية",
+    "youreOwed": "أنت دائن بـ {{amount}}",
+    "youOwe": "أنت مدين بـ {{amount}}",
+    "addExpenseTooltip": "إضافة مصروف إلى {{groupName}}",
+    "inviteTooltip": "دعوة إلى {{groupName}}",
+    "member": "عضو",
+    "members": "أعضاء",
+    "noRecentActivity": "لا يوجد نشاط حديث"
+  },
+  "quickActions": {
+    "title": "إجراءات سريعة",
+    "createNewGroup": "إنشاء مجموعة جديدة",
+    "viewAllExpenses": "عرض جميع المصروفات"
+  },
+  "expenseFormHeader": {
+    "addExpense": "إضافة مصروف",
+    "editExpense": "تعديل المصروف",
+    "copyExpense": "نسخ المصروف",
+    "cancel": "إلغاء"
+  },
+  "expenseBasicFields": {
+    "title": "تفاصيل المصروف",
+    "descriptionLabel": "الوصف",
+    "descriptionPlaceholder": "ما هو هذا المصروف؟",
+    "amountLabel": "المبلغ",
+    "labelsLabel": "الملصقات",
+    "labelsPlaceholder": "إضافة ملصق...",
+    "dateLabel": "التاريخ",
+    "timeLabel": "الوقت",
+    "recentAmounts": "المبالغ الأخيرة:",
+    "today": "اليوم",
+    "yesterday": "أمس",
+    "thisMorning": "هذا الصباح",
+    "lastNight": "الليلة الماضية",
+    "addSpecificTime": "إضافة وقت محدد"
+  },
+  "suggestedLabels": [
+    "بقالة",
+    "تيك أواي",
+    "مطعم",
+    "قهوة",
+    "مشروبات",
+    "بار",
+    "وجبات خفيفة",
+    "فطور",
+    "غداء",
+    "عشاء",
+    "وجبات سريعة",
+    "توصيل",
+    "برنش",
+    "بنزين",
+    "موقف سيارات",
+    "رسوم مرور",
+    "أوبر",
+    "ليفت",
+    "تاكسي",
+    "حافلة",
+    "قطار",
+    "مترو",
+    "تأجير سيارات",
+    "وقود",
+    "رحلة طيران",
+    "Airbnb",
+    "فندق",
+    "نزل",
+    "منتجع",
+    "إجازة",
+    "رحلة برية",
+    "تخييم",
+    "إيجار",
+    "خدمات",
+    "كهرباء",
+    "ماء",
+    "إنترنت",
+    "هاتف",
+    "تأمين",
+    "رهن عقاري",
+    "HOA",
+    "إصلاحات",
+    "صيانة",
+    "تنظيف",
+    "أثاث",
+    "أجهزة",
+    "ديكور",
+    "حديقة",
+    "أفلام",
+    "حفل موسيقي",
+    "عرض",
+    "مهرجان",
+    "رياضة",
+    "ألعاب",
+    "بث",
+    "تذاكر",
+    "متحف",
+    "مدينة ملاهي",
+    "بولينج",
+    "ميني غولف",
+    "كاريوكي",
+    "أركيد",
+    "غرفة هروب",
+    "تسوق",
+    "ملابس",
+    "أحذية",
+    "إلكترونيات",
+    "هدايا",
+    "كتب",
+    "ألعاب",
+    "تجميل",
+    "عناية بالبشرة",
+    "قص شعر",
+    "سبا",
+    "جيم",
+    "لياقة بدنية",
+    "معدات رياضية",
+    "معدات خارجية",
+    "طعام حيوانات أليفة",
+    "رعاية حيوانات أليفة",
+    "طبيب بيطري",
+    "تزيين",
+    "دواء",
+    "صيدلية",
+    "طبيب",
+    "طبيب أسنان",
+    "رؤية",
+    "علاج",
+    "طبي",
+    "رعاية أطفال",
+    "جليسة أطفال",
+    "رسوم دراسية",
+    "مدرسة",
+    "لوازم",
+    "حفلة",
+    "عيد ميلاد",
+    "زفاف",
+    "عطلة",
+    "ذكرى سنوية",
+    "احتفال",
+    "زينة",
+    "تموين",
+    "مكان",
+    "شواء",
+    "نزهة",
+    "بوتلاك",
+    "ليلة ألعاب",
+    "ขึ้นบ้านใหม่",
+    "عمل",
+    "مكتب",
+    "لوازم",
+    "معدات",
+    "برنامج",
+    "اشتراك",
+    "عضوية",
+    "رسوم",
+    "بقشيش",
+    "جمعية خيرية",
+    "تبرع",
+    "صراف آلي",
+    "نقد",
+    "متنوع",
+    "آخر",
+    "مشترك",
+    "تقسيم",
+    "سداد",
+    "إيداع",
+    "وديعة تأمين"
+  ],
+  "expensesList": {
+    "title": "المصروفات",
+    "noExpensesYet": "لا توجد مصروفات حتى الآن. أضف واحدة للبدء!",
+    "loadMore": "تحميل المزيد"
+  },
+  "expenseItem": {
+    "paidBy": "دفع بواسطة",
+    "deleted": "محذوف",
+    "deletedBy": "تم الحذف بواسطة",
+    "copyExpense": "نسخ المصروف"
+  },
+  "header": {
+    "logoAlt": "{{appName}}",
+    "login": "تسجيل الدخول",
+    "signUp": "سجل",
+    "goToHome": "اذهب إلى الصفحة الرئيسية",
+    "goToDashboard": "اذهب إلى لوحة التحكم"
+  },
+  "userMenu": {
+    "dashboard": "لوحة التحكم",
+    "admin": "مسؤول",
+    "settings": "الإعدادات",
+    "signOut": "تسجيل الخروج",
+    "signingOut": "جار تسجيل الخروج...",
+    "systemUserBadge": "مستخدم النظام",
+    "systemUserTooltip": "يستخدم هذا الحساب للعمليات الآلية أو التي يحركها النظام.",
+    "environmentLink": "env",
+    "diagnosticsLoading": "جار تحميل التشخيصات...",
+    "diagnosticsError": "غير قادر على تحميل التشخيصات:",
+    "browser": "متصفح",
+    "browserUsers": "متصفح المستخدمين"
+  },
+  "languageSelector": {
+    "label": "اللغة",
+    "description": "اختر لغتك المفضلة"
+  },
+  "footer": {
+    "companyName": "{{appName}}",
+    "companyDescription": "قسّم الفواتير بسهولة مع الأصدقاء والعائلة.",
+    "linksSection": "روابط",
+    "copyright": "© 2025 Pomo Corp ltd. جميع الحقوق محفوظة."
+  },
+  "groupHeader": {
+    "membersCount": "{{count}} أعضاء",
+    "membersCount_one": "عضو واحد",
+    "membersCount_other": "{{count}} أعضاء",
+    "old": "قديم",
+    "lastUpdated": "آخر تحديث",
+    "groupSettingsAriaLabel": "إعدادات المجموعة",
+    "groupSecurityAriaLabel": "الأمان والأذونات"
+  },
+  "securitySettingsModal": {
+    "title": "الأمان والأذونات",
+    "description": "تكوين الإعدادات المسبقة وإدارة الأذونات والتحكم في وصول الأعضاء لهذه المجموعة.",
+    "unsavedChanges": "لديك تغييرات غير محفوظة. راجع كل شيء ، ثم اضغط على حفظ لتطبيقها.",
+    "presets": {
+      "activeBadge": "نشط",
+      "open": {
+        "label": "إعداد مسبق: تعاون مفتوح",
+        "description": "يمكن للجميع دعوة الأعضاء وإدارة النفقات دون قيود."
+      },
+      "managed": {
+        "label": "إعداد مسبق: مجموعة مُدارة",
+        "description": "يوافق المسؤولون على الدعوات ويتحكمون في من يمكنه تعديل النفقات أو حذفها."
+      }
+    },
+    "custom": {
+      "heading": "أذونات مخصصة",
+      "unsaved": "تم تغيير الأذونات المخصصة.",
+      "saveHelper": "يتم وضع التغييرات في قائمة الانتظار حتى تضغط على حفظ."
+    },
+    "success": {
+      "updated": "تم تحديث إعدادات الأمان.",
+      "presetApplied": "تم تطبيق الإعداد المسبق {{preset}}."
+    },
+    "permissions": {
+      "expenseEditing": {
+        "label": "من يمكنه تعديل المصروفات",
+        "description": "اختر من يمكنه تحديث أي مصروف في المجموعة."
+      },
+      "expenseDeletion": {
+        "label": "من يمكنه حذف المصروفات",
+        "description": "تقييد القدرة على إزالة المصروفات."
+      },
+      "memberInvitation": {
+        "label": "من يمكنه دعوة الأعضاء",
+        "description": "تحديد من يمكنه إنشاء روابط دعوة."
+      },
+      "memberApproval": {
+        "label": "موافقة عضو جديد",
+        "description": "اطلب مراجعة المسؤول قبل انضمام شخص ما عبر دعوة."
+      },
+      "settingsManagement": {
+        "label": "من يمكنه تغيير الإعدادات",
+        "description": "التحكم في الوصول إلى الإعدادات الإدارية."
+      },
+      "options": {
+        "anyone": "أي عضو",
+        "creator-and-admin": "المنشئون والمسؤولون",
+        "admin-only": "المسؤولون فقط",
+        "automatic": "تلقائي",
+        "admin-required": "موافقة المسؤول مطلوبة"
+      }
+    },
+    "memberRoles": {
+      "heading": "أدوار الأعضاء",
+      "admin": "مسؤول",
+      "member": "عضو",
+      "viewer": "مشاهد"
+    },
+    "pendingMembers": {
+      "heading": "الأعضاء المعلقون",
+      "requested": "في انتظار الموافقة",
+      "empty": "لا توجد طلبات معلقة الآن.",
+      "approve": "موافقة",
+      "reject": "رفض"
+    },
+    "errors": {
+      "loadPending": "غير قادر على تحميل الأعضاء المعلقين. يرجى المحاولة مرة أخرى.",
+      "updatePermissions": "لم نتمكن من تحديث إعدادات الأمان. يرجى المحاولة مرة أخرى.",
+      "updateRole": "فشل تحديث دور العضو.",
+      "pendingAction": "لم نتمكن من معالجة هذا الطلب. يرجى المحاولة مرة أخرى."
+    }
+  },
+  "settingsPage": {
+    "title": "الإعدادات - {{appName}}",
+    "description": "إدارة إعدادات حسابك",
+    "heroLabel": "الحساب",
+    "accountSettingsHeader": "إعدادات الحساب",
+    "accountSettingsSubheader": "إدارة معلومات ملفك الشخصي وكلمة المرور",
+    "profileSummaryTitle": "نظرة عامة على الملف الشخصي",
+    "profileSummaryDescription": "تساعد هذه المعلومات الأعضاء الآخرين في التعرف عليك.",
+    "profileInformationHeader": "معلومات الملف الشخصي",
+    "profileInformationSubheader": "تحديث التفاصيل التي يراها الأعضاء الآخرون عبر {{appName}}.",
+    "emailSectionTitle": "عنوان البريد الإلكتروني",
+    "emailSectionDescription": "تحديث البريد الإلكتروني الذي تستخدمه لتسجيل الدخول وتلقي الإشعارات.",
+    "currentDisplayName": "اسم العرض الحالي:",
+    "email": "البريد الإلكتروني:",
+    "currentEmailLabel": "البريد الإلكتروني الحالي",
+    "displayNameLabel": "اسم العرض",
+    "displayNamePlaceholder": "أدخل اسم العرض الخاص بك",
+    "displayNameHelper": "استخدم اسمك الكامل أو لقبًا يتعرف عليه زملاؤك في الفريق.",
+    "saveChangesButton": "حفظ التغييرات",
+    "passwordHeader": "كلمة المرور",
+    "passwordIntro": "قم بتعيين كلمة مرور قوية للحفاظ على أمان حساب {{appName}} الخاص بك.",
+    "changePasswordButton": "تغيير كلمة المرور",
+    "changeEmailButton": "تغيير البريد الإلكتروني",
+    "newEmailLabel": "بريد إلكتروني جديد",
+    "newEmailPlaceholder": "أدخل عنوان بريدك الإلكتروني الجديد",
+    "emailPasswordLabel": "تأكيد بكلمة المرور",
+    "updateEmailButton": "تحديث البريد الإلكتروني",
+    "currentPasswordLabel": "كلمة المرور الحالية",
+    "newPasswordLabel": "كلمة مرور جديدة",
+    "confirmNewPasswordLabel": "تأكيد كلمة المرور الجديدة",
+    "updatePasswordButton": "تحديث كلمة المرور",
+    "cancelButton": "إلغاء",
+    "passwordRequirementsHeading": "قائمة التحقق من كلمة المرور القوية",
+    "passwordRequirements": {
+      "length": "استخدم 12 حرفًا على الأقل.",
+      "mix": "امزج بين الأحرف الكبيرة والصغيرة والأرقام والرموز.",
+      "reuse": "تجنب كلمات المرور التي استخدمتها في مكان آخر."
+    },
+    "profileSummaryRoleLabel": "دور الحساب",
+    "profileSummaryRoleFallback": "عضو",
+    "profileSummaryRole": {
+      "system_admin": "مسؤول",
+      "system_user": "عضو"
+    },
+    "successMessages": {
+      "profileUpdated": "تم تحديث الملف الشخصي بنجاح",
+      "passwordChanged": "تم تغيير كلمة المرور بنجاح",
+      "emailChanged": "تم تحديث البريد الإلكتروني بنجاح. يرجى التحقق من العنوان الجديد."
+    },
+    "errorMessages": {
+      "profileUpdateFailed": "فشل تحديث الملف الشخصي. يرجى المحاولة مرة أخرى.",
+      "passwordAndNewRequired": "كلمة المرور الحالية وكلمة المرور الجديدة مطلوبتان",
+      "passwordTooShort": "يجب أن لا تقل كلمة المرور الجديدة عن 12 حرفًا",
+      "passwordsNoMatch": "كلمات المرور غير متطابقة",
+      "passwordSameAsCurrent": "يجب أن تكون كلمة المرور الجديدة مختلفة عن كلمة المرور الحالية",
+      "currentPasswordIncorrect": "كلمة المرور الحالية غير صحيحة",
+      "passwordChangeFailed": "فشل تغيير كلمة المرور. يرجى المحاولة مرة أخرى.",
+      "displayNameEmpty": "لا يمكن أن يكون اسم العرض فارغًا",
+      "displayNameTooLong": "يجب أن يكون اسم العرض 100 حرف أو أقل",
+      "emailRequired": "البريد الإلكتروني الجديد مطلوب",
+      "emailInvalid": "أدخل عنوان بريد إلكتروني صالح",
+      "emailSameAsCurrent": "يجب أن يكون البريد الإلكتروني الجديد مختلفًا عن البريد الإلكتروني الحالي",
+      "emailPasswordRequired": "أدخل كلمة المرور الحالية لتأكيد هذا التغيير",
+      "emailInUse": "هذا البريد الإلكتروني مرتبط بالفعل بحساب {{appName}} آخر",
+      "emailChangeFailed": "فشل تغيير البريد الإلكتروني. يرجى المحاولة مرة أخرى."
+    }
+  },
+  "editGroupModal": {
+    "title": "تعديل المجموعة",
+    "groupNameLabel": "اسم المجموعة",
+    "groupNamePlaceholder": "على سبيل المثال ، نفقات الشقة ، رحلة إلى باريس",
+    "descriptionLabel": "الوصف (اختياري)",
+    "descriptionPlaceholder": "أضف أي تفاصيل حول هذه المجموعة...",
+    "cancelButton": "إلغاء",
+    "saveChangesButton": "حفظ التغييرات",
+    "deleteGroupButton": "حذف المجموعة",
+    "validation": {
+      "nameRequired": "اسم المجموعة مطلوب.",
+      "nameTooShort": "يجب أن يتكون اسم المجموعة من حرفين على الأقل.",
+      "nameTooLong": "يجب أن يكون اسم المجموعة أقل من 50 حرفًا.",
+      "updateFailed": "فشل تحديث المجموعة"
+    },
+    "success": {
+      "updated": "تم تحديث تفاصيل المجموعة."
+    },
+    "deleteConfirmDialog": {
+      "title": "حذف المجموعة نهائيًا",
+      "warningTitle": "⚠️ تحذير الحذف الدائم",
+      "warningMessage": "سيؤدي هذا إلى حذف المجموعة وجميع البيانات المرتبطة بها نهائيًا:",
+      "warningList": {
+        "expenses": "جميع المصروفات وتعليقاتها",
+        "settlements": "جميع التسويات وسجل الدفع",
+        "members": "جميع أعضاء المجموعة والأذونات",
+        "history": "كل سجل التغيير والنشاط"
+      },
+      "cannotUndo": "لا يمكن التراجع عن هذا الإجراء.",
+      "typeToConfirm": "للتأكيد ، اكتب اسم المجموعة \"{{groupName}}\" أدناه:",
+      "deletingMessage": "جار حذف المجموعة وجميع البيانات المرتبطة بها...",
+      "deletingText": "جار الحذف...",
+      "confirmText": "حذف المجموعة نهائيًا",
+      "cancelText": "إلغاء",
+      "deleteFailed": "فشل حذف المجموعة"
+    }
+  },
+  "groupActions": {
+    "title": "إجراءات المجموعة",
+    "addExpense": "إضافة مصروف",
+    "settleUp": "تسوية",
+    "inviteOthers": "دعوة الآخرين",
+    "settings": "الإعدادات",
+    "leaveGroup": "مغادرة المجموعة",
+    "archive": "أرشفة المجموعة",
+    "unarchive": "إلغاء أرشفة المجموعة"
+  },
+  "groupSettingsModal": {
+    "title": "إعدادات المجموعة",
+    "tabs": {
+      "identity": "اسم العرض",
+      "general": "عام",
+      "security": "الأمان والأذونات"
+    },
+    "securityTab": {
+      "successAriaLabel": "نجاح",
+      "unsavedChangesAriaLabel": "تغييرات غير محفوظة"
+    }
+  },
+  "groupSettings": {
+    "currencySettings": {
+      "title": "إعدادات العملة",
+      "description": "تقييد العملات التي يمكن استخدامها للمصروفات في هذه المجموعة.",
+      "enableToggle": "تقييد العملات لهذه المجموعة",
+      "enabledDescription": "يمكن استخدام العملات المحددة فقط للمصروفات",
+      "permittedLabel": "العملات المسموح بها",
+      "defaultLabel": "العملة الافتراضية للمصروفات الجديدة",
+      "addCurrency": "إضافة عملة",
+      "searchPlaceholder": "بحث عن عملات...",
+      "noCurrenciesSelected": "حدد عملة واحدة على الأقل",
+      "defaultNotInPermitted": "يجب أن يكون الافتراضي عملة مسموح بها",
+      "allCurrenciesSelected": "تم تحديد جميع العملات",
+      "saveButton": "حفظ إعدادات العملة",
+      "saveSuccess": "تم تحديث إعدادات العملة بنجاح.",
+      "saveFailed": "فشل حفظ إعدادات العملة. يرجى المحاولة مرة أخرى."
+    }
+  },
+  "groupDisplayNameSettings": {
+    "title": "اسم العرض للمجموعة",
+    "description": "اختر كيف يراك الأعضاء الآخرون في هذه المجموعة.",
+    "inputLabel": "اسم العرض الخاص بك في هذه المجموعة",
+    "inputPlaceholder": "أدخل اسم عرض فريد",
+    "save": "حفظ اسم العرض",
+    "saving": "جار الحفظ...",
+    "success": "تم تحديث اسم عرض المجموعة.",
+    "errors": {
+      "required": "أدخل اسم عرض.",
+      "tooLong": "يجب أن يكون اسم العرض 50 حرفًا أو أقل.",
+      "notChanged": "أدخل اسم عرض مختلف قبل الحفظ.",
+      "taken": "هذا الاسم مستخدم بالفعل في هذه المجموعة.",
+      "unknown": "فشل تحديث اسم العرض. حاول مرة أخرى."
+    }
+  },
+  "membersList": {
+    "title": "الأعضاء",
+    "admin": "مسؤول",
+    "member": "عضو",
+    "viewer": "مشاهد",
+    "thisMember": "هذا العضو",
+    "leaveGroup": "مغادرة المجموعة",
+    "inviteOthers": "دعوة الآخرين",
+    "inviteOthersAriaLabel": "دعوة الآخرين",
+    "leaveGroupAriaLabel": "مغادرة المجموعة",
+    "removeMemberAriaLabel": "إزالة العضو",
+    "leaveGroupDialog": {
+      "title": "مغادرة المجموعة؟",
+      "messageWithBalance": "لديك رصيد مستحق في هذه المجموعة. يرجى تسوية الحساب قبل المغادرة.",
+      "messageConfirm": "هل أنت متأكد أنك تريد مغادرة هذه المجموعة؟ ستحتاج إلى دعوة لإعادة الانضمام.",
+      "confirmText": "مغادرة المجموعة",
+      "cancelText": "إلغاء"
+    },
+    "removeMemberDialog": {
+      "title": "إزالة العضو؟",
+      "messageWithBalance": "لدى {{name}} رصيد مستحق في هذه المجموعة. يرجى تسوية الحساب قبل الإزالة.",
+      "messageConfirm": "هل أنت متأكد أنك تريد إزالة {{name}} من المجموعة؟",
+      "confirmText": "إزالة",
+      "cancelText": "إلغاء"
+    }
+  },
+  "shareGroupModal": {
+    "title": "دعوة الآخرين",
+    "description": "شارك هذا الرابط مع أي شخص تريد انضمامه إلى هذه المجموعة.",
+    "closeButtonAriaLabel": "إغلاق النموذج",
+    "copyLinkTitle": "نسخ الرابط",
+    "copyLinkAriaLabel": "نسخ رابط دعوة المجموعة",
+    "qrCodeDescription": "أو امسح هذا الرمز",
+    "expirationLabel": "رابط الدعوة ينتهي في...",
+    "expirationOptions": {
+      "15m": "15 دقيقة",
+      "1h": "ساعة واحدة",
+      "1d": "يوم واحد",
+      "5d": "5 أيام"
+    },
+    "expiresAt": "ينتهي في {{date}}",
+    "generateNew": "توليد جديد",
+    "linkCopied": "تم نسخ الرابط إلى الحافظة",
+    "errors": {
+      "generateLinkFailed": "فشل توليد رابط المشاركة. يرجى المحاولة مرة أخرى."
+    }
+  },
+  "errorState": {
+    "defaultTitle": "حدث خطأ ما",
+    "unexpectedError": "حدث خطأ غير متوقع",
+    "tryAgainButton": "حاول مرة أخرى"
+  },
+  "errorBoundary": {
+    "title": "حدث خطأ ما",
+    "unexpectedError": "حدث خطأ غير متوقع"
+  },
+  "notFoundPage": {
+    "title": "404",
+    "pageNotFound": "الصفحة غير موجودة",
+    "pageNotFoundDescription": "الصفحة التي تبحث عنها غير موجودة.",
+    "groupNotFound": "المجموعة غير موجودة أو ليس لديك صلاحية الوصول",
+    "groupNotFoundDescription": "المجموعة التي تبحث عنها غير موجودة أو تحتاج إلى دعوة للوصول إليها.",
+    "goToDashboard": "اذهب إلى لوحة التحكم",
+    "goHome": "الذهاب إلى الصفحة الرئيسية"
+  },
+  "loadingState": {
+    "defaultMessage": "جار التحميل..."
+  },
+  "joinGroupPage": {
+    "title": "الانضمام إلى المجموعة",
+    "loadingGroup": "جار تحميل معلومات المجموعة...",
+    "alreadyMember": "أنت بالفعل عضو في هذه المجموعة",
+    "alreadyMemberDescription": "يمكنك الذهاب مباشرة إلى المجموعة لعرض المصروفات والأرصدة.",
+    "joinGroup": "الانضمام إلى المجموعة",
+    "goToGroup": "اذهب إلى المجموعة",
+    "joining": "جار الانضمام...",
+    "cancel": "إلغاء",
+    "welcome": "مرحبًا بك في {{groupName}}!",
+    "joinSuccess": "لقد انضممت إلى المجموعة بنجاح. جار إعادة التوجيه إلى صفحة المجموعة...",
+    "joinedTitle": "انضم إلى {{groupName}} - {{appName}}",
+    "backToDashboard": "العودة إلى لوحة التحكم",
+    "pendingApprovalTitle": "في انتظار الموافقة",
+    "pendingApprovalMessage": "تم إرسال طلبك للانضمام إلى {{groupName}} إلى مديري المجموعة.",
+    "pendingApprovalHelp": "سنخطرك بمجرد الموافقة عليك. يمكنك العودة إلى لوحة التحكم الآن.",
+    "errors": {
+      "invalidLink": "رابط الدعوة هذا غير صالح أو انتهت صلاحيته",
+      "groupNotFound": "هذه المجموعة لم تعد موجودة",
+      "alreadyMember": "أنت بالفعل عضو في هذه المجموعة",
+      "joinFailed": "فشل الانضمام إلى المجموعة",
+      "loadFailed": "فشل تحميل معلومات المجموعة"
+    },
+    "displayName": {
+      "title": "اختر اسم العرض الخاص بك",
+      "description": "هذه هي الطريقة التي سيراك بها الأعضاء الآخرون في \"{{groupName}}\"",
+      "label": "اسم العرض",
+      "placeholder": "كيف يجب أن يرى الأعضاء الآخرون اسمك؟",
+      "help": "اختر اسمًا فريدًا لهذه المجموعة. سيستخدمه الأعضاء الآخرون للتعرف عليك.",
+      "errors": {
+        "required": "أدخل اسم عرض.",
+        "taken": "اسم العرض هذا مستخدم بالفعل في هذه المجموعة.",
+        "invalid": "يمكن أن يستخدم اسم العرض الأحرف والأرقام والمسافات والواصلات والشرطات السفلية والنقاط فقط."
+      }
+    }
+  },
+  "dashboardComponents": {
+    "groupsList": {
+      "loading": "جار تحميل مجموعاتك...",
+      "loadFailed": "فشل تحميل المجموعات",
+      "tryAgain": "حاول مرة أخرى",
+      "creating": "جار إنشاء المجموعة...",
+      "noArchivedTitle": "لا توجد مجموعات مؤرشفة",
+      "noArchivedDescription": "ستظهر المجموعات التي أرشفتها هنا. قم بأرشفة مجموعة من علامة التبويب النشطة لإخفائها من لوحة التحكم الخاصة بك."
+    }
+  },
+  "expenseComponents": {
+    "expenseFormActions": {
+      "cancel": "إلغاء",
+      "updating": "جار التحديث...",
+      "saving": "جار الحفظ...",
+      "update": "تحديث المصروف",
+      "save": "حفظ المصروف"
+    },
+    "participantSelector": {
+      "label": "تقسيم بين",
+      "requiredIndicator": "*",
+      "selectAll": "تحديد الكل",
+      "selectNone": "إلغاء تحديد الكل",
+      "payerSuffix": "(الدافع)"
+    },
+    "payerSelector": {
+      "label": "من دفع؟",
+      "requiredIndicator": "*",
+      "selectPayer": "اختر من دفع",
+      "searchPlaceholder": "بحث عن أعضاء...",
+      "membersList": "أعضاء المجموعة",
+      "noResults": "لا يوجد أعضاء يطابقون بحثك"
+    },
+    "splitAmountInputs": {
+      "exactAmountsInstruction": "أدخل المبالغ الدقيقة لكل شخص:",
+      "unknown": "غير معروف",
+      "dollarSign": "$",
+      "total": "المجموع:",
+      "percentageInstruction": "أدخل النسبة المئوية لكل شخص:",
+      "percentSign": "%",
+      "equalInstruction": "يدفع كل شخص:"
+    },
+    "splitTypeSelector": {
+      "label": "كيفية التقسيم",
+      "equal": "بالتساوي",
+      "exactAmounts": "مبالغ دقيقة",
+      "percentage": "نسبة مئوية"
+    },
+    "expenseActions": {
+      "edit": "تعديل",
+      "copyExpense": "نسخ المصروف",
+      "copy": "نسخ",
+      "share": "مشاركة",
+      "delete": "حذف",
+      "deleteTitle": "حذف المصروف",
+      "deleteConfirm": "هل أنت متأكد أنك تريد حذف \"{{expenseName}}\"؟ لا يمكن التراجع عن هذا الإجراء وسيؤثر على أرصدة المجموعة.",
+      "deleteButton": "حذف",
+      "cancel": "إلغاء",
+      "deleteFailed": "فشل حذف المصروف",
+      "cannotEditTooltip": "لا يمكن التعديل - لقد غادر المشارك المجموعة"
+    },
+    "expenseFormModal": {
+      "addExpense": "إضافة مصروف",
+      "editExpense": "تعديل المصروف",
+      "copyExpense": "نسخ المصروف",
+      "closeModal": "إغلاق النموذج",
+      "cancel": "إلغاء",
+      "saveExpense": "حفظ المصروف",
+      "updateExpense": "تحديث المصروف",
+      "createCopy": "إنشاء نسخة",
+      "saving": "جار الحفظ...",
+      "updating": "جار التحديث...",
+      "close": "إغلاق"
+    },
+    "expenseDetailModal": {
+      "title": "تفاصيل المصروف",
+      "closeModal": "إغلاق النموذج",
+      "close": "إغلاق",
+      "edit": "تعديل",
+      "copy": "نسخ",
+      "share": "مشاركة",
+      "delete": "حذف",
+      "paidBy": "دفع بواسطة",
+      "date": "التاريخ",
+      "labels": "الملصقات",
+      "receipt": "الإيصال",
+      "viewReceipt": "عرض الإيصال",
+      "noReceipt": "لا يوجد إيصال",
+      "splitDetails": "تفاصيل التقسيم",
+      "comments": "التعليقات",
+      "loadingExpense": "جار تحميل تفاصيل المصروف...",
+      "expenseNotFound": "المصروف غير موجود",
+      "failedToLoad": "فشل تحميل تفاصيل المصروف",
+      "shareTitle": "المصروف: {{description}}",
+      "shareText": "تحقق من هذا المصروف: {{description}} - {{amount}}"
+    },
+    "splitBreakdown": {
+      "splitBetween": "تقسيم بين ",
+      "person": " شخص",
+      "people": " أشخاص",
+      "splitEqually": "تقسيم بالتساوي",
+      "exactAmounts": "مبالغ دقيقة",
+      "byPercentage": "حسب النسبة المئوية",
+      "customSplit": "تقسيم مخصص",
+      "unknown": "غير معروف",
+      "paid": "مدفوع",
+      "owes": "مدين لـ ",
+      "total": "المجموع: "
+    }
+  },
+  "groupComponents": {
+    "editGroupModal": {
+      "warningIcon": "⚠️"
+    },
+    "groupHeader": {
+      "ago": "منذ"
+    },
+    "membersListWithManagement": {
+      "user": "مستخدم"
+    },
+    "shareGroupModal": {
+      "close": "إغلاق",
+      "checkmark": "✓",
+      "ellipsis": "..."
+    }
+  },
+  "joinGroupComponents": {
+    "groupPreview": {
+      "member": "عضو",
+      "members": "أعضاء",
+      "active": "نشط",
+      "group": "مجموعة",
+      "invitationMessage": "لقد تمت دعوتك للانضمام إلى هذه المجموعة"
+    },
+    "joinButton": {
+      "joining": "جار الانضمام...",
+      "joinGroup": "الانضمام إلى المجموعة"
+    },
+    "membersPreview": {
+      "groupSize": "حجم المجموعة",
+      "member": "عضو",
+      "members": "أعضاء"
+    }
+  },
+  "landingComponents": {
+    "ctaSection": {
+      "title": "هل أنت مستعد لتبسيط نفقاتك المشتركة؟",
+      "subtitle": "انضم إلى الآلاف الذين يجعلون بالفعل مدفوعات المجموعة خالية من الإجهاد وشفافة. ابدأ اليوم!",
+      "signUpButton": "سجل مجانا"
+    },
+    "featuresGrid": {
+      "smartGroupManagement": "إدارة المجموعات الذكية",
+      "smartGroupDescription": "أنشئ مجموعات لأي مناسبة. أضف أعضاء بسهولة وتتبع النفقات المشتركة في مكان واحد ، مع إبقاء الجميع على اطلاع دائم.",
+      "flexibleSplitting": "تقسيم مرن",
+      "flexibleSplittingDescription": "قسّم الفواتير بالتساوي أو بالمبالغ الدقيقة أو بالنسب المئوية. نحن نتعامل مع جميع العمليات الحسابية المعقدة ، لذلك لا يتعين عليك ذلك.",
+      "debtSimplification": "تبسيط الديون",
+      "debtSimplificationDescription": "تقلل الخوارزمية الخاصة بنا من المعاملات ، وتوضح لك أبسط طريقة للتسوية ، مما يوفر للجميع الوقت والمتاعب.",
+      "freeToUse": "مجاني 100٪ للاستخدام",
+      "freeToUseDescription": "خدمتنا مجانية وستظل كذلك دائمًا. لا توجد رسوم خفية أو مستويات متميزة - فقط أداة قوية وسهلة الوصول للجميع.",
+      "unlimitedUse": "استخدام غير محدود",
+      "unlimitedUseDescription": "أنشئ العديد من المجموعات ، وأضف العديد من الأصدقاء ، وتتبع العديد من النفقات التي تحتاجها. لا قيود ، لا حدود.",
+      "zeroAds": "صفر إعلانات ، على الإطلاق",
+      "zeroAdsDescription": "استمتع بتجربة نظيفة ومركزة. لن نبيع بياناتك أبدًا أو نزحم شاشتك بالإعلانات. خصوصيتك هي أولويتنا.",
+      "subtitle": "كل ما تحتاجه ، لا شيء لا تحتاجه"
+    },
+    "globe": {
+      "loadError": "غير قادر على تحميل الكرة الأرضية ثلاثية الأبعاد"
+    },
+    "heroSection": {
+      "title": "تقسيم الفواتير بسهولة ،",
+      "subtitle": "مبسط وذكي.",
+      "description": "وداعًا للإحراج من الديون المعلقة والحسابات المعقدة. تطبيقنا يجعل مشاركة النفقات مع الأصدقاء والعائلة وزملاء السكن سهلة وعادلة وشفافة.",
+      "subDescription": "إنه مجاني 100٪ ، بدون إعلانات وبدون حدود.",
+      "focus": "ركز على ما يهم ، وليس على الرياضيات."
+    }
+  },
+  "policyComponents": {
+    "policyAcceptanceModal": {
+      "title": "قبول السياسات المحدثة",
+      "policyLabel": "سياسة ",
+      "of": " من ",
+      "colon": ": ",
+      "close": "إغلاق",
+      "progress": "التقدم",
+      "accepted": " تم قبوله",
+      "acceptedIcon": "✓ مقبول",
+      "acceptedAriaLabel": "مقبول",
+      "loadingContent": "جار تحميل محتوى السياسة...",
+      "acceptanceRequired": "قبول السياسة مطلوب",
+      "acceptanceInstructions": "يرجى قراءة السياسة أعلاه والنقر فوق \"قبول\" لمتابعة استخدام {{appName}}.",
+      "acceptCheckbox": "لقد قرأت وأقبل هذا ",
+      "previous": "السابق",
+      "next": "التالي",
+      "policiesAccepted": " السياسات المقبولة",
+      "accepting": "جار القبول...",
+      "acceptAll": "قبول الكل والمتابعة",
+      "closeAriaLabel": "إغلاق",
+      "errorTitle": "خطأ"
+    },
+    "policyRenderer": {
+      "bulletPoint": "• "
+    }
+  },
+  "uiComponents": {
+    "alert": {
+      "dismiss": "تجاهل التنبيه"
+    },
+    "avatar": {
+      "unknown": "غير معروف"
+    },
+    "button": {
+      "default": "زر"
+    },
+    "multiLabelInput": {
+      "placeholder": "إضافة ملصق...",
+      "removeLabel": "إزالة {{label}}",
+      "maxReached": "تم الوصول إلى الحد الأقصى {{max}} من الملصقات",
+      "recent": "حديث",
+      "hint": "{{count}}/{{max}} ملصق"
+    },
+    "confirmDialog": {
+      "confirm": "تأكيد",
+      "cancel": "إلغاء"
+    },
+    "currencyAmountInput": {
+      "selectCurrency": "اختر العملة",
+      "searchPlaceholder": "بحث بالرمز أو الرمز أو البلد...",
+      "searchAriaLabel": "بحث عن العملات",
+      "loading": "جار تحميل العملات...",
+      "noCurrencies": "لم يتم العثور على عملات",
+      "recent": "حديث",
+      "common": "شائع",
+      "allCurrencies": "جميع العملات",
+      "placeholder": "0.00",
+      "requiredIndicator": "*"
+    },
+    "currencySelector": {
+      "placeholder": "اختر العملة...",
+      "searchPlaceholder": "بحث عن العملات",
+      "loading": "جار تحميل العملات...",
+      "noCurrencies": "لم يتم العثور على عملات",
+      "recent": "حديث",
+      "common": "شائع",
+      "allCurrencies": "جميع العملات"
+    },
+    "input": {
+      "requiredIndicator": "*"
+    },
+    "loadingSpinner": {
+      "loading": "جار التحميل..."
+    },
+    "timeInput": {
+      "at": "في ",
+      "placeholder": "أدخل الوقت (مثلاً 2:30 مساءً)",
+      "requiredIndicator": "*"
+    },
+    "form": {
+      "submissionError": "خطأ في إرسال النموذج"
+    }
+  },
+  "pages": {
+    "addExpensePage": {
+      "errorTitle": "خطأ - {{appName}}",
+      "error": "خطأ",
+      "noGroupMessage": "لم يتم تحديد مجموعة. لا يمكن إضافة مصروف بدون مجموعة.",
+      "backToDashboard": "العودة إلى لوحة التحكم",
+      "loadingTitle": "جار التحميل... - {{appName}}",
+      "groupNotFound": "المجموعة غير موجودة",
+      "groupNotFoundMessage": "المجموعة التي تحاول إضافة مصروف إليها غير موجودة أو ليس لديك صلاحية الوصول إليها.",
+      "backToGroup": "العودة إلى المجموعة",
+      "copyExpenseTitle": "نسخ المصروف",
+      "editExpenseTitle": "تعديل المصروف",
+      "addExpenseTitle": "إضافة مصروف",
+      "copyExpenseAction": "نسخ المصروف",
+      "editExpenseAction": "تعديل المصروف",
+      "addExpenseAction": "إضافة مصروف جديد",
+      "titleSuffix": " - {{appName}}",
+      "titleIn": " في "
+    },
+    "expenseDetailPage": {
+      "missingGroupId": "معرف المجموعة مفقود",
+      "missingExpenseId": "معرف المصروف مفقود",
+      "failedToLoad": "فشل تحميل المصروف",
+      "cannotEdit": "لا يمكن تعديل هذا المصروف",
+      "containsDepartedMembers": "لقد غادر واحد أو أكثر من المشاركين المجموعة. يتم الاحتفاظ بالسجلات التاريخية كقراءة فقط.",
+      "expenseLabel": "المصروف: ",
+      "checkOutExpense": "تحقق من هذا المصروف: ",
+      "shareApiFailed": "فشل واجهة برمجة تطبيقات المشاركة ، جار العودة إلى الحافظة",
+      "failedToCopy": "فشل النسخ إلى الحافظة",
+      "error": "خطأ",
+      "expenseNotFound": "المصروف غير موجود",
+      "backToGroup": "العودة إلى المجموعة",
+      "titleSeparator": " - ",
+      "expenseFor": "مصروف لـ ",
+      "backButton": "← رجوع",
+      "date": "التاريخ",
+      "ago": " منذ",
+      "labels": "الملصقات",
+      "paidBy": "دفع بواسطة",
+      "unknown": "غير معروف",
+      "discussion": "مناقشة",
+      "receipt": "الإيصال",
+      "clickToViewFullSize": "انقر لعرض الحجم الكامل",
+      "added": "أضيف ",
+      "lastUpdated": "آخر تحديث ",
+      "receiptViewer": "عارض الإيصالات",
+      "closeReceiptViewer": "إغلاق عارض الإيصالات",
+      "receiptFullSize": "الإيصال - الحجم الكامل",
+      "summarySection": "ملخص المصروف",
+      "splitSection": "تفاصيل التقسيم",
+      "metadataSection": "بيانات المصروف الوصفية"
+    },
+    "groupDetailPage": {
+      "errorLoadingGroup": "خطأ في تحميل المجموعة",
+      "backToDashboard": "العودة إلى لوحة التحكم",
+      "balances": "الأرصدة",
+      "expenses": "المصروفات",
+      "comments": "التعليقات",
+      "activity": "النشاط",
+      "paymentHistory": "التسويات",
+      "toggleSection": "تبديل قسم {{section}}",
+      "titleSuffix": " - {{appName}}",
+      "manageExpensesFor": "إدارة المصروفات لـ "
+    },
+    "landingPage": {
+      "title": "تقسيم الفواتير بسهولة - {{appName}}",
+      "description": "وداعًا للإحراج من الديون المعلقة والحسابات المعقدة. تطبيقنا يجعل مشاركة النفقات مع الأصدقاء والعائلة وزملاء السكن سهلة وعادلة وشفافة. إنه مجاني 100٪ ، بدون إعلانات وبدون حدود.",
+      "disclaimer": "هذه أداة لتتبع النفقات ، وليست لإجراء المدفوعات.",
+      "accountNote": " لحفظ وإدارة نفقاتك ، ستحتاج إلى حساب مجاني.",
+      "privacyNote": "لن نطلب أبدًا تفاصيل مالية حساسة.",
+      "transparencyNotice": {
+        "bold": "هذه أداة لتتبع النفقات ، وليست لإجراء المدفوعات.",
+        "text": "لحفظ وإدارة نفقاتك ، ستحتاج إلى حساب مجاني. لن نطلب أبدًا تفاصيل مالية حساسة."
+      }
+    },
+    "registerPage": {
+      "requiredIndicator": "*"
+    },
+    "resetPasswordPage": {
+      "failedToSendReset": "فشل إرسال بريد إعادة التعيين",
+      "checkYourEmail": "تحقق من بريدك الإلكتروني",
+      "resetInstructionsSent": "تم إرسال تعليمات إعادة تعيين كلمة المرور إلى بريدك الإلكتروني",
+      "emailSentSuccessfully": "تم إرسال البريد الإلكتروني بنجاح",
+      "sentInstructionsTo": "لقد أرسلنا تعليمات إعادة تعيين كلمة المرور إلى:",
+      "checkSpamFolder": "لا يمكنك العثور عليها؟ تحقق من مجلد البريد العشوائي أو غير المرغوب فيه.",
+      "whatsNext": "ماذا بعد؟",
+      "checkEmailInbox": "• تحقق من صندوق الوارد في بريدك الإلكتروني (ومجلد البريد العشوائي)",
+      "clickResetLink": "• انقر فوق رابط إعادة التعيين في البريد الإلكتروني",
+      "createNewPassword": "• إنشاء كلمة مرور جديدة",
+      "signInWithNewPassword": "• سجل الدخول بكلمة المرور الجديدة",
+      "sendToDifferentEmail": "إرسال إلى بريد إلكتروني مختلف",
+      "backToSignIn": "← العودة إلى تسجيل الدخول",
+      "resetPassword": "إعادة تعيين كلمة المرور",
+      "enterEmailForReset": "أدخل عنوان بريدك الإلكتروني لتلقي تعليمات إعادة تعيين كلمة المرور",
+      "enterEmailDescription": "أدخل عنوان البريد الإلكتروني المرتبط بحسابك وسنرسل لك رابطًا لإعادة تعيين كلمة المرور الخاصة بك.",
+      "emailPlaceholder": "أدخل عنوان بريدك الإلكتروني",
+      "sendResetInstructions": "إرسال تعليمات إعادة التعيين"
+    }
+  },
+  "authLayout": {
+    "titleSuffix": " - {{appName}}"
+  },
+  "authProvider": {
+    "authenticationError": "خطأ في المصادقة",
+    "retry": "إعادة المحاولة"
+  },
+  "usersBrowser": {
+    "title": "متصفح المستخدمين",
+    "authTab": "مستخدمو مصادقة Firebase",
+    "firestoreTab": "مستخدمو Firestore",
+    "searchLabel": "بحث",
+    "searchPlaceholder": "بحث بالبريد الإلكتروني أو اسم العرض أو معرف المستخدم",
+    "searchPlaceholderSmart": "أدخل البريد الإلكتروني أو UID أو اسم العرض",
+    "searchButton": "بحث",
+    "resetButton": "إعادة تعيين",
+    "noResults": "لم يتم العثور على مستخدمين",
+    "authLimitNote": "تعيد مصادقة Firebase ما يصل إلى {count} مستخدمًا لكل صفحة.",
+    "firestoreLimitNote": "يعيد Firestore ما يصل إلى {count} مستندًا لكل صفحة.",
+    "jsonViewTitle": "JSON المستخدم",
+    "closeJsonViewer": "إغلاق عارض JSON",
+    "copyJson": "نسخ JSON",
+    "copiedJson": "تم نسخ JSON",
+    "authDisplayNameNotSupported": "بحث اسم العرض غير مدعوم لمصادقة Firebase. حاول استخدام بريد إلكتروني أو UID بدلاً من ذلك.",
+    "unauthorized": "ليس لديك إذن لعرض متصفح البيانات.",
+    "viewJson": "عرض JSON",
+    "statusDisabled": "معطل",
+    "statusEnabled": "نشط",
+    "table": {
+      "auth": {
+        "uid": "UID",
+        "email": "البريد الإلكتروني",
+        "displayName": "اسم العرض",
+        "status": "الحالة",
+        "createdAt": "تم الإنشاء",
+        "lastSignInAt": "آخر تسجيل دخول"
+      },
+      "firestore": {
+        "id": "معرف المستند",
+        "role": "الدور",
+        "updatedAt": "تم التحديث",
+        "schema": "التحقق من صحة المخطط"
+      }
+    },
+    "loaders": {
+      "loadingAuth": "جار تحميل مستخدمي مصادقة Firebase...",
+      "loadingFirestore": "جار تحميل مستخدمي Firestore..."
+    },
+    "loadingUserData": "جار تحميل بيانات المستخدم...",
+    "errors": {
+      "auth": "فشل تحميل مستخدمي مصادقة Firebase",
+      "firestore": "فشل تحميل مستخدمي Firestore"
+    },
+    "searchFieldOptions": {
+      "email": "البريد الإلكتروني",
+      "uid": "معرف المستخدم",
+      "displayName": "اسم العرض"
+    },
+    "schema": {
+      "ok": "يتطابق المخطط مع التوقعات",
+      "missing": "مفقود: {{field}}",
+      "unexpected": "غير متوقع: {{field}}"
+    },
+    "jsonAuthTitle": "مستخدم مصادقة Firebase",
+    "jsonFirestoreTitle": "مستند مستخدم Firestore",
+    "jsonAuthMissing": "لم يتم العثور على سجل مصادقة Firebase لهذا المستخدم.",
+    "jsonFirestoreMissing": "لم يتم العثور على مستند Firestore لهذا المستخدم.",
+    "copyJsonAuth": "نسخ JSON المصادقة",
+    "copyJsonFirestore": "نسخ JSON Firestore",
+    "copiedJsonAuth": "تم نسخ JSON المصادقة",
+    "copiedJsonFirestore": "تم نسخ JSON Firestore",
+    "disableUser": "تعطيل",
+    "enableUser": "تمكين",
+    "disableUserConfirm": "هل أنت متأكد أنك تريد تعطيل هذا الحساب؟ سيتم تسجيل خروج المستخدم على الفور ولن يتمكن من تسجيل الدخول حتى يتم إعادة تمكينه.",
+    "enableUserConfirm": "هل أنت متأكد أنك تريد تمكين هذا الحساب؟ سيتمكن المستخدم من تسجيل الدخول مرة أخرى.",
+    "disableSuccess": "تم تعطيل المستخدم بنجاح",
+    "enableSuccess": "تم تمكين المستخدم بنجاح",
+    "cannotDisableSelf": "لا يمكنك تعطيل حسابك الخاص",
+    "disableError": "فشل تعطيل المستخدم",
+    "enableError": "فشل تمكين المستخدم"
+  },
+  "userIndicator": {
+    "unknown": "غير معروف",
+    "plus": "+",
+    "moreUsers": " المزيد من المستخدمين"
+  },
+  "staticPages": {
+    "common": {
+      "lastUpdated": "آخر تحديث:"
+    },
+    "cookiePolicy": {
+      "title": "سياسة ملفات تعريف الارتباط",
+      "description": "سياسة ملفات تعريف الارتباط لـ {{appName}} - تعرف على كيفية استخدامنا لملفات تعريف الارتباط والتقنيات المماثلة.",
+      "loadError": "خطأ في تحميل سياسة ملفات تعريف الارتباط"
+    },
+    "privacyPolicy": {
+      "title": "سياسة الخصوصية",
+      "description": "سياسة الخصوصية لـ {{appName}} - تعرف على كيفية جمعنا واستخدامنا وحمايتنا لمعلوماتك.",
+      "loadError": "خطأ في تحميل سياسة الخصوصية"
+    },
+    "termsOfService": {
+      "title": "شروط الخدمة",
+      "description": "شروط الخدمة لـ {{appName}} - اقرأ عن سياساتنا واتفاقيات المستخدم.",
+      "loadError": "خطأ في تحميل الشروط"
+    }
+  },
+  "validation": {
+    "required": "{{field}} مطلوب",
+    "invalidColorFormat": "يجب أن يكون {{field}} بتنسيق #RRGGBB",
+    "invalidUrl": "يجب أن يكون {{field}} عنوان URL صالحًا",
+    "invalidEmail": "يجب أن يكون {{field}} عنوان بريد إلكتروني صالحًا",
+    "tooShort": "يجب أن لا يقل {{field}} عن {{min}} حرفًا",
+    "tooLong": "يجب أن لا يتجاوز {{field}} {{max}} حرفًا"
+  },
+  "roles": {
+    "systemAdmin": {
+      "label": "مسؤول النظام",
+      "description": "وصول وتحكم كامل بالنظام"
+    },
+    "tenantAdmin": {
+      "label": "مسؤول المستأجر",
+      "description": "يمكنه إدارة إعدادات وتكوين المستأجر"
+    },
+    "regular": {
+      "label": "مستخدم عادي",
+      "description": "مستخدم قياسي بدون امتيازات إدارية"
+    }
+  },
+  "admin": {
+    "loading": "جار تحميل لوحة الإدارة...",
+    "tabs": {
+      "tenants": "المستأجرين",
+      "diagnostics": "التشخيصات",
+      "tenantConfig": "تكوين المستأجر",
+      "users": "المستخدمين",
+      "ariaLabel": "علامات تبويب المسؤول"
+    },
+    "tenantConfig": {
+      "loading": "جار تحميل تكوين المستأجر...",
+      "overview": {
+        "title": "نظرة عامة على المستأجر",
+        "tenantId": "معرف المستأجر",
+        "appName": "اسم التطبيق",
+        "lastUpdated": "آخر تحديث"
+      },
+      "theme": {
+        "title": "عنصر المظهر",
+        "description": "تجزيء + مساعدات تسليم CSS",
+        "copyLink": "نسخ رابط المظهر",
+        "forceReload": "فرض إعادة تحميل المظهر",
+        "activeHash": "التجزئة النشطة",
+        "notPublished": "لم يتم النشر",
+        "generatedAt": "تم الإنشاء في",
+        "copySuccess": "تم نسخ رابط المظهر إلى الحافظة.",
+        "copyError": "تعذر نسخ رابط المظهر. يرجى النسخ يدويًا."
+      },
+      "brandingTokens": {
+        "title": "رموز العلامة التجارية"
+      },
+      "computedCss": {
+        "title": "متغيرات CSS المحسوبة"
+      }
+    },
+    "tenants": {
+      "pageTitle": "إدارة المستأجرين",
+      "pageDescription": "عرض وإدارة جميع تكوينات المستأجرين",
+      "summary": {
+        "total": "إجمالي المستأجرين:"
+      },
+      "actions": {
+        "create": "إنشاء مستأجر جديد",
+        "switchTenant": "انقر للتبديل إلى هذا المستأجر"
+      },
+      "status": {
+        "active": "نشط",
+        "default": "افتراضي"
+      },
+      "details": {
+        "tenantId": "معرف المستأجر:",
+        "primaryDomain": "النطاق الأساسي:",
+        "allDomains": "جميع النطاقات:",
+        "domains": "النطاقات:"
+      },
+      "emptyState": "لم يتم العثور على مستأجرين",
+      "errors": {
+        "load": "فشل تحميل المستأجرين"
+      }
+    },
+    "diagnostics": {
+      "loading": "جار تحميل تشخيصات البيئة...",
+      "errors": {
+        "fetch": "فشل جلب بيانات البيئة",
+        "unknown": "حدث خطأ غير معروف"
+      },
+      "serverStatus": {
+        "title": "حالة الخادم",
+        "environment": "البيئة",
+        "nodeVersion": "إصدار Node",
+        "uptime": "وقت التشغيل",
+        "startedAt": "بدأ في"
+      },
+      "buildInfo": {
+        "title": "معلومات البناء",
+        "version": "الإصدار",
+        "buildDate": "تاريخ البناء",
+        "buildTimestamp": "طابع وقت البناء"
+      },
+      "memory": {
+        "title": "استخدام الذاكرة",
+        "rss": "حجم مجموعة الذاكرة المقيمة (RSS)",
+        "heapUsed": "Heap المستخدمة",
+        "heapTotal": "إجمالي Heap",
+        "heapAvailable": "Heap المتاحة",
+        "external": "الذاكرة الخارجية",
+        "arrayBuffers": "Array Buffers",
+        "heapLimit": "حد Heap"
+      },
+      "heap": {
+        "title": "مساحات V8 Heap",
+        "size": "الحجم:",
+        "used": "المستخدمة:",
+        "available": "المتاحة:"
+      },
+      "envVars": {
+        "title": "متغيرات البيئة",
+        "variable": "المتغير",
+        "value": "القيمة"
+      },
+      "filesystem": {
+        "title": "نظام الملفات",
+        "cwd": "دليل العمل"
+      }
+    },
+    "users": {
+      "description": "إدارة حسابات المستخدمين والأدوار والأذونات",
+      "loading": "جار تحميل المستخدمين...",
+      "emptyState": "لم يتم العثور على مستخدمين",
+      "search": {
+        "label": "بحث بالبريد الإلكتروني أو UID",
+        "placeholder": "أدخل البريد الإلكتروني أو UID..."
+      },
+      "table": {
+        "email": "البريد الإلكتروني",
+        "displayName": "اسم العرض",
+        "role": "الدور",
+        "status": "الحالة",
+        "created": "تم الإنشاء",
+        "lastSignIn": "آخر تسجيل دخول",
+        "actions": "الإجراءات"
+      },
+      "actions": {
+        "editUser": "تعديل المستخدم"
+      },
+      "confirmations": {
+        "disableUser": "هل أنت متأكد أنك تريد {{action}} حساب المستخدم هذا؟"
+      },
+      "success": {
+        "userToggled": "تم {{action}} حساب المستخدم بنجاح",
+        "roleUpdated": "تم تحديث دور المستخدم إلى {{role}}",
+        "roleUnchanged": "الدور لم يتغير"
+      },
+      "errors": {
+        "selfDisable": "لا يمكنك تعطيل حسابك الخاص",
+        "selfRoleChange": "لا يمكنك تغيير دورك الخاص",
+        "disableUser": "فشل {{action}} حساب المستخدم",
+        "roleUpdate": "فشل تحديث دور المستخدم",
+        "invalidSelection": "اختيار غير صالح"
+      },
+      "rolePrompt": {
+        "title": "الدور الحالي: {{currentRole}}\n\nحدد دورًا جديدًا:",
+        "regularUser": "مستخدم عادي (لا يوجد دور)"
+      }
+    },
+    "userEditor": {
+      "title": "تعديل المستخدم",
+      "tabs": {
+        "ariaLabel": "علامات تبويب محرر المستخدم",
+        "profile": "الملف الشخصي",
+        "role": "الدور",
+        "firebaseAuth": "مصادقة Firebase",
+        "firestore": "Firestore"
+      },
+      "profile": {
+        "description": "تعديل اسم العرض والبريد الإلكتروني للمستخدم",
+        "displayName": "اسم العرض",
+        "displayNamePlaceholder": "أدخل اسم العرض",
+        "email": "عنوان البريد الإلكتروني",
+        "emailPlaceholder": "أدخل عنوان البريد الإلكتروني"
+      },
+      "role": {
+        "description": "اختر دورًا لهذا المستخدم"
+      },
+      "loading": "جار التحميل...",
+      "noDataAvailable": "لا توجد بيانات متاحة",
+      "errors": {
+        "noChanges": "لا توجد تغييرات للحفظ",
+        "selfRoleChange": "لا يمكن تغيير دورك الخاص",
+        "selfRoleChangeWarning": "لا يمكنك تغيير دورك الخاص",
+        "profileUpdate": "فشل تحديث الملف الشخصي",
+        "roleUpdate": "فشل تحديث الدور",
+        "loadData": "فشل تحميل البيانات"
+      },
+      "success": {
+        "profileUpdated": "تم تحديث الملف الشخصي بنجاح",
+        "roleUpdated": "تم تحديث الدور بنجاح"
+      }
+    },
+    "tenantEditor": {
+      "titleCreate": "إنشاء مستأجر جديد",
+      "titleEdit": "تعديل المستأجر",
+      "descriptionCreate": "تكوين مستأجر جديد بالعلامة التجارية والنطاقات",
+      "descriptionEdit": "تحديث تكوين المستأجر",
+      "modeToggle": {
+        "label": "وضع المحرر",
+        "basic": "أساسي",
+        "advanced": "متقدم"
+      },
+      "modeHint": {
+        "basic": "إظهار الإعدادات الأساسية",
+        "advanced": "إظهار جميع الإعدادات",
+        "moreColors": "التبديل إلى الوضع المتقدم للتحكم الكامل في لوحة الألوان"
+      },
+      "derivation": {
+        "themeMode": {
+          "label": "وضع المظهر",
+          "light": "فاتح",
+          "medium": "متوسط",
+          "dark": "داكن"
+        },
+        "style": {
+          "label": "النمط",
+          "balanced": "متوازن",
+          "bold": "عريض",
+          "soft": "ناعم",
+          "vibrant": "نابض بالحياة",
+          "elegant": "أنيق"
+        },
+        "intensity": {
+          "label": "الشدة",
+          "subtle": "خفي",
+          "strong": "قوي"
+        }
+      },
+      "derivationWand": {
+        "tooltip": "اشتق الألوان من لوحة الألوان",
+        "tooltipDisabled": "حدد الألوان الأساسية والثانوية والتمييز أولاً",
+        "popoverTitle": "اشتقاق اللون",
+        "derive": "تطبيق الاشتقاق"
+      },
+      "sections": {
+        "gettingStarted": {
+          "title": "البدء",
+          "description": "اختر كيفية تهيئة المستأجر الخاص بك"
+        },
+        "basicInfo": {
+          "title": "معلومات أساسية",
+          "description": "معرف المستأجر والاسم والنطاقات"
+        },
+        "assets": {
+          "title": "الأصول",
+          "description": "صور الشعار والأيقونة المفضلة"
+        },
+        "paletteColors": {
+          "title": "ألوان اللوحة",
+          "description": "ألوان العلامة التجارية الأساسية"
+        },
+        "brandColors": {
+          "title": "ألوان العلامة التجارية",
+          "description": "اضبط ألوان علامتك التجارية الأساسية ، ثم اشتق نظام الألوان الكامل"
+        },
+        "surfaceColors": {
+          "title": "ألوان السطح",
+          "description": "ألوان الخلفية والحاوية"
+        },
+        "textColors": {
+          "title": "ألوان النص",
+          "description": "ألوان الطباعة"
+        },
+        "interactiveColors": {
+          "title": "ألوان التفاعل",
+          "description": "ألوان الأزرار والروابط"
+        },
+        "borderColors": {
+          "title": "ألوان الحدود",
+          "description": "ألوان الحدود والمقسمات"
+        },
+        "statusColors": {
+          "title": "ألوان الحالة",
+          "description": "ألوان الملاحظات والتنبيهات"
+        },
+        "typography": {
+          "title": "الطباعة",
+          "description": "عائلات الخطوط والأحجام والأوزان"
+        },
+        "spacing": {
+          "title": "المسافة البادئة",
+          "description": "مقياس المسافة البادئة والمسافة البادئة الدلالية"
+        },
+        "radii": {
+          "title": "نصف قطر الحدود",
+          "description": "قيم تقريب الزاوية"
+        },
+        "shadows": {
+          "title": "الظلال",
+          "description": "تعريفات ظل المربع"
+        },
+        "legal": {
+          "title": "قانوني",
+          "description": "معلومات الشركة والروابط القانونية"
+        },
+        "motion": {
+          "title": "الحركة",
+          "description": "مدد الرسوم المتحركة والتسهيلات"
+        },
+        "featureFlags": {
+          "title": "علامات الميزات",
+          "description": "تمكين أو تعطيل الميزات"
+        },
+        "marketing": {
+          "title": "ميزات التسويق",
+          "description": "تبديل صفحات التسويق والمحتوى"
+        },
+        "advanced": {
+          "title": "متقدم",
+          "description": "تأثيرات بصرية اختيارية"
+        }
+      },
+      "fields": {
+        "tenantId": "معرف المستأجر",
+        "appName": "اسم التطبيق",
+        "domains": "النطاقات",
+        "logoUrl": "عنوان URL للشعار",
+        "faviconUrl": "عنوان URL للأيقونة المفضلة",
+        "primaryColor": "اللون الأساسي",
+        "primaryVariantColor": "اللون الأساسي المتغير",
+        "secondaryColor": "اللون الثانوي",
+        "secondaryVariantColor": "اللون الثانوي المتغير",
+        "accentColor": "لون التمييز",
+        "neutralColor": "اللون المحايد",
+        "neutralVariantColor": "اللون المحايد المتغير",
+        "successColor": "لون النجاح",
+        "warningColor": "لون التحذير",
+        "dangerColor": "لون الخطر",
+        "infoColor": "لون المعلومات"
+      },
+      "placeholders": {
+        "tenantId": "معرف المستأجر الخاص بي",
+        "appName": "تطبيق المصروفات الخاص بي",
+        "domain": "إضافة نطاق جديد...",
+        "selectTenant": "اختر مستأجرًا للنسخ منه..."
+      },
+      "creationMode": {
+        "empty": "البدء من فارغ",
+        "copy": "النسخ من مستأجر موجود",
+        "emptyDescription": "ستحتاج إلى ملء جميع الحقول المطلوبة. يجب أن تكون الألوان بتنسيق #RRGGBB.",
+        "copyDescription": "سيتم نسخ جميع إعدادات المظهر من {{tenant}}. ستحتاج إلى تعيين معرف مستأجر واسم تطبيق ونطاقات فريدة."
+      },
+      "validation": {
+        "tenantIdFormat": "معرف المستأجر غير صالح: يجب أن يحتوي على أحرف صغيرة وأرقام وواصلات فقط",
+        "domainRequired": "مطلوب نطاق واحد على الأقل",
+        "invalidDomain": "نطاق غير صالح: {{domain}}",
+        "saveTenantFirst": "يرجى حفظ المستأجر أولاً قبل تحميل الصور",
+        "tenantIdRequiredForPublish": "معرف المستأجر مطلوب للنشر"
+      },
+      "hints": {
+        "tenantIdReadonly": "لا يمكن تغيير معرف المستأجر",
+        "colorFormat": "#RRGGBB"
+      },
+      "toggles": {
+        "showMarketingContent": {
+          "label": "إظهار محتوى التسويق",
+          "description": "عرض محتوى التسويق على الصفحات العامة"
+        },
+        "showPricingPage": {
+          "label": "إظهار صفحة التسعير",
+          "description": "عرض معلومات التسعير"
+        },
+        "showAppNameInHeader": {
+          "label": "إظهار اسم التطبيق في الرأس",
+          "description": "عرض اسم التطبيق بجانب الشعار"
+        },
+        "enableParallax": {
+          "label": "تمكين التزيح",
+          "description": "تمكين تأثيرات التمرير التزيحي"
+        },
+        "enableMagneticHover": {
+          "label": "تمكين التمرير المغناطيسي",
+          "description": "تمكين تأثيرات التمرير المغناطيسي على الأزرار"
+        },
+        "enableScrollReveal": {
+          "label": "تمكين إظهار التمرير",
+          "description": "تمكين الرسوم المتحركة التي يتم تشغيلها بالتمرير"
+        }
+      },
+      "loading": {
+        "tenants": "جار تحميل المستأجرين..."
+      },
+      "empty": {
+        "noTenants": "لا توجد مستأجرين موجودين للنسخ منهم."
+      },
+      "errors": {
+        "invalidPayload": "بيانات المستأجر غير صالحة. يرجى التحقق من جميع الحقول والمحاولة مرة أخرى.",
+        "permissionDenied": "ليس لديك إذن لتعديل إعدادات المستأجر.",
+        "duplicateDomain": "واحد أو أكثر من النطاقات مخصص بالفعل لمستأجر آخر.",
+        "saveFailed": "فشل حفظ المستأجر. يرجى المحاولة مرة أخرى.",
+        "tenantNotFound": "المستأجر غير موجود. احفظه قبل النشر.",
+        "tokensMissing": "المستأجر يفتقد رموز العلامة التجارية. يرجى تكوين العلامة التجارية وحفظها أولاً.",
+        "publishFailed": "فشل نشر المظهر. يرجى المحاولة مرة أخرى.",
+        "uploadFailed": "فشل تحميل {{type}}"
+      },
+      "success": {
+        "createdAndPublished": "تم إنشاء المستأجر ونشر المظهر بنجاح!",
+        "updatedAndPublished": "تم تحديث المستأجر ونشر المظهر بنجاح!",
+        "createdPublishFailed": "تم إنشاء المستأجر بنجاح ، ولكن فشل نشر المظهر. انقر فوق \"نشر المظهر\" يدويًا.",
+        "updatedPublishFailed": "تم تحديث المستأجر بنجاح ، ولكن فشل نشر المظهر. انقر فوق \"نشر المظهر\" يدويًا.",
+        "themePublished": "تم نشر المظهر بنجاح!",
+        "logoUploaded": "تم تحميل الشعار بنجاح!",
+        "faviconUploaded": "تم تحميل الأيقونة المفضلة بنجاح!",
+        "logoSelected": "تم تحديد الشعار من المكتبة",
+        "faviconSelected": "تم تحديد الأيقونة المفضلة من المكتبة"
+      },
+      "buttons": {
+        "save": "حفظ المستأجر",
+        "publish": "نشر المظهر",
+        "addDomain": "إضافة",
+        "removeDomain": "إزالة",
+        "chooseFromLibrary": "اختر من المكتبة",
+        "uploadNew": "تحميل جديد"
+      },
+      "actions": {
+        "deriveColors": "اشتق الألوان",
+        "deriveColorsDescription": "إنشاء جميع الألوان الدلالية من لوحة علامتك التجارية"
+      }
+    }
+  },
+  "tenantBranding": {
+    "title": "تكوين العلامة التجارية",
+    "subtitle": "إعدادات المستأجر",
+    "description": "تخصيص مظهر المستأجر وميزات التسويق",
+    "loading": "جار تحميل إعدادات المستأجر...",
+    "accessDenied": "ليس لديك إذن للوصول إلى إعدادات العلامة التجارية للمستأجر. تتطلب هذه الصفحة دور مسؤول المستأجر أو مسؤول النظام.",
+    "tenantIdLabel": "معرف المستأجر",
+    "domainWarning": "ستؤثر التغييرات على جميع المستخدمين الذين يصلون إلى نطاق هذا المستأجر",
+    "brandingAssets": {
+      "title": "أصول العلامة التجارية",
+      "description": "تكوين هوية علامتك التجارية"
+    },
+    "fields": {
+      "appName": "اسم التطبيق",
+      "appNamePlaceholder": "تطبيق المصاريف الخاص بي",
+      "logoUrl": "رابط الشعار",
+      "logoUrlPlaceholder": "/logo.svg",
+      "faviconUrl": "رابط الأيقونة المفضلة",
+      "faviconUrlPlaceholder": "/favicon.ico",
+      "primaryColor": "اللون الأساسي",
+      "secondaryColor": "اللون الثانوي"
+    },
+    "preview": {
+      "title": "معاينة مباشرة",
+      "description": "شاهد كيف ستبدو علامتك التجارية",
+      "primaryButton": "الزر الأساسي",
+      "secondaryButton": "الزر الثانوي",
+      "brandingLabel": "علامة المستأجر التجارية"
+    },
+    "marketing": {
+      "title": "ميزات التسويق",
+      "description": "التحكم في صفحات التسويق المرئية",
+      "contentLabel": "محتوى التسويق",
+      "contentDescription": "إظهار أقسام الميزات/CTA",
+      "pricingLabel": "صفحة التسعير",
+      "pricingDescription": "إظهار مسار /pricing"
+    },
+    "actions": {
+      "saving": "جار الحفظ...",
+      "saveChanges": "حفظ التغييرات"
+    },
+    "errors": {
+      "loadFailed": "فشل تحميل إعدادات المستأجر",
+      "updateFailed": "فشل تحديث إعدادات العلامة التجارية",
+      "notImplemented": "تحديث العلامة التجارية غير مطبق بعد على الخادم"
+    },
+    "success": {
+      "updated": "تم تحديث إعدادات العلامة التجارية بنجاح"
+    }
+  }
+}

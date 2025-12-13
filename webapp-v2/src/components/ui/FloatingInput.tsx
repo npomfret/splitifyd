@@ -83,7 +83,7 @@ export function FloatingInput({
     const inputClasses = cx(...baseInputClasses, stateClasses, disabledClasses);
 
     const baseLabelClasses = [
-        'absolute left-3 text-text-secondary pointer-events-none',
+        'absolute start-3 text-text-secondary pointer-events-none',
         'transition-all duration-(--motion-duration-fast) ease-(--motion-easing-standard)',
         'origin-left',
     ];

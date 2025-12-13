@@ -177,7 +177,7 @@ export function GroupCurrencySettings({
                                 {isAddDropdownOpen && (
                                     <div
                                         className={cx(
-                                            'absolute z-50 top-full left-0 mt-1 w-64',
+                                            'absolute z-50 top-full start-0 mt-1 w-64',
                                             'bg-surface-raised border border-border-default rounded-md shadow-lg',
                                             'max-h-60 overflow-hidden',
                                         )}
@@ -212,7 +212,7 @@ export function GroupCurrencySettings({
                                                             type='button'
                                                             onClick={() => handleAddCurrency(currency.acronym)}
                                                             className={cx(
-                                                                'w-full px-3 py-2 text-left text-sm',
+                                                                'w-full px-3 py-2 text-start text-sm',
                                                                 'hover:bg-surface-muted transition-colors',
                                                                 'flex items-center gap-2',
                                                             )}

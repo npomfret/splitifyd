@@ -161,21 +161,27 @@ describe('languageDetection', () => {
             expect(getIntlLocale('uk')).toBe('uk-UA');
         });
 
+        it('maps ar to ar-SA', () => {
+            expect(getIntlLocale('ar')).toBe('ar-SA');
+        });
+
         it('returns unknown language code as-is', () => {
             expect(getIntlLocale('fr')).toBe('fr');
         });
     });
 
     describe('constants', () => {
-        it('SUPPORTED_LANGUAGES contains en and uk', () => {
+        it('SUPPORTED_LANGUAGES contains all expected languages', () => {
             expect(SUPPORTED_LANGUAGES).toContain('en');
             expect(SUPPORTED_LANGUAGES).toContain('uk');
-            expect(SUPPORTED_LANGUAGES).toHaveLength(2);
+            expect(SUPPORTED_LANGUAGES).toContain('ar');
+            expect(SUPPORTED_LANGUAGES).toHaveLength(3);
         });
 
         it('LANGUAGE_NAMES has entries for all supported languages', () => {
             expect(LANGUAGE_NAMES.en).toBe('English');
             expect(LANGUAGE_NAMES.uk).toBe('Українська');
+            expect(LANGUAGE_NAMES.ar).toBe('العربية');
         });
     });
 });

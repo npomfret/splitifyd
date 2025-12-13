@@ -28,7 +28,7 @@ export function PermissionPresetsSection({
                             onClick={() => onApplyPreset(preset)}
                             variant='ghost'
                             magnetic={false}
-                            className={`h-full flex-col items-start border rounded-lg px-4 py-3 text-left transition ${
+                            className={`h-full flex-col items-start border rounded-lg px-4 py-3 text-start transition ${
                                 isActive
                                     ? 'border-interactive-primary bg-interactive-primary/10 shadow-sm'
                                     : 'border-border-default hover:border-interactive-primary/40 hover:bg-interactive-primary/10/40'

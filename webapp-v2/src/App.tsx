@@ -121,8 +121,15 @@ export function App() {
     const authStore = useAuth();
     const { needsAcceptance, pendingPolicies, refreshPolicyStatus } = usePolicyAcceptance();
     const config = useConfig();
+    const { i18n } = useTranslation();
 
     const user = authStore?.user;
+
+    // Update document direction and language when language changes
+    useEffect(() => {
+        document.documentElement.dir = i18n.dir();
+        document.documentElement.lang = i18n.language;
+    }, [i18n.language]);
 
     // Update document title when tenant config loads
     useEffect(() => {

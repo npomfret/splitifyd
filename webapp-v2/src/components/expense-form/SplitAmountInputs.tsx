@@ -76,7 +76,7 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
                                         const value = (e.target as HTMLInputElement).value || ZERO;
                                         updateSplitAmount(toUserId(participantId), value);
                                     }}
-                                    className='w-24 px-2 py-1 border border-border-default rounded bg-surface-raised text-text-primary focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary text-right'
+                                    className='w-24 px-2 py-1 border border-border-default rounded bg-surface-raised text-text-primary focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary text-end'
                                     autoComplete='off'
                                 />
                             </div>
@@ -140,11 +140,11 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
                                         const value = parseFloat((e.target as HTMLInputElement).value) || 0;
                                         updateSplitPercentage(toUserId(participantId), value);
                                     }}
-                                    className='w-20 px-2 py-1 border border-border-default rounded bg-surface-raised text-text-primary focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary text-right'
+                                    className='w-20 px-2 py-1 border border-border-default rounded bg-surface-raised text-text-primary focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary text-end'
                                     autoComplete='off'
                                 />
                                 <span className='text-text-muted'>{t('expenseComponents.splitAmountInputs.percentSign')}</span>
-                                <span className='help-text-xs w-16 text-right'>
+                                <span className='help-text-xs w-16 text-end'>
                                     <CurrencyAmount amount={split?.amount ?? ZERO} currency={toCurrencyISOCode(currency)} />
                                 </span>
                             </div>

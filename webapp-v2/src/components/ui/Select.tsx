@@ -109,7 +109,7 @@ export function Select({
                     ))}
                 </select>
                 {/* Custom dropdown arrow */}
-                <div className='pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3'>
+                <div className='pointer-events-none absolute inset-y-0 end-0 flex items-center pe-3'>
                     <ChevronDownIcon size={20} className='text-text-muted' />
                 </div>
             </div>

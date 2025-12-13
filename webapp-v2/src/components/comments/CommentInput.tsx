@@ -117,7 +117,7 @@ export function CommentInput({ onSubmit, disabled = false, placeholder, classNam
                     aria-label={t('comments.input.ariaLabel')}
                     aria-invalid={isOverLimit}
                 />
-                <Tooltip content={t('comments.input.sendAriaLabel')} className='absolute right-2 bottom-2'>
+                <Tooltip content={t('comments.input.sendAriaLabel')} className='absolute end-2 bottom-2'>
                     <Button
                         type='submit'
                         disabled={!text.trim() || isOverLimit || (disabled && !isEditing) || isSubmitting}

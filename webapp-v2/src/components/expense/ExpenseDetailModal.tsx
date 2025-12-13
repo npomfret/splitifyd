@@ -337,7 +337,7 @@ export function ExpenseDetailModal({ isOpen, onClose, groupId, expenseId, onEdit
                     tabIndex={-1}
                 >
                     <div className='relative max-w-4xl max-h-full'>
-                        <Tooltip content='Close' className='absolute top-2 right-2 z-10'>
+                        <Tooltip content='Close' className='absolute top-2 end-2 z-10'>
                             <Clickable
                                 as='button'
                                 type='button'

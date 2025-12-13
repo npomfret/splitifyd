@@ -57,9 +57,9 @@ export function UserMenu({ user }: UserMenuProps) {
                     <div className='w-9 h-9 bg-(image:--gradient-primary) rounded-full flex items-center justify-center shadow-lg ring-2 ring-border-default/50 group-hover:ring-interactive-primary/40 transition-all'>
                         <span className='text-sm font-bold text-interactive-primary-foreground'>{userInitial}</span>
                     </div>
-                    <div className='absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-semantic-success rounded-full border-2 border-surface-base'></div>
+                    <div className='absolute -bottom-0.5 -end-0.5 w-3 h-3 bg-semantic-success rounded-full border-2 border-surface-base'></div>
                 </div>
-                <div className='hidden md:block text-left'>
+                <div className='hidden md:block text-start'>
                     <p className='text-sm font-medium text-text-primary group-hover:text-interactive-primary transition-colors'>{userName}</p>
                     <p className='help-text-xs'>{user.email}</p>
                 </div>
@@ -72,7 +72,7 @@ export function UserMenu({ user }: UserMenuProps) {
             {isOpen && (
                 <div
                     id='user-dropdown-menu'
-                    className='absolute right-0 mt-2 w-72 bg-surface-popover border border-border-default rounded-xl shadow-2xl z-9999'
+                    className='absolute end-0 mt-2 w-72 bg-surface-popover border border-border-default rounded-xl shadow-2xl z-9999'
                     role='menu'
                     aria-orientation='vertical'
                     aria-labelledby='user-menu-button'
@@ -88,7 +88,7 @@ export function UserMenu({ user }: UserMenuProps) {
                                 setIsOpen(false);
                                 navigationService.goToDashboard();
                             }}
-                            className='flex items-center w-full text-left px-4 py-2.5 text-sm text-text-primary hover:bg-interactive-primary/10 hover:text-interactive-primary transition-colors'
+                            className='flex items-center w-full text-start px-4 py-2.5 text-sm text-text-primary hover:bg-interactive-primary/10 hover:text-interactive-primary transition-colors'
                             role='menuitem'
                         >
                             <HomeIcon size={16} className='mr-3 text-text-muted' />
@@ -100,7 +100,7 @@ export function UserMenu({ user }: UserMenuProps) {
                                 setIsOpen(false);
                                 navigationService.goToSettings();
                             }}
-                            className='flex items-center w-full text-left px-4 py-2.5 text-sm text-text-primary hover:bg-interactive-primary/10 hover:text-interactive-primary transition-colors'
+                            className='flex items-center w-full text-start px-4 py-2.5 text-sm text-text-primary hover:bg-interactive-primary/10 hover:text-interactive-primary transition-colors'
                             role='menuitem'
                         >
                             <SettingsIcon size={16} className='mr-3 text-text-muted' />
@@ -121,7 +121,7 @@ export function UserMenu({ user }: UserMenuProps) {
                                     setIsOpen(false);
                                     navigationService.goToAdmin();
                                 }}
-                                className='flex items-center w-full text-left px-4 py-2.5 text-sm text-text-primary hover:bg-interactive-primary/10 hover:text-interactive-primary transition-colors'
+                                className='flex items-center w-full text-start px-4 py-2.5 text-sm text-text-primary hover:bg-interactive-primary/10 hover:text-interactive-primary transition-colors'
                                 role='menuitem'
                             >
                                 <SettingsIcon size={16} className='mr-3 text-text-muted' />
@@ -144,7 +144,7 @@ export function UserMenu({ user }: UserMenuProps) {
                                 logError('userMenu.logoutFailed', error, { userId: user.uid });
                             }
                         }}
-                        className='flex items-center w-full text-left px-4 py-2.5 text-sm text-semantic-error hover:bg-semantic-error/10 transition-colors rounded-b-xl'
+                        className='flex items-center w-full text-start px-4 py-2.5 text-sm text-semantic-error hover:bg-semantic-error/10 transition-colors rounded-b-xl'
                         disabled={authStore.loading}
                         role='menuitem'
                     >

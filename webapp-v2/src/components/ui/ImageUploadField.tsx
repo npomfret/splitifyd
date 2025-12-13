@@ -184,7 +184,7 @@ export function ImageUploadField({
                             variant='ghost'
                             size='sm'
                             onClick={handleClearClick}
-                            className='absolute top-2 right-2 bg-surface-overlay/90 hover:bg-surface-overlay'
+                            className='absolute top-2 end-2 bg-surface-overlay/90 hover:bg-surface-overlay'
                             aria-label='Clear image'
                         >
                             ✕
@@ -207,7 +207,7 @@ export function ImageUploadField({
                             variant='ghost'
                             size='sm'
                             onClick={handleClearClick}
-                            className='absolute top-2 right-2 bg-surface-overlay/90 hover:bg-surface-overlay'
+                            className='absolute top-2 end-2 bg-surface-overlay/90 hover:bg-surface-overlay'
                             aria-label='Clear image'
                         >
                             ✕

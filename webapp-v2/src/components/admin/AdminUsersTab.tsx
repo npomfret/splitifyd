@@ -246,25 +246,25 @@ export function AdminUsersTab() {
                         <table className='min-w-full divide-y divide-indigo-200'>
                             <thead className='bg-indigo-50'>
                                 <tr>
-                                    <th scope='col' className='px-4 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider'>
+                                    <th scope='col' className='px-4 py-3 text-start text-xs font-medium text-indigo-700 uppercase tracking-wider'>
                                         {t('admin.users.table.email')}
                                     </th>
-                                    <th scope='col' className='px-4 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider'>
+                                    <th scope='col' className='px-4 py-3 text-start text-xs font-medium text-indigo-700 uppercase tracking-wider'>
                                         {t('admin.users.table.displayName')}
                                     </th>
-                                    <th scope='col' className='px-4 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider'>
+                                    <th scope='col' className='px-4 py-3 text-start text-xs font-medium text-indigo-700 uppercase tracking-wider'>
                                         {t('admin.users.table.role')}
                                     </th>
-                                    <th scope='col' className='px-4 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider'>
+                                    <th scope='col' className='px-4 py-3 text-start text-xs font-medium text-indigo-700 uppercase tracking-wider'>
                                         {t('admin.users.table.status')}
                                     </th>
-                                    <th scope='col' className='px-4 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider'>
+                                    <th scope='col' className='px-4 py-3 text-start text-xs font-medium text-indigo-700 uppercase tracking-wider'>
                                         {t('admin.users.table.created')}
                                     </th>
-                                    <th scope='col' className='px-4 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider'>
+                                    <th scope='col' className='px-4 py-3 text-start text-xs font-medium text-indigo-700 uppercase tracking-wider'>
                                         {t('admin.users.table.lastSignIn')}
                                     </th>
-                                    <th scope='col' className='px-4 py-3 text-right text-xs font-medium text-indigo-700 uppercase tracking-wider'>
+                                    <th scope='col' className='px-4 py-3 text-end text-xs font-medium text-indigo-700 uppercase tracking-wider'>
                                         {t('admin.users.table.actions')}
                                     </th>
                                 </tr>
@@ -311,7 +311,7 @@ export function AdminUsersTab() {
                                             <td className='px-4 py-3 text-sm text-gray-700'>
                                                 {getMetadataField(metadata, 'lastSignInTime')}
                                             </td>
-                                            <td className='px-4 py-3 text-right text-sm'>
+                                            <td className='px-4 py-3 text-end text-sm'>
                                                 <div className='flex items-center justify-end gap-2'>
                                                     <button
                                                         onClick={() => editingUser.value = authUser}

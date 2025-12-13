@@ -265,7 +265,7 @@ export function TenantImageLibrary({ tenantId, onSelect, selectedImageUrl, picke
 
                                     {/* Selection Indicator */}
                                     {isSelected && (
-                                        <div className='absolute top-2 right-2 w-6 h-6 rounded-full bg-interactive-primary flex items-center justify-center shadow-md'>
+                                        <div className='absolute top-2 end-2 w-6 h-6 rounded-full bg-interactive-primary flex items-center justify-center shadow-md'>
                                             <CheckIcon size={16} className='text-interactive-primary-foreground' />
                                         </div>
                                     )}

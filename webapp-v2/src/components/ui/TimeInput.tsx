@@ -149,7 +149,7 @@ export function TimeInput({ value, onChange, label, required = false, error, cla
                     <button
                         type='button'
                         onClick={handleLabelClick}
-                        className={`text-left px-3 py-2 border rounded-lg w-full bg-surface-raised backdrop-blur-xs text-text-primary hover:bg-surface-muted transition-colors ${
+                        className={`text-start px-3 py-2 border rounded-lg w-full bg-surface-raised backdrop-blur-xs text-text-primary hover:bg-surface-muted transition-colors ${
                             error ? 'border-semantic-error' : 'border-border-default'
                         }`}
                     >
@@ -185,7 +185,7 @@ export function TimeInput({ value, onChange, label, required = false, error, cla
                                 e.preventDefault(); // Prevent blur
                                 handleSuggestionClick(suggestion);
                             }}
-                            className={`w-full text-left px-3 py-2 text-text-primary hover:bg-surface-muted ${index === selectedIndex.value ? 'bg-surface-muted' : ''}`}
+                            className={`w-full text-start px-3 py-2 text-text-primary hover:bg-surface-muted ${index === selectedIndex.value ? 'bg-surface-muted' : ''}`}
                         >
                             {suggestion}
                         </button>

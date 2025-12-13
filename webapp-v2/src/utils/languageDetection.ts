@@ -11,21 +11,23 @@
 
 const LANGUAGE_STORAGE_KEY = 'language';
 
-export const SUPPORTED_LANGUAGES = ['en', 'uk'] as const;
+export const SUPPORTED_LANGUAGES = ['en', 'uk', 'ar'] as const;
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
 
 export const LANGUAGE_NAMES: Record<SupportedLanguage, string> = {
     en: 'English',
     uk: 'Українська',
+    ar: 'العربية',
 };
 
 /**
  * Maps language codes to full locale codes for Intl APIs.
- * e.g., 'en' -> 'en-US', 'uk' -> 'uk-UA'
+ * e.g., 'en' -> 'en-US', 'uk' -> 'uk-UA', 'ar' -> 'ar-SA'
  */
 const LOCALE_MAP: Record<SupportedLanguage, string> = {
     en: 'en-US',
     uk: 'uk-UA',
+    ar: 'ar-SA',
 };
 
 /**

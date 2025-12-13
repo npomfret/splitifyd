@@ -109,7 +109,7 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense, isArchivedVi
             <div className='flex-1 relative'>
                 {/* Action buttons - positioned absolutely in top right */}
                 {showQuickActions && (
-                    <div className='absolute top-0 right-0 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200'>
+                    <div className='absolute top-0 end-0 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200'>
                         {onAddExpense && (
                             <Tooltip content={t('groupCard.addExpenseTooltip', { groupName: group.name })}>
                                 <Clickable

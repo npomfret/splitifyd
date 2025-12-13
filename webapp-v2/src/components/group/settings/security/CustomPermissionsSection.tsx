@@ -43,7 +43,7 @@ export function CustomPermissionsSection({
                     </label>
                 ))}
             </div>
-            <p className='text-xs text-text-primary/60 text-right mt-2'>{t('securitySettingsModal.custom.saveHelper')}</p>
+            <p className='text-xs text-text-primary/60 text-end mt-2'>{t('securitySettingsModal.custom.saveHelper')}</p>
         </section>
     );
 }

@@ -232,7 +232,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                                 />
                                 <Tooltip
                                     content={copied ? t('shareGroupModal.linkCopied') : t('shareGroupModal.copyLinkTitle')}
-                                    className='absolute right-2 top-1/2 -translate-y-1/2'
+                                    className='absolute end-2 top-1/2 -translate-y-1/2'
                                 >
                                     <Button
                                         type='button'

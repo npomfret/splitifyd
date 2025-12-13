@@ -143,7 +143,7 @@ export function CurrencyAmountInput({
                             onClick={() => handleCurrencySelect(curr)}
                             onMouseEnter={() => setHighlightedIndex(globalIndex)}
                             className={`
-                w-full text-left px-3 py-2 text-sm
+                w-full text-start px-3 py-2 text-sm
                 flex items-center gap-3
                 transition-colors duration-100
                 ${isHighlighted ? 'bg-interactive-primary text-interactive-primary-foreground' : 'hover:bg-surface-muted text-text-primary'}

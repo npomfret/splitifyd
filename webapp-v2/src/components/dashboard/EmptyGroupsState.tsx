@@ -23,7 +23,7 @@ export function EmptyGroupsState({ onCreateGroup }: EmptyGroupsStateProps) {
             }}
         >
             {/* Additional getting started tips */}
-            <div className='text-left max-w-2xl mx-auto'>
+            <div className='text-start max-w-2xl mx-auto'>
                 <h5 className='text-sm font-medium text-text-primary mb-3'>{t('emptyGroupsState.gettingStartedTitle')}</h5>
                 <div className='grid md:grid-cols-3 gap-4'>
                     <div className='bg-interactive-primary/10 p-4 rounded-lg'>

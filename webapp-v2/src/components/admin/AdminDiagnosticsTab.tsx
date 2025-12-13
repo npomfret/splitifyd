@@ -183,8 +183,8 @@ export function AdminDiagnosticsTab() {
                                     <table className='w-full text-sm'>
                                         <thead className='bg-amber-100 sticky top-0'>
                                             <tr>
-                                                <th className='text-left p-2 text-amber-700 font-semibold w-1/3'>{t('admin.diagnostics.envVars.variable')}</th>
-                                                <th className='text-left p-2 text-amber-700 font-semibold'>{t('admin.diagnostics.envVars.value')}</th>
+                                                <th className='text-start p-2 text-amber-700 font-semibold w-1/3'>{t('admin.diagnostics.envVars.variable')}</th>
+                                                <th className='text-start p-2 text-amber-700 font-semibold'>{t('admin.diagnostics.envVars.value')}</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -216,10 +216,10 @@ export function AdminDiagnosticsTab() {
                                 <table className='w-full text-sm'>
                                     <thead className='bg-indigo-100 sticky top-0'>
                                         <tr>
-                                            <th className='text-left p-2 text-indigo-700 font-semibold'>{t('common.name')}</th>
-                                            <th className='text-left p-2 text-indigo-700 font-semibold'>{t('common.type')}</th>
-                                            <th className='text-left p-2 text-indigo-700 font-semibold'>{t('common.size')}</th>
-                                            <th className='text-left p-2 text-indigo-700 font-semibold'>{t('common.modified')}</th>
+                                            <th className='text-start p-2 text-indigo-700 font-semibold'>{t('common.name')}</th>
+                                            <th className='text-start p-2 text-indigo-700 font-semibold'>{t('common.type')}</th>
+                                            <th className='text-start p-2 text-indigo-700 font-semibold'>{t('common.size')}</th>
+                                            <th className='text-start p-2 text-indigo-700 font-semibold'>{t('common.modified')}</th>
                                         </tr>
                                     </thead>
                                     <tbody>

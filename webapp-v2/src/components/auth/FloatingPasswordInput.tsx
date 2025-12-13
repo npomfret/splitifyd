@@ -120,7 +120,7 @@ export function FloatingPasswordInput({
     );
 
     const baseLabelClasses = [
-        'absolute left-3 text-text-secondary pointer-events-none',
+        'absolute start-3 text-text-secondary pointer-events-none',
         'transition-all duration-(--motion-duration-fast) ease-(--motion-easing-standard)',
         'origin-left',
     ];
@@ -164,7 +164,7 @@ export function FloatingPasswordInput({
                     onClick={togglePasswordVisibility}
                     disabled={disabled}
                     aria-label={showPassword ? t('auth.passwordInput.hidePassword') : t('auth.passwordInput.showPassword')}
-                    className='absolute inset-y-0 right-0 pr-3 flex items-center text-text-muted hover:text-text-primary disabled:opacity-50 z-10'
+                    className='absolute inset-y-0 end-0 pe-3 flex items-center text-text-muted hover:text-text-primary disabled:opacity-50 z-10'
                 >
                     <Tooltip content={showPassword ? t('auth.passwordInput.hidePassword') : t('auth.passwordInput.showPassword')}>
                         {showPassword ? <EyeOffIcon size={20} /> : <EyeIcon size={20} />}

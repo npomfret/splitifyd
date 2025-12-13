@@ -102,7 +102,7 @@ export function GroupActivityFeed({ groupId, currentUserId }: GroupActivityFeedP
                                     <button
                                         type='button'
                                         onClick={handleNavigate}
-                                        className='group flex w-full items-start gap-2 rounded-md px-2 py-2 text-left transition-colors hover:bg-surface-muted focus:outline-hidden focus-visible:ring-2 focus-visible:ring-interactive-primary'
+                                        className='group flex w-full items-start gap-2 rounded-md px-2 py-2 text-start transition-colors hover:bg-surface-muted focus:outline-hidden focus-visible:ring-2 focus-visible:ring-interactive-primary'
                                         aria-label={description}
                                     >
                                         <div className='h-2 w-2 rounded-full mt-1.5 bg-interactive-primary shrink-0' aria-hidden='true' />

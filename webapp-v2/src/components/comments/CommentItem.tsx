@@ -25,11 +25,11 @@ export function CommentItem({ comment, isCurrentUser = false, showAvatar = true,
                     />
                 </div>
             )}
-            <div className={`flex-1 min-w-0 max-w-[80%] ${isCurrentUser ? 'text-right' : ''}`}>
+            <div className={`flex-1 min-w-0 max-w-[80%] ${isCurrentUser ? 'text-end' : ''}`}>
                 <span className='font-medium text-xs text-text-secondary'>{comment.authorName}</span>
                 <div
                     className={`
-                        mt-1 px-3 py-2 rounded-2xl inline-block text-left
+                        mt-1 px-3 py-2 rounded-2xl inline-block text-start
                         ${isCurrentUser
                             ? 'bg-interactive-primary text-interactive-primary-foreground rounded-tr-sm'
                             : 'bg-surface-raised text-text-primary rounded-tl-sm'
@@ -38,7 +38,7 @@ export function CommentItem({ comment, isCurrentUser = false, showAvatar = true,
                 >
                     <p className='text-sm whitespace-pre-wrap wrap-break-word'>{comment.text}</p>
                 </div>
-                <div className={`mt-1 ${isCurrentUser ? 'text-right' : 'text-left'}`}>
+                <div className={`mt-1 ${isCurrentUser ? 'text-end' : 'text-start'}`}>
                     <RelativeTime
                         date={comment.createdAt}
                         className='text-xs text-text-secondary'

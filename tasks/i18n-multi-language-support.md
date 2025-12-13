@@ -120,7 +120,7 @@ Prepare the codebase for adding Ukrainian (uk) as the first non-English language
 **Task 2.8: Extend UpdateUserProfileRequest** ✅
 - Added `preferredLanguage?: string` to `UpdateUserProfileRequest` in shared-types.ts
 - Added `preferredLanguage?: string` to `UserProfileResponse` in shared-types.ts
-- Updated schema validation in `apiRequests.ts` to accept `'en'` or `'uk'`
+- Updated schema validation in `apiRequests.ts` to accept `'en'`, `'uk'`, or `'ar'`
 - Backend already handled `preferredLanguage` in UserService2.updateProfile()
 - Updated `_getProfile()` to return `preferredLanguage`
 - LanguageSwitcher full variant saves to user profile via API
@@ -145,11 +145,22 @@ Prepare the codebase for adding Ukrainian (uk) as the first non-English language
 - Cookie-based detection
 - Embed config for widget mode
 
-### Phase 3: Add Ukrainian
+### Phase 3: Add Ukrainian and Arabic - COMPLETED
 
-- Create `webapp-v2/src/locales/uk/translation.json`
-- Register 'uk' as supported language
-- Validate with native speaker
+**Ukrainian (uk):** ✅
+- Created `webapp-v2/src/locales/uk/translation.json`
+- Registered 'uk' as supported language
+- LTR language - no RTL infrastructure needed
+
+**Arabic (ar):** ✅
+- Created `webapp-v2/src/locales/ar/translation.json` (1,550 keys)
+- Registered 'ar' as supported language with locale mapping `ar-SA`
+- RTL language - required RTL infrastructure (see `tasks/rtl-internationalization-deep-dive.md`)
+- All RTL support implemented:
+  - `dir` attribute switching in App.tsx
+  - Text alignment classes migrated (`text-start`/`text-end`)
+  - Position classes migrated (`start-*`/`end-*`)
+  - Directional icons flip with `rtl:-scale-x-100`
 
 ### Phase 4: Test Infrastructure
 

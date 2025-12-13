@@ -3,7 +3,7 @@ import type { IconProps } from './types';
 export function LogoutIcon({ size = 20, className = '' }: IconProps) {
     return (
         <svg
-            className={className}
+            className={`rtl:-scale-x-100 ${className}`}
             width={size}
             height={size}
             fill='none'

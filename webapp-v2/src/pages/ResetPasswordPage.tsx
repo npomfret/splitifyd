@@ -67,7 +67,7 @@ export function ResetPasswordPage() {
                         </Typography>
                     </div>
 
-                    <Card padding='md' className='text-left bg-surface-warning/60 border-border-warning'>
+                    <Card padding='md' className='text-start bg-surface-warning/60 border-border-warning'>
                         <Typography variant='caption' className='uppercase tracking-wide text-semantic-warning'>
                             {t('pages.resetPasswordPage.whatsNext')}
                         </Typography>

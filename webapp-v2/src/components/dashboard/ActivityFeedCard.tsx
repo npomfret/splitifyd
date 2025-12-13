@@ -136,7 +136,7 @@ export function ActivityFeedCard({ userId }: ActivityFeedCardProps) {
                                                 <button
                                                     type='button'
                                                     onClick={handleNavigate}
-                                                    className='group flex w-full items-start gap-3 rounded-lg border border-border-default/50 bg-surface-base/30 backdrop-blur-xs px-4 py-3 text-left transition-all duration-200 hover:border-interactive-primary/40 hover:bg-surface-base/50 hover:shadow-md hover:-translate-y-0.5 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-interactive-primary focus-visible:ring-offset-2'
+                                                    className='group flex w-full items-start gap-3 rounded-lg border border-border-default/50 bg-surface-base/30 backdrop-blur-xs px-4 py-3 text-start transition-all duration-200 hover:border-interactive-primary/40 hover:bg-surface-base/50 hover:shadow-md hover:-translate-y-0.5 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-interactive-primary focus-visible:ring-offset-2'
                                                     aria-label={description}
                                                 >
                                                     <div className='h-2.5 w-2.5 rounded-full mt-1.5 bg-interactive-primary shrink-0 shadow-sm shadow-interactive-primary/50' aria-hidden='true' />
