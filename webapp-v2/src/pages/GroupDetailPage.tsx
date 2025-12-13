@@ -237,7 +237,7 @@ export function GroupDetailPage({ id: groupId, expenseId: routeExpenseId }: Grou
     if (shouldShowInlineError && typeof errorValue === 'string') {
         return (
             <BaseLayout>
-                <div className='container mx-auto px-4 py-8' data-testid='error-container'>
+                <div className='container mx-auto px-4 py-8' role='alert'>
                     <Card className='p-6 text-center'>
                         <Typography variant='heading' className='mb-2'>{t('pages.groupDetailPage.errorLoadingGroup')}</Typography>
                         <p className='text-text-muted mb-4'>{errorValue}</p>

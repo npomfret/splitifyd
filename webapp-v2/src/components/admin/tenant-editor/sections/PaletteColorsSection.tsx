@@ -109,7 +109,6 @@ export function PaletteColorsSection({ formData, update, isSaving, mode, creatio
                                                 }`}
                                                 onClick={() => update({ derivationThemeMode: themeMode })}
                                                 disabled={isSaving}
-                                                data-testid={`theme-mode-${themeMode}`}
                                             >
                                                 {t(`admin.tenantEditor.derivation.themeMode.${themeMode}`)}
                                             </button>
@@ -134,7 +133,6 @@ export function PaletteColorsSection({ formData, update, isSaving, mode, creatio
                                                 }`}
                                                 onClick={() => update({ derivationStyle: value })}
                                                 disabled={isSaving}
-                                                data-testid={`style-${value}`}
                                             >
                                                 {t(labelKey)}
                                             </button>
@@ -159,7 +157,7 @@ export function PaletteColorsSection({ formData, update, isSaving, mode, creatio
                                             onChange={(e) => update({ derivationIntensity: parseInt((e.target as HTMLInputElement).value, 10) })}
                                             disabled={isSaving}
                                             className='flex-1 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600'
-                                            data-testid='intensity-slider'
+                                            aria-label={t('admin.tenantEditor.derivation.intensity.label')}
                                         />
                                         <span className='text-[10px] text-gray-500 w-10 text-right'>
                                             {t('admin.tenantEditor.derivation.intensity.strong')}

@@ -340,7 +340,7 @@ export function SettingsPage() {
                                         <p className='text-sm font-semibold uppercase tracking-wide text-text-muted'>
                                             {t('settingsPage.profileSummaryTitle')}
                                         </p>
-                                        <div className='text-2xl font-semibold text-text-primary' data-testid='profile-display-name'>
+                                        <div className='text-2xl font-semibold text-text-primary'>
                                             {resolvedDisplayName}
                                         </div>
                                         <p className='help-text'>{t('settingsPage.profileSummaryDescription')}</p>
@@ -354,7 +354,7 @@ export function SettingsPage() {
                                     </div>
                                     <div className='rounded-lg border border-border-default bg-surface-muted/60 px-4 py-3'>
                                         <span className='text-text-muted'>{t('settingsPage.email')}</span>
-                                        <div className='font-medium text-text-primary wrap-break-word' data-testid='profile-email'>
+                                        <div className='font-medium text-text-primary wrap-break-word'>
                                             {user.email}
                                         </div>
                                     </div>

@@ -82,9 +82,10 @@ export class ExpenseDetailPage extends BasePage {
 
     /**
      * Get all comment items in the comments list
+     * Each CommentItem renders as an article element
      */
     protected getCommentItems(): Locator {
-        return this.getDiscussionSection().locator('[data-testid="comment-item"]');
+        return this.getDiscussionSection().locator('article');
     }
 
     /**
@@ -98,7 +99,7 @@ export class ExpenseDetailPage extends BasePage {
      * Get the lock warning banner for locked expenses
      */
     protected getLockWarningBanner(): Locator {
-        return this.page.getByTestId('expense-lock-warning');
+        return this.page.getByRole('alert').filter({ hasText: translation.pages.expenseDetailPage.containsDepartedMembers });
     }
 
     /**
@@ -109,11 +110,12 @@ export class ExpenseDetailPage extends BasePage {
     }
 
     /**
-     * Get the expense amount display element in the modal
+     * Get the expense amount display element in the modal - it's an h2 heading
+     * inside a centered div with border (to distinguish from the title h2)
      */
     protected getExpenseAmountElement(): Locator {
-        // Scope to the modal to avoid matching expense list items
-        return this.page.getByRole('dialog').getByTestId('expense-amount');
+        // Amount h2 is inside a div with text-center and border-b classes
+        return this.page.getByRole('dialog').locator('.text-center.border-b h2');
     }
 
     /**

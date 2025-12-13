@@ -643,7 +643,8 @@ describe('ActivityFeedCard', () => {
 
             render(<ActivityFeedCard userId={toUserId('user-1')} />);
 
-            const itemElements = screen.getAllByTestId('activity-feed-item');
+            // Activity feed items are now <li> elements
+            const itemElements = screen.getAllByRole('listitem');
             expect(itemElements).toHaveLength(3);
         });
 
@@ -667,7 +668,8 @@ describe('ActivityFeedCard', () => {
 
             render(<ActivityFeedCard userId={toUserId('user-1')} />);
 
-            const itemElement = screen.getByTestId('activity-feed-item');
+            // Activity feed items are now <li> elements with data-event-type attribute
+            const itemElement = screen.getByRole('listitem');
             expect(itemElement).toHaveAttribute('data-event-type', ActivityFeedEventTypes.EXPENSE_CREATED);
         });
     });
@@ -679,7 +681,8 @@ describe('ActivityFeedCard', () => {
 
             render(<ActivityFeedCard userId={toUserId('user-1')} />);
 
-            expect(screen.getByTestId('activity-feed-card')).toBeInTheDocument();
+            // Card is now a <section aria-labelledby="activity-feed-heading">
+            expect(screen.getByRole('region', { name: 'Recent Activity' })).toBeInTheDocument();
             expect(screen.getByRole('heading', { name: 'Recent Activity' })).toBeInTheDocument();
         });
     });

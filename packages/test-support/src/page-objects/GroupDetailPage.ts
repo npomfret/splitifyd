@@ -285,7 +285,8 @@ export class GroupDetailPage extends BasePage {
     }
 
     private getSettlementItems(): Locator {
-        return this.getSettlementContainer().locator('[data-testid="settlement-item"]');
+        // Settlement items are now article elements
+        return this.getSettlementContainer().locator('article');
     }
 
     protected getIncludeDeletedSettlementsCheckbox(): Locator {
@@ -317,10 +318,10 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * Error container - primary error display area
+     * Error container - primary error display area (now uses role='alert')
      */
     protected getErrorContainer(): Locator {
-        return this.page.locator('[data-testid="error-container"]');
+        return this.page.getByRole('alert').filter({ has: this.page.getByText(translation.pages.groupDetailPage.errorLoadingGroup) });
     }
 
     // ============================================================================
@@ -343,11 +344,12 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * Group description - paragraph text that appears directly after the group name h1
-     * within the GroupHeader component (has text-gray-600 class)
+     * Group description - paragraph text inside the group header SidebarCard
+     * Displayed as p tag with text-text-primary/80 class
      */
     protected getGroupDescription(): Locator {
-        return this.page.locator('[data-testid="group-description"]');
+        // Description is the paragraph inside #group-header (distinct from .help-text stats)
+        return this.page.locator('#group-header p');
     }
 
     /**
@@ -355,7 +357,8 @@ export class GroupDetailPage extends BasePage {
      * Shows: "{X} members, {time} old, last updated {time}"
      */
     protected getGroupStats(): Locator {
-        return this.page.locator('[data-testid="group-stats"]');
+        // Stats are displayed in a help-text div within the group header section
+        return this.page.locator('#group-header .help-text');
     }
 
     // ============================================================================
@@ -455,10 +458,9 @@ export class GroupDetailPage extends BasePage {
      * Note: Finds members within the first Members container (sidebar) to avoid mobile duplicates
      */
     protected getMemberCards(): Locator {
-        // Members have data-testid="member-item" attribute
-        // The members list is in a div.space-y-0.5 container within the Members section (updated for compact design)
+        // Members are now li elements with data-member-name attribute in a ul list
         // Use .first() to get only the sidebar version (not the mobile duplicate)
-        return this.getMembersContainer().locator('[data-testid="members-scroll-container"]').first().locator('[data-testid="member-item"]');
+        return this.getMembersContainer().getByRole('list').first().getByRole('listitem');
     }
 
     /**
@@ -466,7 +468,7 @@ export class GroupDetailPage extends BasePage {
      * Uses .first() to get only the sidebar version (not the mobile duplicate)
      */
     protected getMemberCard(memberName: string): Locator {
-        return this.getMembersContainer().locator('[data-testid="members-scroll-container"]').first().getByText(memberName, { exact: false });
+        return this.getMembersContainer().getByRole('list').first().locator(`li[data-member-name="${memberName}"]`);
     }
 
     /**
@@ -564,9 +566,10 @@ export class GroupDetailPage extends BasePage {
      * Locate a specific member entry by display name.
      */
     protected getMemberItem(memberName: string): Locator {
+        // Members are now li elements with data-member-name attribute
         return this
             .getMembersContainer()
-            .locator(`[data-testid="member-item"][data-member-name="${memberName}"]:visible`);
+            .locator(`li[data-member-name="${memberName}"]:visible`);
     }
 
     /**
@@ -581,10 +584,10 @@ export class GroupDetailPage extends BasePage {
     // ============================================================================
 
     /**
-     * Get all expense items - looks for articles or list items within expenses section
+     * Get all expense items - expense items are now article elements
      */
     protected getExpenseItems(): Locator {
-        return this.getExpensesContainer().locator('[data-testid="expense-item"]');
+        return this.getExpensesContainer().locator('article');
     }
 
     protected getIncludeDeletedExpensesCheckbox(): Locator {
@@ -648,7 +651,8 @@ export class GroupDetailPage extends BasePage {
      * Get all comments currently rendered
      */
     protected getCommentItems(): Locator {
-        return this.getCommentsSection().locator('[data-testid="comment-item"]');
+        // Comment items are article elements within the comments section
+        return this.getCommentsSection().locator('article');
     }
 
     /**
@@ -757,10 +761,10 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * Get debt items - scoped within main balance container
+     * Get debt items - debt items are now article elements
      */
     protected getDebtItems(): Locator {
-        return this.getBalanceContainer().locator('[data-testid="debt-item"]');
+        return this.getBalanceContainer().locator('article');
     }
 
     /**
@@ -779,8 +783,8 @@ export class GroupDetailPage extends BasePage {
      */
     protected getSettlementButtonForDebt(debtorName: string, creditorName: string): Locator {
         const balancesSection = this.getBalanceContainer();
-        // Find the debt item containing the debtor and creditor names
-        const debtItem = balancesSection.locator('[data-testid="debt-item"]').filter({
+        // Find the debt item (now article) containing the debtor and creditor names
+        const debtItem = balancesSection.locator('article').filter({
             hasText: new RegExp(`${debtorName}.*owes.*${creditorName}`),
         });
         // Find the button with aria-label containing "Record settlement"
@@ -930,7 +934,8 @@ export class GroupDetailPage extends BasePage {
         try {
             await expect(memberItem).toBeVisible({ timeout: 5000 });
         } catch (error) {
-            const visibleMemberItems = await this.page.locator('[data-testid="member-item"]:visible').all();
+            // Members are now li elements with data-member-name attribute
+            const visibleMemberItems = await this.page.locator('li[data-member-name]:visible').all();
             const visibleMembers = await Promise.all(
                 visibleMemberItems.map(async (item) => {
                     const text = await item.innerText();
@@ -976,14 +981,13 @@ export class GroupDetailPage extends BasePage {
         const descriptionElement = this.getExpenseByDescription(description);
         await expect(descriptionElement).toBeVisible();
         if (amount) {
-            // Find the expense-item container that contains this description
+            // Find the expense-item (now article) container that contains this description
             const expenseItem = this
                 .getExpensesContainer()
-                .locator('[data-testid="expense-item"]')
+                .locator('article')
                 .filter({ hasText: description });
-            const amountElement = expenseItem.getByTestId('expense-amount');
-            await expect(amountElement).toBeVisible();
-            await expect(amountElement).toContainText(amount);
+            // Amount is visible text within the expense item
+            await expect(expenseItem).toContainText(amount);
         }
     }
 
@@ -995,7 +999,8 @@ export class GroupDetailPage extends BasePage {
         await expect(expensesContainer).toBeVisible({ timeout: 2000 });
 
         await expect(async () => {
-            const expenseItems = expensesContainer.locator('[data-testid="expense-item"]');
+            // Expense items are now article elements
+            const expenseItems = expensesContainer.locator('article');
             const count = await expenseItems.count();
 
             if (count === 0) {
@@ -1206,9 +1211,9 @@ export class GroupDetailPage extends BasePage {
                 throw new Error('Balance section not visible yet');
             }
 
-            // Find debt items containing both names - supports both old (→) and new (owes...to) format
+            // Find debt items (now article elements) containing both names - supports both old (→) and new (owes...to) format
             const debtItems = balancesSection
-                .locator('[data-testid="debt-item"]')
+                .locator('article')
                 .filter({
                     hasText: debtorName,
                 })
@@ -1219,7 +1224,7 @@ export class GroupDetailPage extends BasePage {
             const count = await debtItems.count();
             if (count === 0) {
                 // Get all debt items for better error message
-                const allDebtItems = balancesSection.locator('[data-testid="debt-item"]');
+                const allDebtItems = balancesSection.locator('article');
                 const debtItemsCount = await allDebtItems.count();
 
                 let foundDebts: string[] = [];
@@ -1780,9 +1785,10 @@ export class GroupDetailPage extends BasePage {
      * Verify a member is not visible in the member list
      */
     async verifyMemberNotVisible(memberName: string): Promise<void> {
+        // Members are now li elements with data-member-name attribute
         const memberItem = this
             .getMembersContainer()
-            .locator(`[data-testid="member-item"][data-member-name="${memberName}"]`);
+            .locator(`li[data-member-name="${memberName}"]`);
         await expect(memberItem).not.toBeVisible();
     }
 
@@ -1889,6 +1895,77 @@ export class GroupDetailPage extends BasePage {
      */
     async verifySettlementContainerNotVisible(): Promise<void> {
         await expect(this.getSettlementContainer()).not.toBeVisible();
+    }
+
+    /**
+     * Verify number of settlement items matches expected count
+     */
+    async verifySettlementItemCount(expectedCount: number): Promise<void> {
+        await this.ensureSettlementsSectionExpanded();
+        await expect(this.getSettlementItems()).toHaveCount(expectedCount);
+    }
+
+    /**
+     * Verify a settlement item at a given index contains the specified amount
+     */
+    async verifySettlementItemContainsAmount(index: number, amount: string): Promise<void> {
+        await this.ensureSettlementsSectionExpanded();
+        await expect(this.getSettlementItems().nth(index)).toContainText(amount);
+    }
+
+    /**
+     * Get the "Load More" button in the settlements section
+     */
+    private getLoadMoreSettlementsButton(): Locator {
+        return this.getSettlementContainer().getByRole('button', { name: /load more/i });
+    }
+
+    /**
+     * Verify the "Load More" settlements button is visible
+     */
+    async verifyLoadMoreSettlementsButtonVisible(): Promise<void> {
+        await this.ensureSettlementsSectionExpanded();
+        await expect(this.getLoadMoreSettlementsButton()).toBeVisible();
+    }
+
+    /**
+     * Verify the "Load More" settlements button is not visible
+     */
+    async verifyLoadMoreSettlementsButtonNotVisible(): Promise<void> {
+        await this.ensureSettlementsSectionExpanded();
+        await expect(this.getLoadMoreSettlementsButton()).not.toBeVisible();
+    }
+
+    /**
+     * Click the "Load More" settlements button to load additional settlements
+     */
+    async clickLoadMoreSettlements(): Promise<void> {
+        await this.ensureSettlementsSectionExpanded();
+        const button = this.getLoadMoreSettlementsButton();
+        await this.clickButton(button, { buttonName: 'Load More Settlements' });
+    }
+
+    /**
+     * Get the "no payments for you" message in the settlements section
+     */
+    private getNoPaymentsForYouMessage(): Locator {
+        return this.getSettlementContainer().getByText(translation.settlementHistory.noPaymentsForYou);
+    }
+
+    /**
+     * Verify the "no payments for you" message is visible
+     */
+    async verifyNoPaymentsForYouMessageVisible(): Promise<void> {
+        await this.ensureSettlementsSectionExpanded();
+        await expect(this.getNoPaymentsForYouMessage()).toBeVisible();
+    }
+
+    /**
+     * Verify the "no payments for you" message is not visible
+     */
+    async verifyNoPaymentsForYouMessageNotVisible(): Promise<void> {
+        await this.ensureSettlementsSectionExpanded();
+        await expect(this.getNoPaymentsForYouMessage()).not.toBeVisible();
     }
 
     /**
@@ -2027,5 +2104,22 @@ export class GroupDetailPage extends BasePage {
             }
         })
             .toPass({ timeout });
+    }
+
+    /**
+     * Verify activity feed does NOT contain specific text
+     */
+    async verifyActivityFeedDoesNotContainText(text: string): Promise<void> {
+        await this.ensureActivitySectionExpanded();
+        await expect(this.getActivityFeedContainer()).not.toContainText(text);
+    }
+
+    /**
+     * Click an activity feed item by its text content
+     */
+    async clickActivityFeedItemByText(text: string): Promise<void> {
+        await this.ensureActivitySectionExpanded();
+        const item = this.getActivityFeedContainer().getByText(text);
+        await item.click();
     }
 }

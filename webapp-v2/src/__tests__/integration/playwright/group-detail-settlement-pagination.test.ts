@@ -1,6 +1,5 @@
 import { GroupBalancesBuilder, GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, SettlementWithMembersBuilder, ThemeBuilder } from '@billsplit-wl/test-support';
-import translationEn from '../../../locales/en/translation.json' with { type: 'json' };
-import { expect, test } from '../../utils/console-logging-fixture';
+import { test } from '../../utils/console-logging-fixture';
 import { fulfillWithSerialization, mockGroupCommentsApi, mockGroupDetailApi } from '../../utils/mock-firebase-service';
 
 test.describe('Group Detail - Settlement Pagination', () => {
@@ -106,21 +105,19 @@ test.describe('Group Detail - Settlement Pagination', () => {
         await groupDetailPage.waitForGroupToLoad();
         await groupDetailPage.ensureSettlementHistoryOpen();
 
-        await expect(page.getByTestId('settlement-item')).toHaveCount(2);
-        // Verify first page settlements by checking amounts
-        await expect(page.getByTestId('settlement-item').first()).toContainText('$50.00');
-        await expect(page.getByTestId('settlement-item').nth(1)).toContainText('$35.00');
+        // Verify first page settlements
+        await groupDetailPage.verifySettlementItemCount(2);
+        await groupDetailPage.verifySettlementItemContainsAmount(0, '$50.00');
+        await groupDetailPage.verifySettlementItemContainsAmount(1, '$35.00');
 
-        const loadMoreButton = page.getByRole('button', { name: /load more/i });
-        await expect(loadMoreButton).toBeVisible();
+        await groupDetailPage.verifyLoadMoreSettlementsButtonVisible();
+        await groupDetailPage.clickLoadMoreSettlements();
 
-        await loadMoreButton.click();
-
-        // Verify second page settlements loaded by checking new amounts
-        await expect(page.getByTestId('settlement-item')).toHaveCount(4);
-        await expect(page.getByTestId('settlement-item').nth(2)).toContainText('$20.00');
-        await expect(page.getByTestId('settlement-item').nth(3)).toContainText('$15.00');
-        await expect(loadMoreButton).not.toBeVisible();
+        // Verify second page settlements loaded
+        await groupDetailPage.verifySettlementItemCount(4);
+        await groupDetailPage.verifySettlementItemContainsAmount(2, '$20.00');
+        await groupDetailPage.verifySettlementItemContainsAmount(3, '$15.00');
+        await groupDetailPage.verifyLoadMoreSettlementsButtonNotVisible();
     });
 
     test('should filter settlements to current user by default and show all when toggled', async ({ authenticatedPage }) => {
@@ -196,13 +193,13 @@ test.describe('Group Detail - Settlement Pagination', () => {
         await groupDetailPage.waitForGroupToLoad();
         await groupDetailPage.ensureSettlementHistoryOpen();
 
-        await expect(page.getByText(translationEn.settlementHistory.noPaymentsForYou)).toBeVisible();
-        await expect(page.getByTestId('settlement-item')).toHaveCount(0);
+        await groupDetailPage.verifyNoPaymentsForYouMessageVisible();
+        await groupDetailPage.verifySettlementItemCount(0);
 
         await groupDetailPage.toggleShowAllSettlements(true);
 
-        await expect(page.getByText(translationEn.settlementHistory.noPaymentsForYou)).not.toBeVisible();
-        await expect(page.getByTestId('settlement-item')).toHaveCount(1);
-        await expect(page.getByTestId('settlement-item').first()).toContainText('$45.00');
+        await groupDetailPage.verifyNoPaymentsForYouMessageNotVisible();
+        await groupDetailPage.verifySettlementItemCount(1);
+        await groupDetailPage.verifySettlementItemContainsAmount(0, '$45.00');
     });
 });

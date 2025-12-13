@@ -54,10 +54,10 @@ export class DashboardPage extends BasePage {
     }
 
     /**
-     * Activity feed card container
+     * Activity feed card container - now a section with aria-labelledby
      */
     private getActivityFeedContainer(): Locator {
-        return this.page.locator('[data-testid="activity-feed-card"]:visible').first();
+        return this.page.locator('section[aria-labelledby="activity-feed-heading"]:visible').first();
     }
 
     /**
@@ -97,11 +97,10 @@ export class DashboardPage extends BasePage {
     // ============================================================================
 
     /**
-     * Groups grid/list container
+     * Groups grid/list container - now uses role='list' with aria-label
      */
     protected getGroupsGrid(): Locator {
-        // Use data-testid for specificity to avoid matching layout grids
-        return this.getGroupsContainer().locator('[data-testid="groups-grid"]');
+        return this.getGroupsContainer().getByRole('list', { name: translation.dashboardComponents.groupsList.groupsListAriaLabel });
     }
 
     /**

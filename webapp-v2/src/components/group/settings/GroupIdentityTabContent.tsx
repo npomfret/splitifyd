@@ -29,7 +29,7 @@ export function GroupIdentityTabContent({
 
     if (isLoading) {
         return (
-            <section className='border border-border-default rounded-lg p-5 space-y-3 bg-surface-muted/60' data-testid='group-display-name-settings'>
+            <section className='border border-border-default rounded-lg p-5 space-y-3 bg-surface-muted/60'>
                 <div className='h-4 bg-surface-muted animate-pulse rounded' aria-hidden='true'></div>
                 <div className='h-10 bg-surface-muted animate-pulse rounded' aria-hidden='true'></div>
             </section>
@@ -38,9 +38,9 @@ export function GroupIdentityTabContent({
 
     return (
         <div className='space-y-4'>
-            <section className='border border-border-default rounded-lg p-5 space-y-4 bg-surface-muted/60' data-testid='group-display-name-settings'>
+            <section className='border border-border-default rounded-lg p-5 space-y-4 bg-surface-muted/60' aria-labelledby='group-display-name-heading'>
                 <div>
-                    <h3 className='text-sm font-semibold text-text-primary'>{t('groupDisplayNameSettings.title')}</h3>
+                    <h3 id='group-display-name-heading' className='text-sm font-semibold text-text-primary'>{t('groupDisplayNameSettings.title')}</h3>
                     <p className='text-sm text-text-primary/70 mt-1'>{t('groupDisplayNameSettings.description')}</p>
                 </div>
 

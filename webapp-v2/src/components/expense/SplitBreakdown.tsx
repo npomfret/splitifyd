@@ -94,7 +94,6 @@ export function SplitBreakdown({ expense, members }: SplitBreakdownProps) {
                                     <p
                                         className={`font-semibold ${isOwing ? 'text-semantic-error' : 'text-text-primary'}`}
                                         data-financial-amount='split'
-                                        data-testid='split-amount'
                                     >
                                         <CurrencyAmount amount={split.amount} currency={expense.currency} />
                                     </p>

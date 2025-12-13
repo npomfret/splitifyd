@@ -11,9 +11,9 @@ interface CommentItemProps {
 
 export function CommentItem({ comment, isCurrentUser = false, showAvatar = true, className = '' }: CommentItemProps) {
     return (
-        <div
+        <article
             className={`flex gap-3 ${isCurrentUser ? 'flex-row-reverse' : ''} ${className}`}
-            data-testid='comment-item'
+            aria-label={`${comment.authorName}: ${comment.text.substring(0, 50)}${comment.text.length > 50 ? '...' : ''}`}
         >
             {showAvatar && (
                 <div className='shrink-0'>
@@ -45,6 +45,6 @@ export function CommentItem({ comment, isCurrentUser = false, showAvatar = true,
                     />
                 </div>
             </div>
-        </div>
+        </article>
     );
 }

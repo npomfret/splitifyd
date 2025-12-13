@@ -99,9 +99,8 @@ export function BalanceSummary({ onSettleUp }: BalanceSummaryProps) {
                         const payeeTheme = toMember?.themeColor || themeStore.getThemeForUser(debt.to.uid);
 
                         return (
-                            <div
+                            <article
                                 key={`${debt.from.uid}-${debt.to.uid}-${currency}`}
-                                data-testid='debt-item'
                                 className='group border border-border-default/50 rounded-lg px-3 py-2.5 mb-2 last:mb-0 backdrop-blur-xs transition-all duration-200 hover:border-interactive-primary/40 hover:-translate-y-0.5 hover:shadow-sm relative bg-surface-base/30'
                             >
                                 <div className='grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1 items-start'>
@@ -175,7 +174,7 @@ export function BalanceSummary({ onSettleUp }: BalanceSummaryProps) {
                                         </span>
                                     </div>
                                 </div>
-                            </div>
+                            </article>
                         );
                     })
                 ))}

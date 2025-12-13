@@ -386,7 +386,6 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                                         setFormData({ ...EMPTY_TENANT_DATA });
                                                     }}
                                                     className='h-4 w-4'
-                                                    data-testid='creation-mode-empty'
                                                 />
                                                 <span className='text-sm font-medium text-text-primary'>{t('admin.tenantEditor.creationMode.empty')}</span>
                                             </label>
@@ -399,7 +398,6 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                                     onChange={() => setCreationMode('copy')}
                                                     disabled={existingTenants.length === 0}
                                                     className='h-4 w-4'
-                                                    data-testid='creation-mode-copy'
                                                 />
                                                 <span className='text-sm font-medium text-text-primary'>{t('admin.tenantEditor.creationMode.copy')}</span>
                                             </label>
@@ -424,7 +422,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                                             value={selectedSourceTenantId}
                                                             onChange={(e) => setSelectedSourceTenantId((e.target as HTMLSelectElement).value)}
                                                             className='w-full rounded-md border border-border-default bg-surface-base px-3 py-2 text-sm'
-                                                            data-testid='source-tenant-select'
+                                                            aria-label={t('admin.tenantEditor.placeholders.selectTenant')}
                                                         >
                                                             <option value=''>{t('admin.tenantEditor.placeholders.selectTenant')}</option>
                                                             {existingTenants.map((tenant) => (

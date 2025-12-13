@@ -71,7 +71,7 @@ export function GroupActivityFeed({ groupId, currentUserId }: GroupActivityFeedP
 
     if (items.value.length === 0) {
         return (
-            <div className='py-4 help-text' data-testid='group-activity-feed-empty'>
+            <div className='py-4 help-text'>
                 <p className='font-medium text-text-primary mb-1'>{t('activityFeed.emptyState.title')}</p>
                 <p>{t('activityFeed.emptyState.groupDescription')}</p>
             </div>
@@ -79,7 +79,7 @@ export function GroupActivityFeed({ groupId, currentUserId }: GroupActivityFeedP
     }
 
     return (
-        <div data-testid='group-activity-feed'>
+        <nav aria-label={t('activityFeed.title')}>
             <ul className='flex flex-col' style={{ gap: 'var(--space-md, 0.75rem)' }}>
                 {items.value.map((item) => {
                     const handleNavigate = getActivityNavigationHandler(item, groupId);
@@ -96,7 +96,7 @@ export function GroupActivityFeed({ groupId, currentUserId }: GroupActivityFeedP
                     );
 
                     return (
-                        <li key={item.id} data-testid='group-activity-feed-item' data-event-type={item.eventType}>
+                        <li key={item.id} data-event-type={item.eventType}>
                             {handleNavigate
                                 ? (
                                     <button
@@ -134,7 +134,7 @@ export function GroupActivityFeed({ groupId, currentUserId }: GroupActivityFeedP
                     </div>
                 )
                 : null}
-        </div>
+        </nav>
     );
 }
 

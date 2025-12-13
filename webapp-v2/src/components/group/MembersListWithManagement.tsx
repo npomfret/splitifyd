@@ -143,18 +143,16 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
 
     const membersList = (
         <>
-            <Stack
-                spacing='sm'
-                className='max-h-[300px] overflow-y-auto overflow-x-hidden pr-1 scrollbar-thin scrollbar-thumb-border-default scrollbar-track-transparent hover:scrollbar-thumb-border-strong'
-                data-testid='members-scroll-container'
+            <ul
+                className='max-h-[300px] overflow-y-auto overflow-x-hidden pr-1 scrollbar-thin scrollbar-thumb-border-default scrollbar-track-transparent hover:scrollbar-thumb-border-strong space-y-2'
+                aria-label={t('membersList.title')}
             >
                 {members.value.map((member) => {
                     const memberTheme = member.themeColor;
                     return (
-                        <div
+                        <li
                             key={member.uid}
-                            className='flex items-center justify-between py-1.5 px-1.5 rounded-md hover:bg-surface-muted transition-colors'
-                            data-testid='member-item'
+                            className='flex items-center justify-between py-1.5 px-1.5 rounded-md hover:bg-surface-muted transition-colors list-none'
                             data-member-name={getGroupDisplayName(member)}
                             data-member-id={member.uid}
                         >
@@ -193,10 +191,10 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
                                     );
                                 })()
                                 : null}
-                        </div>
+                        </li>
                     );
                 })}
-            </Stack>
+            </ul>
         </>
     );
 

@@ -95,9 +95,9 @@ export function DashboardPage() {
                         )}
 
                         {/* Groups Section */}
-                        <div className='glass-panel border-border-default rounded-lg shadow-lg border p-8' data-testid='groups-container'>
+                        <section className='glass-panel border-border-default rounded-lg shadow-lg border p-8' aria-labelledby='groups-section-heading'>
                             <div className='flex flex-col gap-4 mb-8 lg:flex-row lg:items-center lg:justify-between'>
-                                <Typography variant='heading' as='h3' className='font-bold'>{t('dashboard.yourGroups')}</Typography>
+                                <Typography variant='heading' as='h3' id='groups-section-heading' className='font-bold'>{t('dashboard.yourGroups')}</Typography>
                                 <div className='flex flex-wrap items-center gap-4 justify-between lg:justify-end'>
                                     <div
                                         className='inline-flex rounded-md border border-border-default overflow-hidden'
@@ -142,7 +142,7 @@ export function DashboardPage() {
 
                             {/* Groups Content */}
                             <GroupsList onCreateGroup={() => setIsCreateModalOpen(true)} onInvite={handleInvite} onAddExpense={handleAddExpense} />
-                        </div>
+                        </section>
 
                         {/* Activity Feed - Show after groups on mobile, hide on large screens */}
                         <div className='lg:hidden mt-6'>

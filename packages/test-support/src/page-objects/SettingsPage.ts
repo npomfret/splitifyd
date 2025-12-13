@@ -58,11 +58,19 @@ export class SettingsPage extends BasePage {
      * Profile Information Locators
      */
     protected getProfileDisplayName(): Locator {
-        return this.page.locator('[data-testid="profile-display-name"]');
+        // Profile display name is in a box with label "Current display name:"
+        // Find the container with the label, then get the value element
+        return this.page.locator('.rounded-lg').filter({
+            hasText: translation.settingsPage.currentDisplayName,
+        }).locator('.font-medium.text-text-primary');
     }
 
     protected getProfileEmail(): Locator {
-        return this.page.locator('[data-testid="profile-email"]');
+        // Profile email is in a box with label "Email:"
+        // Find the container with the label, then get the value element
+        return this.page.locator('.rounded-lg').filter({
+            hasText: translation.settingsPage.email,
+        }).locator('.font-medium.text-text-primary').first();
     }
 
     protected getDisplayNameInput(): Locator {

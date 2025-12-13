@@ -3,6 +3,7 @@ import { translationEn } from '../translations/translation-en';
 import { BasePage } from './BasePage';
 
 const translation = translationEn.policyComponents.policyAcceptanceModal;
+const uiTranslation = translationEn.uiComponents;
 
 /**
  * Policy acceptance modal page object following the modern POM pattern.
@@ -22,8 +23,8 @@ export class PolicyAcceptanceModalPage extends BasePage {
     }
 
     protected getModalContainer(): Locator {
-        // Container within the dialog - kept as test-id for scoping
-        return this.page.getByTestId('policy-modal-card');
+        // Use the dialog role - Modal component provides this
+        return this.page.getByRole('dialog');
     }
 
     protected getTitle(): Locator {
@@ -42,8 +43,11 @@ export class PolicyAcceptanceModalPage extends BasePage {
     }
 
     protected getPolicyCard(): Locator {
-        // Policy card - kept as test-id for scoping
-        return this.page.getByTestId('policy-card');
+        // Policy card - the Card component containing the policy content
+        // Card renders as a Surface (div with rounded-xl) containing an h3 heading
+        return this.getModalContainer().locator('.rounded-xl').filter({
+            has: this.page.getByRole('heading', { level: 3 }),
+        });
     }
 
     protected getPolicyTitle(): Locator {
@@ -52,23 +56,23 @@ export class PolicyAcceptanceModalPage extends BasePage {
     }
 
     protected getAcceptedBadge(): Locator {
-        // Badge now has role='status' with aria-label
-        return this.getPolicyCard().getByRole('status');
+        // Badge has role='status' with specific aria-label for "Accepted"
+        return this.getPolicyCard().getByRole('status', { name: translation.acceptedAriaLabel });
     }
 
     protected getPolicyContent(): Locator {
-        // Policy content container - kept as test-id
-        return this.page.getByTestId('policy-content');
+        // Policy content - the scrollable content area within the card
+        return this.getPolicyCard().locator('.bg-surface-muted.rounded-lg');
     }
 
     protected getLoadingSpinner(): Locator {
-        // Loading spinner container - kept as test-id
-        return this.page.getByTestId('policy-content-loading');
+        // Loading spinner - use role='status' with aria-label from translation
+        return this.getPolicyCard().getByRole('status', { name: uiTranslation.loadingSpinner.loading });
     }
 
     protected getAcceptanceSection(): Locator {
-        // Acceptance section container - kept as test-id
-        return this.page.getByTestId('policy-acceptance-section');
+        // Acceptance section - identified by the "Acceptance Required" heading
+        return this.getPolicyCard().locator('.bg-semantic-info-subtle');
     }
 
     protected getAcceptanceCheckbox(): Locator {

@@ -74,7 +74,7 @@ export function ConfirmDialog({ isOpen, title, message, confirmText, cancelText,
             describedBy='confirm-dialog-description'
             dataTestId={dataTestId}
         >
-            <Surface padding='lg' shadow='md' border='default' className='space-y-6' data-testid='confirmation-dialog'>
+            <Surface padding='lg' shadow='md' border='default' className='space-y-6'>
                 <div className={`mx-auto flex h-12 w-12 items-center justify-center rounded-full ${styles.iconBg}`}>
                     {variant === 'danger'
                         ? <AlertTriangleIcon size={24} className={styles.icon} />

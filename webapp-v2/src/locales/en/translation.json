@@ -1437,7 +1437,8 @@
       "tryAgain": "Try Again",
       "creating": "Creating group...",
       "noArchivedTitle": "No archived groups",
-      "noArchivedDescription": "Groups you archive will appear here. Archive a group from the Active tab to hide it from your dashboard."
+      "noArchivedDescription": "Groups you archive will appear here. Archive a group from the Active tab to hide it from your dashboard.",
+      "groupsListAriaLabel": "Your groups"
     }
   },
   "expenseComponents": {

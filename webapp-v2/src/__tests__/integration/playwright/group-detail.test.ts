@@ -455,7 +455,7 @@ test.describe('Group Detail - Sidebar Sections', () => {
         await groupDetailPage.waitForCommentCount(1);
 
         await groupDetailPage.ensureSettlementHistoryOpen();
-        await expect(page.getByTestId('settlement-item')).toHaveCount(1);
+        await groupDetailPage.verifySettlementItemCount(1);
     });
 });
 

@@ -21,7 +21,6 @@ export function EmptyGroupsState({ onCreateGroup }: EmptyGroupsStateProps) {
                 onClick: onCreateGroup,
                 variant: 'primary',
             }}
-            data-testid='empty-groups-state'
         >
             {/* Additional getting started tips */}
             <div className='text-left max-w-2xl mx-auto'>

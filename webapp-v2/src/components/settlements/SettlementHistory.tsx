@@ -171,7 +171,7 @@ export function SettlementHistory({
                             const isCurrentUserInvolved = isCurrentUserPayer || isCurrentUserPayee;
 
                             return (
-                                <div
+                                <article
                                     key={settlement.id}
                                     class={`group border-b last:border-0 pb-3 last:pb-0 -mx-2 px-2 py-2 rounded relative ${
                                         isDeleted ? 'opacity-60 bg-surface-muted' : isCurrentUserInvolved ? 'hover:bg-interactive-primary/10' : 'hover:bg-surface-muted'
@@ -181,7 +181,6 @@ export function SettlementHistory({
                                         borderLeftColor: isDeleted ? '#9CA3AF' : themeColor,
                                         backgroundColor: isDeleted ? '' : isCurrentUserInvolved ? `${themeColor}12` : `${themeColor}08`,
                                     }}
-                                    data-testid='settlement-item'
                                 >
                                     <div className='grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1 items-start'>
                                         {/* Row 1: Payer avatar and name */}
@@ -295,7 +294,7 @@ export function SettlementHistory({
                                             </div>
                                         )}
                                     </div>
-                                </div>
+                                </article>
                             );
                         })}
                     </Stack>

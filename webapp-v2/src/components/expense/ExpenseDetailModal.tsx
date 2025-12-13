@@ -202,7 +202,7 @@ export function ExpenseDetailModal({ isOpen, onClose, groupId, expenseId, onEdit
                     <Stack spacing='md'>
                         {/* Lock Warning */}
                         {expense.isLocked && (
-                            <div className='bg-surface-warning border border-border-warning rounded-lg p-3' data-testid='expense-lock-warning'>
+                            <div className='bg-surface-warning border border-border-warning rounded-lg p-3' role='alert'>
                                 <div className='flex items-start gap-2'>
                                     <ExclamationTriangleIcon className='w-5 h-5 text-semantic-warning shrink-0' aria-hidden='true' />
                                     <p className='text-sm text-text-primary'>
@@ -214,7 +214,7 @@ export function ExpenseDetailModal({ isOpen, onClose, groupId, expenseId, onEdit
 
                         {/* Amount */}
                         <div className='text-center pb-4 border-b border-border-default'>
-                            <h2 className='text-2xl font-bold text-text-primary' data-testid='expense-amount'>
+                            <h2 className='text-2xl font-bold text-text-primary'>
                                 <CurrencyAmount amount={expense.amount} currency={expense.currency} />
                             </h2>
                         </div>

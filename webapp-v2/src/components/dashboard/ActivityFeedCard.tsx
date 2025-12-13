@@ -60,10 +60,10 @@ export function ActivityFeedCard({ userId }: ActivityFeedCardProps) {
     };
 
     return (
-        <div className='glass-panel border-border-default rounded-lg shadow-lg border border-border-default' data-testid='activity-feed-card'>
+        <section className='glass-panel border-border-default rounded-lg shadow-lg border border-border-default' aria-labelledby='activity-feed-heading'>
             <div className='p-6'>
                 <div className='flex items-center justify-between mb-4'>
-                    <Typography variant='subheading'>{t('activityFeed.title')}</Typography>
+                    <Typography variant='subheading' id='activity-feed-heading'>{t('activityFeed.title')}</Typography>
                 </div>
 
                 {/* Loading skeleton */}
@@ -129,7 +129,6 @@ export function ActivityFeedCard({ userId }: ActivityFeedCardProps) {
                                     <li
                                         key={item.id}
                                         className={`relative fade-up ${visibleIndices.has(index) ? 'fade-up-visible' : ''}`}
-                                        data-testid='activity-feed-item'
                                         data-event-type={item.eventType}
                                     >
                                         {handleNavigate
@@ -181,7 +180,7 @@ export function ActivityFeedCard({ userId }: ActivityFeedCardProps) {
                     )
                     : null}
             </div>
-        </div>
+        </section>
     );
 }
 

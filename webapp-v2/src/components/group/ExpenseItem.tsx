@@ -34,12 +34,12 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
     };
 
     return (
-        <div
+        <article
             className={`border border-border-default/50 rounded-lg px-4 py-3 cursor-pointer hover:border-interactive-primary/40 hover:bg-surface-base/30 backdrop-blur-xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md relative group ${
                 isDeleted ? 'opacity-60 bg-surface-muted' : 'bg-surface-base/20'
             }`}
             onClick={() => onClick?.(expense)}
-            data-testid='expense-item'
+            aria-label={expense.description}
         >
             <div className='flex justify-between items-start gap-4'>
                 <div className='flex items-center gap-3 flex-1 min-w-0'>
@@ -50,7 +50,7 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
                         <div className='flex items-center gap-2'>
                             <p className={`font-medium text-sm ${isDeleted ? 'line-through text-text-muted' : 'text-text-primary'}`}>{expense.description}</p>
                             {isDeleted && (
-                                <span className='text-xs bg-surface-error text-semantic-error px-2 py-0.5 rounded' data-testid='deleted-badge'>
+                                <span className='text-xs bg-surface-error text-semantic-error px-2 py-0.5 rounded'>
                                     {t('expenseItem.deleted')}
                                 </span>
                             )}
@@ -72,7 +72,7 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
 
                 <div className='flex items-center gap-2 shrink-0'>
                     <div className='text-right'>
-                        <p className={`font-semibold text-base ${isDeleted ? 'text-text-muted' : 'text-text-primary'}`} data-testid='expense-amount'>
+                        <p className={`font-semibold text-base ${isDeleted ? 'text-text-muted' : 'text-text-primary'}`}>
                             <CurrencyAmount amount={expense.amount} currency={expense.currency} />
                         </p>
                         {expense.labels.length > 0 && <p className='help-text-xs text-text-muted/70'>{expense.labels.join(', ')}</p>}
@@ -94,6 +94,6 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
                     )}
                 </div>
             </div>
-        </div>
+        </article>
     );
 }

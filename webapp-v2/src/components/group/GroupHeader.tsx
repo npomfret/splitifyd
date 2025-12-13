@@ -44,8 +44,8 @@ export function GroupHeader({ group, members, onSettings, showSettingsButton }: 
             headerActions={settingsButton}
         >
             <div className='space-y-3'>
-                {group.description && <p className='text-text-primary/80' data-testid='group-description'>{group.description}</p>}
-                <div className='help-text' data-testid='group-stats'>
+                {group.description && <p className='text-text-primary/80'>{group.description}</p>}
+                <div className='help-text'>
                     {t('groupHeader.membersCount', { count: members.length })}, <RelativeTime date={group.createdAt} /> {t('groupHeader.old')}, {t('groupHeader.lastUpdated')}{' '}
                     <RelativeTime date={group.updatedAt} />
                 </div>

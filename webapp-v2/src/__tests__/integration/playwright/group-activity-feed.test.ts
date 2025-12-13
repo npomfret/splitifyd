@@ -254,8 +254,7 @@ test.describe('Group Activity Feed - Display & Content', () => {
             .replace('{{expense}}', '"Team Lunch"')
             .replace('{{group}}', groupName);
 
-        const feedContainer = page.getByTestId('group-activity-feed');
-        await expect(feedContainer).not.toContainText(longFormat);
+        await groupDetailPage.verifyActivityFeedDoesNotContainText(longFormat);
     });
 
     test('should show "You" when current user is the actor', async ({ authenticatedPage }) => {
@@ -547,8 +546,7 @@ test.describe('Group Activity Feed - Navigation', () => {
         await groupDetailPage.verifyActivityFeedContainsText(expectedDescription);
 
         // Click on the activity item
-        const activityContainer = page.getByTestId('group-activity-feed');
-        await activityContainer.getByText(expectedDescription).click();
+        await groupDetailPage.clickActivityFeedItemByText(expectedDescription);
 
         // Expense detail modal opens (URL stays on group page)
         await expect(page).toHaveURL(new RegExp(`/groups/${groupId}$`));

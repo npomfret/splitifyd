@@ -115,7 +115,7 @@ export function ExpenseFormModal({ isOpen, onClose, groupId, mode, expenseId, on
 
                 {/* Form content */}
                 {formState.isDataReady && formState.group && (
-                    <form role='form' onSubmit={formState.handleSubmit} autoComplete='off' data-testid='expense-form'>
+                    <form role='form' onSubmit={formState.handleSubmit} autoComplete='off'>
                         {/* Hidden fields to prevent browser autofill */}
                         <div
                             aria-hidden='true'

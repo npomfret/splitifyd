@@ -15,7 +15,7 @@ export function LoadingState({ message, fullPage = false, size = 'md', className
         <div className={`flex flex-col items-center justify-center ${className}`}>
             <LoadingSpinner size={size} />
             {displayMessage && (
-                <p className='mt-3 help-text' data-testid='loading-message'>
+                <p className='mt-3 help-text'>
                     {displayMessage}
                 </p>
             )}

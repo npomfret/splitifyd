@@ -68,7 +68,7 @@ export function GroupsList({ onCreateGroup, onInvite, onAddExpense }: GroupsList
 
     return (
         <>
-            <div className='grid-auto-fit grid-auto-fit-md' data-testid='groups-grid' ref={gridRef}>
+            <div className='grid-auto-fit grid-auto-fit-md' role='list' aria-label={t('dashboardComponents.groupsList.groupsListAriaLabel')} ref={gridRef}>
                 {enhancedGroupsStore.isCreatingGroup && (
                     <div className='border-2 border-dashed border-border-default rounded-lg p-8 flex items-center justify-center transition-all duration-200'>
                         <LoadingSpinner />
