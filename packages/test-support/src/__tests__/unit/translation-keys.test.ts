@@ -50,7 +50,7 @@ const SCRIPT_RANGES: Record<string, RegExp> = {
 // Supported languages that use Latin script (no untranslated detection possible)
 const LATIN_SCRIPT_LANGUAGES = new Set(['en', 'de']);
 
-// Universal notation that doesn't need translation (not brand names or text)
+// Universal notation that doesn't need translation (symbols, punctuation, not text)
 const UNIVERSAL_PATTERNS = [
     /^\s*[-–—|]\s*\{\{[^}]+\}\}\s*$/, // Separator + placeholder: " - {{appName}}"
     /^\{\{[^}]+\}\}$/, // Pure placeholder: "{{appName}}"
@@ -58,14 +58,17 @@ const UNIVERSAL_PATTERNS = [
     /^#[A-Fa-f0-9]{6}$/, // Hex colors: "#FF0000"
     /^#RRGGBB$/, // Color format hint
     /^\/[\w.-]+$/, // File paths: "/logo.svg"
+    /^[*$%•→←↑↓:;.,!?…]+\s*$/, // Punctuation and symbols: "*", "$", "• ", "→"
+    /^\s*[*$%•→←↑↓:;.,!?…]+$/, // With leading whitespace: " → "
+    /^\s*[*$%•→←↑↓:;.,!?…]+\s*$/, // With whitespace on both sides: " → "
+    /^\s*[-–—]\s*$/, // Dash separators: " - "
+    /^\.{2,}$/, // Ellipsis: "...", "...."
+    /^[\p{Emoji}\p{Extended_Pictographic}\uFE0F]+$/u, // Emoji (including variation selectors): "⚠️", "✓"
 ];
 
 function isUniversalNotation(value: string): boolean {
     return UNIVERSAL_PATTERNS.some((pattern) => pattern.test(value));
 }
-
-// i18next pluralization suffixes
-const PLURAL_SUFFIXES = ['_zero', '_one', '_two', '_few', '_many', '_other'];
 
 // Keys that are legitimately constructed at runtime and can't be statically detected
 const DYNAMIC_KEY_PATTERNS = [
@@ -171,8 +174,9 @@ function isLikelyUntranslatedEnglish(value: string, langCode: string): boolean {
     // For languages with distinct scripts, check if the value contains any of that script
     const scriptRange = SCRIPT_RANGES[langCode];
     if (scriptRange) {
-        // If the string is long enough and contains NO target script characters, likely untranslated
-        return value.length > 3 && !scriptRange.test(value);
+        // If the string contains NO target script characters, it's likely untranslated English
+        // (universal notation like numbers/placeholders already filtered above)
+        return !scriptRange.test(value);
     }
 
     return false;
@@ -355,7 +359,8 @@ describe('Translation Keys Validation', () => {
     const allTranslationKeys = new Set(flattenKeys(translationEn as Record<string, unknown>));
 
     function hasPluralizedKey(baseKey: string): boolean {
-        return PLURAL_SUFFIXES.some((suffix) => allTranslationKeys.has(baseKey + suffix));
+        const pluralSuffixes = ['_zero', '_one', '_two', '_few', '_many', '_other'];
+        return pluralSuffixes.some((suffix) => allTranslationKeys.has(baseKey + suffix));
     }
 
     function isValidKeyOrPrefix(key: string): boolean {
@@ -463,8 +468,9 @@ describe('Translation Keys Validation', () => {
         }
     });
 
-    it('should have all translation keys present (sanity check)', () => {
-        expect(allTranslationKeys.size).toBeGreaterThan(100);
+    it('should have a reasonable number of translation keys (sanity check)', () => {
+        // Currently ~1260 keys; catch accidental mass deletion
+        expect(allTranslationKeys.size).toBeGreaterThan(1000);
     });
 });
 
