@@ -450,7 +450,6 @@ export function SettingsPage() {
                                                     }
                                                 }}
                                                 className='space-y-5'
-                                                data-testid='email-form'
                                             >
                                                 <Input
                                                     label={t('settingsPage.newEmailLabel')}
@@ -542,7 +541,7 @@ export function SettingsPage() {
                                             </Button>
                                         )
                                         : (
-                                            <div data-testid='password-form'>
+                                            <div>
                                                 <Form
                                                     onSubmit={() => {
                                                         if (!isLoading) {

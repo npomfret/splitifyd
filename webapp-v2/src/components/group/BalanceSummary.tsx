@@ -81,13 +81,12 @@ export function BalanceSummary({ onSettleUp }: BalanceSummaryProps) {
     }, [balances.value?.simplifiedDebts, showAllBalances.value, currentUser]);
 
     const content = !balances.value
-        ? <p className='text-text-muted text-sm' data-testid='balance-loading'>{t('balanceSummary.loadingBalances')}</p>
+        ? <p className='text-text-muted text-sm'>{t('balanceSummary.loadingBalances')}</p>
         : groupedDebts.length === 0 || groupedDebts.every(g => g.debts.length === 0)
-        ? <p className='text-text-muted text-sm' data-testid='balance-settled-up'>{t('balanceSummary.allSettledUp')}</p>
+        ? <p className='text-text-muted text-sm'>{t('balanceSummary.allSettledUp')}</p>
         : (
             <div
                 className='space-y-2 max-h-[300px] overflow-y-auto overflow-x-hidden pr-1 scrollbar-thin scrollbar-thumb-border-default scrollbar-track-transparent hover:scrollbar-thumb-border-strong'
-                data-testid='balance-debts-list'
             >
                 {groupedDebts.map(({ currency, debts }) => (
                     debts.map((debt) => {

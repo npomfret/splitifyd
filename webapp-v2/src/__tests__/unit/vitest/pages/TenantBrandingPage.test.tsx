@@ -203,11 +203,11 @@ describe('TenantBrandingPage', () => {
             render(<TenantBrandingPage />);
 
             await waitFor(() => {
-                const showMarketingContentCheckbox = screen.getByTestId('show-marketing-content-checkbox') as HTMLInputElement;
+                const showMarketingContentCheckbox = screen.getByRole('checkbox', { name: /contentLabel/i }) as HTMLInputElement;
                 expect(showMarketingContentCheckbox.checked).toBe(true);
             });
 
-            const showPricingPageCheckbox = screen.getByTestId('show-pricing-page-checkbox') as HTMLInputElement;
+            const showPricingPageCheckbox = screen.getByRole('checkbox', { name: /pricingLabel/i }) as HTMLInputElement;
             expect(showPricingPageCheckbox.checked).toBe(false);
         });
 
@@ -262,11 +262,11 @@ describe('TenantBrandingPage', () => {
             render(<TenantBrandingPage />);
 
             await waitFor(() => {
-                const checkbox = screen.getByTestId('show-pricing-page-checkbox') as HTMLInputElement;
+                const checkbox = screen.getByRole('checkbox', { name: /pricingLabel/i }) as HTMLInputElement;
                 expect(checkbox.checked).toBe(false);
             });
 
-            const checkbox = screen.getByTestId('show-pricing-page-checkbox');
+            const checkbox = screen.getByRole('checkbox', { name: /pricingLabel/i });
             fireEvent.click(checkbox);
 
             expect((checkbox as HTMLInputElement).checked).toBe(true);

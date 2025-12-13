@@ -13,7 +13,6 @@ export function MarketingSection({ formData, update, isSaving }: SectionProps) {
                     checked={formData.showMarketingContent}
                     onChange={(v) => update({ showMarketingContent: v })}
                     disabled={isSaving}
-                    testId='show-marketing-content-checkbox'
                 />
                 <AdminFormToggle
                     label='Pricing Page'
@@ -21,7 +20,6 @@ export function MarketingSection({ formData, update, isSaving }: SectionProps) {
                     checked={formData.showPricingPage}
                     onChange={(v) => update({ showPricingPage: v })}
                     disabled={isSaving}
-                    testId='show-pricing-page-checkbox'
                 />
             </div>
         </AdminFormSection>

@@ -340,7 +340,6 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                                 checked={currencyRestrictionsEnabled}
                                 onChange={setCurrencyRestrictionsEnabled}
                                 disabled={isSubmitting}
-                                data-testid='currency-restrictions-toggle'
                             />
 
                             {currencyRestrictionsEnabled && (

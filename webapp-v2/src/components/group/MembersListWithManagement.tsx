@@ -290,7 +290,6 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
                     cancelText={t('membersList.leaveGroupDialog.cancelText')}
                     variant={hasOutstandingBalance.value ? 'info' : 'warning'}
                     loading={isProcessing.value}
-                    dataTestId='leave-group-dialog'
                 />
             )}
 

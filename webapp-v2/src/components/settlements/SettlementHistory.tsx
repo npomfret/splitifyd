@@ -229,7 +229,6 @@ export function SettlementHistory({
                                                                 disabled={settlement.isLocked}
                                                                 className='p-1 text-text-muted hover:text-interactive-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-text-muted'
                                                                 aria-label={editTooltip}
-                                                                data-testid='edit-settlement-button'
                                                             >
                                                                 <PencilIcon className='h-4 w-4' aria-hidden='true' />
                                                             </button>
@@ -246,7 +245,6 @@ export function SettlementHistory({
                                                                 onClick={() => handleDeleteClick(settlement)}
                                                                 className='p-1 text-text-muted hover:text-semantic-error transition-colors'
                                                                 aria-label={deleteTooltip}
-                                                                data-testid='delete-settlement-button'
                                                             >
                                                                 <TrashIcon className='h-4 w-4' aria-hidden='true' />
                                                             </button>

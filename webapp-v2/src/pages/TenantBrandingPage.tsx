@@ -327,7 +327,7 @@ export function TenantBrandingPage() {
                                             onChange={(e) => setShowMarketingContent((e.target as HTMLInputElement).checked)}
                                             disabled={isSaving}
                                             className='h-4 w-4 rounded border-border-default text-interactive-primary focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-interactive-primary'
-                                            data-testid='show-marketing-content-checkbox'
+                                            aria-label={t('tenantBranding.marketing.contentLabel')}
                                         />
                                         <div className='flex-1'>
                                             <p className='text-sm font-medium text-text-primary'>{t('tenantBranding.marketing.contentLabel')}</p>
@@ -342,7 +342,7 @@ export function TenantBrandingPage() {
                                             onChange={(e) => setShowPricingPage((e.target as HTMLInputElement).checked)}
                                             disabled={isSaving}
                                             className='h-4 w-4 rounded border-border-default text-interactive-primary focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-interactive-primary'
-                                            data-testid='show-pricing-page-checkbox'
+                                            aria-label={t('tenantBranding.marketing.pricingLabel')}
                                         />
                                         <div className='flex-1'>
                                             <p className='text-sm font-medium text-text-primary'>{t('tenantBranding.marketing.pricingLabel')}</p>

@@ -59,11 +59,11 @@ export class TenantBrandingPage extends BasePage {
     }
 
     protected getShowMarketingContentCheckbox(): Locator {
-        return this.page.locator('[data-testid="show-marketing-content-checkbox"]');
+        return this.page.getByRole('checkbox', { name: translation.tenantBranding.marketing.contentLabel });
     }
 
     protected getShowPricingPageCheckbox(): Locator {
-        return this.page.locator('[data-testid="show-pricing-page-checkbox"]');
+        return this.page.getByRole('checkbox', { name: translation.tenantBranding.marketing.pricingLabel });
     }
 
     protected getSaveButton(): Locator {

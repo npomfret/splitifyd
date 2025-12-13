@@ -72,7 +72,6 @@ export function PaletteColorsSection({ formData, update, isSaving, mode, creatio
                                     : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                             }
                             `}
-                            data-testid='color-derivation-toggle'
                         >
                             <span className='flex items-center gap-2'>
                                 <SparklesIcon size={18} />

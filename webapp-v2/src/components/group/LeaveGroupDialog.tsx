@@ -49,7 +49,6 @@ export function LeaveGroupDialog({ isOpen, onClose, groupId, hasOutstandingBalan
             cancelText={t('membersList.leaveGroupDialog.cancelText')}
             variant={hasOutstandingBalance ? 'info' : 'warning'}
             loading={isProcessing.value}
-            data-testid='leave-group-dialog'
         />
     );
 }

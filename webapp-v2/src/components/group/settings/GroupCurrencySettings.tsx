@@ -114,7 +114,6 @@ export function GroupCurrencySettings({
                     checked={enabled}
                     onChange={onToggle}
                     disabled={disabled}
-                    dataTestId='currency-restrictions-toggle'
                 />
             </div>
 

@@ -4,7 +4,7 @@ interface AdminFormToggleProps {
     checked: boolean;
     onChange: (checked: boolean) => void;
     disabled?: boolean;
-    testId: string;
+    testId?: string;
 }
 
 export function AdminFormToggle({ label, description, checked, onChange, disabled, testId }: AdminFormToggleProps) {
@@ -16,6 +16,7 @@ export function AdminFormToggle({ label, description, checked, onChange, disable
                 onChange={(e) => onChange((e.target as HTMLInputElement).checked)}
                 disabled={disabled}
                 className='h-4 w-4 mt-0.5 rounded border-border-default'
+                aria-label={label}
                 data-testid={testId}
             />
             <div>

@@ -967,7 +967,7 @@ export class GroupSettingsModalPage extends BasePage {
     // ============================================================================
 
     protected getCurrencyRestrictionsToggle(): Locator {
-        return this.getModalContainer().getByTestId('currency-restrictions-toggle');
+        return this.getModalContainer().getByRole('switch', { name: translation.groupSettings.currencySettings.enableToggle });
     }
 
     protected getAddCurrencyButton(): Locator {

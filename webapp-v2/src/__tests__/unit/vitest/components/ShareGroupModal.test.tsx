@@ -120,8 +120,8 @@ describe('ShareGroupModal', () => {
         const linkInput = await screen.findByRole('textbox');
         const origin = window.location.origin;
         await waitFor(() => expect(linkInput).toHaveValue(`${origin}/share/group-1`));
-        expect(screen.getByTestId('share-group-name')).toHaveTextContent('Design Guild');
-        expect(await screen.findByTestId('share-link-expiration-hint')).toBeInTheDocument();
+        expect(screen.getByText('Design Guild')).toBeInTheDocument();
+        expect(await screen.findByText(/expiresAt/i)).toBeInTheDocument();
     });
 
     it('regenerates the share link when the group changes while open', async () => {
@@ -160,7 +160,7 @@ describe('ShareGroupModal', () => {
         });
         const updatedInput = await screen.findByRole('textbox');
         await waitFor(() => expect(updatedInput).toHaveValue(`${origin}/share/group-2`));
-        expect(screen.getByTestId('share-group-name')).toHaveTextContent('Product Crew');
+        expect(screen.getByText('Product Crew')).toBeInTheDocument();
         expect(updatedInput).not.toHaveValue(`${origin}/share/group-1`);
     });
 

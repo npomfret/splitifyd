@@ -178,7 +178,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                             </Typography>
                         </div>
                         {normalizedGroupName && (
-                            <p className='text-sm text-text-primary/70' data-testid='share-group-name'>
+                            <p className='text-sm text-text-primary/70'>
                                 {normalizedGroupName}
                             </p>
                         )}
@@ -305,7 +305,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                             </div>
                         </div>
                         {expiresAt && (
-                            <p className='text-xs text-text-primary/60' data-testid='share-link-expiration-hint'>
+                            <p className='text-xs text-text-primary/60'>
                                 {t('shareGroupModal.expiresAt', { date: formatDateTimeInUserTimeZone(new Date(expiresAt)) })}
                             </p>
                         )}
