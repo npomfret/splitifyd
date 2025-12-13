@@ -20,6 +20,7 @@ Once you understand the changeset, and you understand and appreciate the guiding
 - [ ] has anything been added that wasn't called for (referencing any task/md file)?
 - [ ] have any relevant any task docs been accurately updated?
 - [ ] does it compile? (run `npm run build` from the project root)
+- [ ] did the English translations change?  Make sure are all other language mappings files are updated accordlingly
 
 **DO NOT CHANGE ANY CODE**
 
