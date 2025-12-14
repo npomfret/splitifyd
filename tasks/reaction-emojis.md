@@ -1,59 +1,192 @@
-
 # Add Reaction Emojis to App Items
 
-This task is to implement emoji reactions for various items within the application, such as expenses and comments. This will provide users with a quick and expressive way to engage with content.
+## Status: In Progress
 
-## Initial Thoughts
+## Overview
 
--   Users should be able to add an emoji reaction to an item.
--   Users should be able to see who reacted with which emoji.
--   Users should be able to remove their own reaction.
--   The UI should display a summary of reactions (e.g., "👍 5", "❤️ 2").
+Implement Slack-style emoji reactions for expenses, comments (group and expense), and settlements. Users can add multiple reactions per item from a fixed set of 6 emojis. Reactions update in real-time via the existing activity feed system.
 
-## Research Needed
+## Requirements (Confirmed)
 
-This feature requires some research before starting implementation to ensure a good user experience and a scalable backend design.
+- **Scope**: Expenses, group comments, expense comments, settlements
+- **Reaction mode**: Multiple reactions per user (can add both 👍 AND ❤️ to same item)
+- **Emoji set**: Quick reactions only - 👍 ❤️ 😂 😮 😢 🎉
+- **Real-time**: Other users see reactions immediately
 
-### Frontend (UI/UX)
+## Data Model: Hybrid Approach
 
-1.  **Emoji Picker:**
-    *   What is the best library to use for a modern emoji picker? (e.g., `emoji-picker-react`, `emojimart`)
-    *   How should the picker be triggered? (e.g., a button, a hover-activated menu)
-    *   Should there be a default set of "quick reactions" (like 👍, ❤️, 😂) and a full picker?
+Store both aggregate counts (for fast display) and individual reactions (for "who reacted" info).
 
-2.  **Displaying Reactions:**
-    *   How should the aggregated reactions be displayed on an item?
-    *   How should the list of users who reacted be displayed? (e.g., in a tooltip on hover, in a modal on click)
+### Storage Structure
 
-### Backend (Firebase/Firestore)
+```
+expenses/{expenseId}/reactions/{userId}_{emoji}
+groups/{groupId}/comments/{commentId}/reactions/{userId}_{emoji}
+expenses/{expenseId}/comments/{commentId}/reactions/{userId}_{emoji}
+settlements/{settlementId}/reactions/{userId}_{emoji}
 
-1.  **Data Modeling:**
-    *   What is the most efficient way to store reactions in Firestore?
-    *   **Option A: Subcollection on the parent document.**
-        *   `expenses/{expenseId}/reactions/{userId}` -> `{ emoji: '👍', timestamp: ... }`
-        *   **Pros:** Easy to query for who reacted.
-        *   **Cons:** Might be more complex to get an aggregate count of each emoji. Could be more expensive for reads if we just need counts.
-    *   **Option B: Map on the parent document.**
-        *   `expenses/{expenseId}` -> `reactions: { '👍': ['userId1', 'userId2'], '❤️': ['userId3'] }`
-        *   **Pros:** Easy to get aggregate counts. Fewer documents to read.
-        *   **Cons:** The document could grow large if there are many reactions and many users. Firestore documents have a 1MB size limit.
-    *   **Option C: A hybrid approach?**
-        *   Store aggregate counts in the parent document and the detailed reactions in a subcollection. This would require using a Cloud Function to keep the aggregates in sync.
+# Aggregate counts on parent documents
+expenses/{expenseId}.reactionCounts = { '👍': 3, '❤️': 1 }
+```
 
-2.  **Security Rules:**
-    *   How to structure security rules to allow users to add/remove their own reactions, but not others'?
-    *   Ensure that only members of the group can react.
+**Document ID format**: `{userId}_{emoji}` - ensures uniqueness and enables simple toggle operations.
 
-3.  **Real-time Updates:**
-    *   How to handle real-time updates for reactions efficiently? When a user adds a reaction, other clients should see it appear without a full page reload. This should integrate with the existing activity feed system if possible, or use a direct Firestore listener.
+### New Types
 
-## Task Breakdown (High-Level)
+```typescript
+// Branded type
+export type ReactionId = Brand<string, 'ReactionId'>;
 
--   [ ] **Research:** Investigate UI libraries and backend data modeling options. Decide on the best approach.
--   [ ] **Backend:** Implement the chosen data model for reactions in Firestore.
--   [ ] **Backend:** Add security rules for reactions.
--   [ ] **Backend:** Create API endpoints or Cloud Functions (if needed) to manage reactions.
--   [ ] **Frontend:** Integrate an emoji picker component.
--   [ ] **Frontend:** Implement the UI for adding, viewing, and removing reactions.
--   [ ] **Frontend:** Connect the UI to the backend to send and receive reaction data in real-time.
--   [ ] **Testing:** Add tests for the new functionality.
+// Fixed emoji set
+export const ReactionEmojis = {
+    THUMBS_UP: '👍', HEART: '❤️', LAUGH: '😂',
+    WOW: '😮', SAD: '😢', CELEBRATE: '🎉',
+} as const;
+export type ReactionEmoji = (typeof ReactionEmojis)[keyof typeof ReactionEmojis];
+
+// DTOs
+export interface ReactionDTO {
+    id: ReactionId;
+    userId: UserId;
+    emoji: ReactionEmoji;
+    createdAt: ISOString;
+}
+
+export type ReactionCounts = Partial<Record<ReactionEmoji, number>>;
+
+export interface ReactionSummary {
+    counts: ReactionCounts;
+    userReactions: ReactionEmoji[];
+}
+
+export interface ReactionToggleResponse {
+    action: 'added' | 'removed';
+    emoji: ReactionEmoji;
+    newCount: number;
+}
+```
+
+### Extend Existing DTOs
+
+Add optional `reactionCounts?: ReactionCounts` to:
+- `ExpenseDTO`
+- `CommentDTO`
+- `SettlementDTO`
+
+## API Design
+
+### New Endpoints
+
+```
+POST /expenses/:expenseId/reactions          → toggleExpenseReaction
+POST /groups/:groupId/comments/:commentId/reactions → toggleGroupCommentReaction
+POST /expenses/:expenseId/comments/:commentId/reactions → toggleExpenseCommentReaction
+POST /settlements/:settlementId/reactions    → toggleSettlementReaction
+```
+
+## Real-Time Updates
+
+### Activity Feed Events
+
+Add to `ActivityFeedEventTypes`:
+- `REACTION_ADDED: 'reaction-added'`
+- `REACTION_REMOVED: 'reaction-removed'`
+
+### Flow
+
+1. User toggles reaction → API call
+2. Backend: Transaction updates subcollection + parent counts
+3. Backend: Records activity feed event for group members
+4. Frontend: Activity feed coordinator triggers `refreshAll()`
+5. UI updates with new reaction counts
+
+## Frontend Components
+
+### ReactionPicker
+
+Popover showing 6 emoji options.
+
+### ReactionBar
+
+Displays reaction pills (emoji + count). User's own reactions are highlighted.
+
+### Integration Points
+
+- `CommentItem.tsx` - Add ReactionBar below comment text
+- `ExpenseDetailModal.tsx` - Add ReactionBar in expense detail
+- Settlement components - Add ReactionBar
+
+## Implementation Phases
+
+### Phase 1: Backend Core
+- [x] Add types/DTOs to shared package
+- [x] Create `firebase/functions/src/schemas/reaction.ts`
+- [ ] Create `firebase/functions/src/services/ReactionService.ts`
+- [ ] Create `firebase/functions/src/reactions/ReactionHandlers.ts`
+- [ ] Add routes to `route-config.ts`
+- [ ] Update Firestore security rules
+- [ ] Unit tests
+
+### Phase 2: Backend Integration
+- [ ] Update expense/comment/settlement schemas with `reactionCounts`
+- [ ] Extend FirestoreReader to fetch user's reactions
+- [ ] Extend activity feed with reaction events
+
+### Phase 3: Frontend
+- [ ] Create ReactionPicker component
+- [ ] Create ReactionBar component
+- [ ] Integrate into CommentItem
+- [ ] Integrate into ExpenseDetailModal
+- [ ] Integrate into settlement components
+- [ ] Add i18n keys
+- [ ] Playwright tests
+
+### Phase 4: Polish
+- [ ] Optimistic UI updates
+- [ ] Error handling
+- [ ] Accessibility (keyboard nav, screen reader)
+
+## Files to Create
+
+| File | Purpose |
+|------|---------|
+| `firebase/functions/src/schemas/reaction.ts` | Firestore schema |
+| `firebase/functions/src/reactions/ReactionHandlers.ts` | API handlers |
+| `firebase/functions/src/reactions/validation.ts` | Request validation |
+| `firebase/functions/src/services/ReactionService.ts` | Business logic |
+| `firebase/functions/src/__tests__/unit/api/reactions.test.ts` | Backend tests |
+| `webapp-v2/src/components/reactions/ReactionPicker.tsx` | Emoji picker |
+| `webapp-v2/src/components/reactions/ReactionBar.tsx` | Reaction display |
+| `webapp-v2/src/components/reactions/index.ts` | Barrel export |
+
+## Files to Modify
+
+| File | Changes |
+|------|---------|
+| `packages/shared/src/shared-types.ts` | Add reaction types, extend DTOs |
+| `packages/shared/src/api.ts` | Add reaction API methods |
+| `packages/shared/src/schemas/apiSchemas.ts` | Add response schemas |
+| `firebase/functions/src/schemas/expense.ts` | Add reactionCounts field |
+| `firebase/functions/src/schemas/comment.ts` | Add reactionCounts field |
+| `firebase/functions/src/schemas/settlement.ts` | Add reactionCounts field |
+| `firebase/functions/src/routes/route-config.ts` | Add routes |
+| `firebase/functions/src/ApplicationFactory.ts` | Register handlers |
+| `firebase/firestore.rules` | Add reaction security rules |
+| `webapp-v2/src/app/apiClient.ts` | Add API methods |
+| `webapp-v2/src/components/comments/CommentItem.tsx` | Add ReactionBar |
+| `webapp-v2/src/components/expense/ExpenseDetailModal.tsx` | Add ReactionBar |
+| `webapp-v2/src/locales/en/translation.json` | Add i18n keys |
+
+## Security Rules
+
+- Only group members can react to group resources
+- Users can only add/remove their own reactions (enforced by document ID pattern)
+- No updates allowed - reactions are add/remove only
+- Settlement reactions restricted to payer/payee
+
+## Complexity: Medium-High
+
+- Touches multiple resource types (expenses, comments, settlements)
+- Requires careful transaction handling for count consistency
+- Real-time sync via existing activity feed
+- Frontend components with accessibility considerations
