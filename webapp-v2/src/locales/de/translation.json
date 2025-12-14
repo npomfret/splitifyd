@@ -280,12 +280,6 @@
     }
   },
   "group": {
-    "header": {
-      "members_one": "{{count}} Mitglied",
-      "members_other": "{{count}} Mitglieder",
-      "expenses_one": "{{count}} Ausgabe",
-      "expenses_other": "{{count}} Ausgaben"
-    },
     "actions": {
       "addExpense": "Ausgabe hinzufügen",
       "settleUp": "Abrechnen"
@@ -1381,72 +1375,48 @@
           "description": "Mandanten-ID, Name und Domains"
         },
         "assets": {
-          "title": "Assets",
-          "description": "Logo- und Favicon-Bilder"
-        },
-        "paletteColors": {
-          "title": "Palettenfarben",
-          "description": "Kernmarkenfarben"
+          "title": "Assets"
         },
         "brandColors": {
           "title": "Markenfarben",
           "description": "Legen Sie Ihre primären Markenfarben fest und leiten Sie dann das vollständige Farbsystem ab"
         },
         "surfaceColors": {
-          "title": "Oberflächenfarben",
-          "description": "Hintergrund- und Containerfarben"
+          "title": "Oberflächenfarben"
         },
         "textColors": {
-          "title": "Textfarben",
-          "description": "Typografie-Farben"
+          "title": "Textfarben"
         },
         "interactiveColors": {
-          "title": "Interaktive Farben",
-          "description": "Schaltflächen- und Linkfarben"
+          "title": "Interaktive Farben"
         },
         "borderColors": {
-          "title": "Rahmenfarben",
-          "description": "Rahmen- und Trennlinienfarben"
+          "title": "Rahmenfarben"
         },
         "statusColors": {
-          "title": "Statusfarben",
-          "description": "Feedback- und Warnfarben"
+          "title": "Statusfarben"
         },
         "typography": {
-          "title": "Typografie",
-          "description": "Schriftfamilien, -größen und -stärken"
+          "title": "Typografie"
         },
         "spacing": {
-          "title": "Abstand",
-          "description": "Abstandsskala und semantische Abstände"
+          "title": "Abstand"
         },
         "radii": {
-          "title": "Randradien",
-          "description": "Werte für die Eckrundung"
+          "title": "Randradien"
         },
         "shadows": {
-          "title": "Schatten",
-          "description": "Box-Schatten-Definitionen"
+          "title": "Schatten"
         },
         "legal": {
-          "title": "Rechtliches",
-          "description": "Unternehmensinformationen und rechtliche Links"
+          "title": "Rechtliches"
         },
         "motion": {
-          "title": "Bewegung",
-          "description": "Animationsdauern und -kurven"
-        },
-        "featureFlags": {
-          "title": "Feature-Flags",
-          "description": "Funktionen aktivieren oder deaktivieren"
+          "title": "Bewegung"
         },
         "marketing": {
           "title": "Marketingfunktionen",
           "description": "Marketingseiten und -inhalte umschalten"
-        },
-        "advanced": {
-          "title": "Erweitert",
-          "description": "Optionale visuelle Effekte"
         }
       },
       "fields": {

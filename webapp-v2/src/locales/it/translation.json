@@ -280,12 +280,6 @@
     }
   },
   "group": {
-    "header": {
-      "members_one": "{{count}} membro",
-      "members_other": "{{count}} membri",
-      "expenses_one": "{{count}} spesa",
-      "expenses_other": "{{count}} spese"
-    },
     "actions": {
       "addExpense": "Aggiungi spesa",
       "settleUp": "Salda"
@@ -1382,72 +1376,48 @@
           "description": "ID tenant, nome e domini"
         },
         "assets": {
-          "title": "Asset",
-          "description": "Logo e immagini favicon"
-        },
-        "paletteColors": {
-          "title": "Colori palette",
-          "description": "Colori principali del brand"
+          "title": "Asset"
         },
         "brandColors": {
           "title": "Colori del brand",
           "description": "Imposta i colori principali del tuo brand, quindi deriva l'intero sistema colore"
         },
         "surfaceColors": {
-          "title": "Colori superficie",
-          "description": "Colori di sfondo e contenitore"
+          "title": "Colori superficie"
         },
         "textColors": {
-          "title": "Colori testo",
-          "description": "Colori tipografici"
+          "title": "Colori testo"
         },
         "interactiveColors": {
-          "title": "Colori interattivi",
-          "description": "Colori pulsanti e link"
+          "title": "Colori interattivi"
         },
         "borderColors": {
-          "title": "Colori bordo",
-          "description": "Colori bordo e divisore"
+          "title": "Colori bordo"
         },
         "statusColors": {
-          "title": "Colori stato",
-          "description": "Colori feedback e avvisi"
+          "title": "Colori stato"
         },
         "typography": {
-          "title": "Tipografia",
-          "description": "Famiglie di caratteri, dimensioni e pesi"
+          "title": "Tipografia"
         },
         "spacing": {
-          "title": "Spaziatura",
-          "description": "Scala spaziatura e spaziatura semantica"
+          "title": "Spaziatura"
         },
         "radii": {
-          "title": "Raggi bordo",
-          "description": "Valori arrotondamento angoli"
+          "title": "Raggi bordo"
         },
         "shadows": {
-          "title": "Ombre",
-          "description": "Definizioni ombreggiatura box"
+          "title": "Ombre"
         },
         "legal": {
-          "title": "Legale",
-          "description": "Informazioni azienda e link legali"
+          "title": "Legale"
         },
         "motion": {
-          "title": "Movimento",
-          "description": "Durate animazioni e easing"
-        },
-        "featureFlags": {
-          "title": "Flag funzionalità",
-          "description": "Abilita o disabilita funzionalità"
+          "title": "Movimento"
         },
         "marketing": {
           "title": "Funzionalità marketing",
           "description": "Attiva/disattiva pagine e contenuti marketing"
-        },
-        "advanced": {
-          "title": "Avanzate",
-          "description": "Effetti visivi opzionali"
         }
       },
       "fields": {

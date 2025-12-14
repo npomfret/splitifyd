@@ -280,12 +280,6 @@
     }
   },
   "group": {
-    "header": {
-      "members_one": "{{count}} lid",
-      "members_other": "{{count}} leden",
-      "expenses_one": "{{count}} uitgave",
-      "expenses_other": "{{count}} uitgaven"
-    },
     "actions": {
       "addExpense": "Uitgave toevoegen",
       "settleUp": "Vereffenen"
@@ -1382,72 +1376,48 @@
           "description": "Tenant-ID, naam en domeinen"
         },
         "assets": {
-          "title": "Activa",
-          "description": "Logo- en favicon-afbeeldingen"
-        },
-        "paletteColors": {
-          "title": "Paletkleuren",
-          "description": "Kernmerkkleuren"
+          "title": "Activa"
         },
         "brandColors": {
           "title": "Merkkleuren",
           "description": "Stel uw primaire merkkleuren in en leid vervolgens het volledige kleursysteem af"
         },
         "surfaceColors": {
-          "title": "Oppervlaktekleuren",
-          "description": "Achtergrond- en containerkleuren"
+          "title": "Oppervlaktekleuren"
         },
         "textColors": {
-          "title": "Tekstkleuren",
-          "description": "Typografiekleuren"
+          "title": "Tekstkleuren"
         },
         "interactiveColors": {
-          "title": "Interactieve kleuren",
-          "description": "Knop- en linkkleuren"
+          "title": "Interactieve kleuren"
         },
         "borderColors": {
-          "title": "Randkleuren",
-          "description": "Rand- en scheidingskleuren"
+          "title": "Randkleuren"
         },
         "statusColors": {
-          "title": "Statuskleuren",
-          "description": "Feedback- en waarschuwingskleuren"
+          "title": "Statuskleuren"
         },
         "typography": {
-          "title": "Typografie",
-          "description": "Lettertypefamilies, -groottes en -gewichten"
+          "title": "Typografie"
         },
         "spacing": {
-          "title": "Afstand",
-          "description": "Afstandschaal en semantische afstand"
+          "title": "Afstand"
         },
         "radii": {
-          "title": "Randradii",
-          "description": "Hoekrondingswaarden"
+          "title": "Randradii"
         },
         "shadows": {
-          "title": "Schaduwen",
-          "description": "Box-shadow-definities"
+          "title": "Schaduwen"
         },
         "legal": {
-          "title": "Juridisch",
-          "description": "Bedrijfsinformatie en juridische links"
+          "title": "Juridisch"
         },
         "motion": {
-          "title": "Beweging",
-          "description": "Animatieduur en -versoepelingen"
-        },
-        "featureFlags": {
-          "title": "Functievlaggen",
-          "description": "Functies in- of uitschakelen"
+          "title": "Beweging"
         },
         "marketing": {
           "title": "Marketingfuncties",
           "description": "Marketingpagina's en -inhoud wisselen"
-        },
-        "advanced": {
-          "title": "Geavanceerd",
-          "description": "Optionele visuele effecten"
         }
       },
       "fields": {

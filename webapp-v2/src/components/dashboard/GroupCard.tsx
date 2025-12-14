@@ -1,3 +1,4 @@
+import { translateGroupCardKey } from '@/app/i18n/dynamic-translations';
 import { absAmount, type Amount, amountToSmallestUnit, GroupDTO, GroupId } from '@billsplit-wl/shared';
 import type { JSX } from 'preact';
 import { useTranslation } from 'react-i18next';
@@ -17,7 +18,7 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense, isArchivedVi
     const { t } = useTranslation();
 
     const renderBalanceMessage = (translationKey: 'youAreOwed' | 'youOwe', amount: Amount, currency: string): JSX.Element => {
-        const template = t(`dashboard.groupCard.${translationKey}`, { amount: '__AMOUNT__' });
+        const template = translateGroupCardKey(translationKey, t, { amount: '__AMOUNT__' });
 
         if (!template.includes('__AMOUNT__')) {
             return (

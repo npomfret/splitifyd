@@ -70,36 +70,18 @@ function isUniversalNotation(value: string): boolean {
     return UNIVERSAL_PATTERNS.some((pattern) => pattern.test(value));
 }
 
-// Keys that are legitimately constructed at runtime and can't be statically detected
-const DYNAMIC_KEY_PATTERNS = [
-    // i18next pluralization suffixes (selected at runtime based on count)
-    /_zero$/,
-    /_one$/,
-    /_two$/,
-    /_few$/,
-    /_many$/,
-    /_other$/,
-    // Firebase auth error codes mapped dynamically in error-translation.ts
-    /^authErrors\./,
-    // API error codes mapped dynamically
-    /^apiErrors\./,
-    // Admin tabs accessed via template literal: t(`admin.tabs.${tab.labelKey}`)
-    /^admin\.tabs\./,
-    // Theme modes accessed via template literal
-    /^admin\.tenantEditor\.derivation\.themeMode\./,
-    // Tenant editor section titles/descriptions accessed via template literal
-    /^admin\.tenantEditor\.sections\.[^.]+\.(title|description)$/,
-    // Dashboard group card keys accessed via template literal
-    /^dashboard\.groupCard\./,
-    // Group settings modal tabs accessed via template literal
-    /^groupSettingsModal\.tabs\./,
-    // Security settings modal - permissions, member roles, presets accessed via template literals
-    /^securitySettingsModal\.permissions\./,
-    /^securitySettingsModal\.memberRoles\./,
-    /^securitySettingsModal\.presets\./,
-    // Settings page role labels accessed via template literal
-    /^settingsPage\.profileSummaryRole\./,
-];
+// i18next pluralization suffixes
+const PLURAL_SUFFIXES = ['_zero', '_one', '_two', '_few', '_many', '_other'];
+
+// Extract base key from a pluralized key (e.g., 'foo.bar_one' -> 'foo.bar')
+function getPluralBaseKey(key: string): string | null {
+    for (const suffix of PLURAL_SUFFIXES) {
+        if (key.endsWith(suffix)) {
+            return key.slice(0, -suffix.length);
+        }
+    }
+    return null;
+}
 
 // Regex to extract placeholders like {{name}}, {{count}}, etc.
 const PLACEHOLDER_PATTERN = /\{\{([^}]+)\}\}/g;
@@ -478,8 +460,16 @@ describe('Translation Keys Validation', () => {
         const redundantKeys: string[] = [];
 
         for (const key of allTranslationKeys) {
-            // Skip keys that are legitimately constructed at runtime
-            if (DYNAMIC_KEY_PATTERNS.some((pattern) => pattern.test(key))) continue;
+            // For pluralized keys (e.g., 'foo_one', 'foo_other'), check if the BASE key is used
+            // i18next selects the pluralized variant at runtime based on the count parameter
+            const baseKey = getPluralBaseKey(key);
+            if (baseKey !== null) {
+                // This is a pluralized key - check if the base key is in source code
+                if (!isKeyInSourceCode(baseKey, allSourceCode)) {
+                    redundantKeys.push(key);
+                }
+                continue;
+            }
 
             // Check if the key appears as a quoted string anywhere in the source code
             if (!isKeyInSourceCode(key, allSourceCode)) {

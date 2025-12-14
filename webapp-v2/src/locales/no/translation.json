@@ -280,12 +280,6 @@
     }
   },
   "group": {
-    "header": {
-      "members_one": "{{count}} medlem",
-      "members_other": "{{count}} medlemmer",
-      "expenses_one": "{{count}} utgift",
-      "expenses_other": "{{count}} utgifter"
-    },
     "actions": {
       "addExpense": "Legg til utgift",
       "settleUp": "Gjør opp"
@@ -1381,72 +1375,48 @@
           "description": "Tenant-ID, navn og domener"
         },
         "assets": {
-          "title": "Ressurser",
-          "description": "Logo og favicon-bilder"
-        },
-        "paletteColors": {
-          "title": "Palettfarger",
-          "description": "Kjerne merkevarefarger"
+          "title": "Ressurser"
         },
         "brandColors": {
           "title": "Merkevarefarger",
           "description": "Sett dine primære merkevarefarger, og utled deretter hele fargesystemet"
         },
         "surfaceColors": {
-          "title": "Overflatefarger",
-          "description": "Bakgrunns- og beholderfarger"
+          "title": "Overflatefarger"
         },
         "textColors": {
-          "title": "Tekstfarger",
-          "description": "Typografifarger"
+          "title": "Tekstfarger"
         },
         "interactiveColors": {
-          "title": "Interaktive farger",
-          "description": "Knapp- og lenkefarger"
+          "title": "Interaktive farger"
         },
         "borderColors": {
-          "title": "Kantfarger",
-          "description": "Kant- og skillelinjefarger"
+          "title": "Kantfarger"
         },
         "statusColors": {
-          "title": "Statusfarger",
-          "description": "Tilbakemeldings- og varselfarger"
+          "title": "Statusfarger"
         },
         "typography": {
-          "title": "Typografi",
-          "description": "Skriftfamilier, størrelser og vekter"
+          "title": "Typografi"
         },
         "spacing": {
-          "title": "Mellomrom",
-          "description": "Mellomromsskala og semantisk mellomrom"
+          "title": "Mellomrom"
         },
         "radii": {
-          "title": "Kantradius",
-          "description": "Hjørneavrundingsverdier"
+          "title": "Kantradius"
         },
         "shadows": {
-          "title": "Skygger",
-          "description": "Bokseskygge-definisjoner"
+          "title": "Skygger"
         },
         "legal": {
-          "title": "Juridisk",
-          "description": "Bedriftsinfo og juridiske lenker"
+          "title": "Juridisk"
         },
         "motion": {
-          "title": "Bevegelse",
-          "description": "Animasjonsvarigheter og easings"
-        },
-        "featureFlags": {
-          "title": "Funksjonsflagg",
-          "description": "Aktiver eller deaktiver funksjoner"
+          "title": "Bevegelse"
         },
         "marketing": {
           "title": "Markedsføringsfunksjoner",
           "description": "Vis/skjul markedsføringssider og innhold"
-        },
-        "advanced": {
-          "title": "Avansert",
-          "description": "Valgfrie visuelle effekter"
         }
       },
       "fields": {

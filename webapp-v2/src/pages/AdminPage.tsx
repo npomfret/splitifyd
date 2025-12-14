@@ -1,3 +1,4 @@
+import { translateAdminTab } from '@/app/i18n/dynamic-translations';
 import { LoadingState } from '@/components/ui';
 import { navigationService } from '@/services/navigation.service';
 import { SystemUserRoles } from '@billsplit-wl/shared';
@@ -129,7 +130,7 @@ export function AdminPage({ tab: initialTab }: AdminPageProps) {
                                                 d={tab.icon}
                                             />
                                         </svg>
-                                        {t(`admin.tabs.${tab.labelKey}`)}
+                                        {translateAdminTab(tab.labelKey, t)}
                                     </button>
                                 );
                             })}

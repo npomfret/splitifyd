@@ -280,12 +280,6 @@
     }
   },
   "group": {
-    "header": {
-      "members_one": "{{count}} miembro",
-      "members_other": "{{count}} miembros",
-      "expenses_one": "{{count}} gasto",
-      "expenses_other": "{{count}} gastos"
-    },
     "actions": {
       "addExpense": "Añadir gasto",
       "settleUp": "Liquidar"
@@ -1381,72 +1375,48 @@
           "description": "ID del inquilino, nombre y dominios"
         },
         "assets": {
-          "title": "Activos",
-          "description": "Imágenes de logotipo y favicon"
-        },
-        "paletteColors": {
-          "title": "Colores de paleta",
-          "description": "Colores principales de la marca"
+          "title": "Activos"
         },
         "brandColors": {
           "title": "Colores de marca",
           "description": "Establezca sus colores de marca principales, luego derive el sistema de color completo"
         },
         "surfaceColors": {
-          "title": "Colores de superficie",
-          "description": "Colores de fondo y contenedores"
+          "title": "Colores de superficie"
         },
         "textColors": {
-          "title": "Colores de texto",
-          "description": "Colores de tipografía"
+          "title": "Colores de texto"
         },
         "interactiveColors": {
-          "title": "Colores interactivos",
-          "description": "Colores de botones y enlaces"
+          "title": "Colores interactivos"
         },
         "borderColors": {
-          "title": "Colores de borde",
-          "description": "Colores de borde y divisor"
+          "title": "Colores de borde"
         },
         "statusColors": {
-          "title": "Colores de estado",
-          "description": "Colores de comentarios y alertas"
+          "title": "Colores de estado"
         },
         "typography": {
-          "title": "Tipografía",
-          "description": "Familias de fuentes, tamaños y pesos"
+          "title": "Tipografía"
         },
         "spacing": {
-          "title": "Espaciado",
-          "description": "Escala de espaciado y espaciado semántico"
+          "title": "Espaciado"
         },
         "radii": {
-          "title": "Radios de borde",
-          "description": "Valores de redondeo de esquinas"
+          "title": "Radios de borde"
         },
         "shadows": {
-          "title": "Sombras",
-          "description": "Definiciones de sombras de cuadro"
+          "title": "Sombras"
         },
         "legal": {
-          "title": "Legal",
-          "description": "Información de la empresa y enlaces legales"
+          "title": "Legal"
         },
         "motion": {
-          "title": "Movimiento",
-          "description": "Duraciones y suavizados de animaciones"
-        },
-        "featureFlags": {
-          "title": "Banderas de características",
-          "description": "Habilitar o deshabilitar características"
+          "title": "Movimiento"
         },
         "marketing": {
           "title": "Características de marketing",
           "description": "Alternar páginas y contenido de marketing"
-        },
-        "advanced": {
-          "title": "Avanzado",
-          "description": "Efectos visuales opcionales"
         }
       },
       "fields": {

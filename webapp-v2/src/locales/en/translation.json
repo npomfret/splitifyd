@@ -280,12 +280,6 @@
     }
   },
   "group": {
-    "header": {
-      "members_one": "{{count}} member",
-      "members_other": "{{count}} members",
-      "expenses_one": "{{count}} expense",
-      "expenses_other": "{{count}} expenses"
-    },
     "actions": {
       "addExpense": "Add Expense",
       "settleUp": "Settle Up"
@@ -1381,72 +1375,48 @@
           "description": "Tenant ID, name, and domains"
         },
         "assets": {
-          "title": "Assets",
-          "description": "Logo and favicon images"
-        },
-        "paletteColors": {
-          "title": "Palette Colors",
-          "description": "Core brand colors"
+          "title": "Assets"
         },
         "brandColors": {
           "title": "Brand Colors",
           "description": "Set your primary brand colors, then derive the full color system"
         },
         "surfaceColors": {
-          "title": "Surface Colors",
-          "description": "Background and container colors"
+          "title": "Surface Colors"
         },
         "textColors": {
-          "title": "Text Colors",
-          "description": "Typography colors"
+          "title": "Text Colors"
         },
         "interactiveColors": {
-          "title": "Interactive Colors",
-          "description": "Button and link colors"
+          "title": "Interactive Colors"
         },
         "borderColors": {
-          "title": "Border Colors",
-          "description": "Border and divider colors"
+          "title": "Border Colors"
         },
         "statusColors": {
-          "title": "Status Colors",
-          "description": "Feedback and alert colors"
+          "title": "Status Colors"
         },
         "typography": {
-          "title": "Typography",
-          "description": "Font families, sizes, and weights"
+          "title": "Typography"
         },
         "spacing": {
-          "title": "Spacing",
-          "description": "Spacing scale and semantic spacing"
+          "title": "Spacing"
         },
         "radii": {
-          "title": "Border Radii",
-          "description": "Corner rounding values"
+          "title": "Border Radii"
         },
         "shadows": {
-          "title": "Shadows",
-          "description": "Box shadow definitions"
+          "title": "Shadows"
         },
         "legal": {
-          "title": "Legal",
-          "description": "Company info and legal links"
+          "title": "Legal"
         },
         "motion": {
-          "title": "Motion",
-          "description": "Animation durations and easings"
-        },
-        "featureFlags": {
-          "title": "Feature Flags",
-          "description": "Enable or disable features"
+          "title": "Motion"
         },
         "marketing": {
           "title": "Marketing Features",
           "description": "Toggle marketing pages and content"
-        },
-        "advanced": {
-          "title": "Advanced",
-          "description": "Optional visual effects"
         }
       },
       "fields": {

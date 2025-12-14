@@ -280,12 +280,6 @@
     }
   },
   "group": {
-    "header": {
-      "members_one": "{{count}} عضو",
-      "members_other": "{{count}} أعضاء",
-      "expenses_one": "{{count}} مصروف",
-      "expenses_other": "{{count}} مصروفات"
-    },
     "actions": {
       "addExpense": "إضافة مصروف",
       "settleUp": "تسوية الدين"
@@ -1381,72 +1375,48 @@
           "description": "معرف المستأجر والاسم والنطاقات"
         },
         "assets": {
-          "title": "الأصول",
-          "description": "صور الشعار والأيقونة المفضلة"
-        },
-        "paletteColors": {
-          "title": "ألوان اللوحة",
-          "description": "ألوان العلامة التجارية الأساسية"
+          "title": "الأصول"
         },
         "brandColors": {
           "title": "ألوان العلامة التجارية",
           "description": "اضبط ألوان علامتك التجارية الأساسية ، ثم اشتق نظام الألوان الكامل"
         },
         "surfaceColors": {
-          "title": "ألوان السطح",
-          "description": "ألوان الخلفية والحاوية"
+          "title": "ألوان السطح"
         },
         "textColors": {
-          "title": "ألوان النص",
-          "description": "ألوان الطباعة"
+          "title": "ألوان النص"
         },
         "interactiveColors": {
-          "title": "ألوان التفاعل",
-          "description": "ألوان الأزرار والروابط"
+          "title": "ألوان التفاعل"
         },
         "borderColors": {
-          "title": "ألوان الحدود",
-          "description": "ألوان الحدود والمقسمات"
+          "title": "ألوان الحدود"
         },
         "statusColors": {
-          "title": "ألوان الحالة",
-          "description": "ألوان الملاحظات والتنبيهات"
+          "title": "ألوان الحالة"
         },
         "typography": {
-          "title": "الطباعة",
-          "description": "عائلات الخطوط والأحجام والأوزان"
+          "title": "الطباعة"
         },
         "spacing": {
-          "title": "المسافة البادئة",
-          "description": "مقياس المسافة البادئة والمسافة البادئة الدلالية"
+          "title": "المسافة البادئة"
         },
         "radii": {
-          "title": "نصف قطر الحدود",
-          "description": "قيم تقريب الزاوية"
+          "title": "نصف قطر الحدود"
         },
         "shadows": {
-          "title": "الظلال",
-          "description": "تعريفات ظل المربع"
+          "title": "الظلال"
         },
         "legal": {
-          "title": "قانوني",
-          "description": "معلومات الشركة والروابط القانونية"
+          "title": "قانوني"
         },
         "motion": {
-          "title": "الحركة",
-          "description": "مدد الرسوم المتحركة والتسهيلات"
-        },
-        "featureFlags": {
-          "title": "علامات الميزات",
-          "description": "تمكين أو تعطيل الميزات"
+          "title": "الحركة"
         },
         "marketing": {
           "title": "ميزات التسويق",
           "description": "تبديل صفحات التسويق والمحتوى"
-        },
-        "advanced": {
-          "title": "متقدم",
-          "description": "تأثيرات بصرية اختيارية"
         }
       },
       "fields": {

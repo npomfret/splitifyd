@@ -645,6 +645,11 @@ export class SettingsPage extends BasePage {
     async selectLanguage(languageCode: 'en' | 'uk' | 'ar'): Promise<void> {
         const select = this.getLanguageSelect();
         await select.selectOption(languageCode);
+
+        // Wait for language change to be reflected in DOM
+        // Arabic is RTL, other languages are LTR
+        const expectedDir = languageCode === 'ar' ? 'rtl' : 'ltr';
+        await expect(this.page.locator('html')).toHaveAttribute('dir', expectedDir);
     }
 
     /**

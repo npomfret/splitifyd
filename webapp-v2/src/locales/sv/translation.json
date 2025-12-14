@@ -280,12 +280,6 @@
     }
   },
   "group": {
-    "header": {
-      "members_one": "{{count}} medlem",
-      "members_other": "{{count}} medlemmar",
-      "expenses_one": "{{count}} utgift",
-      "expenses_other": "{{count}} utgifter"
-    },
     "actions": {
       "addExpense": "Lägg till utgift",
       "settleUp": "Reglera"
@@ -1382,72 +1376,48 @@
           "description": "Hyresgäst-ID, namn och domäner"
         },
         "assets": {
-          "title": "Tillgångar",
-          "description": "Logotyp- och favicon-bilder"
-        },
-        "paletteColors": {
-          "title": "Palettfärger",
-          "description": "Kärnvarumärkesfärger"
+          "title": "Tillgångar"
         },
         "brandColors": {
           "title": "Varumärkesfärger",
           "description": "Ange dina primära varumärkesfärger och härled sedan hela färgsystemet"
         },
         "surfaceColors": {
-          "title": "Ytfärger",
-          "description": "Bakgrunds- och behållarfärger"
+          "title": "Ytfärger"
         },
         "textColors": {
-          "title": "Textfärger",
-          "description": "Typografifärger"
+          "title": "Textfärger"
         },
         "interactiveColors": {
-          "title": "Interaktiva färger",
-          "description": "Knapp- och länkfärger"
+          "title": "Interaktiva färger"
         },
         "borderColors": {
-          "title": "Kantlinjefärger",
-          "description": "Kantlinje- och avdelarfärger"
+          "title": "Kantlinjefärger"
         },
         "statusColors": {
-          "title": "Statusfärger",
-          "description": "Feedback- och varningsfärger"
+          "title": "Statusfärger"
         },
         "typography": {
-          "title": "Typografi",
-          "description": "Teckensnittsfamiljer, storlekar och vikter"
+          "title": "Typografi"
         },
         "spacing": {
-          "title": "Avstånd",
-          "description": "Avståndsskala och semantiskt avstånd"
+          "title": "Avstånd"
         },
         "radii": {
-          "title": "Kantradier",
-          "description": "Hörnrundningsvärden"
+          "title": "Kantradier"
         },
         "shadows": {
-          "title": "Skuggor",
-          "description": "Definitioner för box-shadow"
+          "title": "Skuggor"
         },
         "legal": {
-          "title": "Juridiskt",
-          "description": "Företagsinformation och juridiska länkar"
+          "title": "Juridiskt"
         },
         "motion": {
-          "title": "Rörelse",
-          "description": "Animationslängder och -mjukningar"
-        },
-        "featureFlags": {
-          "title": "Funktionsflaggor",
-          "description": "Aktivera eller inaktivera funktioner"
+          "title": "Rörelse"
         },
         "marketing": {
           "title": "Marknadsföringsfunktioner",
           "description": "Växla marknadsföringssidor och innehåll"
-        },
-        "advanced": {
-          "title": "Avancerat",
-          "description": "Valfria visuella effekter"
         }
       },
       "fields": {

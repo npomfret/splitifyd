@@ -280,12 +280,6 @@
     }
   },
   "group": {
-    "header": {
-      "members_one": "メンバー{{count}}人",
-      "members_other": "メンバー{{count}}人",
-      "expenses_one": "経費{{count}}件",
-      "expenses_other": "経費{{count}}件"
-    },
     "actions": {
       "addExpense": "経費を追加",
       "settleUp": "精算する"
@@ -1382,72 +1376,48 @@
           "description": "テナントID、名前、ドメイン"
         },
         "assets": {
-          "title": "アセット",
-          "description": "ロゴとファビコン画像"
-        },
-        "paletteColors": {
-          "title": "パレットカラー",
-          "description": "コアブランドカラー"
+          "title": "アセット"
         },
         "brandColors": {
           "title": "ブランドカラー",
           "description": "プライマリブランドカラーを設定し、完全なカラーシステムを派生させます"
         },
         "surfaceColors": {
-          "title": "サーフェスカラー",
-          "description": "背景とコンテナの色"
+          "title": "サーフェスカラー"
         },
         "textColors": {
-          "title": "テキストカラー",
-          "description": "タイポグラフィの色"
+          "title": "テキストカラー"
         },
         "interactiveColors": {
-          "title": "インタラクティブカラー",
-          "description": "ボタンとリンクの色"
+          "title": "インタラクティブカラー"
         },
         "borderColors": {
-          "title": "ボーダーカラー",
-          "description": "境界線と区切り線の色"
+          "title": "ボーダーカラー"
         },
         "statusColors": {
-          "title": "ステータスカラー",
-          "description": "フィードバックとアラートの色"
+          "title": "ステータスカラー"
         },
         "typography": {
-          "title": "タイポグラフィ",
-          "description": "フォントファミリー、サイズ、太さ"
+          "title": "タイポグラフィ"
         },
         "spacing": {
-          "title": "間隔",
-          "description": "間隔スケールとセマンティック間隔"
+          "title": "間隔"
         },
         "radii": {
-          "title": "角丸",
-          "description": "角の丸み"
+          "title": "角丸"
         },
         "shadows": {
-          "title": "影",
-          "description": "ボックスシャドウの定義"
+          "title": "影"
         },
         "legal": {
-          "title": "法的",
-          "description": "会社情報と法的リンク"
+          "title": "法的"
         },
         "motion": {
-          "title": "モーション",
-          "description": "アニメーションの持続時間とイージング"
-        },
-        "featureFlags": {
-          "title": "機能フラグ",
-          "description": "機能を有効または無効にします"
+          "title": "モーション"
         },
         "marketing": {
           "title": "マーケティング機能",
           "description": "マーケティングページとコンテンツを切り替えます"
-        },
-        "advanced": {
-          "title": "詳細",
-          "description": "オプションの視覚効果"
         }
       },
       "fields": {

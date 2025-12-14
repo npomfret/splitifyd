@@ -1,4 +1,5 @@
 import { permissionOptions, permissionOrder } from '@/app/hooks/useGroupSecuritySettings';
+import { translatePermission, translatePermissionOption } from '@/app/i18n/dynamic-translations';
 import { GroupPermissions } from '@billsplit-wl/shared';
 import { useTranslation } from 'react-i18next';
 
@@ -26,7 +27,7 @@ export function CustomPermissionsSection({
             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                 {permissionOrder.map((key) => (
                     <label key={key} className='flex flex-col text-sm text-text-primary gap-2 border border-border-default rounded-lg px-4 py-3'>
-                        <span className='font-medium text-text-primary'>{t(`securitySettingsModal.permissions.${key}.label`)}</span>
+                        <span className='font-medium text-text-primary'>{translatePermission(key, 'label', t)}</span>
                         <select
                             className='border border-border-default bg-surface-raised backdrop-blur-xs text-text-primary rounded-md px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary text-sm transition-colors duration-200'
                             value={permissionDraft[key]}
@@ -34,11 +35,11 @@ export function CustomPermissionsSection({
                         >
                             {permissionOptions[key].map((option) => (
                                 <option key={option} value={option}>
-                                    {t(`securitySettingsModal.permissions.options.${option}`)}
+                                    {translatePermissionOption(option, t)}
                                 </option>
                             ))}
                         </select>
-                        <span className='text-xs text-text-primary/60'>{t(`securitySettingsModal.permissions.${key}.description`)}</span>
+                        <span className='text-xs text-text-primary/60'>{translatePermission(key, 'description', t)}</span>
                     </label>
                 ))}
             </div>

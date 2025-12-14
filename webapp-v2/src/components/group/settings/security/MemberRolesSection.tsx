@@ -1,3 +1,4 @@
+import { translateMemberRole } from '@/app/i18n/dynamic-translations';
 import { GroupMember, MemberRole } from '@billsplit-wl/shared';
 import { useTranslation } from 'react-i18next';
 
@@ -23,7 +24,7 @@ export function MemberRolesSection({
                         <div>
                             <div className='font-medium text-text-primary text-sm'>{member.groupDisplayName || member.uid}</div>
                             <div className='text-xs text-text-primary/60'>
-                                {t(`securitySettingsModal.memberRoles.${memberRoleDrafts[member.uid] ?? member.memberRole}`)}
+                                {translateMemberRole(memberRoleDrafts[member.uid] ?? member.memberRole, t)}
                             </div>
                         </div>
                         <select
@@ -34,7 +35,7 @@ export function MemberRolesSection({
                         >
                             {(['admin', 'member', 'viewer'] as MemberRole[]).map((role) => (
                                 <option key={role} value={role}>
-                                    {t(`securitySettingsModal.memberRoles.${role}`)}
+                                    {translateMemberRole(role, t)}
                                 </option>
                             ))}
                         </select>

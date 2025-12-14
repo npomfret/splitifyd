@@ -3,6 +3,7 @@ import { useGroupCurrencySettings } from '@/app/hooks/useGroupCurrencySettings.t
 import { useGroupDisplayName } from '@/app/hooks/useGroupDisplayName.ts';
 import { useGroupGeneralSettings } from '@/app/hooks/useGroupGeneralSettings.ts';
 import { useGroupSecuritySettings } from '@/app/hooks/useGroupSecuritySettings.ts';
+import { translateGroupSettingsTab } from '@/app/i18n/dynamic-translations';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced.ts';
 import { Clickable } from '@/components/ui/Clickable';
 import { XIcon } from '@/components/ui/icons';
@@ -260,7 +261,7 @@ export function GroupSettingsModal({
                                         eventName='modal_tab_change'
                                         eventProps={{ modalName: 'group_settings', tab }}
                                     >
-                                        {t(`groupSettingsModal.tabs.${tab}`)}
+                                        {translateGroupSettingsTab(tab, t)}
                                     </Clickable>
                                 );
                             })}

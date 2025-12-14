@@ -280,12 +280,6 @@
     }
   },
   "group": {
-    "header": {
-      "members_one": "{{count}} dalībnieks",
-      "members_other": "{{count}} dalībnieki",
-      "expenses_one": "{{count}} izdevums",
-      "expenses_other": "{{count}} izdevumi"
-    },
     "actions": {
       "addExpense": "Pievienot izdevumus",
       "settleUp": "Norēķināties"
@@ -1382,72 +1376,48 @@
           "description": "Īrnieka ID, nosaukums un domēni"
         },
         "assets": {
-          "title": "Aktīvi",
-          "description": "Logotipa un favicon attēli"
-        },
-        "paletteColors": {
-          "title": "Paletes krāsas",
-          "description": "Galvenās zīmola krāsas"
+          "title": "Aktīvi"
         },
         "brandColors": {
           "title": "Zīmola krāsas",
           "description": "Iestatiet savas primārās zīmola krāsas, pēc tam atvasiniet visu krāsu sistēmu"
         },
         "surfaceColors": {
-          "title": "Virsmas krāsas",
-          "description": "Fona un konteineru krāsas"
+          "title": "Virsmas krāsas"
         },
         "textColors": {
-          "title": "Teksta krāsas",
-          "description": "Tipogrāfijas krāsas"
+          "title": "Teksta krāsas"
         },
         "interactiveColors": {
-          "title": "Interaktīvās krāsas",
-          "description": "Pogu un saišu krāsas"
+          "title": "Interaktīvās krāsas"
         },
         "borderColors": {
-          "title": "Apmales krāsas",
-          "description": "Apmales un sadalītāju krāsas"
+          "title": "Apmales krāsas"
         },
         "statusColors": {
-          "title": "Statusa krāsas",
-          "description": "Atsauksmju un brīdinājumu krāsas"
+          "title": "Statusa krāsas"
         },
         "typography": {
-          "title": "Tipogrāfija",
-          "description": "Fontu saimes, izmēri un biezumi"
+          "title": "Tipogrāfija"
         },
         "spacing": {
-          "title": "Atstarpes",
-          "description": "Atstarpju skala un semantiskās atstarpes"
+          "title": "Atstarpes"
         },
         "radii": {
-          "title": "Apmales rādiusi",
-          "description": "Stūru noapaļošanas vērtības"
+          "title": "Apmales rādiusi"
         },
         "shadows": {
-          "title": "Ēnas",
-          "description": "Lodziņa ēnu definīcijas"
+          "title": "Ēnas"
         },
         "legal": {
-          "title": "Juridisks",
-          "description": "Uzņēmuma informācija un juridiskās saites"
+          "title": "Juridisks"
         },
         "motion": {
-          "title": "Kustība",
-          "description": "Animācijas ilgumi un palēninājumi"
-        },
-        "featureFlags": {
-          "title": "Funkciju karodziņi",
-          "description": "Iespējot vai atspējot funkcijas"
+          "title": "Kustība"
         },
         "marketing": {
           "title": "Mārketinga funkcijas",
           "description": "Pārslēgt mārketinga lapas un saturu"
-        },
-        "advanced": {
-          "title": "Papildu",
-          "description": "Neobligāti vizuālie efekti"
         }
       },
       "fields": {

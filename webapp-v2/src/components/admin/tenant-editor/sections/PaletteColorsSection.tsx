@@ -1,3 +1,4 @@
+import { translateThemeMode } from '@/app/i18n/dynamic-translations';
 import { AdminFormSection } from '@/components/admin/forms';
 import { Button, ColorInput } from '@/components/ui';
 import { SparklesIcon } from '@/components/ui/icons';
@@ -110,7 +111,7 @@ export function PaletteColorsSection({ formData, update, isSaving, mode, creatio
                                                 onClick={() => update({ derivationThemeMode: themeMode })}
                                                 disabled={isSaving}
                                             >
-                                                {t(`admin.tenantEditor.derivation.themeMode.${themeMode}`)}
+                                                {translateThemeMode(themeMode, t)}
                                             </button>
                                         ))}
                                     </div>

@@ -280,12 +280,6 @@
     }
   },
   "group": {
-    "header": {
-      "members_one": "{{count}} учасник",
-      "members_other": "{{count}} учасників",
-      "expenses_one": "{{count}} витрата",
-      "expenses_other": "{{count}} витрат"
-    },
     "actions": {
       "addExpense": "Додати витрату",
       "settleUp": "Розрахуватися"
@@ -1381,72 +1375,48 @@
           "description": "ID орендаря, назва та домени"
         },
         "assets": {
-          "title": "Активи",
-          "description": "Зображення логотипу та favicon"
-        },
-        "paletteColors": {
-          "title": "Кольори палітри",
-          "description": "Основні кольори бренду"
+          "title": "Активи"
         },
         "brandColors": {
           "title": "Кольори бренду",
           "description": "Встановіть основні кольори бренду, а потім виведіть повну систему кольорів"
         },
         "surfaceColors": {
-          "title": "Кольори поверхні",
-          "description": "Кольори фону та контейнерів"
+          "title": "Кольори поверхні"
         },
         "textColors": {
-          "title": "Кольори тексту",
-          "description": "Кольори типографіки"
+          "title": "Кольори тексту"
         },
         "interactiveColors": {
-          "title": "Інтерактивні кольори",
-          "description": "Кольори кнопок і посилань"
+          "title": "Інтерактивні кольори"
         },
         "borderColors": {
-          "title": "Кольори рамок",
-          "description": "Кольори рамок і роздільників"
+          "title": "Кольори рамок"
         },
         "statusColors": {
-          "title": "Кольори статусу",
-          "description": "Кольори зворотного зв'язку та сповіщень"
+          "title": "Кольори статусу"
         },
         "typography": {
-          "title": "Типографіка",
-          "description": "Сімейства шрифтів, розміри та вага"
+          "title": "Типографіка"
         },
         "spacing": {
-          "title": "Відступи",
-          "description": "Шкала відступів і семантичні відступи"
+          "title": "Відступи"
         },
         "radii": {
-          "title": "Радіуси рамок",
-          "description": "Значення заокруглення кутів"
+          "title": "Радіуси рамок"
         },
         "shadows": {
-          "title": "Тіні",
-          "description": "Визначення тіней"
+          "title": "Тіні"
         },
         "legal": {
-          "title": "Юридична інформація",
-          "description": "Інформація про компанію та юридичні посилання"
+          "title": "Юридична інформація"
         },
         "motion": {
-          "title": "Рух",
-          "description": "Тривалість анімації та криві"
-        },
-        "featureFlags": {
-          "title": "Прапорці функцій",
-          "description": "Увімкнення або вимкнення функцій"
+          "title": "Рух"
         },
         "marketing": {
           "title": "Маркетингові функції",
           "description": "Переключення маркетингових сторінок і вмісту"
-        },
-        "advanced": {
-          "title": "Розширені",
-          "description": "Необов'язкові візуальні ефекти"
         }
       },
       "fields": {

@@ -1,3 +1,4 @@
+import { translateProfileRole } from '@/app/i18n/dynamic-translations';
 import { themeStore } from '@/app/stores/theme-store.ts';
 import { Alert, Avatar, Button, Card, Form, Input, Typography } from '@/components/ui';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
@@ -364,7 +365,7 @@ export function SettingsPage() {
                                             <span className='text-text-muted'>{t('settingsPage.profileSummaryRoleLabel')}</span>
                                             <div className='font-medium text-text-primary'>
                                                 {user.role
-                                                    ? t(`settingsPage.profileSummaryRole.${user.role}`, { defaultValue: t('settingsPage.profileSummaryRoleFallback') })
+                                                    ? translateProfileRole(user.role, t) || t('settingsPage.profileSummaryRoleFallback')
                                                     : t('settingsPage.profileSummaryRoleFallback')}
                                             </div>
                                         </div>

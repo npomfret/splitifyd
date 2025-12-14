@@ -1,3 +1,4 @@
+import { translatePreset, translatePresetActiveBadge } from '@/app/i18n/dynamic-translations';
 import { useTranslation } from 'react-i18next';
 import { Button } from '../../../ui';
 
@@ -34,9 +35,9 @@ export function PermissionPresetsSection({
                                     : 'border-border-default hover:border-interactive-primary/40 hover:bg-interactive-primary/10/40'
                             }`}
                         >
-                            <span className='font-medium text-text-primary'>{t(`securitySettingsModal.presets.${preset}.label`)}</span>
-                            <p className='text-sm text-text-primary/70 mt-1'>{t(`securitySettingsModal.presets.${preset}.description`)}</p>
-                            {isActive && <span className='text-xs text-interactive-primary font-medium mt-2 block'>{t('securitySettingsModal.presets.activeBadge')}</span>}
+                            <span className='font-medium text-text-primary'>{translatePreset(preset, 'label', t)}</span>
+                            <p className='text-sm text-text-primary/70 mt-1'>{translatePreset(preset, 'description', t)}</p>
+                            {isActive && <span className='text-xs text-interactive-primary font-medium mt-2 block'>{translatePresetActiveBadge(t)}</span>}
                         </Button>
                     );
                 })}

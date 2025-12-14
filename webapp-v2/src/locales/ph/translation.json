@@ -280,12 +280,6 @@
     }
   },
   "group": {
-    "header": {
-      "members_one": "{{count}} miyembro",
-      "members_other": "{{count}} miyembro",
-      "expenses_one": "{{count}} gastusin",
-      "expenses_other": "{{count}} gastusin"
-    },
     "actions": {
       "addExpense": "Magdagdag ng Gastusin",
       "settleUp": "Magbayad"
@@ -1382,72 +1376,48 @@
           "description": "Tenant ID, pangalan, at mga domain"
         },
         "assets": {
-          "title": "Mga Asset",
-          "description": "Mga imahe ng logo at favicon"
-        },
-        "paletteColors": {
-          "title": "Mga Kulay ng Palette",
-          "description": "Mga pangunahing kulay ng brand"
+          "title": "Mga Asset"
         },
         "brandColors": {
           "title": "Mga Kulay ng Brand",
           "description": "Itakda ang iyong mga pangunahing kulay ng brand, pagkatapos ay i-derive ang buong sistema ng kulay"
         },
         "surfaceColors": {
-          "title": "Mga Kulay ng Surface",
-          "description": "Mga kulay ng background at container"
+          "title": "Mga Kulay ng Surface"
         },
         "textColors": {
-          "title": "Mga Kulay ng Teksto",
-          "description": "Mga kulay ng typography"
+          "title": "Mga Kulay ng Teksto"
         },
         "interactiveColors": {
-          "title": "Mga Interaktibong Kulay",
-          "description": "Mga kulay ng button at link"
+          "title": "Mga Interaktibong Kulay"
         },
         "borderColors": {
-          "title": "Mga Kulay ng Border",
-          "description": "Mga kulay ng border at divider"
+          "title": "Mga Kulay ng Border"
         },
         "statusColors": {
-          "title": "Mga Kulay ng Katayuan",
-          "description": "Mga kulay ng feedback at alerto"
+          "title": "Mga Kulay ng Katayuan"
         },
         "typography": {
-          "title": "Typography",
-          "description": "Mga pamilya ng font, sukat, at bigat"
+          "title": "Typography"
         },
         "spacing": {
-          "title": "Espasyo",
-          "description": "Iskala ng espasyo at semantikong espasyo"
+          "title": "Espasyo"
         },
         "radii": {
-          "title": "Mga Radius ng Border",
-          "description": "Mga halaga ng pag-round ng kanto"
+          "title": "Mga Radius ng Border"
         },
         "shadows": {
-          "title": "Mga Shadow",
-          "description": "Mga kahulugan ng box shadow"
+          "title": "Mga Shadow"
         },
         "legal": {
-          "title": "Legal",
-          "description": "Impormasyon ng kumpanya at mga legal na link"
+          "title": "Legal"
         },
         "motion": {
-          "title": "Paggalaw",
-          "description": "Mga tagal at easing ng animation"
-        },
-        "featureFlags": {
-          "title": "Mga Feature Flag",
-          "description": "Paganahin o huwag paganahin ang mga feature"
+          "title": "Paggalaw"
         },
         "marketing": {
           "title": "Mga Feature ng Marketing",
           "description": "I-toggle ang mga pahina at nilalaman ng marketing"
-        },
-        "advanced": {
-          "title": "Advanced",
-          "description": "Mga opsyonal na visual effect"
         }
       },
       "fields": {
