@@ -224,24 +224,13 @@ onClose(); // Just close the modal, SSE will trigger refresh
 - **Translations:** `locales/en/translation.json`
 - **Usage:** `const { t } = useTranslation(); t('key.path')`
 - **Rule:** Never hardcode user-facing text
+- **Rule:** Never lazily add english to non-english translations files..
 
 ### Translation Key Detection
 
 The `translation-keys.test.ts` test validates that all translation keys are used and none are orphaned. For this to work, **translation keys must be statically detectable**.
 
-**Always use literal string keys:**
-```typescript
-// GOOD - statically detectable
-t('dashboard.title')
-t('errors.notFound')
-
-// GOOD - conditional with literal keys
-isSelf
-    ? t('activityFeed.events.member-joined-self', { actor })
-    : t('activityFeed.events.member-joined', { actor })
-```
-
-**Avoid dynamic key construction:**
+**Always use literal string keys and avoid dynamic key construction:**
 ```typescript
 // BAD - test cannot detect these keys
 t(`admin.tabs.${tab.labelKey}`)
@@ -249,7 +238,7 @@ t(`securitySettingsModal.permissions.${key}.label`)
 const translationKey = 'foo.bar'; t(translationKey)
 ```
 
-If dynamic keys are unavoidable (e.g., mapping over enum values), add the pattern to `DYNAMIC_KEY_PATTERNS` in `translation-keys.test.ts` so the test knows to skip validation for those keys.
+See @webapp-v2/src/app/i18n/dynamic-translations.ts for examples of dynamic key construction
 
 ---
 
