@@ -92,7 +92,7 @@ describe('validation and edge cases', () => {
         const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
         await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
-        await expect(appDriver.createGroupComment(groupId, '', user1))
+        await expect(appDriver.createGroupComment(groupId, '', undefined, user1))
             .rejects
             .toMatchObject({ code: 'VALIDATION_ERROR', data: { detail: 'INVALID_COMMENT_TEXT' } });
     });
@@ -169,7 +169,7 @@ describe('validation and edge cases', () => {
             user1,
         );
 
-        await expect(appDriver.createExpenseComment(expense.id, '', user1))
+        await expect(appDriver.createExpenseComment(expense.id, '', undefined, user1))
             .rejects
             .toMatchObject({ code: 'VALIDATION_ERROR', data: { detail: 'INVALID_COMMENT_TEXT' } });
     });

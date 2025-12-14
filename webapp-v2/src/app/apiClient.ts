@@ -15,6 +15,7 @@ import type {
     AdminUpsertTenantRequest,
     AdminUpsertTenantResponse,
     API,
+    AttachmentId,
     ChangeEmailRequest,
     ClientAppConfiguration,
     CommentDTO,
@@ -82,6 +83,7 @@ import type {
     UpdateUserProfileRequest,
     UpdateUserRoleRequest,
     UpdateUserStatusRequest,
+    UploadAttachmentResponse,
     UploadTenantLibraryImageResponse,
     UserId,
     UserPolicyStatusResponse,
@@ -1299,21 +1301,59 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
     }
 
     // Comment methods
-    async createGroupComment(groupId: GroupId, text: CommentText): Promise<CommentDTO> {
+    async createGroupComment(groupId: GroupId, text: CommentText, attachmentIds?: AttachmentId[]): Promise<CommentDTO> {
         return this.request<CommentDTO>({
             endpoint: '/groups/:groupId/comments',
             method: 'POST',
             params: { groupId },
-            body: { text },
+            body: { text, attachmentIds },
         });
     }
 
-    async createExpenseComment(expenseId: ExpenseId, text: CommentText): Promise<CommentDTO> {
+    async createExpenseComment(expenseId: ExpenseId, text: CommentText, attachmentIds?: AttachmentId[]): Promise<CommentDTO> {
         return this.request<CommentDTO>({
             endpoint: '/expenses/:expenseId/comments',
             method: 'POST',
             params: { expenseId },
-            body: { text },
+            body: { text, attachmentIds },
+        });
+    }
+
+    // Attachment methods
+    async uploadAttachment(groupId: GroupId, type: 'receipt' | 'comment', file: File, contentType: string): Promise<UploadAttachmentResponse> {
+        const url = buildUrl(`/api/groups/:groupId/attachments`, { groupId }, { type });
+        const headers: Record<string, string> = {
+            'Content-Type': contentType,
+        };
+
+        if (this.authToken) {
+            headers.Authorization = `Bearer ${this.authToken}`;
+        }
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers,
+            body: file,
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ error: { code: 'UNKNOWN_ERROR' } }));
+            throw new ApiError(
+                errorData.error?.message || 'Upload failed',
+                errorData.error?.code || 'UPLOAD_ERROR',
+                errorData.error,
+                { url, method: 'POST', status: response.status, statusText: response.statusText },
+            );
+        }
+
+        return response.json() as Promise<UploadAttachmentResponse>;
+    }
+
+    async deleteAttachment(groupId: GroupId, attachmentId: AttachmentId): Promise<void> {
+        return this.request<void>({
+            endpoint: '/groups/:groupId/attachments/:attachmentId',
+            method: 'DELETE',
+            params: { groupId, attachmentId },
         });
     }
 

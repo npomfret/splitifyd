@@ -408,7 +408,7 @@ async function simulateGroupActivity(ctx: GroupContext): Promise<void> {
 
                 case 'addComment': {
                     const expense = randomChoice(ctx.expenses);
-                    await driver.createExpenseComment(expense.id, randomChoice(COMMENT_TEXTS), actor.token);
+                    await driver.createExpenseComment(expense.id, randomChoice(COMMENT_TEXTS), undefined, actor.token);
                     console.log(`      💬 ${actor.displayName} commented on expense`);
                     break;
                 }

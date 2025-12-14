@@ -394,10 +394,10 @@ describe('expenses', () => {
             user1,
         );
 
-        const groupCommentResponse = await appDriver.createGroupComment(groupId, 'Welcome to the group!', user1);
+        const groupCommentResponse = await appDriver.createGroupComment(groupId, 'Welcome to the group!', undefined, user1);
         expect(groupCommentResponse.text).toBe('Welcome to the group!');
 
-        const secondGroupCommentResponse = await appDriver.createGroupComment(groupId, 'Happy to be here', user2);
+        const secondGroupCommentResponse = await appDriver.createGroupComment(groupId, 'Happy to be here', undefined, user2);
         expect(secondGroupCommentResponse.authorId).toBe(user2);
         expect(secondGroupCommentResponse.text).toBe('Happy to be here');
 
@@ -407,10 +407,10 @@ describe('expenses', () => {
         const groupCommentTexts = groupComments.comments.map((comment) => comment.text);
         expect(groupCommentTexts).toEqual(expect.arrayContaining(['Welcome to the group!', 'Happy to be here']));
 
-        const expenseCommentResponse = await appDriver.createExpenseComment(createdExpense.id, 'Thanks for covering this', user2);
+        const expenseCommentResponse = await appDriver.createExpenseComment(createdExpense.id, 'Thanks for covering this', undefined, user2);
         expect(expenseCommentResponse.authorId).toBe(user2);
 
-        await appDriver.createExpenseComment(createdExpense.id, 'Let us split next time', user1);
+        await appDriver.createExpenseComment(createdExpense.id, 'Let us split next time', undefined, user1);
 
         const expenseComments = await appDriver.listExpenseComments(createdExpense.id, {}, user1);
         expect(expenseComments.hasMore).toBe(false);
@@ -944,7 +944,7 @@ describe('expenses', () => {
                 user1,
             );
 
-            await appDriver.createExpenseComment(expense.id, 'This is a comment on the expense', user2);
+            await appDriver.createExpenseComment(expense.id, 'This is a comment on the expense', undefined, user2);
 
             const response = await appDriver.getGroupActivityFeed(groupId, {}, user1);
             const commentAddedEvent = response.items.find(

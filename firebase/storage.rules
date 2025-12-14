@@ -31,6 +31,13 @@ service firebase.storage {
       allow write: if false;
     }
 
+    // Group attachments (receipts, comment attachments)
+    // Private: served only via authenticated proxy endpoint
+    match /attachments/{groupId}/{fileName} {
+      // No direct access - only via Cloud Functions proxy
+      allow read, write: if false;
+    }
+
     // Deny everything else by default
     match /{allPaths=**} {
       allow read, write: if false;

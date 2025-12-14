@@ -5,6 +5,7 @@ import type {
     AddTenantDomainRequest,
     AdminUpsertTenantRequest,
     AdminUpsertTenantResponse,
+    AttachmentId,
     ChangeEmailRequest,
     ClientAppConfiguration,
     CommentDTO,
@@ -82,6 +83,7 @@ import type {
     UpdateUserProfileRequest,
     UpdateUserRoleRequest,
     UpdateUserStatusRequest,
+    UploadAttachmentResponse,
     UploadTenantImageResponse,
     UploadTenantLibraryImageResponse,
     UserId,
@@ -199,7 +201,7 @@ export interface API<AuthToken> {
     updateExpense(expenseId: ExpenseId, request: UpdateExpenseRequest, token?: AuthToken): Promise<ExpenseDTO>;
     deleteExpense(expenseId: ExpenseId, token?: AuthToken): Promise<void>;
     getExpenseFullDetails(expenseId: ExpenseId, token?: AuthToken): Promise<ExpenseFullDetailsDTO>;
-    createExpenseComment(expenseId: ExpenseId, text: CommentText, token?: AuthToken): Promise<CommentDTO>;
+    createExpenseComment(expenseId: ExpenseId, text: CommentText, attachmentIds?: AttachmentId[], token?: AuthToken): Promise<CommentDTO>;
     listExpenseComments(expenseId: ExpenseId, options?: ListCommentsOptions, token?: AuthToken): Promise<ListCommentsResponse>;
 
     createSettlement(request: CreateSettlementRequest, token?: AuthToken): Promise<SettlementDTO>;
@@ -212,8 +214,11 @@ export interface API<AuthToken> {
     toggleExpenseCommentReaction(expenseId: ExpenseId, commentId: CommentId, emoji: ReactionEmoji, token?: AuthToken): Promise<ReactionToggleResponse>;
     toggleSettlementReaction(settlementId: SettlementId, emoji: ReactionEmoji, token?: AuthToken): Promise<ReactionToggleResponse>;
 
-    createGroupComment(groupId: GroupId, text: CommentText, token?: AuthToken): Promise<CommentDTO>;
+    createGroupComment(groupId: GroupId, text: CommentText, attachmentIds?: AttachmentId[], token?: AuthToken): Promise<CommentDTO>;
     listGroupComments(groupId: GroupId, options?: ListCommentsOptions, token?: AuthToken): Promise<ListCommentsResponse>;
+
+    uploadAttachment(groupId: GroupId, type: 'receipt' | 'comment', file: File | Buffer, contentType: string, token?: AuthToken): Promise<UploadAttachmentResponse>;
+    deleteAttachment(groupId: GroupId, attachmentId: AttachmentId, token?: AuthToken): Promise<void>;
 
     acceptMultiplePolicies(requests: AcceptPolicyRequest[], token?: AuthToken): Promise<AcceptMultiplePoliciesResponse>;
     getUserPolicyStatus(token?: AuthToken): Promise<UserPolicyStatusResponse>;

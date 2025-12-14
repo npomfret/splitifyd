@@ -31,7 +31,7 @@ describe('CommentHandlers - Integration Tests', () => {
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 
-            const result = await appDriver.createGroupComment(group.id, 'This is a test comment', userId);
+            const result = await appDriver.createGroupComment(group.id, 'This is a test comment', undefined, userId);
 
             expect(result).toMatchObject({
                 id: expect.any(String),
@@ -52,7 +52,7 @@ describe('CommentHandlers - Integration Tests', () => {
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 
-            const result = await appDriver.createGroupComment(group.id, '   test comment   ', userId);
+            const result = await appDriver.createGroupComment(group.id, '   test comment   ', undefined, userId);
 
             expect(result.text).toBe('test comment');
         });
@@ -69,7 +69,7 @@ describe('CommentHandlers - Integration Tests', () => {
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 
-            const result = await appDriver.createGroupComment(group.id, '<script>alert("xss")</script>Safe text', userId);
+            const result = await appDriver.createGroupComment(group.id, '<script>alert("xss")</script>Safe text', undefined, userId);
 
             expect(result.text).not.toContain('<script>');
             expect(result.text).toContain('Safe text');
@@ -79,7 +79,7 @@ describe('CommentHandlers - Integration Tests', () => {
             const groupId = 'test-group';
             const userId = 'test-user';
 
-            await expect(appDriver.createGroupComment(groupId, '', userId)).rejects.toThrow(
+            await expect(appDriver.createGroupComment(groupId, '', undefined, userId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'VALIDATION_ERROR',
@@ -92,7 +92,7 @@ describe('CommentHandlers - Integration Tests', () => {
             const groupId = 'test-group';
             const userId = 'test-user';
 
-            await expect(appDriver.createGroupComment(groupId, '   ', userId)).rejects.toThrow(
+            await expect(appDriver.createGroupComment(groupId, '   ', undefined, userId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'VALIDATION_ERROR',
@@ -106,7 +106,7 @@ describe('CommentHandlers - Integration Tests', () => {
             const userId = 'test-user';
             const longText = 'a'.repeat(501);
 
-            await expect(appDriver.createGroupComment(groupId, longText, userId)).rejects.toThrow(
+            await expect(appDriver.createGroupComment(groupId, longText, undefined, userId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'VALIDATION_ERROR',
@@ -135,7 +135,7 @@ describe('CommentHandlers - Integration Tests', () => {
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
 
-            await expect(appDriver.createGroupComment(group.id, 'Test comment', userId)).rejects.toThrow(
+            await expect(appDriver.createGroupComment(group.id, 'Test comment', undefined, userId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.FORBIDDEN,
                 }),
@@ -154,7 +154,7 @@ describe('CommentHandlers - Integration Tests', () => {
             );
             const userId = registrationResult.user.uid;
 
-            await expect(appDriver.createGroupComment(groupId, 'Test comment', userId)).rejects.toThrow(
+            await expect(appDriver.createGroupComment(groupId, 'Test comment', undefined, userId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.NOT_FOUND,
                 }),
@@ -184,7 +184,7 @@ describe('CommentHandlers - Integration Tests', () => {
                 userId,
             );
 
-            const result = await appDriver.createExpenseComment(expense.id, 'This is an expense comment', userId);
+            const result = await appDriver.createExpenseComment(expense.id, 'This is an expense comment', undefined, userId);
 
             expect(result).toMatchObject({
                 id: expect.any(String),
@@ -216,7 +216,7 @@ describe('CommentHandlers - Integration Tests', () => {
                 creatorId,
             );
 
-            await expect(appDriver.createExpenseComment(expense.id, 'Test comment', userId)).rejects.toThrow(
+            await expect(appDriver.createExpenseComment(expense.id, 'Test comment', undefined, userId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.FORBIDDEN,
                 }),
@@ -232,7 +232,7 @@ describe('CommentHandlers - Integration Tests', () => {
             );
             const userId = userResult.user.uid;
 
-            await expect(appDriver.createExpenseComment(expenseId, 'Test comment', userId)).rejects.toThrow(
+            await expect(appDriver.createExpenseComment(expenseId, 'Test comment', undefined, userId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.NOT_FOUND,
                 }),
@@ -319,11 +319,11 @@ describe('CommentHandlers - Integration Tests', () => {
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 
-            const first = await appDriver.createGroupComment(group.id, 'First comment', userId);
+            const first = await appDriver.createGroupComment(group.id, 'First comment', undefined, userId);
             await sleep(2);
-            const second = await appDriver.createGroupComment(group.id, 'Second comment', userId);
+            const second = await appDriver.createGroupComment(group.id, 'Second comment', undefined, userId);
             await sleep(2);
-            const third = await appDriver.createGroupComment(group.id, 'Third comment', userId);
+            const third = await appDriver.createGroupComment(group.id, 'Third comment', undefined, userId);
 
             const result = await appDriver.listGroupComments(group.id, {}, userId);
 
@@ -349,7 +349,7 @@ describe('CommentHandlers - Integration Tests', () => {
 
             const created: CommentDTO[] = [];
             for (let i = 1; i <= 5; i++) {
-                created.push(await appDriver.createGroupComment(group.id, `Comment ${i}`, userId));
+                created.push(await appDriver.createGroupComment(group.id, `Comment ${i}`, undefined, userId));
                 await sleep(2);
             }
 
@@ -387,7 +387,7 @@ describe('CommentHandlers - Integration Tests', () => {
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 
-            await appDriver.createGroupComment(group.id, 'Validation comment', userId);
+            await appDriver.createGroupComment(group.id, 'Validation comment', undefined, userId);
 
             // limit: 0 should fail validation (min is 1)
             await expect(appDriver.listGroupComments(group.id, { limit: 0 }, userId))
@@ -517,9 +517,9 @@ describe('CommentHandlers - Integration Tests', () => {
                 userId,
             );
 
-            const first = await appDriver.createExpenseComment(expense.id, 'Expense comment 1', userId);
+            const first = await appDriver.createExpenseComment(expense.id, 'Expense comment 1', undefined, userId);
             await sleep(2);
-            const second = await appDriver.createExpenseComment(expense.id, 'Expense comment 2', userId);
+            const second = await appDriver.createExpenseComment(expense.id, 'Expense comment 2', undefined, userId);
 
             const result = await appDriver.listExpenseComments(expense.id, {}, userId);
 
@@ -554,7 +554,7 @@ describe('CommentHandlers - Integration Tests', () => {
 
             const created: CommentDTO[] = [];
             for (let i = 1; i <= 4; i++) {
-                created.push(await appDriver.createExpenseComment(expense.id, `Expense comment ${i}`, userId));
+                created.push(await appDriver.createExpenseComment(expense.id, `Expense comment ${i}`, undefined, userId));
                 await sleep(2);
             }
 
@@ -592,7 +592,7 @@ describe('CommentHandlers - Integration Tests', () => {
                 userId,
             );
 
-            await appDriver.createExpenseComment(expense.id, 'Expense validation comment', userId);
+            await appDriver.createExpenseComment(expense.id, 'Expense validation comment', undefined, userId);
 
             // limit: 0 should fail validation (min is 1)
             await expect(appDriver.listExpenseComments(expense.id, { limit: 0 }, userId))

@@ -76,7 +76,7 @@ describe('notification system', () => {
         const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, user1);
         await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
-        await appDriver.createGroupComment(group.id, 'Test comment', user1);
+        await appDriver.createGroupComment(group.id, 'Test comment', undefined, user1);
 
         await appDriver.expectNotificationUpdate(user1, group.id, {
             commentChangeCount: 1,
@@ -104,7 +104,7 @@ describe('notification system', () => {
             user1,
         );
 
-        await appDriver.createExpenseComment(expense.id, 'Expense comment', user1);
+        await appDriver.createExpenseComment(expense.id, 'Expense comment', undefined, user1);
 
         await appDriver.expectNotificationUpdate(user1, group.id, {
             commentChangeCount: 1,
@@ -135,7 +135,7 @@ describe('notification system', () => {
         const feedAfterExpense = await appDriver.getActivityFeedItems(user1);
         expect(feedAfterExpense.length).toBeGreaterThan(0);
 
-        await appDriver.createGroupComment(group.id, 'Comment', user1);
+        await appDriver.createGroupComment(group.id, 'Comment', undefined, user1);
 
         const feedAfterComment = await appDriver.getActivityFeedItems(user1);
         expect(feedAfterComment.length).toBeGreaterThan(feedAfterExpense.length);
@@ -297,8 +297,8 @@ describe('notification system', () => {
                 const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
                 // Create a few activities
-                await appDriver.createGroupComment(group.id, 'Comment 1', user1);
-                await appDriver.createGroupComment(group.id, 'Comment 2', user1);
+                await appDriver.createGroupComment(group.id, 'Comment 1', undefined, user1);
+                await appDriver.createGroupComment(group.id, 'Comment 2', undefined, user1);
 
                 // Request with limit of 1
                 const result = await appDriver.getActivityFeed({ limit: 1 }, user1);
@@ -309,9 +309,9 @@ describe('notification system', () => {
                 const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
                 // Create enough activities
-                await appDriver.createGroupComment(group.id, 'Comment 1', user1);
-                await appDriver.createGroupComment(group.id, 'Comment 2', user1);
-                await appDriver.createGroupComment(group.id, 'Comment 3', user1);
+                await appDriver.createGroupComment(group.id, 'Comment 1', undefined, user1);
+                await appDriver.createGroupComment(group.id, 'Comment 2', undefined, user1);
+                await appDriver.createGroupComment(group.id, 'Comment 3', undefined, user1);
 
                 const result = await appDriver.getActivityFeed({ limit: 2 }, user1);
                 expect(result.hasMore).toBe(true);
@@ -346,7 +346,7 @@ describe('notification system', () => {
                 user1,
             );
 
-            await appDriver.createGroupComment(group.id, 'Activity feed comment', user1);
+            await appDriver.createGroupComment(group.id, 'Activity feed comment', undefined, user1);
 
             const fullFeed = await appDriver.getActivityFeed({}, user1);
             expect(fullFeed.items.length).toBeGreaterThanOrEqual(2);

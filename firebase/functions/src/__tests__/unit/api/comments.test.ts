@@ -28,7 +28,7 @@ describe('comments', () => {
         const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
         await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
-        const response = await appDriver.createGroupComment(groupId, '<script>alert(1)</script>Hello', user1);
+        const response = await appDriver.createGroupComment(groupId, '<script>alert(1)</script>Hello', undefined, user1);
         expect(response.text).toBe('Hello');
 
         const comments = await appDriver.listGroupComments(groupId, {}, user1);
@@ -55,7 +55,7 @@ describe('comments', () => {
             user1,
         );
 
-        const response = await appDriver.createExpenseComment(expense.id, '<script>alert(1)</script>Thanks', user1);
+        const response = await appDriver.createExpenseComment(expense.id, '<script>alert(1)</script>Thanks', undefined, user1);
         expect(response.text).toBe('Thanks');
 
         const comments = await appDriver.listExpenseComments(expense.id, {}, user1);
@@ -65,7 +65,7 @@ describe('comments', () => {
     describe('comment edge cases', () => {
         it('should reject creating group comment for non-existent group', async () => {
             await expect(
-                appDriver.createGroupComment('non-existent-group-id', 'Test comment', user1),
+                appDriver.createGroupComment('non-existent-group-id', 'Test comment', undefined, user1),
             )
                 .rejects
                 .toMatchObject({ code: 'NOT_FOUND' });
@@ -76,7 +76,7 @@ describe('comments', () => {
 
             // user2 is NOT a member
             await expect(
-                appDriver.createGroupComment(group.id, 'Test comment', user2),
+                appDriver.createGroupComment(group.id, 'Test comment', undefined, user2),
             )
                 .rejects
                 .toMatchObject({ code: 'FORBIDDEN' });
@@ -84,7 +84,7 @@ describe('comments', () => {
 
         it('should reject creating expense comment for non-existent expense', async () => {
             await expect(
-                appDriver.createExpenseComment('non-existent-expense-id', 'Test comment', user1),
+                appDriver.createExpenseComment('non-existent-expense-id', 'Test comment', undefined, user1),
             )
                 .rejects
                 .toMatchObject({ code: 'NOT_FOUND' });
@@ -148,7 +148,7 @@ describe('comments', () => {
 
             // Comment with only script tag should be sanitized to empty and rejected
             await expect(
-                appDriver.createGroupComment(groupId, '<script>alert(1)</script>', user1),
+                appDriver.createGroupComment(groupId, '<script>alert(1)</script>', undefined, user1),
             )
                 .rejects
                 .toThrow();
@@ -160,7 +160,7 @@ describe('comments', () => {
 
             // Create 5 comments
             for (let i = 0; i < 5; i += 1) {
-                await appDriver.createGroupComment(groupId, `Comment ${i}`, user1);
+                await appDriver.createGroupComment(groupId, `Comment ${i}`, undefined, user1);
             }
 
             // Request with limit of 2

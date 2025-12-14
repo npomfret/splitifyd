@@ -60,7 +60,7 @@ describe('Comment Real-time Subscriptions - Unit Tests', () => {
 
             // Add a comment
             const commentText = 'Real-time test comment';
-            await appDriver.createGroupComment(group.id, commentText, userIds[0]);
+            await appDriver.createGroupComment(group.id, commentText, undefined, userIds[0]);
 
             // Wait for the update
             await new Promise((resolve) => setTimeout(resolve, 10));
@@ -85,9 +85,9 @@ describe('Comment Real-time Subscriptions - Unit Tests', () => {
             await appDriver.joinGroupByLink(shareLink.shareToken, undefined, userIds[1]);
 
             // Add comments with slight delay to ensure ordering
-            await appDriver.createGroupComment(group.id, 'First comment', userIds[0]);
+            await appDriver.createGroupComment(group.id, 'First comment', undefined, userIds[0]);
             await new Promise((resolve) => setTimeout(resolve, 10));
-            await appDriver.createGroupComment(group.id, 'Second comment', userIds[1]);
+            await appDriver.createGroupComment(group.id, 'Second comment', undefined, userIds[1]);
             await new Promise((resolve) => setTimeout(resolve, 10));
 
             // Query with descending order (newest first)
@@ -134,15 +134,15 @@ describe('Comment Real-time Subscriptions - Unit Tests', () => {
             await new Promise((resolve) => setTimeout(resolve, 10));
 
             // Add multiple comments
-            await appDriver.createGroupComment(group.id, 'Comment 1', userIds[0]);
+            await appDriver.createGroupComment(group.id, 'Comment 1', undefined, userIds[0]);
             await new Promise((resolve) => setTimeout(resolve, 10));
             expect(receivedComments).toHaveLength(1);
 
-            await appDriver.createGroupComment(group.id, 'Comment 2', userIds[1]);
+            await appDriver.createGroupComment(group.id, 'Comment 2', undefined, userIds[1]);
             await new Promise((resolve) => setTimeout(resolve, 10));
             expect(receivedComments).toHaveLength(2);
 
-            await appDriver.createGroupComment(group.id, 'Comment 3', userIds[2]);
+            await appDriver.createGroupComment(group.id, 'Comment 3', undefined, userIds[2]);
             await new Promise((resolve) => setTimeout(resolve, 10));
             expect(receivedComments).toHaveLength(3);
 
@@ -183,7 +183,7 @@ describe('Comment Real-time Subscriptions - Unit Tests', () => {
             const initialCallbackCount = callbackCount;
 
             // Add a comment while subscribed
-            await appDriver.createGroupComment(group.id, 'Before unsubscribe', userIds[0]);
+            await appDriver.createGroupComment(group.id, 'Before unsubscribe', undefined, userIds[0]);
             await new Promise((resolve) => setTimeout(resolve, 10));
             expect(callbackCount).toBeGreaterThan(initialCallbackCount);
 
@@ -193,7 +193,7 @@ describe('Comment Real-time Subscriptions - Unit Tests', () => {
             const countAfterUnsubscribe = callbackCount;
 
             // Add another comment after unsubscribing
-            await appDriver.createGroupComment(group.id, 'After unsubscribe', userIds[0]);
+            await appDriver.createGroupComment(group.id, 'After unsubscribe', undefined, userIds[0]);
             await new Promise((resolve) => setTimeout(resolve, 10));
 
             // Callback should not have been called again

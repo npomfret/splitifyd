@@ -285,7 +285,7 @@ Add `<ReceiptUploader>` component.
 
 ## Task Breakdown
 
-- [ ] **Phase 1**: Core types, storage service, validation, security rules
+- [x] **Phase 1**: Core types, storage service, validation, security rules
 - [ ] **Phase 2**: Backend upload/get/delete endpoints
 - [ ] **Phase 3**: Comment schema + service updates for attachments
 - [ ] **Phase 4**: Frontend API client methods

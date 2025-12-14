@@ -273,13 +273,13 @@ describe('Groups Management - Deletion Tests', () => {
             await apiDriver.generateShareableLink(groupId, undefined, owner.token);
 
             // Add comments on group to populate group comments subcollection
-            await apiDriver.createGroupComment(groupId, 'Group comment 1', owner.token);
-            await apiDriver.createGroupComment(groupId, 'Group comment 2', member1.token);
+            await apiDriver.createGroupComment(groupId, 'Group comment 1', undefined, owner.token);
+            await apiDriver.createGroupComment(groupId, 'Group comment 2', undefined, member1.token);
 
             // Add comments on expenses to populate expense comments subcollections
-            await apiDriver.createExpenseComment(expenses[2].id, 'Expense comment 1', owner.token);
-            await apiDriver.createExpenseComment(expenses[2].id, 'Expense comment 2', member1.token);
-            await apiDriver.createExpenseComment(expenses[3].id, 'Another expense comment', member2.token);
+            await apiDriver.createExpenseComment(expenses[2].id, 'Expense comment 1', undefined, owner.token);
+            await apiDriver.createExpenseComment(expenses[2].id, 'Expense comment 2', undefined, member1.token);
+            await apiDriver.createExpenseComment(expenses[3].id, 'Another expense comment', undefined, member2.token);
 
             // Perform soft delete
             await apiDriver.deleteGroup(groupId, owner.token);

@@ -168,7 +168,7 @@ describe('reactions', () => {
     describe('group comment reactions', () => {
         it('should add a reaction to a group comment', async () => {
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
-            const comment = await appDriver.createGroupComment(group.id, 'Test comment', user1);
+            const comment = await appDriver.createGroupComment(group.id, 'Test comment', undefined, user1);
 
             const result = await appDriver.toggleGroupCommentReaction(group.id, comment.id, ReactionEmojis.LAUGH, user1);
 
@@ -179,7 +179,7 @@ describe('reactions', () => {
 
         it('should toggle off a reaction on a group comment', async () => {
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
-            const comment = await appDriver.createGroupComment(group.id, 'Test comment', user1);
+            const comment = await appDriver.createGroupComment(group.id, 'Test comment', undefined, user1);
 
             await appDriver.toggleGroupCommentReaction(group.id, comment.id, ReactionEmojis.CELEBRATE, user1);
             const result = await appDriver.toggleGroupCommentReaction(group.id, comment.id, ReactionEmojis.CELEBRATE, user1);
@@ -190,7 +190,7 @@ describe('reactions', () => {
 
         it('should reject reaction from non-member', async () => {
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
-            const comment = await appDriver.createGroupComment(group.id, 'Test comment', user1);
+            const comment = await appDriver.createGroupComment(group.id, 'Test comment', undefined, user1);
 
             await expect(
                 appDriver.toggleGroupCommentReaction(group.id, comment.id, ReactionEmojis.THUMBS_UP, user2),
@@ -226,7 +226,7 @@ describe('reactions', () => {
                 user1,
             );
 
-            const comment = await appDriver.createExpenseComment(expense.id, 'Test comment', user1);
+            const comment = await appDriver.createExpenseComment(expense.id, 'Test comment', undefined, user1);
             const result = await appDriver.toggleExpenseCommentReaction(expense.id, comment.id, ReactionEmojis.WOW, user1);
 
             expect(result.action).toBe('added');

@@ -1,4 +1,4 @@
-import type { CommentId, CommentText, Email, GroupName, ISOString, ReactionEmoji, ReactionToggleResponse, ShareLinkToken, UserId } from '@billsplit-wl/shared';
+import type { AttachmentId, CommentId, CommentText, Email, GroupName, ISOString, ReactionEmoji, ReactionToggleResponse, ShareLinkToken, UserId } from '@billsplit-wl/shared';
 import {
     AcceptMultiplePoliciesResponse,
     AcceptPolicyRequest,
@@ -86,6 +86,7 @@ import {
     type UpdateUserProfileRequest,
     type UpdateUserRoleRequest,
     type UpdateUserStatusRequest,
+    type UploadAttachmentResponse,
     type UploadTenantLibraryImageResponse,
     UserPolicyStatusResponse,
     UserProfileResponse,
@@ -593,12 +594,12 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
     }
 
     // Comment API methods
-    async createGroupComment(groupId: GroupId | string, text: CommentText | string, token: AuthToken): Promise<CommentDTO> {
-        return await this.apiRequest(`/groups/${groupId}/comments`, 'POST', { text }, token);
+    async createGroupComment(groupId: GroupId | string, text: CommentText | string, attachmentIds?: AttachmentId[], token?: AuthToken): Promise<CommentDTO> {
+        return await this.apiRequest(`/groups/${groupId}/comments`, 'POST', { text, attachmentIds }, token);
     }
 
-    async createExpenseComment(expenseId: ExpenseId | string, text: CommentText | string, token: AuthToken): Promise<CommentDTO> {
-        return await this.apiRequest(`/expenses/${expenseId}/comments`, 'POST', { text }, token);
+    async createExpenseComment(expenseId: ExpenseId | string, text: CommentText | string, attachmentIds?: AttachmentId[], token?: AuthToken): Promise<CommentDTO> {
+        return await this.apiRequest(`/expenses/${expenseId}/comments`, 'POST', { text, attachmentIds }, token);
     }
 
     async listGroupComments(groupId: GroupId | string, options: ListCommentsOptions | undefined = undefined, token: AuthToken): Promise<ListCommentsResponse> {
@@ -618,6 +619,28 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
 
         const response = await this.apiRequest(`/expenses/${expenseId}/comments${query}`, 'GET', null, token);
         return response;
+    }
+
+    // Attachment API methods
+    async uploadAttachment(
+        groupId: GroupId | string,
+        type: 'receipt' | 'comment',
+        file: File | Buffer,
+        contentType: string,
+        token?: AuthToken,
+    ): Promise<UploadAttachmentResponse> {
+        // Convert File to Buffer if needed (File has arrayBuffer method, Buffer doesn't)
+        let buffer: Buffer;
+        if ('arrayBuffer' in file && typeof file.arrayBuffer === 'function') {
+            buffer = Buffer.from(await file.arrayBuffer());
+        } else {
+            buffer = file as Buffer;
+        }
+        return await this.binaryRequest(`/groups/${groupId}/attachments?type=${type}`, buffer, contentType, token);
+    }
+
+    async deleteAttachment(groupId: GroupId | string, attachmentId: AttachmentId | string, token?: AuthToken): Promise<void> {
+        await this.apiRequest(`/groups/${groupId}/attachments/${attachmentId}`, 'DELETE', null, token);
     }
 
     // ===== ADMIN API: USER MANAGEMENT =====
@@ -698,6 +721,50 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
             return responseText ? ApiSerializer.deserialize(responseText) : {};
         } catch (error) {
             // Check for connection errors that might indicate emulator restart
+            if (error instanceof TypeError && error.message.includes('fetch')) {
+                throw new Error(`Cannot connect to emulator at ${url}. Please ensure the Firebase emulator is running.`);
+            }
+            throw error;
+        }
+    }
+
+    private async binaryRequest(endpoint: string, buffer: Buffer, contentType: string, token?: string | null): Promise<any> {
+        const url = `${this.config.baseUrl}${endpoint}`;
+        const fetchOptions: RequestInit = {
+            method: 'POST',
+            headers: {
+                'Content-Type': contentType,
+                Accept: 'application/x-serialized-json',
+                Host: 'localhost',
+                ...(token && { Authorization: `Bearer ${token}` }),
+            },
+            // Use type assertion for Buffer - Node's fetch accepts Buffer
+            body: buffer as unknown as BodyInit,
+        };
+
+        try {
+            const response = await fetch(url, fetchOptions);
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                let parsedError: unknown = errorText;
+                if (errorText) {
+                    try {
+                        parsedError = ApiSerializer.deserialize(errorText);
+                    } catch {
+                        parsedError = errorText;
+                    }
+                }
+
+                const error = new Error(`API request to ${endpoint} failed with status ${response.status}: ${typeof parsedError === 'string' ? parsedError : JSON.stringify(parsedError)}`);
+                (error as any).status = response.status;
+                (error as any).response = parsedError;
+                throw error;
+            }
+
+            const responseText = await response.text();
+            return responseText ? ApiSerializer.deserialize(responseText) : {};
+        } catch (error) {
             if (error instanceof TypeError && error.message.includes('fetch')) {
                 throw new Error(`Cannot connect to emulator at ${url}. Please ensure the Firebase emulator is running.`);
             }

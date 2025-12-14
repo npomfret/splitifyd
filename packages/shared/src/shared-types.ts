@@ -67,6 +67,9 @@ export const toCommentId = (value: string): CommentId => value as CommentId;
 export type ReactionId = Brand<string, 'ReactionId'>;
 export const toReactionId = (value: string): ReactionId => value as ReactionId;
 
+export type AttachmentId = Brand<string, 'AttachmentId'>;
+export const toAttachmentId = (value: string): AttachmentId => value as AttachmentId;
+
 export type TenantId = Brand<string, 'TenantId'>;
 export const toTenantId = (value: string): TenantId => value as TenantId;
 
@@ -1256,6 +1259,17 @@ export interface GroupBalances {
 // ========================================================================
 
 /**
+ * Reference to an attachment stored in comment documents.
+ * Contains denormalized metadata for display without fetching the attachment.
+ */
+export interface CommentAttachmentRef {
+    attachmentId: AttachmentId;
+    fileName: string;
+    contentType: string;
+    sizeBytes: number;
+}
+
+/**
  * Comment business fields (without metadata)
  */
 interface Comment {
@@ -1263,6 +1277,7 @@ interface Comment {
     authorName: string;
     authorAvatar?: string;
     text: CommentText;
+    attachments?: CommentAttachmentRef[];
 }
 
 /**
@@ -1274,6 +1289,7 @@ export interface CommentDTO extends Comment, BaseDTO<CommentId> {
 
 interface BaseCreateCommentRequest {
     text: CommentText;
+    attachmentIds?: AttachmentId[];
 }
 
 export interface CreateGroupCommentRequest extends BaseCreateCommentRequest {
@@ -1351,6 +1367,30 @@ export interface ListCommentsResponse {
     comments: CommentDTO[];
     hasMore: boolean;
     nextCursor?: string;
+}
+
+// ========================================================================
+// Attachment types
+// ========================================================================
+
+/**
+ * Attachment DTO returned from upload endpoint.
+ * Contains metadata about an uploaded file.
+ */
+export interface AttachmentDTO {
+    id: AttachmentId;
+    fileName: string;
+    contentType: string;
+    sizeBytes: number;
+}
+
+/**
+ * Response from uploading an attachment.
+ * Returns the attachment metadata and the proxy URL to access it.
+ */
+export interface UploadAttachmentResponse {
+    attachment: AttachmentDTO;
+    url: string;
 }
 
 // ========================================================================

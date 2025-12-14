@@ -9,6 +9,7 @@ import {
     AdminUpsertTenantRequest,
     AdminUpsertTenantResponse,
     API,
+    AttachmentId,
     ChangeEmailRequest,
     ClientAppConfiguration,
     CommentDTO,
@@ -89,6 +90,7 @@ import {
     UpdateUserProfileRequest,
     UpdateUserRoleRequest,
     UpdateUserStatusRequest,
+    UploadAttachmentResponse,
     UploadTenantLibraryImageResponse,
     UserId,
     UserPolicyStatusResponse,
@@ -933,8 +935,8 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return settlement;
     }
 
-    async createGroupComment(groupId: GroupId | string, text: CommentText | string, authToken: AuthToken): Promise<CommentDTO> {
-        const req = createStubRequest(authToken, { text }, { groupId });
+    async createGroupComment(groupId: GroupId | string, text: CommentText | string, attachmentIds?: AttachmentId[], authToken?: AuthToken): Promise<CommentDTO> {
+        const req = createStubRequest(authToken || '', { text, attachmentIds }, { groupId });
         const res = await this.dispatchByHandler('createComment', req);
         this.throwIfError(res);
         return res.getJson() as CommentDTO;
@@ -955,8 +957,8 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return res.getJson() as ListCommentsResponse;
     }
 
-    async createExpenseComment(expenseId: ExpenseId | string, text: CommentText | string, authToken: AuthToken): Promise<CommentDTO> {
-        const req = createStubRequest(authToken, { text }, { expenseId });
+    async createExpenseComment(expenseId: ExpenseId | string, text: CommentText | string, attachmentIds?: AttachmentId[], authToken?: AuthToken): Promise<CommentDTO> {
+        const req = createStubRequest(authToken || '', { text, attachmentIds }, { expenseId });
         const res = await this.dispatchByHandler('createCommentForExpense', req);
         this.throwIfError(res);
         return res.getJson() as CommentDTO;
@@ -975,6 +977,21 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         const res = await this.dispatchByHandler('listExpenseComments', req);
         this.throwIfError(res);
         return res.getJson() as ListCommentsResponse;
+    }
+
+    // Attachment methods - implemented in Phase 2
+    async uploadAttachment(
+        _groupId: GroupId | string,
+        _type: 'receipt' | 'comment',
+        _file: File | Buffer,
+        _contentType: string,
+        _authToken?: AuthToken,
+    ): Promise<UploadAttachmentResponse> {
+        throw new Error('uploadAttachment not yet implemented in AppDriver - see Phase 2');
+    }
+
+    async deleteAttachment(_groupId: GroupId | string, _attachmentId: AttachmentId | string, _authToken?: AuthToken): Promise<void> {
+        throw new Error('deleteAttachment not yet implemented in AppDriver - see Phase 2');
     }
 
     async getUserProfile(authToken: AuthToken): Promise<UserProfileResponse> {

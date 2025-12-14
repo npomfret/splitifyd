@@ -47,12 +47,12 @@ describe('Comments Integration Tests (Firebase Security Rules Only)', () => {
         test('should enforce authentication for comment creation via API', async () => {
             // This tests actual Firebase security rules that cannot be stubbed
             // May get ECONNRESET if emulator resets connection on unauthenticated requests
-            await expect(apiDriver.createGroupComment(testGroup.id, 'Test comment', '')).rejects.toThrow(/401|unauthorized|AUTH_REQUIRED|ECONNRESET/i);
+            await expect(apiDriver.createGroupComment(testGroup.id, 'Test comment', undefined, '')).rejects.toThrow(/401|unauthorized|AUTH_REQUIRED|ECONNRESET/i);
         });
 
         test('should enforce group membership via security rules', async () => {
             // This tests actual Firebase security rules for access control
-            await expect(apiDriver.createGroupComment(testGroup.id, 'Test comment', users[2].token)).rejects.toThrow(/403|forbidden|access denied|FORBIDDEN/i);
+            await expect(apiDriver.createGroupComment(testGroup.id, 'Test comment', undefined, users[2].token)).rejects.toThrow(/403|forbidden|access denied|FORBIDDEN/i);
         });
     });
 

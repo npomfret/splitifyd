@@ -13,6 +13,7 @@ import {
     ReactionEmojis,
     SplitTypes,
     SystemUserRoles,
+    toAttachmentId,
     toDisplayName,
     toEmail,
     toExpenseLabel,
@@ -463,6 +464,30 @@ const ListSettlementsResponseSchema = z
     })
     .passthrough();
 
+// Attachment schemas
+const CommentAttachmentRefSchema = z.object({
+    attachmentId: z.string().min(1).transform(toAttachmentId),
+    fileName: z.string().min(1),
+    contentType: z.string().min(1),
+    sizeBytes: z.number().int().positive(),
+});
+
+const AttachmentDTOSchema = z
+    .object({
+        id: z.string().min(1).transform(toAttachmentId),
+        fileName: z.string().min(1),
+        contentType: z.string().min(1),
+        sizeBytes: z.number().int().positive(),
+    })
+    .passthrough();
+
+const UploadAttachmentResponseSchema = z
+    .object({
+        attachment: AttachmentDTOSchema,
+        url: z.string().min(1),
+    })
+    .passthrough();
+
 // Comment schemas
 const CommentSchema = z
     .object({
@@ -471,6 +496,7 @@ const CommentSchema = z
         authorName: z.string().min(1),
         authorAvatar: z.string().optional(),
         text: z.string().min(1).max(500),
+        attachments: z.array(CommentAttachmentRefSchema).optional(),
         createdAt: z.string(),
         updatedAt: z.string(),
     })
@@ -978,6 +1004,9 @@ export const responseSchemas = {
     'POST /groups/:groupId/comments/:commentId/reactions': ReactionToggleResponseSchema,
     'POST /expenses/:expenseId/comments/:commentId/reactions': ReactionToggleResponseSchema,
     'POST /settlements/:settlementId/reactions': ReactionToggleResponseSchema,
+    // Attachment endpoints
+    'POST /groups/:groupId/attachments': UploadAttachmentResponseSchema,
+    'DELETE /groups/:groupId/attachments/:attachmentId': EmptyResponseSchema,
     // User profile endpoints
     'GET /user/profile': UserProfileResponseSchema,
     'PUT /user/profile': EmptyResponseSchema,
