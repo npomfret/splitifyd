@@ -1,230 +1,283 @@
-# Support uploading of receipts as images to expenses
+# File Attachments: Expense Receipts + Comment Attachments
 
-This task is to allow users to upload an image of a receipt and attach it to an expense.
+This task implements file upload capabilities for both expenses (receipts) and comments (attachments) using shared infrastructure.
 
 ## Requirements
 
-- Users should be able to upload an image file (JPEG, PNG, WebP) when creating or editing an expense
-- The uploaded image should be stored securely with **authenticated access only** (group members only)
-- The receipt image should be displayed on the expense details page
-- There should be a way to delete the uploaded receipt image
-- Max file size: 10 MB
-- When editing an expense, the receipt should carry over to the new version automatically
+### Expense Receipts
+- Single image attachment per expense
+- Image types: JPEG, PNG, WebP
+- Max file size: 10MB
+- Field `receiptUrl` already exists in ExpenseDTO
+- Receipt display UI already implemented in ExpenseDetailModal
 
-## Existing Infrastructure
+### Comment Attachments
+- Up to 3 attachments per comment
+- File types: JPEG, PNG, WebP, PDF
+- Max file size: 5MB per file
+- Need new `attachments` field in CommentDTO
 
-The codebase already has:
-- `receiptUrl` field in `Expense` interface, `CreateExpenseRequest`, and `ExpenseDocumentSchema`
-- Image validation utilities in `firebase/functions/src/utils/validation/imageValidation.ts`
-- Binary upload middleware pattern (used by tenant image uploads)
-- File upload UI pattern in `TenantImageLibrary.tsx`
-- Storage service pattern in `TenantAssetStorage.ts`
+### Shared Requirements
+- **Authenticated access only** - group members can view
+- Proxy endpoint pattern (not signed URLs)
+- Magic number validation for file type verification
 
 ## Architecture: Proxy-Based Authenticated Access
 
-Since receipts require authentication (only group members can view), we use a **proxy endpoint** pattern:
-1. Store receipts in Firebase Storage (private, no public read)
-2. Serve receipts via `GET /groups/:groupId/receipts/:receiptId` endpoint
+Since attachments require authentication (only group members can view), we use a **proxy endpoint** pattern:
+
+1. Store files in Firebase Storage (private, no public read)
+2. Serve files via `GET /groups/:groupId/attachments/:attachmentId` endpoint
 3. Endpoint verifies group membership, then streams the file
 
 This avoids signed URL complexity and works with existing auth middleware.
+
+**Storage path:** `attachments/{groupId}/{attachmentId}.{ext}`
 
 ---
 
 ## Implementation Plan
 
-### Phase 1: Backend Storage Layer
+### Phase 1: Core Infrastructure
 
-#### 1.1 Create ReceiptStorageService
-**New file:** `firebase/functions/src/services/storage/ReceiptStorageService.ts`
+#### 1.1 Types (packages/shared/src/shared-types.ts)
+
+```typescript
+// Branded type
+export type AttachmentId = Brand<string, 'AttachmentId'>;
+export const toAttachmentId = (value: string): AttachmentId => value as AttachmentId;
+
+// Attachment DTO
+export interface AttachmentDTO {
+    id: AttachmentId;
+    fileName: string;
+    contentType: string;
+    sizeBytes: number;
+}
+
+// Upload response
+export interface UploadAttachmentResponse {
+    attachment: AttachmentDTO;
+    url: string;  // Proxy URL
+}
+
+// Comment attachment reference
+export interface CommentAttachmentRef {
+    attachmentId: AttachmentId;
+    fileName: string;
+    contentType: string;
+    sizeBytes: number;
+}
+
+// Update Comment interface
+interface Comment {
+    // ...existing fields
+    attachments?: CommentAttachmentRef[];  // 0-3 attachments
+}
+
+// Update CreateComment requests
+export interface CreateGroupCommentRequest extends BaseCreateCommentRequest {
+    groupId: GroupId;
+    attachmentIds?: AttachmentId[];
+}
+```
+
+#### 1.2 GroupAttachmentStorage Service
+
+**File:** `firebase/functions/src/services/storage/GroupAttachmentStorage.ts`
 
 Follow `TenantAssetStorage.ts` pattern:
-- `uploadReceipt(groupId, buffer, contentType)` → returns `{ receiptId, contentType, sizeBytes }`
-- `getReceipt(groupId, receiptId)` → returns `{ buffer, contentType }` or throws NOT_FOUND
-- `deleteReceipt(groupId, receiptId)` → deletes from storage
-- `buildReceiptUrl(groupId, receiptId)` → builds API proxy URL (not storage URL)
+- `uploadAttachment(groupId, attachmentId, buffer, contentType)` - uploads to storage
+- `getAttachmentStream(groupId, attachmentId)` - returns readable stream
+- `deleteAttachment(groupId, attachmentId)` - deletes from storage
 
-Storage path: `receipts/{groupId}/{receiptId}.{ext}`
+#### 1.3 Attachment Validation
 
-#### 1.2 Update Storage Security Rules
+**File:** `firebase/functions/src/utils/validation/attachmentValidation.ts`
+
+- `validateReceiptUpload(buffer, contentType)` - 10MB, images only
+- `validateCommentAttachment(buffer, contentType)` - 5MB, images + PDF
+- Add PDF magic number: `[0x25, 0x50, 0x44, 0x46]` (%PDF)
+
+#### 1.4 Storage Security Rules
+
 **File:** `firebase/storage.rules`
 
-Add receipt rule (deny public read, Cloud Functions only):
 ```
-match /receipts/{groupId}/{receiptId} {
+match /attachments/{groupId}/{attachmentId} {
   allow read, write: if false;  // Only service account
 }
 ```
 
-#### 1.3 Add Receipt Image Validation
-**File:** `firebase/functions/src/utils/validation/imageValidation.ts`
-
-Add `validateReceiptImage()`:
-- Max size: 10 MB
-- Allowed types: image/jpeg, image/png, image/webp
-- Magic number validation (reuse existing)
-
 ### Phase 2: Backend API Endpoints
 
-#### 2.1 Create Receipt Handlers
-**New file:** `firebase/functions/src/receipts/handlers.ts`
+#### 2.1 Attachment Handlers
 
-**`uploadReceipt`** (POST /groups/:groupId/receipts)
-- Auth: `authenticate` middleware
-- Verify user is group member
-- Validate image (size, type, magic numbers)
-- Upload to storage
-- Return `{ receiptId, url, contentType, sizeBytes }`
-- URL format: `/api/groups/{groupId}/receipts/{receiptId}`
+**File:** `firebase/functions/src/attachments/AttachmentHandlers.ts`
 
-**`getReceipt`** (GET /groups/:groupId/receipts/:receiptId)
-- Auth: `authenticate` middleware
-- Verify user is group member
-- Stream file from storage with correct Content-Type
-- Cache headers for browser caching
+| Endpoint | Handler | Purpose |
+|----------|---------|---------|
+| `POST /groups/:groupId/attachments` | uploadAttachment | Upload file |
+| `GET /groups/:groupId/attachments/:attachmentId` | getAttachment | Proxy stream |
+| `DELETE /groups/:groupId/attachments/:attachmentId` | deleteAttachment | Delete file |
 
-**`deleteReceipt`** (DELETE /groups/:groupId/receipts/:receiptId)
-- Auth: `authenticate` middleware
-- Verify user is group member with expense edit permission
-- Delete from storage
-- Return 204
+#### 2.2 Route Registration
 
-#### 2.2 Register Routes
 **File:** `firebase/functions/src/routes/route-config.ts`
 
 ```typescript
-{ method: 'POST', path: '/groups/:groupId/receipts', handler: 'uploadReceipt', middleware: ['authenticate'], skipContentTypeValidation: true }
-{ method: 'GET', path: '/groups/:groupId/receipts/:receiptId', handler: 'getReceipt', middleware: ['authenticate'] }
-{ method: 'DELETE', path: '/groups/:groupId/receipts/:receiptId', handler: 'deleteReceipt', middleware: ['authenticate'] }
+{ method: 'POST', path: '/groups/:groupId/attachments', handler: 'uploadAttachment', middleware: ['authenticate'], skipContentTypeValidation: true }
+{ method: 'GET', path: '/groups/:groupId/attachments/:attachmentId', handler: 'getAttachment', middleware: ['authenticate'] }
+{ method: 'DELETE', path: '/groups/:groupId/attachments/:attachmentId', handler: 'deleteAttachment', middleware: ['authenticate'] }
 ```
 
-#### 2.3 Update Middleware for Binary Upload
+#### 2.3 Middleware Update
+
 **File:** `firebase/functions/src/utils/middleware.ts`
 
-Add receipt upload route to raw parser condition.
+Add `/groups/:groupId/attachments` to raw parser condition.
 
-#### 2.4 Add Shared Types
-**File:** `packages/shared/src/shared-types.ts`
+### Phase 3: Comment Schema Updates
 
-```typescript
-export interface ReceiptUploadResponse {
-    receiptId: string;
-    url: string;
-    contentType: string;
-    sizeBytes: number;
-}
-```
+#### 3.1 Firestore Schema
 
-### Phase 3: Frontend API Client
+**File:** `firebase/functions/src/schemas/comment.ts`
+
+Add `attachments` field (array of `CommentAttachmentRefSchema`, max 3).
+
+#### 3.2 Response Schema
+
+**File:** `packages/shared/src/schemas/apiSchemas.ts`
+
+Update `CommentSchema` to include `attachments` field.
+
+#### 3.3 CommentService Updates
+
+**File:** `firebase/functions/src/services/CommentService.ts`
+
+- Accept `attachmentIds` in create methods
+- Validate IDs exist and belong to group
+- Store attachment refs in comment document
+
+### Phase 4: Frontend API Client
 
 **File:** `webapp-v2/src/app/apiClient.ts`
 
-Add methods:
-- `uploadReceipt(groupId, file)` → binary upload with file.type as Content-Type
-- `deleteReceipt(groupId, receiptId)` → DELETE request
+```typescript
+uploadAttachment(groupId, file): Promise<UploadAttachmentResponse>
+deleteAttachment(groupId, attachmentId): Promise<void>
+getAttachmentUrl(groupId, attachmentId): string
+```
 
-### Phase 4: Frontend Expense Form Store
+### Phase 5: Frontend Expense Receipt UI
+
+#### 5.1 ReceiptUploader Component
+
+**File:** `webapp-v2/src/components/expense-form/ReceiptUploader.tsx`
+
+- File input: `accept="image/jpeg,image/png,image/webp"`
+- Preview thumbnail
+- Client-side validation (10MB, image types)
+- Remove button
+
+#### 5.2 Expense Form Store Updates
 
 **File:** `webapp-v2/src/app/stores/expense-form-store.ts`
 
-Add state:
 - `#receiptFileSignal: Signal<File | null>`
 - `#receiptUrlSignal: Signal<string | null>`
-- `#receiptUploadingSignal: Signal<boolean>`
-- `#receiptErrorSignal: Signal<string | null>`
+- `uploadReceiptIfNeeded(groupId)` - uploads before save
+- Update `saveExpense()` / `updateExpense()` to include receiptUrl
 
-Add methods:
-- `setReceiptFile(file)` / `clearReceipt()`
-- `uploadReceiptIfNeeded(groupId)` - uploads file, returns URL
+#### 5.3 ExpenseFormModal Integration
 
-Update `saveExpense()` and `updateExpense()`:
-- Call `uploadReceiptIfNeeded()` before API call
-- Include `receiptUrl` in request
+**File:** `webapp-v2/src/components/expense-form/ExpenseFormModal.tsx`
 
-Update `initializeForEdit()`:
-- Set `receiptUrl` from existing expense (carry-over)
+Add `<ReceiptUploader>` component.
 
-### Phase 5: Frontend UI Components
+### Phase 6: Frontend Comment Attachment UI
 
-#### 5.1 ReceiptUploader Component
-**New file:** `webapp-v2/src/components/expense-form/ReceiptUploader.tsx`
+#### 6.1 AttachmentUploader Component
 
-- Hidden file input with accept="image/jpeg,image/png,image/webp"
-- Preview thumbnail (File or URL)
-- Remove button
-- Client-side validation (size, type)
-- Error display
+**File:** `webapp-v2/src/components/comments/AttachmentUploader.tsx`
 
-#### 5.2 ReceiptDisplay Component
-**New file:** `webapp-v2/src/components/expense/ReceiptDisplay.tsx`
+- File input: `accept="image/jpeg,image/png,image/webp,application/pdf"`
+- Support multiple files (up to 3)
+- Immediate upload on selection
+- Progress indicators
+- Preview: thumbnail for images, icon for PDFs
 
-- Thumbnail with click-to-expand
-- "View full" link (opens in new tab)
-- Remove button (if permitted)
+#### 6.2 AttachmentDisplay Component
 
-#### 5.3 Integration
-- Add `<ReceiptUploader>` to `ExpenseFormModal.tsx`
-- Add `<ReceiptDisplay>` to `ExpenseDetailPage.tsx`
+**File:** `webapp-v2/src/components/ui/AttachmentDisplay.tsx`
 
-#### 5.4 Translations
-**File:** `webapp-v2/src/locales/en/translation.json`
+- Image: thumbnail with click-to-expand modal
+- PDF: download link or embedded viewer
+- Grid layout for multiple attachments
 
-Add `expense.receipt.*` keys.
+#### 6.3 Comment Component Updates
 
-### Phase 6: Testing
+| File | Changes |
+|------|---------|
+| `CommentInput.tsx` | Add `<AttachmentUploader>`, send attachmentIds on submit |
+| `CommentItem.tsx` | Add `<AttachmentDisplay>` for comment.attachments |
 
-**Unit Tests:**
-- `ReceiptStorageService.test.ts` - upload, get, delete, path building
-- `receipts/handlers.test.ts` - auth, validation, membership checks
+### Phase 7: Testing
 
-**API Integration Tests:**
-- Upload/get/delete receipt
-- Create expense with receiptUrl
-- Edit expense carries over receipt
+#### Unit Tests
+- `GroupAttachmentStorage.test.ts` - upload, get, delete
+- `attachment-endpoints.test.ts` - auth, validation, membership
+- `attachmentValidation.test.ts` - size, type, magic numbers
 
-**Playwright Tests:**
-- Add receipt when creating expense
-- View/remove/replace receipt
+#### Playwright Tests
+- `expense-receipt.test.ts` - add/view/replace receipt
+- `comment-attachments.test.ts` - add/view 1-3 attachments
 
 ---
 
-## Files to Modify/Create
+## Files Summary
 
-| Action | File |
-|--------|------|
-| Create | `firebase/functions/src/services/storage/ReceiptStorageService.ts` |
-| Create | `firebase/functions/src/receipts/handlers.ts` |
-| Modify | `firebase/functions/src/routes/route-config.ts` |
-| Modify | `firebase/functions/src/utils/middleware.ts` |
-| Modify | `firebase/storage.rules` |
-| Modify | `firebase/functions/src/utils/validation/imageValidation.ts` |
-| Modify | `packages/shared/src/shared-types.ts` |
-| Modify | `packages/shared/src/api.ts` |
-| Modify | `packages/shared/src/schemas/apiSchemas.ts` |
-| Modify | `webapp-v2/src/app/apiClient.ts` |
-| Modify | `webapp-v2/src/app/stores/expense-form-store.ts` |
-| Create | `webapp-v2/src/components/expense-form/ReceiptUploader.tsx` |
-| Create | `webapp-v2/src/components/expense/ReceiptDisplay.tsx` |
-| Modify | `webapp-v2/src/components/expense-form/ExpenseFormModal.tsx` |
-| Modify | `webapp-v2/src/pages/ExpenseDetailPage.tsx` |
-| Modify | `webapp-v2/src/locales/en/translation.json` |
+### Create
+
+| File | Purpose |
+|------|---------|
+| `firebase/functions/src/services/storage/GroupAttachmentStorage.ts` | Storage service |
+| `firebase/functions/src/attachments/AttachmentHandlers.ts` | HTTP handlers |
+| `firebase/functions/src/attachments/validation.ts` | Request validation |
+| `firebase/functions/src/utils/validation/attachmentValidation.ts` | File validation |
+| `webapp-v2/src/components/expense-form/ReceiptUploader.tsx` | Receipt upload UI |
+| `webapp-v2/src/components/comments/AttachmentUploader.tsx` | Comment attachment UI |
+| `webapp-v2/src/components/ui/AttachmentDisplay.tsx` | Attachment display |
+
+### Modify
+
+| File | Changes |
+|------|---------|
+| `packages/shared/src/shared-types.ts` | AttachmentId, AttachmentDTO, CommentAttachmentRef, update Comment |
+| `packages/shared/src/api.ts` | Add upload/delete attachment methods |
+| `packages/shared/src/schemas/apiSchemas.ts` | UploadAttachmentResponseSchema, update CommentSchema |
+| `firebase/functions/src/schemas/comment.ts` | Add attachments field |
+| `firebase/functions/src/services/CommentService.ts` | Handle attachmentIds |
+| `firebase/functions/src/comments/validation.ts` | Validate attachmentIds |
+| `firebase/functions/src/routes/route-config.ts` | Register new routes |
+| `firebase/functions/src/utils/middleware.ts` | Raw parser for /attachments |
+| `firebase/functions/src/ApplicationFactory.ts` | Wire AttachmentHandlers |
+| `firebase/storage.rules` | Add attachments rule |
+| `webapp-v2/src/app/apiClient.ts` | Add upload methods |
+| `webapp-v2/src/app/stores/expense-form-store.ts` | Receipt state |
+| `webapp-v2/src/components/expense-form/ExpenseFormModal.tsx` | Add ReceiptUploader |
+| `webapp-v2/src/components/comments/CommentInput.tsx` | Add AttachmentUploader |
+| `webapp-v2/src/components/comments/CommentItem.tsx` | Add AttachmentDisplay |
+| `webapp-v2/src/locales/en/translation.json` | Add attachment i18n keys |
 
 ---
 
 ## Task Breakdown
 
-- [ ] **Backend:** Create `ReceiptStorageService` following `TenantAssetStorage` pattern
-- [ ] **Backend:** Add `validateReceiptImage()` function (10MB, JPEG/PNG/WebP)
-- [ ] **Backend:** Update Firebase Storage security rules
-- [ ] **Backend:** Create receipt handlers (upload, get, delete)
-- [ ] **Backend:** Register routes and update middleware for binary upload
-- [ ] **Shared:** Add `ReceiptUploadResponse` type and API interface methods
-- [ ] **Frontend:** Add `uploadReceipt`/`deleteReceipt` to apiClient
-- [ ] **Frontend:** Update expense-form-store with receipt state/methods
-- [ ] **Frontend:** Create `ReceiptUploader` component
-- [ ] **Frontend:** Create `ReceiptDisplay` component
-- [ ] **Frontend:** Integrate into ExpenseFormModal and ExpenseDetailPage
-- [ ] **Frontend:** Add translations
-- [ ] **Testing:** Unit tests for storage service and handlers
-- [ ] **Testing:** API integration tests
-- [ ] **Testing:** Playwright UI tests
+- [ ] **Phase 1**: Core types, storage service, validation, security rules
+- [ ] **Phase 2**: Backend upload/get/delete endpoints
+- [ ] **Phase 3**: Comment schema + service updates for attachments
+- [ ] **Phase 4**: Frontend API client methods
+- [ ] **Phase 5**: Expense receipt upload UI
+- [ ] **Phase 6**: Comment attachment upload/display UI
+- [ ] **Phase 7**: Unit tests and Playwright tests
