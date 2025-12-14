@@ -175,10 +175,10 @@ simpleTest.describe('User Registration & Account Management', () => {
         });
 
         await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 });
-        await expect(page.getByRole('heading', { name: /welcome|your groups/i }).first()).toBeVisible({ timeout: 5000 });
+        const dashboardPage = new DashboardPage(page);
+        await dashboardPage.verifyDashboardHeadingVisible();
 
         // Log out to test duplicate registration prevention
-        const dashboardPage = new DashboardPage(page);
         await dashboardPage.header.logout();
 
         // Test 2: Duplicate registration prevention with comprehensive error handling
@@ -632,7 +632,7 @@ simpleTest.describe('Share Link Access Management', () => {
                 await joinGroupPage.navigateToShareLink(link);
 
                 expect(page.url()).toContain('/join');
-                await expect(page.getByText('Invalid Link')).toBeVisible();
+                await joinGroupPage.verifyInvalidLinkWarningVisible();
 
                 await joinGroupPage.verifyBackToDashboardButtonVisible();
             }
@@ -642,7 +642,7 @@ simpleTest.describe('Share Link Access Management', () => {
 
             await joinGroupPage.navigateToShareLink(invalidLink);
             expect(page.url()).toContain('/join');
-            await expect(page.getByText('Failed to join group')).toBeVisible();
+            await joinGroupPage.verifyUnableToJoinWarningVisible();
 
             // Should have a button to go back to dashboard using page object method
             await joinGroupPage.verifyBackToDashboardButtonVisible();

@@ -313,13 +313,7 @@ test.describe('Form Validation & UI Error Handling', () => {
         await expenseFormPage.fillAmount('50');
 
         // Set a currency to pass client validation
-        const currencyButton = page.getByRole('button', { name: /select currency/i });
-        await currencyButton.click();
-        const searchInput = page.getByPlaceholder('Search by symbol, code, or country...');
-        await expect(searchInput).toBeVisible();
-        await searchInput.fill('EUR');
-        const currencyOption = page.getByText('Euro (EUR)').first();
-        await currencyOption.click();
+        await expenseFormPage.selectCurrency('EUR');
 
         await expenseFormPage.verifySaveButtonEnabled();
 

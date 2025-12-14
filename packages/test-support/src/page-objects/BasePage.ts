@@ -511,4 +511,13 @@ export abstract class BasePage {
     async pressShiftTab(): Promise<void> {
         await this._page.keyboard.press('Shift+Tab');
     }
+
+    /**
+     * Verify the 404 Not Found page is displayed
+     */
+    async verify404PageDisplayed(): Promise<void> {
+        const body = this._page.locator('body');
+        await expect(body).toContainText(translation.notFoundPage.title);
+        await expect(body).toContainText(translation.notFoundPage.pageNotFound);
+    }
 }

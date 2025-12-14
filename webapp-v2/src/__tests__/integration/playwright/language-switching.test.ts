@@ -32,8 +32,7 @@ test.describe('Language Switching', () => {
         await settingsPage.verifyLanguageSectionHeadingText('اللغة');
 
         // Verify the page is now RTL
-        const htmlDir = await page.locator('html').getAttribute('dir');
-        expect(htmlDir).toBe('rtl');
+        await settingsPage.verifyPageDirectionIsRTL();
     });
 
     test('should switch language back from Arabic to English', async ({ authenticatedPage }) => {
@@ -55,7 +54,6 @@ test.describe('Language Switching', () => {
         await settingsPage.verifyLanguageSectionHeadingText('Language');
 
         // Verify the page is now LTR
-        const htmlDir = await page.locator('html').getAttribute('dir');
-        expect(htmlDir).toBe('ltr');
+        await settingsPage.verifyPageDirectionIsLTR();
     });
 });

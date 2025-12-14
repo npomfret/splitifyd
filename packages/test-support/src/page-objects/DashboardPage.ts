@@ -809,7 +809,19 @@ export class DashboardPage extends BasePage {
      * Verify the "create first group" prompt is visible (empty state for new users)
      */
     async verifyCreateFirstGroupPromptVisible(): Promise<void> {
-        await expect(this.page.getByText(/create.*first.*group/i).first()).toBeVisible();
+        await expect(this.page.getByText(translation.emptyGroupsState.description).first()).toBeVisible();
+    }
+
+    /**
+     * Verify dashboard heading is visible (either welcome or "Your Groups")
+     * Used after registration/login to confirm user landed on dashboard
+     */
+    async verifyDashboardHeadingVisible(timeout: number = 5000): Promise<void> {
+        // Match either "Welcome to..." (with interpolation) or "Your Groups"
+        const welcomePattern = new RegExp(`^${translation.dashboard.welcomeMessage.split('{{')[0]}|${translation.dashboard.yourGroups}`, 'i');
+        await expect(
+            this.page.getByRole('heading', { name: welcomePattern }).first(),
+        ).toBeVisible({ timeout });
     }
 
     // ============================================================================

@@ -668,4 +668,17 @@ export class SettingsPage extends BasePage {
         // After language change, verify the section heading reflects the new language
         await expect(this.page.getByRole('heading', { name: expectedText })).toBeVisible();
     }
+
+    /**
+     * Page Direction Verification Methods
+     */
+    async verifyPageDirectionIsRTL(): Promise<void> {
+        const dir = await this.page.locator('html').getAttribute('dir');
+        expect(dir).toBe('rtl');
+    }
+
+    async verifyPageDirectionIsLTR(): Promise<void> {
+        const dir = await this.page.locator('html').getAttribute('dir');
+        expect(dir).toBe('ltr');
+    }
 }

@@ -94,3 +94,32 @@ I found several files that contained raw locators directly in the tests, which v
 All tests pass after refactoring:
 - Build compiles successfully (`npm run build`)
 - Individual test files verified: group-display-name-settings, settlement-form, tenant-branding, admin-tenant-config
+
+---
+
+## Phase 2: Additional Violations Found and Fixed
+
+A deep-dive audit found 9 additional raw locator violations across 4 test files that were missed in the original pass.
+
+### Additional Page Objects Enhanced
+
+| Page Object | Methods Added |
+|-------------|---------------|
+| **DashboardPage** | `verifyDashboardHeadingVisible()` |
+| **BasePage** | `verify404PageDisplayed()` |
+| **SettingsPage** | `verifyPageDirectionIsRTL()`, `verifyPageDirectionIsLTR()` |
+
+### Additional Test Files Refactored
+
+| # | File | Violations Fixed |
+|---|------|------------------|
+| 18 | error-handling-comprehensive.e2e.test.ts | Used existing `ExpenseFormPage.selectCurrency('EUR')` instead of 7 raw locators |
+| 19 | user-and-access.e2e.test.ts | Used `DashboardPage.verifyDashboardHeadingVisible()`, `JoinGroupPage.verifyInvalidLinkWarningVisible()`, `JoinGroupPage.verifyUnableToJoinWarningVisible()` |
+| 20 | root-route-conditional.test.ts | Used `BasePage.verify404PageDisplayed()` instead of body locators |
+| 21 | language-switching.test.ts | Used `SettingsPage.verifyPageDirectionIsRTL()` and `verifyPageDirectionIsLTR()` |
+
+### Phase 2 Summary
+
+- **9 raw locator violations** eliminated
+- **4 test files** refactored
+- **4 new Page Object methods** added (+ 1 existing method used)

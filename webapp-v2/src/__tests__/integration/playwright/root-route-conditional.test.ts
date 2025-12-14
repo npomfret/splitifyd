@@ -88,8 +88,8 @@ test.describe('Root Route - Conditional Rendering', () => {
             await page.goto('/pricing', { timeout: TEST_TIMEOUTS.NAVIGATION, waitUntil: 'domcontentloaded' });
 
             // Pricing page has been removed, so we expect 404
-            await expect(page.locator('body')).toContainText(/404/i);
-            await expect(page.locator('body')).toContainText(/not found/i);
+            const loginPage = new LoginPage(page);
+            await loginPage.verify404PageDisplayed();
         });
     });
 });
