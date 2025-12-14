@@ -212,8 +212,8 @@
     },
     "groupCard": {
       "settledUp": "すべて精算済みです！",
-      "youOwe": "{{amount}}を支払う必要があります",
-      "youAreOwed": "{{amount}}を受け取る必要があります",
+      "youOwe": "{{amount}} 支払い",
+      "youAreOwed": "{{amount}} 受取",
       "addExpenseTooltip": "{{groupName}}に経費を追加",
       "inviteTooltip": "{{groupName}}にメンバーを招待",
       "noRecentActivity": "最近のアクティビティはありません",

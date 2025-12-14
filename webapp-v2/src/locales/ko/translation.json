@@ -212,8 +212,8 @@
     },
     "groupCard": {
       "settledUp": "모두 정산되었습니다!",
-      "youOwe": "{{amount}}을(를) 빚지고 있습니다.",
-      "youAreOwed": "{{amount}}을(를) 받아야 합니다.",
+      "youOwe": "{{amount}} 지불",
+      "youAreOwed": "{{amount}} 수령",
       "addExpenseTooltip": "{{groupName}}에 비용 추가",
       "inviteTooltip": "{{groupName}}에 멤버 초대",
       "noRecentActivity": "최근 활동 없음",
