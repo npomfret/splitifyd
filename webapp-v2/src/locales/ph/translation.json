@@ -586,7 +586,9 @@
     "paidBy": "Binayaran ni",
     "deleted": "Tinanggal",
     "deletedBy": "Tinanggal ni",
-    "copyExpense": "Kopyahin ang gastusin"
+    "copyExpense": "Kopyahin ang gastusin",
+    "hasComments": "{{count}} komento",
+    "hasComments_other": "{{count}} komento"
   },
   "header": {
     "logoAlt": "{{appName}}",

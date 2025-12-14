@@ -586,7 +586,9 @@
     "paidBy": "Samaksāja",
     "deleted": "Dzēsts",
     "deletedBy": "Dzēsa",
-    "copyExpense": "Kopēt izdevumus"
+    "copyExpense": "Kopēt izdevumus",
+    "hasComments": "{{count}} komentārs",
+    "hasComments_other": "{{count}} komentāri"
   },
   "header": {
     "logoAlt": "{{appName}}",

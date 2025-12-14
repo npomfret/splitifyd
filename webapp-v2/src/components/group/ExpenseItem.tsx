@@ -3,6 +3,7 @@ import { CopyIcon } from '@/components/ui/icons';
 import { getGroupDisplayName } from '@/utils/displayName';
 import { ExpenseDTO, GroupMember } from '@billsplit-wl/shared';
 import { DELETED_AT_FIELD } from '@billsplit-wl/shared';
+import { ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
 import { useTranslation } from 'react-i18next';
 import { Avatar, CurrencyAmount, RelativeTime, Tooltip } from '../ui';
 import { Clickable } from '../ui/Clickable';
@@ -41,32 +42,17 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
             onClick={() => onClick?.(expense)}
             aria-label={expense.description}
         >
+            {/* Top row: Avatar, Description, Amount, Copy button */}
             <div className='flex justify-between items-start gap-4'>
                 <div className='flex items-center gap-3 flex-1 min-w-0'>
-                    {/* User avatar */}
                     <Avatar displayName={payerName} userId={expense.paidBy} size='sm' themeColor={paidByTheme} />
-
-                    <div className='flex-1 min-w-0'>
-                        <div className='flex items-center gap-2'>
-                            <p className={`font-medium text-sm ${isDeleted ? 'line-through text-text-muted' : 'text-text-primary'}`}>{expense.description}</p>
-                            {isDeleted && (
-                                <span className='text-xs bg-surface-error text-semantic-error px-2 py-0.5 rounded'>
-                                    {t('expenseItem.deleted')}
-                                </span>
-                            )}
-                        </div>
-                        <p className='text-xs text-text-primary/70'>
-                            {t('expenseItem.paidBy')}{' '}
-                            <span className='font-medium text-text-primary/80'>
-                                {payerName}
-                            </span>{' '}
-                            • <RelativeTime date={expense.date} className='text-text-muted/70' tooltipPlacement='bottom' />
-                            {isDeleted && expense.deletedAt && (
-                                <span className='ml-2 text-semantic-error'>
-                                    • {t('expenseItem.deletedBy')} {deletedByName} <RelativeTime date={expense.deletedAt} className='text-semantic-error' />
-                                </span>
-                            )}
-                        </p>
+                    <div className='flex items-center gap-2 min-w-0'>
+                        <p className={`font-medium text-sm truncate ${isDeleted ? 'line-through text-text-muted' : 'text-text-primary'}`}>{expense.description}</p>
+                        {isDeleted && (
+                            <span className='text-xs bg-surface-error text-semantic-error px-2 py-0.5 rounded shrink-0'>
+                                {t('expenseItem.deleted')}
+                            </span>
+                        )}
                     </div>
                 </div>
 
@@ -78,7 +64,6 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
                         {expense.labels.length > 0 && <p className='help-text-xs text-text-muted/70'>{expense.labels.join(', ')}</p>}
                     </div>
 
-                    {/* Copy button - only show if not deleted and onCopy is provided */}
                     {!isDeleted && onCopy && (
                         <Tooltip content={t('expenseItem.copyExpense')}>
                             <Clickable
@@ -94,6 +79,24 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
                     )}
                 </div>
             </div>
+
+            {/* Bottom row: Paid by, date, comment count - full width */}
+            <p className='text-xs text-text-primary/70 mt-1'>
+                {t('expenseItem.paidBy')}{' '}
+                <span className='font-medium text-text-primary/80'>{payerName}</span>{' '}
+                • <RelativeTime date={expense.date} className='text-text-muted/70' tooltipPlacement='bottom' />
+                {expense.commentCount && expense.commentCount > 0 && (
+                    <span className='inline-flex items-center gap-0.5 text-text-muted ml-1' aria-label={t('expenseItem.hasComments', { count: expense.commentCount })}>
+                        • <ChatBubbleLeftIcon className='w-3 h-3' aria-hidden='true' />
+                        <span>{expense.commentCount}</span>
+                    </span>
+                )}
+                {isDeleted && expense.deletedAt && (
+                    <span className='ml-2 text-semantic-error'>
+                        • {t('expenseItem.deletedBy')} {deletedByName} <RelativeTime date={expense.deletedAt} className='text-semantic-error' />
+                    </span>
+                )}
+            </p>
         </article>
     );
 }

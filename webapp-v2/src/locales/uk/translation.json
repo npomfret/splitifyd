@@ -585,7 +585,9 @@
     "paidBy": "Заплатив(ла)",
     "deleted": "Видалено",
     "deletedBy": "Видалено",
-    "copyExpense": "Копіювати витрату"
+    "copyExpense": "Копіювати витрату",
+    "hasComments": "{{count}} коментар",
+    "hasComments_other": "{{count}} коментарі"
   },
   "header": {
     "logoAlt": "{{appName}}",

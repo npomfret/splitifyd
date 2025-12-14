@@ -30,6 +30,7 @@ const BaseExpenseSchema = z
         isLocked: z.boolean().optional(), // True if any participant has left the group
         supersededBy: z.string().nullable(), // ExpenseId of newer version, null if current
         reactionCounts: ReactionCountsSchema.nullable().optional(), // Aggregate emoji reaction counts
+        commentCount: z.number().int().min(0).optional(), // Number of comments on this expense
     })
     .merge(AuditFieldsSchema)
     .merge(SoftDeletionFieldsSchema);

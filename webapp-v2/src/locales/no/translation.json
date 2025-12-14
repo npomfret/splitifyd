@@ -585,7 +585,9 @@
     "paidBy": "Betalt av",
     "deleted": "Slettet",
     "deletedBy": "Slettet av",
-    "copyExpense": "Kopier utgift"
+    "copyExpense": "Kopier utgift",
+    "hasComments": "{{count}} kommentar",
+    "hasComments_other": "{{count}} kommentarer"
   },
   "header": {
     "logoAlt": "{{appName}}",

@@ -841,7 +841,17 @@ export class FirestoreWriter implements IFirestoreWriter {
     }
 
     createExpenseCommentInTransaction(transaction: ITransaction, expenseId: ExpenseId, commentData: Omit<CommentDTO, 'id'>) {
-        return this.createCommentInTransactionInternal(transaction, this.getExpenseCommentCollectionPath(expenseId), commentData);
+        // Create the comment
+        const commentRef = this.createCommentInTransactionInternal(transaction, this.getExpenseCommentCollectionPath(expenseId), commentData);
+
+        // Increment the expense's commentCount
+        const expenseRef = this.db.collection(FirestoreCollections.EXPENSES).doc(expenseId);
+        transaction.update(expenseRef, {
+            commentCount: FieldValue.increment(1),
+            updatedAt: Timestamp.now(),
+        });
+
+        return commentRef;
     }
 
     private createCommentInTransactionInternal(transaction: ITransaction, collectionPath: string, commentData: Omit<CommentDTO, 'id'>) {

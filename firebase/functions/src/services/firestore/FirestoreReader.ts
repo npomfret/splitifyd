@@ -1523,6 +1523,7 @@ export class FirestoreReader implements IFirestoreReader {
                         'deletedAt',
                         'deletedBy',
                         'supersededBy',
+                        'commentCount',
                     )
                     .orderBy('date', 'desc')
                     .orderBy('createdAt', 'desc')

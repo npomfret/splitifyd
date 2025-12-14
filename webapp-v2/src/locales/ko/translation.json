@@ -586,7 +586,9 @@
     "paidBy": "지불한 사람",
     "deleted": "삭제됨",
     "deletedBy": "삭제한 사람",
-    "copyExpense": "비용 복사"
+    "copyExpense": "비용 복사",
+    "hasComments": "댓글 {{count}}개",
+    "hasComments_other": "댓글 {{count}}개"
   },
   "header": {
     "logoAlt": "{{appName}}",

@@ -1,4 +1,4 @@
-import type { Amount, CreateSettlementRequest, ExpenseDTO, GroupDTO } from '@billsplit-wl/shared';
+import type { Amount, CreateSettlementRequest, CurrencyISOCode, ExpenseDTO, GroupDTO } from '@billsplit-wl/shared';
 import { AuthenticatedFirebaseUser, ExpenseLabel, toAmount, toCurrencyISOCode, toDisplayName, toEmail, toExpenseLabel, toGroupName, toUserId, UserRegistration } from '@billsplit-wl/shared';
 import { ApiDriver, CreateExpenseRequestBuilder, DEFAULT_ADMIN_DISPLAY_NAME, DEFAULT_ADMIN_EMAIL, DEFAULT_PASSWORD, getFirebaseEmulatorSigninUrl } from '@billsplit-wl/test-support';
 
@@ -10,15 +10,28 @@ const CONFIG = {
     groupCount: 10,
     membersPerGroup: { min: 2, max: 5 }, // Including creator
     actionsPerGroup: { min: 20, max: 40 },
+    currenciesPerGroup: { min: 1, max: 3 },
     // Action probabilities (should sum to ~1.0)
     actionWeights: {
-        createExpense: 0.60,
-        editExpense: 0.10,
+        createExpense: 0.55,
+        editExpense: 0.08,
         deleteExpense: 0.02,
-        createSettlement: 0.13,
-        addComment: 0.15,
+        createSettlement: 0.10,
+        addExpenseComment: 0.12,
+        addGroupComment: 0.13,
     },
 };
+
+// Common currencies for test data
+const CURRENCIES: CurrencyISOCode[] = [
+    toCurrencyISOCode('USD'),
+    toCurrencyISOCode('EUR'),
+    toCurrencyISOCode('GBP'),
+    toCurrencyISOCode('CAD'),
+    toCurrencyISOCode('AUD'),
+    toCurrencyISOCode('JPY'),
+    toCurrencyISOCode('CHF'),
+];
 
 // Named test users - sci-fi characters
 const TEST_USERS: UserRegistration[] = [
@@ -113,7 +126,7 @@ const EXPENSE_DESCRIPTIONS = [
     'Supplies',
 ];
 
-const COMMENT_TEXTS = [
+const EXPENSE_COMMENT_TEXTS = [
     'Thanks!',
     'Got it',
     '👍',
@@ -123,9 +136,26 @@ const COMMENT_TEXTS = [
     'Added the tip',
     'This was expensive!',
     'Great meal',
-    'Fun night!',
     'Worth it',
     'Next time I pay',
+];
+
+const GROUP_COMMENT_TEXTS = [
+    'Hey everyone!',
+    'When are we meeting?',
+    'Can someone add the hotel cost?',
+    'Don\'t forget to add your expenses',
+    'Great trip!',
+    'Thanks for organizing',
+    'Who paid for the taxi?',
+    'Let\'s settle up soon',
+    'Fun times! 🎉',
+    'Missing anyone?',
+    'Should we split the Airbnb equally?',
+    'I\'ll add the groceries later',
+    'Everyone good with this?',
+    '❤️',
+    '😂 that was hilarious',
 ];
 
 // ============================================================================
@@ -255,6 +285,7 @@ interface GroupContext {
     group: GroupDTO;
     members: AuthenticatedFirebaseUser[];
     expenses: ExpenseDTO[];
+    currencies: CurrencyISOCode[];
 }
 
 async function createGroup(
@@ -263,6 +294,10 @@ async function createGroup(
     otherMembers: AuthenticatedFirebaseUser[],
 ): Promise<GroupContext> {
     const driver = await getDriver();
+
+    // Pick 1-3 currencies for this group
+    const currencyCount = randomInt(CONFIG.currenciesPerGroup.min, CONFIG.currenciesPerGroup.max);
+    const currencies = shuffled(CURRENCIES).slice(0, currencyCount);
 
     // Create the group
     const group = await driver.createGroup(
@@ -292,6 +327,7 @@ async function createGroup(
         group,
         members: [creator, ...otherMembers],
         expenses: [],
+        currencies,
     };
 }
 
@@ -304,16 +340,16 @@ function isAlreadyMemberError(error: unknown): boolean {
     );
 }
 
-type ActionType = 'createExpense' | 'editExpense' | 'deleteExpense' | 'createSettlement' | 'addComment';
+type ActionType = 'createExpense' | 'editExpense' | 'deleteExpense' | 'createSettlement' | 'addExpenseComment' | 'addGroupComment';
 
 function pickAction(hasExpenses: boolean): ActionType {
     const weights = { ...CONFIG.actionWeights };
 
-    // Can't edit/delete/comment if no expenses
+    // Can't edit/delete/comment on expenses if no expenses
     if (!hasExpenses) {
         weights.editExpense = 0;
         weights.deleteExpense = 0;
-        weights.addComment = 0;
+        weights.addExpenseComment = 0;
     }
 
     const total = Object.values(weights).reduce((a, b) => a + b, 0);
@@ -336,6 +372,7 @@ async function simulateGroupActivity(ctx: GroupContext): Promise<void> {
     for (let i = 0; i < actionCount; i++) {
         const actor = randomChoice(ctx.members);
         const action = pickAction(ctx.expenses.length > 0);
+        const currency = randomChoice(ctx.currencies);
 
         try {
             switch (action) {
@@ -349,7 +386,7 @@ async function simulateGroupActivity(ctx: GroupContext): Promise<void> {
                     const expense = await driver.createExpense(
                         new CreateExpenseRequestBuilder()
                             .withGroupId(ctx.group.id)
-                            .withAmount(randomAmount(), toCurrencyISOCode('USD'))
+                            .withAmount(randomAmount(), currency)
                             .withDescription(randomChoice(EXPENSE_DESCRIPTIONS))
                             .withPaidBy(paidBy.uid)
                             .withParticipants(splitWith.map((m) => m.uid))
@@ -359,7 +396,7 @@ async function simulateGroupActivity(ctx: GroupContext): Promise<void> {
                         actor.token,
                     );
                     ctx.expenses.push(expense);
-                    console.log(`      💵 ${actor.displayName} created expense: ${expense.description}`);
+                    console.log(`      💵 ${actor.displayName} created expense: ${expense.description} (${currency})`);
                     break;
                 }
 
@@ -398,18 +435,24 @@ async function simulateGroupActivity(ctx: GroupContext): Promise<void> {
                         payerId: payer.uid,
                         payeeId: payee.uid,
                         amount: toAmount(`${randomInt(5, 50)}.00`),
-                        currency: toCurrencyISOCode('USD'),
+                        currency,
                     };
 
                     await driver.createSettlement(settlementData, actor.token);
-                    console.log(`      💸 ${actor.displayName} recorded settlement: ${payer.displayName} → ${payee.displayName}`);
+                    console.log(`      💸 ${actor.displayName} recorded settlement: ${payer.displayName} → ${payee.displayName} (${currency})`);
                     break;
                 }
 
-                case 'addComment': {
+                case 'addExpenseComment': {
                     const expense = randomChoice(ctx.expenses);
-                    await driver.createExpenseComment(expense.id, randomChoice(COMMENT_TEXTS), undefined, actor.token);
+                    await driver.createExpenseComment(expense.id, randomChoice(EXPENSE_COMMENT_TEXTS), undefined, actor.token);
                     console.log(`      💬 ${actor.displayName} commented on expense`);
+                    break;
+                }
+
+                case 'addGroupComment': {
+                    await driver.createGroupComment(ctx.group.id, randomChoice(GROUP_COMMENT_TEXTS), undefined, actor.token);
+                    console.log(`      💬 ${actor.displayName} added group comment`);
                     break;
                 }
             }
@@ -457,7 +500,7 @@ export async function generateFullTestData(): Promise<void> {
         console.log(`   Members: ${others.map((u) => u.displayName).join(', ')}`);
 
         const ctx = await createGroup(groupName, creator, others);
-        console.log(`   ✓ Group created`);
+        console.log(`   ✓ Group created (currencies: ${ctx.currencies.join(', ')})`);
 
         // Simulate activity
         console.log(`   Simulating activity...`);

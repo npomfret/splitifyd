@@ -586,7 +586,9 @@
     "paidBy": "Betalades av",
     "deleted": "Raderad",
     "deletedBy": "Raderad av",
-    "copyExpense": "Kopiera utgift"
+    "copyExpense": "Kopiera utgift",
+    "hasComments": "{{count}} kommentar",
+    "hasComments_other": "{{count}} kommentarer"
   },
   "header": {
     "logoAlt": "{{appName}}",

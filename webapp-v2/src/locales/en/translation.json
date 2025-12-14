@@ -585,7 +585,9 @@
     "paidBy": "Paid by",
     "deleted": "Deleted",
     "deletedBy": "Deleted by",
-    "copyExpense": "Copy expense"
+    "copyExpense": "Copy expense",
+    "hasComments": "{{count}} comment",
+    "hasComments_other": "{{count}} comments"
   },
   "header": {
     "logoAlt": "{{appName}}",

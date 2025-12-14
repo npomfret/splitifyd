@@ -945,6 +945,7 @@ export interface ExpenseDTO extends Expense, BaseDTO<ExpenseId> {
     isLocked: boolean; // True if any participant has left the group (computed field, always present)
     reactionCounts?: ReactionCounts; // Aggregated reaction counts (optional, included when reactions exist)
     userReactions?: ReactionEmoji[]; // Current user's reactions on this expense (optional, included when user has reacted)
+    commentCount?: number; // Number of comments on this expense (optional, 0 means no comments)
 }
 
 export interface CreateExpenseRequest {

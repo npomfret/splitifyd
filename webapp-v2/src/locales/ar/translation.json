@@ -585,7 +585,9 @@
     "paidBy": "دفع بواسطة",
     "deleted": "محذوف",
     "deletedBy": "تم الحذف بواسطة",
-    "copyExpense": "نسخ المصروف"
+    "copyExpense": "نسخ المصروف",
+    "hasComments": "{{count}} تعليق",
+    "hasComments_other": "{{count}} تعليقات"
   },
   "header": {
     "logoAlt": "{{appName}}",

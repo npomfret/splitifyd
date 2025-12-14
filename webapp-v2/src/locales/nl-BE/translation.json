@@ -586,7 +586,9 @@
     "paidBy": "Betaald door",
     "deleted": "Verwijderd",
     "deletedBy": "Verwijderd door",
-    "copyExpense": "Uitgave kopiëren"
+    "copyExpense": "Uitgave kopiëren",
+    "hasComments": "{{count}} reactie",
+    "hasComments_other": "{{count}} reacties"
   },
   "header": {
     "logoAlt": "{{appName}}",

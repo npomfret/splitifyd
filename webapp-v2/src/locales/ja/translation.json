@@ -586,7 +586,9 @@
     "paidBy": "支払者",
     "deleted": "削除済み",
     "deletedBy": "削除者",
-    "copyExpense": "経費をコピー"
+    "copyExpense": "経費をコピー",
+    "hasComments": "コメント{{count}}件",
+    "hasComments_other": "コメント{{count}}件"
   },
   "header": {
     "logoAlt": "{{appName}}",
