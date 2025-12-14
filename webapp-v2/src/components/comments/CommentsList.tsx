@@ -59,16 +59,15 @@ export function CommentsList({ comments, loading = false, error, hasMore = false
             style={{ maxHeight }}
         >
             <Stack spacing='md' className='px-1'>
-                {comments
-                    .map((comment) => (
-                        <CommentItem
-                            key={comment.id}
-                            comment={comment}
-                            isCurrentUser={currentUserId === comment.authorId}
-                            onReactionToggle={onReactionToggle ? (emoji) => onReactionToggle(comment.id, emoji) : undefined}
-                            reactionDisabled={reactionDisabled}
-                        />
-                    ))}
+                {comments.map((comment) => (
+                    <CommentItem
+                        key={comment.id}
+                        comment={comment}
+                        isCurrentUser={currentUserId === comment.authorId}
+                        onReactionToggle={onReactionToggle ? (emoji) => onReactionToggle(comment.id, emoji) : undefined}
+                        reactionDisabled={reactionDisabled}
+                    />
+                ))}
             </Stack>
 
             {hasMore && (

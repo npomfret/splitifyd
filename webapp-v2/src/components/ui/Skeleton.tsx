@@ -178,22 +178,17 @@ export function SkeletonSettlementItem({ className }: { className?: string; }) {
  */
 export function SkeletonCommentItem({ className }: { className?: string; }) {
     return (
-        <div className={cx('pb-4 border-b border-border-default last:border-0', className)}>
-            <div className='flex items-start gap-3'>
-                {/* Avatar */}
-                <Skeleton variant='circular' width={32} height={32} className='shrink-0' />
-                {/* Content */}
-                <div className='flex-1 min-w-0 space-y-2'>
-                    {/* Header: name + timestamp */}
-                    <div className='flex items-center gap-2'>
-                        <Skeleton variant='text' width={100} height={14} />
-                        <Skeleton variant='text' width={60} height={12} />
-                    </div>
-                    {/* Comment text - 2 lines */}
-                    <Skeleton variant='text' width='95%' height={14} />
-                    <Skeleton variant='text' width='70%' height={14} />
-                </div>
+        <div className={cx('flex flex-col gap-1', className)}>
+            {/* Name and avatar */}
+            <div className='flex items-center gap-2'>
+                <Skeleton variant='text' width={80} height={12} />
+                <Skeleton variant='circular' width={20} height={20} />
             </div>
+            {/* Comment text */}
+            <Skeleton variant='text' width='90%' height={14} />
+            <Skeleton variant='text' width='60%' height={14} />
+            {/* Timestamp */}
+            <Skeleton variant='text' width={50} height={12} />
         </div>
     );
 }
