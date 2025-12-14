@@ -388,7 +388,9 @@
     "loadingBalances": "Cargando saldos...",
     "allSettledUp": "¡Todo liquidado!",
     "showAll": "Mostrar todo",
-    "settleUpButton": "Registrar liquidación para esta deuda"
+    "settleUpButton": "Registrar liquidación para esta deuda",
+    "owes": "debe",
+    "to": "a"
   },
   "emptyGroupsState": {
     "title": "Todavía no hay grupos",
@@ -579,6 +581,7 @@
   "userMenu": {
     "dashboard": "Panel de control",
     "admin": "Administrador",
+    "systemAdminLabel": "Administrador del Sistema",
     "settings": "Configuración",
     "signOut": "Cerrar sesión",
     "signingOut": "Cerrando sesión..."

@@ -388,7 +388,9 @@
     "loadingBalances": "Saldi laden...",
     "allSettledUp": "Alles is vereffend!",
     "showAll": "Alles tonen",
-    "settleUpButton": "Vereffening registreren voor deze schuld"
+    "settleUpButton": "Vereffening registreren voor deze schuld",
+    "owes": "is verschuldigd",
+    "to": "aan"
   },
   "emptyGroupsState": {
     "title": "Nog geen groepen",
@@ -580,6 +582,7 @@
   "userMenu": {
     "dashboard": "Dashboard",
     "admin": "Admin",
+    "systemAdminLabel": "Systeembeheerder",
     "settings": "Instellingen",
     "signOut": "Afmelden",
     "signingOut": "Afmelden..."

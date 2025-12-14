@@ -388,7 +388,9 @@
     "loadingBalances": "Завантаження балансів...",
     "allSettledUp": "Все розраховано!",
     "showAll": "Показати все",
-    "settleUpButton": "Записати розрахунок для цього боргу"
+    "settleUpButton": "Записати розрахунок для цього боргу",
+    "owes": "винен",
+    "to": "для"
   },
   "emptyGroupsState": {
     "title": "Груп ще немає",
@@ -579,6 +581,7 @@
   "userMenu": {
     "dashboard": "Панель інструментів",
     "admin": "Адмін",
+    "systemAdminLabel": "Системний адміністратор",
     "settings": "Налаштування",
     "signOut": "Вийти",
     "signingOut": "Вихід..."

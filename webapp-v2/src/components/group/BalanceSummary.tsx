@@ -125,7 +125,7 @@ export function BalanceSummary({ onSettleUp }: BalanceSummaryProps) {
                                     </div>
                                     <div className='row-start-2 col-start-2 flex items-center gap-2 w-full min-w-0'>
                                         <div className='flex items-center gap-1 flex-1'>
-                                            <span className='help-text-xs'>owes</span>
+                                            <span className='help-text-xs'>{t('balanceSummary.owes')}</span>
                                             <CurrencyAmount
                                                 amount={debt.amount}
                                                 currency={debt.currency}
@@ -133,7 +133,7 @@ export function BalanceSummary({ onSettleUp }: BalanceSummaryProps) {
                                                 displayOptions={{ includeCurrencyCode: false }}
                                                 data-financial-amount='debt'
                                             />
-                                            <span className='help-text-xs'>to</span>
+                                            <span className='help-text-xs'>{t('balanceSummary.to')}</span>
                                         </div>
                                         {/* Settlement button - only show if current user owes this debt and onSettleUp is provided */}
                                         {isCurrentUserFrom && onSettleUp && (

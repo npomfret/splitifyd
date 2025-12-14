@@ -388,7 +388,9 @@
     "loadingBalances": "Caricamento saldi...",
     "allSettledUp": "Tutto saldato!",
     "showAll": "Mostra tutto",
-    "settleUpButton": "Registra saldo per questo debito"
+    "settleUpButton": "Registra saldo per questo debito",
+    "owes": "deve",
+    "to": "a"
   },
   "emptyGroupsState": {
     "title": "Nessun gruppo ancora",
@@ -580,6 +582,7 @@
   "userMenu": {
     "dashboard": "Dashboard",
     "admin": "Admin",
+    "systemAdminLabel": "Amministratore di Sistema",
     "settings": "Impostazioni",
     "signOut": "Esci",
     "signingOut": "Uscita in corso..."

@@ -388,7 +388,9 @@
     "loadingBalances": "Laddar saldon...",
     "allSettledUp": "Allt är reglerat!",
     "showAll": "Visa alla",
-    "settleUpButton": "Registrera reglering för denna skuld"
+    "settleUpButton": "Registrera reglering för denna skuld",
+    "owes": "är skyldig",
+    "to": "till"
   },
   "emptyGroupsState": {
     "title": "Inga grupper än",
@@ -580,6 +582,7 @@
   "userMenu": {
     "dashboard": "Instrumentpanel",
     "admin": "Admin",
+    "systemAdminLabel": "Systemadministratör",
     "settings": "Inställningar",
     "signOut": "Logga ut",
     "signingOut": "Loggar ut..."

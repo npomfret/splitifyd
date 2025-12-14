@@ -388,7 +388,9 @@
     "loadingBalances": "جار تحميل الأرصدة...",
     "allSettledUp": "كل شيء مسدد!",
     "showAll": "إظهار الكل",
-    "settleUpButton": "تسجيل تسوية لهذا الدين"
+    "settleUpButton": "تسجيل تسوية لهذا الدين",
+    "owes": "مدين بـ",
+    "to": "إلى"
   },
   "emptyGroupsState": {
     "title": "لا توجد مجموعات حتى الآن",
@@ -579,6 +581,7 @@
   "userMenu": {
     "dashboard": "لوحة التحكم",
     "admin": "مسؤول",
+    "systemAdminLabel": "مسؤول النظام",
     "settings": "الإعدادات",
     "signOut": "تسجيل الخروج",
     "signingOut": "جار تسجيل الخروج..."

@@ -388,7 +388,9 @@
     "loadingBalances": "Naglo-load ng mga balanse...",
     "allSettledUp": "Bayad na lahat!",
     "showAll": "Ipakita lahat",
-    "settleUpButton": "Itala ang kasunduan para sa utang na ito"
+    "settleUpButton": "Itala ang kasunduan para sa utang na ito",
+    "owes": "may utang na",
+    "to": "kay"
   },
   "emptyGroupsState": {
     "title": "Wala pang mga grupo",
@@ -580,6 +582,7 @@
   "userMenu": {
     "dashboard": "Dashboard",
     "admin": "Admin",
+    "systemAdminLabel": "System Admin",
     "settings": "Mga Setting",
     "signOut": "Mag-sign out",
     "signingOut": "Nag-sign out..."

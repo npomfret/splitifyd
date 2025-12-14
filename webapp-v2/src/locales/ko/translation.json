@@ -388,7 +388,9 @@
     "loadingBalances": "잔액 로드 중...",
     "allSettledUp": "모두 정산되었습니다!",
     "showAll": "모두 보기",
-    "settleUpButton": "이 빚에 대한 정산 기록"
+    "settleUpButton": "이 빚에 대한 정산 기록",
+    "owes": "빚",
+    "to": "에게"
   },
   "emptyGroupsState": {
     "title": "아직 그룹이 없습니다",
@@ -580,6 +582,7 @@
   "userMenu": {
     "dashboard": "대시보드",
     "admin": "관리자",
+    "systemAdminLabel": "시스템 관리자",
     "settings": "설정",
     "signOut": "로그아웃",
     "signingOut": "로그아웃 중..."

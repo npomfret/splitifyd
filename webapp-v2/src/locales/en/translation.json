@@ -388,7 +388,9 @@
     "loadingBalances": "Loading balances...",
     "allSettledUp": "All settled up!",
     "showAll": "Show all",
-    "settleUpButton": "Record settlement for this debt"
+    "settleUpButton": "Record settlement for this debt",
+    "owes": "owes",
+    "to": "to"
   },
   "emptyGroupsState": {
     "title": "No groups yet",
@@ -579,6 +581,7 @@
   "userMenu": {
     "dashboard": "Dashboard",
     "admin": "Admin",
+    "systemAdminLabel": "System Admin",
     "settings": "Settings",
     "signOut": "Sign out",
     "signingOut": "Signing out..."

@@ -388,7 +388,9 @@
     "loadingBalances": "残高を読み込み中...",
     "allSettledUp": "すべて精算済みです！",
     "showAll": "すべて表示",
-    "settleUpButton": "この借金を精算する"
+    "settleUpButton": "この借金を精算する",
+    "owes": "が",
+    "to": "に借り"
   },
   "emptyGroupsState": {
     "title": "まだグループがありません",
@@ -580,6 +582,7 @@
   "userMenu": {
     "dashboard": "ダッシュボード",
     "admin": "管理者",
+    "systemAdminLabel": "システム管理者",
     "settings": "設定",
     "signOut": "サインアウト",
     "signingOut": "サインアウト中..."

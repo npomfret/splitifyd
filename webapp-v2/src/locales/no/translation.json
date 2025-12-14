@@ -388,7 +388,9 @@
     "loadingBalances": "Laster saldoer...",
     "allSettledUp": "Alt er gjort opp!",
     "showAll": "Vis alle",
-    "settleUpButton": "Registrer oppgjør for denne gjelden"
+    "settleUpButton": "Registrer oppgjør for denne gjelden",
+    "owes": "skylder",
+    "to": "til"
   },
   "emptyGroupsState": {
     "title": "Ingen grupper ennå",
@@ -579,6 +581,7 @@
   "userMenu": {
     "dashboard": "Oversikt",
     "admin": "Admin",
+    "systemAdminLabel": "Systemadministrator",
     "settings": "Innstillinger",
     "signOut": "Logg ut",
     "signingOut": "Logger ut..."

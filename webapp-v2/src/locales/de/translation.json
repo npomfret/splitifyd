@@ -388,7 +388,9 @@
     "loadingBalances": "Salden werden geladen...",
     "allSettledUp": "Alles ausgeglichen!",
     "showAll": "Alle anzeigen",
-    "settleUpButton": "Abrechnung für diese Schuld erfassen"
+    "settleUpButton": "Abrechnung für diese Schuld erfassen",
+    "owes": "schuldet",
+    "to": "an"
   },
   "emptyGroupsState": {
     "title": "Noch keine Gruppen",
@@ -579,6 +581,7 @@
   "userMenu": {
     "dashboard": "Dashboard",
     "admin": "Admin",
+    "systemAdminLabel": "Systemadministrator",
     "settings": "Einstellungen",
     "signOut": "Abmelden",
     "signingOut": "Wird abgemeldet..."

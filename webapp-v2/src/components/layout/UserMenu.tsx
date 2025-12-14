@@ -113,7 +113,7 @@ export function UserMenu({ user }: UserMenuProps) {
                             <hr className='my-1 border-border-default' />
 
                             <div className='px-4 py-2'>
-                                <p className='text-xs font-bold text-interactive-primary uppercase tracking-wider'>System Admin</p>
+                                <p className='text-xs font-bold text-interactive-primary uppercase tracking-wider'>{t('userMenu.systemAdminLabel')}</p>
                             </div>
 
                             <button
@@ -125,7 +125,7 @@ export function UserMenu({ user }: UserMenuProps) {
                                 role='menuitem'
                             >
                                 <SettingsIcon size={16} className='mr-3 text-text-muted' />
-                                Admin
+                                {t('userMenu.admin')}
                             </button>
                         </>
                     )}

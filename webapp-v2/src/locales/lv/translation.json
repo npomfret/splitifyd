@@ -388,7 +388,9 @@
     "loadingBalances": "Notiek bilances ielāde...",
     "allSettledUp": "Viss ir nokārtots!",
     "showAll": "Rādīt visu",
-    "settleUpButton": "Reģistrēt norēķinu par šo parādu"
+    "settleUpButton": "Reģistrēt norēķinu par šo parādu",
+    "owes": "ir parādā",
+    "to": "priekš"
   },
   "emptyGroupsState": {
     "title": "Vēl nav grupu",
@@ -580,6 +582,7 @@
   "userMenu": {
     "dashboard": "Informācijas panelis",
     "admin": "Administrators",
+    "systemAdminLabel": "Sistēmas administrators",
     "settings": "Iestatījumi",
     "signOut": "Izrakstīties",
     "signingOut": "Notiek izrakstīšanās..."
