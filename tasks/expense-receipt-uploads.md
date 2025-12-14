@@ -22,6 +22,15 @@ This task implements file upload capabilities for both expenses (receipts) and c
 - Proxy endpoint pattern (not signed URLs)
 - Magic number validation for file type verification
 
+### Design Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| **Comment attachment retention** | Delete immediately when comment deleted | Simpler implementation, saves storage costs |
+| **Receipt replacement** | Delete old receipt immediately when new one uploaded | Saves storage, no audit trail needed |
+| **Expense deletion** | Delete receipt immediately when expense deleted | Consistent with other deletion behavior |
+| **Max attachments per comment** | 3 files | Balance between usability and storage |
+
 ## Architecture: Proxy-Based Authenticated Access
 
 Since attachments require authentication (only group members can view), we use a **proxy endpoint** pattern:
@@ -158,6 +167,7 @@ Update `CommentSchema` to include `attachments` field.
 - Accept `attachmentIds` in create methods
 - Validate IDs exist and belong to group
 - Store attachment refs in comment document
+- **On comment delete**: Delete associated attachments from storage immediately
 
 ### Phase 4: Frontend API Client
 
@@ -188,6 +198,7 @@ getAttachmentUrl(groupId, attachmentId): string
 - `#receiptUrlSignal: Signal<string | null>`
 - `uploadReceiptIfNeeded(groupId)` - uploads before save
 - Update `saveExpense()` / `updateExpense()` to include receiptUrl
+- **On receipt replacement**: Delete old receipt from storage immediately when new one is uploaded
 
 #### 5.3 ExpenseFormModal Integration
 
