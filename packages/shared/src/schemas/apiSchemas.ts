@@ -10,6 +10,7 @@ import {
     ActivityFeedActions,
     ActivityFeedEventTypes,
     PositiveAmountStringSchema,
+    ReactionEmojis,
     SplitTypes,
     SystemUserRoles,
     toDisplayName,
@@ -489,6 +490,22 @@ const CreateCommentResponseSchema = CommentSchema;
 // List comments response is now unwrapped - returns ListCommentsResponse directly
 const ListCommentsApiResponseSchema = ListCommentsResponseSchema;
 
+// Reaction toggle response schema
+const ReactionToggleResponseSchema = z
+    .object({
+        action: z.enum(['added', 'removed']),
+        emoji: z.enum([
+            ReactionEmojis.THUMBS_UP,
+            ReactionEmojis.HEART,
+            ReactionEmojis.LAUGH,
+            ReactionEmojis.WOW,
+            ReactionEmojis.SAD,
+            ReactionEmojis.CELEBRATE,
+        ]),
+        newCount: z.number().int().min(0),
+    })
+    .strict();
+
 // User profile schemas
 const UserProfileResponseSchema = z
     .object({
@@ -956,6 +973,11 @@ export const responseSchemas = {
     'GET /groups/:groupId/comments': ListCommentsApiResponseSchema,
     'POST /expenses/:expenseId/comments': CreateCommentResponseSchema,
     'GET /expenses/:expenseId/comments': ListCommentsApiResponseSchema,
+    // Reaction endpoints
+    'POST /expenses/:expenseId/reactions': ReactionToggleResponseSchema,
+    'POST /groups/:groupId/comments/:commentId/reactions': ReactionToggleResponseSchema,
+    'POST /expenses/:expenseId/comments/:commentId/reactions': ReactionToggleResponseSchema,
+    'POST /settlements/:settlementId/reactions': ReactionToggleResponseSchema,
     // User profile endpoints
     'GET /user/profile': UserProfileResponseSchema,
     'PUT /user/profile': EmptyResponseSchema,

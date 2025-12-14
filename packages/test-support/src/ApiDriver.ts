@@ -1,4 +1,4 @@
-import type { CommentText, Email, GroupName, ISOString, ShareLinkToken, UserId } from '@billsplit-wl/shared';
+import type { CommentId, CommentText, Email, GroupName, ISOString, ReactionEmoji, ReactionToggleResponse, ShareLinkToken, UserId } from '@billsplit-wl/shared';
 import {
     AcceptMultiplePoliciesResponse,
     AcceptPolicyRequest,
@@ -313,6 +313,23 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
 
     async deleteSettlement(settlementId: SettlementId | string, token: AuthToken): Promise<void> {
         await this.apiRequest(`/settlements/${settlementId}`, 'DELETE', null, token);
+    }
+
+    // Reaction operations
+    async toggleExpenseReaction(expenseId: ExpenseId | string, emoji: ReactionEmoji, token: AuthToken): Promise<ReactionToggleResponse> {
+        return await this.apiRequest(`/expenses/${expenseId}/reactions`, 'POST', { emoji }, token);
+    }
+
+    async toggleGroupCommentReaction(groupId: GroupId | string, commentId: CommentId | string, emoji: ReactionEmoji, token: AuthToken): Promise<ReactionToggleResponse> {
+        return await this.apiRequest(`/groups/${groupId}/comments/${commentId}/reactions`, 'POST', { emoji }, token);
+    }
+
+    async toggleExpenseCommentReaction(expenseId: ExpenseId | string, commentId: CommentId | string, emoji: ReactionEmoji, token: AuthToken): Promise<ReactionToggleResponse> {
+        return await this.apiRequest(`/expenses/${expenseId}/comments/${commentId}/reactions`, 'POST', { emoji }, token);
+    }
+
+    async toggleSettlementReaction(settlementId: SettlementId | string, emoji: ReactionEmoji, token: AuthToken): Promise<ReactionToggleResponse> {
+        return await this.apiRequest(`/settlements/${settlementId}/reactions`, 'POST', { emoji }, token);
     }
 
     async pollGroupBalancesUntil(groupId: GroupId | string, token: string, matcher: Matcher<GroupBalances>, options?: PollOptions): Promise<GroupBalances> {

@@ -82,6 +82,8 @@ const EVENT_ACTION_MAP: Record<ActivityFeedEventType, ActivityFeedAction> = {
     [ActivityFeedEventTypes.MEMBER_JOINED]: ActivityFeedActions.JOIN,
     [ActivityFeedEventTypes.MEMBER_LEFT]: ActivityFeedActions.LEAVE,
     [ActivityFeedEventTypes.COMMENT_ADDED]: ActivityFeedActions.COMMENT,
+    [ActivityFeedEventTypes.REACTION_ADDED]: ActivityFeedActions.ADD,
+    [ActivityFeedEventTypes.REACTION_REMOVED]: ActivityFeedActions.REMOVE,
 };
 
 export class FirestoreReader implements IFirestoreReader {

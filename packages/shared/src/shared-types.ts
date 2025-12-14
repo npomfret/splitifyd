@@ -64,6 +64,9 @@ export const toSettlementId = (value: string): SettlementId => value as Settleme
 export type CommentId = Brand<string, 'CommentId'>;
 export const toCommentId = (value: string): CommentId => value as CommentId;
 
+export type ReactionId = Brand<string, 'ReactionId'>;
+export const toReactionId = (value: string): ReactionId => value as ReactionId;
+
 export type TenantId = Brand<string, 'TenantId'>;
 export const toTenantId = (value: string): TenantId => value as TenantId;
 
@@ -175,6 +178,33 @@ export const PolicyIds = {
     PRIVACY_POLICY: toPolicyId('privacy-policy'),
 } as const;
 
+/**
+ * Fixed set of quick reaction emojis.
+ * These are the only emojis that can be used for reactions.
+ */
+export const ReactionEmojis = {
+    THUMBS_UP: '👍',
+    HEART: '❤️',
+    LAUGH: '😂',
+    WOW: '😮',
+    SAD: '😢',
+    CELEBRATE: '🎉',
+} as const;
+
+export type ReactionEmoji = (typeof ReactionEmojis)[keyof typeof ReactionEmojis];
+
+/**
+ * Ordered array of reaction emojis for UI display.
+ */
+export const REACTION_EMOJI_ORDER: ReactionEmoji[] = [
+    ReactionEmojis.THUMBS_UP,
+    ReactionEmojis.HEART,
+    ReactionEmojis.LAUGH,
+    ReactionEmojis.WOW,
+    ReactionEmojis.SAD,
+    ReactionEmojis.CELEBRATE,
+];
+
 // ========================================================================
 // Activity Feed Types
 // ========================================================================
@@ -193,6 +223,8 @@ export const ActivityFeedEventTypes = {
     SETTLEMENT_CREATED: 'settlement-created',
     SETTLEMENT_UPDATED: 'settlement-updated',
     SETTLEMENT_DELETED: 'settlement-deleted',
+    REACTION_ADDED: 'reaction-added',
+    REACTION_REMOVED: 'reaction-removed',
 } as const;
 
 export type ActivityFeedEventType = (typeof ActivityFeedEventTypes)[keyof typeof ActivityFeedEventTypes];
@@ -204,9 +236,23 @@ export const ActivityFeedActions = {
     COMMENT: 'comment',
     JOIN: 'join',
     LEAVE: 'leave',
+    ADD: 'add',
+    REMOVE: 'remove',
 } as const;
 
 export type ActivityFeedAction = (typeof ActivityFeedActions)[keyof typeof ActivityFeedActions];
+
+/**
+ * Reactable resource types for activity feed events.
+ */
+export const ReactableResourceTypes = {
+    EXPENSE: 'expense',
+    GROUP_COMMENT: 'group-comment',
+    EXPENSE_COMMENT: 'expense-comment',
+    SETTLEMENT: 'settlement',
+} as const;
+
+export type ReactableResourceType = (typeof ReactableResourceTypes)[keyof typeof ReactableResourceTypes];
 
 export interface ActivityFeedItemDetails {
     expenseId?: ExpenseId;
@@ -219,6 +265,9 @@ export interface ActivityFeedItemDetails {
     targetUserName?: string;
     previousGroupName?: GroupName;
     newRole?: MemberRole;
+    // Reaction-specific fields
+    reactionEmoji?: ReactionEmoji;
+    reactableResourceType?: ReactableResourceType;
 }
 
 export interface ActivityFeedItem {
@@ -891,6 +940,7 @@ export interface ExpenseLocation {
  */
 export interface ExpenseDTO extends Expense, BaseDTO<ExpenseId> {
     isLocked: boolean; // True if any participant has left the group (computed field, always present)
+    reactionCounts?: ReactionCounts; // Aggregated reaction counts (optional, included when reactions exist)
 }
 
 export interface CreateExpenseRequest {
@@ -938,6 +988,7 @@ interface Settlement extends SoftDeletable {
  */
 export interface SettlementDTO extends Settlement, BaseDTO<SettlementId> {
     isLocked: boolean; // True if payer or payee has left the group (computed field, always present)
+    reactionCounts?: ReactionCounts; // Aggregated reaction counts (optional, included when reactions exist)
 }
 
 export interface CreateSettlementRequest {
@@ -1217,7 +1268,9 @@ interface Comment {
 /**
  * Comment DTO = Business fields + Metadata
  */
-export interface CommentDTO extends Comment, BaseDTO<CommentId> {}
+export interface CommentDTO extends Comment, BaseDTO<CommentId> {
+    reactionCounts?: ReactionCounts; // Aggregated reaction counts (optional, included when reactions exist)
+}
 
 interface BaseCreateCommentRequest {
     text: CommentText;
@@ -1229,6 +1282,51 @@ export interface CreateGroupCommentRequest extends BaseCreateCommentRequest {
 
 export interface CreateExpenseCommentRequest extends BaseCreateCommentRequest {
     expenseId: ExpenseId;
+}
+
+// ========================================================================
+// Reaction Types
+// ========================================================================
+
+/**
+ * Aggregated reaction counts for display.
+ * Map of emoji -> count.
+ */
+export type ReactionCounts = Partial<Record<ReactionEmoji, number>>;
+
+/**
+ * Individual reaction stored in Firestore subcollection.
+ * Document ID format: {userId}_{emoji}
+ */
+export interface ReactionDTO {
+    id: ReactionId;
+    userId: UserId;
+    emoji: ReactionEmoji;
+    createdAt: ISOString;
+}
+
+/**
+ * Summary of reactions for a resource, including the current user's reactions.
+ */
+export interface ReactionSummary {
+    counts: ReactionCounts;
+    userReactions: ReactionEmoji[];
+}
+
+/**
+ * Response from toggling a reaction.
+ */
+export interface ReactionToggleResponse {
+    action: 'added' | 'removed';
+    emoji: ReactionEmoji;
+    newCount: number;
+}
+
+/**
+ * Request to toggle a reaction on a resource.
+ */
+export interface ToggleReactionRequest {
+    emoji: ReactionEmoji;
 }
 
 export interface ListMembersResponse { // todo: there should be no pagination - all members are returned

@@ -17,6 +17,7 @@ export const FirestoreCollections = {
     USERS: 'users',
     POLICIES: 'policies',
     COMMENTS: 'comments',
+    REACTIONS: 'reactions',
     ACTIVITY_FEED: 'activity-feed',
     SHARE_LINK_TOKENS: 'share-link-tokens',
     TENANTS: 'tenants',

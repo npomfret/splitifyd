@@ -1,6 +1,7 @@
 import { PositiveAmountStringSchema, SplitTypes, toExpenseLabel } from '@billsplit-wl/shared';
 import { z } from 'zod';
 import { AuditFieldsSchema, createDocumentSchemas, CurrencyCodeSchema, FirestoreTimestampSchema, GroupIdSchema, SoftDeletionFieldsSchema, UserIdSchema } from './common';
+import { ReactionCountsSchema } from './reaction';
 
 const FirestoreExpenseSplitSchema = z.object({
     uid: UserIdSchema,
@@ -28,6 +29,7 @@ const BaseExpenseSchema = z
         }).optional(),
         isLocked: z.boolean().optional(), // True if any participant has left the group
         supersededBy: z.string().nullable(), // ExpenseId of newer version, null if current
+        reactionCounts: ReactionCountsSchema.nullable().optional(), // Aggregate emoji reaction counts
     })
     .merge(AuditFieldsSchema)
     .merge(SoftDeletionFieldsSchema);

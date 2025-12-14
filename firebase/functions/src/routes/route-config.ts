@@ -545,6 +545,36 @@ const routeDefinitions: RouteDefinition[] = [
         middleware: ['authenticate'],
     },
 
+    // === Reactions ===
+    {
+        method: 'POST',
+        path: `/${FirestoreCollections.EXPENSES}/:expenseId/${FirestoreCollections.REACTIONS}`,
+        handlerName: 'toggleExpenseReaction',
+        category: 'resource',
+        middleware: ['authenticate'],
+    },
+    {
+        method: 'POST',
+        path: `/${FirestoreCollections.GROUPS}/:groupId/${FirestoreCollections.COMMENTS}/:commentId/${FirestoreCollections.REACTIONS}`,
+        handlerName: 'toggleGroupCommentReaction',
+        category: 'resource',
+        middleware: ['authenticate'],
+    },
+    {
+        method: 'POST',
+        path: `/${FirestoreCollections.EXPENSES}/:expenseId/${FirestoreCollections.COMMENTS}/:commentId/${FirestoreCollections.REACTIONS}`,
+        handlerName: 'toggleExpenseCommentReaction',
+        category: 'resource',
+        middleware: ['authenticate'],
+    },
+    {
+        method: 'POST',
+        path: `/${FirestoreCollections.SETTLEMENTS}/:settlementId/${FirestoreCollections.REACTIONS}`,
+        handlerName: 'toggleSettlementReaction',
+        category: 'resource',
+        middleware: ['authenticate'],
+    },
+
     // === Admin Policies ===
     {
         method: 'POST',

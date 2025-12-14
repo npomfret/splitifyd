@@ -12,6 +12,7 @@ import {
     ChangeEmailRequest,
     ClientAppConfiguration,
     CommentDTO,
+    CommentId,
     CommentText,
     CreateExpenseRequest,
     CreatePolicyRequest,
@@ -62,6 +63,8 @@ import {
     PreviewGroupResponse,
     PublicAPI,
     PublishPolicyResponse,
+    ReactionEmoji,
+    ReactionToggleResponse,
     PublishTenantThemeRequest,
     PublishTenantThemeResponse,
     RegisterResponse,
@@ -845,6 +848,35 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         const req = createStubRequest(authToken, {}, { settlementId });
         const res = await this.dispatchByHandler('deleteSettlement', req);
         this.throwIfError(res);
+    }
+
+    // Reaction operations - these are stubs that will be implemented when handlers are added
+    async toggleExpenseReaction(expenseId: ExpenseId | string, emoji: ReactionEmoji, authToken: AuthToken): Promise<ReactionToggleResponse> {
+        const req = createStubRequest(authToken, { emoji }, { expenseId });
+        const res = await this.dispatchByHandler('toggleExpenseReaction', req);
+        this.throwIfError(res);
+        return res.getJson() as ReactionToggleResponse;
+    }
+
+    async toggleGroupCommentReaction(groupId: GroupId | string, commentId: CommentId | string, emoji: ReactionEmoji, authToken: AuthToken): Promise<ReactionToggleResponse> {
+        const req = createStubRequest(authToken, { emoji }, { groupId, commentId });
+        const res = await this.dispatchByHandler('toggleGroupCommentReaction', req);
+        this.throwIfError(res);
+        return res.getJson() as ReactionToggleResponse;
+    }
+
+    async toggleExpenseCommentReaction(expenseId: ExpenseId | string, commentId: CommentId | string, emoji: ReactionEmoji, authToken: AuthToken): Promise<ReactionToggleResponse> {
+        const req = createStubRequest(authToken, { emoji }, { expenseId, commentId });
+        const res = await this.dispatchByHandler('toggleExpenseCommentReaction', req);
+        this.throwIfError(res);
+        return res.getJson() as ReactionToggleResponse;
+    }
+
+    async toggleSettlementReaction(settlementId: SettlementId | string, emoji: ReactionEmoji, authToken: AuthToken): Promise<ReactionToggleResponse> {
+        const req = createStubRequest(authToken, { emoji }, { settlementId });
+        const res = await this.dispatchByHandler('toggleSettlementReaction', req);
+        this.throwIfError(res);
+        return res.getJson() as ReactionToggleResponse;
     }
 
     async listGroupSettlements(groupId: GroupId | string, options: ListSettlementsOptions = {}, authToken: AuthToken): Promise<ListSettlementsResponse> {

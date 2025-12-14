@@ -91,7 +91,7 @@ import type {
 } from '@billsplit-wl/shared';
 import { ApiErrorResponseSchema, responseSchemas } from '@billsplit-wl/shared';
 import type { UpdateSettlementRequest } from '@billsplit-wl/shared';
-import { ExpenseId, GroupId } from '@billsplit-wl/shared';
+import { CommentId, ExpenseId, GroupId, ReactionEmoji, ReactionToggleResponse } from '@billsplit-wl/shared';
 import { SettlementId } from '@billsplit-wl/shared';
 import { DisplayName } from '@billsplit-wl/shared';
 import type { CommentText } from '@billsplit-wl/shared';
@@ -885,6 +885,43 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
             endpoint: '/settlements/:settlementId',
             method: 'DELETE',
             params: { settlementId },
+        });
+    }
+
+    // Reaction operations
+    async toggleExpenseReaction(expenseId: ExpenseId, emoji: ReactionEmoji): Promise<ReactionToggleResponse> {
+        return this.request({
+            endpoint: '/expenses/:expenseId/reactions',
+            method: 'POST',
+            params: { expenseId },
+            body: { emoji },
+        });
+    }
+
+    async toggleGroupCommentReaction(groupId: GroupId, commentId: CommentId, emoji: ReactionEmoji): Promise<ReactionToggleResponse> {
+        return this.request({
+            endpoint: '/groups/:groupId/comments/:commentId/reactions',
+            method: 'POST',
+            params: { groupId, commentId },
+            body: { emoji },
+        });
+    }
+
+    async toggleExpenseCommentReaction(expenseId: ExpenseId, commentId: CommentId, emoji: ReactionEmoji): Promise<ReactionToggleResponse> {
+        return this.request({
+            endpoint: '/expenses/:expenseId/comments/:commentId/reactions',
+            method: 'POST',
+            params: { expenseId, commentId },
+            body: { emoji },
+        });
+    }
+
+    async toggleSettlementReaction(settlementId: SettlementId, emoji: ReactionEmoji): Promise<ReactionToggleResponse> {
+        return this.request({
+            endpoint: '/settlements/:settlementId/reactions',
+            method: 'POST',
+            params: { settlementId },
+            body: { emoji },
         });
     }
 

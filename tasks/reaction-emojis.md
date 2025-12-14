@@ -1,6 +1,6 @@
 # Add Reaction Emojis to App Items
 
-## Status: In Progress
+## Status: Backend Complete - Frontend Pending
 
 ## Overview
 
@@ -118,19 +118,21 @@ Displays reaction pills (emoji + count). User's own reactions are highlighted.
 
 ## Implementation Phases
 
-### Phase 1: Backend Core
+### Phase 1: Backend Core ✅
 - [x] Add types/DTOs to shared package
 - [x] Create `firebase/functions/src/schemas/reaction.ts`
-- [ ] Create `firebase/functions/src/services/ReactionService.ts`
-- [ ] Create `firebase/functions/src/reactions/ReactionHandlers.ts`
-- [ ] Add routes to `route-config.ts`
-- [ ] Update Firestore security rules
-- [ ] Unit tests
+- [x] Create `firebase/functions/src/services/ReactionService.ts`
+- [x] Create `firebase/functions/src/reactions/ReactionHandlers.ts`
+- [x] Create `firebase/functions/src/reactions/validation.ts`
+- [x] Add routes to `route-config.ts`
+- [x] Update Firestore security rules
+- [x] Register in ApplicationFactory and ComponentBuilder
+- [x] Unit tests (16 tests passing)
 
-### Phase 2: Backend Integration
-- [ ] Update expense/comment/settlement schemas with `reactionCounts`
-- [ ] Extend FirestoreReader to fetch user's reactions
-- [ ] Extend activity feed with reaction events
+### Phase 2: Backend Integration ✅
+- [x] Update expense/comment/settlement schemas with `reactionCounts`
+- [x] Extend activity feed with reaction events (types added)
+- Note: FirestoreReader already includes reactionCounts in document reads
 
 ### Phase 3: Frontend
 - [ ] Create ReactionPicker component

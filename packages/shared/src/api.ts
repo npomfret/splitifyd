@@ -8,6 +8,7 @@ import type {
     ChangeEmailRequest,
     ClientAppConfiguration,
     CommentDTO,
+    CommentId,
     CommentText,
     CreateAdminUserRequest,
     CreateExpenseRequest,
@@ -60,6 +61,8 @@ import type {
     PublishTenantThemeRequest,
     PublishTenantThemeResponse,
     RegisterResponse,
+    ReactionEmoji,
+    ReactionToggleResponse,
     RenameTenantImageRequest,
     SettlementDTO,
     SettlementId,
@@ -202,6 +205,12 @@ export interface API<AuthToken> {
     createSettlement(request: CreateSettlementRequest, token?: AuthToken): Promise<SettlementDTO>;
     updateSettlement(settlementId: SettlementId, request: UpdateSettlementRequest, token?: AuthToken): Promise<SettlementWithMembers>;
     deleteSettlement(settlementId: SettlementId, token?: AuthToken): Promise<void>;
+
+    // Reaction operations
+    toggleExpenseReaction(expenseId: ExpenseId, emoji: ReactionEmoji, token?: AuthToken): Promise<ReactionToggleResponse>;
+    toggleGroupCommentReaction(groupId: GroupId, commentId: CommentId, emoji: ReactionEmoji, token?: AuthToken): Promise<ReactionToggleResponse>;
+    toggleExpenseCommentReaction(expenseId: ExpenseId, commentId: CommentId, emoji: ReactionEmoji, token?: AuthToken): Promise<ReactionToggleResponse>;
+    toggleSettlementReaction(settlementId: SettlementId, emoji: ReactionEmoji, token?: AuthToken): Promise<ReactionToggleResponse>;
 
     createGroupComment(groupId: GroupId, text: CommentText, token?: AuthToken): Promise<CommentDTO>;
     listGroupComments(groupId: GroupId, options?: ListCommentsOptions, token?: AuthToken): Promise<ListCommentsResponse>;

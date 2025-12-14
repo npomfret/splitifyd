@@ -125,6 +125,8 @@ const EVENT_ACTION_MAP: Record<ActivityFeedEventType, ActivityFeedAction> = {
     [ActivityFeedEventTypes.SETTLEMENT_CREATED]: ActivityFeedActions.CREATE,
     [ActivityFeedEventTypes.SETTLEMENT_UPDATED]: ActivityFeedActions.UPDATE,
     [ActivityFeedEventTypes.SETTLEMENT_DELETED]: ActivityFeedActions.DELETE,
+    [ActivityFeedEventTypes.REACTION_ADDED]: ActivityFeedActions.ADD,
+    [ActivityFeedEventTypes.REACTION_REMOVED]: ActivityFeedActions.REMOVE,
 };
 
 function buildItem(id: string, eventType: ActivityFeedEventType | string, overrides?: Partial<ActivityFeedItem>): ActivityFeedItem {

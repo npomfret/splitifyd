@@ -24,6 +24,7 @@ import { GroupShareHandlers } from './groups/GroupShareHandlers';
 import { PolicyHandlers } from './policies/PolicyHandlers';
 import { PolicyTextHandlers } from './policies/PolicyTextHandlers';
 import { UserHandlers as PolicyUserHandlers } from './policies/UserHandlers';
+import { ReactionHandlers } from './reactions/ReactionHandlers';
 import { SettlementHandlers } from './settlements/SettlementHandlers';
 import { TenantAdminHandlers } from './tenant/TenantAdminHandlers';
 import { TenantImageLibraryHandlers } from './tenant/TenantImageLibraryHandlers';
@@ -48,6 +49,7 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
     const groupMemberHandlers = new GroupMemberHandlers(componentBuilder.buildGroupMemberService());
     const expenseHandlers = new ExpenseHandlers(componentBuilder.buildExpenseService());
     const commentHandlers = new CommentHandlers(componentBuilder.buildCommentService());
+    const reactionHandlers = new ReactionHandlers(componentBuilder.buildReactionService());
     const userHandlers = new UserHandlers(componentBuilder.buildUserService());
     const policyHandlers = new PolicyHandlers(componentBuilder.buildPolicyService());
     const policyUserHandlers = new PolicyUserHandlers(componentBuilder.buildUserPolicyService());
@@ -480,6 +482,12 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
         createCommentForExpense: commentHandlers.createComment,
         listGroupComments: commentHandlers.listGroupComments,
         listExpenseComments: commentHandlers.listExpenseComments,
+
+        // Reaction handlers
+        toggleExpenseReaction: reactionHandlers.toggleExpenseReaction,
+        toggleGroupCommentReaction: reactionHandlers.toggleGroupCommentReaction,
+        toggleExpenseCommentReaction: reactionHandlers.toggleExpenseCommentReaction,
+        toggleSettlementReaction: reactionHandlers.toggleSettlementReaction,
 
         // User handlers
         getUserProfile: userHandlers.getUserProfile,

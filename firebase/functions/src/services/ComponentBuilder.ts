@@ -21,6 +21,7 @@ import { GroupMemberService } from './GroupMemberService';
 import { GroupService } from './GroupService';
 import { GroupShareService } from './GroupShareService';
 import { PolicyService } from './PolicyService';
+import { ReactionService } from './ReactionService';
 import { SettlementService } from './SettlementService';
 import { CloudThemeArtifactStorage } from './storage/CloudThemeArtifactStorage';
 import { createTenantAssetStorage, type TenantAssetStorage } from './storage/TenantAssetStorage';
@@ -41,6 +42,7 @@ export class ComponentBuilder {
     private expenseService?: ExpenseService;
     private settlementService?: SettlementService;
     private commentService?: CommentService;
+    private reactionService?: ReactionService;
     private policyService?: PolicyService;
     private userPolicyService?: UserPolicyService;
     private groupMemberService?: GroupMemberService;
@@ -175,6 +177,18 @@ export class ComponentBuilder {
             );
         }
         return this.commentService;
+    }
+
+    buildReactionService(): ReactionService {
+        if (!this.reactionService) {
+            this.reactionService = new ReactionService(
+                this.buildFirestoreReader(),
+                this.buildFirestoreWriter(),
+                this.buildGroupMemberService(),
+                this.buildActivityFeedService(),
+            );
+        }
+        return this.reactionService;
     }
 
     buildPolicyService(): PolicyService {

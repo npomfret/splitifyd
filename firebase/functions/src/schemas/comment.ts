@@ -2,6 +2,7 @@ import { toUserId } from '@billsplit-wl/shared';
 import { z } from 'zod';
 
 import { FirestoreTimestampSchema } from './common';
+import { ReactionCountsSchema } from './reaction';
 
 /**
  * Zod schema for Comment documents stored in Firestore
@@ -18,6 +19,7 @@ export const CommentDocumentSchema = z
         text: z.string().min(1),
         createdAt: FirestoreTimestampSchema,
         updatedAt: FirestoreTimestampSchema,
+        reactionCounts: ReactionCountsSchema.nullable().optional(), // Aggregate emoji reaction counts
     })
     .strict();
 

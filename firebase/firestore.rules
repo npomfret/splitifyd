@@ -40,6 +40,16 @@ service cloud.firestore {
           exists(/databases/$(database)/documents/group-memberships/$(request.auth.uid + '_' + groupId));
         // Only server functions can write comments
         allow write: if false;
+
+        // Reactions subcollection on group comments
+        match /reactions/{reactionId} {
+          // Allow read for group members
+          allow read: if request.auth != null &&
+            isGroupActive(groupId) &&
+            exists(/databases/$(database)/documents/group-memberships/$(request.auth.uid + '_' + groupId));
+          // Only server functions can write reactions
+          allow write: if false;
+        }
       }
     }
 
@@ -51,12 +61,28 @@ service cloud.firestore {
       // Deny all direct writes - only server functions can write to expenses
       allow write: if false;
 
+      // Reactions subcollection on expenses
+      match /reactions/{reactionId} {
+        // Allow read for any authenticated user (expense membership is validated server-side)
+        allow read: if request.auth != null;
+        // Only server functions can write reactions
+        allow write: if false;
+      }
+
       // Comments subcollection - for expense discussions
       match /comments/{commentId} {
         // Allow read for any authenticated user
         allow read: if request.auth != null;
         // Only server functions can write comments
         allow write: if false;
+
+        // Reactions subcollection on expense comments
+        match /reactions/{reactionId} {
+          // Allow read for any authenticated user
+          allow read: if request.auth != null;
+          // Only server functions can write reactions
+          allow write: if false;
+        }
       }
     }
     
@@ -68,6 +94,14 @@ service cloud.firestore {
 
       // Deny all direct writes - only server functions can write to settlements
       allow write: if false;
+
+      // Reactions subcollection on settlements
+      match /reactions/{reactionId} {
+        // Allow read for authenticated users (settlement membership is validated server-side)
+        allow read: if request.auth != null;
+        // Only server functions can write reactions
+        allow write: if false;
+      }
     }
     
     // Group balances collection - production security rules
