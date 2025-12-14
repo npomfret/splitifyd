@@ -1,6 +1,7 @@
 import { commentsStore } from '@/stores/comments-store.ts';
 import type { CommentsStoreTarget } from '@/stores/comments-store.ts';
-import { type ListCommentsResponse, toCommentText } from '@billsplit-wl/shared';
+import type { CommentId, ListCommentsResponse, ReactionEmoji } from '@billsplit-wl/shared';
+import { toCommentText } from '@billsplit-wl/shared';
 import { useComputed } from '@preact/signals';
 import { useEffect, useRef } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
@@ -49,6 +50,10 @@ export function CommentsSection({ target, maxHeight = '400px', className = '', i
         await commentsStore.loadMoreComments();
     };
 
+    const handleReactionToggle = async (commentId: CommentId, emoji: ReactionEmoji) => {
+        await commentsStore.toggleReaction(commentId, emoji);
+    };
+
     return (
         <div className={`flex flex-col gap-4 ${className}`}>
             {/* Error message */}
@@ -61,7 +66,7 @@ export function CommentsSection({ target, maxHeight = '400px', className = '', i
             )}
 
             {/* Comments list */}
-            <CommentsList comments={comments.value} loading={loading.value} hasMore={hasMore.value} onLoadMore={handleLoadMore} maxHeight={maxHeight} />
+            <CommentsList comments={comments.value} loading={loading.value} hasMore={hasMore.value} onLoadMore={handleLoadMore} maxHeight={maxHeight} onReactionToggle={handleReactionToggle} />
 
             {/* Comment input */}
             <div className='border-t border-border-default pt-4'>

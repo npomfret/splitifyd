@@ -1,4 +1,4 @@
-import type { SettlementDTO, UserId } from '@billsplit-wl/shared';
+import type { ReactionCounts, ReactionEmoji, SettlementDTO, UserId } from '@billsplit-wl/shared';
 import { Amount, GroupId, SettlementId, toGroupId, toSettlementId, toUserId } from '@billsplit-wl/shared';
 import type { CurrencyISOCode } from '@billsplit-wl/shared';
 import type { ISOString } from '@billsplit-wl/shared';
@@ -110,6 +110,16 @@ export class SettlementDTOBuilder {
 
     withIsLocked(isLocked: boolean): this {
         this.settlement.isLocked = isLocked;
+        return this;
+    }
+
+    withReactionCounts(reactionCounts: ReactionCounts): this {
+        this.settlement.reactionCounts = reactionCounts;
+        return this;
+    }
+
+    withUserReactions(userReactions: ReactionEmoji[]): this {
+        this.settlement.userReactions = userReactions;
         return this;
     }
 

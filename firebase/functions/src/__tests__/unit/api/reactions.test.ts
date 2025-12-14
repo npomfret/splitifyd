@@ -1,6 +1,6 @@
-import { calculateEqualSplits, isoStringNow, ReactionEmojis, toAmount, USD } from '@billsplit-wl/shared';
+import { calculateEqualSplits, ReactionEmojis, toAmount, USD } from '@billsplit-wl/shared';
 import type { UserId } from '@billsplit-wl/shared';
-import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder } from '@billsplit-wl/test-support';
+import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, it } from 'vitest';
 import { AppDriver } from '../AppDriver';
 
@@ -163,6 +163,85 @@ describe('reactions', () => {
                 .rejects
                 .toMatchObject({ code: 'NOT_FOUND' });
         });
+
+        it('should return userReactions in getExpenseFullDetails', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            const groupId = group.id;
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+
+            const participants = [user1, user2];
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(50, USD)
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(toAmount(50), USD, participants))
+                    .build(),
+                user1,
+            );
+
+            // Add reactions
+            await appDriver.toggleExpenseReaction(expense.id, ReactionEmojis.THUMBS_UP, user1);
+            await appDriver.toggleExpenseReaction(expense.id, ReactionEmojis.HEART, user1);
+            await appDriver.toggleExpenseReaction(expense.id, ReactionEmojis.THUMBS_UP, user2);
+
+            // Verify user1 sees their reactions in getExpenseFullDetails
+            const fullDetails1 = await appDriver.getExpenseFullDetails(expense.id, user1);
+            expect(fullDetails1.expense.userReactions).toEqual(
+                expect.arrayContaining([ReactionEmojis.THUMBS_UP, ReactionEmojis.HEART]),
+            );
+            expect(fullDetails1.expense.userReactions).toHaveLength(2);
+            expect(fullDetails1.expense.reactionCounts).toEqual({
+                [ReactionEmojis.THUMBS_UP]: 2,
+                [ReactionEmojis.HEART]: 1,
+            });
+
+            // Verify user2 sees only their reaction
+            const fullDetails2 = await appDriver.getExpenseFullDetails(expense.id, user2);
+            expect(fullDetails2.expense.userReactions).toEqual([ReactionEmojis.THUMBS_UP]);
+            expect(fullDetails2.expense.reactionCounts).toEqual({
+                [ReactionEmojis.THUMBS_UP]: 2,
+                [ReactionEmojis.HEART]: 1,
+            });
+        });
+
+        it('should return userReactions in getExpense', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            const groupId = group.id;
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+
+            const participants = [user1, user2];
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(50, USD)
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(toAmount(50), USD, participants))
+                    .build(),
+                user1,
+            );
+
+            // Add reactions
+            await appDriver.toggleExpenseReaction(expense.id, ReactionEmojis.LAUGH, user1);
+            await appDriver.toggleExpenseReaction(expense.id, ReactionEmojis.LAUGH, user2);
+
+            // Verify user1 sees their reaction in getExpense
+            const expense1 = await appDriver.getExpense(expense.id, user1);
+            expect(expense1.userReactions).toEqual([ReactionEmojis.LAUGH]);
+            expect(expense1.reactionCounts).toEqual({
+                [ReactionEmojis.LAUGH]: 2,
+            });
+
+            // Verify user2 sees their reaction
+            const expense2 = await appDriver.getExpense(expense.id, user2);
+            expect(expense2.userReactions).toEqual([ReactionEmojis.LAUGH]);
+        });
     });
 
     describe('group comment reactions', () => {
@@ -207,6 +286,37 @@ describe('reactions', () => {
             )
                 .rejects
                 .toMatchObject({ code: 'NOT_FOUND' });
+        });
+
+        it('should return userReactions in listGroupComments', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            const groupId = group.id;
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+
+            const comment = await appDriver.createGroupComment(groupId, 'Test comment', undefined, user1);
+
+            // Add reactions from both users
+            await appDriver.toggleGroupCommentReaction(groupId, comment.id, ReactionEmojis.THUMBS_UP, user1);
+            await appDriver.toggleGroupCommentReaction(groupId, comment.id, ReactionEmojis.HEART, user1);
+            await appDriver.toggleGroupCommentReaction(groupId, comment.id, ReactionEmojis.THUMBS_UP, user2);
+
+            // Verify user1 sees their reactions in listGroupComments
+            const result1 = await appDriver.listGroupComments(groupId, {}, user1);
+            const comment1 = result1.comments.find(c => c.id === comment.id);
+            expect(comment1?.userReactions).toEqual(
+                expect.arrayContaining([ReactionEmojis.THUMBS_UP, ReactionEmojis.HEART]),
+            );
+            expect(comment1?.userReactions).toHaveLength(2);
+            expect(comment1?.reactionCounts).toEqual({
+                [ReactionEmojis.THUMBS_UP]: 2,
+                [ReactionEmojis.HEART]: 1,
+            });
+
+            // Verify user2 sees only their reaction
+            const result2 = await appDriver.listGroupComments(groupId, {}, user2);
+            const comment2 = result2.comments.find(c => c.id === comment.id);
+            expect(comment2?.userReactions).toEqual([ReactionEmojis.THUMBS_UP]);
         });
     });
 
@@ -255,6 +365,50 @@ describe('reactions', () => {
                 .rejects
                 .toMatchObject({ code: 'NOT_FOUND' });
         });
+
+        it('should return userReactions in listExpenseComments', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            const groupId = group.id;
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+
+            const participants = [user1, user2];
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(50, USD)
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(toAmount(50), USD, participants))
+                    .build(),
+                user1,
+            );
+
+            const comment = await appDriver.createExpenseComment(expense.id, 'Test expense comment', undefined, user1);
+
+            // Add reactions from both users
+            await appDriver.toggleExpenseCommentReaction(expense.id, comment.id, ReactionEmojis.WOW, user1);
+            await appDriver.toggleExpenseCommentReaction(expense.id, comment.id, ReactionEmojis.SAD, user1);
+            await appDriver.toggleExpenseCommentReaction(expense.id, comment.id, ReactionEmojis.WOW, user2);
+
+            // Verify user1 sees their reactions in listExpenseComments
+            const result1 = await appDriver.listExpenseComments(expense.id, {}, user1);
+            const comment1 = result1.comments.find(c => c.id === comment.id);
+            expect(comment1?.userReactions).toEqual(
+                expect.arrayContaining([ReactionEmojis.WOW, ReactionEmojis.SAD]),
+            );
+            expect(comment1?.userReactions).toHaveLength(2);
+            expect(comment1?.reactionCounts).toEqual({
+                [ReactionEmojis.WOW]: 2,
+                [ReactionEmojis.SAD]: 1,
+            });
+
+            // Verify user2 sees only their reaction
+            const result2 = await appDriver.listExpenseComments(expense.id, {}, user2);
+            const comment2 = result2.comments.find(c => c.id === comment.id);
+            expect(comment2?.userReactions).toEqual([ReactionEmojis.WOW]);
+        });
     });
 
     describe('settlement reactions', () => {
@@ -265,15 +419,13 @@ describe('reactions', () => {
             await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
             const settlement = await appDriver.createSettlement(
-                {
-                    groupId,
-                    payerId: user1,
-                    payeeId: user2,
-                    amount: '25.00',
-                    currency: USD,
-                    date: isoStringNow(),
-                    note: 'Test settlement',
-                },
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPayerId(user1)
+                    .withPayeeId(user2)
+                    .withAmount(25, USD)
+                    .withNote('Test settlement')
+                    .build(),
                 user1,
             );
 
@@ -291,15 +443,13 @@ describe('reactions', () => {
             await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
             const settlement = await appDriver.createSettlement(
-                {
-                    groupId,
-                    payerId: user1,
-                    payeeId: user2,
-                    amount: '25.00',
-                    currency: USD,
-                    date: isoStringNow(),
-                    note: 'Test settlement',
-                },
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPayerId(user1)
+                    .withPayeeId(user2)
+                    .withAmount(25, USD)
+                    .withNote('Test settlement')
+                    .build(),
                 user1,
             );
 
@@ -317,6 +467,46 @@ describe('reactions', () => {
             )
                 .rejects
                 .toMatchObject({ code: 'NOT_FOUND' });
+        });
+
+        it('should return userReactions in listSettlements', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            const groupId = group.id;
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+
+            const settlement = await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPayerId(user1)
+                    .withPayeeId(user2)
+                    .withAmount(25, USD)
+                    .withNote('Test settlement')
+                    .build(),
+                user1,
+            );
+
+            // Add reactions from both users
+            await appDriver.toggleSettlementReaction(settlement.id, ReactionEmojis.CELEBRATE, user1);
+            await appDriver.toggleSettlementReaction(settlement.id, ReactionEmojis.HEART, user1);
+            await appDriver.toggleSettlementReaction(settlement.id, ReactionEmojis.CELEBRATE, user2);
+
+            // Verify user1 sees their reactions in listGroupSettlements
+            const result1 = await appDriver.listGroupSettlements(groupId, {}, user1);
+            const settlement1 = result1.settlements.find(s => s.id === settlement.id);
+            expect(settlement1?.userReactions).toEqual(
+                expect.arrayContaining([ReactionEmojis.CELEBRATE, ReactionEmojis.HEART]),
+            );
+            expect(settlement1?.userReactions).toHaveLength(2);
+            expect(settlement1?.reactionCounts).toEqual({
+                [ReactionEmojis.CELEBRATE]: 2,
+                [ReactionEmojis.HEART]: 1,
+            });
+
+            // Verify user2 sees only their reaction
+            const result2 = await appDriver.listGroupSettlements(groupId, {}, user2);
+            const settlement2 = result2.settlements.find(s => s.id === settlement.id);
+            expect(settlement2?.userReactions).toEqual([ReactionEmojis.CELEBRATE]);
         });
     });
 

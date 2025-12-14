@@ -98,6 +98,16 @@
     "yearAgo_one": "{{count}}년 전",
     "yearAgo_other": "{{count}}년 전"
   },
+  "reactions": {
+    "addReaction": "반응 추가",
+    "removeReaction": "반응 제거",
+    "thumbsUp": "좋아요",
+    "heart": "하트",
+    "laugh": "웃음",
+    "wow": "놀람",
+    "sad": "슬픔",
+    "celebrate": "축하"
+  },
   "app": {
     "loading": "로드 중...",
     "loadingPage": "페이지 로드 중...",

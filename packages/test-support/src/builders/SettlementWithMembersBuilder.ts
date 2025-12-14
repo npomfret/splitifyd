@@ -1,4 +1,4 @@
-import type { GroupMember, SettlementWithMembers, UserId } from '@billsplit-wl/shared';
+import type { GroupMember, ReactionCounts, ReactionEmoji, SettlementWithMembers, UserId } from '@billsplit-wl/shared';
 import { Amount, toDisplayName } from '@billsplit-wl/shared';
 import { GroupId, ISOString } from '@billsplit-wl/shared';
 import type { CurrencyISOCode } from '@billsplit-wl/shared';
@@ -111,6 +111,16 @@ export class SettlementWithMembersBuilder {
 
     withIsLocked(isLocked: boolean): this {
         this.settlement.isLocked = isLocked;
+        return this;
+    }
+
+    withReactionCounts(reactionCounts: ReactionCounts): this {
+        this.settlement.reactionCounts = reactionCounts;
+        return this;
+    }
+
+    withUserReactions(userReactions: ReactionEmoji[]): this {
+        this.settlement.userReactions = userReactions;
         return this;
     }
 

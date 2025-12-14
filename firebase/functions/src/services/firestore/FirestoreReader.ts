@@ -32,6 +32,7 @@ import {
     MemberStatuses,
     type PolicyDTO,
     PolicyId,
+    type ReactionEmoji,
     type SettlementDTO,
     SettlementId,
     type UserId,
@@ -158,6 +159,83 @@ export class FirestoreReader implements IFirestoreReader {
 
     private getExpenseCommentCollectionPath(expenseId: string): string {
         return `${FirestoreCollections.EXPENSES}/${expenseId}/${FirestoreCollections.COMMENTS}`;
+    }
+
+    // ========================================================================
+    // User Reactions Helpers
+    // ========================================================================
+
+    /**
+     * Get all reactions by a specific user for a resource.
+     * Reactions are stored as documents with ID format: {userId}_{emoji}
+     *
+     * @param collectionPath - Path to the reactions subcollection (e.g., "expenses/abc/reactions")
+     * @param userId - The user whose reactions to fetch
+     * @returns Array of emoji strings the user has reacted with
+     */
+    async getUserReactionsForResource(collectionPath: string, userId: UserId): Promise<ReactionEmoji[]> {
+        try {
+            // Query documents where ID starts with userId_
+            // Firestore range query: >= userId_ and < userId`
+            // The backtick character (`) comes after underscore in ASCII, so this captures all userId_* patterns
+            const startAt = `${userId}_`;
+            const endAt = `${userId}\``;
+
+            const snapshot = await this.db
+                .collection(collectionPath)
+                .orderBy('__name__')
+                .where(FieldPath.documentId(), '>=', startAt)
+                .where(FieldPath.documentId(), '<', endAt)
+                .get();
+
+            const emojis: ReactionEmoji[] = [];
+            snapshot.forEach((doc) => {
+                // Extract emoji from document ID: {userId}_{emoji}
+                const docId = doc.id;
+                const underscoreIndex = docId.indexOf('_');
+                if (underscoreIndex !== -1) {
+                    const emoji = docId.substring(underscoreIndex + 1);
+                    emojis.push(emoji as ReactionEmoji);
+                }
+            });
+
+            return emojis;
+        } catch (error) {
+            logger.warn('Failed to get user reactions', { collectionPath, userId, error });
+            return []; // Return empty array on error to avoid breaking the main query
+        }
+    }
+
+    /**
+     * Get user's reactions for an expense
+     */
+    async getUserReactionsForExpense(expenseId: ExpenseId, userId: UserId): Promise<ReactionEmoji[]> {
+        const collectionPath = `${FirestoreCollections.EXPENSES}/${expenseId}/${FirestoreCollections.REACTIONS}`;
+        return this.getUserReactionsForResource(collectionPath, userId);
+    }
+
+    /**
+     * Get user's reactions for a settlement
+     */
+    async getUserReactionsForSettlement(settlementId: SettlementId, userId: UserId): Promise<ReactionEmoji[]> {
+        const collectionPath = `${FirestoreCollections.SETTLEMENTS}/${settlementId}/${FirestoreCollections.REACTIONS}`;
+        return this.getUserReactionsForResource(collectionPath, userId);
+    }
+
+    /**
+     * Get user's reactions for a group comment
+     */
+    async getUserReactionsForGroupComment(groupId: GroupId, commentId: CommentId, userId: UserId): Promise<ReactionEmoji[]> {
+        const collectionPath = `${FirestoreCollections.GROUPS}/${groupId}/${FirestoreCollections.COMMENTS}/${commentId}/${FirestoreCollections.REACTIONS}`;
+        return this.getUserReactionsForResource(collectionPath, userId);
+    }
+
+    /**
+     * Get user's reactions for an expense comment
+     */
+    async getUserReactionsForExpenseComment(expenseId: ExpenseId, commentId: CommentId, userId: UserId): Promise<ReactionEmoji[]> {
+        const collectionPath = `${FirestoreCollections.EXPENSES}/${expenseId}/${FirestoreCollections.COMMENTS}/${commentId}/${FirestoreCollections.REACTIONS}`;
+        return this.getUserReactionsForResource(collectionPath, userId);
     }
 
     private parseTenantDocument(snapshot: IDocumentSnapshot): TenantFullRecord {

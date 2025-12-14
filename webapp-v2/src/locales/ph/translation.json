@@ -98,6 +98,16 @@
     "yearAgo_one": "{{count}} taon ang nakalipas",
     "yearAgo_other": "{{count}} taon ang nakalipas"
   },
+  "reactions": {
+    "addReaction": "Magdagdag ng reaksyon",
+    "removeReaction": "Alisin ang reaksyon",
+    "thumbsUp": "Thumbs up",
+    "heart": "Puso",
+    "laugh": "Tawa",
+    "wow": "Wow",
+    "sad": "Malungkot",
+    "celebrate": "Magdiwang"
+  },
   "app": {
     "loading": "Naglo-load...",
     "loadingPage": "Naglo-load ng pahina...",

@@ -1,5 +1,6 @@
 import { apiClient } from '@/app/apiClient';
 import { CommentsSection } from '@/components/comments';
+import { ReactionBar } from '@/components/reactions';
 import { Avatar, Badge, Button, Card, CurrencyAmount, LoadingSpinner, Stack, Tooltip, Typography } from '@/components/ui';
 import { Clickable } from '@/components/ui/Clickable';
 import { XIcon } from '@/components/ui/icons';
@@ -8,6 +9,7 @@ import { logError } from '@/utils/browser-logger.ts';
 import { formatCurrency } from '@/utils/currency';
 import { formatDistanceToNow, formatExpenseDateTime, formatLocalDateTime } from '@/utils/dateUtils.ts';
 import { getGroupDisplayName } from '@/utils/displayName';
+import type { ReactionEmoji } from '@billsplit-wl/shared';
 import { ExpenseDTO, ExpenseId, GroupDTO, GroupId, GroupMember, toCurrencyISOCode, toDisplayName } from '@billsplit-wl/shared';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { useEffect, useRef, useState } from 'preact/hooks';
@@ -97,6 +99,39 @@ export function ExpenseDetailModal({ isOpen, onClose, groupId, expenseId, onEdit
         } catch (err) {
             logError('Failed to delete expense', err);
             throw err;
+        }
+    };
+
+    const handleReactionToggle = async (emoji: ReactionEmoji) => {
+        if (!expenseId || !expense) return;
+
+        try {
+            const response = await apiClient.toggleExpenseReaction(expenseId, emoji);
+
+            // Optimistically update the local expense state
+            const currentReactions = expense.userReactions || [];
+            const currentCounts = expense.reactionCounts || {};
+
+            let newUserReactions: ReactionEmoji[];
+            let newCounts: typeof currentCounts;
+
+            if (response.action === 'added') {
+                newUserReactions = [...currentReactions, emoji];
+                newCounts = { ...currentCounts, [emoji]: (currentCounts[emoji] || 0) + 1 };
+            } else {
+                newUserReactions = currentReactions.filter((e) => e !== emoji);
+                const newCount = (currentCounts[emoji] || 1) - 1;
+                newCounts = { ...currentCounts };
+                if (newCount > 0) {
+                    newCounts[emoji] = newCount;
+                } else {
+                    delete newCounts[emoji];
+                }
+            }
+
+            setExpense({ ...expense, userReactions: newUserReactions, reactionCounts: newCounts });
+        } catch (err) {
+            logError('Failed to toggle expense reaction', err);
         }
     };
 
@@ -217,6 +252,15 @@ export function ExpenseDetailModal({ isOpen, onClose, groupId, expenseId, onEdit
                             <h2 className='text-2xl font-bold text-text-primary'>
                                 <CurrencyAmount amount={expense.amount} currency={expense.currency} />
                             </h2>
+                            {/* Reactions */}
+                            <div className='mt-3 flex justify-center'>
+                                <ReactionBar
+                                    counts={expense.reactionCounts}
+                                    userReactions={expense.userReactions}
+                                    onToggle={handleReactionToggle}
+                                    size='md'
+                                />
+                            </div>
                         </div>
 
                         {/* Key Details */}

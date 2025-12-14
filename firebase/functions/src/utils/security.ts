@@ -63,7 +63,8 @@ export const checkForDangerousPatterns = (requestString: string): { isDangerous:
         { pattern: /[\x00-\x1f\x7f-\x9f]/, name: 'control character' },
         { pattern: /[\u0000-\u001f\u007f-\u009f]/, name: 'unicode control character' },
         { pattern: /[\u2000-\u200f\u2028-\u202f\u205f-\u206f\ufeff]/, name: 'unicode whitespace character' },
-        { pattern: /[\ud800-\udfff]/, name: 'unicode surrogate character' },
+        // Only block orphaned surrogates (unpaired), not valid emoji surrogate pairs
+        { pattern: /[\ud800-\udbff](?![\udc00-\udfff])|(?<![\ud800-\udbff])[\udc00-\udfff]/, name: 'orphaned unicode surrogate' },
         { pattern: /\ufffe|\uffff/, name: 'unicode noncharacter' },
     ];
 

@@ -2,11 +2,12 @@ import { apiClient } from '@/app/apiClient.ts';
 import { useAuthRequired } from '@/app/hooks/useAuthRequired.ts';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced.ts';
 import { themeStore } from '@/app/stores/theme-store.ts';
+import { ReactionBar } from '@/components/reactions';
 import { ArrowDownIcon } from '@/components/ui/icons';
 import { logError } from '@/utils/browser-logger';
 import { formatCurrency } from '@/utils/currency';
 import { getGroupDisplayName } from '@/utils/displayName';
-import type { GroupId, GroupMember, SettlementWithMembers } from '@billsplit-wl/shared';
+import type { GroupId, GroupMember, ReactionEmoji, SettlementId, SettlementWithMembers } from '@billsplit-wl/shared';
 import { BanknotesIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useComputed } from '@preact/signals';
 import { useEffect, useMemo, useState } from 'preact/hooks';
@@ -100,6 +101,10 @@ export function SettlementHistory({
 
     const handleCancelDelete = () => {
         setSettlementToDelete(null);
+    };
+
+    const handleReactionToggle = async (settlementId: SettlementId, emoji: ReactionEmoji) => {
+        await enhancedGroupDetailStore.toggleSettlementReaction(settlementId, emoji);
     };
 
     if (isLoading.value && totalSettlements === 0) {
@@ -290,6 +295,16 @@ export function SettlementHistory({
                                                 />
                                             </div>
                                         )}
+
+                                        {/* Reactions */}
+                                        <div className='col-span-2 mt-1'>
+                                            <ReactionBar
+                                                counts={settlement.reactionCounts}
+                                                userReactions={settlement.userReactions}
+                                                onToggle={(emoji) => handleReactionToggle(settlement.id, emoji)}
+                                                size='sm'
+                                            />
+                                        </div>
                                     </div>
                                 </article>
                             );

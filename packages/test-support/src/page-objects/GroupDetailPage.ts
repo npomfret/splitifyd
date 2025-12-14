@@ -1,5 +1,5 @@
 import { GroupId } from '@billsplit-wl/shared';
-import type { GroupName } from '@billsplit-wl/shared';
+import type { GroupName, ReactionEmoji } from '@billsplit-wl/shared';
 import { expect, Locator, Page } from '@playwright/test';
 import { TEST_TIMEOUTS } from '../test-constants';
 import { translationEn } from '../translations/translation-en';
@@ -820,6 +820,104 @@ export class GroupDetailPage extends BasePage {
         // Comment errors use role='alert' within the comments section
         const commentError = this.getCommentsSection().getByRole('alert');
         await expect(commentError).toHaveCount(0);
+    }
+
+    // ============================================================================
+    // GROUP COMMENT REACTIONS
+    // ============================================================================
+
+    /**
+     * Get a comment item by its text content
+     */
+    protected getCommentItemByText(text: string): Locator {
+        return this.getCommentItems().filter({ hasText: text });
+    }
+
+    /**
+     * Get the reaction bar for a specific comment
+     */
+    protected getGroupCommentReactionBar(commentText: string): Locator {
+        return this.getCommentItemByText(commentText).locator('[class*="inline-flex"][class*="gap-1"]').first();
+    }
+
+    /**
+     * Get the add reaction button for a group comment
+     */
+    protected getGroupCommentAddReactionButton(commentText: string): Locator {
+        return this.getCommentItemByText(commentText).getByRole('button', { name: translation.reactions.addReaction });
+    }
+
+    /**
+     * Get a reaction pill on a group comment
+     */
+    protected getGroupCommentReactionPill(commentText: string, emoji: ReactionEmoji): Locator {
+        return this.getCommentItemByText(commentText).locator('button').filter({ hasText: emoji });
+    }
+
+    /**
+     * Click the add reaction button on a group comment
+     */
+    async clickGroupCommentAddReaction(commentText: string): Promise<void> {
+        await this.ensureCommentsSectionExpanded();
+        const button = this.getGroupCommentAddReactionButton(commentText);
+        await expect(button).toBeVisible();
+        await this.clickButton(button, { buttonName: 'Add reaction to group comment' });
+        await expect(this.getReactionPicker()).toBeVisible();
+    }
+
+    /**
+     * Add a reaction to a group comment
+     */
+    async addGroupCommentReaction(commentText: string, emoji: ReactionEmoji): Promise<void> {
+        await this.clickGroupCommentAddReaction(commentText);
+        await this.selectReactionEmoji(emoji);
+    }
+
+    /**
+     * Toggle a reaction on a group comment
+     */
+    async toggleGroupCommentReaction(commentText: string, emoji: ReactionEmoji): Promise<void> {
+        await this.ensureCommentsSectionExpanded();
+        const pill = this.getGroupCommentReactionPill(commentText, emoji);
+        await expect(pill).toBeVisible();
+        await pill.click();
+    }
+
+    /**
+     * Verify a group comment reaction is visible with count
+     */
+    async verifyGroupCommentReactionVisible(commentText: string, emoji: ReactionEmoji, count: number): Promise<void> {
+        await this.ensureCommentsSectionExpanded();
+        const pill = this.getGroupCommentReactionPill(commentText, emoji);
+        await expect(pill).toBeVisible();
+        await expect(pill).toContainText(String(count));
+    }
+
+    /**
+     * Verify a group comment reaction is not visible
+     */
+    async verifyGroupCommentReactionNotVisible(commentText: string, emoji: ReactionEmoji): Promise<void> {
+        await this.ensureCommentsSectionExpanded();
+        const pill = this.getGroupCommentReactionPill(commentText, emoji);
+        await expect(pill).not.toBeVisible();
+    }
+
+    /**
+     * Verify a group comment reaction is highlighted (user has reacted)
+     */
+    async verifyGroupCommentReactionHighlighted(commentText: string, emoji: ReactionEmoji): Promise<void> {
+        await this.ensureCommentsSectionExpanded();
+        const pill = this.getGroupCommentReactionPill(commentText, emoji);
+        await expect(pill).toHaveAttribute('aria-pressed', 'true');
+    }
+
+    /**
+     * Verify a group comment reaction is not highlighted (user has not reacted)
+     */
+    async verifyGroupCommentReactionNotHighlighted(commentText: string, emoji: ReactionEmoji): Promise<void> {
+        await this.ensureCommentsSectionExpanded();
+        const pill = this.getGroupCommentReactionPill(commentText, emoji);
+        await expect(pill).toHaveAttribute('aria-pressed', 'false');
     }
 
     /**
@@ -2225,5 +2323,107 @@ export class GroupDetailPage extends BasePage {
         await this.ensureActivitySectionExpanded();
         const item = this.getActivityFeedContainer().getByText(text);
         await item.click();
+    }
+
+    // ============================================================================
+    // SETTLEMENT REACTIONS
+    // ============================================================================
+
+    /**
+     * Get the add reaction button for a settlement by note
+     */
+    protected getSettlementAddReactionButton(note: string | RegExp): Locator {
+        return this.getSettlementItem(note).getByRole('button', { name: translation.reactions.addReaction });
+    }
+
+    /**
+     * Get a reaction pill on a settlement by note
+     */
+    protected getSettlementReactionPill(note: string | RegExp, emoji: ReactionEmoji): Locator {
+        return this.getSettlementItem(note).locator('button').filter({ hasText: emoji });
+    }
+
+    /**
+     * Get the reaction picker (shared across all reactions)
+     */
+    protected getReactionPicker(): Locator {
+        return this.page.getByRole('listbox');
+    }
+
+    /**
+     * Click the add reaction button on a settlement
+     */
+    async clickSettlementAddReaction(note: string | RegExp): Promise<void> {
+        await this.ensureSettlementsSectionExpanded();
+        const button = this.getSettlementAddReactionButton(note);
+        await expect(button).toBeVisible();
+        await button.click();
+        await expect(this.getReactionPicker()).toBeVisible();
+    }
+
+    /**
+     * Select an emoji from the reaction picker
+     */
+    async selectReactionEmoji(emoji: ReactionEmoji): Promise<void> {
+        const picker = this.getReactionPicker();
+        const emojiButton = picker.getByRole('option').filter({ hasText: emoji });
+        await expect(emojiButton).toBeVisible();
+        await emojiButton.click();
+        await expect(picker).not.toBeVisible();
+    }
+
+    /**
+     * Add a reaction to a settlement
+     */
+    async addSettlementReaction(note: string | RegExp, emoji: ReactionEmoji): Promise<void> {
+        await this.clickSettlementAddReaction(note);
+        await this.selectReactionEmoji(emoji);
+    }
+
+    /**
+     * Toggle a reaction on a settlement
+     */
+    async toggleSettlementReaction(note: string | RegExp, emoji: ReactionEmoji): Promise<void> {
+        await this.ensureSettlementsSectionExpanded();
+        const pill = this.getSettlementReactionPill(note, emoji);
+        await expect(pill).toBeVisible();
+        await pill.click();
+    }
+
+    /**
+     * Verify a settlement reaction is visible with count
+     */
+    async verifySettlementReactionVisible(note: string | RegExp, emoji: ReactionEmoji, count: number): Promise<void> {
+        await this.ensureSettlementsSectionExpanded();
+        const pill = this.getSettlementReactionPill(note, emoji);
+        await expect(pill).toBeVisible();
+        await expect(pill).toContainText(String(count));
+    }
+
+    /**
+     * Verify a settlement reaction is not visible
+     */
+    async verifySettlementReactionNotVisible(note: string | RegExp, emoji: ReactionEmoji): Promise<void> {
+        await this.ensureSettlementsSectionExpanded();
+        const pill = this.getSettlementReactionPill(note, emoji);
+        await expect(pill).not.toBeVisible();
+    }
+
+    /**
+     * Verify a settlement reaction is highlighted (user has reacted)
+     */
+    async verifySettlementReactionHighlighted(note: string | RegExp, emoji: ReactionEmoji): Promise<void> {
+        await this.ensureSettlementsSectionExpanded();
+        const pill = this.getSettlementReactionPill(note, emoji);
+        await expect(pill).toHaveAttribute('aria-pressed', 'true');
+    }
+
+    /**
+     * Verify a settlement reaction is not highlighted
+     */
+    async verifySettlementReactionNotHighlighted(note: string | RegExp, emoji: ReactionEmoji): Promise<void> {
+        await this.ensureSettlementsSectionExpanded();
+        const pill = this.getSettlementReactionPill(note, emoji);
+        await expect(pill).toHaveAttribute('aria-pressed', 'false');
     }
 }

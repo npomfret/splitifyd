@@ -98,6 +98,16 @@
     "yearAgo_one": "för {{count}} år sedan",
     "yearAgo_other": "för {{count}} år sedan"
   },
+  "reactions": {
+    "addReaction": "Lägg till reaktion",
+    "removeReaction": "Ta bort reaktion",
+    "thumbsUp": "Tummen upp",
+    "heart": "Hjärta",
+    "laugh": "Skratt",
+    "wow": "Wow",
+    "sad": "Ledsen",
+    "celebrate": "Fira"
+  },
   "app": {
     "loading": "Laddar...",
     "loadingPage": "Laddar sida...",

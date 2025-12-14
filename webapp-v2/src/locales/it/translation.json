@@ -98,6 +98,16 @@
     "yearAgo_one": "{{count}} anno fa",
     "yearAgo_other": "{{count}} anni fa"
   },
+  "reactions": {
+    "addReaction": "Aggiungi reazione",
+    "removeReaction": "Rimuovi reazione",
+    "thumbsUp": "Pollice in su",
+    "heart": "Cuore",
+    "laugh": "Risata",
+    "wow": "Wow",
+    "sad": "Triste",
+    "celebrate": "Festeggia"
+  },
   "app": {
     "loading": "Caricamento...",
     "loadingPage": "Caricamento pagina...",

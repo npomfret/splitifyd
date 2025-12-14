@@ -98,6 +98,16 @@
     "yearAgo_one": "{{count}} jaar geleden",
     "yearAgo_other": "{{count}} jaren geleden"
   },
+  "reactions": {
+    "addReaction": "Reactie toevoegen",
+    "removeReaction": "Reactie verwijderen",
+    "thumbsUp": "Duim omhoog",
+    "heart": "Hart",
+    "laugh": "Lach",
+    "wow": "Wauw",
+    "sad": "Verdrietig",
+    "celebrate": "Vieren"
+  },
   "app": {
     "loading": "Laden...",
     "loadingPage": "Pagina laden...",

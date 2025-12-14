@@ -1,4 +1,4 @@
-import type { ExpenseDTO, ExpenseLabel, UserId } from '@billsplit-wl/shared';
+import type { ExpenseDTO, ExpenseLabel, ReactionCounts, ReactionEmoji, UserId } from '@billsplit-wl/shared';
 import { Amount, toExpenseLabel } from '@billsplit-wl/shared';
 import { GroupId } from '@billsplit-wl/shared';
 import type { CurrencyISOCode } from '@billsplit-wl/shared';
@@ -171,6 +171,16 @@ export class ExpenseDTOBuilder {
 
     withIsLocked(isLocked: boolean): this {
         this.expense.isLocked = isLocked;
+        return this;
+    }
+
+    withReactionCounts(reactionCounts: ReactionCounts): this {
+        this.expense.reactionCounts = reactionCounts;
+        return this;
+    }
+
+    withUserReactions(userReactions: ReactionEmoji[]): this {
+        this.expense.userReactions = userReactions;
         return this;
     }
 

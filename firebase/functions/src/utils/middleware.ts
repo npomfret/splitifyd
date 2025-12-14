@@ -26,6 +26,11 @@ function normalizePath(path: string): string {
     // Use $ anchors where appropriate to prevent over-matching
     // IMPORTANT: Static paths like /groups/share, /groups/join, /groups/preview must NOT be normalized
     normalized = normalized
+        // Reaction routes (most specific first - must come before simpler patterns)
+        .replace(/\/expenses\/[^/:]+\/comments\/[^/:]+\/reactions$/, '/expenses/:expenseId/comments/:commentId/reactions')
+        .replace(/\/expenses\/[^/:]+\/reactions$/, '/expenses/:expenseId/reactions')
+        .replace(/\/groups\/[^/:]+\/comments\/[^/:]+\/reactions$/, '/groups/:groupId/comments/:commentId/reactions')
+        .replace(/\/settlements\/[^/:]+\/reactions$/, '/settlements/:settlementId/reactions')
         // Group-related parameters (most specific first)
         .replace(/\/groups\/[^/:]+\/members\/[^/:]+$/, '/groups/:groupId/members/:memberId')
         .replace(/\/groups\/[^/:]+\/comments$/, '/groups/:groupId/comments')

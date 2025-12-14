@@ -88,6 +88,15 @@ describe('Security Utils', () => {
             expect(checkForDangerousPatterns('Price: $29.99').isDangerous).toBe(false);
             expect(checkForDangerousPatterns('{"name": "John", "age": 30}').isDangerous).toBe(false);
         });
+
+        it('should allow emoji characters', () => {
+            // Emojis use surrogate pairs in UTF-16 but are legitimate content
+            expect(checkForDangerousPatterns('👍').isDangerous).toBe(false);
+            expect(checkForDangerousPatterns('❤️').isDangerous).toBe(false);
+            expect(checkForDangerousPatterns('😂').isDangerous).toBe(false);
+            expect(checkForDangerousPatterns('🎉').isDangerous).toBe(false);
+            expect(checkForDangerousPatterns('{"emoji":"👍"}').isDangerous).toBe(false);
+        });
     });
 
     describe('isDangerousProperty', () => {

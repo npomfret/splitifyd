@@ -1,3 +1,4 @@
+import type { ReactionEmoji } from '@billsplit-wl/shared';
 import { ExpenseId, GroupId } from '@billsplit-wl/shared';
 import { expect, Locator, Page } from '@playwright/test';
 import { translationEn } from '../translations/translation-en';
@@ -465,5 +466,254 @@ export class ExpenseDetailPage extends BasePage {
         const editButton = this.getEditButton();
         await expect(editButton).toBeVisible();
         await expect(editButton).toBeEnabled();
+    }
+
+    // Reaction methods
+
+    /**
+     * Get the reaction bar container on the expense (in the amount section)
+     */
+    protected getExpenseReactionBar(): Locator {
+        // The reaction bar is in the amount section (text-center border-b div)
+        return this.page.getByRole('dialog').locator('.text-center.border-b').first();
+    }
+
+    /**
+     * Get the add reaction button for the expense
+     */
+    protected getAddReactionButton(): Locator {
+        return this.getExpenseReactionBar().getByRole('button', { name: translation.reactions.addReaction });
+    }
+
+    /**
+     * Get a reaction pill button by emoji
+     * Finds buttons containing the emoji text (not the add button which has '+')
+     */
+    protected getReactionPill(emoji: ReactionEmoji): Locator {
+        return this.getExpenseReactionBar().locator('button').filter({ hasText: emoji });
+    }
+
+    /**
+     * Get the reaction picker popover
+     */
+    protected getReactionPicker(): Locator {
+        return this.page.getByRole('listbox');
+    }
+
+    /**
+     * Get a specific emoji button in the reaction picker
+     */
+    protected getPickerEmojiButton(emoji: ReactionEmoji): Locator {
+        return this.getReactionPicker().getByRole('option').filter({ hasText: emoji });
+    }
+
+    /**
+     * Click the add reaction button to open the picker
+     */
+    async clickAddReaction(): Promise<void> {
+        const button = this.getAddReactionButton();
+        await expect(button).toBeVisible();
+        await this.clickButton(button, { buttonName: 'Add reaction' });
+        // Wait for picker to open
+        await expect(this.getReactionPicker()).toBeVisible();
+    }
+
+    /**
+     * Select an emoji from the reaction picker
+     */
+    async selectReactionEmoji(emoji: ReactionEmoji): Promise<void> {
+        const emojiButton = this.getPickerEmojiButton(emoji);
+        await expect(emojiButton).toBeVisible();
+        await emojiButton.click();
+        // Picker should close after selection
+        await expect(this.getReactionPicker()).not.toBeVisible();
+    }
+
+    /**
+     * Add a reaction to the expense (opens picker and selects emoji)
+     */
+    async addExpenseReaction(emoji: ReactionEmoji): Promise<void> {
+        await this.clickAddReaction();
+        await this.selectReactionEmoji(emoji);
+    }
+
+    /**
+     * Click on an existing reaction pill to toggle it
+     */
+    async toggleExpenseReaction(emoji: ReactionEmoji): Promise<void> {
+        const pill = this.getReactionPill(emoji);
+        await expect(pill).toBeVisible();
+        await pill.click();
+    }
+
+    /**
+     * Verify a reaction pill is visible with expected count
+     */
+    async verifyReactionVisible(emoji: ReactionEmoji, count: number): Promise<void> {
+        const pill = this.getReactionPill(emoji);
+        await expect(pill).toBeVisible();
+        await expect(pill).toContainText(String(count));
+    }
+
+    /**
+     * Verify a reaction pill is not visible
+     */
+    async verifyReactionNotVisible(emoji: ReactionEmoji): Promise<void> {
+        const pill = this.getReactionPill(emoji);
+        await expect(pill).not.toBeVisible();
+    }
+
+    /**
+     * Verify a reaction pill is highlighted (user has reacted)
+     */
+    async verifyReactionHighlighted(emoji: ReactionEmoji): Promise<void> {
+        const pill = this.getReactionPill(emoji);
+        await expect(pill).toHaveAttribute('aria-pressed', 'true');
+    }
+
+    /**
+     * Verify a reaction pill is not highlighted (user has not reacted)
+     */
+    async verifyReactionNotHighlighted(emoji: ReactionEmoji): Promise<void> {
+        const pill = this.getReactionPill(emoji);
+        await expect(pill).toHaveAttribute('aria-pressed', 'false');
+    }
+
+    /**
+     * Verify the add reaction button is visible
+     */
+    async verifyAddReactionButtonVisible(): Promise<void> {
+        await expect(this.getAddReactionButton()).toBeVisible();
+    }
+
+    /**
+     * Verify the reaction picker is open
+     */
+    async verifyReactionPickerOpen(): Promise<void> {
+        await expect(this.getReactionPicker()).toBeVisible();
+    }
+
+    /**
+     * Verify the reaction picker is closed
+     */
+    async verifyReactionPickerClosed(): Promise<void> {
+        await expect(this.getReactionPicker()).not.toBeVisible();
+    }
+
+    /**
+     * Verify all 6 emoji options are visible in the reaction picker
+     */
+    async verifyAllPickerEmojisVisible(): Promise<void> {
+        const picker = this.getReactionPicker();
+        await expect(picker).toBeVisible();
+        const emojis = ['👍', '❤️', '😂', '😮', '😢', '🎉'];
+        for (const emoji of emojis) {
+            await expect(picker.getByRole('option').filter({ hasText: emoji })).toBeVisible();
+        }
+    }
+
+    /**
+     * Press Escape key to dismiss the reaction picker
+     */
+    async pressEscapeToClosePicker(): Promise<void> {
+        await this.page.keyboard.press('Escape');
+    }
+
+    /**
+     * Click outside the reaction picker to dismiss it
+     */
+    async clickOutsideToClosePicker(): Promise<void> {
+        // Click on the modal backdrop area outside the picker
+        await this.page.getByRole('dialog').click({ position: { x: 10, y: 10 } });
+    }
+
+    // Comment reaction methods
+
+    /**
+     * Get a comment item by its text content
+     */
+    protected getCommentItemByText(text: string): Locator {
+        return this.getCommentItems().filter({ hasText: text });
+    }
+
+    /**
+     * Get the reaction bar for a specific comment
+     */
+    protected getCommentReactionBar(commentText: string): Locator {
+        return this.getCommentItemByText(commentText).locator('[class*="inline-flex"][class*="gap-1"]').first();
+    }
+
+    /**
+     * Get the add reaction button for a comment
+     */
+    protected getCommentAddReactionButton(commentText: string): Locator {
+        return this.getCommentItemByText(commentText).getByRole('button', { name: translation.reactions.addReaction });
+    }
+
+    /**
+     * Get a reaction pill on a comment
+     */
+    protected getCommentReactionPill(commentText: string, emoji: ReactionEmoji): Locator {
+        return this.getCommentItemByText(commentText).locator('button').filter({ hasText: emoji });
+    }
+
+    /**
+     * Click the add reaction button on a comment
+     */
+    async clickCommentAddReaction(commentText: string): Promise<void> {
+        const button = this.getCommentAddReactionButton(commentText);
+        await expect(button).toBeVisible();
+        await this.clickButton(button, { buttonName: 'Add reaction to comment' });
+        await expect(this.getReactionPicker()).toBeVisible();
+    }
+
+    /**
+     * Add a reaction to a comment
+     */
+    async addCommentReaction(commentText: string, emoji: ReactionEmoji): Promise<void> {
+        await this.clickCommentAddReaction(commentText);
+        await this.selectReactionEmoji(emoji);
+    }
+
+    /**
+     * Toggle a reaction on a comment
+     */
+    async toggleCommentReaction(commentText: string, emoji: ReactionEmoji): Promise<void> {
+        const pill = this.getCommentReactionPill(commentText, emoji);
+        await expect(pill).toBeVisible();
+        await pill.click();
+    }
+
+    /**
+     * Verify a comment reaction is visible with count
+     */
+    async verifyCommentReactionVisible(commentText: string, emoji: ReactionEmoji, count: number): Promise<void> {
+        const pill = this.getCommentReactionPill(commentText, emoji);
+        await expect(pill).toBeVisible();
+        await expect(pill).toContainText(String(count));
+    }
+
+    /**
+     * Verify a comment reaction is not visible
+     */
+    async verifyCommentReactionNotVisible(commentText: string, emoji: ReactionEmoji): Promise<void> {
+        const pill = this.getCommentReactionPill(commentText, emoji);
+        await expect(pill).not.toBeVisible();
+    }
+
+    /**
+     * Verify a comment reaction is highlighted
+     */
+    async verifyCommentReactionHighlighted(commentText: string, emoji: ReactionEmoji): Promise<void> {
+        const pill = this.getCommentReactionPill(commentText, emoji);
+        await expect(pill).toHaveAttribute('aria-pressed', 'true');
+    }
+
+    /**
+     * Verify a comment reaction is not highlighted
+     */
+    async verifyCommentReactionNotHighlighted(commentText: string, emoji: ReactionEmoji): Promise<void> {
+        const pill = this.getCommentReactionPill(commentText, emoji);
+        await expect(pill).toHaveAttribute('aria-pressed', 'false');
     }
 }

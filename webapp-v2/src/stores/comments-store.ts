@@ -1,4 +1,4 @@
-import type { ActivityFeedItem, CommentDTO, CommentText, ExpenseId, GroupId, ListCommentsResponse } from '@billsplit-wl/shared';
+import type { ActivityFeedItem, CommentDTO, CommentId, CommentText, ExpenseId, GroupId, ListCommentsResponse, ReactionEmoji } from '@billsplit-wl/shared';
 import { ReadonlySignal, signal } from '@preact/signals';
 import { apiClient } from '../app/apiClient';
 import type { ActivityFeedRealtimePayload, ActivityFeedRealtimeService } from '../app/services/activity-feed-realtime-service';
@@ -55,6 +55,7 @@ interface CommentsStore {
     deregisterComponent(target: CommentsStoreTarget): void;
     addComment(text: string): Promise<void>;
     loadMoreComments(): Promise<void>;
+    toggleReaction(commentId: CommentId, emoji: ReactionEmoji): Promise<void>;
     reset(): void;
 }
 
@@ -379,6 +380,58 @@ export class CommentsStoreImpl implements CommentsStore {
             this.#errorSignal.value = 'Failed to load more comments';
         } finally {
             this.#loadingSignal.value = false;
+        }
+    }
+
+    /**
+     * Toggle a reaction on a comment
+     */
+    async toggleReaction(commentId: CommentId, emoji: ReactionEmoji): Promise<void> {
+        const target = this.#targetSignal.value;
+        if (!target) {
+            this.#errorSignal.value = 'No target selected for reaction';
+            return;
+        }
+
+        try {
+            let response;
+            if (target.type === 'group') {
+                response = await apiClient.toggleGroupCommentReaction(target.groupId, commentId, emoji);
+            } else {
+                response = await apiClient.toggleExpenseCommentReaction(target.expenseId, commentId, emoji);
+            }
+
+            // Optimistically update the local comment state
+            this.#commentsSignal.value = this.#commentsSignal.value.map((comment) => {
+                if (comment.id !== commentId) {
+                    return comment;
+                }
+
+                const currentReactions = comment.userReactions || [];
+                const currentCounts = comment.reactionCounts || {};
+
+                let newUserReactions: ReactionEmoji[];
+                let newCounts: typeof currentCounts;
+
+                if (response.action === 'added') {
+                    newUserReactions = [...currentReactions, emoji];
+                    newCounts = { ...currentCounts, [emoji]: (currentCounts[emoji] || 0) + 1 };
+                } else {
+                    newUserReactions = currentReactions.filter((e) => e !== emoji);
+                    const newCount = (currentCounts[emoji] || 1) - 1;
+                    newCounts = { ...currentCounts };
+                    if (newCount > 0) {
+                        newCounts[emoji] = newCount;
+                    } else {
+                        delete newCounts[emoji];
+                    }
+                }
+
+                return { ...comment, userReactions: newUserReactions, reactionCounts: newCounts };
+            });
+        } catch (error) {
+            logError('Failed to toggle reaction', error);
+            throw error;
         }
     }
 

@@ -98,6 +98,16 @@
     "yearAgo_one": "منذ {{count}} عام",
     "yearAgo_other": "منذ {{count}} أعوام"
   },
+  "reactions": {
+    "addReaction": "إضافة تفاعل",
+    "removeReaction": "إزالة التفاعل",
+    "thumbsUp": "إعجاب",
+    "heart": "قلب",
+    "laugh": "ضحك",
+    "wow": "مندهش",
+    "sad": "حزين",
+    "celebrate": "احتفال"
+  },
   "app": {
     "loading": "جار التحميل...",
     "loadingPage": "جار تحميل الصفحة...",

@@ -135,7 +135,11 @@ export class ExpenseService {
         }
         timer.endPhase();
 
-        const isLocked = await this.isExpenseLocked(expense);
+        // Fetch isLocked and userReactions in parallel
+        const [isLocked, userReactions] = await Promise.all([
+            this.isExpenseLocked(expense),
+            this.firestoreReader.getUserReactionsForExpense(expenseId, userId),
+        ]);
 
         logger.info('expense-retrieved', {
             id: expenseId,
@@ -145,6 +149,7 @@ export class ExpenseService {
         return {
             ...expense,
             isLocked,
+            userReactions,
         };
     }
 
@@ -823,7 +828,11 @@ export class ExpenseService {
         const userIds = expense.participants;
         const participantData = await this.userService.resolveGroupMemberProfiles(groupId, userIds);
 
-        const isLocked = await this.isExpenseLocked(expense);
+        // Fetch isLocked and userReactions in parallel
+        const [isLocked, userReactions] = await Promise.all([
+            this.isExpenseLocked(expense),
+            this.firestoreReader.getUserReactionsForExpense(expenseId, userId),
+        ]);
         timer.endPhase();
 
         // Format expense response
@@ -837,6 +846,7 @@ export class ExpenseService {
             expense: {
                 ...expense,
                 isLocked,
+                userReactions,
             },
             group,
             members: { members: participantData }, // Wrap in object to match ExpenseFullDetailsDTO.members structure

@@ -1,5 +1,6 @@
 import { GROUP_DETAIL_ERROR_CODES } from '@/constants/error-codes.ts';
 import { logError, logWarning } from '@/utils/browser-logger';
+import type { ReactionEmoji, SettlementId } from '@billsplit-wl/shared';
 import { ExpenseDTO, GroupBalances, GroupDTO, GroupId, GroupMember, ListCommentsResponse, SettlementWithMembers, UserId } from '@billsplit-wl/shared';
 import { batch, signal } from '@preact/signals';
 import { apiClient } from '../apiClient';
@@ -60,6 +61,8 @@ interface EnhancedGroupDetailStore {
     archiveGroup(): Promise<void>;
 
     unarchiveGroup(): Promise<void>;
+
+    toggleSettlementReaction(settlementId: SettlementId, emoji: ReactionEmoji): Promise<void>;
 }
 
 class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
@@ -285,6 +288,44 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
             await this.refreshAll('mutation');
         } catch (error: any) {
             this.#errorSignal.value = error instanceof Error ? error.message : 'Failed to unarchive group';
+            throw error;
+        }
+    }
+
+    async toggleSettlementReaction(settlementId: SettlementId, emoji: ReactionEmoji): Promise<void> {
+        try {
+            const response = await apiClient.toggleSettlementReaction(settlementId, emoji);
+
+            // Optimistically update the local settlement state
+            this.#settlementsSignal.value = this.#settlementsSignal.value.map((settlement) => {
+                if (settlement.id !== settlementId) {
+                    return settlement;
+                }
+
+                const currentReactions = settlement.userReactions || [];
+                const currentCounts = settlement.reactionCounts || {};
+
+                let newUserReactions: ReactionEmoji[];
+                let newCounts: typeof currentCounts;
+
+                if (response.action === 'added') {
+                    newUserReactions = [...currentReactions, emoji];
+                    newCounts = { ...currentCounts, [emoji]: (currentCounts[emoji] || 0) + 1 };
+                } else {
+                    newUserReactions = currentReactions.filter((e) => e !== emoji);
+                    const newCount = (currentCounts[emoji] || 1) - 1;
+                    newCounts = { ...currentCounts };
+                    if (newCount > 0) {
+                        newCounts[emoji] = newCount;
+                    } else {
+                        delete newCounts[emoji];
+                    }
+                }
+
+                return { ...settlement, userReactions: newUserReactions, reactionCounts: newCounts };
+            });
+        } catch (error) {
+            logError('Failed to toggle settlement reaction', error);
             throw error;
         }
     }

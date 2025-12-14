@@ -98,6 +98,16 @@
     "yearAgo_one": "pirms {{count}} gada",
     "yearAgo_other": "pirms {{count}} gadiem"
   },
+  "reactions": {
+    "addReaction": "Pievienot reakciju",
+    "removeReaction": "Noņemt reakciju",
+    "thumbsUp": "Patīk",
+    "heart": "Sirds",
+    "laugh": "Smiekli",
+    "wow": "Wow",
+    "sad": "Skumji",
+    "celebrate": "Svinēt"
+  },
   "app": {
     "loading": "Notiek ielāde...",
     "loadingPage": "Notiek lapas ielāde...",

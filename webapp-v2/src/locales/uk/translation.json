@@ -98,6 +98,16 @@
     "yearAgo_one": "{{count}} рік тому",
     "yearAgo_other": "{{count}} років тому"
   },
+  "reactions": {
+    "addReaction": "Додати реакцію",
+    "removeReaction": "Видалити реакцію",
+    "thumbsUp": "Подобається",
+    "heart": "Серце",
+    "laugh": "Сміх",
+    "wow": "Ого",
+    "sad": "Сумно",
+    "celebrate": "Святкувати"
+  },
   "app": {
     "loading": "Завантаження...",
     "loadingPage": "Завантаження сторінки...",

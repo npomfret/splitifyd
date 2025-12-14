@@ -1,5 +1,6 @@
-import type { CommentDTO } from '@billsplit-wl/shared';
+import type { CommentDTO, ReactionEmoji } from '@billsplit-wl/shared';
 import { toDisplayName } from '@billsplit-wl/shared';
+import { ReactionBar } from '../reactions';
 import { Avatar, RelativeTime } from '../ui';
 
 interface CommentItemProps {
@@ -7,9 +8,18 @@ interface CommentItemProps {
     isCurrentUser?: boolean;
     showAvatar?: boolean;
     className?: string;
+    onReactionToggle?: (emoji: ReactionEmoji) => void;
+    reactionDisabled?: boolean;
 }
 
-export function CommentItem({ comment, isCurrentUser = false, showAvatar = true, className = '' }: CommentItemProps) {
+export function CommentItem({
+    comment,
+    isCurrentUser = false,
+    showAvatar = true,
+    className = '',
+    onReactionToggle,
+    reactionDisabled = false,
+}: CommentItemProps) {
     return (
         <article
             className={`flex gap-3 ${isCurrentUser ? 'flex-row-reverse' : ''} ${className}`}
@@ -39,6 +49,17 @@ export function CommentItem({ comment, isCurrentUser = false, showAvatar = true,
                 >
                     <p className='text-sm whitespace-pre-wrap wrap-break-word'>{comment.text}</p>
                 </div>
+                {onReactionToggle && (
+                    <div className={`mt-1 ${isCurrentUser ? 'flex justify-end' : ''}`}>
+                        <ReactionBar
+                            counts={comment.reactionCounts}
+                            userReactions={comment.userReactions}
+                            onToggle={onReactionToggle}
+                            disabled={reactionDisabled}
+                            size="sm"
+                        />
+                    </div>
+                )}
                 <div className={`mt-1 ${isCurrentUser ? 'text-end' : 'text-start'}`}>
                     <RelativeTime
                         date={comment.createdAt}

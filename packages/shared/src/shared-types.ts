@@ -944,6 +944,7 @@ export interface ExpenseLocation {
 export interface ExpenseDTO extends Expense, BaseDTO<ExpenseId> {
     isLocked: boolean; // True if any participant has left the group (computed field, always present)
     reactionCounts?: ReactionCounts; // Aggregated reaction counts (optional, included when reactions exist)
+    userReactions?: ReactionEmoji[]; // Current user's reactions on this expense (optional, included when user has reacted)
 }
 
 export interface CreateExpenseRequest {
@@ -992,6 +993,7 @@ interface Settlement extends SoftDeletable {
 export interface SettlementDTO extends Settlement, BaseDTO<SettlementId> {
     isLocked: boolean; // True if payer or payee has left the group (computed field, always present)
     reactionCounts?: ReactionCounts; // Aggregated reaction counts (optional, included when reactions exist)
+    userReactions?: ReactionEmoji[]; // Current user's reactions on this settlement (optional, included when user has reacted)
 }
 
 export interface CreateSettlementRequest {
@@ -1038,6 +1040,8 @@ export interface SettlementWithMembers extends SoftDeletable {
     createdAt: ISOString;
     isLocked: boolean; // True if payer or payee has left the group (computed field, always present)
     supersededBy: SettlementId | null; // Non-null if this settlement was edited (replaced by newer version)
+    reactionCounts?: ReactionCounts;
+    userReactions?: ReactionEmoji[]; // Current user's reactions on this settlement
 }
 
 // ========================================================================
@@ -1285,6 +1289,7 @@ interface Comment {
  */
 export interface CommentDTO extends Comment, BaseDTO<CommentId> {
     reactionCounts?: ReactionCounts; // Aggregated reaction counts (optional, included when reactions exist)
+    userReactions?: ReactionEmoji[]; // Current user's reactions on this comment (optional, included when user has reacted)
 }
 
 interface BaseCreateCommentRequest {

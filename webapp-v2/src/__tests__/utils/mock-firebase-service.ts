@@ -957,6 +957,139 @@ export async function mockAdminPublishTenantThemeApi(page: Page): Promise<void> 
  * @param page - Playwright page instance
  * @param user - Optional user to mock profile API with
  */
+/**
+ * Mock toggle expense reaction API endpoint
+ * POST /api/expenses/:expenseId/reactions/:emoji
+ */
+export async function mockToggleExpenseReactionApi(
+    page: Page,
+    expenseId: ExpenseId | string,
+    emoji: string,
+    response: { action: 'added' | 'removed'; },
+    options: { delayMs?: number; } = {},
+): Promise<void> {
+    const delay = getApiDelay(options.delayMs);
+
+    await registerMswHandlers(
+        page,
+        createJsonHandler('POST', `/api/expenses/${expenseId}/reactions/${emoji}`, response, {
+            delayMs: delay,
+        }),
+    );
+}
+
+/**
+ * Mock toggle expense reaction API
+ * The emoji is sent in the request body, not the URL
+ * Returns a proper ReactionToggleResponse with action, emoji, and newCount
+ *
+ * @param emoji - The emoji to return in the response (defaults to thumbs up)
+ * @param newCount - The new count to return (defaults to 1 for 'added', 0 for 'removed')
+ */
+export async function mockToggleExpenseReactionApiForAllEmojis(
+    page: Page,
+    expenseId: ExpenseId | string,
+    action: 'added' | 'removed' = 'added',
+    options: { delayMs?: number; emoji?: string; newCount?: number; } = {},
+): Promise<void> {
+    const delay = getApiDelay(options.delayMs);
+    const emoji = options.emoji ?? '👍';
+    const newCount = options.newCount ?? (action === 'added' ? 1 : 0);
+
+    // Single handler for all emojis - emoji is in request body
+    // Response includes all required fields for ReactionToggleResponse
+    await registerMswHandlers(
+        page,
+        createJsonHandler('POST', `/api/expenses/${expenseId}/reactions`, {
+            action,
+            emoji,
+            newCount,
+        }, {
+            delayMs: delay,
+        }),
+    );
+}
+
+/**
+ * Mock toggle expense comment reaction API
+ * POST /api/expenses/:expenseId/comments/:commentId/reactions
+ */
+export async function mockToggleExpenseCommentReactionApi(
+    page: Page,
+    expenseId: ExpenseId | string,
+    commentId: string,
+    action: 'added' | 'removed' = 'added',
+    options: { delayMs?: number; emoji?: string; newCount?: number; } = {},
+): Promise<void> {
+    const delay = getApiDelay(options.delayMs);
+    const emoji = options.emoji ?? '👍';
+    const newCount = options.newCount ?? (action === 'added' ? 1 : 0);
+
+    await registerMswHandlers(
+        page,
+        createJsonHandler('POST', `/api/expenses/${expenseId}/comments/${commentId}/reactions`, {
+            action,
+            emoji,
+            newCount,
+        }, {
+            delayMs: delay,
+        }),
+    );
+}
+
+/**
+ * Mock toggle group comment reaction API
+ * POST /api/groups/:groupId/comments/:commentId/reactions
+ */
+export async function mockToggleGroupCommentReactionApi(
+    page: Page,
+    groupId: GroupId | string,
+    commentId: string,
+    action: 'added' | 'removed' = 'added',
+    options: { delayMs?: number; emoji?: string; newCount?: number; } = {},
+): Promise<void> {
+    const delay = getApiDelay(options.delayMs);
+    const emoji = options.emoji ?? '👍';
+    const newCount = options.newCount ?? (action === 'added' ? 1 : 0);
+
+    await registerMswHandlers(
+        page,
+        createJsonHandler('POST', `/api/groups/${groupId}/comments/${commentId}/reactions`, {
+            action,
+            emoji,
+            newCount,
+        }, {
+            delayMs: delay,
+        }),
+    );
+}
+
+/**
+ * Mock toggle settlement reaction API
+ * POST /api/settlements/:settlementId/reactions
+ */
+export async function mockToggleSettlementReactionApi(
+    page: Page,
+    settlementId: string,
+    action: 'added' | 'removed' = 'added',
+    options: { delayMs?: number; emoji?: string; newCount?: number; } = {},
+): Promise<void> {
+    const delay = getApiDelay(options.delayMs);
+    const emoji = options.emoji ?? '👍';
+    const newCount = options.newCount ?? (action === 'added' ? 1 : 0);
+
+    await registerMswHandlers(
+        page,
+        createJsonHandler('POST', `/api/settlements/${settlementId}/reactions`, {
+            action,
+            emoji,
+            newCount,
+        }, {
+            delayMs: delay,
+        }),
+    );
+}
+
 export async function setupSuccessfulApiMocks(page: Page, user?: ClientUser): Promise<void> {
     // Mock policies API: /api/user/policies/status -> all policies accepted
     await mockFullyAcceptedPoliciesApi(page);

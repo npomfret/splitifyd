@@ -80,7 +80,7 @@ export class SettlementService {
             throw Errors.forbidden(ErrorDetail.NOT_GROUP_MEMBER);
         }
 
-        const result = await this._getGroupSettlementsData(groupId, options);
+        const result = await this._getGroupSettlementsData(groupId, userId, options);
         timer.endPhase();
 
         return result;
@@ -623,6 +623,7 @@ export class SettlementService {
      */
     async _getGroupSettlementsData(
         groupId: GroupId,
+        userId: UserId,
         options: ListSettlementsOptions = {},
     ): Promise<ListSettlementsResponse> {
         LoggerContext.setBusinessContext({ groupId });
@@ -648,9 +649,10 @@ export class SettlementService {
 
         const settlements: SettlementWithMembers[] = await Promise.all(
             result.settlements.map(async (settlement) => {
-                const [payerData, payeeData] = await Promise.all([
+                const [payerData, payeeData, userReactions] = await Promise.all([
                     this.userService.resolveGroupMemberProfile(groupId, settlement.payerId),
                     this.userService.resolveGroupMemberProfile(groupId, settlement.payeeId),
+                    this.firestoreReader.getUserReactionsForSettlement(settlement.id, userId),
                 ]);
 
                 // Compute lock status
@@ -671,6 +673,8 @@ export class SettlementService {
                     deletedBy: settlement.deletedBy,
                     supersededBy: settlement.supersededBy,
                     isLocked,
+                    reactionCounts: settlement.reactionCounts,
+                    userReactions,
                 } as SettlementWithMembers;
             }),
         );

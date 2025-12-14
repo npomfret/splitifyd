@@ -1,4 +1,4 @@
-import type { CommentDTO, CommentText, ISOString } from '@billsplit-wl/shared';
+import type { CommentDTO, CommentText, ISOString, ReactionCounts, ReactionEmoji } from '@billsplit-wl/shared';
 import type { CommentId, UserId } from '@billsplit-wl/shared';
 import { toCommentId, toCommentText } from '@billsplit-wl/shared';
 import { toUserId } from '@billsplit-wl/shared';
@@ -68,6 +68,16 @@ export class CommentBuilder {
 
     withInvalidDate(): this {
         this.comment.createdAt = convertToISOString('invalid-date');
+        return this;
+    }
+
+    withReactionCounts(reactionCounts: ReactionCounts): this {
+        this.comment.reactionCounts = reactionCounts;
+        return this;
+    }
+
+    withUserReactions(userReactions: ReactionEmoji[]): this {
+        this.comment.userReactions = userReactions;
         return this;
     }
 

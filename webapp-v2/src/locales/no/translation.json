@@ -98,6 +98,16 @@
     "yearAgo_one": "{{count}} år siden",
     "yearAgo_other": "{{count}} år siden"
   },
+  "reactions": {
+    "addReaction": "Legg til reaksjon",
+    "removeReaction": "Fjern reaksjon",
+    "thumbsUp": "Tommel opp",
+    "heart": "Hjerte",
+    "laugh": "Latter",
+    "wow": "Wow",
+    "sad": "Trist",
+    "celebrate": "Feire"
+  },
   "app": {
     "loading": "Laster...",
     "loadingPage": "Laster side...",
