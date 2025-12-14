@@ -623,6 +623,35 @@ export class GroupDetailPage extends BasePage {
         return this.getExpensesContainer().getByRole('heading', { name: translation.expensesList.noExpensesYet });
     }
 
+    /**
+     * Get the "Load More" button in the expenses section
+     */
+    protected getLoadMoreExpensesButton(): Locator {
+        return this.getExpensesContainer().getByRole('button', { name: 'Load More' });
+    }
+
+    /**
+     * Verify the "Load More" expenses button is visible
+     */
+    async verifyLoadMoreExpensesButtonVisible(): Promise<void> {
+        await expect(this.getLoadMoreExpensesButton()).toBeVisible();
+    }
+
+    /**
+     * Verify the "Load More" expenses button is not visible (hidden)
+     */
+    async verifyLoadMoreExpensesButtonNotVisible(): Promise<void> {
+        await expect(this.getLoadMoreExpensesButton()).toBeHidden();
+    }
+
+    /**
+     * Click the "Load More" expenses button to load additional expenses
+     */
+    async clickLoadMoreExpenses(): Promise<void> {
+        const button = this.getLoadMoreExpensesButton();
+        await this.clickButton(button, { buttonName: 'Load More Expenses' });
+    }
+
     // ============================================================================
     // COMMENTS SECTION
     // ============================================================================
@@ -734,6 +763,52 @@ export class GroupDetailPage extends BasePage {
         await this.ensureCommentsSectionExpanded();
 
         await expect(this.getCommentByText(text)).toBeVisible();
+    }
+
+    /**
+     * Get the "Load More Comments" button in the comments section
+     */
+    protected getLoadMoreCommentsButton(): Locator {
+        return this.getCommentsSection().getByRole('button', { name: /load more comments/i });
+    }
+
+    /**
+     * Get the loading button state (when Load More is clicked)
+     */
+    protected getLoadingCommentsButton(): Locator {
+        return this.getCommentsSection().getByRole('button', { name: /loading/i });
+    }
+
+    /**
+     * Verify the "Load More Comments" button is visible
+     */
+    async verifyLoadMoreCommentsButtonVisible(): Promise<void> {
+        await this.ensureCommentsSectionExpanded();
+        await expect(this.getLoadMoreCommentsButton()).toBeVisible();
+    }
+
+    /**
+     * Verify the "Load More Comments" button is not visible
+     */
+    async verifyLoadMoreCommentsButtonNotVisible(): Promise<void> {
+        await this.ensureCommentsSectionExpanded();
+        await expect(this.getLoadMoreCommentsButton()).not.toBeVisible();
+    }
+
+    /**
+     * Verify the loading comments button is disabled (during loading state)
+     */
+    async verifyLoadingCommentsButtonDisabled(): Promise<void> {
+        await expect(this.getLoadingCommentsButton()).toBeDisabled();
+    }
+
+    /**
+     * Click the "Load More Comments" button to load additional comments
+     */
+    async clickLoadMoreComments(): Promise<void> {
+        await this.ensureCommentsSectionExpanded();
+        const button = this.getLoadMoreCommentsButton();
+        await this.clickButton(button, { buttonName: 'Load More Comments' });
     }
 
     /**
@@ -1838,6 +1913,22 @@ export class GroupDetailPage extends BasePage {
      */
     async verifyBalanceContainerVisible(): Promise<void> {
         await expect(this.getBalanceContainer()).toBeVisible();
+    }
+
+    /**
+     * Verify balance container is attached to DOM (not necessarily visible)
+     */
+    async verifyBalanceContainerAttached(): Promise<void> {
+        await expect(this.getBalanceContainer()).toBeAttached();
+    }
+
+    /**
+     * Click the settlement button for a specific debt between two members
+     * Returns a SettlementFormPage for interacting with the opened modal
+     */
+    async clickSettlementButtonForDebt(debtorName: string, creditorName: string): Promise<void> {
+        const settlementButton = this.getSettlementButtonForDebt(debtorName, creditorName);
+        await settlementButton.click();
     }
 
     /**

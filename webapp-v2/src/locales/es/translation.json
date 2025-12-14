@@ -45,55 +45,23 @@
     "delete": "Eliminar",
     "edit": "Editar",
     "close": "Cerrar",
-    "confirm": "Confirmar",
-    "back": "Atrás",
-    "next": "Siguiente",
-    "previous": "Anterior",
-    "submit": "Enviar",
     "search": "Buscar",
-    "select": "Seleccionar",
-    "selectAll": "Seleccionar todo",
-    "none": "Ninguno",
-    "all": "Todos",
-    "yes": "Sí",
-    "no": "No",
-    "ok": "OK",
     "error": "Error",
-    "success": "Éxito",
-    "warning": "Advertencia",
-    "info": "Información",
     "unknown": "Desconocido",
-    "unknownUser": "Usuario desconocido",
     "includeDeleted": "Incluir eliminados",
     "you": "Tú",
-    "youSuffix": " (Tú)",
     "required": "*",
-    "optional": "(opcional)",
-    "or": "o",
-    "and": "y",
-    "copy": "Copiar",
-    "share": "Compartir",
     "dismiss": "Descartar",
-    "dismissAlert": "Descartar alerta",
-    "justNow": "justo ahora",
     "chooseFile": "Elegir archivo",
     "active": "Activo",
-    "inactive": "Inactivo",
     "disabled": "Deshabilitado",
-    "total": "Total",
     "member": "Miembro",
     "members": "Miembros",
-    "user": "Usuario",
     "group": "Grupo",
-    "groups": "Grupos",
-    "recent": "Reciente",
-    "settings": "Configuración",
     "understood": "Entendido",
     "titleSuffix": " - {{appName}}",
     "refresh": "Actualizar",
     "reset": "Restablecer",
-    "add": "Añadir",
-    "create": "Crear",
     "processing": "Procesando...",
     "download": "Descargar",
     "downloading": "Descargando...",
@@ -110,25 +78,9 @@
     "type": "Tipo",
     "size": "Tamaño",
     "link": "Enlace",
-    "value": "Valor",
     "notConfigured": "No configurado",
     "notSet": "no establecido",
-    "empty": "(vacío)",
-    "noData": "No hay datos disponibles",
-    "default": "Predeterminado",
-    "actions": "Acciones",
-    "status": "Estado",
-    "email": "Correo electrónico",
-    "displayName": "Nombre visible",
-    "role": "Rol",
-    "lastSignIn": "Último inicio de sesión",
-    "placeholder": {
-      "amount": "0.00",
-      "search": "Buscar...",
-      "searchCurrencies": "Buscar monedas...",
-      "selectCurrency": "Seleccionar moneda...",
-      "selectPerson": "Seleccionar persona"
-    }
+    "empty": "(vacío)"
   },
   "currencySelector": {
     "noResults": "No se encontraron monedas"
@@ -191,11 +143,7 @@
     "forgotPassword": "¿Olvidó su contraseña?",
     "submitButton": "Iniciar sesión",
     "noAccount": "¿No tiene una cuenta?",
-    "signUp": "Registrarse",
-    "validation": {
-      "emailRequired": "El correo electrónico es obligatorio",
-      "passwordRequired": "La contraseña es obligatoria"
-    }
+    "signUp": "Registrarse"
   },
   "registerPage": {
     "title": "Crear cuenta",
@@ -213,7 +161,6 @@
     "submitButton": "Crear cuenta",
     "hasAccount": "¿Ya tiene una cuenta?",
     "signIn": "Iniciar sesión",
-    "requiredIndicator": "*",
     "validation": {
       "nameRequired": "El nombre es obligatorio",
       "emailRequired": "El correo electrónico es obligatorio",
@@ -231,7 +178,6 @@
     "emailInput": {
       "label": "Correo electrónico",
       "placeholder": "Introduzca su correo electrónico",
-      "requiredIndicator": "*",
       "validation": {
         "required": "El correo electrónico es obligatorio",
         "invalid": "Por favor, introduzca una dirección de correo electrónico válida"
@@ -240,7 +186,6 @@
     "passwordInput": {
       "label": "Contraseña",
       "placeholder": "Introduzca su contraseña",
-      "requiredIndicator": "*",
       "showPassword": "Mostrar contraseña",
       "hidePassword": "Ocultar contraseña",
       "strength": "Seguridad de la contraseña",
@@ -275,19 +220,7 @@
       "archivedBadge": "Archivado"
     },
     "emptyState": {
-      "title": "Todavía no hay grupos",
-      "subtitle": "Cree su primer grupo para empezar a rastrear gastos compartidos",
-      "createButton": "Crear grupo"
-    },
-    "stats": {
-      "totalGroups": "Total de grupos",
-      "totalExpenses": "Total de gastos",
-      "totalBalance": "Saldo total"
-    },
-    "quickActions": {
-      "title": "Acciones rápidas",
-      "createGroup": "Crear grupo",
-      "addExpense": "Añadir gasto"
+      "title": "Todavía no hay grupos"
     }
   },
   "activityFeed": {
@@ -329,7 +262,6 @@
       "comment-added": "{{actor}} comentó en {{target}} en {{group}}",
       "settlement-created": "{{actor}} registró {{settlement}} en {{group}}",
       "settlement-updated": "{{actor}} actualizó {{settlement}} en {{group}}",
-      "settlement-deleted": "{{actor}} eliminó {{settlement}} de {{group}}",
       "generic": "{{actor}} realizó cambios en {{group}}",
       "group-created-short": "{{actor}} creó el grupo",
       "group-updated-short": "{{actor}} actualizó el grupo",
@@ -344,7 +276,6 @@
       "comment-added-short": "{{actor}} comentó en {{target}}",
       "settlement-created-short": "{{actor}} registró {{settlement}}",
       "settlement-updated-short": "{{actor}} actualizó {{settlement}}",
-      "settlement-deleted-short": "{{actor}} eliminó {{settlement}}",
       "generic-short": "{{actor}} realizó cambios"
     }
   },
@@ -357,74 +288,19 @@
     },
     "actions": {
       "addExpense": "Añadir gasto",
-      "viewExpenses": "Ver gastos",
-      "settleUp": "Liquidar",
-      "shareGroup": "Compartir grupo",
-      "editGroup": "Editar grupo",
-      "leaveGroup": "Abandonar grupo"
-    },
-    "share": {
-      "title": "Compartir grupo",
-      "subtitle": "Invite a otros a unirse a este grupo",
-      "copyLink": "Copiar enlace",
-      "linkCopied": "¡Enlace copiado al portapapeles!"
-    },
-    "edit": {
-      "title": "Editar grupo",
-      "warningIcon": "⚠️"
-    },
-    "leave": {
-      "title": "Abandonar grupo",
-      "message": "¿Está seguro de que quiere abandonar este grupo?",
-      "confirmButton": "Abandonar grupo",
-      "cancelButton": "Cancelar"
-    },
-    "members": {
-      "title": "Miembros",
-      "addMember": "Añadir miembro",
-      "removeMember": "Eliminar miembro",
-      "unknownUser": "Usuario desconocido",
-      "user": "Usuario"
-    },
-    "expenses": {
-      "title": "Gastos",
-      "noExpenses": "Todavía no hay gastos",
-      "addFirstExpense": "Añada su primer gasto",
-      "unknown": "Desconocido"
-    },
-    "balance": {
-      "title": "Resumen de saldos",
-      "settledUp": "¡Todo liquidado!",
-      "unknown": "Desconocido"
+      "settleUp": "Liquidar"
     }
   },
   "comments": {
-    "section": {
-      "title": "Comentarios",
-      "noComments": "Todavía no hay comentarios"
-    },
     "input": {
-      "placeholder": "Añadir un comentario...",
       "ariaLabel": "Texto del comentario",
-      "sendButton": "Enviar",
       "sendAriaLabel": "Enviar comentario"
-    },
-    "item": {
-      "justNow": "justo ahora",
-      "deleteButton": "Eliminar comentario"
-    },
-    "list": {
-      "loading": "Cargando comentarios...",
-      "error": "Fallo al cargar comentarios"
     },
     "commentInput": {
       "placeholder": "Añadir un comentario...",
       "tooLong": "El comentario es demasiado largo",
       "addFailed": "Fallo al añadir comentario",
       "helpText": "Pulse Enter para enviar, Shift+Enter para nueva línea"
-    },
-    "commentItem": {
-      "recently": "recientemente"
     },
     "commentsList": {
       "loading": "Cargando comentarios...",
@@ -448,74 +324,23 @@
     }
   },
   "navigation": {
-    "header": {
-      "fallback": "...",
-      "dashboard": "Panel de control",
-      "groups": "Grupos",
-      "settings": "Configuración"
-    },
-    "footer": {
-      "copyright": "© {{year}} {{appName}}. Todos los derechos reservados.",
-      "privacy": "Política de privacidad",
-      "terms": "Términos de servicio",
-      "cookies": "Política de cookies"
-    },
     "userMenu": {
       "openUserMenu": "Abrir menú de usuario",
-      "profile": "Perfil",
-      "settings": "Configuración",
-      "logout": "Cerrar sesión",
-      "help": "Ayuda"
+      "logout": "Cerrar sesión"
     }
   },
   "errors": {
-    "generic": "Se produjo un error",
-    "network": "Se produjo un error de red",
-    "invalidLink": "Enlace no válido",
-    "notFound": {
-      "page": "Página no encontrada",
-      "group": "Grupo no encontrado",
-      "expense": "Gasto no encontrado"
-    },
-    "loading": {
-      "cookiePolicy": "Error al cargar la política de cookies",
-      "privacyPolicy": "Error al cargar la política de privacidad",
-      "terms": "Error al cargar los términos"
-    },
-    "validation": {
-      "displayNameEmpty": "El nombre visible no puede estar vacío",
-      "displayNameTooLong": "El nombre visible debe tener 100 caracteres o menos",
-      "passwordTooShort": "La nueva contraseña debe tener al menos 12 caracteres",
-      "passwordsNoMatch": "Las contraseñas no coinciden",
-      "passwordSameAsCurrent": "La nueva contraseña debe ser diferente de la actual",
-      "passwordAndNewRequired": "La contraseña actual y la nueva contraseña son obligatorias"
-    }
+    "invalidLink": "Enlace no válido"
   },
   "seo": {
     "titleSuffix": " | {{appName}}",
     "siteName": "{{appName}}"
   },
   "expenseForm": {
-    "description": "Descripción",
-    "amount": "Importe*",
-    "whoPaid": "¿Quién pagó?",
-    "splitBetween": "Dividir entre",
-    "exactAmounts": "Cantidades exactas",
-    "percentage": "Porcentaje",
-    "equal": "Igual",
-    "exactAmountsInstruction": "Introduzca las cantidades exactas para cada persona:",
-    "percentageInstruction": "Introduzca el porcentaje para cada persona:",
-    "selectAll": "Seleccionar todo",
     "saveExpense": "Guardar gasto",
-    "updateExpense": "Actualizar gasto",
-    "cancel": "Cancelar",
-    "errors": {
-      "expenseLocked": "Este gasto no se puede editar porque uno o más participantes han abandonado el grupo."
-    }
+    "updateExpense": "Actualizar gasto"
   },
   "settlementForm": {
-    "updatePayment": "Actualizar pago",
-    "recordPayment": "Registrar pago",
     "updateSettlement": "Actualizar liquidación",
     "recordSettlement": "Registrar liquidación",
     "closeModal": "Cerrar modal",
@@ -531,7 +356,6 @@
     "cancelButton": "Cancelar",
     "updatingButton": "Actualizando...",
     "recordingButton": "Registrando...",
-    "paymentSummary": "{{payer}} pagó {{amount}} a {{payee}}",
     "validation": {
       "selectPayer": "Por favor, seleccione quién pagó",
       "selectPayee": "Por favor, seleccione quién recibió el pago",
@@ -554,12 +378,9 @@
   },
   "settlementHistory": {
     "noPaymentsYet": "Todavía no hay pagos registrados",
-    "today": "Hoy",
-    "yesterday": "Ayer",
     "editPaymentTooltip": "Editar pago",
     "cannotEditTooltip": "No se puede editar: el miembro ha abandonado el grupo",
     "deletePaymentTooltip": "Eliminar pago",
-    "loadMore": "Cargar más",
     "loadMorePayments": "Cargar más pagos",
     "deletePaymentTitle": "Eliminar pago",
     "deletePaymentMessage": "¿Está seguro de que desea eliminar este pago de {{amount}} de {{payer}} a {{payee}}? Esta acción no se puede deshacer.",
@@ -572,10 +393,7 @@
   "balanceSummary": {
     "loadingBalances": "Cargando saldos...",
     "allSettledUp": "¡Todo liquidado!",
-    "debtArrow": " → ",
-    "showOnlyMyBalances": "Mostrar solo mis saldos",
     "showAll": "Mostrar todo",
-    "settleUp": "Liquidar",
     "settleUpButton": "Registrar liquidación para esta deuda"
   },
   "emptyGroupsState": {
@@ -635,8 +453,7 @@
     "Gasolina",
     "Aparcamiento",
     "Peajes",
-    "Uber",
-    "Lyft",
+    "Viaje compartido",
     "Taxi",
     "Autobús",
     "Tren",
@@ -644,7 +461,7 @@
     "Alquiler de coche",
     "Combustible",
     "Vuelo",
-    "Airbnb",
+    "Alojamiento",
     "Hotel",
     "Hostal",
     "Resort",
@@ -749,7 +566,6 @@
     "Depósito de seguridad"
   ],
   "expensesList": {
-    "title": "Gastos",
     "noExpensesYet": "Todavía no hay gastos. ¡Añada uno para empezar!",
     "loadMore": "Cargar más"
   },
@@ -771,14 +587,7 @@
     "admin": "Administrador",
     "settings": "Configuración",
     "signOut": "Cerrar sesión",
-    "signingOut": "Cerrando sesión...",
-    "systemUserBadge": "Usuario del sistema",
-    "systemUserTooltip": "Esta cuenta se utiliza para operaciones automatizadas o impulsadas por el sistema.",
-    "environmentLink": "entorno",
-    "diagnosticsLoading": "Cargando diagnósticos...",
-    "diagnosticsError": "No se pudieron cargar los diagnósticos:",
-    "browser": "Navegador",
-    "browserUsers": "Navegador de usuarios"
+    "signingOut": "Cerrando sesión..."
   },
   "languageSelector": {
     "label": "Idioma",
@@ -796,8 +605,7 @@
     "membersCount_other": "{{count}} miembros",
     "old": "antiguo",
     "lastUpdated": "última actualización",
-    "groupSettingsAriaLabel": "Configuración del grupo",
-    "groupSecurityAriaLabel": "Seguridad y permisos"
+    "groupSettingsAriaLabel": "Configuración del grupo"
   },
   "securitySettingsModal": {
     "unsavedChanges": "Tiene cambios sin guardar. Revise todo y luego presione Guardar para aplicarlos.",
@@ -936,13 +744,11 @@
     }
   },
   "editGroupModal": {
-    "title": "Editar grupo",
     "groupNameLabel": "Nombre del grupo",
     "groupNamePlaceholder": "ej., Gastos de apartamento, Viaje a París",
     "descriptionLabel": "Descripción (opcional)",
     "descriptionPlaceholder": "Añada cualquier detalle sobre este grupo...",
     "cancelButton": "Cancelar",
-    "saveChangesButton": "Guardar cambios",
     "deleteGroupButton": "Eliminar grupo",
     "validation": {
       "nameRequired": "El nombre del grupo es obligatorio.",
@@ -1017,7 +823,6 @@
     "description": "Elija cómo le ven otros miembros en este grupo.",
     "inputLabel": "Su nombre visible en este grupo",
     "inputPlaceholder": "Introduzca un nombre visible único",
-    "save": "Guardar nombre visible",
     "saving": "Guardando...",
     "success": "Nombre visible del grupo actualizado.",
     "errors": {
@@ -1033,11 +838,7 @@
     "admin": "Administrador",
     "member": "Miembro",
     "viewer": "Espectador",
-    "thisMember": "Este miembro",
-    "leaveGroup": "Abandonar grupo",
     "inviteOthers": "Invitar a otros",
-    "inviteOthersAriaLabel": "Invitar a otros",
-    "leaveGroupAriaLabel": "Abandonar grupo",
     "removeMemberAriaLabel": "Eliminar a {{name}}",
     "leaveGroupDialog": {
       "title": "¿Abandonar grupo?",
@@ -1050,8 +851,7 @@
       "title": "¿Eliminar miembro?",
       "messageWithBalance": "{{name}} tiene un saldo pendiente en este grupo. Por favor, liquide antes de eliminar.",
       "messageConfirm": "¿Está seguro de que desea eliminar a {{name}} del grupo?",
-      "confirmText": "Eliminar",
-      "cancelText": "Cancelar"
+      "confirmText": "Eliminar"
     }
   },
   "shareGroupModal": {
@@ -1123,12 +923,9 @@
       "title": "Elija su nombre visible",
       "description": "Así es como otros miembros le verán en \"{{groupName}}\"",
       "label": "Nombre visible",
-      "placeholder": "¿Cómo deberían verle otros miembros?",
-      "help": "Elija un nombre único para este grupo. Otros miembros lo usarán para identificarle.",
       "errors": {
         "required": "Introduzca un nombre visible.",
-        "taken": "Ese nombre visible ya está en uso en este grupo.",
-        "invalid": "El nombre visible solo puede usar letras, números, espacios, guiones, guiones bajos y puntos."
+        "taken": "Ese nombre visible ya está en uso en este grupo."
       }
     }
   },
@@ -1168,8 +965,6 @@
     },
     "splitAmountInputs": {
       "exactAmountsInstruction": "Introduzca las cantidades exactas para cada persona:",
-      "unknown": "Desconocido",
-      "dollarSign": "$",
       "total": "Total: ",
       "percentageInstruction": "Introduzca el porcentaje para cada persona:",
       "percentSign": "%",
@@ -1211,19 +1006,12 @@
       "title": "Detalles del gasto",
       "closeModal": "Cerrar modal",
       "close": "Cerrar",
-      "edit": "Editar",
-      "copy": "Copiar",
-      "share": "Compartir",
-      "delete": "Eliminar",
       "paidBy": "Pagado por",
       "date": "Fecha",
       "labels": "Etiquetas",
       "receipt": "Recibo",
       "viewReceipt": "Ver recibo",
-      "noReceipt": "Sin recibo",
-      "splitDetails": "Detalles de la división",
       "comments": "Comentarios",
-      "loadingExpense": "Cargando detalles del gasto...",
       "expenseNotFound": "Gasto no encontrado",
       "failedToLoad": "Fallo al cargar los detalles del gasto",
       "shareTitle": "Gasto: {{description}}",
@@ -1237,7 +1025,6 @@
       "exactAmounts": "Cantidades exactas",
       "byPercentage": "Por porcentaje",
       "customSplit": "División personalizada",
-      "unknown": "Desconocido",
       "paid": "Pagado",
       "owes": "Debe ",
       "total": "Total: "
@@ -1261,7 +1048,6 @@
       "policyLabel": "Política ",
       "of": " de ",
       "colon": ": ",
-      "close": "Cerrar",
       "progress": "Progreso",
       "accepted": " aceptado",
       "acceptedIcon": "✓ Aceptado",
@@ -1274,24 +1060,11 @@
       "next": "Siguiente",
       "policiesAccepted": " políticas aceptadas",
       "accepting": "Aceptando...",
-      "acceptAll": "Aceptar todo y continuar",
       "closeAriaLabel": "Cerrar",
       "errorTitle": "Error"
-    },
-    "policyRenderer": {
-      "bulletPoint": "• "
     }
   },
   "uiComponents": {
-    "alert": {
-      "dismiss": "Descartar alerta"
-    },
-    "avatar": {
-      "unknown": "Desconocido"
-    },
-    "button": {
-      "default": "Botón"
-    },
     "multiLabelInput": {
       "placeholder": "Añadir una etiqueta...",
       "removeLabel": "Eliminar {{label}}",
@@ -1299,32 +1072,15 @@
       "recent": "Reciente",
       "hint": "{{count}}/{{max}} etiquetas"
     },
-    "confirmDialog": {
-      "confirm": "Confirmar",
-      "cancel": "Cancelar"
-    },
     "currencyAmountInput": {
       "selectCurrency": "Seleccionar moneda",
       "searchPlaceholder": "Buscar por símbolo, código o país...",
       "searchAriaLabel": "Buscar monedas",
-      "loading": "Cargando monedas...",
       "noCurrencies": "No se encontraron monedas",
       "recent": "Reciente",
       "common": "Común",
       "allCurrencies": "Todas las monedas",
       "placeholder": "0.00",
-      "requiredIndicator": "*"
-    },
-    "currencySelector": {
-      "placeholder": "Seleccionar moneda...",
-      "searchPlaceholder": "Buscar monedas",
-      "loading": "Cargando monedas...",
-      "noCurrencies": "No se encontraron monedas",
-      "recent": "Reciente",
-      "common": "Común",
-      "allCurrencies": "Todas las monedas"
-    },
-    "input": {
       "requiredIndicator": "*"
     },
     "loadingSpinner": {
@@ -1340,54 +1096,10 @@
     }
   },
   "pages": {
-    "addExpensePage": {
-      "errorTitle": "Error - {{appName}}",
-      "error": "Error",
-      "noGroupMessage": "No se especificó ningún grupo. No se puede añadir un gasto sin un grupo.",
-      "backToDashboard": "Volver al panel de control",
-      "loadingTitle": "Cargando... - {{appName}}",
-      "groupNotFound": "Grupo no encontrado",
-      "groupNotFoundMessage": "El grupo al que intenta añadir un gasto no existe o no tiene acceso a él.",
-      "backToGroup": "Volver al grupo",
-      "copyExpenseTitle": "Copiar gasto",
-      "editExpenseTitle": "Editar gasto",
-      "addExpenseTitle": "Añadir gasto",
-      "copyExpenseAction": "Copiar gasto",
-      "editExpenseAction": "Editar gasto",
-      "addExpenseAction": "Añadir un nuevo gasto",
-      "titleSuffix": " - {{appName}}",
-      "titleIn": " en "
-    },
     "expenseDetailPage": {
-      "missingGroupId": "Falta el ID del grupo",
-      "missingExpenseId": "Falta el ID del gasto",
-      "failedToLoad": "Fallo al cargar el gasto",
-      "cannotEdit": "Este gasto no se puede editar",
       "containsDepartedMembers": "Uno o más participantes han abandonado el grupo. Los registros históricos se conservan como solo lectura.",
-      "expenseLabel": "Gasto: ",
-      "checkOutExpense": "Vea este gasto: ",
-      "shareApiFailed": "Fallo la API de compartir, volviendo al portapapeles",
-      "failedToCopy": "Fallo al copiar al portapapeles",
-      "error": "Error",
-      "expenseNotFound": "Gasto no encontrado",
-      "backToGroup": "Volver al grupo",
-      "titleSeparator": " - ",
-      "expenseFor": "Gasto para ",
-      "backButton": "←Atrás",
-      "date": "Fecha",
-      "ago": " hace",
-      "labels": "Etiquetas",
-      "paidBy": "Pagado por",
-      "unknown": "Desconocido",
       "discussion": "Discusión",
       "receipt": "Recibo",
-      "clickToViewFullSize": "Haga clic para ver a tamaño completo",
-      "added": "Añadido ",
-      "lastUpdated": "Última actualización ",
-      "receiptViewer": "Visor de recibos",
-      "closeReceiptViewer": "Cerrar visor de recibos",
-      "receiptFullSize": "Recibo - Tamaño completo",
-      "summarySection": "Resumen del gasto",
       "splitSection": "Detalles de la división",
       "metadataSection": "Metadatos del gasto"
     },
@@ -1403,20 +1115,6 @@
       "titleSuffix": " - {{appName}}",
       "manageExpensesFor": "Administrar gastos para "
     },
-    "landingPage": {
-      "title": "División de facturas sin esfuerzo - {{appName}}",
-      "description": "Diga adiós a los incómodos deberes y a los cálculos complejos. Nuestra aplicación hace que compartir gastos con amigos, familiares y compañeros de piso sea fácil, justo y transparente. Es 100% gratuita, sin anuncios ni límites.",
-      "disclaimer": "Esta es una herramienta para rastrear gastos, no para realizar pagos.",
-      "accountNote": " Para guardar y administrar sus gastos, necesitará una cuenta gratuita.",
-      "privacyNote": "Nunca le pediremos detalles financieros sensibles.",
-      "transparencyNotice": {
-        "bold": "Esta es una herramienta para rastrear gastos, no para realizar pagos.",
-        "text": "Para guardar y administrar sus gastos, necesitará una cuenta gratuita. Nunca le pediremos detalles financieros sensibles."
-      }
-    },
-    "registerPage": {
-      "requiredIndicator": "*"
-    },
     "resetPasswordPage": {
       "failedToSendReset": "Fallo al enviar el correo electrónico de restablecimiento",
       "checkYourEmail": "Revise su correo electrónico",
@@ -1429,7 +1127,6 @@
       "clickResetLink": "• Haga clic en el enlace de restablecimiento del correo electrónico",
       "createNewPassword": "• Cree una nueva contraseña",
       "signInWithNewPassword": "• Inicie sesión con su nueva contraseña",
-      "sendToDifferentEmail": "Enviar a otro correo electrónico",
       "backToSignIn": "← Volver a iniciar sesión",
       "resetPassword": "Restablecer contraseña",
       "enterEmailForReset": "Introduzca su dirección de correo electrónico para recibir instrucciones para restablecer la contraseña",
@@ -1530,7 +1227,6 @@
     "diagnostics": {
       "loading": "Cargando diagnósticos del entorno...",
       "errors": {
-        "fetch": "Fallo al obtener datos del entorno",
         "unknown": "Se produjo un error desconocido"
       },
       "serverStatus": {
@@ -1596,20 +1292,11 @@
         "disableUser": "¿Está seguro de que desea {{action}} esta cuenta de usuario?"
       },
       "success": {
-        "userToggled": "Cuenta de usuario {{action}} correctamente",
-        "roleUpdated": "Rol de usuario actualizado a {{role}}",
-        "roleUnchanged": "Rol sin cambios"
+        "userToggled": "Cuenta de usuario {{action}} correctamente"
       },
       "errors": {
         "selfDisable": "No puede deshabilitar su propia cuenta",
-        "selfRoleChange": "No puede cambiar su propio rol",
-        "disableUser": "Fallo al {{action}} la cuenta de usuario",
-        "roleUpdate": "Fallo al actualizar el rol de usuario",
-        "invalidSelection": "Selección no válida"
-      },
-      "rolePrompt": {
-        "title": "Rol actual: {{currentRole}}\n\nSeleccionar nuevo rol:",
-        "regularUser": "Usuario normal (sin rol)"
+        "disableUser": "Fallo al {{action}} la cuenta de usuario"
       }
     },
     "userEditor": {
@@ -1631,7 +1318,6 @@
       "role": {
         "description": "Seleccionar un rol para este usuario"
       },
-      "loading": "Cargando...",
       "noDataAvailable": "No hay datos disponibles",
       "errors": {
         "noChanges": "No hay cambios para guardar",
@@ -1658,8 +1344,7 @@
       },
       "modeHint": {
         "basic": "Mostrando configuraciones esenciales",
-        "advanced": "Mostrando todas las configuraciones",
-        "moreColors": "Cambiar al modo Avanzado para un control total de la paleta de colores"
+        "advanced": "Mostrando todas las configuraciones"
       },
       "derivation": {
         "themeMode": {
@@ -1683,8 +1368,6 @@
         }
       },
       "derivationWand": {
-        "tooltip": "Derivar colores de la paleta",
-        "tooltipDisabled": "Configure primero los colores primario, secundario y de acento",
         "popoverTitle": "Derivación de color",
         "derive": "Aplicar derivación"
       },
@@ -1769,9 +1452,7 @@
       "fields": {
         "tenantId": "ID del inquilino",
         "appName": "Nombre de la aplicación",
-        "domains": "Dominios",
         "logoUrl": "URL del logotipo",
-        "faviconUrl": "URL del favicon",
         "primaryColor": "Color principal",
         "primaryVariantColor": "Variante principal",
         "secondaryColor": "Color secundario",
@@ -1786,8 +1467,6 @@
       },
       "placeholders": {
         "tenantId": "mi-id-de-inquilino",
-        "appName": "Mi aplicación de gastos",
-        "domain": "Añadir nuevo dominio...",
         "selectTenant": "Seleccionar un inquilino para copiar..."
       },
       "creationMode": {
@@ -1804,34 +1483,7 @@
         "tenantIdRequiredForPublish": "Se requiere el ID del inquilino para publicar"
       },
       "hints": {
-        "tenantIdReadonly": "El ID del inquilino no se puede cambiar",
-        "colorFormat": "#RRGGBB"
-      },
-      "toggles": {
-        "showMarketingContent": {
-          "label": "Mostrar contenido de marketing",
-          "description": "Mostrar secciones de características/CTA en páginas públicas"
-        },
-        "showPricingPage": {
-          "label": "Mostrar página de precios",
-          "description": "Mostrar ruta /pricing"
-        },
-        "showAppNameInHeader": {
-          "label": "Mostrar nombre de la aplicación en el encabezado",
-          "description": "Mostrar el nombre de la aplicación junto al logotipo"
-        },
-        "enableParallax": {
-          "label": "Habilitar paralaje",
-          "description": "Habilitar efectos de desplazamiento paralaje"
-        },
-        "enableMagneticHover": {
-          "label": "Habilitar efecto magnético al pasar el ratón",
-          "description": "Habilitar efectos magnéticos al pasar el ratón sobre los botones"
-        },
-        "enableScrollReveal": {
-          "label": "Habilitar revelación al desplazarse",
-          "description": "Habilitar animaciones activadas por desplazamiento"
-        }
+        "tenantIdReadonly": "El ID del inquilino no se puede cambiar"
       },
       "loading": {
         "tenants": "Cargando inquilinos..."
@@ -1861,16 +1513,8 @@
         "faviconSelected": "Favicon seleccionado de la biblioteca"
       },
       "buttons": {
-        "save": "Guardar inquilino",
         "publish": "Publicar tema",
-        "addDomain": "Añadir",
-        "removeDomain": "Eliminar",
-        "chooseFromLibrary": "Elegir de la biblioteca",
-        "uploadNew": "Cargar nuevo"
-      },
-      "actions": {
-        "deriveColors": "Derivar colores",
-        "deriveColorsDescription": "Generar todos los colores semánticos de su paleta de marca"
+        "addDomain": "Añadir"
       }
     }
   },

@@ -109,6 +109,20 @@ export class ExpenseDetailPage extends BasePage {
     }
 
     /**
+     * Get the expense detail dialog/modal container
+     */
+    protected getExpenseDetailModal(): Locator {
+        return this.page.getByRole('dialog');
+    }
+
+    /**
+     * Get the edit button wrapper element (for tooltip verification)
+     */
+    protected getEditButtonWrapper(): Locator {
+        return this.page.getByTitle(translation.expenseComponents.expenseActions.cannotEditTooltip);
+    }
+
+    /**
      * Get the confirmation dialog - identified by aria-labelledby="confirm-dialog-title"
      */
     protected getConfirmationDialog(): Locator {
@@ -427,7 +441,29 @@ export class ExpenseDetailPage extends BasePage {
      */
     async verifyEditButtonTooltip(): Promise<void> {
         // The tooltip is on the wrapper div, look for the title attribute
-        const tooltipWrapper = this.page.getByTitle('Cannot edit - participant has left the group');
-        await expect(tooltipWrapper).toBeVisible();
+        await expect(this.getEditButtonWrapper()).toBeVisible();
+    }
+
+    /**
+     * Verify the expense detail modal is visible
+     */
+    async verifyModalVisible(): Promise<void> {
+        await expect(this.getExpenseDetailModal()).toBeVisible();
+    }
+
+    /**
+     * Verify an expense with a specific description is visible in the modal
+     */
+    async verifyExpenseDescriptionInModal(description: string): Promise<void> {
+        await expect(this.getExpenseDetailModal().getByText(description)).toBeVisible();
+    }
+
+    /**
+     * Verify edit button is enabled
+     */
+    async verifyEditButtonEnabled(): Promise<void> {
+        const editButton = this.getEditButton();
+        await expect(editButton).toBeVisible();
+        await expect(editButton).toBeEnabled();
     }
 }

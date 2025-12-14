@@ -702,10 +702,59 @@ export class GroupSettingsModalPage extends BasePage {
     }
 
     /**
+     * Verify display name save button is enabled
+     */
+    async verifyDisplayNameSaveButtonEnabled(): Promise<void> {
+        await expect(this.getDisplayNameSaveButton()).toBeEnabled();
+    }
+
+    /**
+     * Verify display name input has expected value
+     */
+    async verifyDisplayNameInputValue(expectedValue: string): Promise<void> {
+        await this.ensureIdentityTab();
+        await expect(this.getDisplayNameInput()).toHaveValue(expectedValue);
+    }
+
+    /**
+     * Verify display name input validation error is visible and contains text
+     */
+    async verifyDisplayNameInputErrorContainsText(expectedText: string): Promise<void> {
+        await this.ensureIdentityTab();
+        const validationError = this.getDisplayNameSection().getByTestId('input-error-message');
+        await expect(validationError).toBeVisible();
+        await expect(validationError).toContainText(expectedText);
+    }
+
+    /**
+     * Verify display name input validation error is not visible
+     */
+    async verifyDisplayNameInputErrorNotVisible(): Promise<void> {
+        await this.ensureIdentityTab();
+        const validationError = this.getDisplayNameSection().getByTestId('input-error-message');
+        await expect(validationError).not.toBeVisible();
+    }
+
+    /**
      * Verify display name error is visible
      */
     async verifyDisplayNameErrorVisible(): Promise<void> {
         await expect(this.getDisplayNameError()).toBeVisible();
+    }
+
+    /**
+     * Verify display name error contains specific text
+     */
+    async verifyDisplayNameErrorContainsText(expectedText: string): Promise<void> {
+        await expect(this.getDisplayNameError()).toBeVisible();
+        await expect(this.getDisplayNameError()).toContainText(expectedText);
+    }
+
+    /**
+     * Verify display name error is not visible (count 0)
+     */
+    async verifyDisplayNameErrorNotVisible(): Promise<void> {
+        await expect(this.getDisplayNameError()).toHaveCount(0);
     }
 
     /**
@@ -803,6 +852,22 @@ export class GroupSettingsModalPage extends BasePage {
     async verifyNoPendingRequestsMessageVisible(): Promise<void> {
         await this.ensureSecurityTab();
         await expect(this.getModalContainer().getByText('No pending requests right now.')).toBeVisible();
+    }
+
+    /**
+     * Verify pending member text is visible in the modal
+     */
+    async verifyPendingMemberTextVisible(memberName: string): Promise<void> {
+        await this.ensureSecurityTab();
+        await expect(this.getModalContainer().getByText(memberName)).toBeVisible();
+    }
+
+    /**
+     * Verify pending member text is not visible in the modal
+     */
+    async verifyPendingMemberTextNotVisible(memberName: string): Promise<void> {
+        await this.ensureSecurityTab();
+        await expect(this.getModalContainer().getByText(memberName)).toHaveCount(0);
     }
 
     // ============================================================================
@@ -996,7 +1061,16 @@ export class GroupSettingsModalPage extends BasePage {
     }
 
     /**
+     * Verify the group name input has the expected value
+     */
+    async verifyGroupNameValue(expectedValue: string): Promise<void> {
+        await this.ensureGeneralTab();
+        await expect(this.getGroupNameInput()).toHaveValue(expectedValue);
+    }
+
+    /**
      * Get group name input locator for direct assertions
+     * @deprecated Use verifyGroupNameValue() or other verification methods instead
      */
     getGroupNameInputLocator(): Locator {
         return this.getGroupNameInput();

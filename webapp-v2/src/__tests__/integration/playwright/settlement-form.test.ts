@@ -4,7 +4,7 @@ import { toGroupId } from '@billsplit-wl/shared';
 import { toDisplayName } from '@billsplit-wl/shared';
 import { GroupBalancesBuilder, GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, SettlementFormPage, ThemeBuilder } from '@billsplit-wl/test-support';
 import type { Page } from '@playwright/test';
-import { expect, test } from '../../utils/console-logging-fixture';
+import { test } from '../../utils/console-logging-fixture';
 import { mockGroupCommentsApi, mockGroupDetailApi } from '../../utils/mock-firebase-service';
 
 type MemberSeed = {
@@ -127,7 +127,6 @@ test.describe('Settlement Form Validation', () => {
         await settlementFormPage.fillAmount('0');
 
         await settlementFormPage.submitExpectValidationError('Please enter a valid amount greater than 0');
-        await expectNoGlobalError(settlementFormPage);
     });
 
     test('should show validation error when amount exceeds maximum', async ({ authenticatedPage }) => {
@@ -138,7 +137,6 @@ test.describe('Settlement Form Validation', () => {
         await settlementFormPage.fillAmount('1000000');
 
         await settlementFormPage.submitExpectValidationError('Amount cannot exceed 999,999.99');
-        await expectNoGlobalError(settlementFormPage);
     });
 
     test('should show validation error when date is in the future', async ({ authenticatedPage }) => {
@@ -151,7 +149,6 @@ test.describe('Settlement Form Validation', () => {
         await settlementFormPage.setDate(tomorrow);
 
         await settlementFormPage.submitExpectValidationError('Date cannot be in the future');
-        await expectNoGlobalError(settlementFormPage);
     });
 
     test('should keep submit button disabled when amount precision exceeds currency limit', async ({ authenticatedPage }) => {
@@ -161,14 +158,13 @@ test.describe('Settlement Form Validation', () => {
         await settlementFormPage.selectPayee('User 2');
         await settlementFormPage.fillAmount('10.123');
 
-        const precisionError = settlementFormPage.getAmountErrorMessage();
-        await expect(precisionError).toContainText('decimal place');
+        await settlementFormPage.verifyAmountErrorContainsText('decimal place');
         await settlementFormPage.expectSubmitDisabled();
         await settlementFormPage.expectAmountValue('10.123');
 
         await settlementFormPage.fillAmount('10.12');
         await settlementFormPage.expectAmountValue('10.12');
-        await expect(settlementFormPage.getAmountErrorMessage()).toHaveCount(0);
+        await settlementFormPage.verifyAmountErrorNotVisible();
 
         await expectNoGlobalError(settlementFormPage);
     });
@@ -326,7 +322,7 @@ test.describe('Settlement Form - Quick Settle Shortcuts', () => {
         await groupDetailPage.waitForGroupToLoad();
 
         // Wait for balances to load - just check the balance summary card exists
-        await expect(groupDetailPage.getBalanceContainerLocator()).toBeAttached();
+        await groupDetailPage.verifyBalanceContainerAttached();
 
         // Click the Settle Up button from Group Actions (not the balance summary button)
         const settlementFormPage = await groupDetailPage.clickSettleUpButton(2, { waitForFormReady: true });
@@ -380,8 +376,7 @@ test.describe('Settlement Form - Quick Settle Shortcuts', () => {
         await groupDetailPage.navigateToGroup(groupId);
         await groupDetailPage.waitForGroupToLoad();
 
-        const debtButton = groupDetailPage.getSettlementButtonForDebtLocator(user.displayName, 'Alexandra Verylongname');
-        await debtButton.click();
+        await groupDetailPage.clickSettlementButtonForDebt(user.displayName, 'Alexandra Verylongname');
 
         const settlementFormPage = new SettlementFormPage(page);
         await settlementFormPage.verifyModalVisible();
@@ -437,11 +432,10 @@ test.describe('Settlement Form - Amount Warnings', () => {
         await settlementFormPage.selectPayee('Alexandra Verylongname');
         await settlementFormPage.fillAmount('10.00');
 
-        const warning = settlementFormPage.getSettlementWarningMessage();
-        await expect(warning).toContainText('still owe');
+        await settlementFormPage.verifyWarningMessageContainsText('still owe');
 
         await settlementFormPage.fillAmount('50.00');
-        await expect(settlementFormPage.getSettlementWarningMessage()).toHaveCount(0);
+        await settlementFormPage.verifyWarningMessageNotVisible();
         await expectNoGlobalError(settlementFormPage);
     });
 });

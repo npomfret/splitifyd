@@ -45,55 +45,23 @@
     "delete": "Delete",
     "edit": "Edit",
     "close": "Close",
-    "confirm": "Confirm",
-    "back": "Back",
-    "next": "Next",
-    "previous": "Previous",
-    "submit": "Submit",
     "search": "Search",
-    "select": "Select",
-    "selectAll": "Select all",
-    "none": "None",
-    "all": "All",
-    "yes": "Yes",
-    "no": "No",
-    "ok": "OK",
     "error": "Error",
-    "success": "Success",
-    "warning": "Warning",
-    "info": "Info",
     "unknown": "Unknown",
-    "unknownUser": "Unknown User",
     "includeDeleted": "Include deleted",
     "you": "You",
-    "youSuffix": " (You)",
     "required": "*",
-    "optional": "(optional)",
-    "or": "or",
-    "and": "and",
-    "copy": "Copy",
-    "share": "Share",
     "dismiss": "Dismiss",
-    "dismissAlert": "Dismiss alert",
-    "justNow": "just now",
     "chooseFile": "Choose File",
     "active": "Active",
-    "inactive": "Inactive",
     "disabled": "Disabled",
-    "total": "Total",
     "member": "Member",
     "members": "Members",
-    "user": "User",
     "group": "Group",
-    "groups": "Groups",
-    "recent": "Recent",
-    "settings": "Settings",
     "understood": "Understood",
     "titleSuffix": " - {{appName}}",
     "refresh": "Refresh",
     "reset": "Reset",
-    "add": "Add",
-    "create": "Create",
     "processing": "Processing...",
     "download": "Download",
     "downloading": "Downloading...",
@@ -110,25 +78,9 @@
     "type": "Type",
     "size": "Size",
     "link": "Link",
-    "value": "Value",
     "notConfigured": "Not configured",
     "notSet": "not set",
-    "empty": "(empty)",
-    "noData": "No data available",
-    "default": "Default",
-    "actions": "Actions",
-    "status": "Status",
-    "email": "Email",
-    "displayName": "Display Name",
-    "role": "Role",
-    "lastSignIn": "Last Sign In",
-    "placeholder": {
-      "amount": "0.00",
-      "search": "Search...",
-      "searchCurrencies": "Search currencies...",
-      "selectCurrency": "Select currency...",
-      "selectPerson": "Select person"
-    }
+    "empty": "(empty)"
   },
   "currencySelector": {
     "noResults": "No currencies found"
@@ -191,11 +143,7 @@
     "forgotPassword": "Forgot your password?",
     "submitButton": "Sign In",
     "noAccount": "Don't have an account?",
-    "signUp": "Sign up",
-    "validation": {
-      "emailRequired": "Email is required",
-      "passwordRequired": "Password is required"
-    }
+    "signUp": "Sign up"
   },
   "registerPage": {
     "title": "Create Account",
@@ -213,7 +161,6 @@
     "submitButton": "Create Account",
     "hasAccount": "Already have an account?",
     "signIn": "Sign in",
-    "requiredIndicator": "*",
     "validation": {
       "nameRequired": "Name is required",
       "emailRequired": "Email is required",
@@ -231,7 +178,6 @@
     "emailInput": {
       "label": "Email",
       "placeholder": "Enter your email",
-      "requiredIndicator": "*",
       "validation": {
         "required": "Email is required",
         "invalid": "Please enter a valid email address"
@@ -240,7 +186,6 @@
     "passwordInput": {
       "label": "Password",
       "placeholder": "Enter your password",
-      "requiredIndicator": "*",
       "showPassword": "Show password",
       "hidePassword": "Hide password",
       "strength": "Password strength",
@@ -275,19 +220,7 @@
       "archivedBadge": "Archived"
     },
     "emptyState": {
-      "title": "No groups yet",
-      "subtitle": "Create your first group to start tracking shared expenses",
-      "createButton": "Create Group"
-    },
-    "stats": {
-      "totalGroups": "Total Groups",
-      "totalExpenses": "Total Expenses",
-      "totalBalance": "Total Balance"
-    },
-    "quickActions": {
-      "title": "Quick Actions",
-      "createGroup": "Create Group",
-      "addExpense": "Add Expense"
+      "title": "No groups yet"
     }
   },
   "activityFeed": {
@@ -329,7 +262,6 @@
       "comment-added": "{{actor}} commented on {{target}} in {{group}}",
       "settlement-created": "{{actor}} recorded {{settlement}} in {{group}}",
       "settlement-updated": "{{actor}} updated {{settlement}} in {{group}}",
-      "settlement-deleted": "{{actor}} deleted {{settlement}} from {{group}}",
       "generic": "{{actor}} made changes in {{group}}",
       "group-created-short": "{{actor}} created the group",
       "group-updated-short": "{{actor}} updated the group",
@@ -344,7 +276,6 @@
       "comment-added-short": "{{actor}} commented on {{target}}",
       "settlement-created-short": "{{actor}} recorded {{settlement}}",
       "settlement-updated-short": "{{actor}} updated {{settlement}}",
-      "settlement-deleted-short": "{{actor}} deleted {{settlement}}",
       "generic-short": "{{actor}} made changes"
     }
   },
@@ -357,74 +288,19 @@
     },
     "actions": {
       "addExpense": "Add Expense",
-      "viewExpenses": "View Expenses",
-      "settleUp": "Settle Up",
-      "shareGroup": "Share Group",
-      "editGroup": "Edit Group",
-      "leaveGroup": "Leave Group"
-    },
-    "share": {
-      "title": "Share Group",
-      "subtitle": "Invite others to join this group",
-      "copyLink": "Copy Link",
-      "linkCopied": "Link copied to clipboard!"
-    },
-    "edit": {
-      "title": "Edit Group",
-      "warningIcon": "⚠️"
-    },
-    "leave": {
-      "title": "Leave Group",
-      "message": "Are you sure you want to leave this group?",
-      "confirmButton": "Leave Group",
-      "cancelButton": "Cancel"
-    },
-    "members": {
-      "title": "Members",
-      "addMember": "Add Member",
-      "removeMember": "Remove Member",
-      "unknownUser": "Unknown User",
-      "user": "User"
-    },
-    "expenses": {
-      "title": "Expenses",
-      "noExpenses": "No expenses yet",
-      "addFirstExpense": "Add your first expense",
-      "unknown": "Unknown"
-    },
-    "balance": {
-      "title": "Balance Summary",
-      "settledUp": "All settled up!",
-      "unknown": "Unknown"
+      "settleUp": "Settle Up"
     }
   },
   "comments": {
-    "section": {
-      "title": "Comments",
-      "noComments": "No comments yet"
-    },
     "input": {
-      "placeholder": "Add a comment...",
       "ariaLabel": "Comment text",
-      "sendButton": "Send",
       "sendAriaLabel": "Send comment"
-    },
-    "item": {
-      "justNow": "just now",
-      "deleteButton": "Delete comment"
-    },
-    "list": {
-      "loading": "Loading comments...",
-      "error": "Failed to load comments"
     },
     "commentInput": {
       "placeholder": "Add a comment...",
       "tooLong": "Comment is too long",
       "addFailed": "Failed to add comment",
       "helpText": "Press Enter to send, Shift+Enter for new line"
-    },
-    "commentItem": {
-      "recently": "recently"
     },
     "commentsList": {
       "loading": "Loading comments...",
@@ -448,74 +324,23 @@
     }
   },
   "navigation": {
-    "header": {
-      "fallback": "...",
-      "dashboard": "Dashboard",
-      "groups": "Groups",
-      "settings": "Settings"
-    },
-    "footer": {
-      "copyright": "© {{year}} {{appName}}. All rights reserved.",
-      "privacy": "Privacy Policy",
-      "terms": "Terms of Service",
-      "cookies": "Cookie Policy"
-    },
     "userMenu": {
       "openUserMenu": "Open user menu",
-      "profile": "Profile",
-      "settings": "Settings",
-      "logout": "Logout",
-      "help": "Help"
+      "logout": "Logout"
     }
   },
   "errors": {
-    "generic": "An error occurred",
-    "network": "Network error occurred",
-    "invalidLink": "Invalid Link",
-    "notFound": {
-      "page": "Page not found",
-      "group": "Group not found",
-      "expense": "Expense not found"
-    },
-    "loading": {
-      "cookiePolicy": "Error loading cookie policy",
-      "privacyPolicy": "Error loading privacy policy",
-      "terms": "Error loading terms"
-    },
-    "validation": {
-      "displayNameEmpty": "Display name cannot be empty",
-      "displayNameTooLong": "Display name must be 100 characters or less",
-      "passwordTooShort": "New password must be at least 12 characters long",
-      "passwordsNoMatch": "Passwords do not match",
-      "passwordSameAsCurrent": "New password must be different from current password",
-      "passwordAndNewRequired": "Current password and new password are required"
-    }
+    "invalidLink": "Invalid Link"
   },
   "seo": {
     "titleSuffix": " | {{appName}}",
     "siteName": "{{appName}}"
   },
   "expenseForm": {
-    "description": "Description",
-    "amount": "Amount*",
-    "whoPaid": "Who paid?",
-    "splitBetween": "Split between",
-    "exactAmounts": "Exact amounts",
-    "percentage": "Percentage",
-    "equal": "Equal",
-    "exactAmountsInstruction": "Enter exact amounts for each person:",
-    "percentageInstruction": "Enter percentage for each person:",
-    "selectAll": "Select all",
     "saveExpense": "Save Expense",
-    "updateExpense": "Update Expense",
-    "cancel": "Cancel",
-    "errors": {
-      "expenseLocked": "This expense cannot be edited because one or more participants have left the group."
-    }
+    "updateExpense": "Update Expense"
   },
   "settlementForm": {
-    "updatePayment": "Update Payment",
-    "recordPayment": "Record Payment",
     "updateSettlement": "Update Settlement",
     "recordSettlement": "Record Settlement",
     "closeModal": "Close modal",
@@ -531,7 +356,6 @@
     "cancelButton": "Cancel",
     "updatingButton": "Updating...",
     "recordingButton": "Recording...",
-    "paymentSummary": "{{payer}} paid {{payee}} {{amount}}",
     "validation": {
       "selectPayer": "Please select who paid",
       "selectPayee": "Please select who received the payment",
@@ -554,12 +378,9 @@
   },
   "settlementHistory": {
     "noPaymentsYet": "No payments recorded yet",
-    "today": "Today",
-    "yesterday": "Yesterday",
     "editPaymentTooltip": "Edit payment",
     "cannotEditTooltip": "Cannot edit - member has left the group",
     "deletePaymentTooltip": "Delete payment",
-    "loadMore": "Load more",
     "loadMorePayments": "Load More",
     "deletePaymentTitle": "Delete Payment",
     "deletePaymentMessage": "Are you sure you want to delete this payment of {{amount}} from {{payer}} to {{payee}}? This action cannot be undone.",
@@ -572,10 +393,7 @@
   "balanceSummary": {
     "loadingBalances": "Loading balances...",
     "allSettledUp": "All settled up!",
-    "debtArrow": " → ",
-    "showOnlyMyBalances": "Show only my balances",
     "showAll": "Show all",
-    "settleUp": "Settle",
     "settleUpButton": "Record settlement for this debt"
   },
   "emptyGroupsState": {
@@ -748,7 +566,6 @@
     "Security Deposit"
   ],
   "expensesList": {
-    "title": "Expenses",
     "noExpensesYet": "No expenses yet. Add one to get started!",
     "loadMore": "Load More"
   },
@@ -770,14 +587,7 @@
     "admin": "Admin",
     "settings": "Settings",
     "signOut": "Sign out",
-    "signingOut": "Signing out...",
-    "systemUserBadge": "System User",
-    "systemUserTooltip": "This account is used for automated or system-driven operations.",
-    "environmentLink": "env",
-    "diagnosticsLoading": "Loading diagnostics...",
-    "diagnosticsError": "Unable to load diagnostics:",
-    "browser": "Browser",
-    "browserUsers": "Users Browser"
+    "signingOut": "Signing out..."
   },
   "languageSelector": {
     "label": "Language",
@@ -795,8 +605,7 @@
     "membersCount_other": "{{count}} members",
     "old": "old",
     "lastUpdated": "last updated",
-    "groupSettingsAriaLabel": "Group settings",
-    "groupSecurityAriaLabel": "Security and permissions"
+    "groupSettingsAriaLabel": "Group settings"
   },
   "securitySettingsModal": {
     "unsavedChanges": "You have unsaved changes. Review everything, then press Save to apply them.",
@@ -935,13 +744,11 @@
     }
   },
   "editGroupModal": {
-    "title": "Edit Group",
     "groupNameLabel": "Group Name",
     "groupNamePlaceholder": "e.g., Apartment Expenses, Trip to Paris",
     "descriptionLabel": "Description (optional)",
     "descriptionPlaceholder": "Add any details about this group...",
     "cancelButton": "Cancel",
-    "saveChangesButton": "Save Changes",
     "deleteGroupButton": "Delete Group",
     "validation": {
       "nameRequired": "Group name is required.",
@@ -1016,7 +823,6 @@
     "description": "Choose how other members see you in this group.",
     "inputLabel": "Your display name in this group",
     "inputPlaceholder": "Enter a unique display name",
-    "save": "Save display name",
     "saving": "Saving...",
     "success": "Group display name updated.",
     "errors": {
@@ -1032,11 +838,7 @@
     "admin": "Admin",
     "member": "Member",
     "viewer": "Viewer",
-    "thisMember": "This member",
-    "leaveGroup": "Leave Group",
     "inviteOthers": "Invite Others",
-    "inviteOthersAriaLabel": "Invite Others",
-    "leaveGroupAriaLabel": "Leave Group",
     "removeMemberAriaLabel": "Remove {{name}}",
     "leaveGroupDialog": {
       "title": "Leave Group?",
@@ -1049,8 +851,7 @@
       "title": "Remove Member?",
       "messageWithBalance": "{{name}} has an outstanding balance in this group. Please settle up before removing.",
       "messageConfirm": "Are you sure you want to remove {{name}} from the group?",
-      "confirmText": "Remove",
-      "cancelText": "Cancel"
+      "confirmText": "Remove"
     }
   },
   "shareGroupModal": {
@@ -1122,12 +923,9 @@
       "title": "Choose your display name",
       "description": "This is how other members will see you in \"{{groupName}}\"",
       "label": "Display Name",
-      "placeholder": "How should other members see your name?",
-      "help": "Pick a unique name for this group. Other members will use it to identify you.",
       "errors": {
         "required": "Enter a display name.",
-        "taken": "That display name is already in use in this group.",
-        "invalid": "Display name can only use letters, numbers, spaces, hyphens, underscores, and periods."
+        "taken": "That display name is already in use in this group."
       }
     }
   },
@@ -1167,8 +965,6 @@
     },
     "splitAmountInputs": {
       "exactAmountsInstruction": "Enter exact amounts for each person:",
-      "unknown": "Unknown",
-      "dollarSign": "$",
       "total": "Total:",
       "percentageInstruction": "Enter percentage for each person:",
       "percentSign": "%",
@@ -1210,19 +1006,12 @@
       "title": "Expense Details",
       "closeModal": "Close modal",
       "close": "Close",
-      "edit": "Edit",
-      "copy": "Copy",
-      "share": "Share",
-      "delete": "Delete",
       "paidBy": "Paid by",
       "date": "Date",
       "labels": "Labels",
       "receipt": "Receipt",
       "viewReceipt": "View receipt",
-      "noReceipt": "No receipt",
-      "splitDetails": "Split Details",
       "comments": "Comments",
-      "loadingExpense": "Loading expense details...",
       "expenseNotFound": "Expense not found",
       "failedToLoad": "Failed to load expense details",
       "shareTitle": "Expense: {{description}}",
@@ -1236,7 +1025,6 @@
       "exactAmounts": "Exact Amounts",
       "byPercentage": "By Percentage",
       "customSplit": "Custom Split",
-      "unknown": "Unknown",
       "paid": "Paid",
       "owes": "Owes ",
       "total": "Total: "
@@ -1260,7 +1048,6 @@
       "policyLabel": "Policy ",
       "of": " of ",
       "colon": ": ",
-      "close": "Close",
       "progress": "Progress",
       "accepted": " accepted",
       "acceptedIcon": "✓ Accepted",
@@ -1273,24 +1060,11 @@
       "next": "Next",
       "policiesAccepted": " policies accepted",
       "accepting": "Accepting...",
-      "acceptAll": "Accept All & Continue",
       "closeAriaLabel": "Close",
       "errorTitle": "Error"
-    },
-    "policyRenderer": {
-      "bulletPoint": "• "
     }
   },
   "uiComponents": {
-    "alert": {
-      "dismiss": "Dismiss alert"
-    },
-    "avatar": {
-      "unknown": "Unknown"
-    },
-    "button": {
-      "default": "Button"
-    },
     "multiLabelInput": {
       "placeholder": "Add a label...",
       "removeLabel": "Remove {{label}}",
@@ -1298,32 +1072,15 @@
       "recent": "Recent",
       "hint": "{{count}}/{{max}} labels"
     },
-    "confirmDialog": {
-      "confirm": "Confirm",
-      "cancel": "Cancel"
-    },
     "currencyAmountInput": {
       "selectCurrency": "Select currency",
       "searchPlaceholder": "Search by symbol, code, or country...",
       "searchAriaLabel": "Search currencies",
-      "loading": "Loading currencies...",
       "noCurrencies": "No currencies found",
       "recent": "Recent",
       "common": "Common",
       "allCurrencies": "All Currencies",
       "placeholder": "0.00",
-      "requiredIndicator": "*"
-    },
-    "currencySelector": {
-      "placeholder": "Select currency...",
-      "searchPlaceholder": "Search currencies",
-      "loading": "Loading currencies...",
-      "noCurrencies": "No currencies found",
-      "recent": "Recent",
-      "common": "Common",
-      "allCurrencies": "All Currencies"
-    },
-    "input": {
       "requiredIndicator": "*"
     },
     "loadingSpinner": {
@@ -1339,54 +1096,10 @@
     }
   },
   "pages": {
-    "addExpensePage": {
-      "errorTitle": "Error - {{appName}}",
-      "error": "Error",
-      "noGroupMessage": "No group specified. Cannot add expense without a group.",
-      "backToDashboard": "Back to Dashboard",
-      "loadingTitle": "Loading... - {{appName}}",
-      "groupNotFound": "Group Not Found",
-      "groupNotFoundMessage": "The group you're trying to add an expense to doesn't exist or you don't have access to it.",
-      "backToGroup": "Back to Group",
-      "copyExpenseTitle": "Copy Expense",
-      "editExpenseTitle": "Edit Expense",
-      "addExpenseTitle": "Add Expense",
-      "copyExpenseAction": "Copy expense",
-      "editExpenseAction": "Edit expense",
-      "addExpenseAction": "Add a new expense",
-      "titleSuffix": " - {{appName}}",
-      "titleIn": " in "
-    },
     "expenseDetailPage": {
-      "missingGroupId": "Missing group ID",
-      "missingExpenseId": "Missing expense ID",
-      "failedToLoad": "Failed to load expense",
-      "cannotEdit": "This expense cannot be edited",
       "containsDepartedMembers": "One or more participants have left the group. Historical records are preserved as read-only.",
-      "expenseLabel": "Expense: ",
-      "checkOutExpense": "Check out this expense: ",
-      "shareApiFailed": "Share API failed, falling back to clipboard",
-      "failedToCopy": "Failed to copy to clipboard",
-      "error": "Error",
-      "expenseNotFound": "Expense not found",
-      "backToGroup": "Back to Group",
-      "titleSeparator": " - ",
-      "expenseFor": "Expense for ",
-      "backButton": "← Back",
-      "date": "Date",
-      "ago": " ago",
-      "labels": "Labels",
-      "paidBy": "Paid by",
-      "unknown": "Unknown",
       "discussion": "Discussion",
       "receipt": "Receipt",
-      "clickToViewFullSize": "Click to view full size",
-      "added": "Added ",
-      "lastUpdated": "Last updated ",
-      "receiptViewer": "Receipt viewer",
-      "closeReceiptViewer": "Close receipt viewer",
-      "receiptFullSize": "Receipt - Full Size",
-      "summarySection": "Expense Summary",
       "splitSection": "Split Details",
       "metadataSection": "Expense Metadata"
     },
@@ -1402,20 +1115,6 @@
       "titleSuffix": " - {{appName}}",
       "manageExpensesFor": "Manage expenses for "
     },
-    "landingPage": {
-      "title": "Effortless Bill Splitting - {{appName}}",
-      "description": "Say goodbye to awkward IOUs and complex calculations. Our app makes sharing expenses with friends, family, and roommates easy, fair, and transparent. It's 100% free, with no ads and no limits.",
-      "disclaimer": "This is a tool for tracking expenses, not for making payments.",
-      "accountNote": " To save and manage your expenses, you'll need a free account.",
-      "privacyNote": "We will never ask for sensitive financial details.",
-      "transparencyNotice": {
-        "bold": "This is a tool for tracking expenses, not for making payments.",
-        "text": "To save and manage your expenses, you'll need a free account. We will never ask for sensitive financial details."
-      }
-    },
-    "registerPage": {
-      "requiredIndicator": "*"
-    },
     "resetPasswordPage": {
       "failedToSendReset": "Failed to send reset email",
       "checkYourEmail": "Check Your Email",
@@ -1428,7 +1127,6 @@
       "clickResetLink": "• Click the reset link in the email",
       "createNewPassword": "• Create a new password",
       "signInWithNewPassword": "• Sign in with your new password",
-      "sendToDifferentEmail": "Send to Different Email",
       "backToSignIn": "← Back to Sign In",
       "resetPassword": "Reset Password",
       "enterEmailForReset": "Enter your email address to receive password reset instructions",
@@ -1529,7 +1227,6 @@
     "diagnostics": {
       "loading": "Loading environment diagnostics...",
       "errors": {
-        "fetch": "Failed to fetch environment data",
         "unknown": "Unknown error occurred"
       },
       "serverStatus": {
@@ -1595,20 +1292,11 @@
         "disableUser": "Are you sure you want to {{action}} this user account?"
       },
       "success": {
-        "userToggled": "User account {{action}}d successfully",
-        "roleUpdated": "User role updated to {{role}}",
-        "roleUnchanged": "Role unchanged"
+        "userToggled": "User account {{action}}d successfully"
       },
       "errors": {
         "selfDisable": "You cannot disable your own account",
-        "selfRoleChange": "You cannot change your own role",
-        "disableUser": "Failed to {{action}} user account",
-        "roleUpdate": "Failed to update user role",
-        "invalidSelection": "Invalid selection"
-      },
-      "rolePrompt": {
-        "title": "Current role: {{currentRole}}\n\nSelect new role:",
-        "regularUser": "Regular User (no role)"
+        "disableUser": "Failed to {{action}} user account"
       }
     },
     "userEditor": {
@@ -1630,7 +1318,6 @@
       "role": {
         "description": "Select a role for this user"
       },
-      "loading": "Loading...",
       "noDataAvailable": "No data available",
       "errors": {
         "noChanges": "No changes to save",
@@ -1657,8 +1344,7 @@
       },
       "modeHint": {
         "basic": "Showing essential settings",
-        "advanced": "Showing all settings",
-        "moreColors": "Switch to Advanced mode for full color palette control"
+        "advanced": "Showing all settings"
       },
       "derivation": {
         "themeMode": {
@@ -1682,8 +1368,6 @@
         }
       },
       "derivationWand": {
-        "tooltip": "Derive colors from palette",
-        "tooltipDisabled": "Set primary, secondary, and accent colors first",
         "popoverTitle": "Color Derivation",
         "derive": "Apply Derivation"
       },
@@ -1768,9 +1452,7 @@
       "fields": {
         "tenantId": "Tenant ID",
         "appName": "App Name",
-        "domains": "Domains",
         "logoUrl": "Logo URL",
-        "faviconUrl": "Favicon URL",
         "primaryColor": "Primary Color",
         "primaryVariantColor": "Primary Variant",
         "secondaryColor": "Secondary Color",
@@ -1785,8 +1467,6 @@
       },
       "placeholders": {
         "tenantId": "my-tenant-id",
-        "appName": "My Expense App",
-        "domain": "Add new domain...",
         "selectTenant": "Select a tenant to copy..."
       },
       "creationMode": {
@@ -1803,34 +1483,7 @@
         "tenantIdRequiredForPublish": "Tenant ID is required for publishing"
       },
       "hints": {
-        "tenantIdReadonly": "Tenant ID cannot be changed",
-        "colorFormat": "#RRGGBB"
-      },
-      "toggles": {
-        "showMarketingContent": {
-          "label": "Show Marketing Content",
-          "description": "Display marketing content on public pages"
-        },
-        "showPricingPage": {
-          "label": "Show Pricing Page",
-          "description": "Display pricing information"
-        },
-        "showAppNameInHeader": {
-          "label": "Show App Name in Header",
-          "description": "Display the app name next to the logo"
-        },
-        "enableParallax": {
-          "label": "Enable Parallax",
-          "description": "Enable parallax scrolling effects"
-        },
-        "enableMagneticHover": {
-          "label": "Enable Magnetic Hover",
-          "description": "Enable magnetic hover effects on buttons"
-        },
-        "enableScrollReveal": {
-          "label": "Enable Scroll Reveal",
-          "description": "Enable scroll-triggered animations"
-        }
+        "tenantIdReadonly": "Tenant ID cannot be changed"
       },
       "loading": {
         "tenants": "Loading tenants..."
@@ -1860,16 +1513,8 @@
         "faviconSelected": "Favicon selected from library"
       },
       "buttons": {
-        "save": "Save Tenant",
         "publish": "Publish Theme",
-        "addDomain": "Add",
-        "removeDomain": "Remove",
-        "chooseFromLibrary": "Choose from Library",
-        "uploadNew": "Upload New"
-      },
-      "actions": {
-        "deriveColors": "Derive Colors",
-        "deriveColorsDescription": "Generate all semantic colors from your brand palette"
+        "addDomain": "Add"
       }
     }
   },

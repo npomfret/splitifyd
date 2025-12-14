@@ -115,8 +115,7 @@ test.describe('Group Settings - General Tab - Editing', () => {
         const modal = await groupDetailPage.clickEditGroupAndOpenModal('general');
 
         // Verify current values
-        const nameInput = modal.getModalContainerLocator().getByLabel('Group name');
-        await expect(nameInput).toHaveValue('Original Name');
+        await modal.verifyGroupNameValue('Original Name');
 
         // Edit and save
         await modal.editGroupName('Updated Name');

@@ -45,55 +45,23 @@
     "delete": "Видалити",
     "edit": "Редагувати",
     "close": "Закрити",
-    "confirm": "Підтвердити",
-    "back": "Назад",
-    "next": "Далі",
-    "previous": "Назад",
-    "submit": "Надіслати",
     "search": "Пошук",
-    "select": "Вибрати",
-    "selectAll": "Вибрати все",
-    "none": "Нічого",
-    "all": "Все",
-    "yes": "Так",
-    "no": "Ні",
-    "ok": "Гаразд",
     "error": "Помилка",
-    "success": "Успіх",
-    "warning": "Попередження",
-    "info": "Інформація",
     "unknown": "Невідомо",
-    "unknownUser": "Невідомий користувач",
     "includeDeleted": "Включити видалені",
     "you": "Ви",
-    "youSuffix": " (Ви)",
     "required": "*",
-    "optional": "(необов'язково)",
-    "or": "або",
-    "and": "і",
-    "copy": "Копіювати",
-    "share": "Поділитися",
     "dismiss": "Відхилити",
-    "dismissAlert": "Відхилити сповіщення",
-    "justNow": "щойно",
     "chooseFile": "Вибрати файл",
     "active": "Активний",
-    "inactive": "Неактивний",
     "disabled": "Вимкнено",
-    "total": "Всього",
     "member": "Учасник",
     "members": "Учасники",
-    "user": "Користувач",
     "group": "Група",
-    "groups": "Групи",
-    "recent": "Недавні",
-    "settings": "Налаштування",
     "understood": "Зрозуміло",
     "titleSuffix": " - {{appName}}",
     "refresh": "Оновити",
     "reset": "Скинути",
-    "add": "Додати",
-    "create": "Створити",
     "processing": "Обробка...",
     "download": "Завантажити",
     "downloading": "Завантаження...",
@@ -110,25 +78,9 @@
     "type": "Тип",
     "size": "Розмір",
     "link": "Посилання",
-    "value": "Значення",
     "notConfigured": "Не налаштовано",
     "notSet": "не встановлено",
-    "empty": "(пусто)",
-    "noData": "Дані відсутні",
-    "default": "За замовчуванням",
-    "actions": "Дії",
-    "status": "Статус",
-    "email": "Електронна пошта",
-    "displayName": "Відображуване ім'я",
-    "role": "Роль",
-    "lastSignIn": "Останній вхід",
-    "placeholder": {
-      "amount": "0.00",
-      "search": "Пошук...",
-      "searchCurrencies": "Пошук валют...",
-      "selectCurrency": "Вибрати валюту...",
-      "selectPerson": "Вибрати особу"
-    }
+    "empty": "(пусто)"
   },
   "currencySelector": {
     "noResults": "Валют не знайдено"
@@ -191,11 +143,7 @@
     "forgotPassword": "Забули пароль?",
     "submitButton": "Увійти",
     "noAccount": "Немає облікового запису?",
-    "signUp": "Зареєструватися",
-    "validation": {
-      "emailRequired": "Електронна пошта обов'язкова",
-      "passwordRequired": "Пароль обов'язковий"
-    }
+    "signUp": "Зареєструватися"
   },
   "registerPage": {
     "title": "Створити обліковий запис",
@@ -213,7 +161,6 @@
     "submitButton": "Створити обліковий запис",
     "hasAccount": "Вже є обліковий запис?",
     "signIn": "Увійти",
-    "requiredIndicator": "*",
     "validation": {
       "nameRequired": "Ім'я обов'язкове",
       "emailRequired": "Електронна пошта обов'язкова",
@@ -231,7 +178,6 @@
     "emailInput": {
       "label": "Електронна пошта",
       "placeholder": "Введіть свою електронну пошту",
-      "requiredIndicator": "*",
       "validation": {
         "required": "Електронна пошта обов'язкова",
         "invalid": "Будь ласка, введіть дійсну електронну адресу"
@@ -240,7 +186,6 @@
     "passwordInput": {
       "label": "Пароль",
       "placeholder": "Введіть свій пароль",
-      "requiredIndicator": "*",
       "showPassword": "Показати пароль",
       "hidePassword": "Приховати пароль",
       "strength": "Надійність пароля",
@@ -275,19 +220,7 @@
       "archivedBadge": "Заархівовано"
     },
     "emptyState": {
-      "title": "Груп ще немає",
-      "subtitle": "Створіть свою першу групу, щоб почати відстежувати спільні витрати",
-      "createButton": "Створити групу"
-    },
-    "stats": {
-      "totalGroups": "Всього груп",
-      "totalExpenses": "Всього витрат",
-      "totalBalance": "Загальний баланс"
-    },
-    "quickActions": {
-      "title": "Швидкі дії",
-      "createGroup": "Створити групу",
-      "addExpense": "Додати витрату"
+      "title": "Груп ще немає"
     }
   },
   "activityFeed": {
@@ -329,7 +262,6 @@
       "comment-added": "{{actor}} прокоментував(ла) {{target}} у {{group}}",
       "settlement-created": "{{actor}} записав(ла) {{settlement}} у {{group}}",
       "settlement-updated": "{{actor}} оновив(ла) {{settlement}} у {{group}}",
-      "settlement-deleted": "{{actor}} видалив(ла) {{settlement}} з {{group}}",
       "generic": "{{actor}} вніс(ла) зміни у {{group}}",
       "group-created-short": "{{actor}} створив(ла) групу",
       "group-updated-short": "{{actor}} оновив(ла) групу",
@@ -344,7 +276,6 @@
       "comment-added-short": "{{actor}} прокоментував(ла) {{target}}",
       "settlement-created-short": "{{actor}} записав(ла) {{settlement}}",
       "settlement-updated-short": "{{actor}} оновив(ла) {{settlement}}",
-      "settlement-deleted-short": "{{actor}} видалив(ла) {{settlement}}",
       "generic-short": "{{actor}} вніс(ла) зміни"
     }
   },
@@ -357,74 +288,19 @@
     },
     "actions": {
       "addExpense": "Додати витрату",
-      "viewExpenses": "Переглянути витрати",
-      "settleUp": "Розрахуватися",
-      "shareGroup": "Поділитися групою",
-      "editGroup": "Редагувати групу",
-      "leaveGroup": "Покинути групу"
-    },
-    "share": {
-      "title": "Поділитися групою",
-      "subtitle": "Запросіть інших приєднатися до цієї групи",
-      "copyLink": "Копіювати посилання",
-      "linkCopied": "Посилання скопійовано в буфер обміну!"
-    },
-    "edit": {
-      "title": "Редагувати групу",
-      "warningIcon": "⚠️"
-    },
-    "leave": {
-      "title": "Покинути групу",
-      "message": "Ви впевнені, що хочете покинути цю групу?",
-      "confirmButton": "Покинути групу",
-      "cancelButton": "Скасувати"
-    },
-    "members": {
-      "title": "Учасники",
-      "addMember": "Додати учасника",
-      "removeMember": "Видалити учасника",
-      "unknownUser": "Невідомий користувач",
-      "user": "Користувач"
-    },
-    "expenses": {
-      "title": "Витрати",
-      "noExpenses": "Витрат ще немає",
-      "addFirstExpense": "Додайте свою першу витрату",
-      "unknown": "Невідомо"
-    },
-    "balance": {
-      "title": "Зведення балансу",
-      "settledUp": "Все розраховано!",
-      "unknown": "Невідомо"
+      "settleUp": "Розрахуватися"
     }
   },
   "comments": {
-    "section": {
-      "title": "Коментарі",
-      "noComments": "Коментарів ще немає"
-    },
     "input": {
-      "placeholder": "Додайте коментар...",
       "ariaLabel": "Текст коментаря",
-      "sendButton": "Надіслати",
       "sendAriaLabel": "Надіслати коментар"
-    },
-    "item": {
-      "justNow": "щойно",
-      "deleteButton": "Видалити коментар"
-    },
-    "list": {
-      "loading": "Завантаження коментарів...",
-      "error": "Не вдалося завантажити коментарі"
     },
     "commentInput": {
       "placeholder": "Додайте коментар...",
       "tooLong": "Коментар занадто довгий",
       "addFailed": "Не вдалося додати коментар",
       "helpText": "Натисніть Enter, щоб надіслати, Shift+Enter для нового рядка"
-    },
-    "commentItem": {
-      "recently": "нещодавно"
     },
     "commentsList": {
       "loading": "Завантаження коментарів...",
@@ -448,74 +324,23 @@
     }
   },
   "navigation": {
-    "header": {
-      "fallback": "...",
-      "dashboard": "Панель інструментів",
-      "groups": "Групи",
-      "settings": "Налаштування"
-    },
-    "footer": {
-      "copyright": "© {{year}} {{appName}}. Всі права захищено.",
-      "privacy": "Політика конфіденційності",
-      "terms": "Умови надання послуг",
-      "cookies": "Політика щодо файлів cookie"
-    },
     "userMenu": {
       "openUserMenu": "Відкрити меню користувача",
-      "profile": "Профіль",
-      "settings": "Налаштування",
-      "logout": "Вийти",
-      "help": "Допомога"
+      "logout": "Вийти"
     }
   },
   "errors": {
-    "generic": "Сталася помилка",
-    "network": "Сталася помилка мережі",
-    "invalidLink": "Недійсне посилання",
-    "notFound": {
-      "page": "Сторінку не знайдено",
-      "group": "Групу не знайдено",
-      "expense": "Витрату не знайдено"
-    },
-    "loading": {
-      "cookiePolicy": "Помилка завантаження політики щодо файлів cookie",
-      "privacyPolicy": "Помилка завантаження політики конфіденційності",
-      "terms": "Помилка завантаження умов"
-    },
-    "validation": {
-      "displayNameEmpty": "Відображуване ім'я не може бути порожнім",
-      "displayNameTooLong": "Відображуване ім'я має містити 100 символів або менше",
-      "passwordTooShort": "Новий пароль повинен містити принаймні 12 символів",
-      "passwordsNoMatch": "Паролі не збігаються",
-      "passwordSameAsCurrent": "Новий пароль повинен відрізнятися від поточного",
-      "passwordAndNewRequired": "Поточний пароль і новий пароль обов'язкові"
-    }
+    "invalidLink": "Недійсне посилання"
   },
   "seo": {
     "titleSuffix": " | {{appName}}",
     "siteName": "{{appName}}"
   },
   "expenseForm": {
-    "description": "Опис",
-    "amount": "Сума*",
-    "whoPaid": "Хто заплатив?",
-    "splitBetween": "Розділити між",
-    "exactAmounts": "Точні суми",
-    "percentage": "Відсоток",
-    "equal": "Порівну",
-    "exactAmountsInstruction": "Введіть точні суми для кожної особи:",
-    "percentageInstruction": "Введіть відсоток для кожної особи:",
-    "selectAll": "Вибрати все",
     "saveExpense": "Зберегти витрату",
-    "updateExpense": "Оновити витрату",
-    "cancel": "Скасувати",
-    "errors": {
-      "expenseLocked": "Цю витрату не можна редагувати, оскільки один або кілька учасників покинули групу."
-    }
+    "updateExpense": "Оновити витрату"
   },
   "settlementForm": {
-    "updatePayment": "Оновити платіж",
-    "recordPayment": "Записати платіж",
     "updateSettlement": "Оновити розрахунок",
     "recordSettlement": "Записати розрахунок",
     "closeModal": "Закрити модальне вікно",
@@ -531,7 +356,6 @@
     "cancelButton": "Скасувати",
     "updatingButton": "Оновлення...",
     "recordingButton": "Запис...",
-    "paymentSummary": "{{payer}} заплатив(ла) {{payee}} {{amount}}",
     "validation": {
       "selectPayer": "Будь ласка, виберіть, хто заплатив",
       "selectPayee": "Будь ласка, виберіть, хто отримав платіж",
@@ -554,12 +378,9 @@
   },
   "settlementHistory": {
     "noPaymentsYet": "Платежів ще не було",
-    "today": "Сьогодні",
-    "yesterday": "Вчора",
     "editPaymentTooltip": "Редагувати платіж",
     "cannotEditTooltip": "Неможливо редагувати - учасник покинув групу",
     "deletePaymentTooltip": "Видалити платіж",
-    "loadMore": "Завантажити ще",
     "loadMorePayments": "Завантажити ще",
     "deletePaymentTitle": "Видалити платіж",
     "deletePaymentMessage": "Ви впевнені, що хочете видалити цей платіж у розмірі {{amount}} від {{payer}} до {{payee}}? Цю дію неможливо скасувати.",
@@ -572,10 +393,7 @@
   "balanceSummary": {
     "loadingBalances": "Завантаження балансів...",
     "allSettledUp": "Все розраховано!",
-    "debtArrow": " → ",
-    "showOnlyMyBalances": "Показати лише мої баланси",
     "showAll": "Показати все",
-    "settleUp": "Розрахуватися",
     "settleUpButton": "Записати розрахунок для цього боргу"
   },
   "emptyGroupsState": {
@@ -748,7 +566,6 @@
     "Застава"
   ],
   "expensesList": {
-    "title": "Витрати",
     "noExpensesYet": "Витрат ще немає. Додайте одну, щоб почати!",
     "loadMore": "Завантажити ще"
   },
@@ -770,14 +587,7 @@
     "admin": "Адмін",
     "settings": "Налаштування",
     "signOut": "Вийти",
-    "signingOut": "Вихід...",
-    "systemUserBadge": "Системний користувач",
-    "systemUserTooltip": "Цей обліковий запис використовується для автоматизованих або системних операцій.",
-    "environmentLink": "сер",
-    "diagnosticsLoading": "Завантаження діагностики...",
-    "diagnosticsError": "Не вдалося завантажити діагностику:",
-    "browser": "Браузер",
-    "browserUsers": "Браузер користувачів"
+    "signingOut": "Вихід..."
   },
   "languageSelector": {
     "label": "Мова",
@@ -795,8 +605,7 @@
     "membersCount_other": "{{count}} учасників",
     "old": "старий",
     "lastUpdated": "останнє оновлення",
-    "groupSettingsAriaLabel": "Налаштування групи",
-    "groupSecurityAriaLabel": "Безпека та дозволи"
+    "groupSettingsAriaLabel": "Налаштування групи"
   },
   "securitySettingsModal": {
     "unsavedChanges": "У вас є незбережені зміни. Перегляньте все, а потім натисніть Зберегти, щоб застосувати їх.",
@@ -935,13 +744,11 @@
     }
   },
   "editGroupModal": {
-    "title": "Редагувати групу",
     "groupNameLabel": "Назва групи",
     "groupNamePlaceholder": "напр., Витрати на квартиру, Поїздка в Париж",
     "descriptionLabel": "Опис (необов'язково)",
     "descriptionPlaceholder": "Додайте будь-які деталі про цю групу...",
     "cancelButton": "Скасувати",
-    "saveChangesButton": "Зберегти зміни",
     "deleteGroupButton": "Видалити групу",
     "validation": {
       "nameRequired": "Назва групи обов'язкова.",
@@ -1016,7 +823,6 @@
     "description": "Виберіть, як інші учасники бачать вас у цій групі.",
     "inputLabel": "Ваше відображуване ім'я в цій групі",
     "inputPlaceholder": "Введіть унікальне відображуване ім'я",
-    "save": "Зберегти відображуване ім'я",
     "saving": "Збереження...",
     "success": "Відображуване ім'я групи оновлено.",
     "errors": {
@@ -1032,11 +838,7 @@
     "admin": "Адмін",
     "member": "Учасник",
     "viewer": "Глядач",
-    "thisMember": "Цей учасник",
-    "leaveGroup": "Покинути групу",
     "inviteOthers": "Запросити інших",
-    "inviteOthersAriaLabel": "Запросити інших",
-    "leaveGroupAriaLabel": "Покинути групу",
     "removeMemberAriaLabel": "Видалити {{name}}",
     "leaveGroupDialog": {
       "title": "Покинути групу?",
@@ -1049,8 +851,7 @@
       "title": "Видалити учасника?",
       "messageWithBalance": "{{name}} має несплачений баланс у цій групі. Будь ласка, розрахуйтеся перед видаленням.",
       "messageConfirm": "Ви впевнені, що хочете видалити {{name}} з групи?",
-      "confirmText": "Видалити",
-      "cancelText": "Скасувати"
+      "confirmText": "Видалити"
     }
   },
   "shareGroupModal": {
@@ -1122,12 +923,9 @@
       "title": "Виберіть своє відображуване ім'я",
       "description": "Так інші учасники бачитимуть вас у \"{{groupName}}\"",
       "label": "Відображуване ім'я",
-      "placeholder": "Як інші учасники повинні бачити ваше ім'я?",
-      "help": "Виберіть унікальне ім'я для цієї групи. Інші учасники будуть використовувати його для вашої ідентифікації.",
       "errors": {
         "required": "Введіть відображуване ім'я.",
-        "taken": "Це відображуване ім'я вже використовується в цій групі.",
-        "invalid": "Відображуване ім'я може містити лише літери, цифри, пробіли, дефіси, підкреслення та крапки."
+        "taken": "Це відображуване ім'я вже використовується в цій групі."
       }
     }
   },
@@ -1167,8 +965,6 @@
     },
     "splitAmountInputs": {
       "exactAmountsInstruction": "Введіть точні суми для кожної особи:",
-      "unknown": "Невідомо",
-      "dollarSign": "$",
       "total": "Всього:",
       "percentageInstruction": "Введіть відсоток для кожної особи:",
       "percentSign": "%",
@@ -1210,19 +1006,12 @@
       "title": "Деталі витрати",
       "closeModal": "Закрити модальне вікно",
       "close": "Закрити",
-      "edit": "Редагувати",
-      "copy": "Копіювати",
-      "share": "Поділитися",
-      "delete": "Видалити",
       "paidBy": "Заплатив(ла)",
       "date": "Дата",
       "labels": "Мітки",
       "receipt": "Квитанція",
       "viewReceipt": "Переглянути квитанцію",
-      "noReceipt": "Немає квитанції",
-      "splitDetails": "Деталі поділу",
       "comments": "Коментарі",
-      "loadingExpense": "Завантаження деталей витрати...",
       "expenseNotFound": "Витрату не знайдено",
       "failedToLoad": "Не вдалося завантажити деталі витрати",
       "shareTitle": "Витрата: {{description}}",
@@ -1236,7 +1025,6 @@
       "exactAmounts": "Точні суми",
       "byPercentage": "За відсотком",
       "customSplit": "Користувацький поділ",
-      "unknown": "Невідомо",
       "paid": "Заплатив",
       "owes": "Винен ",
       "total": "Всього: "
@@ -1260,7 +1048,6 @@
       "policyLabel": "Політика ",
       "of": " з ",
       "colon": ": ",
-      "close": "Закрити",
       "progress": "Прогрес",
       "accepted": " прийнято",
       "acceptedIcon": "✓ Прийнято",
@@ -1273,24 +1060,11 @@
       "next": "Наступна",
       "policiesAccepted": " політики прийнято",
       "accepting": "Прийняття...",
-      "acceptAll": "Прийняти все та продовжити",
       "closeAriaLabel": "Закрити",
       "errorTitle": "Помилка"
-    },
-    "policyRenderer": {
-      "bulletPoint": "• "
     }
   },
   "uiComponents": {
-    "alert": {
-      "dismiss": "Відхилити сповіщення"
-    },
-    "avatar": {
-      "unknown": "Невідомо"
-    },
-    "button": {
-      "default": "Кнопка"
-    },
     "multiLabelInput": {
       "placeholder": "Додати мітку...",
       "removeLabel": "Видалити {{label}}",
@@ -1298,32 +1072,15 @@
       "recent": "Недавні",
       "hint": "{{count}}/{{max}} міток"
     },
-    "confirmDialog": {
-      "confirm": "Підтвердити",
-      "cancel": "Скасувати"
-    },
     "currencyAmountInput": {
       "selectCurrency": "Вибрати валюту",
       "searchPlaceholder": "Пошук за символом, кодом або країною...",
       "searchAriaLabel": "Пошук валют",
-      "loading": "Завантаження валют...",
       "noCurrencies": "Валют не знайдено",
       "recent": "Недавні",
       "common": "Поширені",
       "allCurrencies": "Всі валюти",
       "placeholder": "0.00",
-      "requiredIndicator": "*"
-    },
-    "currencySelector": {
-      "placeholder": "Вибрати валюту...",
-      "searchPlaceholder": "Пошук валют",
-      "loading": "Завантаження валют...",
-      "noCurrencies": "Валют не знайдено",
-      "recent": "Недавні",
-      "common": "Поширені",
-      "allCurrencies": "Всі валюти"
-    },
-    "input": {
       "requiredIndicator": "*"
     },
     "loadingSpinner": {
@@ -1339,54 +1096,10 @@
     }
   },
   "pages": {
-    "addExpensePage": {
-      "errorTitle": "Помилка - {{appName}}",
-      "error": "Помилка",
-      "noGroupMessage": "Групу не вказано. Неможливо додати витрату без групи.",
-      "backToDashboard": "Назад на панель інструментів",
-      "loadingTitle": "Завантаження... - {{appName}}",
-      "groupNotFound": "Групу не знайдено",
-      "groupNotFoundMessage": "Група, до якої ви намагаєтеся додати витрату, не існує, або у вас немає до неї доступу.",
-      "backToGroup": "Назад до групи",
-      "copyExpenseTitle": "Копіювати витрату",
-      "editExpenseTitle": "Редагувати витрату",
-      "addExpenseTitle": "Додати витрату",
-      "copyExpenseAction": "Копіювати витрату",
-      "editExpenseAction": "Редагувати витрату",
-      "addExpenseAction": "Додати нову витрату",
-      "titleSuffix": " - {{appName}}",
-      "titleIn": " в "
-    },
     "expenseDetailPage": {
-      "missingGroupId": "Відсутній ID групи",
-      "missingExpenseId": "Відсутній ID витрати",
-      "failedToLoad": "Не вдалося завантажити витрату",
-      "cannotEdit": "Цю витрату не можна редагувати",
       "containsDepartedMembers": "Один або кілька учасників покинули групу. Історичні записи зберігаються лише для читання.",
-      "expenseLabel": "Витрата: ",
-      "checkOutExpense": "Перегляньте цю витрату: ",
-      "shareApiFailed": "Не вдалося поділитися, повернення до буфера обміну",
-      "failedToCopy": "Не вдалося скопіювати в буфер обміну",
-      "error": "Помилка",
-      "expenseNotFound": "Витрату не знайдено",
-      "backToGroup": "Назад до групи",
-      "titleSeparator": " - ",
-      "expenseFor": "Витрата для ",
-      "backButton": "← Назад",
-      "date": "Дата",
-      "ago": " тому",
-      "labels": "Мітки",
-      "paidBy": "Заплатив(ла)",
-      "unknown": "Невідомо",
       "discussion": "Обговорення",
       "receipt": "Квитанція",
-      "clickToViewFullSize": "Натисніть, щоб переглянути в повному розмірі",
-      "added": "Додано ",
-      "lastUpdated": "Останнє оновлення ",
-      "receiptViewer": "Переглядач квитанцій",
-      "closeReceiptViewer": "Закрити переглядач квитанцій",
-      "receiptFullSize": "Квитанція - Повний розмір",
-      "summarySection": "Зведення витрат",
       "splitSection": "Деталі поділу",
       "metadataSection": "Метадані витрати"
     },
@@ -1402,20 +1115,6 @@
       "titleSuffix": " - {{appName}}",
       "manageExpensesFor": "Керування витратами для "
     },
-    "landingPage": {
-      "title": "Легкий поділ рахунків - {{appName}}",
-      "description": "Попрощайтеся з незручними боргами та складними розрахунками. Наш додаток робить обмін витратами з друзями, родиною та сусідами по кімнаті легким, справедливим і прозорим. Це 100% безкоштовно, без реклами та обмежень.",
-      "disclaimer": "Це інструмент для відстеження витрат, а не для здійснення платежів.",
-      "accountNote": " Щоб зберігати та керувати своїми витратами, вам знадобиться безкоштовний обліковий запис.",
-      "privacyNote": "Ми ніколи не будемо запитувати конфіденційні фінансові дані.",
-      "transparencyNotice": {
-        "bold": "Це інструмент для відстеження витрат, а не для здійснення платежів.",
-        "text": "Щоб зберігати та керувати своїми витратами, вам знадобиться безкоштовний обліковий запис. Ми ніколи не будемо запитувати конфіденційні фінансові дані."
-      }
-    },
-    "registerPage": {
-      "requiredIndicator": "*"
-    },
     "resetPasswordPage": {
       "failedToSendReset": "Не вдалося надіслати електронний лист для скидання",
       "checkYourEmail": "Перевірте свою електронну пошту",
@@ -1428,7 +1127,6 @@
       "clickResetLink": "• Натисніть посилання для скидання в електронному листі",
       "createNewPassword": "• Створіть новий пароль",
       "signInWithNewPassword": "• Увійдіть за допомогою нового пароля",
-      "sendToDifferentEmail": "Надіслати на іншу електронну пошту",
       "backToSignIn": "← Назад до входу",
       "resetPassword": "Скинути пароль",
       "enterEmailForReset": "Введіть свою електронну адресу, щоб отримати інструкції щодо скидання пароля",
@@ -1529,7 +1227,6 @@
     "diagnostics": {
       "loading": "Завантаження діагностики середовища...",
       "errors": {
-        "fetch": "Не вдалося отримати дані середовища",
         "unknown": "Сталася невідома помилка"
       },
       "serverStatus": {
@@ -1595,20 +1292,11 @@
         "disableUser": "Ви впевнені, що хочете {{action}} цей обліковий запис користувача?"
       },
       "success": {
-        "userToggled": "Обліковий запис користувача успішно {{action}}",
-        "roleUpdated": "Роль користувача оновлено до {{role}}",
-        "roleUnchanged": "Роль не змінено"
+        "userToggled": "Обліковий запис користувача успішно {{action}}"
       },
       "errors": {
         "selfDisable": "Ви не можете вимкнути власний обліковий запис",
-        "selfRoleChange": "Ви не можете змінити власну роль",
-        "disableUser": "Не вдалося {{action}} обліковий запис користувача",
-        "roleUpdate": "Не вдалося оновити роль користувача",
-        "invalidSelection": "Недійсний вибір"
-      },
-      "rolePrompt": {
-        "title": "Поточна роль: {{currentRole}}\n\nВиберіть нову роль:",
-        "regularUser": "Звичайний користувач (без ролі)"
+        "disableUser": "Не вдалося {{action}} обліковий запис користувача"
       }
     },
     "userEditor": {
@@ -1630,7 +1318,6 @@
       "role": {
         "description": "Виберіть роль для цього користувача"
       },
-      "loading": "Завантаження...",
       "noDataAvailable": "Дані відсутні",
       "errors": {
         "noChanges": "Немає змін для збереження",
@@ -1657,8 +1344,7 @@
       },
       "modeHint": {
         "basic": "Показано основні налаштування",
-        "advanced": "Показано всі налаштування",
-        "moreColors": "Перейдіть до розширеного режиму для повного контролю над палітрою кольорів"
+        "advanced": "Показано всі налаштування"
       },
       "derivation": {
         "themeMode": {
@@ -1682,8 +1368,6 @@
         }
       },
       "derivationWand": {
-        "tooltip": "Вивести кольори з палітри",
-        "tooltipDisabled": "Спочатку встановіть основні, вторинні та акцентні кольори",
         "popoverTitle": "Виведення кольорів",
         "derive": "Застосувати виведення"
       },
@@ -1768,9 +1452,7 @@
       "fields": {
         "tenantId": "ID орендаря",
         "appName": "Назва програми",
-        "domains": "Домени",
         "logoUrl": "URL логотипу",
-        "faviconUrl": "URL фавікону",
         "primaryColor": "Основний колір",
         "primaryVariantColor": "Варіант основного",
         "secondaryColor": "Вторинний колір",
@@ -1785,8 +1467,6 @@
       },
       "placeholders": {
         "tenantId": "мій-орендар",
-        "appName": "Мій додаток витрат",
-        "domain": "Додати новий домен...",
         "selectTenant": "Вибрати орендаря для копіювання..."
       },
       "creationMode": {
@@ -1803,34 +1483,7 @@
         "tenantIdRequiredForPublish": "ID орендаря потрібен для публікації"
       },
       "hints": {
-        "tenantIdReadonly": "ID орендаря не можна змінити",
-        "colorFormat": "#RRGGBB"
-      },
-      "toggles": {
-        "showMarketingContent": {
-          "label": "Показувати маркетинговий вміст",
-          "description": "Відображати маркетинговий вміст на загальнодоступних сторінках"
-        },
-        "showPricingPage": {
-          "label": "Показувати сторінку з цінами",
-          "description": "Відображати інформацію про ціни"
-        },
-        "showAppNameInHeader": {
-          "label": "Показувати назву програми в заголовку",
-          "description": "Відображати назву програми поруч із логотипом"
-        },
-        "enableParallax": {
-          "label": "Увімкнути паралакс",
-          "description": "Увімкнути ефекти прокрутки з паралаксом"
-        },
-        "enableMagneticHover": {
-          "label": "Увімкнути магнітне наведення",
-          "description": "Увімкнути ефекти магнітного наведення на кнопках"
-        },
-        "enableScrollReveal": {
-          "label": "Увімкнути розкриття при прокрутці",
-          "description": "Увімкнути анімації, що спрацьовують при прокрутці"
-        }
+        "tenantIdReadonly": "ID орендаря не можна змінити"
       },
       "loading": {
         "tenants": "Завантаження орендарів..."
@@ -1860,16 +1513,8 @@
         "faviconSelected": "Favicon вибрано з бібліотеки"
       },
       "buttons": {
-        "save": "Зберегти орендаря",
         "publish": "Опублікувати тему",
-        "addDomain": "Додати",
-        "removeDomain": "Видалити",
-        "chooseFromLibrary": "Вибрати з бібліотеки",
-        "uploadNew": "Завантажити нове"
-      },
-      "actions": {
-        "deriveColors": "Вивести кольори",
-        "deriveColorsDescription": "Створити всі семантичні кольори з вашої палітри бренду"
+        "addDomain": "Додати"
       }
     }
   },

@@ -45,55 +45,23 @@
     "delete": "حذف",
     "edit": "تعديل",
     "close": "إغلاق",
-    "confirm": "تأكيد",
-    "back": "رجوع",
-    "next": "التالي",
-    "previous": "السابق",
-    "submit": "إرسال",
     "search": "بحث",
-    "select": "تحديد",
-    "selectAll": "تحديد الكل",
-    "none": "لا شيء",
-    "all": "الكل",
-    "yes": "نعم",
-    "no": "لا",
-    "ok": "موافق",
     "error": "خطأ",
-    "success": "نجاح",
-    "warning": "تحذير",
-    "info": "معلومات",
     "unknown": "غير معروف",
-    "unknownUser": "مستخدم غير معروف",
     "includeDeleted": "تضمين المحذوف",
     "you": "أنت",
-    "youSuffix": " (أنت)",
     "required": "*",
-    "optional": "(اختياري)",
-    "or": "أو",
-    "and": "و",
-    "copy": "نسخ",
-    "share": "مشاركة",
     "dismiss": "تجاهل",
-    "dismissAlert": "تجاهل التنبيه",
-    "justNow": "الآن",
     "chooseFile": "اختر ملف",
     "active": "نشط",
-    "inactive": "غير نشط",
     "disabled": "معطل",
-    "total": "المجموع",
     "member": "عضو",
     "members": "أعضاء",
-    "user": "مستخدم",
     "group": "مجموعة",
-    "groups": "مجموعات",
-    "recent": "حديث",
-    "settings": "الإعدادات",
     "understood": "مفهوم",
     "titleSuffix": " - {{appName}}",
     "refresh": "تحديث",
     "reset": "إعادة تعيين",
-    "add": "إضافة",
-    "create": "إنشاء",
     "processing": "قيد المعالجة...",
     "download": "تنزيل",
     "downloading": "جار التنزيل...",
@@ -110,25 +78,9 @@
     "type": "النوع",
     "size": "الحجم",
     "link": "رابط",
-    "value": "القيمة",
     "notConfigured": "غير مهيأ",
     "notSet": "غير معين",
-    "empty": "(فارغ)",
-    "noData": "لا توجد بيانات متاحة",
-    "default": "افتراضي",
-    "actions": "الإجراءات",
-    "status": "الحالة",
-    "email": "البريد الإلكتروني",
-    "displayName": "اسم العرض",
-    "role": "الدور",
-    "lastSignIn": "آخر تسجيل دخول",
-    "placeholder": {
-      "amount": "0.00",
-      "search": "بحث...",
-      "searchCurrencies": "بحث عن عملات...",
-      "selectCurrency": "اختر العملة...",
-      "selectPerson": "اختر شخص"
-    }
+    "empty": "(فارغ)"
   },
   "currencySelector": {
     "noResults": "لم يتم العثور على عملات"
@@ -191,11 +143,7 @@
     "forgotPassword": "هل نسيت كلمة المرور؟",
     "submitButton": "تسجيل الدخول",
     "noAccount": "ليس لديك حساب؟",
-    "signUp": "سجل",
-    "validation": {
-      "emailRequired": "البريد الإلكتروني مطلوب",
-      "passwordRequired": "كلمة المرور مطلوبة"
-    }
+    "signUp": "سجل"
   },
   "registerPage": {
     "title": "إنشاء حساب",
@@ -213,7 +161,6 @@
     "submitButton": "إنشاء حساب",
     "hasAccount": "هل لديك حساب بالفعل؟",
     "signIn": "تسجيل الدخول",
-    "requiredIndicator": "*",
     "validation": {
       "nameRequired": "الاسم مطلوب",
       "emailRequired": "البريد الإلكتروني مطلوب",
@@ -231,7 +178,6 @@
     "emailInput": {
       "label": "البريد الإلكتروني",
       "placeholder": "أدخل بريدك الإلكتروني",
-      "requiredIndicator": "*",
       "validation": {
         "required": "البريد الإلكتروني مطلوب",
         "invalid": "يرجى إدخال عنوان بريد إلكتروني صالح"
@@ -240,7 +186,6 @@
     "passwordInput": {
       "label": "كلمة المرور",
       "placeholder": "أدخل كلمة المرور الخاصة بك",
-      "requiredIndicator": "*",
       "showPassword": "إظهار كلمة المرور",
       "hidePassword": "إخفاء كلمة المرور",
       "strength": "قوة كلمة المرور",
@@ -275,19 +220,7 @@
       "archivedBadge": "مؤرشف"
     },
     "emptyState": {
-      "title": "لا توجد مجموعات حتى الآن",
-      "subtitle": "أنشئ مجموعتك الأولى لبدء تتبع النفقات المشتركة",
-      "createButton": "إنشاء مجموعة"
-    },
-    "stats": {
-      "totalGroups": "إجمالي المجموعات",
-      "totalExpenses": "إجمالي النفقات",
-      "totalBalance": "الرصيد الإجمالي"
-    },
-    "quickActions": {
-      "title": "إجراءات سريعة",
-      "createGroup": "إنشاء مجموعة",
-      "addExpense": "إضافة مصروف"
+      "title": "لا توجد مجموعات حتى الآن"
     }
   },
   "activityFeed": {
@@ -329,7 +262,6 @@
       "comment-added": "علّق {{actor}} على {{target}} في {{group}}",
       "settlement-created": "سجل {{actor}} {{settlement}} في {{group}}",
       "settlement-updated": "قام {{actor}} بتحديث {{settlement}} في {{group}}",
-      "settlement-deleted": "حذف {{actor}} {{settlement}} من {{group}}",
       "generic": "أجرى {{actor}} تغييرات في {{group}}",
       "group-created-short": "أنشأ {{actor}} المجموعة",
       "group-updated-short": "قام {{actor}} بتحديث المجموعة",
@@ -344,7 +276,6 @@
       "comment-added-short": "علّق {{actor}} على {{target}}",
       "settlement-created-short": "سجل {{actor}} {{settlement}}",
       "settlement-updated-short": "قام {{actor}} بتحديث {{settlement}}",
-      "settlement-deleted-short": "حذف {{actor}} {{settlement}}",
       "generic-short": "أجرى {{actor}} تغييرات"
     }
   },
@@ -357,74 +288,19 @@
     },
     "actions": {
       "addExpense": "إضافة مصروف",
-      "viewExpenses": "عرض المصروفات",
-      "settleUp": "تسوية",
-      "shareGroup": "مشاركة المجموعة",
-      "editGroup": "تعديل المجموعة",
-      "leaveGroup": "مغادرة المجموعة"
-    },
-    "share": {
-      "title": "مشاركة المجموعة",
-      "subtitle": "دعوة الآخرين للانضمام إلى هذه المجموعة",
-      "copyLink": "نسخ الرابط",
-      "linkCopied": "تم نسخ الرابط إلى الحافظة!"
-    },
-    "edit": {
-      "title": "تعديل المجموعة",
-      "warningIcon": "⚠️"
-    },
-    "leave": {
-      "title": "مغادرة المجموعة",
-      "message": "هل أنت متأكد أنك تريد مغادرة هذه المجموعة؟",
-      "confirmButton": "مغادرة المجموعة",
-      "cancelButton": "إلغاء"
-    },
-    "members": {
-      "title": "الأعضاء",
-      "addMember": "إضافة عضو",
-      "removeMember": "إزالة عضو",
-      "unknownUser": "مستخدم غير معروف",
-      "user": "مستخدم"
-    },
-    "expenses": {
-      "title": "المصروفات",
-      "noExpenses": "لا توجد مصروفات حتى الآن",
-      "addFirstExpense": "إضافة أول مصروف لك",
-      "unknown": "غير معروف"
-    },
-    "balance": {
-      "title": "ملخص الرصيد",
-      "settledUp": "كل شيء مسدد!",
-      "unknown": "غير معروف"
+      "settleUp": "تسوية الدين"
     }
   },
   "comments": {
-    "section": {
-      "title": "التعليقات",
-      "noComments": "لا توجد تعليقات حتى الآن"
-    },
     "input": {
-      "placeholder": "إضافة تعليق...",
       "ariaLabel": "نص التعليق",
-      "sendButton": "إرسال",
       "sendAriaLabel": "إرسال تعليق"
-    },
-    "item": {
-      "justNow": "الآن",
-      "deleteButton": "حذف التعليق"
-    },
-    "list": {
-      "loading": "جار تحميل التعليقات...",
-      "error": "فشل تحميل التعليقات"
     },
     "commentInput": {
       "placeholder": "إضافة تعليق...",
       "tooLong": "التعليق طويل جدًا",
       "addFailed": "فشل إضافة التعليق",
       "helpText": "اضغط على Enter للإرسال ، و Shift + Enter لسطر جديد"
-    },
-    "commentItem": {
-      "recently": "مؤخرًا"
     },
     "commentsList": {
       "loading": "جار تحميل التعليقات...",
@@ -448,74 +324,23 @@
     }
   },
   "navigation": {
-    "header": {
-      "fallback": "...",
-      "dashboard": "لوحة التحكم",
-      "groups": "المجموعات",
-      "settings": "الإعدادات"
-    },
-    "footer": {
-      "copyright": "© {{year}} {{appName}}. جميع الحقوق محفوظة.",
-      "privacy": "سياسة الخصوصية",
-      "terms": "شروط الخدمة",
-      "cookies": "سياسة ملفات تعريف الارتباط"
-    },
     "userMenu": {
       "openUserMenu": "فتح قائمة المستخدم",
-      "profile": "الملف الشخصي",
-      "settings": "الإعدادات",
-      "logout": "تسجيل الخروج",
-      "help": "مساعدة"
+      "logout": "تسجيل الخروج"
     }
   },
   "errors": {
-    "generic": "حدث خطأ",
-    "network": "حدث خطأ في الشبكة",
-    "invalidLink": "رابط غير صالح",
-    "notFound": {
-      "page": "الصفحة غير موجودة",
-      "group": "المجموعة غير موجودة",
-      "expense": "المصروف غير موجود"
-    },
-    "loading": {
-      "cookiePolicy": "خطأ في تحميل سياسة ملفات تعريف الارتباط",
-      "privacyPolicy": "خطأ في تحميل سياسة الخصوصية",
-      "terms": "خطأ في تحميل الشروط"
-    },
-    "validation": {
-      "displayNameEmpty": "لا يمكن أن يكون اسم العرض فارغًا",
-      "displayNameTooLong": "يجب أن يكون اسم العرض 100 حرف أو أقل",
-      "passwordTooShort": "يجب أن لا تقل كلمة المرور الجديدة عن 12 حرفًا",
-      "passwordsNoMatch": "كلمات المرور غير متطابقة",
-      "passwordSameAsCurrent": "يجب أن تكون كلمة المرور الجديدة مختلفة عن كلمة المرور الحالية",
-      "passwordAndNewRequired": "كلمة المرور الحالية وكلمة المرور الجديدة مطلوبتان"
-    }
+    "invalidLink": "رابط غير صالح"
   },
   "seo": {
     "titleSuffix": " | {{appName}}",
     "siteName": "{{appName}}"
   },
   "expenseForm": {
-    "description": "الوصف",
-    "amount": "المبلغ*",
-    "whoPaid": "من دفع؟",
-    "splitBetween": "تقسيم بين",
-    "exactAmounts": "مبالغ دقيقة",
-    "percentage": "نسبة مئوية",
-    "equal": "بالتساوي",
-    "exactAmountsInstruction": "أدخل المبالغ الدقيقة لكل شخص:",
-    "percentageInstruction": "أدخل النسبة المئوية لكل شخص:",
-    "selectAll": "تحديد الكل",
     "saveExpense": "حفظ المصروف",
-    "updateExpense": "تحديث المصروف",
-    "cancel": "إلغاء",
-    "errors": {
-      "expenseLocked": "لا يمكن تعديل هذا المصروف لأن واحدًا أو أكثر من المشاركين قد غادروا المجموعة."
-    }
+    "updateExpense": "تحديث المصروف"
   },
   "settlementForm": {
-    "updatePayment": "تحديث الدفعة",
-    "recordPayment": "تسجيل دفعة",
     "updateSettlement": "تحديث التسوية",
     "recordSettlement": "تسجيل تسوية",
     "closeModal": "إغلاق النموذج",
@@ -531,7 +356,6 @@
     "cancelButton": "إلغاء",
     "updatingButton": "جار التحديث...",
     "recordingButton": "جار التسجيل...",
-    "paymentSummary": "{{payer}} دفع {{payee}} {{amount}}",
     "validation": {
       "selectPayer": "يرجى تحديد من دفع",
       "selectPayee": "يرجى تحديد من استلم الدفعة",
@@ -554,12 +378,9 @@
   },
   "settlementHistory": {
     "noPaymentsYet": "لم يتم تسجيل أي مدفوعات حتى الآن",
-    "today": "اليوم",
-    "yesterday": "أمس",
     "editPaymentTooltip": "تعديل الدفعة",
     "cannotEditTooltip": "لا يمكن التعديل - لقد غادر العضو المجموعة",
     "deletePaymentTooltip": "حذف الدفعة",
-    "loadMore": "تحميل المزيد",
     "loadMorePayments": "تحميل المزيد",
     "deletePaymentTitle": "حذف الدفعة",
     "deletePaymentMessage": "هل أنت متأكد أنك تريد حذف هذه الدفعة البالغة {{amount}} من {{payer}} إلى {{payee}}؟ لا يمكن التراجع عن هذا الإجراء.",
@@ -572,10 +393,7 @@
   "balanceSummary": {
     "loadingBalances": "جار تحميل الأرصدة...",
     "allSettledUp": "كل شيء مسدد!",
-    "debtArrow": " → ",
-    "showOnlyMyBalances": "إظهار أرصدتي فقط",
     "showAll": "إظهار الكل",
-    "settleUp": "تسوية",
     "settleUpButton": "تسجيل تسوية لهذا الدين"
   },
   "emptyGroupsState": {
@@ -748,7 +566,6 @@
     "وديعة تأمين"
   ],
   "expensesList": {
-    "title": "المصروفات",
     "noExpensesYet": "لا توجد مصروفات حتى الآن. أضف واحدة للبدء!",
     "loadMore": "تحميل المزيد"
   },
@@ -770,14 +587,7 @@
     "admin": "مسؤول",
     "settings": "الإعدادات",
     "signOut": "تسجيل الخروج",
-    "signingOut": "جار تسجيل الخروج...",
-    "systemUserBadge": "مستخدم النظام",
-    "systemUserTooltip": "يستخدم هذا الحساب للعمليات الآلية أو التي يحركها النظام.",
-    "environmentLink": "بيئة",
-    "diagnosticsLoading": "جار تحميل التشخيصات...",
-    "diagnosticsError": "غير قادر على تحميل التشخيصات:",
-    "browser": "متصفح",
-    "browserUsers": "متصفح المستخدمين"
+    "signingOut": "جار تسجيل الخروج..."
   },
   "languageSelector": {
     "label": "اللغة",
@@ -795,8 +605,7 @@
     "membersCount_other": "{{count}} أعضاء",
     "old": "قديم",
     "lastUpdated": "آخر تحديث",
-    "groupSettingsAriaLabel": "إعدادات المجموعة",
-    "groupSecurityAriaLabel": "الأمان والأذونات"
+    "groupSettingsAriaLabel": "إعدادات المجموعة"
   },
   "securitySettingsModal": {
     "unsavedChanges": "لديك تغييرات غير محفوظة. راجع كل شيء ، ثم اضغط على حفظ لتطبيقها.",
@@ -935,13 +744,11 @@
     }
   },
   "editGroupModal": {
-    "title": "تعديل المجموعة",
     "groupNameLabel": "اسم المجموعة",
     "groupNamePlaceholder": "على سبيل المثال ، نفقات الشقة ، رحلة إلى باريس",
     "descriptionLabel": "الوصف (اختياري)",
     "descriptionPlaceholder": "أضف أي تفاصيل حول هذه المجموعة...",
     "cancelButton": "إلغاء",
-    "saveChangesButton": "حفظ التغييرات",
     "deleteGroupButton": "حذف المجموعة",
     "validation": {
       "nameRequired": "اسم المجموعة مطلوب.",
@@ -1016,7 +823,6 @@
     "description": "اختر كيف يراك الأعضاء الآخرون في هذه المجموعة.",
     "inputLabel": "اسم العرض الخاص بك في هذه المجموعة",
     "inputPlaceholder": "أدخل اسم عرض فريد",
-    "save": "حفظ اسم العرض",
     "saving": "جار الحفظ...",
     "success": "تم تحديث اسم عرض المجموعة.",
     "errors": {
@@ -1032,11 +838,7 @@
     "admin": "مسؤول",
     "member": "عضو",
     "viewer": "مشاهد",
-    "thisMember": "هذا العضو",
-    "leaveGroup": "مغادرة المجموعة",
     "inviteOthers": "دعوة الآخرين",
-    "inviteOthersAriaLabel": "دعوة الآخرين",
-    "leaveGroupAriaLabel": "مغادرة المجموعة",
     "removeMemberAriaLabel": "إزالة {{name}}",
     "leaveGroupDialog": {
       "title": "مغادرة المجموعة؟",
@@ -1049,8 +851,7 @@
       "title": "إزالة العضو؟",
       "messageWithBalance": "لدى {{name}} رصيد مستحق في هذه المجموعة. يرجى تسوية الحساب قبل الإزالة.",
       "messageConfirm": "هل أنت متأكد أنك تريد إزالة {{name}} من المجموعة؟",
-      "confirmText": "إزالة",
-      "cancelText": "إلغاء"
+      "confirmText": "إزالة"
     }
   },
   "shareGroupModal": {
@@ -1122,12 +923,9 @@
       "title": "اختر اسم العرض الخاص بك",
       "description": "هذه هي الطريقة التي سيراك بها الأعضاء الآخرون في \"{{groupName}}\"",
       "label": "اسم العرض",
-      "placeholder": "كيف يجب أن يرى الأعضاء الآخرون اسمك؟",
-      "help": "اختر اسمًا فريدًا لهذه المجموعة. سيستخدمه الأعضاء الآخرون للتعرف عليك.",
       "errors": {
         "required": "أدخل اسم عرض.",
-        "taken": "اسم العرض هذا مستخدم بالفعل في هذه المجموعة.",
-        "invalid": "يمكن أن يستخدم اسم العرض الأحرف والأرقام والمسافات والواصلات والشرطات السفلية والنقاط فقط."
+        "taken": "اسم العرض هذا مستخدم بالفعل في هذه المجموعة."
       }
     }
   },
@@ -1167,8 +965,6 @@
     },
     "splitAmountInputs": {
       "exactAmountsInstruction": "أدخل المبالغ الدقيقة لكل شخص:",
-      "unknown": "غير معروف",
-      "dollarSign": "$",
       "total": "المجموع:",
       "percentageInstruction": "أدخل النسبة المئوية لكل شخص:",
       "percentSign": "%",
@@ -1210,19 +1006,12 @@
       "title": "تفاصيل المصروف",
       "closeModal": "إغلاق النموذج",
       "close": "إغلاق",
-      "edit": "تعديل",
-      "copy": "نسخ",
-      "share": "مشاركة",
-      "delete": "حذف",
       "paidBy": "دفع بواسطة",
       "date": "التاريخ",
       "labels": "الملصقات",
       "receipt": "الإيصال",
       "viewReceipt": "عرض الإيصال",
-      "noReceipt": "لا يوجد إيصال",
-      "splitDetails": "تفاصيل التقسيم",
       "comments": "التعليقات",
-      "loadingExpense": "جار تحميل تفاصيل المصروف...",
       "expenseNotFound": "المصروف غير موجود",
       "failedToLoad": "فشل تحميل تفاصيل المصروف",
       "shareTitle": "المصروف: {{description}}",
@@ -1236,7 +1025,6 @@
       "exactAmounts": "مبالغ دقيقة",
       "byPercentage": "حسب النسبة المئوية",
       "customSplit": "تقسيم مخصص",
-      "unknown": "غير معروف",
       "paid": "مدفوع",
       "owes": "مدين لـ ",
       "total": "المجموع: "
@@ -1260,7 +1048,6 @@
       "policyLabel": "سياسة ",
       "of": " من ",
       "colon": ": ",
-      "close": "إغلاق",
       "progress": "التقدم",
       "accepted": " تم قبوله",
       "acceptedIcon": "✓ مقبول",
@@ -1273,24 +1060,11 @@
       "next": "التالي",
       "policiesAccepted": " السياسات المقبولة",
       "accepting": "جار القبول...",
-      "acceptAll": "قبول الكل والمتابعة",
       "closeAriaLabel": "إغلاق",
       "errorTitle": "خطأ"
-    },
-    "policyRenderer": {
-      "bulletPoint": "• "
     }
   },
   "uiComponents": {
-    "alert": {
-      "dismiss": "تجاهل التنبيه"
-    },
-    "avatar": {
-      "unknown": "غير معروف"
-    },
-    "button": {
-      "default": "زر"
-    },
     "multiLabelInput": {
       "placeholder": "إضافة ملصق...",
       "removeLabel": "إزالة {{label}}",
@@ -1298,32 +1072,15 @@
       "recent": "حديث",
       "hint": "{{count}}/{{max}} ملصق"
     },
-    "confirmDialog": {
-      "confirm": "تأكيد",
-      "cancel": "إلغاء"
-    },
     "currencyAmountInput": {
       "selectCurrency": "اختر العملة",
       "searchPlaceholder": "بحث بالرمز أو الرمز أو البلد...",
       "searchAriaLabel": "بحث عن العملات",
-      "loading": "جار تحميل العملات...",
       "noCurrencies": "لم يتم العثور على عملات",
       "recent": "حديث",
       "common": "شائع",
       "allCurrencies": "جميع العملات",
       "placeholder": "0.00",
-      "requiredIndicator": "*"
-    },
-    "currencySelector": {
-      "placeholder": "اختر العملة...",
-      "searchPlaceholder": "بحث عن العملات",
-      "loading": "جار تحميل العملات...",
-      "noCurrencies": "لم يتم العثور على عملات",
-      "recent": "حديث",
-      "common": "شائع",
-      "allCurrencies": "جميع العملات"
-    },
-    "input": {
       "requiredIndicator": "*"
     },
     "loadingSpinner": {
@@ -1339,54 +1096,10 @@
     }
   },
   "pages": {
-    "addExpensePage": {
-      "errorTitle": "خطأ - {{appName}}",
-      "error": "خطأ",
-      "noGroupMessage": "لم يتم تحديد مجموعة. لا يمكن إضافة مصروف بدون مجموعة.",
-      "backToDashboard": "العودة إلى لوحة التحكم",
-      "loadingTitle": "جار التحميل... - {{appName}}",
-      "groupNotFound": "المجموعة غير موجودة",
-      "groupNotFoundMessage": "المجموعة التي تحاول إضافة مصروف إليها غير موجودة أو ليس لديك صلاحية الوصول إليها.",
-      "backToGroup": "العودة إلى المجموعة",
-      "copyExpenseTitle": "نسخ المصروف",
-      "editExpenseTitle": "تعديل المصروف",
-      "addExpenseTitle": "إضافة مصروف",
-      "copyExpenseAction": "نسخ المصروف",
-      "editExpenseAction": "تعديل المصروف",
-      "addExpenseAction": "إضافة مصروف جديد",
-      "titleSuffix": " - {{appName}}",
-      "titleIn": " في "
-    },
     "expenseDetailPage": {
-      "missingGroupId": "معرف المجموعة مفقود",
-      "missingExpenseId": "معرف المصروف مفقود",
-      "failedToLoad": "فشل تحميل المصروف",
-      "cannotEdit": "لا يمكن تعديل هذا المصروف",
       "containsDepartedMembers": "لقد غادر واحد أو أكثر من المشاركين المجموعة. يتم الاحتفاظ بالسجلات التاريخية كقراءة فقط.",
-      "expenseLabel": "المصروف: ",
-      "checkOutExpense": "تحقق من هذا المصروف: ",
-      "shareApiFailed": "فشل واجهة برمجة تطبيقات المشاركة ، جار العودة إلى الحافظة",
-      "failedToCopy": "فشل النسخ إلى الحافظة",
-      "error": "خطأ",
-      "expenseNotFound": "المصروف غير موجود",
-      "backToGroup": "العودة إلى المجموعة",
-      "titleSeparator": " - ",
-      "expenseFor": "مصروف لـ ",
-      "backButton": "← رجوع",
-      "date": "التاريخ",
-      "ago": " منذ",
-      "labels": "الملصقات",
-      "paidBy": "دفع بواسطة",
-      "unknown": "غير معروف",
       "discussion": "مناقشة",
       "receipt": "الإيصال",
-      "clickToViewFullSize": "انقر لعرض الحجم الكامل",
-      "added": "أضيف ",
-      "lastUpdated": "آخر تحديث ",
-      "receiptViewer": "عارض الإيصالات",
-      "closeReceiptViewer": "إغلاق عارض الإيصالات",
-      "receiptFullSize": "الإيصال - الحجم الكامل",
-      "summarySection": "ملخص المصروف",
       "splitSection": "تفاصيل التقسيم",
       "metadataSection": "بيانات المصروف الوصفية"
     },
@@ -1402,20 +1115,6 @@
       "titleSuffix": " - {{appName}}",
       "manageExpensesFor": "إدارة المصروفات لـ "
     },
-    "landingPage": {
-      "title": "تقسيم الفواتير بسهولة - {{appName}}",
-      "description": "وداعًا للإحراج من الديون المعلقة والحسابات المعقدة. تطبيقنا يجعل مشاركة النفقات مع الأصدقاء والعائلة وزملاء السكن سهلة وعادلة وشفافة. إنه مجاني 100٪ ، بدون إعلانات وبدون حدود.",
-      "disclaimer": "هذه أداة لتتبع النفقات ، وليست لإجراء المدفوعات.",
-      "accountNote": " لحفظ وإدارة نفقاتك ، ستحتاج إلى حساب مجاني.",
-      "privacyNote": "لن نطلب أبدًا تفاصيل مالية حساسة.",
-      "transparencyNotice": {
-        "bold": "هذه أداة لتتبع النفقات ، وليست لإجراء المدفوعات.",
-        "text": "لحفظ وإدارة نفقاتك ، ستحتاج إلى حساب مجاني. لن نطلب أبدًا تفاصيل مالية حساسة."
-      }
-    },
-    "registerPage": {
-      "requiredIndicator": "*"
-    },
     "resetPasswordPage": {
       "failedToSendReset": "فشل إرسال بريد إعادة التعيين",
       "checkYourEmail": "تحقق من بريدك الإلكتروني",
@@ -1428,7 +1127,6 @@
       "clickResetLink": "• انقر فوق رابط إعادة التعيين في البريد الإلكتروني",
       "createNewPassword": "• إنشاء كلمة مرور جديدة",
       "signInWithNewPassword": "• سجل الدخول بكلمة المرور الجديدة",
-      "sendToDifferentEmail": "إرسال إلى بريد إلكتروني مختلف",
       "backToSignIn": "← العودة إلى تسجيل الدخول",
       "resetPassword": "إعادة تعيين كلمة المرور",
       "enterEmailForReset": "أدخل عنوان بريدك الإلكتروني لتلقي تعليمات إعادة تعيين كلمة المرور",
@@ -1529,7 +1227,6 @@
     "diagnostics": {
       "loading": "جار تحميل تشخيصات البيئة...",
       "errors": {
-        "fetch": "فشل جلب بيانات البيئة",
         "unknown": "حدث خطأ غير معروف"
       },
       "serverStatus": {
@@ -1595,20 +1292,11 @@
         "disableUser": "هل أنت متأكد أنك تريد {{action}} حساب المستخدم هذا؟"
       },
       "success": {
-        "userToggled": "تم {{action}} حساب المستخدم بنجاح",
-        "roleUpdated": "تم تحديث دور المستخدم إلى {{role}}",
-        "roleUnchanged": "الدور لم يتغير"
+        "userToggled": "تم {{action}} حساب المستخدم بنجاح"
       },
       "errors": {
         "selfDisable": "لا يمكنك تعطيل حسابك الخاص",
-        "selfRoleChange": "لا يمكنك تغيير دورك الخاص",
-        "disableUser": "فشل {{action}} حساب المستخدم",
-        "roleUpdate": "فشل تحديث دور المستخدم",
-        "invalidSelection": "اختيار غير صالح"
-      },
-      "rolePrompt": {
-        "title": "الدور الحالي: {{currentRole}}\n\nحدد دورًا جديدًا:",
-        "regularUser": "مستخدم عادي (لا يوجد دور)"
+        "disableUser": "فشل {{action}} حساب المستخدم"
       }
     },
     "userEditor": {
@@ -1630,7 +1318,6 @@
       "role": {
         "description": "اختر دورًا لهذا المستخدم"
       },
-      "loading": "جار التحميل...",
       "noDataAvailable": "لا توجد بيانات متاحة",
       "errors": {
         "noChanges": "لا توجد تغييرات للحفظ",
@@ -1657,8 +1344,7 @@
       },
       "modeHint": {
         "basic": "إظهار الإعدادات الأساسية",
-        "advanced": "إظهار جميع الإعدادات",
-        "moreColors": "التبديل إلى الوضع المتقدم للتحكم الكامل في لوحة الألوان"
+        "advanced": "إظهار جميع الإعدادات"
       },
       "derivation": {
         "themeMode": {
@@ -1682,8 +1368,6 @@
         }
       },
       "derivationWand": {
-        "tooltip": "اشتق الألوان من لوحة الألوان",
-        "tooltipDisabled": "حدد الألوان الأساسية والثانوية والتمييز أولاً",
         "popoverTitle": "اشتقاق اللون",
         "derive": "تطبيق الاشتقاق"
       },
@@ -1768,9 +1452,7 @@
       "fields": {
         "tenantId": "معرف المستأجر",
         "appName": "اسم التطبيق",
-        "domains": "النطاقات",
         "logoUrl": "عنوان URL للشعار",
-        "faviconUrl": "عنوان URL للأيقونة المفضلة",
         "primaryColor": "اللون الأساسي",
         "primaryVariantColor": "اللون الأساسي المتغير",
         "secondaryColor": "اللون الثانوي",
@@ -1785,8 +1467,6 @@
       },
       "placeholders": {
         "tenantId": "معرف المستأجر الخاص بي",
-        "appName": "تطبيق المصروفات الخاص بي",
-        "domain": "إضافة نطاق جديد...",
         "selectTenant": "اختر مستأجرًا للنسخ منه..."
       },
       "creationMode": {
@@ -1803,34 +1483,7 @@
         "tenantIdRequiredForPublish": "معرف المستأجر مطلوب للنشر"
       },
       "hints": {
-        "tenantIdReadonly": "لا يمكن تغيير معرف المستأجر",
-        "colorFormat": "#RRGGBB"
-      },
-      "toggles": {
-        "showMarketingContent": {
-          "label": "إظهار محتوى التسويق",
-          "description": "عرض محتوى التسويق على الصفحات العامة"
-        },
-        "showPricingPage": {
-          "label": "إظهار صفحة التسعير",
-          "description": "عرض معلومات التسعير"
-        },
-        "showAppNameInHeader": {
-          "label": "إظهار اسم التطبيق في الرأس",
-          "description": "عرض اسم التطبيق بجانب الشعار"
-        },
-        "enableParallax": {
-          "label": "تمكين التزيح",
-          "description": "تمكين تأثيرات التمرير التزيحي"
-        },
-        "enableMagneticHover": {
-          "label": "تمكين التمرير المغناطيسي",
-          "description": "تمكين تأثيرات التمرير المغناطيسي على الأزرار"
-        },
-        "enableScrollReveal": {
-          "label": "تمكين إظهار التمرير",
-          "description": "تمكين الرسوم المتحركة التي يتم تشغيلها بالتمرير"
-        }
+        "tenantIdReadonly": "لا يمكن تغيير معرف المستأجر"
       },
       "loading": {
         "tenants": "جار تحميل المستأجرين..."
@@ -1860,16 +1513,8 @@
         "faviconSelected": "تم تحديد الأيقونة المفضلة من المكتبة"
       },
       "buttons": {
-        "save": "حفظ المستأجر",
         "publish": "نشر المظهر",
-        "addDomain": "إضافة",
-        "removeDomain": "إزالة",
-        "chooseFromLibrary": "اختر من المكتبة",
-        "uploadNew": "تحميل جديد"
-      },
-      "actions": {
-        "deriveColors": "اشتق الألوان",
-        "deriveColorsDescription": "إنشاء جميع الألوان الدلالية من لوحة علامتك التجارية"
+        "addDomain": "إضافة"
       }
     }
   },

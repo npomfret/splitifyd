@@ -451,13 +451,46 @@ export class SettlementFormPage extends BasePage {
         await expect(this.getWarningMessage()).not.toBeVisible();
     }
 
-    getAmountErrorMessage(): Locator {
+    async verifyWarningMessageContainsText(expectedText: string): Promise<void> {
+        await expect(this.getWarningMessage()).toBeVisible();
+        await expect(this.getWarningMessage()).toContainText(expectedText);
+    }
+
+    protected getAmountError(): Locator {
         // Amount precision error is the first alert in the form (appears below amount input)
         return this.getModal().getByRole('alert').first();
     }
 
+    async verifyAmountErrorContainsText(expectedText: string): Promise<void> {
+        await expect(this.getAmountError()).toBeVisible();
+        await expect(this.getAmountError()).toContainText(expectedText);
+    }
+
+    async verifyAmountErrorNotVisible(): Promise<void> {
+        await expect(this.getAmountError()).toHaveCount(0);
+    }
+
+    /**
+     * Verifies no global error messages are displayed on the form
+     */
+    async expectNoGlobalErrors(): Promise<void> {
+        // Check that no error alerts are visible in the modal
+        const alerts = this.getModal().getByRole('alert');
+        await expect(alerts).toHaveCount(0);
+    }
+
+    /**
+     * @deprecated Use verifyAmountErrorContainsText() instead
+     */
+    getAmountErrorMessage(): Locator {
+        return this.getAmountError();
+    }
+
+    /**
+     * @deprecated Use verifyWarningMessageContainsText() instead
+     */
     getSettlementWarningMessage(): Locator {
-        return this.getModal().getByRole('status');
+        return this.getWarningMessage();
     }
 
     private async resolvePrimaryActionButton(): Promise<Locator> {

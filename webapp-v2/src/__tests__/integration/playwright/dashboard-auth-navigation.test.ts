@@ -1,4 +1,4 @@
-import { DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder, TEST_TIMEOUTS } from '@billsplit-wl/test-support';
+import { DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder, LoginPage, TEST_TIMEOUTS } from '@billsplit-wl/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { mockActivityFeedApi, mockApiFailure, mockGroupsApi } from '../../utils/mock-firebase-service';
 
@@ -32,8 +32,9 @@ test.describe('Dashboard Authentication and Navigation', () => {
         await page.goto('/dashboard');
 
         // Should be redirected to login page
+        const loginPage = new LoginPage(page);
         await expect(page).toHaveURL(/\/login/);
-        await expect(page.getByRole('heading', { name: /sign.*in/i })).toBeVisible();
+        await loginPage.verifySignInHeadingVisible();
     });
 
     test('should show dashboard for authenticated user', async ({ authenticatedPage }) => {

@@ -45,55 +45,23 @@
     "delete": "Tanggalin",
     "edit": "I-edit",
     "close": "Isara",
-    "confirm": "Kumpirmahin",
-    "back": "Bumalik",
-    "next": "Susunod",
-    "previous": "Nakaraan",
-    "submit": "Ipasa",
     "search": "Maghanap",
-    "select": "Pumili",
-    "selectAll": "Piliin lahat",
-    "none": "Wala",
-    "all": "Lahat",
-    "yes": "Oo",
-    "no": "Hindi",
-    "ok": "OK",
     "error": "Error",
-    "success": "Tagumpay",
-    "warning": "Babala",
-    "info": "Impormasyon",
     "unknown": "Hindi kilala",
-    "unknownUser": "Hindi kilalang user",
     "includeDeleted": "Isama ang mga tinanggal",
     "you": "Ikaw",
-    "youSuffix": " (Ikaw)",
     "required": "*",
-    "optional": "(opsyonal)",
-    "or": "o",
-    "and": "at",
-    "copy": "Kopyahin",
-    "share": "Ibahagi",
     "dismiss": "I-dismiss",
-    "dismissAlert": "I-dismiss ang alerto",
-    "justNow": "ngayon lang",
     "chooseFile": "Pumili ng file",
     "active": "Aktibo",
-    "inactive": "Hindi aktibo",
     "disabled": "Naka-disable",
-    "total": "Kabuuan",
     "member": "Miyembro",
     "members": "Mga Miyembro",
-    "user": "User",
     "group": "Grupo",
-    "groups": "Mga Grupo",
-    "recent": "Kamakailan",
-    "settings": "Mga Setting",
     "understood": "Naiintindihan",
     "titleSuffix": " - {{appName}}",
     "refresh": "I-refresh",
     "reset": "I-reset",
-    "add": "Idagdag",
-    "create": "Gumawa",
     "processing": "Pinoproseso...",
     "download": "I-download",
     "downloading": "Nagda-download...",
@@ -110,25 +78,9 @@
     "type": "Uri",
     "size": "Sukat",
     "link": "Link",
-    "value": "Halaga",
     "notConfigured": "Hindi naka-configure",
     "notSet": "hindi nakatakda",
-    "empty": "(walang laman)",
-    "noData": "Walang available na data",
-    "default": "Default",
-    "actions": "Mga Aksyon",
-    "status": "Katayuan",
-    "email": "Email",
-    "displayName": "Pangalan sa Display",
-    "role": "Papel",
-    "lastSignIn": "Huling Pag-sign in",
-    "placeholder": {
-      "amount": "0.00",
-      "search": "Maghanap...",
-      "searchCurrencies": "Maghanap ng mga currency...",
-      "selectCurrency": "Pumili ng currency...",
-      "selectPerson": "Pumili ng tao"
-    }
+    "empty": "(walang laman)"
   },
   "currencySelector": {
     "noResults": "Walang nakitang currency"
@@ -191,11 +143,7 @@
     "forgotPassword": "Nakalimutan ang password?",
     "submitButton": "Mag-sign in",
     "noAccount": "Wala ka pang account?",
-    "signUp": "Mag-sign up",
-    "validation": {
-      "emailRequired": "Kailangan ang email",
-      "passwordRequired": "Kailangan ang password"
-    }
+    "signUp": "Mag-sign up"
   },
   "registerPage": {
     "title": "Gumawa ng Account",
@@ -213,7 +161,6 @@
     "submitButton": "Gumawa ng Account",
     "hasAccount": "Mayroon ka nang account?",
     "signIn": "Mag-sign in",
-    "requiredIndicator": "*",
     "validation": {
       "nameRequired": "Kailangan ang pangalan",
       "emailRequired": "Kailangan ang email",
@@ -231,7 +178,6 @@
     "emailInput": {
       "label": "Email",
       "placeholder": "Ilagay ang iyong email",
-      "requiredIndicator": "*",
       "validation": {
         "required": "Kailangan ang email",
         "invalid": "Mangyaring maglagay ng wastong email address"
@@ -240,7 +186,6 @@
     "passwordInput": {
       "label": "Password",
       "placeholder": "Ilagay ang iyong password",
-      "requiredIndicator": "*",
       "showPassword": "Ipakita ang password",
       "hidePassword": "Itago ang password",
       "strength": "Lakas ng password",
@@ -275,19 +220,7 @@
       "archivedBadge": "Naka-archive"
     },
     "emptyState": {
-      "title": "Wala pang mga grupo",
-      "subtitle": "Gumawa ng iyong unang grupo para simulan ang pagsubaybay sa mga nakabahaging gastusin",
-      "createButton": "Gumawa ng Grupo"
-    },
-    "stats": {
-      "totalGroups": "Kabuuan ng mga Grupo",
-      "totalExpenses": "Kabuuan ng mga Gastusin",
-      "totalBalance": "Kabuuan ng Balanse"
-    },
-    "quickActions": {
-      "title": "Mga Mabilis na Aksyon",
-      "createGroup": "Gumawa ng Grupo",
-      "addExpense": "Magdagdag ng Gastusin"
+      "title": "Wala pang mga grupo"
     }
   },
   "activityFeed": {
@@ -329,7 +262,6 @@
       "comment-added": "Nag-comment si {{actor}} sa {{target}} sa {{group}}",
       "settlement-created": "Nagtala si {{actor}} ng {{settlement}} sa {{group}}",
       "settlement-updated": "In-update ni {{actor}} ang {{settlement}} sa {{group}}",
-      "settlement-deleted": "Tinanggal ni {{actor}} ang {{settlement}} mula sa {{group}}",
       "generic": "Gumawa ng mga pagbabago si {{actor}} sa {{group}}",
       "group-created-short": "Gumawa ng grupo si {{actor}}",
       "group-updated-short": "In-update ni {{actor}} ang grupo",
@@ -344,7 +276,6 @@
       "comment-added-short": "Nag-comment si {{actor}} sa {{target}}",
       "settlement-created-short": "Nagtala si {{actor}} ng {{settlement}}",
       "settlement-updated-short": "In-update ni {{actor}} ang {{settlement}}",
-      "settlement-deleted-short": "Tinanggal ni {{actor}} ang {{settlement}}",
       "generic-short": "Gumawa ng mga pagbabago si {{actor}}"
     }
   },
@@ -357,74 +288,19 @@
     },
     "actions": {
       "addExpense": "Magdagdag ng Gastusin",
-      "viewExpenses": "Tingnan ang mga Gastusin",
-      "settleUp": "Magbayad",
-      "shareGroup": "Ibahagi ang Grupo",
-      "editGroup": "I-edit ang Grupo",
-      "leaveGroup": "Umalis sa Grupo"
-    },
-    "share": {
-      "title": "Ibahagi ang Grupo",
-      "subtitle": "Mag-imbita ng iba na sumali sa grupong ito",
-      "copyLink": "Kopyahin ang Link",
-      "linkCopied": "Nakopya sa clipboard ang link!"
-    },
-    "edit": {
-      "title": "I-edit ang Grupo",
-      "warningIcon": "⚠️"
-    },
-    "leave": {
-      "title": "Umalis sa Grupo",
-      "message": "Sigurado ka bang gusto mong umalis sa grupong ito?",
-      "confirmButton": "Umalis sa Grupo",
-      "cancelButton": "Kanselahin"
-    },
-    "members": {
-      "title": "Mga Miyembro",
-      "addMember": "Magdagdag ng Miyembro",
-      "removeMember": "Alisin ang Miyembro",
-      "unknownUser": "Hindi kilalang user",
-      "user": "User"
-    },
-    "expenses": {
-      "title": "Mga Gastusin",
-      "noExpenses": "Wala pang mga gastusin",
-      "addFirstExpense": "Idagdag ang iyong unang gastusin",
-      "unknown": "Hindi kilala"
-    },
-    "balance": {
-      "title": "Buod ng Balanse",
-      "settledUp": "Bayad na lahat!",
-      "unknown": "Hindi kilala"
+      "settleUp": "Magbayad"
     }
   },
   "comments": {
-    "section": {
-      "title": "Mga Komento",
-      "noComments": "Wala pang mga komento"
-    },
     "input": {
-      "placeholder": "Magdagdag ng komento...",
       "ariaLabel": "Teksto ng komento",
-      "sendButton": "Ipadala",
       "sendAriaLabel": "Ipadala ang komento"
-    },
-    "item": {
-      "justNow": "ngayon lang",
-      "deleteButton": "Tanggalin ang komento"
-    },
-    "list": {
-      "loading": "Naglo-load ng mga komento...",
-      "error": "Nabigo ang pag-load ng mga komento"
     },
     "commentInput": {
       "placeholder": "Magdagdag ng komento...",
       "tooLong": "Masyadong mahaba ang komento",
       "addFailed": "Nabigo ang pagdagdag ng komento",
       "helpText": "Pindutin ang Enter para ipadala, Shift+Enter para sa bagong linya"
-    },
-    "commentItem": {
-      "recently": "kamakailan"
     },
     "commentsList": {
       "loading": "Naglo-load ng mga komento...",
@@ -448,74 +324,23 @@
     }
   },
   "navigation": {
-    "header": {
-      "fallback": "...",
-      "dashboard": "Dashboard",
-      "groups": "Mga Grupo",
-      "settings": "Mga Setting"
-    },
-    "footer": {
-      "copyright": "© {{year}} {{appName}}. Lahat ng karapatan ay nakalaan.",
-      "privacy": "Patakaran sa Privacy",
-      "terms": "Mga Tuntunin ng Serbisyo",
-      "cookies": "Patakaran sa Cookie"
-    },
     "userMenu": {
       "openUserMenu": "Buksan ang menu ng user",
-      "profile": "Profile",
-      "settings": "Mga Setting",
-      "logout": "Mag-logout",
-      "help": "Tulong"
+      "logout": "Mag-logout"
     }
   },
   "errors": {
-    "generic": "May naganap na error",
-    "network": "May naganap na error sa network",
-    "invalidLink": "Di-wastong Link",
-    "notFound": {
-      "page": "Hindi natagpuan ang pahina",
-      "group": "Hindi natagpuan ang grupo",
-      "expense": "Hindi natagpuan ang gastusin"
-    },
-    "loading": {
-      "cookiePolicy": "Error sa pag-load ng patakaran sa cookie",
-      "privacyPolicy": "Error sa pag-load ng patakaran sa privacy",
-      "terms": "Error sa pag-load ng mga tuntunin"
-    },
-    "validation": {
-      "displayNameEmpty": "Hindi maaaring walang laman ang pangalan sa display",
-      "displayNameTooLong": "Ang pangalan sa display ay dapat na 100 character o mas maikli",
-      "passwordTooShort": "Ang bagong password ay dapat na hindi bababa sa 12 character ang haba",
-      "passwordsNoMatch": "Hindi magkatugma ang mga password",
-      "passwordSameAsCurrent": "Ang bagong password ay dapat na iba sa kasalukuyang password",
-      "passwordAndNewRequired": "Kailangan ang kasalukuyang password at bagong password"
-    }
+    "invalidLink": "Di-wastong Link"
   },
   "seo": {
     "titleSuffix": " | {{appName}}",
     "siteName": "{{appName}}"
   },
   "expenseForm": {
-    "description": "Deskripsyon",
-    "amount": "Halaga*",
-    "whoPaid": "Sino ang nagbayad?",
-    "splitBetween": "Hatiin sa pagitan ng",
-    "exactAmounts": "Eksaktong halaga",
-    "percentage": "Porsyento",
-    "equal": "Pantay",
-    "exactAmountsInstruction": "Ilagay ang eksaktong halaga para sa bawat tao:",
-    "percentageInstruction": "Ilagay ang porsyento para sa bawat tao:",
-    "selectAll": "Piliin lahat",
     "saveExpense": "I-save ang Gastusin",
-    "updateExpense": "I-update ang Gastusin",
-    "cancel": "Kanselahin",
-    "errors": {
-      "expenseLocked": "Hindi maaaring i-edit ang gastusing ito dahil umalis na sa grupo ang isa o higit pang kalahok."
-    }
+    "updateExpense": "I-update ang Gastusin"
   },
   "settlementForm": {
-    "updatePayment": "I-update ang Pagbabayad",
-    "recordPayment": "Itala ang Pagbabayad",
     "updateSettlement": "I-update ang Kasunduan",
     "recordSettlement": "Itala ang Kasunduan",
     "closeModal": "Isara ang modal",
@@ -531,7 +356,6 @@
     "cancelButton": "Kanselahin",
     "updatingButton": "Ina-update...",
     "recordingButton": "Itinatala...",
-    "paymentSummary": "Nagbayad si {{payer}} ng {{amount}} kay {{payee}}",
     "validation": {
       "selectPayer": "Mangyaring piliin kung sino ang nagbayad",
       "selectPayee": "Mangyaring piliin kung sino ang tumanggap ng bayad",
@@ -554,12 +378,9 @@
   },
   "settlementHistory": {
     "noPaymentsYet": "Wala pang naitalang pagbabayad",
-    "today": "Ngayon",
-    "yesterday": "Kahapon",
     "editPaymentTooltip": "I-edit ang pagbabayad",
     "cannotEditTooltip": "Hindi maaaring i-edit - umalis na sa grupo ang miyembro",
     "deletePaymentTooltip": "Tanggalin ang pagbabayad",
-    "loadMore": "Mag-load pa",
     "loadMorePayments": "Mag-load pa ng mga Pagbabayad",
     "deletePaymentTitle": "Tanggalin ang Pagbabayad",
     "deletePaymentMessage": "Sigurado ka bang gusto mong tanggalin ang pagbabayad na ito ng {{amount}} mula kay {{payer}} para kay {{payee}}? Hindi na maaaring bawiin ang aksyon na ito.",
@@ -572,10 +393,7 @@
   "balanceSummary": {
     "loadingBalances": "Naglo-load ng mga balanse...",
     "allSettledUp": "Bayad na lahat!",
-    "debtArrow": " → ",
-    "showOnlyMyBalances": "Ipakita lang ang aking mga balanse",
     "showAll": "Ipakita lahat",
-    "settleUp": "Magbayad",
     "settleUpButton": "Itala ang kasunduan para sa utang na ito"
   },
   "emptyGroupsState": {
@@ -749,7 +567,6 @@
     "Deposito sa Seguridad"
   ],
   "expensesList": {
-    "title": "Mga Gastusin",
     "noExpensesYet": "Wala pang mga gastusin. Magdagdag ng isa para magsimula!",
     "loadMore": "Mag-load pa"
   },
@@ -771,14 +588,7 @@
     "admin": "Admin",
     "settings": "Mga Setting",
     "signOut": "Mag-sign out",
-    "signingOut": "Nag-sign out...",
-    "systemUserBadge": "User ng System",
-    "systemUserTooltip": "Ginagamit ang account na ito para sa mga awtomatiko o system-driven na operasyon.",
-    "environmentLink": "kapaligiran",
-    "diagnosticsLoading": "Naglo-load ng diagnostics...",
-    "diagnosticsError": "Hindi ma-load ang diagnostics:",
-    "browser": "Browser",
-    "browserUsers": "Browser ng mga User"
+    "signingOut": "Nag-sign out..."
   },
   "languageSelector": {
     "label": "Wika",
@@ -796,8 +606,7 @@
     "membersCount_other": "{{count}} miyembro",
     "old": "luma",
     "lastUpdated": "huling na-update",
-    "groupSettingsAriaLabel": "Mga setting ng grupo",
-    "groupSecurityAriaLabel": "Seguridad at mga pahintulot"
+    "groupSettingsAriaLabel": "Mga setting ng grupo"
   },
   "securitySettingsModal": {
     "unsavedChanges": "Mayroon kang hindi nai-save na mga pagbabago. Suriin ang lahat, pagkatapos ay pindutin ang I-save para ilapat ang mga ito.",
@@ -936,13 +745,11 @@
     }
   },
   "editGroupModal": {
-    "title": "I-edit ang Grupo",
     "groupNameLabel": "Pangalan ng Grupo",
     "groupNamePlaceholder": "hal., Mga Gastusin sa Apartment, Biyahe sa Paris",
     "descriptionLabel": "Deskripsyon (opsyonal)",
     "descriptionPlaceholder": "Magdagdag ng anumang detalye tungkol sa grupong ito...",
     "cancelButton": "Kanselahin",
-    "saveChangesButton": "I-save ang mga Pagbabago",
     "deleteGroupButton": "Tanggalin ang Grupo",
     "validation": {
       "nameRequired": "Kailangan ang pangalan ng grupo.",
@@ -1017,7 +824,6 @@
     "description": "Piliin kung paano ka makikita ng ibang mga miyembro sa grupong ito.",
     "inputLabel": "Ang iyong pangalan sa display sa grupong ito",
     "inputPlaceholder": "Maglagay ng isang natatanging pangalan sa display",
-    "save": "I-save ang pangalan sa display",
     "saving": "Sine-save...",
     "success": "Na-update ang pangalan sa display ng grupo.",
     "errors": {
@@ -1033,11 +839,7 @@
     "admin": "Admin",
     "member": "Miyembro",
     "viewer": "Viewer",
-    "thisMember": "Ang miyembrong ito",
-    "leaveGroup": "Umalis sa Grupo",
     "inviteOthers": "Mag-imbita ng Iba",
-    "inviteOthersAriaLabel": "Mag-imbita ng Iba",
-    "leaveGroupAriaLabel": "Umalis sa Grupo",
     "removeMemberAriaLabel": "Alisin si {{name}}",
     "leaveGroupDialog": {
       "title": "Umalis sa Grupo?",
@@ -1050,8 +852,7 @@
       "title": "Alisin ang Miyembro?",
       "messageWithBalance": "May natitirang balanse si {{name}} sa grupong ito. Mangyaring bayaran bago alisin.",
       "messageConfirm": "Sigurado ka bang gusto mong alisin si {{name}} sa grupo?",
-      "confirmText": "Alisin",
-      "cancelText": "Kanselahin"
+      "confirmText": "Alisin"
     }
   },
   "shareGroupModal": {
@@ -1123,12 +924,9 @@
       "title": "Piliin ang iyong pangalan sa display",
       "description": "Ito ang makikita ng ibang mga miyembro sa iyo sa \"{{groupName}}\"",
       "label": "Pangalan sa Display",
-      "placeholder": "Paano dapat makita ng ibang miyembro ang iyong pangalan?",
-      "help": "Pumili ng isang natatanging pangalan para sa grupong ito. Gagamitin ito ng ibang mga miyembro para makilala ka.",
       "errors": {
         "required": "Maglagay ng pangalan sa display.",
-        "taken": "Ginagamit na ang pangalan sa display na iyon sa grupong ito.",
-        "invalid": "Ang pangalan sa display ay maaari lamang gumamit ng mga titik, numero, espasyo, gitling, underscore, at tuldok."
+        "taken": "Ginagamit na ang pangalan sa display na iyon sa grupong ito."
       }
     }
   },
@@ -1168,8 +966,6 @@
     },
     "splitAmountInputs": {
       "exactAmountsInstruction": "Ilagay ang eksaktong halaga para sa bawat tao:",
-      "unknown": "Hindi kilala",
-      "dollarSign": "₱",
       "total": "Kabuuan:",
       "percentageInstruction": "Ilagay ang porsyento para sa bawat tao:",
       "percentSign": "%",
@@ -1211,19 +1007,12 @@
       "title": "Mga Detalye ng Gastusin",
       "closeModal": "Isara ang modal",
       "close": "Isara",
-      "edit": "I-edit",
-      "copy": "Kopyahin",
-      "share": "Ibahagi",
-      "delete": "Tanggalin",
       "paidBy": "Binayaran ni",
       "date": "Petsa",
       "labels": "Mga Label",
       "receipt": "Resibo",
       "viewReceipt": "Tingnan ang resibo",
-      "noReceipt": "Walang resibo",
-      "splitDetails": "Mga Detalye ng Hati",
       "comments": "Mga Komento",
-      "loadingExpense": "Naglo-load ng mga detalye ng gastusin...",
       "expenseNotFound": "Hindi natagpuan ang gastusin",
       "failedToLoad": "Nabigo ang pag-load ng mga detalye ng gastusin",
       "shareTitle": "Gastusin: {{description}}",
@@ -1237,7 +1026,6 @@
       "exactAmounts": "Eksaktong Halaga",
       "byPercentage": "Ayon sa Porsyento",
       "customSplit": "Custom na Hati",
-      "unknown": "Hindi kilala",
       "paid": "Bayad",
       "owes": "May utang na ",
       "total": "Kabuuan: "
@@ -1261,7 +1049,6 @@
       "policyLabel": "Patakaran ",
       "of": " ng ",
       "colon": ": ",
-      "close": "Isara",
       "progress": "Progreso",
       "accepted": " tinanggap",
       "acceptedIcon": "✓ Tinanggap",
@@ -1274,24 +1061,11 @@
       "next": "Susunod",
       "policiesAccepted": " tinanggap na mga patakaran",
       "accepting": "Tinatanggap...",
-      "acceptAll": "Tanggapin Lahat at Magpatuloy",
       "closeAriaLabel": "Isara",
       "errorTitle": "Error"
-    },
-    "policyRenderer": {
-      "bulletPoint": "• "
     }
   },
   "uiComponents": {
-    "alert": {
-      "dismiss": "I-dismiss ang alerto"
-    },
-    "avatar": {
-      "unknown": "Hindi kilala"
-    },
-    "button": {
-      "default": "Button"
-    },
     "multiLabelInput": {
       "placeholder": "Magdagdag ng label...",
       "removeLabel": "Alisin ang {{label}}",
@@ -1299,32 +1073,15 @@
       "recent": "Kamakailan",
       "hint": "{{count}}/{{max}} label"
     },
-    "confirmDialog": {
-      "confirm": "Kumpirmahin",
-      "cancel": "Kanselahin"
-    },
     "currencyAmountInput": {
       "selectCurrency": "Pumili ng currency",
       "searchPlaceholder": "Maghanap ayon sa simbolo, code, o bansa...",
       "searchAriaLabel": "Maghanap ng mga currency",
-      "loading": "Naglo-load ng mga currency...",
       "noCurrencies": "Walang nakitang currency",
       "recent": "Kamakailan",
       "common": "Karaniwan",
       "allCurrencies": "Lahat ng Currency",
       "placeholder": "0.00",
-      "requiredIndicator": "*"
-    },
-    "currencySelector": {
-      "placeholder": "Pumili ng currency...",
-      "searchPlaceholder": "Maghanap ng mga currency",
-      "loading": "Naglo-load ng mga currency...",
-      "noCurrencies": "Walang nakitang currency",
-      "recent": "Kamakailan",
-      "common": "Karaniwan",
-      "allCurrencies": "Lahat ng Currency"
-    },
-    "input": {
       "requiredIndicator": "*"
     },
     "loadingSpinner": {
@@ -1340,54 +1097,10 @@
     }
   },
   "pages": {
-    "addExpensePage": {
-      "errorTitle": "Error - {{appName}}",
-      "error": "Error",
-      "noGroupMessage": "Walang tinukoy na grupo. Hindi maaaring magdagdag ng gastusin nang walang grupo.",
-      "backToDashboard": "Bumalik sa Dashboard",
-      "loadingTitle": "Naglo-load... - {{appName}}",
-      "groupNotFound": "Hindi Natagpuan ang Grupo",
-      "groupNotFoundMessage": "Hindi umiiral ang grupong sinusubukan mong dagdagan ng gastusin o wala kang access dito.",
-      "backToGroup": "Bumalik sa Grupo",
-      "copyExpenseTitle": "Kopyahin ang Gastusin",
-      "editExpenseTitle": "I-edit ang Gastusin",
-      "addExpenseTitle": "Magdagdag ng Gastusin",
-      "copyExpenseAction": "Kopyahin ang gastusin",
-      "editExpenseAction": "I-edit ang gastusin",
-      "addExpenseAction": "Magdagdag ng bagong gastusin",
-      "titleSuffix": " - {{appName}}",
-      "titleIn": " sa "
-    },
     "expenseDetailPage": {
-      "missingGroupId": "Nawawalang group ID",
-      "missingExpenseId": "Nawawalang expense ID",
-      "failedToLoad": "Nabigo ang pag-load ng gastusin",
-      "cannotEdit": "Hindi maaaring i-edit ang gastusing ito",
       "containsDepartedMembers": "Umalis na sa grupo ang isa o higit pang kalahok. Ang mga historikal na talaan ay napanatili bilang read-only.",
-      "expenseLabel": "Gastusin: ",
-      "checkOutExpense": "Tingnan ang gastusing ito: ",
-      "shareApiFailed": "Nabigo ang share API, bumabalik sa clipboard",
-      "failedToCopy": "Nabigo ang pagkopya sa clipboard",
-      "error": "Error",
-      "expenseNotFound": "Hindi natagpuan ang gastusin",
-      "backToGroup": "Bumalik sa Grupo",
-      "titleSeparator": " - ",
-      "expenseFor": "Gastusin para sa ",
-      "backButton": "← Bumalik",
-      "date": "Petsa",
-      "ago": " ang nakalipas",
-      "labels": "Mga Label",
-      "paidBy": "Binayaran ni",
-      "unknown": "Hindi kilala",
       "discussion": "Talakayan",
       "receipt": "Resibo",
-      "clickToViewFullSize": "I-click para tingnan sa buong sukat",
-      "added": "Idinagdag ",
-      "lastUpdated": "Huling na-update ",
-      "receiptViewer": "Viewer ng resibo",
-      "closeReceiptViewer": "Isara ang viewer ng resibo",
-      "receiptFullSize": "Resibo - Buong Sukat",
-      "summarySection": "Buod ng Gastusin",
       "splitSection": "Mga Detalye ng Hati",
       "metadataSection": "Metadata ng Gastusin"
     },
@@ -1403,20 +1116,6 @@
       "titleSuffix": " - {{appName}}",
       "manageExpensesFor": "Pamahalaan ang mga gastusin para sa "
     },
-    "landingPage": {
-      "title": "Walang Hirap na Paghahati ng Bayarin - {{appName}}",
-      "description": "Magpaalam sa mga awkward na IOU at kumplikadong kalkulasyon. Ginagawang madali, patas, at transparent ng aming app ang pagbabahagi ng mga gastusin sa mga kaibigan, pamilya, at kasama sa bahay. Ito ay 100% libre, walang mga ad at walang mga limitasyon.",
-      "disclaimer": "Ito ay isang tool para sa pagsubaybay ng mga gastusin, hindi para sa paggawa ng mga pagbabayad.",
-      "accountNote": " Para i-save at pamahalaan ang iyong mga gastusin, kakailanganin mo ng isang libreng account.",
-      "privacyNote": "Hindi kami kailanman hihingi ng mga sensitibong detalye sa pananalapi.",
-      "transparencyNotice": {
-        "bold": "Ito ay isang tool para sa pagsubaybay ng mga gastusin, hindi para sa paggawa ng mga pagbabayad.",
-        "text": "Para i-save at pamahalaan ang iyong mga gastusin, kakailanganin mo ng isang libreng account. Hindi kami kailanman hihingi ng mga sensitibong detalye sa pananalapi."
-      }
-    },
-    "registerPage": {
-      "requiredIndicator": "*"
-    },
     "resetPasswordPage": {
       "failedToSendReset": "Nabigo ang pagpapadala ng reset email",
       "checkYourEmail": "Suriin ang Iyong Email",
@@ -1429,7 +1128,6 @@
       "clickResetLink": "• I-click ang link sa pag-reset sa email",
       "createNewPassword": "• Gumawa ng bagong password",
       "signInWithNewPassword": "• Mag-sign in gamit ang iyong bagong password",
-      "sendToDifferentEmail": "Ipadala sa Ibang Email",
       "backToSignIn": "← Bumalik sa Pag-sign in",
       "resetPassword": "I-reset ang Password",
       "enterEmailForReset": "Ilagay ang iyong email address para makatanggap ng mga tagubilin sa pag-reset ng password",
@@ -1530,7 +1228,6 @@
     "diagnostics": {
       "loading": "Naglo-load ng diagnostics ng kapaligiran...",
       "errors": {
-        "fetch": "Nabigo ang pagkuha ng data ng kapaligiran",
         "unknown": "May naganap na hindi kilalang error"
       },
       "serverStatus": {
@@ -1596,20 +1293,11 @@
         "disableUser": "Sigurado ka bang gusto mong i-{{action}} ang user account na ito?"
       },
       "success": {
-        "userToggled": "Matagumpay na na-{{action}} ang user account",
-        "roleUpdated": "Na-update ang papel ng user sa {{role}}",
-        "roleUnchanged": "Hindi nagbago ang papel"
+        "userToggled": "Matagumpay na na-{{action}} ang user account"
       },
       "errors": {
         "selfDisable": "Hindi mo maaaring i-disable ang sarili mong account",
-        "selfRoleChange": "Hindi mo maaaring baguhin ang sarili mong papel",
-        "disableUser": "Nabigo ang pag-{{action}} ng user account",
-        "roleUpdate": "Nabigo ang pag-update ng papel ng user",
-        "invalidSelection": "Di-wastong pagpili"
-      },
-      "rolePrompt": {
-        "title": "Kasalukuyang papel: {{currentRole}}\n\n          Pumili ng bagong papel:",
-        "regularUser": "Regular na User (walang papel)"
+        "disableUser": "Nabigo ang pag-{{action}} ng user account"
       }
     },
     "userEditor": {
@@ -1631,7 +1319,6 @@
       "role": {
         "description": "Pumili ng papel para sa user na ito"
       },
-      "loading": "Naglo-load...",
       "noDataAvailable": "Walang available na data",
       "errors": {
         "noChanges": "Walang mga pagbabagong i-save",
@@ -1658,8 +1345,7 @@
       },
       "modeHint": {
         "basic": "Ipinapakita ang mga mahahalagang setting",
-        "advanced": "Ipinapakita ang lahat ng setting",
-        "moreColors": "Lumipat sa Advanced mode para sa buong kontrol sa palette ng kulay"
+        "advanced": "Ipinapakita ang lahat ng setting"
       },
       "derivation": {
         "themeMode": {
@@ -1683,8 +1369,6 @@
         }
       },
       "derivationWand": {
-        "tooltip": "Maghango ng mga kulay mula sa palette",
-        "tooltipDisabled": "Itakda muna ang pangunahin, pangalawa, at accent na mga kulay",
         "popoverTitle": "Paghahango ng Kulay",
         "derive": "Ilapat ang Paghahango"
       },
@@ -1769,9 +1453,7 @@
       "fields": {
         "tenantId": "Tenant ID",
         "appName": "Pangalan ng App",
-        "domains": "Mga Domain",
         "logoUrl": "URL ng Logo",
-        "faviconUrl": "URL ng Favicon",
         "primaryColor": "Pangunahing Kulay",
         "primaryVariantColor": "Pangunahing Variant",
         "secondaryColor": "Pangalawang Kulay",
@@ -1786,8 +1468,6 @@
       },
       "placeholders": {
         "tenantId": "my-tenant-id",
-        "appName": "Aking Gastusin App",
-        "domain": "Magdagdag ng bagong domain...",
         "selectTenant": "Pumili ng tenant na kokopyahin..."
       },
       "creationMode": {
@@ -1804,34 +1484,7 @@
         "tenantIdRequiredForPublish": "Kailangan ang Tenant ID para sa pag-publish"
       },
       "hints": {
-        "tenantIdReadonly": "Hindi maaaring baguhin ang Tenant ID",
-        "colorFormat": "#RRGGBB"
-      },
-      "toggles": {
-        "showMarketingContent": {
-          "label": "Ipakita ang Nilalaman ng Marketing",
-          "description": "Ipakita ang mga feature/CTA na seksyon sa mga pampublikong pahina"
-        },
-        "showPricingPage": {
-          "label": "Ipakita ang Pahina ng Pagpepresyo",
-          "description": "Ipakita ang /pricing na ruta"
-        },
-        "showAppNameInHeader": {
-          "label": "Ipakita ang Pangalan ng App sa Header",
-          "description": "Ipakita ang pangalan ng app sa tabi ng logo"
-        },
-        "enableParallax": {
-          "label": "Paganahin ang Parallax",
-          "description": "Paganahin ang mga parallax scrolling effect"
-        },
-        "enableMagneticHover": {
-          "label": "Paganahin ang Magnetic Hover",
-          "description": "Paganahin ang mga magnetic hover effect sa mga button"
-        },
-        "enableScrollReveal": {
-          "label": "Paganahin ang Scroll Reveal",
-          "description": "Paganahin ang mga animation na na-trigger ng pag-scroll"
-        }
+        "tenantIdReadonly": "Hindi maaaring baguhin ang Tenant ID"
       },
       "loading": {
         "tenants": "Naglo-load ng mga tenant..."
@@ -1861,16 +1514,8 @@
         "faviconSelected": "Napili ang favicon mula sa library"
       },
       "buttons": {
-        "save": "I-save ang Tenant",
         "publish": "I-publish ang Tema",
-        "addDomain": "Idagdag",
-        "removeDomain": "Alisin",
-        "chooseFromLibrary": "Pumili mula sa Library",
-        "uploadNew": "Mag-upload ng Bago"
-      },
-      "actions": {
-        "deriveColors": "Maghango ng mga Kulay",
-        "deriveColorsDescription": "Bumuo ng lahat ng semantikong kulay mula sa iyong brand palette"
+        "addDomain": "Idagdag"
       }
     }
   },

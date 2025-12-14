@@ -5,7 +5,7 @@ import { DisplayName } from '@billsplit-wl/shared';
 import { toDisplayName } from '@billsplit-wl/shared';
 import { ActivityFeedItemBuilder, GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, GroupMembershipDTOBuilder, GroupPermissionsBuilder } from '@billsplit-wl/test-support';
 import type { Page } from '@playwright/test';
-import { expect, test } from '../../utils/console-logging-fixture';
+import { test } from '../../utils/console-logging-fixture';
 import { fulfillWithSerialization, mockGroupCommentsApi } from '../../utils/mock-firebase-service';
 
 interface PendingEntry {
@@ -160,28 +160,28 @@ test.describe('Group security pending members', () => {
         await groupDetailPage.waitForGroupTitle(groupName);
         await groupDetailPage.waitForMemberCount(1); // owner only
 
-        let settingsModal = await groupDetailPage.clickEditGroupAndOpenModal('security');
+        const settingsModal = await groupDetailPage.clickEditGroupAndOpenModal('security');
         const pendingList = pendingEntries.map((entry) => entry);
 
         for (const entry of pendingList) {
             // Button aria-labels use displayName, not uid
-            await expect(settingsModal.getPendingApproveButtonLocator(entry.displayName)).toBeVisible();
-            await expect(settingsModal.getPendingRejectButtonLocator(entry.displayName)).toBeVisible();
-            await expect(settingsModal.getModalContainerLocator().getByText(entry.displayName)).toBeVisible();
+            await settingsModal.verifyPendingApproveButtonVisible(entry.displayName);
+            await settingsModal.verifyPendingRejectButtonVisible(entry.displayName);
+            await settingsModal.verifyPendingMemberTextVisible(entry.displayName);
         }
 
         const [firstPending, secondPending] = pendingList;
 
         // approveMember/rejectMember methods use displayName to find the button
         await settingsModal.approveMember(firstPending.displayName);
-        await expect(settingsModal.getPendingApproveButtonLocator(firstPending.displayName)).toHaveCount(0);
-        await expect(settingsModal.getPendingRejectButtonLocator(firstPending.displayName)).toHaveCount(0);
-        await expect(settingsModal.getPendingApproveButtonLocator(secondPending.displayName)).toBeVisible();
+        await settingsModal.verifyPendingApproveButtonNotVisible(firstPending.displayName);
+        await settingsModal.verifyPendingRejectButtonNotVisible(firstPending.displayName);
+        await settingsModal.verifyPendingApproveButtonVisible(secondPending.displayName);
 
         await settingsModal.rejectMember(secondPending.displayName);
-        await expect(settingsModal.getPendingRejectButtonLocator(secondPending.displayName)).toHaveCount(0);
-        await expect(settingsModal.getModalContainerLocator().getByText(secondPending.displayName)).toHaveCount(0);
-        await expect(settingsModal.getModalContainerLocator().getByText('No pending requests right now.')).toBeVisible();
+        await settingsModal.verifyPendingRejectButtonNotVisible(secondPending.displayName);
+        await settingsModal.verifyPendingMemberTextNotVisible(secondPending.displayName);
+        await settingsModal.verifyNoPendingRequestsMessageVisible();
 
         await settingsModal.clickFooterClose();
 
@@ -205,7 +205,7 @@ test.describe('Group security pending members', () => {
         );
 
         await groupDetailPage.waitForMemberCount(2);
-        await expect(groupDetailPage.getMemberItemLocator(firstPending.displayName)).toBeVisible();
-        await expect(groupDetailPage.getMemberCardsLocator()).toHaveCount(2);
+        await groupDetailPage.verifyMemberItemVisible(firstPending.displayName);
+        await groupDetailPage.verifyMemberCardsCount(2);
     });
 });

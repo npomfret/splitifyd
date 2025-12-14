@@ -278,9 +278,37 @@ export class DashboardPage extends BasePage {
 
     /**
      * Get the empty groups state container for external assertions
+     * @deprecated Use verifyEmptyGroupsState() or clickEmptyStateCreateGroup() instead
      */
     getEmptyGroupsState(): Locator {
         return this.getEmptyGroupsStateInternal();
+    }
+
+    /**
+     * Get the create group button in the empty state
+     */
+    protected getEmptyStateCreateGroupButton(): Locator {
+        return this.getEmptyGroupsStateInternal().getByRole('button', { name: /create.*group/i });
+    }
+
+    /**
+     * Click the create group button in the empty state
+     * Returns a CreateGroupModalPage instance
+     */
+    async clickEmptyStateCreateGroup(): Promise<CreateGroupModalPage> {
+        const button = this.getEmptyStateCreateGroupButton();
+        await expect(button).toBeVisible();
+        await this.clickButton(button, { buttonName: 'Empty State Create Group' });
+        const modal = new CreateGroupModalPage(this.page);
+        await modal.verifyModalOpen();
+        return modal;
+    }
+
+    /**
+     * Verify the empty state create group button is visible
+     */
+    async verifyEmptyStateCreateGroupButtonVisible(): Promise<void> {
+        await expect(this.getEmptyStateCreateGroupButton()).toBeVisible();
     }
 
     protected getArchivedEmptyState(): Locator {
@@ -768,6 +796,20 @@ export class DashboardPage extends BasePage {
      */
     async verifyCreateGroupButtonEnabled(): Promise<void> {
         await expect(this.getCreateGroupButton()).toBeEnabled();
+    }
+
+    /**
+     * Verify create group button is focused (for accessibility tests)
+     */
+    async verifyCreateGroupButtonFocused(): Promise<void> {
+        await expect(this.getCreateGroupButton()).toBeFocused();
+    }
+
+    /**
+     * Verify the "create first group" prompt is visible (empty state for new users)
+     */
+    async verifyCreateFirstGroupPromptVisible(): Promise<void> {
+        await expect(this.page.getByText(/create.*first.*group/i).first()).toBeVisible();
     }
 
     // ============================================================================

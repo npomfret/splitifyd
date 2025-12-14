@@ -1,5 +1,5 @@
 import { ExpenseDTOBuilder, GroupBalancesBuilder, GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, ThemeBuilder } from '@billsplit-wl/test-support';
-import { expect, test } from '../../utils/console-logging-fixture';
+import { test } from '../../utils/console-logging-fixture';
 import { fulfillWithSerialization, mockGroupCommentsApi } from '../../utils/mock-firebase-service';
 
 test.describe('Group Detail - Expense Pagination', () => {
@@ -106,15 +106,14 @@ test.describe('Group Detail - Expense Pagination', () => {
         await groupDetailPage.verifyExpenseDisplayed('Coffee Run Page 1');
         await groupDetailPage.verifyExpenseDisplayed('Lunch Split Page 1');
 
-        const loadMoreButton = page.getByRole('button', { name: 'Load More' });
-        await expect(loadMoreButton).toBeVisible();
+        await groupDetailPage.verifyLoadMoreExpensesButtonVisible();
 
-        await loadMoreButton.click();
+        await groupDetailPage.clickLoadMoreExpenses();
 
         await groupDetailPage.verifyExpensesDisplayed(4);
         await groupDetailPage.verifyExpenseDisplayed('Taxi Ride Page 2');
         await groupDetailPage.verifyExpenseDisplayed('Dinner Split Page 2');
-        await expect(loadMoreButton).toBeHidden();
+        await groupDetailPage.verifyLoadMoreExpensesButtonNotVisible();
     });
 
     test('should render all expenses returned in the first page', async ({ authenticatedPage }) => {
@@ -203,7 +202,6 @@ test.describe('Group Detail - Expense Pagination', () => {
             await groupDetailPage.verifyExpenseDisplayed(expense.description);
         }
 
-        const loadMoreButton = page.getByRole('button', { name: 'Load More' });
-        await expect(loadMoreButton).toBeVisible();
+        await groupDetailPage.verifyLoadMoreExpensesButtonVisible();
     });
 });

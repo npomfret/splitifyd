@@ -192,12 +192,10 @@ test.describe('Dashboard Create Group Functionality', () => {
         await dashboardPage.verifyEmptyGroupsState();
 
         // The empty state should have a create group button
-        const emptyStateCreateButton = dashboardPage.getEmptyGroupsState().getByRole('button', { name: /create.*group/i });
-        await expect(emptyStateCreateButton).toBeVisible();
-        await emptyStateCreateButton.click();
+        await dashboardPage.verifyEmptyStateCreateGroupButtonVisible();
 
-        // Verify modal opens using CreateGroupModalPage
-        const createGroupModal = new CreateGroupModalPage(page);
+        // Click to open modal - fluent method verifies modal opened
+        const createGroupModal = await dashboardPage.clickEmptyStateCreateGroup();
         await createGroupModal.verifyModalOpen();
     });
 

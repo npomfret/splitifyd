@@ -394,4 +394,121 @@ export abstract class BasePage {
         await expect(this._page.getByText(translation.errorBoundary.title)).toHaveCount(0);
         await expect(this._page.getByText(/ErrorBoundary caught an error/i)).toHaveCount(0);
     }
+
+    // ============================================================================
+    // ACCESSIBILITY HELPERS
+    // ============================================================================
+
+    /**
+     * Get the skip link element
+     */
+    protected getSkipToMainContentLink(): Locator {
+        return this._page.getByRole('link', { name: /skip to main content/i });
+    }
+
+    /**
+     * Get the main content element
+     */
+    protected getMainContent(): Locator {
+        return this._page.locator('#main-content');
+    }
+
+    /**
+     * Verify the skip link is attached to the DOM (may be visually hidden)
+     */
+    async verifySkipLinkAttached(): Promise<void> {
+        await expect(this.getSkipToMainContentLink()).toBeAttached();
+    }
+
+    /**
+     * Verify the skip link is focused
+     */
+    async verifySkipLinkFocused(): Promise<void> {
+        await expect(this.getSkipToMainContentLink()).toBeFocused();
+    }
+
+    /**
+     * Verify the skip link is visible (when focused)
+     */
+    async verifySkipLinkVisible(): Promise<void> {
+        await expect(this.getSkipToMainContentLink()).toBeVisible();
+    }
+
+    /**
+     * Click the skip link to navigate to main content
+     */
+    async clickSkipLink(): Promise<void> {
+        await this.getSkipToMainContentLink().click();
+    }
+
+    /**
+     * Verify main content is focused
+     */
+    async verifyMainContentFocused(): Promise<void> {
+        await expect(this.getMainContent()).toBeFocused();
+    }
+
+    /**
+     * Get the bounding box of the skip link (for visibility testing)
+     */
+    async getSkipLinkBoundingBox(): Promise<{ width: number; height: number; } | null> {
+        return await this.getSkipToMainContentLink().boundingBox();
+    }
+
+    /**
+     * Get the dialog locator for accessibility testing
+     */
+    protected getDialogLocator(): Locator {
+        return this._page.locator('[role="dialog"]');
+    }
+
+    /**
+     * Get focusable elements within a dialog for focus trap testing
+     * @param modal - The modal/dialog locator
+     */
+    protected getFocusableElementsInDialog(modal: Locator): Locator {
+        const focusableSelector = 'button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+        return modal.locator(focusableSelector);
+    }
+
+    /**
+     * Verify the first focusable element in a dialog is focused
+     */
+    async verifyDialogFirstElementFocused(): Promise<void> {
+        const modal = this.getDialogLocator();
+        const focusableElements = this.getFocusableElementsInDialog(modal);
+        await expect(focusableElements.first()).toBeFocused();
+    }
+
+    /**
+     * Verify the last focusable element in a dialog is focused
+     */
+    async verifyDialogLastElementFocused(): Promise<void> {
+        const modal = this.getDialogLocator();
+        const focusableElements = this.getFocusableElementsInDialog(modal);
+        await expect(focusableElements.last()).toBeFocused();
+    }
+
+    /**
+     * Get the count of focusable elements in the current dialog
+     */
+    async getDialogFocusableElementCount(): Promise<number> {
+        const modal = this.getDialogLocator();
+        const focusableElements = this.getFocusableElementsInDialog(modal);
+        return await focusableElements.count();
+    }
+
+    /**
+     * Press Tab key
+     */
+    async pressTab(): Promise<void> {
+        await this._page.keyboard.press('Tab');
+    }
+
+    /**
+     * Press Shift+Tab key
+     */
+    async pressShiftTab(): Promise<void> {
+        await this._page.keyboard.press('Shift+Tab');
+    }
 }

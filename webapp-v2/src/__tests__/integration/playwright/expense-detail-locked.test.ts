@@ -1,5 +1,4 @@
 import { ExpenseDetailPage, ExpenseDTOBuilder, ExpenseFullDetailsBuilder, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder } from '@billsplit-wl/test-support';
-import translationEn from '../../../locales/en/translation.json' with { type: 'json' };
 import { expect, test } from '../../utils/console-logging-fixture';
 import { mockExpenseCommentsApi, mockExpenseDetailApi, mockGroupCommentsApi, mockGroupDetailApi } from '../../utils/mock-firebase-service';
 
@@ -53,11 +52,11 @@ test.describe('Expense Detail - Locked Expense UI', () => {
         await page.goto(`/groups/${groupId}/expenses/${expenseId}`, { waitUntil: 'domcontentloaded' });
 
         // Wait for expense detail modal to open and show the expense description
-        await expect(page.getByRole('dialog')).toBeVisible();
-        await expect(page.getByText('Locked Expense')).toBeVisible();
-
-        // Verify lock warning banner is displayed using page object
         const expenseDetailPage = new ExpenseDetailPage(page);
+        await expenseDetailPage.verifyModalVisible();
+        await expenseDetailPage.verifyExpenseDescriptionInModal('Locked Expense');
+
+        // Verify lock warning banner is displayed
         await expenseDetailPage.verifyLockWarningBanner();
     });
 
@@ -108,18 +107,15 @@ test.describe('Expense Detail - Locked Expense UI', () => {
         await page.goto(`/groups/${groupId}/expenses/${expenseId}`, { waitUntil: 'domcontentloaded' });
 
         // Wait for expense detail modal to open
-        await expect(page.getByRole('dialog')).toBeVisible();
-        await expect(page.getByText('Locked Expense')).toBeVisible();
-
-        // Find the edit button
-        const editButton = page.getByRole('button', { name: translationEn.expenseComponents.expenseActions.edit });
+        const expenseDetailPage = new ExpenseDetailPage(page);
+        await expenseDetailPage.verifyModalVisible();
+        await expenseDetailPage.verifyExpenseDescriptionInModal('Locked Expense');
 
         // Verify edit button is disabled
-        await expect(editButton).toBeDisabled();
+        await expenseDetailPage.verifyEditButtonDisabled();
 
         // Verify tooltip is present on the immediate wrapper div
-        const editButtonWrapper = page.getByTitle(translationEn.expenseComponents.expenseActions.cannotEditTooltip);
-        await expect(editButtonWrapper).toBeVisible();
+        await expenseDetailPage.verifyEditButtonTooltip();
     });
 
     test('should not display lock warning when expense is not locked', async ({ authenticatedPage }) => {
@@ -169,17 +165,14 @@ test.describe('Expense Detail - Locked Expense UI', () => {
         await page.goto(`/groups/${groupId}/expenses/${expenseId}`, { waitUntil: 'domcontentloaded' });
 
         // Wait for expense detail modal to open
-        await expect(page.getByRole('dialog')).toBeVisible();
-        await expect(page.getByText('Normal Expense')).toBeVisible();
-
-        // Verify lock warning banner is NOT displayed using page object
         const expenseDetailPage = new ExpenseDetailPage(page);
+        await expenseDetailPage.verifyModalVisible();
+        await expenseDetailPage.verifyExpenseDescriptionInModal('Normal Expense');
+
+        // Verify lock warning banner is NOT displayed
         await expenseDetailPage.verifyLockWarningBannerNotVisible();
 
-        // Find the edit button
-        const editButton = page.getByRole('button', { name: translationEn.expenseComponents.expenseActions.edit });
-
         // Verify edit button is enabled
-        await expect(editButton).toBeEnabled();
+        await expenseDetailPage.verifyEditButtonEnabled();
     });
 });

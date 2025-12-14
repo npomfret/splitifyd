@@ -8,6 +8,7 @@ import {
     GroupDTOBuilder,
     GroupFullDetailsBuilder,
     GroupMemberBuilder,
+    LoginPage,
     SettlementWithMembersBuilder,
     ThemeBuilder,
 } from '@billsplit-wl/test-support';
@@ -20,8 +21,9 @@ test.describe('Group Detail - Authentication and Navigation', () => {
         await page.goto('/groups/test-group-id');
 
         // Should be redirected to login page
+        const loginPage = new LoginPage(page);
         await expect(page).toHaveURL(/\/login/);
-        await expect(page.getByRole('heading', { name: /sign.*in/i })).toBeVisible();
+        await loginPage.verifySignInHeadingVisible();
     });
 
     test('should show loading state while group data loads', async ({ authenticatedPage }) => {

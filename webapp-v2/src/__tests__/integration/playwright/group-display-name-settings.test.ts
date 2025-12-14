@@ -111,23 +111,21 @@ test.describe('Group display name settings', () => {
         await groupDetailPage.navigateToGroup(groupId);
         await groupDetailPage.waitForGroupTitle('Display Name Test Group');
 
-        await expect(groupDetailPage.getEditGroupButtonLocator()).toBeVisible();
+        await groupDetailPage.verifyEditGroupButtonVisible();
 
         const modal = await groupDetailPage.clickEditGroupAndOpenModal('identity');
-        const displayNameInput = modal.getDisplayNameInputLocator();
-        const saveButton = modal.getDisplayNameSaveButtonLocator();
 
-        await expect(displayNameInput).toHaveValue('Current Alias');
-        await expect(saveButton).toBeDisabled();
+        await modal.verifyDisplayNameInputValue('Current Alias');
+        await modal.verifyDisplayNameSaveButtonDisabled();
 
         await modal.fillDisplayName('Updated Alias');
-        await expect(saveButton).toBeEnabled();
+        await modal.verifyDisplayNameSaveButtonEnabled();
 
         await modal.saveDisplayName();
 
-        await expect(modal.getDisplayNameSuccessLocator()).toBeVisible();
-        await expect(displayNameInput).toHaveValue('Updated Alias');
-        await expect(saveButton).toBeDisabled();
+        await modal.verifyDisplayNameSuccessVisible();
+        await modal.verifyDisplayNameInputValue('Updated Alias');
+        await modal.verifyDisplayNameSaveButtonDisabled();
     });
 
     test('validates the display name input before submitting', async ({ authenticatedPage }) => {
@@ -147,27 +145,23 @@ test.describe('Group display name settings', () => {
         await groupDetailPage.waitForGroupTitle('Display Name Test Group');
 
         const modal = await groupDetailPage.clickEditGroupAndOpenModal('identity');
-        const displayNameSection = modal.getDisplayNameSectionLocator();
-        const saveButton = modal.getDisplayNameSaveButtonLocator();
 
-        await expect(saveButton).toBeDisabled();
+        await modal.verifyDisplayNameSaveButtonDisabled();
 
         await modal.fillDisplayName('   ');
-        await expect(saveButton).toBeEnabled();
+        await modal.verifyDisplayNameSaveButtonEnabled();
 
         await modal.saveDisplayName();
 
-        const validationMessage = displayNameSection.getByTestId('input-error-message');
-        await expect(validationMessage).toBeVisible();
-        await expect(validationMessage).toContainText('Enter a display name.');
+        await modal.verifyDisplayNameInputErrorContainsText('Enter a display name.');
 
         await modal.fillDisplayName('A'.repeat(51));
         await modal.saveDisplayName();
-        await expect(validationMessage).toContainText('50 characters or fewer.');
+        await modal.verifyDisplayNameInputErrorContainsText('50 characters or fewer.');
 
         await modal.fillDisplayName('Fresh Alias');
-        await expect(validationMessage).not.toBeVisible();
-        await expect(saveButton).toBeEnabled();
+        await modal.verifyDisplayNameInputErrorNotVisible();
+        await modal.verifyDisplayNameSaveButtonEnabled();
 
         expect(updateCalled).toBe(false);
     });
@@ -195,17 +189,14 @@ test.describe('Group display name settings', () => {
         await modal.fillDisplayName('ALICE');
         await modal.saveDisplayName();
 
-        const serverError = modal.getDisplayNameErrorLocator();
-        await expect(serverError).toBeVisible();
-        await expect(serverError).toContainText('already in use');
+        await modal.verifyDisplayNameErrorContainsText('already in use');
 
         // User retries with a unique name; request now succeeds and the success toast is shown
         await modal.fillDisplayName('Alicia Cooper');
         await modal.saveDisplayName();
 
-        await expect(serverError).toHaveCount(0);
-        await expect(modal.getDisplayNameSuccessLocator()).toBeVisible();
-        const displayNameInput = modal.getDisplayNameInputLocator();
-        await expect(displayNameInput).toHaveValue('Alicia Cooper');
+        await modal.verifyDisplayNameErrorNotVisible();
+        await modal.verifyDisplayNameSuccessVisible();
+        await modal.verifyDisplayNameInputValue('Alicia Cooper');
     });
 });

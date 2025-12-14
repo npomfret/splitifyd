@@ -411,6 +411,223 @@ export class SettingsPage extends BasePage {
         }
     }
 
+    // ============================================================================
+    // PROFILE SUMMARY CARD LOCATORS
+    // ============================================================================
+
+    /**
+     * Profile overview card header text
+     */
+    protected getProfileOverviewText(): Locator {
+        return this.page.getByText('Profile overview');
+    }
+
+    /**
+     * Avatar or initials element (rounded-full styling)
+     */
+    protected getAvatarOrInitials(): Locator {
+        return this.page.locator('[class*="rounded-full"]').first();
+    }
+
+    /**
+     * Account role label (only visible to admins)
+     */
+    protected getAccountRoleLabel(): Locator {
+        return this.page.getByText('Account role');
+    }
+
+    /**
+     * Account role value (e.g., "Administrator")
+     */
+    protected getAccountRoleValue(value: string): Locator {
+        return this.page.getByText(value);
+    }
+
+    // ============================================================================
+    // PASSWORD CHECKLIST LOCATORS
+    // ============================================================================
+
+    /**
+     * Strong password checklist heading
+     */
+    protected getPasswordChecklistHeading(): Locator {
+        return this.page.getByText('Strong password checklist');
+    }
+
+    /**
+     * Password requirement text by pattern
+     */
+    protected getPasswordRequirement(pattern: RegExp): Locator {
+        return this.page.getByText(pattern);
+    }
+
+    // ============================================================================
+    // DISPLAY NAME HELPER TEXT LOCATORS
+    // ============================================================================
+
+    /**
+     * Display name helper text
+     */
+    protected getDisplayNameHelperText(): Locator {
+        return this.page.getByText(/Use your full name or a nickname/i);
+    }
+
+    // ============================================================================
+    // SECTION HEADER LOCATORS
+    // ============================================================================
+
+    /**
+     * Profile Information section header
+     */
+    protected getProfileInformationHeader(): Locator {
+        return this.page.getByRole('heading', { name: 'Profile Information' });
+    }
+
+    /**
+     * Profile Information section description
+     */
+    protected getProfileInformationDescription(): Locator {
+        return this.page.getByText(/Update the details other members see across/);
+    }
+
+    /**
+     * Password section header
+     */
+    protected getPasswordHeader(): Locator {
+        return this.page.getByRole('heading', { name: 'Password' });
+    }
+
+    /**
+     * Password section description
+     */
+    protected getPasswordDescription(): Locator {
+        return this.page.getByText(/Set a strong password to keep your .* account secure/);
+    }
+
+    /**
+     * Page hero/title label
+     */
+    protected getHeroLabel(): Locator {
+        return this.page.getByText('Account').first();
+    }
+
+    // ============================================================================
+    // PROFILE SUMMARY VERIFICATION METHODS
+    // ============================================================================
+
+    /**
+     * Verify profile overview card is visible
+     */
+    async verifyProfileOverviewCardVisible(): Promise<void> {
+        await expect(this.getProfileOverviewText()).toBeVisible();
+    }
+
+    /**
+     * Verify avatar or initials is visible
+     */
+    async verifyAvatarOrInitialsVisible(): Promise<void> {
+        await expect(this.getAvatarOrInitials()).toBeVisible();
+    }
+
+    /**
+     * Verify account role label is visible (for admins)
+     */
+    async verifyAccountRoleLabelVisible(): Promise<void> {
+        await expect(this.getAccountRoleLabel()).toBeVisible();
+    }
+
+    /**
+     * Verify account role label is NOT visible (for regular users)
+     */
+    async verifyAccountRoleLabelNotVisible(): Promise<void> {
+        await expect(this.getAccountRoleLabel()).not.toBeVisible();
+    }
+
+    /**
+     * Verify account role value is displayed
+     */
+    async verifyAccountRoleValueVisible(value: string): Promise<void> {
+        await expect(this.getAccountRoleValue(value)).toBeVisible();
+    }
+
+    // ============================================================================
+    // PASSWORD CHECKLIST VERIFICATION METHODS
+    // ============================================================================
+
+    /**
+     * Verify password checklist heading is visible
+     */
+    async verifyPasswordChecklistHeadingVisible(): Promise<void> {
+        await expect(this.getPasswordChecklistHeading()).toBeVisible();
+    }
+
+    /**
+     * Verify a password requirement is visible by pattern
+     */
+    async verifyPasswordRequirementVisible(pattern: RegExp): Promise<void> {
+        await expect(this.getPasswordRequirement(pattern)).toBeVisible();
+    }
+
+    // ============================================================================
+    // DISPLAY NAME HELPER TEXT VERIFICATION METHODS
+    // ============================================================================
+
+    /**
+     * Verify display name helper text is visible
+     */
+    async verifyDisplayNameHelperTextVisible(): Promise<void> {
+        await expect(this.getDisplayNameHelperText()).toBeVisible();
+    }
+
+    // ============================================================================
+    // SECTION HEADER VERIFICATION METHODS
+    // ============================================================================
+
+    /**
+     * Verify all section headers and descriptions are visible
+     */
+    async verifySectionHeadersAndDescriptionsVisible(): Promise<void> {
+        await expect(this.getProfileInformationHeader()).toBeVisible();
+        await expect(this.getProfileInformationDescription()).toBeVisible();
+        await expect(this.getPasswordHeader()).toBeVisible();
+        await expect(this.getPasswordDescription()).toBeVisible();
+    }
+
+    /**
+     * Verify profile information section header is visible
+     */
+    async verifyProfileInformationHeaderVisible(): Promise<void> {
+        await expect(this.getProfileInformationHeader()).toBeVisible();
+    }
+
+    /**
+     * Verify profile information section description is visible
+     */
+    async verifyProfileInformationDescriptionVisible(): Promise<void> {
+        await expect(this.getProfileInformationDescription()).toBeVisible();
+    }
+
+    /**
+     * Verify password section header is visible
+     */
+    async verifyPasswordSectionHeaderVisible(): Promise<void> {
+        await expect(this.getPasswordHeader()).toBeVisible();
+    }
+
+    /**
+     * Verify password section description is visible
+     */
+    async verifyPasswordSectionDescriptionVisible(): Promise<void> {
+        await expect(this.getPasswordDescription()).toBeVisible();
+    }
+
+    /**
+     * Verify hero/title label is visible
+     */
+    async verifyHeroLabelVisible(): Promise<void> {
+        await expect(this.getHeroLabel()).toBeVisible();
+    }
+
     /**
      * Language Preferences Locators
      */

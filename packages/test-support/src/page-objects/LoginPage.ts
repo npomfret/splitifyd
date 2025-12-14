@@ -335,4 +335,11 @@ export class LoginPage extends BasePage {
     async verifySignInHeadingVisible(timeout: number = TEST_TIMEOUTS.ELEMENT_VISIBLE): Promise<void> {
         await expect(this.getSignInHeading()).toBeVisible({ timeout });
     }
+
+    /**
+     * Verify the sign-in button is visible
+     */
+    async verifySignInButtonVisible(): Promise<void> {
+        await expect(this.getSubmitButton()).toBeVisible();
+    }
 }

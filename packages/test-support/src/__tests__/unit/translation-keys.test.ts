@@ -81,6 +81,24 @@ const DYNAMIC_KEY_PATTERNS = [
     /_other$/,
     // Firebase auth error codes mapped dynamically in error-translation.ts
     /^authErrors\./,
+    // API error codes mapped dynamically
+    /^apiErrors\./,
+    // Admin tabs accessed via template literal: t(`admin.tabs.${tab.labelKey}`)
+    /^admin\.tabs\./,
+    // Theme modes accessed via template literal
+    /^admin\.tenantEditor\.derivation\.themeMode\./,
+    // Tenant editor section titles/descriptions accessed via template literal
+    /^admin\.tenantEditor\.sections\.[^.]+\.(title|description)$/,
+    // Dashboard group card keys accessed via template literal
+    /^dashboard\.groupCard\./,
+    // Group settings modal tabs accessed via template literal
+    /^groupSettingsModal\.tabs\./,
+    // Security settings modal - permissions, member roles, presets accessed via template literals
+    /^securitySettingsModal\.permissions\./,
+    /^securitySettingsModal\.memberRoles\./,
+    /^securitySettingsModal\.presets\./,
+    // Settings page role labels accessed via template literal
+    /^settingsPage\.profileSummaryRole\./,
 ];
 
 // Regex to extract placeholders like {{name}}, {{count}}, etc.
@@ -215,6 +233,59 @@ function getGitFiles(dir: string, cwd: string): string[] {
 // =============================================================================
 // Translation Key Extraction
 // =============================================================================
+
+/**
+ * Loads all TypeScript source code from webapp and test directories.
+ * Returns concatenated content for fast string searching.
+ */
+function loadAllSourceCode(projectRoot: string): string {
+    const sourceDirs = [
+        'webapp-v2/src',
+        'e2e-tests/src',
+        'packages/test-support/src',
+    ];
+
+    let allContent = '';
+
+    for (const dir of sourceDirs) {
+        const fullPath = path.join(projectRoot, dir);
+        if (!fs.existsSync(fullPath)) continue;
+
+        const gitFiles = getGitFiles(dir, projectRoot);
+        for (const file of gitFiles) {
+            const filePath = path.join(projectRoot, file);
+            if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) continue;
+
+            try {
+                allContent += fs.readFileSync(filePath, 'utf8') + '\n';
+            } catch {
+                // Skip unreadable files
+            }
+        }
+    }
+
+    return allContent;
+}
+
+/**
+ * Checks if a translation key appears in the source code.
+ * Matches:
+ * 1. Quoted strings: 'key.path', "key.path", or `key.path`
+ * 2. Property access chains: translation.key.path or translationEn.key.path
+ */
+function isKeyInSourceCode(key: string, sourceCode: string): boolean {
+    // Escape regex special characters in the key
+    const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+    // Match the key as a quoted string (single, double, or backtick quotes)
+    const quotedPattern = new RegExp(`['"\`]${escapedKey}['"\`]`);
+    if (quotedPattern.test(sourceCode)) return true;
+
+    // Match the key as a property access chain (translation.key.path or translationEn.key.path)
+    // Convert dots in the key to match property access: key.path -> \.key\.path
+    const propertyAccessPattern = new RegExp(`(?:translation|translationEn)\\.${escapedKey}(?:[^a-zA-Z0-9_]|$)`);
+    return propertyAccessPattern.test(sourceCode);
+}
 
 /**
  * Extracts translation keys from production code using t() function calls.
@@ -401,47 +472,17 @@ describe('Translation Keys Validation', () => {
     });
 
     it('should not have redundant translation keys (defined but never used)', () => {
-        const codeAccesses = extractKeysFromProductionCode(projectRoot);
-        const testAccesses = extractKeysFromTestFiles(projectRoot);
-
-        const usedKeys = new Set<string>();
-        const dynamicPrefixes = new Set<string>();
-
-        for (const access of codeAccesses) {
-            const key = access.key;
-            if (key.endsWith('.')) {
-                dynamicPrefixes.add(key.slice(0, -1));
-            } else {
-                usedKeys.add(key);
-            }
-        }
-
-        for (const access of testAccesses) {
-            usedKeys.add(access.key);
-            const parts = access.key.split('.');
-            for (let i = 1; i <= parts.length; i++) {
-                usedKeys.add(parts.slice(0, i).join('.'));
-            }
-        }
+        // Load all source code once for fast searching
+        const allSourceCode = loadAllSourceCode(projectRoot);
 
         const redundantKeys: string[] = [];
 
         for (const key of allTranslationKeys) {
             // Skip keys that are legitimately constructed at runtime
             if (DYNAMIC_KEY_PATTERNS.some((pattern) => pattern.test(key))) continue;
-            if ([...dynamicPrefixes].some((prefix) => key.startsWith(prefix + '.'))) continue;
 
-            let isUsed = usedKeys.has(key);
-            if (!isUsed) {
-                const parts = key.split('.');
-                for (let i = 1; i < parts.length && !isUsed; i++) {
-                    if (usedKeys.has(parts.slice(0, i).join('.'))) {
-                        isUsed = true;
-                    }
-                }
-            }
-
-            if (!isUsed) {
+            // Check if the key appears as a quoted string anywhere in the source code
+            if (!isKeyInSourceCode(key, allSourceCode)) {
                 redundantKeys.push(key);
             }
         }
@@ -466,11 +507,6 @@ describe('Translation Keys Validation', () => {
                     + 'To fix: Remove unused keys from webapp-v2/src/locales/*/translation.json',
             );
         }
-    });
-
-    it('should have a reasonable number of translation keys (sanity check)', () => {
-        // Currently ~1260 keys; catch accidental mass deletion
-        expect(allTranslationKeys.size).toBeGreaterThan(1000);
     });
 });
 

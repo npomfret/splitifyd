@@ -8,7 +8,7 @@ import {
     ListCommentsResponseBuilder,
     ThemeBuilder,
 } from '@billsplit-wl/test-support';
-import { expect, test } from '../../utils/console-logging-fixture';
+import { test } from '../../utils/console-logging-fixture';
 import { fulfillWithSerialization, mockGroupCommentsApi } from '../../utils/mock-firebase-service';
 
 test.describe('Group Detail - Comment Pagination', () => {
@@ -118,19 +118,18 @@ test.describe('Group Detail - Comment Pagination', () => {
         await groupDetailPage.expectCommentsCollapsed();
         await groupDetailPage.ensureCommentsSectionExpanded();
 
-        await expect(page.getByText('First page welcome comment')).toBeVisible();
-        await expect(page.getByText('First page reminder comment')).toBeVisible();
+        await groupDetailPage.verifyCommentVisible('First page welcome comment');
+        await groupDetailPage.verifyCommentVisible('First page reminder comment');
         await groupDetailPage.verifyCommentItemsCount(2);
 
-        const loadMoreButton = page.getByRole('button', { name: /load more comments/i });
-        await expect(loadMoreButton).toBeVisible();
+        await groupDetailPage.verifyLoadMoreCommentsButtonVisible();
 
-        await loadMoreButton.click();
+        await groupDetailPage.clickLoadMoreComments();
 
-        await expect(page.getByText('Second page update comment')).toBeVisible();
-        await expect(page.getByText('Second page follow-up comment')).toBeVisible();
+        await groupDetailPage.verifyCommentVisible('Second page update comment');
+        await groupDetailPage.verifyCommentVisible('Second page follow-up comment');
         await groupDetailPage.verifyCommentItemsCount(4);
-        await expect(loadMoreButton).not.toBeVisible();
+        await groupDetailPage.verifyLoadMoreCommentsButtonNotVisible();
     });
 });
 
@@ -227,19 +226,17 @@ test.describe('Group Detail - Comment Pagination Button', () => {
         await groupDetailPage.expectCommentsCollapsed();
         await groupDetailPage.ensureCommentsSectionExpanded();
 
-        const loadMoreButton = page.getByRole('button', { name: /load more comments/i });
-        await expect(loadMoreButton).toBeVisible();
+        await groupDetailPage.verifyLoadMoreCommentsButtonVisible();
 
         await Promise.all([
             page.waitForRequest((request) => request.method() === 'GET' && request.url().includes(`/api/groups/${groupId}/comments?cursor=cursor-comments-page-button`)),
-            loadMoreButton.click(),
+            groupDetailPage.clickLoadMoreComments(),
         ]);
 
         // During loading, the button text changes to "Loading..." and should be disabled
-        const loadingButton = page.getByRole('button', { name: /loading/i });
-        await expect(loadingButton).toBeDisabled();
+        await groupDetailPage.verifyLoadingCommentsButtonDisabled();
 
-        await expect(page.getByText('Next page button comment')).toBeVisible({ timeout: 5000 });
-        await expect(page.getByRole('button', { name: /load more comments/i })).toHaveCount(0);
+        await groupDetailPage.verifyCommentVisible('Next page button comment');
+        await groupDetailPage.verifyLoadMoreCommentsButtonNotVisible();
     });
 });

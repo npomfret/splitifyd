@@ -265,8 +265,8 @@ test.describe('Settings Page - UI Elements and Layout', () => {
         // 3. Verify email is shown in summary
         await settingsPage.verifyProfileEmailText(user.email);
 
-        // 4. Verify profile summary card is visible (check for key text)
-        await expect(page.getByText('Profile overview')).toBeVisible();
+        // 4. Verify profile summary card is visible
+        await settingsPage.verifyProfileOverviewCardVisible();
     });
 
     test('should display avatar or initials in profile summary', async ({ authenticatedPage }) => {
@@ -277,9 +277,7 @@ test.describe('Settings Page - UI Elements and Layout', () => {
         await settingsPage.navigate();
 
         // 2. Verify avatar component or initials fallback is present
-        // The avatar should either use the Avatar component or show initials in a styled div
-        const avatarOrInitials = page.locator('[class*="rounded-full"]').first();
-        await expect(avatarOrInitials).toBeVisible();
+        await settingsPage.verifyAvatarOrInitialsVisible();
     });
 
     test('should hide account role from regular users', async ({ authenticatedPage }) => {
@@ -290,7 +288,7 @@ test.describe('Settings Page - UI Elements and Layout', () => {
         await settingsPage.navigate();
 
         // 2. Verify account role label is NOT visible for regular users (only shown to system admins)
-        await expect(page.getByText('Account role')).not.toBeVisible();
+        await settingsPage.verifyAccountRoleLabelNotVisible();
     });
 
     test('should display account role for system admins', async ({ authenticatedMockFirebase, pageWithLogging }) => {
@@ -313,10 +311,10 @@ test.describe('Settings Page - UI Elements and Layout', () => {
         await settingsPage.navigate();
 
         // 5. Verify account role label IS visible for system admins
-        await expect(pageWithLogging.getByText('Account role')).toBeVisible();
+        await settingsPage.verifyAccountRoleLabelVisible();
 
         // 6. Verify role value shows "Administrator"
-        await expect(pageWithLogging.getByText('Administrator')).toBeVisible();
+        await settingsPage.verifyAccountRoleValueVisible('Administrator');
     });
 
     test('should display password requirements checklist', async ({ authenticatedPage }) => {
@@ -327,12 +325,12 @@ test.describe('Settings Page - UI Elements and Layout', () => {
         await settingsPage.navigate();
 
         // 2. Verify password requirements heading is visible
-        await expect(page.getByText('Strong password checklist')).toBeVisible();
+        await settingsPage.verifyPasswordChecklistHeadingVisible();
 
         // 3. Verify individual requirements are displayed
-        await expect(page.getByText(/Use at least 12 characters/i)).toBeVisible();
-        await expect(page.getByText(/Blend upper- and lowercase letters/i)).toBeVisible();
-        await expect(page.getByText(/Avoid passwords you've used elsewhere/i)).toBeVisible();
+        await settingsPage.verifyPasswordRequirementVisible(/Use at least 12 characters/i);
+        await settingsPage.verifyPasswordRequirementVisible(/Blend upper- and lowercase letters/i);
+        await settingsPage.verifyPasswordRequirementVisible(/Avoid passwords you've used elsewhere/i);
     });
 
     test('should display helper text for display name input', async ({ authenticatedPage }) => {
@@ -343,7 +341,7 @@ test.describe('Settings Page - UI Elements and Layout', () => {
         await settingsPage.navigate();
 
         // 2. Verify helper text is visible
-        await expect(page.getByText(/Use your full name or a nickname/i)).toBeVisible();
+        await settingsPage.verifyDisplayNameHelperTextVisible();
     });
 
     test('should display section headers and descriptions', async ({ authenticatedPage }) => {
@@ -353,17 +351,17 @@ test.describe('Settings Page - UI Elements and Layout', () => {
         // 1. Navigate to settings page
         await settingsPage.navigate();
 
-        // 2. Verify profile information section header (use role for specificity)
-        await expect(page.getByRole('heading', { name: 'Profile Information' })).toBeVisible();
+        // 2. Verify profile information section header
+        await settingsPage.verifyProfileInformationHeaderVisible();
 
-        // 3. Verify profile information subheader (use regex to match any app name)
-        await expect(page.getByText(/Update the details other members see across/)).toBeVisible();
+        // 3. Verify profile information subheader
+        await settingsPage.verifyProfileInformationDescriptionVisible();
 
         // 4. Verify password section header
-        await expect(page.getByRole('heading', { name: 'Password' })).toBeVisible();
+        await settingsPage.verifyPasswordSectionHeaderVisible();
 
-        // 5. Verify password intro text (use regex to match any app name)
-        await expect(page.getByText(/Set a strong password to keep your .* account secure/)).toBeVisible();
+        // 5. Verify password intro text
+        await settingsPage.verifyPasswordSectionDescriptionVisible();
     });
 
     test('should display page hero label', async ({ authenticatedPage }) => {
@@ -374,7 +372,7 @@ test.describe('Settings Page - UI Elements and Layout', () => {
         await settingsPage.navigate();
 
         // 2. Verify hero label is visible
-        await expect(page.getByText('Account').first()).toBeVisible();
+        await settingsPage.verifyHeroLabelVisible();
     });
 });
 

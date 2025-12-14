@@ -323,8 +323,8 @@ test.describe('Tenant Branding Page - Marketing Flags', () => {
         await brandingPage.waitForPageReady();
 
         // Verify marketing flags are visible
-        await expect(brandingPage.getShowMarketingContentCheckboxLocator()).toBeVisible();
-        await expect(brandingPage.getShowPricingPageCheckboxLocator()).toBeVisible();
+        await brandingPage.verifyShowMarketingContentCheckboxVisible();
+        await brandingPage.verifyShowPricingPageCheckboxVisible();
 
         // Verify their initial states match the mock data
         await brandingPage.verifyShowMarketingContentChecked(true);

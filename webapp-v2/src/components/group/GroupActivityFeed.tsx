@@ -156,16 +156,16 @@ function renderEventDescription(item: ActivityFeedItem, currentUserId: string, t
         case 'expense-deleted':
             return t('activityFeed.events.expense-deleted-short', { actor, expense });
         case 'member-joined': {
-            const joinedKey = targetUserId && targetUserId === item.actorId
-                ? 'activityFeed.events.member-joined-self-short'
-                : 'activityFeed.events.member-joined-short';
-            return t(joinedKey, { actor, target });
+            const isSelf = targetUserId && targetUserId === item.actorId;
+            return isSelf
+                ? t('activityFeed.events.member-joined-self-short', { actor, target })
+                : t('activityFeed.events.member-joined-short', { actor, target });
         }
         case 'member-left': {
-            const leftKey = targetUserId && targetUserId === item.actorId
-                ? 'activityFeed.events.member-left-self-short'
-                : 'activityFeed.events.member-left-short';
-            return t(leftKey, { actor, target });
+            const isSelf = targetUserId && targetUserId === item.actorId;
+            return isSelf
+                ? t('activityFeed.events.member-left-self-short', { actor, target })
+                : t('activityFeed.events.member-left-short', { actor, target });
         }
         case 'comment-added': {
             const commentTarget = item.details?.expenseDescription

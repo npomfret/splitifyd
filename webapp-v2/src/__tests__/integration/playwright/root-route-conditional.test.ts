@@ -1,4 +1,4 @@
-import { ListGroupsResponseBuilder, TEST_TIMEOUTS } from '@billsplit-wl/test-support';
+import { DashboardPage, ListGroupsResponseBuilder, LoginPage, TEST_TIMEOUTS } from '@billsplit-wl/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { mockActivityFeedApi, mockGroupsApi } from '../../utils/mock-firebase-service';
 
@@ -17,16 +17,16 @@ test.describe('Root Route - Conditional Rendering', () => {
             await page.goto('/', { timeout: TEST_TIMEOUTS.NAVIGATION, waitUntil: 'domcontentloaded' });
 
             // Should redirect to login
+            const loginPage = new LoginPage(page);
             await expect(page).toHaveURL(/\/login/);
 
             // Verify login page is visible
-            await expect(page.getByRole('heading', { name: /sign.*in/i })).toBeVisible({
-                timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE,
-            });
+            await loginPage.verifySignInHeadingVisible();
         });
 
         test('should redirect authenticated users to dashboard', async ({ authenticatedPage }) => {
             const { page } = authenticatedPage;
+            const dashboardPage = new DashboardPage(page);
 
             // Mock empty groups list
             await mockGroupsApi(
@@ -42,16 +42,15 @@ test.describe('Root Route - Conditional Rendering', () => {
             // Should redirect to dashboard
             await expect(page).toHaveURL(/\/dashboard/);
 
-            // Verify dashboard content (empty state) - use first match to avoid strict mode violation
-            await expect(page.getByText(/create.*first.*group/i).first()).toBeVisible({
-                timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE,
-            });
+            // Verify dashboard content (empty state)
+            await dashboardPage.verifyCreateFirstGroupPromptVisible();
         });
     });
 
     test.describe('Protected routes (dashboard, settings)', () => {
         test('should show dashboard when authenticated user navigates to /dashboard', async ({ authenticatedPage }) => {
             const { page } = authenticatedPage;
+            const dashboardPage = new DashboardPage(page);
 
             // Mock empty groups list
             await mockGroupsApi(
@@ -67,22 +66,19 @@ test.describe('Root Route - Conditional Rendering', () => {
             // Should show dashboard
             await expect(page).toHaveURL(/\/dashboard/);
 
-            // Verify dashboard content (empty state) - use first match to avoid strict mode violation
-            await expect(page.getByText(/create.*first.*group/i).first()).toBeVisible({
-                timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE,
-            });
+            // Verify dashboard content (empty state)
+            await dashboardPage.verifyCreateFirstGroupPromptVisible();
         });
 
         test('should redirect to login when unauthenticated user tries to access /dashboard', async ({ pageWithLogging: page }) => {
             await page.goto('/dashboard', { timeout: TEST_TIMEOUTS.NAVIGATION, waitUntil: 'domcontentloaded' });
 
             // Should redirect to login
+            const loginPage = new LoginPage(page);
             await expect(page).toHaveURL(/\/login/);
 
             // Verify login page
-            await expect(page.getByRole('heading', { name: /sign.*in/i })).toBeVisible({
-                timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE,
-            });
+            await loginPage.verifySignInHeadingVisible();
         });
     });
 

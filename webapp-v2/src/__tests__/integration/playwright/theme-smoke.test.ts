@@ -1,5 +1,5 @@
 import { appConfigHandler, firebaseInitConfigHandler } from '@/test/msw/handlers';
-import { ThemePage } from '@billsplit-wl/test-support';
+import { LoginPage, ThemePage } from '@billsplit-wl/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 
 type ThemeCssVars = {
@@ -98,8 +98,8 @@ test.describe('Tenant theme smoke suite', () => {
 
             // Verify theme colors are applied to visible UI elements on the login page
             // Check the "Sign In" button (primary button styled with theme color)
-            const signInButton = page.getByRole('button', { name: /sign.*in/i }).first();
-            await expect(signInButton).toBeVisible();
+            const loginPage = new LoginPage(page);
+            await loginPage.verifySignInButtonVisible();
 
             // Primary buttons use gradient background-image, so check background-image contains the color
             await themePage.expectGradientContainsColor(

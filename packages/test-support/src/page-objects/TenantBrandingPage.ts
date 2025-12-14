@@ -183,6 +183,20 @@ export class TenantBrandingPage extends BasePage {
     }
 
     /**
+     * Verify show marketing content checkbox is visible
+     */
+    async verifyShowMarketingContentCheckboxVisible(): Promise<void> {
+        await expect(this.getShowMarketingContentCheckbox()).toBeVisible();
+    }
+
+    /**
+     * Verify show pricing page checkbox is visible
+     */
+    async verifyShowPricingPageCheckboxVisible(): Promise<void> {
+        await expect(this.getShowPricingPageCheckbox()).toBeVisible();
+    }
+
+    /**
      * Wait for page to be ready
      */
     async waitForPageReady(): Promise<void> {
@@ -190,11 +204,16 @@ export class TenantBrandingPage extends BasePage {
         await this.page.locator('text=Branding Configuration').waitFor({ state: 'visible' });
     }
 
-    // Public locator accessors for tests
+    /**
+     * @deprecated Use verifyShowMarketingContentCheckboxVisible() instead
+     */
     getShowMarketingContentCheckboxLocator(): Locator {
         return this.getShowMarketingContentCheckbox();
     }
 
+    /**
+     * @deprecated Use verifyShowPricingPageCheckboxVisible() instead
+     */
     getShowPricingPageCheckboxLocator(): Locator {
         return this.getShowPricingPageCheckbox();
     }

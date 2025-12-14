@@ -25,31 +25,22 @@ test.describe('Modal Focus Management', () => {
         const createGroupModal = await dashboardPage.clickCreateGroup();
         await createGroupModal.verifyModalOpen();
 
-        // Get focusable elements (excluding disabled buttons which can't receive focus)
-        const modal = page.locator('[role="dialog"]');
-        const focusableSelector = 'button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
-        const focusableElements = modal.locator(focusableSelector);
-
         // First focusable element should have focus initially
-        const firstElement = focusableElements.first();
-        await expect(firstElement).toBeFocused();
+        await dashboardPage.verifyDialogFirstElementFocused();
 
         // Tab to next element
-        await page.keyboard.press('Tab');
-
-        // Find the last enabled focusable element
-        const lastElement = focusableElements.last();
+        await dashboardPage.pressTab();
 
         // Tab until we reach the last element, then Tab should wrap to first
-        const count = await focusableElements.count();
+        const count = await dashboardPage.getDialogFocusableElementCount();
         for (let i = 1; i < count - 1; i++) {
-            await page.keyboard.press('Tab');
+            await dashboardPage.pressTab();
         }
-        await expect(lastElement).toBeFocused();
+        await dashboardPage.verifyDialogLastElementFocused();
 
         // Tab from last should wrap to first
-        await page.keyboard.press('Tab');
-        await expect(firstElement).toBeFocused();
+        await dashboardPage.pressTab();
+        await dashboardPage.verifyDialogFirstElementFocused();
     });
 
     test('should trap focus with Shift+Tab (reverse direction)', async ({ authenticatedPage }) => {
@@ -74,20 +65,13 @@ test.describe('Modal Focus Management', () => {
         const createGroupModal = await dashboardPage.clickCreateGroup();
         await createGroupModal.verifyModalOpen();
 
-        // Get focusable elements (excluding disabled buttons which can't receive focus)
-        const modal = page.locator('[role="dialog"]');
-        const focusableSelector = 'button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
-        const focusableElements = modal.locator(focusableSelector);
-
         // First focusable element should have focus
-        const firstElement = focusableElements.first();
-        await expect(firstElement).toBeFocused();
+        await dashboardPage.verifyDialogFirstElementFocused();
 
         // Shift+Tab from first should wrap to last enabled element
-        await page.keyboard.press('Shift+Tab');
+        await dashboardPage.pressShiftTab();
 
-        const lastElement = focusableElements.last();
-        await expect(lastElement).toBeFocused();
+        await dashboardPage.verifyDialogLastElementFocused();
     });
 
     test('should restore focus to trigger element after modal closes', async ({ authenticatedPage }) => {
@@ -109,9 +93,8 @@ test.describe('Modal Focus Management', () => {
         await page.goto('/dashboard');
         await dashboardPage.waitForGroupToAppear('Existing Group');
 
-        // Get the create group button before clicking
-        const createButton = page.getByRole('button', { name: /create.*group/i });
-        await expect(createButton).toBeVisible();
+        // Verify create group button before clicking
+        await dashboardPage.verifyCreateGroupButtonVisible();
 
         // Click to open modal
         const createGroupModal = await dashboardPage.clickCreateGroup();
@@ -122,7 +105,7 @@ test.describe('Modal Focus Management', () => {
         await createGroupModal.verifyModalClosed();
 
         // Focus should return to the create group button
-        await expect(createButton).toBeFocused();
+        await dashboardPage.verifyCreateGroupButtonFocused();
     });
 
     test('should restore focus after closing modal via close button', async ({ authenticatedPage }) => {
@@ -144,8 +127,6 @@ test.describe('Modal Focus Management', () => {
         await page.goto('/dashboard');
         await dashboardPage.waitForGroupToAppear('Existing Group');
 
-        const createButton = page.getByRole('button', { name: /create.*group/i });
-
         const createGroupModal = await dashboardPage.clickCreateGroup();
         await createGroupModal.verifyModalOpen();
 
@@ -154,7 +135,7 @@ test.describe('Modal Focus Management', () => {
         await createGroupModal.verifyModalClosed();
 
         // Focus should return to trigger
-        await expect(createButton).toBeFocused();
+        await dashboardPage.verifyCreateGroupButtonFocused();
     });
 
     test('should restore focus after closing modal via cancel button', async ({ authenticatedPage }) => {
@@ -176,8 +157,6 @@ test.describe('Modal Focus Management', () => {
         await page.goto('/dashboard');
         await dashboardPage.waitForGroupToAppear('Existing Group');
 
-        const createButton = page.getByRole('button', { name: /create.*group/i });
-
         const createGroupModal = await dashboardPage.clickCreateGroup();
         await createGroupModal.verifyModalOpen();
         await createGroupModal.fillGroupName('Test');
@@ -187,7 +166,7 @@ test.describe('Modal Focus Management', () => {
         await createGroupModal.verifyModalClosed();
 
         // Focus should return to trigger
-        await expect(createButton).toBeFocused();
+        await dashboardPage.verifyCreateGroupButtonFocused();
     });
 
     test('should set initial focus to first focusable element when modal opens', async ({ authenticatedPage }) => {
@@ -212,18 +191,14 @@ test.describe('Modal Focus Management', () => {
         await dashboardPage.clickCreateGroup();
 
         // First focusable element in modal should be focused
-        // The close button (X) is typically the first focusable element in the modal header
-        const modal = page.locator('[role="dialog"]');
-        const focusableSelector = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
-        const firstFocusable = modal.locator(focusableSelector).first();
-
-        await expect(firstFocusable).toBeFocused();
+        await dashboardPage.verifyDialogFirstElementFocused();
     });
 });
 
 test.describe('Skip Link', () => {
     test('should show skip link on focus and navigate to main content', async ({ authenticatedPage }) => {
         const { page, user } = authenticatedPage;
+        const dashboardPage = new DashboardPage(page);
 
         const group = GroupDTOBuilder
             .groupForUser(user.uid)
@@ -240,26 +215,25 @@ test.describe('Skip Link', () => {
         await page.goto('/dashboard');
 
         // Skip link should be visually hidden initially
-        const skipLink = page.getByRole('link', { name: /skip to main content/i });
-        await expect(skipLink).toBeAttached();
+        await dashboardPage.verifySkipLinkAttached();
 
         // Tab to focus skip link (it's the first focusable element)
-        await page.keyboard.press('Tab');
-        await expect(skipLink).toBeFocused();
+        await dashboardPage.pressTab();
+        await dashboardPage.verifySkipLinkFocused();
 
         // Skip link should now be visible (not sr-only when focused)
-        await expect(skipLink).toBeVisible();
+        await dashboardPage.verifySkipLinkVisible();
 
         // Click/activate skip link
-        await skipLink.click();
+        await dashboardPage.clickSkipLink();
 
         // Main content should receive focus
-        const mainContent = page.locator('#main-content');
-        await expect(mainContent).toBeFocused();
+        await dashboardPage.verifyMainContentFocused();
     });
 
     test('should hide skip link when not focused', async ({ authenticatedPage }) => {
         const { page, user } = authenticatedPage;
+        const dashboardPage = new DashboardPage(page);
 
         const group = GroupDTOBuilder
             .groupForUser(user.uid)
@@ -275,14 +249,12 @@ test.describe('Skip Link', () => {
 
         await page.goto('/dashboard');
 
-        const skipLink = page.getByRole('link', { name: /skip to main content/i });
-
         // Skip link should be in DOM but visually hidden (sr-only)
-        await expect(skipLink).toBeAttached();
+        await dashboardPage.verifySkipLinkAttached();
 
         // Check that it's not taking up visual space when not focused
         // sr-only elements have specific CSS that makes them 1x1 pixel
-        const boundingBox = await skipLink.boundingBox();
+        const boundingBox = await dashboardPage.getSkipLinkBoundingBox();
         expect(boundingBox?.width).toBeLessThanOrEqual(1);
         expect(boundingBox?.height).toBeLessThanOrEqual(1);
     });

@@ -45,55 +45,23 @@
     "delete": "Verwijderen",
     "edit": "Bewerken",
     "close": "Sluiten",
-    "confirm": "Bevestigen",
-    "back": "Terug",
-    "next": "Volgende",
-    "previous": "Vorige",
-    "submit": "Indienen",
     "search": "Zoeken",
-    "select": "Selecteren",
-    "selectAll": "Alles selecteren",
-    "none": "Geen",
-    "all": "Alle",
-    "yes": "Ja",
-    "no": "Nee",
-    "ok": "OK",
     "error": "Fout",
-    "success": "Gelukt",
-    "warning": "Waarschuwing",
-    "info": "Info",
     "unknown": "Onbekend",
-    "unknownUser": "Onbekende gebruiker",
     "includeDeleted": "Inclusief verwijderde",
     "you": "Jij",
-    "youSuffix": " (Jij)",
     "required": "*",
-    "optional": "(optioneel)",
-    "or": "of",
-    "and": "en",
-    "copy": "Kopiëren",
-    "share": "Delen",
     "dismiss": "Negeren",
-    "dismissAlert": "Waarschuwing negeren",
-    "justNow": "zonet",
     "chooseFile": "Kies bestand",
     "active": "Actief",
-    "inactive": "Inactief",
     "disabled": "Uitgeschakeld",
-    "total": "Totaal",
     "member": "Lid",
     "members": "Leden",
-    "user": "Gebruiker",
     "group": "Groep",
-    "groups": "Groepen",
-    "recent": "Recent",
-    "settings": "Instellingen",
     "understood": "Begrepen",
     "titleSuffix": " - {{appName}}",
     "refresh": "Vernieuwen",
     "reset": "Resetten",
-    "add": "Toevoegen",
-    "create": "Aanmaken",
     "processing": "Verwerken...",
     "download": "Downloaden",
     "downloading": "Downloaden...",
@@ -110,25 +78,9 @@
     "type": "Type",
     "size": "Grootte",
     "link": "Link",
-    "value": "Waarde",
     "notConfigured": "Niet geconfigureerd",
     "notSet": "niet ingesteld",
-    "empty": "(leeg)",
-    "noData": "Geen gegevens beschikbaar",
-    "default": "Standaard",
-    "actions": "Acties",
-    "status": "Status",
-    "email": "E-mail",
-    "displayName": "Weergavenaam",
-    "role": "Rol",
-    "lastSignIn": "Laatste aanmelding",
-    "placeholder": {
-      "amount": "0,00",
-      "search": "Zoeken...",
-      "searchCurrencies": "Valuta's zoeken...",
-      "selectCurrency": "Valuta selecteren...",
-      "selectPerson": "Persoon selecteren"
-    }
+    "empty": "(leeg)"
   },
   "currencySelector": {
     "noResults": "Geen valuta's gevonden"
@@ -191,11 +143,7 @@
     "forgotPassword": "Wachtwoord vergeten?",
     "submitButton": "Aanmelden",
     "noAccount": "Heeft u geen account?",
-    "signUp": "Registreren",
-    "validation": {
-      "emailRequired": "E-mail is verplicht",
-      "passwordRequired": "Wachtwoord is verplicht"
-    }
+    "signUp": "Registreren"
   },
   "registerPage": {
     "title": "Account aanmaken",
@@ -213,7 +161,6 @@
     "submitButton": "Account aanmaken",
     "hasAccount": "Heeft u al een account?",
     "signIn": "Aanmelden",
-    "requiredIndicator": "*",
     "validation": {
       "nameRequired": "Naam is verplicht",
       "emailRequired": "E-mail is verplicht",
@@ -231,7 +178,6 @@
     "emailInput": {
       "label": "E-mail",
       "placeholder": "Voer uw e-mailadres in",
-      "requiredIndicator": "*",
       "validation": {
         "required": "E-mail is verplicht",
         "invalid": "Voer een geldig e-mailadres in"
@@ -240,7 +186,6 @@
     "passwordInput": {
       "label": "Wachtwoord",
       "placeholder": "Voer uw wachtwoord in",
-      "requiredIndicator": "*",
       "showPassword": "Wachtwoord tonen",
       "hidePassword": "Wachtwoord verbergen",
       "strength": "Wachtwoordsterkte",
@@ -275,19 +220,7 @@
       "archivedBadge": "Gearchiveerd"
     },
     "emptyState": {
-      "title": "Nog geen groepen",
-      "subtitle": "Maak uw eerste groep aan om gedeelde uitgaven bij te houden",
-      "createButton": "Groep aanmaken"
-    },
-    "stats": {
-      "totalGroups": "Totaal aantal groepen",
-      "totalExpenses": "Totaal aantal uitgaven",
-      "totalBalance": "Totaal saldo"
-    },
-    "quickActions": {
-      "title": "Snelle acties",
-      "createGroup": "Groep aanmaken",
-      "addExpense": "Uitgave toevoegen"
+      "title": "Nog geen groepen"
     }
   },
   "activityFeed": {
@@ -329,7 +262,6 @@
       "comment-added": "{{actor}} heeft gereageerd op {{target}} in {{group}}",
       "settlement-created": "{{actor}} heeft {{settlement}} geregistreerd in {{group}}",
       "settlement-updated": "{{actor}} heeft {{settlement}} bijgewerkt in {{group}}",
-      "settlement-deleted": "{{actor}} heeft {{settlement}} verwijderd uit {{group}}",
       "generic": "{{actor}} heeft wijzigingen aangebracht in {{group}}",
       "group-created-short": "{{actor}} heeft de groep aangemaakt",
       "group-updated-short": "{{actor}} heeft de groep bijgewerkt",
@@ -344,7 +276,6 @@
       "comment-added-short": "{{actor}} heeft gereageerd op {{target}}",
       "settlement-created-short": "{{actor}} heeft {{settlement}} geregistreerd",
       "settlement-updated-short": "{{actor}} heeft {{settlement}} bijgewerkt",
-      "settlement-deleted-short": "{{actor}} heeft {{settlement}} verwijderd",
       "generic-short": "{{actor}} heeft wijzigingen aangebracht"
     }
   },
@@ -357,74 +288,19 @@
     },
     "actions": {
       "addExpense": "Uitgave toevoegen",
-      "viewExpenses": "Uitgaven bekijken",
-      "settleUp": "Vereffenen",
-      "shareGroup": "Groep delen",
-      "editGroup": "Groep bewerken",
-      "leaveGroup": "Groep verlaten"
-    },
-    "share": {
-      "title": "Groep delen",
-      "subtitle": "Nodig anderen uit om lid te worden van deze groep",
-      "copyLink": "Link kopiëren",
-      "linkCopied": "Link gekopieerd naar klembord!"
-    },
-    "edit": {
-      "title": "Groep bewerken",
-      "warningIcon": "⚠️"
-    },
-    "leave": {
-      "title": "Groep verlaten",
-      "message": "Weet u zeker dat u deze groep wilt verlaten?",
-      "confirmButton": "Groep verlaten",
-      "cancelButton": "Annuleren"
-    },
-    "members": {
-      "title": "Leden",
-      "addMember": "Lid toevoegen",
-      "removeMember": "Lid verwijderen",
-      "unknownUser": "Onbekende gebruiker",
-      "user": "Gebruiker"
-    },
-    "expenses": {
-      "title": "Uitgaven",
-      "noExpenses": "Nog geen uitgaven",
-      "addFirstExpense": "Voeg uw eerste uitgave toe",
-      "unknown": "Onbekend"
-    },
-    "balance": {
-      "title": "Saldo-overzicht",
-      "settledUp": "Alles is vereffend!",
-      "unknown": "Onbekend"
+      "settleUp": "Vereffenen"
     }
   },
   "comments": {
-    "section": {
-      "title": "Opmerkingen",
-      "noComments": "Nog geen opmerkingen"
-    },
     "input": {
-      "placeholder": "Een opmerking toevoegen...",
       "ariaLabel": "Tekst van de opmerking",
-      "sendButton": "Verzenden",
       "sendAriaLabel": "Opmerking verzenden"
-    },
-    "item": {
-      "justNow": "zonet",
-      "deleteButton": "Opmerking verwijderen"
-    },
-    "list": {
-      "loading": "Opmerkingen laden...",
-      "error": "Laden van opmerkingen mislukt"
     },
     "commentInput": {
       "placeholder": "Een opmerking toevoegen...",
       "tooLong": "Opmerking is te lang",
       "addFailed": "Toevoegen van opmerking mislukt",
       "helpText": "Druk op Enter om te verzenden, Shift+Enter voor een nieuwe regel"
-    },
-    "commentItem": {
-      "recently": "onlangs"
     },
     "commentsList": {
       "loading": "Opmerkingen laden...",
@@ -448,74 +324,23 @@
     }
   },
   "navigation": {
-    "header": {
-      "fallback": "...",
-      "dashboard": "Dashboard",
-      "groups": "Groepen",
-      "settings": "Instellingen"
-    },
-    "footer": {
-      "copyright": "© {{year}} {{appName}}. Alle rechten voorbehouden.",
-      "privacy": "Privacybeleid",
-      "terms": "Servicevoorwaarden",
-      "cookies": "Cookiebeleid"
-    },
     "userMenu": {
       "openUserMenu": "Gebruikersmenu openen",
-      "profile": "Profiel",
-      "settings": "Instellingen",
-      "logout": "Afmelden",
-      "help": "Hulp"
+      "logout": "Afmelden"
     }
   },
   "errors": {
-    "generic": "Er is een fout opgetreden",
-    "network": "Er is een netwerkfout opgetreden",
-    "invalidLink": "Ongeldige link",
-    "notFound": {
-      "page": "Pagina niet gevonden",
-      "group": "Groep niet gevonden",
-      "expense": "Uitgave niet gevonden"
-    },
-    "loading": {
-      "cookiePolicy": "Fout bij het laden van het cookiebeleid",
-      "privacyPolicy": "Fout bij het laden van het privacybeleid",
-      "terms": "Fout bij het laden van de voorwaarden"
-    },
-    "validation": {
-      "displayNameEmpty": "Weergavenaam mag niet leeg zijn",
-      "displayNameTooLong": "Weergavenaam mag maximaal 100 tekens lang zijn",
-      "passwordTooShort": "Nieuw wachtwoord moet minstens 12 tekens lang zijn",
-      "passwordsNoMatch": "Wachtwoorden komen niet overeen",
-      "passwordSameAsCurrent": "Nieuw wachtwoord moet verschillen van het huidige wachtwoord",
-      "passwordAndNewRequired": "Huidig wachtwoord en nieuw wachtwoord zijn verplicht"
-    }
+    "invalidLink": "Ongeldige link"
   },
   "seo": {
     "titleSuffix": " | {{appName}}",
     "siteName": "{{appName}}"
   },
   "expenseForm": {
-    "description": "Beschrijving",
-    "amount": "Bedrag*",
-    "whoPaid": "Wie heeft betaald?",
-    "splitBetween": "Verdelen tussen",
-    "exactAmounts": "Exacte bedragen",
-    "percentage": "Percentage",
-    "equal": "Gelijk",
-    "exactAmountsInstruction": "Voer exacte bedragen in voor elke persoon:",
-    "percentageInstruction": "Voer een percentage in voor elke persoon:",
-    "selectAll": "Alles selecteren",
     "saveExpense": "Uitgave opslaan",
-    "updateExpense": "Uitgave bijwerken",
-    "cancel": "Annuleren",
-    "errors": {
-      "expenseLocked": "Deze uitgave kan niet worden bewerkt omdat een of meer deelnemers de groep hebben verlaten."
-    }
+    "updateExpense": "Uitgave bijwerken"
   },
   "settlementForm": {
-    "updatePayment": "Betaling bijwerken",
-    "recordPayment": "Betaling registreren",
     "updateSettlement": "Vereffening bijwerken",
     "recordSettlement": "Vereffening registreren",
     "closeModal": "Modal sluiten",
@@ -531,7 +356,6 @@
     "cancelButton": "Annuleren",
     "updatingButton": "Bijwerken...",
     "recordingButton": "Registreren...",
-    "paymentSummary": "{{payer}} heeft {{amount}} betaald aan {{payee}}",
     "validation": {
       "selectPayer": "Selecteer wie heeft betaald",
       "selectPayee": "Selecteer wie de betaling heeft ontvangen",
@@ -554,12 +378,9 @@
   },
   "settlementHistory": {
     "noPaymentsYet": "Nog geen betalingen geregistreerd",
-    "today": "Vandaag",
-    "yesterday": "Gisteren",
     "editPaymentTooltip": "Betaling bewerken",
     "cannotEditTooltip": "Kan niet bewerken - lid heeft de groep verlaten",
     "deletePaymentTooltip": "Betaling verwijderen",
-    "loadMore": "Meer laden",
     "loadMorePayments": "Meer betalingen laden",
     "deletePaymentTitle": "Betaling verwijderen",
     "deletePaymentMessage": "Weet u zeker dat u deze betaling van {{amount}} van {{payer}} aan {{payee}} wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
@@ -572,10 +393,7 @@
   "balanceSummary": {
     "loadingBalances": "Saldi laden...",
     "allSettledUp": "Alles is vereffend!",
-    "debtArrow": " → ",
-    "showOnlyMyBalances": "Alleen mijn saldi tonen",
     "showAll": "Alles tonen",
-    "settleUp": "Vereffenen",
     "settleUpButton": "Vereffening registreren voor deze schuld"
   },
   "emptyGroupsState": {
@@ -749,7 +567,6 @@
     "Waarborg"
   ],
   "expensesList": {
-    "title": "Uitgaven",
     "noExpensesYet": "Nog geen uitgaven. Voeg er een toe om te beginnen!",
     "loadMore": "Meer laden"
   },
@@ -771,14 +588,7 @@
     "admin": "Admin",
     "settings": "Instellingen",
     "signOut": "Afmelden",
-    "signingOut": "Afmelden...",
-    "systemUserBadge": "Systeemgebruiker",
-    "systemUserTooltip": "Dit account wordt gebruikt voor geautomatiseerde of systeemgestuurde bewerkingen.",
-    "environmentLink": "omgeving",
-    "diagnosticsLoading": "Diagnostiek laden...",
-    "diagnosticsError": "Kan diagnostiek niet laden:",
-    "browser": "Browser",
-    "browserUsers": "Gebruikersbrowser"
+    "signingOut": "Afmelden..."
   },
   "languageSelector": {
     "label": "Taal",
@@ -796,8 +606,7 @@
     "membersCount_other": "{{count}} leden",
     "old": "oud",
     "lastUpdated": "laatst bijgewerkt",
-    "groupSettingsAriaLabel": "Groepsinstellingen",
-    "groupSecurityAriaLabel": "Beveiliging en machtigingen"
+    "groupSettingsAriaLabel": "Groepsinstellingen"
   },
   "securitySettingsModal": {
     "unsavedChanges": "U heeft niet-opgeslagen wijzigingen. Controleer alles en druk vervolgens op Opslaan om ze toe te passen.",
@@ -936,13 +745,11 @@
     }
   },
   "editGroupModal": {
-    "title": "Groep bewerken",
     "groupNameLabel": "Groepsnaam",
     "groupNamePlaceholder": "bv. Appartementskosten, Reis naar Parijs",
     "descriptionLabel": "Beschrijving (optioneel)",
     "descriptionPlaceholder": "Voeg details toe over deze groep...",
     "cancelButton": "Annuleren",
-    "saveChangesButton": "Wijzigingen opslaan",
     "deleteGroupButton": "Groep verwijderen",
     "validation": {
       "nameRequired": "Groepsnaam is verplicht.",
@@ -1017,7 +824,6 @@
     "description": "Kies hoe andere leden u zien in deze groep.",
     "inputLabel": "Uw weergavenaam in deze groep",
     "inputPlaceholder": "Voer een unieke weergavenaam in",
-    "save": "Weergavenaam opslaan",
     "saving": "Opslaan...",
     "success": "Weergavenaam groep bijgewerkt.",
     "errors": {
@@ -1033,11 +839,7 @@
     "admin": "Admin",
     "member": "Lid",
     "viewer": "Kijker",
-    "thisMember": "Dit lid",
-    "leaveGroup": "Groep verlaten",
     "inviteOthers": "Anderen uitnodigen",
-    "inviteOthersAriaLabel": "Anderen uitnodigen",
-    "leaveGroupAriaLabel": "Groep verlaten",
     "removeMemberAriaLabel": "{{name}} verwijderen",
     "leaveGroupDialog": {
       "title": "Groep verlaten?",
@@ -1050,8 +852,7 @@
       "title": "Lid verwijderen?",
       "messageWithBalance": "{{name}} heeft een openstaand saldo in deze groep. Gelieve dit te vereffenen voordat u hem/haar verwijdert.",
       "messageConfirm": "Weet u zeker dat u {{name}} uit de groep wilt verwijderen?",
-      "confirmText": "Verwijderen",
-      "cancelText": "Annuleren"
+      "confirmText": "Verwijderen"
     }
   },
   "shareGroupModal": {
@@ -1123,12 +924,9 @@
       "title": "Kies uw weergenaam",
       "description": "Zo zien andere leden u in \"{{groupName}}\"",
       "label": "Weergavenaam",
-      "placeholder": "Hoe moeten andere leden uw naam zien?",
-      "help": "Kies een unieke naam voor deze groep. Andere leden zullen deze gebruiken om u te identificeren.",
       "errors": {
         "required": "Voer een weergavenaam in.",
-        "taken": "Die weergavenaam is al in gebruik in deze groep.",
-        "invalid": "Weergavenaam kan alleen letters, cijfers, spaties, koppeltekens, underscores en punten bevatten."
+        "taken": "Die weergavenaam is al in gebruik in deze groep."
       }
     }
   },
@@ -1168,8 +966,6 @@
     },
     "splitAmountInputs": {
       "exactAmountsInstruction": "Voer exacte bedragen in voor elke persoon:",
-      "unknown": "Onbekend",
-      "dollarSign": "€",
       "total": "Totaal: ",
       "percentageInstruction": "Voer een percentage in voor elke persoon:",
       "percentSign": "%",
@@ -1211,19 +1007,12 @@
       "title": "Uitgavedetails",
       "closeModal": "Modal sluiten",
       "close": "Sluiten",
-      "edit": "Bewerken",
-      "copy": "Kopiëren",
-      "share": "Delen",
-      "delete": "Verwijderen",
       "paidBy": "Betaald door",
       "date": "Datum",
       "labels": "Labels",
       "receipt": "Bon",
       "viewReceipt": "Bon bekijken",
-      "noReceipt": "Geen bon",
-      "splitDetails": "Verdelingsdetails",
       "comments": "Opmerkingen",
-      "loadingExpense": "Uitgavedetails laden...",
       "expenseNotFound": "Uitgave niet gevonden",
       "failedToLoad": "Laden van uitgavedetails mislukt",
       "shareTitle": "Uitgave: {{description}}",
@@ -1237,7 +1026,6 @@
       "exactAmounts": "Exacte bedragen",
       "byPercentage": "Per percentage",
       "customSplit": "Aangepaste verdeling",
-      "unknown": "Onbekend",
       "paid": "Betaald",
       "owes": "Verschuldigd ",
       "total": "Totaal: "
@@ -1261,7 +1049,6 @@
       "policyLabel": "Beleid ",
       "of": " van ",
       "colon": ": ",
-      "close": "Sluiten",
       "progress": "Voortgang",
       "accepted": " geaccepteerd",
       "acceptedIcon": "✓ Geaccepteerd",
@@ -1274,24 +1061,11 @@
       "next": "Volgende",
       "policiesAccepted": " beleidsregels geaccepteerd",
       "accepting": "Accepteren...",
-      "acceptAll": "Alles accepteren en doorgaan",
       "closeAriaLabel": "Sluiten",
       "errorTitle": "Fout"
-    },
-    "policyRenderer": {
-      "bulletPoint": "• "
     }
   },
   "uiComponents": {
-    "alert": {
-      "dismiss": "Waarschuwing negeren"
-    },
-    "avatar": {
-      "unknown": "Onbekend"
-    },
-    "button": {
-      "default": "Knop"
-    },
     "multiLabelInput": {
       "placeholder": "Een label toevoegen...",
       "removeLabel": "{{label}} verwijderen",
@@ -1299,32 +1073,15 @@
       "recent": "Recent",
       "hint": "{{count}}/{{max}} labels"
     },
-    "confirmDialog": {
-      "confirm": "Bevestigen",
-      "cancel": "Annuleren"
-    },
     "currencyAmountInput": {
       "selectCurrency": "Valuta selecteren",
       "searchPlaceholder": "Zoeken op symbool, code of land...",
       "searchAriaLabel": "Valuta's zoeken",
-      "loading": "Valuta's laden...",
       "noCurrencies": "Geen valuta's gevonden",
       "recent": "Recent",
       "common": "Algemeen",
       "allCurrencies": "Alle valuta's",
       "placeholder": "0,00",
-      "requiredIndicator": "*"
-    },
-    "currencySelector": {
-      "placeholder": "Valuta selecteren...",
-      "searchPlaceholder": "Valuta's zoeken",
-      "loading": "Valuta's laden...",
-      "noCurrencies": "Geen valuta's gevonden",
-      "recent": "Recent",
-      "common": "Algemeen",
-      "allCurrencies": "Alle valuta's"
-    },
-    "input": {
       "requiredIndicator": "*"
     },
     "loadingSpinner": {
@@ -1340,54 +1097,10 @@
     }
   },
   "pages": {
-    "addExpensePage": {
-      "errorTitle": "Fout - {{appName}}",
-      "error": "Fout",
-      "noGroupMessage": "Geen groep opgegeven. Kan geen uitgave toevoegen zonder groep.",
-      "backToDashboard": "Terug naar Dashboard",
-      "loadingTitle": "Laden... - {{appName}}",
-      "groupNotFound": "Groep niet gevonden",
-      "groupNotFoundMessage": "De groep waaraan u een uitgave probeert toe te voegen, bestaat niet of u heeft er geen toegang toe.",
-      "backToGroup": "Terug naar Groep",
-      "copyExpenseTitle": "Uitgave kopiëren",
-      "editExpenseTitle": "Uitgave bewerken",
-      "addExpenseTitle": "Uitgave toevoegen",
-      "copyExpenseAction": "Uitgave kopiëren",
-      "editExpenseAction": "Uitgave bewerken",
-      "addExpenseAction": "Een nieuwe uitgave toevoegen",
-      "titleSuffix": " - {{appName}}",
-      "titleIn": " in "
-    },
     "expenseDetailPage": {
-      "missingGroupId": "Groeps-ID ontbreekt",
-      "missingExpenseId": "Uitgaven-ID ontbreekt",
-      "failedToLoad": "Laden van uitgave mislukt",
-      "cannotEdit": "Deze uitgave kan niet worden bewerkt",
       "containsDepartedMembers": "Een of meer deelnemers hebben de groep verlaten. Historische gegevens worden als alleen-lezen bewaard.",
-      "expenseLabel": "Uitgave: ",
-      "checkOutExpense": "Bekijk deze uitgave: ",
-      "shareApiFailed": "Delen-API mislukt, terugvallen op klembord",
-      "failedToCopy": "Kopiëren naar klembord mislukt",
-      "error": "Fout",
-      "expenseNotFound": "Uitgave niet gevonden",
-      "backToGroup": "Terug naar Groep",
-      "titleSeparator": " - ",
-      "expenseFor": "Uitgave voor ",
-      "backButton": "← Terug",
-      "date": "Datum",
-      "ago": " geleden",
-      "labels": "Labels",
-      "paidBy": "Betaald door",
-      "unknown": "Onbekend",
       "discussion": "Discussie",
       "receipt": "Bon",
-      "clickToViewFullSize": "Klik om op volledige grootte te bekijken",
-      "added": "Toegevoegd ",
-      "lastUpdated": "Laatst bijgewerkt ",
-      "receiptViewer": "Bon-viewer",
-      "closeReceiptViewer": "Bon-viewer sluiten",
-      "receiptFullSize": "Bon - Volledige grootte",
-      "summarySection": "Uitgavenoverzicht",
       "splitSection": "Verdelingsdetails",
       "metadataSection": "Uitgavenmetadata"
     },
@@ -1403,20 +1116,6 @@
       "titleSuffix": " - {{appName}}",
       "manageExpensesFor": "Uitgaven beheren voor "
     },
-    "landingPage": {
-      "title": "Moeiteloos rekeningen delen - {{appName}}",
-      "description": "Zeg vaarwel tegen ongemakkelijke schulden en complexe berekeningen. Onze app maakt het delen van uitgaven met vrienden, familie en huisgenoten gemakkelijk, eerlijk en transparant. Het is 100% gratis, zonder advertenties en zonder limieten.",
-      "disclaimer": "Dit is een hulpmiddel om uitgaven bij te houden, niet om betalingen te doen.",
-      "accountNote": " Om uw uitgaven op te slaan en te beheren, heeft u een gratis account nodig.",
-      "privacyNote": "We zullen nooit om gevoelige financiële gegevens vragen.",
-      "transparencyNotice": {
-        "bold": "Dit is een hulpmiddel om uitgaven bij te houden, niet om betalingen te doen.",
-        "text": "Om uw uitgaven op te slaan en te beheren, heeft u een gratis account nodig. We zullen nooit om gevoelige financiële gegevens vragen."
-      }
-    },
-    "registerPage": {
-      "requiredIndicator": "*"
-    },
     "resetPasswordPage": {
       "failedToSendReset": "Verzenden van reset-e-mail mislukt",
       "checkYourEmail": "Controleer uw e-mail",
@@ -1429,7 +1128,6 @@
       "clickResetLink": "• Klik op de resetlink in de e-mail",
       "createNewPassword": "• Maak een nieuw wachtwoord aan",
       "signInWithNewPassword": "• Meld u aan met uw nieuwe wachtwoord",
-      "sendToDifferentEmail": "Verzenden naar een ander e-mailadres",
       "backToSignIn": "← Terug naar Aanmelden",
       "resetPassword": "Wachtwoord opnieuw instellen",
       "enterEmailForReset": "Voer uw e-mailadres in om instructies voor het opnieuw instellen van het wachtwoord te ontvangen",
@@ -1530,7 +1228,6 @@
     "diagnostics": {
       "loading": "Omgevingsdiagnostiek laden...",
       "errors": {
-        "fetch": "Ophalen van omgevingsgegevens mislukt",
         "unknown": "Er is een onbekende fout opgetreden"
       },
       "serverStatus": {
@@ -1596,20 +1293,11 @@
         "disableUser": "Weet u zeker dat u dit gebruikersaccount wilt {{action}}?"
       },
       "success": {
-        "userToggled": "Gebruikersaccount succesvol {{action}}",
-        "roleUpdated": "Gebruikersrol bijgewerkt naar {{role}}",
-        "roleUnchanged": "Rol ongewijzigd"
+        "userToggled": "Gebruikersaccount succesvol {{action}}"
       },
       "errors": {
         "selfDisable": "U kunt uw eigen account niet uitschakelen",
-        "selfRoleChange": "U kunt uw eigen rol niet wijzigen",
-        "disableUser": "Gebruikersaccount {{action}} mislukt",
-        "roleUpdate": "Gebruikersrol bijwerken mislukt",
-        "invalidSelection": "Ongeldige selectie"
-      },
-      "rolePrompt": {
-        "title": "Huidige rol: {{currentRole}}\n\nSelecteer nieuwe rol:",
-        "regularUser": "Gewone gebruiker (geen rol)"
+        "disableUser": "Gebruikersaccount {{action}} mislukt"
       }
     },
     "userEditor": {
@@ -1631,7 +1319,6 @@
       "role": {
         "description": "Selecteer een rol voor deze gebruiker"
       },
-      "loading": "Laden...",
       "noDataAvailable": "Geen gegevens beschikbaar",
       "errors": {
         "noChanges": "Geen wijzigingen om op te slaan",
@@ -1658,8 +1345,7 @@
       },
       "modeHint": {
         "basic": "Essentiële instellingen tonen",
-        "advanced": "Alle instellingen tonen",
-        "moreColors": "Schakel over naar de geavanceerde modus voor volledige controle over het kleurenpalet"
+        "advanced": "Alle instellingen tonen"
       },
       "derivation": {
         "themeMode": {
@@ -1683,8 +1369,6 @@
         }
       },
       "derivationWand": {
-        "tooltip": "Kleuren afleiden uit palet",
-        "tooltipDisabled": "Stel eerst primaire, secundaire en accentkleuren in",
         "popoverTitle": "Kleurafleiding",
         "derive": "Afleiding toepassen"
       },
@@ -1769,9 +1453,7 @@
       "fields": {
         "tenantId": "Tenant-ID",
         "appName": "App-naam",
-        "domains": "Domeinen",
         "logoUrl": "Logo-URL",
-        "faviconUrl": "Favicon-URL",
         "primaryColor": "Primaire kleur",
         "primaryVariantColor": "Primaire variant",
         "secondaryColor": "Secundaire kleur",
@@ -1786,8 +1468,6 @@
       },
       "placeholders": {
         "tenantId": "mijn-tenant-id",
-        "appName": "Mijn Uitgaven App",
-        "domain": "Nieuw domein toevoegen...",
         "selectTenant": "Selecteer een tenant om te kopiëren..."
       },
       "creationMode": {
@@ -1804,34 +1484,7 @@
         "tenantIdRequiredForPublish": "Tenant-ID is vereist voor publicatie"
       },
       "hints": {
-        "tenantIdReadonly": "Tenant-ID kan niet worden gewijzigd",
-        "colorFormat": "#RRGGBB"
-      },
-      "toggles": {
-        "showMarketingContent": {
-          "label": "Marketinginhoud tonen",
-          "description": "Functie-/CTA-secties tonen op openbare pagina's"
-        },
-        "showPricingPage": {
-          "label": "Prijzenpagina tonen",
-          "description": "Route /pricing tonen"
-        },
-        "showAppNameInHeader": {
-          "label": "App-naam in header tonen",
-          "description": "App-naam naast het logo tonen"
-        },
-        "enableParallax": {
-          "label": "Parallax inschakelen",
-          "description": "Parallax-scrolleffecten inschakelen"
-        },
-        "enableMagneticHover": {
-          "label": "Magnetische hover inschakelen",
-          "description": "Magnetische hover-effecten op knoppen inschakelen"
-        },
-        "enableScrollReveal": {
-          "label": "Scroll-onthulling inschakelen",
-          "description": "Door scrollen geactiveerde animaties inschakelen"
-        }
+        "tenantIdReadonly": "Tenant-ID kan niet worden gewijzigd"
       },
       "loading": {
         "tenants": "Tenants laden..."
@@ -1861,16 +1514,8 @@
         "faviconSelected": "Favicon geselecteerd uit bibliotheek"
       },
       "buttons": {
-        "save": "Tenant opslaan",
         "publish": "Thema publiceren",
-        "addDomain": "Toevoegen",
-        "removeDomain": "Verwijderen",
-        "chooseFromLibrary": "Kiezen uit bibliotheek",
-        "uploadNew": "Nieuwe uploaden"
-      },
-      "actions": {
-        "deriveColors": "Kleuren afleiden",
-        "deriveColorsDescription": "Genereer alle semantische kleuren uit uw merkpalet"
+        "addDomain": "Toevoegen"
       }
     }
   },
