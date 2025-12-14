@@ -16,6 +16,7 @@ import {
     ExpenseDTO,
     ExpenseId,
     ExpenseLabel,
+    ExpenseLocation,
     ExpenseSplit,
     GroupId,
     smallestUnitToAmountString,
@@ -109,6 +110,7 @@ interface ExpenseFormData {
     time: string; // Time in HH:mm format (24-hour)
     paidBy: UserId | '';
     labels: ExpenseLabel[];
+    location: ExpenseLocation | null;
     splitType: typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE;
 }
 
@@ -211,6 +213,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     readonly #timeSignal = signal<string>('12:00'); // Default to noon (12:00 PM)
     readonly #paidBySignal = signal<UserId | ''>('');
     readonly #labelsSignal = signal<ExpenseLabel[]>([]);
+    readonly #locationSignal = signal<ExpenseLocation | null>(null);
     readonly #splitTypeSignal = signal<typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE>(SplitTypes.EQUAL);
     readonly #participantsSignal = signal<UserId[]>([]);
     readonly #splitsSignal = signal<ExpenseSplit[]>([]);
@@ -250,6 +253,8 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
                 return this.#currencySignal.value;
             case 'labels':
                 return this.#labelsSignal.value;
+            case 'location':
+                return this.#locationSignal.value;
             case 'paidBy':
                 return this.#paidBySignal.value;
             default:
@@ -310,6 +315,9 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     get labels() {
         return this.#labelsSignal.value;
     }
+    get location() {
+        return this.#locationSignal.value;
+    }
     get splitType() {
         return this.#splitTypeSignal.value;
     }
@@ -353,6 +361,9 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     }
     get labelsSignal(): ReadonlySignal<ExpenseLabel[]> {
         return this.#labelsSignal;
+    }
+    get locationSignal(): ReadonlySignal<ExpenseLocation | null> {
+        return this.#locationSignal;
     }
     get splitTypeSignal(): ReadonlySignal<typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE> {
         return this.#splitTypeSignal;
@@ -545,6 +556,9 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
             }
             case 'labels':
                 this.#labelsSignal.value = value as ExpenseLabel[];
+                break;
+            case 'location':
+                this.#locationSignal.value = value as ExpenseLocation | null;
                 break;
             case 'splitType':
                 this.#splitTypeSignal.value = value as typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE;
@@ -910,6 +924,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
                 currency: toCurrencyISOCode(this.#currencySignal.value),
                 paidBy,
                 labels: this.#labelsSignal.value,
+                location: this.#locationSignal.value ?? undefined,
                 date: utcDateTime,
                 splitType: this.#splitTypeSignal.value,
                 participants: this.#participantsSignal.value,
@@ -958,6 +973,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
                 amount: amount,
                 currency: this.#currencySignal.value,
                 labels: this.#labelsSignal.value,
+                location: this.#locationSignal.value ?? undefined,
                 date: utcDateTime,
                 splitType: this.#splitTypeSignal.value,
                 participants: this.#participantsSignal.value,
@@ -998,6 +1014,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         this.#timeSignal.value = '12:00'; // Default to noon
         this.#paidBySignal.value = '';
         this.#labelsSignal.value = [];
+        this.#locationSignal.value = null;
         this.#splitTypeSignal.value = SplitTypes.EQUAL;
         this.#participantsSignal.value = [];
         this.#splitsSignal.value = [];
@@ -1072,6 +1089,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
             time: this.#timeSignal.value,
             paidBy: this.#paidBySignal.value,
             labels: this.#labelsSignal.value,
+            location: this.#locationSignal.value ?? undefined,
             splitType: this.#splitTypeSignal.value,
             participants: this.#participantsSignal.value,
             splits: this.#splitsSignal.value,
@@ -1104,6 +1122,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
             this.#timeSignal.value = draftData.time || '12:00'; // Default to noon
             this.#paidBySignal.value = draftData.paidBy || '';
             this.#labelsSignal.value = draftData.labels || [];
+            this.#locationSignal.value = draftData.location ?? null;
             this.#splitTypeSignal.value = draftData.splitType || SplitTypes.EQUAL;
             this.#participantsSignal.value = draftData.participants || [];
             this.#splitsSignal.value = draftData.splits || [];

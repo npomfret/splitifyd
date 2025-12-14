@@ -430,7 +430,13 @@
     "yesterday": "昨日",
     "thisMorning": "今朝",
     "lastNight": "昨夜",
-    "addSpecificTime": "特定の時間を追加"
+    "addSpecificTime": "特定の時間を追加",
+    "locationLabel": "場所",
+    "locationPlaceholder": "この支出はどこで？",
+    "findOnMap": "地図で検索",
+    "openOnMap": "地図で開く",
+    "recentLocations": "最近の場所",
+    "clearLocation": "場所をクリア"
   },
   "suggestedLabels": [
     "食料品",

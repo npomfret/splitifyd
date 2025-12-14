@@ -430,7 +430,13 @@
     "yesterday": "I går",
     "thisMorning": "I morges",
     "lastNight": "I går kveld",
-    "addSpecificTime": "Legg til spesifikk tid"
+    "addSpecificTime": "Legg til spesifikk tid",
+    "locationLabel": "Sted",
+    "locationPlaceholder": "Hvor var denne utgiften?",
+    "findOnMap": "Finn på kart",
+    "openOnMap": "Åpne på kart",
+    "recentLocations": "Nylige steder",
+    "clearLocation": "Fjern sted"
   },
   "suggestedLabels": [
     "Dagligvarer",

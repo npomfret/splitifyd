@@ -869,7 +869,17 @@ interface Expense extends SoftDeletable {
     participants: UserId[];
     splits: ExpenseSplit[];
     receiptUrl?: string;
+    location?: ExpenseLocation; // Optional location with name and optional URL
     supersededBy: ExpenseId | null; // Non-null if this expense was edited (replaced by newer version)
+}
+
+/**
+ * Location data for an expense.
+ * Can include just a name, or a name with the original Google Maps URL.
+ */
+export interface ExpenseLocation {
+    name: string; // The place name (e.g., "Starbucks", "Café de Flore")
+    url?: string; // Optional Google Maps URL for linking back
 }
 
 /**
@@ -895,6 +905,7 @@ export interface CreateExpenseRequest {
     participants: UserId[];
     splits: ExpenseSplit[];
     receiptUrl?: string;
+    location?: ExpenseLocation;
 }
 
 export type UpdateExpenseRequest = Partial<Omit<CreateExpenseRequest, 'groupId'>>;
@@ -1375,6 +1386,7 @@ export interface ExpenseDraft {
     time: string; // HH:MM format
     paidBy: UserId;
     labels: ExpenseLabel[]; // 0-3 freeform labels
+    location?: ExpenseLocation;
     splitType: string;
     participants: UserId[];
     splits: Array<{ userId: UserId; amount: Amount; percentage?: number; }>;

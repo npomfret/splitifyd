@@ -430,7 +430,13 @@
     "yesterday": "Kahapon",
     "thisMorning": "Ngayong umaga",
     "lastNight": "Kagabi",
-    "addSpecificTime": "Magdagdag ng partikular na oras"
+    "addSpecificTime": "Magdagdag ng partikular na oras",
+    "locationLabel": "Lokasyon",
+    "locationPlaceholder": "Saan ang gastos na ito?",
+    "findOnMap": "Hanapin sa mapa",
+    "openOnMap": "Buksan sa mapa",
+    "recentLocations": "Mga kamakailang lokasyon",
+    "clearLocation": "Burahin ang lokasyon"
   },
   "suggestedLabels": [
     "Mga Groseri",

@@ -1916,4 +1916,61 @@ test.describe('Expense Form', () => {
             await expenseFormPage.verifySelectedLabelsCount(2);
         });
     });
+
+    test.describe('Location field', () => {
+        test('should display location input field', async ({ authenticatedPage }) => {
+            const groupId = 'test-group-location';
+            const { expenseFormPage } = await openExpenseFormForTest(authenticatedPage, groupId);
+
+            await expenseFormPage.waitForExpenseFormSections();
+
+            // Location input should be visible
+            await expenseFormPage.verifyLocationInputVisible();
+            await expenseFormPage.verifyLocationEmpty();
+        });
+
+        test('should fill location field', async ({ authenticatedPage }) => {
+            const groupId = 'test-group-location-fill';
+            const { expenseFormPage } = await openExpenseFormForTest(authenticatedPage, groupId);
+
+            await expenseFormPage.waitForExpenseFormSections();
+
+            // Fill the location
+            await expenseFormPage.fillLocation('Starbucks');
+
+            // Verify the value
+            await expenseFormPage.verifyLocationValue('Starbucks');
+        });
+
+        test('should clear location field', async ({ authenticatedPage }) => {
+            const groupId = 'test-group-location-clear';
+            const { expenseFormPage } = await openExpenseFormForTest(authenticatedPage, groupId);
+
+            await expenseFormPage.waitForExpenseFormSections();
+
+            // Fill the location
+            await expenseFormPage.fillLocation('Coffee Shop');
+            await expenseFormPage.verifyLocationValue('Coffee Shop');
+
+            // Clear button should be visible when location has value
+            await expenseFormPage.verifyClearLocationButtonVisible();
+
+            // Clear the location
+            await expenseFormPage.clearLocation();
+
+            // Verify cleared
+            await expenseFormPage.verifyLocationEmpty();
+        });
+
+        test('should not show clear button when location is empty', async ({ authenticatedPage }) => {
+            const groupId = 'test-group-location-no-clear';
+            const { expenseFormPage } = await openExpenseFormForTest(authenticatedPage, groupId);
+
+            await expenseFormPage.waitForExpenseFormSections();
+
+            // When location is empty, clear button should not be visible
+            await expenseFormPage.verifyLocationEmpty();
+            await expenseFormPage.verifyClearLocationButtonNotVisible();
+        });
+    });
 });

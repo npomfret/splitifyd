@@ -430,7 +430,13 @@
     "yesterday": "أمس",
     "thisMorning": "هذا الصباح",
     "lastNight": "الليلة الماضية",
-    "addSpecificTime": "إضافة وقت محدد"
+    "addSpecificTime": "إضافة وقت محدد",
+    "locationLabel": "الموقع",
+    "locationPlaceholder": "أين كانت هذه النفقة؟",
+    "findOnMap": "البحث على الخريطة",
+    "openOnMap": "فتح على الخريطة",
+    "recentLocations": "المواقع الأخيرة",
+    "clearLocation": "مسح الموقع"
   },
   "suggestedLabels": [
     "بقالة",

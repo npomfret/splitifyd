@@ -430,7 +430,13 @@
     "yesterday": "Igår",
     "thisMorning": "I morse",
     "lastNight": "Igår kväll",
-    "addSpecificTime": "Lägg till specifik tid"
+    "addSpecificTime": "Lägg till specifik tid",
+    "locationLabel": "Plats",
+    "locationPlaceholder": "Var var denna utgift?",
+    "findOnMap": "Hitta på karta",
+    "openOnMap": "Öppna på karta",
+    "recentLocations": "Senaste platser",
+    "clearLocation": "Rensa plats"
   },
   "suggestedLabels": [
     "Livsmedel",

@@ -1,4 +1,4 @@
-import type { ExpenseLabel, UpdateExpenseRequest, UserId } from '@billsplit-wl/shared';
+import type { ExpenseLabel, ExpenseLocation, UpdateExpenseRequest, UserId } from '@billsplit-wl/shared';
 import { Amount, toCurrencyISOCode, toExpenseLabel } from '@billsplit-wl/shared';
 import type { CurrencyISOCode } from '@billsplit-wl/shared';
 import type { ISOString } from '@billsplit-wl/shared';
@@ -89,6 +89,21 @@ export class ExpenseUpdateBuilder {
         return this;
     }
 
+    withLocation(location: ExpenseLocation): this {
+        this.update.location = location;
+        return this;
+    }
+
+    withLocationName(name: string): this {
+        this.update.location = { name };
+        return this;
+    }
+
+    withLocationNameAndUrl(name: string, url: string): this {
+        this.update.location = { name, url };
+        return this;
+    }
+
     withInvalidDescription(value: string = ''): this {
         (this.update as any).description = value;
         return this;
@@ -116,6 +131,7 @@ export class ExpenseUpdateBuilder {
             ...(this.update.splitType !== undefined && { splitType: this.update.splitType }),
             ...(this.update.splits !== undefined && { splits: [...this.update.splits] }),
             ...(this.update.receiptUrl !== undefined && { receiptUrl: this.update.receiptUrl }),
+            ...(this.update.location !== undefined && { location: this.update.location }),
         };
     }
 }

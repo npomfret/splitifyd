@@ -230,6 +230,11 @@ export class ExpenseService {
             expenseData.receiptUrl = validatedExpenseData.receiptUrl;
         }
 
+        // Only add location if it's defined
+        if (validatedExpenseData.location !== undefined) {
+            expenseData.location = validatedExpenseData.location;
+        }
+
         // Use transaction to create expense atomically and update balance
         let createdExpenseRef: IDocumentReference | undefined;
         let activityItem: CreateActivityItemInput | null = null;
@@ -440,6 +445,7 @@ export class ExpenseService {
             participants: updateData.participants ?? oldExpense.participants,
             splits,
             receiptUrl: updateData.receiptUrl !== undefined ? updateData.receiptUrl : oldExpense.receiptUrl,
+            location: updateData.location !== undefined ? updateData.location : oldExpense.location,
             createdAt: now, // New version gets new creation timestamp
             updatedAt: now,
             deletedAt: null,

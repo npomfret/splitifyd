@@ -1,11 +1,12 @@
 import { CurrencyService } from '@/app/services/currencyService.ts';
 import { getLastNight, getThisMorning, getToday, getYesterday } from '@/utils/dateUtils.ts';
-import { Amount, ExpenseLabel, ISOString, toCurrencyISOCode } from '@billsplit-wl/shared';
+import { Amount, ExpenseLabel, ExpenseLocation, ISOString, toCurrencyISOCode } from '@billsplit-wl/shared';
 import type { RecentAmount } from '@billsplit-wl/shared';
 import { ClockIcon } from '@heroicons/react/24/outline';
 import { useTranslation } from 'react-i18next';
 import { Button, Card, CurrencyAmount, CurrencyAmountInput, MultiLabelInput, TimeInput, Tooltip } from '../ui';
 import { Stack } from '../ui/Stack';
+import { LocationInput } from './LocationInput';
 
 interface ExpenseBasicFieldsProps {
     description: string;
@@ -14,16 +15,18 @@ interface ExpenseBasicFieldsProps {
     date: string;
     time: string;
     labels: ExpenseLabel[];
+    location: ExpenseLocation | null;
     validationErrors: Record<string, string>;
     updateField: (field: string, value: any) => void;
     validateOnBlur: (field: string) => void;
     recentAmounts: RecentAmount[];
     recentlyUsedLabels?: Record<ExpenseLabel, ISOString>;
     permittedCurrencies?: string[];
+    recentLocations: string[];
 }
 
 export function ExpenseBasicFields(
-    { description, amount, currency, date, time, labels, validationErrors, updateField, validateOnBlur, recentAmounts, recentlyUsedLabels, permittedCurrencies }: ExpenseBasicFieldsProps,
+    { description, amount, currency, date, time, labels, location, validationErrors, updateField, validateOnBlur, recentAmounts, recentlyUsedLabels, permittedCurrencies, recentLocations }: ExpenseBasicFieldsProps,
 ) {
     const { t } = useTranslation();
     const currencyService = CurrencyService.getInstance();
@@ -122,6 +125,14 @@ export function ExpenseBasicFields(
                         />
                     </div>
                 </div>
+
+                {/* Location */}
+                <LocationInput
+                    value={location}
+                    onChange={(value) => updateField('location', value)}
+                    error={validationErrors.location}
+                    recentLocations={recentLocations}
+                />
 
                 {/* Date and Time */}
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>

@@ -430,7 +430,13 @@
     "yesterday": "Vakar",
     "thisMorning": "Šorīt",
     "lastNight": "Vakar vakarā",
-    "addSpecificTime": "Pievienot konkrētu laiku"
+    "addSpecificTime": "Pievienot konkrētu laiku",
+    "locationLabel": "Vieta",
+    "locationPlaceholder": "Kur bija šis izdevums?",
+    "findOnMap": "Atrast kartē",
+    "openOnMap": "Atvērt kartē",
+    "recentLocations": "Nesenās vietas",
+    "clearLocation": "Notīrīt vietu"
   },
   "suggestedLabels": [
     "Pārtikas preces",

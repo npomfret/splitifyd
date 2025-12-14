@@ -430,7 +430,13 @@
     "yesterday": "Ayer",
     "thisMorning": "Esta mañana",
     "lastNight": "Anoche",
-    "addSpecificTime": "Añadir hora específica"
+    "addSpecificTime": "Añadir hora específica",
+    "locationLabel": "Ubicación",
+    "locationPlaceholder": "¿Dónde fue este gasto?",
+    "findOnMap": "Buscar en el mapa",
+    "openOnMap": "Abrir en el mapa",
+    "recentLocations": "Ubicaciones recientes",
+    "clearLocation": "Borrar ubicación"
   },
   "suggestedLabels": [
     "Comestibles",

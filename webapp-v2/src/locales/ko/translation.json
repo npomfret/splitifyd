@@ -430,7 +430,13 @@
     "yesterday": "어제",
     "thisMorning": "오늘 아침",
     "lastNight": "어젯밤",
-    "addSpecificTime": "특정 시간 추가"
+    "addSpecificTime": "특정 시간 추가",
+    "locationLabel": "위치",
+    "locationPlaceholder": "이 지출은 어디에서?",
+    "findOnMap": "지도에서 찾기",
+    "openOnMap": "지도에서 열기",
+    "recentLocations": "최근 위치",
+    "clearLocation": "위치 지우기"
   },
   "suggestedLabels": [
     "식료품",

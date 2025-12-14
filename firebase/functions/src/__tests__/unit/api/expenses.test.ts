@@ -959,4 +959,225 @@ describe('expenses', () => {
             expect(commentAddedEvent?.details?.commentPreview).toContain('This is a comment');
         });
     });
+
+    describe('expense location', () => {
+        it('should create expense with location name only', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            const groupId = group.id;
+
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+
+            const participants = [user1, user2];
+
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withDescription('Dinner at Restaurant')
+                    .withAmount(100, USD)
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(toAmount(100), USD, participants))
+                    .withLocationName('The Italian Place')
+                    .build(),
+                user1,
+            );
+
+            expect(expense.location).toBeDefined();
+            expect(expense.location?.name).toBe('The Italian Place');
+            expect(expense.location?.url).toBeUndefined();
+        });
+
+        it('should create expense with location name and URL', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            const groupId = group.id;
+
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+
+            const participants = [user1, user2];
+            const mapsUrl = 'https://maps.google.com/maps/place/The+Italian+Place/@40.123,-73.456';
+
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withDescription('Dinner at Restaurant')
+                    .withAmount(100, USD)
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(toAmount(100), USD, participants))
+                    .withLocationNameAndUrl('The Italian Place', mapsUrl)
+                    .build(),
+                user1,
+            );
+
+            expect(expense.location).toBeDefined();
+            expect(expense.location?.name).toBe('The Italian Place');
+            expect(expense.location?.url).toBe(mapsUrl);
+        });
+
+        it('should create expense without location', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            const groupId = group.id;
+
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+
+            const participants = [user1, user2];
+
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withDescription('Dinner')
+                    .withAmount(100, USD)
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(toAmount(100), USD, participants))
+                    .build(),
+                user1,
+            );
+
+            expect(expense.location).toBeUndefined();
+        });
+
+        it('should update expense to add location', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            const groupId = group.id;
+
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+
+            const participants = [user1, user2];
+
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withDescription('Dinner')
+                    .withAmount(100, USD)
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(toAmount(100), USD, participants))
+                    .build(),
+                user1,
+            );
+
+            expect(expense.location).toBeUndefined();
+
+            const updatedExpense = await appDriver.updateExpense(
+                expense.id,
+                ExpenseUpdateBuilder
+                    .minimal()
+                    .withLocationName('Coffee Shop')
+                    .build(),
+                user1,
+            );
+
+            expect(updatedExpense.location).toBeDefined();
+            expect(updatedExpense.location?.name).toBe('Coffee Shop');
+        });
+
+        it('should update expense to change location', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            const groupId = group.id;
+
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+
+            const participants = [user1, user2];
+
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withDescription('Dinner')
+                    .withAmount(100, USD)
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(toAmount(100), USD, participants))
+                    .withLocationName('Old Restaurant')
+                    .build(),
+                user1,
+            );
+
+            expect(expense.location?.name).toBe('Old Restaurant');
+
+            const updatedExpense = await appDriver.updateExpense(
+                expense.id,
+                ExpenseUpdateBuilder
+                    .minimal()
+                    .withLocationNameAndUrl('New Restaurant', 'https://maps.google.com/maps/place/New+Restaurant')
+                    .build(),
+                user1,
+            );
+
+            expect(updatedExpense.location?.name).toBe('New Restaurant');
+            expect(updatedExpense.location?.url).toBe('https://maps.google.com/maps/place/New+Restaurant');
+        });
+
+        it('should return location in expense full details', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            const groupId = group.id;
+
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+
+            const participants = [user1, user2];
+            const mapsUrl = 'https://maps.google.com/maps/place/Starbucks';
+
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withDescription('Coffee')
+                    .withAmount(15, USD)
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(toAmount(15), USD, participants))
+                    .withLocationNameAndUrl('Starbucks', mapsUrl)
+                    .build(),
+                user1,
+            );
+
+            const details = await appDriver.getExpenseFullDetails(expense.id, user1);
+
+            expect(details.expense.location).toBeDefined();
+            expect(details.expense.location?.name).toBe('Starbucks');
+            expect(details.expense.location?.url).toBe(mapsUrl);
+        });
+
+        it('should return location in group full details expenses list', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            const groupId = group.id;
+
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+
+            const participants = [user1, user2];
+
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withDescription('Lunch')
+                    .withAmount(50, USD)
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(toAmount(50), USD, participants))
+                    .withLocationName('Cafe Milano')
+                    .build(),
+                user1,
+            );
+
+            const groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
+            const expenseWithLocation = groupDetails.expenses.expenses.find(e => e.description === 'Lunch');
+
+            expect(expenseWithLocation).toBeDefined();
+            expect(expenseWithLocation?.location).toBeDefined();
+            expect(expenseWithLocation?.location?.name).toBe('Cafe Milano');
+        });
+    });
 });

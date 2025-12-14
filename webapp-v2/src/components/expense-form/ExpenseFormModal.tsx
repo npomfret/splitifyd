@@ -137,12 +137,14 @@ export function ExpenseFormModal({ isOpen, onClose, groupId, mode, expenseId, on
                                 date={formState.date}
                                 time={formState.time}
                                 labels={formState.labels}
+                                location={formState.location}
                                 validationErrors={formState.validationErrors}
                                 updateField={formState.updateField}
                                 validateOnBlur={formState.validateOnBlur}
                                 recentAmounts={formState.recentAmounts}
                                 recentlyUsedLabels={formState.recentlyUsedLabels}
                                 permittedCurrencies={formState.group.currencySettings?.permitted}
+                                recentLocations={formState.recentLocations}
                             />
 
                             {/* Payer selection */}

@@ -430,7 +430,13 @@
     "yesterday": "Gestern",
     "thisMorning": "Heute Morgen",
     "lastNight": "Letzte Nacht",
-    "addSpecificTime": "Spezifische Uhrzeit hinzufügen"
+    "addSpecificTime": "Spezifische Uhrzeit hinzufügen",
+    "locationLabel": "Ort",
+    "locationPlaceholder": "Wo war diese Ausgabe?",
+    "findOnMap": "Auf Karte suchen",
+    "openOnMap": "Auf Karte öffnen",
+    "recentLocations": "Letzte Orte",
+    "clearLocation": "Ort löschen"
   },
   "suggestedLabels": [
     "Lebensmittel",

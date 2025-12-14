@@ -430,7 +430,13 @@
     "yesterday": "Ieri",
     "thisMorning": "Questa mattina",
     "lastNight": "Ieri sera",
-    "addSpecificTime": "Aggiungi ora specifica"
+    "addSpecificTime": "Aggiungi ora specifica",
+    "locationLabel": "Luogo",
+    "locationPlaceholder": "Dove è stata questa spesa?",
+    "findOnMap": "Cerca sulla mappa",
+    "openOnMap": "Apri sulla mappa",
+    "recentLocations": "Luoghi recenti",
+    "clearLocation": "Cancella luogo"
   },
   "suggestedLabels": [
     "Generi alimentari",

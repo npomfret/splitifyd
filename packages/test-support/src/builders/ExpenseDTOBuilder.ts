@@ -164,6 +164,11 @@ export class ExpenseDTOBuilder {
         return this;
     }
 
+    withLocation(location: { name: string; url?: string; }): this {
+        this.expense.location = location;
+        return this;
+    }
+
     withIsLocked(isLocked: boolean): this {
         this.expense.isLocked = isLocked;
         return this;

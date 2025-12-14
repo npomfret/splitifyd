@@ -7,6 +7,7 @@ import { useFormState } from './useFormState';
 import { useFormSubmission } from './useFormSubmission';
 
 const MAX_RECENT_AMOUNTS = 3;
+const MAX_RECENT_LOCATIONS = 10;
 
 /**
  * Derives recent amounts from group expenses.
@@ -36,6 +37,35 @@ function deriveRecentAmountsFromExpenses(expenses: ExpenseDTO[]): RecentAmount[]
     }
 
     return recentAmounts;
+}
+
+/**
+ * Derives recent locations from group expenses.
+ * Returns unique location names from the most recent expenses that have locations.
+ */
+function deriveRecentLocationsFromExpenses(expenses: ExpenseDTO[]): string[] {
+    if (!expenses || expenses.length === 0) {
+        return [];
+    }
+
+    // expenses are already sorted by date (most recent first) from the store
+    const seen = new Set<string>();
+    const recentLocations: string[] = [];
+
+    for (const expense of expenses) {
+        if (expense.location?.name) {
+            const key = expense.location.name.toLowerCase();
+            if (!seen.has(key)) {
+                seen.add(key);
+                recentLocations.push(expense.location.name);
+                if (recentLocations.length >= MAX_RECENT_LOCATIONS) {
+                    break;
+                }
+            }
+        }
+    }
+
+    return recentLocations;
 }
 
 interface UseExpenseFormOptions {
@@ -92,6 +122,7 @@ export function useExpenseForm({ isOpen, groupId, expenseId, isEditMode, isCopyM
         time: formState.time,
         paidBy: formState.paidBy,
         labels: formState.labels,
+        location: formState.location,
         splitType: formState.splitType,
         participants: formState.participants,
         splits: formState.splits,
@@ -116,6 +147,9 @@ export function useExpenseForm({ isOpen, groupId, expenseId, isEditMode, isCopyM
 
         // Helpers - recent amounts derived from group expenses
         recentAmounts: deriveRecentAmountsFromExpenses(formInitialization.expenses),
+
+        // Recent locations derived from group expenses (for autocomplete suggestions)
+        recentLocations: deriveRecentLocationsFromExpenses(formInitialization.expenses),
 
         // Recently used labels from group (for autocomplete suggestions)
         recentlyUsedLabels: formInitialization.group?.recentlyUsedLabels,

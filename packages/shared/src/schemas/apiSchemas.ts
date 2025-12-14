@@ -245,6 +245,10 @@ const ExpenseDataSchema = z
         createdAt: z.string(),
         updatedAt: z.string(),
         receiptUrl: z.string().optional(),
+        location: z.object({
+            name: z.string(),
+            url: z.string().optional(),
+        }).optional(),
         deletedAt: z.string().nullable().optional(), // Soft delete timestamp
         deletedBy: z.string().nullable().optional(), // User who deleted the expense
         supersededBy: z.string().nullable(), // ExpenseId of newer version if edited, null if current

@@ -95,6 +95,7 @@ const baseCreateExpenseValidator = createRequestValidator({
                 percentage: split.percentage,
             })),
             receiptUrl,
+            location: value.location,
         } satisfies CreateExpenseRequest;
     },
     mapError: (error) => createExpenseErrorMapper(error),
@@ -202,6 +203,10 @@ const baseUpdateExpenseValidator = createRequestValidator({
 
         if (value.receiptUrl !== undefined) {
             update.receiptUrl = sanitizeInputString(value.receiptUrl);
+        }
+
+        if (value.location !== undefined) {
+            update.location = value.location;
         }
 
         return update;

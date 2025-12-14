@@ -336,6 +336,11 @@ export const ExpenseSplitRequestSchema = z.object({
     percentage: splitPercentageSchema,
 });
 
+const ExpenseLocationSchema = z.object({
+    name: z.string().trim().max(200, 'Location name cannot exceed 200 characters'),
+    url: z.string().url('Location URL must be a valid URL').optional(),
+});
+
 export const CreateExpenseRequestSchema = z.object({
     groupId: z.string().trim().min(1, 'Group ID is required'),
     paidBy: z.string().trim().min(1, 'Payer is required'),
@@ -368,6 +373,7 @@ export const CreateExpenseRequestSchema = z.object({
             z.literal(''),
         ])
         .optional(),
+    location: ExpenseLocationSchema.optional(),
 });
 
 export const UpdateExpenseRequestSchema = z
@@ -403,6 +409,7 @@ export const UpdateExpenseRequestSchema = z
                 z.literal(''),
             ])
             .optional(),
+        location: ExpenseLocationSchema.optional(),
     })
     .superRefine((value, ctx) => {
         if (
@@ -416,6 +423,7 @@ export const UpdateExpenseRequestSchema = z
             && value.participants === undefined
             && value.splits === undefined
             && value.receiptUrl === undefined
+            && value.location === undefined
         ) {
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,

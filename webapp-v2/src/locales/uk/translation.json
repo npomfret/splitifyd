@@ -430,7 +430,13 @@
     "yesterday": "Вчора",
     "thisMorning": "Сьогодні вранці",
     "lastNight": "Минулої ночі",
-    "addSpecificTime": "Додати конкретний час"
+    "addSpecificTime": "Додати конкретний час",
+    "locationLabel": "Місце",
+    "locationPlaceholder": "Де була ця витрата?",
+    "findOnMap": "Знайти на карті",
+    "openOnMap": "Відкрити на карті",
+    "recentLocations": "Останні місця",
+    "clearLocation": "Очистити місце"
   },
   "suggestedLabels": [
     "Продукти",

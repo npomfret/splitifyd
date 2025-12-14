@@ -430,7 +430,13 @@
     "yesterday": "Yesterday",
     "thisMorning": "This Morning",
     "lastNight": "Last Night",
-    "addSpecificTime": "Add specific time"
+    "addSpecificTime": "Add specific time",
+    "locationLabel": "Location",
+    "locationPlaceholder": "Where was this expense?",
+    "findOnMap": "Find on map",
+    "openOnMap": "Open on map",
+    "recentLocations": "Recent locations",
+    "clearLocation": "Clear location"
   },
   "suggestedLabels": [
     "Groceries",

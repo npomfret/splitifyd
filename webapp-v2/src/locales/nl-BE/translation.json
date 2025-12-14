@@ -430,7 +430,13 @@
     "yesterday": "Gisteren",
     "thisMorning": "Vanochtend",
     "lastNight": "Gisteravond",
-    "addSpecificTime": "Specifieke tijd toevoegen"
+    "addSpecificTime": "Specifieke tijd toevoegen",
+    "locationLabel": "Locatie",
+    "locationPlaceholder": "Waar was deze uitgave?",
+    "findOnMap": "Zoeken op kaart",
+    "openOnMap": "Openen op kaart",
+    "recentLocations": "Recente locaties",
+    "clearLocation": "Locatie wissen"
   },
   "suggestedLabels": [
     "Boodschappen",

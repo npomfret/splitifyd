@@ -1321,6 +1321,112 @@ export class ExpenseFormPage extends BasePage {
     }
 
     // ============================================================================
+    // LOCATION
+    // ============================================================================
+
+    /**
+     * Location input field (scoped to Expense Details section)
+     */
+    protected getLocationInput(): Locator {
+        return this.getExpenseDetailsSection().getByPlaceholder(translation.expenseBasicFields.locationPlaceholder);
+    }
+
+    /**
+     * Recent locations section
+     */
+    protected getRecentLocationsSection(): Locator {
+        return this.getExpenseDetailsSection().getByText(translation.expenseBasicFields.recentLocations).locator('..');
+    }
+
+    /**
+     * A recent location button by its displayed name
+     */
+    protected getRecentLocationButton(locationName: string): Locator {
+        return this.getRecentLocationsSection().getByRole('button', { name: locationName });
+    }
+
+    /**
+     * Clear location button
+     */
+    protected getClearLocationButton(): Locator {
+        return this.getExpenseDetailsSection().getByRole('button', { name: translation.expenseBasicFields.clearLocation });
+    }
+
+    /**
+     * Fill the location field
+     */
+    async fillLocation(location: string): Promise<void> {
+        await this.fillPreactInput(this.getLocationInput(), location);
+    }
+
+    /**
+     * Click a recent location button
+     */
+    async clickRecentLocation(locationName: string): Promise<void> {
+        const button = this.getRecentLocationButton(locationName);
+        await expect(button).toBeVisible();
+        await button.click();
+    }
+
+    /**
+     * Clear the location field
+     */
+    async clearLocation(): Promise<void> {
+        const clearButton = this.getClearLocationButton();
+        await expect(clearButton).toBeVisible();
+        await clearButton.click();
+    }
+
+    /**
+     * Verify location input is visible
+     */
+    async verifyLocationInputVisible(): Promise<void> {
+        await expect(this.getLocationInput()).toBeVisible();
+    }
+
+    /**
+     * Verify location input has a specific value
+     */
+    async verifyLocationValue(expectedValue: string): Promise<void> {
+        await expect(this.getLocationInput()).toHaveValue(expectedValue);
+    }
+
+    /**
+     * Verify location input is empty
+     */
+    async verifyLocationEmpty(): Promise<void> {
+        await expect(this.getLocationInput()).toHaveValue('');
+    }
+
+    /**
+     * Verify recent locations section is visible
+     */
+    async verifyRecentLocationsSectionVisible(): Promise<void> {
+        await expect(this.getRecentLocationsSection()).toBeVisible();
+    }
+
+    /**
+     * Verify recent locations section is not visible
+     */
+    async verifyRecentLocationsSectionNotVisible(): Promise<void> {
+        await expect(this.page.getByText(translation.expenseBasicFields.recentLocations)).not.toBeVisible();
+    }
+
+    /**
+     * Verify clear location button is visible
+     */
+    async verifyClearLocationButtonVisible(): Promise<void> {
+        await expect(this.getClearLocationButton()).toBeVisible();
+    }
+
+    /**
+     * Verify clear location button is not visible
+     */
+    async verifyClearLocationButtonNotVisible(): Promise<void> {
+        await expect(this.getClearLocationButton()).not.toBeVisible();
+    }
+
+    // ============================================================================
     // PERCENTAGE SPLITS
     // ============================================================================
 

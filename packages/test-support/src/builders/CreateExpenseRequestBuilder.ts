@@ -1,7 +1,7 @@
 import { calculateEqualSplits, calculateExactSplits, calculatePercentageSplits, CreateExpenseRequest } from '@billsplit-wl/shared';
 import { Amount } from '@billsplit-wl/shared';
 import { GroupId } from '@billsplit-wl/shared';
-import type { CurrencyISOCode, ExpenseLabel, UserId } from '@billsplit-wl/shared';
+import type { CurrencyISOCode, ExpenseLabel, ExpenseLocation, UserId } from '@billsplit-wl/shared';
 import { toGroupId } from '@billsplit-wl/shared';
 import type { ISOString } from '@billsplit-wl/shared';
 import { toCurrencyISOCode, toExpenseLabel } from '@billsplit-wl/shared';
@@ -105,6 +105,21 @@ export class CreateExpenseRequestBuilder {
         return this;
     }
 
+    withLocation(location: ExpenseLocation): this {
+        this.expense.location = location;
+        return this;
+    }
+
+    withLocationName(name: string): this {
+        this.expense.location = { name };
+        return this;
+    }
+
+    withLocationNameAndUrl(name: string, url: string): this {
+        this.expense.location = { name, url };
+        return this;
+    }
+
     withInvalidGroupId(value: string = ''): this {
         (this.expense as any).groupId = value;
         return this;
@@ -192,6 +207,7 @@ export class CreateExpenseRequestBuilder {
             date: this.expense.date,
             labels: this.expense.labels,
             ...(this.expense.receiptUrl && { receiptUrl: this.expense.receiptUrl }),
+            ...(this.expense.location && { location: this.expense.location }),
         };
     }
 }
