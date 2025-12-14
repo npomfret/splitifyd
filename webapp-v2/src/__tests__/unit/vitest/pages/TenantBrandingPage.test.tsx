@@ -234,14 +234,14 @@ describe('TenantBrandingPage', () => {
             render(<TenantBrandingPage />);
 
             await waitFor(() => {
-                expect(screen.getByTestId('save-branding-button')).toBeDisabled();
+                expect(screen.getByRole('button', { name: /save/i })).toBeDisabled();
             });
 
             const appNameInput = screen.getByLabelText('tenantBranding.fields.appName', { exact: false });
             fireEvent.input(appNameInput, { target: { value: 'Updated App Name' } });
 
             await waitFor(() => {
-                expect(screen.getByTestId('save-branding-button')).toBeEnabled();
+                expect(screen.getByRole('button', { name: /save/i })).toBeEnabled();
             });
         });
 
@@ -289,7 +289,7 @@ describe('TenantBrandingPage', () => {
             render(<TenantBrandingPage />);
 
             await waitFor(() => {
-                expect(screen.getByTestId('save-branding-button')).toBeInTheDocument();
+                expect(screen.getByRole('button', { name: /save/i })).toBeInTheDocument();
             });
 
             // Make a change
@@ -297,7 +297,7 @@ describe('TenantBrandingPage', () => {
             fireEvent.input(appNameInput, { target: { value: 'New App Name' } });
 
             // Click save
-            const saveButton = screen.getByTestId('save-branding-button');
+            const saveButton = screen.getByRole('button', { name: /save/i });
             fireEvent.click(saveButton);
 
             await waitFor(() => {
@@ -321,7 +321,7 @@ describe('TenantBrandingPage', () => {
             const appNameInput = screen.getByLabelText('tenantBranding.fields.appName', { exact: false });
             fireEvent.input(appNameInput, { target: { value: 'New Name' } });
 
-            const saveButton = screen.getByTestId('save-branding-button');
+            const saveButton = screen.getByRole('button', { name: /save/i });
             fireEvent.click(saveButton);
 
             await waitFor(() => {
@@ -343,7 +343,7 @@ describe('TenantBrandingPage', () => {
             const appNameInput = screen.getByLabelText('tenantBranding.fields.appName', { exact: false });
             fireEvent.input(appNameInput, { target: { value: 'New Name' } });
 
-            const saveButton = screen.getByTestId('save-branding-button');
+            const saveButton = screen.getByRole('button', { name: /save/i });
             fireEvent.click(saveButton);
 
             await waitFor(() => {
@@ -363,7 +363,7 @@ describe('TenantBrandingPage', () => {
             const appNameInput = screen.getByLabelText('tenantBranding.fields.appName', { exact: false });
             fireEvent.input(appNameInput, { target: { value: 'New Name' } });
 
-            const saveButton = screen.getByTestId('save-branding-button');
+            const saveButton = screen.getByRole('button', { name: /save/i });
             fireEvent.click(saveButton);
 
             await waitFor(() => {
@@ -383,7 +383,7 @@ describe('TenantBrandingPage', () => {
             const appNameInput = screen.getByLabelText('tenantBranding.fields.appName', { exact: false });
             fireEvent.input(appNameInput, { target: { value: 'New Name' } });
 
-            const saveButton = screen.getByTestId('save-branding-button');
+            const saveButton = screen.getByRole('button', { name: /save/i });
             expect(saveButton).toBeEnabled();
 
             fireEvent.click(saveButton);
