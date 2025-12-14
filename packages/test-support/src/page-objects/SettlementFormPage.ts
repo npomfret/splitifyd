@@ -479,20 +479,6 @@ export class SettlementFormPage extends BasePage {
         await expect(alerts).toHaveCount(0);
     }
 
-    /**
-     * @deprecated Use verifyAmountErrorContainsText() instead
-     */
-    getAmountErrorMessage(): Locator {
-        return this.getAmountError();
-    }
-
-    /**
-     * @deprecated Use verifyWarningMessageContainsText() instead
-     */
-    getSettlementWarningMessage(): Locator {
-        return this.getWarningMessage();
-    }
-
     private async resolvePrimaryActionButton(): Promise<Locator> {
         // Both getRecordPaymentButton and getUpdatePaymentButton return the same element
         // (the save-settlement-button), just with different visible text based on mode.
