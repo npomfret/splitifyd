@@ -23,10 +23,12 @@ const BaseExpenseSchema = z
         participants: z.array(UserIdSchema).min(1, 'At least one participant required'),
         splits: z.array(FirestoreExpenseSplitSchema),
         receiptUrl: z.string().url().optional().nullable(),
-        location: z.object({
-            name: z.string().max(200),
-            url: z.string().url().optional(),
-        }).optional(),
+        location: z
+            .object({
+                name: z.string().max(200),
+                url: z.string().url().optional(),
+            })
+            .optional(),
         isLocked: z.boolean().optional(), // True if any participant has left the group
         supersededBy: z.string().nullable(), // ExpenseId of newer version, null if current
         reactionCounts: ReactionCountsSchema.nullable().optional(), // Aggregate emoji reaction counts

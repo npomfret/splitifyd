@@ -1,6 +1,6 @@
 import { SystemUserRoles } from '@billsplit-wl/shared';
 import { ClientUserBuilder, SettingsPage, UserProfileResponseBuilder } from '@billsplit-wl/test-support';
-import { expect, test } from '../../utils/console-logging-fixture';
+import { test } from '../../utils/console-logging-fixture';
 import { mockUserProfileApi, setupSuccessfulApiMocks } from '../../utils/mock-firebase-service';
 
 // TODO: Add tests for password change functionality that require complex route mocking:

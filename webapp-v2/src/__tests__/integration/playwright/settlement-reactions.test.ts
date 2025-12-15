@@ -1,17 +1,7 @@
 import { ReactionEmojis } from '@billsplit-wl/shared';
-import {
-    GroupDetailPage,
-    GroupDTOBuilder,
-    GroupFullDetailsBuilder,
-    GroupMemberBuilder,
-    SettlementWithMembersBuilder,
-} from '@billsplit-wl/test-support';
+import { GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, SettlementWithMembersBuilder } from '@billsplit-wl/test-support';
 import { test } from '../../utils/console-logging-fixture';
-import {
-    mockGroupDetailApi,
-    mockGroupCommentsApi,
-    mockToggleSettlementReactionApi,
-} from '../../utils/mock-firebase-service';
+import { mockGroupCommentsApi, mockGroupDetailApi, mockToggleSettlementReactionApi } from '../../utils/mock-firebase-service';
 
 test.describe('Settlement Reactions', () => {
     test('should display existing reactions on a settlement', async ({ authenticatedPage }) => {

@@ -26,8 +26,8 @@ export function CommentItem({
             aria-label={`${comment.authorName}: ${comment.text.substring(0, 50)}${comment.text.length > 50 ? '...' : ''}`}
         >
             {/* Name and avatar */}
-            <div className="flex items-center gap-2">
-                <span className="text-xs text-text-secondary">{comment.authorName}</span>
+            <div className='flex items-center gap-2'>
+                <span className='text-xs text-text-secondary'>{comment.authorName}</span>
                 {showAvatar && (
                     <Avatar
                         displayName={toDisplayName(comment.authorName)}
@@ -39,12 +39,14 @@ export function CommentItem({
             </div>
 
             {/* Comment text */}
-            <div className={`px-3 py-2 rounded-2xl inline-block ${
-                isCurrentUser
-                    ? 'bg-interactive-primary text-interactive-primary-foreground rounded-tl-sm'
-                    : 'bg-surface-raised text-text-primary rounded-tl-sm'
-            }`}>
-                <p className="text-sm whitespace-pre-wrap break-words">{comment.text}</p>
+            <div
+                className={`px-3 py-2 rounded-2xl inline-block ${
+                    isCurrentUser
+                        ? 'bg-interactive-primary text-interactive-primary-foreground rounded-tl-sm'
+                        : 'bg-surface-raised text-text-primary rounded-tl-sm'
+                }`}
+            >
+                <p className='text-sm whitespace-pre-wrap break-words'>{comment.text}</p>
             </div>
 
             {/* Reactions */}
@@ -54,14 +56,14 @@ export function CommentItem({
                     userReactions={comment.userReactions}
                     onToggle={onReactionToggle}
                     disabled={reactionDisabled}
-                    size="sm"
+                    size='sm'
                 />
             )}
 
             {/* Timestamp */}
             <RelativeTime
                 date={comment.createdAt}
-                className="text-xs text-text-muted"
+                className='text-xs text-text-muted'
             />
         </article>
     );

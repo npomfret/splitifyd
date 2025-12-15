@@ -1,9 +1,9 @@
 import type { ReactionEmoji } from '@billsplit-wl/shared';
 import { ReactionEmojis } from '@billsplit-wl/shared';
+import type { RefObject } from 'preact';
 import { createPortal } from 'preact/compat';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
-import type { RefObject } from 'preact';
 
 interface ReactionPickerProps {
     isOpen: boolean;
@@ -117,10 +117,10 @@ export function ReactionPicker({
         const handleClickOutside = (event: MouseEvent) => {
             const target = event.target as Node;
             if (
-                pickerRef.current &&
-                !pickerRef.current.contains(target) &&
-                triggerRef.current &&
-                !triggerRef.current.contains(target)
+                pickerRef.current
+                && !pickerRef.current.contains(target)
+                && triggerRef.current
+                && !triggerRef.current.contains(target)
             ) {
                 onClose();
             }
@@ -179,22 +179,20 @@ export function ReactionPicker({
     const pickerElement = (
         <div
             ref={pickerRef}
-            role="listbox"
+            role='listbox'
             aria-label={t('reactions.addReaction')}
-            className={`fixed z-50 rounded-lg border border-border-default bg-surface-popover p-1 shadow-lg backdrop-blur-sm transition-opacity duration-150 ${
-                position ? 'opacity-100' : 'opacity-0'
-            }`}
+            className={`fixed z-50 rounded-lg border border-border-default bg-surface-popover p-1 shadow-lg backdrop-blur-sm transition-opacity duration-150 ${position ? 'opacity-100' : 'opacity-0'}`}
             style={position ? { top: `${position.top}px`, left: `${position.left}px` } : { top: '-9999px', left: '-9999px' }}
             onKeyDown={handleKeyDown}
         >
-            <div className="flex gap-0.5">
+            <div className='flex gap-0.5'>
                 {EMOJI_LIST.map((emoji, index) => {
                     const isSelected = selectedEmojis.includes(emoji);
                     return (
                         <button
                             key={emoji}
-                            type="button"
-                            role="option"
+                            type='button'
+                            role='option'
                             aria-selected={isSelected}
                             aria-label={t(EMOJI_LABELS[emoji])}
                             disabled={disabled}

@@ -12,7 +12,7 @@ const MAP_SERVICES = {
     google: [
         'maps.google.',
         'google.com/maps',
-        'google.co.',  // needs /maps check
+        'google.co.', // needs /maps check
         'goo.gl/maps',
         'maps.app.goo.gl',
     ],
@@ -71,11 +71,11 @@ function detectMapService(input: string): MapService | null {
 
     // Google needs special handling for country domains
     if (
-        trimmed.includes('maps.google.') ||
-        trimmed.includes('google.com/maps') ||
-        (trimmed.includes('google.co.') && trimmed.includes('/maps')) ||
-        trimmed.includes('goo.gl/maps') ||
-        trimmed.includes('maps.app.goo.gl')
+        trimmed.includes('maps.google.')
+        || trimmed.includes('google.com/maps')
+        || (trimmed.includes('google.co.') && trimmed.includes('/maps'))
+        || trimmed.includes('goo.gl/maps')
+        || trimmed.includes('maps.app.goo.gl')
     ) {
         return 'google';
     }

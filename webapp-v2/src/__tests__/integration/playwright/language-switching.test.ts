@@ -1,5 +1,5 @@
 import { SettingsPage } from '@billsplit-wl/test-support';
-import { expect, test } from '../../utils/console-logging-fixture';
+import { test } from '../../utils/console-logging-fixture';
 
 test.describe('Language Switching', () => {
     test('should display language selection section on settings page', async ({ authenticatedPage }) => {

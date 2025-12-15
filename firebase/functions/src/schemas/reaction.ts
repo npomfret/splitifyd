@@ -41,9 +41,11 @@ const BaseReactionSchema = z
  * Full reaction document schema including document ID.
  * Used for reading reactions from Firestore.
  */
-export const ReactionDocumentSchema = BaseReactionSchema.extend({
-    id: z.string().min(1),
-}).strict();
+export const ReactionDocumentSchema = BaseReactionSchema
+    .extend({
+        id: z.string().min(1),
+    })
+    .strict();
 
 /**
  * Schema for reaction data without the ID (for writing to Firestore).
@@ -55,11 +57,13 @@ export const ReactionDataSchema = BaseReactionSchema;
  * Maps emoji to count: { '👍': 3, '❤️': 1 }
  * Uses partial object schema to allow sparse records (not all emojis required).
  */
-export const ReactionCountsSchema = z.object({
-    [ReactionEmojis.THUMBS_UP]: z.number().int().min(0),
-    [ReactionEmojis.HEART]: z.number().int().min(0),
-    [ReactionEmojis.LAUGH]: z.number().int().min(0),
-    [ReactionEmojis.WOW]: z.number().int().min(0),
-    [ReactionEmojis.SAD]: z.number().int().min(0),
-    [ReactionEmojis.CELEBRATE]: z.number().int().min(0),
-}).partial();
+export const ReactionCountsSchema = z
+    .object({
+        [ReactionEmojis.THUMBS_UP]: z.number().int().min(0),
+        [ReactionEmojis.HEART]: z.number().int().min(0),
+        [ReactionEmojis.LAUGH]: z.number().int().min(0),
+        [ReactionEmojis.WOW]: z.number().int().min(0),
+        [ReactionEmojis.SAD]: z.number().int().min(0),
+        [ReactionEmojis.CELEBRATE]: z.number().int().min(0),
+    })
+    .partial();

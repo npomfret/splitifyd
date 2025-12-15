@@ -1,6 +1,6 @@
 import type { AttachmentId, GroupId, UserId } from '@billsplit-wl/shared';
-import type { Readable } from 'stream';
 import { getStorage as getFirebaseStorage } from 'firebase-admin/storage';
+import type { Readable } from 'stream';
 import { getStorage } from '../../firebase';
 import { logger } from '../../logger';
 import { createStorage, type IStorage } from '../../storage-wrapper';

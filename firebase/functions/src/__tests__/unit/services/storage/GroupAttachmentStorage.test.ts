@@ -1,11 +1,7 @@
 import { toAttachmentId, toGroupId, toUserId } from '@billsplit-wl/shared';
 import { StubStorage } from 'ts-firebase-simulator';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import {
-    createGroupAttachmentStorage,
-    resetGroupAttachmentStorage,
-    type AttachmentMetadata,
-} from '../../../../services/storage/GroupAttachmentStorage';
+import { createGroupAttachmentStorage, resetGroupAttachmentStorage } from '../../../../services/storage/GroupAttachmentStorage';
 
 describe('GroupAttachmentStorage', () => {
     let stubStorage: StubStorage;
@@ -178,7 +174,9 @@ describe('GroupAttachmentStorage', () => {
             // Should not throw
             await expect(
                 storage.deleteAttachment(groupId, attachmentId, 'image/jpeg'),
-            ).resolves.toBeUndefined();
+            )
+                .resolves
+                .toBeUndefined();
         });
 
         it('should delete with correct content type for file extension', async () => {
@@ -207,7 +205,9 @@ describe('GroupAttachmentStorage', () => {
 
             await expect(
                 storage.getAttachmentStream(groupId, attachmentId, 'image/jpeg'),
-            ).rejects.toThrow('getAttachmentStream requires Firebase Admin SDK');
+            )
+                .rejects
+                .toThrow('getAttachmentStream requires Firebase Admin SDK');
         });
     });
 

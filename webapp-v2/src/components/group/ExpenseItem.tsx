@@ -82,11 +82,13 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
 
             {/* Bottom row: Paid by, date, comment count - full width */}
             <p className='text-xs text-text-primary/70 mt-1'>
-                {t('expenseItem.paidBy')}{' '}
-                <span className='font-medium text-text-primary/80'>{payerName}</span>{' '}
-                • <RelativeTime date={expense.date} className='text-text-muted/70' tooltipPlacement='bottom' />
+                {t('expenseItem.paidBy')} <span className='font-medium text-text-primary/80'>{payerName}</span> •{' '}
+                <RelativeTime date={expense.date} className='text-text-muted/70' tooltipPlacement='bottom' />
                 {expense.commentCount && expense.commentCount > 0 && (
-                    <span className='inline-flex items-center gap-0.5 text-text-muted ml-1' aria-label={t('expenseItem.hasComments', { count: expense.commentCount })}>
+                    <span
+                        className='inline-flex items-center gap-0.5 text-text-muted ml-1'
+                        aria-label={t('expenseItem.hasComments', { count: expense.commentCount })}
+                    >
                         • <ChatBubbleLeftIcon className='w-3 h-3' aria-hidden='true' />
                         <span>{expense.commentCount}</span>
                     </span>

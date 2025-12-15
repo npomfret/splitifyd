@@ -64,7 +64,7 @@ export function ReactionBar({
         : 'text-sm px-2 py-0.5';
 
     return (
-        <div className="flex flex-wrap items-center gap-1">
+        <div className='flex flex-wrap items-center gap-1'>
             {activeEmojis.map((emoji) => {
                 const count = counts?.[emoji] ?? 0;
                 const isUserReaction = userReactions.includes(emoji);
@@ -73,7 +73,7 @@ export function ReactionBar({
                 return (
                     <button
                         key={emoji}
-                        type="button"
+                        type='button'
                         onClick={() => handleToggle(emoji)}
                         disabled={disabled || !!togglingEmoji}
                         aria-label={isUserReaction ? t('reactions.removeReaction') : t('reactions.addReaction')}
@@ -97,19 +97,19 @@ export function ReactionBar({
             {/* Add reaction button */}
             <button
                 ref={addButtonRef}
-                type="button"
+                type='button'
                 onClick={() => setIsPickerOpen(!isPickerOpen)}
                 disabled={disabled || !!togglingEmoji}
                 aria-label={t('reactions.addReaction')}
                 aria-expanded={isPickerOpen}
-                aria-haspopup="listbox"
+                aria-haspopup='listbox'
                 className={`inline-flex items-center justify-center rounded-full bg-surface-muted text-text-muted transition-colors hover:bg-surface-raised hover:text-text-primary ${addButtonSizeClasses} ${
                     disabled || togglingEmoji
                         ? 'cursor-not-allowed opacity-50'
                         : 'cursor-pointer'
                 } focus:outline-hidden focus-visible:ring-2 focus-visible:ring-interactive-primary`}
             >
-                <span aria-hidden="true">+</span>
+                <span aria-hidden='true'>+</span>
             </button>
 
             <ReactionPicker

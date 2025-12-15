@@ -1,18 +1,23 @@
 import { describe, expect, it } from 'vitest';
-import {
-    validateReceiptUpload,
-    validateCommentAttachment,
-    getExtensionForContentType,
-} from '../../../../utils/validation/attachmentValidation';
+import { getExtensionForContentType, validateCommentAttachment, validateReceiptUpload } from '../../../../utils/validation/attachmentValidation';
 
 describe('attachmentValidation', () => {
     // Real magic number bytes for each format
     const JPEG_MAGIC = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46]);
     const PNG_MAGIC = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
     const WEBP_MAGIC = Buffer.from([
-        0x52, 0x49, 0x46, 0x46, // RIFF
-        0x00, 0x00, 0x00, 0x00, // File size (placeholder)
-        0x57, 0x45, 0x42, 0x50, // WEBP
+        0x52,
+        0x49,
+        0x46,
+        0x46, // RIFF
+        0x00,
+        0x00,
+        0x00,
+        0x00, // File size (placeholder)
+        0x57,
+        0x45,
+        0x42,
+        0x50, // WEBP
     ]);
     const PDF_MAGIC = Buffer.from([0x25, 0x50, 0x44, 0x46, 0x2d, 0x31, 0x2e, 0x34]); // %PDF-1.4
 
@@ -190,9 +195,18 @@ describe('attachmentValidation', () => {
             it('should reject WebP with RIFF header but no WEBP marker', () => {
                 // RIFF header without WEBP marker (could be WAV, AVI, etc)
                 const buffer = Buffer.from([
-                    0x52, 0x49, 0x46, 0x46, // RIFF
-                    0x00, 0x00, 0x00, 0x00, // File size
-                    0x57, 0x41, 0x56, 0x45, // WAVE (not WEBP)
+                    0x52,
+                    0x49,
+                    0x46,
+                    0x46, // RIFF
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00, // File size
+                    0x57,
+                    0x41,
+                    0x56,
+                    0x45, // WAVE (not WEBP)
                 ]);
                 expect(() => validateCommentAttachment(buffer, 'image/webp')).toThrow();
             });

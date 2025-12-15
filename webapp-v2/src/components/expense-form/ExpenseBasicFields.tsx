@@ -26,7 +26,8 @@ interface ExpenseBasicFieldsProps {
 }
 
 export function ExpenseBasicFields(
-    { description, amount, currency, date, time, labels, location, validationErrors, updateField, validateOnBlur, recentAmounts, recentlyUsedLabels, permittedCurrencies, recentLocations }: ExpenseBasicFieldsProps,
+    { description, amount, currency, date, time, labels, location, validationErrors, updateField, validateOnBlur, recentAmounts, recentlyUsedLabels, permittedCurrencies, recentLocations }:
+        ExpenseBasicFieldsProps,
 ) {
     const { t } = useTranslation();
     const currencyService = CurrencyService.getInstance();

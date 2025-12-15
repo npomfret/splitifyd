@@ -1,5 +1,5 @@
 import { ExpenseDetailPage, ExpenseDTOBuilder, ExpenseFullDetailsBuilder, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder } from '@billsplit-wl/test-support';
-import { expect, test } from '../../utils/console-logging-fixture';
+import { test } from '../../utils/console-logging-fixture';
 import { mockExpenseCommentsApi, mockExpenseDetailApi, mockGroupCommentsApi, mockGroupDetailApi } from '../../utils/mock-firebase-service';
 
 test.describe('Expense Detail - Locked Expense UI', () => {

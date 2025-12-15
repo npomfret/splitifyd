@@ -1,13 +1,5 @@
 import type { CommentId, ExpenseId, GroupId, ReactableResourceType, SettlementId, UserId } from '@billsplit-wl/shared';
-import {
-    ActivityFeedActions,
-    ActivityFeedEventTypes,
-    ReactableResourceTypes,
-    ReactionCounts,
-    ReactionEmoji,
-    ReactionToggleResponse,
-    toISOString,
-} from '@billsplit-wl/shared';
+import { ActivityFeedActions, ActivityFeedEventTypes, ReactableResourceTypes, ReactionCounts, ReactionEmoji, ReactionToggleResponse, toISOString } from '@billsplit-wl/shared';
 import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { FirestoreCollections } from '../constants';
 import { ErrorDetail, Errors } from '../errors';
@@ -46,9 +38,7 @@ export class ReactionService {
         emoji: ReactionEmoji,
         userId: UserId,
     ): Promise<ReactionToggleResponse> {
-        return measure.measureDb('ReactionService.toggleExpenseReaction', () =>
-            this._toggleExpenseReaction(expenseId, emoji, userId),
-        );
+        return measure.measureDb('ReactionService.toggleExpenseReaction', () => this._toggleExpenseReaction(expenseId, emoji, userId));
     }
 
     private async _toggleExpenseReaction(
@@ -111,9 +101,7 @@ export class ReactionService {
         emoji: ReactionEmoji,
         userId: UserId,
     ): Promise<ReactionToggleResponse> {
-        return measure.measureDb('ReactionService.toggleGroupCommentReaction', () =>
-            this._toggleGroupCommentReaction(groupId, commentId, emoji, userId),
-        );
+        return measure.measureDb('ReactionService.toggleGroupCommentReaction', () => this._toggleGroupCommentReaction(groupId, commentId, emoji, userId));
     }
 
     private async _toggleGroupCommentReaction(
@@ -178,9 +166,7 @@ export class ReactionService {
         emoji: ReactionEmoji,
         userId: UserId,
     ): Promise<ReactionToggleResponse> {
-        return measure.measureDb('ReactionService.toggleExpenseCommentReaction', () =>
-            this._toggleExpenseCommentReaction(expenseId, commentId, emoji, userId),
-        );
+        return measure.measureDb('ReactionService.toggleExpenseCommentReaction', () => this._toggleExpenseCommentReaction(expenseId, commentId, emoji, userId));
     }
 
     private async _toggleExpenseCommentReaction(
@@ -249,9 +235,7 @@ export class ReactionService {
         emoji: ReactionEmoji,
         userId: UserId,
     ): Promise<ReactionToggleResponse> {
-        return measure.measureDb('ReactionService.toggleSettlementReaction', () =>
-            this._toggleSettlementReaction(settlementId, emoji, userId),
-        );
+        return measure.measureDb('ReactionService.toggleSettlementReaction', () => this._toggleSettlementReaction(settlementId, emoji, userId));
     }
 
     private async _toggleSettlementReaction(

@@ -181,7 +181,8 @@ export class FirestoreReader implements IFirestoreReader {
             const startAt = `${userId}_`;
             const endAt = `${userId}\``;
 
-            const snapshot = await this.db
+            const snapshot = await this
+                .db
                 .collection(collectionPath)
                 .orderBy('__name__')
                 .where(FieldPath.documentId(), '>=', startAt)

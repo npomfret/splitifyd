@@ -4,12 +4,7 @@ import { validateUserAuth } from '../auth/utils';
 import { HTTP_STATUS } from '../constants';
 import { logger } from '../logger';
 import type { ReactionService } from '../services/ReactionService';
-import {
-    validateToggleExpenseCommentReaction,
-    validateToggleExpenseReaction,
-    validateToggleGroupCommentReaction,
-    validateToggleSettlementReaction,
-} from './validation';
+import { validateToggleExpenseCommentReaction, validateToggleExpenseReaction, validateToggleGroupCommentReaction, validateToggleSettlementReaction } from './validation';
 
 export class ReactionHandlers {
     constructor(private readonly reactionService: ReactionService) {}

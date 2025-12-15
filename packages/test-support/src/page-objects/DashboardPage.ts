@@ -821,7 +821,8 @@ export class DashboardPage extends BasePage {
         const welcomePattern = new RegExp(`^${translation.dashboard.welcomeMessage.split('{{')[0]}|${translation.dashboard.yourGroups}`, 'i');
         await expect(
             this.page.getByRole('heading', { name: welcomePattern }).first(),
-        ).toBeVisible({ timeout });
+        )
+            .toBeVisible({ timeout });
     }
 
     // ============================================================================
