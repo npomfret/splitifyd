@@ -62,6 +62,38 @@ describe('comments', () => {
         expect(comments.comments[0].text).toBe('Thanks');
     });
 
+    it('should increment commentCount on expense when adding comments', async () => {
+        const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+        const groupId = group.id;
+
+        const participants = [user1];
+        const expense = await appDriver.createExpense(
+            new CreateExpenseRequestBuilder()
+                .withGroupId(groupId)
+                .withAmount(100, USD)
+                .withPaidBy(user1)
+                .withParticipants(participants)
+                .withSplitType('equal')
+                .withSplits(calculateEqualSplits(toAmount(100), USD, participants))
+                .build(),
+            user1,
+        );
+
+        // Initially, commentCount should be undefined or 0
+        const initialExpense = await appDriver.getExpense(expense.id, user1);
+        expect(initialExpense.commentCount ?? 0).toBe(0);
+
+        // Add first comment
+        await appDriver.createExpenseComment(expense.id, 'First comment', undefined, user1);
+        const afterFirstComment = await appDriver.getExpense(expense.id, user1);
+        expect(afterFirstComment.commentCount).toBe(1);
+
+        // Add second comment
+        await appDriver.createExpenseComment(expense.id, 'Second comment', undefined, user1);
+        const afterSecondComment = await appDriver.getExpense(expense.id, user1);
+        expect(afterSecondComment.commentCount).toBe(2);
+    });
+
     describe('comment edge cases', () => {
         it('should reject creating group comment for non-existent group', async () => {
             await expect(
