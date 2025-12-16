@@ -12,8 +12,9 @@
 
 ## Content Security Policy
 
-- Never use inline handlers (e.g., `onclick=…`).
-- Attach all event listeners via `addEventListener()` in JS
+See `docs/guides/security.md` for full security patterns. Key webapp rules:
+- Never use inline handlers (`onclick=…`)
+- Attach event listeners via `addEventListener()` in JS
 
 --- 
 
@@ -177,12 +178,12 @@ This pattern uses `useState`'s initializer function to create a signal only on t
 
 ### Real-Time Data Refresh via Activity Feed
 
-The app uses **activity feed events** (via SSE) to trigger automatic UI refresh. Do NOT add manual `refreshAll()` calls after mutations.
+The app uses **activity feed events** (via Firestore real-time subscriptions) to trigger automatic UI refresh. Do NOT add manual `refreshAll()` calls after mutations.
 
 **How it works:**
 1. User action triggers API call (create/update/delete expense, settlement, etc.)
 2. Backend generates an activity feed event for the action
-3. SSE pushes the event to subscribed clients
+3. Firestore subscription pushes the event to subscribed clients
 4. `GroupDetailRealtimeCoordinator` receives event and calls `refreshAll()`
 5. UI updates automatically
 
@@ -205,7 +206,7 @@ await groupDetailStore.refreshAll(); // Unnecessary!
 
 // ✅ Activity feed handles refresh automatically
 await apiClient.createExpense(data);
-onClose(); // Just close the modal, SSE will trigger refresh
+onClose(); // Just close the modal, Firestore subscription will trigger refresh
 ```
 
 ---
@@ -246,7 +247,7 @@ See @webapp-v2/src/app/i18n/dynamic-translations.ts for examples of dynamic key 
 
 - **Location:** `app/apiClient.ts`
 - **Pattern:** Singleton with runtime response validation via Zod
-- **Schemas:** `@billsplit/shared/schemas/apiSchemas.ts`
+- **Schemas:** `@billsplit-wl/shared/schemas/apiSchemas.ts`
 
 ---
 
@@ -428,7 +429,7 @@ Every selector should be **unambiguous**. If multiple elements could match, scop
 | `absolute` class on Tooltip child | Put `absolute` on `Tooltip className` prop instead |
 | `flex-1` input/element overflowing in Safari | Add `min-w-0` to allow shrinking below content width |
 | Flex item without `shrink-0` in Safari | Add `shrink-0` to buttons/fixed-width elements in flex containers |
-| Manual `refreshAll()` after mutations | Let activity feed SSE trigger refresh automatically |
+| Manual `refreshAll()` after mutations | Let activity feed trigger refresh automatically |
 | `outline-none` | `outline-hidden` (Tailwind v4) |
 | `flex-shrink-0` | `shrink-0` (Tailwind v4 simplified) |
 | `shadow-[var(--x)]` arbitrary syntax | `shadow-(--x)` (Tailwind v4 CSS var syntax) |

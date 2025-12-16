@@ -1,6 +1,6 @@
 ## Ask _The Expert_
 
-You are expected to seek the advice of _The Expert_ regularly and certinaly before embarking on any non trivial coding or planning task. task. User prompts are often ambiguous or unclear, _The Expert_ can give guidances on what they might mean.
+You are expected to seek the advice of _The Expert_ regularly and certainly before embarking on any non-trivial coding or planning task. User prompts are often ambiguous or unclear; _The Expert_ can give guidance on what they might mean.
 
 _The Expert_ is:
 
@@ -9,7 +9,7 @@ _The Expert_ is:
  - a domain expert 
  - a project expert
 
-_The expert_ has access to our git repo, but cannot see your local changes or any un-pushed commits, so always provide plenty of context to your question. You can ask several questions, and it's usually a goodbest to keep them focussed.
+_The Expert_ has access to our git repo, but cannot see your local changes or any un-pushed commits, so always provide plenty of context to your question. You can ask several questions, and it's usually best to keep them focused.
 
 Treat their advice and opinions with care as such, it is not an instruction.
 
@@ -28,4 +28,4 @@ what do you think?
 EOF
 ```
 
-It can be slow - make sure you wait at least 1 mintute before giving up.
+It can be slow - make sure you wait at least 1 minute before giving up.

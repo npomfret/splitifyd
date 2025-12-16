@@ -30,7 +30,7 @@ When running the app, the code paths used MUST be identical to when it's running
 
 ## Schema Changes
 
-Always ask if backward compatibility is needed. If yes, use the **Expand/Contract** pattern. See `docs/guides/schema-migrations.md`.
+Always ask if backward compatibility is needed. If yes, use the **Expand/Contract** pattern. See `docs/schema-migrations.md`.
 
 ## Keep It Working
 
@@ -61,7 +61,7 @@ Run `npm run build` every time you are done making changes.
 ## Dependencies
 
 - Avoid using external libraries if a tiny amount of custom code will do the job
-- Do not use Axios; use Node’s built-in `request` library
+- Do not use Axios; use Node's built-in `fetch`
 
 ## Web Build
 
@@ -69,6 +69,6 @@ Run `npm run build` every time you are done making changes.
 
 ## Dates
 
-- The client and server will ONLY communicate dates using UTC. It is non-ambiguous.
-- However, new never show the client a UTC date string; we always covert to their local time.
-- Use `Timestamp.now()` instead of `new Date()` (via `import { Timestamp } from 'firebase-admin/firestore';`)
+- The client and server communicate dates using ISO 8601 strings (UTC). Services work with ISO strings; FirestoreWriter handles Timestamp conversion automatically.
+- Never show the user a raw UTC date string; always convert to their local time for display.
+- In Firestore I/O code only: use `Timestamp.now()` instead of `new Date()` (via `import { Timestamp } from 'firebase-admin/firestore';`)

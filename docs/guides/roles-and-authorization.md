@@ -92,5 +92,5 @@ The client uses server error responses (403) as the source of truth.
 | Auth middleware | `firebase/functions/src/auth/middleware.ts` |
 | Group admin guard | `firebase/functions/src/services/GroupMemberService.ts` → `ensureActiveGroupAdmin()` |
 | Permission engine | `firebase/functions/src/permissions/permission-engine-async.ts` |
-| Client permission engine | `webapp-v2/src/app/stores/permissions-store.ts` |
+| Client permission engine | `webapp-v2/src/stores/permissions-store.ts` |
 | Auth store | `webapp-v2/src/app/stores/auth-store.ts` |

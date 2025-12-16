@@ -8,6 +8,7 @@ Read these first!
 - @docs/guides/firebase.md
 - @docs/guides/general.md
 - @docs/guides/roles-and-authorization.md
+- @docs/guides/security.md
 - @docs/guides/testing.md
 - @docs/guides/types.md
 - @docs/guides/validation.md

@@ -68,13 +68,13 @@ The tests located in `firebase/functions/src/__tests__/unit/api/` are a critical
 
 To ensure they run quickly and reliably, these tests:
 - **Bypass the HTTP interface:** They call the underlying function implementations directly.
-- **Use the Firebase Simulator:** This provides a local environment which simulates (in-memory) *some* Firebase services, which allows us to avoid the slow firbease emulator.
+- **Use the Firebase Simulator:** This provides a local environment which simulates (in-memory) *some* Firebase services, which allows us to avoid the slow Firebase emulator.
 
 When adding or changing any server-side behaviour, these tests should be the first port of call.
 
 ## Commands
 
-Avoid runnning entier suites, they are often very slow.  Focus on running specific test cases.
+Avoid running entire suites, they are often very slow. Focus on running specific test cases.
 
 To run single tests, use `run-test.sh`, it is a universal single-test runner (works in src parent). You must `cd` to the correct dir and then:
 
@@ -149,7 +149,7 @@ const expense = new CreateExpenseRequestBuilder()
 
 **Builders:**
 
-All builders live in `packages/test-support`. If tehre isn't a builder for your data object, create one.
+All builders live in `packages/test-support`. If there isn't a builder for your data object, create one.
 
 ## Async Testing: Polling Pattern
 

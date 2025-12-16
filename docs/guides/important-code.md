@@ -9,7 +9,7 @@ This document highlights the most critical classes in the codebase and documents
 These are the foundational classes every new developer should understand:
 
 ### 1. ComponentBuilder (`services/ComponentBuilder.ts`)
-The dependency injection container that creates and wires all services. Start here to understand the application structure and how components connect.
+The dependency injection container that creates and wires all services. **Critical for testability**: services receive their dependencies (FirestoreReader, FirestoreWriter, other services) via constructor injection rather than instantiating them directly. This allows unit tests to substitute mock implementations for external dependencies (Firestore, Auth, etc.) and test each service in complete isolation. Start here to understand the application structure.
 
 ### 2. FirestoreReader & FirestoreWriter (`services/firestore/`)
 The data access layer abstraction. All Firestore I/O flows through these classes, which handle schema validation and Timestamp ↔ ISO string conversion at the boundary.
@@ -21,7 +21,7 @@ The core domain orchestrator for groups. Coordinates membership, permissions, ex
 The bridge between API routes and business logic. Takes services from ComponentBuilder and injects them into Handler classes, routing incoming requests to the code that handles them.
 
 ### 5. ActivityFeedService (`services/ActivityFeedService.ts`)
-The backbone of real-time refresh. Every mutation service calls into it so the frontend's SSE-driven `refreshAll()` works. Missing an activity event here means clients won't auto-refresh.
+The backbone of real-time refresh. Every mutation service calls into it so the frontend's Firestore-subscription-driven `refreshAll()` works. Missing an activity event here means clients won't auto-refresh.
 
 ---
 
@@ -37,7 +37,7 @@ Authentication state manager using private signals (`#`). Handles login/logout, 
 Manages all state for a single group view: members, expenses, settlements, comments, balances. Handles pagination with cursors and coordinates with the real-time system via `GroupDetailRealtimeCoordinator`.
 
 ### 4. ActivityFeedRealtimeService (`app/services/activity-feed-realtime-service.ts`)
-SSE connection to the activity feed. Fans updates to consumers, handles user switching, deduplicates events. This is why you never manually refresh after mutations - events trigger automatic `refreshAll()`.
+Firestore real-time subscription to the activity feed. Fans updates to consumers, handles user switching, deduplicates events. This is why you never manually refresh after mutations - events trigger automatic `refreshAll()`.
 
 ### 5. App.tsx (`App.tsx`)
 Root component with routing via preact-router, code splitting via `lazy()`, and auth guards via `ProtectedRoute`. All routes defined here. Entry point is `main.tsx` which wraps App in `AuthProvider`.
@@ -96,7 +96,7 @@ Implemented by: `webapp-v2/src/app/apiClient.ts`, `packages/test-support/src/Api
 
 ### Real-Time Refresh via Activity Feed
 
-Mutations trigger activity feed events → SSE pushes to clients → frontend calls `refreshAll()`. Activity events are critical infrastructure - missing one means clients won't auto-refresh.
+Mutations trigger activity feed events → Firestore real-time subscriptions push to clients → frontend calls `refreshAll()`. Activity events are critical infrastructure - missing one means clients won't auto-refresh.
 
 See `webapp-v2/src/app/stores/helpers/group-detail-realtime-coordinator.ts`.
 
