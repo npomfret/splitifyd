@@ -458,7 +458,7 @@ export class GroupDetailPage extends BasePage {
      * Note: Finds members within the first Members container (sidebar) to avoid mobile duplicates
      */
     protected getMemberCards(): Locator {
-        // Members are now li elements with data-member-name attribute in a ul list
+        // Members are li elements with aria-label set to the member name in a ul list
         // Use .first() to get only the sidebar version (not the mobile duplicate)
         return this.getMembersContainer().getByRole('list').first().getByRole('listitem');
     }
@@ -468,7 +468,7 @@ export class GroupDetailPage extends BasePage {
      * Uses .first() to get only the sidebar version (not the mobile duplicate)
      */
     protected getMemberCard(memberName: string): Locator {
-        return this.getMembersContainer().getByRole('list').first().locator(`li[data-member-name="${memberName}"]`);
+        return this.getMembersContainer().getByRole('list').first().getByRole('listitem', { name: memberName });
     }
 
     /**
@@ -525,7 +525,7 @@ export class GroupDetailPage extends BasePage {
 
         for (let i = 0; i < count; i++) {
             const item = memberItems.nth(i);
-            const name = await item.getAttribute('data-member-name');
+            const name = await item.getAttribute('aria-label');
             if (name) {
                 names.push(name);
             }
@@ -566,10 +566,10 @@ export class GroupDetailPage extends BasePage {
      * Locate a specific member entry by display name.
      */
     protected getMemberItem(memberName: string): Locator {
-        // Members are now li elements with data-member-name attribute
+        // Members are li elements with aria-label set to the member name
         return this
             .getMembersContainer()
-            .locator(`li[data-member-name="${memberName}"]:visible`);
+            .getByRole('listitem', { name: memberName });
     }
 
     /**
@@ -1164,13 +1164,12 @@ export class GroupDetailPage extends BasePage {
         try {
             await expect(memberItem).toBeVisible({ timeout: 5000 });
         } catch (error) {
-            // Members are now li elements with data-member-name attribute
-            const visibleMemberItems = await this.page.locator('li[data-member-name]:visible').all();
+            // Members are li elements with aria-label set to the member name
+            const visibleMemberItems = await this.getMembersContainer().locator('li[aria-label]:visible').all();
             const visibleMembers = await Promise.all(
                 visibleMemberItems.map(async (item) => {
-                    const text = await item.innerText();
-                    const dataName = await item.getAttribute('data-member-name');
-                    return `${text.replace(/\n/g, ' ')} [data-member-name="${dataName}"]`;
+                    const ariaLabel = await item.getAttribute('aria-label');
+                    return ariaLabel ?? '(unknown)';
                 }),
             );
             const message = [
@@ -2015,11 +2014,7 @@ export class GroupDetailPage extends BasePage {
      * Verify a member is not visible in the member list
      */
     async verifyMemberNotVisible(memberName: string): Promise<void> {
-        // Members are now li elements with data-member-name attribute
-        const memberItem = this
-            .getMembersContainer()
-            .locator(`li[data-member-name="${memberName}"]`);
-        await expect(memberItem).not.toBeVisible();
+        await expect(this.getMemberItem(memberName)).not.toBeVisible();
     }
 
     /**

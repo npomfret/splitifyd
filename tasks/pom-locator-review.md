@@ -2,6 +2,29 @@
 
 Goal: audit Playwright page objects for locator quality and list improvements that better mirror user-visible cues.
 
+## Rules
+
+**Prefer user-visible cues over implementation details:**
+
+1. **ARIA roles with visible name** - `getByRole('button', { name: 'Submit' })`
+2. **Visible text / labels** - `getByLabel('Email')`, `getByText('Welcome')`
+3. **Scoping by heading/region** - Find container by heading, then element within
+4. **aria-label** - For elements without visible text: `aria-label="Remove USD"`
+5. **aria-pressed/aria-expanded** - For state detection instead of CSS classes
+
+**Avoid:**
+- CSS class selectors (`.rounded-lg`, `.font-medium`, `.text-4xl`)
+- XPath ancestor traversal
+- Positional selectors (`.first()`, `.nth()`)
+- `data-testid` except when:
+  - Duplicate labels exist across sections (e.g., multiple "Primary Color" inputs)
+  - No semantic alternative exists (container wrappers with no visible text/role)
+
+**Component changes should add accessibility, not test hooks:**
+- Prefer `role="img" aria-label="..."` over `data-testid="..."`
+- Prefer `aria-pressed={isSelected}` over checking CSS classes
+- Prefer `role="alert"` over `data-testid="error-message"`
+
 ## Plan
 - Understand shared POM patterns and locator helpers (BasePage and utilities).
 - Review page objects for brittle or non-user-centric selectors.
@@ -11,6 +34,9 @@ Goal: audit Playwright page objects for locator quality and list improvements th
 - [x] Patterns reviewed
 - [x] Page objects audited
 - [x] Recommendations recorded
+- [x] High priority fixes implemented (ExpenseDetailPage, HeaderPage, GroupSettingsModalPage)
+- [x] Medium priority fixes implemented (SettingsPage, ExpenseFormPage, GroupDetailPage, AdminTenantsPage)
+- [x] Low priority fixes (AdminTenantConfigPage, AdminPage)
 
 ## Findings
 - Admin page (packages/test-support/src/page-objects/AdminPage.ts:22-65) relies on layout classes and the first button rather than headings/roles; should scope to visible admin nav labels instead of `.admin-*` and `.first()`.
@@ -87,11 +113,11 @@ Goal: audit Playwright page objects for locator quality and list improvements th
 
 ### 8. HeaderPage.ts (lines 120-123)
 **POM changes:**
-- Replace `.text-sm.font-medium` with aria-label selection
-- Alternative: Include user name in button's overall aria-label
+- Replace `.text-sm.font-medium` with scoped selection within user menu button
 
 **Component changes:**
-- Add `aria-label="Your display name"` or `data-testid="user-display-name"` to name element in UserMenuButton
+- The display name is already visible text within the button - use text matching or add `aria-label` for the name element
+- Avoid `data-testid` - prefer scoping by the button's existing aria-label then finding text within
 
 ### 9. GroupDetailPage.ts (lines 461-472)
 **POM changes:**

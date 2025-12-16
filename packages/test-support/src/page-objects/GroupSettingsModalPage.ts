@@ -210,8 +210,7 @@ export class GroupSettingsModalPage extends BasePage {
 
     protected getSecuritySaveButton(): Locator {
         // Save button in security tab footer, distinct from Close button
-        // Use the border-t class section to scope to the footer area
-        return this.getModalContainer().locator('.border-t').filter({ hasText: translation.common.close }).getByRole('button', { name: translation.common.save });
+        return this.getModalContainer().getByRole('region', { name: translation.securitySettingsModal.footerActions }).getByRole('button', { name: translation.common.save });
     }
 
     protected getPermissionSelect(key: string): Locator {
@@ -980,13 +979,11 @@ export class GroupSettingsModalPage extends BasePage {
     }
 
     /**
-     * Verify a preset button is selected (has the active styling)
-     * Selected state includes: shadow-sm and bg-interactive-primary/10 (without hover:)
+     * Verify a preset button is selected (has aria-pressed="true")
      */
     async verifyPresetSelected(preset: string): Promise<void> {
         await this.ensureSecurityTab();
-        // Selected preset buttons have shadow-sm class (unique to selected state)
-        await expect(this.getPresetButton(preset)).toHaveClass(/shadow-sm/);
+        await expect(this.getPresetButton(preset)).toHaveAttribute('aria-pressed', 'true');
     }
 
     /**
@@ -994,8 +991,7 @@ export class GroupSettingsModalPage extends BasePage {
      */
     async verifyPresetNotSelected(preset: string): Promise<void> {
         await this.ensureSecurityTab();
-        // Not selected buttons don't have shadow-sm class
-        await expect(this.getPresetButton(preset)).not.toHaveClass(/shadow-sm/);
+        await expect(this.getPresetButton(preset)).toHaveAttribute('aria-pressed', 'false');
     }
 
     /**
@@ -1004,9 +1000,8 @@ export class GroupSettingsModalPage extends BasePage {
     async verifyCustomPresetActive(): Promise<void> {
         await this.ensureSecurityTab();
         // Neither 'open' nor 'managed' should be selected when in custom mode
-        // Use shadow-sm as indicator since it's unique to selected state
-        await expect(this.getPresetButton('open')).not.toHaveClass(/shadow-sm/);
-        await expect(this.getPresetButton('managed')).not.toHaveClass(/shadow-sm/);
+        await expect(this.getPresetButton('open')).toHaveAttribute('aria-pressed', 'false');
+        await expect(this.getPresetButton('managed')).toHaveAttribute('aria-pressed', 'false');
     }
 
     /**

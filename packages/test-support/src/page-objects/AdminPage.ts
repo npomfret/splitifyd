@@ -56,12 +56,13 @@ export class AdminPage extends BasePage {
     }
 
     protected getFirstButton(): Locator {
-        return this.page.locator('button').first();
+        // Use the Tenants tab as a representative button for style testing
+        return this.page.getByRole('navigation', { name: translation.admin.tabs.ariaLabel }).getByRole('button', { name: translation.admin.tabs.tenants });
     }
 
     protected getAdminButton(): Locator {
-        // Get the first tab button in the admin tabs nav
-        return this.page.getByRole('navigation', { name: translation.admin.tabs.ariaLabel }).getByRole('button').first();
+        // Get a specific tab button (Tenants) in the admin tabs nav
+        return this.page.getByRole('navigation', { name: translation.admin.tabs.ariaLabel }).getByRole('button', { name: translation.admin.tabs.tenants });
     }
 
     // ============================================================================

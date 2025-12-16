@@ -123,7 +123,7 @@ export function GroupSecurityTabContent({
                 />
             )}
 
-            <div className='border-t border-border-default pt-4 flex justify-end gap-3'>
+            <div className='border-t border-border-default pt-4 flex justify-end gap-3' role='region' aria-label={t('securitySettingsModal.footerActions')}>
                 <Button variant='secondary' onClick={onClose}>
                     {t('common.close')}
                 </Button>

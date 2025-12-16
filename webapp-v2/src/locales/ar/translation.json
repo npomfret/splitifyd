@@ -668,6 +668,7 @@
     "groupSettingsAriaLabel": "إعدادات المجموعة"
   },
   "securitySettingsModal": {
+    "footerActions": "إجراءات إعدادات الأمان",
     "unsavedChanges": "لديك تغييرات غير محفوظة. راجع كل شيء ، ثم اضغط على حفظ لتطبيقها.",
     "presets": {
       "activeBadge": "نشط",
@@ -750,7 +751,9 @@
     "emailSectionTitle": "عنوان البريد الإلكتروني",
     "emailSectionDescription": "تحديث البريد الإلكتروني الذي تستخدمه لتسجيل الدخول وتلقي الإشعارات.",
     "currentDisplayName": "اسم العرض الحالي:",
+    "displayNameValue": "قيمة اسم العرض",
     "email": "البريد الإلكتروني:",
+    "emailValue": "قيمة عنوان البريد الإلكتروني",
     "currentEmailLabel": "البريد الإلكتروني الحالي",
     "displayNameLabel": "اسم العرض",
     "displayNamePlaceholder": "أدخل اسم العرض الخاص بك",
@@ -1029,7 +1032,8 @@
       "total": "المجموع:",
       "percentageInstruction": "أدخل النسبة المئوية لكل شخص:",
       "percentSign": "%",
-      "equalInstruction": "يدفع كل شخص:"
+      "equalInstruction": "يدفع كل شخص:",
+      "equalSplitRegion": "تفاصيل التقسيم المتساوي"
     },
     "splitTypeSelector": {
       "label": "كيفية التقسيم",
@@ -1074,7 +1078,8 @@
       "expenseNotFound": "المصروف غير موجود",
       "failedToLoad": "فشل تحميل تفاصيل المصروف",
       "shareTitle": "المصروف: {{description}}",
-      "shareText": "تحقق من هذا المصروف: {{description}} - {{amount}}"
+      "shareText": "تحقق من هذا المصروف: {{description}} - {{amount}}",
+      "expenseAmount": "مبلغ المصروف"
     },
     "splitBreakdown": {
       "splitBetween": "تقسيم بين ",
@@ -1236,8 +1241,11 @@
       "overview": {
         "title": "نظرة عامة على المستأجر",
         "tenantId": "معرف المستأجر",
+        "tenantIdValue": "قيمة معرف المستأجر",
         "appName": "اسم التطبيق",
-        "lastUpdated": "آخر تحديث"
+        "appNameValue": "قيمة اسم التطبيق",
+        "lastUpdated": "آخر تحديث",
+        "lastUpdatedValue": "قيمة آخر تحديث"
       },
       "theme": {
         "title": "عنصر المظهر",
@@ -1245,6 +1253,7 @@
         "copyLink": "نسخ رابط المظهر",
         "forceReload": "فرض إعادة تحميل المظهر",
         "activeHash": "التجزئة النشطة",
+        "activeHashValue": "قيمة التجزئة النشطة",
         "notPublished": "لم يتم النشر",
         "generatedAt": "تم الإنشاء في",
         "copySuccess": "تم نسخ رابط المظهر إلى الحافظة.",

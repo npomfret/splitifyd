@@ -51,6 +51,8 @@ export function Avatar({ displayName, userId, size = 'md', themeColor, photoURL 
                 ...patternStyle,
             }}
             title={`${displayName} (${userTheme.name})`}
+            role='img'
+            aria-label={displayName}
         >
             <span className={`${sizeClasses.text} font-medium relative z-10`} style={{ color: textColor }}>
                 {initials}

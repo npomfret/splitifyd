@@ -668,6 +668,7 @@
     "groupSettingsAriaLabel": "Gruppeinnstillinger"
   },
   "securitySettingsModal": {
+    "footerActions": "Sikkerhetsinnstillinger handlinger",
     "unsavedChanges": "Du har ulagrede endringer. Se over alt, og trykk deretter Lagre for å bruke dem.",
     "presets": {
       "activeBadge": "Aktiv",
@@ -750,7 +751,9 @@
     "emailSectionTitle": "E-postadresse",
     "emailSectionDescription": "Oppdater e-posten du bruker for å logge inn og motta varsler.",
     "currentDisplayName": "Nåværende visningsnavn:",
+    "displayNameValue": "Visningsnavn verdi",
     "email": "E-post:",
+    "emailValue": "E-postadresse verdi",
     "currentEmailLabel": "Nåværende e-post",
     "displayNameLabel": "Visningsnavn",
     "displayNamePlaceholder": "Skriv inn visningsnavnet ditt",
@@ -1029,7 +1032,8 @@
       "total": "Totalt:",
       "percentageInstruction": "Skriv inn prosentandel for hver person:",
       "percentSign": "%",
-      "equalInstruction": "Hver person betaler:"
+      "equalInstruction": "Hver person betaler:",
+      "equalSplitRegion": "Lik fordeling detaljer"
     },
     "splitTypeSelector": {
       "label": "Hvordan fordele",
@@ -1074,7 +1078,8 @@
       "expenseNotFound": "Utgift ikke funnet",
       "failedToLoad": "Kunne ikke laste utgiftsdetaljer",
       "shareTitle": "Utgift: {{description}}",
-      "shareText": "Se denne utgiften: {{description}} - {{amount}}"
+      "shareText": "Se denne utgiften: {{description}} - {{amount}}",
+      "expenseAmount": "Utgiftsbeløp"
     },
     "splitBreakdown": {
       "splitBetween": "Fordelt mellom ",
@@ -1236,8 +1241,11 @@
       "overview": {
         "title": "Tenant-oversikt",
         "tenantId": "Tenant-ID",
+        "tenantIdValue": "Tenant-ID-verdi",
         "appName": "Appnavn",
-        "lastUpdated": "Sist oppdatert"
+        "appNameValue": "Appnavn-verdi",
+        "lastUpdated": "Sist oppdatert",
+        "lastUpdatedValue": "Sist oppdatert-verdi"
       },
       "theme": {
         "title": "Tema-artefakt",
@@ -1245,6 +1253,7 @@
         "copyLink": "Kopier tema-lenke",
         "forceReload": "Tving omlasting av tema",
         "activeHash": "Aktiv hash",
+        "activeHashValue": "Aktiv hash-verdi",
         "notPublished": "ikke publisert",
         "generatedAt": "Generert",
         "copySuccess": "Tema-lenke kopiert til utklippstavlen.",

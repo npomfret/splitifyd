@@ -669,6 +669,7 @@
     "groupSettingsAriaLabel": "Groepsinstellingen"
   },
   "securitySettingsModal": {
+    "footerActions": "Beveiligingsinstellingen acties",
     "unsavedChanges": "U heeft niet-opgeslagen wijzigingen. Controleer alles en druk vervolgens op Opslaan om ze toe te passen.",
     "presets": {
       "activeBadge": "Actief",
@@ -751,7 +752,9 @@
     "emailSectionTitle": "E-mailadres",
     "emailSectionDescription": "Werk het e-mailadres bij dat u gebruikt om aan te melden en meldingen te ontvangen.",
     "currentDisplayName": "Huidige weergavenaam:",
+    "displayNameValue": "Weergavenaam waarde",
     "email": "E-mail:",
+    "emailValue": "E-mailadres waarde",
     "currentEmailLabel": "Huidig e-mailadres",
     "displayNameLabel": "Weergavenaam",
     "displayNamePlaceholder": "Voer uw weergavenaam in",
@@ -1030,7 +1033,8 @@
       "total": "Totaal: ",
       "percentageInstruction": "Voer een percentage in voor elke persoon:",
       "percentSign": "%",
-      "equalInstruction": "Elke persoon betaalt:"
+      "equalInstruction": "Elke persoon betaalt:",
+      "equalSplitRegion": "Gelijke verdeling details"
     },
     "splitTypeSelector": {
       "label": "Hoe te verdelen",
@@ -1075,7 +1079,8 @@
       "expenseNotFound": "Uitgave niet gevonden",
       "failedToLoad": "Laden van uitgavedetails mislukt",
       "shareTitle": "Uitgave: {{description}}",
-      "shareText": "Bekijk deze uitgave: {{description}} - {{amount}}"
+      "shareText": "Bekijk deze uitgave: {{description}} - {{amount}}",
+      "expenseAmount": "Uitgavebedrag"
     },
     "splitBreakdown": {
       "splitBetween": "Verdeeld tussen ",
@@ -1237,8 +1242,11 @@
       "overview": {
         "title": "Tenantoverzicht",
         "tenantId": "Tenant-ID",
+        "tenantIdValue": "Tenant-ID waarde",
         "appName": "App-naam",
-        "lastUpdated": "Laatst bijgewerkt"
+        "appNameValue": "App-naam waarde",
+        "lastUpdated": "Laatst bijgewerkt",
+        "lastUpdatedValue": "Laatst bijgewerkt waarde"
       },
       "theme": {
         "title": "Thema-artefact",
@@ -1246,6 +1254,7 @@
         "copyLink": "Themalink kopiëren",
         "forceReload": "Thema geforceerd opnieuw laden",
         "activeHash": "Actieve hash",
+        "activeHashValue": "Actieve hash waarde",
         "notPublished": "niet gepubliceerd",
         "generatedAt": "Gegenereerd op",
         "copySuccess": "Themalink gekopieerd naar klembord.",

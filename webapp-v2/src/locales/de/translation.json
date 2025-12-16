@@ -668,6 +668,7 @@
     "groupSettingsAriaLabel": "Gruppeneinstellungen"
   },
   "securitySettingsModal": {
+    "footerActions": "Sicherheitseinstellungen Aktionen",
     "unsavedChanges": "Sie haben ungespeicherte Änderungen. Überprüfen Sie alles und klicken Sie dann auf Speichern, um sie anzuwenden.",
     "presets": {
       "activeBadge": "Aktiv",
@@ -750,7 +751,9 @@
     "emailSectionTitle": "E-Mail-Adresse",
     "emailSectionDescription": "Aktualisieren Sie die E-Mail-Adresse, die Sie zur Anmeldung und zum Empfang von Benachrichtigungen verwenden.",
     "currentDisplayName": "Aktueller Anzeigename:",
+    "displayNameValue": "Anzeigename Wert",
     "email": "E-Mail:",
+    "emailValue": "E-Mail-Adresse Wert",
     "currentEmailLabel": "Aktuelle E-Mail",
     "displayNameLabel": "Anzeigename",
     "displayNamePlaceholder": "Geben Sie Ihren Anzeigenamen ein",
@@ -1029,7 +1032,8 @@
       "total": "Gesamt: ",
       "percentageInstruction": "Geben Sie den Prozentsatz für jede Person ein:",
       "percentSign": "%",
-      "equalInstruction": "Jede Person zahlt:"
+      "equalInstruction": "Jede Person zahlt:",
+      "equalSplitRegion": "Gleichmäßige Aufteilung"
     },
     "splitTypeSelector": {
       "label": "Wie aufteilen",
@@ -1074,7 +1078,8 @@
       "expenseNotFound": "Ausgabe nicht gefunden",
       "failedToLoad": "Ausgabendetails konnten nicht geladen werden",
       "shareTitle": "Ausgabe: {{description}}",
-      "shareText": "Sehen Sie sich diese Ausgabe an: {{description}} - {{amount}}"
+      "shareText": "Sehen Sie sich diese Ausgabe an: {{description}} - {{amount}}",
+      "expenseAmount": "Ausgabenbetrag"
     },
     "splitBreakdown": {
       "splitBetween": "Aufgeteilt zwischen ",
@@ -1236,8 +1241,11 @@
       "overview": {
         "title": "Mandantenübersicht",
         "tenantId": "Mandanten-ID",
+        "tenantIdValue": "Mandanten-ID Wert",
         "appName": "App-Name",
-        "lastUpdated": "Zuletzt aktualisiert"
+        "appNameValue": "App-Name Wert",
+        "lastUpdated": "Zuletzt aktualisiert",
+        "lastUpdatedValue": "Zuletzt aktualisiert Wert"
       },
       "theme": {
         "title": "Thema-Artefakt",
@@ -1245,6 +1253,7 @@
         "copyLink": "Theme-Link kopieren",
         "forceReload": "Theme neu laden erzwingen",
         "activeHash": "Aktiver Hash",
+        "activeHashValue": "Aktiver Hash Wert",
         "notPublished": "nicht veröffentlicht",
         "generatedAt": "Generiert am",
         "copySuccess": "Theme-Link in Zwischenablage kopiert.",

@@ -91,7 +91,7 @@ export function AdminTenantConfigTab() {
         <div className='space-y-6'>
             {actionMessage && <Alert type={actionMessage.type} message={actionMessage.text} />}
 
-            <Card padding='lg' className='bg-white/70 backdrop-blur-xs border border-indigo-200'>
+            <Card padding='lg' ariaLabel={t('admin.tenantConfig.overview.title')} className='bg-white/70 backdrop-blur-xs border border-indigo-200'>
                 <Stack spacing='sm'>
                     <div className='flex items-center gap-2 mb-2'>
                         <div className='w-1 h-6 bg-linear-to-b from-amber-500 to-orange-600 rounded-full'></div>
@@ -100,21 +100,21 @@ export function AdminTenantConfigTab() {
                     <div className='grid gap-4 md:grid-cols-3 text-sm'>
                         <div className='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
                             <p className='text-indigo-600 text-xs mb-1'>{t('admin.tenantConfig.overview.tenantId')}</p>
-                            <p className='font-mono text-amber-700 font-medium'>{config?.tenant?.tenantId ?? t('common.unknown')}</p>
+                            <p className='font-mono text-amber-700 font-medium' aria-label={t('admin.tenantConfig.overview.tenantIdValue')}>{config?.tenant?.tenantId ?? t('common.unknown')}</p>
                         </div>
                         <div className='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
                             <p className='text-indigo-600 text-xs mb-1'>{t('admin.tenantConfig.overview.appName')}</p>
-                            <p className='text-gray-800 font-medium'>{config?.tenant?.brandingTokens?.tokens?.legal?.appName ?? t('common.notConfigured')}</p>
+                            <p className='text-gray-800 font-medium' aria-label={t('admin.tenantConfig.overview.appNameValue')}>{config?.tenant?.brandingTokens?.tokens?.legal?.appName ?? t('common.notConfigured')}</p>
                         </div>
                         <div className='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
                             <p className='text-indigo-600 text-xs mb-1'>{t('admin.tenantConfig.overview.lastUpdated')}</p>
-                            <p className='text-gray-800 font-medium'>{config?.tenant?.updatedAt ?? '—'}</p>
+                            <p className='text-gray-800 font-medium' aria-label={t('admin.tenantConfig.overview.lastUpdatedValue')}>{config?.tenant?.updatedAt ?? '—'}</p>
                         </div>
                     </div>
                 </Stack>
             </Card>
 
-            <Card padding='lg' className='bg-white/70 backdrop-blur-xs border border-indigo-200'>
+            <Card padding='lg' ariaLabel={t('admin.tenantConfig.theme.title')} className='bg-white/70 backdrop-blur-xs border border-indigo-200'>
                 <Stack spacing='md'>
                     <div className='flex flex-col gap-2 md:flex-row md:items-center md:justify-between'>
                         <div>
@@ -140,7 +140,7 @@ export function AdminTenantConfigTab() {
                     <div className='grid gap-4 text-sm md:grid-cols-3'>
                         <div className='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
                             <p className='text-indigo-600 text-xs mb-1'>{t('admin.tenantConfig.theme.activeHash')}</p>
-                            <p className='font-mono text-amber-700 font-medium'>{config?.theme?.hash ?? t('admin.tenantConfig.theme.notPublished')}</p>
+                            <p className='font-mono text-amber-700 font-medium' aria-label={t('admin.tenantConfig.theme.activeHashValue')}>{config?.theme?.hash ?? t('admin.tenantConfig.theme.notPublished')}</p>
                         </div>
                         <div className='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
                             <p className='text-indigo-600 text-xs mb-1'>{t('admin.tenantConfig.theme.generatedAt')}</p>
@@ -155,7 +155,7 @@ export function AdminTenantConfigTab() {
             </Card>
 
             {tenantBranding && (
-                <Card padding='lg' className='bg-white/70 backdrop-blur-xs border border-indigo-200'>
+                <Card padding='lg' ariaLabel={t('admin.tenantConfig.brandingTokens.title')} className='bg-white/70 backdrop-blur-xs border border-indigo-200'>
                     <Stack spacing='md'>
                         <div className='flex items-center gap-2 mb-2'>
                             <div className='w-1 h-6 bg-linear-to-b from-amber-500 to-orange-600 rounded-full'></div>
@@ -166,7 +166,7 @@ export function AdminTenantConfigTab() {
                 </Card>
             )}
 
-            <Card padding='lg' className='bg-white/70 backdrop-blur-xs border border-indigo-200'>
+            <Card padding='lg' ariaLabel={t('admin.tenantConfig.computedCss.title')} className='bg-white/70 backdrop-blur-xs border border-indigo-200'>
                 <Stack spacing='md'>
                     <div className='flex items-center gap-2 mb-2'>
                         <div className='w-1 h-6 bg-linear-to-b from-amber-500 to-orange-600 rounded-full'></div>

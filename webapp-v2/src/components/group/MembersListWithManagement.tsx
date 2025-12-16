@@ -153,8 +153,7 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
                         <li
                             key={member.uid}
                             className='flex items-center justify-between py-1.5 px-1.5 rounded-md hover:bg-surface-muted transition-colors list-none'
-                            data-member-name={getGroupDisplayName(member)}
-                            data-member-id={member.uid}
+                            aria-label={getGroupDisplayName(member)}
                         >
                             <div className='flex items-center gap-2 min-w-0 flex-1'>
                                 <Avatar displayName={getGroupDisplayName(member)} userId={member.uid} size='sm' themeColor={memberTheme} />

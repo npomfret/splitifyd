@@ -669,6 +669,7 @@
     "groupSettingsAriaLabel": "그룹 설정"
   },
   "securitySettingsModal": {
+    "footerActions": "보안 설정 작업",
     "unsavedChanges": "저장되지 않은 변경 사항이 있습니다. 모든 것을 검토한 다음 저장을 눌러 적용하세요.",
     "presets": {
       "activeBadge": "활성",
@@ -751,7 +752,9 @@
     "emailSectionTitle": "이메일 주소",
     "emailSectionDescription": "로그인하고 알림을 받는 데 사용하는 이메일을 업데이트하세요.",
     "currentDisplayName": "현재 표시 이름:",
+    "displayNameValue": "표시 이름 값",
     "email": "이메일:",
+    "emailValue": "이메일 주소 값",
     "currentEmailLabel": "현재 이메일",
     "displayNameLabel": "표시 이름",
     "displayNamePlaceholder": "표시 이름을 입력하세요",
@@ -1030,7 +1033,8 @@
       "total": "합계: ",
       "percentageInstruction": "각 사람의 백분율을 입력하세요:",
       "percentSign": "%",
-      "equalInstruction": "각 사람이 지불하는 금액:"
+      "equalInstruction": "각 사람이 지불하는 금액:",
+      "equalSplitRegion": "균등 분할 내역"
     },
     "splitTypeSelector": {
       "label": "분할 방법",
@@ -1075,7 +1079,8 @@
       "expenseNotFound": "비용을 찾을 수 없음",
       "failedToLoad": "비용 세부 정보 로드 실패",
       "shareTitle": "비용: {{description}}",
-      "shareText": "이 비용 확인: {{description}} - {{amount}}"
+      "shareText": "이 비용 확인: {{description}} - {{amount}}",
+      "expenseAmount": "비용 금액"
     },
     "splitBreakdown": {
       "splitBetween": "분할 대상 ",
@@ -1237,8 +1242,11 @@
       "overview": {
         "title": "테넌트 개요",
         "tenantId": "테넌트 ID",
+        "tenantIdValue": "테넌트 ID 값",
         "appName": "앱 이름",
-        "lastUpdated": "마지막 업데이트"
+        "appNameValue": "앱 이름 값",
+        "lastUpdated": "마지막 업데이트",
+        "lastUpdatedValue": "마지막 업데이트 값"
       },
       "theme": {
         "title": "테마 아티팩트",
@@ -1246,6 +1254,7 @@
         "copyLink": "테마 링크 복사",
         "forceReload": "테마 강제 새로고침",
         "activeHash": "활성 해시",
+        "activeHashValue": "활성 해시 값",
         "notPublished": "게시되지 않음",
         "generatedAt": "생성 시점",
         "copySuccess": "테마 링크가 클립보드에 복사되었습니다.",

@@ -119,8 +119,8 @@ export class HeaderPage extends BasePage {
      */
     async getCurrentUserDisplayName(): Promise<string> {
         // Get the display name text from within the user menu button
-        // The name is in a paragraph element with text-sm font-medium styling
-        const nameElement = this.getUserMenuButton().locator('.text-sm.font-medium').first();
+        // The name is the first paragraph in the text container (second paragraph is email)
+        const nameElement = this.getUserMenuButton().locator('p').first();
         await expect(nameElement).toBeVisible();
 
         const textContent = await nameElement.textContent();

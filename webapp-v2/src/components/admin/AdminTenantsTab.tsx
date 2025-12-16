@@ -128,6 +128,7 @@ export function AdminTenantsTab() {
                     return (
                         <Card
                             key={tenant.tenant.tenantId}
+                            ariaLabel={tenant.tenant.brandingTokens.tokens.legal.appName}
                             className={`p-6 bg-white/70 backdrop-blur-xs border border-indigo-200 hover:border-indigo-300 transition-all ${
                                 isCurrentTenant ? 'ring-2 ring-amber-400 bg-amber-50/50 border-amber-300' : ''
                             }`}
@@ -190,7 +191,7 @@ export function AdminTenantsTab() {
                                         onClick={() => handleEditTenant(tenant)}
                                         variant='secondary'
                                         size='sm'
-                                        aria-label={`${t('common.edit')} ${tenant.tenant.brandingTokens.tokens.legal.appName}`}
+                                        ariaLabel={`${t('common.edit')} ${tenant.tenant.brandingTokens.tokens.legal.appName}`}
                                     >
                                         {t('common.edit')}
                                     </Button>

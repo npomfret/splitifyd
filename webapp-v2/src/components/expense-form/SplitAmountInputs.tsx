@@ -168,7 +168,7 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
 
     if (splitType === 'equal') {
         return (
-            <div className='mt-4 p-4 bg-surface-muted rounded-lg'>
+            <div className='mt-4 p-4 bg-surface-muted rounded-lg' role='region' aria-label={t('expenseComponents.splitAmountInputs.equalSplitRegion')}>
                 <p className='text-sm font-medium text-text-primary mb-2'>{t('expenseComponents.splitAmountInputs.equalInstruction')}</p>
                 <div className='space-y-1'>
                     {splits.map((split) => {

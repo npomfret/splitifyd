@@ -148,16 +148,10 @@ export class ExpenseFormPage extends BasePage {
     // ============================================================================
 
     /**
-     * Equal split container - scoped by "Each person pays:" instruction
-     * Uses the instruction text to find its parent container (div with bg-surface-muted)
+     * Equal split container - uses semantic region role
      */
     protected getEqualSplitContainer(): Locator {
-        // Find the instruction text and go up to its parent container
-        return this
-            .page
-            .getByText(/each person pays/i)
-            .locator('xpath=ancestor::div[contains(@class, "bg-surface-muted")]')
-            .first();
+        return this.page.getByRole('region', { name: translation.expenseComponents.splitAmountInputs.equalSplitRegion });
     }
 
     /**

@@ -221,7 +221,7 @@ export function ExpenseDetailModal({ isOpen, onClose, groupId, expenseId, onEdit
                 {/* Error state */}
                 {!loading && (error || !expense) && (
                     <Stack spacing='md'>
-                        <div className='text-center py-4'>
+                        <div className='text-center py-4' role='alert'>
                             <Typography variant='body' className='text-semantic-error'>
                                 {error || t('expenseComponents.expenseDetailModal.expenseNotFound')}
                             </Typography>
@@ -250,7 +250,10 @@ export function ExpenseDetailModal({ isOpen, onClose, groupId, expenseId, onEdit
                         {/* Hero: Amount + Receipt thumbnail */}
                         <div className='flex items-center justify-center gap-4'>
                             <div className='text-center flex-1'>
-                                <div className='text-4xl font-bold text-text-primary'>
+                                <div
+                                    className='text-4xl font-bold text-text-primary'
+                                    aria-label={t('expenseComponents.expenseDetailModal.expenseAmount')}
+                                >
                                     <CurrencyAmount amount={expense.amount} currency={expense.currency} />
                                 </div>
                             </div>

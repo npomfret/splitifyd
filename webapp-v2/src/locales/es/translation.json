@@ -668,6 +668,7 @@
     "groupSettingsAriaLabel": "Configuración del grupo"
   },
   "securitySettingsModal": {
+    "footerActions": "Acciones de configuración de seguridad",
     "unsavedChanges": "Tiene cambios sin guardar. Revise todo y luego presione Guardar para aplicarlos.",
     "presets": {
       "activeBadge": "Activo",
@@ -750,7 +751,9 @@
     "emailSectionTitle": "Dirección de correo electrónico",
     "emailSectionDescription": "Actualice el correo electrónico que utiliza para iniciar sesión y recibir notificaciones.",
     "currentDisplayName": "Nombre visible actual:",
+    "displayNameValue": "Valor del nombre visible",
     "email": "Correo electrónico:",
+    "emailValue": "Valor de la dirección de correo",
     "currentEmailLabel": "Correo electrónico actual",
     "displayNameLabel": "Nombre visible",
     "displayNamePlaceholder": "Introduzca su nombre visible",
@@ -1029,7 +1032,8 @@
       "total": "Total: ",
       "percentageInstruction": "Introduzca el porcentaje para cada persona:",
       "percentSign": "%",
-      "equalInstruction": "Cada persona paga:"
+      "equalInstruction": "Cada persona paga:",
+      "equalSplitRegion": "Desglose de división equitativa"
     },
     "splitTypeSelector": {
       "label": "Cómo dividir",
@@ -1074,7 +1078,8 @@
       "expenseNotFound": "Gasto no encontrado",
       "failedToLoad": "Fallo al cargar los detalles del gasto",
       "shareTitle": "Gasto: {{description}}",
-      "shareText": "Vea este gasto: {{description}} - {{amount}}"
+      "shareText": "Vea este gasto: {{description}} - {{amount}}",
+      "expenseAmount": "Importe del gasto"
     },
     "splitBreakdown": {
       "splitBetween": "Dividir entre ",
@@ -1236,8 +1241,11 @@
       "overview": {
         "title": "Resumen del inquilino",
         "tenantId": "ID del inquilino",
+        "tenantIdValue": "Valor del ID del inquilino",
         "appName": "Nombre de la aplicación",
-        "lastUpdated": "Última actualización"
+        "appNameValue": "Valor del nombre de la aplicación",
+        "lastUpdated": "Última actualización",
+        "lastUpdatedValue": "Valor de última actualización"
       },
       "theme": {
         "title": "Artefacto del tema",
@@ -1245,6 +1253,7 @@
         "copyLink": "Copiar enlace del tema",
         "forceReload": "Forzar recarga del tema",
         "activeHash": "Hash activo",
+        "activeHashValue": "Valor del hash activo",
         "notPublished": "no publicado",
         "generatedAt": "Generado el",
         "copySuccess": "Enlace del tema copiado al portapapeles.",

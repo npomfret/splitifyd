@@ -668,6 +668,7 @@
     "groupSettingsAriaLabel": "Налаштування групи"
   },
   "securitySettingsModal": {
+    "footerActions": "Дії налаштувань безпеки",
     "unsavedChanges": "У вас є незбережені зміни. Перегляньте все, а потім натисніть Зберегти, щоб застосувати їх.",
     "presets": {
       "activeBadge": "Активний",
@@ -750,7 +751,9 @@
     "emailSectionTitle": "Електронна адреса",
     "emailSectionDescription": "Оновіть електронну адресу, яку ви використовуєте для входу та отримання сповіщень.",
     "currentDisplayName": "Поточне відображуване ім'я:",
+    "displayNameValue": "Значення відображуваного імені",
     "email": "Електронна пошта:",
+    "emailValue": "Значення електронної адреси",
     "currentEmailLabel": "Поточна електронна пошта",
     "displayNameLabel": "Відображуване ім'я",
     "displayNamePlaceholder": "Введіть своє відображуване ім'я",
@@ -1029,7 +1032,8 @@
       "total": "Всього:",
       "percentageInstruction": "Введіть відсоток для кожної особи:",
       "percentSign": "%",
-      "equalInstruction": "Кожна особа платить:"
+      "equalInstruction": "Кожна особа платить:",
+      "equalSplitRegion": "Деталі рівного поділу"
     },
     "splitTypeSelector": {
       "label": "Як розділити",
@@ -1074,7 +1078,8 @@
       "expenseNotFound": "Витрату не знайдено",
       "failedToLoad": "Не вдалося завантажити деталі витрати",
       "shareTitle": "Витрата: {{description}}",
-      "shareText": "Перегляньте цю витрату: {{description}} - {{amount}}"
+      "shareText": "Перегляньте цю витрату: {{description}} - {{amount}}",
+      "expenseAmount": "Сума витрати"
     },
     "splitBreakdown": {
       "splitBetween": "Розділити між ",
@@ -1236,8 +1241,11 @@
       "overview": {
         "title": "Огляд орендаря",
         "tenantId": "ID орендаря",
+        "tenantIdValue": "Значення ID орендаря",
         "appName": "Назва програми",
-        "lastUpdated": "Останнє оновлення"
+        "appNameValue": "Значення назви програми",
+        "lastUpdated": "Останнє оновлення",
+        "lastUpdatedValue": "Значення останнього оновлення"
       },
       "theme": {
         "title": "Артефакт теми",
@@ -1245,6 +1253,7 @@
         "copyLink": "Копіювати посилання на тему",
         "forceReload": "Примусово перезавантажити тему",
         "activeHash": "Активний хеш",
+        "activeHashValue": "Значення активного хешу",
         "notPublished": "не опубліковано",
         "generatedAt": "Створено о",
         "copySuccess": "Посилання на тему скопійовано в буфер обміну.",

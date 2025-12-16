@@ -669,6 +669,7 @@
     "groupSettingsAriaLabel": "Impostazioni gruppo"
   },
   "securitySettingsModal": {
+    "footerActions": "Azioni impostazioni di sicurezza",
     "unsavedChanges": "Hai modifiche non salvate. Rivedi tutto, quindi premi Salva per applicarle.",
     "presets": {
       "activeBadge": "Attivo",
@@ -751,7 +752,9 @@
     "emailSectionTitle": "Indirizzo email",
     "emailSectionDescription": "Aggiorna l'email che usi per accedere e ricevere notifiche.",
     "currentDisplayName": "Nome visualizzato attuale:",
+    "displayNameValue": "Valore nome visualizzato",
     "email": "Email:",
+    "emailValue": "Valore indirizzo email",
     "currentEmailLabel": "Email attuale",
     "displayNameLabel": "Nome visualizzato",
     "displayNamePlaceholder": "Inserisci il tuo nome visualizzato",
@@ -1030,7 +1033,8 @@
       "total": "Totale: ",
       "percentageInstruction": "Inserisci la percentuale per ogni persona:",
       "percentSign": "%",
-      "equalInstruction": "Ogni persona paga:"
+      "equalInstruction": "Ogni persona paga:",
+      "equalSplitRegion": "Ripartizione equa"
     },
     "splitTypeSelector": {
       "label": "Come dividere",
@@ -1075,7 +1079,8 @@
       "expenseNotFound": "Spesa non trovata",
       "failedToLoad": "Impossibile caricare i dettagli della spesa",
       "shareTitle": "Spesa: {{description}}",
-      "shareText": "Controlla questa spesa: {{description}} - {{amount}}"
+      "shareText": "Controlla questa spesa: {{description}} - {{amount}}",
+      "expenseAmount": "Importo della spesa"
     },
     "splitBreakdown": {
       "splitBetween": "Diviso tra ",
@@ -1237,8 +1242,11 @@
       "overview": {
         "title": "Panoramica tenant",
         "tenantId": "ID tenant",
+        "tenantIdValue": "Valore ID tenant",
         "appName": "Nome app",
-        "lastUpdated": "Ultimo aggiornamento"
+        "appNameValue": "Valore nome app",
+        "lastUpdated": "Ultimo aggiornamento",
+        "lastUpdatedValue": "Valore ultimo aggiornamento"
       },
       "theme": {
         "title": "Artefatto tema",
@@ -1246,6 +1254,7 @@
         "copyLink": "Copia link tema",
         "forceReload": "Forza ricarica tema",
         "activeHash": "Hash attivo",
+        "activeHashValue": "Valore hash attivo",
         "notPublished": "non pubblicato",
         "generatedAt": "Generato il",
         "copySuccess": "Link tema copiato negli appunti.",

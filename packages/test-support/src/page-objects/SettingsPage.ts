@@ -58,32 +58,15 @@ export class SettingsPage extends BasePage {
      * Profile Information Locators
      */
     protected getProfileDisplayName(): Locator {
-        // Profile display name is in a box with label "Current display name:"
-        // Find the container with the label, then get the value element
-        return this
-            .page
-            .locator('.rounded-lg')
-            .filter({
-                hasText: translation.settingsPage.currentDisplayName,
-            })
-            .locator('.font-medium.text-text-primary');
+        return this.page.getByLabel(translation.settingsPage.displayNameValue);
     }
 
     protected getProfileEmail(): Locator {
-        // Profile email is in a box with label "Email:"
-        // Find the container with the label, then get the value element
-        return this
-            .page
-            .locator('.rounded-lg')
-            .filter({
-                hasText: translation.settingsPage.email,
-            })
-            .locator('.font-medium.text-text-primary')
-            .first();
+        return this.page.getByLabel(translation.settingsPage.emailValue);
     }
 
     protected getDisplayNameInput(): Locator {
-        return this.page.getByLabel(translation.settingsPage.displayNameLabel);
+        return this.page.getByLabel(translation.settingsPage.displayNameLabel, { exact: true });
     }
 
     protected getSaveChangesButton(): Locator {
@@ -423,10 +406,10 @@ export class SettingsPage extends BasePage {
     }
 
     /**
-     * Avatar or initials element (rounded-full styling)
+     * Avatar or initials element - uses role="img" for semantic selection
      */
     protected getAvatarOrInitials(): Locator {
-        return this.page.locator('[class*="rounded-full"]').first();
+        return this.page.getByRole('img').first();
     }
 
     /**

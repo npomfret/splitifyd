@@ -668,6 +668,7 @@
     "groupSettingsAriaLabel": "Group settings"
   },
   "securitySettingsModal": {
+    "footerActions": "Security settings actions",
     "unsavedChanges": "You have unsaved changes. Review everything, then press Save to apply them.",
     "presets": {
       "activeBadge": "Active",
@@ -750,7 +751,9 @@
     "emailSectionTitle": "Email address",
     "emailSectionDescription": "Update the email you use to sign in and receive notifications.",
     "currentDisplayName": "Current display name:",
+    "displayNameValue": "Display name value",
     "email": "Email:",
+    "emailValue": "Email address value",
     "currentEmailLabel": "Current email",
     "displayNameLabel": "Display Name",
     "displayNamePlaceholder": "Enter your display name",
@@ -1029,7 +1032,8 @@
       "total": "Total:",
       "percentageInstruction": "Enter percentage for each person:",
       "percentSign": "%",
-      "equalInstruction": "Each person pays:"
+      "equalInstruction": "Each person pays:",
+      "equalSplitRegion": "Equal split breakdown"
     },
     "splitTypeSelector": {
       "label": "How to split",
@@ -1074,7 +1078,8 @@
       "expenseNotFound": "Expense not found",
       "failedToLoad": "Failed to load expense details",
       "shareTitle": "Expense: {{description}}",
-      "shareText": "Check out this expense: {{description}} - {{amount}}"
+      "shareText": "Check out this expense: {{description}} - {{amount}}",
+      "expenseAmount": "Expense amount"
     },
     "splitBreakdown": {
       "splitBetween": "Split between ",
@@ -1236,8 +1241,11 @@
       "overview": {
         "title": "Tenant Overview",
         "tenantId": "Tenant ID",
+        "tenantIdValue": "Tenant ID value",
         "appName": "App Name",
-        "lastUpdated": "Last Updated"
+        "appNameValue": "App name value",
+        "lastUpdated": "Last Updated",
+        "lastUpdatedValue": "Last updated value"
       },
       "theme": {
         "title": "Theme Artifact",
@@ -1245,6 +1253,7 @@
         "copyLink": "Copy Theme Link",
         "forceReload": "Force Reload Theme",
         "activeHash": "Active Hash",
+        "activeHashValue": "Active hash value",
         "notPublished": "not published",
         "generatedAt": "Generated At",
         "copySuccess": "Theme link copied to clipboard.",

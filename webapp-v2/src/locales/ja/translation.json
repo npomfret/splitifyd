@@ -669,6 +669,7 @@
     "groupSettingsAriaLabel": "グループ設定"
   },
   "securitySettingsModal": {
+    "footerActions": "セキュリティ設定のアクション",
     "unsavedChanges": "未保存の変更があります。すべてを確認してから、[保存]を押して適用してください。",
     "presets": {
       "activeBadge": "アクティブ",
@@ -751,7 +752,9 @@
     "emailSectionTitle": "メールアドレス",
     "emailSectionDescription": "サインインや通知の受信に使用するメールアドレスを更新します。",
     "currentDisplayName": "現在の表示名:",
+    "displayNameValue": "表示名の値",
     "email": "メールアドレス:",
+    "emailValue": "メールアドレスの値",
     "currentEmailLabel": "現在のメールアドレス",
     "displayNameLabel": "表示名",
     "displayNamePlaceholder": "表示名を入力してください",
@@ -1030,7 +1033,8 @@
       "total": "合計: ",
       "percentageInstruction": "各人のパーセンテージを入力してください:",
       "percentSign": "%",
-      "equalInstruction": "各人が支払う金額:"
+      "equalInstruction": "各人が支払う金額:",
+      "equalSplitRegion": "均等割りの内訳"
     },
     "splitTypeSelector": {
       "label": "割り勘方法",
@@ -1075,7 +1079,8 @@
       "expenseNotFound": "経費が見つかりません",
       "failedToLoad": "経費の詳細の読み込みに失敗しました",
       "shareTitle": "経費: {{description}}",
-      "shareText": "この経費を確認してください: {{description}} - {{amount}}"
+      "shareText": "この経費を確認してください: {{description}} - {{amount}}",
+      "expenseAmount": "経費金額"
     },
     "splitBreakdown": {
       "splitBetween": "割り勘相手 ",
@@ -1237,8 +1242,11 @@
       "overview": {
         "title": "テナント概要",
         "tenantId": "テナントID",
+        "tenantIdValue": "テナントIDの値",
         "appName": "アプリ名",
-        "lastUpdated": "最終更新"
+        "appNameValue": "アプリ名の値",
+        "lastUpdated": "最終更新",
+        "lastUpdatedValue": "最終更新の値"
       },
       "theme": {
         "title": "テーマアーティファクト",
@@ -1246,6 +1254,7 @@
         "copyLink": "テーマリンクをコピー",
         "forceReload": "テーマを強制的に再読み込み",
         "activeHash": "アクティブハッシュ",
+        "activeHashValue": "アクティブハッシュの値",
         "notPublished": "公開されていません",
         "generatedAt": "生成日時",
         "copySuccess": "テーマリンクがクリップボードにコピーされました。",

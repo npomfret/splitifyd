@@ -669,6 +669,7 @@
     "groupSettingsAriaLabel": "Mga setting ng grupo"
   },
   "securitySettingsModal": {
+    "footerActions": "Mga aksyon sa mga setting ng seguridad",
     "unsavedChanges": "Mayroon kang hindi nai-save na mga pagbabago. Suriin ang lahat, pagkatapos ay pindutin ang I-save para ilapat ang mga ito.",
     "presets": {
       "activeBadge": "Aktibo",
@@ -751,7 +752,9 @@
     "emailSectionTitle": "Email address",
     "emailSectionDescription": "I-update ang email na ginagamit mo para mag-sign in at makatanggap ng mga notification.",
     "currentDisplayName": "Kasalukuyang pangalan sa display:",
+    "displayNameValue": "Halaga ng pangalan sa display",
     "email": "Email:",
+    "emailValue": "Halaga ng email address",
     "currentEmailLabel": "Kasalukuyang email",
     "displayNameLabel": "Pangalan sa Display",
     "displayNamePlaceholder": "Ilagay ang iyong pangalan sa display",
@@ -1030,7 +1033,8 @@
       "total": "Kabuuan:",
       "percentageInstruction": "Ilagay ang porsyento para sa bawat tao:",
       "percentSign": "%",
-      "equalInstruction": "Bawat tao ay magbabayad:"
+      "equalInstruction": "Bawat tao ay magbabayad:",
+      "equalSplitRegion": "Detalye ng pantay na hatian"
     },
     "splitTypeSelector": {
       "label": "Paano hatiin",
@@ -1075,7 +1079,8 @@
       "expenseNotFound": "Hindi natagpuan ang gastusin",
       "failedToLoad": "Nabigo ang pag-load ng mga detalye ng gastusin",
       "shareTitle": "Gastusin: {{description}}",
-      "shareText": "Tingnan ang gastusing ito: {{description}} - {{amount}}"
+      "shareText": "Tingnan ang gastusing ito: {{description}} - {{amount}}",
+      "expenseAmount": "Halaga ng gastusin"
     },
     "splitBreakdown": {
       "splitBetween": "Hatiin sa pagitan ng ",
@@ -1237,8 +1242,11 @@
       "overview": {
         "title": "Pangkalahatang-ideya ng Tenant",
         "tenantId": "Tenant ID",
+        "tenantIdValue": "Halaga ng Tenant ID",
         "appName": "Pangalan ng App",
-        "lastUpdated": "Huling Na-update"
+        "appNameValue": "Halaga ng pangalan ng app",
+        "lastUpdated": "Huling Na-update",
+        "lastUpdatedValue": "Halaga ng huling pag-update"
       },
       "theme": {
         "title": "Artifact ng Tema",
@@ -1246,6 +1254,7 @@
         "copyLink": "Kopyahin ang Link ng Tema",
         "forceReload": "Piliting I-reload ang Tema",
         "activeHash": "Aktibong Hash",
+        "activeHashValue": "Halaga ng aktibong hash",
         "notPublished": "hindi nai-publish",
         "generatedAt": "Nilikha Noong",
         "copySuccess": "Nakopya sa clipboard ang link ng tema.",

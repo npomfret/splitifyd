@@ -33,10 +33,10 @@ export class ExpenseDetailPage extends BasePage {
     }
 
     /**
-     * Get error state container - the modal shows error in center with semantic-error text
+     * Get error state container - uses role="alert" for semantic selection
      */
     protected getErrorCard(): Locator {
-        return this.page.getByRole('dialog').locator('.text-semantic-error');
+        return this.page.getByRole('dialog').getByRole('alert');
     }
 
     /**
@@ -134,11 +134,10 @@ export class ExpenseDetailPage extends BasePage {
     }
 
     /**
-     * Get the expense amount display element in the modal - the large amount text
-     * in the hero section (text-4xl font-bold)
+     * Get the expense amount display element in the modal - uses aria-label for semantic selection
      */
     protected getExpenseAmountElement(): Locator {
-        return this.page.getByRole('dialog').locator('.text-4xl');
+        return this.page.getByRole('dialog').getByLabel(translation.expenseComponents.expenseDetailModal.expenseAmount);
     }
 
     /**

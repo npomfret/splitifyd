@@ -20,56 +20,40 @@ export class AdminTenantConfigPage extends BasePage {
         await expect(this.page).toHaveURL(/\/admin.*tab=tenant-config/);
     }
 
-    // Tenant Overview Card - find heading and go up to parent Card
+    // Tenant Overview Card - uses semantic region role
     protected getTenantOverviewCard(): Locator {
-        return this
-            .page
-            .getByRole('heading', { name: translation.admin.tenantConfig.overview.title })
-            .locator('xpath=ancestor::div[contains(@class, "rounded-xl")]')
-            .first();
+        return this.page.getByRole('region', { name: translation.admin.tenantConfig.overview.title });
     }
 
     protected getTenantIdValue(): Locator {
-        return this.getTenantOverviewCard().locator(`p:has-text("${translation.admin.tenantConfig.overview.tenantId}")`).locator('..').locator('p.font-mono');
+        return this.getTenantOverviewCard().getByLabel(translation.admin.tenantConfig.overview.tenantIdValue);
     }
 
     protected getAppNameValue(): Locator {
-        return this.getTenantOverviewCard().locator(`p:has-text("${translation.admin.tenantConfig.overview.appName}")`).locator('..').locator('p.font-medium').last();
+        return this.getTenantOverviewCard().getByLabel(translation.admin.tenantConfig.overview.appNameValue);
     }
 
     protected getLastUpdatedValue(): Locator {
-        return this.getTenantOverviewCard().locator(`p:has-text("${translation.admin.tenantConfig.overview.lastUpdated}")`).locator('..').locator('p.font-medium').last();
+        return this.getTenantOverviewCard().getByLabel(translation.admin.tenantConfig.overview.lastUpdatedValue);
     }
 
-    // Theme Artifact Card - find heading and go up to parent Card
+    // Theme Artifact Card - uses semantic region role
     protected getThemeArtifactCard(): Locator {
-        return this
-            .page
-            .getByRole('heading', { name: translation.admin.tenantConfig.theme.title })
-            .locator('xpath=ancestor::div[contains(@class, "rounded-xl")]')
-            .first();
+        return this.page.getByRole('region', { name: translation.admin.tenantConfig.theme.title });
     }
 
     protected getActiveHashValue(): Locator {
-        return this.getThemeArtifactCard().locator(`p:has-text("${translation.admin.tenantConfig.theme.activeHash}")`).locator('..').locator('p.font-mono');
+        return this.getThemeArtifactCard().getByLabel(translation.admin.tenantConfig.theme.activeHashValue);
     }
 
-    // Branding Tokens Card - find heading and go up to parent Card
+    // Branding Tokens Card - uses semantic region role
     protected getBrandingTokensCard(): Locator {
-        return this
-            .page
-            .getByRole('heading', { name: translation.admin.tenantConfig.brandingTokens.title })
-            .locator('xpath=ancestor::div[contains(@class, "rounded-xl")]')
-            .first();
+        return this.page.getByRole('region', { name: translation.admin.tenantConfig.brandingTokens.title });
     }
 
-    // Computed CSS Variables Card - find heading and go up to parent Card
+    // Computed CSS Variables Card - uses semantic region role
     protected getComputedVarsCard(): Locator {
-        return this
-            .page
-            .getByRole('heading', { name: translation.admin.tenantConfig.computedCss.title })
-            .locator('xpath=ancestor::div[contains(@class, "rounded-xl")]')
-            .first();
+        return this.page.getByRole('region', { name: translation.admin.tenantConfig.computedCss.title });
     }
 
     // Loading State

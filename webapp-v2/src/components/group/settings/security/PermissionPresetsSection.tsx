@@ -29,6 +29,7 @@ export function PermissionPresetsSection({
                             onClick={() => onApplyPreset(preset)}
                             variant='ghost'
                             magnetic={false}
+                            aria-pressed={isActive}
                             className={`h-full flex-col items-start border rounded-lg px-4 py-3 text-start transition ${
                                 isActive
                                     ? 'border-interactive-primary bg-interactive-primary/10 shadow-sm'

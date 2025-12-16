@@ -669,6 +669,7 @@
     "groupSettingsAriaLabel": "Grupas iestatījumi"
   },
   "securitySettingsModal": {
+    "footerActions": "Drošības iestatījumu darbības",
     "unsavedChanges": "Jums ir nesaglabātas izmaiņas. Pārskatiet visu un pēc tam nospiediet Saglabāt, lai tās lietotu.",
     "presets": {
       "activeBadge": "Aktīvs",
@@ -751,7 +752,9 @@
     "emailSectionTitle": "E-pasta adrese",
     "emailSectionDescription": "Atjauniniet e-pastu, ko izmantojat, lai pierakstītos un saņemtu paziņojumus.",
     "currentDisplayName": "Pašreizējais parādāmais vārds:",
+    "displayNameValue": "Parādāmā vārda vērtība",
     "email": "E-pasts:",
+    "emailValue": "E-pasta adreses vērtība",
     "currentEmailLabel": "Pašreizējais e-pasts",
     "displayNameLabel": "Parādāmais vārds",
     "displayNamePlaceholder": "Ievadiet savu parādāmo vārdu",
@@ -1030,7 +1033,8 @@
       "total": "Kopā:",
       "percentageInstruction": "Ievadiet procentus katrai personai:",
       "percentSign": "%",
-      "equalInstruction": "Katra persona maksā:"
+      "equalInstruction": "Katra persona maksā:",
+      "equalSplitRegion": "Vienāda sadalījuma detaļas"
     },
     "splitTypeSelector": {
       "label": "Kā sadalīt",
@@ -1075,7 +1079,8 @@
       "expenseNotFound": "Izdevumi nav atrasti",
       "failedToLoad": "Neizdevās ielādēt izdevumu datus",
       "shareTitle": "Izdevumi: {{description}}",
-      "shareText": "Apskatiet šos izdevumus: {{description}} - {{amount}}"
+      "shareText": "Apskatiet šos izdevumus: {{description}} - {{amount}}",
+      "expenseAmount": "Izdevumu summa"
     },
     "splitBreakdown": {
       "splitBetween": "Sadalīts starp ",
@@ -1237,8 +1242,11 @@
       "overview": {
         "title": "Īrnieka pārskats",
         "tenantId": "Īrnieka ID",
+        "tenantIdValue": "Īrnieka ID vērtība",
         "appName": "Lietotnes nosaukums",
-        "lastUpdated": "Pēdējo reizi atjaunināts"
+        "appNameValue": "Lietotnes nosaukuma vērtība",
+        "lastUpdated": "Pēdējo reizi atjaunināts",
+        "lastUpdatedValue": "Pēdējās atjaunināšanas vērtība"
       },
       "theme": {
         "title": "Tēmas artefakts",
@@ -1246,6 +1254,7 @@
         "copyLink": "Kopēt tēmas saiti",
         "forceReload": "Piespiedu kārtā pārlādēt tēmu",
         "activeHash": "Aktīvais jaucējkods",
+        "activeHashValue": "Aktīvā jaucējkoda vērtība",
         "notPublished": "nav publicēts",
         "generatedAt": "Ģenerēts",
         "copySuccess": "Tēmas saite nokopēta starpliktuvē.",

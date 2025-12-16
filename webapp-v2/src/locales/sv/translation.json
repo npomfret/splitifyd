@@ -669,6 +669,7 @@
     "groupSettingsAriaLabel": "Gruppinställningar"
   },
   "securitySettingsModal": {
+    "footerActions": "Säkerhetsinställningar åtgärder",
     "unsavedChanges": "Du har osparade ändringar. Granska allt och tryck sedan på Spara för att tillämpa dem.",
     "presets": {
       "activeBadge": "Aktiv",
@@ -751,7 +752,9 @@
     "emailSectionTitle": "E-postadress",
     "emailSectionDescription": "Uppdatera den e-postadress du använder för att logga in och ta emot aviseringar.",
     "currentDisplayName": "Nuvarande visningsnamn:",
+    "displayNameValue": "Visningsnamnets värde",
     "email": "E-post:",
+    "emailValue": "E-postadressens värde",
     "currentEmailLabel": "Nuvarande e-post",
     "displayNameLabel": "Visningsnamn",
     "displayNamePlaceholder": "Ange ditt visningsnamn",
@@ -1030,7 +1033,8 @@
       "total": "Totalt: ",
       "percentageInstruction": "Ange procentandel for varje person:",
       "percentSign": "%",
-      "equalInstruction": "Varje person betalar:"
+      "equalInstruction": "Varje person betalar:",
+      "equalSplitRegion": "Uppdelning av lika delar"
     },
     "splitTypeSelector": {
       "label": "Hur ska det delas?",
@@ -1075,7 +1079,8 @@
       "expenseNotFound": "Utgiften hittades inte",
       "failedToLoad": "Kunde inte ladda utgiftsinformation",
       "shareTitle": "Utgift: {{description}}",
-      "shareText": "Kolla in den här utgiften: {{description}} - {{amount}}"
+      "shareText": "Kolla in den här utgiften: {{description}} - {{amount}}",
+      "expenseAmount": "Utgiftsbelopp"
     },
     "splitBreakdown": {
       "splitBetween": "Delas mellan ",
@@ -1237,8 +1242,11 @@
       "overview": {
         "title": "Hyresgästöversikt",
         "tenantId": "Hyresgäst-ID",
+        "tenantIdValue": "Hyresgäst-ID-värde",
         "appName": "Appnamn",
-        "lastUpdated": "Senast uppdaterad"
+        "appNameValue": "Appnamn-värde",
+        "lastUpdated": "Senast uppdaterad",
+        "lastUpdatedValue": "Senast uppdaterad-värde"
       },
       "theme": {
         "title": "Temaartefakt",
@@ -1246,6 +1254,7 @@
         "copyLink": "Kopiera temalänk",
         "forceReload": "Tvinga omladdning av tema",
         "activeHash": "Aktiv hash",
+        "activeHashValue": "Aktiv hash-värde",
         "notPublished": "ej publicerad",
         "generatedAt": "Genererad den",
         "copySuccess": "Temalänk kopierad till urklipp.",

@@ -105,16 +105,10 @@ export class AdminTenantsPage extends BasePage {
 
     /**
      * Get the full card container for a tenant by app name
-     * Uses heading-based scoping - cards have an h3 with the app name
+     * Uses semantic region role - cards have ariaLabel set to app name
      */
     protected getTenantCardContainerByName(appName: string): Locator {
-        // Find the Card container by locating the heading and going up to its parent card
-        // Cards use the .rounded-xl class from the Card component
-        return this
-            .page
-            .getByRole('heading', { name: appName, level: 3 })
-            .locator('xpath=ancestor::div[contains(@class, "rounded-xl")]')
-            .first();
+        return this.page.getByRole('region', { name: appName });
     }
 
     protected getTenantCardByTenantId(tenantId: string): Locator {
@@ -154,10 +148,15 @@ export class AdminTenantsPage extends BasePage {
     async clickEditButtonForFirstTenant<T = TenantEditorModalPage>(
         pageFactory?: (page: Page) => T,
     ): Promise<T> {
-        // Edit buttons have aria-label="Edit {appName}" or just text "Edit" if aria-label not set
-        // Match any button that starts with "Edit" (case insensitive)
-        const firstEditButton = this.page.getByRole('button', { name: new RegExp(`^${translation.common.edit}`, 'i') }).first();
-        await firstEditButton.click();
+        // Get the first tenant card's heading to extract app name, then click its edit button
+        const firstTenantHeading = this.getTenantCards().first();
+        const appName = await firstTenantHeading.textContent();
+        if (!appName) {
+            throw new Error('Could not get first tenant app name');
+        }
+        // Use the scoped edit button with proper aria-label
+        const editButton = this.page.getByRole('button', { name: `${translation.common.edit} ${appName.trim()}` });
+        await editButton.click();
         const modal = pageFactory ? pageFactory(this.page) : (new TenantEditorModalPage(this.page) as unknown as T);
         return modal;
     }
