@@ -1,22 +1,20 @@
 import { StubStorage } from 'ts-firebase-simulator';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { createTenantAssetStorage, resetTenantAssetStorage } from '../../../../services/storage/TenantAssetStorage';
+import { CloudTenantAssetStorage } from '../../../../services/storage/TenantAssetStorage';
 
 describe('TenantAssetStorage', () => {
     let stubStorage: StubStorage;
     const emulatorHost = 'localhost:9199';
+    const emulatorBaseUrl = `http://${emulatorHost}`;
+    const prodBaseUrl = 'https://firebasestorage.googleapis.com';
 
     beforeEach(() => {
         stubStorage = new StubStorage({ defaultBucketName: 'test-bucket' });
     });
 
-    afterEach(() => {
-        resetTenantAssetStorage();
-    });
-
     describe('uploadAsset', () => {
         it('should upload logo and return emulator URL', async () => {
-            const assetStorage = createTenantAssetStorage({ storage: stubStorage, storageEmulatorHost: emulatorHost });
+            const assetStorage = new CloudTenantAssetStorage(stubStorage, emulatorBaseUrl);
             const buffer = Buffer.from('fake-png-data');
 
             const url = await assetStorage.uploadAsset('tenant-123', 'logo', buffer, 'image/png');
@@ -31,7 +29,7 @@ describe('TenantAssetStorage', () => {
         });
 
         it('should upload favicon and return emulator URL', async () => {
-            const assetStorage = createTenantAssetStorage({ storage: stubStorage, storageEmulatorHost: emulatorHost });
+            const assetStorage = new CloudTenantAssetStorage(stubStorage, emulatorBaseUrl);
             const buffer = Buffer.from('fake-ico-data');
 
             const url = await assetStorage.uploadAsset('tenant-456', 'favicon', buffer, 'image/x-icon');
@@ -45,7 +43,7 @@ describe('TenantAssetStorage', () => {
         });
 
         it('should set correct content type metadata', async () => {
-            const assetStorage = createTenantAssetStorage({ storage: stubStorage, storageEmulatorHost: emulatorHost });
+            const assetStorage = new CloudTenantAssetStorage(stubStorage, emulatorBaseUrl);
             const buffer = Buffer.from('fake-webp-data');
 
             await assetStorage.uploadAsset('tenant-789', 'logo', buffer, 'image/webp');
@@ -56,7 +54,7 @@ describe('TenantAssetStorage', () => {
         });
 
         it('should set immutable cache control', async () => {
-            const assetStorage = createTenantAssetStorage({ storage: stubStorage, storageEmulatorHost: emulatorHost });
+            const assetStorage = new CloudTenantAssetStorage(stubStorage, emulatorBaseUrl);
             const buffer = Buffer.from('fake-data');
 
             await assetStorage.uploadAsset('tenant-abc', 'logo', buffer, 'image/jpeg');
@@ -67,7 +65,7 @@ describe('TenantAssetStorage', () => {
         });
 
         it('should include tenant metadata', async () => {
-            const assetStorage = createTenantAssetStorage({ storage: stubStorage, storageEmulatorHost: emulatorHost });
+            const assetStorage = new CloudTenantAssetStorage(stubStorage, emulatorBaseUrl);
             const buffer = Buffer.from('fake-data');
 
             await assetStorage.uploadAsset('tenant-xyz', 'favicon', buffer, 'image/png');
@@ -80,7 +78,7 @@ describe('TenantAssetStorage', () => {
         });
 
         it('should use correct file path structure', async () => {
-            const assetStorage = createTenantAssetStorage({ storage: stubStorage, storageEmulatorHost: emulatorHost });
+            const assetStorage = new CloudTenantAssetStorage(stubStorage, emulatorBaseUrl);
             const buffer = Buffer.from('fake-data');
 
             await assetStorage.uploadAsset('tenant-path', 'logo', buffer, 'image/png');
@@ -92,7 +90,7 @@ describe('TenantAssetStorage', () => {
         });
 
         it('should handle different image formats', async () => {
-            const assetStorage = createTenantAssetStorage({ storage: stubStorage, storageEmulatorHost: emulatorHost });
+            const assetStorage = new CloudTenantAssetStorage(stubStorage, emulatorBaseUrl);
 
             const formats = [
                 { contentType: 'image/jpeg', expectedExt: 'jpg' },
@@ -104,9 +102,8 @@ describe('TenantAssetStorage', () => {
             ];
 
             for (const { contentType, expectedExt } of formats) {
-                resetTenantAssetStorage();
                 stubStorage = new StubStorage({ defaultBucketName: 'test-bucket' });
-                const newStorage = createTenantAssetStorage({ storage: stubStorage, storageEmulatorHost: emulatorHost });
+                const newStorage = new CloudTenantAssetStorage(stubStorage, emulatorBaseUrl);
 
                 const url = await newStorage.uploadAsset('tenant-fmt', 'logo', Buffer.from('test'), contentType);
 
@@ -115,7 +112,7 @@ describe('TenantAssetStorage', () => {
         });
 
         it('should generate production URL when no emulator host', async () => {
-            const assetStorage = createTenantAssetStorage({ storage: stubStorage, storageEmulatorHost: null });
+            const assetStorage = new CloudTenantAssetStorage(stubStorage, prodBaseUrl);
             const buffer = Buffer.from('fake-data');
 
             const url = await assetStorage.uploadAsset('tenant-prod', 'logo', buffer, 'image/png');
@@ -126,7 +123,7 @@ describe('TenantAssetStorage', () => {
 
     describe('deleteAsset', () => {
         it('should delete asset by emulator URL', async () => {
-            const assetStorage = createTenantAssetStorage({ storage: stubStorage, storageEmulatorHost: emulatorHost });
+            const assetStorage = new CloudTenantAssetStorage(stubStorage, emulatorBaseUrl);
             const buffer = Buffer.from('fake-data');
 
             // Upload first
@@ -140,7 +137,7 @@ describe('TenantAssetStorage', () => {
         });
 
         it('should delete asset by production URL', async () => {
-            const assetStorage = createTenantAssetStorage({ storage: stubStorage, storageEmulatorHost: null });
+            const assetStorage = new CloudTenantAssetStorage(stubStorage, prodBaseUrl);
             const buffer = Buffer.from('fake-data');
 
             // Upload first
@@ -154,7 +151,7 @@ describe('TenantAssetStorage', () => {
         });
 
         it('should skip deletion of external URLs', async () => {
-            const assetStorage = createTenantAssetStorage({ storage: stubStorage, storageEmulatorHost: emulatorHost });
+            const assetStorage = new CloudTenantAssetStorage(stubStorage, emulatorBaseUrl);
 
             // Try to delete external URL (should not throw)
             await assetStorage.deleteAsset('https://cdn.example.com/logo.png');
@@ -164,7 +161,7 @@ describe('TenantAssetStorage', () => {
         });
 
         it('should not throw on delete failure', async () => {
-            const assetStorage = createTenantAssetStorage({ storage: stubStorage, storageEmulatorHost: emulatorHost });
+            const assetStorage = new CloudTenantAssetStorage(stubStorage, emulatorBaseUrl);
 
             // Try to delete non-existent file (should not throw)
             await expect(assetStorage.deleteAsset(`http://${emulatorHost}/v0/b/test-bucket/o/tenant-assets%2Fnon-existent%2Flogo.png?alt=media`)).resolves.toBeUndefined();

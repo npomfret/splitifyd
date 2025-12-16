@@ -24,7 +24,7 @@ import { PolicyService } from './PolicyService';
 import { ReactionService } from './ReactionService';
 import { SettlementService } from './SettlementService';
 import { CloudThemeArtifactStorage } from './storage/CloudThemeArtifactStorage';
-import { createTenantAssetStorage, type TenantAssetStorage } from './storage/TenantAssetStorage';
+import { CloudTenantAssetStorage, type TenantAssetStorage } from './storage/TenantAssetStorage';
 import { type ThemeArtifactStorage } from './storage/ThemeArtifactStorage';
 import { TenantAdminService } from './tenant/TenantAdminService';
 import { type ITenantImageLibraryService, TenantImageLibraryService } from './tenant/TenantImageLibraryService';
@@ -272,17 +272,20 @@ export class ComponentBuilder {
 
     buildThemeArtifactStorage(): ThemeArtifactStorage {
         if (!this.themeArtifactStorage) {
-            this.themeArtifactStorage = new CloudThemeArtifactStorage(this.storage);
+            this.themeArtifactStorage = new CloudThemeArtifactStorage(
+                this.storage,
+                this.serviceConfig.storagePublicBaseUrl,
+            );
         }
         return this.themeArtifactStorage;
     }
 
     buildTenantAssetStorage(): TenantAssetStorage {
         if (!this.tenantAssetStorage) {
-            this.tenantAssetStorage = createTenantAssetStorage({
-                storage: this.storage,
-                storageEmulatorHost: this.serviceConfig.storageEmulatorHost,
-            });
+            this.tenantAssetStorage = new CloudTenantAssetStorage(
+                this.storage,
+                this.serviceConfig.storagePublicBaseUrl,
+            );
         }
         return this.tenantAssetStorage;
     }

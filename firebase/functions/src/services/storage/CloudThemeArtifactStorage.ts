@@ -3,14 +3,10 @@ import type { IStorage } from '../../storage-wrapper';
 import type { ThemeArtifactLocation, ThemeArtifactPayload, ThemeArtifactStorage } from './ThemeArtifactStorage';
 
 export class CloudThemeArtifactStorage implements ThemeArtifactStorage {
-    private readonly storageEmulatorHost: string | null;
-
     constructor(
         private readonly storage: IStorage,
-        storageEmulatorHost: string | null | undefined = process.env.FIREBASE_STORAGE_EMULATOR_HOST,
-    ) {
-        this.storageEmulatorHost = storageEmulatorHost ?? null;
-    }
+        private readonly storagePublicBaseUrl: string,
+    ) {}
 
     async save(payload: ThemeArtifactPayload): Promise<ThemeArtifactLocation> {
         const bucket = this.storage.bucket();
@@ -70,12 +66,6 @@ export class CloudThemeArtifactStorage implements ThemeArtifactStorage {
 
     private generatePublicUrl(bucketName: string, filePath: string): string {
         const encodedPath = encodeURIComponent(filePath);
-        if (this.storageEmulatorHost) {
-            // Emulator URL format: http://localhost:PORT/v0/b/BUCKET/o/PATH?alt=media
-            return `http://${this.storageEmulatorHost}/v0/b/${bucketName}/o/${encodedPath}?alt=media`;
-        } else {
-            // Firebase Storage URL format (works with Firebase security rules)
-            return `https://firebasestorage.googleapis.com/v0/b/${bucketName}/o/${encodedPath}?alt=media`;
-        }
+        return `${this.storagePublicBaseUrl}/v0/b/${bucketName}/o/${encodedPath}?alt=media`;
     }
 }

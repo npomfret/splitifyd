@@ -1,8 +1,7 @@
 import type { TenantImageId } from '@billsplit-wl/shared';
 import crypto from 'crypto';
-import { getStorage } from '../../firebase';
 import { logger } from '../../logger';
-import { createStorage, type IStorage } from '../../storage-wrapper';
+import type { IStorage } from '../../storage-wrapper';
 
 type AssetType = 'logo' | 'favicon';
 
@@ -12,61 +11,11 @@ export interface TenantAssetStorage {
     deleteAsset(url: string): Promise<void>;
 }
 
-let _instance: TenantAssetStorage | undefined;
-
-interface TenantAssetStorageConfig {
-    storage?: IStorage;
-    storageEmulatorHost?: string | null;
-}
-
-/**
- * Factory function to create TenantAssetStorage with dependency injection support.
- *
- * @param config - Optional configuration for testing
- * @param config.storage - IStorage instance (defaults to production Firebase Storage)
- * @param config.storageEmulatorHost - Emulator host for URL generation (defaults to process.env.FIREBASE_STORAGE_EMULATOR_HOST)
- * @returns Singleton TenantAssetStorage instance
- */
-export function createTenantAssetStorage(config?: IStorage | TenantAssetStorageConfig): TenantAssetStorage {
-    if (!_instance) {
-        // Support legacy signature: createTenantAssetStorage(storage)
-        // and new signature: createTenantAssetStorage({ storage, storageEmulatorHost })
-        let storage: IStorage;
-        let storageEmulatorHost: string | null | undefined;
-
-        if (config && 'bucket' in config) {
-            // Legacy: IStorage passed directly
-            storage = config;
-            storageEmulatorHost = undefined; // Use default from process.env
-        } else {
-            // New: Config object
-            const cfg = config as TenantAssetStorageConfig | undefined;
-            storage = cfg?.storage ?? createStorage(getStorage());
-            storageEmulatorHost = cfg?.storageEmulatorHost;
-        }
-
-        _instance = new CloudTenantAssetStorage(storage, storageEmulatorHost);
-    }
-    return _instance;
-}
-
-/**
- * Reset the singleton instance. Only used for testing.
- * @internal
- */
-export function resetTenantAssetStorage(): void {
-    _instance = undefined;
-}
-
-class CloudTenantAssetStorage implements TenantAssetStorage {
-    private readonly storageEmulatorHost: string | null;
-
+export class CloudTenantAssetStorage implements TenantAssetStorage {
     constructor(
         private readonly storage: IStorage,
-        storageEmulatorHost: string | null | undefined = process.env.FIREBASE_STORAGE_EMULATOR_HOST,
-    ) {
-        this.storageEmulatorHost = storageEmulatorHost ?? null;
-    }
+        private readonly storagePublicBaseUrl: string,
+    ) {}
 
     async uploadAsset(
         tenantId: string,
@@ -168,13 +117,7 @@ class CloudTenantAssetStorage implements TenantAssetStorage {
 
     private generatePublicUrl(bucketName: string, filePath: string): string {
         const encodedPath = encodeURIComponent(filePath);
-        if (this.storageEmulatorHost) {
-            // Emulator URL format: http://localhost:PORT/v0/b/BUCKET/o/PATH?alt=media
-            return `http://${this.storageEmulatorHost}/v0/b/${bucketName}/o/${encodedPath}?alt=media`;
-        } else {
-            // Firebase Storage URL format (works with Firebase security rules)
-            return `https://firebasestorage.googleapis.com/v0/b/${bucketName}/o/${encodedPath}?alt=media`;
-        }
+        return `${this.storagePublicBaseUrl}/v0/b/${bucketName}/o/${encodedPath}?alt=media`;
     }
 
     private extractPathFromUrl(url: string): string {

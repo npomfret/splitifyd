@@ -5,13 +5,16 @@ import { CloudThemeArtifactStorage } from '../../../../services/storage/CloudThe
 
 describe('CloudThemeArtifactStorage', () => {
     let stubStorage: StubStorage;
+    const emulatorHost = 'localhost:9199';
+    const emulatorBaseUrl = `http://${emulatorHost}`;
+    const prodBaseUrl = 'https://firebasestorage.googleapis.com';
 
     beforeEach(() => {
         stubStorage = new StubStorage({ defaultBucketName: 'test-bucket' });
     });
 
-    it('generates production URLs when storageEmulatorHost is null', async () => {
-        const storage = new CloudThemeArtifactStorage(stubStorage, null);
+    it('generates production URLs when using production base URL', async () => {
+        const storage = new CloudThemeArtifactStorage(stubStorage, prodBaseUrl);
 
         const payload = new ThemeArtifactPayloadBuilder()
             .withTenantId('tenant-123')
@@ -28,8 +31,8 @@ describe('CloudThemeArtifactStorage', () => {
         expect(result.tokensUrl).toBe('https://firebasestorage.googleapis.com/v0/b/test-bucket/o/theme-artifacts%2Ftenant-123%2Fabc%2Ftokens.json?alt=media');
     });
 
-    it('generates emulator URLs when storageEmulatorHost is provided', async () => {
-        const storage = new CloudThemeArtifactStorage(stubStorage, 'localhost:9199');
+    it('generates emulator URLs when using emulator base URL', async () => {
+        const storage = new CloudThemeArtifactStorage(stubStorage, emulatorBaseUrl);
 
         const payload = new ThemeArtifactPayloadBuilder()
             .withTenantId('tenant-123')

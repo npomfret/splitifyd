@@ -1,50 +1,7 @@
-import { ThemeArtifactPayloadBuilder } from '@billsplit-wl/test-support';
-import { StubStorage } from 'ts-firebase-simulator';
-import { beforeEach, describe, expect, it } from 'vitest';
-import { computeSha256, createThemeArtifactStorage, resetThemeArtifactStorage } from '../../../../services/storage/ThemeArtifactStorage';
+import { describe, expect, it } from 'vitest';
+import { computeSha256 } from '../../../../services/storage/ThemeArtifactStorage';
 
-describe('ThemeArtifactStorage factory', () => {
-    let stubStorage: StubStorage;
-
-    beforeEach(() => {
-        // Reset singleton for test isolation
-        resetThemeArtifactStorage();
-        stubStorage = new StubStorage({ defaultBucketName: 'unit-theme-bucket' });
-    });
-
-    it('creates a singleton and wires through injected storage', () => {
-        const first = createThemeArtifactStorage({ storage: stubStorage, storageEmulatorHost: null });
-        const second = createThemeArtifactStorage({ storage: stubStorage, storageEmulatorHost: null });
-
-        expect(first).toBe(second);
-    });
-
-    it('saves artifacts via the stub storage instance', async () => {
-        const storage = createThemeArtifactStorage({ storage: stubStorage, storageEmulatorHost: null });
-
-        const payload = new ThemeArtifactPayloadBuilder()
-            .withTenantId('tenant-abc')
-            .withHash('hash-123')
-            .withCssContent('body { color: #000; }')
-            .withTokensJson('{"palette":{"primary":"#000000"}}')
-            .build();
-
-        const result = await storage.save(payload);
-
-        // URLs are URL-encoded Firebase Storage format
-        const expectedCssPath = encodeURIComponent(`theme-artifacts/${payload.tenantId}/${payload.hash}/theme.css`);
-        const expectedTokensPath = encodeURIComponent(`theme-artifacts/${payload.tenantId}/${payload.hash}/tokens.json`);
-        expect(result.cssUrl).toContain(expectedCssPath);
-        expect(result.tokensUrl).toContain(expectedTokensPath);
-
-        const bucketName = stubStorage.bucket().name;
-        const cssSnapshot = stubStorage.getFile(bucketName, `theme-artifacts/${payload.tenantId}/${payload.hash}/theme.css`);
-        const tokensSnapshot = stubStorage.getFile(bucketName, `theme-artifacts/${payload.tenantId}/${payload.hash}/tokens.json`);
-
-        expect(cssSnapshot?.content.toString('utf8')).toBe(payload.cssContent);
-        expect(tokensSnapshot?.content.toString('utf8')).toBe(payload.tokensJson);
-    });
-
+describe('ThemeArtifactStorage utilities', () => {
     it('computes stable SHA-256 hashes', () => {
         const value = computeSha256('hello world');
         const sameValue = computeSha256('hello world');

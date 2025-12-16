@@ -26,6 +26,21 @@ describe('Admin User Management - Integration Tests', () => {
         targetUser = users[0];
     });
 
+    afterAll(async () => {
+        // Safety net: ensure admin and target users are re-enabled even if tests fail
+        // This prevents subsequent test runs from failing due to disabled accounts
+        try {
+            await apiDriver.updateUser(adminUser.uid, { disabled: false }, adminUser.token);
+        } catch {
+            // Ignore - admin might already be enabled or token might be invalid
+        }
+        try {
+            await apiDriver.updateUser(targetUser.uid, { disabled: false }, adminUser.token);
+        } catch {
+            // Ignore - target might already be enabled
+        }
+    });
+
     describe('PUT /admin/users/:uid - Disable User', () => {
         it('should successfully disable a user account', async () => {
             // Execute: Disable the target user (returns 204 No Content)

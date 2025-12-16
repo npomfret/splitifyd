@@ -23,9 +23,9 @@ export interface ServiceConfig {
      */
     minRegistrationDurationMs: number;
     /**
-     * Storage emulator host (e.g., "localhost:9199"), or null for production
+     * Base URL for public storage access (emulator or production)
      */
-    storageEmulatorHost: string | null;
+    storagePublicBaseUrl: string;
     /**
      * Service account email for Cloud Tasks OIDC authentication
      * Defaults to the project's default App Engine service account
@@ -84,7 +84,7 @@ function buildServiceConfig(): ServiceConfig {
             cloudTasksServiceAccount: 'foo',
             functionsUrl: 'foo',
             minRegistrationDurationMs: -1,
-            storageEmulatorHost: 'foo',
+            storagePublicBaseUrl: 'https://firebasestorage.googleapis.com',
         };
     } else if (isRealFirebase()) {
         const requiredVars = [
@@ -107,7 +107,7 @@ function buildServiceConfig(): ServiceConfig {
             cloudTasksServiceAccount: env.__CLOUD_TASKS_SERVICE_ACCOUNT!,
             functionsUrl: `https://${cloudTasksLocation}-${projectId}.cloudfunctions.net`,
             minRegistrationDurationMs: env.__MIN_REGISTRATION_DURATION_MS!,
-            storageEmulatorHost: null,
+            storagePublicBaseUrl: 'https://firebasestorage.googleapis.com',
         };
     } else if (isEmulator()) {
         const requiredVars = [
@@ -132,7 +132,9 @@ function buildServiceConfig(): ServiceConfig {
             cloudTasksServiceAccount: 'foo',
             functionsUrl,
             minRegistrationDurationMs: env.__MIN_REGISTRATION_DURATION_MS,
-            storageEmulatorHost: env.FIREBASE_STORAGE_EMULATOR_HOST || null,
+            storagePublicBaseUrl: env.FIREBASE_STORAGE_EMULATOR_HOST
+                ? `http://${env.FIREBASE_STORAGE_EMULATOR_HOST}`
+                : 'https://firebasestorage.googleapis.com',
         };
     } else {
         throw Error('should not get here');

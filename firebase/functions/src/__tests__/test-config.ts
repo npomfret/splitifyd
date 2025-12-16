@@ -10,8 +10,8 @@ export function createUnitTestServiceConfig(): ServiceConfig {
         projectId: 'test-project',
         cloudTasksLocation: 'us-central1',
         cloudTasksServiceAccount: 'test-project@appspot.gserviceaccount.com',
-        functionsUrl: 'http://localhost:5001/test-project/us-central1',
+        functionsUrl: 'http://foo/test-project/us-central1',
         minRegistrationDurationMs: 0,
-        storageEmulatorHost: null,
+        storagePublicBaseUrl: 'https://firebasestorage.googleapis.com',
     };
 }
