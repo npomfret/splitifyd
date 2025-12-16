@@ -594,6 +594,17 @@
     "Deposito",
     "Deposito sa Seguridad"
   ],
+  "receiptUploader": {
+    "label": "Resibo",
+    "addReceipt": "Magdagdag ng resibo",
+    "changeReceipt": "Palitan ang resibo",
+    "removeReceipt": "Alisin ang resibo",
+    "helperText": "JPEG, PNG, o WebP hanggang 10MB",
+    "fileTooLarge": "Ang file ay dapat mas mababa sa 10MB",
+    "invalidType": "Tanging JPEG, PNG, at WebP na mga larawan lamang ang pinapayagan",
+    "previewAlt": "Preview ng resibo",
+    "imageFailedToLoad": "Hindi ma-load ang larawan"
+  },
   "expensesList": {
     "noExpensesYet": "Wala pang mga gastusin. Magdagdag ng isa para magsimula!",
     "loadMore": "Mag-load pa"

@@ -594,6 +594,17 @@
     "Borg",
     "Waarborg"
   ],
+  "receiptUploader": {
+    "label": "Bonnetje",
+    "addReceipt": "Bonnetje toevoegen",
+    "changeReceipt": "Bonnetje wijzigen",
+    "removeReceipt": "Bonnetje verwijderen",
+    "helperText": "JPEG, PNG of WebP tot 10 MB",
+    "fileTooLarge": "Bestand moet kleiner zijn dan 10 MB",
+    "invalidType": "Alleen JPEG-, PNG- en WebP-afbeeldingen zijn toegestaan",
+    "previewAlt": "Voorbeeld van bonnetje",
+    "imageFailedToLoad": "Afbeelding kon niet worden geladen"
+  },
   "expensesList": {
     "noExpensesYet": "Nog geen uitgaven. Voeg er een toe om te beginnen!",
     "loadMore": "Meer laden"

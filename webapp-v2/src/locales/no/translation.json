@@ -593,6 +593,17 @@
     "Depositum",
     "Sikkerhetsdepositum"
   ],
+  "receiptUploader": {
+    "label": "Kvittering",
+    "addReceipt": "Legg til kvittering",
+    "changeReceipt": "Endre kvittering",
+    "removeReceipt": "Fjern kvittering",
+    "helperText": "JPEG, PNG eller WebP opptil 10 MB",
+    "fileTooLarge": "Filen må være under 10 MB",
+    "invalidType": "Kun JPEG-, PNG- og WebP-bilder er tillatt",
+    "previewAlt": "Forhåndsvisning av kvittering",
+    "imageFailedToLoad": "Kunne ikke laste inn bildet"
+  },
   "expensesList": {
     "noExpensesYet": "Ingen utgifter ennå. Legg til en for å komme i gang!",
     "loadMore": "Last flere"

@@ -7,6 +7,7 @@ import type { UserScopedStorage } from '@/utils/userScopedStorage.ts';
 import {
     Amount,
     amountToSmallestUnit,
+    AttachmentId,
     calculateEqualSplits,
     calculateExactSplits,
     calculatePercentageSplits,
@@ -21,6 +22,7 @@ import {
     GroupId,
     smallestUnitToAmountString,
     SplitTypes,
+    toAttachmentId,
     toCurrencyISOCode,
 } from '@billsplit-wl/shared';
 import type { CurrencyISOCode, UserId } from '@billsplit-wl/shared';
@@ -55,6 +57,12 @@ interface ExpenseFormStore {
     participants: UserId[];
     splits: ExpenseSplit[];
 
+    // Receipt state
+    receiptFile: File | null;
+    receiptUrl: string | null;
+    receiptUploading: boolean;
+    receiptError: string | null;
+
     // UI state
     loading: boolean;
     saving: boolean;
@@ -76,6 +84,10 @@ interface ExpenseFormStore {
     readonly savingSignal: ReadonlySignal<boolean>;
     readonly errorSignal: ReadonlySignal<string | null>;
     readonly validationErrorsSignal: ReadonlySignal<Record<string, string>>;
+    readonly receiptFileSignal: ReadonlySignal<File | null>;
+    readonly receiptUrlSignal: ReadonlySignal<string | null>;
+    readonly receiptUploadingSignal: ReadonlySignal<boolean>;
+    readonly receiptErrorSignal: ReadonlySignal<string | null>;
 
     // Actions
     updateField<K extends keyof ExpenseFormData>(field: K, value: ExpenseFormData[K]): void;
@@ -95,6 +107,11 @@ interface ExpenseFormStore {
     saveDraft(groupId: GroupId): void;
     loadDraft(groupId: GroupId): boolean;
     clearDraft(groupId: GroupId): void;
+
+    // Receipt management
+    setReceiptFile(file: File | null): void;
+    setReceiptUrl(url: string | null): void;
+    clearReceiptError(): void;
 
     // Storage management
     setStorage(storage: UserScopedStorage): void;
@@ -224,6 +241,13 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     readonly #errorSignal = signal<string | null>(null);
     readonly #validationErrorsSignal = signal<Record<string, string>>({});
 
+    // Receipt signals
+    readonly #receiptFileSignal = signal<File | null>(null);
+    readonly #receiptUrlSignal = signal<string | null>(null);
+    readonly #receiptUploadingSignal = signal<boolean>(false);
+    readonly #receiptErrorSignal = signal<string | null>(null);
+    #originalReceiptUrl: string | null = null; // For tracking receipt replacement
+
     // Initial state snapshot for tracking unsaved changes
     #initialState: {
         description: string;
@@ -236,6 +260,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         splitType: typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE;
         participants: string[];
         splits: ExpenseSplit[];
+        receiptUrl: string | null;
     } | null = null;
 
     private getActiveCurrency(): CurrencyISOCode | null {
@@ -339,6 +364,18 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     get validationErrors() {
         return this.#validationErrorsSignal.value;
     }
+    get receiptFile() {
+        return this.#receiptFileSignal.value;
+    }
+    get receiptUrl() {
+        return this.#receiptUrlSignal.value;
+    }
+    get receiptUploading() {
+        return this.#receiptUploadingSignal.value;
+    }
+    get receiptError() {
+        return this.#receiptErrorSignal.value;
+    }
 
     // Signal accessors for reactive components - return readonly signals
     get descriptionSignal(): ReadonlySignal<string> {
@@ -385,6 +422,18 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     }
     get validationErrorsSignal(): ReadonlySignal<Record<string, string>> {
         return this.#validationErrorsSignal;
+    }
+    get receiptFileSignal(): ReadonlySignal<File | null> {
+        return this.#receiptFileSignal;
+    }
+    get receiptUrlSignal(): ReadonlySignal<string | null> {
+        return this.#receiptUrlSignal;
+    }
+    get receiptUploadingSignal(): ReadonlySignal<boolean> {
+        return this.#receiptUploadingSignal;
+    }
+    get receiptErrorSignal(): ReadonlySignal<string | null> {
+        return this.#receiptErrorSignal;
     }
 
     // Computed property to check if required fields are filled (for button enabling)
@@ -906,6 +955,26 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         this.#errorSignal.value = null;
 
         try {
+            // Upload receipt if file selected
+            let receiptUrl: string | undefined = this.#receiptUrlSignal.value ?? undefined;
+            if (this.#receiptFileSignal.value) {
+                this.#receiptUploadingSignal.value = true;
+                try {
+                    const response = await apiClient.uploadAttachment(
+                        groupId,
+                        'receipt',
+                        this.#receiptFileSignal.value,
+                        this.#receiptFileSignal.value.type,
+                    );
+                    receiptUrl = response.url;
+                } catch (uploadError) {
+                    this.#receiptErrorSignal.value = 'Failed to upload receipt';
+                    throw uploadError;
+                } finally {
+                    this.#receiptUploadingSignal.value = false;
+                }
+            }
+
             // Convert date and time to UTC timestamp
             const utcDateTime = getUTCDateTime(this.#dateSignal.value, this.#timeSignal.value);
 
@@ -929,6 +998,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
                 splitType: this.#splitTypeSignal.value,
                 participants: this.#participantsSignal.value,
                 splits: this.#splitsSignal.value,
+                receiptUrl,
             };
 
             const expense = await apiClient.createExpense(request);
@@ -962,6 +1032,41 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         this.#errorSignal.value = null;
 
         try {
+            // Handle receipt upload/replacement/removal
+            let receiptUrl: string | undefined = this.#receiptUrlSignal.value ?? undefined;
+
+            // Upload new receipt if file selected
+            if (this.#receiptFileSignal.value) {
+                this.#receiptUploadingSignal.value = true;
+                try {
+                    const response = await apiClient.uploadAttachment(
+                        groupId,
+                        'receipt',
+                        this.#receiptFileSignal.value,
+                        this.#receiptFileSignal.value.type,
+                    );
+                    receiptUrl = response.url;
+                } catch (uploadError) {
+                    this.#receiptErrorSignal.value = 'Failed to upload receipt';
+                    throw uploadError;
+                } finally {
+                    this.#receiptUploadingSignal.value = false;
+                }
+            }
+
+            // Delete old receipt if replacing or removing (fire-and-forget)
+            const oldReceiptUrl = this.#originalReceiptUrl;
+            const isReplacingReceipt = this.#receiptFileSignal.value !== null;
+            const isRemovingReceipt = !this.#receiptUrlSignal.value && !this.#receiptFileSignal.value;
+            if (oldReceiptUrl && (isReplacingReceipt || isRemovingReceipt)) {
+                const oldAttachmentId = this.extractAttachmentIdFromUrl(oldReceiptUrl);
+                if (oldAttachmentId) {
+                    apiClient.deleteAttachment(groupId, oldAttachmentId).catch((err) => {
+                        logWarning('[ExpenseForm] Failed to delete old receipt', { error: err });
+                    });
+                }
+            }
+
             // Convert date and time to UTC timestamp
             const utcDateTime = getUTCDateTime(this.#dateSignal.value, this.#timeSignal.value);
 
@@ -978,6 +1083,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
                 splitType: this.#splitTypeSignal.value,
                 participants: this.#participantsSignal.value,
                 splits: this.#splitsSignal.value,
+                receiptUrl,
             };
 
             // updateExpense returns the NEW expense (edit history creates a new document with new ID)
@@ -1006,6 +1112,37 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         this.#errorSignal.value = null;
     }
 
+    // Receipt management methods
+    setReceiptFile(file: File | null): void {
+        this.#receiptFileSignal.value = file;
+        this.#receiptErrorSignal.value = null;
+        // When a new file is selected, clear the URL (we'll get a new one after upload)
+        if (file) {
+            this.#receiptUrlSignal.value = null;
+        }
+    }
+
+    setReceiptUrl(url: string | null): void {
+        this.#receiptUrlSignal.value = url;
+        // Track original URL for replacement detection
+        this.#originalReceiptUrl = url;
+        this.#receiptFileSignal.value = null;
+        this.#receiptErrorSignal.value = null;
+    }
+
+    clearReceiptError(): void {
+        this.#receiptErrorSignal.value = null;
+    }
+
+    /**
+     * Extract attachment ID from proxy URL.
+     * URL format: /api/groups/{groupId}/attachments/{attachmentId}
+     */
+    private extractAttachmentIdFromUrl(url: string): AttachmentId | null {
+        const match = url.match(/\/attachments\/([^/?]+)/);
+        return match ? toAttachmentId(match[1]) : null;
+    }
+
     reset(): void {
         this.#descriptionSignal.value = '';
         this.#amountSignal.value = '';
@@ -1020,6 +1157,12 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         this.#splitsSignal.value = [];
         this.#errorSignal.value = null;
         this.#validationErrorsSignal.value = {};
+        // Reset receipt state
+        this.#receiptFileSignal.value = null;
+        this.#receiptUrlSignal.value = null;
+        this.#receiptUploadingSignal.value = false;
+        this.#receiptErrorSignal.value = null;
+        this.#originalReceiptUrl = null;
     }
 
     /**
@@ -1037,6 +1180,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
             splitType: this.#splitTypeSignal.value,
             participants: [...this.#participantsSignal.value],
             splits: [...this.#splitsSignal.value],
+            receiptUrl: this.#receiptUrlSignal.value,
         };
     }
 
@@ -1054,10 +1198,16 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
                 || this.#splitTypeSignal.value !== SplitTypes.EQUAL
                 || this.#participantsSignal.value.length > 0
                 || this.#splitsSignal.value.length > 0
+                || this.#receiptFileSignal.value !== null
+                || this.#receiptUrlSignal.value !== null
             );
         }
 
         // Compare current state against captured initial state
+        // Receipt has changed if: file selected, URL changed, or URL removed
+        const receiptChanged = this.#receiptFileSignal.value !== null
+            || this.#receiptUrlSignal.value !== this.#initialState.receiptUrl;
+
         return (
             this.#descriptionSignal.value !== this.#initialState.description
             || this.#amountSignal.value !== this.#initialState.amount
@@ -1069,6 +1219,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
             || this.#splitTypeSignal.value !== this.#initialState.splitType
             || JSON.stringify(this.#participantsSignal.value) !== JSON.stringify(this.#initialState.participants)
             || JSON.stringify(this.#splitsSignal.value) !== JSON.stringify(this.#initialState.splits)
+            || receiptChanged
         );
     }
 

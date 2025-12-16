@@ -593,6 +593,17 @@
     "إيداع",
     "وديعة تأمين"
   ],
+  "receiptUploader": {
+    "label": "الإيصال",
+    "addReceipt": "إضافة إيصال",
+    "changeReceipt": "تغيير الإيصال",
+    "removeReceipt": "إزالة الإيصال",
+    "helperText": "JPEG أو PNG أو WebP حتى 10 ميجابايت",
+    "fileTooLarge": "يجب أن يكون حجم الملف أقل من 10 ميجابايت",
+    "invalidType": "يُسمح فقط بصور JPEG وPNG وWebP",
+    "previewAlt": "معاينة الإيصال",
+    "imageFailedToLoad": "فشل تحميل الصورة"
+  },
   "expensesList": {
     "noExpensesYet": "لا توجد مصروفات حتى الآن. أضف واحدة للبدء!",
     "loadMore": "تحميل المزيد"

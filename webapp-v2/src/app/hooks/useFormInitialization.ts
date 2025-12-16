@@ -80,6 +80,9 @@ export function useFormInitialization({ isOpen, groupId, expenseId, isEditMode, 
                 expenseFormStore.updateSplitPercentage(split.uid, percentage);
             }
         });
+
+        // Load existing receipt URL (if any)
+        expenseFormStore.setReceiptUrl(expense.receiptUrl ?? null);
     };
 
     // Load expense data for copy mode

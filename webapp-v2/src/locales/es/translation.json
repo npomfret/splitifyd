@@ -593,6 +593,17 @@
     "Depósito",
     "Depósito de seguridad"
   ],
+  "receiptUploader": {
+    "label": "Recibo",
+    "addReceipt": "Añadir recibo",
+    "changeReceipt": "Cambiar recibo",
+    "removeReceipt": "Eliminar recibo",
+    "helperText": "JPEG, PNG o WebP hasta 10 MB",
+    "fileTooLarge": "El archivo debe ser menor de 10 MB",
+    "invalidType": "Solo se permiten imágenes JPEG, PNG y WebP",
+    "previewAlt": "Vista previa del recibo",
+    "imageFailedToLoad": "No se pudo cargar la imagen"
+  },
   "expensesList": {
     "noExpensesYet": "Todavía no hay gastos. ¡Añada uno para empezar!",
     "loadMore": "Cargar más"

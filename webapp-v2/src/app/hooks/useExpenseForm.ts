@@ -127,6 +127,12 @@ export function useExpenseForm({ isOpen, groupId, expenseId, isEditMode, isCopyM
         participants: formState.participants,
         splits: formState.splits,
 
+        // Receipt state
+        receiptFile: formState.receiptFile,
+        receiptUrl: formState.receiptUrl,
+        receiptUploading: formState.receiptUploading,
+        receiptError: formState.receiptError,
+
         // Store data
         group: formInitialization.group,
         members: formInitialization.members,
@@ -138,6 +144,8 @@ export function useExpenseForm({ isOpen, groupId, expenseId, isEditMode, isCopyM
         validateOnBlur: formState.validateOnBlur,
         updateSplitAmount: formState.updateSplitAmount,
         updateSplitPercentage: formState.updateSplitPercentage,
+        setReceiptFile: formState.setReceiptFile,
+        clearReceiptError: formState.clearReceiptError,
 
         // Actions from submission
         handleSubmit: formSubmission.handleSubmit,

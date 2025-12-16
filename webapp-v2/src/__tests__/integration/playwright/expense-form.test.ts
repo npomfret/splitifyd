@@ -1973,4 +1973,94 @@ test.describe('Expense Form', () => {
             await expenseFormPage.verifyClearLocationButtonNotVisible();
         });
     });
+
+    test.describe('Receipt Upload', () => {
+        test('should display receipt section with add button when no receipt', async ({ authenticatedPage }) => {
+            const groupId = 'test-group-receipt-initial';
+            const { expenseFormPage } = await openExpenseFormForTest(authenticatedPage, groupId);
+
+            await expenseFormPage.waitForExpenseFormSections();
+
+            // Receipt section should be visible with add button
+            await expenseFormPage.verifyReceiptSectionVisible();
+            await expenseFormPage.verifyAddReceiptButtonVisible();
+            await expenseFormPage.verifyReceiptPreviewNotVisible();
+            await expenseFormPage.verifyChangeReceiptButtonNotVisible();
+        });
+
+        test('should show change button after selecting a file', async ({ authenticatedPage }) => {
+            const groupId = 'test-group-receipt-select';
+            const { expenseFormPage, page } = await openExpenseFormForTest(authenticatedPage, groupId);
+
+            await expenseFormPage.waitForExpenseFormSections();
+
+            // Valid 1x1 red pixel PNG - renders correctly in browsers
+            const pngBuffer = Buffer.from(
+                'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==',
+                'base64',
+            );
+
+            // Set the file on the hidden input
+            const fileInput = page.locator('input[type="file"]');
+            await fileInput.setInputFiles({
+                name: 'receipt.png',
+                mimeType: 'image/png',
+                buffer: pngBuffer,
+            });
+
+            // After selecting, add button should be hidden and change button visible
+            await expenseFormPage.verifyAddReceiptButtonNotVisible();
+            await expenseFormPage.verifyChangeReceiptButtonVisible();
+        });
+
+        test('should show error for invalid file type', async ({ authenticatedPage }) => {
+            const groupId = 'test-group-receipt-invalid-type';
+            const { expenseFormPage, page } = await openExpenseFormForTest(authenticatedPage, groupId);
+
+            await expenseFormPage.waitForExpenseFormSections();
+
+            // Try to upload a text file (invalid type)
+            const fileInput = page.locator('input[type="file"]');
+            await fileInput.setInputFiles({
+                name: 'document.txt',
+                mimeType: 'text/plain',
+                buffer: Buffer.from('This is not an image'),
+            });
+
+            // Error should be displayed
+            await expenseFormPage.verifyReceiptErrorVisible();
+            await expenseFormPage.verifyReceiptErrorContains('JPEG, PNG, and WebP');
+
+            // Preview should not be shown, add button should still be visible
+            await expenseFormPage.verifyReceiptPreviewNotVisible();
+            await expenseFormPage.verifyAddReceiptButtonVisible();
+        });
+
+        test('should show error for file that is too large', async ({ authenticatedPage }) => {
+            const groupId = 'test-group-receipt-too-large';
+            const { expenseFormPage, page } = await openExpenseFormForTest(authenticatedPage, groupId);
+
+            await expenseFormPage.waitForExpenseFormSections();
+
+            // Create a buffer larger than 10MB (11MB)
+            const largeBuffer = Buffer.alloc(11 * 1024 * 1024);
+            // Add minimal PNG header to pass type check
+            const pngHeader = Buffer.from([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]);
+            pngHeader.copy(largeBuffer);
+
+            const fileInput = page.locator('input[type="file"]');
+            await fileInput.setInputFiles({
+                name: 'large-receipt.png',
+                mimeType: 'image/png',
+                buffer: largeBuffer,
+            });
+
+            // Error should be displayed
+            await expenseFormPage.verifyReceiptErrorVisible();
+            await expenseFormPage.verifyReceiptErrorContains('10MB');
+
+            // Preview should not be shown
+            await expenseFormPage.verifyReceiptPreviewNotVisible();
+        });
+    });
 });

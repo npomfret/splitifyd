@@ -289,9 +289,9 @@ Add `<ReceiptUploader>` component.
 - [x] **Phase 2**: Backend upload/get/delete endpoints
 - [x] **Phase 3**: Comment schema + service updates for attachments
 - [x] **Phase 4**: Frontend API client methods
-- [ ] **Phase 5**: Expense receipt upload UI
+- [x] **Phase 5**: Expense receipt upload UI
 - [ ] **Phase 6**: Comment attachment upload/display UI
-- [ ] **Phase 7**: Unit tests and Playwright tests
+- [ ] **Phase 7**: Unit tests and Playwright tests (receipt tests complete, comment attachment tests pending Phase 6)
 
 ## Progress Notes
 
@@ -300,4 +300,5 @@ Add `<ReceiptUploader>` component.
 - Backend endpoints now live: attachment handlers (upload/stream/delete) are wired via `ApplicationFactory` + route-config, with middleware raw parsing for binary bodies and membership validation. Uploads validate content/magic numbers, store to Storage with metadata, return proxy URL, support stub streaming for unit tests, and delete resolves by ID.
 - **Phase 3 complete**: Comment schema updated with `attachments` field, `CommentService.createGroupComment/createExpenseComment` now accept `attachmentIds` and resolve them to `AttachmentRef` metadata. Delete comment endpoints (`DELETE /groups/:groupId/comments/:commentId` and `DELETE /expenses/:expenseId/comments/:commentId`) implemented with cascade delete for attachments. `FirestoreWriter.deleteGroupComment/deleteExpenseComment` added. API interface (`api.ts`) and all API drivers updated.
 - **Phase 4 complete**: `apiClient.deleteGroupComment/deleteExpenseComment` implemented in webapp.
-- **Phase 7 partial**: Unit tests comprehensive for backend attachment features (47 tests in CommentHandlers.test.ts covering delete endpoints, attachment creation, validation, cascade delete, listing). Playwright tests for UI pending Phases 5 & 6.
+- **Phase 5 complete**: Expense receipt upload UI implemented. `expense-form-store.ts` extended with receipt signals and upload/replace/remove logic. `ReceiptUploader.tsx` component created with file input, preview, and validation. Component integrated into `ExpenseFormModal.tsx`. Receipt URLs loaded in edit mode via `useFormInitialization.ts`. State exposed through `useFormState.ts` and `useExpenseForm.ts`. i18n keys added.
+- **Phase 7 partial**: Unit tests comprehensive for backend attachment features (47 tests in CommentHandlers.test.ts covering delete endpoints, attachment creation, validation, cascade delete, listing). Receipt UI tests complete: 18 unit tests for `expense-form-store` receipt functionality (setReceiptFile, setReceiptUrl, clearReceiptError, reset, hasUnsavedChanges, signal accessors) + 4 Playwright integration tests for ReceiptUploader (section visibility, file selection, invalid type error, file too large error). ExpenseFormPage POM extended with receipt verification methods. Comment attachment UI tests pending Phase 6.

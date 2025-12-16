@@ -27,6 +27,12 @@ export function useFormState() {
     const participants = useComputed(() => expenseFormStore.participants);
     const splits = useComputed(() => expenseFormStore.splits);
 
+    // Receipt state
+    const receiptFile = useComputed(() => expenseFormStore.receiptFile);
+    const receiptUrl = useComputed(() => expenseFormStore.receiptUrl);
+    const receiptUploading = useComputed(() => expenseFormStore.receiptUploading);
+    const receiptError = useComputed(() => expenseFormStore.receiptError);
+
     // Wrapper for updateField to handle type issues
     const updateField = (field: string, value: any) => {
         expenseFormStore.updateField(field as any, value);
@@ -65,6 +71,12 @@ export function useFormState() {
         participants: participants.value,
         splits: splits.value,
 
+        // Receipt state
+        receiptFile: receiptFile.value,
+        receiptUrl: receiptUrl.value,
+        receiptUploading: receiptUploading.value,
+        receiptError: receiptError.value,
+
         // Actions
         updateField,
         handleAmountChange,
@@ -72,5 +84,9 @@ export function useFormState() {
         validateOnBlur: (field: string) => expenseFormStore.validateOnBlur(field as any),
         updateSplitAmount: (userId: UserId, amount: Amount) => expenseFormStore.updateSplitAmount(userId, amount),
         updateSplitPercentage: (userId: UserId, percentage: number) => expenseFormStore.updateSplitPercentage(userId, percentage),
+
+        // Receipt actions
+        setReceiptFile: (file: File | null) => expenseFormStore.setReceiptFile(file),
+        clearReceiptError: () => expenseFormStore.clearReceiptError(),
     };
 }

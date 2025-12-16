@@ -1538,4 +1538,200 @@ export class ExpenseFormPage extends BasePage {
         const currencyButton = this.getCurrencySelect();
         await expect(currencyButton).toContainText(expectedCurrency);
     }
+
+    // ============================================================================
+    // RECEIPT UPLOADER
+    // ============================================================================
+
+    /**
+     * Receipt section - contains file input, preview, and buttons
+     * Uses semantic region with aria-label
+     */
+    private getReceiptSection(): Locator {
+        return this.page.getByRole('region', { name: translation.receiptUploader.label });
+    }
+
+    /**
+     * Add receipt button
+     */
+    protected getAddReceiptButton(): Locator {
+        return this.getReceiptSection().getByRole('button', { name: translation.receiptUploader.addReceipt });
+    }
+
+    /**
+     * Change receipt button (shown when receipt exists)
+     */
+    protected getChangeReceiptButton(): Locator {
+        return this.getReceiptSection().getByRole('button', { name: translation.receiptUploader.changeReceipt });
+    }
+
+    /**
+     * Remove receipt button (X button on preview)
+     */
+    protected getRemoveReceiptButton(): Locator {
+        return this.getReceiptSection().getByRole('button', { name: translation.receiptUploader.removeReceipt });
+    }
+
+    /**
+     * Receipt preview image
+     */
+    protected getReceiptPreview(): Locator {
+        return this.getReceiptSection().getByRole('img', { name: translation.receiptUploader.previewAlt });
+    }
+
+    /**
+     * Hidden file input for receipt
+     */
+    private getReceiptFileInput(): Locator {
+        return this.getReceiptSection().locator('input[type="file"]');
+    }
+
+    /**
+     * Receipt error message
+     */
+    protected getReceiptError(): Locator {
+        return this.getReceiptSection().getByRole('alert');
+    }
+
+    /**
+     * Loading spinner in receipt section
+     */
+    protected getReceiptLoadingSpinner(): Locator {
+        return this.getReceiptSection().locator('[aria-label="Loading"]');
+    }
+
+    /**
+     * Add a receipt by selecting a file
+     * Note: Playwright can set files on hidden inputs directly
+     */
+    async addReceiptFile(filePath: string): Promise<void> {
+        const fileInput = this.getReceiptFileInput();
+        await fileInput.setInputFiles(filePath);
+    }
+
+    /**
+     * Click the add receipt button (opens file picker)
+     */
+    async clickAddReceiptButton(): Promise<void> {
+        await this.clickButton(this.getAddReceiptButton(), { buttonName: 'Add receipt' });
+    }
+
+    /**
+     * Click the change receipt button (opens file picker)
+     */
+    async clickChangeReceiptButton(): Promise<void> {
+        await this.clickButton(this.getChangeReceiptButton(), { buttonName: 'Change receipt' });
+    }
+
+    /**
+     * Remove the current receipt
+     * Waits for the preview image to be stable before clicking the overlaid button
+     */
+    async removeReceipt(): Promise<void> {
+        // Wait for both the preview and button to be visible and stable
+        const preview = this.getReceiptPreview();
+        const button = this.getRemoveReceiptButton();
+        await expect(preview).toBeVisible();
+        await expect(button).toBeVisible();
+        // Use a longer timeout to account for image loading/rendering
+        await button.click({ timeout: 5000 });
+    }
+
+    /**
+     * Verify receipt section is visible
+     */
+    async verifyReceiptSectionVisible(): Promise<void> {
+        await expect(this.getReceiptSection()).toBeVisible();
+    }
+
+    /**
+     * Verify add receipt button is visible (no receipt selected)
+     */
+    async verifyAddReceiptButtonVisible(): Promise<void> {
+        await expect(this.getAddReceiptButton()).toBeVisible();
+    }
+
+    /**
+     * Verify add receipt button is not visible (receipt is selected)
+     */
+    async verifyAddReceiptButtonNotVisible(): Promise<void> {
+        await expect(this.getAddReceiptButton()).not.toBeVisible();
+    }
+
+    /**
+     * Verify receipt preview is visible
+     */
+    async verifyReceiptPreviewVisible(): Promise<void> {
+        await expect(this.getReceiptPreview()).toBeVisible();
+    }
+
+    /**
+     * Verify receipt preview is not visible
+     */
+    async verifyReceiptPreviewNotVisible(): Promise<void> {
+        await expect(this.getReceiptPreview()).not.toBeVisible();
+    }
+
+    /**
+     * Verify change receipt button is visible
+     */
+    async verifyChangeReceiptButtonVisible(): Promise<void> {
+        await expect(this.getChangeReceiptButton()).toBeVisible();
+    }
+
+    /**
+     * Verify change receipt button is not visible
+     */
+    async verifyChangeReceiptButtonNotVisible(): Promise<void> {
+        await expect(this.getChangeReceiptButton()).not.toBeVisible();
+    }
+
+    /**
+     * Verify remove receipt button is visible
+     */
+    async verifyRemoveReceiptButtonVisible(): Promise<void> {
+        await expect(this.getRemoveReceiptButton()).toBeVisible();
+    }
+
+    /**
+     * Verify remove receipt button is not visible
+     */
+    async verifyRemoveReceiptButtonNotVisible(): Promise<void> {
+        await expect(this.getRemoveReceiptButton()).not.toBeVisible();
+    }
+
+    /**
+     * Verify receipt error message is visible
+     */
+    async verifyReceiptErrorVisible(): Promise<void> {
+        await expect(this.getReceiptError()).toBeVisible();
+    }
+
+    /**
+     * Verify receipt error message contains text
+     */
+    async verifyReceiptErrorContains(text: string): Promise<void> {
+        await expect(this.getReceiptError()).toContainText(text);
+    }
+
+    /**
+     * Verify receipt error is not visible
+     */
+    async verifyReceiptErrorNotVisible(): Promise<void> {
+        await expect(this.getReceiptError()).not.toBeVisible();
+    }
+
+    /**
+     * Verify receipt loading spinner is visible
+     */
+    async verifyReceiptLoadingVisible(): Promise<void> {
+        await expect(this.getReceiptLoadingSpinner()).toBeVisible();
+    }
+
+    /**
+     * Verify receipt loading spinner is not visible
+     */
+    async verifyReceiptLoadingNotVisible(): Promise<void> {
+        await expect(this.getReceiptLoadingSpinner()).not.toBeVisible();
+    }
 }

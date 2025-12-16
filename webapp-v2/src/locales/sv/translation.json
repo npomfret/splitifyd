@@ -594,6 +594,17 @@
     "Deposition",
     "Säkerhetsdeposition"
   ],
+  "receiptUploader": {
+    "label": "Kvitto",
+    "addReceipt": "Lägg till kvitto",
+    "changeReceipt": "Ändra kvitto",
+    "removeReceipt": "Ta bort kvitto",
+    "helperText": "JPEG, PNG eller WebP upp till 10 MB",
+    "fileTooLarge": "Filen måste vara under 10 MB",
+    "invalidType": "Endast JPEG-, PNG- och WebP-bilder är tillåtna",
+    "previewAlt": "Förhandsvisning av kvitto",
+    "imageFailedToLoad": "Kunde inte ladda bilden"
+  },
   "expensesList": {
     "noExpensesYet": "Inga utgifter än. Lägg till en för att komma igång!",
     "loadMore": "Ladda mer"

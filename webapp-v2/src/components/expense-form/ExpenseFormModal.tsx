@@ -8,6 +8,7 @@ import { Button, Card, ErrorState, LoadingState, Stack, Tooltip, Typography } fr
 import { ExpenseBasicFields } from './ExpenseBasicFields';
 import { ParticipantSelector } from './ParticipantSelector';
 import { PayerSelector } from './PayerSelector';
+import { ReceiptUploader } from './ReceiptUploader';
 import { SplitAmountInputs } from './SplitAmountInputs';
 import { SplitTypeSelector } from './SplitTypeSelector';
 
@@ -145,6 +146,17 @@ export function ExpenseFormModal({ isOpen, onClose, groupId, mode, expenseId, on
                                 recentlyUsedLabels={formState.recentlyUsedLabels}
                                 permittedCurrencies={formState.group.currencySettings?.permitted}
                                 recentLocations={formState.recentLocations}
+                            />
+
+                            {/* Receipt upload */}
+                            <ReceiptUploader
+                                receiptUrl={formState.receiptUrl}
+                                receiptFile={formState.receiptFile}
+                                uploading={formState.receiptUploading}
+                                error={formState.receiptError}
+                                onFileSelect={formState.setReceiptFile}
+                                onClearError={formState.clearReceiptError}
+                                disabled={formState.saving}
                             />
 
                             {/* Payer selection */}

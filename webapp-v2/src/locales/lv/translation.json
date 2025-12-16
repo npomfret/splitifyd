@@ -594,6 +594,17 @@
     "Depozīts",
     "Drošības nauda"
   ],
+  "receiptUploader": {
+    "label": "Čeks",
+    "addReceipt": "Pievienot čeku",
+    "changeReceipt": "Mainīt čeku",
+    "removeReceipt": "Noņemt čeku",
+    "helperText": "JPEG, PNG vai WebP līdz 10 MB",
+    "fileTooLarge": "Failam jābūt mazākam par 10 MB",
+    "invalidType": "Atļauti tikai JPEG, PNG un WebP attēli",
+    "previewAlt": "Čeka priekšskatījums",
+    "imageFailedToLoad": "Neizdevās ielādēt attēlu"
+  },
   "expensesList": {
     "noExpensesYet": "Vēl nav izdevumu. Pievienojiet vienu, lai sāktu!",
     "loadMore": "Ielādēt vairāk"

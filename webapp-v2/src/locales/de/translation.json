@@ -593,6 +593,17 @@
     "Anzahlung",
     "Kaution"
   ],
+  "receiptUploader": {
+    "label": "Beleg",
+    "addReceipt": "Beleg hinzufügen",
+    "changeReceipt": "Beleg ändern",
+    "removeReceipt": "Beleg entfernen",
+    "helperText": "JPEG, PNG oder WebP bis zu 10 MB",
+    "fileTooLarge": "Datei muss kleiner als 10 MB sein",
+    "invalidType": "Nur JPEG-, PNG- und WebP-Bilder sind erlaubt",
+    "previewAlt": "Belegvorschau",
+    "imageFailedToLoad": "Bild konnte nicht geladen werden"
+  },
   "expensesList": {
     "noExpensesYet": "Noch keine Ausgaben. Fügen Sie eine hinzu, um zu beginnen!",
     "loadMore": "Mehr laden"

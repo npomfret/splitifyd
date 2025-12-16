@@ -594,6 +594,17 @@
     "Deposito",
     "Deposito cauzionale"
   ],
+  "receiptUploader": {
+    "label": "Ricevuta",
+    "addReceipt": "Aggiungi ricevuta",
+    "changeReceipt": "Cambia ricevuta",
+    "removeReceipt": "Rimuovi ricevuta",
+    "helperText": "JPEG, PNG o WebP fino a 10 MB",
+    "fileTooLarge": "Il file deve essere inferiore a 10 MB",
+    "invalidType": "Sono consentite solo immagini JPEG, PNG e WebP",
+    "previewAlt": "Anteprima ricevuta",
+    "imageFailedToLoad": "Impossibile caricare l'immagine"
+  },
   "expensesList": {
     "noExpensesYet": "Nessuna spesa ancora. Aggiungine una per iniziare!",
     "loadMore": "Carica altro"

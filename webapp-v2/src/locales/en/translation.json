@@ -593,6 +593,17 @@
     "Deposit",
     "Security Deposit"
   ],
+  "receiptUploader": {
+    "label": "Receipt",
+    "addReceipt": "Add receipt",
+    "changeReceipt": "Change receipt",
+    "removeReceipt": "Remove receipt",
+    "helperText": "JPEG, PNG, or WebP up to 10MB",
+    "fileTooLarge": "File must be under 10MB",
+    "invalidType": "Only JPEG, PNG, and WebP images are allowed",
+    "previewAlt": "Receipt preview",
+    "imageFailedToLoad": "Image failed to load"
+  },
   "expensesList": {
     "noExpensesYet": "No expenses yet. Add one to get started!",
     "loadMore": "Load More"

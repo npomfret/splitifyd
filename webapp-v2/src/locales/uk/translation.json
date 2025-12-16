@@ -593,6 +593,17 @@
     "Депозит",
     "Застава"
   ],
+  "receiptUploader": {
+    "label": "Квитанція",
+    "addReceipt": "Додати квитанцію",
+    "changeReceipt": "Змінити квитанцію",
+    "removeReceipt": "Видалити квитанцію",
+    "helperText": "JPEG, PNG або WebP до 10 МБ",
+    "fileTooLarge": "Файл має бути менше 10 МБ",
+    "invalidType": "Дозволені лише зображення JPEG, PNG та WebP",
+    "previewAlt": "Попередній перегляд квитанції",
+    "imageFailedToLoad": "Не вдалося завантажити зображення"
+  },
   "expensesList": {
     "noExpensesYet": "Витрат ще немає. Додайте одну, щоб почати!",
     "loadMore": "Завантажити ще"

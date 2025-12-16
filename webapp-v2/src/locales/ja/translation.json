@@ -594,6 +594,17 @@
     "デポジット",
     "保証金"
   ],
+  "receiptUploader": {
+    "label": "領収書",
+    "addReceipt": "領収書を追加",
+    "changeReceipt": "領収書を変更",
+    "removeReceipt": "領収書を削除",
+    "helperText": "JPEG、PNG、WebP（最大10MB）",
+    "fileTooLarge": "ファイルは10MB以下にしてください",
+    "invalidType": "JPEG、PNG、WebP画像のみ対応しています",
+    "previewAlt": "領収書のプレビュー",
+    "imageFailedToLoad": "画像の読み込みに失敗しました"
+  },
   "expensesList": {
     "noExpensesYet": "まだ経費がありません。追加して始めましょう！",
     "loadMore": "さらに読み込む"
