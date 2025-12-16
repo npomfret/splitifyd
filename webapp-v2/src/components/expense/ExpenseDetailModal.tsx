@@ -3,7 +3,7 @@ import { CommentsSection } from '@/components/comments';
 import { ReactionBar } from '@/components/reactions';
 import { Avatar, Badge, Button, Card, CurrencyAmount, LoadingSpinner, Stack, Tooltip, Typography } from '@/components/ui';
 import { Clickable } from '@/components/ui/Clickable';
-import { XIcon } from '@/components/ui/icons';
+import { ClockIcon, MapPinIcon, XIcon } from '@/components/ui/icons';
 import { Modal, ModalContent, ModalHeader } from '@/components/ui/Modal';
 import { logError } from '@/utils/browser-logger.ts';
 import { formatCurrency } from '@/utils/currency';
@@ -247,59 +247,89 @@ export function ExpenseDetailModal({ isOpen, onClose, groupId, expenseId, onEdit
                             </div>
                         )}
 
-                        {/* Amount */}
-                        <div className='text-center pb-4 border-b border-border-default'>
-                            <h2 className='text-2xl font-bold text-text-primary'>
-                                <CurrencyAmount amount={expense.amount} currency={expense.currency} />
-                            </h2>
-                            {/* Reactions */}
-                            <div className='mt-3 flex justify-center'>
-                                <ReactionBar
-                                    counts={expense.reactionCounts}
-                                    userReactions={expense.userReactions}
-                                    onToggle={handleReactionToggle}
-                                    size='md'
-                                />
+                        {/* Hero: Amount + Receipt thumbnail */}
+                        <div className='flex items-center justify-center gap-4'>
+                            <div className='text-center flex-1'>
+                                <div className='text-4xl font-bold text-text-primary'>
+                                    <CurrencyAmount amount={expense.amount} currency={expense.currency} />
+                                </div>
                             </div>
+                            {expense.receiptUrl && (
+                                <Clickable
+                                    onClick={() => setShowReceiptModal(true)}
+                                    aria-label={t('expenseComponents.expenseDetailModal.viewReceipt')}
+                                    eventName='receipt_thumbnail_click'
+                                    eventProps={{ expenseId }}
+                                    className='shrink-0'
+                                >
+                                    <img
+                                        src={expense.receiptUrl}
+                                        alt={t('expenseComponents.expenseDetailModal.receipt')}
+                                        className='w-16 h-16 object-cover rounded-lg shadow-sm cursor-pointer hover:opacity-80 transition-opacity'
+                                        loading='lazy'
+                                    />
+                                </Clickable>
+                            )}
                         </div>
 
-                        {/* Key Details */}
-                        <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+                        {/* Metadata row */}
+                        <div className='flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm text-text-muted'>
                             {/* Date */}
-                            <div>
-                                <p className='text-sm text-text-primary/60'>{t('expenseComponents.expenseDetailModal.date')}</p>
-                                <p className='font-medium text-text-primary'>{formatExpenseDateTime(expense.date)}</p>
-                                <p className='text-xs text-text-primary/60'>
-                                    ({formatDistanceToNow(new Date(expense.date))})
-                                </p>
+                            <div className='flex items-center gap-1.5'>
+                                <ClockIcon size={16} className='text-text-muted' />
+                                <span>{formatExpenseDateTime(expense.date)}</span>
                             </div>
 
-                            {/* Labels */}
-                            {expense.labels.length > 0 && (
-                                <div>
-                                    <p className='text-sm text-text-primary/60'>{t('expenseComponents.expenseDetailModal.labels')}</p>
-                                    <div className='flex flex-wrap gap-1.5 mt-1'>
-                                        {expense.labels.map((label) => (
-                                            <Badge key={label} variant='primary'>
-                                                {label}
-                                            </Badge>
-                                        ))}
-                                    </div>
+                            {/* Location (if present) */}
+                            {expense.location && (
+                                <div className='flex items-center gap-1.5'>
+                                    <MapPinIcon size={16} className='text-text-muted' />
+                                    {expense.location.url ? (
+                                        <a
+                                            href={expense.location.url}
+                                            target='_blank'
+                                            rel='noopener noreferrer'
+                                            className='hover:text-text-primary hover:underline'
+                                            aria-label={t('expenseComponents.expenseDetailModal.openInMaps')}
+                                        >
+                                            {expense.location.name}
+                                        </a>
+                                    ) : (
+                                        <span>{expense.location.name}</span>
+                                    )}
                                 </div>
                             )}
 
                             {/* Paid By */}
-                            <div>
-                                <p className='text-sm text-text-primary/60 mb-1'>{t('expenseComponents.expenseDetailModal.paidBy')}</p>
-                                <div className='flex items-center gap-2'>
-                                    <Avatar displayName={payerName} userId={expense.paidBy} size='sm' />
-                                    <p className='font-medium text-text-primary text-sm'>{payerName}</p>
-                                </div>
+                            <div className='flex items-center gap-1.5'>
+                                <Avatar displayName={payerName} userId={expense.paidBy} size='xs' />
+                                <span>{payerName}</span>
                             </div>
                         </div>
 
+                        {/* Labels */}
+                        {expense.labels.length > 0 && (
+                            <div className='flex flex-wrap justify-center gap-1.5'>
+                                {expense.labels.map((label) => (
+                                    <Badge key={label} variant='primary'>
+                                        {label}
+                                    </Badge>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Reactions */}
+                        <div className='flex justify-center pb-4 border-b border-border-default'>
+                            <ReactionBar
+                                counts={expense.reactionCounts}
+                                userReactions={expense.userReactions}
+                                onToggle={handleReactionToggle}
+                                size='md'
+                            />
+                        </div>
+
                         {/* Actions */}
-                        <div className='pt-4 border-t border-border-default'>
+                        <div>
                             <ExpenseActions
                                 expense={expense}
                                 onEdit={handleEdit}
@@ -322,30 +352,6 @@ export function ExpenseDetailModal({ isOpen, onClose, groupId, expenseId, onEdit
                                 <CommentsSection target={{ type: 'expense', expenseId: expenseId! }} maxHeight='200px' />
                             </Stack>
                         </Card>
-
-                        {/* Receipt */}
-                        {expense.receiptUrl && (
-                            <Card variant='glass' className='border-border-default'>
-                                <Stack spacing='md'>
-                                    <h3 className='font-semibold text-text-primary'>{t('expenseComponents.expenseDetailModal.receipt')}</h3>
-                                    <div className='text-center'>
-                                        <Clickable
-                                            onClick={() => setShowReceiptModal(true)}
-                                            aria-label={t('expenseComponents.expenseDetailModal.viewReceipt')}
-                                            eventName='receipt_view'
-                                            eventProps={{ expenseId }}
-                                        >
-                                            <img
-                                                src={expense.receiptUrl}
-                                                alt='Receipt'
-                                                className='max-w-full h-auto rounded-lg shadow-md mx-auto max-h-48 object-contain cursor-pointer hover:opacity-90 transition-opacity'
-                                                loading='lazy'
-                                            />
-                                        </Clickable>
-                                    </div>
-                                </Stack>
-                            </Card>
-                        )}
 
                         {/* Metadata */}
                         <div className='text-xs text-text-primary/50 pt-2'>

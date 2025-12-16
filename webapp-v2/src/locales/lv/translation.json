@@ -1053,6 +1053,8 @@
       "paidBy": "Samaksāja",
       "date": "Datums",
       "labels": "Etiķetes",
+      "location": "Atrašanās vieta",
+      "openInMaps": "Atvērt kartēs",
       "receipt": "Čeks",
       "viewReceipt": "Skatīt čeku",
       "comments": "Komentāri",

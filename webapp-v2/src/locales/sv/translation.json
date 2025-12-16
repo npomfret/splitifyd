@@ -1053,6 +1053,8 @@
       "paidBy": "Betalades av",
       "date": "Datum",
       "labels": "Etiketter",
+      "location": "Plats",
+      "openInMaps": "Öppna i Kartor",
       "receipt": "Kvitto",
       "viewReceipt": "Visa kvitto",
       "comments": "Kommentarer",

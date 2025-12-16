@@ -1052,6 +1052,8 @@
       "paidBy": "Betalt av",
       "date": "Dato",
       "labels": "Etiketter",
+      "location": "Sted",
+      "openInMaps": "Åpne i Kart",
       "receipt": "Kvittering",
       "viewReceipt": "Se kvittering",
       "comments": "Kommentarer",

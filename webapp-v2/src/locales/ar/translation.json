@@ -1052,6 +1052,8 @@
       "paidBy": "دفع بواسطة",
       "date": "التاريخ",
       "labels": "الملصقات",
+      "location": "الموقع",
+      "openInMaps": "فتح في الخرائط",
       "receipt": "الإيصال",
       "viewReceipt": "عرض الإيصال",
       "comments": "التعليقات",

@@ -1052,6 +1052,8 @@
       "paidBy": "Paid by",
       "date": "Date",
       "labels": "Labels",
+      "location": "Location",
+      "openInMaps": "Open in Maps",
       "receipt": "Receipt",
       "viewReceipt": "View receipt",
       "comments": "Comments",

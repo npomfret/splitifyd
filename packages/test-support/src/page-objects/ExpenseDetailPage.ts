@@ -21,8 +21,11 @@ export class ExpenseDetailPage extends BasePage {
         return this.page.getByRole('region', { name: translation.pages.expenseDetailPage.splitSection });
     }
 
-    private getReceiptCard(): Locator {
-        return this.page.getByRole('region', { name: translation.pages.expenseDetailPage.receipt });
+    /**
+     * Get the receipt thumbnail in the hero section (clickable image)
+     */
+    private getReceiptThumbnail(): Locator {
+        return this.page.getByRole('dialog').getByRole('img', { name: translation.expenseComponents.expenseDetailModal.receipt });
     }
 
     private getMetadataCard(): Locator {
@@ -131,12 +134,11 @@ export class ExpenseDetailPage extends BasePage {
     }
 
     /**
-     * Get the expense amount display element in the modal - it's an h2 heading
-     * inside a centered div with border (to distinguish from the title h2)
+     * Get the expense amount display element in the modal - the large amount text
+     * in the hero section (text-4xl font-bold)
      */
     protected getExpenseAmountElement(): Locator {
-        // Amount h2 is inside a div with text-center and border-b classes
-        return this.page.getByRole('dialog').locator('.text-center.border-b h2');
+        return this.page.getByRole('dialog').locator('.text-4xl');
     }
 
     /**
@@ -151,7 +153,7 @@ export class ExpenseDetailPage extends BasePage {
     }
 
     protected getReceiptSection(): Locator {
-        return this.getReceiptCard();
+        return this.getReceiptThumbnail();
     }
 
     protected getMetadataSection(): Locator {
@@ -471,11 +473,11 @@ export class ExpenseDetailPage extends BasePage {
     // Reaction methods
 
     /**
-     * Get the reaction bar container on the expense (in the amount section)
+     * Get the reaction bar container on the expense (below the metadata, above actions)
      */
     protected getExpenseReactionBar(): Locator {
-        // The reaction bar is in the amount section (text-center border-b div)
-        return this.page.getByRole('dialog').locator('.text-center.border-b').first();
+        // The reaction bar is in a flex justify-center container with border-b
+        return this.page.getByRole('dialog').locator('.flex.justify-center.border-b');
     }
 
     /**

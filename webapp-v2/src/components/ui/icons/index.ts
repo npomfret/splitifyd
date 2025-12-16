@@ -22,6 +22,7 @@ export { HomeIcon } from './HomeIcon';
 export { InfoCircleIcon } from './InfoCircleIcon';
 export { InfoIcon } from './InfoIcon';
 export { LogoutIcon } from './LogoutIcon';
+export { MapPinIcon } from './MapPinIcon';
 export { PlusIcon } from './PlusIcon';
 export { RefreshIcon } from './RefreshIcon';
 export { SettingsIcon } from './SettingsIcon';

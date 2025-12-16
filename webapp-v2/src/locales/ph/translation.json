@@ -1053,6 +1053,8 @@
       "paidBy": "Binayaran ni",
       "date": "Petsa",
       "labels": "Mga Label",
+      "location": "Lokasyon",
+      "openInMaps": "Buksan sa Maps",
       "receipt": "Resibo",
       "viewReceipt": "Tingnan ang resibo",
       "comments": "Mga Komento",

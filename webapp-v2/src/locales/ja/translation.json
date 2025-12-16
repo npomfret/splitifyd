@@ -1053,6 +1053,8 @@
       "paidBy": "支払者",
       "date": "日付",
       "labels": "ラベル",
+      "location": "場所",
+      "openInMaps": "地図で開く",
       "receipt": "領収書",
       "viewReceipt": "領収書を表示",
       "comments": "コメント",

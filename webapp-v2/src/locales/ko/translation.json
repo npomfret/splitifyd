@@ -1053,6 +1053,8 @@
       "paidBy": "지불한 사람",
       "date": "날짜",
       "labels": "라벨",
+      "location": "위치",
+      "openInMaps": "지도에서 열기",
       "receipt": "영수증",
       "viewReceipt": "영수증 보기",
       "comments": "댓글",

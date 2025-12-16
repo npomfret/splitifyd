@@ -1053,6 +1053,8 @@
       "paidBy": "Betaald door",
       "date": "Datum",
       "labels": "Labels",
+      "location": "Locatie",
+      "openInMaps": "Openen in Kaarten",
       "receipt": "Bon",
       "viewReceipt": "Bon bekijken",
       "comments": "Opmerkingen",
