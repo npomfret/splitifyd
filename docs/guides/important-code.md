@@ -1,10 +1,10 @@
 # Important Code Guide
 
-This document highlights the most critical classes in the Firebase backend and documents the API conventions.
+This document highlights the most critical classes in the codebase and documents the API conventions.
 
 ---
 
-## Top 5 Firebase Classes
+## Important Firebase code
 
 These are the foundational classes every new developer should understand:
 
@@ -22,6 +22,27 @@ The bridge between API routes and business logic. Takes services from ComponentB
 
 ### 5. ActivityFeedService (`services/ActivityFeedService.ts`)
 The backbone of real-time refresh. Every mutation service calls into it so the frontend's SSE-driven `refreshAll()` works. Missing an activity event here means clients won't auto-refresh.
+
+---
+
+## Important Frontend code
+
+### 1. ApiClient (`app/apiClient.ts`)
+Central API gateway implementing all three API interfaces. Handles runtime Zod validation of responses, auth token injection, 401 auto-refresh with request queuing, and structured error mapping. Every network call flows through here.
+
+### 2. AuthStore (`app/stores/auth-store.ts`)
+Authentication state manager using private signals (`#`). Handles login/logout, token refresh scheduling, user profile loading, and resets all feature stores on logout. The canonical example of the store pattern used throughout the app.
+
+### 3. EnhancedGroupDetailStore (`app/stores/group-detail-store-enhanced.ts`)
+Manages all state for a single group view: members, expenses, settlements, comments, balances. Handles pagination with cursors and coordinates with the real-time system via `GroupDetailRealtimeCoordinator`.
+
+### 4. ActivityFeedRealtimeService (`app/services/activity-feed-realtime-service.ts`)
+SSE connection to the activity feed. Fans updates to consumers, handles user switching, deduplicates events. This is why you never manually refresh after mutations - events trigger automatic `refreshAll()`.
+
+### 5. App.tsx (`App.tsx`)
+Root component with routing via preact-router, code splitting via `lazy()`, and auth guards via `ProtectedRoute`. All routes defined here. Entry point is `main.tsx` which wraps App in `AuthProvider`.
+
+**Also important:** `components/ui/` directory contains the themed UI component library (Button, Card, Input, etc.). This is a white-label app - all UI must use these theme-aware components, not primitive HTML with hardcoded styles.
 
 ---
 
@@ -167,6 +188,7 @@ All request/response types defined in the shared package. See `docs/guides/types
 5. Add validation using `createRequestValidator`
 6. Register route in `firebase/functions/src/routes/route-config.ts`
 7. Implement in API drivers (ApiClient, ApiDriver, AppDriver)
+8. Test it here: @firebase/functions/src/__tests__/unit/api
 
 ---
 
