@@ -1,4 +1,4 @@
-import type { ActivityFeedItem, CommentDTO, CommentId, CommentText, ExpenseId, GroupId, ListCommentsResponse, ReactionEmoji } from '@billsplit-wl/shared';
+import type { ActivityFeedItem, AttachmentId, CommentDTO, CommentId, CommentText, ExpenseId, GroupId, ListCommentsResponse, ReactionEmoji } from '@billsplit-wl/shared';
 import { ReadonlySignal, signal } from '@preact/signals';
 import { apiClient } from '../app/apiClient';
 import type { ActivityFeedRealtimePayload, ActivityFeedRealtimeService } from '../app/services/activity-feed-realtime-service';
@@ -53,7 +53,7 @@ interface CommentsStore {
     // Actions
     registerComponent(target: CommentsStoreTarget, initialData?: ListCommentsResponse | null): void;
     deregisterComponent(target: CommentsStoreTarget): void;
-    addComment(text: string): Promise<void>;
+    addComment(text: string, attachmentIds?: AttachmentId[]): Promise<void>;
     loadMoreComments(): Promise<void>;
     toggleReaction(commentId: CommentId, emoji: ReactionEmoji): Promise<void>;
     reset(): void;
@@ -314,7 +314,7 @@ export class CommentsStoreImpl implements CommentsStore {
     /**
      * Add a new comment
      */
-    async addComment(text: CommentText): Promise<void> {
+    async addComment(text: CommentText, attachmentIds?: AttachmentId[]): Promise<void> {
         const target = this.#targetSignal.value;
         if (!target) {
             this.#errorSignal.value = 'No target selected for comment';
@@ -326,9 +326,9 @@ export class CommentsStoreImpl implements CommentsStore {
 
         try {
             if (target.type === 'group') {
-                await apiClient.createGroupComment(target.groupId, text);
+                await apiClient.createGroupComment(target.groupId, text, attachmentIds);
             } else {
-                await apiClient.createExpenseComment(target.expenseId, text);
+                await apiClient.createExpenseComment(target.expenseId, text, attachmentIds);
             }
 
             this.#submittingSignal.value = false;

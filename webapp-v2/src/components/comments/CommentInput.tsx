@@ -14,7 +14,6 @@ export function CommentInput({ onSubmit, disabled = false, placeholder, classNam
     const { t } = useTranslation();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [isEditing, setIsEditing] = useState(false);
     const [text, setText] = useState('');
 
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -57,13 +56,8 @@ export function CommentInput({ onSubmit, disabled = false, placeholder, classNam
             if (textareaRef.current) {
                 textareaRef.current.style.height = 'auto';
             }
-
-            // Clear editing state after successful submission
-            // Note: This will respect the parent's disabled prop if still true
-            setIsEditing(false);
         } catch (err) {
             setError(err instanceof Error ? err.message : t('comments.commentInput.addFailed'));
-            // Keep editing state on error so user can retry
         } finally {
             setIsSubmitting(false);
         }
@@ -83,24 +77,12 @@ export function CommentInput({ onSubmit, disabled = false, placeholder, classNam
                 <textarea
                     ref={textareaRef}
                     value={text}
-                    onFocus={() => {
-                        setIsEditing(true);
-                    }}
-                    onBlur={() => {
-                        // Only clear editing state if the textarea is empty
-                        // This prevents clearing during submit which causes a blur event
-                        if (!text.trim()) {
-                            setIsEditing(false);
-                        }
-                    }}
                     onInput={(e) => {
-                        const newValue = (e.target as HTMLTextAreaElement).value;
-                        setIsEditing(true); // Mark as editing when user types
-                        setText(newValue);
+                        setText((e.target as HTMLTextAreaElement).value);
                     }}
                     onKeyDown={handleKeyDown}
                     placeholder={placeholder || t('comments.commentInput.placeholder')}
-                    disabled={(disabled && !isEditing) || isSubmitting}
+                    disabled={disabled || isSubmitting}
                     className={`
                         w-full px-4 py-3 pr-12
                         border rounded-full
@@ -120,7 +102,7 @@ export function CommentInput({ onSubmit, disabled = false, placeholder, classNam
                 <Tooltip content={t('comments.input.sendAriaLabel')} className='absolute end-2 bottom-2'>
                     <Button
                         type='submit'
-                        disabled={!text.trim() || isOverLimit || (disabled && !isEditing) || isSubmitting}
+                        disabled={!text.trim() || isOverLimit || disabled || isSubmitting}
                         loading={isSubmitting}
                         variant='ghost'
                         size='sm'

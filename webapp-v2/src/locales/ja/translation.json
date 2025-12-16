@@ -322,6 +322,18 @@
       "addFailed": "コメントの追加に失敗しました",
       "helpText": "Enterで送信、Shift+Enterで改行"
     },
+    "attachments": {
+      "label": "添付ファイル",
+      "add": "添付を追加",
+      "helperText": "画像（JPG、PNG、WebP）またはPDF、各最大5MB。",
+      "invalidType": "JPG、PNG、WebP、PDFのみアップロードできます",
+      "fileTooLarge": "ファイルサイズが大きすぎます（最大5MB）",
+      "maxReached": "添付は最大3件まで",
+      "uploadFailed": "アップロードに失敗しました。もう一度お試しください。",
+      "deleteFailed": "添付を削除できませんでした。もう一度お試しください。",
+      "remove": "{{fileName}} を削除",
+      "viewAttachment": "添付 {{fileName}} を表示"
+    },
     "commentsList": {
       "loading": "コメントを読み込み中...",
       "empty": "まだコメントがありません",

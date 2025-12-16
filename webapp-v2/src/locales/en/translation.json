@@ -322,6 +322,18 @@
       "addFailed": "Failed to add comment",
       "helpText": "Press Enter to send, Shift+Enter for new line"
     },
+    "attachments": {
+      "label": "Attachments",
+      "add": "Add attachment",
+      "helperText": "Images (JPG, PNG, WebP) or PDF, up to 5MB each.",
+      "invalidType": "Only JPG, PNG, WebP, or PDF files are allowed",
+      "fileTooLarge": "File is too large (max 5MB)",
+      "maxReached": "Maximum 3 attachments",
+      "uploadFailed": "Upload failed. Please try again.",
+      "deleteFailed": "Couldn't remove attachment. Please try again.",
+      "remove": "Remove {{fileName}}",
+      "viewAttachment": "View attachment {{fileName}}"
+    },
     "commentsList": {
       "loading": "Loading comments...",
       "empty": "No comments yet",

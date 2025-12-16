@@ -322,6 +322,18 @@
       "addFailed": "Fallo al añadir comentario",
       "helpText": "Pulse Enter para enviar, Shift+Enter para nueva línea"
     },
+    "attachments": {
+      "label": "Archivos adjuntos",
+      "add": "Agregar adjunto",
+      "helperText": "Imágenes (JPG, PNG, WebP) o PDF de hasta 5 MB cada uno.",
+      "invalidType": "Solo se permiten archivos JPG, PNG, WebP o PDF",
+      "fileTooLarge": "El archivo es demasiado grande (máx. 5 MB)",
+      "maxReached": "Máximo 3 adjuntos",
+      "uploadFailed": "La carga falló. Inténtalo de nuevo.",
+      "deleteFailed": "No se pudo eliminar el adjunto. Inténtalo de nuevo.",
+      "remove": "Eliminar {{fileName}}",
+      "viewAttachment": "Ver adjunto {{fileName}}"
+    },
     "commentsList": {
       "loading": "Cargando comentarios...",
       "empty": "Todavía no hay comentarios",

@@ -322,6 +322,18 @@
       "addFailed": "Не вдалося додати коментар",
       "helpText": "Натисніть Enter, щоб надіслати, Shift+Enter для нового рядка"
     },
+    "attachments": {
+      "label": "Вкладення",
+      "add": "Додати вкладення",
+      "helperText": "Зображення (JPG, PNG, WebP) або PDF до 5 МБ кожне.",
+      "invalidType": "Дозволені лише файли JPG, PNG, WebP або PDF",
+      "fileTooLarge": "Файл занадто великий (макс. 5 МБ)",
+      "maxReached": "Максимум 3 вкладення",
+      "uploadFailed": "Не вдалося завантажити. Спробуйте ще раз.",
+      "deleteFailed": "Не вдалося видалити вкладення. Спробуйте ще раз.",
+      "remove": "Видалити {{fileName}}",
+      "viewAttachment": "Переглянути вкладення {{fileName}}"
+    },
     "commentsList": {
       "loading": "Завантаження коментарів...",
       "empty": "Коментарів ще немає",

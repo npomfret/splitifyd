@@ -1,10 +1,13 @@
 import { commentsStore } from '@/stores/comments-store.ts';
+import { AttachmentUploader, type UploadedAttachment } from '@/components/comments/AttachmentUploader';
 import type { CommentsStoreTarget } from '@/stores/comments-store.ts';
-import type { CommentId, ListCommentsResponse, ReactionEmoji } from '@billsplit-wl/shared';
+import type { CommentId, GroupId, ListCommentsResponse, ReactionEmoji } from '@billsplit-wl/shared';
 import { toCommentText } from '@billsplit-wl/shared';
 import { useComputed } from '@preact/signals';
-import { useEffect, useRef } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
+import { apiClient } from '@/app/apiClient';
+import { logError } from '@/utils/browser-logger';
 import { CommentInput } from './CommentInput';
 import { CommentsList } from './CommentsList';
 
@@ -13,9 +16,10 @@ interface CommentsSectionProps {
     maxHeight?: string;
     className?: string;
     initialData?: ListCommentsResponse | null;
+    groupId?: GroupId;
 }
 
-export function CommentsSection({ target, maxHeight = '400px', className = '', initialData }: CommentsSectionProps) {
+export function CommentsSection({ target, maxHeight = '400px', className = '', initialData, groupId }: CommentsSectionProps) {
     const { t } = useTranslation();
 
     // Use signals for reactive state
@@ -28,9 +32,20 @@ export function CommentsSection({ target, maxHeight = '400px', className = '', i
     const initialDataRef = useRef<ListCommentsResponse | null | undefined>();
     initialDataRef.current = initialData;
 
+    const [attachments, setAttachments] = useState<UploadedAttachment[]>([]);
+    const [uploadingAttachments, setUploadingAttachments] = useState(false);
+    const attachmentsRef = useRef<UploadedAttachment[]>([]);
+    attachmentsRef.current = attachments;
+
     const targetKey = target.type === 'group'
         ? `group:${target.groupId}`
         : `expense:${target.expenseId}`;
+    const attachmentGroupId = target.type === 'group' ? target.groupId : groupId;
+
+    useEffect(() => {
+        setAttachments([]);
+        attachmentsRef.current = [];
+    }, [targetKey]);
 
     // Subscribe to comments when component mounts or target changes
     useEffect(() => {
@@ -42,8 +57,35 @@ export function CommentsSection({ target, maxHeight = '400px', className = '', i
         };
     }, [targetKey]);
 
+    // Cleanup any pending uploads when target changes/unmounts
+    useEffect(() => {
+        return () => {
+            if (!attachmentGroupId || attachmentsRef.current.length === 0) {
+                return;
+            }
+
+            const pending = [...attachmentsRef.current];
+            attachmentsRef.current = [];
+
+            void Promise.all(
+                pending.map(async (attachment) => {
+                    try {
+                        await apiClient.deleteAttachment(attachmentGroupId, attachment.id);
+                    } catch (error) {
+                        logError('Failed to cleanup pending comment attachments', error);
+                    }
+                }),
+            );
+        };
+    }, [attachmentGroupId, targetKey]);
+
     const handleSubmit = async (text: string) => {
-        await commentsStore.addComment(toCommentText(text));
+        try {
+            await commentsStore.addComment(toCommentText(text), attachments.map((attachment) => attachment.id));
+            setAttachments([]);
+        } catch {
+            // Leave attachments intact for retry; error state handled by store
+        }
     };
 
     const handleLoadMore = async () => {
@@ -66,13 +108,32 @@ export function CommentsSection({ target, maxHeight = '400px', className = '', i
             )}
 
             {/* Comments list */}
-            <CommentsList comments={comments.value} loading={loading.value} hasMore={hasMore.value} onLoadMore={handleLoadMore} maxHeight={maxHeight} onReactionToggle={handleReactionToggle} />
+            <CommentsList
+                comments={comments.value}
+                loading={loading.value}
+                hasMore={hasMore.value}
+                onLoadMore={handleLoadMore}
+                maxHeight={maxHeight}
+                onReactionToggle={handleReactionToggle}
+                attachmentGroupId={attachmentGroupId ?? undefined}
+            />
 
             {/* Comment input */}
             <div className='border-t border-border-default pt-4'>
+                {attachmentGroupId && (
+                    <div className='mb-3'>
+                        <AttachmentUploader
+                            groupId={attachmentGroupId}
+                            attachments={attachments}
+                            onAttachmentsChange={setAttachments}
+                            disabled={submitting.value}
+                            onUploadingChange={setUploadingAttachments}
+                        />
+                    </div>
+                )}
                 <CommentInput
                     onSubmit={handleSubmit}
-                    disabled={submitting.value}
+                    disabled={submitting.value || uploadingAttachments}
                     placeholder={target.type === 'group' ? t('comments.commentsSection.placeholderGroup') : t('comments.commentsSection.placeholderExpense')}
                 />
             </div>

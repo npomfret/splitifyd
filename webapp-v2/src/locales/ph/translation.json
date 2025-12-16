@@ -322,6 +322,18 @@
       "addFailed": "Nabigo ang pagdagdag ng komento",
       "helpText": "Pindutin ang Enter para ipadala, Shift+Enter para sa bagong linya"
     },
+    "attachments": {
+      "label": "Mga attachment",
+      "add": "Magdagdag ng attachment",
+      "helperText": "Mga larawan (JPG, PNG, WebP) o PDF, hanggang 5MB bawat isa.",
+      "invalidType": "Pinapayagan lamang ang JPG, PNG, WebP, o PDF na mga file",
+      "fileTooLarge": "Masyadong malaki ang file (max 5MB)",
+      "maxReached": "Pinakamataas na 3 attachment",
+      "uploadFailed": "Nabigo ang upload. Subukang muli.",
+      "deleteFailed": "Hindi natanggal ang attachment. Subukang muli.",
+      "remove": "Alisin ang {{fileName}}",
+      "viewAttachment": "Tingnan ang attachment {{fileName}}"
+    },
     "commentsList": {
       "loading": "Naglo-load ng mga komento...",
       "empty": "Wala pang mga komento",

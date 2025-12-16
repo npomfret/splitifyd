@@ -322,6 +322,18 @@
       "addFailed": "Neizdevās pievienot komentāru",
       "helpText": "Nospiediet Enter, lai nosūtītu, Shift+Enter, lai izveidotu jaunu rindu"
     },
+    "attachments": {
+      "label": "Pielikumi",
+      "add": "Pievienot pielikumu",
+      "helperText": "Attēli (JPG, PNG, WebP) vai PDF līdz 5 MB katrs.",
+      "invalidType": "Atļauti tikai JPG, PNG, WebP vai PDF faili",
+      "fileTooLarge": "Fails ir pārāk liels (maks. 5 MB)",
+      "maxReached": "Maksimums 3 pielikumi",
+      "uploadFailed": "Augšupielāde neizdevās. Mēģiniet vēlreiz.",
+      "deleteFailed": "Neizdevās noņemt pielikumu. Mēģiniet vēlreiz.",
+      "remove": "Noņemt {{fileName}}",
+      "viewAttachment": "Skatīt pielikumu {{fileName}}"
+    },
     "commentsList": {
       "loading": "Notiek komentāru ielāde...",
       "empty": "Vēl nav komentāru",

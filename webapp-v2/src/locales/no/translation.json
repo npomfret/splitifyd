@@ -322,6 +322,18 @@
       "addFailed": "Kunne ikke legge til kommentar",
       "helpText": "Trykk Enter for å sende, Shift+Enter for ny linje"
     },
+    "attachments": {
+      "label": "Vedlegg",
+      "add": "Legg til vedlegg",
+      "helperText": "Bilder (JPG, PNG, WebP) eller PDF, opptil 5 MB hver.",
+      "invalidType": "Kun JPG-, PNG-, WebP- eller PDF-filer er tillatt",
+      "fileTooLarge": "Filen er for stor (maks 5 MB)",
+      "maxReached": "Maks 3 vedlegg",
+      "uploadFailed": "Opplasting mislyktes. Prøv igjen.",
+      "deleteFailed": "Kunne ikke fjerne vedlegget. Prøv igjen.",
+      "remove": "Fjern {{fileName}}",
+      "viewAttachment": "Vis vedlegg {{fileName}}"
+    },
     "commentsList": {
       "loading": "Laster kommentarer...",
       "empty": "Ingen kommentarer ennå",

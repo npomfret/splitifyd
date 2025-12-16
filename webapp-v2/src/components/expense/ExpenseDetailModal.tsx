@@ -349,7 +349,7 @@ export function ExpenseDetailModal({ isOpen, onClose, groupId, expenseId, onEdit
                         <Card variant='glass' className='border-border-default' ariaLabel={t('pages.expenseDetailPage.discussion')}>
                             <Stack spacing='md'>
                                 <h3 className='font-semibold text-text-primary'>{t('expenseComponents.expenseDetailModal.comments')}</h3>
-                                <CommentsSection target={{ type: 'expense', expenseId: expenseId! }} maxHeight='200px' />
+                                <CommentsSection target={{ type: 'expense', expenseId: expenseId! }} groupId={groupId} maxHeight='200px' />
                             </Stack>
                         </Card>
 

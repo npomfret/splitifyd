@@ -1,7 +1,8 @@
-import type { CommentDTO, ReactionEmoji } from '@billsplit-wl/shared';
+import type { CommentDTO, GroupId, ReactionEmoji } from '@billsplit-wl/shared';
 import { toDisplayName } from '@billsplit-wl/shared';
 import { ReactionBar } from '../reactions';
 import { Avatar, RelativeTime } from '../ui';
+import { AttachmentDisplay } from '../ui/AttachmentDisplay';
 
 interface CommentItemProps {
     comment: CommentDTO;
@@ -10,6 +11,7 @@ interface CommentItemProps {
     className?: string;
     onReactionToggle?: (emoji: ReactionEmoji) => void;
     reactionDisabled?: boolean;
+    attachmentGroupId?: GroupId;
 }
 
 export function CommentItem({
@@ -19,6 +21,7 @@ export function CommentItem({
     className = '',
     onReactionToggle,
     reactionDisabled = false,
+    attachmentGroupId,
 }: CommentItemProps) {
     return (
         <article
@@ -48,6 +51,11 @@ export function CommentItem({
             >
                 <p className='text-sm whitespace-pre-wrap break-words'>{comment.text}</p>
             </div>
+
+            {/* Attachments */}
+            {attachmentGroupId && comment.attachments && comment.attachments.length > 0 && (
+                <AttachmentDisplay attachments={comment.attachments} groupId={attachmentGroupId} className='ms-1' />
+            )}
 
             {/* Reactions */}
             {onReactionToggle && (

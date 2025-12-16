@@ -1351,6 +1351,10 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
         return response.json() as Promise<UploadAttachmentResponse>;
     }
 
+    getAttachmentUrl(groupId: GroupId, attachmentId: AttachmentId): string {
+        return buildUrl('/api/groups/:groupId/attachments/:attachmentId', { groupId, attachmentId });
+    }
+
     async deleteAttachment(groupId: GroupId, attachmentId: AttachmentId): Promise<void> {
         return this.request<void>({
             endpoint: '/groups/:groupId/attachments/:attachmentId',

@@ -756,6 +756,50 @@ export class GroupDetailPage extends BasePage {
         await expect(sendButton).toBeDisabled();
     }
 
+    async uploadCommentAttachment(filePath: string): Promise<void> {
+        await this.ensureCommentsSectionExpanded();
+        // File input is intentionally hidden (class="hidden") - setInputFiles works on hidden inputs
+        const input = this.getCommentsSection().locator(`input[type="file"][aria-label="${translation.comments.attachments.label}"]`).first();
+        await input.setInputFiles(filePath);
+    }
+
+    async verifyComposerAttachmentVisible(fileName: string): Promise<void> {
+        const removeLabel = translation.comments.attachments.remove.replace('{{fileName}}', fileName);
+        const removeButton = this.getCommentsSection().getByRole('button', { name: new RegExp(removeLabel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i') });
+        await expect(removeButton).toBeVisible();
+    }
+
+    async verifyComposerAttachmentNotVisible(fileName: string): Promise<void> {
+        const removeLabel = translation.comments.attachments.remove.replace('{{fileName}}', fileName);
+        const removeButton = this.getCommentsSection().getByRole('button', { name: new RegExp(removeLabel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i') });
+        await expect(removeButton).toHaveCount(0);
+    }
+
+    async verifyCommentAttachmentVisible(fileName: string): Promise<void> {
+        const linkLabel = translation.comments.attachments.viewAttachment.replace('{{fileName}}', fileName);
+        const link = this.getCommentsSection().getByRole('link', { name: new RegExp(linkLabel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i') });
+        await expect(link).toBeVisible();
+    }
+
+    async removeComposerAttachment(fileName: string): Promise<void> {
+        await this.ensureCommentsSectionExpanded();
+        const removeLabel = translation.comments.attachments.remove.replace('{{fileName}}', fileName);
+        const removeButton = this.getCommentsSection().getByRole('button', { name: new RegExp(removeLabel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i') });
+        await this.clickButton(removeButton, { buttonName: `Remove ${fileName}` });
+    }
+
+    async verifyAttachmentError(errorText: string): Promise<void> {
+        await this.ensureCommentsSectionExpanded();
+        const error = this.getCommentsSection().getByRole('alert').filter({ hasText: errorText });
+        await expect(error).toBeVisible();
+    }
+
+    async verifyAttachmentErrorNotVisible(): Promise<void> {
+        await this.ensureCommentsSectionExpanded();
+        const error = this.getCommentsSection().getByRole('alert');
+        await expect(error).toHaveCount(0);
+    }
+
     /**
      * Verify a comment with given text is visible
      */

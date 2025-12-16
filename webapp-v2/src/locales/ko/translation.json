@@ -322,6 +322,18 @@
       "addFailed": "댓글 추가 실패",
       "helpText": "Enter를 눌러 보내고 Shift+Enter를 눌러 줄바꿈합니다."
     },
+    "attachments": {
+      "label": "첨부 파일",
+      "add": "첨부 추가",
+      "helperText": "이미지(JPG, PNG, WebP) 또는 PDF, 각 5MB 이하.",
+      "invalidType": "JPG, PNG, WebP, PDF 파일만 가능합니다",
+      "fileTooLarge": "파일이 너무 큽니다(최대 5MB)",
+      "maxReached": "최대 3개의 첨부 파일",
+      "uploadFailed": "업로드에 실패했습니다. 다시 시도하세요.",
+      "deleteFailed": "첨부 파일을 삭제하지 못했습니다. 다시 시도하세요.",
+      "remove": "{{fileName}} 삭제",
+      "viewAttachment": "{{fileName}} 첨부 보기"
+    },
     "commentsList": {
       "loading": "댓글 로드 중...",
       "empty": "아직 댓글 없음",

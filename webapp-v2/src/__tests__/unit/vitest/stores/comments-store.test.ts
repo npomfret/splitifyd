@@ -47,13 +47,14 @@ import { apiClient } from '@/app/apiClient';
 import type { ActivityFeedRealtimeService } from '@/app/services/activity-feed-realtime-service';
 import { CommentsStoreImpl } from '@/stores/comments-store';
 import type { CommentsStoreTarget } from '@/stores/comments-store';
-import { CommentDTO, GroupId, ListCommentsResponse } from '@billsplit-wl/shared';
-import { toGroupId } from '@billsplit-wl/shared';
+import { CommentDTO, GroupId, ListCommentsResponse, toAttachmentId, toCommentText, toGroupId } from '@billsplit-wl/shared';
 import { CommentBuilder } from '@billsplit-wl/test-support';
 
 const mockedApiClient = apiClient as unknown as {
     listGroupComments: Mock;
     listExpenseComments: Mock;
+    createGroupComment: Mock;
+    createExpenseComment: Mock;
 };
 
 function createComment(id: string, message: string): CommentDTO {
@@ -99,6 +100,8 @@ describe('CommentsStoreImpl', () => {
         store = new CommentsStoreImpl(activityFeedMock);
         mockedApiClient.listGroupComments.mockReset();
         mockedApiClient.listExpenseComments.mockReset();
+        mockedApiClient.createGroupComment.mockReset();
+        mockedApiClient.createExpenseComment.mockReset();
     });
 
     afterEach(() => {
@@ -159,5 +162,20 @@ describe('CommentsStoreImpl', () => {
         expect(mockedApiClient.listGroupComments).toHaveBeenCalledTimes(1);
         expect(registerConsumerMock).toHaveBeenCalledTimes(1);
         expect(store.comments).toEqual([first]);
+    });
+
+    it('passes attachmentIds when creating a group comment', async () => {
+        mockedApiClient.listGroupComments.mockResolvedValue(responseFor([]));
+        mockedApiClient.createGroupComment.mockResolvedValue(createComment('1', 'Comment with attachment'));
+
+        store.registerComponent(groupTarget('group-1'));
+
+        await vi.waitFor(() => {
+            expect(mockedApiClient.listGroupComments).toHaveBeenCalledTimes(1);
+        });
+
+        await store.addComment(toCommentText('Hello'), [toAttachmentId('attachment-1')]);
+
+        expect(mockedApiClient.createGroupComment).toHaveBeenCalledWith('group-1', toCommentText('Hello'), [toAttachmentId('attachment-1')]);
     });
 });

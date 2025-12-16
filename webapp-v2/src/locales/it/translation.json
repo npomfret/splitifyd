@@ -322,6 +322,18 @@
       "addFailed": "Impossibile aggiungere il commento",
       "helpText": "Premi Invio per inviare, Maiusc+Invio per una nuova riga"
     },
+    "attachments": {
+      "label": "Allegati",
+      "add": "Aggiungi allegato",
+      "helperText": "Immagini (JPG, PNG, WebP) o PDF, fino a 5 MB ciascuno.",
+      "invalidType": "Sono consentiti solo file JPG, PNG, WebP o PDF",
+      "fileTooLarge": "File troppo grande (max 5 MB)",
+      "maxReached": "Massimo 3 allegati",
+      "uploadFailed": "Caricamento non riuscito. Riprova.",
+      "deleteFailed": "Impossibile rimuovere l'allegato. Riprova.",
+      "remove": "Rimuovi {{fileName}}",
+      "viewAttachment": "Visualizza allegato {{fileName}}"
+    },
     "commentsList": {
       "loading": "Caricamento commenti...",
       "empty": "Nessun commento ancora",

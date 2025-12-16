@@ -322,6 +322,18 @@
       "addFailed": "Kunde inte lägga till kommentar",
       "helpText": "Tryck på Enter för att skicka, Shift+Enter för ny rad"
     },
+    "attachments": {
+      "label": "Bilagor",
+      "add": "Lägg till bilaga",
+      "helperText": "Bilder (JPG, PNG, WebP) eller PDF, upp till 5 MB vardera.",
+      "invalidType": "Endast JPG-, PNG-, WebP- eller PDF-filer är tillåtna",
+      "fileTooLarge": "Filen är för stor (max 5 MB)",
+      "maxReached": "Maximalt 3 bilagor",
+      "uploadFailed": "Uppladdningen misslyckades. Försök igen.",
+      "deleteFailed": "Kunde inte ta bort bilagan. Försök igen.",
+      "remove": "Ta bort {{fileName}}",
+      "viewAttachment": "Visa bilaga {{fileName}}"
+    },
     "commentsList": {
       "loading": "Laddar kommentarer...",
       "empty": "Inga kommentarer än",

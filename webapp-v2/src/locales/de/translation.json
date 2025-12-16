@@ -322,6 +322,18 @@
       "addFailed": "Kommentar konnte nicht hinzugefügt werden",
       "helpText": "Enter drücken zum Senden, Shift+Enter für neue Zeile"
     },
+    "attachments": {
+      "label": "Anhänge",
+      "add": "Anhang hinzufügen",
+      "helperText": "Bilder (JPG, PNG, WebP) oder PDF, bis 5 MB je Datei.",
+      "invalidType": "Es sind nur JPG-, PNG-, WebP- oder PDF-Dateien erlaubt",
+      "fileTooLarge": "Datei ist zu groß (max. 5 MB)",
+      "maxReached": "Maximal 3 Anhänge",
+      "uploadFailed": "Upload fehlgeschlagen. Bitte erneut versuchen.",
+      "deleteFailed": "Anhang konnte nicht entfernt werden. Bitte erneut versuchen.",
+      "remove": "{{fileName}} entfernen",
+      "viewAttachment": "Anhang {{fileName}} ansehen"
+    },
     "commentsList": {
       "loading": "Kommentare werden geladen...",
       "empty": "Noch keine Kommentare",

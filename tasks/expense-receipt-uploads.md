@@ -290,7 +290,7 @@ Add `<ReceiptUploader>` component.
 - [x] **Phase 3**: Comment schema + service updates for attachments
 - [x] **Phase 4**: Frontend API client methods
 - [x] **Phase 5**: Expense receipt upload UI
-- [ ] **Phase 6**: Comment attachment upload/display UI
+- [x] **Phase 6**: Comment attachment upload/display UI
 - [ ] **Phase 7**: Unit tests and Playwright tests (receipt tests complete, comment attachment tests pending Phase 6)
 
 ## Progress Notes
@@ -301,5 +301,10 @@ Add `<ReceiptUploader>` component.
 - **Phase 3 complete**: Comment schema updated with `attachments` field, `CommentService.createGroupComment/createExpenseComment` now accept `attachmentIds` and resolve them to `AttachmentRef` metadata. Delete comment endpoints (`DELETE /groups/:groupId/comments/:commentId` and `DELETE /expenses/:expenseId/comments/:commentId`) implemented with cascade delete for attachments. `FirestoreWriter.deleteGroupComment/deleteExpenseComment` added. API interface (`api.ts`) and all API drivers updated.
 - **Phase 4 complete**: `apiClient.deleteGroupComment/deleteExpenseComment` implemented in webapp.
 - **Phase 5 complete**: Expense receipt upload UI implemented. `expense-form-store.ts` extended with receipt signals and upload/replace/remove logic. `ReceiptUploader.tsx` component created with file input, preview, and validation. Component integrated into `ExpenseFormModal.tsx`. Receipt URLs loaded in edit mode via `useFormInitialization.ts`. State exposed through `useFormState.ts` and `useExpenseForm.ts`. i18n keys added.
-- **Phase 7 partial**: Unit tests comprehensive for backend attachment features (47 tests in CommentHandlers.test.ts covering delete endpoints, attachment creation, validation, cascade delete, listing). Receipt UI tests complete: 18 unit tests for `expense-form-store` receipt functionality (setReceiptFile, setReceiptUrl, clearReceiptError, reset, hasUnsavedChanges, signal accessors) + 4 Playwright integration tests for ReceiptUploader (section visibility, file selection, invalid type error, file too large error). ExpenseFormPage POM extended with receipt verification methods. Comment attachment UI tests pending Phase 6.
-- Comment attachment UI remains unimplemented: no AttachmentUploader/AttachmentDisplay components exist and comment components still accept/submit text only, so attachment upload/display flows are missing alongside corresponding tests.
+- **Phase 7 partial**: Unit tests comprehensive for backend attachment features (47 tests in CommentHandlers.test.ts covering delete endpoints, attachment creation, validation, cascade delete, listing). Receipt UI tests complete: 18 unit tests for `expense-form-store` receipt functionality (setReceiptFile, setReceiptUrl, clearReceiptError, reset, hasUnsavedChanges, signal accessors) + 4 Playwright integration tests for ReceiptUploader (section visibility, file selection, invalid type error, file too large error). ExpenseFormPage POM extended with receipt verification methods. Comment attachment Playwright coverage added (composer upload + display), run blocked locally by dev server port permissions.
+- Phase 6 delivered: AttachmentUploader handles uploads (images/PDF, 5MB, max 3) with removal + cleanup, CommentInput/CommentsSection submit attachmentIds, CommentItem renders attachments via AttachmentDisplay (proxy URLs built through apiClient). Expense comments pass groupId for uploads, translations added across locales, and comments store unit test now covers attachmentIds. Still pending: end-to-end/Playwright coverage for comment attachments (Phase 7).
+
+## Phase 6 Plan (comment attachments UI)
+- Review current comment flows to map required data (groupId for expense comments, attachment metadata) and confirm apiClient helpers needed for attachment URLs.
+- Build AttachmentUploader and AttachmentDisplay components with validation (images/PDF up to 5MB, max 3), immediate upload via apiClient, removal handling, and basic previews/icons.
+- Integrate attachments into CommentInput/CommentsSection/CommentItem + comments store, add translations, and update/add targeted tests + run focused test(s).

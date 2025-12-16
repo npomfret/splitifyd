@@ -322,6 +322,18 @@
       "addFailed": "Toevoegen van opmerking mislukt",
       "helpText": "Druk op Enter om te verzenden, Shift+Enter voor een nieuwe regel"
     },
+    "attachments": {
+      "label": "Bijlagen",
+      "add": "Bijlage toevoegen",
+      "helperText": "Afbeeldingen (JPG, PNG, WebP) of PDF, tot 5 MB per bestand.",
+      "invalidType": "Alleen JPG-, PNG-, WebP- of PDF-bestanden zijn toegestaan",
+      "fileTooLarge": "Bestand is te groot (max. 5 MB)",
+      "maxReached": "Maximum 3 bijlagen",
+      "uploadFailed": "Upload mislukt. Probeer opnieuw.",
+      "deleteFailed": "Bijlage kon niet worden verwijderd. Probeer opnieuw.",
+      "remove": "{{fileName}} verwijderen",
+      "viewAttachment": "Bijlage {{fileName}} bekijken"
+    },
     "commentsList": {
       "loading": "Opmerkingen laden...",
       "empty": "Nog geen opmerkingen",

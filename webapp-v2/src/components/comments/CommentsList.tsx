@@ -1,5 +1,5 @@
 import { getAuthStore } from '@/app/stores/auth-store';
-import type { CommentDTO, CommentId, ReactionEmoji } from '@billsplit-wl/shared';
+import type { CommentDTO, CommentId, GroupId, ReactionEmoji } from '@billsplit-wl/shared';
 import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
@@ -16,9 +16,21 @@ interface CommentsListProps {
     className?: string;
     onReactionToggle?: (commentId: CommentId, emoji: ReactionEmoji) => void;
     reactionDisabled?: boolean;
+    attachmentGroupId?: GroupId;
 }
 
-export function CommentsList({ comments, loading = false, error, hasMore = false, onLoadMore, maxHeight = '400px', className = '', onReactionToggle, reactionDisabled = false }: CommentsListProps) {
+export function CommentsList({
+    comments,
+    loading = false,
+    error,
+    hasMore = false,
+    onLoadMore,
+    maxHeight = '400px',
+    className = '',
+    onReactionToggle,
+    reactionDisabled = false,
+    attachmentGroupId,
+}: CommentsListProps) {
     const { t } = useTranslation();
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
@@ -64,6 +76,7 @@ export function CommentsList({ comments, loading = false, error, hasMore = false
                         key={comment.id}
                         comment={comment}
                         isCurrentUser={currentUserId === comment.authorId}
+                        attachmentGroupId={attachmentGroupId}
                         onReactionToggle={onReactionToggle ? (emoji) => onReactionToggle(comment.id, emoji) : undefined}
                         reactionDisabled={reactionDisabled}
                     />

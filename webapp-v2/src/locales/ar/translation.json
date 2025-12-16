@@ -322,6 +322,18 @@
       "addFailed": "فشل إضافة التعليق",
       "helpText": "اضغط على Enter للإرسال ، و Shift + Enter لسطر جديد"
     },
+    "attachments": {
+      "label": "المرفقات",
+      "add": "إضافة مرفق",
+      "helperText": "صور (JPG، PNG، WebP) أو PDF حتى 5 ميجابايت لكل ملف.",
+      "invalidType": "يُسمح فقط بملفات JPG أو PNG أو WebP أو PDF",
+      "fileTooLarge": "الملف كبير جدًا (الحد الأقصى 5 ميجابايت)",
+      "maxReached": "تم الوصول للحد الأقصى (3 مرفقات)",
+      "uploadFailed": "فشل التحميل. حاول مرة أخرى.",
+      "deleteFailed": "تعذر إزالة المرفق. حاول مرة أخرى.",
+      "remove": "إزالة {{fileName}}",
+      "viewAttachment": "عرض المرفق {{fileName}}"
+    },
     "commentsList": {
       "loading": "جار تحميل التعليقات...",
       "empty": "لا توجد تعليقات حتى الآن",
