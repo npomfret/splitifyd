@@ -1,6 +1,8 @@
+import { apiClient } from '@/app/apiClient';
+import { useRotatingText } from '@/app/hooks/useRotatingText';
 import { isMapsUrl, parseMapsUrl } from '@/app/utils/google-maps-parser';
 import { ExpenseLocation } from '@billsplit-wl/shared';
-import { MapPinIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { ArrowPathIcon, MapPinIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Tooltip } from '../ui';
@@ -15,8 +17,13 @@ interface LocationInputProps {
 export function LocationInput({ value, onChange, error, recentLocations }: LocationInputProps) {
     const { t } = useTranslation();
     const [showSuggestions, setShowSuggestions] = useState(false);
+    const [isResolving, setIsResolving] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
+
+    // Get rotating placeholder hints
+    const placeholders = t('expenseBasicFields.locationPlaceholders', { returnObjects: true }) as string[];
+    const placeholder = useRotatingText(placeholders, 4000);
 
     // Get the display value (name) from the location object
     const displayValue = value?.name ?? '';
@@ -24,6 +31,27 @@ export function LocationInput({ value, onChange, error, recentLocations }: Locat
     // Filter recent locations based on current input
     const filteredLocations = recentLocations.filter(
         (loc) => displayValue.trim() === '' || loc.toLowerCase().includes(displayValue.toLowerCase()),
+    );
+
+    // Resolve a shortened URL by following redirects server-side
+    const resolveAndParseUrl = useCallback(
+        async (url: string) => {
+            setIsResolving(true);
+            try {
+                const response = await apiClient.resolveRedirect({ url });
+                const placeName = parseMapsUrl(response.resolvedUrl);
+                if (placeName) {
+                    onChange({ name: placeName, url });
+                } else {
+                    onChange({ name: t('expenseBasicFields.mapLocation'), url });
+                }
+            } catch {
+                onChange({ name: t('expenseBasicFields.mapLocation'), url });
+            } finally {
+                setIsResolving(false);
+            }
+        },
+        [onChange, t],
     );
 
     // Handle paste events to detect map service URLs (Google, Apple, Waze, etc.)
@@ -34,12 +62,13 @@ export function LocationInput({ value, onChange, error, recentLocations }: Locat
                 e.preventDefault();
                 const placeName = parseMapsUrl(pastedText);
                 if (placeName) {
-                    // Store both the extracted name and the original URL
                     onChange({ name: placeName, url: pastedText });
+                } else {
+                    resolveAndParseUrl(pastedText);
                 }
             }
         },
-        [onChange],
+        [onChange, resolveAndParseUrl],
     );
 
     // Handle input change - update just the name, clear URL if user is typing manually
@@ -94,17 +123,20 @@ export function LocationInput({ value, onChange, error, recentLocations }: Locat
                     <input
                         ref={inputRef}
                         type='text'
-                        value={displayValue}
+                        value={isResolving ? t('expenseBasicFields.resolvingLocation') : displayValue}
                         onInput={handleInputChange}
                         onPaste={handlePaste}
                         onFocus={() => setShowSuggestions(true)}
+                        disabled={isResolving}
                         className={`w-full px-3 py-2 pr-8 border rounded-lg bg-surface-raised backdrop-blur-xs text-text-primary placeholder:text-text-muted/70 focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary transition-colors duration-200 ${
                             error ? 'border-semantic-error' : 'border-border-default'
-                        }`}
-                        placeholder={t('expenseBasicFields.locationPlaceholder')}
+                        } ${isResolving ? 'text-text-muted' : ''}`}
+                        placeholder={placeholder}
                         autoComplete='off'
                     />
-                    {displayValue && (
+                    {isResolving ? (
+                        <ArrowPathIcon className='absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted animate-spin' aria-hidden='true' />
+                    ) : displayValue ? (
                         <button
                             type='button'
                             onClick={handleClear}
@@ -113,7 +145,7 @@ export function LocationInput({ value, onChange, error, recentLocations }: Locat
                         >
                             <XMarkIcon className='h-4 w-4 text-text-muted hover:text-text-primary' aria-hidden='true' />
                         </button>
-                    )}
+                    ) : null}
                 </div>
                 <Tooltip content={value?.url ? t('expenseBasicFields.openOnMap') : t('expenseBasicFields.findOnMap')}>
                     <button

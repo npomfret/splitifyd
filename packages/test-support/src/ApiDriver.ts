@@ -66,6 +66,8 @@ import {
     type PublishTenantThemeResponse,
     RegisterResponse,
     type RenameTenantImageRequest,
+    type ResolveRedirectRequest,
+    type ResolveRedirectResponse,
     type SettlementDTO,
     SettlementId,
     type SettlementWithMembers,
@@ -591,6 +593,11 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
 
     async getMergeStatus(jobId: string, token: AuthToken): Promise<MergeJobResponse> {
         return await this.apiRequest(`/merge/${jobId}`, 'GET', null, token);
+    }
+
+    // URL Utility methods
+    async resolveRedirect(request: ResolveRedirectRequest, token: AuthToken): Promise<ResolveRedirectResponse> {
+        return await this.apiRequest('/utils/resolve-redirect', 'POST', request, token);
     }
 
     // Comment API methods

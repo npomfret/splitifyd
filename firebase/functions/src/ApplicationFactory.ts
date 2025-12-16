@@ -31,6 +31,7 @@ import { TenantAdminHandlers } from './tenant/TenantAdminHandlers';
 import { TenantImageLibraryHandlers } from './tenant/TenantImageLibraryHandlers';
 import { ThemeHandlers } from './theme/ThemeHandlers';
 import { UserHandlers } from './user/UserHandlers';
+import { UrlRedirectHandlers } from './utils/UrlRedirectHandlers';
 
 /**
  * Factory function that creates all application handlers with proper dependency injection.
@@ -85,6 +86,7 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
     const themeHandlers = new ThemeHandlers(componentBuilder.buildFirestoreReader(), tenantRegistryService);
     const policyTextHandlers = new PolicyTextHandlers(policyService, tenantRegistryService);
     const authHandlers = new AuthHandlers(authService);
+    const urlRedirectHandlers = new UrlRedirectHandlers();
 
     // Inline diagnostic handlers
     const getMetrics: RequestHandler = (req, res) => {
@@ -600,6 +602,9 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
 
         // Theme delivery
         serveThemeCss: themeHandlers.serveThemeCss,
+
+        // URL utilities
+        resolveRedirect: urlRedirectHandlers.resolveRedirect,
     };
 
     return registry;

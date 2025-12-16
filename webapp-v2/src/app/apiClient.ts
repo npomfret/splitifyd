@@ -67,6 +67,8 @@ import type {
     PublishTenantThemeResponse,
     RegisterResponse,
     RenameTenantImageRequest,
+    ResolveRedirectRequest,
+    ResolveRedirectResponse,
     SettlementDTO,
     SettlementWithMembers,
     ShareLinkResponse,
@@ -1606,6 +1608,16 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
             endpoint: '/merge/:jobId',
             method: 'GET',
             params: { jobId },
+        });
+    }
+
+    // ===== URL UTILITIES =====
+
+    async resolveRedirect(request: ResolveRedirectRequest): Promise<ResolveRedirectResponse> {
+        return this.request({
+            endpoint: '/utils/resolve-redirect',
+            method: 'POST',
+            body: request,
         });
     }
 

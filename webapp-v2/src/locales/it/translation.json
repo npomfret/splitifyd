@@ -458,11 +458,17 @@
     "lastNight": "Ieri sera",
     "addSpecificTime": "Aggiungi ora specifica",
     "locationLabel": "Luogo",
-    "locationPlaceholder": "Dove è stata questa spesa?",
+    "locationPlaceholders": [
+      "Dove è stata questa spesa?",
+      "Digita un nome di luogo...",
+      "Incolla un link mappa..."
+    ],
     "findOnMap": "Cerca sulla mappa",
     "openOnMap": "Apri sulla mappa",
     "recentLocations": "Luoghi recenti",
-    "clearLocation": "Cancella luogo"
+    "clearLocation": "Cancella luogo",
+    "resolvingLocation": "Risoluzione posizione...",
+    "mapLocation": "Posizione sulla mappa"
   },
   "suggestedLabels": [
     "Generi alimentari",
@@ -1050,10 +1056,6 @@
       "title": "Dettagli spesa",
       "closeModal": "Chiudi modale",
       "close": "Chiudi",
-      "paidBy": "Pagato da",
-      "date": "Data",
-      "labels": "Etichette",
-      "location": "Posizione",
       "openInMaps": "Apri in Mappe",
       "receipt": "Ricevuta",
       "viewReceipt": "Visualizza ricevuta",
@@ -1145,7 +1147,6 @@
     "expenseDetailPage": {
       "containsDepartedMembers": "Uno o più partecipanti hanno lasciato il gruppo. I record storici sono conservati come sola lettura.",
       "discussion": "Discussione",
-      "receipt": "Ricevuta",
       "splitSection": "Dettagli divisione",
       "metadataSection": "Metadati spesa"
     },

@@ -458,11 +458,17 @@
     "lastNight": "Минулої ночі",
     "addSpecificTime": "Додати конкретний час",
     "locationLabel": "Місце",
-    "locationPlaceholder": "Де була ця витрата?",
+    "locationPlaceholders": [
+      "Де була ця витрата?",
+      "Введіть назву місця...",
+      "Вставте посилання на карту..."
+    ],
     "findOnMap": "Знайти на карті",
     "openOnMap": "Відкрити на карті",
     "recentLocations": "Останні місця",
-    "clearLocation": "Очистити місце"
+    "clearLocation": "Очистити місце",
+    "resolvingLocation": "Визначення місця...",
+    "mapLocation": "Місце на карті"
   },
   "suggestedLabels": [
     "Продукти",
@@ -1049,10 +1055,6 @@
       "title": "Деталі витрати",
       "closeModal": "Закрити модальне вікно",
       "close": "Закрити",
-      "paidBy": "Заплатив(ла)",
-      "date": "Дата",
-      "labels": "Мітки",
-      "location": "Місце",
       "openInMaps": "Відкрити на карті",
       "receipt": "Квитанція",
       "viewReceipt": "Переглянути квитанцію",
@@ -1144,7 +1146,6 @@
     "expenseDetailPage": {
       "containsDepartedMembers": "Один або кілька учасників покинули групу. Історичні записи зберігаються лише для читання.",
       "discussion": "Обговорення",
-      "receipt": "Квитанція",
       "splitSection": "Деталі поділу",
       "metadataSection": "Метадані витрати"
     },

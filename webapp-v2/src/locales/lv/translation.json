@@ -458,11 +458,17 @@
     "lastNight": "Vakar vakarā",
     "addSpecificTime": "Pievienot konkrētu laiku",
     "locationLabel": "Vieta",
-    "locationPlaceholder": "Kur bija šis izdevums?",
+    "locationPlaceholders": [
+      "Kur bija šis izdevums?",
+      "Ievadiet vietas nosaukumu...",
+      "Ielīmējiet kartes saiti..."
+    ],
     "findOnMap": "Atrast kartē",
     "openOnMap": "Atvērt kartē",
     "recentLocations": "Nesenās vietas",
-    "clearLocation": "Notīrīt vietu"
+    "clearLocation": "Notīrīt vietu",
+    "resolvingLocation": "Vietas noteikšana...",
+    "mapLocation": "Kartes atrašanās vieta"
   },
   "suggestedLabels": [
     "Pārtikas preces",
@@ -1050,10 +1056,6 @@
       "title": "Izdevumu dati",
       "closeModal": "Aizvērt modālo logu",
       "close": "Aizvērt",
-      "paidBy": "Samaksāja",
-      "date": "Datums",
-      "labels": "Etiķetes",
-      "location": "Atrašanās vieta",
       "openInMaps": "Atvērt kartēs",
       "receipt": "Čeks",
       "viewReceipt": "Skatīt čeku",
@@ -1145,7 +1147,6 @@
     "expenseDetailPage": {
       "containsDepartedMembers": "Viens vai vairāki dalībnieki ir pametuši grupu. Vēsturiskie ieraksti tiek saglabāti kā tikai lasāmi.",
       "discussion": "Diskusija",
-      "receipt": "Čeks",
       "splitSection": "Sadalījuma dati",
       "metadataSection": "Izdevumu metadati"
     },

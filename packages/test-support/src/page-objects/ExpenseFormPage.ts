@@ -1326,9 +1326,12 @@ export class ExpenseFormPage extends BasePage {
 
     /**
      * Location input field (scoped to Expense Details section)
+     * Uses regex to match any of the rotating placeholder texts
      */
     protected getLocationInput(): Locator {
-        return this.getExpenseDetailsSection().getByPlaceholder(translation.expenseBasicFields.locationPlaceholder);
+        const placeholders = translation.expenseBasicFields.locationPlaceholders;
+        const placeholderPattern = new RegExp(`^(${placeholders.map((p: string) => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})$`);
+        return this.getExpenseDetailsSection().getByPlaceholder(placeholderPattern);
     }
 
     /**
@@ -1424,6 +1427,56 @@ export class ExpenseFormPage extends BasePage {
      */
     async verifyClearLocationButtonNotVisible(): Promise<void> {
         await expect(this.getClearLocationButton()).not.toBeVisible();
+    }
+
+    /**
+     * Paste text into the location field
+     * Used for testing URL paste detection
+     */
+    async pasteIntoLocationField(text: string): Promise<void> {
+        const input = this.getLocationInput();
+        await input.focus();
+        // Clear any existing value
+        await input.clear();
+        // Use keyboard shortcut to paste (triggers paste event handlers)
+        await this.page.evaluate((textToPaste) => {
+            const input = document.activeElement as HTMLInputElement;
+            if (input) {
+                // Create and dispatch a paste event with clipboard data
+                const pasteEvent = new ClipboardEvent('paste', {
+                    bubbles: true,
+                    cancelable: true,
+                    clipboardData: new DataTransfer(),
+                });
+                pasteEvent.clipboardData?.setData('text/plain', textToPaste);
+                input.dispatchEvent(pasteEvent);
+            }
+        }, text);
+    }
+
+    /**
+     * Verify the map button shows "Open on map" (indicates a URL is associated with location)
+     */
+    async verifyOpenOnMapButtonVisible(): Promise<void> {
+        const button = this.getExpenseDetailsSection().getByRole('button', { name: translation.expenseBasicFields.openOnMap });
+        await expect(button).toBeVisible();
+    }
+
+    /**
+     * Verify the map button shows "Find on map" (indicates no URL is associated)
+     */
+    async verifyFindOnMapButtonVisible(): Promise<void> {
+        const button = this.getExpenseDetailsSection().getByRole('button', { name: translation.expenseBasicFields.findOnMap });
+        await expect(button).toBeVisible();
+    }
+
+    /**
+     * Wait for location to finish resolving (loading state disappears)
+     */
+    async waitForLocationResolved(): Promise<void> {
+        const input = this.getLocationInput();
+        // Wait for the resolving text to disappear
+        await expect(input).not.toHaveValue(translation.expenseBasicFields.resolvingLocation, { timeout: 10000 });
     }
 
     // ============================================================================

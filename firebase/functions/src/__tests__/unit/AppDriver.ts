@@ -70,6 +70,8 @@ import {
     ReactionToggleResponse,
     RegisterResponse,
     RenameTenantImageRequest,
+    ResolveRedirectRequest,
+    ResolveRedirectResponse,
     SettlementDTO,
     SettlementId,
     SettlementWithMembers,
@@ -394,8 +396,9 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
             }
 
             // Middleware passed, now call the handler
-            // Provide a no-op next function for Express handlers
-            const next = () => {
+            // Provide a next function that throws errors (mimics Express error handling)
+            const next = (err?: any) => {
+                if (err) throw err;
             };
             await handlerFn(req, res, next);
 
@@ -1068,6 +1071,15 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         const req = createStubRequest(authToken, {}, { jobId });
         const res = await this.dispatchByHandler('getMergeStatus', req);
         return res.getJson() as MergeJobResponse;
+    }
+
+    // ===== URL UTILITIES =====
+
+    async resolveRedirect(request: ResolveRedirectRequest, authToken: AuthToken): Promise<ResolveRedirectResponse> {
+        const req = createStubRequest(authToken, request);
+        const res = await this.dispatchByHandler('resolveRedirect', req);
+        this.throwIfError(res);
+        return res.getJson() as ResolveRedirectResponse;
     }
 
     async processMergeTask(jobId: string, authToken?: AuthToken): Promise<any> {

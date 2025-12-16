@@ -65,6 +65,8 @@ import type {
     ReactionToggleResponse,
     RegisterResponse,
     RenameTenantImageRequest,
+    ResolveRedirectRequest,
+    ResolveRedirectResponse,
     SettlementDTO,
     SettlementId,
     SettlementWithMembers,
@@ -232,6 +234,12 @@ export interface API<AuthToken> {
 
     initiateMerge(request: InitiateMergeRequest, token?: AuthToken): Promise<InitiateMergeResponse>;
     getMergeStatus(jobId: string, token?: AuthToken): Promise<MergeJobResponse>;
+
+    /**
+     * Resolve a shortened URL by following redirects server-side.
+     * Used for expanding maps.app.goo.gl and similar short URLs to extract place names.
+     */
+    resolveRedirect(request: ResolveRedirectRequest, token?: AuthToken): Promise<ResolveRedirectResponse>;
 }
 
 /**

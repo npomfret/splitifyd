@@ -458,11 +458,17 @@
     "lastNight": "Letzte Nacht",
     "addSpecificTime": "Spezifische Uhrzeit hinzufügen",
     "locationLabel": "Ort",
-    "locationPlaceholder": "Wo war diese Ausgabe?",
+    "locationPlaceholders": [
+      "Wo war diese Ausgabe?",
+      "Ortsname eingeben...",
+      "Kartenlink einfügen..."
+    ],
     "findOnMap": "Auf Karte suchen",
     "openOnMap": "Auf Karte öffnen",
     "recentLocations": "Letzte Orte",
-    "clearLocation": "Ort löschen"
+    "clearLocation": "Ort löschen",
+    "resolvingLocation": "Ort wird aufgelöst...",
+    "mapLocation": "Kartenstandort"
   },
   "suggestedLabels": [
     "Lebensmittel",
@@ -1049,10 +1055,6 @@
       "title": "Ausgabendetails",
       "closeModal": "Modal schließen",
       "close": "Schließen",
-      "paidBy": "Bezahlt von",
-      "date": "Datum",
-      "labels": "Etiketten",
-      "location": "Standort",
       "openInMaps": "In Karten öffnen",
       "receipt": "Beleg",
       "viewReceipt": "Beleg ansehen",
@@ -1144,7 +1146,6 @@
     "expenseDetailPage": {
       "containsDepartedMembers": "Ein oder mehrere Teilnehmer haben die Gruppe verlassen. Historische Aufzeichnungen werden schreibgeschützt aufbewahrt.",
       "discussion": "Diskussion",
-      "receipt": "Beleg",
       "splitSection": "Aufteilungsdetails",
       "metadataSection": "Ausgaben-Metadaten"
     },

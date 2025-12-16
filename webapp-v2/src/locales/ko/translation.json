@@ -458,11 +458,17 @@
     "lastNight": "어젯밤",
     "addSpecificTime": "특정 시간 추가",
     "locationLabel": "위치",
-    "locationPlaceholder": "이 지출은 어디에서?",
+    "locationPlaceholders": [
+      "이 지출은 어디에서?",
+      "장소명 입력...",
+      "지도 링크 붙여넣기..."
+    ],
     "findOnMap": "지도에서 찾기",
     "openOnMap": "지도에서 열기",
     "recentLocations": "최근 위치",
-    "clearLocation": "위치 지우기"
+    "clearLocation": "위치 지우기",
+    "resolvingLocation": "위치 확인 중...",
+    "mapLocation": "지도 위치"
   },
   "suggestedLabels": [
     "식료품",
@@ -1050,10 +1056,6 @@
       "title": "비용 세부 정보",
       "closeModal": "모달 닫기",
       "close": "닫기",
-      "paidBy": "지불한 사람",
-      "date": "날짜",
-      "labels": "라벨",
-      "location": "위치",
       "openInMaps": "지도에서 열기",
       "receipt": "영수증",
       "viewReceipt": "영수증 보기",
@@ -1145,7 +1147,6 @@
     "expenseDetailPage": {
       "containsDepartedMembers": "한 명 이상의 참가자가 그룹을 떠났습니다. 기록은 읽기 전용으로 보존됩니다.",
       "discussion": "토론",
-      "receipt": "영수증",
       "splitSection": "분할 세부 정보",
       "metadataSection": "비용 메타데이터"
     },

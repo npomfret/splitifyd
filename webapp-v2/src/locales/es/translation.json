@@ -458,11 +458,17 @@
     "lastNight": "Anoche",
     "addSpecificTime": "Añadir hora específica",
     "locationLabel": "Ubicación",
-    "locationPlaceholder": "¿Dónde fue este gasto?",
+    "locationPlaceholders": [
+      "¿Dónde fue este gasto?",
+      "Escribe un nombre de lugar...",
+      "Pega un enlace de mapa..."
+    ],
     "findOnMap": "Buscar en el mapa",
     "openOnMap": "Abrir en el mapa",
     "recentLocations": "Ubicaciones recientes",
-    "clearLocation": "Borrar ubicación"
+    "clearLocation": "Borrar ubicación",
+    "resolvingLocation": "Resolviendo ubicación...",
+    "mapLocation": "Ubicación en el mapa"
   },
   "suggestedLabels": [
     "Comestibles",
@@ -1049,10 +1055,6 @@
       "title": "Detalles del gasto",
       "closeModal": "Cerrar modal",
       "close": "Cerrar",
-      "paidBy": "Pagado por",
-      "date": "Fecha",
-      "labels": "Etiquetas",
-      "location": "Ubicación",
       "openInMaps": "Abrir en Mapas",
       "receipt": "Recibo",
       "viewReceipt": "Ver recibo",
@@ -1144,7 +1146,6 @@
     "expenseDetailPage": {
       "containsDepartedMembers": "Uno o más participantes han abandonado el grupo. Los registros históricos se conservan como solo lectura.",
       "discussion": "Discusión",
-      "receipt": "Recibo",
       "splitSection": "Detalles de la división",
       "metadataSection": "Metadatos del gasto"
     },

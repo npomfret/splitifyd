@@ -458,11 +458,17 @@
     "lastNight": "الليلة الماضية",
     "addSpecificTime": "إضافة وقت محدد",
     "locationLabel": "الموقع",
-    "locationPlaceholder": "أين كانت هذه النفقة؟",
+    "locationPlaceholders": [
+      "أين كانت هذه النفقة؟",
+      "اكتب اسم المكان...",
+      "الصق رابط الخريطة..."
+    ],
     "findOnMap": "البحث على الخريطة",
     "openOnMap": "فتح على الخريطة",
     "recentLocations": "المواقع الأخيرة",
-    "clearLocation": "مسح الموقع"
+    "clearLocation": "مسح الموقع",
+    "resolvingLocation": "جاري تحديد الموقع...",
+    "mapLocation": "موقع الخريطة"
   },
   "suggestedLabels": [
     "بقالة",
@@ -1049,10 +1055,6 @@
       "title": "تفاصيل المصروف",
       "closeModal": "إغلاق النموذج",
       "close": "إغلاق",
-      "paidBy": "دفع بواسطة",
-      "date": "التاريخ",
-      "labels": "الملصقات",
-      "location": "الموقع",
       "openInMaps": "فتح في الخرائط",
       "receipt": "الإيصال",
       "viewReceipt": "عرض الإيصال",
@@ -1144,7 +1146,6 @@
     "expenseDetailPage": {
       "containsDepartedMembers": "لقد غادر واحد أو أكثر من المشاركين المجموعة. يتم الاحتفاظ بالسجلات التاريخية كقراءة فقط.",
       "discussion": "مناقشة",
-      "receipt": "الإيصال",
       "splitSection": "تفاصيل التقسيم",
       "metadataSection": "بيانات المصروف الوصفية"
     },

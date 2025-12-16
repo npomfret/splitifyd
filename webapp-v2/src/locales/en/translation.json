@@ -458,11 +458,17 @@
     "lastNight": "Last Night",
     "addSpecificTime": "Add specific time",
     "locationLabel": "Location",
-    "locationPlaceholder": "Where was this expense?",
+    "locationPlaceholders": [
+      "Where was this expense?",
+      "Type a place name...",
+      "Paste a maps link..."
+    ],
     "findOnMap": "Find on map",
     "openOnMap": "Open on map",
     "recentLocations": "Recent locations",
-    "clearLocation": "Clear location"
+    "clearLocation": "Clear location",
+    "resolvingLocation": "Resolving location...",
+    "mapLocation": "Map location"
   },
   "suggestedLabels": [
     "Groceries",
@@ -1049,10 +1055,6 @@
       "title": "Expense Details",
       "closeModal": "Close modal",
       "close": "Close",
-      "paidBy": "Paid by",
-      "date": "Date",
-      "labels": "Labels",
-      "location": "Location",
       "openInMaps": "Open in Maps",
       "receipt": "Receipt",
       "viewReceipt": "View receipt",
@@ -1144,7 +1146,6 @@
     "expenseDetailPage": {
       "containsDepartedMembers": "One or more participants have left the group. Historical records are preserved as read-only.",
       "discussion": "Discussion",
-      "receipt": "Receipt",
       "splitSection": "Split Details",
       "metadataSection": "Expense Metadata"
     },

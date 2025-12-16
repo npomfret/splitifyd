@@ -724,6 +724,15 @@ const routeDefinitions: RouteDefinition[] = [
         middleware: ['authenticateAdmin'],
     },
 
+    // === URL Utilities ===
+    {
+        method: 'POST',
+        path: '/utils/resolve-redirect',
+        handlerName: 'resolveRedirect',
+        category: 'resource',
+        middleware: ['authenticate'],
+    },
+
     // === Tenant Settings (Tenant Admin Only) ===
     {
         method: 'GET',

@@ -458,11 +458,17 @@
     "lastNight": "昨夜",
     "addSpecificTime": "特定の時間を追加",
     "locationLabel": "場所",
-    "locationPlaceholder": "この支出はどこで？",
+    "locationPlaceholders": [
+      "この支出はどこで？",
+      "場所名を入力...",
+      "地図リンクを貼り付け..."
+    ],
     "findOnMap": "地図で検索",
     "openOnMap": "地図で開く",
     "recentLocations": "最近の場所",
-    "clearLocation": "場所をクリア"
+    "clearLocation": "場所をクリア",
+    "resolvingLocation": "場所を解決中...",
+    "mapLocation": "地図の場所"
   },
   "suggestedLabels": [
     "食料品",
@@ -1050,10 +1056,6 @@
       "title": "経費の詳細",
       "closeModal": "モーダルを閉じる",
       "close": "閉じる",
-      "paidBy": "支払者",
-      "date": "日付",
-      "labels": "ラベル",
-      "location": "場所",
       "openInMaps": "地図で開く",
       "receipt": "領収書",
       "viewReceipt": "領収書を表示",
@@ -1145,7 +1147,6 @@
     "expenseDetailPage": {
       "containsDepartedMembers": "1人以上の参加者がグループを脱退しました。履歴記録は読み取り専用として保存されます。",
       "discussion": "ディスカッション",
-      "receipt": "領収書",
       "splitSection": "割り勘の詳細",
       "metadataSection": "経費メタデータ"
     },

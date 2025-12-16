@@ -458,11 +458,17 @@
     "lastNight": "I går kveld",
     "addSpecificTime": "Legg til spesifikk tid",
     "locationLabel": "Sted",
-    "locationPlaceholder": "Hvor var denne utgiften?",
+    "locationPlaceholders": [
+      "Hvor var denne utgiften?",
+      "Skriv inn stedsnavn...",
+      "Lim inn kartlenke..."
+    ],
     "findOnMap": "Finn på kart",
     "openOnMap": "Åpne på kart",
     "recentLocations": "Nylige steder",
-    "clearLocation": "Fjern sted"
+    "clearLocation": "Fjern sted",
+    "resolvingLocation": "Finner sted...",
+    "mapLocation": "Kartsted"
   },
   "suggestedLabels": [
     "Dagligvarer",
@@ -1049,10 +1055,6 @@
       "title": "Utgiftsdetaljer",
       "closeModal": "Lukk dialog",
       "close": "Lukk",
-      "paidBy": "Betalt av",
-      "date": "Dato",
-      "labels": "Etiketter",
-      "location": "Sted",
       "openInMaps": "Åpne i Kart",
       "receipt": "Kvittering",
       "viewReceipt": "Se kvittering",
@@ -1144,7 +1146,6 @@
     "expenseDetailPage": {
       "containsDepartedMembers": "En eller flere deltakere har forlatt gruppen. Historiske poster er bevart som skrivebeskyttet.",
       "discussion": "Diskusjon",
-      "receipt": "Kvittering",
       "splitSection": "Fordelingsdetaljer",
       "metadataSection": "Utgiftsmetadata"
     },

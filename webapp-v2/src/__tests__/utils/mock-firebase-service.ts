@@ -1129,3 +1129,27 @@ export async function setupSuccessfulApiMocks(page: Page, user?: ClientUser): Pr
         });
     }
 }
+
+/**
+ * Mock resolve redirect API endpoint
+ * Used for expanding shortened URLs (e.g., maps.app.goo.gl links)
+ * @param page - Playwright page instance
+ * @param resolvedUrl - The resolved URL to return
+ * @param options - Optional configuration (delay, status, once)
+ */
+export async function mockResolveRedirectApi(
+    page: Page,
+    resolvedUrl: string,
+    options: { delayMs?: number; status?: number; once?: boolean; } = {},
+): Promise<void> {
+    const delay = getApiDelay(options.delayMs);
+
+    await registerMswHandlers(
+        page,
+        createJsonHandler('POST', '/api/utils/resolve-redirect', { resolvedUrl }, {
+            delayMs: delay,
+            status: options.status ?? 200,
+            once: options.once,
+        }),
+    );
+}

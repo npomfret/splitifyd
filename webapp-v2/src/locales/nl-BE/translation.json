@@ -458,11 +458,17 @@
     "lastNight": "Gisteravond",
     "addSpecificTime": "Specifieke tijd toevoegen",
     "locationLabel": "Locatie",
-    "locationPlaceholder": "Waar was deze uitgave?",
+    "locationPlaceholders": [
+      "Waar was deze uitgave?",
+      "Typ een plaatsnaam...",
+      "Plak een kaartlink..."
+    ],
     "findOnMap": "Zoeken op kaart",
     "openOnMap": "Openen op kaart",
     "recentLocations": "Recente locaties",
-    "clearLocation": "Locatie wissen"
+    "clearLocation": "Locatie wissen",
+    "resolvingLocation": "Locatie oplossen...",
+    "mapLocation": "Kaartlocatie"
   },
   "suggestedLabels": [
     "Boodschappen",
@@ -1050,10 +1056,6 @@
       "title": "Uitgavedetails",
       "closeModal": "Modal sluiten",
       "close": "Sluiten",
-      "paidBy": "Betaald door",
-      "date": "Datum",
-      "labels": "Labels",
-      "location": "Locatie",
       "openInMaps": "Openen in Kaarten",
       "receipt": "Bon",
       "viewReceipt": "Bon bekijken",
@@ -1145,7 +1147,6 @@
     "expenseDetailPage": {
       "containsDepartedMembers": "Een of meer deelnemers hebben de groep verlaten. Historische gegevens worden als alleen-lezen bewaard.",
       "discussion": "Discussie",
-      "receipt": "Bon",
       "splitSection": "Verdelingsdetails",
       "metadataSection": "Uitgavenmetadata"
     },

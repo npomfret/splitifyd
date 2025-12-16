@@ -1978,3 +1978,23 @@ export interface UpdateUserProfileAdminRequest {
     displayName?: DisplayName;
     email?: Email;
 }
+
+// ========================================================================
+// URL Redirect Resolution Types
+// ========================================================================
+
+/**
+ * Request to resolve a shortened URL by following redirects.
+ * Used by the location input to expand maps.app.goo.gl and similar short URLs.
+ */
+export interface ResolveRedirectRequest {
+    url: string;
+}
+
+/**
+ * Response from resolving a shortened URL.
+ * Returns the final URL after following all redirects.
+ */
+export interface ResolveRedirectResponse {
+    resolvedUrl: string;
+}

@@ -458,11 +458,17 @@
     "lastNight": "Igår kväll",
     "addSpecificTime": "Lägg till specifik tid",
     "locationLabel": "Plats",
-    "locationPlaceholder": "Var var denna utgift?",
+    "locationPlaceholders": [
+      "Var var denna utgift?",
+      "Skriv ett platsnamn...",
+      "Klistra in en kartlänk..."
+    ],
     "findOnMap": "Hitta på karta",
     "openOnMap": "Öppna på karta",
     "recentLocations": "Senaste platser",
-    "clearLocation": "Rensa plats"
+    "clearLocation": "Rensa plats",
+    "resolvingLocation": "Söker plats...",
+    "mapLocation": "Kartplats"
   },
   "suggestedLabels": [
     "Livsmedel",
@@ -1050,10 +1056,6 @@
       "title": "Utgiftsinformation",
       "closeModal": "Stäng modal",
       "close": "Stäng",
-      "paidBy": "Betalades av",
-      "date": "Datum",
-      "labels": "Etiketter",
-      "location": "Plats",
       "openInMaps": "Öppna i Kartor",
       "receipt": "Kvitto",
       "viewReceipt": "Visa kvitto",
@@ -1145,7 +1147,6 @@
     "expenseDetailPage": {
       "containsDepartedMembers": "En eller flera deltagare har lämnat gruppen. Historiska poster bevaras som skrivskyddade.",
       "discussion": "Diskussion",
-      "receipt": "Kvitto",
       "splitSection": "Uppdelningsdetaljer",
       "metadataSection": "Utgiftsmetadata"
     },

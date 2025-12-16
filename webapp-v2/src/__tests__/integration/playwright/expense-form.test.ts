@@ -5,7 +5,7 @@ import { toCurrencyISOCode, USD } from '@billsplit-wl/shared';
 import { ExpenseDTOBuilder, ExpenseFormPage, ExpenseFullDetailsBuilder, GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder } from '@billsplit-wl/test-support';
 import type { Page } from '@playwright/test';
 import { expect, test } from '../../utils/console-logging-fixture';
-import { mockExpenseCommentsApi, mockExpenseDetailApi, mockGroupCommentsApi, mockGroupDetailApi, mockUpdateExpenseApi } from '../../utils/mock-firebase-service';
+import { mockExpenseCommentsApi, mockExpenseDetailApi, mockGroupCommentsApi, mockGroupDetailApi, mockResolveRedirectApi, mockUpdateExpenseApi } from '../../utils/mock-firebase-service';
 
 type MemberSeed = {
     uid: string;
@@ -1971,6 +1971,70 @@ test.describe('Expense Form', () => {
             // When location is empty, clear button should not be visible
             await expenseFormPage.verifyLocationEmpty();
             await expenseFormPage.verifyClearLocationButtonNotVisible();
+        });
+
+        test('should extract place name when pasting a full Google Maps URL', async ({ authenticatedPage }) => {
+            const groupId = 'test-group-location-full-url';
+            const { expenseFormPage } = await openExpenseFormForTest(authenticatedPage, groupId);
+
+            await expenseFormPage.waitForExpenseFormSections();
+
+            // Paste a full Google Maps URL with place name embedded
+            const mapsUrl = 'https://www.google.com/maps/place/Eiffel+Tower/@48.858844,2.294351,17z';
+            await expenseFormPage.pasteIntoLocationField(mapsUrl);
+
+            // Should extract "Eiffel Tower" from the URL
+            await expenseFormPage.verifyLocationValue('Eiffel Tower');
+            // Should show the "Open on map" button (indicates URL is associated)
+            await expenseFormPage.verifyOpenOnMapButtonVisible();
+        });
+
+        test('should resolve shortened Google Maps URL via backend API', async ({ authenticatedPage }) => {
+            const { page } = authenticatedPage;
+            const groupId = 'test-group-location-short-url';
+            const { expenseFormPage } = await openExpenseFormForTest(authenticatedPage, groupId);
+
+            // Mock the resolve redirect API to return a full URL
+            const shortUrl = 'https://maps.app.goo.gl/eLBgYkQZPoEweLnZ6';
+            const resolvedUrl = 'https://www.google.com/maps/place/Eiffel+Tower/@48.858844,2.294351,17z';
+            await mockResolveRedirectApi(page, resolvedUrl);
+
+            await expenseFormPage.waitForExpenseFormSections();
+
+            // Paste a shortened Google Maps URL
+            await expenseFormPage.pasteIntoLocationField(shortUrl);
+
+            // Wait for resolution to complete
+            await expenseFormPage.waitForLocationResolved();
+
+            // Should have extracted "Eiffel Tower" from the resolved URL
+            await expenseFormPage.verifyLocationValue('Eiffel Tower');
+            // Should show the "Open on map" button (indicates URL is associated)
+            await expenseFormPage.verifyOpenOnMapButtonVisible();
+        });
+
+        test('should show fallback text when URL cannot be parsed', async ({ authenticatedPage }) => {
+            const { page } = authenticatedPage;
+            const groupId = 'test-group-location-fallback';
+            const { expenseFormPage } = await openExpenseFormForTest(authenticatedPage, groupId);
+
+            // Mock the resolve redirect API to return a URL without a parseable place name
+            const shortUrl = 'https://maps.app.goo.gl/abc123';
+            const resolvedUrl = 'https://www.google.com/maps/@48.858844,2.294351,17z';
+            await mockResolveRedirectApi(page, resolvedUrl);
+
+            await expenseFormPage.waitForExpenseFormSections();
+
+            // Paste a shortened URL that resolves to a URL without a place name
+            await expenseFormPage.pasteIntoLocationField(shortUrl);
+
+            // Wait for resolution to complete
+            await expenseFormPage.waitForLocationResolved();
+
+            // Should show fallback "Map location" text
+            await expenseFormPage.verifyLocationValue('Map location');
+            // Should show the "Open on map" button (indicates URL is associated)
+            await expenseFormPage.verifyOpenOnMapButtonVisible();
         });
     });
 
