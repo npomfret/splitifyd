@@ -644,25 +644,26 @@
       "updated": "Sicherheitseinstellungen aktualisiert."
     },
     "permissions": {
+      "infoLabel": "Mehr Informationen",
       "expenseEditing": {
         "label": "Wer kann Ausgaben bearbeiten",
-        "description": "Wählen Sie, wer Ausgaben in der Gruppe aktualisieren kann."
+        "description": "Legt fest, wer Ausgabendetails wie Beträge, Beschreibungen und Kostenaufteilung ändern kann. Bei 'Ersteller & Administratoren' können nur die Person, die die Ausgabe erstellt hat, oder Gruppenadministratoren Änderungen vornehmen."
       },
       "expenseDeletion": {
         "label": "Wer kann Ausgaben löschen",
-        "description": "Beschränken Sie die Möglichkeit, Ausgaben zu entfernen."
+        "description": "Legt fest, wer Ausgaben dauerhaft aus der Gruppe entfernen kann. Dies ist eine sensible Aktion, da gelöschte Ausgaben nicht wiederhergestellt werden können. Erwägen Sie, dies für wichtige Gruppen auf Administratoren zu beschränken."
       },
       "memberInvitation": {
         "label": "Wer kann Mitglieder einladen",
-        "description": "Legen Sie fest, wer Einladungslinks generieren kann."
+        "description": "Legt fest, wer Einladungslinks erstellen kann, um neue Personen zu dieser Gruppe hinzuzufügen. Bei Einschränkung können nur Administratoren Einladungslinks erstellen und teilen."
       },
       "memberApproval": {
         "label": "Genehmigung neuer Mitglieder",
-        "description": "Verlangen Sie eine Administratorprüfung, bevor jemand über eine Einladung beitritt."
+        "description": "Wenn eine Administratorgenehmigung erforderlich ist, werden Personen, die einen Einladungslink verwenden, in einen ausstehenden Status versetzt, bis ein Administrator ihre Beitrittsanfrage überprüft und genehmigt."
       },
       "settingsManagement": {
         "label": "Wer kann Einstellungen ändern",
-        "description": "Kontrollieren Sie den Zugriff auf administrative Einstellungen."
+        "description": "Legt fest, wer Gruppeneinstellungen wie Gruppenname, Währung und diese Berechtigungseinstellungen ändern kann. Normalerweise auf Administratoren beschränkt, um die Gruppenintegrität zu wahren."
       },
       "options": {
         "anyone": "Jedes Mitglied",

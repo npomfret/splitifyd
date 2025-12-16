@@ -644,25 +644,26 @@
       "updated": "Configuración de seguridad actualizada."
     },
     "permissions": {
+      "infoLabel": "Más información",
       "expenseEditing": {
         "label": "Quién puede editar gastos",
-        "description": "Elija quién puede actualizar cualquier gasto en el grupo."
+        "description": "Controla quién puede modificar los detalles de los gastos como cantidades, descripciones y cómo se dividen los costos. Cuando se establece en 'Creadores y administradores', solo la persona que creó el gasto o los administradores del grupo pueden hacer cambios."
       },
       "expenseDeletion": {
         "label": "Quién puede eliminar gastos",
-        "description": "Restringe la capacidad de eliminar gastos."
+        "description": "Controla quién puede eliminar permanentemente los gastos del grupo. Esta es una acción sensible ya que los gastos eliminados no se pueden recuperar. Considere restringir esto a administradores para grupos importantes."
       },
       "memberInvitation": {
         "label": "Quién puede invitar miembros",
-        "description": "Determine quién puede generar enlaces de invitación."
+        "description": "Controla quién puede generar enlaces de invitación para agregar nuevas personas a este grupo. Cuando está restringido, solo los administradores pueden crear y compartir enlaces de invitación."
       },
       "memberApproval": {
         "label": "Aprobación de nuevos miembros",
-        "description": "Requiere una revisión de un administrador antes de que alguien se una a través de una invitación."
+        "description": "Cuando se configura para requerir aprobación de administrador, las personas que usen un enlace de invitación quedarán en estado pendiente hasta que un administrador revise y apruebe su solicitud de unirse."
       },
       "settingsManagement": {
         "label": "Quién puede cambiar la configuración",
-        "description": "Controle el acceso a la configuración administrativa."
+        "description": "Controla quién puede modificar la configuración del grupo, incluyendo el nombre del grupo, la moneda y estos ajustes de permisos. Normalmente restringido a administradores para mantener la integridad del grupo."
       },
       "options": {
         "anyone": "Cualquier miembro",

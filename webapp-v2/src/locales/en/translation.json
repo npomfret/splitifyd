@@ -644,25 +644,26 @@
       "updated": "Security settings updated."
     },
     "permissions": {
+      "infoLabel": "More information",
       "expenseEditing": {
         "label": "Who can edit expenses",
-        "description": "Choose who can update any expense in the group."
+        "description": "Controls who can modify expense details like amounts, descriptions, and how costs are split. When set to 'Creators & admins', only the person who created the expense or group admins can make changes."
       },
       "expenseDeletion": {
         "label": "Who can delete expenses",
-        "description": "Restrict the ability to remove expenses."
+        "description": "Controls who can permanently remove expenses from the group. This is a sensitive action since deleted expenses cannot be recovered. Consider restricting this to admins for important groups."
       },
       "memberInvitation": {
         "label": "Who can invite members",
-        "description": "Determine who can generate invite links."
+        "description": "Controls who can generate invite links to add new people to this group. When restricted, only admins can create and share invite links with others."
       },
       "memberApproval": {
         "label": "New member approval",
-        "description": "Require an admin review before someone joins via an invite."
+        "description": "When set to require admin approval, people who use an invite link will be placed in a pending state until an admin reviews and approves their request to join."
       },
       "settingsManagement": {
         "label": "Who can change settings",
-        "description": "Control access to administrative settings."
+        "description": "Controls who can modify group settings including the group name, currency, and these permission settings. Typically restricted to admins to maintain group integrity."
       },
       "options": {
         "anyone": "Any member",

@@ -644,25 +644,26 @@
       "updated": "Sikkerhetsinnstillinger oppdatert."
     },
     "permissions": {
+      "infoLabel": "Mer informasjon",
       "expenseEditing": {
         "label": "Hvem kan redigere utgifter",
-        "description": "Velg hvem som kan oppdatere alle utgifter i gruppen."
+        "description": "Kontrollerer hvem som kan endre utgiftsdetaljer som beløp, beskrivelser og hvordan kostnader deles. Når satt til 'Opprettere og administratorer', kan bare personen som opprettet utgiften eller gruppeadministratorer gjøre endringer."
       },
       "expenseDeletion": {
         "label": "Hvem kan slette utgifter",
-        "description": "Begrens muligheten til å fjerne utgifter."
+        "description": "Kontrollerer hvem som kan permanent fjerne utgifter fra gruppen. Dette er en sensitiv handling siden slettede utgifter ikke kan gjenopprettes. Vurder å begrense dette til administratorer for viktige grupper."
       },
       "memberInvitation": {
         "label": "Hvem kan invitere medlemmer",
-        "description": "Bestem hvem som kan generere invitasjonslenker."
+        "description": "Kontrollerer hvem som kan generere invitasjonslenker for å legge til nye personer i denne gruppen. Når begrenset, kan bare administratorer opprette og dele invitasjonslenker."
       },
       "memberApproval": {
         "label": "Godkjenning av nye medlemmer",
-        "description": "Krev en administratorgjennomgang før noen blir med via en invitasjon."
+        "description": "Når satt til å kreve administratorgodkjenning, vil personer som bruker en invitasjonslenke bli satt i ventende status til en administrator gjennomgår og godkjenner deres forespørsel om å bli med."
       },
       "settingsManagement": {
         "label": "Hvem kan endre innstillinger",
-        "description": "Kontroller tilgang til administrative innstillinger."
+        "description": "Kontrollerer hvem som kan endre gruppeinnstillinger inkludert gruppenavn, valuta og disse tillatelsesinnstillingene. Vanligvis begrenset til administratorer for å opprettholde gruppens integritet."
       },
       "options": {
         "anyone": "Alle medlemmer",

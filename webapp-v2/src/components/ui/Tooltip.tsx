@@ -132,7 +132,7 @@ export function Tooltip({ content, children, placement = 'top', className }: Too
             ref={tooltipRef}
             id={tooltipId}
             role='tooltip'
-            className={`pointer-events-none fixed z-50 whitespace-nowrap rounded-md border border-border-strong bg-surface-popover px-2.5 py-1.5 text-xs font-medium text-text-primary shadow-md transition-opacity duration-150 backdrop-blur-xs ${
+            className={`pointer-events-none fixed z-50 max-w-xs rounded-md border border-border-strong bg-surface-popover px-2.5 py-1.5 text-xs font-medium text-text-primary shadow-md transition-opacity duration-150 backdrop-blur-xs ${
                 isVisible && position ? 'opacity-100' : 'opacity-0'
             }`}
             style={position ? { top: `${position.top}px`, left: `${position.left}px` } : { top: '-9999px', left: '-9999px' }}

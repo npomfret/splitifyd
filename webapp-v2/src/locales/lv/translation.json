@@ -645,25 +645,26 @@
       "updated": "Drošības iestatījumi atjaunināti."
     },
     "permissions": {
+      "infoLabel": "Vairāk informācijas",
       "expenseEditing": {
         "label": "Kas var rediģēt izdevumus",
-        "description": "Izvēlieties, kurš var atjaunināt jebkurus izdevumus grupā."
+        "description": "Kontrolē, kurš var mainīt izdevumu detaļas, piemēram, summas, aprakstus un izmaksu sadalījumu. Iestatot uz 'Radītāji un administratori', tikai persona, kas izveidoja izdevumu, vai grupas administratori var veikt izmaiņas."
       },
       "expenseDeletion": {
         "label": "Kas var dzēst izdevumus",
-        "description": "Ierobežot iespēju noņemt izdevumus."
+        "description": "Kontrolē, kurš var neatgriezeniski dzēst izdevumus no grupas. Šī ir jutīga darbība, jo dzēstos izdevumus nevar atjaunot. Apsveriet ierobežošanu tikai administratoriem svarīgām grupām."
       },
       "memberInvitation": {
         "label": "Kas var uzaicināt dalībniekus",
-        "description": "Nosakiet, kurš var ģenerēt uzaicinājuma saites."
+        "description": "Kontrolē, kurš var ģenerēt uzaicinājuma saites, lai pievienotu jaunas personas šai grupai. Ja ierobežots, tikai administratori var izveidot un kopīgot uzaicinājuma saites."
       },
       "memberApproval": {
         "label": "Jauna dalībnieka apstiprinājums",
-        "description": "Pieprasīt administratora pārskatīšanu, pirms kāds pievienojas, izmantojot uzaicinājumu."
+        "description": "Iestatot prasīt administratora apstiprinājumu, personas, kas izmanto uzaicinājuma saiti, tiks novietotas gaidīšanas statusā, līdz administrators pārskatīs un apstiprinās viņu pievienošanās pieprasījumu."
       },
       "settingsManagement": {
         "label": "Kas var mainīt iestatījumus",
-        "description": "Kontrolēt piekļuvi administratīvajiem iestatījumiem."
+        "description": "Kontrolē, kurš var mainīt grupas iestatījumus, tostarp grupas nosaukumu, valūtu un šos atļauju iestatījumus. Parasti ierobežots administratoriem, lai saglabātu grupas integritāti."
       },
       "options": {
         "anyone": "Jebkurš dalībnieks",

@@ -645,25 +645,26 @@
       "updated": "Impostazioni di sicurezza aggiornate."
     },
     "permissions": {
+      "infoLabel": "Maggiori informazioni",
       "expenseEditing": {
         "label": "Chi può modificare le spese",
-        "description": "Scegli chi può aggiornare qualsiasi spesa nel gruppo."
+        "description": "Controlla chi può modificare i dettagli delle spese come importi, descrizioni e come vengono divisi i costi. Quando impostato su 'Creatori e amministratori', solo la persona che ha creato la spesa o gli amministratori del gruppo possono apportare modifiche."
       },
       "expenseDeletion": {
         "label": "Chi può eliminare le spese",
-        "description": "Limita la possibilità di rimuovere le spese."
+        "description": "Controlla chi può rimuovere permanentemente le spese dal gruppo. Questa è un'azione sensibile poiché le spese eliminate non possono essere recuperate. Considera di limitare questa opzione agli amministratori per gruppi importanti."
       },
       "memberInvitation": {
         "label": "Chi può invitare membri",
-        "description": "Determina chi può generare link di invito."
+        "description": "Controlla chi può generare link di invito per aggiungere nuove persone a questo gruppo. Quando limitato, solo gli amministratori possono creare e condividere link di invito."
       },
       "memberApproval": {
         "label": "Approvazione nuovo membro",
-        "description": "Richiede una revisione dell'amministratore prima che qualcuno si unisca tramite un invito."
+        "description": "Quando impostato per richiedere l'approvazione dell'amministratore, le persone che utilizzano un link di invito saranno messe in stato di attesa fino a quando un amministratore non esaminerà e approverà la loro richiesta di adesione."
       },
       "settingsManagement": {
         "label": "Chi può modificare le impostazioni",
-        "description": "Controlla l'accesso alle impostazioni amministrative."
+        "description": "Controlla chi può modificare le impostazioni del gruppo, inclusi il nome del gruppo, la valuta e queste impostazioni dei permessi. Tipicamente limitato agli amministratori per mantenere l'integrità del gruppo."
       },
       "options": {
         "anyone": "Qualsiasi membro",

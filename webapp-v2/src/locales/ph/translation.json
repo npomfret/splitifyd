@@ -645,25 +645,26 @@
       "updated": "Na-update ang mga setting ng seguridad."
     },
     "permissions": {
+      "infoLabel": "Higit pang impormasyon",
       "expenseEditing": {
         "label": "Sino ang maaaring mag-edit ng mga gastusin",
-        "description": "Piliin kung sino ang maaaring mag-update ng anumang gastusin sa grupo."
+        "description": "Kinokontrol kung sino ang maaaring magbago ng mga detalye ng gastusin tulad ng mga halaga, paglalarawan, at kung paano hinahati ang mga gastos. Kapag itinakda sa 'Mga lumikha at admin', ang taong lumikha lang ng gastusin o mga admin ng grupo ang maaaring gumawa ng mga pagbabago."
       },
       "expenseDeletion": {
         "label": "Sino ang maaaring magtanggal ng mga gastusin",
-        "description": "Limitahan ang kakayahang mag-alis ng mga gastusin."
+        "description": "Kinokontrol kung sino ang maaaring permanenteng magtanggal ng mga gastusin mula sa grupo. Ito ay isang sensitibong aksyon dahil ang mga tinanggal na gastusin ay hindi na maibabalik. Isaalang-alang ang paglilimita nito sa mga admin para sa mahahalagang grupo."
       },
       "memberInvitation": {
         "label": "Sino ang maaaring mag-imbita ng mga miyembro",
-        "description": "Tukuyin kung sino ang maaaring bumuo ng mga link ng imbitasyon."
+        "description": "Kinokontrol kung sino ang maaaring bumuo ng mga link ng imbitasyon para magdagdag ng mga bagong tao sa grupong ito. Kapag limitado, tanging mga admin lang ang maaaring gumawa at magbahagi ng mga link ng imbitasyon."
       },
       "memberApproval": {
         "label": "Pag-apruba ng bagong miyembro",
-        "description": "Nangangailangan ng pagsusuri ng admin bago may sumali sa pamamagitan ng imbitasyon."
+        "description": "Kapag itinakda na nangangailangan ng pag-apruba ng admin, ang mga taong gumagamit ng link ng imbitasyon ay ilalagay sa naghihintay na status hanggang sa suriin at aprubahan ng admin ang kanilang kahilingan na sumali."
       },
       "settingsManagement": {
         "label": "Sino ang maaaring magbago ng mga setting",
-        "description": "Kontrolin ang access sa mga administratibong setting."
+        "description": "Kinokontrol kung sino ang maaaring magbago ng mga setting ng grupo kabilang ang pangalan ng grupo, currency, at ang mga setting ng pahintulot na ito. Karaniwang limitado sa mga admin upang mapanatili ang integridad ng grupo."
       },
       "options": {
         "anyone": "Sinumang miyembro",

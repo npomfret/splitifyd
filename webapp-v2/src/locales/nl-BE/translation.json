@@ -645,25 +645,26 @@
       "updated": "Beveiligingsinstellingen bijgewerkt."
     },
     "permissions": {
+      "infoLabel": "Meer informatie",
       "expenseEditing": {
         "label": "Wie kan uitgaven bewerken",
-        "description": "Kies wie elke uitgave in de groep kan bijwerken."
+        "description": "Bepaalt wie uitgavedetails zoals bedragen, beschrijvingen en kostenverdeling kan wijzigen. Wanneer ingesteld op 'Makers en beheerders', kunnen alleen de persoon die de uitgave heeft aangemaakt of groepsbeheerders wijzigingen aanbrengen."
       },
       "expenseDeletion": {
         "label": "Wie kan uitgaven verwijderen",
-        "description": "Beperk de mogelijkheid om uitgaven te verwijderen."
+        "description": "Bepaalt wie uitgaven permanent uit de groep kan verwijderen. Dit is een gevoelige actie omdat verwijderde uitgaven niet kunnen worden hersteld. Overweeg dit te beperken tot beheerders voor belangrijke groepen."
       },
       "memberInvitation": {
         "label": "Wie kan leden uitnodigen",
-        "description": "Bepaal wie uitnodigingslinks kan genereren."
+        "description": "Bepaalt wie uitnodigingslinks kan genereren om nieuwe mensen aan deze groep toe te voegen. Wanneer beperkt, kunnen alleen beheerders uitnodigingslinks maken en delen."
       },
       "memberApproval": {
         "label": "Goedkeuring nieuw lid",
-        "description": "Vereis een beoordeling door een beheerder voordat iemand via een uitnodiging lid wordt."
+        "description": "Wanneer ingesteld om beheerdersgoedkeuring te vereisen, worden mensen die een uitnodigingslink gebruiken in een wachtende status geplaatst totdat een beheerder hun verzoek om lid te worden beoordeelt en goedkeurt."
       },
       "settingsManagement": {
         "label": "Wie kan instellingen wijzigen",
-        "description": "Beheer de toegang tot administratieve instellingen."
+        "description": "Bepaalt wie groepsinstellingen kan wijzigen, inclusief de groepsnaam, valuta en deze machtigingsinstellingen. Meestal beperkt tot beheerders om de groepsintegriteit te behouden."
       },
       "options": {
         "anyone": "Elk lid",
