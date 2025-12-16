@@ -5,11 +5,20 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { CommentHandlers } from '../../../comments/CommentHandlers';
 import { HTTP_STATUS } from '../../../constants';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
-import { createUnitTestServiceConfig } from '../../test-config';
+import { createUnitTestServiceConfig, StubGroupAttachmentStorage } from '../../test-config';
 import { AppDriver } from '../AppDriver';
 import { StubAuthService } from '../mocks/StubAuthService';
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// JPEG magic bytes for valid file uploads
+const JPEG_MAGIC = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46]);
+
+function createValidJpegBuffer(size = 1000): Buffer {
+    const buffer = Buffer.alloc(size);
+    JPEG_MAGIC.copy(buffer);
+    return buffer;
+}
 
 describe('CommentHandlers - Integration Tests', () => {
     let appDriver: AppDriver;
@@ -611,18 +620,585 @@ describe('CommentHandlers - Integration Tests', () => {
         it('should create CommentHandlers instance with CommentService', () => {
             const db = new StubFirestoreDatabase();
             const authService = new StubAuthService();
+            const storage = new StubStorage({ defaultBucketName: 'test-bucket' });
             const componentBuilder = new ComponentBuilder(
                 authService,
                 db,
-                new StubStorage({ defaultBucketName: 'test-bucket' }),
+                storage,
                 new StubCloudTasksClient(),
                 createUnitTestServiceConfig(),
+                new StubGroupAttachmentStorage(storage),
             );
             const handlers = new CommentHandlers(componentBuilder.buildCommentService());
             expect(handlers).toBeInstanceOf(CommentHandlers);
             expect(handlers.createComment).toBeDefined();
             expect(handlers.listGroupComments).toBeDefined();
             expect(handlers.listExpenseComments).toBeDefined();
+            expect(handlers.deleteGroupComment).toBeDefined();
+            expect(handlers.deleteExpenseComment).toBeDefined();
+        });
+    });
+
+    describe('deleteGroupComment', () => {
+        it('should delete a group comment successfully', async () => {
+            const userResult = await appDriver.registerUser(
+                new UserRegistrationBuilder().build(),
+            );
+            const userId = userResult.user.uid;
+
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
+
+            const comment = await appDriver.createGroupComment(group.id, 'Comment to delete', undefined, userId);
+
+            await appDriver.deleteGroupComment(group.id, comment.id, userId);
+
+            const listResult = await appDriver.listGroupComments(group.id, {}, userId);
+            expect(listResult.comments).toHaveLength(0);
+        });
+
+        it('should reject deletion by non-author', async () => {
+            const author = await appDriver.registerUser(
+                new UserRegistrationBuilder().withEmail('author@example.com').build(),
+            );
+
+            const otherUser = await appDriver.registerUser(
+                new UserRegistrationBuilder().withEmail('other@example.com').build(),
+            );
+
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), author.user.uid);
+
+            await appDriver.addMembersToGroup(group.id, author.user.uid, [otherUser.user.uid]);
+
+            const comment = await appDriver.createGroupComment(group.id, 'Author comment', undefined, author.user.uid);
+
+            await expect(appDriver.deleteGroupComment(group.id, comment.id, otherUser.user.uid))
+                .rejects
+                .toThrow(
+                    expect.objectContaining({
+                        statusCode: HTTP_STATUS.FORBIDDEN,
+                        code: 'FORBIDDEN',
+                    }),
+                );
+        });
+
+        it('should reject deletion of non-existent comment', async () => {
+            const userResult = await appDriver.registerUser(
+                new UserRegistrationBuilder().build(),
+            );
+            const userId = userResult.user.uid;
+
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
+
+            await expect(appDriver.deleteGroupComment(group.id, 'non-existent-comment-id', userId))
+                .rejects
+                .toThrow(
+                    expect.objectContaining({
+                        statusCode: HTTP_STATUS.NOT_FOUND,
+                        code: 'NOT_FOUND',
+                    }),
+                );
+        });
+
+        it('should reject deletion by non-member', async () => {
+            const creator = await appDriver.registerUser(
+                new UserRegistrationBuilder().withEmail('creator@example.com').build(),
+            );
+
+            const nonMember = await appDriver.registerUser(
+                new UserRegistrationBuilder().withEmail('nonmember@example.com').build(),
+            );
+
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creator.user.uid);
+            const comment = await appDriver.createGroupComment(group.id, 'Creator comment', undefined, creator.user.uid);
+
+            await expect(appDriver.deleteGroupComment(group.id, comment.id, nonMember.user.uid))
+                .rejects
+                .toThrow(
+                    expect.objectContaining({
+                        statusCode: HTTP_STATUS.FORBIDDEN,
+                        code: 'FORBIDDEN',
+                    }),
+                );
+        });
+
+        it('should reject deletion for non-existent group', async () => {
+            const userResult = await appDriver.registerUser(
+                new UserRegistrationBuilder().build(),
+            );
+            const userId = userResult.user.uid;
+
+            await expect(appDriver.deleteGroupComment('non-existent-group-id', 'some-comment-id', userId))
+                .rejects
+                .toThrow(
+                    expect.objectContaining({
+                        statusCode: HTTP_STATUS.NOT_FOUND,
+                        code: 'NOT_FOUND',
+                    }),
+                );
+        });
+    });
+
+    describe('deleteExpenseComment', () => {
+        it('should delete an expense comment successfully', async () => {
+            const userResult = await appDriver.registerUser(
+                new UserRegistrationBuilder().build(),
+            );
+            const userId = userResult.user.uid;
+
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
+
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPaidBy(userId)
+                    .withParticipants([userId])
+                    .build(),
+                userId,
+            );
+
+            const comment = await appDriver.createExpenseComment(expense.id, 'Expense comment to delete', undefined, userId);
+
+            await appDriver.deleteExpenseComment(expense.id, comment.id, userId);
+
+            const listResult = await appDriver.listExpenseComments(expense.id, {}, userId);
+            expect(listResult.comments).toHaveLength(0);
+        });
+
+        it('should reject deletion by non-author', async () => {
+            const author = await appDriver.registerUser(
+                new UserRegistrationBuilder().withEmail('expense-author@example.com').build(),
+            );
+
+            const otherUser = await appDriver.registerUser(
+                new UserRegistrationBuilder().withEmail('expense-other@example.com').build(),
+            );
+
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), author.user.uid);
+            await appDriver.addMembersToGroup(group.id, author.user.uid, [otherUser.user.uid]);
+
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPaidBy(author.user.uid)
+                    .withParticipants([author.user.uid, otherUser.user.uid])
+                    .build(),
+                author.user.uid,
+            );
+
+            const comment = await appDriver.createExpenseComment(expense.id, 'Author expense comment', undefined, author.user.uid);
+
+            await expect(appDriver.deleteExpenseComment(expense.id, comment.id, otherUser.user.uid))
+                .rejects
+                .toThrow(
+                    expect.objectContaining({
+                        statusCode: HTTP_STATUS.FORBIDDEN,
+                        code: 'FORBIDDEN',
+                    }),
+                );
+        });
+
+        it('should reject deletion of non-existent comment', async () => {
+            const userResult = await appDriver.registerUser(
+                new UserRegistrationBuilder().build(),
+            );
+            const userId = userResult.user.uid;
+
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
+
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPaidBy(userId)
+                    .withParticipants([userId])
+                    .build(),
+                userId,
+            );
+
+            await expect(appDriver.deleteExpenseComment(expense.id, 'non-existent-comment-id', userId))
+                .rejects
+                .toThrow(
+                    expect.objectContaining({
+                        statusCode: HTTP_STATUS.NOT_FOUND,
+                        code: 'NOT_FOUND',
+                    }),
+                );
+        });
+
+        it('should reject deletion by non-member', async () => {
+            const creator = await appDriver.registerUser(
+                new UserRegistrationBuilder().withEmail('expense-creator@example.com').build(),
+            );
+
+            const nonMember = await appDriver.registerUser(
+                new UserRegistrationBuilder().withEmail('expense-nonmember@example.com').build(),
+            );
+
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creator.user.uid);
+
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPaidBy(creator.user.uid)
+                    .withParticipants([creator.user.uid])
+                    .build(),
+                creator.user.uid,
+            );
+
+            const comment = await appDriver.createExpenseComment(expense.id, 'Creator expense comment', undefined, creator.user.uid);
+
+            await expect(appDriver.deleteExpenseComment(expense.id, comment.id, nonMember.user.uid))
+                .rejects
+                .toThrow(
+                    expect.objectContaining({
+                        statusCode: HTTP_STATUS.FORBIDDEN,
+                        code: 'FORBIDDEN',
+                    }),
+                );
+        });
+
+        it('should reject deletion for non-existent expense', async () => {
+            const userResult = await appDriver.registerUser(
+                new UserRegistrationBuilder().build(),
+            );
+            const userId = userResult.user.uid;
+
+            await expect(appDriver.deleteExpenseComment('non-existent-expense-id', 'some-comment-id', userId))
+                .rejects
+                .toThrow(
+                    expect.objectContaining({
+                        statusCode: HTTP_STATUS.NOT_FOUND,
+                        code: 'NOT_FOUND',
+                    }),
+                );
+        });
+
+        it('should cascade delete attachments when expense comment is deleted', async () => {
+            const userResult = await appDriver.registerUser(
+                new UserRegistrationBuilder().build(),
+            );
+            const userId = userResult.user.uid;
+
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
+
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPaidBy(userId)
+                    .withParticipants([userId])
+                    .build(),
+                userId,
+            );
+
+            const attachment = await appDriver.uploadAttachment(
+                group.id,
+                'comment',
+                createValidJpegBuffer(),
+                'image/jpeg',
+                userId,
+                'expense-attachment.jpg',
+            );
+
+            const comment = await appDriver.createExpenseComment(
+                expense.id,
+                'Expense comment with attachment',
+                [attachment.attachment.id],
+                userId,
+            );
+
+            expect(comment.attachments).toHaveLength(1);
+
+            await appDriver.deleteExpenseComment(expense.id, comment.id, userId);
+
+            await expect(appDriver.getAttachment(group.id, attachment.attachment.id, userId))
+                .rejects
+                .toThrow();
+        });
+    });
+
+    describe('Comment attachments', () => {
+        it('should create group comment with attachment', async () => {
+            const userResult = await appDriver.registerUser(
+                new UserRegistrationBuilder().build(),
+            );
+            const userId = userResult.user.uid;
+
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
+
+            const uploadResult = await appDriver.uploadAttachment(
+                group.id,
+                'comment',
+                createValidJpegBuffer(),
+                'image/jpeg',
+                userId,
+                'test.jpg',
+            );
+
+            const comment = await appDriver.createGroupComment(
+                group.id,
+                'Comment with attachment',
+                [uploadResult.attachment.id],
+                userId,
+            );
+
+            expect(comment.attachments).toBeDefined();
+            expect(comment.attachments!).toHaveLength(1);
+            expect(comment.attachments![0].attachmentId).toBe(uploadResult.attachment.id);
+            expect(comment.attachments![0].fileName).toBe('test.jpg');
+        });
+
+        it('should create expense comment with attachment', async () => {
+            const userResult = await appDriver.registerUser(
+                new UserRegistrationBuilder().build(),
+            );
+            const userId = userResult.user.uid;
+
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
+
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPaidBy(userId)
+                    .withParticipants([userId])
+                    .build(),
+                userId,
+            );
+
+            const uploadResult = await appDriver.uploadAttachment(
+                group.id,
+                'comment',
+                createValidJpegBuffer(),
+                'image/jpeg',
+                userId,
+                'expense-receipt.jpg',
+            );
+
+            const comment = await appDriver.createExpenseComment(
+                expense.id,
+                'Expense comment with receipt',
+                [uploadResult.attachment.id],
+                userId,
+            );
+
+            expect(comment.attachments).toBeDefined();
+            expect(comment.attachments!).toHaveLength(1);
+            expect(comment.attachments![0].attachmentId).toBe(uploadResult.attachment.id);
+            expect(comment.attachments![0].fileName).toBe('expense-receipt.jpg');
+        });
+
+        it('should create comment with multiple attachments (up to 3)', async () => {
+            const userResult = await appDriver.registerUser(
+                new UserRegistrationBuilder().build(),
+            );
+            const userId = userResult.user.uid;
+
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
+
+            const attachments = await Promise.all([
+                appDriver.uploadAttachment(group.id, 'comment', createValidJpegBuffer(), 'image/jpeg', userId, 'photo1.jpg'),
+                appDriver.uploadAttachment(group.id, 'comment', createValidJpegBuffer(), 'image/jpeg', userId, 'photo2.jpg'),
+                appDriver.uploadAttachment(group.id, 'comment', createValidJpegBuffer(), 'image/jpeg', userId, 'photo3.jpg'),
+            ]);
+
+            const comment = await appDriver.createGroupComment(
+                group.id,
+                'Comment with 3 attachments',
+                attachments.map((a) => a.attachment.id),
+                userId,
+            );
+
+            expect(comment.attachments).toHaveLength(3);
+            expect(comment.attachments![0].fileName).toBe('photo1.jpg');
+            expect(comment.attachments![1].fileName).toBe('photo2.jpg');
+            expect(comment.attachments![2].fileName).toBe('photo3.jpg');
+        });
+
+        it('should reject comment with more than 3 attachments', async () => {
+            const userResult = await appDriver.registerUser(
+                new UserRegistrationBuilder().build(),
+            );
+            const userId = userResult.user.uid;
+
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
+
+            const attachments = await Promise.all([
+                appDriver.uploadAttachment(group.id, 'comment', createValidJpegBuffer(), 'image/jpeg', userId, '1.jpg'),
+                appDriver.uploadAttachment(group.id, 'comment', createValidJpegBuffer(), 'image/jpeg', userId, '2.jpg'),
+                appDriver.uploadAttachment(group.id, 'comment', createValidJpegBuffer(), 'image/jpeg', userId, '3.jpg'),
+                appDriver.uploadAttachment(group.id, 'comment', createValidJpegBuffer(), 'image/jpeg', userId, '4.jpg'),
+            ]);
+
+            await expect(appDriver.createGroupComment(
+                group.id,
+                'Too many attachments',
+                attachments.map((a) => a.attachment.id),
+                userId,
+            )).rejects.toThrow(
+                expect.objectContaining({
+                    statusCode: HTTP_STATUS.BAD_REQUEST,
+                    code: 'VALIDATION_ERROR',
+                }),
+            );
+        });
+
+        it('should reject comment with invalid attachment ID', async () => {
+            const userResult = await appDriver.registerUser(
+                new UserRegistrationBuilder().build(),
+            );
+            const userId = userResult.user.uid;
+
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
+
+            await expect(appDriver.createGroupComment(
+                group.id,
+                'Comment with invalid attachment',
+                ['invalid-attachment-id' as any],
+                userId,
+            )).rejects.toThrow(
+                expect.objectContaining({
+                    statusCode: HTTP_STATUS.BAD_REQUEST,
+                    code: 'VALIDATION_ERROR',
+                }),
+            );
+        });
+
+        it('should cascade delete attachments when group comment is deleted', async () => {
+            const userResult = await appDriver.registerUser(
+                new UserRegistrationBuilder().build(),
+            );
+            const userId = userResult.user.uid;
+
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
+
+            const attachment = await appDriver.uploadAttachment(
+                group.id,
+                'comment',
+                createValidJpegBuffer(),
+                'image/jpeg',
+                userId,
+                'test.jpg',
+            );
+
+            const comment = await appDriver.createGroupComment(
+                group.id,
+                'Comment with attachment',
+                [attachment.attachment.id],
+                userId,
+            );
+
+            await appDriver.deleteGroupComment(group.id, comment.id, userId);
+
+            await expect(appDriver.getAttachment(group.id, attachment.attachment.id, userId))
+                .rejects
+                .toThrow();
+        });
+
+        it('should return attachments when listing group comments', async () => {
+            const userResult = await appDriver.registerUser(
+                new UserRegistrationBuilder().build(),
+            );
+            const userId = userResult.user.uid;
+
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
+
+            const attachment = await appDriver.uploadAttachment(
+                group.id,
+                'comment',
+                createValidJpegBuffer(),
+                'image/jpeg',
+                userId,
+                'listed.jpg',
+            );
+
+            await appDriver.createGroupComment(
+                group.id,
+                'Comment with attachment for listing',
+                [attachment.attachment.id],
+                userId,
+            );
+
+            const listResult = await appDriver.listGroupComments(group.id, {}, userId);
+
+            expect(listResult.comments).toHaveLength(1);
+            expect(listResult.comments[0].attachments).toHaveLength(1);
+            expect(listResult.comments[0].attachments![0].fileName).toBe('listed.jpg');
+        });
+
+        it('should return attachments when listing expense comments', async () => {
+            const userResult = await appDriver.registerUser(
+                new UserRegistrationBuilder().build(),
+            );
+            const userId = userResult.user.uid;
+
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
+
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPaidBy(userId)
+                    .withParticipants([userId])
+                    .build(),
+                userId,
+            );
+
+            const attachment = await appDriver.uploadAttachment(
+                group.id,
+                'comment',
+                createValidJpegBuffer(),
+                'image/jpeg',
+                userId,
+                'expense-listed.jpg',
+            );
+
+            await appDriver.createExpenseComment(
+                expense.id,
+                'Expense comment with attachment for listing',
+                [attachment.attachment.id],
+                userId,
+            );
+
+            const listResult = await appDriver.listExpenseComments(expense.id, {}, userId);
+
+            expect(listResult.comments).toHaveLength(1);
+            expect(listResult.comments[0].attachments).toHaveLength(1);
+            expect(listResult.comments[0].attachments![0].fileName).toBe('expense-listed.jpg');
+        });
+
+        it('should create comment without attachments (attachmentIds undefined)', async () => {
+            const userResult = await appDriver.registerUser(
+                new UserRegistrationBuilder().build(),
+            );
+            const userId = userResult.user.uid;
+
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
+
+            const comment = await appDriver.createGroupComment(
+                group.id,
+                'Comment without attachments',
+                undefined,
+                userId,
+            );
+
+            // When no attachments provided, returns empty array (from schema default)
+            expect(comment.attachments).toEqual([]);
+        });
+
+        it('should create comment with empty attachmentIds array', async () => {
+            const userResult = await appDriver.registerUser(
+                new UserRegistrationBuilder().build(),
+            );
+            const userId = userResult.user.uid;
+
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
+
+            const comment = await appDriver.createGroupComment(
+                group.id,
+                'Comment with empty attachments array',
+                [],
+                userId,
+            );
+
+            // Empty array provided, returns empty array
+            expect(comment.attachments).toEqual([]);
         });
     });
 });

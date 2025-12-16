@@ -621,6 +621,14 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return response;
     }
 
+    async deleteGroupComment(groupId: GroupId | string, commentId: CommentId | string, token?: AuthToken): Promise<void> {
+        await this.apiRequest(`/groups/${groupId}/comments/${commentId}`, 'DELETE', null, token);
+    }
+
+    async deleteExpenseComment(expenseId: ExpenseId | string, commentId: CommentId | string, token?: AuthToken): Promise<void> {
+        await this.apiRequest(`/expenses/${expenseId}/comments/${commentId}`, 'DELETE', null, token);
+    }
+
     // Attachment API methods
     async uploadAttachment(
         groupId: GroupId | string,

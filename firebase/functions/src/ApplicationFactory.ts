@@ -487,6 +487,8 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
         createCommentForExpense: commentHandlers.createComment,
         listGroupComments: commentHandlers.listGroupComments,
         listExpenseComments: commentHandlers.listExpenseComments,
+        deleteGroupComment: commentHandlers.deleteGroupComment,
+        deleteExpenseComment: commentHandlers.deleteExpenseComment,
 
         // Attachment handlers
         uploadAttachment: attachmentHandlers.uploadAttachment,

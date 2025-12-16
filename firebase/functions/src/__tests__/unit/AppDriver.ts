@@ -108,8 +108,7 @@ import { createRouteDefinitions, RouteDefinition } from '../../routes/route-conf
 import { ComponentBuilder } from '../../services/ComponentBuilder';
 import { FirestoreReader } from '../../services/firestore';
 import { RegisterUserResult } from '../../services/UserService2';
-import { resetGroupAttachmentStorage } from '../../services/storage/GroupAttachmentStorage';
-import { createUnitTestServiceConfig } from '../test-config';
+import { createUnitTestServiceConfig, StubGroupAttachmentStorage } from '../test-config';
 import { StubAuthService } from './mocks/StubAuthService';
 
 /**
@@ -144,13 +143,14 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
 
     constructor() {
         // Create a ComponentBuilder with our test dependencies
-        resetGroupAttachmentStorage();
+        const groupAttachmentStorage = new StubGroupAttachmentStorage(this.storage);
         this._componentBuilder = new ComponentBuilder(
             this.authService,
             this.db,
             this.storage,
             this.cloudTasksClient,
             createUnitTestServiceConfig(),
+            groupAttachmentStorage,
         );
 
         // Create populated route definitions using the component builder
@@ -979,6 +979,18 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         const res = await this.dispatchByHandler('listExpenseComments', req);
         this.throwIfError(res);
         return res.getJson() as ListCommentsResponse;
+    }
+
+    async deleteGroupComment(groupId: GroupId | string, commentId: CommentId | string, authToken?: AuthToken): Promise<void> {
+        const req = createStubRequest(authToken || '', {}, { groupId, commentId });
+        const res = await this.dispatchByHandler('deleteGroupComment', req);
+        this.throwIfError(res);
+    }
+
+    async deleteExpenseComment(expenseId: ExpenseId | string, commentId: CommentId | string, authToken?: AuthToken): Promise<void> {
+        const req = createStubRequest(authToken || '', {}, { expenseId, commentId });
+        const res = await this.dispatchByHandler('deleteExpenseComment', req);
+        this.throwIfError(res);
     }
 
     // Attachment methods - implemented in Phase 2

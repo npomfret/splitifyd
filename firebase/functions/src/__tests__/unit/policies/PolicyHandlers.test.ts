@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { PolicyHandlers } from '../../../policies/PolicyHandlers';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
-import { createUnitTestServiceConfig } from '../../test-config';
+import { createUnitTestServiceConfig, StubGroupAttachmentStorage } from '../../test-config';
 import { AppDriver } from '../AppDriver';
 import { StubAuthService } from '../mocks/StubAuthService';
 
@@ -409,12 +409,14 @@ describe('PolicyHandlers - Unit Tests', () => {
         it('should create PolicyHandlers instance with PolicyService', () => {
             const db = new StubFirestoreDatabase();
             const authService = new StubAuthService();
+            const storage = new StubStorage({ defaultBucketName: 'test-bucket' });
             const componentBuilder = new ComponentBuilder(
                 authService,
                 db,
-                new StubStorage({ defaultBucketName: 'test-bucket' }),
+                storage,
                 new StubCloudTasksClient(),
                 createUnitTestServiceConfig(),
+                new StubGroupAttachmentStorage(storage),
             );
             const handlers = new PolicyHandlers(componentBuilder.buildPolicyService());
             expect(handlers).toBeInstanceOf(PolicyHandlers);

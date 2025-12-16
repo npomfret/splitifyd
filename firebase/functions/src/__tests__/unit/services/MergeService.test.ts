@@ -8,7 +8,7 @@ import type { MergeService } from '../../../merge/MergeService';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import { StubAuthService } from '../mocks/StubAuthService';
 
-import { createUnitTestServiceConfig } from '../../test-config';
+import { createUnitTestServiceConfig, StubGroupAttachmentStorage } from '../../test-config';
 
 /**
  * MergeService Unit Tests
@@ -39,12 +39,14 @@ describe('MergeService', () => {
         stubCloudTasks = new StubCloudTasksClient();
 
         // Create ComponentBuilder with test dependencies
+        const storage = new StubStorage({ defaultBucketName: 'test-bucket' });
         const componentBuilder = new ComponentBuilder(
             stubAuth,
             db,
-            new StubStorage({ defaultBucketName: 'test-bucket' }),
+            storage,
             stubCloudTasks, // Pass stub directly to constructor
             createUnitTestServiceConfig(),
+            new StubGroupAttachmentStorage(storage),
         );
 
         // Get MergeService from builder (properly wired with dependencies)

@@ -1383,6 +1383,22 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
         });
     }
 
+    async deleteGroupComment(groupId: GroupId, commentId: CommentId): Promise<void> {
+        await this.request({
+            endpoint: '/groups/:groupId/comments/:commentId',
+            method: 'DELETE',
+            params: { groupId, commentId },
+        });
+    }
+
+    async deleteExpenseComment(expenseId: ExpenseId, commentId: CommentId): Promise<void> {
+        await this.request({
+            endpoint: '/expenses/:expenseId/comments/:commentId',
+            method: 'DELETE',
+            params: { expenseId, commentId },
+        });
+    }
+
     // ===== ADMIN API: POLICY MANAGEMENT =====
 
     async createPolicy(request: CreatePolicyRequest): Promise<CreatePolicyResponse> {

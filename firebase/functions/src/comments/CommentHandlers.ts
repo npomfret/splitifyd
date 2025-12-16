@@ -6,7 +6,7 @@ import { HTTP_STATUS } from '../constants';
 import { Errors } from '../errors';
 import { logger } from '../logger';
 import { CommentService } from '../services/CommentService';
-import { validateCreateExpenseComment, validateCreateGroupComment, validateExpenseId, validateGroupId, validateListCommentsQuery } from './validation';
+import { validateCommentId, validateCreateExpenseComment, validateCreateGroupComment, validateExpenseId, validateGroupId, validateListCommentsQuery } from './validation';
 
 export class CommentHandlers {
     constructor(private readonly commentService: CommentService) {
@@ -98,6 +98,50 @@ export class CommentHandlers {
                 userId: req.user?.uid,
                 expenseId: req.params.expenseId,
                 query: req.query,
+            });
+            throw error;
+        }
+    };
+
+    /**
+     * Delete a group comment
+     */
+    deleteGroupComment = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+        try {
+            const userId = validateUserAuth(req);
+            const groupId = validateGroupId(req.params.groupId);
+            const commentId = validateCommentId(req.params.commentId);
+
+            await this.commentService.deleteGroupComment(groupId, commentId, userId);
+
+            res.status(HTTP_STATUS.NO_CONTENT).send();
+        } catch (error) {
+            logger.error('Failed to delete group comment', error, {
+                userId: req.user?.uid,
+                groupId: req.params.groupId,
+                commentId: req.params.commentId,
+            });
+            throw error;
+        }
+    };
+
+    /**
+     * Delete an expense comment
+     */
+    deleteExpenseComment = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+        try {
+            const userId = validateUserAuth(req);
+            const expenseId = validateExpenseId(req.params.expenseId);
+            const commentId = validateCommentId(req.params.commentId);
+
+            await this.commentService.deleteExpenseComment(expenseId, commentId, userId);
+
+            res.status(HTTP_STATUS.NO_CONTENT).send();
+        } catch (error) {
+            logger.error('Failed to delete expense comment', error, {
+                userId: req.user?.uid,
+                expenseId: req.params.expenseId,
+                commentId: req.params.commentId,
             });
             throw error;
         }

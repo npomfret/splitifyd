@@ -9,7 +9,7 @@ import type { MergeTaskService } from '../../../merge/MergeTaskService';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import { StubAuthService } from '../mocks/StubAuthService';
 
-import { createUnitTestServiceConfig } from '../../test-config';
+import { createUnitTestServiceConfig, StubGroupAttachmentStorage } from '../../test-config';
 
 /**
  * MergeTaskService Unit Tests - Phase 3 Minimal Implementation
@@ -32,12 +32,14 @@ describe('MergeTaskService', () => {
         stubAuth = new StubAuthService();
 
         // Create ComponentBuilder with test dependencies
+        const storage = new StubStorage({ defaultBucketName: 'test-bucket' });
         const componentBuilder = new ComponentBuilder(
             stubAuth,
             db,
-            new StubStorage({ defaultBucketName: 'test-bucket' }),
+            storage,
             new StubCloudTasksClient(), // Provide stub CloudTasks client
             createUnitTestServiceConfig(),
+            new StubGroupAttachmentStorage(storage),
         );
 
         // Get MergeTaskService from builder (properly wired with dependencies)

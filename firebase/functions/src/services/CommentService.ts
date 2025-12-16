@@ -1,5 +1,5 @@
-import type { ExpenseId, GroupId, UserId } from '@billsplit-wl/shared';
-import { ActivityFeedActions, ActivityFeedEventTypes, CommentDTO, CreateExpenseCommentRequest, CreateGroupCommentRequest, ListCommentsResponse, toCommentId, toISOString } from '@billsplit-wl/shared';
+import type { AttachmentId, CommentAttachmentRef, CommentId, ExpenseId, GroupId, UserId } from '@billsplit-wl/shared';
+import { ActivityFeedActions, ActivityFeedEventTypes, CommentDTO, CreateExpenseCommentRequest, CreateGroupCommentRequest, ListCommentsResponse, toAttachmentId, toCommentId, toISOString } from '@billsplit-wl/shared';
 import { ErrorDetail, Errors } from '../errors';
 import { logger } from '../logger';
 import * as measure from '../monitoring/measure';
@@ -10,6 +10,7 @@ import { ExpenseCommentStrategy } from './comments/ExpenseCommentStrategy';
 import { GroupCommentStrategy } from './comments/GroupCommentStrategy';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
 import { GroupMemberService } from './GroupMemberService';
+import type { GroupAttachmentStorage } from './storage/GroupAttachmentStorage';
 
 /**
  * Service for managing comment operations
@@ -23,6 +24,7 @@ export class CommentService {
         private readonly firestoreWriter: IFirestoreWriter,
         readonly groupMemberService: GroupMemberService,
         private readonly activityFeedService: ActivityFeedService,
+        private readonly attachmentStorage: GroupAttachmentStorage,
     ) {
         this.groupCommentStrategy = new GroupCommentStrategy(firestoreReader, groupMemberService);
         this.expenseCommentStrategy = new ExpenseCommentStrategy(firestoreReader, groupMemberService);
@@ -120,6 +122,31 @@ export class CommentService {
         return measure.measureDb('CommentService.createExpenseComment', async () => this.createExpenseCommentInternal(expenseId, commentData, userId));
     }
 
+    /**
+     * Resolve attachment IDs to attachment refs by looking up metadata from storage.
+     * Validates that all attachments exist and belong to the specified group.
+     */
+    private async resolveAttachmentRefs(groupId: GroupId, attachmentIds: AttachmentId[] | undefined): Promise<CommentAttachmentRef[]> {
+        if (!attachmentIds || attachmentIds.length === 0) {
+            return [];
+        }
+
+        const attachmentRefs: CommentAttachmentRef[] = [];
+        for (const attachmentId of attachmentIds) {
+            const metadata = await this.attachmentStorage.getAttachmentMetadata(groupId, attachmentId);
+            if (!metadata) {
+                throw Errors.validationError('attachmentIds', 'ATTACHMENT_NOT_FOUND');
+            }
+            attachmentRefs.push({
+                attachmentId: toAttachmentId(metadata.attachmentId),
+                fileName: metadata.fileName,
+                contentType: metadata.contentType,
+                sizeBytes: metadata.sizeBytes,
+            });
+        }
+        return attachmentRefs;
+    }
+
     private async createGroupCommentInternal(groupId: GroupId, commentData: CreateGroupCommentRequest, userId: UserId): Promise<CommentDTO> {
         const timer = new PerformanceTimer();
 
@@ -137,11 +164,15 @@ export class CommentService {
             forbiddenErrorFactory: () => Errors.forbidden(ErrorDetail.NOT_GROUP_MEMBER),
         });
 
+        // Resolve attachment refs if attachmentIds provided
+        const attachments = await this.resolveAttachmentRefs(groupId, commentData.attachmentIds);
+
         const now = toISOString(new Date().toISOString());
         const commentCreateData: Omit<CommentDTO, 'id'> = {
             authorId: userId,
             authorName: actorMember.groupDisplayName,
             text: commentData.text,
+            attachments: attachments.length > 0 ? attachments : undefined,
             createdAt: now,
             updatedAt: now,
         };
@@ -231,11 +262,15 @@ export class CommentService {
         const authorName = actorMember.groupDisplayName;
         const activityActorDisplayName = actorMember.groupDisplayName;
 
+        // Resolve attachment refs if attachmentIds provided (attachments are stored by group)
+        const attachments = await this.resolveAttachmentRefs(expense.groupId, commentData.attachmentIds);
+
         const now = toISOString(new Date().toISOString());
         const commentCreateData: Omit<CommentDTO, 'id'> = {
             authorId: userId,
             authorName,
             text: commentData.text,
+            attachments: attachments.length > 0 ? attachments : undefined,
             createdAt: now,
             updatedAt: now,
         };
@@ -302,5 +337,91 @@ export class CommentService {
             ...createdComment,
             authorAvatar: createdComment.authorAvatar || undefined,
         };
+    }
+
+    /**
+     * Delete a group comment and its attachments
+     */
+    async deleteGroupComment(groupId: GroupId, commentId: CommentId, userId: UserId): Promise<void> {
+        return measure.measureDb('CommentService.deleteGroupComment', async () => this.deleteGroupCommentInternal(groupId, commentId, userId));
+    }
+
+    /**
+     * Delete an expense comment and its attachments
+     */
+    async deleteExpenseComment(expenseId: ExpenseId, commentId: CommentId, userId: UserId): Promise<void> {
+        return measure.measureDb('CommentService.deleteExpenseComment', async () => this.deleteExpenseCommentInternal(expenseId, commentId, userId));
+    }
+
+    private async deleteGroupCommentInternal(groupId: GroupId, commentId: CommentId, userId: UserId): Promise<void> {
+        loggerContext.LoggerContext.update({ targetType: 'group', groupId, commentId, userId, operation: 'delete-comment' });
+
+        // Verify user has access to the group
+        await this.groupCommentStrategy.verifyAccess(groupId, userId);
+
+        // Get the comment to retrieve attachment refs before deletion
+        const comment = await this.firestoreReader.getGroupComment(groupId, commentId);
+        if (!comment) {
+            throw Errors.notFound('Comment', ErrorDetail.COMMENT_NOT_FOUND);
+        }
+
+        // Verify user is the author of the comment
+        if (comment.authorId !== userId) {
+            throw Errors.forbidden(ErrorDetail.NOT_COMMENT_AUTHOR);
+        }
+
+        // Delete the comment from Firestore
+        await this.firestoreWriter.deleteGroupComment(groupId, commentId);
+
+        // Fire-and-forget attachment deletion
+        if (comment.attachments && comment.attachments.length > 0) {
+            for (const ref of comment.attachments) {
+                this.attachmentStorage.deleteAttachment(groupId, ref.attachmentId)
+                    .catch((err) => {
+                        logger.warn('Failed to delete comment attachment', { groupId, commentId, attachmentId: ref.attachmentId, error: err });
+                    });
+            }
+        }
+
+        logger.info('group-comment-deleted', { groupId, commentId, attachmentCount: comment.attachments?.length ?? 0 });
+    }
+
+    private async deleteExpenseCommentInternal(expenseId: ExpenseId, commentId: CommentId, userId: UserId): Promise<void> {
+        loggerContext.LoggerContext.update({ targetType: 'expense', expenseId, commentId, userId, operation: 'delete-comment' });
+
+        // Verify user has access to the expense
+        await this.expenseCommentStrategy.verifyAccess(expenseId, userId);
+
+        // Get the expense to find groupId for attachment storage
+        const expense = await this.firestoreReader.getExpense(expenseId);
+        if (!expense || expense.deletedAt) {
+            throw Errors.notFound('Expense', ErrorDetail.EXPENSE_NOT_FOUND);
+        }
+
+        // Get the comment to retrieve attachment refs before deletion
+        const comment = await this.firestoreReader.getExpenseComment(expenseId, commentId);
+        if (!comment) {
+            throw Errors.notFound('Comment', ErrorDetail.COMMENT_NOT_FOUND);
+        }
+
+        // Verify user is the author of the comment
+        if (comment.authorId !== userId) {
+            throw Errors.forbidden(ErrorDetail.NOT_COMMENT_AUTHOR);
+        }
+
+        // Delete the comment from Firestore (also decrements expense's commentCount)
+        await this.firestoreWriter.deleteExpenseComment(expenseId, commentId);
+
+        // Fire-and-forget attachment deletion (attachments are stored by group)
+        if (comment.attachments && comment.attachments.length > 0) {
+            for (const ref of comment.attachments) {
+                this.attachmentStorage.deleteAttachment(expense.groupId, ref.attachmentId)
+                    .catch((err) => {
+                        logger.warn('Failed to delete comment attachment', { expenseId, commentId, attachmentId: ref.attachmentId, error: err });
+                    });
+            }
+        }
+
+        logger.info('expense-comment-deleted', { expenseId, commentId, attachmentCount: comment.attachments?.length ?? 0 });
     }
 }

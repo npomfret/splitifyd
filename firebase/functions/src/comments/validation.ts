@@ -1,4 +1,4 @@
-import { CommentBodySchema, type CommentText, CreateExpenseCommentRequest, CreateGroupCommentRequest, ListCommentsQuerySchema, toCommentText } from '@billsplit-wl/shared';
+import { type AttachmentId, CommentBodySchema, type CommentText, CreateExpenseCommentRequest, CreateGroupCommentRequest, ListCommentsQuerySchema, toAttachmentId, toCommentText } from '@billsplit-wl/shared';
 import { createRequestValidator, createZodErrorMapper, sanitizeInputString, validateCommentId, validateExpenseId, validateGroupId } from '../validation/common';
 
 // Re-export centralized ID validators for backward compatibility
@@ -22,14 +22,20 @@ const mapCommentError = createZodErrorMapper(
     },
 );
 
+interface ValidatedCommentBody {
+    text: CommentText;
+    attachmentIds?: AttachmentId[];
+}
+
 const baseValidateComment = createRequestValidator({
     schema: CommentBodySchema,
     preValidate: (payload: unknown) => payload ?? {},
-    transform: (value) => ({
+    transform: (value): ValidatedCommentBody => ({
         text: toCommentText(sanitizeInputString(value.text)),
+        attachmentIds: value.attachmentIds?.map((id: string) => toAttachmentId(id)),
     }),
     mapError: (error) => mapCommentError(error),
-}) as (body: unknown) => { text: CommentText; };
+}) as (body: unknown) => ValidatedCommentBody;
 
 const mapPaginationError = createZodErrorMapper(
     {
@@ -60,21 +66,23 @@ const baseValidateListCommentsQuery = createRequestValidator({
 
 export const validateCreateGroupComment = (targetId: string, body: unknown): CreateGroupCommentRequest => {
     const validatedGroupId = validateGroupId(targetId);
-    const { text } = baseValidateComment(body);
+    const { text, attachmentIds } = baseValidateComment(body);
 
     return {
         groupId: validatedGroupId,
         text,
+        attachmentIds,
     };
 };
 
 export const validateCreateExpenseComment = (targetId: string, body: unknown): CreateExpenseCommentRequest => {
     const validatedExpenseId = validateExpenseId(targetId);
-    const { text } = baseValidateComment(body);
+    const { text, attachmentIds } = baseValidateComment(body);
 
     return {
         expenseId: validatedExpenseId,
         text,
+        attachmentIds,
     };
 };
 

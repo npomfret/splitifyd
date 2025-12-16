@@ -11,7 +11,7 @@ import { AppDriver } from '../AppDriver';
 import { StubAuthService } from '../mocks/StubAuthService';
 import { TenantPayloadBuilder } from '../TenantPayloadBuilder';
 
-import { createUnitTestServiceConfig } from '../../test-config';
+import { createUnitTestServiceConfig, StubGroupAttachmentStorage } from '../../test-config';
 
 describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
     let app: AppDriver;
@@ -207,13 +207,15 @@ describe('FirestoreWriter.upsertTenant - Default Tenant Enforcement', () => {
 
     beforeEach(() => {
         db = new StubFirestoreDatabase();
+        const storage = new StubStorage({ defaultBucketName: 'test-bucket' });
 
         const applicationBuilder = new ComponentBuilder(
             new StubAuthService(),
             db,
-            new StubStorage({ defaultBucketName: 'test-bucket' }),
+            storage,
             new StubCloudTasksClient(),
             createUnitTestServiceConfig(),
+            new StubGroupAttachmentStorage(storage),
         );
         firestoreWriter = applicationBuilder.buildFirestoreWriter();
         firestoreReader = applicationBuilder.buildFirestoreReader();

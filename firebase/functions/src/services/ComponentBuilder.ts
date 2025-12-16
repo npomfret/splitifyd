@@ -24,7 +24,7 @@ import { PolicyService } from './PolicyService';
 import { ReactionService } from './ReactionService';
 import { SettlementService } from './SettlementService';
 import { CloudThemeArtifactStorage } from './storage/CloudThemeArtifactStorage';
-import { createGroupAttachmentStorage, type GroupAttachmentStorage } from './storage/GroupAttachmentStorage';
+import { CloudGroupAttachmentStorage, type GroupAttachmentStorage } from './storage/GroupAttachmentStorage';
 import { CloudTenantAssetStorage, type TenantAssetStorage } from './storage/TenantAssetStorage';
 import { type ThemeArtifactStorage } from './storage/ThemeArtifactStorage';
 import { TenantAdminService } from './tenant/TenantAdminService';
@@ -52,7 +52,6 @@ export class ComponentBuilder {
     private incrementalBalanceService?: IncrementalBalanceService;
     private activityFeedService?: ActivityFeedService;
     private tenantRegistryService?: TenantRegistryService;
-    private groupAttachmentStorage?: GroupAttachmentStorage;
     private themeArtifactStorage?: ThemeArtifactStorage;
     private tenantAssetStorage?: TenantAssetStorage;
     private themeArtifactService?: ThemeArtifactService;
@@ -73,6 +72,7 @@ export class ComponentBuilder {
         private readonly storage: IStorage,
         private readonly cloudTasksClient: ICloudTasksClient,
         private readonly serviceConfig: ServiceConfig,
+        private readonly groupAttachmentStorage: GroupAttachmentStorage,
     ) {
         this.firestoreReader = new FirestoreReader(db);
         this.firestoreWriter = new FirestoreWriter(db);
@@ -97,6 +97,10 @@ export class ComponentBuilder {
         );
 
         const cloudTasksClient = createCloudTasksClient();
+        // Cast is safe: at runtime with real Firebase Storage, bucket() returns full Bucket
+        const groupAttachmentStorage = new CloudGroupAttachmentStorage(
+            wrappedStorage.bucket() as unknown as import('@google-cloud/storage').Bucket,
+        );
 
         return new ComponentBuilder(
             firebaseAuthService,
@@ -104,6 +108,7 @@ export class ComponentBuilder {
             wrappedStorage,
             cloudTasksClient,
             serviceConfig,
+            groupAttachmentStorage,
         );
     }
 
@@ -176,6 +181,7 @@ export class ComponentBuilder {
                 this.buildFirestoreWriter(),
                 this.buildGroupMemberService(),
                 this.buildActivityFeedService(),
+                this.buildGroupAttachmentStorage(),
             );
         }
         return this.commentService;
@@ -194,13 +200,6 @@ export class ComponentBuilder {
     }
 
     buildGroupAttachmentStorage(): GroupAttachmentStorage {
-        if (!this.groupAttachmentStorage) {
-            const isStubStorage = typeof (this.storage as any).getAllFiles === 'function';
-            this.groupAttachmentStorage = createGroupAttachmentStorage({
-                storage: this.storage,
-                useFirebaseAdmin: !isStubStorage,
-            });
-        }
         return this.groupAttachmentStorage;
     }
 

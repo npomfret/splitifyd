@@ -287,8 +287,8 @@ Add `<ReceiptUploader>` component.
 
 - [x] **Phase 1**: Core types, storage service, validation, security rules
 - [x] **Phase 2**: Backend upload/get/delete endpoints
-- [ ] **Phase 3**: Comment schema + service updates for attachments
-- [ ] **Phase 4**: Frontend API client methods
+- [x] **Phase 3**: Comment schema + service updates for attachments
+- [x] **Phase 4**: Frontend API client methods
 - [ ] **Phase 5**: Expense receipt upload UI
 - [ ] **Phase 6**: Comment attachment upload/display UI
 - [ ] **Phase 7**: Unit tests and Playwright tests
@@ -296,5 +296,8 @@ Add `<ReceiptUploader>` component.
 ## Progress Notes
 
 - Core scaffolding exists: shared attachment types/schemas added, validation helpers (magic number + size checks) implemented with unit tests, storage rules lock down `/attachments/**`, and `GroupAttachmentStorage` has a tested upload/delete implementation (proxy streaming only works via Firebase Admin path).
-- API contracts and clients partially extended: `api.ts`, `apiSchemas`, and `apiClient`/`ApiDriver` accept `attachmentIds` on comments and expose upload/delete methods; `AppDriver` still throws for attachment calls.
-- Backend endpoints now live: attachment handlers (upload/stream/delete) are wired via `ApplicationFactory` + route-config, with middleware raw parsing for binary bodies and membership validation. Uploads validate content/magic numbers, store to Storage with metadata, return proxy URL, support stub streaming for unit tests, and delete resolves by ID. `AppDriver` now drives these endpoints for tests. Comment schema/service/UI wiring is still TODO for later phases.
+- API contracts and clients partially extended: `api.ts`, `apiSchemas`, and `apiClient`/`ApiDriver` accept `attachmentIds` on comments and expose upload/delete methods.
+- Backend endpoints now live: attachment handlers (upload/stream/delete) are wired via `ApplicationFactory` + route-config, with middleware raw parsing for binary bodies and membership validation. Uploads validate content/magic numbers, store to Storage with metadata, return proxy URL, support stub streaming for unit tests, and delete resolves by ID.
+- **Phase 3 complete**: Comment schema updated with `attachments` field, `CommentService.createGroupComment/createExpenseComment` now accept `attachmentIds` and resolve them to `AttachmentRef` metadata. Delete comment endpoints (`DELETE /groups/:groupId/comments/:commentId` and `DELETE /expenses/:expenseId/comments/:commentId`) implemented with cascade delete for attachments. `FirestoreWriter.deleteGroupComment/deleteExpenseComment` added. API interface (`api.ts`) and all API drivers updated.
+- **Phase 4 complete**: `apiClient.deleteGroupComment/deleteExpenseComment` implemented in webapp.
+- **Phase 7 partial**: Unit tests comprehensive for backend attachment features (47 tests in CommentHandlers.test.ts covering delete endpoints, attachment creation, validation, cascade delete, listing). Playwright tests for UI pending Phases 5 & 6.

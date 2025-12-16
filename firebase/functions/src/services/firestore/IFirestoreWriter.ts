@@ -15,7 +15,7 @@
  */
 
 import type { BrandingArtifactMetadata, CommentDTO, ISOString, ShareLinkDTO, ShareLinkToken, SystemUserRole, TenantId, TenantImageDTO, TenantImageId, UserId } from '@billsplit-wl/shared';
-import { DisplayName, ExpenseId, GroupId, ShareLinkId } from '@billsplit-wl/shared';
+import { CommentId, DisplayName, ExpenseId, GroupId, ShareLinkId } from '@billsplit-wl/shared';
 import type { Email } from '@billsplit-wl/shared';
 import { PolicyId } from '@billsplit-wl/shared';
 import type { IDocumentReference, ITransaction, IWriteBatch } from 'ts-firebase-simulator';
@@ -113,6 +113,20 @@ export interface IFirestoreWriter {
      * Create an expense comment inside an existing transaction
      */
     createExpenseCommentInTransaction(transaction: ITransaction, expenseId: ExpenseId, commentData: Omit<CommentDTO, 'id'>): IDocumentReference;
+
+    /**
+     * Delete a group comment
+     * @param groupId - The group ID
+     * @param commentId - The comment ID
+     */
+    deleteGroupComment(groupId: GroupId, commentId: CommentId): Promise<void>;
+
+    /**
+     * Delete an expense comment (also decrements the expense's commentCount)
+     * @param expenseId - The expense ID
+     * @param commentId - The comment ID
+     */
+    deleteExpenseComment(expenseId: ExpenseId, commentId: CommentId): Promise<void>;
 
     // ========================================================================
     // Share Link Operations

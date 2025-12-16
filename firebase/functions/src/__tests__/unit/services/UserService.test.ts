@@ -6,7 +6,7 @@ import { HTTP_STATUS } from '../../../constants';
 import { ApiError, ErrorCode } from '../../../errors';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import { UserService } from '../../../services/UserService2';
-import { createUnitTestServiceConfig } from '../../test-config';
+import { createUnitTestServiceConfig, StubGroupAttachmentStorage } from '../../test-config';
 import { AppDriver } from '../AppDriver';
 import { StubAuthService } from '../mocks/StubAuthService';
 
@@ -23,12 +23,14 @@ describe('UserService - Consolidated Unit Tests', () => {
         stubAuth = new StubAuthService();
 
         // Create UserService via ApplicationBuilder
+        const storage = new StubStorage({ defaultBucketName: 'test-bucket' });
         userService = new ComponentBuilder(
             stubAuth,
             db,
-            new StubStorage({ defaultBucketName: 'test-bucket' }),
+            storage,
             new StubCloudTasksClient(),
             createUnitTestServiceConfig(),
+            new StubGroupAttachmentStorage(storage),
         )
             .buildUserService();
 
@@ -90,12 +92,14 @@ describe('UserService - Consolidated Unit Tests', () => {
             try {
                 // Create a separate UserService with non-zero minRegistrationDurationMs for this test
                 const testConfig = { ...createUnitTestServiceConfig(), minRegistrationDurationMs: 600 };
+                const testStorage = new StubStorage({ defaultBucketName: 'test-bucket' });
                 const testUserService = new ComponentBuilder(
                     stubAuth,
                     db,
-                    new StubStorage({ defaultBucketName: 'test-bucket' }),
+                    testStorage,
                     new StubCloudTasksClient(),
                     testConfig,
+                    new StubGroupAttachmentStorage(testStorage),
                 )
                     .buildUserService();
 
@@ -438,12 +442,14 @@ describe('UserService - Consolidated Unit Tests', () => {
         let validationTestUserId: string;
 
         beforeEach(async () => {
+            const validationStorage = new StubStorage({ defaultBucketName: 'test-bucket' });
             validationUserService = new ComponentBuilder(
                 stubAuth,
                 db,
-                new StubStorage({ defaultBucketName: 'test-bucket' }),
+                validationStorage,
                 new StubCloudTasksClient(),
                 createUnitTestServiceConfig(),
+                new StubGroupAttachmentStorage(validationStorage),
             )
                 .buildUserService();
 

@@ -1,22 +1,20 @@
 import { toAttachmentId, toGroupId, toUserId } from '@billsplit-wl/shared';
 import { StubStorage } from 'ts-firebase-simulator';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { createGroupAttachmentStorage, resetGroupAttachmentStorage } from '../../../../services/storage/GroupAttachmentStorage';
+import { beforeEach, describe, expect, it } from 'vitest';
+import type { GroupAttachmentStorage } from '../../../../services/storage/GroupAttachmentStorage';
+import { StubGroupAttachmentStorage } from '../../../test-config';
 
 describe('GroupAttachmentStorage', () => {
     let stubStorage: StubStorage;
+    let storage: GroupAttachmentStorage;
 
     beforeEach(() => {
         stubStorage = new StubStorage({ defaultBucketName: 'test-bucket' });
-    });
-
-    afterEach(() => {
-        resetGroupAttachmentStorage();
+        storage = new StubGroupAttachmentStorage(stubStorage);
     });
 
     describe('uploadAttachment', () => {
         it('should upload attachment and return metadata', async () => {
-            const storage = createGroupAttachmentStorage({ storage: stubStorage, useFirebaseAdmin: false });
             const buffer = Buffer.from('fake-image-data');
             const groupId = toGroupId('group-123');
             const attachmentId = toAttachmentId('attach-456');
@@ -41,7 +39,6 @@ describe('GroupAttachmentStorage', () => {
         });
 
         it('should store file with correct path structure', async () => {
-            const storage = createGroupAttachmentStorage({ storage: stubStorage, useFirebaseAdmin: false });
             const buffer = Buffer.from('fake-image-data');
             const groupId = toGroupId('group-abc');
             const attachmentId = toAttachmentId('attach-xyz');
@@ -53,12 +50,10 @@ describe('GroupAttachmentStorage', () => {
             expect(files.size).toBe(1);
 
             const filePath = Array.from(files.keys())[0];
-            // StubStorage includes bucket name in key: "bucket:path"
             expect(filePath).toBe('test-bucket:attachments/group-abc/attach-xyz.png');
         });
 
         it('should set correct content type metadata', async () => {
-            const storage = createGroupAttachmentStorage({ storage: stubStorage, useFirebaseAdmin: false });
             const buffer = Buffer.from('fake-image-data');
             const groupId = toGroupId('group-123');
             const attachmentId = toAttachmentId('attach-456');
@@ -72,7 +67,6 @@ describe('GroupAttachmentStorage', () => {
         });
 
         it('should set private cache control', async () => {
-            const storage = createGroupAttachmentStorage({ storage: stubStorage, useFirebaseAdmin: false });
             const buffer = Buffer.from('fake-image-data');
             const groupId = toGroupId('group-123');
             const attachmentId = toAttachmentId('attach-456');
@@ -86,7 +80,6 @@ describe('GroupAttachmentStorage', () => {
         });
 
         it('should store attachment metadata', async () => {
-            const storage = createGroupAttachmentStorage({ storage: stubStorage, useFirebaseAdmin: false });
             const buffer = Buffer.from('fake-image-data');
             const groupId = toGroupId('group-123');
             const attachmentId = toAttachmentId('attach-456');
@@ -116,25 +109,23 @@ describe('GroupAttachmentStorage', () => {
             ];
 
             for (const { contentType, expectedExt } of formats) {
-                resetGroupAttachmentStorage();
-                stubStorage = new StubStorage({ defaultBucketName: 'test-bucket' });
-                const storage = createGroupAttachmentStorage({ storage: stubStorage, useFirebaseAdmin: false });
+                const freshStorage = new StubStorage({ defaultBucketName: 'test-bucket' });
+                const freshAttachmentStorage = new StubGroupAttachmentStorage(freshStorage);
 
                 const buffer = Buffer.from('fake-data');
                 const groupId = toGroupId('group-fmt');
                 const attachmentId = toAttachmentId(`attach-${expectedExt}`);
                 const uploadedBy = toUserId('user-123');
 
-                await storage.uploadAttachment(groupId, attachmentId, buffer, contentType, `file.${expectedExt}`, uploadedBy);
+                await freshAttachmentStorage.uploadAttachment(groupId, attachmentId, buffer, contentType, `file.${expectedExt}`, uploadedBy);
 
-                const files = stubStorage.getAllFiles();
+                const files = freshStorage.getAllFiles();
                 const filePath = Array.from(files.keys())[0];
                 expect(filePath).toContain(`.${expectedExt}`);
             }
         });
 
         it('should use bin extension for unknown content type', async () => {
-            const storage = createGroupAttachmentStorage({ storage: stubStorage, useFirebaseAdmin: false });
             const buffer = Buffer.from('fake-data');
             const groupId = toGroupId('group-123');
             const attachmentId = toAttachmentId('attach-456');
@@ -150,24 +141,20 @@ describe('GroupAttachmentStorage', () => {
 
     describe('deleteAttachment', () => {
         it('should delete existing attachment', async () => {
-            const storage = createGroupAttachmentStorage({ storage: stubStorage, useFirebaseAdmin: false });
             const buffer = Buffer.from('fake-image-data');
             const groupId = toGroupId('group-del');
             const attachmentId = toAttachmentId('attach-del');
             const uploadedBy = toUserId('user-123');
 
-            // Upload first
             await storage.uploadAttachment(groupId, attachmentId, buffer, 'image/jpeg', 'receipt.jpg', uploadedBy);
             expect(stubStorage.getAllFiles().size).toBe(1);
 
-            // Delete
             await storage.deleteAttachment(groupId, attachmentId);
 
             expect(stubStorage.getAllFiles().size).toBe(0);
         });
 
         it('should throw when deleting non-existent attachment', async () => {
-            const storage = createGroupAttachmentStorage({ storage: stubStorage, useFirebaseAdmin: false });
             const groupId = toGroupId('group-nonexistent');
             const attachmentId = toAttachmentId('attach-nonexistent');
 
@@ -177,17 +164,14 @@ describe('GroupAttachmentStorage', () => {
         });
 
         it('should delete with correct content type for file extension', async () => {
-            const storage = createGroupAttachmentStorage({ storage: stubStorage, useFirebaseAdmin: false });
             const buffer = Buffer.from('fake-pdf-data');
             const groupId = toGroupId('group-pdf');
             const attachmentId = toAttachmentId('attach-pdf');
             const uploadedBy = toUserId('user-123');
 
-            // Upload PDF
             await storage.uploadAttachment(groupId, attachmentId, buffer, 'application/pdf', 'doc.pdf', uploadedBy);
             expect(stubStorage.getAllFiles().size).toBe(1);
 
-            // Delete with correct content type
             await storage.deleteAttachment(groupId, attachmentId);
 
             expect(stubStorage.getAllFiles().size).toBe(0);
@@ -195,8 +179,7 @@ describe('GroupAttachmentStorage', () => {
     });
 
     describe('getAttachmentStream', () => {
-        it('returns stream and metadata when using stub storage', async () => {
-            const storage = createGroupAttachmentStorage({ storage: stubStorage, useFirebaseAdmin: false });
+        it('returns stream and metadata', async () => {
             const buffer = Buffer.from('fake-image-data');
             const groupId = toGroupId('group-stream');
             const attachmentId = toAttachmentId('attach-stream');
@@ -219,22 +202,31 @@ describe('GroupAttachmentStorage', () => {
         });
     });
 
-    describe('singleton behavior', () => {
-        it('should return same instance on subsequent calls', () => {
-            const storage1 = createGroupAttachmentStorage({ storage: stubStorage, useFirebaseAdmin: false });
-            const storage2 = createGroupAttachmentStorage({ storage: stubStorage, useFirebaseAdmin: false });
+    describe('getAttachmentMetadata', () => {
+        it('returns metadata for existing attachment', async () => {
+            const buffer = Buffer.from('fake-image-data');
+            const groupId = toGroupId('group-meta');
+            const attachmentId = toAttachmentId('attach-meta');
+            const uploadedBy = toUserId('user-meta');
 
-            expect(storage1).toBe(storage2);
+            await storage.uploadAttachment(groupId, attachmentId, buffer, 'image/jpeg', 'photo.jpg', uploadedBy);
+
+            const metadata = await storage.getAttachmentMetadata(groupId, attachmentId);
+
+            expect(metadata).not.toBeNull();
+            expect(metadata!.attachmentId).toBe(attachmentId);
+            expect(metadata!.fileName).toBe('photo.jpg');
+            expect(metadata!.contentType).toBe('image/jpeg');
+            expect(metadata!.sizeBytes).toBe(buffer.length);
         });
 
-        it('should return fresh instance after reset', () => {
-            const storage1 = createGroupAttachmentStorage({ storage: stubStorage, useFirebaseAdmin: false });
-            resetGroupAttachmentStorage();
+        it('returns null for non-existent attachment', async () => {
+            const groupId = toGroupId('group-nonexistent');
+            const attachmentId = toAttachmentId('attach-nonexistent');
 
-            const newStubStorage = new StubStorage({ defaultBucketName: 'new-bucket' });
-            const storage2 = createGroupAttachmentStorage({ storage: newStubStorage, useFirebaseAdmin: false });
+            const metadata = await storage.getAttachmentMetadata(groupId, attachmentId);
 
-            expect(storage1).not.toBe(storage2);
+            expect(metadata).toBeNull();
         });
     });
 });

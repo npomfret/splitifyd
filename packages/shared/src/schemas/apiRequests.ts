@@ -530,6 +530,7 @@ export const CommentTextSchema = z
 
 export const CommentBodySchema = z.object({
     text: CommentTextSchema,
+    attachmentIds: z.array(z.string()).max(3, 'Maximum 3 attachments per comment').optional(),
 });
 
 export const ListCommentsQuerySchema = createPaginationSchema({

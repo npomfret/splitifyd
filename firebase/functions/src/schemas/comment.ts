@@ -1,8 +1,19 @@
-import { toUserId } from '@billsplit-wl/shared';
+import { toAttachmentId, toUserId } from '@billsplit-wl/shared';
 import { z } from 'zod';
 
 import { FirestoreTimestampSchema } from './common';
 import { ReactionCountsSchema } from './reaction';
+
+/**
+ * Schema for comment attachment references stored in Firestore.
+ * Matches CommentAttachmentRef from shared types.
+ */
+export const CommentAttachmentRefSchema = z.object({
+    attachmentId: z.string().min(1).transform(toAttachmentId),
+    fileName: z.string().min(1),
+    contentType: z.string().min(1),
+    sizeBytes: z.number().int().positive(),
+});
 
 /**
  * Zod schema for Comment documents stored in Firestore
@@ -17,6 +28,7 @@ export const CommentDocumentSchema = z
         authorName: z.string().min(1),
         authorAvatar: z.string().optional().nullable(),
         text: z.string().min(1),
+        attachments: z.array(CommentAttachmentRefSchema).optional().default([]),
         createdAt: FirestoreTimestampSchema,
         updatedAt: FirestoreTimestampSchema,
         reactionCounts: ReactionCountsSchema.nullable().optional(), // Aggregate emoji reaction counts

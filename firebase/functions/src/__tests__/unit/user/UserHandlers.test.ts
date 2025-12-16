@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import { UserHandlers } from '../../../user/UserHandlers';
-import { createUnitTestServiceConfig } from '../../test-config';
+import { createUnitTestServiceConfig, StubGroupAttachmentStorage } from '../../test-config';
 import { AppDriver } from '../AppDriver';
 import { StubAuthService } from '../mocks/StubAuthService';
 
@@ -227,12 +227,14 @@ describe('UserHandlers - Integration Tests', () => {
         it('should create UserHandlers instance with UserService', () => {
             const db = new StubFirestoreDatabase();
             const authService = new StubAuthService();
+            const storage = new StubStorage({ defaultBucketName: 'test-bucket' });
             const componentBuilder = new ComponentBuilder(
                 authService,
                 db,
-                new StubStorage({ defaultBucketName: 'test-bucket' }),
+                storage,
                 new StubCloudTasksClient(),
                 createUnitTestServiceConfig(),
+                new StubGroupAttachmentStorage(storage),
             );
             const handlers = new UserHandlers(componentBuilder.buildUserService());
             expect(handlers).toBeInstanceOf(UserHandlers);

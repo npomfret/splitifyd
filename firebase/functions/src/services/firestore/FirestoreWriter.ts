@@ -13,7 +13,7 @@
 import type { CommentDTO, DisplayName, Email, ShareLinkDTO, ShareLinkToken, TenantId, TenantImageDTO, TenantImageId, UserId } from '@billsplit-wl/shared';
 import { normalizeDisplayNameForComparison } from '@billsplit-wl/shared';
 // Import schemas for validation
-import { ExpenseId, GroupId, PolicyId, ShareLinkId } from '@billsplit-wl/shared';
+import { CommentId, ExpenseId, GroupId, PolicyId, ShareLinkId } from '@billsplit-wl/shared';
 import { z } from 'zod';
 import { ALLOWED_POLICY_IDS, FirestoreCollections } from '../../constants';
 import { ApiError, ErrorDetail, Errors } from '../../errors';
@@ -859,6 +859,33 @@ export class FirestoreWriter implements IFirestoreWriter {
         const finalData = this.buildCommentWriteData(commentData);
         transaction.set(commentRef, finalData);
         return commentRef;
+    }
+
+    async deleteGroupComment(groupId: GroupId, commentId: CommentId): Promise<void> {
+        return measureDb('FirestoreWriter.deleteGroupComment', async () => {
+            const commentRef = this.db.collection(this.getGroupCommentCollectionPath(groupId)).doc(commentId);
+            await commentRef.delete();
+            logger.info('Group comment deleted', { groupId, commentId });
+        });
+    }
+
+    async deleteExpenseComment(expenseId: ExpenseId, commentId: CommentId): Promise<void> {
+        return measureDb('FirestoreWriter.deleteExpenseComment', async () => {
+            await this.db.runTransaction(async (transaction) => {
+                const commentRef = this.db.collection(this.getExpenseCommentCollectionPath(expenseId)).doc(commentId);
+
+                // Delete the comment
+                transaction.delete(commentRef);
+
+                // Decrement the expense's commentCount
+                const expenseRef = this.db.collection(FirestoreCollections.EXPENSES).doc(expenseId);
+                transaction.update(expenseRef, {
+                    commentCount: FieldValue.increment(-1),
+                    updatedAt: Timestamp.now(),
+                });
+            });
+            logger.info('Expense comment deleted', { expenseId, commentId });
+        });
     }
 
     // ========================================================================

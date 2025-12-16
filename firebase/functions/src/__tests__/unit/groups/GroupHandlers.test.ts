@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { GroupHandlers } from '../../../groups/GroupHandlers';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
-import { createUnitTestServiceConfig } from '../../test-config';
+import { createUnitTestServiceConfig, StubGroupAttachmentStorage } from '../../test-config';
 import { AppDriver } from '../AppDriver';
 import { StubAuthService } from '../mocks/StubAuthService';
 
@@ -613,12 +613,14 @@ describe('GroupHandlers - Unit Tests', () => {
         it('should create GroupHandlers instance with GroupService and FirestoreWriter', () => {
             const db = new StubFirestoreDatabase();
             const authService = new StubAuthService();
+            const storage = new StubStorage({ defaultBucketName: 'test-bucket' });
             const componentBuilder = new ComponentBuilder(
                 authService,
                 db,
-                new StubStorage({ defaultBucketName: 'test-bucket' }),
+                storage,
                 new StubCloudTasksClient(),
                 createUnitTestServiceConfig(),
+                new StubGroupAttachmentStorage(storage),
             );
 
             const handlers = new GroupHandlers(componentBuilder.buildGroupService());

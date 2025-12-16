@@ -9,7 +9,7 @@ import { StubCloudTasksClient, StubFirestoreDatabase, StubStorage } from 'ts-fir
 import { describe, expect, test } from 'vitest';
 import { ComponentBuilder } from '../../services/ComponentBuilder';
 import { FirestoreReader } from '../../services/firestore';
-import { createUnitTestServiceConfig } from '../test-config';
+import { createUnitTestServiceConfig, StubGroupAttachmentStorage } from '../test-config';
 import { StubAuthService } from './mocks/StubAuthService';
 
 describe('FirestoreReader', () => {
@@ -23,6 +23,7 @@ describe('FirestoreReader', () => {
         storage,
         new StubCloudTasksClient(),
         createUnitTestServiceConfig(),
+        new StubGroupAttachmentStorage(storage),
     );
     const firestoreReader = applicationBuilder.buildFirestoreReader();
 

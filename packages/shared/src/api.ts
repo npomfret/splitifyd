@@ -203,6 +203,7 @@ export interface API<AuthToken> {
     getExpenseFullDetails(expenseId: ExpenseId, token?: AuthToken): Promise<ExpenseFullDetailsDTO>;
     createExpenseComment(expenseId: ExpenseId, text: CommentText, attachmentIds?: AttachmentId[], token?: AuthToken): Promise<CommentDTO>;
     listExpenseComments(expenseId: ExpenseId, options?: ListCommentsOptions, token?: AuthToken): Promise<ListCommentsResponse>;
+    deleteExpenseComment(expenseId: ExpenseId, commentId: CommentId, token?: AuthToken): Promise<void>;
 
     createSettlement(request: CreateSettlementRequest, token?: AuthToken): Promise<SettlementDTO>;
     updateSettlement(settlementId: SettlementId, request: UpdateSettlementRequest, token?: AuthToken): Promise<SettlementWithMembers>;
@@ -216,6 +217,7 @@ export interface API<AuthToken> {
 
     createGroupComment(groupId: GroupId, text: CommentText, attachmentIds?: AttachmentId[], token?: AuthToken): Promise<CommentDTO>;
     listGroupComments(groupId: GroupId, options?: ListCommentsOptions, token?: AuthToken): Promise<ListCommentsResponse>;
+    deleteGroupComment(groupId: GroupId, commentId: CommentId, token?: AuthToken): Promise<void>;
 
     uploadAttachment(groupId: GroupId, type: 'receipt' | 'comment', file: File | Buffer, contentType: string, token?: AuthToken): Promise<UploadAttachmentResponse>;
     deleteAttachment(groupId: GroupId, attachmentId: AttachmentId, token?: AuthToken): Promise<void>;

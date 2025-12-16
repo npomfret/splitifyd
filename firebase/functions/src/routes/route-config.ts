@@ -545,6 +545,22 @@ const routeDefinitions: RouteDefinition[] = [
         middleware: ['authenticate'],
     },
     {
+        method: 'DELETE',
+        path: `/${FirestoreCollections.GROUPS}/:groupId/${FirestoreCollections.COMMENTS}/:commentId`,
+        handlerName: 'deleteGroupComment',
+        category: 'resource',
+        middleware: ['authenticate'],
+    },
+    {
+        method: 'DELETE',
+        path: `/${FirestoreCollections.EXPENSES}/:expenseId/${FirestoreCollections.COMMENTS}/:commentId`,
+        handlerName: 'deleteExpenseComment',
+        category: 'resource',
+        middleware: ['authenticate'],
+    },
+
+    // === Attachments ===
+    {
         method: 'POST',
         path: `/${FirestoreCollections.GROUPS}/:groupId/attachments`,
         handlerName: 'uploadAttachment',
