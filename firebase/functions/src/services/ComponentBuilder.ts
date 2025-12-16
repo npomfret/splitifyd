@@ -24,6 +24,7 @@ import { PolicyService } from './PolicyService';
 import { ReactionService } from './ReactionService';
 import { SettlementService } from './SettlementService';
 import { CloudThemeArtifactStorage } from './storage/CloudThemeArtifactStorage';
+import { createGroupAttachmentStorage, type GroupAttachmentStorage } from './storage/GroupAttachmentStorage';
 import { CloudTenantAssetStorage, type TenantAssetStorage } from './storage/TenantAssetStorage';
 import { type ThemeArtifactStorage } from './storage/ThemeArtifactStorage';
 import { TenantAdminService } from './tenant/TenantAdminService';
@@ -51,6 +52,7 @@ export class ComponentBuilder {
     private incrementalBalanceService?: IncrementalBalanceService;
     private activityFeedService?: ActivityFeedService;
     private tenantRegistryService?: TenantRegistryService;
+    private groupAttachmentStorage?: GroupAttachmentStorage;
     private themeArtifactStorage?: ThemeArtifactStorage;
     private tenantAssetStorage?: TenantAssetStorage;
     private themeArtifactService?: ThemeArtifactService;
@@ -189,6 +191,17 @@ export class ComponentBuilder {
             );
         }
         return this.reactionService;
+    }
+
+    buildGroupAttachmentStorage(): GroupAttachmentStorage {
+        if (!this.groupAttachmentStorage) {
+            const isStubStorage = typeof (this.storage as any).getAllFiles === 'function';
+            this.groupAttachmentStorage = createGroupAttachmentStorage({
+                storage: this.storage,
+                useFirebaseAdmin: !isStubStorage,
+            });
+        }
+        return this.groupAttachmentStorage;
     }
 
     buildPolicyService(): PolicyService {

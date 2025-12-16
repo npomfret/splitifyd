@@ -16,6 +16,7 @@ import { toPolicyId, toTenantId, toUserId } from '@billsplit-wl/shared';
 import { ActivityFeedHandlers } from './activity/ActivityHandlers';
 import { UserAdminHandlers } from './admin/UserAdminHandlers';
 import { AuthHandlers } from './auth/handlers';
+import { AttachmentHandlers } from './attachments/AttachmentHandlers';
 import { CommentHandlers } from './comments/CommentHandlers';
 import { ExpenseHandlers } from './expenses/ExpenseHandlers';
 import { GroupHandlers } from './groups/GroupHandlers';
@@ -50,6 +51,10 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
     const expenseHandlers = new ExpenseHandlers(componentBuilder.buildExpenseService());
     const commentHandlers = new CommentHandlers(componentBuilder.buildCommentService());
     const reactionHandlers = new ReactionHandlers(componentBuilder.buildReactionService());
+    const attachmentHandlers = new AttachmentHandlers(
+        componentBuilder.buildGroupMemberService(),
+        componentBuilder.buildGroupAttachmentStorage(),
+    );
     const userHandlers = new UserHandlers(componentBuilder.buildUserService());
     const policyHandlers = new PolicyHandlers(componentBuilder.buildPolicyService());
     const policyUserHandlers = new PolicyUserHandlers(componentBuilder.buildUserPolicyService());
@@ -482,6 +487,11 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
         createCommentForExpense: commentHandlers.createComment,
         listGroupComments: commentHandlers.listGroupComments,
         listExpenseComments: commentHandlers.listExpenseComments,
+
+        // Attachment handlers
+        uploadAttachment: attachmentHandlers.uploadAttachment,
+        getAttachment: attachmentHandlers.getAttachment,
+        deleteAttachment: attachmentHandlers.deleteAttachment,
 
         // Reaction handlers
         toggleExpenseReaction: reactionHandlers.toggleExpenseReaction,

@@ -161,22 +161,19 @@ describe('GroupAttachmentStorage', () => {
             expect(stubStorage.getAllFiles().size).toBe(1);
 
             // Delete
-            await storage.deleteAttachment(groupId, attachmentId, 'image/jpeg');
+            await storage.deleteAttachment(groupId, attachmentId);
 
             expect(stubStorage.getAllFiles().size).toBe(0);
         });
 
-        it('should not throw when deleting non-existent attachment', async () => {
+        it('should throw when deleting non-existent attachment', async () => {
             const storage = createGroupAttachmentStorage({ storage: stubStorage, useFirebaseAdmin: false });
             const groupId = toGroupId('group-nonexistent');
             const attachmentId = toAttachmentId('attach-nonexistent');
 
-            // Should not throw
-            await expect(
-                storage.deleteAttachment(groupId, attachmentId, 'image/jpeg'),
-            )
-                .resolves
-                .toBeUndefined();
+            await expect(storage.deleteAttachment(groupId, attachmentId))
+                .rejects
+                .toThrow('Attachment not found');
         });
 
         it('should delete with correct content type for file extension', async () => {
@@ -191,23 +188,34 @@ describe('GroupAttachmentStorage', () => {
             expect(stubStorage.getAllFiles().size).toBe(1);
 
             // Delete with correct content type
-            await storage.deleteAttachment(groupId, attachmentId, 'application/pdf');
+            await storage.deleteAttachment(groupId, attachmentId);
 
             expect(stubStorage.getAllFiles().size).toBe(0);
         });
     });
 
     describe('getAttachmentStream', () => {
-        it('should throw when not using Firebase Admin SDK', async () => {
+        it('returns stream and metadata when using stub storage', async () => {
             const storage = createGroupAttachmentStorage({ storage: stubStorage, useFirebaseAdmin: false });
-            const groupId = toGroupId('group-123');
-            const attachmentId = toAttachmentId('attach-456');
+            const buffer = Buffer.from('fake-image-data');
+            const groupId = toGroupId('group-stream');
+            const attachmentId = toAttachmentId('attach-stream');
+            const uploadedBy = toUserId('user-stream');
 
-            await expect(
-                storage.getAttachmentStream(groupId, attachmentId, 'image/jpeg'),
-            )
-                .rejects
-                .toThrow('getAttachmentStream requires Firebase Admin SDK');
+            await storage.uploadAttachment(groupId, attachmentId, buffer, 'image/jpeg', 'photo.jpg', uploadedBy);
+
+            const result = await storage.getAttachmentStream(groupId, attachmentId);
+            const received = await new Promise<Buffer>((resolve, reject) => {
+                const chunks: Buffer[] = [];
+                result.stream.on('data', (chunk) => chunks.push(chunk));
+                result.stream.on('end', () => resolve(Buffer.concat(chunks)));
+                result.stream.on('error', reject);
+            });
+
+            expect(result.contentType).toBe('image/jpeg');
+            expect(result.fileName).toBe('photo.jpg');
+            expect(result.sizeBytes).toBe(buffer.length);
+            expect(received.equals(buffer)).toBe(true);
         });
     });
 

@@ -32,6 +32,8 @@ function normalizePath(path: string): string {
         .replace(/\/groups\/[^/:]+\/comments\/[^/:]+\/reactions$/, '/groups/:groupId/comments/:commentId/reactions')
         .replace(/\/settlements\/[^/:]+\/reactions$/, '/settlements/:settlementId/reactions')
         // Group-related parameters (most specific first)
+        .replace(/\/groups\/[^/:]+\/attachments\/[^/:]+$/, '/groups/:groupId/attachments/:attachmentId')
+        .replace(/\/groups\/[^/:]+\/attachments$/, '/groups/:groupId/attachments')
         .replace(/\/groups\/[^/:]+\/members\/[^/:]+$/, '/groups/:groupId/members/:memberId')
         .replace(/\/groups\/[^/:]+\/comments$/, '/groups/:groupId/comments')
         .replace(/\/groups\/[^/:]+\/full-details$/, '/groups/:groupId/full-details')
@@ -120,10 +122,18 @@ export const applyStandardMiddleware = (app: express.Application) => {
 
     // Parse JSON with size limit (skip for binary upload routes)
     const jsonParser = express.json({ limit: getAppConfig().requestBodyLimit });
-    const rawParser = express.raw({ type: ['image/*', 'application/octet-stream'], limit: '2mb' });
+    const rawParser = express.raw({
+        type: ['image/*', 'application/octet-stream', 'application/pdf'],
+        limit: '12mb',
+    });
     app.use((req, res, next) => {
         // Use raw body parsing for binary upload routes
-        if (req.path.match(/^\/admin\/tenants\/[^/]+\/assets\/[^/]+$/)) {
+        if (
+            req.path.match(/^\/admin\/tenants\/[^/]+\/assets\/[^/]+$/)
+            || req.path.match(/^\/groups\/[^/]+\/attachments$/)
+            || req.path.match(/^\/groups\/:groupId\/attachments$/)
+            || req.path.match(/^\/api\/groups\/[^/]+\/attachments$/)
+        ) {
             return rawParser(req, res, next);
         }
         return jsonParser(req, res, next);

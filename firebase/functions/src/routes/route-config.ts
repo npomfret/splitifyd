@@ -544,6 +544,28 @@ const routeDefinitions: RouteDefinition[] = [
         category: 'resource',
         middleware: ['authenticate'],
     },
+    {
+        method: 'POST',
+        path: `/${FirestoreCollections.GROUPS}/:groupId/attachments`,
+        handlerName: 'uploadAttachment',
+        category: 'resource',
+        middleware: ['authenticate'],
+        skipContentTypeValidation: true,
+    },
+    {
+        method: 'GET',
+        path: `/${FirestoreCollections.GROUPS}/:groupId/attachments/:attachmentId`,
+        handlerName: 'getAttachment',
+        category: 'resource',
+        middleware: ['authenticate'],
+    },
+    {
+        method: 'DELETE',
+        path: `/${FirestoreCollections.GROUPS}/:groupId/attachments/:attachmentId`,
+        handlerName: 'deleteAttachment',
+        category: 'resource',
+        middleware: ['authenticate'],
+    },
 
     // === Reactions ===
     {

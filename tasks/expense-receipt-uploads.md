@@ -286,7 +286,7 @@ Add `<ReceiptUploader>` component.
 ## Task Breakdown
 
 - [x] **Phase 1**: Core types, storage service, validation, security rules
-- [ ] **Phase 2**: Backend upload/get/delete endpoints
+- [x] **Phase 2**: Backend upload/get/delete endpoints
 - [ ] **Phase 3**: Comment schema + service updates for attachments
 - [ ] **Phase 4**: Frontend API client methods
 - [ ] **Phase 5**: Expense receipt upload UI
@@ -297,4 +297,4 @@ Add `<ReceiptUploader>` component.
 
 - Core scaffolding exists: shared attachment types/schemas added, validation helpers (magic number + size checks) implemented with unit tests, storage rules lock down `/attachments/**`, and `GroupAttachmentStorage` has a tested upload/delete implementation (proxy streaming only works via Firebase Admin path).
 - API contracts and clients partially extended: `api.ts`, `apiSchemas`, and `apiClient`/`ApiDriver` accept `attachmentIds` on comments and expose upload/delete methods; `AppDriver` still throws for attachment calls.
-- No backend endpoints/routes/handlers or comment schema/service wiring yet; attachment validation is not integrated anywhere; comment/expense UI components for uploads/displays are not started.
+- Backend endpoints now live: attachment handlers (upload/stream/delete) are wired via `ApplicationFactory` + route-config, with middleware raw parsing for binary bodies and membership validation. Uploads validate content/magic numbers, store to Storage with metadata, return proxy URL, support stub streaming for unit tests, and delete resolves by ID. `AppDriver` now drives these endpoints for tests. Comment schema/service/UI wiring is still TODO for later phases.

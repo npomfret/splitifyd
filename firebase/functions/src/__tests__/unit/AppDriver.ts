@@ -108,6 +108,7 @@ import { createRouteDefinitions, RouteDefinition } from '../../routes/route-conf
 import { ComponentBuilder } from '../../services/ComponentBuilder';
 import { FirestoreReader } from '../../services/firestore';
 import { RegisterUserResult } from '../../services/UserService2';
+import { resetGroupAttachmentStorage } from '../../services/storage/GroupAttachmentStorage';
 import { createUnitTestServiceConfig } from '../test-config';
 import { StubAuthService } from './mocks/StubAuthService';
 
@@ -143,6 +144,7 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
 
     constructor() {
         // Create a ComponentBuilder with our test dependencies
+        resetGroupAttachmentStorage();
         this._componentBuilder = new ComponentBuilder(
             this.authService,
             this.db,
@@ -981,17 +983,40 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
 
     // Attachment methods - implemented in Phase 2
     async uploadAttachment(
-        _groupId: GroupId | string,
-        _type: 'receipt' | 'comment',
-        _file: File | Buffer,
-        _contentType: string,
-        _authToken?: AuthToken,
+        groupId: GroupId | string,
+        type: 'receipt' | 'comment',
+        file: File | Buffer,
+        contentType: string,
+        authToken?: AuthToken,
+        fileName = 'attachment.bin',
     ): Promise<UploadAttachmentResponse> {
-        throw new Error('uploadAttachment not yet implemented in AppDriver - see Phase 2');
+        const req = createStubRequest(authToken || '', file as any, { groupId }, {
+            headers: {
+                'content-type': contentType,
+                'x-file-name': fileName,
+            },
+        });
+        req.query = { type };
+        req.body = file as Buffer;
+        const res = await this.dispatchByHandler('uploadAttachment', req);
+        this.throwIfError(res);
+        return res.getJson() as UploadAttachmentResponse;
     }
 
-    async deleteAttachment(_groupId: GroupId | string, _attachmentId: AttachmentId | string, _authToken?: AuthToken): Promise<void> {
-        throw new Error('deleteAttachment not yet implemented in AppDriver - see Phase 2');
+    async getAttachment(groupId: GroupId | string, attachmentId: AttachmentId | string, authToken: AuthToken) {
+        const req = createStubRequest(authToken, {}, { groupId, attachmentId });
+        const res = await this.dispatchByHandler('getAttachment', req);
+        this.throwIfError(res);
+        return {
+            body: res.getBody() as Buffer,
+            contentType: res.getContentType(),
+        };
+    }
+
+    async deleteAttachment(groupId: GroupId | string, attachmentId: AttachmentId | string, authToken?: AuthToken): Promise<void> {
+        const req = createStubRequest(authToken || '', {}, { groupId, attachmentId });
+        const res = await this.dispatchByHandler('deleteAttachment', req);
+        this.throwIfError(res);
     }
 
     async getUserProfile(authToken: AuthToken): Promise<UserProfileResponse> {

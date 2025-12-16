@@ -1,9 +1,26 @@
+import type { Bucket, File } from '@google-cloud/storage';
 import type { AttachmentId, GroupId, UserId } from '@billsplit-wl/shared';
 import { getStorage as getFirebaseStorage } from 'firebase-admin/storage';
-import type { Readable } from 'stream';
+import { Readable } from 'stream';
 import { getStorage } from '../../firebase';
 import { logger } from '../../logger';
 import { createStorage, type IStorage } from '../../storage-wrapper';
+import { getExtensionForContentType } from '../../utils/validation/attachmentValidation';
+
+/**
+ * Storage interface extended with test helper method.
+ * StubStorage implements this for unit tests.
+ */
+interface StubStorageWithFiles extends IStorage {
+    getAllFiles(): Map<string, { content?: Buffer; metadata?: { contentType?: string; metadata?: Record<string, string>; }; }>;
+}
+
+/**
+ * Type guard to check if storage has getAllFiles (i.e., is StubStorage).
+ */
+function isStubStorage(storage: IStorage): storage is StubStorageWithFiles {
+    return typeof (storage as StubStorageWithFiles).getAllFiles === 'function';
+}
 
 /**
  * Metadata stored with each attachment in Firebase Storage.
@@ -42,17 +59,15 @@ export interface GroupAttachmentStorage {
      * Get attachment stream for proxy serving.
      * @param groupId - Group ID
      * @param attachmentId - Attachment ID
-     * @param contentType - Content type (needed to determine file extension)
      */
-    getAttachmentStream(groupId: GroupId, attachmentId: AttachmentId, contentType: string): Promise<AttachmentStreamResult>;
+    getAttachmentStream(groupId: GroupId, attachmentId: AttachmentId): Promise<AttachmentStreamResult>;
 
     /**
      * Delete an attachment.
      * @param groupId - Group ID
      * @param attachmentId - Attachment ID
-     * @param contentType - Content type (needed to determine file extension)
      */
-    deleteAttachment(groupId: GroupId, attachmentId: AttachmentId, contentType: string): Promise<void>;
+    deleteAttachment(groupId: GroupId, attachmentId: AttachmentId): Promise<void>;
 }
 
 let _instance: GroupAttachmentStorage | undefined;
@@ -86,6 +101,8 @@ export function resetGroupAttachmentStorage(): void {
 }
 
 class CloudGroupAttachmentStorage implements GroupAttachmentStorage {
+    private static readonly ATTACHMENT_EXTENSIONS = ['jpg', 'png', 'webp', 'pdf', 'bin'];
+
     constructor(
         private readonly storage: IStorage,
         private readonly useFirebaseAdmin: boolean,
@@ -101,7 +118,7 @@ class CloudGroupAttachmentStorage implements GroupAttachmentStorage {
     ): Promise<AttachmentMetadata> {
         const bucket = this.storage.bucket();
 
-        const extension = this.getExtensionFromContentType(contentType);
+        const extension = getExtensionForContentType(contentType);
         const filePath = `attachments/${groupId}/${attachmentId}.${extension}`;
 
         const file = bucket.file(filePath);
@@ -147,19 +164,10 @@ class CloudGroupAttachmentStorage implements GroupAttachmentStorage {
         return metadata;
     }
 
-    async getAttachmentStream(groupId: GroupId, attachmentId: AttachmentId, contentType: string): Promise<AttachmentStreamResult> {
-        const extension = this.getExtensionFromContentType(contentType);
-        const filePath = `attachments/${groupId}/${attachmentId}.${extension}`;
-
+    async getAttachmentStream(groupId: GroupId, attachmentId: AttachmentId): Promise<AttachmentStreamResult> {
         if (this.useFirebaseAdmin) {
-            // Use Firebase Admin SDK for streaming (not available in IStorage interface)
             const bucket = getFirebaseStorage().bucket();
-            const file = bucket.file(filePath);
-
-            const [exists] = await file.exists();
-            if (!exists) {
-                throw new Error(`Attachment not found: ${attachmentId}`);
-            }
+            const { filePath, file } = await this.findExistingFileForRead(bucket, groupId, attachmentId);
 
             const [metadata] = await file.getMetadata();
             const customMetadata = metadata.metadata || {};
@@ -172,34 +180,82 @@ class CloudGroupAttachmentStorage implements GroupAttachmentStorage {
                 sizeBytes: Number(metadata.size) || 0,
                 fileName: typeof customMetadata.fileName === 'string' ? customMetadata.fileName : `attachment-${attachmentId}`,
             };
-        } else {
-            // Stub implementation for testing - not supported
-            throw new Error('getAttachmentStream requires Firebase Admin SDK');
         }
+
+        // Stub implementation for tests (no Firebase Admin available)
+        if (isStubStorage(this.storage)) {
+            const files = this.storage.getAllFiles();
+            const entry = Array.from(files.entries()).find(([key]) => key.includes(`attachments/${groupId}/${attachmentId}.`));
+            if (!entry) {
+                throw new Error(`Attachment not found: ${attachmentId}`);
+            }
+
+            const [, storedFile] = entry;
+            const buffer = Buffer.isBuffer(storedFile.content) ? storedFile.content : Buffer.from(storedFile.content ?? []);
+            const customMetadata = storedFile.metadata?.metadata ?? {};
+
+            return {
+                stream: Readable.from(buffer),
+                contentType: storedFile.metadata?.contentType ?? 'application/octet-stream',
+                sizeBytes: buffer.length,
+                fileName: typeof customMetadata.fileName === 'string' ? customMetadata.fileName : `attachment-${attachmentId}`,
+            };
+        }
+
+        throw new Error('getAttachmentStream requires Firebase Admin SDK');
     }
 
-    async deleteAttachment(groupId: GroupId, attachmentId: AttachmentId, contentType: string): Promise<void> {
-        const bucket = this.storage.bucket();
+    async deleteAttachment(groupId: GroupId, attachmentId: AttachmentId): Promise<void> {
+        // For stub storage (tests), check the files map directly
+        if (isStubStorage(this.storage)) {
+            const files = this.storage.getAllFiles();
+            const entry = Array.from(files.entries()).find(([key]) =>
+                key.includes(`attachments/${groupId}/${attachmentId}.`),
+            );
 
-        const extension = this.getExtensionFromContentType(contentType);
-        const filePath = `attachments/${groupId}/${attachmentId}.${extension}`;
+            if (!entry) {
+                throw new Error(`Attachment not found: ${attachmentId}`);
+            }
 
-        try {
-            await bucket.file(filePath).delete();
-            logger.info('Deleted group attachment', { groupId, attachmentId, filePath });
-        } catch (error) {
-            logger.warn('Failed to delete group attachment', { groupId, attachmentId, filePath, error });
+            const [filePath] = entry;
+            // Extract just the path portion (StubStorage keys are "bucket:path")
+            const pathOnly = filePath.includes(':') ? filePath.split(':')[1] : filePath;
+            await this.storage.bucket().file(pathOnly).delete();
+            logger.info('Deleted group attachment', { groupId, attachmentId, filePath: pathOnly });
+            return;
         }
+
+        // Production path: use Firebase Admin SDK directly for exists() support
+        const bucket = getFirebaseStorage().bucket();
+        for (const ext of CloudGroupAttachmentStorage.ATTACHMENT_EXTENSIONS) {
+            const filePath = `attachments/${groupId}/${attachmentId}.${ext}`;
+            const file = bucket.file(filePath);
+            const [exists] = await file.exists();
+
+            if (exists) {
+                await file.delete();
+                logger.info('Deleted group attachment', { groupId, attachmentId, filePath });
+                return;
+            }
+        }
+
+        throw new Error(`Attachment not found: ${attachmentId}`);
     }
 
-    private getExtensionFromContentType(contentType: string): string {
-        const map: Record<string, string> = {
-            'image/jpeg': 'jpg',
-            'image/png': 'png',
-            'image/webp': 'webp',
-            'application/pdf': 'pdf',
-        };
+    private async findExistingFileForRead(
+        bucket: Bucket,
+        groupId: GroupId,
+        attachmentId: AttachmentId,
+    ): Promise<{ filePath: string; file: File; }> {
+        for (const ext of CloudGroupAttachmentStorage.ATTACHMENT_EXTENSIONS) {
+            const filePath = `attachments/${groupId}/${attachmentId}.${ext}`;
+            const file = bucket.file(filePath);
+            const [exists] = await file.exists();
+            if (exists) {
+                return { filePath, file };
+            }
+        }
 
-        return map[contentType.toLowerCase()] || 'bin';
+        throw new Error(`Attachment not found: ${attachmentId}`);
     }
 }
