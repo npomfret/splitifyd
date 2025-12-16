@@ -286,13 +286,29 @@
       "comment-added-short": "{{actor}}이(가) {{target}}에 댓글을 달았습니다.",
       "settlement-created-short": "{{actor}}이(가) {{settlement}}을(를) 기록했습니다.",
       "settlement-updated-short": "{{actor}}이(가) {{settlement}}을(를) 업데이트했습니다.",
-      "generic-short": "{{actor}}이(가) 변경했습니다."
+      "generic-short": "{{actor}}이(가) 변경했습니다.",
+      "group-locked": "{{actor}}이(가) {{group}}을(를) 잠갔습니다",
+      "group-unlocked": "{{actor}}이(가) {{group}}의 잠금을 해제했습니다",
+      "group-locked-short": "{{actor}}이(가) 그룹을 잠갔습니다",
+      "group-unlocked-short": "{{actor}}이(가) 그룹 잠금을 해제했습니다"
     }
   },
   "group": {
     "actions": {
       "addExpense": "비용 추가",
       "settleUp": "정산하기"
+    },
+    "locked": {
+      "banner": "이 그룹은 잠겨 있습니다. 관리자가 잠금을 해제할 때까지 변경할 수 없습니다.",
+      "toggle": "그룹 잠금",
+      "toggleDescription": "모든 멤버가 이 그룹을 변경하지 못하도록 합니다.",
+      "warning": "이 그룹을 잠그면 비용 추가, 정산, 설정 변경이 불가능해집니다.",
+      "unlockToggle": "그룹 잠금 해제",
+      "unlockDescription": "멤버가 이 그룹을 다시 변경할 수 있도록 합니다.",
+      "lockSuccess": "그룹이 잠겼습니다.",
+      "unlockSuccess": "그룹 잠금이 해제되었습니다.",
+      "toggleFailed": "그룹 잠금 상태 업데이트에 실패했습니다.",
+      "sectionTitle": "그룹 잠금"
     }
   },
   "comments": {

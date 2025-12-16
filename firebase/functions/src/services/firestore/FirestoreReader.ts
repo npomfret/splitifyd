@@ -72,6 +72,8 @@ import type { BatchGroupFetchOptions, FirestoreOrderField, GetGroupsForUserOptio
 const EVENT_ACTION_MAP: Record<ActivityFeedEventType, ActivityFeedAction> = {
     [ActivityFeedEventTypes.GROUP_CREATED]: ActivityFeedActions.CREATE,
     [ActivityFeedEventTypes.GROUP_UPDATED]: ActivityFeedActions.UPDATE,
+    [ActivityFeedEventTypes.GROUP_LOCKED]: ActivityFeedActions.UPDATE,
+    [ActivityFeedEventTypes.GROUP_UNLOCKED]: ActivityFeedActions.UPDATE,
     [ActivityFeedEventTypes.PERMISSIONS_UPDATED]: ActivityFeedActions.UPDATE,
     [ActivityFeedEventTypes.MEMBER_ROLE_CHANGED]: ActivityFeedActions.UPDATE,
     [ActivityFeedEventTypes.EXPENSE_CREATED]: ActivityFeedActions.CREATE,

@@ -680,10 +680,15 @@ export const UpdateGroupRequestSchema = z
         name: z.string().trim().min(1).max(100).transform(toGroupName).optional(),
         description: z.string().trim().max(500).optional(),
         currencySettings: GroupCurrencySettingsSchema.nullable().optional(), // null to clear
+        locked: z.boolean().optional(), // Only admins can set this
     })
-    .refine((data) => data.name !== undefined || data.description !== undefined || data.currencySettings !== undefined, {
-        message: 'At least one field (name, description, or currencySettings) must be provided',
-    });
+    .refine(
+        (data) =>
+            data.name !== undefined || data.description !== undefined || data.currencySettings !== undefined || data.locked !== undefined,
+        {
+            message: 'At least one field (name, description, currencySettings, or locked) must be provided',
+        }
+    );
 
 export const UpdateDisplayNameRequestSchema = z.object({
     displayName: z

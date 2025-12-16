@@ -2,6 +2,7 @@ import { useAuthRequired } from '@/app/hooks/useAuthRequired.ts';
 import { useGroupCurrencySettings } from '@/app/hooks/useGroupCurrencySettings.ts';
 import { useGroupDisplayName } from '@/app/hooks/useGroupDisplayName.ts';
 import { useGroupGeneralSettings } from '@/app/hooks/useGroupGeneralSettings.ts';
+import { useGroupLockSettings } from '@/app/hooks/useGroupLockSettings.ts';
 import { useGroupSecuritySettings } from '@/app/hooks/useGroupSecuritySettings.ts';
 import { translateGroupSettingsTab } from '@/app/i18n/dynamic-translations';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced.ts';
@@ -61,7 +62,12 @@ export function GroupSettingsModal({
         onGroupUpdated,
     });
 
-    const canManageGeneralSettings = canManageSettings;
+    // Check if current user is admin - needed to show general tab even when locked
+    const currentUserMember = members.find((m) => m.uid === currentUser.value?.uid);
+    const isCurrentUserAdmin = currentUserMember?.memberRole === 'admin';
+
+    // Admins can access general settings, OR access general tab when locked (to unlock)
+    const canManageGeneralSettings = canManageSettings || (group.locked && isCurrentUserAdmin);
 
     const generalSettingsState = useGroupGeneralSettings({
         group,
@@ -74,6 +80,13 @@ export function GroupSettingsModal({
     });
 
     const currencySettingsState = useGroupCurrencySettings({
+        group,
+        isOpen,
+        t,
+        onGroupUpdated,
+    });
+
+    const lockSettingsState = useGroupLockSettings({
         group,
         isOpen,
         t,
@@ -176,6 +189,7 @@ export function GroupSettingsModal({
                 onDeleteClick={generalSettingsState.handleDeleteClick}
                 onClose={onClose}
                 currencySettings={currencySettingsState}
+                lockSettings={lockSettingsState}
             />
         );
     };

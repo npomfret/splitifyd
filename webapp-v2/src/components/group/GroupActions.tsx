@@ -16,6 +16,7 @@ interface GroupActionsProps {
     onUnarchive?: () => void;
     isArchived?: boolean;
     membershipActionDisabled?: boolean;
+    isGroupLocked?: boolean; // When true, disables add expense, settle up, and invite actions
 }
 
 export function GroupActions({
@@ -31,12 +32,14 @@ export function GroupActions({
     onUnarchive,
     isArchived,
     membershipActionDisabled,
+    isGroupLocked = false,
 }: GroupActionsProps) {
     const { t } = useTranslation();
     const commonButtons = (
         <>
             <Button
                 onClick={onAddExpense}
+                disabled={isGroupLocked || !onAddExpense}
                 variant='primary'
                 size='md'
                 fullWidth={variant === 'vertical'}
@@ -47,6 +50,7 @@ export function GroupActions({
             </Button>
             <Button
                 onClick={onSettleUp}
+                disabled={isGroupLocked || !onSettleUp}
                 variant='primary'
                 size='md'
                 fullWidth={variant === 'vertical'}
@@ -57,6 +61,7 @@ export function GroupActions({
             </Button>
             <Button
                 onClick={onShare}
+                disabled={isGroupLocked || !onShare}
                 variant='primary'
                 size='md'
                 fullWidth={variant === 'vertical'}

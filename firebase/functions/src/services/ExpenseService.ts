@@ -821,6 +821,7 @@ export class ExpenseService {
             createdAt: groupData.createdAt,
             updatedAt: groupData.updatedAt,
             permissions: groupData.permissions,
+            locked: groupData.locked ?? false,
             deletedAt: groupData.deletedAt ?? null,
         };
 

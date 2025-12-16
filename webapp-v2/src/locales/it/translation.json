@@ -286,13 +286,29 @@
       "comment-added-short": "{{actor}} ha commentato su {{target}}",
       "settlement-created-short": "{{actor}} ha registrato {{settlement}}",
       "settlement-updated-short": "{{actor}} ha aggiornato {{settlement}}",
-      "generic-short": "{{actor}} ha apportato modifiche"
+      "generic-short": "{{actor}} ha apportato modifiche",
+      "group-locked": "{{actor}} ha bloccato {{group}}",
+      "group-unlocked": "{{actor}} ha sbloccato {{group}}",
+      "group-locked-short": "{{actor}} ha bloccato il gruppo",
+      "group-unlocked-short": "{{actor}} ha sbloccato il gruppo"
     }
   },
   "group": {
     "actions": {
       "addExpense": "Aggiungi spesa",
       "settleUp": "Salda"
+    },
+    "locked": {
+      "banner": "Questo gruppo è bloccato. Non è possibile apportare modifiche finché un amministratore non lo sblocca.",
+      "toggle": "Blocca gruppo",
+      "toggleDescription": "Impedisci ai membri di apportare modifiche a questo gruppo.",
+      "warning": "Bloccare questo gruppo impedirà a chiunque di aggiungere spese, saldare debiti o modificare le impostazioni.",
+      "unlockToggle": "Sblocca gruppo",
+      "unlockDescription": "Consenti nuovamente ai membri di apportare modifiche a questo gruppo.",
+      "lockSuccess": "Il gruppo è stato bloccato.",
+      "unlockSuccess": "Il gruppo è stato sbloccato.",
+      "toggleFailed": "Impossibile aggiornare lo stato di blocco del gruppo.",
+      "sectionTitle": "Blocco del gruppo"
     }
   },
   "comments": {

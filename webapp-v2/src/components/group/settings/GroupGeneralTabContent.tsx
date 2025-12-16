@@ -1,6 +1,6 @@
 import { ReadonlySignal } from '@preact/signals';
 import { useTranslation } from 'react-i18next';
-import { Alert, Button, Form, Input } from '../../ui';
+import { Alert, Button, Form, Input, Switch } from '../../ui';
 import { GroupCurrencySettings } from './GroupCurrencySettings';
 
 interface CurrencySettingsState {
@@ -19,6 +19,14 @@ interface CurrencySettingsState {
     handleSave: () => Promise<void>;
 }
 
+interface LockSettingsState {
+    locked: boolean;
+    isSubmitting: boolean;
+    error: string | null;
+    successMessage: ReadonlySignal<string | null>;
+    toggleLocked: () => Promise<void>;
+}
+
 interface GroupGeneralTabContentProps {
     groupName: string;
     groupDescription: string;
@@ -34,6 +42,8 @@ interface GroupGeneralTabContentProps {
     onClose: () => void;
     // Currency settings (optional - only shown for admins)
     currencySettings?: CurrencySettingsState;
+    // Lock settings (optional - only shown for admins)
+    lockSettings?: LockSettingsState;
 }
 
 export function GroupGeneralTabContent({
@@ -50,6 +60,7 @@ export function GroupGeneralTabContent({
     onDeleteClick,
     onClose,
     currencySettings,
+    lockSettings,
 }: GroupGeneralTabContentProps) {
     const { t } = useTranslation();
 
@@ -145,6 +156,45 @@ export function GroupGeneralTabContent({
                             </Button>
                         </div>
                     )}
+                </div>
+            )}
+
+            {/* Group Locking Section */}
+            {lockSettings && (
+                <div className='space-y-4 pt-4 border-t border-border-default'>
+                    <h3 className='text-sm font-medium text-text-primary'>
+                        {t('group.locked.sectionTitle')}
+                    </h3>
+
+                    {lockSettings.successMessage.value && (
+                        <div
+                            className='bg-interactive-accent/10 border border-semantic-success/40 rounded-md px-3 py-2 text-sm text-semantic-success'
+                            role='status'
+                        >
+                            {lockSettings.successMessage.value}
+                        </div>
+                    )}
+
+                    {lockSettings.error && (
+                        <Alert type='error' message={lockSettings.error} />
+                    )}
+
+                    <div className='bg-surface-muted rounded-lg p-4'>
+                        <Switch
+                            id='group-lock-toggle'
+                            checked={lockSettings.locked}
+                            onChange={lockSettings.toggleLocked}
+                            disabled={lockSettings.isSubmitting}
+                            label={lockSettings.locked ? t('group.locked.unlockToggle') : t('group.locked.toggle')}
+                            description={lockSettings.locked ? t('group.locked.unlockDescription') : t('group.locked.toggleDescription')}
+                        />
+
+                        {!lockSettings.locked && (
+                            <p className='mt-3 text-xs text-text-muted'>
+                                {t('group.locked.warning')}
+                            </p>
+                        )}
+                    </div>
                 </div>
             )}
         </div>

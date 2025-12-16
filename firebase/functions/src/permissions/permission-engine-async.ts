@@ -25,6 +25,11 @@ export class PermissionEngineAsync {
             return false;
         }
 
+        // Block all write actions if group is locked
+        if (group.locked === true && action !== 'viewGroup') {
+            return false;
+        }
+
         if (action === 'viewGroup') {
             return member.memberStatus === MemberStatuses.ACTIVE;
         }

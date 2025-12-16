@@ -262,6 +262,8 @@
       "group-created": "{{actor}} created {{group}}",
       "group-updated": "{{actor}} updated the group {{group}}",
       "group-updated-from": "{{actor}} renamed {{previous}} to {{group}}",
+      "group-locked": "{{actor}} locked {{group}}",
+      "group-unlocked": "{{actor}} unlocked {{group}}",
       "expense-created": "{{actor}} added {{expense}} in {{group}}",
       "expense-updated": "{{actor}} updated {{expense}} in {{group}}",
       "expense-deleted": "{{actor}} deleted {{expense}} from {{group}}",
@@ -276,6 +278,8 @@
       "group-created-short": "{{actor}} created the group",
       "group-updated-short": "{{actor}} updated the group",
       "group-updated-from-short": "{{actor}} renamed the group from {{previous}}",
+      "group-locked-short": "{{actor}} locked the group",
+      "group-unlocked-short": "{{actor}} unlocked the group",
       "expense-created-short": "{{actor}} added {{expense}}",
       "expense-updated-short": "{{actor}} updated {{expense}}",
       "expense-deleted-short": "{{actor}} deleted {{expense}}",
@@ -293,6 +297,18 @@
     "actions": {
       "addExpense": "Add Expense",
       "settleUp": "Settle Up"
+    },
+    "locked": {
+      "banner": "This group is locked. No changes can be made until an admin unlocks it.",
+      "toggle": "Lock Group",
+      "toggleDescription": "Prevent all members from making changes to this group.",
+      "warning": "Locking this group will prevent anyone from adding expenses, settling up, or changing settings.",
+      "unlockToggle": "Unlock Group",
+      "unlockDescription": "Allow members to make changes to this group again.",
+      "lockSuccess": "Group has been locked.",
+      "unlockSuccess": "Group has been unlocked.",
+      "toggleFailed": "Failed to update group lock status.",
+      "sectionTitle": "Group Locking"
     }
   },
   "comments": {

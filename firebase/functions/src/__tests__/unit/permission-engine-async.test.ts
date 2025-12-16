@@ -179,4 +179,138 @@ describe('PermissionEngineAsync', () => {
             );
         });
     });
+
+    describe('locked group behavior', () => {
+        let lockedGroup: GroupDTO;
+
+        beforeEach(() => {
+            lockedGroup = new GroupDTOBuilder()
+                .withId(testGroupId)
+                .withLocked(true)
+                .withPermissions({
+                    expenseEditing: PermissionLevels.ANYONE,
+                    expenseDeletion: PermissionLevels.ANYONE,
+                    memberInvitation: PermissionLevels.ANYONE,
+                    memberApproval: 'automatic',
+                    settingsManagement: PermissionLevels.ANYONE,
+                })
+                .build();
+        });
+
+        test('locked group should block expenseEditing for admin', () => {
+            const member = new GroupMemberDocumentBuilder()
+                .withUserId(testUserId)
+                .withGroupId(testGroupId)
+                .withRole('admin')
+                .withStatus('active')
+                .build();
+
+            const result = PermissionEngineAsync.checkPermission(member, lockedGroup, testUserId, 'expenseEditing');
+
+            expect(result).toBe(false);
+        });
+
+        test('locked group should block expenseEditing for member', () => {
+            const member = new GroupMemberDocumentBuilder()
+                .withUserId(testUserId)
+                .withGroupId(testGroupId)
+                .withRole('member')
+                .withStatus('active')
+                .build();
+
+            const result = PermissionEngineAsync.checkPermission(member, lockedGroup, testUserId, 'expenseEditing');
+
+            expect(result).toBe(false);
+        });
+
+        test('locked group should block expenseDeletion for admin', () => {
+            const member = new GroupMemberDocumentBuilder()
+                .withUserId(testUserId)
+                .withGroupId(testGroupId)
+                .withRole('admin')
+                .withStatus('active')
+                .build();
+
+            const result = PermissionEngineAsync.checkPermission(member, lockedGroup, testUserId, 'expenseDeletion');
+
+            expect(result).toBe(false);
+        });
+
+        test('locked group should block memberInvitation for admin', () => {
+            const member = new GroupMemberDocumentBuilder()
+                .withUserId(testUserId)
+                .withGroupId(testGroupId)
+                .withRole('admin')
+                .withStatus('active')
+                .build();
+
+            const result = PermissionEngineAsync.checkPermission(member, lockedGroup, testUserId, 'memberInvitation');
+
+            expect(result).toBe(false);
+        });
+
+        test('locked group should block settingsManagement for admin', () => {
+            const member = new GroupMemberDocumentBuilder()
+                .withUserId(testUserId)
+                .withGroupId(testGroupId)
+                .withRole('admin')
+                .withStatus('active')
+                .build();
+
+            const result = PermissionEngineAsync.checkPermission(member, lockedGroup, testUserId, 'settingsManagement');
+
+            expect(result).toBe(false);
+        });
+
+        test('locked group should still allow viewGroup for admin', () => {
+            const member = new GroupMemberDocumentBuilder()
+                .withUserId(testUserId)
+                .withGroupId(testGroupId)
+                .withRole('admin')
+                .withStatus('active')
+                .build();
+
+            const result = PermissionEngineAsync.checkPermission(member, lockedGroup, testUserId, 'viewGroup');
+
+            expect(result).toBe(true);
+        });
+
+        test('locked group should still allow viewGroup for member', () => {
+            const member = new GroupMemberDocumentBuilder()
+                .withUserId(testUserId)
+                .withGroupId(testGroupId)
+                .withRole('member')
+                .withStatus('active')
+                .build();
+
+            const result = PermissionEngineAsync.checkPermission(member, lockedGroup, testUserId, 'viewGroup');
+
+            expect(result).toBe(true);
+        });
+
+        test('unlocked group should allow expenseEditing for member', () => {
+            const unlockedGroup = new GroupDTOBuilder()
+                .withId(testGroupId)
+                .withLocked(false)
+                .withPermissions({
+                    expenseEditing: PermissionLevels.ANYONE,
+                    expenseDeletion: PermissionLevels.ANYONE,
+                    memberInvitation: PermissionLevels.ANYONE,
+                    memberApproval: 'automatic',
+                    settingsManagement: PermissionLevels.ANYONE,
+                })
+                .build();
+
+            const member = new GroupMemberDocumentBuilder()
+                .withUserId(testUserId)
+                .withGroupId(testGroupId)
+                .withRole('member')
+                .withStatus('active')
+                .build();
+
+            const result = PermissionEngineAsync.checkPermission(member, unlockedGroup, testUserId, 'expenseEditing');
+
+            expect(result).toBe(true);
+        });
+    });
 });

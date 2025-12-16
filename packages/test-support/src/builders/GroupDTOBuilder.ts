@@ -21,6 +21,7 @@ export class GroupDTOBuilder {
                 memberApproval: 'automatic',
                 settingsManagement: 'admin-only',
             },
+            locked: false,
             createdAt: convertToISOString(new Date()),
             updatedAt: convertToISOString(new Date()),
             deletedAt: null,
@@ -113,6 +114,11 @@ export class GroupDTOBuilder {
         } else {
             delete this.group.currencySettings;
         }
+        return this;
+    }
+
+    withLocked(locked: boolean): this {
+        this.group.locked = locked;
         return this;
     }
 

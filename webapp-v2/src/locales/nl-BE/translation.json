@@ -286,13 +286,29 @@
       "comment-added-short": "{{actor}} heeft gereageerd op {{target}}",
       "settlement-created-short": "{{actor}} heeft {{settlement}} geregistreerd",
       "settlement-updated-short": "{{actor}} heeft {{settlement}} bijgewerkt",
-      "generic-short": "{{actor}} heeft wijzigingen aangebracht"
+      "generic-short": "{{actor}} heeft wijzigingen aangebracht",
+      "group-locked": "{{actor}} heeft {{group}} vergrendeld",
+      "group-unlocked": "{{actor}} heeft {{group}} ontgrendeld",
+      "group-locked-short": "{{actor}} heeft de groep vergrendeld",
+      "group-unlocked-short": "{{actor}} heeft de groep ontgrendeld"
     }
   },
   "group": {
     "actions": {
       "addExpense": "Uitgave toevoegen",
       "settleUp": "Vereffenen"
+    },
+    "locked": {
+      "banner": "Deze groep is vergrendeld. Er kunnen geen wijzigingen worden aangebracht totdat een beheerder deze ontgrendelt.",
+      "toggle": "Groep vergrendelen",
+      "toggleDescription": "Voorkom dat leden wijzigingen aanbrengen in deze groep.",
+      "warning": "Het vergrendelen van deze groep voorkomt dat iemand uitgaven toevoegt, vereffent of instellingen wijzigt.",
+      "unlockToggle": "Groep ontgrendelen",
+      "unlockDescription": "Sta leden opnieuw toe om wijzigingen aan te brengen in deze groep.",
+      "lockSuccess": "Groep is vergrendeld.",
+      "unlockSuccess": "Groep is ontgrendeld.",
+      "toggleFailed": "Kon de vergrendelingsstatus van de groep niet bijwerken.",
+      "sectionTitle": "Groepsvergrendeling"
     }
   },
   "comments": {

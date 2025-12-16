@@ -52,6 +52,11 @@ class ClientPermissionEngine {
             return false;
         }
 
+        // Block all write actions if group is locked
+        if (group.locked === true && action !== 'viewGroup') {
+            return false;
+        }
+
         // Handle view permission
         if (action === 'viewGroup') {
             return member.memberStatus === 'active';

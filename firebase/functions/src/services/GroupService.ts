@@ -1,6 +1,7 @@
 import type { CurrencyISOCode, UserId } from '@billsplit-wl/shared';
 import {
     ActivityFeedActions,
+    ActivityFeedEventType,
     ActivityFeedEventTypes,
     Amount,
     amountToSmallestUnit,
@@ -326,6 +327,7 @@ export class GroupService {
             updatedAt: nowISO,
             deletedAt: null,
             permissions: PermissionEngine.getDefaultPermissions(SecurityPresets.OPEN),
+            locked: false,
         };
 
         // Include currency settings if provided
@@ -433,6 +435,14 @@ export class GroupService {
         const { group } = await this.fetchGroupWithAccess(groupId, userId, true, { includeDeleted: true });
         timer.endPhase();
 
+        // If group is locked, only allow admin to unlock it (no other changes permitted)
+        if (group.locked === true) {
+            const isOnlyUnlocking = Object.keys(updates).length === 1 && updates.locked === false;
+            if (!isOnlyUnlocking) {
+                throw Errors.forbidden(ErrorDetail.GROUP_LOCKED);
+            }
+        }
+
         // Update with optimistic locking and transaction retry logic
         timer.startPhase('transaction');
         let memberIds: UserId[] = [];
@@ -490,6 +500,11 @@ export class GroupService {
                 updatePayload.currencySettings = updates.currencySettings;
             }
 
+            // Handle locked status update
+            if (updates.locked !== undefined) {
+                updatePayload.locked = updates.locked;
+            }
+
             this.firestoreWriter.updateInTransaction(transaction, documentPath, updatePayload);
 
             // Update denormalized groupUpdatedAt in all membership documents
@@ -503,6 +518,14 @@ export class GroupService {
 
             // Build activity item - will be recorded AFTER transaction commits
             if (memberIds.length > 0) {
+                // Determine event type based on what changed
+                let eventType: ActivityFeedEventType = ActivityFeedEventTypes.GROUP_UPDATED;
+                if (updates.locked !== undefined && updates.locked !== group.locked) {
+                    eventType = updates.locked
+                        ? ActivityFeedEventTypes.GROUP_LOCKED
+                        : ActivityFeedEventTypes.GROUP_UNLOCKED;
+                }
+
                 const detailPayload = updatedData.name !== group.name
                     ? this.activityFeedService.buildDetails({ previousGroupName: group.name })
                     : undefined;
@@ -510,7 +533,7 @@ export class GroupService {
                 activityItem = this.activityFeedService.buildGroupActivityItem({
                     groupId,
                     groupName: updatedData.name,
-                    eventType: ActivityFeedEventTypes.GROUP_UPDATED,
+                    eventType,
                     action: ActivityFeedActions.UPDATE,
                     actorId: userId,
                     actorName: actorDisplayName,

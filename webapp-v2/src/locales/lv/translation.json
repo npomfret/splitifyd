@@ -286,13 +286,29 @@
       "comment-added-short": "{{actor}} komentēja {{target}}",
       "settlement-created-short": "{{actor}} reģistrēja {{settlement}}",
       "settlement-updated-short": "{{actor}} atjaunināja {{settlement}}",
-      "generic-short": "{{actor}} veica izmaiņas"
+      "generic-short": "{{actor}} veica izmaiņas",
+      "group-locked": "{{actor}} bloķēja {{group}}",
+      "group-unlocked": "{{actor}} atbloķēja {{group}}",
+      "group-locked-short": "{{actor}} bloķēja grupu",
+      "group-unlocked-short": "{{actor}} atbloķēja grupu"
     }
   },
   "group": {
     "actions": {
       "addExpense": "Pievienot izdevumus",
       "settleUp": "Norēķināties"
+    },
+    "locked": {
+      "banner": "Šī grupa ir bloķēta. Izmaiņas nav iespējamas, kamēr administrators to neatbloķēs.",
+      "toggle": "Bloķēt grupu",
+      "toggleDescription": "Neļaut dalībniekiem veikt izmaiņas šajā grupā.",
+      "warning": "Bloķējot šo grupu, neviens nevarēs pievienot izdevumus, norēķināties vai mainīt iestatījumus.",
+      "unlockToggle": "Atbloķēt grupu",
+      "unlockDescription": "Ļaut dalībniekiem atkal veikt izmaiņas šajā grupā.",
+      "lockSuccess": "Grupa ir bloķēta.",
+      "unlockSuccess": "Grupa ir atbloķēta.",
+      "toggleFailed": "Neizdevās atjaunināt grupas bloķēšanas statusu.",
+      "sectionTitle": "Grupas bloķēšana"
     }
   },
   "comments": {

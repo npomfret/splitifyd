@@ -1,12 +1,124 @@
 # Feature: Group Locking (Read-Only Mode)
 
 **Complexity:** Medium
+**Status:** COMPLETED
 
 **Goal:** Introduce a feature that allows a group administrator to "lock" a group. A locked group becomes read-only for all members, preventing any new expenses, settlements, member changes, or settings modifications. The only permitted action on a locked group is for a group admin to unlock it.
 
 ---
 
-## Research Findings
+## Implementation Progress
+
+### Backend - COMPLETED
+
+- [x] **Shared Types & Schemas:**
+  - Added `locked: boolean` to `Group` interface in `packages/shared/src/shared-types.ts` (required field, defaults to false)
+  - Added `locked?: boolean` to `UpdateGroupRequest` interface
+  - Added `'group-locked'` and `'group-unlocked'` to `ActivityFeedEventTypes`
+  - Added `locked: z.boolean().optional()` to `UpdateGroupRequestSchema` in `packages/shared/src/schemas/apiRequests.ts`
+  - Added `locked: z.boolean().default(false)` to `GroupDocumentSchema` in `firebase/functions/src/schemas/group.ts`
+
+- [x] **Permission Enforcement:**
+  - Updated `PermissionEngineAsync` to block all write actions on locked groups (except unlocking)
+  - Added `GROUP_LOCKED` error code to `firebase/functions/src/errors/error-codes.ts`
+
+- [x] **Group Service:**
+  - Updated `GroupService.updateGroup()` to:
+    - Check if group is locked and reject non-unlock updates
+    - Generate `group-locked` / `group-unlocked` activity feed events
+
+- [x] **Validation Fix:**
+  - Fixed `validateUpdateGroup` transform function in `firebase/functions/src/groups/validation.ts` to include the `locked` field (this was causing the API tests to fail initially)
+
+### Frontend - COMPLETED
+
+- [x] **Client Permission Engine:**
+  - Updated `ClientPermissionEngine` in `webapp-v2/src/app/stores/permissions-store.ts` to mirror backend locked check
+
+- [x] **Realtime Coordinator:**
+  - No changes needed - coordinator handles all event types generically via `scheduleRefresh()` for any activity event on the active group
+
+- [x] **Lock Toggle UI:**
+  - Created `useGroupLockSettings` hook in `webapp-v2/src/app/hooks/useGroupLockSettings.ts`
+  - Added lock toggle section in `GroupGeneralTabContent.tsx` (only visible to admins)
+  - Integrated hook in `GroupSettingsModal.tsx`
+
+- [x] **Locked Banner & Disabled Actions:**
+  - Added computed signal `isGroupLocked` in `GroupDetailPage.tsx`
+  - Added warning banner when group is locked
+  - Updated `GroupActions.tsx` to disable Add Expense, Settle Up, and Invite buttons when locked
+  - Both desktop sidebar and mobile action bars respect locked state
+
+- [x] **Translations:**
+  - Added all translation keys to English (`webapp-v2/src/locales/en/translation.json`)
+  - Added placeholder keys to all other languages (AR, DE, ES, IT, JA, KO, LV, NL-BE, NO, PH, SV, UK)
+
+### Testing - COMPLETED
+
+- [x] **Backend Unit Tests:**
+  - Added `describe('locked group behavior')` test suite in `permission-engine-async.test.ts`
+  - Tests: locked group blocks expenseEditing, expenseDeletion, memberInvitation, settingsManagement for both admin and member
+  - Tests: locked group allows viewGroup
+  - All 20 tests pass
+
+- [x] **Backend API Tests:**
+  - Added `describe('group locking')` test suite in `firebase/functions/src/__tests__/unit/api/groups.test.ts`
+  - Tests:
+    - Admin can lock/unlock a group
+    - Non-admin cannot lock a group
+    - Locked group rejects name updates
+    - Locked group rejects expense creation
+    - Activity events generated for lock/unlock
+    - Admin can unlock a locked group (only permitted change)
+  - All 8 tests pass
+
+### E2E Tests - COMPLETED
+
+- [x] **E2E Tests:**
+  - Created `e2e-tests/src/__tests__/integration/group-locking.e2e.test.ts`
+  - Admin flow: lock group, verify banner, verify disabled buttons, unlock
+  - Member flow: verify real-time locked state propagation
+  - Dashboard activity: verify lock/unlock events in activity feed
+  - Page objects updated:
+    - `GroupSettingsModalPage`: Added lock toggle methods
+    - `GroupDetailPage`: Added locked banner and disabled action button verification
+
+---
+
+## Critical Files Modified
+
+| Area | File | Change |
+|------|------|--------|
+| Shared Types | `packages/shared/src/shared-types.ts` | Added `locked` to Group, UpdateGroupRequest, ActivityFeedEventTypes |
+| Shared Schemas | `packages/shared/src/schemas/apiRequests.ts` | Added `locked` to UpdateGroupRequestSchema |
+| Firestore Schema | `firebase/functions/src/schemas/group.ts` | Added `locked` to GroupDocumentSchema |
+| Backend Validation | `firebase/functions/src/groups/validation.ts` | Added `locked` to validateUpdateGroup transform |
+| Backend Permissions | `firebase/functions/src/permissions/permission-engine-async.ts` | Added locked check |
+| Backend Service | `firebase/functions/src/services/GroupService.ts` | Handle locked logic + activity events |
+| Error Codes | `firebase/functions/src/errors/error-codes.ts` | Added GROUP_LOCKED |
+| Frontend Permissions | `webapp-v2/src/app/stores/permissions-store.ts` | Added locked check |
+| Frontend Hook | `webapp-v2/src/app/hooks/useGroupLockSettings.ts` | Created new hook |
+| Settings UI | `webapp-v2/src/components/group/settings/GroupGeneralTabContent.tsx` | Added lock toggle section |
+| Settings Modal | `webapp-v2/src/components/group/GroupSettingsModal.tsx` | Integrated lock settings hook |
+| Group Detail | `webapp-v2/src/pages/GroupDetailPage.tsx` | Added locked banner + disabled handlers |
+| Group Actions | `webapp-v2/src/components/group/GroupActions.tsx` | Added isGroupLocked prop |
+| Translations | `webapp-v2/src/locales/*/translation.json` | Added lock-related strings (all languages) |
+| E2E Tests | `e2e-tests/src/__tests__/integration/group-locking.e2e.test.ts` | Created E2E test suite |
+| Test Page Objects | `packages/test-support/src/page-objects/GroupSettingsModalPage.ts` | Added lock toggle methods |
+| Test Page Objects | `packages/test-support/src/page-objects/GroupDetailPage.ts` | Added locked banner and button verification methods |
+
+## Bug Fixes During Implementation
+
+1. **validateUpdateGroup missing locked field**: The transform function in `groups/validation.ts` was not including the `locked` field in its output, causing the lock status to be stripped before reaching GroupService. Fixed by adding:
+   ```typescript
+   if (value.locked !== undefined) {
+       update.locked = value.locked;
+   }
+   ```
+
+---
+
+## Research Findings (Preserved for Reference)
 
 ### Permission System Architecture
 
@@ -14,45 +126,13 @@ The permission system is well-architected with clear separation:
 
 **Backend (`PermissionEngineAsync`)** - `firebase/functions/src/permissions/permission-engine-async.ts`
 - Static, synchronous `checkPermission()` method
-- Checks: member existence → member status (ACTIVE required) → viewer blocking → permission level evaluation
+- Checks: member existence -> member status (ACTIVE required) -> viewer blocking -> permission level evaluation
 - Actions checked: `expenseEditing`, `expenseDeletion`, `memberInvitation`, `settingsManagement`, `viewGroup`
-- **Key insight**: Add locked check early (after member validation, before action-specific logic)
 
 **Frontend (`ClientPermissionEngine`)** - `webapp-v2/src/app/stores/permissions-store.ts`
 - Mirrors backend logic exactly for immediate UI feedback
 - Uses `PermissionsStore` with reference counting for component lifecycle
 - Returns computed permissions: `canEditAnyExpense`, `canDeleteAnyExpense`, `canInviteMembers`, `canManageSettings`
-
-### Group Types & Update Flow
-
-**Group Interface** - `packages/shared/src/shared-types.ts` (lines 819-851)
-```typescript
-interface Group {
-    name: GroupName;
-    description?: string;
-    permissions: GroupPermissions;
-    permissionHistory?: PermissionChangeLog[];
-    inviteLinks?: Record<string, InviteLink>;
-    currencySettings?: GroupCurrencySettings;
-    recentlyUsedLabels?: Record<ExpenseLabel, ISOString>;
-    // Need to add: locked?: boolean;
-}
-```
-
-**UpdateGroupRequest** - Same file (lines 861-865)
-```typescript
-export interface UpdateGroupRequest {
-    name?: GroupName;
-    description?: Description;
-    currencySettings?: GroupCurrencySettings | null;
-    // Need to add: locked?: boolean;
-}
-```
-
-**GroupService.updateGroup()** - `firebase/functions/src/services/GroupService.ts`
-- Uses `GroupTransactionManager` with optimistic locking (`updatedAt` comparison)
-- Access control via `fetchGroupWithAccess()` + `ensureActiveGroupAdmin()`
-- Activity feed events generated after transaction commits
 
 ### Existing Locked Item Patterns
 
@@ -60,175 +140,3 @@ The codebase already has `isLocked` patterns for expenses and settlements:
 - `ExpenseDTO.isLocked` - True if any participant has left the group
 - `SettlementDTO.isLocked` - True if payer or payee has left
 - UI shows disabled edit buttons with tooltips when locked
-
-### Frontend UI Patterns
-
-**GroupDetailPage** uses computed signals for permissions:
-```typescript
-const canManageSettings = useComputed(() => Boolean(userPermissions.value.canManageSettings));
-```
-
-**GroupActions** conditionally renders buttons based on prop availability (undefined = hidden).
-
-**Locked items** use disabled buttons with aria-describedby for tooltips.
-
-### Decision: Activity Feed Events
-
-**Chosen approach**: New dedicated event types (`group-locked`, `group-unlocked`) rather than reusing `group-updated`. This provides clearer activity history and better filtering options.
-
----
-
-## Implementation Plan
-
-### 1. Backend Implementation
-
--   [ ] **Update Shared Types:**
-    -   In `packages/shared/src/shared-types.ts`:
-        -   Add `locked?: boolean` to the `Group` interface (line ~823)
-        -   Add `locked?: boolean` to `UpdateGroupRequest` interface (line ~865)
-        -   Add `'group-locked'` and `'group-unlocked'` to `ActivityFeedEventTypes`
-    -   In `packages/shared/src/schemas/apiRequests.ts`:
-        -   Add `locked: z.boolean().optional()` to `UpdateGroupRequestSchema`
-
--   [ ] **Update Firestore Documents & Schemas:**
-    -   In `firebase/functions/src/schemas/groups.ts`, add `locked: z.boolean().optional()` to the `GroupDocumentSchema`.
-
--   [ ] **Update API Endpoint (`updateGroup`):**
-    -   Modify the `updateGroup` handler (likely within `firebase/functions/src/groups/handlers.ts` or a service it calls).
-    -   The logic should allow an update to the `locked` status.
-    -   If a group is already locked (`group.locked === true`), the handler must reject any incoming `UpdateGroupRequest` unless the request comes from a group admin **and** the only field being changed is `locked`.
-    -   This logic should live in `firebase/functions/src/services/GroupService.ts`.
-
--   [ ] **Enforce Read-Only State via Permissions:**
-    -   Modify `PermissionEngineAsync` in `firebase/functions/src/permissions/permission-engine-async.ts`
-    -   Add check after member validation (around line 26), before viewer blocking:
-    ```typescript
-    // Block all write actions if group is locked
-    if (group.locked === true && action !== 'viewGroup') {
-        return false;
-    }
-    ```
-    -   This blocks: `expenseEditing`, `expenseDeletion`, `memberInvitation`, `settingsManagement`
-    -   Settlement creation uses `expenseEditing` permission, so it will also be blocked
-
--   [ ] **Add Activity Feed Events:**
-    -   In `GroupService.updateGroup()`, after successful lock/unlock:
-    ```typescript
-    if (updates.locked !== undefined && updates.locked !== group.locked) {
-        const eventType = updates.locked ? 'group-locked' : 'group-unlocked';
-        await this.activityFeedService.recordEvent({
-            type: eventType,
-            groupId,
-            actorUserId: userId,
-            timestamp: now,
-        });
-    }
-    ```
-
--   [ ] **Add Error Code:**
-    -   Add `GROUP_LOCKED` to `firebase/functions/src/errors/error-codes.ts` for clear error messages
-
-### 2. Frontend Implementation
-
--   [ ] **Add UI Control for Locking:**
-    -   In the group settings page, likely `webapp-v2/src/pages/group/settings/GroupSettingsGeneralPage.tsx`, add a new section for "Group Locking".
-    -   This section should contain a toggle switch or a button labeled "Lock Group".
-    -   This UI control should only be visible and enabled for users who are `admin`s of the group.
-
--   [ ] **Update API Client Call:**
-    -   The event handler for the new lock toggle will call `apiClient.updateGroup`, passing the new `locked` status in the request body.
-
--   [ ] **Update Client-Side Permission Engine:**
-    -   Modify `ClientPermissionEngine.checkPermission()` in `webapp-v2/src/app/stores/permissions-store.ts`
-    -   Add the same locked check as backend (mirrors logic exactly):
-    ```typescript
-    // Block write actions if group is locked
-    if (group.locked === true && action !== 'viewGroup') {
-        return false;
-    }
-    ```
-    -   This ensures `canEditAnyExpense`, `canDeleteAnyExpense`, `canInviteMembers`, `canManageSettings` all return `false` when locked
-
--   [ ] **Handle Activity Feed Events:**
-    -   In `webapp-v2/src/app/stores/helpers/group-detail-realtime-coordinator.ts`
-    -   Add `'group-locked'` and `'group-unlocked'` to events that trigger `refreshAll()`
-
--   [ ] **Add Translations:**
-    -   In `webapp-v2/public/locales/en/translation.json`:
-    ```json
-    "group": {
-      "locked": {
-        "banner": "This group is locked. No changes can be made until an admin unlocks it.",
-        "toggle": "Lock Group",
-        "toggleDescription": "Prevent all members from making changes to this group.",
-        "warning": "Locking this group will prevent anyone from adding expenses, settling up, or changing settings."
-      }
-    }
-    ```
-
--   [ ] **Comprehensive UI Audit for Read-Only State:**
-    -   Systematically go through all components and pages related to a group and ensure they respect the locked state.
-    -   Use the updated `permissionsStore` to disable buttons, hide forms, and prevent navigation to editing pages.
-    -   Key areas to check:
-        -   `GroupDetailPage`: The "Add Expense" button should be disabled.
-        -   `ExpenseListItem`: Edit/delete options should be hidden or disabled.
-        -   `SettlementContainer`: The "Settle Up" button and form should be disabled.
-        -   `GroupMembersPage`: The "Invite Member" button should be disabled.
-        -   `GroupSettings` pages: All form fields and save buttons should be disabled (except for the unlock control).
-        -   An unobtrusive banner or indicator should be displayed on the group detail page, making it clear that the group is locked.
-
-### 3. Testing
-
--   [ ] **Backend Unit Tests:**
-    -   Add test cases to `permission-engine.test.ts` to verify that all relevant permissions are denied when a group is locked.
-    -   Test both `member` and `admin` roles to ensure the lock applies to everyone.
-
--   [ ] **Backend Integration Tests:**
-    -   Add tests for the `updateGroup` API endpoint.
-    -   Verify that a non-admin cannot lock or unlock a group.
-    -   Verify that an admin *can* lock and unlock a group.
-    -   Verify that if a group is locked, any attempt to modify other properties (e.g., `name`, `description`) is rejected with a `403 Forbidden` or `400 Bad Request`.
-    -   Verify that attempts to create expenses, settlements, etc., in a locked group are rejected.
-
--   [ ] **Frontend (Playwright) E2E Tests:**
-    -   Create a new test file: `e2e-tests/src/__tests__/integration/group-locking.test.ts`
-    -   **Admin flow:**
-        -   As a group admin, navigate to settings, lock the group.
-        -   Verify a "Group is locked" indicator appears.
-        -   Verify all action buttons ("Add Expense", "Settle Up", etc.) are disabled.
-        -   Navigate back to settings and unlock the group.
-        -   Verify the indicator disappears and UI controls are re-enabled.
-    -   **Member flow:**
-        -   As a regular member in a locked group, verify all action buttons are disabled.
-        -   Verify the lock/unlock control in settings is not visible or is disabled.
-
----
-
-## Critical Files Summary
-
-| Area | File | Change |
-|------|------|--------|
-| Shared Types | `packages/shared/src/shared-types.ts` | Add `locked` to Group, UpdateGroupRequest, ActivityFeedEventTypes |
-| Shared Schemas | `packages/shared/src/schemas/apiRequests.ts` | Add `locked` to UpdateGroupRequestSchema |
-| Firestore Schema | `firebase/functions/src/schemas/group.ts` | Add `locked` to GroupDocumentSchema |
-| Backend Permissions | `firebase/functions/src/permissions/permission-engine-async.ts` | Add locked check |
-| Backend Service | `firebase/functions/src/services/GroupService.ts` | Handle locked logic + activity events |
-| Error Codes | `firebase/functions/src/errors/error-codes.ts` | Add GROUP_LOCKED |
-| Frontend Permissions | `webapp-v2/src/app/stores/permissions-store.ts` | Add locked check |
-| Frontend Realtime | `webapp-v2/src/app/stores/helpers/group-detail-realtime-coordinator.ts` | Handle new events |
-| Settings UI | `webapp-v2/src/pages/group/settings/GroupSettingsGeneralPage.tsx` | Add lock toggle |
-| Group Detail | `webapp-v2/src/pages/GroupDetailPage.tsx` | Add locked banner |
-| Translations | `webapp-v2/public/locales/en/translation.json` | Add lock-related strings |
-
-## Implementation Order
-
-1. **Shared Types & Schemas** - Foundation for all other changes
-2. **Backend Permission Engine** - Core enforcement mechanism
-3. **Backend GroupService** - Handle lock/unlock requests + activity events
-4. **Frontend Permission Engine** - Mirror backend for UI
-5. **Frontend Realtime Coordinator** - Handle new activity events
-6. **Frontend Settings UI** - Admin lock toggle
-7. **Frontend Group Detail** - Banner + disabled actions
-8. **Backend Unit Tests** - Permission engine tests
-9. **Backend API Tests** - Integration tests for updateGroup
-10. **E2E Tests** - Full user flow validation

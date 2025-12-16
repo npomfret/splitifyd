@@ -286,13 +286,29 @@
       "comment-added-short": "{{actor}}が{{target}}にコメントしました",
       "settlement-created-short": "{{actor}}が{{settlement}}を記録しました",
       "settlement-updated-short": "{{actor}}が{{settlement}}を更新しました",
-      "generic-short": "{{actor}}が変更を加えました"
+      "generic-short": "{{actor}}が変更を加えました",
+      "group-locked": "{{actor}}が{{group}}をロックしました",
+      "group-unlocked": "{{actor}}が{{group}}のロックを解除しました",
+      "group-locked-short": "{{actor}}がグループをロックしました",
+      "group-unlocked-short": "{{actor}}がグループのロックを解除しました"
     }
   },
   "group": {
     "actions": {
       "addExpense": "経費を追加",
       "settleUp": "精算する"
+    },
+    "locked": {
+      "banner": "このグループはロックされています。管理者がロックを解除するまで変更はできません。",
+      "toggle": "グループをロック",
+      "toggleDescription": "メンバーがこのグループに変更を加えることを禁止します。",
+      "warning": "このグループをロックすると、経費の追加、精算、設定の変更ができなくなります。",
+      "unlockToggle": "グループのロックを解除",
+      "unlockDescription": "メンバーがこのグループに再び変更を加えられるようにします。",
+      "lockSuccess": "グループがロックされました。",
+      "unlockSuccess": "グループのロックが解除されました。",
+      "toggleFailed": "グループのロック状態の更新に失敗しました。",
+      "sectionTitle": "グループのロック"
     }
   },
   "comments": {

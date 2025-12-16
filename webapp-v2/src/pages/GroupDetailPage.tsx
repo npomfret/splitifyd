@@ -14,7 +14,7 @@ import {
     ShareGroupModal,
 } from '@/components/group';
 import { SettlementForm } from '@/components/settlements';
-import { Button, Card, LoadingSpinner, Stack, Typography } from '@/components/ui';
+import { Alert, Button, Card, LoadingSpinner, Stack, Typography } from '@/components/ui';
 import { GROUP_DETAIL_ERROR_CODES } from '@/constants/error-codes.ts';
 import { navigationService } from '@/services/navigation.service';
 import { permissionsStore } from '@/stores/permissions-store.ts';
@@ -54,6 +54,7 @@ export function GroupDetailPage({ id: groupId, expenseId: routeExpenseId }: Grou
     const commentsResponse = useComputed(() => enhancedGroupDetailStore.commentsResponse);
     const showDeletedExpenses = useComputed(() => enhancedGroupDetailStore.showDeletedExpenses);
     const showDeletedSettlements = useComputed(() => enhancedGroupDetailStore.showDeletedSettlements);
+    const isGroupLocked = useComputed(() => group.value?.locked ?? false);
 
     const locationHash = typeof window !== 'undefined' ? window.location.hash : '';
     const expandActivitySection = locationHash === '#activity';
@@ -357,14 +358,14 @@ export function GroupDetailPage({ id: groupId, expenseId: routeExpenseId }: Grou
                         <MembersListWithManagement
                             groupId={groupId!}
                             variant='sidebar'
-                            onInviteClick={handleShare}
+                            onInviteClick={isGroupLocked.value ? undefined : handleShare}
                             onLeaveGroupClick={handleLeaveGroup}
                         />
 
                         <GroupActions
-                            onAddExpense={handleAddExpense}
-                            onSettleUp={handleSettleUp}
-                            onShare={handleShare}
+                            onAddExpense={isGroupLocked.value ? undefined : handleAddExpense}
+                            onSettleUp={isGroupLocked.value ? undefined : handleSettleUp}
+                            onShare={isGroupLocked.value ? undefined : handleShare}
                             onSettings={handleSettings}
                             onLeaveGroup={canLeaveGroup.value ? handleLeaveGroup : undefined}
                             showSettingsButton={canShowSettingsButton.value}
@@ -374,6 +375,7 @@ export function GroupDetailPage({ id: groupId, expenseId: routeExpenseId }: Grou
                             onUnarchive={isArchivedMembership.value ? handleUnarchiveGroup : undefined}
                             isArchived={isArchivedMembership.value}
                             membershipActionDisabled={membershipActionInFlight.value}
+                            isGroupLocked={isGroupLocked.value}
                         />
                     </>
                 }
@@ -387,12 +389,17 @@ export function GroupDetailPage({ id: groupId, expenseId: routeExpenseId }: Grou
                             showSettingsButton={canShowSettingsButton.value}
                         />
 
+                        {/* Locked Group Banner */}
+                        {isGroupLocked.value && (
+                            <Alert type='warning' message={t('group.locked.banner')} />
+                        )}
+
                         {/* 2. Mobile-only group actions */}
                         <div className='lg:hidden'>
                             <GroupActions
-                                onAddExpense={handleAddExpense}
-                                onSettleUp={handleSettleUp}
-                                onShare={handleShare}
+                                onAddExpense={isGroupLocked.value ? undefined : handleAddExpense}
+                                onSettleUp={isGroupLocked.value ? undefined : handleSettleUp}
+                                onShare={isGroupLocked.value ? undefined : handleShare}
                                 onSettings={handleSettings}
                                 onLeaveGroup={canLeaveGroup.value ? handleLeaveGroup : undefined}
                                 showSettingsButton={canShowSettingsButton.value}
@@ -402,6 +409,7 @@ export function GroupDetailPage({ id: groupId, expenseId: routeExpenseId }: Grou
                                 onUnarchive={isArchivedMembership.value ? handleUnarchiveGroup : undefined}
                                 isArchived={isArchivedMembership.value}
                                 membershipActionDisabled={membershipActionInFlight.value}
+                                isGroupLocked={isGroupLocked.value}
                             />
                         </div>
 
@@ -457,7 +465,7 @@ export function GroupDetailPage({ id: groupId, expenseId: routeExpenseId }: Grou
                             <MembersListWithManagement
                                 groupId={groupId!}
                                 variant='sidebar'
-                                onInviteClick={handleShare}
+                                onInviteClick={isGroupLocked.value ? undefined : handleShare}
                                 onLeaveGroupClick={handleLeaveGroup}
                             />
                         </div>

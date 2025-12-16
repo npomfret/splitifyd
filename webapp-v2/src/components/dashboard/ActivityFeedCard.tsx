@@ -231,6 +231,10 @@ function renderEventDescription(item: ActivityFeedItem, currentUserId: string, t
             }
             return t('activityFeed.events.group-updated', { actor, group });
         }
+        case 'group-locked':
+            return t('activityFeed.events.group-locked', { actor, group });
+        case 'group-unlocked':
+            return t('activityFeed.events.group-unlocked', { actor, group });
         case 'settlement-created':
             return t('activityFeed.events.settlement-created', { actor, settlement, group });
         case 'settlement-updated':

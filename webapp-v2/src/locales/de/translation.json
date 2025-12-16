@@ -286,13 +286,29 @@
       "comment-added-short": "{{actor}} hat {{target}} kommentiert",
       "settlement-created-short": "{{actor}} hat {{settlement}} erfasst",
       "settlement-updated-short": "{{actor}} hat {{settlement}} aktualisiert",
-      "generic-short": "{{actor}} hat Änderungen vorgenommen"
+      "generic-short": "{{actor}} hat Änderungen vorgenommen",
+      "group-locked": "{{actor}} hat {{group}} gesperrt",
+      "group-unlocked": "{{actor}} hat {{group}} entsperrt",
+      "group-locked-short": "{{actor}} hat die Gruppe gesperrt",
+      "group-unlocked-short": "{{actor}} hat die Gruppe entsperrt"
     }
   },
   "group": {
     "actions": {
       "addExpense": "Ausgabe hinzufügen",
       "settleUp": "Abrechnen"
+    },
+    "locked": {
+      "banner": "Diese Gruppe ist gesperrt. Keine Änderungen möglich, bis ein Admin sie entsperrt.",
+      "toggle": "Gruppe sperren",
+      "toggleDescription": "Verhindert, dass Mitglieder Änderungen an dieser Gruppe vornehmen.",
+      "warning": "Das Sperren dieser Gruppe verhindert das Hinzufügen von Ausgaben, Abrechnungen oder Einstellungsänderungen.",
+      "unlockToggle": "Gruppe entsperren",
+      "unlockDescription": "Ermöglicht Mitgliedern wieder, Änderungen an dieser Gruppe vorzunehmen.",
+      "lockSuccess": "Gruppe wurde gesperrt.",
+      "unlockSuccess": "Gruppe wurde entsperrt.",
+      "toggleFailed": "Sperrstatus konnte nicht aktualisiert werden.",
+      "sectionTitle": "Gruppensperrung"
     }
   },
   "comments": {

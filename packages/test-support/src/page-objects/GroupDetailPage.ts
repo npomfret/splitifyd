@@ -2426,4 +2426,96 @@ export class GroupDetailPage extends BasePage {
         const pill = this.getSettlementReactionPill(note, emoji);
         await expect(pill).toHaveAttribute('aria-pressed', 'false');
     }
+
+    // ============================================================================
+    // LOCKED GROUP HELPERS
+    // ============================================================================
+
+    /**
+     * Get the locked group banner/alert
+     */
+    protected getLockedGroupBanner(): Locator {
+        return this.page.getByRole('alert').filter({ hasText: translation.group.locked.banner });
+    }
+
+    /**
+     * Verify the locked group banner is visible
+     */
+    async verifyLockedGroupBannerVisible(): Promise<void> {
+        await expect(this.getLockedGroupBanner()).toBeVisible();
+    }
+
+    /**
+     * Verify the locked group banner is not visible
+     */
+    async verifyLockedGroupBannerNotVisible(): Promise<void> {
+        await expect(this.getLockedGroupBanner()).not.toBeVisible();
+    }
+
+    /**
+     * Wait for the locked group banner to appear
+     */
+    async waitForLockedGroupBanner(timeout: number = 5000): Promise<void> {
+        await expect(this.getLockedGroupBanner()).toBeVisible({ timeout });
+    }
+
+    /**
+     * Verify add expense button is disabled (when group is locked)
+     */
+    async verifyAddExpenseButtonDisabled(): Promise<void> {
+        await expect(this.getAddExpenseButton()).toBeDisabled();
+    }
+
+    /**
+     * Verify add expense button is enabled
+     */
+    async verifyAddExpenseButtonEnabled(): Promise<void> {
+        await expect(this.getAddExpenseButton()).toBeEnabled();
+    }
+
+    /**
+     * Verify settle up button is disabled (when group is locked)
+     */
+    async verifySettleUpButtonDisabled(): Promise<void> {
+        await expect(this.getSettleUpButton()).toBeDisabled();
+    }
+
+    /**
+     * Verify settle up button is enabled
+     */
+    async verifySettleUpButtonEnabled(): Promise<void> {
+        await expect(this.getSettleUpButton()).toBeEnabled();
+    }
+
+    /**
+     * Verify share/invite button is disabled (when group is locked)
+     */
+    async verifyShareGroupButtonDisabled(): Promise<void> {
+        await expect(this.getShareGroupButton()).toBeDisabled();
+    }
+
+    /**
+     * Verify share/invite button is enabled
+     */
+    async verifyShareGroupButtonEnabled(): Promise<void> {
+        await expect(this.getShareGroupButton()).toBeEnabled();
+    }
+
+    /**
+     * Verify all action buttons are disabled (group is locked)
+     */
+    async verifyAllActionButtonsDisabled(): Promise<void> {
+        await this.verifyAddExpenseButtonDisabled();
+        await this.verifySettleUpButtonDisabled();
+        await this.verifyShareGroupButtonDisabled();
+    }
+
+    /**
+     * Verify all action buttons are enabled (group is unlocked)
+     */
+    async verifyAllActionButtonsEnabled(): Promise<void> {
+        await this.verifyAddExpenseButtonEnabled();
+        await this.verifySettleUpButtonEnabled();
+        await this.verifyShareGroupButtonEnabled();
+    }
 }

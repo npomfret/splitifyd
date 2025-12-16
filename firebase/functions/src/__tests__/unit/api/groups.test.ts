@@ -853,4 +853,154 @@ describe('groups', () => {
             expect(roleChangedEvent?.details?.newRole).toBe(MemberRoles.ADMIN);
         });
     });
+
+    describe('group locking', () => {
+        it('should allow admin to lock a group', async () => {
+            const group = await appDriver.createGroup(
+                new CreateGroupRequestBuilder().withName('Test Group').build(),
+                user1,
+            );
+            const groupId = group.id;
+
+            // Lock the group
+            await appDriver.updateGroup(groupId, { locked: true }, user1);
+
+            // Verify group is locked
+            const details = await appDriver.getGroupFullDetails(groupId, {}, user1);
+            expect(details.group.locked).toBe(true);
+        });
+
+        it('should allow admin to unlock a group', async () => {
+            const group = await appDriver.createGroup(
+                new CreateGroupRequestBuilder().withName('Test Group').build(),
+                user1,
+            );
+            const groupId = group.id;
+
+            // Lock then unlock
+            await appDriver.updateGroup(groupId, { locked: true }, user1);
+            await appDriver.updateGroup(groupId, { locked: false }, user1);
+
+            // Verify group is unlocked
+            const details = await appDriver.getGroupFullDetails(groupId, {}, user1);
+            expect(details.group.locked).toBe(false);
+        });
+
+        it('should reject locking by non-admin member', async () => {
+            const group = await appDriver.createGroup(
+                new CreateGroupRequestBuilder().withName('Test Group').build(),
+                user1,
+            );
+            const groupId = group.id;
+
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+
+            // Non-admin tries to lock the group
+            await expect(
+                appDriver.updateGroup(groupId, { locked: true }, user2),
+            ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+        });
+
+        it('should reject name updates on locked group', async () => {
+            const group = await appDriver.createGroup(
+                new CreateGroupRequestBuilder().withName('Test Group').build(),
+                user1,
+            );
+            const groupId = group.id;
+
+            // Lock the group
+            await appDriver.updateGroup(groupId, { locked: true }, user1);
+
+            // Try to update name - should be rejected
+            await expect(
+                appDriver.updateGroup(groupId, new GroupUpdateBuilder().withName(toGroupName('New Name')).build(), user1),
+            ).rejects.toMatchObject({
+                code: 'FORBIDDEN',
+                data: { detail: 'GROUP_LOCKED' },
+            });
+        });
+
+        it('should reject expense creation on locked group', async () => {
+            const group = await appDriver.createGroup(
+                new CreateGroupRequestBuilder().withName('Test Group').build(),
+                user1,
+            );
+            const groupId = group.id;
+
+            // Lock the group
+            await appDriver.updateGroup(groupId, { locked: true }, user1);
+
+            // Try to create expense - should be rejected
+            await expect(
+                appDriver.createExpense(
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(groupId)
+                        .withPaidBy(user1)
+                        .withParticipants([user1])
+                        .build(),
+                    user1,
+                ),
+            ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+        });
+
+        it('should generate group-locked activity event when group is locked', async () => {
+            const group = await appDriver.createGroup(
+                new CreateGroupRequestBuilder().withName('Test Group').build(),
+                user1,
+            );
+            const groupId = group.id;
+
+            // Lock the group
+            await appDriver.updateGroup(groupId, { locked: true }, user1);
+
+            const response = await appDriver.getGroupActivityFeed(groupId, {}, user1);
+            const lockedEvent = response.items.find(
+                (item) => item.eventType === ActivityFeedEventTypes.GROUP_LOCKED,
+            );
+
+            expect(lockedEvent).toBeDefined();
+            expect(lockedEvent?.actorId).toBe(user1);
+            expect(lockedEvent?.action).toBe('update');
+        });
+
+        it('should generate group-unlocked activity event when group is unlocked', async () => {
+            const group = await appDriver.createGroup(
+                new CreateGroupRequestBuilder().withName('Test Group').build(),
+                user1,
+            );
+            const groupId = group.id;
+
+            // Lock then unlock
+            await appDriver.updateGroup(groupId, { locked: true }, user1);
+            await appDriver.updateGroup(groupId, { locked: false }, user1);
+
+            const response = await appDriver.getGroupActivityFeed(groupId, {}, user1);
+            const unlockedEvent = response.items.find(
+                (item) => item.eventType === ActivityFeedEventTypes.GROUP_UNLOCKED,
+            );
+
+            expect(unlockedEvent).toBeDefined();
+            expect(unlockedEvent?.actorId).toBe(user1);
+            expect(unlockedEvent?.action).toBe('update');
+        });
+
+        it('should allow admin to unlock locked group (the only permitted change)', async () => {
+            const group = await appDriver.createGroup(
+                new CreateGroupRequestBuilder().withName('Test Group').build(),
+                user1,
+            );
+            const groupId = group.id;
+
+            // Lock the group
+            await appDriver.updateGroup(groupId, { locked: true }, user1);
+
+            // Unlocking should still work
+            await appDriver.updateGroup(groupId, { locked: false }, user1);
+
+            // Verify group is unlocked
+            const details = await appDriver.getGroupFullDetails(groupId, {}, user1);
+            expect(details.group.locked).toBe(false);
+        });
+    });
 });

@@ -45,6 +45,7 @@ const BaseGroupSchema = z
             .strict(),
         currencySettings: GroupCurrencySettingsSchema.nullable().optional(),
         recentlyUsedLabels: RecentlyUsedLabelsSchema.optional(),
+        locked: z.boolean().default(false),
         deletedAt: FirestoreTimestampSchema.nullable(),
     })
     .merge(AuditFieldsSchema)

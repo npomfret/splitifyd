@@ -286,13 +286,29 @@
       "comment-added-short": "علّق {{actor}} على {{target}}",
       "settlement-created-short": "سجل {{actor}} {{settlement}}",
       "settlement-updated-short": "قام {{actor}} بتحديث {{settlement}}",
-      "generic-short": "أجرى {{actor}} تغييرات"
+      "generic-short": "أجرى {{actor}} تغييرات",
+      "group-locked": "قام {{actor}} بقفل {{group}}",
+      "group-unlocked": "قام {{actor}} بفتح قفل {{group}}",
+      "group-locked-short": "قام {{actor}} بقفل المجموعة",
+      "group-unlocked-short": "قام {{actor}} بفتح قفل المجموعة"
     }
   },
   "group": {
     "actions": {
       "addExpense": "إضافة مصروف",
       "settleUp": "تسوية الدين"
+    },
+    "locked": {
+      "banner": "هذه المجموعة مقفلة. لا يمكن إجراء أي تغييرات حتى يفتح المسؤول القفل.",
+      "toggle": "قفل المجموعة",
+      "toggleDescription": "منع جميع الأعضاء من إجراء تغييرات على هذه المجموعة.",
+      "warning": "قفل هذه المجموعة سيمنع أي شخص من إضافة مصروفات أو تسوية ديون أو تغيير الإعدادات.",
+      "unlockToggle": "فتح قفل المجموعة",
+      "unlockDescription": "السماح للأعضاء بإجراء تغييرات على هذه المجموعة مرة أخرى.",
+      "lockSuccess": "تم قفل المجموعة.",
+      "unlockSuccess": "تم فتح قفل المجموعة.",
+      "toggleFailed": "فشل في تحديث حالة قفل المجموعة.",
+      "sectionTitle": "قفل المجموعة"
     }
   },
   "comments": {

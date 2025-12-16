@@ -286,13 +286,29 @@
       "comment-added-short": "{{actor}} kommenterade på {{target}}",
       "settlement-created-short": "{{actor}} registrerade {{settlement}}",
       "settlement-updated-short": "{{actor}} uppdaterade {{settlement}}",
-      "generic-short": "{{actor}} gjorde ändringar"
+      "generic-short": "{{actor}} gjorde ändringar",
+      "group-locked": "{{actor}} låste {{group}}",
+      "group-unlocked": "{{actor}} låste upp {{group}}",
+      "group-locked-short": "{{actor}} låste gruppen",
+      "group-unlocked-short": "{{actor}} låste upp gruppen"
     }
   },
   "group": {
     "actions": {
       "addExpense": "Lägg till utgift",
       "settleUp": "Reglera"
+    },
+    "locked": {
+      "banner": "Denna grupp är låst. Inga ändringar kan göras förrän en administratör låser upp den.",
+      "toggle": "Lås grupp",
+      "toggleDescription": "Förhindra alla medlemmar från att göra ändringar i denna grupp.",
+      "warning": "Att låsa denna grupp kommer att förhindra alla från att lägga till utgifter, reglera eller ändra inställningar.",
+      "unlockToggle": "Lås upp grupp",
+      "unlockDescription": "Tillåt medlemmar att göra ändringar i denna grupp igen.",
+      "lockSuccess": "Gruppen har låsts.",
+      "unlockSuccess": "Gruppen har låsts upp.",
+      "toggleFailed": "Kunde inte uppdatera gruppens låsstatus.",
+      "sectionTitle": "Grupplåsning"
     }
   },
   "comments": {

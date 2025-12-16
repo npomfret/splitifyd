@@ -174,6 +174,10 @@ export const validateUpdateGroup = createRequestValidator({
             update.currencySettings = value.currencySettings; // null or settings object
         }
 
+        if (value.locked !== undefined) {
+            update.locked = value.locked;
+        }
+
         return update;
     },
     mapError: updateGroupErrorMapper,

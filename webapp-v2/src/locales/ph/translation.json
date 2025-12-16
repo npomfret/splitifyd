@@ -286,13 +286,29 @@
       "comment-added-short": "Nag-comment si {{actor}} sa {{target}}",
       "settlement-created-short": "Nagtala si {{actor}} ng {{settlement}}",
       "settlement-updated-short": "In-update ni {{actor}} ang {{settlement}}",
-      "generic-short": "Gumawa ng mga pagbabago si {{actor}}"
+      "generic-short": "Gumawa ng mga pagbabago si {{actor}}",
+      "group-locked": "Ni-lock ni {{actor}} ang {{group}}",
+      "group-unlocked": "In-unlock ni {{actor}} ang {{group}}",
+      "group-locked-short": "Ni-lock ni {{actor}} ang grupo",
+      "group-unlocked-short": "In-unlock ni {{actor}} ang grupo"
     }
   },
   "group": {
     "actions": {
       "addExpense": "Magdagdag ng Gastusin",
       "settleUp": "Magbayad"
+    },
+    "locked": {
+      "banner": "Naka-lock ang grupong ito. Hindi maaaring gumawa ng mga pagbabago hanggang ma-unlock ito ng admin.",
+      "toggle": "I-lock ang Grupo",
+      "toggleDescription": "Pigilan ang lahat ng miyembro na gumawa ng mga pagbabago sa grupong ito.",
+      "warning": "Ang pag-lock ng grupong ito ay pipigil sa sinuman na magdagdag ng gastusin, magbayad, o magbago ng mga setting.",
+      "unlockToggle": "I-unlock ang Grupo",
+      "unlockDescription": "Payagan muli ang mga miyembro na gumawa ng mga pagbabago sa grupong ito.",
+      "lockSuccess": "Na-lock na ang grupo.",
+      "unlockSuccess": "Na-unlock na ang grupo.",
+      "toggleFailed": "Hindi ma-update ang lock status ng grupo.",
+      "sectionTitle": "Pag-lock ng Grupo"
     }
   },
   "comments": {

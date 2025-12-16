@@ -286,13 +286,29 @@
       "comment-added-short": "{{actor}} прокоментував(ла) {{target}}",
       "settlement-created-short": "{{actor}} записав(ла) {{settlement}}",
       "settlement-updated-short": "{{actor}} оновив(ла) {{settlement}}",
-      "generic-short": "{{actor}} вніс(ла) зміни"
+      "generic-short": "{{actor}} вніс(ла) зміни",
+      "group-locked": "{{actor}} заблокував(ла) {{group}}",
+      "group-unlocked": "{{actor}} розблокував(ла) {{group}}",
+      "group-locked-short": "{{actor}} заблокував(ла) групу",
+      "group-unlocked-short": "{{actor}} розблокував(ла) групу"
     }
   },
   "group": {
     "actions": {
       "addExpense": "Додати витрату",
       "settleUp": "Розрахуватися"
+    },
+    "locked": {
+      "banner": "Ця група заблокована. Зміни неможливі, поки адміністратор не розблокує її.",
+      "toggle": "Заблокувати групу",
+      "toggleDescription": "Заборонити всім учасникам вносити зміни до цієї групи.",
+      "warning": "Блокування цієї групи заборонить будь-кому додавати витрати, розраховуватися або змінювати налаштування.",
+      "unlockToggle": "Розблокувати групу",
+      "unlockDescription": "Дозволити учасникам знову вносити зміни до цієї групи.",
+      "lockSuccess": "Групу заблоковано.",
+      "unlockSuccess": "Групу розблоковано.",
+      "toggleFailed": "Не вдалося оновити статус блокування групи.",
+      "sectionTitle": "Блокування групи"
     }
   },
   "comments": {

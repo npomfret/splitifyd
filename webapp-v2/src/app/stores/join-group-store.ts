@@ -85,6 +85,7 @@ class JoinGroupStore {
                     memberApproval: 'automatic' as const,
                     settingsManagement: 'anyone' as const,
                 },
+                locked: false,
                 balance: {
                     balancesByCurrency: {},
                 },
@@ -147,6 +148,7 @@ class JoinGroupStore {
                         memberApproval: 'automatic',
                         settingsManagement: 'anyone',
                     },
+                    locked: false,
                     balance: {
                         balancesByCurrency: {},
                     },

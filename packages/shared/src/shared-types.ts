@@ -215,6 +215,8 @@ export const REACTION_EMOJI_ORDER: ReactionEmoji[] = [
 export const ActivityFeedEventTypes = {
     GROUP_CREATED: 'group-created',
     GROUP_UPDATED: 'group-updated',
+    GROUP_LOCKED: 'group-locked',
+    GROUP_UNLOCKED: 'group-unlocked',
     PERMISSIONS_UPDATED: 'permissions-updated',
     MEMBER_ROLE_CHANGED: 'member-role-changed',
     EXPENSE_CREATED: 'expense-created',
@@ -836,6 +838,9 @@ interface Group {
     // Recently used expense labels for autocomplete (label -> last used timestamp)
     recentlyUsedLabels?: Record<ExpenseLabel, ISOString>;
 
+    // Group locking - when true, group is read-only for all members (defaults to false)
+    locked: boolean;
+
     // Computed fields (API-only - not in storage)
     balance?: {
         balancesByCurrency: Record<string, CurrencyBalance>;
@@ -862,6 +867,7 @@ export interface UpdateGroupRequest {
     name?: GroupName;
     description?: Description;
     currencySettings?: GroupCurrencySettings | null; // null to clear settings
+    locked?: boolean; // Only admins can set this
 }
 
 export interface UpdateDisplayNameRequest {

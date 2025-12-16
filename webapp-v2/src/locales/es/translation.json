@@ -286,13 +286,29 @@
       "comment-added-short": "{{actor}} comentó en {{target}}",
       "settlement-created-short": "{{actor}} registró {{settlement}}",
       "settlement-updated-short": "{{actor}} actualizó {{settlement}}",
-      "generic-short": "{{actor}} realizó cambios"
+      "generic-short": "{{actor}} realizó cambios",
+      "group-locked": "{{actor}} bloqueó {{group}}",
+      "group-unlocked": "{{actor}} desbloqueó {{group}}",
+      "group-locked-short": "{{actor}} bloqueó el grupo",
+      "group-unlocked-short": "{{actor}} desbloqueó el grupo"
     }
   },
   "group": {
     "actions": {
       "addExpense": "Añadir gasto",
       "settleUp": "Liquidar"
+    },
+    "locked": {
+      "banner": "Este grupo está bloqueado. No se pueden hacer cambios hasta que un administrador lo desbloquee.",
+      "toggle": "Bloquear grupo",
+      "toggleDescription": "Impedir que los miembros hagan cambios en este grupo.",
+      "warning": "Bloquear este grupo impedirá añadir gastos, liquidar deudas o cambiar configuraciones.",
+      "unlockToggle": "Desbloquear grupo",
+      "unlockDescription": "Permitir que los miembros vuelvan a hacer cambios en este grupo.",
+      "lockSuccess": "El grupo ha sido bloqueado.",
+      "unlockSuccess": "El grupo ha sido desbloqueado.",
+      "toggleFailed": "Error al actualizar el estado de bloqueo del grupo.",
+      "sectionTitle": "Bloqueo del grupo"
     }
   },
   "comments": {

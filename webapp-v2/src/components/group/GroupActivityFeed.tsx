@@ -182,6 +182,10 @@ function renderEventDescription(item: ActivityFeedItem, currentUserId: string, t
             }
             return t('activityFeed.events.group-updated-short', { actor });
         }
+        case 'group-locked':
+            return t('activityFeed.events.group-locked-short', { actor });
+        case 'group-unlocked':
+            return t('activityFeed.events.group-unlocked-short', { actor });
         case 'settlement-created':
             return t('activityFeed.events.settlement-created-short', { actor, settlement });
         case 'settlement-updated':
