@@ -146,10 +146,10 @@ export function ReceiptUploader({
                             <button
                                 type='button'
                                 onClick={handleClearClick}
-                                className='absolute top-2 end-2 p-1 rounded-full bg-surface-overlay/90 hover:bg-surface-overlay transition-colors'
+                                className='absolute top-1 end-1 p-2 rounded-full bg-surface-overlay/90 hover:bg-surface-overlay transition-colors'
                                 aria-label={t('receiptUploader.removeReceipt')}
                             >
-                                <XMarkIcon className='h-4 w-4 text-text-primary' />
+                                <XMarkIcon className='h-5 w-5 text-text-primary' />
                             </button>
                         )}
                     </div>
@@ -166,10 +166,10 @@ export function ReceiptUploader({
                             <button
                                 type='button'
                                 onClick={handleClearClick}
-                                className='absolute top-2 end-2 p-1 rounded-full bg-surface-overlay/90 hover:bg-surface-overlay transition-colors'
+                                className='absolute top-1 end-1 p-2 rounded-full bg-surface-overlay/90 hover:bg-surface-overlay transition-colors'
                                 aria-label={t('receiptUploader.removeReceipt')}
                             >
-                                <XMarkIcon className='h-4 w-4 text-text-primary' />
+                                <XMarkIcon className='h-5 w-5 text-text-primary' />
                             </button>
                         )}
                     </div>
