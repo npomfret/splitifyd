@@ -284,6 +284,7 @@ Pages under `pages/admin/` and `components/admin/` are **completely isolated fro
 | **Field errors** | `FieldError` component or `FormField` error prop |
 | **Help text** | `help-text` class or `HelpText` component |
 | **Small help text** | `help-text-xs` class |
+| **Explainer text** | `InfoCircleIcon` + `Tooltip` (declutters UI, see `CustomPermissionsSection.tsx`) |
 | **Badges/chips** | `Badge` component with variant, or `badge` utility class |
 | **Empty lists** | `EmptyState` with Heroicon + translated title |
 | **Typography** | `Typography` component with semantic variants |
@@ -435,4 +436,5 @@ Every selector should be **unambiguous**. If multiple elements could match, scop
 | `shadow-[var(--x)]` arbitrary syntax | `shadow-(--x)` (Tailwind v4 CSS var syntax) |
 | `@layer components { .foo { ... } }` | `@utility foo { ... }` (Tailwind v4) |
 | `data-testid` on elements with semantic meaning | Only add when no role, label, or visible text exists |
+| Inline explainer text cluttering forms | `InfoCircleIcon` + `Tooltip` beside labels |
 
