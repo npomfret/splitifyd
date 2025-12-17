@@ -95,6 +95,15 @@
             "value": "1; mode=block"
           }
         ]
+      },
+      {
+        "source": "/join",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=300"
+          }
+        ]
       }
     ],
     "rewrites": [
