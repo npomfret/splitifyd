@@ -290,10 +290,10 @@ export class DashboardPage extends BasePage {
     }
 
     /**
-     * Get the empty groups state container for external assertions
-     * @deprecated Use verifyEmptyGroupsState() or clickEmptyStateCreateGroup() instead
+     * Get the empty groups state container - internal use only
+     * Use verifyEmptyGroupsState() or clickEmptyStateCreateGroup() for tests
      */
-    getEmptyGroupsState(): Locator {
+    private getEmptyGroupsState(): Locator {
         return this.getEmptyGroupsStateInternal();
     }
 
@@ -832,12 +832,22 @@ export class DashboardPage extends BasePage {
      * Used after registration/login to confirm user landed on dashboard
      */
     async verifyDashboardHeadingVisible(timeout: number = 5000): Promise<void> {
-        // Match either "Welcome to..." (with interpolation) or "Your Groups"
-        const welcomePattern = new RegExp(`^${translation.dashboard.welcomeMessage.split('{{')[0]}|${translation.dashboard.yourGroups}`, 'i');
-        await expect(
-            this.page.getByRole('heading', { name: welcomePattern }).first(),
-        )
-            .toBeVisible({ timeout });
+        // Check for either "Your Groups" heading OR welcome message heading
+        const yourGroupsHeading = this.page.getByRole('heading', { name: translation.dashboard.yourGroups });
+        const welcomeHeading = this.page.getByRole('heading', { name: new RegExp(`^${translation.dashboard.welcomeMessage.split('{{')[0]}`) });
+
+        const yourGroupsVisible = await yourGroupsHeading.isVisible().catch(() => false);
+        if (yourGroupsVisible) {
+            return;
+        }
+
+        const welcomeVisible = await welcomeHeading.isVisible().catch(() => false);
+        if (welcomeVisible) {
+            return;
+        }
+
+        // If neither is visible, wait for one of them
+        await expect(yourGroupsHeading.or(welcomeHeading).first()).toBeVisible({ timeout });
     }
 
     // ============================================================================

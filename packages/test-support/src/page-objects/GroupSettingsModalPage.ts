@@ -720,7 +720,7 @@ export class GroupSettingsModalPage extends BasePage {
      */
     async verifyDisplayNameInputErrorContainsText(expectedText: string): Promise<void> {
         await this.ensureIdentityTab();
-        const validationError = this.getDisplayNameSection().getByTestId('input-error-message');
+        const validationError = this.getDisplayNameSection().getByRole('alert');
         await expect(validationError).toBeVisible();
         await expect(validationError).toContainText(expectedText);
     }
@@ -730,7 +730,7 @@ export class GroupSettingsModalPage extends BasePage {
      */
     async verifyDisplayNameInputErrorNotVisible(): Promise<void> {
         await this.ensureIdentityTab();
-        const validationError = this.getDisplayNameSection().getByTestId('input-error-message');
+        const validationError = this.getDisplayNameSection().getByRole('alert');
         await expect(validationError).not.toBeVisible();
     }
 
@@ -812,36 +812,36 @@ export class GroupSettingsModalPage extends BasePage {
         await expect(this.getModalContainer()).not.toBeVisible();
     }
 
-    // Public locator accessors for tests
-    getDisplayNameInputLocator(): Locator {
+    // Private locator accessors - use verification methods instead
+    private getDisplayNameInputLocator(): Locator {
         return this.getDisplayNameInput();
     }
 
-    getDisplayNameSaveButtonLocator(): Locator {
+    private getDisplayNameSaveButtonLocator(): Locator {
         return this.getDisplayNameSaveButton();
     }
 
-    getDisplayNameSuccessLocator(): Locator {
+    private getDisplayNameSuccessLocator(): Locator {
         return this.getDisplayNameSuccess();
     }
 
-    getDisplayNameSectionLocator(): Locator {
+    private getDisplayNameSectionLocator(): Locator {
         return this.getDisplayNameSection();
     }
 
-    getDisplayNameErrorLocator(): Locator {
+    private getDisplayNameErrorLocator(): Locator {
         return this.getDisplayNameError();
     }
 
-    getPendingApproveButtonLocator(memberId: string): Locator {
+    private getPendingApproveButtonLocator(memberId: string): Locator {
         return this.getPendingApproveButton(memberId);
     }
 
-    getPendingRejectButtonLocator(memberId: string): Locator {
+    private getPendingRejectButtonLocator(memberId: string): Locator {
         return this.getPendingRejectButton(memberId);
     }
 
-    getModalContainerLocator(): Locator {
+    private getModalContainerLocator(): Locator {
         return this.getModalContainer();
     }
 
@@ -1217,11 +1217,24 @@ export class GroupSettingsModalPage extends BasePage {
     // ============================================================================
 
     /**
-     * Get the hidden sr-only input for the group lock toggle.
-     * Used for checking state (isChecked), but NOT for clicking.
+     * Get the lock toggle switch (when group is unlocked)
+     */
+    protected getLockToggleSwitch(): Locator {
+        return this.getGroupLockSection().getByRole('switch', { name: translation.group.locked.toggle });
+    }
+
+    /**
+     * Get the unlock toggle switch (when group is locked)
+     */
+    protected getUnlockToggleSwitch(): Locator {
+        return this.getGroupLockSection().getByRole('switch', { name: translation.group.locked.unlockToggle });
+    }
+
+    /**
+     * Get the group lock toggle switch (either locked or unlocked state)
      */
     protected getGroupLockToggleInput(): Locator {
-        return this.getModalContainer().getByRole('switch', { name: new RegExp(`${translation.group.locked.toggle}|${translation.group.locked.unlockToggle}`, 'i') });
+        return this.getLockToggleSwitch().or(this.getUnlockToggleSwitch());
     }
 
     /**
@@ -1231,8 +1244,8 @@ export class GroupSettingsModalPage extends BasePage {
      * elements are positioned off-screen and fail viewport checks.
      */
     protected getGroupLockToggle(): Locator {
-        // The visible switch track is the first label[for="group-lock-toggle"]
-        return this.getModalContainer().locator('label[for="group-lock-toggle"]').first();
+        // The first label in the lock section is the visual switch track
+        return this.getGroupLockSection().locator('label').first();
     }
 
     protected getGroupLockSectionHeading(): Locator {
@@ -1240,9 +1253,8 @@ export class GroupSettingsModalPage extends BasePage {
     }
 
     protected getGroupLockSection(): Locator {
-        // Find the h3 heading's parent div (the section container)
-        // Use xpath to go up to the parent that contains both the heading and the toggle
-        return this.getGroupLockSectionHeading().locator('xpath=ancestor::div[contains(@class, "border-t")]');
+        // The group locking section has role='group' with aria-labelledby pointing to the heading
+        return this.getModalContainer().getByRole('group', { name: translation.group.locked.sectionTitle });
     }
 
     protected getGroupLockSuccessAlert(): Locator {

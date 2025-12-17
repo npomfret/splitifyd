@@ -45,12 +45,23 @@ export class ExpenseFormPage extends BasePage {
     // HEADING SELECTORS
     // ============================================================================
 
+    protected getAddExpenseHeading(): Locator {
+        return this.page.getByRole('heading', { name: translation.expenseFormHeader.addExpense });
+    }
+
+    protected getEditExpenseHeading(): Locator {
+        return this.page.getByRole('heading', { name: translation.expenseFormHeader.editExpense });
+    }
+
+    protected getCopyExpenseHeading(): Locator {
+        return this.page.getByRole('heading', { name: translation.expenseFormHeader.copyExpense });
+    }
+
     /**
-     * Page heading (Add Expense / Edit Expense / Copy Expense)
+     * Page heading - finds any expense form heading (Add/Edit/Copy)
      */
     protected getPageHeading(): Locator {
-        const { addExpense, editExpense, copyExpense } = translation.expenseFormHeader;
-        return this.page.getByRole('heading', { name: new RegExp(`${addExpense}|${editExpense}|${copyExpense}`, 'i') });
+        return this.getAddExpenseHeading().or(this.getEditExpenseHeading()).or(this.getCopyExpenseHeading());
     }
 
     // ============================================================================
@@ -97,7 +108,7 @@ export class ExpenseFormPage extends BasePage {
      * Description input field (scoped to Expense Details section)
      */
     private getDescriptionInput(): Locator {
-        return this.getExpenseDetailsSection().getByPlaceholder(/what was this expense for/i);
+        return this.getExpenseDetailsSection().getByPlaceholder(translation.expenseBasicFields.descriptionPlaceholder);
     }
 
     /**
@@ -111,7 +122,7 @@ export class ExpenseFormPage extends BasePage {
      * Currency select field (scoped to Expense Details section)
      */
     private getCurrencySelect(): Locator {
-        return this.getExpenseDetailsSection().getByLabel(/currency/i);
+        return this.getExpenseDetailsSection().getByRole('button', { name: translation.uiComponents.currencyAmountInput.selectCurrency });
     }
 
     /**
@@ -1644,7 +1655,7 @@ export class ExpenseFormPage extends BasePage {
      * Loading spinner in receipt section
      */
     protected getReceiptLoadingSpinner(): Locator {
-        return this.getReceiptSection().locator('[aria-label="Loading"]');
+        return this.getReceiptSection().getByRole('status');
     }
 
     /**

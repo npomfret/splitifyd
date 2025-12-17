@@ -39,12 +39,10 @@ export class CreateGroupModalPage extends BasePage {
     // ============================================================================
 
     /**
-     * Modal dialog container - identified by dialog role and title
+     * Modal dialog container - identified by dialog role and accessible name
      */
     protected getModalContainer(): Locator {
-        return this.page.locator('[role="dialog"]').filter({
-            has: this.page.getByRole('heading', { name: translation.createGroupModal.title }),
-        });
+        return this.page.getByRole('dialog', { name: translation.createGroupModal.title });
     }
 
     /**
@@ -72,10 +70,10 @@ export class CreateGroupModalPage extends BasePage {
     // ============================================================================
 
     /**
-     * Group name input field
+     * Group name input field - uses label for semantic selection
      */
     private getGroupNameInputInternal(): Locator {
-        return this.getModalContainer().locator('input[name="name"]');
+        return this.getModalContainer().getByLabel(translation.createGroupModal.groupNameLabel);
     }
 
     private getGroupDisplayNameInputInternal(): Locator {

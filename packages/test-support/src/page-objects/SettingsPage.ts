@@ -75,18 +75,14 @@ export class SettingsPage extends BasePage {
     }
 
     /**
-     * Section locators for scoping - use heading text to scope to the correct Card
+     * Section locators for scoping - use named regions (Card components have aria-label)
      */
     protected getProfileSection(): Locator {
-        return this.page.locator('section, div').filter({
-            has: this.page.getByRole('heading', { name: translation.settingsPage.profileInformationHeader }),
-        });
+        return this.page.getByRole('region', { name: translation.settingsPage.profileInformationHeader });
     }
 
     protected getPasswordSection(): Locator {
-        return this.page.locator('section, div').filter({
-            has: this.page.getByRole('heading', { name: translation.settingsPage.passwordHeader }),
-        });
+        return this.page.getByRole('region', { name: translation.settingsPage.passwordHeader });
     }
 
     /**
@@ -406,10 +402,13 @@ export class SettingsPage extends BasePage {
     }
 
     /**
-     * Avatar or initials element - uses role="img" for semantic selection
+     * Avatar or initials element - scoped to profile summary section
      */
     protected getAvatarOrInitials(): Locator {
-        return this.page.getByRole('img').first();
+        // Profile summary card contains the avatar - scope by visible profile overview text
+        return this.page.locator('section, div').filter({
+            has: this.page.getByText(translation.settingsPage.profileSummaryTitle),
+        }).getByRole('img').first();
     }
 
     /**
@@ -618,6 +617,7 @@ export class SettingsPage extends BasePage {
      * Language Preferences Locators
      */
     protected getLanguageSelect(): Locator {
+        // Use name attribute - stable across language changes (aria-label changes with language)
         return this.page.locator('select[name="language"]');
     }
 

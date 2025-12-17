@@ -260,15 +260,12 @@ export class AdminTenantsPage extends BasePage {
 
     /**
      * Get first tenant card container (for full text extraction)
-     * Uses the first h3 heading (tenant app name) to scope to its parent card
+     * Finds the region (Card with ariaLabel) that contains the first tenant heading
      */
     protected getFirstTenantCardContainer(): Locator {
-        // Get the first tenant card by finding the first h3 and going up to its parent card
-        return this
-            .getTenantCards()
-            .first()
-            .locator('xpath=ancestor::div[contains(@class, "rounded-xl")]')
-            .first();
+        // Card components with ariaLabel render as role="region"
+        // Find the region that contains the first tenant heading (h3)
+        return this.page.getByRole('region').filter({ has: this.getTenantCards().first() }).first();
     }
 
     /**

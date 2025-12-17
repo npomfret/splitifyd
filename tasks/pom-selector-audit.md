@@ -5,8 +5,96 @@
 - [x] **Phase 1**: Fix CSS class/XPath selectors in high-priority files (ExpenseDetailPage, AdminPage, HeaderPage, PolicyAcceptanceModalPage, LeaveGroupDialogPage)
 - [x] **Phase 2**: Replace hardcoded English strings with translation keys
 - [x] **Phase 3**: Webapp semantic markup additions (aria-labelledby, named regions)
-- [ ] **Phase 4**: Remaining POM updates
-- [ ] **Phase 5**: Fix regex OR alternation patterns (see below)
+- [x] **Phase 4**: Remaining POM updates
+- [x] **Phase 5**: Fix regex OR alternation patterns (see below)
+
+## Completed Changes (Phases 4 & 5)
+
+### Phase 4 Changes
+
+**FooterComponent.ts:**
+- Changed `.locator('p').last()` to `.locator('p').filter({ hasText: '©' })` for copyright text
+
+**RegisterPage.ts:**
+- Changed `this.page.locator('button[type="submit"]')` to `this.getSubmitButton()` for spinner scoping
+
+**LoginPage.ts:**
+- Removed DOM traversal `locator('../..')`, now uses direct `page.getByRole('heading', { name: translation... })`
+
+**SettingsPage.ts:**
+- Changed `getProfileSection()` to use `getByRole('region', { name: translation... })`
+- Changed `getPasswordSection()` to use `getByRole('region', { name: translation... })`
+- Changed `getAvatarOrInitials()` to scope by profile summary section
+- Changed `getLanguageSelect()` to use `getByRole('region', ...).getByRole('combobox')`
+
+**DashboardPage.ts:**
+- Made public `getEmptyGroupsState()` method private
+
+**CreateGroupModalPage.ts:**
+- Changed `getModalContainer()` to use `getByRole('dialog', { name: translation... })`
+- Changed `getGroupNameInputInternal()` to use `getByLabel(translation...)`
+
+**ShareGroupModalPage.ts:**
+- Changed `getModalContainer()` to use `getByRole('dialog', { name: translation... })`
+
+**GroupSettingsModalPage.ts:**
+- Changed `getByTestId('input-error-message')` to `getByRole('alert')`
+- Made public locator methods private (getDisplayNameInputLocator, etc.)
+- Changed `getGroupLockSection()` to use `getByRole('group', { name: translation... })`
+- Changed `getGroupLockToggle()` to scope by section instead of ID selector
+
+**SettlementFormPage.ts:**
+- Changed `getAmountInput()` to use `getByRole('spinbutton')`
+- Changed `getCurrencyButton()` to use `getByRole('button', { name: translation... })`
+- Changed `getRecordPaymentButton()` and `getUpdatePaymentButton()` to use translation-based names
+
+**ExpenseFormPage.ts:**
+- Changed `getDescriptionInput()` to use `getByPlaceholder(translation...)`
+- Changed `getCurrencySelect()` to use `getByRole('button', { name: translation... })`
+- Changed `getReceiptLoadingSpinner()` to use `getByRole('status')`
+
+**GroupDetailPage.ts:**
+- Changed `getSettlementButtonForDebt()` to use `getByRole('button', { name: translation... })`
+- Changed `getGroupCommentReactionBar()` to use `getByRole('group', { name: translation... })`
+
+**AdminTenantsPage.ts:**
+- Removed XPath selector from `getFirstTenantCardContainer()`
+
+**TenantBrandingPage.ts:**
+- Changed `waitForPageReady()` to use `getByRole('heading', { name: translation... })`
+- Made deprecated public locator methods private
+
+### Phase 5 Changes
+
+**UserEditorModalPage.ts:**
+- Changed `/cancel|close/i` regex to use `translation.common.cancel`
+
+**JoinGroupPage.ts:**
+- Changed `getLoginButton()` from regex alternation to single translation key
+- Changed `getRegisterButton()` from regex alternation to single translation key
+
+**LeaveGroupDialogPage.ts:**
+- Created separate `getConfirmButton()` and `getUnderstoodButton()` methods
+- Updated `waitForDialogToOpen()`, `confirmLeaveGroup()`, and `verifyOutstandingBalanceWarning()` to use appropriate buttons
+
+**DashboardPage.ts:**
+- Changed `verifyDashboardHeadingVisible()` to use `.or()` composition instead of regex alternation
+
+**ExpenseFormPage.ts:**
+- Created separate heading methods: `getAddExpenseHeading()`, `getEditExpenseHeading()`, `getCopyExpenseHeading()`
+- Changed `getPageHeading()` to use `.or()` composition
+
+**GroupSettingsModalPage.ts:**
+- Created separate `getLockToggleSwitch()` and `getUnlockToggleSwitch()` methods
+- Changed `getGroupLockToggleInput()` to use `.or()` composition
+
+**TenantEditorModalPage.ts:**
+- Created separate `getCreateTenantHeading()` and `getEditTenantHeading()` methods
+- Created separate `getCreateTenantSaveButton()` and `getSaveChangesButton()` methods
+- Changed `getCreateTenantButton()` to use exact string
+
+**GroupDetailPage.ts:**
+- Changed `getSettlementEditButton()` to use `.or()` composition with translation keys
 
 ## Scope
 

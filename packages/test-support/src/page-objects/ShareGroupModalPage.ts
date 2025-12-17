@@ -43,9 +43,7 @@ export class ShareGroupModalPage extends BasePage {
      * Modal container
      */
     protected getModalContainer(): Locator {
-        return this.page.locator('[role="dialog"]').filter({
-            has: this.page.locator('#share-modal-title'),
-        });
+        return this.page.getByRole('dialog', { name: translation.shareGroupModal.title });
     }
 
     /**

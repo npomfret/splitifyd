@@ -31,7 +31,7 @@ export class FooterComponent extends BasePage {
     }
 
     protected getCopyright(): Locator {
-        return this.getFooter().locator('p').last();
+        return this.getFooter().locator('p').filter({ hasText: '©' });
     }
 
     /**

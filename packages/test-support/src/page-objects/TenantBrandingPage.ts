@@ -201,20 +201,20 @@ export class TenantBrandingPage extends BasePage {
      */
     async waitForPageReady(): Promise<void> {
         // Wait for the main heading to be visible
-        await this.page.locator('text=Branding Configuration').waitFor({ state: 'visible' });
+        await this.page.getByRole('heading', { name: translation.tenantBranding.title }).waitFor({ state: 'visible' });
     }
 
     /**
      * @deprecated Use verifyShowMarketingContentCheckboxVisible() instead
      */
-    getShowMarketingContentCheckboxLocator(): Locator {
+    private getShowMarketingContentCheckboxLocator(): Locator {
         return this.getShowMarketingContentCheckbox();
     }
 
     /**
      * @deprecated Use verifyShowPricingPageCheckboxVisible() instead
      */
-    getShowPricingPageCheckboxLocator(): Locator {
+    private getShowPricingPageCheckboxLocator(): Locator {
         return this.getShowPricingPageCheckbox();
     }
 }

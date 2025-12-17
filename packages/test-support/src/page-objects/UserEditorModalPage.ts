@@ -46,7 +46,7 @@ export class UserEditorModalPage extends BasePage {
     }
 
     protected getCancelButton(): Locator {
-        return this.getModal().getByRole('button', { name: /cancel|close/i });
+        return this.getModal().getByRole('button', { name: translation.common.cancel });
     }
 
     protected getSuccessAlert(): Locator {

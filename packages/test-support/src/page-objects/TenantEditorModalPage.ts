@@ -129,7 +129,15 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     protected getModalHeading(): Locator {
-        return this.page.getByRole('heading', { name: /create new tenant|edit tenant/i });
+        return this.getCreateTenantHeading().or(this.getEditTenantHeading());
+    }
+
+    protected getCreateTenantHeading(): Locator {
+        return this.page.getByRole('heading', { name: translation.admin.tenantEditor.titleCreate });
+    }
+
+    protected getEditTenantHeading(): Locator {
+        return this.page.getByRole('heading', { name: translation.admin.tenantEditor.titleEdit });
     }
 
     protected getTenantIdInput(): Locator {
@@ -252,7 +260,16 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     protected getSaveTenantButton(): Locator {
-        return this.getModal().getByRole('button', { name: /(create tenant|update tenant|save changes)/i });
+        // Button text depends on mode: "Create Tenant" for create, "Save Changes" for edit
+        return this.getCreateTenantSaveButton().or(this.getSaveChangesButton());
+    }
+
+    protected getCreateTenantSaveButton(): Locator {
+        return this.getModal().getByRole('button', { name: 'Create Tenant' });
+    }
+
+    protected getSaveChangesButton(): Locator {
+        return this.getModal().getByRole('button', { name: 'Save Changes' });
     }
 
     protected getCancelButton(): Locator {
@@ -276,7 +293,8 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     protected getCreateTenantButton(): Locator {
-        return this.page.getByRole('button', { name: /create tenant|new tenant/i });
+        // This is the "Create New Tenant" button that opens the modal
+        return this.page.getByRole('button', { name: 'Create New Tenant' });
     }
 
     // ✅ Navigation

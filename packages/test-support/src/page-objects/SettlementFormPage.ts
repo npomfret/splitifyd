@@ -36,11 +36,12 @@ export class SettlementFormPage extends BasePage {
     }
 
     protected getAmountInput(): Locator {
-        return this.getModal().locator('input[inputmode="decimal"]').first();
+        // Amount is a number input (spinbutton role)
+        return this.getModal().getByRole('spinbutton');
     }
 
     protected getCurrencyButton(): Locator {
-        return this.getModal().locator('button[aria-label*="currency"], button[aria-label*="Currency"]');
+        return this.getModal().getByRole('button', { name: translation.uiComponents.currencyAmountInput.selectCurrency });
     }
 
     protected getNoteInput(): Locator {
@@ -48,13 +49,11 @@ export class SettlementFormPage extends BasePage {
     }
 
     protected getRecordPaymentButton(): Locator {
-        // Submit button in the settlement form - semantic selector using button type
-        return this.getModal().locator('button[type="submit"]');
+        return this.getModal().getByRole('button', { name: translation.settlementForm.recordSettlement });
     }
 
     protected getUpdatePaymentButton(): Locator {
-        // Same button as record - submit button in the form
-        return this.getModal().locator('button[type="submit"]');
+        return this.getModal().getByRole('button', { name: translation.settlementForm.updateSettlement });
     }
 
     protected getCancelButton(): Locator {
@@ -480,10 +479,16 @@ export class SettlementFormPage extends BasePage {
     }
 
     private async resolvePrimaryActionButton(): Promise<Locator> {
-        // Both getRecordPaymentButton and getUpdatePaymentButton return the same element
-        // (the save-settlement-button), just with different visible text based on mode.
-        // Using the test-id directly is more reliable than checking by accessible name.
-        return this.getRecordPaymentButton();
+        // Return whichever button is visible based on the form mode
+        const recordButton = this.getRecordPaymentButton();
+        const updateButton = this.getUpdatePaymentButton();
+
+        const recordVisible = await recordButton.isVisible().catch(() => false);
+        if (recordVisible) {
+            return recordButton;
+        }
+
+        return updateButton;
     }
 
     private async collectMemberOptions(select: Locator): Promise<string[]> {

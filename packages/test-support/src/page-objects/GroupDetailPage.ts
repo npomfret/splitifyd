@@ -301,9 +301,10 @@ export class GroupDetailPage extends BasePage {
     }
 
     protected getSettlementEditButton(note: string | RegExp): Locator {
-        // Edit button has different aria-label when locked vs unlocked
-        // Use regex to match either "Edit payment" or "Cannot edit..."
-        return this.getSettlementItem(note).getByRole('button', { name: /edit|cannot edit/i });
+        // Edit button has different accessible name when locked vs unlocked
+        const editButton = this.getSettlementItem(note).getByRole('button', { name: translation.settlementHistory.editPaymentTooltip });
+        const cannotEditButton = this.getSettlementItem(note).getByRole('button', { name: translation.settlementHistory.cannotEditTooltip });
+        return editButton.or(cannotEditButton);
     }
 
     protected getSettlementDeleteButton(note: string | RegExp): Locator {
@@ -881,7 +882,7 @@ export class GroupDetailPage extends BasePage {
      * Get the reaction bar for a specific comment
      */
     protected getGroupCommentReactionBar(commentText: string): Locator {
-        return this.getCommentItemByText(commentText).locator('[class*="inline-flex"][class*="gap-1"]').first();
+        return this.getCommentItemByText(commentText).getByRole('group', { name: translation.reactions.reactionBarLabel });
     }
 
     /**
@@ -1017,8 +1018,8 @@ export class GroupDetailPage extends BasePage {
         const debtItem = balancesSection.locator('article').filter({
             hasText: new RegExp(`${debtorName}.*owes.*${creditorName}`),
         });
-        // Find the button with aria-label containing "Record settlement"
-        return debtItem.locator('button[aria-label*="settlement"]');
+        // Find the settlement button using its accessible name from translation
+        return debtItem.getByRole('button', { name: translation.balanceSummary.settleUpButton });
     }
 
     /**

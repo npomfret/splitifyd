@@ -55,11 +55,11 @@ export class JoinGroupPage extends BasePage {
     }
 
     protected getLoginButton(): Locator {
-        return this.page.getByRole('button', { name: new RegExp(`${translation.header.login}|${translation.loginPage.submitButton}`, 'i') });
+        return this.page.getByRole('button', { name: translation.header.login });
     }
 
     protected getRegisterButton(): Locator {
-        return this.page.getByRole('button', { name: new RegExp(`${translation.registerPage.title}|${translation.header.signUp}`, 'i') });
+        return this.page.getByRole('button', { name: translation.header.signUp });
     }
 
     /**
