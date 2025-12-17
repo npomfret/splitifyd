@@ -6,204 +6,368 @@ Add push notifications for the `webapp-v2` browser client so users can be notifi
 
 This should complement (not replace) the existing real-time refresh mechanism (Activity Feed + Firestore subscriptions) which currently only updates the UI when the app is open.
 
-## Research Summary (Do Push Notifications Work for Browser Apps?)
+---
 
-### Yes, but with constraints
+## User Requirements (Confirmed)
 
-Web push notifications are supported via:
+| Requirement | Decision |
+|-------------|----------|
+| **Platforms** | Desktop web (Chrome/Firefox/Edge/Safari), Android web. **iOS PWA NOT supported** (see Platform Limitations). |
+| **Events** | All mutations (expenses, settlements, comments, members) |
+| **Deep linking** | Yes - notification click navigates to specific group/expense |
+| **Granularity** | Global on/off toggle only (no per-group/per-type controls) |
 
-- **Service Worker** (required; receives push events in the background)
-- **Push API** (push subscription / browser token)
-- **Notifications API** (displaying notifications)
+---
 
-Non-negotiables:
+## Research Summary
 
-- **HTTPS** required (localhost allowed)
-- **Explicit user permission** required (`Notification.requestPermission()`)
-- OS/browser may **throttle** delivery; not guaranteed instant
+### Platform Support
 
-### Practical browser support
+**Supported:**
+- Chrome / Edge / Firefox (desktop and Android) - solid support
+- Safari (desktop macOS) - supported via Web Push API
+- Android Chrome PWA - works well
 
-- **Chrome / Edge / Firefox**: solid support for web push on desktop and Android
-- **iOS Safari**: historically limited; modern iOS supports web push but behavior differs and is most reliable for **installed PWAs** (“Add to Home Screen”)
-- Private browsing modes may block or not persist permissions/subscriptions
+**NOT Supported (Critical Limitation):**
+- **iOS Safari / iOS PWA** - iOS does NOT expose the Web Push API to PWAs. This is a hard platform limitation with no Firebase workaround. The only path to iOS push is wrapping in a native app shell (Capacitor/Cordova), which is out of scope.
 
-### UX considerations
+**Constraints:**
+- HTTPS required (localhost allowed for dev)
+- Explicit user permission required (`Notification.requestPermission()`)
+- Private browsing may block or not persist permissions
 
-- Do not prompt on first page load; browsers can downgrade/penalize permission prompts.
-- Permission prompting should be tied to clear user intent (e.g., “Notify me about activity in my groups”).
-- Always provide an in-app fallback (email, in-app badge) if denied/unavailable.
+### Firebase Cloud Messaging (FCM) Requirements
 
-## Options Considered
+From official Firebase docs:
+- Service worker file must be at domain root: `firebase-messaging-sw.js`
+- VAPID key required - generate via Firebase Console → Cloud Messaging → Web Push certificates
+- FCM SDK supported only on pages served over HTTPS
+- For SDK 6.7.0+, enable FCM Registration API in Google Cloud Console
 
-### Option A: Firebase Cloud Messaging (FCM) for Web (Recommended)
+### Token Lifecycle (from Firebase docs)
 
-Use Firebase Messaging on the client to acquire an FCM token (requires service worker), store tokens in Firestore, and send messages from Firebase Functions using Admin SDK.
+| Scenario | Action Required |
+|----------|-----------------|
+| Android tokens expire after **270 days** of inactivity | FCM rejects sends; delete from DB |
+| `UNREGISTERED` (HTTP 404) response | Token invalid; delete immediately |
+| `INVALID_ARGUMENT` (HTTP 400) response | Token invalid; delete immediately |
+| User clears browser data / reinstalls | Token changes; client must re-register |
+| No activity for **1 month** | Consider token stale; candidate for cleanup |
 
-**Pros**
-- Fits existing Firebase stack (Functions + Auth + Firestore)
-- Server-side sending is straightforward
-- Uses established Google infrastructure for delivery
+**Best practices:**
+- Store tokens with timestamps
+- Client should retrieve token on app startup and send to server
+- Refresh tokens monthly (balances battery vs staleness)
+- Run daily cleanup jobs for stale tokens
 
-**Cons**
-- Token lifecycle management required (refresh, invalidation, duplicates)
-- Web-specific requirements still apply (SW, permission UX, iOS constraints)
-- Requires a **Web Push certificate / VAPID key** configured for token acquisition
+---
 
-### Option B: Standard Web Push (VAPID) without FCM
+## The Expert's Recommendations
 
-Store `PushSubscription` objects and send using `web-push` with VAPID keys.
+Consulted The Expert on architecture. Key findings:
 
-**Pros**
-- Vendor-neutral; no FCM coupling
+### 1. Event Hook Location: Firestore Trigger vs ActivityFeedService
 
-**Cons**
-- More plumbing and less aligned with current Firebase tooling
-- Still needs SW + subscription management
+**Original idea:** Hook into `ActivityFeedService.recordActivityForUsers()` directly.
+
+**The Expert's recommendation:** Use a **Firestore trigger** instead.
+
+> "Directly sending FCM messages within this synchronous path can introduce latency and coupling. If FCM sending fails or takes too long, it could delay the core activity recording."
+
+**Recommended pattern:**
+1. `ActivityFeedService.recordActivityForUsers()` writes activity documents (as it does now)
+2. A Firestore `onCreate` trigger on the activity feed collection fires
+3. The trigger function calls `NotificationSender` to send push notifications
+
+**Pros:** Decoupled, asynchronous, built-in retry mechanisms, doesn't block primary request flow.
+
+### 2. Multi-Tenant: Single FCM Project with Data Messages
+
+**The Expert confirms:** One FCM project with data messages is the right approach. Per-tenant FCM projects would be massive complexity for no real benefit.
+
+- Pass `tenantId` with each token and in notification payload
+- Service worker uses data message fields to customize notification display (appName, icon from tenant branding)
+
+### 3. Service Worker Configuration
+
+**Recommended:** Service worker can fetch config from `/api/config` directly, or receive via `postMessage` from main thread. The fetch approach is cleaner since `/api/config` already serves tenant-aware configuration.
+
+### 4. Topic Messaging for Groups (Hybrid Approach)
+
+**The Expert recommends a hybrid approach:**
+
+| Use Case | Method |
+|----------|--------|
+| Group broadcasts ("New expense in Group X") | **Topic messaging** - subscribe users to `/topics/group_{groupId}` |
+| Personalized notifications ("@User mentioned you") | **Device tokens** - direct to specific user |
+
+**Benefits:** Topic messaging handles fan-out efficiently for groups; device tokens for personalized messages.
+
+**Implementation:** Subscribe users to group topic on join, unsubscribe on leave.
+
+---
 
 ## Proposed Solution (FCM for Web)
 
-### High-level design
+### Architecture
 
-1. `webapp-v2` initializes Firebase Messaging and registers a **service worker**.
-2. On explicit user action, request notification permission and acquire an **FCM token**.
-3. The client calls a new authenticated API endpoint to register/update that token.
-4. Backend persists tokens per user in Firestore.
-5. When a relevant domain event occurs, backend sends pushes to the intended recipients via an abstraction (testable, mockable).
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  Mutation Services (Expense, Settlement, Comment, Member)       │
+└─────────────────────────┬───────────────────────────────────────┘
+                          │
+                          ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  ActivityFeedService.recordActivityForUsers()                   │
+│  → Writes to: activity-feed/{userId}/items/{itemId}             │
+└─────────────────────────┬───────────────────────────────────────┘
+                          │ Firestore write
+                          ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  Firestore onCreate Trigger (Cloud Function)                    │
+│  → Calls NotificationSender.sendForActivityEvent()              │
+└─────────────────────────┬───────────────────────────────────────┘
+                          │
+                          ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  INotificationSender (abstraction)                              │
+│  └── FcmNotificationSender (prod) / MockNotificationSender (test)│
+│  → Sends via FCM Admin SDK                                       │
+└─────────────────────────┬───────────────────────────────────────┘
+                          │
+                          ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  FCM → Service Worker → System Notification                     │
+│  Click → Deep link to /groups/{groupId}/expenses/{expenseId}    │
+└─────────────────────────────────────────────────────────────────┘
+```
 
-### Key principle: keep external APIs behind an abstraction
+### Data Model (Firestore)
 
-Following `docs/guides/code.md`, all external delivery should be hidden behind a service interface so unit tests never require real FCM.
+**Path:** `users/{userId}/pushTokens/{tokenId}`
 
-- Introduce something like `PushSender` / `NotificationSender` interface
-- Provide `FcmPushSender` implementation (production)
-- Provide `FakePushSender` / mock for unit tests
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | string | Auto-generated doc ID |
+| `token` | string | FCM registration token |
+| `tenantId` | TenantId | For multi-tenant branding |
+| `platform` | `'web'` | Platform identifier |
+| `userAgent` | string? | Browser identification |
+| `createdAt` | Timestamp | When registered |
+| `updatedAt` | Timestamp | Last update |
+| `lastSeenAt` | Timestamp | Last activity (for staleness detection) |
 
-### Event sources (where to hook in)
+**Firestore Security Rules:** Only authenticated user can read/write their own `pushTokens` subcollection.
 
-The most natural place to trigger notifications is where we already model “something happened”:
+### Topic Subscriptions (for group broadcasts)
 
-- `services/ActivityFeedService.ts` (or where events are created) as a single consolidation point
-- Alternatively: directly in mutation services (ExpenseService, SettlementService, GroupMemberService) but that risks drift
+When user joins group → subscribe to `/topics/group_{groupId}`
+When user leaves group → unsubscribe from `/topics/group_{groupId}`
 
-Recommendation: **centralize** notification emission adjacent to Activity Feed event creation so “real-time UI refresh” and “push notification” share the same event semantics.
+### API Endpoints
 
-### Delivery rules (initial)
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/me/push-tokens` | POST | Register/update FCM token |
+| `/me/push-tokens/:tokenId` | DELETE | Unregister token |
 
-Start conservative:
+### Notification Payload Structure
 
-- Only notify when the recipient is not the actor (no “you did X”)
-- Only notify for high-value events:
-  - `member-invited` / `member-approved` / `member-joined`
-  - `expense-created` (maybe only for large amounts or non-trivial groups later)
-  - `comment-created` (optional)
-- Avoid including sensitive content in the push payload; include only:
-  - `groupId` (and maybe `activityId`)
-  - a short title/body that does not leak private data on lock screens
+```typescript
+interface NotificationPayload {
+    title: string;           // Tenant appName or group name
+    body: string;            // "Alice added an expense: Lunch"
+    icon?: string;           // Tenant logoUrl
+    data: {
+        type: 'activity';
+        groupId: GroupId;
+        expenseId?: ExpenseId;
+        settlementId?: SettlementId;
+        commentId?: CommentId;
+        deepLink: string;    // "/groups/abc/expenses/xyz"
+        tenantId: TenantId;  // For branding in SW
+    };
+}
+```
 
-### Data model (Firestore)
+### Deep Link Construction
 
-Store tokens per user (subcollection to avoid hot-spotting and to support multiple devices/browsers):
+| Event Type | Deep Link |
+|------------|-----------|
+| expense-created/updated/deleted | `/groups/{groupId}/expenses/{expenseId}` |
+| settlement-created/updated/deleted | `/groups/{groupId}?tab=settlements` |
+| comment-added | `/groups/{groupId}?tab=activity` |
+| member-joined/left | `/groups/{groupId}?tab=members` |
+| group-updated | `/groups/{groupId}` |
 
-- Path: `users/{userId}/pushTokens/{tokenId}`
-- Fields:
-  - `token` (string)
-  - `platform` (`'web'` initially)
-  - `userAgent` (string, optional)
-  - `createdAt` / `updatedAt` (ISO string DTO; Timestamp stored in Firestore via Writer boundary)
-  - `lastSeenAt` (ISO string)
-  - `permission` (`'granted' | 'denied' | 'default'`), optional
+---
 
-We should also support deletion:
+## Implementation Plan
 
-- On logout, token refresh failure, or explicit “Disable notifications”, client calls delete endpoint.
+### Phase 1: Backend Token Storage + API
 
-### API contract (shared types)
+**Files to create:**
+- `firebase/functions/src/schemas/push-token.ts` - Zod schema
+- `firebase/functions/src/services/PushTokenService.ts` - Token CRUD
+- `firebase/functions/src/push-notifications/PushTokenHandlers.ts` - API handlers
+- `firebase/functions/src/push-notifications/validation.ts` - Request validation
 
-Add request/response DTOs to `packages/shared/src/shared-types.ts` and schemas to `packages/shared/src/schemas/apiSchemas.ts` as needed.
+**Files to modify:**
+- `packages/shared/src/shared-types.ts` - Add DTOs
+- `packages/shared/src/api.ts` - Add API methods
+- `packages/shared/src/schemas/apiSchemas.ts` - Add response schema
+- `firebase/functions/src/routes/route-config.ts` - Add routes
+- `firebase/functions/src/services/ComponentBuilder.ts` - Wire up service
+- `firebase/functions/src/ApplicationFactory.ts` - Register handlers
+- `firebase/firestore.rules` - Add rules for pushTokens subcollection
 
-Potential endpoints (names TBD; must follow existing route conventions):
+### Phase 2: Notification Sending Infrastructure
 
-- `POST /me/push-tokens` (register/update)
-- `DELETE /me/push-tokens/:tokenId` (unregister)
-- (Optional) `POST /me/push-test` for development-only testing (admin or self-only)
+**Files to create:**
+- `firebase/functions/src/services/notifications/INotificationSender.ts` - Interface
+- `firebase/functions/src/services/notifications/FcmNotificationSender.ts` - FCM implementation
+- `firebase/functions/src/services/notifications/MockNotificationSender.ts` - Test mock
+- `firebase/functions/src/services/notifications/notification-payload-builder.ts` - Payload construction
 
-### Client implementation notes
+### Phase 3: Firestore Trigger for Notifications
 
-- Vite + Firebase Messaging typically requires a service worker file at a stable path (commonly `/firebase-messaging-sw.js`).
-- We should place the service worker in `webapp-v2/public/` so it’s served at the hosting root.
-- The client needs a **VAPID key** to call `getToken(messaging, { vapidKey })`.
-  - This key must be provided via the existing configuration mechanism (likely via `ClientAppConfiguration` served from the backend), not ad-hoc env usage.
+**Files to create:**
+- `firebase/functions/src/triggers/activity-feed-notification-trigger.ts` - onCreate trigger
 
-### Security notes
+**Pattern:**
+```typescript
+export const onActivityFeedItemCreated = onDocumentCreated(
+    'activity-feed/{userId}/items/{itemId}',
+    async (event) => {
+        const item = event.data?.data();
+        if (!item || item.actorId === event.params.userId) return; // Don't notify actor
 
-- Client is zero-trust; token registration must require `authenticate`.
-- Token registration must only mutate tokens for `req.user.uid`.
-- When sending notifications, ensure recipients are derived from server-side group membership checks.
-- Avoid including PII or sensitive content in notification payloads.
+        await notificationSender.sendForActivityEvent(
+            event.params.userId,
+            item,
+        );
+    }
+);
+```
 
-## Proposed Implementation Plan
+### Phase 4: Topic Subscription Management
 
-### Phase 0: Clarify requirements (must answer before coding)
+**Files to modify:**
+- `firebase/functions/src/services/GroupMemberService.ts` - Subscribe on join, unsubscribe on leave
 
-- Which platforms matter: desktop web only, Android web, iOS Safari, installed PWA?
-- Which events are “must notify” vs “nice to have”?
-- Should users be able to opt out per group / per event type?
-- Do we need deep-linking into a group/expense from notification click?
+### Phase 5: Configuration (VAPID Key)
 
-### Phase 1: Plumbing (client token + server storage)
+**Generate VAPID key:**
+```bash
+# In Firebase Console: Project Settings → Cloud Messaging → Web Push certificates
+# Or generate locally: npx web-push generate-vapid-keys
+```
 
-- Add shared DTOs + Zod schemas for token registration
-- Add backend endpoints + Firestore storage for tokens
-- Add webapp UI flow to request permission and register token
-- Add ability to unregister token
+**Files to modify:**
+- `firebase/functions/.env.instance*` - Add `__CLIENT_VAPID_KEY`
+- `firebase/functions/src/app-config.ts` - Read VAPID key
+- `packages/shared/src/shared-types.ts` - Add `vapidKey` to `FirebaseConfig`
 
-### Phase 2: Sending (backend abstraction + event hooks)
+### Phase 6: Frontend Service Worker + Client
 
-- Create `NotificationSender` abstraction and FCM implementation
-- Wire notification sending into Activity Feed event creation (or a single central place)
-- Add minimal rate limiting / dedupe to avoid spam (e.g., don’t notify if multiple events in a few seconds)
+**Files to create:**
+- `webapp-v2/public/firebase-messaging-sw.js` - Service worker
+- `webapp-v2/public/manifest.json` - PWA manifest (for Android PWA)
+- `webapp-v2/src/app/services/push-notification-service.ts` - Client-side FCM wrapper
 
-### Phase 3: Preferences + UX polish
+**Files to modify:**
+- `webapp-v2/index.html` - Link manifest
+- `webapp-v2/src/pages/SettingsPage.tsx` - Add notifications toggle
+- `webapp-v2/src/app/apiClient.ts` - Add token registration methods
+- `webapp-v2/locales/en/translation.json` - Add i18n strings
 
-- Add “Notifications” settings screen:
-  - enable/disable
-  - per-event toggles (if required)
-- Add “permission denied” guidance and fallback messaging
+### Phase 7: Testing
 
-### Phase 4: iOS/PWA hardening (if required)
+**Unit tests to create:**
+- `firebase/functions/src/__tests__/unit/api/push-token.test.ts`
+- `firebase/functions/src/__tests__/unit/services/notification-sender.test.ts`
+- `firebase/functions/src/__tests__/unit/triggers/activity-feed-notification.test.ts`
 
-- Ensure PWA manifest + install flow if iOS web push is a requirement
-- Validate behavior under iOS constraints (installed vs not installed)
+**Playwright tests:**
+- `webapp-v2/src/__tests__/integration/playwright/notification-settings.test.ts`
 
-## Testing Strategy (No Full Suites)
+---
 
-Server:
+## Testing Strategy
 
-- Add unit tests in `firebase/functions/src/__tests__/unit/api`:
-  - register token stores document for authenticated user
-  - unregister token removes document
-  - event hook calls `NotificationSender` with correct recipients/payload
-- Mock `NotificationSender` (no real network calls)
+### Server-Side (Unit Tests)
 
-Client:
+| Test | Description |
+|------|-------------|
+| Token registration | Stores document for authenticated user |
+| Token upsert | Existing token updates instead of duplicates |
+| Token deletion | Removes document |
+| Unauthorized access | Returns 401 |
+| Notification trigger | Fires on activity feed write, excludes actor |
+| Stale token cleanup | Removes tokens on FCM error response |
+| Topic subscription | Subscribe/unsubscribe on join/leave |
 
-- Add a Playwright integration test (if feasible) verifying:
-  - settings UI triggers the registration call
-  - app handles “denied” permission by showing guidance
-- Do not attempt to test real push delivery in CI (flaky and environment-dependent)
+**Mock `NotificationSender`** - no real FCM calls in tests.
 
-## Open Questions / Risks
+### Client-Side (Playwright)
 
-- iOS behavior may require “installed PWA” to be acceptable; clarify expectation early.
-- Token lifecycle: FCM tokens can rotate; we need periodic refresh / update.
-- Multi-tenant branding: notification icon/title should respect tenant; may require per-tenant icon asset strategy.
+| Test | Description |
+|------|-------------|
+| Toggle visible | Shows when browser supports push |
+| Toggle hidden | Hidden when not supported |
+| Permission denied | Shows warning with guidance |
+| Registration | Calls API on enable |
 
-## Next Step
+**Do NOT test real push delivery** - environment-dependent and flaky.
 
-Before implementation, run the “Ask The Expert” script with the above plan, focusing on:
+---
 
-- where to hook into Activity Feed without double-sending
-- best place to store token docs and how to model preferences
-- how to thread VAPID key/config through existing `ClientAppConfiguration`
+## Edge Cases to Handle
 
+| Case | Solution |
+|------|----------|
+| Stale FCM tokens | Delete on `UNREGISTERED` / `INVALID_ARGUMENT` from FCM |
+| Multiple devices | Store all tokens per user, send to all |
+| Token refresh | Client checks token on startup, re-registers if changed |
+| User logout | Delete all tokens for user |
+| Notification fails | Fire-and-forget, log warning, don't throw |
+| Actor notification | Skip - never notify the person who did the action |
+| Tab already open | Real-time sync handles it; push is redundant but harmless |
+| iOS users | Show "not supported" message in settings UI |
+
+---
+
+## Open Questions (Resolved)
+
+| Question | Resolution |
+|----------|------------|
+| iOS PWA support | **Not supported** - hard platform limitation |
+| Hook location | **Firestore trigger** - decoupled from ActivityFeedService |
+| Multi-tenant FCM | **Single project** with data messages |
+| Service worker config | **Fetch from `/api/config`** or postMessage |
+| Topic vs tokens | **Hybrid** - topics for groups, tokens for personalized |
+
+---
+
+## References
+
+- [Firebase Cloud Messaging Web Client Setup](https://firebase.google.com/docs/cloud-messaging/js/client)
+- [FCM Token Management Best Practices](https://firebase.google.com/docs/cloud-messaging/manage-tokens)
+- [Firestore Triggers for Cloud Functions](https://firebase.google.com/docs/functions/firestore-events)
+- [FCM Topic Messaging](https://firebase.google.com/docs/cloud-messaging/manage-topics)
+
+---
+
+## Status
+
+- [x] Initial research
+- [x] User requirements clarified
+- [x] The Expert consulted
+- [x] Firebase docs reviewed
+- [ ] Implementation Phase 1: Token Storage + API
+- [ ] Implementation Phase 2: Notification Sender
+- [ ] Implementation Phase 3: Firestore Trigger
+- [ ] Implementation Phase 4: Topic Subscriptions
+- [ ] Implementation Phase 5: VAPID Configuration
+- [ ] Implementation Phase 6: Frontend Service Worker
+- [ ] Implementation Phase 7: Testing
