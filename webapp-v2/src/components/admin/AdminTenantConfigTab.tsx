@@ -104,7 +104,9 @@ export function AdminTenantConfigTab() {
                         </div>
                         <div className='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
                             <p className='text-indigo-600 text-xs mb-1'>{t('admin.tenantConfig.overview.appName')}</p>
-                            <p className='text-gray-800 font-medium' aria-label={t('admin.tenantConfig.overview.appNameValue')}>{config?.tenant?.brandingTokens?.tokens?.legal?.appName ?? t('common.notConfigured')}</p>
+                            <p className='text-gray-800 font-medium' aria-label={t('admin.tenantConfig.overview.appNameValue')}>
+                                {config?.tenant?.brandingTokens?.tokens?.legal?.appName ?? t('common.notConfigured')}
+                            </p>
                         </div>
                         <div className='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
                             <p className='text-indigo-600 text-xs mb-1'>{t('admin.tenantConfig.overview.lastUpdated')}</p>
@@ -140,7 +142,9 @@ export function AdminTenantConfigTab() {
                     <div className='grid gap-4 text-sm md:grid-cols-3'>
                         <div className='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
                             <p className='text-indigo-600 text-xs mb-1'>{t('admin.tenantConfig.theme.activeHash')}</p>
-                            <p className='font-mono text-amber-700 font-medium' aria-label={t('admin.tenantConfig.theme.activeHashValue')}>{config?.theme?.hash ?? t('admin.tenantConfig.theme.notPublished')}</p>
+                            <p className='font-mono text-amber-700 font-medium' aria-label={t('admin.tenantConfig.theme.activeHashValue')}>
+                                {config?.theme?.hash ?? t('admin.tenantConfig.theme.notPublished')}
+                            </p>
                         </div>
                         <div className='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
                             <p className='text-indigo-600 text-xs mb-1'>{t('admin.tenantConfig.theme.generatedAt')}</p>

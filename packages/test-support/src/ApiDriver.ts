@@ -546,7 +546,7 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
      * Fetch a shareable page (returns HTML with OG tags for social media previews).
      * Used for testing the /join endpoint that serves SSR HTML for crawlers.
      */
-    async getShareablePage(path: string): Promise<{ html: string; headers: Headers }> {
+    async getShareablePage(path: string): Promise<{ html: string; headers: Headers; }> {
         const url = `${this.config.baseUrl}${path}`;
         const hostname = new URL(this.config.baseUrl).hostname;
         const response = await fetch(url, {

@@ -1,11 +1,11 @@
-import type { AttachmentId, GroupId, UploadAttachmentResponse } from '@billsplit-wl/shared';
-import { PaperClipIcon, PhotoIcon, DocumentTextIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import type { Dispatch, StateUpdater } from 'preact/hooks';
-import { useMemo, useRef, useState } from 'preact/hooks';
-import { useTranslation } from 'react-i18next';
 import { apiClient } from '@/app/apiClient';
 import { formatFileSize, isImage } from '@/utils/attachment-utils';
 import { logError } from '@/utils/browser-logger';
+import type { AttachmentId, GroupId, UploadAttachmentResponse } from '@billsplit-wl/shared';
+import { DocumentTextIcon, PaperClipIcon, PhotoIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import type { Dispatch, StateUpdater } from 'preact/hooks';
+import { useMemo, useRef, useState } from 'preact/hooks';
+import { useTranslation } from 'react-i18next';
 import { Button, LoadingSpinner } from '../ui';
 
 export interface UploadedAttachment {

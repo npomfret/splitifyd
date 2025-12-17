@@ -175,9 +175,7 @@ export function GroupGeneralTabContent({
                         </div>
                     )}
 
-                    {lockSettings.error && (
-                        <Alert type='error' message={lockSettings.error} />
-                    )}
+                    {lockSettings.error && <Alert type='error' message={lockSettings.error} />}
 
                     <div className='bg-surface-muted rounded-lg p-4'>
                         <Switch

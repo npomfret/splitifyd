@@ -683,11 +683,10 @@ export const UpdateGroupRequestSchema = z
         locked: z.boolean().optional(), // Only admins can set this
     })
     .refine(
-        (data) =>
-            data.name !== undefined || data.description !== undefined || data.currencySettings !== undefined || data.locked !== undefined,
+        (data) => data.name !== undefined || data.description !== undefined || data.currencySettings !== undefined || data.locked !== undefined,
         {
             message: 'At least one field (name, description, currencySettings, or locked) must be provided',
-        }
+        },
     );
 
 export const UpdateDisplayNameRequestSchema = z.object({

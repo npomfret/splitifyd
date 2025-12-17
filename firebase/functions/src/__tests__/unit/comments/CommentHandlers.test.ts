@@ -1032,12 +1032,14 @@ describe('CommentHandlers - Integration Tests', () => {
                 'Too many attachments',
                 attachments.map((a) => a.attachment.id),
                 userId,
-            )).rejects.toThrow(
-                expect.objectContaining({
-                    statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'VALIDATION_ERROR',
-                }),
-            );
+            ))
+                .rejects
+                .toThrow(
+                    expect.objectContaining({
+                        statusCode: HTTP_STATUS.BAD_REQUEST,
+                        code: 'VALIDATION_ERROR',
+                    }),
+                );
         });
 
         it('should reject comment with invalid attachment ID', async () => {
@@ -1053,12 +1055,14 @@ describe('CommentHandlers - Integration Tests', () => {
                 'Comment with invalid attachment',
                 ['invalid-attachment-id' as any],
                 userId,
-            )).rejects.toThrow(
-                expect.objectContaining({
-                    statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'VALIDATION_ERROR',
-                }),
-            );
+            ))
+                .rejects
+                .toThrow(
+                    expect.objectContaining({
+                        statusCode: HTTP_STATUS.BAD_REQUEST,
+                        code: 'VALIDATION_ERROR',
+                    }),
+                );
         });
 
         it('should cascade delete attachments when group comment is deleted', async () => {

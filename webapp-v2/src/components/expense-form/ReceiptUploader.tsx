@@ -1,5 +1,5 @@
-import { signal } from '@preact/signals';
 import { PhotoIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { signal } from '@preact/signals';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Button, Card, LoadingSpinner } from '../ui';

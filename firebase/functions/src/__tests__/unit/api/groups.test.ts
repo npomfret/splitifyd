@@ -899,7 +899,9 @@ describe('groups', () => {
             // Non-admin tries to lock the group
             await expect(
                 appDriver.updateGroup(groupId, { locked: true }, user2),
-            ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+            )
+                .rejects
+                .toMatchObject({ code: 'FORBIDDEN' });
         });
 
         it('should reject name updates on locked group', async () => {
@@ -915,10 +917,12 @@ describe('groups', () => {
             // Try to update name - should be rejected
             await expect(
                 appDriver.updateGroup(groupId, new GroupUpdateBuilder().withName(toGroupName('New Name')).build(), user1),
-            ).rejects.toMatchObject({
-                code: 'FORBIDDEN',
-                data: { detail: 'GROUP_LOCKED' },
-            });
+            )
+                .rejects
+                .toMatchObject({
+                    code: 'FORBIDDEN',
+                    data: { detail: 'GROUP_LOCKED' },
+                });
         });
 
         it('should reject expense creation on locked group', async () => {
@@ -941,7 +945,9 @@ describe('groups', () => {
                         .build(),
                     user1,
                 ),
-            ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+            )
+                .rejects
+                .toMatchObject({ code: 'FORBIDDEN' });
         });
 
         it('should generate group-locked activity event when group is locked', async () => {

@@ -1,4 +1,13 @@
-import { type AttachmentId, CommentBodySchema, type CommentText, CreateExpenseCommentRequest, CreateGroupCommentRequest, ListCommentsQuerySchema, toAttachmentId, toCommentText } from '@billsplit-wl/shared';
+import {
+    type AttachmentId,
+    CommentBodySchema,
+    type CommentText,
+    CreateExpenseCommentRequest,
+    CreateGroupCommentRequest,
+    ListCommentsQuerySchema,
+    toAttachmentId,
+    toCommentText,
+} from '@billsplit-wl/shared';
 import { createRequestValidator, createZodErrorMapper, sanitizeInputString, validateCommentId, validateExpenseId, validateGroupId } from '../validation/common';
 
 // Re-export centralized ID validators for backward compatibility

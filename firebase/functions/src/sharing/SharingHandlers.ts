@@ -38,7 +38,19 @@ function escapeHtmlAttribute(str: string): string {
 
 // Supported languages for OG tags (must have translation files)
 const SUPPORTED_LANGUAGES = [
-    'en', 'ar', 'de', 'es', 'it', 'ja', 'ko', 'lv', 'nl-BE', 'no', 'ph', 'sv', 'uk',
+    'en',
+    'ar',
+    'de',
+    'es',
+    'it',
+    'ja',
+    'ko',
+    'lv',
+    'nl-BE',
+    'no',
+    'ph',
+    'sv',
+    'uk',
 ] as const;
 
 type SupportedLanguage = typeof SUPPORTED_LANGUAGES[number];
@@ -86,7 +98,7 @@ export class SharingHandlers {
             if (fs.existsSync(translationPath)) {
                 try {
                     const content = fs.readFileSync(translationPath, 'utf-8');
-                    const parsed = JSON.parse(content) as { sharing?: SharingTranslations };
+                    const parsed = JSON.parse(content) as { sharing?: SharingTranslations; };
                     if (parsed.sharing) {
                         logger.info('sharing-translations-loaded', { path: translationPath, lang });
                         return parsed.sharing;
@@ -156,11 +168,10 @@ export class SharingHandlers {
 
     serveShareablePage: RequestHandler = async (req, res) => {
         try {
-            const host =
-                (req.headers['x-forwarded-host'] as string | undefined) ??
-                req.headers.host ??
-                req.hostname ??
-                null;
+            const host = (req.headers['x-forwarded-host'] as string | undefined)
+                ?? req.headers.host
+                ?? req.hostname
+                ?? null;
 
             // Extract language from query param (e.g., /join?shareToken=...&lang=de)
             const lang = typeof req.query.lang === 'string' ? req.query.lang : 'en';
@@ -197,7 +208,7 @@ export class SharingHandlers {
         url,
         lang,
     }: {
-        tenantContext: { config: { brandingTokens?: { tokens?: { legal?: { appName?: string }; sharing?: BrandingSharing; assets?: { logoUrl?: string } } } } };
+        tenantContext: { config: { brandingTokens?: { tokens?: { legal?: { appName?: string; }; sharing?: BrandingSharing; assets?: { logoUrl?: string; }; }; }; }; };
         route: ShareableRoute;
         url: string;
         lang: string;
@@ -254,7 +265,7 @@ export class SharingHandlers {
         return template.replace('<head>', `<head>${metaTags}`);
     }
 
-    private buildCanonicalUrl(req: { originalUrl: string; protocol: string }, host: string | null): string {
+    private buildCanonicalUrl(req: { originalUrl: string; protocol: string; }, host: string | null): string {
         const protocol = 'https';
         const effectiveHost = host ?? 'localhost';
         const path = req.originalUrl;

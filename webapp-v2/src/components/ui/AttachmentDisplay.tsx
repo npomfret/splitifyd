@@ -1,8 +1,8 @@
+import { apiClient } from '@/app/apiClient';
+import { formatFileSize, isImage } from '@/utils/attachment-utils';
 import type { CommentAttachmentRef, GroupId } from '@billsplit-wl/shared';
 import { DocumentTextIcon } from '@heroicons/react/24/outline';
 import { useTranslation } from 'react-i18next';
-import { apiClient } from '@/app/apiClient';
-import { formatFileSize, isImage } from '@/utils/attachment-utils';
 
 interface AttachmentDisplayProps {
     attachments: CommentAttachmentRef[];
@@ -42,9 +42,7 @@ export function AttachmentDisplay({ attachments, groupId, className = '' }: Atta
                                         loading='lazy'
                                     />
                                 )
-                                : (
-                                    <DocumentTextIcon className='h-8 w-8 text-text-muted' aria-hidden='true' />
-                                )}
+                                : <DocumentTextIcon className='h-8 w-8 text-text-muted' aria-hidden='true' />}
                         </div>
                         <div className='p-3 flex flex-col gap-1 min-w-0'>
                             <span className='text-sm font-medium text-text-primary truncate'>{attachment.fileName}</span>

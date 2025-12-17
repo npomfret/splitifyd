@@ -1,13 +1,13 @@
-import { commentsStore } from '@/stores/comments-store.ts';
+import { apiClient } from '@/app/apiClient';
 import { AttachmentUploader, type UploadedAttachment } from '@/components/comments/AttachmentUploader';
+import { commentsStore } from '@/stores/comments-store.ts';
 import type { CommentsStoreTarget } from '@/stores/comments-store.ts';
+import { logError } from '@/utils/browser-logger';
 import type { CommentId, GroupId, ListCommentsResponse, ReactionEmoji } from '@billsplit-wl/shared';
 import { toCommentText } from '@billsplit-wl/shared';
 import { useComputed } from '@preact/signals';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
-import { apiClient } from '@/app/apiClient';
-import { logError } from '@/utils/browser-logger';
 import { CommentInput } from './CommentInput';
 import { CommentsList } from './CommentsList';
 

@@ -27,25 +27,33 @@ describe('URL Redirect Resolution API', () => {
         it('should require authentication', async () => {
             await expect(
                 appDriver.resolveRedirect({ url: 'https://maps.app.goo.gl/abc123' }, '' as any),
-            ).rejects.toMatchObject({ code: 'AUTH_REQUIRED' });
+            )
+                .rejects
+                .toMatchObject({ code: 'AUTH_REQUIRED' });
         });
 
         it('should reject invalid URL format', async () => {
             await expect(
                 appDriver.resolveRedirect({ url: 'not-a-valid-url' }, user),
-            ).rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
+            )
+                .rejects
+                .toMatchObject({ code: 'VALIDATION_ERROR' });
         });
 
         it('should reject empty URL', async () => {
             await expect(
                 appDriver.resolveRedirect({ url: '' }, user),
-            ).rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
+            )
+                .rejects
+                .toMatchObject({ code: 'VALIDATION_ERROR' });
         });
 
         it('should reject non-allowed domains', async () => {
             await expect(
                 appDriver.resolveRedirect({ url: 'https://evil-site.com/redirect' }, user),
-            ).rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
+            )
+                .rejects
+                .toMatchObject({ code: 'VALIDATION_ERROR' });
         });
 
         it('should accept Google Maps short URLs and follow redirects', async () => {
@@ -107,7 +115,8 @@ describe('URL Redirect Resolution API', () => {
         it('should follow a single redirect and return final URL', async () => {
             const finalUrl = 'https://www.google.com/maps/place/Eiffel+Tower/@48.8583701,2.2944813';
 
-            vi.spyOn(global, 'fetch')
+            vi
+                .spyOn(global, 'fetch')
                 .mockResolvedValueOnce({
                     status: 302,
                     headers: new Headers({ location: finalUrl }),
@@ -129,7 +138,8 @@ describe('URL Redirect Resolution API', () => {
             const intermediateUrl = 'https://goo.gl/maps/abc123';
             const finalUrl = 'https://www.google.com/maps/place/Eiffel+Tower';
 
-            vi.spyOn(global, 'fetch')
+            vi
+                .spyOn(global, 'fetch')
                 .mockResolvedValueOnce({
                     status: 301,
                     headers: new Headers({ location: intermediateUrl }),
@@ -185,7 +195,8 @@ describe('URL Redirect Resolution API', () => {
             const baseUrl = 'https://maps.app.goo.gl/eLBgYkQZPoEweLnZ6';
             const relativePath = '/maps/place/Eiffel+Tower';
 
-            vi.spyOn(global, 'fetch')
+            vi
+                .spyOn(global, 'fetch')
                 .mockResolvedValueOnce({
                     status: 302,
                     headers: new Headers({ location: relativePath }),

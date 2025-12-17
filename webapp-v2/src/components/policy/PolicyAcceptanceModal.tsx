@@ -242,7 +242,11 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                                         )
                                         : (
                                             <>
-                                                <div className='bg-surface-muted rounded-lg p-4 max-h-96 overflow-y-auto' role='article' aria-label={t('policyComponents.policyAcceptanceModal.policyContentAriaLabel')}>
+                                                <div
+                                                    className='bg-surface-muted rounded-lg p-4 max-h-96 overflow-y-auto'
+                                                    role='article'
+                                                    aria-label={t('policyComponents.policyAcceptanceModal.policyContentAriaLabel')}
+                                                >
                                                     <PolicyRenderer content={policyContents[currentPolicy.policyId] || ''} />
                                                 </div>
 
@@ -253,7 +257,9 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                                                                 <InfoCircleIcon size={20} className='text-semantic-info mt-0.5' />
                                                             </div>
                                                             <div className='ml-3'>
-                                                                <h4 id='acceptance-required-heading' className='text-sm font-medium text-semantic-info-emphasis'>{t('policyComponents.policyAcceptanceModal.acceptanceRequired')}</h4>
+                                                                <h4 id='acceptance-required-heading' className='text-sm font-medium text-semantic-info-emphasis'>
+                                                                    {t('policyComponents.policyAcceptanceModal.acceptanceRequired')}
+                                                                </h4>
                                                                 <p className='text-sm text-semantic-info-emphasis mt-1'>{t('policyComponents.policyAcceptanceModal.acceptanceInstructions')}</p>
                                                             </div>
                                                         </div>
@@ -265,18 +271,35 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                                                                 className='h-4 w-4 text-interactive-primary focus:ring-interactive-primary border-border-default rounded'
                                                                 autoComplete='off'
                                                                 onChange={(e) => {
-                                                                    if (e.currentTarget.checked) {
-                                                                        handleAcceptPolicy(currentPolicy.policyId);
+                                                                    if (
+                                                                        e
+                                                                            .currentTarget
+                                                                            .checked
+                                                                    ) {
+                                                                        handleAcceptPolicy(
+                                                                            currentPolicy
+                                                                                .policyId,
+                                                                        );
                                                                     } else {
-                                                                        const newSet = new Set(acceptedPoliciesSignal.value);
-                                                                        newSet.delete(currentPolicy.policyId);
-                                                                        acceptedPoliciesSignal.value = newSet;
+                                                                        const newSet = new Set(
+                                                                            acceptedPoliciesSignal
+                                                                                .value,
+                                                                        );
+                                                                        newSet
+                                                                            .delete(
+                                                                                currentPolicy
+                                                                                    .policyId,
+                                                                            );
+                                                                        acceptedPoliciesSignal
+                                                                            .value = newSet;
                                                                     }
                                                                 }}
                                                             />
                                                             <label htmlFor={`accept-${currentPolicy.policyId}`} className='ml-2 text-sm text-semantic-info-emphasis'>
                                                                 {t('policyComponents.policyAcceptanceModal.acceptCheckbox')}
-                                                                {currentPolicy.policyName.toLowerCase()}
+                                                                {currentPolicy
+                                                                    .policyName
+                                                                    .toLowerCase()}
                                                             </label>
                                                         </div>
                                                     </div>

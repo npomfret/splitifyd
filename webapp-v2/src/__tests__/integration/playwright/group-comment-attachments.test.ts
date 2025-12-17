@@ -1,14 +1,17 @@
-import fs from 'node:fs';
-import os from 'node:os';
-import path from 'node:path';
 import { CommentAttachmentRef, toAttachmentId } from '@billsplit-wl/shared';
 import { CommentBuilder, GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder } from '@billsplit-wl/test-support';
 import { expect } from '@playwright/test';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import { test } from '../../utils/console-logging-fixture';
 import { mockGroupCommentsApi, mockGroupDetailApi } from '../../utils/mock-firebase-service';
 
 const tinyPng = Buffer.from('89504e470d0a1a0a0000000d49484452000000010000000108020000009077053a0000000a49444154789c6360000002000100ff0ff30a0000000049454e44ae426082', 'hex');
-const tinyPdf = Buffer.from('%PDF-1.4\n1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 100 100] >>\nendobj\ntrailer\n<< /Root 1 0 R >>\n%%EOF', 'utf-8');
+const tinyPdf = Buffer.from(
+    '%PDF-1.4\n1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 100 100] >>\nendobj\ntrailer\n<< /Root 1 0 R >>\n%%EOF',
+    'utf-8',
+);
 
 test.describe('Group Comment Attachments', () => {
     test('displays comment attachments (image + pdf)', async ({ authenticatedPage }) => {
@@ -97,7 +100,7 @@ test.describe('Group Comment Attachments', () => {
         await mockGroupDetailApi(page, groupId, groupFullDetails);
         await mockGroupCommentsApi(page, groupId, []);
 
-        let receivedCommentPayload: { text?: string; attachmentIds?: string[] } | null = null;
+        let receivedCommentPayload: { text?: string; attachmentIds?: string[]; } | null = null;
 
         await page.route(`**/api/groups/${groupId}/attachments?type=comment`, async (route) => {
             await route.fulfill({
@@ -116,7 +119,7 @@ test.describe('Group Comment Attachments', () => {
         });
 
         await page.route(`**/api/groups/${groupId}/comments`, async (route) => {
-            const payload = route.request().postDataJSON() as { text?: string; attachmentIds?: string[] };
+            const payload = route.request().postDataJSON() as { text?: string; attachmentIds?: string[]; };
             receivedCommentPayload = payload;
 
             const commentAttachments: CommentAttachmentRef[] = [

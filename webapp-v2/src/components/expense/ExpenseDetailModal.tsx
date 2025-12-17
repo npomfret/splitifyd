@@ -287,19 +287,19 @@ export function ExpenseDetailModal({ isOpen, onClose, groupId, expenseId, onEdit
                             {expense.location && (
                                 <div className='flex items-center gap-1.5'>
                                     <MapPinIcon size={16} className='text-text-muted' />
-                                    {expense.location.url ? (
-                                        <a
-                                            href={expense.location.url}
-                                            target='_blank'
-                                            rel='noopener noreferrer'
-                                            className='hover:text-text-primary hover:underline'
-                                            aria-label={t('expenseComponents.expenseDetailModal.openInMaps')}
-                                        >
-                                            {expense.location.name}
-                                        </a>
-                                    ) : (
-                                        <span>{expense.location.name}</span>
-                                    )}
+                                    {expense.location.url
+                                        ? (
+                                            <a
+                                                href={expense.location.url}
+                                                target='_blank'
+                                                rel='noopener noreferrer'
+                                                className='hover:text-text-primary hover:underline'
+                                                aria-label={t('expenseComponents.expenseDetailModal.openInMaps')}
+                                            >
+                                                {expense.location.name}
+                                            </a>
+                                        )
+                                        : <span>{expense.location.name}</span>}
                                 </div>
                             )}
 

@@ -1,5 +1,15 @@
 import type { AttachmentId, CommentAttachmentRef, CommentId, ExpenseId, GroupId, UserId } from '@billsplit-wl/shared';
-import { ActivityFeedActions, ActivityFeedEventTypes, CommentDTO, CreateExpenseCommentRequest, CreateGroupCommentRequest, ListCommentsResponse, toAttachmentId, toCommentId, toISOString } from '@billsplit-wl/shared';
+import {
+    ActivityFeedActions,
+    ActivityFeedEventTypes,
+    CommentDTO,
+    CreateExpenseCommentRequest,
+    CreateGroupCommentRequest,
+    ListCommentsResponse,
+    toAttachmentId,
+    toCommentId,
+    toISOString,
+} from '@billsplit-wl/shared';
 import { ErrorDetail, Errors } from '../errors';
 import { logger } from '../logger';
 import * as measure from '../monitoring/measure';
@@ -376,7 +386,9 @@ export class CommentService {
         // Fire-and-forget attachment deletion
         if (comment.attachments && comment.attachments.length > 0) {
             for (const ref of comment.attachments) {
-                this.attachmentStorage.deleteAttachment(groupId, ref.attachmentId)
+                this
+                    .attachmentStorage
+                    .deleteAttachment(groupId, ref.attachmentId)
                     .catch((err) => {
                         logger.warn('Failed to delete comment attachment', { groupId, commentId, attachmentId: ref.attachmentId, error: err });
                     });
@@ -415,7 +427,9 @@ export class CommentService {
         // Fire-and-forget attachment deletion (attachments are stored by group)
         if (comment.attachments && comment.attachments.length > 0) {
             for (const ref of comment.attachments) {
-                this.attachmentStorage.deleteAttachment(expense.groupId, ref.attachmentId)
+                this
+                    .attachmentStorage
+                    .deleteAttachment(expense.groupId, ref.attachmentId)
                     .catch((err) => {
                         logger.warn('Failed to delete comment attachment', { expenseId, commentId, attachmentId: ref.attachmentId, error: err });
                     });

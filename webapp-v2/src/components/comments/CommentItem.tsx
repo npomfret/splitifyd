@@ -53,9 +53,7 @@ export function CommentItem({
             </div>
 
             {/* Attachments */}
-            {attachmentGroupId && comment.attachments && comment.attachments.length > 0 && (
-                <AttachmentDisplay attachments={comment.attachments} groupId={attachmentGroupId} className='ms-1' />
-            )}
+            {attachmentGroupId && comment.attachments && comment.attachments.length > 0 && <AttachmentDisplay attachments={comment.attachments} groupId={attachmentGroupId} className='ms-1' />}
 
             {/* Reactions */}
             {onReactionToggle && (

@@ -1,6 +1,6 @@
 import { AttachmentId, GroupId, toAttachmentId, toGroupId } from '@billsplit-wl/shared';
 import { z } from 'zod';
-import { Errors, ErrorDetail } from '../errors';
+import { ErrorDetail, Errors } from '../errors';
 
 const AttachmentTypeSchema = z.enum(['receipt', 'comment']);
 
@@ -25,12 +25,12 @@ export function validateUploadAttachmentRequest(
     headers: Record<string, unknown>,
     body: unknown,
 ): {
-        groupId: GroupId;
-        type: AttachmentUploadType;
-        contentType: string;
-        fileName: string;
-        buffer: Buffer;
-    } {
+    groupId: GroupId;
+    type: AttachmentUploadType;
+    contentType: string;
+    fileName: string;
+    buffer: Buffer;
+} {
     const parsedParams = UploadAttachmentParamsSchema.safeParse(params);
     if (!parsedParams.success) {
         throw Errors.validation({

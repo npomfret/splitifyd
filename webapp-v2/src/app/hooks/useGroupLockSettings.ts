@@ -73,7 +73,7 @@ export function useGroupLockSettings({
             errorSignal.value = translateApiError(
                 error,
                 t,
-                t('group.locked.toggleFailed')
+                t('group.locked.toggleFailed'),
             );
         } finally {
             isSubmittingSignal.value = false;

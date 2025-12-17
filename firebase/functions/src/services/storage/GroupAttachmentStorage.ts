@@ -1,5 +1,5 @@
-import type { Bucket, File } from '@google-cloud/storage';
 import type { AttachmentId, GroupId, UserId } from '@billsplit-wl/shared';
+import type { Bucket, File } from '@google-cloud/storage';
 import type { Readable } from 'stream';
 import { logger } from '../../logger';
 import { getExtensionForContentType } from '../../utils/validation/attachmentValidation';

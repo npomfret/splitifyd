@@ -1,14 +1,14 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock fs and path before importing SharingHandlers
 vi.mock('fs');
 vi.mock('path');
 
 // Import after mocking
-import { SharingHandlers } from '../../../sharing/SharingHandlers';
 import type { TenantRegistryService } from '../../../services/tenant/TenantRegistryService';
+import { SharingHandlers } from '../../../sharing/SharingHandlers';
 
 describe('SharingHandlers', () => {
     const mockTemplate = `<!DOCTYPE html>

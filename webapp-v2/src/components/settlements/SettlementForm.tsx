@@ -1,15 +1,15 @@
-import { apiClient } from '@/app/apiClient.ts';
-import { useAuthRequired } from '@/app/hooks/useAuthRequired.ts';
-import { CurrencyService } from '@/app/services/currencyService.ts';
-import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced.ts';
-import { Clickable } from '@/components/ui/Clickable';
-import { XIcon } from '@/components/ui/icons';
-import { Modal, ModalContent, ModalHeader } from '@/components/ui/Modal';
-import { formatCurrency } from '@/utils/currency';
-import { getAmountPrecisionError } from '@/utils/currency-validation.ts';
-import { getUTCMidnight, isDateInFuture } from '@/utils/dateUtils.ts';
-import { getGroupDisplayName } from '@/utils/displayName';
-import { translateApiError } from '@/utils/error-translation';
+import {apiClient} from '@/app/apiClient.ts';
+import {useAuthRequired} from '@/app/hooks/useAuthRequired.ts';
+import {CurrencyService} from '@/app/services/currencyService.ts';
+import {enhancedGroupDetailStore} from '@/app/stores/group-detail-store-enhanced.ts';
+import {Clickable} from '@/components/ui/Clickable';
+import {XIcon} from '@/components/ui/icons';
+import {Modal, ModalContent, ModalHeader} from '@/components/ui/Modal';
+import {formatCurrency} from '@/utils/currency';
+import {getAmountPrecisionError} from '@/utils/currency-validation.ts';
+import {getUTCMidnight, isDateInFuture} from '@/utils/dateUtils.ts';
+import {getGroupDisplayName} from '@/utils/displayName';
+import {translateApiError} from '@/utils/error-translation';
 import {
     amountToSmallestUnit,
     CreateSettlementRequest,
@@ -25,11 +25,11 @@ import {
     UserId,
     ZERO,
 } from '@billsplit-wl/shared';
-import { signal } from '@preact/signals';
-import { useComputed } from '@preact/signals';
-import { useEffect, useRef, useState } from 'preact/hooks';
-import { useTranslation } from 'react-i18next';
-import { Button, CurrencyAmount, CurrencyAmountInput, FieldError, Form, Stack, Tooltip, Typography } from '../ui';
+import {signal} from '@preact/signals';
+import {useComputed} from '@preact/signals';
+import {useEffect, useRef, useState} from 'preact/hooks';
+import {useTranslation} from 'react-i18next';
+import {Button, CurrencyAmount, CurrencyAmountInput, FieldError, Form, Stack, Tooltip, Typography} from '../ui';
 
 /**
  * Get the maximum allowed amount string for a given currency
@@ -55,8 +55,8 @@ interface SettlementFormProps {
     settlementToEdit?: SettlementWithMembers;
 }
 
-export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSuccess, editMode = false, settlementToEdit }: SettlementFormProps) {
-    const { t } = useTranslation();
+export function SettlementForm({isOpen, onClose, groupId, preselectedDebt, onSuccess, editMode = false, settlementToEdit}: SettlementFormProps) {
+    const {t} = useTranslation();
     const authStore = useAuthRequired();
     const previousIsOpenRef = useRef(isOpen);
 
@@ -211,7 +211,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
         if (currentDebtUnits === 0) {
             const payerName = getMemberName(payerId);
             const payeeName = getMemberName(payeeId);
-            warningMessageSignal.value = t('settlementForm.warnings.noDebt', { payer: payerName, payee: payeeName, currency });
+            warningMessageSignal.value = t('settlementForm.warnings.noDebt', {payer: payerName, payee: payeeName, currency});
             return;
         }
 
@@ -414,9 +414,9 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                             className='text-text-muted hover:text-text-muted'
                             aria-label={t('settlementForm.closeModal')}
                             eventName='modal_close'
-                            eventProps={{ modalName: 'settlement_form', method: 'x_button' }}
+                            eventProps={{modalName: 'settlement_form', method: 'x_button'}}
                         >
-                            <XIcon size={24} />
+                            <XIcon size={24}/>
                         </Clickable>
                     </Tooltip>
                 </div>
@@ -453,7 +453,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                         {/* Avatar */}
                                         <div
                                             className='w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold text-text-inverted'
-                                            style={{ backgroundColor: payeeMember.themeColor?.light || '#6366f1' }}
+                                            style={{backgroundColor: payeeMember.themeColor?.light || '#6366f1'}}
                                         >
                                             {getGroupDisplayName(payeeMember).charAt(0).toUpperCase()}
                                         </div>
@@ -461,7 +461,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                         <CurrencyAmount
                                             amount={debt.amount}
                                             currency={debt.currency}
-                                            displayOptions={{ includeCurrencyCode: false }}
+                                            displayOptions={{includeCurrencyCode: false}}
                                             className='font-semibold text-text-primary whitespace-nowrap'
                                         />
                                         <span className='text-text-muted'>→</span>
@@ -631,8 +631,8 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                         ? t('settlementForm.updatingButton')
                                         : t('settlementForm.recordingButton')
                                     : editMode
-                                    ? t('settlementForm.updateSettlement')
-                                    : t('settlementForm.recordSettlement')}
+                                        ? t('settlementForm.updateSettlement')
+                                        : t('settlementForm.recordSettlement')}
                             </Button>
                         </div>
                     </Stack>

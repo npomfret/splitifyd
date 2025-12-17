@@ -74,9 +74,7 @@ export class StubGroupAttachmentStorage implements GroupAttachmentStorage {
 
     async getAttachmentMetadata(groupId: GroupId, attachmentId: AttachmentId): Promise<AttachmentMetadataResult | null> {
         const files = this.storage.getAllFiles();
-        const entry = Array.from(files.entries()).find(([key]) =>
-            key.includes(`attachments/${groupId}/${attachmentId}.`),
-        );
+        const entry = Array.from(files.entries()).find(([key]) => key.includes(`attachments/${groupId}/${attachmentId}.`));
 
         if (!entry) {
             return null;
@@ -96,9 +94,7 @@ export class StubGroupAttachmentStorage implements GroupAttachmentStorage {
 
     async getAttachmentStream(groupId: GroupId, attachmentId: AttachmentId): Promise<AttachmentStreamResult> {
         const files = this.storage.getAllFiles();
-        const entry = Array.from(files.entries()).find(([key]) =>
-            key.includes(`attachments/${groupId}/${attachmentId}.`),
-        );
+        const entry = Array.from(files.entries()).find(([key]) => key.includes(`attachments/${groupId}/${attachmentId}.`));
 
         if (!entry) {
             throw new Error(`Attachment not found: ${attachmentId}`);
@@ -118,9 +114,7 @@ export class StubGroupAttachmentStorage implements GroupAttachmentStorage {
 
     async deleteAttachment(groupId: GroupId, attachmentId: AttachmentId): Promise<void> {
         const files = this.storage.getAllFiles();
-        const entry = Array.from(files.entries()).find(([key]) =>
-            key.includes(`attachments/${groupId}/${attachmentId}.`),
-        );
+        const entry = Array.from(files.entries()).find(([key]) => key.includes(`attachments/${groupId}/${attachmentId}.`));
 
         if (!entry) {
             throw new Error(`Attachment not found: ${attachmentId}`);

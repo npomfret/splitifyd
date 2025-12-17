@@ -390,9 +390,7 @@ export function GroupDetailPage({ id: groupId, expenseId: routeExpenseId }: Grou
                         />
 
                         {/* Locked Group Banner */}
-                        {isGroupLocked.value && (
-                            <Alert type='warning' message={t('group.locked.banner')} />
-                        )}
+                        {isGroupLocked.value && <Alert type='warning' message={t('group.locked.banner')} />}
 
                         {/* 2. Mobile-only group actions */}
                         <div className='lg:hidden'>

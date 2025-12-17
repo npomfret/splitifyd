@@ -134,18 +134,18 @@ export function LocationInput({ value, onChange, error, recentLocations }: Locat
                         placeholder={placeholder}
                         autoComplete='off'
                     />
-                    {isResolving ? (
-                        <ArrowPathIcon className='absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted animate-spin' aria-hidden='true' />
-                    ) : displayValue ? (
-                        <button
-                            type='button'
-                            onClick={handleClear}
-                            className='absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-surface-muted transition-colors'
-                            aria-label={t('expenseBasicFields.clearLocation')}
-                        >
-                            <XMarkIcon className='h-4 w-4 text-text-muted hover:text-text-primary' aria-hidden='true' />
-                        </button>
-                    ) : null}
+                    {isResolving ? <ArrowPathIcon className='absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted animate-spin' aria-hidden='true' /> : displayValue
+                        ? (
+                            <button
+                                type='button'
+                                onClick={handleClear}
+                                className='absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-surface-muted transition-colors'
+                                aria-label={t('expenseBasicFields.clearLocation')}
+                            >
+                                <XMarkIcon className='h-4 w-4 text-text-muted hover:text-text-primary' aria-hidden='true' />
+                            </button>
+                        )
+                        : null}
                 </div>
                 <Tooltip content={value?.url ? t('expenseBasicFields.openOnMap') : t('expenseBasicFields.findOnMap')}>
                     <button

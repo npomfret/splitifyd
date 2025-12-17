@@ -3,6 +3,7 @@ import { Button, LoadingSpinner, Tooltip, Typography } from '@/components/ui';
 import { Clickable } from '@/components/ui/Clickable';
 import { CheckIcon, CopyIcon, RefreshIcon, UserAddIcon, XIcon } from '@/components/ui/icons';
 import { Modal, ModalContent, ModalHeader } from '@/components/ui/Modal';
+import i18n from '@/i18n';
 import { logError } from '@/utils/browser-logger.ts';
 import { formatDateTimeInUserTimeZone } from '@/utils/dateUtils.ts';
 import { GroupId } from '@billsplit-wl/shared';
@@ -11,7 +12,6 @@ import { signal } from '@preact/signals';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { QRCodeCanvas } from 'qrcode.react';
 import { useTranslation } from 'react-i18next';
-import i18n from '@/i18n';
 
 interface ShareGroupModalProps {
     isOpen: boolean;
