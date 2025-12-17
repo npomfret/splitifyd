@@ -134,9 +134,7 @@ export class HeaderPage extends BasePage {
      * modified by other tests (e.g., user profile management tests).
      */
     async getCurrentUserDisplayName(): Promise<string> {
-        // Get the display name text from within the user menu button
-        // The name is the first paragraph in the text container (second paragraph is email)
-        const nameElement = this.getUserMenuButton().locator('p').first();
+        const nameElement = this.getUserMenuButton().locator(`[aria-label="${translation.navigation.userMenu.displayNameLabel}"]`);
         await expect(nameElement).toBeVisible();
 
         const textContent = await nameElement.textContent();

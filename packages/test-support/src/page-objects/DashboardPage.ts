@@ -301,7 +301,7 @@ export class DashboardPage extends BasePage {
      * Get the create group button in the empty state
      */
     protected getEmptyStateCreateGroupButton(): Locator {
-        return this.getEmptyGroupsStateInternal().getByRole('button', { name: /create.*group/i });
+        return this.getEmptyGroupsStateInternal().getByRole('button', { name: translation.emptyGroupsState.createFirstGroup });
     }
 
     /**
@@ -377,9 +377,11 @@ export class DashboardPage extends BasePage {
 
     /**
      * Group Card - Invite button (hover action)
+     * Uses the translation template with interpolated group name for exact matching
      */
     protected getGroupCardInviteButton(groupName: GroupName | string): Locator {
-        return this.getGroupCard(groupName).locator('button[title*="Invite"], button[aria-label*="Invite"]');
+        const expectedLabel = translation.groupCard.inviteTooltip.replace('{{groupName}}', groupName as string);
+        return this.getGroupCard(groupName).getByRole('button', { name: expectedLabel, exact: true });
     }
 
     // ============================================================================

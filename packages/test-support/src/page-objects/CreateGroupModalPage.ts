@@ -79,16 +79,14 @@ export class CreateGroupModalPage extends BasePage {
     }
 
     private getGroupDisplayNameInputInternal(): Locator {
-        // Input component renders with label association, match partial label text
-        return this.getModalContainer().getByLabel(/display name in this group/i);
+        return this.getModalContainer().getByLabel(translation.createGroupModal.groupDisplayNameLabel);
     }
 
     /**
      * Group description textarea field
      */
     private getGroupDescriptionInputInternal(): Locator {
-        // Uses id/for label association on textarea
-        return this.getModalContainer().getByLabel(/description/i);
+        return this.getModalContainer().getByLabel(translation.createGroupModal.groupDescriptionLabel);
     }
 
     /**

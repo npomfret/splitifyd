@@ -475,8 +475,7 @@ export class ExpenseDetailPage extends BasePage {
      * Get the reaction bar container on the expense (below the metadata, above actions)
      */
     protected getExpenseReactionBar(): Locator {
-        // The reaction bar is in a flex justify-center container with border-b
-        return this.page.getByRole('dialog').locator('.flex.justify-center.border-b');
+        return this.page.getByRole('dialog').getByRole('group', { name: translation.reactions.reactionBarLabel });
     }
 
     /**
@@ -641,7 +640,7 @@ export class ExpenseDetailPage extends BasePage {
      * Get the reaction bar for a specific comment
      */
     protected getCommentReactionBar(commentText: string): Locator {
-        return this.getCommentItemByText(commentText).locator('[class*="inline-flex"][class*="gap-1"]').first();
+        return this.getCommentItemByText(commentText).getByRole('group', { name: translation.reactions.reactionBarLabel });
     }
 
     /**

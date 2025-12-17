@@ -80,7 +80,7 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     async expandHeaderDisplaySection(): Promise<void> {
-        await this.expandSectionByName('Header Display');
+        await this.expandSectionByName(translation.admin.tenantEditor.sections.headerDisplay.title);
     }
 
     async expandBordersSection(): Promise<void> {
@@ -94,12 +94,12 @@ export class TenantEditorModalPage extends BasePage {
     async expandAuroraGradientSection(): Promise<void> {
         // First expand the parent motion-effects section, then aurora-gradient
         await this.expandMotionEffectsSection();
-        await this.expandSectionByName('Aurora Gradient');
+        await this.expandSectionByName(translation.admin.tenantEditor.sections.auroraGradient.title);
     }
 
     async expandGlassmorphismSection(): Promise<void> {
         // Glassmorphism is now a standalone section (no longer nested under motion effects)
-        await this.expandSectionByName('Glassmorphism');
+        await this.expandSectionByName(translation.admin.tenantEditor.sections.glassmorphism.title);
     }
 
     // ✅ Editor mode toggle (using semantic selectors)

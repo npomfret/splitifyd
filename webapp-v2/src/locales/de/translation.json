@@ -100,6 +100,7 @@
     "yearAgo_other": "vor {{count}} Jahren"
   },
   "reactions": {
+    "reactionBarLabel": "Reaktionen",
     "addReaction": "Reaktion hinzufügen",
     "removeReaction": "Reaktion entfernen",
     "thumbsUp": "Daumen hoch",
@@ -359,7 +360,8 @@
   "navigation": {
     "userMenu": {
       "openUserMenu": "Benutzermenü öffnen",
-      "logout": "Abmelden"
+      "logout": "Abmelden",
+      "displayNameLabel": "Anzeigename"
     }
   },
   "notifications": {
@@ -378,6 +380,7 @@
     "updateExpense": "Ausgabe aktualisieren"
   },
   "settlementForm": {
+    "quickSettleLabel": "Schnellausgleich:",
     "updateSettlement": "Abrechnung aktualisieren",
     "recordSettlement": "Abrechnung erfassen",
     "closeModal": "Modal schließen",
@@ -1113,6 +1116,7 @@
   },
   "policyComponents": {
     "policyAcceptanceModal": {
+      "policyContentAriaLabel": "Richtlinieninhalt",
       "title": "Aktualisierte Richtlinien akzeptieren",
       "policyLabel": "Richtlinie ",
       "of": " von ",
@@ -1495,6 +1499,15 @@
         "marketing": {
           "title": "Marketingfunktionen",
           "description": "Marketingseiten und -inhalte umschalten"
+        },
+        "headerDisplay": {
+          "title": "Kopfzeilen-Anzeige"
+        },
+        "auroraGradient": {
+          "title": "Aurora-Verlauf"
+        },
+        "glassmorphism": {
+          "title": "Glasmorphismus"
         }
       },
       "fields": {

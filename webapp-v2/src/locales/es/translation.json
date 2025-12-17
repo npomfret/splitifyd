@@ -100,6 +100,7 @@
     "yearAgo_other": "hace {{count}} años"
   },
   "reactions": {
+    "reactionBarLabel": "Reacciones",
     "addReaction": "Añadir reacción",
     "removeReaction": "Quitar reacción",
     "thumbsUp": "Pulgar arriba",
@@ -359,7 +360,8 @@
   "navigation": {
     "userMenu": {
       "openUserMenu": "Abrir menú de usuario",
-      "logout": "Cerrar sesión"
+      "logout": "Cerrar sesión",
+      "displayNameLabel": "Nombre visible"
     }
   },
   "notifications": {
@@ -378,6 +380,7 @@
     "updateExpense": "Actualizar gasto"
   },
   "settlementForm": {
+    "quickSettleLabel": "Liquidación rápida:",
     "updateSettlement": "Actualizar liquidación",
     "recordSettlement": "Registrar liquidación",
     "closeModal": "Cerrar modal",
@@ -1113,6 +1116,7 @@
   },
   "policyComponents": {
     "policyAcceptanceModal": {
+      "policyContentAriaLabel": "Contenido de la política",
       "title": "Aceptar políticas actualizadas",
       "policyLabel": "Política ",
       "of": " de ",
@@ -1495,6 +1499,15 @@
         "marketing": {
           "title": "Características de marketing",
           "description": "Alternar páginas y contenido de marketing"
+        },
+        "headerDisplay": {
+          "title": "Visualización del encabezado"
+        },
+        "auroraGradient": {
+          "title": "Degradado Aurora"
+        },
+        "glassmorphism": {
+          "title": "Glassmorfismo"
         }
       },
       "fields": {

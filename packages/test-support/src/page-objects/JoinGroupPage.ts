@@ -124,10 +124,12 @@ export class JoinGroupPage extends BasePage {
     }
 
     /**
-     * Join success container - identified by role='status' with aria-label containing "Welcome to"
+     * Join success container - identified by role='status' with aria-label containing welcome text prefix
      */
     private getJoinSuccessContainer(): Locator {
-        return this.page.getByRole('status', { name: /Welcome to/ });
+        // Extract the prefix before the variable placeholder from the translation
+        const welcomePrefix = translation.joinGroupPage.welcome.split('{{')[0];
+        return this.page.getByRole('status', { name: new RegExp(welcomePrefix) });
     }
 
     private getSuccessIcon(): Locator {

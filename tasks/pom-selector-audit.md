@@ -1,5 +1,13 @@
 # POM Selector / Locator Audit
 
+## Progress
+
+- [x] **Phase 1**: Fix CSS class/XPath selectors in high-priority files (ExpenseDetailPage, AdminPage, HeaderPage, PolicyAcceptanceModalPage, LeaveGroupDialogPage)
+- [x] **Phase 2**: Replace hardcoded English strings with translation keys
+- [ ] **Phase 3**: Webapp semantic markup additions (aria-labelledby, named regions)
+- [ ] **Phase 4**: Remaining POM updates
+- [ ] **Phase 5**: Fix regex OR alternation patterns (see below)
+
 ## Scope
 
 Audited all Page Object Models in `packages/test-support/src/page-objects/` with the project’s Playwright rules in `docs/guides/testing.md`:
@@ -13,12 +21,13 @@ Audited all Page Object Models in `packages/test-support/src/page-objects/` with
 
 The overall direction is good: many POMs already use `getByRole(...)` with `translationEn`, plus container scoping. The biggest remaining issues fall into a few repeatable patterns:
 
-- **Hardcoded English strings** in locators (breaks i18n and “user cue” principle).
+- **Hardcoded English strings** in locators (breaks i18n and "user cue" principle).
 - **CSS class selectors / XPath / DOM traversal** (e.g., `.locator('..')`, `xpath=ancestor::...`, `.admin-layout`, `.rounded-xl`).
 - **Attribute substring matching** (e.g., `aria-label*="Invite"` / `aria-label*="settlement"`), which is fragile and not i18n-safe.
 - **Overuse of `data-testid`** in admin tenant editor where visible labels likely exist (or should exist).
 - **Positional selectors** (`.first()`, `.nth()`) in places where the element could be found by visible text/label instead.
 - **Public locator getter methods** (explicitly prohibited by the testing guide).
+- **Regex OR alternation patterns** (e.g., `/create tenant|update tenant/i`) - ambiguous selectors that match multiple states violate determinism.
 
 ## Recommended Global Changes (Patterns)
 
@@ -213,4 +222,34 @@ These still may have small opportunities (e.g., fewer `.first()` calls), but the
 - `packages/test-support/src/page-objects/AdminUsersPage.ts`
 - `packages/test-support/src/page-objects/RemoveMemberDialogPage.ts`
 - `packages/test-support/src/page-objects/UserEditorModalPage.ts`
+
+---
+
+## Phase 5: Regex OR Alternation Patterns
+
+Selectors using regex alternation (`foo|bar`) are ambiguous - they match multiple possible states with a single locator. This violates the "single deterministic path" principle. Each state should have its own method.
+
+### Hardcoded English OR patterns
+
+| File | Line | Pattern | Fix |
+|------|------|---------|-----|
+| `TenantEditorModalPage.ts` | `:132` | `/create new tenant\|edit tenant/i` | Separate `getCreateHeading()` and `getEditHeading()` using translation keys |
+| `TenantEditorModalPage.ts` | `:255` | `/(create tenant\|update tenant\|save changes)/i` | Separate methods per action using translation keys |
+| `TenantEditorModalPage.ts` | `:279` | `/create tenant\|new tenant/i` | Single translation key for create button |
+| `GroupDetailPage.ts` | `:306` | `/edit\|cannot edit/i` | Separate `getEditButton()` and `getCannotEditButton()` using translations |
+| `UserEditorModalPage.ts` | `:49` | `/cancel\|close/i` | Pick one (likely `translation.common.cancel`) |
+
+### Translation-based OR patterns (still problematic)
+
+These use translation keys but still match multiple states ambiguously:
+
+| File | Line | Pattern | Fix |
+|------|------|---------|-----|
+| `ExpenseFormPage.ts` | `:53` | `addExpense\|editExpense\|copyExpense` | Separate `getAddExpenseHeading()`, `getEditExpenseHeading()`, `getCopyExpenseHeading()` |
+| `GroupSettingsModalPage.ts` | `:1224` | `toggle\|unlockToggle` | Separate `getLockedToggle()` and `getUnlockedToggle()` |
+| `JoinGroupPage.ts` | `:58` | `login\|submitButton` | Pick one consistent label |
+| `JoinGroupPage.ts` | `:62` | `title\|signUp` | Pick one consistent label |
+| `LeaveGroupDialogPage.ts` | `:77` | `confirmText\|understoodText` | Separate `getConfirmButton()` and `getUnderstoodButton()` |
+| `DashboardPage.ts` | `:192` | `archive\|unarchive` | Separate `getArchiveButton()` and `getUnarchiveButton()` |
+| `DashboardPage.ts` | `:836` | `welcomeMessage\|yourGroups` | Separate methods for each pattern |
 

@@ -60,7 +60,7 @@ export function UserMenu({ user }: UserMenuProps) {
                     <div className='absolute -bottom-0.5 -end-0.5 w-3 h-3 bg-semantic-success rounded-full border-2 border-surface-base'></div>
                 </div>
                 <div className='hidden md:block text-start'>
-                    <p className='text-sm font-medium text-text-primary group-hover:text-interactive-primary transition-colors'>{userName}</p>
+                    <p className='text-sm font-medium text-text-primary group-hover:text-interactive-primary transition-colors' aria-label={t('navigation.userMenu.displayNameLabel')}>{userName}</p>
                     <p className='help-text-xs'>{user.email}</p>
                 </div>
                 <ChevronDownIcon

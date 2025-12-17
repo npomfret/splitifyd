@@ -216,7 +216,7 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                                 />
                             )}
 
-                            <Card>
+                            <Card ariaLabel={currentPolicy.policyName}>
                                 <Stack spacing='md'>
                                     <div className='flex items-center justify-between'>
                                         <h3 className='text-lg font-semibold text-text-primary'>
@@ -242,18 +242,18 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                                         )
                                         : (
                                             <>
-                                                <div className='bg-surface-muted rounded-lg p-4 max-h-96 overflow-y-auto'>
+                                                <div className='bg-surface-muted rounded-lg p-4 max-h-96 overflow-y-auto' role='article' aria-label={t('policyComponents.policyAcceptanceModal.policyContentAriaLabel')}>
                                                     <PolicyRenderer content={policyContents[currentPolicy.policyId] || ''} />
                                                 </div>
 
                                                 {!canAcceptCurrent && (
-                                                    <div className='bg-semantic-info-subtle border border-semantic-info rounded-lg p-4'>
+                                                    <div className='bg-semantic-info-subtle border border-semantic-info rounded-lg p-4' role='group' aria-labelledby='acceptance-required-heading'>
                                                         <div className='flex items-start'>
                                                             <div className='shrink-0'>
                                                                 <InfoCircleIcon size={20} className='text-semantic-info mt-0.5' />
                                                             </div>
                                                             <div className='ml-3'>
-                                                                <h4 className='text-sm font-medium text-semantic-info-emphasis'>{t('policyComponents.policyAcceptanceModal.acceptanceRequired')}</h4>
+                                                                <h4 id='acceptance-required-heading' className='text-sm font-medium text-semantic-info-emphasis'>{t('policyComponents.policyAcceptanceModal.acceptanceRequired')}</h4>
                                                                 <p className='text-sm text-semantic-info-emphasis mt-1'>{t('policyComponents.policyAcceptanceModal.acceptanceInstructions')}</p>
                                                             </div>
                                                         </div>

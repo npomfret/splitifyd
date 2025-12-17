@@ -100,6 +100,7 @@
     "yearAgo_other": "{{count}}년 전"
   },
   "reactions": {
+    "reactionBarLabel": "반응",
     "addReaction": "반응 추가",
     "removeReaction": "반응 제거",
     "thumbsUp": "좋아요",
@@ -359,7 +360,8 @@
   "navigation": {
     "userMenu": {
       "openUserMenu": "사용자 메뉴 열기",
-      "logout": "로그아웃"
+      "logout": "로그아웃",
+      "displayNameLabel": "표시 이름"
     }
   },
   "notifications": {
@@ -378,6 +380,7 @@
     "updateExpense": "비용 업데이트"
   },
   "settlementForm": {
+    "quickSettleLabel": "빠른 정산:",
     "updateSettlement": "정산 업데이트",
     "recordSettlement": "정산 기록",
     "closeModal": "모달 닫기",
@@ -1114,6 +1117,7 @@
   },
   "policyComponents": {
     "policyAcceptanceModal": {
+      "policyContentAriaLabel": "정책 내용",
       "title": "업데이트된 정책 수락",
       "policyLabel": "정책 ",
       "of": " / ",
@@ -1496,6 +1500,15 @@
         "marketing": {
           "title": "마케팅 기능",
           "description": "마케팅 페이지 및 콘텐츠 전환"
+        },
+        "headerDisplay": {
+          "title": "헤더 표시"
+        },
+        "auroraGradient": {
+          "title": "오로라 그라데이션"
+        },
+        "glassmorphism": {
+          "title": "글래스모피즘"
         }
       },
       "fields": {

@@ -402,7 +402,7 @@ export class SettingsPage extends BasePage {
      * Profile overview card header text
      */
     protected getProfileOverviewText(): Locator {
-        return this.page.getByText('Profile overview');
+        return this.page.getByText(translation.settingsPage.profileSummaryTitle);
     }
 
     /**
@@ -416,7 +416,7 @@ export class SettingsPage extends BasePage {
      * Account role label (only visible to admins)
      */
     protected getAccountRoleLabel(): Locator {
-        return this.page.getByText('Account role');
+        return this.page.getByText(translation.settingsPage.profileSummaryRoleLabel);
     }
 
     /**
@@ -434,7 +434,7 @@ export class SettingsPage extends BasePage {
      * Strong password checklist heading
      */
     protected getPasswordChecklistHeading(): Locator {
-        return this.page.getByText('Strong password checklist');
+        return this.page.getByText(translation.settingsPage.passwordRequirementsHeading);
     }
 
     /**
@@ -464,7 +464,7 @@ export class SettingsPage extends BasePage {
      * Profile Information section header
      */
     protected getProfileInformationHeader(): Locator {
-        return this.page.getByRole('heading', { name: 'Profile Information' });
+        return this.page.getByRole('heading', { name: translation.settingsPage.profileInformationHeader });
     }
 
     /**
@@ -479,7 +479,7 @@ export class SettingsPage extends BasePage {
      * Password section header
      */
     protected getPasswordHeader(): Locator {
-        return this.page.getByRole('heading', { name: 'Password' });
+        return this.page.getByRole('heading', { name: translation.settingsPage.passwordHeader });
     }
 
     /**
@@ -494,7 +494,7 @@ export class SettingsPage extends BasePage {
      * Page hero/title label
      */
     protected getHeroLabel(): Locator {
-        return this.page.getByText('Account').first();
+        return this.page.getByText(translation.settingsPage.heroLabel).first();
     }
 
     // ============================================================================

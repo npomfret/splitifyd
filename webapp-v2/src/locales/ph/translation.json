@@ -107,7 +107,8 @@
     "laugh": "Tawa",
     "wow": "Wow",
     "sad": "Malungkot",
-    "celebrate": "Magdiwang"
+    "celebrate": "Magdiwang",
+    "reactionBarLabel": "Mga Reaksyon"
   },
   "app": {
     "loading": "Naglo-load...",
@@ -359,7 +360,8 @@
   "navigation": {
     "userMenu": {
       "openUserMenu": "Buksan ang menu ng user",
-      "logout": "Mag-logout"
+      "logout": "Mag-logout",
+      "displayNameLabel": "Pangalan sa Display"
     }
   },
   "notifications": {
@@ -378,6 +380,7 @@
     "updateExpense": "I-update ang Gastusin"
   },
   "settlementForm": {
+    "quickSettleLabel": "Mabilis na Kasunduan:",
     "updateSettlement": "I-update ang Kasunduan",
     "recordSettlement": "Itala ang Kasunduan",
     "closeModal": "Isara ang modal",
@@ -1131,7 +1134,8 @@
       "policiesAccepted": " tinanggap na mga patakaran",
       "accepting": "Tinatanggap...",
       "closeAriaLabel": "Isara",
-      "errorTitle": "Error"
+      "errorTitle": "Error",
+      "policyContentAriaLabel": "Nilalaman ng Patakaran"
     }
   },
   "uiComponents": {
@@ -1496,6 +1500,15 @@
         "marketing": {
           "title": "Mga Feature ng Marketing",
           "description": "I-toggle ang mga pahina at nilalaman ng marketing"
+        },
+        "headerDisplay": {
+          "title": "Display ng Header"
+        },
+        "auroraGradient": {
+          "title": "Aurora Gradient"
+        },
+        "glassmorphism": {
+          "title": "Glassmorphism"
         }
       },
       "fields": {

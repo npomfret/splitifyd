@@ -100,6 +100,7 @@
     "yearAgo_other": "{{count}} years ago"
   },
   "reactions": {
+    "reactionBarLabel": "Reactions",
     "addReaction": "Add reaction",
     "removeReaction": "Remove reaction",
     "thumbsUp": "Thumbs up",
@@ -359,6 +360,7 @@
   "navigation": {
     "userMenu": {
       "openUserMenu": "Open user menu",
+      "displayNameLabel": "Display name",
       "logout": "Logout"
     }
   },
@@ -378,6 +380,7 @@
     "updateExpense": "Update Expense"
   },
   "settlementForm": {
+    "quickSettleLabel": "Quick settle:",
     "updateSettlement": "Update Settlement",
     "recordSettlement": "Record Settlement",
     "closeModal": "Close modal",
@@ -1130,7 +1133,8 @@
       "policiesAccepted": " policies accepted",
       "accepting": "Accepting...",
       "closeAriaLabel": "Close",
-      "errorTitle": "Error"
+      "errorTitle": "Error",
+      "policyContentAriaLabel": "Policy content"
     }
   },
   "uiComponents": {
@@ -1495,6 +1499,15 @@
         "marketing": {
           "title": "Marketing Features",
           "description": "Toggle marketing pages and content"
+        },
+        "headerDisplay": {
+          "title": "Header Display"
+        },
+        "auroraGradient": {
+          "title": "Aurora Gradient"
+        },
+        "glassmorphism": {
+          "title": "Glassmorphism"
         }
       },
       "fields": {

@@ -107,7 +107,8 @@
     "laugh": "Latter",
     "wow": "Wow",
     "sad": "Trist",
-    "celebrate": "Feire"
+    "celebrate": "Feire",
+    "reactionBarLabel": "Reaksjoner"
   },
   "app": {
     "loading": "Laster...",
@@ -359,7 +360,8 @@
   "navigation": {
     "userMenu": {
       "openUserMenu": "Åpne brukermeny",
-      "logout": "Logg ut"
+      "logout": "Logg ut",
+      "displayNameLabel": "Visningsnavn"
     }
   },
   "notifications": {
@@ -378,6 +380,7 @@
     "updateExpense": "Oppdater utgift"
   },
   "settlementForm": {
+    "quickSettleLabel": "Hurtigoppgjør:",
     "updateSettlement": "Oppdater oppgjør",
     "recordSettlement": "Registrer oppgjør",
     "closeModal": "Lukk dialog",
@@ -1130,7 +1133,8 @@
       "policiesAccepted": " retningslinjer godkjent",
       "accepting": "Godkjenner...",
       "closeAriaLabel": "Lukk",
-      "errorTitle": "Feil"
+      "errorTitle": "Feil",
+      "policyContentAriaLabel": "Retningslinjeinnhold"
     }
   },
   "uiComponents": {
@@ -1495,6 +1499,15 @@
         "marketing": {
           "title": "Markedsføringsfunksjoner",
           "description": "Vis/skjul markedsføringssider og innhold"
+        },
+        "headerDisplay": {
+          "title": "Topptekstvisning"
+        },
+        "auroraGradient": {
+          "title": "Aurora-gradient"
+        },
+        "glassmorphism": {
+          "title": "Glassmorfisme"
         }
       },
       "fields": {

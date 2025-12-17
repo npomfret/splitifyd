@@ -100,6 +100,7 @@
     "yearAgo_other": "{{count}} anni fa"
   },
   "reactions": {
+    "reactionBarLabel": "Reazioni",
     "addReaction": "Aggiungi reazione",
     "removeReaction": "Rimuovi reazione",
     "thumbsUp": "Pollice in su",
@@ -359,7 +360,8 @@
   "navigation": {
     "userMenu": {
       "openUserMenu": "Apri menu utente",
-      "logout": "Esci"
+      "logout": "Esci",
+      "displayNameLabel": "Nome visualizzato"
     }
   },
   "notifications": {
@@ -378,6 +380,7 @@
     "updateExpense": "Aggiorna spesa"
   },
   "settlementForm": {
+    "quickSettleLabel": "Saldo rapido:",
     "updateSettlement": "Aggiorna saldo",
     "recordSettlement": "Registra saldo",
     "closeModal": "Chiudi modale",
@@ -1114,6 +1117,7 @@
   },
   "policyComponents": {
     "policyAcceptanceModal": {
+      "policyContentAriaLabel": "Contenuto della politica",
       "title": "Accetta politiche aggiornate",
       "policyLabel": "Politica ",
       "of": " di ",
@@ -1496,6 +1500,15 @@
         "marketing": {
           "title": "Funzionalità marketing",
           "description": "Attiva/disattiva pagine e contenuti marketing"
+        },
+        "headerDisplay": {
+          "title": "Visualizzazione intestazione"
+        },
+        "auroraGradient": {
+          "title": "Gradiente Aurora"
+        },
+        "glassmorphism": {
+          "title": "Glassmorfismo"
         }
       },
       "fields": {

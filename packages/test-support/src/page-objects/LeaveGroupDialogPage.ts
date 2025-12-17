@@ -50,7 +50,7 @@ export class LeaveGroupDialogPage extends BasePage {
      * Dialog title
      */
     protected getDialogTitle(): Locator {
-        return this.getConfirmationDialog().locator('h3');
+        return this.getConfirmationDialog().getByRole('heading', { name: translation.membersList.leaveGroupDialog.title });
     }
 
     /**
@@ -82,13 +82,6 @@ export class LeaveGroupDialogPage extends BasePage {
      */
     protected getCancelButton(): Locator {
         return this.getConfirmationDialog().getByRole('button', { name: translation.membersList.leaveGroupDialog.cancelText });
-    }
-
-    /**
-     * Warning icon (displayed when variant is warning)
-     */
-    protected getWarningIcon(): Locator {
-        return this.getConfirmationDialog().locator('svg').first();
     }
 
     // ============================================================================

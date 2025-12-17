@@ -87,7 +87,7 @@ export class LoginPage extends BasePage {
      * Remember me checkbox within the login form
      */
     protected getRememberMeCheckbox(): Locator {
-        return this.getLoginFormContainer().getByLabel('Remember me');
+        return this.getLoginFormContainer().getByLabel(translation.loginPage.rememberMe);
     }
 
     // ============================================================================

@@ -107,7 +107,8 @@
     "laugh": "Skratt",
     "wow": "Wow",
     "sad": "Ledsen",
-    "celebrate": "Fira"
+    "celebrate": "Fira",
+    "reactionBarLabel": "Reaktioner"
   },
   "app": {
     "loading": "Laddar...",
@@ -359,7 +360,8 @@
   "navigation": {
     "userMenu": {
       "openUserMenu": "Öppna användarmeny",
-      "logout": "Logga ut"
+      "logout": "Logga ut",
+      "displayNameLabel": "Visningsnamn"
     }
   },
   "notifications": {
@@ -378,6 +380,7 @@
     "updateExpense": "Uppdatera utgift"
   },
   "settlementForm": {
+    "quickSettleLabel": "Snabbreglering:",
     "updateSettlement": "Uppdatera reglering",
     "recordSettlement": "Registrera reglering",
     "closeModal": "Stäng modal",
@@ -1131,7 +1134,8 @@
       "policiesAccepted": " policyer accepterade",
       "accepting": "Accepterar...",
       "closeAriaLabel": "Stäng",
-      "errorTitle": "Fel"
+      "errorTitle": "Fel",
+      "policyContentAriaLabel": "Policyinnehåll"
     }
   },
   "uiComponents": {
@@ -1496,6 +1500,15 @@
         "marketing": {
           "title": "Marknadsföringsfunktioner",
           "description": "Växla marknadsföringssidor och innehåll"
+        },
+        "headerDisplay": {
+          "title": "Rubrikvisning"
+        },
+        "auroraGradient": {
+          "title": "Aurora-gradient"
+        },
+        "glassmorphism": {
+          "title": "Glassmorfism"
         }
       },
       "fields": {

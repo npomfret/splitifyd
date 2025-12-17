@@ -64,7 +64,7 @@ export function ReactionBar({
         : 'text-sm px-2 py-0.5';
 
     return (
-        <div className='flex flex-wrap items-center gap-1'>
+        <div className='flex flex-wrap items-center gap-1' role='group' aria-label={t('reactions.reactionBarLabel')}>
             {activeEmojis.map((emoji) => {
                 const count = counts?.[emoji] ?? 0;
                 const isUserReaction = userReactions.includes(emoji);

@@ -850,7 +850,7 @@ export class GroupSettingsModalPage extends BasePage {
      */
     async verifyNoPendingRequestsMessageVisible(): Promise<void> {
         await this.ensureSecurityTab();
-        await expect(this.getModalContainer().getByText('No pending requests right now.')).toBeVisible();
+        await expect(this.getModalContainer().getByText(translation.securitySettingsModal.pendingMembers.empty)).toBeVisible();
     }
 
     /**

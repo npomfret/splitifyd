@@ -70,7 +70,7 @@ export class SettlementFormPage extends BasePage {
     }
 
     protected getQuickSettleHeading(): Locator {
-        return this.getModal().getByText('Quick settle:');
+        return this.getModal().getByText(translation.settlementForm.quickSettleLabel);
     }
 
     protected getQuickSettleShortcutButton(pattern: string | RegExp): Locator {

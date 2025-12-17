@@ -100,6 +100,7 @@
     "yearAgo_other": "{{count}} jaren geleden"
   },
   "reactions": {
+    "reactionBarLabel": "Reacties",
     "addReaction": "Reactie toevoegen",
     "removeReaction": "Reactie verwijderen",
     "thumbsUp": "Duim omhoog",
@@ -359,7 +360,8 @@
   "navigation": {
     "userMenu": {
       "openUserMenu": "Gebruikersmenu openen",
-      "logout": "Afmelden"
+      "logout": "Afmelden",
+      "displayNameLabel": "Weergavenaam"
     }
   },
   "notifications": {
@@ -378,6 +380,7 @@
     "updateExpense": "Uitgave bijwerken"
   },
   "settlementForm": {
+    "quickSettleLabel": "Snelle vereffening:",
     "updateSettlement": "Vereffening bijwerken",
     "recordSettlement": "Vereffening registreren",
     "closeModal": "Modal sluiten",
@@ -1114,6 +1117,7 @@
   },
   "policyComponents": {
     "policyAcceptanceModal": {
+      "policyContentAriaLabel": "Beleidsinhoud",
       "title": "Bijgewerkte beleidsregels accepteren",
       "policyLabel": "Beleid ",
       "of": " van ",
@@ -1496,6 +1500,15 @@
         "marketing": {
           "title": "Marketingfuncties",
           "description": "Marketingpagina's en -inhoud wisselen"
+        },
+        "headerDisplay": {
+          "title": "Koptekst weergave"
+        },
+        "auroraGradient": {
+          "title": "Aurora gradiënt"
+        },
+        "glassmorphism": {
+          "title": "Glasmorfisme"
         }
       },
       "fields": {

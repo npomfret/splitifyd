@@ -107,7 +107,8 @@
     "laugh": "ضحك",
     "wow": "مندهش",
     "sad": "حزين",
-    "celebrate": "احتفال"
+    "celebrate": "احتفال",
+    "reactionBarLabel": "التفاعلات"
   },
   "app": {
     "loading": "جار التحميل...",
@@ -359,7 +360,8 @@
   "navigation": {
     "userMenu": {
       "openUserMenu": "فتح قائمة المستخدم",
-      "logout": "تسجيل الخروج"
+      "logout": "تسجيل الخروج",
+      "displayNameLabel": "اسم العرض"
     }
   },
   "notifications": {
@@ -378,6 +380,7 @@
     "updateExpense": "تحديث المصروف"
   },
   "settlementForm": {
+    "quickSettleLabel": "تسوية سريعة:",
     "updateSettlement": "تحديث التسوية",
     "recordSettlement": "تسجيل تسوية",
     "closeModal": "إغلاق النموذج",
@@ -1130,7 +1133,8 @@
       "policiesAccepted": " السياسات المقبولة",
       "accepting": "جار القبول...",
       "closeAriaLabel": "إغلاق",
-      "errorTitle": "خطأ"
+      "errorTitle": "خطأ",
+      "policyContentAriaLabel": "محتوى السياسة"
     }
   },
   "uiComponents": {
@@ -1495,6 +1499,15 @@
         "marketing": {
           "title": "ميزات التسويق",
           "description": "تبديل صفحات التسويق والمحتوى"
+        },
+        "headerDisplay": {
+          "title": "عرض الرأس"
+        },
+        "auroraGradient": {
+          "title": "تدرج الشفق"
+        },
+        "glassmorphism": {
+          "title": "تأثير الزجاج"
         }
       },
       "fields": {

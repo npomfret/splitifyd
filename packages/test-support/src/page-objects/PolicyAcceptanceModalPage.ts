@@ -43,11 +43,8 @@ export class PolicyAcceptanceModalPage extends BasePage {
     }
 
     protected getPolicyCard(): Locator {
-        // Policy card - the Card component containing the policy content
-        // Card renders as a Surface (div with rounded-xl) containing an h3 heading
-        return this.getModalContainer().locator('.rounded-xl').filter({
-            has: this.page.getByRole('heading', { level: 3 }),
-        });
+        // Policy card is a region with aria-labelledby pointing to the policy name heading
+        return this.getModalContainer().getByRole('region');
     }
 
     protected getPolicyTitle(): Locator {
@@ -61,8 +58,8 @@ export class PolicyAcceptanceModalPage extends BasePage {
     }
 
     protected getPolicyContent(): Locator {
-        // Policy content - the scrollable content area within the card
-        return this.getPolicyCard().locator('.bg-surface-muted.rounded-lg');
+        // Policy content is an article role with aria-label
+        return this.getPolicyCard().getByRole('article', { name: translation.policyContentAriaLabel });
     }
 
     protected getLoadingSpinner(): Locator {
@@ -71,8 +68,8 @@ export class PolicyAcceptanceModalPage extends BasePage {
     }
 
     protected getAcceptanceSection(): Locator {
-        // Acceptance section - identified by the "Acceptance Required" heading
-        return this.getPolicyCard().locator('.bg-semantic-info-subtle');
+        // Acceptance section is a group with aria-labelledby pointing to "Acceptance Required" heading
+        return this.getPolicyCard().getByRole('group', { name: translation.acceptanceRequired });
     }
 
     protected getAcceptanceCheckbox(): Locator {

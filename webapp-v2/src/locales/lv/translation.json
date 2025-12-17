@@ -100,6 +100,7 @@
     "yearAgo_other": "pirms {{count}} gadiem"
   },
   "reactions": {
+    "reactionBarLabel": "Reakcijas",
     "addReaction": "Pievienot reakciju",
     "removeReaction": "Noņemt reakciju",
     "thumbsUp": "Patīk",
@@ -359,7 +360,8 @@
   "navigation": {
     "userMenu": {
       "openUserMenu": "Atvērt lietotāja izvēlni",
-      "logout": "Izrakstīties"
+      "logout": "Izrakstīties",
+      "displayNameLabel": "Attēlojamais vārds"
     }
   },
   "notifications": {
@@ -378,6 +380,7 @@
     "updateExpense": "Atjaunināt izdevumus"
   },
   "settlementForm": {
+    "quickSettleLabel": "Ātrais norēķins:",
     "updateSettlement": "Atjaunināt norēķinu",
     "recordSettlement": "Ierakstīt norēķinu",
     "closeModal": "Aizvērt modālo logu",
@@ -1114,6 +1117,7 @@
   },
   "policyComponents": {
     "policyAcceptanceModal": {
+      "policyContentAriaLabel": "Politikas saturs",
       "title": "Pieņemt atjauninātās politikas",
       "policyLabel": "Politika ",
       "of": " no ",
@@ -1496,6 +1500,15 @@
         "marketing": {
           "title": "Mārketinga funkcijas",
           "description": "Pārslēgt mārketinga lapas un saturu"
+        },
+        "headerDisplay": {
+          "title": "Galvenes attēlojums"
+        },
+        "auroraGradient": {
+          "title": "Aurora gradients"
+        },
+        "glassmorphism": {
+          "title": "Stikla efekts"
         }
       },
       "fields": {

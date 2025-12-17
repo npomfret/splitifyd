@@ -627,7 +627,7 @@ export class GroupDetailPage extends BasePage {
      * Get the "Load More" button in the expenses section
      */
     protected getLoadMoreExpensesButton(): Locator {
-        return this.getExpensesContainer().getByRole('button', { name: 'Load More' });
+        return this.getExpensesContainer().getByRole('button', { name: translation.expensesList.loadMore });
     }
 
     /**

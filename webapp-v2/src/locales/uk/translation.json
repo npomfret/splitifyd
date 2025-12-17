@@ -107,7 +107,8 @@
     "laugh": "Сміх",
     "wow": "Ого",
     "sad": "Сумно",
-    "celebrate": "Святкувати"
+    "celebrate": "Святкувати",
+    "reactionBarLabel": "Реакції"
   },
   "app": {
     "loading": "Завантаження...",
@@ -359,7 +360,8 @@
   "navigation": {
     "userMenu": {
       "openUserMenu": "Відкрити меню користувача",
-      "logout": "Вийти"
+      "logout": "Вийти",
+      "displayNameLabel": "Ім'я для відображення"
     }
   },
   "notifications": {
@@ -378,6 +380,7 @@
     "updateExpense": "Оновити витрату"
   },
   "settlementForm": {
+    "quickSettleLabel": "Швидкий розрахунок:",
     "updateSettlement": "Оновити розрахунок",
     "recordSettlement": "Записати розрахунок",
     "closeModal": "Закрити модальне вікно",
@@ -1130,7 +1133,8 @@
       "policiesAccepted": " політики прийнято",
       "accepting": "Прийняття...",
       "closeAriaLabel": "Закрити",
-      "errorTitle": "Помилка"
+      "errorTitle": "Помилка",
+      "policyContentAriaLabel": "Вміст політики"
     }
   },
   "uiComponents": {
@@ -1495,6 +1499,15 @@
         "marketing": {
           "title": "Маркетингові функції",
           "description": "Переключення маркетингових сторінок і вмісту"
+        },
+        "headerDisplay": {
+          "title": "Відображення заголовка"
+        },
+        "auroraGradient": {
+          "title": "Градієнт аврори"
+        },
+        "glassmorphism": {
+          "title": "Глассморфізм"
         }
       },
       "fields": {
