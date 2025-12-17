@@ -240,5 +240,24 @@ describe('ThemeArtifactService', () => {
             expect(result.cssContent).toContain('.skeleton {');
             expect(result.cssContent).toContain('animation: none');
         });
+
+        it('should always generate body background color even without aurora', async () => {
+            // Tokens with motion disabled (no aurora animation)
+            const tokensWithoutAurora = new BrandingTokensBuilder()
+                .withMotionFlags({
+                    enableParallax: false,
+                    enableMagneticHover: false,
+                    enableScrollReveal: false,
+                })
+                .build();
+
+            const result = await service.generate('test-tenant', tokensWithoutAurora);
+
+            // Body background should always be set
+            expect(result.cssContent).toContain('body {');
+            expect(result.cssContent).toContain('background-color:');
+            // Should contain the surface base color from the builder
+            expect(result.cssContent).toContain('background-color: #f8fafc');
+        });
     });
 });

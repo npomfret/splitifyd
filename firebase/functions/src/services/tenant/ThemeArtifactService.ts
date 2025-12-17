@@ -93,7 +93,14 @@ export class ThemeArtifactService {
 
         sections.push('}');
 
-        // Aurora background animation
+        // Body background color - always set this as the base
+        sections.push('');
+        sections.push('/* Base body background */');
+        sections.push('body {');
+        sections.push(`  background-color: ${tokens.semantics.colors.surface.base};`);
+        sections.push('}');
+
+        // Aurora background animation (adds pseudo-element overlays on top of base)
         const auroraAnimation = this.generateAuroraAnimation(tokens);
         if (auroraAnimation) {
             sections.push('');
@@ -387,10 +394,7 @@ export class ThemeArtifactService {
         const [color1, color2, color3, color4] = gradient.aurora;
 
         return [
-            '/* Atmospheric aurora background */\n',
-            'body {',
-            `  background-color: ${tokens.semantics.colors.surface.base};`,
-            '}\n',
+            '/* Atmospheric aurora background pseudo-elements */\n',
             'body::before,',
             'body::after {',
             '  content: \'\';',
