@@ -5,7 +5,8 @@
   "scripts": {
     "build": "npm run build:check && node scripts/conditional-build.js",
     "build:check": "tsc --noEmit",
-    "build:prod": "npm run clean && tsc --project tsconfig.deploy.json && node esbuild.config.js",
+    "build:prod": "npm run clean && tsc --project tsconfig.deploy.json && npm run copy-sharing-assets && node esbuild.config.js",
+    "copy-sharing-assets": "mkdir -p lib/sharing lib/locales && (cp ../../webapp-v2/dist/index.html lib/sharing/index-template.html 2>/dev/null || echo 'Warning: webapp dist/index.html not found') && cp -r ../../webapp-v2/src/locales/* lib/locales/",
     "bundle": "node esbuild.config.js",
     "clean": "rm -rf lib",
     "super-clean": "npm run clean && rm -rf node_modules",

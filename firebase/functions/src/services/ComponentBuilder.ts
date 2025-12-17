@@ -7,6 +7,7 @@ import { UserBrowserHandlers } from '../browser/UserBrowserHandlers';
 import { createFirestoreDatabase, type IFirestoreDatabase } from '../firestore-wrapper';
 import { GroupSecurityHandlers } from '../groups/GroupSecurityHandlers';
 import { MergeHandlers } from '../merge/MergeHandlers';
+import { SharingHandlers } from '../sharing/SharingHandlers';
 import { MergeService } from '../merge/MergeService';
 import { MergeTaskService } from '../merge/MergeTaskService';
 import { ServiceConfig } from '../merge/ServiceConfig';
@@ -63,6 +64,7 @@ export class ComponentBuilder {
     private mergeTaskService?: MergeTaskService;
     private mergeHandlers?: MergeHandlers;
     private tenantImageLibraryService?: ITenantImageLibraryService;
+    private sharingHandlers?: SharingHandlers;
     private readonly firestoreReader: IFirestoreReader;
     private readonly firestoreWriter: IFirestoreWriter;
 
@@ -392,5 +394,12 @@ export class ComponentBuilder {
             );
         }
         return this.tenantImageLibraryService;
+    }
+
+    buildSharingHandlers(): SharingHandlers {
+        if (!this.sharingHandlers) {
+            this.sharingHandlers = new SharingHandlers(this.buildTenantRegistryService());
+        }
+        return this.sharingHandlers;
     }
 }

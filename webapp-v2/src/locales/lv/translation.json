@@ -1616,5 +1616,9 @@
     "success": {
       "updated": "Zīmola iestatījumi veiksmīgi atjaunināti"
     }
+  },
+  "sharing": {
+    "ogDescription": "Viegli sadaliet izdevumus ar draugiem un ģimeni",
+    "joinTitle": "Pievienojieties grupai {{appName}}"
   }
 }

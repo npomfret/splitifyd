@@ -1616,5 +1616,9 @@
     "success": {
       "updated": "ブランディング設定が正常に更新されました"
     }
+  },
+  "sharing": {
+    "ogDescription": "友達や家族と簡単に費用を分割",
+    "joinTitle": "{{appName}}でグループに参加"
   }
 }

@@ -9,6 +9,90 @@ describe('Public endpoints', () => {
         apiDriver = await ApiDriver.create();
     });
 
+    describe('Shareable pages (OG tags)', () => {
+        it('GET /join returns HTML with OG meta tags', async () => {
+            const { html, headers } = await apiDriver.getShareablePage('/join');
+
+            // Should return HTML
+            expect(headers.get('content-type')).toContain('text/html');
+
+            // Should have OG tags
+            expect(html).toContain('og:title');
+            expect(html).toContain('og:description');
+            expect(html).toContain('og:image');
+            expect(html).toContain('og:url');
+            expect(html).toContain('og:type');
+            expect(html).toContain('og:site_name');
+
+            // Should have Twitter Card tags
+            expect(html).toContain('twitter:card');
+            expect(html).toContain('twitter:title');
+            expect(html).toContain('twitter:description');
+            expect(html).toContain('twitter:image');
+        });
+
+        it('GET /join sets Vary: Host header for CDN caching', async () => {
+            const { headers } = await apiDriver.getShareablePage('/join');
+
+            expect(headers.get('vary')).toContain('Host');
+        });
+
+        it('GET /join sets Cache-Control header', async () => {
+            const { headers } = await apiDriver.getShareablePage('/join');
+
+            expect(headers.get('cache-control')).toContain('public');
+            expect(headers.get('cache-control')).toContain('max-age=');
+        });
+
+        it('GET /join includes translated description', async () => {
+            const { html } = await apiDriver.getShareablePage('/join');
+
+            // Should contain the translated description (or fallback)
+            expect(html).toMatch(/og:description.*content="[^"]+"/);
+        });
+
+        it('GET /join includes join-specific title with appName', async () => {
+            const { html } = await apiDriver.getShareablePage('/join');
+
+            // Title should include "Join a group on" pattern
+            expect(html).toMatch(/og:title.*content="Join a group on [^"]+"/);
+        });
+
+        it('GET /join works with query params', async () => {
+            const { html } = await apiDriver.getShareablePage('/join?shareToken=test123');
+
+            // Should still have OG tags
+            expect(html).toContain('og:title');
+
+            // URL should include query params
+            expect(html).toContain('shareToken=test123');
+        });
+
+        it('GET /join with lang=de uses German translations', async () => {
+            const { html } = await apiDriver.getShareablePage('/join?shareToken=test123&lang=de');
+
+            // Should have German OG tags
+            expect(html).toContain('Einer Gruppe auf');
+            expect(html).toContain('Teilen Sie Ausgaben einfach mit Freunden und Familie');
+        });
+
+        it('GET /join with lang=es uses Spanish translations', async () => {
+            const { html } = await apiDriver.getShareablePage('/join?shareToken=test123&lang=es');
+
+            // Should have Spanish OG tags
+            expect(html).toContain('Únete a un grupo en');
+            expect(html).toContain('Divide gastos fácilmente con amigos y familiares');
+        });
+
+        it('GET /join with unsupported lang falls back to English', async () => {
+            const { html } = await apiDriver.getShareablePage('/join?shareToken=test123&lang=xyz');
+
+            // Should fall back to English OG tags
+            expect(html).toContain('Join a group on');
+            expect(html).toContain('Split expenses easily with friends and family');
+        });
+    });
+
     it('GET /health responds with service status', async () => {
         const health = await apiDriver.getHealth();
 

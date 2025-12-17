@@ -1615,5 +1615,9 @@
     "success": {
       "updated": "Branding settings updated successfully"
     }
+  },
+  "sharing": {
+    "ogDescription": "Split expenses easily with friends and family",
+    "joinTitle": "Join a group on {{appName}}"
   }
 }

@@ -1616,5 +1616,9 @@
     "success": {
       "updated": "Impostazioni di branding aggiornate con successo"
     }
+  },
+  "sharing": {
+    "ogDescription": "Dividi le spese facilmente con amici e familiari",
+    "joinTitle": "Unisciti a un gruppo su {{appName}}"
   }
 }

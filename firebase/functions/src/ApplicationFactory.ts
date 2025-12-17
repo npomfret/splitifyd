@@ -27,6 +27,7 @@ import { PolicyTextHandlers } from './policies/PolicyTextHandlers';
 import { UserHandlers as PolicyUserHandlers } from './policies/UserHandlers';
 import { ReactionHandlers } from './reactions/ReactionHandlers';
 import { SettlementHandlers } from './settlements/SettlementHandlers';
+import { SharingHandlers } from './sharing/SharingHandlers';
 import { TenantAdminHandlers } from './tenant/TenantAdminHandlers';
 import { TenantImageLibraryHandlers } from './tenant/TenantImageLibraryHandlers';
 import { ThemeHandlers } from './theme/ThemeHandlers';
@@ -87,6 +88,7 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
     const policyTextHandlers = new PolicyTextHandlers(policyService, tenantRegistryService);
     const authHandlers = new AuthHandlers(authService);
     const urlRedirectHandlers = new UrlRedirectHandlers();
+    const sharingHandlers = componentBuilder.buildSharingHandlers();
 
     // Inline diagnostic handlers
     const getMetrics: RequestHandler = (req, res) => {
@@ -605,6 +607,9 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
 
         // URL utilities
         resolveRedirect: urlRedirectHandlers.resolveRedirect,
+
+        // Shareable page handlers (OG tags for social media)
+        serveShareablePage: sharingHandlers.serveShareablePage,
     };
 
     return registry;

@@ -1615,5 +1615,9 @@
     "success": {
       "updated": "Configuración de marca actualizada correctamente"
     }
+  },
+  "sharing": {
+    "ogDescription": "Divide gastos fácilmente con amigos y familiares",
+    "joinTitle": "Únete a un grupo en {{appName}}"
   }
 }

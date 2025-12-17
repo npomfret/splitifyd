@@ -168,6 +168,14 @@ const BrandingAssetsSchema = z.object({
         .optional(),
 });
 
+// Sharing/OG Tags configuration for social media previews
+// Note: Title and description come from translations (webapp-v2/src/locales/*/translation.json)
+const BrandingSharingSchema = z
+    .object({
+        ogImage: z.string().url().optional(), // Open Graph image URL (1200x630px recommended)
+    })
+    .optional();
+
 // New: Motion Tokens
 const BrandingMotionSchema = z
     .object({
@@ -308,6 +316,7 @@ export const BrandingTokensSchema = z.object({
     footer: BrandingFooterSchema,
     semantics: BrandingSemanticSchema,
     motion: BrandingMotionSchema,
+    sharing: BrandingSharingSchema,
 });
 
 export const BrandingArtifactMetadataSchema = z.object({
@@ -326,6 +335,7 @@ export const TenantBrandingSchema = z.object({
 
 export type BrandingLegal = z.infer<typeof BrandingLegalSchema>;
 export type FooterLink = z.infer<typeof FooterLinkSchema>;
+export type BrandingSharing = z.infer<typeof BrandingSharingSchema>;
 export type BrandingTokens = z.infer<typeof BrandingTokensSchema>;
 export type BrandingArtifactMetadata = z.infer<typeof BrandingArtifactMetadataSchema>;
 export type TenantBranding = z.infer<typeof TenantBrandingSchema>;

@@ -1615,5 +1615,9 @@
     "success": {
       "updated": "Merkevareinnstillinger oppdatert"
     }
+  },
+  "sharing": {
+    "ogDescription": "Del utgifter enkelt med venner og familie",
+    "joinTitle": "Bli med i en gruppe på {{appName}}"
   }
 }

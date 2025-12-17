@@ -210,3 +210,18 @@ export function translateProfileRole(role: string, t: TFunction): string {
             return role;
     }
 }
+
+// =============================================================================
+// Server-Side Translation Keys
+// =============================================================================
+//
+// These keys are used server-side (in firebase/functions/src) for features like
+// Open Graph tags. They are NOT used via the t() function, but are valid keys
+// that should not be flagged as redundant by the translation-keys test.
+//
+// The keys are listed as string literals so the test can detect them.
+
+export const SERVER_SIDE_TRANSLATION_KEYS = [
+    'sharing.ogDescription', // Used in SharingHandlers.ts for OG meta description
+    'sharing.joinTitle', // Used in SharingHandlers.ts for OG meta title
+] as const;

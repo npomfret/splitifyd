@@ -252,7 +252,7 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     protected getSaveTenantButton(): Locator {
-        return this.page.getByRole('button', { name: /(create tenant|update tenant|save changes)/i });
+        return this.getModal().getByRole('button', { name: /(create tenant|update tenant|save changes)/i });
     }
 
     protected getCancelButton(): Locator {

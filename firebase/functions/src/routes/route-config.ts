@@ -50,6 +50,16 @@ const routeDefinitions: RouteDefinition[] = [
         category: 'public',
     },
 
+    // === Shareable Pages (OG tags for social media) ===
+    // No auth required - crawlers can't authenticate
+    // These routes serve HTML with OG tags injected, then load the SPA normally
+    {
+        method: 'GET',
+        path: '/join',
+        handlerName: 'serveShareablePage',
+        category: 'public',
+    },
+
     // === Diagnostics & Infrastructure ===
     {
         method: 'GET',

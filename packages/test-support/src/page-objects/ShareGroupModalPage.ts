@@ -321,4 +321,21 @@ export class ShareGroupModalPage extends BasePage {
     async verifyCopySuccess(): Promise<void> {
         await expect(this.getCopySuccessIcon()).toBeVisible();
     }
+
+    /**
+     * Verify share link contains expected language parameter
+     * @param expectedLang - The expected language code (e.g., 'de', 'es')
+     */
+    async verifyShareLinkContainsLang(expectedLang: string): Promise<void> {
+        const link = await this.getShareLink();
+        expect(link).toContain(`lang=${expectedLang}`);
+    }
+
+    /**
+     * Verify share link does NOT contain a lang parameter (for English)
+     */
+    async verifyShareLinkHasNoLangParam(): Promise<void> {
+        const link = await this.getShareLink();
+        expect(link).not.toContain('lang=');
+    }
 }

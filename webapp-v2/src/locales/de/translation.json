@@ -1615,5 +1615,9 @@
     "success": {
       "updated": "Branding-Einstellungen erfolgreich aktualisiert"
     }
+  },
+  "sharing": {
+    "ogDescription": "Teilen Sie Ausgaben einfach mit Freunden und Familie",
+    "joinTitle": "Einer Gruppe auf {{appName}} beitreten"
   }
 }

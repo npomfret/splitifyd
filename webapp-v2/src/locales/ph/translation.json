@@ -1616,5 +1616,9 @@
     "success": {
       "updated": "Matagumpay na na-update ang mga setting ng branding"
     }
+  },
+  "sharing": {
+    "ogDescription": "Hatiin ang mga gastos nang madali sa mga kaibigan at pamilya",
+    "joinTitle": "Sumali sa isang grupo sa {{appName}}"
   }
 }

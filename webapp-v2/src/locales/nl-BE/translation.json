@@ -1616,5 +1616,9 @@
     "success": {
       "updated": "Merkinstellingen succesvol bijgewerkt"
     }
+  },
+  "sharing": {
+    "ogDescription": "Deel uitgaven gemakkelijk met vrienden en familie",
+    "joinTitle": "Word lid van een groep op {{appName}}"
   }
 }

@@ -1616,5 +1616,9 @@
     "success": {
       "updated": "브랜딩 설정이 성공적으로 업데이트되었습니다."
     }
+  },
+  "sharing": {
+    "ogDescription": "친구 및 가족과 쉽게 비용을 분할하세요",
+    "joinTitle": "{{appName}}에서 그룹에 참여하세요"
   }
 }

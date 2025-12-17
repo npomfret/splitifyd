@@ -542,6 +542,34 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return this.fetchPolicyText('/policies/cookie-policy/text');
     }
 
+    /**
+     * Fetch a shareable page (returns HTML with OG tags for social media previews).
+     * Used for testing the /join endpoint that serves SSR HTML for crawlers.
+     */
+    async getShareablePage(path: string): Promise<{ html: string; headers: Headers }> {
+        const url = `${this.config.baseUrl}${path}`;
+        const hostname = new URL(this.config.baseUrl).hostname;
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                Accept: 'text/html',
+                Host: hostname,
+            },
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            const error = new Error(`API request to ${path} failed with status ${response.status}: ${errorText}`);
+            (error as any).status = response.status;
+            throw error;
+        }
+
+        return {
+            html: await response.text(),
+            headers: response.headers,
+        };
+    }
+
     private async fetchPolicyText(endpoint: string): Promise<string> {
         const url = `${this.config.baseUrl}${endpoint}`;
         const response = await fetch(url, {

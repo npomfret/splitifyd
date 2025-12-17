@@ -11,6 +11,7 @@ import { signal } from '@preact/signals';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { QRCodeCanvas } from 'qrcode.react';
 import { useTranslation } from 'react-i18next';
+import i18n from '@/i18n';
 
 interface ShareGroupModalProps {
     isOpen: boolean;
@@ -114,7 +115,9 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                     return;
                 }
 
-                const fullUrl = `${window.location.origin}${response.shareablePath}`;
+                // Include current language in share link for OG tag localization
+                const langParam = i18n.language !== 'en' ? `&lang=${i18n.language}` : '';
+                const fullUrl = `${window.location.origin}${response.shareablePath}${langParam}`;
                 shareLinkSignal.value = fullUrl;
                 expiresAtSignal.value = response.expiresAt;
             } catch (err) {
