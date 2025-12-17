@@ -131,7 +131,7 @@ export function ActivityFeedDropdownContent({ userId, onItemClick }: ActivityFee
                                             <button
                                                 type='button'
                                                 onClick={() => handleNavigate(item)}
-                                                className='group flex w-full items-start gap-2.5 rounded-lg border border-border-default/50 bg-surface-base/50 px-3 py-2.5 text-start transition-all duration-200 hover:border-interactive-primary/40 hover:bg-surface-raised focus:outline-hidden focus-visible:ring-2 focus-visible:ring-interactive-primary'
+                                                className='group flex w-full items-start gap-2.5 rounded-lg border border-border-default/50 bg-surface-raised px-3 py-2.5 text-start transition-all duration-200 hover:border-interactive-primary/40 hover:bg-surface-muted focus:outline-hidden focus-visible:ring-2 focus-visible:ring-interactive-primary'
                                                 aria-label={description}
                                             >
                                                 <div className='h-2 w-2 rounded-full mt-1.5 bg-interactive-primary shrink-0' aria-hidden='true' />
@@ -145,7 +145,7 @@ export function ActivityFeedDropdownContent({ userId, onItemClick }: ActivityFee
                                             </button>
                                         )
                                         : (
-                                            <div className='flex items-start gap-2.5 rounded-lg border border-border-default/50 bg-surface-base/50 px-3 py-2.5'>
+                                            <div className='flex items-start gap-2.5 rounded-lg border border-border-default/50 bg-surface-raised px-3 py-2.5'>
                                                 <div className='h-2 w-2 rounded-full mt-1.5 bg-interactive-primary shrink-0' aria-hidden='true' />
                                                 <div className='flex-1 min-w-0'>
                                                     {content}
