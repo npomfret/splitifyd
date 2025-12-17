@@ -72,7 +72,7 @@ export function UserMenu({ user }: UserMenuProps) {
             {isOpen && (
                 <div
                     id='user-dropdown-menu'
-                    className='absolute end-0 mt-2 w-72 bg-surface-popover border border-border-default rounded-xl shadow-2xl z-9999'
+                    className='fixed inset-x-4 top-[4.5rem] sm:absolute sm:inset-x-auto sm:top-auto sm:end-0 sm:mt-2 sm:w-72 bg-surface-popover border border-border-default rounded-xl shadow-2xl z-9999'
                     role='menu'
                     aria-orientation='vertical'
                     aria-labelledby='user-menu-button'

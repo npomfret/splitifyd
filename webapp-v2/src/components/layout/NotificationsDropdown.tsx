@@ -70,7 +70,7 @@ export function NotificationsDropdown({ userId }: NotificationsDropdownProps) {
             {isOpen && (
                 <div
                     id='notifications-dropdown-menu'
-                    className='absolute end-0 mt-2 w-96 max-h-[70vh] overflow-y-auto bg-surface-popover border border-border-default rounded-xl shadow-2xl z-9999'
+                    className='fixed inset-x-4 top-[4.5rem] sm:absolute sm:inset-x-auto sm:top-auto sm:end-0 sm:mt-2 sm:w-96 max-h-[70vh] overflow-y-auto bg-surface-popover border border-border-default rounded-xl shadow-2xl z-9999'
                     role='dialog'
                     aria-label={t('notifications.title')}
                 >
