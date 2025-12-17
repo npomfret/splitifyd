@@ -361,6 +361,10 @@
       "logout": "로그아웃"
     }
   },
+  "notifications": {
+    "title": "알림",
+    "openNotifications": "알림 열기"
+  },
   "errors": {
     "invalidLink": "잘못된 링크"
   },

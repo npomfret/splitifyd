@@ -361,6 +361,10 @@
       "logout": "Вийти"
     }
   },
+  "notifications": {
+    "title": "Сповіщення",
+    "openNotifications": "Відкрити сповіщення"
+  },
   "errors": {
     "invalidLink": "Недійсне посилання"
   },

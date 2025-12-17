@@ -361,6 +361,10 @@
       "logout": "Logg ut"
     }
   },
+  "notifications": {
+    "title": "Varsler",
+    "openNotifications": "Åpne varsler"
+  },
   "errors": {
     "invalidLink": "Ugyldig lenke"
   },

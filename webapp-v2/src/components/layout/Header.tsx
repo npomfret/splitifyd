@@ -9,8 +9,9 @@ import { useComputed } from '@preact/signals';
 import { lazy, Suspense } from 'preact/compat';
 import { useTranslation } from 'react-i18next';
 
-// Lazy load UserMenu to avoid SSG issues
+// Lazy load UserMenu and NotificationsDropdown to avoid SSG issues
 const UserMenu = lazy(() => import('./UserMenu').then((m) => ({ default: m.UserMenu })));
+const NotificationsDropdown = lazy(() => import('./NotificationsDropdown').then((m) => ({ default: m.NotificationsDropdown })));
 
 interface HeaderProps {
     variant?: 'default' | 'minimal' | 'dashboard';
@@ -45,6 +46,9 @@ export function Header({ variant = 'default', showAuth = true }: HeaderProps) {
         if (isAuthenticated.value && user.value) {
             return (
                 <div className='flex items-center gap-4'>
+                    <Suspense fallback={<div className='w-10' />}>
+                        <NotificationsDropdown userId={user.value.uid} />
+                    </Suspense>
                     <Suspense fallback={<div>...</div>}>
                         <UserMenu user={user.value} />
                     </Suspense>

@@ -361,6 +361,10 @@
       "logout": "Mag-logout"
     }
   },
+  "notifications": {
+    "title": "Mga Abiso",
+    "openNotifications": "Buksan ang mga abiso"
+  },
   "errors": {
     "invalidLink": "Di-wastong Link"
   },

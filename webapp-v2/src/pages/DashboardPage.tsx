@@ -8,7 +8,6 @@ import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { enhancedGroupsStore } from '../app/stores/groups-store-enhanced';
-import { ActivityFeedCard } from '../components/dashboard/ActivityFeedCard';
 import { CreateGroupModal } from '../components/dashboard/CreateGroupModal';
 import { GroupsList } from '../components/dashboard/GroupsList';
 import { BaseLayout } from '../components/layout/BaseLayout';
@@ -143,20 +142,7 @@ export function DashboardPage() {
                             {/* Groups Content */}
                             <GroupsList onCreateGroup={() => setIsCreateModalOpen(true)} onInvite={handleInvite} onAddExpense={handleAddExpense} />
                         </section>
-
-                        {/* Activity Feed - Show after groups on mobile, hide on large screens */}
-                        <div className='lg:hidden mt-6'>
-                            <ActivityFeedCard userId={user.uid} />
-                        </div>
                     </>
-                }
-                sidebarContent={
-                    <div className='space-y-4'>
-                        {/* Activity Feed - Sidebar on large screens */}
-                        <div className='hidden lg:block'>
-                            <ActivityFeedCard userId={user.uid} />
-                        </div>
-                    </div>
                 }
             />
 

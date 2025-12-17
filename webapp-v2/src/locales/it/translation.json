@@ -361,6 +361,10 @@
       "logout": "Esci"
     }
   },
+  "notifications": {
+    "title": "Notifiche",
+    "openNotifications": "Apri notifiche"
+  },
   "errors": {
     "invalidLink": "Link non valido"
   },

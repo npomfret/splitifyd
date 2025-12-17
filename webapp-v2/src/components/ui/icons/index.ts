@@ -4,6 +4,7 @@ export { ArrowDownIcon } from './ArrowDownIcon';
 export { ArrowRightIcon } from './ArrowRightIcon';
 export { BadgeCheckIcon } from './BadgeCheckIcon';
 export { BanknotesIcon } from './BanknotesIcon';
+export { BellIcon } from './BellIcon';
 export { BuildingIcon } from './BuildingIcon';
 export { CheckCircleIcon } from './CheckCircleIcon';
 export { CheckIcon } from './CheckIcon';

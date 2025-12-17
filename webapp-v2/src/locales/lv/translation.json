@@ -361,6 +361,10 @@
       "logout": "Izrakstīties"
     }
   },
+  "notifications": {
+    "title": "Paziņojumi",
+    "openNotifications": "Atvērt paziņojumus"
+  },
   "errors": {
     "invalidLink": "Nederīga saite"
   },

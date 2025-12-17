@@ -361,6 +361,10 @@
       "logout": "ログアウト"
     }
   },
+  "notifications": {
+    "title": "通知",
+    "openNotifications": "通知を開く"
+  },
   "errors": {
     "invalidLink": "無効なリンク"
   },

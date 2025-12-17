@@ -54,10 +54,22 @@ export class DashboardPage extends BasePage {
     }
 
     /**
-     * Activity feed card container - now a section with aria-labelledby
+     * Activity feed is now in the header notifications dropdown.
+     * This returns the dropdown dialog container.
      */
     private getActivityFeedContainer(): Locator {
-        return this.page.locator('section[aria-labelledby="activity-feed-heading"]:visible').first();
+        return this.page.getByRole('dialog', { name: translation.notifications.title });
+    }
+
+    /**
+     * Ensure the notifications dropdown is open before interacting with activity feed.
+     */
+    private async ensureNotificationsDropdownOpen(): Promise<void> {
+        const dropdown = this.getActivityFeedContainer();
+        const isVisible = await dropdown.isVisible();
+        if (!isVisible) {
+            await this.header.openNotificationsDropdown();
+        }
     }
 
     /**
@@ -132,6 +144,7 @@ export class DashboardPage extends BasePage {
      * Used by e2e flows to assert backend-triggered events appear on the dashboard.
      */
     async verifyActivityFeedShows(description: string): Promise<void> {
+        await this.ensureNotificationsDropdownOpen();
         await expect(this.getActivityFeedContainer()).toBeVisible();
         const matchingItems = this.getActivityFeedItems().filter({ hasText: description });
         await expect(matchingItems).not.toHaveCount(0);
@@ -830,10 +843,10 @@ export class DashboardPage extends BasePage {
     // ============================================================================
 
     /**
-     * Activity feed heading
+     * Activity feed heading (now in notifications dropdown - uses "Notifications" title)
      */
     private getActivityFeedHeading(): Locator {
-        return this.getActivityFeedContainer().getByRole('heading', { name: translation.activityFeed.title });
+        return this.getActivityFeedContainer().getByRole('heading', { name: translation.notifications.title });
     }
 
     /**
@@ -885,87 +898,98 @@ export class DashboardPage extends BasePage {
     }
 
     /**
-     * Verify activity feed is visible
+     * Verify activity feed is visible (opens notifications dropdown first)
      */
     async verifyActivityFeedVisible(): Promise<void> {
+        await this.ensureNotificationsDropdownOpen();
         await expect(this.getActivityFeedContainer()).toBeVisible();
         await expect(this.getActivityFeedHeading()).toBeVisible();
     }
 
     /**
-     * Verify activity feed shows empty state
+     * Verify activity feed shows empty state (opens notifications dropdown first)
      */
     async verifyActivityFeedEmptyState(): Promise<void> {
+        await this.ensureNotificationsDropdownOpen();
         await expect(this.getActivityFeedEmptyState()).toBeVisible();
         await expect(this.getActivityFeedEmptyState().getByText(translation.activityFeed.emptyState.title)).toBeVisible();
     }
 
     /**
-     * Verify activity feed shows error
+     * Verify activity feed shows error (opens notifications dropdown first)
      */
     async verifyActivityFeedError(): Promise<void> {
+        await this.ensureNotificationsDropdownOpen();
         const errorText = translation.activityFeed.error.loadFailed;
         await expect(this.getActivityFeedError()).toBeVisible();
         await expect(this.getActivityFeedError().getByText(errorText)).toBeVisible();
     }
 
     /**
-     * Verify activity feed has specific number of items
+     * Verify activity feed has specific number of items (opens notifications dropdown first)
      */
     async verifyActivityFeedItemCount(expectedCount: number): Promise<void> {
+        await this.ensureNotificationsDropdownOpen();
         await expect(this.getActivityFeedItems()).toHaveCount(expectedCount);
     }
 
     /**
-     * Verify activity feed contains text
+     * Verify activity feed contains text (opens notifications dropdown first)
      */
     async verifyActivityFeedContainsText(text: string): Promise<void> {
+        await this.ensureNotificationsDropdownOpen();
         await expect(this.getActivityFeedItems().filter({ hasText: text })).toHaveCount(1);
     }
 
     /**
-     * Verify activity feed contains a comment preview
+     * Verify activity feed contains a comment preview (opens notifications dropdown first)
      */
     async verifyActivityFeedContainsPreview(preview: string): Promise<void> {
+        await this.ensureNotificationsDropdownOpen();
         await expect(this.getActivityFeedContainer().getByText(preview, { exact: true })).toBeVisible();
     }
 
     /**
-     * Click an activity feed item by its description
+     * Click an activity feed item by its description (opens notifications dropdown first)
      */
     async clickActivityFeedItem(description: string): Promise<void> {
+        await this.ensureNotificationsDropdownOpen();
         const button = this.getActivityFeedItemButton(description);
         await this.clickButton(button, { buttonName: `Activity Feed Item: ${description}` });
     }
 
     /**
-     * Click activity feed retry button
+     * Click activity feed retry button (opens notifications dropdown first)
      */
     async clickActivityFeedRetry(): Promise<void> {
+        await this.ensureNotificationsDropdownOpen();
         const button = this.getActivityFeedRetryButton();
         await this.clickButton(button, { buttonName: 'Activity Feed Retry' });
     }
 
     /**
-     * Click activity feed load more button
+     * Click activity feed load more button (opens notifications dropdown first)
      */
     async clickActivityFeedLoadMore(): Promise<void> {
+        await this.ensureNotificationsDropdownOpen();
         const button = this.getActivityFeedLoadMoreButton();
         await this.clickButton(button, { buttonName: 'Activity Feed Load More' });
     }
 
     /**
-     * Verify load more button is visible and enabled
+     * Verify load more button is visible and enabled (opens notifications dropdown first)
      */
     async verifyActivityFeedLoadMoreVisible(): Promise<void> {
+        await this.ensureNotificationsDropdownOpen();
         await expect(this.getActivityFeedLoadMoreButton()).toBeVisible();
         await expect(this.getActivityFeedLoadMoreButton()).toBeEnabled();
     }
 
     /**
-     * Verify load more button is not visible
+     * Verify load more button is not visible (opens notifications dropdown first)
      */
     async verifyActivityFeedLoadMoreHidden(): Promise<void> {
+        await this.ensureNotificationsDropdownOpen();
         await expect(this.getActivityFeedLoadMoreButton()).not.toBeVisible();
     }
 }

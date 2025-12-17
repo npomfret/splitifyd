@@ -82,7 +82,7 @@ export function SkeletonCard({ className }: { className?: string; }) {
 }
 
 /**
- * Skeleton for an activity feed item - matches the structure in ActivityFeedCard
+ * Skeleton for an activity feed item - matches the structure in ActivityFeedDropdownContent
  */
 export function SkeletonActivityItem({ className }: { className?: string; }) {
     return (

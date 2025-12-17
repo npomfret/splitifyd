@@ -15,6 +15,22 @@ export class HeaderPage extends BasePage {
     }
 
     /**
+     * Notifications Dropdown Locators
+     */
+    protected getNotificationsBell(): Locator {
+        return this.page.getByRole('button', { name: translation.notifications.openNotifications });
+    }
+
+    protected getNotificationsDropdown(): Locator {
+        return this.page.getByRole('dialog', { name: translation.notifications.title });
+    }
+
+    protected getUnreadIndicator(): Locator {
+        // The red dot indicator next to bell - a span with bg-semantic-error inside the bell button
+        return this.getNotificationsBell().locator('span.bg-semantic-error');
+    }
+
+    /**
      * User Menu Locators - using semantic selectors (aria-label, role)
      */
     protected getUserMenuButton(): Locator {
@@ -228,5 +244,88 @@ export class HeaderPage extends BasePage {
      */
     async verifyAppNameNotVisible(appName: string): Promise<void> {
         await expect(this.getAppNameText(appName)).toHaveCount(0);
+    }
+
+    // ==========================================
+    // Notifications Dropdown Actions
+    // ==========================================
+
+    /**
+     * Open the notifications dropdown
+     */
+    async openNotificationsDropdown(): Promise<void> {
+        const bellButton = this.getNotificationsBell();
+        await expect(bellButton).toBeVisible();
+        await expect(bellButton).toBeEnabled();
+        await bellButton.click();
+        await expect(this.getNotificationsDropdown()).toBeVisible();
+    }
+
+    /**
+     * Close the notifications dropdown by clicking the bell button again
+     */
+    async closeNotificationsDropdown(): Promise<void> {
+        const bellButton = this.getNotificationsBell();
+        await bellButton.click();
+        await expect(this.getNotificationsDropdown()).not.toBeVisible();
+    }
+
+    /**
+     * Click a notification item by its description text
+     */
+    async clickNotificationItem(description: string): Promise<void> {
+        const dropdown = this.getNotificationsDropdown();
+        await expect(dropdown).toBeVisible();
+        const item = dropdown.getByRole('button', { name: description });
+        await expect(item).toBeVisible();
+        await item.click();
+    }
+
+    // ==========================================
+    // Notifications Dropdown Verifications
+    // ==========================================
+
+    /**
+     * Verify notifications bell button is visible
+     */
+    async verifyNotificationsBellVisible(): Promise<void> {
+        await expect(this.getNotificationsBell()).toBeVisible();
+    }
+
+    /**
+     * Verify notifications dropdown is visible
+     */
+    async verifyNotificationsDropdownVisible(): Promise<void> {
+        await expect(this.getNotificationsDropdown()).toBeVisible();
+    }
+
+    /**
+     * Verify notifications dropdown is not visible
+     */
+    async verifyNotificationsDropdownNotVisible(): Promise<void> {
+        await expect(this.getNotificationsDropdown()).not.toBeVisible();
+    }
+
+    /**
+     * Verify unread indicator (red dot) is visible on bell
+     */
+    async verifyUnreadIndicatorVisible(): Promise<void> {
+        await expect(this.getUnreadIndicator()).toBeVisible();
+    }
+
+    /**
+     * Verify unread indicator (red dot) is not visible on bell
+     */
+    async verifyUnreadIndicatorNotVisible(): Promise<void> {
+        await expect(this.getUnreadIndicator()).not.toBeVisible();
+    }
+
+    /**
+     * Verify notifications dropdown contains specific text
+     */
+    async verifyNotificationsContainsText(text: string): Promise<void> {
+        const dropdown = this.getNotificationsDropdown();
+        await expect(dropdown).toBeVisible();
+        await expect(dropdown.getByText(text)).toBeVisible();
     }
 }

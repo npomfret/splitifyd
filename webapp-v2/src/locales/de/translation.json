@@ -361,6 +361,10 @@
       "logout": "Abmelden"
     }
   },
+  "notifications": {
+    "title": "Benachrichtigungen",
+    "openNotifications": "Benachrichtigungen öffnen"
+  },
   "errors": {
     "invalidLink": "Ungültiger Link"
   },

@@ -361,6 +361,10 @@
       "logout": "Logout"
     }
   },
+  "notifications": {
+    "title": "Notifications",
+    "openNotifications": "Open notifications"
+  },
   "errors": {
     "invalidLink": "Invalid Link"
   },

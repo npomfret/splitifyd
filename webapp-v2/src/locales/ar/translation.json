@@ -361,6 +361,10 @@
       "logout": "تسجيل الخروج"
     }
   },
+  "notifications": {
+    "title": "الإشعارات",
+    "openNotifications": "فتح الإشعارات"
+  },
   "errors": {
     "invalidLink": "رابط غير صالح"
   },

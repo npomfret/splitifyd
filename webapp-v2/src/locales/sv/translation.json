@@ -361,6 +361,10 @@
       "logout": "Logga ut"
     }
   },
+  "notifications": {
+    "title": "Meddelanden",
+    "openNotifications": "Öppna meddelanden"
+  },
   "errors": {
     "invalidLink": "Ogiltig länk"
   },
