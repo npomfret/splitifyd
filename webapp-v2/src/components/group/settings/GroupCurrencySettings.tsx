@@ -2,8 +2,9 @@ import { CurrencyService } from '@/app/services/currencyService';
 import { cx } from '@/utils/cx.ts';
 import { useCallback, useMemo, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
-import { Alert, Select, Switch } from '../../ui';
-import { CurrencyIcon, XIcon } from '../../ui/icons';
+import { Alert, Select, Switch, Tooltip } from '../../ui';
+import { Clickable } from '../../ui/Clickable';
+import { CurrencyIcon, InfoCircleIcon, XIcon } from '../../ui/icons';
 
 interface GroupCurrencySettingsProps {
     enabled: boolean;
@@ -103,10 +104,19 @@ export function GroupCurrencySettings({
     return (
         <div className='space-y-4'>
             <div className='border-t border-border-default pt-6'>
-                <h3 className='text-base font-medium text-text-primary mb-2'>
+                <h3 className='flex items-center gap-1.5 text-base font-medium text-text-primary mb-4'>
                     {t('groupSettings.currencySettings.title')}
+                    <Tooltip content={t('groupSettings.currencySettings.description')} placement='top'>
+                        <Clickable
+                            as='button'
+                            type='button'
+                            className='text-text-muted hover:text-text-primary transition-colors p-0.5 rounded focus:outline-hidden focus:ring-2 focus:ring-interactive-primary'
+                            aria-label={t('common.moreInfo')}
+                        >
+                            <InfoCircleIcon size={16} />
+                        </Clickable>
+                    </Tooltip>
                 </h3>
-                <p className='help-text mb-4'>{t('groupSettings.currencySettings.description')}</p>
 
                 <Switch
                     label={t('groupSettings.currencySettings.enableToggle')}

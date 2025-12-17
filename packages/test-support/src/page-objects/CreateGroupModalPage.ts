@@ -92,24 +92,27 @@ export class CreateGroupModalPage extends BasePage {
     }
 
     /**
-     * Group name help text
+     * Group name info icon (help text is in tooltip)
      */
-    protected getGroupNameHelpText(): Locator {
-        return this.getModalContainer().getByText(translation.createGroupModal.groupNameHelpText);
+    protected getGroupNameInfoIcon(): Locator {
+        // Info icon is next to the group name label, with aria-label "More information"
+        return this.getModalContainer().getByLabel(translation.common.moreInfo).first();
     }
 
     /**
-     * Group description help text
+     * Group description info icon (help text is in tooltip)
      */
-    protected getGroupDescriptionHelpText(): Locator {
-        return this.getModalContainer().getByText(translation.createGroupModal.groupDescriptionHelpText);
+    protected getGroupDescriptionInfoIcon(): Locator {
+        // Info icon is next to the description label
+        return this.getModalContainer().getByLabel(translation.common.moreInfo).nth(2);
     }
 
     /**
-     * Group display name help text
+     * Group display name info icon (help text is in tooltip)
      */
-    protected getGroupDisplayNameHelpText(): Locator {
-        return this.getModalContainer().getByText(translation.createGroupModal.groupDisplayNameHelpText);
+    protected getGroupDisplayNameInfoIcon(): Locator {
+        // Info icon is next to the display name label
+        return this.getModalContainer().getByLabel(translation.common.moreInfo).nth(1);
     }
 
     // ============================================================================
@@ -489,12 +492,12 @@ export class CreateGroupModalPage extends BasePage {
     }
 
     /**
-     * Verify help text is displayed correctly
+     * Verify info icons are displayed (help text is in tooltips)
      */
-    async verifyHelpTextDisplayed(): Promise<void> {
-        await expect(this.getGroupNameHelpText()).toBeVisible();
-        await expect(this.getGroupDisplayNameHelpText()).toBeVisible();
-        await expect(this.getGroupDescriptionHelpText()).toBeVisible();
+    async verifyInfoIconsDisplayed(): Promise<void> {
+        await expect(this.getGroupNameInfoIcon()).toBeVisible();
+        await expect(this.getGroupDisplayNameInfoIcon()).toBeVisible();
+        await expect(this.getGroupDescriptionInfoIcon()).toBeVisible();
     }
 
     // ============================================================================

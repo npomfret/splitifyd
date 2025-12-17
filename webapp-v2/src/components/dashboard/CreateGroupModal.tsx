@@ -3,7 +3,7 @@ import { useAuthRequired } from '@/app/hooks/useAuthRequired';
 import { CurrencyService } from '@/app/services/currencyService';
 import { enhancedGroupsStore } from '@/app/stores/groups-store-enhanced.ts';
 import { Clickable } from '@/components/ui/Clickable';
-import { CurrencyIcon, XCircleIcon, XIcon } from '@/components/ui/icons';
+import { CurrencyIcon, InfoCircleIcon, XCircleIcon, XIcon } from '@/components/ui/icons';
 import { Modal, ModalContent, ModalFooter, ModalHeader } from '@/components/ui/Modal';
 import { cx } from '@/utils/cx';
 import { CreateGroupRequest, CurrencyISOCode, GroupId, toCurrencyISOCode, toDisplayName, toGroupName } from '@billsplit-wl/shared';
@@ -274,8 +274,22 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                     <Stack spacing='lg'>
                         {/* Group Name */}
                         <div>
+                            <label htmlFor='group-name' className='flex items-center gap-1.5 text-sm font-medium text-text-primary mb-2'>
+                                {t('createGroupModal.groupNameLabel')}
+                                <span className='text-semantic-error'>{t('common.required')}</span>
+                                <Tooltip content={t('createGroupModal.groupNameHelpText')} placement='top'>
+                                    <Clickable
+                                        as='button'
+                                        type='button'
+                                        className='text-text-muted hover:text-text-primary transition-colors p-0.5 rounded focus:outline-hidden focus:ring-2 focus:ring-interactive-primary'
+                                        aria-label={t('common.moreInfo')}
+                                    >
+                                        <InfoCircleIcon size={16} />
+                                    </Clickable>
+                                </Tooltip>
+                            </label>
                             <Input
-                                label={t('createGroupModal.groupNameLabel')}
+                                id='group-name'
                                 type='text'
                                 name='name'
                                 placeholder={t('createGroupModal.groupNamePlaceholder')}
@@ -290,13 +304,26 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                                 disabled={isSubmitting}
                                 error={validationError || undefined}
                             />
-                            <p className='mt-1 help-text'>{t('createGroupModal.groupNameHelpText')}</p>
                         </div>
 
                         {/* Group Display Name */}
                         <div>
+                            <label htmlFor='group-display-name' className='flex items-center gap-1.5 text-sm font-medium text-text-primary mb-2'>
+                                {t('createGroupModal.groupDisplayNameLabel')}
+                                <span className='text-semantic-error'>{t('common.required')}</span>
+                                <Tooltip content={t('createGroupModal.groupDisplayNameHelpText')} placement='top'>
+                                    <Clickable
+                                        as='button'
+                                        type='button'
+                                        className='text-text-muted hover:text-text-primary transition-colors p-0.5 rounded focus:outline-hidden focus:ring-2 focus:ring-interactive-primary'
+                                        aria-label={t('common.moreInfo')}
+                                    >
+                                        <InfoCircleIcon size={16} />
+                                    </Clickable>
+                                </Tooltip>
+                            </label>
                             <Input
-                                label={t('createGroupModal.groupDisplayNameLabel')}
+                                id='group-display-name'
                                 type='text'
                                 name='groupDisplayName'
                                 placeholder={t('createGroupModal.groupDisplayNamePlaceholder')}
@@ -310,12 +337,23 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                                 disabled={isSubmitting}
                                 error={displayNameValidationError || undefined}
                             />
-                            <p className='mt-1 help-text'>{t('createGroupModal.groupDisplayNameHelpText')}</p>
                         </div>
 
                         {/* Group Description (Optional) */}
                         <div>
-                            <label for='group-description' className='block text-sm font-medium text-text-primary mb-2'>{t('createGroupModal.groupDescriptionLabel')}</label>
+                            <label htmlFor='group-description' className='flex items-center gap-1.5 text-sm font-medium text-text-primary mb-2'>
+                                {t('createGroupModal.groupDescriptionLabel')}
+                                <Tooltip content={t('createGroupModal.groupDescriptionHelpText')} placement='top'>
+                                    <Clickable
+                                        as='button'
+                                        type='button'
+                                        className='text-text-muted hover:text-text-primary transition-colors p-0.5 rounded focus:outline-hidden focus:ring-2 focus:ring-interactive-primary'
+                                        aria-label={t('common.moreInfo')}
+                                    >
+                                        <InfoCircleIcon size={16} />
+                                    </Clickable>
+                                </Tooltip>
+                            </label>
                             <textarea
                                 id='group-description'
                                 name='description'
@@ -329,7 +367,6 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                                 disabled={isSubmitting}
                                 maxLength={200}
                             />
-                            <p className='mt-1 help-text'>{t('createGroupModal.groupDescriptionHelpText')}</p>
                         </div>
 
                         {/* Currency Restrictions (Optional) */}

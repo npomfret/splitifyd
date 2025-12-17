@@ -445,14 +445,15 @@ export class SettingsPage extends BasePage {
     }
 
     // ============================================================================
-    // DISPLAY NAME HELPER TEXT LOCATORS
+    // DISPLAY NAME INFO ICON LOCATORS
     // ============================================================================
 
     /**
-     * Display name helper text
+     * Display name info icon (contains helper text in tooltip)
      */
-    protected getDisplayNameHelperText(): Locator {
-        return this.page.getByText(/Use your full name or a nickname/i);
+    protected getDisplayNameInfoIcon(): Locator {
+        // The info icon is inside the label element that contains "Display Name" text
+        return this.page.locator('label').filter({ hasText: translation.settingsPage.displayNameLabel }).getByLabel(translation.common.moreInfo);
     }
 
     // ============================================================================
@@ -467,10 +468,11 @@ export class SettingsPage extends BasePage {
     }
 
     /**
-     * Profile Information section description
+     * Profile Information section info icon (description is in tooltip)
      */
-    protected getProfileInformationDescription(): Locator {
-        return this.page.getByText(/Update the details other members see across/);
+    protected getProfileInformationInfoIcon(): Locator {
+        // The info icon is next to the Profile Information heading
+        return this.getProfileSection().getByLabel(translation.common.moreInfo).first();
     }
 
     /**
@@ -481,10 +483,11 @@ export class SettingsPage extends BasePage {
     }
 
     /**
-     * Password section description
+     * Password section info icon (description is in tooltip)
      */
-    protected getPasswordDescription(): Locator {
-        return this.page.getByText(/Set a strong password to keep your .* account secure/);
+    protected getPasswordInfoIcon(): Locator {
+        // The info icon is next to the Password heading
+        return this.getPasswordSection().getByLabel(translation.common.moreInfo).first();
     }
 
     /**
@@ -552,14 +555,14 @@ export class SettingsPage extends BasePage {
     }
 
     // ============================================================================
-    // DISPLAY NAME HELPER TEXT VERIFICATION METHODS
+    // DISPLAY NAME INFO ICON VERIFICATION METHODS
     // ============================================================================
 
     /**
-     * Verify display name helper text is visible
+     * Verify display name info icon is visible (helper text is in tooltip)
      */
-    async verifyDisplayNameHelperTextVisible(): Promise<void> {
-        await expect(this.getDisplayNameHelperText()).toBeVisible();
+    async verifyDisplayNameInfoIconVisible(): Promise<void> {
+        await expect(this.getDisplayNameInfoIcon()).toBeVisible();
     }
 
     // ============================================================================
@@ -567,13 +570,13 @@ export class SettingsPage extends BasePage {
     // ============================================================================
 
     /**
-     * Verify all section headers and descriptions are visible
+     * Verify all section headers and info icons are visible
      */
-    async verifySectionHeadersAndDescriptionsVisible(): Promise<void> {
+    async verifySectionHeadersAndInfoIconsVisible(): Promise<void> {
         await expect(this.getProfileInformationHeader()).toBeVisible();
-        await expect(this.getProfileInformationDescription()).toBeVisible();
+        await expect(this.getProfileInformationInfoIcon()).toBeVisible();
         await expect(this.getPasswordHeader()).toBeVisible();
-        await expect(this.getPasswordDescription()).toBeVisible();
+        await expect(this.getPasswordInfoIcon()).toBeVisible();
     }
 
     /**
@@ -584,10 +587,10 @@ export class SettingsPage extends BasePage {
     }
 
     /**
-     * Verify profile information section description is visible
+     * Verify profile information section info icon is visible (description in tooltip)
      */
-    async verifyProfileInformationDescriptionVisible(): Promise<void> {
-        await expect(this.getProfileInformationDescription()).toBeVisible();
+    async verifyProfileInformationInfoIconVisible(): Promise<void> {
+        await expect(this.getProfileInformationInfoIcon()).toBeVisible();
     }
 
     /**
@@ -598,10 +601,10 @@ export class SettingsPage extends BasePage {
     }
 
     /**
-     * Verify password section description is visible
+     * Verify password section info icon is visible (description in tooltip)
      */
-    async verifyPasswordSectionDescriptionVisible(): Promise<void> {
-        await expect(this.getPasswordDescription()).toBeVisible();
+    async verifyPasswordInfoIconVisible(): Promise<void> {
+        await expect(this.getPasswordInfoIcon()).toBeVisible();
     }
 
     /**

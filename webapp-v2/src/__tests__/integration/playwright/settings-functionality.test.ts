@@ -340,11 +340,11 @@ test.describe('Settings Page - UI Elements and Layout', () => {
         // 1. Navigate to settings page
         await settingsPage.navigate();
 
-        // 2. Verify helper text is visible
-        await settingsPage.verifyDisplayNameHelperTextVisible();
+        // 2. Verify info icon is visible (helper text is in tooltip)
+        await settingsPage.verifyDisplayNameInfoIconVisible();
     });
 
-    test('should display section headers and descriptions', async ({ authenticatedPage }) => {
+    test('should display section headers and info icons', async ({ authenticatedPage }) => {
         const { page } = authenticatedPage;
         const settingsPage = new SettingsPage(page);
 
@@ -354,14 +354,14 @@ test.describe('Settings Page - UI Elements and Layout', () => {
         // 2. Verify profile information section header
         await settingsPage.verifyProfileInformationHeaderVisible();
 
-        // 3. Verify profile information subheader
-        await settingsPage.verifyProfileInformationDescriptionVisible();
+        // 3. Verify profile information info icon (description in tooltip)
+        await settingsPage.verifyProfileInformationInfoIconVisible();
 
         // 4. Verify password section header
         await settingsPage.verifyPasswordSectionHeaderVisible();
 
-        // 5. Verify password intro text
-        await settingsPage.verifyPasswordSectionDescriptionVisible();
+        // 5. Verify password info icon (description in tooltip)
+        await settingsPage.verifyPasswordInfoIconVisible();
     });
 
     test('should display page hero label', async ({ authenticatedPage }) => {

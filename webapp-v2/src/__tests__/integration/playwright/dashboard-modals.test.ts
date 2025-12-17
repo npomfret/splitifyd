@@ -32,7 +32,7 @@ test.describe('Dashboard Create Group Functionality', () => {
         // Verify modal is open with correct initial state
         await createGroupModal.verifyModalOpen();
         await createGroupModal.verifyFormEmpty();
-        await createGroupModal.verifyHelpTextDisplayed();
+        await createGroupModal.verifyInfoIconsDisplayed();
 
         await createGroupModal.verifyGroupDisplayNameValue(user.displayName ?? '');
     });

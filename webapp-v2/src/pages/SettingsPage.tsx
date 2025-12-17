@@ -1,6 +1,8 @@
 import { translateProfileRole } from '@/app/i18n/dynamic-translations';
 import { themeStore } from '@/app/stores/theme-store.ts';
-import { Alert, Avatar, Button, Card, Form, Input, Typography } from '@/components/ui';
+import { Alert, Avatar, Button, Card, Form, Input, Tooltip, Typography } from '@/components/ui';
+import { Clickable } from '@/components/ui/Clickable';
+import { InfoCircleIcon } from '@/components/ui/icons';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { logError } from '@/utils/browser-logger';
 import { SystemUserRoles, toEmail, toPassword } from '@billsplit-wl/shared';
@@ -377,9 +379,18 @@ export function SettingsPage() {
                         <div className='space-y-6'>
                             <Card padding='lg'>
                                 <div className='space-y-6'>
-                                    <div className='space-y-2'>
+                                    <div className='flex items-center gap-1.5'>
                                         <Typography variant='heading'>{t('settingsPage.profileInformationHeader')}</Typography>
-                                        <p className='help-text'>{t('settingsPage.profileInformationSubheader')}</p>
+                                        <Tooltip content={t('settingsPage.profileInformationSubheader')} placement='top'>
+                                            <Clickable
+                                                as='button'
+                                                type='button'
+                                                className='text-text-muted hover:text-text-primary transition-colors p-0.5 rounded focus:outline-hidden focus:ring-2 focus:ring-interactive-primary'
+                                                aria-label={t('common.moreInfo')}
+                                            >
+                                                <InfoCircleIcon size={16} />
+                                            </Clickable>
+                                        </Tooltip>
                                     </div>
 
                                     <Form
@@ -391,9 +402,22 @@ export function SettingsPage() {
                                         }}
                                         className='space-y-5'
                                     >
-                                        <div className='space-y-2'>
+                                        <div>
+                                            <label htmlFor='settings-display-name' className='flex items-center gap-1.5 text-sm font-medium text-text-primary mb-2'>
+                                                {t('settingsPage.displayNameLabel')}
+                                                <Tooltip content={t('settingsPage.displayNameHelper')} placement='top'>
+                                                    <Clickable
+                                                        as='button'
+                                                        type='button'
+                                                        className='text-text-muted hover:text-text-primary transition-colors p-0.5 rounded focus:outline-hidden focus:ring-2 focus:ring-interactive-primary'
+                                                        aria-label={t('common.moreInfo')}
+                                                    >
+                                                        <InfoCircleIcon size={16} />
+                                                    </Clickable>
+                                                </Tooltip>
+                                            </label>
                                             <Input
-                                                label={t('settingsPage.displayNameLabel')}
+                                                id='settings-display-name'
                                                 value={displayName}
                                                 onChange={(value) => {
                                                     displayNameSignal.value = value;
@@ -406,7 +430,6 @@ export function SettingsPage() {
                                                     ? t('settingsPage.errorMessages.displayNameTooLong')
                                                     : undefined}
                                             />
-                                            <p className='help-text-xs'>{t('settingsPage.displayNameHelper')}</p>
                                         </div>
 
                                         <Button
@@ -422,9 +445,18 @@ export function SettingsPage() {
 
                             <Card padding='lg'>
                                 <div className='space-y-6'>
-                                    <div className='space-y-2'>
+                                    <div className='flex items-center gap-1.5'>
                                         <Typography variant='heading'>{t('settingsPage.emailSectionTitle')}</Typography>
-                                        <p className='help-text'>{t('settingsPage.emailSectionDescription')}</p>
+                                        <Tooltip content={t('settingsPage.emailSectionDescription')} placement='top'>
+                                            <Clickable
+                                                as='button'
+                                                type='button'
+                                                className='text-text-muted hover:text-text-primary transition-colors p-0.5 rounded focus:outline-hidden focus:ring-2 focus:ring-interactive-primary'
+                                                aria-label={t('common.moreInfo')}
+                                            >
+                                                <InfoCircleIcon size={16} />
+                                            </Clickable>
+                                        </Tooltip>
                                     </div>
 
                                     {!showEmailForm
@@ -501,9 +533,18 @@ export function SettingsPage() {
 
                             <Card padding='lg'>
                                 <div className='space-y-6'>
-                                    <div className='space-y-2'>
+                                    <div className='flex items-center gap-1.5'>
                                         <Typography variant='heading'>{t('settingsPage.passwordHeader')}</Typography>
-                                        <p className='help-text'>{t('settingsPage.passwordIntro')}</p>
+                                        <Tooltip content={t('settingsPage.passwordIntro')} placement='top'>
+                                            <Clickable
+                                                as='button'
+                                                type='button'
+                                                className='text-text-muted hover:text-text-primary transition-colors p-0.5 rounded focus:outline-hidden focus:ring-2 focus:ring-interactive-primary'
+                                                aria-label={t('common.moreInfo')}
+                                            >
+                                                <InfoCircleIcon size={16} />
+                                            </Clickable>
+                                        </Tooltip>
                                     </div>
 
                                     <div className='rounded-xl border border-interactive-primary/20 bg-interactive-primary/10 px-4 py-4 text-sm text-interactive-primary'>
@@ -596,9 +637,18 @@ export function SettingsPage() {
 
                             <Card padding='lg'>
                                 <div className='space-y-6'>
-                                    <div className='space-y-2'>
+                                    <div className='flex items-center gap-1.5'>
                                         <Typography variant='heading'>{t('languageSelector.label')}</Typography>
-                                        <p className='help-text'>{t('languageSelector.description')}</p>
+                                        <Tooltip content={t('languageSelector.description')} placement='top'>
+                                            <Clickable
+                                                as='button'
+                                                type='button'
+                                                className='text-text-muted hover:text-text-primary transition-colors p-0.5 rounded focus:outline-hidden focus:ring-2 focus:ring-interactive-primary'
+                                                aria-label={t('common.moreInfo')}
+                                            >
+                                                <InfoCircleIcon size={16} />
+                                            </Clickable>
+                                        </Tooltip>
                                     </div>
 
                                     <LanguageSwitcher variant='full' />

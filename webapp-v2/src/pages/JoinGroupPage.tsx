@@ -4,7 +4,9 @@
  * Handles joining a group via share link invitation
  */
 
-import { Button, Card, Input, LoadingSpinner, Modal, Stack, Typography } from '@/components/ui';
+import { Button, Card, Input, LoadingSpinner, Modal, Stack, Tooltip, Typography } from '@/components/ui';
+import { Clickable } from '@/components/ui/Clickable';
+import { InfoCircleIcon } from '@/components/ui/icons';
 import { navigationService } from '@/services/navigation.service';
 import { toDisplayName } from '@billsplit-wl/shared';
 import { CheckCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
@@ -273,19 +275,31 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
                         <Typography variant='subheading' className='mb-4' id='display-name-modal-title'>
                             {t('joinGroupPage.displayName.title')}
                         </Typography>
-                        <p className='help-text mb-4'>
-                            {t('joinGroupPage.displayName.description', { groupName: group.name })}
-                        </p>
-                        <Input
-                            label={t('joinGroupPage.displayName.label')}
-                            value={displayName}
-                            onChange={(value) => {
-                                setDisplayName(value);
-                                setNameError(null);
-                            }}
-                            error={nameError || undefined}
-                            disabled={joining}
-                        />
+                        <div>
+                            <label htmlFor='join-group-display-name' className='flex items-center gap-1.5 text-sm font-medium text-text-primary mb-2'>
+                                {t('joinGroupPage.displayName.label')}
+                                <Tooltip content={t('joinGroupPage.displayName.description', { groupName: group.name })} placement='top'>
+                                    <Clickable
+                                        as='button'
+                                        type='button'
+                                        className='text-text-muted hover:text-text-primary transition-colors p-0.5 rounded focus:outline-hidden focus:ring-2 focus:ring-interactive-primary'
+                                        aria-label={t('common.moreInfo')}
+                                    >
+                                        <InfoCircleIcon size={16} />
+                                    </Clickable>
+                                </Tooltip>
+                            </label>
+                            <Input
+                                id='join-group-display-name'
+                                value={displayName}
+                                onChange={(value) => {
+                                    setDisplayName(value);
+                                    setNameError(null);
+                                }}
+                                error={nameError || undefined}
+                                disabled={joining}
+                            />
+                        </div>
                         <div className='flex flex-col gap-2 mt-4'>
                             <Button
                                 onClick={handleConfirmJoin}

@@ -2,76 +2,106 @@
 
 Replace inline help/explainer text with `InfoCircleIcon` + `Tooltip` pattern to declutter UI.
 
-**Reference implementation:** `webapp-v2/src/components/groups/settings/CustomPermissionsSection.tsx`
+**Reference implementation:** `webapp-v2/src/components/group/settings/security/CustomPermissionsSection.tsx`
+
+**Status:** COMPLETED
 
 ---
 
-## High Priority
+## Completed
 
-### CreateGroupModal.tsx
-- [ ] Group name help text (line ~293)
-- [ ] Group display name help text (line ~313)
-- [ ] Group description help text (line ~332)
+### UI Components Updated
 
-### SettingsPage.tsx
-- [ ] Profile information section description (line ~382)
-- [ ] Display name helper text (line ~409)
-- [ ] Email section description (line ~427)
-- [ ] Password section intro text (line ~506)
-- [ ] Language selector description (line ~601)
+#### CreateGroupModal.tsx
+- [x] Group name help text → info icon
+- [x] Group display name help text → info icon
+- [x] Group description help text → info icon
 
-### GroupCurrencySettings.tsx
-- [ ] Currency settings section description (line ~109)
+#### SettingsPage.tsx
+- [x] Profile information section description → info icon next to heading
+- [x] Display name helper text → info icon next to label
+- [x] Email section description → info icon next to heading
+- [x] Password section intro text → info icon next to heading
+- [x] Language selector description → info icon next to heading
 
-### GroupGeneralTabContent.tsx
-- [ ] Group lock warning text (line ~193)
+#### GroupCurrencySettings.tsx
+- [x] Currency settings section description → info icon next to title
+
+#### JoinGroupPage.tsx
+- [x] Display name purpose description → info icon next to label
+
+### Translation Updates
+
+#### All Languages
+- [x] Added `common.moreInfo` key with proper translations:
+  - EN: "More information"
+  - DE: "Mehr Informationen"
+  - AR: "مزيد من المعلومات"
+  - ES: "Más información"
+  - IT: "Ulteriori informazioni"
+  - JA: "詳細情報"
+  - KO: "자세한 정보"
+  - LV: "Vairāk informācijas"
+  - NL-BE: "Meer informatie"
+  - NO: "Mer informasjon"
+  - PH: "Higit pang impormasyon"
+  - SV: "Mer information"
+  - UK: "Більше інформації"
+
+#### "(optional)" Removed from Labels
+- [x] EN, DE, ES, IT, NO, SV: groupDescriptionLabel, noteLabel, descriptionLabel
+
+### Page Object Models Updated
+
+#### SettingsPage.ts
+- [x] `getDisplayNameHelperText()` → `getDisplayNameInfoIcon()`
+- [x] `getProfileInformationDescription()` → `getProfileInformationInfoIcon()`
+- [x] `getPasswordDescription()` → `getPasswordInfoIcon()`
+- [x] `verifyDisplayNameHelperTextVisible()` → `verifyDisplayNameInfoIconVisible()`
+- [x] `verifyProfileInformationDescriptionVisible()` → `verifyProfileInformationInfoIconVisible()`
+- [x] `verifyPasswordSectionDescriptionVisible()` → `verifyPasswordInfoIconVisible()`
+- [x] `verifySectionHeadersAndDescriptionsVisible()` → `verifySectionHeadersAndInfoIconsVisible()`
+
+#### CreateGroupModalPage.ts
+- [x] `getGroupNameHelpText()` → `getGroupNameInfoIcon()`
+- [x] `getGroupDisplayNameHelpText()` → `getGroupDisplayNameInfoIcon()`
+- [x] `getGroupDescriptionHelpText()` → `getGroupDescriptionInfoIcon()`
+- [x] `verifyHelpTextDisplayed()` → `verifyInfoIconsDisplayed()`
+
+### Tests Updated
+
+#### settings-functionality.test.ts
+- [x] Updated test assertions to use new info icon verification methods
+
+#### dashboard-modals.test.ts
+- [x] Updated `verifyHelpTextDisplayed()` → `verifyInfoIconsDisplayed()`
+
+### Documentation Updated
+- [x] `docs/guides/webapp-and-style-guide.md` - Added info icon pattern to UI Patterns Quick Reference and Anti-Patterns
+
+### Bug Fixes During Implementation
+- [x] **Tooltip.tsx** - Changed z-index from `z-50` to `z-[100]` so tooltips appear above modals (which use z-50)
+- [x] **CreateGroupModal.tsx** - Restored required field indicators (`*`) to Group Name and Group Display Name labels (lost when switching from Input's built-in label to custom labels with info icons)
 
 ---
 
-## Medium Priority
+## Skipped (Low Priority / Better Visible)
 
-### JoinGroupPage.tsx
-- [ ] Display name purpose description (line ~276)
+These were assessed and intentionally left as-is:
 
-### SplitAmountInputs.tsx
-- [ ] Instructions for exact amounts (line ~54)
-- [ ] Instructions for percentage splits (line ~119)
-
-### PayerSelector.tsx
-- [ ] "Select payer" instruction text (line ~85)
-
-### CommentInput.tsx
-- [ ] Character count info (line ~124)
-
-### AttachmentUploader.tsx
-- [ ] Attachment helper text (line ~221)
+- **GroupGeneralTabContent.tsx** - Group lock warning: Important safety warning
+- **SplitAmountInputs.tsx** - Active task instructions users need while entering data
+- **PayerSelector.tsx** - Placeholder text, not explainer text
+- **CommentInput.tsx** - Very small inline helper text
+- **AttachmentUploader.tsx** - Small text next to button
 
 ---
 
-## Admin Pages (Lower Priority)
-
-### UserEditorModal.tsx
-- [ ] Profile tab description (line ~246)
-- [ ] Role tab description (line ~280)
-- [ ] Individual role option descriptions (line ~305)
-
-### TenantEditorModal.tsx
-- [ ] Mode selector hint text (lines ~354-358)
-- [ ] Various section descriptions
-
-### TenantBrandingPage.tsx
-- [ ] Branding assets description (line ~216)
-- [ ] Preview section description (line ~277)
-- [ ] Marketing section description (line ~319)
-- [ ] Marketing flag descriptions (lines ~334, 349)
-
----
-
-## Pattern to Use
+## Pattern Used
 
 ```tsx
 import { InfoCircleIcon } from '@/components/ui/icons';
-import { Tooltip } from '@/components/ui/Tooltip';
+import { Tooltip } from '@/components/ui';
 import { Clickable } from '@/components/ui/Clickable';
 
 // Place next to label text
@@ -79,19 +109,10 @@ import { Clickable } from '@/components/ui/Clickable';
     <Clickable
         as='button'
         type='button'
-        className='text-text-muted hover:text-text-primary transition-colors p-0.5 -mr-0.5 rounded focus:outline-hidden focus:ring-2 focus:ring-interactive-primary'
-        aria-label={t('aria.label.for.info')}
+        className='text-text-muted hover:text-text-primary transition-colors p-0.5 rounded focus:outline-hidden focus:ring-2 focus:ring-interactive-primary'
+        aria-label={t('common.moreInfo')}
     >
         <InfoCircleIcon size={16} />
     </Clickable>
 </Tooltip>
 ```
-
----
-
-## Notes
-
-- Keep essential validation messages (FieldError) as inline text
-- Status indicators (loading, progress) should remain visible
-- Only move "what this means" type explanations to tooltips
-- Ensure translations exist for tooltip content
