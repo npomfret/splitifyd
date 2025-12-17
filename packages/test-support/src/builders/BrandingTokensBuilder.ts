@@ -242,12 +242,13 @@ export class BrandingTokensBuilder {
         return this;
     }
 
-    withMotionFlags(flags: { enableParallax?: boolean; enableMagneticHover?: boolean; enableScrollReveal?: boolean; }): this {
+    withMotionFlags(flags: { enableParallax?: boolean; enableMagneticHover?: boolean; enableScrollReveal?: boolean; enableAutoGlassmorphism?: boolean; }): this {
         this.tokens.motion = {
             ...this.tokens.motion,
             ...(flags.enableParallax !== undefined && { enableParallax: flags.enableParallax }),
             ...(flags.enableMagneticHover !== undefined && { enableMagneticHover: flags.enableMagneticHover }),
             ...(flags.enableScrollReveal !== undefined && { enableScrollReveal: flags.enableScrollReveal }),
+            ...(flags.enableAutoGlassmorphism !== undefined && { enableAutoGlassmorphism: flags.enableAutoGlassmorphism }),
         };
         return this;
     }

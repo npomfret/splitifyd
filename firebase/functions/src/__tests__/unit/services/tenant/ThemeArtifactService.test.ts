@@ -259,5 +259,37 @@ describe('ThemeArtifactService', () => {
             // Should contain the surface base color from the builder
             expect(result.cssContent).toContain('background-color: #f8fafc');
         });
+
+        it('should generate auto-glassmorphism CSS when enabled', async () => {
+            const tokensWithAutoGlass = new BrandingTokensBuilder()
+                .withGlassColors('rgba(255, 255, 255, 0.1)', 'rgba(255, 255, 255, 0.2)')
+                .withMotionFlags({
+                    enableAutoGlassmorphism: true,
+                })
+                .build();
+
+            const result = await service.generate('test-tenant', tokensWithAutoGlass);
+
+            // Should have auto-glassmorphism comments and selectors
+            expect(result.cssContent).toContain('Auto-glassmorphism');
+            expect(result.cssContent).toContain('.bg-surface-base.rounded-xl');
+            expect(result.cssContent).toContain('.bg-surface-raised.rounded-xl');
+            expect(result.cssContent).toContain(':not(:has(.rounded-xl))');
+            expect(result.cssContent).toContain('backdrop-filter: blur(20px)');
+        });
+
+        it('should not generate auto-glassmorphism CSS when disabled', async () => {
+            const tokensWithoutAutoGlass = new BrandingTokensBuilder()
+                .withMotionFlags({
+                    enableAutoGlassmorphism: false,
+                })
+                .build();
+
+            const result = await service.generate('test-tenant', tokensWithoutAutoGlass);
+
+            // Should not have auto-glassmorphism selectors
+            expect(result.cssContent).not.toContain('Auto-glassmorphism');
+            expect(result.cssContent).not.toContain(':not(:has(.rounded-xl))');
+        });
     });
 });

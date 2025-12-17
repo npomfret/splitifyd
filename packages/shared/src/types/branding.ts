@@ -204,6 +204,7 @@ const BrandingMotionSchema = z
         enableParallax: z.boolean().optional(),
         enableMagneticHover: z.boolean().optional(),
         enableScrollReveal: z.boolean().optional(),
+        enableAutoGlassmorphism: z.boolean().optional(), // Auto-apply glassmorphism to cards
     })
     .optional();
 

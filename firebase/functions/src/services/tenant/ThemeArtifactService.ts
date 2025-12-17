@@ -348,6 +348,8 @@ export class ThemeArtifactService {
      */
     private generateGlassmorphismFallback(tokens: BrandingTokens): string | null {
         const glass = tokens.semantics.colors.surface.glass;
+        const glassBorder = tokens.semantics.colors.surface.glassBorder;
+        const enableAutoGlass = tokens.motion?.enableAutoGlassmorphism === true;
 
         if (!glass) {
             // For themes without glassmorphism, use a simple raised surface
@@ -360,8 +362,7 @@ export class ThemeArtifactService {
                 .join('\n');
         }
 
-        // For glassmorphic themes, provide fallback and modern styling
-        return [
+        const lines = [
             '/* Glassmorphism fallback for older browsers */',
             '.glass-panel {',
             `  background: ${tokens.semantics.colors.surface.overlay};`,
@@ -373,9 +374,35 @@ export class ThemeArtifactService {
             '    backdrop-filter: blur(24px);',
             '    -webkit-backdrop-filter: blur(24px);',
             '  }',
-            '}',
-        ]
-            .join('\n');
+        ];
+
+        // Auto-glassmorphism: apply frosted glass to innermost cards
+        if (enableAutoGlass) {
+            lines.push('');
+            lines.push('  /* Auto-glassmorphism: subtle frost on all cards */');
+            lines.push('  .bg-surface-base.rounded-xl,');
+            lines.push('  .bg-surface-raised.rounded-xl {');
+            lines.push(`    background: ${glass};`);
+            lines.push('    backdrop-filter: blur(8px);');
+            lines.push('    -webkit-backdrop-filter: blur(8px);');
+            if (glassBorder) {
+                lines.push(`    border-color: ${glassBorder};`);
+            }
+            lines.push('  }');
+            lines.push('');
+            lines.push('  /* Stronger glassmorphism on innermost cards (no nested cards) */');
+            lines.push('  .bg-surface-base.rounded-xl:not(:has(.rounded-xl)),');
+            lines.push('  .bg-surface-raised.rounded-xl:not(:has(.rounded-xl)) {');
+            lines.push(`    background: ${glass};`);
+            lines.push('    backdrop-filter: blur(20px);');
+            lines.push('    -webkit-backdrop-filter: blur(20px);');
+            lines.push('    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);');
+            lines.push('  }');
+        }
+
+        lines.push('}');
+
+        return lines.join('\n');
     }
 
     /**

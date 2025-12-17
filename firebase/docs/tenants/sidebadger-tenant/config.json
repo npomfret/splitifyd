@@ -220,7 +220,8 @@
         },
         "enableParallax": true,
         "enableMagneticHover": true,
-        "enableScrollReveal": true
+        "enableScrollReveal": true,
+        "enableAutoGlassmorphism": true
       }
     }
   },
