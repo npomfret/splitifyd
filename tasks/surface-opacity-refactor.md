@@ -82,7 +82,14 @@ Replace existing `bg-surface-*/NN` usages with `bg-surface-subtle`:
 ### Phase 5: Documentation
 - [x] Update webapp-and-style-guide.md with new patterns
 
-### Phase 6: Verification
+### Phase 6: Tenant Editor
+- [x] Add `surfaceSubtleColor` to TenantData type
+- [x] Add default value in defaults.ts
+- [x] Add extraction/building in transformers.ts
+- [x] Add auto-derivation in color-derivation.ts
+- [x] Add ColorInput in SurfaceColorsSection.tsx
+
+### Phase 7: Verification
 - [x] Run tests (ThemeArtifactService tests pass, build succeeds)
 - [ ] Visual verification on sidebadger theme (requires running app)
 - [ ] Visual verification on localhost theme (requires running app)

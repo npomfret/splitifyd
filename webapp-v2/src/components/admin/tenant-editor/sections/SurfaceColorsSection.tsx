@@ -6,7 +6,7 @@ export function SurfaceColorsSection({ formData, update, isSaving, mode, creatio
     return (
         <AdminFormSection
             title='Surface Colors'
-            description='Background, card, and overlay colors (6 required)'
+            description='Background, card, and overlay colors (7 required)'
             defaultOpen={mode === 'create' && creationMode === 'empty'}
             testId='section-surfaces'
         >
@@ -60,6 +60,14 @@ export function SurfaceColorsSection({ formData, update, isSaving, mode, creatio
                     onChange={(v) => update({ surfaceMutedColor: v })}
                     disabled={isSaving}
                     testId='surface-muted-color-input'
+                />
+                <ColorInput
+                    id='surface-subtle'
+                    label='Subtle *'
+                    value={formData.surfaceSubtleColor}
+                    onChange={(v) => update({ surfaceSubtleColor: v })}
+                    disabled={isSaving}
+                    testId='surface-subtle-color-input'
                 />
             </div>
         </AdminFormSection>

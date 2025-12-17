@@ -28,6 +28,7 @@ export interface TenantData {
     surfaceOverlayColor: string;
     surfaceWarningColor: string;
     surfaceMutedColor: string;
+    surfaceSubtleColor: string;
     surfacePopoverColor: string;
 
     textPrimaryColor: string;

@@ -215,6 +215,7 @@ interface DerivedColors {
     surfaceOverlayColor: string;
     surfaceWarningColor: string;
     surfaceMutedColor: string;
+    surfaceSubtleColor: string;
     surfacePopoverColor: string;
     // Text
     textPrimaryColor: string;
@@ -354,6 +355,15 @@ function deriveColorsFromPalette(
         ? mixColors('#4b5563', adjustedPrimary, mutedTint)
         : mixColors('#f1f5f9', adjustedPrimary, mutedTint);
 
+    // Subtle surface - light background for list items/content cards
+    // Slightly more neutral than raised, less tinted than muted
+    const subtleTint = baseTint * 0.3;
+    const surfaceSubtleColor = isDarkTheme
+        ? mixColors('#121220', adjustedPrimary, subtleTint)
+        : isMediumTheme
+        ? mixColors('#5b6370', adjustedPrimary, subtleTint)
+        : mixColors('#fafbfc', adjustedPrimary, subtleTint);
+
     // Popover surface - slightly different from raised for floating elements
     // Darker than raised in dark themes for depth, slightly tinted in light themes
     const popoverTint = baseTint * 0.3;
@@ -403,6 +413,7 @@ function deriveColorsFromPalette(
         surfaceOverlayColor,
         surfaceWarningColor,
         surfaceMutedColor,
+        surfaceSubtleColor,
         surfacePopoverColor,
         textPrimaryColor,
         textSecondaryColor,
