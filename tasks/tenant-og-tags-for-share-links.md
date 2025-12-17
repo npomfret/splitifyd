@@ -11,130 +11,277 @@ When users share invite links on WhatsApp (or other social platforms), the previ
 1. Share link previews must show tenant-specific branding
 2. Each tenant needs configurable OG metadata (image, title, description)
 3. The `/join` page (and potentially other shareable URLs) must serve proper OG tags server-side
+4. Human users must still get the full SPA experience (no redirect flash)
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ Build Phase                                                     │
+├─────────────────────────────────────────────────────────────────┤
+│ 1. webapp-v2 build → dist/index.html (with hashed assets)      │
+│ 2. Deploy script copies index.html → functions/sharing/        │
+│ 3. Functions deploy includes the template                       │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ Runtime (Request to /join)                                      │
+├─────────────────────────────────────────────────────────────────┤
+│ 1. Firebase Hosting rewrite → Cloud Function                    │
+│ 2. Function resolves tenant from Host header                    │
+│ 3. Function reads cached template (from disk, loaded once)      │
+│ 4. Function builds OG tags from tenant config + route           │
+│ 5. Function injects OG tags into <head>                         │
+│ 6. Function returns HTML with Vary: Host header                 │
+│                                                                 │
+│ Result: Crawler sees OG tags, human sees full SPA               │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Why this approach:**
+
+| Principle | How it's satisfied |
+|-----------|-------------------|
+| Single source of truth | One `index.html`, copied at deploy time |
+| No runtime dependencies | Template is local to Function, no network fetch |
+| Tenant isolation | Host-based resolution, `Vary: Host` caching |
+| Type safety | Zod-validated tenant `sharing` config |
+| Security | HTML-escape all injected values |
+| Extensibility | Generic handler, easy to add `/receipt/:id`, `/pay`, etc. |
+| Testability | OG generation logic can be unit tested |
+| Cache efficiency | Short TTL + ETag based on template + tenant config |
 
 ## Solution
 
 ### 1. Extend Tenant Config
 
-Add a dedicated `sharing` section to tenant config (preferred over nesting inside `tokens.assets` because it’s semantically different from general assets):
+Add a `sharing` section to `tokens` in tenant config:
 
 ```json
 {
   "tokens": {
-    "assets": {
-      "logoUrl": "...",
-      "faviconUrl": "...",
-      "ogImage": "https://storage.googleapis.com/.../og-share-image.png"
-    },
     "sharing": {
-      "defaultTitle": "Join me on {appName}",
-      "defaultDescription": "Split bills easily with friends and family",
-      "ogImage": "https://..."
+      "ogImage": "https://storage.googleapis.com/.../og-share-image.png",
+      "defaultTitle": "{appName}",
+      "defaultDescription": "Split bills easily with friends and family"
     }
   }
 }
 ```
 
-**Fallback chain (define explicitly):**
+**Fallback chain:**
 - `tokens.sharing.ogImage` → `tokens.assets.ogImage` → global default OG image
-- `tokens.sharing.defaultTitle/defaultDescription` → global defaults
+- `tokens.sharing.defaultTitle` → `tokens.legal.appName`
+- `tokens.sharing.defaultDescription` → hardcoded default
 
 **OG Image requirements:**
-- Recommended size: 1200x630px (Facebook/LinkedIn) or 1200x675px (Twitter)
+- Recommended size: 1200x630px (Facebook/LinkedIn optimized)
 - Format: PNG or JPG
-- Must be publicly accessible URL
+- Must be publicly accessible URL (not behind auth)
 - Each tenant uploads their own branded image
 
-### 2. Create Server-Side HTML Handler
+### 2. Build Pipeline Changes
 
-New handler: `firebase/functions/src/sharing/SharingHandlers.ts`
+**Add to webapp-v2 build or deploy script:**
+
+```bash
+# After webapp build, copy index.html to functions
+cp webapp-v2/dist/index.html firebase/functions/src/sharing/index-template.html
+```
+
+This ensures the Function always has the correct template with current asset hashes.
+
+### 3. Create Sharing Handler
+
+New file: `firebase/functions/src/sharing/SharingHandlers.ts`
 
 ```typescript
-// GET /share/join (or rewrite /join to this)
-async serveJoinPage(req, res) {
-  // 1. Resolve tenant from domain
-  const tenant = await tenantRegistry.resolveTenant(req);
+class SharingHandlers {
+  private template: string;  // Loaded once at cold start
 
-  // 2. Get OG metadata from tenant config
-  const ogImage = tenant.tokens.sharing?.ogImage || tenant.tokens.assets?.ogImage || DEFAULT_OG_IMAGE;
-  const appName = tenant.tokens.legal.appName;
-  const description = tenant.tokens.sharing?.defaultDescription || 'Split bills with friends';
+  constructor(private tenantRegistry: TenantRegistryService) {
+    this.template = fs.readFileSync(
+      path.join(__dirname, 'index-template.html'),
+      'utf-8'
+    );
+  }
 
-  // 3. Return HTML with OG tags that also loads the SPA
-  res.send(generateHtmlWithOgTags({
-    title: `Join a group on ${appName}`,
-    description,
-    image: ogImage,
-    url: `https://${req.hostname}/join`,
-    // Include all original index.html content for SPA bootstrap
-  }));
+  async serveShareablePage(req: Request, res: Response) {
+    const tenant = await this.tenantRegistry.resolveTenant(req);
+    const route = this.determineRoute(req.path);
+
+    const ogTags = this.buildOgTags({
+      tenant,
+      route,
+      url: this.buildCanonicalUrl(req),
+    });
+
+    const html = this.injectOgTags(this.template, ogTags);
+
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Vary', 'Host');
+    res.setHeader('Cache-Control', 'public, max-age=300');  // 5 min
+    res.send(html);
+  }
+
+  private buildOgTags({ tenant, route, url }): OgTagSet {
+    const appName = tenant.tokens.legal.appName;
+    const sharing = tenant.tokens.sharing ?? {};
+
+    return {
+      title: this.getTitleForRoute(route, appName, sharing),
+      description: sharing.defaultDescription ?? 'Split bills with friends',
+      image: sharing.ogImage ?? tenant.tokens.assets?.ogImage ?? DEFAULT_OG_IMAGE,
+      url,
+      siteName: appName,
+    };
+  }
+
+  private getTitleForRoute(route: string, appName: string, sharing: SharingConfig): string {
+    // Route-specific titles
+    switch (route) {
+      case 'join':
+        return `Join a group on ${appName}`;
+      case 'receipt':
+        return `View receipt on ${appName}`;
+      default:
+        return sharing.defaultTitle?.replace('{appName}', appName) ?? appName;
+    }
+  }
+
+  private injectOgTags(template: string, tags: OgTagSet): string {
+    const metaTags = `
+    <!-- Open Graph -->
+    <meta property="og:title" content="${escapeHtml(tags.title)}" />
+    <meta property="og:description" content="${escapeHtml(tags.description)}" />
+    <meta property="og:image" content="${escapeHtml(tags.image)}" />
+    <meta property="og:url" content="${escapeHtml(tags.url)}" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="${escapeHtml(tags.siteName)}" />
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="${escapeHtml(tags.title)}" />
+    <meta name="twitter:description" content="${escapeHtml(tags.description)}" />
+    <meta name="twitter:image" content="${escapeHtml(tags.image)}" />
+    `;
+
+    return template.replace('</head>', `${metaTags}</head>`);
+  }
+
+  private buildCanonicalUrl(req: Request): string {
+    const protocol = 'https';  // Always https for canonical
+    const host = req.hostname;
+    const path = req.originalUrl;  // Includes query params
+    return `${protocol}://${host}${path}`;
+  }
+
+  private determineRoute(path: string): string {
+    if (path.startsWith('/join')) return 'join';
+    if (path.startsWith('/receipt')) return 'receipt';
+    return 'default';
+  }
 }
 ```
 
-**Recommendation: make this generic from day 1**
-- Implement a single OG HTML responder that can be used for multiple shareable routes (start with `/join`, but make it easy to add `/pay`, `/receipt/:id`, etc.) rather than one-off handlers per URL.
-
-### 3. Update Firebase Hosting Rewrites
+### 4. Update Firebase Hosting Rewrites
 
 In `firebase.json` (or the template that generates it):
 
 ```json
 {
   "rewrites": [
-    { "source": "/api/**", "function": "api" },
-    { "source": "/join", "function": "api" },  // <-- NEW: route /join to function
+    { "source": "/api/**", "function": { "functionId": "api", "region": "us-central1" } },
+    { "source": "/join", "function": { "functionId": "api", "region": "us-central1" } },
+    { "source": "/join/**", "function": { "functionId": "api", "region": "us-central1" } },
     { "source": "**", "destination": "/index.html" }
   ]
 }
 ```
 
-The `/join` rewrite must come BEFORE the catch-all `**`.
+The `/join` rewrites must come BEFORE the catch-all `**`.
 
-### 4. Implementation Notes
+### 5. Route Configuration
 
-**HTML Generation:**
-- Prefer a minimal server-rendered HTML template (returned by the Function) that:
-  - Injects OG + Twitter meta tags into `<head>`
-  - Loads the SPA’s JS/CSS from Hosting (so humans still get the SPA)
-- Avoid relying on reading `webapp-v2/dist/index.html` directly from the Function at runtime unless the build/deploy pipeline explicitly copies that file into the Functions deploy artifact (it won’t naturally exist in the Functions runtime).
+Add to `firebase/functions/src/routes/route-config.ts`:
 
-**Meta tags:**
-- Always use absolute URLs for `og:image` and `og:url`
-- Add Twitter tags (`twitter:card=summary_large_image`, `twitter:title`, `twitter:description`, `twitter:image`) because different platforms prefer different tags
-- Consider using `req.originalUrl` (not just `/join`) so the preview URL matches the actual shared link when query params are present
+```typescript
+{
+  method: 'get',
+  path: '/join',
+  handler: (h) => h.sharingHandlers.serveShareablePage,
+  middleware: [],  // No auth required - crawlers can't authenticate
+}
+```
 
-**Caching:**
-- Prefer a short TTL rather than blanket `no-cache`
-- Ensure caches don’t mix tenants: at minimum consider `Vary: Host` and ensure tenant resolution is based on host/domain only
-- (Optional) If you do bot-specific caching, be careful: user-agent sniffing is unreliable and adds complexity
+**Note:** This route has NO authentication middleware. Crawlers cannot authenticate, so the page must be accessible without auth. The SPA handles auth after it loads.
 
-**Security:**
-- Escape tenant-provided strings (title/description) before injecting into HTML
-- Validate `sharing` config via Zod and avoid “anything goes” strings/URLs
-
-**Testing:**
-- Use Facebook Sharing Debugger: https://developers.facebook.com/tools/debug/
-- Use Twitter Card Validator: https://cards-dev.twitter.com/validator
-- Use LinkedIn Post Inspector: https://www.linkedin.com/post-inspector/
-
-## Files to Modify
+## Files to Create/Modify
 
 | File | Change |
 |------|--------|
-| `firebase/docs/tenants/*/config.json` | Add `sharing` or `assets.ogImage` |
-| `packages/shared/src/shared-types.ts` | Add types for sharing config |
-| `firebase/functions/src/schemas/` | Add Zod schema for sharing config |
-| `firebase/functions/src/sharing/SharingHandlers.ts` | NEW: Handler for share pages |
-| `firebase/functions/src/routes/route-config.ts` | Add route for share pages |
-| `firebase/firebase.json` (or generator) | Add hosting rewrite |
+| `firebase/functions/src/sharing/SharingHandlers.ts` | NEW: Handler class |
+| `firebase/functions/src/sharing/index-template.html` | NEW: Copied from webapp build |
+| `firebase/functions/src/sharing/types.ts` | NEW: OgTagSet, SharingConfig types |
+| `firebase/functions/src/schemas/tenant-schemas.ts` | Add `sharing` schema to tenant config |
+| `packages/shared/src/shared-types.ts` | Add SharingConfig type |
+| `firebase/functions/src/routes/route-config.ts` | Add GET /join route |
+| `firebase/functions/src/services/ComponentBuilder.ts` | Wire up SharingHandlers |
+| `firebase/functions/src/ApplicationFactory.ts` | Expose sharingHandlers |
+| `firebase/scripts/generate-firebase-config.ts` | Add /join rewrite |
+| `firebase/docs/tenants/*/config.json` | Add `sharing` section |
+| Deploy scripts | Copy index.html to functions |
 
-## Open Questions
+## Implementation Order
 
-1. Should we serve dynamic HTML for ALL routes (for consistent OG tags on any shared URL)?
-2. What's the fallback OG image if tenant hasn't uploaded one?
-3. Should the OG image include dynamic text (group name) or just static branding?
-4. Do we want to canonicalize `og:url` (enforce https / preferred host)?
+1. Add `sharing` schema to tenant config (Zod + types)
+2. Create SharingHandlers with OG tag generation logic
+3. Add route configuration (GET /join, no auth)
+4. Update firebase.json generator to add rewrite
+5. Update build/deploy to copy index.html template
+6. Add `sharing` config to test tenants
+7. Test with Facebook Sharing Debugger
+
+## Testing
+
+**Manual testing:**
+- Facebook Sharing Debugger: https://developers.facebook.com/tools/debug/
+- Twitter Card Validator: https://cards-dev.twitter.com/validator
+- LinkedIn Post Inspector: https://www.linkedin.com/post-inspector/
+
+**Unit tests:**
+- OG tag generation with various tenant configs
+- HTML injection (proper escaping)
+- Fallback chain behavior
+- Route-specific title generation
+
+**Integration tests:**
+- Request to /join returns HTML with OG tags
+- Different tenants (hosts) get different OG tags
+- Vary: Host header is present
+- SPA still loads correctly for human users
+
+## Security Considerations
+
+- **HTML escaping:** All tenant-provided values (title, description, image URL) must be escaped before injection
+- **URL validation:** ogImage URL should be validated (https, allowed domains)
+- **No auth on route:** The /join route has no auth middleware - this is intentional for crawlers
+- **CSP headers:** Ensure existing CSP headers are preserved in the response
+
+## Caching Strategy
+
+- `Cache-Control: public, max-age=300` (5 minutes)
+- `Vary: Host` - critical for multi-tenant, prevents CDN mixing tenants
+- Consider ETag based on: template hash + tenant config hash + route
+
+## Future Extensions
+
+Once this infrastructure is in place, adding new shareable routes is simple:
+
+1. Add rewrite in firebase.json: `{ "source": "/receipt/**", "function": "api" }`
+2. Add route in route-config.ts
+3. Add case in `getTitleForRoute()` for route-specific title
+4. Optionally add dynamic data (e.g., fetch receipt details for title)
 
 ## Effort
 
-Medium - requires new handler, config schema changes, and hosting configuration.
+Medium - requires new handler, schema changes, build pipeline update, and hosting config.
