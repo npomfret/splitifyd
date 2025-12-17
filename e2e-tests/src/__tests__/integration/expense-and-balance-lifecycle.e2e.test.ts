@@ -583,7 +583,7 @@ simpleTest.describe('Settlement CRUD Operations', () => {
         await groupDetailPage.verifySettlementDetails({ note: settlementData2.note });
 
         // Verify creator can edit/delete even when they're the payee
-        await groupDetailPage.verifySettlementHasEditButton(settlementData2.note);
+        await groupDetailPage.verifySettlementHasEditableButton(settlementData2.note);
         await groupDetailPage.verifySettlementHasDeleteButton(settlementData2.note);
     });
 

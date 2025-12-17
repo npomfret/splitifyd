@@ -300,11 +300,14 @@ export class GroupDetailPage extends BasePage {
         });
     }
 
-    protected getSettlementEditButton(note: string | RegExp): Locator {
-        // Edit button has different accessible name when locked vs unlocked
-        const editButton = this.getSettlementItem(note).getByRole('button', { name: translation.settlementHistory.editPaymentTooltip });
-        const cannotEditButton = this.getSettlementItem(note).getByRole('button', { name: translation.settlementHistory.cannotEditTooltip });
-        return editButton.or(cannotEditButton);
+    protected getEditableSettlementEditButton(note: string | RegExp): Locator {
+        // Edit button when settlement is editable
+        return this.getSettlementItem(note).getByRole('button', { name: translation.settlementHistory.editPaymentTooltip });
+    }
+
+    protected getLockedSettlementEditButton(note: string | RegExp): Locator {
+        // Edit button when settlement is locked (disabled state)
+        return this.getSettlementItem(note).getByRole('button', { name: translation.settlementHistory.cannotEditTooltip });
     }
 
     protected getSettlementDeleteButton(note: string | RegExp): Locator {
@@ -1542,27 +1545,21 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * Verify settlement edit button is disabled
+     * Verify settlement edit button is disabled (locked state)
      */
-    async verifySettlementEditDisabled(note: string | RegExp, expectedTooltip?: string): Promise<void> {
-        const button = this.getSettlementEditButton(note);
+    async verifySettlementEditDisabled(note: string | RegExp): Promise<void> {
+        const button = this.getLockedSettlementEditButton(note);
         await expect(button).toBeVisible({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
         await expect(button).toBeDisabled();
-        if (expectedTooltip) {
-            await expect(button).toHaveAttribute('aria-label', expectedTooltip);
-        }
     }
 
     /**
-     * Verify settlement edit button is enabled
+     * Verify settlement edit button is enabled (editable state)
      */
-    async verifySettlementEditEnabled(note: string | RegExp, expectedTooltip?: string): Promise<void> {
-        const button = this.getSettlementEditButton(note);
+    async verifySettlementEditEnabled(note: string | RegExp): Promise<void> {
+        const button = this.getEditableSettlementEditButton(note);
         await expect(button).toBeVisible({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
         await expect(button).toBeEnabled();
-        if (expectedTooltip) {
-            await expect(button).toHaveAttribute('aria-label', expectedTooltip);
-        }
     }
 
     /**
@@ -1580,7 +1577,7 @@ export class GroupDetailPage extends BasePage {
     ): Promise<T> {
         await this.ensureSettlementHistoryOpen();
 
-        const editButton = this.getSettlementEditButton(note);
+        const editButton = this.getEditableSettlementEditButton(note);
         await expect(editButton).toBeVisible({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
         await expect(editButton).toBeEnabled();
 
@@ -1695,12 +1692,19 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * Verify settlement entry exposes an edit button.
+     * Verify settlement entry has an editable edit button.
      */
-    async verifySettlementHasEditButton(note: string | RegExp): Promise<void> {
+    async verifySettlementHasEditableButton(note: string | RegExp): Promise<void> {
         await this.ensureSettlementHistoryOpen();
-        const editButton = this.getSettlementEditButton(note);
-        await expect(editButton).toBeVisible();
+        await expect(this.getEditableSettlementEditButton(note)).toBeVisible();
+    }
+
+    /**
+     * Verify settlement entry has a locked edit button.
+     */
+    async verifySettlementHasLockedButton(note: string | RegExp): Promise<void> {
+        await this.ensureSettlementHistoryOpen();
+        await expect(this.getLockedSettlementEditButton(note)).toBeVisible();
     }
 
     /**
@@ -1713,18 +1717,21 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * Poll until the settlement edit button becomes disabled (useful for real-time updates).
+     * Poll until the settlement edit button becomes locked (useful for real-time updates).
+     * Waits for the locked edit button to appear and be disabled.
      */
-    async verifySettlementEditButtonDisabled(note: string | RegExp, timeoutMs: number = 10000): Promise<void> {
+    async waitForSettlementToBecomeLocked(note: string | RegExp, timeoutMs: number = 10000): Promise<void> {
         await this.ensureSettlementHistoryOpen();
 
-        const editButton = this.getSettlementEditButton(note);
-        await expect(editButton).toBeVisible();
-
         await expect(async () => {
-            const disabled = await editButton.isDisabled();
-            if (!disabled) {
-                throw new Error(`Settlement edit button for "${String(note)}" is still enabled, waiting for lock...`);
+            const lockedButton = this.getLockedSettlementEditButton(note);
+            const isVisible = await lockedButton.isVisible();
+            if (!isVisible) {
+                throw new Error(`Settlement "${String(note)}" is still editable, waiting for lock...`);
+            }
+            const isDisabled = await lockedButton.isDisabled();
+            if (!isDisabled) {
+                throw new Error(`Settlement "${String(note)}" locked button is not disabled yet...`);
             }
         })
             .toPass({ timeout: timeoutMs });
@@ -1932,14 +1939,26 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * Click Leave Group button and open leave dialog
+     * Click Leave Group button and open leave dialog (for users who CAN leave)
      * Fluent version - verifies dialog opens and returns LeaveGroupDialogPage
      */
     async clickLeaveGroupAndOpenDialog(): Promise<LeaveGroupDialogPage> {
         await this.clickLeaveGroup();
 
         const dialogPage = new LeaveGroupDialogPage(this.page);
-        await dialogPage.waitForDialogToOpen();
+        await dialogPage.waitForLeaveDialogToOpen();
+        return dialogPage;
+    }
+
+    /**
+     * Click Leave Group button and open balance warning dialog (for users with outstanding balance)
+     * Fluent version - verifies balance warning dialog opens and returns LeaveGroupDialogPage
+     */
+    async clickLeaveGroupAndOpenBalanceWarningDialog(): Promise<LeaveGroupDialogPage> {
+        await this.clickLeaveGroup();
+
+        const dialogPage = new LeaveGroupDialogPage(this.page);
+        await dialogPage.waitForBalanceWarningDialogToOpen();
         return dialogPage;
     }
 

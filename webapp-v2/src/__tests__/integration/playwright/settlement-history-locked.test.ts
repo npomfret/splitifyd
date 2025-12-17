@@ -1,5 +1,4 @@
 import { GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, SettlementWithMembersBuilder, ThemeBuilder } from '@billsplit-wl/test-support';
-import translationEn from '../../../locales/en/translation.json' with { type: 'json' };
 import { test } from '../../utils/console-logging-fixture';
 import { mockGroupDetailApi } from '../../utils/mock-firebase-service';
 
@@ -52,7 +51,7 @@ test.describe('Settlement History - Locked Settlement UI', () => {
         await groupDetailPage.openSettlementHistory();
         // Verify settlement by amount (escaping $ for regex)
         await groupDetailPage.verifySettlementVisible(/\$50\.00/);
-        await groupDetailPage.verifySettlementEditDisabled(/\$50\.00/, translationEn.settlementHistory.cannotEditTooltip);
+        await groupDetailPage.verifySettlementEditDisabled(/\$50\.00/);
     });
 
     test('should enable edit button when settlement is not locked', async ({ authenticatedPage }) => {
@@ -102,7 +101,7 @@ test.describe('Settlement History - Locked Settlement UI', () => {
         await groupDetailPage.openSettlementHistory();
         // Verify settlement by amount (escaping $ for regex)
         await groupDetailPage.verifySettlementVisible(/\$30\.00/);
-        await groupDetailPage.verifySettlementEditEnabled(/\$30\.00/, translationEn.settlementHistory.editPaymentTooltip);
+        await groupDetailPage.verifySettlementEditEnabled(/\$30\.00/);
     });
 
     test('should reactively update when settlement lock status changes', async ({ authenticatedPage }) => {
@@ -165,7 +164,7 @@ test.describe('Settlement History - Locked Settlement UI', () => {
         await groupDetailPage.openSettlementHistory();
         // Verify settlement by amount (escaping $ for regex)
         await groupDetailPage.verifySettlementVisible(/\$25\.00/);
-        await groupDetailPage.verifySettlementEditEnabled(/\$25\.00/, translationEn.settlementHistory.editPaymentTooltip);
+        await groupDetailPage.verifySettlementEditEnabled(/\$25\.00/);
 
         await mockGroupDetailApi(
             page,
@@ -183,6 +182,6 @@ test.describe('Settlement History - Locked Settlement UI', () => {
         await groupDetailPage.openSettlementHistory();
         // Verify settlement by amount (escaping $ for regex)
         await groupDetailPage.verifySettlementVisible(/\$25\.00/);
-        await groupDetailPage.verifySettlementEditDisabled(/\$25\.00/, translationEn.settlementHistory.cannotEditTooltip);
+        await groupDetailPage.verifySettlementEditDisabled(/\$25\.00/);
     });
 });

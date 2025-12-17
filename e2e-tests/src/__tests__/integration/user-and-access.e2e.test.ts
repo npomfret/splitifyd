@@ -176,7 +176,7 @@ simpleTest.describe('User Registration & Account Management', () => {
 
         await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 });
         const dashboardPage = new DashboardPage(page);
-        await dashboardPage.verifyDashboardHeadingVisible();
+        await dashboardPage.verifyYourGroupsHeadingVisible();
 
         // Log out to test duplicate registration prevention
         await dashboardPage.header.logout();

@@ -68,14 +68,14 @@ export class LeaveGroupDialogPage extends BasePage {
     }
 
     /**
-     * Confirm button - uses the standard "Leave" confirm text
+     * Leave button - used when user can leave the group (no outstanding balance)
      */
-    protected getConfirmButton(): Locator {
+    protected getLeaveButton(): Locator {
         return this.getConfirmationDialog().getByRole('button', { name: translation.membersList.leaveGroupDialog.confirmText });
     }
 
     /**
-     * Understood button - used when user cannot leave (e.g., has outstanding balance)
+     * Understood button - used when user cannot leave due to outstanding balance
      */
     protected getUnderstoodButton(): Locator {
         return this.getConfirmationDialog().getByRole('button', { name: translation.common.understood });
@@ -107,38 +107,42 @@ export class LeaveGroupDialogPage extends BasePage {
         return (await this.getDialogMessage().textContent()) || '';
     }
 
-    /**
-     * Get confirm button text
-     */
-    async getConfirmButtonText(): Promise<string> {
-        return (await this.getConfirmButton().textContent()) || '';
-    }
-
     // ============================================================================
     // ACTION METHODS
     // ============================================================================
 
     /**
-     * Wait for dialog to open
+     * Wait for leave dialog to open (when user can leave)
      */
-    async waitForDialogToOpen(timeout: number = TEST_TIMEOUTS.MODAL_TRANSITION): Promise<void> {
+    async waitForLeaveDialogToOpen(timeout: number = TEST_TIMEOUTS.MODAL_TRANSITION): Promise<void> {
         await expect(this.getDialogContainer()).toBeVisible({ timeout });
         await expect(this.getConfirmationDialog()).toBeVisible({ timeout });
-        // Either confirm button or understood button should be visible depending on state
-        const confirmVisible = await this.getConfirmButton().isVisible().catch(() => false);
-        const understoodVisible = await this.getUnderstoodButton().isVisible().catch(() => false);
-        if (!confirmVisible && !understoodVisible) {
-            await expect(this.getConfirmButton()).toBeVisible({ timeout });
-        }
+        await expect(this.getLeaveButton()).toBeVisible({ timeout });
         await expect(this.getCancelButton()).toBeVisible({ timeout });
     }
 
     /**
-     * Click confirm button
+     * Wait for balance warning dialog to open (when user has outstanding balance)
      */
-    async clickConfirm(): Promise<void> {
-        const button = this.getConfirmButton();
-        await this.clickButton(button, { buttonName: translation.membersList.leaveGroupDialog.confirmText });
+    async waitForBalanceWarningDialogToOpen(timeout: number = TEST_TIMEOUTS.MODAL_TRANSITION): Promise<void> {
+        await expect(this.getDialogContainer()).toBeVisible({ timeout });
+        await expect(this.getConfirmationDialog()).toBeVisible({ timeout });
+        await expect(this.getUnderstoodButton()).toBeVisible({ timeout });
+        await expect(this.getCancelButton()).toBeVisible({ timeout });
+    }
+
+    /**
+     * Click leave button
+     */
+    async clickLeave(): Promise<void> {
+        await this.clickButton(this.getLeaveButton(), { buttonName: translation.membersList.leaveGroupDialog.confirmText });
+    }
+
+    /**
+     * Click understood button (when balance warning is shown)
+     */
+    async clickUnderstood(): Promise<void> {
+        await this.clickButton(this.getUnderstoodButton(), { buttonName: translation.common.understood });
     }
 
     /**
@@ -162,17 +166,13 @@ export class LeaveGroupDialogPage extends BasePage {
 
     /**
      * Confirm leaving the group and return a dashboard page object.
+     * Only use when user CAN leave (no outstanding balance).
      * Provides optional factory to construct custom dashboard implementations.
      */
     async confirmLeaveGroup<T = DashboardPage>(createDashboardPage?: (page: Page) => T): Promise<T> {
-        // Check if understood button is visible (balance warning state)
-        const understoodVisible = await this.getUnderstoodButton().isVisible().catch(() => false);
-        if (understoodVisible) {
-            throw new Error('Cannot leave group with outstanding balance. Use attemptLeaveWithBalance() instead.');
-        }
+        await expect(this.getLeaveButton()).toBeVisible({ timeout: 2000 });
 
-        await expect(this.getConfirmButton()).toBeVisible({ timeout: 2000 });
-        await this.clickConfirm();
+        await this.clickLeave();
         await expect(this.page).toHaveURL(/\/dashboard/, { timeout: 10000 });
 
         const dashboardPage = createDashboardPage
@@ -217,7 +217,7 @@ export class LeaveGroupDialogPage extends BasePage {
         const message = await this.getMessageText();
         expect(message.toLowerCase()).toMatch(/outstanding balance|settle|owe|owed/);
 
-        // Understood button should be visible instead of confirm button
+        // Should show "Understood" button instead of "Leave" button
         await expect(this.getUnderstoodButton()).toBeVisible();
     }
 

@@ -12,7 +12,7 @@ test.describe('Tenant Editor Modal', () => {
             await adminTenantsPage.waitForTenantsLoaded();
 
             await tenantEditorModal.clickCreateTenant();
-            await tenantEditorModal.verifyModalIsOpen();
+            await tenantEditorModal.verifyCreateModalIsOpen();
         });
 
         test('should close modal when clicking cancel', async ({ systemAdminPage }) => {
@@ -23,7 +23,7 @@ test.describe('Tenant Editor Modal', () => {
             await adminTenantsPage.navigate();
             await adminTenantsPage.waitForTenantsLoaded();
             await tenantEditorModal.clickCreateTenant();
-            await tenantEditorModal.waitForModalToBeVisible();
+            await tenantEditorModal.waitForCreateModalToBeVisible();
 
             await tenantEditorModal.clickCancel();
             await tenantEditorModal.verifyModalIsClosed();
@@ -37,7 +37,7 @@ test.describe('Tenant Editor Modal', () => {
             await adminTenantsPage.navigate();
             await adminTenantsPage.waitForTenantsLoaded();
             await tenantEditorModal.clickCreateTenant();
-            await tenantEditorModal.waitForModalToBeVisible();
+            await tenantEditorModal.waitForCreateModalToBeVisible();
 
             await tenantEditorModal.clickClose();
             await tenantEditorModal.verifyModalIsClosed();
@@ -52,7 +52,7 @@ test.describe('Tenant Editor Modal', () => {
             await adminTenantsPage.waitForTenantsLoaded();
 
             await adminTenantsPage.clickEditButtonForFirstTenant();
-            await tenantEditorModal.waitForModalToBeVisible();
+            await tenantEditorModal.waitForEditModalToBeVisible();
             await tenantEditorModal.waitForFormPopulated();
 
             // Verify tenant ID is disabled in edit mode
@@ -74,7 +74,7 @@ test.describe('Tenant Editor Modal', () => {
             await adminTenantsPage.navigate();
             await adminTenantsPage.waitForTenantsLoaded();
             await tenantEditorModal.clickCreateTenant();
-            await tenantEditorModal.waitForModalToBeVisible();
+            await tenantEditorModal.waitForCreateModalToBeVisible();
 
             // Basic info section is open by default
             await tenantEditorModal.verifyAllBasicFieldsVisible();
@@ -89,7 +89,7 @@ test.describe('Tenant Editor Modal', () => {
             await adminTenantsPage.navigate();
             await adminTenantsPage.waitForTenantsLoaded();
             await tenantEditorModal.clickCreateTenant();
-            await tenantEditorModal.waitForModalToBeVisible();
+            await tenantEditorModal.waitForCreateModalToBeVisible();
 
             // Typography is an Advanced-only section
             await tenantEditorModal.switchToAdvancedMode();
@@ -104,7 +104,7 @@ test.describe('Tenant Editor Modal', () => {
             await adminTenantsPage.navigate();
             await adminTenantsPage.waitForTenantsLoaded();
             await tenantEditorModal.clickCreateTenant();
-            await tenantEditorModal.waitForModalToBeVisible();
+            await tenantEditorModal.waitForCreateModalToBeVisible();
 
             // Motion Effects is an Advanced-only section
             await tenantEditorModal.switchToAdvancedMode();
@@ -121,10 +121,10 @@ test.describe('Tenant Editor Modal', () => {
             await adminTenantsPage.navigate();
             await adminTenantsPage.waitForTenantsLoaded();
             await tenantEditorModal.clickCreateTenant();
-            await tenantEditorModal.waitForModalToBeVisible();
+            await tenantEditorModal.waitForCreateModalToBeVisible();
 
             // Try to save without filling fields
-            await tenantEditorModal.clickSave();
+            await tenantEditorModal.clickSave('create');
 
             // Should show validation error
             await tenantEditorModal.verifyErrorMessage();
@@ -138,13 +138,13 @@ test.describe('Tenant Editor Modal', () => {
             await adminTenantsPage.navigate();
             await adminTenantsPage.waitForTenantsLoaded();
             await tenantEditorModal.clickCreateTenant();
-            await tenantEditorModal.waitForModalToBeVisible();
+            await tenantEditorModal.waitForCreateModalToBeVisible();
 
             // Fill with invalid tenant ID (contains uppercase)
             await tenantEditorModal.fillTenantId('Invalid-Tenant-ID');
             await tenantEditorModal.fillAppName('Test Tenant');
             await tenantEditorModal.addDomain('test.example.com');
-            await tenantEditorModal.clickSave();
+            await tenantEditorModal.clickSave('create');
 
             // Should show validation error about lowercase
             await tenantEditorModal.verifyErrorMessage();
@@ -160,7 +160,7 @@ test.describe('Tenant Editor Modal', () => {
             await adminTenantsPage.navigate();
             await adminTenantsPage.waitForTenantsLoaded();
             await tenantEditorModal.clickCreateTenant();
-            await tenantEditorModal.waitForModalToBeVisible();
+            await tenantEditorModal.waitForCreateModalToBeVisible();
 
             // Add a domain
             await tenantEditorModal.addDomain('domain1.example.com');
@@ -181,7 +181,7 @@ test.describe('Tenant Editor Modal', () => {
             await adminTenantsPage.navigate();
             await adminTenantsPage.waitForTenantsLoaded();
             await tenantEditorModal.clickCreateTenant();
-            await tenantEditorModal.waitForModalToBeVisible();
+            await tenantEditorModal.waitForCreateModalToBeVisible();
 
             // Check initial state (showPricingPage should be unchecked by default)
             await tenantEditorModal.verifyShowPricingPageChecked(false);
@@ -205,7 +205,7 @@ test.describe('Tenant Editor Modal', () => {
             await adminTenantsPage.navigate();
             await adminTenantsPage.waitForTenantsLoaded();
             await tenantEditorModal.clickCreateTenant();
-            await tenantEditorModal.waitForModalToBeVisible();
+            await tenantEditorModal.waitForCreateModalToBeVisible();
 
             // Check initial state (should be checked by default - show app name)
             await tenantEditorModal.verifyShowAppNameInHeaderChecked(true);
@@ -229,7 +229,7 @@ test.describe('Tenant Editor Modal', () => {
             await adminTenantsPage.navigate();
             await adminTenantsPage.waitForTenantsLoaded();
             await tenantEditorModal.clickCreateTenant();
-            await tenantEditorModal.waitForModalToBeVisible();
+            await tenantEditorModal.waitForCreateModalToBeVisible();
 
             // Typography is an Advanced-only section
             await tenantEditorModal.switchToAdvancedMode();
@@ -255,7 +255,7 @@ test.describe('Tenant Editor Modal', () => {
             await adminTenantsPage.navigate();
             await adminTenantsPage.waitForTenantsLoaded();
             await tenantEditorModal.clickCreateTenant();
-            await tenantEditorModal.waitForModalToBeVisible();
+            await tenantEditorModal.waitForCreateModalToBeVisible();
 
             // Motion Effects is an Advanced-only section
             await tenantEditorModal.switchToAdvancedMode();
@@ -284,7 +284,7 @@ test.describe('Tenant Editor Modal', () => {
             await adminTenantsPage.waitForTenantsLoaded();
 
             await adminTenantsPage.clickEditButtonForFirstTenant();
-            await tenantEditorModal.waitForModalToBeVisible();
+            await tenantEditorModal.waitForEditModalToBeVisible();
 
             await tenantEditorModal.clickPublish();
             await tenantEditorModal.verifySuccessMessage('Theme published successfully!');

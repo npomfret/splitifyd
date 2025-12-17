@@ -1217,24 +1217,19 @@ export class GroupSettingsModalPage extends BasePage {
     // ============================================================================
 
     /**
-     * Get the lock toggle switch (when group is unlocked)
+     * Get the lock toggle when group is UNLOCKED (shows "Lock group" label).
+     * Use this when you expect the group to be unlocked.
      */
-    protected getLockToggleSwitch(): Locator {
-        return this.getGroupLockSection().getByRole('switch', { name: translation.group.locked.toggle });
+    protected getUnlockedGroupToggle(): Locator {
+        return this.getModalContainer().getByRole('switch', { name: translation.group.locked.toggle });
     }
 
     /**
-     * Get the unlock toggle switch (when group is locked)
+     * Get the lock toggle when group is LOCKED (shows "Unlock group" label).
+     * Use this when you expect the group to be locked.
      */
-    protected getUnlockToggleSwitch(): Locator {
-        return this.getGroupLockSection().getByRole('switch', { name: translation.group.locked.unlockToggle });
-    }
-
-    /**
-     * Get the group lock toggle switch (either locked or unlocked state)
-     */
-    protected getGroupLockToggleInput(): Locator {
-        return this.getLockToggleSwitch().or(this.getUnlockToggleSwitch());
+    protected getLockedGroupToggle(): Locator {
+        return this.getModalContainer().getByRole('switch', { name: translation.group.locked.unlockToggle });
     }
 
     /**
@@ -1244,8 +1239,8 @@ export class GroupSettingsModalPage extends BasePage {
      * elements are positioned off-screen and fail viewport checks.
      */
     protected getGroupLockToggle(): Locator {
-        // The first label in the lock section is the visual switch track
-        return this.getGroupLockSection().locator('label').first();
+        // The visible switch track is the first label[for="group-lock-toggle"]
+        return this.getModalContainer().locator('label[for="group-lock-toggle"]').first();
     }
 
     protected getGroupLockSectionHeading(): Locator {
@@ -1253,8 +1248,9 @@ export class GroupSettingsModalPage extends BasePage {
     }
 
     protected getGroupLockSection(): Locator {
-        // The group locking section has role='group' with aria-labelledby pointing to the heading
-        return this.getModalContainer().getByRole('group', { name: translation.group.locked.sectionTitle });
+        // Find the h3 heading's parent div (the section container)
+        // Use xpath to go up to the parent that contains both the heading and the toggle
+        return this.getGroupLockSectionHeading().locator('xpath=ancestor::div[contains(@class, "border-t")]');
     }
 
     protected getGroupLockSuccessAlert(): Locator {
@@ -1263,43 +1259,41 @@ export class GroupSettingsModalPage extends BasePage {
     }
 
     /**
-     * Lock the group (if not already locked).
-     * Uses the hidden input to check state and the visible label to click.
+     * Lock the group. Expects the group to be currently unlocked.
      *
      * IMPORTANT: We click the visible label (switch track), not the sr-only input,
      * because sr-only elements are positioned off-screen and fail viewport checks.
      */
     async lockGroup(): Promise<void> {
         await this.ensureGeneralTab();
-        const input = this.getGroupLockToggleInput();
+        const toggle = this.getUnlockedGroupToggle();
         const label = this.getGroupLockToggle();
-        if (!(await input.isChecked())) {
-            // Scroll the visible label into view and click it
-            await label.scrollIntoViewIfNeeded();
-            await label.click();
-            // Wait for the state change to be reflected
-            await expect(input).toBeChecked();
-        }
+        // Verify group is currently unlocked
+        await expect(toggle).not.toBeChecked();
+        // Click the visible label to toggle
+        await label.scrollIntoViewIfNeeded();
+        await label.click();
+        // Wait for the state change - now we expect the "Unlock" toggle to be checked
+        await expect(this.getLockedGroupToggle()).toBeChecked();
     }
 
     /**
-     * Unlock the group (if currently locked).
-     * Uses the hidden input to check state and the visible label to click.
+     * Unlock the group. Expects the group to be currently locked.
      *
      * IMPORTANT: We click the visible label (switch track), not the sr-only input,
      * because sr-only elements are positioned off-screen and fail viewport checks.
      */
     async unlockGroup(): Promise<void> {
         await this.ensureGeneralTab();
-        const input = this.getGroupLockToggleInput();
+        const toggle = this.getLockedGroupToggle();
         const label = this.getGroupLockToggle();
-        if (await input.isChecked()) {
-            // Scroll the visible label into view and click it
-            await label.scrollIntoViewIfNeeded();
-            await label.click();
-            // Wait for the state change to be reflected
-            await expect(input).not.toBeChecked();
-        }
+        // Verify group is currently locked
+        await expect(toggle).toBeChecked();
+        // Click the visible label to toggle
+        await label.scrollIntoViewIfNeeded();
+        await label.click();
+        // Wait for the state change - now we expect the "Lock" toggle to be unchecked
+        await expect(this.getUnlockedGroupToggle()).not.toBeChecked();
     }
 
     /**
@@ -1318,19 +1312,19 @@ export class GroupSettingsModalPage extends BasePage {
     }
 
     /**
-     * Verify group is locked (toggle input is checked)
+     * Verify group is locked (shows "Unlock group" toggle which is checked)
      */
     async verifyGroupLocked(): Promise<void> {
         await this.ensureGeneralTab();
-        await expect(this.getGroupLockToggleInput()).toBeChecked();
+        await expect(this.getLockedGroupToggle()).toBeChecked();
     }
 
     /**
-     * Verify group is unlocked (toggle input is not checked)
+     * Verify group is unlocked (shows "Lock group" toggle which is not checked)
      */
     async verifyGroupUnlocked(): Promise<void> {
         await this.ensureGeneralTab();
-        await expect(this.getGroupLockToggleInput()).not.toBeChecked();
+        await expect(this.getUnlockedGroupToggle()).not.toBeChecked();
     }
 
     /**

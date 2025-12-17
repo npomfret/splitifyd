@@ -83,7 +83,7 @@ test.describe('Expense Form', () => {
             const expenseFormPage = new ExpenseFormPage(page);
             await expenseFormPage.navigateToAddExpense(groupId);
 
-            await expenseFormPage.verifyPageLoaded();
+            await expenseFormPage.verifyPageLoaded('add');
         });
     });
 

@@ -128,10 +128,6 @@ export class TenantEditorModalPage extends BasePage {
         return this.page.getByRole('dialog');
     }
 
-    protected getModalHeading(): Locator {
-        return this.getCreateTenantHeading().or(this.getEditTenantHeading());
-    }
-
     protected getCreateTenantHeading(): Locator {
         return this.page.getByRole('heading', { name: translation.admin.tenantEditor.titleCreate });
     }
@@ -259,16 +255,13 @@ export class TenantEditorModalPage extends BasePage {
         return this.getModal().getByRole('button', { name: translation.admin.tenantEditor.buttons.addDomain });
     }
 
-    protected getSaveTenantButton(): Locator {
-        // Button text depends on mode: "Create Tenant" for create, "Save Changes" for edit
-        return this.getCreateTenantSaveButton().or(this.getSaveChangesButton());
-    }
-
     protected getCreateTenantSaveButton(): Locator {
+        // Admin pages use hardcoded English - this is the save button when creating a tenant
         return this.getModal().getByRole('button', { name: 'Create Tenant' });
     }
 
     protected getSaveChangesButton(): Locator {
+        // Admin pages use hardcoded English - this is the save button when editing a tenant
         return this.getModal().getByRole('button', { name: 'Save Changes' });
     }
 
@@ -293,14 +286,19 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     protected getCreateTenantButton(): Locator {
-        // This is the "Create New Tenant" button that opens the modal
+        // Admin pages use hardcoded English - this is the button that opens the create modal
         return this.page.getByRole('button', { name: 'Create New Tenant' });
     }
 
     // ✅ Navigation
-    async waitForModalToBeVisible(): Promise<void> {
+    async waitForCreateModalToBeVisible(): Promise<void> {
         await this.getModal().waitFor({ state: 'visible' });
-        await this.getModalHeading().waitFor({ state: 'visible' });
+        await this.getCreateTenantHeading().waitFor({ state: 'visible' });
+    }
+
+    async waitForEditModalToBeVisible(): Promise<void> {
+        await this.getModal().waitFor({ state: 'visible' });
+        await this.getEditTenantHeading().waitFor({ state: 'visible' });
     }
 
     async waitForModalToBeHidden(): Promise<void> {
@@ -499,8 +497,9 @@ export class TenantEditorModalPage extends BasePage {
         await input.pressSequentially(value, { delay: 10 });
     }
 
-    async clickSave(): Promise<void> {
-        await this.getSaveTenantButton().click();
+    async clickSave(mode: 'create' | 'edit'): Promise<void> {
+        const button = mode === 'create' ? this.getCreateTenantSaveButton() : this.getSaveChangesButton();
+        await button.click();
     }
 
     async clickCancel(): Promise<void> {
@@ -519,8 +518,8 @@ export class TenantEditorModalPage extends BasePage {
         await this.getCreateTenantButton().click();
     }
 
-    async clickSaveAndVerifySuccess(): Promise<void> {
-        await this.clickSave();
+    async clickSaveAndVerifySuccess(mode: 'create' | 'edit'): Promise<void> {
+        await this.clickSave(mode);
         // Either we see the success message OR the modal closes (both indicate success)
         await Promise.race([
             this.verifySuccessMessage().catch(() => {}),
@@ -555,19 +554,24 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     // ✅ Verification methods - encapsulate all assertions
-    async verifyModalIsOpen(): Promise<void> {
+    async verifyCreateModalIsOpen(): Promise<void> {
         await expect(this.getModal()).toBeVisible();
-        await expect(this.getModalHeading()).toBeVisible();
+        await expect(this.getCreateTenantHeading()).toBeVisible();
+    }
+
+    async verifyEditModalIsOpen(): Promise<void> {
+        await expect(this.getModal()).toBeVisible();
+        await expect(this.getEditTenantHeading()).toBeVisible();
     }
 
     /**
-     * Waits for the modal to open AND for the form to be populated with the specified tenant's data.
-     * Use this instead of verifyModalIsOpen() when you need to verify form values afterward,
+     * Waits for the edit modal to open AND for the form to be populated with the specified tenant's data.
+     * Use this instead of verifyEditModalIsOpen() when you need to verify form values afterward,
      * as the form data loads asynchronously after the modal becomes visible.
      */
-    async verifyModalIsOpenWithTenant(expectedAppName: string): Promise<void> {
+    async verifyEditModalIsOpenWithTenant(expectedAppName: string): Promise<void> {
         await expect(this.getModal()).toBeVisible();
-        await expect(this.getModalHeading()).toBeVisible();
+        await expect(this.getEditTenantHeading()).toBeVisible();
         // Wait for the form to be populated with the tenant's data
         await expect(this.getAppNameInput()).toHaveValue(expectedAppName);
     }

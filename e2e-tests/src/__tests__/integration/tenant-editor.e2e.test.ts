@@ -28,19 +28,19 @@ test.describe('Tenant editor', () => {
 
             // Open editor for first tenant (most recently created should be first)
             const tenantEditorModal = await adminTenantsPage.clickEditButtonForFirstTenant();
-            // Use verifyModalIsOpenWithTenant to ensure form data is loaded before setting colors
-            await tenantEditorModal.verifyModalIsOpenWithTenant(appName);
+            // Use verifyEditModalIsOpenWithTenant to ensure form data is loaded before setting colors
+            await tenantEditorModal.verifyEditModalIsOpenWithTenant(appName);
 
             // Update colors
             await tenantEditorModal.setAccentColor('#ff00ff');
 
             // Save
-            await tenantEditorModal.clickSave();
+            await tenantEditorModal.clickSave('edit');
             await tenantEditorModal.verifyModalIsClosed();
 
             // Reopen and publish theme
             const tenantEditorModal2 = await adminTenantsPage.clickEditButtonForFirstTenant();
-            await tenantEditorModal2.verifyModalIsOpenWithTenant(appName);
+            await tenantEditorModal2.verifyEditModalIsOpenWithTenant(appName);
             const cssUrl = await tenantEditorModal2.clickPublishAndGetCssUrl();
 
             // Verify CSS was published with our color
@@ -74,15 +74,15 @@ test.describe('Tenant editor', () => {
 
             // Open editor for first tenant
             const tenantEditorModal = await adminTenantsPage.clickEditButtonForFirstTenant();
-            // Use verifyModalIsOpenWithTenant to ensure form data is loaded before modifying
-            await tenantEditorModal.verifyModalIsOpenWithTenant(initialName);
+            // Use verifyEditModalIsOpenWithTenant to ensure form data is loaded before modifying
+            await tenantEditorModal.verifyEditModalIsOpenWithTenant(initialName);
 
             const updatedName = `Updated ${tenantId.slice(-6)}`;
             await tenantEditorModal.fillAppName(updatedName);
             await tenantEditorModal.setPrimaryColor('#2563eb');
 
             // Save
-            await tenantEditorModal.clickSave();
+            await tenantEditorModal.clickSave('edit');
             await tenantEditorModal.verifyModalIsClosed();
 
             // Refresh and reopen to verify persistence
@@ -90,7 +90,7 @@ test.describe('Tenant editor', () => {
             await adminTenantsPage.verifyTenantCardVisible(updatedName);
 
             const tenantEditorModal2 = await adminTenantsPage.clickEditButtonForFirstTenant();
-            await tenantEditorModal2.verifyModalIsOpenWithTenant(updatedName);
+            await tenantEditorModal2.verifyEditModalIsOpenWithTenant(updatedName);
 
             // Verify values persisted
             await tenantEditorModal2.verifyPrimaryColorValue('#2563eb');
@@ -121,20 +121,20 @@ test.describe('Tenant editor', () => {
             const expectedAppName = `MultiColor ${tenantId.slice(-6)}`;
 
             const tenantEditorModal = await adminTenantsPage.clickEditButtonForFirstTenant();
-            // Use verifyModalIsOpenWithTenant to ensure form data is loaded before setting colors
-            await tenantEditorModal.verifyModalIsOpenWithTenant(expectedAppName);
+            // Use verifyEditModalIsOpenWithTenant to ensure form data is loaded before setting colors
+            await tenantEditorModal.verifyEditModalIsOpenWithTenant(expectedAppName);
 
             // Update multiple colors
             await tenantEditorModal.setPrimaryColor('#1a2b3c');
             await tenantEditorModal.setSecondaryColor('#4d5e6f');
             await tenantEditorModal.setAccentColor('#789abc');
 
-            await tenantEditorModal.clickSave();
+            await tenantEditorModal.clickSave('edit');
             await tenantEditorModal.verifyModalIsClosed();
 
             // Verify all persisted
             const tenantEditorModal2 = await adminTenantsPage.clickEditButtonForFirstTenant();
-            await tenantEditorModal2.verifyModalIsOpenWithTenant(expectedAppName);
+            await tenantEditorModal2.verifyEditModalIsOpenWithTenant(expectedAppName);
 
             await tenantEditorModal2.verifyPrimaryColorValue('#1a2b3c');
             await tenantEditorModal2.verifySecondaryColorValue('#4d5e6f');
@@ -167,8 +167,8 @@ test.describe('Tenant editor', () => {
 
             const expectedAppName = `Fonts ${tenantId.slice(-6)}`;
             const tenantEditorModal = await adminTenantsPage.clickEditButtonForFirstTenant();
-            // Use verifyModalIsOpenWithTenant to ensure form data is loaded before switching modes
-            await tenantEditorModal.verifyModalIsOpenWithTenant(expectedAppName);
+            // Use verifyEditModalIsOpenWithTenant to ensure form data is loaded before switching modes
+            await tenantEditorModal.verifyEditModalIsOpenWithTenant(expectedAppName);
 
             // Typography is only available in Advanced mode
             await tenantEditorModal.switchToAdvancedMode();
@@ -178,12 +178,12 @@ test.describe('Tenant editor', () => {
             await tenantEditorModal.setFontFamilySerif('Merriweather, serif');
             await tenantEditorModal.setFontFamilyMono('Fira Code, monospace');
 
-            await tenantEditorModal.clickSave();
+            await tenantEditorModal.clickSave('edit');
             await tenantEditorModal.verifyModalIsClosed();
 
             // Verify persisted
             const tenantEditorModal2 = await adminTenantsPage.clickEditButtonForFirstTenant();
-            await tenantEditorModal2.verifyModalIsOpenWithTenant(expectedAppName);
+            await tenantEditorModal2.verifyEditModalIsOpenWithTenant(expectedAppName);
 
             // Switch to Advanced mode to access Typography section
             await tenantEditorModal2.switchToAdvancedMode();
@@ -223,8 +223,8 @@ test.describe('Tenant editor', () => {
 
             // Open editor for first tenant
             const tenantEditorModal = await adminTenantsPage.clickEditButtonForFirstTenant();
-            // Use verifyModalIsOpenWithTenant to ensure form data is loaded before switching modes
-            await tenantEditorModal.verifyModalIsOpenWithTenant(appName);
+            // Use verifyEditModalIsOpenWithTenant to ensure form data is loaded before switching modes
+            await tenantEditorModal.verifyEditModalIsOpenWithTenant(appName);
 
             // Advanced controls are only visible in Advanced mode
             await tenantEditorModal.switchToAdvancedMode();
@@ -262,19 +262,19 @@ test.describe('Tenant editor', () => {
 
             const expectedAppName = `Marketing ${tenantId.slice(-6)}`;
             const tenantEditorModal = await adminTenantsPage.clickEditButtonForFirstTenant();
-            // Use verifyModalIsOpenWithTenant to ensure form data is loaded before toggling
-            await tenantEditorModal.verifyModalIsOpenWithTenant(expectedAppName);
+            // Use verifyEditModalIsOpenWithTenant to ensure form data is loaded before toggling
+            await tenantEditorModal.verifyEditModalIsOpenWithTenant(expectedAppName);
 
             // Toggle all marketing flags off
             await tenantEditorModal.toggleShowMarketingContent(false);
             await tenantEditorModal.toggleShowPricingPage(false);
 
-            await tenantEditorModal.clickSave();
+            await tenantEditorModal.clickSave('edit');
             await tenantEditorModal.verifyModalIsClosed();
 
             // Verify persisted
             const tenantEditorModal2 = await adminTenantsPage.clickEditButtonForFirstTenant();
-            await tenantEditorModal2.verifyModalIsOpenWithTenant(expectedAppName);
+            await tenantEditorModal2.verifyEditModalIsOpenWithTenant(expectedAppName);
 
             await tenantEditorModal2.verifyShowMarketingContentChecked(false);
             await tenantEditorModal2.verifyShowPricingPageChecked(false);
@@ -283,12 +283,12 @@ test.describe('Tenant editor', () => {
             await tenantEditorModal2.toggleShowMarketingContent(true);
             await tenantEditorModal2.toggleShowPricingPage(true);
 
-            await tenantEditorModal2.clickSave();
+            await tenantEditorModal2.clickSave('edit');
             await tenantEditorModal2.verifyModalIsClosed();
 
             // Verify again
             const tenantEditorModal3 = await adminTenantsPage.clickEditButtonForFirstTenant();
-            await tenantEditorModal3.verifyModalIsOpenWithTenant(expectedAppName);
+            await tenantEditorModal3.verifyEditModalIsOpenWithTenant(expectedAppName);
 
             await tenantEditorModal3.verifyShowMarketingContentChecked(true);
             await tenantEditorModal3.verifyShowPricingPageChecked(true);
@@ -323,8 +323,8 @@ test.describe('Tenant editor', () => {
 
             const expectedAppName = `Publish ${tenantId.slice(-6)}`;
             const tenantEditorModal = await adminTenantsPage.clickEditButtonForFirstTenant();
-            // Use verifyModalIsOpenWithTenant to ensure form data is loaded before publishing
-            await tenantEditorModal.verifyModalIsOpenWithTenant(expectedAppName);
+            // Use verifyEditModalIsOpenWithTenant to ensure form data is loaded before publishing
+            await tenantEditorModal.verifyEditModalIsOpenWithTenant(expectedAppName);
 
             const cssUrl = await tenantEditorModal.clickPublishAndGetCssUrl();
 

@@ -828,26 +828,18 @@ export class DashboardPage extends BasePage {
     }
 
     /**
-     * Verify dashboard heading is visible (either welcome or "Your Groups")
-     * Used after registration/login to confirm user landed on dashboard
+     * Verify welcome message heading is visible (for new users with no groups)
      */
-    async verifyDashboardHeadingVisible(timeout: number = 5000): Promise<void> {
-        // Check for either "Your Groups" heading OR welcome message heading
-        const yourGroupsHeading = this.page.getByRole('heading', { name: translation.dashboard.yourGroups });
-        const welcomeHeading = this.page.getByRole('heading', { name: new RegExp(`^${translation.dashboard.welcomeMessage.split('{{')[0]}`) });
+    async verifyWelcomeMessageVisible(timeout: number = 5000): Promise<void> {
+        const welcomePattern = new RegExp(`^${translation.dashboard.welcomeMessage.split('{{')[0]}`);
+        await expect(this.page.getByRole('heading', { name: welcomePattern })).toBeVisible({ timeout });
+    }
 
-        const yourGroupsVisible = await yourGroupsHeading.isVisible().catch(() => false);
-        if (yourGroupsVisible) {
-            return;
-        }
-
-        const welcomeVisible = await welcomeHeading.isVisible().catch(() => false);
-        if (welcomeVisible) {
-            return;
-        }
-
-        // If neither is visible, wait for one of them
-        await expect(yourGroupsHeading.or(welcomeHeading).first()).toBeVisible({ timeout });
+    /**
+     * Verify "Your Groups" heading is visible (for users with groups)
+     */
+    async verifyYourGroupsHeadingVisible(timeout: number = 5000): Promise<void> {
+        await expect(this.page.getByRole('heading', { name: translation.dashboard.yourGroups })).toBeVisible({ timeout });
     }
 
     // ============================================================================

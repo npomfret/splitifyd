@@ -25,7 +25,7 @@
 - Changed `getProfileSection()` to use `getByRole('region', { name: translation... })`
 - Changed `getPasswordSection()` to use `getByRole('region', { name: translation... })`
 - Changed `getAvatarOrInitials()` to scope by profile summary section
-- Changed `getLanguageSelect()` to use `getByRole('region', ...).getByRole('combobox')`
+- `getLanguageSelect()` uses `select[name="language"]` (stable across language changes)
 
 **DashboardPage.ts:**
 - Made public `getEmptyGroupsState()` method private
@@ -40,8 +40,6 @@
 **GroupSettingsModalPage.ts:**
 - Changed `getByTestId('input-error-message')` to `getByRole('alert')`
 - Made public locator methods private (getDisplayNameInputLocator, etc.)
-- Changed `getGroupLockSection()` to use `getByRole('group', { name: translation... })`
-- Changed `getGroupLockToggle()` to scope by section instead of ID selector
 
 **SettlementFormPage.ts:**
 - Changed `getAmountInput()` to use `getByRole('spinbutton')`
@@ -66,6 +64,9 @@
 
 ### Phase 5 Changes
 
+Simplified regex alternation patterns where a single translation key suffices. Left regex alternations
+where the element genuinely matches multiple states (e.g., "Edit payment" vs "Cannot edit" for locked groups).
+
 **UserEditorModalPage.ts:**
 - Changed `/cancel|close/i` regex to use `translation.common.cancel`
 
@@ -73,28 +74,8 @@
 - Changed `getLoginButton()` from regex alternation to single translation key
 - Changed `getRegisterButton()` from regex alternation to single translation key
 
-**LeaveGroupDialogPage.ts:**
-- Created separate `getConfirmButton()` and `getUnderstoodButton()` methods
-- Updated `waitForDialogToOpen()`, `confirmLeaveGroup()`, and `verifyOutstandingBalanceWarning()` to use appropriate buttons
-
-**DashboardPage.ts:**
-- Changed `verifyDashboardHeadingVisible()` to use `.or()` composition instead of regex alternation
-
-**ExpenseFormPage.ts:**
-- Created separate heading methods: `getAddExpenseHeading()`, `getEditExpenseHeading()`, `getCopyExpenseHeading()`
-- Changed `getPageHeading()` to use `.or()` composition
-
-**GroupSettingsModalPage.ts:**
-- Created separate `getLockToggleSwitch()` and `getUnlockToggleSwitch()` methods
-- Changed `getGroupLockToggleInput()` to use `.or()` composition
-
-**TenantEditorModalPage.ts:**
-- Created separate `getCreateTenantHeading()` and `getEditTenantHeading()` methods
-- Created separate `getCreateTenantSaveButton()` and `getSaveChangesButton()` methods
-- Changed `getCreateTenantButton()` to use exact string
-
-**GroupDetailPage.ts:**
-- Changed `getSettlementEditButton()` to use `.or()` composition with translation keys
+**Note:** Other regex alternation patterns (e.g., expense form headings, lock toggles, settlement edit buttons)
+were left as-is because they represent genuinely different states the same locator must match.
 
 ## Scope
 

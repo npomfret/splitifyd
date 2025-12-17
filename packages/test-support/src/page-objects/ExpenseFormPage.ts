@@ -57,13 +57,6 @@ export class ExpenseFormPage extends BasePage {
         return this.page.getByRole('heading', { name: translation.expenseFormHeader.copyExpense });
     }
 
-    /**
-     * Page heading - finds any expense form heading (Add/Edit/Copy)
-     */
-    protected getPageHeading(): Locator {
-        return this.getAddExpenseHeading().or(this.getEditExpenseHeading()).or(this.getCopyExpenseHeading());
-    }
-
     // ============================================================================
     // CONTAINER SELECTORS - Find sections by their ARIA labels (semantic regions)
     // ============================================================================
@@ -401,14 +394,18 @@ export class ExpenseFormPage extends BasePage {
      */
     async navigateToAddExpense(groupId: GroupId | string): Promise<void> {
         await this.page.goto(`/groups/${groupId}/add-expense`, { waitUntil: 'domcontentloaded' });
-        await this.waitForPageToLoad();
+        await this.waitForPageToLoad('add');
     }
 
     /**
      * Wait for the expense form page to load
+     * @param mode - The expected form mode: 'add', 'edit', or 'copy'
      */
-    async waitForPageToLoad(): Promise<void> {
-        await expect(this.getPageHeading()).toBeVisible({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
+    async waitForPageToLoad(mode: 'add' | 'edit' | 'copy'): Promise<void> {
+        const heading = mode === 'add' ? this.getAddExpenseHeading()
+            : mode === 'edit' ? this.getEditExpenseHeading()
+            : this.getCopyExpenseHeading();
+        await expect(heading).toBeVisible({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
     }
 
     /**
@@ -945,9 +942,13 @@ export class ExpenseFormPage extends BasePage {
 
     /**
      * Verify page is loaded and ready
+     * @param mode - The expected form mode: 'add', 'edit', or 'copy'
      */
-    async verifyPageLoaded(): Promise<void> {
-        await expect(this.getPageHeading()).toBeVisible();
+    async verifyPageLoaded(mode: 'add' | 'edit' | 'copy'): Promise<void> {
+        const heading = mode === 'add' ? this.getAddExpenseHeading()
+            : mode === 'edit' ? this.getEditExpenseHeading()
+            : this.getCopyExpenseHeading();
+        await expect(heading).toBeVisible();
         await expect(this.getDescriptionInput()).toBeVisible();
         await expect(this.getAmountInput()).toBeVisible();
         await expect(this.getCurrencySelect()).toBeVisible();

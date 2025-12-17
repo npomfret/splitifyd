@@ -183,7 +183,7 @@ simpleTest.describe('Departed Member Transaction Locking', () => {
 
         // VERIFY SETTLEMENT LOCK
         // The settlement edit button should be disabled
-        await aliceGroupDetailPage.verifySettlementEditButtonDisabled(settlementNote);
+        await aliceGroupDetailPage.verifySettlementEditDisabled(settlementNote);
     });
 
     simpleTest('should lock settlement when payee leaves group', async ({ createLoggedInBrowsers }, testInfo) => {
@@ -279,7 +279,7 @@ simpleTest.describe('Departed Member Transaction Locking', () => {
 
         // VERIFY SETTLEMENT LOCK
         // The settlement edit button should be disabled (Alice was the payer/payee)
-        await bobGroupDetailPage.verifySettlementEditButtonDisabled(settlementNote);
+        await bobGroupDetailPage.verifySettlementEditDisabled(settlementNote);
     });
 
     simpleTest('should allow creating new expense after member leaves', async ({ createLoggedInBrowsers }, testInfo) => {
