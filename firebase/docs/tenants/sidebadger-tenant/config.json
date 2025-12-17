@@ -127,7 +127,7 @@
             "base": "#F0FDF4",
             "raised": "#FFFFFF",
             "sunken": "#ECFDF0",
-            "overlay": "rgba(240, 253, 244, 0.98)",
+            "overlay": "rgba(0, 0, 0, 0.5)",
             "warning": "#FEF3C7",
             "muted": "#E8F8EC",
             "glass": "rgba(22, 163, 74, 0.04)",

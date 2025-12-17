@@ -116,7 +116,7 @@ export class TenantPayloadBuilder {
                                 base: '#f8fafc',
                                 raised: '#fafbfc',
                                 sunken: '#eff1f3',
-                                overlay: '#0f172a',
+                                overlay: 'rgba(0, 0, 0, 0.5)',
                                 warning: '#fef3c7',
                             },
                             text: {

@@ -123,7 +123,7 @@
             "base": "#0F172A",
             "raised": "#1E293B",
             "sunken": "#020617",
-            "overlay": "rgba(15, 23, 42, 0.95)",
+            "overlay": "rgba(15, 23, 42, 0.5)",
             "warning": "#431407",
             "muted": "#334155",
             "glass": "rgba(59, 130, 246, 0.08)",

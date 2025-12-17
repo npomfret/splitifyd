@@ -114,7 +114,7 @@ function createTestBrandingTokens(): TenantBranding {
                         base: '#ffffff',
                         raised: '#fafafa',
                         sunken: '#f5f5f5',
-                        overlay: '#000000',
+                        overlay: 'rgba(0, 0, 0, 0.5)',
                         warning: '#fef3c7',
                     },
                     text: {

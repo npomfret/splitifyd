@@ -110,7 +110,7 @@
             "base": "#171717",
             "raised": "#262626",
             "sunken": "#0A0A0A",
-            "overlay": "#404040",
+            "overlay": "rgba(0, 0, 0, 0.5)",
             "warning": "#451A03",
             "muted": "#404040",
             "skeleton": "#262626",
