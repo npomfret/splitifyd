@@ -234,6 +234,8 @@ const BrandingSemanticColorSchema = z.object({
         overlay: CssColorSchema,
         warning: CssColorSchema,
         muted: CssColorSchema.optional(),
+        // Subtle background for list items/content cards (replaces opacity modifiers like bg-surface-base/50)
+        subtle: CssColorSchema.optional(),
         // For glassmorphism
         glass: CssColorSchema.optional(),
         glassBorder: CssColorSchema.optional(),

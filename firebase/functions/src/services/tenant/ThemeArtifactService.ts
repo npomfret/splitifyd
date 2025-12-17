@@ -163,6 +163,8 @@ export class ThemeArtifactService {
         entries.push(['semantic-warning', this.hexToRgb(colors.status.warning)]);
         // Use surface.muted if available, otherwise fall back to surface.raised
         entries.push(['surface-muted', this.hexToRgb(colors.surface.muted || colors.surface.raised)]);
+        // Use surface.subtle if available, otherwise fall back to surface.raised
+        entries.push(['surface-subtle', this.hexToRgb(colors.surface.subtle || colors.surface.raised)]);
 
         // Text-owed for negative balance amounts
         if (colors.text.owed) {
@@ -381,7 +383,9 @@ export class ThemeArtifactService {
             lines.push('');
             lines.push('  /* Auto-glassmorphism: subtle frost on all cards */');
             lines.push('  .bg-surface-base.rounded-xl,');
-            lines.push('  .bg-surface-raised.rounded-xl {');
+            lines.push('  .bg-surface-raised.rounded-xl,');
+            lines.push('  .bg-surface-subtle.rounded-xl,');
+            lines.push('  .bg-surface-subtle.rounded-lg {');
             lines.push(`    background: ${glass};`);
             lines.push('    backdrop-filter: blur(8px);');
             lines.push('    -webkit-backdrop-filter: blur(8px);');
@@ -391,8 +395,10 @@ export class ThemeArtifactService {
             lines.push('  }');
             lines.push('');
             lines.push('  /* Stronger glassmorphism on innermost cards (no nested cards) */');
-            lines.push('  .bg-surface-base.rounded-xl:not(:has(.rounded-xl)),');
-            lines.push('  .bg-surface-raised.rounded-xl:not(:has(.rounded-xl)) {');
+            lines.push('  .bg-surface-base.rounded-xl:not(:has(.rounded-xl, .rounded-lg)),');
+            lines.push('  .bg-surface-raised.rounded-xl:not(:has(.rounded-xl, .rounded-lg)),');
+            lines.push('  .bg-surface-subtle.rounded-xl:not(:has(.rounded-xl, .rounded-lg)),');
+            lines.push('  .bg-surface-subtle.rounded-lg:not(:has(.rounded-xl, .rounded-lg)) {');
             lines.push(`    background: ${glass};`);
             lines.push('    backdrop-filter: blur(20px);');
             lines.push('    -webkit-backdrop-filter: blur(20px);');

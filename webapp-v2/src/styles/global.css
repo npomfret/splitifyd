@@ -4,6 +4,9 @@
   --color-surface-base: rgb(var(--surface-base-rgb, 255 255 255));
   --color-surface-muted: rgb(var(--surface-muted-rgb, 245 247 251));
   --color-surface-raised: rgb(var(--surface-raised-rgb, 250 250 255));
+  --color-surface-subtle: rgb(
+    var(--surface-subtle-rgb, var(--surface-raised-rgb, 250 250 255))
+  );
   --color-surface-popover: rgb(
     var(--surface-popover-rgb, var(--surface-base-rgb, 248 250 252))
   );

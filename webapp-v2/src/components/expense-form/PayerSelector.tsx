@@ -64,7 +64,7 @@ export function PayerSelector({ members, paidBy, validationErrors, updateField }
                             border rounded-md
                             transition-colors duration-200
                             bg-surface-raised backdrop-blur-xs text-text-primary cursor-pointer
-                            hover:bg-surface-muted/60
+                            hover:bg-surface-muted
                             focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-interactive-primary
                             ${hasError ? 'border-border-error' : 'border-border-default'}
                         `}

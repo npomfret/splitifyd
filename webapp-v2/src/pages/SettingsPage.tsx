@@ -351,11 +351,11 @@ export function SettingsPage() {
                                 </div>
 
                                 <div className='space-y-3 text-sm'>
-                                    <div className='rounded-lg border border-border-default bg-surface-muted/60 px-4 py-3'>
+                                    <div className='rounded-lg border border-border-default bg-surface-subtle px-4 py-3'>
                                         <span className='text-text-muted'>{t('settingsPage.currentDisplayName')}</span>
                                         <div className='font-medium text-text-primary' aria-label={t('settingsPage.displayNameValue')}>{resolvedDisplayName}</div>
                                     </div>
-                                    <div className='rounded-lg border border-border-default bg-surface-muted/60 px-4 py-3'>
+                                    <div className='rounded-lg border border-border-default bg-surface-subtle px-4 py-3'>
                                         <span className='text-text-muted'>{t('settingsPage.email')}</span>
                                         <div className='font-medium text-text-primary wrap-break-word' aria-label={t('settingsPage.emailValue')}>
                                             {user.email}
@@ -363,7 +363,7 @@ export function SettingsPage() {
                                     </div>
                                     {/* Only show account role to system admins - it's not meaningful to regular users */}
                                     {user.role === SystemUserRoles.SYSTEM_ADMIN && (
-                                        <div className='rounded-lg border border-border-default bg-surface-muted/60 px-4 py-3'>
+                                        <div className='rounded-lg border border-border-default bg-surface-subtle px-4 py-3'>
                                             <span className='text-text-muted'>{t('settingsPage.profileSummaryRoleLabel')}</span>
                                             <div className='font-medium text-text-primary'>
                                                 {user.role

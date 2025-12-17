@@ -274,7 +274,7 @@ describe('ThemeArtifactService', () => {
             expect(result.cssContent).toContain('Auto-glassmorphism');
             expect(result.cssContent).toContain('.bg-surface-base.rounded-xl');
             expect(result.cssContent).toContain('.bg-surface-raised.rounded-xl');
-            expect(result.cssContent).toContain(':not(:has(.rounded-xl))');
+            expect(result.cssContent).toContain(':not(:has(.rounded-xl, .rounded-lg))');
             expect(result.cssContent).toContain('backdrop-filter: blur(20px)');
         });
 
@@ -289,7 +289,7 @@ describe('ThemeArtifactService', () => {
 
             // Should not have auto-glassmorphism selectors
             expect(result.cssContent).not.toContain('Auto-glassmorphism');
-            expect(result.cssContent).not.toContain(':not(:has(.rounded-xl))');
+            expect(result.cssContent).not.toContain(':not(:has(.rounded-xl, .rounded-lg))');
         });
     });
 });

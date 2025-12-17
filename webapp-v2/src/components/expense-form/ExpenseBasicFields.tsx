@@ -102,7 +102,7 @@ export function ExpenseBasicFields(
                                                 updateField('amount', recent.amount);
                                                 currencyService.addToRecentCurrencies(recent.currency);
                                             }}
-                                            className='px-2 py-1 text-xs bg-surface-base/50 border border-border-default/50 text-text-primary rounded hover:bg-surface-muted hover:border-interactive-primary/40 transition-all duration-200'
+                                            className='px-2 py-1 text-xs bg-surface-subtle border border-border-default/50 text-text-primary rounded hover:bg-surface-muted hover:border-interactive-primary/40 transition-all duration-200'
                                         >
                                             <CurrencyAmount amount={recent.amount} currency={recent.currency} />
                                         </button>

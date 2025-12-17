@@ -125,6 +125,7 @@
             "overlay": "rgba(0, 0, 0, 0.5)",
             "warning": "#FEF3C7",
             "muted": "#F1F5F9",
+            "subtle": "#FAFBFC",
             "glass": "rgba(37, 99, 235, 0.02)",
             "glassBorder": "rgba(37, 99, 235, 0.08)",
             "aurora": "rgba(37, 99, 235, 0.02)",

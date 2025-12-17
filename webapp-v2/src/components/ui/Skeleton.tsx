@@ -88,7 +88,7 @@ export function SkeletonActivityItem({ className }: { className?: string; }) {
     return (
         <div
             className={cx(
-                'flex items-start gap-3 rounded-lg border border-border-default/50 bg-surface-base/30 px-4 py-3',
+                'flex items-start gap-3 rounded-lg border border-border-default/50 bg-surface-subtle px-4 py-3',
                 className,
             )}
         >
@@ -117,7 +117,7 @@ export function SkeletonExpenseItem({ className }: { className?: string; }) {
     return (
         <div
             className={cx(
-                'border border-border-default/50 rounded-lg px-4 py-3 bg-surface-base/20',
+                'border border-border-default/50 rounded-lg px-4 py-3 bg-surface-subtle',
                 className,
             )}
         >

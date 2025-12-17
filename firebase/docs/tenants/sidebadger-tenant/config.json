@@ -130,6 +130,7 @@
             "overlay": "rgba(0, 0, 0, 0.5)",
             "warning": "#FEF3C7",
             "muted": "#E8F8EC",
+            "subtle": "#FFFFFF",
             "glass": "rgba(255, 255, 255, 0.85)",
             "glassBorder": "rgba(22, 163, 74, 0.15)",
             "aurora": "rgba(22, 163, 74, 0.03)",

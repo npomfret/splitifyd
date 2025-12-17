@@ -45,11 +45,11 @@ export function ParticipantSelector({ members, participants, paidBy, validationE
                             <label
                                 key={member.uid}
                                 className={`
-                  flex items-center space-x-3 p-3 rounded-lg border cursor-pointer transition-colors bg-surface-raised/50 backdrop-blur-xs
+                  flex items-center space-x-3 p-3 rounded-lg border cursor-pointer transition-colors bg-surface-subtle backdrop-blur-xs
                   ${
                                     isSelected
                                         ? 'border-interactive-primary bg-interactive-primary/5 ring-2 ring-interactive-primary/30'
-                                        : 'border-border-default hover:bg-surface-muted/60 hover:border-interactive-primary/40'
+                                        : 'border-border-default hover:bg-surface-muted hover:border-interactive-primary/40'
                                 }
                   ${isPayer ? 'ring-2 ring-semantic-success/50' : ''}
                 `}

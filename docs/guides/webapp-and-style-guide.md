@@ -24,7 +24,7 @@ Defined in `webapp-v2/src/styles/global.css` using Tailwind v4's `@theme` direct
 
 | Category | Tokens |
 |----------|--------|
-| **Surfaces** | `surface-base`, `surface-muted`, `surface-raised`, `surface-glass` |
+| **Surfaces** | `surface-base`, `surface-muted`, `surface-raised`, `surface-subtle`, `surface-glass` |
 | **Text** | `text-primary`, `text-muted`, `text-inverted` |
 | **Interactive** | `interactive-primary`, `interactive-primary-foreground`, `interactive-secondary`, `interactive-accent` |
 | **Semantic** | `semantic-success`, `semantic-warning`, `semantic-error` |
@@ -414,6 +414,7 @@ Every selector should be **unambiguous**. If multiple elements could match, scop
 | `:root { --color: #fff }` in CSS | Let theme system set variables |
 | `<div onClick={...}>` | `<Clickable onClick={...}>` |
 | `bg-surface-raised/50` on menus | `bg-surface-raised` (opaque) |
+| `bg-surface-base/30`, `bg-surface-raised/50` on list items | `bg-surface-subtle` |
 | Module-level signals | Private class field signals |
 | Hardcoded strings in UI | `t('translation.key')` |
 | `"Loading..."` text | `LoadingSpinner` or `Skeleton*` |
