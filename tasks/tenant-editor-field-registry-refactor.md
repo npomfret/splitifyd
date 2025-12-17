@@ -17,20 +17,19 @@ Adding a new field to the tenant editor requires changes in **5-6 places**:
 Create a field metadata registry that drives types, defaults, transformers, validation, and UI rendering.
 
 ### After This Refactor
-Adding a new field = **1 place** (add entry to FIELD_REGISTRY)
+Adding a new field = **2 places** (registry entry + TenantData interface line) - both in same module, compile-time verified to match
 
 ---
 
 ## Architecture
 
 ```
-FIELD_REGISTRY (single source of truth)
+FIELD_REGISTRY + TenantData interface (co-located, compile-time verified)
        │
-       ├─► TenantData type (inferred/verified)
-       ├─► EMPTY_TENANT_DATA (generated)
-       ├─► Transformers (generic path-based extract/build)
-       ├─► Validation (generated from required flags)
-       └─► Section UI (auto-rendered from registry)
+       ├─► EMPTY_TENANT_DATA (generated from registry defaults)
+       ├─► Transformers (generic path-based extract/build using tokenPath)
+       ├─► Validation (generated from registry required flags)
+       └─► Section UI (auto-rendered via FieldRenderer + AutoSection)
 ```
 
 ---
@@ -141,17 +140,14 @@ export const SECTION_CONFIG: SectionConfig[] = [
 
 ---
 
-### Phase 4: Migration
+### Phase 4: Wire It Up
 
-1. **Create field-registry module** with all 160 field definitions
-2. **Add type safety check** - compile-time assertion registry keys match TenantData
-3. **Replace transformers.ts** - swap to generic path-based functions
-4. **Replace defaults.ts** - swap to generated defaults
-5. **Replace validation.ts** - swap to generated validation
-6. **Create AutoSection** - test with one section (e.g., surfaces)
-7. **Migrate sections incrementally** - one at a time, keeping old code working
-8. **Update TenantEditorModal** - use AutoSection components
-9. **Delete old section files** - once all migrated
+1. **Run bootstrap script** → generates initial registry entries
+2. **Create field-registry module** with types, registry, defaults, transformers, validation
+3. **Create auto-rendering components** - FieldRenderer, AutoSection, DomainList
+4. **Update TenantEditorModal** → use AutoSection components
+5. **Delete old code** - section components, old transformers/defaults/validation
+6. **Build & test** → done
 
 ---
 
@@ -190,10 +186,27 @@ export const SECTION_CONFIG: SectionConfig[] = [
 | `types.ts` | Add registry key exhaustiveness check |
 | `TenantEditorModal.tsx` | Use AutoSection instead of 15 manual imports |
 
-## Files to Eventually Delete
+## Files to Delete
 
-- `sections/SurfaceColorsSection.tsx` (and other simple color sections)
-- Most repetitive section components once AutoSection handles them
+Old infrastructure (replaced by field-registry module):
+- `defaults.ts`
+- `transformers.ts`
+- `validation.ts`
+
+Old section components (replaced by AutoSection):
+- `sections/SurfaceColorsSection.tsx`
+- `sections/TextColorsSection.tsx`
+- `sections/BorderColorsSection.tsx`
+- `sections/StatusColorsSection.tsx`
+- `sections/InteractiveColorsSection.tsx`
+- `sections/PaletteColorsSection.tsx` (keep derivation UI as custom component)
+- `sections/TypographySection.tsx`
+- `sections/SpacingSection.tsx`
+- `sections/RadiiSection.tsx`
+- `sections/ShadowsSection.tsx`
+- `sections/MotionEffectsSection.tsx`
+- `sections/AuroraGradientSection.tsx`
+- `sections/GlassmorphismSection.tsx`
 
 ---
 
@@ -201,48 +214,43 @@ export const SECTION_CONFIG: SectionConfig[] = [
 
 | Metric | Before | After |
 |--------|--------|-------|
-| Places to add new field | 5-6 files | 1 file (registry) |
+| Places to add new field | 5-6 files | 2 lines (registry + interface, same module) |
 | Lines of transformer code | ~350 | ~50 |
 | Lines per color section | ~50-100 | 0 (auto-generated) |
-| Error potential | High (sync issues) | Low (type-safe) |
+| Error potential | High (manual sync) | Low (compile-time verified) |
 | Documentation needed | High | Low (structure enforces correctness) |
 
 ---
 
 ## Progress
 
-### Phase 1: Field Registry Module
-- [ ] Create `field-types.ts` with type definitions
-- [ ] Create `registry.ts` with all 160+ field entries
-- [ ] Create `defaults.ts` with generated defaults
-- [ ] Create `transformers.ts` with generic extract/build
-- [ ] Create `validation.ts` with generated validation
-- [ ] Create `index.ts` with public exports
-- [ ] Add type safety exhaustiveness check
+### Phase 1: Bootstrap & Registry
+- [ ] Write bootstrap script to generate initial registry from existing code
+- [ ] Create `field-registry/field-types.ts` with FieldDef discriminated union
+- [ ] Create `field-registry/registry.ts` with all field entries (from bootstrap output)
+- [ ] Add TenantData interface with exhaustiveness check against registry
+- [ ] Create `field-registry/defaults.ts` - generateDefaults() from registry
+- [ ] Create `field-registry/transformers.ts` - generic getByPath/setByPath extract/build
+- [ ] Create `field-registry/validation.ts` - generated from registry required flags
+- [ ] Create `field-registry/index.ts` exports
 
-### Phase 2: Auto-Rendering Components
-- [ ] Create `FieldRenderer.tsx`
-- [ ] Create `AutoSection.tsx`
-- [ ] Create `ColorArrayField.tsx`
-- [ ] Create `section-config.ts`
+### Phase 2: Auto-Rendering UI
+- [ ] Create `components/FieldRenderer.tsx` - renders by field.type
+- [ ] Create `components/AutoSection.tsx` - renders section from registry
+- [ ] Create `components/ColorArrayField.tsx` - aurora gradient handler
+- [ ] Create `components/DomainList.tsx` - domain management with normalization
+- [ ] Create `section-config.ts` - section metadata (title, description, gridCols, conditions)
 
-### Phase 3: Migration
-- [ ] Test AutoSection with surfaces section
-- [ ] Migrate remaining color sections
-- [ ] Update TenantEditorModal
-- [ ] Delete redundant section files
+### Phase 3: Replace & Delete
+- [ ] Update `TenantEditorModal.tsx` to use AutoSection components
+- [ ] Delete old section components (SurfaceColorsSection, TextColorsSection, etc.)
+- [ ] Delete old defaults.ts, transformers.ts, validation.ts
+- [ ] Build passes, tests pass
 
-### Phase 4: Verification
-- [ ] Build passes
-- [ ] Tenant editor tests pass
-- [ ] Visual verification in browser
-
-### Phase 5: Modal Simplification (Post-Registry)
-- [ ] Extract `useTenantEditorForm` hook - owns load/copy logic, mode switching, domain normalization, success/error messages, save/publish flows
-- [ ] Extract `DomainList` component - encapsulates normalization (regex, lowercasing, port stripping), removes ad-hoc newDomain state
-- [ ] Create `tenantEditorService` - wraps adminUpsertTenant, publishTenantTheme, uploads; modal calls service.save()/publish()
-- [ ] i18n audit - move all hardcoded strings in palette, header, logo sections to translation.json
-- [ ] Extract `AdminFieldGroup` + `RequiredPill` primitives for consistent section layout
+### Phase 4: Modal Cleanup
+- [ ] Extract `useTenantEditorForm` hook for state/effects orchestration
+- [ ] Create `tenantEditorService` for API calls
+- [ ] i18n audit - move hardcoded strings to translation.json
 
 ---
 
@@ -253,6 +261,30 @@ High - comprehensive refactor touching core tenant editor infrastructure. No use
 
 ## Implementation Notes
 
-- **Bootstrap script**: Write a one-off script to generate initial `FIELD_REGISTRY` from existing `defaults.ts` and `transformers.ts` - faster than manual transcription
-- **Exhaustiveness checks**: Compile-time assertion that registry keys === keyof TenantData (catches drift)
-- **Delete old code immediately**: No parallel implementations - replace and delete in same commit
+### Type Strategy
+Keep manual `TenantData` interface (TypeScript can't infer complex types from runtime arrays). Add compile-time exhaustiveness check:
+```typescript
+// Fails to compile if registry keys don't match interface keys
+type AssertExhaustive<T extends keyof TenantData> = T;
+type RegistryKeys = typeof FIELD_REGISTRY[number]['key'];
+type _Check = AssertExhaustive<RegistryKeys>;
+```
+
+### Bootstrap Script
+Parse existing `defaults.ts` and `transformers.ts` to emit initial registry entries. Faster than manual transcription of 160 fields.
+
+### Path Utilities
+```typescript
+function getByPath(obj: any, path: string): any {
+  return path.split('.').reduce((cur, key) => cur?.[key], obj);
+}
+function setByPath(obj: any, path: string, value: any): void {
+  const keys = path.split('.');
+  const last = keys.pop()!;
+  const target = keys.reduce((cur, k) => (cur[k] ??= {}), obj);
+  target[last] = value;
+}
+```
+
+### Delete Old Code
+No parallel implementations. Replace and delete in same commit - tests are the safety net.
