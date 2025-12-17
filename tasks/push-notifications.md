@@ -12,8 +12,8 @@ This should complement (not replace) the existing real-time refresh mechanism (A
 
 | Requirement | Decision |
 |-------------|----------|
-| **Platforms** | Desktop web (Chrome/Firefox/Edge/Safari), Android web. **iOS PWA NOT supported** (see Platform Limitations). |
-| **Events** | All mutations (expenses, settlements, comments, members) |
+| **Platforms** | Desktop web (Chrome/Firefox/Edge/Safari), Android web. iOS is out of scope (not supported). |
+| **Events** | All relevant mutations (see Event Scope) |
 | **Deep linking** | Yes - notification click navigates to specific group/expense |
 | **Granularity** | Global on/off toggle only (no per-group/per-type controls) |
 
@@ -25,11 +25,11 @@ This should complement (not replace) the existing real-time refresh mechanism (A
 
 **Supported:**
 - Chrome / Edge / Firefox (desktop and Android) - solid support
-- Safari (desktop macOS) - supported via Web Push API
+- Safari (desktop macOS) - Web Push is supported (but **needs a feasibility check with FCM**)
 - Android Chrome PWA - works well
 
-**NOT Supported (Critical Limitation):**
-- **iOS Safari / iOS PWA** - iOS does NOT expose the Web Push API to PWAs. This is a hard platform limitation with no Firebase workaround. The only path to iOS push is wrapping in a native app shell (Capacitor/Cordova), which is out of scope.
+**Not supported (out of scope):**
+- **iOS** - out of scope by product decision for now (treat as “not supported” in UI and docs).
 
 **Constraints:**
 - HTTPS required (localhost allowed for dev)
@@ -43,6 +43,16 @@ From official Firebase docs:
 - VAPID key required - generate via Firebase Console → Cloud Messaging → Web Push certificates
 - FCM SDK supported only on pages served over HTTPS
 - For SDK 6.7.0+, enable FCM Registration API in Google Cloud Console
+
+### Repo Reality Checks (Important)
+
+- The webapp navigates via hashes for sections, not query params:
+  - `#settlements`, `#comments`, `#activity` are used in `webapp-v2/src/pages/GroupDetailPage.tsx`.
+- Expense detail route exists and is already used by the Activity Feed UI:
+  - `/groups/{groupId}/expenses/{expenseId}`.
+- The client config endpoint is effectively `/api/config` (the backend route is `/config`, but hosting rewrites prefix `/api`).
+- Firebase Hosting `public` is a symlink to `webapp-v2/dist` in dev (`firebase/public -> ../webapp-v2/dist`).
+  - Putting `firebase-messaging-sw.js` in `webapp-v2/public/` will land at the hosting root after a Vite build (correct).
 
 ### Token Lifecycle (from Firebase docs)
 
@@ -142,6 +152,19 @@ Consulted The Expert on architecture. Key findings:
 └─────────────────────────────────────────────────────────────────┘
 ```
 
+### Event Scope (Clarify Before Implementing)
+
+The existing Activity Feed has more event types than the “expenses/settlements/comments/members” bucket:
+- Group: `group-created`, `group-updated`, `group-locked`, `group-unlocked`, `permissions-updated`
+- Members: `member-joined`, `member-left`, `member-role-changed`
+- Transactions: `expense-*`, `settlement-*`
+- Comments: `comment-added`
+- Reactions: `reaction-added`, `reaction-removed`
+
+Decisions needed:
+- Whether to include “high-noise” events like `reaction-*` and `permissions-updated` in push notifications.
+- If reactions are in-scope, activity details currently lack enough identifiers to deep-link reliably (see Prerequisites / Known Gaps).
+
 ### Data Model (Firestore)
 
 **Path:** `users/{userId}/pushTokens/{tokenId}`
@@ -159,17 +182,25 @@ Consulted The Expert on architecture. Key findings:
 
 **Firestore Security Rules:** Only authenticated user can read/write their own `pushTokens` subcollection.
 
+**Additional recommended fields (to support a global toggle + ops):**
+- `enabled`: boolean (or store `pushNotificationsEnabled` on `users/{userId}` and gate sends server-side)
+- `deviceId` or `installationId`: string (optional, helps reconcile token churn)
+
 ### Topic Subscriptions (for group broadcasts)
 
 When user joins group → subscribe to `/topics/group_{groupId}`
 When user leaves group → unsubscribe from `/topics/group_{groupId}`
 
+**Important sync edge cases (if using topics):**
+- On *token registration*, subscribe that token to *all current groups* (otherwise broadcasts won’t reach that device until the user re-joins groups).
+- On *group leave*, unsubscribe *all* of the user’s tokens (not just the “current device” token).
+
 ### API Endpoints
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/me/push-tokens` | POST | Register/update FCM token |
-| `/me/push-tokens/:tokenId` | DELETE | Unregister token |
+| `/user/push-tokens` | POST | Register/update FCM token |
+| `/user/push-tokens/:tokenId` | DELETE | Unregister token |
 
 ### Notification Payload Structure
 
@@ -194,17 +225,40 @@ interface NotificationPayload {
 
 | Event Type | Deep Link |
 |------------|-----------|
-| expense-created/updated/deleted | `/groups/{groupId}/expenses/{expenseId}` |
-| settlement-created/updated/deleted | `/groups/{groupId}?tab=settlements` |
-| comment-added | `/groups/{groupId}?tab=activity` |
-| member-joined/left | `/groups/{groupId}?tab=members` |
-| group-updated | `/groups/{groupId}` |
+| expense-created/updated | `/groups/{groupId}/expenses/{expenseId}` |
+| expense-deleted | `/groups/{groupId}` |
+| settlement-created/updated | `/groups/{groupId}#settlements` |
+| settlement-deleted | `/groups/{groupId}#settlements` (or `/groups/{groupId}`) |
+| comment-added (on expense) | `/groups/{groupId}/expenses/{expenseId}` |
+| comment-added (on group) | `/groups/{groupId}#comments` |
+| member-joined/left, group-updated, group-locked/unlocked, permissions-updated | `/groups/{groupId}` |
 
 ---
 
 ## Implementation Plan
 
 **Testing approach:** Tests are written alongside code in each phase, not as a separate final step.
+
+### Phase 0: Feasibility / POC (Must Do First)
+
+**Goal:** avoid building the whole pipeline before we know it works on target browsers.
+
+- Validate that **FCM Web push works on macOS Safari** for the minimum supported Safari version (if not, either drop Safari push or implement standards-based Web Push for Safari separately).
+- Validate CSP/hosting constraints for `firebase-messaging-sw.js`:
+  - Our Hosting CSP headers currently apply to `**/*.html` and `assets/**/*.js`, but a root `firebase-messaging-sw.js` would not get the same CSP header.
+  - Confirm whether the chosen SW implementation relies on `importScripts()` from external origins and whether we need to adjust hosting headers.
+
+Output of this phase should be a clear decision:
+- ✅ “FCM-only is sufficient for Chrome/Firefox/Edge + Safari”
+- or ✅ “FCM for Chromium/Firefox, Web Push for Safari”
+- or ✅ “Drop Safari push”
+
+### Phase 0.5: Prerequisites / Known Gaps
+
+- Backend `ActivityFeedDocumentSchema` currently does **not** include reaction detail fields (`reactionEmoji`, `reactableResourceType`), but `ReactionService` writes them.
+  - This can cause activity feed reads to skip invalid documents (and would also affect notification triggers if we validate payloads).
+  - Decide whether to (a) add these fields to the schema, and (b) include reactions in push notification scope.
+- Reaction activity items currently don’t include target IDs for deep linking (expense/comment/settlement id), so notifications cannot navigate meaningfully without enriching the activity details.
 
 ### Phase 1: Backend Token Storage + API
 
@@ -271,6 +325,11 @@ export const onActivityFeedItemCreated = onDocumentCreated(
 );
 ```
 
+**Idempotency note:** Firestore triggers can retry; add a dedupe mechanism to prevent duplicate pushes
+- Example approaches:
+  - Write a separate “delivery marker” doc keyed by `{userId}:{itemId}` and short-circuit if it exists.
+  - Or update the activity item with a `pushSentAt`/`pushAttemptedAt` (requires schema + rules updates).
+
 **Tests (written with the code):**
 - `firebase/functions/src/__tests__/unit/triggers/activity-feed-notification.test.ts`
   - Trigger fires on activity feed document creation
@@ -298,7 +357,7 @@ export const onActivityFeedItemCreated = onDocumentCreated(
 **Modify:**
 - `firebase/functions/.env.instance*` - Add `__CLIENT_VAPID_KEY`
 - `firebase/functions/src/app-config.ts` - Read VAPID key
-- `packages/shared/src/shared-types.ts` - Add `vapidKey` to `FirebaseConfig`
+- `packages/shared/src/shared-types.ts` - Add `vapidKey` (or `fcmVapidKey`) to `FirebaseConfig`
 
 ### Phase 6: Frontend Service Worker + Client
 
@@ -359,7 +418,7 @@ export const onActivityFeedItemCreated = onDocumentCreated(
 
 | Question | Resolution |
 |----------|------------|
-| iOS PWA support | **Not supported** - hard platform limitation |
+| iOS support | **Not supported (for now)** - product decision |
 | Hook location | **Firestore trigger** - decoupled from ActivityFeedService |
 | Multi-tenant FCM | **Single project** with data messages |
 | Service worker config | **Fetch from `/api/config`** or postMessage |
@@ -382,6 +441,8 @@ export const onActivityFeedItemCreated = onDocumentCreated(
 - [x] User requirements clarified
 - [x] The Expert consulted
 - [x] Firebase docs reviewed
+- [ ] Phase 0: Feasibility / POC
+- [ ] Phase 0.5: Prerequisites / Known Gaps
 - [ ] Implementation Phase 1: Token Storage + API
 - [ ] Implementation Phase 2: Notification Sender
 - [ ] Implementation Phase 3: Firestore Trigger
