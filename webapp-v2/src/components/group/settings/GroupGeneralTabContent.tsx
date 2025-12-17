@@ -161,8 +161,8 @@ export function GroupGeneralTabContent({
 
             {/* Group Locking Section */}
             {lockSettings && (
-                <div className='space-y-4 pt-4 border-t border-border-default'>
-                    <h3 className='text-sm font-medium text-text-primary'>
+                <div className='space-y-4 pt-4 border-t border-border-default' role='group' aria-labelledby='group-locking-heading'>
+                    <h3 id='group-locking-heading' className='text-sm font-medium text-text-primary'>
                         {t('group.locked.sectionTitle')}
                     </h3>
 

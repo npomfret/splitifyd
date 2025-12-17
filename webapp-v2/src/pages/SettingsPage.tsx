@@ -377,7 +377,7 @@ export function SettingsPage() {
                         </Card>
 
                         <div className='space-y-6'>
-                            <Card padding='lg'>
+                            <Card padding='lg' ariaLabel={t('settingsPage.profileInformationHeader')}>
                                 <div className='space-y-6'>
                                     <div className='flex items-center gap-1.5'>
                                         <Typography variant='heading'>{t('settingsPage.profileInformationHeader')}</Typography>
@@ -443,7 +443,7 @@ export function SettingsPage() {
                                 </div>
                             </Card>
 
-                            <Card padding='lg'>
+                            <Card padding='lg' ariaLabel={t('settingsPage.emailSectionTitle')}>
                                 <div className='space-y-6'>
                                     <div className='flex items-center gap-1.5'>
                                         <Typography variant='heading'>{t('settingsPage.emailSectionTitle')}</Typography>
@@ -531,7 +531,7 @@ export function SettingsPage() {
                                 </div>
                             </Card>
 
-                            <Card padding='lg'>
+                            <Card padding='lg' ariaLabel={t('settingsPage.passwordHeader')}>
                                 <div className='space-y-6'>
                                     <div className='flex items-center gap-1.5'>
                                         <Typography variant='heading'>{t('settingsPage.passwordHeader')}</Typography>
@@ -635,7 +635,7 @@ export function SettingsPage() {
                                 </div>
                             </Card>
 
-                            <Card padding='lg'>
+                            <Card padding='lg' ariaLabel={t('languageSelector.label')}>
                                 <div className='space-y-6'>
                                     <div className='flex items-center gap-1.5'>
                                         <Typography variant='heading'>{t('languageSelector.label')}</Typography>

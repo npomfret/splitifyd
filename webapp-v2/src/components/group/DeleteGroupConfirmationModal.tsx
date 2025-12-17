@@ -32,11 +32,11 @@ export function DeleteGroupConfirmationModal({
             onClose={isDeleting ? undefined : onCancel}
             size='sm'
             className='max-w-md'
-            ariaLabel={t('editGroupModal.deleteConfirmDialog.title')}
+            labelledBy='delete-group-confirmation-title'
         >
             <div>
                 <ModalHeader>
-                    <h3 className='text-lg font-semibold text-semantic-error flex items-center'>
+                    <h3 id='delete-group-confirmation-title' className='text-lg font-semibold text-semantic-error flex items-center'>
                         <ExclamationTriangleIcon className='w-5 h-5 mr-2' aria-hidden='true' />
                         {t('editGroupModal.deleteConfirmDialog.title')}
                     </h3>

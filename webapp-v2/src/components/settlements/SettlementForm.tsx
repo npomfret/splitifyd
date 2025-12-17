@@ -425,9 +425,9 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
             <ModalContent>
                 {/* Quick Settlement Buttons - only show in create mode when not pre-filled from balances */}
                 {!editMode && !preselectedDebt && quickSettleDebts.value.length > 0 && (
-                    <div className='mb-4 pb-4 border-b border-border-default'>
+                    <div className='mb-4 pb-4 border-b border-border-default' role='group' aria-label={t('settlementForm.quickSettleLabel')}>
                         <label className='block text-sm font-medium text-text-primary mb-2 text-center'>
-                            Quick settle:
+                            {t('settlementForm.quickSettleLabel')}
                         </label>
                         <div className='flex flex-wrap gap-2 justify-center'>
                             {quickSettleDebts.value.map((debt: SimplifiedDebt) => {

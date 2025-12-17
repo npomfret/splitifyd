@@ -4,7 +4,7 @@
 
 - [x] **Phase 1**: Fix CSS class/XPath selectors in high-priority files (ExpenseDetailPage, AdminPage, HeaderPage, PolicyAcceptanceModalPage, LeaveGroupDialogPage)
 - [x] **Phase 2**: Replace hardcoded English strings with translation keys
-- [ ] **Phase 3**: Webapp semantic markup additions (aria-labelledby, named regions)
+- [x] **Phase 3**: Webapp semantic markup additions (aria-labelledby, named regions)
 - [ ] **Phase 4**: Remaining POM updates
 - [ ] **Phase 5**: Fix regex OR alternation patterns (see below)
 
