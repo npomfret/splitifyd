@@ -204,15 +204,17 @@ interface NotificationPayload {
 
 ## Implementation Plan
 
+**Testing approach:** Tests are written alongside code in each phase, not as a separate final step.
+
 ### Phase 1: Backend Token Storage + API
 
-**Files to create:**
+**Create:**
 - `firebase/functions/src/schemas/push-token.ts` - Zod schema
 - `firebase/functions/src/services/PushTokenService.ts` - Token CRUD
 - `firebase/functions/src/push-notifications/PushTokenHandlers.ts` - API handlers
 - `firebase/functions/src/push-notifications/validation.ts` - Request validation
 
-**Files to modify:**
+**Modify:**
 - `packages/shared/src/shared-types.ts` - Add DTOs
 - `packages/shared/src/api.ts` - Add API methods
 - `packages/shared/src/schemas/apiSchemas.ts` - Add response schema
@@ -221,18 +223,37 @@ interface NotificationPayload {
 - `firebase/functions/src/ApplicationFactory.ts` - Register handlers
 - `firebase/firestore.rules` - Add rules for pushTokens subcollection
 
+**Tests (written with the code):**
+- `firebase/functions/src/__tests__/unit/api/push-token.test.ts`
+  - Register token stores document for authenticated user
+  - Duplicate token upserts (not duplicates)
+  - Unregister deletes document
+  - Unauthorized returns 401
+
 ### Phase 2: Notification Sending Infrastructure
 
-**Files to create:**
+**Create:**
 - `firebase/functions/src/services/notifications/INotificationSender.ts` - Interface
 - `firebase/functions/src/services/notifications/FcmNotificationSender.ts` - FCM implementation
 - `firebase/functions/src/services/notifications/MockNotificationSender.ts` - Test mock
 - `firebase/functions/src/services/notifications/notification-payload-builder.ts` - Payload construction
 
+**Tests (written with the code):**
+- `firebase/functions/src/__tests__/unit/services/notification-sender.test.ts`
+  - Sends to correct users
+  - Excludes actor from notifications
+  - Groups tokens by tenant for branding
+  - Handles empty user list gracefully
+  - Handles FCM failures without throwing
+  - Removes stale tokens on FCM error
+
 ### Phase 3: Firestore Trigger for Notifications
 
-**Files to create:**
+**Create:**
 - `firebase/functions/src/triggers/activity-feed-notification-trigger.ts` - onCreate trigger
+
+**Modify:**
+- `firebase/functions/src/index.ts` - Export trigger
 
 **Pattern:**
 ```typescript
@@ -250,10 +271,21 @@ export const onActivityFeedItemCreated = onDocumentCreated(
 );
 ```
 
+**Tests (written with the code):**
+- `firebase/functions/src/__tests__/unit/triggers/activity-feed-notification.test.ts`
+  - Trigger fires on activity feed document creation
+  - Skips notification when actor === recipient
+  - Builds correct deep link for each event type
+
 ### Phase 4: Topic Subscription Management
 
-**Files to modify:**
+**Modify:**
 - `firebase/functions/src/services/GroupMemberService.ts` - Subscribe on join, unsubscribe on leave
+
+**Tests (add to existing):**
+- Add cases to `firebase/functions/src/__tests__/unit/api/group-member.test.ts`
+  - Subscribes user to topic on group join
+  - Unsubscribes user from topic on group leave
 
 ### Phase 5: Configuration (VAPID Key)
 
@@ -263,62 +295,48 @@ export const onActivityFeedItemCreated = onDocumentCreated(
 # Or generate locally: npx web-push generate-vapid-keys
 ```
 
-**Files to modify:**
+**Modify:**
 - `firebase/functions/.env.instance*` - Add `__CLIENT_VAPID_KEY`
 - `firebase/functions/src/app-config.ts` - Read VAPID key
 - `packages/shared/src/shared-types.ts` - Add `vapidKey` to `FirebaseConfig`
 
 ### Phase 6: Frontend Service Worker + Client
 
-**Files to create:**
+**Create:**
 - `webapp-v2/public/firebase-messaging-sw.js` - Service worker
 - `webapp-v2/public/manifest.json` - PWA manifest (for Android PWA)
 - `webapp-v2/src/app/services/push-notification-service.ts` - Client-side FCM wrapper
 
-**Files to modify:**
+**Modify:**
 - `webapp-v2/index.html` - Link manifest
 - `webapp-v2/src/pages/SettingsPage.tsx` - Add notifications toggle
 - `webapp-v2/src/app/apiClient.ts` - Add token registration methods
 - `webapp-v2/locales/en/translation.json` - Add i18n strings
 
-### Phase 7: Testing
-
-**Unit tests to create:**
-- `firebase/functions/src/__tests__/unit/api/push-token.test.ts`
-- `firebase/functions/src/__tests__/unit/services/notification-sender.test.ts`
-- `firebase/functions/src/__tests__/unit/triggers/activity-feed-notification.test.ts`
-
-**Playwright tests:**
+**Tests (written with the code):**
 - `webapp-v2/src/__tests__/integration/playwright/notification-settings.test.ts`
+  - Toggle visible when browser supports push
+  - Toggle hidden when not supported
+  - Permission denied shows warning with guidance
+  - iOS shows "not supported" message
 
 ---
 
 ## Testing Strategy
 
+**Principle:** Tests are written alongside code in each phase, not as a separate final step.
+
 ### Server-Side (Unit Tests)
 
-| Test | Description |
-|------|-------------|
-| Token registration | Stores document for authenticated user |
-| Token upsert | Existing token updates instead of duplicates |
-| Token deletion | Removes document |
-| Unauthorized access | Returns 401 |
-| Notification trigger | Fires on activity feed write, excludes actor |
-| Stale token cleanup | Removes tokens on FCM error response |
-| Topic subscription | Subscribe/unsubscribe on join/leave |
-
-**Mock `NotificationSender`** - no real FCM calls in tests.
+- Use `MockNotificationSender` - no real FCM calls in tests
+- Tests live in `firebase/functions/src/__tests__/unit/`
+- Each phase includes its test file(s)
 
 ### Client-Side (Playwright)
 
-| Test | Description |
-|------|-------------|
-| Toggle visible | Shows when browser supports push |
-| Toggle hidden | Hidden when not supported |
-| Permission denied | Shows warning with guidance |
-| Registration | Calls API on enable |
-
-**Do NOT test real push delivery** - environment-dependent and flaky.
+- Test settings UI behavior, not real push delivery
+- Mock API responses for token registration
+- Do NOT test real push delivery - environment-dependent and flaky
 
 ---
 
