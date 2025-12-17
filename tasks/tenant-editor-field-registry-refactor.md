@@ -247,4 +247,12 @@ export const SECTION_CONFIG: SectionConfig[] = [
 ---
 
 ## Effort
-High - comprehensive refactor touching core tenant editor infrastructure. Recommend incremental migration with old/new code coexisting during transition.
+High - comprehensive refactor touching core tenant editor infrastructure. No users/data to worry about, so do it all at once.
+
+---
+
+## Implementation Notes
+
+- **Bootstrap script**: Write a one-off script to generate initial `FIELD_REGISTRY` from existing `defaults.ts` and `transformers.ts` - faster than manual transcription
+- **Exhaustiveness checks**: Compile-time assertion that registry keys === keyof TenantData (catches drift)
+- **Delete old code immediately**: No parallel implementations - replace and delete in same commit
