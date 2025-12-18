@@ -36,6 +36,42 @@ Implement email delivery using Postmark (https://postmarkapp.com) as the transac
 - Email queue for high-volume scenarios
 - Development/testing without sending real emails
 
+## Decisions (Secrets + Config)
+
+- **Secrets store:** Google Secret Manager (GCP).
+- **Secret ID convention:** `postmark-api-key.<postmarkServerName>` (each key corresponds to a Postmark "Server").
+  - Note: some Secret Manager configurations may reject `.` in secret IDs; if this becomes an issue, use an override via script (`--secret-id=...`) and keep the `<postmarkServerName>` mapping stable.
+- **Env convention:** each Firebase instance `.env.instance*` provides `postmark-servername=<postmarkServerName>` (the app uses this logical name to locate the secret).
+- **Current configured Postmark server:** `blackhole` only (all emails should route to Postmark "blackhole" behavior).
+
+## Script: Add API key secret
+
+- Add/update a Postmark server token in Secret Manager:
+  - `firebase/scripts/firebase/add-postmark-api-key-secret.ts`
+  - Uses `firebase/service-account-key.json` to resolve `project_id` by default.
+
+## Plan (Incremental)
+
+### Phase 1: Secrets + Instance Config (small)
+
+- [x] Define secret ID convention: `postmark-api-key.<postmarkServerName>`
+- [x] Define env convention: `.env.instance*` contains `postmark-servername=<postmarkServerName>`
+- [x] Add script to upsert secret + add new version: `firebase/scripts/firebase/add-postmark-api-key-secret.ts`
+- [ ] Decide how instance selection affects secrets (future): demo/prod/staging mapping and whether each uses distinct projects or distinct secret names
+
+### Phase 2: Backend Email Abstraction (medium)
+
+- [ ] Add `IEmailService` interface in `firebase/functions/src/services/email/IEmailService.ts`
+- [ ] Add `FakeEmailService` for unit tests
+- [ ] Add `PostmarkEmailService` (REST API) reading token from Secret Manager
+- [ ] Wire `IEmailService` in `firebase/functions/src/services/ComponentBuilder.ts` (Fake in unit tests, Postmark otherwise)
+
+### Phase 3: Sending + Observability (medium)
+
+- [ ] Integrate `IEmailService` into the first real email use-case (pick one: group invites or auth email flows)
+- [ ] Add targeted unit test(s) asserting expected email “send” via `FakeEmailService`
+- [ ] Add delivery event tracking hooks (webhook ingestion) and persistence strategy (TBD)
+
 ## Implementation Plan (REST API Focused)
 
 The primary integration method will be the Postmark REST API, focusing on a robust, testable, and secure abstraction.
